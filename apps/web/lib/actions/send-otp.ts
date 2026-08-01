@@ -1,11 +1,11 @@
 "use server";
 
 import { getIP } from "@/lib/api/utils/get-ip";
+import { isEmailDomainBlocked } from "@/lib/email/is-email-domain-blocked";
 import { prisma } from "@/lib/prisma";
-import { ratelimit, redis } from "@/lib/upstash";
+import { ratelimit } from "@/lib/upstash";
 import { sendEmail } from "@dub/email";
 import VerifyEmail from "@dub/email/templates/verify-email";
-import { get } from "@vercel/edge-config";
 import { flattenValidationErrors } from "next-safe-action";
 import * as z from "zod/v4";
 import { generateOTP } from "../auth";
@@ -39,38 +39,10 @@ export const sendOtpAction = actionClient
     }
 
     const isGenericEmailWithPlus = email.includes("+") && isGenericEmail(email);
-
-    const emailDomain = (email.split("@")[1] ?? "").trim().toLowerCase();
-
-    const [isDisposable, emailDomainTerms] = await Promise.all([
-      redis.sismember("disposableEmailDomains", emailDomain),
-      process.env.EDGE_CONFIG ? get("emailDomainTerms") : [],
-    ]);
-
-    const escapedDomainTerms =
-      emailDomainTerms && Array.isArray(emailDomainTerms)
-        ? emailDomainTerms
-            .map((term: string) =>
-              String(term)
-                .trim()
-                .toLowerCase()
-                .replace(/[.*+?^${}()|[\]\\]/g, "\\$&"),
-            )
-            .filter((term) => term.length > 0)
-        : [];
-
-    const blacklistedEmailDomainTermsRegex =
-      escapedDomainTerms.length > 0
-        ? new RegExp(escapedDomainTerms.join("|"))
-        : null;
+    const emailDomainBlocked = await isEmailDomainBlocked(email);
 
     // if any of the flags match, run one final edge case check, before throwing an error
-    if (
-      isGenericEmailWithPlus ||
-      isDisposable ||
-      (blacklistedEmailDomainTermsRegex &&
-        blacklistedEmailDomainTermsRegex.test(emailDomain))
-    ) {
+    if (isGenericEmailWithPlus || emailDomainBlocked) {
       // edge case: the user already has a partner account on Dub with this email address,
       // or they have an existing application for a program, we can allow them to continue
       const [isPartnerAccount, hasExistingApplications] = await Promise.all([

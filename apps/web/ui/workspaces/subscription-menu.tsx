@@ -139,6 +139,10 @@ export default function SubscriptionMenu() {
     }
   };
 
+  if (plan === "enterprise") {
+    return null;
+  }
+
   return (
     <>
       <PlanChangeConfirmationModal />
@@ -155,18 +159,16 @@ export default function SubscriptionMenu() {
                 onSelect={() => openBillingPortal()}
                 disabledTooltip={permissionsError}
               />
-              {plan !== "enterprise" && (
-                <MenuItem
-                  icon={SquareXmark}
-                  label="Cancel subscription"
-                  onSelect={handleCancelSubscription}
-                  disabledTooltip={
-                    subscriptionCanceledAt
-                      ? "Your subscription has already been scheduled for cancellation."
-                      : permissionsError
-                  }
-                />
-              )}
+              <MenuItem
+                icon={SquareXmark}
+                label="Cancel subscription"
+                onSelect={handleCancelSubscription}
+                disabledTooltip={
+                  subscriptionCanceledAt
+                    ? "Your subscription has already been scheduled for cancellation."
+                    : permissionsError
+                }
+              />
             </Command.List>
           </Command>
         }

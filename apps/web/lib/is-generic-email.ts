@@ -85,20 +85,33 @@ const GENERIC_EMAIL_DOMAIN_PREFIXES = [
 ];
 
 const GENERIC_EMAIL_DOMAIN_SUFFIXES = [
-  ".edu.pl",
-  ".edu.rs",
   ".top",
+  ".info",
   ".cfd",
   ".cyou",
   ".icu",
   ".xxx",
   ".sbs",
+  ".lol",
+  ".lat",
   ".click",
   ".digital",
   ".pro",
-  ".lol",
   ".monster",
   ".buzz",
+  ".cc.cd",
+  ".ccwu.cc",
+  ".de5.net",
+  ".dickdns.org",
+  ".duckdns.org",
+  ".edu.pl",
+  ".edu.rs",
+  ".eu.cc",
+  ".eu.org",
+  ".us.ci",
+  ".my.uy",
+  ".qzz.io",
+  ".sdfe.app",
 ];
 
 export const isGenericEmail = (email: string) => {

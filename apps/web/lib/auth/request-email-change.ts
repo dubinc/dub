@@ -5,10 +5,12 @@ import { waitUntil } from "@vercel/functions";
 import { randomBytes } from "crypto";
 import { hashToken } from ".";
 import { DubApiError } from "../api/errors";
+import { isEmailDomainBlocked } from "../email/is-email-domain-blocked";
+import { isGenericEmail } from "../is-generic-email";
 import { ratelimit, redis } from "../upstash";
 
 // Send the OTP to confirm the email address change for existing users/partners
-export const confirmEmailChange = async ({
+export const requestEmailChange = async ({
   email,
   newEmail,
   identifier,
@@ -46,6 +48,16 @@ export const confirmEmailChange = async ({
     });
   }
 
+  const isGenericEmailWithPlus = email.includes("+") && isGenericEmail(email);
+  const emailDomainBlocked = await isEmailDomainBlocked(newEmail);
+  if (isGenericEmailWithPlus || emailDomainBlocked) {
+    throw new DubApiError({
+      code: "bad_request",
+      message:
+        "Invalid email address – please use your work email instead. If you think this is a mistake, please contact us at dub.co/support",
+    });
+  }
+
   // Remove existing verification tokens
   await prisma.verificationToken.deleteMany({
     where: {
@@ -54,20 +66,21 @@ export const confirmEmailChange = async ({
   });
 
   const token = randomBytes(32).toString("hex");
+  const hashedToken = await hashToken(token, { secret: true });
   const expiresIn = 15 * 60 * 1000;
 
   // Create a new verification token
   await prisma.verificationToken.create({
     data: {
       identifier,
-      token: await hashToken(token, { secret: true }),
+      token: hashedToken,
       expires: new Date(Date.now() + expiresIn),
     },
   });
 
   // Set the email change request in Redis, we'll use this to verify the email change in /auth/confirm-email-change/[token]
   await redis.set(
-    `email-change-request:user:${identifier}`,
+    `email-change-request:token:${hashedToken}`,
     {
       email,
       newEmail,
