@@ -7,7 +7,7 @@ import { generatePartnerLink } from "../api/partners/generate-partner-link";
 import { logImportError } from "../tinybird/log-import-error";
 import { WorkspaceProps } from "../types";
 import { DEFAULT_PARTNER_GROUP } from "../zod/schemas/groups";
-import { TapfiliateClient } from "./api";
+import { TapfiliateClient } from "./client";
 import { TAPFILIATE_MAX_BATCHES, tapfiliateImporter } from "./importer";
 import { TapfiliateImportPayload, TapfiliatePartner } from "./types";
 

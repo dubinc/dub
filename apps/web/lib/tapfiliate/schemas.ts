@@ -19,18 +19,18 @@ export const tapfiliateImportPayloadSchema = z.object({
   startingAfter: z.string().optional(), // Dub pagination
 });
 
-// GET /affiliates/ query
+// GET /affiliates/
 export const tapfiliateListPartnersInputSchema = z.object({
   page: z.number(),
 });
 
-// GET /customers query
+// GET /customers
 export const tapfiliateListCustomersInputSchema = z.object({
   program_id: z.string(),
   page: z.number(),
 });
 
-// GET /conversions/ query
+// GET /conversions/
 export const tapfiliateListConversionsInputSchema = z.object({
   program_id: z.string(),
   page: z.number(),

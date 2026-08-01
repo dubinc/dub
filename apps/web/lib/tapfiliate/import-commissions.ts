@@ -13,7 +13,7 @@ import { recordSaleWithTimestamp } from "../tinybird/record-sale";
 import { LeadEventTB } from "../types";
 import { redis } from "../upstash";
 import { clickEventSchemaTB } from "../zod/schemas/clicks";
-import { TapfiliateClient } from "./api";
+import { TapfiliateClient } from "./client";
 import { TAPFILIATE_MAX_BATCHES, tapfiliateImporter } from "./importer";
 import {
   TapfiliateConversionWithCommission,

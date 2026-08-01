@@ -7,7 +7,7 @@ import {
   DEFAULT_ADDITIONAL_PARTNER_LINKS,
   sanitizeAdditionalLinks,
 } from "../zod/schemas/groups";
-import { TapfiliateClient } from "./api";
+import { TapfiliateClient } from "./client";
 import { tapfiliateImporter } from "./importer";
 import { TapfiliateImportPayload } from "./types";
 

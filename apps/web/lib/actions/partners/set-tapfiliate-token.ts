@@ -1,6 +1,6 @@
 "use server";
 
-import { TapfiliateClient } from "@/lib/tapfiliate/api";
+import { TapfiliateClient } from "@/lib/tapfiliate/client";
 import { tapfiliateImporter } from "@/lib/tapfiliate/importer";
 import { TapfiliateProgram } from "@/lib/tapfiliate/types";
 import * as z from "zod/v4";

@@ -13,7 +13,6 @@ import {
 export class TapfiliateClient extends HttpBaseClient {
   protected readonly vendor = "Tapfiliate";
   protected readonly baseUrl = "https://api.tapfiliate.com/1.6";
-  protected readonly logResponseBodies = false;
 
   private readonly apiKey: string;
 

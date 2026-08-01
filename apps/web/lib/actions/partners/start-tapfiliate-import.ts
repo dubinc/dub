@@ -2,7 +2,7 @@
 
 import { createId } from "@/lib/api/create-id";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
-import { TapfiliateClient } from "@/lib/tapfiliate/api";
+import { TapfiliateClient } from "@/lib/tapfiliate/client";
 import { tapfiliateImporter } from "@/lib/tapfiliate/importer";
 import * as z from "zod/v4";
 import { getProgramOrThrow } from "../../api/programs/get-program-or-throw";
