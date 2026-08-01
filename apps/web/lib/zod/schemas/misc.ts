@@ -33,18 +33,21 @@ export const booleanQuerySchema = z
 export const getPaginationQuerySchema = ({
   pageSize,
   deprecated = false,
+  maxPageSize,
 }: {
   pageSize: number;
   deprecated?: boolean;
+  maxPageSize?: number;
 }) => ({
   page: z.coerce
     .number({ error: "Page must be a number." })
+    .int({ message: "Page must be an integer." })
     .positive({ message: "Page must be greater than 0." })
     .optional()
     .describe(
       deprecated
         ? "DEPRECATED. Use `startingAfter` instead."
-        : "The page number for pagination.",
+        : "The page number for pagination. The first page is `1`.",
     )
     .meta({
       example: 1,
@@ -52,9 +55,10 @@ export const getPaginationQuerySchema = ({
     }),
   pageSize: z.coerce
     .number({ error: "Page size must be a number." })
+    .int({ message: "Page size must be an integer." })
     .positive({ message: "Page size must be greater than 0." })
-    .max(pageSize, {
-      message: `Max page size is ${pageSize}.`,
+    .max(maxPageSize ?? pageSize, {
+      message: `Max page size is ${maxPageSize ?? pageSize}.`,
     })
     .optional()
     .default(pageSize)

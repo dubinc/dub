@@ -74,10 +74,9 @@ function formDataToPartnerLink(
         path: urlObj.pathname + urlObj.search + urlObj.hash,
       };
     } catch {
-      // Fallback if URL parsing fails
       return {
         validationMode: "exact",
-        domain: formData.url,
+        domain: "",
         path: "",
       };
     }

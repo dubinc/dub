@@ -2,9 +2,9 @@ import { DEFAULT_CAMPAIGN_BODY } from "@/lib/api/campaigns/constants";
 import { createId } from "@/lib/api/create-id";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
+import { WorkflowAction, WorkflowCondition } from "@/lib/api/workflows/types";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { WorkflowAction, WorkflowCondition } from "@/lib/types";
 import {
   CampaignSchema,
   createCampaignSchema,

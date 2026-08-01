@@ -48,13 +48,17 @@ export async function getCommissionsCount(filters: CommissionsCountFilters) {
   const groupFilter = parseFilterValue(groupId);
   const partnerTagFilter = parseFilterValue(partnerTagId);
 
-  const statusFilter = status ?? {
-    notIn: [
-      CommissionStatus.duplicate,
-      CommissionStatus.fraud,
-      CommissionStatus.canceled,
-    ],
-  };
+  const statusFilter = status
+    ? status
+    : type || customerId || payoutId || partnerId
+      ? undefined
+      : {
+          notIn: [
+            CommissionStatus.duplicate,
+            CommissionStatus.fraud,
+            CommissionStatus.canceled,
+          ],
+        };
 
   const programEnrollmentFilter = {
     ...(groupFilter && {

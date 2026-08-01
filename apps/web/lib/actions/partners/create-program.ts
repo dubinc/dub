@@ -13,6 +13,7 @@ import { redis } from "@/lib/upstash";
 import {
   DEFAULT_ADDITIONAL_PARTNER_LINKS,
   DEFAULT_PARTNER_GROUP,
+  sanitizeAdditionalLinks,
 } from "@/lib/zod/schemas/groups";
 import { programDataSchema } from "@/lib/zod/schemas/program-onboarding";
 import { REWARD_EVENT_COLUMN_MAPPING } from "@/lib/zod/schemas/rewards";
@@ -188,12 +189,12 @@ export const createProgram = async ({
             [REWARD_EVENT_COLUMN_MAPPING[createdReward.event]]:
               createdReward.id,
           }),
-          additionalLinks: [
+          additionalLinks: sanitizeAdditionalLinks([
             {
-              domain: getDomainWithoutWWW(programData.url!)!,
+              domain: getDomainWithoutWWW(programData.url!),
               validationMode: "domain",
             },
-          ],
+          ]),
           maxPartnerLinks: DEFAULT_ADDITIONAL_PARTNER_LINKS,
           partnerGroupDefaultLinks: {
             create: {

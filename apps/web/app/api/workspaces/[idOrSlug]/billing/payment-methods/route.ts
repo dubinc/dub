@@ -129,7 +129,7 @@ export const POST = withWorkspace(
     if (!method) {
       const { url } = await stripe.billingPortal.sessions.create({
         customer: workspace.stripeId,
-        return_url: `${APP_DOMAIN}/${workspace.slug}/settings/billing`,
+        return_url: `${APP_DOMAIN}/${workspace.slug}/settings/billing#payment-methods`,
         flow_data: {
           type: "payment_method_update",
         },
@@ -159,8 +159,8 @@ export const POST = withWorkspace(
         [method]: paymentMethodOption,
       },
       currency: "usd",
-      success_url: `${APP_DOMAIN}/${workspace.slug}/settings/billing`,
-      cancel_url: `${APP_DOMAIN}/${workspace.slug}/settings/billing`,
+      success_url: `${APP_DOMAIN}/${workspace.slug}/settings/billing#payment-methods`,
+      cancel_url: `${APP_DOMAIN}/${workspace.slug}/settings/billing#payment-methods`,
     });
 
     return NextResponse.json({ url });

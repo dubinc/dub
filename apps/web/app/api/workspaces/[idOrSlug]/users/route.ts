@@ -13,6 +13,7 @@ import {
   getWorkspaceUsersQuerySchema,
   workspaceUserSchema,
 } from "@/lib/zod/schemas/workspaces";
+import { pluralize } from "@dub/utils";
 import { WorkspaceRole } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
@@ -172,6 +173,24 @@ export const DELETE = withWorkspace(
         code: "bad_request",
         message:
           "Cannot remove owner from workspace. Please transfer ownership to another user first.",
+      });
+    }
+
+    const activeRestrictedTokens = await prisma.restrictedToken.count({
+      where: {
+        projectId: workspace.id,
+        userId,
+        lastUsed: {
+          not: null,
+        },
+      },
+    });
+
+    if (activeRestrictedTokens) {
+      const tokenTense = pluralize("token", activeRestrictedTokens);
+      throw new DubApiError({
+        code: "bad_request",
+        message: `This user has ${activeRestrictedTokens} active restricted ${tokenTense}. Please remove the ${tokenTense} first before removing the user from the workspace.`,
       });
     }
 

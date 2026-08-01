@@ -3,21 +3,24 @@ import { DubApiError } from "@/lib/api/errors";
 import { throwIfInvalidGroupIds } from "@/lib/api/groups/throw-if-invalid-group-ids";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
+import { WorkflowCondition } from "@/lib/api/workflows/types";
+import { validateWorkflowConditions } from "@/lib/api/workflows/validate-workflow-conditions";
 import { withWorkspace } from "@/lib/auth";
 import { generatePerformanceBountyName } from "@/lib/bounty/api/generate-performance-bounty-name";
 import { getBountyWithDetails } from "@/lib/bounty/api/get-bounty-with-details";
 import { PERFORMANCE_BOUNTY_SCOPE_ATTRIBUTES } from "@/lib/bounty/api/performance-bounty-scope-attributes";
+import { shouldUpsertDraftSubmissionsOnReopen } from "@/lib/bounty/api/upsert-draft-bounty-submissions";
 import { validateBounty } from "@/lib/bounty/api/validate-bounty";
+import { qstash } from "@/lib/cron";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { prisma } from "@/lib/prisma";
-import { WorkflowCondition } from "@/lib/types";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import {
   BountySchema,
   submissionRequirementsSchema,
   updateBountySchema,
 } from "@/lib/zod/schemas/bounties";
-import { arrayEqual, deepEqual } from "@dub/utils";
+import { APP_DOMAIN_WITH_NGROK, arrayEqual, deepEqual } from "@dub/utils";
 import { PartnerGroup, Prisma } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
@@ -96,6 +99,13 @@ export const PATCH = withWorkspace(
       rewardDescription,
       performanceScope: bounty.performanceScope,
     });
+
+    if (bounty.type === "performance" && performanceCondition) {
+      await validateWorkflowConditions({
+        conditions: [performanceCondition],
+        workflowType: "awardBounty",
+      });
+    }
 
     if (
       submissionRequirements !== undefined &&
@@ -242,6 +252,15 @@ export const PATCH = withWorkspace(
       performanceCondition: data.workflow?.triggerConditions?.[0],
     });
 
+    const shouldUpsertDraftSubmissions = shouldUpsertDraftSubmissionsOnReopen({
+      type: bounty.type,
+      performanceScope: bounty.performanceScope,
+      previousEndsAt: bounty.endsAt,
+      startsAt: data.startsAt,
+      endsAt: data.endsAt,
+      archivedAt: data.archivedAt,
+    });
+
     waitUntil(
       Promise.allSettled([
         recordAuditLog({
@@ -264,6 +283,15 @@ export const PATCH = withWorkspace(
           trigger: "bounty.updated",
           data: updatedBounty,
         }),
+
+        shouldUpsertDraftSubmissions &&
+          qstash.publishJSON({
+            url: `${APP_DOMAIN_WITH_NGROK}/api/cron/bounties/upsert-draft-submissions`,
+            body: {
+              bountyId: bounty.id,
+            },
+            notBefore: Math.floor(data.startsAt.getTime() / 1000),
+          }),
       ]),
     );
 
