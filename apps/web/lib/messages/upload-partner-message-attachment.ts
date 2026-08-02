@@ -13,6 +13,7 @@ import { RATELIMIT_POLICIES } from "@/lib/upstash/ratelimit-policies";
 import { nanoid } from "@dub/utils";
 import * as z from "zod/v4";
 import { authPartnerActionClient } from "../actions/safe-action";
+import { INACTIVE_ENROLLMENT_STATUSES } from "../zod/schemas/partners";
 
 const schema = z.object({
   programSlug: z.string(),
@@ -38,29 +39,30 @@ export const uploadPartnerMessageAttachmentAction = authPartnerActionClient
       throw new Error("Too many file uploads. Please try again later.");
     }
 
-    const program = await prisma.program.findFirstOrThrow({
+    const program = await prisma.program.findFirst({
       select: {
         id: true,
       },
       where: {
         slug: programSlug,
-        partners: {
-          none: {
-            partnerId: partner.id,
-            status: "banned",
-          },
-        },
+
         OR: [
           {
+            // program has messaging enabled
             messagingEnabledAt: {
               not: null,
             },
+            // partner is not banned, deactivated, or rejected
             partners: {
               some: {
                 partnerId: partner.id,
+                status: {
+                  notIn: INACTIVE_ENROLLMENT_STATUSES,
+                },
               },
             },
           },
+          // partner has received a direct message from the program before (e.g. reached out via the marketplace)
           {
             messages: {
               some: {
@@ -72,6 +74,10 @@ export const uploadPartnerMessageAttachmentAction = authPartnerActionClient
         ],
       },
     });
+
+    if (!program) {
+      throw new Error("You are not able to message this program.");
+    }
 
     const storageKey = `messages/${program.id}/${nanoid(10)}/${sanitizeFileName(fileName)}`;
 
