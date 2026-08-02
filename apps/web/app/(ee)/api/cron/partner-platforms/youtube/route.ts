@@ -1,11 +1,11 @@
 import { qstash } from "@/lib/cron";
 import { withCron } from "@/lib/cron/with-cron";
 import { prisma } from "@/lib/prisma";
+import { youtubeClient } from "@/lib/youtube/client";
 import { APP_DOMAIN_WITH_NGROK, chunk } from "@dub/utils";
 import { PlatformType } from "@prisma/client";
 import * as z from "zod/v4";
 import { logAndRespond } from "../../utils";
-import { youtubeChannelSchema } from "./youtube-channel-schema";
 
 export const dynamic = "force-dynamic";
 
@@ -22,10 +22,6 @@ const schema = z.object({
  * POST /api/cron/partner-platforms/youtube
  */
 export const POST = withCron(async ({ rawBody }) => {
-  if (!process.env.YOUTUBE_API_KEY) {
-    throw new Error("YOUTUBE_API_KEY is not defined");
-  }
-
   let { startingAfter } = schema.parse(
     rawBody ? JSON.parse(rawBody) : { startingAfter: undefined },
   );
@@ -61,28 +57,24 @@ export const POST = withCron(async ({ rawBody }) => {
   const channelChunks = chunk(youtubeChannels, YOUTUBE_API_CHUNK_SIZE);
 
   for (const channelChunk of channelChunks) {
-    const channelIds = channelChunk.map((channel) => channel.platformId);
+    const channelIds = channelChunk
+      .map((channel) => channel.platformId)
+      .filter((id): id is string => id != null);
 
     if (channelIds.length === 0) {
       continue;
     }
 
-    const response = await fetch(
-      `https://www.googleapis.com/youtube/v3/channels?part=statistics,snippet&id=${channelIds.join(",")}`,
-      {
-        headers: {
-          "X-Goog-Api-Key": process.env.YOUTUBE_API_KEY,
-        },
-      },
-    );
+    let channels: Awaited<
+      ReturnType<typeof youtubeClient.getChannels>
+    >["items"];
 
-    if (!response.ok) {
-      console.error("Failed to fetch YouTube data:", await response.text());
+    try {
+      ({ items: channels } = await youtubeClient.getChannels(channelIds));
+    } catch (error) {
+      console.error("Failed to fetch YouTube data:", error);
       continue;
     }
-
-    const data = await response.json().then((r) => r.items);
-    const channels = z.array(youtubeChannelSchema).parse(data);
 
     const updateChunks = chunk(channels, 10);
 

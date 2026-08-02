@@ -24,3 +24,13 @@ export const youtubeChannelSchema = z.object({
     })
     .optional(),
 });
+
+// GET /youtube/v3/channels
+export const getChannelsInputSchema = z.object({
+  part: z.string(),
+  id: z.string(), // comma-separated channel IDs
+});
+
+export const getChannelsOutputSchema = z.object({
+  items: z.array(youtubeChannelSchema).default([]),
+});
