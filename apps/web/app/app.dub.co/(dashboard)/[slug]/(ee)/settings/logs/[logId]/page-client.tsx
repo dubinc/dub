@@ -76,6 +76,16 @@ export function LogDetailPageClient() {
   );
 }
 
+function hasJsonBody(raw: string | null | undefined) {
+  if (!raw) return false;
+
+  try {
+    return JSON.parse(raw) != null;
+  } catch {
+    return true;
+  }
+}
+
 function LogDetailSkeleton() {
   return (
     <div className="flex flex-col gap-6 lg:flex-row">
@@ -245,23 +255,17 @@ function LogDetailContent({ log }: { log: EnrichedApiLog }) {
               />
             </div>
           )}
-          {log.method !== "DELETE" && (
+          {hasJsonBody(log.request_body) && (
             <div className="flex flex-col gap-2">
               <h3 className="text-content-emphasis text-lg font-semibold">
                 Request body
               </h3>
-              {highlightedBodies.request ? (
-                <div
-                  className="shiki-wrapper max-h-[800px] overflow-auto rounded-xl border border-neutral-200 bg-white p-4 text-sm"
-                  dangerouslySetInnerHTML={{
-                    __html: highlightedBodies.request,
-                  }}
-                />
-              ) : (
-                <div className="rounded-xl border border-neutral-200 bg-white p-4 font-mono text-xs text-neutral-500">
-                  No request body
-                </div>
-              )}
+              <div
+                className="shiki-wrapper max-h-[800px] overflow-auto rounded-xl border border-neutral-200 bg-white p-4 text-sm"
+                dangerouslySetInnerHTML={{
+                  __html: highlightedBodies.request,
+                }}
+              />
             </div>
           )}
         </div>

@@ -48,7 +48,7 @@ export default function SubscriptionMenu() {
     })
       .then(async (res) => {
         if (res.ok) {
-          const url = await res.json();
+          const { url } = await res.json();
           router.push(url);
         } else {
           const { error } = await res.json();
