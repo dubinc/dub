@@ -474,7 +474,7 @@ function ProgramInfoPanel({
             </span>
             <span className="text-content-subtle text-sm font-medium">
               {isInactiveEnrollment
-                ? `You are ${programEnrollment.status} from this program`
+                ? `You have been ${programEnrollment.status} from this program`
                 : `Partner since ${formatDate(programEnrollment.createdAt)}`}
             </span>
           </div>

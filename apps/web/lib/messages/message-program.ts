@@ -34,24 +34,23 @@ export const messageProgramAction = authPartnerActionClient
       where: {
         slug: programSlug,
 
-        // partner is not banned, deactivated, or rejected
-        partners: {
-          some: {
-            partnerId: partner.id,
-            status: {
-              notIn: INACTIVE_ENROLLMENT_STATUSES,
-            },
-          },
-        },
-
         OR: [
-          // program has messaging enabled
           {
+            // program has messaging enabled
             messagingEnabledAt: {
               not: null,
             },
+            // partner is not banned, deactivated, or rejected
+            partners: {
+              some: {
+                partnerId: partner.id,
+                status: {
+                  notIn: INACTIVE_ENROLLMENT_STATUSES,
+                },
+              },
+            },
           },
-          // partner has received a direct message from the program before (invited status)
+          // partner has received a direct message from the program before (e.g. reached out via the marketplace)
           {
             messages: {
               some: {
