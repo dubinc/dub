@@ -51,12 +51,15 @@ export default function PartnerMessagesProgramPage() {
 
   const { user } = useUser();
   const { partner } = usePartnerProfile();
-  const { programEnrollment, error: programEnrollmentError } =
-    useProgramEnrollment({
-      swrOpts: {
-        shouldRetryOnError: (err) => err.status !== 404,
-      },
-    });
+  const {
+    programEnrollment,
+    error: programEnrollmentError,
+    loading: programEnrollmentLoading,
+  } = useProgramEnrollment({
+    swrOpts: {
+      shouldRetryOnError: (err) => err.status !== 404,
+    },
+  });
   const enrolledProgram = programEnrollment?.program;
 
   const {
@@ -281,7 +284,7 @@ export default function PartnerMessagesProgramPage() {
             <ViewProgramButton programSlug={programSlug} />
           ) : null}
         </div>
-        {!programEnrollment ? (
+        {programEnrollmentLoading ? (
           <div className="flex size-full items-center justify-center">
             <LoadingSpinner />
           </div>
@@ -418,11 +421,11 @@ export default function PartnerMessagesProgramPage() {
             </div>
           </div>
           <div className="bg-bg-muted scrollbar-hide flex grow flex-col overflow-y-scroll">
-            {!programEnrollment ? (
+            {programEnrollmentLoading ? (
               <ProgramInfoPanelSkeleton />
-            ) : (
+            ) : programEnrollment ? (
               <ProgramInfoPanel programEnrollment={programEnrollment} />
-            )}
+            ) : null}
           </div>
         </div>
       </div>
