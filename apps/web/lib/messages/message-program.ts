@@ -7,6 +7,7 @@ import { prisma } from "@/lib/prisma";
 import { APP_DOMAIN_WITH_NGROK, INTERCOM_INTEGRATION_ID } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { authPartnerActionClient } from "../actions/safe-action";
+import { INACTIVE_ENROLLMENT_STATUSES } from "../zod/schemas/partners";
 import { MessageSchema, messageProgramSchema } from "./schemas";
 import {
   mapMessageAttachmentsForCreate,
@@ -25,7 +26,7 @@ export const messageProgramAction = authPartnerActionClient
     const { partner, user } = ctx;
     const { programSlug, text, attachments } = parsedInput;
 
-    const program = await prisma.program.findFirstOrThrow({
+    const program = await prisma.program.findFirst({
       select: {
         id: true,
         workspaceId: true,
@@ -33,28 +34,24 @@ export const messageProgramAction = authPartnerActionClient
       where: {
         slug: programSlug,
 
-        // Partner is not banned from the program
+        // partner is not banned, deactivated, or rejected
         partners: {
-          none: {
+          some: {
             partnerId: partner.id,
-            status: "banned",
+            status: {
+              notIn: INACTIVE_ENROLLMENT_STATUSES,
+            },
           },
         },
 
         OR: [
-          // Program has messaging enabled and partner is enrolled
+          // program has messaging enabled
           {
             messagingEnabledAt: {
               not: null,
             },
-            partners: {
-              some: {
-                partnerId: partner.id,
-              },
-            },
           },
-
-          // Partner has received a direct message from the program before
+          // partner has received a direct message from the program before (invited status)
           {
             messages: {
               some: {
@@ -66,6 +63,10 @@ export const messageProgramAction = authPartnerActionClient
         ],
       },
     });
+
+    if (!program) {
+      throw new Error("You are not able to message this program.");
+    }
 
     const keyPrefix = `messages/${program.id}/`;
 
