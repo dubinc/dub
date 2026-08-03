@@ -35,18 +35,10 @@ export const requestEmailChange = async ({
   hostName: string;
 }) => {
   if (syncIdentity && !partnerId) {
-    const error = new DubApiError({
+    throw new DubApiError({
       code: "bad_request",
       message: "Partner ID is required when syncing identity.",
     });
-    logAuthFailure({
-      action: "email_change_request",
-      reason: "missing-partner-id",
-      email,
-      userId,
-      error,
-    });
-    throw error;
   }
 
   await withAuthFailureLogging(

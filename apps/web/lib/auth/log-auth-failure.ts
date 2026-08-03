@@ -13,7 +13,6 @@ const AUTH_FAILURE_REASONS = [
   "email-domain-blocked",
   "invalid-token",
   "expired-token",
-  "missing-partner-id",
   "unauthorized",
   "unknown",
 ] as const;
