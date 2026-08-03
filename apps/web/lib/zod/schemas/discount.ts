@@ -74,7 +74,7 @@ export const createDiscountCodeSchema = z.object({
   code: z
     .string()
     .trim()
-    .max(100, "Code must be less than 100 characters.")
+    .max(100, "Code must be 100 characters or fewer.")
     .regex(
       /^[a-zA-Z0-9\-_]+$/,
       "Code can only contain letters, numbers, dashes, and underscores.",
