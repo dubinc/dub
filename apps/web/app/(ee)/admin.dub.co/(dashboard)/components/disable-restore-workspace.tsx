@@ -9,10 +9,7 @@ export function DisableRestoreWorkspace() {
   const [pending, setPending] = useState<"disable" | "restore" | null>(null);
   const slugRef = useRef<HTMLInputElement>(null);
 
-  const handleAction = async (
-    action: "disable" | "restore",
-    slug: string,
-  ) => {
+  const handleAction = async (action: "disable" | "restore", slug: string) => {
     const message =
       action === "disable"
         ? `Are you sure you want to disable all links for workspace "${slug}"? This will also downgrade owners to billing and members to viewer, and notify workspace owners by email.`
@@ -38,9 +35,7 @@ export function DisableRestoreWorkspace() {
         toast.error(error || "Something went wrong. Please try again.");
       }
     } catch {
-      toast.error(
-        "Network error. Please check your connection and try again.",
-      );
+      toast.error("Network error. Please check your connection and try again.");
     } finally {
       setPending(null);
     }
@@ -56,7 +51,11 @@ export function DisableRestoreWorkspace() {
           handleAction("disable", slug);
         }}
       >
-        <Form slugRef={slugRef} pending={pending} onRestore={handleAction.bind(null, "restore")} />
+        <Form
+          slugRef={slugRef}
+          pending={pending}
+          onRestore={handleAction.bind(null, "restore")}
+        />
       </form>
     </div>
   );
@@ -82,7 +81,6 @@ const Form = ({
         <input
           ref={slugRef}
           name="slug"
-          id="workspace-slug"
           type="text"
           required
           disabled={isPending}

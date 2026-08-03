@@ -40,29 +40,6 @@ export const POST = withAdmin(
 
     await disableWorkspaceLinks(project.id);
 
-    const owners = project.users.map(({ user }) => user.email);
-
-    if (owners.length > 0) {
-      await queueBatchEmail(
-        owners.map((email) => ({
-          to: email!,
-          variant: "notifications",
-          subject: "Your Dub workspace has been disabled",
-          templateName: "WorkspaceDisabled",
-          templateProps: {
-            email: email!,
-            workspace: {
-              name: project.name,
-              slug: project.slug,
-              usage: project.usage,
-              usageLimit: project.usageLimit,
-              plan: project.plan,
-            },
-          },
-        })),
-      );
-    }
-
     const updatedOwners = await prisma.projectUsers.updateMany({
       where: {
         projectId: project.id,
@@ -86,6 +63,29 @@ export const POST = withAdmin(
     });
 
     console.log(`Updated ${updatedMembers.count} members to viewer role`);
+
+    const owners = project.users.map(({ user }) => user.email);
+
+    if (owners.length > 0) {
+      await queueBatchEmail(
+        owners.map((email) => ({
+          to: email!,
+          variant: "notifications",
+          subject: "Your Dub workspace has been disabled",
+          templateName: "WorkspaceDisabled",
+          templateProps: {
+            email: email!,
+            workspace: {
+              name: project.name,
+              slug: project.slug,
+              usage: project.usage,
+              usageLimit: project.usageLimit,
+              plan: project.plan,
+            },
+          },
+        })),
+      );
+    }
 
     return NextResponse.json({ success: true });
   },

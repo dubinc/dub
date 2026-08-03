@@ -3,6 +3,7 @@ import { updateConfig } from "@/lib/edge-config";
 import { prisma } from "@/lib/prisma";
 import { stripe } from "@/lib/stripe";
 import { LEGAL_USER_ID, log } from "@dub/utils";
+import { waitUntil } from "@vercel/functions";
 import Stripe from "stripe";
 
 const STRIPE_FRAUD_VALUE_LISTS = {
@@ -14,11 +15,7 @@ const STRIPE_FRAUD_VALUE_LISTS = {
 export async function paymentIntentPaymentFailed(
   event: Stripe.PaymentIntentPaymentFailedEvent,
 ) {
-  const {
-    customer,
-    last_payment_error,
-    receipt_email: customerEmail,
-  } = event.data.object;
+  const { customer, last_payment_error } = event.data.object;
 
   // should never happen, but just in case
   if (!customer || !last_payment_error) {
@@ -43,6 +40,10 @@ export async function paymentIntentPaymentFailed(
     return `Irrelevant decline code: ${decline_code}, skipping...`;
   }
 
+  const stripeCustomer = (await stripe.customers.retrieve(
+    customerId,
+  )) as Stripe.Customer;
+
   const cardFingerprint = payment_method?.card?.fingerprint;
 
   // add to Stripe Fraud Value Lists
@@ -51,10 +52,10 @@ export async function paymentIntentPaymentFailed(
       value_list: STRIPE_FRAUD_VALUE_LISTS.CUSTOMER_ID,
       value: customerId,
     }),
-    customerEmail
+    stripeCustomer.email
       ? stripe.radar.valueListItems.create({
           value_list: STRIPE_FRAUD_VALUE_LISTS.CUSTOMER_EMAIL,
-          value: customerEmail,
+          value: stripeCustomer.email!,
         })
       : null,
     cardFingerprint
@@ -66,7 +67,9 @@ export async function paymentIntentPaymentFailed(
   ]).then((results) => {
     results.forEach((result, idx) => {
       if (result.status === "fulfilled" && result.value) {
-        const listItem = [customerId, customerEmail, cardFingerprint][idx];
+        const listItem = [customerId, stripeCustomer.email, cardFingerprint][
+          idx
+        ];
         const listName = Object.entries(STRIPE_FRAUD_VALUE_LISTS)[idx][0];
         console.log(
           `Added ${listItem} to ${listName} Fraud Value List: ${JSON.stringify(result.value, null, 2)}`,
@@ -75,10 +78,10 @@ export async function paymentIntentPaymentFailed(
     });
   });
 
-  if (customerEmail) {
+  if (stripeCustomer.email) {
     const user = await prisma.user.findUnique({
       where: {
-        email: customerEmail,
+        email: stripeCustomer.email,
       },
       include: {
         projects: {
@@ -94,10 +97,12 @@ export async function paymentIntentPaymentFailed(
 
     if (user) {
       const workspaces = user.projects.map(({ project }) => project);
+      let paidWorkspaces = 0;
       if (workspaces.length > 0) {
         for (const workspace of workspaces) {
           // this should never happen, but just in case
           if (workspace.plan !== "free") {
+            paidWorkspaces++;
             await log({
               type: "errors",
               message: `[payment_intent.payment_failed]: Workspace ${workspace.slug} for fraudulent user ${user.email} is not a free plan, skipping...`,
@@ -123,28 +128,34 @@ export async function paymentIntentPaymentFailed(
         console.log(`User ${user.email} has no workspaces, skipping...`);
       }
 
-      // delete and ban user
-      await Promise.allSettled([
-        prisma.user.delete({
-          where: {
-            id: user.id,
-          },
-        }),
-        updateConfig({
-          key: "emails",
-          value: user.email!,
-        }),
+      // delete and ban user if there are no paid workspaces
+      if (paidWorkspaces === 0) {
+        await Promise.allSettled([
+          prisma.user.delete({
+            where: {
+              id: user.id,
+            },
+          }),
+          updateConfig({
+            key: "emails",
+            value: user.email!,
+          }),
+        ]);
+      }
+
+      waitUntil(
         log({
           message: `Banned user ${user.email} for fraudulent Stripe charges: https://dashboard.stripe.com/customers/${customerId}`,
           type: "alerts",
           mention: true,
-        })
-      ]);
-
+        }),
+      );
     } else {
-      console.log(`User with email ${customerEmail} not found, skipping...`);
+      console.log(
+        `User with email ${stripeCustomer.email} not found, skipping...`,
+      );
     }
   }
 
-  return `Processed payment_intent.payment_failed event for customer ${customerId} (${customerEmail}) and card fingerprint ${cardFingerprint})`;
+  return `Processed payment_intent.payment_failed event for customer ${customerId} (${stripeCustomer.email}) and card fingerprint ${cardFingerprint})`;
 }
