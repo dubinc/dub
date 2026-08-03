@@ -2,9 +2,9 @@
 
 import { getIP } from "@/lib/api/utils/get-ip";
 import { prisma } from "@/lib/prisma";
-import { ratelimit } from "@/lib/upstash";
+import { assertRateLimit } from "@/lib/upstash";
+import { RATELIMIT_POLICIES } from "@/lib/upstash/ratelimit-policies";
 import * as z from "zod/v4";
-import { shouldApplyRateLimit } from "../api/environment";
 import { isSamlEnforcedForEmailDomain } from "../api/workspaces/is-saml-enforced-for-email-domain";
 import { emailSchema } from "../zod/schemas/auth";
 import { throwIfAuthenticated } from "./auth/throw-if-authenticated";
@@ -21,15 +21,10 @@ export const checkAccountExistsAction = actionClient
   .action(async ({ parsedInput }) => {
     const { email } = parsedInput;
 
-    if (shouldApplyRateLimit) {
-      const { success } = await ratelimit(8, "1 m").limit(
-        `account-exists:${await getIP()}`,
-      );
-
-      if (!success) {
-        throw new Error("Too many requests. Please try again later.");
-      }
-    }
+    await assertRateLimit({
+      policy: RATELIMIT_POLICIES.accountExistsCheck,
+      identifier: await getIP(),
+    });
 
     const [user, isSamlEnforced] = await Promise.all([
       prisma.user.findUnique({

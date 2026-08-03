@@ -236,6 +236,7 @@ export const updatePartnerProfileAction = authPartnerActionClient
             email: partner.email,
             newEmail,
             identifier: partner.id,
+            userId: user.id,
             isPartnerProfile: true,
             hostName: PARTNERS_DOMAIN,
           });

@@ -1,9 +1,9 @@
-import { shouldApplyRateLimit } from "@/lib/api/environment";
+import { DubApiError } from "@/lib/api/errors";
+import { getIP } from "@/lib/api/utils/get-ip";
 import { jackson } from "@/lib/jackson";
 import { prisma } from "@/lib/prisma";
-import { ratelimit } from "@/lib/upstash";
-import { LOCALHOST_IP } from "@dub/utils";
-import { ipAddress } from "@vercel/functions";
+import { assertRateLimit } from "@/lib/upstash";
+import { RATELIMIT_POLICIES } from "@/lib/upstash/ratelimit-policies";
 import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
@@ -18,16 +18,22 @@ export async function POST(req: Request) {
     );
   }
 
-  if (shouldApplyRateLimit) {
-    const ip = process.env.VERCEL === "1" ? ipAddress(req) : LOCALHOST_IP;
-    const { success } = await ratelimit(10, "1 m").limit(`saml-verify:${ip}`);
-
-    if (!success) {
+  try {
+    await assertRateLimit({
+      policy: RATELIMIT_POLICIES.samlVerify,
+      identifier: await getIP(),
+    });
+  } catch (error) {
+    if (error instanceof DubApiError && error.code === "rate_limit_exceeded") {
       return NextResponse.json(
-        { error: "Too many requests. Please try again later." },
+        {
+          error: error.message,
+        },
         { status: 429 },
       );
     }
+
+    throw error;
   }
 
   const workspace = await prisma.project.findUnique({

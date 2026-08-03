@@ -1,3 +1,20 @@
+import { ratelimit } from "./ratelimit";
+
+type RatelimitWindow = Parameters<typeof ratelimit>[1] & string;
+
+export type RatelimitPolicy = {
+  attempts: number;
+  window: RatelimitWindow;
+  keyPrefix: string;
+  message?:
+    | string
+    | ((ctx: {
+        retryAfter: string;
+        attempts: number;
+        window: string;
+      }) => string);
+};
+
 export const RATELIMIT_POLICIES = {
   programImageUpload: {
     attempts: 10,
@@ -11,6 +28,59 @@ export const RATELIMIT_POLICIES = {
     keyPrefix: "rl:message:attachment:upload",
   },
 
-  // TODO:
-  // Centralize rate limiting policies
-} as const;
+  login: {
+    attempts: 5,
+    window: "1 m",
+    keyPrefix: "rl:auth:login",
+    message: "too-many-login-attempts", // exact error code matched by the sign-in page, must stay verbatim
+  },
+
+  loginLinkSend: {
+    attempts: 2,
+    window: "1 m",
+    keyPrefix: "rl:auth:login-link:send",
+  },
+
+  signupOtpSend: {
+    attempts: 2,
+    window: "1 m",
+    keyPrefix: "rl:auth:signup:otp:send",
+  },
+
+  accountExistsCheck: {
+    attempts: 8,
+    window: "1 m",
+    keyPrefix: "rl:auth:account-exists:check",
+  },
+
+  passwordResetRequest: {
+    attempts: 2,
+    window: "1 m",
+    keyPrefix: "rl:auth:password-reset:request",
+  },
+
+  passwordReset: {
+    attempts: 2,
+    window: "1 m",
+    keyPrefix: "rl:auth:password-reset:confirm",
+  },
+
+  emailChangeRequest: {
+    attempts: 3,
+    window: "24 h",
+    keyPrefix: "rl:auth:email-change",
+  },
+
+  // Keyed on the target email so many accounts can't spam the same address
+  emailChangeRequestTarget: {
+    attempts: 3,
+    window: "24 h",
+    keyPrefix: "rl:auth:email-change:target",
+  },
+
+  samlVerify: {
+    attempts: 10,
+    window: "1 m",
+    keyPrefix: "rl:auth:saml-verify",
+  },
+} as const satisfies Record<string, RatelimitPolicy>;

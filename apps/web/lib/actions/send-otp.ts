@@ -3,7 +3,8 @@
 import { getIP } from "@/lib/api/utils/get-ip";
 import { isEmailDomainBlocked } from "@/lib/email/is-email-domain-blocked";
 import { prisma } from "@/lib/prisma";
-import { ratelimit } from "@/lib/upstash";
+import { assertRateLimit } from "@/lib/upstash";
+import { RATELIMIT_POLICIES } from "@/lib/upstash/ratelimit-policies";
 import { sendEmail } from "@dub/email";
 import VerifyEmail from "@dub/email/templates/verify-email";
 import { flattenValidationErrors } from "next-safe-action";
@@ -30,13 +31,10 @@ export const sendOtpAction = actionClient
   .action(async ({ parsedInput }) => {
     const { email } = parsedInput;
 
-    const { success } = await ratelimit(2, "1 m").limit(
-      `send-otp:${email}:${await getIP()}`,
-    );
-
-    if (!success) {
-      throw new Error("Too many requests. Please try again later.");
-    }
+    await assertRateLimit({
+      policy: RATELIMIT_POLICIES.signupOtpSend,
+      identifier: [email, await getIP()],
+    });
 
     const isGenericEmailWithPlus = email.includes("+") && isGenericEmail(email);
     const emailDomainBlocked = await isEmailDomainBlocked(email);
