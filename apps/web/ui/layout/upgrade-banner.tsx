@@ -97,7 +97,6 @@ export function UpgradeBanner() {
             <>
               You&rsquo;ve hit the{" "}
               <Link href={`/${slug}/settings/billing`} className="underline">
-                monthly{" "}
                 {exceededEvents
                   ? "events"
                   : exceededLinks

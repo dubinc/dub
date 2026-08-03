@@ -2,25 +2,25 @@
 
 import { useActivityLogs } from "@/lib/swr/use-activity-logs";
 import { EnrolledPartnerExtendedProps } from "@/lib/types";
-import { PartnerGroupActivitySection } from "@/ui/activity-logs/partner-group-activity-section";
+import { PartnerEnrollmentActivitySection } from "@/ui/activity-logs/partner-enrollment-activity-section";
 import { X } from "@/ui/shared/icons";
-import { Button, Sheet } from "@dub/ui";
-import { Dispatch, SetStateAction, useState } from "react";
+import { Button, Sheet, useRouterStuff } from "@dub/ui";
+import { Dispatch, SetStateAction } from "react";
 
-interface PartnerGroupHistorySheetProps {
+interface PartnerEnrollmentHistorySheetProps {
   partner: Pick<EnrolledPartnerExtendedProps, "id">;
   isOpen: boolean;
   setIsOpen: Dispatch<SetStateAction<boolean>>;
 }
 
-function PartnerGroupHistorySheetContent({
+function PartnerEnrollmentHistorySheetContent({
   partner,
-}: Omit<PartnerGroupHistorySheetProps, "isOpen">) {
+}: Omit<PartnerEnrollmentHistorySheetProps, "isOpen">) {
   return (
     <div className="flex size-full flex-col">
       <div className="flex h-16 shrink-0 items-center justify-between border-b border-neutral-200 px-6 py-4">
         <Sheet.Title className="text-lg font-semibold">
-          Partner group history
+          Partner history
         </Sheet.Title>
         <Sheet.Close asChild>
           <Button
@@ -32,36 +32,48 @@ function PartnerGroupHistorySheetContent({
       </div>
 
       <div className="scrollbar-hide flex min-h-0 flex-1 flex-col overflow-y-auto p-4 sm:p-6">
-        <PartnerGroupActivitySection partnerId={partner.id} />
+        <PartnerEnrollmentActivitySection partnerId={partner.id} />
       </div>
     </div>
   );
 }
 
-export function PartnerGroupHistorySheet({
+export function PartnerEnrollmentHistorySheet({
   isOpen,
   ...rest
-}: PartnerGroupHistorySheetProps) {
+}: PartnerEnrollmentHistorySheetProps) {
   return (
     <Sheet open={isOpen} onOpenChange={rest.setIsOpen}>
-      <PartnerGroupHistorySheetContent {...rest} />
+      <PartnerEnrollmentHistorySheetContent {...rest} />
     </Sheet>
   );
 }
 
-export function usePartnerGroupHistorySheet({
+export function usePartnerEnrollmentHistorySheet({
   partner,
 }: {
   partner: Pick<EnrolledPartnerExtendedProps, "id"> | null;
 }) {
-  const [isOpen, setIsOpen] = useState(false);
+  const { searchParams, queryParams } = useRouterStuff();
+
+  const isOpen = searchParams.has("history");
+
+  // TODO: refactor to use next/link ?history=true to help with prefetch (or use router.prefetch)
+  const setIsOpen: Dispatch<SetStateAction<boolean>> = (open) => {
+    const nextOpen = typeof open === "function" ? open(isOpen) : open;
+
+    if (nextOpen) {
+      queryParams({ set: { history: "true" } });
+    } else {
+      queryParams({ del: "history" });
+    }
+  };
 
   const { activityLogs } = useActivityLogs({
     query: partner
       ? {
           resourceType: "partner",
           resourceId: partner.id,
-          action: "partner.groupChanged",
         }
       : undefined,
     enabled: !!partner?.id,
@@ -69,8 +81,8 @@ export function usePartnerGroupHistorySheet({
 
   return {
     hasActivityLogs: (activityLogs?.length ?? 0) > 0,
-    partnerGroupHistorySheet: partner ? (
-      <PartnerGroupHistorySheet
+    partnerEnrollmentHistorySheet: partner ? (
+      <PartnerEnrollmentHistorySheet
         partner={partner}
         isOpen={isOpen}
         setIsOpen={setIsOpen}
