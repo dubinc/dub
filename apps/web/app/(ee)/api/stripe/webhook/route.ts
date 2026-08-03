@@ -10,6 +10,7 @@ import { customerSubscriptionCreated } from "./customer-subscription-created";
 import { customerSubscriptionDeleted } from "./customer-subscription-deleted";
 import { customerSubscriptionUpdated } from "./customer-subscription-updated";
 import { invoicePaymentFailed } from "./invoice-payment-failed";
+import { paymentIntentPaymentFailed } from "./payment-intent-payment-failed";
 import { paymentIntentRequiresAction } from "./payment-intent-requires-action";
 import { transferReversed } from "./transfer-reversed";
 
@@ -22,6 +23,7 @@ const relevantEvents = new Set([
   "customer.subscription.updated",
   "customer.subscription.deleted",
   "invoice.payment_failed",
+  "payment_intent.payment_failed",
   "payment_intent.requires_action",
   "transfer.reversed",
 ]);
@@ -75,6 +77,9 @@ export const POST = async (req: Request) => {
         break;
       case "invoice.payment_failed":
         response = await invoicePaymentFailed(event);
+        break;
+      case "payment_intent.payment_failed":
+        response = await paymentIntentPaymentFailed(event);
         break;
       case "payment_intent.requires_action":
         response = await paymentIntentRequiresAction(event);
