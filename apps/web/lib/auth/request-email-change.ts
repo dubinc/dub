@@ -67,7 +67,7 @@ export const requestEmailChange = async ({
 
   const token = randomBytes(32).toString("hex");
   const hashedToken = await hashToken(token, { secret: true });
-  const expiresIn = 60 * 60 * 1000; // 1 hour
+  const expiresIn = 15 * 60 * 1000;
 
   // Create a new verification token
   await prisma.verificationToken.create({
