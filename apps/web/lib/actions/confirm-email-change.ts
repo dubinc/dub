@@ -5,6 +5,10 @@ import {
   assertCanConfirmEmailChange,
   EmailChangeRequestData,
 } from "@/lib/auth/confirm-email-change";
+import {
+  logAuthFailure,
+  withAuthFailureLogging,
+} from "@/lib/auth/log-auth-failure";
 import { syncPlainCustomerEmail } from "@/lib/plain/upsert-plain-customer";
 import { prisma } from "@/lib/prisma";
 import { redis } from "@/lib/upstash";
@@ -40,9 +44,17 @@ export const confirmEmailChangeAction = authUserActionClient
     });
 
     if (!tokenFound || tokenFound.expires < new Date()) {
-      throw new Error(
+      const error = new Error(
         "This token is invalid or expired. Please request a new one.",
       );
+      logAuthFailure({
+        action: "email_change_confirm",
+        reason: !tokenFound ? "invalid-token" : "expired-token",
+        userId: user.id,
+        email: user.email ?? undefined,
+        error,
+      });
+      throw error;
     }
 
     const data = await redis.get<EmailChangeRequestData>(
@@ -50,16 +62,34 @@ export const confirmEmailChangeAction = authUserActionClient
     );
 
     if (!data) {
-      throw new Error(
+      const error = new Error(
         "This token is invalid or expired. Please request a new one.",
       );
+      logAuthFailure({
+        action: "email_change_confirm",
+        reason: "invalid-token",
+        userId: user.id,
+        email: user.email ?? undefined,
+        error,
+      });
+      throw error;
     }
 
-    await assertCanConfirmEmailChange({
-      userId: user.id,
-      tokenFound,
-      data,
-    });
+    await withAuthFailureLogging(
+      {
+        action: "email_change_confirm",
+        reason: "unauthorized",
+        userId: user.id,
+        email: user.email ?? undefined,
+      },
+      async () => {
+        await assertCanConfirmEmailChange({
+          userId: user.id,
+          tokenFound,
+          data,
+        });
+      },
+    );
 
     // Consume the token before mutating so concurrent confirms fail closed
     const deleted = await prisma.verificationToken.deleteMany({
@@ -72,9 +102,17 @@ export const confirmEmailChangeAction = authUserActionClient
     });
 
     if (deleted.count !== 1) {
-      throw new Error(
+      const error = new Error(
         "This token is invalid or expired. Please request a new one.",
       );
+      logAuthFailure({
+        action: "email_change_confirm",
+        reason: "invalid-token",
+        userId: user.id,
+        email: user.email ?? undefined,
+        error,
+      });
+      throw error;
     }
 
     const tokenIdentifier = tokenFound.identifier;

@@ -7,8 +7,10 @@ import { hashToken } from ".";
 import { DubApiError } from "../api/errors";
 import { isEmailDomainBlocked } from "../email/is-email-domain-blocked";
 import { isGenericEmail } from "../is-generic-email";
-import { assertRateLimit, redis } from "../upstash";
+import { redis } from "../upstash";
+import { assertRateLimit } from "../upstash/assert-rate-limit";
 import { RATELIMIT_POLICIES } from "../upstash/ratelimit-policies";
+import { logAuthFailure, withAuthFailureLogging } from "./log-auth-failure";
 
 // Send the OTP to confirm the email address change for existing users/partners
 export const requestEmailChange = async ({
@@ -33,30 +35,55 @@ export const requestEmailChange = async ({
   hostName: string;
 }) => {
   if (syncIdentity && !partnerId) {
-    throw new DubApiError({
+    const error = new DubApiError({
       code: "bad_request",
       message: "Partner ID is required when syncing identity.",
     });
+    logAuthFailure({
+      action: "email_change_request",
+      reason: "missing-partner-id",
+      email,
+      userId,
+      error,
+    });
+    throw error;
   }
 
-  await assertRateLimit({
-    policy: RATELIMIT_POLICIES.emailChangeRequest,
-    identifier: userId,
-  });
+  await withAuthFailureLogging(
+    {
+      action: "email_change_request",
+      email,
+      userId,
+    },
+    async () => {
+      await assertRateLimit({
+        policy: RATELIMIT_POLICIES.emailChangeRequest,
+        identifier: userId,
+      });
 
-  await assertRateLimit({
-    policy: RATELIMIT_POLICIES.emailChangeRequestTarget,
-    identifier: newEmail.toLowerCase(),
-  });
+      await assertRateLimit({
+        policy: RATELIMIT_POLICIES.emailChangeRequestTarget,
+        identifier: newEmail.toLowerCase(),
+      });
+    },
+  );
 
   const isGenericEmailWithPlus = email.includes("+") && isGenericEmail(email);
   const emailDomainBlocked = await isEmailDomainBlocked(newEmail);
   if (isGenericEmailWithPlus || emailDomainBlocked) {
-    throw new DubApiError({
+    const error = new DubApiError({
       code: "bad_request",
       message:
         "Invalid email address – please use your work email instead. If you think this is a mistake, please contact us at dub.co/support",
     });
+    logAuthFailure({
+      action: "email_change_request",
+      reason: "email-domain-blocked",
+      email,
+      userId,
+      error,
+    });
+    throw error;
   }
 
   // Remove existing verification tokens
