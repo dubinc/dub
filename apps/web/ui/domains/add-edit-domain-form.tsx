@@ -305,6 +305,7 @@ export function AddEditDomainForm({
   const { handleKeyDown } = useEnterSubmit(formRef);
 
   const onSubmit = async (formData: FormData) => {
+    if (isSubmitting) return;
     try {
       setIsSubmitting(true);
       const res = await fetch(endpoint.url, {
