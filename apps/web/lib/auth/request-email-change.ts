@@ -7,7 +7,8 @@ import { hashToken } from ".";
 import { DubApiError } from "../api/errors";
 import { isEmailDomainBlocked } from "../email/is-email-domain-blocked";
 import { isGenericEmail } from "../is-generic-email";
-import { assertRateLimit, redis } from "../upstash";
+import { redis } from "../upstash";
+import { assertRateLimit } from "../upstash/assert-rate-limit";
 import { RATELIMIT_POLICIES } from "../upstash/ratelimit-policies";
 
 // Send the OTP to confirm the email address change for existing users/partners

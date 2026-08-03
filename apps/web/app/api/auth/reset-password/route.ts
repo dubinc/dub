@@ -3,7 +3,7 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { getIP } from "@/lib/api/utils/get-ip";
 import { hashPassword, validatePassword } from "@/lib/auth/password";
 import { prisma } from "@/lib/prisma";
-import { assertRateLimit } from "@/lib/upstash";
+import { assertRateLimit } from "@/lib/upstash/assert-rate-limit";
 import { RATELIMIT_POLICIES } from "@/lib/upstash/ratelimit-policies";
 import { resetPasswordSchema } from "@/lib/zod/schemas/auth";
 import { sendEmail } from "@dub/email";

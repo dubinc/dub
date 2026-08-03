@@ -2,7 +2,7 @@
 
 import { getIP } from "@/lib/api/utils/get-ip";
 import { prisma } from "@/lib/prisma";
-import { assertRateLimit } from "@/lib/upstash";
+import { assertRateLimit } from "@/lib/upstash/assert-rate-limit";
 import { RATELIMIT_POLICIES } from "@/lib/upstash/ratelimit-policies";
 import * as z from "zod/v4";
 import { isSamlEnforcedForEmailDomain } from "../api/workspaces/is-saml-enforced-for-email-domain";
