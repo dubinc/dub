@@ -7,13 +7,18 @@ import { hashToken } from ".";
 import { DubApiError } from "../api/errors";
 import { isEmailDomainBlocked } from "../email/is-email-domain-blocked";
 import { isGenericEmail } from "../is-generic-email";
-import { ratelimit, redis } from "../upstash";
+import { redis } from "../upstash";
+import { assertRateLimit } from "../upstash/assert-rate-limit";
+import { RATELIMIT_POLICIES } from "../upstash/ratelimit-policies";
+
+const EMAIL_CHANGE_MIN_ACCOUNT_AGE_MS = 60 * 60 * 1000; // 1 hour
 
 // Send the OTP to confirm the email address change for existing users/partners
 export const requestEmailChange = async ({
   email,
   newEmail,
   identifier,
+  userId,
   isPartnerProfile = false,
   syncIdentity = false,
   partnerId,
@@ -23,6 +28,7 @@ export const requestEmailChange = async ({
   email: string;
   newEmail: string;
   identifier: string;
+  userId: string;
   isPartnerProfile?: boolean; // If true, the email is being changed for a partner profile
   syncIdentity?: boolean; // If true, update both user and partner email on confirm
   partnerId?: string;
@@ -36,17 +42,41 @@ export const requestEmailChange = async ({
     });
   }
 
-  const { success } = await ratelimit(3, "1 d").limit(
-    `email-change-request:${identifier}`,
-  );
+  await assertRateLimit({
+    policy: RATELIMIT_POLICIES.emailChangeRequest,
+    identifier: userId,
+  });
+  const user = await prisma.user.findUnique({
+    where: {
+      id: userId,
+    },
+    select: {
+      createdAt: true,
+    },
+  });
 
-  if (!success) {
+  if (!user) {
     throw new DubApiError({
-      code: "rate_limit_exceeded",
-      message:
-        "You've requested too many email change requests. Please try again later.",
+      code: "not_found",
+      message: "User not found.",
     });
   }
+
+  const isAccountTooNew =
+    Date.now() - user.createdAt.getTime() < EMAIL_CHANGE_MIN_ACCOUNT_AGE_MS;
+
+  if (isAccountTooNew) {
+    throw new DubApiError({
+      code: "forbidden",
+      message:
+        "This action is temporarily unavailable for your account. Please try again later or contact support at dub.co/support",
+    });
+  }
+
+  await assertRateLimit({
+    policy: RATELIMIT_POLICIES.emailChangeRequestTarget,
+    identifier: newEmail.toLowerCase(),
+  });
 
   const isGenericEmailWithPlus = email.includes("+") && isGenericEmail(email);
   const emailDomainBlocked = await isEmailDomainBlocked(newEmail);

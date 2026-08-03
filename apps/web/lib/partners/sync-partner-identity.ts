@@ -171,6 +171,7 @@ export async function requestSyncedEmailChange({
     email: currentEmail,
     newEmail,
     identifier: userId,
+    userId,
     hostName,
     syncIdentity: true,
     partnerId,
