@@ -4,6 +4,27 @@ import { VerificationToken } from "@prisma/client";
 import { hashToken } from "./hash-token";
 import { hasPermission } from "./partner-users/partner-user-permissions";
 
+export type EmailChangeAuthErrorReason = "invalid_token" | "unauthorized";
+
+const EMAIL_CHANGE_AUTH_ERROR_MESSAGES: Record<
+  EmailChangeAuthErrorReason,
+  string
+> = {
+  invalid_token: "This token is invalid. Please request a new one.",
+  unauthorized:
+    "You don't have access to update the partner profile associated with this email change request.",
+};
+
+export class EmailChangeAuthError extends Error {
+  readonly reason: EmailChangeAuthErrorReason;
+
+  constructor(reason: EmailChangeAuthErrorReason) {
+    super(EMAIL_CHANGE_AUTH_ERROR_MESSAGES[reason]);
+    this.name = "EmailChangeAuthError";
+    this.reason = reason;
+  }
+}
+
 export type EmailChangeRequestData = {
   email: string;
   newEmail: string;
@@ -55,15 +76,15 @@ export async function assertCanConfirmEmailChange({
       !partnerUser ||
       !hasPermission(partnerUser.role, "partner_profile.update")
     ) {
-      throw new Error("This token is invalid. Please request a new one.");
+      throw new EmailChangeAuthError("invalid_token");
     }
   } else if (tokenFound.identifier !== userId) {
-    throw new Error("This token is invalid. Please request a new one.");
+    throw new EmailChangeAuthError("invalid_token");
   }
 
   if (data.syncIdentity) {
     if (!data.partnerId) {
-      throw new Error("This token is invalid. Please request a new one.");
+      throw new EmailChangeAuthError("invalid_token");
     }
 
     const partnerUser = await prisma.partnerUser.findUnique({
@@ -82,9 +103,7 @@ export async function assertCanConfirmEmailChange({
       !partnerUser ||
       !hasPermission(partnerUser.role, "partner_profile.update")
     ) {
-      throw new Error(
-        "You don't have access to update the partner profile associated with this email change request.",
-      );
+      throw new EmailChangeAuthError("unauthorized");
     }
   }
 }
