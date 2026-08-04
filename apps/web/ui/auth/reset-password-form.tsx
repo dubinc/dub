@@ -1,18 +1,27 @@
 "use client";
 
-import { resetPasswordSchema } from "@/lib/zod/schemas/auth";
+import { authClient } from "@/lib/better-auth/auth-client";
+import { passwordSchema } from "@/lib/zod/schemas/auth";
 import { Button, Input } from "@dub/ui";
-import { useParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { FormProvider, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import * as z from "zod/v4";
 import { PasswordRequirements } from "../shared/password-requirements";
 
-export const ResetPasswordForm = () => {
-  const router = useRouter();
-  const { token } = useParams<{ token: string }>();
+const resetPasswordFormSchema = z
+  .object({
+    password: passwordSchema,
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Confirm password must match password",
+    path: ["confirmPassword"],
+  });
 
-  const form = useForm<z.infer<typeof resetPasswordSchema>>();
+export const ResetPasswordForm = ({ token }: { token: string }) => {
+  const router = useRouter();
+  const form = useForm<z.infer<typeof resetPasswordFormSchema>>();
 
   const {
     register,
@@ -21,18 +30,28 @@ export const ResetPasswordForm = () => {
   } = form;
 
   const onSubmit = handleSubmit(async (data) => {
+    const parsed = resetPasswordFormSchema.safeParse(data);
+
+    if (!parsed.success) {
+      const confirmError = parsed.error.issues.find(
+        (issue) => issue.path[0] === "confirmPassword",
+      );
+
+      if (confirmError) {
+        form.setError("confirmPassword", { message: confirmError.message });
+      }
+
+      return;
+    }
+
     try {
-      const response = await fetch("/api/auth/reset-password", {
-        method: "POST",
-        body: JSON.stringify(data),
-        headers: {
-          "Content-Type": "application/json",
-        },
+      const { error } = await authClient.resetPassword({
+        newPassword: parsed.data.password,
+        token,
       });
 
-      if (!response.ok) {
-        const { error } = await response.json();
-        throw new Error(error.message);
+      if (error) {
+        throw new Error(error.message || "Failed to reset password.");
       }
 
       toast.success(
@@ -45,53 +64,49 @@ export const ResetPasswordForm = () => {
   });
 
   return (
-    <>
-      <form className="flex w-full flex-col gap-6" onSubmit={onSubmit}>
-        <input type="hidden" value={token} {...register("token")} />
-
-        <label>
-          <span className="text-content-emphasis mb-2 block text-sm font-medium leading-none">
-            Password
-          </span>
-          <Input
-            type="password"
-            {...register("password")}
-            required
-            autoComplete="new-password"
-          />
-          <FormProvider {...form}>
-            <PasswordRequirements />
-          </FormProvider>
-        </label>
-
-        <label>
-          <span className="text-content-emphasis mb-2 block text-sm font-medium leading-none">
-            Confirm password
-          </span>
-          <Input
-            type="password"
-            {...register("confirmPassword")}
-            required
-            autoComplete="new-password"
-          />
-          {errors.confirmPassword && (
-            <span
-              className="block text-sm text-red-500"
-              role="alert"
-              aria-live="assertive"
-            >
-              {errors.confirmPassword.message}
-            </span>
-          )}
-        </label>
-
-        <Button
-          text="Reset Password"
-          type="submit"
-          loading={isSubmitting}
-          disabled={isSubmitting}
+    <form className="flex w-full flex-col gap-6" onSubmit={onSubmit}>
+      <label>
+        <span className="text-content-emphasis mb-2 block text-sm font-medium leading-none">
+          Password
+        </span>
+        <Input
+          type="password"
+          {...register("password")}
+          required
+          autoComplete="new-password"
         />
-      </form>
-    </>
+        <FormProvider {...form}>
+          <PasswordRequirements />
+        </FormProvider>
+      </label>
+
+      <label>
+        <span className="text-content-emphasis mb-2 block text-sm font-medium leading-none">
+          Confirm password
+        </span>
+        <Input
+          type="password"
+          {...register("confirmPassword")}
+          required
+          autoComplete="new-password"
+        />
+        {errors.confirmPassword && (
+          <span
+            className="block text-sm text-red-500"
+            role="alert"
+            aria-live="assertive"
+          >
+            {errors.confirmPassword.message}
+          </span>
+        )}
+      </label>
+
+      <Button
+        text="Reset Password"
+        type="submit"
+        loading={isSubmitting}
+        disabled={isSubmitting}
+      />
+    </form>
   );
 };

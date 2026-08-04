@@ -34,7 +34,7 @@ const updateUserSchema = z.object({
 
 // GET /api/user – get a specific user
 export const GET = withSession(async ({ session }) => {
-  const [user, account] = await Promise.all([
+  const [user, account, credentialAccount] = await Promise.all([
     prisma.user.findUnique({
       where: {
         id: session.user.id,
@@ -47,7 +47,6 @@ export const GET = withSession(async ({ session }) => {
         source: true,
         defaultWorkspace: true,
         defaultPartnerId: true,
-        passwordHash: true,
         createdAt: true,
       },
     }),
@@ -60,13 +59,22 @@ export const GET = withSession(async ({ session }) => {
         provider: true,
       },
     }),
+
+    prisma.authAccount.findFirst({
+      where: {
+        userId: session.user.id,
+        providerId: "credential",
+      },
+      select: {
+        id: true,
+      },
+    }),
   ]);
 
   return NextResponse.json({
     ...user,
     provider: account?.provider,
-    hasPassword: user?.passwordHash !== null,
-    passwordHash: undefined,
+    hasPassword: !!credentialAccount,
   });
 });
 

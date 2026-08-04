@@ -1,5 +1,6 @@
 "use client";
 
+import { authClient } from "@/lib/better-auth/auth-client";
 import useUser from "@/lib/swr/use-user";
 import { Button } from "@dub/ui";
 import { cn } from "@dub/utils";
@@ -13,22 +14,25 @@ export const RequestSetPassword = () => {
 
   // Send an email to the user with instructions to set their password
   const sendPasswordSetRequest = async () => {
+    if (!user?.email) {
+      return;
+    }
+
     try {
       setSending(true);
 
-      const response = await fetch("/api/user/set-password", {
-        method: "POST",
+      const { error } = await authClient.requestPasswordReset({
+        email: user.email,
+        redirectTo: `${window.location.origin}/auth/reset-password`,
       });
 
-      if (response.ok) {
-        toast.success(
-          `We've sent you an email to ${user?.email} with instructions to set your password`,
-        );
-        return;
+      if (error) {
+        throw new Error(error.message || "Failed to send password set email.");
       }
 
-      const { error } = await response.json();
-      throw new Error(error.message);
+      toast.success(
+        `We've sent you an email to ${user.email} with instructions to set your password`,
+      );
     } catch (error) {
       toast.error(error.message);
     } finally {

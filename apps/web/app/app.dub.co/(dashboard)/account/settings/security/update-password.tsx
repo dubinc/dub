@@ -1,5 +1,6 @@
 "use client";
 
+import { authClient } from "@/lib/better-auth/auth-client";
 import { updatePasswordSchema } from "@/lib/zod/schemas/auth";
 import { PasswordRequirements } from "@/ui/shared/password-requirements";
 import { Button, Input, Label } from "@dub/ui";
@@ -20,17 +21,16 @@ export const UpdatePassword = () => {
 
   const onSubmit = handleSubmit(async (data) => {
     try {
-      const response = await fetch("/api/user/password", {
-        method: "PATCH",
-        body: JSON.stringify(data),
-        headers: {
-          "Content-Type": "application/json",
-        },
+      const { error } = await authClient.changePassword({
+        currentPassword: data.currentPassword,
+        newPassword: data.newPassword,
+        revokeOtherSessions: true,
       });
 
-      if (!response.ok) {
-        const { error } = await response.json();
-        setError("currentPassword", { message: error.message });
+      if (error) {
+        setError("currentPassword", {
+          message: error.message || "Failed to update password.",
+        });
         return;
       }
 
