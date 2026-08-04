@@ -333,6 +333,7 @@ async function processSaleEvents({
     prisma.link.findMany({
       where: {
         domain,
+        programId: program.id,
         key: {
           in: affiliateIds,
         },

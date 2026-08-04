@@ -74,6 +74,7 @@ export async function importCustomers(payload: LemonSqueezyImportPayload) {
       const links = await prisma.link.findMany({
         where: {
           domain: program.domain,
+          programId: program.id,
           key: {
             in: affiliateIds,
           },
@@ -120,7 +121,7 @@ export async function importCustomers(payload: LemonSqueezyImportPayload) {
         const customerChunks = chunk(newCustomers, 10);
 
         for (const customerChunk of customerChunks) {
-          await Promise.all(
+          await Promise.allSettled(
             customerChunk.map((customer) => {
               // Deterministic: first affiliate_id that has an imported partner link
               const affiliateId = customer.affiliate_ids.find((id) =>
@@ -220,6 +221,16 @@ async function createCustomer({
     skipRatelimit: true,
     timestamp: clickedAt.toISOString(),
   });
+
+  if (!clickData) {
+    await logImportError({
+      ...commonImportLogInputs,
+      code: "CLICK_NOT_FOUND",
+      message: `Failed to record click for customer ${externalId}.`,
+    });
+
+    return;
+  }
 
   const clickEvent = clickEventSchemaTB.parse({
     ...clickData,

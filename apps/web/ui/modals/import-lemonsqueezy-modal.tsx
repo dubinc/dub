@@ -137,9 +137,11 @@ function TokenForm({
 
   const { executeAsync, isPending } = useAction(setLemonSqueezyTokenAction, {
     onSuccess: ({ data }) => {
-      if (data?.stores) {
+      if (data?.stores?.length) {
         setStores(data.stores);
         setStep("select-store");
+      } else {
+        toast.error("No Lemon Squeezy stores are available for this API key.");
       }
     },
     onError: ({ error }) => {
