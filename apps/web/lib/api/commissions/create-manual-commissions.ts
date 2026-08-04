@@ -1,5 +1,4 @@
 import { isFirstConversion } from "@/lib/analytics/is-first-conversion";
-import { Session } from "@/lib/auth";
 import { generateRandomName } from "@/lib/names";
 import { queuePartnerCommissionCreation } from "@/lib/partners/queue-partner-commission-creation";
 import { prisma } from "@/lib/prisma";
@@ -21,6 +20,7 @@ import {
   Link,
   Partner,
   Project,
+  User,
 } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
@@ -37,7 +37,7 @@ type CreateCommissionsArgs = z.infer<
 > & {
   workspace: Pick<Project, "id" | "slug" | "stripeConnectId">;
   programId: string;
-  user: Session["user"];
+  user: Pick<User, "id">;
 };
 
 type ResolveLinkAndCustomerArgs = CreateCommissionsArgs & {

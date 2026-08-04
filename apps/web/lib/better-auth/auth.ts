@@ -19,7 +19,7 @@ export const auth = betterAuth({
     additionalFields: {
       isMachine: {
         type: "boolean",
-        required: false,
+        required: true,
         defaultValue: false,
         input: false,
         returned: true,

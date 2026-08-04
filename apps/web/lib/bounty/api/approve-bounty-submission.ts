@@ -1,6 +1,5 @@
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { DubApiError } from "@/lib/api/errors";
-import { Session } from "@/lib/auth";
 import { calculateSocialMetricsRewardAmount } from "@/lib/bounty/rewards";
 import { resolveBountyDetails } from "@/lib/bounty/utils";
 import { queuePartnerCommissionCreation } from "@/lib/partners/queue-partner-commission-creation";
@@ -11,6 +10,7 @@ import {
 } from "@/lib/zod/schemas/bounties";
 import { sendEmail } from "@dub/email";
 import BountyApproved from "@dub/email/templates/bounty-approved";
+import { User } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
 
@@ -19,7 +19,7 @@ interface ApproveBountySubmissionParams
   programId: string;
   bountyId?: string;
   submissionId: string;
-  user: Session["user"];
+  user: Pick<User, "id">;
 }
 
 export async function approveBountySubmission({
