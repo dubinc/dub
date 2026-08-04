@@ -393,6 +393,14 @@ export const createLinkBodySchema = z.object({
     .nullish()
     .describe("The unique ID existing folder to assign the short link to."),
   comments: z.string().nullish().describe("The comments for the short link."),
+  partnerLinkTitle: z
+    .string()
+    .nullish()
+    .describe("The partner's private display title for the short link."),
+  partnerLinkComments: z
+    .string()
+    .nullish()
+    .describe("The partner's private comments for the short link."),
   expiresAt: z
     .string()
     .nullish()
@@ -707,6 +715,16 @@ export const LinkSchema = z
       .string()
       .nullable()
       .describe("The comments for the short link."),
+    partnerLinkTitle: z
+      .string()
+      .nullish()
+      .default(null)
+      .describe("The partner's private display title for the short link."),
+    partnerLinkComments: z
+      .string()
+      .nullish()
+      .default(null)
+      .describe("The partner's private comments for the short link."),
     shortLink: z
       .url()
       .describe(

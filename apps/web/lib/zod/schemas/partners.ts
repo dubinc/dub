@@ -815,6 +815,14 @@ export const createPartnerLinkSchema = partnerIdTenantIdSchema
         "The short link slug. If not provided, a random 7-character slug will be generated.",
       ),
     comments: z.string().nullish().describe("The comments for the short link."),
+    partnerLinkTitle: z
+      .string()
+      .nullish()
+      .describe("The partner's private display title for the short link."),
+    partnerLinkComments: z
+      .string()
+      .nullish()
+      .describe("The partner's private comments for the short link."),
   })
   .extend(
     createPartnerSchema.pick({

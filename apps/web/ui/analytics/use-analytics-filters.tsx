@@ -3,6 +3,7 @@ import { VALID_ANALYTICS_FILTERS } from "@/lib/analytics/constants";
 import useCustomer from "@/lib/swr/use-customer";
 import usePartner from "@/lib/swr/use-partner";
 import usePartnerCustomer from "@/lib/swr/use-partner-customer";
+import { usePartnerLinksDisplay } from "@/lib/swr/use-partner-links-display";
 import { usePartnerTags } from "@/lib/swr/use-partner-tags";
 import { CustomerAvatar } from "@/ui/customers/customer-avatar";
 import { PartnerAvatar } from "@/ui/partners/partner-avatar";
@@ -422,6 +423,8 @@ export function useAnalyticsFilters({
 
   const [streaming, setStreaming] = useState<boolean>(false);
 
+  const { preferTitle: preferPartnerTitle } = usePartnerLinksDisplay();
+
   const LinkFilterItem = {
     key: "linkId",
     icon: Hyperlink,
@@ -432,11 +435,14 @@ export function useAnalyticsFilters({
       return <LinkIcon url={url} />;
     },
     options:
-      links?.map(({ id, domain, key, url, ...rest }) => ({
+      links?.map(({ id, domain, key, url, partnerLinkTitle, ...rest }) => ({
         value: id,
-        label: linkConstructor({ domain, key, pretty: true }),
+        label:
+          partnerPage && preferPartnerTitle && partnerLinkTitle
+            ? partnerLinkTitle
+            : linkConstructor({ domain, key, pretty: true }),
         right: getFilterOptionTotal(rest),
-        data: { url, domain, key },
+        data: { url, domain, key, partnerLinkTitle },
       })) ?? null,
   };
 

@@ -1,6 +1,7 @@
 import { formatDateTooltip } from "@/lib/analytics/format-date-tooltip";
 import { constructPartnerLink } from "@/lib/partners/construct-partner-link";
 import usePartnerAnalytics from "@/lib/swr/use-partner-analytics";
+import { usePartnerLinksDisplay } from "@/lib/swr/use-partner-links-display";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import { PartnerProfileLinkProps } from "@/lib/types";
 import { CommentsBadge } from "@/ui/links/comments-badge";
@@ -67,7 +68,8 @@ const CHARTS = [
 
 export function PartnerLinkCard({ link }: { link: PartnerProfileLinkProps }) {
   const { programEnrollment } = useProgramEnrollment();
-  const { displayOption } = usePartnerLinksContext();
+  const { viewMode } = usePartnerLinksContext();
+  const { preferTitle } = usePartnerLinksDisplay();
 
   const partnerLink = constructPartnerLink({
     group: programEnrollment?.group,
@@ -75,6 +77,7 @@ export function PartnerLinkCard({ link }: { link: PartnerProfileLinkProps }) {
   });
 
   const isDeactivated = programEnrollment?.status === "deactivated";
+  const showTitle = preferTitle && Boolean(link.partnerLinkTitle);
 
   const discountCodeSection = link.discountCode ? (
     <div className="hidden items-center gap-1.5 rounded-xl border border-neutral-200 py-1 pl-2 pr-1 sm:flex">
@@ -111,44 +114,78 @@ export function PartnerLinkCard({ link }: { link: PartnerProfileLinkProps }) {
             <div className="flex min-w-0 flex-col">
               <div className="flex flex-col">
                 <div className="flex items-center gap-1">
-                  <a
-                    href={isDeactivated ? undefined : partnerLink}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className={cn(
-                      "truncate text-sm font-semibold leading-6 transition-colors",
-                      isDeactivated
-                        ? "cursor-default text-neutral-400"
-                        : "text-neutral-700 hover:text-black",
-                    )}
-                    onClick={
-                      isDeactivated ? (e) => e.preventDefault() : undefined
-                    }
-                  >
-                    {getPrettyUrl(partnerLink)}
-                  </a>
+                  {showTitle ? (
+                    <span
+                      className={cn(
+                        "truncate text-sm font-semibold leading-6",
+                        isDeactivated ? "text-neutral-400" : "text-neutral-700",
+                      )}
+                      title={link.partnerLinkTitle ?? undefined}
+                    >
+                      {link.partnerLinkTitle}
+                    </span>
+                  ) : (
+                    <a
+                      href={isDeactivated ? undefined : partnerLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={cn(
+                        "truncate text-sm font-semibold leading-6 transition-colors",
+                        isDeactivated
+                          ? "cursor-default text-neutral-400"
+                          : "text-neutral-700 hover:text-black",
+                      )}
+                      onClick={
+                        isDeactivated ? (e) => e.preventDefault() : undefined
+                      }
+                    >
+                      {getPrettyUrl(partnerLink)}
+                    </a>
+                  )}
                   {!isDeactivated && (
                     <CopyButton value={partnerLink} variant="neutral" />
                   )}
 
-                  {link.comments && <CommentsBadge comments={link.comments} />}
+                  {link.partnerLinkComments && (
+                    <CommentsBadge comments={link.partnerLinkComments} />
+                  )}
                 </div>
 
                 {/* The max width implementation here is a bit hacky, we should improve in the future */}
                 <div className="flex max-w-[100px] items-center gap-1 py-0 pl-1 pr-1.5 sm:w-fit sm:max-w-[400px]">
                   <ArrowTurnRight2 className="h-3 w-3 shrink-0 text-neutral-400" />
-                  <a
-                    href={isDeactivated ? undefined : link.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="cursor-alias truncate text-sm text-neutral-500 decoration-dotted transition-colors hover:text-neutral-700 hover:underline hover:underline-offset-2"
-                    title={getPrettyUrl(link.url)}
-                    onClick={
-                      isDeactivated ? (e) => e.preventDefault() : undefined
-                    }
-                  >
-                    {getPrettyUrl(link.url)}
-                  </a>
+                  {showTitle ? (
+                    <a
+                      href={isDeactivated ? undefined : partnerLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={cn(
+                        "truncate text-sm transition-colors",
+                        isDeactivated
+                          ? "cursor-default text-neutral-400"
+                          : "text-neutral-500 hover:text-neutral-700 hover:underline hover:underline-offset-2",
+                      )}
+                      title={getPrettyUrl(partnerLink)}
+                      onClick={
+                        isDeactivated ? (e) => e.preventDefault() : undefined
+                      }
+                    >
+                      {getPrettyUrl(partnerLink)}
+                    </a>
+                  ) : (
+                    <a
+                      href={isDeactivated ? undefined : link.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="cursor-alias truncate text-sm text-neutral-500 decoration-dotted transition-colors hover:text-neutral-700 hover:underline hover:underline-offset-2"
+                      title={getPrettyUrl(link.url)}
+                      onClick={
+                        isDeactivated ? (e) => e.preventDefault() : undefined
+                      }
+                    >
+                      {getPrettyUrl(link.url)}
+                    </a>
+                  )}
                 </div>
               </div>
             </div>
@@ -175,12 +212,12 @@ export function PartnerLinkCard({ link }: { link: PartnerProfileLinkProps }) {
                   {discountCodeSection}
                 </Tooltip>
               ))}
-            {displayOption === "cards" && <StatsBadge link={link} />}
+            {viewMode === "rows" && <StatsBadge link={link} />}
             <Controls link={link} />
           </div>
         </div>
       </div>
-      {displayOption === "full" && <StatsCharts link={link} />}
+      {viewMode === "cards" && <StatsCharts link={link} />}
     </CardList.Card>
   );
 }

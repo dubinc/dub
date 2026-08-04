@@ -1,6 +1,7 @@
 "use client";
 
 import { editQueryString } from "@/lib/analytics/utils";
+import { usePartnerLinksDisplay } from "@/lib/swr/use-partner-links-display";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { useWorkspacePreferences } from "@/lib/swr/use-workspace-preferences";
 import { ClickEvent, LeadEvent, SaleEvent } from "@/lib/types";
@@ -167,9 +168,22 @@ export default function EventsTable({
   );
 
   const [persisted] = useWorkspacePreferences("linksDisplay");
+  const { preferTitle: preferPartnerTitle } = usePartnerLinksDisplay();
 
   const shortLinkTitle = useCallback(
-    (d: { url?: string; title?: string; shortLink?: string }) => {
+    (d: {
+      url?: string;
+      title?: string;
+      partnerLinkTitle?: string | null;
+      shortLink?: string;
+    }) => {
+      if (partnerPage) {
+        if (preferPartnerTitle && d.partnerLinkTitle) {
+          return d.partnerLinkTitle;
+        }
+        return d.shortLink || "Unknown";
+      }
+
       const displayProperties = persisted?.displayProperties;
 
       if (displayProperties?.includes("title") && d.title) {
@@ -178,7 +192,7 @@ export default function EventsTable({
 
       return d.shortLink || "Unknown";
     },
-    [persisted],
+    [persisted, partnerPage, preferPartnerTitle],
   );
 
   const sortBy = searchParams.get("sortBy") || "timestamp";
@@ -697,7 +711,7 @@ export default function EventsTable({
           minSize: col.minSize || 100,
           maxSize: col.maxSize || 1000,
         })),
-    [tab, product, partnerPage],
+    [tab, product, partnerPage, shortLinkTitle],
   );
 
   const { pagination, setPagination } = usePagination();

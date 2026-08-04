@@ -15,9 +15,15 @@ import { NextResponse } from "next/server";
 // PATCH /api/partner-profile/[programId]/links/[linkId] - update a link for a partner
 export const PATCH = withPartnerProfile(
   async ({ partner, params, req, session }) => {
-    const { url, key, comments } = createPartnerLinkSchema
-      .pick({ url: true, key: true, comments: true })
-      .parse(await parseRequestBody(req));
+    const { url, key, partnerLinkTitle, partnerLinkComments } =
+      createPartnerLinkSchema
+        .pick({
+          url: true,
+          key: true,
+          partnerLinkTitle: true,
+          partnerLinkComments: true,
+        })
+        .parse(await parseRequestBody(req));
 
     const { programId, linkId } = params;
 
@@ -121,7 +127,8 @@ export const PATCH = withPartnerProfile(
         // merge in new props
         key: key || undefined,
         url: url || program.url,
-        comments,
+        partnerLinkTitle,
+        partnerLinkComments,
       },
       workspace: {
         id: program.workspaceId,

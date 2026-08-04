@@ -217,6 +217,7 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
         key: true,
         url: true,
         title: true,
+        partnerLinkTitle: true,
         comments: true,
         folderId: true,
         partnerId: true,

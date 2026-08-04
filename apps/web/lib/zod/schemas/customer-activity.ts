@@ -8,5 +8,6 @@ export const customerActivityResponseSchema = z.object({
     domain: true,
     key: true,
     shortLink: true,
+    partnerLinkTitle: true,
   }).nullish(),
 });

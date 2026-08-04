@@ -44,6 +44,7 @@ export const PartnerEarningsSchema = CommissionSchema.omit({
     id: true,
     shortLink: true,
     url: true,
+    partnerLinkTitle: true,
   }).nullish(),
 });
 
@@ -92,7 +93,8 @@ export const PartnerProfileLinkSchema = LinkSchema.pick({
   leads: true,
   sales: true,
   saleAmount: true,
-  comments: true,
+  partnerLinkTitle: true,
+  partnerLinkComments: true,
 }).extend({
   createdAt: z.string().or(z.date()),
   partnerGroupDefaultLinkId: z.string().nullish(),

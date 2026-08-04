@@ -262,6 +262,10 @@ export const analyticsResponse = {
       .string()
       .nullish()
       .describe("The custom link preview title (og:title)"),
+    partnerLinkTitle: z
+      .string()
+      .nullish()
+      .describe("The partner's private display title for the short link"),
     comments: z.string().nullish().describe("The comments of the short link"),
     folderId: z
       .string()

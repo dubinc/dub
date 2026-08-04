@@ -6,21 +6,17 @@ import {
 } from "@/lib/analytics/constants";
 import { IntervalOptions } from "@/lib/analytics/types";
 import usePartnerLinks from "@/lib/swr/use-partner-links";
+import { usePartnerLinksDisplay } from "@/lib/swr/use-partner-links-display";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import { usePartnerLinkModal } from "@/ui/modals/partner-link-modal";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
-import {
-  Button,
-  CardList,
-  ToggleGroup,
-  useKeyboardShortcut,
-  useRouterStuff,
-} from "@dub/ui";
+import { Button, CardList, useKeyboardShortcut, useRouterStuff } from "@dub/ui";
 import { ChartTooltipSync } from "@dub/ui/charts";
-import { CursorRays, GridIcon, GridLayoutRows, Hyperlink } from "@dub/ui/icons";
-import { createContext, useContext, useEffect, useState } from "react";
+import { CursorRays, Hyperlink } from "@dub/ui/icons";
+import { createContext, useContext, useState } from "react";
 import { PartnerLinkCard } from "./partner-link-card";
+import { PartnerLinkDisplay } from "./partner-link-display";
 
 const PartnerLinksContext = createContext<{
   start?: Date;
@@ -28,7 +24,7 @@ const PartnerLinksContext = createContext<{
   interval: (typeof DATE_RANGE_INTERVAL_PRESETS)[number];
   openMenuLinkId: string | null;
   setOpenMenuLinkId: (id: string | null) => void;
-  displayOption: "full" | "cards";
+  viewMode: "cards" | "rows";
 } | null>(null);
 
 export function usePartnerLinksContext() {
@@ -48,15 +44,10 @@ export function PartnerProgramLinksPageClient() {
   const { setShowPartnerLinkModal, PartnerLinkModal } = usePartnerLinkModal();
   const [openMenuLinkId, setOpenMenuLinkId] = useState<string | null>(null);
 
-  const [displayOption, setDisplayOption] = useState<"full" | "cards">("full");
-
-  useEffect(() => {
-    if ((links && links.length > 5) || !showDetailedAnalytics) {
-      setDisplayOption("cards");
-    } else {
-      setDisplayOption("full");
-    }
-  }, [links, showDetailedAnalytics]);
+  const { viewMode } = usePartnerLinksDisplay({
+    linksCount: links?.length,
+    showDetailedAnalytics,
+  });
 
   const {
     start,
@@ -83,7 +74,7 @@ export function PartnerProgramLinksPageClient() {
   });
 
   const showAllTimeAnalytics =
-    !showDetailedAnalytics || displayOption === "cards";
+    !showDetailedAnalytics || viewMode === "rows";
 
   return (
     <div className="flex flex-col gap-4">
@@ -98,35 +89,7 @@ export function PartnerProgramLinksPageClient() {
           disabled={showAllTimeAnalytics}
         />
         <div className="flex items-center gap-3">
-          {!!showDetailedAnalytics && (
-            <ToggleGroup
-              className="h-10 rounded-lg px-1"
-              optionClassName="px-2 rounded-md"
-              indicatorClassName="border-0 ring-1 ring-inset ring-neutral-200"
-              options={[
-                {
-                  value: "full",
-                  label: (
-                    <div className="p-1">
-                      <GridIcon className="size-4" />
-                    </div>
-                  ),
-                },
-                {
-                  value: "cards",
-                  label: (
-                    <div className="p-1">
-                      <GridLayoutRows className="size-4" />
-                    </div>
-                  ),
-                },
-              ]}
-              selected={displayOption}
-              selectAction={(option) =>
-                setDisplayOption(option as "full" | "cards")
-              }
-            />
-          )}
+          <PartnerLinkDisplay linksCount={links?.length} />
           <Button
             text="Create Link"
             className="w-fit"
@@ -152,7 +115,7 @@ export function PartnerProgramLinksPageClient() {
           interval,
           openMenuLinkId,
           setOpenMenuLinkId,
-          displayOption,
+          viewMode,
         }}
       >
         <ChartTooltipSync>

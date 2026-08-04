@@ -47,9 +47,15 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
 // POST /api/partner-profile/[programId]/links - create a link for a partner
 export const POST = withPartnerProfile(
   async ({ partner, params, req, session }) => {
-    const { url, key, comments } = createPartnerLinkSchema
-      .pick({ url: true, key: true, comments: true })
-      .parse(await parseRequestBody(req));
+    const { url, key, partnerLinkTitle, partnerLinkComments } =
+      createPartnerLinkSchema
+        .pick({
+          url: true,
+          key: true,
+          partnerLinkTitle: true,
+          partnerLinkComments: true,
+        })
+        .parse(await parseRequestBody(req));
 
     const {
       program,
@@ -125,7 +131,8 @@ export const POST = withPartnerProfile(
         tenantId,
         partnerId: partner.id,
         folderId: program.defaultFolderId,
-        comments,
+        partnerLinkTitle,
+        partnerLinkComments,
         trackConversion: true,
       },
       workspace: {
