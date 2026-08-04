@@ -1,5 +1,6 @@
 "use client";
 
+import { useSession } from "@/lib/better-auth/use-session";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { PartnerUserProps } from "@/lib/types";
 import { PageContent } from "@/ui/layout/page-content";
@@ -33,7 +34,6 @@ import { PartnerRole } from "@prisma/client";
 import { ColumnDef, Row } from "@tanstack/react-table";
 import { Command } from "cmdk";
 import { UserMinus, UserPlus } from "lucide-react";
-import { useSession } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import useSWR from "swr";

@@ -2,7 +2,7 @@
 
 import { getUserAvatarUrl } from "@/ui/users/user-avatar";
 import { Button, FileUpload } from "@dub/ui";
-import { useSession } from "next-auth/react";
+import { useSession } from "@/lib/better-auth/use-session";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 

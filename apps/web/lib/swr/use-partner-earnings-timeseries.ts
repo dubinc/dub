@@ -1,6 +1,6 @@
 import { useRouterStuff } from "@dub/ui";
 import { fetcher } from "@dub/utils";
-import { useSession } from "next-auth/react";
+import { useSession } from "@/lib/better-auth/use-session";
 import { useParams } from "next/navigation";
 import useSWR from "swr";
 import { DUB_PARTNERS_ANALYTICS_INTERVAL } from "../analytics/constants";

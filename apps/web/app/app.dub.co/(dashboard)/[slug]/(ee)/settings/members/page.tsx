@@ -42,7 +42,7 @@ import { WorkspaceRole } from "@prisma/client";
 import { ColumnDef, Row } from "@tanstack/react-table";
 import { Command } from "cmdk";
 import { UserMinus } from "lucide-react";
-import { useSession } from "next-auth/react";
+import { useSession } from "@/lib/better-auth/use-session";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import useSWR from "swr";

@@ -14,7 +14,7 @@ import {
   useIdentitySyncConfirmModal,
 } from "@/ui/modals/identity-sync-confirm-modal";
 import { Form, useCurrentSubdomain } from "@dub/ui";
-import { useSession } from "next-auth/react";
+import { useSession } from "@/lib/better-auth/use-session";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
 

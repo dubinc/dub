@@ -4,7 +4,7 @@ import { cancelEmailChangeAction } from "@/lib/actions/cancel-email-change";
 import { confirmEmailChangeAction } from "@/lib/actions/confirm-email-change";
 import EmptyState from "@/ui/shared/empty-state";
 import { Button, InputPassword } from "@dub/ui";
-import { useSession } from "next-auth/react";
+import { useSession } from "@/lib/better-auth/use-session";
 import { useAction } from "next-safe-action/hooks";
 import { useRouter } from "next/navigation";
 import { useState } from "react";

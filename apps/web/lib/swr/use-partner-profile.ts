@@ -1,5 +1,5 @@
 import { fetcher } from "@dub/utils";
-import { useSession } from "next-auth/react";
+import { useSession } from "@/lib/better-auth/use-session";
 import useSWR from "swr";
 import { getPayoutMethodsForCountry } from "../partners/get-payout-methods-for-country";
 import { PartnerBetaFeatures, PartnerProps } from "../types";

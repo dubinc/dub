@@ -37,7 +37,7 @@ import {
 import NumberFlow from "@number-flow/react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { motion } from "motion/react";
-import { useSession } from "next-auth/react";
+import { useSession } from "@/lib/better-auth/use-session";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { CSSProperties, useEffect, useMemo, useState } from "react";

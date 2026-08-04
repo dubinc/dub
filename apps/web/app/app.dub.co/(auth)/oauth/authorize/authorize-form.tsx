@@ -6,7 +6,7 @@ import useWorkspaces from "@/lib/swr/use-workspaces";
 import { authorizeRequestSchema } from "@/lib/zod/schemas/oauth";
 import { WorkspaceSelector } from "@/ui/workspaces/workspace-selector";
 import { Button } from "@dub/ui";
-import { useSession } from "next-auth/react";
+import { useSession } from "@/lib/better-auth/use-session";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import * as z from "zod/v4";

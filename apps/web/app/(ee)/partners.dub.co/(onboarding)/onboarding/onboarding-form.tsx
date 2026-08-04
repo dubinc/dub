@@ -18,7 +18,7 @@ import {
 import { cn } from "@dub/utils";
 import { Partner } from "@prisma/client";
 import { AnimatePresence, LayoutGroup, motion } from "motion/react";
-import { useSession } from "next-auth/react";
+import { useSession } from "@/lib/better-auth/use-session";
 import { useAction } from "next-safe-action/hooks";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";

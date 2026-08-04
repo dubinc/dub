@@ -23,7 +23,7 @@ import {
 import { UserCheck } from "@dub/ui/icons";
 import { cn, OG_AVATAR_URL } from "@dub/utils";
 import { FolderUserRole, WorkspaceRole } from "@prisma/client";
-import { useSession } from "next-auth/react";
+import { useSession } from "@/lib/better-auth/use-session";
 import { useAction } from "next-safe-action/hooks";
 import { useState } from "react";
 import { toast } from "sonner";

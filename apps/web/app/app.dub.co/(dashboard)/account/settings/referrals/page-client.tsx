@@ -5,7 +5,7 @@ import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { DubEmbed } from "@dub/embed-react";
 import { CursorRays, Hyperlink, InvoiceDollar, UserCheck } from "@dub/ui/icons";
 import { fetcher } from "@dub/utils";
-import { useSession } from "next-auth/react";
+import { useSession } from "@/lib/better-auth/use-session";
 import useSWRImmutable from "swr/immutable";
 
 export function ReferralsPageClient() {
