@@ -73,7 +73,7 @@ function resolveAmountUsd({
 // Skip billing_reason: initial (no referral) and missing/unknown reasons.
 const IMPORTABLE_INVOICE_REASONS = new Set(["renewal", "updated"]);
 
-const toDubStatus = (status: string): CommissionStatus | null => {
+const toDubStatus = (status: string): CommissionStatus => {
   switch (status) {
     case "paid":
       return "paid";
@@ -183,9 +183,6 @@ export async function importCommissions(payload: LemonSqueezyImportPayload) {
     return;
   }
 
-  // Imports finished
-  await lemonSqueezyImporter.deleteCredentials(program.workspaceId);
-
   const workspaceUser = await prisma.projectUsers.findUnique({
     where: {
       userId_projectId: {
@@ -212,6 +209,8 @@ export async function importCommissions(payload: LemonSqueezyImportPayload) {
       }),
     });
   }
+
+  await lemonSqueezyImporter.deleteCredentials(program.workspaceId);
 }
 
 async function listOrderSaleEvents({
@@ -364,7 +363,7 @@ async function processSaleEvents({
   const saleChunks = chunk(saleEvents, 10);
 
   for (const saleChunk of saleChunks) {
-    await Promise.all(
+    await Promise.allSettled(
       saleChunk.map((saleEvent) =>
         createCommission({
           program,

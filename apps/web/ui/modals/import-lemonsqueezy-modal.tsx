@@ -145,7 +145,9 @@ function TokenForm({
       }
     },
     onError: ({ error }) => {
-      toast.error(error.serverError);
+      toast.error(
+        error.serverError ?? "Failed to fetch Lemon Squeezy stores.",
+      );
     },
   });
 
@@ -226,7 +228,9 @@ function SelectStore({
       router.push(`/${slug}/program/partners`);
     },
     onError: ({ error }) => {
-      toast.error(error.serverError);
+      toast.error(
+        error.serverError ?? "Failed to start the Lemon Squeezy import.",
+      );
     },
   });
 
