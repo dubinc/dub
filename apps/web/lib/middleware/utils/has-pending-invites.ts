@@ -1,5 +1,5 @@
+import { SessionUser } from "@/lib/better-auth/get-session";
 import { prismaEdge } from "@/lib/prisma/edge";
-import { UserProps } from "@/lib/types";
 import { NextRequest } from "next/server";
 
 export async function hasPendingInvites({
@@ -7,7 +7,7 @@ export async function hasPendingInvites({
   user,
 }: {
   req: NextRequest;
-  user: UserProps;
+  user: Pick<SessionUser, "email">;
 }) {
   if (
     req.nextUrl.searchParams.get("invite") ||

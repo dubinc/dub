@@ -3,11 +3,11 @@ import {
   ONBOARDING_WINDOW_SECONDS,
   onboardingStepCache,
 } from "../api/workspaces/onboarding-step-cache";
+import { getServerSession } from "../better-auth/get-session";
 import { EmbedMiddleware } from "./embed";
 import { NewLinkMiddleware } from "./new-link";
 import { appRedirect } from "./utils/app-redirect";
 import { getDefaultWorkspace } from "./utils/get-default-workspace";
-import { getUserViaToken } from "./utils/get-user-via-token";
 import { hasPendingInvites } from "./utils/has-pending-invites";
 import { isTopLevelSettingsRedirect } from "./utils/is-top-level-settings-redirect";
 import { parse } from "./utils/parse";
@@ -20,7 +20,7 @@ export async function AppMiddleware(req: NextRequest) {
     return EmbedMiddleware(req);
   }
 
-  const user = await getUserViaToken(req);
+  const { user } = await getServerSession(req.headers);
 
   // if there's no user and the path is not a public page, redirect to /login
   if (

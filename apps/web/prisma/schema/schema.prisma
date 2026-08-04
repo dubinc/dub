@@ -104,15 +104,15 @@ model Session {
 // Better Auth account table
 model AuthAccount {
   id                    String    @id @default(cuid())
+  userId                String
   accountId             String
   providerId            String
-  userId                String
   accessToken           String?   @db.Text
   refreshToken          String?   @db.Text
-  idToken               String?   @db.Text
   accessTokenExpiresAt  DateTime?
   refreshTokenExpiresAt DateTime?
   scope                 String?
+  idToken               String?   @db.Text
   password              String?   @db.Text
   createdAt             DateTime  @default(now())
   updatedAt             DateTime  @updatedAt
@@ -124,10 +124,10 @@ model AuthAccount {
 }
 
 // Better Auth verification table
-model AuthVerification {
+model Verification {
   id         String   @id @default(cuid())
   identifier String
-  value      String
+  value      String   @db.Text
   expiresAt  DateTime
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt

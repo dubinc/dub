@@ -1,5 +1,5 @@
 import { prismaEdge } from "@/lib/prisma/edge";
-import { UserProps } from "@/lib/types";
+import { SessionUser } from "@/lib/better-auth/get-session";
 import { NextRequest, NextResponse } from "next/server";
 import { getDefaultWorkspace } from "./utils/get-default-workspace";
 import { getWorkspaceProduct } from "./utils/get-workspace-product";
@@ -7,7 +7,10 @@ import { isTopLevelSettingsRedirect } from "./utils/is-top-level-settings-redire
 import { isValidInternalRedirect } from "./utils/is-valid-internal-redirect";
 import { parse } from "./utils/parse";
 
-export async function WorkspacesMiddleware(req: NextRequest, user: UserProps) {
+export async function WorkspacesMiddleware(
+  req: NextRequest,
+  user: Pick<SessionUser, "id" | "email" | "defaultWorkspace">,
+) {
   const { path, searchParamsObj, searchParamsString } = parse(req);
 
   // Handle ?next= query param with proper validation to prevent open redirects

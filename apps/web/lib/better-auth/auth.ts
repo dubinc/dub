@@ -46,7 +46,7 @@ export const auth = betterAuth({
     },
   },
   verification: {
-    modelName: "authVerification",
+    modelName: "verification",
   },
   advanced: {
     database: {

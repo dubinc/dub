@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "../better-auth/get-session";
 import { getDefaultPartnerId } from "./utils/get-default-partner";
-import { getUserViaToken } from "./utils/get-user-via-token";
 import { isValidInternalRedirect } from "./utils/is-valid-internal-redirect";
 import { parse } from "./utils/parse";
 import {
@@ -25,7 +25,7 @@ const AUTHENTICATED_PATHS = [
 export async function PartnersMiddleware(req: NextRequest) {
   const { path, fullPath, searchParamsObj, searchParamsString } = parse(req);
 
-  const user = await getUserViaToken(req);
+  const { user } = await getServerSession(req.headers);
   const isPartnerInvite = req.nextUrl.pathname.endsWith("/invite");
 
   const isAuthenticatedPath = AUTHENTICATED_PATHS.some(
