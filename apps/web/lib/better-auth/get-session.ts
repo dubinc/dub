@@ -16,9 +16,13 @@ export async function getServerSession(requestHeaders?: Headers) {
   };
 }
 
+export type SessionUser = NonNullable<
+  Awaited<ReturnType<typeof getServerSession>>["user"]
+>;
+
 export type ServerSession = {
   session: NonNullable<Awaited<ReturnType<typeof getServerSession>>["session"]>;
-  user: NonNullable<Awaited<ReturnType<typeof getServerSession>>["user"]>;
+  user: SessionUser;
 };
 
 export async function requireServerSession(): Promise<ServerSession> {

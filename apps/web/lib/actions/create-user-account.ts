@@ -1,13 +1,13 @@
 "use server";
 
+import { auth } from "@/lib/better-auth/auth";
 import { prisma } from "@/lib/prisma";
 import { ratelimit } from "@/lib/upstash";
 import { waitUntil } from "@vercel/functions";
 import { flattenValidationErrors } from "next-safe-action";
+import { headers } from "next/headers";
 import * as z from "zod/v4";
-import { createId } from "../api/create-id";
 import { shouldApplyRateLimit } from "../api/environment";
-import { hashPassword } from "../auth/password";
 import { signUpSchema } from "../zod/schemas/auth";
 import { throwIfAuthenticated } from "./auth/throw-if-authenticated";
 import { actionClient } from "./safe-action";
@@ -81,23 +81,46 @@ export const createUserAccountAction = actionClient
       },
     });
 
-    const user = await prisma.user.findUnique({
+    const existingUser = await prisma.user.findUnique({
       where: {
         email,
       },
+      select: {
+        id: true,
+        authAccounts: {
+          where: {
+            providerId: "credential",
+          },
+          select: {
+            id: true,
+          },
+          take: 1,
+        },
+      },
     });
 
-    if (!user) {
-      await prisma.user.create({
-        data: {
-          id: createId({ prefix: "user_" }),
-          email,
-          passwordHash: await hashPassword(password),
-          emailVerified: new Date(),
-          notificationPreferences: {
-            create: {},
-          },
-        },
-      });
+    if (existingUser) {
+      throw new Error(
+        "User already exists. Please login instead of requesting a new OTP.",
+      );
     }
+
+    const result = await auth.api.signUpEmail({
+      body: {
+        name: "",
+        email,
+        password,
+      },
+      headers: await headers(),
+    });
+
+    await prisma.user.update({
+      where: {
+        id: result.user.id,
+      },
+      data: {
+        emailVerified: new Date(),
+        emailVerifiedBa: true,
+      },
+    });
   });
