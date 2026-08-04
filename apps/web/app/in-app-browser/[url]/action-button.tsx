@@ -11,6 +11,7 @@ export function InAppBrowserActionButton({
   copiedLabel,
   copyFailedLabel,
   copyUrl,
+  intentFallbackUrl,
   extBrowserScheme,
   buttonStyle,
 }: {
@@ -19,6 +20,7 @@ export function InAppBrowserActionButton({
   copiedLabel: string;
   copyFailedLabel: string;
   copyUrl: string;
+  intentFallbackUrl: string;
   extBrowserScheme: string | null;
   buttonStyle?: DeepViewData["buttonStyle"];
 }) {
@@ -29,6 +31,22 @@ export function InAppBrowserActionButton({
 
   const handleOpen = () => {
     if (!extBrowserScheme) {
+      return;
+    }
+
+    if (extBrowserScheme.startsWith("intent://")) {
+      const onVisibilityChange = () => {
+        if (document.visibilityState === "hidden") {
+          clearTimeout(timer);
+          document.removeEventListener("visibilitychange", onVisibilityChange);
+        }
+      };
+      const timer = window.setTimeout(() => {
+        document.removeEventListener("visibilitychange", onVisibilityChange);
+        window.location.href = intentFallbackUrl;
+      }, 1500);
+      document.addEventListener("visibilitychange", onVisibilityChange);
+      window.location.href = extBrowserScheme;
       return;
     }
 

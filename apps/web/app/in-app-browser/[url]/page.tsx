@@ -52,13 +52,35 @@ function getDestinationUrl(param: string): string {
   return param;
 }
 
-function getCopyUrl(shortLink: string | undefined, destinationUrl: string) {
+const COPY_URL_EXCLUDED_PARAMS = new Set(["source", "domain", "key"]);
+
+function getCopyUrl({
+  shortLink,
+  destinationUrl,
+  searchParams,
+}: {
+  shortLink: string | undefined;
+  destinationUrl: string;
+  searchParams: Record<string, string | string[] | undefined>;
+}) {
   if (!shortLink) {
     return destinationUrl;
   }
 
   try {
     const copyUrl = new URL(shortLink);
+
+    for (const [param, value] of Object.entries(searchParams)) {
+      if (COPY_URL_EXCLUDED_PARAMS.has(param) || value == null) {
+        continue;
+      }
+      const paramValue = Array.isArray(value) ? value[0] : value;
+      if (paramValue == null) {
+        continue;
+      }
+      copyUrl.searchParams.set(param, paramValue);
+    }
+
     copyUrl.searchParams.set("skip_deeplink_preview", "1");
     return copyUrl.toString();
   } catch {
@@ -108,13 +130,15 @@ function getExtBrowserScheme(
 
 export default async function InAppBrowserEscapePage(props: {
   params: Promise<{ url: string }>;
-  searchParams: Promise<{ source?: string; domain?: string; key?: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const params = await props.params;
   const searchParams = await props.searchParams;
 
   const destinationUrl = getDestinationUrl(params.url);
-  const rawSource = searchParams.source;
+  const rawSource = Array.isArray(searchParams.source)
+    ? searchParams.source[0]
+    : searchParams.source;
   const source: InAppBrowserSource | null = VALID_SOURCES.has(
     rawSource as InAppBrowserSource,
   )
@@ -130,8 +154,12 @@ export default async function InAppBrowserEscapePage(props: {
   const platform: "ios" | "android" =
     ua.os?.name === "Android" ? "android" : "ios";
 
-  const domain = searchParams.domain;
-  const key = searchParams.key;
+  const domain = Array.isArray(searchParams.domain)
+    ? searchParams.domain[0]
+    : searchParams.domain;
+  const key = Array.isArray(searchParams.key)
+    ? searchParams.key[0]
+    : searchParams.key;
 
   let link: {
     domain: string;
@@ -187,7 +215,11 @@ export default async function InAppBrowserEscapePage(props: {
     shortLink: link?.shortLink ?? destinationUrl,
     url: destinationUrl,
   };
-  const copyUrl = getCopyUrl(link?.shortLink, destinationUrl);
+  const copyUrl = getCopyUrl({
+    shortLink: link?.shortLink,
+    destinationUrl,
+    searchParams,
+  });
 
   return (
     <>
@@ -288,6 +320,7 @@ export default async function InAppBrowserEscapePage(props: {
               copiedLabel={t.copied}
               copyFailedLabel={t.copyFailed}
               copyUrl={copyUrl}
+              intentFallbackUrl={destinationUrl}
               extBrowserScheme={extBrowserScheme}
               buttonStyle={buttonStyle}
             />
