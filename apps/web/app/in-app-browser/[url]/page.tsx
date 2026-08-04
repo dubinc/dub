@@ -2,8 +2,8 @@ import {
   decodeLinkIfCaseSensitive,
   encodeKeyIfCaseSensitive,
 } from "@/lib/api/links/case-sensitivity";
-import { isGooglePlayStoreUrl } from "@/lib/middleware/utils/is-google-play-store-url";
 import type { InAppBrowserSource } from "@/lib/middleware/utils/detect-in-app-browser";
+import { isGooglePlayStoreUrl } from "@/lib/middleware/utils/is-google-play-store-url";
 import { prisma } from "@/lib/prisma";
 import { parseDeepViewData } from "@/lib/zod/schemas/deep-links";
 import { Grid, Wordmark } from "@dub/ui";
@@ -90,9 +90,7 @@ export default async function InAppBrowserEscapePage(props: {
     ua.os?.name === "Android" ? "android" : "ios";
 
   const domain = searchParams.domain;
-  const key = searchParams.key
-    ? decodeURIComponent(searchParams.key)
-    : undefined;
+  const key = searchParams.key;
 
   let link: {
     domain: string;
@@ -134,9 +132,11 @@ export default async function InAppBrowserEscapePage(props: {
 
   const isPlayStore = isGooglePlayStoreUrl(destinationUrl);
   const storeName = isPlayStore ? "Google Play" : "App Store";
-  const description = t.description.replace("{storeName}", storeName);
-  const ctaLabel = t.openInStore.replace("{storeName}", storeName);
   const extBrowserScheme = getExtBrowserScheme(source, destinationUrl);
+  const description = (
+    extBrowserScheme ? t.description : t.manualEscapeDescription
+  ).replace("{storeName}", storeName);
+  const ctaLabel = t.openInStore.replace("{storeName}", storeName);
 
   const badgeLink = {
     shortLink: link?.shortLink ?? destinationUrl,
@@ -240,8 +240,8 @@ export default async function InAppBrowserEscapePage(props: {
               label={ctaLabel}
               copyLabel={t.copyLink}
               copiedLabel={t.copied}
+              copyFailedLabel={t.copyFailed}
               copyUrl={badgeLink.shortLink}
-              destinationUrl={destinationUrl}
               extBrowserScheme={extBrowserScheme}
               buttonStyle={buttonStyle}
             />

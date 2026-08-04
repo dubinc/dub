@@ -2,55 +2,74 @@
 
 import { DeepViewData } from "@/lib/zod/schemas/deep-links";
 import { Button, useCopyToClipboard } from "@dub/ui";
+import { useState } from "react";
+import { toast } from "sonner";
 
 export function InAppBrowserActionButton({
   label,
   copyLabel,
   copiedLabel,
+  copyFailedLabel,
   copyUrl,
-  destinationUrl,
   extBrowserScheme,
   buttonStyle,
 }: {
   label: string;
   copyLabel: string;
   copiedLabel: string;
+  copyFailedLabel: string;
   copyUrl: string;
-  destinationUrl: string;
   extBrowserScheme: string | null;
   buttonStyle?: DeepViewData["buttonStyle"];
 }) {
   const [copied, copyToClipboard] = useCopyToClipboard();
+  const [showUrlFallback, setShowUrlFallback] = useState(false);
+  const canEscape = Boolean(extBrowserScheme);
 
   const handleOpen = () => {
-    if (extBrowserScheme) {
-      window.location.href = extBrowserScheme;
+    if (!extBrowserScheme) {
       return;
     }
 
-    window.location.href = destinationUrl;
+    window.location.href = extBrowserScheme;
+  };
+
+  const handleCopy = async () => {
+    try {
+      await copyToClipboard(copyUrl, { throwOnError: true });
+    } catch {
+      toast.error(copyFailedLabel);
+      setShowUrlFallback(true);
+    }
   };
 
   return (
     <div className="flex flex-col gap-3">
-      <Button
-        text={label}
-        className="h-12 w-full font-medium text-white"
-        onClick={handleOpen}
-        {...(buttonStyle && {
-          style: {
-            backgroundColor: buttonStyle.backgroundColor,
-            borderRadius: buttonStyle.borderRadius,
-            borderColor: buttonStyle.borderColor,
-          },
-        })}
-      />
+      {canEscape ? (
+        <Button
+          text={label}
+          className="h-12 w-full font-medium text-white"
+          onClick={handleOpen}
+          {...(buttonStyle && {
+            style: {
+              backgroundColor: buttonStyle.backgroundColor,
+              borderRadius: buttonStyle.borderRadius,
+              borderColor: buttonStyle.borderColor,
+            },
+          })}
+        />
+      ) : null}
       <Button
         text={copied ? copiedLabel : copyLabel}
-        variant="secondary"
+        variant={canEscape ? "secondary" : "default"}
         className="h-12 w-full font-medium"
-        onClick={() => copyToClipboard(copyUrl)}
+        onClick={handleCopy}
       />
+      {showUrlFallback && (
+        <p className="select-all break-all text-center text-sm text-neutral-500">
+          {copyUrl}
+        </p>
+      )}
     </div>
   );
 }
