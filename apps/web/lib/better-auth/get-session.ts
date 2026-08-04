@@ -1,4 +1,6 @@
 import { headers } from "next/headers";
+import { redirect } from "next/navigation";
+import { DubApiError } from "../api/errors";
 import { auth } from "./auth";
 
 export async function getServerSession(requestHeaders?: Headers) {
@@ -14,6 +16,38 @@ export async function getServerSession(requestHeaders?: Headers) {
   };
 }
 
-export type ServerSession = NonNullable<
-  Awaited<ReturnType<typeof getServerSession>>
->;
+export type ServerSession = {
+  session: NonNullable<Awaited<ReturnType<typeof getServerSession>>["session"]>;
+  user: NonNullable<Awaited<ReturnType<typeof getServerSession>>["user"]>;
+};
+
+export async function requireServerSession(): Promise<ServerSession> {
+  const result = await getServerSession();
+
+  if (!result.session || !result.user) {
+    throw new DubApiError({
+      code: "unauthorized",
+      message: "Unauthorized. Please login to continue.",
+    });
+  }
+
+  return {
+    session: result.session,
+    user: result.user,
+  };
+}
+
+export async function requireServerSessionRedirect(
+  redirectTo = "/login",
+): Promise<ServerSession> {
+  const result = await getServerSession();
+
+  if (!result.session || !result.user) {
+    redirect(redirectTo);
+  }
+
+  return {
+    session: result.session,
+    user: result.user,
+  };
+}

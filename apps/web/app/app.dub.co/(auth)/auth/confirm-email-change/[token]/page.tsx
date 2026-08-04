@@ -1,16 +1,16 @@
-import { getSession, hashToken } from "@/lib/auth";
+import { hashToken } from "@/lib/auth";
 import {
   assertCanConfirmEmailChange,
   deleteEmailChangeRequest,
   EmailChangeAuthError,
   EmailChangeRequestData,
 } from "@/lib/auth/confirm-email-change";
+import { requireServerSessionRedirect } from "@/lib/better-auth/get-session";
 import { prisma } from "@/lib/prisma";
 import { redis } from "@/lib/upstash";
 import { AuthLayout } from "@/ui/layout/auth-layout";
 import EmptyState from "@/ui/shared/empty-state";
 import { InputPassword, LoadingSpinner } from "@dub/ui";
-import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import ConfirmEmailChangePageClient from "./page-client";
 
@@ -74,11 +74,9 @@ const VerifyEmailChange = async ({ params, searchParams }: PageProps) => {
     );
   }
 
-  const session = await getSession();
-
-  if (!session) {
-    redirect(`/login?next=/auth/confirm-email-change/${token}`);
-  }
+  const { user } = await requireServerSessionRedirect(
+    `/login?next=/auth/confirm-email-change/${token}`,
+  );
 
   const data = await redis.get<EmailChangeRequestData>(
     `email-change-request:token:${tokenFound.token}`,
@@ -96,7 +94,7 @@ const VerifyEmailChange = async ({ params, searchParams }: PageProps) => {
 
   try {
     await assertCanConfirmEmailChange({
-      userId: session.user.id,
+      userId: user.id,
       tokenFound,
       data,
     });

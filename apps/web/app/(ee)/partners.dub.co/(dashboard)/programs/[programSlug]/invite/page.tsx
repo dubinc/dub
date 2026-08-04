@@ -1,5 +1,5 @@
 import { serializeReward } from "@/lib/api/partners/serialize-reward";
-import { getSession } from "@/lib/auth";
+import { requireServerSessionRedirect } from "@/lib/better-auth/get-session";
 import { getGroupBountySummaries } from "@/lib/bounty/api/get-group-bounty-summaries";
 import { prisma } from "@/lib/prisma";
 import { programLanderSchema } from "@/lib/zod/schemas/program-lander";
@@ -23,8 +23,13 @@ export default async function ProgramInvitePage(props: {
   const params = await props.params;
   const { programSlug } = params;
 
-  const { user } = await getSession();
-  if (!user) redirect(`/login?next=/programs/${programSlug}/invite`);
+  const { user } = await requireServerSessionRedirect(
+    `/login?next=/programs/${programSlug}/invite`,
+  );
+
+  if (!user.defaultPartnerId) {
+    redirect("/programs");
+  }
 
   const program = await prisma.program.findUnique({
     where: {
