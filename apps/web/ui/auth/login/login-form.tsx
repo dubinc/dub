@@ -37,6 +37,8 @@ export const errorCodes = {
   "email-not-verified": "Please verify your email address.",
   "require-saml-sso":
     "Your organization requires authentication through your company's identity provider.",
+  EmailSignin:
+    "Failed to send login email. Please try again in a minute or contact support.",
   Callback:
     "We encountered an issue processing your request. Please try again or contact support if the problem persists.",
   OAuthSignin:
