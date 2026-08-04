@@ -95,12 +95,12 @@ export function PartnerLinkDisplay({ linksCount }: { linksCount?: number }) {
     >
       <Button
         variant="secondary"
-        className="hover:bg-white [&>div]:w-full"
+        className="w-fit hover:bg-white"
         textWrapperClassName="!overflow-visible"
         text={
-          <div className="flex w-full items-center gap-2">
+          <div className="flex items-center gap-2">
             <Sliders className="h-4 w-4 shrink-0" />
-            <span className="grow text-left">Display</span>
+            <span>Display</span>
             <ChevronDown
               className={cn("h-4 w-4 text-neutral-400 transition-transform", {
                 "rotate-180": openPopover,

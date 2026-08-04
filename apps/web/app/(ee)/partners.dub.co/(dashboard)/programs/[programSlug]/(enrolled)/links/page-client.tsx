@@ -73,40 +73,39 @@ export function PartnerProgramLinksPageClient() {
     enabled: canCreateNewLink ?? false,
   });
 
-  const showAllTimeAnalytics =
-    !showDetailedAnalytics || viewMode === "rows";
+  const showAllTimeAnalytics = !showDetailedAnalytics || viewMode === "rows";
 
   return (
     <div className="flex flex-col gap-4">
       <PartnerLinkModal />
       <div className="flex items-center justify-between">
-        <SimpleDateRangePicker
-          className="w-fit"
-          align="start"
-          defaultInterval={
-            showAllTimeAnalytics ? "all" : DUB_PARTNERS_ANALYTICS_INTERVAL
-          }
-          disabled={showAllTimeAnalytics}
-        />
         <div className="flex items-center gap-3">
-          <PartnerLinkDisplay linksCount={links?.length} />
-          <Button
-            text="Create Link"
-            className="w-fit"
-            shortcut="C"
-            onClick={() => setShowPartnerLinkModal(true)}
-            disabled={!canCreateNewLink}
-            disabledTooltip={
-              status === "deactivated"
-                ? "You cannot create links in this program because your partnership has been deactivated."
-                : hasLinksLimitReached
-                  ? `You have reached the limit of ${maxPartnerLinks} referral links.`
-                  : !hasAdditionalLinks
-                    ? `${program?.name ?? "This"} program does not allow partners to create new links.`
-                    : undefined
+          <SimpleDateRangePicker
+            className="w-fit shrink-0"
+            align="start"
+            defaultInterval={
+              showAllTimeAnalytics ? "all" : DUB_PARTNERS_ANALYTICS_INTERVAL
             }
+            disabled={showAllTimeAnalytics}
           />
+          <PartnerLinkDisplay linksCount={links?.length} />
         </div>
+        <Button
+          text="Create Link"
+          className="w-fit"
+          shortcut="C"
+          onClick={() => setShowPartnerLinkModal(true)}
+          disabled={!canCreateNewLink}
+          disabledTooltip={
+            status === "deactivated"
+              ? "You cannot create links in this program because your partnership has been deactivated."
+              : hasLinksLimitReached
+                ? `You have reached the limit of ${maxPartnerLinks} referral links.`
+                : !hasAdditionalLinks
+                  ? `${program?.name ?? "This"} program does not allow partners to create new links.`
+                  : undefined
+          }
+        />
       </div>
       <PartnerLinksContext.Provider
         value={{
