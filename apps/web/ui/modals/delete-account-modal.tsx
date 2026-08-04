@@ -1,7 +1,7 @@
 import { UserAvatar } from "@/ui/users/user-avatar";
 import { Button, Modal, useMediaQuery } from "@dub/ui";
 import { cn } from "@dub/utils";
-import { useSession } from "next-auth/react";
+import { useSession } from "@/lib/better-auth/use-session";
 import { useRouter } from "next/navigation";
 import {
   Dispatch,

@@ -23,7 +23,7 @@ import {
   isDowngradePlan,
 } from "@dub/utils";
 import NumberFlow from "@number-flow/react";
-import { useSession } from "next-auth/react";
+import { useSession } from "@/lib/better-auth/use-session";
 import Link from "next/link";
 import {
   Dispatch,

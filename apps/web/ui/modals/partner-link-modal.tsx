@@ -32,7 +32,7 @@ import {
   punycode,
 } from "@dub/utils";
 import { AnimatePresence, motion } from "motion/react";
-import { useSession } from "next-auth/react";
+import { useSession } from "@/lib/better-auth/use-session";
 import { useParams } from "next/navigation";
 import {
   Dispatch,

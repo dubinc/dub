@@ -5,7 +5,7 @@ import { AlertCircleFill } from "@/ui/shared/icons";
 import { Button, buttonVariants, FileUpload, useMediaQuery } from "@dub/ui";
 import { cn } from "@dub/utils";
 import slugify from "@sindresorhus/slugify";
-import { useSession } from "next-auth/react";
+import { useSession } from "@/lib/better-auth/use-session";
 import { usePlausible } from "next-plausible";
 import { useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";

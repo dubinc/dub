@@ -8,7 +8,7 @@ import {
   type MultiValueInputRef,
 } from "@dub/ui";
 import { pluralize } from "@dub/utils";
-import { useSession } from "next-auth/react";
+import { useSession } from "@/lib/better-auth/use-session";
 import {
   type Dispatch,
   type SetStateAction,

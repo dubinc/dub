@@ -8,7 +8,7 @@ import { getUserAvatarUrl } from "@/ui/users/user-avatar";
 import { BlurImage, Popover, useScrollProgress } from "@dub/ui";
 import { Check2, Gear, Plus, UserPlus } from "@dub/ui/icons";
 import { cn, isLegacyBusinessPlan, pluralize } from "@dub/utils";
-import { useSession } from "next-auth/react";
+import { useSession } from "@/lib/better-auth/use-session";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
 import {

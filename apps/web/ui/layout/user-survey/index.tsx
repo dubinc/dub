@@ -6,7 +6,7 @@ import { cn } from "@dub/utils";
 import Cookies from "js-cookie";
 import { X } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
-import { useSession } from "next-auth/react";
+import { useSession } from "@/lib/better-auth/use-session";
 import { createContext, useCallback, useState } from "react";
 import { toast } from "sonner";
 import SurveyForm from "./survey-form";

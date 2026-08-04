@@ -7,7 +7,7 @@ import { Combobox } from "@dub/ui";
 import { OfficeBuilding, PaperPlane, Users2 } from "@dub/ui/icons";
 import { cn, fetcher, OG_AVATAR_URL } from "@dub/utils";
 import { DefaultChatTransport } from "ai";
-import { useSession } from "next-auth/react";
+import { useSession } from "@/lib/better-auth/use-session";
 import { useEffect, useRef, useState } from "react";
 import TextareaAutosize from "react-textarea-autosize";
 import { toast } from "sonner";

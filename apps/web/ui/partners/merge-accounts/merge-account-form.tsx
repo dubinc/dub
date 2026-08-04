@@ -3,7 +3,7 @@ import useUser from "@/lib/swr/use-user";
 import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import { Button } from "@dub/ui";
 import { AlertTriangle, ArrowDown } from "lucide-react";
-import { signOut } from "next-auth/react";
+import { signOut } from "@/lib/better-auth/use-session";
 import { useAction } from "next-safe-action/hooks";
 import { toast } from "sonner";
 import { AccountInputGroup } from "./account-input-group";

@@ -1,6 +1,6 @@
 "use client";
 
-import { useSession } from "next-auth/react";
+import { useSession } from "@/lib/better-auth/use-session";
 import { useState } from "react";
 import { ChatInterface } from "./chat-interface";
 import { ClearChatButton } from "./clear-chat-button";

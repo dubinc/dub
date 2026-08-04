@@ -47,8 +47,7 @@ import {
   Webhook,
 } from "@dub/ui/icons";
 import { isWorkspaceBillingTrialActive } from "@dub/utils";
-import { Session } from "next-auth";
-import { useSession } from "next-auth/react";
+import { Session, useSession } from "@/lib/better-auth/use-session";
 import { useParams, usePathname } from "next/navigation";
 import { ReactNode, useMemo } from "react";
 import { DubPartnersPopup } from "./dub-partners-popup";

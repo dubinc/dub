@@ -5,7 +5,7 @@ import { UserAvatar } from "@/ui/users/user-avatar";
 import { Button, Modal, useMediaQuery } from "@dub/ui";
 import { TriangleWarning } from "@dub/ui/icons";
 import { fetcher, timeAgo } from "@dub/utils";
-import { useSession } from "next-auth/react";
+import { useSession } from "@/lib/better-auth/use-session";
 import { useRouter, useSearchParams } from "next/navigation";
 
 import {

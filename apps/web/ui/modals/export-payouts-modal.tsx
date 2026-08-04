@@ -14,7 +14,7 @@ import {
   Switch,
   useRouterStuff,
 } from "@dub/ui";
-import { useSession } from "next-auth/react";
+import { useSession } from "@/lib/better-auth/use-session";
 import {
   Dispatch,
   SetStateAction,

@@ -13,7 +13,7 @@ import {
   isWorkspaceBillingTrialActive,
   SELF_SERVE_PAID_PLANS,
 } from "@dub/utils";
-import { useSession } from "next-auth/react";
+import { useSession } from "@/lib/better-auth/use-session";
 import { usePlausible } from "next-plausible";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";

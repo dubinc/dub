@@ -1,6 +1,6 @@
+import { authClient } from "@/lib/better-auth/auth-client";
 import { Button, Google, Logo, Modal } from "@dub/ui";
 import Cookies from "js-cookie";
-import { signIn } from "next-auth/react";
 import {
   Dispatch,
   SetStateAction,
@@ -43,8 +43,9 @@ function GoogleOauthModal({
           text="Connect Google Account"
           onClick={() => {
             setClickedGoogle(true);
-            signIn("google", {
-              callbackUrl: "/account/settings?google=true",
+            authClient.linkSocial({
+              provider: "google",
+              callbackURL: "/account/settings?google=true",
             });
           }}
           loading={clickedGoogle}
