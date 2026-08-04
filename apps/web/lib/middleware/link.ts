@@ -27,6 +27,10 @@ import { cacheDeepLinkClickData } from "./utils/cache-deeplink-click-data";
 import { crawlBitly } from "./utils/crawl-bitly";
 import { createResponseWithCookies } from "./utils/create-response-with-cookies";
 import { detectBot } from "./utils/detect-bot";
+import {
+  getInAppBrowserEscapeUrl,
+  shouldEscapeInAppBrowser,
+} from "./utils/detect-in-app-browser";
 import { getFinalUrl } from "./utils/get-final-url";
 import { getIdentityHash } from "./utils/get-identity-hash";
 import { isAppsFlyerTrackingUrl } from "./utils/is-appsflyer-tracking-url";
@@ -405,14 +409,68 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
       ),
       cookieData,
     );
+  }
 
-    // redirect to iOS link if it is specified and the user is on an iOS device
-  } else if (ios && ua.os?.name === "iOS") {
-    const finalUrl = getFinalUrl(ios, {
-      req,
-      ...(shouldCacheClickId && { clickId }),
-      ...(isPartnerLink && { via: key }),
-    });
+  const finalUrlOptions = {
+    req,
+    ...(shouldCacheClickId && { clickId }),
+    ...(isPartnerLink && { via: key }),
+  };
+
+  let destinationForEscape = url;
+  if (ios && ua.os?.name === "iOS") {
+    destinationForEscape = ios;
+  } else if (android && ua.os?.name === "Android") {
+    destinationForEscape = android;
+  } else if (geoTargeting && country && country in geoTargeting) {
+    destinationForEscape = geoTargeting[country];
+  }
+
+  const escapeFinalUrl = getFinalUrl(destinationForEscape, finalUrlOptions);
+  const inAppBrowserSource = shouldEscapeInAppBrowser({
+    userAgentString: ua.ua,
+    destinationUrl: escapeFinalUrl,
+  });
+
+  if (inAppBrowserSource) {
+    ev.waitUntil(
+      recordClick({
+        req,
+        clickId,
+        workspaceId,
+        linkId,
+        domain,
+        key,
+        url: escapeFinalUrl,
+        programId: cachedLink.programId,
+        partnerId: cachedLink.partnerId,
+        shouldCacheClickId,
+      }),
+    );
+
+    return createResponseWithCookies(
+      NextResponse.rewrite(
+        getInAppBrowserEscapeUrl({
+          reqUrl: req.url,
+          destinationUrl: escapeFinalUrl,
+          source: inAppBrowserSource,
+          domain,
+          key,
+        }),
+        {
+          headers: {
+            ...DUB_HEADERS,
+            ...(!shouldIndex && { "X-Robots-Tag": "googlebot: noindex" }),
+          },
+        },
+      ),
+      cookieData,
+    );
+  }
+
+  // redirect to iOS link if it is specified and the user is on an iOS device
+  if (ios && ua.os?.name === "iOS") {
+    const finalUrl = getFinalUrl(ios, finalUrlOptions);
     ev.waitUntil(
       recordClick({
         req,
@@ -476,11 +534,7 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
 
     // redirect to Android link if it is specified and the user is on an Android device
   } else if (android && ua.os?.name === "Android") {
-    const finalUrl = getFinalUrl(android, {
-      req,
-      ...(shouldCacheClickId && { clickId }),
-      ...(isPartnerLink && { via: key }),
-    });
+    const finalUrl = getFinalUrl(android, finalUrlOptions);
     ev.waitUntil(
       recordClick({
         req,
@@ -543,11 +597,7 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
 
     // redirect to geo-targeting link if it is specified and the user is in the specified country
   } else if (geoTargeting && country && country in geoTargeting) {
-    const finalUrl = getFinalUrl(geoTargeting[country], {
-      req,
-      ...(shouldCacheClickId && { clickId }),
-      ...(isPartnerLink && { via: key }),
-    });
+    const finalUrl = getFinalUrl(geoTargeting[country], finalUrlOptions);
     ev.waitUntil(
       recordClick({
         req,
@@ -576,11 +626,7 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
 
     // regular redirect
   } else {
-    const finalUrl = getFinalUrl(url, {
-      req,
-      ...(shouldCacheClickId && { clickId }),
-      ...(isPartnerLink && { via: key }),
-    });
+    const finalUrl = getFinalUrl(url, finalUrlOptions);
     ev.waitUntil(
       recordClick({
         req,
