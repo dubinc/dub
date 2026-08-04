@@ -6,7 +6,7 @@ import { randomBytes } from "crypto";
 import { hashToken } from ".";
 import { DubApiError } from "../api/errors";
 import { isEmailDomainBlocked } from "../email/is-email-domain-blocked";
-import { isGenericEmail } from "../is-generic-email";
+import { isGenericEmail } from "../email/is-generic-email";
 import { redis } from "../upstash";
 import { assertRateLimit } from "../upstash/assert-rate-limit";
 import { RATELIMIT_POLICIES } from "../upstash/ratelimit-policies";
