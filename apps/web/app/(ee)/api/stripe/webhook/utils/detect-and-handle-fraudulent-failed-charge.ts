@@ -108,20 +108,40 @@ export async function detectAndHandleFraudulentFailedCharge(
             });
             continue;
           }
-          // transfer ownership to legal user
-          await prisma.projectUsers.update({
+          const linksCount = await prisma.link.count({
             where: {
-              userId_projectId: {
-                projectId: workspace.id,
-                userId: user.id,
-              },
-            },
-            data: {
-              userId: LEGAL_USER_ID,
+              projectId: workspace.id,
             },
           });
-          // disable workspace links
-          await disableWorkspaceLinks(workspace.id);
+          if (linksCount > 0) {
+            // transfer ownership to legal user
+            await prisma.projectUsers.update({
+              where: {
+                userId_projectId: {
+                  projectId: workspace.id,
+                  userId: user.id,
+                },
+              },
+              data: {
+                userId: LEGAL_USER_ID,
+              },
+            });
+            console.log(
+              `[detectAndHandleFraudulentFailedCharge]: Transferred ownership of workspace ${workspace.slug} to legal user ${LEGAL_USER_ID}`,
+            );
+            // disable workspace links
+            await disableWorkspaceLinks(workspace.id);
+          } else {
+            // if workspace has no links, just delete it
+            await prisma.project.delete({
+              where: {
+                id: workspace.id,
+              },
+            });
+            console.log(
+              `[detectAndHandleFraudulentFailedCharge]: Deleted workspace ${workspace.slug} because it has no links`,
+            );
+          }
         }
       } else {
         console.log(
