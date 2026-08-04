@@ -38,7 +38,13 @@ export default function FailedPayment({
   attemptCount: number;
 }) {
   const title = `${
-    attemptCount == 2 ? "2nd notice: " : attemptCount == 3 ? "3rd notice: " : ""
+    attemptCount === 1
+      ? ""
+      : attemptCount == 2
+        ? "2nd notice: "
+        : attemptCount == 3
+          ? "3rd notice: "
+          : "Final notice: "
   }Your payment for Dub failed`;
 
   // Check if plan has partner access (Business, Advanced, Enterprise have payouts > 0)
