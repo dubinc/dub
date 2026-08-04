@@ -12,7 +12,8 @@ export const translations = {
   zh: {
     poweredBy: "由",
     description: "点击下方继续前往{storeName}。",
-    manualEscapeDescription: "请复制链接，然后在浏览器中打开以继续前往{storeName}。",
+    manualEscapeDescription:
+      "请复制链接，然后在浏览器中打开以继续前往{storeName}。",
     openInStore: "在{storeName}中打开",
     copyLink: "复制链接",
     copied: "已复制",
@@ -83,6 +84,8 @@ export const translations = {
 
 export type Language = keyof typeof translations;
 
+const SUPPORTED_LANGUAGES = new Set(Object.keys(translations));
+
 export function getLanguage(acceptLanguage?: string | null): Language {
   if (!acceptLanguage) return "en";
 
@@ -95,7 +98,7 @@ export function getLanguage(acceptLanguage?: string | null): Language {
     });
 
   for (const lang of languages) {
-    if (lang in translations) {
+    if (SUPPORTED_LANGUAGES.has(lang)) {
       return lang as Language;
     }
   }
