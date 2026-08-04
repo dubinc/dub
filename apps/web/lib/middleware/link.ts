@@ -411,93 +411,87 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
     );
   }
 
-  {
-    let destinationForEscape = url;
-    if (ios && ua.os?.name === "iOS") {
-      destinationForEscape = ios;
-    } else if (android && ua.os?.name === "Android") {
-      destinationForEscape = android;
-    } else if (geoTargeting && country && country in geoTargeting) {
-      destinationForEscape = geoTargeting[country];
-    }
+  const destination =
+    ios && ua.os?.name === "iOS"
+      ? ios
+      : android && ua.os?.name === "Android"
+        ? android
+        : geoTargeting && country && country in geoTargeting
+          ? geoTargeting[country]
+          : url;
 
-    const escapeFinalUrl = getFinalUrl(destinationForEscape, {
-      req,
-      ...(shouldCacheClickId && { clickId }),
-      ...(isPartnerLink && { via: key }),
-    });
-    const inAppBrowserSource = shouldEscapeInAppBrowser({
-      userAgentString: ua.ua,
-      destinationUrl: escapeFinalUrl,
-    });
+  const finalUrl = getFinalUrl(destination, {
+    req,
+    ...(shouldCacheClickId && { clickId }),
+    ...(isPartnerLink && { via: key }),
+  });
 
-    if (inAppBrowserSource) {
+  const inAppBrowserSource = shouldEscapeInAppBrowser({
+    userAgentString: ua.ua,
+    destinationUrl: finalUrl,
+  });
+
+  if (inAppBrowserSource) {
+    ev.waitUntil(
+      recordClick({
+        req,
+        clickId,
+        workspaceId,
+        linkId,
+        domain,
+        key,
+        url: finalUrl,
+        programId: cachedLink.programId,
+        partnerId: cachedLink.partnerId,
+        shouldCacheClickId,
+      }),
+    );
+
+    // Preserve deferred deep-link caching that the iOS/Android branches below
+    // would have done (escape returns early and would otherwise skip them).
+    if (
+      !req.nextUrl.searchParams.get("skip_deeplink_preview") &&
+      ((ios && ua.os?.name === "iOS" && isIosAppStoreUrl(ios)) ||
+        (android &&
+          ua.os?.name === "Android" &&
+          isGooglePlayStoreUrl(android)))
+    ) {
       ev.waitUntil(
-        recordClick({
+        cacheDeepLinkClickData({
           req,
           clickId,
-          workspaceId,
-          linkId,
-          domain,
-          key,
-          url: escapeFinalUrl,
-          programId: cachedLink.programId,
-          partnerId: cachedLink.partnerId,
-          shouldCacheClickId,
-        }),
-      );
-
-      // Preserve deferred deep-link caching that the iOS/Android branches below
-      // would have done (escape returns early and would otherwise skip them).
-      if (
-        !req.nextUrl.searchParams.get("skip_deeplink_preview") &&
-        ((ios && ua.os?.name === "iOS" && isIosAppStoreUrl(ios)) ||
-          (android &&
-            ua.os?.name === "Android" &&
-            isGooglePlayStoreUrl(android)))
-      ) {
-        ev.waitUntil(
-          cacheDeepLinkClickData({
-            req,
-            clickId,
-            link: {
-              id: linkId,
-              domain,
-              key,
-              url, // main destination URL for deferred deep linking
-            },
-          }),
-        );
-      }
-
-      return createResponseWithCookies(
-        NextResponse.rewrite(
-          getInAppBrowserEscapeUrl({
-            reqUrl: req.url,
-            destinationUrl: escapeFinalUrl,
-            source: inAppBrowserSource,
+          link: {
+            id: linkId,
             domain,
             key,
-          }),
-          {
-            headers: {
-              ...DUB_HEADERS,
-              ...(!shouldIndex && { "X-Robots-Tag": "googlebot: noindex" }),
-            },
+            url, // main destination URL for deferred deep linking
           },
-        ),
-        cookieData,
+        }),
       );
     }
+
+    return createResponseWithCookies(
+      NextResponse.rewrite(
+        getInAppBrowserEscapeUrl({
+          reqUrl: req.url,
+          destinationUrl: finalUrl,
+          source: inAppBrowserSource,
+          domain,
+          key,
+        }),
+        {
+          headers: {
+            ...DUB_HEADERS,
+            ...(!shouldIndex && { "X-Robots-Tag": "googlebot: noindex" }),
+          },
+        },
+      ),
+      cookieData,
+    );
   }
 
   // redirect to iOS link if it is specified and the user is on an iOS device
   if (ios && ua.os?.name === "iOS") {
-    const finalUrl = getFinalUrl(ios, {
-      req,
-      ...(shouldCacheClickId && { clickId }),
-      ...(isPartnerLink && { via: key }),
-    });
     ev.waitUntil(
       recordClick({
         req,
@@ -561,11 +555,6 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
 
     // redirect to Android link if it is specified and the user is on an Android device
   } else if (android && ua.os?.name === "Android") {
-    const finalUrl = getFinalUrl(android, {
-      req,
-      ...(shouldCacheClickId && { clickId }),
-      ...(isPartnerLink && { via: key }),
-    });
     ev.waitUntil(
       recordClick({
         req,
@@ -628,11 +617,6 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
 
     // redirect to geo-targeting link if it is specified and the user is in the specified country
   } else if (geoTargeting && country && country in geoTargeting) {
-    const finalUrl = getFinalUrl(geoTargeting[country], {
-      req,
-      ...(shouldCacheClickId && { clickId }),
-      ...(isPartnerLink && { via: key }),
-    });
     ev.waitUntil(
       recordClick({
         req,
@@ -661,11 +645,6 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
 
     // regular redirect
   } else {
-    const finalUrl = getFinalUrl(url, {
-      req,
-      ...(shouldCacheClickId && { clickId }),
-      ...(isPartnerLink && { via: key }),
-    });
     ev.waitUntil(
       recordClick({
         req,

@@ -25,6 +25,7 @@ export function InAppBrowserActionButton({
   const [copied, copyToClipboard] = useCopyToClipboard();
   const [showUrlFallback, setShowUrlFallback] = useState(false);
   const canEscape = Boolean(extBrowserScheme);
+  const hasCustomBackground = Boolean(buttonStyle?.backgroundColor);
 
   const handleOpen = () => {
     if (!extBrowserScheme) {
@@ -48,7 +49,11 @@ export function InAppBrowserActionButton({
       {canEscape ? (
         <Button
           text={label}
-          className="h-12 w-full font-medium text-white"
+          className={
+            hasCustomBackground
+              ? "h-12 w-full font-medium text-neutral-900"
+              : "h-12 w-full font-medium text-white"
+          }
           onClick={handleOpen}
           {...(buttonStyle && {
             style: {

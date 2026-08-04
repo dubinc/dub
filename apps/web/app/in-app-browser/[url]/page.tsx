@@ -4,6 +4,7 @@ import {
 } from "@/lib/api/links/case-sensitivity";
 import type { InAppBrowserSource } from "@/lib/middleware/utils/detect-in-app-browser";
 import { isGooglePlayStoreUrl } from "@/lib/middleware/utils/is-google-play-store-url";
+import { isIosAppStoreUrl } from "@/lib/middleware/utils/is-ios-app-store-url";
 import { prisma } from "@/lib/prisma";
 import { parseDeepViewData } from "@/lib/zod/schemas/deep-links";
 import { Grid, Wordmark } from "@dub/ui";
@@ -51,17 +52,57 @@ function getDestinationUrl(param: string): string {
   return param;
 }
 
+function getCopyUrl(shortLink: string | undefined, destinationUrl: string) {
+  if (!shortLink) {
+    return destinationUrl;
+  }
+
+  try {
+    const copyUrl = new URL(shortLink);
+    copyUrl.searchParams.set("skip_deeplink_preview", "1");
+    return copyUrl.toString();
+  } catch {
+    return destinationUrl;
+  }
+}
+
 function getExtBrowserScheme(
-  source: InAppBrowserSource,
+  source: InAppBrowserSource | null,
   destinationUrl: string,
+  platform: "ios" | "android",
 ): string | null {
-  const encoded = encodeURIComponent(destinationUrl);
-  if (source === "instagram") {
-    return `instagram://extbrowser/?url=${encoded}`;
+  if (!source) {
+    return null;
   }
-  if (source === "facebook") {
-    return `fb://extbrowser/?url=${encoded}`;
+
+  const isStoreUrl =
+    isIosAppStoreUrl(destinationUrl) || isGooglePlayStoreUrl(destinationUrl);
+  if (!isStoreUrl) {
+    return null;
   }
+
+  if (source === "tiktok") {
+    return null;
+  }
+
+  try {
+    const parsed = new URL(destinationUrl);
+
+    if (platform === "android") {
+      return `intent://${parsed.host}${parsed.pathname}${parsed.search}#Intent;scheme=https;end`;
+    }
+
+    if (source === "instagram") {
+      return `instagram://extbrowser/?url=${encodeURIComponent(destinationUrl)}`;
+    }
+
+    if (source === "facebook") {
+      return `x-safari-https://${parsed.host}${parsed.pathname}${parsed.search}`;
+    }
+  } catch {
+    return null;
+  }
+
   return null;
 }
 
@@ -74,11 +115,11 @@ export default async function InAppBrowserEscapePage(props: {
 
   const destinationUrl = getDestinationUrl(params.url);
   const rawSource = searchParams.source;
-  const source: InAppBrowserSource = VALID_SOURCES.has(
+  const source: InAppBrowserSource | null = VALID_SOURCES.has(
     rawSource as InAppBrowserSource,
   )
     ? (rawSource as InAppBrowserSource)
-    : "instagram";
+    : null;
 
   const headersList = await headers();
   const acceptLanguage = headersList.get("accept-language");
@@ -132,7 +173,11 @@ export default async function InAppBrowserEscapePage(props: {
 
   const isPlayStore = isGooglePlayStoreUrl(destinationUrl);
   const storeName = isPlayStore ? "Google Play" : "App Store";
-  const extBrowserScheme = getExtBrowserScheme(source, destinationUrl);
+  const extBrowserScheme = getExtBrowserScheme(
+    source,
+    destinationUrl,
+    platform,
+  );
   const description = (
     extBrowserScheme ? t.description : t.manualEscapeDescription
   ).replace("{storeName}", storeName);
@@ -142,6 +187,7 @@ export default async function InAppBrowserEscapePage(props: {
     shortLink: link?.shortLink ?? destinationUrl,
     url: destinationUrl,
   };
+  const copyUrl = getCopyUrl(link?.shortLink, destinationUrl);
 
   return (
     <>
@@ -241,7 +287,7 @@ export default async function InAppBrowserEscapePage(props: {
               copyLabel={t.copyLink}
               copiedLabel={t.copied}
               copyFailedLabel={t.copyFailed}
-              copyUrl={badgeLink.shortLink}
+              copyUrl={copyUrl}
               extBrowserScheme={extBrowserScheme}
               buttonStyle={buttonStyle}
             />
