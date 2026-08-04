@@ -7,29 +7,25 @@ import { prisma } from "@/lib/prisma";
 import { assertRateLimit } from "@/lib/upstash/assert-rate-limit";
 import { RATELIMIT_POLICIES } from "@/lib/upstash/ratelimit-policies";
 import { sendEmail } from "@dub/email";
-import VerifyEmail from "@dub/email/templates/verify-email";
+import LoginLink from "@dub/email/templates/login-link";
 import { waitUntil } from "@vercel/functions";
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { APIError, createAuthMiddleware } from "better-auth/api";
 import { nextCookies } from "better-auth/next-js";
-import { emailOTP } from "better-auth/plugins";
+import { magicLink } from "better-auth/plugins";
 import { databaseHooks } from "./database-hooks";
 
 const VERCEL_DEPLOYMENT = !!process.env.VERCEL_URL;
 
-const SIGN_IN_PATHS = new Set([
-  "/sign-in/email",
-  "/sign-in/email-otp",
-  "/email-otp/send-verification-otp",
-]);
+const SIGN_IN_PATHS = new Set(["/sign-in/email", "/sign-in/magic-link"]);
 
 async function enforceSignInGuards(email: string, path: string) {
-  const isOtpSend = path === "/email-otp/send-verification-otp";
+  const isLinkSend = path === "/sign-in/magic-link";
 
   try {
     await assertRateLimit({
-      policy: isOtpSend
+      policy: isLinkSend
         ? RATELIMIT_POLICIES.loginLinkSend
         : RATELIMIT_POLICIES.login,
       identifier: email,
@@ -141,25 +137,17 @@ export const auth = betterAuth({
   },
   databaseHooks,
   plugins: [
-    // BA plugin AuthContext generic variance (emailOTP init vs BetterAuthPlugin)
-    // @ts-expect-error — keep plugin typed so auth.api.signInEmailOTP infers; do not cast `as any`
-    emailOTP({
-      otpLength: 6,
+    magicLink({
       expiresIn: EMAIL_OTP_EXPIRY_IN,
-      allowedAttempts: 5,
-      disableSignUp: true, // login only — never auto-create users
-      async sendVerificationOTP({ email, otp, type }) {
-        if (type !== "sign-in") {
-          return;
-        }
-
+      disableSignUp: true,
+      async sendMagicLink({ email, url }) {
         waitUntil(
           sendEmail({
             to: email,
-            subject: "Your Dub login code",
-            react: VerifyEmail({
+            subject: "Your Dub Login Link",
+            react: LoginLink({
               email,
-              code: otp,
+              url,
             }),
           }),
         );

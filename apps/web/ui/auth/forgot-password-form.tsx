@@ -1,8 +1,6 @@
 "use client";
 
-import { requestPasswordResetAction } from "@/lib/actions/request-password-reset";
 import { Button, Input, useMediaQuery } from "@dub/ui";
-import { useAction } from "next-safe-action/hooks";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -12,27 +10,41 @@ export const ForgotPasswordForm = () => {
   const { isMobile } = useMediaQuery();
   const searchParams = useSearchParams();
   const [email, setEmail] = useState(searchParams.get("email") || "");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const { executeAsync, isPending } = useAction(requestPasswordResetAction, {
-    onSuccess() {
+  const onSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    try {
+      setIsSubmitting(true);
+
+      const response = await fetch("/api/auth/forgot-password", {
+        method: "POST",
+        body: JSON.stringify({ email }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        const { error } = await response.json();
+        throw new Error(error.message);
+      }
+
       toast.success(
         "You will receive an email with instructions to reset your password.",
       );
       router.push("/login");
-    },
-    onError({ error }) {
-      toast.error(error.serverError);
-    },
-  });
+    } catch (error) {
+      toast.error(error.message);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <div className="flex w-full flex-col gap-3">
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          executeAsync({ email });
-        }}
-      >
+      <form onSubmit={onSubmit}>
         <div className="flex flex-col gap-6">
           <label>
             <span className="text-content-emphasis mb-2 block text-sm font-medium leading-none">
@@ -48,8 +60,8 @@ export const ForgotPasswordForm = () => {
           </label>
           <Button
             type="submit"
-            text={isPending ? "Sending..." : "Send reset link"}
-            loading={isPending}
+            text={isSubmitting ? "Sending..." : "Send reset link"}
+            loading={isSubmitting}
             disabled={email.length < 3}
           />
         </div>
