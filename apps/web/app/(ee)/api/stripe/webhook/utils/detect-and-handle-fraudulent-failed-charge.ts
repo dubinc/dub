@@ -3,7 +3,6 @@ import { updateConfig } from "@/lib/edge-config";
 import { prisma } from "@/lib/prisma";
 import { stripe } from "@/lib/stripe";
 import { LEGAL_USER_ID, log } from "@dub/utils";
-import { waitUntil } from "@vercel/functions";
 import Stripe from "stripe";
 
 const STRIPE_FRAUD_VALUE_LISTS = {
@@ -125,7 +124,9 @@ export async function detectAndHandleFraudulentFailedCharge(
           await disableWorkspaceLinks(workspace.id);
         }
       } else {
-        console.log(`User ${user.email} has no workspaces, skipping...`);
+        console.log(
+          `[detectAndHandleFraudulentFailedCharge]: User ${user.email} has no workspaces, skipping...`,
+        );
       }
 
       // delete and ban user if there are no paid workspaces
@@ -143,19 +144,17 @@ export async function detectAndHandleFraudulentFailedCharge(
         ]);
       }
 
-      waitUntil(
-        log({
-          message: `Banned user ${user.email} for fraudulent Stripe charges: https://dashboard.stripe.com/customers/${customerId}`,
-          type: "alerts",
-          mention: true,
-        }),
-      );
+      await log({
+        message: `Banned user ${user.email} (workspace: ${workspaces.map(({ slug }) => slug).join(", ")}) for fraudulent Stripe charges: https://dashboard.stripe.com/customers/${customerId}`,
+        type: "alerts",
+        mention: true,
+      });
     } else {
       console.log(
-        `User with email ${stripeCustomer.email} not found, skipping...`,
+        `[detectAndHandleFraudulentFailedCharge]: User with email ${stripeCustomer.email} not found, skipping...`,
       );
     }
   }
 
-  return `[detectAndHandleFraudulentFailedCharge]: Processed charge.failed event for customer ${customerId} (${stripeCustomer.email}) and card fingerprint ${cardFingerprint})`;
+  return `[detectAndHandleFraudulentFailedCharge]: Processed charge.failed event for customer ${customerId} (${stripeCustomer.email}) and card fingerprint "${cardFingerprint}".`;
 }
