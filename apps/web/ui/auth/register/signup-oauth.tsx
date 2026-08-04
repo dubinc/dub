@@ -1,8 +1,8 @@
 "use client";
 
+import { authClient } from "@/lib/better-auth/auth-client";
 import { getValidInternalRedirectPath } from "@/lib/middleware/utils/is-valid-internal-redirect";
 import { Button, Github, Google } from "@dub/ui";
-import { signIn } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -35,8 +35,9 @@ export const SignUpOAuth = ({
           text="Continue with Google"
           onClick={() => {
             setClickedGoogle(true);
-            signIn("google", {
-              ...(next && next.length > 0 ? { callbackUrl: next } : {}),
+            authClient.signIn.social({
+              provider: "google",
+              ...(next && next.length > 0 ? { callbackURL: next } : {}),
             });
           }}
           loading={clickedGoogle}
@@ -49,8 +50,9 @@ export const SignUpOAuth = ({
           text="Continue with GitHub"
           onClick={() => {
             setClickedGithub(true);
-            signIn("github", {
-              ...(next && next.length > 0 ? { callbackUrl: next } : {}),
+            authClient.signIn.social({
+              provider: "github",
+              ...(next && next.length > 0 ? { callbackURL: next } : {}),
             });
           }}
           loading={clickedGithub}

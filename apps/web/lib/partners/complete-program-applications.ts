@@ -15,6 +15,9 @@ import {
   formatWebsiteAndSocialsFields,
 } from "./format-application-form-data";
 
+// TODO:
+// Heavy processing, move this to defineJob
+
 /**
  * Completes any outstanding program applications for a user
  * by creating a program enrollment for each

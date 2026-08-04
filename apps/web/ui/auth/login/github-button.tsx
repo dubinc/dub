@@ -1,5 +1,5 @@
+import { authClient } from "@/lib/better-auth/auth-client";
 import { Button, Github } from "@dub/ui";
-import { signIn } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 import { useContext } from "react";
 import { LoginFormContext } from "./login-form";
@@ -18,8 +18,9 @@ export const GitHubButton = () => {
       onClick={() => {
         setClickedMethod("github");
         setLastUsedAuthMethod("github");
-        signIn("github", {
-          ...(next && next.length > 0 ? { callbackUrl: next } : {}),
+        authClient.signIn.social({
+          provider: "github",
+          ...(next && next.length > 0 ? { callbackURL: next } : {}),
         });
       }}
       loading={clickedMethod === "github"}

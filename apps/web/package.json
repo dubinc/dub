@@ -79,6 +79,7 @@
     "aws4fetch": "^1.0.19",
     "base-x": "^5.0.0",
     "bcryptjs": "^2.4.3",
+    "better-auth": "^1.6.9",
     "bottleneck": "^2.19.5",
     "buffer-crc32": "0.2.13",
     "canvas-confetti": "^1.9.3",

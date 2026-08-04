@@ -1,6 +1,6 @@
+import { authClient } from "@/lib/better-auth/auth-client";
 import { Button } from "@dub/ui";
 import { Google } from "@dub/ui/icons";
-import { signIn } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 import { useContext } from "react";
 import { LoginFormContext } from "./login-form";
@@ -19,9 +19,10 @@ export function GoogleButton({ next }: { next?: string }) {
       onClick={() => {
         setClickedMethod("google");
         setLastUsedAuthMethod("google");
-        signIn("google", {
+        authClient.signIn.social({
+          provider: "google",
           ...(finalNext && finalNext.length > 0
-            ? { callbackUrl: finalNext }
+            ? { callbackURL: finalNext }
             : {}),
         });
       }}
