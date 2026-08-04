@@ -12,14 +12,14 @@ const STRIPE_FRAUD_VALUE_LISTS = {
   CARD_FINGERPRINT: "rsl_1LeVdvAlJJEpqkPVvUZUm9eC",
 };
 
-export async function paymentIntentPaymentFailed(
-  event: Stripe.PaymentIntentPaymentFailedEvent,
+export async function detectAndHandleFraudulentFailedCharge(
+  event: Stripe.ChargeFailedEvent,
 ) {
-  const { customer, last_payment_error } = event.data.object;
+  const { customer, outcome, payment_method_details } = event.data.object;
 
   // should never happen, but just in case
-  if (!customer || !last_payment_error) {
-    return `Invalid payment intent attributes: ${JSON.stringify({ customer, last_payment_error })}`;
+  if (!customer || !outcome || !payment_method_details) {
+    return `[detectAndHandleFraudulentFailedCharge]: Invalid charge attributes: ${JSON.stringify({ customer, outcome })}`;
   }
 
   const customerId = customer as string;
@@ -31,20 +31,20 @@ export async function paymentIntentPaymentFailed(
   });
 
   if (workspace) {
-    return `Workspace with stripeId ${customer} already created, so this is most likely a recurring payment failure, skipping...`;
+    return `[detectAndHandleFraudulentFailedCharge]: Workspace with stripeId ${customer} already created, so this is most likely a failed subscription renewal payment, skipping...`;
   }
 
-  const { decline_code, payment_method } = last_payment_error;
+  const { risk_level } = outcome;
 
-  if (decline_code !== "fraudulent") {
-    return `Irrelevant decline code: ${decline_code}, skipping...`;
+  if (risk_level !== "highest") {
+    return `[detectAndHandleFraudulentFailedCharge]: Risk level "${risk_level}" is not highest, skipping...`;
   }
 
   const stripeCustomer = (await stripe.customers.retrieve(
     customerId,
   )) as Stripe.Customer;
 
-  const cardFingerprint = payment_method?.card?.fingerprint;
+  const cardFingerprint = payment_method_details.card?.fingerprint;
 
   // add to Stripe Fraud Value Lists
   await Promise.allSettled([
@@ -105,7 +105,7 @@ export async function paymentIntentPaymentFailed(
             paidWorkspaces++;
             await log({
               type: "errors",
-              message: `[payment_intent.payment_failed]: Workspace ${workspace.slug} for fraudulent user ${user.email} is not a free plan, skipping...`,
+              message: `[detectAndHandleFraudulentFailedCharge]: Workspace ${workspace.slug} for fraudulent user ${user.email} is not a free plan, skipping...`,
             });
             continue;
           }
@@ -157,5 +157,5 @@ export async function paymentIntentPaymentFailed(
     }
   }
 
-  return `Processed payment_intent.payment_failed event for customer ${customerId} (${stripeCustomer.email}) and card fingerprint ${cardFingerprint})`;
+  return `[detectAndHandleFraudulentFailedCharge]: Processed charge.failed event for customer ${customerId} (${stripeCustomer.email}) and card fingerprint ${cardFingerprint})`;
 }
