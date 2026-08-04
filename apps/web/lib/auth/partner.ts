@@ -13,6 +13,7 @@ import { PartnerUser } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
+import { getServerSession } from "../better-auth/get-session";
 import { getPartnerFeatureFlags } from "../edge-config";
 import { ratelimit } from "../upstash";
 import { partnerPlatformSchema } from "../zod/schemas/partners";
@@ -21,7 +22,7 @@ import { Permission } from "./partner-users/partner-user-permissions";
 import { throwIfNoPermission } from "./partner-users/throw-if-no-permission";
 import { rateLimitRequest } from "./rate-limit-request";
 import { tokenCache, TokenCacheItem } from "./token-cache";
-import { getSession, Session } from "./utils";
+import { Session } from "./utils";
 
 interface WithPartnerProfileHandler {
   ({
@@ -186,14 +187,26 @@ export const withPartnerProfile = (
             },
           };
         } else {
-          session = await getSession();
+          const result = await getServerSession();
 
-          if (!session?.user?.id) {
+          if (!result.session || !result.user) {
             throw new DubApiError({
               code: "unauthorized",
               message: "Unauthorized: Login required.",
             });
           }
+
+          session = {
+            user: {
+              id: result.user.id,
+              name: result.user.name || "",
+              email: result.user.email || "",
+              image: result.user.image ?? undefined,
+              isMachine: result.user.isMachine ?? false,
+              defaultWorkspace: result.user.defaultWorkspace ?? undefined,
+              defaultPartnerId: result.user.defaultPartnerId || undefined,
+            },
+          };
         }
 
         const { defaultPartnerId, id: userId } = session.user;

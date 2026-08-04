@@ -1,7 +1,8 @@
 import { prisma } from "@/lib/prisma";
 import { DUB_WORKSPACE_ID, getSearchParams } from "@dub/utils";
 import { WorkspaceRole } from "@prisma/client";
-import { getSession, type Session } from "./utils";
+import { getServerSession } from "../better-auth/get-session";
+import { type Session } from "./utils";
 
 // Internal use only (for admin portal)
 interface WithAdminHandler {
@@ -47,10 +48,23 @@ export const withAdmin =
     { params: initialParams }: { params: Promise<Record<string, string>> },
   ) => {
     const params = (await initialParams) || {};
-    const session = await getSession();
-    if (!session?.user) {
+    const { user } = await getServerSession();
+
+    if (!user?.id || !user.email) {
       return new Response("Unauthorized: Login required.", { status: 401 });
     }
+
+    const session: Session = {
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        image: user.image ?? undefined,
+        isMachine: user.isMachine ?? false,
+        defaultWorkspace: user.defaultWorkspace ?? undefined,
+        defaultPartnerId: user.defaultPartnerId ?? undefined,
+      },
+    };
 
     const adminRole = await getDubAdminRole(session.user.id);
     if (!adminRole) {

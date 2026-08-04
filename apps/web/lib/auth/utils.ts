@@ -1,8 +1,6 @@
-import { getServerSession } from "next-auth/next";
 import { NextRequest } from "next/server";
 import { randomInt } from "node:crypto";
 import { DubApiError } from "../api/errors";
-import { authOptions } from "./options";
 
 export interface Session {
   user: {
@@ -15,10 +13,6 @@ export interface Session {
     defaultPartnerId?: string;
   };
 }
-
-export const getSession = async () => {
-  return getServerSession(authOptions) as Promise<Session>;
-};
 
 export const getAuthTokenOrThrow = (
   req: Request | NextRequest,

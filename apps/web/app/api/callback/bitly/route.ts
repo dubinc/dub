@@ -1,5 +1,4 @@
-import { DubApiError } from "@/lib/api/errors";
-import { getSession } from "@/lib/auth";
+import { requireServerSession } from "@/lib/better-auth/get-session";
 import { bitlyOAuthProvider } from "@/lib/integrations/bitly/oauth";
 import { prisma } from "@/lib/prisma";
 import { redis } from "@/lib/upstash";
@@ -9,14 +8,7 @@ import { NextResponse } from "next/server";
 // GET /api/callback/bitly – bitly OAuth callback
 export async function GET(req: Request) {
   try {
-    const session = await getSession();
-
-    if (!session?.user.id) {
-      throw new DubApiError({
-        code: "unauthorized",
-        message: "Unauthorized.",
-      });
-    }
+    await requireServerSession();
 
     const {
       token: response,
