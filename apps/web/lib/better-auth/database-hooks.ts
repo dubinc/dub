@@ -161,9 +161,8 @@ export const databaseHooks = {
         }
 
         // Enforce SAML SSO for non-SAML callback requests
-        const isSamlCallback = context?.path?.startsWith(
-          "/oauth2/callback/saml",
-        );
+        const isSamlCallback = context?.params?.providerId === "saml";
+
         if (
           !isSamlCallback &&
           (await isSamlEnforcedForEmailDomain(user.email))
