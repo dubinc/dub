@@ -9,6 +9,7 @@ import { Prisma } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import type { BetterAuthOptions } from "better-auth";
 import { APIError } from "better-auth/api";
+import { isSamlEnforcedForEmailDomain } from "../api/workspaces/is-saml-enforced-for-email-domain";
 
 export const databaseHooks = {
   user: {
@@ -142,7 +143,7 @@ export const databaseHooks = {
   session: {
     create: {
       // Runs before a session is created on every successful sign-in
-      before: async (session) => {
+      before: async (session, context) => {
         const user = await getUser({
           id: session.userId,
         });
@@ -156,6 +157,20 @@ export const databaseHooks = {
         if (user.lockedAt) {
           throw new APIError("FORBIDDEN", {
             message: "exceeded-login-attempts",
+          });
+        }
+
+        // Enforce SAML SSO for non-SAML callback requests
+        const isSamlCallback = context?.path?.startsWith(
+          "/oauth2/callback/saml",
+        );
+        if (
+          !isSamlCallback &&
+          (await isSamlEnforcedForEmailDomain(user.email))
+        ) {
+          throw new APIError("FORBIDDEN", {
+            code: "REQUIRE_SAML_SSO",
+            message: "SAML SSO is required for this email address.",
           });
         }
 
