@@ -66,6 +66,7 @@ import {
   InlineBadgePopoverRichTextArea,
 } from "../../shared/inline-badge-popover";
 import { RewardDiscountPartnersCard } from "../groups/reward-discount-partners-card";
+import { AIRewardBuilder, applyRewardDraftToForm } from "./ai-reward-builder";
 import { PartnerReferralRewardBuilder } from "./partner-referral-reward-builder";
 import { REWARD_EVENT_DESCRIPTIONS } from "./reward-event-descriptions";
 import { RewardIconSquare } from "./reward-icon-square";
@@ -477,6 +478,22 @@ function RewardSheetContent({
           </div>
 
           <div className="flex flex-1 flex-col overflow-y-auto p-6">
+            {selectedEvent !== "referral" && (
+              <AIRewardBuilder
+                event={selectedEvent}
+                onAccept={(draft) => {
+                  applyRewardDraftToForm({
+                    draft,
+                    event: selectedEvent,
+                    setValue: setValue as (
+                      name: string,
+                      value: unknown,
+                      options?: { shouldDirty?: boolean },
+                    ) => void,
+                  });
+                }}
+              />
+            )}
             {!reward && <RewardHelperBlock event={event} />}
             <RewardSheetCard
               title={
