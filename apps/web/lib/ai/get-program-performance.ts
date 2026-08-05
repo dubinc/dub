@@ -57,11 +57,13 @@ export const getProgramPerformanceTool = tool({
   outputSchema: programPerformanceSchema,
   execute: async ({ programId }) => {
     const { user } = await getServerSession();
+
     if (!user?.id) {
       return {
         error: "Unauthorized. Please log in to continue.",
       };
     }
+
     const programEnrollment = await prisma.programEnrollment.findFirst({
       where: {
         programId,

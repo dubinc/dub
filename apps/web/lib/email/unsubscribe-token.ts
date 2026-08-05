@@ -1,7 +1,7 @@
 import { createHmac, timingSafeEqual } from "crypto";
 
 const TOKEN_SECRET =
-  process.env.UNSUBSCRIBE_TOKEN_SECRET || process.env.BETTER_AUTH_SECRET;
+  process.env.UNSUBSCRIBE_TOKEN_SECRET || process.env.NEXTAUTH_SECRET;
 
 /**
  * Generate a secure unsubscribe token for an email address.

@@ -1,4 +1,7 @@
-import { getServerSession } from "@/lib/better-auth/get-session";
+import {
+  getServerSession,
+  requireServerSession,
+} from "@/lib/better-auth/get-session";
 import { prisma } from "@/lib/prisma";
 import { createSafeActionClient } from "next-safe-action";
 import { after } from "next/server";
@@ -23,11 +26,7 @@ export const actionClient = createSafeActionClient({
 });
 
 export const authUserActionClient = actionClient.use(async ({ next }) => {
-  const { user } = await getServerSession();
-
-  if (!user?.id) {
-    throw new Error("Unauthorized: Login required.");
-  }
+  const { user } = await requireServerSession();
 
   return next({
     ctx: {
@@ -39,11 +38,7 @@ export const authUserActionClient = actionClient.use(async ({ next }) => {
 // Workspace users
 export const authActionClient = actionClient.use(
   async ({ next, clientInput }) => {
-    const { user } = await getServerSession();
-
-    if (!user?.id) {
-      throw new Error("Unauthorized: Login required.");
-    }
+    const { user } = await requireServerSession();
 
     // @ts-ignore
     let workspaceId = clientInput?.workspaceId;
