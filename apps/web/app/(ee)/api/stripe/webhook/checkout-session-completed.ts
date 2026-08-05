@@ -5,6 +5,8 @@ import { onboardingStepCache } from "@/lib/api/workspaces/onboarding-step-cache"
 import { tokenCache } from "@/lib/auth/token-cache";
 import { wouldGainPartnerAccess } from "@/lib/plans/has-partner-access";
 import { prisma } from "@/lib/prisma";
+import { queueCreateStagingWorkspace } from "@/lib/sandbox/create-staging-workspace";
+import { syncWorkspacePlanToStaging } from "@/lib/sandbox/sync-workspace";
 import { stripe } from "@/lib/stripe";
 import { getSubscriptionBillingFields } from "@/lib/stripe/workspace-subscription-fields";
 import { redis } from "@/lib/upstash";
@@ -137,13 +139,18 @@ export async function checkoutSessionCompleted(
 
   await Promise.allSettled([
     completeOnboarding({ users, workspaceId, subscription }),
+
+    queueCreateStagingWorkspace(updatedWorkspace),
+
+    syncWorkspacePlanToStaging(updatedWorkspace),
+
     // if workspace had a program from before and is upgrading to an eligible plan, reactivate it
     updatedWorkspace.defaultProgramId &&
       wouldGainPartnerAccess({
         currentPlan: "free",
         newPlan: updatedWorkspace.plan,
       }) &&
-      reactivateProgram(updatedWorkspace.defaultProgramId),
+      reactivateProgram(updatedWorkspace),
     // If no programOnboarding data (Links trial), send TrialStartedEmail
     // For program trial we send it in create-program.ts
     subscription.status === "trialing" &&

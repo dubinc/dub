@@ -1,10 +1,12 @@
 import { onboardingStepCache } from "@/lib/api/workspaces/onboarding-step-cache";
 import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { syncWorkspaceMemberToStaging } from "@/lib/sandbox/sync-workspace";
 import EmptyState from "@/ui/shared/empty-state";
 import { LoadingSpinner } from "@dub/ui";
 import { LinkBroken, Users6 } from "@dub/ui/icons";
 import { redirect } from "next/navigation";
+import { after } from "next/server";
 import { Suspense } from "react";
 
 export default async function InvitesPage(props: {
@@ -45,6 +47,7 @@ async function VerifyInvite({ code }: { code: string }) {
       id: true,
       slug: true,
       usersLimit: true,
+      stagingWorkspaceId: true,
       users: {
         where: {
           userId: session.user.id,
@@ -92,7 +95,7 @@ async function VerifyInvite({ code }: { code: string }) {
     );
   }
 
-  await prisma.projectUsers.create({
+  const workspaceUser = await prisma.projectUsers.create({
     data: {
       userId: session.user.id,
       projectId: workspace.id,
@@ -113,6 +116,16 @@ async function VerifyInvite({ code }: { code: string }) {
       },
     });
   }
+
+  after(
+    syncWorkspaceMemberToStaging({
+      workspace,
+      user: {
+        id: workspaceUser.userId,
+        role: workspaceUser.role,
+      },
+    }),
+  );
 
   // Complete onboarding just in case
   await onboardingStepCache.set({

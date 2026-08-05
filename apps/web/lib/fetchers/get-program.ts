@@ -3,10 +3,16 @@ import { prisma } from "@/lib/prisma";
 import { Program, Reward } from "@prisma/client";
 import { cache } from "react";
 import { serializeReward } from "../api/partners/serialize-reward";
-import { DiscountProps, GroupWithFormDataProps, RewardProps } from "../types";
+import {
+  DiscountProps,
+  GroupWithFormDataProps,
+  RewardProps,
+  WorkspaceProps,
+} from "../types";
 
 type Result = Program & {
   groups: GroupWithFormDataProps[];
+  workspace: Pick<WorkspaceProps, "environment">;
 };
 
 export const getProgram = cache(
@@ -15,8 +21,8 @@ export const getProgram = cache(
       where: {
         slug,
       },
-      ...(groupSlug && {
-        include: {
+      include: {
+        ...(groupSlug && {
           groups: {
             where: {
               slug: groupSlug,
@@ -29,8 +35,13 @@ export const getProgram = cache(
               discount: true,
             },
           },
+        }),
+        workspace: {
+          select: {
+            environment: true,
+          },
         },
-      }),
+      },
     });
 
     if (!programData) {

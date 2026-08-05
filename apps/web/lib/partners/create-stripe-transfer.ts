@@ -16,7 +16,7 @@ import {
   log,
   pluralize,
 } from "@dub/utils";
-import { Prisma } from "@prisma/client";
+import { Prisma, WorkspaceEnvironment } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { enqueueBatchJobs } from "../cron/enqueue-batch-jobs";
 import { createPayoutsIdempotencyKey } from "../payouts/create-payouts-idempotency-key";
@@ -71,6 +71,11 @@ export const createStripeTransfer = async ({
           status: "processed",
           stripeTransferId: null,
           method: "connect",
+          program: {
+            workspace: {
+              environment: WorkspaceEnvironment.production,
+            },
+          },
         },
         orderBy: {
           id: "asc",
@@ -85,6 +90,11 @@ export const createStripeTransfer = async ({
               invoiceId,
               status: "processing",
               method: "connect",
+              program: {
+                workspace: {
+                  environment: WorkspaceEnvironment.production,
+                },
+              },
             },
             orderBy: {
               id: "asc",

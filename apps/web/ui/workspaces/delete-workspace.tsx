@@ -5,24 +5,29 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { useDeleteWorkspaceModal } from "@/ui/modals/delete-workspace-modal";
 import { Button } from "@dub/ui";
 import { cn } from "@dub/utils";
+import { WorkspaceEnvironment } from "@prisma/client";
 
 export default function DeleteWorkspace() {
   const { setShowDeleteWorkspaceModal, DeleteWorkspaceModal } =
     useDeleteWorkspaceModal();
 
-  const { role } = useWorkspace();
+  const { role, environment } = useWorkspace();
 
-  const permissionsError = clientAccessCheck({
+  const { error } = clientAccessCheck({
     action: "workspaces.write",
     role,
-  }).error;
+    environment,
+    restrictedEnvironments: [WorkspaceEnvironment.staging],
+    restrictedEnvironmentMessage:
+      "Deleting a staging workspace is not allowed.",
+  });
 
   return (
     <div
       className={cn(
         "overflow-hidden rounded-xl border border-red-200 bg-white",
         {
-          "border-neutral-200": permissionsError,
+          "border-neutral-200": error,
         },
       )}
     >
@@ -37,7 +42,7 @@ export default function DeleteWorkspace() {
       </div>
       <div
         className={cn("border-b border-red-200", {
-          "border-neutral-200": permissionsError,
+          "border-neutral-200": error,
         })}
       />
 
@@ -47,7 +52,7 @@ export default function DeleteWorkspace() {
             text="Delete Workspace"
             variant="danger"
             onClick={() => setShowDeleteWorkspaceModal(true)}
-            disabledTooltip={permissionsError || undefined}
+            disabledTooltip={error || undefined}
           />
         </div>
       </div>

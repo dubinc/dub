@@ -5,6 +5,12 @@ enum PlanPeriod {
   biweekly
 }
 
+enum WorkspaceEnvironment {
+  production
+  staging
+  sandbox
+}
+
 model Project {
   id               String  @id
   name             String
@@ -23,6 +29,9 @@ model Project {
   subscriptionCanceledAt DateTime? // when the workspace's subscription was canceled (or set to cancel)
   paymentFailedAt        DateTime?
   invoicePrefix          String?     @unique // prefix used to generate unique invoice numbers (for Dub Payouts)
+
+  environment        WorkspaceEnvironment @default(production)
+  stagingWorkspaceId String?              @unique
 
   stripeConnectId String? @unique // for Stripe Integration
   shopifyStoreId  String? @unique // for Shopify Integration

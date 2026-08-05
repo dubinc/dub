@@ -27,5 +27,6 @@ export const getPlanCapabilities = (
     canRequestSlackSupportInvite: !!plan && ["enterprise"].includes(plan),
     canCreateReferralReward:
       !!plan && ["enterprise", "advanced"].includes(plan),
+    canUseStagingWorkspace: !!plan && !["free", "pro"].includes(plan),
   };
 };

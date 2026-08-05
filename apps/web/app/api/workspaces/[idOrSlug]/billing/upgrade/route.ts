@@ -2,6 +2,7 @@ import { DubApiError } from "@/lib/api/errors";
 import { getDubAdminRole, withWorkspace } from "@/lib/auth";
 import { getDubCustomer } from "@/lib/dub";
 import { getFeatureFlags } from "@/lib/edge-config";
+import { assertNotStagingWorkspace } from "@/lib/sandbox/workspace-guards";
 import { stripe } from "@/lib/stripe";
 import { isEligibleForTrial } from "@/lib/stripe/is-eligible-for-trial";
 import { booleanQuerySchema } from "@/lib/zod/schemas/misc";
@@ -22,6 +23,8 @@ const upgradePlanSchema = z.object({
 // POST /api/workspaces/[idOrSlug]/billing/upgrade
 export const POST = withWorkspace(
   async ({ req, workspace, session }) => {
+    assertNotStagingWorkspace(workspace);
+
     let { plan, period, tier, baseUrl, onboarding } = upgradePlanSchema.parse(
       await req.json(),
     );
