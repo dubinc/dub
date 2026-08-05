@@ -49,7 +49,7 @@ export function EarningsTablePartner({ limit }: { limit?: number }) {
   const { partner } = usePartnerProfile();
   const { programEnrollment, showDetailedAnalytics } = useProgramEnrollment();
   const { queryParams, searchParamsObj, getQueryString } = useRouterStuff();
-  const { preferTitle } = usePartnerLinksDisplay();
+  const { displayProperties } = usePartnerLinksDisplay();
 
   const { sortBy = "createdAt", sortOrder = "desc" } = searchParamsObj as {
     sortBy?: "createdAt";
@@ -121,7 +121,7 @@ export function EarningsTablePartner({ limit }: { limit?: number }) {
                 apexDomain: getApexDomain(link.url),
                 shortLink: link.shortLink,
                 label:
-                  preferTitle && link.partnerLinkTitle
+                  displayProperties.includes("title") && link.partnerLinkTitle
                     ? link.partnerLinkTitle
                     : getPrettyUrl(link.shortLink),
               }

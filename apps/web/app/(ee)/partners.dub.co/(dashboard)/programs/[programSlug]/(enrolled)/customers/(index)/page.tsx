@@ -33,7 +33,7 @@ export default function PartnerProgramCustomersPage() {
 
   const { programSlug } = useParams<{ programSlug: string }>();
   const { programEnrollment } = useProgramEnrollment();
-  const { preferTitle } = usePartnerLinksDisplay();
+  const { displayProperties } = usePartnerLinksDisplay();
 
   const { data: customersCount, error: countError } =
     usePartnerCustomersCount();
@@ -129,12 +129,14 @@ export default function PartnerProgramCustomersPage() {
                 <span
                   className="truncate"
                   title={
-                    preferTitle && row.original.activity.link.partnerLinkTitle
+                    displayProperties.includes("title") &&
+                    row.original.activity.link.partnerLinkTitle
                       ? row.original.activity.link.partnerLinkTitle
                       : row.original.activity.link.shortLink
                   }
                 >
-                  {preferTitle && row.original.activity.link.partnerLinkTitle
+                  {displayProperties.includes("title") &&
+                  row.original.activity.link.partnerLinkTitle
                     ? row.original.activity.link.partnerLinkTitle
                     : getPrettyUrl(row.original.activity.link.shortLink)}
                 </span>
@@ -217,7 +219,7 @@ export default function PartnerProgramCustomersPage() {
           header: () => <EditColumnsButton table={table} />,
         },
       ].filter((c) => c.id === "menu" || customersColumns.all.includes(c.id)),
-    [programSlug, preferTitle],
+    [programSlug, displayProperties],
   );
 
   const { table, ...tableProps } = useTable({

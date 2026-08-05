@@ -134,7 +134,8 @@ export function TopLinks() {
   });
 
   const [persisted] = useWorkspacePreferences("linksDisplay");
-  const { preferTitle: preferPartnerTitle } = usePartnerLinksDisplay();
+  const { displayProperties: partnerDisplayProperties } =
+    usePartnerLinksDisplay();
 
   const getItemTitle = useCallback(
     (d: Record<string, any>) => {
@@ -151,7 +152,10 @@ export function TopLinks() {
       }
 
       if (partnerPage) {
-        if (preferPartnerTitle && d.partnerLinkTitle) {
+        if (
+          partnerDisplayProperties.includes("title") &&
+          d.partnerLinkTitle
+        ) {
           return d.partnerLinkTitle;
         }
         return d.shortLink || "Unknown";
@@ -166,7 +170,7 @@ export function TopLinks() {
 
       return d.shortLink || "Unknown";
     },
-    [persisted, tab, subtab, partnerPage, preferPartnerTitle],
+    [persisted, tab, subtab, partnerPage, partnerDisplayProperties],
   );
 
   const mapItem = useCallback(

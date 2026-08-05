@@ -9,7 +9,7 @@ import { useCallback, useMemo, useState } from "react";
 export function usePartnerCustomerFilters() {
   const { searchParamsObj, queryParams } = useRouterStuff();
   const [selectedFilter, setSelectedFilter] = useState<string | null>(null);
-  const { preferTitle } = usePartnerLinksDisplay();
+  const { displayProperties } = usePartnerLinksDisplay();
 
   const { data: countriesCount } = usePartnerCustomersCount<
     | {
@@ -62,7 +62,7 @@ export function usePartnerCustomerFilters() {
             ({ linkId, domain, key, shortLink, partnerLinkTitle, _count }) => ({
               value: linkId,
               label:
-                preferTitle && partnerLinkTitle
+                displayProperties.includes("title") && partnerLinkTitle
                   ? partnerLinkTitle
                   : linkConstructor({ domain, key, pretty: true }),
               data: { shortLink },
@@ -71,7 +71,7 @@ export function usePartnerCustomerFilters() {
           ) ?? null,
       },
     ],
-    [countriesCount, linksCount, preferTitle],
+    [countriesCount, linksCount, displayProperties],
   );
 
   const activeFilters = useMemo(() => {

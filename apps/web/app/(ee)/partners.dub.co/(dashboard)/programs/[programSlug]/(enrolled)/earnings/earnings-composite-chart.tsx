@@ -62,7 +62,7 @@ export function EarningsCompositeChart() {
   };
 
   const { links } = usePartnerLinks();
-  const { preferTitle } = usePartnerLinksDisplay();
+  const { displayProperties } = usePartnerLinksDisplay();
 
   const { data } = usePartnerEarningsTimeseries({
     interval,
@@ -210,7 +210,8 @@ export function EarningsCompositeChart() {
                                 )}
                               />
                               <span className="min-w-0 truncate font-medium text-neutral-700">
-                                {preferTitle && link?.partnerLinkTitle
+                                {displayProperties.includes("title") &&
+                                link?.partnerLinkTitle
                                   ? link.partnerLinkTitle
                                   : link?.shortLink
                                     ? getPrettyUrl(link.shortLink)
@@ -257,7 +258,7 @@ export function EarningsCompositeChart() {
 function EarningsTableControls() {
   const { queryParams, searchParamsObj } = useRouterStuff();
   const [selectedFilter, setSelectedFilter] = useState<string | null>(null);
-  const { preferTitle } = usePartnerLinksDisplay();
+  const { displayProperties } = usePartnerLinksDisplay();
 
   const { earningsCount: links } = usePartnerEarningsCount<
     {
@@ -315,7 +316,7 @@ function EarningsTableControls() {
           links?.map(({ id, domain, key, url, partnerLinkTitle }) => ({
             value: id,
             label:
-              preferTitle && partnerLinkTitle
+              displayProperties.includes("title") && partnerLinkTitle
                 ? partnerLinkTitle
                 : linkConstructor({
                     domain,
@@ -357,7 +358,7 @@ function EarningsTableControls() {
         }),
       },
     ],
-    [links, customers, statuses, preferTitle],
+    [links, customers, statuses, displayProperties],
   );
 
   const activeFilters = useMemo(() => {

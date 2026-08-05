@@ -168,7 +168,8 @@ export default function EventsTable({
   );
 
   const [persisted] = useWorkspacePreferences("linksDisplay");
-  const { preferTitle: preferPartnerTitle } = usePartnerLinksDisplay();
+  const { displayProperties: partnerDisplayProperties } =
+    usePartnerLinksDisplay();
 
   const shortLinkTitle = useCallback(
     (d: {
@@ -178,7 +179,10 @@ export default function EventsTable({
       shortLink?: string;
     }) => {
       if (partnerPage) {
-        if (preferPartnerTitle && d.partnerLinkTitle) {
+        if (
+          partnerDisplayProperties.includes("title") &&
+          d.partnerLinkTitle
+        ) {
           return d.partnerLinkTitle;
         }
         return d.shortLink || "Unknown";
@@ -192,7 +196,7 @@ export default function EventsTable({
 
       return d.shortLink || "Unknown";
     },
-    [persisted, partnerPage, preferPartnerTitle],
+    [persisted, partnerPage, partnerDisplayProperties],
   );
 
   const sortBy = searchParams.get("sortBy") || "timestamp";

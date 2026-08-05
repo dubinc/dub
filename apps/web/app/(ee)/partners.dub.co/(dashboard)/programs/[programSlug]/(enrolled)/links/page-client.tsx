@@ -6,7 +6,11 @@ import {
 } from "@/lib/analytics/constants";
 import { IntervalOptions } from "@/lib/analytics/types";
 import usePartnerLinks from "@/lib/swr/use-partner-links";
-import { usePartnerLinksDisplay } from "@/lib/swr/use-partner-links-display";
+import {
+  PartnerLinksDisplayContext,
+  PartnerLinksDisplayProvider,
+  PartnerLinksViewMode,
+} from "@/lib/swr/use-partner-links-display";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import { usePartnerLinkModal } from "@/ui/modals/partner-link-modal";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
@@ -24,7 +28,7 @@ const PartnerLinksContext = createContext<{
   interval: (typeof DATE_RANGE_INTERVAL_PRESETS)[number];
   openMenuLinkId: string | null;
   setOpenMenuLinkId: (id: string | null) => void;
-  viewMode: "cards" | "rows";
+  viewMode: PartnerLinksViewMode;
 } | null>(null);
 
 export function usePartnerLinksContext() {
@@ -38,16 +42,45 @@ export function usePartnerLinksContext() {
 }
 
 export function PartnerProgramLinksPageClient() {
-  const { searchParamsObj } = useRouterStuff();
   const { links, error, loading, isValidating } = usePartnerLinks();
   const { programEnrollment, showDetailedAnalytics } = useProgramEnrollment();
+
+  return (
+    <PartnerLinksDisplayProvider
+      linksCount={links?.length}
+      showDetailedAnalytics={showDetailedAnalytics}
+    >
+      <PartnerProgramLinksPageInner
+        links={links}
+        error={error}
+        loading={loading}
+        isValidating={isValidating}
+        programEnrollment={programEnrollment}
+        showDetailedAnalytics={showDetailedAnalytics}
+      />
+    </PartnerLinksDisplayProvider>
+  );
+}
+
+function PartnerProgramLinksPageInner({
+  links,
+  error,
+  loading,
+  isValidating,
+  programEnrollment,
+  showDetailedAnalytics,
+}: {
+  links: ReturnType<typeof usePartnerLinks>["links"];
+  error: ReturnType<typeof usePartnerLinks>["error"];
+  loading: boolean;
+  isValidating: boolean;
+  programEnrollment: ReturnType<typeof useProgramEnrollment>["programEnrollment"];
+  showDetailedAnalytics?: boolean;
+}) {
+  const { searchParamsObj } = useRouterStuff();
   const { setShowPartnerLinkModal, PartnerLinkModal } = usePartnerLinkModal();
   const [openMenuLinkId, setOpenMenuLinkId] = useState<string | null>(null);
-
-  const { viewMode } = usePartnerLinksDisplay({
-    linksCount: links?.length,
-    showDetailedAnalytics,
-  });
+  const { viewMode } = useContext(PartnerLinksDisplayContext);
 
   const {
     start,
@@ -88,7 +121,9 @@ export function PartnerProgramLinksPageClient() {
             }
             disabled={showAllTimeAnalytics}
           />
-          <PartnerLinkDisplay linksCount={links?.length} />
+          <div className="w-fit shrink-0">
+            <PartnerLinkDisplay />
+          </div>
         </div>
         <Button
           text="Create Link"

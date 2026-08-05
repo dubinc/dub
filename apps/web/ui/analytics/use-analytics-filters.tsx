@@ -423,7 +423,8 @@ export function useAnalyticsFilters({
 
   const [streaming, setStreaming] = useState<boolean>(false);
 
-  const { preferTitle: preferPartnerTitle } = usePartnerLinksDisplay();
+  const { displayProperties: partnerDisplayProperties } =
+    usePartnerLinksDisplay();
 
   const LinkFilterItem = {
     key: "linkId",
@@ -438,7 +439,9 @@ export function useAnalyticsFilters({
       links?.map(({ id, domain, key, url, partnerLinkTitle, ...rest }) => ({
         value: id,
         label:
-          partnerPage && preferPartnerTitle && partnerLinkTitle
+          partnerPage &&
+          partnerDisplayProperties.includes("title") &&
+          partnerLinkTitle
             ? partnerLinkTitle
             : linkConstructor({ domain, key, pretty: true }),
         right: getFilterOptionTotal(rest),

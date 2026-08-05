@@ -1,10 +1,10 @@
 import { formatDateTooltip } from "@/lib/analytics/format-date-tooltip";
 import { constructPartnerLink } from "@/lib/partners/construct-partner-link";
 import usePartnerAnalytics from "@/lib/swr/use-partner-analytics";
-import { usePartnerLinksDisplay } from "@/lib/swr/use-partner-links-display";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import { PartnerProfileLinkProps } from "@/lib/types";
 import { CommentsBadge } from "@/ui/links/comments-badge";
+import { PartnerLinksDisplayContext } from "@/lib/swr/use-partner-links-display";
 import { DiscountCodeBadge } from "@/ui/partners/discounts/discount-code-badge";
 import { PartnerStatusBadges } from "@/ui/partners/partner-status-badges";
 import {
@@ -69,7 +69,7 @@ const CHARTS = [
 export function PartnerLinkCard({ link }: { link: PartnerProfileLinkProps }) {
   const { programEnrollment } = useProgramEnrollment();
   const { viewMode } = usePartnerLinksContext();
-  const { preferTitle } = usePartnerLinksDisplay();
+  const { displayProperties } = useContext(PartnerLinksDisplayContext);
 
   const partnerLink = constructPartnerLink({
     group: programEnrollment?.group,
@@ -77,7 +77,8 @@ export function PartnerLinkCard({ link }: { link: PartnerProfileLinkProps }) {
   });
 
   const isDeactivated = programEnrollment?.status === "deactivated";
-  const showTitle = preferTitle && Boolean(link.partnerLinkTitle);
+  const showTitle =
+    displayProperties.includes("title") && Boolean(link.partnerLinkTitle);
 
   const discountCodeSection = link.discountCode ? (
     <div className="hidden items-center gap-1.5 rounded-xl border border-neutral-200 py-1 pl-2 pr-1 sm:flex">
