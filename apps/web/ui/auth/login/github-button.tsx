@@ -8,8 +8,7 @@ export const GitHubButton = () => {
   const searchParams = useSearchParams();
   const next = searchParams?.get("next");
 
-  const { setClickedMethod, clickedMethod, setLastUsedAuthMethod } =
-    useContext(LoginFormContext);
+  const { setClickedMethod, clickedMethod } = useContext(LoginFormContext);
 
   return (
     <Button
@@ -17,7 +16,6 @@ export const GitHubButton = () => {
       variant="secondary"
       onClick={() => {
         setClickedMethod("github");
-        setLastUsedAuthMethod("github");
         authClient.signIn.social({
           provider: "github",
           ...(next && next.length > 0 ? { callbackURL: next } : {}),

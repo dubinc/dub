@@ -1,5 +1,6 @@
 "use client";
 
+import { setLastUsedLoginMethod } from "@/lib/better-auth/auth-client";
 import { Button, InfoTooltip, useMediaQuery } from "@dub/ui";
 import { Lock } from "lucide-react";
 import { signIn } from "next-auth/react";
@@ -14,7 +15,6 @@ export const SSOSignIn = () => {
     setClickedMethod,
     clickedMethod,
     authMethod,
-    setLastUsedAuthMethod,
     setShowSSOOption,
     showSSOOption,
   } = useContext(LoginFormContext);
@@ -34,7 +34,7 @@ export const SSOSignIn = () => {
             setClickedMethod(undefined);
             return;
           }
-          setLastUsedAuthMethod("saml");
+          setLastUsedLoginMethod("saml");
           await signIn("saml", undefined, {
             tenant: data.workspaceId,
             product: "Dub",

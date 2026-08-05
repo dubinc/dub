@@ -9,8 +9,7 @@ export function GoogleButton({ next }: { next?: string }) {
   const searchParams = useSearchParams();
   const finalNext = next ?? searchParams?.get("next");
 
-  const { setClickedMethod, clickedMethod, setLastUsedAuthMethod } =
-    useContext(LoginFormContext);
+  const { setClickedMethod, clickedMethod } = useContext(LoginFormContext);
 
   return (
     <Button
@@ -18,7 +17,6 @@ export function GoogleButton({ next }: { next?: string }) {
       variant="secondary"
       onClick={() => {
         setClickedMethod("google");
-        setLastUsedAuthMethod("google");
         authClient.signIn.social({
           provider: "google",
           ...(finalNext && finalNext.length > 0

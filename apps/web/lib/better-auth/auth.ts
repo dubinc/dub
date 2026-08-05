@@ -14,7 +14,7 @@ import { waitUntil } from "@vercel/functions";
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { nextCookies } from "better-auth/next-js";
-import { magicLink } from "better-auth/plugins";
+import { lastLoginMethod, magicLink } from "better-auth/plugins";
 import { databaseHooks } from "./database-hooks";
 import { hooks } from "./hooks";
 
@@ -165,6 +165,7 @@ export const auth = betterAuth({
 
   databaseHooks,
   plugins: [
+    // Magic link plugin
     magicLink({
       expiresIn: EMAIL_OTP_EXPIRY_IN,
       disableSignUp: true,
@@ -181,6 +182,19 @@ export const auth = betterAuth({
         );
       },
     }),
+
+    // Last login method plugin
+    lastLoginMethod({
+      customResolveMethod: (ctx) => {
+        if (ctx.path?.startsWith("/magic-link/verify")) {
+          return "email";
+        }
+
+        return null;
+      },
+    }),
+
+    // Next cookies plugin
     nextCookies(),
   ],
 });

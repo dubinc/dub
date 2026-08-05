@@ -35,7 +35,6 @@ export const EmailSignIn = ({ next }: { next?: string }) => {
     authMethod,
     setAuthMethod,
     clickedMethod,
-    setLastUsedAuthMethod,
     setShowSSOOption,
   } = useContext(LoginFormContext);
 
@@ -111,7 +110,6 @@ export const EmailSignIn = ({ next }: { next?: string }) => {
               return;
             }
 
-            setLastUsedAuthMethod("email");
             router.push(finalNext || "/workspaces");
             return;
           }
@@ -129,7 +127,6 @@ export const EmailSignIn = ({ next }: { next?: string }) => {
             return;
           }
 
-          setLastUsedAuthMethod("email");
           toast.success("Email sent - check your inbox!");
           setEmail("");
           setClickedMethod(undefined);
