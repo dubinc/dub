@@ -55,7 +55,7 @@ export async function captureRequestLog({
   req: Request;
   response: Response;
   workspace: Pick<WorkspaceWithUsers, "id">;
-  user: Pick<User, "id">;
+  user?: Pick<User, "id"> | null;
   token: Pick<TokenCacheItem, "id"> | null;
   url: URL;
   requestHeaders: Headers;
@@ -125,7 +125,7 @@ export async function captureRequestLog({
     queryParams,
     responseBody,
     tokenId: token?.id ?? null,
-    userId: user.id ?? null,
+    userId: user?.id ?? null,
     requestType: "api",
   });
 }

@@ -2,28 +2,14 @@ import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { prisma } from "@/lib/prisma";
 import { ratelimit, redis } from "@/lib/upstash";
 import { getSearchParams } from "@dub/utils";
-import { User } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { headers } from "next/headers";
 import { withAxiom } from "../axiom/server";
 import { getServerSession } from "../better-auth/get-session";
 import { hashToken } from "./hash-token";
+import { Session } from "./utils";
 
-type SessionUser = Pick<
-  User,
-  | "id"
-  | "name"
-  | "image"
-  | "isMachine"
-  | "defaultWorkspace"
-  | "defaultPartnerId"
-> & {
-  email: string;
-};
-
-type Session = {
-  user: SessionUser;
-};
+type SessionUser = Session["user"];
 
 type AuthMethod = "apiKey" | "session";
 
@@ -155,8 +141,13 @@ async function authenticateApiKey(authHeader: string): Promise<{
     authMethod: "apiKey",
     rateLimitIdentifier: apiKey,
     user: {
-      ...user,
+      id: user.id,
+      name: user.name || "",
       email: user.email,
+      image: user.image,
+      isMachine: user.isMachine,
+      defaultWorkspace: user.defaultWorkspace,
+      defaultPartnerId: user.defaultPartnerId,
     },
   };
 }
@@ -178,7 +169,7 @@ async function authenticateSession(): Promise<{
 
   const user: SessionUser = {
     id: result.user.id,
-    name: result.user.name,
+    name: result.user.name || "",
     email: result.user.email,
     image: result.user.image ?? null,
     isMachine: result.user.isMachine ?? false,

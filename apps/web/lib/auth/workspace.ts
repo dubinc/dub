@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { BetaFeatures, PlanProps, WorkspaceWithUsers } from "@/lib/types";
 import { ratelimit } from "@/lib/upstash";
 import { API_DOMAIN, getSearchParams } from "@dub/utils";
-import { User, WorkspaceRole } from "@prisma/client";
+import { WorkspaceRole } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
@@ -23,14 +23,9 @@ import { hashToken } from "./hash-token";
 import { canAccessProgram, isProgramApiPath } from "./product-access-guard";
 import { rateLimitRequest } from "./rate-limit-request";
 import { TokenCacheItem, tokenCache } from "./token-cache";
+import { Session } from "./utils";
 
-type SessionUser = Pick<User, "id" | "name" | "isMachine"> & {
-  email: string;
-};
-
-type Session = {
-  user: SessionUser;
-};
+type SessionUser = Session["user"];
 
 const RATE_LIMIT_FOR_SESSIONS = {
   api: {

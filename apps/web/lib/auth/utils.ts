@@ -7,10 +7,10 @@ export interface Session {
     id: string;
     name: string;
     email: string;
-    image?: string;
+    image?: string | null;
     isMachine: boolean;
-    defaultWorkspace?: string;
-    defaultPartnerId?: string;
+    defaultWorkspace?: string | null;
+    defaultPartnerId?: string | null;
   };
 }
 
