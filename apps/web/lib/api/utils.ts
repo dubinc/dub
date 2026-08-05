@@ -26,7 +26,7 @@ export const ratelimitOrThrow = async (
   // Rate limit if user is not logged in
   const session = await getToken({
     req,
-    secret: process.env.NEXTAUTH_SECRET,
+    secret: process.env.BETTER_AUTH_SECRET,
   });
   if (!session?.email) {
     const ip = ipAddress(req);

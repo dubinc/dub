@@ -175,7 +175,7 @@ export const authOptions: NextAuthOptions = {
       },
       options: {
         clientId: "dummy",
-        clientSecret: process.env.NEXTAUTH_SECRET as string,
+        clientSecret: process.env.BETTER_AUTH_SECRET as string,
       },
       allowDangerousEmailAccountLinking: true,
     },
@@ -204,7 +204,7 @@ export const authOptions: NextAuthOptions = {
           grant_type: "authorization_code",
           redirect_uri: process.env.NEXTAUTH_URL as string,
           client_id: "dummy",
-          client_secret: process.env.NEXTAUTH_SECRET as string,
+          client_secret: process.env.BETTER_AUTH_SECRET as string,
         });
 
         if (!access_token) {

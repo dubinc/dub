@@ -22,6 +22,7 @@ import { samlIdp, samlSso } from "./saml-sso-plugin";
 const VERCEL_DEPLOYMENT = !!process.env.VERCEL_URL;
 
 export const auth = betterAuth({
+  secret: process.env.BETTER_AUTH_SECRET,
   trustedOrigins: [APP_DOMAIN, PARTNERS_DOMAIN],
   database: prismaAdapter(prisma, {
     provider: "mysql",
