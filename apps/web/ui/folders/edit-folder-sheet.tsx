@@ -1,4 +1,5 @@
 import { updateUserRoleInFolder } from "@/lib/actions/folders/update-folder-user-role";
+import { useSession } from "@/lib/better-auth/use-session";
 import {
   FOLDER_USER_ROLE,
   FOLDER_WORKSPACE_ACCESS,
@@ -23,7 +24,6 @@ import {
 import { UserCheck } from "@dub/ui/icons";
 import { cn, OG_AVATAR_URL } from "@dub/utils";
 import { FolderUserRole, WorkspaceRole } from "@prisma/client";
-import { useSession } from "@/lib/better-auth/use-session";
 import { useAction } from "next-safe-action/hooks";
 import { useState } from "react";
 import { toast } from "sonner";

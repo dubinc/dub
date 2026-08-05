@@ -1,5 +1,5 @@
-import { fetcher } from "@dub/utils";
 import { useSession } from "@/lib/better-auth/use-session";
+import { fetcher } from "@dub/utils";
 import useSWR from "swr";
 import { PartnerRewindProps } from "../types";
 

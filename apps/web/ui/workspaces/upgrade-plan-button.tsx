@@ -1,5 +1,6 @@
 "use client";
 
+import { useSession } from "@/lib/better-auth/use-session";
 import { wouldLosePartnerAccess } from "@/lib/plans/has-partner-access";
 import { wouldLoseAdvancedFeatures } from "@/lib/plans/would-lose-advanced-features";
 import { getStripe } from "@/lib/stripe/client";
@@ -13,7 +14,6 @@ import {
   isWorkspaceBillingTrialActive,
   SELF_SERVE_PAID_PLANS,
 } from "@dub/utils";
-import { useSession } from "@/lib/better-auth/use-session";
 import { usePlausible } from "next-plausible";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";

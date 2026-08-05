@@ -1,5 +1,5 @@
-import { fetcher } from "@dub/utils";
 import { useSession } from "@/lib/better-auth/use-session";
+import { fetcher } from "@dub/utils";
 import useSWR from "swr";
 import * as z from "zod/v4";
 import { partnerProfileProgramsCountQuerySchema } from "../zod/schemas/partner-profile";

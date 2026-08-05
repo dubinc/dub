@@ -8,8 +8,8 @@ import {
   trackApplicationEventSchema,
 } from "@/lib/application-events/schema";
 import { getApplicationEventCookieName } from "@/lib/application-events/utils";
-import { getServerSession } from "@/lib/better-auth/get-session";
 import { withAxiom } from "@/lib/axiom/server";
+import { getServerSession } from "@/lib/better-auth/get-session";
 import { detectBot } from "@/lib/middleware/utils/detect-bot";
 import { getIdentityHash } from "@/lib/middleware/utils/get-identity-hash";
 import { prisma } from "@/lib/prisma";

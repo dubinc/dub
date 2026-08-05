@@ -1,5 +1,6 @@
 "use client";
 
+import { useSession } from "@/lib/better-auth/use-session";
 import { SLACK_SUPPORT_INVITE_MAX_EMAILS } from "@/lib/constants/misc";
 import {
   Button,
@@ -8,7 +9,6 @@ import {
   type MultiValueInputRef,
 } from "@dub/ui";
 import { pluralize } from "@dub/utils";
-import { useSession } from "@/lib/better-auth/use-session";
 import {
   type Dispatch,
   type SetStateAction,

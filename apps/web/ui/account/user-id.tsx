@@ -1,7 +1,7 @@
 "use client";
 
-import { CopyButton } from "@dub/ui";
 import { useSession } from "@/lib/better-auth/use-session";
+import { CopyButton } from "@dub/ui";
 
 export default function UserId() {
   const { data: session } = useSession() as

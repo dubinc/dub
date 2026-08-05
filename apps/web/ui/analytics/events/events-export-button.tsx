@@ -1,6 +1,6 @@
+import { useSession } from "@/lib/better-auth/use-session";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { Button, Download, TooltipContent } from "@dub/ui";
-import { useSession } from "@/lib/better-auth/use-session";
 import { Dispatch, SetStateAction, useContext } from "react";
 import { toast } from "sonner";
 import { AnalyticsContext } from "../analytics-provider";

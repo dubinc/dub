@@ -1,8 +1,8 @@
 "use client";
 
+import { signOut, useSession } from "@/lib/better-auth/use-session";
 import { Button, CircleQuestion } from "@dub/ui";
 import { cn } from "@dub/utils";
-import { signOut, useSession } from "@/lib/better-auth/use-session";
 import { useState } from "react";
 
 export function SignedInHint({

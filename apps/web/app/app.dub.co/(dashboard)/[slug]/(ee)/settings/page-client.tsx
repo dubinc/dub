@@ -1,12 +1,12 @@
 "use client";
 
+import { useSession } from "@/lib/better-auth/use-session";
 import { clientAccessCheck } from "@/lib/client-access-check";
 import useWorkspace from "@/lib/swr/use-workspace";
 import DeleteWorkspace from "@/ui/workspaces/delete-workspace";
 import { SlackSupportSettingsCard } from "@/ui/workspaces/slack-support-settings-card";
 import UploadLogo from "@/ui/workspaces/upload-logo";
 import { Form } from "@dub/ui";
-import { useSession } from "@/lib/better-auth/use-session";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { mutate } from "swr";

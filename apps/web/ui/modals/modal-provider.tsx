@@ -1,5 +1,6 @@
 "use client";
 
+import { useSession } from "@/lib/better-auth/use-session";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
 import useWorkspaces from "@/lib/swr/use-workspaces";
@@ -11,7 +12,6 @@ import { useImportCsvModal } from "@/ui/modals/import-csv-modal";
 import { useImportShortModal } from "@/ui/modals/import-short-modal";
 import { useCookies } from "@dub/ui";
 import { DEFAULT_LINK_PROPS, getUrlFromString } from "@dub/utils";
-import { useSession } from "@/lib/better-auth/use-session";
 import { useSearchParams } from "next/navigation";
 import {
   Dispatch,

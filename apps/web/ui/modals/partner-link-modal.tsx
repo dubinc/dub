@@ -1,5 +1,6 @@
 "use client";
 
+import { useSession } from "@/lib/better-auth/use-session";
 import { mutateSuffix } from "@/lib/swr/mutate";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import { PartnerProfileLinkProps } from "@/lib/types";
@@ -32,7 +33,6 @@ import {
   punycode,
 } from "@dub/utils";
 import { AnimatePresence, motion } from "motion/react";
-import { useSession } from "@/lib/better-auth/use-session";
 import { useParams } from "next/navigation";
 import {
   Dispatch,

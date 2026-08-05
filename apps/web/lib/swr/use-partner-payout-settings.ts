@@ -1,6 +1,6 @@
+import { useSession } from "@/lib/better-auth/use-session";
 import type { PartnerPayoutMethodSetting } from "@/lib/types";
 import { fetcher } from "@dub/utils";
-import { useSession } from "@/lib/better-auth/use-session";
 import useSWR from "swr";
 
 export default function usePartnerPayoutSettings() {

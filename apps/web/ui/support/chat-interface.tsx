@@ -1,13 +1,13 @@
 "use client";
 
 import { GlobalChatContext } from "@/lib/ai/build-system-prompt";
+import { useSession } from "@/lib/better-auth/use-session";
 import useProgramEnrollments from "@/lib/swr/use-program-enrollments";
 import { useChat } from "@ai-sdk/react";
 import { Combobox } from "@dub/ui";
 import { OfficeBuilding, PaperPlane, Users2 } from "@dub/ui/icons";
 import { cn, fetcher, OG_AVATAR_URL } from "@dub/utils";
 import { DefaultChatTransport } from "ai";
-import { useSession } from "@/lib/better-auth/use-session";
 import { useEffect, useRef, useState } from "react";
 import TextareaAutosize from "react-textarea-autosize";
 import { toast } from "sonner";

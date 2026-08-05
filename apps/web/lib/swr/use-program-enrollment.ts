@@ -1,9 +1,9 @@
+import { useSession } from "@/lib/better-auth/use-session";
 import {
   LARGE_PROGRAM_IDS,
   LARGE_PROGRAM_MIN_TOTAL_COMMISSIONS_CENTS,
 } from "@/lib/constants/partner-profile";
 import { fetcher } from "@dub/utils";
-import { useSession } from "@/lib/better-auth/use-session";
 import { useParams } from "next/navigation";
 import useSWR, { SWRConfiguration } from "swr";
 import { ProgramEnrollmentProps } from "../types";

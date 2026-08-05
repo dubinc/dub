@@ -1,6 +1,7 @@
 "use client";
 
 import { updateUserRoleInFolder } from "@/lib/actions/folders/update-folder-user-role";
+import { useSession } from "@/lib/better-auth/use-session";
 import {
   FOLDER_USER_ROLE,
   FOLDER_WORKSPACE_ACCESS,
@@ -20,7 +21,6 @@ import { BlurImage, Globe } from "@dub/ui";
 import { cn, fetcher, nFormatter, OG_AVATAR_URL, pluralize } from "@dub/utils";
 import { FolderUserRole } from "@prisma/client";
 import { ChevronLeft } from "lucide-react";
-import { useSession } from "@/lib/better-auth/use-session";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
 import { redirect } from "next/navigation";

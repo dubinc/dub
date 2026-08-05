@@ -1,5 +1,6 @@
 import { INTERVAL_DISPLAYS } from "@/lib/analytics/constants";
 import { getIntervalData } from "@/lib/analytics/utils";
+import { useSession } from "@/lib/better-auth/use-session";
 import useWorkspace from "@/lib/swr/use-workspace";
 import {
   exportLinksColumns,
@@ -14,7 +15,6 @@ import {
   Switch,
   useRouterStuff,
 } from "@dub/ui";
-import { useSession } from "@/lib/better-auth/use-session";
 import {
   Dispatch,
   SetStateAction,

@@ -1,6 +1,6 @@
+import { useSession } from "@/lib/better-auth/use-session";
 import { useRouterStuff } from "@dub/ui";
 import { fetcher } from "@dub/utils";
-import { useSession } from "@/lib/better-auth/use-session";
 import useSWR from "swr";
 import { PartnerPayoutResponse } from "../types";
 
