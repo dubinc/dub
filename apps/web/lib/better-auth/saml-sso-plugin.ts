@@ -4,7 +4,7 @@ import type { BetterAuthPlugin } from "better-auth";
 import { APIError, createAuthEndpoint } from "better-auth/api";
 import { setSessionCookie } from "better-auth/cookies";
 import { handleOAuthUserInfo } from "better-auth/oauth2";
-import { genericOAuth } from "better-auth/plugins";
+import type { GenericOAuthConfig } from "better-auth/plugins";
 import { z } from "zod";
 
 const baseURL = process.env.BETTER_AUTH_URL;
@@ -23,55 +23,51 @@ const samlIdpBodySchema = z.object({
   code: z.string().min(1),
 });
 
-export const samlSso = genericOAuth({
-  config: [
-    {
-      providerId: "saml",
-      clientId: "dummy",
-      clientSecret: process.env.BETTER_AUTH_SECRET!,
-      authorizationUrl: `${baseURL}/api/auth/saml/authorize`,
-      tokenUrl: `${baseURL}/api/auth/saml/token`,
-      userInfoUrl: `${baseURL}/api/auth/saml/userinfo`,
-      scopes: [],
-      pkce: true,
-      responseType: "code",
-      authorizationUrlParams: (ctx) => {
-        const { tenant } = (ctx.body?.additionalData ?? {}) as {
-          tenant?: string;
-        };
+export const samlOAuthConfig: GenericOAuthConfig = {
+  providerId: "saml",
+  clientId: "dummy",
+  clientSecret: process.env.BETTER_AUTH_SECRET!,
+  authorizationUrl: `${baseURL}/api/auth/saml/authorize`,
+  tokenUrl: `${baseURL}/api/auth/saml/token`,
+  userInfoUrl: `${baseURL}/api/auth/saml/userinfo`,
+  scopes: [],
+  pkce: true,
+  responseType: "code",
+  authorizationUrlParams: (ctx) => {
+    const { tenant } = (ctx.body?.additionalData ?? {}) as {
+      tenant?: string;
+    };
 
-        if (!tenant) {
-          throw new Error("[SAML SSO] tenant is required in additionalData.");
-        }
+    if (!tenant) {
+      throw new Error("[SAML SSO] tenant is required in additionalData.");
+    }
 
-        return {
-          provider: "saml",
-          tenant,
-          product: "Dub",
-        };
+    return {
+      provider: "saml",
+      tenant,
+      product: "Dub",
+    };
+  },
+  getUserInfo: async (tokens) => {
+    const response = await fetch(`${baseURL}/api/auth/saml/userinfo`, {
+      headers: {
+        Authorization: `Bearer ${tokens.accessToken}`,
       },
-      getUserInfo: async (tokens) => {
-        const response = await fetch(`${baseURL}/api/auth/saml/userinfo`, {
-          headers: {
-            Authorization: `Bearer ${tokens.accessToken}`,
-          },
-        });
+    });
 
-        if (!response.ok) {
-          console.error(
-            "[SAML SSO] Failed to fetch userinfo from Jackson.",
-            response.statusText,
-          );
-          return null;
-        }
+    if (!response.ok) {
+      console.error(
+        "[SAML SSO] Failed to fetch userinfo from Jackson.",
+        response.statusText,
+      );
+      return null;
+    }
 
-        const profile = await response.json();
+    const profile = await response.json();
 
-        return resolveUser(profile);
-      },
-    },
-  ],
-});
+    return resolveUser(profile);
+  },
+};
 
 export const samlIdp = {
   id: "saml-idp",

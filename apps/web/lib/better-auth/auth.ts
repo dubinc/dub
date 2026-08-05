@@ -14,11 +14,12 @@ import { waitUntil } from "@vercel/functions";
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { nextCookies } from "better-auth/next-js";
-import { lastLoginMethod, magicLink } from "better-auth/plugins";
+import { genericOAuth, lastLoginMethod, magicLink } from "better-auth/plugins";
 import { adminImpersonation } from "./admin-impersonation-plugin";
 import { databaseHooks } from "./database-hooks";
 import { hooks } from "./hooks";
-import { samlIdp, samlSso } from "./saml-sso-plugin";
+import { programOAuthConfigs, programOAuthProviderIds } from "./program-oauth";
+import { samlIdp, samlOAuthConfig } from "./saml-sso-plugin";
 
 const VERCEL_DEPLOYMENT = !!process.env.VERCEL_URL;
 
@@ -141,7 +142,12 @@ export const auth = betterAuth({
     modelName: "authAccount",
     accountLinking: {
       enabled: true,
-      trustedProviders: ["google", "github", "saml"],
+      trustedProviders: [
+        "google",
+        "github",
+        "saml",
+        ...programOAuthProviderIds,
+      ],
     },
   },
   verification: {
@@ -201,8 +207,10 @@ export const auth = betterAuth({
       },
     }),
 
-    // SAML Jackson SSO (OAuth bridge)
-    samlSso,
+    // SAML Jackson SSO + partner program OAuth
+    genericOAuth({
+      config: [samlOAuthConfig, ...programOAuthConfigs],
+    }),
 
     // SAML IdP-initiated login (Jackson code → session)
     samlIdp,
