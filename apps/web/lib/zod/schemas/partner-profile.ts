@@ -109,6 +109,9 @@ export const createPartnerProfileLinkSchema = z.object({
     .describe("The partner's private comments for the short link."),
 });
 
+export const updatePartnerProfileLinkSchema =
+  createPartnerProfileLinkSchema.partial();
+
 export const PartnerProfileLinkSchema = LinkSchema.pick({
   id: true,
   domain: true,

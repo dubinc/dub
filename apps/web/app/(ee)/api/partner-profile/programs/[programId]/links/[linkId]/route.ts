@@ -9,7 +9,7 @@ import { prisma } from "@/lib/prisma";
 import { NewLinkProps } from "@/lib/types";
 import {
   PartnerProfileLinkSchema,
-  createPartnerProfileLinkSchema,
+  updatePartnerProfileLinkSchema,
 } from "@/lib/zod/schemas/partner-profile";
 import { getPrettyUrl, toCentsNumber } from "@dub/utils";
 import { NextResponse } from "next/server";
@@ -18,7 +18,7 @@ import { NextResponse } from "next/server";
 export const PATCH = withPartnerProfile(
   async ({ partner, params, req, session }) => {
     const { url, key, partnerLinkTitle, partnerLinkComments } =
-      createPartnerProfileLinkSchema.parse(await parseRequestBody(req));
+      updatePartnerProfileLinkSchema.parse(await parseRequestBody(req));
 
     const { programId, linkId } = params;
 
@@ -69,7 +69,9 @@ export const PATCH = withPartnerProfile(
       });
     }
 
-    const linkUrlChanged = getPrettyUrl(link.url) !== getPrettyUrl(url);
+    const nextUrl = url ?? link.url;
+    const nextKey = key ?? link.key;
+    const linkUrlChanged = getPrettyUrl(link.url) !== getPrettyUrl(nextUrl);
 
     if (linkUrlChanged) {
       if (link.partnerGroupDefaultLinkId) {
@@ -79,7 +81,7 @@ export const PATCH = withPartnerProfile(
             "You cannot update the destination URL of your default link.",
         });
       } else {
-        validatePartnerLinkUrl({ group, url });
+        validatePartnerLinkUrl({ group, url: nextUrl });
       }
     }
 
@@ -93,7 +95,7 @@ export const PATCH = withPartnerProfile(
       : null;
 
     // if domain and key are the same, we don't need to check if the key exists
-    const skipKeyChecks = link.key.toLowerCase() === key?.toLowerCase();
+    const skipKeyChecks = link.key.toLowerCase() === nextKey.toLowerCase();
 
     const {
       link: processedLink,
@@ -119,11 +121,16 @@ export const PATCH = withPartnerProfile(
             ? link.testStartedAt.toISOString()
             : link.testStartedAt,
 
-        // merge in new props
-        key: key || undefined,
-        url: url || program.url,
-        partnerLinkTitle,
-        partnerLinkComments,
+        key: nextKey,
+        url: nextUrl,
+        partnerLinkTitle:
+          partnerLinkTitle !== undefined
+            ? partnerLinkTitle
+            : link.partnerLinkTitle,
+        partnerLinkComments:
+          partnerLinkComments !== undefined
+            ? partnerLinkComments
+            : link.partnerLinkComments,
       },
       workspace: {
         id: program.workspaceId,
