@@ -1,4 +1,3 @@
-import { isSamlEnforcedForEmailDomain } from "@/lib/api/workspaces/is-saml-enforced-for-email-domain";
 import { trackDubLead } from "@/lib/auth/track-dub-lead";
 import { qstash } from "@/lib/cron";
 import { isBlacklistedEmail } from "@/lib/edge-config";
@@ -19,13 +18,6 @@ export const databaseHooks = {
         if (!user.email || (await isBlacklistedEmail(user.email))) {
           throw new APIError("BAD_REQUEST", {
             message: "Unable to create account with this email.",
-          });
-        }
-
-        const ssoEnforced = await isSamlEnforcedForEmailDomain(user.email);
-        if (ssoEnforced) {
-          throw new APIError("BAD_REQUEST", {
-            message: "require-saml-sso",
           });
         }
 
@@ -82,7 +74,9 @@ export const databaseHooks = {
           return;
         }
 
-        const user = await getUser({ id: account.userId });
+        const user = await getUser({
+          id: account.userId,
+        });
 
         if (!user?.image || isStored(user.image)) {
           return;
@@ -115,13 +109,6 @@ export const databaseHooks = {
         if (user.lockedAt) {
           throw new APIError("FORBIDDEN", {
             message: "exceeded-login-attempts",
-          });
-        }
-
-        const ssoEnforced = await isSamlEnforcedForEmailDomain(user.email);
-        if (ssoEnforced) {
-          throw new APIError("FORBIDDEN", {
-            message: "require-saml-sso",
           });
         }
 

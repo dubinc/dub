@@ -17,7 +17,7 @@ import { AuthMethodsSeparator } from "../auth-methods-separator";
 import { EmailSignIn } from "./email-sign-in";
 import { GitHubButton } from "./github-button";
 import { GoogleButton } from "./google-button";
-import { SSOSignIn } from "./sso-sign-in";
+import { SAMLSignIn } from "./saml-sign-in";
 
 export const authMethods = [
   "google",
@@ -130,7 +130,7 @@ export default function LoginForm({
     },
     {
       method: "saml",
-      component: SSOSignIn,
+      component: SAMLSignIn,
     },
   ];
 

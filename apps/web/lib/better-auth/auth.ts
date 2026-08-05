@@ -17,6 +17,7 @@ import { nextCookies } from "better-auth/next-js";
 import { lastLoginMethod, magicLink } from "better-auth/plugins";
 import { databaseHooks } from "./database-hooks";
 import { hooks } from "./hooks";
+import { samlSso } from "./saml-sso-plugin";
 
 const VERCEL_DEPLOYMENT = !!process.env.VERCEL_URL;
 
@@ -140,7 +141,7 @@ export const auth = betterAuth({
     modelName: "authAccount",
     accountLinking: {
       enabled: true,
-      trustedProviders: ["google", "github"],
+      trustedProviders: ["google", "github", "saml"],
     },
   },
   verification: {
@@ -193,6 +194,9 @@ export const auth = betterAuth({
         return null;
       },
     }),
+
+    // SAML Jackson SSO (OAuth bridge)
+    samlSso,
 
     // Next cookies plugin
     nextCookies(),

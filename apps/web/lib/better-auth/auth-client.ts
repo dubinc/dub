@@ -1,4 +1,5 @@
 import {
+  genericOAuthClient,
   inferAdditionalFields,
   lastLoginMethodClient,
   magicLinkClient,
@@ -13,6 +14,8 @@ export const authClient = createAuthClient({
     inferAdditionalFields<typeof auth>(),
 
     magicLinkClient(),
+
+    genericOAuthClient(),
 
     lastLoginMethodClient({
       domain: VERCEL_DEPLOYMENT ? ".dub.co" : undefined,
