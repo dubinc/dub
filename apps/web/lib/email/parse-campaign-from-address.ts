@@ -11,7 +11,7 @@ export function parseCampaignFromAddress(
   const trimmed = value.trim();
   if (!trimmed) return null;
 
-  const namedMatch = trimmed.match(/^(.+?)s*<([^<>s]+@[^<>s]+)>$/);
+  const namedMatch = trimmed.match(/^(.+?)\s*<([^<>\s]+@[^<>\s]+)>$/);
   if (namedMatch) {
     const displayName = namedMatch[1].trim();
     const email = namedMatch[2].trim();

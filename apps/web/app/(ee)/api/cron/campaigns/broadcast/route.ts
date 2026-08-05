@@ -250,10 +250,14 @@ export async function POST(req: Request) {
 
         const { data, error } = await sendBatchEmail(
           partnerUsersChunk.map((partnerUser) => ({
-            from: resolveCampaignFromAddress({
-              from: campaign.from!,
-              programName: program.name,
-            }),
+            ...(campaign.from
+              ? {
+                  from: resolveCampaignFromAddress({
+                    from: campaign.from,
+                    programName: program.name,
+                  }),
+                }
+              : {}),
             to: partnerUser.email!,
             subject: campaign.subject,
             ...(program.supportEmail ? { replyTo: program.supportEmail } : {}),

@@ -22,6 +22,7 @@ describe("parseCampaignFromAddress", () => {
       "Bob from Acme",
       "bob@mail.acme.com",
     ],
+    ["Support <support@mail.acme.com>", "Support", "support@mail.acme.com"],
   ])("parses %s", (input, displayName, email) => {
     expect(parseCampaignFromAddress(input)).toEqual({ displayName, email });
   });
