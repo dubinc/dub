@@ -17,7 +17,7 @@ import { nextCookies } from "better-auth/next-js";
 import { lastLoginMethod, magicLink } from "better-auth/plugins";
 import { databaseHooks } from "./database-hooks";
 import { hooks } from "./hooks";
-import { samlSso } from "./saml-sso-plugin";
+import { samlIdp, samlSso } from "./saml-sso-plugin";
 
 const VERCEL_DEPLOYMENT = !!process.env.VERCEL_URL;
 
@@ -191,12 +191,19 @@ export const auth = betterAuth({
           return "email";
         }
 
+        if (ctx.path === "/sign-in/saml-idp") {
+          return "saml";
+        }
+
         return null;
       },
     }),
 
     // SAML Jackson SSO (OAuth bridge)
     samlSso,
+
+    // SAML IdP-initiated login (Jackson code → session)
+    samlIdp,
 
     // Next cookies plugin
     nextCookies(),

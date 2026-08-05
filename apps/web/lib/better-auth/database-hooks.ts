@@ -161,7 +161,9 @@ export const databaseHooks = {
         }
 
         // Enforce SAML SSO for non-SAML callback requests
-        const isSamlCallback = context?.params?.providerId === "saml";
+        const isSamlCallback =
+          context?.params?.providerId === "saml" ||
+          context?.path === "/sign-in/saml-idp";
 
         if (
           !isSamlCallback &&
