@@ -8,7 +8,7 @@ import { PARTNER_PLATFORMS_PROVIDERS } from "@/lib/api/partner-profile/partner-p
 import { upsertPartnerPlatform } from "@/lib/api/partner-profile/upsert-partner-platform";
 import { generateOTP } from "@/lib/auth/utils";
 import { extractEmailDomain } from "@/lib/email/extract-email-domain";
-import { isGenericEmail } from "@/lib/is-generic-email";
+import { isGenericEmail } from "@/lib/email/is-generic-email";
 import {
   sanitizeSocialHandle,
   SOCIAL_PLATFORM_CONFIGS,

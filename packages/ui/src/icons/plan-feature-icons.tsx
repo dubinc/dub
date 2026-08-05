@@ -13,6 +13,7 @@ import {
   Hyperlink,
   InvoiceDollar,
   License,
+  Lock,
   MarketingTarget,
   MoneyBills2,
   Msgs,
@@ -32,6 +33,7 @@ import {
   UsersSettings,
   Versions2,
   Webhook,
+  Workflow,
 } from "./nucleo";
 import { Slack } from "./slack";
 
@@ -57,12 +59,13 @@ export const PLAN_FEATURE_ICONS = {
   tests: Flask,
   email: PaperPlane,
   messages: Msgs,
-  sso: ShieldKeyhole,
+  sso: Lock,
+  security: ShieldKeyhole,
   logs: Versions2,
   success: UserCrown,
   sla: License,
   volume: CirclePercentage,
-
+  workflows: Workflow,
   clickpayouts: CursorRays,
   payouts: MoneyBills2,
   basicrewards: Gift,

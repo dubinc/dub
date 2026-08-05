@@ -1,4 +1,4 @@
-import { extractEmailDomain } from "./email/extract-email-domain";
+import { extractEmailDomain } from "./extract-email-domain";
 
 const GENERIC_EMAIL_DOMAINS = [
   "googlemail.com",
