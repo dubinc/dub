@@ -910,6 +910,7 @@ export function useAnalyticsFilters({
       utmData,
       searchParamsObj.tagId,
       searchParamsObj.domain,
+      partnerDisplayProperties,
     ],
   );
 

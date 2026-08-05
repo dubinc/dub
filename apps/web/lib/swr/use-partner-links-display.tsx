@@ -107,10 +107,14 @@ export function PartnerLinksDisplayProvider({
     return false;
   }, [displayOption, displayProperties, resolvedPersisted]);
 
+  const effectiveDisplayOption = !showDetailedAnalytics
+    ? "cards"
+    : displayOption;
+
   return (
     <PartnerLinksDisplayContext.Provider
       value={{
-        displayOption,
+        displayOption: effectiveDisplayOption,
         setDisplayOption,
         displayProperties,
         setDisplayProperties,

@@ -33,8 +33,8 @@ async function main() {
 
     await Promise.all(
       links.map(({ id, comments }) =>
-        prisma.link.update({
-          where: { id },
+        prisma.link.updateMany({
+          where: { id, partnerLinkComments: null },
           data: { partnerLinkComments: comments },
         }),
       ),
