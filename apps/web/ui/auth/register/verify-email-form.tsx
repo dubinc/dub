@@ -1,6 +1,7 @@
 "use client";
 
 import { createUserAccountAction } from "@/lib/actions/create-user-account";
+import { useSession } from "@/lib/better-auth/use-session";
 import { getValidInternalRedirectPath } from "@/lib/middleware/utils/is-valid-internal-redirect";
 import { AnimatedSizeContainer, Button, useMediaQuery } from "@dub/ui";
 import { cn } from "@dub/utils";
@@ -16,6 +17,7 @@ export const VerifyEmailForm = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { isMobile } = useMediaQuery();
+  const { update: refreshSession } = useSession();
   const [code, setCode] = useState("");
   const { email, password } = useRegisterContext();
   const [isInvalidCode, setIsInvalidCode] = useState(false);
@@ -26,6 +28,7 @@ export const VerifyEmailForm = () => {
     async onSuccess() {
       toast.success("Account created! Redirecting to dashboard...");
       setIsRedirecting(true);
+      await refreshSession();
 
       // preserve the next query param if present (and valid)
       const next = getValidInternalRedirectPath({

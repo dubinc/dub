@@ -14,9 +14,9 @@ export const UpdatePassword = () => {
   const {
     register,
     handleSubmit,
-    setError,
     formState: { isSubmitting, isDirty, errors },
     reset,
+    setError,
   } = form;
 
   const onSubmit = handleSubmit(async (data) => {
@@ -28,9 +28,17 @@ export const UpdatePassword = () => {
       });
 
       if (error) {
-        setError("currentPassword", {
-          message: error.message || "Failed to update password.",
-        });
+        if (error.code === "INVALID_PASSWORD") {
+          setError("currentPassword", { message: error.message });
+        } else if (
+          error.code === "PASSWORD_TOO_SHORT" ||
+          error.code === "PASSWORD_REQUIREMENTS_NOT_MET"
+        ) {
+          setError("newPassword", { message: error.message });
+        } else {
+          toast.error(error.message || "Failed to update password.");
+        }
+
         return;
       }
 

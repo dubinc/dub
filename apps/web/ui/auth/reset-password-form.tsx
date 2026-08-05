@@ -1,57 +1,54 @@
 "use client";
 
 import { authClient } from "@/lib/better-auth/auth-client";
-import { passwordSchema } from "@/lib/zod/schemas/auth";
 import { Button, Input } from "@dub/ui";
 import { useRouter } from "next/navigation";
 import { FormProvider, useForm } from "react-hook-form";
 import { toast } from "sonner";
-import * as z from "zod/v4";
 import { PasswordRequirements } from "../shared/password-requirements";
 
-const resetPasswordFormSchema = z
-  .object({
-    password: passwordSchema,
-    confirmPassword: z.string(),
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: "Confirm password must match password",
-    path: ["confirmPassword"],
-  });
+type ResetPasswordFormData = {
+  password: string;
+  confirmPassword: string;
+};
 
 export const ResetPasswordForm = ({ token }: { token: string }) => {
   const router = useRouter();
-  const form = useForm<z.infer<typeof resetPasswordFormSchema>>();
+  const form = useForm<ResetPasswordFormData>();
 
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
+    setError,
   } = form;
 
   const onSubmit = handleSubmit(async (data) => {
-    const parsed = resetPasswordFormSchema.safeParse(data);
-
-    if (!parsed.success) {
-      const confirmError = parsed.error.issues.find(
-        (issue) => issue.path[0] === "confirmPassword",
-      );
-
-      if (confirmError) {
-        form.setError("confirmPassword", { message: confirmError.message });
-      }
-
+    if (data.password !== data.confirmPassword) {
+      setError("confirmPassword", {
+        message: "Confirm password must match password",
+      });
       return;
     }
 
     try {
       const { error } = await authClient.resetPassword({
-        newPassword: parsed.data.password,
+        newPassword: data.password,
         token,
       });
 
       if (error) {
-        throw new Error(error.message || "Failed to reset password.");
+        if (
+          error.code === "PASSWORD_TOO_SHORT" ||
+          error.code === "PASSWORD_TOO_LONG" ||
+          error.code === "PASSWORD_REQUIREMENTS_NOT_MET"
+        ) {
+          setError("password", { message: error.message });
+        } else {
+          toast.error(error.message || "Failed to reset password.");
+        }
+
+        return;
       }
 
       toast.success(

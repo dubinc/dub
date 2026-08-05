@@ -8,8 +8,6 @@ export async function getServerSession(requestHeaders?: Headers) {
     headers: requestHeaders ?? (await headers()),
   });
 
-  console.debug("[getServerSession]", result);
-
   return {
     session: result?.session ?? null,
     user: result?.user ?? null,
