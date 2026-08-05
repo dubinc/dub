@@ -137,6 +137,15 @@ export const ProgramEnrollmentApplicationSchema = z.object({
     .describe("When the application was approved or rejected."),
 });
 
+const partnerLinksDisplaySchema = z.object({
+  displayOption: z.enum(["full", "cards"]),
+  displayProperties: z.array(z.enum(["link", "title"])),
+});
+
+export const programEnrollmentPreferencesValueSchemas = {
+  linksDisplay: partnerLinksDisplaySchema.nullish(),
+} as const;
+
 export const ProgramEnrollmentSchema = z.object({
   programId: z.string().describe("The program's unique ID on Dub."),
   groupId: z.string().nullish().describe("The partner's group ID on Dub."),
@@ -199,6 +208,11 @@ export const ProgramEnrollmentSchema = z.object({
     "Linked program application, including review outcome when applicable.",
   ),
   riskMonitoringDisabledAt: z.date().nullable(),
+  partnerPreferences: z
+    .object({
+      linksDisplay: partnerLinksDisplaySchema.nullish(),
+    })
+    .nullish(),
 });
 
 export const ProgramInviteSchema = z.object({

@@ -1,6 +1,8 @@
 "use client";
 
-import { useSyncedLocalStorage } from "@/lib/hooks/use-synced-local-storage";
+import { updateProgramEnrollmentPreferences } from "@/lib/actions/partners/update-program-enrollment-preferences";
+import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
+import { useAction } from "next-safe-action/hooks";
 import {
   createContext,
   Dispatch,
@@ -10,30 +12,26 @@ import {
   useMemo,
   useState,
 } from "react";
+import { mutate } from "swr";
 
-export type PartnerLinksDisplayOption = "full" | "cards";
-
+type PartnerLinksDisplayOption = "full" | "cards";
 type PartnerLinksDisplayProperty = "link" | "title";
-
-const DEFAULT_DISPLAY_PROPERTIES: PartnerLinksDisplayProperty[] = ["link"];
-const STORAGE_KEY = "partnerLinksDisplay";
 
 type PartnerLinksDisplayPreferences = {
   displayOption: PartnerLinksDisplayOption;
   displayProperties: PartnerLinksDisplayProperty[];
 };
 
+const DEFAULT_DISPLAY_PROPERTIES: PartnerLinksDisplayProperty[] = ["link"];
+
 /** Read persisted partner links display prefs (for Analytics / Events / filters). */
 export function usePartnerLinksDisplay() {
-  const [persisted] =
-    useSyncedLocalStorage<PartnerLinksDisplayPreferences | null>(
-      STORAGE_KEY,
-      null,
-    );
+  const { programEnrollment } = useProgramEnrollment();
 
   return {
     displayProperties:
-      persisted?.displayProperties ?? DEFAULT_DISPLAY_PROPERTIES,
+      programEnrollment?.partnerPreferences?.linksDisplay?.displayProperties ??
+      DEFAULT_DISPLAY_PROPERTIES,
   };
 }
 
@@ -41,9 +39,11 @@ type PartnerLinksDisplayContextValue = {
   displayOption: PartnerLinksDisplayOption;
   setDisplayOption: Dispatch<SetStateAction<PartnerLinksDisplayOption>>;
   displayProperties: PartnerLinksDisplayProperty[];
-  setDisplayProperties: Dispatch<SetStateAction<PartnerLinksDisplayProperty[]>>;
+  setDisplayProperties: Dispatch<
+    SetStateAction<PartnerLinksDisplayProperty[]>
+  >;
   isDirty: boolean;
-  persist: () => void;
+  persist: () => void | Promise<void>;
   reset: () => void;
 };
 
@@ -66,11 +66,10 @@ export function PartnerLinksDisplayProvider({
   linksCount?: number;
   showDetailedAnalytics?: boolean;
 }>) {
-  const [persisted, setPersisted] =
-    useSyncedLocalStorage<PartnerLinksDisplayPreferences | null>(
-      STORAGE_KEY,
-      null,
-    );
+  const { programEnrollment } = useProgramEnrollment();
+  const { executeAsync } = useAction(updateProgramEnrollmentPreferences);
+
+  const persisted = programEnrollment?.partnerPreferences?.linksDisplay ?? null;
 
   const resolvedPersisted = useMemo<PartnerLinksDisplayPreferences>(() => {
     if (persisted) return persisted;
@@ -90,7 +89,7 @@ export function PartnerLinksDisplayProvider({
     PartnerLinksDisplayProperty[]
   >(resolvedPersisted.displayProperties);
 
-  // Sync draft when persisted defaults resolve (e.g. after links load)
+  // Sync draft when persisted defaults resolve (e.g. after enrollment/links load)
   useEffect(() => {
     setDisplayOption(resolvedPersisted.displayOption);
     setDisplayProperties(resolvedPersisted.displayProperties);
@@ -111,6 +110,24 @@ export function PartnerLinksDisplayProvider({
     ? "cards"
     : displayOption;
 
+  const persist = async () => {
+    if (!programEnrollment?.programId) return;
+
+    await executeAsync({
+      programId: programEnrollment.programId,
+      key: "linksDisplay",
+      value: {
+        displayOption,
+        displayProperties,
+      },
+    });
+
+    const programSlug = programEnrollment.program?.slug;
+    if (programSlug) {
+      mutate(`/api/partner-profile/programs/${programSlug}`);
+    }
+  };
+
   return (
     <PartnerLinksDisplayContext.Provider
       value={{
@@ -119,11 +136,7 @@ export function PartnerLinksDisplayProvider({
         displayProperties,
         setDisplayProperties,
         isDirty,
-        persist: () =>
-          setPersisted({
-            displayOption,
-            displayProperties,
-          }),
+        persist,
         reset: () => {
           setDisplayOption(resolvedPersisted.displayOption);
           setDisplayProperties(resolvedPersisted.displayProperties);

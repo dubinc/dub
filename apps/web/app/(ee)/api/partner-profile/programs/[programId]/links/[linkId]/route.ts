@@ -7,8 +7,10 @@ import { extractUtmParams } from "@/lib/api/utm/extract-utm-params";
 import { withPartnerProfile } from "@/lib/auth/partner";
 import { prisma } from "@/lib/prisma";
 import { NewLinkProps } from "@/lib/types";
-import { PartnerProfileLinkSchema } from "@/lib/zod/schemas/partner-profile";
-import { createPartnerLinkSchema } from "@/lib/zod/schemas/partners";
+import {
+  PartnerProfileLinkSchema,
+  createPartnerProfileLinkSchema,
+} from "@/lib/zod/schemas/partner-profile";
 import { getPrettyUrl, toCentsNumber } from "@dub/utils";
 import { NextResponse } from "next/server";
 
@@ -16,14 +18,7 @@ import { NextResponse } from "next/server";
 export const PATCH = withPartnerProfile(
   async ({ partner, params, req, session }) => {
     const { url, key, partnerLinkTitle, partnerLinkComments } =
-      createPartnerLinkSchema
-        .pick({
-          url: true,
-          key: true,
-          partnerLinkTitle: true,
-          partnerLinkComments: true,
-        })
-        .parse(await parseRequestBody(req));
+      createPartnerProfileLinkSchema.parse(await parseRequestBody(req));
 
     const { programId, linkId } = params;
 

@@ -8,7 +8,6 @@ import { IntervalOptions } from "@/lib/analytics/types";
 import usePartnerLinks from "@/lib/swr/use-partner-links";
 import {
   PartnerLinksDisplayContext,
-  PartnerLinksDisplayOption,
   PartnerLinksDisplayProvider,
 } from "@/lib/swr/use-partner-links-display";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
@@ -28,7 +27,7 @@ const PartnerLinksContext = createContext<{
   interval: (typeof DATE_RANGE_INTERVAL_PRESETS)[number];
   openMenuLinkId: string | null;
   setOpenMenuLinkId: (id: string | null) => void;
-  displayOption: PartnerLinksDisplayOption;
+  displayOption: "full" | "cards";
 } | null>(null);
 
 export function usePartnerLinksContext() {

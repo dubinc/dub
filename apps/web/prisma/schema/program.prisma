@@ -147,6 +147,8 @@ model ProgramEnrollment {
   reapplicationTimeframe       ReapplicationTimeframe @default(standard)
   riskMonitoringDisabledAt     DateTime?
 
+  partnerPreferences Json? // UI prefs for this enrollment (e.g. linksDisplay)
+
   partner            Partner                  @relation(fields: [partnerId], references: [id], onUpdate: Cascade, onDelete: Cascade)
   program            Program                  @relation(fields: [programId], references: [id], onUpdate: Cascade, onDelete: Cascade)
   links              Link[]
