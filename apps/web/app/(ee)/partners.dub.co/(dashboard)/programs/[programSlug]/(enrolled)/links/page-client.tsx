@@ -8,8 +8,8 @@ import { IntervalOptions } from "@/lib/analytics/types";
 import usePartnerLinks from "@/lib/swr/use-partner-links";
 import {
   PartnerLinksDisplayContext,
+  PartnerLinksDisplayOption,
   PartnerLinksDisplayProvider,
-  PartnerLinksViewMode,
 } from "@/lib/swr/use-partner-links-display";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import { usePartnerLinkModal } from "@/ui/modals/partner-link-modal";
@@ -28,7 +28,7 @@ const PartnerLinksContext = createContext<{
   interval: (typeof DATE_RANGE_INTERVAL_PRESETS)[number];
   openMenuLinkId: string | null;
   setOpenMenuLinkId: (id: string | null) => void;
-  viewMode: PartnerLinksViewMode;
+  displayOption: PartnerLinksDisplayOption;
 } | null>(null);
 
 export function usePartnerLinksContext() {
@@ -74,13 +74,15 @@ function PartnerProgramLinksPageInner({
   error: ReturnType<typeof usePartnerLinks>["error"];
   loading: boolean;
   isValidating: boolean;
-  programEnrollment: ReturnType<typeof useProgramEnrollment>["programEnrollment"];
+  programEnrollment: ReturnType<
+    typeof useProgramEnrollment
+  >["programEnrollment"];
   showDetailedAnalytics?: boolean;
 }) {
   const { searchParamsObj } = useRouterStuff();
   const { setShowPartnerLinkModal, PartnerLinkModal } = usePartnerLinkModal();
   const [openMenuLinkId, setOpenMenuLinkId] = useState<string | null>(null);
-  const { viewMode } = useContext(PartnerLinksDisplayContext);
+  const { displayOption } = useContext(PartnerLinksDisplayContext);
 
   const {
     start,
@@ -106,7 +108,8 @@ function PartnerProgramLinksPageInner({
     enabled: canCreateNewLink ?? false,
   });
 
-  const showAllTimeAnalytics = !showDetailedAnalytics || viewMode === "rows";
+  const showAllTimeAnalytics =
+    !showDetailedAnalytics || displayOption === "cards";
 
   return (
     <div className="flex flex-col gap-4">
@@ -149,7 +152,7 @@ function PartnerProgramLinksPageInner({
           interval,
           openMenuLinkId,
           setOpenMenuLinkId,
-          viewMode,
+          displayOption,
         }}
       >
         <ChartTooltipSync>

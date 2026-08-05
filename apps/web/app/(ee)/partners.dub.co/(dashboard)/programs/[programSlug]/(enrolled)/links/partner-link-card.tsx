@@ -1,10 +1,10 @@
 import { formatDateTooltip } from "@/lib/analytics/format-date-tooltip";
 import { constructPartnerLink } from "@/lib/partners/construct-partner-link";
 import usePartnerAnalytics from "@/lib/swr/use-partner-analytics";
+import { PartnerLinksDisplayContext } from "@/lib/swr/use-partner-links-display";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import { PartnerProfileLinkProps } from "@/lib/types";
 import { CommentsBadge } from "@/ui/links/comments-badge";
-import { PartnerLinksDisplayContext } from "@/lib/swr/use-partner-links-display";
 import { DiscountCodeBadge } from "@/ui/partners/discounts/discount-code-badge";
 import { PartnerStatusBadges } from "@/ui/partners/partner-status-badges";
 import {
@@ -68,7 +68,7 @@ const CHARTS = [
 
 export function PartnerLinkCard({ link }: { link: PartnerProfileLinkProps }) {
   const { programEnrollment } = useProgramEnrollment();
-  const { viewMode } = usePartnerLinksContext();
+  const { displayOption } = usePartnerLinksContext();
   const { displayProperties } = useContext(PartnerLinksDisplayContext);
 
   const partnerLink = constructPartnerLink({
@@ -213,12 +213,12 @@ export function PartnerLinkCard({ link }: { link: PartnerProfileLinkProps }) {
                   {discountCodeSection}
                 </Tooltip>
               ))}
-            {viewMode === "rows" && <StatsBadge link={link} />}
+            {displayOption === "cards" && <StatsBadge link={link} />}
             <Controls link={link} />
           </div>
         </div>
       </div>
-      {viewMode === "cards" && <StatsCharts link={link} />}
+      {displayOption === "full" && <StatsCharts link={link} />}
     </CardList.Card>
   );
 }

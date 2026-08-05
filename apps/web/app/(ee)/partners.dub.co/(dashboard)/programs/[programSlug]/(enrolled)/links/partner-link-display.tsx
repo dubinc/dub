@@ -1,23 +1,24 @@
 "use client";
 
+import { PartnerLinksDisplayContext } from "@/lib/swr/use-partner-links-display";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
-import {
-  PartnerLinksDisplayContext,
-  partnerLinksDisplayProperties,
-  PartnerLinksViewMode,
-} from "@/lib/swr/use-partner-links-display";
 import { Button, Popover } from "@dub/ui";
-import { GridLayoutRows, Sliders, TableRows2 } from "@dub/ui/icons";
+import { GridIcon, GridLayoutRows, Sliders } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
 import { ChevronDown } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useContext, useState } from "react";
 
+const DISPLAY_PROPERTIES = [
+  { id: "link" as const, label: "Short link", switch: "title" as const },
+  { id: "title" as const, label: "Title", switch: "link" as const },
+];
+
 export function PartnerLinkDisplay() {
   const { showDetailedAnalytics } = useProgramEnrollment();
   const {
-    viewMode,
-    setViewMode,
+    displayOption,
+    setDisplayOption,
     displayProperties,
     setDisplayProperties,
     isDirty,
@@ -33,10 +34,10 @@ export function PartnerLinkDisplay() {
           {!!showDetailedAnalytics && (
             <div className="grid grid-cols-2 gap-2 p-3">
               {[
+                { id: "full" as const, label: "Full", icon: GridIcon },
                 { id: "cards" as const, label: "Cards", icon: GridLayoutRows },
-                { id: "rows" as const, label: "Rows", icon: TableRows2 },
               ].map(({ id, label, icon: Icon }) => {
-                const selected = viewMode === id;
+                const selected = displayOption === id;
                 return (
                   <button
                     key={id}
@@ -47,7 +48,7 @@ export function PartnerLinkDisplay() {
                         ? "border-neutral-300 bg-neutral-100 text-neutral-950"
                         : "text-neutral-800 hover:bg-neutral-100 hover:text-neutral-950",
                     )}
-                    onClick={() => setViewMode(id as PartnerLinksViewMode)}
+                    onClick={() => setDisplayOption(id)}
                     aria-pressed={selected}
                   >
                     <Icon
@@ -67,7 +68,7 @@ export function PartnerLinkDisplay() {
               Display Properties
             </span>
             <div className="mt-4 flex flex-wrap gap-2">
-              {partnerLinksDisplayProperties.map((property) => {
+              {DISPLAY_PROPERTIES.map((property) => {
                 const active = displayProperties.includes(property.id);
                 return (
                   <button
