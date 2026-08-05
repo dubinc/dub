@@ -16,7 +16,12 @@ export function parseCampaignFromAddress(
     const displayName = namedMatch[1].trim();
     const email = namedMatch[2].trim();
 
-    if (!displayName || !z.email().safeParse(email).success) {
+    if (
+      !displayName ||
+      displayName.includes("<") ||
+      displayName.includes(">") ||
+      !z.email().safeParse(email).success
+    ) {
       return null;
     }
 

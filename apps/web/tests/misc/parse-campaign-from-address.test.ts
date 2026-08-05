@@ -35,6 +35,9 @@ describe("parseCampaignFromAddress", () => {
     ["Alice <>", "empty email"],
     ["Alice <not-an-email>", "invalid email in brackets"],
     ["Name <a@b.com> extra", "trailing junk"],
+    ["Sales <EMEA> <sales@mail.acme.com>", "nested angle brackets"],
+    ["Sales <EMEA <sales@mail.acme.com>", "unclosed bracket in display name"],
+    ["Foo > Bar <sales@mail.acme.com>", "closing bracket in display name"],
   ])("rejects invalid: %s — %s", (input) => {
     expect(parseCampaignFromAddress(input)).toBeNull();
   });
