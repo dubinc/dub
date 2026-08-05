@@ -19,7 +19,6 @@ export async function inviteUser({
   workspace: WorkspaceWithUsers;
   session?: Session;
 }) {
-  // same method of generating a token as next-auth
   const token = randomBytes(32).toString("hex");
   const expires = new Date(Date.now() + TWO_WEEKS_IN_SECONDS * 1000);
 
@@ -53,12 +52,12 @@ export async function inviteUser({
   });
 
   const params = new URLSearchParams({
-    callbackUrl: `${process.env.NEXTAUTH_URL}/${workspace.slug}/invite`,
+    callbackUrl: `${process.env.BETTER_AUTH_URL}/${workspace.slug}/invite`,
     email,
     token,
   });
 
-  const url = `${process.env.NEXTAUTH_URL}/api/auth/callback/email?${params}`;
+  const url = `${process.env.BETTER_AUTH_URL}/api/auth/callback/email?${params}`;
 
   return await sendEmail({
     subject: "You've been invited to join a workspace on Dub",

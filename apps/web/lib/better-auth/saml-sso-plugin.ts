@@ -87,8 +87,7 @@ export const samlIdp = {
 
         const { oauthController } = await jackson();
 
-        const redirectUri =
-          process.env.NEXTAUTH_URL ?? process.env.BETTER_AUTH_URL;
+        const redirectUri = process.env.BETTER_AUTH_URL;
 
         if (!redirectUri) {
           throw new APIError("INTERNAL_SERVER_ERROR", {

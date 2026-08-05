@@ -73,8 +73,8 @@ export const POST = withWorkspace(
     const data = await apiController.createSAMLConnection({
       encodedRawMetadata: encodedRawMetadata!,
       metadataUrl: metadataUrl!,
-      defaultRedirectUrl: `${process.env.NEXTAUTH_URL}/auth/saml`,
-      redirectUrl: process.env.NEXTAUTH_URL as string,
+      defaultRedirectUrl: `${process.env.BETTER_AUTH_URL}/auth/saml`,
+      redirectUrl: process.env.BETTER_AUTH_URL as string,
       tenant: workspace.id,
       product: "Dub",
     });
