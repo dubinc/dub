@@ -65,29 +65,76 @@ export const databaseHooks = {
 
   account: {
     create: {
-      // Runs after a provider account is linked (Google/GitHub OAuth)
+      // Runs after a provider account is linked
       after: async (account) => {
-        if (
-          account.providerId !== "google" &&
-          account.providerId !== "github"
-        ) {
-          return;
+        const { providerId, userId } = account;
+
+        // Google and GitHub OAuth
+        if (["google", "github"].includes(providerId)) {
+          const user = await getUser({
+            id: userId,
+          });
+
+          if (!user?.image || isStored(user.image)) {
+            return;
+          }
+
+          waitUntil(
+            backupUserAvatar({
+              userId: user.id,
+              image: user.image,
+            }),
+          );
         }
 
-        const user = await getUser({
-          id: account.userId,
-        });
+        // SAML SSO
+        if (providerId === "saml") {
+          const user = await getUser({
+            id: userId,
+          });
 
-        if (!user?.image || isStored(user.image)) {
-          return;
+          if (!user?.email) {
+            return;
+          }
+
+          const emailDomain = user.email.split("@")[1];
+
+          const workspace = await prisma.project.findUnique({
+            where: {
+              ssoEmailDomain: emailDomain,
+            },
+            select: {
+              id: true,
+            },
+          });
+
+          if (!workspace) {
+            return;
+          }
+
+          await prisma.$transaction([
+            prisma.projectUsers.upsert({
+              where: {
+                userId_projectId: {
+                  userId: user.id,
+                  projectId: workspace.id,
+                },
+              },
+              update: {},
+              create: {
+                projectId: workspace.id,
+                userId: user.id,
+              },
+            }),
+
+            prisma.projectInvite.deleteMany({
+              where: {
+                email: user.email,
+                projectId: workspace.id,
+              },
+            }),
+          ]);
         }
-
-        waitUntil(
-          backupUserAvatar({
-            userId: user.id,
-            image: user.image,
-          }),
-        );
       },
     },
   },

@@ -49,7 +49,6 @@ export const SAMLSignIn = () => {
       providerId: "saml",
       additionalData: {
         tenant: workspaceId,
-        product: "Dub",
       },
     });
 
