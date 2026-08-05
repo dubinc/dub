@@ -107,8 +107,6 @@ export const auth = betterAuth({
     },
   },
 
-  hooks,
-
   // Database models
   user: {
     modelName: "user",
@@ -164,7 +162,9 @@ export const auth = betterAuth({
     useSecureCookies: VERCEL_DEPLOYMENT,
   },
 
+  hooks,
   databaseHooks,
+
   plugins: [
     // Magic link plugin
     magicLink({
