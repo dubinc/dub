@@ -1,5 +1,3 @@
-// Tracks emails signing in via admin impersonation links. Populated in
-// CustomPrismaAdapter.useVerificationToken before the token is deleted.
 const pendingAdminImpersonations = new Set<string>();
 
 export const markAdminImpersonation = (email: string) => {

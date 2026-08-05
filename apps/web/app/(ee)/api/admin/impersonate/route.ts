@@ -1,7 +1,6 @@
-import { hashToken, withAdmin } from "@/lib/auth";
+import { withAdmin } from "@/lib/auth";
+import { createImpersonationUrls } from "@/lib/better-auth/admin-impersonation-plugin";
 import { prisma } from "@/lib/prisma";
-import { APP_DOMAIN, PARTNERS_DOMAIN } from "@dub/utils";
-import { randomBytes } from "crypto";
 import { NextResponse } from "next/server";
 
 // POST /api/admin/impersonate
@@ -125,36 +124,8 @@ export const POST = withAdmin(async ({ req }) => {
             ...rest,
           }))
         : [],
-    impersonateUrl: await getImpersonateUrl(response.email),
+    impersonateUrl: await createImpersonationUrls(response.email),
   };
 
   return NextResponse.json(data);
 });
-
-async function getImpersonateUrl(email: string) {
-  const token = randomBytes(32).toString("hex");
-
-  await prisma.verificationToken.create({
-    data: {
-      identifier: email,
-      token: await hashToken(token, { secret: true }),
-      expires: new Date(Date.now() + 60000),
-      isAdminImpersonation: true,
-    },
-  });
-
-  return {
-    app: `${APP_DOMAIN}/api/auth/callback/email?${new URLSearchParams({
-      callbackUrl: APP_DOMAIN,
-      email,
-      token,
-    })}`,
-    partners: `${PARTNERS_DOMAIN}/api/auth/callback/email?${new URLSearchParams(
-      {
-        callbackUrl: PARTNERS_DOMAIN,
-        email,
-        token,
-      },
-    )}`,
-  };
-}

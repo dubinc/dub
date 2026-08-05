@@ -15,6 +15,7 @@ import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { nextCookies } from "better-auth/next-js";
 import { lastLoginMethod, magicLink } from "better-auth/plugins";
+import { adminImpersonation } from "./admin-impersonation-plugin";
 import { databaseHooks } from "./database-hooks";
 import { hooks } from "./hooks";
 import { samlIdp, samlSso } from "./saml-sso-plugin";
@@ -205,6 +206,9 @@ export const auth = betterAuth({
 
     // SAML IdP-initiated login (Jackson code → session)
     samlIdp,
+
+    // Admin impersonation (copyable magic-link verify URLs)
+    adminImpersonation,
 
     // Next cookies plugin
     nextCookies(),

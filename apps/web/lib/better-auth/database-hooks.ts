@@ -1,3 +1,4 @@
+import { consumeAdminImpersonation } from "@/lib/auth/admin-impersonation";
 import { trackDubLead } from "@/lib/auth/track-dub-lead";
 import { qstash } from "@/lib/cron";
 import { isBlacklistedEmail } from "@/lib/edge-config";
@@ -160,6 +161,8 @@ export const databaseHooks = {
           });
         }
 
+        const isAdminImpersonation = consumeAdminImpersonation(user.email);
+
         // Enforce SAML SSO for non-SAML callback requests
         const isSamlCallback =
           context?.params?.providerId === "saml" ||
@@ -167,6 +170,7 @@ export const databaseHooks = {
 
         if (
           !isSamlCallback &&
+          !isAdminImpersonation &&
           (await isSamlEnforcedForEmailDomain(user.email))
         ) {
           throw new APIError("FORBIDDEN", {
