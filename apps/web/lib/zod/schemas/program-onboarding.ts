@@ -15,6 +15,10 @@ export const programInfoSchema = z.object({
   logo: z.string(),
   domain: z.string(),
   url: parseUrlSchema.nullable(),
+  supportEmail: z
+    .email({ error: "Please enter a valid email" })
+    .max(255)
+    .nullish(),
   linkStructure: z.enum(PartnerLinkStructure).default("short"),
   linkParameter: z.string().nullish(),
 });

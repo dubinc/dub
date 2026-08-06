@@ -1,3 +1,4 @@
+import { PRISMA_UPDATEMANY_LIMIT } from "@/lib/cron";
 import { prisma } from "@/lib/prisma";
 import "dotenv-flow/config";
 
@@ -15,7 +16,7 @@ async function main() {
     orderBy: {
       createdAt: "desc",
     },
-    take: 250,
+    take: PRISMA_UPDATEMANY_LIMIT,
   });
 
   console.table(payoutsToUpdate);

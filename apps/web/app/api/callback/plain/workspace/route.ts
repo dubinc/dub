@@ -1,4 +1,6 @@
 import { prefixWorkspaceId } from "@/lib/api/workspaces/workspace-id";
+import { isBlacklistedEmail } from "@/lib/edge-config";
+import { plain } from "@/lib/plain/client";
 import { syncUserPlanToPlain } from "@/lib/plain/sync-user-plan";
 import { upsertPlainCustomer } from "@/lib/plain/upsert-plain-customer";
 import { prisma } from "@/lib/prisma";
@@ -31,6 +33,18 @@ export async function POST(req: NextRequest) {
   });
 
   if (!user || !user.email) {
+    const isBannedUser = await isBlacklistedEmail(customer.email);
+    if (isBannedUser) {
+      await plain.addCustomerToCustomerGroups({
+        customerId: customer.id,
+        customerGroupIdentifiers: [
+          {
+            customerGroupKey: "banned_users",
+          },
+        ],
+      });
+    }
+
     return NextResponse.json({
       cards: [
         {
@@ -92,7 +106,10 @@ export async function POST(req: NextRequest) {
     name,
     slug,
     plan,
+    planTier,
+    planPeriod,
     stripeId,
+    trialEndsAt,
     usage,
     usageLimit,
     totalClicks,
@@ -136,7 +153,7 @@ export async function POST(req: NextRequest) {
               rowAsideContent: [
                 {
                   componentBadge: {
-                    badgeLabel: capitalize(plan),
+                    badgeLabel: `${capitalize(plan)} ${planTier > 1 ? `[TIER ${planTier}] ` : ""}[${capitalize(planPeriod)}]`,
                     badgeColor:
                       plan === "enterprise"
                         ? "RED"
@@ -152,6 +169,29 @@ export async function POST(req: NextRequest) {
               ],
             },
           },
+          ...(trialEndsAt
+            ? [
+                uiComponent.spacer({
+                  size: "M",
+                }),
+                uiComponent.row({
+                  mainContent: [
+                    uiComponent.text({
+                      text: "⏲️ Trial ends",
+                      size: "M",
+                      color: "NORMAL",
+                    }),
+                  ],
+                  asideContent: [
+                    uiComponent.text({
+                      text: formatDate(trialEndsAt),
+                      size: "S",
+                      color: "MUTED",
+                    }),
+                  ],
+                }),
+              ]
+            : []),
           ...(stripeId
             ? [
                 uiComponent.spacer({
@@ -182,24 +222,22 @@ export async function POST(req: NextRequest) {
           uiComponent.spacer({
             size: "M",
           }),
-          {
-            componentRow: {
-              rowMainContent: [
-                {
-                  componentText: {
-                    text: "Customer since",
-                  },
-                },
-              ],
-              rowAsideContent: [
-                {
-                  componentText: {
-                    text: formatDate(topWorkspace.createdAt),
-                  },
-                },
-              ],
-            },
-          },
+          uiComponent.row({
+            mainContent: [
+              uiComponent.text({
+                text: "Signed up",
+                size: "M",
+                color: "NORMAL",
+              }),
+            ],
+            asideContent: [
+              uiComponent.text({
+                text: formatDate(user.createdAt),
+                size: "S",
+                color: "MUTED",
+              }),
+            ],
+          }),
           plainDivider,
           plainUsageSection({
             usage,

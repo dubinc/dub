@@ -43,7 +43,7 @@ export const POST = withAdmin(
     );
 
     waitUntil(
-      Promise.all(
+      Promise.allSettled(
         user.projects.map(({ project }) => deleteWorkspaceAdmin(project)),
       ).then(async () => {
         await Promise.all([

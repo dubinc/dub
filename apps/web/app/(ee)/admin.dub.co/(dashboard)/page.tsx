@@ -1,5 +1,6 @@
 import { BanLink } from "./components/ban-link";
 import { DeletePartnerAccount } from "./components/delete-partner-account";
+import { DisableRestoreWorkspace } from "./components/disable-restore-workspace";
 import { ImpersonateUser } from "./components/impersonate-user";
 import { ImpersonateWorkspace } from "./components/impersonate-workspace";
 import { ResetLoginAttempts } from "./components/reset-login-attempts";
@@ -55,6 +56,15 @@ export default function AdminPage() {
           workspace (bypasses the plan check).
         </p>
         <SlackSupportInvite />
+      </div>
+      <div className="flex flex-col space-y-4 px-5 py-10">
+        <h2 className="text-xl font-semibold">Disable / Restore Workspace</h2>
+        <p className="text-sm text-neutral-500">
+          Disable or restore all links for a workspace. Disabling also
+          downgrades owners to billing, members to viewer, and emails workspace
+          owners. Restoring reverts those role changes.
+        </p>
+        <DisableRestoreWorkspace />
       </div>
     </div>
   );
