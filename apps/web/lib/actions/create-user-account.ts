@@ -92,7 +92,7 @@ export const createUserAccountAction = actionClient
       },
       select: {
         id: true,
-        authAccounts: {
+        accounts: {
           where: {
             providerId: "credential",
           },

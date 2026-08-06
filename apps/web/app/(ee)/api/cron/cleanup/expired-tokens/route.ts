@@ -8,7 +8,6 @@ export const dynamic = "force-dynamic";
 
 // This route is used to remove expired tokens from the database
 // 1. VerificationToken
-// 2. EmailVerificationToken
 // Runs once every day at 02:00:00 AM UTC (0 2 * * *)
 // GET /api/cron/cleanup/expired-tokens
 export async function POST(req: Request) {
@@ -23,16 +22,8 @@ export async function POST(req: Request) {
     // tokens expired 1 day ago
     const cutoff = new Date(Date.now() - 1000 * 60 * 60 * 24);
 
-    const [verificationTokens, emailVerificationTokens] = await Promise.all([
+    const [verificationTokens] = await Promise.all([
       prisma.verificationToken.deleteMany({
-        where: {
-          expires: {
-            lt: cutoff,
-          },
-        },
-      }),
-
-      prisma.emailVerificationToken.deleteMany({
         where: {
           expires: {
             lt: cutoff,
@@ -43,7 +34,6 @@ export async function POST(req: Request) {
 
     console.log("Token cleanup deleted", {
       verificationTokens: verificationTokens.count,
-      emailVerificationTokens: emailVerificationTokens.count,
     });
 
     return NextResponse.json({ status: "OK" });

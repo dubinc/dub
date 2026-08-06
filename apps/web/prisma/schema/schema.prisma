@@ -36,7 +36,6 @@ model User {
   // relational data
   accounts                Account[]
   sessions                Session[]
-  authAccounts            AuthAccount[]
   notificationPreferences UserNotificationPreferences?
   projects                ProjectUsers[]
   partners                PartnerUser[]
@@ -65,25 +64,42 @@ model User {
   @@index(defaultWorkspace)
 }
 
+// Unified NextAuth + Better Auth account table
 model Account {
-  id                       String  @id @default(cuid())
-  userId                   String
-  type                     String
-  provider                 String
-  providerAccountId        String
+  // Shared
+  id     String  @id @default(cuid())
+  userId String
+  scope  String?
+
+  // NextAuth legacy (nullable for Better Auth–created rows)
+  type                     String?
+  provider                 String?
+  providerAccountId        String?
   refresh_token            String? @db.Text
   refresh_token_expires_in Int?
   access_token             String? @db.Text
   expires_at               Int?
   token_type               String?
-  scope                    String?
-  id_token                 String? @db.Text
   session_state            String?
+
+  // Better Auth
+  // TODO: Make accountId and providerId required after NextAuth → Better Auth migration
+  accountId             String?
+  providerId            String?
+  accessToken           String?   @db.Text
+  refreshToken          String?   @db.Text
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  idToken               String?   @db.Text
+  password              String?   @db.Text
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@unique([provider, providerAccountId])
   @@index([userId])
+  @@index([providerId, accountId])
+  @@index([provider, providerAccountId])
 }
 
 model Session {
@@ -99,28 +115,6 @@ model Session {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index(userId)
-}
-
-// Better Auth account table
-model AuthAccount {
-  id                    String    @id @default(cuid())
-  userId                String
-  accountId             String
-  providerId            String
-  accessToken           String?   @db.Text
-  refreshToken          String?   @db.Text
-  accessTokenExpiresAt  DateTime?
-  refreshTokenExpiresAt DateTime?
-  scope                 String?
-  idToken               String?   @db.Text
-  password              String?   @db.Text
-  createdAt             DateTime  @default(now())
-  updatedAt             DateTime  @updatedAt
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index(userId)
-  @@index([providerId, accountId])
 }
 
 // Better Auth verification table

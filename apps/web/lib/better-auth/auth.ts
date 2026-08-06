@@ -142,7 +142,7 @@ export const auth = betterAuth({
     },
   },
   account: {
-    modelName: "authAccount",
+    modelName: "account",
     accountLinking: {
       enabled: true,
       trustedProviders: [
