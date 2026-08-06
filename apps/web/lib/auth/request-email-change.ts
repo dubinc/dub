@@ -3,10 +3,7 @@ import { sendEmail } from "@dub/email";
 import ConfirmEmailChange from "@dub/email/templates/confirm-email-change";
 import { waitUntil } from "@vercel/functions";
 import { DubApiError } from "../api/errors";
-import {
-  createVerificationToken,
-  deleteVerificationTokens,
-} from "../better-auth/verification-token";
+import { createVerificationToken } from "../better-auth/verification-token";
 import { isEmailDomainBlocked } from "../email/is-email-domain-blocked";
 import { isGenericEmail } from "../email/is-generic-email";
 import { assertRateLimit } from "../upstash/assert-rate-limit";
@@ -90,17 +87,11 @@ export const requestEmailChange = async ({
     });
   }
 
-  // Remove existing verification tokens
-  await deleteVerificationTokens({
-    kind: "emailChange",
-    identifier,
-  });
-
   const { token } = await createVerificationToken({
     kind: "emailChange",
     value: {
       ownerId: identifier,
-      email,
+      currentEmail: email,
       newEmail,
       ...(isPartnerProfile && { isPartnerProfile }),
       ...(syncIdentity && { syncIdentity, partnerId }),

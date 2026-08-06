@@ -5,11 +5,29 @@ import { waitUntil } from "@vercel/functions";
 import type { BetterAuthOptions } from "better-auth";
 import { APIError, createAuthMiddleware, isAPIError } from "better-auth/api";
 import { isSamlEnforcedForEmailDomain } from "../api/workspaces/is-saml-enforced-for-email-domain";
+import { getActionVerificationPrefixes } from "./utils";
 
 export const hooks = {
   // Runs before the request is processed
   before: createAuthMiddleware(async (ctx) => {
     const { path, body } = ctx;
+
+    // Reject non-login Verification kinds on magic-link verify (e.g. email-change:)
+    if (path === "/magic-link/verify") {
+      const token = ctx.query?.token;
+      if (typeof token === "string") {
+        const blocked = getActionVerificationPrefixes().some((prefix) =>
+          token.startsWith(prefix),
+        );
+
+        if (blocked) {
+          throw new APIError("UNAUTHORIZED", {
+            code: "INVALID_TOKEN",
+            message: "Invalid token",
+          });
+        }
+      }
+    }
 
     if (["/change-password", "/reset-password"].includes(path)) {
       const newPassword = body?.newPassword;

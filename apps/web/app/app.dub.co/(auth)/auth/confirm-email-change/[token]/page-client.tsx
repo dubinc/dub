@@ -3,29 +3,26 @@
 import { cancelEmailChangeAction } from "@/lib/actions/cancel-email-change";
 import { confirmEmailChangeAction } from "@/lib/actions/confirm-email-change";
 import { useSession } from "@/lib/better-auth/use-session";
-import { parseVerificationTokenValue } from "@/lib/better-auth/utils";
 import EmptyState from "@/ui/shared/empty-state";
 import { Button, InputPassword } from "@dub/ui";
-import { Verification } from "@prisma/client";
 import { useAction } from "next-safe-action/hooks";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 
 export default function ConfirmEmailChangePageClient({
-  verification,
+  token,
+  currentEmail,
+  newEmail,
 }: {
-  verification: Verification;
+  token: string;
+  currentEmail: string;
+  newEmail: string;
 }) {
   const router = useRouter();
   const { refetch } = useSession();
   const [canceled, setCanceled] = useState(false);
   const [confirmed, setConfirmed] = useState(false);
-
-  const parsedValue = parseVerificationTokenValue({
-    kind: "emailChange",
-    value: verification.value,
-  });
 
   const { executeAsync: confirmEmailChange, isPending: isConfirming } =
     useAction(confirmEmailChangeAction, {
@@ -68,19 +65,7 @@ export default function ConfirmEmailChangePageClient({
     );
   }
 
-  if (!parsedValue) {
-    return (
-      <EmptyState
-        icon={InputPassword}
-        title="Invalid Token"
-        description="This token is invalid or expired. Please request a new one."
-      />
-    );
-  }
-
   const isPending = isConfirming || isCanceling || confirmed;
-  const { email, newEmail } = parsedValue;
-  const { identifier } = verification;
 
   return (
     <div className="w-full max-w-sm">
@@ -89,7 +74,7 @@ export default function ConfirmEmailChangePageClient({
       </h3>
       <p className="mt-2 text-center text-sm text-neutral-500">
         Confirm the update to your email from{" "}
-        <span className="font-medium text-neutral-700">{email}</span> to{" "}
+        <span className="font-medium text-neutral-700">{currentEmail}</span> to{" "}
         <span className="font-medium text-neutral-900">{newEmail}</span>.
       </p>
 
@@ -100,14 +85,14 @@ export default function ConfirmEmailChangePageClient({
           loading={isCanceling}
           disabled={isPending}
           className="flex-1"
-          onClick={() => cancelEmailChange({ identifier })}
+          onClick={() => cancelEmailChange({ token })}
         />
         <Button
           text="Confirm change"
           loading={isConfirming || confirmed}
           disabled={isPending}
           className="flex-1"
-          onClick={() => confirmEmailChange({ identifier })}
+          onClick={() => confirmEmailChange({ token })}
         />
       </div>
     </div>

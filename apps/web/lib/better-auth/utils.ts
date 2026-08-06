@@ -1,9 +1,20 @@
 import type { z } from "zod/v4";
 import {
-  getVerificationTokenConfig,
   VERIFICATION_TOKEN_CONFIG,
   type VerificationTokenKind,
 } from "./constants";
+
+export function getVerificationTokenConfig<T extends VerificationTokenKind>(
+  type: T,
+): (typeof VERIFICATION_TOKEN_CONFIG)[T] {
+  return VERIFICATION_TOKEN_CONFIG[type];
+}
+
+export function getActionVerificationPrefixes(): string[] {
+  return Object.values(VERIFICATION_TOKEN_CONFIG)
+    .filter((c) => c.purpose === "action" && c.prefix.length > 0)
+    .map((c) => c.prefix);
+}
 
 export function buildMagicLinkUrl({
   origin,

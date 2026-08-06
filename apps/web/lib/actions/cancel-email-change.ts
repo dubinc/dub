@@ -6,7 +6,7 @@ import { deleteVerificationTokens } from "../better-auth/verification-token";
 import { actionClient } from "./safe-action";
 
 const cancelEmailChangeSchema = z.object({
-  identifier: z.string().min(1),
+  token: z.string().min(1),
 });
 
 export const cancelEmailChangeAction = actionClient
@@ -15,10 +15,10 @@ export const cancelEmailChangeAction = actionClient
       flattenValidationErrors(ve).fieldErrors,
   })
   .action(async ({ parsedInput }) => {
-    const { identifier } = parsedInput;
+    const { token } = parsedInput;
 
     await deleteVerificationTokens({
       kind: "emailChange",
-      identifier,
+      identifier: token,
     });
   });

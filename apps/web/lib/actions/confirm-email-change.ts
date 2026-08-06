@@ -11,7 +11,7 @@ import * as z from "zod/v4";
 import { VERIFICATION_TOKEN_CONFIG } from "../better-auth/constants";
 import { parseVerificationTokenValue } from "../better-auth/utils";
 import {
-  deleteVerificationTokens,
+  consumeVerificationToken,
   findVerificationToken,
 } from "../better-auth/verification-token";
 import { authUserActionClient } from "./safe-action";
@@ -21,7 +21,7 @@ type EmailChangeValue = z.infer<
 >;
 
 const confirmEmailChangeSchema = z.object({
-  identifier: z.string().min(1),
+  token: z.string().min(1),
 });
 
 export const confirmEmailChangeAction = authUserActionClient
@@ -30,12 +30,12 @@ export const confirmEmailChangeAction = authUserActionClient
       flattenValidationErrors(ve).fieldErrors,
   })
   .action(async ({ parsedInput, ctx }) => {
-    const { identifier } = parsedInput;
+    const { token } = parsedInput;
     const { user } = ctx;
 
     const verification = await findVerificationToken({
       kind: "emailChange",
-      identifier,
+      identifier: token,
     });
 
     if (!verification || !verification.isValid) {
@@ -60,9 +60,20 @@ export const confirmEmailChangeAction = authUserActionClient
       data: parsedValue,
     });
 
+    const consumed = await consumeVerificationToken({
+      kind: "emailChange",
+      identifier: token,
+    });
+
+    if (!consumed) {
+      throw new Error(
+        "This token is invalid or expired. Please request a new one.",
+      );
+    }
+
     const {
       ownerId,
-      email,
+      currentEmail,
       newEmail,
       isPartnerProfile,
       syncIdentity,
@@ -117,20 +128,15 @@ export const confirmEmailChangeAction = authUserActionClient
       });
     }
 
-    await deleteVerificationTokens({
-      kind: "emailChange",
-      identifier,
-    });
-
     const shouldSyncPlainCustomerEmail = !!syncIdentity || !isPartnerProfile;
 
     waitUntil(
       Promise.allSettled([
         sendEmail({
           subject: "Your email address has been changed",
-          to: email,
+          to: currentEmail,
           react: EmailUpdated({
-            oldEmail: email,
+            oldEmail: currentEmail,
             newEmail: newEmail,
             isPartnerProfile: !!isPartnerProfile,
             syncIdentity: !!syncIdentity,
@@ -143,7 +149,7 @@ export const confirmEmailChangeAction = authUserActionClient
                 id: user.id,
                 name: user.name ?? null,
                 email: newEmail,
-                oldEmail: email,
+                oldEmail: currentEmail,
               }),
             ]
           : []),

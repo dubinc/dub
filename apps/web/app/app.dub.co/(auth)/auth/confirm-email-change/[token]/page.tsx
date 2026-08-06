@@ -1,4 +1,5 @@
 import { requireServerSessionRedirect } from "@/lib/better-auth/get-session";
+import { parseVerificationTokenValue } from "@/lib/better-auth/utils";
 import {
   deleteVerificationTokens,
   findVerificationToken,
@@ -70,9 +71,30 @@ const VerifyEmailChange = async ({ params, searchParams }: PageProps) => {
     );
   }
 
+  const parsedValue = parseVerificationTokenValue({
+    kind: "emailChange",
+    value: verification.value,
+  });
+
+  if (!parsedValue) {
+    return (
+      <EmptyState
+        icon={InputPassword}
+        title="Invalid Token"
+        description="This token is invalid or expired. Please request a new one."
+      />
+    );
+  }
+
+  const { currentEmail, newEmail } = parsedValue;
+
   return (
     <AuthLayout>
-      <ConfirmEmailChangePageClient verification={verification} />
+      <ConfirmEmailChangePageClient
+        token={token}
+        currentEmail={currentEmail}
+        newEmail={newEmail}
+      />
     </AuthLayout>
   );
 };
