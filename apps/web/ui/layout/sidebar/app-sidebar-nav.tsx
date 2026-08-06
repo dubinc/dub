@@ -1,6 +1,5 @@
 "use client";
 
-import { canAccessProgram } from "@/lib/auth/product-access-guard";
 import { usePartnerMessagesCount } from "@/lib/messages/hooks/use-partner-messages-count";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { SUBMITTED_LEADS_ENABLED_PROGRAM_IDS } from "@/lib/submitted-leads/constants";
@@ -67,7 +66,7 @@ type SidebarNavData = {
   slug: string;
   pathname: string;
   queryString: string;
-  defaultProgramId?: string;
+  defaultProduct?: "program" | "links";
   session?: Session | null;
   showNews?: boolean;
   pendingPayoutsCount?: number;
@@ -78,14 +77,12 @@ type SidebarNavData = {
   pendingLeadsCount?: number;
   showConversionGuides?: boolean;
   partnerNetworkEnabled?: boolean;
-  hasProgramAccess?: boolean;
 };
 
 const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({
   slug,
   pathname,
-  defaultProgramId,
-  hasProgramAccess,
+  defaultProduct,
 }) => {
   const programGroup = {
     id: "program",
@@ -113,14 +110,9 @@ const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({
     active: pathname.startsWith(`/${slug}/links`),
   };
 
-  // TEMPORARY: hide the program tab for restricted workspace users
-  if (hasProgramAccess === false) {
-    return [linksGroup];
-  }
-
-  return defaultProgramId
-    ? [programGroup, linksGroup]
-    : [linksGroup, programGroup];
+  return defaultProduct === "links"
+    ? [linksGroup, programGroup]
+    : [programGroup, linksGroup];
 };
 
 const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
@@ -509,27 +501,9 @@ export function AppSidebarNav({
   const { slug } = useParams() as { slug?: string };
   const pathname = usePathname();
   const { getQueryString } = useRouterStuff();
-  const { data: session, status } = useSession();
-  const {
-    id: workspaceId,
-    plan,
-    defaultProgramId,
-    trialEndsAt,
-    loading: workspaceLoading,
-  } = useWorkspace();
-
-  const canCheckProgramAccess =
-    status !== "loading" &&
-    !workspaceLoading &&
-    workspaceId &&
-    session?.user.id;
-
-  const hasProgramAccess = canCheckProgramAccess
-    ? canAccessProgram({
-        workspaceId,
-        userId: session.user.id,
-      })
-    : false;
+  const { data: session } = useSession();
+  const { plan, defaultProduct, defaultProgramId, trialEndsAt } =
+    useWorkspace();
 
   const currentArea = useMemo(() => {
     return pathname.startsWith("/account/settings")
@@ -610,7 +584,7 @@ export function AppSidebarNav({
         }),
         session: session || undefined,
         showNews: true,
-        defaultProgramId: defaultProgramId || undefined,
+        defaultProduct,
         pendingPayoutsCount: pendingPayoutsCount?.[0]?.count ?? 0,
         applicationsCount,
         submittedBountiesCount,
@@ -621,7 +595,6 @@ export function AppSidebarNav({
           canTrackConversions && pathname.startsWith(`/${slug}/links`),
         partnerNetworkEnabled:
           program && program.partnerNetworkEnabledAt !== null,
-        hasProgramAccess,
       }}
       toolContent={toolContent}
       newsContent={
