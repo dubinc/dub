@@ -12,13 +12,6 @@ export {
   trackedSitemapSchema,
 } from "./site-visit-tracking";
 
-export const workspaceIdSchema = z.object({
-  workspaceId: z
-    .string()
-    .min(1, "Workspace ID is required.")
-    .describe("The ID of the workspace the link belongs to."),
-});
-
 export const WorkspaceSchema = z
   .object({
     id: z.string().describe("The unique ID of the workspace."),
