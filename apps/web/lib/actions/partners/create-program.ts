@@ -8,7 +8,7 @@ import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { prisma } from "@/lib/prisma";
 import { storage } from "@/lib/storage";
 import { PlanProps } from "@/lib/types";
-import { redis } from "@/lib/upstash";
+import { workspaceProductCache } from "@/lib/api/workspaces/workspace-product-cache";
 import {
   DEFAULT_ADDITIONAL_PARTNER_LINKS,
   DEFAULT_PARTNER_GROUP,
@@ -287,7 +287,7 @@ export const createProgram = async ({
           : []),
 
       // delete the workspace product cache
-      redis.del(`workspace:product:${workspace.slug}`),
+      workspaceProductCache.delete({ slug: workspace.slug }),
 
       // record the audit log
       recordAuditLog({

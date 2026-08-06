@@ -66,23 +66,25 @@ export default function UpdateDefaultProduct() {
     }
 
     setSaving(true);
-    const response = await fetch(`/api/workspaces/${id}`, {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        defaultProduct: selectedProduct,
-      }),
-    });
+    try {
+      const response = await fetch(`/api/workspaces/${id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          defaultProduct: selectedProduct,
+        }),
+      });
 
-    if (response.ok) {
-      await mutate(`/api/workspaces/${slug}`);
+      if (response.ok) {
+        await mutate(`/api/workspaces/${slug}`);
+      } else {
+        const { error } = await response.json();
+        throw new Error(error.message);
+      }
+    } finally {
       setSaving(false);
-    } else {
-      setSaving(false);
-      const { error } = await response.json();
-      throw new Error(error.message);
     }
   }
 

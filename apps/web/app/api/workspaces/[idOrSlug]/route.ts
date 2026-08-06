@@ -3,6 +3,7 @@ import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { validateAllowedHostnames } from "@/lib/api/validate-allowed-hostnames";
 import { deleteWorkspace } from "@/lib/api/workspaces/delete-workspace";
+import { workspaceProductCache } from "@/lib/api/workspaces/workspace-product-cache";
 import { prefixWorkspaceId } from "@/lib/api/workspaces/workspace-id";
 import { withWorkspace } from "@/lib/auth";
 import { getFeatureFlags } from "@/lib/edge-config";
@@ -10,7 +11,6 @@ import { jackson } from "@/lib/jackson";
 import { prisma } from "@/lib/prisma";
 import { mergeSiteVisitTrackingSettings } from "@/lib/sitemaps/site-visit-tracking";
 import { storage } from "@/lib/storage";
-import { redis } from "@/lib/upstash";
 import {
   createWorkspaceSchema,
   siteVisitTrackingSettingsPatchSchema,
@@ -230,14 +230,15 @@ export const PATCH = withWorkspace(
             },
           }),
           // refresh the workspace product cache for both workspaces
-          redis.del(
-            `workspace:product:${updatedWorkspace.slug}`,
-            `workspace:product:${workspace.slug}`,
-          ),
+          workspaceProductCache.delete({ slug: workspace.slug }),
+          workspaceProductCache.set({
+            slug: updatedWorkspace.slug,
+            product: updatedWorkspace.defaultProduct,
+          }),
         ]);
       } else if (updatedWorkspace.defaultProduct !== workspace.defaultProduct) {
         // refresh the workspace product cache for the workspace (if updated)
-        await redis.del(`workspace:product:${updatedWorkspace.slug}`);
+        await workspaceProductCache.delete({ slug: updatedWorkspace.slug });
       }
 
       waitUntil(
