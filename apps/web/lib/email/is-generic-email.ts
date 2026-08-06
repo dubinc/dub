@@ -1,4 +1,4 @@
-import { extractEmailDomain } from "./email/extract-email-domain";
+import { extractEmailDomain } from "./extract-email-domain";
 
 const GENERIC_EMAIL_DOMAINS = [
   "googlemail.com",
@@ -69,6 +69,10 @@ const GENERIC_EMAIL_DOMAINS = [
   "hi2.in",
   "tempmailplus.net",
   "linuxmail.org",
+  "mailmomy.com",
+  "2famail.com",
+  "tempxzy.net",
+  "okyre.com",
 ];
 
 const GENERIC_EMAIL_DOMAIN_PREFIXES = [

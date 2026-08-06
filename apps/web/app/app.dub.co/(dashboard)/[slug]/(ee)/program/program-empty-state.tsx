@@ -1,37 +1,19 @@
 "use client";
 
-import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { CountryFlag } from "@/ui/shared/country-flag";
 import { buttonVariants } from "@dub/ui";
-import { capitalize, cn, isLegacyBusinessPlan, nFormatter } from "@dub/utils";
+import { capitalize, cn, nFormatter } from "@dub/utils";
 import Link from "next/link";
-import { useMemo } from "react";
 
-export function PartnersUpgradeCTA({
+export function ProgramEmptyState({
   title,
   description,
 }: {
   title?: string;
   description?: string;
 }) {
-  const { slug, plan, store, partnersLimit } = useWorkspace();
-
-  const { canManageProgram } = getPlanCapabilities(plan);
-
-  const { cta, href } = useMemo(() => {
-    if (!canManageProgram || isLegacyBusinessPlan({ plan, partnersLimit })) {
-      return {
-        cta: "Upgrade plan",
-        href: `/${slug}/upgrade?plan=business`,
-      };
-    } else {
-      return {
-        cta: store?.programOnboarding ? "Finish creating" : "Create program",
-        href: `/${slug}/program/new`,
-      };
-    }
-  }, [canManageProgram, slug, partnersLimit]);
+  const { slug, store } = useWorkspace();
 
   return (
     <div className="flex min-h-[calc(100vh-60px)] flex-col items-center justify-center gap-6 overflow-hidden px-4 py-10">
@@ -62,13 +44,13 @@ export function PartnersUpgradeCTA({
       </div>
       <div className="flex items-center gap-2">
         <Link
-          href={href}
+          href={`/${slug}/program/new`}
           className={cn(
             buttonVariants({ variant: "primary" }),
             "flex h-10 items-center justify-center whitespace-nowrap rounded-lg border px-3 text-sm",
           )}
         >
-          {cta}
+          {store?.programOnboarding ? "Finish creating" : "Create program"}
         </Link>
       </div>
     </div>

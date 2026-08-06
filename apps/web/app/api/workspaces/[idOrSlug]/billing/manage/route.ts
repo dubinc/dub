@@ -24,7 +24,7 @@ export const POST = withWorkspace(
         customer: workspace.stripeId,
         return_url: `${APP_DOMAIN}/${workspace.slug}/settings/billing`,
       });
-      return NextResponse.json(url);
+      return NextResponse.json({ url });
     } catch (error) {
       throw new DubApiError({
         code: "bad_request",

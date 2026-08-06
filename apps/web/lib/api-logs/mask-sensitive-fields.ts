@@ -10,6 +10,23 @@ export const SENSITIVE_RESPONSE_FIELDS_BY_ROUTE = {
   "/oauth/apps": ["clientSecret"],
   "/webhooks": ["secret"],
   "/webhooks/:webhookId": ["secret"],
+  "/workspaces/:id/saml": ["clientSecret"],
+  "/workspaces/:id/scim": [
+    "secret",
+    "google_access_token",
+    "google_refresh_token",
+  ],
+  "/workspaces/:id/invites/reset": ["inviteCode"],
+  "/workspaces/:id/billing/upgrade": ["url", "id"],
+  "/workspaces/:id/billing/payment-methods": ["url"],
+  "/workspaces/:id/billing/manage": ["url"],
+  "/workspaces/:id": ["inviteCode"],
+} as const;
+
+// Map of route pattern -> request body fields that should be masked before logging.
+export const SENSITIVE_REQUEST_FIELDS_BY_ROUTE = {
+  "/workspaces/:id/saml": ["encodedRawMetadata"],
+  "/workspaces/:id": ["publishableKey"],
 } as const;
 
 // Stripe-style partial mask: visible prefix through the last `_` (e.g. `sk_live_`),

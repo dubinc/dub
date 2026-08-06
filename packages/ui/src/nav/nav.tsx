@@ -6,7 +6,6 @@ import { LayoutGroup } from "motion/react";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
 import {
-  ComponentType,
   PropsWithChildren,
   ReactNode,
   SVGProps,
@@ -15,12 +14,7 @@ import {
 } from "react";
 import useSWR from "swr";
 import { buttonVariants } from "../button";
-import {
-  FEATURES_LIST,
-  RESOURCES,
-  SOLUTIONS,
-  type NavItemChildren,
-} from "../content";
+import { FEATURES_LIST, RESOURCES, SOLUTIONS } from "../content";
 import { useScroll } from "../hooks";
 import { MaxWidthWrapper } from "../max-width-wrapper";
 import { NavWordmark } from "../nav-wordmark";
@@ -33,14 +27,6 @@ export type NavTheme = "light" | "dark";
 export const NavContext = createContext<{ theme: NavTheme }>({
   theme: "light",
 });
-
-export type NavItem = {
-  name: string;
-  href?: string;
-  segments?: string[];
-  content?: ComponentType<{ domain: string }>;
-  childItems?: NavItemChildren;
-};
 
 export const navItems = [
   {
@@ -60,7 +46,13 @@ export const navItems = [
     name: "Solutions",
     content: SolutionsContent,
     childItems: SOLUTIONS,
-    segments: ["/solutions", "/sdks"],
+    segments: [
+      // comment to help with line diff
+      "/solutions",
+      "/enterprise",
+      "/startups",
+      "/sdks",
+    ],
   },
   {
     name: "Resources",
@@ -78,14 +70,21 @@ export const navItems = [
     ],
   },
   {
-    name: "Enterprise",
-    href: "/enterprise",
-    segments: ["/enterprise"],
-  },
-  {
     name: "Customers",
     href: "/customers",
     segments: ["/customers"],
+  },
+  {
+    name: "Enterprise",
+    href: "/enterprise",
+    segments: ["/enterprise"],
+    mobileOnly: true,
+  },
+  {
+    name: "Startups",
+    href: "/startups",
+    segments: ["/startups"],
+    mobileOnly: true,
   },
   {
     name: "Pricing",
@@ -108,13 +107,11 @@ export function Nav({
   theme = "light",
   staticDomain,
   maxWidthWrapperClassName,
-  navItems: items = navItems,
   logo,
 }: {
   theme?: NavTheme;
   staticDomain?: string;
   maxWidthWrapperClassName?: string;
-  navItems?: NavItem[];
   logo?: ReactNode;
 }) {
   let { domain = "dub.co" } = useParams() as { domain: string };
@@ -173,46 +170,48 @@ export function Nav({
                 className="relative hidden lg:block"
               >
                 <NavigationMenuPrimitive.List className="group relative z-0 flex">
-                  {items.map(({ name, href, segments, content: Content }) => {
-                    const isActive = (segments ?? []).some((segment) =>
-                      pathname?.startsWith(segment),
-                    );
-                    return (
-                      <NavigationMenuPrimitive.Item key={name}>
-                        <WithTrigger trigger={!!Content}>
-                          {href !== undefined ? (
-                            <Link
-                              id={`nav-${href}`}
-                              href={createHref(href, domain, {
-                                utm_source: "Custom Domain",
-                                utm_medium: "Navbar",
-                                utm_campaign: domain,
-                                utm_content: name,
-                              })}
-                              className={navItemClassName}
-                              data-active={isActive}
-                            >
-                              {name}
-                            </Link>
-                          ) : (
-                            <button
-                              className={navItemClassName}
-                              data-active={isActive}
-                            >
-                              {name}
-                              <AnimatedChevron className="ml-1.5 size-2.5 text-neutral-700" />
-                            </button>
-                          )}
-                        </WithTrigger>
+                  {navItems
+                    .filter(({ mobileOnly }) => !mobileOnly)
+                    .map(({ name, href, segments, content: Content }) => {
+                      const isActive = (segments ?? []).some((segment) =>
+                        pathname?.startsWith(segment),
+                      );
+                      return (
+                        <NavigationMenuPrimitive.Item key={name}>
+                          <WithTrigger trigger={!!Content}>
+                            {href !== undefined ? (
+                              <Link
+                                id={`nav-${href}`}
+                                href={createHref(href, domain, {
+                                  utm_source: "Custom Domain",
+                                  utm_medium: "Navbar",
+                                  utm_campaign: domain,
+                                  utm_content: name,
+                                })}
+                                className={navItemClassName}
+                                data-active={isActive}
+                              >
+                                {name}
+                              </Link>
+                            ) : (
+                              <button
+                                className={navItemClassName}
+                                data-active={isActive}
+                              >
+                                {name}
+                                <AnimatedChevron className="ml-1.5 size-2.5 text-neutral-700" />
+                              </button>
+                            )}
+                          </WithTrigger>
 
-                        {Content && (
-                          <NavigationMenuPrimitive.Content className="data-[motion=from-start]:animate-enter-from-left data-[motion=from-end]:animate-enter-from-right data-[motion=to-start]:animate-exit-to-left data-[motion=to-end]:animate-exit-to-right absolute left-0 top-0">
-                            <Content domain={domain} />
-                          </NavigationMenuPrimitive.Content>
-                        )}
-                      </NavigationMenuPrimitive.Item>
-                    );
-                  })}
+                          {Content && (
+                            <NavigationMenuPrimitive.Content className="data-[motion=from-start]:animate-enter-from-left data-[motion=from-end]:animate-enter-from-right data-[motion=to-start]:animate-exit-to-left data-[motion=to-end]:animate-exit-to-right absolute left-0 top-0">
+                              <Content domain={domain} />
+                            </NavigationMenuPrimitive.Content>
+                          )}
+                        </NavigationMenuPrimitive.Item>
+                      );
+                    })}
                 </NavigationMenuPrimitive.List>
 
                 <div className="absolute left-1/2 top-full mt-3 -translate-x-1/2">

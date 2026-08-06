@@ -2,6 +2,7 @@ import { mutatePrefix } from "@/lib/swr/mutate";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { Campaign } from "@/lib/types";
+import { campaignFromSchema } from "@/lib/zod/schemas/campaigns";
 import { ThreeDots } from "@/ui/shared/icons";
 import {
   Button,
@@ -90,6 +91,13 @@ export function CampaignControls({ campaign }: CampaignControlsProps) {
 
       if (!from && !sendPreview) {
         return "Please select a sender email address.";
+      }
+
+      if (from) {
+        const fromResult = campaignFromSchema.safeParse(from);
+        if (!fromResult.success) {
+          return "Please enter a valid sender name and email address.";
+        }
       }
 
       if (

@@ -7,7 +7,7 @@ import {
   DEFAULT_ADDITIONAL_PARTNER_LINKS,
   sanitizeAdditionalLinks,
 } from "../zod/schemas/groups";
-import { TapfiliateApi } from "./api";
+import { TapfiliateClient } from "./client";
 import { tapfiliateImporter } from "./importer";
 import { TapfiliateImportPayload } from "./types";
 
@@ -46,7 +46,7 @@ export async function importGroups(payload: TapfiliateImportPayload) {
     program.workspaceId,
   );
 
-  const tapfiliateApi = new TapfiliateApi({
+  const tapfiliateApi = new TapfiliateClient({
     apiKey,
   });
 
