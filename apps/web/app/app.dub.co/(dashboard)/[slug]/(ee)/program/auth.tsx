@@ -12,7 +12,7 @@ import { cn, isLegacyBusinessPlan } from "@dub/utils";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { ReactNode } from "react";
-import { ProgramEmptyState } from "./partners-upgrade-cta";
+import { ProgramEmptyState } from "./program-empty-state";
 
 export default function ProgramAuth({ children }: { children: ReactNode }) {
   const {
