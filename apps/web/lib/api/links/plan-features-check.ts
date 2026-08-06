@@ -47,7 +47,13 @@ export const proFeaturesCheck = (payload: NewLinkProps) => {
 };
 
 export const businessFeaturesCheck = (payload: NewLinkProps) => {
-  const { testVariants, trackConversion } = payload;
+  const { domain, testVariants, trackConversion } = payload;
+
+  if (domain && domain.endsWith(".dub.link")) {
+    throw new Error(
+      "You can only use .dub.link domains on a Business plan and above. Upgrade to Business to use this domain.",
+    );
+  }
 
   if (testVariants || trackConversion) {
     const businessFeaturesString = combineWords(
