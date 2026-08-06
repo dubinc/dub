@@ -25,6 +25,7 @@ import * as z from "zod/v4";
 
 const updateWorkspaceSchema = createWorkspaceSchema
   .extend({
+    defaultProduct: z.enum(["program", "links"]).optional(),
     allowedHostnames: z.array(z.string()).optional(),
     publishableKey: z
       .union([
@@ -89,6 +90,7 @@ export const PATCH = withWorkspace(
       name,
       slug,
       logo,
+      defaultProduct,
       conversionEnabled,
       allowedHostnames,
       publishableKey,
@@ -188,6 +190,7 @@ export const PATCH = withWorkspace(
           ...(name && { name }),
           ...(slug && { slug }),
           ...(logoUploaded && { logo: logoUploaded.url }),
+          ...(defaultProduct && { defaultProduct }),
           ...(conversionEnabled !== undefined && { conversionEnabled }),
           ...(validHostnames !== undefined && {
             allowedHostnames: validHostnames,
@@ -232,6 +235,9 @@ export const PATCH = withWorkspace(
             `workspace:product:${workspace.slug}`,
           ),
         ]);
+      } else if (updatedWorkspace.defaultProduct !== workspace.defaultProduct) {
+        // refresh the workspace product cache for the workspace (if updated)
+        await redis.del(`workspace:product:${updatedWorkspace.slug}`);
       }
 
       waitUntil(

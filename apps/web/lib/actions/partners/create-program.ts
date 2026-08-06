@@ -212,6 +212,7 @@ export const createProgram = async ({
         id: workspace.id,
       },
       data: {
+        defaultProduct: "program",
         defaultProgramId: programData.id,
         ...(didCreateFolder && {
           foldersUsage: {

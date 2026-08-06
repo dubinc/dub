@@ -22,7 +22,7 @@ export const getWorkspaceProduct = async (workspaceSlug: string) => {
         ? (rows[0] as WorkspaceProps)
         : null;
 
-    workspaceProduct = workspace?.defaultProgramId ? "program" : "links";
+    workspaceProduct = workspace?.defaultProduct ?? "links";
 
     after(async () => {
       await redis.set(`workspace:product:${workspaceSlug}`, workspaceProduct, {
