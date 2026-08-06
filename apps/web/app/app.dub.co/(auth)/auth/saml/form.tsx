@@ -1,9 +1,6 @@
 "use client";
 
-import {
-  authClient,
-  setLastUsedLoginMethod,
-} from "@/lib/better-auth/auth-client";
+import { authClient } from "@/lib/better-auth/auth-client";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect } from "react";
 import { toast } from "sonner";
@@ -44,7 +41,6 @@ export default function SAMLForm() {
           return;
         }
 
-        setLastUsedLoginMethod("saml");
         window.location.href = data?.url || "/";
       } catch {
         if (cancelled) {

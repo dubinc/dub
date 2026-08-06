@@ -96,6 +96,7 @@ export const auth = betterAuth({
             },
             data: {
               lockedAt: null,
+              invalidLoginAttempts: 0,
               ...(!dbUser.emailVerified && { emailVerified: new Date() }),
             },
           });

@@ -6,7 +6,6 @@ import { completeProgramApplications } from "@/lib/partners/complete-program-app
 import { prisma } from "@/lib/prisma";
 import { isStored, storage } from "@/lib/storage";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
-import { Prisma } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import type { BetterAuthOptions } from "better-auth";
 import { APIError } from "better-auth/api";
@@ -73,8 +72,14 @@ export const databaseHooks = {
 
         // Google and GitHub OAuth
         if (["google", "github"].includes(providerId)) {
-          const user = await getUser({
-            id: userId,
+          const user = await prisma.user.findUnique({
+            where: {
+              id: userId,
+            },
+            select: {
+              id: true,
+              image: true,
+            },
           });
 
           if (!user?.image || isStored(user.image)) {
@@ -91,8 +96,14 @@ export const databaseHooks = {
 
         // SAML SSO
         if (providerId === "saml") {
-          const user = await getUser({
-            id: userId,
+          const user = await prisma.user.findUnique({
+            where: {
+              id: userId,
+            },
+            select: {
+              id: true,
+              email: true,
+            },
           });
 
           if (!user?.email) {
@@ -145,8 +156,15 @@ export const databaseHooks = {
     create: {
       // Runs before a session is created on every successful sign-in
       before: async (session, context) => {
-        const user = await getUser({
-          id: session.userId,
+        const user = await prisma.user.findUnique({
+          where: {
+            id: session.userId,
+          },
+          select: {
+            id: true,
+            email: true,
+            lockedAt: true,
+          },
         });
 
         if (!user?.email || (await isBlacklistedEmail(user.email))) {
@@ -186,8 +204,15 @@ export const databaseHooks = {
 
       // Runs after a session is created on every successful sign-in
       after: async (session) => {
-        const user = await getUser({
-          id: session.userId,
+        const user = await prisma.user.findUnique({
+          where: {
+            id: session.userId,
+          },
+          select: {
+            id: true,
+            email: true,
+            image: true,
+          },
         });
 
         if (!user?.email) {
@@ -215,19 +240,6 @@ export const databaseHooks = {
     },
   },
 } satisfies BetterAuthOptions["databaseHooks"];
-
-async function getUser(where: Prisma.UserWhereUniqueInput) {
-  return prisma.user.findUnique({
-    where,
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      image: true,
-      lockedAt: true,
-    },
-  });
-}
 
 async function backupUserAvatar({
   userId,

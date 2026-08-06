@@ -4,6 +4,27 @@ import {
   type VerificationTokenKind,
 } from "./constants";
 
+export function normalizeEmail(email: unknown): string | null {
+  if (typeof email !== "string") {
+    return null;
+  }
+
+  const normalized = email.trim().toLowerCase();
+  return normalized.length > 0 ? normalized : null;
+}
+
+export function hasCredentialLogin<
+  T extends {
+    accounts: { password: string | null }[];
+  },
+>(user: T | null): user is T {
+  if (!user) {
+    return false;
+  }
+
+  return Boolean(user.accounts[0]?.password);
+}
+
 export function getVerificationTokenConfig<T extends VerificationTokenKind>(
   type: T,
 ): (typeof VERIFICATION_TOKEN_CONFIG)[T] {

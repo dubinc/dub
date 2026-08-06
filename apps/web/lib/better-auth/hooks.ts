@@ -1,3 +1,11 @@
+import { shouldApplyRateLimit } from "@/lib/api/environment";
+import {
+  exceededLoginAttemptsThreshold,
+  incrementLoginAttempts,
+} from "@/lib/auth/lock-account";
+import { prisma } from "@/lib/prisma";
+import { ratelimit } from "@/lib/upstash/ratelimit";
+import { RATELIMIT_POLICIES } from "@/lib/upstash/ratelimit-policies";
 import { passwordSchema } from "@/lib/zod/schemas/auth";
 import { sendEmail } from "@dub/email";
 import PasswordUpdated from "@dub/email/templates/password-updated";
@@ -5,7 +13,11 @@ import { waitUntil } from "@vercel/functions";
 import type { BetterAuthOptions } from "better-auth";
 import { APIError, createAuthMiddleware, isAPIError } from "better-auth/api";
 import { isSamlEnforcedForEmailDomain } from "../api/workspaces/is-saml-enforced-for-email-domain";
-import { getActionVerificationPrefixes } from "./utils";
+import {
+  getActionVerificationPrefixes,
+  hasCredentialLogin,
+  normalizeEmail,
+} from "./utils";
 
 export const hooks = {
   // Runs before the request is processed
@@ -47,6 +59,56 @@ export const hooks = {
       }
     }
 
+    // Check for account lock and login attempts
+    if (path === "/sign-in/email") {
+      const email = normalizeEmail(body?.email);
+      if (!email) {
+        return;
+      }
+
+      if (shouldApplyRateLimit) {
+        const policy = RATELIMIT_POLICIES.login;
+        const { success } = await ratelimit(
+          policy.attempts,
+          policy.window,
+        ).limit(`${policy.keyPrefix}:${email}`);
+
+        if (!success) {
+          throw new APIError("TOO_MANY_REQUESTS", {
+            message: "too-many-login-attempts",
+          });
+        }
+      }
+
+      const user = await prisma.user.findUnique({
+        where: {
+          email,
+        },
+        select: {
+          lockedAt: true,
+          invalidLoginAttempts: true,
+          accounts: {
+            where: {
+              providerId: "credential",
+            },
+            select: {
+              password: true,
+            },
+            take: 1,
+          },
+        },
+      });
+
+      if (
+        hasCredentialLogin(user) &&
+        (user.lockedAt || exceededLoginAttemptsThreshold(user))
+      ) {
+        throw new APIError("FORBIDDEN", {
+          message: "exceeded-login-attempts",
+        });
+      }
+    }
+
     if (["/sign-in/email", "/sign-in/magic-link"].includes(path)) {
       const email = body?.email;
       if (!email) {
@@ -64,11 +126,75 @@ export const hooks = {
 
   // Runs after the request is processed
   after: createAuthMiddleware(async (ctx) => {
-    if (isAPIError(ctx.context.returned)) {
+    const { path, body, context } = ctx;
+
+    if (path === "/sign-in/email") {
+      const email = normalizeEmail(body?.email);
+
+      if (isAPIError(context.returned)) {
+        if (
+          email &&
+          context.returned.body?.code === "INVALID_EMAIL_OR_PASSWORD"
+        ) {
+          const user = await prisma.user.findUnique({
+            where: {
+              email,
+            },
+            select: {
+              id: true,
+              email: true,
+              lockedAt: true,
+              invalidLoginAttempts: true,
+              accounts: {
+                where: {
+                  providerId: "credential",
+                },
+                select: {
+                  password: true,
+                },
+                take: 1,
+              },
+            },
+          });
+
+          if (hasCredentialLogin(user)) {
+            const exceededLoginAttempts = exceededLoginAttemptsThreshold(
+              await incrementLoginAttempts(user),
+            );
+
+            if (exceededLoginAttempts) {
+              throw new APIError("FORBIDDEN", {
+                message: "exceeded-login-attempts",
+              });
+            }
+          }
+        }
+
+        return;
+      }
+
+      // Reset login attempts
+      if (email) {
+        await prisma.user.updateMany({
+          where: {
+            email,
+            invalidLoginAttempts: {
+              gt: 0,
+            },
+          },
+          data: {
+            invalidLoginAttempts: 0,
+          },
+        });
+      }
+
       return;
     }
 
-    const { path, context } = ctx;
+    if (isAPIError(context.returned)) {
+      return;
+    }
+
     const email = context.session?.user?.email;
 
     if (!email) {
