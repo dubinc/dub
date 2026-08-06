@@ -1,11 +1,11 @@
-import { Session, hashToken } from "@/lib/auth";
+import { Session } from "@/lib/auth";
+import { createInviteMagicLink } from "@/lib/better-auth/invite-plugin";
 import { prisma } from "@/lib/prisma";
 import { PartnerProps } from "@/lib/types";
 import { sendEmail } from "@dub/email";
 import PartnerUserInvited from "@dub/email/templates/partner-user-invited";
 import { PARTNERS_DOMAIN, TWO_WEEKS_IN_SECONDS } from "@dub/utils";
 import { PartnerRole } from "@prisma/client";
-import { randomBytes } from "crypto";
 import { DubApiError } from "../errors";
 
 export async function invitePartnerUser({
@@ -19,7 +19,6 @@ export async function invitePartnerUser({
   partner: Omit<PartnerProps, "role" | "userId">;
   session: Session;
 }) {
-  const token = randomBytes(32).toString("hex");
   const expires = new Date(Date.now() + TWO_WEEKS_IN_SECONDS * 1000);
 
   try {
@@ -40,21 +39,11 @@ export async function invitePartnerUser({
     }
   }
 
-  await prisma.verificationToken.create({
-    data: {
-      identifier: email,
-      token: await hashToken(token, { secret: true }),
-      expires,
-    },
-  });
-
-  const params = new URLSearchParams({
-    callbackUrl: `${PARTNERS_DOMAIN}/invite`,
+  const url = await createInviteMagicLink({
     email,
-    token,
+    origin: PARTNERS_DOMAIN,
+    callbackURL: `${PARTNERS_DOMAIN}/invite`,
   });
-
-  const url = `${PARTNERS_DOMAIN}/api/auth/callback/email?${params}`;
 
   return await sendEmail({
     subject: `You've been invited to join a partner profile on Dub Partners.`,

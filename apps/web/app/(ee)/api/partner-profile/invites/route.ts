@@ -226,6 +226,7 @@ export const DELETE = withPartnerProfile(
         },
       }),
 
+      // Legacy NextAuth invite tokens (kept during migration)
       prisma.verificationToken.deleteMany({
         where: {
           identifier: email,

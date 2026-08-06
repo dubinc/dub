@@ -18,6 +18,7 @@ import { genericOAuth, lastLoginMethod, magicLink } from "better-auth/plugins";
 import { adminImpersonation } from "./admin-impersonation-plugin";
 import { databaseHooks } from "./database-hooks";
 import { hooks } from "./hooks";
+import { invite } from "./invite-plugin";
 import { programOAuthConfigs, programOAuthProviderIds } from "./program-oauth";
 import { samlIdp, samlOAuthConfig } from "./saml-sso-plugin";
 
@@ -217,6 +218,9 @@ export const auth = betterAuth({
 
     // Admin impersonation (copyable magic-link verify URLs)
     adminImpersonation,
+
+    // Workspace + partner-profile invite magic links
+    invite,
 
     // Next cookies plugin
     nextCookies(),
