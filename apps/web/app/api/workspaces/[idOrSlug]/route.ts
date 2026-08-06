@@ -3,8 +3,8 @@ import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { validateAllowedHostnames } from "@/lib/api/validate-allowed-hostnames";
 import { deleteWorkspace } from "@/lib/api/workspaces/delete-workspace";
-import { workspaceProductCache } from "@/lib/api/workspaces/workspace-product-cache";
 import { prefixWorkspaceId } from "@/lib/api/workspaces/workspace-id";
+import { workspaceProductCache } from "@/lib/api/workspaces/workspace-product-cache";
 import { withWorkspace } from "@/lib/auth";
 import { getFeatureFlags } from "@/lib/edge-config";
 import { jackson } from "@/lib/jackson";
@@ -219,27 +219,34 @@ export const PATCH = withWorkspace(
         },
       });
 
-      if (updatedWorkspace.slug !== workspace.slug) {
-        await Promise.allSettled([
-          prisma.user.updateMany({
-            where: {
-              defaultWorkspace: workspace.slug,
-            },
-            data: {
-              defaultWorkspace: updatedWorkspace.slug,
-            },
-          }),
-          // refresh the workspace product cache for both workspaces
-          workspaceProductCache.delete({ slug: workspace.slug }),
-          workspaceProductCache.set({
-            slug: updatedWorkspace.slug,
-            product: updatedWorkspace.defaultProduct,
-          }),
-        ]);
-      } else if (updatedWorkspace.defaultProduct !== workspace.defaultProduct) {
-        // refresh the workspace product cache for the workspace (if updated)
-        await workspaceProductCache.delete({ slug: updatedWorkspace.slug });
-      }
+      await Promise.allSettled([
+        ...(updatedWorkspace.slug !== workspace.slug
+          ? [
+              prisma.user.updateMany({
+                where: {
+                  defaultWorkspace: workspace.slug,
+                },
+                data: {
+                  defaultWorkspace: updatedWorkspace.slug,
+                },
+              }),
+              // update the workspace product cache for both workspaces
+              workspaceProductCache.set({
+                slug: updatedWorkspace.slug,
+                product: updatedWorkspace.defaultProduct,
+              }),
+              workspaceProductCache.delete({ slug: workspace.slug }),
+            ]
+          : // if only the product has changed, update the cache
+            updatedWorkspace.defaultProduct !== workspace.defaultProduct
+            ? [
+                workspaceProductCache.set({
+                  slug: updatedWorkspace.slug,
+                  product: updatedWorkspace.defaultProduct,
+                }),
+              ]
+            : []),
+      ]);
 
       waitUntil(
         (async () => {

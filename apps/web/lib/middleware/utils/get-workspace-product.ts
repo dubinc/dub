@@ -5,7 +5,9 @@ import { after } from "next/server";
 
 export const getWorkspaceProduct = async (workspaceSlug: string) => {
   try {
-    let workspaceProduct = await workspaceProductCache.get({ slug: workspaceSlug });
+    let workspaceProduct = await workspaceProductCache.get({
+      slug: workspaceSlug,
+    });
     if (workspaceProduct) {
       return workspaceProduct;
     }
@@ -20,7 +22,9 @@ export const getWorkspaceProduct = async (workspaceSlug: string) => {
         ? (rows[0] as WorkspaceProps)
         : null;
 
-    workspaceProduct = workspace?.defaultProduct ?? "links";
+    workspaceProduct =
+      workspace?.defaultProduct ??
+      (workspace?.defaultProgramId ? "program" : "links");
 
     after(async () => {
       await workspaceProductCache.set({
