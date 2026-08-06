@@ -12,7 +12,7 @@ import { ShieldSlash, buttonVariants } from "@dub/ui";
 import { cn, isLegacyBusinessPlan } from "@dub/utils";
 import Link from "next/link";
 import { ReactNode } from "react";
-import { PartnersUpgradeCTA } from "./partners-upgrade-cta";
+import { ProgramEmptyState } from "./program-empty-state";
 
 export default function ProgramAuth({ children }: { children: ReactNode }) {
   const {
@@ -51,7 +51,7 @@ export default function ProgramAuth({ children }: { children: ReactNode }) {
   ) {
     return (
       <PageContent>
-        <PartnersUpgradeCTA />
+        <ProgramEmptyState />
       </PageContent>
     );
   }
