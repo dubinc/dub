@@ -1,6 +1,6 @@
 import { ipAddress } from "@vercel/functions";
+import { getSessionCookie } from "better-auth/cookies";
 import { NextRequest } from "next/server";
-import { getServerSession } from "../better-auth/get-session";
 import { ratelimit } from "../upstash";
 import { DubApiError } from "./errors";
 
@@ -23,10 +23,10 @@ export const ratelimitOrThrow = async (
   req: NextRequest,
   identifier?: string,
 ) => {
-  const { session } = await getServerSession();
-
   // Rate limit if user is not logged in
-  if (!session) {
+  const sessionToken = getSessionCookie(req);
+
+  if (!sessionToken) {
     const ip = ipAddress(req);
     const { success } = await ratelimit().limit(
       `${identifier || "ratelimit"}:${ip}`,

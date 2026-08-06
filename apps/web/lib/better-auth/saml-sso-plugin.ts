@@ -1,4 +1,3 @@
-import { jackson } from "@/lib/jackson";
 import { prisma } from "@/lib/prisma";
 import type { BetterAuthPlugin } from "better-auth";
 import { APIError, createAuthEndpoint } from "better-auth/api";
@@ -81,6 +80,7 @@ export const samlIdp = {
       async (ctx) => {
         const { code } = ctx.body;
 
+        const { jackson } = await import("@/lib/jackson");
         const { oauthController } = await jackson();
 
         const redirectUri = process.env.BETTER_AUTH_URL;
