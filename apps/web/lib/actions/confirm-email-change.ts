@@ -9,7 +9,6 @@ import { waitUntil } from "@vercel/functions";
 import { flattenValidationErrors } from "next-safe-action";
 import * as z from "zod/v4";
 import { VERIFICATION_TOKEN_CONFIG } from "../better-auth/constants";
-import { parseVerificationTokenValue } from "../better-auth/utils";
 import {
   consumeVerificationToken,
   findVerificationToken,
@@ -38,18 +37,7 @@ export const confirmEmailChangeAction = authUserActionClient
       identifier: token,
     });
 
-    if (!verification || !verification.isValid) {
-      throw new Error(
-        "This token is invalid or expired. Please request a new one.",
-      );
-    }
-
-    const parsedValue = parseVerificationTokenValue({
-      kind: "emailChange",
-      value: verification.value,
-    });
-
-    if (!parsedValue) {
+    if (!verification || verification.isExpired) {
       throw new Error(
         "This token is invalid or expired. Please request a new one.",
       );
@@ -57,7 +45,7 @@ export const confirmEmailChangeAction = authUserActionClient
 
     await assertCanConfirmEmailChange({
       userId: user.id,
-      data: parsedValue,
+      data: verification.value,
     });
 
     const consumed = await consumeVerificationToken({
@@ -79,7 +67,7 @@ export const confirmEmailChangeAction = authUserActionClient
       syncIdentity,
       partnerId,
       redirectTo,
-    } = parsedValue;
+    } = verification.value;
 
     // Sync identity: Sync the email to the partner profile
     if (syncIdentity) {

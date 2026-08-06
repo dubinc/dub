@@ -45,13 +45,16 @@ function assertPurposeConstraints({
 }
 
 // Create a verification row for a registered token type.
+// Pass `identifier` for email-keyed OTPs; omit it for URL tokens (random suffix).
 export async function createVerificationToken({
   kind,
   value,
+  identifier,
   expiresIn = 0,
 }: {
   kind: VerificationTokenKind;
   value: string | Record<string, unknown>;
+  identifier?: string;
   expiresIn?: number;
 }) {
   const tokenConfig = VERIFICATION_TOKEN_CONFIG[kind];
@@ -106,7 +109,7 @@ export async function createVerificationToken({
     parsedValue: rawObject,
   });
 
-  const token = generateRandomString(32, "a-z", "A-Z");
+  const token = identifier ?? generateRandomString(32, "a-z", "A-Z");
 
   await prisma.verification.create({
     data: {
@@ -166,11 +169,11 @@ export async function consumeVerificationToken({
   return result.count === 1;
 }
 
-export async function findVerificationToken({
+export async function findVerificationToken<T extends VerificationTokenKind>({
   kind,
   identifier,
 }: {
-  kind: VerificationTokenKind;
+  kind: T;
   identifier: string;
 }) {
   const tokenConfig = VERIFICATION_TOKEN_CONFIG[kind];
@@ -193,8 +196,18 @@ export async function findVerificationToken({
     return null;
   }
 
+  const value = parseVerificationTokenValue({
+    kind,
+    value: verification.value,
+  });
+
+  if (!value) {
+    return null;
+  }
+
   return {
     ...verification,
-    isValid: verification.expiresAt > new Date(),
+    value,
+    isExpired: verification.expiresAt <= new Date(),
   };
 }

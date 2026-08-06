@@ -476,7 +476,6 @@ const truncate = async () => {
     "OAuthRefreshToken",
     "PasswordResetToken",
     "VerificationToken",
-    "EmailVerificationToken",
     "AuthAccount",
     "Verification",
     "Session",

@@ -49,6 +49,40 @@ export const VERIFICATION_TOKEN_CONFIG = {
       email: z.email(),
     }),
   },
+
+  // Signup email OTP (action — must never create a session)
+  signupOtp: {
+    purpose: "action",
+    prefix: "signup:",
+    expiresIn: 5 * 60 * 1000, // 5 minutes
+    valueSchema: z.object({
+      targetEmail: z.email(),
+      code: z.string().length(6),
+    }),
+  },
+
+  // Partner account merge OTP (action — must never create a session)
+  mergePartnerAccountsOtp: {
+    purpose: "action",
+    prefix: "merge-partner-accounts:",
+    expiresIn: 5 * 60 * 1000, // 5 minutes
+    valueSchema: z.object({
+      targetEmail: z.email(),
+      code: z.string().length(6),
+    }),
+  },
+
+  // Tremendous payout email OTP (action — must never create a session)
+  tremendousOtp: {
+    purpose: "action",
+    prefix: "tremendous:",
+    expiresIn: 5 * 60 * 1000, // 5 minutes
+    valueSchema: z.object({
+      targetEmail: z.email(),
+      partnerId: z.string().min(1),
+      code: z.string().length(6),
+    }),
+  },
 } as const;
 
 export type VerificationTokenKind = keyof typeof VERIFICATION_TOKEN_CONFIG;

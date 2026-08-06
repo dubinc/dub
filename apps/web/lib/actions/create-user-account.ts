@@ -1,6 +1,11 @@
 "use server";
 
 import { auth } from "@/lib/better-auth/auth";
+import {
+  consumeVerificationToken,
+  deleteVerificationTokens,
+  findVerificationToken,
+} from "@/lib/better-auth/verification-token";
 import { prisma } from "@/lib/prisma";
 import { ratelimit } from "@/lib/upstash";
 import { waitUntil } from "@vercel/functions";
@@ -44,16 +49,16 @@ export const createUserAccountAction = actionClient
       }
     }
 
-    const verificationToken = await prisma.emailVerificationToken.findUnique({
-      where: {
-        identifier_token: {
-          identifier: email,
-          token: code,
-        },
-      },
+    const verification = await findVerificationToken({
+      kind: "signupOtp",
+      identifier: email,
     });
 
-    if (!verificationToken) {
+    if (
+      !verification ||
+      verification.value.code !== code ||
+      verification.value.targetEmail !== email
+    ) {
       await ratelimit(MAX_OTP_ATTEMPTS, OTP_LOCKOUT_DURATION).limit(
         signupAttemptKey,
       );
@@ -61,25 +66,25 @@ export const createUserAccountAction = actionClient
       throw new Error("Invalid verification code entered.");
     }
 
-    if (verificationToken.expires && verificationToken.expires < new Date()) {
+    if (verification.isExpired) {
       waitUntil(
-        prisma.emailVerificationToken.delete({
-          where: {
-            identifier: email,
-            token: code,
-          },
+        deleteVerificationTokens({
+          kind: "signupOtp",
+          identifier: email,
         }),
       );
 
       throw new Error("The OTP has expired. Please request a new one.");
     }
 
-    await prisma.emailVerificationToken.delete({
-      where: {
-        identifier: email,
-        token: code,
-      },
+    const consumed = await consumeVerificationToken({
+      kind: "signupOtp",
+      identifier: email,
     });
+
+    if (!consumed) {
+      throw new Error("The OTP has expired. Please request a new one.");
+    }
 
     const existingUser = await prisma.user.findUnique({
       where: {
