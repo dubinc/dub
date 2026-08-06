@@ -2,40 +2,19 @@ import { prisma } from "@/lib/prisma";
 import "dotenv-flow/config";
 
 async function main() {
-  const subdomains = await prisma.domain.findMany({
+  const links = await prisma.link.findMany({
     where: {
-      slug: {
-        endsWith: ".dub.link",
-      },
-      project: {
-        defaultProgramId: null,
-        plan: "free",
-      },
-      links: {
-        every: {
-          key: "_root",
-        },
-      },
+      projectId: "xxx",
+      url: "https://example.com",
     },
-    include: {
-      project: true,
+    select: {
+      id: true,
+      shortLink: true,
+      url: true,
     },
   });
-  console.log(`Found ${subdomains.length} subdomains.`);
-  console.table(
-    subdomains.map((subdomain) => ({
-      slug: subdomain.slug,
-      project: subdomain.project?.slug,
-      plan: subdomain.project?.plan,
-      hasStore: !!subdomain.project?.store,
-    })),
-  );
 
-  // for (const subdomain of subdomains) {
-  //   await markDomainAsDeleted({
-  //     domain: subdomain.slug,
-  //   });
-  // }
+  console.table(links);
 }
 
 main();

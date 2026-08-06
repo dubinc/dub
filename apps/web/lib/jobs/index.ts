@@ -2,7 +2,7 @@ import { createId } from "@/lib/api/create-id";
 import { logger } from "@/lib/axiom/server";
 import { qstash } from "@/lib/cron";
 import { prisma } from "@/lib/prisma";
-import { chunk } from "@dub/utils";
+import { APP_DOMAIN_WITH_NGROK, chunk } from "@dub/utils";
 import { Prisma } from "@prisma/client";
 import { PublishRequest } from "@upstash/qstash";
 import * as z from "zod/v4";
@@ -51,7 +51,7 @@ type JobReplayOptions = Pick<
   "deduplicationId" | "retries" | "queue" | "flowControl" | "label"
 >;
 
-const JOBS_ENDPOINT_URL = `https://app.dub.co/api/jobs/process`;
+const JOBS_ENDPOINT_URL = `${APP_DOMAIN_WITH_NGROK}/api/jobs/process`;
 
 const QSTASH_PUBLISH_MAX_RETRIES = 3;
 
