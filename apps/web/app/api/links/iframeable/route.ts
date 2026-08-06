@@ -1,4 +1,5 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
+import { safeFetch } from "@/lib/api/safe-fetch";
 import { ratelimitOrThrow } from "@/lib/api/utils";
 import {
   getDomainQuerySchema,
@@ -17,7 +18,11 @@ export async function GET(req: NextRequest) {
 
     await ratelimitOrThrow(req, "iframeable");
 
-    const iframeable = await isIframeable({ url, requestDomain: domain });
+    const res = await safeFetch(url);
+    const iframeable = isIframeable({
+      headers: res.headers,
+      requestDomain: domain,
+    });
 
     return NextResponse.json({ iframeable });
   } catch (error) {
