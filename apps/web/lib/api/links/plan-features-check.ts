@@ -47,13 +47,7 @@ export const proFeaturesCheck = (payload: NewLinkProps) => {
 };
 
 export const businessFeaturesCheck = (payload: NewLinkProps) => {
-  const { domain, testVariants, trackConversion } = payload;
-
-  if (domain && domain.endsWith(".dub.link")) {
-    throw new Error(
-      "You can only use .dub.link domains on a Business plan and above. Upgrade to Business to use this domain.",
-    );
-  }
+  const { testVariants, trackConversion } = payload;
 
   if (testVariants || trackConversion) {
     const businessFeaturesString = combineWords(
@@ -65,6 +59,14 @@ export const businessFeaturesCheck = (payload: NewLinkProps) => {
 
     throw new Error(
       `You can only use ${businessFeaturesString} on a Business plan and above. Upgrade to Business to use these features.`,
+    );
+  }
+};
+
+export const dubLinkSubdomainCheck = (domain: string) => {
+  if (domain.endsWith(".dub.link")) {
+    throw new Error(
+      "You can only use .dub.link domains on a Business plan and above. Upgrade to Business to use this domain.",
     );
   }
 };
