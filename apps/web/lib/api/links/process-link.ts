@@ -594,6 +594,11 @@ export async function processLink<T extends Record<string, any>>({
 }
 
 async function maliciousLinkCheck(url: string) {
+  // flag for suspicious URL strings
+  if (["?key=", "&key="].some((param) => url.includes(param))) {
+    return true;
+  }
+
   const domain = getDomainWithoutWWW(url);
 
   if (!domain) {
