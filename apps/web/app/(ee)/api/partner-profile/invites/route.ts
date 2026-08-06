@@ -216,23 +216,14 @@ export const DELETE = withPartnerProfile(
   async ({ searchParams, partner }) => {
     const { email } = removeInviteSchema.parse(searchParams);
 
-    await prisma.$transaction([
-      prisma.partnerInvite.delete({
-        where: {
-          email_partnerId: {
-            email,
-            partnerId: partner.id,
-          },
+    await prisma.partnerInvite.delete({
+      where: {
+        email_partnerId: {
+          email,
+          partnerId: partner.id,
         },
-      }),
-
-      // Legacy NextAuth invite tokens (kept during migration)
-      prisma.verificationToken.deleteMany({
-        where: {
-          identifier: email,
-        },
-      }),
-    ]);
+      },
+    });
 
     return NextResponse.json({ email });
   },
