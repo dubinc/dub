@@ -3,26 +3,29 @@
 import { cancelEmailChangeAction } from "@/lib/actions/cancel-email-change";
 import { confirmEmailChangeAction } from "@/lib/actions/confirm-email-change";
 import { useSession } from "@/lib/better-auth/use-session";
+import { parseVerificationTokenValue } from "@/lib/better-auth/utils";
 import EmptyState from "@/ui/shared/empty-state";
 import { Button, InputPassword } from "@dub/ui";
+import { Verification } from "@prisma/client";
 import { useAction } from "next-safe-action/hooks";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 
 export default function ConfirmEmailChangePageClient({
-  token,
-  email,
-  newEmail,
+  verification,
 }: {
-  token: string;
-  email: string;
-  newEmail: string;
+  verification: Verification;
 }) {
   const router = useRouter();
-  const { update } = useSession();
+  const { refetch } = useSession();
   const [canceled, setCanceled] = useState(false);
   const [confirmed, setConfirmed] = useState(false);
+
+  const parsedValue = parseVerificationTokenValue({
+    kind: "emailChange",
+    value: verification.value,
+  });
 
   const { executeAsync: confirmEmailChange, isPending: isConfirming } =
     useAction(confirmEmailChangeAction, {
@@ -32,14 +35,9 @@ export default function ConfirmEmailChangePageClient({
         }
 
         setConfirmed(true);
-
-        const redirectTo =
-          data.redirectTo ??
-          (data.isPartnerProfile ? "/profile" : "/account/settings");
-
-        await update();
+        await refetch();
         toast.success("Successfully updated your email!");
-        router.replace(redirectTo);
+        router.replace(data.redirectTo);
       },
       onError({ error }) {
         toast.error(error.serverError ?? "Failed to confirm the email change.");
@@ -70,7 +68,19 @@ export default function ConfirmEmailChangePageClient({
     );
   }
 
+  if (!parsedValue) {
+    return (
+      <EmptyState
+        icon={InputPassword}
+        title="Invalid Token"
+        description="This token is invalid or expired. Please request a new one."
+      />
+    );
+  }
+
   const isPending = isConfirming || isCanceling || confirmed;
+  const { email, newEmail } = parsedValue;
+  const { identifier } = verification;
 
   return (
     <div className="w-full max-w-sm">
@@ -90,14 +100,14 @@ export default function ConfirmEmailChangePageClient({
           loading={isCanceling}
           disabled={isPending}
           className="flex-1"
-          onClick={() => cancelEmailChange({ token })}
+          onClick={() => cancelEmailChange({ identifier })}
         />
         <Button
           text="Confirm change"
           loading={isConfirming || confirmed}
           disabled={isPending}
           className="flex-1"
-          onClick={() => confirmEmailChange({ token })}
+          onClick={() => confirmEmailChange({ identifier })}
         />
       </div>
     </div>

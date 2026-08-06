@@ -1,5 +1,6 @@
 import { Session } from "@/lib/auth";
-import { createInviteMagicLink } from "@/lib/better-auth/invite-plugin";
+import { buildMagicLinkUrl } from "@/lib/better-auth/utils";
+import { createVerificationToken } from "@/lib/better-auth/verification-token";
 import { prisma } from "@/lib/prisma";
 import { PartnerProps } from "@/lib/types";
 import { sendEmail } from "@dub/email";
@@ -39,8 +40,16 @@ export async function invitePartnerUser({
     }
   }
 
-  const url = await createInviteMagicLink({
-    email,
+  const { token } = await createVerificationToken({
+    kind: "invite",
+    value: {
+      email,
+      isInvite: true,
+    },
+  });
+
+  const url = buildMagicLinkUrl({
+    token,
     origin: PARTNERS_DOMAIN,
     callbackURL: `${PARTNERS_DOMAIN}/invite`,
   });

@@ -1,5 +1,6 @@
 import { hashToken } from "@/lib/auth";
-import { createMagicLinkVerifyUrl } from "@/lib/better-auth/invite-plugin";
+import { buildMagicLinkUrl } from "@/lib/better-auth/utils";
+import { createVerificationToken } from "@/lib/better-auth/verification-token";
 import { prisma } from "@/lib/prisma";
 import { APP_DOMAIN, PARTNERS_DOMAIN } from "@dub/utils";
 import { NextResponse } from "next/server";
@@ -82,13 +83,23 @@ export async function GET(request: Request) {
   ]);
 
   const isInvite = Boolean(projectInvite || partnerInvite);
+  const expiresIn = verificationToken.expires
+    ? new Date(verificationToken.expires).getTime() - Date.now()
+    : undefined;
 
-  const verifyUrl = await createMagicLinkVerifyUrl({
-    email: verificationToken.identifier,
+  const { token: newToken } = await createVerificationToken({
+    kind: isInvite ? "invite" : "magicLink",
+    expiresIn,
+    value: {
+      email: verificationToken.identifier,
+      ...(isInvite ? { isInvite } : {}),
+    },
+  });
+
+  const verifyUrl = buildMagicLinkUrl({
+    token: newToken,
     origin: requestUrl.origin,
     callbackURL: getSafeCallbackURL(callbackUrl, requestUrl.origin),
-    expiresAt: verificationToken.expires,
-    isInvite,
   });
 
   return NextResponse.redirect(verifyUrl);

@@ -1,80 +1,7 @@
 import { prisma } from "@/lib/prisma";
-import { TWO_WEEKS_IN_SECONDS } from "@dub/utils";
 import type { BetterAuthPlugin } from "better-auth";
 import { createAuthMiddleware } from "better-auth/api";
-import { generateRandomString } from "better-auth/crypto";
-import { z } from "zod";
-
-const verificationValueSchema = z.object({
-  email: z.string().trim().min(1),
-  isInvite: z.boolean().optional(),
-});
-
-function buildVerifyUrl(origin: string, token: string, callbackURL: string) {
-  const url = new URL("/api/auth/magic-link/verify", origin);
-  url.searchParams.set("token", token);
-  url.searchParams.set("callbackURL", callbackURL);
-  return url.toString();
-}
-
-/**
- * Mint a Better Auth Verification row and return a /magic-link/verify URL.
- * There is no public BA API for this without sending email; this matches BA's
- * magic-link storage shape (identifier = raw token, value = JSON email payload).
- *
- * Pass `isInvite: true` for invite flows (allows signup when a pending
- * ProjectInvite / PartnerInvite exists). Login links omit it.
- */
-export async function createMagicLinkVerifyUrl({
-  email,
-  origin,
-  callbackURL,
-  expiresAt,
-  expiresIn = TWO_WEEKS_IN_SECONDS,
-  isInvite = false,
-}: {
-  email: string;
-  origin: string;
-  callbackURL: string;
-  expiresAt?: Date;
-  expiresIn?: number;
-  isInvite?: boolean;
-}) {
-  const token = generateRandomString(32, "a-z", "A-Z");
-
-  await prisma.verification.create({
-    data: {
-      identifier: token,
-      expiresAt: expiresAt ?? new Date(Date.now() + expiresIn * 1000),
-      value: JSON.stringify({
-        email,
-        ...(isInvite ? { isInvite: true } : {}),
-      }),
-    },
-  });
-
-  return buildVerifyUrl(origin, token, callbackURL);
-}
-
-export async function createInviteMagicLink({
-  email,
-  origin,
-  callbackURL,
-  expiresIn = TWO_WEEKS_IN_SECONDS,
-}: {
-  email: string;
-  origin: string;
-  callbackURL: string;
-  expiresIn?: number;
-}) {
-  return createMagicLinkVerifyUrl({
-    email,
-    origin,
-    callbackURL,
-    expiresIn,
-    isInvite: true,
-  });
-}
+import { parseVerificationTokenValue } from "./utils";
 
 export const invite = {
   id: "invite",
@@ -101,21 +28,19 @@ export const invite = {
             return;
           }
 
-          let parsed: z.infer<typeof verificationValueSchema>;
-          try {
-            parsed = verificationValueSchema.parse(
-              JSON.parse(verification.value),
-            );
-          } catch {
+          const parsedValue = parseVerificationTokenValue({
+            kind: "invite",
+            value: verification.value,
+          });
+
+          if (!parsedValue?.isInvite) {
             return;
           }
 
-          if (!parsed.isInvite) {
-            return;
-          }
+          const { email } = parsedValue;
 
           const existingUser =
-            await ctx.context.internalAdapter.findUserByEmail(parsed.email);
+            await ctx.context.internalAdapter.findUserByEmail(email);
 
           // Existing users skip invite checks here; accept APIs still enforce membership.
           if (existingUser?.user) {
@@ -125,7 +50,7 @@ export const invite = {
           const [projectInvite, partnerInvite] = await Promise.all([
             prisma.projectInvite.findFirst({
               where: {
-                email: parsed.email,
+                email,
               },
               select: {
                 email: true,
@@ -134,7 +59,7 @@ export const invite = {
 
             prisma.partnerInvite.findFirst({
               where: {
-                email: parsed.email,
+                email,
               },
               select: {
                 email: true,
@@ -147,7 +72,7 @@ export const invite = {
           }
 
           await ctx.context.internalAdapter.createUser({
-            email: parsed.email,
+            email,
             emailVerified: true,
             name: "",
           });

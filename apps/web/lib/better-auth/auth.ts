@@ -15,6 +15,8 @@ import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { nextCookies } from "better-auth/next-js";
 import { genericOAuth, lastLoginMethod, magicLink } from "better-auth/plugins";
+import { isLocalDev } from "../api/environment";
+import { logger, toErrorFields } from "../axiom/server";
 import { adminImpersonation } from "./admin-impersonation-plugin";
 import { databaseHooks } from "./database-hooks";
 import { hooks } from "./hooks";
@@ -225,4 +227,19 @@ export const auth = betterAuth({
     // Next cookies plugin
     nextCookies(),
   ],
+
+  onAPIError: {
+    onError: async (error) => {
+      if (isLocalDev) {
+        console.error("[BetterAuth] API error:", error);
+      }
+
+      logger.error(error instanceof Error ? error.message : "Unknown error", {
+        service: "better-auth",
+        ...toErrorFields(error),
+      });
+
+      await logger.flush();
+    },
+  },
 });

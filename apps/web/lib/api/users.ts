@@ -1,11 +1,12 @@
 import { Session } from "@/lib/auth";
-import { createInviteMagicLink } from "@/lib/better-auth/invite-plugin";
 import { prisma } from "@/lib/prisma";
 import { WorkspaceWithUsers } from "@/lib/types";
 import { sendEmail } from "@dub/email";
 import WorkspaceInvite from "@dub/email/templates/workspace-invite";
 import { APP_DOMAIN, TWO_WEEKS_IN_SECONDS } from "@dub/utils";
 import { WorkspaceRole } from "@prisma/client";
+import { buildMagicLinkUrl } from "../better-auth/utils";
+import { createVerificationToken } from "../better-auth/verification-token";
 import { DubApiError } from "./errors";
 
 export async function inviteUser({
@@ -42,8 +43,16 @@ export async function inviteUser({
     }
   }
 
-  const url = await createInviteMagicLink({
-    email,
+  const { token } = await createVerificationToken({
+    kind: "invite",
+    value: {
+      email,
+      isInvite: true,
+    },
+  });
+
+  const url = buildMagicLinkUrl({
+    token,
     origin: APP_DOMAIN,
     callbackURL: `${APP_DOMAIN}/${workspace.slug}/invite`,
   });
