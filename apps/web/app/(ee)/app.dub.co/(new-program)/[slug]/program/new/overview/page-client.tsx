@@ -122,7 +122,6 @@ export function PageClient() {
         loading={isPending || isSubmitting || isSubmitSuccessful}
         type="button"
         onClick={onClick}
-        disabled={!isValid}
         disabledTooltip={
           !isValid ? (
             "Please fill all the required fields to create a program."
