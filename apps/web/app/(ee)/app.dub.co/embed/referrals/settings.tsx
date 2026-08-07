@@ -1,6 +1,9 @@
 "use client";
 
-import { TREMENDOUS_MAX_PAYOUT_AMOUNT_CENTS } from "@/lib/tremendous/constants";
+import {
+  TREMENDOUS_MAX_PAYOUT_AMOUNT_CENTS,
+  TREMENDOUS_MIN_PAYOUT_AMOUNT_CENTS,
+} from "@/lib/tremendous/constants";
 import { AlertCircleFill } from "@/ui/shared/icons";
 import {
   AnimatedSizeContainer,
@@ -403,9 +406,15 @@ function TremendousGiftCardOption({
               )}
             </div>
             <p className="text-content-subtle mt-0.5 text-xs">
-              Gift card payouts are limited to{" "}
-              {currencyFormatter(TREMENDOUS_MAX_PAYOUT_AMOUNT_CENTS)} per
-              payout.
+              Gift card payouts have a minimum of{" "}
+              {currencyFormatter(TREMENDOUS_MIN_PAYOUT_AMOUNT_CENTS, {
+                trailingZeroDisplay: "stripIfInteger",
+              })}{" "}
+              and a maximum of{" "}
+              {currencyFormatter(TREMENDOUS_MAX_PAYOUT_AMOUNT_CENTS, {
+                trailingZeroDisplay: "stripIfInteger",
+              })}
+              .
             </p>
           </div>
         </div>
