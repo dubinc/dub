@@ -1,14 +1,14 @@
 import {
-  CampaignWorkflowAttributeConfig,
-  WorkflowAttribute,
-} from "@/lib/types";
+  formatCampaignFromAddress,
+  parseCampaignFromAddress,
+} from "@/lib/email/parse-campaign-from-address";
 import { CampaignStatus, CampaignType } from "@prisma/client";
 import * as z from "zod/v4";
+import { sendCampaignConditionSchema } from "../../api/workflows/send-campaign/schema";
 import { GroupSchema } from "./groups";
 import { getPaginationQuerySchema } from "./misc";
 import { EnrolledPartnerSchema } from "./partners";
 import { parseDateSchema } from "./utils";
-import { WORKFLOW_ATTRIBUTES, workflowConditionSchema } from "./workflows";
 
 export const EMAIL_TEMPLATE_VARIABLES = [
   "PartnerName",
@@ -16,42 +16,26 @@ export const EMAIL_TEMPLATE_VARIABLES = [
   "PartnerLink",
 ] as const;
 
-export const CAMPAIGN_WORKFLOW_ATTRIBUTE_CONFIG: Record<
-  WorkflowAttribute,
-  CampaignWorkflowAttributeConfig
-> = {
-  totalLeads: {
-    label: "total leads",
-    inputType: "number",
-  },
-  totalConversions: {
-    label: "total conversions",
-    inputType: "number",
-  },
-  totalSaleAmount: {
-    label: "total revenue",
-    inputType: "currency",
-  },
-  totalCommissions: {
-    label: "total commissions",
-    inputType: "currency",
-  },
-  partnerEnrolledDays: {
-    label: "enrollment duration",
-    inputType: "dropdown",
-    dropdownValues: [1, 3, 7, 14, 30],
-  },
-  partnerJoined: {
-    label: "joins the program",
-    inputType: "none",
-  },
-};
+export const CAMPAIGN_FROM_FORMAT_ERROR =
+  'From must be an email or "Name <email@domain.com>" format.';
 
-export const campaignTriggerConditionSchema = z.object({
-  attribute: z.enum(WORKFLOW_ATTRIBUTES),
-  operator: z.literal("gte").default("gte"),
-  value: z.number(),
-});
+export const campaignFromSchema = z
+  .string()
+  .trim()
+  .min(1, CAMPAIGN_FROM_FORMAT_ERROR)
+  .transform((value, ctx) => {
+    const parsed = parseCampaignFromAddress(value);
+
+    if (!parsed) {
+      ctx.addIssue({
+        code: "custom",
+        message: CAMPAIGN_FROM_FORMAT_ERROR,
+      });
+      return z.NEVER;
+    }
+
+    return formatCampaignFromAddress(parsed);
+  });
 
 export const CampaignSchema = z.object({
   id: z.string(),
@@ -62,7 +46,7 @@ export const CampaignSchema = z.object({
   bodyJson: z.record(z.string(), z.any()),
   type: z.enum(CampaignType),
   status: z.enum(CampaignStatus),
-  triggerCondition: campaignTriggerConditionSchema.nullable().default(null),
+  triggerCondition: sendCampaignConditionSchema.nullable().default(null),
   groups: z.array(GroupSchema.pick({ id: true })),
   scheduledAt: z.date().nullable(),
   createdAt: z.date(),
@@ -93,9 +77,9 @@ export const updateCampaignSchema = z
       .trim()
       .max(100, "Subject must be less than 100 characters."),
     preview: z.string().nullish(),
-    from: z.email().trim().toLowerCase(),
+    from: campaignFromSchema,
     bodyJson: z.record(z.string(), z.any()),
-    triggerCondition: campaignTriggerConditionSchema.nullish(),
+    triggerCondition: sendCampaignConditionSchema.nullish(),
     groupIds: z.array(z.string()).nullable(),
     scheduledAt: parseDateSchema.nullish(),
     status: z.enum([
@@ -118,7 +102,7 @@ export const getCampaignsQuerySchema = z
       .pipe(
         z.preprocess(
           (input: string) => JSON.parse(input),
-          workflowConditionSchema,
+          sendCampaignConditionSchema,
         ),
       )
       .optional(),

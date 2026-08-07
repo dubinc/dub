@@ -53,26 +53,49 @@ export function useLogFilters() {
         : false,
   });
 
+  const { data: statusCounts } = useApiLogsCount({
+    groupBy: "statusCode",
+    enabled:
+      selectedFilter === "statusCode" || searchParamsObj.statusCode
+        ? true
+        : false,
+  });
+
+  const { data: methodCounts } = useApiLogsCount({
+    groupBy: "method",
+    enabled:
+      selectedFilter === "method" || searchParamsObj.method ? true : false,
+  });
+
   const filters = useMemo(
     () => [
       {
         key: "statusCode",
         icon: CircleCheck,
         label: "Status",
-        options: HTTP_STATUS_CODES.map(({ value, label }) => {
-          const icon = createElement(CircleCheck, {
-            className: cn(
-              "h-4 w-4",
-              value >= 200 && value < 300 ? "text-green-600" : "text-red-600",
-            ),
-          });
+        options: statusCounts
+          ? HTTP_STATUS_CODES.map(({ value, label }) => {
+              const icon = createElement(CircleCheck, {
+                className: cn(
+                  "h-4 w-4",
+                  value >= 200 && value < 300
+                    ? "text-green-600"
+                    : "text-red-600",
+                ),
+              });
 
-          return {
-            value,
-            label,
-            icon,
-          };
-        }),
+              const count = statusCounts.find(
+                (row) => row.statusCode === value,
+              )?.count;
+
+              return {
+                value,
+                label,
+                icon,
+                right: nFormatter(count || 0, { full: true }),
+              };
+            })
+          : undefined,
       },
       {
         key: "routePattern",
@@ -88,10 +111,17 @@ export function useLogFilters() {
         key: "method",
         icon: ArrowsOppositeDirectionX,
         label: "Method",
-        options: HTTP_MUTATION_METHODS.map((m) => ({
-          value: m,
-          label: m,
-        })),
+        options: methodCounts
+          ? HTTP_MUTATION_METHODS.map((m) => {
+              const count = methodCounts.find((row) => row.method === m)?.count;
+
+              return {
+                value: m,
+                label: m,
+                right: nFormatter(count || 0, { full: true }),
+              };
+            })
+          : undefined,
       },
       {
         key: "tokenId",
@@ -112,7 +142,7 @@ export function useLogFilters() {
         })),
       },
     ],
-    [tokens, routePatterns],
+    [tokens, routePatterns, statusCounts, methodCounts],
   );
 
   const onSelect = useCallback(
