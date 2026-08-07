@@ -9,41 +9,39 @@ export const dynamic = "force-dynamic";
 const BATCH_SIZE = 1000;
 const ITERATIONS = 10;
 
-// POST /api/cron/better-auth/migrate-users
+// POST /api/cron/better-auth/migrate-accounts
 export const POST = withCron(async () => {
   for (let i = 0; i < ITERATIONS; i++) {
-    const { count } = await prisma.user.updateMany({
-      where: {
-        emailVerified: {
-          not: null,
-        },
-        emailVerifiedBa: false,
-      },
-      data: {
-        emailVerifiedBa: true,
-      },
-      limit: BATCH_SIZE,
-    });
+    const count = await prisma.$executeRaw`
+      UPDATE Account
+      SET
+        accountId = providerAccountId,
+        providerId = provider
+      WHERE
+        accountId IS NULL
+        AND providerAccountId IS NOT NULL
+      LIMIT ${BATCH_SIZE}
+    `;
 
-    console.log(`Migrated ${count} users.`);
+    console.log(`Migrated ${count} accounts.`);
 
     if (count === 0) {
-      return logAndRespond("Finished migrating users.");
+      return logAndRespond("Finished migrating accounts.");
     }
   }
 
   const qstashResponse = await qstash.publishJSON({
     method: "POST",
-    url: `${APP_DOMAIN_WITH_NGROK}/api/cron/better-auth/migrate-users`,
+    url: `${APP_DOMAIN_WITH_NGROK}/api/cron/better-auth/migrate-accounts`,
     delay: "10s",
     retries: 0,
     flowControl: {
-      key: "better-auth-migrate-users",
+      key: "better-auth-migrate-accounts",
       parallelism: 1,
     },
   });
 
   return logAndRespond(
-    `Scheduled next batch of users to migrate ${qstashResponse.messageId}`,
+    `Scheduled next batch of accounts to migrate ${qstashResponse.messageId}`,
   );
 });
