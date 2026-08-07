@@ -18,10 +18,11 @@ import {
 } from "@/lib/zod/schemas/submitted-lead-form";
 import { submitLeadSchema } from "@/lib/zod/schemas/submitted-leads";
 import { COUNTRIES } from "@dub/utils";
-import { Prisma, ProgramEnrollmentStatus } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
 import { authPartnerActionClient } from "../actions/safe-action";
+import { ACTIVE_ENROLLMENT_STATUSES } from "../zod/schemas/partners";
 
 /**
  * Converts field values based on field type:
@@ -67,8 +68,15 @@ export const submitLeadAction = authPartnerActionClient
     const { partner, user } = ctx;
     const { programId, formData: rawFormData } = parsedInput;
 
+    if (!SUBMITTED_LEADS_ENABLED_PROGRAM_IDS.includes(programId)) {
+      throw new DubApiError({
+        code: "forbidden",
+        message: "This program does not accept submitted leads.",
+      });
+    }
+
     const { success } = await ratelimit(10, "1 m").limit(
-      `submit-lead:${partner.id}`,
+      `rl:submitted-lead:${partner.id}`,
     );
 
     if (!success) {
@@ -78,20 +86,15 @@ export const submitLeadAction = authPartnerActionClient
       });
     }
 
-    if (!SUBMITTED_LEADS_ENABLED_PROGRAM_IDS.includes(programId)) {
-      throw new DubApiError({
-        code: "forbidden",
-        message: "This program does not accept submitted leads.",
-      });
-    }
-
     const programEnrollment = await prisma.programEnrollment.findUnique({
       where: {
         partnerId_programId: {
           partnerId: partner.id,
           programId,
         },
-        status: ProgramEnrollmentStatus.approved,
+        status: {
+          in: ACTIVE_ENROLLMENT_STATUSES,
+        },
       },
       include: {
         program: true,
@@ -102,7 +105,7 @@ export const submitLeadAction = authPartnerActionClient
     if (!programEnrollment) {
       throw new DubApiError({
         code: "not_found",
-        message: `Partner ${partner.id} is not an approved partner in program ${programId}.`,
+        message: "Partner is not eligible to submit leads in this program.",
       });
     }
 
