@@ -13,6 +13,10 @@ export function normalizeEmail(email: unknown): string | null {
   return normalized.length > 0 ? normalized : null;
 }
 
+export function buildLookupKey(...parts: string[]): string {
+  return parts.join(":").toLowerCase();
+}
+
 export function hasCredentialLogin<
   T extends {
     accounts: { password: string | null }[];

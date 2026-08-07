@@ -1,5 +1,5 @@
 import { Session } from "@/lib/auth";
-import { buildMagicLinkUrl } from "@/lib/better-auth/utils";
+import { buildLookupKey, buildMagicLinkUrl } from "@/lib/better-auth/utils";
 import { createVerificationToken } from "@/lib/better-auth/verification-token";
 import { prisma } from "@/lib/prisma";
 import { PartnerProps } from "@/lib/types";
@@ -20,6 +20,8 @@ export async function invitePartnerUser({
   partner: Omit<PartnerProps, "role" | "userId">;
   session: Session;
 }) {
+  email = email.trim().toLowerCase();
+
   const expires = new Date(Date.now() + TWO_WEEKS_IN_SECONDS * 1000);
 
   try {
@@ -46,7 +48,7 @@ export async function invitePartnerUser({
       email,
       isInvite: true,
     },
-    lookupKey: `invite:${email}:${partner.id}`,
+    lookupKey: buildLookupKey("invite", email, partner.id),
     removePreviousTokens: true,
   });
 

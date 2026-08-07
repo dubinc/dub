@@ -3,6 +3,7 @@ import { sendEmail } from "@dub/email";
 import ConfirmEmailChange from "@dub/email/templates/confirm-email-change";
 import { waitUntil } from "@vercel/functions";
 import { DubApiError } from "../api/errors";
+import { buildLookupKey } from "../better-auth/utils";
 import { createVerificationToken } from "../better-auth/verification-token";
 import { isEmailDomainBlocked } from "../email/is-email-domain-blocked";
 import { isGenericEmail } from "../email/is-generic-email";
@@ -97,7 +98,7 @@ export const requestEmailChange = async ({
       ...(syncIdentity && { syncIdentity, partnerId }),
       ...(redirectTo && { redirectTo }),
     },
-    lookupKey: `email-change:${identifier}`,
+    lookupKey: buildLookupKey("email-change", identifier),
     removePreviousTokens: true,
   });
 

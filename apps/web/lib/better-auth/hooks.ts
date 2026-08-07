@@ -59,8 +59,8 @@ export const hooks = {
       }
     }
 
-    // Check for account lock and login attempts
-    if (path === "/sign-in/email") {
+    // Rate limit, lock check, and SAML enforcement for email/magic-link sign-in.
+    if (["/sign-in/email", "/sign-in/magic-link"].includes(path)) {
       const email = normalizeEmail(body?.email);
       if (!email) {
         return;
@@ -87,32 +87,13 @@ export const hooks = {
         select: {
           lockedAt: true,
           invalidLoginAttempts: true,
-          accounts: {
-            where: {
-              providerId: "credential",
-            },
-            select: {
-              password: true,
-            },
-            take: 1,
-          },
         },
       });
 
-      if (
-        hasCredentialLogin(user) &&
-        (user.lockedAt || exceededLoginAttemptsThreshold(user))
-      ) {
+      if (user && (user.lockedAt || exceededLoginAttemptsThreshold(user))) {
         throw new APIError("FORBIDDEN", {
           message: "exceeded-login-attempts",
         });
-      }
-    }
-
-    if (["/sign-in/email", "/sign-in/magic-link"].includes(path)) {
-      const email = body?.email;
-      if (!email) {
-        return;
       }
 
       if (await isSamlEnforcedForEmailDomain(email)) {

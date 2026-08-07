@@ -5,7 +5,7 @@ import { sendEmail } from "@dub/email";
 import WorkspaceInvite from "@dub/email/templates/workspace-invite";
 import { APP_DOMAIN, TWO_WEEKS_IN_SECONDS } from "@dub/utils";
 import { WorkspaceRole } from "@prisma/client";
-import { buildMagicLinkUrl } from "../better-auth/utils";
+import { buildLookupKey, buildMagicLinkUrl } from "../better-auth/utils";
 import { createVerificationToken } from "../better-auth/verification-token";
 import { DubApiError } from "./errors";
 
@@ -20,6 +20,8 @@ export async function inviteUser({
   workspace: WorkspaceWithUsers;
   session?: Session;
 }) {
+  email = email.trim().toLowerCase();
+
   const expires = new Date(Date.now() + TWO_WEEKS_IN_SECONDS * 1000);
 
   // create a workspace invite record and a verification request token that lasts for a week
@@ -49,7 +51,7 @@ export async function inviteUser({
       email,
       isInvite: true,
     },
-    lookupKey: `invite:${email}:${workspace.id}`,
+    lookupKey: buildLookupKey("invite", email, workspace.id),
     removePreviousTokens: true,
   });
 

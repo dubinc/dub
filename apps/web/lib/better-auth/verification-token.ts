@@ -168,7 +168,7 @@ export async function consumeVerificationToken({
     },
   });
 
-  return result.count === 1;
+  return result.count >= 1;
 }
 
 export async function findVerificationToken<T extends VerificationTokenKind>({

@@ -78,15 +78,6 @@ export const createUserAccountAction = actionClient
       throw new Error("The OTP has expired. Please request a new one.");
     }
 
-    const consumed = await consumeVerificationToken({
-      kind: "signupOtp",
-      identifier: email,
-    });
-
-    if (!consumed) {
-      throw new Error("The OTP has expired. Please request a new one.");
-    }
-
     const existingUser = await prisma.user.findUnique({
       where: {
         email,
@@ -109,6 +100,15 @@ export const createUserAccountAction = actionClient
       throw new Error(
         "User already exists. Please login instead of requesting a new OTP.",
       );
+    }
+
+    const consumed = await consumeVerificationToken({
+      kind: "signupOtp",
+      identifier: email,
+    });
+
+    if (!consumed) {
+      throw new Error("The OTP has expired. Please request a new one.");
     }
 
     const ctx = await auth.$context;

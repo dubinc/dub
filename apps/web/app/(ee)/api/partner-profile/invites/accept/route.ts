@@ -1,7 +1,9 @@
 import { DubApiError } from "@/lib/api/errors";
 import { withSession } from "@/lib/auth";
+import { buildLookupKey } from "@/lib/better-auth/utils";
 import { deleteVerificationTokens } from "@/lib/better-auth/verification-token";
 import { prisma } from "@/lib/prisma";
+import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
 // POST /api/partner-profile/invites/accept – accept a partner invite
@@ -92,9 +94,11 @@ export const POST = withSession(async ({ session }) => {
     return partner;
   });
 
-  await deleteVerificationTokens({
-    lookupKey: `invite:${session.user.email}:${partner.id}`,
-  });
+  waitUntil(
+    deleteVerificationTokens({
+      lookupKey: buildLookupKey("invite", session.user.email, partner.id),
+    }),
+  );
 
   return NextResponse.json({
     message: "You are now a member of this partner profile.",
