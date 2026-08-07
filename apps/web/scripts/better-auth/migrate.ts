@@ -79,6 +79,7 @@ async function verifyMigration() {
         OR (provider IS NOT NULL AND providerId IS NULL)
         OR (access_token IS NOT NULL AND accessToken IS NULL)
         OR (refresh_token IS NOT NULL AND refreshToken IS NULL)
+        OR (id_token IS NOT NULL AND idToken IS NULL)
     `.then((rows) => Number(rows[0].count)),
 
     prisma.$queryRaw<[{ count: bigint }]>`
@@ -89,6 +90,7 @@ async function verifyMigration() {
         OR (provider IS NOT NULL AND providerId IS NOT NULL AND providerId != provider)
         OR (access_token IS NOT NULL AND accessToken IS NOT NULL AND accessToken != access_token)
         OR (refresh_token IS NOT NULL AND refreshToken IS NOT NULL AND refreshToken != refresh_token)
+        OR (id_token IS NOT NULL AND idToken IS NOT NULL AND idToken != id_token)
     `.then((rows) => Number(rows[0].count)),
 
     prisma.user.count({
