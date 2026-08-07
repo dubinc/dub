@@ -163,6 +163,7 @@ const createUsers = async (data: SeedData) => {
       name: user.name,
       email: user.email,
       emailVerified: new Date(user.emailVerified),
+      emailVerifiedBa: true,
       passwordHash,
     })),
   });
@@ -386,6 +387,7 @@ const createPartners = async (data: SeedData) => {
       name: partner.user.name,
       email: partner.user.email,
       emailVerified: new Date(partner.user.emailVerified),
+      emailVerifiedBa: true,
       passwordHash,
       defaultPartnerId: partner.id,
     })),
