@@ -1,6 +1,10 @@
 import { CUTOFF_PERIOD } from "@/lib/partners/cutoff-period";
 import { prisma } from "@/lib/prisma";
 import {
+  TREMENDOUS_MAX_PAYOUT_AMOUNT_CENTS,
+  TREMENDOUS_MIN_PAYOUT_AMOUNT_CENTS,
+} from "@/lib/tremendous/constants";
+import {
   eligiblePayoutsQuerySchema,
   PayoutResponseSchema,
 } from "@/lib/zod/schemas/payouts";
@@ -33,16 +37,11 @@ export async function getEligiblePayouts({
       ...getPayoutEligibilityFilter({ program }),
     },
     include: {
-      partner: {
-        include: {
-          programs: {
-            where: {
-              programId: program.id,
-            },
-            select: {
-              tenantId: true,
-            },
-          },
+      partner: true,
+      programEnrollment: {
+        select: {
+          groupId: true,
+          tenantId: true,
         },
       },
       ...(cutoffPeriodValue && {
@@ -76,21 +75,31 @@ export async function getEligiblePayouts({
           amount: newPayoutAmount,
         };
       })
-      .filter((payout) => payout.amount >= program.minPayoutAmount);
+      .filter((payout) => {
+        if (payout.partner.defaultPayoutMethod === "tremendous") {
+          return (
+            payout.amount >= TREMENDOUS_MIN_PAYOUT_AMOUNT_CENTS &&
+            payout.amount <= TREMENDOUS_MAX_PAYOUT_AMOUNT_CENTS
+          );
+        }
+        return payout.amount >= program.minPayoutAmount;
+      });
   }
 
-  const eligiblePayouts = payouts.map(({ partner, ...payout }) => ({
-    ...payout,
-    traceId: payout.stripePayoutTraceId,
-    partner: {
-      ...partner,
-      ...partner.programs[0],
-    },
-    mode: getEffectivePayoutMode({
-      payoutMode: program.payoutMode,
-      payoutsEnabledAt: partner.payoutsEnabledAt,
+  const eligiblePayouts = payouts.map(
+    ({ partner, programEnrollment, ...payout }) => ({
+      ...payout,
+      traceId: payout.stripePayoutTraceId,
+      partner: {
+        ...partner,
+        ...programEnrollment,
+      },
+      mode: getEffectivePayoutMode({
+        payoutMode: program.payoutMode,
+        payoutsEnabledAt: partner.payoutsEnabledAt,
+      }),
     }),
-  }));
+  );
 
   return z.array(PayoutResponseSchema).parse(eligiblePayouts);
 }
