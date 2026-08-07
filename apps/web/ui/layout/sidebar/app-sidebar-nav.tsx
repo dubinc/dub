@@ -1,6 +1,5 @@
 "use client";
 
-import { canAccessProgram } from "@/lib/auth/product-access-guard";
 import { Session, useSession } from "@/lib/better-auth/use-session";
 import { usePartnerMessagesCount } from "@/lib/messages/hooks/use-partner-messages-count";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
@@ -14,7 +13,7 @@ import { usePayoutsCount } from "@/lib/swr/use-payouts-count";
 import useProgram from "@/lib/swr/use-program";
 import { useProgramSubmittedLeadsCount } from "@/lib/swr/use-program-submitted-leads-count";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { useRouterStuff } from "@dub/ui";
+import { useKeyboardShortcut, useRouterStuff } from "@dub/ui";
 import {
   Bell,
   Brush,
@@ -66,7 +65,7 @@ type SidebarNavData = {
   slug: string;
   pathname: string;
   queryString: string;
-  defaultProgramId?: string;
+  defaultProduct?: "program" | "links";
   session?: Session | null;
   showNews?: boolean;
   pendingPayoutsCount?: number;
@@ -77,14 +76,12 @@ type SidebarNavData = {
   pendingLeadsCount?: number;
   showConversionGuides?: boolean;
   partnerNetworkEnabled?: boolean;
-  hasProgramAccess?: boolean;
 };
 
 const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({
   slug,
   pathname,
-  defaultProgramId,
-  hasProgramAccess,
+  defaultProduct,
 }) => {
   const programGroup = {
     id: "program",
@@ -112,14 +109,9 @@ const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({
     active: pathname.startsWith(`/${slug}/links`),
   };
 
-  // TEMPORARY: hide the program tab for restricted workspace users
-  if (hasProgramAccess === false) {
-    return [linksGroup];
-  }
-
-  return defaultProgramId
-    ? [programGroup, linksGroup]
-    : [linksGroup, programGroup];
+  return defaultProduct === "links"
+    ? [linksGroup, programGroup]
+    : [programGroup, linksGroup];
 };
 
 const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
@@ -507,28 +499,10 @@ export function AppSidebarNav({
 }) {
   const { slug } = useParams() as { slug?: string };
   const pathname = usePathname();
-  const { getQueryString } = useRouterStuff();
-  const { data: session, status } = useSession();
-  const {
-    id: workspaceId,
-    plan,
-    defaultProgramId,
-    trialEndsAt,
-    loading: workspaceLoading,
-  } = useWorkspace();
-
-  const canCheckProgramAccess =
-    status !== "loading" &&
-    !workspaceLoading &&
-    workspaceId &&
-    session?.user.id;
-
-  const hasProgramAccess = canCheckProgramAccess
-    ? canAccessProgram({
-        workspaceId,
-        userId: session.user.id,
-      })
-    : false;
+  const { router, getQueryString } = useRouterStuff();
+  const { data: session } = useSession();
+  const { plan, defaultProduct, defaultProgramId, trialEndsAt } =
+    useWorkspace();
 
   const currentArea = useMemo(() => {
     return pathname.startsWith("/account/settings")
@@ -543,6 +517,18 @@ export function AppSidebarNav({
             ? "program"
             : "links";
   }, [slug, pathname]);
+
+  // Navigate back to the default product when the Escape key is pressed in the workspace settings
+  useKeyboardShortcut(
+    "Escape",
+    () => router.push(`/${slug}/${defaultProduct}`),
+    {
+      enabled: currentArea === "workspaceSettings",
+      priority: 2,
+      modal: false,
+      sheet: false,
+    },
+  );
 
   const { program } = useProgram({
     enabled: Boolean(currentArea === "program" && defaultProgramId),
@@ -609,7 +595,7 @@ export function AppSidebarNav({
         }),
         session: session || undefined,
         showNews: true,
-        defaultProgramId: defaultProgramId || undefined,
+        defaultProduct,
         pendingPayoutsCount: pendingPayoutsCount?.[0]?.count ?? 0,
         applicationsCount,
         submittedBountiesCount,
@@ -620,7 +606,6 @@ export function AppSidebarNav({
           canTrackConversions && pathname.startsWith(`/${slug}/links`),
         partnerNetworkEnabled:
           program && program.partnerNetworkEnabledAt !== null,
-        hasProgramAccess,
       }}
       toolContent={toolContent}
       newsContent={
