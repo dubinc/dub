@@ -78,6 +78,7 @@ model Account {
   access_token             String? @db.Text
   expires_at               Int?
   token_type               String?
+  id_token                 String? @db.Text
   session_state            String?
 
   // Better Auth
