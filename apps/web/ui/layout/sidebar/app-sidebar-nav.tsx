@@ -12,7 +12,7 @@ import { usePayoutsCount } from "@/lib/swr/use-payouts-count";
 import useProgram from "@/lib/swr/use-program";
 import { useProgramSubmittedLeadsCount } from "@/lib/swr/use-program-submitted-leads-count";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { useRouterStuff } from "@dub/ui";
+import { useKeyboardShortcut, useRouterStuff } from "@dub/ui";
 import {
   Bell,
   Brush,
@@ -500,7 +500,7 @@ export function AppSidebarNav({
 }) {
   const { slug } = useParams() as { slug?: string };
   const pathname = usePathname();
-  const { getQueryString } = useRouterStuff();
+  const { router, getQueryString } = useRouterStuff();
   const { data: session } = useSession();
   const { plan, defaultProduct, defaultProgramId, trialEndsAt } =
     useWorkspace();
@@ -518,6 +518,18 @@ export function AppSidebarNav({
             ? "program"
             : "links";
   }, [slug, pathname]);
+
+  // Navigate back to the default product when the Escape key is pressed in the workspace settings
+  useKeyboardShortcut(
+    "Escape",
+    () => router.push(`/${slug}/${defaultProduct}`),
+    {
+      enabled: currentArea === "workspaceSettings",
+      priority: 2,
+      modal: false,
+      sheet: false,
+    },
+  );
 
   const { program } = useProgram({
     enabled: Boolean(currentArea === "program" && defaultProgramId),

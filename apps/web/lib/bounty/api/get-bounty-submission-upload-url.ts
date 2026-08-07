@@ -2,6 +2,7 @@ import { DubApiError } from "@/lib/api/errors";
 import { storage } from "@/lib/storage";
 import { ratelimit } from "@/lib/upstash";
 import { submissionRequirementsSchema } from "@/lib/zod/schemas/bounties";
+import { ACTIVE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
 import { nanoid, R2_URL } from "@dub/utils";
 import { ProgramEnrollment } from "@prisma/client";
 import { canPartnerSubmitBounty } from "./bounty-availability";
@@ -36,7 +37,14 @@ export async function getBountySubmissionUploadUrl({
   contentLength,
   programEnrollment,
 }: GetBountySubmissionUploadUrlParams) {
-  const { programId, partnerId } = programEnrollment;
+  const { programId, partnerId, status } = programEnrollment;
+
+  if (!ACTIVE_ENROLLMENT_STATUSES.includes(status)) {
+    throw new DubApiError({
+      code: "forbidden",
+      message: "You are not allowed to submit a bounty for this program.",
+    });
+  }
 
   if (!fileName.trim()) {
     throw new DubApiError({
