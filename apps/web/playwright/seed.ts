@@ -23,6 +23,7 @@ async function main() {
       email: E2E_PARTNER.email,
       name: E2E_PARTNER.name,
       emailVerified: new Date(),
+      emailVerifiedBa: true,
       passwordHash,
     },
   });
