@@ -10,8 +10,9 @@ export const passwordSchema = z
   );
 
 export const emailSchema = z
-  .email()
+  .string()
   .trim()
+  .email()
   .min(1)
   .transform((email) => email.toLowerCase());
 
