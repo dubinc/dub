@@ -6,7 +6,7 @@ import { NextResponse } from "next/server";
 
 // POST /api/partner-profile/invites/accept – accept a partner invite
 export const POST = withSession(async ({ session }) => {
-  await prisma.$transaction(async (tx) => {
+  const partner = await prisma.$transaction(async (tx) => {
     const invite = await tx.partnerInvite.findFirst({
       where: {
         email: session.user.email,
@@ -66,10 +66,6 @@ export const POST = withSession(async ({ session }) => {
       },
     });
 
-    await deleteVerificationTokens({
-      lookupKey: `invite:${session.user.email}:${partner.id}`,
-    });
-
     if (session.user["defaultPartnerId"] === null) {
       const currentUser = await tx.user.findUnique({
         where: {
@@ -92,6 +88,12 @@ export const POST = withSession(async ({ session }) => {
         });
       }
     }
+
+    return partner;
+  });
+
+  await deleteVerificationTokens({
+    lookupKey: `invite:${session.user.email}:${partner.id}`,
   });
 
   return NextResponse.json({

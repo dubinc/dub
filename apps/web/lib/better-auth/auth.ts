@@ -85,6 +85,7 @@ export const auth = betterAuth({
             },
             select: {
               emailVerified: true,
+              emailVerifiedBa: true,
             },
           });
 
@@ -100,6 +101,7 @@ export const auth = betterAuth({
               lockedAt: null,
               invalidLoginAttempts: 0,
               ...(!dbUser.emailVerified && { emailVerified: new Date() }),
+              ...(!dbUser.emailVerifiedBa && { emailVerifiedBa: true }),
             },
           });
 

@@ -13,8 +13,7 @@ model User {
   name            String?
   email           String?   @unique
   emailVerified   DateTime?
-  // Better Auth expects a boolean emailVerified field; map via auth config
-  emailVerifiedBa Boolean   @default(false)
+  emailVerifiedBa Boolean   @default(false) // Better Auth expects a boolean emailVerified field; We can rename this after the migration
   image           String?
   isMachine       Boolean   @default(false)
   createdAt       DateTime  @default(now())
@@ -97,9 +96,9 @@ model Account {
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@unique([providerId, accountId])
+  @@unique([provider, providerAccountId])
   @@index([userId])
-  @@index([providerId, accountId])
-  @@index([provider, providerAccountId])
 }
 
 model Session {

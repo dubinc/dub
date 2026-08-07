@@ -111,7 +111,11 @@ export const databaseHooks = {
             return;
           }
 
-          const emailDomain = user.email.split("@")[1];
+          const emailDomain = user.email.split("@")[1]?.toLocaleLowerCase();
+
+          if (!emailDomain) {
+            return;
+          }
 
           const workspace = await prisma.project.findUnique({
             where: {

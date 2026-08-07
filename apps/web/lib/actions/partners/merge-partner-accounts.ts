@@ -281,7 +281,7 @@ const verifyTokens = async ({
     );
   }
 
-  await Promise.all([
+  const [sourceConsumed, targetConsumed] = await Promise.all([
     consumeVerificationToken({
       kind: "mergePartnerAccountsOtp",
       identifier: sourceEmail,
@@ -292,6 +292,18 @@ const verifyTokens = async ({
       identifier: targetEmail,
     }),
   ]);
+
+  if (!sourceConsumed) {
+    throw new Error(
+      `The code entered for ${sourceEmail} has expired. Please request a new code.`,
+    );
+  }
+
+  if (!targetConsumed) {
+    throw new Error(
+      `The code entered for ${targetEmail} has expired. Please request a new code.`,
+    );
+  }
 
   // Make sure this is set before going to the next step
   await redis.set(
