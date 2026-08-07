@@ -49,6 +49,14 @@ export const POST = withCron(async () => {
     });
 
     console.log(`Migrated ${count} credentials.`);
+
+    // No rows inserted while candidates remain means the batch cannot progress.
+    if (count === 0) {
+      return logAndRespond(
+        `Stopped migrating credentials: ${users.length} users matched but no accounts were created.`,
+        { logLevel: "error" },
+      );
+    }
   }
 
   const qstashResponse = await qstash.publishJSON({
