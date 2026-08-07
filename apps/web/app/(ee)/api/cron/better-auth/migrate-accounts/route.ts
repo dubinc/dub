@@ -18,7 +18,8 @@ export const POST = withCron(async () => {
         accountId = COALESCE(accountId, providerAccountId),
         providerId = COALESCE(providerId, provider),
         accessToken = COALESCE(accessToken, access_token),
-        refreshToken = COALESCE(refreshToken, refresh_token)
+        refreshToken = COALESCE(refreshToken, refresh_token),
+        idToken = COALESCE(idToken, id_token)
       WHERE
         accountId IS NULL
         AND providerAccountId IS NOT NULL
