@@ -51,6 +51,7 @@ export async function POST(req: NextRequest) {
         email: identifier,
       },
       select: {
+        id: true,
         emailVerified: true,
         passwordHash: true,
       },
@@ -72,6 +73,8 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    const newPasswordHash = await hashPassword(password);
+
     await prisma.$transaction([
       // Delete the token
       prisma.passwordResetToken.deleteMany({
@@ -86,12 +89,23 @@ export async function POST(req: NextRequest) {
           email: identifier,
         },
         data: {
-          passwordHash: await hashPassword(password),
+          passwordHash: newPasswordHash,
           lockedAt: null, // Unlock the account after a successful password reset
           ...(!user.emailVerified && {
             emailVerified: new Date(),
             emailVerifiedBa: true,
           }),
+        },
+      }),
+
+      // Dual write: keep Better Auth credential Account.password in sync
+      prisma.account.updateMany({
+        where: {
+          userId: user.id,
+          providerId: "credential",
+        },
+        data: {
+          password: newPasswordHash,
         },
       }),
     ]);

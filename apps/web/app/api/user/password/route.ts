@@ -43,13 +43,26 @@ export const PATCH = withSession(async ({ req, session }) => {
     });
   }
 
-  await Promise.all([
+  const newPasswordHash = await hashPassword(newPassword);
+
+  await prisma.$transaction([
     prisma.user.update({
       where: {
         id: session.user.id,
       },
       data: {
-        passwordHash: await hashPassword(newPassword),
+        passwordHash: newPasswordHash,
+      },
+    }),
+
+    // Dual write: keep Better Auth credential Account.password in sync
+    prisma.account.updateMany({
+      where: {
+        userId: session.user.id,
+        providerId: "credential",
+      },
+      data: {
+        password: newPasswordHash,
       },
     }),
 

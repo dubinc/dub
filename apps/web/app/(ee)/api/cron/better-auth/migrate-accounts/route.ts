@@ -15,11 +15,14 @@ export const POST = withCron(async () => {
     const count = await prisma.$executeRaw`
       UPDATE Account
       SET
-        accountId = providerAccountId,
-        providerId = provider
+        accountId = COALESCE(accountId, providerAccountId),
+        providerId = COALESCE(providerId, provider),
+        accessToken = COALESCE(accessToken, access_token),
+        refreshToken = COALESCE(refreshToken, refresh_token)
       WHERE
         accountId IS NULL
         AND providerAccountId IS NOT NULL
+      ORDER BY id
       LIMIT ${BATCH_SIZE}
     `;
 

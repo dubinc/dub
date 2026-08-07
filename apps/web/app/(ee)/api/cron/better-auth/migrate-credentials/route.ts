@@ -27,6 +27,9 @@ export const POST = withCron(async () => {
         id: true,
         passwordHash: true,
       },
+      orderBy: {
+        id: "asc",
+      },
       take: BATCH_SIZE,
     });
 
