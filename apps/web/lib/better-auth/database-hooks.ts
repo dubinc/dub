@@ -4,12 +4,16 @@ import { qstash } from "@/lib/cron";
 import { isBlacklistedEmail } from "@/lib/edge-config";
 import { completeProgramApplications } from "@/lib/partners/complete-program-applications";
 import { prisma } from "@/lib/prisma";
-import { isStored, storage } from "@/lib/storage";
+import { isStored } from "@/lib/storage";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import type { BetterAuthOptions } from "better-auth";
 import { APIError } from "better-auth/api";
 import { isSamlEnforcedForEmailDomain } from "../api/workspaces/is-saml-enforced-for-email-domain";
+import {
+  backupUserAvatar,
+  syncSocialProfileFromProvider,
+} from "./sync-social-profile";
 import { buildLookupKey } from "./utils";
 import { deleteVerificationTokens } from "./verification-token";
 
@@ -70,28 +74,15 @@ export const databaseHooks = {
     create: {
       // Runs after a provider account is linked
       after: async (account) => {
-        const { providerId, userId } = account;
+        const { providerId, userId, accessToken } = account;
 
-        // Google and GitHub OAuth
+        // Google and GitHub OAuth — fill missing name / R2 avatar
         if (["google", "github"].includes(providerId)) {
-          const user = await prisma.user.findUnique({
-            where: {
-              id: userId,
-            },
-            select: {
-              id: true,
-              image: true,
-            },
-          });
-
-          if (!user?.image || isStored(user.image)) {
-            return;
-          }
-
           waitUntil(
-            backupUserAvatar({
-              userId: user.id,
-              image: user.image,
+            syncSocialProfileFromProvider({
+              userId,
+              providerId,
+              accessToken,
             }),
           );
         }
@@ -158,6 +149,33 @@ export const databaseHooks = {
             lookupKey: buildLookupKey("invite", user.email, workspace.id),
           });
         }
+      },
+    },
+
+    update: {
+      // Runs after OAuth tokens refresh on subsequent Google/GitHub sign-ins
+      after: async (account) => {
+        if (!account) {
+          return;
+        }
+
+        const { providerId, userId, accessToken } = account;
+
+        if (
+          !providerId ||
+          !userId ||
+          !["google", "github"].includes(providerId)
+        ) {
+          return;
+        }
+
+        waitUntil(
+          syncSocialProfileFromProvider({
+            userId,
+            providerId,
+            accessToken,
+          }),
+        );
       },
     },
   },
@@ -250,25 +268,3 @@ export const databaseHooks = {
     },
   },
 } satisfies BetterAuthOptions["databaseHooks"];
-
-async function backupUserAvatar({
-  userId,
-  image,
-}: {
-  userId: string;
-  image: string;
-}) {
-  const { url } = await storage.upload({
-    key: `avatars/${userId}`,
-    body: image,
-  });
-
-  await prisma.user.update({
-    where: {
-      id: userId,
-    },
-    data: {
-      image: url,
-    },
-  });
-}

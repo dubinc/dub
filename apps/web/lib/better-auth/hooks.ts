@@ -67,7 +67,10 @@ export const hooks = {
       }
 
       if (shouldApplyRateLimit) {
-        const policy = RATELIMIT_POLICIES.login;
+        const policy =
+          path === "/sign-in/magic-link"
+            ? RATELIMIT_POLICIES.loginLinkSend
+            : RATELIMIT_POLICIES.login;
         const { success } = await ratelimit(
           policy.attempts,
           policy.window,
@@ -87,12 +90,35 @@ export const hooks = {
         select: {
           lockedAt: true,
           invalidLoginAttempts: true,
+          emailVerified: true,
+          emailVerifiedBa: true,
+          accounts: {
+            where: {
+              providerId: "credential",
+            },
+            select: {
+              password: true,
+            },
+            take: 1,
+          },
         },
       });
 
       if (user && (user.lockedAt || exceededLoginAttemptsThreshold(user))) {
         throw new APIError("FORBIDDEN", {
           message: "exceeded-login-attempts",
+        });
+      }
+
+      // Password login requires a verified email (legacy DateTime or BA boolean).
+      if (
+        path === "/sign-in/email" &&
+        hasCredentialLogin(user) &&
+        !user.emailVerifiedBa &&
+        !user.emailVerified
+      ) {
+        throw new APIError("FORBIDDEN", {
+          message: "email-not-verified",
         });
       }
 
