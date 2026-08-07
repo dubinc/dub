@@ -9,7 +9,7 @@ import { sendEmail } from "@dub/email";
 import LoginLink from "@dub/email/templates/login-link";
 import PasswordUpdated from "@dub/email/templates/password-updated";
 import ResetPasswordLink from "@dub/email/templates/reset-password-link";
-import { APP_DOMAIN, PARTNERS_DOMAIN } from "@dub/utils";
+import { APP_DOMAIN, nanoid, PARTNERS_DOMAIN } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
@@ -173,7 +173,7 @@ export const auth = betterAuth({
           return createId({ prefix: "user_" });
         }
 
-        return crypto.randomUUID();
+        return nanoid(24);
       },
     },
     crossSubDomainCookies: {

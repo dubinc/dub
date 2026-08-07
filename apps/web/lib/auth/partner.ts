@@ -16,7 +16,6 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "../better-auth/get-session";
 import { getPartnerFeatureFlags } from "../edge-config";
 import { ratelimit } from "../upstash";
-import { partnerPlatformSchema } from "../zod/schemas/partners";
 import { hashToken } from "./hash-token";
 import { Permission } from "./partner-users/partner-user-permissions";
 import { throwIfNoPermission } from "./partner-users/throw-if-no-permission";
@@ -258,14 +257,7 @@ export const withPartnerProfile = (
             },
           },
           include: {
-            partner: {
-              include: {
-                industryInterests: true,
-                preferredEarningStructures: true,
-                salesChannels: true,
-                platforms: true,
-              },
-            },
+            partner: true,
           },
         });
 
@@ -296,31 +288,18 @@ export const withPartnerProfile = (
           }
         }
 
-        const {
-          industryInterests,
-          preferredEarningStructures,
-          salesChannels,
-          platforms,
-          ...partnerProps
-        } = partnerUser.partner;
-
         return await handler({
           req,
           params,
           searchParams,
           session,
           partner: {
-            ...flattenVeriffMetadata(partnerProps),
-            industryInterests: industryInterests.map(
-              ({ industryInterest }) => industryInterest,
-            ),
-            preferredEarningStructures: preferredEarningStructures.map(
-              ({ preferredEarningStructure }) => preferredEarningStructure,
-            ),
-            salesChannels: salesChannels.map(
-              ({ salesChannel }) => salesChannel,
-            ),
-            platforms: partnerPlatformSchema.array().parse(platforms),
+            ...flattenVeriffMetadata(partnerUser.partner),
+            // Nested profile relations are loaded only where needed (e.g. GET /partner-profile).
+            industryInterests: [],
+            preferredEarningStructures: [],
+            salesChannels: [],
+            platforms: [],
           } as Omit<PartnerProps, "role" | "userId">,
           partnerUser: {
             userId: partnerUser.userId,
