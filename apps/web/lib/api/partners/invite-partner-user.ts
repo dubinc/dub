@@ -46,6 +46,8 @@ export async function invitePartnerUser({
       email,
       isInvite: true,
     },
+    lookupKey: `invite:${email}:${partner.id}`,
+    removePreviousTokens: true,
   });
 
   const url = buildMagicLinkUrl({

@@ -1,4 +1,3 @@
-// @ts-expect-error
 import "dotenv-flow/config";
 
 /**

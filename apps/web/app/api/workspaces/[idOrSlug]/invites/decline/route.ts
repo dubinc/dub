@@ -1,5 +1,6 @@
 import { DubApiError } from "@/lib/api/errors";
 import { withSession } from "@/lib/auth";
+import { deleteVerificationTokens } from "@/lib/better-auth/verification-token";
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
@@ -30,6 +31,10 @@ export const POST = withSession(async ({ session, params }) => {
         projectId: invite.projectId,
       },
     },
+  });
+
+  await deleteVerificationTokens({
+    lookupKey: `invite:${session.user.email}:${invite.projectId}`,
   });
 
   return NextResponse.json({ message: "Invite declined." });

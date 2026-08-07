@@ -2,6 +2,7 @@ import { DubApiError } from "@/lib/api/errors";
 import { invitePartnerUser } from "@/lib/api/partners/invite-partner-user";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withPartnerProfile } from "@/lib/auth/partner";
+import { deleteVerificationTokens } from "@/lib/better-auth/verification-token";
 import {
   MAX_INVITES_PER_REQUEST,
   MAX_PARTNER_USERS,
@@ -223,6 +224,10 @@ export const DELETE = withPartnerProfile(
           partnerId: partner.id,
         },
       },
+    });
+
+    await deleteVerificationTokens({
+      lookupKey: `invite:${email}:${partner.id}`,
     });
 
     return NextResponse.json({ email });

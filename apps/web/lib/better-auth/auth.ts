@@ -25,6 +25,7 @@ import { programOAuthConfigs, programOAuthProviderIds } from "./program-oauth";
 import { samlIdp, samlOAuthConfig } from "./saml-sso-plugin";
 
 const VERCEL_DEPLOYMENT = !!process.env.VERCEL_URL;
+const isVercelProduction = process.env.VERCEL_ENV === "production";
 
 export const auth = betterAuth({
   secret: process.env.BETTER_AUTH_SECRET,
@@ -48,6 +49,7 @@ export const auth = betterAuth({
   // Email and password authentication
   emailAndPassword: {
     enabled: true,
+    disableSignUp: true,
     requireEmailVerification: false,
     minPasswordLength: 8,
     maxPasswordLength: 1000,
@@ -156,6 +158,13 @@ export const auth = betterAuth({
   },
   verification: {
     modelName: "verification",
+    additionalFields: {
+      lookupKey: {
+        type: "string",
+        required: false,
+        input: false,
+      },
+    },
   },
   advanced: {
     database: {

@@ -49,6 +49,8 @@ export async function inviteUser({
       email,
       isInvite: true,
     },
+    lookupKey: `invite:${email}:${workspace.id}`,
+    removePreviousTokens: true,
   });
 
   const url = buildMagicLinkUrl({

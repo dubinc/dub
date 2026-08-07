@@ -6,6 +6,17 @@ import {
 } from "./constants";
 import { parseVerificationTokenValue } from "./utils";
 
+type DeleteVerificationTokensArgs =
+  | {
+      kind: VerificationTokenKind;
+      identifier: string;
+    }
+  | {
+      kind?: never;
+      identifier?: never;
+      lookupKey: string;
+    };
+
 function assertPurposeConstraints({
   kind,
   parsedValue,
@@ -49,13 +60,17 @@ function assertPurposeConstraints({
 export async function createVerificationToken({
   kind,
   value,
+  lookupKey,
   identifier,
   expiresIn = 0,
+  removePreviousTokens = false,
 }: {
   kind: VerificationTokenKind;
   value: string | Record<string, unknown>;
+  lookupKey?: string;
   identifier?: string;
   expiresIn?: number;
+  removePreviousTokens?: boolean;
 }) {
   const tokenConfig = VERIFICATION_TOKEN_CONFIG[kind];
 
@@ -111,37 +126,24 @@ export async function createVerificationToken({
 
   const token = identifier ?? generateRandomString(32, "a-z", "A-Z");
 
+  if (removePreviousTokens && lookupKey) {
+    await deleteVerificationTokens({
+      lookupKey,
+    });
+  }
+
   await prisma.verification.create({
     data: {
       identifier: `${tokenConfig.prefix}${token}`,
       value: rawValue,
       expiresAt: new Date(Date.now() + expiresIn),
+      lookupKey,
     },
   });
 
   return {
     token,
   };
-}
-
-export async function deleteVerificationTokens({
-  kind,
-  identifier,
-}: {
-  kind: VerificationTokenKind;
-  identifier: string;
-}) {
-  const tokenConfig = VERIFICATION_TOKEN_CONFIG[kind];
-
-  if (!tokenConfig) {
-    throw new Error(`Verification token config for kind "${kind}" not found.`);
-  }
-
-  return prisma.verification.deleteMany({
-    where: {
-      identifier: `${tokenConfig.prefix}${identifier}`,
-    },
-  });
 }
 
 export async function consumeVerificationToken({
@@ -210,4 +212,29 @@ export async function findVerificationToken<T extends VerificationTokenKind>({
     value,
     isExpired: verification.expiresAt <= new Date(),
   };
+}
+
+export async function deleteVerificationTokens(
+  args: DeleteVerificationTokensArgs,
+) {
+  if ("lookupKey" in args) {
+    return prisma.verification.deleteMany({
+      where: {
+        lookupKey: args.lookupKey,
+      },
+    });
+  }
+
+  const { kind, identifier } = args;
+  const tokenConfig = VERIFICATION_TOKEN_CONFIG[kind];
+
+  if (!tokenConfig) {
+    throw new Error(`Verification token config for kind "${kind}" not found.`);
+  }
+
+  return prisma.verification.deleteMany({
+    where: {
+      identifier: `${tokenConfig.prefix}${identifier}`,
+    },
+  });
 }

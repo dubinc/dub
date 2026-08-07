@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import type { BetterAuthPlugin } from "better-auth";
-import { createAuthMiddleware } from "better-auth/api";
+import { APIError, createAuthMiddleware } from "better-auth/api";
 import { parseVerificationTokenValue } from "./utils";
 
 export const invite = {
@@ -39,14 +39,6 @@ export const invite = {
 
           const { email } = parsedValue;
 
-          const existingUser =
-            await ctx.context.internalAdapter.findUserByEmail(email);
-
-          // Existing users skip invite checks here; accept APIs still enforce membership.
-          if (existingUser?.user) {
-            return;
-          }
-
           const [projectInvite, partnerInvite] = await Promise.all([
             prisma.projectInvite.findFirst({
               where: {
@@ -68,6 +60,15 @@ export const invite = {
           ]);
 
           if (!projectInvite && !partnerInvite) {
+            throw new APIError("UNAUTHORIZED", {
+              message: "Invalid or expired invite.",
+            });
+          }
+
+          const existingUser =
+            await ctx.context.internalAdapter.findUserByEmail(email);
+
+          if (existingUser?.user) {
             return;
           }
 

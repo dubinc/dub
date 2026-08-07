@@ -10,6 +10,7 @@ import { waitUntil } from "@vercel/functions";
 import type { BetterAuthOptions } from "better-auth";
 import { APIError } from "better-auth/api";
 import { isSamlEnforcedForEmailDomain } from "../api/workspaces/is-saml-enforced-for-email-domain";
+import { deleteVerificationTokens } from "./verification-token";
 
 export const databaseHooks = {
   user: {
@@ -147,6 +148,10 @@ export const databaseHooks = {
               },
             }),
           ]);
+
+          await deleteVerificationTokens({
+            lookupKey: `invite:${user.email}:${workspace.id}`,
+          });
         }
       },
     },

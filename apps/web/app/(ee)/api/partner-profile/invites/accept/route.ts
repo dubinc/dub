@@ -1,5 +1,6 @@
 import { DubApiError } from "@/lib/api/errors";
 import { withSession } from "@/lib/auth";
+import { deleteVerificationTokens } from "@/lib/better-auth/verification-token";
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
@@ -63,6 +64,10 @@ export const POST = withSession(async ({ session }) => {
           partnerId: partner.id,
         },
       },
+    });
+
+    await deleteVerificationTokens({
+      lookupKey: `invite:${session.user.email}:${partner.id}`,
     });
 
     if (session.user["defaultPartnerId"] === null) {

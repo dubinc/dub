@@ -120,11 +120,15 @@ model Session {
 // Better Auth verification table
 model Verification {
   id         String   @id @default(cuid())
-  identifier String
-  value      String   @db.Text
+  identifier String // Token
+  value      String   @db.Text // Token payload
   expiresAt  DateTime
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
+  // Additional fields
+  lookupKey String? // Key for invalidating random-identifier tokens (Eg: remove invite tokens)
+
   @@index(identifier)
+  @@index(lookupKey)
 }

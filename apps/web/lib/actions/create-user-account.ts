@@ -1,5 +1,6 @@
 "use server";
 
+import { hashPassword } from "@/lib/auth/password";
 import { auth } from "@/lib/better-auth/auth";
 import {
   consumeVerificationToken,
@@ -110,22 +111,53 @@ export const createUserAccountAction = actionClient
       );
     }
 
-    const result = await auth.api.signUpEmail({
-      body: {
-        name: "",
-        email,
-        password,
-      },
-      headers: await headers(),
+    const ctx = await auth.$context;
+    const passwordHash = await hashPassword(password);
+
+    const user = await ctx.internalAdapter.createUser({
+      email,
+      name: "",
+      emailVerified: true,
     });
+
+    if (!user) {
+      throw new Error("Failed to create user account.");
+    }
+
+    try {
+      await ctx.internalAdapter.linkAccount({
+        userId: user.id,
+        providerId: "credential",
+        accountId: user.id,
+        password: passwordHash,
+      });
+    } catch (error) {
+      await prisma.user
+        .delete({
+          where: {
+            id: user.id,
+          },
+        })
+        .catch(() => null);
+
+      throw error;
+    }
 
     await prisma.user.update({
       where: {
-        id: result.user.id,
+        id: user.id,
       },
       data: {
         emailVerified: new Date(),
         emailVerifiedBa: true,
       },
+    });
+
+    await auth.api.signInEmail({
+      body: {
+        email,
+        password,
+      },
+      headers: await headers(),
     });
   });

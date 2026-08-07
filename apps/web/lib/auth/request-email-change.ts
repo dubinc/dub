@@ -97,6 +97,8 @@ export const requestEmailChange = async ({
       ...(syncIdentity && { syncIdentity, partnerId }),
       ...(redirectTo && { redirectTo }),
     },
+    lookupKey: `email-change:${identifier}`,
+    removePreviousTokens: true,
   });
 
   waitUntil(
