@@ -46,7 +46,7 @@ const CustomPrismaAdapter = (p: PrismaClient) => {
         data: {
           ...rest,
           emailVerified,
-          ...(emailVerified ? { emailVerifiedBa: true } : {}),
+          ...(emailVerified ? { emailVerifiedBa: Boolean(emailVerified) } : {}),
           id: createId({ prefix: "user_" }),
           notificationPreferences: {
             create: {},
@@ -66,7 +66,9 @@ const CustomPrismaAdapter = (p: PrismaClient) => {
           ...rest,
           ...(emailVerified !== undefined && {
             emailVerified,
-            ...(emailVerified ? { emailVerifiedBa: true } : {}),
+            ...(emailVerified
+              ? { emailVerifiedBa: Boolean(emailVerified) }
+              : {}),
           }),
         },
       });
