@@ -102,8 +102,21 @@ export const PATCH = withWorkspace(
 
     if (url !== defaultLink.url) {
       try {
-        const [updatedDefaultLink] = await prisma.$transaction([
-          prisma.partnerGroupDefaultLink.update({
+        const updatedDefaultLink = await prisma.$transaction(async (tx) => {
+          // if the group being updated is the default partner group,
+          // also update the program's URL to the new default link destination URL
+          if (group.slug === DEFAULT_PARTNER_GROUP.slug) {
+            await tx.program.update({
+              where: {
+                id: programId,
+              },
+              data: {
+                url,
+              },
+            });
+          }
+
+          return tx.partnerGroupDefaultLink.update({
             where: {
               id: defaultLink.id,
             },
@@ -115,20 +128,8 @@ export const PATCH = withWorkspace(
                   )
                 : url,
             },
-          }),
-          // if the group being updated is the default partner group,
-          // also update the program's URL to the new default link destination URL
-          group.slug === DEFAULT_PARTNER_GROUP.slug
-            ? prisma.program.update({
-                where: {
-                  id: programId,
-                },
-                data: {
-                  url,
-                },
-              })
-            : null,
-        ]);
+          });
+        });
 
         waitUntil(
           qstash.publishJSON({
@@ -159,7 +160,12 @@ export const PATCH = withWorkspace(
     }
 
     // if no url changes were made, just return defaultLink (no changes needed)
-    return NextResponse.json(PartnerGroupDefaultLinkSchema.parse(defaultLink));
+    return NextResponse.json(
+      PartnerGroupDefaultLinkSchema.parse({
+        ...defaultLink,
+        domain,
+      }),
+    );
   },
   {
     requiredPermissions: ["groups.write"],
