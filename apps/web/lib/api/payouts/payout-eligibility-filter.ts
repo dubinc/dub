@@ -16,15 +16,15 @@ export function getPayoutEligibilityFilter({
     amount: {
       gte: program.minPayoutAmount,
     },
-    // Gift card payouts are capped at $2,000 per payout
+    // Gift card payouts must be within the Tremendous allowed range
     NOT: {
       partner: {
         defaultPayoutMethod: "tremendous",
       },
-      amount: {
-        lt: TREMENDOUS_MIN_PAYOUT_AMOUNT_CENTS,
-        gt: TREMENDOUS_MAX_PAYOUT_AMOUNT_CENTS,
-      },
+      OR: [
+        { amount: { lt: TREMENDOUS_MIN_PAYOUT_AMOUNT_CENTS } },
+        { amount: { gt: TREMENDOUS_MAX_PAYOUT_AMOUNT_CENTS } },
+      ],
     },
   };
 
