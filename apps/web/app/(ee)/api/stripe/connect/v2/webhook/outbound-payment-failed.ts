@@ -3,6 +3,7 @@ import { getStripeOutboundPayment } from "@/lib/stripe/get-stripe-outbound-payme
 import { OUTBOUND_PAYMENT_FAILURE_REASONS } from "@/lib/stripe/stripe-v2-schemas";
 import { pluralize } from "@dub/utils";
 import Stripe from "stripe";
+import { notifyPartnerStablecoinPayoutFailed } from "./utils/notify-partner-stablecoin-payout-failed";
 
 export async function outboundPaymentFailed(event: Stripe.ThinEvent) {
   const { related_object: relatedObject } = event;
@@ -30,8 +31,7 @@ export async function outboundPaymentFailed(event: Stripe.ThinEvent) {
     },
   });
 
-  // TODO:
-  // Send email notification
+  await notifyPartnerStablecoinPayoutFailed(outboundPaymentId);
 
   return `Updated ${updatedPayouts.count} ${pluralize("payout", updatedPayouts.count)} to failed status.`;
 }
