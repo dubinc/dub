@@ -123,7 +123,6 @@ export const POST = withWorkspace(
       (x: { type: string }) => x.type === "TXT",
     );
     if (txtVerification) {
-      queryParams.groupId = queryParams.groupId + ",verification";
       const txtHostFqdn: string = txtVerification.domain?.toLowerCase() ?? "";
       const apexSuffix = `.${apex}`;
       const txtHost = txtHostFqdn.endsWith(apexSuffix)
@@ -131,8 +130,13 @@ export const POST = withWorkspace(
         : txtHostFqdn === apex
           ? "@"
           : txtHostFqdn;
-      queryParams.txtHost = txtHost;
-      queryParams.txtValue = txtVerification.value ?? "";
+      const txtValue = txtVerification.value?.trim();
+
+      if (txtHost && txtValue) {
+        queryParams.groupId = queryParams.groupId + ",verification";
+        queryParams.txtHost = txtHost;
+        queryParams.txtValue = txtValue;
+      }
     }
 
     const applyUrl = buildSignedApplyUrl({

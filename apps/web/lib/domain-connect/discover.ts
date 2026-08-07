@@ -60,9 +60,10 @@ function settingsBaseFromTxtRecords(records: string[][]): string | null {
       ) {
         return false;
       }
-      return ALLOWED_SETTINGS_HOST_SUFFIXES.some(
-        (suffix) => host === suffix.replace(/^\./, "") || host.endsWith(suffix),
-      );
+      return ALLOWED_SETTINGS_HOST_SUFFIXES.some((suffix) => {
+        const hostnameSuffix = suffix.replace(/^\./, "");
+        return host === hostnameSuffix || host.endsWith(`.${hostnameSuffix}`);
+      });
     });
 
   return candidates[0] ?? null;
