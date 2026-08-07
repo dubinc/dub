@@ -1,17 +1,17 @@
-const pendingAdminImpersonations = new Set<string>();
+import { redis } from "@/lib/upstash";
 
-export const markAdminImpersonation = (email: string) => {
-  pendingAdminImpersonations.add(email.toLowerCase());
+const KEY_PREFIX = "admin-impersonation:";
+const TTL_SECONDS = 60; // Short window between successful token consume and session.create SAML check
+
+const keyForEmail = (email: string) => `${KEY_PREFIX}${email.toLowerCase()}`;
+
+export const markAdminImpersonation = async (email: string) => {
+  await redis.set(keyForEmail(email), "1", {
+    ex: TTL_SECONDS,
+  });
 };
 
-export const consumeAdminImpersonation = (email: string) => {
-  const isAdminImpersonation = pendingAdminImpersonations.has(
-    email.toLowerCase(),
-  );
-
-  if (isAdminImpersonation) {
-    pendingAdminImpersonations.delete(email.toLowerCase());
-  }
-
-  return isAdminImpersonation;
+export const consumeAdminImpersonation = async (email: string) => {
+  const value = await redis.getdel<string>(keyForEmail(email));
+  return value === "1";
 };

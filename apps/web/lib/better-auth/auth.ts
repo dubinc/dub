@@ -17,14 +17,12 @@ import { nextCookies } from "better-auth/next-js";
 import { genericOAuth, lastLoginMethod, magicLink } from "better-auth/plugins";
 import { isLocalDev } from "../api/environment";
 import { logger, toErrorFields } from "../axiom/server";
-import { adminImpersonation } from "./admin-impersonation-plugin";
 import { databaseHooks } from "./database-hooks";
 import { hooks } from "./hooks";
 import { invite } from "./invite-plugin";
 import { programOAuthConfigs, programOAuthProviderIds } from "./program-oauth";
 import { samlIdp, samlOAuthConfig } from "./saml-sso-plugin";
 
-const VERCEL_DEPLOYMENT = !!process.env.VERCEL_URL;
 const isVercelProduction = process.env.VERCEL_ENV === "production";
 
 export const auth = betterAuth({
@@ -179,10 +177,10 @@ export const auth = betterAuth({
       },
     },
     crossSubDomainCookies: {
-      enabled: VERCEL_DEPLOYMENT,
-      domain: VERCEL_DEPLOYMENT ? ".dub.co" : undefined,
+      enabled: isVercelProduction,
+      domain: isVercelProduction ? ".dub.co" : undefined,
     },
-    useSecureCookies: VERCEL_DEPLOYMENT,
+    useSecureCookies: isVercelProduction,
   },
 
   hooks,
@@ -229,9 +227,6 @@ export const auth = betterAuth({
 
     // SAML IdP-initiated login (Jackson code → session)
     samlIdp,
-
-    // Admin impersonation (copyable magic-link verify URLs)
-    adminImpersonation,
 
     // Workspace + partner-profile invite magic links
     invite,
