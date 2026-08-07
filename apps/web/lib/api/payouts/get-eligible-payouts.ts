@@ -76,13 +76,16 @@ export async function getEligiblePayouts({
         };
       })
       .filter((payout) => {
-        if (payout.partner.defaultPayoutMethod === "tremendous") {
-          return (
-            payout.amount >= TREMENDOUS_MIN_PAYOUT_AMOUNT_CENTS &&
-            payout.amount <= TREMENDOUS_MAX_PAYOUT_AMOUNT_CENTS
-          );
+        if (payout.amount >= program.minPayoutAmount) {
+          if (payout.partner.defaultPayoutMethod === "tremendous") {
+            return (
+              payout.amount >= TREMENDOUS_MIN_PAYOUT_AMOUNT_CENTS &&
+              payout.amount <= TREMENDOUS_MAX_PAYOUT_AMOUNT_CENTS
+            );
+          }
+          return true;
         }
-        return payout.amount >= program.minPayoutAmount;
+        return false;
       });
   }
 
