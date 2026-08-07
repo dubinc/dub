@@ -2,17 +2,18 @@
 
 import {
   createContext,
-  Dispatch,
-  SetStateAction,
+  useCallback,
   useContext,
+  useMemo,
   useState,
 } from "react";
 
 export type ClaimBountyContextValue = {
   socialContentVerifying: boolean;
-  setSocialContentVerifying: Dispatch<SetStateAction<boolean>>;
   socialContentRequirementsMet: boolean;
-  setSocialContentRequirementsMet: Dispatch<SetStateAction<boolean>>;
+  setSocialContentVerifying: (slot: number, value: boolean) => void;
+  setSocialContentRequirementsMet: (slot: number, value: boolean) => void;
+  resetSocialContentState: () => void;
 };
 
 const ClaimBountyContext = createContext<ClaimBountyContextValue | undefined>(
@@ -20,21 +21,69 @@ const ClaimBountyContext = createContext<ClaimBountyContextValue | undefined>(
 );
 
 export function ClaimBountyProvider({
+  socialUrlSlotCount = 0,
   children,
 }: {
+  socialUrlSlotCount?: number;
   children: React.ReactNode;
 }) {
-  const [socialContentVerifying, setSocialContentVerifying] = useState(false);
-  const [socialContentRequirementsMet, setSocialContentRequirementsMet] =
-    useState(true);
+  const [verifyingBySlot, setVerifyingBySlot] = useState<
+    Record<number, boolean>
+  >({});
+  const [requirementsMetBySlot, setRequirementsMetBySlot] = useState<
+    Record<number, boolean>
+  >({});
+
+  const setSocialContentVerifying = useCallback(
+    (slot: number, value: boolean) => {
+      setVerifyingBySlot((prev) =>
+        prev[slot] === value ? prev : { ...prev, [slot]: value },
+      );
+    },
+    [],
+  );
+
+  const setSocialContentRequirementsMet = useCallback(
+    (slot: number, value: boolean) => {
+      setRequirementsMetBySlot((prev) =>
+        prev[slot] === value ? prev : { ...prev, [slot]: value },
+      );
+    },
+    [],
+  );
+
+  const resetSocialContentState = useCallback(() => {
+    setVerifyingBySlot({});
+    setRequirementsMetBySlot({});
+  }, []);
+
+  const socialContentVerifying = useMemo(
+    () =>
+      Array.from(
+        { length: socialUrlSlotCount },
+        (_, i) => verifyingBySlot[i],
+      ).some(Boolean),
+    [socialUrlSlotCount, verifyingBySlot],
+  );
+
+  const socialContentRequirementsMet = useMemo(
+    () =>
+      socialUrlSlotCount === 0 ||
+      Array.from(
+        { length: socialUrlSlotCount },
+        (_, i) => requirementsMetBySlot[i] === true,
+      ).every(Boolean),
+    [socialUrlSlotCount, requirementsMetBySlot],
+  );
 
   return (
     <ClaimBountyContext.Provider
       value={{
         socialContentVerifying,
-        setSocialContentVerifying,
         socialContentRequirementsMet,
+        setSocialContentVerifying,
         setSocialContentRequirementsMet,
+        resetSocialContentState,
       }}
     >
       {children}

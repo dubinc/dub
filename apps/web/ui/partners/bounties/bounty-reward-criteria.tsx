@@ -1,4 +1,7 @@
-import { resolveBountyDetails } from "@/lib/bounty/utils";
+import {
+  formatSocialPlatformsList,
+  resolveBountyDetails,
+} from "@/lib/bounty/utils";
 import { PartnerBountyProps } from "@/lib/types";
 import { Check2 } from "@dub/ui";
 import { currencyFormatter, nFormatter } from "@dub/utils";
@@ -10,7 +13,7 @@ export function getBountyRewardCriteria(
 
   if (
     !bountyInfo?.socialMetrics ||
-    !bountyInfo.socialPlatform ||
+    bountyInfo.socialPlatforms.length === 0 ||
     !bountyInfo.rewardAmount
   ) {
     return [];
@@ -20,11 +23,15 @@ export function getBountyRewardCriteria(
     trailingZeroDisplay: "stripIfInteger",
   });
 
-  const socialPlatform = bountyInfo.socialPlatform;
+  const { socialPlatforms, isAndSocialMetrics } = bountyInfo;
   const { minCount, metric, incrementalBonus } = bountyInfo.socialMetrics;
+  const platformsList = formatSocialPlatformsList(
+    socialPlatforms,
+    isAndSocialMetrics ? "AND" : "OR",
+  );
 
   const texts: string[] = [
-    `Get ${nFormatter(minCount ?? 0, { full: true })} ${metric} on your ${socialPlatform.label} content, earn ${formattedAmount}`,
+    `Get ${nFormatter(minCount ?? 0, { full: true })} ${metric} on your ${platformsList} content, earn ${formattedAmount}`,
   ];
 
   if (incrementalBonus) {
@@ -36,7 +43,9 @@ export function getBountyRewardCriteria(
       });
 
       texts.push(
-        `For each additional ${nFormatter(incrementCount, { full: true })} ${metric} on your ${socialPlatform.label} content, earn ${formattedBonus} – up to ${nFormatter(maxCount, { full: true })} ${metric}`,
+        isAndSocialMetrics
+          ? `For each additional ${nFormatter(incrementCount, { full: true })} ${metric} on each of your ${platformsList} content, earn ${formattedBonus} – up to ${nFormatter(maxCount, { full: true })} ${metric} per platform`
+          : `For each additional ${nFormatter(incrementCount, { full: true })} ${metric} on your ${platformsList} content, earn ${formattedBonus} – up to ${nFormatter(maxCount, { full: true })} ${metric}`,
       );
     }
   }

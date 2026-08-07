@@ -5,7 +5,14 @@ import {
   BOUNTY_MAX_SUBMISSION_FILES,
   BOUNTY_MAX_SUBMISSION_URLS,
 } from "@/lib/bounty/constants";
-import { resolveBountyDetails } from "@/lib/bounty/utils";
+import {
+  BOUNTY_SOCIAL_PLATFORMS,
+  getPlatformFromSocialUrl,
+} from "@/lib/bounty/social-content";
+import {
+  formatSocialPlatformsList,
+  resolveBountyDetails,
+} from "@/lib/bounty/utils";
 import { PartnerBountyProps, PartnerPlatformProps } from "@/lib/types";
 import { evaluateSocialContentRequirements } from "@/ui/partners/bounties/evaluate-social-content-requirements";
 import { X } from "@/ui/shared/icons";
@@ -18,6 +25,7 @@ import {
   Trash,
 } from "@dub/ui";
 import { cn, formatDate } from "@dub/utils";
+import { PlatformType } from "@prisma/client";
 import { AlertTriangle } from "lucide-react";
 import { useEffect, useId, useState } from "react";
 import ReactTextareaAutosize from "react-textarea-autosize";
@@ -207,28 +215,30 @@ export function EmbedImagesField({
 
 export function EmbedSocialUrlField({
   bounty,
+  slot,
+  platforms,
   value,
   onChange,
   partnerPlatform,
-  onVerifyingChange,
-  onRequirementsMetChange,
+  setSocialContentVerifying,
+  setSocialContentRequirementsMet,
 }: {
   bounty: PartnerBountyProps;
+  slot: number;
+  platforms: (typeof BOUNTY_SOCIAL_PLATFORMS)[number][];
   value: string;
   onChange: (v: string) => void;
   partnerPlatform?: Pick<PartnerPlatformProps, "identifier" | "verifiedAt">;
-  onVerifyingChange: (value: boolean) => void;
-  onRequirementsMetChange: (value: boolean) => void;
+  setSocialContentVerifying: (slot: number, value: boolean) => void;
+  setSocialContentRequirementsMet: (slot: number, value: boolean) => void;
 }) {
-  const bountyInfo = resolveBountyDetails(bounty);
-  const socialPlatform = bountyInfo?.socialPlatform;
   const inputId = useId();
   const [urlToCheck, setUrlToCheck] = useState("");
 
   useEffect(() => {
     setUrlToCheck("");
-    onRequirementsMetChange(false);
-  }, [value, onRequirementsMetChange]);
+    setSocialContentRequirementsMet(slot, false);
+  }, [value, slot, setSocialContentRequirementsMet]);
 
   const { data, error, isValidating } = useEmbedSocialContent({
     bountyId: bounty.id,
@@ -236,11 +246,13 @@ export function EmbedSocialUrlField({
   });
 
   useEffect(() => {
-    onVerifyingChange(isValidating);
-    return () => onVerifyingChange(false);
-  }, [isValidating, onVerifyingChange]);
+    setSocialContentVerifying(slot, isValidating);
+    return () => setSocialContentVerifying(slot, false);
+  }, [isValidating, slot, setSocialContentVerifying]);
 
-  if (!socialPlatform) return null;
+  const detectedPlatform = getPlatformFromSocialUrl(value);
+  const matchedPlatform =
+    platforms.find((p) => p.value === detectedPlatform) ?? platforms[0];
 
   const { isPostedFromYourAccount, isAfterStartDate } =
     evaluateSocialContentRequirements({
@@ -257,17 +269,31 @@ export function EmbedSocialUrlField({
     });
 
   useEffect(() => {
-    onRequirementsMetChange(isPostedFromYourAccount && isAfterStartDate);
-    return () => onRequirementsMetChange(true);
-  }, [isAfterStartDate, isPostedFromYourAccount, onRequirementsMetChange]);
+    setSocialContentRequirementsMet(
+      slot,
+      isPostedFromYourAccount && isAfterStartDate,
+    );
+    return () => setSocialContentRequirementsMet(slot, false);
+  }, [
+    isAfterStartDate,
+    isPostedFromYourAccount,
+    slot,
+    setSocialContentRequirementsMet,
+  ]);
+
+  if (!matchedPlatform) return null;
 
   const showIcon = isValidating || (!!error && !!urlToCheck);
+  const isSinglePlatform = platforms.length === 1;
+  const label = isSinglePlatform
+    ? `${matchedPlatform.label} URL`
+    : `${formatSocialPlatformsList(platforms, "OR")} URL`;
 
   return (
     <div>
       <label htmlFor={inputId} className="block">
         <span className="text-content-emphasis text-sm font-medium">
-          {`${socialPlatform.label} URL`}
+          {label}
         </span>
       </label>
       <div className="relative mt-2">
@@ -276,7 +302,7 @@ export function EmbedSocialUrlField({
           type="text"
           inputMode="url"
           autoComplete="url"
-          placeholder={socialPlatform.placeholder}
+          placeholder={matchedPlatform.placeholder}
           value={value}
           onChange={(e) => onChange(e.target.value)}
           onBlur={(e) => {
@@ -345,6 +371,79 @@ export function EmbedSocialUrlField({
           </li>
         )}
       </ul>
+    </div>
+  );
+}
+
+/**
+ * Renders the social content URL field(s) for a bounty in the embed widget: a single
+ * field accepting any of the allowed platforms for OR bounties, or one field per
+ * required platform for AND bounties.
+ */
+export function EmbedSocialUrlFields({
+  bounty,
+  urls,
+  setUrls,
+  partnerPlatforms,
+  setSocialContentVerifying,
+  setSocialContentRequirementsMet,
+}: {
+  bounty: PartnerBountyProps;
+  urls: string[];
+  setUrls: React.Dispatch<React.SetStateAction<string[]>>;
+  partnerPlatforms: Array<{
+    type: PlatformType;
+    identifier: string;
+    verifiedAt: Date | null;
+  }>;
+  setSocialContentVerifying: (slot: number, value: boolean) => void;
+  setSocialContentRequirementsMet: (slot: number, value: boolean) => void;
+}) {
+  const bountyInfo = resolveBountyDetails(bounty);
+  const platforms = bountyInfo?.socialPlatforms ?? [];
+
+  if (platforms.length === 0) {
+    return null;
+  }
+
+  const fieldPlatforms = bountyInfo?.isAndSocialMetrics
+    ? platforms.map((p) => [p])
+    : [platforms];
+
+  return (
+    <div className="flex flex-col gap-5">
+      {fieldPlatforms.map((fieldPlatformSet, slot) => {
+        const detectedPlatform = getPlatformFromSocialUrl(urls[slot] ?? "");
+        const matchedPlatform =
+          fieldPlatformSet.find((p) => p.value === detectedPlatform) ??
+          fieldPlatformSet[0];
+        const partnerPlatform = partnerPlatforms.find(
+          (p) => p.type === matchedPlatform?.value,
+        );
+
+        return (
+          <EmbedSocialUrlField
+            key={slot}
+            bounty={bounty}
+            slot={slot}
+            platforms={fieldPlatformSet}
+            value={urls[slot] ?? ""}
+            onChange={(v) =>
+              setUrls((prev) => {
+                const next =
+                  prev.length > slot
+                    ? [...prev]
+                    : [...prev, ...Array(slot - prev.length + 1).fill("")];
+                next[slot] = v;
+                return next;
+              })
+            }
+            partnerPlatform={partnerPlatform}
+            setSocialContentVerifying={setSocialContentVerifying}
+            setSocialContentRequirementsMet={setSocialContentRequirementsMet}
+          />
+        );
+      })}
     </div>
   );
 }

@@ -115,6 +115,7 @@ export const POST = withCron(async ({ rawBody }) => {
   for (const {
     id,
     socialMetricCount,
+    socialMetricResults,
     socialMetricsLastSyncedAt,
   } of newMetrics) {
     const submission = submissionById.get(id);
@@ -131,6 +132,7 @@ export const POST = withCron(async ({ rawBody }) => {
 
     const updateData: Prisma.BountySubmissionUpdateInput = {
       socialMetricCount,
+      socialMetricResults,
       socialMetricsLastSyncedAt,
     };
 

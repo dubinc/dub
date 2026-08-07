@@ -1,8 +1,19 @@
 "use client";
 
-import { resolveBountyDetails } from "@/lib/bounty/utils";
+import {
+  BOUNTY_SOCIAL_PLATFORMS,
+  getPlatformFromSocialUrl,
+} from "@/lib/bounty/social-content";
+import {
+  formatSocialPlatformsList,
+  resolveBountyDetails,
+} from "@/lib/bounty/utils";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
-import { PartnerBountyProps, SocialContent } from "@/lib/types";
+import {
+  PartnerBountyProps,
+  PartnerPlatformProps,
+  SocialContent,
+} from "@/lib/types";
 import { useClaimBountyContext } from "@/ui/partners/bounties/claim-bounty-context";
 import { useClaimBountyForm } from "@/ui/partners/bounties/use-claim-bounty-form";
 import { useSocialContent } from "@/ui/partners/bounties/use-social-content";
@@ -13,22 +24,17 @@ import { AlertTriangle } from "lucide-react";
 import { useEffect, useId, useState } from "react";
 import { evaluateSocialContentRequirements } from "./evaluate-social-content-requirements";
 
+type SocialPlatformOption = (typeof BOUNTY_SOCIAL_PLATFORMS)[number];
+
 function SocialContentRequirementChecks({
   content,
   bounty,
+  partnerPlatform,
 }: {
   content: SocialContent | null;
   bounty: PartnerBountyProps;
+  partnerPlatform?: Pick<PartnerPlatformProps, "identifier" | "verifiedAt">;
 }) {
-  const { partner } = usePartnerProfile();
-
-  const bountyInfo = resolveBountyDetails(bounty);
-  const socialPlatform = bountyInfo?.socialPlatform;
-
-  const partnerPlatform = partner?.platforms?.find(
-    (p) => p.type === socialPlatform?.value,
-  );
-
   const { isPostedFromYourAccount, isAfterStartDate } =
     evaluateSocialContentRequirements({
       content,
@@ -73,21 +79,33 @@ function SocialContentRequirementChecks({
   );
 }
 
+/**
+ * A single social content URL field.
+ *
+ * - `slot` is the index into the submission's `urls` array reserved for this field.
+ * - `platforms` is the set of platforms this field accepts. A single-element array locks
+ *   the field to one platform (used for legacy single-platform bounties and for each field
+ *   in an AND bounty); a multi-element array means any one of them is accepted (OR bounty).
+ */
 export function SocialContentUrlField({
   bounty,
+  slot,
+  platforms,
 }: {
   bounty: PartnerBountyProps;
+  slot: number;
+  platforms: SocialPlatformOption[];
 }) {
   const { partner } = usePartnerProfile();
-  const { setSocialContentRequirementsMet } = useClaimBountyContext();
+  const { setSocialContentVerifying, setSocialContentRequirementsMet } =
+    useClaimBountyContext();
 
-  const { watch, setValue, getValues, setSocialContentVerifying } =
-    useClaimBountyForm();
+  const { watch, setValue, getValues } = useClaimBountyForm();
 
   const [urlToCheck, setUrlToCheck] = useState<string>("");
   const inputId = useId();
 
-  const contentUrl = watch("urls")?.[0] ?? "";
+  const contentUrl = watch("urls")?.[slot] ?? "";
 
   useEffect(() => {
     if (contentUrl === "") {
@@ -101,13 +119,16 @@ export function SocialContentUrlField({
   });
 
   useEffect(() => {
-    setSocialContentVerifying(isValidating);
-    return () => setSocialContentVerifying(false);
-  }, [isValidating, setSocialContentVerifying]);
+    setSocialContentVerifying(slot, isValidating);
+    return () => setSocialContentVerifying(slot, false);
+  }, [isValidating, slot, setSocialContentVerifying]);
 
-  const bountyInfo = resolveBountyDetails(bounty);
+  const detectedPlatform = getPlatformFromSocialUrl(contentUrl);
+  const matchedPlatform =
+    platforms.find((p) => p.value === detectedPlatform) ?? platforms[0];
+
   const partnerPlatform = partner?.platforms?.find(
-    (p) => p.type === bountyInfo?.socialPlatform?.value,
+    (p) => p.type === (detectedPlatform ?? matchedPlatform?.value),
   );
 
   useEffect(() => {
@@ -118,36 +139,44 @@ export function SocialContentUrlField({
     });
 
     setSocialContentRequirementsMet(
+      slot,
       checks.isPostedFromYourAccount && checks.isAfterStartDate,
     );
 
-    return () => setSocialContentRequirementsMet(true);
-  }, [data, bounty, partnerPlatform, setSocialContentRequirementsMet]);
+    return () => setSocialContentRequirementsMet(slot, false);
+  }, [data, bounty, partnerPlatform, slot, setSocialContentRequirementsMet]);
 
   const showIcon = isValidating || (error && urlToCheck);
 
-  if (!bountyInfo?.socialPlatform) {
+  if (platforms.length === 0 || !matchedPlatform) {
     return null;
   }
 
+  const isSinglePlatform = platforms.length === 1;
+  const label = isSinglePlatform
+    ? `${matchedPlatform.label} URL`
+    : `${formatSocialPlatformsList(platforms, "OR")} URL`;
+
   const handleChange = (value: string) => {
     const prev = getValues("urls") ?? [];
-    setValue("urls", [value, ...prev.slice(1)], { shouldDirty: true });
+    const next =
+      prev.length > slot
+        ? [...prev]
+        : [...prev, ...Array(slot - prev.length + 1).fill("")];
+    next[slot] = value;
+    setValue("urls", next, { shouldDirty: true });
   };
 
   const handleBlur = () => {
     const trimmed = contentUrl.trim();
-    const prev = getValues("urls") ?? [];
-    setValue("urls", [trimmed, ...prev.slice(1)], { shouldDirty: true });
+    handleChange(trimmed);
     setUrlToCheck(trimmed);
   };
 
   return (
     <div>
       <label htmlFor={inputId} className="block">
-        <span className="text-sm font-medium text-neutral-900">
-          {`${bountyInfo?.socialPlatform.label} URL`}
-        </span>
+        <span className="text-sm font-medium text-neutral-900">{label}</span>
       </label>
       <div className="relative mt-2">
         <input
@@ -155,7 +184,7 @@ export function SocialContentUrlField({
           type="text"
           inputMode="url"
           autoComplete="url"
-          placeholder={bountyInfo?.socialPlatform.placeholder}
+          placeholder={matchedPlatform.placeholder}
           value={contentUrl}
           onChange={(e) => handleChange(e.target.value)}
           onBlur={handleBlur}
@@ -180,28 +209,99 @@ export function SocialContentUrlField({
           </div>
         )}
       </div>
-      <SocialContentRequirementChecks content={data} bounty={bounty} />
+      <SocialContentRequirementChecks
+        content={data}
+        bounty={bounty}
+        partnerPlatform={partnerPlatform}
+      />
+    </div>
+  );
+}
+
+/**
+ * Renders the social content URL field(s) for a bounty: a single field that accepts any
+ * of the allowed platforms for OR bounties, or one field per required platform for AND
+ * bounties.
+ */
+export function SocialContentUrlFields({
+  bounty,
+}: {
+  bounty: PartnerBountyProps;
+}) {
+  const bountyInfo = resolveBountyDetails(bounty);
+  const platforms = bountyInfo?.socialPlatforms ?? [];
+
+  if (platforms.length === 0) {
+    return null;
+  }
+
+  if (!bountyInfo?.isAndSocialMetrics) {
+    return (
+      <SocialContentUrlField bounty={bounty} slot={0} platforms={platforms} />
+    );
+  }
+
+  return (
+    <div className="flex flex-col gap-5">
+      {platforms.map((platform, i) => (
+        <SocialContentUrlField
+          key={platform.value}
+          bounty={bounty}
+          slot={i}
+          platforms={[platform]}
+        />
+      ))}
     </div>
   );
 }
 
 export function SocialAccountNotVerifiedWarning({
   bounty,
+  partnerPlatforms,
 }: {
   bounty: PartnerBountyProps;
+  partnerPlatforms?: Array<{
+    type: string;
+    verifiedAt: Date | string | null;
+  }>;
 }) {
   const bountyInfo = resolveBountyDetails(bounty);
-
   const { program, partner } = useReferralsEmbedData();
 
-  if (!bountyInfo?.socialPlatform) {
+  const platforms = bountyInfo?.socialPlatforms ?? [];
+
+  if (platforms.length === 0) {
     return null;
   }
+
+  const missingPlatforms = platforms.filter((platform) => {
+    const partnerPlatform = partnerPlatforms?.find(
+      (p) => p.type === platform.value,
+    );
+    return !partnerPlatform?.verifiedAt;
+  });
+
+  // OR: warn only when no allowed platform is verified.
+  // AND: warn when any required platform is missing.
+  const shouldWarn = bountyInfo?.isAndSocialMetrics
+    ? missingPlatforms.length > 0
+    : missingPlatforms.length === platforms.length;
+
+  if (!shouldWarn) {
+    return null;
+  }
+
+  const platformsList = formatSocialPlatformsList(
+    missingPlatforms,
+    bountyInfo?.isAndSocialMetrics ? "AND" : "OR",
+  );
 
   return (
     <div className="bg-bg-attention flex flex-col items-center justify-between gap-2 rounded-lg p-2 text-center sm:flex-row">
       <div className="text-content-attention px-2 text-sm font-medium">
-        {`A verified ${bountyInfo.socialPlatform.label} account must be connected to your Dub partner profile to claim this bounty.`}
+        {missingPlatforms.length > 1
+          ? `Verified ${platformsList} accounts must be connected to your Dub partner profile to claim this bounty.`
+          : `A verified ${platformsList} account must be connected to your Dub partner profile to claim this bounty.`}
 
         <a
           href="https://dub.co/help/article/partner-profile#website-and-socials"

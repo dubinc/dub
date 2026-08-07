@@ -1,5 +1,9 @@
 "use client";
 
+import {
+  BOUNTY_SOCIAL_PLATFORMS,
+  getPlatformFromSocialUrl,
+} from "@/lib/bounty/social-content";
 import { resolveBountyDetails } from "@/lib/bounty/utils";
 import {
   BountySocialPlatform,
@@ -152,25 +156,16 @@ function getSocialContentEmbedAspectRatio({
   }
 }
 
-export function BountySocialContentPreview({
-  bounty,
-  submission,
-}: BountySocialContentPreviewProps) {
+function SingleSocialContentEmbed({
+  url,
+  platform,
+}: {
+  url: string;
+  platform: (typeof BOUNTY_SOCIAL_PLATFORMS)[number];
+}) {
   const [loaded, setLoaded] = useState(false);
 
-  const bountyInfo = resolveBountyDetails(bounty);
-
-  const url = submission?.urls?.[0] ?? "";
-  const platform = bountyInfo?.socialPlatform;
-
-  if (!url || !platform) {
-    return null;
-  }
-
-  const embedUrl = getSocialContentEmbedUrl({
-    platform: platform.value,
-    url,
-  });
+  const embedUrl = getSocialContentEmbedUrl({ platform: platform.value, url });
 
   if (!embedUrl) {
     return null;
@@ -206,6 +201,43 @@ export function BountySocialContentPreview({
           onLoad={() => setLoaded(true)}
         />
       </div>
+    </div>
+  );
+}
+
+export function BountySocialContentPreview({
+  bounty,
+  submission,
+}: BountySocialContentPreviewProps) {
+  const bountyInfo = resolveBountyDetails(bounty);
+
+  const urls = submission?.urls ?? [];
+  const allowedPlatforms = bountyInfo?.socialPlatforms ?? [];
+
+  if (urls.length === 0 || allowedPlatforms.length === 0) {
+    return null;
+  }
+
+  const previews = urls
+    .map((url) => {
+      const detected = getPlatformFromSocialUrl(url);
+      const platform = allowedPlatforms.find((p) => p.value === detected);
+      return platform ? { url, platform } : null;
+    })
+    .filter(
+      (p): p is { url: string; platform: (typeof allowedPlatforms)[number] } =>
+        p != null,
+    );
+
+  if (previews.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className="flex flex-col gap-3">
+      {previews.map(({ url, platform }) => (
+        <SingleSocialContentEmbed key={url} url={url} platform={platform} />
+      ))}
     </div>
   );
 }

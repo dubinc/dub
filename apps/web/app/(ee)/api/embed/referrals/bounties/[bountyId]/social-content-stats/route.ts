@@ -1,6 +1,7 @@
 import { DubApiError } from "@/lib/api/errors";
 import { getSocialContent } from "@/lib/api/scrape-creators/get-social-content";
 import { getBountyOrThrow } from "@/lib/bounty/api/get-bounty-or-throw";
+import { getPlatformFromSocialUrl } from "@/lib/bounty/social-content";
 import { resolveBountyDetails } from "@/lib/bounty/utils";
 import { withReferralsEmbedToken } from "@/lib/embed/referrals/auth";
 import { ratelimit } from "@/lib/upstash";
@@ -16,17 +17,6 @@ export const GET = withReferralsEmbedToken(
   async ({ programEnrollment, searchParams, params }) => {
     const { bountyId } = params;
     const { url } = searchParamsSchema.parse(searchParams);
-
-    const { success } = await ratelimit(10, "1 h").limit(
-      `partner-profile:social-content-stats:${programEnrollment.partnerId}`,
-    );
-
-    if (!success) {
-      throw new DubApiError({
-        code: "rate_limit_exceeded",
-        message: "You've been rate limited. Please try again later.",
-      });
-    }
 
     const bounty = await getBountyOrThrow({
       bountyId,
@@ -81,8 +71,32 @@ export const GET = withReferralsEmbedToken(
       });
     }
 
+    const rateLimit = 10 * Math.max(1, bountyInfo.socialPlatforms.length);
+    const { success } = await ratelimit(rateLimit, "1 h").limit(
+      `partner-profile:social-content-stats:${programEnrollment.partnerId}`,
+    );
+
+    if (!success) {
+      throw new DubApiError({
+        code: "rate_limit_exceeded",
+        message: "You've been rate limited. Please try again later.",
+      });
+    }
+
+    const platform = getPlatformFromSocialUrl(url);
+
+    if (
+      !platform ||
+      !bountyInfo.socialPlatforms.some((p) => p.value === platform)
+    ) {
+      throw new DubApiError({
+        code: "bad_request",
+        message: `This link must be from one of: ${bountyInfo.socialPlatforms.map((p) => p.label).join(", ")}.`,
+      });
+    }
+
     const content = await getSocialContent({
-      platform: bountyInfo.socialMetrics.platform,
+      platform,
       url,
     });
 

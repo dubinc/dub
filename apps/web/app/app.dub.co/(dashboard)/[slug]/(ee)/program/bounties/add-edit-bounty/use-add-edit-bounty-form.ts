@@ -11,8 +11,12 @@ import { addFrequency } from "@/lib/bounty/periods";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { BountyProps } from "@/lib/types";
-import { bountySocialContentRequirementsSchema } from "@/lib/zod/schemas/bounties";
+import {
+  BountyProps,
+  BountySocialPlatform,
+  BountySocialPlatformMetric,
+} from "@/lib/types";
+import { bountySocialContentRequirementsWriteSchema } from "@/lib/zod/schemas/bounties";
 import { formatDate } from "@dub/utils";
 import { BountySubmissionFrequency } from "@prisma/client";
 import { Dispatch, SetStateAction, useEffect, useMemo, useState } from "react";
@@ -28,10 +32,15 @@ const ACCORDION_ITEMS = [
   "groups",
 ];
 
-const DEFAULT_SOCIAL_METRICS_CRITERIA = {
-  platform: "youtube",
+const DEFAULT_SOCIAL_METRICS_CRITERIA: {
+  platforms: BountySocialPlatform[];
+  logic: "OR" | "AND";
+  metric: BountySocialPlatformMetric;
+} = {
+  platforms: ["youtube"],
+  logic: "OR",
   metric: "views",
-} as const;
+};
 
 const resolveSocialMetricsCriteria = (
   existing?: NonNullable<
@@ -452,7 +461,7 @@ export function useAddEditBountyForm({
         }
 
         const parsed =
-          bountySocialContentRequirementsSchema.safeParse(socialMetrics);
+          bountySocialContentRequirementsWriteSchema.safeParse(socialMetrics);
 
         if (!parsed.success) {
           return (

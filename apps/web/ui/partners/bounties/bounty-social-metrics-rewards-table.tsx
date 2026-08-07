@@ -36,6 +36,7 @@ const displayStatusMap = {
 
 interface SubmissionForRewards {
   socialMetricCount: number | null;
+  socialMetricResults?: BountySubmissionProps["socialMetricResults"];
   commission: { earnings: number } | null;
   status: BountySubmissionProps["status"];
 }
@@ -86,9 +87,37 @@ export function BountySocialMetricsRewardsTable({
 
   const bountyInfo = resolveBountyDetails(bounty);
   const metricLabel = bountyInfo?.socialMetrics?.metric ?? "Count";
+  const showPlatformColumn = tiers.some((tier) => tier.platform != null);
 
   const columns = useMemo<ColumnDef<SocialMetricsRewardTier>[]>(
     () => [
+      ...(showPlatformColumn
+        ? [
+            {
+              id: "platform",
+              header: "Platform",
+              minSize: 100,
+              size: 120,
+              cell: ({
+                row: { original },
+              }: {
+                row: { original: SocialMetricsRewardTier };
+              }) => {
+                const platform = original.platform
+                  ? bountyInfo?.socialPlatforms.find(
+                      (p) => p.value === original.platform,
+                    )
+                  : undefined;
+
+                return (
+                  <span className="text-content-default font-medium">
+                    {platform?.label ?? "All"}
+                  </span>
+                );
+              },
+            } satisfies ColumnDef<SocialMetricsRewardTier>,
+          ]
+        : []),
       {
         id: "threshold",
         header: capitalize(metricLabel)!,
@@ -125,13 +154,13 @@ export function BountySocialMetricsRewardsTable({
         },
       },
     ],
-    [metricLabel, submission],
+    [metricLabel, submission, showPlatformColumn, bountyInfo],
   );
 
   const table = useTable({
     data: tiers,
     columns,
-    getRowId: (row) => String(row.threshold),
+    getRowId: (row) => `${row.platform ?? "base"}-${row.threshold}`,
     resourceName: () => "reward tier",
     scrollWrapperClassName: "min-h-0",
     thClassName: "border-l-0",

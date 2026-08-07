@@ -1,3 +1,4 @@
+import { isValidUrl } from "@dub/utils";
 import { PlatformType } from "@prisma/client";
 
 export const BOUNTY_SOCIAL_PLATFORMS = [
@@ -42,6 +43,9 @@ export const BOUNTY_SOCIAL_PLATFORM_VALUES = BOUNTY_SOCIAL_PLATFORMS.map(
   (p) => p.value,
 );
 
+// Combination logic when a bounty targets more than one platform
+export const BOUNTY_SOCIAL_METRIC_LOGIC = ["OR", "AND"] as const;
+
 export const BOUNTY_SOCIAL_PLATFORM_METRICS = BOUNTY_SOCIAL_PLATFORMS.map(
   (p) => p.metrics,
 ).flat();
@@ -70,3 +74,20 @@ export const SOCIAL_URL_HOST_TO_PLATFORM: Record<string, PlatformType> = {
   "linkedin.com": "linkedin",
   "www.linkedin.com": "linkedin",
 };
+
+export function getPlatformFromSocialUrl(url: string): PlatformType | null {
+  const trimmed = url?.trim();
+
+  if (!trimmed || !isValidUrl(trimmed)) {
+    return null;
+  }
+
+  try {
+    const parsed = new URL(trimmed);
+    const host = parsed.hostname.replace(/^www\./, "");
+
+    return SOCIAL_URL_HOST_TO_PLATFORM[host] ?? null;
+  } catch {
+    return null;
+  }
+}
