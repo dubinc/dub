@@ -9,13 +9,15 @@ generator client {
 }
 
 model User {
-  id            String    @id @default(cuid())
-  name          String?
-  email         String?   @unique
-  emailVerified DateTime?
-  image         String?
-  isMachine     Boolean   @default(false)
-  createdAt     DateTime  @default(now())
+  id              String    @id @default(cuid())
+  name            String?
+  email           String?   @unique
+  emailVerified   DateTime?
+  emailVerifiedBa Boolean   @default(false) // Better Auth expects a boolean emailVerified field; We can rename this after the migration
+  image           String?
+  isMachine       Boolean   @default(false)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @default(now()) @updatedAt
 
   // password & security fields
   passwordHash         String?
@@ -62,32 +64,68 @@ model User {
 }
 
 model Account {
-  id                       String  @id @default(cuid())
-  userId                   String
-  type                     String
-  provider                 String
-  providerAccountId        String
+  // Shared
+  id     String  @id @default(cuid())
+  userId String
+  scope  String?
+
+  // NextAuth legacy (nullable for Better Auth–created rows)
+  type                     String?
+  provider                 String?
+  providerAccountId        String?
   refresh_token            String? @db.Text
   refresh_token_expires_in Int?
   access_token             String? @db.Text
   expires_at               Int?
   token_type               String?
-  scope                    String?
   id_token                 String? @db.Text
   session_state            String?
 
+  // Better Auth
+  accountId             String?
+  providerId            String?
+  accessToken           String?   @db.Text
+  refreshToken          String?   @db.Text
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  idToken               String?   @db.Text
+  password              String?   @db.Text
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @default(now()) @updatedAt
+
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@unique([providerId, accountId])
   @@unique([provider, providerAccountId])
   @@index([userId])
 }
 
 model Session {
-  id           String   @id @default(cuid())
-  sessionToken String   @unique
-  userId       String
-  expires      DateTime
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id        String   @id @default(cuid())
+  expiresAt DateTime
+  token     String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+  ipAddress String?
+  userAgent String?  @db.Text
+  userId    String
 
-  @@index([userId])
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index(userId)
+}
+
+model Verification {
+  id         String   @id @default(cuid())
+  identifier String // Token
+  value      String   @db.Text // Token payload
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  // Additional fields
+  lookupKey String? // Key for invalidating random-identifier tokens (Eg: remove invite tokens)
+
+  @@index(identifier)
+  @@index(lookupKey)
 }

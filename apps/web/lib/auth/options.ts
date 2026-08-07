@@ -41,9 +41,12 @@ const CustomPrismaAdapter = (p: PrismaClient) => {
   return {
     ...PrismaAdapter(p),
     createUser: async (data: any) => {
+      const { emailVerified, ...rest } = data;
       return p.user.create({
         data: {
-          ...data,
+          ...rest,
+          emailVerified,
+          ...(emailVerified ? { emailVerifiedBa: Boolean(emailVerified) } : {}),
           id: createId({ prefix: "user_" }),
           notificationPreferences: {
             create: {},
@@ -51,6 +54,26 @@ const CustomPrismaAdapter = (p: PrismaClient) => {
         },
       });
     },
+
+    updateUser: async (data: any) => {
+      const { id, emailVerified, ...rest } = data;
+
+      return p.user.update({
+        where: {
+          id,
+        },
+        data: {
+          ...rest,
+          ...(emailVerified !== undefined && {
+            emailVerified,
+            ...(emailVerified
+              ? { emailVerifiedBa: Boolean(emailVerified) }
+              : {}),
+          }),
+        },
+      });
+    },
+
     // Some IdPs (e.g. Beehiiv) return extra token fields
     // so we need to only include the fields that are valid columns on Account table
     linkAccount: (account: AdapterAccount) =>
