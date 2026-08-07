@@ -1,6 +1,7 @@
 "use client";
 
-import { AnimatedSizeContainer, Button, useLocalStorage } from "@dub/ui";
+import { authClient } from "@/lib/better-auth/auth-client";
+import { AnimatedSizeContainer, Button } from "@dub/ui";
 import { useSearchParams } from "next/navigation";
 import {
   ComponentType,
@@ -16,7 +17,7 @@ import { AuthMethodsSeparator } from "../auth-methods-separator";
 import { EmailSignIn } from "./email-sign-in";
 import { GitHubButton } from "./github-button";
 import { GoogleButton } from "./google-button";
-import { SSOSignIn } from "./sso-sign-in";
+import { SAMLSignIn } from "./saml-sign-in";
 
 export const authMethods = [
   "google",
@@ -27,6 +28,10 @@ export const authMethods = [
 ] as const;
 
 export type AuthMethod = (typeof authMethods)[number];
+
+function getLastUsedAuthMethod(): AuthMethod | undefined {
+  return authMethods.find((m) => m === authClient.getLastUsedLoginMethod());
+}
 
 export const errorCodes = {
   "no-credentials": "Please provide an email and password.",
@@ -57,7 +62,6 @@ export const LoginFormContext = createContext<{
   showSSOOption: boolean;
   setShowPasswordField: Dispatch<SetStateAction<boolean>>;
   setClickedMethod: Dispatch<SetStateAction<AuthMethod | undefined>>;
-  setLastUsedAuthMethod: Dispatch<SetStateAction<AuthMethod | undefined>>;
   setShowSSOOption: Dispatch<SetStateAction<boolean>>;
 }>({
   authMethod: undefined,
@@ -67,7 +71,6 @@ export const LoginFormContext = createContext<{
   showSSOOption: false,
   setShowPasswordField: () => {},
   setClickedMethod: () => {},
-  setLastUsedAuthMethod: () => {},
   setShowSSOOption: () => {},
 });
 
@@ -85,15 +88,12 @@ export default function LoginForm({
     undefined,
   );
 
-  const [lastUsedAuthMethodLive, setLastUsedAuthMethod] = useLocalStorage<
-    AuthMethod | undefined
-  >("last-used-auth-method", undefined);
   const { current: lastUsedAuthMethod } = useRef<AuthMethod | undefined>(
-    lastUsedAuthMethodLive,
+    getLastUsedAuthMethod(),
   );
 
   const [authMethod, setAuthMethod] = useState<AuthMethod | undefined>(
-    authMethods.find((m) => m === lastUsedAuthMethodLive) ?? "email",
+    lastUsedAuthMethod ?? "email",
   );
 
   useEffect(() => {
@@ -130,7 +130,7 @@ export default function LoginForm({
     },
     {
       method: "saml",
-      component: SSOSignIn,
+      component: SAMLSignIn,
     },
   ];
 
@@ -152,7 +152,6 @@ export default function LoginForm({
         showSSOOption,
         setShowPasswordField,
         setClickedMethod,
-        setLastUsedAuthMethod,
         setShowSSOOption,
       }}
     >

@@ -2,12 +2,11 @@
 
 import { ModalProvider } from "@/ui/modals/modal-provider";
 import { Analytics as DubAnalytics } from "@dub/analytics/react";
-import { SessionProvider } from "next-auth/react";
 import { ReactNode } from "react";
 
 export default function AppLayout({ children }: { children: ReactNode }) {
   return (
-    <SessionProvider>
+    <>
       <DubAnalytics
         apiHost="/_proxy/dub"
         cookieOptions={{
@@ -18,6 +17,6 @@ export default function AppLayout({ children }: { children: ReactNode }) {
         }}
       />
       <ModalProvider>{children}</ModalProvider>
-    </SessionProvider>
+    </>
   );
 }

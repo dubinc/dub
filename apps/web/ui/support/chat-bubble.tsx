@@ -1,9 +1,9 @@
 "use client";
 
+import { useSession } from "@/lib/better-auth/use-session";
 import { Tooltip } from "@dub/ui";
 import { Msgs, Xmark } from "@dub/ui/icons";
 import { AnimatePresence, motion } from "motion/react";
-import { useSession } from "next-auth/react";
 import { useEffect, useRef, useState } from "react";
 import { ChatInterface } from "./chat-interface";
 import { ClearChatButton } from "./clear-chat-button";

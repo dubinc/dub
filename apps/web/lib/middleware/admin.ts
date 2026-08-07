@@ -1,13 +1,13 @@
 import { prismaEdge } from "@/lib/prisma/edge";
 import { DUB_WORKSPACE_ID } from "@dub/utils";
 import { NextRequest, NextResponse } from "next/server";
-import { getUserViaToken } from "./utils/get-user-via-token";
+import { getServerSession } from "../better-auth/get-session";
 import { parse } from "./utils/parse";
 
 export async function AdminMiddleware(req: NextRequest) {
   const { path } = parse(req);
 
-  const user = await getUserViaToken(req);
+  const { user } = await getServerSession(req.headers);
 
   if (!user && path !== "/login") {
     return NextResponse.redirect(new URL("/login", req.url));

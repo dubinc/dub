@@ -2,9 +2,9 @@
 
 import { cancelEmailChangeAction } from "@/lib/actions/cancel-email-change";
 import { confirmEmailChangeAction } from "@/lib/actions/confirm-email-change";
+import { useSession } from "@/lib/better-auth/use-session";
 import EmptyState from "@/ui/shared/empty-state";
 import { Button, InputPassword } from "@dub/ui";
-import { useSession } from "next-auth/react";
 import { useAction } from "next-safe-action/hooks";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -12,15 +12,15 @@ import { toast } from "sonner";
 
 export default function ConfirmEmailChangePageClient({
   token,
-  email,
+  currentEmail,
   newEmail,
 }: {
   token: string;
-  email: string;
+  currentEmail: string;
   newEmail: string;
 }) {
   const router = useRouter();
-  const { update } = useSession();
+  const { refetch } = useSession();
   const [canceled, setCanceled] = useState(false);
   const [confirmed, setConfirmed] = useState(false);
 
@@ -32,14 +32,9 @@ export default function ConfirmEmailChangePageClient({
         }
 
         setConfirmed(true);
-
-        const redirectTo =
-          data.redirectTo ??
-          (data.isPartnerProfile ? "/profile" : "/account/settings");
-
-        await update();
+        await refetch();
         toast.success("Successfully updated your email!");
-        router.replace(redirectTo);
+        router.replace(data.redirectTo);
       },
       onError({ error }) {
         toast.error(error.serverError ?? "Failed to confirm the email change.");
@@ -79,7 +74,7 @@ export default function ConfirmEmailChangePageClient({
       </h3>
       <p className="mt-2 text-center text-sm text-neutral-500">
         Confirm the update to your email from{" "}
-        <span className="font-medium text-neutral-700">{email}</span> to{" "}
+        <span className="font-medium text-neutral-700">{currentEmail}</span> to{" "}
         <span className="font-medium text-neutral-900">{newEmail}</span>.
       </p>
 

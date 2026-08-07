@@ -1,5 +1,6 @@
 "use client";
 
+import { Session, useSession } from "@/lib/better-auth/use-session";
 import { usePartnerMessagesCount } from "@/lib/messages/hooks/use-partner-messages-count";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { SUBMITTED_LEADS_ENABLED_PROGRAM_IDS } from "@/lib/submitted-leads/constants";
@@ -46,8 +47,6 @@ import {
   Webhook,
 } from "@dub/ui/icons";
 import { isWorkspaceBillingTrialActive } from "@dub/utils";
-import { Session } from "next-auth";
-import { useSession } from "next-auth/react";
 import { useParams, usePathname } from "next/navigation";
 import { ReactNode, useMemo } from "react";
 import { DubPartnersPopup } from "./dub-partners-popup";

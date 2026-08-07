@@ -10,22 +10,10 @@ export const passwordSchema = z
   );
 
 export const emailSchema = z
-  .string()
-  .trim()
   .email()
+  .trim()
   .min(1)
   .transform((email) => email.toLowerCase());
-
-export const resetPasswordSchema = z
-  .object({
-    token: z.string().min(1),
-    password: passwordSchema,
-    confirmPassword: z.string(),
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: "Confirm password must match password",
-    path: ["confirmPassword"],
-  });
 
 export const updatePasswordSchema = z
   .object({
@@ -40,8 +28,4 @@ export const updatePasswordSchema = z
 export const signUpSchema = z.object({
   email: emailSchema,
   password: passwordSchema,
-});
-
-export const requestPasswordResetSchema = z.object({
-  email: emailSchema,
 });

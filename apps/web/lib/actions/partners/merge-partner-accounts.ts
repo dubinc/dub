@@ -1,6 +1,12 @@
 "use server";
 
 import { generateOTP } from "@/lib/auth/utils";
+import {
+  consumeVerificationToken,
+  createVerificationToken,
+  deleteVerificationTokens,
+  findVerificationToken,
+} from "@/lib/better-auth/verification-token";
 import { qstash } from "@/lib/cron";
 import { prisma } from "@/lib/prisma";
 import { ratelimit, redis } from "@/lib/upstash";
@@ -146,34 +152,42 @@ const sendTokens = async ({
     );
   }
 
-  await prisma.emailVerificationToken.deleteMany({
-    where: {
-      identifier: {
-        in: [sourceEmail, targetEmail],
-      },
-    },
-  });
+  await Promise.all([
+    deleteVerificationTokens({
+      kind: "mergePartnerAccountsOtp",
+      identifier: sourceEmail,
+    }),
+
+    deleteVerificationTokens({
+      kind: "mergePartnerAccountsOtp",
+      identifier: targetEmail,
+    }),
+  ]);
 
   await redis.del(`${CACHE_KEY_PREFIX}:${userId}`);
 
   const sourceEmailCode = generateOTP();
   const targetEmailCode = generateOTP();
-  const expires = new Date(Date.now() + EMAIL_OTP_EXPIRY_IN * 1000);
 
-  await prisma.emailVerificationToken.createMany({
-    data: [
-      {
-        identifier: sourceEmail,
-        token: sourceEmailCode,
-        expires,
+  await Promise.all([
+    createVerificationToken({
+      kind: "mergePartnerAccountsOtp",
+      identifier: sourceEmail,
+      value: {
+        targetEmail: sourceEmail,
+        code: sourceEmailCode,
       },
-      {
-        identifier: targetEmail,
-        token: targetEmailCode,
-        expires,
+    }),
+
+    createVerificationToken({
+      kind: "mergePartnerAccountsOtp",
+      identifier: targetEmail,
+      value: {
+        targetEmail: targetEmail,
+        code: targetEmailCode,
       },
-    ],
-  });
+    }),
+  ]);
 
   await sendBatchEmail([
     {
@@ -223,57 +237,73 @@ const verifyTokens = async ({
     );
   }
 
-  const [sourceToken, targetToken] = await Promise.all([
-    prisma.emailVerificationToken.findUnique({
-      where: {
-        identifier_token: {
-          identifier: sourceEmail,
-          token: sourceCode,
-        },
-      },
+  const [sourceVerification, targetVerification] = await Promise.all([
+    findVerificationToken({
+      kind: "mergePartnerAccountsOtp",
+      identifier: sourceEmail,
     }),
 
-    prisma.emailVerificationToken.findUnique({
-      where: {
-        identifier_token: {
-          identifier: targetEmail,
-          token: targetCode,
-        },
-      },
+    findVerificationToken({
+      kind: "mergePartnerAccountsOtp",
+      identifier: targetEmail,
     }),
   ]);
 
-  if (!sourceToken) {
+  if (
+    !sourceVerification ||
+    sourceVerification.value.code !== sourceCode ||
+    sourceVerification.value.targetEmail !== sourceEmail
+  ) {
     throw new Error(
       `The code entered for ${sourceEmail} does not match. Please double-check it and enter it again.`,
     );
   }
 
-  if (sourceToken.expires < new Date()) {
+  if (sourceVerification.isExpired) {
     throw new Error(
       `The code entered for ${sourceEmail} has expired. Please request a new code.`,
     );
   }
 
-  if (!targetToken) {
+  if (
+    !targetVerification ||
+    targetVerification.value.code !== targetCode ||
+    targetVerification.value.targetEmail !== targetEmail
+  ) {
     throw new Error(
       `The code entered for ${targetEmail} does not match. Please double-check it and enter it again.`,
     );
   }
 
-  if (targetToken.expires < new Date()) {
+  if (targetVerification.isExpired) {
     throw new Error(
       `The code entered for ${targetEmail} has expired. Please request a new code.`,
     );
   }
 
-  await prisma.emailVerificationToken.deleteMany({
-    where: {
-      identifier: {
-        in: [sourceEmail, targetEmail],
-      },
-    },
-  });
+  const [sourceConsumed, targetConsumed] = await Promise.all([
+    consumeVerificationToken({
+      kind: "mergePartnerAccountsOtp",
+      identifier: sourceEmail,
+    }),
+
+    consumeVerificationToken({
+      kind: "mergePartnerAccountsOtp",
+      identifier: targetEmail,
+    }),
+  ]);
+
+  if (!sourceConsumed) {
+    throw new Error(
+      `The code entered for ${sourceEmail} has expired. Please request a new code.`,
+    );
+  }
+
+  if (!targetConsumed) {
+    throw new Error(
+      `The code entered for ${targetEmail} has expired. Please request a new code.`,
+    );
+  }
 
   // Make sure this is set before going to the next step
   await redis.set(

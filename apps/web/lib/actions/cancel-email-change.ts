@@ -1,8 +1,8 @@
 "use server";
 
-import { deleteEmailChangeRequest } from "@/lib/auth/confirm-email-change";
 import { flattenValidationErrors } from "next-safe-action";
 import * as z from "zod/v4";
+import { deleteVerificationTokens } from "../better-auth/verification-token";
 import { actionClient } from "./safe-action";
 
 const cancelEmailChangeSchema = z.object({
@@ -17,5 +17,8 @@ export const cancelEmailChangeAction = actionClient
   .action(async ({ parsedInput }) => {
     const { token } = parsedInput;
 
-    await deleteEmailChangeRequest(token);
+    await deleteVerificationTokens({
+      kind: "emailChange",
+      identifier: token,
+    });
   });

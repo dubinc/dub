@@ -1,5 +1,6 @@
 "use client";
 
+import { useSession } from "@/lib/better-auth/use-session";
 import useWorkspaceUsers from "@/lib/swr/use-workspace-users";
 import useWorkspaces from "@/lib/swr/use-workspaces";
 import { PlanProps, WorkspaceProps } from "@/lib/types";
@@ -8,7 +9,6 @@ import { getUserAvatarUrl } from "@/ui/users/user-avatar";
 import { BlurImage, Popover, useScrollProgress } from "@dub/ui";
 import { Check2, Gear, Plus, UserPlus } from "@dub/ui/icons";
 import { cn, isLegacyBusinessPlan, pluralize } from "@dub/utils";
-import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
 import {

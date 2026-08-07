@@ -8,8 +8,8 @@ import {
   trackApplicationEventSchema,
 } from "@/lib/application-events/schema";
 import { getApplicationEventCookieName } from "@/lib/application-events/utils";
-import { getSession } from "@/lib/auth";
 import { withAxiom } from "@/lib/axiom/server";
+import { getServerSession } from "@/lib/better-auth/get-session";
 import { detectBot } from "@/lib/middleware/utils/detect-bot";
 import { getIdentityHash } from "@/lib/middleware/utils/get-identity-hash";
 import { prisma } from "@/lib/prisma";
@@ -175,8 +175,8 @@ async function trackVisitEvent({
     }
   }
 
-  const session = await getSession();
-  const partnerId = session?.user?.defaultPartnerId;
+  const { user } = await getServerSession();
+  const partnerId = user?.defaultPartnerId;
 
   if (partnerId) {
     const existingEnrollment = await prisma.programEnrollment.findUnique({
@@ -315,8 +315,8 @@ async function trackStartEvent({
     });
   }
 
-  const session = await getSession();
-  const partnerId = session?.user?.defaultPartnerId;
+  const { user } = await getServerSession();
+  const partnerId = user?.defaultPartnerId;
 
   try {
     const applicationEvent = partnerId

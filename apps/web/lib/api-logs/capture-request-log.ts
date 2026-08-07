@@ -1,6 +1,6 @@
 import { WorkspaceWithUsers } from "@/lib/types";
+import { User } from "@prisma/client";
 import { TokenCacheItem } from "../auth/token-cache";
-import { Session } from "../auth/utils";
 import { HTTP_MUTATION_METHODS, ROUTE_PATTERNS } from "./constants";
 import {
   maskSensitiveFields,
@@ -46,7 +46,7 @@ export async function captureRequestLog({
   req,
   response,
   workspace,
-  session,
+  user,
   token,
   url,
   requestHeaders,
@@ -55,7 +55,7 @@ export async function captureRequestLog({
   req: Request;
   response: Response;
   workspace: Pick<WorkspaceWithUsers, "id">;
-  session: Pick<Session, "user"> | undefined;
+  user?: Pick<User, "id"> | null;
   token: Pick<TokenCacheItem, "id"> | null;
   url: URL;
   requestHeaders: Headers;
@@ -125,7 +125,7 @@ export async function captureRequestLog({
     queryParams,
     responseBody,
     tokenId: token?.id ?? null,
-    userId: session?.user?.id ?? null,
+    userId: user?.id ?? null,
     requestType: "api",
   });
 }

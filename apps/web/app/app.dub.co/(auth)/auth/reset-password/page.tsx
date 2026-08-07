@@ -1,23 +1,20 @@
-import { prisma } from "@/lib/prisma";
 import { ResetPasswordForm } from "@/ui/auth/reset-password-form";
 import { AuthLayout } from "@/ui/layout/auth-layout";
 import EmptyState from "@/ui/shared/empty-state";
 import { InputPassword } from "@dub/ui";
 
 interface Props {
-  params: Promise<{
-    token: string;
+  searchParams: Promise<{
+    token?: string;
+    error?: string;
   }>;
 }
 
 export default async function ResetPasswordPage(props: Props) {
-  const params = await props.params;
+  const searchParams = await props.searchParams;
+  const { token, error } = searchParams;
 
-  const { token } = params;
-
-  const validToken = await isValidToken(token);
-
-  if (!validToken) {
+  if (error || !token) {
     return (
       <EmptyState
         icon={InputPassword}
@@ -34,25 +31,9 @@ export default async function ResetPasswordPage(props: Props) {
           Reset your password
         </h3>
         <div className="mt-8">
-          <ResetPasswordForm />
+          <ResetPasswordForm token={token} />
         </div>
       </div>
     </AuthLayout>
   );
 }
-
-const isValidToken = async (token: string) => {
-  const resetToken = await prisma.passwordResetToken.findUnique({
-    where: {
-      token,
-      expires: {
-        gte: new Date(),
-      },
-    },
-    select: {
-      token: true,
-    },
-  });
-
-  return !!resetToken;
-};

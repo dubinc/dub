@@ -1,8 +1,10 @@
+import { SessionUser } from "@/lib/better-auth/get-session";
 import { prismaEdge } from "@/lib/prisma/edge";
-import { UserProps } from "@/lib/types";
 
-export async function getDefaultPartnerId(user: UserProps) {
-  let defaultPartnerId = user?.defaultPartnerId;
+export async function getDefaultPartnerId(
+  user: Pick<SessionUser, "id" | "email" | "defaultPartnerId">,
+) {
+  let defaultPartnerId = user.defaultPartnerId ?? undefined;
 
   if (!defaultPartnerId) {
     const refreshedUser = await prismaEdge.user.findUnique({

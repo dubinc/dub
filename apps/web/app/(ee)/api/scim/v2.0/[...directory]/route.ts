@@ -1,4 +1,6 @@
 import { inviteUser } from "@/lib/api/users";
+import { buildLookupKey } from "@/lib/better-auth/utils";
+import { deleteVerificationTokens } from "@/lib/better-auth/verification-token";
 import { jackson } from "@/lib/jackson";
 import { prisma } from "@/lib/prisma";
 import { WorkspaceProps } from "@/lib/types";
@@ -139,6 +141,10 @@ const handleEvents = async (event: DirectorySyncEvent) => {
             projectId: workspaceId,
           },
         },
+      });
+
+      await deleteVerificationTokens({
+        lookupKey: buildLookupKey("invite", data.email, workspaceId),
       });
     }
   }

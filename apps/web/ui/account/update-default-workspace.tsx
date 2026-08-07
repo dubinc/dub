@@ -1,8 +1,8 @@
 "use client";
 
+import { useSession } from "@/lib/better-auth/use-session";
 import { WorkspaceSelector } from "@/ui/workspaces/workspace-selector";
 import { Button } from "@dub/ui";
-import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 

@@ -1,48 +1,70 @@
 "use client";
 
+import { authClient } from "@/lib/better-auth/auth-client";
 import { Button, InfoTooltip, useMediaQuery } from "@dub/ui";
 import { Lock } from "lucide-react";
-import { signIn } from "next-auth/react";
 import { useContext } from "react";
 import { toast } from "sonner";
 import { LoginFormContext } from "./login-form";
 
-export const SSOSignIn = () => {
+export const SAMLSignIn = () => {
   const { isMobile } = useMediaQuery();
 
   const {
     setClickedMethod,
     clickedMethod,
     authMethod,
-    setLastUsedAuthMethod,
     setShowSSOOption,
     showSSOOption,
   } = useContext(LoginFormContext);
 
+  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setClickedMethod("saml");
+
+    const response = await fetch("/api/auth/saml/verify", {
+      method: "POST",
+      body: JSON.stringify({
+        slug: e.currentTarget.slug.value,
+      }),
+    });
+
+    const verifyResponse = await response.json();
+
+    if (!response.ok) {
+      toast.error(verifyResponse.error);
+      setClickedMethod(undefined);
+      return;
+    }
+
+    const { workspaceId } = verifyResponse.data;
+
+    if (!workspaceId) {
+      toast.error("Failed to verify SAML connection.");
+      setClickedMethod(undefined);
+      return;
+    }
+
+    const { data, error } = await authClient.signIn.oauth2({
+      providerId: "saml",
+      additionalData: {
+        tenant: workspaceId,
+      },
+    });
+
+    if (error) {
+      toast.error(error.message || "Failed to start SAML SSO.");
+      setClickedMethod(undefined);
+      return;
+    }
+
+    if (data?.url) {
+      window.location.href = data.url;
+    }
+  };
+
   return (
-    <form
-      onSubmit={async (e) => {
-        e.preventDefault();
-        setClickedMethod("saml");
-        fetch("/api/auth/saml/verify", {
-          method: "POST",
-          body: JSON.stringify({ slug: e.currentTarget.slug.value }),
-        }).then(async (res) => {
-          const { data, error } = await res.json();
-          if (error) {
-            toast.error(error);
-            setClickedMethod(undefined);
-            return;
-          }
-          setLastUsedAuthMethod("saml");
-          await signIn("saml", undefined, {
-            tenant: data.workspaceId,
-            product: "Dub",
-          });
-        });
-      }}
-      className="flex flex-col space-y-3"
-    >
+    <form onSubmit={onSubmit} className="flex flex-col space-y-3">
       {showSSOOption && (
         <div>
           {authMethod !== "saml" && (

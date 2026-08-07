@@ -1,5 +1,5 @@
 import { onboardingStepCache } from "@/lib/api/workspaces/onboarding-step-cache";
-import { getSession } from "@/lib/auth";
+import { requireServerSessionRedirect } from "@/lib/better-auth/get-session";
 import { prisma } from "@/lib/prisma";
 import EmptyState from "@/ui/shared/empty-state";
 import { LoadingSpinner } from "@dub/ui";
@@ -31,11 +31,7 @@ export default async function InvitesPage(props: {
 }
 
 async function VerifyInvite({ code }: { code: string }) {
-  const session = await getSession();
-
-  if (!session) {
-    redirect("/login");
-  }
+  const { user } = await requireServerSessionRedirect();
 
   const workspace = await prisma.project.findUnique({
     where: {
@@ -47,7 +43,7 @@ async function VerifyInvite({ code }: { code: string }) {
       usersLimit: true,
       users: {
         where: {
-          userId: session.user.id,
+          userId: user.id,
         },
         select: {
           role: true,
@@ -94,7 +90,7 @@ async function VerifyInvite({ code }: { code: string }) {
 
   await prisma.projectUsers.create({
     data: {
-      userId: session.user.id,
+      userId: user.id,
       projectId: workspace.id,
       notificationPreference: {
         create: {}, // by default, users are opted in to all notifications
@@ -103,10 +99,10 @@ async function VerifyInvite({ code }: { code: string }) {
   });
 
   // Update default workspace
-  if (!session.user.defaultWorkspace) {
+  if (!user.defaultWorkspace) {
     await prisma.user.update({
       where: {
-        id: session.user.id,
+        id: user.id,
       },
       data: {
         defaultWorkspace: workspace.slug,
@@ -116,7 +112,7 @@ async function VerifyInvite({ code }: { code: string }) {
 
   // Complete onboarding just in case
   await onboardingStepCache.set({
-    userId: session.user.id,
+    userId: user.id,
     step: "completed",
   });
 

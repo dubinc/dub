@@ -1,5 +1,6 @@
 "use client";
 
+import { useSession } from "@/lib/better-auth/use-session";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import DeleteAccountSection from "@/ui/account/delete-account";
@@ -14,7 +15,6 @@ import {
   useIdentitySyncConfirmModal,
 } from "@/ui/modals/identity-sync-confirm-modal";
 import { Form, useCurrentSubdomain } from "@dub/ui";
-import { useSession } from "next-auth/react";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
 

@@ -1,4 +1,4 @@
-import { getSession } from "@/lib/auth";
+import { requireServerSessionRedirect } from "@/lib/better-auth/get-session";
 import { recomputePartnerPayoutState } from "@/lib/payouts/recompute-partner-payout-state";
 import { paypalOAuthProvider } from "@/lib/paypal/oauth";
 import { prisma } from "@/lib/prisma";
@@ -11,7 +11,10 @@ import { redirect } from "next/navigation";
 
 // GET /api/paypal/callback - callback from PayPal
 export const GET = async (req: Request) => {
-  const session = await getSession();
+  const { user } = await requireServerSessionRedirect(
+    `${PARTNERS_DOMAIN}/login`,
+  );
+
   const { searchParams } = new URL(req.url);
 
   // Local development redirect since the callback might be coming through ngrok
@@ -24,14 +27,10 @@ export const GET = async (req: Request) => {
     );
   }
 
-  if (!session?.user.id) {
-    redirect(`${PARTNERS_DOMAIN}/login`);
-  }
-
   let error: string | null = null;
 
   try {
-    const { defaultPartnerId } = session.user;
+    const { defaultPartnerId } = user;
 
     if (!defaultPartnerId) {
       throw new Error("partner_not_found");
@@ -57,7 +56,7 @@ export const GET = async (req: Request) => {
     const { partner } = await prisma.partnerUser.findUniqueOrThrow({
       where: {
         userId_partnerId: {
-          userId: session.user.id,
+          userId: user.id,
           partnerId: defaultPartnerId,
         },
       },

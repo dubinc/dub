@@ -1,19 +1,23 @@
 "use server";
 
-import { hashToken } from "@/lib/auth";
-import {
-  assertCanConfirmEmailChange,
-  EmailChangeRequestData,
-} from "@/lib/auth/confirm-email-change";
+import { hasPermission } from "@/lib/auth/partner-users/partner-user-permissions";
 import { syncPlainCustomerEmail } from "@/lib/plain/upsert-plain-customer";
 import { prisma } from "@/lib/prisma";
-import { redis } from "@/lib/upstash";
 import { sendEmail } from "@dub/email";
 import EmailUpdated from "@dub/email/templates/email-updated";
 import { waitUntil } from "@vercel/functions";
 import { flattenValidationErrors } from "next-safe-action";
 import * as z from "zod/v4";
+import { VERIFICATION_TOKEN_CONFIG } from "../better-auth/constants";
+import {
+  consumeVerificationToken,
+  findVerificationToken,
+} from "../better-auth/verification-token";
 import { authUserActionClient } from "./safe-action";
+
+type EmailChangeValue = z.infer<
+  (typeof VERIFICATION_TOKEN_CONFIG)["emailChange"]["valueSchema"]
+>;
 
 const confirmEmailChangeSchema = z.object({
   token: z.string().min(1),
@@ -28,28 +32,12 @@ export const confirmEmailChangeAction = authUserActionClient
     const { token } = parsedInput;
     const { user } = ctx;
 
-    const tokenFound = await prisma.verificationToken.findUnique({
-      where: {
-        token: await hashToken(token, { secret: true }),
-      },
-      select: {
-        identifier: true,
-        token: true,
-        expires: true,
-      },
+    const verification = await findVerificationToken({
+      kind: "emailChange",
+      identifier: token,
     });
 
-    if (!tokenFound || tokenFound.expires < new Date()) {
-      throw new Error(
-        "This token is invalid or expired. Please request a new one.",
-      );
-    }
-
-    const data = await redis.get<EmailChangeRequestData>(
-      `email-change-request:token:${tokenFound.token}`,
-    );
-
-    if (!data) {
+    if (!verification || verification.isExpired) {
       throw new Error(
         "This token is invalid or expired. Please request a new one.",
       );
@@ -57,59 +45,61 @@ export const confirmEmailChangeAction = authUserActionClient
 
     await assertCanConfirmEmailChange({
       userId: user.id,
-      tokenFound,
-      data,
+      data: verification.value,
     });
 
-    // Consume the token before mutating so concurrent confirms fail closed
-    const deleted = await prisma.verificationToken.deleteMany({
-      where: {
-        token: tokenFound.token,
-        expires: {
-          gte: new Date(),
-        },
-      },
+    const consumed = await consumeVerificationToken({
+      kind: "emailChange",
+      identifier: token,
     });
 
-    if (deleted.count !== 1) {
+    if (!consumed) {
       throw new Error(
         "This token is invalid or expired. Please request a new one.",
       );
     }
 
-    const tokenIdentifier = tokenFound.identifier;
+    const {
+      ownerId,
+      currentEmail,
+      newEmail,
+      isPartnerProfile,
+      syncIdentity,
+      partnerId,
+      redirectTo,
+    } = verification.value;
 
     // Sync identity: Sync the email to the partner profile
-    if (data.syncIdentity) {
+    if (syncIdentity) {
       await prisma.$transaction([
         prisma.user.update({
           where: {
             id: user.id,
           },
           data: {
-            email: data.newEmail,
+            email: newEmail,
           },
         }),
 
         prisma.partner.update({
           where: {
-            id: data.partnerId!,
+            id: partnerId,
           },
           data: {
-            email: data.newEmail,
+            email: newEmail,
           },
         }),
       ]);
     }
 
     // Update the partner profile email
-    else if (data.isPartnerProfile) {
+    else if (isPartnerProfile) {
       await prisma.partner.update({
         where: {
-          id: tokenIdentifier,
+          id: ownerId,
         },
         data: {
-          email: data.newEmail,
+          email: newEmail,
         },
       });
     }
@@ -121,24 +111,23 @@ export const confirmEmailChangeAction = authUserActionClient
           id: user.id,
         },
         data: {
-          email: data.newEmail,
+          email: newEmail,
         },
       });
     }
 
-    const shouldSyncPlainCustomerEmail =
-      !!data.syncIdentity || !data.isPartnerProfile;
+    const shouldSyncPlainCustomerEmail = !!syncIdentity || !isPartnerProfile;
 
     waitUntil(
       Promise.allSettled([
         sendEmail({
           subject: "Your email address has been changed",
-          to: data.email,
+          to: currentEmail,
           react: EmailUpdated({
-            oldEmail: data.email,
-            newEmail: data.newEmail,
-            isPartnerProfile: !!data.isPartnerProfile,
-            syncIdentity: !!data.syncIdentity,
+            oldEmail: currentEmail,
+            newEmail: newEmail,
+            isPartnerProfile: !!isPartnerProfile,
+            syncIdentity: !!syncIdentity,
           }),
         }),
 
@@ -147,18 +136,72 @@ export const confirmEmailChangeAction = authUserActionClient
               syncPlainCustomerEmail({
                 id: user.id,
                 name: user.name ?? null,
-                email: data.newEmail,
-                oldEmail: data.email,
+                email: newEmail,
+                oldEmail: currentEmail,
               }),
             ]
           : []),
-
-        redis.del(`email-change-request:token:${tokenFound.token}`),
       ]),
     );
 
     return {
-      isPartnerProfile: !!data.isPartnerProfile,
-      redirectTo: data.redirectTo,
+      redirectTo:
+        redirectTo ?? (isPartnerProfile ? "/profile" : "/account/settings"),
     };
   });
+
+async function assertCanConfirmEmailChange({
+  userId,
+  data,
+}: {
+  userId: string;
+  data: EmailChangeValue;
+}) {
+  if (data.ownerId.startsWith("pn_")) {
+    const partnerUser = await prisma.partnerUser.findUnique({
+      where: {
+        userId_partnerId: {
+          userId,
+          partnerId: data.ownerId,
+        },
+      },
+      select: {
+        role: true,
+      },
+    });
+
+    if (
+      !partnerUser ||
+      !hasPermission(partnerUser.role, "partner_profile.update")
+    ) {
+      throw new Error("Invalid token.");
+    }
+  } else if (data.ownerId !== userId) {
+    throw new Error("Invalid token");
+  }
+
+  if (data.syncIdentity) {
+    if (!data.partnerId) {
+      throw new Error("Invalid token.");
+    }
+
+    const partnerUser = await prisma.partnerUser.findUnique({
+      where: {
+        userId_partnerId: {
+          userId,
+          partnerId: data.partnerId,
+        },
+      },
+      select: {
+        role: true,
+      },
+    });
+
+    if (
+      !partnerUser ||
+      !hasPermission(partnerUser.role, "partner_profile.update")
+    ) {
+      throw new Error("Unauthorized.");
+    }
+  }
+}

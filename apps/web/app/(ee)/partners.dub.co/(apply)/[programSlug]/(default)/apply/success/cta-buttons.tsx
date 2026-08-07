@@ -1,7 +1,7 @@
 "use client";
 
+import { useSession } from "@/lib/better-auth/use-session";
 import { Button } from "@dub/ui";
-import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 

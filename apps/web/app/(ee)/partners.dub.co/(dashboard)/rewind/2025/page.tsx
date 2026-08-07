@@ -1,5 +1,5 @@
 import { getPartnerRewind } from "@/lib/api/partners/get-partner-rewind";
-import { getSession } from "@/lib/auth";
+import { requireServerSessionRedirect } from "@/lib/better-auth/get-session";
 import { prisma } from "@/lib/prisma";
 import { PageContent } from "@/ui/layout/page-content";
 import {
@@ -13,7 +13,7 @@ import { preload } from "react-dom";
 import { PartnerRewind2025PageClient } from "./page-client";
 
 export default async function PartnerRewind2025Page() {
-  const { user } = await getSession();
+  const { user } = await requireServerSessionRedirect();
 
   if (!user.defaultPartnerId) redirect("/");
 

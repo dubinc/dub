@@ -2,6 +2,7 @@
 
 import { parseActionError } from "@/lib/actions/parse-action-errors";
 import { onboardPartnerAction } from "@/lib/actions/partners/onboard-partner";
+import { useSession } from "@/lib/better-auth/use-session";
 import { getValidInternalRedirectPath } from "@/lib/middleware/utils/is-valid-internal-redirect";
 import {
   MAX_PARTNER_DESCRIPTION_LENGTH,
@@ -18,7 +19,6 @@ import {
 import { cn } from "@dub/utils";
 import { Partner } from "@prisma/client";
 import { AnimatePresence, LayoutGroup, motion } from "motion/react";
-import { useSession } from "next-auth/react";
 import { useAction } from "next-safe-action/hooks";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";

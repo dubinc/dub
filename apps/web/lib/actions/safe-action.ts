@@ -1,8 +1,11 @@
+import {
+  getServerSession,
+  requireServerSession,
+} from "@/lib/better-auth/get-session";
 import { prisma } from "@/lib/prisma";
 import { createSafeActionClient } from "next-safe-action";
 import { after } from "next/server";
 import { normalizeWorkspaceId } from "../api/workspaces/workspace-id";
-import { getSession } from "../auth";
 import { logger } from "../axiom/server";
 import { PlanProps } from "../types";
 
@@ -23,15 +26,11 @@ export const actionClient = createSafeActionClient({
 });
 
 export const authUserActionClient = actionClient.use(async ({ next }) => {
-  const session = await getSession();
-
-  if (!session?.user.id) {
-    throw new Error("Unauthorized: Login required.");
-  }
+  const { user } = await requireServerSession();
 
   return next({
     ctx: {
-      user: session.user,
+      user,
     },
   });
 });
@@ -39,11 +38,7 @@ export const authUserActionClient = actionClient.use(async ({ next }) => {
 // Workspace users
 export const authActionClient = actionClient.use(
   async ({ next, clientInput }) => {
-    const session = await getSession();
-
-    if (!session?.user.id) {
-      throw new Error("Unauthorized: Login required.");
-    }
+    const { user } = await requireServerSession();
 
     // @ts-ignore
     let workspaceId = clientInput?.workspaceId;
@@ -61,7 +56,7 @@ export const authActionClient = actionClient.use(
       include: {
         users: {
           where: {
-            userId: session.user.id,
+            userId: user.id,
           },
           select: {
             role: true,
@@ -77,7 +72,7 @@ export const authActionClient = actionClient.use(
 
     return next({
       ctx: {
-        user: session.user,
+        user,
         workspace: {
           ...workspace,
           role: workspace.users[0].role,
@@ -90,25 +85,27 @@ export const authActionClient = actionClient.use(
 
 // Partner users
 export const authPartnerActionClient = actionClient.use(async ({ next }) => {
-  const session = await getSession();
+  const { user } = await getServerSession();
 
-  if (!session?.user.id) {
+  if (!user?.id) {
     throw new Error("Unauthorized: Login required.");
   }
 
   const partner = await prisma.partner.findFirst({
     where: {
-      ...(session.user.defaultPartnerId && {
-        id: session.user.defaultPartnerId,
+      ...(user.defaultPartnerId && {
+        id: user.defaultPartnerId,
       }),
       users: {
-        some: { userId: session.user.id },
+        some: {
+          userId: user.id,
+        },
       },
     },
     include: {
       users: {
         where: {
-          userId: session.user.id,
+          userId: user.id,
         },
         select: {
           role: true,
@@ -124,7 +121,7 @@ export const authPartnerActionClient = actionClient.use(async ({ next }) => {
 
   return next({
     ctx: {
-      user: session.user,
+      user,
       partner,
       partnerUser: partner.users[0],
     },

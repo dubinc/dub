@@ -1,6 +1,10 @@
 "use server";
 
 import { getIP } from "@/lib/api/utils/get-ip";
+import {
+  createVerificationToken,
+  deleteVerificationTokens,
+} from "@/lib/better-auth/verification-token";
 import { isEmailDomainBlocked } from "@/lib/email/is-email-domain-blocked";
 import { prisma } from "@/lib/prisma";
 import { assertRateLimit } from "@/lib/upstash/assert-rate-limit";
@@ -10,7 +14,6 @@ import VerifyEmail from "@dub/email/templates/verify-email";
 import { flattenValidationErrors } from "next-safe-action";
 import * as z from "zod/v4";
 import { generateOTP } from "../auth";
-import { EMAIL_OTP_EXPIRY_IN } from "../auth/constants";
 import { isGenericEmail } from "../email/is-generic-email";
 import { emailSchema, passwordSchema } from "../zod/schemas/auth";
 import { throwIfAuthenticated } from "./auth/throw-if-authenticated";
@@ -75,18 +78,18 @@ export const sendOtpAction = actionClient
 
     const code = generateOTP();
 
-    await prisma.emailVerificationToken.deleteMany({
-      where: {
-        identifier: email,
-      },
+    await deleteVerificationTokens({
+      kind: "signupOtp",
+      identifier: email,
     });
 
     await Promise.all([
-      prisma.emailVerificationToken.create({
-        data: {
-          identifier: email,
-          token: code,
-          expires: new Date(Date.now() + EMAIL_OTP_EXPIRY_IN * 1000),
+      createVerificationToken({
+        kind: "signupOtp",
+        identifier: email,
+        value: {
+          targetEmail: email,
+          code,
         },
       }),
 

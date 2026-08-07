@@ -1,6 +1,6 @@
 import { PARTNER_PLATFORMS_PROVIDERS } from "@/lib/api/partner-profile/partner-platforms-providers";
 import { getSocialProfile } from "@/lib/api/scrape-creators/get-social-profile";
-import { getSession } from "@/lib/auth/utils";
+import { requireServerSessionRedirect } from "@/lib/better-auth/get-session";
 import { prisma } from "@/lib/prisma";
 import { redis } from "@/lib/upstash/redis";
 import {
@@ -39,12 +39,7 @@ export async function GET(req: Request) {
   const { code, state } = parsedSearchParams.data;
 
   // Get current user
-  const session = await getSession();
-
-  if (!session?.user?.id) {
-    console.warn("Unauthorized: Login required.");
-    return NextResponse.redirect(PARTNERS_DOMAIN);
-  }
+  const { user } = await requireServerSessionRedirect(PARTNERS_DOMAIN);
 
   // Find the state from Redis
   const stateFromRedis = await redis.get<State>(
@@ -58,7 +53,7 @@ export async function GET(req: Request) {
 
   const { platform, partnerId, source } = stateFromRedis;
 
-  if (session.user.defaultPartnerId !== partnerId) {
+  if (user.defaultPartnerId !== partnerId) {
     console.warn("Unauthorized: User is not the default partner.");
     return NextResponse.redirect(PARTNERS_DOMAIN);
   }

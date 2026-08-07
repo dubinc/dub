@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { tool } from "ai";
 import { z } from "zod";
-import { getSession } from "../auth/utils";
+import { getServerSession } from "../better-auth/get-session";
 
 const workspaceDetailsSchema = z.object({
   name: z.string().describe("The name of the workspace."),
@@ -47,18 +47,20 @@ export const getWorkspaceDetailsTool = tool({
   }),
   outputSchema: workspaceDetailsSchema,
   execute: async ({ workspaceId }) => {
-    const session = await getSession();
-    if (!session?.user.id) {
+    const { user } = await getServerSession();
+
+    if (!user?.id) {
       return {
         error: "Unauthorized. Please log in to continue.",
       };
     }
+
     const workspace = await prisma.project.findUnique({
       where: {
         id: workspaceId,
         users: {
           some: {
-            userId: session.user.id,
+            userId: user.id,
           },
         },
       },
