@@ -5,6 +5,7 @@ import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { logAndRespond } from "../../utils";
 
 export const dynamic = "force-dynamic";
+export const maxDuration = 300;
 
 const BATCH_SIZE = 1000;
 const ITERATIONS = 10;
