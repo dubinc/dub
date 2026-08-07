@@ -170,6 +170,17 @@ const createUsers = async (data: SeedData) => {
 
   console.log(`Created ${count} users`);
 
+  const { count: credentialAccountsCount } = await prisma.account.createMany({
+    data: users.map((user) => ({
+      userId: user.id,
+      accountId: user.id,
+      providerId: "credential",
+      password: passwordHash,
+    })),
+  });
+
+  console.log(`Created ${credentialAccountsCount} credential accounts`);
+
   const { count: projectUsersCount } = await prisma.projectUsers.createMany({
     data: users.map((user) => ({
       projectId: workspace.id,
@@ -390,6 +401,15 @@ const createPartners = async (data: SeedData) => {
       emailVerifiedBa: true,
       passwordHash,
       defaultPartnerId: partner.id,
+    })),
+  });
+
+  await prisma.account.createMany({
+    data: partners.map((partner) => ({
+      userId: partner.user.id,
+      accountId: partner.user.id,
+      providerId: "credential",
+      password: passwordHash,
     })),
   });
 
