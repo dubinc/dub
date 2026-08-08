@@ -165,26 +165,34 @@ export function Nav({
 
   useEffect(() => {
     const mono =
-      "font-family: Menlo, Monaco, Lucida Console, monospace; line-height: 1.35;";
+      "font-family: Menlo, Monaco, Lucida Console, monospace; line-height: 1.2;";
     const panel = `${mono} background: #171210; color: #f5f5f3;`;
+    const label = `${panel} font-size: 12px; padding-left: 20px;`;
+    const link = `${panel} font-size: 12px; color: #d5934d; font-weight: 600; text-decoration: underline;`;
 
     console.log(
       `%c
-    ____  __  ______
-   / __ \\/ / / / __ )
-  / / / / / / / __  |
- / /_/ / /_/ / /_/ /
-/_____/\\____/_____/
+  ______                         ___      __
+ /_  __/_  ___________     _____/ (_)____/ /_______
+  / / / / / / ___/ __ \\   / ___/ / / ___/ //_/ ___/
+ / / / /_/ / /  / / / /  / /__/ / / /__/ ,< (__  )
+/_/  \\__,_/_/  /_/ /_/   \\___/_/_/\\___/_/|_/____/
 
-%cTurn clicks into revenue
+    _       __
+   (_)___  / /_____     ________ _   _____  ____  __  _____
+  / / __ \\/ __/ __ \\   / ___/ _ \\ | / / _ \\/ __ \\/ / / / _ \\
+ / / / / / /_/ /_/ /  / /  /  __/ |/ /  __/ / / / /_/ /  __/
+/_/_/ /_/\\__/\\____/  /_/   \\___/|___/\\___/_/ /_/\\__,_/\\___/
 %c
-Love solving challenging attribution problems? We're hiring
-%chttps://dub.co/careers
+We're hiring:  %chttps://dub.co/careers%c
+Changelog:     %chttps://dub.co/changelog%c
 `,
-      `${panel} font-size: 11px; padding: 16px 20px 0;`,
-      `${panel} font-size: 12px; padding: 10px 20px 0;`,
-      `${panel} font-size: 12px; color: #a8a29e; padding: 14px 20px 0;`,
-      `${panel} font-size: 12px; color: #d5934d; font-weight: 600; text-decoration: underline; padding: 2px 20px 18px;`,
+      `${panel} font-size: 10px; padding: 16px 20px 0;`,
+      `${label} padding-top: 14px;`,
+      `${link} padding-top: 14px;`,
+      `${label}`,
+      `${link} padding-bottom: 18px;`,
+      `${panel} padding-bottom: 18px;`,
     );
   }, []);
 
