@@ -30,6 +30,7 @@ export async function AppMiddleware(req: NextRequest) {
     path !== "/register" &&
     path !== "/auth/saml" &&
     !path.startsWith("/auth/reset-password/") &&
+    !path.startsWith("/marketplace") &&
     !path.startsWith("/share/") &&
     !path.startsWith("/deeplink/") &&
     !path.startsWith("/unsubscribe/")
