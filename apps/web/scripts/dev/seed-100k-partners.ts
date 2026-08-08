@@ -1,3 +1,34 @@
+/**
+ * ====================================================================================
+ * 🚀 High-Scale Partner Data Seeding Script
+ * ====================================================================================
+ *
+ * PURPOSE:
+ * Bulk-generates and inserts realistic partner records into the local database
+ * for local development, performance benchmarking, and testing partner search at scale.
+ *
+ * GENERATED DATA MODEL:
+ * 1. Partner Name (`name`): Realistic first & last name combinations.
+ * 2. Partner Email (`email`): Includes prefix & substring test patterns for search evaluation.
+ * 3. Partner Company Name (`companyName`): Business & agency names.
+ * 4. Partner Description (`description`): Marketing & creator profile text.
+ * 5. Partner Platforms (`PartnerPlatform`): Assigns 1-2 web/social platforms per partner
+ *    (website, youtube, twitter, linkedin, instagram, tiktok), generating ~150,000 total platform rows.
+ * 6. Partner Short Links (`Link`): Generates valid `https://` short referral links per partner.
+ *
+ * PERFORMANCE & ARCHITECTURE DECISIONS:
+ * - Chunked Bulk Insertions: Processes generation in memory and bulk-inserts using
+ *   `prisma.createMany` in chunks of 2,500 records to insert ~400,000+ total rows in seconds.
+ * - Pre-Computed Password Hash: Pre-computes `"password"` hash once to optimize generation time.
+ * - Seed Fingerprinting: Generates deterministic namespace hashes (`seedFingerprint`) to ensure
+ *   unique, non-colliding records across runs.
+ *
+ * CLI USAGE:
+ *   cd apps/web
+ *   pnpm run script dev/seed-100k-partners [--count=100000] [--programId=prog_123] [--seed=custom-seed]
+ * ====================================================================================
+ */
+
 import { createId } from "@/lib/api/create-id";
 import { hashPassword } from "@/lib/auth/password";
 import { prisma } from "@/lib/prisma";
@@ -291,12 +322,18 @@ const insertPartnerChunk = async ({
 }: PartnerChunk) => {
   // Keep every chunk atomic so a failed write cannot leave partial relations.
   const [, partnerResult] = await prisma.$transaction([
-    prisma.user.createMany({ data: users }),
-    prisma.partner.createMany({ data: partners }),
-    prisma.partnerUser.createMany({ data: partnerUsers }),
-    prisma.programEnrollment.createMany({ data: enrollments }),
-    prisma.partnerPlatform.createMany({ data: platforms }),
-    prisma.link.createMany({ data: links }),
+    prisma.user.createMany({ data: users, skipDuplicates: true }),
+    prisma.partner.createMany({ data: partners, skipDuplicates: true }),
+    prisma.partnerUser.createMany({ data: partnerUsers, skipDuplicates: true }),
+    prisma.programEnrollment.createMany({
+      data: enrollments,
+      skipDuplicates: true,
+    }),
+    prisma.partnerPlatform.createMany({
+      data: platforms,
+      skipDuplicates: true,
+    }),
+    prisma.link.createMany({ data: links, skipDuplicates: true }),
   ]);
 
   return partnerResult.count;
@@ -339,6 +376,8 @@ async function main() {
   console.log(`   Workspace: "${workspace.name}" (${workspace.id})\n`);
 
   // Step 3: Build the stable namespace shared by every generated chunk.
+  // Pre-compute the password hash for 'password' once to avoid computing
+  // 100,000 separate bcrypt hashes during seeding.
   const passwordHash = await hashPassword("password");
   const seedNamespace = `${program.id}:${seed}`;
   const seedFingerprint = createHash("sha256")
