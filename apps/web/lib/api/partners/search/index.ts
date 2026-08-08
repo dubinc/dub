@@ -4,4 +4,5 @@ export * from "./order-search-results";
 export * from "./provider";
 export * from "./searchable-values";
 export * from "./serialize-document";
+export * from "./sync-documents";
 export * from "./types";
