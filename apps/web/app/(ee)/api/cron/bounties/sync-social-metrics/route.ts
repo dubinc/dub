@@ -1,4 +1,6 @@
+import { getEffectiveBountyPeriod } from "@/lib/bounty/api/bounty-availability";
 import { getSocialMetricsUpdates } from "@/lib/bounty/api/get-social-metrics-updates";
+import { isBountyEnded } from "@/lib/bounty/bounty-period";
 import { resolveBountyDetails } from "@/lib/bounty/utils";
 import { qstash } from "@/lib/cron";
 import { withCron } from "@/lib/cron/with-cron";
@@ -6,7 +8,7 @@ import { prisma } from "@/lib/prisma";
 import { sendBatchEmail } from "@dub/email";
 import BountyCompleted from "@dub/email/templates/bounty-completed";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
-import { Partner, Prisma } from "@prisma/client";
+import { BountySubmissionStatus, Partner, Prisma } from "@prisma/client";
 import * as z from "zod/v4";
 import { logAndRespond } from "../../utils";
 
@@ -31,22 +33,18 @@ export const POST = withCron(async ({ rawBody }) => {
       id: bountyId,
     },
     include: {
-      program: true,
+      program: {
+        select: {
+          name: true,
+          slug: true,
+          supportEmail: true,
+        },
+      },
     },
   });
 
   if (!bounty) {
     return logAndRespond(`Bounty ${bountyId} not found. Skipping...`);
-  }
-
-  const now = new Date();
-
-  if (bounty.startsAt && bounty.startsAt > now) {
-    return logAndRespond(`Bounty ${bountyId} has not started yet. Skipping...`);
-  }
-
-  if (bounty.endsAt && bounty.endsAt < now) {
-    return logAndRespond(`Bounty ${bountyId} has ended. Skipping...`);
   }
 
   const bountyInfo = resolveBountyDetails(bounty);
@@ -57,12 +55,23 @@ export const POST = withCron(async ({ rawBody }) => {
     );
   }
 
+  const minCount = bountyInfo.socialMetrics?.minCount;
+
+  if (!minCount) {
+    return logAndRespond(
+      `Bounty ${bountyId} has no minimum social metrics count. Skipping...`,
+    );
+  }
+
   const submissions = await prisma.bountySubmission.findMany({
     where: {
       bountyId,
       status: {
         // We only want to process submissions that are not rejected or approved.
-        notIn: ["rejected", "approved"],
+        notIn: [
+          BountySubmissionStatus.rejected,
+          BountySubmissionStatus.approved,
+        ],
       },
     },
     select: {
@@ -73,6 +82,11 @@ export const POST = withCron(async ({ rawBody }) => {
       partner: {
         select: {
           email: true,
+        },
+      },
+      programEnrollment: {
+        select: {
+          createdAt: true,
         },
       },
     },
@@ -94,90 +108,105 @@ export const POST = withCron(async ({ rawBody }) => {
     );
   }
 
-  const newMetrics = await getSocialMetricsUpdates({
-    bounty,
-    submissions,
+  const activeSubmissions = submissions.filter((submission) => {
+    if (!submission.programEnrollment) {
+      return false;
+    }
+
+    const { endsAt } = getEffectiveBountyPeriod({
+      programEnrollment: submission.programEnrollment,
+      bounty,
+    });
+
+    return !isBountyEnded(endsAt);
   });
 
-  const minCount = bountyInfo.socialMetrics?.minCount;
+  let syncedCount = 0;
 
-  if (!minCount) {
-    return logAndRespond(
-      `Bounty ${bountyId} has no minimum social metrics count. Skipping...`,
-    );
-  }
+  if (activeSubmissions.length > 0) {
+    const newMetrics = await getSocialMetricsUpdates({
+      bounty,
+      submissions: activeSubmissions,
+    });
 
-  const submissionById = new Map(submissions.map((s) => [s.id, s]));
+    const submissionById = new Map(activeSubmissions.map((s) => [s.id, s]));
 
-  const updates: Prisma.PrismaPromise<unknown>[] = [];
-  const notifications: Pick<Partner, "email">[] = [];
+    const updates: Prisma.PrismaPromise<unknown>[] = [];
+    const notifications: Pick<Partner, "email">[] = [];
 
-  for (const {
-    id,
-    socialMetricCount,
-    socialMetricsLastSyncedAt,
-  } of newMetrics) {
-    const submission = submissionById.get(id);
-
-    if (!submission) {
-      continue;
-    }
-
-    const hasMetCriteria =
-      socialMetricCount != null && socialMetricCount >= minCount;
-
-    const shouldTransitionToSubmitted =
-      submission.status === "draft" && hasMetCriteria;
-
-    const updateData: Prisma.BountySubmissionUpdateInput = {
+    for (const {
+      id,
       socialMetricCount,
       socialMetricsLastSyncedAt,
-    };
+    } of newMetrics) {
+      const submission = submissionById.get(id);
 
-    if (shouldTransitionToSubmitted) {
-      updateData.status = "submitted";
-      updateData.completedAt = now;
-
-      if (submission.partner?.email) {
-        notifications.push({
-          email: submission.partner.email,
-        });
+      if (!submission) {
+        continue;
       }
+
+      const hasMetCriteria =
+        socialMetricCount != null && socialMetricCount >= minCount;
+
+      const shouldTransitionToSubmitted =
+        submission.status === "draft" && hasMetCriteria;
+
+      const updateData: Prisma.BountySubmissionUpdateInput = {
+        socialMetricCount,
+        socialMetricsLastSyncedAt,
+      };
+
+      if (shouldTransitionToSubmitted) {
+        updateData.status = "submitted";
+        updateData.completedAt = new Date();
+
+        if (submission.partner?.email) {
+          notifications.push({
+            email: submission.partner.email,
+          });
+        }
+      }
+
+      updates.push(
+        prisma.bountySubmission.update({
+          where: {
+            id,
+          },
+          data: updateData,
+        }),
+      );
     }
 
-    updates.push(
-      prisma.bountySubmission.update({
-        where: {
-          id,
-        },
-        data: updateData,
-      }),
-    );
+    await prisma.$transaction(updates);
+    syncedCount = updates.length;
+
+    if (notifications.length > 0) {
+      await sendBatchEmail(
+        notifications.map(({ email }) => ({
+          subject: "Bounty completed!",
+          to: email!,
+          variant: "notifications",
+          replyTo: bounty.program.supportEmail || "noreply",
+          react: BountyCompleted({
+            email: email!,
+            bounty: {
+              name: bounty.name,
+              type: bounty.type,
+            },
+            program: {
+              name: bounty.program.name,
+              slug: bounty.program.slug,
+            },
+          }),
+        })),
+      );
+    }
   }
 
-  await prisma.$transaction(updates);
-
-  if (notifications.length > 0 && bounty.program) {
-    await sendBatchEmail(
-      notifications.map(({ email }) => ({
-        subject: "Bounty completed!",
-        to: email!,
-        variant: "notifications",
-        replyTo: bounty.program.supportEmail || "noreply",
-        react: BountyCompleted({
-          email: email!,
-          bounty: {
-            name: bounty.name,
-            type: bounty.type,
-          },
-          program: {
-            name: bounty.program.name,
-            slug: bounty.program.slug,
-          },
-        }),
-      })),
-    );
-  }
+  const summary =
+    activeSubmissions.length === 0
+      ? `No active submissions found for bounty ${bountyId}.`
+      : `Synced ${syncedCount} submission(s) for bounty ${bountyId}.`;
 
   if (submissions.length === SUBMISSION_BATCH_SIZE) {
     const startingAfter = submissions[submissions.length - 1].id;
@@ -192,7 +221,7 @@ export const POST = withCron(async ({ rawBody }) => {
     });
 
     return logAndRespond(
-      `Synced ${updates.length} submissions for bounty ${bountyId}. Queued next batch (startingAfter: ${startingAfter}).`,
+      `${summary} Queued next batch (startingAfter: ${startingAfter}).`,
     );
   }
 
@@ -205,7 +234,5 @@ export const POST = withCron(async ({ rawBody }) => {
     },
   });
 
-  return logAndRespond(
-    `Synced ${updates.length} submission(s) for bounty ${bountyId}.`,
-  );
+  return logAndRespond(summary);
 });
