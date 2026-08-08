@@ -93,4 +93,4 @@ SQL >
     ORDER BY
         timestamp DESC
 
-
+TYPE ENDPOINT

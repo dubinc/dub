@@ -178,4 +178,4 @@ SQL >
         {% else %} top_programs_sales
         {% end %}
 
-
+TYPE ENDPOINT

@@ -25,4 +25,4 @@ SQL >
             {% if defined(programId) %} AND program_id = {{ String(programId) }} {% end %}
         ORDER BY timestamp DESC
 
-
+TYPE ENDPOINT

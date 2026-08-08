@@ -109,4 +109,4 @@ SQL >
         {% else %} count
         {% end %}
 
-
+TYPE ENDPOINT
