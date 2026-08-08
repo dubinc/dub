@@ -10,6 +10,7 @@ import {
   ReactNode,
   SVGProps,
   createContext,
+  useEffect,
   useRef,
   useState,
 } from "react";
@@ -161,6 +162,16 @@ export function Nav({
   const hideHover = () => {
     setHoverStyle((style) => ({ ...style, opacity: 0 }));
   };
+
+  useEffect(() => {
+    console.log(
+      `%cTurn clicks into revenue%c\n%cLove solving challenging attribution problems? We're hiring → %chttps://dub.co/careers`,
+      "font-size: 20px; font-weight: 700; letter-spacing: -0.02em; color: #fafafa; background: #0a0a0a; padding: 12px 16px; border-radius: 8px;",
+      "",
+      "font-size: 12px; color: #737373; padding-top: 8px;",
+      "font-size: 12px; font-weight: 600; color: #2563eb; text-decoration: underline;",
+    );
+  }, []);
 
   return (
     <NavContext.Provider value={{ theme }}>
