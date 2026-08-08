@@ -6,7 +6,9 @@ import { ComponentType, SVGProps } from "react";
 // custom icons
 export * from "./arrow-up-right-2";
 export * from "./copy";
+export * from "./codex";
 export * from "./crown-small";
+export * from "./cursor";
 export * from "./dub-analytics";
 export * from "./dub-api";
 export * from "./dub-crafted-shield";
