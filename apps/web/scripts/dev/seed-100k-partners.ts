@@ -9,18 +9,14 @@ const DEFAULT_SEED = "partners-search";
 const CHUNK_SIZE = 2_500;
 
 const createDeterministicId = ({
-  namespace,
+  seedFingerprint,
   prefix,
   index,
 }: {
-  namespace: string;
+  seedFingerprint: string;
   prefix: string;
   index: number;
-}) =>
-  `${prefix}${createHash("sha256")
-    .update(`${namespace}:${prefix}:${index}`)
-    .digest("hex")
-    .slice(0, 24)}`;
+}) => `${prefix}${seedFingerprint}_${index.toString().padStart(10, "0")}`;
 
 const parsePositiveInteger = (value: string | undefined, flag: string) => {
   const parsed = Number(value);
@@ -102,7 +98,6 @@ type PartnerChunk = {
 type GeneratePartnerChunkOptions = {
   start: number;
   end: number;
-  seedNamespace: string;
   seedFingerprint: string;
   passwordHash: string;
   runStartedAt: Date;
@@ -112,7 +107,9 @@ type GeneratePartnerChunkOptions = {
   workspaceId: string;
 };
 
-// These helpers are intentionally file-local; this script is their only caller.
+// Args: --count=<number> (optional, default: 100000) - Total number of partners to seed.
+//       --programId=<id> (optional) - Target program ID to seed partners into.
+//       --seed=<string> (optional, default: "partners-search") - Seed string for deterministic generation.
 const parseArguments = (args: string[]): SeedArguments => {
   let totalCount = DEFAULT_COUNT;
   let targetProgramId: string | null = null;
@@ -165,7 +162,6 @@ const resolveProgramId = async (targetProgramId: string | null) => {
 const generatePartnerChunk = ({
   start,
   end,
-  seedNamespace,
   seedFingerprint,
   passwordHash,
   runStartedAt,
@@ -183,17 +179,17 @@ const generatePartnerChunk = ({
 
   for (let i = start; i < end; i++) {
     const partnerId = createDeterministicId({
-      namespace: seedNamespace,
+      seedFingerprint,
       prefix: "pn_",
       index: i,
     });
     const userId = createDeterministicId({
-      namespace: seedNamespace,
+      seedFingerprint,
       prefix: "user_",
       index: i,
     });
     const enrollmentId = createDeterministicId({
-      namespace: seedNamespace,
+      seedFingerprint,
       prefix: "pge_",
       index: i,
     });
@@ -251,7 +247,7 @@ const generatePartnerChunk = ({
 
     partnerUsers.push({
       id: createDeterministicId({
-        namespace: seedNamespace,
+        seedFingerprint,
         prefix: "pnusr_",
         index: i,
       }),
@@ -281,9 +277,9 @@ const generatePartnerChunk = ({
 
       platforms.push({
         id: createDeterministicId({
-          namespace: seedNamespace,
-          prefix: `pnp${p}_`,
-          index: i,
+          seedFingerprint,
+          prefix: "pnp_",
+          index: i * 2 + p,
         }),
         partnerId,
         type: platformType,
@@ -300,7 +296,7 @@ const generatePartnerChunk = ({
     const linkDomain = programDomain || "dub.sh";
     links.push({
       id: createDeterministicId({
-        namespace: seedNamespace,
+        seedFingerprint,
         prefix: "link_",
         index: i,
       }),
@@ -387,7 +383,7 @@ async function main() {
   const seedFingerprint = createHash("sha256")
     .update(seedNamespace)
     .digest("hex")
-    .slice(0, 10);
+    .slice(0, 16);
   const runStartedAt = new Date();
   const totalChunks = Math.ceil(totalCount / CHUNK_SIZE);
   const startTime = Date.now();
@@ -400,7 +396,6 @@ async function main() {
     const partnerChunk = generatePartnerChunk({
       start: chunkStart,
       end: chunkEnd,
-      seedNamespace,
       seedFingerprint,
       passwordHash,
       runStartedAt,
