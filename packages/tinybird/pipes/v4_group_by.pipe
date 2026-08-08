@@ -822,4 +822,4 @@ SQL >
         {% else %} group_by_clicks
         {% end %}
 
-
+TYPE ENDPOINT
