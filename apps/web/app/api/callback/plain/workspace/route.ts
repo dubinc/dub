@@ -153,7 +153,7 @@ export async function POST(req: NextRequest) {
               rowAsideContent: [
                 {
                   componentBadge: {
-                    badgeLabel: `${capitalize(plan)} ${planTier > 1 ? `[TIER ${planTier}] ` : ""}[${capitalize(planPeriod)}]`,
+                    badgeLabel: `${capitalize(plan)} ${planTier > 1 ? `[TIER ${planTier}] ` : ""}${planPeriod ? `[${capitalize(planPeriod)}]` : ""}`,
                     badgeColor:
                       plan === "enterprise"
                         ? "RED"

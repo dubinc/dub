@@ -11,6 +11,7 @@ import {
   createBountySubmissionInputSchema,
   submissionRequirementsSchema,
 } from "@/lib/zod/schemas/bounties";
+import { ACTIVE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
 import { sendBatchEmail, sendEmail } from "@dub/email";
 import NewBountySubmission from "@dub/email/templates/bounty-new-submission";
 import BountySubmitted from "@dub/email/templates/bounty-submitted";
@@ -210,7 +211,7 @@ export class BountySubmissionHandler {
 
   // Validate the eligibility of the submission
   private validateEligibility() {
-    if (!["approved", "pending"].includes(this.programEnrollment.status)) {
+    if (!ACTIVE_ENROLLMENT_STATUSES.includes(this.programEnrollment.status)) {
       throw new DubApiError({
         code: "forbidden",
         message: "You are not allowed to submit a bounty for this program.",

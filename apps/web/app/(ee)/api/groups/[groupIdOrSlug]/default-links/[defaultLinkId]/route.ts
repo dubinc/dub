@@ -9,6 +9,7 @@ import { defaultLinkDeletedJob } from "@/lib/jobs/handlers/default-link-deleted-
 import { prisma } from "@/lib/prisma";
 import {
   createOrUpdateDefaultLinkSchema,
+  DEFAULT_PARTNER_GROUP,
   PartnerGroupDefaultLinkSchema,
 } from "@/lib/zod/schemas/groups";
 import { APP_DOMAIN_WITH_NGROK, constructURLFromUTMParams } from "@dub/utils";
@@ -58,7 +59,7 @@ export const PATCH = withWorkspace(
     if (group.partnerGroupDefaultLinks.length === 0) {
       throw new DubApiError({
         code: "bad_request",
-        message: `Default link ${params.defaultLinkId} not found for this group.`,
+        message: `Default link ${params.defaultLinkId} not found for this partner group.`,
       });
     }
 
@@ -68,7 +69,7 @@ export const PATCH = withWorkspace(
     // - Update the program's domain
     // - Update all default links across groups to use the new domain
     // - Update all partner links to use the new domain (via cron job)
-    if (domain !== group.program.domain) {
+    if (domain !== defaultLink.domain) {
       await prisma.$transaction([
         prisma.program.update({
           where: {
@@ -99,23 +100,37 @@ export const PATCH = withWorkspace(
       );
     }
 
-    try {
-      const updatedDefaultLink = await prisma.partnerGroupDefaultLink.update({
-        where: {
-          id: defaultLink.id,
-        },
-        data: {
-          domain,
-          url: group.utmTemplate
-            ? constructURLFromUTMParams(
+    if (url !== defaultLink.url) {
+      try {
+        const updatedDefaultLink = await prisma.$transaction(async (tx) => {
+          // if the group being updated is the default partner group,
+          // also update the program's URL to the new default link destination URL
+          if (group.slug === DEFAULT_PARTNER_GROUP.slug) {
+            await tx.program.update({
+              where: {
+                id: programId,
+              },
+              data: {
                 url,
-                extractUtmParams(group.utmTemplate),
-              )
-            : url,
-        },
-      });
+              },
+            });
+          }
 
-      if (updatedDefaultLink.url !== defaultLink.url) {
+          return tx.partnerGroupDefaultLink.update({
+            where: {
+              id: defaultLink.id,
+            },
+            data: {
+              url: group.utmTemplate
+                ? constructURLFromUTMParams(
+                    url,
+                    extractUtmParams(group.utmTemplate),
+                  )
+                : url,
+            },
+          });
+        });
+
         waitUntil(
           qstash.publishJSON({
             url: `${APP_DOMAIN_WITH_NGROK}/api/cron/groups/update-default-links`,
@@ -124,24 +139,33 @@ export const PATCH = withWorkspace(
             },
           }),
         );
-      }
 
-      return NextResponse.json(
-        PartnerGroupDefaultLinkSchema.parse(updatedDefaultLink),
-      );
-    } catch (error) {
-      if (error.code === "P2002") {
+        return NextResponse.json(
+          PartnerGroupDefaultLinkSchema.parse(updatedDefaultLink),
+        );
+      } catch (error) {
+        if (error.code === "P2002") {
+          throw new DubApiError({
+            code: "conflict",
+            message:
+              "A default link with this destination URL already exists in this partner group.",
+          });
+        }
+
         throw new DubApiError({
-          code: "conflict",
-          message: "A default link with this URL already exists.",
+          code: "unprocessable_entity",
+          message: error.message,
         });
       }
-
-      throw new DubApiError({
-        code: "unprocessable_entity",
-        message: error.message,
-      });
     }
+
+    // if no url changes were made, just return defaultLink (no changes needed)
+    return NextResponse.json(
+      PartnerGroupDefaultLinkSchema.parse({
+        ...defaultLink,
+        domain,
+      }),
+    );
   },
   {
     requiredPermissions: ["groups.write"],

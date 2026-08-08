@@ -9,6 +9,7 @@ import {
 } from "@/lib/tremendous/constants";
 import { ratelimit, redis } from "@/lib/upstash";
 import { emailSchema } from "@/lib/zod/schemas/auth";
+import { ACTIVE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
 import { TREMENDOUS_SUPPORTED_COUNTRIES } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
@@ -22,6 +23,14 @@ const verifyOtpSchema = z.object({
 // POST /api/embed/referrals/tremendous/verify-otp
 export const POST = withReferralsEmbedToken(
   async ({ req, programEnrollment }) => {
+    if (!ACTIVE_ENROLLMENT_STATUSES.includes(programEnrollment.status)) {
+      throw new DubApiError({
+        code: "forbidden",
+        message:
+          "You cannot set up payouts because your enrollment in this program is not active.",
+      });
+    }
+
     if (!TREMENDOUS_ENABLED_PROGRAM_IDS.includes(programEnrollment.programId)) {
       throw new DubApiError({
         code: "forbidden",
