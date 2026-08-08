@@ -3,8 +3,8 @@ import {
   type PartnerSearchBackfillProgress,
 } from "@/lib/api/partners/search";
 import { prisma } from "@/lib/prisma";
+import { parsePositiveInteger } from "@/scripts/utils/parse-positive-integer";
 import "dotenv-flow/config";
-import { parsePositiveInteger } from "../utils/parse-positive-integer";
 
 const DEFAULT_BATCH_SIZE = 500;
 const MAX_BATCH_SIZE = 1_000;

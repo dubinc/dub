@@ -32,10 +32,10 @@
 import { createId } from "@/lib/api/create-id";
 import { hashPassword } from "@/lib/auth/password";
 import { prisma } from "@/lib/prisma";
+import { parsePositiveInteger } from "@/scripts/utils/parse-positive-integer";
 import { PlatformType, Prisma } from "@prisma/client";
 import { createHash } from "crypto";
 import "dotenv-flow/config";
-import { parsePositiveInteger } from "../utils/parse-positive-integer";
 
 const DEFAULT_COUNT = 100_000;
 const DEFAULT_SEED = "partners-search";
