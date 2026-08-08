@@ -2,7 +2,7 @@
 
 import { APP_DOMAIN, cn, createHref, fetcher } from "@dub/utils";
 import * as NavigationMenuPrimitive from "@radix-ui/react-navigation-menu";
-import { LayoutGroup } from "motion/react";
+import { LayoutGroup, motion } from "motion/react";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
 import {
@@ -11,6 +11,8 @@ import {
   SVGProps,
   createContext,
   useId,
+  useRef,
+  useState,
 } from "react";
 import useSWR from "swr";
 import { buttonVariants } from "../button";
@@ -75,6 +77,11 @@ export const navItems = [
     segments: ["/customers"],
   },
   {
+    name: "Pricing",
+    href: "/pricing",
+    segments: ["/pricing"],
+  },
+  {
     name: "Enterprise",
     href: "/enterprise",
     segments: ["/enterprise"],
@@ -86,21 +93,11 @@ export const navItems = [
     segments: ["/startups"],
     mobileOnly: true,
   },
-  {
-    name: "Pricing",
-    href: "/pricing",
-    segments: ["/pricing"],
-  },
 ];
 
 const navItemClassName = cn(
-  "relative group/item flex items-center rounded-md px-4 py-2 text-sm rounded-lg font-medium text-neutral-700 hover:text-neutral-900 transition-colors",
+  "relative group/item flex items-center rounded-md px-3 h-8 text-sm rounded-lg font-medium text-neutral-700 hover:text-neutral-900 transition-colors",
   "dark:text-white/90 dark:hover:text-white",
-  "hover:bg-neutral-900/5 dark:hover:bg-white/10",
-  "data-[active=true]:bg-neutral-900/5 dark:data-[active=true]:bg-white/10",
-
-  // Hide active state when another item is hovered
-  "group-has-[:hover]:data-[active=true]:[&:not(:hover)]:bg-transparent",
 );
 
 export function Nav({
@@ -120,6 +117,12 @@ export function Nav({
   }
 
   const layoutGroupId = useId();
+  const navListRef = useRef<HTMLUListElement>(null);
+  const [hoverStyle, setHoverStyle] = useState({
+    left: 0,
+    width: 0,
+    opacity: 0,
+  });
 
   const scrolled = useScroll(40);
   const pathname = usePathname();
@@ -130,6 +133,32 @@ export function Nav({
       dedupingInterval: 60000,
     },
   );
+
+  const moveHoverTo = (el: HTMLElement) => {
+    const list = navListRef.current;
+    if (!list) return;
+    const listRect = list.getBoundingClientRect();
+    const itemRect = el.getBoundingClientRect();
+    setHoverStyle({
+      left: itemRect.left - listRect.left,
+      width: itemRect.width,
+      opacity: 1,
+    });
+  };
+
+  const clearHover = () => {
+    setHoverStyle((style) => ({ ...style, opacity: 0 }));
+  };
+
+  const handleNavMouseLeave = () => {
+    const openTrigger =
+      navListRef.current?.querySelector<HTMLElement>("[data-state=open]");
+    if (openTrigger) {
+      moveHoverTo(openTrigger);
+    } else {
+      clearHover();
+    }
+  };
 
   return (
     <NavContext.Provider value={{ theme }}>
@@ -165,11 +194,28 @@ export function Nav({
                   </Link>
                 )}
               </div>
+
               <NavigationMenuPrimitive.Root
                 delayDuration={0}
-                className="relative hidden lg:block"
+                className="hidden lg:block"
+                onValueChange={(value) => {
+                  if (!value) clearHover();
+                }}
               >
-                <NavigationMenuPrimitive.List className="group relative z-0 flex">
+                <NavigationMenuPrimitive.List
+                  ref={navListRef}
+                  className="relative flex"
+                  onMouseLeave={handleNavMouseLeave}
+                >
+                  <motion.div
+                    className="pointer-events-none absolute top-0 h-8 rounded-lg bg-neutral-900/5 dark:bg-white/10"
+                    animate={hoverStyle}
+                    transition={{
+                      type: "spring",
+                      stiffness: 400,
+                      damping: 30,
+                    }}
+                  />
                   {navItems
                     .filter(({ mobileOnly }) => !mobileOnly)
                     .map(({ name, href, segments, content: Content }) => {
@@ -177,7 +223,7 @@ export function Nav({
                         pathname?.startsWith(segment),
                       );
                       return (
-                        <NavigationMenuPrimitive.Item key={name}>
+                        <NavigationMenuPrimitive.Item key={name} value={name}>
                           <WithTrigger trigger={!!Content}>
                             {href !== undefined ? (
                               <Link
@@ -190,6 +236,9 @@ export function Nav({
                                 })}
                                 className={navItemClassName}
                                 data-active={isActive}
+                                onMouseEnter={(e) =>
+                                  moveHoverTo(e.currentTarget)
+                                }
                               >
                                 {name}
                               </Link>
@@ -197,6 +246,9 @@ export function Nav({
                               <button
                                 className={navItemClassName}
                                 data-active={isActive}
+                                onMouseEnter={(e) =>
+                                  moveHoverTo(e.currentTarget)
+                                }
                               >
                                 {name}
                                 <AnimatedChevron className="ml-1.5 size-2.5 text-neutral-700" />
@@ -214,10 +266,11 @@ export function Nav({
                     })}
                 </NavigationMenuPrimitive.List>
 
+                {/* Positioned against MaxWidthWrapper so the dropdown centers on the page */}
                 <div className="absolute left-1/2 top-full mt-3 -translate-x-1/2">
                   <NavigationMenuPrimitive.Viewport
                     className={cn(
-                      "relative flex origin-[top_center] justify-start overflow-hidden rounded-[20px] border border-neutral-200 bg-white shadow-md dark:border-white/[0.15] dark:bg-black",
+                      "relative flex origin-top justify-start overflow-hidden rounded-[20px] border border-neutral-200 bg-white shadow-md dark:border-white/[0.15] dark:bg-black",
                       "data-[state=closed]:animate-scale-out-content data-[state=open]:animate-scale-in-content",
                       "h-[var(--radix-navigation-menu-viewport-height)] w-[var(--radix-navigation-menu-viewport-width)] transition-[width,height]",
                     )}
