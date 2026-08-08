@@ -4,6 +4,7 @@ import {
   PartnerSearchDocumentSource,
   PartnerSearchProvider,
   syncPartnerSearchDocuments,
+  syncPartnerSearchDocumentsByPartnerIds,
 } from "@/lib/api/partners/search";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -114,6 +115,29 @@ describe("partner search document sync", () => {
 
     expect(searchProvider.upsert).toHaveBeenCalledOnce();
     expect(searchProvider.delete).toHaveBeenCalledWith(["pge_missing"]);
+  });
+
+  it("upserts every enrollment for a partner", async () => {
+    const searchProvider = createProvider();
+    mocks.findMany.mockResolvedValue([
+      createSource("pge_1"),
+      createSource("pge_2"),
+    ]);
+
+    await syncPartnerSearchDocumentsByPartnerIds(["pn_1", "pn_1"], {
+      searchProvider,
+    });
+
+    expect(mocks.findMany).toHaveBeenCalledWith({
+      where: {
+        partnerId: { in: ["pn_1"] },
+      },
+      select: partnerSearchDocumentSelect,
+    });
+    expect(searchProvider.upsert).toHaveBeenCalledWith([
+      expect.objectContaining({ id: "pge_1" }),
+      expect.objectContaining({ id: "pge_2" }),
+    ]);
   });
 
   it("deletes document IDs without loading the database", async () => {

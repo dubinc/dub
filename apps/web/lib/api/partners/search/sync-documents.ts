@@ -46,6 +46,30 @@ export async function syncPartnerSearchDocuments(
   }
 }
 
+export async function syncPartnerSearchDocumentsByPartnerIds(
+  partnerIds: string[],
+  {
+    searchProvider = getPartnerSearchProvider(),
+  }: PartnerSearchSyncOptions = {},
+) {
+  if (!searchProvider || partnerIds.length === 0) {
+    return;
+  }
+
+  const enrollments = await prisma.programEnrollment.findMany({
+    where: {
+      partnerId: { in: uniqueDocumentIds(partnerIds) },
+    },
+    select: partnerSearchDocumentSelect,
+  });
+
+  if (enrollments.length > 0) {
+    await searchProvider.upsert(
+      enrollments.map(serializePartnerSearchDocument),
+    );
+  }
+}
+
 export async function deletePartnerSearchDocuments(
   documentIds: string[],
   {

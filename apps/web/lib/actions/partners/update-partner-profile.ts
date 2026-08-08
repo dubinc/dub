@@ -5,6 +5,7 @@ import { throwIfNoPermission } from "@/lib/auth/partner-users/throw-if-no-permis
 import { requestEmailChange } from "@/lib/auth/request-email-change";
 import { qstash } from "@/lib/cron";
 import { isReservedUsername } from "@/lib/edge-config";
+import { enqueuePartnerSearchSyncJob } from "@/lib/jobs/handlers/partner-search-sync-job";
 import {
   assertEmailAvailableForIdentitySync,
   requestSyncedEmailChange,
@@ -278,6 +279,9 @@ export const updatePartnerProfileAction = authPartnerActionClient
               },
             });
           })(),
+          enqueuePartnerSearchSyncJob({
+            partnerIds: [partner.id],
+          }),
         ]),
       );
 
