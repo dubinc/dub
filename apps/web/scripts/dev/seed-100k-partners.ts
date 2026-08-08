@@ -322,18 +322,12 @@ const insertPartnerChunk = async ({
 }: PartnerChunk) => {
   // Keep every chunk atomic so a failed write cannot leave partial relations.
   const [, partnerResult] = await prisma.$transaction([
-    prisma.user.createMany({ data: users, skipDuplicates: true }),
-    prisma.partner.createMany({ data: partners, skipDuplicates: true }),
-    prisma.partnerUser.createMany({ data: partnerUsers, skipDuplicates: true }),
-    prisma.programEnrollment.createMany({
-      data: enrollments,
-      skipDuplicates: true,
-    }),
-    prisma.partnerPlatform.createMany({
-      data: platforms,
-      skipDuplicates: true,
-    }),
-    prisma.link.createMany({ data: links, skipDuplicates: true }),
+    prisma.user.createMany({ data: users }),
+    prisma.partner.createMany({ data: partners }),
+    prisma.partnerUser.createMany({ data: partnerUsers }),
+    prisma.programEnrollment.createMany({ data: enrollments }),
+    prisma.partnerPlatform.createMany({ data: platforms }),
+    prisma.link.createMany({ data: links }),
   ]);
 
   return partnerResult.count;
