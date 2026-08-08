@@ -77,8 +77,7 @@ export default function DomainCard({ props }: { props: DomainProps }) {
       `/api/domains/${domain}/verify?workspaceId=${workspaceId}`,
     fetcher,
     {
-      // After Domain Connect, Vercel may take a few seconds to see DNS
-      revalidateOnFocus: true,
+      revalidateOnFocus: false,
       dedupingInterval: 5000,
     },
   );

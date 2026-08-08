@@ -126,12 +126,13 @@ export const POST = withWorkspace(
       mxValue: mapped.mxValue,
       spfTxtHost: mapped.spfTxtHost,
       spfTxtValue: mapped.spfTxtValue,
-      dkimSelector: mapped.dkimSelector,
+      dkimTxtHost: mapped.dkimTxtHost,
       dkimTxtValue: mapped.dkimTxtValue,
+      dmarcHost: mapped.dmarcHost,
     };
 
-    if (mapped.dkim2Selector && mapped.dkim2TxtValue) {
-      queryParams.dkim2Selector = mapped.dkim2Selector;
+    if (mapped.dkim2TxtHost && mapped.dkim2TxtValue) {
+      queryParams.dkim2TxtHost = mapped.dkim2TxtHost;
       queryParams.dkim2TxtValue = mapped.dkim2TxtValue;
     }
 

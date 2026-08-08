@@ -1,6 +1,6 @@
 /**
  * Map Resend email-domain DNS records to Domain Connect apply query params
- * for serviceId `email` (dub.co.email.json).
+ * for serviceId `email` (dub.co.email.json v2).
  */
 
 type ResendDnsRecord = {
@@ -11,20 +11,21 @@ type ResendDnsRecord = {
   priority?: number | null;
 };
 
-export type EmailDomainConnectParams = {
+type EmailDomainConnectParams = {
   groupId: string;
   mxHost: string;
   mxValue: string;
   spfTxtHost: string;
   spfTxtValue: string;
-  dkimSelector: string;
+  dkimTxtHost: string;
   dkimTxtValue: string;
-  dkim2Selector?: string;
+  dmarcHost: string;
+  dkim2TxtHost?: string;
   dkim2TxtValue?: string;
 };
 
 /** Strip full SPF TXT into SPFM merge mechanisms (no v=spf1 / trailing all). */
-export function toSpfRules(raw: string): string {
+function toSpfRules(raw: string): string {
   return raw
     .trim()
     .replace(/^"+|"+$/g, "")
@@ -34,7 +35,7 @@ export function toSpfRules(raw: string): string {
 }
 
 /** Ensure DKIM TXT starts with v=DKIM1 for template conflict matching. */
-export function normalizeDkimValue(raw: string): string {
+function normalizeDkimValue(raw: string): string {
   const value = raw.trim().replace(/^"+|"+$/g, "");
   if (!value) return value;
   if (/^v=DKIM1/i.test(value)) return value;
@@ -49,7 +50,7 @@ export function normalizeDkimValue(raw: string): string {
  * e.g. slug `partners.acme.com`, apex `acme.com`, name `send`
  *   → host `send.partners`
  */
-export function toZoneHost({
+function toZoneHost({
   resendName,
   emailSlug,
   apex,
@@ -73,10 +74,6 @@ export function toZoneHost({
   if (fqdn === apexLower) return "@";
   if (fqdn.endsWith(apexSuffix)) return fqdn.slice(0, -apexSuffix.length);
   return name || "@";
-}
-
-function dkimSelectorFromHost(zoneHost: string): string {
-  return zoneHost.replace(/\.?_domainkey$/i, "") || "resend";
 }
 
 /**
@@ -119,14 +116,19 @@ export function mapResendRecordsToEmailDomainConnectParams({
   const spfTxtValue = toSpfRules(spfTxt.value);
   if (!spfTxtValue) return null;
 
-  const dkimZoneHost = toZoneHost({
+  const dkimTxtHost = toZoneHost({
     resendName: dkims[0].name!,
     emailSlug,
     apex,
   });
-  const dkimSelector = dkimSelectorFromHost(dkimZoneHost);
   const dkimTxtValue = normalizeDkimValue(dkims[0].value!);
-  if (!dkimSelector || !dkimTxtValue) return null;
+  if (!dkimTxtHost || !dkimTxtValue) return null;
+
+  const dmarcHost = toZoneHost({
+    resendName: "_dmarc",
+    emailSlug,
+    apex,
+  });
 
   const groups = ["mx", "spf", "dkim"];
   const params: EmailDomainConnectParams = {
@@ -135,21 +137,21 @@ export function mapResendRecordsToEmailDomainConnectParams({
     mxValue: mx.value.trim().replace(/\.$/, ""),
     spfTxtHost,
     spfTxtValue,
-    dkimSelector,
+    dkimTxtHost,
     dkimTxtValue,
+    dmarcHost,
   };
 
   if (dkims[1]?.name && dkims[1]?.value) {
-    const dkim2ZoneHost = toZoneHost({
+    const dkim2TxtHost = toZoneHost({
       resendName: dkims[1].name,
       emailSlug,
       apex,
     });
-    const dkim2Selector = dkimSelectorFromHost(dkim2ZoneHost);
     const dkim2TxtValue = normalizeDkimValue(dkims[1].value);
-    if (dkim2Selector && dkim2TxtValue) {
+    if (dkim2TxtHost && dkim2TxtValue) {
       groups.push("dkim2");
-      params.dkim2Selector = dkim2Selector;
+      params.dkim2TxtHost = dkim2TxtHost;
       params.dkim2TxtValue = dkim2TxtValue;
     }
   }
@@ -181,16 +183,25 @@ export function mapResendRecordsToForwardRows({
       emailSlug,
       apex,
     });
+    const trimmed = r.value.trim();
+    const value =
+      r.type === "MX" && typeof r.priority === "number"
+        ? `${r.priority} ${trimmed}`
+        : trimmed;
     rows.push({
       type: r.type,
       name,
-      value: r.value.trim(),
+      value,
     });
   }
 
   rows.push({
     type: "TXT",
-    name: "_dmarc",
+    name: toZoneHost({
+      resendName: "_dmarc",
+      emailSlug,
+      apex,
+    }),
     value: "v=DMARC1; p=none;",
   });
 

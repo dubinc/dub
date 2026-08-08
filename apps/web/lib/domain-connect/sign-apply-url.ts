@@ -1,24 +1,13 @@
 import crypto from "node:crypto";
 import { DOMAIN_CONNECT_PROVIDER_ID } from "./constants";
 
-export type SignApplyUrlParams = {
+type SignApplyUrlParams = {
   urlSyncUX: string;
   serviceId: string;
   privateKeyPem: string;
   keyHost: string;
   queryParams: Record<string, string>;
 };
-
-/**
- * Canonical string: sorted keys, both key and value percent-encoded, joined with "&".
- * Exported for testing.
- */
-export function buildSigningString(params: Record<string, string>): string {
-  return Object.keys(params)
-    .sort()
-    .map((k) => `${encodeURIComponent(k)}=${encodeURIComponent(params[k]!)}`)
-    .join("&");
-}
 
 /**
  * Builds a fully signed Domain Connect apply URL.
@@ -40,7 +29,12 @@ export function buildSignedApplyUrl({
     "apply",
   ].join("/");
 
-  const signingString = buildSigningString(queryParams);
+  const signingString = Object.keys(queryParams)
+    .sort()
+    .map(
+      (k) => `${encodeURIComponent(k)}=${encodeURIComponent(queryParams[k]!)}`,
+    )
+    .join("&");
 
   const sign = crypto.createSign("RSA-SHA256");
   sign.update(signingString);

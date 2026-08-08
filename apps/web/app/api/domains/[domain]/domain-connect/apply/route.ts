@@ -15,7 +15,6 @@ import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 
 const bodySchema = z.object({
-  recordType: z.enum(["A", "CNAME"]),
   returnTo: z.string().max(512).optional(),
 });
 
@@ -39,7 +38,7 @@ export const POST = withWorkspace(
       dubDomainChecks: true,
     });
 
-    const body = bodySchema.parse(await req.json());
+    const body = bodySchema.parse(await req.json().catch(() => ({})));
 
     const [domainJson, configJson] = await Promise.all([
       getDomainResponse(domain),

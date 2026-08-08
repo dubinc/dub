@@ -4,8 +4,6 @@ import type {
   DomainConnectProviderKind,
 } from "./types";
 
-export type { DomainConnectDiscovery, DomainConnectProviderKind };
-
 type DomainConnectSettings = {
   providerId?: string;
   urlSyncUX?: string;

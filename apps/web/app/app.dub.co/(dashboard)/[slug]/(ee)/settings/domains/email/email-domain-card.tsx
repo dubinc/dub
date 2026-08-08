@@ -39,7 +39,7 @@ export function EmailDomainCard({ domain }: EmailDomainCardProps) {
       `/api/email-domains/${domain.slug}/verify?workspaceId=${workspaceId}`,
     fetcher,
     {
-      revalidateOnFocus: true,
+      revalidateOnFocus: false,
       dedupingInterval: 5000,
     },
   );

@@ -199,7 +199,7 @@ export function EmailDomainDnsRecords({ domain }: EmailDomainDnsRecordsProps) {
       `/api/email-domains/${domain.slug}/verify?workspaceId=${workspaceId}`,
     fetcher,
     {
-      revalidateOnFocus: true,
+      revalidateOnFocus: false,
       dedupingInterval: 5000,
       onError: (error) => {
         console.error("Failed to fetch email domain verification", error);
