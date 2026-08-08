@@ -35,20 +35,11 @@ import { prisma } from "@/lib/prisma";
 import { PlatformType, Prisma } from "@prisma/client";
 import { createHash } from "crypto";
 import "dotenv-flow/config";
+import { parsePositiveInteger } from "../utils/parse-positive-integer";
 
 const DEFAULT_COUNT = 100_000;
 const DEFAULT_SEED = "partners-search";
 const CHUNK_SIZE = 2_500;
-
-const parsePositiveInteger = (value: string | undefined, flag: string) => {
-  const parsed = Number(value);
-
-  if (!Number.isSafeInteger(parsed) || parsed <= 0) {
-    throw new Error(`${flag} must be a positive integer.`);
-  }
-
-  return parsed;
-};
 
 // Dataset arrays for diverse generation
 // prettier-ignore

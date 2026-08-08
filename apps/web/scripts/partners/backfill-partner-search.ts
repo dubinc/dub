@@ -4,6 +4,7 @@ import {
 } from "@/lib/api/partners/search";
 import { prisma } from "@/lib/prisma";
 import "dotenv-flow/config";
+import { parsePositiveInteger } from "../utils/parse-positive-integer";
 
 const DEFAULT_BATCH_SIZE = 500;
 const MAX_BATCH_SIZE = 1_000;
@@ -12,16 +13,6 @@ interface BackfillArguments {
   programId: string;
   batchSize: number;
   after?: string;
-}
-
-function parsePositiveInteger(value: string | undefined, flag: string) {
-  const parsed = Number(value);
-
-  if (!Number.isSafeInteger(parsed) || parsed <= 0) {
-    throw new Error(`${flag} must be a positive integer.`);
-  }
-
-  return parsed;
 }
 
 function parseArguments(args: string[]): BackfillArguments {
