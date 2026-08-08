@@ -53,7 +53,7 @@ function getDateColumnForNetworkStatus(networkStatus?: string) {
   if (networkStatus === "approved" || networkStatus === "rejected") {
     return {
       id: "reviewedAt" as const,
-      header: capitalize(networkStatus),
+      header: capitalize(networkStatus) as string,
       field: "reviewedAt" as const,
     };
   }
