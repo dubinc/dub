@@ -1,5 +1,6 @@
 import { Session } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
+import { enqueuePartnerSearchSyncJob } from "@/lib/jobs/handlers/partner-search-sync-job";
 import { prisma } from "@/lib/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { Partner, ProgramEnrollmentStatus } from "@prisma/client";
@@ -38,6 +39,7 @@ export async function processPartnerDeactivation({
       },
     },
     select: {
+      id: true,
       partnerId: true,
       status: true,
     },
@@ -82,6 +84,12 @@ export async function processPartnerDeactivation({
     programId,
     partnerIds,
   });
+
+  waitUntil(
+    enqueuePartnerSearchSyncJob({
+      documentIds: oldEnrollments.map(({ id }) => id),
+    }),
+  );
 
   if (user) {
     waitUntil(

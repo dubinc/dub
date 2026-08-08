@@ -1,3 +1,4 @@
+import { enqueuePartnerSearchSyncJob } from "@/lib/jobs/handlers/partner-search-sync-job";
 import { prisma } from "@/lib/prisma";
 import { sendBatchEmail } from "@dub/email";
 import PartnerReactivated from "@dub/email/templates/partner-reactivated";
@@ -126,6 +127,12 @@ export async function bulkReactivatePartners({
       },
     });
   }
+
+  waitUntil(
+    enqueuePartnerSearchSyncJob({
+      documentIds: programEnrollments.map(({ id }) => id),
+    }),
+  );
 
   waitUntil(
     trackActivityLog(

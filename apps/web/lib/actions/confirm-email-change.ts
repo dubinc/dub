@@ -5,6 +5,7 @@ import {
   assertCanConfirmEmailChange,
   EmailChangeRequestData,
 } from "@/lib/auth/confirm-email-change";
+import { enqueuePartnerSearchSyncJob } from "@/lib/jobs/handlers/partner-search-sync-job";
 import { syncPlainCustomerEmail } from "@/lib/plain/upsert-plain-customer";
 import { prisma } from "@/lib/prisma";
 import { redis } from "@/lib/upstash";
@@ -128,9 +129,18 @@ export const confirmEmailChangeAction = authUserActionClient
 
     const shouldSyncPlainCustomerEmail =
       !!data.syncIdentity || !data.isPartnerProfile;
+    const updatedPartnerId = data.syncIdentity
+      ? data.partnerId
+      : data.isPartnerProfile
+        ? tokenIdentifier
+        : null;
 
     waitUntil(
       Promise.allSettled([
+        updatedPartnerId &&
+          enqueuePartnerSearchSyncJob({
+            partnerIds: [updatedPartnerId],
+          }),
         sendEmail({
           subject: "Your email address has been changed",
           to: data.email,
