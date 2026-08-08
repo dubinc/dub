@@ -27,10 +27,66 @@ export interface PartnerSearchDocument {
 
   // Program-scoped fields needed to constrain search results
   status: ProgramEnrollmentStatus;
+  tenantId: string | null;
   groupId: string | null;
   country: string | null;
+  partnerTagIds: string[];
+  referredByPartnerId: string | null;
+  totalClicks: number;
+  totalLeads: number;
+  totalConversions: number;
+  totalSaleAmount: number;
+  totalCommissions: number;
+  netRevenue: number;
+  earningsPerClick: number;
+  averageLifetimeValue: number | null;
+  clickToLeadRate: number | null;
+  clickToConversionRate: number | null;
+  leadToConversionRate: number | null;
+  returnOnAdSpend: number | null;
   createdAt: string;
   updatedAt: string;
+}
+
+export type PartnerSearchSortField =
+  | "createdAt"
+  | "totalClicks"
+  | "totalLeads"
+  | "totalConversions"
+  | "totalSaleAmount"
+  | "totalCommissions"
+  | "netRevenue"
+  | "earningsPerClick"
+  | "averageLifetimeValue"
+  | "clickToLeadRate"
+  | "clickToConversionRate"
+  | "leadToConversionRate"
+  | "returnOnAdSpend";
+
+export type PartnerSearchMetricField = Exclude<
+  PartnerSearchSortField,
+  "createdAt"
+>;
+
+export interface PartnerSearchListFilter {
+  values: string[];
+  operator: "IN" | "NOT_IN";
+}
+
+export interface PartnerSearchRangeFilter {
+  min?: number;
+  max?: number;
+}
+
+export interface PartnerSearchFilters {
+  status?: ProgramEnrollmentStatus;
+  tenantId?: string;
+  partnerIds?: string[];
+  groupIds?: PartnerSearchListFilter;
+  countries?: PartnerSearchListFilter;
+  partnerTagIds?: PartnerSearchListFilter;
+  referredByPartnerId?: string;
+  metrics?: Partial<Record<PartnerSearchMetricField, PartnerSearchRangeFilter>>;
 }
 
 export interface PartnerSearchQuery {
@@ -38,6 +94,11 @@ export interface PartnerSearchQuery {
   query: string;
   limit: number;
   offset: number;
+  filters?: PartnerSearchFilters;
+  sort?: {
+    field: PartnerSearchSortField;
+    order: "asc" | "desc";
+  };
 }
 
 export interface PartnerSearchHit {
