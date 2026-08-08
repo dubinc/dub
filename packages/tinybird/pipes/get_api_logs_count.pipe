@@ -1,6 +1,7 @@
 NODE count
 SQL >
-    %
+
+%
     SELECT
         count() as count
     FROM dub_api_logs
@@ -17,9 +18,12 @@ SQL >
         {% if defined(requestId) %} AND id = {{ String(requestId) }} {% end %}
         {% if defined(requestType) %} AND request_type = {{ String(requestType) }} {% end %}
 
+
+
 NODE count_by_route_pattern
 SQL >
-    %
+
+%
     SELECT
         route_pattern as routePattern,
         count() as count
@@ -41,9 +45,12 @@ SQL >
     ORDER BY count DESC
     LIMIT 100
 
+
+
 NODE count_by_status_code
 SQL >
-    %
+
+%
     SELECT
         status_code as statusCode,
         count() as count
@@ -63,9 +70,12 @@ SQL >
     GROUP BY status_code
     ORDER BY count DESC
 
+
+
 NODE count_by_method
 SQL >
-    %
+
+%
     SELECT
         method,
         count() as count
@@ -85,9 +95,12 @@ SQL >
     GROUP BY method
     ORDER BY count DESC
 
+
+
 NODE endpoint
 SQL >
-    %
+
+%
     SELECT *
     FROM
         {% if defined(groupBy) and groupBy == 'routePattern' %} count_by_route_pattern
@@ -95,3 +108,5 @@ SQL >
         {% elif defined(groupBy) and groupBy == 'method' %} count_by_method
         {% else %} count
         {% end %}
+
+

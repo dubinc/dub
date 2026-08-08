@@ -1,6 +1,7 @@
 NODE endpoint
 SQL >
-    %
+
+%
     SELECT
         id,
         timestamp,
@@ -21,3 +22,5 @@ SQL >
         id = {{ String(id) }}
         AND workspace_id = {{ String(workspaceId) }}
     LIMIT 1
+
+

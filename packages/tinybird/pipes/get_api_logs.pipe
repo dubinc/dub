@@ -1,6 +1,7 @@
 NODE endpoint
 SQL >
-    %
+
+%
     SELECT
         id,
         timestamp,
@@ -32,3 +33,5 @@ SQL >
     ORDER BY timestamp DESC
     LIMIT {{ Int32(limit, 100) }}
     OFFSET {{ Int32(offset, 0) }}
+
+

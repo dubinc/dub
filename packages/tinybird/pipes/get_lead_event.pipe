@@ -1,24 +1,20 @@
-DESCRIPTION >
-	internal pipe for updating lead event
-
-
 NODE endpoint
 SQL >
 
-    %
-    SELECT *
-    FROM dub_lead_events_mv
-    WHERE
-        customer_id
-        = {{
-            String(
-                customerId,
-                "cus_JzMqCLdaiVM1o1grw0yk84uC",
-                description="The unique ID for a given customer.",
-                required=True,
-            )
-        }}
-        {% if defined(eventName) %} AND event_name = {{ eventName }} {% end %}
-    ORDER BY timestamp DESC
+%
+SELECT *
+FROM dub_lead_events_mv
+WHERE
+    customer_id
+    = {{
+        String(
+            customerId,
+            "cus_JzMqCLdaiVM1o1grw0yk84uC",
+            description="The unique ID for a given customer.",
+            required=True,
+        )
+    }}
+    {% if defined(eventName) %} AND event_name = {{ eventName }} {% end %}
+ORDER BY timestamp DESC
 
 

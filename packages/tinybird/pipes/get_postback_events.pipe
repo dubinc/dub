@@ -5,7 +5,7 @@ DESCRIPTION >
 NODE endpoint
 SQL >
 
-    %
+%
             SELECT *
             FROM dub_postback_events
             WHERE
