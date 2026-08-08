@@ -57,6 +57,8 @@ export type NavGroupType = {
   badge?: ReactNode;
   description: string;
   learnMoreHref?: string;
+  isDefault?: boolean;
+  onSetDefault?: () => Promise<void> | void;
 };
 
 export type SidebarNavGroups<T extends Record<any, any>> = (
@@ -317,21 +319,27 @@ export function NavGroupTooltip({
   name,
   description,
   learnMoreHref,
+  isDefault,
+  onSetDefault,
   disabled,
   children,
 }: PropsWithChildren<{
   name: string;
   description?: string;
   learnMoreHref?: string;
+  isDefault?: boolean;
+  onSetDefault?: () => Promise<void> | void;
   disabled?: boolean;
 }>) {
+  const [settingDefault, setSettingDefault] = useState(false);
+
   return (
     <Tooltip
       side="right"
       delayDuration={100}
       disabled={disabled}
       className="rounded-lg bg-black px-3 py-1.5 text-sm font-medium text-white"
-      content={
+      content={({ setOpen }) => (
         <div>
           <span>{name}</span>
           {description && (
@@ -343,22 +351,54 @@ export function NavGroupTooltip({
             >
               <div className="w-44 py-1 text-xs tracking-tight">
                 <p className="text-content-muted">{description}</p>
-                {learnMoreHref && (
-                  <div className="mt-2.5">
-                    <Link
-                      href={learnMoreHref}
-                      target="_blank"
-                      className="font-semibold text-white underline"
-                    >
-                      Learn more
-                    </Link>
+                {(learnMoreHref || onSetDefault || isDefault) && (
+                  <div className="mt-2.5 flex flex-col gap-2">
+                    {learnMoreHref && (
+                      <Link
+                        href={learnMoreHref}
+                        target="_blank"
+                        className="font-semibold text-white underline"
+                      >
+                        Learn more
+                      </Link>
+                    )}
+                    {isDefault ? (
+                      <p className="text-content-muted font-medium">
+                        Default product
+                      </p>
+                    ) : (
+                      onSetDefault && (
+                        <button
+                          type="button"
+                          disabled={settingDefault}
+                          onClick={async (e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            setSettingDefault(true);
+                            try {
+                              await onSetDefault();
+                              setOpen(false);
+                            } catch {
+                              // Error toast is handled by the caller
+                            } finally {
+                              setSettingDefault(false);
+                            }
+                          }}
+                          className="w-full rounded-md bg-white/10 px-2 py-1.5 text-left text-xs font-semibold text-white transition-colors hover:bg-white/20 disabled:cursor-not-allowed disabled:opacity-60"
+                        >
+                          {settingDefault
+                            ? "Setting default..."
+                            : "Set as default product"}
+                        </button>
+                      )
+                    )}
                   </div>
                 )}
               </div>
             </motion.div>
           )}
         </div>
-      }
+      )}
     >
       {children}
     </Tooltip>
@@ -370,6 +410,8 @@ function NavGroupItem({
     name,
     description,
     learnMoreHref,
+    isDefault,
+    onSetDefault,
     icon: Icon,
     href,
     active,
@@ -389,6 +431,8 @@ function NavGroupItem({
         name={name}
         description={description}
         learnMoreHref={learnMoreHref}
+        isDefault={isDefault}
+        onSetDefault={onSetDefault}
       >
         <div>
           <Link

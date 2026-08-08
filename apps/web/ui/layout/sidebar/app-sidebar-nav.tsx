@@ -1,5 +1,6 @@
 "use client";
 
+import { clientAccessCheck } from "@/lib/client-access-check";
 import { usePartnerMessagesCount } from "@/lib/messages/hooks/use-partner-messages-count";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { SUBMITTED_LEADS_ENABLED_PROGRAM_IDS } from "@/lib/submitted-leads/constants";
@@ -46,10 +47,13 @@ import {
   Webhook,
 } from "@dub/ui/icons";
 import { isWorkspaceBillingTrialActive } from "@dub/utils";
+import { DubProduct } from "@prisma/client";
 import { Session } from "next-auth";
 import { useSession } from "next-auth/react";
 import { useParams, usePathname } from "next/navigation";
 import { ReactNode, useMemo } from "react";
+import { toast } from "sonner";
+import { mutate } from "swr";
 import { DubPartnersPopup } from "./dub-partners-popup";
 import { Compass } from "./icons/compass";
 import { ConnectedDots4 } from "./icons/connected-dots4";
@@ -67,6 +71,8 @@ type SidebarNavData = {
   pathname: string;
   queryString: string;
   defaultProduct?: "program" | "links";
+  canSetDefaultProduct?: boolean;
+  onSetDefaultProduct?: (product: DubProduct) => Promise<void>;
   session?: Session | null;
   showNews?: boolean;
   pendingPayoutsCount?: number;
@@ -83,9 +89,10 @@ const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({
   slug,
   pathname,
   defaultProduct,
+  canSetDefaultProduct,
+  onSetDefaultProduct,
 }) => {
   const programGroup = {
-    id: "program",
     name: "Partner Program",
     description:
       "Kickstart viral product-led growth with powerful, branded referral and affiliate programs.",
@@ -98,9 +105,13 @@ const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({
       !pathname.startsWith(`/${slug}/links`) &&
       !pathname.startsWith(`/${slug}/settings`),
     popup: DubPartnersPopup,
+    isDefault: defaultProduct === "program",
+    onSetDefault:
+      canSetDefaultProduct && onSetDefaultProduct
+        ? () => onSetDefaultProduct("program")
+        : undefined,
   };
   const linksGroup = {
-    id: "links",
     name: "Short Links",
     description:
       "Create, organize, and measure the performance of your short links.",
@@ -108,6 +119,11 @@ const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({
     icon: Compass,
     href: slug ? `/${slug}/links` : "/links",
     active: pathname.startsWith(`/${slug}/links`),
+    isDefault: (defaultProduct ?? "links") === "links",
+    onSetDefault:
+      canSetDefaultProduct && onSetDefaultProduct
+        ? () => onSetDefaultProduct("links")
+        : undefined,
   };
 
   return defaultProduct === "links"
@@ -502,8 +518,51 @@ export function AppSidebarNav({
   const pathname = usePathname();
   const { router, getQueryString } = useRouterStuff();
   const { data: session } = useSession();
-  const { plan, defaultProduct, defaultProgramId, trialEndsAt } =
-    useWorkspace();
+  const {
+    id: workspaceId,
+    plan,
+    defaultProduct,
+    defaultProgramId,
+    trialEndsAt,
+    role,
+  } = useWorkspace();
+
+  const canSetDefaultProduct = !clientAccessCheck({
+    action: "workspaces.write",
+    role,
+  }).error;
+
+  async function onSetDefaultProduct(product: DubProduct) {
+    if (!workspaceId || !slug) {
+      return;
+    }
+
+    await toast.promise(
+      (async () => {
+        const response = await fetch(`/api/workspaces/${workspaceId}`, {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            defaultProduct: product,
+          }),
+        });
+
+        if (!response.ok) {
+          const { error } = await response.json();
+          throw new Error(error.message);
+        }
+
+        await mutate(`/api/workspaces/${slug}`);
+      })(),
+      {
+        loading: "Setting default product...",
+        success: "Successfully updated your default product!",
+        error: (error) => error.message,
+      },
+    );
+  }
 
   const currentArea = useMemo(() => {
     return pathname.startsWith("/account/settings")
@@ -597,6 +656,8 @@ export function AppSidebarNav({
         session: session || undefined,
         showNews: true,
         defaultProduct,
+        canSetDefaultProduct,
+        onSetDefaultProduct,
         pendingPayoutsCount: pendingPayoutsCount?.[0]?.count ?? 0,
         applicationsCount,
         submittedBountiesCount,
