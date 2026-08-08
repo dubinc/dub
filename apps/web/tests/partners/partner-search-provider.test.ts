@@ -43,6 +43,7 @@ const partnerDocument: PartnerSearchDocument = {
 describe("partner search provider contract", () => {
   it.each([
     ["name", "rafi"],
+    ["partner ID", "pn_test"],
     ["partial email", "examp"],
     ["company name", "dub partners"],
     ["description", "educator"],
@@ -58,8 +59,8 @@ describe("partner search provider contract", () => {
     const result = await provider.search({
       programId: partnerDocument.programId,
       query,
-      limit: 10,
-      offset: 0,
+      page: 1,
+      pageSize: 10,
     });
 
     expect(result.total).toBe(1);
@@ -72,8 +73,8 @@ describe("partner search provider contract", () => {
     const result = await provider.search({
       programId: "prog_other",
       query: "rafi",
-      limit: 10,
-      offset: 0,
+      page: 1,
+      pageSize: 10,
     });
 
     expect(result).toEqual({ hits: [], total: 0 });
@@ -85,8 +86,8 @@ describe("partner search provider contract", () => {
     const result = await provider.search({
       programId: partnerDocument.programId,
       query: "examp",
-      limit: 10,
-      offset: 0,
+      page: 1,
+      pageSize: 10,
       filters: {
         status: "approved",
         countries: { values: ["CA"], operator: "IN" },
@@ -114,8 +115,8 @@ describe("partner search provider contract", () => {
     const result = await provider.search({
       programId: partnerDocument.programId,
       query: "examp",
-      limit: 10,
-      offset: 0,
+      page: 1,
+      pageSize: 10,
       sort: { field: "totalSaleAmount", order: "desc" },
     });
 

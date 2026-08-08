@@ -8,6 +8,7 @@ export function getPartnerSearchableValues(
   document: PartnerSearchDocument,
 ): string[] {
   return [
+    document.partnerId,
     document.name,
     document.email,
     document.companyName,

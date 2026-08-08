@@ -25,7 +25,7 @@ export interface PartnerSearchDocument {
   shortLinks: string[];
   destinationUrls: string[];
 
-  // Program-scoped fields needed to constrain search results
+  // Program-scoped fields used by search filters and sorting
   status: ProgramEnrollmentStatus;
   tenantId: string | null;
   groupId: string | null;
@@ -92,8 +92,8 @@ export interface PartnerSearchFilters {
 export interface PartnerSearchQuery {
   programId: string;
   query: string;
-  limit: number;
-  offset: number;
+  page: number;
+  pageSize: number;
   filters?: PartnerSearchFilters;
   sort?: {
     field: PartnerSearchSortField;

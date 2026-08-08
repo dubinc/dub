@@ -122,8 +122,8 @@ export function createMockPartnerSearchProvider(
     async search({
       programId,
       query,
-      limit,
-      offset,
+      page,
+      pageSize,
       filters,
       sort,
     }: PartnerSearchQuery) {
@@ -141,8 +141,10 @@ export function createMockPartnerSearchProvider(
         matches.sort((left, right) => compareDocuments(left, right, sort));
       }
 
+      const offset = (page - 1) * pageSize;
+
       return {
-        hits: matches.slice(offset, offset + limit).map((document) => ({
+        hits: matches.slice(offset, offset + pageSize).map((document) => ({
           id: document.id,
           partnerId: document.partnerId,
         })),
