@@ -126,7 +126,7 @@ const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({
         : undefined,
   };
 
-  return defaultProduct === "links"
+  return (defaultProduct ?? "links") === "links"
     ? [linksGroup, programGroup]
     : [programGroup, linksGroup];
 };
