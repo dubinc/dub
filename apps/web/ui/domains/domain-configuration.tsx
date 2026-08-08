@@ -43,6 +43,10 @@ export default function DomainConfiguration({
       domain: domain ?? "",
       recordType,
       workspaceId: workspaceId ?? "",
+      endpoint:
+        domain && workspaceId
+          ? `/api/domains/${encodeURIComponent(domain)}/forward-instructions?workspaceId=${workspaceId}`
+          : "",
     });
 
   const handleAutoConfigure = async () => {

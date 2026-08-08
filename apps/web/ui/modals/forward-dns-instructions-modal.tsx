@@ -12,16 +12,17 @@ import { toast } from "sonner";
 
 type ForwardDnsInstructionsModalProps = {
   domain: string;
-  recordType: "A" | "CNAME";
   workspaceId: string;
+  endpoint: string;
+  recordType?: "A" | "CNAME";
 };
 
 function ForwardDnsInstructionsModal({
   showModal,
   setShowModal,
   domain,
+  endpoint,
   recordType,
-  workspaceId,
 }: {
   showModal: boolean;
   setShowModal: Dispatch<SetStateAction<boolean>>;
@@ -35,14 +36,15 @@ function ForwardDnsInstructionsModal({
     e.stopPropagation();
     setLoading(true);
     try {
-      const res = await fetch(
-        `/api/domains/${encodeURIComponent(domain)}/forward-instructions?workspaceId=${workspaceId}`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, recordType }),
-        },
-      );
+      const body: { email: string; recordType?: "A" | "CNAME" } = { email };
+      if (recordType) {
+        body.recordType = recordType;
+      }
+      const res = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
       const json = await res.json().catch(() => ({}));
       if (!res.ok) {
         toast.error(json?.error?.message ?? "Failed to send instructions.");
@@ -116,7 +118,13 @@ export function useForwardDnsInstructionsModal(
         {...props}
       />
     ),
-    [showModal, props.domain, props.recordType, props.workspaceId],
+    [
+      showModal,
+      props.domain,
+      props.endpoint,
+      props.recordType,
+      props.workspaceId,
+    ],
   );
 
   return useMemo(

@@ -4,7 +4,6 @@ import { DomainCardTitleColumn } from "@/ui/domains/domain-card-title-column";
 import { useAddEditEmailDomainModal } from "@/ui/modals/add-edit-email-domain-modal";
 import { useDeleteEmailDomainModal } from "@/ui/modals/delete-email-domain-modal";
 import { Delete, ThreeDots } from "@/ui/shared/icons";
-import { GetDomainResponseSuccess } from "@dub/email/resend/types";
 import {
   Button,
   Envelope,
@@ -19,7 +18,7 @@ import {
 import { capitalize, cn, fetcher, formatDate } from "@dub/utils";
 import { motion } from "motion/react";
 import { useEffect, useRef, useState } from "react";
-import useSWRImmutable from "swr/immutable";
+import useSWR from "swr";
 import { EMAIL_DOMAIN_STATUS_TO_VARIANT } from "./constants";
 import { EmailDomainDnsRecords } from "./email-domain-dns-records";
 
@@ -34,13 +33,16 @@ export function EmailDomainCard({ domain }: EmailDomainCardProps) {
   const domainRef = useRef<HTMLDivElement>(null);
   const isVisible = useInViewport(domainRef, { defaultValue: true });
 
-  const { isValidating, mutate, data } =
-    useSWRImmutable<GetDomainResponseSuccess>(
-      workspaceId &&
-        isVisible &&
-        `/api/email-domains/${domain.slug}/verify?workspaceId=${workspaceId}`,
-      fetcher,
-    );
+  const { isValidating, mutate, data } = useSWR<{ status?: string }>(
+    workspaceId &&
+      isVisible &&
+      `/api/email-domains/${domain.slug}/verify?workspaceId=${workspaceId}`,
+    fetcher,
+    {
+      revalidateOnFocus: true,
+      dedupingInterval: 5000,
+    },
+  );
 
   const { addEditEmailDomainModal, setIsOpen: setShowEditModal } =
     useAddEditEmailDomainModal({
