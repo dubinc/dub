@@ -1,3 +1,4 @@
+import { createId } from "@/lib/api/create-id";
 import { hashPassword } from "@/lib/auth/password";
 import { prisma } from "@/lib/prisma";
 import { PlatformType, Prisma } from "@prisma/client";
@@ -7,16 +8,6 @@ import "dotenv-flow/config";
 const DEFAULT_COUNT = 100_000;
 const DEFAULT_SEED = "partners-search";
 const CHUNK_SIZE = 2_500;
-
-const createDeterministicId = ({
-  seedFingerprint,
-  prefix,
-  index,
-}: {
-  seedFingerprint: string;
-  prefix: string;
-  index: number;
-}) => `${prefix}${seedFingerprint}_${index.toString().padStart(10, "0")}`;
 
 const parsePositiveInteger = (value: string | undefined, flag: string) => {
   const parsed = Number(value);
@@ -178,21 +169,9 @@ const generatePartnerChunk = ({
   const links: Prisma.LinkCreateManyInput[] = [];
 
   for (let i = start; i < end; i++) {
-    const partnerId = createDeterministicId({
-      seedFingerprint,
-      prefix: "pn_",
-      index: i,
-    });
-    const userId = createDeterministicId({
-      seedFingerprint,
-      prefix: "user_",
-      index: i,
-    });
-    const enrollmentId = createDeterministicId({
-      seedFingerprint,
-      prefix: "pge_",
-      index: i,
-    });
+    const partnerId = createId({ prefix: "pn_" });
+    const userId = createId({ prefix: "user_" });
+    const enrollmentId = createId({ prefix: "pge_" });
 
     const firstName = FIRST_NAMES[i % FIRST_NAMES.length];
     const lastName =
@@ -246,11 +225,7 @@ const generatePartnerChunk = ({
     });
 
     partnerUsers.push({
-      id: createDeterministicId({
-        seedFingerprint,
-        prefix: "pnusr_",
-        index: i,
-      }),
+      id: createId({ prefix: "pn_" }),
       userId,
       partnerId,
       role: "owner",
@@ -276,11 +251,7 @@ const generatePartnerChunk = ({
           : `@${firstName.toLowerCase()}_${lastName.toLowerCase()}_${i}`;
 
       platforms.push({
-        id: createDeterministicId({
-          seedFingerprint,
-          prefix: "pnp_",
-          index: i * 2 + p,
-        }),
+        id: createId({ prefix: "pn_" }),
         partnerId,
         type: platformType,
         identifier,
@@ -295,11 +266,7 @@ const generatePartnerChunk = ({
     const linkKey = `p-${seedFingerprint}-${i}`;
     const linkDomain = programDomain || "dub.sh";
     links.push({
-      id: createDeterministicId({
-        seedFingerprint,
-        prefix: "link_",
-        index: i,
-      }),
+      id: createId({ prefix: "link_" }),
       domain: linkDomain,
       key: linkKey,
       url: `https://${domain}/ref/${username}`,
@@ -322,20 +289,14 @@ const insertPartnerChunk = async ({
   platforms,
   links,
 }: PartnerChunk) => {
-  // Keep every chunk atomic. Stable IDs make the same seed safe to resume/rerun.
+  // Keep every chunk atomic so a failed write cannot leave partial relations.
   const [, partnerResult] = await prisma.$transaction([
-    prisma.user.createMany({ data: users, skipDuplicates: true }),
-    prisma.partner.createMany({ data: partners, skipDuplicates: true }),
-    prisma.partnerUser.createMany({ data: partnerUsers, skipDuplicates: true }),
-    prisma.programEnrollment.createMany({
-      data: enrollments,
-      skipDuplicates: true,
-    }),
-    prisma.partnerPlatform.createMany({
-      data: platforms,
-      skipDuplicates: true,
-    }),
-    prisma.link.createMany({ data: links, skipDuplicates: true }),
+    prisma.user.createMany({ data: users }),
+    prisma.partner.createMany({ data: partners }),
+    prisma.partnerUser.createMany({ data: partnerUsers }),
+    prisma.programEnrollment.createMany({ data: enrollments }),
+    prisma.partnerPlatform.createMany({ data: platforms }),
+    prisma.link.createMany({ data: links }),
   ]);
 
   return partnerResult.count;
@@ -407,7 +368,7 @@ async function main() {
     const insertedInChunk = await insertPartnerChunk(partnerChunk);
     insertedPartners += insertedInChunk;
 
-    // Report both processing progress and the idempotent insert count.
+    // Report processing progress and the number inserted by this chunk.
     const elapsedSec = ((Date.now() - startTime) / 1000).toFixed(1);
     const progressPct = (((chunk + 1) / totalChunks) * 100).toFixed(0);
     console.log(
@@ -415,10 +376,10 @@ async function main() {
     );
   }
 
-  // Step 5: Summarize how much of the requested seed was newly inserted.
+  // Step 5: Summarize the completed seed run.
   const totalTimeSec = ((Date.now() - startTime) / 1000).toFixed(1);
   console.log(
-    `\n✅ Seed complete: ${insertedPartners.toLocaleString()} new, ${(totalCount - insertedPartners).toLocaleString()} already present (${totalTimeSec}s).`,
+    `\n✅ Seed complete: ${insertedPartners.toLocaleString()} partners inserted (${totalTimeSec}s).`,
   );
 }
 
