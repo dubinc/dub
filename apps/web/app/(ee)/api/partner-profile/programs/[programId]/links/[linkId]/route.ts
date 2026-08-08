@@ -7,17 +7,18 @@ import { extractUtmParams } from "@/lib/api/utm/extract-utm-params";
 import { withPartnerProfile } from "@/lib/auth/partner";
 import { prisma } from "@/lib/prisma";
 import { NewLinkProps } from "@/lib/types";
-import { PartnerProfileLinkSchema } from "@/lib/zod/schemas/partner-profile";
-import { createPartnerLinkSchema } from "@/lib/zod/schemas/partners";
+import {
+  PartnerProfileLinkSchema,
+  updatePartnerProfileLinkSchema,
+} from "@/lib/zod/schemas/partner-profile";
 import { getPrettyUrl, toCentsNumber } from "@dub/utils";
 import { NextResponse } from "next/server";
 
 // PATCH /api/partner-profile/[programId]/links/[linkId] - update a link for a partner
 export const PATCH = withPartnerProfile(
   async ({ partner, params, req, session }) => {
-    const { url, key, comments } = createPartnerLinkSchema
-      .pick({ url: true, key: true, comments: true })
-      .parse(await parseRequestBody(req));
+    const { url, key, partnerLinkTitle, partnerLinkComments } =
+      updatePartnerProfileLinkSchema.parse(await parseRequestBody(req));
 
     const { programId, linkId } = params;
 
@@ -68,7 +69,9 @@ export const PATCH = withPartnerProfile(
       });
     }
 
-    const linkUrlChanged = getPrettyUrl(link.url) !== getPrettyUrl(url);
+    const nextUrl = url ?? link.url;
+    const nextKey = key ?? link.key;
+    const linkUrlChanged = getPrettyUrl(link.url) !== getPrettyUrl(nextUrl);
 
     if (linkUrlChanged) {
       if (link.partnerGroupDefaultLinkId) {
@@ -78,7 +81,7 @@ export const PATCH = withPartnerProfile(
             "You cannot update the destination URL of your default link.",
         });
       } else {
-        validatePartnerLinkUrl({ group, url });
+        validatePartnerLinkUrl({ group, url: nextUrl });
       }
     }
 
@@ -92,7 +95,7 @@ export const PATCH = withPartnerProfile(
       : null;
 
     // if domain and key are the same, we don't need to check if the key exists
-    const skipKeyChecks = link.key.toLowerCase() === key?.toLowerCase();
+    const skipKeyChecks = link.key.toLowerCase() === nextKey.toLowerCase();
 
     const {
       link: processedLink,
@@ -118,10 +121,16 @@ export const PATCH = withPartnerProfile(
             ? link.testStartedAt.toISOString()
             : link.testStartedAt,
 
-        // merge in new props
-        key: key || undefined,
-        url: url || program.url,
-        comments,
+        key: nextKey,
+        url: nextUrl,
+        partnerLinkTitle:
+          partnerLinkTitle !== undefined
+            ? partnerLinkTitle
+            : link.partnerLinkTitle,
+        partnerLinkComments:
+          partnerLinkComments !== undefined
+            ? partnerLinkComments
+            : link.partnerLinkComments,
       },
       workspace: {
         id: program.workspaceId,

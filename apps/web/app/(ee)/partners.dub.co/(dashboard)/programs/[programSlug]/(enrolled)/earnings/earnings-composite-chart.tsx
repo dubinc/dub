@@ -6,6 +6,7 @@ import { IntervalOptions } from "@/lib/analytics/types";
 import usePartnerEarningsCount from "@/lib/swr/use-partner-earnings-count";
 import { usePartnerEarningsTimeseries } from "@/lib/swr/use-partner-earnings-timeseries";
 import usePartnerLinks from "@/lib/swr/use-partner-links";
+import { usePartnerLinksDisplay } from "@/lib/swr/use-partner-links-display";
 import { LinkIcon } from "@/ui/links/link-icon";
 import { CommissionTypeIcon } from "@/ui/partners/comission-type-icon";
 import { CommissionStatusBadges } from "@/ui/partners/commission-status-badges";
@@ -61,6 +62,7 @@ export function EarningsCompositeChart() {
   };
 
   const { links } = usePartnerLinks();
+  const { displayProperties } = usePartnerLinksDisplay();
 
   const { data } = usePartnerEarningsTimeseries({
     interval,
@@ -208,9 +210,12 @@ export function EarningsCompositeChart() {
                                 )}
                               />
                               <span className="min-w-0 truncate font-medium text-neutral-700">
-                                {link?.shortLink
-                                  ? getPrettyUrl(link.shortLink)
-                                  : capitalize(id)}
+                                {displayProperties.includes("title") &&
+                                link?.partnerLinkTitle
+                                  ? link.partnerLinkTitle
+                                  : link?.shortLink
+                                    ? getPrettyUrl(link.shortLink)
+                                    : capitalize(id)}
                               </span>
                             </div>
                             <p className="text-right text-neutral-500">
@@ -253,9 +258,17 @@ export function EarningsCompositeChart() {
 function EarningsTableControls() {
   const { queryParams, searchParamsObj } = useRouterStuff();
   const [selectedFilter, setSelectedFilter] = useState<string | null>(null);
+  const { displayProperties } = usePartnerLinksDisplay();
 
   const { earningsCount: links } = usePartnerEarningsCount<
-    { id: string; domain: string; key: string; url: string; _count: number }[]
+    {
+      id: string;
+      domain: string;
+      key: string;
+      url: string;
+      partnerLinkTitle?: string | null;
+      _count: number;
+    }[]
   >({
     groupBy: "linkId",
     enabled:
@@ -300,13 +313,16 @@ function EarningsTableControls() {
           return <LinkIcon url={props.option?.data?.url} />;
         },
         options:
-          links?.map(({ id, domain, key, url }) => ({
+          links?.map(({ id, domain, key, url, partnerLinkTitle }) => ({
             value: id,
-            label: linkConstructor({
-              domain,
-              key,
-              pretty: true,
-            }),
+            label:
+              displayProperties.includes("title") && partnerLinkTitle
+                ? partnerLinkTitle
+                : linkConstructor({
+                    domain,
+                    key,
+                    pretty: true,
+                  }),
             data: { url },
           })) ?? null,
       },
@@ -342,7 +358,7 @@ function EarningsTableControls() {
         }),
       },
     ],
-    [links, customers, statuses],
+    [links, customers, statuses, displayProperties],
   );
 
   const activeFilters = useMemo(() => {

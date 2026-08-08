@@ -1,6 +1,7 @@
 "use client";
 
 import usePartnerEarningsCount from "@/lib/swr/use-partner-earnings-count";
+import { usePartnerLinksDisplay } from "@/lib/swr/use-partner-links-display";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import { PartnerEarningsResponse } from "@/lib/types";
@@ -48,6 +49,7 @@ export function EarningsTablePartner({ limit }: { limit?: number }) {
   const { partner } = usePartnerProfile();
   const { programEnrollment, showDetailedAnalytics } = useProgramEnrollment();
   const { queryParams, searchParamsObj, getQueryString } = useRouterStuff();
+  const { displayProperties } = usePartnerLinksDisplay();
 
   const { sortBy = "createdAt", sortOrder = "desc" } = searchParamsObj as {
     sortBy?: "createdAt";
@@ -113,15 +115,23 @@ export function EarningsTablePartner({ limit }: { limit?: number }) {
             row.original.link ? { linkId: row.original.link.id } : null,
         },
         cell: ({ row }) => {
-          const referralLink = row.original.link
+          const link = row.original.link;
+          const referralLink = link
             ? {
-                apexDomain: getApexDomain(row.original.link.url),
-                shortLink: row.original.link.shortLink,
+                apexDomain: getApexDomain(link.url),
+                shortLink: link.shortLink,
+                label:
+                  displayProperties.includes("title") && link.partnerLinkTitle
+                    ? link.partnerLinkTitle
+                    : getPrettyUrl(link.shortLink),
               }
             : row.original.type === CommissionType.referral && partner?.username
               ? {
                   apexDomain: "dub.co",
                   shortLink: `https://partners.dub.co/${programSlug}/apply?via=${partner.username}`,
+                  label: getPrettyUrl(
+                    `https://partners.dub.co/${programSlug}/apply?via=${partner.username}`,
+                  ),
                 }
               : null;
 
@@ -138,8 +148,8 @@ export function EarningsTablePartner({ limit }: { limit?: number }) {
                 successMessage="Copied link to clipboard!"
                 className="truncate"
               >
-                <span className="truncate" title={referralLink.shortLink}>
-                  {getPrettyUrl(referralLink.shortLink)}
+                <span className="truncate" title={referralLink.label}>
+                  {referralLink.label}
                 </span>
               </CopyText>
             </div>

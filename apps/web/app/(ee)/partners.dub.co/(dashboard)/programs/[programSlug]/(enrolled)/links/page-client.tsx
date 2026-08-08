@@ -6,21 +6,20 @@ import {
 } from "@/lib/analytics/constants";
 import { IntervalOptions } from "@/lib/analytics/types";
 import usePartnerLinks from "@/lib/swr/use-partner-links";
+import {
+  PartnerLinksDisplayContext,
+  PartnerLinksDisplayProvider,
+} from "@/lib/swr/use-partner-links-display";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import { usePartnerLinkModal } from "@/ui/modals/partner-link-modal";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
-import {
-  Button,
-  CardList,
-  ToggleGroup,
-  useKeyboardShortcut,
-  useRouterStuff,
-} from "@dub/ui";
+import { Button, CardList, useKeyboardShortcut, useRouterStuff } from "@dub/ui";
 import { ChartTooltipSync } from "@dub/ui/charts";
-import { CursorRays, GridIcon, GridLayoutRows, Hyperlink } from "@dub/ui/icons";
-import { createContext, useContext, useEffect, useState } from "react";
+import { CursorRays, Hyperlink } from "@dub/ui/icons";
+import { createContext, useContext, useState } from "react";
 import { PartnerLinkCard } from "./partner-link-card";
+import { PartnerLinkDisplay } from "./partner-link-display";
 
 const PartnerLinksContext = createContext<{
   start?: Date;
@@ -42,21 +41,47 @@ export function usePartnerLinksContext() {
 }
 
 export function PartnerProgramLinksPageClient() {
-  const { searchParamsObj } = useRouterStuff();
   const { links, error, loading, isValidating } = usePartnerLinks();
   const { programEnrollment, showDetailedAnalytics } = useProgramEnrollment();
+
+  return (
+    <PartnerLinksDisplayProvider
+      linksCount={links?.length}
+      showDetailedAnalytics={showDetailedAnalytics}
+    >
+      <PartnerProgramLinksPageInner
+        links={links}
+        error={error}
+        loading={loading}
+        isValidating={isValidating}
+        programEnrollment={programEnrollment}
+        showDetailedAnalytics={showDetailedAnalytics}
+      />
+    </PartnerLinksDisplayProvider>
+  );
+}
+
+function PartnerProgramLinksPageInner({
+  links,
+  error,
+  loading,
+  isValidating,
+  programEnrollment,
+  showDetailedAnalytics,
+}: {
+  links: ReturnType<typeof usePartnerLinks>["links"];
+  error: ReturnType<typeof usePartnerLinks>["error"];
+  loading: boolean;
+  isValidating: boolean;
+  programEnrollment: ReturnType<
+    typeof useProgramEnrollment
+  >["programEnrollment"];
+  showDetailedAnalytics?: boolean;
+}) {
+  const { searchParamsObj } = useRouterStuff();
   const { setShowPartnerLinkModal, PartnerLinkModal } = usePartnerLinkModal();
   const [openMenuLinkId, setOpenMenuLinkId] = useState<string | null>(null);
-
-  const [displayOption, setDisplayOption] = useState<"full" | "cards">("full");
-
-  useEffect(() => {
-    if ((links && links.length > 5) || !showDetailedAnalytics) {
-      setDisplayOption("cards");
-    } else {
-      setDisplayOption("full");
-    }
-  }, [links, showDetailedAnalytics]);
+  const { displayOption } = useContext(PartnerLinksDisplayContext);
 
   const {
     start,
@@ -89,61 +114,35 @@ export function PartnerProgramLinksPageClient() {
     <div className="flex flex-col gap-4">
       <PartnerLinkModal />
       <div className="flex items-center justify-between">
-        <SimpleDateRangePicker
-          className="w-fit"
-          align="start"
-          defaultInterval={
-            showAllTimeAnalytics ? "all" : DUB_PARTNERS_ANALYTICS_INTERVAL
-          }
-          disabled={showAllTimeAnalytics}
-        />
         <div className="flex items-center gap-3">
-          {!!showDetailedAnalytics && (
-            <ToggleGroup
-              className="h-10 rounded-lg px-1"
-              optionClassName="px-2 rounded-md"
-              indicatorClassName="border-0 ring-1 ring-inset ring-neutral-200"
-              options={[
-                {
-                  value: "full",
-                  label: (
-                    <div className="p-1">
-                      <GridIcon className="size-4" />
-                    </div>
-                  ),
-                },
-                {
-                  value: "cards",
-                  label: (
-                    <div className="p-1">
-                      <GridLayoutRows className="size-4" />
-                    </div>
-                  ),
-                },
-              ]}
-              selected={displayOption}
-              selectAction={(option) =>
-                setDisplayOption(option as "full" | "cards")
-              }
-            />
-          )}
-          <Button
-            text="Create Link"
-            className="w-fit"
-            shortcut="C"
-            onClick={() => setShowPartnerLinkModal(true)}
-            disabled={!canCreateNewLink}
-            disabledTooltip={
-              status === "deactivated"
-                ? "You cannot create links in this program because your partnership has been deactivated."
-                : hasLinksLimitReached
-                  ? `You have reached the limit of ${maxPartnerLinks} referral links.`
-                  : !hasAdditionalLinks
-                    ? `${program?.name ?? "This"} program does not allow partners to create new links.`
-                    : undefined
+          <SimpleDateRangePicker
+            className="w-fit shrink-0"
+            align="start"
+            defaultInterval={
+              showAllTimeAnalytics ? "all" : DUB_PARTNERS_ANALYTICS_INTERVAL
             }
+            disabled={showAllTimeAnalytics}
           />
+          <div className="w-fit shrink-0">
+            <PartnerLinkDisplay />
+          </div>
         </div>
+        <Button
+          text="Create Link"
+          className="w-fit"
+          shortcut="C"
+          onClick={() => setShowPartnerLinkModal(true)}
+          disabled={!canCreateNewLink}
+          disabledTooltip={
+            status === "deactivated"
+              ? "You cannot create links in this program because your partnership has been deactivated."
+              : hasLinksLimitReached
+                ? `You have reached the limit of ${maxPartnerLinks} referral links.`
+                : !hasAdditionalLinks
+                  ? `${program?.name ?? "This"} program does not allow partners to create new links.`
+                  : undefined
+          }
+        />
       </div>
       <PartnerLinksContext.Provider
         value={{

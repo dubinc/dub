@@ -27,7 +27,7 @@ import { LinkSchema } from "./links";
 import { getPaginationQuerySchema } from "./misc";
 import { payoutsQuerySchema } from "./payouts";
 import { submittedLeadFormDataSchema } from "./submitted-lead-form";
-import { centsSchema } from "./utils";
+import { centsSchema, parseUrlSchema } from "./utils";
 
 export const PartnerEarningsSchema = CommissionSchema.omit({
   userId: true,
@@ -44,7 +44,11 @@ export const PartnerEarningsSchema = CommissionSchema.omit({
     id: true,
     shortLink: true,
     url: true,
-  }).nullish(),
+  })
+    .extend({
+      partnerLinkTitle: z.string().nullish(),
+    })
+    .nullish(),
 });
 
 export const getPartnerEarningsQuerySchema = getCommissionsQuerySchema
@@ -82,6 +86,32 @@ export const getPartnerEarningsTimeseriesSchema =
     timezone: z.string().optional(),
   });
 
+export const createPartnerProfileLinkSchema = z.object({
+  url: parseUrlSchema
+    .nullish()
+    .describe(
+      "The URL to shorten (if not provided, the program's default URL will be used).",
+    ),
+  key: z
+    .string()
+    .max(190)
+    .optional()
+    .describe(
+      "The short link slug. If not provided, a random 7-character slug will be generated.",
+    ),
+  partnerLinkTitle: z
+    .string()
+    .nullish()
+    .describe("The partner's private display title for the short link."),
+  partnerLinkComments: z
+    .string()
+    .nullish()
+    .describe("The partner's private comments for the short link."),
+});
+
+export const updatePartnerProfileLinkSchema =
+  createPartnerProfileLinkSchema.partial();
+
 export const PartnerProfileLinkSchema = LinkSchema.pick({
   id: true,
   domain: true,
@@ -92,8 +122,9 @@ export const PartnerProfileLinkSchema = LinkSchema.pick({
   leads: true,
   sales: true,
   saleAmount: true,
-  comments: true,
 }).extend({
+  partnerLinkTitle: z.string().nullish().default(null),
+  partnerLinkComments: z.string().nullish().default(null),
   createdAt: z.string().or(z.date()),
   partnerGroupDefaultLinkId: z.string().nullish(),
   discountCode: z.string().nullable().default(null),
@@ -108,7 +139,18 @@ export const PartnerProfileCustomerSchema = CustomerEnrichedSchema.pick({
   firstSaleAt: true,
   subscriptionCanceledAt: true,
 }).extend({
-  activity: customerActivityResponseSchema,
+  activity: customerActivityResponseSchema.extend({
+    link: LinkSchema.pick({
+      id: true,
+      domain: true,
+      key: true,
+      shortLink: true,
+    })
+      .extend({
+        partnerLinkTitle: z.string().nullish(),
+      })
+      .nullish(),
+  }),
 });
 
 export const partnerProfileAnalyticsQuerySchema = analyticsQuerySchema.omit({
