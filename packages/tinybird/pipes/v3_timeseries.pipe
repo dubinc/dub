@@ -435,4 +435,4 @@ FROM
     {% else %} timeseries_clicks
     {% end %}
 
-
+TYPE ENDPOINT
