@@ -1,0 +1,102 @@
+import {
+  backfillPartnerSearch,
+  type PartnerSearchBackfillProgress,
+} from "@/lib/api/partners/search";
+import { prisma } from "@/lib/prisma";
+import "dotenv-flow/config";
+
+const DEFAULT_BATCH_SIZE = 500;
+const MAX_BATCH_SIZE = 1_000;
+
+interface BackfillArguments {
+  programId: string;
+  batchSize: number;
+  after?: string;
+}
+
+function parsePositiveInteger(value: string | undefined, flag: string) {
+  const parsed = Number(value);
+
+  if (!Number.isSafeInteger(parsed) || parsed <= 0) {
+    throw new Error(`${flag} must be a positive integer.`);
+  }
+
+  return parsed;
+}
+
+function parseArguments(args: string[]): BackfillArguments {
+  let programId: string | undefined;
+  let batchSize = DEFAULT_BATCH_SIZE;
+  let after: string | undefined;
+
+  for (const arg of args) {
+    if (arg.startsWith("--programId=")) {
+      programId = arg.slice("--programId=".length);
+    } else if (arg.startsWith("--batchSize=")) {
+      batchSize = parsePositiveInteger(
+        arg.slice("--batchSize=".length),
+        "--batchSize",
+      );
+    } else if (arg.startsWith("--after=")) {
+      after = arg.slice("--after=".length);
+    } else {
+      throw new Error(`Unknown argument: ${arg}`);
+    }
+  }
+
+  if (!programId) {
+    throw new Error("--programId is required.");
+  }
+
+  if (batchSize > MAX_BATCH_SIZE) {
+    throw new Error(`--batchSize cannot exceed ${MAX_BATCH_SIZE}.`);
+  }
+
+  if (after === "") {
+    throw new Error("--after cannot be empty.");
+  }
+
+  return { programId, batchSize, after };
+}
+
+function reportProgress({
+  batchSize,
+  processed,
+  lastDocumentId,
+}: PartnerSearchBackfillProgress) {
+  console.log(
+    `Indexed ${processed.toLocaleString()} documents (${batchSize.toLocaleString()} in this batch), last document: ${lastDocumentId}`,
+  );
+}
+
+async function main() {
+  const { programId, batchSize, after } = parseArguments(process.argv.slice(2));
+
+  console.log(`Starting partner search backfill for program ${programId}`);
+  console.log(
+    `Batch size: ${batchSize.toLocaleString()}${after ? `, resuming after ${after}` : ""}`,
+  );
+
+  const result = await backfillPartnerSearch({
+    programId,
+    batchSize,
+    after,
+    onProgress: reportProgress,
+  });
+
+  console.log(
+    `Partner search backfill complete: ${result.processed.toLocaleString()} documents indexed.`,
+  );
+  if (result.lastDocumentId) {
+    console.log(`Last document: ${result.lastDocumentId}`);
+  }
+}
+
+main()
+  .catch((error) => {
+    console.error("Partner search backfill failed:", error);
+    process.exit(1);
+  })
+  .finally(async () => {
+    await prisma.$disconnect();
+  });
