@@ -1,5 +1,6 @@
 import { uploadCampaignImageAction } from "@/lib/actions/partners/upload-campaign-image";
 import { CAMPAIGN_READONLY_STATUSES } from "@/lib/api/campaigns/constants";
+import { checkWorkflowConditions } from "@/lib/api/workflows/check-workflow-conditions";
 import {
   formatCampaignFromAddress,
   parseCampaignFromAddress,
@@ -26,7 +27,7 @@ import {
   TooltipContent,
   useKeyboardShortcut,
 } from "@dub/ui";
-import { capitalize, cn } from "@dub/utils";
+import { capitalize, cn, pluck } from "@dub/utils";
 import { CampaignStatus } from "@prisma/client";
 import slugify from "@sindresorhus/slugify";
 import { motion } from "motion/react";
@@ -46,11 +47,13 @@ import { CAMPAIGN_STATUS_BADGES } from "../campaign-status-badges";
 import { CampaignActionBar } from "./campaign-action-bar";
 import { CampaignControls } from "./campaign-controls";
 import { CampaignEvents } from "./campaign-events";
-import { CampaignGroupsSelector } from "./campaign-groups-selector";
 import { CampaignMetrics } from "./campaign-metrics";
+import {
+  CampaignGroupsSelector,
+  CampaignTagsSelector,
+} from "./campaign-recipients-selector";
 import { DuplicateLogicWarning } from "./duplicate-logic-warning";
 import { TransactionalCampaignLogic } from "./transactional-campaign-logic";
-import { isValidTriggerCondition } from "./utils";
 
 const inputClassName =
   "hover:border-border-subtle h-8 w-full rounded-md transition-colors duration-150 focus:border-black/75 border focus:ring-black/75 border-transparent px-1.5 py-0 sm:text-sm text-content-default placeholder:text-content-muted hover:bg-neutral-100 hover:cursor-pointer";
@@ -244,8 +247,11 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
       preview: campaign.preview,
       from: campaign.from ?? undefined,
       bodyJson: campaign.bodyJson,
-      groupIds: campaign.groups.map(({ id }) => id),
-      triggerCondition: campaign.triggerCondition,
+      groupIds: campaign.groups.length ? pluck(campaign.groups, "id") : null,
+      partnerTagIds: campaign.partnerTags.length
+        ? pluck(campaign.partnerTags, "id")
+        : null,
+      triggerConditions: campaign.triggerConditions ?? [],
       scheduledAt: campaign.scheduledAt,
     },
   });
@@ -302,10 +308,27 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
             : null;
         }
 
-        // Remove invalid triggerCondition when saving a draft to prevent API validation errors
-        if (isDraft && "triggerCondition" in changedFields) {
-          if (!isValidTriggerCondition(changedFields.triggerCondition)) {
-            delete changedFields.triggerCondition;
+        if ("partnerTagIds" in changedFields) {
+          changedFields.partnerTagIds = Array.isArray(
+            changedFields.partnerTagIds,
+          )
+            ? changedFields.partnerTagIds
+            : null;
+        }
+
+        if ("triggerConditions" in changedFields) {
+          const { valid, errors } = checkWorkflowConditions({
+            conditions: changedFields.triggerConditions,
+            workflowType: "sendCampaign",
+          });
+
+          if (!valid) {
+            if (isDraft) {
+              delete changedFields.triggerConditions;
+            } else {
+              toast.error(errors[0]);
+              return;
+            }
           }
         }
 
@@ -501,7 +524,7 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
               />
             </label>
 
-            <span className={labelClassName}>To</span>
+            <span className={labelClassName}>Groups</span>
             <Controller
               control={control}
               name="groupIds"
@@ -518,6 +541,28 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
                   <CampaignGroupsSelector
                     selectedGroupIds={field.value ?? null}
                     setSelectedGroupIds={field.onChange}
+                  />
+                </DisabledInputWrapper>
+              )}
+            />
+
+            <span className={labelClassName}>Tags</span>
+            <Controller
+              control={control}
+              name="partnerTagIds"
+              render={({ field }) => (
+                <DisabledInputWrapper
+                  tooltip={
+                    isReadOnly
+                      ? statusMessages[campaign.status]
+                      : "Cannot change recipients while campaign is active. Pause the campaign to make changes."
+                  }
+                  disabled={isActive || isReadOnly}
+                  hideIcon={isReadOnly}
+                >
+                  <CampaignTagsSelector
+                    selectedPartnerTagIds={field.value ?? null}
+                    setSelectedPartnerTagIds={field.onChange}
                   />
                 </DisabledInputWrapper>
               )}
@@ -606,7 +651,9 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
 
             {campaign.type === "transactional" && (
               <>
-                <span className={labelClassName}>Logic</span>
+                <span className={cn(labelClassName, "self-start pt-1")}>
+                  Logic
+                </span>
                 <DisabledInputWrapper
                   tooltip={
                     isReadOnly

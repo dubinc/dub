@@ -1,4 +1,5 @@
 import { renderCampaignEmailHTML } from "@/lib/api/campaigns/render-campaign-email-html";
+import { campaignEligibilityIncludes } from "@/lib/api/campaigns/transform-campaign";
 import { validateCampaignFromAddress } from "@/lib/api/campaigns/validate-campaign";
 import { createId } from "@/lib/api/create-id";
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
@@ -11,7 +12,7 @@ import { TiptapNode } from "@/lib/types";
 import { ACTIVE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
 import { sendBatchEmail } from "@dub/email";
 import CampaignEmail from "@dub/email/templates/campaign-email";
-import { APP_DOMAIN_WITH_NGROK, chunk, log } from "@dub/utils";
+import { APP_DOMAIN_WITH_NGROK, chunk, log, pluck } from "@dub/utils";
 import { NotificationEmailType } from "@prisma/client";
 import { differenceInMinutes } from "date-fns";
 import { headers } from "next/headers";
@@ -55,7 +56,7 @@ export async function POST(req: Request) {
         id: campaignId,
       },
       include: {
-        groups: true,
+        ...campaignEligibilityIncludes,
         program: {
           include: {
             emailDomains: {
@@ -141,7 +142,8 @@ export async function POST(req: Request) {
       }
     }
 
-    const campaignGroupIds = campaign.groups.map(({ groupId }) => groupId);
+    const campaignGroupIds = pluck(campaign.groups, "groupId");
+    const campaignPartnerTagIds = pluck(campaign.partnerTags, "partnerTagId");
 
     const programEnrollments = await prisma.programEnrollment.findMany({
       where: {
@@ -152,6 +154,17 @@ export async function POST(req: Request) {
         ...(campaignGroupIds.length > 0 && {
           groupId: {
             in: campaignGroupIds,
+          },
+        }),
+        ...(campaignPartnerTagIds.length > 0 && {
+          partner: {
+            programPartnerTags: {
+              some: {
+                partnerTagId: {
+                  in: campaignPartnerTagIds,
+                },
+              },
+            },
           },
         }),
       },

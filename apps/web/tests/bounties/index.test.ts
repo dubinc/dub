@@ -179,6 +179,80 @@ describe.sequential("/bounties/**", async () => {
     });
   });
 
+  test("POST /bounties - invalid partner tag IDs", async () => {
+    const { status, data } = await http.post({
+      path: "/bounties",
+      body: {
+        ...submissionBounty,
+        groupIds: [E2E_PARTNER_GROUP.id],
+        partnerTagIds: ["invalid-partner-tag-id"],
+      },
+    });
+
+    expect(status).toEqual(400);
+    expect(data).toMatchObject({
+      error: {
+        message: "Invalid partner tag IDs detected: invalid-partner-tag-id",
+        code: "bad_request",
+      },
+    });
+  });
+
+  test("POST /bounties - with partnerTagIds null returns empty partnerTags", async () => {
+    const { status, data: bounty } = await http.post<{
+      id: string;
+      partnerTags: { id: string }[];
+    }>({
+      path: "/bounties",
+      body: {
+        ...submissionBounty,
+        groupIds: [E2E_PARTNER_GROUP.id],
+        partnerTagIds: null,
+      },
+    });
+
+    expect(status).toEqual(200);
+    expect(bounty.partnerTags).toEqual([]);
+
+    onTestFinished(async () => {
+      await h.deleteBounty(bounty.id);
+    });
+  });
+
+  test("PATCH /bounties/{bountyId} - clear partner tags", async () => {
+    const { status: createStatus, data: created } = await http.post<{
+      id: string;
+      partnerTags: { id: string }[];
+    }>({
+      path: "/bounties",
+      body: {
+        ...submissionBounty,
+        name: "Bounty for partner tag clear",
+        groupIds: [E2E_PARTNER_GROUP.id],
+        partnerTagIds: null,
+      },
+    });
+
+    expect(createStatus).toEqual(200);
+
+    const { status, data: bounty } = await http.patch<{
+      id: string;
+      partnerTags: { id: string }[];
+    }>({
+      path: `/bounties/${created.id}`,
+      body: {
+        partnerTagIds: null,
+      },
+    });
+
+    expect(status).toEqual(200);
+    expect(bounty.partnerTags).toEqual([]);
+
+    onTestFinished(async () => {
+      await h.deleteBounty(created.id);
+    });
+  });
+
   test("GET /bounties/{bountyId}", async () => {
     const { status, data: bounty } = await http.get<Bounty>({
       path: `/bounties/${submissionBountyId}`,
@@ -631,6 +705,20 @@ describe.sequential("/bounties - relative start mode", async () => {
       startMode: BountyStartMode.relative,
       startsAt: null,
       endsAfterDays: 180,
+    });
+
+    const { status: descriptionPatchStatus, data: descriptionUpdated } =
+      await http.patch<Bounty>({
+        path: `/bounties/${bounty.id}`,
+        body: { description: "updated description only" },
+      });
+
+    expect(descriptionPatchStatus).toEqual(200);
+    expect(descriptionUpdated).toMatchObject({
+      startMode: BountyStartMode.relative,
+      startsAt: null,
+      endsAfterDays: 180,
+      description: "updated description only",
     });
 
     onTestFinished(async () => {

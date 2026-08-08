@@ -6,7 +6,6 @@ import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { BountyProps } from "@/lib/types";
-import { GroupsMultiSelect } from "@/ui/partners/groups/groups-multi-select";
 import {
   ProgramSheetAccordion,
   ProgramSheetAccordionContent,
@@ -42,6 +41,7 @@ import { cn } from "@dub/utils";
 import { BountyStartMode, BountySubmissionFrequency } from "@prisma/client";
 import { Dispatch, SetStateAction, useMemo, useState } from "react";
 import { Controller, FormProvider } from "react-hook-form";
+import { AudienceEligibilityPanel } from "./audience-eligibility-panel";
 import { BountyCriteria } from "./bounty-criteria";
 import { BountyDuration } from "./bounty-duration";
 import { useAddEditBountyForm } from "./use-add-edit-bounty-form";
@@ -397,21 +397,12 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
 
               <BountyCriteria />
 
-              <ProgramSheetAccordionItem value="groups">
+              <ProgramSheetAccordionItem value="eligibility">
                 <ProgramSheetAccordionTrigger>
-                  Groups
+                  Eligibility
                 </ProgramSheetAccordionTrigger>
                 <ProgramSheetAccordionContent>
-                  <Controller
-                    control={control}
-                    name="groupIds"
-                    render={({ field }) => (
-                      <GroupsMultiSelect
-                        selectedGroupIds={field.value}
-                        setSelectedGroupIds={(ids) => field.onChange(ids)}
-                      />
-                    )}
-                  />
+                  <AudienceEligibilityPanel />
                 </ProgramSheetAccordionContent>
               </ProgramSheetAccordionItem>
             </ProgramSheetAccordion>

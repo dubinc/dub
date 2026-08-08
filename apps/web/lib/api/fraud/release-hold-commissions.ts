@@ -203,8 +203,7 @@ export async function releaseHoldCommissions({
         // should always be > 0, but just in case
         releasedEarnings > 0 &&
           executeWorkflows({
-            trigger: "partnerMetricsUpdated",
-            reason: "commission",
+            event: "commissionRecorded",
             identity: {
               workspaceId: program.workspaceId,
               programId,

@@ -67,7 +67,6 @@ describe.sequential("Workflow - MoveGroup", async () => {
     });
 
     expect(workflow).not.toBeNull();
-    expect(workflow.trigger).toBe("partnerMetricsUpdated");
     expect(workflow.disabledAt).toBeNull();
 
     const workflowActions = workflow.actions as any[];

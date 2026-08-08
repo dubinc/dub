@@ -1,4 +1,4 @@
-export type ConditionValue =
+type ConditionValue =
   | number
   | { min?: number; max?: number }
   | string
@@ -33,6 +33,27 @@ export const WORKFLOW_OPERATORS = {
       }
 
       return attributeValue >= conditionValue;
+    },
+  },
+
+  // Less than or equal to
+  lte: {
+    name: "lte",
+    label: "at most",
+    validate(value: ConditionValue) {
+      if (typeof value !== "number" || isNaN(value) || value < 0) {
+        throw new Error("Please enter a value greater than or equal to 0.");
+      }
+    },
+    evaluate(attributeValue: number | string, conditionValue: ConditionValue) {
+      if (
+        typeof attributeValue !== "number" ||
+        typeof conditionValue !== "number"
+      ) {
+        return false;
+      }
+
+      return attributeValue <= conditionValue;
     },
   },
 
