@@ -1,4 +1,5 @@
 import { withCron } from "@/lib/cron/with-cron";
+import { enqueuePartnerSearchSyncJob } from "@/lib/jobs/handlers/partner-search-sync-job";
 import { conn } from "@/lib/planetscale";
 import { prisma } from "@/lib/prisma";
 import {
@@ -327,6 +328,22 @@ const processPartnerActivityStreamBatch = () =>
           `Encountered ${errors.length} errors while processing:`,
           errors.slice(0, 5),
         ); // Log first 5 errors
+      }
+
+      const failedProgramPartners = new Set(
+        errors.map(({ programId, partnerId }) => `${programId}:${partnerId}`),
+      );
+      const updatedProgramPartners = programEnrollmentsToUpdateArray.filter(
+        ({ programId, partnerId }) =>
+          !failedProgramPartners.has(`${programId}:${partnerId}`),
+      );
+
+      if (updatedProgramPartners.length > 0) {
+        await enqueuePartnerSearchSyncJob({
+          programPartners: updatedProgramPartners.map(
+            ({ programId, partnerId }) => ({ programId, partnerId }),
+          ),
+        });
       }
 
       return {

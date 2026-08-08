@@ -1,4 +1,5 @@
 import { trackApplicationEvents } from "@/lib/application-events/update-application-event";
+import { enqueuePartnerSearchSyncJob } from "@/lib/jobs/handlers/partner-search-sync-job";
 import { prisma } from "@/lib/prisma";
 import { ProgramEnrollmentStatus } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
@@ -29,6 +30,7 @@ export async function approvePartner({
       },
     },
     select: {
+      id: true,
       groupId: true,
       status: true,
       program: {
@@ -129,6 +131,9 @@ export async function approvePartner({
 
   waitUntil(
     Promise.allSettled([
+      enqueuePartnerSearchSyncJob({
+        documentIds: [programEnrollment.id],
+      }),
       trackActivityLog({
         workspaceId: program.workspace.id,
         programId,

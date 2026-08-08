@@ -3,8 +3,10 @@
 import { DubApiError } from "@/lib/api/errors";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
+import { enqueuePartnerSearchSyncJob } from "@/lib/jobs/handlers/partner-search-sync-job";
 import { prisma } from "@/lib/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
+import { waitUntil } from "@vercel/functions";
 import { subMinutes } from "date-fns";
 import { authActionClient } from "../actions/safe-action";
 import { throwIfNoPermission } from "../actions/throw-if-no-permission";
@@ -134,6 +136,12 @@ export const attributeReferringPartnerAction = authActionClient
 
       throw error;
     }
+
+    waitUntil(
+      enqueuePartnerSearchSyncJob({
+        documentIds: [programEnrollment.id],
+      }),
+    );
 
     if (
       createCommissionsForPastEvents &&

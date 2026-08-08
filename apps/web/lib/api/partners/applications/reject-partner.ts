@@ -1,4 +1,5 @@
 import { trackApplicationEvents } from "@/lib/application-events/update-application-event";
+import { enqueuePartnerSearchSyncJob } from "@/lib/jobs/handlers/partner-search-sync-job";
 import { getProgramApplicationRejectionReasonLabel } from "@/lib/partners/program-application-rejection";
 import { prisma } from "@/lib/prisma";
 import { WorkspaceProps } from "@/lib/types";
@@ -146,6 +147,9 @@ export async function rejectPartner({
 
   waitUntil(
     Promise.allSettled([
+      enqueuePartnerSearchSyncJob({
+        documentIds: [programEnrollment.id],
+      }),
       trackActivityLog({
         workspaceId: workspace.id,
         programId,

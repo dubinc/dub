@@ -1,3 +1,4 @@
+import { enqueuePartnerSearchSyncJob } from "@/lib/jobs/handlers/partner-search-sync-job";
 import { prisma } from "@/lib/prisma";
 import { publishPartnerActivityEvent } from "@/lib/upstash/redis-streams/partner-activity";
 
@@ -24,7 +25,7 @@ export const syncPartnerLinksStats = async ({
       error,
     );
 
-    return await prisma.$transaction(async (tx) => {
+    const programEnrollment = await prisma.$transaction(async (tx) => {
       const res = await tx.link.aggregate({
         where: {
           programId,
@@ -58,5 +59,11 @@ export const syncPartnerLinksStats = async ({
         data: partnerLinkStats,
       });
     });
+
+    await enqueuePartnerSearchSyncJob({
+      documentIds: [programEnrollment.id],
+    });
+
+    return programEnrollment;
   }
 };

@@ -3,6 +3,7 @@
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { bulkDeleteLinks } from "@/lib/api/links/bulk-delete-links";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
+import { enqueuePartnerSearchSyncJob } from "@/lib/jobs/handlers/partner-search-sync-job";
 import { prisma } from "@/lib/prisma";
 import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
@@ -100,19 +101,24 @@ export const deleteProgramInviteAction = authActionClient
     ]);
 
     waitUntil(
-      recordAuditLog({
-        workspaceId: workspace.id,
-        programId,
-        action: "partner.invite_deleted",
-        description: `Partner ${partner.id} invite deleted`,
-        actor: user,
-        targets: [
-          {
-            type: "partner",
-            id: partner.id,
-            metadata: partner,
-          },
-        ],
-      }),
+      Promise.allSettled([
+        enqueuePartnerSearchSyncJob({
+          documentIds: [programEnrollment.id],
+        }),
+        recordAuditLog({
+          workspaceId: workspace.id,
+          programId,
+          action: "partner.invite_deleted",
+          description: `Partner ${partner.id} invite deleted`,
+          actor: user,
+          targets: [
+            {
+              type: "partner",
+              id: partner.id,
+              metadata: partner,
+            },
+          ],
+        }),
+      ]),
     );
   });
