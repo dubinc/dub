@@ -9,6 +9,11 @@ import {
   buildProgramEnrollmentWhereForList,
   mergePartnerCountryAndSearchWhere,
 } from "./program-enrollment-query";
+import {
+  buildPartnerSearchCountQuery,
+  getPartnerSearchProvider,
+  PartnerSearchProvider,
+} from "./search";
 
 type PartnersCountFilters = z.infer<typeof partnersCountQuerySchema> & {
   programId: string;
@@ -19,9 +24,40 @@ type PartnersCountFilters = z.infer<typeof partnersCountQuerySchema> & {
 
 export async function getPartnersCount<T>(
   filters: PartnersCountFilters,
+  {
+    searchProvider = getPartnerSearchProvider(),
+  }: { searchProvider?: PartnerSearchProvider | null } = {},
 ): Promise<T> {
   const { groupBy, programId, ...enrollmentFilters } = filters;
   const enrollmentBase = { ...enrollmentFilters, programId };
+
+  const searchQuery = searchProvider
+    ? buildPartnerSearchCountQuery(enrollmentBase)
+    : null;
+
+  if (searchProvider && searchQuery) {
+    if (!groupBy) {
+      return (await searchProvider.count(searchQuery)) as T;
+    }
+
+    const groups = await searchProvider.groupBy(searchQuery, groupBy);
+    const results = groups
+      .sort((left, right) => right.count - left.count)
+      .map(({ value, count }) => ({
+        [groupBy]: value,
+        _count: count,
+      }));
+
+    if (groupBy === "status") {
+      for (const status of Object.values(ProgramEnrollmentStatus)) {
+        if (!results.some((result) => result.status === status)) {
+          results.push({ status, _count: 0 });
+        }
+      }
+    }
+
+    return results as T;
+  }
 
   const {
     status,

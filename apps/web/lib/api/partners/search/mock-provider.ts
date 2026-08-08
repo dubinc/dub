@@ -3,8 +3,10 @@ import {
   normalizePartnerSearchQuery,
 } from "./searchable-values";
 import {
+  PartnerSearchCountQuery,
   PartnerSearchDocument,
   PartnerSearchFilters,
+  PartnerSearchGroupField,
   PartnerSearchListFilter,
   PartnerSearchMetricField,
   PartnerSearchProvider,
@@ -107,6 +109,33 @@ function compareDocuments(
   return sort.order === "asc" ? comparison : -comparison;
 }
 
+function findMatchingDocuments(
+  documents: Iterable<PartnerSearchDocument>,
+  { programId, query, filters }: PartnerSearchCountQuery,
+): PartnerSearchDocument[] {
+  const normalizedQuery = normalizePartnerSearchQuery(query);
+
+  return Array.from(documents).filter(
+    (document) =>
+      document.programId === programId &&
+      matchesFilters(document, filters) &&
+      getPartnerSearchableValues(document).some((value) =>
+        normalizePartnerSearchQuery(value).includes(normalizedQuery),
+      ),
+  );
+}
+
+function getGroupValues(
+  document: PartnerSearchDocument,
+  field: PartnerSearchGroupField,
+): (string | null)[] {
+  if (field === "partnerTagId") {
+    return document.partnerTagIds;
+  }
+
+  return [document[field]];
+}
+
 /**
  * In-memory search used for unit tests and API plumbing. It is not
  * intended for production or performance testing.
@@ -127,15 +156,11 @@ export function createMockPartnerSearchProvider(
       filters,
       sort,
     }: PartnerSearchQuery) {
-      const normalizedQuery = normalizePartnerSearchQuery(query);
-      const matches = Array.from(documents.values()).filter(
-        (document) =>
-          document.programId === programId &&
-          matchesFilters(document, filters) &&
-          getPartnerSearchableValues(document).some((value) =>
-            normalizePartnerSearchQuery(value).includes(normalizedQuery),
-          ),
-      );
+      const matches = findMatchingDocuments(documents.values(), {
+        programId,
+        query,
+        filters,
+      });
 
       if (sort) {
         matches.sort((left, right) => compareDocuments(left, right, sort));
@@ -150,6 +175,25 @@ export function createMockPartnerSearchProvider(
         })),
         total: matches.length,
       };
+    },
+
+    async count(query) {
+      return findMatchingDocuments(documents.values(), query).length;
+    },
+
+    async groupBy(query, field) {
+      const groups = new Map<string | null, number>();
+
+      for (const document of findMatchingDocuments(documents.values(), query)) {
+        for (const value of getGroupValues(document, field)) {
+          if (field === "referredByPartnerId" && value === null) {
+            continue;
+          }
+          groups.set(value, (groups.get(value) ?? 0) + 1);
+        }
+      }
+
+      return Array.from(groups, ([value, count]) => ({ value, count }));
     },
 
     async upsert(updatedDocuments) {

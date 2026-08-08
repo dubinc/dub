@@ -92,13 +92,30 @@ export interface PartnerSearchFilters {
 export interface PartnerSearchQuery {
   programId: string;
   query: string;
+  filters?: PartnerSearchFilters;
   page: number;
   pageSize: number;
-  filters?: PartnerSearchFilters;
   sort?: {
     field: PartnerSearchSortField;
     order: "asc" | "desc";
   };
+}
+
+export type PartnerSearchCountQuery = Pick<
+  PartnerSearchQuery,
+  "programId" | "query" | "filters"
+>;
+
+export type PartnerSearchGroupField =
+  | "status"
+  | "country"
+  | "groupId"
+  | "partnerTagId"
+  | "referredByPartnerId";
+
+export interface PartnerSearchGroup {
+  value: string | null;
+  count: number;
 }
 
 export interface PartnerSearchHit {
@@ -114,6 +131,11 @@ export interface PartnerSearchResult {
 
 export interface PartnerSearchProvider {
   search(query: PartnerSearchQuery): Promise<PartnerSearchResult>;
+  count(query: PartnerSearchCountQuery): Promise<number>;
+  groupBy(
+    query: PartnerSearchCountQuery,
+    field: PartnerSearchGroupField,
+  ): Promise<PartnerSearchGroup[]>;
   upsert(documents: PartnerSearchDocument[]): Promise<void>;
   delete(documentIds: string[]): Promise<void>;
 }

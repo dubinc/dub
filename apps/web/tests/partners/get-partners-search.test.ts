@@ -49,6 +49,8 @@ describe("getPartners search", () => {
         ],
         total: 2,
       }),
+      count: vi.fn(),
+      groupBy: vi.fn(),
       upsert: vi.fn(),
       delete: vi.fn(),
     };

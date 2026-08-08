@@ -125,4 +125,17 @@ describe("partner search provider contract", () => {
       "pn_test",
     ]);
   });
+
+  it("counts and groups matching documents", async () => {
+    const provider = createMockPartnerSearchProvider([partnerDocument]);
+    const query = {
+      programId: partnerDocument.programId,
+      query: "examp",
+    };
+
+    await expect(provider.count(query)).resolves.toBe(1);
+    await expect(provider.groupBy(query, "country")).resolves.toEqual([
+      { value: "CA", count: 1 },
+    ]);
+  });
 });

@@ -1,6 +1,7 @@
 import { getPartnersQuerySchemaExtended } from "@/lib/zod/schemas/partners";
 import * as z from "zod/v4";
 import {
+  PartnerSearchCountQuery,
   PartnerSearchFilters,
   PartnerSearchListFilter,
   PartnerSearchMetricField,
@@ -16,6 +17,11 @@ export type PartnerSearchQueryInput = z.infer<
   groupIdOperator?: "IN" | "NOT IN";
   countryOperator?: "IN" | "NOT IN";
 };
+
+export type PartnerSearchCountQueryInput = Omit<
+  PartnerSearchQueryInput,
+  "page" | "pageSize" | "sortBy" | "sortOrder"
+>;
 
 function buildListFilter(
   values: string | string[] | undefined,
@@ -58,15 +64,11 @@ function addMetricRange(
   metrics[field] = range;
 }
 
-export function buildPartnerSearchQuery({
+function buildPartnerSearchRequest({
   programId,
   search,
   email,
   tenantId,
-  page = 1,
-  pageSize,
-  sortBy,
-  sortOrder,
   status,
   partnerIds,
   groupId,
@@ -86,7 +88,7 @@ export function buildPartnerSearchQuery({
   totalSaleAmountMax,
   totalCommissionsMin,
   totalCommissionsMax,
-}: PartnerSearchQueryInput): PartnerSearchQuery | null {
+}: PartnerSearchCountQueryInput): PartnerSearchCountQuery | null {
   const query = search?.trim();
 
   // Keep exact lookups on the database and use search for free-text queries.
@@ -129,12 +131,31 @@ export function buildPartnerSearchQuery({
   return {
     programId,
     query,
-    page,
-    pageSize,
     filters,
+  };
+}
+
+export function buildPartnerSearchQuery(
+  input: PartnerSearchQueryInput,
+): PartnerSearchQuery | null {
+  const request = buildPartnerSearchRequest(input);
+  if (!request) {
+    return null;
+  }
+
+  return {
+    ...request,
+    page: input.page ?? 1,
+    pageSize: input.pageSize,
     sort: {
-      field: sortBy,
-      order: sortOrder,
+      field: input.sortBy,
+      order: input.sortOrder,
     },
   };
+}
+
+export function buildPartnerSearchCountQuery(
+  input: PartnerSearchCountQueryInput,
+): PartnerSearchCountQuery | null {
+  return buildPartnerSearchRequest(input);
 }
