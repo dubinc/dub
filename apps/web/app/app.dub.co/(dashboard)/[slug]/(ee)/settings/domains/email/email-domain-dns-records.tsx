@@ -1,14 +1,35 @@
+"use client";
+
+import type { DomainConnectDiscovery } from "@/lib/domain-connect/types";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { EmailDomainProps } from "@/lib/types";
+import { useForwardDnsInstructionsModal } from "@/ui/modals/forward-dns-instructions-modal";
 import { GetDomainResponseSuccess } from "@dub/email/resend/types";
-import { CircleCheck, CopyButton, StatusBadge, Table, useTable } from "@dub/ui";
-import { capitalize, fetcher } from "@dub/utils";
-import useSWRImmutable from "swr/immutable";
+import {
+  Button,
+  CircleCheck,
+  Cloudflare,
+  CopyButton,
+  StatusBadge,
+  Table,
+  useTable,
+  Vercel,
+} from "@dub/ui";
+import { EnvelopeArrowRight } from "@dub/ui/icons";
+import { capitalize, cn, fetcher } from "@dub/utils";
+import { usePathname } from "next/navigation";
+import { useState } from "react";
+import { toast } from "sonner";
+import useSWR from "swr";
 import { EMAIL_DOMAIN_STATUS_TO_VARIANT } from "./constants";
 
 interface EmailDomainDnsRecordsProps {
   domain: EmailDomainProps;
 }
+
+type EmailDomainVerifyResponse = GetDomainResponseSuccess & {
+  domainConnect?: DomainConnectDiscovery | null;
+};
 
 interface DomainRecord {
   record: string;
@@ -169,21 +190,85 @@ function DnsRecordsTable({
 }
 
 export function EmailDomainDnsRecords({ domain }: EmailDomainDnsRecordsProps) {
-  const { id: workspaceId } = useWorkspace();
+  const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
+  const pathname = usePathname();
+  const [autoLoading, setAutoLoading] = useState(false);
 
-  const { data, isValidating } = useSWRImmutable<GetDomainResponseSuccess>(
+  const { data, isValidating } = useSWR<EmailDomainVerifyResponse>(
     workspaceId &&
       `/api/email-domains/${domain.slug}/verify?workspaceId=${workspaceId}`,
     fetcher,
     {
+      revalidateOnFocus: true,
+      dedupingInterval: 5000,
       onError: (error) => {
         console.error("Failed to fetch email domain verification", error);
       },
     },
   );
 
+  const domainConnect = data?.domainConnect ?? null;
   const isVerified = data?.status === "verified";
   const records = data?.records || [];
+
+  const { ForwardDnsInstructionsModal, setShowForwardDnsModal } =
+    useForwardDnsInstructionsModal({
+      domain: domain.slug,
+      workspaceId: workspaceId ?? "",
+      endpoint: workspaceId
+        ? `/api/email-domains/${encodeURIComponent(domain.slug)}/forward-instructions?workspaceId=${workspaceId}`
+        : "",
+    });
+
+  const providerLabel =
+    domainConnect?.providerKind === "cloudflare" ? "Cloudflare" : "Vercel";
+  const ProviderIcon =
+    domainConnect?.providerKind === "cloudflare" ? Cloudflare : Vercel;
+
+  const handleAutoConfigure = async () => {
+    if (!workspaceId) return;
+    setAutoLoading(true);
+    try {
+      const res = await fetch(
+        `/api/email-domains/${encodeURIComponent(domain.slug)}/domain-connect/apply?workspaceId=${workspaceId}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            returnTo: pathname ?? `/${workspaceSlug}/settings/domains/email`,
+          }),
+        },
+      );
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        toast.error(json?.error?.message ?? "Could not start auto configure.");
+        return;
+      }
+      if (json?.applyUrl) {
+        try {
+          const url = new URL(json.applyUrl as string);
+          const allowedOrigins = [
+            "https://vercel.com",
+            "https://dash.cloudflare.com",
+          ];
+          if (!allowedOrigins.includes(url.origin)) {
+            toast.error("Invalid redirect URL from server.");
+            return;
+          }
+        } catch {
+          toast.error("Invalid redirect URL from server.");
+          return;
+        }
+        window.location.assign(json.applyUrl as string);
+        return;
+      }
+      toast.error("Could not start auto configure.");
+    } catch {
+      toast.error("Could not start auto configure.");
+    } finally {
+      setAutoLoading(false);
+    }
+  };
 
   const dmarcRecords = [
     {
@@ -244,6 +329,42 @@ export function EmailDomainDnsRecords({ domain }: EmailDomainDnsRecordsProps) {
               />
             )}
           </div>
+
+          {(domainConnect || workspaceId) && (
+            <div className="flex flex-wrap gap-2">
+              {domainConnect && workspaceId && (
+                <Button
+                  type="button"
+                  variant="secondary"
+                  text={`Auto configure with ${providerLabel}`}
+                  icon={
+                    <ProviderIcon
+                      className={cn(
+                        "size-4 shrink-0",
+                        domainConnect.providerKind === "cloudflare"
+                          ? "text-[#F6821F]"
+                          : "text-black",
+                      )}
+                    />
+                  }
+                  className="w-fit"
+                  onClick={handleAutoConfigure}
+                  loading={autoLoading}
+                />
+              )}
+              {workspaceId && (
+                <Button
+                  type="button"
+                  variant="secondary"
+                  text="Forward instructions"
+                  icon={<EnvelopeArrowRight className="size-4 shrink-0" />}
+                  className="w-fit"
+                  onClick={() => setShowForwardDnsModal(true)}
+                />
+              )}
+            </div>
+          )}
+          <ForwardDnsInstructionsModal />
         </div>
       ) : (
         <div className="rounded-lg bg-neutral-100/80 p-4 text-center text-sm text-neutral-600">

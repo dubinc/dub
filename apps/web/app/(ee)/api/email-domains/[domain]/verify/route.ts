@@ -2,8 +2,11 @@ import { getEmailDomainOrThrow } from "@/lib/api/domains/get-email-domain-or-thr
 import { DubApiError } from "@/lib/api/errors";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { withWorkspace } from "@/lib/auth";
+import { discoverDomainConnect } from "@/lib/domain-connect/discover";
+import type { DomainConnectDiscovery } from "@/lib/domain-connect/types";
 import { prisma } from "@/lib/prisma";
 import { resend } from "@dub/email/resend";
+import { getApexDomain } from "@dub/utils";
 import { NextResponse } from "next/server";
 
 // GET /api/email-domains/[domain]/verify - verify an email domain
@@ -58,7 +61,19 @@ export const GET = withWorkspace(
       });
     }
 
-    return NextResponse.json(domainResponse.data);
+    let domainConnect: DomainConnectDiscovery | null = null;
+    if (
+      domainResponse.data.status !== "verified" &&
+      process.env.DOMAIN_CONNECT_PRIVATE_KEY?.trim()
+    ) {
+      const apex = getApexDomain(`https://${emailDomain.slug}`);
+      domainConnect = await discoverDomainConnect(apex);
+    }
+
+    return NextResponse.json({
+      ...domainResponse.data,
+      domainConnect,
+    });
   },
   {
     requiredPlan: ["advanced", "enterprise"],
