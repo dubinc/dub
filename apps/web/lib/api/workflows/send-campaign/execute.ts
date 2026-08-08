@@ -1,5 +1,6 @@
 import { evaluateWorkflowConditions } from "@/lib/api/workflows/evaluate-workflow-conditions";
 import { WorkflowCondition, WorkflowContext } from "@/lib/api/workflows/types";
+import { resolveCampaignFromAddress } from "@/lib/email/parse-campaign-from-address";
 import { aggregatePartnerLinksStats } from "@/lib/partners/aggregate-partner-links-stats";
 import { constructPartnerLink } from "@/lib/partners/construct-partner-link";
 import { prisma } from "@/lib/prisma";
@@ -187,7 +188,14 @@ export const executeSendCampaignWorkflow = async ({
     const { data } = await sendBatchEmail(
       partnerUsers.map((partnerUser) => ({
         variant: "notifications",
-        ...(campaign.from ? { from: campaign.from } : {}),
+        ...(campaign.from
+          ? {
+              from: resolveCampaignFromAddress({
+                from: campaign.from,
+                programName: program.name,
+              }),
+            }
+          : {}),
         to: partnerUser.email!,
         subject: campaign.subject,
         replyTo: program.supportEmail || "noreply",

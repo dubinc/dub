@@ -66,7 +66,7 @@ export function BountyInfo() {
 function BountyInfoSkeleton() {
   return (
     <div className="flex flex-col items-center gap-3 sm:flex-row sm:items-start sm:gap-6">
-      <div className="relative flex size-[100px] shrink-0 items-center justify-center rounded-lg bg-neutral-100 p-3" />
+      <div className="relative flex h-[100px] w-full items-center justify-center rounded-lg bg-neutral-100 p-3 sm:size-[100px] sm:shrink-0" />
       <div className="flex min-w-0 flex-1 flex-col gap-1.5">
         <div className="flex items-start justify-between gap-3">
           <div className="h-6 w-48 animate-pulse rounded-md bg-neutral-200" />

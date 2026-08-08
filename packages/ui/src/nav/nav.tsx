@@ -2,25 +2,21 @@
 
 import { APP_DOMAIN, cn, createHref, fetcher } from "@dub/utils";
 import * as NavigationMenuPrimitive from "@radix-ui/react-navigation-menu";
-import { LayoutGroup } from "motion/react";
+import { LayoutGroup, motion } from "motion/react";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
 import {
-  ComponentType,
   PropsWithChildren,
   ReactNode,
   SVGProps,
   createContext,
   useId,
+  useRef,
+  useState,
 } from "react";
 import useSWR from "swr";
 import { buttonVariants } from "../button";
-import {
-  FEATURES_LIST,
-  RESOURCES,
-  SOLUTIONS,
-  type NavItemChildren,
-} from "../content";
+import { FEATURES_LIST, RESOURCES, SOLUTIONS } from "../content";
 import { useScroll } from "../hooks";
 import { MaxWidthWrapper } from "../max-width-wrapper";
 import { NavWordmark } from "../nav-wordmark";
@@ -33,14 +29,6 @@ export type NavTheme = "light" | "dark";
 export const NavContext = createContext<{ theme: NavTheme }>({
   theme: "light",
 });
-
-export type NavItem = {
-  name: string;
-  href?: string;
-  segments?: string[];
-  content?: ComponentType<{ domain: string }>;
-  childItems?: NavItemChildren;
-};
 
 export const navItems = [
   {
@@ -60,7 +48,13 @@ export const navItems = [
     name: "Solutions",
     content: SolutionsContent,
     childItems: SOLUTIONS,
-    segments: ["/solutions", "/sdks"],
+    segments: [
+      // comment to help with line diff
+      "/solutions",
+      "/enterprise",
+      "/startups",
+      "/sdks",
+    ],
   },
   {
     name: "Resources",
@@ -78,11 +72,6 @@ export const navItems = [
     ],
   },
   {
-    name: "Enterprise",
-    href: "/enterprise",
-    segments: ["/enterprise"],
-  },
-  {
     name: "Customers",
     href: "/customers",
     segments: ["/customers"],
@@ -92,29 +81,34 @@ export const navItems = [
     href: "/pricing",
     segments: ["/pricing"],
   },
+  {
+    name: "Enterprise",
+    href: "/enterprise",
+    segments: ["/enterprise"],
+    mobileOnly: true,
+  },
+  {
+    name: "Startups",
+    href: "/startups",
+    segments: ["/startups"],
+    mobileOnly: true,
+  },
 ];
 
 const navItemClassName = cn(
-  "relative group/item flex items-center rounded-md px-4 py-2 text-sm rounded-lg font-medium text-neutral-700 hover:text-neutral-900 transition-colors",
+  "relative group/item flex items-center rounded-md px-3 h-8 text-sm rounded-lg font-medium text-neutral-700 hover:text-neutral-900 transition-colors",
   "dark:text-white/90 dark:hover:text-white",
-  "hover:bg-neutral-900/5 dark:hover:bg-white/10",
-  "data-[active=true]:bg-neutral-900/5 dark:data-[active=true]:bg-white/10",
-
-  // Hide active state when another item is hovered
-  "group-has-[:hover]:data-[active=true]:[&:not(:hover)]:bg-transparent",
 );
 
 export function Nav({
   theme = "light",
   staticDomain,
   maxWidthWrapperClassName,
-  navItems: items = navItems,
   logo,
 }: {
   theme?: NavTheme;
   staticDomain?: string;
   maxWidthWrapperClassName?: string;
-  navItems?: NavItem[];
   logo?: ReactNode;
 }) {
   let { domain = "dub.co" } = useParams() as { domain: string };
@@ -123,6 +117,12 @@ export function Nav({
   }
 
   const layoutGroupId = useId();
+  const navListRef = useRef<HTMLUListElement>(null);
+  const [hoverStyle, setHoverStyle] = useState({
+    left: 0,
+    width: 0,
+    opacity: 0,
+  });
 
   const scrolled = useScroll(40);
   const pathname = usePathname();
@@ -133,6 +133,32 @@ export function Nav({
       dedupingInterval: 60000,
     },
   );
+
+  const moveHoverTo = (el: HTMLElement) => {
+    const list = navListRef.current;
+    if (!list) return;
+    const listRect = list.getBoundingClientRect();
+    const itemRect = el.getBoundingClientRect();
+    setHoverStyle({
+      left: itemRect.left - listRect.left,
+      width: itemRect.width,
+      opacity: 1,
+    });
+  };
+
+  const clearHover = () => {
+    setHoverStyle((style) => ({ ...style, opacity: 0 }));
+  };
+
+  const handleNavMouseLeave = () => {
+    const openTrigger =
+      navListRef.current?.querySelector<HTMLElement>("[data-state=open]");
+    if (openTrigger) {
+      moveHoverTo(openTrigger);
+    } else {
+      clearHover();
+    }
+  };
 
   return (
     <NavContext.Provider value={{ theme }}>
@@ -168,57 +194,83 @@ export function Nav({
                   </Link>
                 )}
               </div>
+
               <NavigationMenuPrimitive.Root
                 delayDuration={0}
-                className="relative hidden lg:block"
+                className="hidden lg:block"
+                onValueChange={(value) => {
+                  if (!value) clearHover();
+                }}
               >
-                <NavigationMenuPrimitive.List className="group relative z-0 flex">
-                  {items.map(({ name, href, segments, content: Content }) => {
-                    const isActive = (segments ?? []).some((segment) =>
-                      pathname?.startsWith(segment),
-                    );
-                    return (
-                      <NavigationMenuPrimitive.Item key={name}>
-                        <WithTrigger trigger={!!Content}>
-                          {href !== undefined ? (
-                            <Link
-                              id={`nav-${href}`}
-                              href={createHref(href, domain, {
-                                utm_source: "Custom Domain",
-                                utm_medium: "Navbar",
-                                utm_campaign: domain,
-                                utm_content: name,
-                              })}
-                              className={navItemClassName}
-                              data-active={isActive}
-                            >
-                              {name}
-                            </Link>
-                          ) : (
-                            <button
-                              className={navItemClassName}
-                              data-active={isActive}
-                            >
-                              {name}
-                              <AnimatedChevron className="ml-1.5 size-2.5 text-neutral-700" />
-                            </button>
-                          )}
-                        </WithTrigger>
+                <NavigationMenuPrimitive.List
+                  ref={navListRef}
+                  className="relative flex"
+                  onMouseLeave={handleNavMouseLeave}
+                >
+                  <motion.div
+                    className="pointer-events-none absolute top-0 h-8 rounded-lg bg-neutral-900/5 dark:bg-white/10"
+                    animate={hoverStyle}
+                    transition={{
+                      type: "spring",
+                      stiffness: 400,
+                      damping: 30,
+                    }}
+                  />
+                  {navItems
+                    .filter(({ mobileOnly }) => !mobileOnly)
+                    .map(({ name, href, segments, content: Content }) => {
+                      const isActive = (segments ?? []).some((segment) =>
+                        pathname?.startsWith(segment),
+                      );
+                      return (
+                        <NavigationMenuPrimitive.Item key={name} value={name}>
+                          <WithTrigger trigger={!!Content}>
+                            {href !== undefined ? (
+                              <Link
+                                id={`nav-${href}`}
+                                href={createHref(href, domain, {
+                                  utm_source: "Custom Domain",
+                                  utm_medium: "Navbar",
+                                  utm_campaign: domain,
+                                  utm_content: name,
+                                })}
+                                className={navItemClassName}
+                                data-active={isActive}
+                                onMouseEnter={(e) =>
+                                  moveHoverTo(e.currentTarget)
+                                }
+                              >
+                                {name}
+                              </Link>
+                            ) : (
+                              <button
+                                className={navItemClassName}
+                                data-active={isActive}
+                                onMouseEnter={(e) =>
+                                  moveHoverTo(e.currentTarget)
+                                }
+                              >
+                                {name}
+                                <AnimatedChevron className="ml-1.5 size-2.5 text-neutral-700" />
+                              </button>
+                            )}
+                          </WithTrigger>
 
-                        {Content && (
-                          <NavigationMenuPrimitive.Content className="data-[motion=from-start]:animate-enter-from-left data-[motion=from-end]:animate-enter-from-right data-[motion=to-start]:animate-exit-to-left data-[motion=to-end]:animate-exit-to-right absolute left-0 top-0">
-                            <Content domain={domain} />
-                          </NavigationMenuPrimitive.Content>
-                        )}
-                      </NavigationMenuPrimitive.Item>
-                    );
-                  })}
+                          {Content && (
+                            <NavigationMenuPrimitive.Content className="data-[motion=from-start]:animate-enter-from-left data-[motion=from-end]:animate-enter-from-right data-[motion=to-start]:animate-exit-to-left data-[motion=to-end]:animate-exit-to-right absolute left-0 top-0">
+                              <Content domain={domain} />
+                            </NavigationMenuPrimitive.Content>
+                          )}
+                        </NavigationMenuPrimitive.Item>
+                      );
+                    })}
                 </NavigationMenuPrimitive.List>
 
+                {/* Positioned against MaxWidthWrapper so the dropdown centers on the page */}
                 <div className="absolute left-1/2 top-full mt-3 -translate-x-1/2">
                   <NavigationMenuPrimitive.Viewport
                     className={cn(
-                      "relative flex origin-[top_center] justify-start overflow-hidden rounded-[20px] border border-neutral-200 bg-white shadow-md dark:border-white/[0.15] dark:bg-black",
+                      "relative flex origin-top justify-start overflow-hidden rounded-[20px] border border-neutral-200 bg-white shadow-md dark:border-white/[0.15] dark:bg-black",
                       "data-[state=closed]:animate-scale-out-content data-[state=open]:animate-scale-in-content",
                       "h-[var(--radix-navigation-menu-viewport-height)] w-[var(--radix-navigation-menu-viewport-width)] transition-[width,height]",
                     )}

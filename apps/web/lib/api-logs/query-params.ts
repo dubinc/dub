@@ -18,6 +18,8 @@ const SENSITIVE_QUERY_PARAM_KEYS = new Set([
   "refresh_token",
   "client_secret",
   "client_id",
+  "clientsecret",
+  "clientid",
   "key",
 ]);
 

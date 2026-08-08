@@ -1,3 +1,4 @@
+import { ACTIVE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
 import { pluck } from "@dub/utils";
 import {
   Bounty,
@@ -8,7 +9,6 @@ import {
   Prisma,
   Program,
   ProgramEnrollment,
-  ProgramEnrollmentStatus,
   ProgramPartnerTag,
 } from "@prisma/client";
 import { addDays } from "date-fns";
@@ -264,8 +264,8 @@ export const canPartnerSubmitBounty = ({
   bounty,
   programEnrollment,
 }: PartnerBountyEligibilityInput): boolean => {
-  // Only approved partners can submit bounties
-  if (programEnrollment.status !== ProgramEnrollmentStatus.approved) {
+  // Only approved/archived partners can submit bounties
+  if (!ACTIVE_ENROLLMENT_STATUSES.includes(programEnrollment.status)) {
     return false;
   }
 
