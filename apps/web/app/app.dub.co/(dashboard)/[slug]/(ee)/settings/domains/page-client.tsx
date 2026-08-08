@@ -102,16 +102,7 @@ export function CustomDomains() {
       <div className="grid gap-5">
         <div className="flex flex-wrap justify-between gap-6">
           <div className="w-full sm:w-auto">
-            <SearchBoxPersisted
-              loading={loading}
-              onChangeDebounced={(t) => {
-                if (t) {
-                  queryParams({ set: { search: t }, del: "page" });
-                } else {
-                  queryParams({ del: "search" });
-                }
-              }}
-            />
+            <SearchBoxPersisted loading={loading} />
           </div>
           <div className="flex w-full flex-wrap items-center gap-3 sm:w-auto">
             <ToggleGroup
