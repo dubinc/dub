@@ -164,12 +164,27 @@ export function Nav({
   };
 
   useEffect(() => {
+    const mono =
+      "font-family: Menlo, Monaco, Lucida Console, monospace; line-height: 1.35;";
+    const panel = `${mono} background: #171210; color: #f5f5f3;`;
+
     console.log(
-      `%cTurn clicks into revenue%c\n%cLove solving challenging attribution problems? We're hiring → %chttps://dub.co/careers`,
-      "font-size: 20px; font-weight: 700; letter-spacing: -0.02em; color: #fafafa; background: #0a0a0a; padding: 12px 16px; border-radius: 8px;",
-      "",
-      "font-size: 12px; color: #737373; padding-top: 8px;",
-      "font-size: 12px; font-weight: 600; color: #2563eb; text-decoration: underline;",
+      `%c
+    ____  __  ______
+   / __ \\/ / / / __ )
+  / / / / / / / __  |
+ / /_/ / /_/ / /_/ /
+/_____/\\____/_____/
+
+%cTurn clicks into revenue
+%c
+Love solving challenging attribution problems? We're hiring
+%chttps://dub.co/careers
+`,
+      `${panel} font-size: 11px; padding: 16px 20px 0;`,
+      `${panel} font-size: 12px; padding: 10px 20px 0;`,
+      `${panel} font-size: 12px; color: #a8a29e; padding: 14px 20px 0;`,
+      `${panel} font-size: 12px; color: #d5934d; font-weight: 600; text-decoration: underline; padding: 2px 20px 18px;`,
     );
   }, []);
 
