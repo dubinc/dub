@@ -1,18 +1,26 @@
 import { prisma } from "@/lib/prisma";
-import { getPartnersQuerySchemaExtended } from "@/lib/zod/schemas/partners";
 import { toCentsNumber } from "@dub/utils";
-import * as z from "zod/v4";
 import { buildProgramEnrollmentWhereForList } from "./program-enrollment-query";
+import {
+  buildPartnerSearchQuery,
+  getPartnerSearchProvider,
+  orderByPartnerSearchHits,
+  PartnerSearchProvider,
+  PartnerSearchQueryInput,
+} from "./search";
 
-type PartnerFilters = z.infer<typeof getPartnersQuerySchemaExtended> & {
-  programId: string;
+type PartnerFilters = PartnerSearchQueryInput & {
   includeGroup?: boolean;
-  partnerTagIdOperator?: "IN" | "NOT IN";
-  groupIdOperator?: "IN" | "NOT IN";
-  countryOperator?: "IN" | "NOT IN";
 };
 
-export async function getPartners(filters: PartnerFilters) {
+interface GetPartnersOptions {
+  searchProvider?: PartnerSearchProvider | null;
+}
+
+export async function getPartners(
+  filters: PartnerFilters,
+  { searchProvider = getPartnerSearchProvider() }: GetPartnersOptions = {},
+) {
   const {
     page = 1,
     pageSize,
@@ -24,11 +32,22 @@ export async function getPartners(filters: PartnerFilters) {
     ...enrollmentRest
   } = filters;
 
-  const partners = await prisma.programEnrollment.findMany({
-    where: buildProgramEnrollmentWhereForList({
-      ...enrollmentRest,
-      programId,
-    }),
+  const searchQuery = searchProvider ? buildPartnerSearchQuery(filters) : null;
+  const searchResult =
+    searchProvider && searchQuery
+      ? await searchProvider.search(searchQuery)
+      : null;
+
+  const programEnrollments = await prisma.programEnrollment.findMany({
+    where: searchResult
+      ? {
+          programId,
+          id: { in: searchResult.hits.map(({ id }) => id) },
+        }
+      : buildProgramEnrollmentWhereForList({
+          ...enrollmentRest,
+          programId,
+        }),
     include: {
       partner: {
         include: {
@@ -54,12 +73,20 @@ export async function getPartners(filters: PartnerFilters) {
           }
         : {}),
     },
-    take: pageSize,
-    skip: (page - 1) * pageSize,
-    orderBy: {
-      [sortBy]: sortOrder,
-    },
+    ...(searchResult
+      ? {}
+      : {
+          take: pageSize,
+          skip: (page - 1) * pageSize,
+          orderBy: {
+            [sortBy]: sortOrder,
+          },
+        }),
   });
+
+  const partners = searchResult
+    ? orderByPartnerSearchHits(programEnrollments, searchResult.hits)
+    : programEnrollments;
 
   return partners.map(
     ({ partner, links, partnerGroup, ...programEnrollment }) => ({
