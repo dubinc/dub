@@ -31,7 +31,8 @@ export default function ProgramImported({
     | "Tolt"
     | "PartnerStack"
     | "FirstPromoter"
-    | "Tapfiliate";
+    | "Tapfiliate"
+    | "Lemon Squeezy";
   workspace: {
     slug: string;
   };

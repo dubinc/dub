@@ -18,6 +18,7 @@ import type Stripe from "stripe";
 import { WebhookHandlerInput, WebhookHandlerResponse } from "./types";
 import { attributeViaPromotionCodeId } from "./utils/attribute-via-promotion-code-id";
 import { getConnectedCustomer } from "./utils/get-connected-customer";
+import { getDubCustomerExternalIdFromMetadata } from "./utils/get-dub-customer-external-id-from-metadata";
 
 // Handle event "invoice.paid"
 export async function invoicePaid({
@@ -57,9 +58,9 @@ export async function invoicePaid({
       mode,
     });
 
-    const dubCustomerExternalId =
-      connectedCustomer?.metadata.dubCustomerExternalId ||
-      connectedCustomer?.metadata.dubCustomerId;
+    const dubCustomerExternalId = getDubCustomerExternalIdFromMetadata(
+      connectedCustomer?.metadata,
+    );
 
     if (dubCustomerExternalId) {
       try {
