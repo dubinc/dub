@@ -85,4 +85,32 @@ describe("getPartners search", () => {
     );
     expect(partners.map(({ id }) => id)).toEqual(["pn_2", "pn_1"]);
   });
+
+  it("propagates search provider errors", async () => {
+    const searchProvider: PartnerSearchProvider = {
+      search: vi
+        .fn()
+        .mockRejectedValue(new Error("Provider Connection Timeout")),
+      count: vi.fn(),
+      groupBy: vi.fn(),
+      upsert: vi.fn(),
+      delete: vi.fn(),
+    };
+
+    await expect(
+      getPartners(
+        {
+          programId: "prog_test",
+          search: "examp",
+          page: 1,
+          pageSize: 25,
+          sortBy: "totalSaleAmount",
+          sortOrder: "desc",
+        },
+        { searchProvider },
+      ),
+    ).rejects.toThrow("Provider Connection Timeout");
+
+    expect(mocks.findMany).not.toHaveBeenCalled();
+  });
 });

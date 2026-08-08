@@ -248,4 +248,16 @@ describe("partner search document sync", () => {
     expect(deleteDocuments.mock.calls[1][0]).toHaveLength(100);
     expect(deleteDocuments.mock.calls[2][0]).toHaveLength(1);
   });
+
+  it("propagates provider errors so the sync job can retry", async () => {
+    const searchProvider = createProvider();
+    vi.mocked(searchProvider.upsert).mockRejectedValue(
+      new Error("Provider Connection Timeout"),
+    );
+    mocks.findMany.mockResolvedValue([createSource("pge_1")]);
+
+    await expect(
+      syncPartnerSearchDocuments(["pge_1"], { searchProvider }),
+    ).rejects.toThrow("Provider Connection Timeout");
+  });
 });

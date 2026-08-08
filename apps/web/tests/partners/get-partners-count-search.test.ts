@@ -51,4 +51,18 @@ describe("getPartnersCount search", () => {
       ]),
     );
   });
+
+  it("propagates search provider errors", async () => {
+    const searchProvider = createSearchProvider();
+    vi.mocked(searchProvider.count).mockRejectedValue(
+      new Error("Provider Connection Timeout"),
+    );
+
+    await expect(
+      getPartnersCount<number>(
+        { programId: "prog_test", search: "examp" },
+        { searchProvider },
+      ),
+    ).rejects.toThrow("Provider Connection Timeout");
+  });
 });
