@@ -1,4 +1,5 @@
 import {
+  enqueuePartnerSearchSyncForLinks,
   enqueuePartnerSearchSyncJob,
   partnerSearchSyncJob,
 } from "@/lib/jobs/handlers/partner-search-sync-job";
@@ -8,12 +9,14 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 const mocks = vi.hoisted(() => ({
   syncDocuments: vi.fn(),
   syncPartners: vi.fn(),
+  syncProgramPartners: vi.fn(),
   getProvider: vi.fn(),
 }));
 
 vi.mock("@/lib/api/partners/search", () => ({
   syncPartnerSearchDocuments: mocks.syncDocuments,
   syncPartnerSearchDocumentsByPartnerIds: mocks.syncPartners,
+  syncPartnerSearchDocumentsByProgramPartners: mocks.syncProgramPartners,
 }));
 
 vi.mock("@/lib/api/partners/search/provider", () => ({
@@ -24,6 +27,7 @@ describe("partnerSearchSyncJob", () => {
   beforeEach(() => {
     mocks.syncDocuments.mockReset();
     mocks.syncPartners.mockReset();
+    mocks.syncProgramPartners.mockReset();
     mocks.getProvider.mockReset();
     mocks.getProvider.mockReturnValue(null);
   });
@@ -36,10 +40,14 @@ describe("partnerSearchSyncJob", () => {
     await partnerSearchSyncJob.execute({
       documentIds: ["pge_1"],
       partnerIds: ["pn_1"],
+      programPartners: [{ programId: "prog_1", partnerId: "pn_1" }],
     });
 
     expect(mocks.syncDocuments).toHaveBeenCalledWith(["pge_1"]);
     expect(mocks.syncPartners).toHaveBeenCalledWith(["pn_1"]);
+    expect(mocks.syncProgramPartners).toHaveBeenCalledWith([
+      { programId: "prog_1", partnerId: "pn_1" },
+    ]);
   });
 
   it("is available through the job registry", async () => {
@@ -50,7 +58,7 @@ describe("partnerSearchSyncJob", () => {
 
   it("requires at least one ID", async () => {
     await expect(partnerSearchSyncJob.execute({})).rejects.toThrow(
-      "At least one document or partner ID is required.",
+      "At least one search document target is required.",
     );
   });
 
@@ -71,5 +79,22 @@ describe("partnerSearchSyncJob", () => {
     await enqueuePartnerSearchSyncJob({ partnerIds: ["pn_1"] });
 
     expect(dispatch).toHaveBeenCalledWith({ partnerIds: ["pn_1"] });
+  });
+
+  it("enqueues unique program partners for partner links", async () => {
+    mocks.getProvider.mockReturnValue({});
+    const dispatch = vi
+      .spyOn(partnerSearchSyncJob, "dispatch")
+      .mockResolvedValue({ status: "published", messageId: "msg_1" });
+
+    await enqueuePartnerSearchSyncForLinks([
+      { programId: "prog_1", partnerId: "pn_1" },
+      { programId: "prog_1", partnerId: "pn_1" },
+      { programId: null, partnerId: null },
+    ]);
+
+    expect(dispatch).toHaveBeenCalledWith({
+      programPartners: [{ programId: "prog_1", partnerId: "pn_1" }],
+    });
   });
 });

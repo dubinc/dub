@@ -5,6 +5,7 @@ import {
   PartnerSearchProvider,
   syncPartnerSearchDocuments,
   syncPartnerSearchDocumentsByPartnerIds,
+  syncPartnerSearchDocumentsByProgramPartners,
 } from "@/lib/api/partners/search";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -137,6 +138,33 @@ describe("partner search document sync", () => {
     expect(searchProvider.upsert).toHaveBeenCalledWith([
       expect.objectContaining({ id: "pge_1" }),
       expect.objectContaining({ id: "pge_2" }),
+    ]);
+  });
+
+  it("upserts enrollments for program and partner pairs", async () => {
+    const searchProvider = createProvider();
+    mocks.findMany.mockResolvedValue([createSource("pge_1")]);
+
+    await syncPartnerSearchDocumentsByProgramPartners(
+      [
+        { programId: "prog_1", partnerId: "pn_1" },
+        { programId: "prog_1", partnerId: "pn_1" },
+        { programId: "prog_2", partnerId: "pn_2" },
+      ],
+      { searchProvider },
+    );
+
+    expect(mocks.findMany).toHaveBeenCalledWith({
+      where: {
+        OR: [
+          { programId: "prog_1", partnerId: "pn_1" },
+          { programId: "prog_2", partnerId: "pn_2" },
+        ],
+      },
+      select: partnerSearchDocumentSelect,
+    });
+    expect(searchProvider.upsert).toHaveBeenCalledWith([
+      expect.objectContaining({ id: "pge_1" }),
     ]);
   });
 

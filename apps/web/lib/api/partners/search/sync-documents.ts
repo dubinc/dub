@@ -10,8 +10,26 @@ interface PartnerSearchSyncOptions {
   searchProvider?: PartnerSearchProvider | null;
 }
 
+export interface PartnerSearchProgramPartner {
+  programId: string;
+  partnerId: string;
+}
+
 function uniqueDocumentIds(documentIds: string[]): string[] {
   return Array.from(new Set(documentIds));
+}
+
+function uniqueProgramPartners(
+  programPartners: PartnerSearchProgramPartner[],
+): PartnerSearchProgramPartner[] {
+  return Array.from(
+    new Map(
+      programPartners.map((item) => [
+        JSON.stringify([item.programId, item.partnerId]),
+        item,
+      ]),
+    ).values(),
+  );
 }
 
 export async function syncPartnerSearchDocuments(
@@ -59,6 +77,30 @@ export async function syncPartnerSearchDocumentsByPartnerIds(
   const enrollments = await prisma.programEnrollment.findMany({
     where: {
       partnerId: { in: uniqueDocumentIds(partnerIds) },
+    },
+    select: partnerSearchDocumentSelect,
+  });
+
+  if (enrollments.length > 0) {
+    await searchProvider.upsert(
+      enrollments.map(serializePartnerSearchDocument),
+    );
+  }
+}
+
+export async function syncPartnerSearchDocumentsByProgramPartners(
+  programPartners: PartnerSearchProgramPartner[],
+  {
+    searchProvider = getPartnerSearchProvider(),
+  }: PartnerSearchSyncOptions = {},
+) {
+  if (!searchProvider || programPartners.length === 0) {
+    return;
+  }
+
+  const enrollments = await prisma.programEnrollment.findMany({
+    where: {
+      OR: uniqueProgramPartners(programPartners),
     },
     select: partnerSearchDocumentSelect,
   });
