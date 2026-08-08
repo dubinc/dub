@@ -1,8 +1,8 @@
 import {
   deletePartnerSearchDocuments,
   partnerSearchDocumentSelect,
-  PartnerSearchDocumentSource,
-  PartnerSearchProvider,
+  type PartnerSearchDocumentSource,
+  type PartnerSearchProvider,
   syncPartnerSearchDocuments,
   syncPartnerSearchDocumentsByPartnerIds,
   syncPartnerSearchDocumentsByProgramPartners,
@@ -134,6 +134,8 @@ describe("partner search document sync", () => {
         partnerId: { in: ["pn_1"] },
       },
       select: partnerSearchDocumentSelect,
+      orderBy: { id: "asc" },
+      take: 100,
     });
     expect(searchProvider.upsert).toHaveBeenCalledWith([
       expect.objectContaining({ id: "pge_1" }),
@@ -162,6 +164,8 @@ describe("partner search document sync", () => {
         ],
       },
       select: partnerSearchDocumentSelect,
+      orderBy: { id: "asc" },
+      take: 100,
     });
     expect(searchProvider.upsert).toHaveBeenCalledWith([
       expect.objectContaining({ id: "pge_1" }),
@@ -177,5 +181,71 @@ describe("partner search document sync", () => {
 
     expect(searchProvider.delete).toHaveBeenCalledWith(["pge_1", "pge_2"]);
     expect(mocks.findMany).not.toHaveBeenCalled();
+  });
+
+  it("bounds document synchronization batches", async () => {
+    const searchProvider = createProvider();
+    const upsert = vi.mocked(searchProvider.upsert);
+    const documentIds = Array.from(
+      { length: 101 },
+      (_, index) => `pge_${index + 1}`,
+    );
+    mocks.findMany.mockImplementation(({ where }) =>
+      Promise.resolve(
+        (where.id.in as string[]).map((id: string) => createSource(id)),
+      ),
+    );
+
+    await syncPartnerSearchDocuments(documentIds, { searchProvider });
+
+    expect(mocks.findMany).toHaveBeenCalledTimes(2);
+    expect(mocks.findMany.mock.calls[0][0].where.id.in).toHaveLength(100);
+    expect(mocks.findMany.mock.calls[1][0].where.id.in).toHaveLength(1);
+    expect(searchProvider.upsert).toHaveBeenCalledTimes(2);
+    expect(upsert.mock.calls[0][0]).toHaveLength(100);
+    expect(upsert.mock.calls[1][0]).toHaveLength(1);
+  });
+
+  it("paginates all enrollments matched by a partner batch", async () => {
+    const searchProvider = createProvider();
+    const upsert = vi.mocked(searchProvider.upsert);
+    const firstPage = Array.from({ length: 100 }, (_, index) =>
+      createSource(`pge_${index + 1}`),
+    );
+    mocks.findMany
+      .mockResolvedValueOnce(firstPage)
+      .mockResolvedValueOnce([createSource("pge_101")]);
+
+    await syncPartnerSearchDocumentsByPartnerIds(["pn_1"], {
+      searchProvider,
+    });
+
+    expect(mocks.findMany).toHaveBeenNthCalledWith(2, {
+      where: { partnerId: { in: ["pn_1"] } },
+      select: partnerSearchDocumentSelect,
+      orderBy: { id: "asc" },
+      take: 100,
+      cursor: { id: "pge_100" },
+      skip: 1,
+    });
+    expect(upsert).toHaveBeenCalledTimes(2);
+    expect(upsert.mock.calls[0][0]).toHaveLength(100);
+    expect(upsert.mock.calls[1][0]).toHaveLength(1);
+  });
+
+  it("bounds provider delete batches", async () => {
+    const searchProvider = createProvider();
+    const deleteDocuments = vi.mocked(searchProvider.delete);
+    const documentIds = Array.from(
+      { length: 201 },
+      (_, index) => `pge_${index + 1}`,
+    );
+
+    await deletePartnerSearchDocuments(documentIds, { searchProvider });
+
+    expect(searchProvider.delete).toHaveBeenCalledTimes(3);
+    expect(deleteDocuments.mock.calls[0][0]).toHaveLength(100);
+    expect(deleteDocuments.mock.calls[1][0]).toHaveLength(100);
+    expect(deleteDocuments.mock.calls[2][0]).toHaveLength(1);
   });
 });

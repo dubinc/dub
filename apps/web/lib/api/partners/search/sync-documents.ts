@@ -1,10 +1,14 @@
 import { prisma } from "@/lib/prisma";
+import { chunk } from "@dub/utils";
+import type { Prisma } from "@prisma/client";
 import { getPartnerSearchProvider } from "./provider";
 import {
   partnerSearchDocumentSelect,
   serializePartnerSearchDocument,
 } from "./serialize-document";
-import { PartnerSearchProvider } from "./types";
+import type { PartnerSearchProvider } from "./types";
+
+const PARTNER_SEARCH_SYNC_BATCH_SIZE = 100;
 
 interface PartnerSearchSyncOptions {
   searchProvider?: PartnerSearchProvider | null;
@@ -32,6 +36,40 @@ function uniqueProgramPartners(
   );
 }
 
+async function upsertPartnerSearchDocuments(
+  where: Prisma.ProgramEnrollmentWhereInput,
+  searchProvider: PartnerSearchProvider,
+) {
+  let cursor: string | undefined;
+
+  while (true) {
+    const enrollments = await prisma.programEnrollment.findMany({
+      where,
+      select: partnerSearchDocumentSelect,
+      orderBy: { id: "asc" },
+      take: PARTNER_SEARCH_SYNC_BATCH_SIZE,
+      ...(cursor && {
+        cursor: { id: cursor },
+        skip: 1,
+      }),
+    });
+
+    if (enrollments.length === 0) {
+      return;
+    }
+
+    await searchProvider.upsert(
+      enrollments.map(serializePartnerSearchDocument),
+    );
+
+    if (enrollments.length < PARTNER_SEARCH_SYNC_BATCH_SIZE) {
+      return;
+    }
+
+    cursor = enrollments[enrollments.length - 1].id;
+  }
+}
+
 export async function syncPartnerSearchDocuments(
   documentIds: string[],
   {
@@ -42,25 +80,29 @@ export async function syncPartnerSearchDocuments(
     return;
   }
 
-  const uniqueIds = uniqueDocumentIds(documentIds);
-  const enrollments = await prisma.programEnrollment.findMany({
-    where: {
-      id: { in: uniqueIds },
-    },
-    select: partnerSearchDocumentSelect,
-  });
+  for (const documentIdBatch of chunk(
+    uniqueDocumentIds(documentIds),
+    PARTNER_SEARCH_SYNC_BATCH_SIZE,
+  )) {
+    const enrollments = await prisma.programEnrollment.findMany({
+      where: {
+        id: { in: documentIdBatch },
+      },
+      select: partnerSearchDocumentSelect,
+    });
 
-  if (enrollments.length > 0) {
-    await searchProvider.upsert(
-      enrollments.map(serializePartnerSearchDocument),
-    );
-  }
+    if (enrollments.length > 0) {
+      await searchProvider.upsert(
+        enrollments.map(serializePartnerSearchDocument),
+      );
+    }
 
-  const foundIds = new Set(enrollments.map(({ id }) => id));
-  const missingIds = uniqueIds.filter((id) => !foundIds.has(id));
+    const foundIds = new Set(enrollments.map(({ id }) => id));
+    const missingIds = documentIdBatch.filter((id) => !foundIds.has(id));
 
-  if (missingIds.length > 0) {
-    await searchProvider.delete(missingIds);
+    if (missingIds.length > 0) {
+      await searchProvider.delete(missingIds);
+    }
   }
 }
 
@@ -74,16 +116,13 @@ export async function syncPartnerSearchDocumentsByPartnerIds(
     return;
   }
 
-  const enrollments = await prisma.programEnrollment.findMany({
-    where: {
-      partnerId: { in: uniqueDocumentIds(partnerIds) },
-    },
-    select: partnerSearchDocumentSelect,
-  });
-
-  if (enrollments.length > 0) {
-    await searchProvider.upsert(
-      enrollments.map(serializePartnerSearchDocument),
+  for (const partnerIdBatch of chunk(
+    uniqueDocumentIds(partnerIds),
+    PARTNER_SEARCH_SYNC_BATCH_SIZE,
+  )) {
+    await upsertPartnerSearchDocuments(
+      { partnerId: { in: partnerIdBatch } },
+      searchProvider,
     );
   }
 }
@@ -98,16 +137,13 @@ export async function syncPartnerSearchDocumentsByProgramPartners(
     return;
   }
 
-  const enrollments = await prisma.programEnrollment.findMany({
-    where: {
-      OR: uniqueProgramPartners(programPartners),
-    },
-    select: partnerSearchDocumentSelect,
-  });
-
-  if (enrollments.length > 0) {
-    await searchProvider.upsert(
-      enrollments.map(serializePartnerSearchDocument),
+  for (const programPartnerBatch of chunk(
+    uniqueProgramPartners(programPartners),
+    PARTNER_SEARCH_SYNC_BATCH_SIZE,
+  )) {
+    await upsertPartnerSearchDocuments(
+      { OR: programPartnerBatch },
+      searchProvider,
     );
   }
 }
@@ -122,5 +158,10 @@ export async function deletePartnerSearchDocuments(
     return;
   }
 
-  await searchProvider.delete(uniqueDocumentIds(documentIds));
+  for (const documentIdBatch of chunk(
+    uniqueDocumentIds(documentIds),
+    PARTNER_SEARCH_SYNC_BATCH_SIZE,
+  )) {
+    await searchProvider.delete(documentIdBatch);
+  }
 }

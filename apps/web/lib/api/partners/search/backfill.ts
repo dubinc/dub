@@ -41,6 +41,7 @@ export async function backfillPartnerSearch({
   let processed = 0;
 
   while (true) {
+    // TODO: Add a composite database index on programId and id before production backfills
     const enrollments = await prisma.programEnrollment.findMany({
       where: {
         programId,
