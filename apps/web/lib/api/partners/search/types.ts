@@ -126,7 +126,6 @@ export interface PartnerSearchHit {
 
 export interface PartnerSearchResult {
   hits: PartnerSearchHit[];
-  total: number;
 }
 
 export interface PartnerSearchProvider {
@@ -136,6 +135,7 @@ export interface PartnerSearchProvider {
     query: PartnerSearchCountQuery,
     field: PartnerSearchGroupField,
   ): Promise<PartnerSearchGroup[]>;
+  waitForIndexing(): Promise<void>;
   upsert(documents: PartnerSearchDocument[]): Promise<void>;
   delete(documentIds: string[]): Promise<void>;
 }

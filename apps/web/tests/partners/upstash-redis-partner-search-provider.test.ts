@@ -2,6 +2,7 @@ import {
   createUpstashRedisPartnerSearchIndex,
   createUpstashRedisPartnerSearchProvider,
   type PartnerSearchDocument,
+  upstashPartnerSearchSchema,
 } from "@/lib/api/partners/search";
 import type { Redis } from "@upstash/redis";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -47,20 +48,25 @@ const mocks = vi.hoisted(() => ({
   count: vi.fn(),
   createIndex: vi.fn(),
   del: vi.fn(),
+  describe: vi.fn(),
   index: vi.fn(),
   jsonMget: vi.fn(),
   jsonMset: vi.fn(),
   query: vi.fn(),
+  waitIndexing: vi.fn(),
 }));
 
 function createRedisMock(): Redis {
   const searchIndex = {
     aggregate: mocks.aggregate,
     count: mocks.count,
+    describe: mocks.describe,
     query: mocks.query,
+    waitIndexing: mocks.waitIndexing,
   };
 
   mocks.index.mockReturnValue(searchIndex);
+  mocks.createIndex.mockReturnValue(searchIndex);
 
   return {
     del: mocks.del,
@@ -82,11 +88,17 @@ describe("Upstash Redis partner search provider", () => {
       groups: { buckets: [], sumOtherDocCount: 0 },
     });
     mocks.count.mockResolvedValue({ count: 0 });
-    mocks.createIndex.mockResolvedValue(undefined);
     mocks.del.mockResolvedValue(0);
+    mocks.describe.mockResolvedValue({
+      name: "test-index",
+      dataType: "json",
+      prefixes: ["test-index:"],
+      schema: upstashPartnerSearchSchema,
+    });
     mocks.jsonMget.mockResolvedValue([]);
     mocks.jsonMset.mockResolvedValue("OK");
     mocks.query.mockResolvedValue([]);
+    mocks.waitIndexing.mockResolvedValue(1);
   });
 
   it("searches within the program and supports partial email matching", async () => {
@@ -97,7 +109,6 @@ describe("Upstash Redis partner search provider", () => {
         data: { id: document.id, partnerId: document.partnerId },
       },
     ]);
-    mocks.count.mockResolvedValue({ count: 1 });
     const provider = createUpstashRedisPartnerSearchProvider({
       redisClient: createRedisMock(),
       indexName: "test-index",
@@ -113,8 +124,8 @@ describe("Upstash Redis partner search provider", () => {
 
     expect(result).toEqual({
       hits: [{ id: document.id, partnerId: document.partnerId, score: 2 }],
-      total: 1,
     });
+    expect(mocks.count).not.toHaveBeenCalled();
     expect(mocks.query).toHaveBeenCalledWith(
       expect.objectContaining({
         limit: 25,
@@ -314,6 +325,17 @@ describe("Upstash Redis partner search provider", () => {
     );
   });
 
+  it("waits for pending index updates", async () => {
+    const provider = createUpstashRedisPartnerSearchProvider({
+      redisClient: createRedisMock(),
+      indexName: "test-index",
+    });
+
+    await provider.waitForIndexing();
+
+    expect(mocks.waitIndexing).toHaveBeenCalledOnce();
+  });
+
   it("creates the index explicitly with the partner-search prefix", async () => {
     const redisClient = createRedisMock();
 
@@ -331,5 +353,21 @@ describe("Upstash Redis partner search provider", () => {
         skipInitialScan: true,
       }),
     );
+  });
+
+  it("rejects an existing index with a stale schema", async () => {
+    mocks.describe.mockResolvedValue({
+      name: "test-index",
+      dataType: "json",
+      prefixes: ["test-index:"],
+      schema: { id: { type: "KEYWORD" } },
+    });
+
+    await expect(
+      createUpstashRedisPartnerSearchIndex({
+        redisClient: createRedisMock(),
+        indexName: "test-index",
+      }),
+    ).rejects.toThrow("Create a new versioned index");
   });
 });

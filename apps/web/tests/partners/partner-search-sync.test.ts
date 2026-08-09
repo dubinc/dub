@@ -65,6 +65,7 @@ function createProvider(): PartnerSearchProvider {
     search: vi.fn(),
     count: vi.fn(),
     groupBy: vi.fn(),
+    waitForIndexing: vi.fn(),
     upsert: vi.fn(),
     delete: vi.fn(),
   };

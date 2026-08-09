@@ -62,6 +62,7 @@ function createProvider(): PartnerSearchProvider {
     search: vi.fn(),
     count: vi.fn(),
     groupBy: vi.fn(),
+    waitForIndexing: vi.fn(),
     upsert: vi.fn(),
     delete: vi.fn(),
   };
@@ -102,6 +103,7 @@ describe("backfillPartnerSearch", () => {
       take: 2,
     });
     expect(searchProvider.upsert).toHaveBeenCalledTimes(2);
+    expect(searchProvider.waitForIndexing).toHaveBeenCalledOnce();
     expect(onProgress).toHaveBeenLastCalledWith({
       batchSize: 1,
       processed: 3,

@@ -63,7 +63,7 @@ describe("partner search provider contract", () => {
       pageSize: 10,
     });
 
-    expect(result.total).toBe(1);
+    expect(result.hits).toHaveLength(1);
     expect(result.hits[0]?.partnerId).toBe(partnerDocument.partnerId);
   });
 
@@ -77,7 +77,7 @@ describe("partner search provider contract", () => {
       pageSize: 10,
     });
 
-    expect(result).toEqual({ hits: [], total: 0 });
+    expect(result).toEqual({ hits: [] });
   });
 
   it("combines search with filters", async () => {
@@ -96,7 +96,7 @@ describe("partner search provider contract", () => {
       },
     });
 
-    expect(result.total).toBe(1);
+    expect(result.hits).toHaveLength(1);
   });
 
   it("sorts filtered search results", async () => {

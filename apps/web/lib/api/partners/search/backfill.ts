@@ -77,6 +77,8 @@ export async function backfillPartnerSearch({
     }
   }
 
+  await searchProvider.waitForIndexing();
+
   return {
     processed,
     lastDocumentId: lastDocumentId ?? null,

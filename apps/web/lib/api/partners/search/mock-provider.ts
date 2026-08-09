@@ -173,7 +173,6 @@ export function createMockPartnerSearchProvider(
           id: document.id,
           partnerId: document.partnerId,
         })),
-        total: matches.length,
       };
     },
 
@@ -195,6 +194,8 @@ export function createMockPartnerSearchProvider(
 
       return Array.from(groups, ([value, count]) => ({ value, count }));
     },
+
+    async waitForIndexing() {},
 
     async upsert(updatedDocuments) {
       for (const document of updatedDocuments) {

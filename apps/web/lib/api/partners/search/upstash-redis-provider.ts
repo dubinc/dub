@@ -24,6 +24,8 @@ const DEFAULT_INDEX_NAME = "partner-search-v1";
 const NULL_VALUE = "__none__";
 const MAX_GROUPS = 1_000;
 const TRANSIENT_RETRY_ATTEMPTS = 2;
+const QUERY_REQUEST_TIMEOUT_MS = 400;
+const WRITE_REQUEST_TIMEOUT_MS = 10_000;
 const WRITE_BATCH_SIZE = 100;
 const DOCUMENT_TYPE_PARTNER = "partner";
 const DOCUMENT_TYPE_TAG = "tag";
@@ -95,6 +97,7 @@ interface UpstashPartnerSearchDocument extends Record<string, unknown> {
 
 interface CreateUpstashRedisPartnerSearchProviderOptions {
   redisClient?: Redis;
+  queryRedisClient?: Redis;
   indexName?: string;
 }
 
@@ -122,7 +125,7 @@ function getTagDocumentKey(
   return `${getDocumentPrefix(indexName)}tag:${documentId}:${partnerTagId}`;
 }
 
-function createRedisClient(): Redis {
+function createRedisClient(requestTimeoutMs: number): Redis {
   const url = process.env.UPSTASH_REDIS_REST_URL;
   const token = process.env.UPSTASH_REDIS_REST_TOKEN;
 
@@ -132,7 +135,13 @@ function createRedisClient(): Redis {
     );
   }
 
-  return new Redis({ url, token });
+  return new Redis({
+    url,
+    token,
+    // The provider wrapper owns the retry budget
+    retry: { retries: 0 },
+    signal: () => AbortSignal.timeout(requestTimeoutMs),
+  });
 }
 
 function getEmailNgrams(email: string | null): string {
@@ -363,6 +372,52 @@ function mapGroupValue(value: string): string | null {
   return value === NULL_VALUE ? null : value;
 }
 
+function getSchemaSignature(schema: Record<string, Record<string, unknown>>) {
+  return JSON.stringify(
+    Object.fromEntries(
+      Object.entries(schema)
+        .sort(([left], [right]) => left.localeCompare(right))
+        .map(([field, options]) => [
+          field,
+          Object.fromEntries(
+            Object.entries(options).sort(([left], [right]) =>
+              left.localeCompare(right),
+            ),
+          ),
+        ]),
+    ),
+  );
+}
+
+function validateIndexDescription(
+  description: NonNullable<
+    Awaited<ReturnType<UpstashPartnerSearchIndex["describe"]>>
+  >,
+  indexName: string,
+) {
+  const expectedPrefix = getDocumentPrefix(indexName);
+  const hasExpectedPrefix =
+    description.prefixes.length === 1 &&
+    description.prefixes[0] === expectedPrefix;
+  const hasExpectedSchema =
+    getSchemaSignature(
+      description.schema as Record<string, Record<string, unknown>>,
+    ) ===
+    getSchemaSignature(
+      upstashPartnerSearchSchema as Record<string, Record<string, unknown>>,
+    );
+
+  if (
+    description.dataType !== "json" ||
+    !hasExpectedPrefix ||
+    !hasExpectedSchema
+  ) {
+    throw new Error(
+      `Partner search index ${indexName} does not match the configured schema. Create a new versioned index.`,
+    );
+  }
+}
+
 function getStoredDocument(
   value: UpstashPartnerSearchDocument[] | null,
 ): UpstashPartnerSearchDocument | null {
@@ -475,12 +530,14 @@ async function deleteDocumentBatch(
 }
 
 export async function createUpstashRedisPartnerSearchIndex({
-  redisClient = createRedisClient(),
+  redisClient,
   indexName,
 }: CreateUpstashRedisPartnerSearchProviderOptions = {}) {
+  const resolvedRedisClient =
+    redisClient ?? createRedisClient(WRITE_REQUEST_TIMEOUT_MS);
   const resolvedIndexName = getIndexName(indexName);
 
-  return redisClient.search.createIndex({
+  const index = await resolvedRedisClient.search.createIndex({
     name: resolvedIndexName,
     dataType: "json",
     prefix: getDocumentPrefix(resolvedIndexName),
@@ -488,17 +545,40 @@ export async function createUpstashRedisPartnerSearchIndex({
     skipInitialScan: true,
     existsOk: true,
   });
+  const description = await index.describe();
+
+  if (!description) {
+    throw new Error(
+      `Partner search index ${resolvedIndexName} was not created.`,
+    );
+  }
+
+  validateIndexDescription(description, resolvedIndexName);
+  return index;
 }
 
 export function createUpstashRedisPartnerSearchProvider({
-  redisClient = createRedisClient(),
+  redisClient,
+  queryRedisClient,
   indexName,
 }: CreateUpstashRedisPartnerSearchProviderOptions = {}): PartnerSearchProvider {
+  const resolvedRedisClient =
+    redisClient ?? createRedisClient(WRITE_REQUEST_TIMEOUT_MS);
+  const resolvedQueryRedisClient =
+    queryRedisClient ??
+    redisClient ??
+    createRedisClient(QUERY_REQUEST_TIMEOUT_MS);
   const resolvedIndexName = getIndexName(indexName);
-  const index: UpstashPartnerSearchIndex = redisClient.search.index({
-    name: resolvedIndexName,
-    schema: upstashPartnerSearchSchema,
-  });
+  const queryIndex: UpstashPartnerSearchIndex =
+    resolvedQueryRedisClient.search.index({
+      name: resolvedIndexName,
+      schema: upstashPartnerSearchSchema,
+    });
+  const writeIndex: UpstashPartnerSearchIndex =
+    resolvedRedisClient.search.index({
+      name: resolvedIndexName,
+      schema: upstashPartnerSearchSchema,
+    });
 
   return {
     async search(query: PartnerSearchQuery) {
@@ -510,18 +590,15 @@ export function createUpstashRedisPartnerSearchProvider({
           } as Record<string, "ASC" | "DESC">)
         : undefined;
 
-      const [results, { count }] = await Promise.all([
-        withTransientRetry(() =>
-          index.query({
-            filter,
-            limit: query.pageSize,
-            offset,
-            select: { id: true, partnerId: true },
-            ...(orderBy && { orderBy }),
-          }),
-        ),
-        withTransientRetry(() => index.count({ filter })),
-      ]);
+      const results = await withTransientRetry(() =>
+        queryIndex.query({
+          filter,
+          limit: query.pageSize,
+          offset,
+          select: { id: true, partnerId: true },
+          ...(orderBy && { orderBy }),
+        }),
+      );
 
       return {
         hits: results.map(({ data, score }) => ({
@@ -529,13 +606,12 @@ export function createUpstashRedisPartnerSearchProvider({
           partnerId: data.partnerId,
           score,
         })),
-        total: count,
       };
     },
 
     async count(query) {
       const result = await withTransientRetry(() =>
-        index.count({ filter: buildUpstashFilter(query) }),
+        queryIndex.count({ filter: buildUpstashFilter(query) }),
       );
       return result.count;
     },
@@ -545,7 +621,7 @@ export function createUpstashRedisPartnerSearchProvider({
       const documentType =
         field === "partnerTagId" ? DOCUMENT_TYPE_TAG : DOCUMENT_TYPE_PARTNER;
       const result = await withTransientRetry(() =>
-        index.aggregate({
+        queryIndex.aggregate({
           filter: buildUpstashFilter(query, documentType),
           aggregations: {
             groups: {
@@ -567,10 +643,19 @@ export function createUpstashRedisPartnerSearchProvider({
       });
     },
 
+    async waitForIndexing() {
+      const result = await withTransientRetry(() => writeIndex.waitIndexing());
+      if (result === 0) {
+        throw new Error(
+          `Partner search index ${resolvedIndexName} was not found.`,
+        );
+      }
+    },
+
     async upsert(documents) {
       for (const documentBatch of chunk(documents, WRITE_BATCH_SIZE)) {
         await upsertDocumentBatch(
-          redisClient,
+          resolvedRedisClient,
           resolvedIndexName,
           documentBatch,
         );
@@ -580,7 +665,7 @@ export function createUpstashRedisPartnerSearchProvider({
     async delete(documentIds) {
       for (const documentIdBatch of chunk(documentIds, WRITE_BATCH_SIZE)) {
         await deleteDocumentBatch(
-          redisClient,
+          resolvedRedisClient,
           resolvedIndexName,
           documentIdBatch,
         );

@@ -9,6 +9,7 @@ function createSearchProvider(): PartnerSearchProvider {
     search: vi.fn(),
     count: vi.fn().mockResolvedValue(2),
     groupBy: vi.fn().mockResolvedValue([{ value: "approved", count: 2 }]),
+    waitForIndexing: vi.fn(),
     upsert: vi.fn(),
     delete: vi.fn(),
   };

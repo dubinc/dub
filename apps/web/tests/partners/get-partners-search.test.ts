@@ -47,10 +47,10 @@ describe("getPartners search", () => {
           { id: "pge_2", partnerId: "pn_2" },
           { id: "pge_1", partnerId: "pn_1" },
         ],
-        total: 2,
       }),
       count: vi.fn(),
       groupBy: vi.fn(),
+      waitForIndexing: vi.fn(),
       upsert: vi.fn(),
       delete: vi.fn(),
     };
@@ -93,6 +93,7 @@ describe("getPartners search", () => {
         .mockRejectedValue(new Error("Provider Connection Timeout")),
       count: vi.fn(),
       groupBy: vi.fn(),
+      waitForIndexing: vi.fn(),
       upsert: vi.fn(),
       delete: vi.fn(),
     };
