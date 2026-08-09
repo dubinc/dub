@@ -37,6 +37,7 @@ export const createRewardAction = authActionClient
       groupId,
       spendLimitAmount,
       spendLimitInterval,
+      changeDescription,
     } = parsedInput;
 
     throwIfNoPermission({
@@ -132,6 +133,7 @@ export const createRewardAction = authActionClient
         description: formatRewardDescription(serializeReward(reward), {
           includeEarnPrefix: false,
         }),
+        changeDescription,
       },
     });
 
@@ -161,6 +163,7 @@ export const createRewardAction = authActionClient
           parentResourceId: groupId,
           old: null,
           new: reward,
+          description: changeDescription,
         }),
       ]),
     );

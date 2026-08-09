@@ -432,6 +432,18 @@ export const RewardSchema = z.object({
 
 export const REWARD_DESCRIPTION_MAX_LENGTH = 100;
 export const REWARD_TOOLTIP_DESCRIPTION_MAX_LENGTH = 2000;
+export const REWARD_CHANGE_DESCRIPTION_MAX_LENGTH = 240;
+
+export const rewardChangeDescriptionSchema = z.object({
+  changeDescription: z
+    .string()
+    .max(REWARD_CHANGE_DESCRIPTION_MAX_LENGTH)
+    .optional()
+    .transform((value) => {
+      const trimmed = value?.trim();
+      return trimmed ? trimmed : undefined;
+    }),
+});
 
 export const referralRewardConfigSchema = z
   .object({
@@ -469,14 +481,14 @@ export const createOrUpdateRewardSchema = z.object({
   ...rewardSpendLimitSchema.shape,
 });
 
-export const createRewardSchema = createOrUpdateRewardSchema.superRefine(
-  (data) => {
+export const createRewardSchema = createOrUpdateRewardSchema
+  .extend(rewardChangeDescriptionSchema.shape)
+  .superRefine((data) => {
     if (data.event === EventType.click || data.event === EventType.lead) {
       data.maxDuration = 0;
       data.type = "flat";
     }
-  },
-);
+  });
 
 export const updateRewardSchema = createOrUpdateRewardSchema
   .omit({
@@ -485,6 +497,7 @@ export const updateRewardSchema = createOrUpdateRewardSchema
   })
   .extend({
     rewardId: z.string(),
+    ...rewardChangeDescriptionSchema.shape,
   });
 
 export const rewardPartnersQuerySchema = z

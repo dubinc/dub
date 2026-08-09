@@ -15,7 +15,7 @@ interface NotifyPartnerRewardChangeParams {
   action: RewardJob["event"];
   program: Pick<Program, "id" | "name" | "logo" | "slug" | "supportEmail">;
   reward: Pick<Reward, "id" | "event">;
-  rewardSnapshot: { description: string };
+  rewardSnapshot: { description: string; changeDescription?: string };
   effectiveAt: Date | string;
   users: Pick<User, "name" | "email">[];
   idempotencyKey: string;
@@ -59,6 +59,7 @@ export async function notifyPartnerRewardChange({
         rewardSnapshot: {
           description: rewardSnapshot.description,
           icon: REWARD_ICONS[reward.event],
+          changeDescription: rewardSnapshot.changeDescription,
         },
         effectiveAt,
         action,

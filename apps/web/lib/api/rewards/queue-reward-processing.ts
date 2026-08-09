@@ -26,6 +26,7 @@ export const rewardJobSchema = z.object({
     id: z.string(),
     event: z.enum(EventType),
     description: z.string(),
+    changeDescription: z.string().optional(),
   }),
 });
 
