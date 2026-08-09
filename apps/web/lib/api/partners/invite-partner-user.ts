@@ -40,6 +40,7 @@ export async function invitePartnerUser({
         message: "User has already been invited to this partner profile.",
       });
     }
+    throw error;
   }
 
   const { token } = await createVerificationToken({
