@@ -1,6 +1,6 @@
 import type { FullConfig } from "@playwright/test";
 import { config as loadEnv } from "dotenv-flow";
-import { setupTestWorkspace } from "./playwright/api/setup-test-workspace";
+import { setupTestWorkspace } from "./api/setup-test-workspace";
 
 loadEnv({
   silent: true,
