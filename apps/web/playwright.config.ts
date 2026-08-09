@@ -1,9 +1,6 @@
-import { defineConfig, devices } from "@playwright/test";
-import { config as loadEnv } from "dotenv-flow";
+import "dotenv-flow/config";
 
-loadEnv({
-  silent: true,
-});
+import { defineConfig, devices } from "@playwright/test";
 
 const workspaceBaseURL = "http://localhost:8888";
 const partnersBaseURL = "http://partners.localhost:8888";
