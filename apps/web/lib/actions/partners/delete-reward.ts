@@ -9,7 +9,7 @@ import { queueRewardProcessing } from "@/lib/api/rewards/queue-reward-processing
 import { prisma } from "@/lib/prisma";
 import {
   REWARD_EVENT_COLUMN_MAPPING,
-  rewardChangeDescriptionSchema,
+  rewardActivityDescriptionSchema,
 } from "@/lib/zod/schemas/rewards";
 import { formatRewardDescription } from "@/ui/partners/format-reward-description";
 import { waitUntil } from "@vercel/functions";
@@ -22,13 +22,13 @@ const deleteRewardSchema = z
     workspaceId: z.string(),
     rewardId: z.string(),
   })
-  .extend(rewardChangeDescriptionSchema.shape);
+  .extend(rewardActivityDescriptionSchema.shape);
 
 export const deleteRewardAction = authActionClient
   .inputSchema(deleteRewardSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
-    const { rewardId, changeDescription } = parsedInput;
+    const { rewardId, activityDescription } = parsedInput;
 
     throwIfNoPermission({
       role: workspace.role,
@@ -83,7 +83,7 @@ export const deleteRewardAction = authActionClient
         description: formatRewardDescription(serializeReward(deletedReward), {
           includeEarnPrefix: false,
         }),
-        changeDescription,
+        activityDescription,
       },
     });
 
@@ -113,7 +113,7 @@ export const deleteRewardAction = authActionClient
           parentResourceId: partnerGroup.id,
           old: reward,
           new: null,
-          description: changeDescription,
+          description: activityDescription,
         }),
       ]),
     );

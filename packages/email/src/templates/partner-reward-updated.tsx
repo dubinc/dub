@@ -37,7 +37,8 @@ export default function PartnerRewardUpdated({
   rewardSnapshot = {
     description: "30% per sale for the customers lifetime",
     icon: "https://assets.dub.co/email-assets/icons/invoice-dollar.png",
-    changeDescription: "We're increasing rewards to better align with market rates.",
+    activityDescription:
+      "We're increasing rewards to better align with market rates.",
   },
   effectiveAt = new Date("2026-01-02T20:32:00.000Z"),
   action = "reward-created",
@@ -55,7 +56,7 @@ export default function PartnerRewardUpdated({
   rewardSnapshot: {
     description: string;
     icon: string;
-    changeDescription?: string;
+    activityDescription?: string;
   };
   effectiveAt: Date | string;
   action: "reward-created" | "reward-updated" | "reward-deleted";
@@ -110,10 +111,10 @@ export default function PartnerRewardUpdated({
               </Section>
             </Section>
 
-            {rewardSnapshot.changeDescription && (
+            {rewardSnapshot.activityDescription && (
               <Text className="mb-0 mt-0 text-sm leading-6 text-neutral-600">
                 <strong>Message from {program.name}:</strong>{" "}
-                {rewardSnapshot.changeDescription}
+                {rewardSnapshot.activityDescription}
               </Text>
             )}
 

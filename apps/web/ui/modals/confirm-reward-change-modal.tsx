@@ -27,7 +27,7 @@ const CONFIRM_TEXT: Record<RewardChangeAction, string> = {
 };
 
 type ConfirmRewardChangeFormData = {
-  changeDescription: string;
+  activityDescription: string;
 };
 
 type ConfirmRewardChangeModalProps = {
@@ -50,7 +50,7 @@ type ConfirmRewardChangeModalProps = {
     | "spendLimitInterval"
   >;
   partnerCount?: number;
-  onConfirm: (changeDescription?: string) => Promise<void>;
+  onConfirm: (activityDescription?: string) => Promise<void>;
   isPending?: boolean;
 };
 
@@ -75,13 +75,13 @@ export function ConfirmRewardChangeModal({
     formState: { errors },
   } = useForm<ConfirmRewardChangeFormData>({
     defaultValues: {
-      changeDescription: "",
+      activityDescription: "",
     },
   });
 
   useEffect(() => {
     if (showModal) {
-      reset({ changeDescription: "" });
+      reset({ activityDescription: "" });
     }
   }, [showModal, reset]);
 
@@ -91,10 +91,10 @@ export function ConfirmRewardChangeModal({
     deleted: "removed from",
   }[action];
 
-  const onSubmit = handleSubmit(async ({ changeDescription }) => {
+  const onSubmit = handleSubmit(async ({ activityDescription }) => {
     setIsLoading(true);
     try {
-      const trimmedDescription = changeDescription.trim();
+      const trimmedDescription = activityDescription.trim();
       await onConfirm(trimmedDescription || undefined);
       setShowModal(false);
     } finally {
@@ -143,7 +143,7 @@ export function ConfirmRewardChangeModal({
           <div className="mt-4">
             <div className="flex items-center justify-between">
               <label
-                htmlFor="changeDescription"
+                htmlFor="activityDescription"
                 className="text-content-emphasis text-sm font-medium"
               >
                 Message to partners
@@ -152,39 +152,30 @@ export function ConfirmRewardChangeModal({
                 </span>
               </label>
               <MaxCharactersCounter
-                name="changeDescription"
+                name="activityDescription"
                 maxLength={REWARD_CHANGE_DESCRIPTION_MAX_LENGTH}
                 control={control}
               />
             </div>
             <textarea
-              id="changeDescription"
+              id="activityDescription"
               rows={3}
               maxLength={REWARD_CHANGE_DESCRIPTION_MAX_LENGTH}
               placeholder="Add context about this change..."
               className={cn(
                 "mt-2 block w-full rounded-md border-neutral-300 text-sm text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500",
-                errors.changeDescription && "border-red-600",
+                errors.activityDescription && "border-red-600",
               )}
-              {...register("changeDescription", {
+              {...register("activityDescription", {
                 maxLength: {
                   value: REWARD_CHANGE_DESCRIPTION_MAX_LENGTH,
                   message: `Must be ${REWARD_CHANGE_DESCRIPTION_MAX_LENGTH} characters or fewer`,
                 },
               })}
             />
-            {errors.changeDescription && (
+            {errors.activityDescription && (
               <p className="mt-1 text-xs text-red-600">
-                {errors.changeDescription.message}
-              </p>
-            )}
-            {partnerCount && partnerCount > 0 ? (
-              <p className="mt-1.5 text-xs text-neutral-500">
-                Included in the partner notification email and activity log
-              </p>
-            ) : (
-              <p className="mt-1.5 text-xs text-neutral-500">
-                Saved to the activity log
+                {errors.activityDescription.message}
               </p>
             )}
           </div>
@@ -217,7 +208,7 @@ export function useConfirmRewardChangeModal() {
     action: RewardChangeAction;
     event: EventType;
     reward: ConfirmRewardChangeModalProps["reward"];
-    onConfirm: (changeDescription?: string) => Promise<void>;
+    onConfirm: (activityDescription?: string) => Promise<void>;
     isPending?: boolean;
     partnerCount?: number;
   } | null>(null);
@@ -228,7 +219,7 @@ export function useConfirmRewardChangeModal() {
       event: EventType;
       reward: ConfirmRewardChangeModalProps["reward"];
       partnerCount?: number;
-      onConfirm: (changeDescription?: string) => Promise<void>;
+      onConfirm: (activityDescription?: string) => Promise<void>;
       isPending?: boolean;
     }) => setState(options),
     closeConfirmRewardChangeModal: () => setState(null),

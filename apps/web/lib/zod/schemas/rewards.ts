@@ -434,8 +434,8 @@ export const REWARD_DESCRIPTION_MAX_LENGTH = 100;
 export const REWARD_TOOLTIP_DESCRIPTION_MAX_LENGTH = 2000;
 export const REWARD_CHANGE_DESCRIPTION_MAX_LENGTH = 240;
 
-export const rewardChangeDescriptionSchema = z.object({
-  changeDescription: z
+export const rewardActivityDescriptionSchema = z.object({
+  activityDescription: z
     .string()
     .max(REWARD_CHANGE_DESCRIPTION_MAX_LENGTH)
     .optional()
@@ -479,16 +479,17 @@ export const createOrUpdateRewardSchema = z.object({
     .nullish(),
   groupId: z.string(),
   ...rewardSpendLimitSchema.shape,
+  ...rewardActivityDescriptionSchema.shape,
 });
 
-export const createRewardSchema = createOrUpdateRewardSchema
-  .extend(rewardChangeDescriptionSchema.shape)
-  .superRefine((data) => {
+export const createRewardSchema = createOrUpdateRewardSchema.superRefine(
+  (data) => {
     if (data.event === EventType.click || data.event === EventType.lead) {
       data.maxDuration = 0;
       data.type = "flat";
     }
-  });
+  },
+);
 
 export const updateRewardSchema = createOrUpdateRewardSchema
   .omit({
@@ -497,7 +498,6 @@ export const updateRewardSchema = createOrUpdateRewardSchema
   })
   .extend({
     rewardId: z.string(),
-    ...rewardChangeDescriptionSchema.shape,
   });
 
 export const rewardPartnersQuerySchema = z
