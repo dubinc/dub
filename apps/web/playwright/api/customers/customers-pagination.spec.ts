@@ -7,8 +7,8 @@ import {
   expectNoOverlap,
   expectSortedByCreatedAt,
   expectSortedById,
-} from "../utils";
-import { test } from "./fixtures";
+} from "../../utils";
+import { test } from "../fixtures";
 
 const PAGE_SIZE = 5;
 const SEED_COUNT = 25;

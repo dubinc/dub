@@ -2,8 +2,8 @@ import { WorkspaceSchema } from "@/lib/zod/schemas/workspaces";
 import { expect } from "@playwright/test";
 import type { Project } from "@prisma/client";
 import * as z from "zod/v4";
-import { test } from "./fixtures";
-import { TEST_WORKSPACE } from "./setup-test-workspace";
+import { test } from "../fixtures";
+import { TEST_WORKSPACE } from "../setup-test-workspace";
 
 test.describe.configure({
   mode: "parallel",

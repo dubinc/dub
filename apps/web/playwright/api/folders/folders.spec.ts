@@ -1,7 +1,7 @@
 import { expect } from "@playwright/test";
 import type { Folder } from "@prisma/client";
-import { randomName } from "../utils";
-import { test, type ApiClient } from "./fixtures";
+import { randomName } from "../../utils";
+import { test, type ApiClient } from "../fixtures";
 
 const expectedFolder = {
   id: expect.any(String),

@@ -1,7 +1,7 @@
 import { expect } from "@playwright/test";
 import type { Tag } from "@prisma/client";
-import { randomName } from "../utils";
-import { test } from "./fixtures";
+import { randomName } from "../../utils";
+import { test } from "../fixtures";
 
 test.describe.configure({
   mode: "parallel",

@@ -36,7 +36,11 @@ API specs under `playwright/api` use a Bearer token. `globalSetup` upserts a ded
 
 ```sh
 pnpm --filter web test:e2e --project=api
+pnpm --filter web test:e2e --project=api playwright/api/tags/tags.spec.ts
+pnpm --filter web test:e2e --project=api playwright/api/tags/tags.spec.ts -g "POST /tags"
 ```
+
+`-g` / `--grep` matches the test title (regex). Combine with a file path to narrow further.
 
 ## Running tests
 

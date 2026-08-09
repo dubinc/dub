@@ -1,8 +1,8 @@
 import type { Customer } from "@/lib/types";
 import { CustomerEnrichedSchema } from "@/lib/zod/schemas/customers";
 import { expect } from "@playwright/test";
-import { randomCustomer } from "../utils";
-import { test, type ApiClient } from "./fixtures";
+import { randomCustomer } from "../../utils";
+import { test, type ApiClient } from "../fixtures";
 
 const expectedCustomerShape = {
   id: expect.any(String),
