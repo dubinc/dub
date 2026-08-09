@@ -115,6 +115,7 @@ model Session {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index(userId)
+  @@index(expiresAt)
 }
 
 // Better Auth verification table
@@ -131,4 +132,5 @@ model Verification {
 
   @@index(identifier)
   @@index(lookupKey)
+  @@index(expiresAt)
 }

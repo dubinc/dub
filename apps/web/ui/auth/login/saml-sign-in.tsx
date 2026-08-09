@@ -58,9 +58,13 @@ export const SAMLSignIn = () => {
       return;
     }
 
-    if (data?.url) {
-      window.location.href = data.url;
+    if (!data?.url) {
+      toast.error("Failed to start SAML SSO.");
+      setClickedMethod(undefined);
+      return;
     }
+
+    window.location.href = data.url;
   };
 
   return (

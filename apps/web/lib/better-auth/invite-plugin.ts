@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import type { BetterAuthPlugin } from "better-auth";
 import { APIError, createAuthMiddleware } from "better-auth/api";
-import { parseVerificationTokenValue } from "./utils";
+import { findVerificationToken } from "./verification-token";
 
 export const invite = {
   id: "invite",
@@ -15,34 +15,24 @@ export const invite = {
             return;
           }
 
-          const verification = await prisma.verification.findFirst({
-            where: {
-              identifier: token,
-            },
-            select: {
-              value: true,
-            },
-          });
-
-          if (!verification) {
-            return;
-          }
-
-          const parsedValue = parseVerificationTokenValue({
+          const verification = await findVerificationToken({
             kind: "invite",
-            value: verification.value,
+            identifier: token,
           });
 
-          if (!parsedValue?.isInvite) {
+          if (!verification || verification.isExpired) {
             return;
           }
 
-          const { email } = parsedValue;
+          const { email } = verification.value;
 
           const [projectInvite, partnerInvite] = await Promise.all([
             prisma.projectInvite.findFirst({
               where: {
                 email,
+                expires: {
+                  gte: new Date(),
+                },
               },
               select: {
                 email: true,
@@ -52,6 +42,9 @@ export const invite = {
             prisma.partnerInvite.findFirst({
               where: {
                 email,
+                expires: {
+                  gte: new Date(),
+                },
               },
               select: {
                 email: true,

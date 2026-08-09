@@ -32,9 +32,13 @@ export function SSOLoginButton({ name, slug }: { name: string; slug: string }) {
           return;
         }
 
-        if (data?.url) {
-          window.location.href = data.url;
+        if (!data?.url) {
+          toast.error(`Failed to start ${name} SSO.`);
+          setClicked(false);
+          return;
         }
+
+        window.location.href = data.url;
       }}
       {...(Logo && { icon: <Logo className="size-4 fill-white text-white" /> })}
       className={cn(!clicked && "bg-blue-600 text-white hover:bg-blue-700")}

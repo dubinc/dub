@@ -62,7 +62,7 @@ export function parseVerificationTokenValue<T extends VerificationTokenKind>({
 }: {
   kind: T;
   value: string;
-}): z.infer<(typeof VERIFICATION_TOKEN_CONFIG)[T]["valueSchema"]> | null {
+}) {
   try {
     const { valueSchema } = getVerificationTokenConfig(kind);
     return valueSchema.parse(JSON.parse(value)) as z.infer<
