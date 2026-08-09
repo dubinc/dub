@@ -33,13 +33,10 @@ function enrollment(id: string, partnerId: string) {
 }
 
 function createSearchProvider(
-  hits: { id: string; partnerId: string }[] = [],
+  hits: { id: string }[] = [],
 ): PartnerSearchProvider {
   return {
     searchCandidates: vi.fn().mockResolvedValue({ hits }),
-    search: vi.fn(),
-    count: vi.fn(),
-    groupBy: vi.fn(),
     waitForIndexing: vi.fn(),
     upsert: vi.fn(),
     delete: vi.fn(),
@@ -57,8 +54,8 @@ describe("getPartners search", () => {
       enrollment("pge_2", "pn_2"),
     ]);
     const searchProvider = createSearchProvider([
-      { id: "pge_2", partnerId: "pn_2" },
-      { id: "pge_1", partnerId: "pn_1" },
+      { id: "pge_2" },
+      { id: "pge_1" },
     ]);
 
     const partners = await getPartners(
@@ -79,7 +76,6 @@ describe("getPartners search", () => {
       query: "examp",
       limit: 100,
     });
-    expect(searchProvider.search).not.toHaveBeenCalled();
     expect(mocks.findMany).toHaveBeenCalledWith(
       expect.objectContaining({
         where: expect.objectContaining({
@@ -101,9 +97,9 @@ describe("getPartners search", () => {
       enrollment("pge_1", "pn_1"),
     ]);
     const searchProvider = createSearchProvider([
-      { id: "pge_1", partnerId: "pn_1" },
-      { id: "pge_2", partnerId: "pn_2" },
-      { id: "pge_3", partnerId: "pn_3" },
+      { id: "pge_1" },
+      { id: "pge_2" },
+      { id: "pge_3" },
     ]);
 
     const partners = await getPartners(

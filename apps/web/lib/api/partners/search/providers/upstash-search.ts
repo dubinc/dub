@@ -1,9 +1,6 @@
 import { chunk } from "@dub/utils";
 import { Search } from "@upstash/search";
-import {
-  PARTNER_SEARCH_CANDIDATE_LIMIT,
-  validatePartnerSearchCandidateLimit,
-} from "../constants";
+import { validatePartnerSearchCandidateLimit } from "../constants";
 import { normalizePartnerSearchQuery } from "../searchable-values";
 import type {
   PartnerSearchCandidateQuery,
@@ -12,7 +9,6 @@ import type {
 } from "../types";
 
 const DEFAULT_INDEX_NAME = "partner-search-v1";
-const MAX_SEARCH_RESULTS = PARTNER_SEARCH_CANDIDATE_LIMIT;
 const WRITE_BATCH_SIZE = 100;
 const DELETE_BATCH_SIZE = 1_000;
 const WAIT_FOR_INDEXING_TIMEOUT_MS = 30_000;
@@ -264,15 +260,12 @@ function mergeSearchResults(
   );
 }
 
-function logPartnerSearchDebug(
-  operation: "search" | "count" | "groupBy",
-  details: Record<string, unknown>,
-) {
+function logPartnerSearchDebug(details: Record<string, unknown>) {
   if (process.env.PARTNER_SEARCH_DEBUG !== "true") {
     return;
   }
 
-  console.log(`[Partner Search Debug] Upstash Search ${operation}`, details);
+  console.log("[Partner Search Debug] Upstash Search", details);
 }
 
 export async function resetUpstashSearchPartnerSearchIndex({
@@ -344,7 +337,7 @@ export function createUpstashSearchPartnerSearchProvider({
         score,
       }));
 
-      logPartnerSearchDebug("search", {
+      logPartnerSearchDebug({
         indexName: resolvedIndexName,
         operation: "searchCandidates",
         query: { programId, query, limit },
@@ -353,58 +346,6 @@ export function createUpstashSearchPartnerSearchProvider({
       });
 
       return { hits };
-    },
-
-    async search(query) {
-      if (query.sort) {
-        throw new Error(
-          "Upstash Search partner search supports relevance ordering only.",
-        );
-      }
-      if (query.filters && Object.keys(query.filters).length > 0) {
-        throw new Error(
-          "Upstash Search partner search filters must be applied by the database.",
-        );
-      }
-
-      const offset = (query.page - 1) * query.pageSize;
-      const requestedResults = offset + query.pageSize;
-      if (requestedResults > MAX_SEARCH_RESULTS) {
-        throw new Error(
-          `Upstash Search relevance pagination is limited to the first ${MAX_SEARCH_RESULTS.toLocaleString()} results.`,
-        );
-      }
-
-      const candidates = await findSearchCandidates({
-        programId: query.programId,
-        query: query.query,
-        limit: requestedResults,
-      });
-      const hits = candidates
-        .slice(offset, offset + query.pageSize)
-        .map(({ id, score }) => ({ id, score }));
-
-      logPartnerSearchDebug("search", {
-        indexName: resolvedIndexName,
-        query,
-        candidateCount: candidates.length,
-        resultCount: hits.length,
-        hits,
-      });
-
-      return { hits };
-    },
-
-    async count() {
-      throw new Error(
-        "Upstash Search partner search counts must be calculated by the database.",
-      );
-    },
-
-    async groupBy() {
-      throw new Error(
-        "Upstash Search partner search groups must be calculated by the database.",
-      );
     },
 
     async waitForIndexing() {

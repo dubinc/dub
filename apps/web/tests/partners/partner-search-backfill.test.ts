@@ -19,50 +19,24 @@ vi.mock("@/lib/prisma", () => ({
 }));
 
 function createSource(id: string): PartnerSearchDocumentSource {
-  const timestamp = new Date("2026-01-01T00:00:00.000Z");
-
   return {
     id,
     programId: "prog_test",
     partnerId: `pn_${id}`,
-    status: "approved",
-    tenantId: null,
-    groupId: null,
-    totalClicks: 0,
-    totalLeads: 0,
-    totalConversions: 0,
-    totalSaleAmount: BigInt(0),
-    totalCommissions: BigInt(0),
-    netRevenue: BigInt(0),
-    earningsPerClick: 0,
-    averageLifetimeValue: null,
-    clickToLeadRate: null,
-    clickToConversionRate: null,
-    leadToConversionRate: null,
-    returnOnAdSpend: null,
-    createdAt: timestamp,
-    updatedAt: timestamp,
     partner: {
       name: "Rafi Hasan",
       email: "partner@example.com",
       companyName: "Dub Partners",
       description: "Developer tools educator",
-      country: "CA",
-      updatedAt: timestamp,
       platforms: [],
     },
     links: [],
-    programPartnerTags: [],
-    applicationEvent: null,
   };
 }
 
 function createProvider(): PartnerSearchProvider {
   return {
     searchCandidates: vi.fn(),
-    search: vi.fn(),
-    count: vi.fn(),
-    groupBy: vi.fn(),
     waitForIndexing: vi.fn(),
     upsert: vi.fn(),
     delete: vi.fn(),

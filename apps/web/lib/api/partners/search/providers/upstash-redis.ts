@@ -5,10 +5,7 @@ import {
   type InferFilterFromSchema,
   type SearchIndex,
 } from "@upstash/redis";
-import {
-  PARTNER_SEARCH_CANDIDATE_LIMIT,
-  validatePartnerSearchCandidateLimit,
-} from "../constants";
+import { validatePartnerSearchCandidateLimit } from "../constants";
 import {
   getPartnerSearchableValues,
   normalizePartnerSearchQuery,
@@ -52,15 +49,12 @@ interface CreateUpstashRedisPartnerSearchProviderOptions {
   indexName?: string;
 }
 
-function logPartnerSearchDebug(
-  operation: "search" | "count" | "groupBy",
-  details: Record<string, unknown>,
-) {
+function logPartnerSearchDebug(details: Record<string, unknown>) {
   if (process.env.PARTNER_SEARCH_DEBUG !== "true") {
     return;
   }
 
-  console.log(`[Partner Search Debug] Upstash ${operation}`, details);
+  console.log("[Partner Search Debug] Upstash search", details);
 }
 
 function getIndexName(indexName?: string): string {
@@ -398,7 +392,7 @@ export function createUpstashRedisPartnerSearchProvider({
       score,
     }));
 
-    logPartnerSearchDebug("search", {
+    logPartnerSearchDebug({
       indexName: resolvedIndexName,
       operation: "searchCandidates",
       query: { programId, query, limit },
@@ -412,46 +406,6 @@ export function createUpstashRedisPartnerSearchProvider({
 
   return {
     searchCandidates: findCandidates,
-
-    async search(query) {
-      if (query.sort) {
-        throw new Error(
-          "Upstash Redis partner search supports relevance ordering only.",
-        );
-      }
-      if (query.filters && Object.keys(query.filters).length > 0) {
-        throw new Error(
-          "Upstash Redis partner search filters must be applied by the database.",
-        );
-      }
-
-      const offset = (query.page - 1) * query.pageSize;
-      const requestedResults = offset + query.pageSize;
-      if (requestedResults > PARTNER_SEARCH_CANDIDATE_LIMIT) {
-        throw new Error(
-          `Upstash Redis relevance pagination is limited to the first ${PARTNER_SEARCH_CANDIDATE_LIMIT.toLocaleString()} results.`,
-        );
-      }
-
-      const result = await findCandidates({
-        programId: query.programId,
-        query: query.query,
-        limit: requestedResults,
-      });
-      return { hits: result.hits.slice(offset, requestedResults) };
-    },
-
-    async count() {
-      throw new Error(
-        "Upstash Redis partner search counts must be calculated by the database.",
-      );
-    },
-
-    async groupBy() {
-      throw new Error(
-        "Upstash Redis partner search groups must be calculated by the database.",
-      );
-    },
 
     async waitForIndexing() {
       let timeoutId: ReturnType<typeof setTimeout> | undefined;

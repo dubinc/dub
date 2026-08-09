@@ -119,7 +119,7 @@ function reportResults({
           normalizedQuery,
         ),
         enrollmentId: hit.id,
-        partnerId: databaseDocument?.partnerId ?? hit.partnerId,
+        partnerId: databaseDocument?.partnerId ?? "missing from database",
         name: databaseDocument?.name ?? "missing from database",
         email: databaseDocument?.email ?? null,
         company: databaseDocument?.companyName ?? null,

@@ -19,26 +19,6 @@ const partnerDocument: PartnerSearchDocument = {
   linkKeys: ["rafi"],
   shortLinks: ["https://dub.sh/rafi"],
   destinationUrls: ["https://example.com/referrals/rafi"],
-  status: "approved",
-  tenantId: "tenant_test",
-  groupId: null,
-  country: "CA",
-  partnerTagIds: ["ptag_test"],
-  referredByPartnerId: "pn_referrer",
-  totalClicks: 100,
-  totalLeads: 20,
-  totalConversions: 10,
-  totalSaleAmount: 50_000,
-  totalCommissions: 10_000,
-  netRevenue: 40_000,
-  earningsPerClick: 5,
-  averageLifetimeValue: 5_000,
-  clickToLeadRate: 0.2,
-  clickToConversionRate: 0.1,
-  leadToConversionRate: 0.5,
-  returnOnAdSpend: 5,
-  createdAt: "2026-08-08T00:00:00.000Z",
-  updatedAt: "2026-08-08T00:00:00.000Z",
 };
 
 describe("partner search provider contract", () => {
@@ -57,36 +37,17 @@ describe("partner search provider contract", () => {
   ])("searches by %s", async (_field, query) => {
     const provider = createMockPartnerSearchProvider([partnerDocument]);
 
-    const result = await provider.search({
-      programId: partnerDocument.programId,
-      query,
-      page: 1,
-      pageSize: 10,
-    });
-
-    expect(result.hits).toHaveLength(1);
-    expect(result.hits[0]?.partnerId).toBe(partnerDocument.partnerId);
-
-    const candidates = await provider.searchCandidates({
+    const result = await provider.searchCandidates({
       programId: partnerDocument.programId,
       query,
       limit: PARTNER_SEARCH_CANDIDATE_LIMIT,
     });
-    expect(candidates.hits).toHaveLength(1);
-    expect(candidates.hits[0]?.partnerId).toBe(partnerDocument.partnerId);
+    expect(result.hits).toEqual([{ id: partnerDocument.id }]);
   });
 
   it("keeps search results scoped to a program", async () => {
     const provider = createMockPartnerSearchProvider([partnerDocument]);
 
-    const result = await provider.search({
-      programId: "prog_other",
-      query: "rafi",
-      page: 1,
-      pageSize: 10,
-    });
-
-    expect(result).toEqual({ hits: [] });
     await expect(
       provider.searchCandidates({
         programId: "prog_other",
@@ -121,64 +82,5 @@ describe("partner search provider contract", () => {
         limit: PARTNER_SEARCH_CANDIDATE_LIMIT + 1,
       }),
     ).rejects.toThrow("must be between 1 and 100");
-  });
-
-  it("combines search with filters", async () => {
-    const provider = createMockPartnerSearchProvider([partnerDocument]);
-
-    const result = await provider.search({
-      programId: partnerDocument.programId,
-      query: "examp",
-      page: 1,
-      pageSize: 10,
-      filters: {
-        status: "approved",
-        countries: { values: ["CA"], operator: "IN" },
-        partnerTagIds: { values: ["ptag_test"], operator: "IN" },
-        metrics: { totalSaleAmount: { min: 40_000 } },
-      },
-    });
-
-    expect(result.hits).toHaveLength(1);
-  });
-
-  it("sorts filtered search results", async () => {
-    const higherRevenuePartner: PartnerSearchDocument = {
-      ...partnerDocument,
-      id: "pge_higher_revenue",
-      partnerId: "pn_higher_revenue",
-      email: "another@example.com",
-      totalSaleAmount: 100_000,
-    };
-    const provider = createMockPartnerSearchProvider([
-      partnerDocument,
-      higherRevenuePartner,
-    ]);
-
-    const result = await provider.search({
-      programId: partnerDocument.programId,
-      query: "examp",
-      page: 1,
-      pageSize: 10,
-      sort: { field: "totalSaleAmount", order: "desc" },
-    });
-
-    expect(result.hits.map(({ partnerId }) => partnerId)).toEqual([
-      "pn_higher_revenue",
-      "pn_test",
-    ]);
-  });
-
-  it("counts and groups matching documents", async () => {
-    const provider = createMockPartnerSearchProvider([partnerDocument]);
-    const query = {
-      programId: partnerDocument.programId,
-      query: "examp",
-    };
-
-    await expect(provider.count(query)).resolves.toBe(1);
-    await expect(provider.groupBy(query, "country")).resolves.toEqual([
-      { value: "CA", count: 1 },
-    ]);
   });
 });

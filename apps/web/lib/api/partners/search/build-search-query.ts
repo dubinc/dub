@@ -1,15 +1,7 @@
 import { getPartnersQuerySchemaExtended } from "@/lib/zod/schemas/partners";
 import * as z from "zod/v4";
 import { PARTNER_SEARCH_CANDIDATE_LIMIT } from "./constants";
-import {
-  PartnerSearchCandidateQuery,
-  PartnerSearchCountQuery,
-  PartnerSearchFilters,
-  PartnerSearchListFilter,
-  PartnerSearchMetricField,
-  PartnerSearchQuery,
-  PartnerSearchRangeFilter,
-} from "./types";
+import { PartnerSearchCandidateQuery } from "./types";
 
 export type PartnerSearchQueryInput = z.infer<
   typeof getPartnersQuerySchemaExtended
@@ -20,9 +12,9 @@ export type PartnerSearchQueryInput = z.infer<
   countryOperator?: "IN" | "NOT IN";
 };
 
-export type PartnerSearchCountQueryInput = Omit<
+type PartnerSearchCandidateQueryInput = Pick<
   PartnerSearchQueryInput,
-  "page" | "pageSize" | "sortBy" | "sortOrder"
+  "programId" | "search" | "email" | "tenantId"
 >;
 
 export function buildPartnerSearchCandidateQuery({
@@ -30,7 +22,7 @@ export function buildPartnerSearchCandidateQuery({
   search,
   email,
   tenantId,
-}: PartnerSearchCountQueryInput): PartnerSearchCandidateQuery | null {
+}: PartnerSearchCandidateQueryInput): PartnerSearchCandidateQuery | null {
   const query = search?.trim();
 
   // Exact email and tenant lookups remain database-only. The search provider
@@ -44,143 +36,4 @@ export function buildPartnerSearchCandidateQuery({
     query,
     limit: PARTNER_SEARCH_CANDIDATE_LIMIT,
   };
-}
-
-function buildListFilter(
-  values: string | string[] | undefined,
-  operator: "IN" | "NOT IN" | undefined,
-): PartnerSearchListFilter | undefined {
-  if (values === undefined) {
-    return undefined;
-  }
-
-  const normalizedValues = (Array.isArray(values) ? values : [values]).filter(
-    Boolean,
-  );
-  if (normalizedValues.length === 0) {
-    return undefined;
-  }
-
-  return {
-    values: normalizedValues,
-    operator: operator === "NOT IN" ? "NOT_IN" : "IN",
-  };
-}
-
-function addMetricRange(
-  metrics: NonNullable<PartnerSearchFilters["metrics"]>,
-  field: PartnerSearchMetricField,
-  min: number | undefined,
-  max: number | undefined,
-) {
-  if (min === undefined && max === undefined) {
-    return;
-  }
-
-  const range: PartnerSearchRangeFilter = {};
-  if (min !== undefined) {
-    range.min = min;
-  }
-  if (max !== undefined) {
-    range.max = max;
-  }
-  metrics[field] = range;
-}
-
-function buildPartnerSearchRequest({
-  programId,
-  search,
-  email,
-  tenantId,
-  status,
-  partnerIds,
-  groupId,
-  groupIdOperator,
-  country,
-  countryOperator,
-  partnerTagId,
-  partnerTagIdOperator,
-  referredByPartnerId,
-  totalClicksMin,
-  totalClicksMax,
-  totalLeadsMin,
-  totalLeadsMax,
-  totalConversionsMin,
-  totalConversionsMax,
-  totalSaleAmountMin,
-  totalSaleAmountMax,
-  totalCommissionsMin,
-  totalCommissionsMax,
-}: PartnerSearchCountQueryInput): PartnerSearchCountQuery | null {
-  const query = search?.trim();
-
-  // Keep exact lookups on the database and use search for free-text queries.
-  if (!query || email || tenantId) {
-    return null;
-  }
-
-  const metrics: NonNullable<PartnerSearchFilters["metrics"]> = {};
-  addMetricRange(metrics, "totalClicks", totalClicksMin, totalClicksMax);
-  addMetricRange(metrics, "totalLeads", totalLeadsMin, totalLeadsMax);
-  addMetricRange(
-    metrics,
-    "totalConversions",
-    totalConversionsMin,
-    totalConversionsMax,
-  );
-  addMetricRange(
-    metrics,
-    "totalSaleAmount",
-    totalSaleAmountMin,
-    totalSaleAmountMax,
-  );
-  addMetricRange(
-    metrics,
-    "totalCommissions",
-    totalCommissionsMin,
-    totalCommissionsMax,
-  );
-
-  const filters: PartnerSearchFilters = {
-    status,
-    partnerIds,
-    groupIds: buildListFilter(groupId, groupIdOperator),
-    countries: buildListFilter(country, countryOperator),
-    partnerTagIds: buildListFilter(partnerTagId, partnerTagIdOperator),
-    referredByPartnerId,
-    ...(Object.keys(metrics).length > 0 && { metrics }),
-  };
-
-  return {
-    programId,
-    query,
-    filters,
-  };
-}
-
-export function buildPartnerSearchQuery(
-  input: PartnerSearchQueryInput,
-): PartnerSearchQuery | null {
-  const request = buildPartnerSearchRequest(input);
-  if (!request) {
-    return null;
-  }
-
-  return {
-    ...request,
-    page: input.page ?? 1,
-    pageSize: input.pageSize,
-    ...(input.sortBy !== "relevance" && {
-      sort: {
-        field: input.sortBy,
-        order: input.sortOrder,
-      },
-    }),
-  };
-}
-
-export function buildPartnerSearchCountQuery(
-  input: PartnerSearchCountQueryInput,
-): PartnerSearchCountQuery | null {
-  return buildPartnerSearchRequest(input);
 }

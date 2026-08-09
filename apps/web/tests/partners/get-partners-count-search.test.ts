@@ -26,14 +26,8 @@ vi.mock("@/lib/prisma", () => ({
 function createSearchProvider(): PartnerSearchProvider {
   return {
     searchCandidates: vi.fn().mockResolvedValue({
-      hits: [
-        { id: "pge_2", partnerId: "pn_2" },
-        { id: "pge_1", partnerId: "pn_1" },
-      ],
+      hits: [{ id: "pge_2" }, { id: "pge_1" }],
     }),
-    search: vi.fn(),
-    count: vi.fn(),
-    groupBy: vi.fn(),
     waitForIndexing: vi.fn(),
     upsert: vi.fn(),
     delete: vi.fn(),
@@ -67,7 +61,6 @@ describe("getPartnersCount search", () => {
       query: "examp",
       limit: 100,
     });
-    expect(searchProvider.count).not.toHaveBeenCalled();
     expect(mocks.count).toHaveBeenCalledWith({
       where: expect.objectContaining({
         programId: "prog_test",
@@ -89,7 +82,6 @@ describe("getPartnersCount search", () => {
       { searchProvider },
     );
 
-    expect(searchProvider.groupBy).not.toHaveBeenCalled();
     expect(mocks.enrollmentGroupBy).toHaveBeenCalledWith(
       expect.objectContaining({
         by: ["status"],

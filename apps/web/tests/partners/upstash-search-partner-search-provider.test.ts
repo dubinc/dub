@@ -19,26 +19,6 @@ const document: PartnerSearchDocument = {
   linkKeys: ["rafi"],
   shortLinks: ["https://dub.sh/rafi"],
   destinationUrls: ["https://example.com/referrals/rafi"],
-  status: "approved",
-  tenantId: null,
-  groupId: null,
-  country: "CA",
-  partnerTagIds: ["ptag_test"],
-  referredByPartnerId: null,
-  totalClicks: 100,
-  totalLeads: 20,
-  totalConversions: 10,
-  totalSaleAmount: 50_000,
-  totalCommissions: 10_000,
-  netRevenue: 40_000,
-  earningsPerClick: 5,
-  averageLifetimeValue: 5_000,
-  clickToLeadRate: 0.2,
-  clickToConversionRate: 0.1,
-  leadToConversionRate: 0.5,
-  returnOnAdSpend: 5,
-  createdAt: "2026-08-08T00:00:00.000Z",
-  updatedAt: "2026-08-08T00:00:00.000Z",
 };
 
 const mocks = vi.hoisted(() => ({
@@ -142,11 +122,10 @@ describe("Upstash Search partner search provider", () => {
     });
 
     await expect(
-      provider.search({
+      provider.searchCandidates({
         programId: document.programId,
         query: "examp",
-        page: 1,
-        pageSize: 10,
+        limit: 10,
       }),
     ).resolves.toEqual({
       hits: [
@@ -188,11 +167,10 @@ describe("Upstash Search partner search provider", () => {
       indexName: "test-index",
     });
 
-    const result = await provider.search({
+    const result = await provider.searchCandidates({
       programId: document.programId,
       query: "drew moore",
-      page: 1,
-      pageSize: 10,
+      limit: 10,
     });
 
     expect(result.hits).toHaveLength(10);
@@ -202,59 +180,6 @@ describe("Upstash Search partner search provider", () => {
     expect(mocks.search).toHaveBeenCalledWith(
       expect.objectContaining({ query: "drew moore", limit: 10 }),
     );
-
-    const candidates = await provider.searchCandidates({
-      programId: document.programId,
-      query: "drew moore",
-      limit: 10,
-    });
-    expect(candidates.hits).toHaveLength(10);
-    expect(mocks.search).toHaveBeenLastCalledWith(
-      expect.objectContaining({ query: "drew moore", limit: 10 }),
-    );
-  });
-
-  it("leaves filtering and sorting to the database", async () => {
-    const provider = createUpstashSearchPartnerSearchProvider({
-      searchIndex: createSearchIndexMock(),
-      indexName: "test-index",
-    });
-
-    await expect(
-      provider.search({
-        programId: document.programId,
-        query: "rafi",
-        page: 1,
-        pageSize: 10,
-        sort: { field: "totalSaleAmount", order: "desc" },
-      }),
-    ).rejects.toThrow("supports relevance ordering only");
-
-    await expect(
-      provider.search({
-        programId: document.programId,
-        query: "rafi",
-        filters: { status: "approved" },
-        page: 1,
-        pageSize: 10,
-      }),
-    ).rejects.toThrow("filters must be applied by the database");
-  });
-
-  it("leaves counts and grouping to the database", async () => {
-    const provider = createUpstashSearchPartnerSearchProvider({
-      searchIndex: createSearchIndexMock(),
-      indexName: "test-index",
-    });
-    const query = { programId: document.programId, query: "rafi" };
-
-    await expect(provider.count(query)).rejects.toThrow(
-      "counts must be calculated by the database",
-    );
-    await expect(provider.groupBy(query, "country")).rejects.toThrow(
-      "groups must be calculated by the database",
-    );
-    expect(mocks.search).not.toHaveBeenCalled();
   });
 
   it("waits until pending documents finish indexing", async () => {

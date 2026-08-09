@@ -22,26 +22,6 @@ const document: PartnerSearchDocument = {
   linkKeys: ["rafi"],
   shortLinks: ["https://dub.sh/rafi"],
   destinationUrls: ["https://example.com/referrals/rafi"],
-  status: "approved",
-  tenantId: null,
-  groupId: null,
-  country: "CA",
-  partnerTagIds: ["ptag_test"],
-  referredByPartnerId: null,
-  totalClicks: 100,
-  totalLeads: 20,
-  totalConversions: 10,
-  totalSaleAmount: 50_000,
-  totalCommissions: 10_000,
-  netRevenue: 40_000,
-  earningsPerClick: 5,
-  averageLifetimeValue: 5_000,
-  clickToLeadRate: 0.2,
-  clickToConversionRate: 0.1,
-  leadToConversionRate: 0.5,
-  returnOnAdSpend: 5,
-  createdAt: "2026-08-08T00:00:00.000Z",
-  updatedAt: "2026-08-08T00:00:00.000Z",
 };
 
 const mocks = vi.hoisted(() => ({
@@ -153,23 +133,6 @@ describe("Upstash Redis partner search provider", () => {
     expect(JSON.stringify(filter)).toContain('"emailNgrams":{"$eq":"exa"}');
     expect(JSON.stringify(filter)).toContain('"emailNgrams":{"$eq":"xam"}');
     expect(JSON.stringify(filter)).toContain('"emailNgrams":{"$eq":"amp"}');
-  });
-
-  it("keeps counts and groups on the database", async () => {
-    const provider = createUpstashRedisPartnerSearchProvider({
-      redisClient: createRedisMock(),
-      indexName: "test-index",
-    });
-
-    await expect(
-      provider.count({ programId: document.programId, query: "rafi" }),
-    ).rejects.toThrow("counts must be calculated by the database");
-    await expect(
-      provider.groupBy(
-        { programId: document.programId, query: "rafi" },
-        "country",
-      ),
-    ).rejects.toThrow("groups must be calculated by the database");
   });
 
   it("retries a transient provider error", async () => {
