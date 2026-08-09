@@ -221,6 +221,73 @@ describe("Upstash Redis partner search provider", () => {
     expect(mocks.count).toHaveBeenCalledTimes(1);
   });
 
+  it("does not retry a request timeout after it consumes the query budget", async () => {
+    mocks.count.mockRejectedValue(
+      new DOMException(
+        "The operation was aborted due to timeout",
+        "TimeoutError",
+      ),
+    );
+    const provider = createUpstashRedisPartnerSearchProvider({
+      redisClient: createRedisMock(),
+      indexName: "test-index",
+    });
+
+    await expect(
+      provider.count({ programId: document.programId, query: "rafi" }),
+    ).rejects.toThrow("The operation was aborted due to timeout");
+    expect(mocks.count).toHaveBeenCalledTimes(1);
+  });
+
+  it("allows query latency within the one-second deadline", async () => {
+    vi.useFakeTimers();
+    mocks.count.mockImplementation(
+      () =>
+        new Promise((resolve) => setTimeout(() => resolve({ count: 1 }), 500)),
+    );
+    const provider = createUpstashRedisPartnerSearchProvider({
+      redisClient: createRedisMock(),
+      indexName: "test-index",
+    });
+
+    try {
+      const result = provider.count({
+        programId: document.programId,
+        query: "rafi",
+      });
+      await vi.advanceTimersByTimeAsync(500);
+
+      await expect(result).resolves.toBe(1);
+      expect(vi.getTimerCount()).toBe(0);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("bounds the total query operation to one second", async () => {
+    vi.useFakeTimers();
+    mocks.count.mockImplementation(() => new Promise(() => {}));
+    const provider = createUpstashRedisPartnerSearchProvider({
+      redisClient: createRedisMock(),
+      indexName: "test-index",
+    });
+
+    try {
+      const result = expect(
+        provider.count({
+          programId: document.programId,
+          query: "rafi",
+        }),
+      ).rejects.toThrow("Partner search query timed out after 1000ms");
+      await vi.advanceTimersByTimeAsync(1_000);
+
+      await result;
+      expect(vi.getTimerCount()).toBe(0);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it("writes the partner document and tag shadow documents", async () => {
     mocks.jsonMget.mockResolvedValue([null]);
     const provider = createUpstashRedisPartnerSearchProvider({

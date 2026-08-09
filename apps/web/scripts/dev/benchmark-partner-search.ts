@@ -36,6 +36,7 @@ interface BenchmarkResult {
   field: string;
   query: string;
   latencyMs: number;
+  error: string | null;
 }
 
 function parseArguments(args: string[]): BenchmarkArguments {
@@ -201,6 +202,16 @@ function percentile(values: number[], quantile: number): number {
   return sorted[index];
 }
 
+function getErrorMessage(error: unknown): string {
+  return error instanceof Error
+    ? `${error.name}: ${error.message}`
+    : String(error);
+}
+
+function formatLatency(value: number | null): string {
+  return value === null ? "n/a" : value.toFixed(1);
+}
+
 async function runWithConcurrency<T>(
   count: number,
   concurrency: number,
@@ -255,21 +266,31 @@ async function main() {
       sortOrder: "desc" as const,
     };
     const startedAt = performance.now();
-    const [partners, count] = await Promise.all([
-      getPartners(filters, { searchProvider }),
-      getPartnersCount<number>(filters, { searchProvider }),
-    ]);
 
-    if (partners.length === 0 || count === 0) {
-      throw new Error(
-        `Search case "${searchCase.field}" returned no results for "${searchCase.query}".`,
-      );
+    try {
+      const [partners, count] = await Promise.all([
+        getPartners(filters, { searchProvider }),
+        getPartnersCount<number>(filters, { searchProvider }),
+      ]);
+
+      if (partners.length === 0 || count === 0) {
+        throw new Error(
+          `Search case "${searchCase.field}" returned no results for "${searchCase.query}".`,
+        );
+      }
+
+      return {
+        ...searchCase,
+        latencyMs: performance.now() - startedAt,
+        error: null,
+      };
+    } catch (error) {
+      return {
+        ...searchCase,
+        latencyMs: performance.now() - startedAt,
+        error: getErrorMessage(error),
+      };
     }
-
-    return {
-      ...searchCase,
-      latencyMs: performance.now() - startedAt,
-    };
   };
 
   console.log(`Partner search benchmark for program ${options.programId}`);
@@ -281,11 +302,17 @@ async function main() {
     `Each request runs the partner list and count paths in parallel across ${searchCases.length} search cases.`,
   );
 
-  await runWithConcurrency(
+  const warmupResults = await runWithConcurrency(
     options.warmupRequests,
     options.concurrency,
     runSearch,
   );
+  const warmupErrorCount = warmupResults.filter(({ error }) => error).length;
+  if (warmupErrorCount > 0) {
+    console.warn(
+      `${warmupErrorCount.toLocaleString()} of ${options.warmupRequests.toLocaleString()} warm-up requests failed. Continuing to collect measured results.`,
+    );
+  }
 
   const startedAt = performance.now();
   const results = await runWithConcurrency(
@@ -294,51 +321,98 @@ async function main() {
     runSearch,
   );
   const elapsedMs = performance.now() - startedAt;
-  const latencies = results.map(({ latencyMs }) => latencyMs);
+  const successfulResults = results.filter(({ error }) => error === null);
+  const failedResults = results.filter(({ error }) => error !== null);
+  const latencies = successfulResults.map(({ latencyMs }) => latencyMs);
   const mean =
-    latencies.reduce((total, latency) => total + latency, 0) / latencies.length;
-  const p99 = percentile(latencies, 0.99);
+    latencies.length > 0
+      ? latencies.reduce((total, latency) => total + latency, 0) /
+        latencies.length
+      : null;
+  const p99 = latencies.length > 0 ? percentile(latencies, 0.99) : null;
   const caseSummaries = searchCases.map(({ field, query }) => {
-    const caseLatencies = results
-      .filter((result) => result.field === field)
+    const caseResults = results.filter((result) => result.field === field);
+    const caseErrors = caseResults.filter(({ error }) => error !== null).length;
+    const caseLatencies = caseResults
+      .filter(({ error }) => error === null)
       .map(({ latencyMs }) => latencyMs);
 
     return {
       field,
       query,
-      samples: caseLatencies.length,
-      p50Ms: percentile(caseLatencies, 0.5),
-      p95Ms: percentile(caseLatencies, 0.95),
-      p99Ms: percentile(caseLatencies, 0.99),
-      maxMs: Math.max(...caseLatencies),
+      samples: caseResults.length,
+      errors: caseErrors,
+      errorRate: (caseErrors / caseResults.length) * 100,
+      p50Ms: caseLatencies.length > 0 ? percentile(caseLatencies, 0.5) : null,
+      p95Ms: caseLatencies.length > 0 ? percentile(caseLatencies, 0.95) : null,
+      p99Ms: caseLatencies.length > 0 ? percentile(caseLatencies, 0.99) : null,
+      maxMs: caseLatencies.length > 0 ? Math.max(...caseLatencies) : null,
     };
   });
-  const slowestCase = caseSummaries.reduce((slowest, current) =>
-    current.p99Ms > slowest.p99Ms ? current : slowest,
+  const casesWithLatency = caseSummaries.filter(
+    (summary): summary is typeof summary & { p99Ms: number } =>
+      summary.p99Ms !== null,
+  );
+  const slowestCase = casesWithLatency.reduce<
+    (typeof casesWithLatency)[number] | null
+  >(
+    (slowest, current) =>
+      !slowest || current.p99Ms > slowest.p99Ms ? current : slowest,
+    null,
   );
 
   console.table(
-    caseSummaries.map(({ field, query, samples, ...latency }) => ({
-      field,
-      query,
-      samples,
-      ...Object.fromEntries(
-        Object.entries(latency).map(([key, value]) => [key, value.toFixed(1)]),
-      ),
-    })),
+    caseSummaries.map(
+      ({ field, query, samples, errors, errorRate, ...latency }) => ({
+        field,
+        query,
+        samples,
+        errors,
+        errorRate: `${errorRate.toFixed(2)}%`,
+        ...Object.fromEntries(
+          Object.entries(latency).map(([key, value]) => [
+            key,
+            formatLatency(value),
+          ]),
+        ),
+      }),
+    ),
   );
 
+  if (failedResults.length > 0) {
+    const errorCounts = new Map<string, number>();
+    for (const { error } of failedResults) {
+      errorCounts.set(error!, (errorCounts.get(error!) ?? 0) + 1);
+    }
+    console.table(
+      Array.from(errorCounts, ([error, count]) => ({ error, count })),
+    );
+  }
+
   console.table({
-    samples: latencies.length,
-    meanMs: mean.toFixed(1),
-    p50Ms: percentile(latencies, 0.5).toFixed(1),
-    p95Ms: percentile(latencies, 0.95).toFixed(1),
-    p99Ms: p99.toFixed(1),
-    maxMs: Math.max(...latencies).toFixed(1),
+    samples: results.length,
+    successful: successfulResults.length,
+    errors: failedResults.length,
+    errorRate: `${((failedResults.length / results.length) * 100).toFixed(2)}%`,
+    meanMs: formatLatency(mean),
+    p50Ms: formatLatency(
+      latencies.length > 0 ? percentile(latencies, 0.5) : null,
+    ),
+    p95Ms: formatLatency(
+      latencies.length > 0 ? percentile(latencies, 0.95) : null,
+    ),
+    p99Ms: formatLatency(p99),
+    maxMs: formatLatency(latencies.length > 0 ? Math.max(...latencies) : null),
     requestsPerSecond: ((options.requests * 1_000) / elapsedMs).toFixed(1),
   });
 
-  if (slowestCase.p99Ms >= options.thresholdMs) {
+  if (failedResults.length > 0) {
+    throw new Error(
+      `${failedResults.length.toLocaleString()} of ${results.length.toLocaleString()} measured requests failed (${((failedResults.length / results.length) * 100).toFixed(2)}% error rate).`,
+    );
+  }
+
+  if (slowestCase && slowestCase.p99Ms >= options.thresholdMs) {
     throw new Error(
       `${slowestCase.field} p99 latency ${slowestCase.p99Ms.toFixed(1)}ms did not meet the <${options.thresholdMs}ms threshold.`,
     );

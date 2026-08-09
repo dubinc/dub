@@ -27,7 +27,10 @@ const DEFAULT_INDEX_NAME = "partner-search-v1";
 const NULL_VALUE = "\0__null:f47ac10b-58cc-4372-a567-0e02b2c3d479__";
 const MAX_GROUPS = 1_000;
 const TRANSIENT_RETRY_ATTEMPTS = 2;
-const QUERY_REQUEST_TIMEOUT_MS = 400;
+// Keep the full query operation within the one-second latency target while
+// leaving a small window to retry failures that return quickly
+const QUERY_REQUEST_TIMEOUT_MS = 900;
+const QUERY_OPERATION_TIMEOUT_MS = 1_000;
 const WRITE_REQUEST_TIMEOUT_MS = 10_000;
 const WRITE_BATCH_SIZE = 100;
 const WAIT_FOR_INDEXING_TIMEOUT_MS = 30_000;
@@ -348,12 +351,24 @@ function isTransientError(error: unknown): boolean {
   );
 }
 
-async function withTransientRetry<T>(operation: () => Promise<T>): Promise<T> {
+function isTimeoutError(error: unknown): boolean {
+  const message = error instanceof Error ? error.message : String(error);
+  return /timeout|timed out|ETIMEDOUT/i.test(message);
+}
+
+async function withTransientRetry<T>(
+  operation: () => Promise<T>,
+  { retryTimeouts = true }: { retryTimeouts?: boolean } = {},
+): Promise<T> {
   for (let attempt = 1; attempt <= TRANSIENT_RETRY_ATTEMPTS; attempt++) {
     try {
       return await operation();
     } catch (error) {
-      if (attempt === TRANSIENT_RETRY_ATTEMPTS || !isTransientError(error)) {
+      if (
+        attempt === TRANSIENT_RETRY_ATTEMPTS ||
+        !isTransientError(error) ||
+        (!retryTimeouts && isTimeoutError(error))
+      ) {
         throw error;
       }
 
@@ -364,6 +379,32 @@ async function withTransientRetry<T>(operation: () => Promise<T>): Promise<T> {
   }
 
   throw new Error("Partner search operation failed.");
+}
+
+async function withQueryDeadline<T>(operation: () => Promise<T>): Promise<T> {
+  let timeoutId: ReturnType<typeof setTimeout> | undefined;
+  const timeout = new Promise<never>((_, reject) => {
+    timeoutId = setTimeout(
+      () =>
+        reject(
+          new Error(
+            `Partner search query timed out after ${QUERY_OPERATION_TIMEOUT_MS}ms.`,
+          ),
+        ),
+      QUERY_OPERATION_TIMEOUT_MS,
+    );
+  });
+
+  try {
+    // A request timeout consumes nearly the full SLA budget, so only retry
+    // transient failures such as rate limits and 503s that return quickly
+    return await Promise.race([
+      withTransientRetry(operation, { retryTimeouts: false }),
+      timeout,
+    ]);
+  } finally {
+    clearTimeout(timeoutId);
+  }
 }
 
 function getGroupIndexField(
@@ -602,7 +643,7 @@ export function createUpstashRedisPartnerSearchProvider({
           } as Record<string, "ASC" | "DESC">)
         : undefined;
 
-      const results = await withTransientRetry(() =>
+      const results = await withQueryDeadline(() =>
         queryIndex.query({
           filter,
           limit: query.pageSize,
@@ -622,7 +663,7 @@ export function createUpstashRedisPartnerSearchProvider({
     },
 
     async count(query) {
-      const result = await withTransientRetry(() =>
+      const result = await withQueryDeadline(() =>
         queryIndex.count({ filter: buildUpstashFilter(query) }),
       );
       return result.count;
@@ -632,7 +673,7 @@ export function createUpstashRedisPartnerSearchProvider({
       const indexField = getGroupIndexField(field);
       const documentType =
         field === "partnerTagId" ? DOCUMENT_TYPE_TAG : DOCUMENT_TYPE_PARTNER;
-      const result = await withTransientRetry(() =>
+      const result = await withQueryDeadline(() =>
         queryIndex.aggregate({
           filter: buildUpstashFilter(query, documentType),
           aggregations: {
