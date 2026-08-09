@@ -59,17 +59,15 @@ function createSearchIndexMock() {
 function getSearchResult(
   overrides: {
     id?: string;
-    partnerId?: string;
     name?: string;
     email?: string;
     score?: number;
-    totalSaleAmount?: number;
   } = {},
 ) {
   return {
     id: overrides.id ?? document.id,
     content: {
-      partnerId: overrides.partnerId ?? document.partnerId,
+      partnerId: document.partnerId,
       name: overrides.name ?? document.name,
       email: overrides.email ?? document.email!,
       companyName: document.companyName!,
@@ -80,26 +78,6 @@ function getSearchResult(
     },
     metadata: {
       programId: document.programId,
-      partnerId: overrides.partnerId ?? document.partnerId,
-      status: document.status,
-      tenantId: "null",
-      groupId: "null",
-      country: document.country!,
-      partnerTagIds: document.partnerTagIds,
-      referredByPartnerId: "null",
-      totalClicks: document.totalClicks,
-      totalLeads: document.totalLeads,
-      totalConversions: document.totalConversions,
-      totalSaleAmount: overrides.totalSaleAmount ?? document.totalSaleAmount,
-      totalCommissions: document.totalCommissions,
-      netRevenue: document.netRevenue,
-      earningsPerClick: document.earningsPerClick,
-      averageLifetimeValue: document.averageLifetimeValue!,
-      clickToLeadRate: document.clickToLeadRate!,
-      clickToConversionRate: document.clickToConversionRate!,
-      leadToConversionRate: document.leadToConversionRate!,
-      returnOnAdSpend: document.returnOnAdSpend!,
-      createdAt: new Date(document.createdAt).getTime(),
     },
     score: overrides.score ?? 0.9,
   };
@@ -136,6 +114,7 @@ describe("Upstash Search partner search provider", () => {
     expect(indexedDocument.content).toEqual(
       expect.objectContaining({
         name: document.name,
+        partnerId: document.partnerId,
         email: document.email,
         companyName: document.companyName,
         platforms: expect.stringContaining("rafi-on-x"),
@@ -143,13 +122,9 @@ describe("Upstash Search partner search provider", () => {
         emailNgrams: expect.stringContaining("exa"),
       }),
     );
-    expect(indexedDocument.metadata).toEqual(
-      expect.objectContaining({
-        programId: document.programId,
-        partnerId: document.partnerId,
-        totalSaleAmount: document.totalSaleAmount,
-      }),
-    );
+    expect(indexedDocument.metadata).toEqual({
+      programId: document.programId,
+    });
   });
 
   it("adds an exact email n-gram search for partial email matches", async () => {
@@ -173,7 +148,6 @@ describe("Upstash Search partner search provider", () => {
       hits: [
         {
           id: document.id,
-          partnerId: document.partnerId,
           score: emailResult.score,
         },
       ],
@@ -201,7 +175,6 @@ describe("Upstash Search partner search provider", () => {
       Array.from({ length: 100 }, (_, index) =>
         getSearchResult({
           id: `pge_${index}`,
-          partnerId: `pn_${index}`,
           score: 1 - index / 100,
         }),
       ),
@@ -220,7 +193,7 @@ describe("Upstash Search partner search provider", () => {
 
     expect(result.hits).toHaveLength(10);
     expect(result.hits[0]).toEqual(
-      expect.objectContaining({ id: "pge_0", partnerId: "pn_0" }),
+      expect.objectContaining({ id: "pge_0", score: 1 }),
     );
     expect(mocks.search).toHaveBeenCalledWith(
       expect.objectContaining({ query: "drew moore", limit: 10 }),
@@ -237,67 +210,47 @@ describe("Upstash Search partner search provider", () => {
     );
   });
 
-  it("shares candidates across search, count, and grouping", async () => {
-    const lower = getSearchResult({
-      id: "pge_lower",
-      partnerId: "pn_lower",
-      score: 0.8,
-      totalSaleAmount: 100,
-    });
-    const higher = getSearchResult({
-      id: "pge_higher",
-      partnerId: "pn_higher",
-      score: 0.7,
-      totalSaleAmount: 1_000,
-    });
-    mocks.search.mockImplementation(async ({ query }: { query: string }) =>
-      query === "rafi" ? [lower, higher] : [],
-    );
-    const provider = createUpstashSearchPartnerSearchProvider({
-      searchIndex: createSearchIndexMock(),
-      indexName: "test-index",
-    });
-    const query = { programId: document.programId, query: "rafi" };
-
-    const [searchResult, count, groups] = await Promise.all([
-      provider.search({
-        ...query,
-        page: 1,
-        pageSize: 10,
-        sort: { field: "totalSaleAmount", order: "desc" },
-      }),
-      provider.count(query),
-      provider.groupBy(query, "country"),
-    ]);
-
-    expect(searchResult.hits.map(({ id }) => id)).toEqual([
-      "pge_higher",
-      "pge_lower",
-    ]);
-    expect(count).toBe(2);
-    expect(groups).toEqual([{ value: "CA", count: 2 }]);
-    expect(mocks.search).toHaveBeenCalledTimes(2);
-  });
-
-  it("rejects capped result sets instead of returning incomplete counts", async () => {
-    mocks.search.mockImplementation(async ({ query }: { query: string }) =>
-      query === "rafi"
-        ? Array.from({ length: 1_000 }, (_, index) =>
-            getSearchResult({
-              id: `pge_${index}`,
-              partnerId: `pn_${index}`,
-            }),
-          )
-        : [],
-    );
+  it("leaves filtering and sorting to the database", async () => {
     const provider = createUpstashSearchPartnerSearchProvider({
       searchIndex: createSearchIndexMock(),
       indexName: "test-index",
     });
 
     await expect(
-      provider.count({ programId: document.programId, query: "rafi" }),
-    ).rejects.toThrow("Exact pagination, counts, and facets are unavailable");
+      provider.search({
+        programId: document.programId,
+        query: "rafi",
+        page: 1,
+        pageSize: 10,
+        sort: { field: "totalSaleAmount", order: "desc" },
+      }),
+    ).rejects.toThrow("supports relevance ordering only");
+
+    await expect(
+      provider.search({
+        programId: document.programId,
+        query: "rafi",
+        filters: { status: "approved" },
+        page: 1,
+        pageSize: 10,
+      }),
+    ).rejects.toThrow("filters must be applied by the database");
+  });
+
+  it("leaves counts and grouping to the database", async () => {
+    const provider = createUpstashSearchPartnerSearchProvider({
+      searchIndex: createSearchIndexMock(),
+      indexName: "test-index",
+    });
+    const query = { programId: document.programId, query: "rafi" };
+
+    await expect(provider.count(query)).rejects.toThrow(
+      "counts must be calculated by the database",
+    );
+    await expect(provider.groupBy(query, "country")).rejects.toThrow(
+      "groups must be calculated by the database",
+    );
+    expect(mocks.search).not.toHaveBeenCalled();
   });
 
   it("waits until pending documents finish indexing", async () => {
