@@ -1,7 +1,11 @@
-import "dotenv-flow/config";
-
+import { config as loadEnv } from "dotenv-flow";
 import type { FullConfig } from "@playwright/test";
+import { setupTestWorkspace } from "./playwright/api/setup-test-workspace";
 
-async function globalSetup(_config: FullConfig) {}
+loadEnv();
+
+async function globalSetup(_config: FullConfig) {
+  await setupTestWorkspace();
+}
 
 export default globalSetup;

@@ -11,7 +11,8 @@ export default defineConfig({
   fullyParallel: false,
   forbidOnly: !!process.env.CI,
   retries: 1,
-  workers: process.env.CI ? 1 : undefined,
+  // Local .env often sets CI=true for other tooling; only pin to 1 worker on Actions.
+  workers: process.env.GITHUB_ACTIONS ? 1 : undefined,
   reporter: process.env.CI
     ? [["list"], ["html", { outputFolder: "playwright-report" }]]
     : [["html", { open: "always" }]],
@@ -24,6 +25,15 @@ export default defineConfig({
     screenshot: "only-on-failure",
   },
   projects: [
+    // API tests (Bearer token seeded in globalSetup)
+    {
+      name: "api",
+      testDir: "./playwright/api",
+      fullyParallel: true,
+      use: {
+        baseURL: workspaceBaseURL,
+      },
+    },
     // Partner tests
     {
       name: "partner-setup",
