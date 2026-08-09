@@ -203,6 +203,7 @@ export const getPartnersQuerySchema = z
 
 // Only Dub UI uses the following query parameters
 export const getPartnersQuerySchemaExtended = getPartnersQuerySchema.extend({
+  sortBy: getPartnersQuerySchema.shape.sortBy.or(z.literal("relevance")),
   status: z.enum(ProgramEnrollmentStatus).optional(),
   // TODO: refactor to use multi/negative filtering syntax
   partnerIds: z

@@ -147,10 +147,12 @@ export function buildPartnerSearchQuery(
     ...request,
     page: input.page ?? 1,
     pageSize: input.pageSize,
-    sort: {
-      field: input.sortBy,
-      order: input.sortOrder,
-    },
+    ...(input.sortBy !== "relevance" && {
+      sort: {
+        field: input.sortBy,
+        order: input.sortOrder,
+      },
+    }),
   };
 }
 

@@ -140,7 +140,11 @@ export function PartnersTable() {
 
   const sortBy =
     searchParams.get("sortBy") ||
-    (program?.primaryRewardEvent === "lead" ? "totalLeads" : "totalSaleAmount");
+    (searchParams.get("search")
+      ? "relevance"
+      : program?.primaryRewardEvent === "lead"
+        ? "totalLeads"
+        : "totalSaleAmount");
   const sortOrder = searchParams.get("sortOrder") === "asc" ? "asc" : "desc";
 
   const { partnersCount, error: countError } = usePartnersCount<number>({

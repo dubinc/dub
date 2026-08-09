@@ -7,6 +7,7 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock("@/lib/prisma", () => ({
+  sanitizeFullTextSearch: (value: string) => value,
   prisma: {
     programEnrollment: {
       findMany: mocks.findMany,
@@ -113,5 +114,27 @@ describe("getPartners search", () => {
     ).rejects.toThrow("Provider Connection Timeout");
 
     expect(mocks.findMany).not.toHaveBeenCalled();
+  });
+
+  it("uses the existing database sort when relevance has no provider", async () => {
+    mocks.findMany.mockResolvedValue([]);
+
+    await getPartners(
+      {
+        programId: "prog_test",
+        search: "examp",
+        page: 1,
+        pageSize: 25,
+        sortBy: "relevance",
+        sortOrder: "desc",
+      },
+      { searchProvider: null },
+    );
+
+    expect(mocks.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        orderBy: { totalSaleAmount: "desc" },
+      }),
+    );
   });
 });

@@ -37,6 +37,7 @@ export async function getPartners(
     searchProvider && searchQuery
       ? await searchProvider.search(searchQuery)
       : null;
+  const databaseSortBy = sortBy === "relevance" ? "totalSaleAmount" : sortBy;
 
   const programEnrollments = await prisma.programEnrollment.findMany({
     where: searchResult
@@ -79,7 +80,7 @@ export async function getPartners(
           take: pageSize,
           skip: (page - 1) * pageSize,
           orderBy: {
-            [sortBy]: sortOrder,
+            [databaseSortBy]: sortOrder,
           },
         }),
   });

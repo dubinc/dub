@@ -47,6 +47,28 @@ describe("buildPartnerSearchQuery", () => {
     });
   });
 
+  it("uses provider relevance order when requested", () => {
+    expect(
+      buildPartnerSearchQuery({
+        ...defaultInput,
+        sortBy: "relevance",
+      }),
+    ).toEqual(
+      expect.objectContaining({
+        programId: "prog_test",
+        query: "examp",
+        page: 3,
+        pageSize: 25,
+      }),
+    );
+    expect(
+      buildPartnerSearchQuery({
+        ...defaultInput,
+        sortBy: "relevance",
+      }),
+    ).not.toHaveProperty("sort");
+  });
+
   it.each([
     ["missing search", { ...defaultInput, search: undefined }],
     ["empty search", { ...defaultInput, search: "   " }],
