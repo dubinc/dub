@@ -112,6 +112,7 @@ export async function setupTestWorkspace() {
   await prisma.restrictedToken.deleteMany({
     where: {
       name: TEST_WORKSPACE.token.name,
+      projectId: workspace.id,
     },
   });
 
