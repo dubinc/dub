@@ -218,7 +218,6 @@ describe("Upstash Search partner search provider", () => {
       pageSize: 10,
     });
 
-    expect(provider.mode).toBe("relevance-only");
     expect(result.hits).toHaveLength(10);
     expect(result.hits[0]).toEqual(
       expect.objectContaining({ id: "pge_0", partnerId: "pn_0" }),

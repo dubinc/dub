@@ -155,13 +155,12 @@ describe("Upstash Redis partner search provider", () => {
     expect(JSON.stringify(filter)).toContain('"emailNgrams":{"$eq":"amp"}');
   });
 
-  it("exposes relevance-only behavior during the transition", async () => {
+  it("keeps counts and groups on the database", async () => {
     const provider = createUpstashRedisPartnerSearchProvider({
       redisClient: createRedisMock(),
       indexName: "test-index",
     });
 
-    expect(provider.mode).toBe("relevance-only");
     await expect(
       provider.count({ programId: document.programId, query: "rafi" }),
     ).rejects.toThrow("counts must be calculated by the database");

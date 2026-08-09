@@ -411,8 +411,6 @@ export function createUpstashRedisPartnerSearchProvider({
   }
 
   return {
-    mode: "relevance-only",
-
     searchCandidates: findCandidates,
 
     async search(query) {

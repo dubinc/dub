@@ -2,6 +2,7 @@ import {
   getPartnerSearchableValues,
   getPartnerSearchProvider,
   normalizePartnerSearchQuery,
+  PARTNER_SEARCH_CANDIDATE_LIMIT,
   partnerSearchDocumentSelect,
   serializePartnerSearchDocument,
   type PartnerSearchDocument,
@@ -36,7 +37,6 @@ interface DebugArguments {
   query: string;
   limit: number;
   sortBy: PartnerSearchSortField;
-  sortOrder: "asc" | "desc";
   status?: ProgramEnrollmentStatus;
 }
 
@@ -45,7 +45,6 @@ function parseArguments(args: string[]): DebugArguments {
   let query: string | undefined;
   let limit = DEFAULT_LIMIT;
   let sortBy: PartnerSearchSortField = "totalSaleAmount";
-  let sortOrder: "asc" | "desc" = "desc";
   let status: ProgramEnrollmentStatus | undefined;
 
   for (const arg of args) {
@@ -61,12 +60,6 @@ function parseArguments(args: string[]): DebugArguments {
         throw new Error(`--sortBy must be one of: ${SORT_FIELDS.join(", ")}.`);
       }
       sortBy = value;
-    } else if (arg.startsWith("--sortOrder=")) {
-      const value = arg.slice("--sortOrder=".length);
-      if (value !== "asc" && value !== "desc") {
-        throw new Error("--sortOrder must be asc or desc.");
-      }
-      sortOrder = value;
     } else if (arg.startsWith("--status=")) {
       const value = arg.slice("--status=".length) as ProgramEnrollmentStatus;
       if (!Object.values(ProgramEnrollmentStatus).includes(value)) {
@@ -90,13 +83,19 @@ function parseArguments(args: string[]): DebugArguments {
     throw new Error(`--limit cannot exceed ${MAX_LIMIT}.`);
   }
 
-  return { programId, query, limit, sortBy, sortOrder, status };
+  return { programId, query, limit, sortBy, status };
 }
 
-async function getDatabaseDocuments(hits: PartnerSearchHit[]) {
+async function getDatabaseDocuments(
+  hits: PartnerSearchHit[],
+  status?: ProgramEnrollmentStatus,
+) {
   const documentIds = Array.from(new Set(hits.map(({ id }) => id)));
   const enrollments = await prisma.programEnrollment.findMany({
-    where: { id: { in: documentIds } },
+    where: {
+      id: { in: documentIds },
+      ...(status ? { status } : {}),
+    },
     select: partnerSearchDocumentSelect,
   });
 
@@ -146,7 +145,7 @@ function reportResults({
           normalizedQuery,
         ),
         enrollmentId: hit.id,
-        partnerId: hit.partnerId,
+        partnerId: databaseDocument?.partnerId ?? hit.partnerId,
         name: databaseDocument?.name ?? "missing from database",
         email: databaseDocument?.email ?? null,
         company: databaseDocument?.companyName ?? null,
@@ -156,7 +155,7 @@ function reportResults({
 }
 
 async function main() {
-  const { programId, query, limit, sortBy, sortOrder, status } = parseArguments(
+  const { programId, query, limit, sortBy, status } = parseArguments(
     process.argv.slice(2),
   );
   const searchProvider = getPartnerSearchProvider();
@@ -165,33 +164,24 @@ async function main() {
   }
 
   const providerName = process.env.PARTNER_SEARCH_PROVIDER?.trim();
-  const filters = status ? { status } : undefined;
-  const baseQuery = { programId, query, filters };
-  const relevanceOnly = searchProvider.mode === "relevance-only";
   const startedAt = performance.now();
 
-  // Step 1: Compare relevance ranking with the website's field-sorted query
-  const relevanceResult = await searchProvider.search({
-    ...baseQuery,
-    page: 1,
-    pageSize: limit,
+  // Step 1: Fetch the same relevance candidates used by the website
+  const relevanceResult = await searchProvider.searchCandidates({
+    programId,
+    query,
+    limit: PARTNER_SEARCH_CANDIDATE_LIMIT,
   });
-  const [matchingDocuments, sortedResult] = relevanceOnly
-    ? ([null, null] as const)
-    : await Promise.all([
-        searchProvider.count(baseQuery),
-        searchProvider.search({
-          ...baseQuery,
-          page: 1,
-          pageSize: limit,
-          sort: { field: sortBy, order: sortOrder },
-        }),
-      ]);
 
-  const allHits = [...relevanceResult.hits, ...(sortedResult?.hits ?? [])];
-
-  // Step 2: Build the canonical search documents from the database for comparison
-  const databaseDocuments = await getDatabaseDocuments(allHits);
+  // Step 2: Apply the requested status while loading canonical database documents
+  const databaseDocuments = await getDatabaseDocuments(
+    relevanceResult.hits,
+    status,
+  );
+  const databaseMatchedHits = relevanceResult.hits.filter(({ id }) =>
+    databaseDocuments.has(id),
+  );
+  const filteredHits = databaseMatchedHits.slice(0, limit);
 
   console.log("Partner search debug summary");
   console.table({
@@ -200,34 +190,21 @@ async function main() {
     query,
     normalizedQuery: normalizePartnerSearchQuery(query),
     status: status ?? "all",
-    matchingDocuments: matchingDocuments ?? "not supported",
+    candidates: relevanceResult.hits.length,
+    databaseMatches: databaseMatchedHits.length,
     elapsedMs: (performance.now() - startedAt).toFixed(1),
   });
   console.log(
     "Provider scores are provider-defined. Compare result order and database values across providers.",
   );
-  if (relevanceOnly) {
-    console.log(
-      "This provider supports relevance results only, so exact count and explicit field-order comparisons were skipped.",
-    );
-  }
 
   reportResults({
     label: "Provider relevance order",
-    hits: relevanceResult.hits,
+    hits: filteredHits,
     databaseDocuments,
     sortBy,
     normalizedQuery: normalizePartnerSearchQuery(query),
   });
-  if (sortedResult) {
-    reportResults({
-      label: `${sortBy} ${sortOrder} — explicit field order`,
-      hits: sortedResult.hits,
-      databaseDocuments,
-      sortBy,
-      normalizedQuery: normalizePartnerSearchQuery(query),
-    });
-  }
 }
 
 main()

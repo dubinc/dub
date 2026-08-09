@@ -548,8 +548,6 @@ export function createUpstashSearchPartnerSearchProvider({
   }
 
   return {
-    mode: "relevance-only",
-
     async searchCandidates({ programId, query, limit }) {
       validatePartnerSearchCandidateLimit(limit);
       const candidates = await findSearchCandidates(

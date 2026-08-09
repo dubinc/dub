@@ -135,7 +135,6 @@ export interface PartnerSearchCandidateQuery {
 }
 
 export interface PartnerSearchProvider {
-  mode?: "full" | "relevance-only";
   searchCandidates(
     query: PartnerSearchCandidateQuery,
   ): Promise<PartnerSearchResult>;
