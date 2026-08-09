@@ -7,3 +7,4 @@ export * from "./searchable-values";
 export * from "./serialize-document";
 export * from "./sync-documents";
 export * from "./types";
+export * from "./upstash-redis-provider";
