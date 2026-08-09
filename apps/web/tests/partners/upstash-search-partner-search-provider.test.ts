@@ -1,6 +1,6 @@
 import {
   createUpstashSearchPartnerSearchProvider,
-  resetUpstashSearchPartnerSearchIndex,
+  deleteUpstashSearchPartnerSearchIndex,
   type PartnerSearchDocument,
 } from "@/lib/api/partners/search";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -23,8 +23,8 @@ const document: PartnerSearchDocument = {
 
 const mocks = vi.hoisted(() => ({
   delete: vi.fn(),
+  deleteIndex: vi.fn(),
   info: vi.fn(),
-  reset: vi.fn(),
   search: vi.fn(),
   upsert: vi.fn(),
 }));
@@ -32,8 +32,8 @@ const mocks = vi.hoisted(() => ({
 function createSearchIndexMock() {
   return {
     delete: mocks.delete,
+    deleteIndex: mocks.deleteIndex,
     info: mocks.info,
-    reset: mocks.reset,
     search: mocks.search,
     upsert: mocks.upsert,
   };
@@ -74,7 +74,7 @@ describe("Upstash Search partner search provider", () => {
       documentCount: 0,
       pendingDocumentCount: 0,
     });
-    mocks.reset.mockResolvedValue("Success");
+    mocks.deleteIndex.mockResolvedValue("Success");
     mocks.search.mockResolvedValue([]);
     mocks.upsert.mockResolvedValue("Success");
   });
@@ -202,14 +202,14 @@ describe("Upstash Search partner search provider", () => {
     }
   });
 
-  it("resets every document in the index in one operation", async () => {
+  it("deletes the logical index in one operation", async () => {
     mocks.info.mockResolvedValue({
       documentCount: 100_005,
       pendingDocumentCount: 0,
     });
 
     await expect(
-      resetUpstashSearchPartnerSearchIndex({
+      deleteUpstashSearchPartnerSearchIndex({
         searchIndex: createSearchIndexMock(),
         indexName: "test-index",
       }),
@@ -217,6 +217,6 @@ describe("Upstash Search partner search provider", () => {
       indexName: "test-index",
       documentCount: 100_005,
     });
-    expect(mocks.reset).toHaveBeenCalledOnce();
+    expect(mocks.deleteIndex).toHaveBeenCalledOnce();
   });
 });

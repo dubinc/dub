@@ -1,6 +1,6 @@
 import {
+  deleteUpstashSearchPartnerSearchIndex,
   getPartnerSearchProviderName,
-  resetUpstashSearchPartnerSearchIndex,
 } from "@/lib/api/partners/search";
 import { chunk } from "@dub/utils";
 import { Redis } from "@upstash/redis";
@@ -106,7 +106,7 @@ async function main() {
   }
 
   if (providerName === "upstash-search") {
-    const { documentCount } = await resetUpstashSearchPartnerSearchIndex({
+    const { documentCount } = await deleteUpstashSearchPartnerSearchIndex({
       indexName,
     });
     console.log(

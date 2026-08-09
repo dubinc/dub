@@ -62,7 +62,7 @@ interface UpstashSearchIndexClient {
   ): Promise<string>;
   delete(documentIds: string[]): Promise<{ deleted: number }>;
   info(): Promise<{ pendingDocumentCount: number; documentCount: number }>;
-  reset(): Promise<string>;
+  deleteIndex(): Promise<string>;
 }
 
 interface CreateUpstashSearchPartnerSearchProviderOptions {
@@ -268,7 +268,7 @@ function logPartnerSearchDebug(details: Record<string, unknown>) {
   console.log("[Partner Search Debug] Upstash Search", details);
 }
 
-export async function resetUpstashSearchPartnerSearchIndex({
+export async function deleteUpstashSearchPartnerSearchIndex({
   searchIndex,
   indexName,
 }: CreateUpstashSearchPartnerSearchProviderOptions = {}) {
@@ -276,10 +276,10 @@ export async function resetUpstashSearchPartnerSearchIndex({
   const index = searchIndex ?? createSearchIndex(resolvedIndexName);
   const { documentCount } = await withTransientRetry(() => index.info());
 
-  // Upstash Search reset clears the whole index in one operation. It is the
-  // appropriate way to remove documents from an obsolete index shape before
-  // a full backfill, instead of issuing one delete request per document.
-  await withTransientRetry(() => index.reset());
+  // Delete the logical index instead of resetting its documents. The next
+  // backfill recreates the index automatically when it writes the first
+  // document.
+  await withTransientRetry(() => index.deleteIndex());
 
   return { indexName: resolvedIndexName, documentCount };
 }
