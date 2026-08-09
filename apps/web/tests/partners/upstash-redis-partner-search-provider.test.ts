@@ -45,23 +45,17 @@ const document: PartnerSearchDocument = {
 };
 
 const mocks = vi.hoisted(() => ({
-  aggregate: vi.fn(),
-  count: vi.fn(),
   createIndex: vi.fn(),
   del: vi.fn(),
   describe: vi.fn(),
   index: vi.fn(),
-  jsonMget: vi.fn(),
   jsonMset: vi.fn(),
-  multi: vi.fn(),
   query: vi.fn(),
   waitIndexing: vi.fn(),
 }));
 
 function createRedisMock(): Redis {
   const searchIndex = {
-    aggregate: mocks.aggregate,
-    count: mocks.count,
     describe: mocks.describe,
     query: mocks.query,
     waitIndexing: mocks.waitIndexing,
@@ -73,31 +67,11 @@ function createRedisMock(): Redis {
   const redisMock = {
     del: mocks.del,
     json: {
-      mget: mocks.jsonMget,
       mset: mocks.jsonMset,
     },
     search: {
       createIndex: mocks.createIndex,
       index: mocks.index,
-    },
-    multi() {
-      mocks.multi();
-      const commands: Array<() => void> = [];
-      return {
-        del: (...args: unknown[]) => {
-          commands.push(() => mocks.del(...args));
-        },
-        json: {
-          mset: (...args: unknown[]) => {
-            commands.push(() => mocks.jsonMset(...args));
-          },
-        },
-        async exec() {
-          for (const cmd of commands) {
-            await cmd();
-          }
-        },
-      };
     },
   } as unknown as Redis;
 
@@ -107,18 +81,13 @@ function createRedisMock(): Redis {
 describe("Upstash Redis partner search provider", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mocks.aggregate.mockResolvedValue({
-      groups: { buckets: [], sumOtherDocCount: 0 },
-    });
-    mocks.count.mockResolvedValue({ count: 0 });
     mocks.del.mockResolvedValue(0);
     mocks.describe.mockResolvedValue({
       name: "test-index",
       dataType: "json",
-      prefixes: ["test-index:"],
+      prefixes: ["test-index:partner:"],
       schema: upstashPartnerSearchSchema,
     });
-    mocks.jsonMget.mockResolvedValue([]);
     mocks.jsonMset.mockResolvedValue("OK");
     mocks.query.mockResolvedValue([]);
     mocks.waitIndexing.mockResolvedValue(1);
@@ -129,7 +98,7 @@ describe("Upstash Redis partner search provider", () => {
       {
         key: "test-index:partner:pge_test",
         score: 4,
-        data: { id: document.id, partnerId: document.partnerId },
+        data: {},
       },
     ]);
     const provider = createUpstashRedisPartnerSearchProvider({
@@ -144,13 +113,13 @@ describe("Upstash Redis partner search provider", () => {
         limit: PARTNER_SEARCH_CANDIDATE_LIMIT,
       }),
     ).resolves.toEqual({
-      hits: [{ id: document.id, partnerId: document.partnerId, score: 4 }],
+      hits: [{ id: document.id, score: 4 }],
     });
 
     expect(mocks.query).toHaveBeenCalledWith(
       expect.objectContaining({
         limit: PARTNER_SEARCH_CANDIDATE_LIMIT,
-        select: { id: true, partnerId: true },
+        select: {},
       }),
     );
     const request = mocks.query.mock.calls[0]![0];
@@ -161,111 +130,87 @@ describe("Upstash Redis partner search provider", () => {
     );
   });
 
-  it("searches within the program and supports partial email matching", async () => {
-    mocks.query.mockResolvedValue([
-      {
-        key: "test-index:partner:pge_test",
-        score: 2,
-        data: { id: document.id, partnerId: document.partnerId },
-      },
-    ]);
+  it("requires program-scoped text or partial email matches", async () => {
     const provider = createUpstashRedisPartnerSearchProvider({
       redisClient: createRedisMock(),
       indexName: "test-index",
     });
 
-    const result = await provider.search({
+    await provider.searchCandidates({
       programId: document.programId,
       query: "examp",
-      page: 3,
-      pageSize: 25,
-      sort: { field: "totalSaleAmount", order: "desc" },
+      limit: 25,
     });
-
-    expect(result).toEqual({
-      hits: [{ id: document.id, partnerId: document.partnerId, score: 2 }],
-    });
-    expect(mocks.count).not.toHaveBeenCalled();
-    expect(mocks.query).toHaveBeenCalledWith(
-      expect.objectContaining({
-        limit: 25,
-        offset: 50,
-        orderBy: { totalSaleAmount: "DESC" },
-        select: { id: true, partnerId: true },
-      }),
-    );
 
     const filter = mocks.query.mock.calls[0]![0].filter;
     expect(filter.$must).toBeUndefined();
     expect(filter.$should).toHaveLength(2);
-    expect(JSON.stringify(filter)).toContain('"programId":{"$eq":"prog_test"}');
-    expect(JSON.stringify(filter)).toContain(
-      '"documentType":{"$eq":"partner"}',
-    );
+    for (const branch of filter.$should) {
+      expect(branch.$must).toEqual(
+        expect.arrayContaining([{ programId: { $eq: "prog_test" } }]),
+      );
+    }
     expect(JSON.stringify(filter)).toContain('"emailNgrams":{"$eq":"exa"}');
     expect(JSON.stringify(filter)).toContain('"emailNgrams":{"$eq":"xam"}');
     expect(JSON.stringify(filter)).toContain('"emailNgrams":{"$eq":"amp"}');
   });
 
-  it("passes list exclusions and metric ranges to Upstash", async () => {
+  it("exposes relevance-only behavior during the transition", async () => {
     const provider = createUpstashRedisPartnerSearchProvider({
       redisClient: createRedisMock(),
       indexName: "test-index",
     });
 
-    await provider.count({
-      programId: document.programId,
-      query: "rafi",
-      filters: {
-        countries: { values: ["US", "CA"], operator: "NOT_IN" },
-        partnerTagIds: { values: ["ptag_test"], operator: "IN" },
-        metrics: { totalSaleAmount: { min: 100, max: 1_000 } },
-      },
-    });
-
-    const filter = mocks.count.mock.calls[0]![0].filter;
-    expect(filter.$should).toHaveLength(2);
-    for (const branch of filter.$should) {
-      expect(branch.$must).toEqual(
-        expect.arrayContaining([
-          { partnerTagIds: { $in: ["ptag_test"] } },
-          { totalSaleAmount: { $gte: 100, $lte: 1_000 } },
-        ]),
-      );
-      expect(branch.$mustNot).toEqual([{ country: { $in: ["US", "CA"] } }]);
-    }
+    expect(provider.mode).toBe("relevance-only");
+    await expect(
+      provider.count({ programId: document.programId, query: "rafi" }),
+    ).rejects.toThrow("counts must be calculated by the database");
+    await expect(
+      provider.groupBy(
+        { programId: document.programId, query: "rafi" },
+        "country",
+      ),
+    ).rejects.toThrow("groups must be calculated by the database");
   });
 
   it("retries a transient provider error", async () => {
-    mocks.count
+    mocks.query
       .mockRejectedValueOnce(new Error("Upstash returned 503"))
-      .mockResolvedValueOnce({ count: 1 });
+      .mockResolvedValueOnce([]);
     const provider = createUpstashRedisPartnerSearchProvider({
       redisClient: createRedisMock(),
       indexName: "test-index",
     });
 
     await expect(
-      provider.count({ programId: document.programId, query: "rafi" }),
-    ).resolves.toBe(1);
-    expect(mocks.count).toHaveBeenCalledTimes(2);
+      provider.searchCandidates({
+        programId: document.programId,
+        query: "rafi",
+        limit: 10,
+      }),
+    ).resolves.toEqual({ hits: [] });
+    expect(mocks.query).toHaveBeenCalledTimes(2);
   });
 
   it("does not retry a permanent provider error", async () => {
-    mocks.count.mockRejectedValue(new Error("Invalid search filter"));
+    mocks.query.mockRejectedValue(new Error("Invalid search filter"));
     const provider = createUpstashRedisPartnerSearchProvider({
       redisClient: createRedisMock(),
       indexName: "test-index",
     });
 
     await expect(
-      provider.count({ programId: document.programId, query: "rafi" }),
+      provider.searchCandidates({
+        programId: document.programId,
+        query: "rafi",
+        limit: 10,
+      }),
     ).rejects.toThrow("Invalid search filter");
-    expect(mocks.count).toHaveBeenCalledTimes(1);
+    expect(mocks.query).toHaveBeenCalledTimes(1);
   });
 
   it("does not retry a request timeout after it consumes the query budget", async () => {
-    mocks.count.mockRejectedValue(
+    mocks.query.mockRejectedValue(
       new DOMException(
         "The operation was aborted due to timeout",
         "TimeoutError",
@@ -277,16 +222,19 @@ describe("Upstash Redis partner search provider", () => {
     });
 
     await expect(
-      provider.count({ programId: document.programId, query: "rafi" }),
+      provider.searchCandidates({
+        programId: document.programId,
+        query: "rafi",
+        limit: 10,
+      }),
     ).rejects.toThrow("The operation was aborted due to timeout");
-    expect(mocks.count).toHaveBeenCalledTimes(1);
+    expect(mocks.query).toHaveBeenCalledTimes(1);
   });
 
   it("allows query latency within the one-second deadline", async () => {
     vi.useFakeTimers();
-    mocks.count.mockImplementation(
-      () =>
-        new Promise((resolve) => setTimeout(() => resolve({ count: 1 }), 500)),
+    mocks.query.mockImplementation(
+      () => new Promise((resolve) => setTimeout(() => resolve([]), 500)),
     );
     const provider = createUpstashRedisPartnerSearchProvider({
       redisClient: createRedisMock(),
@@ -294,13 +242,14 @@ describe("Upstash Redis partner search provider", () => {
     });
 
     try {
-      const result = provider.count({
+      const result = provider.searchCandidates({
         programId: document.programId,
         query: "rafi",
+        limit: 10,
       });
       await vi.advanceTimersByTimeAsync(500);
 
-      await expect(result).resolves.toBe(1);
+      await expect(result).resolves.toEqual({ hits: [] });
       expect(vi.getTimerCount()).toBe(0);
     } finally {
       vi.useRealTimers();
@@ -309,7 +258,7 @@ describe("Upstash Redis partner search provider", () => {
 
   it("bounds the total query operation to one second", async () => {
     vi.useFakeTimers();
-    mocks.count.mockImplementation(() => new Promise(() => {}));
+    mocks.query.mockImplementation(() => new Promise(() => {}));
     const provider = createUpstashRedisPartnerSearchProvider({
       redisClient: createRedisMock(),
       indexName: "test-index",
@@ -317,9 +266,10 @@ describe("Upstash Redis partner search provider", () => {
 
     try {
       const result = expect(
-        provider.count({
+        provider.searchCandidates({
           programId: document.programId,
           query: "rafi",
+          limit: 10,
         }),
       ).rejects.toThrow("Partner search query timed out after 1000ms");
       await vi.advanceTimersByTimeAsync(1_000);
@@ -331,8 +281,7 @@ describe("Upstash Redis partner search provider", () => {
     }
   });
 
-  it("writes the partner document and tag shadow documents", async () => {
-    mocks.jsonMget.mockResolvedValue([null]);
+  it("writes one lean search document per enrollment", async () => {
     const provider = createUpstashRedisPartnerSearchProvider({
       redisClient: createRedisMock(),
       indexName: "test-index",
@@ -340,62 +289,29 @@ describe("Upstash Redis partner search provider", () => {
 
     await provider.upsert([document]);
 
-    expect(mocks.jsonMget).toHaveBeenCalledWith(
-      ["test-index:partner:pge_test"],
-      "$",
-    );
     const entries = mocks.jsonMset.mock.calls[0]!;
-    expect(entries).toHaveLength(2);
-    expect(entries[0]).toEqual(
-      expect.objectContaining({
-        key: "test-index:partner:pge_test",
-        path: "$",
-        value: expect.objectContaining({
-          documentType: "partner",
-          partnerTagIds: "ptag_test",
-          partnerTagIdsRaw: ["ptag_test"],
-          tenantId: expect.stringContaining("__null:"),
-        }),
-      }),
-    );
-    expect(entries[1]).toEqual(
-      expect.objectContaining({
-        key: "test-index:tag:pge_test:ptag_test",
-        value: expect.objectContaining({
-          documentType: "tag",
-          partnerTagId: "ptag_test",
-        }),
-      }),
-    );
+    expect(entries).toHaveLength(1);
+    expect(entries[0]).toEqual({
+      key: "test-index:partner:pge_test",
+      path: "$",
+      value: {
+        programId: "prog_test",
+        searchText: expect.any(String),
+        emailNgrams: expect.any(String),
+      },
+    });
     expect(entries[0].value.searchText).toContain("partner@example.com");
     expect(entries[0].value.searchText).toContain("dub partners");
     expect(entries[0].value.searchText).toContain("rafi-on-x");
     expect(entries[0].value.searchText).toContain("referrals/rafi");
     expect(entries[0].value.emailNgrams).toContain("exa");
-  });
-
-  it("removes stale tag shadow documents before updating", async () => {
-    mocks.jsonMget.mockResolvedValue([
-      [{ partnerTagIdsRaw: ["ptag_old", "ptag_test"] }],
-    ]);
-    const provider = createUpstashRedisPartnerSearchProvider({
-      redisClient: createRedisMock(),
-      indexName: "test-index",
-    });
-
-    await provider.upsert([document]);
-
-    expect(mocks.multi).toHaveBeenCalledOnce();
-    expect(mocks.del).toHaveBeenCalledWith("test-index:tag:pge_test:ptag_old");
-    expect(mocks.del.mock.invocationCallOrder[0]).toBeLessThan(
-      mocks.jsonMset.mock.invocationCallOrder[0]!,
-    );
+    expect(entries[0].value).not.toHaveProperty("partnerId");
+    expect(entries[0].value).not.toHaveProperty("status");
+    expect(entries[0].value).not.toHaveProperty("partnerTagIds");
+    expect(entries[0].value).not.toHaveProperty("totalSaleAmount");
   });
 
   it("bounds Upstash write batches", async () => {
-    mocks.jsonMget.mockImplementation(async (keys: string[]) =>
-      keys.map(() => null),
-    );
     const provider = createUpstashRedisPartnerSearchProvider({
       redisClient: createRedisMock(),
       indexName: "test-index",
@@ -408,16 +324,12 @@ describe("Upstash Redis partner search provider", () => {
 
     await provider.upsert(documents);
 
-    expect(mocks.jsonMget).toHaveBeenCalledTimes(2);
     expect(mocks.jsonMset).toHaveBeenCalledTimes(2);
     expect(mocks.jsonMset.mock.calls[0]).toHaveLength(100);
     expect(mocks.jsonMset.mock.calls[1]).toHaveLength(1);
   });
 
-  it("deletes the partner document and its tag shadow documents", async () => {
-    mocks.jsonMget.mockResolvedValue([
-      [{ partnerTagIdsRaw: ["ptag_one", "ptag_two"] }],
-    ]);
+  it("deletes the enrollment document directly", async () => {
     const provider = createUpstashRedisPartnerSearchProvider({
       redisClient: createRedisMock(),
       indexName: "test-index",
@@ -425,41 +337,7 @@ describe("Upstash Redis partner search provider", () => {
 
     await provider.delete([document.id]);
 
-    expect(mocks.jsonMget).toHaveBeenCalledWith(
-      ["test-index:partner:pge_test"],
-      "$",
-    );
-    expect(mocks.del).toHaveBeenCalledWith(
-      "test-index:partner:pge_test",
-      "test-index:tag:pge_test:ptag_one",
-      "test-index:tag:pge_test:ptag_two",
-    );
-  });
-
-  it("groups partner tags using tag shadow documents", async () => {
-    mocks.aggregate.mockResolvedValue({
-      groups: {
-        buckets: [{ key: "ptag_test", docCount: 12 }],
-        sumOtherDocCount: 0,
-      },
-    });
-    const provider = createUpstashRedisPartnerSearchProvider({
-      redisClient: createRedisMock(),
-      indexName: "test-index",
-    });
-
-    await expect(
-      provider.groupBy(
-        { programId: document.programId, query: "rafi" },
-        "partnerTagId",
-      ),
-    ).resolves.toEqual([{ value: "ptag_test", count: 12 }]);
-
-    const request = mocks.aggregate.mock.calls[0]![0];
-    expect(request.aggregations.groups.$terms.field).toBe("partnerTagId");
-    expect(JSON.stringify(request.filter)).toContain(
-      '"documentType":{"$eq":"tag"}',
-    );
+    expect(mocks.del).toHaveBeenCalledWith("test-index:partner:pge_test");
   });
 
   it("waits for pending index updates", async () => {
@@ -491,18 +369,23 @@ describe("Upstash Redis partner search provider", () => {
       expect.objectContaining({
         name: "test-index",
         dataType: "json",
-        prefix: "test-index:",
+        prefix: "test-index:partner:",
         existsOk: true,
         skipInitialScan: true,
       }),
     );
+    expect(Object.keys(upstashPartnerSearchSchema).sort()).toEqual([
+      "emailNgrams",
+      "programId",
+      "searchText",
+    ]);
   });
 
   it("rejects an existing index with a stale schema", async () => {
     mocks.describe.mockResolvedValue({
       name: "test-index",
       dataType: "json",
-      prefixes: ["test-index:"],
+      prefixes: ["test-index:partner:"],
       schema: { id: { type: "KEYWORD" } },
     });
 
@@ -511,6 +394,6 @@ describe("Upstash Redis partner search provider", () => {
         redisClient: createRedisMock(),
         indexName: "test-index",
       }),
-    ).rejects.toThrow("Create a new versioned index");
+    ).rejects.toThrow("Delete and recreate it before backfilling");
   });
 });

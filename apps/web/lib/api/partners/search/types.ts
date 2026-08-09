@@ -120,7 +120,7 @@ export interface PartnerSearchGroup {
 
 export interface PartnerSearchHit {
   id: string;
-  partnerId: string;
+  partnerId?: string;
   score?: number;
 }
 
