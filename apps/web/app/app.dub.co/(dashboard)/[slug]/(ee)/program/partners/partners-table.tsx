@@ -117,6 +117,8 @@ const partnersColumns = {
   ],
 };
 
+const PARTNER_SEARCH_RESET_PARAMS = ["sortBy", "sortOrder"];
+
 const getPartnerUrl = ({
   workspaceSlug,
   id,
@@ -159,6 +161,7 @@ export function PartnersTable() {
     data: partners,
     error,
     isLoading,
+    isValidating,
   } = useSWR<EnrolledPartnerProps[]>(
     `/api/partners${getQueryString({
       workspaceId,
@@ -508,7 +511,12 @@ export function PartnersTable() {
 
   return (
     <div className="flex flex-col gap-4">
-      <PartnersFilters sortBy={sortBy} sortOrder={sortOrder} status={status} />
+      <PartnersFilters
+        sortBy={sortBy}
+        sortOrder={sortOrder}
+        status={status}
+        searchLoading={isValidating}
+      />
       {partners?.length !== 0 ? (
         <Table {...tableProps} table={table} />
       ) : (
@@ -535,10 +543,12 @@ function PartnersFilters({
   sortBy,
   sortOrder,
   status,
+  searchLoading,
 }: {
   sortBy: string;
   sortOrder: "asc" | "desc";
   status: ProgramEnrollmentStatus | undefined;
+  searchLoading: boolean;
 }) {
   const { queryParams, searchParams } = useRouterStuff();
 
@@ -601,8 +611,10 @@ function PartnersFilters({
           ) : null}
         </div>
         <SearchBoxPersisted
-          placeholder="Search by name, email, or company"
+          placeholder="Search name, email, company, platform, or link"
           inputClassName="md:w-80"
+          loading={searchLoading}
+          resetParamsOnChange={PARTNER_SEARCH_RESET_PARAMS}
         />
       </div>
       <AnimatedSizeContainer height>

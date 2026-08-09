@@ -96,6 +96,7 @@ export const SearchBox = forwardRef(
         {showClearButton && value.length > 0 && (
           <button
             onClick={() => {
+              debounced.cancel();
               onChange("");
               onChangeDebounced?.("");
             }}
@@ -111,10 +112,14 @@ export const SearchBox = forwardRef(
 
 export function SearchBoxPersisted({
   urlParam = "search",
+  resetParamsOnChange = [],
   onChange,
   onChangeDebounced,
   ...props
-}: { urlParam?: string } & Partial<SearchBoxProps>) {
+}: {
+  urlParam?: string;
+  resetParamsOnChange?: string[];
+} & Partial<SearchBoxProps>) {
   const { queryParams, searchParams } = useRouterStuff();
 
   const [value, setValue] = useState(searchParams.get(urlParam) ?? "");
@@ -122,11 +127,14 @@ export function SearchBoxPersisted({
 
   // Set URL param when debounced value changes
   useEffect(() => {
-    if (searchParams.get(urlParam) ?? "" !== debouncedValue)
+    if ((searchParams.get(urlParam) ?? "") !== debouncedValue)
       queryParams(
         debouncedValue === ""
-          ? { del: [urlParam, "page"] }
-          : { set: { [urlParam]: debouncedValue }, del: "page" },
+          ? { del: [urlParam, "page", ...resetParamsOnChange] }
+          : {
+              set: { [urlParam]: debouncedValue },
+              del: ["page", ...resetParamsOnChange],
+            },
       );
   }, [debouncedValue]);
 
@@ -134,7 +142,7 @@ export function SearchBoxPersisted({
   useEffect(() => {
     const search = searchParams.get(urlParam);
     // Only update if the value and debouncedValue are synced (the user isn't actively typing)
-    if ((search ?? "" !== value) && value === debouncedValue)
+    if ((search ?? "") !== value && value === debouncedValue)
       setValue(search ?? "");
   }, [searchParams.get(urlParam)]);
 
