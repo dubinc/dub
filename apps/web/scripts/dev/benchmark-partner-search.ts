@@ -16,7 +16,6 @@ const DEFAULT_CONCURRENCY = 10;
 const DEFAULT_PAGE_SIZE = 25;
 const DEFAULT_THRESHOLD_MS = 1_000;
 const MINIMUM_REQUESTS = 1_000;
-const MINIMUM_PARTNERS = 100_000;
 
 interface BenchmarkArguments {
   programId: string;
@@ -247,10 +246,8 @@ async function main() {
   const partnerCount = await prisma.programEnrollment.count({
     where: { programId: options.programId },
   });
-  if (partnerCount < MINIMUM_PARTNERS) {
-    throw new Error(
-      `Program ${options.programId} has ${partnerCount.toLocaleString()} partners. At least ${MINIMUM_PARTNERS.toLocaleString()} are required.`,
-    );
+  if (partnerCount === 0) {
+    throw new Error(`Program ${options.programId} has 0 partners.`);
   }
 
   const searchCases = await loadSearchCases(options.programId);

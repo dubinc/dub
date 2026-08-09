@@ -1,19 +1,20 @@
 import {
-  createUpstashRedisPartnerSearchProvider,
+  getPartnerSearchableValues,
+  getPartnerSearchProvider,
   normalizePartnerSearchQuery,
+  partnerSearchDocumentSelect,
+  serializePartnerSearchDocument,
+  type PartnerSearchDocument,
   type PartnerSearchHit,
   type PartnerSearchSortField,
 } from "@/lib/api/partners/search";
 import { prisma } from "@/lib/prisma";
 import { parsePositiveInteger } from "@/scripts/utils/parse-positive-integer";
 import { ProgramEnrollmentStatus } from "@prisma/client";
-import { Redis } from "@upstash/redis";
 import "dotenv-flow/config";
 
-const DEFAULT_INDEX_NAME = "partner-search-v1";
 const DEFAULT_LIMIT = 10;
 const MAX_LIMIT = 100;
-const SCAN_COUNT = 1_000;
 const SORT_FIELDS: PartnerSearchSortField[] = [
   "createdAt",
   "totalClicks",
@@ -37,12 +38,6 @@ interface DebugArguments {
   sortBy: PartnerSearchSortField;
   sortOrder: "asc" | "desc";
   status?: ProgramEnrollmentStatus;
-}
-
-interface IndexedPartnerDocument extends Record<string, unknown> {
-  id: string;
-  partnerId: string;
-  searchText: string;
 }
 
 function parseArguments(args: string[]): DebugArguments {
@@ -98,91 +93,41 @@ function parseArguments(args: string[]): DebugArguments {
   return { programId, query, limit, sortBy, sortOrder, status };
 }
 
-function createRedisClient() {
-  const url = process.env.UPSTASH_REDIS_REST_URL;
-  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
-
-  if (!url || !token) {
-    throw new Error(
-      "UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN are required.",
-    );
-  }
-
-  return new Redis({ url, token });
-}
-
-async function countStoredDocuments(redis: Redis, indexName: string) {
-  let cursor = "0";
-  let partners = 0;
-  let tags = 0;
-
-  do {
-    const [nextCursor, keys] = await redis.scan(cursor, {
-      match: `${indexName}:*`,
-      count: SCAN_COUNT,
-    });
-
-    partners += keys.filter((key) => key.includes(":partner:")).length;
-    tags += keys.filter((key) => key.includes(":tag:")).length;
-    cursor = nextCursor;
-  } while (cursor !== "0");
-
-  return { partners, tags, total: partners + tags };
-}
-
-async function getIndexedDocuments(
-  redis: Redis,
-  indexName: string,
-  hits: PartnerSearchHit[],
-) {
-  const documentIds = Array.from(new Set(hits.map(({ id }) => id)));
-  if (documentIds.length === 0) {
-    return new Map<string, IndexedPartnerDocument>();
-  }
-
-  const values = await redis.json.mget<(IndexedPartnerDocument[] | null)[]>(
-    documentIds.map((documentId) => `${indexName}:partner:${documentId}`),
-    "$",
-  );
-
-  return new Map(
-    values.flatMap((value) => {
-      const document = value?.[0];
-      return document ? [[document.id, document] as const] : [];
-    }),
-  );
-}
-
 async function getDatabaseDocuments(hits: PartnerSearchHit[]) {
   const documentIds = Array.from(new Set(hits.map(({ id }) => id)));
   const enrollments = await prisma.programEnrollment.findMany({
     where: { id: { in: documentIds } },
-    select: {
-      id: true,
-      partner: {
-        select: {
-          name: true,
-          email: true,
-          companyName: true,
-        },
-      },
-    },
+    select: partnerSearchDocumentSelect,
   });
 
-  return new Map(enrollments.map((enrollment) => [enrollment.id, enrollment]));
+  return new Map(
+    enrollments.map((enrollment) => {
+      const document = serializePartnerSearchDocument(enrollment);
+      return [document.id, document] as const;
+    }),
+  );
+}
+
+function containsLiteralQuery(
+  document: PartnerSearchDocument | undefined,
+  normalizedQuery: string,
+) {
+  return document
+    ? getPartnerSearchableValues(document).some((value) =>
+        normalizePartnerSearchQuery(value).includes(normalizedQuery),
+      )
+    : false;
 }
 
 function reportResults({
   label,
   hits,
-  indexedDocuments,
   databaseDocuments,
   sortBy,
   normalizedQuery,
 }: {
   label: string;
   hits: PartnerSearchHit[];
-  indexedDocuments: Map<string, IndexedPartnerDocument>;
   databaseDocuments: Awaited<ReturnType<typeof getDatabaseDocuments>>;
   sortBy: PartnerSearchSortField;
   normalizedQuery: string;
@@ -190,19 +135,21 @@ function reportResults({
   console.log(`\n${label}`);
   console.table(
     hits.map((hit, index) => {
-      const indexedDocument = indexedDocuments.get(hit.id);
       const databaseDocument = databaseDocuments.get(hit.id);
 
       return {
         rank: index + 1,
-        score: hit.score,
-        indexedSortValue: indexedDocument?.[sortBy] ?? null,
-        containsQuery: indexedDocument?.searchText.includes(normalizedQuery),
+        providerScore: hit.score,
+        databaseSortValue: databaseDocument?.[sortBy] ?? null,
+        containsLiteralQuery: containsLiteralQuery(
+          databaseDocument,
+          normalizedQuery,
+        ),
         enrollmentId: hit.id,
         partnerId: hit.partnerId,
-        name: databaseDocument?.partner.name ?? "missing from database",
-        email: databaseDocument?.partner.email ?? null,
-        company: databaseDocument?.partner.companyName ?? null,
+        name: databaseDocument?.name ?? "missing from database",
+        email: databaseDocument?.email ?? null,
+        company: databaseDocument?.companyName ?? null,
       };
     }),
   );
@@ -212,76 +159,61 @@ async function main() {
   const { programId, query, limit, sortBy, sortOrder, status } = parseArguments(
     process.argv.slice(2),
   );
-  const redis = createRedisClient();
-  const indexName =
-    process.env.PARTNER_SEARCH_INDEX_NAME?.trim() || DEFAULT_INDEX_NAME;
-  const index = redis.search.index({ name: indexName });
-  const description = await index.describe();
-
-  if (!description) {
-    throw new Error(`Partner search index ${indexName} does not exist.`);
+  const searchProvider = getPartnerSearchProvider();
+  if (!searchProvider) {
+    throw new Error("PARTNER_SEARCH_PROVIDER is not configured.");
   }
 
-  const searchProvider = createUpstashRedisPartnerSearchProvider({
-    redisClient: redis,
-    indexName,
-  });
+  const providerName = process.env.PARTNER_SEARCH_PROVIDER?.trim();
   const filters = status ? { status } : undefined;
   const baseQuery = { programId, query, filters };
   const startedAt = performance.now();
 
   // Step 1: Compare relevance ranking with the website's field-sorted query
-  const [matchingDocuments, relevanceResult, sortedResult, storedDocuments] =
-    await Promise.all([
-      searchProvider.count(baseQuery),
-      searchProvider.search({
-        ...baseQuery,
-        page: 1,
-        pageSize: limit,
-      }),
-      searchProvider.search({
-        ...baseQuery,
-        page: 1,
-        pageSize: limit,
-        sort: { field: sortBy, order: sortOrder },
-      }),
-      countStoredDocuments(redis, indexName),
-    ]);
+  const [matchingDocuments, relevanceResult, sortedResult] = await Promise.all([
+    searchProvider.count(baseQuery),
+    searchProvider.search({
+      ...baseQuery,
+      page: 1,
+      pageSize: limit,
+    }),
+    searchProvider.search({
+      ...baseQuery,
+      page: 1,
+      pageSize: limit,
+      sort: { field: sortBy, order: sortOrder },
+    }),
+  ]);
 
   const allHits = [...relevanceResult.hits, ...sortedResult.hits];
 
-  // Step 2: Read the same hits from Redis and the database for comparison
-  const [indexedDocuments, databaseDocuments] = await Promise.all([
-    getIndexedDocuments(redis, indexName, allHits),
-    getDatabaseDocuments(allHits),
-  ]);
+  // Step 2: Build the canonical search documents from the database for comparison
+  const databaseDocuments = await getDatabaseDocuments(allHits);
 
   console.log("Partner search debug summary");
   console.table({
-    indexName,
+    provider: providerName,
     programId,
     query,
     normalizedQuery: normalizePartnerSearchQuery(query),
     status: status ?? "all",
     matchingDocuments,
-    storedPartnerDocuments: storedDocuments.partners,
-    storedTagDocuments: storedDocuments.tags,
-    storedDocuments: storedDocuments.total,
     elapsedMs: (performance.now() - startedAt).toFixed(1),
   });
+  console.log(
+    "Provider scores are provider-defined. Compare result order and database values across providers.",
+  );
 
   reportResults({
-    label: "Relevance order — score is text relevance",
+    label: "Provider relevance order",
     hits: relevanceResult.hits,
-    indexedDocuments,
     databaseDocuments,
     sortBy,
     normalizedQuery: normalizePartnerSearchQuery(query),
   });
   reportResults({
-    label: `${sortBy} ${sortOrder} — score is the indexed sort value`,
+    label: `${sortBy} ${sortOrder} — explicit field order`,
     hits: sortedResult.hits,
-    indexedDocuments,
     databaseDocuments,
     sortBy,
     normalizedQuery: normalizePartnerSearchQuery(query),
