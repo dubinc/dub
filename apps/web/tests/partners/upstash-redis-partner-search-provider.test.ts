@@ -53,6 +53,7 @@ const mocks = vi.hoisted(() => ({
   jsonMget: vi.fn(),
   jsonMset: vi.fn(),
   query: vi.fn(),
+  scan: vi.fn(),
   waitIndexing: vi.fn(),
 }));
 
@@ -68,8 +69,9 @@ function createRedisMock(): Redis {
   mocks.index.mockReturnValue(searchIndex);
   mocks.createIndex.mockReturnValue(searchIndex);
 
-  return {
+  const redisMock = {
     del: mocks.del,
+    scan: mocks.scan,
     json: {
       mget: mocks.jsonMget,
       mset: mocks.jsonMset,
@@ -78,7 +80,27 @@ function createRedisMock(): Redis {
       createIndex: mocks.createIndex,
       index: mocks.index,
     },
+    pipeline() {
+      const commands: Array<() => void> = [];
+      return {
+        del: (...args: unknown[]) => {
+          commands.push(() => mocks.del(...args));
+        },
+        json: {
+          mset: (...args: unknown[]) => {
+            commands.push(() => mocks.jsonMset(...args));
+          },
+        },
+        async exec() {
+          for (const cmd of commands) {
+            await cmd();
+          }
+        },
+      };
+    },
   } as unknown as Redis;
+
+  return redisMock;
 }
 
 describe("Upstash Redis partner search provider", () => {
@@ -98,6 +120,7 @@ describe("Upstash Redis partner search provider", () => {
     mocks.jsonMget.mockResolvedValue([]);
     mocks.jsonMset.mockResolvedValue("OK");
     mocks.query.mockResolvedValue([]);
+    mocks.scan.mockResolvedValue([0, []]);
     mocks.waitIndexing.mockResolvedValue(1);
   });
 
@@ -222,7 +245,7 @@ describe("Upstash Redis partner search provider", () => {
           documentType: "partner",
           partnerTagIds: "ptag_test",
           partnerTagIdsRaw: ["ptag_test"],
-          tenantId: "__none__",
+          tenantId: expect.stringContaining("__null:"),
         }),
       }),
     );
@@ -282,8 +305,12 @@ describe("Upstash Redis partner search provider", () => {
   });
 
   it("deletes the partner document and its tag shadow documents", async () => {
-    mocks.jsonMget.mockResolvedValue([
-      [{ partnerTagIdsRaw: ["ptag_one", "ptag_two"] }],
+    mocks.scan.mockResolvedValue([
+      0,
+      [
+        "test-index:tag:pge_test:ptag_one",
+        "test-index:tag:pge_test:ptag_two",
+      ],
     ]);
     const provider = createUpstashRedisPartnerSearchProvider({
       redisClient: createRedisMock(),
@@ -292,6 +319,10 @@ describe("Upstash Redis partner search provider", () => {
 
     await provider.delete([document.id]);
 
+    expect(mocks.scan).toHaveBeenCalledWith(0, {
+      match: "test-index:tag:pge_test:*",
+      count: 100,
+    });
     expect(mocks.del).toHaveBeenCalledWith(
       "test-index:partner:pge_test",
       "test-index:tag:pge_test:ptag_one",

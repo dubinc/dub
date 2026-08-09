@@ -21,12 +21,16 @@ import type {
 } from "../types";
 
 const DEFAULT_INDEX_NAME = "partner-search-v1";
-const NULL_VALUE = "__none__";
+// Sentinel value for nullable keyword fields. Redis Search keyword fields
+// cannot store null, so we use a value that will never appear in real data
+// to represent absent values and map it back to null in query results.
+const NULL_VALUE = "\0__null:f47ac10b-58cc-4372-a567-0e02b2c3d479__";
 const MAX_GROUPS = 1_000;
 const TRANSIENT_RETRY_ATTEMPTS = 2;
 const QUERY_REQUEST_TIMEOUT_MS = 400;
 const WRITE_REQUEST_TIMEOUT_MS = 10_000;
 const WRITE_BATCH_SIZE = 100;
+const WAIT_FOR_INDEXING_TIMEOUT_MS = 30_000;
 const DOCUMENT_TYPE_PARTNER = "partner";
 const DOCUMENT_TYPE_TAG = "tag";
 
@@ -182,9 +186,7 @@ function getQueryNgrams(query: string): string[] {
   );
 }
 
-function escapeRegex(value: string): string {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-}
+
 
 function serializeUpstashDocument(
   document: PartnerSearchDocument,
@@ -251,13 +253,13 @@ function buildListFilter(
 }
 
 function buildTextFilter(query: string): UpstashPartnerSearchFilter {
+  // $smart handles word-boundary and prefix matching via the inverted index.
+  // Email n-grams handle infix/substring matching (e.g. "examp" in "partner@example.com").
+  // A $regex path was intentionally omitted because regex queries scan the
+  // inverted index linearly, which degrades p99 latency at 100K+ documents.
   const alternatives: UpstashPartnerSearchFilter[] = [
     { searchText: { $smart: query } },
   ];
-
-  if (!/\s/u.test(query)) {
-    alternatives.push({ searchText: { $regex: `${escapeRegex(query)}.*` } });
-  }
 
   const emailNgrams = getQueryNgrams(query);
   if (emailNgrams.length > 0) {
@@ -499,14 +501,40 @@ async function upsertDocumentBatch(
     documents,
     storedDocuments,
   );
+  const upsertEntries = getUpsertEntries(indexName, documents);
 
-  if (staleTagDocumentKeys.length > 0) {
-    await withTransientRetry(() => redisClient.del(...staleTagDocumentKeys));
-  }
+  // Pipeline the stale tag cleanup and document upsert into a single
+  // atomic call so a crash between the two cannot leave orphaned state.
+  await withTransientRetry(async () => {
+    const pipeline = redisClient.pipeline();
 
-  await withTransientRetry(() =>
-    redisClient.json.mset(...getUpsertEntries(indexName, documents)),
-  );
+    if (staleTagDocumentKeys.length > 0) {
+      pipeline.del(...staleTagDocumentKeys);
+    }
+
+    pipeline.json.mset(...upsertEntries);
+    await pipeline.exec();
+  });
+}
+
+async function scanTagKeys(
+  redisClient: Redis,
+  indexName: string,
+  documentId: string,
+): Promise<string[]> {
+  const pattern = `${getDocumentPrefix(indexName)}tag:${documentId}:*`;
+  const keys: string[] = [];
+  let cursor = 0;
+
+  do {
+    const [nextCursor, batch] = await withTransientRetry(() =>
+      redisClient.scan(cursor, { match: pattern, count: 100 }),
+    );
+    cursor = nextCursor;
+    keys.push(...batch);
+  } while (cursor !== 0);
+
+  return keys;
 }
 
 async function deleteDocumentBatch(
@@ -514,23 +542,22 @@ async function deleteDocumentBatch(
   indexName: string,
   documentIds: string[],
 ) {
-  const storedDocuments = await getStoredDocuments(
-    redisClient,
-    indexName,
-    documentIds,
-  );
-  const tagDocumentKeys = storedDocuments.flatMap((document, index) =>
-    (document?.partnerTagIdsRaw ?? []).map((partnerTagId) =>
-      getTagDocumentKey(indexName, documentIds[index]!, partnerTagId),
-    ),
+  // Discover tag shadow keys via SCAN instead of reading document contents,
+  // saving a JSON.MGET round-trip per batch.
+  const tagKeys = (
+    await Promise.all(
+      documentIds.map((id) => scanTagKeys(redisClient, indexName, id)),
+    )
+  ).flat();
+
+  const partnerKeys = documentIds.map((id) =>
+    getDocumentKey(indexName, id),
   );
 
-  await withTransientRetry(() =>
-    redisClient.del(
-      ...documentIds.map((documentId) => getDocumentKey(indexName, documentId)),
-      ...tagDocumentKeys,
-    ),
-  );
+  const allKeys = [...partnerKeys, ...tagKeys];
+  if (allKeys.length > 0) {
+    await withTransientRetry(() => redisClient.del(...allKeys));
+  }
 }
 
 export async function createUpstashRedisPartnerSearchIndex({
@@ -638,7 +665,16 @@ export function createUpstashRedisPartnerSearchProvider({
         }),
       );
 
-      return result.groups.buckets.flatMap(({ key, docCount }) => {
+      const { buckets, sumOtherDocCount } = result.groups;
+
+      if (buckets.length >= MAX_GROUPS) {
+        console.warn(
+          `[Partner Search] groupBy("${field}") returned ${buckets.length} buckets (limit: ${MAX_GROUPS}). ` +
+            `Results may be truncated (${sumOtherDocCount ?? "unknown"} docs in unlisted groups).`,
+        );
+      }
+
+      return buckets.flatMap(({ key, docCount }) => {
         const value = mapGroupValue(key);
         if (field === "referredByPartnerId" && value === null) {
           return [];
@@ -648,7 +684,23 @@ export function createUpstashRedisPartnerSearchProvider({
     },
 
     async waitForIndexing() {
-      const result = await withTransientRetry(() => writeIndex.waitIndexing());
+      const timeout = new Promise<never>((_, reject) =>
+        setTimeout(
+          () =>
+            reject(
+              new Error(
+                `Partner search waitForIndexing timed out after ${WAIT_FOR_INDEXING_TIMEOUT_MS}ms.`,
+              ),
+            ),
+          WAIT_FOR_INDEXING_TIMEOUT_MS,
+        ),
+      );
+
+      const result = await Promise.race([
+        withTransientRetry(() => writeIndex.waitIndexing()),
+        timeout,
+      ]);
+
       if (result === 0) {
         throw new Error(
           `Partner search index ${resolvedIndexName} was not found.`,
