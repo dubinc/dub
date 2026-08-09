@@ -30,6 +30,14 @@
 
    The seeded test user (`E2E_PARTNER_EMAIL`) must exist in your local database — run `tsx apps/web/playwright/seed.ts` to create it. Signup tests generate a fresh user each run via MailHog email verification.
 
+## API tests
+
+API specs under `playwright/api` use a Bearer token. `globalSetup` upserts a dedicated user, workspace, and token into `playwright/.auth/api.json` before any project runs. No MailHog or browser auth required.
+
+```sh
+pnpm --filter web test:e2e --project=api
+```
+
 ## Running tests
 
 Make sure the dev server is running first (`pnpm dev`), then:
