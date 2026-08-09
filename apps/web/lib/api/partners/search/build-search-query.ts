@@ -1,7 +1,9 @@
 import { getPartnersQuerySchemaExtended } from "@/lib/zod/schemas/partners";
 import * as z from "zod/v4";
-import { PARTNER_SEARCH_CANDIDATE_LIMIT } from "./constants";
-import { PartnerSearchCandidateQuery } from "./types";
+import {
+  PARTNER_SEARCH_CANDIDATE_LIMIT,
+  PartnerSearchCandidateQuery,
+} from "./types";
 
 export type PartnerSearchQueryInput = z.infer<
   typeof getPartnersQuerySchemaExtended

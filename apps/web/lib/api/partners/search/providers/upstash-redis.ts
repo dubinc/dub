@@ -5,7 +5,6 @@ import {
   type InferFilterFromSchema,
   type SearchIndex,
 } from "@upstash/redis";
-import { validatePartnerSearchCandidateLimit } from "../constants";
 import {
   getPartnerSearchableValues,
   normalizePartnerSearchQuery,
@@ -15,6 +14,7 @@ import type {
   PartnerSearchDocument,
   PartnerSearchProvider,
 } from "../types";
+import { validatePartnerSearchCandidateLimit } from "../types";
 
 const DEFAULT_INDEX_NAME = "partner-search-v1";
 const TRANSIENT_RETRY_ATTEMPTS = 2;

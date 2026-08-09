@@ -1,5 +1,19 @@
 import { PlatformType } from "@prisma/client";
 
+export const PARTNER_SEARCH_CANDIDATE_LIMIT = 100;
+
+export function validatePartnerSearchCandidateLimit(limit: number) {
+  if (
+    !Number.isSafeInteger(limit) ||
+    limit <= 0 ||
+    limit > PARTNER_SEARCH_CANDIDATE_LIMIT
+  ) {
+    throw new Error(
+      `Partner search candidate limit must be between 1 and ${PARTNER_SEARCH_CANDIDATE_LIMIT}.`,
+    );
+  }
+}
+
 /**
  * Program enrollment data stored in the partner search index.
  * The database remains the source of truth, so every field must be rebuildable.

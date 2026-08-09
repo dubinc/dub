@@ -1,12 +1,12 @@
 import { chunk } from "@dub/utils";
 import { Search } from "@upstash/search";
-import { validatePartnerSearchCandidateLimit } from "../constants";
 import { normalizePartnerSearchQuery } from "../searchable-values";
 import type {
   PartnerSearchCandidateQuery,
   PartnerSearchDocument,
   PartnerSearchProvider,
 } from "../types";
+import { validatePartnerSearchCandidateLimit } from "../types";
 
 const DEFAULT_INDEX_NAME = "partner-search-v1";
 const WRITE_BATCH_SIZE = 100;
