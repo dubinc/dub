@@ -7,18 +7,12 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "resolveJsonModule": true,
-    "types": [
-      "node"
-    ],
+    "types": ["node"],
     "baseUrl": "..",
     "paths": {
-      "@/*": [
-        "./*"
-      ]
+      "@/*": ["./*"]
     }
   },
-  "include": [
-    "./**/*.ts",
-    "../global-setup.ts"
-  ]
+  "include": ["./**/*.ts"],
+  "exclude": ["node_modules"]
 }

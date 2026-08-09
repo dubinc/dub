@@ -9,7 +9,7 @@ const workspaceBaseURL = "http://localhost:8888";
 const partnersBaseURL = "http://partners.localhost:8888";
 
 export default defineConfig({
-  globalSetup: require.resolve("./global-setup"),
+  globalSetup: require.resolve("./playwright/global-setup"),
   testDir: "./playwright",
   fullyParallel: false,
   forbidOnly: !!process.env.CI,
