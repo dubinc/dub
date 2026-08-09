@@ -362,7 +362,7 @@ async function main() {
 
   // Step 3: Build the stable namespace shared by every generated chunk.
   // Pre-compute the password hash for 'password' once to avoid computing
-  // 100,000 separate bcrypt hashes during seeding.
+  // a separate bcrypt hash for every generated partner.
   const passwordHash = await hashPassword("password");
   const seedNamespace = `${program.id}:${seed}`;
   const seedFingerprint = createHash("sha256")
@@ -409,7 +409,7 @@ async function main() {
 
 main()
   .catch((e) => {
-    console.error("❌ Error running 100K partner seed script:", e);
+    console.error("❌ Error running partner seed script:", e);
     process.exit(1);
   })
   .finally(async () => {

@@ -112,6 +112,17 @@ interface CreateUpstashRedisPartnerSearchProviderOptions {
   indexName?: string;
 }
 
+function logPartnerSearchDebug(
+  operation: "search" | "count" | "groupBy",
+  details: Record<string, unknown>,
+) {
+  if (process.env.PARTNER_SEARCH_DEBUG !== "true") {
+    return;
+  }
+
+  console.log(`[Partner Search Debug] Upstash ${operation}`, details);
+}
+
 function getIndexName(indexName?: string): string {
   return (
     indexName ??
@@ -652,11 +663,25 @@ export function createUpstashRedisPartnerSearchProvider({
           ...(orderBy && { orderBy }),
         }),
       );
+      const hits = results.map(({ key, data, score }) => ({
+        key,
+        id: data.id,
+        partnerId: data.partnerId,
+        score,
+      }));
+
+      logPartnerSearchDebug("search", {
+        indexName: resolvedIndexName,
+        query,
+        filter,
+        resultCount: hits.length,
+        hits,
+      });
 
       return {
-        hits: results.map(({ data, score }) => ({
-          id: data.id,
-          partnerId: data.partnerId,
+        hits: hits.map(({ id, partnerId, score }) => ({
+          id,
+          partnerId,
           score,
         })),
       };
@@ -666,6 +691,13 @@ export function createUpstashRedisPartnerSearchProvider({
       const result = await withQueryDeadline(() =>
         queryIndex.count({ filter: buildUpstashFilter(query) }),
       );
+
+      logPartnerSearchDebug("count", {
+        indexName: resolvedIndexName,
+        query,
+        count: result.count,
+      });
+
       return result.count;
     },
 
@@ -696,13 +728,23 @@ export function createUpstashRedisPartnerSearchProvider({
         );
       }
 
-      return buckets.flatMap(({ key, docCount }) => {
+      const groups = buckets.flatMap(({ key, docCount }) => {
         const value = mapGroupValue(key);
         if (field === "referredByPartnerId" && value === null) {
           return [];
         }
         return [{ value, count: docCount }];
       });
+
+      logPartnerSearchDebug("groupBy", {
+        indexName: resolvedIndexName,
+        query,
+        field,
+        groupCount: groups.length,
+        groups,
+      });
+
+      return groups;
     },
 
     async waitForIndexing() {
