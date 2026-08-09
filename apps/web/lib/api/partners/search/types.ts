@@ -128,8 +128,17 @@ export interface PartnerSearchResult {
   hits: PartnerSearchHit[];
 }
 
+export interface PartnerSearchCandidateQuery {
+  programId: string;
+  query: string;
+  limit: number;
+}
+
 export interface PartnerSearchProvider {
   mode?: "full" | "relevance-only";
+  searchCandidates(
+    query: PartnerSearchCandidateQuery,
+  ): Promise<PartnerSearchResult>;
   search(query: PartnerSearchQuery): Promise<PartnerSearchResult>;
   count(query: PartnerSearchCountQuery): Promise<number>;
   groupBy(

@@ -6,6 +6,7 @@ vi.mock("@/lib/prisma", () => ({ prisma: {} }));
 
 function createSearchProvider(): PartnerSearchProvider {
   return {
+    searchCandidates: vi.fn(),
     search: vi.fn(),
     count: vi.fn().mockResolvedValue(2),
     groupBy: vi.fn().mockResolvedValue([{ value: "approved", count: 2 }]),

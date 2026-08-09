@@ -1,8 +1,10 @@
+import { validatePartnerSearchCandidateLimit } from "../constants";
 import {
   getPartnerSearchableValues,
   normalizePartnerSearchQuery,
 } from "../searchable-values";
 import {
+  PartnerSearchCandidateQuery,
   PartnerSearchCountQuery,
   PartnerSearchDocument,
   PartnerSearchFilters,
@@ -148,6 +150,25 @@ export function createMockPartnerSearchProvider(
   );
 
   return {
+    async searchCandidates({
+      programId,
+      query,
+      limit,
+    }: PartnerSearchCandidateQuery) {
+      validatePartnerSearchCandidateLimit(limit);
+      const matches = findMatchingDocuments(documents.values(), {
+        programId,
+        query,
+      });
+
+      return {
+        hits: matches.slice(0, limit).map((document) => ({
+          id: document.id,
+          partnerId: document.partnerId,
+        })),
+      };
+    },
+
     async search({
       programId,
       query,

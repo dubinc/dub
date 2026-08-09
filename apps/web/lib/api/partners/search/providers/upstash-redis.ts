@@ -5,11 +5,13 @@ import {
   type InferFilterFromSchema,
   type SearchIndex,
 } from "@upstash/redis";
+import { validatePartnerSearchCandidateLimit } from "../constants";
 import {
   getPartnerSearchableValues,
   normalizePartnerSearchQuery,
 } from "../searchable-values";
 import type {
+  PartnerSearchCandidateQuery,
   PartnerSearchCountQuery,
   PartnerSearchDocument,
   PartnerSearchGroup,
@@ -654,6 +656,38 @@ export function createUpstashRedisPartnerSearchProvider({
     });
 
   return {
+    async searchCandidates({
+      programId,
+      query,
+      limit,
+    }: PartnerSearchCandidateQuery) {
+      validatePartnerSearchCandidateLimit(limit);
+      const filter = buildUpstashFilter({ programId, query });
+      const results = await withQueryDeadline(() =>
+        queryIndex.query({
+          filter,
+          limit,
+          select: { id: true, partnerId: true },
+        }),
+      );
+      const hits = results.map(({ data, score }) => ({
+        id: data.id,
+        partnerId: data.partnerId,
+        score,
+      }));
+
+      logPartnerSearchDebug("search", {
+        indexName: resolvedIndexName,
+        operation: "searchCandidates",
+        query: { programId, query, limit },
+        filter,
+        resultCount: hits.length,
+        hits,
+      });
+
+      return { hits };
+    },
+
     async search(query: PartnerSearchQuery) {
       const filter = buildUpstashFilter(query);
       const offset = (query.page - 1) * query.pageSize;

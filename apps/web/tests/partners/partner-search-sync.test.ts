@@ -62,6 +62,7 @@ function createSource(id: string): PartnerSearchDocumentSource {
 
 function createProvider(): PartnerSearchProvider {
   return {
+    searchCandidates: vi.fn(),
     search: vi.fn(),
     count: vi.fn(),
     groupBy: vi.fn(),
@@ -77,7 +78,9 @@ describe("partner search document sync", () => {
   });
 
   it("does nothing when no provider is configured", async () => {
-    await syncPartnerSearchDocuments(["pge_1"]);
+    await syncPartnerSearchDocuments(["pge_1"], {
+      searchProvider: null,
+    });
 
     expect(mocks.findMany).not.toHaveBeenCalled();
   });

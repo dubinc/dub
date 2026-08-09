@@ -1,6 +1,7 @@
 import {
   createUpstashRedisPartnerSearchIndex,
   createUpstashRedisPartnerSearchProvider,
+  PARTNER_SEARCH_CANDIDATE_LIMIT,
   type PartnerSearchDocument,
   upstashPartnerSearchSchema,
 } from "@/lib/api/partners/search";
@@ -121,6 +122,43 @@ describe("Upstash Redis partner search provider", () => {
     mocks.jsonMset.mockResolvedValue("OK");
     mocks.query.mockResolvedValue([]);
     mocks.waitIndexing.mockResolvedValue(1);
+  });
+
+  it("retrieves bounded relevance candidates without business filters", async () => {
+    mocks.query.mockResolvedValue([
+      {
+        key: "test-index:partner:pge_test",
+        score: 4,
+        data: { id: document.id, partnerId: document.partnerId },
+      },
+    ]);
+    const provider = createUpstashRedisPartnerSearchProvider({
+      redisClient: createRedisMock(),
+      indexName: "test-index",
+    });
+
+    await expect(
+      provider.searchCandidates({
+        programId: document.programId,
+        query: "rafi",
+        limit: PARTNER_SEARCH_CANDIDATE_LIMIT,
+      }),
+    ).resolves.toEqual({
+      hits: [{ id: document.id, partnerId: document.partnerId, score: 4 }],
+    });
+
+    expect(mocks.query).toHaveBeenCalledWith(
+      expect.objectContaining({
+        limit: PARTNER_SEARCH_CANDIDATE_LIMIT,
+        select: { id: true, partnerId: true },
+      }),
+    );
+    const request = mocks.query.mock.calls[0]![0];
+    expect(request.offset).toBeUndefined();
+    expect(request.orderBy).toBeUndefined();
+    expect(JSON.stringify(request.filter)).toContain(
+      '"programId":{"$eq":"prog_test"}',
+    );
   });
 
   it("searches within the program and supports partial email matching", async () => {

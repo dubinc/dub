@@ -1,5 +1,9 @@
 import { chunk } from "@dub/utils";
 import { Search } from "@upstash/search";
+import {
+  PARTNER_SEARCH_CANDIDATE_LIMIT,
+  validatePartnerSearchCandidateLimit,
+} from "../constants";
 import { normalizePartnerSearchQuery } from "../searchable-values";
 import type {
   PartnerSearchCountQuery,
@@ -13,7 +17,7 @@ import type {
 
 const DEFAULT_INDEX_NAME = "partner-search-v1";
 const NULL_VALUE = "\0__null:f47ac10b-58cc-4372-a567-0e02b2c3d479__";
-const MAX_SEARCH_RESULTS = 100;
+const MAX_SEARCH_RESULTS = PARTNER_SEARCH_CANDIDATE_LIMIT;
 const WRITE_BATCH_SIZE = 100;
 const DELETE_BATCH_SIZE = 1_000;
 const WAIT_FOR_INDEXING_TIMEOUT_MS = 30_000;
@@ -474,7 +478,7 @@ export function createUpstashSearchPartnerSearchProvider({
   const index = searchIndex ?? createSearchIndex(resolvedIndexName);
   const candidateCache = new Map<string, CandidateCacheEntry>();
 
-  async function searchCandidates(
+  async function findSearchCandidates(
     query: PartnerSearchCountQuery,
     { limit, requireComplete }: { limit: number; requireComplete: boolean },
   ): Promise<UpstashSearchResult[]> {
@@ -529,7 +533,7 @@ export function createUpstashSearchPartnerSearchProvider({
       candidateCache.delete(candidateCache.keys().next().value!);
     }
 
-    const promise = searchCandidates(query, {
+    const promise = findSearchCandidates(query, {
       limit: MAX_SEARCH_RESULTS,
       requireComplete: true,
     }).catch((error) => {
@@ -545,6 +549,29 @@ export function createUpstashSearchPartnerSearchProvider({
 
   return {
     mode: "relevance-only",
+
+    async searchCandidates({ programId, query, limit }) {
+      validatePartnerSearchCandidateLimit(limit);
+      const candidates = await findSearchCandidates(
+        { programId, query },
+        { limit, requireComplete: false },
+      );
+      const hits = candidates
+        .slice(0, limit)
+        .flatMap(({ id, metadata, score }) =>
+          metadata ? [{ id, partnerId: metadata.partnerId, score }] : [],
+        );
+
+      logPartnerSearchDebug("search", {
+        indexName: resolvedIndexName,
+        operation: "searchCandidates",
+        query: { programId, query, limit },
+        resultCount: hits.length,
+        hits,
+      });
+
+      return { hits };
+    },
 
     async search(query) {
       const { sort } = query;
@@ -579,7 +606,7 @@ export function createUpstashSearchPartnerSearchProvider({
 
       // Upstash Search natively returns relevance-ranked results. Fetch enough
       // results to derive the requested page without requiring a complete set.
-      const candidates = await searchCandidates(query, {
+      const candidates = await findSearchCandidates(query, {
         limit: requestedResults,
         requireComplete: false,
       });

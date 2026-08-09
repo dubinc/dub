@@ -226,6 +226,16 @@ describe("Upstash Search partner search provider", () => {
     expect(mocks.search).toHaveBeenCalledWith(
       expect.objectContaining({ query: "drew moore", limit: 10 }),
     );
+
+    const candidates = await provider.searchCandidates({
+      programId: document.programId,
+      query: "drew moore",
+      limit: 10,
+    });
+    expect(candidates.hits).toHaveLength(10);
+    expect(mocks.search).toHaveBeenLastCalledWith(
+      expect.objectContaining({ query: "drew moore", limit: 10 }),
+    );
   });
 
   it("shares candidates across search, count, and grouping", async () => {

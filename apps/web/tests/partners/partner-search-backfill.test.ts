@@ -59,6 +59,7 @@ function createSource(id: string): PartnerSearchDocumentSource {
 
 function createProvider(): PartnerSearchProvider {
   return {
+    searchCandidates: vi.fn(),
     search: vi.fn(),
     count: vi.fn(),
     groupBy: vi.fn(),
@@ -143,6 +144,7 @@ describe("backfillPartnerSearch", () => {
     await expect(
       backfillPartnerSearch({
         programId: "prog_test",
+        searchProvider: null,
       }),
     ).rejects.toThrow("Partner search provider is not configured.");
 

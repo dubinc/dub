@@ -1,5 +1,6 @@
 import {
   createMockPartnerSearchProvider,
+  PARTNER_SEARCH_CANDIDATE_LIMIT,
   PartnerSearchDocument,
 } from "@/lib/api/partners/search";
 import { describe, expect, it } from "vitest";
@@ -65,6 +66,14 @@ describe("partner search provider contract", () => {
 
     expect(result.hits).toHaveLength(1);
     expect(result.hits[0]?.partnerId).toBe(partnerDocument.partnerId);
+
+    const candidates = await provider.searchCandidates({
+      programId: partnerDocument.programId,
+      query,
+      limit: PARTNER_SEARCH_CANDIDATE_LIMIT,
+    });
+    expect(candidates.hits).toHaveLength(1);
+    expect(candidates.hits[0]?.partnerId).toBe(partnerDocument.partnerId);
   });
 
   it("keeps search results scoped to a program", async () => {
@@ -78,6 +87,40 @@ describe("partner search provider contract", () => {
     });
 
     expect(result).toEqual({ hits: [] });
+    await expect(
+      provider.searchCandidates({
+        programId: "prog_other",
+        query: "rafi",
+        limit: PARTNER_SEARCH_CANDIDATE_LIMIT,
+      }),
+    ).resolves.toEqual({ hits: [] });
+  });
+
+  it("bounds relevance candidates to the shared provider limit", async () => {
+    const documents = Array.from(
+      { length: PARTNER_SEARCH_CANDIDATE_LIMIT + 1 },
+      (_, index) => ({
+        ...partnerDocument,
+        id: `pge_${index}`,
+        partnerId: `pn_${index}`,
+      }),
+    );
+    const provider = createMockPartnerSearchProvider(documents);
+
+    const result = await provider.searchCandidates({
+      programId: partnerDocument.programId,
+      query: "rafi",
+      limit: PARTNER_SEARCH_CANDIDATE_LIMIT,
+    });
+    expect(result.hits).toHaveLength(PARTNER_SEARCH_CANDIDATE_LIMIT);
+    expect(result.hits[0]).toEqual(expect.objectContaining({ id: "pge_0" }));
+    await expect(
+      provider.searchCandidates({
+        programId: partnerDocument.programId,
+        query: "rafi",
+        limit: PARTNER_SEARCH_CANDIDATE_LIMIT + 1,
+      }),
+    ).rejects.toThrow("must be between 1 and 100");
   });
 
   it("combines search with filters", async () => {

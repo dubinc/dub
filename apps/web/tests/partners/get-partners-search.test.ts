@@ -43,6 +43,7 @@ describe("getPartners search", () => {
       enrollment("pge_2", "pn_2"),
     ]);
     const searchProvider: PartnerSearchProvider = {
+      searchCandidates: vi.fn(),
       search: vi.fn().mockResolvedValue({
         hits: [
           { id: "pge_2", partnerId: "pn_2" },
@@ -89,6 +90,7 @@ describe("getPartners search", () => {
 
   it("propagates search provider errors", async () => {
     const searchProvider: PartnerSearchProvider = {
+      searchCandidates: vi.fn(),
       search: vi
         .fn()
         .mockRejectedValue(new Error("Provider Connection Timeout")),
