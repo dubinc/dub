@@ -16,8 +16,12 @@ export type ApiClient = {
   delete: <T>(url: string) => Promise<ApiResponse<T>>;
 };
 
-function loadApiAuth(): { token: string } {
-  return JSON.parse(readFileSync(authFile, "utf-8")) as { token: string };
+function loadApiAuth() {
+  return JSON.parse(readFileSync(authFile, "utf-8")) as {
+    token: string;
+    workspaceId: string;
+    workspaceSlug: string;
+  };
 }
 
 function createApiClient(request: APIRequestContext): ApiClient {
@@ -41,7 +45,10 @@ function createApiClient(request: APIRequestContext): ApiClient {
   };
 }
 
-export const test = base.extend<{ api: ApiClient }>({
+export const test = base.extend<{
+  api: ApiClient;
+  workspace: { id: string; slug: string };
+}>({
   // Authenticated API request context (token from globalSetup → .auth/api.json).
   request: async ({ playwright, baseURL }, use) => {
     const { token } = loadApiAuth();
@@ -58,5 +65,10 @@ export const test = base.extend<{ api: ApiClient }>({
 
   api: async ({ request }, use) => {
     await use(createApiClient(request));
+  },
+
+  workspace: async ({}, use) => {
+    const { workspaceId, workspaceSlug } = loadApiAuth();
+    await use({ id: workspaceId, slug: workspaceSlug });
   },
 });
