@@ -52,8 +52,8 @@ const mocks = vi.hoisted(() => ({
   index: vi.fn(),
   jsonMget: vi.fn(),
   jsonMset: vi.fn(),
+  multi: vi.fn(),
   query: vi.fn(),
-  scan: vi.fn(),
   waitIndexing: vi.fn(),
 }));
 
@@ -71,7 +71,6 @@ function createRedisMock(): Redis {
 
   const redisMock = {
     del: mocks.del,
-    scan: mocks.scan,
     json: {
       mget: mocks.jsonMget,
       mset: mocks.jsonMset,
@@ -80,7 +79,8 @@ function createRedisMock(): Redis {
       createIndex: mocks.createIndex,
       index: mocks.index,
     },
-    pipeline() {
+    multi() {
+      mocks.multi();
       const commands: Array<() => void> = [];
       return {
         del: (...args: unknown[]) => {
@@ -120,7 +120,6 @@ describe("Upstash Redis partner search provider", () => {
     mocks.jsonMget.mockResolvedValue([]);
     mocks.jsonMset.mockResolvedValue("OK");
     mocks.query.mockResolvedValue([]);
-    mocks.scan.mockResolvedValue([0, []]);
     mocks.waitIndexing.mockResolvedValue(1);
   });
 
@@ -276,6 +275,7 @@ describe("Upstash Redis partner search provider", () => {
 
     await provider.upsert([document]);
 
+    expect(mocks.multi).toHaveBeenCalledOnce();
     expect(mocks.del).toHaveBeenCalledWith("test-index:tag:pge_test:ptag_old");
     expect(mocks.del.mock.invocationCallOrder[0]).toBeLessThan(
       mocks.jsonMset.mock.invocationCallOrder[0]!,
@@ -305,12 +305,8 @@ describe("Upstash Redis partner search provider", () => {
   });
 
   it("deletes the partner document and its tag shadow documents", async () => {
-    mocks.scan.mockResolvedValue([
-      0,
-      [
-        "test-index:tag:pge_test:ptag_one",
-        "test-index:tag:pge_test:ptag_two",
-      ],
+    mocks.jsonMget.mockResolvedValue([
+      [{ partnerTagIdsRaw: ["ptag_one", "ptag_two"] }],
     ]);
     const provider = createUpstashRedisPartnerSearchProvider({
       redisClient: createRedisMock(),
@@ -319,10 +315,10 @@ describe("Upstash Redis partner search provider", () => {
 
     await provider.delete([document.id]);
 
-    expect(mocks.scan).toHaveBeenCalledWith(0, {
-      match: "test-index:tag:pge_test:*",
-      count: 100,
-    });
+    expect(mocks.jsonMget).toHaveBeenCalledWith(
+      ["test-index:partner:pge_test"],
+      "$",
+    );
     expect(mocks.del).toHaveBeenCalledWith(
       "test-index:partner:pge_test",
       "test-index:tag:pge_test:ptag_one",
@@ -357,14 +353,20 @@ describe("Upstash Redis partner search provider", () => {
   });
 
   it("waits for pending index updates", async () => {
+    vi.useFakeTimers();
     const provider = createUpstashRedisPartnerSearchProvider({
       redisClient: createRedisMock(),
       indexName: "test-index",
     });
 
-    await provider.waitForIndexing();
+    try {
+      await provider.waitForIndexing();
 
-    expect(mocks.waitIndexing).toHaveBeenCalledOnce();
+      expect(mocks.waitIndexing).toHaveBeenCalledOnce();
+      expect(vi.getTimerCount()).toBe(0);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it("creates the index explicitly with the partner-search prefix", async () => {

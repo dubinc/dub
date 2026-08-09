@@ -186,8 +186,6 @@ function getQueryNgrams(query: string): string[] {
   );
 }
 
-
-
 function serializeUpstashDocument(
   document: PartnerSearchDocument,
   documentType: typeof DOCUMENT_TYPE_PARTNER | typeof DOCUMENT_TYPE_TAG,
@@ -298,10 +296,10 @@ function buildUpstashFilter(
     "groupId" | "country" | "partnerTagIds",
     PartnerSearchListFilter | undefined,
   ][] = [
-      ["groupId", filters?.groupIds],
-      ["country", filters?.countries],
-      ["partnerTagIds", filters?.partnerTagIds],
-    ];
+    ["groupId", filters?.groupIds],
+    ["country", filters?.countries],
+    ["partnerTagIds", filters?.partnerTagIds],
+  ];
 
   for (const [field, listFilter] of listFilters) {
     if (!listFilter) {
@@ -503,38 +501,18 @@ async function upsertDocumentBatch(
   );
   const upsertEntries = getUpsertEntries(indexName, documents);
 
-  // Pipeline the stale tag cleanup and document upsert into a single
-  // atomic call so a crash between the two cannot leave orphaned state.
+  // Keep stale tag cleanup and document upserts in one transaction so another
+  // synchronization cannot modify the same keys between these operations
   await withTransientRetry(async () => {
-    const pipeline = redisClient.pipeline();
+    const transaction = redisClient.multi();
 
     if (staleTagDocumentKeys.length > 0) {
-      pipeline.del(...staleTagDocumentKeys);
+      transaction.del(...staleTagDocumentKeys);
     }
 
-    pipeline.json.mset(...upsertEntries);
-    await pipeline.exec();
+    transaction.json.mset(...upsertEntries);
+    await transaction.exec();
   });
-}
-
-async function scanTagKeys(
-  redisClient: Redis,
-  indexName: string,
-  documentId: string,
-): Promise<string[]> {
-  const pattern = `${getDocumentPrefix(indexName)}tag:${documentId}:*`;
-  const keys: string[] = [];
-  let cursor = 0;
-
-  do {
-    const [nextCursor, batch] = await withTransientRetry(() =>
-      redisClient.scan(cursor, { match: pattern, count: 100 }),
-    );
-    cursor = nextCursor;
-    keys.push(...batch);
-  } while (cursor !== 0);
-
-  return keys;
 }
 
 async function deleteDocumentBatch(
@@ -542,22 +520,25 @@ async function deleteDocumentBatch(
   indexName: string,
   documentIds: string[],
 ) {
-  // Discover tag shadow keys via SCAN instead of reading document contents,
-  // saving a JSON.MGET round-trip per batch.
-  const tagKeys = (
-    await Promise.all(
-      documentIds.map((id) => scanTagKeys(redisClient, indexName, id)),
-    )
-  ).flat();
-
-  const partnerKeys = documentIds.map((id) =>
-    getDocumentKey(indexName, id),
+  // Read the batch once and derive exact tag keys rather than scanning the
+  // entire Redis keyspace for each partner
+  const storedDocuments = await getStoredDocuments(
+    redisClient,
+    indexName,
+    documentIds,
+  );
+  const tagDocumentKeys = storedDocuments.flatMap((document, index) =>
+    (document?.partnerTagIdsRaw ?? []).map((partnerTagId) =>
+      getTagDocumentKey(indexName, documentIds[index]!, partnerTagId),
+    ),
   );
 
-  const allKeys = [...partnerKeys, ...tagKeys];
-  if (allKeys.length > 0) {
-    await withTransientRetry(() => redisClient.del(...allKeys));
-  }
+  await withTransientRetry(() =>
+    redisClient.del(
+      ...documentIds.map((documentId) => getDocumentKey(indexName, documentId)),
+      ...tagDocumentKeys,
+    ),
+  );
 }
 
 export async function createUpstashRedisPartnerSearchIndex({
@@ -617,8 +598,8 @@ export function createUpstashRedisPartnerSearchProvider({
       const offset = (query.page - 1) * query.pageSize;
       const orderBy = query.sort
         ? ({
-          [query.sort.field]: query.sort.order.toUpperCase(),
-        } as Record<string, "ASC" | "DESC">)
+            [query.sort.field]: query.sort.order.toUpperCase(),
+          } as Record<string, "ASC" | "DESC">)
         : undefined;
 
       const results = await withTransientRetry(() =>
@@ -684,8 +665,9 @@ export function createUpstashRedisPartnerSearchProvider({
     },
 
     async waitForIndexing() {
-      const timeout = new Promise<never>((_, reject) =>
-        setTimeout(
+      let timeoutId: ReturnType<typeof setTimeout> | undefined;
+      const timeout = new Promise<never>((_, reject) => {
+        timeoutId = setTimeout(
           () =>
             reject(
               new Error(
@@ -693,13 +675,18 @@ export function createUpstashRedisPartnerSearchProvider({
               ),
             ),
           WAIT_FOR_INDEXING_TIMEOUT_MS,
-        ),
-      );
+        );
+      });
 
-      const result = await Promise.race([
-        withTransientRetry(() => writeIndex.waitIndexing()),
-        timeout,
-      ]);
+      let result: number;
+      try {
+        result = await Promise.race([
+          withTransientRetry(() => writeIndex.waitIndexing()),
+          timeout,
+        ]);
+      } finally {
+        clearTimeout(timeoutId);
+      }
 
       if (result === 0) {
         throw new Error(
