@@ -129,6 +129,7 @@ export interface PartnerSearchResult {
 }
 
 export interface PartnerSearchProvider {
+  mode?: "full" | "relevance-only";
   search(query: PartnerSearchQuery): Promise<PartnerSearchResult>;
   count(query: PartnerSearchCountQuery): Promise<number>;
   groupBy(

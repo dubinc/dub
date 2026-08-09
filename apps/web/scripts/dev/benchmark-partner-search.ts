@@ -251,6 +251,7 @@ async function main() {
   }
 
   const searchCases = await loadSearchCases(options.programId);
+  const relevanceOnly = searchProvider.mode === "relevance-only";
 
   const runSearch = async (index: number): Promise<BenchmarkResult> => {
     const searchCase = searchCases[index % searchCases.length];
@@ -259,7 +260,9 @@ async function main() {
       search: searchCase.query,
       page: 1,
       pageSize: options.pageSize,
-      sortBy: "totalSaleAmount" as const,
+      sortBy: relevanceOnly
+        ? ("relevance" as const)
+        : ("totalSaleAmount" as const),
       sortOrder: "desc" as const,
     };
     const startedAt = performance.now();
@@ -267,7 +270,9 @@ async function main() {
     try {
       const [partners, count] = await Promise.all([
         getPartners(filters, { searchProvider }),
-        getPartnersCount<number>(filters, { searchProvider }),
+        relevanceOnly
+          ? Promise.resolve(null)
+          : getPartnersCount<number>(filters, { searchProvider }),
       ]);
 
       if (partners.length === 0 || count === 0) {
@@ -296,7 +301,9 @@ async function main() {
     `${options.requests.toLocaleString()} measured requests, ${options.warmupRequests.toLocaleString()} warm-up requests, concurrency ${options.concurrency}`,
   );
   console.log(
-    `Each request runs the partner list and count paths in parallel across ${searchCases.length} search cases.`,
+    relevanceOnly
+      ? `Each request runs the relevance-ranked partner list path across ${searchCases.length} search cases.`
+      : `Each request runs the partner list and count paths in parallel across ${searchCases.length} search cases.`,
   );
 
   const warmupResults = await runWithConcurrency(

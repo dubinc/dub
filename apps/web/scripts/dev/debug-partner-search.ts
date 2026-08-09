@@ -167,25 +167,28 @@ async function main() {
   const providerName = process.env.PARTNER_SEARCH_PROVIDER?.trim();
   const filters = status ? { status } : undefined;
   const baseQuery = { programId, query, filters };
+  const relevanceOnly = searchProvider.mode === "relevance-only";
   const startedAt = performance.now();
 
   // Step 1: Compare relevance ranking with the website's field-sorted query
-  const [matchingDocuments, relevanceResult, sortedResult] = await Promise.all([
-    searchProvider.count(baseQuery),
-    searchProvider.search({
-      ...baseQuery,
-      page: 1,
-      pageSize: limit,
-    }),
-    searchProvider.search({
-      ...baseQuery,
-      page: 1,
-      pageSize: limit,
-      sort: { field: sortBy, order: sortOrder },
-    }),
-  ]);
+  const relevanceResult = await searchProvider.search({
+    ...baseQuery,
+    page: 1,
+    pageSize: limit,
+  });
+  const [matchingDocuments, sortedResult] = relevanceOnly
+    ? ([null, null] as const)
+    : await Promise.all([
+        searchProvider.count(baseQuery),
+        searchProvider.search({
+          ...baseQuery,
+          page: 1,
+          pageSize: limit,
+          sort: { field: sortBy, order: sortOrder },
+        }),
+      ]);
 
-  const allHits = [...relevanceResult.hits, ...sortedResult.hits];
+  const allHits = [...relevanceResult.hits, ...(sortedResult?.hits ?? [])];
 
   // Step 2: Build the canonical search documents from the database for comparison
   const databaseDocuments = await getDatabaseDocuments(allHits);
@@ -197,12 +200,17 @@ async function main() {
     query,
     normalizedQuery: normalizePartnerSearchQuery(query),
     status: status ?? "all",
-    matchingDocuments,
+    matchingDocuments: matchingDocuments ?? "not supported",
     elapsedMs: (performance.now() - startedAt).toFixed(1),
   });
   console.log(
     "Provider scores are provider-defined. Compare result order and database values across providers.",
   );
+  if (relevanceOnly) {
+    console.log(
+      "This provider supports relevance results only, so exact count and explicit field-order comparisons were skipped.",
+    );
+  }
 
   reportResults({
     label: "Provider relevance order",
@@ -211,13 +219,15 @@ async function main() {
     sortBy,
     normalizedQuery: normalizePartnerSearchQuery(query),
   });
-  reportResults({
-    label: `${sortBy} ${sortOrder} — explicit field order`,
-    hits: sortedResult.hits,
-    databaseDocuments,
-    sortBy,
-    normalizedQuery: normalizePartnerSearchQuery(query),
-  });
+  if (sortedResult) {
+    reportResults({
+      label: `${sortBy} ${sortOrder} — explicit field order`,
+      hits: sortedResult.hits,
+      databaseDocuments,
+      sortBy,
+      normalizedQuery: normalizePartnerSearchQuery(query),
+    });
+  }
 }
 
 main()
