@@ -1,7 +1,6 @@
 import { createId } from "@/lib/api/create-id";
 import { hashToken } from "@/lib/auth/hash-token";
 import { prisma } from "@/lib/prisma";
-import { nanoid } from "@dub/utils";
 import { config as loadEnv } from "dotenv-flow";
 import { mkdir, writeFile } from "fs/promises";
 import path from "path";
@@ -21,6 +20,7 @@ export const TEST_WORKSPACE = {
   },
   token: {
     name: "Playwright API",
+    value: "dub_playwright_api_test_key_fixed", // Fixed local/CI-only key
   },
 } as const;
 
@@ -106,19 +106,22 @@ export async function setupTestWorkspace() {
     },
   });
 
-  const token = `dub_${nanoid(24)}`;
+  const token = TEST_WORKSPACE.token.value;
   const hashedKey = await hashToken(token);
   const partialKey = `${token.slice(0, 3)}...${token.slice(-4)}`;
 
-  // Drop any prior tokens with this name (including orphaned rows from bad seeds)
-  await prisma.restrictedToken.deleteMany({
+  await prisma.restrictedToken.upsert({
     where: {
-      name: TEST_WORKSPACE.token.name,
+      hashedKey,
     },
-  });
-
-  await prisma.restrictedToken.create({
-    data: {
+    update: {
+      name: TEST_WORKSPACE.token.name,
+      partialKey,
+      userId: user.id,
+      projectId: workspace.id,
+      scopes: "apis.all",
+    },
+    create: {
       name: TEST_WORKSPACE.token.name,
       hashedKey,
       partialKey,
