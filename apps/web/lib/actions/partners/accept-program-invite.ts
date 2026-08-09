@@ -3,7 +3,6 @@
 import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
 import { triggerDraftBountySubmissionCreation } from "@/lib/bounty/api/trigger-draft-bounty-submissions";
 import { generateDiscountCodeForPartner } from "@/lib/discounts/generate-discount-code-for-partner";
-import { enqueuePartnerSearchSyncJob } from "@/lib/jobs/handlers/partner-search-sync-job";
 import { prisma } from "@/lib/prisma";
 import { polyfillSocialMediaFields } from "@/lib/social-utils";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
@@ -43,12 +42,6 @@ export const acceptProgramInviteAction = authPartnerActionClient
         },
       },
     });
-
-    waitUntil(
-      enqueuePartnerSearchSyncJob({
-        documentIds: [enrollment.id],
-      }),
-    );
 
     waitUntil(
       (async () => {

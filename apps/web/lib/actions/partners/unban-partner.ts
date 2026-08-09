@@ -3,7 +3,6 @@
 import { trackActivityLog } from "@/lib/api/activity-log/track-activity-log";
 import { getGroupOrThrow } from "@/lib/api/groups/get-group-or-throw";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
-import { enqueuePartnerSearchSyncJob } from "@/lib/jobs/handlers/partner-search-sync-job";
 import { unbanPartnerJob } from "@/lib/jobs/handlers/unban-partner-job";
 import { prisma } from "@/lib/prisma";
 import { banPartnerSchema } from "@/lib/zod/schemas/partners";
@@ -78,12 +77,6 @@ export const unbanPartnerAction = authActionClient
         },
       }),
     ]);
-
-    waitUntil(
-      enqueuePartnerSearchSyncJob({
-        documentIds: [programEnrollment.id],
-      }),
-    );
 
     await unbanPartnerJob.dispatch(
       {

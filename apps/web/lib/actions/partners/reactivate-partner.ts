@@ -4,7 +4,6 @@ import { trackActivityLog } from "@/lib/api/activity-log/track-activity-log";
 import { getGroupOrThrow } from "@/lib/api/groups/get-group-or-throw";
 import { linkCache } from "@/lib/api/links/cache";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
-import { enqueuePartnerSearchSyncJob } from "@/lib/jobs/handlers/partner-search-sync-job";
 import { prisma } from "@/lib/prisma";
 import { deactivatePartnerSchema } from "@/lib/zod/schemas/partners";
 import { waitUntil } from "@vercel/functions";
@@ -72,12 +71,6 @@ export const reactivatePartnerAction = authActionClient
         },
       }),
     ]);
-
-    waitUntil(
-      enqueuePartnerSearchSyncJob({
-        documentIds: [programEnrollment.id],
-      }),
-    );
 
     waitUntil(
       (async () => {

@@ -145,11 +145,16 @@ export async function rejectPartner({
 
   const { partner, program } = programEnrollment;
 
-  waitUntil(
-    Promise.allSettled([
+  if (reapplicationTimeframe === "instant") {
+    waitUntil(
       enqueuePartnerSearchSyncJob({
         documentIds: [programEnrollment.id],
       }),
+    );
+  }
+
+  waitUntil(
+    Promise.allSettled([
       trackActivityLog({
         workspaceId: workspace.id,
         programId,

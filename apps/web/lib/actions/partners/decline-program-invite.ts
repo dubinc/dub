@@ -1,8 +1,6 @@
 "use server";
 
-import { enqueuePartnerSearchSyncJob } from "@/lib/jobs/handlers/partner-search-sync-job";
 import { prisma } from "@/lib/prisma";
-import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
 import { authPartnerActionClient } from "../safe-action";
 
@@ -16,7 +14,7 @@ export const declineProgramInviteAction = authPartnerActionClient
     const { partner } = ctx;
     const { programId } = parsedInput;
 
-    const enrollment = await prisma.programEnrollment.update({
+    await prisma.programEnrollment.update({
       where: {
         partnerId_programId: {
           partnerId: partner.id,
@@ -28,10 +26,4 @@ export const declineProgramInviteAction = authPartnerActionClient
         status: "declined",
       },
     });
-
-    waitUntil(
-      enqueuePartnerSearchSyncJob({
-        documentIds: [enrollment.id],
-      }),
-    );
   });

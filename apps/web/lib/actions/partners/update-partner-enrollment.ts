@@ -6,7 +6,6 @@ import { includeTags } from "@/lib/api/links/include-tags";
 import { throwIfExistingTenantEnrollmentExists } from "@/lib/api/partners/throw-if-existing-tenant-id-exists";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
-import { enqueuePartnerSearchSyncJob } from "@/lib/jobs/handlers/partner-search-sync-job";
 import { prisma } from "@/lib/prisma";
 import { recordLink } from "@/lib/tinybird";
 import { waitUntil } from "@vercel/functions";
@@ -95,9 +94,6 @@ export const updatePartnerEnrollmentAction = authActionClient
 
     waitUntil(
       Promise.allSettled([
-        enqueuePartnerSearchSyncJob({
-          documentIds: [programEnrollment.id],
-        }),
         recordLink(programEnrollment.links),
         recordAuditLog({
           workspaceId: workspace.id,

@@ -5,7 +5,6 @@ import { getGroupOrThrow } from "@/lib/api/groups/get-group-or-throw";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { trackApplicationEvents } from "@/lib/application-events/update-application-event";
 import { triggerQStashWorkflow } from "@/lib/cron/qstash-workflow";
-import { enqueuePartnerSearchSyncJob } from "@/lib/jobs/handlers/partner-search-sync-job";
 import { throwIfPartnersLimitExceeded } from "@/lib/partners/throw-if-partners-limit-exceeded";
 import { prisma } from "@/lib/prisma";
 import { bulkApprovePartnersSchema } from "@/lib/zod/schemas/partners";
@@ -110,12 +109,6 @@ export const bulkApprovePartnersAction = authActionClient
         });
       }
     });
-
-    waitUntil(
-      enqueuePartnerSearchSyncJob({
-        documentIds: programEnrollments.map(({ id }) => id),
-      }),
-    );
 
     waitUntil(
       (async () => {

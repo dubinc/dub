@@ -1,4 +1,3 @@
-import { enqueuePartnerSearchSyncJob } from "@/lib/jobs/handlers/partner-search-sync-job";
 import { prisma } from "@/lib/prisma";
 import { publishPartnerActivityEvent } from "@/lib/upstash/redis-streams/partner-activity";
 
@@ -58,10 +57,6 @@ export const syncTotalCommissions = async ({
     const programEnrollment = await aggregateAndUpdateTotalCommissions({
       partnerId,
       programId,
-    });
-
-    await enqueuePartnerSearchSyncJob({
-      documentIds: [programEnrollment.id],
     });
 
     return programEnrollment;

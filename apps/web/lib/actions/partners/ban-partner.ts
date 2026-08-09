@@ -6,7 +6,6 @@ import { resolveFraudGroups } from "@/lib/api/fraud/resolve-fraud-groups";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { qstash } from "@/lib/cron";
-import { enqueuePartnerSearchSyncJob } from "@/lib/jobs/handlers/partner-search-sync-job";
 import { prisma } from "@/lib/prisma";
 import { UserProps, WorkspaceProps } from "@/lib/types";
 import { banPartnerSchema } from "@/lib/zod/schemas/partners";
@@ -117,9 +116,6 @@ export const banPartner = async ({
 
   waitUntil(
     Promise.allSettled([
-      enqueuePartnerSearchSyncJob({
-        documentIds: [programEnrollmentUpdated.id],
-      }),
       trackActivityLog({
         workspaceId: workspace.id,
         programId,

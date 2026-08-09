@@ -2,7 +2,6 @@
 
 import { trackActivityLog } from "@/lib/api/activity-log/track-activity-log";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
-import { enqueuePartnerSearchSyncJob } from "@/lib/jobs/handlers/partner-search-sync-job";
 import { prisma } from "@/lib/prisma";
 import {
   ACTIVE_ENROLLMENT_STATUSES,
@@ -67,9 +66,6 @@ export const bulkArchivePartnersAction = authActionClient
 
     waitUntil(
       Promise.allSettled([
-        enqueuePartnerSearchSyncJob({
-          documentIds: programEnrollments.map(({ id }) => id),
-        }),
         trackActivityLog(
           programEnrollments.map(({ partnerId, status }) => ({
             workspaceId: workspace.id,

@@ -254,6 +254,19 @@ export const updatePartnerProfileAction = authPartnerActionClient
         });
       }
 
+      const searchableProfileChanged = !deepEqual(
+        {
+          name: partner.name,
+          companyName: partner.companyName,
+          description: partner.description,
+        },
+        {
+          name: updatedPartner.name,
+          companyName: updatedPartner.companyName,
+          description: updatedPartner.description,
+        },
+      );
+
       waitUntil(
         Promise.allSettled([
           (async () => {
@@ -279,9 +292,13 @@ export const updatePartnerProfileAction = authPartnerActionClient
               },
             });
           })(),
-          enqueuePartnerSearchSyncJob({
-            partnerIds: [partner.id],
-          }),
+          ...(searchableProfileChanged
+            ? [
+                enqueuePartnerSearchSyncJob({
+                  partnerIds: [partner.id],
+                }),
+              ]
+            : []),
         ]),
       );
 

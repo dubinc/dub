@@ -1,6 +1,5 @@
 import { triggerDraftBountySubmissionCreation } from "@/lib/bounty/api/trigger-draft-bounty-submissions";
 import { qstash } from "@/lib/cron";
-import { enqueuePartnerSearchSyncJob } from "@/lib/jobs/handlers/partner-search-sync-job";
 import { prisma } from "@/lib/prisma";
 import { recordLink } from "@/lib/tinybird";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
@@ -95,12 +94,6 @@ export async function movePartnersToGroup({
   if (count === 0) {
     return 0;
   }
-
-  waitUntil(
-    enqueuePartnerSearchSyncJob({
-      documentIds: programEnrollments.map(({ id }) => id),
-    }),
-  );
 
   waitUntil(
     (async () => {

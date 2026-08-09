@@ -4,7 +4,6 @@ import { trackActivityLog } from "@/lib/api/activity-log/track-activity-log";
 import { resolveFraudGroups } from "@/lib/api/fraud/resolve-fraud-groups";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { trackApplicationEvents } from "@/lib/application-events/update-application-event";
-import { enqueuePartnerSearchSyncJob } from "@/lib/jobs/handlers/partner-search-sync-job";
 import { prisma } from "@/lib/prisma";
 import { bulkRejectPartnersSchema } from "@/lib/zod/schemas/partners";
 import { sendBatchEmail } from "@dub/email";
@@ -86,12 +85,6 @@ export const bulkRejectPartnerApplicationsAction = authActionClient
         });
       }
     });
-
-    waitUntil(
-      enqueuePartnerSearchSyncJob({
-        documentIds: programEnrollments.map(({ id }) => id),
-      }),
-    );
 
     waitUntil(
       (async () => {
