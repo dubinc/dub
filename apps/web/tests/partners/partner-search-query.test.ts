@@ -1,4 +1,7 @@
-import { buildPartnerSearchQuery } from "@/lib/api/partners/search";
+import {
+  buildPartnerSearchCandidateQuery,
+  buildPartnerSearchQuery,
+} from "@/lib/api/partners/search";
 import { describe, expect, it } from "vitest";
 
 const defaultInput = {
@@ -11,6 +14,20 @@ const defaultInput = {
 };
 
 describe("buildPartnerSearchQuery", () => {
+  it("builds a provider-neutral relevance candidate request", () => {
+    expect(
+      buildPartnerSearchCandidateQuery({
+        ...defaultInput,
+        status: "approved",
+        country: ["CA"],
+      }),
+    ).toEqual({
+      programId: "prog_test",
+      query: "examp",
+      limit: 100,
+    });
+  });
+
   it("maps API pagination, filters, ranges, and sorting", () => {
     expect(
       buildPartnerSearchQuery({
@@ -76,5 +93,6 @@ describe("buildPartnerSearchQuery", () => {
     ["tenant ID", { ...defaultInput, tenantId: "tenant_test" }],
   ])("keeps %s on the database path", (_name, input) => {
     expect(buildPartnerSearchQuery(input)).toBeNull();
+    expect(buildPartnerSearchCandidateQuery(input)).toBeNull();
   });
 });

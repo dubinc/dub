@@ -32,30 +32,34 @@ function enrollment(id: string, partnerId: string) {
   };
 }
 
+function createSearchProvider(
+  hits: { id: string; partnerId: string }[] = [],
+): PartnerSearchProvider {
+  return {
+    searchCandidates: vi.fn().mockResolvedValue({ hits }),
+    search: vi.fn(),
+    count: vi.fn(),
+    groupBy: vi.fn(),
+    waitForIndexing: vi.fn(),
+    upsert: vi.fn(),
+    delete: vi.fn(),
+  };
+}
+
 describe("getPartners search", () => {
   beforeEach(() => {
     mocks.findMany.mockReset();
   });
 
-  it("hydrates provider hits from the database in provider order", async () => {
+  it("lets the database filter, sort, and paginate search candidates", async () => {
     mocks.findMany.mockResolvedValue([
       enrollment("pge_1", "pn_1"),
       enrollment("pge_2", "pn_2"),
     ]);
-    const searchProvider: PartnerSearchProvider = {
-      searchCandidates: vi.fn(),
-      search: vi.fn().mockResolvedValue({
-        hits: [
-          { id: "pge_2", partnerId: "pn_2" },
-          { id: "pge_1", partnerId: "pn_1" },
-        ],
-      }),
-      count: vi.fn(),
-      groupBy: vi.fn(),
-      waitForIndexing: vi.fn(),
-      upsert: vi.fn(),
-      delete: vi.fn(),
-    };
+    const searchProvider = createSearchProvider([
+      { id: "pge_2", partnerId: "pn_2" },
+      { id: "pge_1", partnerId: "pn_1" },
+    ]);
 
     const partners = await getPartners(
       {
@@ -65,41 +69,70 @@ describe("getPartners search", () => {
         pageSize: 25,
         sortBy: "totalSaleAmount",
         sortOrder: "desc",
+        status: "approved",
       },
       { searchProvider },
     );
 
-    expect(searchProvider.search).toHaveBeenCalledWith(
-      expect.objectContaining({
-        programId: "prog_test",
-        query: "examp",
-        page: 1,
-        pageSize: 25,
-      }),
-    );
+    expect(searchProvider.searchCandidates).toHaveBeenCalledWith({
+      programId: "prog_test",
+      query: "examp",
+      limit: 100,
+    });
+    expect(searchProvider.search).not.toHaveBeenCalled();
     expect(mocks.findMany).toHaveBeenCalledWith(
       expect.objectContaining({
-        where: {
+        where: expect.objectContaining({
           programId: "prog_test",
+          status: "approved",
           id: { in: ["pge_2", "pge_1"] },
-        },
+        }),
+        take: 25,
+        skip: 0,
+        orderBy: { totalSaleAmount: "desc" },
       }),
     );
-    expect(partners.map(({ id }) => id)).toEqual(["pn_2", "pn_1"]);
+    expect(partners.map(({ id }) => id)).toEqual(["pn_1", "pn_2"]);
+  });
+
+  it("restores relevance order before slicing a page", async () => {
+    mocks.findMany.mockResolvedValue([
+      enrollment("pge_3", "pn_3"),
+      enrollment("pge_1", "pn_1"),
+    ]);
+    const searchProvider = createSearchProvider([
+      { id: "pge_1", partnerId: "pn_1" },
+      { id: "pge_2", partnerId: "pn_2" },
+      { id: "pge_3", partnerId: "pn_3" },
+    ]);
+
+    const partners = await getPartners(
+      {
+        programId: "prog_test",
+        search: "examp",
+        page: 2,
+        pageSize: 1,
+        sortBy: "relevance",
+        sortOrder: "desc",
+      },
+      { searchProvider },
+    );
+
+    expect(mocks.findMany).toHaveBeenCalledWith(
+      expect.not.objectContaining({
+        take: expect.anything(),
+        skip: expect.anything(),
+        orderBy: expect.anything(),
+      }),
+    );
+    expect(partners.map(({ id }) => id)).toEqual(["pn_3"]);
   });
 
   it("propagates search provider errors", async () => {
-    const searchProvider: PartnerSearchProvider = {
-      searchCandidates: vi.fn(),
-      search: vi
-        .fn()
-        .mockRejectedValue(new Error("Provider Connection Timeout")),
-      count: vi.fn(),
-      groupBy: vi.fn(),
-      waitForIndexing: vi.fn(),
-      upsert: vi.fn(),
-      delete: vi.fn(),
-    };
+    const searchProvider = createSearchProvider();
+    vi.mocked(searchProvider.searchCandidates).mockRejectedValue(
+      new Error("Provider Connection Timeout"),
+    );
 
     await expect(
       getPartners(

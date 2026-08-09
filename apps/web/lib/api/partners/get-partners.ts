@@ -2,7 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { toCentsNumber } from "@dub/utils";
 import { buildProgramEnrollmentWhereForList } from "./program-enrollment-query";
 import {
-  buildPartnerSearchQuery,
+  buildPartnerSearchCandidateQuery,
   getPartnerSearchProvider,
   orderByPartnerSearchHits,
   PartnerSearchProvider,
@@ -32,23 +32,29 @@ export async function getPartners(
     ...enrollmentRest
   } = filters;
 
-  const searchQuery = searchProvider ? buildPartnerSearchQuery(filters) : null;
-  const searchResult =
-    searchProvider && searchQuery
-      ? await searchProvider.search(searchQuery)
+  const candidateQuery = searchProvider
+    ? buildPartnerSearchCandidateQuery(filters)
+    : null;
+  const candidateResult =
+    searchProvider && candidateQuery
+      ? await searchProvider.searchCandidates(candidateQuery)
       : null;
   const databaseSortBy = sortBy === "relevance" ? "totalSaleAmount" : sortBy;
+  const relevanceHits =
+    candidateResult && sortBy === "relevance" ? candidateResult.hits : null;
+  const enrollmentWhere = buildProgramEnrollmentWhereForList({
+    ...enrollmentRest,
+    programId,
+    ...(candidateResult ? { search: undefined } : {}),
+  });
 
   const programEnrollments = await prisma.programEnrollment.findMany({
-    where: searchResult
-      ? {
-          programId,
-          id: { in: searchResult.hits.map(({ id }) => id) },
-        }
-      : buildProgramEnrollmentWhereForList({
-          ...enrollmentRest,
-          programId,
-        }),
+    where: {
+      ...enrollmentWhere,
+      ...(candidateResult
+        ? { id: { in: candidateResult.hits.map(({ id }) => id) } }
+        : {}),
+    },
     include: {
       partner: {
         include: {
@@ -74,19 +80,22 @@ export async function getPartners(
           }
         : {}),
     },
-    ...(searchResult
-      ? {}
-      : {
+    ...(relevanceHits === null
+      ? {
           take: pageSize,
           skip: (page - 1) * pageSize,
           orderBy: {
             [databaseSortBy]: sortOrder,
           },
-        }),
+        }
+      : {}),
   });
 
-  const partners = searchResult
-    ? orderByPartnerSearchHits(programEnrollments, searchResult.hits)
+  const partners = relevanceHits
+    ? orderByPartnerSearchHits(programEnrollments, relevanceHits).slice(
+        (page - 1) * pageSize,
+        page * pageSize,
+      )
     : programEnrollments;
 
   return partners.map(

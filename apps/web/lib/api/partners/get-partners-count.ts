@@ -10,7 +10,7 @@ import {
   mergePartnerCountryAndSearchWhere,
 } from "./program-enrollment-query";
 import {
-  buildPartnerSearchCountQuery,
+  buildPartnerSearchCandidateQuery,
   getPartnerSearchProvider,
   PartnerSearchProvider,
 } from "./search";
@@ -29,35 +29,19 @@ export async function getPartnersCount<T>(
   }: { searchProvider?: PartnerSearchProvider | null } = {},
 ): Promise<T> {
   const { groupBy, programId, ...enrollmentFilters } = filters;
-  const enrollmentBase = { ...enrollmentFilters, programId };
-
-  const searchQuery = searchProvider
-    ? buildPartnerSearchCountQuery(enrollmentBase)
+  const candidateQuery = searchProvider
+    ? buildPartnerSearchCandidateQuery({ ...enrollmentFilters, programId })
     : null;
-
-  if (searchProvider && searchQuery) {
-    if (!groupBy) {
-      return (await searchProvider.count(searchQuery)) as T;
-    }
-
-    const groups = await searchProvider.groupBy(searchQuery, groupBy);
-    const results = groups
-      .sort((left, right) => right.count - left.count)
-      .map(({ value, count }) => ({
-        [groupBy]: value,
-        _count: count,
-      }));
-
-    if (groupBy === "status") {
-      for (const status of Object.values(ProgramEnrollmentStatus)) {
-        if (!results.some((result) => result.status === status)) {
-          results.push({ status, _count: 0 });
-        }
-      }
-    }
-
-    return results as T;
-  }
+  const candidateResult =
+    searchProvider && candidateQuery
+      ? await searchProvider.searchCandidates(candidateQuery)
+      : null;
+  const candidateIds = candidateResult?.hits.map(({ id }) => id);
+  const enrollmentBase = {
+    ...enrollmentFilters,
+    programId,
+    ...(candidateResult ? { search: undefined } : {}),
+  };
 
   const {
     status,
@@ -76,6 +60,7 @@ export async function getPartnersCount<T>(
   const enrollmentScope: Prisma.ProgramEnrollmentWhereInput = {
     programId,
     ...(tenantId ? { tenantId } : {}),
+    ...(candidateIds ? { id: { in: candidateIds } } : {}),
   };
 
   const partnerTagIdNotIn = partnerTagIdOperator === "NOT IN";
@@ -208,10 +193,13 @@ export async function getPartnersCount<T>(
   }
 
   if (groupBy === "partnerTagId") {
-    const enrollmentWhere = buildProgramEnrollmentWhereForList({
-      ...enrollmentBase,
-      partnerTagId: undefined,
-    });
+    const enrollmentWhere: Prisma.ProgramEnrollmentWhereInput = {
+      ...buildProgramEnrollmentWhereForList({
+        ...enrollmentBase,
+        partnerTagId: undefined,
+      }),
+      ...(candidateIds ? { id: { in: candidateIds } } : {}),
+    };
 
     const partners = await prisma.programPartnerTag.groupBy({
       by: ["partnerTagId"],
@@ -262,7 +250,10 @@ export async function getPartnersCount<T>(
 
   // Get absolute count of partners
   const count = await prisma.programEnrollment.count({
-    where: buildProgramEnrollmentWhereForList(enrollmentBase),
+    where: {
+      ...buildProgramEnrollmentWhereForList(enrollmentBase),
+      ...(candidateIds ? { id: { in: candidateIds } } : {}),
+    },
   });
 
   return count as T;
