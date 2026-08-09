@@ -158,13 +158,15 @@ describe("Upstash Redis partner search provider", () => {
     );
 
     const filter = mocks.query.mock.calls[0]![0].filter;
+    expect(filter.$must).toBeUndefined();
+    expect(filter.$should).toHaveLength(2);
     expect(JSON.stringify(filter)).toContain('"programId":{"$eq":"prog_test"}');
     expect(JSON.stringify(filter)).toContain(
       '"documentType":{"$eq":"partner"}',
     );
-    expect(JSON.stringify(filter)).toContain('"emailNgrams":"exa"');
-    expect(JSON.stringify(filter)).toContain('"emailNgrams":"xam"');
-    expect(JSON.stringify(filter)).toContain('"emailNgrams":"amp"');
+    expect(JSON.stringify(filter)).toContain('"emailNgrams":{"$eq":"exa"}');
+    expect(JSON.stringify(filter)).toContain('"emailNgrams":{"$eq":"xam"}');
+    expect(JSON.stringify(filter)).toContain('"emailNgrams":{"$eq":"amp"}');
   });
 
   it("passes list exclusions and metric ranges to Upstash", async () => {
@@ -184,13 +186,16 @@ describe("Upstash Redis partner search provider", () => {
     });
 
     const filter = mocks.count.mock.calls[0]![0].filter;
-    expect(filter.$must).toEqual(
-      expect.arrayContaining([
-        { partnerTagIds: { $in: ["ptag_test"] } },
-        { totalSaleAmount: { $gte: 100, $lte: 1_000 } },
-      ]),
-    );
-    expect(filter.$mustNot).toEqual([{ country: { $in: ["US", "CA"] } }]);
+    expect(filter.$should).toHaveLength(2);
+    for (const branch of filter.$should) {
+      expect(branch.$must).toEqual(
+        expect.arrayContaining([
+          { partnerTagIds: { $in: ["ptag_test"] } },
+          { totalSaleAmount: { $gte: 100, $lte: 1_000 } },
+        ]),
+      );
+      expect(branch.$mustNot).toEqual([{ country: { $in: ["US", "CA"] } }]);
+    }
   });
 
   it("retries a transient provider error", async () => {

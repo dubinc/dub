@@ -264,23 +264,26 @@ function buildListFilter(
     : { exclude: condition };
 }
 
-function buildTextFilter(query: string): UpstashPartnerSearchFilter {
+function buildTextAlternatives(query: string): UpstashPartnerSearchFilter[][] {
   // $smart handles word-boundary and prefix matching via the inverted index.
   // Email n-grams handle infix/substring matching (e.g. "examp" in "partner@example.com").
   // A $regex path was intentionally omitted because regex queries scan the
   // inverted index linearly, which degrades p99 latency at 100K+ documents.
-  const alternatives: UpstashPartnerSearchFilter[] = [
-    { searchText: { $smart: query } },
+  const alternatives: UpstashPartnerSearchFilter[][] = [
+    [{ searchText: { $smart: query } }],
   ];
 
   const emailNgrams = getQueryNgrams(query);
   if (emailNgrams.length > 0) {
-    alternatives.push({
-      $must: emailNgrams.map((ngram) => ({ emailNgrams: ngram })),
-    });
+    // Require exact trigrams so smart matching cannot fuzzy-match unrelated emails
+    alternatives.push(
+      emailNgrams.map((ngram) => ({
+        emailNgrams: { $eq: ngram },
+      })),
+    );
   }
 
-  return { $should: alternatives } as unknown as UpstashPartnerSearchFilter;
+  return alternatives;
 }
 
 function buildUpstashFilter(
@@ -292,7 +295,6 @@ function buildUpstashFilter(
   const must: UpstashPartnerSearchFilter[] = [
     { documentType: { $eq: documentType } },
     { programId: { $eq: programId } },
-    buildTextFilter(normalizePartnerSearchQuery(query)),
   ];
   const mustNot: UpstashPartnerSearchFilter[] = [];
 
@@ -345,9 +347,16 @@ function buildUpstashFilter(
     } as UpstashPartnerSearchFilter);
   }
 
+  // At the root, $should requires at least one text alternative to match.
+  // Combining $should with $must would make text matching an optional score
+  // boost, allowing unrelated documents through when results use orderBy.
   return {
-    $must: must,
-    ...(mustNot.length > 0 && { $mustNot: mustNot }),
+    $should: buildTextAlternatives(normalizePartnerSearchQuery(query)).map(
+      (textConditions) => ({
+        $must: [...must, ...textConditions],
+        ...(mustNot.length > 0 && { $mustNot: mustNot }),
+      }),
+    ),
   } as UpstashPartnerSearchFilter;
 }
 
