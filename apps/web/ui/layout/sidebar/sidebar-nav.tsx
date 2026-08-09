@@ -1,7 +1,6 @@
 import {
   AnimatedSizeContainer,
   ArrowUpRight2,
-  BookOpen,
   ChevronLeft,
   ClientOnly,
   Icon,
@@ -12,7 +11,7 @@ import {
 } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { ChevronDown } from "lucide-react";
-import { AnimatePresence, motion } from "motion/react";
+import { motion } from "motion/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -57,8 +56,6 @@ export type NavGroupType = {
   badge?: ReactNode;
   description: string;
   learnMoreHref?: string;
-  isDefault?: boolean;
-  onSetDefault?: () => Promise<void> | void;
 };
 
 export type SidebarNavGroups<T extends Record<any, any>> = (
@@ -280,37 +277,13 @@ function SidebarAreasPanel<T extends Record<any, any>>({
       </div>
 
       {/* Fixed bottom sections - always visible */}
-      <div className="flex flex-shrink-0 flex-col gap-2 rounded-b-xl">
-        {data.showConversionGuides && (
-          <div className="px-3 pb-2">
-            <Link
-              href={`/${data.slug}/settings/tracking`}
-              className="flex items-center gap-2 rounded-lg bg-neutral-200/75 px-2.5 py-2 text-xs text-neutral-700 transition-colors hover:bg-neutral-200"
-            >
-              <BookOpen className="size-4" />
-              Set up conversion tracking
-            </Link>
-          </div>
-        )}
-
-        <AnimatePresence>
-          {showNews && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 10 }}
-              transition={{
-                duration: 0.1,
-                ease: "easeInOut",
-              }}
-            >
-              {newsContent}
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {bottom && <div className="flex flex-col">{bottom}</div>}
-      </div>
+      <AnimatedSizeContainer
+        height
+        className="flex flex-shrink-0 flex-col gap-2 rounded-b-xl"
+      >
+        {bottom && <div className="px-3 pb-2">{bottom}</div>}
+        {showNews && newsContent}
+      </AnimatedSizeContainer>
     </div>
   );
 }
@@ -319,27 +292,21 @@ export function NavGroupTooltip({
   name,
   description,
   learnMoreHref,
-  isDefault,
-  onSetDefault,
   disabled,
   children,
 }: PropsWithChildren<{
   name: string;
   description?: string;
   learnMoreHref?: string;
-  isDefault?: boolean;
-  onSetDefault?: () => Promise<void> | void;
   disabled?: boolean;
 }>) {
-  const [settingDefault, setSettingDefault] = useState(false);
-
   return (
     <Tooltip
       side="right"
       delayDuration={100}
       disabled={disabled}
       className="rounded-lg bg-black px-3 py-1.5 text-sm font-medium text-white"
-      content={({ setOpen }) => (
+      content={
         <div>
           <span>{name}</span>
           {description && (
@@ -351,54 +318,22 @@ export function NavGroupTooltip({
             >
               <div className="w-44 py-1 text-xs tracking-tight">
                 <p className="text-content-muted">{description}</p>
-                {(learnMoreHref || onSetDefault || isDefault) && (
-                  <div className="mt-2.5 flex flex-col gap-2">
-                    {learnMoreHref && (
-                      <Link
-                        href={learnMoreHref}
-                        target="_blank"
-                        className="font-semibold text-white underline"
-                      >
-                        Learn more
-                      </Link>
-                    )}
-                    {isDefault ? (
-                      <p className="text-content-muted font-medium">
-                        Default product
-                      </p>
-                    ) : (
-                      onSetDefault && (
-                        <button
-                          type="button"
-                          disabled={settingDefault}
-                          onClick={async (e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            setSettingDefault(true);
-                            try {
-                              await onSetDefault();
-                              setOpen(false);
-                            } catch {
-                              // Error toast is handled by the caller
-                            } finally {
-                              setSettingDefault(false);
-                            }
-                          }}
-                          className="w-full rounded-md bg-white/10 px-2 py-1.5 text-left text-xs font-semibold text-white transition-colors hover:bg-white/20 disabled:cursor-not-allowed disabled:opacity-60"
-                        >
-                          {settingDefault
-                            ? "Setting default..."
-                            : "Set as default product"}
-                        </button>
-                      )
-                    )}
+                {learnMoreHref && (
+                  <div className="mt-2.5">
+                    <Link
+                      href={learnMoreHref}
+                      target="_blank"
+                      className="font-semibold text-white underline"
+                    >
+                      Learn more
+                    </Link>
                   </div>
                 )}
               </div>
             </motion.div>
           )}
         </div>
-      )}
+      }
     >
       {children}
     </Tooltip>
@@ -410,8 +345,6 @@ function NavGroupItem({
     name,
     description,
     learnMoreHref,
-    isDefault,
-    onSetDefault,
     icon: Icon,
     href,
     active,
@@ -431,8 +364,6 @@ function NavGroupItem({
         name={name}
         description={description}
         learnMoreHref={learnMoreHref}
-        isDefault={isDefault}
-        onSetDefault={onSetDefault}
       >
         <div>
           <Link

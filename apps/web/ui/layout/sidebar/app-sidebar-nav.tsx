@@ -16,6 +16,7 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { useKeyboardShortcut, useRouterStuff } from "@dub/ui";
 import {
   Bell,
+  BookOpen,
   Brush,
   ConnectedDots,
   CubeSettings,
@@ -26,6 +27,7 @@ import {
   Gear2,
   Gift,
   Globe,
+  GridPlus,
   InvoiceDollar,
   Key,
   LifeRing,
@@ -50,6 +52,7 @@ import { isWorkspaceBillingTrialActive } from "@dub/utils";
 import { DubProduct } from "@prisma/client";
 import { Session } from "next-auth";
 import { useSession } from "next-auth/react";
+import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
 import { ReactNode, useMemo } from "react";
 import { toast } from "sonner";
@@ -71,17 +74,13 @@ type SidebarNavData = {
   pathname: string;
   queryString: string;
   defaultProduct?: "program" | "links";
-  canSetDefaultProduct?: boolean;
-  onSetDefaultProduct?: (product: DubProduct) => Promise<void>;
   session?: Session | null;
-  showNews?: boolean;
   pendingPayoutsCount?: number;
   applicationsCount?: number;
   submittedBountiesCount?: number;
   unreadMessagesCount?: number;
   pendingFraudEventsCount?: number;
   pendingLeadsCount?: number;
-  showConversionGuides?: boolean;
   partnerNetworkEnabled?: boolean;
 };
 
@@ -89,8 +88,6 @@ const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({
   slug,
   pathname,
   defaultProduct,
-  canSetDefaultProduct,
-  onSetDefaultProduct,
 }) => {
   const programGroup = {
     name: "Partner Program",
@@ -105,11 +102,6 @@ const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({
       !pathname.startsWith(`/${slug}/links`) &&
       !pathname.startsWith(`/${slug}/settings`),
     popup: DubPartnersPopup,
-    isDefault: defaultProduct === "program",
-    onSetDefault:
-      canSetDefaultProduct && onSetDefaultProduct
-        ? () => onSetDefaultProduct("program")
-        : undefined,
   };
   const linksGroup = {
     name: "Short Links",
@@ -119,11 +111,6 @@ const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({
     icon: Compass,
     href: slug ? `/${slug}/links` : "/links",
     active: pathname.startsWith(`/${slug}/links`),
-    isDefault: (defaultProduct ?? "links") === "links",
-    onSetDefault:
-      canSetDefaultProduct && onSetDefaultProduct
-        ? () => onSetDefaultProduct("links")
-        : undefined,
   };
 
   return (defaultProduct ?? "links") === "links"
@@ -135,7 +122,6 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
   // partner program
   program: ({
     slug,
-    showNews,
     pendingPayoutsCount,
     applicationsCount,
     submittedBountiesCount,
@@ -145,7 +131,6 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
     partnerNetworkEnabled,
   }) => ({
     title: "Partner Program",
-    showNews,
     direction: "left",
     content: [
       {
@@ -308,9 +293,9 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
     ],
   }),
   // short links
-  links: ({ slug, pathname, queryString, showNews }) => ({
+  links: ({ slug, pathname, queryString }) => ({
     title: "Short Links",
-    showNews,
+    showNews: true,
     direction: "left",
     content: [
       {
@@ -555,6 +540,7 @@ export function AppSidebarNav({
         }
 
         await mutate(`/api/workspaces/${slug}`);
+        router.push(`/${slug}/${product}`);
       })(),
       {
         loading: "Setting default product...",
@@ -642,6 +628,28 @@ export function AppSidebarNav({
 
   const { canTrackConversions } = getPlanCapabilities(plan);
 
+  const setDefaultProductButton =
+    canSetDefaultProduct &&
+    (currentArea === "program" || currentArea === "links") &&
+    (defaultProduct ?? "links") !== currentArea ? (
+      <button
+        type="button"
+        onClick={() => onSetDefaultProduct(currentArea)}
+        className="flex w-full items-center justify-center gap-2 rounded-lg bg-neutral-200/75 px-2.5 py-2 text-xs font-medium text-neutral-700 transition-colors hover:bg-neutral-200"
+      >
+        <GridPlus className="size-4" />
+        Set as default product tab
+      </button>
+    ) : canTrackConversions && pathname.startsWith(`/${slug}/links`) ? (
+      <Link
+        href={`/${slug}/settings/tracking`}
+        className="flex w-full items-center justify-center gap-2 rounded-lg bg-neutral-200/75 px-2.5 py-2 text-xs font-medium text-neutral-700 transition-colors hover:bg-neutral-200"
+      >
+        <BookOpen className="size-4" />
+        Set up conversion tracking
+      </Link>
+    ) : null;
+
   return (
     <SidebarNav
       groups={NAV_GROUPS}
@@ -654,18 +662,13 @@ export function AppSidebarNav({
           include: ["folderId"],
         }),
         session: session || undefined,
-        showNews: true,
         defaultProduct,
-        canSetDefaultProduct,
-        onSetDefaultProduct,
         pendingPayoutsCount: pendingPayoutsCount?.[0]?.count ?? 0,
         applicationsCount,
         submittedBountiesCount,
         unreadMessagesCount,
         pendingFraudEventsCount,
         pendingLeadsCount,
-        showConversionGuides:
-          canTrackConversions && pathname.startsWith(`/${slug}/links`),
         partnerNetworkEnabled:
           program && program.partnerNetworkEnabledAt !== null,
       }}
@@ -679,6 +682,7 @@ export function AppSidebarNav({
         ))
       }
       switcher={<WorkspaceDropdown />}
+      bottom={setDefaultProductButton}
     />
   );
 }
