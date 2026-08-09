@@ -30,7 +30,11 @@ const WRITE_BATCH_SIZE = 100;
 const DOCUMENT_TYPE_PARTNER = "partner";
 const DOCUMENT_TYPE_TAG = "tag";
 
-// Upstash does not index JSON arrays as keyword fields, so tag shadow documents handle tag grouping in the same index
+// Redis Search keyword fields accept one string value rather than an array of tag IDs
+// The partner document stores tag IDs as searchable text for filtering,
+// but Redis Search cannot use that text to group and count individual tags
+// To support tag grouping, we add one shadow document per tag with a scalar
+// partnerTagId that the provider can aggregate with $terms
 export const upstashPartnerSearchSchema = s.object({
   id: s.keyword(),
   programId: s.keyword(),
@@ -292,10 +296,10 @@ function buildUpstashFilter(
     "groupId" | "country" | "partnerTagIds",
     PartnerSearchListFilter | undefined,
   ][] = [
-    ["groupId", filters?.groupIds],
-    ["country", filters?.countries],
-    ["partnerTagIds", filters?.partnerTagIds],
-  ];
+      ["groupId", filters?.groupIds],
+      ["country", filters?.countries],
+      ["partnerTagIds", filters?.partnerTagIds],
+    ];
 
   for (const [field, listFilter] of listFilters) {
     if (!listFilter) {
@@ -586,8 +590,8 @@ export function createUpstashRedisPartnerSearchProvider({
       const offset = (query.page - 1) * query.pageSize;
       const orderBy = query.sort
         ? ({
-            [query.sort.field]: query.sort.order.toUpperCase(),
-          } as Record<string, "ASC" | "DESC">)
+          [query.sort.field]: query.sort.order.toUpperCase(),
+        } as Record<string, "ASC" | "DESC">)
         : undefined;
 
       const results = await withTransientRetry(() =>
