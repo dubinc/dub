@@ -76,7 +76,7 @@ async function deleteDocumentPass(redis: Redis, documentPattern: string) {
 }
 
 async function deleteDocuments(redis: Redis, indexName: string) {
-  const documentPattern = `${indexName}:*`;
+  const documentPattern = `${indexName}:partner:*`;
   let totalDeleted = 0;
 
   // Repeat the scan to verify that no matching keys remain after deletion
@@ -118,14 +118,13 @@ async function main() {
   const redis = createRedisClient();
   const index = redis.search.index({ name: indexName });
   const description = await index.describe();
-  const expectedPrefixes = [`${indexName}:`, `${indexName}:partner:`];
+  const expectedPrefix = `${indexName}:partner:`;
 
-  // Step 1: Accept the earlier broad prefix and the current lean prefix. Both
-  // are contained by the index namespace deleted below.
+  // Step 1: Verify that the index contains only partner search documents
   if (
     description &&
     (description.prefixes.length !== 1 ||
-      !expectedPrefixes.includes(description.prefixes[0]))
+      description.prefixes[0] !== expectedPrefix)
   ) {
     throw new Error(
       `Index ${indexName} does not use an expected partner search prefix.`,
@@ -140,8 +139,7 @@ async function main() {
       : `Partner search index ${indexName} did not exist`,
   );
 
-  // Step 3: Delete current partner documents and any obsolete documents left
-  // under the same index namespace by an earlier index shape
+  // Step 3: Delete the partner documents stored for this index
   const deleted = await deleteDocuments(redis, indexName);
   console.log(
     `Partner search cleanup complete: ${deleted.toLocaleString()} documents removed.`,
