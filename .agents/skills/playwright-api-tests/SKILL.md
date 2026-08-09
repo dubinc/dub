@@ -15,6 +15,25 @@ Do **not** put these under `apps/web/tests/` (Vitest) or under `playwright/partn
 2. Prefer mirroring an existing nearby resource folder: `tags/`, `folders/`, `customers/`, `workspaces/`.
 3. Confirm the endpoint is workspace-scoped Bearer API (most `/api/*` routes). The fixture already sends `Authorization: Bearer …`.
 
+## What to cover
+
+Before considering an endpoint covered, ask:
+
+- What happens with valid input?
+- What happens with invalid input?
+- Who is allowed to call it?
+- Can another workspace access the resource?
+- What happens when the resource does not exist?
+- What happens with duplicate data?
+- What happens at boundary values?
+- What state does the operation leave behind?
+- Can the operation be safely retried?
+- Does pagination/filtering/sorting behave correctly?
+- What happens when multiple requests happen concurrently?
+- Are errors returned in the documented format?
+
+Not every endpoint needs a test for every item. The goal is to cover the actual failure modes and API contract, not to maximize the number of tests.
+
 ## File layout
 
 ```
