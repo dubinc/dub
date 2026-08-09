@@ -1,5 +1,5 @@
 import type { PartnerSearchProvider } from "./types";
-import { createUpstashRedisPartnerSearchProvider } from "./upstash-redis-provider";
+import { createUpstashRedisPartnerSearchProvider } from "./providers/upstash-redis";
 
 let upstashRedisProvider: PartnerSearchProvider | null = null;
 

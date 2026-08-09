@@ -8,7 +8,7 @@ import {
 import {
   getPartnerSearchableValues,
   normalizePartnerSearchQuery,
-} from "./searchable-values";
+} from "../searchable-values";
 import type {
   PartnerSearchCountQuery,
   PartnerSearchDocument,
@@ -18,7 +18,7 @@ import type {
   PartnerSearchMetricField,
   PartnerSearchProvider,
   PartnerSearchQuery,
-} from "./types";
+} from "../types";
 
 const DEFAULT_INDEX_NAME = "partner-search-v1";
 const NULL_VALUE = "__none__";

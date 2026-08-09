@@ -1,7 +1,7 @@
 import {
   getPartnerSearchableValues,
   normalizePartnerSearchQuery,
-} from "./searchable-values";
+} from "../searchable-values";
 import {
   PartnerSearchCountQuery,
   PartnerSearchDocument,
@@ -11,7 +11,7 @@ import {
   PartnerSearchMetricField,
   PartnerSearchProvider,
   PartnerSearchQuery,
-} from "./types";
+} from "../types";
 
 function matchesListFilter(
   value: string | null,
