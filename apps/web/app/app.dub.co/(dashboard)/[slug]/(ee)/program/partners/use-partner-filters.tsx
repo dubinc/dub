@@ -169,7 +169,9 @@ export function usePartnerFilters(
   const { id: workspaceId, slug } = useWorkspace();
   const status = (searchParamsObj.status ||
     extraSearchParams.status ||
-    "approved") as ProgramEnrollmentStatus;
+    (searchParamsObj.search ? undefined : "approved")) as
+    | ProgramEnrollmentStatus
+    | undefined;
 
   const cohortParams = useMemo(
     () => ({
@@ -184,9 +186,21 @@ export function usePartnerFilters(
   const [search, setSearch] = useState("");
   const [debouncedSearch] = useDebounce(search, 500);
 
+  // Load grouped counts only while their options are visible or already active
+  const isFilterOptionsEnabled = (key: PartnerFilterKey) =>
+    enabledFilters.includes(key) &&
+    (selectedFilter === key || Boolean(searchParamsObj[key]));
+  const partnerTagOptionsEnabled = isFilterOptionsEnabled("partnerTagId");
+  const countryOptionsEnabled = isFilterOptionsEnabled("country");
+  const statusOptionsEnabled = isFilterOptionsEnabled("status");
+  const groupOptionsEnabled = isFilterOptionsEnabled("groupId");
+  const referredByOptionsEnabled = isFilterOptionsEnabled(
+    "referredByPartnerId",
+  );
+
   const { partnerTags, partnerTagsAsync } = usePartnerTagFilterOptions({
     search: selectedFilter === "partnerTagId" ? debouncedSearch : "",
-    enabled: enabledFilters.includes("partnerTagId"),
+    enabled: partnerTagOptionsEnabled,
     status,
     cohortParams,
   });
@@ -203,7 +217,7 @@ export function usePartnerFilters(
     groupBy: "country",
     status,
     ...cohortParams,
-    enabled: enabledFilters.includes("country"),
+    enabled: countryOptionsEnabled,
   });
 
   const { partnersCount: statusCount } = usePartnersCount<
@@ -216,7 +230,7 @@ export function usePartnerFilters(
     groupBy: "status",
     status,
     ...cohortParams,
-    enabled: enabledFilters.includes("status"),
+    enabled: statusOptionsEnabled,
   });
 
   const { partnersCount: groupsCount } = usePartnersCount<
@@ -229,7 +243,7 @@ export function usePartnerFilters(
     groupBy: "groupId",
     status,
     ...cohortParams,
-    enabled: enabledFilters.includes("groupId"),
+    enabled: groupOptionsEnabled,
   });
 
   const { partnersCount: referredByCount } = usePartnersCount<
@@ -242,12 +256,12 @@ export function usePartnerFilters(
     groupBy: "referredByPartnerId",
     status,
     ...cohortParams,
-    enabled: enabledFilters.includes("referredByPartnerId"),
+    enabled: referredByOptionsEnabled,
   });
 
   const { referredByPartners } = useReferredByPartnerFilterOptions({
     referredByCount,
-    enabled: enabledFilters.includes("referredByPartnerId"),
+    enabled: referredByOptionsEnabled,
   });
 
   const filters = useMemo(
@@ -327,7 +341,7 @@ export function usePartnerFilters(
                       ),
                       right: nFormatter(_count || 0, { full: true }),
                     };
-                  }) ?? [],
+                  }) ?? null,
             },
           ]
         : []),
@@ -344,7 +358,7 @@ export function usePartnerFilters(
                     value: country,
                     label: COUNTRIES[country],
                     right: nFormatter(_count, { full: true }),
-                  })) ?? [],
+                  })) ?? null,
               getOptionIcon: (value: string) => (
                 <CountryFlag countryCode={value} />
               ),
@@ -683,7 +697,7 @@ function usePartnerTagFilterOptions({
 }: {
   search: string;
   enabled?: boolean;
-  status: ProgramEnrollmentStatus;
+  status?: ProgramEnrollmentStatus;
   cohortParams: {
     groupId?: string;
     country?: string;

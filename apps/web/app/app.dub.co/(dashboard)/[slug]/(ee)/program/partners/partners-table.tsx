@@ -133,11 +133,10 @@ export function PartnersTable() {
   const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
   const { program } = useProgram();
 
-  const status = (
+  const status =
     searchParams.get("status") || searchParams.get("search")
       ? undefined
-      : ProgramEnrollmentStatus.approved
-  ) as ProgramEnrollmentStatus;
+      : ProgramEnrollmentStatus.approved;
 
   const sortBy =
     searchParams.get("sortBy") ||
@@ -535,12 +534,13 @@ function PartnersFilters({
 }: {
   sortBy: string;
   sortOrder: "asc" | "desc";
-  status: ProgramEnrollmentStatus;
+  status: ProgramEnrollmentStatus | undefined;
 }) {
   const { queryParams, searchParams } = useRouterStuff();
 
   const { partnersCount: inviteCount } = usePartnersCount<number>({
     status: ProgramEnrollmentStatus.invited,
+    ignoreParams: true,
   });
 
   const {
@@ -551,7 +551,13 @@ function PartnersFilters({
     onRemoveFilter,
     onRemoveAll,
     onToggleOperator,
-  } = usePartnerFilters({ sortBy, sortOrder, status });
+    setSelectedFilter,
+    setSearch,
+  } = usePartnerFilters({
+    sortBy,
+    sortOrder,
+    ...(status && { status }),
+  });
 
   const showPendingInvitesButton =
     inviteCount > 0 &&
@@ -568,6 +574,8 @@ function PartnersFilters({
             onSelect={onSelect}
             onRemove={onRemove}
             onRemoveFilter={onRemoveFilter}
+            onSearchChange={setSearch}
+            onSelectedFilterChange={setSelectedFilter}
           />
           {showPendingInvitesButton ? (
             <Button
