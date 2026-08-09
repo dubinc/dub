@@ -1,6 +1,9 @@
-import "dotenv-flow/config";
-
 import { defineConfig, devices } from "@playwright/test";
+import { config as loadEnv } from "dotenv-flow";
+
+loadEnv({
+  silent: true,
+});
 
 const workspaceBaseURL = "http://localhost:8888";
 const partnersBaseURL = "http://partners.localhost:8888";
@@ -85,6 +88,7 @@ export default defineConfig({
         port: 8888,
         reuseExistingServer: true,
         timeout: 120_000,
+        stdout: "ignore",
       }
     : undefined,
 });
