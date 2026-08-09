@@ -15,6 +15,7 @@
  * 5. Partner Platforms (`PartnerPlatform`): Assigns 1-2 web/social platforms per partner
  *    (website, youtube, twitter, linkedin, instagram, tiktok), generating ~150,000 total platform rows.
  * 6. Partner Short Links (`Link`): Generates valid `https://` short referral links per partner.
+ * 7. Enrollment Metrics: Generates varied clicks, leads, conversions, sales, revenue, and calculated rates.
  *
  * PERFORMANCE & ARCHITECTURE DECISIONS:
  * - Chunked Bulk Insertions: Processes generation in memory and bulk-inserts using
@@ -119,6 +120,37 @@ type GeneratePartnerChunkOptions = {
   programDomain: string | null;
   workspaceId: string;
 };
+
+function generatePartnerMetrics(index: number) {
+  const totalClicks = 100 + ((index * 37) % 50_000);
+  const leadRate = 0.05 + (index % 16) / 100;
+  const conversionRate = 0.1 + (index % 31) / 100;
+  const saleRate = 0.6 + (index % 31) / 100;
+  const totalLeads = Math.max(1, Math.floor(totalClicks * leadRate));
+  const totalConversions = Math.max(1, Math.floor(totalLeads * conversionRate));
+  const totalSales = Math.max(1, Math.floor(totalConversions * saleRate));
+  const averageOrderValueCents = 2_500 + ((index * 7_919) % 197_500);
+  const totalSaleAmount = BigInt(totalSales * averageOrderValueCents);
+  const commissionRatePercent = 5 + (index % 26);
+  const totalCommissions =
+    (totalSaleAmount * BigInt(commissionRatePercent)) / BigInt(100);
+
+  return {
+    totalClicks,
+    totalLeads,
+    totalConversions,
+    totalSales,
+    totalSaleAmount,
+    totalCommissions,
+    netRevenue: totalSaleAmount - totalCommissions,
+    earningsPerClick: Number(totalSaleAmount) / totalClicks,
+    averageLifetimeValue: Number(totalSaleAmount) / totalConversions,
+    clickToLeadRate: totalLeads / totalClicks,
+    clickToConversionRate: totalConversions / totalClicks,
+    leadToConversionRate: totalConversions / totalLeads,
+    returnOnAdSpend: Number(totalSaleAmount) / Number(totalCommissions),
+  } satisfies Partial<Prisma.ProgramEnrollmentCreateManyInput>;
+}
 
 // Args: --count=<number> (optional, default: 100000) - Total number of partners to seed.
 //       --programId=<id> (optional) - Target program ID to seed partners into.
@@ -260,6 +292,7 @@ const generatePartnerChunk = ({
       programId,
       groupId: defaultGroupId,
       status: "approved",
+      ...generatePartnerMetrics(i),
       createdAt,
     });
 
