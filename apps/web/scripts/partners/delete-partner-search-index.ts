@@ -1,3 +1,7 @@
+import {
+  getPartnerSearchProviderName,
+  resetUpstashSearchPartnerSearchIndex,
+} from "@/lib/api/partners/search";
 import { chunk } from "@dub/utils";
 import { Redis } from "@upstash/redis";
 import "dotenv-flow/config";
@@ -96,19 +100,35 @@ async function deleteDocuments(redis: Redis, indexName: string) {
 
 async function main() {
   const { indexName } = parseArguments(process.argv.slice(2));
+  const providerName = getPartnerSearchProviderName();
+  if (!providerName) {
+    throw new Error("PARTNER_SEARCH_PROVIDER is not configured.");
+  }
+
+  if (providerName === "upstash-search") {
+    const { documentCount } = await resetUpstashSearchPartnerSearchIndex({
+      indexName,
+    });
+    console.log(
+      `Partner search cleanup complete: ${documentCount.toLocaleString()} documents removed from ${indexName}.`,
+    );
+    return;
+  }
+
   const redis = createRedisClient();
   const index = redis.search.index({ name: indexName });
   const description = await index.describe();
-  const expectedPrefix = `${indexName}:`;
+  const expectedPrefixes = [`${indexName}:`, `${indexName}:partner:`];
 
-  // Step 1: Verify that an existing index owns only the requested key prefix
+  // Step 1: Accept the earlier broad prefix and the current lean prefix. Both
+  // are contained by the index namespace deleted below.
   if (
     description &&
     (description.prefixes.length !== 1 ||
-      description.prefixes[0] !== expectedPrefix)
+      !expectedPrefixes.includes(description.prefixes[0]))
   ) {
     throw new Error(
-      `Index ${indexName} does not use the expected ${expectedPrefix} prefix.`,
+      `Index ${indexName} does not use an expected partner search prefix.`,
     );
   }
 
@@ -120,7 +140,8 @@ async function main() {
       : `Partner search index ${indexName} did not exist`,
   );
 
-  // Step 3: Delete partner and tag documents stored under this index namespace
+  // Step 3: Delete current partner documents and any obsolete documents left
+  // under the same index namespace by an earlier index shape
   const deleted = await deleteDocuments(redis, indexName);
   console.log(
     `Partner search cleanup complete: ${deleted.toLocaleString()} documents removed.`,

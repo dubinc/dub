@@ -1,7 +1,22 @@
-import { createUpstashRedisPartnerSearchIndex } from "@/lib/api/partners/search";
+import {
+  createUpstashRedisPartnerSearchIndex,
+  getPartnerSearchProviderName,
+} from "@/lib/api/partners/search";
 import "dotenv-flow/config";
 
 async function main() {
+  const providerName = getPartnerSearchProviderName();
+  if (!providerName) {
+    throw new Error("PARTNER_SEARCH_PROVIDER is not configured.");
+  }
+
+  if (providerName === "upstash-search") {
+    console.log(
+      "Upstash Search creates the partner search index on the first backfill upsert.",
+    );
+    return;
+  }
+
   const index = await createUpstashRedisPartnerSearchIndex();
   const description = await index.describe();
 

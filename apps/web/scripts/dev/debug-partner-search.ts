@@ -1,13 +1,13 @@
 import {
   getPartnerSearchableValues,
   getPartnerSearchProvider,
+  getPartnerSearchProviderName,
   normalizePartnerSearchQuery,
   PARTNER_SEARCH_CANDIDATE_LIMIT,
   partnerSearchDocumentSelect,
   serializePartnerSearchDocument,
   type PartnerSearchDocument,
   type PartnerSearchHit,
-  type PartnerSearchSortField,
 } from "@/lib/api/partners/search";
 import { prisma } from "@/lib/prisma";
 import { parsePositiveInteger } from "@/scripts/utils/parse-positive-integer";
@@ -15,28 +15,12 @@ import { ProgramEnrollmentStatus } from "@prisma/client";
 import "dotenv-flow/config";
 
 const DEFAULT_LIMIT = 10;
-const MAX_LIMIT = 100;
-const SORT_FIELDS: PartnerSearchSortField[] = [
-  "createdAt",
-  "totalClicks",
-  "totalLeads",
-  "totalConversions",
-  "totalSaleAmount",
-  "totalCommissions",
-  "netRevenue",
-  "earningsPerClick",
-  "averageLifetimeValue",
-  "clickToLeadRate",
-  "clickToConversionRate",
-  "leadToConversionRate",
-  "returnOnAdSpend",
-];
+const MAX_LIMIT = PARTNER_SEARCH_CANDIDATE_LIMIT;
 
 interface DebugArguments {
   programId: string;
   query: string;
   limit: number;
-  sortBy: PartnerSearchSortField;
   status?: ProgramEnrollmentStatus;
 }
 
@@ -44,7 +28,6 @@ function parseArguments(args: string[]): DebugArguments {
   let programId: string | undefined;
   let query: string | undefined;
   let limit = DEFAULT_LIMIT;
-  let sortBy: PartnerSearchSortField = "totalSaleAmount";
   let status: ProgramEnrollmentStatus | undefined;
 
   for (const arg of args) {
@@ -54,12 +37,6 @@ function parseArguments(args: string[]): DebugArguments {
       query = arg.slice("--query=".length);
     } else if (arg.startsWith("--limit=")) {
       limit = parsePositiveInteger(arg.slice("--limit=".length), "--limit");
-    } else if (arg.startsWith("--sortBy=")) {
-      const value = arg.slice("--sortBy=".length) as PartnerSearchSortField;
-      if (!SORT_FIELDS.includes(value)) {
-        throw new Error(`--sortBy must be one of: ${SORT_FIELDS.join(", ")}.`);
-      }
-      sortBy = value;
     } else if (arg.startsWith("--status=")) {
       const value = arg.slice("--status=".length) as ProgramEnrollmentStatus;
       if (!Object.values(ProgramEnrollmentStatus).includes(value)) {
@@ -83,7 +60,7 @@ function parseArguments(args: string[]): DebugArguments {
     throw new Error(`--limit cannot exceed ${MAX_LIMIT}.`);
   }
 
-  return { programId, query, limit, sortBy, status };
+  return { programId, query, limit, status };
 }
 
 async function getDatabaseDocuments(
@@ -122,13 +99,11 @@ function reportResults({
   label,
   hits,
   databaseDocuments,
-  sortBy,
   normalizedQuery,
 }: {
   label: string;
   hits: PartnerSearchHit[];
   databaseDocuments: Awaited<ReturnType<typeof getDatabaseDocuments>>;
-  sortBy: PartnerSearchSortField;
   normalizedQuery: string;
 }) {
   console.log(`\n${label}`);
@@ -139,7 +114,6 @@ function reportResults({
       return {
         rank: index + 1,
         providerScore: hit.score,
-        databaseSortValue: databaseDocument?.[sortBy] ?? null,
         containsLiteralQuery: containsLiteralQuery(
           databaseDocument,
           normalizedQuery,
@@ -155,7 +129,7 @@ function reportResults({
 }
 
 async function main() {
-  const { programId, query, limit, sortBy, status } = parseArguments(
+  const { programId, query, limit, status } = parseArguments(
     process.argv.slice(2),
   );
   const searchProvider = getPartnerSearchProvider();
@@ -163,7 +137,7 @@ async function main() {
     throw new Error("PARTNER_SEARCH_PROVIDER is not configured.");
   }
 
-  const providerName = process.env.PARTNER_SEARCH_PROVIDER?.trim();
+  const providerName = getPartnerSearchProviderName();
   const startedAt = performance.now();
 
   // Step 1: Fetch the same relevance candidates used by the website
@@ -202,7 +176,6 @@ async function main() {
     label: "Provider relevance order",
     hits: filteredHits,
     databaseDocuments,
-    sortBy,
     normalizedQuery: normalizePartnerSearchQuery(query),
   });
 }

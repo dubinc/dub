@@ -1,5 +1,7 @@
 import {
   backfillPartnerSearch,
+  createUpstashRedisPartnerSearchIndex,
+  getPartnerSearchProviderName,
   type PartnerSearchBackfillProgress,
 } from "@/lib/api/partners/search";
 import { prisma } from "@/lib/prisma";
@@ -62,8 +64,19 @@ function reportProgress({
 
 async function main() {
   const { programId, batchSize, after } = parseArguments(process.argv.slice(2));
+  const providerName = getPartnerSearchProviderName();
+  if (!providerName) {
+    throw new Error("PARTNER_SEARCH_PROVIDER is not configured.");
+  }
+
+  // Redis Search indexes have an explicit schema and must exist before the
+  // backfill starts. Upstash Search creates its index on the first upsert.
+  if (providerName === "upstash-redis") {
+    await createUpstashRedisPartnerSearchIndex();
+  }
 
   console.log(`Starting partner search backfill for program ${programId}`);
+  console.log(`Provider: ${providerName}`);
   console.log(
     `Batch size: ${batchSize.toLocaleString()}${after ? `, resuming after ${after}` : ""}`,
   );

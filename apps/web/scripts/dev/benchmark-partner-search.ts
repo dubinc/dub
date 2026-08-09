@@ -1,6 +1,8 @@
 import { getPartners } from "@/lib/api/partners/get-partners";
 import {
   getPartnerSearchProvider,
+  getPartnerSearchProviderName,
+  PARTNER_SEARCH_CANDIDATE_LIMIT,
   partnerSearchDocumentSelect,
   serializePartnerSearchDocument,
   type PartnerSearchDocument,
@@ -89,8 +91,10 @@ function parseArguments(args: string[]): BenchmarkArguments {
   if (concurrency > requests) {
     throw new Error("--concurrency cannot exceed --requests.");
   }
-  if (pageSize > 100) {
-    throw new Error("--pageSize cannot exceed 100.");
+  if (pageSize > PARTNER_SEARCH_CANDIDATE_LIMIT) {
+    throw new Error(
+      `--pageSize cannot exceed ${PARTNER_SEARCH_CANDIDATE_LIMIT}.`,
+    );
   }
 
   return {
@@ -235,6 +239,7 @@ async function runWithConcurrency<T>(
 async function main() {
   const options = parseArguments(process.argv.slice(2));
   const searchProvider = getPartnerSearchProvider();
+  const providerName = getPartnerSearchProviderName();
 
   if (!searchProvider) {
     throw new Error(
@@ -287,7 +292,8 @@ async function main() {
   };
 
   console.log(`Partner search benchmark for program ${options.programId}`);
-  console.log(`${partnerCount.toLocaleString()} indexed partners`);
+  console.log(`Provider: ${providerName}`);
+  console.log(`${partnerCount.toLocaleString()} program partners`);
   console.log(
     `${options.requests.toLocaleString()} measured requests, ${options.warmupRequests.toLocaleString()} warm-up requests, concurrency ${options.concurrency}`,
   );
