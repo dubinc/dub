@@ -5,7 +5,9 @@ import { config as loadEnv } from "dotenv-flow";
 import { mkdir, writeFile } from "fs/promises";
 import path from "path";
 
-loadEnv();
+loadEnv({
+  silent: true,
+});
 
 export const TEST_WORKSPACE = {
   user: {
