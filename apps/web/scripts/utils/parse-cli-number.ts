@@ -1,7 +1,7 @@
 const DIGITS_ONLY = /^\d+$/;
 
 /**
- * Parses a CLI flag value as a positive integer.
+ * Parses a CLI flag value as an integer of at least `minimum`.
  *
  * The digits-only check has to run before `Number()`, which on its own would
  * silently accept hex (`0x10` → 16), scientific notation (`1e9` → 1000000000),
@@ -10,17 +10,34 @@ const DIGITS_ONLY = /^\d+$/;
  * rows. `Number.isSafeInteger` then rejects digit strings past 2^53 - 1, which
  * cannot round-trip.
  */
-export function parsePositiveInteger(value: string | undefined, flag: string) {
+function parseInteger(
+  value: string | undefined,
+  flag: string,
+  minimum: number,
+  expected: string,
+) {
   const parsed =
     value !== undefined && DIGITS_ONLY.test(value) ? Number(value) : NaN;
 
-  if (!Number.isSafeInteger(parsed) || parsed <= 0) {
+  if (!Number.isSafeInteger(parsed) || parsed < minimum) {
     throw new Error(
-      `${flag} must be a positive integer, received: ${
+      `${flag} must be ${expected}, received: ${
         value === undefined ? "(missing)" : `"${value}"`
       }`,
     );
   }
 
   return parsed;
+}
+
+export function parsePositiveInteger(value: string | undefined, flag: string) {
+  return parseInteger(value, flag, 1, "a positive integer");
+}
+
+/** For flags where zero is meaningful, such as disabling benchmark warm-up. */
+export function parseNonNegativeInteger(
+  value: string | undefined,
+  flag: string,
+) {
+  return parseInteger(value, flag, 0, "a non-negative integer");
 }

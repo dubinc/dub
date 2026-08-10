@@ -24,7 +24,7 @@
 import { createId } from "@/lib/api/create-id";
 import { hashPassword } from "@/lib/auth/password";
 import { prisma } from "@/lib/prisma";
-import { parsePositiveInteger } from "@/scripts/utils/parse-positive-integer";
+import { parsePositiveInteger } from "@/scripts/utils/parse-cli-number";
 import { PlatformType, Prisma } from "@prisma/client";
 import { createHash } from "crypto";
 import "dotenv-flow/config";

@@ -5,7 +5,7 @@ import {
   type PartnerSearchBackfillProgress,
 } from "@/lib/api/partners/search";
 import { prisma } from "@/lib/prisma";
-import { parsePositiveInteger } from "@/scripts/utils/parse-positive-integer";
+import { parsePositiveInteger } from "@/scripts/utils/parse-cli-number";
 import "dotenv-flow/config";
 
 const DEFAULT_BATCH_SIZE = 500;

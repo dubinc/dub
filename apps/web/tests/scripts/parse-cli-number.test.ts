@@ -1,4 +1,7 @@
-import { parsePositiveInteger } from "@/scripts/utils/parse-positive-integer";
+import {
+  parseNonNegativeInteger,
+  parsePositiveInteger,
+} from "@/scripts/utils/parse-cli-number";
 import { describe, expect, it } from "vitest";
 
 describe("parsePositiveInteger", () => {
@@ -34,6 +37,34 @@ describe("parsePositiveInteger", () => {
     );
     expect(() => parsePositiveInteger(undefined, "--requests")).toThrow(
       "--requests must be a positive integer, received: (missing)",
+    );
+  });
+});
+
+describe("parseNonNegativeInteger", () => {
+  it("accepts zero, which parsePositiveInteger rejects", () => {
+    expect(parseNonNegativeInteger("0", "--warmup")).toBe(0);
+    expect(() => parsePositiveInteger("0", "--warmup")).toThrow(
+      "--warmup must be a positive integer",
+    );
+  });
+
+  it("parses plain digit strings", () => {
+    expect(parseNonNegativeInteger("50", "--warmup")).toBe(50);
+  });
+
+  it.each([["0x10"], ["1e9"], ["5.0"], ["+5"], [" 5 "], ["-1"], [""], ["abc"]])(
+    "applies the same coercion guard to %j",
+    (value) => {
+      expect(() => parseNonNegativeInteger(value, "--warmup")).toThrow(
+        "--warmup must be a non-negative integer",
+      );
+    },
+  );
+
+  it("reports the offending value and the flag name", () => {
+    expect(() => parseNonNegativeInteger("abc", "--warmup")).toThrow(
+      '--warmup must be a non-negative integer, received: "abc"',
     );
   });
 });

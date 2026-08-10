@@ -1,3 +1,26 @@
+/**
+ * Measures p99 latency of the relevance-ranked partner list for a program.
+ *
+ * Calls `getPartners` in process, not over HTTP, so the numbers exclude route
+ * handling, auth, and serialization — treat them as a floor for the endpoint.
+ *
+ * To avoid measuring a warm cache it samples `--sampleSize` partners strided
+ * across the program and exhausts a field's queries before repeating any. Fields
+ * whose values barely vary still collapse to a few queries, so each field's
+ * distinct-query count is reported and undersized pools are flagged; a p99 under
+ * that warning is optimistic.
+ *
+ * Exits non-zero when a field produced no successful request, when the error rate
+ * exceeds `--maxErrorRate`, or when a p99 reaches `--thresholdMs`.
+ *
+ *   cd apps/web
+ *   pnpm run script dev/benchmark-partner-search --programId=prog_123 [--requests=1000]
+ *     [--sampleSize=100] [--concurrency=10] [--warmup=50] [--thresholdMs=1000]
+ *
+ * Requires PARTNER_SEARCH_PROVIDER and an index backfilled for the program:
+ *   pnpm run script partners/backfill-partner-search --programId=prog_123
+ */
+
 import { getPartners } from "@/lib/api/partners/get-partners";
 import {
   getPartnerSearchProvider,
@@ -8,7 +31,10 @@ import {
   type PartnerSearchDocument,
 } from "@/lib/api/partners/search";
 import { prisma } from "@/lib/prisma";
-import { parsePositiveInteger } from "@/scripts/utils/parse-positive-integer";
+import {
+  parseNonNegativeInteger,
+  parsePositiveInteger,
+} from "@/scripts/utils/parse-cli-number";
 import "dotenv-flow/config";
 
 const DEFAULT_REQUESTS = 1_000;
@@ -17,6 +43,9 @@ const DEFAULT_CONCURRENCY = 10;
 const DEFAULT_PAGE_SIZE = 25;
 const DEFAULT_THRESHOLD_MS = 1_000;
 const MINIMUM_REQUESTS = 1_000;
+const DEFAULT_SAMPLE_SIZE = 100;
+const MAX_SAMPLE_SIZE = 1_000;
+const DEFAULT_MAX_ERROR_RATE = 0;
 
 interface BenchmarkArguments {
   programId: string;
@@ -25,11 +54,18 @@ interface BenchmarkArguments {
   concurrency: number;
   pageSize: number;
   thresholdMs: number;
+  sampleSize: number;
+  maxErrorRate: number;
 }
 
 interface SearchCase {
   field: string;
   query: string;
+}
+
+interface SearchCasePool {
+  field: string;
+  queries: string[];
 }
 
 interface BenchmarkResult {
@@ -39,6 +75,16 @@ interface BenchmarkResult {
   error: string | null;
 }
 
+function parsePercentage(value: string, flag: string): number {
+  const parsed = /^\d+(\.\d+)?$/.test(value) ? Number(value) : NaN;
+
+  if (!Number.isFinite(parsed) || parsed > 100) {
+    throw new Error(`${flag} must be between 0 and 100, received: "${value}"`);
+  }
+
+  return parsed;
+}
+
 function parseArguments(args: string[]): BenchmarkArguments {
   let programId: string | undefined;
   let requests = DEFAULT_REQUESTS;
@@ -46,6 +92,8 @@ function parseArguments(args: string[]): BenchmarkArguments {
   let concurrency = DEFAULT_CONCURRENCY;
   let pageSize = DEFAULT_PAGE_SIZE;
   let thresholdMs = DEFAULT_THRESHOLD_MS;
+  let sampleSize = DEFAULT_SAMPLE_SIZE;
+  let maxErrorRate = DEFAULT_MAX_ERROR_RATE;
 
   for (const arg of args) {
     if (arg.startsWith("--programId=")) {
@@ -56,9 +104,19 @@ function parseArguments(args: string[]): BenchmarkArguments {
         "--requests",
       );
     } else if (arg.startsWith("--warmup=")) {
-      warmupRequests = parsePositiveInteger(
+      warmupRequests = parseNonNegativeInteger(
         arg.slice("--warmup=".length),
         "--warmup",
+      );
+    } else if (arg.startsWith("--sampleSize=")) {
+      sampleSize = parsePositiveInteger(
+        arg.slice("--sampleSize=".length),
+        "--sampleSize",
+      );
+    } else if (arg.startsWith("--maxErrorRate=")) {
+      maxErrorRate = parsePercentage(
+        arg.slice("--maxErrorRate=".length),
+        "--maxErrorRate",
       );
     } else if (arg.startsWith("--concurrency=")) {
       concurrency = parsePositiveInteger(
@@ -96,6 +154,9 @@ function parseArguments(args: string[]): BenchmarkArguments {
       `--pageSize cannot exceed ${PARTNER_SEARCH_CANDIDATE_LIMIT}.`,
     );
   }
+  if (sampleSize > MAX_SAMPLE_SIZE) {
+    throw new Error(`--sampleSize cannot exceed ${MAX_SAMPLE_SIZE}.`);
+  }
 
   return {
     programId,
@@ -104,6 +165,8 @@ function parseArguments(args: string[]): BenchmarkArguments {
     concurrency,
     pageSize,
     thresholdMs,
+    sampleSize,
+    maxErrorRate,
   };
 }
 
@@ -174,8 +237,13 @@ function createSearchCases(document: PartnerSearchDocument): SearchCase[] {
   ];
 }
 
-async function loadSearchCases(programId: string): Promise<SearchCase[]> {
-  const enrollment = await prisma.programEnrollment.findFirst({
+async function loadSearchCasePools(
+  programId: string,
+  sampleSize: number,
+  partnerCount: number,
+): Promise<SearchCasePool[]> {
+  const stride = Math.max(1, Math.floor(partnerCount / sampleSize));
+  const enrollments = await prisma.programEnrollment.findMany({
     where: {
       programId,
       partner: {
@@ -187,15 +255,63 @@ async function loadSearchCases(programId: string): Promise<SearchCase[]> {
       links: { some: {} },
     },
     select: partnerSearchDocumentSelect,
+    orderBy: { id: "asc" },
+    take: sampleSize * stride,
   });
 
-  if (!enrollment) {
+  const sampled = enrollments.filter((_, index) => index % stride === 0);
+
+  if (sampled.length === 0) {
     throw new Error(
       `No complete partner search document found for program ${programId}.`,
     );
   }
 
-  return createSearchCases(serializePartnerSearchDocument(enrollment));
+  const queriesByField = new Map<string, Set<string>>();
+
+  for (const enrollment of sampled) {
+    const document = serializePartnerSearchDocument(enrollment);
+
+    for (const { field, query } of createSearchCases(document)) {
+      const queries = queriesByField.get(field) ?? new Set<string>();
+      queries.add(query);
+      queriesByField.set(field, queries);
+    }
+  }
+
+  return Array.from(queriesByField, ([field, queries]) => ({
+    field,
+    queries: Array.from(queries),
+  }));
+}
+
+function reportOverlappingPools(pools: SearchCasePool[]) {
+  const fieldsByQuerySet = new Map<string, string[]>();
+
+  for (const { field, queries } of pools) {
+    const key = JSON.stringify(queries);
+    fieldsByQuerySet.set(key, [...(fieldsByQuerySet.get(key) ?? []), field]);
+  }
+
+  for (const fields of fieldsByQuerySet.values()) {
+    if (fields.length > 1) {
+      console.warn(
+        `⚠️  These fields resolve to identical queries and measure the same work: ${fields.join(", ")}.`,
+      );
+    }
+  }
+}
+
+function reportRepeatedQueries(pools: SearchCasePool[], requests: number) {
+  const requestsPerField = Math.ceil(requests / pools.length);
+
+  for (const { field, queries } of pools) {
+    if (queries.length < requestsPerField) {
+      console.warn(
+        `⚠️  "${field}" has only ${queries.length.toLocaleString()} distinct ${queries.length === 1 ? "query" : "queries"} for ${requestsPerField.toLocaleString()} requests, so each repeats ~${Math.round(requestsPerField / queries.length)}x and is likely served warm.`,
+      );
+    }
+  }
 }
 
 function percentile(values: number[], quantile: number): number {
@@ -254,10 +370,20 @@ async function main() {
     throw new Error(`Program ${options.programId} has 0 partners.`);
   }
 
-  const searchCases = await loadSearchCases(options.programId);
+  const pools = await loadSearchCasePools(
+    options.programId,
+    options.sampleSize,
+    partnerCount,
+  );
 
   const runSearch = async (index: number): Promise<BenchmarkResult> => {
-    const searchCase = searchCases[index % searchCases.length];
+    // Rotate fields on every request and advance that field's query once per
+    // full rotation, so consecutive requests never repeat a query until the
+    // pool is exhausted. Deterministic, so two runs issue the same work.
+    const pool = pools[index % pools.length];
+    const query =
+      pool.queries[Math.floor(index / pools.length) % pool.queries.length];
+    const searchCase: SearchCase = { field: pool.field, query };
     const filters = {
       programId: options.programId,
       search: searchCase.query,
@@ -297,9 +423,15 @@ async function main() {
   console.log(
     `${options.requests.toLocaleString()} measured requests, ${options.warmupRequests.toLocaleString()} warm-up requests, concurrency ${options.concurrency}`,
   );
-  console.log(
-    `Each request runs the relevance-ranked partner list path across ${searchCases.length} search cases.`,
+  const distinctQueries = pools.reduce(
+    (total, { queries }) => total + queries.length,
+    0,
   );
+  console.log(
+    `Each request runs the relevance-ranked partner list path across ${pools.length} search cases, drawing from ${distinctQueries.toLocaleString()} distinct queries sampled from ${options.sampleSize.toLocaleString()} partners.`,
+  );
+  reportOverlappingPools(pools);
+  reportRepeatedQueries(pools, options.requests);
 
   const warmupResults = await runWithConcurrency(
     options.warmupRequests,
@@ -317,7 +449,9 @@ async function main() {
   const results = await runWithConcurrency(
     options.requests,
     options.concurrency,
-    runSearch,
+    // Continue past the warm-up indices so the measured run does not reissue the
+    // queries the warm-up just cached.
+    (index) => runSearch(options.warmupRequests + index),
   );
   const elapsedMs = performance.now() - startedAt;
   const successfulResults = results.filter(({ error }) => error === null);
@@ -329,7 +463,8 @@ async function main() {
         latencies.length
       : null;
   const p99 = latencies.length > 0 ? percentile(latencies, 0.99) : null;
-  const caseSummaries = searchCases.map(({ field, query }) => {
+  const caseSummaries = pools.map(({ field, queries }) => {
+    const query = `${queries[0]}${queries.length > 1 ? ` (+${queries.length - 1})` : ""}`;
     const caseResults = results.filter((result) => result.field === field);
     const caseErrors = caseResults.filter(({ error }) => error !== null).length;
     const caseLatencies = caseResults
@@ -341,7 +476,8 @@ async function main() {
       query,
       samples: caseResults.length,
       errors: caseErrors,
-      errorRate: (caseErrors / caseResults.length) * 100,
+      errorRate:
+        caseResults.length > 0 ? (caseErrors / caseResults.length) * 100 : 0,
       p50Ms: caseLatencies.length > 0 ? percentile(caseLatencies, 0.5) : null,
       p95Ms: caseLatencies.length > 0 ? percentile(caseLatencies, 0.95) : null,
       p99Ms: caseLatencies.length > 0 ? percentile(caseLatencies, 0.99) : null,
@@ -405,9 +541,23 @@ async function main() {
     requestsPerSecond: ((options.requests * 1_000) / elapsedMs).toFixed(1),
   });
 
-  if (failedResults.length > 0) {
-    console.error(
-      `${failedResults.length.toLocaleString()} of ${results.length.toLocaleString()} measured requests failed (${((failedResults.length / results.length) * 100).toFixed(2)}% error rate).`,
+  const casesWithoutSamples = caseSummaries.filter(
+    ({ p99Ms }) => p99Ms === null,
+  );
+  if (casesWithoutSamples.length > 0) {
+    throw new Error(
+      `No successful requests for: ${casesWithoutSamples
+        .map(({ field }) => field)
+        .join(
+          ", ",
+        )}. There is no p99 to compare against the threshold — check that the search index is backfilled for this program.`,
+    );
+  }
+
+  const errorRate = (failedResults.length / results.length) * 100;
+  if (errorRate > options.maxErrorRate) {
+    throw new Error(
+      `${failedResults.length.toLocaleString()} of ${results.length.toLocaleString()} measured requests failed (${errorRate.toFixed(2)}% error rate, --maxErrorRate=${options.maxErrorRate}).`,
     );
   }
 
@@ -418,7 +568,7 @@ async function main() {
   }
 
   console.log(
-    `Completed: every search case has p99 latency below ${options.thresholdMs}ms${failedResults.length > 0 ? ", with request errors reported above" : ""}.`,
+    `Completed: every search case has p99 latency below ${options.thresholdMs}ms${failedResults.length > 0 ? `, with a ${errorRate.toFixed(2)}% error rate within the --maxErrorRate=${options.maxErrorRate} allowance` : ""}.`,
   );
 }
 
