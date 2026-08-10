@@ -65,23 +65,21 @@ export const bulkArchivePartnersAction = authActionClient
     });
 
     waitUntil(
-      Promise.allSettled([
-        trackActivityLog(
-          programEnrollments.map(({ partnerId, status }) => ({
-            workspaceId: workspace.id,
-            programId,
-            resourceType: "partner",
-            resourceId: partnerId,
-            userId: user.id,
-            action: "partner.archived",
-            changeSet: {
-              status: {
-                old: status,
-                new: "archived",
-              },
+      trackActivityLog(
+        programEnrollments.map(({ partnerId, status }) => ({
+          workspaceId: workspace.id,
+          programId,
+          resourceType: "partner",
+          resourceId: partnerId,
+          userId: user.id,
+          action: "partner.archived",
+          changeSet: {
+            status: {
+              old: status,
+              new: "archived",
             },
-          })),
-        ),
-      ]),
+          },
+        })),
+      ),
     );
   });

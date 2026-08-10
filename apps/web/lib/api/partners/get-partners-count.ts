@@ -43,6 +43,11 @@ export async function getPartnersCount<T>(
     ...(candidateResult ? { search: undefined } : {}),
   };
 
+  // Read from `enrollmentBase` so the grouping paths below see the same
+  // cleared `search` as `buildProgramEnrollmentWhereForList`. Destructuring
+  // `enrollmentFilters` here would AND the database full-text predicate on top
+  // of the relevance candidates, which drops every match the database cannot
+  // find on its own (e.g. partial emails, links, platforms, descriptions).
   const {
     status,
     country,
@@ -55,7 +60,7 @@ export async function getPartnersCount<T>(
     partnerTagIdOperator = "IN",
     groupIdOperator = "IN",
     countryOperator = "IN",
-  } = enrollmentFilters;
+  } = enrollmentBase;
 
   const enrollmentScope: Prisma.ProgramEnrollmentWhereInput = {
     programId,

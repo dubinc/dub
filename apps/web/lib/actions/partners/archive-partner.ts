@@ -46,22 +46,20 @@ export const archivePartnerAction = authActionClient
     });
 
     waitUntil(
-      Promise.allSettled([
-        trackActivityLog({
-          workspaceId: workspace.id,
-          programId,
-          resourceType: "partner",
-          resourceId: partnerId,
-          userId: user.id,
-          action:
-            status === "archived" ? "partner.archived" : "partner.unarchived",
-          changeSet: {
-            status: {
-              old: programEnrollment.status,
-              new: status,
-            },
+      trackActivityLog({
+        workspaceId: workspace.id,
+        programId,
+        resourceType: "partner",
+        resourceId: partnerId,
+        userId: user.id,
+        action:
+          status === "archived" ? "partner.archived" : "partner.unarchived",
+        changeSet: {
+          status: {
+            old: programEnrollment.status,
+            new: status,
           },
-        }),
-      ]),
+        },
+      }),
     );
   });

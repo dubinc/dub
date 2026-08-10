@@ -162,6 +162,60 @@ describe("getPartnersCount search", () => {
     );
   });
 
+  it("does not re-apply the database full-text search to grouped counts", async () => {
+    // The provider already resolved the query into candidate IDs. ANDing the
+    // database full-text predicate on top would drop every match the database
+    // cannot find on its own, which is exactly what the search index is for.
+    mocks.enrollmentGroupBy.mockResolvedValue([]);
+    mocks.partnerGroupBy.mockResolvedValue([]);
+    mocks.partnerTagGroupBy.mockResolvedValue([]);
+    mocks.applicationEventGroupBy.mockResolvedValue([]);
+    mocks.count.mockResolvedValue(0);
+
+    const groupings = [
+      { groupBy: "status", mock: mocks.enrollmentGroupBy },
+      { groupBy: "groupId", mock: mocks.enrollmentGroupBy },
+      { groupBy: "country", mock: mocks.partnerGroupBy },
+      { groupBy: "partnerTagId", mock: mocks.partnerTagGroupBy },
+      { groupBy: "referredByPartnerId", mock: mocks.applicationEventGroupBy },
+      { groupBy: undefined, mock: mocks.count },
+    ] as const;
+
+    for (const { groupBy, mock } of groupings) {
+      mock.mockClear();
+
+      await getPartnersCount(
+        {
+          programId: "prog_test",
+          search: "examp",
+          ...(groupBy && { groupBy }),
+        },
+        { searchProvider: createSearchProvider() },
+      );
+
+      const { where } = mock.mock.calls.at(-1)![0];
+      expect(
+        JSON.stringify(where),
+        `groupBy: ${groupBy ?? "none"}`,
+      ).not.toContain('"search":"examp"');
+      expect(JSON.stringify(where), `groupBy: ${groupBy ?? "none"}`).toContain(
+        '"id":{"in":["pge_2","pge_1"]}',
+      );
+    }
+  });
+
+  it("keeps the database full-text search when no provider is configured", async () => {
+    mocks.enrollmentGroupBy.mockResolvedValue([]);
+
+    await getPartnersCount(
+      { programId: "prog_test", search: "examp", groupBy: "status" },
+      { searchProvider: null },
+    );
+
+    const { where } = mocks.enrollmentGroupBy.mock.calls.at(-1)![0];
+    expect(JSON.stringify(where)).toContain('"search":"examp"');
+  });
+
   it("propagates search provider errors", async () => {
     const searchProvider = createSearchProvider();
     vi.mocked(searchProvider.searchCandidates).mockRejectedValue(
