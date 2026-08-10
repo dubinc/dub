@@ -77,8 +77,11 @@ export function extractTokenFromAuthUrl(url: string): string {
   throw new Error(`Could not extract token from auth URL: ${url}`);
 }
 
-export async function waitForAuthEmail(to: string) {
-  return waitForEmail(to);
+export async function waitForAuthEmail(
+  to: string,
+  options?: { timeout?: number; interval?: number },
+) {
+  return waitForEmail(to, options);
 }
 
 export async function signInWithEmail(

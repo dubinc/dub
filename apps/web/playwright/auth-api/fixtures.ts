@@ -1,4 +1,5 @@
 import { createId } from "@/lib/api/create-id";
+import { MAX_LOGIN_ATTEMPTS } from "@/lib/auth/constants";
 import { hashPassword } from "@/lib/auth/password";
 import { PrismaClient } from "@prisma/client";
 
@@ -170,9 +171,7 @@ export async function ensureAuthApiFixtures() {
   return { ok, password, locked, unverified, saml };
 }
 
-export async function resetPasswordUserPassword(
-  password = AUTH_API_PASSWORD,
-) {
+export async function resetPasswordUserPassword(password = AUTH_API_PASSWORD) {
   const passwordHash = await hashPassword(password);
 
   const user = await prisma.user.update({
@@ -204,7 +203,42 @@ export async function resetLockedUserState() {
     where: { email: AUTH_API_USERS.locked.email },
     data: {
       lockedAt: new Date(),
-      invalidLoginAttempts: 10,
+      invalidLoginAttempts: MAX_LOGIN_ATTEMPTS,
+    },
+  });
+}
+
+export async function setOkUserLoginAttempts(attempts: number) {
+  await prisma.user.update({
+    where: {
+      email: AUTH_API_USERS.ok.email,
+    },
+    data: {
+      lockedAt: null,
+      invalidLoginAttempts: attempts,
+    },
+  });
+}
+
+export async function getUserAuthState(email: string) {
+  return prisma.user.findUniqueOrThrow({
+    where: {
+      email,
+    },
+    select: {
+      id: true,
+      lockedAt: true,
+      invalidLoginAttempts: true,
+      emailVerified: true,
+      emailVerifiedBa: true,
+    },
+  });
+}
+
+export async function countUserSessions(userId: string) {
+  return prisma.session.count({
+    where: {
+      userId,
     },
   });
 }
@@ -212,3 +246,5 @@ export async function resetLockedUserState() {
 export async function disconnectFixtures() {
   await prisma.$disconnect();
 }
+
+export { MAX_LOGIN_ATTEMPTS };
