@@ -38,7 +38,6 @@ import {
   currencyFormatter,
   fetcher,
   formatDateTimeSmart,
-  nFormatter,
 } from "@dub/utils";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -225,11 +224,9 @@ export function CommissionsTable() {
         },
         {
           id: "amount",
-          header: "Amount",
+          header: "Sale Amount",
           accessorFn: (d) =>
-            d.type === "sale"
-              ? currencyFormatter(d.amount)
-              : nFormatter(d.quantity),
+            d.type === "sale" ? currencyFormatter(d.amount) : "-",
         },
         {
           id: "commission",
