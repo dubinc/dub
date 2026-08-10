@@ -22,6 +22,7 @@ async function main() {
     where: {
       projectId: WORKSPACE_ID,
       programId: null,
+      partnerId: null,
       createdAt: {
         gte: CREATED_AFTER,
         lt: CREATED_BEFORE,
@@ -115,6 +116,7 @@ async function main() {
         },
         projectId: WORKSPACE_ID,
         programId: null,
+        partnerId: null,
       },
       data: {
         programId: group.programId,
