@@ -89,4 +89,16 @@ export const RATELIMIT_POLICIES = {
     window: "1 h",
     keyPrefix: "rl:partner-profile:invite",
   },
+
+  tremendousSendOtp: {
+    attempts: 10,
+    window: "24 h",
+    keyPrefix: "rl:tremendous:send-otp",
+  },
+
+  tremendousVerifyOtp: {
+    attempts: 10,
+    window: "24 h",
+    keyPrefix: "rl:tremendous:verify-otp",
+  },
 } as const satisfies Record<string, RatelimitPolicy>;

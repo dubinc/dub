@@ -11,7 +11,7 @@ export const dynamic = "force-dynamic";
 // Runs once every day at 02:00:00 AM UTC (0 2 * * *) via QStash.
 // POST /api/cron/auth/cleanup-expired
 export const POST = withCron(async () => {
-  const cutoff = new Date();
+  const cutoff = new Date(Date.now() - 60 * 1000);
 
   const [deletedSessions, deletedVerifications] = await Promise.all([
     deleteExpiredSessions(cutoff),
