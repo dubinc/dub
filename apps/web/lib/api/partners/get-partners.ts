@@ -3,6 +3,7 @@ import { toCentsNumber } from "@dub/utils";
 import { buildProgramEnrollmentWhereForList } from "./program-enrollment-query";
 import {
   buildPartnerSearchCandidateQuery,
+  findPartnerSearchCandidates,
   getPartnerSearchProvider,
   orderByPartnerSearchHits,
   PartnerSearchProvider,
@@ -15,11 +16,15 @@ type PartnerFilters = PartnerSearchQueryInput & {
 
 interface GetPartnersOptions {
   searchProvider?: PartnerSearchProvider | null;
+  throwOnSearchError?: boolean;
 }
 
 export async function getPartners(
   filters: PartnerFilters,
-  { searchProvider = getPartnerSearchProvider() }: GetPartnersOptions = {},
+  {
+    searchProvider = getPartnerSearchProvider(),
+    throwOnSearchError = false,
+  }: GetPartnersOptions = {},
 ) {
   const {
     page = 1,
@@ -37,7 +42,9 @@ export async function getPartners(
     : null;
   const candidateResult =
     searchProvider && candidateQuery
-      ? await searchProvider.searchCandidates(candidateQuery)
+      ? await findPartnerSearchCandidates(searchProvider, candidateQuery, {
+          throwOnError: throwOnSearchError,
+        })
       : null;
   const databaseSortBy = sortBy === "relevance" ? "totalSaleAmount" : sortBy;
   const relevanceHits =

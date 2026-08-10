@@ -402,7 +402,12 @@ async function main() {
     const startedAt = performance.now();
 
     try {
-      const partners = await getPartners(filters, { searchProvider });
+      // Opt out of the database fallback: a provider failure has to surface as
+      // an error here, not as a fast run measuring the wrong code path.
+      const partners = await getPartners(filters, {
+        searchProvider,
+        throwOnSearchError: true,
+      });
 
       if (partners.length === 0) {
         throw new Error(

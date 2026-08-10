@@ -11,6 +11,7 @@ import {
 } from "./program-enrollment-query";
 import {
   buildPartnerSearchCandidateQuery,
+  findPartnerSearchCandidates,
   getPartnerSearchProvider,
   PartnerSearchProvider,
 } from "./search";
@@ -26,7 +27,11 @@ export async function getPartnersCount<T>(
   filters: PartnersCountFilters,
   {
     searchProvider = getPartnerSearchProvider(),
-  }: { searchProvider?: PartnerSearchProvider | null } = {},
+    throwOnSearchError = false,
+  }: {
+    searchProvider?: PartnerSearchProvider | null;
+    throwOnSearchError?: boolean;
+  } = {},
 ): Promise<T> {
   const { groupBy, programId, ...enrollmentFilters } = filters;
   const candidateQuery = searchProvider
@@ -34,7 +39,9 @@ export async function getPartnersCount<T>(
     : null;
   const candidateResult =
     searchProvider && candidateQuery
-      ? await searchProvider.searchCandidates(candidateQuery)
+      ? await findPartnerSearchCandidates(searchProvider, candidateQuery, {
+          throwOnError: throwOnSearchError,
+        })
       : null;
   const candidateIds = candidateResult?.hits.map(({ id }) => id);
   const enrollmentBase = {

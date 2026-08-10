@@ -1,5 +1,6 @@
 export * from "./backfill";
 export * from "./build-search-query";
+export * from "./find-candidates";
 export * from "./order-search-results";
 export * from "./provider";
 export * from "./providers/upstash-redis";

@@ -219,7 +219,28 @@ describe("getPartnersCount search", () => {
     expect(JSON.stringify(where)).toContain('"search":"examp"');
   });
 
-  it("propagates search provider errors", async () => {
+  it("falls back to the database search path when the provider fails", async () => {
+    const searchProvider = createSearchProvider();
+    vi.mocked(searchProvider.searchCandidates).mockRejectedValue(
+      new Error("Provider Connection Timeout"),
+    );
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    mocks.count.mockResolvedValue(7);
+
+    const count = await getPartnersCount<number>(
+      { programId: "prog_test", search: "examp" },
+      { searchProvider },
+    );
+
+    expect(count).toBe(7);
+
+    const { where } = mocks.count.mock.calls.at(-1)![0];
+    expect(where.id).toBeUndefined();
+    expect(JSON.stringify(where)).toContain('"search":"examp"');
+    vi.mocked(console.error).mockRestore();
+  });
+
+  it("surfaces provider errors when the caller opts out of the fallback", async () => {
     const searchProvider = createSearchProvider();
     vi.mocked(searchProvider.searchCandidates).mockRejectedValue(
       new Error("Provider Connection Timeout"),
@@ -228,7 +249,7 @@ describe("getPartnersCount search", () => {
     await expect(
       getPartnersCount<number>(
         { programId: "prog_test", search: "examp" },
-        { searchProvider },
+        { searchProvider, throwOnSearchError: true },
       ),
     ).rejects.toThrow("Provider Connection Timeout");
   });

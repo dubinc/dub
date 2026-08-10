@@ -155,7 +155,36 @@ describe("getPartners search", () => {
     expect(partners.map(({ id }) => id)).toEqual(["pn_3"]);
   });
 
-  it("propagates search provider errors", async () => {
+  it("falls back to the database search path when the provider fails", async () => {
+    const searchProvider = createSearchProvider();
+    vi.mocked(searchProvider.searchCandidates).mockRejectedValue(
+      new Error("Provider Connection Timeout"),
+    );
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    mocks.findMany.mockResolvedValue([enrollment("pge_1", "pn_1")]);
+
+    const partners = await getPartners(
+      {
+        programId: "prog_test",
+        search: "examp",
+        page: 1,
+        pageSize: 25,
+        sortBy: "totalSaleAmount",
+        sortOrder: "desc",
+      },
+      { searchProvider },
+    );
+
+    expect(partners).toHaveLength(1);
+
+    // The database keeps its own search predicate and no candidate filter.
+    const { where } = mocks.findMany.mock.calls.at(-1)![0];
+    expect(where.id).toBeUndefined();
+    expect(JSON.stringify(where)).toContain('"search":"examp"');
+    vi.mocked(console.error).mockRestore();
+  });
+
+  it("surfaces provider errors when the caller opts out of the fallback", async () => {
     const searchProvider = createSearchProvider();
     vi.mocked(searchProvider.searchCandidates).mockRejectedValue(
       new Error("Provider Connection Timeout"),
@@ -171,11 +200,9 @@ describe("getPartners search", () => {
           sortBy: "totalSaleAmount",
           sortOrder: "desc",
         },
-        { searchProvider },
+        { searchProvider, throwOnSearchError: true },
       ),
     ).rejects.toThrow("Provider Connection Timeout");
-
-    expect(mocks.findMany).not.toHaveBeenCalled();
   });
 
   it("uses the existing database sort when relevance has no provider", async () => {
