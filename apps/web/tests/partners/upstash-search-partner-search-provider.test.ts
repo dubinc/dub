@@ -25,6 +25,7 @@ const mocks = vi.hoisted(() => ({
   delete: vi.fn(),
   deleteIndex: vi.fn(),
   info: vi.fn(),
+  range: vi.fn(),
   search: vi.fn(),
   upsert: vi.fn(),
 }));
@@ -34,6 +35,7 @@ function createSearchIndexMock() {
     delete: mocks.delete,
     deleteIndex: mocks.deleteIndex,
     info: mocks.info,
+    range: mocks.range,
     search: mocks.search,
     upsert: mocks.upsert,
   };
@@ -218,5 +220,40 @@ describe("Upstash Search partner search provider", () => {
       documentCount: 100_005,
     });
     expect(mocks.deleteIndex).toHaveBeenCalledOnce();
+  });
+
+  it("enumerates document IDs and reports an empty cursor as null", async () => {
+    const provider = createUpstashSearchPartnerSearchProvider({
+      searchIndex: createSearchIndexMock(),
+      indexName: "test-index",
+    });
+    mocks.range.mockResolvedValue({
+      nextCursor: "",
+      documents: [{ id: "pge_one" }, { id: "pge_two" }],
+    });
+
+    const page = await provider.listDocumentIds({ limit: 500 });
+
+    expect(mocks.range).toHaveBeenCalledWith({ cursor: "0", limit: 500 });
+    expect(page).toEqual({
+      documentIds: ["pge_one", "pge_two"],
+      cursor: null,
+    });
+  });
+
+  it("passes a live cursor through unchanged", async () => {
+    const provider = createUpstashSearchPartnerSearchProvider({
+      searchIndex: createSearchIndexMock(),
+      indexName: "test-index",
+    });
+    mocks.range.mockResolvedValue({
+      nextCursor: "next",
+      documents: [{ id: "pge_one" }],
+    });
+
+    await expect(
+      provider.listDocumentIds({ cursor: "prev", limit: 10 }),
+    ).resolves.toEqual({ documentIds: ["pge_one"], cursor: "next" });
+    expect(mocks.range).toHaveBeenCalledWith({ cursor: "prev", limit: 10 });
   });
 });

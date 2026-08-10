@@ -55,6 +55,16 @@ export interface PartnerSearchCandidateQuery {
   limit: number;
 }
 
+export interface PartnerSearchDocumentPage {
+  documentIds: string[];
+  /**
+   * Null once enumeration is exhausted. An empty page with a non-null cursor is
+   * normal — Redis SCAN returns those routinely — so callers must loop until
+   * the cursor is null rather than stopping on the first empty page.
+   */
+  cursor: string | null;
+}
+
 export interface PartnerSearchProvider {
   searchCandidates(
     query: PartnerSearchCandidateQuery,
@@ -62,4 +72,9 @@ export interface PartnerSearchProvider {
   waitForIndexing(): Promise<void>;
   upsert(documents: PartnerSearchDocument[]): Promise<void>;
   delete(documentIds: string[]): Promise<void>;
+  /** Walks every indexed document so reconciliation can find orphans. */
+  listDocumentIds(options: {
+    cursor?: string;
+    limit: number;
+  }): Promise<PartnerSearchDocumentPage>;
 }

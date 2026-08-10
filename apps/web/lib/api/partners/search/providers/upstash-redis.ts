@@ -459,5 +459,22 @@ export function createUpstashRedisPartnerSearchProvider({
         );
       }
     },
+
+    async listDocumentIds({ cursor, limit }) {
+      const documentPrefix = getDocumentPrefix(resolvedIndexName);
+      // COUNT is a hint, not a page size, so a page can come back empty with
+      // the cursor still live.
+      const [nextCursor, keys] = await withTransientRetry(() =>
+        resolvedRedisClient.scan(cursor ?? "0", {
+          match: `${documentPrefix}*`,
+          count: limit,
+        }),
+      );
+
+      return {
+        documentIds: keys.map((key) => key.slice(documentPrefix.length)),
+        cursor: nextCursor === "0" ? null : String(nextCursor),
+      };
+    },
   };
 }

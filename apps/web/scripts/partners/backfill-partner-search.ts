@@ -2,6 +2,7 @@ import {
   backfillPartnerSearch,
   createUpstashRedisPartnerSearchIndex,
   getPartnerSearchProviderName,
+  reconcilePartnerSearchIndex,
   type PartnerSearchBackfillProgress,
 } from "@/lib/api/partners/search";
 import { prisma } from "@/lib/prisma";
@@ -15,12 +16,14 @@ interface BackfillArguments {
   programId: string;
   batchSize: number;
   after?: string;
+  reconcile: boolean;
 }
 
 function parseArguments(args: string[]): BackfillArguments {
   let programId: string | undefined;
   let batchSize = DEFAULT_BATCH_SIZE;
   let after: string | undefined;
+  let reconcile = false;
 
   for (const arg of args) {
     if (arg.startsWith("--programId=")) {
@@ -32,6 +35,8 @@ function parseArguments(args: string[]): BackfillArguments {
       );
     } else if (arg.startsWith("--after=")) {
       after = arg.slice("--after=".length);
+    } else if (arg === "--reconcile") {
+      reconcile = true;
     } else {
       throw new Error(`Unknown argument: ${arg}`);
     }
@@ -49,7 +54,7 @@ function parseArguments(args: string[]): BackfillArguments {
     throw new Error("--after cannot be empty.");
   }
 
-  return { programId, batchSize, after };
+  return { programId, batchSize, after, reconcile };
 }
 
 let resumeAfter: string | undefined;
@@ -66,7 +71,9 @@ function reportProgress({
 }
 
 async function main() {
-  const { programId, batchSize, after } = parseArguments(process.argv.slice(2));
+  const { programId, batchSize, after, reconcile } = parseArguments(
+    process.argv.slice(2),
+  );
   resumeAfter = after;
   const providerName = getPartnerSearchProviderName();
   if (!providerName) {
@@ -98,6 +105,29 @@ async function main() {
   if (result.lastDocumentId) {
     console.log(`Last document: ${result.lastDocumentId}`);
   }
+
+  if (!reconcile) {
+    return;
+  }
+
+  // The backfill above only upserts, so it cannot remove documents for
+  // enrollments that were deleted. This sweep covers the whole index, not just
+  // --programId, because neither provider can enumerate documents by program.
+  console.log("Reconciling the index against the database (all programs)...");
+
+  const { scanned, deleted } = await reconcilePartnerSearchIndex({
+    onProgress: ({ scanned, deleted }) => {
+      if (scanned > 0 && scanned % 10_000 === 0) {
+        console.log(
+          `Scanned ${scanned.toLocaleString()} documents, removed ${deleted.toLocaleString()} orphans`,
+        );
+      }
+    },
+  });
+
+  console.log(
+    `Reconcile complete: scanned ${scanned.toLocaleString()} documents, removed ${deleted.toLocaleString()} orphans.`,
+  );
 }
 
 main()

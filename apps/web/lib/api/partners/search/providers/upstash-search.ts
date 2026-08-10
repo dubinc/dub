@@ -61,6 +61,10 @@ interface UpstashSearchIndexClient {
         }[],
   ): Promise<string>;
   delete(documentIds: string[]): Promise<{ deleted: number }>;
+  range(params: {
+    cursor: string;
+    limit: number;
+  }): Promise<{ nextCursor: string; documents: { id: string }[] }>;
   info(): Promise<{ pendingDocumentCount: number; documentCount: number }>;
   deleteIndex(): Promise<string>;
 }
@@ -379,6 +383,19 @@ export function createUpstashSearchPartnerSearchProvider({
       for (const documentIdBatch of chunk(documentIds, DELETE_BATCH_SIZE)) {
         await withTransientRetry(() => index.delete(documentIdBatch));
       }
+    },
+
+    async listDocumentIds({ cursor, limit }) {
+      const { nextCursor, documents } = await withTransientRetry(() =>
+        index.range({ cursor: cursor ?? "0", limit }),
+      );
+
+      // An empty nextCursor means the range is exhausted. The SDK types it as a
+      // plain string, so the sentinel is not visible from the signature.
+      return {
+        documentIds: documents.map(({ id }) => id),
+        cursor: nextCursor === "" ? null : nextCursor,
+      };
     },
   };
 }

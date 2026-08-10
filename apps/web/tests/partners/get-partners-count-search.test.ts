@@ -31,6 +31,9 @@ function createSearchProvider(): PartnerSearchProvider {
     waitForIndexing: vi.fn(),
     upsert: vi.fn(),
     delete: vi.fn(),
+    listDocumentIds: vi
+      .fn()
+      .mockResolvedValue({ documentIds: [], cursor: null }),
   };
 }
 

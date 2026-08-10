@@ -31,6 +31,7 @@ const mocks = vi.hoisted(() => ({
   index: vi.fn(),
   jsonMset: vi.fn(),
   query: vi.fn(),
+  scan: vi.fn(),
   waitIndexing: vi.fn(),
 }));
 
@@ -46,6 +47,7 @@ function createRedisMock(): Redis {
 
   const redisMock = {
     del: mocks.del,
+    scan: mocks.scan,
     json: {
       mset: mocks.jsonMset,
     },
@@ -357,5 +359,40 @@ describe("Upstash Redis partner search provider", () => {
         indexName: "test-index",
       }),
     ).rejects.toThrow("Delete and recreate it before backfilling");
+  });
+
+  it("enumerates document IDs by stripping the key prefix", async () => {
+    const provider = createUpstashRedisPartnerSearchProvider({
+      redisClient: createRedisMock(),
+      indexName: "test-index",
+    });
+    mocks.scan.mockResolvedValue([
+      "42",
+      ["test-index:partner:pge_one", "test-index:partner:pge_two"],
+    ]);
+
+    const page = await provider.listDocumentIds({ limit: 500 });
+
+    expect(mocks.scan).toHaveBeenCalledWith("0", {
+      match: "test-index:partner:*",
+      count: 500,
+    });
+    expect(page).toEqual({
+      documentIds: ["pge_one", "pge_two"],
+      cursor: "42",
+    });
+  });
+
+  it("reports an exhausted SCAN cursor as null", async () => {
+    const provider = createUpstashRedisPartnerSearchProvider({
+      redisClient: createRedisMock(),
+      indexName: "test-index",
+    });
+    mocks.scan.mockResolvedValue(["0", []]);
+
+    await expect(
+      provider.listDocumentIds({ cursor: "42", limit: 10 }),
+    ).resolves.toEqual({ documentIds: [], cursor: null });
+    expect(mocks.scan).toHaveBeenCalledWith("42", expect.anything());
   });
 });

@@ -12,9 +12,7 @@ const defaultInput = {
 
 describe("buildPartnerSearchCandidateQuery", () => {
   it("builds a provider-neutral relevance candidate request", () => {
-    expect(
-      buildPartnerSearchCandidateQuery(defaultInput),
-    ).toEqual({
+    expect(buildPartnerSearchCandidateQuery(defaultInput)).toEqual({
       programId: "prog_test",
       query: "examp",
       limit: 100,
