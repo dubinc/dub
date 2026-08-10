@@ -86,7 +86,7 @@ function PayoutStatsCard({
                 {error ? (
                   "-"
                 ) : (
-                  <>{amount > 0 ? currencyFormatter(amount) : "$0.00"}</>
+                  <>{amount !== 0 ? currencyFormatter(amount) : "$0.00"}</>
                 )}
               </span>
               {label === "Processed" && amount > 0 && (

@@ -4,16 +4,16 @@ import { clientAccessCheck } from "@/lib/client-access-check";
 import { usePayout } from "@/lib/swr/use-payout";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { CommissionResponse, PayoutResponse } from "@/lib/types";
-import { CLAWBACK_REASONS_MAP } from "@/lib/zod/schemas/commissions";
+import { formatCommissionDescriptionTooltip } from "@/lib/commissions/format-commission-description-tooltip";
 import { CustomerAvatar } from "@/ui/customers/customer-avatar";
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { ActivityEvent } from "@/ui/partners/activity-event";
 import { CommissionTypeIcon } from "@/ui/partners/comission-type-icon";
 import { CommissionRowMenu } from "@/ui/partners/commission-row-menu";
+import { CommissionDescriptionLabel } from "@/ui/partners/commission-description-label";
 import {
   CommissionTypeBadge,
-  getCommissionTypeLabel,
 } from "@/ui/partners/commission-type-badge";
 import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
@@ -325,11 +325,11 @@ function PayoutDetailsContent({
                   {row.original.customer.email || row.original.customer.name}
                 </Link>
               ) : (
-                <span className="max-w-xs truncate text-sm text-neutral-700">
-                  {row.original.type === "custom" && row.original.description
-                    ? row.original.description
-                    : getCommissionTypeLabel(row.original)}
-                </span>
+                <CommissionDescriptionLabel
+                  commission={row.original}
+                  context={{ variant: "program", workspaceSlug: slug }}
+                  className="max-w-xs truncate text-sm text-neutral-700"
+                />
               )}
               <span className="text-xs text-neutral-500">
                 {formatDateTime(row.original.createdAt)}
@@ -359,12 +359,13 @@ function PayoutDetailsContent({
           const earnings = currencyFormatter(commission.earnings);
 
           if (commission.description) {
-            const reason =
-              CLAWBACK_REASONS_MAP[commission.description]?.description ??
-              commission.description;
-
             return (
-              <Tooltip content={reason}>
+              <Tooltip
+                content={formatCommissionDescriptionTooltip(
+                  commission.description,
+                  { variant: "program", workspaceSlug: slug },
+                )}
+              >
                 <span
                   className={cn(
                     "cursor-help truncate underline decoration-dotted underline-offset-2",
