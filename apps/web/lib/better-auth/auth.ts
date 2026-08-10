@@ -20,10 +20,11 @@ import { logger, toErrorFields } from "../axiom/server";
 import { databaseHooks } from "./database-hooks";
 import { hooks } from "./hooks";
 import { invite } from "./invite-plugin";
-import { programOAuthConfigs, programOAuthProviderIds } from "./program-oauth";
+import { programOAuthConfigs } from "./program-oauth";
 import { samlIdp, samlOAuthConfig } from "./saml-sso-plugin";
 
 const isVercelProduction = process.env.VERCEL_ENV === "production";
+const isVercelDeployment = process.env.VERCEL === "1";
 
 export const auth = betterAuth({
   secret: process.env.BETTER_AUTH_SECRET,
@@ -108,14 +109,16 @@ export const auth = betterAuth({
         },
       });
 
-      await sendEmail({
-        subject: "Your Dub account password has been reset",
-        to: user.email,
-        react: PasswordUpdated({
-          email: user.email,
-          verb: "reset",
+      waitUntil(
+        sendEmail({
+          subject: "Your Dub account password has been reset",
+          to: user.email,
+          react: PasswordUpdated({
+            email: user.email,
+            verb: "reset",
+          }),
         }),
-      });
+      );
     },
   },
 
@@ -151,12 +154,7 @@ export const auth = betterAuth({
     modelName: "account",
     accountLinking: {
       enabled: true,
-      trustedProviders: [
-        "google",
-        "github",
-        "saml",
-        ...programOAuthProviderIds,
-      ],
+      trustedProviders: ["google", "github", "saml"],
     },
   },
   verification: {
@@ -183,7 +181,7 @@ export const auth = betterAuth({
       enabled: isVercelProduction,
       domain: isVercelProduction ? ".dub.co" : undefined,
     },
-    useSecureCookies: isVercelProduction,
+    useSecureCookies: isVercelDeployment,
   },
 
   hooks,

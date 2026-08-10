@@ -111,31 +111,41 @@ async function authenticateApiKey(authHeader: string): Promise<{
   const apiKey = authHeader.replace("Bearer ", "");
   const hashedKey = await hashToken(apiKey);
 
-  const user = await prisma.user.findFirst({
+  const token = await prisma.token.findUnique({
     where: {
-      tokens: {
-        some: {
-          hashedKey,
+      hashedKey,
+    },
+    select: {
+      expires: true,
+      user: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          image: true,
+          isMachine: true,
+          defaultWorkspace: true,
+          defaultPartnerId: true,
         },
       },
     },
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      image: true,
-      isMachine: true,
-      defaultWorkspace: true,
-      defaultPartnerId: true,
-    },
   });
 
-  if (!user?.email) {
+  if (!token?.user?.email) {
     throw new DubApiError({
       code: "unauthorized",
       message: "Unauthorized: Invalid API key.",
     });
   }
+
+  if (token.expires && token.expires < new Date()) {
+    throw new DubApiError({
+      code: "unauthorized",
+      message: "Unauthorized: Access token expired.",
+    });
+  }
+
+  const { user } = token;
 
   return {
     authMethod: "apiKey",
@@ -143,7 +153,7 @@ async function authenticateApiKey(authHeader: string): Promise<{
     user: {
       id: user.id,
       name: user.name || "",
-      email: user.email,
+      email: user.email || "",
       image: user.image,
       isMachine: user.isMachine,
       defaultWorkspace: user.defaultWorkspace,

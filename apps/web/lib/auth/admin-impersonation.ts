@@ -1,7 +1,7 @@
 import { redis } from "@/lib/upstash";
 
 const KEY_PREFIX = "admin-impersonation:";
-const TTL_SECONDS = 60; // Short window between successful token consume and session.create SAML check
+const TTL_SECONDS = 60; // Short window between token consume and session.create SAML bypass
 
 const keyForEmail = (email: string) => `${KEY_PREFIX}${email.toLowerCase()}`;
 

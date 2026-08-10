@@ -20,30 +20,39 @@ export const programOAuthConfigs: GenericOAuthConfig[] = SSO_LOGIN_PROGRAMS.map(
     redirectURI: `${process.env.BETTER_AUTH_URL}/api/auth/callback/${slug}`,
     ...(mapProfile && {
       getUserInfo: async (tokens) => {
-        const response = await fetch(oauth.userInfoUrl, {
-          headers: {
-            Authorization: `Bearer ${tokens.accessToken}`,
-          },
-        });
+        try {
+          const response = await fetch(oauth.userInfoUrl, {
+            headers: {
+              Authorization: `Bearer ${tokens.accessToken}`,
+            },
+            signal: AbortSignal.timeout(10_000),
+          });
 
-        if (!response.ok) {
+          if (!response.ok) {
+            console.error(
+              `[Partner SSO] Failed to fetch userinfo for ${slug}.`,
+              response.statusText,
+            );
+            return null;
+          }
+
+          const profile = await response.json();
+          const mapped = mapProfile(profile);
+
+          return {
+            id: mapped.id,
+            email: mapped.email,
+            name: mapped.name,
+            image: mapped.image ?? undefined,
+            emailVerified: false,
+          };
+        } catch (error) {
           console.error(
             `[Partner SSO] Failed to fetch userinfo for ${slug}.`,
-            response.statusText,
+            error,
           );
           return null;
         }
-
-        const profile = await response.json();
-        const mapped = mapProfile(profile);
-
-        return {
-          id: mapped.id,
-          email: mapped.email,
-          name: mapped.name,
-          image: mapped.image ?? undefined,
-          emailVerified: true,
-        };
       },
     }),
   }),

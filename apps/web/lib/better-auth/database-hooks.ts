@@ -229,10 +229,6 @@ export const databaseHooks = {
           });
         }
 
-        const isAdminImpersonation = await consumeAdminImpersonation(
-          user.email,
-        );
-
         if (user.lockedAt) {
           throw new APIError("FORBIDDEN", {
             message: "exceeded-login-attempts",
@@ -244,20 +240,34 @@ export const databaseHooks = {
           context?.params?.providerId === "saml" ||
           context?.path === "/sign-in/saml-idp";
 
-        if (
-          !isSamlCallback &&
-          !isAdminImpersonation &&
-          (await isSamlEnforcedForEmailDomain(user.email))
-        ) {
-          throw new APIError("FORBIDDEN", {
-            code: "REQUIRE_SAML_SSO",
-            message: "SAML SSO is required for this email address.",
-          });
+        if (isSamlCallback) {
+          return {
+            data: session,
+          };
         }
 
-        return {
-          data: session,
-        };
+        if (!(await isSamlEnforcedForEmailDomain(user.email))) {
+          return {
+            data: session,
+          };
+        }
+
+        // Only magic-link verify (admin impersonation) may bypass SAML.
+        // Consume the marker only on that path so other sign-ins cannot
+        // clear it or skip enforcement.
+        if (
+          context?.path === "/magic-link/verify" &&
+          (await consumeAdminImpersonation(user.email))
+        ) {
+          return {
+            data: session,
+          };
+        }
+
+        throw new APIError("FORBIDDEN", {
+          code: "REQUIRE_SAML_SSO",
+          message: "SAML SSO is required for this email address.",
+        });
       },
 
       // Runs after a session is created on every successful sign-in

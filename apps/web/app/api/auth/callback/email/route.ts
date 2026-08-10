@@ -1,5 +1,8 @@
 import { hashToken } from "@/lib/auth";
-import { buildMagicLinkUrl } from "@/lib/better-auth/utils";
+import {
+  buildLookupKey,
+  buildMagicLinkUrl,
+} from "@/lib/better-auth/utils";
 import { createVerificationToken } from "@/lib/better-auth/verification-token";
 import { prisma } from "@/lib/prisma";
 import { APP_DOMAIN, PARTNERS_DOMAIN } from "@dub/utils";
@@ -11,21 +14,20 @@ const TRUSTED_CALLBACK_ORIGINS = new Set([
 ]);
 
 /**
- * Legacy NextAuth email callback → Better Auth magic-link bridge.
+ * Legacy NextAuth email callback → Better Auth invite bridge (invites only).
  *
- * Old route (still in already-sent invite / login emails):
- *   GET /api/auth/callback/email?email=...&token=...&callbackUrl=...
- *   - token is stored hashed in VerificationToken (NextAuth table)
- *   - login and invite links share this URL shape (no invite flag on the token)
+ * What this handles:
+ *   Already-sent workspace/partner invite emails that still point at:
+ *     GET /api/auth/callback/email?email=...&token=...&callbackUrl=...
+ *   Tokens live in the NextAuth `VerificationToken` table (hashed). Old invite
+ *   links had no invite flag, so a pending ProjectInvite / PartnerInvite for
+ *   the email is required. On success we consume that row and mint a Better
+ *   Auth invite Verification, then redirect to /api/auth/magic-link/verify.
  *
- * New route (used by createInviteMagicLink / magic-link login):
- *   GET /api/auth/magic-link/verify?token=...&callbackURL=...
- *   - token is stored in Verification (Better Auth table)
- *   - invite vs login is marked on the Verification value (`isInvite: true`)
- *
- * This handler validates + consumes VerificationToken, then mints a BA
- * Verification. Invite vs login is inferred from a pending ProjectInvite /
- * PartnerInvite for that email (old tokens had no invite flag).
+ * What this intentionally skips:
+ *   Legacy login magic links that used the same URL shape. Those expire with a
+ *   short TTL, so we do not bridge them — request a new magic link instead.
+ *   New invite + login flows already use /api/auth/magic-link/verify directly.
  */
 export async function GET(request: Request) {
   const requestUrl = new URL(request.url);
@@ -42,58 +44,83 @@ export async function GET(request: Request) {
 
   const hashedToken = await hashToken(token, { secret: true });
 
-  const verificationToken = await prisma.verificationToken.findUnique({
+  const existingToken = await prisma.verificationToken.findUnique({
     where: {
       token: hashedToken,
     },
   });
 
   if (
-    !verificationToken ||
-    verificationToken.expires < new Date() ||
-    verificationToken.identifier.toLowerCase() !== email
+    !existingToken ||
+    existingToken.expires < new Date() ||
+    existingToken.identifier.toLowerCase() !== email
   ) {
     return NextResponse.redirect(errorRedirect);
   }
 
-  await prisma.verificationToken.delete({
-    where: {
-      token: hashedToken,
-    },
-  });
-
   const [projectInvite, partnerInvite] = await Promise.all([
     prisma.projectInvite.findFirst({
       where: {
-        email: verificationToken.identifier,
+        email,
       },
       select: {
-        email: true,
+        projectId: true,
       },
     }),
 
     prisma.partnerInvite.findFirst({
       where: {
-        email: verificationToken.identifier,
+        email,
       },
       select: {
-        email: true,
+        partnerId: true,
       },
     }),
   ]);
 
-  const isInvite = Boolean(projectInvite || partnerInvite);
-  const expiresIn = verificationToken.expires
-    ? new Date(verificationToken.expires).getTime() - Date.now()
+  // Invite-only: do not bridge legacy login magic links (short TTL).
+  if (!projectInvite && !partnerInvite) {
+    return NextResponse.redirect(errorRedirect);
+  }
+
+  // Prefer partner invite when the request is on the partners host.
+  const isPartnersHost =
+    requestUrl.origin === new URL(PARTNERS_DOMAIN).origin;
+
+  let lookupKey: string;
+  if (partnerInvite && (isPartnersHost || !projectInvite)) {
+    lookupKey = buildLookupKey("invite", email, partnerInvite.partnerId);
+  } else if (projectInvite) {
+    lookupKey = buildLookupKey("invite", email, projectInvite.projectId);
+  } else {
+    return NextResponse.redirect(errorRedirect);
+  }
+
+  // Consume so concurrent requests cannot both mint a Better Auth token.
+  // deleteMany returns 0 when another request already took the row.
+  const { count } = await prisma.verificationToken.deleteMany({
+    where: {
+      token: hashedToken,
+    },
+  });
+
+  if (count === 0) {
+    return NextResponse.redirect(errorRedirect);
+  }
+
+  const expiresIn = existingToken.expires
+    ? new Date(existingToken.expires).getTime() - Date.now()
     : undefined;
 
   const { token: newToken } = await createVerificationToken({
-    kind: isInvite ? "invite" : "magicLink",
+    kind: "invite",
     expiresIn,
     value: {
-      email: verificationToken.identifier,
-      ...(isInvite ? { isInvite } : {}),
+      email,
+      isInvite: true,
     },
+    lookupKey,
+    removePreviousTokens: true,
   });
 
   const verifyUrl = buildMagicLinkUrl({
