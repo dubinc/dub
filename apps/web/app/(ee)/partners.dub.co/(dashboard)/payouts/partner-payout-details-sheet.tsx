@@ -5,14 +5,14 @@ import {
   PAYOUTS_SHEET_ITEMS_LIMIT,
   STABLECOIN_PAYOUT_FEE_RATE,
 } from "@/lib/constants/payouts";
+import { formatCommissionDescriptionTooltip } from "@/lib/commissions/format-commission-description-tooltip";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { PartnerEarningsResponse, PartnerPayoutResponse } from "@/lib/types";
-import { CLAWBACK_REASONS_MAP } from "@/lib/zod/schemas/commissions";
 import { CustomerAvatar } from "@/ui/customers/customer-avatar";
 import { CommissionTypeIcon } from "@/ui/partners/comission-type-icon";
+import { CommissionDescriptionLabel } from "@/ui/partners/commission-description-label";
 import {
   CommissionTypeBadge,
-  getCommissionTypeLabel,
 } from "@/ui/partners/commission-type-badge";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
 import { ConditionalLink } from "@/ui/shared/conditional-link";
@@ -297,17 +297,10 @@ function PayoutDetailsSheetContent({ payout }: PayoutDetailsSheetProps) {
             )}
 
             <div className="flex min-w-0 flex-col">
-              {row.original.type === "custom" && row.original.description ? (
-                <Tooltip content={row.original.description}>
-                  <span className="min-w-0 truncate text-sm text-neutral-700">
-                    {row.original.description}
-                  </span>
-                </Tooltip>
-              ) : (
-                <span className="min-w-0 truncate text-sm text-neutral-700">
-                  {getCommissionTypeLabel(row.original)}
-                </span>
-              )}
+              <CommissionDescriptionLabel
+                commission={row.original}
+                context={{ variant: "partner" }}
+              />
               <span className="text-xs text-neutral-500">
                 {formatDateTime(row.original.createdAt)}
               </span>
@@ -324,12 +317,13 @@ function PayoutDetailsSheetContent({ payout }: PayoutDetailsSheetProps) {
           const earnings = currencyFormatter(commission.earnings);
 
           if (commission.description) {
-            const reason =
-              CLAWBACK_REASONS_MAP[commission.description]?.description ??
-              commission.description;
-
             return (
-              <Tooltip content={reason}>
+              <Tooltip
+                content={formatCommissionDescriptionTooltip(
+                  commission.description,
+                  { variant: "partner" },
+                )}
+              >
                 <span
                   className={cn(
                     "cursor-help truncate underline decoration-dotted underline-offset-2",
