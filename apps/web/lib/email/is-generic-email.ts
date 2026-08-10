@@ -73,6 +73,8 @@ const GENERIC_EMAIL_DOMAINS = [
   "2famail.com",
   "tempxzy.net",
   "okyre.com",
+  "pinmx.net",
+  "pingmx.net",
 ];
 
 const GENERIC_EMAIL_DOMAIN_PREFIXES = [
