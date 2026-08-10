@@ -75,10 +75,12 @@ interface CreateUpstashSearchPartnerSearchProviderOptions {
 }
 
 function getIndexName(indexName?: string): string {
+  // `||` rather than `??`: a blank value has to fall through to the default,
+  // otherwise an empty env var silently targets an index named "".
   return (
-    indexName ??
-    process.env.PARTNER_UPSTASH_SEARCH_INDEX_NAME?.trim() ??
-    process.env.PARTNER_SEARCH_INDEX_NAME?.trim() ??
+    indexName?.trim() ||
+    process.env.PARTNER_UPSTASH_SEARCH_INDEX_NAME?.trim() ||
+    process.env.PARTNER_SEARCH_INDEX_NAME?.trim() ||
     DEFAULT_INDEX_NAME
   );
 }

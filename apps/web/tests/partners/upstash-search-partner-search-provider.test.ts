@@ -256,4 +256,27 @@ describe("Upstash Search partner search provider", () => {
     ).resolves.toEqual({ documentIds: ["pge_one"], cursor: "next" });
     expect(mocks.range).toHaveBeenCalledWith({ cursor: "prev", limit: 10 });
   });
+
+  it.each([
+    ["blank", ""],
+    ["whitespace", "   "],
+  ])(
+    "falls back to the default index when the env var is %s",
+    async (_l, value) => {
+      vi.stubEnv("PARTNER_UPSTASH_SEARCH_INDEX_NAME", value);
+      vi.stubEnv("PARTNER_SEARCH_INDEX_NAME", value);
+      mocks.info.mockResolvedValue({
+        documentCount: 0,
+        pendingDocumentCount: 0,
+      });
+      mocks.deleteIndex.mockResolvedValue("Success");
+
+      const { indexName } = await deleteUpstashSearchPartnerSearchIndex({
+        searchIndex: createSearchIndexMock(),
+      });
+
+      expect(indexName).toBe("partner-search-v1");
+      vi.unstubAllEnvs();
+    },
+  );
 });

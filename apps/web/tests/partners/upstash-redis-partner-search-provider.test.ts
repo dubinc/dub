@@ -395,4 +395,26 @@ describe("Upstash Redis partner search provider", () => {
     ).resolves.toEqual({ documentIds: [], cursor: null });
     expect(mocks.scan).toHaveBeenCalledWith("42", expect.anything());
   });
+
+  it.each([
+    ["blank", ""],
+    ["whitespace", "   "],
+  ])(
+    "falls back to the default index when the env var is %s",
+    async (_l, value) => {
+      vi.stubEnv("PARTNER_SEARCH_INDEX_NAME", value);
+      const provider = createUpstashRedisPartnerSearchProvider({
+        redisClient: createRedisMock(),
+      });
+      mocks.scan.mockResolvedValue(["0", []]);
+
+      await provider.listDocumentIds({ limit: 10 });
+
+      expect(mocks.scan).toHaveBeenCalledWith(
+        "0",
+        expect.objectContaining({ match: "partner-search-v1:partner:*" }),
+      );
+      vi.unstubAllEnvs();
+    },
+  );
 });
