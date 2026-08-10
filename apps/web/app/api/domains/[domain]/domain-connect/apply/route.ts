@@ -3,11 +3,11 @@ import { getDomainOrThrow } from "@/lib/api/domains/get-domain-or-throw";
 import { getDomainResponse } from "@/lib/api/domains/get-domain-response";
 import { DubApiError } from "@/lib/api/errors";
 import { withWorkspace } from "@/lib/auth";
+import { isAllowedSyncUXOrigin } from "@/lib/domain-connect/allowed-origins";
 import {
   DEFAULT_DC_SERVICE_APEX,
   DEFAULT_DC_SERVICE_SUBDOMAIN,
   DOMAIN_CONNECT_KEY_HOST,
-  isAllowedSyncUXOrigin,
 } from "@/lib/domain-connect/constants";
 import { discoverDomainConnect } from "@/lib/domain-connect/discover";
 import { buildSignedApplyUrl } from "@/lib/domain-connect/sign-apply-url";

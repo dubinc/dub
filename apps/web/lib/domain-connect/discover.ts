@@ -1,5 +1,5 @@
 import dns from "node:dns/promises";
-import { isAllowedSyncUXOrigin } from "./constants";
+import { isAllowedSyncUXOrigin } from "./allowed-origins";
 import type {
   DomainConnectDiscovery,
   DomainConnectProviderKind,

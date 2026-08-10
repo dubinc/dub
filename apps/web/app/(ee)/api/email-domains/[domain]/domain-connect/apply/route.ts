@@ -2,10 +2,10 @@ import { getEmailDomainOrThrow } from "@/lib/api/domains/get-email-domain-or-thr
 import { DubApiError } from "@/lib/api/errors";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { withWorkspace } from "@/lib/auth";
+import { isAllowedSyncUXOrigin } from "@/lib/domain-connect/allowed-origins";
 import {
   DEFAULT_DC_SERVICE_EMAIL,
   DOMAIN_CONNECT_KEY_HOST,
-  isAllowedSyncUXOrigin,
 } from "@/lib/domain-connect/constants";
 import { discoverDomainConnect } from "@/lib/domain-connect/discover";
 import { mapResendRecordsToEmailDomainConnectParams } from "@/lib/domain-connect/map-email-domain-records";

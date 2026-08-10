@@ -54,7 +54,6 @@ export default function DomainDnsInstructions({
               records below to your DNS provider to complete the setup.
             </Text>
 
-            {/* header row */}
             <Section className="mt-6 rounded-lg bg-neutral-100 px-4 py-3">
               <Row>
                 <Column className="w-16">

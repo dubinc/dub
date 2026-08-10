@@ -1,6 +1,6 @@
 "use client";
 
-import { isAllowedSyncUXOrigin } from "@/lib/domain-connect/constants";
+import { isAllowedSyncUXOrigin } from "@/lib/domain-connect/allowed-origins";
 import type { DomainConnectDiscovery } from "@/lib/domain-connect/types";
 import { DomainVerificationStatusProps } from "@/lib/types";
 import { useForwardDnsInstructionsModal } from "@/ui/modals/forward-dns-instructions-modal";

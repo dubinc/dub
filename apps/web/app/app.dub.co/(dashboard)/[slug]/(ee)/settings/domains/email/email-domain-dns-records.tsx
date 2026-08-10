@@ -1,6 +1,6 @@
 "use client";
 
-import { isAllowedSyncUXOrigin } from "@/lib/domain-connect/constants";
+import { isAllowedSyncUXOrigin } from "@/lib/domain-connect/allowed-origins";
 import type { DomainConnectDiscovery } from "@/lib/domain-connect/types";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { EmailDomainProps } from "@/lib/types";
