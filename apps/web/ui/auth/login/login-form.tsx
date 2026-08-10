@@ -52,6 +52,10 @@ export const errorCodes = {
     "We faced a problem while processing the response from the OAuth provider. Please try again.",
   OAuthAccountNotLinked:
     "It looks like you already have an account with this email. Please sign in with your account email instead.",
+  account_not_linked:
+    "It looks like you already have an account with this email. Please sign in with your existing method, then connect this provider.",
+  unable_to_link_account:
+    "It looks like you already have an account with this email. Please sign in with your existing method, then connect this provider.",
 };
 
 export const LoginFormContext = createContext<{
@@ -196,7 +200,7 @@ export default function LoginForm({
                 )
                 .map((provider) => (
                   <div key={provider.method}>
-                    <provider.component />
+                    <provider.component {...provider.props} />
                   </div>
                 ))
             )}
