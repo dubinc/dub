@@ -11,8 +11,8 @@ import PasswordUpdated from "@dub/email/templates/password-updated";
 import ResetPasswordLink from "@dub/email/templates/reset-password-link";
 import { APP_DOMAIN, nanoid, PARTNERS_DOMAIN } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
-import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
+import { betterAuth } from "better-auth/minimal";
 import { nextCookies } from "better-auth/next-js";
 import { genericOAuth, lastLoginMethod, magicLink } from "better-auth/plugins";
 import { isLocalDev } from "../api/environment";
@@ -31,6 +31,13 @@ export const auth = betterAuth({
   database: prismaAdapter(prisma, {
     provider: "mysql",
   }),
+
+  session: {
+    cookieCache: {
+      enabled: true,
+      maxAge: 2 * 60, // Cache duration in seconds
+    },
+  },
 
   // Google and GitHub social providers
   socialProviders: {
