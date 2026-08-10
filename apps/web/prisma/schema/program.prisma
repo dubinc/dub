@@ -173,6 +173,7 @@ model ProgramEnrollment {
   @@unique([partnerId, programId])
   @@unique([tenantId, programId])
   // indexes for sorting partners
+  @@index([programId, status, createdAt])
   @@index([programId, status, totalClicks])
   @@index([programId, status, totalLeads])
   @@index([programId, status, totalConversions])

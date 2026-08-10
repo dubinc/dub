@@ -1,8 +1,8 @@
 "use client";
 
 import useWorkspace from "@/lib/swr/use-workspace";
-import { capitalize } from "@dub/utils";
-import { Crown } from "lucide-react";
+import { buttonVariants, Crown } from "@dub/ui";
+import { capitalize, cn } from "@dub/utils";
 import Link from "next/link";
 
 export const UpgradeRequiredToast = ({
@@ -21,27 +21,39 @@ export const UpgradeRequiredToast = ({
   const { slug, nextPlan } = useWorkspace();
   planToUpgradeTo = planToUpgradeTo || nextPlan?.name;
 
-  // Defaults
   const defaultCtaLabel = planToUpgradeTo
     ? `Upgrade to ${capitalize(planToUpgradeTo)}`
     : "Contact support";
 
   const defaultCtaUrl = slug ? `/${slug}/upgrade` : "https://dub.co/pricing";
+  const href = ctaUrl || defaultCtaUrl;
+  const isExternal = href.startsWith("http");
 
   return (
-    <div className="flex flex-col space-y-3 rounded-lg bg-white p-6 shadow-lg">
-      <div className="flex items-center space-x-1.5">
-        <Crown className="h-5 w-5 text-black" />
-        <p className="font-semibold">
-          {title ||
-            `You've discovered a ${capitalize(planToUpgradeTo)} feature!`}
-        </p>
+    <div className="flex w-[360px] max-w-[calc(100vw-2rem)] flex-col gap-3 rounded-xl border border-neutral-200 bg-white p-4 shadow-[0_4px_12px_#0000001a]">
+      <div className="flex gap-3">
+        <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-neutral-100">
+          <Crown className="size-4 text-neutral-700" />
+        </div>
+        <div className="min-w-0 space-y-0.5">
+          <p className="text-sm font-semibold leading-5 text-neutral-900">
+            {title ||
+              `You've discovered a ${capitalize(planToUpgradeTo)} feature!`}
+          </p>
+          <p className="text-[13px] leading-snug text-neutral-500">
+            {message}
+          </p>
+        </div>
       </div>
-      <p className="text-sm text-neutral-600">{message}</p>
       <Link
-        href={ctaUrl || defaultCtaUrl}
-        target="_blank"
-        className="w-full rounded-md border border-black bg-black px-3 py-1.5 text-center text-sm text-white transition-all hover:bg-neutral-800 hover:ring-4 hover:ring-neutral-200"
+        href={href}
+        {...(isExternal
+          ? { target: "_blank", rel: "noopener noreferrer" }
+          : {})}
+        className={cn(
+          buttonVariants({ variant: "primary" }),
+          "flex h-8 w-full items-center justify-center whitespace-nowrap rounded-lg border px-4 text-sm",
+        )}
       >
         {ctaLabel || defaultCtaLabel}
       </Link>

@@ -1,3 +1,7 @@
+import {
+  formatCampaignFromAddress,
+  parseCampaignFromAddress,
+} from "@/lib/email/parse-campaign-from-address";
 import { CampaignStatus, CampaignType } from "@prisma/client";
 import * as z from "zod/v4";
 import { sendCampaignConditionSchema } from "../../api/workflows/send-campaign/schema";
@@ -11,6 +15,27 @@ export const EMAIL_TEMPLATE_VARIABLES = [
   "PartnerEmail",
   "PartnerLink",
 ] as const;
+
+export const CAMPAIGN_FROM_FORMAT_ERROR =
+  'From must be an email or "Name <email@domain.com>" format.';
+
+export const campaignFromSchema = z
+  .string()
+  .trim()
+  .min(1, CAMPAIGN_FROM_FORMAT_ERROR)
+  .transform((value, ctx) => {
+    const parsed = parseCampaignFromAddress(value);
+
+    if (!parsed) {
+      ctx.addIssue({
+        code: "custom",
+        message: CAMPAIGN_FROM_FORMAT_ERROR,
+      });
+      return z.NEVER;
+    }
+
+    return formatCampaignFromAddress(parsed);
+  });
 
 export const CampaignSchema = z.object({
   id: z.string(),
@@ -52,7 +77,7 @@ export const updateCampaignSchema = z
       .trim()
       .max(100, "Subject must be less than 100 characters."),
     preview: z.string().nullish(),
-    from: z.email().trim().toLowerCase(),
+    from: campaignFromSchema,
     bodyJson: z.record(z.string(), z.any()),
     triggerCondition: sendCampaignConditionSchema.nullish(),
     groupIds: z.array(z.string()).nullable(),

@@ -13,16 +13,16 @@ import { NAV_UTM_PARAMS } from "./shared";
 const products = [
   {
     icon: (
-      <div className="flex size-4 items-center justify-center rounded bg-orange-400">
-        <DubLinksIcon className="size-2.5 text-orange-900" />
+      <div className="flex size-4 items-center justify-center rounded bg-violet-400">
+        <DubPartnersIcon className="size-2.5 text-violet-900" />
       </div>
     ),
-    title: "Dub Links",
-    description: "Short links with superpowers for modern marketing teams.",
-    href: "/links",
-    color: "#f4950c",
-    graphicsContainerClassName: "px-2",
-    graphic: <LinksGraphic className="absolute left-0 top-0 h-auto w-full" />,
+    title: "Dub Partners",
+    description: "Grow your revenue on auto-pilot with partnerships.",
+    href: "/partners",
+    color: "#818cf8",
+    graphicsContainerClassName: "pl-2",
+    graphic: <PartnersGraphic />,
   },
   {
     icon: (
@@ -41,16 +41,16 @@ const products = [
   },
   {
     icon: (
-      <div className="flex size-4 items-center justify-center rounded bg-violet-400">
-        <DubPartnersIcon className="size-2.5 text-violet-900" />
+      <div className="flex size-4 items-center justify-center rounded bg-orange-400">
+        <DubLinksIcon className="size-2.5 text-orange-900" />
       </div>
     ),
-    title: "Dub Partners",
-    description: "Grow your revenue on auto-pilot with partnerships.",
-    href: "/partners",
-    color: "#818cf8",
-    graphicsContainerClassName: "pl-2",
-    graphic: <PartnersGraphic />,
+    title: "Dub Links",
+    description: "Short links with superpowers for modern marketing teams.",
+    href: "/links",
+    color: "#f4950c",
+    graphicsContainerClassName: "px-2",
+    graphic: <LinksGraphic className="absolute left-0 top-0 h-auto w-full" />,
   },
 ];
 
