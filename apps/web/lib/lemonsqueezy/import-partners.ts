@@ -6,7 +6,7 @@ import { generatePartnerLink } from "../api/partners/generate-partner-link";
 import { logImportError } from "../tinybird/log-import-error";
 import { WorkspaceProps } from "../types";
 import { DEFAULT_PARTNER_GROUP } from "../zod/schemas/groups";
-import { LemonSqueezyApi } from "./api";
+import { LemonSqueezyClient } from "./client";
 import { LEMONSQUEEZY_MAX_BATCHES, lemonSqueezyImporter } from "./importer";
 import { LemonSqueezyAffiliate, LemonSqueezyImportPayload } from "./types";
 
@@ -17,7 +17,13 @@ export async function importPartners(payload: LemonSqueezyImportPayload) {
     where: {
       id: programId,
     },
-    include: {
+    select: {
+      id: true,
+      name: true,
+      domain: true,
+      url: true,
+      workspaceId: true,
+      defaultFolderId: true,
       groups: {
         select: {
           id: true,
@@ -60,7 +66,7 @@ export async function importPartners(payload: LemonSqueezyImportPayload) {
   const workspace = program.workspace as WorkspaceProps;
 
   const { apiKey } = await lemonSqueezyImporter.getCredentials(workspace.id);
-  const lemonSqueezyApi = new LemonSqueezyApi({ apiKey });
+  const lemonSqueezyApi = new LemonSqueezyClient({ apiKey });
 
   let currentPage = page;
   let hasMore = true;

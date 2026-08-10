@@ -1,8 +1,10 @@
+import { HttpBaseClient } from "@/lib/http/base-client";
 import * as z from "zod/v4";
 import {
   lemonSqueezyAffiliateSchema,
   lemonSqueezyCustomerSchema,
   lemonSqueezyJsonApiListSchema,
+  lemonSqueezyListResourcesInputSchema,
   lemonSqueezyOrderSchema,
   lemonSqueezyStoreSchema,
   lemonSqueezySubscriptionInvoiceSchema,
@@ -10,6 +12,7 @@ import {
 import {
   LemonSqueezyAffiliate,
   LemonSqueezyCustomer,
+  LemonSqueezyJsonApiResource,
   LemonSqueezyOrder,
   LemonSqueezyStore,
   LemonSqueezySubscriptionInvoice,
@@ -17,15 +20,8 @@ import {
 
 const LEMONSQUEEZY_PAGE_SIZE = 100;
 
-type JsonApiResource = {
-  type: string;
-  id: string;
-  attributes: Record<string, unknown>;
-  relationships?: Record<string, unknown>;
-};
-
 function flattenResource<T extends z.ZodType>(
-  resource: JsonApiResource,
+  resource: LemonSqueezyJsonApiResource,
   schema: T,
   extra?: Record<string, unknown>,
 ): z.infer<T> {
@@ -37,7 +33,7 @@ function flattenResource<T extends z.ZodType>(
 }
 
 function getRelationshipIds(
-  resource: JsonApiResource,
+  resource: LemonSqueezyJsonApiResource,
   relationshipName: string,
 ): string[] {
   const relationship = resource.relationships?.[relationshipName] as
@@ -60,62 +56,23 @@ function getRelationshipIds(
   return [relationship.data.id];
 }
 
-export class LemonSqueezyApi {
-  private readonly baseUrl = "https://api.lemonsqueezy.com/v1";
+export class LemonSqueezyClient extends HttpBaseClient {
+  protected readonly vendor = "Lemon Squeezy";
+  protected readonly baseUrl = "https://api.lemonsqueezy.com/v1";
+
   private readonly apiKey: string;
 
   constructor({ apiKey }: { apiKey: string }) {
+    super();
     this.apiKey = apiKey;
   }
 
-  private async fetch<T>(
-    path: string,
-    searchParams?: URLSearchParams,
-  ): Promise<T> {
-    const url = new URL(`${this.baseUrl}${path}`);
-    if (searchParams) {
-      searchParams.forEach((value, key) => {
-        url.searchParams.set(key, value);
-      });
-    }
-
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 15000);
-
-    let response: Response;
-
-    try {
-      response = await fetch(url.toString(), {
-        headers: {
-          Accept: "application/vnd.api+json",
-          "Content-Type": "application/vnd.api+json",
-          Authorization: `Bearer ${this.apiKey}`,
-        },
-        signal: controller.signal,
-      });
-    } finally {
-      clearTimeout(timeout);
-    }
-
-    if (!response.ok) {
-      const error = await response.text();
-      console.error("Lemon Squeezy API Error:", error);
-
-      const retryAfter = response.headers.get("Retry-After");
-      const rateLimitMessage =
-        response.status === 429
-          ? ` Rate limited.${retryAfter ? ` Retry after ${retryAfter}s.` : ""}`
-          : "";
-
-      throw new Error(
-        `[Lemon Squeezy API] ${
-          error ||
-          `Request to ${path} failed with status ${response.status}.${rateLimitMessage}`
-        }`,
-      );
-    }
-
-    return (await response.json()) as T;
+  protected buildAuthHeaders() {
+    return {
+      Accept: "application/vnd.api+json",
+      "Content-Type": "application/vnd.api+json",
+      Authorization: `Bearer ${this.apiKey}`,
+    };
   }
 
   private async listResources({
@@ -129,21 +86,16 @@ export class LemonSqueezyApi {
     page?: number;
     include?: string;
   }) {
-    const searchParams = new URLSearchParams({
-      "page[number]": page.toString(),
-      "page[size]": LEMONSQUEEZY_PAGE_SIZE.toString(),
+    return await this.get(path, {
+      input: {
+        "page[number]": page,
+        "page[size]": LEMONSQUEEZY_PAGE_SIZE,
+        ...(storeId ? { "filter[store_id]": storeId } : {}),
+        ...(include ? { include } : {}),
+      },
+      inputSchema: lemonSqueezyListResourcesInputSchema,
+      outputSchema: lemonSqueezyJsonApiListSchema,
     });
-
-    if (storeId) {
-      searchParams.set("filter[store_id]", storeId);
-    }
-
-    if (include) {
-      searchParams.set("include", include);
-    }
-
-    const payload = await this.fetch<unknown>(path, searchParams);
-    return lemonSqueezyJsonApiListSchema.parse(payload);
   }
 
   async listStores(): Promise<LemonSqueezyStore[]> {
@@ -197,40 +149,21 @@ export class LemonSqueezyApi {
     );
   }
 
-  async listCustomerAffiliates({
-    customerId,
-  }: {
-    customerId: string;
-  }): Promise<LemonSqueezyAffiliate[]> {
-    const { data } = await this.listResources({
-      path: `/customers/${customerId}/affiliates`,
-    });
-
-    return data.map((resource) =>
-      flattenResource(resource, lemonSqueezyAffiliateSchema),
-    );
-  }
-
   async listOrders({
     storeId,
     page = 1,
-    include,
   }: {
     storeId: string;
     page?: number;
-    include?: string;
   }): Promise<LemonSqueezyOrder[]> {
     const { data } = await this.listResources({
       path: "/orders",
       storeId,
       page,
-      include,
     });
 
     return data.map((resource) =>
-      flattenResource(resource, lemonSqueezyOrderSchema, {
-        subscription_ids: getRelationshipIds(resource, "subscriptions"),
-      }),
+      flattenResource(resource, lemonSqueezyOrderSchema),
     );
   }
 

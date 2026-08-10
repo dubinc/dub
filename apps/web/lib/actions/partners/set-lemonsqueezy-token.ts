@@ -1,6 +1,6 @@
 "use server";
 
-import { LemonSqueezyApi } from "@/lib/lemonsqueezy/api";
+import { LemonSqueezyClient } from "@/lib/lemonsqueezy/client";
 import { lemonSqueezyImporter } from "@/lib/lemonsqueezy/importer";
 import { LemonSqueezyStore } from "@/lib/lemonsqueezy/types";
 import * as z from "zod/v4";
@@ -23,7 +23,7 @@ export const setLemonSqueezyTokenAction = authActionClient
       requiredRoles: ["owner", "member"],
     });
 
-    const lemonSqueezyApi = new LemonSqueezyApi({
+    const lemonSqueezyApi = new LemonSqueezyClient({
       apiKey,
     });
 

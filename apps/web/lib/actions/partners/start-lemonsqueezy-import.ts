@@ -2,7 +2,7 @@
 
 import { createId } from "@/lib/api/create-id";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
-import { LemonSqueezyApi } from "@/lib/lemonsqueezy/api";
+import { LemonSqueezyClient } from "@/lib/lemonsqueezy/client";
 import { lemonSqueezyImporter } from "@/lib/lemonsqueezy/importer";
 import * as z from "zod/v4";
 import { getProgramOrThrow } from "../../api/programs/get-program-or-throw";
@@ -42,7 +42,7 @@ export const startLemonSqueezyImportAction = authActionClient
 
     const credentials = await lemonSqueezyImporter.getCredentials(workspace.id);
 
-    const lemonSqueezyApi = new LemonSqueezyApi({
+    const lemonSqueezyApi = new LemonSqueezyClient({
       apiKey: credentials.apiKey,
     });
 

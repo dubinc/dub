@@ -17,7 +17,7 @@ export const lemonSqueezyImportPayloadSchema = z.object({
   resource: z.enum(["orders", "subscription-invoices"]).optional(),
 });
 
-const jsonApiResourceSchema = z.object({
+export const lemonSqueezyJsonApiResourceSchema = z.object({
   type: z.string(),
   id: z.string(),
   attributes: z.record(z.string(), z.unknown()),
@@ -25,8 +25,8 @@ const jsonApiResourceSchema = z.object({
 });
 
 export const lemonSqueezyJsonApiListSchema = z.object({
-  data: z.array(jsonApiResourceSchema),
-  included: z.array(jsonApiResourceSchema).optional(),
+  data: z.array(lemonSqueezyJsonApiResourceSchema),
+  included: z.array(lemonSqueezyJsonApiResourceSchema).optional(),
   meta: z
     .object({
       page: z
@@ -49,6 +49,14 @@ export const lemonSqueezyJsonApiListSchema = z.object({
       prev: z.string().nullable().optional(),
     })
     .optional(),
+});
+
+// GET list endpoints — JSON:API pagination / filter / include query params
+export const lemonSqueezyListResourcesInputSchema = z.object({
+  "page[number]": z.number(),
+  "page[size]": z.number(),
+  "filter[store_id]": z.string().optional(),
+  include: z.string().optional(),
 });
 
 export const lemonSqueezyStoreSchema = z.object({
@@ -126,8 +134,6 @@ export const lemonSqueezyOrderSchema = z.object({
       price: z.number().nullish(),
     })
     .nullish(),
-  // Populated when listing with include=subscriptions
-  subscription_ids: z.array(z.string()).default([]),
   status: z.string(),
   refunded: z.boolean().nullish(),
   refunded_at: z.string().nullish(),

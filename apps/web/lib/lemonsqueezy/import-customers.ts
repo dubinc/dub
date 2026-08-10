@@ -4,10 +4,10 @@ import { Customer, Link, Project } from "@prisma/client";
 import { createId } from "../api/create-id";
 import { updateLinkStatsForImporter } from "../api/links/update-link-stats-for-importer";
 import { syncPartnerLinksStats } from "../api/partners/sync-partner-links-stats";
-import { recordClick, recordLeadWithTimestamp } from "../tinybird";
+import { recordLeadWithTimestamp } from "../tinybird";
 import { logImportError } from "../tinybird/log-import-error";
-import { clickEventSchemaTB } from "../zod/schemas/clicks";
-import { LemonSqueezyApi } from "./api";
+import { recordFakeClick } from "../tinybird/record-fake-click";
+import { LemonSqueezyClient } from "./client";
 import { LEMONSQUEEZY_MAX_BATCHES, lemonSqueezyImporter } from "./importer";
 import { LemonSqueezyCustomer, LemonSqueezyImportPayload } from "./types";
 
@@ -18,7 +18,11 @@ export async function importCustomers(payload: LemonSqueezyImportPayload) {
     where: {
       id: programId,
     },
-    include: {
+    select: {
+      id: true,
+      name: true,
+      domain: true,
+      url: true,
       workspace: {
         select: {
           id: true,
@@ -41,7 +45,7 @@ export async function importCustomers(payload: LemonSqueezyImportPayload) {
 
   const { workspace } = program;
   const { apiKey } = await lemonSqueezyImporter.getCredentials(workspace.id);
-  const lemonSqueezyApi = new LemonSqueezyApi({ apiKey });
+  const lemonSqueezyApi = new LemonSqueezyClient({ apiKey });
 
   let currentPage = page;
   let hasMore = true;
@@ -84,6 +88,7 @@ export async function importCustomers(payload: LemonSqueezyImportPayload) {
           key: true,
           domain: true,
           url: true,
+          projectId: true,
           partnerId: true,
           programId: true,
           lastLeadAt: true,
@@ -164,7 +169,14 @@ async function createCustomer({
   customer: LemonSqueezyCustomer;
   link?: Pick<
     Link,
-    "id" | "key" | "domain" | "url" | "partnerId" | "programId" | "lastLeadAt"
+    | "id"
+    | "key"
+    | "domain"
+    | "url"
+    | "projectId"
+    | "partnerId"
+    | "programId"
+    | "lastLeadAt"
   >;
   importId: string;
 }) {
@@ -200,29 +212,17 @@ async function createCustomer({
 
   const clickedAt = new Date(customer.created_at || Date.now());
 
-  const dummyRequest = new Request(link.url, {
-    headers: new Headers({
-      "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)",
-      "x-forwarded-for": "127.0.0.1",
-      "x-vercel-ip-country": customer.country || "US",
-      "x-vercel-ip-country-region": "CA",
-      "x-vercel-ip-continent": "NA",
-    }),
-  });
+  let clickEvent: Awaited<ReturnType<typeof recordFakeClick>>;
 
-  const clickData = await recordClick({
-    req: dummyRequest,
-    clickId: nanoid(16),
-    workspaceId: workspace.id,
-    linkId: link.id,
-    domain: link.domain,
-    key: link.key,
-    url: link.url,
-    skipRatelimit: true,
-    timestamp: clickedAt.toISOString(),
-  });
-
-  if (!clickData) {
+  try {
+    clickEvent = await recordFakeClick({
+      link,
+      customer: {
+        country: customer.country,
+      },
+      timestamp: clickedAt.toISOString(),
+    });
+  } catch {
     await logImportError({
       ...commonImportLogInputs,
       code: "CLICK_NOT_FOUND",
@@ -231,12 +231,6 @@ async function createCustomer({
 
     return;
   }
-
-  const clickEvent = clickEventSchemaTB.parse({
-    ...clickData,
-    bot: 0,
-    qr: 0,
-  });
 
   let createdCustomer: Customer | null = null;
 

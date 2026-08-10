@@ -3,6 +3,7 @@ import {
   lemonSqueezyAffiliateSchema,
   lemonSqueezyCustomerSchema,
   lemonSqueezyImportPayloadSchema,
+  lemonSqueezyJsonApiResourceSchema,
   lemonSqueezyOrderSchema,
   lemonSqueezyStoreSchema,
   lemonSqueezySubscriptionInvoiceSchema,
@@ -14,6 +15,10 @@ export interface LemonSqueezyCredentials {
 
 export type LemonSqueezyImportPayload = z.infer<
   typeof lemonSqueezyImportPayloadSchema
+>;
+
+export type LemonSqueezyJsonApiResource = z.infer<
+  typeof lemonSqueezyJsonApiResourceSchema
 >;
 
 export type LemonSqueezyStore = z.infer<typeof lemonSqueezyStoreSchema>;

@@ -15,7 +15,7 @@ import { recordSaleWithTimestamp } from "../tinybird/record-sale";
 import { LeadEventTB } from "../types";
 import { redis } from "../upstash";
 import { clickEventSchemaTB } from "../zod/schemas/clicks";
-import { LemonSqueezyApi } from "./api";
+import { LemonSqueezyClient } from "./client";
 import { LEMONSQUEEZY_MAX_BATCHES, lemonSqueezyImporter } from "./importer";
 import {
   LemonSqueezyImportPayload,
@@ -37,60 +37,9 @@ type SaleEvent = {
   metadata: Record<string, unknown>;
 };
 
-function resolveAmountUsd({
-  amount,
-  amountUsd,
-  currency,
-  fxRates,
-}: {
-  amount: number;
-  amountUsd: number | null | undefined;
-  currency: string;
-  fxRates: Record<string, string> | null;
-}): number | null {
-  if (amountUsd != null) {
-    return amountUsd;
-  }
-
-  if (currency.toUpperCase() === "USD") {
-    return amount;
-  }
-
-  if (!fxRates) {
-    return null;
-  }
-
-  const converted = convertCurrencyWithFxRates({
-    currency,
-    amount,
-    fxRates,
-  });
-
-  return converted.currency.toUpperCase() === "USD" ? converted.amount : null;
-}
-
 // Initial referral is on the Order; renewals/updates are on Invoices.
 // Skip billing_reason: initial (no referral) and missing/unknown reasons.
 const IMPORTABLE_INVOICE_REASONS = new Set(["renewal", "updated"]);
-
-const toDubStatus = (status: string): CommissionStatus => {
-  switch (status) {
-    case "paid":
-      return "paid";
-    case "pending":
-      return "pending";
-    case "refunded":
-    case "partial_refund":
-      return "refunded";
-    case "fraudulent":
-      return "fraud";
-    case "void":
-    case "failed":
-      return "canceled";
-    default:
-      return "pending";
-  }
-};
 
 export async function importCommissions(payload: LemonSqueezyImportPayload) {
   const {
@@ -105,6 +54,12 @@ export async function importCommissions(payload: LemonSqueezyImportPayload) {
   const program = await prisma.program.findUnique({
     where: {
       id: programId,
+    },
+    select: {
+      id: true,
+      name: true,
+      workspaceId: true,
+      domain: true,
     },
   });
 
@@ -121,7 +76,7 @@ export async function importCommissions(payload: LemonSqueezyImportPayload) {
   const { apiKey } = await lemonSqueezyImporter.getCredentials(
     program.workspaceId,
   );
-  const lemonSqueezyApi = new LemonSqueezyApi({ apiKey });
+  const lemonSqueezyApi = new LemonSqueezyClient({ apiKey });
 
   const fxRates = await redis.hgetall<Record<string, string>>("fxRates:usd");
 
@@ -218,18 +173,20 @@ async function listOrderSaleEvents({
   storeId,
   page,
 }: {
-  lemonSqueezyApi: LemonSqueezyApi;
+  lemonSqueezyApi: LemonSqueezyClient;
   storeId: string;
   page: number;
 }): Promise<{ saleEvents: SaleEvent[]; pageEmpty: boolean }> {
   const orders = await lemonSqueezyApi.listOrders({
     storeId,
     page,
-    include: "subscriptions",
   });
 
   if (orders.length === 0) {
-    return { saleEvents: [], pageEmpty: true };
+    return {
+      saleEvents: [],
+      pageEmpty: true,
+    };
   }
 
   // All attributed Orders: subscription first period + one-time (LS payouts use Order)
@@ -256,7 +213,10 @@ async function listOrderSaleEvents({
       metadata: order as unknown as Record<string, unknown>,
     }));
 
-  return { saleEvents, pageEmpty: false };
+  return {
+    saleEvents,
+    pageEmpty: false,
+  };
 }
 
 async function listInvoiceSaleEvents({
@@ -264,7 +224,7 @@ async function listInvoiceSaleEvents({
   storeId,
   page,
 }: {
-  lemonSqueezyApi: LemonSqueezyApi;
+  lemonSqueezyApi: LemonSqueezyClient;
   storeId: string;
   page: number;
 }): Promise<{ saleEvents: SaleEvent[]; pageEmpty: boolean }> {
@@ -274,7 +234,10 @@ async function listInvoiceSaleEvents({
   });
 
   if (invoices.length === 0) {
-    return { saleEvents: [], pageEmpty: true };
+    return {
+      saleEvents: [],
+      pageEmpty: true,
+    };
   }
 
   const saleEvents = invoices
@@ -305,7 +268,10 @@ async function listInvoiceSaleEvents({
       metadata: invoice as unknown as Record<string, unknown>,
     }));
 
-  return { saleEvents, pageEmpty: false };
+  return {
+    saleEvents,
+    pageEmpty: false,
+  };
 }
 
 async function processSaleEvents({
@@ -338,6 +304,7 @@ async function processSaleEvents({
         },
       },
     }),
+
     prisma.customer.findMany({
       where: {
         projectId: program.workspaceId,
@@ -363,7 +330,7 @@ async function processSaleEvents({
   const saleChunks = chunk(saleEvents, 10);
 
   for (const saleChunk of saleChunks) {
-    await Promise.allSettled(
+    const results = await Promise.allSettled(
       saleChunk.map((saleEvent) =>
         createCommission({
           program,
@@ -376,6 +343,28 @@ async function processSaleEvents({
         }),
       ),
     );
+
+    const failures = results.flatMap((result, index) =>
+      result.status === "rejected"
+        ? [{ saleEvent: saleChunk[index], reason: result.reason }]
+        : [],
+    );
+
+    if (failures.length > 0) {
+      await logImportError(
+        failures.map(({ saleEvent, reason }) => ({
+          workspace_id: program.workspaceId,
+          import_id: importId,
+          source: "lemonsqueezy" as const,
+          entity: "commission" as const,
+          entity_id: saleEvent.invoiceId,
+          code: "TRANSACTION_NOT_FOUND" as const,
+          message: `Failed to import commission ${saleEvent.invoiceId}: ${
+            reason instanceof Error ? reason.message : String(reason)
+          }`,
+        })),
+      );
+    }
   }
 }
 
@@ -405,9 +394,6 @@ async function createCommission({
   };
 
   const status = toDubStatus(saleEvent.status);
-  if (!status) {
-    return;
-  }
 
   const existingCommission = await prisma.commission.findUnique({
     where: {
@@ -613,4 +599,55 @@ async function createCommission({
     partnerId: partnerLink.partnerId,
     programId: program.id,
   });
+}
+
+function resolveAmountUsd({
+  amount,
+  amountUsd,
+  currency,
+  fxRates,
+}: {
+  amount: number;
+  amountUsd: number | null | undefined;
+  currency: string;
+  fxRates: Record<string, string> | null;
+}): number | null {
+  if (amountUsd != null) {
+    return amountUsd;
+  }
+
+  if (currency.toUpperCase() === "USD") {
+    return amount;
+  }
+
+  if (!fxRates) {
+    return null;
+  }
+
+  const converted = convertCurrencyWithFxRates({
+    currency,
+    amount,
+    fxRates,
+  });
+
+  return converted.currency.toUpperCase() === "USD" ? converted.amount : null;
+}
+
+function toDubStatus(status: string): CommissionStatus {
+  switch (status) {
+    case "paid":
+      return CommissionStatus.paid;
+    case "pending":
+      return CommissionStatus.pending;
+    case "refunded":
+    case "partial_refund":
+      return CommissionStatus.refunded;
+    case "fraudulent":
+      return CommissionStatus.fraud;
+    case "void":
+    case "failed":
+      return CommissionStatus.canceled;
+    default:
+      return CommissionStatus.pending;
+  }
 }
