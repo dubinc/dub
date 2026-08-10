@@ -24,19 +24,7 @@ export async function findPartnerSearchCandidates(
   { throwOnError = false }: FindPartnerSearchCandidatesOptions = {},
 ): Promise<PartnerSearchResult | null> {
   try {
-    const result = await searchProvider.searchCandidates(query);
-
-    // A full page means the provider had more to give, so every count built
-    // from these candidates is a floor rather than a total, and any filter the
-    // database applies is choosing from a truncated set. Logged because there
-    // is nowhere in the response to say so without changing its shape.
-    if (result.hits.length >= query.limit) {
-      console.warn(
-        `[Partner Search] Query "${query.query}" filled the ${query.limit} candidate ceiling for program ${query.programId}. Results and counts are a floor, not a total.`,
-      );
-    }
-
-    return result;
+    return await searchProvider.searchCandidates(query);
   } catch (error) {
     if (throwOnError) {
       throw error;
