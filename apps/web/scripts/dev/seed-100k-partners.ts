@@ -1,33 +1,24 @@
 /**
- * ====================================================================================
- * 🚀 High-Scale Partner Data Seeding Script
- * ====================================================================================
+ * Bulk-seeds partners for local development and partner-search benchmarking.
  *
- * PURPOSE:
- * Bulk-generates and inserts realistic partner records into the local database
- * for local development, performance benchmarking, and testing partner search at scale.
+ * Writes User, Partner, PartnerUser, ProgramEnrollment, PartnerPlatform, and Link
+ * rows — every field the search index reads — in atomic chunks of CHUNK_SIZE
+ * partners, so 100K partners lands ~400K rows in seconds.
  *
- * GENERATED DATA MODEL:
- * 1. Partner Name (`name`): Realistic first & last name combinations.
- * 2. Partner Email (`email`): Includes prefix & substring test patterns for search evaluation.
- * 3. Partner Company Name (`companyName`): Business & agency names.
- * 4. Partner Description (`description`): Marketing & creator profile text.
- * 5. Partner Platforms (`PartnerPlatform`): Assigns 1-2 web/social platforms per partner
- *    (website, youtube, twitter, linkedin, instagram, tiktok), generating ~150,000 total platform rows.
- * 6. Partner Short Links (`Link`): Generates valid `https://` short referral links per partner.
- * 7. Enrollment Metrics: Generates varied clicks, leads, conversions, sales, revenue, and calculated rates.
+ * Re-running with the same `--seed` collides. `seedFingerprint` is a deterministic
+ * hash of the program ID and `--seed`, so identical arguments regenerate identical
+ * emails, usernames, and link keys, all of which are unique columns. Pass a new
+ * `--seed` to add another batch; the script checks up front and says so rather than
+ * dying on a constraint error halfway through.
  *
- * PERFORMANCE & ARCHITECTURE DECISIONS:
- * - Chunked Bulk Insertions: Processes generation in memory and bulk-inserts using
- *   `prisma.createMany` in chunks of 2,500 records to insert ~400,000+ total rows in seconds.
- * - Pre-Computed Password Hash: Pre-computes `"password"` hash once to optimize generation time.
- * - Seed Fingerprinting: Generates deterministic namespace hashes (`seedFingerprint`) to ensure
- *   unique, non-colliding records across runs.
+ * This inserts login-capable users with a known password, so it refuses a non-local
+ * DATABASE_URL unless `--allowRemoteDatabase` is passed.
  *
- * CLI USAGE:
  *   cd apps/web
  *   pnpm run script dev/seed-100k-partners [--count=100000] [--programId=prog_123] [--seed=custom-seed]
- * ====================================================================================
+ *
+ * Seeded partners are not searchable until the index is backfilled:
+ *   pnpm run script partners/backfill-partner-search --programId=prog_123
  */
 
 import { createId } from "@/lib/api/create-id";
@@ -39,10 +30,19 @@ import { createHash } from "crypto";
 import "dotenv-flow/config";
 
 const DEFAULT_COUNT = 100_000;
+const MAX_COUNT = 1_000_000;
 const DEFAULT_SEED = "partners-search";
 const CHUNK_SIZE = 2_500;
+const LOCAL_DATABASE_HOSTS = new Set([
+  "localhost",
+  "127.0.0.1",
+  "0.0.0.0",
+  "::1",
+  "host.docker.internal",
+  "mysql",
+  "db",
+]);
 
-// Dataset arrays for diverse generation
 // prettier-ignore
 const FIRST_NAMES = [
   "Alex", "Jordan", "Taylor", "Morgan", "Chris", "Sam", "Riley", "Casey", "Dakota", "Jamie",
@@ -98,6 +98,7 @@ type SeedArguments = {
   totalCount: number;
   targetProgramId: string | null;
   seed: string;
+  allowRemoteDatabase: boolean;
 };
 
 type PartnerChunk = {
@@ -155,21 +156,34 @@ function generatePartnerMetrics(index: number) {
 // Args: --count=<number> (optional, default: 100000) - Total number of partners to seed.
 //       --programId=<id> (optional) - Target program ID to seed partners into.
 //       --seed=<string> (optional, default: "partners-search") - Seed string for deterministic generation.
+//       --allowRemoteDatabase (optional) - Permit seeding a non-local DATABASE_URL.
 const parseArguments = (args: string[]): SeedArguments => {
   let totalCount = DEFAULT_COUNT;
   let targetProgramId: string | null = null;
   let seed = DEFAULT_SEED;
+  let allowRemoteDatabase = false;
 
   for (const arg of args) {
     if (arg.startsWith("--count=")) {
-      totalCount = parsePositiveInteger(arg.split("=")[1], "--count");
+      totalCount = parsePositiveInteger(
+        arg.slice("--count=".length),
+        "--count",
+      );
     } else if (arg.startsWith("--programId=")) {
-      targetProgramId = arg.split("=")[1];
+      targetProgramId = arg.slice("--programId=".length);
     } else if (arg.startsWith("--seed=")) {
-      seed = arg.split("=")[1];
+      seed = arg.slice("--seed=".length);
+    } else if (arg === "--allowRemoteDatabase") {
+      allowRemoteDatabase = true;
     } else {
       throw new Error(`Unknown argument: ${arg}`);
     }
+  }
+
+  if (totalCount > MAX_COUNT) {
+    throw new Error(
+      `--count cannot exceed ${MAX_COUNT.toLocaleString()}. Run the script again with a new --seed to add more.`,
+    );
   }
 
   if (!seed || !/^[a-zA-Z0-9_-]{1,40}$/.test(seed)) {
@@ -182,7 +196,39 @@ const parseArguments = (args: string[]): SeedArguments => {
     throw new Error("--programId cannot be empty.");
   }
 
-  return { totalCount, targetProgramId, seed };
+  return { totalCount, targetProgramId, seed, allowRemoteDatabase };
+};
+
+// Refuse unless the host is local or the operator opts in explicitly.
+const assertSeedableDatabase = (allowRemoteDatabase: boolean) => {
+  const databaseUrl = process.env.DATABASE_URL;
+
+  if (!databaseUrl) {
+    throw new Error("DATABASE_URL is not set.");
+  }
+
+  let host: string;
+  try {
+    // `URL` keeps IPv6 hosts bracketed; strip them so "::1" matches.
+    host = new URL(databaseUrl).hostname.replace(/^\[|\]$/g, "");
+  } catch {
+    throw new Error("DATABASE_URL is not a valid connection URL.");
+  }
+
+  if (LOCAL_DATABASE_HOSTS.has(host)) {
+    return;
+  }
+
+  if (allowRemoteDatabase) {
+    console.warn(
+      `⚠️  Seeding the non-local database at "${host}" because --allowRemoteDatabase was passed.\n`,
+    );
+    return;
+  }
+
+  throw new Error(
+    `Refusing to seed the non-local database at "${host}". This script inserts users with a known password. Pass --allowRemoteDatabase if you are certain.`,
+  );
 };
 
 const resolveProgramId = async (targetProgramId: string | null) => {
@@ -232,7 +278,6 @@ const generatePartnerChunk = ({
       LAST_NAMES[(i + Math.floor(i / FIRST_NAMES.length)) % LAST_NAMES.length];
     const name = `${firstName} ${lastName}`;
 
-    // Include deliberate prefix and infix cases for search verification.
     let emailPrefix: string;
     if (i % 100 === 0) {
       emailPrefix = `partner.${seedFingerprint}.${i}`;
@@ -252,6 +297,7 @@ const generatePartnerChunk = ({
     const companyName = `${lastName} ${COMPANY_SUFFIXES[i % COMPANY_SUFFIXES.length]}`;
     const country = COUNTRIES[i % COUNTRIES.length];
     const description = DESCRIPTIONS[i % DESCRIPTIONS.length];
+    // One minute earlier per partner, wrapping at a year (index 525,600).
     const createdAt = new Date(
       runStartedAt.getTime() - ((i * 60_000) % (365 * 86_400_000)),
     );
@@ -279,7 +325,6 @@ const generatePartnerChunk = ({
     });
 
     partnerUsers.push({
-      id: createId({ prefix: "pn_" }),
       userId,
       partnerId,
       role: "owner",
@@ -296,7 +341,6 @@ const generatePartnerChunk = ({
       createdAt,
     });
 
-    // Give every partner one or two records across all supported platforms.
     const numPlatforms = 1 + (i % 2);
     for (let p = 0; p < numPlatforms; p++) {
       const platformType = PLATFORM_TYPES[(i + p) % PLATFORM_TYPES.length];
@@ -306,7 +350,6 @@ const generatePartnerChunk = ({
           : `@${firstName.toLowerCase()}_${lastName.toLowerCase()}_${i}`;
 
       platforms.push({
-        id: createId({ prefix: "pn_" }),
         partnerId,
         type: platformType,
         identifier,
@@ -317,7 +360,6 @@ const generatePartnerChunk = ({
       });
     }
 
-    // Give every partner one searchable referral link.
     const linkKey = `p-${seedFingerprint}-${i}`;
     const linkDomain = programDomain || "dub.sh";
     links.push({
@@ -357,13 +399,35 @@ const insertPartnerChunk = async ({
   return partnerResult.count;
 };
 
-async function main() {
-  // Step 1: Parse and validate command-line options.
-  const { totalCount, targetProgramId, seed } = parseArguments(
-    process.argv.slice(2),
-  );
+// Generation is deterministic given (programId, seed), so index 0's email is always the same
+const assertSeedNotAlreadyApplied = async (
+  partnerChunk: PartnerChunk,
+  seed: string,
+) => {
+  const firstEmail = partnerChunk.partners[0]?.email;
 
-  // Step 2: Resolve the target program and its workspace.
+  if (!firstEmail) {
+    return;
+  }
+
+  const existing = await prisma.partner.findUnique({
+    where: { email: firstEmail },
+    select: { id: true },
+  });
+
+  if (existing) {
+    throw new Error(
+      `Seed "${seed}" has already been applied to this program (found ${firstEmail}). Re-running would collide on unique emails, usernames, and link keys — pass a different --seed to add another batch.`,
+    );
+  }
+};
+
+async function main() {
+  const { totalCount, targetProgramId, seed, allowRemoteDatabase } =
+    parseArguments(process.argv.slice(2));
+
+  assertSeedableDatabase(allowRemoteDatabase);
+
   const resolvedProgramId = await resolveProgramId(targetProgramId);
 
   console.log(
@@ -393,7 +457,7 @@ async function main() {
   );
   console.log(`   Workspace: "${workspace.name}" (${workspace.id})\n`);
 
-  // Step 3: Build the stable namespace shared by every generated chunk.
+  // Build the stable namespace shared by every generated chunk.
   // Pre-compute the password hash for 'password' once to avoid computing
   // a separate bcrypt hash for every generated partner.
   const passwordHash = await hashPassword("password");
@@ -407,7 +471,6 @@ async function main() {
   const startTime = Date.now();
   let insertedPartners = 0;
 
-  // Step 4: Generate and atomically insert one bounded chunk at a time.
   for (let chunk = 0; chunk < totalChunks; chunk++) {
     const chunkStart = chunk * CHUNK_SIZE;
     const chunkEnd = Math.min(chunkStart + CHUNK_SIZE, totalCount);
@@ -422,10 +485,14 @@ async function main() {
       programDomain: program.domain,
       workspaceId: workspace.id,
     });
+
+    if (chunk === 0) {
+      await assertSeedNotAlreadyApplied(partnerChunk, seed);
+    }
+
     const insertedInChunk = await insertPartnerChunk(partnerChunk);
     insertedPartners += insertedInChunk;
 
-    // Report processing progress and the number inserted by this chunk.
     const elapsedSec = ((Date.now() - startTime) / 1000).toFixed(1);
     const progressPct = (((chunk + 1) / totalChunks) * 100).toFixed(0);
     console.log(
@@ -433,7 +500,6 @@ async function main() {
     );
   }
 
-  // Step 5: Summarize the completed seed run.
   const totalTimeSec = ((Date.now() - startTime) / 1000).toFixed(1);
   console.log(
     `\n✅ Seed complete: ${insertedPartners.toLocaleString()} partners inserted (${totalTimeSec}s).`,
