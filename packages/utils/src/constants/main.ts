@@ -44,6 +44,13 @@ export const ADMIN_HOSTNAMES = new Set([
   "admin.localhost",
 ]);
 
+export const ADMIN_DOMAIN =
+  process.env.NEXT_PUBLIC_VERCEL_ENV === "production"
+    ? "https://admin.dub.co"
+    : process.env.NEXT_PUBLIC_VERCEL_ENV === "preview"
+      ? "https://admin.dub.co"
+      : "http://admin.localhost:8888";
+
 export const PARTNERS_HOSTNAMES = new Set([
   "partners.dub.co",
   "partners-staging.dub.co",
