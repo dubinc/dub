@@ -1,8 +1,11 @@
+import { shouldApplyRateLimit } from "@/lib/api/environment";
 import {
   exceededLoginAttemptsThreshold,
   incrementLoginAttempts,
 } from "@/lib/auth/lock-account";
 import { prisma } from "@/lib/prisma";
+import { ratelimit } from "@/lib/upstash/ratelimit";
+import { RATELIMIT_POLICIES } from "@/lib/upstash/ratelimit-policies";
 import { passwordSchema } from "@/lib/zod/schemas/auth";
 import { sendEmail } from "@dub/email";
 import PasswordUpdated from "@dub/email/templates/password-updated";
@@ -10,7 +13,6 @@ import { waitUntil } from "@vercel/functions";
 import type { BetterAuthOptions } from "better-auth";
 import { APIError, createAuthMiddleware, isAPIError } from "better-auth/api";
 import { isSamlEnforcedForEmailDomain } from "../api/workspaces/is-saml-enforced-for-email-domain";
-import { enforceAuthRateLimit } from "./rate-limit";
 import {
   getActionVerificationPrefixes,
   hasCredentialLogin,
@@ -39,8 +41,6 @@ export const hooks = {
       }
     }
 
-    await enforceAuthRateLimit(ctx);
-
     if (["/change-password", "/reset-password"].includes(path)) {
       const newPassword = body?.newPassword;
       if (!newPassword) {
@@ -59,11 +59,28 @@ export const hooks = {
       }
     }
 
-    // Lock check and SAML enforcement for email/magic-link sign-in.
+    // Rate limit, lock check, and SAML enforcement for email/magic-link sign-in.
     if (["/sign-in/email", "/sign-in/magic-link"].includes(path)) {
       const email = normalizeEmail(body?.email);
       if (!email) {
         return;
+      }
+
+      if (shouldApplyRateLimit) {
+        const policy =
+          path === "/sign-in/magic-link"
+            ? RATELIMIT_POLICIES.loginLinkSend
+            : RATELIMIT_POLICIES.login;
+        const { success } = await ratelimit(
+          policy.attempts,
+          policy.window,
+        ).limit(`${policy.keyPrefix}:${email}`);
+
+        if (!success) {
+          throw new APIError("TOO_MANY_REQUESTS", {
+            message: "too-many-login-attempts",
+          });
+        }
       }
 
       const user = await prisma.user.findUnique({

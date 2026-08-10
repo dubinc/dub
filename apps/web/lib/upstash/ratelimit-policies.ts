@@ -53,12 +53,6 @@ export const RATELIMIT_POLICIES = {
     keyPrefix: "rl:auth:password-reset:confirm",
   },
 
-  passwordChange: {
-    attempts: 5,
-    window: "1 m",
-    keyPrefix: "rl:auth:password-change",
-  },
-
   emailChangeRequest: {
     attempts: 3,
     window: "24 h",

@@ -21,9 +21,7 @@ import { databaseHooks } from "./database-hooks";
 import { hooks } from "./hooks";
 import { invite } from "./invite-plugin";
 import { programOAuthConfigs, programOAuthProviderIds } from "./program-oauth";
-import { authRateLimit } from "./rate-limit";
 import { samlIdp, samlOAuthConfig } from "./saml-sso-plugin";
-import { secondaryStorage } from "./secondary-storage";
 
 const isVercelProduction = process.env.VERCEL_ENV === "production";
 
@@ -33,12 +31,6 @@ export const auth = betterAuth({
   database: prismaAdapter(prisma, {
     provider: "mysql",
   }),
-  secondaryStorage,
-  rateLimit: authRateLimit,
-
-  session: {
-    storeSessionInDatabase: true,
-  },
 
   // Google and GitHub social providers
   socialProviders: {
@@ -166,7 +158,6 @@ export const auth = betterAuth({
   },
   verification: {
     modelName: "verification",
-    storeInDatabase: true,
     additionalFields: {
       lookupKey: {
         type: "string",
@@ -190,9 +181,6 @@ export const auth = betterAuth({
       domain: isVercelProduction ? ".dub.co" : undefined,
     },
     useSecureCookies: isVercelProduction,
-    ipAddress: {
-      ipAddressHeaders: ["x-forwarded-for", "x-real-ip"],
-    },
   },
 
   hooks,
