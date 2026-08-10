@@ -190,6 +190,9 @@ function DnsRecordsTable({
   );
 }
 
+// Hide until Domain Connect + forward-instructions email template are ready to ship for email domains.
+const ENABLE_EMAIL_DNS_ACTIONS = false;
+
 export function EmailDomainDnsRecords({ domain }: EmailDomainDnsRecordsProps) {
   const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
   const pathname = usePathname();
@@ -342,7 +345,7 @@ export function EmailDomainDnsRecords({ domain }: EmailDomainDnsRecordsProps) {
             />
           </div>
 
-          {(domainConnect || workspaceId) && (
+          {ENABLE_EMAIL_DNS_ACTIONS && (domainConnect || workspaceId) && (
             <div className="flex flex-wrap gap-2">
               {domainConnect && workspaceId && (
                 <Button
@@ -376,7 +379,7 @@ export function EmailDomainDnsRecords({ domain }: EmailDomainDnsRecordsProps) {
               )}
             </div>
           )}
-          <ForwardDnsInstructionsModal />
+          {ENABLE_EMAIL_DNS_ACTIONS && <ForwardDnsInstructionsModal />}
         </div>
       ) : (
         <div className="rounded-lg bg-neutral-100/80 p-4 text-center text-sm text-neutral-600">
