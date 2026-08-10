@@ -1,7 +1,8 @@
 import { CLAWBACK_REASONS_MAP } from "@/lib/zod/schemas/commissions";
 import { APP_DOMAIN, PARTNERS_DOMAIN } from "@dub/utils";
 
-const PAYOUT_ID_REGEX = /po_[^\s]+/g;
+// Canonical payout IDs: `po_` + 25-char base32 ULID body.
+const PAYOUT_ID_REGEX = /po_[0-9A-HJKMNP-TV-Z]{25}/g;
 
 export type CommissionDescriptionTooltipContext =
   | { variant: "program"; workspaceSlug: string }
@@ -18,10 +19,11 @@ export function formatCommissionDescriptionTooltip(
   const text = getCommissionDescriptionText(description);
 
   return text.replace(PAYOUT_ID_REGEX, (payoutId) => {
+    const encodedPayoutId = encodeURIComponent(payoutId);
     const href =
       context.variant === "program"
-        ? `${APP_DOMAIN}/${context.workspaceSlug}/program/payouts/${payoutId}`
-        : `${PARTNERS_DOMAIN}/payouts?payoutId=${payoutId}`;
+        ? `${APP_DOMAIN}/${context.workspaceSlug}/program/payouts/${encodedPayoutId}`
+        : `${PARTNERS_DOMAIN}/payouts?payoutId=${encodedPayoutId}`;
 
     return `[${payoutId}](${href})`;
   });
