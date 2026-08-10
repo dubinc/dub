@@ -38,7 +38,7 @@ export async function scheduleDelayedPayouts({
     label: invoice.id,
     flowControl: {
       key: invoice.id,
-      rate: 1,
+      parallelism: 1,
     },
     body: {
       invoiceId: invoice.id,
