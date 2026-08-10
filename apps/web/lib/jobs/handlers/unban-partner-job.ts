@@ -202,7 +202,7 @@ async function restoreCanceledCommissions({
       await trackCommissionStatusUpdate({
         workspaceId,
         programId,
-        commissions,
+        commissions: commissionsWithPayouts,
         newStatus: CommissionStatus.processed,
       });
     }
@@ -217,6 +217,7 @@ async function restoreCanceledCommissions({
             id: {
               in: commissionsWithoutPayouts.map(({ id }) => id),
             },
+            status: CommissionStatus.canceled,
           },
           data: {
             status: CommissionStatus.pending,
