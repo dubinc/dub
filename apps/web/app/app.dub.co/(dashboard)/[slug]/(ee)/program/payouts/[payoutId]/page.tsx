@@ -4,6 +4,7 @@ import { clientAccessCheck } from "@/lib/client-access-check";
 import { usePayout } from "@/lib/swr/use-payout";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { CommissionResponse, PayoutResponse } from "@/lib/types";
+import { CLAWBACK_REASONS_MAP } from "@/lib/zod/schemas/commissions";
 import { CustomerAvatar } from "@/ui/customers/customer-avatar";
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
@@ -325,7 +326,9 @@ function PayoutDetailsContent({
                 </Link>
               ) : (
                 <span className="max-w-xs truncate text-sm text-neutral-700">
-                  {getCommissionTypeLabel(row.original)}
+                  {row.original.type === "custom" && row.original.description
+                    ? row.original.description
+                    : getCommissionTypeLabel(row.original)}
                 </span>
               )}
               <span className="text-xs text-neutral-500">
@@ -351,7 +354,40 @@ function PayoutDetailsContent({
         minSize: 120,
         size: 120,
         maxSize: 120,
-        cell: ({ row }) => currencyFormatter(row.original.earnings),
+        cell: ({ row }) => {
+          const commission = row.original;
+          const earnings = currencyFormatter(commission.earnings);
+
+          if (commission.description) {
+            const reason =
+              CLAWBACK_REASONS_MAP[commission.description]?.description ??
+              commission.description;
+
+            return (
+              <Tooltip content={reason}>
+                <span
+                  className={cn(
+                    "cursor-help truncate underline decoration-dotted underline-offset-2",
+                    commission.earnings < 0 && "text-red-600",
+                  )}
+                >
+                  {earnings}
+                </span>
+              </Tooltip>
+            );
+          }
+
+          return (
+            <span
+              className={cn(
+                commission.earnings < 0 && "text-red-600",
+                "truncate",
+              )}
+            >
+              {earnings}
+            </span>
+          );
+        },
       },
       {
         id: "menu",
