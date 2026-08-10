@@ -17,7 +17,7 @@ import { Scope, mapScopesToPermissions } from "../api/tokens/scopes";
 import { throwIfNoAccess } from "../api/tokens/throw-if-no-access";
 import { normalizeWorkspaceId } from "../api/workspaces/workspace-id";
 import { withAxiomBodyLog } from "../axiom/server";
-import { getServerSession } from "../better-auth/get-session";
+import { requireServerSession } from "../better-auth/get-session";
 import { getFeatureFlags } from "../edge-config";
 import { hashToken } from "./hash-token";
 import { canAccessProgram, isProgramApiPath } from "./product-access-guard";
@@ -302,14 +302,7 @@ export const withWorkspace = (
             isMachine: token.user.isMachine,
           };
         } else {
-          const result = await getServerSession();
-
-          if (!result.session || !result.user) {
-            throw new DubApiError({
-              code: "unauthorized",
-              message: "Unauthorized: Login required.",
-            });
-          }
+          const result = await requireServerSession();
 
           user = {
             id: result.user.id,

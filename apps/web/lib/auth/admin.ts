@@ -48,25 +48,13 @@ export const withAdmin =
     { params: initialParams }: { params: Promise<Record<string, string>> },
   ) => {
     const params = (await initialParams) || {};
-    const { user } = await getServerSession();
+    const { session, user } = await getServerSession();
 
-    if (!user?.id || !user.email) {
+    if (!session || !user?.id || !user.email) {
       return new Response("Unauthorized: Login required.", { status: 401 });
     }
 
-    const session: Session = {
-      user: {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        image: user.image ?? undefined,
-        isMachine: user.isMachine ?? false,
-        defaultWorkspace: user.defaultWorkspace ?? undefined,
-        defaultPartnerId: user.defaultPartnerId ?? undefined,
-      },
-    };
-
-    const adminRole = await getDubAdminRole(session.user.id);
+    const adminRole = await getDubAdminRole(user.id);
     if (!adminRole) {
       return new Response("Unauthorized: Not an admin.", { status: 401 });
     }
@@ -84,6 +72,9 @@ export const withAdmin =
       req,
       params,
       searchParams,
-      session,
+      session: {
+        ...session,
+        user,
+      },
     });
   };

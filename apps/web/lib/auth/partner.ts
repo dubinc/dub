@@ -13,7 +13,7 @@ import { PartnerUser } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
-import { getServerSession } from "../better-auth/get-session";
+import { requireServerSession } from "../better-auth/get-session";
 import { getPartnerFeatureFlags } from "../edge-config";
 import { ratelimit } from "../upstash";
 import { hashToken } from "./hash-token";
@@ -186,14 +186,7 @@ export const withPartnerProfile = (
             },
           };
         } else {
-          const result = await getServerSession();
-
-          if (!result.session || !result.user) {
-            throw new DubApiError({
-              code: "unauthorized",
-              message: "Unauthorized: Login required.",
-            });
-          }
+          const result = await requireServerSession();
 
           session = {
             user: {
