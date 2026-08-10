@@ -1,0 +1,16 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "baseUrl": "..",
+    "paths": {
+      "@/pages/*": ["pages/*"],
+      "@/styles/*": ["styles/*"],
+      "@/ui/*": ["ui/*"],
+      "@/lib/*": ["lib/*"]
+    },
+    "noEmit": true,
+    "plugins": []
+  },
+  "include": ["./**/*.ts", "./**/*.tsx", "../playwright.config.ts", "../global-setup.ts"],
+  "exclude": ["node_modules"]
+}
