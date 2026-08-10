@@ -247,23 +247,35 @@ async function loadSearchCasePools(
   partnerCount: number,
 ): Promise<SearchCasePool[]> {
   const stride = Math.max(1, Math.floor(partnerCount / sampleSize));
-  const enrollments = await prisma.programEnrollment.findMany({
-    where: {
-      programId,
-      partner: {
-        email: { not: null },
-        companyName: { not: null },
-        description: { not: null },
-        platforms: { some: {} },
-      },
-      links: { some: {} },
+  const where = {
+    programId,
+    partner: {
+      email: { not: null },
+      companyName: { not: null },
+      description: { not: null },
+      platforms: { some: {} },
     },
-    select: partnerSearchDocumentSelect,
+    links: { some: {} },
+  };
+
+  // Striding across the program means scanning it, so resolve bare IDs first.
+  // Hydrating every row to keep one in `stride` exceeds MySQL's placeholder
+  // limit once a program reaches 100K partners.
+  const candidateIds = await prisma.programEnrollment.findMany({
+    where,
+    select: { id: true },
     orderBy: { id: "asc" },
     take: sampleSize * stride,
   });
 
-  const sampled = enrollments.filter((_, index) => index % stride === 0);
+  const sampledIds = candidateIds
+    .filter((_, index) => index % stride === 0)
+    .map(({ id }) => id);
+
+  const sampled = await prisma.programEnrollment.findMany({
+    where: { id: { in: sampledIds } },
+    select: partnerSearchDocumentSelect,
+  });
 
   if (sampled.length === 0) {
     throw new Error(

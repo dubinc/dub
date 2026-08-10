@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { toCentsNumber } from "@dub/utils";
+import { Prisma } from "@prisma/client";
 import { buildProgramEnrollmentWhereForList } from "./program-enrollment-query";
 import {
   buildPartnerSearchCandidateQuery,
@@ -55,55 +56,80 @@ export async function getPartners(
     ...(candidateResult ? { search: undefined } : {}),
   });
 
-  const programEnrollments = await prisma.programEnrollment.findMany({
-    where: {
-      ...enrollmentWhere,
-      ...(candidateResult
-        ? { id: { in: candidateResult.hits.map(({ id }) => id) } }
-        : {}),
-    },
-    include: {
-      partner: {
-        include: {
-          programPartnerTags: {
-            where: {
-              programId,
-            },
-            include: {
-              partnerTag: true,
-            },
+  // The candidate IDs already carry the provider's ranking, but the database
+  // still has to apply every other filter, so they narrow the query rather than
+  // define the result. See PARTNER_SEARCH_CANDIDATE_LIMIT for what that costs.
+  const candidateWhere: Prisma.ProgramEnrollmentWhereInput = {
+    ...enrollmentWhere,
+    ...(candidateResult
+      ? { id: { in: candidateResult.hits.map(({ id }) => id) } }
+      : {}),
+  };
+
+  const include = {
+    partner: {
+      include: {
+        programPartnerTags: {
+          where: {
+            programId,
           },
-          platforms: true,
+          include: {
+            partnerTag: true,
+          },
         },
+        platforms: true,
       },
-      links: true,
-      ...(includeGroup
-        ? {
-            partnerGroup: {
-              select: {
-                name: true,
-              },
-            },
-          }
-        : {}),
     },
-    ...(relevanceHits === null
+    links: true,
+    ...(includeGroup
       ? {
-          take: pageSize,
-          skip: (page - 1) * pageSize,
-          orderBy: {
-            [databaseSortBy]: sortOrder,
+          partnerGroup: {
+            select: {
+              name: true,
+            },
           },
         }
       : {}),
-  });
+  } satisfies Prisma.ProgramEnrollmentInclude;
 
-  const partners = relevanceHits
-    ? orderByPartnerSearchHits(programEnrollments, relevanceHits).slice(
-        (page - 1) * pageSize,
-        page * pageSize,
-      )
-    : programEnrollments;
+  let partners: Prisma.ProgramEnrollmentGetPayload<{
+    include: typeof include;
+  }>[];
+
+  if (relevanceHits) {
+    // Relevance order cannot be expressed in SQL, so the page has to be chosen
+    // in memory. Resolve which candidates survive the filters as bare IDs
+    // first — hydrating all of them to show one page costs ~330ms at the
+    // candidate limit against ~4ms for the page alone.
+    const matches = await prisma.programEnrollment.findMany({
+      where: candidateWhere,
+      select: { id: true },
+    });
+
+    const pageIds = orderByPartnerSearchHits(matches, relevanceHits)
+      .slice((page - 1) * pageSize, page * pageSize)
+      .map(({ id }) => id);
+
+    const pageEnrollments =
+      pageIds.length > 0
+        ? await prisma.programEnrollment.findMany({
+            where: { id: { in: pageIds } },
+            include,
+          })
+        : [];
+
+    partners = orderByPartnerSearchHits(pageEnrollments, relevanceHits);
+  } else {
+    partners = await prisma.programEnrollment.findMany({
+      where: candidateWhere,
+      include,
+      take: pageSize,
+      skip: (page - 1) * pageSize,
+      orderBy: {
+        [databaseSortBy]: sortOrder,
+      },
+    });
+  }
 
   return partners.map(
     ({ partner, links, partnerGroup, ...programEnrollment }) => ({

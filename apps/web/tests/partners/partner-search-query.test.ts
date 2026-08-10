@@ -15,7 +15,7 @@ describe("buildPartnerSearchCandidateQuery", () => {
     expect(buildPartnerSearchCandidateQuery(defaultInput)).toEqual({
       programId: "prog_test",
       query: "examp",
-      limit: 100,
+      limit: 999,
     });
   });
 

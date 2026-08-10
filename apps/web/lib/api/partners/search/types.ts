@@ -1,6 +1,24 @@
 import { PlatformType } from "@prisma/client";
 
-export const PARTNER_SEARCH_CANDIDATE_LIMIT = 100;
+/**
+ * How many ranked enrollment IDs a provider may return for one query.
+ *
+ * 999 because Upstash Redis Search rejects anything from 1000 up
+ * (`ERR limit should be a positive number less than 1000`).
+ *
+ * KNOWN LIMITATION: filters run after this cut, not before.
+ *
+ *   1. the provider ranks matches and keeps the top 999, ignoring all filters
+ *   2. the database applies status/group/country/tag/metric to those 999
+ *
+ * A query matching fewer than 999 is unaffected. Beyond that, both the rows and
+ * the count are a floor. There is no field on the list or count response to say
+ * so without breaking their shape, so findPartnerSearchCandidates logs it.
+ *
+ * The fix is indexing the filterable fields so the provider filters before it
+ * ranks, which means keeping them in sync on every write — out of scope here.
+ */
+export const PARTNER_SEARCH_CANDIDATE_LIMIT = 999;
 
 export function validatePartnerSearchCandidateLimit(limit: number) {
   if (

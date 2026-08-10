@@ -62,7 +62,7 @@ describe("getPartnersCount search", () => {
     expect(searchProvider.searchCandidates).toHaveBeenCalledWith({
       programId: "prog_test",
       query: "examp",
-      limit: 100,
+      limit: 999,
     });
     expect(mocks.count).toHaveBeenCalledWith({
       where: expect.objectContaining({
