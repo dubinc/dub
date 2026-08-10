@@ -169,7 +169,7 @@ export function usePartnerFilters(
   const { id: workspaceId, slug } = useWorkspace();
   const status = (searchParamsObj.status ||
     extraSearchParams.status ||
-    (searchParamsObj.search ? undefined : "approved")) as
+    (searchParamsObj.search?.trim() ? undefined : "approved")) as
     | ProgramEnrollmentStatus
     | undefined;
 

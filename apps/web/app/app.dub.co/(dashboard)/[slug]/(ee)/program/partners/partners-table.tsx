@@ -117,6 +117,9 @@ const partnersColumns = {
   ],
 };
 
+// Searching must fall back to relevance ordering. A column sort still applies to
+// the same relevance-ranked candidates, but it reorders them, so the best match
+// lands somewhere down the list instead of first — which reads as broken search.
 const PARTNER_SEARCH_RESET_PARAMS = ["sortBy", "sortOrder"];
 
 const getPartnerUrl = ({
@@ -135,14 +138,18 @@ export function PartnersTable() {
   const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
   const { program } = useProgram();
 
+  // A blank query is not searchable, and asking for relevance without one is a
+  // 400 from the API.
+  const search = searchParams.get("search")?.trim();
+
   const status =
-    searchParams.get("status") || searchParams.get("search")
+    searchParams.get("status") || search
       ? undefined
       : ProgramEnrollmentStatus.approved;
 
   const sortBy =
     searchParams.get("sortBy") ||
-    (searchParams.get("search")
+    (search
       ? "relevance"
       : program?.primaryRewardEvent === "lead"
         ? "totalLeads"

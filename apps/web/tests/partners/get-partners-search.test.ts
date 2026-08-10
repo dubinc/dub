@@ -51,6 +51,34 @@ describe("getPartners search", () => {
     mocks.findMany.mockReset();
   });
 
+  it("keeps a tenant filter on the database search path", async () => {
+    // tenantId predates the search provider, so `tenantId` + `search` still
+    // resolves entirely in the database rather than inheriting the candidate
+    // ceiling.
+    mocks.findMany.mockResolvedValue([enrollment("pge_1", "pn_1")]);
+    const searchProvider = createSearchProvider([{ id: "pge_1" }]);
+
+    await getPartners(
+      {
+        programId: "prog_test",
+        search: "examp",
+        tenantId: "tenant_1",
+        page: 1,
+        pageSize: 25,
+        sortBy: "totalSaleAmount",
+        sortOrder: "desc",
+      },
+      { searchProvider },
+    );
+
+    expect(searchProvider.searchCandidates).not.toHaveBeenCalled();
+
+    const { where } = mocks.findMany.mock.calls.at(-1)![0];
+    expect(where).toMatchObject({ tenantId: "tenant_1" });
+    expect(where.id).toBeUndefined();
+    expect(JSON.stringify(where)).toContain('"search":"examp"');
+  });
+
   it("lets the database filter, sort, and paginate search candidates", async () => {
     mocks.findMany.mockResolvedValue([
       enrollment("pge_1", "pn_1"),
