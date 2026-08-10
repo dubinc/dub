@@ -24,7 +24,7 @@ export const syncPartnerLinksStats = async ({
       error,
     );
 
-    const programEnrollment = await prisma.$transaction(async (tx) => {
+    return await prisma.$transaction(async (tx) => {
       const res = await tx.link.aggregate({
         where: {
           programId,
@@ -58,7 +58,5 @@ export const syncPartnerLinksStats = async ({
         data: partnerLinkStats,
       });
     });
-
-    return programEnrollment;
   }
 };

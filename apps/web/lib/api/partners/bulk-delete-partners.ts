@@ -1,4 +1,3 @@
-import { enqueuePartnerSearchSyncJob } from "@/lib/jobs/handlers/partner-search-sync-job";
 import { conn } from "@/lib/planetscale";
 import { prisma } from "@/lib/prisma";
 import { ACME_PROGRAM_ID } from "@dub/utils";
@@ -162,10 +161,6 @@ export async function bulkDeletePartners({
     );
 
     if (deletedProgramEnrollments.count > 0) {
-      await enqueuePartnerSearchSyncJob({
-        documentIds: programEnrollmentIds,
-      });
-
       await prisma.project.updateMany({
         where: {
           defaultProgramId: ACME_PROGRAM_ID,

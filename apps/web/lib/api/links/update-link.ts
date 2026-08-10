@@ -1,4 +1,3 @@
-import { enqueuePartnerSearchSyncForLinks } from "@/lib/jobs/handlers/partner-search-sync-job";
 import { getPartnerEnrollmentInfo } from "@/lib/planetscale/get-partner-enrollment-info";
 import { prisma } from "@/lib/prisma";
 import { isNotHostedImage, storage } from "@/lib/storage";
@@ -167,8 +166,6 @@ export async function updateLink({
       webhooks: webhookIds ? true : false,
     },
   });
-
-  waitUntil(enqueuePartnerSearchSyncForLinks([response]));
 
   waitUntil(
     (async () => {

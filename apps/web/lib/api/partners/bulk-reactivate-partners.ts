@@ -8,7 +8,7 @@ import { linkCache } from "../links/cache";
 
 type ProgramEnrollmentWithPartner = Pick<
   ProgramEnrollment,
-  "partnerId" | "groupId"
+  "id" | "partnerId" | "groupId"
 > & {
   partner: Pick<Partner, "id" | "name" | "email">;
 };

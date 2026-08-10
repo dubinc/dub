@@ -1,5 +1,4 @@
 import { trackApplicationEvents } from "@/lib/application-events/update-application-event";
-import { enqueuePartnerSearchSyncJob } from "@/lib/jobs/handlers/partner-search-sync-job";
 import { getProgramApplicationRejectionReasonLabel } from "@/lib/partners/program-application-rejection";
 import { prisma } from "@/lib/prisma";
 import { WorkspaceProps } from "@/lib/types";
@@ -144,14 +143,6 @@ export async function rejectPartner({
   });
 
   const { partner, program } = programEnrollment;
-
-  if (reapplicationTimeframe === "instant") {
-    waitUntil(
-      enqueuePartnerSearchSyncJob({
-        documentIds: [programEnrollment.id],
-      }),
-    );
-  }
 
   waitUntil(
     Promise.allSettled([

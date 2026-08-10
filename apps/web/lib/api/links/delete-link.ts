@@ -1,5 +1,4 @@
 import { enqueueDeleteDiscountCode } from "@/lib/discounts/delete-discount-code";
-import { enqueuePartnerSearchSyncForLinks } from "@/lib/jobs/handlers/partner-search-sync-job";
 import { prisma } from "@/lib/prisma";
 import { storage } from "@/lib/storage";
 import { recordLink } from "@/lib/tinybird";
@@ -75,8 +74,6 @@ export async function deleteLink(linkId: string) {
         }),
 
       link.discountCode && enqueueDeleteDiscountCode([link.discountCode]),
-
-      enqueuePartnerSearchSyncForLinks([link]),
     ]),
   );
 

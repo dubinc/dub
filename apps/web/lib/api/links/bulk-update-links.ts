@@ -1,4 +1,3 @@
-import { enqueuePartnerSearchSyncForLinks } from "@/lib/jobs/handlers/partner-search-sync-job";
 import { prisma } from "@/lib/prisma";
 import { isNotHostedImage, storage } from "@/lib/storage";
 import { bulkUpdateLinksBodySchema } from "@/lib/zod/schemas/links";
@@ -128,7 +127,6 @@ export async function bulkUpdateLinks(
             height: 630,
           },
         }),
-      enqueuePartnerSearchSyncForLinks(updatedLinks),
     ]),
   );
 

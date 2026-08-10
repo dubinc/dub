@@ -1,13 +1,11 @@
 "use server";
 
 import { upsertPartnerPlatform } from "@/lib/api/partner-profile/upsert-partner-platform";
-import { enqueuePartnerSearchSyncJob } from "@/lib/jobs/handlers/partner-search-sync-job";
 import { prisma } from "@/lib/prisma";
 import { sanitizeSocialHandle, sanitizeWebsite } from "@/lib/social-utils";
 import { parseUrlSchemaAllowEmpty } from "@/lib/zod/schemas/utils";
 import { getDomainWithoutWWW, getUrlFromString, isValidUrl } from "@dub/utils";
 import { PartnerPlatform, PlatformType } from "@prisma/client";
-import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
 import { authPartnerActionClient } from "../safe-action";
 
@@ -191,9 +189,4 @@ export const updatePartnerPlatformsAction = authPartnerActionClient
     }
 
     await Promise.all(operations);
-    waitUntil(
-      enqueuePartnerSearchSyncJob({
-        partnerIds: [partner.id],
-      }),
-    );
   });

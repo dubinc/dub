@@ -1,7 +1,6 @@
 "use server";
 
 import { createId } from "@/lib/api/create-id";
-import { enqueuePartnerSearchSyncJob } from "@/lib/jobs/handlers/partner-search-sync-job";
 import { prisma } from "@/lib/prisma";
 import { polyfillSocialMediaFields } from "@/lib/social-utils";
 import { isStored, storage } from "@/lib/storage";
@@ -108,12 +107,6 @@ export const createAndEnrollPartner = async ({
             links: true,
           },
         });
-
-        waitUntil(
-          enqueuePartnerSearchSyncJob({
-            documentIds: [updatedProgramEnrollment.id],
-          }),
-        );
 
         return EnrolledPartnerSchema.parse({
           ...updatedProgramEnrollment.partner,
@@ -259,10 +252,6 @@ export const createAndEnrollPartner = async ({
           trigger: "partner.enrolled",
           data: enrolledPartner,
         }),
-
-      enqueuePartnerSearchSyncJob({
-        documentIds: [upsertedPartner.programs[0].id],
-      }),
     ]),
   );
 

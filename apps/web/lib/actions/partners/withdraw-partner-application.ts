@@ -1,8 +1,6 @@
 "use server";
 
-import { enqueuePartnerSearchSyncJob } from "@/lib/jobs/handlers/partner-search-sync-job";
 import { prisma } from "@/lib/prisma";
-import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
 import { authPartnerActionClient } from "../safe-action";
 
@@ -48,10 +46,4 @@ export const withdrawPartnerApplicationAction = authPartnerActionClient
 
       return deletedProgramEnrollment;
     });
-
-    waitUntil(
-      enqueuePartnerSearchSyncJob({
-        documentIds: [programEnrollment.id],
-      }),
-    );
   });

@@ -1,4 +1,3 @@
-import { enqueuePartnerSearchSyncForLinks } from "@/lib/jobs/handlers/partner-search-sync-job";
 import { prisma } from "@/lib/prisma";
 import { ProcessedLinkProps } from "@/lib/types";
 import { publishWorkspaceLinksUsageEvent } from "@/lib/upstash/redis-streams/workspace-links-usage";
@@ -236,7 +235,6 @@ export async function bulkCreateLinks({
         linksCount: links.length,
         timestamp: new Date().toISOString(),
       }),
-      enqueuePartnerSearchSyncForLinks(createdLinksData),
     ]),
   );
 

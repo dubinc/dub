@@ -5,7 +5,6 @@ import { throwIfNoPermission } from "@/lib/auth/partner-users/throw-if-no-permis
 import { requestEmailChange } from "@/lib/auth/request-email-change";
 import { qstash } from "@/lib/cron";
 import { isReservedUsername } from "@/lib/edge-config";
-import { enqueuePartnerSearchSyncJob } from "@/lib/jobs/handlers/partner-search-sync-job";
 import {
   assertEmailAvailableForIdentitySync,
   requestSyncedEmailChange,
@@ -254,19 +253,6 @@ export const updatePartnerProfileAction = authPartnerActionClient
         });
       }
 
-      const searchableProfileChanged = !deepEqual(
-        {
-          name: partner.name,
-          companyName: partner.companyName,
-          description: partner.description,
-        },
-        {
-          name: updatedPartner.name,
-          companyName: updatedPartner.companyName,
-          description: updatedPartner.description,
-        },
-      );
-
       waitUntil(
         Promise.allSettled([
           (async () => {
@@ -292,13 +278,6 @@ export const updatePartnerProfileAction = authPartnerActionClient
               },
             });
           })(),
-          ...(searchableProfileChanged
-            ? [
-                enqueuePartnerSearchSyncJob({
-                  partnerIds: [partner.id],
-                }),
-              ]
-            : []),
         ]),
       );
 

@@ -54,11 +54,6 @@ export const syncTotalCommissions = async ({
       error,
     );
 
-    const programEnrollment = await aggregateAndUpdateTotalCommissions({
-      partnerId,
-      programId,
-    });
-
-    return programEnrollment;
+    return await aggregateAndUpdateTotalCommissions({ partnerId, programId });
   }
 };

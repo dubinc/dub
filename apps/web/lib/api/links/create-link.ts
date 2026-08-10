@@ -1,5 +1,4 @@
 import { qstash } from "@/lib/cron";
-import { enqueuePartnerSearchSyncForLinks } from "@/lib/jobs/handlers/partner-search-sync-job";
 import { getPartnerEnrollmentInfo } from "@/lib/planetscale/get-partner-enrollment-info";
 import { prisma } from "@/lib/prisma";
 import { isNotHostedImage, storage } from "@/lib/storage";
@@ -138,8 +137,6 @@ export async function createLink(link: ProcessedLinkProps) {
   );
 
   const uploadedImageUrl = `${R2_URL}/images/${response.id}`;
-
-  waitUntil(enqueuePartnerSearchSyncForLinks([response]));
 
   waitUntil(
     (async () => {
