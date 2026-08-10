@@ -137,13 +137,17 @@ function TokenForm({
 
   const { executeAsync, isPending } = useAction(setLemonSqueezyTokenAction, {
     onSuccess: ({ data }) => {
-      if (data?.stores) {
+      if (data?.stores?.length) {
         setStores(data.stores);
         setStep("select-store");
+      } else {
+        toast.error("No Lemon Squeezy stores are available for this API key.");
       }
     },
     onError: ({ error }) => {
-      toast.error(error.serverError);
+      toast.error(
+        error.serverError ?? "Failed to fetch Lemon Squeezy stores.",
+      );
     },
   });
 
@@ -224,7 +228,9 @@ function SelectStore({
       router.push(`/${slug}/program/partners`);
     },
     onError: ({ error }) => {
-      toast.error(error.serverError);
+      toast.error(
+        error.serverError ?? "Failed to start the Lemon Squeezy import.",
+      );
     },
   });
 

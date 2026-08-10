@@ -99,7 +99,7 @@ export async function importPartners(payload: LemonSqueezyImportPayload) {
     }
 
     if (activeAffiliates.length > 0) {
-      await Promise.allSettled(
+      const results = await Promise.allSettled(
         activeAffiliates.map((affiliate) =>
           createPartnerAndLinks({
             workspace,
@@ -111,6 +111,25 @@ export async function importPartners(payload: LemonSqueezyImportPayload) {
           }),
         ),
       );
+
+      const failures = results.flatMap((result, index) =>
+        result.status === "rejected"
+          ? [{ affiliate: activeAffiliates[index], reason: result.reason }]
+          : [],
+      );
+
+      if (failures.length > 0) {
+        await logImportError(
+          failures.map(({ affiliate, reason }) => ({
+            ...commonImportLogInputs,
+            entity_id: affiliate.id,
+            code: "PARTNER_NOT_FOUND" as const,
+            message: `Failed to import affiliate ${affiliate.id}: ${
+              reason instanceof Error ? reason.message : String(reason)
+            }`,
+          })),
+        );
+      }
     }
 
     if (notImportedAffiliates.length > 0) {
@@ -220,7 +239,7 @@ async function createPartnerAndLinks({
 
   if (links.length > 0 && links.some((link) => link.key === affiliate.id)) {
     console.log(
-      `Partner ${partner.email} already has a link with key ${affiliate.id}, skipping...`,
+      `Partner ${partner.id} already has a link with key ${affiliate.id}, skipping...`,
     );
     return;
   }

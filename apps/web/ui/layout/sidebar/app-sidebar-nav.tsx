@@ -1,6 +1,6 @@
 "use client";
 
-import { canAccessProgram } from "@/lib/auth/product-access-guard";
+import { clientAccessCheck } from "@/lib/client-access-check";
 import { usePartnerMessagesCount } from "@/lib/messages/hooks/use-partner-messages-count";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { SUBMITTED_LEADS_ENABLED_PROGRAM_IDS } from "@/lib/submitted-leads/constants";
@@ -13,9 +13,10 @@ import { usePayoutsCount } from "@/lib/swr/use-payouts-count";
 import useProgram from "@/lib/swr/use-program";
 import { useProgramSubmittedLeadsCount } from "@/lib/swr/use-program-submitted-leads-count";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { useRouterStuff } from "@dub/ui";
+import { useKeyboardShortcut, useRouterStuff } from "@dub/ui";
 import {
   Bell,
+  BookOpen,
   Brush,
   ConnectedDots,
   CubeSettings,
@@ -26,6 +27,7 @@ import {
   Gear2,
   Gift,
   Globe,
+  GridPlus,
   InvoiceDollar,
   Key,
   LifeRing,
@@ -47,10 +49,14 @@ import {
   Webhook,
 } from "@dub/ui/icons";
 import { isWorkspaceBillingTrialActive } from "@dub/utils";
+import { DubProduct } from "@prisma/client";
 import { Session } from "next-auth";
 import { useSession } from "next-auth/react";
+import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
 import { ReactNode, useMemo } from "react";
+import { toast } from "sonner";
+import { mutate } from "swr";
 import { DubPartnersPopup } from "./dub-partners-popup";
 import { Compass } from "./icons/compass";
 import { ConnectedDots4 } from "./icons/connected-dots4";
@@ -67,28 +73,23 @@ type SidebarNavData = {
   slug: string;
   pathname: string;
   queryString: string;
-  defaultProgramId?: string;
+  defaultProduct?: "program" | "links";
   session?: Session | null;
-  showNews?: boolean;
   pendingPayoutsCount?: number;
   applicationsCount?: number;
   submittedBountiesCount?: number;
   unreadMessagesCount?: number;
   pendingFraudEventsCount?: number;
   pendingLeadsCount?: number;
-  showConversionGuides?: boolean;
   partnerNetworkEnabled?: boolean;
-  hasProgramAccess?: boolean;
 };
 
 const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({
   slug,
   pathname,
-  defaultProgramId,
-  hasProgramAccess,
+  defaultProduct,
 }) => {
   const programGroup = {
-    id: "program",
     name: "Partner Program",
     description:
       "Kickstart viral product-led growth with powerful, branded referral and affiliate programs.",
@@ -103,7 +104,6 @@ const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({
     popup: DubPartnersPopup,
   };
   const linksGroup = {
-    id: "links",
     name: "Short Links",
     description:
       "Create, organize, and measure the performance of your short links.",
@@ -113,21 +113,15 @@ const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({
     active: pathname.startsWith(`/${slug}/links`),
   };
 
-  // TEMPORARY: hide the program tab for restricted workspace users
-  if (hasProgramAccess === false) {
-    return [linksGroup];
-  }
-
-  return defaultProgramId
-    ? [programGroup, linksGroup]
-    : [linksGroup, programGroup];
+  return (defaultProduct ?? "links") === "links"
+    ? [linksGroup, programGroup]
+    : [programGroup, linksGroup];
 };
 
 const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
   // partner program
   program: ({
     slug,
-    showNews,
     pendingPayoutsCount,
     applicationsCount,
     submittedBountiesCount,
@@ -137,7 +131,6 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
     partnerNetworkEnabled,
   }) => ({
     title: "Partner Program",
-    showNews,
     direction: "left",
     content: [
       {
@@ -300,9 +293,9 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
     ],
   }),
   // short links
-  links: ({ slug, pathname, queryString, showNews }) => ({
+  links: ({ slug, pathname, queryString }) => ({
     title: "Short Links",
-    showNews,
+    showNews: true,
     direction: "left",
     content: [
       {
@@ -508,28 +501,54 @@ export function AppSidebarNav({
 }) {
   const { slug } = useParams() as { slug?: string };
   const pathname = usePathname();
-  const { getQueryString } = useRouterStuff();
-  const { data: session, status } = useSession();
+  const { router, getQueryString } = useRouterStuff();
+  const { data: session } = useSession();
   const {
     id: workspaceId,
     plan,
+    defaultProduct,
     defaultProgramId,
     trialEndsAt,
-    loading: workspaceLoading,
+    role,
   } = useWorkspace();
 
-  const canCheckProgramAccess =
-    status !== "loading" &&
-    !workspaceLoading &&
-    workspaceId &&
-    session?.user.id;
+  const canSetDefaultProduct = !clientAccessCheck({
+    action: "workspaces.write",
+    role,
+  }).error;
 
-  const hasProgramAccess = canCheckProgramAccess
-    ? canAccessProgram({
-        workspaceId,
-        userId: session.user.id,
-      })
-    : false;
+  async function onSetDefaultProduct(product: DubProduct) {
+    if (!workspaceId || !slug) {
+      return;
+    }
+
+    await toast.promise(
+      (async () => {
+        const response = await fetch(`/api/workspaces/${workspaceId}`, {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            defaultProduct: product,
+          }),
+        });
+
+        if (!response.ok) {
+          const { error } = await response.json();
+          throw new Error(error.message);
+        }
+
+        await mutate(`/api/workspaces/${slug}`);
+        router.push(`/${slug}/${product}`);
+      })(),
+      {
+        loading: "Setting default product...",
+        success: "Successfully updated your default product!",
+        error: (error) => error.message,
+      },
+    );
+  }
 
   const currentArea = useMemo(() => {
     return pathname.startsWith("/account/settings")
@@ -544,6 +563,18 @@ export function AppSidebarNav({
             ? "program"
             : "links";
   }, [slug, pathname]);
+
+  // Navigate back to the default product when the Escape key is pressed in the workspace settings
+  useKeyboardShortcut(
+    "Escape",
+    () => router.push(`/${slug}/${defaultProduct}`),
+    {
+      enabled: currentArea === "workspaceSettings",
+      priority: 2,
+      modal: false,
+      sheet: false,
+    },
+  );
 
   const { program } = useProgram({
     enabled: Boolean(currentArea === "program" && defaultProgramId),
@@ -597,6 +628,28 @@ export function AppSidebarNav({
 
   const { canTrackConversions } = getPlanCapabilities(plan);
 
+  const setDefaultProductButton =
+    canSetDefaultProduct &&
+    (currentArea === "program" || currentArea === "links") &&
+    (defaultProduct ?? "links") !== currentArea ? (
+      <button
+        type="button"
+        onClick={() => onSetDefaultProduct(currentArea)}
+        className="flex w-full items-center justify-center gap-2 rounded-lg bg-neutral-200/75 px-2.5 py-2 text-xs font-medium text-neutral-700 transition-colors hover:bg-neutral-200"
+      >
+        <GridPlus className="size-4" />
+        Set as default product tab
+      </button>
+    ) : canTrackConversions && pathname.startsWith(`/${slug}/links`) ? (
+      <Link
+        href={`/${slug}/settings/tracking`}
+        className="flex w-full items-center justify-center gap-2 rounded-lg bg-neutral-200/75 px-2.5 py-2 text-xs font-medium text-neutral-700 transition-colors hover:bg-neutral-200"
+      >
+        <BookOpen className="size-4" />
+        Set up conversion tracking
+      </Link>
+    ) : null;
+
   return (
     <SidebarNav
       groups={NAV_GROUPS}
@@ -609,19 +662,15 @@ export function AppSidebarNav({
           include: ["folderId"],
         }),
         session: session || undefined,
-        showNews: true,
-        defaultProgramId: defaultProgramId || undefined,
+        defaultProduct,
         pendingPayoutsCount: pendingPayoutsCount?.[0]?.count ?? 0,
         applicationsCount,
         submittedBountiesCount,
         unreadMessagesCount,
         pendingFraudEventsCount,
         pendingLeadsCount,
-        showConversionGuides:
-          canTrackConversions && pathname.startsWith(`/${slug}/links`),
         partnerNetworkEnabled:
           program && program.partnerNetworkEnabledAt !== null,
-        hasProgramAccess,
       }}
       toolContent={toolContent}
       newsContent={
@@ -633,6 +682,7 @@ export function AppSidebarNav({
         ))
       }
       switcher={<WorkspaceDropdown />}
+      bottom={setDefaultProductButton}
     />
   );
 }

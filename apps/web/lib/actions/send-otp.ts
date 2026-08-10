@@ -3,14 +3,15 @@
 import { getIP } from "@/lib/api/utils/get-ip";
 import { isEmailDomainBlocked } from "@/lib/email/is-email-domain-blocked";
 import { prisma } from "@/lib/prisma";
-import { ratelimit } from "@/lib/upstash";
+import { assertRateLimit } from "@/lib/upstash/assert-rate-limit";
+import { RATELIMIT_POLICIES } from "@/lib/upstash/ratelimit-policies";
 import { sendEmail } from "@dub/email";
 import VerifyEmail from "@dub/email/templates/verify-email";
 import { flattenValidationErrors } from "next-safe-action";
 import * as z from "zod/v4";
 import { generateOTP } from "../auth";
 import { EMAIL_OTP_EXPIRY_IN } from "../auth/constants";
-import { isGenericEmail } from "../is-generic-email";
+import { isGenericEmail } from "../email/is-generic-email";
 import { emailSchema, passwordSchema } from "../zod/schemas/auth";
 import { throwIfAuthenticated } from "./auth/throw-if-authenticated";
 import { actionClient } from "./safe-action";
@@ -30,19 +31,15 @@ export const sendOtpAction = actionClient
   .action(async ({ parsedInput }) => {
     const { email } = parsedInput;
 
-    const { success } = await ratelimit(2, "1 m").limit(
-      `send-otp:${email}:${await getIP()}`,
-    );
+    await assertRateLimit({
+      policy: RATELIMIT_POLICIES.signupOtpSend,
+      identifier: [email, await getIP()],
+    });
 
-    if (!success) {
-      throw new Error("Too many requests. Please try again later.");
-    }
-
-    const isGenericEmailWithPlus = email.includes("+") && isGenericEmail(email);
     const emailDomainBlocked = await isEmailDomainBlocked(email);
 
     // if any of the flags match, run one final edge case check, before throwing an error
-    if (isGenericEmailWithPlus || emailDomainBlocked) {
+    if (isGenericEmail(email) || emailDomainBlocked) {
       // edge case: the user already has a partner account on Dub with this email address,
       // or they have an existing application for a program, we can allow them to continue
       const [isPartnerAccount, hasExistingApplications] = await Promise.all([

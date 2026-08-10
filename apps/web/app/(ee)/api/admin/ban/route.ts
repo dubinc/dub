@@ -1,6 +1,7 @@
 import { deleteWorkspaceAdmin } from "@/lib/api/workspaces/delete-workspace";
 import { withAdmin } from "@/lib/auth";
 import { updateConfig } from "@/lib/edge-config";
+import { extractEmailDomain } from "@/lib/email/extract-email-domain";
 import { prisma } from "@/lib/prisma";
 import { isStored, storage } from "@/lib/storage";
 import { R2_URL } from "@dub/utils";
@@ -10,7 +11,7 @@ import { NextResponse } from "next/server";
 // POST /api/admin/ban
 export const POST = withAdmin(
   async ({ req }) => {
-    const { email } = await req.json();
+    const { email, blockEmailDomain } = await req.json();
 
     const user = await prisma.user.findUniqueOrThrow({
       where: {
@@ -38,12 +39,14 @@ export const POST = withAdmin(
       },
     });
 
+    const emailDomain = extractEmailDomain(email);
+
     console.log(
       `Found user ${user.email} with ${user.projects.length} workspaces`,
     );
 
     waitUntil(
-      Promise.all(
+      Promise.allSettled(
         user.projects.map(({ project }) => deleteWorkspaceAdmin(project)),
       ).then(async () => {
         await Promise.all([
@@ -54,6 +57,12 @@ export const POST = withAdmin(
             key: "emails",
             value: email,
           }),
+          blockEmailDomain &&
+            emailDomain &&
+            updateConfig({
+              key: "emailDomainTerms",
+              value: emailDomain,
+            }),
         ]);
 
         // delete user

@@ -89,6 +89,7 @@ export const adminNetworkPartnerQuerySchema = z
     networkStatus: z.enum(PartnerNetworkStatus).optional(),
     country: z.string().optional(),
     search: z.string().trim().min(1).optional(),
+    sortBy: z.enum(["createdAt", "submittedAt", "reviewedAt"]).optional(),
     sortOrder: z.enum(["asc", "desc"]).optional().default("desc"),
   })
   .extend(getPaginationQuerySchema({ pageSize: 100 }));
