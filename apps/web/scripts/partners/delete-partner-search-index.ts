@@ -6,13 +6,12 @@ import { chunk } from "@dub/utils";
 import { Redis } from "@upstash/redis";
 import "dotenv-flow/config";
 
-const DELETE_BATCH_SIZE = 10_000;
+const DELETE_BATCH_SIZE = 1_000;
 const SCAN_COUNT = 10_000;
 const MAX_DELETE_PASSES = 3;
 
 interface DeletePartnerSearchIndexArguments {
   indexName: string;
-  confirm: string;
 }
 
 function parseArguments(args: string[]): DeletePartnerSearchIndexArguments {
@@ -39,7 +38,7 @@ function parseArguments(args: string[]): DeletePartnerSearchIndexArguments {
     throw new Error(`Pass --confirm=${indexName} to confirm deletion.`);
   }
 
-  return { indexName, confirm };
+  return { indexName };
 }
 
 function createRedisClient() {
@@ -120,18 +119,21 @@ async function main() {
   const description = await index.describe();
   const expectedPrefix = `${indexName}:partner:`;
 
-  // Step 1: Verify that the index contains only partner search documents
-  if (
-    description &&
-    (description.prefixes.length !== 1 ||
-      description.prefixes[0] !== expectedPrefix)
+  // Verify that the index contains only partner search documents
+  if (!description) {
+    console.warn(
+      `Index ${indexName} does not exist, so its prefix cannot be verified. Removing any documents left under ${expectedPrefix} only.`,
+    );
+  } else if (
+    description.prefixes.length !== 1 ||
+    description.prefixes[0] !== expectedPrefix
   ) {
     throw new Error(
       `Index ${indexName} does not use an expected partner search prefix.`,
     );
   }
 
-  // Step 2: Drop the search index without affecting unrelated Redis data
+  // Drop the search index without affecting unrelated Redis data
   const dropped = await index.drop();
   console.log(
     dropped === 1
