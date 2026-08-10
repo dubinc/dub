@@ -1,3 +1,21 @@
+/**
+ * Indexes a program's partner enrollments into the configured search provider.
+ *
+ * Pages by enrollment ID rather than offset, so per-batch cost stays flat across
+ * a 100K-partner program. A failed run prints the command to resume from the
+ * last indexed document, so a partial backfill is never redone from zero.
+ *
+ * The backfill only upserts, so it cannot remove documents whose enrollment was
+ * deleted. --reconcile sweeps up those orphans afterwards — note that sweep
+ * covers the entire index, not only --programId.
+ *
+ *   cd apps/web
+ *   pnpm run script partners/backfill-partner-search --programId=prog_123
+ *     [--batchSize=500] [--after=pge_123] [--reconcile]
+ *
+ * Requires PARTNER_SEARCH_PROVIDER to be configured.
+ */
+
 import {
   backfillPartnerSearch,
   createUpstashRedisPartnerSearchIndex,
@@ -110,9 +128,7 @@ async function main() {
     return;
   }
 
-  // The backfill above only upserts, so it cannot remove documents for
-  // enrollments that were deleted. This sweep covers the whole index, not just
-  // --programId, because neither provider can enumerate documents by program.
+  // Index-wide because neither provider can enumerate documents by program.
   console.log("Reconciling the index against the database (all programs)...");
 
   const { scanned, deleted } = await reconcilePartnerSearchIndex({
