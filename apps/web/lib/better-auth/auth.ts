@@ -82,44 +82,40 @@ export const auth = betterAuth({
       );
     },
     onPasswordReset: async ({ user }) => {
-      waitUntil(
-        (async () => {
-          const dbUser = await prisma.user.findUnique({
-            where: {
-              id: user.id,
-            },
-            select: {
-              emailVerified: true,
-              emailVerifiedBa: true,
-            },
-          });
+      const dbUser = await prisma.user.findUnique({
+        where: {
+          id: user.id,
+        },
+        select: {
+          emailVerified: true,
+          emailVerifiedBa: true,
+        },
+      });
 
-          if (!dbUser) {
-            return;
-          }
+      if (!dbUser) {
+        return;
+      }
 
-          await prisma.user.update({
-            where: {
-              id: user.id,
-            },
-            data: {
-              lockedAt: null,
-              invalidLoginAttempts: 0,
-              ...(!dbUser.emailVerified && { emailVerified: new Date() }),
-              ...(!dbUser.emailVerifiedBa && { emailVerifiedBa: true }),
-            },
-          });
+      await prisma.user.update({
+        where: {
+          id: user.id,
+        },
+        data: {
+          lockedAt: null,
+          invalidLoginAttempts: 0,
+          ...(!dbUser.emailVerified && { emailVerified: new Date() }),
+          ...(!dbUser.emailVerifiedBa && { emailVerifiedBa: true }),
+        },
+      });
 
-          await sendEmail({
-            subject: "Your Dub account password has been reset",
-            to: user.email,
-            react: PasswordUpdated({
-              email: user.email,
-              verb: "reset",
-            }),
-          });
-        })(),
-      );
+      await sendEmail({
+        subject: "Your Dub account password has been reset",
+        to: user.email,
+        react: PasswordUpdated({
+          email: user.email,
+          verb: "reset",
+        }),
+      });
     },
   },
 

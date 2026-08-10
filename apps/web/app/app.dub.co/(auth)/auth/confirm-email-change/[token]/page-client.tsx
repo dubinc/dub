@@ -32,7 +32,7 @@ export default function ConfirmEmailChangePageClient({
         }
 
         setConfirmed(true);
-        await refetch();
+        await refetch({ query: { disableCookieCache: true } });
         toast.success("Successfully updated your email!");
         router.replace(data.redirectTo);
       },

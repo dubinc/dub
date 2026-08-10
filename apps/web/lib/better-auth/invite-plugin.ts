@@ -20,8 +20,14 @@ export const invite = {
             identifier: token,
           });
 
-          if (!verification || verification.isExpired) {
+          if (!verification) {
             return;
+          }
+
+          if (verification.isExpired) {
+            throw new APIError("UNAUTHORIZED", {
+              message: "Invalid or expired invite.",
+            });
           }
 
           const { email } = verification.value;

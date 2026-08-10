@@ -18,6 +18,16 @@ export function useSession() {
       ? "authenticated"
       : "unauthenticated";
 
+  // Bypass cookieCache so post-mutation refreshes see updated identity fields
+  const update: typeof refetch = (queryParams) =>
+    refetch({
+      ...queryParams,
+      query: {
+        ...queryParams?.query,
+        disableCookieCache: true,
+      },
+    });
+
   return {
     data,
     status,
@@ -25,7 +35,7 @@ export function useSession() {
     isPending,
     isRefetching,
     refetch,
-    update: refetch,
+    update,
   };
 }
 
