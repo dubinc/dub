@@ -24,7 +24,14 @@ export const verifyDomainWithRetry = async (
     if (i > 0) {
       await new Promise((resolve) => setTimeout(resolve, delayMs));
     }
-    last = await verifyDomain(domain);
+    try {
+      last = await verifyDomain(domain);
+    } catch (error) {
+      if (i === attempts - 1) {
+        throw error;
+      }
+      continue;
+    }
     if (last?.verified) {
       return last;
     }

@@ -29,23 +29,18 @@ export function buildSignedApplyUrl({
     "apply",
   ].join("/");
 
-  const signingString = Object.keys(queryParams)
+  const sortedParts = Object.keys(queryParams)
     .sort()
     .map(
       (k) => `${encodeURIComponent(k)}=${encodeURIComponent(queryParams[k]!)}`,
-    )
-    .join("&");
+    );
+  const signingString = sortedParts.join("&");
 
   const sign = crypto.createSign("RSA-SHA256");
   sign.update(signingString);
   sign.end();
   const sig = sign.sign(privateKeyPem, "base64");
 
-  const sortedParts = Object.keys(queryParams)
-    .sort()
-    .map(
-      (k) => `${encodeURIComponent(k)}=${encodeURIComponent(queryParams[k]!)}`,
-    );
   sortedParts.push(`key=${encodeURIComponent(keyHost)}`);
   sortedParts.push(`sig=${encodeURIComponent(sig)}`);
 

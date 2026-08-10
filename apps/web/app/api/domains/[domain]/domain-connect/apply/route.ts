@@ -7,6 +7,7 @@ import {
   DEFAULT_DC_SERVICE_APEX,
   DEFAULT_DC_SERVICE_SUBDOMAIN,
   DOMAIN_CONNECT_KEY_HOST,
+  isAllowedSyncUXOrigin,
 } from "@/lib/domain-connect/constants";
 import { discoverDomainConnect } from "@/lib/domain-connect/discover";
 import { buildSignedApplyUrl } from "@/lib/domain-connect/sign-apply-url";
@@ -76,12 +77,7 @@ export const POST = withWorkspace(
       });
     }
 
-    const allowedSyncUXOrigins = [
-      "https://vercel.com",
-      "https://dash.cloudflare.com",
-    ];
-    const syncUXOrigin = new URL(discovery.urlSyncUX).origin;
-    if (!allowedSyncUXOrigins.includes(syncUXOrigin)) {
+    if (!isAllowedSyncUXOrigin(discovery.urlSyncUX)) {
       throw new DubApiError({
         code: "bad_request",
         message: "Invalid Domain Connect provider URL.",

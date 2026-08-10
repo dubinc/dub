@@ -1,5 +1,6 @@
 "use client";
 
+import { isAllowedSyncUXOrigin } from "@/lib/domain-connect/constants";
 import type { DomainConnectDiscovery } from "@/lib/domain-connect/types";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { EmailDomainProps } from "@/lib/types";
@@ -194,22 +195,23 @@ export function EmailDomainDnsRecords({ domain }: EmailDomainDnsRecordsProps) {
   const pathname = usePathname();
   const [autoLoading, setAutoLoading] = useState(false);
 
-  const { data, isValidating } = useSWR<EmailDomainVerifyResponse>(
-    workspaceId &&
-      `/api/email-domains/${domain.slug}/verify?workspaceId=${workspaceId}`,
-    fetcher,
-    {
-      revalidateOnFocus: false,
-      dedupingInterval: 5000,
-      onError: (error) => {
-        console.error("Failed to fetch email domain verification", error);
+  const { data, error, isLoading, isValidating, mutate } =
+    useSWR<EmailDomainVerifyResponse>(
+      workspaceId &&
+        `/api/email-domains/${domain.slug}/verify?workspaceId=${workspaceId}`,
+      fetcher,
+      {
+        revalidateOnFocus: false,
+        dedupingInterval: 5000,
+        onError: (err) => {
+          console.error("Failed to fetch email domain verification", err);
+        },
       },
-    },
-  );
+    );
 
   const domainConnect = data?.domainConnect ?? null;
   const isVerified = data?.status === "verified";
-  const records = data?.records || [];
+  const records = data?.records;
 
   const { ForwardDnsInstructionsModal, setShowForwardDnsModal } =
     useForwardDnsInstructionsModal({
@@ -245,17 +247,7 @@ export function EmailDomainDnsRecords({ domain }: EmailDomainDnsRecordsProps) {
         return;
       }
       if (json?.applyUrl) {
-        try {
-          const url = new URL(json.applyUrl as string);
-          const allowedOrigins = [
-            "https://vercel.com",
-            "https://dash.cloudflare.com",
-          ];
-          if (!allowedOrigins.includes(url.origin)) {
-            toast.error("Invalid redirect URL from server.");
-            return;
-          }
-        } catch {
+        if (!isAllowedSyncUXOrigin(json.applyUrl as string)) {
           toast.error("Invalid redirect URL from server.");
           return;
         }
@@ -280,11 +272,35 @@ export function EmailDomainDnsRecords({ domain }: EmailDomainDnsRecordsProps) {
     },
   ];
 
+  if (error && !data) {
+    return (
+      <div className="mt-4 flex flex-col items-center gap-3 rounded-lg bg-neutral-100/80 p-4 text-center">
+        <p className="text-sm text-neutral-600">
+          Failed to load verification records. Please try again.
+        </p>
+        <Button
+          type="button"
+          variant="secondary"
+          text="Retry"
+          className="w-fit"
+          loading={isValidating}
+          onClick={() => mutate()}
+        />
+      </div>
+    );
+  }
+
+  if (!data || isLoading) {
+    return (
+      <div className="mt-4">
+        <div className="h-20 animate-pulse rounded-lg bg-neutral-200" />
+      </div>
+    );
+  }
+
   return (
     <div className="mt-4 space-y-4">
-      {!records && !isValidating ? (
-        <div className="h-20 animate-pulse rounded-lg bg-neutral-200" />
-      ) : isVerified ? (
+      {isVerified ? (
         <div className="flex items-center gap-2 text-pretty rounded-lg bg-green-100/80 p-3 text-sm text-green-600">
           <CircleCheck className="h-5 w-5 shrink-0" />
           <div>
@@ -296,38 +312,34 @@ export function EmailDomainDnsRecords({ domain }: EmailDomainDnsRecordsProps) {
         <div className="flex flex-col gap-8">
           <div className="flex flex-col gap-4 rounded-lg border border-neutral-200 bg-neutral-100 p-4">
             <div className="flex flex-col gap-6">
-              {records.length > 0 && (
-                <DnsRecordsTable
-                  title="DKIM and SPF (Required)"
-                  description={
-                    <p className="text-sm text-neutral-700">
-                      To authorize Dub to send emails from{" "}
-                      <strong>{domain.slug}</strong> to your partners, verify
-                      that the DNS records listed below are properly configured
-                      in your domain's DNS settings.
-                    </p>
-                  }
-                  records={records}
-                  showPriority
-                  showStatus
-                />
-              )}
+              <DnsRecordsTable
+                title="DKIM and SPF (Required)"
+                description={
+                  <p className="text-sm text-neutral-700">
+                    To authorize Dub to send emails from{" "}
+                    <strong>{domain.slug}</strong> to your partners, verify that
+                    the DNS records listed below are properly configured in your
+                    domain's DNS settings.
+                  </p>
+                }
+                records={records}
+                showPriority
+                showStatus
+              />
             </div>
           </div>
 
           <div className="flex flex-col rounded-lg border border-neutral-200 bg-neutral-100 p-4">
-            {dmarcRecords.length > 0 && (
-              <DnsRecordsTable
-                title="DMARC (Recommended)"
-                description={
-                  <p className="text-sm text-neutral-700">
-                    Add DMARC record to build trust in your domain and protect
-                    against email spoofing.
-                  </p>
-                }
-                records={dmarcRecords}
-              />
-            )}
+            <DnsRecordsTable
+              title="DMARC (Recommended)"
+              description={
+                <p className="text-sm text-neutral-700">
+                  Add DMARC record to build trust in your domain and protect
+                  against email spoofing.
+                </p>
+              }
+              records={dmarcRecords}
+            />
           </div>
 
           {(domainConnect || workspaceId) && (
@@ -368,7 +380,7 @@ export function EmailDomainDnsRecords({ domain }: EmailDomainDnsRecordsProps) {
         </div>
       ) : (
         <div className="rounded-lg bg-neutral-100/80 p-4 text-center text-sm text-neutral-600">
-          Loading verification records...
+          No verification records available for this domain yet.
         </div>
       )}
     </div>

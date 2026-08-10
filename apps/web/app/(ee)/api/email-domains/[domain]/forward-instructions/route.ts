@@ -59,18 +59,20 @@ export const POST = withWorkspace(
     }
 
     const apex = getApexDomain(`https://${emailDomain.slug}`);
-    const records = mapResendRecordsToForwardRows({
-      records: domainResponse.data.records ?? [],
-      emailSlug: emailDomain.slug,
-      apex,
-    });
+    const resendRecords = domainResponse.data.records ?? [];
 
-    if (records.length === 0) {
+    if (resendRecords.length === 0) {
       throw new DubApiError({
         code: "bad_request",
         message: "No DNS records available to forward for this domain.",
       });
     }
+
+    const records = mapResendRecordsToForwardRows({
+      records: resendRecords,
+      emailSlug: emailDomain.slug,
+      apex,
+    });
 
     await sendEmail({
       subject: `DNS instructions for ${emailDomain.slug}`,

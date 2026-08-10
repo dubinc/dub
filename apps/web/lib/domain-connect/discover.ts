@@ -1,4 +1,5 @@
 import dns from "node:dns/promises";
+import { isAllowedSyncUXOrigin } from "./constants";
 import type {
   DomainConnectDiscovery,
   DomainConnectProviderKind,
@@ -91,6 +92,7 @@ export async function discoverDomainConnect(
   try {
     res = await fetch(settingsUrl, {
       headers: { accept: "application/json" },
+      redirect: "manual",
       signal: AbortSignal.timeout(3000),
     });
   } catch {
@@ -106,9 +108,18 @@ export async function discoverDomainConnect(
     return null;
   }
 
-  const urlSyncUX = json.urlSyncUX?.replace(/\/$/, "");
+  const urlSyncUX = json.urlSyncUX?.trim().replace(/\/$/, "");
   const dnsProviderId = json.providerId ?? "";
   if (!urlSyncUX || !dnsProviderId) return null;
+
+  let parsedSyncUX: URL;
+  try {
+    parsedSyncUX = new URL(urlSyncUX);
+  } catch {
+    return null;
+  }
+  if (parsedSyncUX.protocol !== "https:") return null;
+  if (!isAllowedSyncUXOrigin(urlSyncUX)) return null;
 
   const providerKind = providerKindFromId(dnsProviderId);
   if (!providerKind) return null;

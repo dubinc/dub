@@ -1,5 +1,6 @@
 "use client";
 
+import { isAllowedSyncUXOrigin } from "@/lib/domain-connect/constants";
 import type { DomainConnectDiscovery } from "@/lib/domain-connect/types";
 import { DomainVerificationStatusProps } from "@/lib/types";
 import { useForwardDnsInstructionsModal } from "@/ui/modals/forward-dns-instructions-modal";
@@ -69,17 +70,7 @@ export default function DomainConfiguration({
         return;
       }
       if (json?.applyUrl) {
-        try {
-          const url = new URL(json.applyUrl as string);
-          const allowedOrigins = [
-            "https://vercel.com",
-            "https://dash.cloudflare.com",
-          ];
-          if (!allowedOrigins.includes(url.origin)) {
-            toast.error("Invalid redirect URL from server.");
-            return;
-          }
-        } catch {
+        if (!isAllowedSyncUXOrigin(json.applyUrl as string)) {
           toast.error("Invalid redirect URL from server.");
           return;
         }
