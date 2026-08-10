@@ -6,7 +6,7 @@ export async function triggerAggregateDueCommissionsCronJob(programId: string) {
     url: `${APP_DOMAIN_WITH_NGROK}/api/cron/payouts/aggregate-due-commissions`,
     flowControl: {
       key: programId,
-      rate: 1,
+      parallelism: 1,
     },
     body: {
       programId,
