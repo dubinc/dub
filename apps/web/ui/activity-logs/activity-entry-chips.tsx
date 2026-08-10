@@ -2,10 +2,9 @@ import { ActivityLog, GroupProps, ProgramProps } from "@/lib/types";
 import { getResourceColorData, RAINBOW_CONIC_GRADIENT } from "@/ui/colors";
 import { PartnerStatusBadges } from "@/ui/partners/partner-status-badges";
 import { SubmittedLeadStatusBadges } from "@/ui/submitted-leads/submitted-lead-status-badges";
-import { ProgramEnrollmentStatus } from "@prisma/client";
 import { Bolt, Tooltip } from "@dub/ui";
 import { cn, OG_AVATAR_URL } from "@dub/utils";
-import { SubmittedLeadStatus } from "@prisma/client";
+import { ProgramEnrollmentStatus, SubmittedLeadStatus } from "@prisma/client";
 import { ReactNode } from "react";
 import { UserAvatar } from "../users/user-avatar";
 import { useActivityLogContext } from "./activity-log-context";
@@ -172,10 +171,10 @@ export function ActivityLogUserAvatar({ user }: { user: ActivityLog["user"] }) {
         </div>
       }
     >
-      <div>
+      <div className="shrink-0">
         <UserAvatar
           user={user}
-          className="size-4 shrink-0 transition-transform duration-100 hover:scale-110 hover:cursor-pointer"
+          className="size-4 transition-transform duration-100 hover:scale-110 hover:cursor-pointer"
         />
       </div>
     </Tooltip>
