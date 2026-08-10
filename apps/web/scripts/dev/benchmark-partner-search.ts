@@ -183,6 +183,10 @@ function longestSearchToken(value: string): string {
   return token.slice(0, 12);
 }
 
+function stripProtocol(url: string): string {
+  return url.replace(/^https?:\/\//, "");
+}
+
 function emailInfix(email: string): string {
   const domain = email.split("@")[1];
   if (!domain) {
@@ -228,8 +232,8 @@ function createSearchCases(document: PartnerSearchDocument): SearchCase[] {
       query: longestSearchToken(platformIdentifier),
     },
     { field: "link domain", query: longestSearchToken(linkDomain) },
-    { field: "link key", query: longestSearchToken(linkKey) },
-    { field: "short link", query: longestSearchToken(shortLink) },
+    { field: "link key", query: linkKey },
+    { field: "short link", query: stripProtocol(shortLink) },
     {
       field: "destination URL",
       query: longestSearchToken(destinationUrl),
@@ -304,14 +308,17 @@ function reportOverlappingPools(pools: SearchCasePool[]) {
 
 function reportRepeatedQueries(pools: SearchCasePool[], requests: number) {
   const requestsPerField = Math.ceil(requests / pools.length);
+  const repeated = pools.filter(
+    ({ queries }) => queries.length < requestsPerField,
+  );
 
-  for (const { field, queries } of pools) {
-    if (queries.length < requestsPerField) {
-      console.warn(
-        `⚠️  "${field}" has only ${queries.length.toLocaleString()} distinct ${queries.length === 1 ? "query" : "queries"} for ${requestsPerField.toLocaleString()} requests, so each repeats ~${Math.round(requestsPerField / queries.length)}x and is likely served warm.`,
-      );
-    }
+  if (repeated.length === 0) {
+    return;
   }
+
+  console.warn(
+    `⚠️  ${repeated.length} of ${pools.length} fields have fewer distinct queries than requests and repeat them, so their p99 may be optimistic: ${repeated.map(({ field }) => field).join(", ")}.`,
+  );
 }
 
 function percentile(values: number[], quantile: number): number {
