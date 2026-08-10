@@ -52,11 +52,14 @@ function parseArguments(args: string[]): BackfillArguments {
   return { programId, batchSize, after };
 }
 
+let resumeAfter: string | undefined;
+
 function reportProgress({
   batchSize,
   processed,
   lastDocumentId,
 }: PartnerSearchBackfillProgress) {
+  resumeAfter = lastDocumentId;
   console.log(
     `Indexed ${processed.toLocaleString()} documents (${batchSize.toLocaleString()} in this batch), last document: ${lastDocumentId}`,
   );
@@ -64,6 +67,7 @@ function reportProgress({
 
 async function main() {
   const { programId, batchSize, after } = parseArguments(process.argv.slice(2));
+  resumeAfter = after;
   const providerName = getPartnerSearchProviderName();
   if (!providerName) {
     throw new Error("PARTNER_SEARCH_PROVIDER is not configured.");
@@ -99,7 +103,18 @@ async function main() {
 main()
   .catch((error) => {
     console.error("Partner search backfill failed:", error);
-    process.exit(1);
+
+    if (resumeAfter) {
+      const args = process.argv
+        .slice(2)
+        .filter((arg) => !arg.startsWith("--after="))
+        .join(" ");
+      console.error(
+        `Documents up to ${resumeAfter} are indexed. Resume with:\n  pnpm run script partners/backfill-partner-search ${args} --after=${resumeAfter}`,
+      );
+    }
+
+    process.exitCode = 1;
   })
   .finally(async () => {
     await prisma.$disconnect();

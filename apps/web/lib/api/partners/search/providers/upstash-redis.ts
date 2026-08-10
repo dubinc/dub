@@ -351,7 +351,9 @@ export async function createUpstashRedisPartnerSearchIndex({
   }
 
   validateIndexDescription(description, resolvedIndexName);
-  return index;
+  // Hand back the description so callers can report on the index without
+  // paying for a second describe() round trip.
+  return { index, description };
 }
 
 export function createUpstashRedisPartnerSearchProvider({

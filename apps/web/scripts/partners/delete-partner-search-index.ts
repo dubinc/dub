@@ -148,5 +148,5 @@ async function main() {
 
 main().catch((error) => {
   console.error("Failed to delete partner search index:", error);
-  process.exit(1);
+  process.exitCode = 1;
 });

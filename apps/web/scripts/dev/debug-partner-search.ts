@@ -183,7 +183,7 @@ async function main() {
 main()
   .catch((error) => {
     console.error("Partner search debug failed:", error);
-    process.exit(1);
+    process.exitCode = 1;
   })
   .finally(async () => {
     await prisma.$disconnect();
