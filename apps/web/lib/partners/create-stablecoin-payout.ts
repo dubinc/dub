@@ -260,11 +260,13 @@ export const createStablecoinPayout = async ({
   console.log(message);
 
   if (PARTNER_IDS_TO_LOG_PAYOUTS_FOR.includes(partner.id)) {
-    await log({
-      message,
-      type: "alerts",
-      mention: true,
-    });
+    waitUntil(
+      log({
+        message,
+        type: "alerts",
+        mention: true,
+      }),
+    );
   }
 
   const payoutIds = allPayouts.map((p) => p.id);
