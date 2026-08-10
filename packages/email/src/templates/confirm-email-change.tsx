@@ -50,11 +50,7 @@ export default function ConfirmEmailChange({
             </Section>
             <Text className="text-sm leading-6 text-black">
               If you did not request this change, this email can be safely
-              ignored or{" "}
-              <Link href={`${confirmUrl}?cancel=true`}>
-                cancel this request
-              </Link>
-              .
+              ignored or <Link href={confirmUrl}>cancel this request</Link>.
             </Text>
             <Footer email={newEmail} />
           </Container>

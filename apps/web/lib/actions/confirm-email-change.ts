@@ -1,6 +1,6 @@
 "use server";
 
-import { hasPermission } from "@/lib/auth/partner-users/partner-user-permissions";
+import { assertCanConfirmEmailChange } from "@/lib/auth/assert-can-confirm-email-change";
 import { syncPlainCustomerEmail } from "@/lib/plain/upsert-plain-customer";
 import { prisma } from "@/lib/prisma";
 import { sendEmail } from "@dub/email";
@@ -8,16 +8,11 @@ import EmailUpdated from "@dub/email/templates/email-updated";
 import { waitUntil } from "@vercel/functions";
 import { flattenValidationErrors } from "next-safe-action";
 import * as z from "zod/v4";
-import { VERIFICATION_TOKEN_CONFIG } from "../better-auth/constants";
 import {
   consumeVerificationToken,
   findVerificationToken,
 } from "../better-auth/verification-token";
 import { authUserActionClient } from "./safe-action";
-
-type EmailChangeValue = z.infer<
-  (typeof VERIFICATION_TOKEN_CONFIG)["emailChange"]["valueSchema"]
->;
 
 const confirmEmailChangeSchema = z.object({
   token: z.string().min(1),
@@ -149,59 +144,3 @@ export const confirmEmailChangeAction = authUserActionClient
         redirectTo ?? (isPartnerProfile ? "/profile" : "/account/settings"),
     };
   });
-
-async function assertCanConfirmEmailChange({
-  userId,
-  data,
-}: {
-  userId: string;
-  data: EmailChangeValue;
-}) {
-  if (data.ownerId.startsWith("pn_")) {
-    const partnerUser = await prisma.partnerUser.findUnique({
-      where: {
-        userId_partnerId: {
-          userId,
-          partnerId: data.ownerId,
-        },
-      },
-      select: {
-        role: true,
-      },
-    });
-
-    if (
-      !partnerUser ||
-      !hasPermission(partnerUser.role, "partner_profile.update")
-    ) {
-      throw new Error("Invalid token.");
-    }
-  } else if (data.ownerId !== userId) {
-    throw new Error("Invalid token");
-  }
-
-  if (data.syncIdentity) {
-    if (!data.partnerId) {
-      throw new Error("Invalid token.");
-    }
-
-    const partnerUser = await prisma.partnerUser.findUnique({
-      where: {
-        userId_partnerId: {
-          userId,
-          partnerId: data.partnerId,
-        },
-      },
-      select: {
-        role: true,
-      },
-    });
-
-    if (
-      !partnerUser ||
-      !hasPermission(partnerUser.role, "partner_profile.update")
-    ) {
-      throw new Error("Unauthorized.");
-    }
-  }
-}

@@ -24,16 +24,11 @@ export function SSOLoginButton({ name, slug }: { name: string; slug: string }) {
         const { data, error } = await authClient.signIn.oauth2({
           providerId: slug,
           callbackURL: `${PARTNERS_DOMAIN}/programs/${slug}`,
+          disableRedirect: true,
         });
 
         if (error) {
           toast.error(error.message || `Failed to start ${name} SSO.`);
-          setClicked(false);
-          return;
-        }
-
-        if (!data?.url) {
-          toast.error(`Failed to start ${name} SSO.`);
           setClicked(false);
           return;
         }

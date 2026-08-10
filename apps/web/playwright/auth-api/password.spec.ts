@@ -104,8 +104,10 @@ test.describe("password reset and change", () => {
     });
     expect(signInOld.status()).toBe(401);
 
-    // DB sessions are revoked (cookieCache may still serve get-session briefly).
+    // DB sessions are revoked and cookieCache version is bumped.
     expect(await countUserSessions(userId)).toBe(0);
+    const priorGetSession = await authGet(existingSession, "/get-session");
+    expect(await priorGetSession.json()).toBeNull();
     await existingSession.dispose();
 
     // New password works.

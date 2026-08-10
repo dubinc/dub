@@ -2,13 +2,14 @@
 
 import { authClient } from "@/lib/better-auth/auth-client";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { toast } from "sonner";
 
 // To handle the IdP initiated login flow callback
 export default function SAMLForm() {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const processedCodes = useRef(new Set<string>());
 
   useEffect(() => {
     const code = searchParams?.get("code");
@@ -18,6 +19,11 @@ export default function SAMLForm() {
       router.replace("/login");
       return;
     }
+
+    if (processedCodes.current.has(code)) {
+      return;
+    }
+    processedCodes.current.add(code);
 
     let cancelled = false;
 
