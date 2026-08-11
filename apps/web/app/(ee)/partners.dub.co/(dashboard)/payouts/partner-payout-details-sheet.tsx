@@ -1,3 +1,4 @@
+import { formatCommissionDescriptionTooltip } from "@/lib/commissions/format-commission-description-tooltip";
 import {
   BELOW_MIN_WITHDRAWAL_FEE_CENTS,
   INVOICE_AVAILABLE_PAYOUT_STATUSES,
@@ -5,15 +6,12 @@ import {
   PAYOUTS_SHEET_ITEMS_LIMIT,
   STABLECOIN_PAYOUT_FEE_RATE,
 } from "@/lib/constants/payouts";
-import { formatCommissionDescriptionTooltip } from "@/lib/commissions/format-commission-description-tooltip";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { PartnerEarningsResponse, PartnerPayoutResponse } from "@/lib/types";
 import { CustomerAvatar } from "@/ui/customers/customer-avatar";
 import { CommissionTypeIcon } from "@/ui/partners/comission-type-icon";
 import { CommissionDescriptionLabel } from "@/ui/partners/commission-description-label";
-import {
-  CommissionTypeBadge,
-} from "@/ui/partners/commission-type-badge";
+import { CommissionTypeBadge } from "@/ui/partners/commission-type-badge";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
 import { ConditionalLink } from "@/ui/shared/conditional-link";
 import { X } from "@/ui/shared/icons";
@@ -38,6 +36,7 @@ import {
   fetcher,
   formatDateTime,
   formatDateTimeSmart,
+  NETWORK_PROGRAM_ID,
   OG_AVATAR_URL,
 } from "@dub/utils";
 import { formatPeriod } from "@dub/utils/src/functions/datetime";
@@ -71,7 +70,7 @@ function PayoutDetailsSheetContent({ payout }: PayoutDetailsSheetProps) {
     isLoading,
     error,
   } = useSWR<PartnerEarningsResponse[]>(
-    partner
+    partner && payout.program.id !== NETWORK_PROGRAM_ID
       ? `/api/partner-profile/programs/${payout.program.id}/earnings?payoutId=${payout.id}&interval=all&pageSize=${PAYOUTS_SHEET_ITEMS_LIMIT}`
       : undefined,
     fetcher,
@@ -141,7 +140,7 @@ function PayoutDetailsSheetContent({ payout }: PayoutDetailsSheetProps) {
       },
 
       ...(payout.method === "stablecoin" ||
-      payout.amount < MIN_WITHDRAWAL_AMOUNT_CENTS
+      (payout.amount > 0 && payout.amount < MIN_WITHDRAWAL_AMOUNT_CENTS)
         ? [
             {
               key: "Fee",
@@ -180,7 +179,11 @@ function PayoutDetailsSheetContent({ payout }: PayoutDetailsSheetProps) {
       {
         key: "Description",
         value: payout.description ? (
-          <Tooltip content={payout.description}>
+          <Tooltip
+            content={formatCommissionDescriptionTooltip(payout.description, {
+              variant: "partner",
+            })}
+          >
             <span className="block truncate">{payout.description}</span>
           </Tooltip>
         ) : (
@@ -388,9 +391,6 @@ function PayoutDetailsSheetContent({ payout }: PayoutDetailsSheetProps) {
 
       <div className="flex grow flex-col">
         <div className="flex flex-col gap-4 p-6">
-          <div className="text-base font-medium text-neutral-900">
-            Invoice details
-          </div>
           <div className="grid grid-cols-[minmax(0,auto)_minmax(0,1fr)] gap-3 text-sm">
             {invoiceData.map(({ key, value, tooltip }) => (
               <Fragment key={key}>
@@ -409,7 +409,9 @@ function PayoutDetailsSheetContent({ payout }: PayoutDetailsSheetProps) {
                     {key}
                   </div>
                 </DynamicTooltipWrapper>
-                <div className="min-w-0 overflow-hidden text-neutral-800">{value}</div>
+                <div className="min-w-0 overflow-hidden text-neutral-800">
+                  {value}
+                </div>
               </Fragment>
             ))}
           </div>
@@ -426,17 +428,19 @@ function PayoutDetailsSheetContent({ payout }: PayoutDetailsSheetProps) {
         ) : null}
       </div>
 
-      <div className="sticky bottom-0 z-10 border-t border-neutral-200 bg-white">
-        <div className="flex items-center justify-between gap-2 p-5">
-          <Link
-            href={`/programs/${payout.program.slug}/earnings?payoutId=${payout.id}&interval=all`}
-            target="_blank"
-            className="w-full"
-          >
-            <Button variant="secondary" text="View all" />
-          </Link>
+      {payout.program.id !== NETWORK_PROGRAM_ID && (
+        <div className="sticky bottom-0 z-10 border-t border-neutral-200 bg-white">
+          <div className="flex items-center justify-between gap-2 p-5">
+            <Link
+              href={`/programs/${payout.program.slug}/earnings?payoutId=${payout.id}&interval=all`}
+              target="_blank"
+              className="w-full"
+            >
+              <Button variant="secondary" text="View all" />
+            </Link>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
