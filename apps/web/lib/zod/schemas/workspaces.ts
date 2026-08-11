@@ -1,6 +1,7 @@
 import { workspaceSiteVisitTrackingSettingsFieldSchema } from "@/lib/sitemaps/site-visit-tracking";
 import { DEFAULT_REDIRECTS, RESERVED_SLUGS, validSlugRegex } from "@dub/utils";
 import {
+  DubProduct,
   PlanPeriod,
   WorkspaceEnvironment,
   WorkspaceRole,
@@ -16,13 +17,6 @@ export {
   trackedSitemapSchema,
 } from "./site-visit-tracking";
 
-export const workspaceIdSchema = z.object({
-  workspaceId: z
-    .string()
-    .min(1, "Workspace ID is required.")
-    .describe("The ID of the workspace the link belongs to."),
-});
-
 export const WorkspaceSchema = z
   .object({
     id: z.string().describe("The unique ID of the workspace."),
@@ -37,6 +31,9 @@ export const WorkspaceSchema = z
       .string()
       .nullable()
       .describe("The invite code of the workspace."),
+    defaultProduct: z
+      .enum(DubProduct)
+      .describe("The default product for the workspace."),
     plan: planSchema,
     planTier: z
       .number()

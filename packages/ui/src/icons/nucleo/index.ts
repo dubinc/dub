@@ -187,6 +187,7 @@ export * from "./receipt2";
 export * from "./referred-via";
 export * from "./refresh2";
 export * from "./robot";
+export * from "./rocket";
 export * from "./satellite-dish";
 export * from "./scan-text";
 export * from "./scribble";

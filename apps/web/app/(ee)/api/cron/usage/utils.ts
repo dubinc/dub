@@ -49,14 +49,9 @@ export const updateUsage = async () => {
       },
       sentEmails: true,
     },
-    orderBy: [
-      {
-        usageLastChecked: "asc",
-      },
-      {
-        createdAt: "asc",
-      },
-    ],
+    orderBy: {
+      usageLastChecked: "asc",
+    },
     take: limit,
   });
 

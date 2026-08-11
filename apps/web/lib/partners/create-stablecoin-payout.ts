@@ -8,6 +8,7 @@ import {
   chunk,
   currencyFormatter,
   log,
+  pluralize,
   prettyPrint,
 } from "@dub/utils";
 import {
@@ -16,6 +17,7 @@ import {
   WorkspaceEnvironment,
 } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
+import { PARTNER_IDS_TO_LOG_PAYOUTS_FOR } from "../constants/misc";
 import {
   BELOW_MIN_WITHDRAWAL_FEE_CENTS,
   MIN_FORCE_WITHDRAWAL_AMOUNT_CENTS,
@@ -144,17 +146,14 @@ export const createStablecoinPayout = async ({
     0,
   );
 
-  if (totalTransferableAmount < MIN_FORCE_WITHDRAWAL_AMOUNT_CENTS) {
-    const message = `Total transferable amount (${currencyFormatter(totalTransferableAmount)}) is less than the minimum amount required for withdrawal (${currencyFormatter(MIN_FORCE_WITHDRAWAL_AMOUNT_CENTS)}).`;
-
-    // For force-withdrawal action, throw so the error surfaces back to partners.
-    // Otherwise (e.g. cron-driven payouts) just log and skip silently.
-    if (forceWithdrawal) {
-      throw new Error(message);
-    } else {
-      console.warn(message);
-      return;
-    }
+  // For force-withdrawals, if amount is less than the minimum force withdrawal amount, throw an error
+  if (
+    forceWithdrawal &&
+    totalTransferableAmount < MIN_FORCE_WITHDRAWAL_AMOUNT_CENTS
+  ) {
+    throw new Error(
+      `Total transferable amount (${currencyFormatter(totalTransferableAmount)}) is less than the minimum amount required for withdrawal (${currencyFormatter(MIN_FORCE_WITHDRAWAL_AMOUNT_CENTS)}).`,
+    );
   }
 
   let withdrawalFee = 0;
@@ -168,9 +167,16 @@ export const createStablecoinPayout = async ({
     } else {
       await markPayoutsAsProcessed(currentInvoicePayouts);
 
-      console.log(
-        `Total processed payouts (${currencyFormatter(totalTransferableAmount)}) for partner ${partner.id} are below ${currencyFormatter(MIN_WITHDRAWAL_AMOUNT_CENTS)}, skipping...`,
-      );
+      const message = `Total processed payouts (${currencyFormatter(totalTransferableAmount)}) for partner ${partner.id} are below ${currencyFormatter(MIN_WITHDRAWAL_AMOUNT_CENTS)}, skipping...`;
+      console.log(message);
+
+      if (PARTNER_IDS_TO_LOG_PAYOUTS_FOR.includes(partner.id)) {
+        await log({
+          message,
+          type: "alerts",
+          mention: true,
+        });
+      }
 
       return;
     }
@@ -258,6 +264,23 @@ export const createStablecoinPayout = async ({
       `Failed to create outbound payment for partner ${partner.email}.`,
     );
     return;
+  }
+
+  const message = `Transfer of ${currencyFormatter(totalTransferableAmount)} (${outboundPayment.id}) created for partner ${partner.id} for ${pluralize(
+    "payout",
+    allPayouts.length,
+  )} ${allPayouts.map((p) => p.id).join(", ")}`;
+
+  console.log(message);
+
+  if (PARTNER_IDS_TO_LOG_PAYOUTS_FOR.includes(partner.id)) {
+    waitUntil(
+      log({
+        message,
+        type: "alerts",
+        mention: true,
+      }),
+    );
   }
 
   const payoutIds = allPayouts.map((p) => p.id);

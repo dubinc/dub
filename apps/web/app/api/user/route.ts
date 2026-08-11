@@ -181,6 +181,7 @@ export const PATCH = withSession(async ({ req, session }) => {
         email: session.user.email,
         newEmail: email,
         identifier: session.user.id,
+        userId: session.user.id,
         hostName: emailChangeHost,
       });
     }

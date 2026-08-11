@@ -2,7 +2,10 @@ import { logger } from "@/lib/axiom/server";
 import { qstash } from "@/lib/cron";
 import { prisma } from "@/lib/prisma";
 import { assertProductionWorkspace } from "@/lib/sandbox/workspace-guards";
-import { TREMENDOUS_MAX_PAYOUT_AMOUNT_CENTS } from "@/lib/tremendous/constants";
+import {
+  TREMENDOUS_MAX_PAYOUT_AMOUNT_CENTS,
+  TREMENDOUS_MIN_PAYOUT_AMOUNT_CENTS,
+} from "@/lib/tremendous/constants";
 import { APP_DOMAIN_WITH_NGROK, chunk } from "@dub/utils";
 import {
   Invoice,
@@ -49,6 +52,7 @@ export async function queueTremendousPayouts({
       mode: PayoutMode.internal,
       method: PartnerPayoutMethod.tremendous,
       amount: {
+        gte: TREMENDOUS_MIN_PAYOUT_AMOUNT_CENTS,
         lte: TREMENDOUS_MAX_PAYOUT_AMOUNT_CENTS,
       },
       partner: {
