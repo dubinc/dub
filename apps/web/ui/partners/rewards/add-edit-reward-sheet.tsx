@@ -419,16 +419,18 @@ function RewardSheetContent({
       reward: payload!,
       partnerCount: partnerCountForConfirm,
       isPending: isCreating || isUpdating,
-      onConfirm: async () => {
+      onConfirm: async (activityDescription) => {
         if (!reward) {
           await createReward({
             ...payload!,
             groupId: group.id,
+            activityDescription,
           });
         } else {
           await updateReward({
             ...payload!,
             rewardId: reward.id,
+            activityDescription,
           });
         }
       },
@@ -446,10 +448,11 @@ function RewardSheetContent({
       reward,
       partnerCount: partnerCountForConfirm,
       isPending: isDeleting,
-      onConfirm: async () => {
+      onConfirm: async (activityDescription) => {
         await deleteReward({
           workspaceId,
           rewardId: reward.id,
+          activityDescription,
         });
       },
     });

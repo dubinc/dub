@@ -1,3 +1,4 @@
+import { parseCampaignFromAddress } from "@/lib/email/parse-campaign-from-address";
 import { prisma } from "@/lib/prisma";
 import { updateCampaignSchema } from "@/lib/zod/schemas/campaigns";
 import { Campaign, EmailDomain } from "@prisma/client";
@@ -98,16 +99,16 @@ export function validateCampaignFromAddress({
     });
   }
 
-  const parts = campaign.from.split("@");
+  const parsed = parseCampaignFromAddress(campaign.from);
 
-  if (parts.length !== 2) {
+  if (!parsed) {
     throw new DubApiError({
       code: "bad_request",
       message: `Campaign (${campaign.id}) has an invalid email address format for 'from' field.`,
     });
   }
 
-  const domainPart = parts[1];
+  const domainPart = parsed.email.split("@")[1];
 
   const emailDomain = emailDomains.find(
     (emailDomain) => emailDomain.slug === domainPart,

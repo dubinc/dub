@@ -118,8 +118,10 @@ export const POST = withWorkspace(
       const workspaceTags = await prisma.tag.findMany({
         where: {
           projectId: workspace.id,
-          ...(tagIds.length > 0 ? { id: { in: tagIds } } : {}),
-          ...(tagNames.length > 0 ? { name: { in: tagNames } } : {}),
+          OR: [
+            ...(tagIds.length > 0 ? [{ id: { in: tagIds } }] : []),
+            ...(tagNames.length > 0 ? [{ name: { in: tagNames } }] : []),
+          ],
         },
         select: {
           id: true,
@@ -132,7 +134,9 @@ export const POST = withWorkspace(
         name.toLowerCase(),
       );
 
-      validLinks.forEach((link, index) => {
+      const nextValidLinks: ProcessedLinkProps[] = [];
+
+      for (const link of validLinks) {
         const combinedTagIds =
           combineTagIds({
             tagId: link.tagId,
@@ -144,13 +148,12 @@ export const POST = withWorkspace(
         );
 
         if (invalidTagIds.length > 0) {
-          // remove link from validLinks and add error to errorLinks
-          validLinks = validLinks.filter((_, i) => i !== index);
           errorLinks.push({
             error: `Invalid tagIds detected: ${invalidTagIds.join(", ")}`,
             code: "unprocessable_entity",
             link,
           });
+          continue;
         }
 
         const invalidTagNames = link.tagNames?.filter(
@@ -158,14 +161,18 @@ export const POST = withWorkspace(
         );
 
         if (invalidTagNames?.length) {
-          validLinks = validLinks.filter((_, i) => i !== index);
           errorLinks.push({
             error: `Invalid tagNames detected: ${invalidTagNames.join(", ")}`,
             code: "unprocessable_entity",
             link,
           });
+          continue;
         }
-      });
+
+        nextValidLinks.push(link);
+      }
+
+      validLinks = nextValidLinks;
     }
 
     if (checkIfLinksHaveFolders(validLinks)) {
@@ -235,19 +242,26 @@ export const POST = withWorkspace(
 
       const workspaceWebhookIds = webhooks.map(({ id }) => id);
 
-      validLinks.forEach((link, index) => {
+      const nextValidLinks: ProcessedLinkProps[] = [];
+
+      for (const link of validLinks) {
         const invalidWebhookIds = link.webhookIds?.filter(
           (id) => !workspaceWebhookIds.includes(id),
         );
+
         if (invalidWebhookIds && invalidWebhookIds.length > 0) {
-          validLinks = validLinks.filter((_, i) => i !== index);
           errorLinks.push({
             error: `Invalid webhookIds detected: ${invalidWebhookIds.join(", ")}`,
             code: "unprocessable_entity",
             link,
           });
+          continue;
         }
-      });
+
+        nextValidLinks.push(link);
+      }
+
+      validLinks = nextValidLinks;
     }
 
     const validLinksResponse =
