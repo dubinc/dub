@@ -63,10 +63,12 @@ export const ProgramRewardsPanel = memo(
               </>
             ) : null}
             {!!reward.modifiers?.length && (
-              <>
+              // whitespace-nowrap keeps the tooltip icon attached to the last
+              // word of the description so it never wraps on its own line
+              <span className="whitespace-nowrap">
                 {" "}
                 <CustomRewardModifiersTooltip reward={reward} />
-              </>
+              </span>
             )}
           </>
         ),
