@@ -34,9 +34,12 @@ export const GET = withCron(async () => {
 
   console.log(`Found ${programIds.length} programs with pending commissions.`);
 
+  // process 50 programs at a time to avoid overwhelming the database
   const programIdChunks = chunk(programIds, 50);
 
   for (const [index, programIdChunk] of programIdChunks.entries()) {
+    const delaySeconds = index * 10; // delay by 10s between program chunks
+
     const jobs: PublishBatchRequest<{ programId: string }>[] =
       programIdChunk.map((programId) => ({
         url: `${APP_DOMAIN_WITH_NGROK}/api/cron/payouts/aggregate-due-commissions/process`,
@@ -49,12 +52,13 @@ export const GET = withCron(async () => {
           key: `aggregate-due-commissions-${programId}`,
           parallelism: 1,
         },
+        delay: delaySeconds,
       }));
 
     await qstash.batchJSON(jobs);
 
     console.log(
-      `Enqueued index ${index + 1}/${programIdChunks.length} jobs to be processed.`,
+      `Enqueued index ${index + 1}/${programIdChunks.length} jobs to be processed (with ${delaySeconds}s delay).`,
     );
   }
 
