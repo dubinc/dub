@@ -2,7 +2,6 @@ import { reconcilePayoutAmounts } from "@/lib/api/commissions/reconcile-payout-a
 import { withCron } from "@/lib/cron/with-cron";
 import { prisma } from "@/lib/prisma";
 import { withRedisLock } from "@/lib/upstash/redis-lock";
-import { chunk } from "@dub/utils";
 import { PayoutStatus } from "@prisma/client";
 import { subMinutes } from "date-fns";
 import { logAndRespond } from "../../utils";
@@ -99,14 +98,10 @@ export const GET = withCron(async () => {
 
         if (mismatches.length > 0) {
           console.table(mismatches);
-          const payoutIdChunks = chunk(
+          await reconcilePayoutAmounts(
             mismatches.map((mismatch) => mismatch.id),
-            50,
           );
-          for (const payoutIdChunk of payoutIdChunks) {
-            await reconcilePayoutAmounts(payoutIdChunk);
-            fixed += payoutIdChunk.length;
-          }
+          fixed += mismatches.length;
         }
 
         if (payouts.length < BATCH_SIZE) {
