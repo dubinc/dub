@@ -41,29 +41,37 @@ export async function withTransientRetry<T>(
   throw new Error("Partner search operation failed.");
 }
 
+/**
+ * Rejects if `operation` has not settled within `timeoutMs`. The operation is
+ * not cancelled — `Promise.race` cannot do that — so only pass work that
+ * settles on its own.
+ */
+export async function withDeadline<T>(
+  operation: () => Promise<T>,
+  timeoutMs: number,
+  message: string,
+): Promise<T> {
+  let timeoutId: ReturnType<typeof setTimeout> | undefined;
+  const timeout = new Promise<never>((_, reject) => {
+    timeoutId = setTimeout(() => reject(new Error(message)), timeoutMs);
+  });
+
+  try {
+    return await Promise.race([operation(), timeout]);
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
 export async function withQueryDeadline<T>(
   operation: () => Promise<T>,
   timeoutMs: number,
 ): Promise<T> {
-  let timeoutId: ReturnType<typeof setTimeout> | undefined;
-  const timeout = new Promise<never>((_, reject) => {
-    timeoutId = setTimeout(
-      () =>
-        reject(
-          new Error(`Partner search query timed out after ${timeoutMs}ms.`),
-        ),
-      timeoutMs,
-    );
-  });
-
-  try {
+  return withDeadline(
     // A request timeout consumes nearly the full SLA budget, so only retry
     // transient failures such as rate limits and 503s that return quickly.
-    return await Promise.race([
-      withTransientRetry(operation, { retryTimeouts: false }),
-      timeout,
-    ]);
-  } finally {
-    clearTimeout(timeoutId);
-  }
+    () => withTransientRetry(operation, { retryTimeouts: false }),
+    timeoutMs,
+    `Partner search query timed out after ${timeoutMs}ms.`,
+  );
 }

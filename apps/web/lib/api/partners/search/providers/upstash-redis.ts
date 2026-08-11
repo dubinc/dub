@@ -15,7 +15,11 @@ import type {
   PartnerSearchProvider,
 } from "../types";
 import { validatePartnerSearchCandidateLimit } from "../types";
-import { withQueryDeadline, withTransientRetry } from "./resilience";
+import {
+  withDeadline,
+  withQueryDeadline,
+  withTransientRetry,
+} from "./resilience";
 import {
   getEmailNgrams,
   getQueryNgrams,
@@ -307,28 +311,11 @@ export function createUpstashRedisPartnerSearchProvider({
     searchCandidates: findCandidates,
 
     async waitForIndexing() {
-      let timeoutId: ReturnType<typeof setTimeout> | undefined;
-      const timeout = new Promise<never>((_, reject) => {
-        timeoutId = setTimeout(
-          () =>
-            reject(
-              new Error(
-                `Partner search waitForIndexing timed out after ${WAIT_FOR_INDEXING_TIMEOUT_MS}ms.`,
-              ),
-            ),
-          WAIT_FOR_INDEXING_TIMEOUT_MS,
-        );
-      });
-
-      let result: number;
-      try {
-        result = await Promise.race([
-          withTransientRetry(() => writeIndex.waitIndexing()),
-          timeout,
-        ]);
-      } finally {
-        clearTimeout(timeoutId);
-      }
+      const result = await withDeadline(
+        () => withTransientRetry(() => writeIndex.waitIndexing()),
+        WAIT_FOR_INDEXING_TIMEOUT_MS,
+        `Partner search waitForIndexing timed out after ${WAIT_FOR_INDEXING_TIMEOUT_MS}ms.`,
+      );
 
       if (result === 0) {
         throw new Error(
