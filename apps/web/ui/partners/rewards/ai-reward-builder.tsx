@@ -4,6 +4,7 @@ import { AIRewardDraft, aiRewardSchema } from "@/lib/ai/ai-reward-schema";
 import { generateReward } from "@/lib/ai/generate-reward";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import useWorkspace from "@/lib/swr/use-workspace";
+import { REWARD_CONDITION_ATTRIBUTES } from "@/lib/zod/schemas/rewards";
 import { readStreamableValue } from "@ai-sdk/rsc";
 import { AnimatedSizeContainer, Button, TooltipContent } from "@dub/ui";
 import { ArrowTurnRight2, Sparkle3, Sparkle3Fill } from "@dub/ui/icons";
@@ -32,7 +33,7 @@ const CHROME_ENTER_MS = 240;
 
 type BuilderPhase = "idle" | "streaming" | "review" | "error";
 
-export function buildRewardFormValuesFromDraft({
+function buildRewardFormValuesFromDraft({
   draft,
   event,
   current,
@@ -72,9 +73,8 @@ export function buildRewardFormValuesFromDraft({
 
   const modifiers = draft.modifiers?.filter((m) => m.conditions?.length);
   if (!modifiers?.length) {
-    if (draft.modifiers !== undefined) {
-      next.modifiers = undefined;
-    }
+    // Treat omitted modifiers as a clear so prior form conditions do not stick.
+    next.modifiers = undefined;
     return next;
   }
 
@@ -83,6 +83,7 @@ export function buildRewardFormValuesFromDraft({
 
   next.modifiers = modifiers.map((modifier) => {
     const modifierType = modifier.type === undefined ? type : modifier.type;
+    const modifierAmount = modifier.amount ?? draft.amount;
     const modifierMaxDuration =
       modifier.maxDuration === undefined
         ? resolvedMaxDuration
@@ -93,16 +94,28 @@ export function buildRewardFormValuesFromDraft({
     return {
       id: uuid(),
       operator: modifier.operator ?? "AND",
-      conditions: modifier.conditions,
+      conditions: modifier.conditions.map((condition) => {
+        const value = condition.value;
+        const attrType = REWARD_CONDITION_ATTRIBUTES.find(
+          (a) => a.id === condition.attribute,
+        )?.type;
+
+        if (attrType !== "date" || value == null || Array.isArray(value)) {
+          return condition;
+        }
+
+        const ms =
+          typeof value === "number" ? value : Number(new Date(String(value)));
+
+        return {
+          ...condition,
+          value: Number.isNaN(ms) ? value : ms,
+        };
+      }),
       type: modifierType,
-      amountInCents:
-        modifier.amount !== undefined && modifierType === "flat"
-          ? modifier.amount
-          : undefined,
+      amountInCents: modifierType === "flat" ? modifierAmount : undefined,
       amountInPercentage:
-        modifier.amount !== undefined && modifierType === "percentage"
-          ? modifier.amount
-          : undefined,
+        modifierType === "percentage" ? modifierAmount : undefined,
       maxDuration: event === "sale" ? modifierMaxDuration : undefined,
     };
   });
@@ -122,7 +135,12 @@ export function useAIRewardBuilder({
     options?: { keepDefaultValues?: boolean },
   ) => void;
 }) {
-  const { id: workspaceId, slug: workspaceSlug, plan } = useWorkspace();
+  const {
+    id: workspaceId,
+    slug: workspaceSlug,
+    plan,
+    mutate: mutateWorkspace,
+  } = useWorkspace();
   const { canUseAdvancedRewardLogic } = getPlanCapabilities(plan);
 
   const [prompt, setPrompt] = useState("");
@@ -131,6 +149,8 @@ export function useAIRewardBuilder({
   const [hasPreviewContent, setHasPreviewContent] = useState(false);
   const snapshotRef = useRef<Record<string, unknown> | null>(null);
   const presetTimeoutRef = useRef<number | null>(null);
+  const generationIdRef = useRef(0);
+  const streamingRef = useRef(false);
 
   const presets = REWARD_PRESETS[event] ?? [];
   const isReviewing =
@@ -165,6 +185,8 @@ export function useAIRewardBuilder({
 
   const exitReview = useCallback(() => {
     clearPresetTimeout();
+    generationIdRef.current += 1;
+    streamingRef.current = false;
     snapshotRef.current = null;
     setHasPreviewContent(false);
     setPhase("idle");
@@ -173,7 +195,7 @@ export function useAIRewardBuilder({
 
   const discard = useCallback(() => {
     if (snapshotRef.current) {
-      reset(snapshotRef.current);
+      reset(snapshotRef.current, { keepDefaultValues: true });
     }
     exitReview();
     setPrompt("");
@@ -187,9 +209,11 @@ export function useAIRewardBuilder({
 
   const selectPreset = useCallback(
     (draft: AIRewardDraft) => {
-      if (!canUseAdvancedRewardLogic) return;
+      if (!canUseAdvancedRewardLogic || streamingRef.current) return;
 
       clearPresetTimeout();
+      const generationId = ++generationIdRef.current;
+      streamingRef.current = true;
       ensureSnapshot();
       setPrompt("");
       setHasPreviewContent(false);
@@ -198,17 +222,28 @@ export function useAIRewardBuilder({
 
       presetTimeoutRef.current = window.setTimeout(() => {
         presetTimeoutRef.current = null;
+        if (generationId !== generationIdRef.current) return;
         applyDraft(draft);
         setPhase("review");
+        streamingRef.current = false;
       }, 850);
     },
     [applyDraft, canUseAdvancedRewardLogic, clearPresetTimeout, ensureSnapshot],
   );
 
   const generate = useCallback(async () => {
-    if (!workspaceId || !prompt.trim() || !canUseAdvancedRewardLogic) return;
+    if (
+      !workspaceId ||
+      !prompt.trim() ||
+      !canUseAdvancedRewardLogic ||
+      streamingRef.current
+    ) {
+      return;
+    }
 
     clearPresetTimeout();
+    const generationId = ++generationIdRef.current;
+    streamingRef.current = true;
     ensureSnapshot();
     setHasPreviewContent(false);
     setPhase("streaming");
@@ -221,13 +256,18 @@ export function useAIRewardBuilder({
         prompt: prompt.trim(),
       });
 
+      if (generationId !== generationIdRef.current) return;
+
       let lastPartial: Partial<AIRewardDraft> | null = null;
       for await (const partialObject of readStreamableValue(object)) {
+        if (generationId !== generationIdRef.current) return;
         if (partialObject) {
           lastPartial = partialObject;
           applyDraft(partialObject);
         }
       }
+
+      if (generationId !== generationIdRef.current) return;
 
       if (!lastPartial) {
         setPhase("error");
@@ -244,13 +284,19 @@ export function useAIRewardBuilder({
 
       applyDraft(parsed.data);
       setPhase("review");
+      void mutateWorkspace();
     } catch (err) {
+      if (generationId !== generationIdRef.current) return;
       setPhase("error");
       setError(
         err instanceof Error
           ? err.message
           : "Failed to generate reward. Please try again.",
       );
+    } finally {
+      if (generationId === generationIdRef.current) {
+        streamingRef.current = false;
+      }
     }
   }, [
     applyDraft,
@@ -258,11 +304,18 @@ export function useAIRewardBuilder({
     clearPresetTimeout,
     ensureSnapshot,
     event,
+    mutateWorkspace,
     prompt,
     workspaceId,
   ]);
 
-  useEffect(() => clearPresetTimeout, [clearPresetTimeout]);
+  useEffect(() => {
+    return () => {
+      generationIdRef.current += 1;
+      streamingRef.current = false;
+      clearPresetTimeout();
+    };
+  }, [clearPresetTimeout]);
 
   return {
     prompt,
@@ -281,7 +334,7 @@ export function useAIRewardBuilder({
   };
 }
 
-export type AIRewardBuilderState = ReturnType<typeof useAIRewardBuilder>;
+type AIRewardBuilderState = ReturnType<typeof useAIRewardBuilder>;
 
 function chromeEnterStyle(
   open: boolean,

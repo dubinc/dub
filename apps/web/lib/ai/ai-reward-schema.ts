@@ -2,9 +2,7 @@ import { CONDITION_OPERATORS } from "@/lib/zod/schemas/rewards";
 import { RewardStructure } from "@prisma/client";
 import * as z from "zod/v4";
 
-export const AI_REWARD_EVENTS = ["click", "lead", "sale"] as const;
-
-export const aiRewardConditionSchema = z.object({
+const aiRewardConditionSchema = z.object({
   entity: z
     .enum(["partner", "customer", "sale", "lead"])
     .describe("The entity to evaluate (customer, partner, sale, or lead)."),
@@ -29,7 +27,7 @@ export const aiRewardConditionSchema = z.object({
     .describe("Required when attribute is metadata — the metadata key name."),
 });
 
-export const aiRewardModifierSchema = z
+const aiRewardModifierSchema = z
   .object({
     operator: z
       .enum(["AND", "OR"])

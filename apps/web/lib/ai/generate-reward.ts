@@ -1,5 +1,9 @@
 "use server";
 
+import {
+  refundAIUsageCredit,
+  reserveAIUsageCredit,
+} from "@/lib/api/links/usage-checks";
 import { normalizeWorkspaceId } from "@/lib/api/workspaces/workspace-id";
 import { getSession } from "@/lib/auth";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
@@ -13,11 +17,9 @@ import { createStreamableValue } from "@ai-sdk/rsc";
 import { Output, streamText } from "ai";
 import * as z from "zod/v4";
 import { throwIfNoPermission } from "../actions/throw-if-no-permission";
-import {
-  AI_REWARD_EVENTS,
-  AIRewardDraft,
-  aiRewardSchema,
-} from "./ai-reward-schema";
+import { AIRewardDraft, aiRewardSchema } from "./ai-reward-schema";
+
+const AI_REWARD_EVENTS = ["click", "lead", "sale"] as const;
 
 const inputSchema = z.object({
   workspaceId: z.string(),
@@ -48,6 +50,7 @@ Rules:
 - For sale rewards: type may be "flat" or "percentage"; maxDuration is months or null for lifetime.
 - Flat amounts are in dollars (not cents). Percentage amounts are 0–100.
 - Currency condition values (sale.amount, partner.totalSaleAmount, partner.totalCommissions) are in dollars.
+- Date condition values (e.g. signupDate, subscriptionStartDate) use ISO 8601 strings (e.g. 2024-01-15).
 - Country values use ISO 3166-1 alpha-2 codes (e.g. US, GB).
 - Only use entities and attributes allowed for this event (listed below).
 - Condition groups (modifiers) override the base reward when their conditions match. Prefer the highest matching amount at evaluation time.
@@ -107,10 +110,26 @@ export async function generateReward(input: z.infer<typeof inputSchema>) {
     identifier: [session.user.id, workspaceId],
   });
 
+  await reserveAIUsageCredit({
+    id: workspace.id,
+    aiLimit: workspace.aiLimit,
+    plan: workspace.plan as PlanProps,
+    planPeriod: workspace.planPeriod,
+  });
+
   const stream = createStreamableValue();
 
   (async () => {
     let failed = false;
+
+    const fail = async () => {
+      if (failed) return;
+      failed = true;
+      await refundAIUsageCredit(workspaceId).catch((e) =>
+        console.error("Failed to refund AI credit", e),
+      );
+      stream.error(new Error("Failed to generate reward. Please try again."));
+    };
 
     try {
       const { partialOutputStream } = streamText({
@@ -120,13 +139,13 @@ export async function generateReward(input: z.infer<typeof inputSchema>) {
         prompt,
         temperature: 0.3,
         maxOutputTokens: 2000,
-        onError: ({ error }) => {
-          failed = true;
-          stream.error(error);
+        onError: () => {
+          void fail();
         },
       });
 
       for await (const partialObject of partialOutputStream) {
+        if (failed) return;
         if (partialObject) {
           stream.update(partialObject as Partial<AIRewardDraft>);
         }
@@ -135,10 +154,8 @@ export async function generateReward(input: z.infer<typeof inputSchema>) {
       if (!failed) {
         stream.done();
       }
-    } catch (error) {
-      if (!failed) {
-        stream.error(error);
-      }
+    } catch {
+      await fail();
     }
   })();
 
