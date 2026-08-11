@@ -2,203 +2,213 @@
 
 import { AIRewardDraft, aiRewardSchema } from "@/lib/ai/ai-reward-schema";
 import { generateReward } from "@/lib/ai/generate-reward";
-import { constructRewardAmount } from "@/lib/api/sales/construct-reward-amount";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import useWorkspace from "@/lib/swr/use-workspace";
-import {
-  CONDITION_OPERATOR_LABELS,
-  REWARD_CONDITION_ATTRIBUTES,
-  REWARD_CONDITIONS,
-} from "@/lib/zod/schemas/rewards";
 import { readStreamableValue } from "@ai-sdk/rsc";
 import { AnimatedSizeContainer, Button, TooltipContent } from "@dub/ui";
-import { Magic } from "@dub/ui/icons";
-import {
-  capitalize,
-  cn,
-  COUNTRIES,
-  currencyFormatter,
-  pluralize,
-} from "@dub/utils";
+import { ArrowTurnRight2, Sparkle3, Sparkle3Fill } from "@dub/ui/icons";
+import { cn } from "@dub/utils";
 import { EventType, RewardStructure } from "@prisma/client";
-import { AnimatePresence, motion } from "motion/react";
-import { FormEvent, useCallback, useMemo, useState } from "react";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import {
+  type CSSProperties,
+  type PropsWithChildren,
+  type ReactNode,
+  type TransitionEvent,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
+import TextareaAutosize from "react-textarea-autosize";
 import { toast } from "sonner";
 import { v4 as uuid } from "uuid";
 import { REWARD_PRESETS } from "./reward-presets";
 
-type AIRewardBuilderProps = {
-  event: Exclude<EventType, "referral">;
-  onAccept: (draft: AIRewardDraft) => void;
-};
+const EASE_OUT = [0.23, 1, 0.32, 1] as const;
+const EASE_OUT_CSS = "cubic-bezier(0.23, 1, 0.32, 1)";
+const EASE_CHROME = "cubic-bezier(0.32, 0.72, 0, 1)";
+const CHROME_ENTER_MS = 240;
 
 type BuilderPhase = "idle" | "streaming" | "review" | "error";
 
-export function applyRewardDraftToForm({
+export function buildRewardFormValuesFromDraft({
   draft,
   event,
-  setValue,
+  current,
 }: {
-  draft: AIRewardDraft;
+  draft: AIRewardDraft | Partial<AIRewardDraft>;
   event: Exclude<EventType, "referral">;
-  setValue: (
-    name: string,
-    value: unknown,
-    options?: { shouldDirty?: boolean },
-  ) => void;
-}) {
+  current: Record<string, unknown>;
+}): Record<string, unknown> | null {
+  if (draft.type == null || draft.amount == null) return null;
+
   const isOneOffEvent = event === "click" || event === "lead";
   const type: RewardStructure = isOneOffEvent ? "flat" : draft.type;
   const maxDuration = isOneOffEvent
     ? 0
-    : draft.maxDuration == null
-      ? Infinity
-      : draft.maxDuration;
+    : draft.maxDuration === undefined
+      ? undefined
+      : draft.maxDuration == null
+        ? Infinity
+        : draft.maxDuration;
 
-  setValue("type", type, { shouldDirty: true });
+  const next: Record<string, unknown> = {
+    ...current,
+    type,
+  };
 
   if (type === "flat") {
-    setValue("amountInCents", draft.amount, { shouldDirty: true });
-    setValue("amountInPercentage", undefined, { shouldDirty: true });
+    next.amountInCents = draft.amount;
+    next.amountInPercentage = undefined;
   } else {
-    setValue("amountInPercentage", draft.amount, { shouldDirty: true });
-    setValue("amountInCents", undefined, { shouldDirty: true });
+    next.amountInPercentage = draft.amount;
+    next.amountInCents = undefined;
   }
 
-  setValue("maxDuration", maxDuration, { shouldDirty: true });
+  if (maxDuration !== undefined) {
+    next.maxDuration = maxDuration;
+  }
 
   const modifiers = draft.modifiers?.filter((m) => m.conditions?.length);
   if (!modifiers?.length) {
-    setValue("modifiers", undefined, { shouldDirty: true });
-    return;
+    if (draft.modifiers !== undefined) {
+      next.modifiers = undefined;
+    }
+    return next;
   }
 
-  setValue(
-    "modifiers",
-    modifiers.map((modifier) => {
-      const modifierType = modifier.type === undefined ? type : modifier.type;
-      const modifierMaxDuration =
-        modifier.maxDuration === undefined
-          ? maxDuration
-          : modifier.maxDuration == null
-            ? Infinity
-            : modifier.maxDuration;
+  const resolvedMaxDuration =
+    maxDuration === undefined ? (isOneOffEvent ? 0 : Infinity) : maxDuration;
 
-      return {
-        id: uuid(),
-        operator: modifier.operator ?? "AND",
-        conditions: modifier.conditions,
-        type: modifier.type,
-        amountInCents:
-          modifier.amount !== undefined && modifierType === "flat"
-            ? modifier.amount
-            : undefined,
-        amountInPercentage:
-          modifier.amount !== undefined && modifierType === "percentage"
-            ? modifier.amount
-            : undefined,
-        maxDuration: event === "sale" ? modifierMaxDuration : undefined,
-      };
-    }),
-    { shouldDirty: true },
-  );
+  next.modifiers = modifiers.map((modifier) => {
+    const modifierType = modifier.type === undefined ? type : modifier.type;
+    const modifierMaxDuration =
+      modifier.maxDuration === undefined
+        ? resolvedMaxDuration
+        : modifier.maxDuration == null
+          ? Infinity
+          : modifier.maxDuration;
+
+    return {
+      id: uuid(),
+      operator: modifier.operator ?? "AND",
+      conditions: modifier.conditions,
+      type: modifier.type,
+      amountInCents:
+        modifier.amount !== undefined && modifierType === "flat"
+          ? modifier.amount
+          : undefined,
+      amountInPercentage:
+        modifier.amount !== undefined && modifierType === "percentage"
+          ? modifier.amount
+          : undefined,
+      maxDuration: event === "sale" ? modifierMaxDuration : undefined,
+    };
+  });
+
+  return next;
 }
 
-function formatDurationLabel(maxDuration: number | null | undefined) {
-  if (maxDuration === undefined) return null;
-  if (maxDuration === null) return "for the customer's lifetime";
-  if (maxDuration === 0) return "one time";
-  return `for ${maxDuration} ${pluralize("month", maxDuration)}`;
-}
-
-function draftToPreviewReward(
-  draft: Partial<AIRewardDraft>,
-  event: Exclude<EventType, "referral">,
-) {
-  if (draft.type == null || draft.amount == null) return null;
-
-  const type = event === "click" || event === "lead" ? "flat" : draft.type;
-  const maxDuration =
-    event === "click" || event === "lead"
-      ? 0
-      : draft.maxDuration === undefined
-        ? undefined
-        : draft.maxDuration;
-
-  return {
-    event,
-    type,
-    amountInCents: type === "flat" ? Math.round(draft.amount * 100) : null,
-    amountInPercentage: type === "percentage" ? draft.amount : null,
-    maxDuration: maxDuration ?? null,
-    modifiers: draft.modifiers?.map((modifier) => {
-      const modifierType = modifier.type ?? type;
-      return {
-        operator: modifier.operator ?? "AND",
-        conditions: modifier.conditions ?? [],
-        type: modifier.type,
-        amountInCents:
-          modifier.amount != null && modifierType === "flat"
-            ? Math.round(modifier.amount * 100)
-            : undefined,
-        amountInPercentage:
-          modifier.amount != null && modifierType === "percentage"
-            ? modifier.amount
-            : undefined,
-        maxDuration: modifier.maxDuration,
-      };
-    }),
-  };
-}
-
-function getAttributeType(attributeId: string) {
-  return REWARD_CONDITION_ATTRIBUTES.find((a) => a.id === attributeId)?.type;
-}
-
-export function AIRewardBuilder({ event, onAccept }: AIRewardBuilderProps) {
+export function useAIRewardBuilder({
+  event,
+  getValues,
+  reset,
+}: {
+  event: Exclude<EventType, "referral">;
+  getValues: () => Record<string, unknown>;
+  reset: (values: Record<string, unknown>) => void;
+}) {
   const { id: workspaceId, slug: workspaceSlug, plan } = useWorkspace();
   const { canUseAdvancedRewardLogic } = getPlanCapabilities(plan);
 
   const [prompt, setPrompt] = useState("");
   const [phase, setPhase] = useState<BuilderPhase>("idle");
-  const [draft, setDraft] = useState<Partial<AIRewardDraft> | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [hasPreviewContent, setHasPreviewContent] = useState(false);
+  const snapshotRef = useRef<Record<string, unknown> | null>(null);
+  const presetTimeoutRef = useRef<number | null>(null);
 
   const presets = REWARD_PRESETS[event] ?? [];
+  const isReviewing =
+    phase === "streaming" || phase === "review" || phase === "error";
 
-  const validatedDraft = useMemo(() => {
-    if (!draft) return null;
-    const parsed = aiRewardSchema.safeParse(draft);
-    return parsed.success ? parsed.data : null;
-  }, [draft]);
-
-  const resetReview = useCallback(() => {
-    setPhase("idle");
-    setDraft(null);
-    setError(null);
+  const clearPresetTimeout = useCallback(() => {
+    if (presetTimeoutRef.current != null) {
+      window.clearTimeout(presetTimeoutRef.current);
+      presetTimeoutRef.current = null;
+    }
   }, []);
 
-  const startReview = useCallback(
-    (nextDraft: AIRewardDraft | Partial<AIRewardDraft>) => {
-      setDraft(nextDraft);
-      setPhase("review");
-      setError(null);
+  const ensureSnapshot = useCallback(() => {
+    if (!snapshotRef.current) {
+      snapshotRef.current = structuredClone(getValues());
+    }
+  }, [getValues]);
+
+  const applyDraft = useCallback(
+    (draft: AIRewardDraft | Partial<AIRewardDraft>) => {
+      const next = buildRewardFormValuesFromDraft({
+        draft,
+        event,
+        current: getValues(),
+      });
+      if (!next) return;
+      reset(next);
+      setHasPreviewContent(true);
     },
-    [],
+    [event, getValues, reset],
   );
 
-  const onSelectPreset = (presetDraft: AIRewardDraft) => {
-    if (!canUseAdvancedRewardLogic) return;
-    setPrompt("");
-    startReview(presetDraft);
-  };
+  const exitReview = useCallback(() => {
+    clearPresetTimeout();
+    snapshotRef.current = null;
+    setHasPreviewContent(false);
+    setPhase("idle");
+    setError(null);
+  }, [clearPresetTimeout]);
 
-  const onGenerate = async (e?: FormEvent) => {
-    e?.preventDefault();
+  const discard = useCallback(() => {
+    if (snapshotRef.current) {
+      reset(snapshotRef.current);
+    }
+    exitReview();
+    setPrompt("");
+  }, [exitReview, reset]);
+
+  const accept = useCallback(() => {
+    exitReview();
+    setPrompt("");
+    toast.success("Reward applied — review and save when ready.");
+  }, [exitReview]);
+
+  const selectPreset = useCallback(
+    (draft: AIRewardDraft) => {
+      if (!canUseAdvancedRewardLogic) return;
+
+      clearPresetTimeout();
+      ensureSnapshot();
+      setPrompt("");
+      setHasPreviewContent(false);
+      setPhase("streaming");
+      setError(null);
+
+      presetTimeoutRef.current = window.setTimeout(() => {
+        presetTimeoutRef.current = null;
+        applyDraft(draft);
+        setPhase("review");
+      }, 850);
+    },
+    [applyDraft, canUseAdvancedRewardLogic, clearPresetTimeout, ensureSnapshot],
+  );
+
+  const generate = useCallback(async () => {
     if (!workspaceId || !prompt.trim() || !canUseAdvancedRewardLogic) return;
 
+    clearPresetTimeout();
+    ensureSnapshot();
+    setHasPreviewContent(false);
     setPhase("streaming");
-    setDraft(null);
     setError(null);
 
     try {
@@ -212,7 +222,7 @@ export function AIRewardBuilder({ event, onAccept }: AIRewardBuilderProps) {
       for await (const partialObject of readStreamableValue(object)) {
         if (partialObject) {
           lastPartial = partialObject;
-          setDraft(partialObject);
+          applyDraft(partialObject);
         }
       }
 
@@ -229,7 +239,7 @@ export function AIRewardBuilder({ event, onAccept }: AIRewardBuilderProps) {
         return;
       }
 
-      setDraft(parsed.data);
+      applyDraft(parsed.data);
       setPhase("review");
     } catch (err) {
       setPhase("error");
@@ -239,307 +249,588 @@ export function AIRewardBuilder({ event, onAccept }: AIRewardBuilderProps) {
           : "Failed to generate reward. Please try again.",
       );
     }
+  }, [
+    applyDraft,
+    canUseAdvancedRewardLogic,
+    clearPresetTimeout,
+    ensureSnapshot,
+    event,
+    prompt,
+    workspaceId,
+  ]);
+
+  useEffect(() => clearPresetTimeout, [clearPresetTimeout]);
+
+  return {
+    prompt,
+    setPrompt,
+    phase,
+    error,
+    presets,
+    isReviewing,
+    hasPreviewContent,
+    canUseAdvancedRewardLogic,
+    workspaceSlug,
+    generate,
+    selectPreset,
+    accept,
+    discard,
+  };
+}
+
+export type AIRewardBuilderState = ReturnType<typeof useAIRewardBuilder>;
+
+function chromeEnterStyle(
+  open: boolean,
+  reduced: boolean | null,
+): CSSProperties | undefined {
+  if (reduced) return undefined;
+  return {
+    transitionDuration: open ? `${CHROME_ENTER_MS}ms` : "150ms",
+    transitionDelay: open ? "40ms" : "0ms",
+    transitionTimingFunction: open ? EASE_CHROME : EASE_OUT_CSS,
+  };
+}
+
+function creatingInStyle(
+  delayMs: number,
+  reduced: boolean | null,
+): CSSProperties | undefined {
+  if (reduced) return undefined;
+  return {
+    animation: `ai-creating-in ${CHROME_ENTER_MS}ms ${EASE_CHROME} both`,
+    animationDelay: `${delayMs}ms`,
+  };
+}
+
+export function AIRewardInput({
+  event,
+  builder,
+}: {
+  event: Exclude<EventType, "referral">;
+  builder: AIRewardBuilderState;
+}) {
+  const shouldReduceMotion = useReducedMotion();
+  const [focused, setFocused] = useState(false);
+  const blurTimeoutRef = useRef<number | null>(null);
+
+  const {
+    prompt,
+    setPrompt,
+    presets,
+    canUseAdvancedRewardLogic,
+    workspaceSlug,
+    generate,
+    selectPreset,
+  } = builder;
+
+  const clearBlurTimeout = () => {
+    if (blurTimeoutRef.current != null) {
+      window.clearTimeout(blurTimeoutRef.current);
+      blurTimeoutRef.current = null;
+    }
   };
 
-  const handleAccept = () => {
-    if (!validatedDraft) {
-      toast.error("Reward draft is invalid. Please regenerate or discard.");
+  useEffect(() => {
+    if (builder.isReviewing) {
+      clearBlurTimeout();
       return;
     }
-
-    onAccept(validatedDraft);
-    toast.success("Reward applied — review and save when ready.");
-    resetReview();
-    setPrompt("");
-  };
-
-  const showReview =
-    phase === "streaming" || phase === "review" || phase === "error";
+    clearBlurTimeout();
+    setFocused(false);
+  }, [builder.isReviewing]);
 
   return (
-    <div className="border-border-subtle mb-4 overflow-hidden rounded-xl border bg-white shadow-sm">
-      <div className="flex items-start gap-2.5 p-3">
-        <div className="bg-bg-muted flex size-8 shrink-0 items-center justify-center rounded-lg">
-          <Magic className="size-4 text-neutral-600" />
-        </div>
-        <div className="min-w-0 flex-1">
-          <div className="text-content-emphasis text-sm font-medium">
-            Describe your reward
-          </div>
-          <p className="text-content-muted text-xs">
-            Use AI or a preset, then review before applying to the form.
-          </p>
-        </div>
-      </div>
-
-      <div className="border-border-subtle space-y-3 border-t bg-neutral-50 p-3">
-        <form onSubmit={onGenerate} className="flex gap-2">
-          <input
-            type="text"
-            value={prompt}
-            onChange={(e) => setPrompt(e.target.value)}
-            placeholder={
-              event === "sale"
-                ? "e.g. 15% for 12 months, 25% for US customers"
-                : event === "lead"
-                  ? "e.g. $20 per lead, $40 for trial leads"
-                  : "e.g. $0.75 per click for US traffic"
+    <div className="relative">
+      <AnimatePresence initial={false} mode="popLayout">
+        {!builder.isReviewing && (
+          <motion.div
+            key="ai-reward-input"
+            initial={false}
+            animate={
+              shouldReduceMotion
+                ? { opacity: 1 }
+                : { opacity: 1, transform: "translateY(0px) scale(1)" }
             }
-            disabled={!canUseAdvancedRewardLogic || phase === "streaming"}
-            className="block w-full rounded-md border-neutral-300 px-3 py-2 text-sm text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 disabled:opacity-60"
-          />
-          <Button
-            type="submit"
-            variant="secondary"
-            text="Generate"
-            className="h-9 w-fit shrink-0 px-3"
-            loading={phase === "streaming"}
-            disabled={
-              !canUseAdvancedRewardLogic ||
-              !prompt.trim() ||
-              phase === "streaming"
+            exit={
+              shouldReduceMotion
+                ? { opacity: 0, transition: { duration: 0.1 } }
+                : {
+                    opacity: 0,
+                    transform: "translateY(-6px) scale(0.98)",
+                    filter: "blur(2px)",
+                    transition: {
+                      duration: 0.18,
+                      ease: EASE_OUT,
+                    },
+                  }
             }
-            disabledTooltip={
-              !canUseAdvancedRewardLogic ? (
-                <TooltipContent
-                  title="AI reward builder is only available on the Advanced plan and above."
-                  cta="Upgrade to Advanced"
-                  href={`/${workspaceSlug}/upgrade?plan=advanced&showAdvancedUpsellModal=true`}
-                  target="_blank"
+            className="mb-4 origin-top"
+          >
+            <div className="border-border-subtle rounded-xl border bg-white text-sm shadow-sm">
+              <div className="flex items-start gap-2.5 p-2.5">
+                <div className="flex size-7 shrink-0 items-center justify-center rounded-md bg-neutral-100">
+                  <Sparkle3 className="size-4 text-neutral-800" />
+                </div>
+                <TextareaAutosize
+                  value={prompt}
+                  onChange={(e) => setPrompt(e.target.value)}
+                  onFocus={() => {
+                    clearBlurTimeout();
+                    setFocused(true);
+                  }}
+                  onBlur={() => {
+                    clearBlurTimeout();
+                    blurTimeoutRef.current = window.setTimeout(() => {
+                      setFocused(false);
+                    }, 150);
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && !e.shiftKey) {
+                      e.preventDefault();
+                      void generate();
+                    }
+                  }}
+                  placeholder={`Describe your ${event} reward...`}
+                  disabled={!canUseAdvancedRewardLogic}
+                  minRows={1}
+                  maxRows={2}
+                  className={cn(
+                    "block min-w-0 flex-1 resize-none border-0 bg-transparent p-0 pt-1 text-sm font-normal leading-5 text-neutral-900 shadow-none",
+                    "placeholder-neutral-400",
+                    "focus:outline-none focus:ring-0",
+                    "disabled:opacity-60",
+                  )}
                 />
-              ) : undefined
-            }
-          />
-        </form>
+              </div>
 
-        {presets.length > 0 && (
-          <div className="flex flex-wrap gap-1.5">
-            {presets.map((preset) => (
-              <button
-                key={preset.id}
-                type="button"
-                disabled={!canUseAdvancedRewardLogic || phase === "streaming"}
-                onClick={() => onSelectPreset(preset.draft)}
-                className={cn(
-                  "rounded-full border border-neutral-200 bg-white px-2.5 py-1 text-xs font-medium text-neutral-700 transition-colors",
-                  "hover:border-neutral-300 hover:bg-neutral-50",
-                  "disabled:cursor-not-allowed disabled:opacity-50",
-                )}
+              <AnimatedSizeContainer
+                height
+                transition={{ duration: 0.2, ease: EASE_OUT }}
               >
-                {preset.label}
-              </button>
-            ))}
-          </div>
-        )}
-
-        <AnimatedSizeContainer height>
-          <AnimatePresence initial={false} mode="popLayout">
-            {showReview && (
-              <motion.div
-                key="review"
-                initial={{ opacity: 0, y: 4 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 4 }}
-                className="overflow-hidden"
-              >
-                <div className="rounded-lg border border-neutral-200 bg-white p-3">
-                  <div className="mb-2 flex items-center justify-between gap-2">
-                    <span className="text-xs font-semibold uppercase tracking-wide text-neutral-500">
-                      {phase === "streaming" ? "Generating…" : "Review"}
-                    </span>
-                    {phase !== "streaming" && (
-                      <div className="flex items-center gap-1.5">
-                        <Button
-                          type="button"
-                          variant="outline"
-                          text="Discard"
-                          className="h-7 w-fit px-2.5 text-xs"
-                          onClick={resetReview}
-                        />
-                        {phase === "review" && (
-                          <Button
+                {focused && (
+                  <div className="border-border-subtle -mx-px rounded-xl border-x border-t bg-neutral-100 px-2.5 py-2">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex min-w-0 flex-wrap gap-1.5">
+                        {presets.map((preset) => (
+                          <button
+                            key={preset.id}
                             type="button"
-                            variant="primary"
-                            text="Accept"
-                            className="h-7 w-fit px-2.5 text-xs"
-                            disabled={!validatedDraft}
-                            onClick={handleAccept}
-                          />
-                        )}
+                            disabled={!canUseAdvancedRewardLogic}
+                            onMouseDown={(e) => e.preventDefault()}
+                            onClick={() => selectPreset(preset.draft)}
+                            className={cn(
+                              "text-content-emphasis inline-flex h-7 w-fit items-center gap-1.5 rounded-lg bg-neutral-200/80 px-2.5 py-2 text-sm font-medium",
+                              "transition-[transform,background-color] duration-150 ease-out",
+                              "hover:bg-neutral-200 active:scale-[0.97]",
+                              "disabled:cursor-not-allowed disabled:opacity-50",
+                            )}
+                          >
+                            <Sparkle3Fill className="size-3.5 shrink-0" />
+                            {preset.label}
+                          </button>
+                        ))}
                       </div>
-                    )}
-                  </div>
 
-                  {phase === "error" && error ? (
-                    <div className="space-y-2">
-                      <p className="text-sm text-red-600">{error}</p>
                       <Button
                         type="button"
                         variant="secondary"
-                        text="Try again"
-                        className="h-7 w-fit px-2.5 text-xs"
-                        onClick={() => {
-                          setPhase("idle");
-                          setDraft(null);
-                          setError(null);
-                        }}
+                        text="Generate"
+                        className="h-7 w-fit shrink-0 rounded-lg px-2.5 py-2 text-sm active:scale-[0.97]"
+                        onMouseDown={(e) => e.preventDefault()}
+                        onClick={() => void generate()}
+                        disabled={!canUseAdvancedRewardLogic || !prompt.trim()}
+                        disabledTooltip={
+                          !canUseAdvancedRewardLogic ? (
+                            <TooltipContent
+                              title="AI reward builder is only available on the Advanced plan and above."
+                              cta="Upgrade to Advanced"
+                              href={`/${workspaceSlug}/upgrade?plan=advanced&showAdvancedUpsellModal=true`}
+                              target="_blank"
+                            />
+                          ) : undefined
+                        }
                       />
                     </div>
-                  ) : phase === "streaming" && !draft ? (
-                    <ReviewSkeletons />
-                  ) : draft ? (
-                    <RewardDraftPreview draft={draft} event={event} />
-                  ) : null}
-                </div>
-              </motion.div>
+                  </div>
+                )}
+              </AnimatedSizeContainer>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+function ThinkingStyles() {
+  return (
+    <style href="ai-thinking-pulse" precedence="default">{`
+      @keyframes ai-thinking-pulse {
+        0%,
+        100% {
+          opacity: 0.22;
+        }
+        45% {
+          opacity: 1;
+        }
+      }
+      @keyframes ai-creating-in {
+        from {
+          opacity: 0;
+          transform: translateY(4px) scale(0.98);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0) scale(1);
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .ai-thinking-pulse {
+          animation: none !important;
+          opacity: 0.5 !important;
+        }
+        .ai-creating-in {
+          animation: none !important;
+        }
+      }
+    `}</style>
+  );
+}
+
+function thinkingPulseStyle(
+  delayMs: number,
+  reduced: boolean | null,
+): CSSProperties {
+  if (reduced) return { opacity: 0.5 };
+  return {
+    animation: "ai-thinking-pulse 900ms linear infinite",
+    animationDelay: `${delayMs}ms`,
+  };
+}
+
+function CreatingStatus() {
+  const shouldReduceMotion = useReducedMotion();
+
+  return (
+    <div
+      className={cn(
+        "flex items-center gap-2",
+        !shouldReduceMotion && "ai-creating-in",
+      )}
+      style={creatingInStyle(60, shouldReduceMotion)}
+      role="status"
+      aria-live="polite"
+      aria-label="Creating reward"
+    >
+      <ThinkingStyles />
+      <div className="grid size-3.5 grid-cols-3 gap-[2px]" aria-hidden>
+        {Array.from({ length: 9 }, (_, i) => (
+          <span
+            key={i}
+            className="ai-thinking-pulse size-[3px] rounded-[0.5px] bg-neutral-500"
+            style={thinkingPulseStyle(
+              ((i % 3) + Math.floor(i / 3)) * 90,
+              shouldReduceMotion,
             )}
-          </AnimatePresence>
-        </AnimatedSizeContainer>
+          />
+        ))}
+      </div>
+      <span
+        className="inline-flex text-[14px] font-medium leading-none text-neutral-500"
+        aria-hidden
+      >
+        {"Creating...".split("").map((char, i) => (
+          <span
+            key={`${char}-${i}`}
+            className="ai-thinking-pulse"
+            style={thinkingPulseStyle((3 + i) * 90, shouldReduceMotion)}
+          >
+            {char}
+          </span>
+        ))}
+      </span>
+    </div>
+  );
+}
+
+function ChromeAction({
+  open,
+  delayClassName,
+  children,
+}: {
+  open: boolean;
+  delayClassName: string;
+  children: ReactNode;
+}) {
+  const shouldReduceMotion = useReducedMotion();
+
+  return (
+    <div
+      className={cn(
+        !shouldReduceMotion &&
+          "transition-[opacity,transform] will-change-[opacity,transform]",
+        open
+          ? cn("translate-y-0 opacity-100 duration-200", delayClassName)
+          : "translate-y-1 opacity-0 delay-0 duration-100",
+      )}
+      style={
+        shouldReduceMotion
+          ? undefined
+          : {
+              transitionTimingFunction: open ? EASE_CHROME : EASE_OUT_CSS,
+            }
+      }
+    >
+      {children}
+    </div>
+  );
+}
+
+export function AIRewardPreviewFrame({
+  builder,
+  children,
+}: PropsWithChildren<{
+  builder: AIRewardBuilderState;
+}>) {
+  const shouldReduceMotion = useReducedMotion();
+  const { isReviewing, phase, error, accept, discard, hasPreviewContent } =
+    builder;
+
+  const [chromeMounted, setChromeMounted] = useState(false);
+  const [chromeOpen, setChromeOpen] = useState(false);
+  const [exitKind, setExitKind] = useState<"accept" | "discard" | null>(null);
+  const exitKindRef = useRef<"accept" | "discard" | null>(null);
+
+  useEffect(() => {
+    if (!isReviewing) {
+      if (exitKindRef.current) return;
+      setChromeOpen(false);
+      setChromeMounted(false);
+      return;
+    }
+
+    setChromeMounted(true);
+    exitKindRef.current = null;
+    setExitKind(null);
+
+    if (shouldReduceMotion) {
+      setChromeOpen(true);
+      return;
+    }
+
+    setChromeOpen(false);
+    let inner = 0;
+    const outer = requestAnimationFrame(() => {
+      inner = requestAnimationFrame(() => setChromeOpen(true));
+    });
+    return () => {
+      cancelAnimationFrame(outer);
+      cancelAnimationFrame(inner);
+    };
+  }, [isReviewing, shouldReduceMotion]);
+
+  const finishExit = useCallback(() => {
+    const kind = exitKindRef.current;
+    exitKindRef.current = null;
+    setExitKind(null);
+    setChromeMounted(false);
+
+    if (kind === "accept") accept();
+    else if (kind === "discard") discard();
+  }, [accept, discard]);
+
+  const requestExit = (kind: "accept" | "discard") => {
+    if (exitKindRef.current || phase === "streaming") return;
+
+    if (shouldReduceMotion) {
+      exitKindRef.current = kind;
+      finishExit();
+      return;
+    }
+
+    exitKindRef.current = kind;
+    setExitKind(kind);
+    setChromeOpen(false);
+
+    window.setTimeout(() => {
+      if (exitKindRef.current === kind) finishExit();
+    }, 180);
+  };
+
+  const onChromeTransitionEnd = (e: TransitionEvent<HTMLDivElement>) => {
+    if (e.target !== e.currentTarget) return;
+    if (e.propertyName !== "opacity") return;
+    if (chromeOpen || !exitKindRef.current) return;
+    finishExit();
+  };
+
+  const showSkeletons = phase === "streaming" && !hasPreviewContent;
+  const showError = phase === "error" && Boolean(error);
+  const isCreating = phase === "streaming";
+
+  return (
+    <div
+      className={cn(
+        "relative flex flex-col rounded-[14px]",
+        chromeMounted && "max-h-[min(70vh,calc(100dvh-14rem))] p-1",
+      )}
+    >
+      {chromeMounted && (
+        <div
+          aria-hidden
+          onTransitionEnd={onChromeTransitionEnd}
+          className={cn(
+            "pointer-events-none absolute inset-0 origin-top rounded-[14px] bg-amber-100",
+            !shouldReduceMotion &&
+              "transition-[opacity,transform] will-change-[opacity,transform]",
+            chromeOpen
+              ? "translate-y-0 scale-100 opacity-100"
+              : cn(
+                  "opacity-0",
+                  exitKind === "accept" && "-translate-y-1 scale-[0.99]",
+                  exitKind === "discard" && "translate-y-1 scale-[0.98]",
+                  exitKind == null && "scale-[0.98]",
+                ),
+          )}
+          style={chromeEnterStyle(chromeOpen, shouldReduceMotion)}
+        />
+      )}
+
+      <div
+        className={cn(
+          "relative z-10 flex min-h-0 flex-1 flex-col",
+          chromeMounted && "overflow-hidden",
+        )}
+      >
+        {chromeMounted && (
+          <div
+            className={cn(
+              "flex shrink-0 items-center gap-2 pb-1.5 pl-2 pr-[6px] pt-0.5",
+              isCreating ? "justify-center" : "justify-between",
+              !shouldReduceMotion &&
+                "transition-[opacity,transform] will-change-[opacity,transform]",
+              chromeOpen
+                ? "translate-y-0 opacity-100"
+                : "-translate-y-1 opacity-0",
+            )}
+            style={chromeEnterStyle(chromeOpen, shouldReduceMotion)}
+          >
+            {isCreating ? (
+              <CreatingStatus />
+            ) : (
+              <>
+                <span className="text-content-emphasis text-[14px] font-medium leading-none">
+                  Reward preview
+                </span>
+                {phase !== "error" && (
+                  <div className="flex items-center gap-1.5">
+                    <ChromeAction open={chromeOpen} delayClassName="delay-75">
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        text="Discard"
+                        className="h-7 w-fit rounded-lg px-3 active:scale-[0.97]"
+                        disabled={exitKind != null}
+                        onClick={() => requestExit("discard")}
+                      />
+                    </ChromeAction>
+                    {phase === "review" && (
+                      <ChromeAction
+                        open={chromeOpen}
+                        delayClassName="delay-100"
+                      >
+                        <Button
+                          type="button"
+                          variant="primary"
+                          text="Accept"
+                          className="h-7 w-fit rounded-lg px-3 active:scale-[0.97]"
+                          disabled={exitKind != null}
+                          onClick={() => requestExit("accept")}
+                        />
+                      </ChromeAction>
+                    )}
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        )}
+
+        {showError ? (
+          <div className="space-y-2 rounded-[12px] border border-neutral-200 bg-white p-3">
+            <p className="text-sm text-red-600">{error}</p>
+            <Button
+              type="button"
+              variant="secondary"
+              text="Try again"
+              className="h-8 w-fit rounded-lg px-3 active:scale-[0.97]"
+              disabled={exitKind != null}
+              onClick={() => requestExit("discard")}
+            />
+          </div>
+        ) : showSkeletons ? (
+          <div
+            className={cn(!shouldReduceMotion && "ai-creating-in")}
+            style={creatingInStyle(80, shouldReduceMotion)}
+          >
+            <ReviewSkeletons />
+          </div>
+        ) : (
+          <div
+            className={cn("min-h-0", chromeMounted && "flex-1 overflow-y-auto")}
+          >
+            <div
+              className={cn(chromeMounted && "pointer-events-none select-none")}
+            >
+              {children}
+            </div>
+          </div>
+        )}
       </div>
     </div>
+  );
+}
+
+function SkeletonPill({ className }: { className?: string }) {
+  return (
+    <span
+      className={cn(
+        "inline-block h-6 animate-pulse rounded-md bg-neutral-100",
+        className,
+      )}
+    />
   );
 }
 
 function ReviewSkeletons() {
   return (
-    <div className="space-y-2">
-      {[0, 1].map((i) => (
-        <motion.div
-          key={i}
-          initial={{ opacity: 0, y: 4 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: i * 0.08 }}
-          className="h-10 w-full animate-pulse rounded-md border border-neutral-100 bg-neutral-50"
+    <div className="border-border-subtle rounded-xl border bg-white text-sm shadow-sm">
+      <div className="flex items-start gap-2.5 p-2.5">
+        <div className="flex size-7 shrink-0 items-center justify-center rounded-md bg-neutral-100">
+          <div className="size-4 animate-pulse rounded-sm bg-neutral-200" />
+        </div>
+        <p className="flex min-w-0 flex-1 flex-wrap items-center gap-x-1.5 gap-y-1.5 text-sm leading-relaxed text-neutral-400">
+          <span>Pay a</span>
+          <SkeletonPill className="w-14" />
+          <span>of</span>
+          <SkeletonPill className="w-12" />
+          <span>per sale for</span>
+          <SkeletonPill className="w-16" />
+          <span>, with</span>
+          <SkeletonPill className="w-20" />
+        </p>
+      </div>
+      <div className="border-border-subtle -mx-px rounded-xl border-x border-t bg-neutral-50 p-2.5">
+        <Button
+          type="button"
+          variant="secondary"
+          className="h-8 rounded-lg"
+          icon={<ArrowTurnRight2 className="size-4" />}
+          text="Add condition"
+          disabled
         />
-      ))}
+      </div>
     </div>
   );
-}
-
-function RewardDraftPreview({
-  draft,
-  event,
-}: {
-  draft: Partial<AIRewardDraft>;
-  event: Exclude<EventType, "referral">;
-}) {
-  const preview = draftToPreviewReward(draft, event);
-
-  if (!preview) {
-    return <ReviewSkeletons />;
-  }
-
-  const baseAmount = constructRewardAmount({
-    type: preview.type,
-    amountInCents: preview.amountInCents ?? undefined,
-    amountInPercentage: preview.amountInPercentage ?? undefined,
-    maxDuration: preview.maxDuration,
-  });
-
-  const durationLabel =
-    event === "sale" ? formatDurationLabel(preview.maxDuration) : null;
-
-  return (
-    <div className="space-y-2.5">
-      <motion.div
-        initial={{ opacity: 0, y: 4 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="text-sm text-neutral-800"
-      >
-        <span className="font-medium">{baseAmount}</span> per {event}
-        {durationLabel ? ` ${durationLabel}` : ""}
-        {preview.modifiers?.length ? (
-          <span className="text-neutral-500"> (base)</span>
-        ) : null}
-      </motion.div>
-
-      {preview.modifiers?.map((modifier, idx) => {
-        const modifierType = modifier.type ?? preview.type;
-        const modifierDuration =
-          modifier.maxDuration === undefined
-            ? preview.maxDuration
-            : modifier.maxDuration;
-        const amount =
-          modifier.amountInCents != null || modifier.amountInPercentage != null
-            ? constructRewardAmount({
-                type: modifierType,
-                amountInCents: modifier.amountInCents,
-                amountInPercentage: modifier.amountInPercentage,
-                maxDuration: modifierDuration,
-              })
-            : baseAmount;
-        const modifierDurationLabel =
-          event === "sale" ? formatDurationLabel(modifierDuration) : null;
-
-        return (
-          <motion.div
-            key={idx}
-            initial={{ opacity: 0, y: 4 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.05 * (idx + 1) }}
-            className="rounded-md border border-neutral-100 bg-neutral-50 px-2.5 py-2"
-          >
-            <div className="text-sm font-medium text-neutral-800">
-              Then {amount}
-              {modifierDurationLabel ? ` ${modifierDurationLabel}` : ""}
-            </div>
-            <ul className="mt-1 space-y-0.5 text-xs text-neutral-600">
-              {(modifier.conditions ?? []).map((condition, cIdx) => {
-                const entity = REWARD_CONDITIONS[event].entities.find(
-                  (en) => en.id === condition.entity,
-                );
-                const attribute = entity?.attributes?.find(
-                  (a) => a.id === condition.attribute,
-                );
-                const valueLabel = formatConditionValue(condition);
-
-                return (
-                  <li key={cIdx}>
-                    {cIdx === 0 ? "If" : capitalize(modifier.operator ?? "AND")}{" "}
-                    {capitalize(condition.entity)}{" "}
-                    {condition.attribute === "metadata" &&
-                    condition.metadataField
-                      ? `"${condition.metadataField}"`
-                      : capitalize(
-                          attribute?.label ?? condition.attribute,
-                        )}{" "}
-                    {CONDITION_OPERATOR_LABELS[
-                      condition.operator as keyof typeof CONDITION_OPERATOR_LABELS
-                    ] ?? condition.operator}{" "}
-                    {valueLabel}
-                  </li>
-                );
-              })}
-            </ul>
-          </motion.div>
-        );
-      })}
-    </div>
-  );
-}
-
-function formatConditionValue(condition: {
-  attribute: string;
-  value: string | number | string[] | number[];
-}) {
-  const { attribute, value } = condition;
-
-  if (attribute === "country") {
-    if (Array.isArray(value)) {
-      return value.map((v) => COUNTRIES[String(v)] ?? v).join(", ");
-    }
-    return COUNTRIES[String(value)] ?? String(value);
-  }
-
-  if (getAttributeType(attribute) === "currency" && typeof value === "number") {
-    return currencyFormatter(value * 100, {
-      trailingZeroDisplay: "stripIfInteger",
-    });
-  }
-
-  if (Array.isArray(value)) {
-    return value.join(", ");
-  }
-
-  return String(value);
 }

@@ -12,62 +12,21 @@ export const REWARD_PRESETS: Partial<
 > = {
   sale: [
     {
-      id: "sale-20-lifetime",
-      label: "20% lifetime",
+      id: "sale-30-12-months",
+      label: "30% for 12 months",
       draft: {
         type: "percentage",
-        amount: 20,
-        maxDuration: null,
+        amount: 30,
+        maxDuration: 12,
       },
     },
     {
-      id: "sale-new-vs-recurring",
-      label: "10% new / 5% recurring",
-      draft: {
-        type: "percentage",
-        amount: 5,
-        maxDuration: null,
-        modifiers: [
-          {
-            operator: "AND",
-            conditions: [
-              {
-                entity: "sale",
-                attribute: "type",
-                operator: "equals_to",
-                value: "new",
-              },
-            ],
-            type: "percentage",
-            amount: 10,
-            maxDuration: null,
-          },
-        ],
-      },
-    },
-    {
-      id: "sale-us-flat",
-      label: "$50 for US customers",
+      id: "sale-100-cpa",
+      label: "$100 CPA",
       draft: {
         type: "flat",
-        amount: 0,
-        maxDuration: null,
-        modifiers: [
-          {
-            operator: "AND",
-            conditions: [
-              {
-                entity: "customer",
-                attribute: "country",
-                operator: "equals_to",
-                value: "US",
-              },
-            ],
-            type: "flat",
-            amount: 50,
-            maxDuration: null,
-          },
-        ],
+        amount: 100,
+        maxDuration: 0,
       },
     },
   ],
