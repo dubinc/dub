@@ -1,7 +1,6 @@
 import {
   AnimatedSizeContainer,
   ArrowUpRight2,
-  BookOpen,
   ChevronLeft,
   ClientOnly,
   Icon,
@@ -12,7 +11,7 @@ import {
 } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { ChevronDown } from "lucide-react";
-import { AnimatePresence, motion } from "motion/react";
+import { motion } from "motion/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -278,37 +277,13 @@ function SidebarAreasPanel<T extends Record<any, any>>({
       </div>
 
       {/* Fixed bottom sections - always visible */}
-      <div className="flex flex-shrink-0 flex-col gap-2 rounded-b-xl">
-        {data.showConversionGuides && (
-          <div className="px-3 pb-2">
-            <Link
-              href={`/${data.slug}/settings/tracking`}
-              className="flex items-center gap-2 rounded-lg bg-neutral-200/75 px-2.5 py-2 text-xs text-neutral-700 transition-colors hover:bg-neutral-200"
-            >
-              <BookOpen className="size-4" />
-              Set up conversion tracking
-            </Link>
-          </div>
-        )}
-
-        <AnimatePresence>
-          {showNews && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 10 }}
-              transition={{
-                duration: 0.1,
-                ease: "easeInOut",
-              }}
-            >
-              {newsContent}
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {bottom && <div className="flex flex-col">{bottom}</div>}
-      </div>
+      <AnimatedSizeContainer
+        height
+        className="flex flex-shrink-0 flex-col gap-2 rounded-b-xl"
+      >
+        {bottom}
+        {showNews && newsContent}
+      </AnimatedSizeContainer>
     </div>
   );
 }

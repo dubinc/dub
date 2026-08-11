@@ -1,18 +1,30 @@
 {
+  "extends": "../tsconfig.json",
   "compilerOptions": {
-    "target": "ESNext",
-    "module": "esnext",
-    "moduleResolution": "bundler",
-    "strict": true,
-    "esModuleInterop": true,
-    "skipLibCheck": true,
-    "resolveJsonModule": true,
-    "types": ["node"],
     "baseUrl": "..",
     "paths": {
-      "@/*": ["./*"]
-    }
+      "@/pages/*": [
+        "pages/*"
+      ],
+      "@/styles/*": [
+        "styles/*"
+      ],
+      "@/ui/*": [
+        "ui/*"
+      ],
+      "@/lib/*": [
+        "lib/*"
+      ]
+    },
+    "target": "ES2022",
+    "types": [
+      "node"
+    ]
   },
-  "include": ["./**/*.ts"],
-  "exclude": ["node_modules"]
+  "include": [
+    "./**/*.ts"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
 }
