@@ -6,11 +6,11 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { extractUtmParams } from "@/lib/api/utm/extract-utm-params";
 import { withPartnerProfile } from "@/lib/auth/partner";
 import { prisma } from "@/lib/prisma";
-import { PartnerProfileLinkSchema } from "@/lib/zod/schemas/partner-profile";
 import {
-  createPartnerLinkSchema,
-  INACTIVE_ENROLLMENT_STATUSES,
-} from "@/lib/zod/schemas/partners";
+  createPartnerProfileLinkSchema,
+  PartnerProfileLinkSchema,
+} from "@/lib/zod/schemas/partner-profile";
+import { INACTIVE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
 import { getUTMParamsFromURL } from "@dub/utils";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
@@ -47,9 +47,8 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
 // POST /api/partner-profile/[programId]/links - create a link for a partner
 export const POST = withPartnerProfile(
   async ({ partner, params, req, session }) => {
-    const { url, key, comments } = createPartnerLinkSchema
-      .pick({ url: true, key: true, comments: true })
-      .parse(await parseRequestBody(req));
+    const { url, key, partnerLinkTitle, partnerLinkComments } =
+      createPartnerProfileLinkSchema.parse(await parseRequestBody(req));
 
     const {
       program,
@@ -125,7 +124,8 @@ export const POST = withPartnerProfile(
         tenantId,
         partnerId: partner.id,
         folderId: program.defaultFolderId,
-        comments,
+        partnerLinkTitle,
+        partnerLinkComments,
         trackConversion: true,
       },
       workspace: {

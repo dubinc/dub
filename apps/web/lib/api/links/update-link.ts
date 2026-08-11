@@ -91,6 +91,9 @@ export async function updateLink({
       }),
       title: truncate(title, 120),
       description: truncate(description, 240),
+      partnerLinkTitle: rest.partnerLinkTitle
+        ? truncate(rest.partnerLinkTitle, 120)
+        : rest.partnerLinkTitle,
       image:
         proxy && image && isNotHostedImage(image)
           ? `${R2_URL}/images/${id}_${imageUrlNonce}`
