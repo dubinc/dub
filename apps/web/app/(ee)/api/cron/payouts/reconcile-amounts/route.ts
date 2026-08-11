@@ -7,9 +7,11 @@ import { subMinutes } from "date-fns";
 import { logAndRespond } from "../../utils";
 
 export const dynamic = "force-dynamic";
+export const maxDuration = 60;
 
 const BATCH_SIZE = 500;
 const LOOKBACK_MINUTES = 2;
+const LOCK_TTL_SECONDS = 60;
 
 // Finds recently updated pending payouts whose amount does not match
 // SUM(commission.earnings) and reconciles them (update amount or delete empty payouts).
@@ -18,7 +20,7 @@ const LOOKBACK_MINUTES = 2;
 export const GET = withCron(async () => {
   const response = await withRedisLock({
     key: "lock:payouts:reconcile-amounts",
-    ttlSeconds: 60,
+    ttlSeconds: LOCK_TTL_SECONDS,
     fn: async () => {
       const payouts = await prisma.payout.findMany({
         where: {

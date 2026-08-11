@@ -1,5 +1,6 @@
 import { trackCommissionStatusUpdate } from "@/lib/api/commissions/track-commission-update-activity-log";
 import { createId } from "@/lib/api/create-id";
+import { MUTABLE_PAYOUT_STATUSES } from "@/lib/constants/payouts";
 import { withCron } from "@/lib/cron/with-cron";
 import { prisma } from "@/lib/prisma";
 import { chunk } from "@dub/utils";
@@ -266,16 +267,20 @@ async function aggregateDueCommissionsForPartner({
   // Prisma has a reported MySQL issue where updateMany may drop WHERE predicates
   // during the UPDATE, allowing concurrent workers to claim the same commissions.
   // See: https://github.com/prisma/prisma/issues/28840
+  // Also join Payout so we never attach to a payout that left a mutable status
+  // (e.g. confirmed to processing between prefetch and claim).
   const updatedCommissions = await prisma.$executeRaw`
-    UPDATE Commission
+    UPDATE Commission c
+    INNER JOIN Payout p ON p.id = ${payoutToUse.id}
     SET
-      status = ${CommissionStatus.processed},
-      payoutId = ${payoutToUse.id},
-      updatedAt = NOW()
-    WHERE id IN (${Prisma.join(commissionIds)})
-      AND programId = ${program.id}
-      AND partnerId = ${partnerId}
-      AND status = ${CommissionStatus.pending}
+      c.status = ${CommissionStatus.processed},
+      c.payoutId = ${payoutToUse.id},
+      c.updatedAt = NOW()
+    WHERE c.id IN (${Prisma.join(commissionIds)})
+      AND c.programId = ${program.id}
+      AND c.partnerId = ${partnerId}
+      AND c.status = ${CommissionStatus.pending}
+      AND p.status IN (${Prisma.join(MUTABLE_PAYOUT_STATUSES)})
   `;
 
   if (updatedCommissions === 0) {
@@ -283,7 +288,7 @@ async function aggregateDueCommissionsForPartner({
       `No commissions were updated for partner ${partnerId}. Skipping...`,
     );
 
-    // Another worker won the race — only delete if still empty.
+    // Lost race (claim or payout no longer mutable) — only delete if still empty.
     if (!isReusingPendingPayout) {
       await prisma.payout.deleteMany({
         where: {
@@ -311,15 +316,23 @@ async function aggregateDueCommissionsForPartner({
     },
   });
 
-  await prisma.payout.update({
-    where: {
-      id: payoutToUse.id,
-    },
-    data: {
-      amount: totalEarningsForPayout ?? 0,
-      ...(isReusingPendingPayout ? { periodEnd } : {}),
-    },
-  });
+  // Raw SQL: Prisma updateMany also drops status predicates on MySQL.
+  const updatedPayout = await prisma.$executeRaw`
+    UPDATE Payout
+    SET
+      amount = ${totalEarningsForPayout ?? 0},
+      periodEnd = COALESCE(${isReusingPendingPayout ? periodEnd : null}, periodEnd),
+      updatedAt = NOW()
+    WHERE id = ${payoutToUse.id}
+      AND status IN (${Prisma.join(MUTABLE_PAYOUT_STATUSES)})
+  `;
+
+  if (updatedPayout === 0) {
+    console.warn(
+      `Payout ${payoutToUse.id} is no longer mutable after claim for partner ${partnerId}. Skipping...`,
+    );
+    return false;
+  }
 
   // Only activity-log commissions we actually claimed (handles partial races).
   const claimedCommissions = await prisma.commission.findMany({
