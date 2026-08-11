@@ -18,11 +18,11 @@
 
 import {
   backfillPartnerSearch,
-  createUpstashRedisPartnerSearchIndex,
   getPartnerSearchProviderName,
   reconcilePartnerSearchIndex,
   type PartnerSearchBackfillProgress,
 } from "@/lib/api/partners/search";
+import { createUpstashRedisPartnerSearchIndex } from "@/lib/api/partners/search/providers/upstash-redis";
 import { prisma } from "@/lib/prisma";
 import { parsePositiveInteger } from "@/scripts/utils/parse-cli-number";
 import "dotenv-flow/config";

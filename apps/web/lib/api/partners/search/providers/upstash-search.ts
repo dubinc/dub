@@ -7,13 +7,19 @@ import type {
   PartnerSearchProvider,
 } from "../types";
 import { validatePartnerSearchCandidateLimit } from "../types";
+import { withQueryDeadline, withTransientRetry } from "./resilience";
+import {
+  getEmailNgrams,
+  getQueryNgrams,
+  logPartnerSearchDebug,
+  resolveIndexName,
+} from "./shared";
 
 const DEFAULT_INDEX_NAME = "partner-search-v1";
 const WRITE_BATCH_SIZE = 100;
 const DELETE_BATCH_SIZE = 1_000;
 const WAIT_FOR_INDEXING_TIMEOUT_MS = 30_000;
 const WAIT_FOR_INDEXING_POLL_MS = 100;
-const TRANSIENT_RETRY_ATTEMPTS = 2;
 const QUERY_OPERATION_TIMEOUT_MS = 1_000;
 
 interface UpstashSearchContent extends Record<string, unknown> {
@@ -75,13 +81,13 @@ interface CreateUpstashSearchPartnerSearchProviderOptions {
 }
 
 function getIndexName(indexName?: string): string {
-  // `||` rather than `??`: a blank value has to fall through to the default,
-  // otherwise an empty env var silently targets an index named "".
-  return (
-    indexName?.trim() ||
-    process.env.PARTNER_UPSTASH_SEARCH_INDEX_NAME?.trim() ||
-    process.env.PARTNER_SEARCH_INDEX_NAME?.trim() ||
-    DEFAULT_INDEX_NAME
+  return resolveIndexName(
+    [
+      indexName,
+      process.env.PARTNER_UPSTASH_SEARCH_INDEX_NAME,
+      process.env.PARTNER_SEARCH_INDEX_NAME,
+    ],
+    DEFAULT_INDEX_NAME,
   );
 }
 
@@ -105,39 +111,6 @@ function truncate(value: string | null, maxLength: number): string {
 
 function joinValues(values: string[], maxLength: number): string {
   return truncate(values.join(" "), maxLength);
-}
-
-function getEmailNgrams(email: string | null): string {
-  if (!email) {
-    return "";
-  }
-
-  const normalized = normalizePartnerSearchQuery(email);
-  if (normalized.length < 3) {
-    return normalized;
-  }
-
-  return Array.from(
-    new Set(
-      Array.from({ length: normalized.length - 2 }, (_, index) =>
-        normalized.slice(index, index + 3),
-      ),
-    ),
-  ).join(" ");
-}
-
-function getQueryNgrams(query: string): string | null {
-  if (query.length < 3 || /\s/u.test(query)) {
-    return null;
-  }
-
-  return Array.from(
-    new Set(
-      Array.from({ length: query.length - 2 }, (_, index) =>
-        query.slice(index, index + 3),
-      ),
-    ),
-  ).join(" ");
 }
 
 function serializeUpstashSearchDocument(document: PartnerSearchDocument) {
@@ -182,71 +155,6 @@ function buildUpstashSearchFilter(programId: string): string {
   return `@metadata.programId = ${quoteFilterValue(programId)}`;
 }
 
-function isTransientError(error: unknown): boolean {
-  if (error instanceof TypeError) {
-    return true;
-  }
-
-  const message = error instanceof Error ? error.message : String(error);
-  return /\b(429|500|502|503|504)\b|rate.?limit|timeout|timed out|fetch failed|network|ECONNRESET|ETIMEDOUT/i.test(
-    message,
-  );
-}
-
-function isTimeoutError(error: unknown): boolean {
-  const message = error instanceof Error ? error.message : String(error);
-  return /timeout|timed out|ETIMEDOUT/i.test(message);
-}
-
-async function withTransientRetry<T>(
-  operation: () => Promise<T>,
-  { retryTimeouts = true }: { retryTimeouts?: boolean } = {},
-): Promise<T> {
-  for (let attempt = 1; attempt <= TRANSIENT_RETRY_ATTEMPTS; attempt++) {
-    try {
-      return await operation();
-    } catch (error) {
-      if (
-        attempt === TRANSIENT_RETRY_ATTEMPTS ||
-        !isTransientError(error) ||
-        (!retryTimeouts && isTimeoutError(error))
-      ) {
-        throw error;
-      }
-
-      await new Promise((resolve) =>
-        setTimeout(resolve, 50 * attempt + Math.random() * 25),
-      );
-    }
-  }
-
-  throw new Error("Partner search operation failed.");
-}
-
-async function withQueryDeadline<T>(operation: () => Promise<T>): Promise<T> {
-  let timeoutId: ReturnType<typeof setTimeout> | undefined;
-  const timeout = new Promise<never>((_, reject) => {
-    timeoutId = setTimeout(
-      () =>
-        reject(
-          new Error(
-            `Partner search query timed out after ${QUERY_OPERATION_TIMEOUT_MS}ms.`,
-          ),
-        ),
-      QUERY_OPERATION_TIMEOUT_MS,
-    );
-  });
-
-  try {
-    return await Promise.race([
-      withTransientRetry(operation, { retryTimeouts: false }),
-      timeout,
-    ]);
-  } finally {
-    clearTimeout(timeoutId);
-  }
-}
-
 function mergeSearchResults(
   standardResults: UpstashSearchResult[],
   emailResults: UpstashSearchResult[],
@@ -264,14 +172,6 @@ function mergeSearchResults(
     (left, right) =>
       right.score - left.score || left.id.localeCompare(right.id),
   );
-}
-
-function logPartnerSearchDebug(details: Record<string, unknown>) {
-  if (process.env.PARTNER_SEARCH_DEBUG !== "true") {
-    return;
-  }
-
-  console.log("[Partner Search Debug] Upstash Search", details);
 }
 
 export async function deleteUpstashSearchPartnerSearchIndex({
@@ -315,13 +215,17 @@ export function createUpstashSearchPartnerSearchProvider({
     };
     const queryNgrams = getQueryNgrams(normalizedQuery);
 
-    const [standardResults, rawEmailResults] = await withQueryDeadline(() =>
-      Promise.all([
-        index.search({ ...searchParams, query: normalizedQuery }),
-        queryNgrams
-          ? index.search({ ...searchParams, query: queryNgrams })
-          : Promise.resolve([]),
-      ]),
+    const [standardResults, rawEmailResults] = await withQueryDeadline(
+      () =>
+        Promise.all([
+          index.search({ ...searchParams, query: normalizedQuery }),
+          // Upstash Search takes the n-grams as one query string, unlike Redis
+          // Search which needs each as a separate condition.
+          queryNgrams.length > 0
+            ? index.search({ ...searchParams, query: queryNgrams.join(" ") })
+            : Promise.resolve([]),
+        ]),
+      QUERY_OPERATION_TIMEOUT_MS,
     );
 
     const emailResults = rawEmailResults.filter(({ content }) =>
@@ -343,7 +247,7 @@ export function createUpstashSearchPartnerSearchProvider({
         score,
       }));
 
-      logPartnerSearchDebug({
+      logPartnerSearchDebug("Upstash Search", {
         indexName: resolvedIndexName,
         operation: "searchCandidates",
         query: { programId, query, limit },

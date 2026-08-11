@@ -1,8 +1,8 @@
+import { type PartnerSearchDocument } from "@/lib/api/partners/search";
 import {
   createUpstashSearchPartnerSearchProvider,
   deleteUpstashSearchPartnerSearchIndex,
-  type PartnerSearchDocument,
-} from "@/lib/api/partners/search";
+} from "@/lib/api/partners/search/providers/upstash-search";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const document: PartnerSearchDocument = {

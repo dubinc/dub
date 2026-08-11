@@ -1,7 +1,5 @@
-import {
-  createUpstashRedisPartnerSearchIndex,
-  getPartnerSearchProviderName,
-} from "@/lib/api/partners/search";
+import { getPartnerSearchProviderName } from "@/lib/api/partners/search";
+import { createUpstashRedisPartnerSearchIndex } from "@/lib/api/partners/search/providers/upstash-redis";
 import "dotenv-flow/config";
 
 async function main() {

@@ -3,8 +3,6 @@ export * from "./build-search-query";
 export * from "./find-candidates";
 export * from "./order-search-results";
 export * from "./provider";
-export * from "./providers/upstash-redis";
-export * from "./providers/upstash-search";
 export * from "./reconcile";
 export * from "./searchable-values";
 export * from "./serialize-document";

@@ -1,10 +1,12 @@
 import {
-  createUpstashRedisPartnerSearchIndex,
-  createUpstashRedisPartnerSearchProvider,
   PARTNER_SEARCH_CANDIDATE_LIMIT,
   type PartnerSearchDocument,
-  upstashPartnerSearchSchema,
 } from "@/lib/api/partners/search";
+import {
+  createUpstashRedisPartnerSearchIndex,
+  createUpstashRedisPartnerSearchProvider,
+  upstashPartnerSearchSchema,
+} from "@/lib/api/partners/search/providers/upstash-redis";
 import type { Redis } from "@upstash/redis";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 

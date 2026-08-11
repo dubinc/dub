@@ -15,9 +15,15 @@ import type {
   PartnerSearchProvider,
 } from "../types";
 import { validatePartnerSearchCandidateLimit } from "../types";
+import { withQueryDeadline, withTransientRetry } from "./resilience";
+import {
+  getEmailNgrams,
+  getQueryNgrams,
+  logPartnerSearchDebug,
+  resolveIndexName,
+} from "./shared";
 
 const DEFAULT_INDEX_NAME = "partner-search-v1";
-const TRANSIENT_RETRY_ATTEMPTS = 2;
 // Keep the full query operation within the one-second latency target while
 // leaving a small window to retry failures that return quickly
 const QUERY_REQUEST_TIMEOUT_MS = 900;
@@ -49,21 +55,10 @@ interface CreateUpstashRedisPartnerSearchProviderOptions {
   indexName?: string;
 }
 
-function logPartnerSearchDebug(details: Record<string, unknown>) {
-  if (process.env.PARTNER_SEARCH_DEBUG !== "true") {
-    return;
-  }
-
-  console.log("[Partner Search Debug] Upstash search", details);
-}
-
 function getIndexName(indexName?: string): string {
-  // `||` rather than `??`: a blank value has to fall through to the default,
-  // otherwise an empty env var silently targets an index named "".
-  return (
-    indexName?.trim() ||
-    process.env.PARTNER_SEARCH_INDEX_NAME?.trim() ||
-    DEFAULT_INDEX_NAME
+  return resolveIndexName(
+    [indexName, process.env.PARTNER_SEARCH_INDEX_NAME],
+    DEFAULT_INDEX_NAME,
   );
 }
 
@@ -92,40 +87,6 @@ function createRedisClient(requestTimeoutMs: number): Redis {
     retry: { retries: 0 },
     signal: () => AbortSignal.timeout(requestTimeoutMs),
   });
-}
-
-function getEmailNgrams(email: string | null): string {
-  if (!email) {
-    return "";
-  }
-
-  const normalized = normalizePartnerSearchQuery(email);
-  if (normalized.length < 3) {
-    return normalized;
-  }
-
-  // Three-character tokens support partial email matches without a leading-wildcard regex query
-  return Array.from(
-    new Set(
-      Array.from({ length: normalized.length - 2 }, (_, index) =>
-        normalized.slice(index, index + 3),
-      ),
-    ),
-  ).join(" ");
-}
-
-function getQueryNgrams(query: string): string[] {
-  if (query.length < 3 || /\s/u.test(query)) {
-    return [];
-  }
-
-  return Array.from(
-    new Set(
-      Array.from({ length: query.length - 2 }, (_, index) =>
-        query.slice(index, index + 3),
-      ),
-    ),
-  );
 }
 
 function serializeUpstashDocument(
@@ -180,73 +141,6 @@ function buildUpstashFilter({
       }),
     ),
   } as UpstashPartnerSearchFilter;
-}
-
-function isTransientError(error: unknown): boolean {
-  if (error instanceof TypeError) {
-    return true;
-  }
-
-  const message = error instanceof Error ? error.message : String(error);
-  return /\b(429|500|502|503|504)\b|rate.?limit|timeout|timed out|fetch failed|network|ECONNRESET|ETIMEDOUT/i.test(
-    message,
-  );
-}
-
-function isTimeoutError(error: unknown): boolean {
-  const message = error instanceof Error ? error.message : String(error);
-  return /timeout|timed out|ETIMEDOUT/i.test(message);
-}
-
-async function withTransientRetry<T>(
-  operation: () => Promise<T>,
-  { retryTimeouts = true }: { retryTimeouts?: boolean } = {},
-): Promise<T> {
-  for (let attempt = 1; attempt <= TRANSIENT_RETRY_ATTEMPTS; attempt++) {
-    try {
-      return await operation();
-    } catch (error) {
-      if (
-        attempt === TRANSIENT_RETRY_ATTEMPTS ||
-        !isTransientError(error) ||
-        (!retryTimeouts && isTimeoutError(error))
-      ) {
-        throw error;
-      }
-
-      await new Promise((resolve) =>
-        setTimeout(resolve, 50 * attempt + Math.random() * 25),
-      );
-    }
-  }
-
-  throw new Error("Partner search operation failed.");
-}
-
-async function withQueryDeadline<T>(operation: () => Promise<T>): Promise<T> {
-  let timeoutId: ReturnType<typeof setTimeout> | undefined;
-  const timeout = new Promise<never>((_, reject) => {
-    timeoutId = setTimeout(
-      () =>
-        reject(
-          new Error(
-            `Partner search query timed out after ${QUERY_OPERATION_TIMEOUT_MS}ms.`,
-          ),
-        ),
-      QUERY_OPERATION_TIMEOUT_MS,
-    );
-  });
-
-  try {
-    // A request timeout consumes nearly the full SLA budget, so only retry
-    // transient failures such as rate limits and 503s that return quickly
-    return await Promise.race([
-      withTransientRetry(operation, { retryTimeouts: false }),
-      timeout,
-    ]);
-  } finally {
-    clearTimeout(timeoutId);
-  }
 }
 
 function getSchemaSignature(schema: Record<string, Record<string, unknown>>) {
@@ -388,15 +282,16 @@ export function createUpstashRedisPartnerSearchProvider({
   }: PartnerSearchCandidateQuery) {
     validatePartnerSearchCandidateLimit(limit);
     const filter = buildUpstashFilter({ programId, query });
-    const results = await withQueryDeadline(() =>
-      queryIndex.query({ filter, limit, select: {} }),
+    const results = await withQueryDeadline(
+      () => queryIndex.query({ filter, limit, select: {} }),
+      QUERY_OPERATION_TIMEOUT_MS,
     );
     const hits = results.map(({ key, score }) => ({
       id: key.slice(getDocumentPrefix(resolvedIndexName).length),
       score,
     }));
 
-    logPartnerSearchDebug({
+    logPartnerSearchDebug("Upstash Redis Search", {
       indexName: resolvedIndexName,
       operation: "searchCandidates",
       query: { programId, query, limit },

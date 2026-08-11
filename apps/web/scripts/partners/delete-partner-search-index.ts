@@ -1,7 +1,5 @@
-import {
-  deleteUpstashSearchPartnerSearchIndex,
-  getPartnerSearchProviderName,
-} from "@/lib/api/partners/search";
+import { getPartnerSearchProviderName } from "@/lib/api/partners/search";
+import { deleteUpstashSearchPartnerSearchIndex } from "@/lib/api/partners/search/providers/upstash-search";
 import { chunk } from "@dub/utils";
 import { Redis } from "@upstash/redis";
 import "dotenv-flow/config";
