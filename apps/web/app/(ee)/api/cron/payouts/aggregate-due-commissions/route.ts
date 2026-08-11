@@ -12,24 +12,27 @@ export const dynamic = "force-dynamic";
 // This cron job aggregates due commissions (pending commissions that are past the partner group's holding period) into payouts.
 // Runs once every hour (0 * * * *) + calls itself recursively to look through all pending commissions available.
 // GET /api/cron/payouts/aggregate-due-commissions
-export const GET = withCron(async ({ rawBody }) => {
-  const programsWithDueCommissions = await prisma.commission.groupBy({
-    by: ["programId"],
+export const GET = withCron(async () => {
+  const programsWithPendingCommissions = await prisma.program.findMany({
     where: {
-      status: CommissionStatus.pending,
+      commissions: {
+        some: {
+          status: CommissionStatus.pending,
+        },
+      },
     },
-    _count: {
+    select: {
       id: true,
     },
   });
 
-  const programIds = programsWithDueCommissions.map((p) => p.programId);
+  const programIds = programsWithPendingCommissions.map((p) => p.id);
 
   if (programIds.length === 0) {
     return logAndRespond("No programs with due commissions found. Skipping...");
   }
 
-  console.table(programsWithDueCommissions);
+  console.log(`Found ${programIds.length} programs with pending commissions.`);
 
   const programIdChunks = chunk(programIds, 50);
 
@@ -45,8 +48,6 @@ export const GET = withCron(async ({ rawBody }) => {
         flowControl: {
           key: `aggregate-due-commissions-${programId}`,
           parallelism: 1,
-          rate: 5,
-          period: "1s",
         },
       }));
 
