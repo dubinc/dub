@@ -2,6 +2,7 @@
 
 import { checkAccountExistsAction } from "@/lib/actions/check-account-exists";
 import { authClient } from "@/lib/better-auth/auth-client";
+import { getValidInternalRedirectPath } from "@/lib/middleware/utils/is-valid-internal-redirect";
 import { Button, Input, useCurrentSubdomain, useMediaQuery } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
@@ -23,7 +24,11 @@ export const EmailSignIn = ({ next }: { next?: string }) => {
   const { subdomain } = useCurrentSubdomain();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const finalNext = next ?? searchParams?.get("next");
+  const finalNext =
+    getValidInternalRedirectPath({
+      redirectPath: next ?? searchParams?.get("next"),
+      currentUrl: window.location.href,
+    }) || "/workspaces";
   const { isMobile } = useMediaQuery();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -110,13 +115,13 @@ export const EmailSignIn = ({ next }: { next?: string }) => {
               return;
             }
 
-            router.push(finalNext || "/workspaces");
+            router.push(finalNext);
             return;
           }
 
           const { error } = await authClient.signIn.magicLink({
             email,
-            callbackURL: finalNext || "/workspaces",
+            callbackURL: finalNext,
           });
 
           if (error) {

@@ -5,6 +5,7 @@ import { getValidInternalRedirectPath } from "@/lib/middleware/utils/is-valid-in
 import { Button, Github, Google } from "@dub/ui";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 export const SignUpOAuth = ({
   methods,
@@ -33,12 +34,17 @@ export const SignUpOAuth = ({
         <Button
           variant="secondary"
           text="Continue with Google"
-          onClick={() => {
+          onClick={async () => {
             setClickedGoogle(true);
-            authClient.signIn.social({
+            const { error } = await authClient.signIn.social({
               provider: "google",
               ...(next && next.length > 0 ? { callbackURL: next } : {}),
             });
+
+            if (error) {
+              toast.error(error.message || "Failed to start Google sign in.");
+              setClickedGoogle(false);
+            }
           }}
           loading={clickedGoogle}
           icon={<Google className="h-4 w-4" />}
@@ -48,12 +54,17 @@ export const SignUpOAuth = ({
         <Button
           variant="secondary"
           text="Continue with GitHub"
-          onClick={() => {
+          onClick={async () => {
             setClickedGithub(true);
-            authClient.signIn.social({
+            const { error } = await authClient.signIn.social({
               provider: "github",
               ...(next && next.length > 0 ? { callbackURL: next } : {}),
             });
+
+            if (error) {
+              toast.error(error.message || "Failed to start GitHub sign in.");
+              setClickedGithub(false);
+            }
           }}
           loading={clickedGithub}
           icon={<Github className="h-4 w-4" />}

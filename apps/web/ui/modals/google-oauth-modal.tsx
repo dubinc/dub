@@ -8,6 +8,7 @@ import {
   useMemo,
   useState,
 } from "react";
+import { toast } from "sonner";
 
 function GoogleOauthModal({
   showGoogleOauthModal,
@@ -41,12 +42,17 @@ function GoogleOauthModal({
       <div className="flex flex-col space-y-3 bg-neutral-50 px-4 py-8 text-left sm:px-16">
         <Button
           text="Connect Google Account"
-          onClick={() => {
+          onClick={async () => {
             setClickedGoogle(true);
-            authClient.linkSocial({
+            const { error } = await authClient.linkSocial({
               provider: "google",
               callbackURL: "/account/settings?google=true",
             });
+
+            if (error) {
+              toast.error(error.message || "Failed to connect Google account.");
+              setClickedGoogle(false);
+            }
           }}
           loading={clickedGoogle}
           icon={<Google className="h-4 w-4" />}

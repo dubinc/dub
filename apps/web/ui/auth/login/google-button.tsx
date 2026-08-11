@@ -3,6 +3,7 @@ import { Button } from "@dub/ui";
 import { Google } from "@dub/ui/icons";
 import { useSearchParams } from "next/navigation";
 import { useContext } from "react";
+import { toast } from "sonner";
 import { LoginFormContext } from "./login-form";
 
 export function GoogleButton({ next }: { next?: string }) {
@@ -15,14 +16,19 @@ export function GoogleButton({ next }: { next?: string }) {
     <Button
       text="Continue with Google"
       variant="secondary"
-      onClick={() => {
+      onClick={async () => {
         setClickedMethod("google");
-        authClient.signIn.social({
+        const { error } = await authClient.signIn.social({
           provider: "google",
           ...(finalNext && finalNext.length > 0
             ? { callbackURL: finalNext }
             : {}),
         });
+
+        if (error) {
+          toast.error(error.message || "Failed to start Google sign in.");
+          setClickedMethod(undefined);
+        }
       }}
       loading={clickedMethod === "google"}
       disabled={clickedMethod && clickedMethod !== "google"}
