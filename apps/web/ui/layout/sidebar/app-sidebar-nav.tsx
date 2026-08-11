@@ -628,7 +628,7 @@ export function AppSidebarNav({
 
   const { canTrackConversions } = getPlanCapabilities(plan);
 
-  const setDefaultProductButton =
+  const AppBottomContent =
     canSetDefaultProduct &&
     (currentArea === "program" || currentArea === "links") &&
     (defaultProduct ?? "links") !== currentArea ? (
@@ -682,7 +682,7 @@ export function AppSidebarNav({
         ))
       }
       switcher={<WorkspaceDropdown />}
-      bottom={setDefaultProductButton}
+      bottom={<div className="px-3 pb-2">{AppBottomContent}</div>}
     />
   );
 }
