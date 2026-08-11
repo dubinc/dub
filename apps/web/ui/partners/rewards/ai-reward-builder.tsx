@@ -94,7 +94,7 @@ export function buildRewardFormValuesFromDraft({
       id: uuid(),
       operator: modifier.operator ?? "AND",
       conditions: modifier.conditions,
-      type: modifier.type,
+      type: modifierType,
       amountInCents:
         modifier.amount !== undefined && modifierType === "flat"
           ? modifier.amount
@@ -117,7 +117,10 @@ export function useAIRewardBuilder({
 }: {
   event: Exclude<EventType, "referral">;
   getValues: () => Record<string, unknown>;
-  reset: (values: Record<string, unknown>) => void;
+  reset: (
+    values: Record<string, unknown>,
+    options?: { keepDefaultValues?: boolean },
+  ) => void;
 }) {
   const { id: workspaceId, slug: workspaceSlug, plan } = useWorkspace();
   const { canUseAdvancedRewardLogic } = getPlanCapabilities(plan);
@@ -154,7 +157,7 @@ export function useAIRewardBuilder({
         current: getValues(),
       });
       if (!next) return;
-      reset(next);
+      reset(next, { keepDefaultValues: true });
       setHasPreviewContent(true);
     },
     [event, getValues, reset],
@@ -782,6 +785,7 @@ export function AIRewardPreviewFrame({
           >
             <div
               className={cn(chromeMounted && "pointer-events-none select-none")}
+              inert={chromeMounted || undefined}
             >
               {children}
             </div>

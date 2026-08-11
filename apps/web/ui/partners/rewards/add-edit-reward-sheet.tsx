@@ -325,7 +325,7 @@ function RewardSheetContent({
   const aiBuilder = useAIRewardBuilder({
     event: aiEvent,
     getValues: () => getValues() as Record<string, unknown>,
-    reset: (values) => reset(values as FormData),
+    reset: (values, options) => reset(values as FormData, options),
   });
 
   const spendLimitEnabled =

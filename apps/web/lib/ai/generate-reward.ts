@@ -5,6 +5,8 @@ import { getSession } from "@/lib/auth";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { prisma } from "@/lib/prisma";
 import { PlanProps } from "@/lib/types";
+import { assertRateLimit } from "@/lib/upstash/assert-rate-limit";
+import { RATELIMIT_POLICIES } from "@/lib/upstash/ratelimit-policies";
 import { REWARD_CONDITIONS } from "@/lib/zod/schemas/rewards";
 import { anthropic } from "@ai-sdk/anthropic";
 import { createStreamableValue } from "@ai-sdk/rsc";
@@ -57,15 +59,19 @@ ${entities.join("\n")}`;
 }
 
 export async function generateReward(input: z.infer<typeof inputSchema>) {
-  const parsed = inputSchema.parse(input);
-  const { event, prompt } = parsed;
+  const parsed = inputSchema.safeParse(input);
+  if (!parsed.success) {
+    throw new Error("Invalid request.");
+  }
+
+  const { event, prompt } = parsed.data;
 
   const session = await getSession();
   if (!session?.user.id) {
     throw new Error("Unauthorized: Login required.");
   }
 
-  const workspaceId = normalizeWorkspaceId(parsed.workspaceId);
+  const workspaceId = normalizeWorkspaceId(parsed.data.workspaceId);
 
   const workspace = await prisma.project.findUnique({
     where: { id: workspaceId },
@@ -96,9 +102,16 @@ export async function generateReward(input: z.infer<typeof inputSchema>) {
     );
   }
 
+  await assertRateLimit({
+    policy: RATELIMIT_POLICIES.aiRewardGenerate,
+    identifier: [session.user.id, workspaceId],
+  });
+
   const stream = createStreamableValue();
 
   (async () => {
+    let failed = false;
+
     try {
       const { partialOutputStream } = streamText({
         model: anthropic("claude-sonnet-4-6"),
@@ -106,6 +119,11 @@ export async function generateReward(input: z.infer<typeof inputSchema>) {
         system: buildSystemPrompt(event),
         prompt,
         temperature: 0.3,
+        maxOutputTokens: 2000,
+        onError: ({ error }) => {
+          failed = true;
+          stream.error(error);
+        },
       });
 
       for await (const partialObject of partialOutputStream) {
@@ -114,9 +132,13 @@ export async function generateReward(input: z.infer<typeof inputSchema>) {
         }
       }
 
-      stream.done();
+      if (!failed) {
+        stream.done();
+      }
     } catch (error) {
-      stream.error(error);
+      if (!failed) {
+        stream.error(error);
+      }
     }
   })();
 
