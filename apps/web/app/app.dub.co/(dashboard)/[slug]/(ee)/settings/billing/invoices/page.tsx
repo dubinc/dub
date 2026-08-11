@@ -1,7 +1,7 @@
 "use client";
 
-import { INVOICE_PAYMENT_METHODS } from "@/lib/constants/payouts";
 import { formatCommissionDescriptionTooltip } from "@/lib/commissions/format-commission-description-tooltip";
+import { INVOICE_PAYMENT_METHODS } from "@/lib/constants/payouts";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { InvoiceProps } from "@/lib/types";
 import { PageContent } from "@/ui/layout/page-content";
@@ -9,6 +9,7 @@ import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import {
+  Button,
   buttonVariants,
   ChevronRight,
   Receipt2,
@@ -280,20 +281,14 @@ const InvoiceCard = ({
         )}
 
         <div className="flex items-center justify-end sm:col-span-1 sm:justify-end">
-          {pdfUrl ? (
-            <a
-              href={pdfUrl}
-              target="_blank"
-              className={cn(
-                buttonVariants({ variant: "secondary" }),
-                "flex h-9 items-center justify-center rounded-md border px-3 text-sm",
-              )}
-            >
-              <span>View invoice</span>
-            </a>
-          ) : (
-            <div />
-          )}
+          <a href={pdfUrl ?? "#"} target="_blank">
+            <Button
+              variant="secondary"
+              text="View invoice"
+              disabledTooltip={!pdfUrl ? "No invoice available" : undefined}
+              className="h-9 px-3"
+            />
+          </a>
         </div>
       </div>
     </div>
