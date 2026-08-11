@@ -54,19 +54,14 @@ export const throwIfAIUsageExceeded = (workspace: WorkspaceWithUsers) => {
 export async function reserveAIUsageCredit(
   workspace: Pick<WorkspaceWithUsers, "id" | "aiLimit" | "plan" | "planPeriod">,
 ) {
-  const { count } = await prisma.project.updateMany({
-    where: {
-      id: normalizeWorkspaceId(workspace.id),
-      aiUsage: {
-        lt: workspace.aiLimit,
-      },
-    },
-    data: {
-      aiUsage: {
-        increment: 1,
-      },
-    },
-  });
+  const workspaceId = normalizeWorkspaceId(workspace.id);
+
+  const count = await prisma.$executeRaw`
+    UPDATE Project
+    SET aiUsage = aiUsage + 1
+    WHERE id = ${workspaceId}
+      AND aiUsage < aiLimit
+  `;
 
   if (count === 0) {
     throw new DubApiError({
