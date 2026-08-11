@@ -14,8 +14,8 @@ const LOOKBACK_MINUTES = 2;
 const LOCK_TTL_SECONDS = 60;
 
 // Finds recently updated pending payouts whose amount does not match
-// SUM(commission.earnings) and reconciles them (update amount or delete empty payouts).
-// Runs every minute.
+// SUM(commission.earnings) and reconciles them (update amount or delete empty payouts)
+// Runs every minute (cron expression: * * * * *)
 // GET /api/cron/payouts/reconcile-amounts
 export const GET = withCron(async () => {
   const response = await withRedisLock({
@@ -24,10 +24,10 @@ export const GET = withCron(async () => {
     fn: async () => {
       const payouts = await prisma.payout.findMany({
         where: {
-          status: PayoutStatus.pending,
           updatedAt: {
             gte: subMinutes(new Date(), LOOKBACK_MINUTES),
           },
+          status: PayoutStatus.pending,
         },
         select: {
           id: true,
