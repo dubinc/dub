@@ -951,6 +951,8 @@ function RewardSheetContent({
                       href={`/${workspaceSlug}/upgrade?plan=advanced&showAdvancedUpsellModal=true`}
                       target="_blank"
                     />
+                  ) : selectedEvent !== "referral" && aiBuilder.isReviewing ? (
+                    "Accept or discard the AI preview before saving."
                   ) : undefined
                 }
               />

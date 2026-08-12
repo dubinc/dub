@@ -144,16 +144,23 @@ export async function generateReward(input: z.infer<typeof inputSchema>) {
         },
       });
 
+      let lastPartial: Partial<AIRewardDraft> | null = null;
       for await (const partialObject of partialOutputStream) {
         if (failed) return;
         if (partialObject) {
-          stream.update(partialObject as Partial<AIRewardDraft>);
+          lastPartial = partialObject as Partial<AIRewardDraft>;
+          stream.update(lastPartial);
         }
       }
 
-      if (!failed) {
-        stream.done();
+      if (failed) return;
+
+      if (!lastPartial || !aiRewardSchema.safeParse(lastPartial).success) {
+        await fail();
+        return;
       }
+
+      stream.done();
     } catch {
       await fail();
     }

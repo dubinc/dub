@@ -37,10 +37,12 @@ function buildRewardFormValuesFromDraft({
   draft,
   event,
   current,
+  finalize = false,
 }: {
   draft: AIRewardDraft | Partial<AIRewardDraft>;
   event: Exclude<EventType, "referral">;
   current: Record<string, unknown>;
+  finalize?: boolean;
 }): Record<string, unknown> | null {
   if (draft.type == null || draft.amount == null) return null;
 
@@ -73,8 +75,10 @@ function buildRewardFormValuesFromDraft({
 
   const modifiers = draft.modifiers?.filter((m) => m.conditions?.length);
   if (!modifiers?.length) {
-    // Treat omitted modifiers as a clear so prior form conditions do not stick.
-    next.modifiers = undefined;
+    // Only clear stale conditions on the final draft so partial streams do not wipe them.
+    if (finalize) {
+      next.modifiers = undefined;
+    }
     return next;
   }
 
@@ -170,11 +174,15 @@ export function useAIRewardBuilder({
   }, [getValues]);
 
   const applyDraft = useCallback(
-    (draft: AIRewardDraft | Partial<AIRewardDraft>) => {
+    (
+      draft: AIRewardDraft | Partial<AIRewardDraft>,
+      finalize: boolean = false,
+    ) => {
       const next = buildRewardFormValuesFromDraft({
         draft,
         event,
         current: getValues(),
+        finalize,
       });
       if (!next) return;
       reset(next, { keepDefaultValues: true });
@@ -223,7 +231,7 @@ export function useAIRewardBuilder({
       presetTimeoutRef.current = window.setTimeout(() => {
         presetTimeoutRef.current = null;
         if (generationId !== generationIdRef.current) return;
-        applyDraft(draft);
+        applyDraft(draft, true);
         setPhase("review");
         streamingRef.current = false;
       }, 850);
@@ -263,7 +271,7 @@ export function useAIRewardBuilder({
         if (generationId !== generationIdRef.current) return;
         if (partialObject) {
           lastPartial = partialObject;
-          applyDraft(partialObject);
+          applyDraft(partialObject, false);
         }
       }
 
@@ -282,7 +290,7 @@ export function useAIRewardBuilder({
         return;
       }
 
-      applyDraft(parsed.data);
+      applyDraft(parsed.data, true);
       setPhase("review");
       void mutateWorkspace();
     } catch (err) {

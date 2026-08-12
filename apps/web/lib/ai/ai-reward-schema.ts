@@ -87,9 +87,9 @@ export const aiRewardSchema = z
       .number()
       .int()
       .nonnegative()
-      .nullable()
+      .nullish()
       .describe(
-        "Base duration in months for sale rewards. null = customer's lifetime. Click/lead must be 0.",
+        "Base duration in months for sale rewards. null = customer's lifetime. Click/lead must be 0. Omit when not specified.",
       ),
     modifiers: z
       .array(aiRewardModifierSchema)
