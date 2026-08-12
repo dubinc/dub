@@ -393,22 +393,6 @@ export function AIRewardInput({
     selectPreset,
   } = builder;
 
-  const clearBlurTimeout = () => {
-    if (blurTimeoutRef.current != null) {
-      window.clearTimeout(blurTimeoutRef.current);
-      blurTimeoutRef.current = null;
-    }
-  };
-
-  useEffect(() => {
-    if (builder.isReviewing) {
-      clearBlurTimeout();
-      return;
-    }
-    clearBlurTimeout();
-    setFocused(false);
-  }, [builder.isReviewing]);
-
   return (
     <div className="relative">
       <AnimatePresence initial={false} mode="popLayout">
@@ -439,18 +423,10 @@ export function AIRewardInput({
             <div
               className="border-border-subtle rounded-xl border bg-white text-sm shadow-sm"
               onFocus={() => {
-                clearBlurTimeout();
                 setFocused(true);
               }}
-              onBlur={(e) => {
-                const next = e.relatedTarget;
-                if (next instanceof Node && e.currentTarget.contains(next)) {
-                  return;
-                }
-                clearBlurTimeout();
-                blurTimeoutRef.current = window.setTimeout(() => {
-                  setFocused(false);
-                }, 150);
+              onBlur={() => {
+                setFocused(false);
               }}
             >
               <div className="flex items-start gap-2.5 p-2.5">
@@ -616,10 +592,10 @@ function CreatingStatus() {
         ))}
       </div>
       <span
-        className="inline-flex text-[14px] font-medium leading-none text-neutral-500"
+        className="inline-flex text-sm font-medium leading-none text-neutral-500"
         aria-hidden
       >
-        {"Creating...".split("").map((char, i) => (
+        {"Generating...".split("").map((char, i) => (
           <span
             key={`${char}-${i}`}
             className="ai-thinking-pulse"
@@ -789,7 +765,7 @@ export function AIRewardPreviewFrame({
         {chromeMounted && (
           <div
             className={cn(
-              "flex shrink-0 items-center gap-2 pb-1.5 pl-2 pr-[6px] pt-0.5",
+              "flex h-9 shrink-0 items-center gap-2 pb-1.5 pl-2 pr-[6px] pt-0.5",
               isCreating ? "justify-center" : "justify-between",
               !shouldReduceMotion &&
                 "transition-[opacity,transform] will-change-[opacity,transform]",
@@ -803,8 +779,8 @@ export function AIRewardPreviewFrame({
               <CreatingStatus />
             ) : (
               <>
-                <span className="text-content-emphasis text-[14px] font-medium leading-none">
-                  Reward preview
+                <span className="text-content-emphasis text-sm font-medium leading-none">
+                  Generated reward
                 </span>
                 {phase !== "error" && (
                   <div className="flex items-center gap-1.5">
