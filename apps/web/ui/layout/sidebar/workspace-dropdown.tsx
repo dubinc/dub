@@ -7,20 +7,13 @@ import useWorkspaces from "@/lib/swr/use-workspaces";
 import { PlanProps, WorkspaceProps } from "@/lib/types";
 import { ModalContext } from "@/ui/modals/modal-provider";
 import { getUserAvatarUrl } from "@/ui/users/user-avatar";
-import { BlurImage, Popover, useScrollProgress } from "@dub/ui";
+import { BlurImage, Popover, ScrollContainer } from "@dub/ui";
 import { Check2, Gear, Plus, UserPlus } from "@dub/ui/icons";
 import { cn, isLegacyBusinessPlan, pluralize } from "@dub/utils";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
-import {
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { useCallback, useContext, useEffect, useMemo, useState } from "react";
 
 export function WorkspaceDropdown() {
   const { workspaces } = useWorkspaces();
@@ -142,9 +135,6 @@ function WorkspaceList({
   };
   const pathname = usePathname();
 
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const { scrollProgress, updateScrollProgress } = useScrollProgress(scrollRef);
-
   const { users } = useWorkspaceUsers();
   const membersCount = users?.filter((user) => !user.isMachine).length ?? 0;
 
@@ -171,74 +161,70 @@ function WorkspaceList({
       : selected.slug;
 
   return (
-    <div className="relative w-full">
-      <div
-        ref={scrollRef}
-        onScroll={updateScrollProgress}
-        className="w-xs max-h-84 relative w-full overflow-auto rounded-xl bg-white text-base sm:w-72 sm:text-sm"
-      >
-        {/* Current workspace section */}
-        <div className="flex flex-col gap-2.5 border-b border-neutral-200 px-3 pb-3 sm:p-3">
-          <div className="flex items-center gap-x-2.5">
-            <BlurImage
-              src={selected.image}
-              width={28}
-              height={28}
-              alt={selected.name}
-              className="size-9 shrink-0 overflow-hidden rounded-full sm:size-8"
-              draggable={false}
-            />
-            <div className="min-w-0">
-              <div className="truncate text-base font-medium leading-5 text-neutral-900 sm:text-sm">
-                {selected.name}
-              </div>
-              {selected.slug && (
-                <div
-                  className={cn(
-                    "truncate text-sm capitalize leading-tight sm:text-xs",
-                    getPlanColor(selected.plan),
-                  )}
-                >
-                  {selected.plan}
-                  {membersCount > 0
-                    ? ` · ${membersCount} ${pluralize("member", membersCount)}`
-                    : ""}
-                </div>
-              )}
+    <div className="w-xs relative w-full rounded-xl bg-white text-base sm:w-72 sm:text-sm">
+      {/* Current workspace section */}
+      <div className="flex flex-col gap-2.5 border-b border-neutral-200 px-3 pb-3 sm:p-3">
+        <div className="flex items-center gap-x-2.5">
+          <BlurImage
+            src={selected.image}
+            width={28}
+            height={28}
+            alt={selected.name}
+            className="size-9 shrink-0 overflow-hidden rounded-full sm:size-8"
+            draggable={false}
+          />
+          <div className="min-w-0">
+            <div className="truncate text-base font-medium leading-5 text-neutral-900 sm:text-sm">
+              {selected.name}
             </div>
-          </div>
-
-          {/* Settings and Invite members options */}
-          <div className="flex flex-row gap-1">
-            <Link
-              href={`/${selected.slug ? selected.slug : "account"}/settings`}
-              className="text-content-emphasis flex w-full items-center justify-center gap-x-2 rounded-lg border border-neutral-200 px-2 py-1 outline-none transition-all duration-75 hover:bg-neutral-100/50 focus-visible:ring-2 focus-visible:ring-black/50 active:bg-neutral-200/80"
-              onClick={() => setOpenPopover(false)}
-            >
-              <Gear className="text-content-emphasis size-4" />
-              <span className="block truncate text-sm">Settings</span>
-            </Link>
             {selected.slug && (
-              <Link
-                href={`/${selected.slug}/settings/people`}
-                className="text-content-emphasis flex w-full items-center justify-center gap-x-2 rounded-lg border border-neutral-200 px-2 py-1 outline-none transition-all duration-75 hover:bg-neutral-100/50 focus-visible:ring-2 focus-visible:ring-black/50 active:bg-neutral-200/80"
-                onClick={() => setOpenPopover(false)}
+              <div
+                className={cn(
+                  "truncate text-sm capitalize leading-tight sm:text-xs",
+                  getPlanColor(selected.plan),
+                )}
               >
-                <UserPlus className="text-content-emphasis size-4" />
-                <span className="block truncate text-sm">Invite</span>
-              </Link>
+                {selected.plan}
+                {membersCount > 0
+                  ? ` · ${membersCount} ${pluralize("member", membersCount)}`
+                  : ""}
+              </div>
             )}
           </div>
-
-          <WorkspaceEnvironmentSwitcher
-            href={href}
-            onNavigate={() => setOpenPopover(false)}
-            workspaces={workspaces}
-            selectedWorkspace={selected}
-          />
         </div>
 
-        {/* Workspaces section */}
+        {/* Settings and Invite members options */}
+        <div className="flex flex-row gap-1">
+          <Link
+            href={`/${selected.slug ? selected.slug : "account"}/settings`}
+            className="flex items-center justify-start gap-x-2 rounded-lg border border-neutral-200 px-2 py-1 text-neutral-700 outline-none transition-all duration-75 hover:bg-neutral-100/50 focus-visible:ring-2 focus-visible:ring-black/50 active:bg-neutral-200/80"
+            onClick={() => setOpenPopover(false)}
+          >
+            <Gear className="size-4 text-neutral-800" />
+            <span className="block truncate text-sm">Settings</span>
+          </Link>
+          {selected.slug && (
+            <Link
+              href={`/${selected.slug}/settings/people`}
+              className="flex items-center justify-start gap-x-2 rounded-lg border border-neutral-200 px-2 py-1 text-neutral-700 outline-none transition-all duration-75 hover:bg-neutral-100/50 focus-visible:ring-2 focus-visible:ring-black/50 active:bg-neutral-200/80"
+              onClick={() => setOpenPopover(false)}
+            >
+              <UserPlus className="size-4 text-neutral-800" />
+              <span className="block truncate text-sm">Invite members</span>
+            </Link>
+          )}
+        </div>
+
+        <WorkspaceEnvironmentSwitcher
+          href={href}
+          onNavigate={() => setOpenPopover(false)}
+          workspaces={workspaces}
+          selectedWorkspace={selected}
+        />
+      </div>
+
+      {/* Workspaces section */}
+      <ScrollContainer className="max-h-[min(260px,calc(100vh-300px))]">
         <div className="p-1">
           <p className="px-2 py-2 text-xs font-medium text-neutral-500">
             Workspaces
@@ -295,12 +281,7 @@ function WorkspaceList({
             </button>
           </div>
         </div>
-      </div>
-      {/* Bottom scroll fade */}
-      <div
-        className="pointer-events-none absolute -bottom-px left-0 h-16 w-full rounded-b-lg bg-gradient-to-t from-white sm:bottom-0"
-        style={{ opacity: 1 - Math.pow(scrollProgress, 2) }}
-      />
+      </ScrollContainer>
     </div>
   );
 }

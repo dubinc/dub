@@ -53,6 +53,10 @@
       "schedule": "0 * * * *"
     },
     {
+      "path": "/api/cron/payouts/reconcile-amounts",
+      "schedule": "* * * * *"
+    },
+    {
       "path": "/api/cron/trigger-withdrawal",
       "schedule": "0 1,13 * * *"
     },

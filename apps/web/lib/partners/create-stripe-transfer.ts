@@ -48,9 +48,10 @@ export const createStripeTransfer = async ({
 
   // should never happen, but just in case
   if (!partner.stripeConnectId || !partner.payoutsEnabledAt) {
-    throw new Error(
-      `Partner ${partner.email} does not have an active payout account`,
+    console.warn(
+      `Partner ${partner.email} does not have an active payout account.`,
     );
+    return;
   }
 
   const commonInclude: Prisma.PayoutInclude = {
@@ -189,9 +190,14 @@ export const createStripeTransfer = async ({
 
     await markPayoutsAsProcessed(currentInvoicePayouts);
 
-    throw new Error(
-      `Partner's Stripe Express account (${partner.stripeConnectId}) is not configured to receive transfers`,
-    );
+    const message = `Partner's Stripe Express account (${partner.stripeConnectId}) is not configured to receive transfers`;
+
+    if (forceWithdrawal) {
+      throw new Error(message);
+    } else {
+      console.warn(message);
+      return;
+    }
   }
 
   // will be used for transfer_group
