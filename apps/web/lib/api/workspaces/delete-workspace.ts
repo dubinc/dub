@@ -48,7 +48,8 @@ export async function deleteWorkspace(
       }),
 
       // Cancel the workspace's Stripe subscription if exists
-      workspace.stripeId && cancelSubscription(workspace.stripeId),
+      workspace.stripeId &&
+        cancelSubscription({ customerId: workspace.stripeId }),
 
       // Delete workspace logo if it's a custom logo stored in R2
       workspace.logo &&
@@ -120,7 +121,11 @@ export async function deleteWorkspaceAdmin(
       storage.delete({ key: workspace.logo.replace(`${R2_URL}/`, "") }),
 
     // if they have a Stripe subscription, cancel it
-    workspace.stripeId && cancelSubscription(workspace.stripeId),
+    workspace.stripeId &&
+      cancelSubscription({
+        customerId: workspace.stripeId,
+        reason: "Customer was banned from Dub",
+      }),
 
     // Queue the workspace for deletion
     qstash.publishJSON({
