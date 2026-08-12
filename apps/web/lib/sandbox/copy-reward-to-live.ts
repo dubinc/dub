@@ -66,7 +66,7 @@ export const copyRewardToLiveAction = authActionClient
 
     if (targetWorkspace.stagingWorkspaceId !== workspace.id) {
       throw new Error(
-        "Target program is not linked to this staging workspace.",
+        "Target program is not linked to this staging workspace. Please contact support.",
       );
     }
 

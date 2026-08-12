@@ -19,7 +19,7 @@ import { createTremendousCampaignJob } from "@/lib/jobs/handlers/create-tremendo
 import { CUTOFF_PERIOD_ENUM } from "@/lib/partners/cutoff-period";
 import { prisma } from "@/lib/prisma";
 import { mockPaymentProvider } from "@/lib/sandbox/mock-payment-provider";
-import { isProductionEnvironment } from "@/lib/sandbox/workspace-guards";
+import { isProductionEnvironment } from "@/lib/sandbox/environment";
 import { stripe } from "@/lib/stripe";
 import { checkPaymentMethodMandate } from "@/lib/stripe/check-payment-method-mandate";
 import { getWebhooks } from "@/lib/webhook/get-webhooks";

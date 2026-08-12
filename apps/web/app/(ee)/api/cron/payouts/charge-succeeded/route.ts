@@ -1,8 +1,8 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { prisma } from "@/lib/prisma";
+import { isProductionEnvironment } from "@/lib/sandbox/environment";
 import { mockPayoutCompletion } from "@/lib/sandbox/mock-payout-completion";
-import { isProductionEnvironment } from "@/lib/sandbox/workspace-guards";
 import { log } from "@dub/utils";
 import { PartnerPayoutMethod } from "@prisma/client";
 import * as z from "zod/v4";

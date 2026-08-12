@@ -170,6 +170,7 @@ export const POST = withSession(async ({ session, params }) => {
       user: {
         id: session.user.id,
         role: invite.role,
+        isMachine: false,
       },
     }),
   );

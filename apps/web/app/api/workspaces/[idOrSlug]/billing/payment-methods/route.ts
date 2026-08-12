@@ -7,10 +7,8 @@ import {
   PAYMENT_METHOD_TYPES,
 } from "@/lib/constants/payouts";
 import { SANDBOX_PAYMENT_METHOD } from "@/lib/sandbox/mock-payment-provider";
-import {
-  assertNotStagingWorkspace,
-  isProductionEnvironment,
-} from "@/lib/sandbox/workspace-guards";
+import { isProductionEnvironment } from "@/lib/sandbox/environment";
+import { assertNotStagingWorkspace } from "@/lib/sandbox/workspace-guards";
 import { stripe } from "@/lib/stripe";
 import { APP_DOMAIN } from "@dub/utils";
 import { NextResponse } from "next/server";

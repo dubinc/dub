@@ -1,7 +1,7 @@
 import { getProgram } from "@/lib/fetchers/get-program";
 import { prisma } from "@/lib/prisma";
 import { ProgramEnvironmentBanner } from "@/lib/sandbox/components/workspace-environment";
-import { isProductionEnvironment } from "@/lib/sandbox/workspace-guards";
+import { isProductionEnvironment } from "@/lib/sandbox/environment";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { Logo } from "@dub/ui";
 import { Bolt, CursorRays, LinesY, MoneyBills2 } from "@dub/ui/icons";

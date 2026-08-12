@@ -5,7 +5,7 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { hashToken, withWorkspace } from "@/lib/auth";
 import { generateRandomName } from "@/lib/names";
 import { prisma } from "@/lib/prisma";
-import { isProductionEnvironment } from "@/lib/sandbox/workspace-guards";
+import { isProductionEnvironment } from "@/lib/sandbox/environment";
 import { ratelimit } from "@/lib/upstash";
 import { createTokenSchema, tokenSchema } from "@/lib/zod/schemas/token";
 import { sendEmail } from "@dub/email";

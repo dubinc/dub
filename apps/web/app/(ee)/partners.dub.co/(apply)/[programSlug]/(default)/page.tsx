@@ -1,6 +1,6 @@
 import { getProgram } from "@/lib/fetchers/get-program";
 import { ProgramEnvironmentBanner } from "@/lib/sandbox/components/workspace-environment";
-import { isProductionEnvironment } from "@/lib/sandbox/workspace-guards";
+import { isProductionEnvironment } from "@/lib/sandbox/environment";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { programLanderSchema } from "@/lib/zod/schemas/program-lander";
 import { ApplicationAnalytics } from "@/ui/application-analytics";

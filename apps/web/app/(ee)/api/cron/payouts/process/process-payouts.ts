@@ -8,8 +8,8 @@ import {
   CUTOFF_PERIOD_TYPES,
 } from "@/lib/partners/cutoff-period";
 import { prisma } from "@/lib/prisma";
+import { isProductionEnvironment } from "@/lib/sandbox/environment";
 import { mockPaymentProvider } from "@/lib/sandbox/mock-payment-provider";
-import { isProductionEnvironment } from "@/lib/sandbox/workspace-guards";
 import { stripe } from "@/lib/stripe";
 import { createFxQuote } from "@/lib/stripe/create-fx-quote";
 import { calculatePayoutFeeForMethod } from "@/lib/stripe/payment-methods";

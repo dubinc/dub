@@ -5,8 +5,6 @@ import {
 } from "@/lib/sandbox/environment";
 import { Project } from "@prisma/client";
 
-export { isProductionEnvironment, isStagingEnvironment };
-
 export function assertStagingWorkspace(
   workspace: Pick<Project, "environment">,
   options?: {
