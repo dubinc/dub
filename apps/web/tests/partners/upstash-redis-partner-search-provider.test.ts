@@ -285,7 +285,6 @@ describe("Upstash Redis partner search provider", () => {
     const documents = Array.from({ length: 101 }, (_, index) => ({
       ...document,
       id: `pge_${index}`,
-      partnerTagIds: [],
     }));
 
     await provider.upsert(documents);

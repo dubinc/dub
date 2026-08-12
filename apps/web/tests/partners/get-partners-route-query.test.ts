@@ -17,7 +17,14 @@ describe("getPartnersRouteQuerySchema", () => {
   });
 
   it("still accepts the legacy sort aliases", () => {
-    for (const sortBy of ["clicks", "leads", "conversions", "saleAmount"]) {
+    for (const sortBy of [
+      "clicks",
+      "leads",
+      "conversions",
+      "sales",
+      "saleAmount",
+      "totalSales",
+    ]) {
       expect(accepts({ sortBy })).toBe(true);
     }
   });
