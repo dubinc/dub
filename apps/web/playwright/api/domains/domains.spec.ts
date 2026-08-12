@@ -83,7 +83,7 @@ const jsonFields = [
     label: "Deep View data",
     valid: VALID_DEEPVIEW,
     updated: UPDATED_DEEPVIEW,
-    emptyCreateExpected: "{}",
+    emptyCreateExpected: null,
   },
 ];
 
