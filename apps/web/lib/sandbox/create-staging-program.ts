@@ -202,6 +202,7 @@ export async function createStagingProgram(workspaceId: string) {
       },
       data: {
         defaultProgramId: stagingProgramId,
+        defaultProduct: "program",
       },
     });
 

@@ -83,6 +83,7 @@ export async function createStagingWorkspace(workspaceId: string) {
           logo: workspace.logo,
           environment: WorkspaceEnvironment.staging,
           plan: workspace.plan,
+          defaultProduct: "program",
           billingCycleStart: new Date().getDate(),
           invoicePrefix: generateRandomString(8),
           // Staging workspace will uses the trial limits
