@@ -153,8 +153,8 @@ export async function POST(req: Request) {
       ...(!isProductionWorkspace
         ? [
             mockPayoutCompletion({
-              invoice,
               workspace,
+              invoice,
             }),
           ]
         : []),

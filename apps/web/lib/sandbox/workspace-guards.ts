@@ -61,3 +61,22 @@ export function assertProductionWorkspace(
     });
   }
 }
+
+export function assertNotProductionWorkspace(
+  workspace: Pick<Project, "environment">,
+  options?: {
+    when?: boolean;
+    message?: string;
+  },
+) {
+  const shouldCheck = options?.when ?? true;
+
+  if (shouldCheck && isProductionEnvironment(workspace.environment)) {
+    throw new DubApiError({
+      code: "bad_request",
+      message:
+        options?.message ??
+        "This action is not available in production workspaces.",
+    });
+  }
+}

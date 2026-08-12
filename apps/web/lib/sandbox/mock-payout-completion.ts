@@ -10,7 +10,7 @@ import {
   Project,
 } from "@prisma/client";
 import { trackCommissionStatusUpdate } from "../api/commissions/track-commission-update-activity-log";
-import { assertStagingWorkspace } from "./workspace-guards";
+import { assertNotProductionWorkspace } from "./workspace-guards";
 
 interface MockPayoutCompletionParams {
   invoice: Invoice;
@@ -22,7 +22,9 @@ export async function mockPayoutCompletion({
   invoice,
   workspace,
 }: MockPayoutCompletionParams) {
-  assertStagingWorkspace(workspace);
+  assertNotProductionWorkspace(workspace, {
+    message: "Mock payout completion is not available in production.",
+  });
 
   const payouts = await prisma.payout.findMany({
     where: {
@@ -110,13 +112,6 @@ export async function mockPayoutCompletion({
     }),
   ]);
 
-  await trackCommissionStatusUpdate({
-    workspaceId: workspace.id,
-    programId: payouts[0].programId,
-    commissions,
-    newStatus: CommissionStatus.paid,
-  });
-
   // Group partner -> payouts so we send only one email per partner when there are multiple payouts
   const partnerPayouts = payouts.reduce(
     (acc, payout) => {
@@ -126,23 +121,32 @@ export async function mockPayoutCompletion({
     {} as Record<string, typeof payouts>,
   );
 
-  await sendBatchEmail(
-    Object.values(partnerPayouts)
-      .filter((partnerPayoutList) => partnerPayoutList[0].partner.email)
-      .map((partnerPayoutList) => {
-        const { partner, program, ...payout } = partnerPayoutList[0];
+  await Promise.allSettled([
+    trackCommissionStatusUpdate({
+      workspaceId: workspace.id,
+      programId: payouts[0].programId,
+      commissions,
+      newStatus: CommissionStatus.paid,
+    }),
 
-        return {
-          variant: "notifications",
-          to: partner.email!,
-          subject: `You've received a ${currencyFormatter(payout.amount)} payout from ${program.name}`,
-          react: PartnerPayoutProcessed({
-            email: partner.email!,
-            workspace: program.workspace,
-            program,
-            payout,
-          }),
-        };
-      }),
-  );
+    sendBatchEmail(
+      Object.values(partnerPayouts)
+        .filter((partnerPayoutList) => partnerPayoutList[0].partner.email)
+        .map((partnerPayoutList) => {
+          const { partner, program, ...payout } = partnerPayoutList[0];
+
+          return {
+            variant: "notifications",
+            to: partner.email!,
+            subject: `You've received a ${currencyFormatter(payout.amount)} payout from ${program.name}`,
+            react: PartnerPayoutProcessed({
+              email: partner.email!,
+              workspace: program.workspace,
+              program,
+              payout,
+            }),
+          };
+        }),
+    ),
+  ]);
 }

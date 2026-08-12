@@ -231,7 +231,7 @@ export const confirmPayoutsAction = authActionClient
       });
     });
 
-    if (!program.tremendousCampaignId) {
+    if (isProductionWorkspace && !program.tremendousCampaignId) {
       waitUntil(
         createTremendousCampaignJob.dispatch(
           {

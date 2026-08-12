@@ -304,13 +304,13 @@ export async function processPayouts({
   }
 
   // Non-production workspaces skip the Stripe payment intent above.
-  // Simulate that flow here with a 30 second delay so
+  // Simulate that flow here with a 10 second delay so
   // sandbox payouts behave like a settled ACH charge.
   if (!isProductionWorkspace) {
     await qstash.publishJSON({
       url: `${APP_DOMAIN_WITH_NGROK}/api/cron/payouts/charge-succeeded`,
       method: "POST",
-      delay: "30s",
+      delay: "10s",
       flowControl: {
         key: invoice.id,
         rate: 1,
