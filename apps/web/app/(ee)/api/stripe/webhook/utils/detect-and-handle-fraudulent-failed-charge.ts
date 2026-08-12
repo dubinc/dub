@@ -4,12 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { stripe } from "@/lib/stripe";
 import { LEGAL_USER_ID, log } from "@dub/utils";
 import Stripe from "stripe";
-
-const STRIPE_FRAUD_VALUE_LISTS = {
-  CUSTOMER_ID: "rsl_1LeVdvAlJJEpqkPVEcNgjxqq",
-  CUSTOMER_EMAIL: "rsl_1LeVdvAlJJEpqkPVhZw9Xvgw",
-  CARD_FINGERPRINT: "rsl_1LeVdvAlJJEpqkPVvUZUm9eC",
-};
+import { addToStripeFraudValueLists } from "./add-to-stripe-fraud-value-lists";
 
 export async function detectAndHandleFraudulentFailedCharge(
   event: Stripe.ChargeFailedEvent,
@@ -45,36 +40,10 @@ export async function detectAndHandleFraudulentFailedCharge(
 
   const cardFingerprint = payment_method_details.card?.fingerprint;
 
-  // add to Stripe Fraud Value Lists
-  await Promise.allSettled([
-    stripe.radar.valueListItems.create({
-      value_list: STRIPE_FRAUD_VALUE_LISTS.CUSTOMER_ID,
-      value: customerId,
-    }),
-    stripeCustomer.email
-      ? stripe.radar.valueListItems.create({
-          value_list: STRIPE_FRAUD_VALUE_LISTS.CUSTOMER_EMAIL,
-          value: stripeCustomer.email!,
-        })
-      : null,
-    cardFingerprint
-      ? stripe.radar.valueListItems.create({
-          value_list: STRIPE_FRAUD_VALUE_LISTS.CARD_FINGERPRINT,
-          value: cardFingerprint,
-        })
-      : null,
-  ]).then((results) => {
-    results.forEach((result, idx) => {
-      if (result.status === "fulfilled" && result.value) {
-        const listItem = [customerId, stripeCustomer.email, cardFingerprint][
-          idx
-        ];
-        const listName = Object.entries(STRIPE_FRAUD_VALUE_LISTS)[idx][0];
-        console.log(
-          `Added ${listItem} to ${listName} Fraud Value List: ${JSON.stringify(result.value, null, 2)}`,
-        );
-      }
-    });
+  await addToStripeFraudValueLists({
+    customerId: customerId,
+    customerEmail: stripeCustomer.email,
+    cardFingerprint,
   });
 
   if (stripeCustomer.email) {
