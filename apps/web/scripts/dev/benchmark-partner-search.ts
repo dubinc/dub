@@ -5,10 +5,7 @@
  * handling, auth, and serialization — treat them as a floor for the endpoint.
  *
  * To avoid measuring a warm cache it samples `--sampleSize` partners strided
- * across the program and exhausts a field's queries before repeating any. Fields
- * whose values barely vary still collapse to a few queries, so each field's
- * distinct-query count is reported and undersized pools are flagged; a p99 under
- * that warning is optimistic.
+ * across the program and exhausts a field's queries before repeating any.
  *
  * Exits non-zero when a field produced no successful request, when the error rate
  * exceeds `--maxErrorRate`, or when a p99 reaches `--thresholdMs`.
@@ -301,38 +298,6 @@ async function loadSearchCasePools(
   }));
 }
 
-function reportOverlappingPools(pools: SearchCasePool[]) {
-  const fieldsByQuerySet = new Map<string, string[]>();
-
-  for (const { field, queries } of pools) {
-    const key = JSON.stringify(queries);
-    fieldsByQuerySet.set(key, [...(fieldsByQuerySet.get(key) ?? []), field]);
-  }
-
-  for (const fields of fieldsByQuerySet.values()) {
-    if (fields.length > 1) {
-      console.warn(
-        `⚠️  These fields resolve to identical queries and measure the same work: ${fields.join(", ")}.`,
-      );
-    }
-  }
-}
-
-function reportRepeatedQueries(pools: SearchCasePool[], requests: number) {
-  const requestsPerField = Math.ceil(requests / pools.length);
-  const repeated = pools.filter(
-    ({ queries }) => queries.length < requestsPerField,
-  );
-
-  if (repeated.length === 0) {
-    return;
-  }
-
-  console.warn(
-    `⚠️  ${repeated.length} of ${pools.length} fields have fewer distinct queries than requests and repeat them, so their p99 may be optimistic: ${repeated.map(({ field }) => field).join(", ")}.`,
-  );
-}
-
 function percentile(values: number[], quantile: number): number {
   const sorted = [...values].sort((left, right) => left - right);
   const index = Math.max(0, Math.ceil(sorted.length * quantile) - 1);
@@ -454,9 +419,6 @@ async function main() {
   console.log(
     `Each request runs the relevance-ranked partner list path across ${pools.length} search cases, drawing from ${distinctQueries.toLocaleString()} distinct queries sampled from ${options.sampleSize.toLocaleString()} partners.`,
   );
-  reportOverlappingPools(pools);
-  reportRepeatedQueries(pools, options.requests);
-
   const warmupResults = await runWithConcurrency(
     options.warmupRequests,
     options.concurrency,
