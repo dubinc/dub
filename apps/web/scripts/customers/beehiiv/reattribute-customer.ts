@@ -80,9 +80,6 @@ async function main() {
         .filter((id): id is string => Boolean(id)),
     ),
   );
-  if (payoutIdsToRetally.length === 0 && payout) {
-    payoutIdsToRetally.push(PAYOUT_ID);
-  }
 
   console.log(`=== Mode: ${DRY_RUN ? "DRY RUN" : "EXECUTE"} ===`);
   console.log("=== Before ===");
@@ -125,9 +122,33 @@ async function main() {
     );
   }
 
+  if (customer.programId !== PROGRAM_ID) {
+    throw new Error(
+      `Customer programId is ${customer.programId}, expected ${PROGRAM_ID}. Aborting.`,
+    );
+  }
+
+  if (oldLink.partnerId !== OLD_PARTNER_ID) {
+    throw new Error(
+      `Old link partnerId is ${oldLink.partnerId}, expected ${OLD_PARTNER_ID}. Aborting.`,
+    );
+  }
+
+  if (oldLink.programId !== PROGRAM_ID) {
+    throw new Error(
+      `Old link programId is ${oldLink.programId}, expected ${PROGRAM_ID}. Aborting.`,
+    );
+  }
+
   if (newLink.partnerId !== NEW_PARTNER_ID) {
     throw new Error(
       `Target link ${NEW_LINK_ID} is not owned by expected partner (${NEW_PARTNER_ID}). Got ${newLink.partnerId}.`,
+    );
+  }
+
+  if (newLink.programId !== PROGRAM_ID) {
+    throw new Error(
+      `New link programId is ${newLink.programId}, expected ${PROGRAM_ID}. Aborting.`,
     );
   }
 
@@ -135,6 +156,15 @@ async function main() {
   if (paidCommissions.length > 0) {
     throw new Error(
       `Found ${paidCommissions.length} paid commission(s). Aborting — clawback path not implemented for this script.`,
+    );
+  }
+
+  const unexpectedPayoutIds = payoutIdsToRetally.filter(
+    (id) => id !== PAYOUT_ID,
+  );
+  if (unexpectedPayoutIds.length > 0) {
+    throw new Error(
+      `Processed commissions reference unexpected payout(s): ${unexpectedPayoutIds.join(", ")}. Expected only ${PAYOUT_ID}. Aborting.`,
     );
   }
 
