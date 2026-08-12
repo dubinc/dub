@@ -1,4 +1,5 @@
 import { getPartnerSearchProviderName } from "@/lib/api/partners/search";
+import { deleteTurbopufferPartnerSearchNamespace } from "@/lib/api/partners/search/providers/turbopuffer";
 import { deleteUpstashSearchPartnerSearchIndex } from "@/lib/api/partners/search/providers/upstash-search";
 import { chunk } from "@dub/utils";
 import { Redis } from "@upstash/redis";
@@ -109,6 +110,12 @@ async function main() {
     console.log(
       `Partner search cleanup complete: ${documentCount.toLocaleString()} documents removed from ${indexName}.`,
     );
+    return;
+  }
+
+  if (providerName === "turbopuffer") {
+    await deleteTurbopufferPartnerSearchNamespace({ namespaceName: indexName });
+    console.log(`Partner search cleanup complete: emptied ${indexName}.`);
     return;
   }
 

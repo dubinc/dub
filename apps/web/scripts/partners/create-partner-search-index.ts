@@ -8,9 +8,13 @@ async function main() {
     throw new Error("PARTNER_SEARCH_PROVIDER is not configured.");
   }
 
-  if (providerName === "upstash-search") {
+  // Only Redis Search needs an index declared up front. The others infer their
+  // schema from the first write, so this is a no-op for them — spelled out per
+  // provider rather than falling through, so a new provider cannot silently
+  // land on the Redis path.
+  if (providerName === "upstash-search" || providerName === "turbopuffer") {
     console.log(
-      "Upstash Search creates the partner search index on the first backfill upsert.",
+      `${providerName} creates the partner search index on the first backfill upsert.`,
     );
     return;
   }
