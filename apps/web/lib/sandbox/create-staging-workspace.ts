@@ -179,7 +179,6 @@ export async function createStagingWorkspace(workspaceId: string) {
   const existingDomain = await prisma.domain.findUnique({
     where: {
       slug: domain,
-      projectId: stagingWorkspaceId,
     },
     select: {
       projectId: true,
@@ -196,6 +195,10 @@ export async function createStagingWorkspace(workspaceId: string) {
         verified: true,
       },
     });
+  } else if (existingDomain.projectId !== stagingWorkspaceId) {
+    throw new Error(
+      `Domain ${domain} already exists under a different workspace (${existingDomain.projectId}).`,
+    );
   }
 
   const existingRootLink = await prisma.link.findUnique({

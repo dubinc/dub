@@ -108,8 +108,6 @@ export const DELETE = withWorkspace(
   async ({ searchParams, workspace, session, permissions }) => {
     const { userId } = removeUserSchema.parse(searchParams);
 
-    assertNotStagingWorkspace(workspace);
-
     if (userId !== session.user.id) {
       throwIfNoAccess({
         permissions,
