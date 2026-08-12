@@ -168,13 +168,24 @@ type GeneratePartnerChunkOptions = {
   workspaceId: string;
 };
 
-// FNV-1a. Cheap enough to call several times per partner, unlike a crypto hash.
+// FNV-1a with murmur3's fmix32 finalizer. Cheap enough to call several times
+// per partner, unlike a crypto hash. FNV-1a alone has weak avalanche, and this
+// is called with near-identical strings (same fingerprint and index, differing
+// only in the field label), whose outputs stay correlated: first and last names
+// stopped pairing independently and most of the 64×64 combinations never
+// occurred at all. The finalizer restores independence and stays deterministic.
 function hashToUint32(value: string): number {
   let hash = 0x811c9dc5;
 
   for (let i = 0; i < value.length; i++) {
     hash = Math.imul(hash ^ value.charCodeAt(i), 0x01000193);
   }
+
+  hash ^= hash >>> 16;
+  hash = Math.imul(hash, 0x85ebca6b);
+  hash ^= hash >>> 13;
+  hash = Math.imul(hash, 0xc2b2ae35);
+  hash ^= hash >>> 16;
 
   return hash >>> 0;
 }
