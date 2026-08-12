@@ -72,9 +72,6 @@ interface CreateTurbopufferPartnerSearchProviderOptions {
 /** The subset of the SDK namespace this provider uses, so tests can fake it. */
 export interface TurbopufferNamespace {
   write(params: Record<string, unknown>): Promise<{ rows_affected: number }>;
-  query(params: Record<string, unknown>): Promise<{
-    rows?: { id: string | number; $dist?: number }[];
-  }>;
   multiQuery(params: Record<string, unknown>): Promise<{
     results?: { rows?: { id: string | number; $dist?: number }[] }[];
   }>;
@@ -244,31 +241,6 @@ export function createTurbopufferPartnerSearchProvider({
           resolvedNamespace.write({ deletes: documentIdBatch }),
         );
       }
-    },
-
-    async listDocumentIds({ cursor, limit }) {
-      // Keyset pagination over the ID order, the same shape the backfill uses
-      // against the database. Turbopuffer has no scan cursor of its own.
-      const { rows } = await withTransientRetry(() =>
-        resolvedNamespace.query({
-          rank_by: ["id", "asc"],
-          top_k: limit,
-          include_attributes: false,
-          ...(cursor ? { filters: ["id", "Gt", cursor] } : {}),
-        }),
-      );
-
-      const documentIds = (rows ?? []).map(({ id }) => String(id));
-
-      return {
-        documentIds,
-        // A short page means the namespace is exhausted; otherwise resume from
-        // the last ID.
-        cursor:
-          documentIds.length < limit
-            ? null
-            : documentIds[documentIds.length - 1],
-      };
     },
   };
 }

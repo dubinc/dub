@@ -5,13 +5,13 @@
  * a 100K-partner program. A failed run prints the command to resume from the
  * last indexed document, so a partial backfill is never redone from zero.
  *
- * The backfill only upserts, so it cannot remove documents whose enrollment was
- * deleted. --reconcile sweeps up those orphans afterwards — note that sweep
- * covers the entire index, not only --programId.
+ * The backfill only upserts. Documents whose enrollment was deleted are removed
+ * by rebuilding the index wholesale, not incrementally — delete it and backfill
+ * again.
  *
  *   cd apps/web
  *   pnpm run script partners/backfill-partner-search --programId=prog_123
- *     [--batchSize=500] [--after=pge_123] [--reconcile]
+ *     [--batchSize=500] [--after=pge_123]
  *
  * Requires PARTNER_SEARCH_PROVIDER to be configured.
  */
@@ -19,7 +19,6 @@
 import {
   backfillPartnerSearch,
   getPartnerSearchProviderName,
-  reconcilePartnerSearchIndex,
   type PartnerSearchBackfillProgress,
 } from "@/lib/api/partners/search";
 import { createUpstashRedisPartnerSearchIndex } from "@/lib/api/partners/search/providers/upstash-redis";
@@ -34,14 +33,12 @@ interface BackfillArguments {
   programId: string;
   batchSize: number;
   after?: string;
-  reconcile: boolean;
 }
 
 function parseArguments(args: string[]): BackfillArguments {
   let programId: string | undefined;
   let batchSize = DEFAULT_BATCH_SIZE;
   let after: string | undefined;
-  let reconcile = false;
 
   for (const arg of args) {
     if (arg.startsWith("--programId=")) {
@@ -53,8 +50,6 @@ function parseArguments(args: string[]): BackfillArguments {
       );
     } else if (arg.startsWith("--after=")) {
       after = arg.slice("--after=".length);
-    } else if (arg === "--reconcile") {
-      reconcile = true;
     } else {
       throw new Error(`Unknown argument: ${arg}`);
     }
@@ -72,7 +67,7 @@ function parseArguments(args: string[]): BackfillArguments {
     throw new Error("--after cannot be empty.");
   }
 
-  return { programId, batchSize, after, reconcile };
+  return { programId, batchSize, after };
 }
 
 let resumeAfter: string | undefined;
@@ -105,9 +100,7 @@ function createProgressReporter(totalDocuments: number, batchSize: number) {
 }
 
 async function main() {
-  const { programId, batchSize, after, reconcile } = parseArguments(
-    process.argv.slice(2),
-  );
+  const { programId, batchSize, after } = parseArguments(process.argv.slice(2));
   resumeAfter = after;
   const providerName = getPartnerSearchProviderName();
   if (!providerName) {
@@ -148,27 +141,6 @@ async function main() {
   if (result.lastDocumentId) {
     console.log(`Last document: ${result.lastDocumentId}`);
   }
-
-  if (!reconcile) {
-    return;
-  }
-
-  // Index-wide because neither provider can enumerate documents by program.
-  console.log("Reconciling the index against the database (all programs)...");
-
-  const { scanned, deleted } = await reconcilePartnerSearchIndex({
-    onProgress: ({ scanned, deleted }) => {
-      if (scanned > 0 && scanned % 10_000 === 0) {
-        console.log(
-          `Scanned ${scanned.toLocaleString()} documents, removed ${deleted.toLocaleString()} orphans`,
-        );
-      }
-    },
-  });
-
-  console.log(
-    `Reconcile complete: scanned ${scanned.toLocaleString()} documents, removed ${deleted.toLocaleString()} orphans.`,
-  );
 }
 
 main()

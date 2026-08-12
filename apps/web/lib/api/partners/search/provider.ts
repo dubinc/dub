@@ -2,10 +2,7 @@ import { createTurbopufferPartnerSearchProvider } from "./providers/turbopuffer"
 import { createUpstashRedisPartnerSearchProvider } from "./providers/upstash-redis";
 import type { PartnerSearchProvider } from "./types";
 
-const PARTNER_SEARCH_PROVIDER_NAMES = [
-  "upstash-redis",
-  "turbopuffer",
-] as const;
+const PARTNER_SEARCH_PROVIDER_NAMES = ["upstash-redis", "turbopuffer"] as const;
 
 export type PartnerSearchProviderName =
   (typeof PARTNER_SEARCH_PROVIDER_NAMES)[number];

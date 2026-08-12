@@ -117,9 +117,9 @@ const partnersColumns = {
   ],
 };
 
-// Searching must fall back to relevance ordering. A column sort still applies to
-// the same relevance-ranked candidates, but it reorders them, so the best match
-// lands somewhere down the list instead of first — which reads as broken search.
+// Searching sorts by relevance so the closest match to the query is the first
+// row. A column sort still applies to the same relevance-ranked candidates, but
+// it reorders them, so the best match moves down the list.
 const PARTNER_SEARCH_RESET_PARAMS = ["sortBy", "sortOrder"];
 
 const getPartnerUrl = ({

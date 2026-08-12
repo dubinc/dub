@@ -27,7 +27,6 @@ const document: PartnerSearchDocument = {
 
 const mocks = vi.hoisted(() => ({
   write: vi.fn(),
-  query: vi.fn(),
   multiQuery: vi.fn(),
   deleteAll: vi.fn(),
 }));
@@ -35,7 +34,6 @@ const mocks = vi.hoisted(() => ({
 function createNamespaceMock(): TurbopufferNamespace {
   return {
     write: mocks.write,
-    query: mocks.query,
     multiQuery: mocks.multiQuery,
     deleteAll: mocks.deleteAll,
   } as unknown as TurbopufferNamespace;
@@ -55,7 +53,6 @@ describe("Turbopuffer partner search provider", () => {
     }
     mocks.write.mockResolvedValue({ rows_affected: 1 });
     mocks.multiQuery.mockResolvedValue({ results: [] });
-    mocks.query.mockResolvedValue({ rows: [] });
   });
 
   it("flattens every searchable field into one BM25 attribute", async () => {
@@ -220,40 +217,8 @@ describe("Turbopuffer partner search provider", () => {
     });
   });
 
-  it("enumerates document IDs by keyset over the ID order", async () => {
-    mocks.query.mockResolvedValue({
-      rows: [{ id: "pge_1" }, { id: "pge_2" }],
-    });
-
-    const page = await createProvider().listDocumentIds({ limit: 2 });
-
-    expect(mocks.query).toHaveBeenCalledWith(
-      expect.objectContaining({ rank_by: ["id", "asc"], top_k: 2 }),
-    );
-    // A full page means there may be more, so the cursor is the last ID.
-    expect(page).toEqual({
-      documentIds: ["pge_1", "pge_2"],
-      cursor: "pge_2",
-    });
-  });
-
-  it("resumes after the cursor and reports exhaustion on a short page", async () => {
-    mocks.query.mockResolvedValue({ rows: [{ id: "pge_9" }] });
-
-    const page = await createProvider().listDocumentIds({
-      cursor: "pge_8",
-      limit: 2,
-    });
-
-    expect(mocks.query).toHaveBeenCalledWith(
-      expect.objectContaining({ filters: ["id", "Gt", "pge_8"] }),
-    );
-    expect(page).toEqual({ documentIds: ["pge_9"], cursor: null });
-  });
-
   it("does not wait for indexing, which turbopuffer does not need", async () => {
     await expect(createProvider().waitForIndexing()).resolves.toBeUndefined();
-    expect(mocks.query).not.toHaveBeenCalled();
     expect(mocks.write).not.toHaveBeenCalled();
   });
 
