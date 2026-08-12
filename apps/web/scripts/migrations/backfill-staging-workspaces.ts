@@ -1,6 +1,5 @@
+import { createStagingWorkspaceJob } from "@/lib/jobs/handlers/create-staging-workspace-job";
 import { prisma } from "@/lib/prisma";
-import { createStagingProgram } from "@/lib/sandbox/create-staging-program";
-import { createStagingWorkspace } from "@/lib/sandbox/create-staging-workspace";
 import { WorkspaceEnvironment } from "@prisma/client";
 import "dotenv-flow/config";
 
@@ -8,8 +7,9 @@ const BATCH_SIZE = 10;
 
 async function main() {
   let totalProcessed = 0;
-  let totalCreated = 0;
+  let totalPublished = 0;
   let totalFailed = 0;
+  let cursor: string | undefined;
 
   // TODO:
   // We should skip workspaces where the staging workspace was created manually.
@@ -31,6 +31,13 @@ async function main() {
             endsWith: "-staging",
           },
         },
+        ...(cursor
+          ? {
+              id: {
+                gt: cursor,
+              },
+            }
+          : {}),
       },
       select: {
         id: true,
@@ -40,7 +47,7 @@ async function main() {
       },
       take: BATCH_SIZE,
       orderBy: {
-        createdAt: "asc",
+        id: "asc",
       },
     });
 
@@ -48,33 +55,30 @@ async function main() {
       break;
     }
 
-    for (const workspace of workspaces) {
-      try {
-        await createStagingWorkspace(workspace.id);
-        await createStagingProgram(workspace.id);
+    cursor = workspaces[workspaces.length - 1].id;
 
-        totalCreated++;
-        console.log(`Created staging workspace for ${workspace.slug}`);
-      } catch (error) {
-        totalFailed++;
-        console.error(
-          `Failed to create staging workspace for ${workspace.slug} (${workspace.id}):`,
-          error,
-        );
-      }
-
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-    }
+    const { published, deferred, failed } =
+      await createStagingWorkspaceJob.dispatchBatch(
+        workspaces.map((workspace) => ({
+          workspaceId: workspace.id,
+        })),
+        ({ workspaceId }) => ({
+          deduplicationId: `create-staging-workspace-${workspaceId}`,
+          label: workspaceId,
+        }),
+      );
 
     totalProcessed += workspaces.length;
+    totalPublished += published + deferred;
+    totalFailed += failed;
 
     console.log(
-      `Processed batch of ${workspaces.length} workspaces (processed=${totalProcessed}, created=${totalCreated}, failed=${totalFailed})`,
+      `Dispatched batch of ${workspaces.length} workspaces (processed=${totalProcessed}, published=${totalPublished}, failed=${totalFailed})`,
     );
   }
 
   console.log(
-    `Done creating staging workspaces (processed=${totalProcessed}, created=${totalCreated}, failed=${totalFailed})`,
+    `Done queueing staging workspace jobs (processed=${totalProcessed}, published=${totalPublished}, failed=${totalFailed})`,
   );
 }
 

@@ -1,10 +1,9 @@
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { prisma } from "@/lib/prisma";
-import { APP_DOMAIN_WITH_NGROK, TRIAL_LIMITS } from "@dub/utils";
+import { TRIAL_LIMITS } from "@dub/utils";
 import { Project, WorkspaceEnvironment } from "@prisma/client";
 import { generateRandomString } from "../api/utils/generate-random-string";
 import { createWorkspaceId } from "../api/workspaces/create-workspace-id";
-import { qstash } from "../cron";
 import { isProductionEnvironment } from "./workspace-guards";
 
 export async function createStagingWorkspace(workspaceId: string) {
@@ -151,18 +150,24 @@ export async function createStagingWorkspace(workspaceId: string) {
 export async function queueCreateStagingWorkspace({
   id,
   plan,
-}: Pick<Project, "id" | "plan">) {
+  defaultProgramId,
+}: Pick<Project, "id" | "plan" | "defaultProgramId">) {
+  if (!defaultProgramId) {
+    return;
+  }
+
   const { canUseStagingWorkspace } = getPlanCapabilities(plan);
 
   if (!canUseStagingWorkspace) {
     return;
   }
 
-  await qstash.publishJSON({
-    url: `${APP_DOMAIN_WITH_NGROK}/api/cron/workspaces/create-staging`,
-    deduplicationId: `create-staging-workspace-${id}`,
-    body: {
-      workspaceId: id,
-    },
-  });
+  const { createStagingWorkspaceJob } = await import(
+    "../jobs/handlers/create-staging-workspace-job"
+  );
+
+  await createStagingWorkspaceJob.dispatch(
+    { workspaceId: id },
+    { deduplicationId: `create-staging-workspace-${id}` },
+  );
 }
