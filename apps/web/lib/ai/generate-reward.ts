@@ -46,16 +46,14 @@ Event type: ${event}
 
 Rules:
 - Output only fields that are clearly requested or strongly implied.
-- For click and lead rewards: type must be "flat", maxDuration must be 0.
-- For sale rewards: type may be "flat" or "percentage"; maxDuration is months or null for lifetime.
-- Flat amounts are in dollars (not cents). Percentage amounts are 0–100.
+- Flat amounts are in dollars (not cents). Percentage amounts are 0–100. Decimals are allowed for both.
 - Currency condition values (sale.amount, partner.totalSaleAmount, partner.totalCommissions) are in dollars.
 - Date condition values (e.g. signupDate, subscriptionStartDate) use ISO 8601 strings (e.g. 2024-01-15).
 - Country values use ISO 3166-1 alpha-2 codes (e.g. US, GB).
-- Only use entities and attributes allowed for this event (listed below).
-- Condition groups (modifiers) override the base reward when their conditions match. Prefer the highest matching amount at evaluation time.
+- Condition groups (modifiers) override the base reward when their conditions match. Make sure to set the most generic condition as the base condition.
 - If the user describes only a simple base reward with no conditions, omit modifiers or return an empty array.
 - Do not invent metadata fields unless the user names them; when using metadata, set metadataField.
+- Only use entities and attributes allowed for this event (listed below).
 
 Allowed entities and attributes for ${event}:
 ${entities.join("\n")}`;

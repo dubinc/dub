@@ -23,7 +23,9 @@ const aiRewardConditionSchema = z.object({
   label: z
     .string()
     .nullish()
-    .describe("Optional display label (e.g. product name for productId)."),
+    .describe(
+      "Optional display label for the reward (e.g. product name for productId).",
+    ),
   metadataField: z
     .string()
     .optional()
@@ -92,7 +94,7 @@ const aiRewardSchema = z
       .nonnegative()
       .nullish()
       .describe(
-        "Base duration in months for sale rewards. null = customer's lifetime. Click/lead must be 0. Omit when not specified.",
+        "Base duration in months for sale rewards. null = customer's lifetime. One-time sale rewards must be 0, same as click and lead rewards.",
       ),
     modifiers: z
       .array(aiRewardModifierSchema)
