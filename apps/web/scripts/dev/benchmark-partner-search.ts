@@ -4,6 +4,11 @@
  * Calls `getPartners` in process, not over HTTP, so the numbers exclude route
  * handling, auth, and serialization — treat them as a floor for the endpoint.
  *
+ * --searchOnly times the provider's candidate query alone and skips the
+ * database. Use it to compare providers: they are the same remote services
+ * production would use, while the local database is not representative and
+ * dominates the end-to-end numbers.
+ *
  * To avoid measuring a warm cache it samples `--sampleSize` partners strided
  * across the program and exhausts a field's queries before repeating any.
  *
@@ -12,7 +17,7 @@
  *
  *   cd apps/web
  *   pnpm run script dev/benchmark-partner-search --programId=prog_123 [--requests=1000]
- *     [--sampleSize=100] [--concurrency=10] [--warmup=50] [--thresholdMs=1000]
+ *     [--sampleSize=100] [--concurrency=10] [--warmup=50] [--thresholdMs=1000] [--searchOnly]
  *
  * Requires PARTNER_SEARCH_PROVIDER and an index backfilled for the program:
  *   pnpm run script partners/backfill-partner-search --programId=prog_123
@@ -53,6 +58,7 @@ interface BenchmarkArguments {
   thresholdMs: number;
   sampleSize: number;
   maxErrorRate: number;
+  searchOnly: boolean;
 }
 
 interface SearchCase {
@@ -91,6 +97,7 @@ function parseArguments(args: string[]): BenchmarkArguments {
   let thresholdMs = DEFAULT_THRESHOLD_MS;
   let sampleSize = DEFAULT_SAMPLE_SIZE;
   let maxErrorRate = DEFAULT_MAX_ERROR_RATE;
+  let searchOnly = false;
 
   for (const arg of args) {
     if (arg.startsWith("--programId=")) {
@@ -130,6 +137,8 @@ function parseArguments(args: string[]): BenchmarkArguments {
         arg.slice("--thresholdMs=".length),
         "--thresholdMs",
       );
+    } else if (arg === "--searchOnly") {
+      searchOnly = true;
     } else {
       throw new Error(`Unknown argument: ${arg}`);
     }
@@ -164,6 +173,7 @@ function parseArguments(args: string[]): BenchmarkArguments {
     thresholdMs,
     sampleSize,
     maxErrorRate,
+    searchOnly,
   };
 }
 
@@ -368,28 +378,41 @@ async function main() {
     const query =
       pool.queries[Math.floor(index / pools.length) % pool.queries.length];
     const searchCase: SearchCase = { field: pool.field, query };
-    const filters = {
-      programId: options.programId,
-      search: searchCase.query,
-      page: 1,
-      pageSize: options.pageSize,
-      sortBy: "relevance" as const,
-      sortOrder: "desc" as const,
-    };
     const startedAt = performance.now();
 
     try {
-      // Opt out of the database fallback: a provider failure has to surface as
-      // an error here, not as a fast run measuring the wrong code path.
-      const partners = await getPartners(filters, {
-        searchProvider,
-        throwOnSearchError: true,
-      });
+      if (options.searchOnly) {
+        const { hits } = await searchProvider.searchCandidates({
+          programId: options.programId,
+          query: searchCase.query,
+          limit: PARTNER_SEARCH_CANDIDATE_LIMIT,
+        });
 
-      if (partners.length === 0) {
-        throw new Error(
-          `Search case "${searchCase.field}" returned no results for "${searchCase.query}".`,
+        if (hits.length === 0) {
+          throw new Error(
+            `Search case "${searchCase.field}" returned no candidates for "${searchCase.query}".`,
+          );
+        }
+      } else {
+        // Opt out of the database fallback: a provider failure has to surface
+        // as an error here, not as a fast run measuring the wrong code path.
+        const partners = await getPartners(
+          {
+            programId: options.programId,
+            search: searchCase.query,
+            page: 1,
+            pageSize: options.pageSize,
+            sortBy: "relevance" as const,
+            sortOrder: "desc" as const,
+          },
+          { searchProvider, throwOnSearchError: true },
         );
+
+        if (partners.length === 0) {
+          throw new Error(
+            `Search case "${searchCase.field}" returned no results for "${searchCase.query}".`,
+          );
+        }
       }
 
       return {
@@ -416,8 +439,11 @@ async function main() {
     (total, { queries }) => total + queries.length,
     0,
   );
+  const measuredPath = options.searchOnly
+    ? "queries the search provider directly (no database reads)"
+    : "runs the relevance-ranked partner list path";
   console.log(
-    `Each request runs the relevance-ranked partner list path across ${pools.length} search cases, drawing from ${distinctQueries.toLocaleString()} distinct queries sampled from ${options.sampleSize.toLocaleString()} partners.`,
+    `Each request ${measuredPath} across ${pools.length} search cases, drawing from ${distinctQueries.toLocaleString()} distinct queries sampled from ${options.sampleSize.toLocaleString()} partners.`,
   );
   const warmupResults = await runWithConcurrency(
     options.warmupRequests,
