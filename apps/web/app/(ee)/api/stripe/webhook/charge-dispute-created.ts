@@ -13,19 +13,22 @@ export async function chargeDisputeCreated(
   const chargeId =
     typeof dispute.charge === "string" ? dispute.charge : dispute.charge.id;
 
-  const charge = await stripe.charges.retrieve(chargeId);
+  const charge = await stripe.charges.retrieve(chargeId, {
+    expand: ["customer"],
+  });
 
-  const { customer: customerId, payment_method_details } = charge;
+  const { customer: customerObj, payment_method_details } = charge;
+  const customer = customerObj as Stripe.Customer;
 
   const workspace = await prisma.project.findUnique({
     where: {
-      stripeId: customerId as string,
+      stripeId: customer.id,
     },
   });
 
   // should never happen, but just in case
   if (!workspace) {
-    return `Workspace with stripeId ${customerId} not found.`;
+    return `Workspace with stripeId ${customer.id} not found.`;
   }
 
   await disableWorkspaceLinks(workspace.id);
@@ -52,25 +55,16 @@ export async function chargeDisputeCreated(
     `Added legal user ${LEGAL_USER_ID} as owner to workspace ${workspace.id}`,
   );
 
-  // should always have stripeId, but just in case
-  if (workspace.stripeId) {
-    await cancelSubscription({
-      customerId: workspace.stripeId,
-      reason: "Workspace banned due to charge dispute",
-    });
+  await addToStripeFraudValueLists({
+    customerId: customer.id,
+    customerEmail: customer.email,
+    cardFingerprint: payment_method_details?.card?.fingerprint,
+  });
 
-    const stripeCustomer = (await stripe.customers.retrieve(
-      workspace.stripeId,
-    )) as Stripe.Customer;
-
-    const cardFingerprint = payment_method_details?.card?.fingerprint;
-
-    await addToStripeFraudValueLists({
-      customerId: workspace.stripeId,
-      customerEmail: stripeCustomer.email,
-      cardFingerprint,
-    });
-  }
+  await cancelSubscription({
+    customerId: customer.id,
+    reason: "Workspace banned due to charge dispute",
+  });
 
   return `Workspace ${workspace.id} banned due to charge dispute`;
 }
