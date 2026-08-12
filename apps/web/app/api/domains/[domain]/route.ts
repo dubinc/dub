@@ -1,6 +1,7 @@
 import { addDomainToVercel } from "@/lib/api/domains/add-domain-vercel";
 import { getDomainOrThrow } from "@/lib/api/domains/get-domain-or-throw";
 import { markDomainAsDeleted } from "@/lib/api/domains/mark-domain-deleted";
+import { parseDomainJsonConfig } from "@/lib/api/domains/parse-domain-json-config";
 import { queueDomainUpdate } from "@/lib/api/domains/queue-domain-update";
 import { removeDomainFromVercel } from "@/lib/api/domains/remove-domain-vercel";
 import { transformDomain } from "@/lib/api/domains/transform-domain";
@@ -12,10 +13,7 @@ import { withWorkspace } from "@/lib/auth";
 import { setRenewOption } from "@/lib/dynadot/set-renew-option";
 import { prisma } from "@/lib/prisma";
 import { storage } from "@/lib/storage";
-import {
-  domainJsonConfigSchema,
-  updateDomainBodySchema,
-} from "@/lib/zod/schemas/domains";
+import { updateDomainBodySchema } from "@/lib/zod/schemas/domains";
 import { combineWords, nanoid, R2_URL } from "@dub/utils";
 import { Prisma } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
@@ -24,7 +22,7 @@ import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 
 const updateDomainBodySchemaExtended = updateDomainBodySchema.extend({
-  deepviewData: domainJsonConfigSchema,
+  deepviewData: z.string().nullish(),
   autoRenew: z.boolean().nullish(),
 });
 
@@ -150,15 +148,22 @@ export const PATCH = withWorkspace(
         notFoundUrl,
         logo: deleteLogo ? null : logoUploaded?.url || existingDomain.logo,
         ...(assetLinks !== undefined && {
-          assetLinks: assetLinks ? JSON.parse(assetLinks) : Prisma.DbNull,
+          assetLinks: assetLinks
+            ? parseDomainJsonConfig(assetLinks, "assetLinks")
+            : Prisma.DbNull,
         }),
         ...(appleAppSiteAssociation !== undefined && {
           appleAppSiteAssociation: appleAppSiteAssociation
-            ? JSON.parse(appleAppSiteAssociation)
+            ? parseDomainJsonConfig(
+                appleAppSiteAssociation,
+                "appleAppSiteAssociation",
+              )
             : Prisma.DbNull,
         }),
         ...(deepviewData !== undefined && {
-          deepviewData: deepviewData ? JSON.parse(deepviewData) : Prisma.DbNull,
+          deepviewData: deepviewData
+            ? parseDomainJsonConfig(deepviewData, "deepviewData")
+            : Prisma.DbNull,
         }),
       },
       include: {

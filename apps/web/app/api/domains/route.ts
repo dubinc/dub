@@ -1,5 +1,6 @@
 import { createId } from "@/lib/api/create-id";
 import { addDomainToVercel } from "@/lib/api/domains/add-domain-vercel";
+import { parseDomainJsonConfig } from "@/lib/api/domains/parse-domain-json-config";
 import { transformDomain } from "@/lib/api/domains/transform-domain";
 import { validateDomain } from "@/lib/api/domains/utils";
 import { DubApiError } from "@/lib/api/errors";
@@ -224,12 +225,17 @@ export const POST = withWorkspace(
             expiredUrl,
             notFoundUrl,
             ...(logoUploaded && { logo: logoUploaded.url }),
-            ...(assetLinks && { assetLinks: JSON.parse(assetLinks) }),
+            ...(assetLinks && {
+              assetLinks: parseDomainJsonConfig(assetLinks, "assetLinks"),
+            }),
             ...(appleAppSiteAssociation && {
-              appleAppSiteAssociation: JSON.parse(appleAppSiteAssociation),
+              appleAppSiteAssociation: parseDomainJsonConfig(
+                appleAppSiteAssociation,
+                "appleAppSiteAssociation",
+              ),
             }),
             ...(deepviewData && {
-              deepviewData: JSON.parse(deepviewData),
+              deepviewData: parseDomainJsonConfig(deepviewData, "deepviewData"),
             }),
           },
         });

@@ -66,18 +66,21 @@ type DomainCreateBody = ReturnType<typeof domainBody> & JsonConfigFields;
 const jsonFields = [
   {
     field: "assetLinks" as const,
+    label: "Asset Links",
     valid: VALID_ASSET_LINKS,
     updated: UPDATED_ASSET_LINKS,
     emptyCreateExpected: null,
   },
   {
     field: "appleAppSiteAssociation" as const,
+    label: "Apple App Site Association",
     valid: VALID_AASA,
     updated: UPDATED_AASA,
     emptyCreateExpected: null,
   },
   {
     field: "deepviewData" as const,
+    label: "Deep View data",
     valid: VALID_DEEPVIEW,
     updated: UPDATED_DEEPVIEW,
     emptyCreateExpected: "{}",
@@ -374,7 +377,13 @@ test("GET /domains/{slug} – not found", async ({ api }) => {
 });
 
 test.describe("JSON config fields", () => {
-  for (const { field, valid, updated, emptyCreateExpected } of jsonFields) {
+  for (const {
+    field,
+    label,
+    valid,
+    updated,
+    emptyCreateExpected,
+  } of jsonFields) {
     test(`POST /domains – valid ${field}`, async ({ api }) => {
       let slug: string | undefined;
 
@@ -486,7 +495,7 @@ test.describe("JSON config fields", () => {
         data: {
           error: {
             code: "unprocessable_entity",
-            message: `custom: ${field}: Invalid JSON`,
+            message: `Invalid ${label}`,
             doc_url:
               "https://dub.co/docs/api-reference/errors#unprocessable-entity",
           },
@@ -510,7 +519,7 @@ test.describe("JSON config fields", () => {
           data: {
             error: {
               code: "unprocessable_entity",
-              message: `custom: ${field}: Invalid JSON`,
+              message: `Invalid ${label}`,
               doc_url:
                 "https://dub.co/docs/api-reference/errors#unprocessable-entity",
             },

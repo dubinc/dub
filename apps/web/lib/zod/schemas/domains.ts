@@ -103,27 +103,6 @@ export const getDefaultDomainsQuerySchema = getDomainsQuerySchema.pick({
   search: true,
 });
 
-export const domainJsonConfigSchema = z
-  .string()
-  .nullish()
-  .refine(
-    (val) => {
-      if (val == null || val === "") {
-        return true;
-      }
-
-      try {
-        JSON.parse(val);
-        return true;
-      } catch {
-        return false;
-      }
-    },
-    {
-      error: "Invalid JSON",
-    },
-  );
-
 export const createDomainBodySchema = z.object({
   slug: z
     .string({ error: "slug is required" })
@@ -162,16 +141,22 @@ export const createDomainBodySchema = z.object({
     )
     .meta({ example: "https://dub.co/help/article/dub-links" }),
   logo: uploadedImageSchema.nullish().describe("The logo of the domain."),
-  assetLinks: domainJsonConfigSchema.describe(
-    "assetLinks.json configuration file (for deep link support on Android).",
-  ),
-  appleAppSiteAssociation: domainJsonConfigSchema.describe(
-    "apple-app-site-association configuration file (for deep link support on iOS).",
-  ),
+  assetLinks: z
+    .string()
+    .nullish()
+    .describe(
+      "assetLinks.json configuration file (for deep link support on Android).",
+    ),
+  appleAppSiteAssociation: z
+    .string()
+    .nullish()
+    .describe(
+      "apple-app-site-association configuration file (for deep link support on iOS).",
+    ),
 });
 
 export const createDomainBodySchemaExtended = createDomainBodySchema.extend({
-  deepviewData: domainJsonConfigSchema,
+  deepviewData: z.string().nullish(),
   isOnboardingSubdomainFlow: z.boolean().default(false),
 });
 
