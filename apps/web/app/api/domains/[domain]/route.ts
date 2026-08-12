@@ -12,7 +12,10 @@ import { withWorkspace } from "@/lib/auth";
 import { setRenewOption } from "@/lib/dynadot/set-renew-option";
 import { prisma } from "@/lib/prisma";
 import { storage } from "@/lib/storage";
-import { updateDomainBodySchema } from "@/lib/zod/schemas/domains";
+import {
+  domainJsonConfigSchema,
+  updateDomainBodySchema,
+} from "@/lib/zod/schemas/domains";
 import { combineWords, nanoid, R2_URL } from "@dub/utils";
 import { Prisma } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
@@ -21,7 +24,7 @@ import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 
 const updateDomainBodySchemaExtended = updateDomainBodySchema.extend({
-  deepviewData: z.string().nullish(),
+  deepviewData: domainJsonConfigSchema,
   autoRenew: z.boolean().nullish(),
 });
 
