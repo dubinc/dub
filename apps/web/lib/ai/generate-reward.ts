@@ -17,7 +17,7 @@ import { createStreamableValue } from "@ai-sdk/rsc";
 import { Output, streamText } from "ai";
 import * as z from "zod/v4";
 import { throwIfNoPermission } from "../actions/throw-if-no-permission";
-import { AIRewardDraft, aiRewardSchema } from "./ai-reward-schema";
+import { AIRewardDraft, getAIRewardSchema } from "./ai-reward-schema";
 
 const AI_REWARD_EVENTS = ["click", "lead", "sale"] as const;
 
@@ -132,9 +132,10 @@ export async function generateReward(input: z.infer<typeof inputSchema>) {
     };
 
     try {
+      const rewardSchema = getAIRewardSchema(event);
       const { partialOutputStream } = streamText({
         model: anthropic("claude-sonnet-4-6"),
-        output: Output.object({ schema: aiRewardSchema }),
+        output: Output.object({ schema: rewardSchema }),
         system: buildSystemPrompt(event),
         prompt,
         temperature: 0.3,
@@ -155,7 +156,7 @@ export async function generateReward(input: z.infer<typeof inputSchema>) {
 
       if (failed) return;
 
-      if (!lastPartial || !aiRewardSchema.safeParse(lastPartial).success) {
+      if (!lastPartial || !rewardSchema.safeParse(lastPartial).success) {
         await fail();
         return;
       }

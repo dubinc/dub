@@ -1,4 +1,7 @@
-import { CONDITION_OPERATORS } from "@/lib/zod/schemas/rewards";
+import {
+  CONDITION_OPERATORS,
+  REWARD_CONDITIONS,
+} from "@/lib/zod/schemas/rewards";
 import { RewardStructure } from "@prisma/client";
 import * as z from "zod/v4";
 
@@ -57,7 +60,7 @@ const aiRewardModifierSchema = z
       .nullable()
       .optional()
       .describe(
-        "Duration in months for sale rewards. null = lifetime. Omit to inherit base. Click/lead ignore this.",
+        "Duration in months for sale rewards. null = lifetime. Omit to inherit base.",
       ),
   })
   .refine(
@@ -70,7 +73,7 @@ const aiRewardModifierSchema = z
   );
 
 /** AI output schema — amounts in form units (dollars for flat, percent for percentage). */
-export const aiRewardSchema = z
+const aiRewardSchema = z
   .object({
     type: z
       .enum(RewardStructure)
@@ -119,3 +122,54 @@ export const aiRewardSchema = z
   );
 
 export type AIRewardDraft = z.infer<typeof aiRewardSchema>;
+
+export function getAIRewardSchema(event: "click" | "lead" | "sale") {
+  const schema =
+    event === "sale"
+      ? aiRewardSchema
+      : aiRewardSchema
+          .refine((data) => data.type === "flat", {
+            message: "Click and lead rewards must be flat.",
+            path: ["type"],
+          })
+          .refine((data) => data.maxDuration === 0, {
+            message: "Click and lead rewards must use duration 0.",
+            path: ["maxDuration"],
+          })
+          .refine(
+            (data) =>
+              (data.modifiers ?? []).every(
+                (modifier) =>
+                  (modifier.type == null || modifier.type === "flat") &&
+                  (modifier.maxDuration == null || modifier.maxDuration === 0),
+              ),
+            {
+              message: "Click and lead modifiers must be flat with duration 0.",
+              path: ["modifiers"],
+            },
+          );
+
+  return schema.superRefine((data, ctx) => {
+    data.modifiers?.forEach((modifier, modifierIndex) => {
+      modifier.conditions.forEach((condition, conditionIndex) => {
+        const entity = REWARD_CONDITIONS[event].entities.find(
+          (entry) => entry.id === condition.entity,
+        );
+        const attribute = entity?.attributes.find(
+          (entry) => entry.id === condition.attribute,
+        );
+        const valid =
+          attribute != null &&
+          (attribute.type !== "metadata" || condition.metadataField);
+
+        if (valid) return;
+
+        ctx.addIssue({
+          code: "custom",
+          message: `Condition uses an entity/attribute not allowed for ${event} rewards.`,
+          path: ["modifiers", modifierIndex, "conditions", conditionIndex],
+        });
+      });
+    });
+  });
+}

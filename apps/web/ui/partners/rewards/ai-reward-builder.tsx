@@ -1,6 +1,6 @@
 "use client";
 
-import { AIRewardDraft, aiRewardSchema } from "@/lib/ai/ai-reward-schema";
+import { AIRewardDraft, getAIRewardSchema } from "@/lib/ai/ai-reward-schema";
 import { generateReward } from "@/lib/ai/generate-reward";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -201,13 +201,18 @@ export function useAIRewardBuilder({
     setError(null);
   }, [clearPresetTimeout]);
 
-  const discard = useCallback(() => {
-    if (snapshotRef.current) {
-      reset(snapshotRef.current, { keepDefaultValues: true });
-    }
-    exitReview();
-    setPrompt("");
-  }, [exitReview, reset]);
+  const discard = useCallback(
+    ({ keepPrompt = false }: { keepPrompt?: boolean } = {}) => {
+      if (snapshotRef.current) {
+        reset(snapshotRef.current, { keepDefaultValues: true });
+      }
+      exitReview();
+      if (!keepPrompt) {
+        setPrompt("");
+      }
+    },
+    [exitReview, reset],
+  );
 
   const accept = useCallback(() => {
     exitReview();
@@ -283,7 +288,7 @@ export function useAIRewardBuilder({
         return;
       }
 
-      const parsed = aiRewardSchema.safeParse(lastPartial);
+      const parsed = getAIRewardSchema(event).safeParse(lastPartial);
       if (!parsed.success) {
         setPhase("error");
         setError("Generated reward was incomplete. Try a clearer description.");
@@ -431,7 +436,23 @@ export function AIRewardInput({
             }
             className="mb-4 origin-top"
           >
-            <div className="border-border-subtle rounded-xl border bg-white text-sm shadow-sm">
+            <div
+              className="border-border-subtle rounded-xl border bg-white text-sm shadow-sm"
+              onFocus={() => {
+                clearBlurTimeout();
+                setFocused(true);
+              }}
+              onBlur={(e) => {
+                const next = e.relatedTarget;
+                if (next instanceof Node && e.currentTarget.contains(next)) {
+                  return;
+                }
+                clearBlurTimeout();
+                blurTimeoutRef.current = window.setTimeout(() => {
+                  setFocused(false);
+                }, 150);
+              }}
+            >
               <div className="flex items-start gap-2.5 p-2.5">
                 <div className="flex size-7 shrink-0 items-center justify-center rounded-md bg-neutral-100">
                   <Sparkle3 className="size-4 text-neutral-800" />
@@ -439,18 +460,12 @@ export function AIRewardInput({
                 <TextareaAutosize
                   value={prompt}
                   onChange={(e) => setPrompt(e.target.value)}
-                  onFocus={() => {
-                    clearBlurTimeout();
-                    setFocused(true);
-                  }}
-                  onBlur={() => {
-                    clearBlurTimeout();
-                    blurTimeoutRef.current = window.setTimeout(() => {
-                      setFocused(false);
-                    }, 150);
-                  }}
                   onKeyDown={(e) => {
-                    if (e.key === "Enter" && !e.shiftKey) {
+                    if (
+                      e.key === "Enter" &&
+                      !e.shiftKey &&
+                      !e.nativeEvent.isComposing
+                    ) {
                       e.preventDefault();
                       void generate();
                     }
@@ -663,8 +678,10 @@ export function AIRewardPreviewFrame({
 
   const [chromeMounted, setChromeMounted] = useState(false);
   const [chromeOpen, setChromeOpen] = useState(false);
-  const [exitKind, setExitKind] = useState<"accept" | "discard" | null>(null);
-  const exitKindRef = useRef<"accept" | "discard" | null>(null);
+  const [exitKind, setExitKind] = useState<
+    "accept" | "discard" | "retry" | null
+  >(null);
+  const exitKindRef = useRef<"accept" | "discard" | "retry" | null>(null);
 
   useEffect(() => {
     if (!isReviewing) {
@@ -702,9 +719,10 @@ export function AIRewardPreviewFrame({
 
     if (kind === "accept") accept();
     else if (kind === "discard") discard();
+    else if (kind === "retry") discard({ keepPrompt: true });
   }, [accept, discard]);
 
-  const requestExit = (kind: "accept" | "discard") => {
+  const requestExit = (kind: "accept" | "discard" | "retry") => {
     if (exitKindRef.current || phase === "streaming") return;
 
     if (shouldReduceMotion) {
@@ -753,7 +771,8 @@ export function AIRewardPreviewFrame({
               : cn(
                   "opacity-0",
                   exitKind === "accept" && "-translate-y-1 scale-[0.99]",
-                  exitKind === "discard" && "translate-y-1 scale-[0.98]",
+                  (exitKind === "discard" || exitKind === "retry") &&
+                    "translate-y-1 scale-[0.98]",
                   exitKind == null && "scale-[0.98]",
                 ),
           )}
@@ -830,7 +849,7 @@ export function AIRewardPreviewFrame({
               text="Try again"
               className="h-8 w-fit rounded-lg px-3 active:scale-[0.97]"
               disabled={exitKind != null}
-              onClick={() => requestExit("discard")}
+              onClick={() => requestExit("retry")}
             />
           </div>
         ) : showSkeletons ? (
