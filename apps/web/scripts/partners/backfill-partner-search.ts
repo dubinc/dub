@@ -77,15 +77,31 @@ function parseArguments(args: string[]): BackfillArguments {
 
 let resumeAfter: string | undefined;
 
-function reportProgress({
-  batchSize,
-  processed,
-  lastDocumentId,
-}: PartnerSearchBackfillProgress) {
-  resumeAfter = lastDocumentId;
-  console.log(
-    `Indexed ${processed.toLocaleString()} documents (${batchSize.toLocaleString()} in this batch), last document: ${lastDocumentId}`,
-  );
+// `totalDocuments` is a snapshot from before the run, so enrollments written
+// while the backfill is paging can push the final chunk past it; the percentage
+// is clamped rather than reporting >100%.
+function createProgressReporter(totalDocuments: number, batchSize: number) {
+  const totalChunks = Math.max(1, Math.ceil(totalDocuments / batchSize));
+  const startTime = Date.now();
+  let chunk = 0;
+
+  return ({
+    batchSize: indexedInChunk,
+    processed,
+    lastDocumentId,
+  }: PartnerSearchBackfillProgress) => {
+    resumeAfter = lastDocumentId;
+    chunk += 1;
+
+    const progressPct = Math.min(
+      100,
+      totalDocuments > 0 ? (processed / totalDocuments) * 100 : 100,
+    ).toFixed(0);
+    const elapsedSec = ((Date.now() - startTime) / 1000).toFixed(1);
+    console.log(
+      `[Chunk ${chunk}/${totalChunks}] (${progressPct}%) Processed ${processed.toLocaleString()}/${totalDocuments.toLocaleString()} partners (${indexedInChunk.toLocaleString()} indexed, through ${lastDocumentId})... (${elapsedSec}s elapsed)`,
+    );
+  };
 }
 
 async function main() {
@@ -104,17 +120,26 @@ async function main() {
     await createUpstashRedisPartnerSearchIndex();
   }
 
+  // Same where-clause the backfill pages with, so chunk totals line up.
+  const totalDocuments = await prisma.programEnrollment.count({
+    where: {
+      programId,
+      ...(after && { id: { gt: after } }),
+    },
+  });
+
   console.log(`Starting partner search backfill for program ${programId}`);
   console.log(`Provider: ${providerName}`);
   console.log(
     `Batch size: ${batchSize.toLocaleString()}${after ? `, resuming after ${after}` : ""}`,
   );
+  console.log(`${totalDocuments.toLocaleString()} enrollments to index\n`);
 
   const result = await backfillPartnerSearch({
     programId,
     batchSize,
     after,
-    onProgress: reportProgress,
+    onProgress: createProgressReporter(totalDocuments, batchSize),
   });
 
   console.log(
