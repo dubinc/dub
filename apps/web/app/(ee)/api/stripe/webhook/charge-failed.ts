@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import Stripe from "stripe";
-import { detectAndHandleFraudulentFailedCharge } from "./utils/detect-and-handle-fraudulent-failed-charge";
+import { detectAndHandleFraudulentCharge } from "./utils/detect-and-handle-fraudulent-charge";
 import { processDomainRenewalFailure } from "./utils/process-domain-renewal-failure";
 import { processPayoutInvoiceFailure } from "./utils/process-payout-invoice-failure";
 
@@ -10,7 +10,7 @@ export async function chargeFailed(event: Stripe.ChargeFailedEvent) {
   const { transfer_group: invoiceId, failure_message: failedReason } = charge;
 
   if (!invoiceId) {
-    return detectAndHandleFraudulentFailedCharge(event);
+    return detectAndHandleFraudulentCharge(event);
   }
 
   let invoice = await prisma.invoice.findUnique({

@@ -12,11 +12,13 @@ import { customerSubscriptionUpdated } from "./customer-subscription-updated";
 import { invoicePaymentFailed } from "./invoice-payment-failed";
 import { paymentIntentRequiresAction } from "./payment-intent-requires-action";
 import { transferReversed } from "./transfer-reversed";
+import { detectAndHandleFraudulentCharge } from "./utils/detect-and-handle-fraudulent-charge";
 
 const relevantEvents = new Set([
   "charge.succeeded",
   "charge.failed",
   "charge.refunded",
+  "charge.dispute.created",
   "checkout.session.completed",
   "customer.subscription.created",
   "customer.subscription.updated",
@@ -60,6 +62,9 @@ export const POST = async (req: Request) => {
         break;
       case "charge.refunded":
         response = await chargeRefunded(event);
+        break;
+      case "charge.dispute.created":
+        response = await detectAndHandleFraudulentCharge(event);
         break;
       case "checkout.session.completed":
         response = await checkoutSessionCompleted(event);

@@ -11,14 +11,25 @@ const STRIPE_FRAUD_VALUE_LISTS = {
   CARD_FINGERPRINT: "rsl_1LeVdvAlJJEpqkPVvUZUm9eC",
 };
 
-export async function detectAndHandleFraudulentFailedCharge(
-  event: Stripe.ChargeFailedEvent,
+export async function detectAndHandleFraudulentCharge(
+  event: Stripe.ChargeFailedEvent | Stripe.ChargeDisputeCreatedEvent,
 ) {
-  const { customer, outcome, payment_method_details } = event.data.object;
+  let charge: Stripe.Charge;
+
+  if (event.type === "charge.dispute.created") {
+    const dispute = event.data.object;
+    const chargeId =
+      typeof dispute.charge === "string" ? dispute.charge : dispute.charge.id;
+    charge = await stripe.charges.retrieve(chargeId);
+  } else {
+    charge = event.data.object;
+  }
+
+  const { customer, outcome, payment_method_details } = charge;
 
   // should never happen, but just in case
   if (!customer || !outcome || !payment_method_details) {
-    return `[detectAndHandleFraudulentFailedCharge]: Invalid charge attributes: ${JSON.stringify({ customer, outcome })}`;
+    return `[detectAndHandleFraudulentCharge]: Invalid charge attributes: ${JSON.stringify({ customer, outcome })}`;
   }
 
   const customerId = customer as string;
@@ -30,13 +41,13 @@ export async function detectAndHandleFraudulentFailedCharge(
   });
 
   if (workspace) {
-    return `[detectAndHandleFraudulentFailedCharge]: Workspace with stripeId ${customer} already created, so this is most likely a failed subscription renewal payment, skipping...`;
+    return `[detectAndHandleFraudulentCharge]: Workspace with stripeId ${customer} already created, so this is most likely a failed subscription renewal payment, skipping...`;
   }
 
   const { risk_level } = outcome;
 
   if (risk_level !== "highest") {
-    return `[detectAndHandleFraudulentFailedCharge]: Risk level "${risk_level}" is not highest, skipping...`;
+    return `[detectAndHandleFraudulentCharge]: Risk level "${risk_level}" is not highest, skipping...`;
   }
 
   const stripeCustomer = (await stripe.customers.retrieve(
@@ -104,7 +115,7 @@ export async function detectAndHandleFraudulentFailedCharge(
             paidWorkspaces++;
             await log({
               type: "errors",
-              message: `[detectAndHandleFraudulentFailedCharge]: Workspace ${workspace.slug} for fraudulent user ${user.email} is not a free plan, skipping...`,
+              message: `[detectAndHandleFraudulentCharge]: Workspace ${workspace.slug} for fraudulent user ${user.email} is not a free plan, skipping...`,
             });
             continue;
           }
@@ -127,7 +138,7 @@ export async function detectAndHandleFraudulentFailedCharge(
               },
             });
             console.log(
-              `[detectAndHandleFraudulentFailedCharge]: Transferred ownership of workspace ${workspace.slug} to legal user ${LEGAL_USER_ID}`,
+              `[detectAndHandleFraudulentCharge]: Transferred ownership of workspace ${workspace.slug} to legal user ${LEGAL_USER_ID}`,
             );
             // disable workspace links
             await disableWorkspaceLinks(workspace.id);
@@ -139,13 +150,13 @@ export async function detectAndHandleFraudulentFailedCharge(
               },
             });
             console.log(
-              `[detectAndHandleFraudulentFailedCharge]: Deleted workspace ${workspace.slug} because it has no links`,
+              `[detectAndHandleFraudulentCharge]: Deleted workspace ${workspace.slug} because it has no links`,
             );
           }
         }
       } else {
         console.log(
-          `[detectAndHandleFraudulentFailedCharge]: User ${user.email} has no workspaces, skipping...`,
+          `[detectAndHandleFraudulentCharge]: User ${user.email} has no workspaces, skipping...`,
         );
       }
 
@@ -171,10 +182,10 @@ export async function detectAndHandleFraudulentFailedCharge(
       });
     } else {
       console.log(
-        `[detectAndHandleFraudulentFailedCharge]: User with email ${stripeCustomer.email} not found, skipping...`,
+        `[detectAndHandleFraudulentCharge]: User with email ${stripeCustomer.email} not found, skipping...`,
       );
     }
   }
 
-  return `[detectAndHandleFraudulentFailedCharge]: Processed charge.failed event for customer ${customerId} (${stripeCustomer.email}) and card fingerprint "${cardFingerprint}".`;
+  return `[detectAndHandleFraudulentCharge]: Processed ${event.type} event for customer ${customerId} (${stripeCustomer.email}) and card fingerprint "${cardFingerprint}".`;
 }
