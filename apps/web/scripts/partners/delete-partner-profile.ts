@@ -95,6 +95,13 @@ async function main() {
   });
   console.log(`Deleted ${deletedProgramEnrollments.count} program enrollments`);
 
+  const deletedPartnerUsers = await prisma.partnerUser.deleteMany({
+    where: {
+      partnerId: partner.id,
+    },
+  });
+  console.log(`Deleted ${deletedPartnerUsers.count} partner users`);
+
   // using conn.execute here since Prisma is throwing a weird error
   const res = await conn.execute(`DELETE FROM Partner WHERE id = ?`, [
     partner.id,
