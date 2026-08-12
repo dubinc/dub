@@ -1,6 +1,5 @@
 import { getPartnerSearchProviderName } from "@/lib/api/partners/search";
 import { deleteTurbopufferPartnerSearchNamespace } from "@/lib/api/partners/search/providers/turbopuffer";
-import { deleteUpstashSearchPartnerSearchIndex } from "@/lib/api/partners/search/providers/upstash-search";
 import { chunk } from "@dub/utils";
 import { Redis } from "@upstash/redis";
 import "dotenv-flow/config";
@@ -101,16 +100,6 @@ async function main() {
   const providerName = getPartnerSearchProviderName();
   if (!providerName) {
     throw new Error("PARTNER_SEARCH_PROVIDER is not configured.");
-  }
-
-  if (providerName === "upstash-search") {
-    const { documentCount } = await deleteUpstashSearchPartnerSearchIndex({
-      indexName,
-    });
-    console.log(
-      `Partner search cleanup complete: ${documentCount.toLocaleString()} documents removed from ${indexName}.`,
-    );
-    return;
   }
 
   if (providerName === "turbopuffer") {

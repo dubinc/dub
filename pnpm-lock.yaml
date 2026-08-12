@@ -161,9 +161,6 @@ importers:
       '@upstash/redis':
         specifier: ^1.38.2
         version: 1.38.2
-      '@upstash/search':
-        specifier: ^0.1.7
-        version: 0.1.7
       '@upstash/vector':
         specifier: ^1.2.2
         version: 1.2.2
@@ -6047,9 +6044,6 @@ packages:
 
   '@upstash/redis@1.38.2':
     resolution: {integrity: sha512-RZ+JaRCVIS+ZTGnjOnDMr+/0aqDxsBb5rV6aW+Pys4SGELwr5lwE3UbLHRCHqMQ5Ulxj0b/CFBHfbmE175Otog==}
-
-  '@upstash/search@0.1.7':
-    resolution: {integrity: sha512-rgJ52TP0eUPLFo4K6TZtiC7qICbJnEwkT+TqaDI1vN8/Hk6qidgNC9dpnUUXCiqfwogty1rlSyBhYfk6PRgXjA==}
 
   '@upstash/vector@1.2.2':
     resolution: {integrity: sha512-ptQ9xnxtKqmpNK52PCcHCszlPOLxIBfjsv7ty8RoF95pkjctS9rSjTQ3Pl9bx5VFbpDj+0dMXw88WLt6swDkgQ==}
@@ -19797,10 +19791,6 @@ snapshots:
   '@upstash/redis@1.38.2':
     dependencies:
       uncrypto: 0.1.3
-
-  '@upstash/search@0.1.7':
-    dependencies:
-      '@upstash/vector': 1.2.2
 
   '@upstash/vector@1.2.2': {}
 

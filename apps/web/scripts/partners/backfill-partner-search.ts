@@ -99,7 +99,7 @@ async function main() {
   }
 
   // Redis Search indexes have an explicit schema and must exist before the
-  // backfill starts. Upstash Search creates its index on the first upsert.
+  // backfill starts. Turbopuffer creates its namespace on the first upsert.
   if (providerName === "upstash-redis") {
     await createUpstashRedisPartnerSearchIndex();
   }

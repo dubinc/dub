@@ -28,7 +28,7 @@ interface ReconcilePartnerSearchIndexOptions {
  *
  * This sweeps the whole index rather than one program, because neither provider
  * can enumerate documents by program: Redis keys are prefixed by index name
- * only, and Upstash Search ranges over document IDs. Scoping to a program would
+ * only, and Turbopuffer pages over document IDs. Scoping to a program would
  * mean reading every document's body just to discard most of them.
  */
 export async function reconcilePartnerSearchIndex({

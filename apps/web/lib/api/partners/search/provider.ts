@@ -1,11 +1,9 @@
 import { createTurbopufferPartnerSearchProvider } from "./providers/turbopuffer";
 import { createUpstashRedisPartnerSearchProvider } from "./providers/upstash-redis";
-import { createUpstashSearchPartnerSearchProvider } from "./providers/upstash-search";
 import type { PartnerSearchProvider } from "./types";
 
 const PARTNER_SEARCH_PROVIDER_NAMES = [
   "upstash-redis",
-  "upstash-search",
   "turbopuffer",
 ] as const;
 
@@ -17,7 +15,6 @@ const providerFactories: Record<
   () => PartnerSearchProvider
 > = {
   "upstash-redis": createUpstashRedisPartnerSearchProvider,
-  "upstash-search": createUpstashSearchPartnerSearchProvider,
   turbopuffer: createTurbopufferPartnerSearchProvider,
 };
 

@@ -12,7 +12,7 @@ async function main() {
   // schema from the first write, so this is a no-op for them — spelled out per
   // provider rather than falling through, so a new provider cannot silently
   // land on the Redis path.
-  if (providerName === "upstash-search" || providerName === "turbopuffer") {
+  if (providerName === "turbopuffer") {
     console.log(
       `${providerName} creates the partner search index on the first backfill upsert.`,
     );
