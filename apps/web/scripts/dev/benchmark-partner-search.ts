@@ -7,7 +7,9 @@
  * --searchOnly times the provider's candidate query alone and skips the
  * database. Use it to compare providers: they are the same remote services
  * production would use, while the local database is not representative and
- * dominates the end-to-end numbers.
+ * dominates the end-to-end numbers. It also raises the --sampleSize ceiling,
+ * so high request counts can keep drawing fresh queries instead of repeating
+ * cached ones.
  *
  * To avoid measuring a warm cache it samples `--sampleSize` partners strided
  * across the program and exhausts a field's queries before repeating any.
@@ -37,6 +39,7 @@ import {
   parseNonNegativeInteger,
   parsePositiveInteger,
 } from "@/scripts/utils/parse-cli-number";
+import { chunk } from "@dub/utils";
 import "dotenv-flow/config";
 
 const DEFAULT_REQUESTS = 1_000;
@@ -46,7 +49,11 @@ const DEFAULT_PAGE_SIZE = 25;
 const DEFAULT_THRESHOLD_MS = 1_000;
 const MINIMUM_REQUESTS = 1_000;
 const DEFAULT_SAMPLE_SIZE = 100;
+// The sample bounds one setup hydration query per chunk; the end-to-end mode
+// keeps it small because the same database also serves the measured requests.
 const MAX_SAMPLE_SIZE = 1_000;
+const MAX_SEARCH_ONLY_SAMPLE_SIZE = 10_000;
+const SAMPLE_HYDRATION_CHUNK_SIZE = 1_000;
 const DEFAULT_MAX_ERROR_RATE = 0;
 
 interface BenchmarkArguments {
@@ -160,8 +167,15 @@ function parseArguments(args: string[]): BenchmarkArguments {
       `--pageSize cannot exceed ${PARTNER_SEARCH_CANDIDATE_LIMIT}.`,
     );
   }
-  if (sampleSize > MAX_SAMPLE_SIZE) {
-    throw new Error(`--sampleSize cannot exceed ${MAX_SAMPLE_SIZE}.`);
+  const maxSampleSize = searchOnly
+    ? MAX_SEARCH_ONLY_SAMPLE_SIZE
+    : MAX_SAMPLE_SIZE;
+  if (sampleSize > maxSampleSize) {
+    throw new Error(
+      searchOnly
+        ? `--sampleSize cannot exceed ${MAX_SEARCH_ONLY_SAMPLE_SIZE}.`
+        : `--sampleSize cannot exceed ${MAX_SAMPLE_SIZE} (${MAX_SEARCH_ONLY_SAMPLE_SIZE} with --searchOnly).`,
+    );
   }
 
   return {
@@ -279,10 +293,17 @@ async function loadSearchCasePools(
     .filter((_, index) => index % stride === 0)
     .map(({ id }) => id);
 
-  const sampled = await prisma.programEnrollment.findMany({
-    where: { id: { in: sampledIds } },
-    select: partnerSearchDocumentSelect,
-  });
+  // Chunked so the larger --searchOnly samples keep the IN clause bounded.
+  const sampled = (
+    await Promise.all(
+      chunk(sampledIds, SAMPLE_HYDRATION_CHUNK_SIZE).map((idChunk) =>
+        prisma.programEnrollment.findMany({
+          where: { id: { in: idChunk } },
+          select: partnerSearchDocumentSelect,
+        }),
+      ),
+    )
+  ).flat();
 
   if (sampled.length === 0) {
     throw new Error(
