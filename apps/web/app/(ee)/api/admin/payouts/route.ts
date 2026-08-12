@@ -36,6 +36,7 @@ export const GET = withAdmin(async ({ searchParams }) => {
     start,
     end,
     timezone,
+    dataAvailableFrom: new Date("2024-11-01"),
   });
 
   const invoiceWhere: Prisma.InvoiceWhereInput = {
