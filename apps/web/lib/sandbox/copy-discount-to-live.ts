@@ -102,6 +102,10 @@ export const copyDiscountToLiveAction = authActionClient
       workspace: targetWorkspace,
     });
 
+    if (targetGroup.discountId) {
+      throw new Error("The target group already has a discount.");
+    }
+
     let newCoupon: (DubDiscountAttributes & { id: string }) | null = null;
 
     if (discount.provider === "stripe") {
@@ -152,6 +156,7 @@ export const copyDiscountToLiveAction = authActionClient
 
       await tx.programEnrollment.updateMany({
         where: {
+          programId: targetProgram.id,
           groupId: targetGroupId,
         },
         data: {
@@ -164,6 +169,13 @@ export const copyDiscountToLiveAction = authActionClient
 
     waitUntil(
       Promise.allSettled([
+        qstash.publishJSON({
+          url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/invalidate-for-discounts`,
+          body: {
+            groupId: targetGroupId,
+          },
+        }),
+
         recordAuditLog({
           workspaceId: targetWorkspace.id,
           programId: targetProgram.id,

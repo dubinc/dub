@@ -5,6 +5,7 @@ import {
   assertProductionWorkspace,
   assertStagingWorkspace,
 } from "@/lib/sandbox/workspace-guards";
+import { INACTIVE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
 import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../actions/safe-action";
 import { throwIfNoPermission } from "../actions/throw-if-no-permission";
@@ -103,6 +104,8 @@ export const copyRewardToLiveAction = authActionClient
           amountInCents: reward.amountInCents,
           amountInPercentage: reward.amountInPercentage,
           maxDuration: reward.maxDuration,
+          spendLimitAmount: reward.spendLimitAmount,
+          spendLimitInterval: reward.spendLimitInterval,
           modifiers: reward.modifiers ?? undefined,
           config: reward.config ?? undefined,
         },
@@ -128,6 +131,9 @@ export const copyRewardToLiveAction = authActionClient
       await tx.programEnrollment.updateMany({
         where: {
           groupId: targetGroupId,
+          status: {
+            notIn: INACTIVE_ENROLLMENT_STATUSES,
+          },
         },
         data: {
           [rewardIdColumn]: newReward.id,

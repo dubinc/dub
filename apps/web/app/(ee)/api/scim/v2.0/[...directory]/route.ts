@@ -1,5 +1,6 @@
 import { inviteUser } from "@/lib/api/users";
 import { jackson } from "@/lib/jackson";
+import { syncStagingWorkspaceJob } from "@/lib/jobs/handlers/sync-staging-workspace-job";
 import { prisma } from "@/lib/prisma";
 import { WorkspaceProps } from "@/lib/types";
 import type {
@@ -129,6 +130,12 @@ const handleEvents = async (event: DirectorySyncEvent) => {
             projectId: workspaceId,
           },
         },
+      });
+
+      await syncStagingWorkspaceJob.dispatch({
+        action: "remove-member",
+        workspaceId,
+        userId: userInWorkspace.id,
       });
     }
     if (userInvited) {
