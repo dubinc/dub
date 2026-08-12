@@ -49,6 +49,9 @@ const FIRST_NAMES = [
   "Avery", "Reese", "Skyler", "Quinn", "Rowan", "Peyton", "Finley", "Emerson", "Hayden", "Sage",
   "Logan", "Jesse", "Harper", "Eden", "Kendall", "Devon", "Dallas", "Shiloh", "River", "Phoenix",
   "Cameron", "Drew", "Eli", "Francis", "Greyson", "Hadley", "Jules", "Kai", "Lennon", "Marlowe",
+  "Adrian", "Blake", "Corey", "Delaney", "Ellis", "Frankie", "Gray", "Hollis", "Indigo", "Justice",
+  "Keegan", "Lane", "Micah", "Noel", "Oakley", "Parker", "Remy", "Sutton", "Tatum", "Wren",
+  "Arden", "Bellamy", "Campbell", "Darcy",
 ];
 
 // prettier-ignore
@@ -57,32 +60,75 @@ const LAST_NAMES = [
   "Hernandez", "Lopez", "Gonzalez", "Wilson", "Anderson", "Thomas", "Taylor", "Moore", "Jackson", "Martin",
   "Lee", "Perez", "Thompson", "White", "Harris", "Sanchez", "Clark", "Ramirez", "Lewis", "Robinson",
   "Walker", "Young", "Allen", "King", "Wright", "Scott", "Torres", "Nguyen", "Hill", "Flores",
+  "Okonkwo", "Bergstrom", "Castellano", "Dubois", "Eriksen", "Fitzgerald", "Grigoryan", "Halvorsen",
+  "Ibrahim", "Jankowski", "Kowalczyk", "Lindqvist", "Mbeki", "Nakamura", "Oyelaran", "Petrova",
+  "Quintero", "Rasmussen", "Silvestri", "Takahashi", "Ustinov", "Vasquez", "Whitfield", "Zielinski",
 ];
 
+// Company names come from their own vocabulary rather than reusing the surname.
+// The benchmark queries a field's longest token, so `${lastName} ${suffix}`
+// mostly repeated the name field's queries and measured the same work twice.
+// Every prefix is longer than every suffix, so the prefix is what gets queried.
+// prettier-ignore
+const COMPANY_PREFIXES = [
+  "Brightwave", "Silverpine", "Northgate", "Blueshift", "Stonebridge", "Clearwater", "Ravenwood",
+  "Copperfield", "Emberline", "Frostpeak", "Hollowbrook", "Jadestone", "Kingfisher", "Moonstone",
+  "Nightingale", "Pinecrest", "Quicksilver", "Riverstone", "Sablewood", "Thornfield", "Umberwood",
+  "Whitestone", "Amberfall", "Bramblewood", "Cindershade", "Duskwater", "Elderbrook", "Glasshouse",
+  "Havenwood", "Ironbark", "Larkspire", "Meadowlark", "Opaline", "Pathfinder", "Quarrystone",
+  "Redcliffe", "Saltmarsh", "Tidewater", "Vireoglen", "Windrose",
+];
+
+// Every suffix is at most six characters and every prefix at least seven, so
+// the prefix is always the longest token.
 // prettier-ignore
 const COMPANY_SUFFIXES = [
-  "Tech", "Labs", "Media", "Agency", "Studio", "Ventures", "Digital", "Creative", "Global", "Solutions",
-  "Interactive", "Capital", "Partners", "Holdings", "Group", "Network", "Cloud", "AI", "Analytics", "Growth",
+  "Tech", "Labs", "Media", "Agency", "Studio", "Global", "Cloud", "Group", "Growth", "Union",
+  "Works", "Forge", "Craft", "Point", "Scale", "Reach", "Signal", "Vector", "Summit", "Nexus",
 ];
 
+// Email search queries the first five characters of the domain, so these are
+// distinct in their first five.
 // prettier-ignore
 const DOMAINS = [
   "example.com", "techcorp.io", "marketing.co", "acme.dev", "growth.app",
   "agency.net", "saas.com", "creator.xyz", "dub.co", "builder.build",
+  "pixelforge.io", "nimbus.dev", "quantum.co", "vertex.app", "zenith.net",
+  "orbital.io", "catalyst.co", "summit.dev", "horizon.app", "lumina.io",
+  "forgeworks.com", "bedrock.co", "kinetic.dev", "radiant.app", "stellar.io",
+  "thrive.co", "upstream.dev", "waveform.app", "yonder.io", "atlas.works",
+  "beacon.co", "cipher.dev", "delta.app", "ember.io", "fathom.co",
+  "gradient.dev", "harbor.app", "ignite.io", "juniper.co", "keystone.dev",
 ];
 
 // prettier-ignore
 const COUNTRIES = ["US", "CA", "GB", "DE", "FR", "AU", "JP", "IN", "BR", "NL", "ES", "SE", "SG"];
 
-const DESCRIPTIONS = [
-  "Affiliate marketer specializing in SaaS and developer tools.",
-  "Tech reviewer & content creator with YouTube and Twitter audience.",
-  "Digital marketing agency driving performance and link attribution.",
-  "B2B growth strategist focusing on enterprise developer software.",
-  "Social media influencer creating tech reviews, tutorials, and unboxings.",
-  "E-commerce consultant helping brands scale through affiliate networks.",
-  "Newsletter creator focused on modern web development and AI tools.",
-  "Community leader running a developer network and podcast.",
+// A description's longest word becomes its benchmark query, so the specialty is
+// what has to vary — every other word here is shorter than every specialty, and
+// the specialties differ within their first twelve characters (the query is
+// truncated there).
+const DESCRIPTION_TEMPLATES = [
+  "Affiliate marketer working across %s and paid growth.",
+  "Tech reviewer covering %s for a global audience.",
+  "Runs a weekly newsletter about %s and dev tools.",
+  "Builds long-form guides on %s for growing teams.",
+  "Advises brands on %s and referral links.",
+  "Hosts a podcast about %s and early-stage startups.",
+  "Writes deep dives into %s and modern web tooling.",
+  "Teaches short courses on %s to first-time founders.",
+];
+
+// prettier-ignore
+const DESCRIPTION_SPECIALTIES = [
+  "observability", "personalization", "authentication", "infrastructure", "orchestration",
+  "virtualization", "containerization", "cybersecurity", "documentation", "localization",
+  "monetization", "optimization", "provisioning", "segmentation", "subscriptions",
+  "tokenization", "visualization", "warehousing", "attribution", "benchmarking",
+  "collaboration", "deliverability", "forecasting", "reconciliation", "syndication",
+  "accessibility", "interoperability", "experimentation", "instrumentation", "productization",
+  "categorization", "deduplication", "geolocation", "hyperautomation", "internationalization",
+  "normalization", "partitioning", "replication",
 ];
 
 const PLATFORM_TYPES: PlatformType[] = [
@@ -121,6 +167,17 @@ type GeneratePartnerChunkOptions = {
   programDomain: string | null;
   workspaceId: string;
 };
+
+// FNV-1a. Cheap enough to call several times per partner, unlike a crypto hash.
+function hashToUint32(value: string): number {
+  let hash = 0x811c9dc5;
+
+  for (let i = 0; i < value.length; i++) {
+    hash = Math.imul(hash ^ value.charCodeAt(i), 0x01000193);
+  }
+
+  return hash >>> 0;
+}
 
 function generatePartnerMetrics(index: number) {
   const totalClicks = 100 + ((index * 37) % 50_000);
@@ -268,35 +325,48 @@ const generatePartnerChunk = ({
   const platforms: Prisma.PartnerPlatformCreateManyInput[] = [];
   const links: Prisma.LinkCreateManyInput[] = [];
 
+  // Pick from a pool by hashing rather than `index % pool.length`. The benchmark
+  // samples every Nth partner, so a stride sharing a factor with the pool size
+  // lands the whole sample on one entry: at 100K partners sampled 100 ways the
+  // stride is 1,000, and `index % 10` gave every sampled partner the same email
+  // domain. Hashing decorrelates the choice from the index and stays
+  // deterministic, so the same --seed still regenerates the same partners.
+  const pick = <T>(pool: T[], field: string, index: number): T =>
+    pool[hashToUint32(`${seedFingerprint}:${field}:${index}`) % pool.length];
+
   for (let i = start; i < end; i++) {
     const partnerId = createId({ prefix: "pn_" });
     const userId = createId({ prefix: "user_" });
     const enrollmentId = createId({ prefix: "pge_" });
 
-    const firstName = FIRST_NAMES[i % FIRST_NAMES.length];
-    const lastName =
-      LAST_NAMES[(i + Math.floor(i / FIRST_NAMES.length)) % LAST_NAMES.length];
+    const firstName = pick(FIRST_NAMES, "firstName", i);
+    const lastName = pick(LAST_NAMES, "lastName", i);
     const name = `${firstName} ${lastName}`;
 
+    // Recognizable needles for manual search testing. The moduli are primes so
+    // they cannot line up with a benchmark stride and swallow the whole sample.
     let emailPrefix: string;
-    if (i % 100 === 0) {
+    if (i % 101 === 0) {
       emailPrefix = `partner.${seedFingerprint}.${i}`;
     } else if (i % 137 === 0) {
       emailPrefix = `substringneedle.${seedFingerprint}.${i}`;
-    } else if (i % 75 === 0) {
+    } else if (i % 79 === 0) {
       emailPrefix = `tech.creator.${seedFingerprint}.${i}`;
-    } else if (i % 50 === 0) {
+    } else if (i % 53 === 0) {
       emailPrefix = `dub.affiliate.${seedFingerprint}.${i}`;
     } else {
       emailPrefix = `${firstName.toLowerCase()}.${lastName.toLowerCase()}.${seedFingerprint}.${i}`;
     }
 
-    const domain = DOMAINS[i % DOMAINS.length];
+    const domain = pick(DOMAINS, "domain", i);
     const email = `${emailPrefix}@${domain}`;
     const username = `${firstName.toLowerCase()}_${lastName.toLowerCase()}_${seedFingerprint}_${i}`;
-    const companyName = `${lastName} ${COMPANY_SUFFIXES[i % COMPANY_SUFFIXES.length]}`;
-    const country = COUNTRIES[i % COUNTRIES.length];
-    const description = DESCRIPTIONS[i % DESCRIPTIONS.length];
+    const companyName = `${pick(COMPANY_PREFIXES, "companyPrefix", i)} ${pick(COMPANY_SUFFIXES, "companySuffix", i)}`;
+    const country = pick(COUNTRIES, "country", i);
+    const description = pick(DESCRIPTION_TEMPLATES, "description", i).replace(
+      "%s",
+      pick(DESCRIPTION_SPECIALTIES, "specialty", i),
+    );
     // One minute earlier per partner, wrapping at a year (index 525,600).
     const createdAt = new Date(
       runStartedAt.getTime() - ((i * 60_000) % (365 * 86_400_000)),
@@ -341,9 +411,14 @@ const generatePartnerChunk = ({
       createdAt,
     });
 
-    const numPlatforms = 1 + (i % 2);
-    for (let p = 0; p < numPlatforms; p++) {
-      const platformType = PLATFORM_TYPES[(i + p) % PLATFORM_TYPES.length];
+    // Offsetting a hashed start keeps each partner's platform types distinct,
+    // which PartnerPlatform requires per partner.
+    const platformCount =
+      1 + (hashToUint32(`${seedFingerprint}:platformCount:${i}`) % 3);
+    const firstPlatform = hashToUint32(`${seedFingerprint}:platform:${i}`);
+    for (let p = 0; p < platformCount; p++) {
+      const platformType =
+        PLATFORM_TYPES[(firstPlatform + p) % PLATFORM_TYPES.length];
       const identifier =
         platformType === PlatformType.website
           ? `https://www.${companyName.toLowerCase().replace(/[^a-z0-9]/g, "")}-${i}.${domain}`
@@ -399,25 +474,31 @@ const insertPartnerChunk = async ({
   return partnerResult.count;
 };
 
-// Generation is deterministic given (programId, seed), so index 0's email is always the same
+// Generation is deterministic given (programId, seed), so index 0's link key is
+// always the same. Keyed on the link key rather than the email because the key
+// is built from the fingerprint and index alone — editing the name or domain
+// pools changes index 0's email, which would let this miss an applied seed and
+// surface a raw constraint error partway through instead.
 const assertSeedNotAlreadyApplied = async (
   partnerChunk: PartnerChunk,
   seed: string,
 ) => {
-  const firstEmail = partnerChunk.partners[0]?.email;
+  const firstLink = partnerChunk.links[0];
 
-  if (!firstEmail) {
+  if (!firstLink) {
     return;
   }
 
-  const existing = await prisma.partner.findUnique({
-    where: { email: firstEmail },
+  const existing = await prisma.link.findUnique({
+    where: {
+      domain_key: { domain: firstLink.domain, key: firstLink.key },
+    },
     select: { id: true },
   });
 
   if (existing) {
     throw new Error(
-      `Seed "${seed}" has already been applied to this program (found ${firstEmail}). Re-running would collide on unique emails, usernames, and link keys — pass a different --seed to add another batch.`,
+      `Seed "${seed}" has already been applied to this program (found ${firstLink.domain}/${firstLink.key}). Re-running would collide on unique emails, usernames, and link keys — pass a different --seed to add another batch.`,
     );
   }
 };
