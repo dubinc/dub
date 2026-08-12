@@ -136,6 +136,21 @@ export const POST = withWorkspace(
       }
     }
 
+    const parsedAssetLinks = parseDomainJsonConfig({
+      value: assetLinks,
+      field: "assetLinks",
+    });
+
+    const parsedAppleAppSiteAssociation = parseDomainJsonConfig({
+      value: appleAppSiteAssociation,
+      field: "appleAppSiteAssociation",
+    });
+
+    const parsedDeepviewData = parseDomainJsonConfig({
+      value: deepviewData,
+      field: "deepviewData",
+    });
+
     const validDomain = await validateDomain(slug);
 
     if (validDomain.error && validDomain.code) {
@@ -225,17 +240,14 @@ export const POST = withWorkspace(
             expiredUrl,
             notFoundUrl,
             ...(logoUploaded && { logo: logoUploaded.url }),
-            ...(assetLinks && {
-              assetLinks: parseDomainJsonConfig(assetLinks, "assetLinks"),
+            ...(parsedAssetLinks !== undefined && {
+              assetLinks: parsedAssetLinks,
             }),
-            ...(appleAppSiteAssociation && {
-              appleAppSiteAssociation: parseDomainJsonConfig(
-                appleAppSiteAssociation,
-                "appleAppSiteAssociation",
-              ),
+            ...(parsedAppleAppSiteAssociation !== undefined && {
+              appleAppSiteAssociation: parsedAppleAppSiteAssociation,
             }),
-            ...(deepviewData && {
-              deepviewData: parseDomainJsonConfig(deepviewData, "deepviewData"),
+            ...(parsedDeepviewData !== undefined && {
+              deepviewData: parsedDeepviewData,
             }),
           },
         });

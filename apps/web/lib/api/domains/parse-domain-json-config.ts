@@ -1,4 +1,5 @@
 import { DubApiError } from "@/lib/api/errors";
+import { Prisma } from "@prisma/client";
 
 const DOMAIN_JSON_CONFIG_LABELS = {
   assetLinks: "Asset Links",
@@ -8,12 +9,19 @@ const DOMAIN_JSON_CONFIG_LABELS = {
 
 type DomainJsonConfigField = keyof typeof DOMAIN_JSON_CONFIG_LABELS;
 
-export function parseDomainJsonConfig(
-  value: string | null | undefined,
-  field: DomainJsonConfigField,
-) {
-  if (value == null || value === "") {
-    return value;
+export function parseDomainJsonConfig({
+  value,
+  field,
+}: {
+  value: string | null | undefined;
+  field: DomainJsonConfigField;
+}): Prisma.InputJsonValue | typeof Prisma.DbNull | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+
+  if (value === null || value === "") {
+    return Prisma.DbNull;
   }
 
   try {

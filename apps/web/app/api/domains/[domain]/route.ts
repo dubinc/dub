@@ -15,7 +15,6 @@ import { prisma } from "@/lib/prisma";
 import { storage } from "@/lib/storage";
 import { updateDomainBodySchema } from "@/lib/zod/schemas/domains";
 import { combineWords, nanoid, R2_URL } from "@dub/utils";
-import { Prisma } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { revalidatePath, revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
@@ -98,6 +97,21 @@ export const PATCH = withWorkspace(
       }
     }
 
+    const parsedAssetLinks = parseDomainJsonConfig({
+      value: assetLinks,
+      field: "assetLinks",
+    });
+
+    const parsedAppleAppSiteAssociation = parseDomainJsonConfig({
+      value: appleAppSiteAssociation,
+      field: "appleAppSiteAssociation",
+    });
+
+    const parsedDeepviewData = parseDomainJsonConfig({
+      value: deepviewData,
+      field: "deepviewData",
+    });
+
     const domainChanged =
       newDomain && newDomain.toLowerCase() !== currentDomain.toLowerCase();
 
@@ -147,23 +161,14 @@ export const PATCH = withWorkspace(
         expiredUrl,
         notFoundUrl,
         logo: deleteLogo ? null : logoUploaded?.url || existingDomain.logo,
-        ...(assetLinks !== undefined && {
-          assetLinks: assetLinks
-            ? parseDomainJsonConfig(assetLinks, "assetLinks")
-            : Prisma.DbNull,
+        ...(parsedAssetLinks !== undefined && {
+          assetLinks: parsedAssetLinks,
         }),
-        ...(appleAppSiteAssociation !== undefined && {
-          appleAppSiteAssociation: appleAppSiteAssociation
-            ? parseDomainJsonConfig(
-                appleAppSiteAssociation,
-                "appleAppSiteAssociation",
-              )
-            : Prisma.DbNull,
+        ...(parsedAppleAppSiteAssociation !== undefined && {
+          appleAppSiteAssociation: parsedAppleAppSiteAssociation,
         }),
-        ...(deepviewData !== undefined && {
-          deepviewData: deepviewData
-            ? parseDomainJsonConfig(deepviewData, "deepviewData")
-            : Prisma.DbNull,
+        ...(parsedDeepviewData !== undefined && {
+          deepviewData: parsedDeepviewData,
         }),
       },
       include: {
