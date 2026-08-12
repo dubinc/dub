@@ -2,6 +2,7 @@ import { stripe } from "@/lib/stripe";
 import { log } from "@dub/utils";
 import Stripe from "stripe";
 import { logAndRespond } from "../../cron/utils";
+import { chargeDisputeCreated } from "./charge-dispute-created";
 import { chargeFailed } from "./charge-failed";
 import { chargeRefunded } from "./charge-refunded";
 import { chargeSucceeded } from "./charge-succeeded";
@@ -12,7 +13,6 @@ import { customerSubscriptionUpdated } from "./customer-subscription-updated";
 import { invoicePaymentFailed } from "./invoice-payment-failed";
 import { paymentIntentRequiresAction } from "./payment-intent-requires-action";
 import { transferReversed } from "./transfer-reversed";
-import { detectAndHandleFraudulentCharge } from "./utils/detect-and-handle-fraudulent-charge";
 
 const relevantEvents = new Set([
   "charge.succeeded",
@@ -64,7 +64,7 @@ export const POST = async (req: Request) => {
         response = await chargeRefunded(event);
         break;
       case "charge.dispute.created":
-        response = await detectAndHandleFraudulentCharge(event);
+        response = await chargeDisputeCreated(event);
         break;
       case "checkout.session.completed":
         response = await checkoutSessionCompleted(event);
