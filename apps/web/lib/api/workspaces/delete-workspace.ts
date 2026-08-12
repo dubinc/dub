@@ -1,5 +1,6 @@
 import { getWorkspaceLogoStorageKey } from "@/lib/api/workspaces/workspace-logo";
 import { prisma } from "@/lib/prisma";
+import { assertNotStagingWorkspace } from "@/lib/sandbox/workspace-guards";
 import { storage } from "@/lib/storage";
 import { WorkspaceProps } from "@/lib/types";
 import {
@@ -16,9 +17,13 @@ import { linkCache } from "../links/cache";
 export async function deleteWorkspace(
   workspace: Pick<
     WorkspaceProps,
-    "id" | "slug" | "logo" | "stripeId" | "stagingWorkspaceId"
+    "id" | "slug" | "logo" | "stripeId" | "stagingWorkspaceId" | "environment"
   >,
 ) {
+  assertNotStagingWorkspace(workspace, {
+    message: "Workspace deletion is not permitted for staging environments.",
+  });
+
   const stagingWorkspace = workspace.stagingWorkspaceId
     ? await prisma.project.findUnique({
         where: {

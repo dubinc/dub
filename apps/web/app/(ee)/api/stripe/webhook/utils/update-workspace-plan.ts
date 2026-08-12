@@ -6,6 +6,7 @@ import { deactivateProgram } from "@/lib/api/programs/deactivate-program";
 import { reactivateProgram } from "@/lib/api/programs/reactivate-program";
 import { tokenCache } from "@/lib/auth/token-cache";
 import { qstash } from "@/lib/cron";
+import { syncStagingWorkspaceJob } from "@/lib/jobs/handlers/sync-staging-workspace-job";
 import { syncUserPlanToPlain } from "@/lib/plain/sync-user-plan";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import {
@@ -15,7 +16,6 @@ import {
 import { wouldLoseAdvancedFeatures } from "@/lib/plans/would-lose-advanced-features";
 import { prisma } from "@/lib/prisma";
 import { queueCreateStagingWorkspace } from "@/lib/sandbox/create-staging-workspace";
-import { syncWorkspacePlanToStaging } from "@/lib/sandbox/sync-workspace";
 import {
   getSubscriptionBillingFields,
   getSubscriptionTrialEndsAt,
@@ -278,7 +278,10 @@ export async function updateWorkspacePlan({
 
     await Promise.all([
       queueCreateStagingWorkspace(updatedWorkspace),
-      syncWorkspacePlanToStaging(updatedWorkspace),
+      syncStagingWorkspaceJob.dispatch({
+        action: "sync-workspace",
+        workspaceId: updatedWorkspace.id,
+      }),
     ]);
 
     const workspaceOwners = updatedWorkspace.users.map((user) => user.user);

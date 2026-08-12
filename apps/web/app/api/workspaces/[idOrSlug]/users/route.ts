@@ -2,12 +2,9 @@ import { DubApiError } from "@/lib/api/errors";
 import { throwIfNoAccess } from "@/lib/api/tokens/throw-if-no-access";
 import { assertRoleAllowedForPlan } from "@/lib/api/workspaces/assert-role-plan";
 import { withWorkspace } from "@/lib/auth";
+import { syncStagingWorkspaceJob } from "@/lib/jobs/handlers/sync-staging-workspace-job";
 import { generateRandomName } from "@/lib/names";
 import { prisma } from "@/lib/prisma";
-import {
-  removeWorkspaceMemberFromStaging,
-  syncWorkspaceMemberRoleToStaging,
-} from "@/lib/sandbox/sync-workspace";
 import { assertNotStagingWorkspace } from "@/lib/sandbox/workspace-guards";
 import {
   getWorkspaceUsersQuerySchema,
@@ -15,7 +12,6 @@ import {
 } from "@/lib/zod/schemas/workspaces";
 import { pluralize } from "@dub/utils";
 import { WorkspaceRole } from "@prisma/client";
-import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 
@@ -90,15 +86,11 @@ export const PATCH = withWorkspace(
       },
     });
 
-    waitUntil(
-      syncWorkspaceMemberRoleToStaging({
-        workspace,
-        user: {
-          id: workspaceUser.userId,
-          role: workspaceUser.role,
-        },
-      }),
-    );
+    await syncStagingWorkspaceJob.dispatch({
+      action: "update-member-role",
+      workspaceId: workspace.id,
+      userId: workspaceUser.userId,
+    });
 
     return NextResponse.json(workspaceUser);
   },
@@ -225,12 +217,13 @@ export const DELETE = withWorkspace(
         }),
     ]);
 
-    waitUntil(
-      removeWorkspaceMemberFromStaging({
-        workspace,
-        user: projectUser.user,
-      }),
-    );
+    if (!projectUser.user.isMachine) {
+      await syncStagingWorkspaceJob.dispatch({
+        action: "remove-member",
+        workspaceId: workspace.id,
+        userId,
+      });
+    }
 
     // delete the user if it's a machine user
     if (projectUser.user.isMachine) {

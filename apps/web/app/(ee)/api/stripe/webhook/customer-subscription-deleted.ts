@@ -6,9 +6,9 @@ import { includeTags } from "@/lib/api/links/include-tags";
 import { stripAdvancedRewardModifiersForProgram } from "@/lib/api/partners/strip-advanced-reward-modifiers";
 import { deactivateProgram } from "@/lib/api/programs/deactivate-program";
 import { tokenCache } from "@/lib/auth/token-cache";
+import { syncStagingWorkspaceJob } from "@/lib/jobs/handlers/sync-staging-workspace-job";
 import { wouldLoseAdvancedFeatures } from "@/lib/plans/would-lose-advanced-features";
 import { prisma } from "@/lib/prisma";
-import { syncWorkspacePlanToStaging } from "@/lib/sandbox/sync-workspace";
 import { stripe } from "@/lib/stripe";
 import { recordLink } from "@/lib/tinybird";
 import { sendEmail } from "@dub/email";
@@ -206,7 +206,10 @@ export async function customerSubscriptionDeleted(
       hashedKeys: workspace.restrictedTokens.map(({ hashedKey }) => hashedKey),
     }),
 
-    syncWorkspacePlanToStaging(updatedWorkspace),
+    syncStagingWorkspaceJob.dispatch({
+      action: "sync-workspace",
+      workspaceId: updatedWorkspace.id,
+    }),
   ]);
 
   // Reset cancellation feedback dedupe so a future resubscribe + cancel can send again

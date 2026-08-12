@@ -9,8 +9,8 @@ import { workspaceProductCache } from "@/lib/api/workspaces/workspace-product-ca
 import { withWorkspace } from "@/lib/auth";
 import { getFeatureFlags } from "@/lib/edge-config";
 import { jackson } from "@/lib/jackson";
+import { syncStagingWorkspaceJob } from "@/lib/jobs/handlers/sync-staging-workspace-job";
 import { prisma } from "@/lib/prisma";
-import { syncWorkspaceSettingsToStaging } from "@/lib/sandbox/sync-workspace";
 import { assertNotStagingWorkspace } from "@/lib/sandbox/workspace-guards";
 import { mergeSiteVisitTrackingSettings } from "@/lib/sitemaps/site-visit-tracking";
 import { storage } from "@/lib/storage";
@@ -284,7 +284,10 @@ export const PATCH = withWorkspace(
             }
           }
 
-          await syncWorkspaceSettingsToStaging(updatedWorkspace);
+          await syncStagingWorkspaceJob.dispatch({
+            action: "sync-workspace",
+            workspaceId: updatedWorkspace.id,
+          });
         })(),
       );
 

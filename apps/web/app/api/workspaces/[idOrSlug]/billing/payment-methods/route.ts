@@ -6,8 +6,8 @@ import {
   DIRECT_DEBIT_PAYMENT_TYPES_INFO,
   PAYMENT_METHOD_TYPES,
 } from "@/lib/constants/payouts";
-import { SANDBOX_PAYMENT_METHOD } from "@/lib/sandbox/mock-payment-provider";
 import { isProductionEnvironment } from "@/lib/sandbox/environment";
+import { SANDBOX_PAYMENT_METHOD } from "@/lib/sandbox/mock-payment-provider";
 import { assertNotStagingWorkspace } from "@/lib/sandbox/workspace-guards";
 import { stripe } from "@/lib/stripe";
 import { APP_DOMAIN } from "@dub/utils";
