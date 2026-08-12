@@ -3,6 +3,7 @@ import { Prisma } from "@prisma/client";
 import { createId } from "../api/create-id";
 import { getPlanCapabilities } from "../plan-capabilities";
 import { DEFAULT_PARTNER_GROUP } from "../zod/schemas/groups";
+import { STAGING_DUB_DOMAIN_SUFFIX } from "./constants";
 
 export async function createStagingProgram(workspaceId: string) {
   const workspace = await prisma.project.findUnique({
@@ -11,6 +12,7 @@ export async function createStagingProgram(workspaceId: string) {
     },
     select: {
       id: true,
+      slug: true,
       defaultProgramId: true,
       stagingWorkspaceId: true,
       plan: true,
@@ -63,6 +65,25 @@ export async function createStagingProgram(workspaceId: string) {
     return;
   }
 
+  const domain = `${workspace.slug}${STAGING_DUB_DOMAIN_SUFFIX}`;
+
+  const stagingDomain = await prisma.domain.findUnique({
+    where: {
+      slug: domain,
+    },
+    select: {
+      slug: true,
+      projectId: true,
+    },
+  });
+
+  if (!stagingDomain || stagingDomain.projectId !== stagingWorkspaceId) {
+    console.error(
+      `Staging domain ${domain} not found for workspace ${stagingWorkspaceId}. Skipping...`,
+    );
+    return;
+  }
+
   const program = await prisma.program.findUnique({
     where: {
       id: workspace.defaultProgramId,
@@ -72,6 +93,13 @@ export async function createStagingProgram(workspaceId: string) {
   if (!program) {
     console.error(
       `Program ${workspace.defaultProgramId} not found. Skipping...`,
+    );
+    return;
+  }
+
+  if (!program.url) {
+    console.error(
+      `Program ${program.id} has no destination URL. Skipping staging program creation.`,
     );
     return;
   }
@@ -133,6 +161,14 @@ export async function createStagingProgram(workspaceId: string) {
         wordmark: defaultGroup?.wordmark,
         brandColor: defaultGroup?.brandColor,
         holdingPeriodDays: defaultGroup?.holdingPeriodDays,
+        partnerGroupDefaultLinks: {
+          create: {
+            id: createId({ prefix: "pgdl_" }),
+            programId: stagingProgramId,
+            domain,
+            url: program.url!,
+          },
+        },
       },
     });
 
@@ -144,6 +180,7 @@ export async function createStagingProgram(workspaceId: string) {
         defaultGroupId,
         name: `${program.name} (Staging)`,
         slug: `${program.slug}-staging`,
+        domain,
         url: program.url,
         logo: program.logo,
         description: program.description,

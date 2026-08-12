@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { Prisma, Project } from "@prisma/client";
+import { Project } from "@prisma/client";
 import * as z from "zod/v4";
 import { defineJob } from "../index";
 
@@ -127,28 +127,23 @@ async function addMember({
     return;
   }
 
-  try {
-    await prisma.projectUsers.create({
-      data: {
-        projectId: workspace.stagingWorkspaceId,
+  await prisma.projectUsers.upsert({
+    where: {
+      userId_projectId: {
         userId,
-        role: member.role,
-        notificationPreference: {
-          create: {},
-        },
+        projectId: workspace.stagingWorkspaceId,
       },
-    });
-  } catch (error) {
-    // Member may already exist on staging from a prior sync
-    if (
-      error instanceof Prisma.PrismaClientKnownRequestError &&
-      error.code === "P2002"
-    ) {
-      return;
-    }
-
-    throw error;
-  }
+    },
+    create: {
+      projectId: workspace.stagingWorkspaceId,
+      userId,
+      role: member.role,
+      notificationPreference: {
+        create: {},
+      },
+    },
+    update: {},
+  });
 }
 
 async function updateMemberRole({
@@ -184,28 +179,25 @@ async function updateMemberRole({
     return;
   }
 
-  try {
-    await prisma.projectUsers.update({
-      where: {
-        userId_projectId: {
-          userId,
-          projectId: workspace.stagingWorkspaceId,
-        },
+  await prisma.projectUsers.upsert({
+    where: {
+      userId_projectId: {
+        userId,
+        projectId: workspace.stagingWorkspaceId,
       },
-      data: {
-        role: member.role,
+    },
+    create: {
+      projectId: workspace.stagingWorkspaceId,
+      userId,
+      role: member.role,
+      notificationPreference: {
+        create: {},
       },
-    });
-  } catch (error) {
-    // Member may not exist on staging yet
-    if (
-      error instanceof Prisma.PrismaClientKnownRequestError &&
-      error.code === "P2025"
-    ) {
-      return;
-    }
-    throw error;
-  }
+    },
+    update: {
+      role: member.role,
+    },
+  });
 }
 
 async function removeMember({
@@ -232,13 +224,11 @@ async function removeMember({
     return;
   }
 
-  await Promise.allSettled([
-    prisma.projectUsers.delete({
+  await Promise.all([
+    prisma.projectUsers.deleteMany({
       where: {
-        userId_projectId: {
-          userId,
-          projectId: workspace.stagingWorkspaceId,
-        },
+        userId,
+        projectId: workspace.stagingWorkspaceId,
       },
     }),
 

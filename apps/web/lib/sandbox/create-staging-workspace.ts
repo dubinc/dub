@@ -1,9 +1,13 @@
+import { createId } from "@/lib/api/create-id";
+import { addDomainToVercel } from "@/lib/api/domains/add-domain-vercel";
+import { createLink } from "@/lib/api/links";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { prisma } from "@/lib/prisma";
-import { TRIAL_LIMITS } from "@dub/utils";
+import { DEFAULT_LINK_PROPS, TRIAL_LIMITS } from "@dub/utils";
 import { Project, WorkspaceEnvironment } from "@prisma/client";
 import { generateRandomString } from "../api/utils/generate-random-string";
 import { createWorkspaceId } from "../api/workspaces/create-workspace-id";
+import { STAGING_DUB_DOMAIN_SUFFIX } from "./constants";
 import { isProductionEnvironment } from "./environment";
 
 export async function createStagingWorkspace(workspaceId: string) {
@@ -122,7 +126,7 @@ export async function createStagingWorkspace(workspaceId: string) {
     }
   });
 
-  // Copy the users to the staging workspace
+  // Copy non-machine users to the staging workspace
   if (workspace.users.length > 0) {
     await prisma.$transaction(async (tx) => {
       await tx.projectUsers.createMany({
@@ -151,6 +155,52 @@ export async function createStagingWorkspace(workspaceId: string) {
       });
     });
   }
+
+  const userId = workspace.users[0]?.userId;
+
+  if (!userId) {
+    console.error(
+      `No user found to create staging domain for workspace ${workspace.id}.`,
+    );
+    return;
+  }
+
+  const domain = `${workspace.slug}${STAGING_DUB_DOMAIN_SUFFIX}`;
+
+  if (process.env.VERCEL === "1") {
+    const vercelResponse = await addDomainToVercel(domain);
+
+    if (
+      vercelResponse.error &&
+      vercelResponse.error.code !== "domain_already_in_use"
+    ) {
+      console.error(
+        `Failed to add staging domain ${domain} to Vercel:`,
+        vercelResponse.error,
+      );
+      return;
+    }
+  }
+
+  await prisma.domain.create({
+    data: {
+      id: createId({ prefix: "dom_" }),
+      slug: domain,
+      projectId: stagingWorkspaceId,
+      primary: true,
+      verified: true,
+    },
+  });
+
+  await createLink({
+    ...DEFAULT_LINK_PROPS,
+    domain,
+    key: "_root",
+    url: "",
+    tags: undefined,
+    userId,
+    projectId: stagingWorkspaceId,
+  });
 }
 
 export async function queueCreateStagingWorkspace({
