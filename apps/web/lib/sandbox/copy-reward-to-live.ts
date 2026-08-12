@@ -130,6 +130,7 @@ export const copyRewardToLiveAction = authActionClient
 
       await tx.programEnrollment.updateMany({
         where: {
+          programId: targetProgram.id,
           groupId: targetGroupId,
           status: {
             notIn: INACTIVE_ENROLLMENT_STATUSES,
