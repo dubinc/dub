@@ -203,7 +203,7 @@ function WorkspaceList({
             <Gear className="size-4 text-neutral-800" />
             <span className="block truncate text-sm">Settings</span>
           </Link>
-          {selected.slug && (
+          {selected.slug && !isStagingEnvironment(current?.environment) && (
             <Link
               href={`/${selected.slug}/settings/people`}
               className="flex items-center justify-start gap-x-2 rounded-lg border border-neutral-200 px-2 py-1 text-neutral-700 outline-none transition-all duration-75 hover:bg-neutral-100/50 focus-visible:ring-2 focus-visible:ring-black/50 active:bg-neutral-200/80"
