@@ -65,7 +65,7 @@ export function useRewardHistorySheet({
 
   const [isOpen, setIsOpen] = useState(false);
 
-  const { activityLogs } = useActivityLogs({
+  const { activityLogs, loading } = useActivityLogs({
     query: reward
       ? {
           resourceType: REWARD_EVENT_TO_RESOURCE_TYPE[reward.event],
@@ -76,6 +76,7 @@ export function useRewardHistorySheet({
   });
 
   return {
+    loading,
     hasActivityLogs: (activityLogs?.length ?? 0) > 0,
     finalActivityLogDate: activityLogs?.[0]?.createdAt,
     rewardHistorySheet: reward ? (

@@ -79,6 +79,10 @@ export const recordApiLog = async ({
         continue;
       }
 
+      if (process.env.CI) {
+        return;
+      }
+
       console.error("Failed to record API log", error, JSON.stringify(apiLog));
 
       await log({
