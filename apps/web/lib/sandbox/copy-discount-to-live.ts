@@ -98,7 +98,7 @@ export const copyDiscountToLiveAction = authActionClient
 
     const discountProvider = getDiscountProvider(discount.provider);
 
-    await discountProvider.assertDiscountIntegrationAvailable({
+    await discountProvider.assertDiscountIntegration({
       workspace: targetWorkspace,
     });
 

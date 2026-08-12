@@ -38,7 +38,7 @@ export async function deleteWorkspace(payload: DeleteWorkspacePayload) {
 
   // Cancel the workspace's Stripe subscription if exists
   if (workspace.stripeId) {
-    await cancelSubscription(workspace.stripeId);
+    await cancelSubscription({ customerId: workspace.stripeId });
   }
 
   // Delete workspace logo if it's a custom logo stored in R2

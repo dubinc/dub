@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { PARTNERS_HOSTNAMES, SHORT_DOMAIN } from "@dub/utils";
-import { Prisma } from "@prisma/client";
+import { Prisma, WorkspaceEnvironment } from "@prisma/client";
 import { MetadataRoute } from "next";
 import { headers } from "next/headers";
 
@@ -16,6 +16,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   if (PARTNERS_HOSTNAMES.has(domain)) {
     const programs = await prisma.program.findMany({
       where: {
+        workspace: {
+          environment: WorkspaceEnvironment.production,
+        },
         groups: {
           some: {
             slug: "default",

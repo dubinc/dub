@@ -4,7 +4,7 @@ import { TRIAL_LIMITS } from "@dub/utils";
 import { Project, WorkspaceEnvironment } from "@prisma/client";
 import { generateRandomString } from "../api/utils/generate-random-string";
 import { createWorkspaceId } from "../api/workspaces/create-workspace-id";
-import { isProductionEnvironment } from "./workspace-guards";
+import { isProductionEnvironment } from "./environment";
 
 export async function createStagingWorkspace(workspaceId: string) {
   const workspace = await prisma.project.findUnique({
@@ -20,7 +20,13 @@ export async function createStagingWorkspace(workspaceId: string) {
       plan: true,
       stagingWorkspaceId: true,
       defaultProgramId: true,
+      // Don't copy machine users — staging sync intentionally excludes them
       users: {
+        where: {
+          user: {
+            isMachine: false,
+          },
+        },
         select: {
           role: true,
           userId: true,

@@ -171,10 +171,16 @@ async function updateMemberRole({
     },
     select: {
       role: true,
+      user: {
+        select: {
+          isMachine: true,
+        },
+      },
     },
   });
 
-  if (!member) {
+  // We don't sync the machine user from the production workspace to the staging workspace
+  if (!member || member.user.isMachine) {
     return;
   }
 
