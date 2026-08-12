@@ -239,7 +239,7 @@ export function useAIRewardBuilder({
         applyDraft(draft, true);
         setPhase("review");
         streamingRef.current = false;
-      }, 850);
+      }, 1500);
     },
     [applyDraft, canUseAdvancedRewardLogic, clearPresetTimeout, ensureSnapshot],
   );
@@ -381,7 +381,6 @@ export function AIRewardInput({
 }) {
   const shouldReduceMotion = useReducedMotion();
   const [focused, setFocused] = useState(false);
-  const blurTimeoutRef = useRef<number | null>(null);
 
   const {
     prompt,
@@ -425,9 +424,6 @@ export function AIRewardInput({
               onFocus={() => {
                 setFocused(true);
               }}
-              onBlur={() => {
-                setFocused(false);
-              }}
             >
               <div className="flex items-start gap-2.5 p-2.5">
                 <div className="flex size-7 shrink-0 items-center justify-center rounded-md bg-neutral-100">
@@ -444,6 +440,7 @@ export function AIRewardInput({
                     ) {
                       e.preventDefault();
                       void generate();
+                      setFocused(false);
                     }
                   }}
                   placeholder={`Describe your ${event} reward...`}
@@ -569,14 +566,10 @@ function CreatingStatus() {
 
   return (
     <div
-      className={cn(
-        "flex items-center gap-2",
-        !shouldReduceMotion && "ai-creating-in",
-      )}
-      style={creatingInStyle(60, shouldReduceMotion)}
+      className="flex items-center gap-2"
       role="status"
       aria-live="polite"
-      aria-label="Creating reward"
+      aria-label="Generating reward"
     >
       <ThinkingStyles />
       <div className="grid size-3.5 grid-cols-3 gap-[2px]" aria-hidden>
@@ -639,6 +632,60 @@ function ChromeAction({
     >
       {children}
     </div>
+  );
+}
+
+function ChromeHeaderTitle({ isCreating }: { isCreating: boolean }) {
+  const shouldReduceMotion = useReducedMotion();
+
+  return (
+    <motion.div
+      className="absolute bottom-1.5 top-0.5 flex items-center"
+      initial={false}
+      animate={isCreating ? { left: "50%", x: "-50%" } : { left: 8, x: 0 }}
+      transition={
+        shouldReduceMotion ? { duration: 0 } : { duration: 0.3, ease: EASE_OUT }
+      }
+    >
+      <div className="grid grid-cols-1 grid-rows-1 items-center">
+        <AnimatePresence initial={false}>
+          {isCreating ? (
+            <motion.div
+              key="generating"
+              className="col-start-1 row-start-1"
+              initial={
+                shouldReduceMotion ? false : { opacity: 0, y: 4, scale: 0.98 }
+              }
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={
+                shouldReduceMotion
+                  ? { opacity: 0 }
+                  : { opacity: 0, transition: { duration: 0.12 } }
+              }
+              transition={{ duration: 0.2, ease: EASE_OUT }}
+            >
+              <CreatingStatus />
+            </motion.div>
+          ) : (
+            <motion.div
+              key="generated"
+              className="col-start-1 row-start-1"
+              initial={shouldReduceMotion ? false : { opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{
+                duration: shouldReduceMotion ? 0 : 0.2,
+                delay: shouldReduceMotion ? 0 : 0.06,
+                ease: EASE_OUT,
+              }}
+            >
+              <span className="text-content-emphasis text-sm font-medium leading-none">
+                Generated reward
+              </span>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    </motion.div>
   );
 }
 
@@ -765,8 +812,7 @@ export function AIRewardPreviewFrame({
         {chromeMounted && (
           <div
             className={cn(
-              "flex h-9 shrink-0 items-center gap-2 pb-1.5 pl-2 pr-[6px] pt-0.5",
-              isCreating ? "justify-center" : "justify-between",
+              "relative flex h-9 shrink-0 items-center pb-1.5 pl-2 pr-[6px] pt-0.5",
               !shouldReduceMotion &&
                 "transition-[opacity,transform] will-change-[opacity,transform]",
               chromeOpen
@@ -775,43 +821,42 @@ export function AIRewardPreviewFrame({
             )}
             style={chromeEnterStyle(chromeOpen, shouldReduceMotion)}
           >
-            {isCreating ? (
-              <CreatingStatus />
-            ) : (
-              <>
-                <span className="text-content-emphasis text-sm font-medium leading-none">
-                  Generated reward
-                </span>
-                {phase !== "error" && (
-                  <div className="flex items-center gap-1.5">
-                    <ChromeAction open={chromeOpen} delayClassName="delay-75">
-                      <Button
-                        type="button"
-                        variant="secondary"
-                        text="Discard"
-                        className="h-7 w-fit rounded-lg px-3 active:scale-[0.97]"
-                        disabled={exitKind != null}
-                        onClick={() => requestExit("discard")}
-                      />
-                    </ChromeAction>
-                    {phase === "review" && (
-                      <ChromeAction
-                        open={chromeOpen}
-                        delayClassName="delay-100"
-                      >
-                        <Button
-                          type="button"
-                          variant="primary"
-                          text="Accept"
-                          className="h-7 w-fit rounded-lg px-3 active:scale-[0.97]"
-                          disabled={exitKind != null}
-                          onClick={() => requestExit("accept")}
-                        />
-                      </ChromeAction>
-                    )}
-                  </div>
-                )}
-              </>
+            <ChromeHeaderTitle isCreating={isCreating} />
+
+            {phase !== "error" && (
+              <div
+                className="ml-auto flex items-center gap-1.5"
+                inert={isCreating || undefined}
+              >
+                <ChromeAction
+                  open={chromeOpen && !isCreating}
+                  delayClassName="delay-75"
+                >
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    text="Discard"
+                    className="h-7 w-fit rounded-lg px-3 active:scale-[0.97]"
+                    disabled={isCreating || exitKind != null}
+                    onClick={() => requestExit("discard")}
+                  />
+                </ChromeAction>
+                <ChromeAction
+                  open={chromeOpen && !isCreating && phase === "review"}
+                  delayClassName="delay-100"
+                >
+                  <Button
+                    type="button"
+                    variant="primary"
+                    text="Accept"
+                    className="h-7 w-fit rounded-lg px-3 active:scale-[0.97]"
+                    disabled={
+                      isCreating || phase !== "review" || exitKind != null
+                    }
+                    onClick={() => requestExit("accept")}
+                  />
+                </ChromeAction>
+              </div>
             )}
           </div>
         )}
