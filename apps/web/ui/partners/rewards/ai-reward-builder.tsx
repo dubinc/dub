@@ -7,7 +7,7 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { REWARD_CONDITION_ATTRIBUTES } from "@/lib/zod/schemas/rewards";
 import { readStreamableValue } from "@ai-sdk/rsc";
 import { AnimatedSizeContainer, Button, TooltipContent } from "@dub/ui";
-import { ArrowTurnRight2, Sparkle3, Sparkle3Fill } from "@dub/ui/icons";
+import { ArrowTurnRight2, Sparkle3 } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
 import { EventType, RewardStructure } from "@prisma/client";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
@@ -478,7 +478,7 @@ export function AIRewardInput({
                               "disabled:cursor-not-allowed disabled:opacity-50",
                             )}
                           >
-                            <Sparkle3Fill className="size-3.5 shrink-0" />
+                            <Sparkle3 variant="fill" className="size-3.5 shrink-0" />
                             {preset.label}
                           </button>
                         ))}
