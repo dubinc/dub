@@ -28,32 +28,37 @@ export async function reactivateProgram(
     }
   }
 
-  await prisma.$transaction(
-    programIds.flatMap((id) => [
+  for (const programId of programIds) {
+    const isProductionProgram = programId === workspace.defaultProgramId;
+
+    await prisma.$transaction([
       prisma.program.update({
         where: {
-          id,
+          id: programId,
         },
         data: {
           deactivatedAt: null,
         },
       }),
 
-      // republish the default group
-      prisma.partnerGroup.update({
-        where: {
-          programId_slug: {
-            programId: id,
-            slug: DEFAULT_PARTNER_GROUP.slug,
-          },
-        },
-        data: {
-          applicationFormPublishedAt: new Date(),
-          landerPublishedAt: new Date(),
-        },
-      }),
-    ]),
-  );
+      ...(isProductionProgram
+        ? [
+            prisma.partnerGroup.update({
+              where: {
+                programId_slug: {
+                  programId,
+                  slug: DEFAULT_PARTNER_GROUP.slug,
+                },
+              },
+              data: {
+                applicationFormPublishedAt: new Date(),
+                landerPublishedAt: new Date(),
+              },
+            }),
+          ]
+        : []),
+    ]);
+  }
 
   const responses = await Promise.all(
     programIds.map((id) =>
