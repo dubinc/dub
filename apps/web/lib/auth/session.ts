@@ -228,7 +228,9 @@ async function enforceRateLimit({
 
 // Update last used time for the token (only once every minute)
 async function updateApiKeyLastUsed(apiKey: string) {
-  const acquired = await redis.set(`last-used:${apiKey}`, "1", {
+  const hashedKey = await hashToken(apiKey);
+
+  const acquired = await redis.set(`last-used:${hashedKey}`, "1", {
     nx: true,
     ex: 60,
   });
@@ -239,7 +241,7 @@ async function updateApiKeyLastUsed(apiKey: string) {
 
   await prisma.token.update({
     where: {
-      hashedKey: await hashToken(apiKey),
+      hashedKey,
     },
     data: {
       lastUsed: new Date(),

@@ -30,7 +30,7 @@ export async function AppMiddleware(req: NextRequest) {
     path !== "/forgot-password" &&
     path !== "/register" &&
     path !== "/auth/saml" &&
-    !path.startsWith("/auth/reset-password") &&
+    path !== "/auth/reset-password" &&
     !path.startsWith("/share/") &&
     !path.startsWith("/deeplink/") &&
     !path.startsWith("/unsubscribe/")
@@ -59,9 +59,8 @@ export async function AppMiddleware(req: NextRequest) {
     } else if (
       new Date(user.createdAt).getTime() >
         Date.now() - ONBOARDING_WINDOW_SECONDS * 1000 &&
-      !["/onboarding", "/account", "/auth/reset-password"].some((p) =>
-        path.startsWith(p),
-      ) &&
+      !["/onboarding", "/account"].some((p) => path.startsWith(p)) &&
+      path !== "/auth/reset-password" &&
       !(await getDefaultWorkspace(user)) &&
       !(await hasPendingInvites({ req, user })) &&
       (await onboardingStepCache.get({ userId: user.id })) !== "completed"
