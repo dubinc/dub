@@ -12,10 +12,12 @@ export async function authPost(
   request: APIRequestContext,
   path: string,
   body?: Record<string, unknown>,
+  extra?: { headers?: Record<string, string> },
 ) {
   // Better Auth rejects empty bodies when Content-Type is application/json.
   return request.post(`/api/auth${path}`, {
     data: body ?? {},
+    headers: extra?.headers,
   });
 }
 
@@ -89,12 +91,14 @@ export async function signInWithEmail(
   {
     email,
     password,
+    headers,
   }: {
     email: string;
     password: string;
+    headers?: Record<string, string>;
   },
 ) {
-  return authPost(request, "/sign-in/email", { email, password });
+  return authPost(request, "/sign-in/email", { email, password }, { headers });
 }
 
 function decodeQuotedPrintable(value: string) {

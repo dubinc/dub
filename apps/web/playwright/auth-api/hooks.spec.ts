@@ -2,11 +2,15 @@ import { expect, test } from "@playwright/test";
 import {
   AUTH_API_PASSWORD,
   AUTH_API_USERS,
+  countUserSessions,
   disconnectFixtures,
   ensureAuthApiFixtures,
+  getUserAuthState,
   resetLockedUserState,
 } from "./fixtures";
 import { authPost, expectJson, signInWithEmail } from "./helpers";
+
+const ADMIN_HOST = "admin.localhost:8888";
 
 test.describe.configure({ mode: "serial" });
 
@@ -86,5 +90,39 @@ test.describe("Better Auth custom hooks", () => {
 
     const data = await expectJson<{ message?: string }>(response, 403);
     expect(data.message).toBe("exceeded-login-attempts");
+  });
+
+  test("rejects non-admin password sign-in on the admin host", async ({
+    request,
+  }) => {
+    const user = await getUserAuthState(AUTH_API_USERS.ok.email);
+    const sessionCountBefore = await countUserSessions(user.id);
+
+    const response = await signInWithEmail(request, {
+      email: AUTH_API_USERS.ok.email,
+      password: AUTH_API_PASSWORD,
+      headers: { Host: ADMIN_HOST },
+    });
+
+    const data = await expectJson<{ message?: string }>(response, 403);
+    expect(data.message).toBe("Unable to sign in with this account.");
+    expect(await countUserSessions(user.id)).toBe(sessionCountBefore);
+  });
+
+  test("rejects non-admin magic-link send on the admin host", async ({
+    request,
+  }) => {
+    const response = await authPost(
+      request,
+      "/sign-in/magic-link",
+      {
+        email: AUTH_API_USERS.ok.email,
+        callbackURL: "http://admin.localhost:8888/",
+      },
+      { headers: { Host: ADMIN_HOST } },
+    );
+
+    const data = await expectJson<{ message?: string }>(response, 403);
+    expect(data.message).toBe("Unable to sign in with this account.");
   });
 });

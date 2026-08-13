@@ -10,6 +10,7 @@ import { waitUntil } from "@vercel/functions";
 import type { BetterAuthOptions } from "better-auth";
 import { APIError } from "better-auth/api";
 import { isSamlEnforcedForEmailDomain } from "../api/workspaces/is-saml-enforced-for-email-domain";
+import { assertAdminAccess } from "./assert-admin-access";
 import {
   backupUserAvatar,
   syncSocialProfileFromProvider,
@@ -206,6 +207,8 @@ export const databaseHooks = {
             message: "exceeded-login-attempts",
           });
         }
+
+        await assertAdminAccess(user.id);
 
         // Enforce SAML SSO for non-SAML callback requests
         const isSamlCallback =

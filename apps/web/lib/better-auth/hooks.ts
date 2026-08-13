@@ -14,6 +14,7 @@ import { waitUntil } from "@vercel/functions";
 import type { BetterAuthOptions } from "better-auth";
 import { APIError, createAuthMiddleware, isAPIError } from "better-auth/api";
 import { isSamlEnforcedForEmailDomain } from "../api/workspaces/is-saml-enforced-for-email-domain";
+import { assertAdminAccess } from "./assert-admin-access";
 import { hasCredentialLogin, normalizeEmail } from "./utils";
 
 async function assertAuthRateLimit(
@@ -94,6 +95,7 @@ export const hooks = {
           email,
         },
         select: {
+          id: true,
           lockedAt: true,
           invalidLoginAttempts: true,
           emailVerified: true,
@@ -114,6 +116,11 @@ export const hooks = {
         throw new APIError("FORBIDDEN", {
           message: "exceeded-login-attempts",
         });
+      }
+
+      // Don't send magic links from admin.dub.co to non-admin accounts.
+      if (path === "/sign-in/magic-link" && user) {
+        await assertAdminAccess(user.id);
       }
 
       // Password login requires a verified email (legacy DateTime or BA boolean).
