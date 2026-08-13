@@ -433,7 +433,7 @@ function DubLinkSubdomainForm({
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ slug: domain }),
+        body: JSON.stringify({ slug: domain, isOnboardingSubdomainFlow: true }),
       });
 
       if (!res.ok) {
