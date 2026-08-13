@@ -478,7 +478,10 @@ export function AIRewardInput({
                               "disabled:cursor-not-allowed disabled:opacity-50",
                             )}
                           >
-                            <Sparkle3 variant="fill" className="size-3.5 shrink-0" />
+                            <Sparkle3
+                              variant="fill"
+                              className="size-3.5 shrink-0"
+                            />
                             {preset.label}
                           </button>
                         ))}
@@ -515,16 +518,31 @@ export function AIRewardInput({
   );
 }
 
-function ThinkingStyles() {
+const PIXEL_DELAYS = Array.from({ length: 9 }, (_, i) => {
+  const row = Math.floor(i / 3);
+  const col = i % 3;
+  return (col + Math.abs(row - 1)) * 90;
+});
+
+function GeneratingStyles() {
   return (
-    <style href="ai-thinking-pulse" precedence="default">{`
-      @keyframes ai-thinking-pulse {
+    <style href="ai-generating" precedence="default">{`
+      @keyframes ai-pixel-on {
         0%,
         100% {
-          opacity: 0.22;
+          opacity: 0.15;
         }
-        45% {
+        40%,
+        60% {
           opacity: 1;
+        }
+      }
+      @keyframes ai-shimmer-text {
+        0% {
+          background-position: 100% 0;
+        }
+        100% {
+          background-position: -100% 0;
         }
       }
       @keyframes ai-creating-in {
@@ -538,9 +556,14 @@ function ThinkingStyles() {
         }
       }
       @media (prefers-reduced-motion: reduce) {
-        .ai-thinking-pulse {
+        .ai-pixel-on {
           animation: none !important;
-          opacity: 0.5 !important;
+          opacity: 0.35 !important;
+        }
+        .ai-shimmer-text {
+          animation: none !important;
+          background: none !important;
+          color: #737373 !important;
         }
         .ai-creating-in {
           animation: none !important;
@@ -550,53 +573,53 @@ function ThinkingStyles() {
   );
 }
 
-function thinkingPulseStyle(
-  delayMs: number,
-  reduced: boolean | null,
-): CSSProperties {
-  if (reduced) return { opacity: 0.5 };
-  return {
-    animation: "ai-thinking-pulse 900ms linear infinite",
-    animationDelay: `${delayMs}ms`,
-  };
-}
-
-function CreatingStatus() {
+function GeneratingStatus() {
   const shouldReduceMotion = useReducedMotion();
 
   return (
     <div
-      className="flex items-center gap-2"
+      className="flex w-fit items-center gap-2.5"
       role="status"
       aria-live="polite"
       aria-label="Generating reward"
     >
-      <ThinkingStyles />
-      <div className="grid size-3.5 grid-cols-3 gap-[2px]" aria-hidden>
-        {Array.from({ length: 9 }, (_, i) => (
+      <GeneratingStyles />
+      <span aria-hidden className="grid grid-cols-3 gap-[1.5px]">
+        {PIXEL_DELAYS.map((delayMs, i) => (
           <span
             key={i}
-            className="ai-thinking-pulse size-[3px] rounded-[0.5px] bg-neutral-500"
-            style={thinkingPulseStyle(
-              ((i % 3) + Math.floor(i / 3)) * 90,
-              shouldReduceMotion,
-            )}
+            className="ai-pixel-on size-1 rounded-[1px] bg-neutral-500"
+            style={
+              shouldReduceMotion
+                ? { opacity: 0.35 }
+                : {
+                    opacity: 0.15,
+                    animation: `ai-pixel-on 650ms ease-in-out ${delayMs}ms infinite`,
+                  }
+            }
           />
         ))}
-      </div>
+      </span>
       <span
-        className="inline-flex text-sm font-medium leading-none text-neutral-500"
         aria-hidden
+        className={cn(
+          "text-[13px] font-medium",
+          shouldReduceMotion
+            ? "text-neutral-500"
+            : "ai-shimmer-text bg-clip-text text-transparent",
+        )}
+        style={
+          shouldReduceMotion
+            ? undefined
+            : {
+                backgroundImage:
+                  "linear-gradient(90deg, #a3a3a3 35%, #171717 50%, #a3a3a3 65%)",
+                backgroundSize: "200% 100%",
+                animation: "ai-shimmer-text 1.4s linear infinite",
+              }
+        }
       >
-        {"Generating...".split("").map((char, i) => (
-          <span
-            key={`${char}-${i}`}
-            className="ai-thinking-pulse"
-            style={thinkingPulseStyle((3 + i) * 90, shouldReduceMotion)}
-          >
-            {char}
-          </span>
-        ))}
+        Generating
       </span>
     </div>
   );
@@ -664,7 +687,7 @@ function ChromeHeaderTitle({ isCreating }: { isCreating: boolean }) {
               }
               transition={{ duration: 0.2, ease: EASE_OUT }}
             >
-              <CreatingStatus />
+              <GeneratingStatus />
             </motion.div>
           ) : (
             <motion.div
