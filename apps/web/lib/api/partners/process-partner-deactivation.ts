@@ -72,6 +72,7 @@ export async function processPartnerDeactivation({
         partnerId: {
           in: partnerIds,
         },
+        expiresAt: null,
       },
       data: {
         expiresAt: new Date(),

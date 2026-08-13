@@ -77,6 +77,9 @@ export async function bulkReactivatePartners({
         partnerId: {
           in: partnerIds,
         },
+        expiresAt: {
+          not: null,
+        },
       },
       data: {
         expiresAt: null,
