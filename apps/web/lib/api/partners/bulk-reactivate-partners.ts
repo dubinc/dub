@@ -1,3 +1,4 @@
+import { PRISMA_UPDATEMANY_LIMIT } from "@/lib/cron";
 import { prisma } from "@/lib/prisma";
 import { sendBatchEmail } from "@dub/email";
 import PartnerReactivated from "@dub/email/templates/partner-reactivated";
@@ -69,17 +70,22 @@ export async function bulkReactivatePartners({
   }
 
   // Un-expire all links
-  await prisma.link.updateMany({
-    where: {
-      programId: program.id,
-      partnerId: {
-        in: partnerIds,
+  while (true) {
+    const { count } = await prisma.link.updateMany({
+      where: {
+        programId: program.id,
+        partnerId: {
+          in: partnerIds,
+        },
       },
-    },
-    data: {
-      expiresAt: null,
-    },
-  });
+      data: {
+        expiresAt: null,
+      },
+      limit: PRISMA_UPDATEMANY_LIMIT,
+    });
+    console.log(`Un-expired ${count} links`);
+    if (count < PRISMA_UPDATEMANY_LIMIT) break;
+  }
 
   // Find all links and expire cache
   const allLinks = await prisma.link.findMany({
