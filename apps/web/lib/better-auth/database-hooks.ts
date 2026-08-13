@@ -1,7 +1,4 @@
-import {
-  consumeAdminImpersonation,
-  markAdminImpersonation,
-} from "@/lib/auth/admin-impersonation";
+import { consumeAdminImpersonation } from "@/lib/auth/admin-impersonation";
 import { trackDubLead } from "@/lib/auth/track-dub-lead";
 import { qstash } from "@/lib/cron";
 import { isBlacklistedEmail } from "@/lib/edge-config";
@@ -17,35 +14,10 @@ import {
   backupUserAvatar,
   syncSocialProfileFromProvider,
 } from "./sync-social-profile";
-import { buildLookupKey, parseVerificationTokenValue } from "./utils";
+import { buildLookupKey } from "./utils";
 import { deleteVerificationTokens } from "./verification-token";
 
 export const databaseHooks = {
-  verification: {
-    delete: {
-      // Runs after a verification row is successfully consumed/deleted.
-      // BA still returns null for expired rows after delete — only mark when unexpired.
-      after: async (verification) => {
-        if (!verification?.value || !verification.expiresAt) {
-          return;
-        }
-
-        if (new Date(verification.expiresAt) < new Date()) {
-          return;
-        }
-
-        const parsedValue = parseVerificationTokenValue({
-          kind: "adminImpersonation",
-          value: verification.value,
-        });
-
-        if (parsedValue?.isAdminImpersonation) {
-          await markAdminImpersonation(parsedValue.email);
-        }
-      },
-    },
-  },
-
   user: {
     create: {
       // Runs before a new user row is inserted

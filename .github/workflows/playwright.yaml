@@ -24,6 +24,7 @@ jobs:
       DATABASE_URL: "mysql://root:@localhost:3306/planetscale"
       PLANETSCALE_DATABASE_URL: "http://root:unused@localhost:3900/planetscale"
 
+      NEXTAUTH_SECRET: "e2e-test-secret-at-least-32-chars-long"
       BETTER_AUTH_SECRET: "e2e-test-secret-at-least-32-chars-long"
       BETTER_AUTH_URL: "http://partners.localhost:8888"
 

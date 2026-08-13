@@ -17,6 +17,7 @@ import { nextCookies } from "better-auth/next-js";
 import { genericOAuth, lastLoginMethod, magicLink } from "better-auth/plugins";
 import { isLocalDev } from "../api/environment";
 import { logger, toErrorFields } from "../axiom/server";
+import { adminImpersonation } from "./admin-impersonation-plugin";
 import { databaseHooks } from "./database-hooks";
 import { hooks } from "./hooks";
 import { invite } from "./invite-plugin";
@@ -231,6 +232,9 @@ export const auth = betterAuth({
 
     // Workspace + partner-profile invite magic links
     invite,
+
+    // Admin impersonation magic links (mark SAML bypass before session create)
+    adminImpersonation,
 
     // Next cookies plugin
     nextCookies(),

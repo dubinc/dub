@@ -43,7 +43,7 @@ Our platform powers 100M+ clicks and 2M+ links monthly, and is used by world-cla
 - [Upstash](https://upstash.com/) – redis
 - [Tinybird](https://tinybird.com/) – analytics
 - [PlanetScale](https://planetscale.com/) – database
-- [NextAuth.js](https://next-auth.js.org/) – auth
+- [Better Auth](https://www.better-auth.com/) – auth
 - [BoxyHQ](https://boxyhq.com/enterprise-sso) – SAML/SSO
 - [Turborepo](https://turbo.build/repo) – monorepo
 - [Stripe](https://stripe.com/) – payments

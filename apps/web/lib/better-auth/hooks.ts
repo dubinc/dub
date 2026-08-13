@@ -1,10 +1,11 @@
-import { shouldApplyRateLimit } from "@/lib/api/environment";
+import { DubApiError } from "@/lib/api/errors";
+import { getIP } from "@/lib/api/utils/get-ip";
 import {
   exceededLoginAttemptsThreshold,
   incrementLoginAttempts,
 } from "@/lib/auth/lock-account";
 import { prisma } from "@/lib/prisma";
-import { ratelimit } from "@/lib/upstash/ratelimit";
+import { assertRateLimit } from "@/lib/upstash/assert-rate-limit";
 import { RATELIMIT_POLICIES } from "@/lib/upstash/ratelimit-policies";
 import { passwordSchema } from "@/lib/zod/schemas/auth";
 import { sendEmail } from "@dub/email";
@@ -15,10 +16,45 @@ import { APIError, createAuthMiddleware, isAPIError } from "better-auth/api";
 import { isSamlEnforcedForEmailDomain } from "../api/workspaces/is-saml-enforced-for-email-domain";
 import { hasCredentialLogin, normalizeEmail } from "./utils";
 
+async function assertAuthRateLimit(
+  args: Parameters<typeof assertRateLimit>[0],
+) {
+  try {
+    await assertRateLimit(args);
+  } catch (error) {
+    if (error instanceof DubApiError) {
+      throw new APIError("TOO_MANY_REQUESTS", {
+        message: error.message,
+      });
+    }
+
+    throw error;
+  }
+}
+
 export const hooks = {
   // Runs before the request is processed
   before: createAuthMiddleware(async (ctx) => {
     const { path, body } = ctx;
+
+    if (path === "/request-password-reset") {
+      const email = normalizeEmail(body?.email);
+      if (!email) {
+        return;
+      }
+
+      await assertAuthRateLimit({
+        policy: RATELIMIT_POLICIES.passwordResetRequest,
+        identifier: email,
+      });
+    }
+
+    if (path === "/reset-password") {
+      await assertAuthRateLimit({
+        policy: RATELIMIT_POLICIES.passwordReset,
+        identifier: await getIP(),
+      });
+    }
 
     if (["/change-password", "/reset-password"].includes(path)) {
       const newPassword = body?.newPassword;
@@ -45,22 +81,13 @@ export const hooks = {
         return;
       }
 
-      if (shouldApplyRateLimit) {
-        const policy =
+      await assertAuthRateLimit({
+        policy:
           path === "/sign-in/magic-link"
             ? RATELIMIT_POLICIES.loginLinkSend
-            : RATELIMIT_POLICIES.login;
-        const { success } = await ratelimit(
-          policy.attempts,
-          policy.window,
-        ).limit(`${policy.keyPrefix}:${email}`);
-
-        if (!success) {
-          throw new APIError("TOO_MANY_REQUESTS", {
-            message: "too-many-login-attempts",
-          });
-        }
-      }
+            : RATELIMIT_POLICIES.login,
+        identifier: email,
+      });
 
       const user = await prisma.user.findUnique({
         where: {
