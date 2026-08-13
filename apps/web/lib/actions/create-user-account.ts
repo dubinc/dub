@@ -1,10 +1,10 @@
 "use server";
 
+import { consumeEmailVerificationOtp } from "@/lib/auth/consume-email-verification-otp";
 import { hashPassword } from "@/lib/auth/password";
 import { auth } from "@/lib/better-auth/auth";
 import { prisma } from "@/lib/prisma";
 import { ratelimit } from "@/lib/upstash";
-import { waitUntil } from "@vercel/functions";
 import { flattenValidationErrors } from "next-safe-action";
 import { headers } from "next/headers";
 import * as z from "zod/v4";
@@ -45,34 +45,17 @@ export const createUserAccountAction = actionClient
       }
     }
 
-    const verificationToken = await prisma.emailVerificationToken.findUnique({
-      where: {
-        identifier_token: {
-          identifier: email,
-          token: code,
-        },
-      },
+    const consumed = await consumeEmailVerificationOtp({
+      identifier: email,
+      token: code,
     });
 
-    if (!verificationToken) {
+    if (!consumed) {
       await ratelimit(MAX_OTP_ATTEMPTS, OTP_LOCKOUT_DURATION).limit(
         signupAttemptKey,
       );
 
       throw new Error("Invalid verification code entered.");
-    }
-
-    if (verificationToken.expires && verificationToken.expires < new Date()) {
-      waitUntil(
-        prisma.emailVerificationToken.delete({
-          where: {
-            identifier: email,
-            token: code,
-          },
-        }),
-      );
-
-      throw new Error("The OTP has expired. Please request a new one.");
     }
 
     const existingUser = await prisma.user.findUnique({
@@ -88,13 +71,6 @@ export const createUserAccountAction = actionClient
     if (existingUser) {
       throw new Error("Invalid verification code entered.");
     }
-
-    await prisma.emailVerificationToken.delete({
-      where: {
-        identifier: email,
-        token: code,
-      },
-    });
 
     const ctx = await auth.$context;
     const passwordHash = await hashPassword(password);

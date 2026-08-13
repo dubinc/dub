@@ -1,5 +1,6 @@
 "use server";
 
+import { consumeEmailVerificationOtp } from "@/lib/auth/consume-email-verification-otp";
 import { generateOTP } from "@/lib/auth/utils";
 import { qstash } from "@/lib/cron";
 import { prisma } from "@/lib/prisma";
@@ -223,57 +224,27 @@ const verifyTokens = async ({
     );
   }
 
-  const [sourceToken, targetToken] = await Promise.all([
-    prisma.emailVerificationToken.findUnique({
-      where: {
-        identifier_token: {
-          identifier: sourceEmail,
-          token: sourceCode,
-        },
-      },
-    }),
+  const sourceConsumed = await consumeEmailVerificationOtp({
+    identifier: sourceEmail,
+    token: sourceCode,
+  });
 
-    prisma.emailVerificationToken.findUnique({
-      where: {
-        identifier_token: {
-          identifier: targetEmail,
-          token: targetCode,
-        },
-      },
-    }),
-  ]);
-
-  if (!sourceToken) {
+  if (!sourceConsumed) {
     throw new Error(
       `The code entered for ${sourceEmail} does not match. Please double-check it and enter it again.`,
     );
   }
 
-  if (sourceToken.expires < new Date()) {
-    throw new Error(
-      `The code entered for ${sourceEmail} has expired. Please request a new code.`,
-    );
-  }
+  const targetConsumed = await consumeEmailVerificationOtp({
+    identifier: targetEmail,
+    token: targetCode,
+  });
 
-  if (!targetToken) {
+  if (!targetConsumed) {
     throw new Error(
       `The code entered for ${targetEmail} does not match. Please double-check it and enter it again.`,
     );
   }
-
-  if (targetToken.expires < new Date()) {
-    throw new Error(
-      `The code entered for ${targetEmail} has expired. Please request a new code.`,
-    );
-  }
-
-  await prisma.emailVerificationToken.deleteMany({
-    where: {
-      identifier: {
-        in: [sourceEmail, targetEmail],
-      },
-    },
-  });
 
   // Make sure this is set before going to the next step
   await redis.set(
