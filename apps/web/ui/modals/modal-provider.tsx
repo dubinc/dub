@@ -24,6 +24,7 @@ import {
 } from "react";
 import { toast } from "sonner";
 import { useAddEditTagModal } from "./add-edit-tag-modal";
+import { useImportLemonSqueezyModal } from "./import-lemonsqueezy-modal";
 import { useImportPartnerStackModal } from "./import-partnerstack-modal";
 import { useImportRebrandlyModal } from "./import-rebrandly-modal";
 import { useImportRewardfulModal } from "./import-rewardful-modal";
@@ -46,6 +47,7 @@ export const ModalContext = createContext<{
   setShowImportRewardfulModal: Dispatch<SetStateAction<boolean>>;
   setShowImportToltModal: Dispatch<SetStateAction<boolean>>;
   setShowImportTapfiliateModal: Dispatch<SetStateAction<boolean>>;
+  setShowImportLemonSqueezyModal: Dispatch<SetStateAction<boolean>>;
 }>({
   setShowAddWorkspaceModal: () => {},
   setShowAddEditDomainModal: () => {},
@@ -59,6 +61,7 @@ export const ModalContext = createContext<{
   setShowImportRewardfulModal: () => {},
   setShowImportToltModal: () => {},
   setShowImportTapfiliateModal: () => {},
+  setShowImportLemonSqueezyModal: () => {},
 });
 
 export function ModalProvider({ children }: { children: ReactNode }) {
@@ -114,6 +117,8 @@ function ModalProviderClient({ children }: { children: ReactNode }) {
   const { setShowImportToltModal, ImportToltModal } = useImportToltModal();
   const { setShowImportTapfiliateModal, ImportTapfiliateModal } =
     useImportTapfiliateModal();
+  const { setShowImportLemonSqueezyModal, ImportLemonSqueezyModal } =
+    useImportLemonSqueezyModal();
 
   useEffect(() => {
     setShowProgramWelcomeModal(searchParams.has("onboarded-program"));
@@ -200,6 +205,7 @@ function ModalProviderClient({ children }: { children: ReactNode }) {
         setShowImportRewardfulModal,
         setShowImportToltModal,
         setShowImportTapfiliateModal,
+        setShowImportLemonSqueezyModal,
       }}
     >
       <AddWorkspaceModal />
@@ -214,6 +220,7 @@ function ModalProviderClient({ children }: { children: ReactNode }) {
       <ImportRewardfulModal />
       <ImportToltModal />
       <ImportTapfiliateModal />
+      <ImportLemonSqueezyModal />
       <UpgradedModal />
       <ProgramWelcomeModal />
       {children}
