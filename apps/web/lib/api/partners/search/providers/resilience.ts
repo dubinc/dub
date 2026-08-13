@@ -1,11 +1,19 @@
 const TRANSIENT_RETRY_ATTEMPTS = 2;
 
 function isTransientError(error: unknown): boolean {
+  const message = error instanceof Error ? error.message : String(error);
+
+  // fetch network failures surface as TypeError ("fetch failed"), but so do
+  // ordinary programming errors — only the network ones deserve a retry.
   if (error instanceof TypeError) {
-    return true;
+    const normalized = message.toLowerCase();
+    return (
+      normalized.includes("fetch failed") ||
+      normalized.includes("network") ||
+      normalized.includes("load failed")
+    );
   }
 
-  const message = error instanceof Error ? error.message : String(error);
   return /\b(429|500|502|503|504)\b|rate.?limit|timeout|timed out|fetch failed|network|ECONNRESET|ETIMEDOUT/i.test(
     message,
   );

@@ -7,7 +7,7 @@ import {
   deleteTurbopufferPartnerSearchNamespace,
   type TurbopufferNamespace,
 } from "@/lib/api/partners/search/providers/turbopuffer";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const document: PartnerSearchDocument = {
   id: "pge_test",
@@ -53,6 +53,12 @@ describe("Turbopuffer partner search provider", () => {
     }
     mocks.write.mockResolvedValue({ rows_affected: 1 });
     mocks.multiQuery.mockResolvedValue({ results: [] });
+  });
+
+  // In afterEach rather than the test body, so a failed assertion cannot leak
+  // a stubbed env var into later tests.
+  afterEach(() => {
+    vi.unstubAllEnvs();
   });
 
   it("flattens every searchable field into one BM25 attribute", async () => {
@@ -243,6 +249,5 @@ describe("Turbopuffer partner search provider", () => {
     });
 
     expect(namespaceName).toBe("partner-search-v1");
-    vi.unstubAllEnvs();
   });
 });

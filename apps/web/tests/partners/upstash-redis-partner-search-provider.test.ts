@@ -8,7 +8,7 @@ import {
   upstashPartnerSearchSchema,
 } from "@/lib/api/partners/search/providers/upstash-redis";
 import type { Redis } from "@upstash/redis";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const document: PartnerSearchDocument = {
   id: "pge_test",
@@ -73,6 +73,12 @@ describe("Upstash Redis partner search provider", () => {
     mocks.jsonMset.mockResolvedValue("OK");
     mocks.query.mockResolvedValue([]);
     mocks.waitIndexing.mockResolvedValue(1);
+  });
+
+  // In afterEach rather than the test body, so a failed assertion cannot leak
+  // a stubbed env var into later tests.
+  afterEach(() => {
+    vi.unstubAllEnvs();
   });
 
   it("retrieves bounded relevance candidates without business filters", async () => {
@@ -170,6 +176,45 @@ describe("Upstash Redis partner search provider", () => {
         limit: 10,
       }),
     ).rejects.toThrow("Invalid search filter");
+    expect(mocks.query).toHaveBeenCalledTimes(1);
+  });
+
+  it("retries a network TypeError", async () => {
+    // undici surfaces network failures as `TypeError: fetch failed`.
+    mocks.query
+      .mockRejectedValueOnce(new TypeError("fetch failed"))
+      .mockResolvedValueOnce([]);
+    const provider = createUpstashRedisPartnerSearchProvider({
+      redisClient: createRedisMock(),
+      indexName: "test-index",
+    });
+
+    await expect(
+      provider.searchCandidates({
+        programId: document.programId,
+        query: "rafi",
+        limit: 10,
+      }),
+    ).resolves.toEqual({ hits: [] });
+    expect(mocks.query).toHaveBeenCalledTimes(2);
+  });
+
+  it("does not retry a programming TypeError", async () => {
+    mocks.query.mockRejectedValue(
+      new TypeError("Cannot read properties of undefined (reading 'query')"),
+    );
+    const provider = createUpstashRedisPartnerSearchProvider({
+      redisClient: createRedisMock(),
+      indexName: "test-index",
+    });
+
+    await expect(
+      provider.searchCandidates({
+        programId: document.programId,
+        query: "rafi",
+        limit: 10,
+      }),
+    ).rejects.toThrow("Cannot read properties of undefined");
     expect(mocks.query).toHaveBeenCalledTimes(1);
   });
 
@@ -376,7 +421,6 @@ describe("Upstash Redis partner search provider", () => {
       expect(mocks.jsonMset).toHaveBeenCalledWith(
         expect.objectContaining({ key: "partner-search-v1:partner:pge_test" }),
       );
-      vi.unstubAllEnvs();
     },
   );
 });
