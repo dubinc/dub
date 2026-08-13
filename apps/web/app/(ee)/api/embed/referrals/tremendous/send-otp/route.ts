@@ -2,10 +2,6 @@ import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { generateOTP } from "@/lib/auth";
 import { EMAIL_OTP_EXPIRY_IN } from "@/lib/auth/constants";
-import {
-  createVerificationToken,
-  deleteVerificationTokens,
-} from "@/lib/better-auth/verification-token";
 import { extractEmailDomain } from "@/lib/email/extract-email-domain";
 import { withReferralsEmbedToken } from "@/lib/embed/referrals/auth";
 import { prisma } from "@/lib/prisma";
@@ -113,22 +109,23 @@ export const POST = withReferralsEmbedToken(
     }
 
     const code = generateOTP();
-    const identifier = `${partnerId}:${email}`;
+    const identifier = `tremendous:${partnerId}:${email}`;
 
-    await deleteVerificationTokens({
-      kind: "tremendousOtp",
-      identifier,
-    });
+    await prisma.$transaction([
+      prisma.emailVerificationToken.deleteMany({
+        where: {
+          identifier,
+        },
+      }),
 
-    await createVerificationToken({
-      kind: "tremendousOtp",
-      identifier,
-      value: {
-        targetEmail: email,
-        partnerId,
-        code,
-      },
-    });
+      prisma.emailVerificationToken.create({
+        data: {
+          identifier,
+          token: code,
+          expires: new Date(Date.now() + EMAIL_OTP_EXPIRY_IN * 1000), // 5 minutes
+        },
+      }),
+    ]);
 
     await sendEmail({
       subject: "OTP to verify your payout email",

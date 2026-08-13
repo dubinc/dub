@@ -71,18 +71,6 @@ export const VERIFICATION_TOKEN_CONFIG = {
       code: z.string().length(6),
     }),
   },
-
-  // Tremendous payout email OTP (action — must never create a session)
-  tremendousOtp: {
-    purpose: "action",
-    prefix: "tremendous:",
-    expiresIn: 5 * 60 * 1000, // 5 minutes
-    valueSchema: z.object({
-      targetEmail: z.email(),
-      partnerId: z.string().min(1),
-      code: z.string().length(6),
-    }),
-  },
 } as const;
 
 export type VerificationTokenKind = keyof typeof VERIFICATION_TOKEN_CONFIG;

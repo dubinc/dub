@@ -6,12 +6,7 @@ import {
   ensureAuthApiFixtures,
   resetLockedUserState,
 } from "./fixtures";
-import {
-  authGet,
-  authPost,
-  expectJson,
-  signInWithEmail,
-} from "./helpers";
+import { authGet, authPost, expectJson, signInWithEmail } from "./helpers";
 
 test.describe.configure({ mode: "serial" });
 
@@ -27,7 +22,6 @@ const ACTION_TOKEN_PREFIXES = [
   "email-change:",
   "signup:",
   "merge-partner-accounts:",
-  "tremendous:",
 ] as const;
 
 test.describe("Better Auth custom hooks", () => {

@@ -1,10 +1,5 @@
 import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
-import {
-  consumeVerificationToken,
-  deleteVerificationTokens,
-  findVerificationToken,
-} from "@/lib/better-auth/verification-token";
 import { extractEmailDomain } from "@/lib/email/extract-email-domain";
 import { withReferralsEmbedToken } from "@/lib/embed/referrals/auth";
 import { prisma } from "@/lib/prisma";
@@ -111,19 +106,18 @@ export const POST = withReferralsEmbedToken(
       });
     }
 
-    const identifier = `${partnerId}:${email}`;
+    const identifier = `tremendous:${partnerId}:${email}`;
 
-    const verification = await findVerificationToken({
-      kind: "tremendousOtp",
-      identifier,
+    const verificationToken = await prisma.emailVerificationToken.findUnique({
+      where: {
+        identifier_token: {
+          identifier,
+          token: code,
+        },
+      },
     });
 
-    if (
-      !verification ||
-      verification.value.code !== code ||
-      verification.value.targetEmail !== email ||
-      verification.value.partnerId !== partnerId
-    ) {
+    if (!verificationToken) {
       throw new DubApiError({
         code: "bad_request",
         message:
@@ -131,11 +125,15 @@ export const POST = withReferralsEmbedToken(
       });
     }
 
-    if (verification.isExpired) {
+    if (verificationToken.expires < new Date()) {
       waitUntil(
-        deleteVerificationTokens({
-          kind: "tremendousOtp",
-          identifier,
+        prisma.emailVerificationToken.delete({
+          where: {
+            identifier_token: {
+              identifier,
+              token: code,
+            },
+          },
         }),
       );
 
@@ -147,36 +145,30 @@ export const POST = withReferralsEmbedToken(
     }
 
     try {
-      const consumed = await consumeVerificationToken({
-        kind: "tremendousOtp",
-        identifier,
-      });
+      await prisma.$transaction([
+        prisma.emailVerificationToken.delete({
+          where: {
+            identifier_token: {
+              identifier,
+              token: code,
+            },
+          },
+        }),
 
-      if (!consumed) {
-        throw new DubApiError({
-          code: "bad_request",
-          message:
-            "The verification code is incorrect or has expired. Please request a new code and try again.",
-        });
-      }
-
-      await prisma.partner.update({
-        where: {
-          id: partner.id,
-          defaultPayoutMethod: null,
-          payoutsEnabledAt: null,
-        },
-        data: {
-          tremendousEmail: email,
-          defaultPayoutMethod: "tremendous",
-          payoutsEnabledAt: new Date(),
-        },
-      });
+        prisma.partner.update({
+          where: {
+            id: partner.id,
+            defaultPayoutMethod: null,
+            payoutsEnabledAt: null,
+          },
+          data: {
+            tremendousEmail: email,
+            defaultPayoutMethod: "tremendous",
+            payoutsEnabledAt: new Date(),
+          },
+        }),
+      ]);
     } catch (error) {
-      if (error instanceof DubApiError) {
-        throw error;
-      }
-
       if (error.code === "P2025") {
         throw new DubApiError({
           code: "bad_request",
