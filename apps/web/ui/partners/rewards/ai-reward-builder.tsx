@@ -348,6 +348,7 @@ export function useAIRewardBuilder({
   }, [clearPresetTimeout]);
 
   return {
+    event,
     prompt,
     setPrompt,
     phase,
@@ -736,7 +737,7 @@ export function AIRewardPreviewFrame({
   builder: AIRewardBuilderState;
 }>) {
   const shouldReduceMotion = useReducedMotion();
-  const { isReviewing, phase, error, accept, discard, hasPreviewContent } =
+  const { isReviewing, phase, error, accept, discard, hasPreviewContent, event } =
     builder;
 
   const [chromeMounted, setChromeMounted] = useState(false);
@@ -918,7 +919,7 @@ export function AIRewardPreviewFrame({
             className={cn(!shouldReduceMotion && "ai-creating-in")}
             style={creatingInStyle(80, shouldReduceMotion)}
           >
-            <ReviewSkeletons />
+            <ReviewSkeletons event={event} />
           </div>
         ) : (
           <div
@@ -948,7 +949,11 @@ function SkeletonPill({ className }: { className?: string }) {
   );
 }
 
-function ReviewSkeletons() {
+function ReviewSkeletons({
+  event,
+}: {
+  event: Exclude<EventType, "referral">;
+}) {
   return (
     <div className="border-border-subtle rounded-xl border bg-white text-sm shadow-sm">
       <div className="flex items-start gap-2.5 p-2.5">
@@ -956,12 +961,22 @@ function ReviewSkeletons() {
           <div className="size-4 animate-pulse rounded-sm bg-neutral-200" />
         </div>
         <p className="flex min-w-0 flex-1 flex-wrap items-center gap-x-1.5 gap-y-1.5 text-sm leading-relaxed text-neutral-400">
-          <span>Pay a</span>
-          <SkeletonPill className="w-14" />
-          <span>of</span>
-          <SkeletonPill className="w-12" />
-          <span>per sale for</span>
-          <SkeletonPill className="w-16" />
+          <span>Pay</span>
+          {event === "sale" ? (
+            <>
+              <span>a</span>
+              <SkeletonPill className="w-14" />
+              <span>of</span>
+              <SkeletonPill className="w-12" />
+              <span>per sale</span>
+              <SkeletonPill className="w-16" />
+            </>
+          ) : (
+            <>
+              <SkeletonPill className="w-12" />
+              <span>per {event}</span>
+            </>
+          )}
           <span>, with</span>
           <SkeletonPill className="w-20" />
         </p>

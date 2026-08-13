@@ -207,8 +207,9 @@ export function getAIRewardSchema(event: AIRewardEvent) {
 }
 
 /**
- * Model structured-output envelope. Reward is a plain object for JSON-schema
- * steering; app rules are enforced via getAIRewardSchema in superRefine.
+ * Model structured-output envelope. Keep this free of app-level refinements so
+ * Output.object can stream/parse JSON even when the model picks a bad attribute;
+ * validate the reward with getAIRewardSchema after the stream completes.
  */
 export function getAIRewardGenerationSchema(event: AIRewardEvent) {
   return z
@@ -231,25 +232,11 @@ export function getAIRewardGenerationSchema(event: AIRewardEvent) {
         ),
     })
     .superRefine((data, ctx) => {
-      if (!data.supported) return;
-
-      if (data.reward == null) {
+      if (data.supported && data.reward == null) {
         ctx.addIssue({
           code: "custom",
           message: "Reward is required when supported is true.",
           path: ["reward"],
-        });
-        return;
-      }
-
-      const parsed = getAIRewardSchema(event).safeParse(data.reward);
-      if (parsed.success) return;
-
-      for (const issue of parsed.error.issues) {
-        ctx.addIssue({
-          code: "custom",
-          message: issue.message,
-          path: ["reward", ...issue.path],
         });
       }
     });

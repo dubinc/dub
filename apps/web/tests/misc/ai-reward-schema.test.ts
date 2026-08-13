@@ -282,7 +282,7 @@ describe("getAIRewardGenerationSchema — unsupported refusal", () => {
     expect(result.success).toBe(true);
   });
 
-  it("rejects supported=true when reward fails app validation", () => {
+  it("defers app validation to getAIRewardSchema (not generation envelope)", () => {
     const clickSchema = getAIRewardGenerationSchema("click");
     const result = clickSchema.safeParse({
       supported: true,
@@ -292,6 +292,10 @@ describe("getAIRewardGenerationSchema — unsupported refusal", () => {
         maxDuration: 0,
       },
     });
-    expect(result.success).toBe(false);
+
+    expect(result.success).toBe(true);
+    expect(
+      getAIRewardSchema("click").safeParse(result.data?.reward).success,
+    ).toBe(false);
   });
 });

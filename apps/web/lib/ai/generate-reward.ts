@@ -21,6 +21,7 @@ import {
   AI_REWARD_EVENTS,
   AIRewardGenerationOutput,
   getAIRewardGenerationSchema,
+  getAIRewardSchema,
 } from "./ai-reward-schema";
 
 const inputSchema = z.object({
@@ -55,7 +56,7 @@ Rules:
 - Condition groups (modifiers) override the base reward when their conditions match. Make sure to set the most generic condition as the base condition.
 - If the user describes only a simple base reward with no conditions, omit modifiers or return an empty array.
 - Do not invent metadata fields unless the user names them; when using metadata, set metadataField.
-- Only use entities and attributes allowed for this event (listed below).
+- Only use entities and attributes allowed for this event (listed below). Use attribute ids exactly as listed — never invent names (e.g. use signupDate for when a customer joined, not createdAt).
 
 Unsupported requests (important):
 - Set supported=false when the request cannot be expressed accurately with the allowed attributes. Set reward to null and explain briefly in reason.
@@ -129,9 +130,12 @@ export async function generateReward(input: z.infer<typeof inputSchema>) {
   (async () => {
     let failed = false;
 
-    const fail = async () => {
+    const fail = async (cause?: unknown) => {
       if (failed) return;
       failed = true;
+      if (cause != null) {
+        console.error("[generateReward] failed", cause);
+      }
       await refundAIUsageCredit(workspaceId).catch((e) =>
         console.error("Failed to refund AI credit", e),
       );
@@ -140,20 +144,20 @@ export async function generateReward(input: z.infer<typeof inputSchema>) {
 
     try {
       const generationSchema = getAIRewardGenerationSchema(event);
-      const { partialOutputStream } = streamText({
+      const result = streamText({
         model: anthropic("claude-sonnet-4-6"),
         output: Output.object({ schema: generationSchema }),
         system: buildSystemPrompt(event),
         prompt,
         temperature: 0.3,
         maxOutputTokens: 2000,
-        onError: () => {
-          void fail();
+        onError: ({ error }) => {
+          void fail(error);
         },
       });
 
       let lastPartial: Partial<AIRewardGenerationOutput> | null = null;
-      for await (const partialObject of partialOutputStream) {
+      for await (const partialObject of result.partialOutputStream) {
         if (failed) return;
         if (partialObject) {
           lastPartial = partialObject as Partial<AIRewardGenerationOutput>;
@@ -163,14 +167,70 @@ export async function generateReward(input: z.infer<typeof inputSchema>) {
 
       if (failed) return;
 
-      if (!lastPartial || !generationSchema.safeParse(lastPartial).success) {
-        await fail();
+      if (!lastPartial) {
+        try {
+          const text = await result.text;
+          if (text) {
+            lastPartial = JSON.parse(text) as Partial<AIRewardGenerationOutput>;
+          }
+        } catch (error) {
+          let text: string | null = null;
+          let finishReason: string | null = null;
+          try {
+            text = await result.text;
+          } catch {
+            // ignore
+          }
+          try {
+            finishReason = await result.finishReason;
+          } catch {
+            // ignore
+          }
+          await fail({
+            reason: "empty_generation_output",
+            error,
+            text,
+            finishReason,
+          });
+          return;
+        }
+      }
+
+      const parsed = generationSchema.safeParse(lastPartial);
+      if (!parsed.success) {
+        await fail({
+          reason: "invalid_generation_output",
+          lastPartial,
+          issues: parsed.error.issues,
+        });
         return;
       }
 
+      if (parsed.data.supported) {
+        const rewardParsed = getAIRewardSchema(event).safeParse(
+          parsed.data.reward,
+        );
+        if (!rewardParsed.success) {
+          console.error("[generateReward] invalid reward draft", {
+            lastPartial: parsed.data,
+            issues: rewardParsed.error.issues,
+          });
+
+          const unsupported: AIRewardGenerationOutput = {
+            supported: false,
+            reason:
+              "Could not map this request to supported reward conditions.",
+            reward: null,
+          };
+          stream.update(unsupported);
+          stream.done();
+          return;
+        }
+      }
+
       stream.done();
-    } catch {
-      await fail();
+    } catch (error) {
+      await fail(error);
     }
   })();
 
