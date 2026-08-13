@@ -908,8 +908,8 @@ export function AIRewardPreviewFrame({
             className={cn("min-h-0", chromeMounted && "flex-1 overflow-y-auto")}
           >
             <div
-              className={cn(chromeMounted && "pointer-events-none select-none")}
-              inert={chromeMounted || undefined}
+              className={cn(isCreating && "pointer-events-none select-none")}
+              inert={isCreating || undefined}
             >
               {children}
             </div>

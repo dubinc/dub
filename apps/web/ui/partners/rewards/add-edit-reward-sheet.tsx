@@ -952,7 +952,7 @@ function RewardSheetContent({
                       target="_blank"
                     />
                   ) : selectedEvent !== "referral" && aiBuilder.isReviewing ? (
-                    "Accept or discard the AI preview before saving."
+                    "Accept or discard the generated reward before saving."
                   ) : undefined
                 }
               />
