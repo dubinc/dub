@@ -87,7 +87,7 @@ export function Form() {
       }
 
       setValue("logo", destinationUrl, { shouldDirty: true });
-      toast.success(`${file.name} uploaded!`);
+      toast.success("Program logo uploaded!");
     } catch (e) {
       toast.error("Failed to upload logo");
     } finally {
@@ -95,14 +95,23 @@ export function Form() {
     }
   };
 
-  const buttonDisabled =
-    isSubmitting || isPending || !name || !url || !domain || !logo;
+  const isLoading = isSubmitting || isPending || hasSubmitted;
+
+  const disabledTooltip = !name
+    ? "Please enter a company name."
+    : !logo
+      ? "Please upload a logo."
+      : !domain
+        ? "Please select a program domain."
+        : !url
+          ? "Please enter a website URL."
+          : undefined;
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-10">
       <div>
         <label className="block text-sm font-medium text-neutral-800">
-          Company name
+          Company name <span className="text-red-800">*</span>
         </label>
         <p className="mt-1 text-sm text-neutral-600">
           The name of your company
@@ -117,7 +126,7 @@ export function Form() {
 
       <div>
         <label className="block text-sm font-medium text-neutral-800">
-          Logo
+          Logo <span className="text-red-800">*</span>
         </label>
         <p className="mb-4 mt-1 text-sm text-neutral-600">
           A square logo that will be used in various parts of your program
@@ -169,8 +178,8 @@ export function Form() {
       <Button
         text="Continue"
         className="w-full"
-        loading={isSubmitting || isPending || hasSubmitted}
-        disabled={buttonDisabled}
+        loading={isLoading}
+        disabledTooltip={!isLoading ? disabledTooltip : undefined}
         type="submit"
       />
     </form>
