@@ -1,6 +1,11 @@
 /**
  * Map Resend email-domain DNS records to Domain Connect apply query params
  * for serviceId `email` (dub.co.email.json v2).
+ *
+ * Subdomain email domains (e.g. partners.acme.com) use the Domain Connect
+ * `host` query parameter — record hosts stay relative to that email domain
+ * (`send`, `resend._domainkey`, `_dmarc`), never zone-appended
+ * (`send.partners`, `_dmarc.partners`).
  */
 
 type ResendDnsRecord = {
@@ -13,14 +18,15 @@ type ResendDnsRecord = {
 
 type EmailDomainConnectParams = {
   groupId: string;
+  /** Domain Connect `host` — email subdomain relative to the zone apex, if any. */
+  host?: string;
   mxHost: string;
   mxValue: string;
   spfTxtHost: string;
   spfTxtValue: string;
-  dkimTxtHost: string;
+  dkimSelector: string;
   dkimTxtValue: string;
-  dmarcHost: string;
-  dkim2TxtHost?: string;
+  dkim2Selector?: string;
   dkim2TxtValue?: string;
 };
 
@@ -44,8 +50,37 @@ function normalizeDkimValue(raw: string): string {
 }
 
 /**
- * Relativize a Resend record name (relative to the email domain slug)
- * onto the zone apex used by Domain Connect `domain=`.
+ * Relativize a Resend record name onto the email domain slug
+ * (Domain Connect host scope), not the zone apex.
+ *
+ * e.g. slug `partners.acme.com`, name `send` → `send`
+ *      slug `partners.acme.com`, name `send.partners.acme.com` → `send`
+ *      slug `acme.com`, name `@` → `@`
+ */
+function relativeToEmailSlug({
+  resendName,
+  emailSlug,
+}: {
+  resendName: string;
+  emailSlug: string;
+}): string {
+  const name = (resendName || "").trim().toLowerCase();
+  const slug = emailSlug.toLowerCase();
+
+  if (name === "" || name === "@" || name === slug) return "@";
+
+  const slugSuffix = `.${slug}`;
+  if (name.endsWith(slugSuffix)) {
+    const relative = name.slice(0, -slugSuffix.length);
+    return relative || "@";
+  }
+
+  return name;
+}
+
+/**
+ * Relativize a Resend record name onto the zone apex (for forward-instructions
+ * emails that list zone-absolute labels an admin pastes into DNS).
  *
  * e.g. slug `partners.acme.com`, apex `acme.com`, name `send`
  *   → host `send.partners`
@@ -76,6 +111,16 @@ function toZoneHost({
   return name || "@";
 }
 
+function extractDkimSelector(relativeHost: string): string | null {
+  const host = relativeHost.trim().toLowerCase();
+  if (!host || host === "@") return null;
+  const match = host.match(/^([^.]+)\._domainkey$/i);
+  if (match?.[1]) return match[1];
+  // Resend sometimes returns only the selector label
+  if (!host.includes(".")) return host;
+  return null;
+}
+
 /**
  * Build Domain Connect query params from Resend domain records.
  * Returns null when required MX, SPF TXT, or primary DKIM are missing.
@@ -103,55 +148,56 @@ export function mapResendRecordsToEmailDomainConnectParams({
     return null;
   }
 
-  const mxHost = toZoneHost({
+  const mxHost = relativeToEmailSlug({
     resendName: mx.name,
     emailSlug,
-    apex,
   });
-  const spfTxtHost = toZoneHost({
+  const spfTxtHost = relativeToEmailSlug({
     resendName: spfTxt.name,
     emailSlug,
-    apex,
   });
   const spfTxtValue = toSpfRules(spfTxt.value);
-  if (!spfTxtValue) return null;
+  if (!spfTxtValue || !mxHost || mxHost === "@" || !spfTxtHost) return null;
 
-  const dkimTxtHost = toZoneHost({
+  const dkimRelative = relativeToEmailSlug({
     resendName: dkims[0].name!,
     emailSlug,
-    apex,
   });
+  const dkimSelector = extractDkimSelector(dkimRelative);
   const dkimTxtValue = normalizeDkimValue(dkims[0].value!);
-  if (!dkimTxtHost || !dkimTxtValue) return null;
+  if (!dkimSelector || !dkimTxtValue) return null;
 
-  const dmarcHost = toZoneHost({
-    resendName: "_dmarc",
-    emailSlug,
-    apex,
-  });
+  const slug = emailSlug.toLowerCase();
+  const apexLower = apex.toLowerCase();
+  const host =
+    slug === apexLower
+      ? undefined
+      : slug.endsWith(`.${apexLower}`)
+        ? slug.slice(0, -(apexLower.length + 1))
+        : undefined;
 
   const groups = ["mx", "spf", "dkim"];
   const params: EmailDomainConnectParams = {
     groupId: "",
+    ...(host ? { host } : {}),
     mxHost,
     mxValue: mx.value.trim().replace(/\.$/, ""),
     spfTxtHost,
     spfTxtValue,
-    dkimTxtHost,
+    dkimSelector,
     dkimTxtValue,
-    dmarcHost,
   };
 
   if (dkims[1]?.name && dkims[1]?.value) {
-    const dkim2TxtHost = toZoneHost({
+    const dkim2Relative = relativeToEmailSlug({
       resendName: dkims[1].name,
       emailSlug,
-      apex,
     });
+    const dkim2Selector = extractDkimSelector(dkim2Relative);
     const dkim2TxtValue = normalizeDkimValue(dkims[1].value);
-    if (dkim2TxtHost && dkim2TxtValue) {
+    if (dkim2Selector && dkim2TxtValue) {
       groups.push("dkim2");
-      params.dkim2TxtHost = dkim2TxtHost;
+      params.dkim2Selector = dkim2Selector;
       params.dkim2TxtValue = dkim2TxtValue;
     }
   }
