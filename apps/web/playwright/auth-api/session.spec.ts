@@ -5,12 +5,7 @@ import {
   disconnectFixtures,
   ensureAuthApiFixtures,
 } from "./fixtures";
-import {
-  authGet,
-  authPost,
-  expectJson,
-  signInWithEmail,
-} from "./helpers";
+import { authGet, authPost, expectJson, signInWithEmail } from "./helpers";
 
 test.describe.configure({ mode: "serial" });
 

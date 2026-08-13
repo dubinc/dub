@@ -1,8 +1,5 @@
 import { hashToken } from "@/lib/auth";
-import {
-  buildLookupKey,
-  buildMagicLinkUrl,
-} from "@/lib/better-auth/utils";
+import { buildLookupKey, buildMagicLinkUrl } from "@/lib/better-auth/utils";
 import { createVerificationToken } from "@/lib/better-auth/verification-token";
 import { prisma } from "@/lib/prisma";
 import { APP_DOMAIN, PARTNERS_DOMAIN } from "@dub/utils";
@@ -84,8 +81,7 @@ export async function GET(request: Request) {
   }
 
   // Prefer partner invite when the request is on the partners host.
-  const isPartnersHost =
-    requestUrl.origin === new URL(PARTNERS_DOMAIN).origin;
+  const isPartnersHost = requestUrl.origin === new URL(PARTNERS_DOMAIN).origin;
 
   let lookupKey: string;
   if (partnerInvite && (isPartnersHost || !projectInvite)) {
