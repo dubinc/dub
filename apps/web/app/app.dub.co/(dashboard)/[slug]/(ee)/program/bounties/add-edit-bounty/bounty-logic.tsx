@@ -64,7 +64,7 @@ export function BountyLogic({ className }: { className?: string }) {
                         ? "lifetime (not available)"
                         : "lifetime",
                       value: "lifetime",
-                      description: PERFORMANCE_SCOPE_DESCRIPTIONS.lifetime,
+                      description: `${PERFORMANCE_SCOPE_DESCRIPTIONS.lifetime}${isRelative ? " (not available for relative start dates)" : ""}`,
                       disabled: isRelative,
                     },
                   ]}

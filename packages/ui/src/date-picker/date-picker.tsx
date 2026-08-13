@@ -1,5 +1,5 @@
 import { enUS } from "date-fns/locale";
-import { ReactElement, useEffect, useState } from "react";
+import { ReactElement, ReactNode, useEffect, useState } from "react";
 import { Popover } from "../popover";
 import { Calendar as CalendarPrimitive } from "./calendar";
 import { DatePickerContext, formatDate } from "./shared";
@@ -14,12 +14,18 @@ export type DatePickerTriggerRenderProps = {
   invalid?: boolean;
 };
 
+export type DatePickerContentRenderProps = {
+  calendar: ReactNode;
+};
+
 export type DatePickerProps = {
   value?: Date | null;
   defaultValue?: Date | null;
   onChange?: (date: Date | undefined) => void;
   /** Custom trigger element. Receives displayValue, placeholder, open, and disabled. Must return a single React element (e.g. <button>) so the popover can attach open behavior. */
   trigger?: (props: DatePickerTriggerRenderProps) => ReactElement;
+  /** Custom popover content. Receives the default calendar node so you can wrap or replace the layout. */
+  renderContent?: (props: DatePickerContentRenderProps) => ReactNode;
   invalid?: boolean;
 } & PickerProps;
 
@@ -28,10 +34,8 @@ export function DatePicker({
   defaultValue,
   onChange,
   trigger: customTrigger,
+  renderContent,
   disabled,
-  disableNavigation,
-  disabledDays,
-  showYearNavigation = false,
   locale = enUS,
   placeholder = "Select date",
   hasError,
@@ -57,6 +61,18 @@ export function DatePicker({
 
   const displayValue = selected ? formatDate(selected, locale) : null;
 
+  const calendar = (
+    <CalendarPrimitive
+      mode="single"
+      fixedWeeks
+      showYearNavigation
+      selected={selected}
+      onSelect={onSelect}
+      locale={locale}
+      {...props}
+    />
+  );
+
   return (
     <DatePickerContext.Provider value={{ isOpen: open, setIsOpen: setOpen }}>
       <Popover
@@ -65,19 +81,11 @@ export function DatePicker({
         setOpenPopover={setOpen}
         popoverContentClassName="rounded-xl"
         content={
-          <div className="flex w-full">
-            <CalendarPrimitive
-              mode="single"
-              selected={selected}
-              onSelect={onSelect}
-              disabled={disabledDays}
-              disableNavigation={disableNavigation}
-              showYearNavigation={showYearNavigation}
-              locale={locale}
-              className="p-3"
-              {...props}
-            />
-          </div>
+          renderContent ? (
+            renderContent({ calendar })
+          ) : (
+            <div className="flex w-full">{calendar}</div>
+          )
         }
       >
         {customTrigger ? (
