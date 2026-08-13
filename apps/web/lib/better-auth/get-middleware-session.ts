@@ -3,18 +3,17 @@ import type { SessionUser } from "./get-session";
 
 // Middleware previously called getServerSession, which imports the Better Auth
 // server (Prisma adapter, Jackson/SAML, Node dns/net). That inflated
-// middleware.js from ~0.9 MB to ~4 MB. This helper reads HMAC-verified cookies
-// only. Cache miss with a session token still counts as authenticated so we
-// don't bounce valid sessions to /login; user-based redirects wait for cache.
+// middleware.js from ~0.9 MB to ~4 MB. Only getCookieCache is HMAC-verified
+// (user). getSessionCookie is an unverified presence hint so a cache miss does
+// not bounce a valid session to /login; never treat it as authorization.
 // API/RSC still use getServerSession with disableCookieCache so revoke wins.
 export async function getMiddlewareSession(req: Request) {
-  const hasSessionToken = Boolean(getSessionCookie(req));
+  const hasUnverifiedSessionCookie = Boolean(getSessionCookie(req));
   const cached = await getCookieCache(req).catch(() => null);
-  const user = toMiddlewareUser(cached?.user);
 
   return {
-    user,
-    hasSessionToken,
+    user: toMiddlewareUser(cached?.user),
+    hasUnverifiedSessionCookie,
   };
 }
 

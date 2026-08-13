@@ -35,6 +35,10 @@ export const auth = betterAuth({
   }),
 
   session: {
+    // 30 days — match NextAuth's default session maxAge
+    expiresIn: 60 * 60 * 24 * 30,
+    // 24h freshness gate on /update-user and /change-email
+    freshAge: 60 * 60 * 24,
     cookieCache: {
       enabled: true,
       maxAge: 2 * 60, // Cache duration in seconds

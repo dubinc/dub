@@ -20,12 +20,12 @@ export async function AppMiddleware(req: NextRequest) {
     return EmbedMiddleware(req);
   }
 
-  const { user, hasSessionToken } = await getMiddlewareSession(req);
+  const { user, hasUnverifiedSessionCookie } = await getMiddlewareSession(req);
 
   // if there's no user and the path is not a public page, redirect to /login
   if (
     !user &&
-    !hasSessionToken &&
+    !hasUnverifiedSessionCookie &&
     path !== "/login" &&
     path !== "/forgot-password" &&
     path !== "/register" &&

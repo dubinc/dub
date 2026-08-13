@@ -46,7 +46,7 @@ export async function PartnersMiddleware(req: NextRequest) {
       ? searchParamsObj.connect
       : undefined;
 
-  const { user, hasSessionToken } = await getMiddlewareSession(req);
+  const { user, hasUnverifiedSessionCookie } = await getMiddlewareSession(req);
   const isPartnerInvite = req.nextUrl.pathname.endsWith("/invite");
 
   const isAuthenticatedPath = AUTHENTICATED_PATHS.some(
@@ -81,7 +81,7 @@ export async function PartnersMiddleware(req: NextRequest) {
     );
   }
 
-  if (!user && !hasSessionToken && isAuthenticatedPath) {
+  if (!user && !hasUnverifiedSessionCookie && isAuthenticatedPath) {
     if (path.startsWith("/programs/")) {
       const programSlug = path.split("/")[2];
       return NextResponse.redirect(new URL(`/${programSlug}/login`, req.url));

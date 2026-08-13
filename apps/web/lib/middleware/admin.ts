@@ -7,11 +7,13 @@ import { parse } from "./utils/parse";
 export async function AdminMiddleware(req: NextRequest) {
   const { path } = parse(req);
 
-  const { user, hasSessionToken } = await getMiddlewareSession(req);
+  const { user } = await getMiddlewareSession(req);
 
-  if (!user && !hasSessionToken && path !== "/login") {
+  if (!user && path !== "/login") {
     return NextResponse.redirect(new URL("/login", req.url));
-  } else if (user) {
+  }
+
+  if (user) {
     const isAdminUser = await prismaEdge.projectUsers.findUnique({
       where: {
         userId_projectId: {
@@ -23,7 +25,9 @@ export async function AdminMiddleware(req: NextRequest) {
 
     if (!isAdminUser) {
       return NextResponse.next(); // throw 404 page
-    } else if (path === "/login") {
+    }
+
+    if (path === "/login") {
       return NextResponse.redirect(new URL("/", req.url));
     }
   }
