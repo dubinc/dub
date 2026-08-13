@@ -8,9 +8,16 @@
       "@/ui/*": ["ui/*"],
       "@/lib/*": ["lib/*"]
     },
+    "target": "ES2022",
+    "types": ["node"],
     "noEmit": true,
     "plugins": []
   },
-  "include": ["./**/*.ts", "./**/*.tsx", "../playwright.config.ts", "../global-setup.ts"],
+  "include": [
+    "./**/*.ts",
+    "./**/*.tsx",
+    "../playwright.config.ts",
+    "./global-setup.ts"
+  ],
   "exclude": ["node_modules"]
 }

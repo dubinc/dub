@@ -32,6 +32,18 @@
 
    Better Auth API tests (`auth-api` project) seed their own users via Prisma on first run (no env vars beyond MailHog SMTP). MailHog is required for magic-link and password-reset specs.
 
+## API tests
+
+API specs under `playwright/api` use a Bearer token. `globalSetup` upserts a dedicated user, workspace, and token into `playwright/.auth/api.json` before any project runs. No MailHog or browser auth required.
+
+```sh
+pnpm --filter web test:e2e --project=api
+pnpm --filter web test:e2e --project=api playwright/api/tags/tags.spec.ts
+pnpm --filter web test:e2e --project=api playwright/api/tags/tags.spec.ts -g "POST /tags"
+```
+
+`-g` / `--grep` matches the test title (regex). Combine with a file path to narrow further.
+
 ## Running tests
 
 Make sure the dev server is running first (`pnpm dev`), then:

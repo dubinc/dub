@@ -2,7 +2,6 @@ name: Playwright E2E Tests
 
 on:
   pull_request:
-    branches: [main]
     paths:
       - "apps/web/**"
       - "packages/**"
@@ -33,9 +32,6 @@ jobs:
 
       TINYBIRD_API_KEY: "xx"
       TINYBIRD_API_URL: "xx"
-
-      AXIOM_TOKEN: "xx"
-      AXIOM_DATASET: "xx"
 
       # serverless-redis-http (SRH) — must match jobs.e2e.services.srh env
       SRH_TOKEN: "e2e_srh_token"
