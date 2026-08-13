@@ -25,7 +25,7 @@ const samlIdpBodySchema = z.object({
 export const samlOAuthConfig: GenericOAuthConfig = {
   providerId: "saml",
   clientId: "dummy",
-  clientSecret: process.env.BETTER_AUTH_SECRET!,
+  clientSecret: process.env.NEXTAUTH_SECRET!,
   authorizationUrl: `${baseURL}/api/auth/saml/authorize`,
   tokenUrl: `${baseURL}/api/auth/saml/token`,
   userInfoUrl: `${baseURL}/api/auth/saml/userinfo`,
@@ -96,7 +96,7 @@ export const samlIdp = {
           grant_type: "authorization_code",
           redirect_uri: redirectUri,
           client_id: "dummy",
-          client_secret: process.env.BETTER_AUTH_SECRET!,
+          client_secret: process.env.NEXTAUTH_SECRET!,
         });
 
         if (!accessToken) {

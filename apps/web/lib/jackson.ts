@@ -30,7 +30,7 @@ const opts: JacksonOption = {
   idpEnabled: true, // to allow folks to SSO directly from their IDP
   scimPath:
     process.env.NODE_ENV === "production" ? "/scim/v2.0" : "/api/scim/v2.0", // custom SCIM endpoint
-  clientSecretVerifier: process.env.BETTER_AUTH_SECRET as string,
+  clientSecretVerifier: process.env.NEXTAUTH_SECRET as string,
 };
 
 declare global {
