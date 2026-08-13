@@ -15,8 +15,8 @@ export const QueryLinkStructureHelpText = ({
 
   const appendValue = `?via=${link.key}`;
   return (
-    <p className={cn("text-xs text-neutral-500", className)}>
-      Link to any page on{" "}
+    <p className={cn("whitespace-nowrap text-xs text-neutral-500", className)}>
+      or link to any page on{" "}
       <a
         href={link.url}
         target="_blank"

@@ -100,7 +100,7 @@ export default function ProgramCustomerLayout({
                   Activity
                 </h2>
                 <Link
-                  href={`/${workspaceSlug}/events?interval=all&customerId=${customerId}`}
+                  href={`/${workspaceSlug}/events?interval=all&event=sales&customerId=${customerId}`}
                 >
                   <Button
                     variant="secondary"
