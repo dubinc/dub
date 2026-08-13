@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "../better-auth/get-session";
+import { getMiddlewareSession } from "../better-auth/get-middleware-session";
 import { getDefaultPartnerId } from "./utils/get-default-partner";
 import { isValidInternalRedirect } from "./utils/is-valid-internal-redirect";
 import { parse } from "./utils/parse";
@@ -46,7 +46,7 @@ export async function PartnersMiddleware(req: NextRequest) {
       ? searchParamsObj.connect
       : undefined;
 
-  const { user } = await getServerSession(req.headers);
+  const { user, hasSessionToken } = await getMiddlewareSession(req);
   const isPartnerInvite = req.nextUrl.pathname.endsWith("/invite");
 
   const isAuthenticatedPath = AUTHENTICATED_PATHS.some(
@@ -81,7 +81,7 @@ export async function PartnersMiddleware(req: NextRequest) {
     );
   }
 
-  if (!user && isAuthenticatedPath) {
+  if (!user && !hasSessionToken && isAuthenticatedPath) {
     if (path.startsWith("/programs/")) {
       const programSlug = path.split("/")[2];
       return NextResponse.redirect(new URL(`/${programSlug}/login`, req.url));

@@ -3,7 +3,7 @@ import {
   ONBOARDING_WINDOW_SECONDS,
   onboardingStepCache,
 } from "../api/workspaces/onboarding-step-cache";
-import { getServerSession } from "../better-auth/get-session";
+import { getMiddlewareSession } from "../better-auth/get-middleware-session";
 import { EmbedMiddleware } from "./embed";
 import { NewLinkMiddleware } from "./new-link";
 import { appRedirect } from "./utils/app-redirect";
@@ -20,11 +20,12 @@ export async function AppMiddleware(req: NextRequest) {
     return EmbedMiddleware(req);
   }
 
-  const { user } = await getServerSession(req.headers);
+  const { user, hasSessionToken } = await getMiddlewareSession(req);
 
   // if there's no user and the path is not a public page, redirect to /login
   if (
     !user &&
+    !hasSessionToken &&
     path !== "/login" &&
     path !== "/forgot-password" &&
     path !== "/register" &&

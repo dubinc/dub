@@ -1,4 +1,4 @@
-import { SessionUser } from "@/lib/better-auth/get-session";
+import type { SessionUser } from "@/lib/better-auth/get-session";
 import { prismaEdge } from "@/lib/prisma/edge";
 import { NextRequest, NextResponse } from "next/server";
 import { getDefaultWorkspace } from "./utils/get-default-workspace";

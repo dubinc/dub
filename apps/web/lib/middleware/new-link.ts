@@ -1,6 +1,6 @@
 import { APP_DOMAIN } from "@dub/utils";
 import { NextRequest, NextResponse } from "next/server";
-import { SessionUser } from "../better-auth/get-session";
+import type { SessionUser } from "../better-auth/get-session";
 import { getDefaultWorkspace } from "./utils/get-default-workspace";
 import { parse } from "./utils/parse";
 

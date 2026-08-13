@@ -7,7 +7,7 @@ export async function getServerSession(requestHeaders?: Headers) {
   const result = await auth.api.getSession({
     headers: requestHeaders ?? (await headers()),
     query: {
-      disableCookieCache: true, // Bypass cookieCache so revoke is authoritative for middleware/API
+      disableCookieCache: true, // Bypass cookieCache so revoke is authoritative for API/RSC
     },
   });
 
