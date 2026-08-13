@@ -185,7 +185,8 @@ function PartnerAdvancedSettingsModal({
                   Enable customer data sharing
                 </h3>
                 <p className="text-xs text-neutral-500">
-                  Allow this partner to access customer data and analytics
+                  Allow this partner to access customer data, referred partner
+                  emails, and analytics
                 </p>
               </div>
             </div>
