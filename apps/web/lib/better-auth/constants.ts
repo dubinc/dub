@@ -60,17 +60,6 @@ export const VERIFICATION_TOKEN_CONFIG = {
       code: z.string().length(6),
     }),
   },
-
-  // Partner account merge OTP (action — must never create a session)
-  mergePartnerAccountsOtp: {
-    purpose: "action",
-    prefix: "merge-partner-accounts:",
-    expiresIn: 5 * 60 * 1000, // 5 minutes
-    valueSchema: z.object({
-      targetEmail: z.email(),
-      code: z.string().length(6),
-    }),
-  },
 } as const;
 
 export type VerificationTokenKind = keyof typeof VERIFICATION_TOKEN_CONFIG;

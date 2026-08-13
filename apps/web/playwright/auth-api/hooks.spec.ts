@@ -21,7 +21,6 @@ test.afterAll(async () => {
 const ACTION_TOKEN_PREFIXES = [
   "email-change:",
   "signup:",
-  "merge-partner-accounts:",
 ] as const;
 
 test.describe("Better Auth custom hooks", () => {
