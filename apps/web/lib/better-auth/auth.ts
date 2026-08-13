@@ -15,7 +15,7 @@ import { prismaAdapter } from "better-auth/adapters/prisma";
 import { betterAuth } from "better-auth/minimal";
 import { nextCookies } from "better-auth/next-js";
 import { genericOAuth, lastLoginMethod, magicLink } from "better-auth/plugins";
-import { isLocalDev } from "../api/environment";
+import { isLocalDev, isVercelDeployment } from "../api/environment";
 import { logger, toErrorFields } from "../axiom/server";
 import { adminImpersonation } from "./admin-impersonation-plugin";
 import { databaseHooks } from "./database-hooks";
@@ -25,7 +25,6 @@ import { programOAuthConfigs } from "./program-oauth";
 import { samlIdp, samlOAuthConfig } from "./saml-sso-plugin";
 
 const isVercelProduction = process.env.VERCEL_ENV === "production";
-const isVercelDeployment = process.env.VERCEL === "1";
 
 export const auth = betterAuth({
   secret: process.env.BETTER_AUTH_SECRET,
@@ -33,6 +32,11 @@ export const auth = betterAuth({
   database: prismaAdapter(prisma, {
     provider: "mysql",
   }),
+
+  // In-memory only — useless on serverless. Auth routes are limited via Upstash in hooks.
+  rateLimit: {
+    enabled: false,
+  },
 
   session: {
     // 30 days — match NextAuth's default session maxAge

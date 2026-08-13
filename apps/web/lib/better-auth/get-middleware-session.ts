@@ -1,5 +1,6 @@
-import { getCookieCache, getSessionCookie } from "better-auth/cookies";
+import { getSessionCookie } from "better-auth/cookies";
 import type { SessionUser } from "./get-session";
+import { readCookieCache } from "./read-cookie-cache";
 
 // Edge middleware cannot import the Better Auth server (Prisma, Jackson/SAML,
 // Node dns/net) — that balloons middleware.js from ~0.9 MB to ~4 MB. Cookies
@@ -9,7 +10,7 @@ import type { SessionUser } from "./get-session";
 // disableCookieCache so revoke wins.
 export async function getMiddlewareSession(req: Request) {
   const hasUnverifiedSessionCookie = Boolean(getSessionCookie(req));
-  const cached = await getCookieCache(req).catch(() => null);
+  const cached = await readCookieCache(req).catch(() => null);
 
   return {
     user: toMiddlewareUser(cached?.user),

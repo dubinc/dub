@@ -95,11 +95,11 @@ test.describe("Better Auth custom hooks", () => {
   test("rejects non-admin password sign-in on the admin host", async ({
     request,
   }) => {
-    const user = await getUserAuthState(AUTH_API_USERS.ok.email);
+    const user = await getUserAuthState(AUTH_API_USERS.admin.email);
     const sessionCountBefore = await countUserSessions(user.id);
 
     const response = await signInWithEmail(request, {
-      email: AUTH_API_USERS.ok.email,
+      email: AUTH_API_USERS.admin.email,
       password: AUTH_API_PASSWORD,
       headers: { Host: ADMIN_HOST },
     });
@@ -116,7 +116,7 @@ test.describe("Better Auth custom hooks", () => {
       request,
       "/sign-in/magic-link",
       {
-        email: AUTH_API_USERS.ok.email,
+        email: AUTH_API_USERS.admin.email,
         callbackURL: "http://admin.localhost:8888/",
       },
       { headers: { Host: ADMIN_HOST } },

@@ -12,6 +12,18 @@ export const AUTH_API_USERS = {
     name: "Auth API OK",
     email: "auth-api-ok@dub-internal-test.com",
   },
+  session: {
+    name: "Auth API Session",
+    email: "auth-api-session@dub-internal-test.com",
+  },
+  magic: {
+    name: "Auth API Magic",
+    email: "auth-api-magic@dub-internal-test.com",
+  },
+  admin: {
+    name: "Auth API Admin",
+    email: "auth-api-admin@dub-internal-test.com",
+  },
   password: {
     name: "Auth API Password",
     email: "auth-api-password@dub-internal-test.com",
@@ -101,22 +113,37 @@ async function upsertCredentialUser({
 }
 
 export async function ensureAuthApiFixtures() {
-  const ok = await upsertCredentialUser({
-    ...AUTH_API_USERS.ok,
+  const verifiedUser = {
     password: AUTH_API_PASSWORD,
     emailVerified: new Date(),
     emailVerifiedBa: true,
     lockedAt: null,
     invalidLoginAttempts: 0,
+  };
+
+  const ok = await upsertCredentialUser({
+    ...AUTH_API_USERS.ok,
+    ...verifiedUser,
+  });
+
+  const session = await upsertCredentialUser({
+    ...AUTH_API_USERS.session,
+    ...verifiedUser,
+  });
+
+  const magic = await upsertCredentialUser({
+    ...AUTH_API_USERS.magic,
+    ...verifiedUser,
+  });
+
+  const admin = await upsertCredentialUser({
+    ...AUTH_API_USERS.admin,
+    ...verifiedUser,
   });
 
   const password = await upsertCredentialUser({
     ...AUTH_API_USERS.password,
-    password: AUTH_API_PASSWORD,
-    emailVerified: new Date(),
-    emailVerifiedBa: true,
-    lockedAt: null,
-    invalidLoginAttempts: 0,
+    ...verifiedUser,
   });
 
   const locked = await upsertCredentialUser({
@@ -168,7 +195,7 @@ export async function ensureAuthApiFixtures() {
     },
   });
 
-  return { ok, password, locked, unverified, saml };
+  return { ok, session, magic, admin, password, locked, unverified, saml };
 }
 
 export async function resetPasswordUserPassword(password = AUTH_API_PASSWORD) {

@@ -27,10 +27,11 @@ test.describe("session endpoints", () => {
   });
 
   test("get-session returns user after sign-in", async ({ request }) => {
-    await signInWithEmail(request, {
-      email: AUTH_API_USERS.ok.email,
+    const signIn = await signInWithEmail(request, {
+      email: AUTH_API_USERS.session.email,
       password: AUTH_API_PASSWORD,
     });
+    expect(signIn.status()).toBe(200);
 
     const response = await authGet(request, "/get-session");
     const data = await expectJson<{
@@ -38,13 +39,13 @@ test.describe("session endpoints", () => {
       session: { token: string };
     }>(response, 200);
 
-    expect(data.user.email).toBe(AUTH_API_USERS.ok.email);
+    expect(data.user.email).toBe(AUTH_API_USERS.session.email);
     expect(data.session.token).toBeTruthy();
   });
 
   test("sign-out clears the session", async ({ request }) => {
     await signInWithEmail(request, {
-      email: AUTH_API_USERS.ok.email,
+      email: AUTH_API_USERS.session.email,
       password: AUTH_API_PASSWORD,
     });
 

@@ -31,13 +31,13 @@ test.describe("magic link", () => {
     await clearMailHog();
 
     const send = await authPost(request, "/sign-in/magic-link", {
-      email: AUTH_API_USERS.ok.email,
+      email: AUTH_API_USERS.magic.email,
       callbackURL: "http://localhost:8888/workspaces",
     });
 
     expect(send.status()).toBe(200);
 
-    const email = await waitForAuthEmail(AUTH_API_USERS.ok.email);
+    const email = await waitForAuthEmail(AUTH_API_USERS.magic.email);
     const authUrl = extractAuthUrl(email);
     expect(authUrl).toContain("/api/auth/magic-link/verify");
     expect(authUrl).toContain("token=");
@@ -51,14 +51,14 @@ test.describe("magic link", () => {
       token?: string;
     }>(verify, 200);
 
-    expect(data.user.email).toBe(AUTH_API_USERS.ok.email);
+    expect(data.user.email).toBe(AUTH_API_USERS.magic.email);
     expect(data.token).toBeTruthy();
 
     const session = await authGet(request, "/get-session");
     const sessionData = await expectJson<{
       user: { email: string };
     }>(session, 200);
-    expect(sessionData.user.email).toBe(AUTH_API_USERS.ok.email);
+    expect(sessionData.user.email).toBe(AUTH_API_USERS.magic.email);
   });
 
   test("does not create a session for unknown emails (disableSignUp)", async ({

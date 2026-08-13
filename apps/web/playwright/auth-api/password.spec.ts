@@ -39,7 +39,14 @@ async function resolveResetToken(
   let resetToken = extractTokenFromAuthUrl(authUrl);
 
   if (authUrl.includes("/api/auth/reset-password/")) {
-    const callback = await request.get(authUrl, { maxRedirects: 0 });
+    // BETTER_AUTH_URL may be partners/admin.localhost; auth-api hits localhost:8888.
+    const resetUrl = new URL(authUrl);
+    resetUrl.protocol = "http:";
+    resetUrl.host = "localhost:8888";
+
+    const callback = await request.get(resetUrl.toString(), {
+      maxRedirects: 0,
+    });
     const location = callback.headers().location;
     if (location) {
       resetToken =
@@ -104,9 +111,12 @@ test.describe("password reset and change", () => {
     });
     expect(signInOld.status()).toBe(401);
 
-    // DB sessions are revoked and cookieCache version is bumped.
+    // DB sessions are revoked. Cookie cache can still serve get-session until
+    // maxAge; the app's getServerSession always bypasses it.
     expect(await countUserSessions(userId)).toBe(0);
-    const priorGetSession = await authGet(existingSession, "/get-session");
+    const priorGetSession = await authGet(existingSession, "/get-session", {
+      disableCookieCache: "true",
+    });
     expect(await priorGetSession.json()).toBeNull();
     await existingSession.dispose();
 
