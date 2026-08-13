@@ -1,7 +1,7 @@
 import { Bounty, BountyStartMode } from "@prisma/client";
 import { addDays, addMonths, subDays } from "date-fns";
 import { E2E_PARTNER_GROUP } from "tests/utils/resource";
-import { describe, expect, onTestFinished, test } from "vitest";
+import { describe, expect, onTestFinished, test, afterAll } from "vitest";
 import { IntegrationHarness } from "../utils/integration";
 
 // start 5 mins from now to make sure the bounty is fully deleted so it doesn't trigger email sends
@@ -592,6 +592,8 @@ describe.sequential("/bounties - relative start mode", async () => {
   const h = new IntegrationHarness();
   const { http } = await h.init();
 
+  const createdBountyIds: string[] = [];
+
   const relativeSubmissionBase = {
     name: "Relative Submission Bounty",
     description: "starts when a partner joins",
@@ -603,6 +605,12 @@ describe.sequential("/bounties - relative start mode", async () => {
     submissionRequirements: { image: { max: 4 } },
     groupIds: [E2E_PARTNER_GROUP.id],
   };
+
+  afterAll(async () => {
+    await Promise.all(
+      createdBountyIds.map((bountyId) => h.deleteBounty(bountyId)),
+    );
+  });
 
   test("POST /bounties - relative with endsAfterDays", async () => {
     const { status, data: bounty } = await http.post<Bounty>({
@@ -621,6 +629,11 @@ describe.sequential("/bounties - relative start mode", async () => {
       endsAfterDays: 30,
     });
 
+    createdBountyIds.push(bounty.id);
+    onTestFinished(async () => {
+      await h.deleteBounty(bounty.id);
+    });
+
     const { status: patchStatus, data: updated } = await http.patch<Bounty>({
       path: `/bounties/${bounty.id}`,
       body: { endsAfterDays: 180 },
@@ -631,10 +644,6 @@ describe.sequential("/bounties - relative start mode", async () => {
       startMode: BountyStartMode.relative,
       startsAt: null,
       endsAfterDays: 180,
-    });
-
-    onTestFinished(async () => {
-      await h.deleteBounty(bounty.id);
     });
   });
 
