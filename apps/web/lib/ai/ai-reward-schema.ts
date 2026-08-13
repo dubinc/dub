@@ -134,10 +134,13 @@ export function getAIRewardSchema(event: "click" | "lead" | "sale") {
             message: "Click and lead rewards must be flat.",
             path: ["type"],
           })
-          .refine((data) => data.maxDuration === 0, {
-            message: "Click and lead rewards must use duration 0.",
-            path: ["maxDuration"],
-          })
+          .refine(
+            (data) => data.maxDuration == null || data.maxDuration === 0,
+            {
+              message: "Click and lead rewards must use duration 0.",
+              path: ["maxDuration"],
+            },
+          )
           .refine(
             (data) =>
               (data.modifiers ?? []).every(
