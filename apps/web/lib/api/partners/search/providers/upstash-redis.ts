@@ -20,12 +20,7 @@ import {
   withQueryDeadline,
   withTransientRetry,
 } from "./resilience";
-import {
-  getEmailNgrams,
-  getQueryNgrams,
-  logPartnerSearchDebug,
-  resolveIndexName,
-} from "./shared";
+import { getEmailNgrams, getQueryNgrams, resolveIndexName } from "./shared";
 
 const DEFAULT_INDEX_NAME = "partner-search-v1";
 // Keep the full query operation within the one-second latency target while
@@ -294,15 +289,6 @@ export function createUpstashRedisPartnerSearchProvider({
       id: key.slice(getDocumentPrefix(resolvedIndexName).length),
       score,
     }));
-
-    logPartnerSearchDebug("Upstash Redis Search", {
-      indexName: resolvedIndexName,
-      operation: "searchCandidates",
-      query: { programId, query, limit },
-      filter,
-      resultCount: hits.length,
-      hits,
-    });
 
     return { hits };
   }

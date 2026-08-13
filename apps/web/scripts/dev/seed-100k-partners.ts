@@ -12,7 +12,8 @@
  * dying on a constraint error halfway through.
  *
  * This inserts login-capable users with a known password, so it refuses a non-local
- * DATABASE_URL unless `--allowRemoteDatabase` is passed.
+ * DATABASE_URL unless `--allowRemoteDatabase` is passed, and refuses a production
+ * environment (NODE_ENV/VERCEL_ENV) outright.
  *
  *   cd apps/web
  *   pnpm run script dev/seed-100k-partners [--count=100000] [--programId=prog_123] [--seed=custom-seed]
@@ -273,6 +274,18 @@ const assertSeedableDatabase = (allowRemoteDatabase: boolean) => {
 
   if (!databaseUrl) {
     throw new Error("DATABASE_URL is not set.");
+  }
+
+  // The host allowlist cannot tell a truly local database from a production
+  // one reached through a local tunnel, so a production environment refuses
+  // outright — --allowRemoteDatabase does not override this.
+  if (
+    process.env.NODE_ENV === "production" ||
+    process.env.VERCEL_ENV === "production"
+  ) {
+    throw new Error(
+      "Refusing to seed in a production environment. This script inserts users with a known password.",
+    );
   }
 
   let host: string;

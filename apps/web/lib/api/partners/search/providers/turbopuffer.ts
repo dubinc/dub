@@ -7,12 +7,7 @@ import {
 import type { PartnerSearchDocument, PartnerSearchProvider } from "../types";
 import { validatePartnerSearchCandidateLimit } from "../types";
 import { withQueryDeadline, withTransientRetry } from "./resilience";
-import {
-  getEmailNgrams,
-  getQueryNgrams,
-  logPartnerSearchDebug,
-  resolveIndexName,
-} from "./shared";
+import { getEmailNgrams, getQueryNgrams, resolveIndexName } from "./shared";
 
 const DEFAULT_NAMESPACE = "partner-search-v1";
 const DEFAULT_REGION = "aws-us-east-1";
@@ -206,15 +201,6 @@ export function createTurbopufferPartnerSearchProvider({
       );
 
       const hits = mergeBranchRows(results ?? [], limit);
-
-      logPartnerSearchDebug("Turbopuffer", {
-        namespace: resolvedNamespaceName,
-        operation: "searchCandidates",
-        query: { programId, query, limit },
-        branches: branches.length,
-        resultCount: hits.length,
-        hits,
-      });
 
       return { hits };
     },

@@ -45,17 +45,6 @@ export function getQueryNgrams(query: string): string[] {
   return toNgrams(query);
 }
 
-export function logPartnerSearchDebug(
-  provider: string,
-  details: Record<string, unknown>,
-) {
-  if (process.env.PARTNER_SEARCH_DEBUG !== "true") {
-    return;
-  }
-
-  console.log(`[Partner Search Debug] ${provider}`, details);
-}
-
 /**
  * First non-blank wins. `||` rather than `??` because a blank value has to fall
  * through to the default, otherwise an empty env var silently targets an index
