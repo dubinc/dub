@@ -171,10 +171,10 @@ export function ActivityLogUserAvatar({ user }: { user: ActivityLog["user"] }) {
         </div>
       }
     >
-      <div>
+      <div className="shrink-0">
         <UserAvatar
           user={user}
-          className="size-4 shrink-0 transition-transform duration-100 hover:scale-110 hover:cursor-pointer"
+          className="size-4 transition-transform duration-100 hover:scale-110 hover:cursor-pointer"
         />
       </div>
     </Tooltip>

@@ -103,14 +103,21 @@ model Account {
 }
 
 model Session {
-  id        String   @id @default(cuid())
-  expiresAt DateTime
-  token     String   @unique
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now()) @updatedAt
+  // Shared
+  id     String @id @default(cuid())
+  userId String
+
+  // NextAuth legacy (nullable for Better Auth–created rows)
+  sessionToken String?   @unique
+  expires      DateTime?
+
+  // Better Auth
+  expiresAt DateTime?
+  token     String?   @unique
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @default(now()) @updatedAt
   ipAddress String?
-  userAgent String?  @db.Text
-  userId    String
+  userAgent String?   @db.Text
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
