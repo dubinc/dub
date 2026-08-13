@@ -63,7 +63,7 @@ export function ProgramLinkConfiguration({
 
       <div className="space-y-2">
         <label className="block text-sm font-medium text-neutral-800">
-          Website URL
+          Website URL <span className="text-red-800">*</span>
         </label>
         <Input
           value={url || ""}
@@ -144,9 +144,9 @@ function DomainOnboarding({ domain, onDomainChange }: DomainProps) {
     useDomains();
   const trialActive = isWorkspaceBillingTrialActive(trialEndsAt);
 
-  const [state, setState] = useState<"idle" | "select">(
-    domain ? "select" : "idle",
-  );
+  // null = derive from domain (so a domain restored from workspace store shows as selected)
+  const [state, setState] = useState<"idle" | "select" | null>(null);
+  const resolvedState = state ?? (domain ? "select" : "idle");
   const [showSubdomainModal, setShowSubdomainModal] = useState(false);
 
   const { AddEditDomainModal, setShowAddEditDomainModal } =
@@ -237,11 +237,11 @@ function DomainOnboarding({ domain, onDomainChange }: DomainProps) {
         <div className="mb-2 flex items-center justify-between">
           <div className="flex items-center gap-x-2">
             <label className="block text-sm font-medium text-neutral-800">
-              Program domain
+              Program domain <span className="text-red-800">*</span>
             </label>
             <InfoTooltip content="A connected domain or sub-domain is required to create a program. [Learn more](https://dub.co/help/article/choosing-a-custom-domain)" />
           </div>
-          {state === "select" && (
+          {resolvedState === "select" && (
             <button
               type="button"
               onClick={() => setState("idle")}
@@ -258,7 +258,7 @@ function DomainOnboarding({ domain, onDomainChange }: DomainProps) {
         >
           <div className="p-1">
             <AnimatePresence initial={false} mode="popLayout">
-              {state === "idle" && (
+              {resolvedState === "idle" && (
                 <motion.div
                   key="idle"
                   initial={{ opacity: 0, y: -10 }}
@@ -328,7 +328,7 @@ function DomainOnboarding({ domain, onDomainChange }: DomainProps) {
                 </motion.div>
               )}
 
-              {state === "select" && (
+              {resolvedState === "select" && (
                 <motion.div
                   key="select"
                   initial={{ opacity: 0, y: 10 }}
