@@ -10,7 +10,6 @@ import { withQueryDeadline, withTransientRetry } from "./resilience";
 import { getEmailNgrams, getQueryNgrams, resolveIndexName } from "./shared";
 
 const DEFAULT_NAMESPACE = "partner-search-v1";
-const DEFAULT_REGION = "aws-us-east-1";
 const WRITE_BATCH_SIZE = 500;
 const QUERY_OPERATION_TIMEOUT_MS = 1_000;
 
@@ -93,7 +92,7 @@ function createNamespace(namespaceName: string): TurbopufferNamespace {
 
   const client = new Turbopuffer({
     apiKey,
-    region: process.env.TURBOPUFFER_REGION?.trim() || DEFAULT_REGION,
+    region: "aws-us-east-1",
   });
 
   return client.namespace(namespaceName) as unknown as TurbopufferNamespace;
