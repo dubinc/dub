@@ -163,14 +163,17 @@ describe("Turbopuffer partner search provider", () => {
     expect(queries).toHaveLength(1);
   });
 
-  it("unions branches, keeping the better score for a shared document", async () => {
+  it("fuses branches by rank, boosting documents found by both", async () => {
+    // Raw $dist values are incomparable across branches, so they must not
+    // decide the order: pge_2 carries the highest raw score but only one
+    // branch found it, while both branches found pge_1.
     mocks.multiQuery.mockResolvedValue({
       results: [
         { rows: [{ id: "pge_1", $dist: 0.4 }] },
         {
           rows: [
+            { id: "pge_2", $dist: 7.6 },
             { id: "pge_1", $dist: 0.9 },
-            { id: "pge_2", $dist: 0.6 },
           ],
         },
       ],
@@ -182,10 +185,27 @@ describe("Turbopuffer partner search provider", () => {
       limit: 10,
     });
 
-    expect(hits).toEqual([
-      { id: "pge_1", score: 0.9 },
-      { id: "pge_2", score: 0.6 },
-    ]);
+    expect(hits.map(({ id }) => id)).toEqual(["pge_1", "pge_2"]);
+    // RRF: rank 1 + rank 2 across branches vs rank 1 in one branch.
+    expect(hits[0].score).toBeCloseTo(1 / 61 + 1 / 62, 10);
+    expect(hits[1].score).toBeCloseTo(1 / 61, 10);
+  });
+
+  it("breaks cross-branch rank ties deterministically by ID", async () => {
+    mocks.multiQuery.mockResolvedValue({
+      results: [
+        { rows: [{ id: "pge_b", $dist: 9.5 }] },
+        { rows: [{ id: "pge_a", $dist: 0.2 }] },
+      ],
+    });
+
+    const { hits } = await createProvider().searchCandidates({
+      programId: "prog_test",
+      query: "examp",
+      limit: 10,
+    });
+
+    expect(hits.map(({ id }) => id)).toEqual(["pge_a", "pge_b"]);
   });
 
   it("never returns more than the requested limit", async () => {

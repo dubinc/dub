@@ -109,7 +109,7 @@ function serializeTurbopufferRow(
 }
 
 /**
- * Two ranked branches, unioned by the caller.
+ * Two ranked branches, rank-fused by the caller (see mergeBranchRows).
  *
  * The text branch treats the last token as a prefix so "john" reaches
  * "johnson", matching how the Redis provider's $smart behaves. The n-gram
@@ -140,25 +140,34 @@ function buildQueryBranches(programId: string, query: string) {
   return branches;
 }
 
+// The standard reciprocal-rank-fusion constant: dampens the gap between
+// neighboring ranks so one branch's top result cannot drown out the other's.
+const RRF_RANK_CONSTANT = 60;
+
+/**
+ * Fuses the branches by rank (RRF) rather than by score. BM25 scores from
+ * different clauses are not comparable — the n-gram branch sums over many
+ * trigram terms and runs numerically hotter than the text branch — but rank
+ * positions are. Each document scores Σ 1/(60 + rank) across the branches it
+ * appears in, so a document found by both branches receives a contribution
+ * from each, and the raw `$dist` values are deliberately unused. Relies on
+ * each branch's rows arriving in the server's relevance order.
+ */
 function mergeBranchRows(
   branches: { rows?: { id: string | number; $dist?: number }[] }[],
   limit: number,
 ) {
-  const bestById = new Map<string, number>();
+  const scoreById = new Map<string, number>();
 
   for (const branch of branches) {
-    for (const row of branch.rows ?? []) {
+    (branch.rows ?? []).forEach((row, index) => {
       const id = String(row.id);
-      const score = row.$dist ?? 0;
-      // Scores come from different BM25 clauses and are not directly
-      // comparable; the higher one only decides ordering within the union.
-      if (!bestById.has(id) || score > bestById.get(id)!) {
-        bestById.set(id, score);
-      }
-    }
+      const contribution = 1 / (RRF_RANK_CONSTANT + index + 1);
+      scoreById.set(id, (scoreById.get(id) ?? 0) + contribution);
+    });
   }
 
-  return Array.from(bestById, ([id, score]) => ({ id, score }))
+  return Array.from(scoreById, ([id, score]) => ({ id, score }))
     .sort(
       (left, right) =>
         right.score - left.score || left.id.localeCompare(right.id),
