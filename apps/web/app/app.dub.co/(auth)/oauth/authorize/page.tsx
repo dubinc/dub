@@ -84,7 +84,9 @@ export default async function Authorize(props: {
           <div className="flex w-full items-start gap-2.5 rounded-lg border border-amber-200 bg-amber-50 p-3 text-left sm:-mx-6 sm:w-auto sm:self-stretch">
             <CircleWarning className="mt-0.5 size-4 shrink-0 text-amber-600" />
             <div className="flex flex-col gap-0.5 text-sm text-amber-900">
-              <p className="font-medium">Dub hasn't verified this app</p>
+              <p className="font-medium">
+                Dub hasn't verified this integration
+              </p>
               <p className="text-amber-800">
                 It can only be installed by its developer or on the developer's
                 workspace.

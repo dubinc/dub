@@ -3,7 +3,7 @@ import { WorkspaceProps } from "@/lib/types";
 import { Integration } from "@prisma/client";
 
 export const UNVERIFIED_APP_INSTALL_MESSAGE =
-  "Dub hasn't verified this app. It can only be installed by its developer or on the developer's workspace.";
+  "Dub hasn't verified this integration. It can only be installed by its developer or on the developer's workspace.";
 
 export const canInstallOAuthApp = ({
   integration,
