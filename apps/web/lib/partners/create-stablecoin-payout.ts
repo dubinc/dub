@@ -216,9 +216,14 @@ export const createStablecoinPayout = async ({
 
     await markPayoutsAsProcessed(currentInvoicePayouts);
 
-    throw new Error(
-      `Stripe recipient account for partner ${partner.email} does not have crypto wallet capabilities.`,
-    );
+    const message = `Stripe recipient account for partner ${partner.email} does not have crypto wallet capabilities.`;
+
+    if (forceWithdrawal) {
+      throw new Error(message);
+    } else {
+      console.warn(message);
+      return;
+    }
   }
 
   const allPayoutsProgramNames = [
