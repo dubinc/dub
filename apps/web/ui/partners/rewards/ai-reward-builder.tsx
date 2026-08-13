@@ -1,6 +1,10 @@
 "use client";
 
-import { AIRewardDraft, getAIRewardSchema } from "@/lib/ai/ai-reward-schema";
+import {
+  AIRewardDraft,
+  AIRewardGenerationOutput,
+  getAIRewardSchema,
+} from "@/lib/ai/ai-reward-schema";
 import { generateReward } from "@/lib/ai/generate-reward";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -271,12 +275,14 @@ export function useAIRewardBuilder({
 
       if (generationId !== generationIdRef.current) return;
 
-      let lastPartial: Partial<AIRewardDraft> | null = null;
+      let lastPartial: Partial<AIRewardGenerationOutput> | null = null;
       for await (const partialObject of readStreamableValue(object)) {
         if (generationId !== generationIdRef.current) return;
         if (partialObject) {
           lastPartial = partialObject;
-          applyDraft(partialObject, false);
+          if (partialObject.supported === true && partialObject.reward) {
+            applyDraft(partialObject.reward, false);
+          }
         }
       }
 
@@ -288,7 +294,17 @@ export function useAIRewardBuilder({
         return;
       }
 
-      const parsed = getAIRewardSchema(event).safeParse(lastPartial);
+      if (lastPartial.supported === false) {
+        discard({ keepPrompt: true });
+        toast.error("This reward setup isn't supported yet.", {
+          description:
+            "Reach out to support if you need help configuring this.",
+        });
+        void mutateWorkspace();
+        return;
+      }
+
+      const parsed = getAIRewardSchema(event).safeParse(lastPartial.reward);
       if (!parsed.success) {
         setPhase("error");
         setError("Generated reward was incomplete. Try a clearer description.");
@@ -315,6 +331,7 @@ export function useAIRewardBuilder({
     applyDraft,
     canUseAdvancedRewardLogic,
     clearPresetTimeout,
+    discard,
     ensureSnapshot,
     event,
     mutateWorkspace,

@@ -17,9 +17,11 @@ import { createStreamableValue } from "@ai-sdk/rsc";
 import { Output, streamText } from "ai";
 import * as z from "zod/v4";
 import { throwIfNoPermission } from "../actions/throw-if-no-permission";
-import { AIRewardDraft, getAIRewardSchema } from "./ai-reward-schema";
-
-const AI_REWARD_EVENTS = ["click", "lead", "sale"] as const;
+import {
+  AI_REWARD_EVENTS,
+  AIRewardGenerationOutput,
+  getAIRewardGenerationSchema,
+} from "./ai-reward-schema";
 
 const inputSchema = z.object({
   workspaceId: z.string(),
@@ -54,6 +56,13 @@ Rules:
 - If the user describes only a simple base reward with no conditions, omit modifiers or return an empty array.
 - Do not invent metadata fields unless the user names them; when using metadata, set metadataField.
 - Only use entities and attributes allowed for this event (listed below).
+
+Unsupported requests (important):
+- Set supported=false when the request cannot be expressed accurately with the allowed attributes. Set reward to null and explain briefly in reason.
+- Do NOT approximate, stretch meanings, or substitute a "close enough" attribute.
+- Examples of unsupported: billing interval / plan cadence (yearly vs monthly plans), plan names or tiers not identified via productId or an explicitly named metadata field, or any condition on a field not listed below.
+- customer.subscriptionDurationMonths is how long the customer has already been subscribed — it is NOT whether their plan is billed yearly or monthly.
+- When supported=true, provide a complete reward object. When supported=false, reward must be null.
 
 Allowed entities and attributes for ${event}:
 ${entities.join("\n")}`;
@@ -130,10 +139,10 @@ export async function generateReward(input: z.infer<typeof inputSchema>) {
     };
 
     try {
-      const rewardSchema = getAIRewardSchema(event);
+      const generationSchema = getAIRewardGenerationSchema(event);
       const { partialOutputStream } = streamText({
         model: anthropic("claude-sonnet-4-6"),
-        output: Output.object({ schema: rewardSchema }),
+        output: Output.object({ schema: generationSchema }),
         system: buildSystemPrompt(event),
         prompt,
         temperature: 0.3,
@@ -143,18 +152,18 @@ export async function generateReward(input: z.infer<typeof inputSchema>) {
         },
       });
 
-      let lastPartial: Partial<AIRewardDraft> | null = null;
+      let lastPartial: Partial<AIRewardGenerationOutput> | null = null;
       for await (const partialObject of partialOutputStream) {
         if (failed) return;
         if (partialObject) {
-          lastPartial = partialObject as Partial<AIRewardDraft>;
+          lastPartial = partialObject as Partial<AIRewardGenerationOutput>;
           stream.update(lastPartial);
         }
       }
 
       if (failed) return;
 
-      if (!lastPartial || !rewardSchema.safeParse(lastPartial).success) {
+      if (!lastPartial || !generationSchema.safeParse(lastPartial).success) {
         await fail();
         return;
       }
