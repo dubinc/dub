@@ -18,10 +18,14 @@ const QUERY_OPERATION_TIMEOUT_MS = 1_000;
  * One namespace holding every program, scoped per query by a `programId` filter.
  *
  * Turbopuffer's idiomatic multi-tenancy is a namespace per tenant, which would
- * make program isolation structural rather than filter-enforced. It is not used
- * here because `PartnerSearchProvider.delete` receives only document IDs — with
- * no program in hand there is no way to pick the namespace to delete from.
- * Switching would mean widening the interface to carry the program.
+ * make program isolation structural rather than filter-enforced. One shared
+ * namespace is used instead because Turbopuffer's latency is cache-dependent:
+ * traffic from every program keeps the single namespace warm, while per-program
+ * namespaces would leave rarely-searched programs paying the cold-start cost on
+ * most queries. The whole workload also fits one namespace comfortably (all
+ * programs together are ~1.6M enrollment documents). A secondary benefit is
+ * that provider methods can work with bare document IDs, which carry no program
+ * to pick a namespace by.
  */
 interface TurbopufferPartnerSearchRow extends Record<string, unknown> {
   id: string;
