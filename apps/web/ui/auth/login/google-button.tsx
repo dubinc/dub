@@ -4,11 +4,15 @@ import { Google } from "@dub/ui/icons";
 import { useSearchParams } from "next/navigation";
 import { useContext } from "react";
 import { toast } from "sonner";
+import { getPostLoginRedirect } from "./get-post-login-redirect";
 import { LoginFormContext } from "./login-form";
 
 export function GoogleButton({ next }: { next?: string }) {
   const searchParams = useSearchParams();
-  const finalNext = next ?? searchParams?.get("next");
+  const finalNext = getPostLoginRedirect({
+    next,
+    searchParamsNext: searchParams?.get("next"),
+  });
 
   const { setClickedMethod, clickedMethod } = useContext(LoginFormContext);
 
@@ -20,9 +24,7 @@ export function GoogleButton({ next }: { next?: string }) {
         setClickedMethod("google");
         const { error } = await authClient.signIn.social({
           provider: "google",
-          ...(finalNext && finalNext.length > 0
-            ? { callbackURL: finalNext }
-            : {}),
+          callbackURL: finalNext,
         });
 
         if (error) {

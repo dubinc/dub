@@ -126,6 +126,7 @@ export default function LoginForm({
     {
       method: "github",
       component: GitHubButton,
+      props: { next },
     },
     {
       method: "email",
