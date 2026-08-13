@@ -14,14 +14,17 @@ export const canInstallOAuthApp = ({
   workspace: Pick<WorkspaceProps, "id">;
   userId: string;
 }): boolean => {
+  // Verified apps can be installed on any workspace.
   if (integration.verified) {
     return true;
   }
 
+  // The app creator can install on any workspace they belong to (e.g. for testing).
   if (integration.userId && integration.userId === userId) {
     return true;
   }
 
+  // Otherwise only the workspace that owns the app can install it.
   return (
     normalizeWorkspaceId(workspace.id) ===
     normalizeWorkspaceId(integration.projectId)
