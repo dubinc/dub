@@ -38,7 +38,6 @@ model RestrictedToken {
 }
 
 // Login tokens
-// TODO: Remove this after migration
 model VerificationToken {
   identifier           String
   token                String   @unique
@@ -49,7 +48,6 @@ model VerificationToken {
 }
 
 // Email verification OTPs
-// TODO: Remove this after migration
 model EmailVerificationToken {
   identifier String
   token      String   @unique
@@ -59,7 +57,6 @@ model EmailVerificationToken {
 }
 
 // Password reset tokens
-// TODO: Remove this after migration
 model PasswordResetToken {
   identifier String
   token      String   @unique

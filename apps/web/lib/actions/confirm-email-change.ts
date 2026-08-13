@@ -5,7 +5,6 @@ import {
   assertCanConfirmEmailChange,
   EmailChangeRequestData,
 } from "@/lib/auth/confirm-email-change";
-import { auth } from "@/lib/better-auth/auth";
 import { syncPlainCustomerEmail } from "@/lib/plain/upsert-plain-customer";
 import { prisma } from "@/lib/prisma";
 import { redis } from "@/lib/upstash";
@@ -89,6 +88,8 @@ export const confirmEmailChangeAction = authUserActionClient
           },
           data: {
             email: data.newEmail,
+            emailVerified: new Date(),
+            emailVerifiedBa: true,
           },
         }),
 
@@ -123,21 +124,14 @@ export const confirmEmailChangeAction = authUserActionClient
         },
         data: {
           email: data.newEmail,
+          emailVerified: new Date(),
+          emailVerifiedBa: true,
         },
       });
     }
 
-    const shouldSyncUserEmail = !!data.syncIdentity || !data.isPartnerProfile;
-
-    if (shouldSyncUserEmail) {
-      const authCtx = await auth.$context;
-      await authCtx.internalAdapter.updateUser(user.id, {
-        email: data.newEmail,
-        emailVerified: true,
-      });
-    }
-
-    const shouldSyncPlainCustomerEmail = shouldSyncUserEmail;
+    const shouldSyncPlainCustomerEmail =
+      !!data.syncIdentity || !data.isPartnerProfile;
 
     waitUntil(
       Promise.allSettled([

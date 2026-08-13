@@ -81,22 +81,12 @@ export const createUserAccountAction = actionClient
       },
       select: {
         id: true,
-        accounts: {
-          where: {
-            providerId: "credential",
-          },
-          select: {
-            id: true,
-          },
-          take: 1,
-        },
       },
     });
 
+    // Don't expose if user already exists
     if (existingUser) {
-      throw new Error(
-        "User already exists. Please login instead of requesting a new OTP.",
-      );
+      throw new Error("Invalid verification code entered.");
     }
 
     await prisma.emailVerificationToken.delete({

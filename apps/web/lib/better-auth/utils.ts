@@ -29,16 +29,10 @@ export function hasCredentialLogin<
   return Boolean(user.accounts[0]?.password);
 }
 
-export function getVerificationTokenConfig<T extends VerificationTokenKind>(
+function getVerificationTokenConfig<T extends VerificationTokenKind>(
   type: T,
 ): (typeof VERIFICATION_TOKEN_CONFIG)[T] {
   return VERIFICATION_TOKEN_CONFIG[type];
-}
-
-export function getActionVerificationPrefixes(): string[] {
-  return Object.values(VERIFICATION_TOKEN_CONFIG)
-    .filter((c) => c.purpose === "action" && c.prefix.length > 0)
-    .map((c) => c.prefix);
 }
 
 export function buildMagicLinkUrl({

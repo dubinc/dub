@@ -24,23 +24,7 @@ function assertPurposeConstraints({
   kind: VerificationTokenKind;
   parsedValue: Record<string, unknown>;
 }) {
-  const { purpose, prefix } = VERIFICATION_TOKEN_CONFIG[kind];
-
-  if (purpose === "action") {
-    if (!prefix) {
-      throw new Error(
-        `Verification token kind "${kind}" has purpose "action" but an empty prefix.`,
-      );
-    }
-
-    if ("email" in parsedValue) {
-      throw new Error(
-        `Verification token kind "${kind}" is an action token and must not include an "email" field (use a non-login field name).`,
-      );
-    }
-
-    return;
-  }
+  const { prefix } = VERIFICATION_TOKEN_CONFIG[kind];
 
   if (prefix) {
     throw new Error(
@@ -144,31 +128,6 @@ export async function createVerificationToken({
   return {
     token,
   };
-}
-
-export async function consumeVerificationToken({
-  kind,
-  identifier,
-}: {
-  kind: VerificationTokenKind;
-  identifier: string;
-}) {
-  const tokenConfig = VERIFICATION_TOKEN_CONFIG[kind];
-
-  if (!tokenConfig) {
-    throw new Error(`Verification token config for kind "${kind}" not found.`);
-  }
-
-  const result = await prisma.verification.deleteMany({
-    where: {
-      identifier: `${tokenConfig.prefix}${identifier}`,
-      expiresAt: {
-        gte: new Date(),
-      },
-    },
-  });
-
-  return result.count >= 1;
 }
 
 export async function findVerificationToken<T extends VerificationTokenKind>({
