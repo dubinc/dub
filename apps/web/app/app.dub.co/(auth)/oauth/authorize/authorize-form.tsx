@@ -1,15 +1,25 @@
 "use client";
 
+import {
+  canInstallOAuthApp,
+  UNVERIFIED_APP_INSTALL_MESSAGE,
+} from "@/lib/api/oauth/can-install-oauth-app";
 import { consolidateScopes, getScopesForRole } from "@/lib/api/tokens/scopes";
 import { clientAccessCheck } from "@/lib/client-access-check";
 import useWorkspaces from "@/lib/swr/use-workspaces";
+import { WorkspaceProps } from "@/lib/types";
 import { authorizeRequestSchema } from "@/lib/zod/schemas/oauth";
 import { WorkspaceSelector } from "@/ui/workspaces/workspace-selector";
 import { Button } from "@dub/ui";
+import { Integration } from "@prisma/client";
 import { useSession } from "next-auth/react";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import * as z from "zod/v4";
+
+interface AuthorizeFormProps extends z.infer<typeof authorizeRequestSchema> {
+  integration: Pick<Integration, "verified" | "projectId" | "userId">;
+}
 
 export const AuthorizeForm = ({
   client_id,
@@ -19,7 +29,8 @@ export const AuthorizeForm = ({
   scope,
   code_challenge,
   code_challenge_method,
-}: z.infer<typeof authorizeRequestSchema>) => {
+  integration,
+}: AuthorizeFormProps) => {
   const { data: session } = useSession();
   const { workspaces, loading: workspacesLoading } = useWorkspaces();
   const [submitting, setSubmitting] = useState(false);
@@ -27,59 +38,99 @@ export const AuthorizeForm = ({
     null,
   );
 
+  const userId = session?.user?.id;
+
+  const isWorkspaceAllowed = useCallback(
+    (workspace: WorkspaceProps) => {
+      if (!userId) {
+        return false;
+      }
+
+      return canInstallOAuthApp({
+        integration,
+        workspace,
+        userId,
+      });
+    },
+    [integration, userId],
+  );
+
   useEffect(() => {
-    setSelectedWorkspace(session?.user?.["defaultWorkspace"] || null);
-  }, [session]);
+    if (!workspaces || workspacesLoading || !userId || selectedWorkspace) {
+      return;
+    }
 
-  const { permissionsError, missingScopes, workspaceUnresolvedMessage } =
-    useMemo(() => {
-      if (!selectedWorkspace) {
-        return {
-          permissionsError: undefined,
-          missingScopes: [] as string[],
-          workspaceUnresolvedMessage: undefined,
-        };
-      }
+    const defaultSlug = session?.user?.["defaultWorkspace"] || null;
+    const defaultWorkspace = defaultSlug
+      ? workspaces.find((workspace) => workspace.slug === defaultSlug)
+      : undefined;
 
-      if (workspacesLoading || workspaces === undefined) {
-        return {
-          permissionsError: undefined,
-          missingScopes: [] as string[],
-          workspaceUnresolvedMessage: "Loading workspaces...",
-        };
-      }
+    if (defaultWorkspace && isWorkspaceAllowed(defaultWorkspace)) {
+      setSelectedWorkspace(defaultWorkspace.slug);
+      return;
+    }
 
-      const workspace = workspaces.find(
-        (workspace) => workspace.slug === selectedWorkspace,
-      );
+    const firstAllowed = workspaces.find(isWorkspaceAllowed);
+    setSelectedWorkspace(firstAllowed?.slug ?? defaultSlug);
+  }, [
+    workspaces,
+    workspacesLoading,
+    session,
+    userId,
+    selectedWorkspace,
+    isWorkspaceAllowed,
+  ]);
 
-      if (!workspace) {
-        return {
-          permissionsError: undefined,
-          missingScopes: [] as string[],
-          workspaceUnresolvedMessage: "Please select a valid workspace",
-        };
-      }
+  const authorizeDisabledTooltip = useMemo((): string | undefined => {
+    if (!selectedWorkspace) {
+      return "Please select a workspace to continue";
+    }
 
-      const userRole = workspace.users[0].role;
+    if (workspacesLoading || workspaces === undefined) {
+      return "Loading workspaces...";
+    }
 
-      const permissionsError = clientAccessCheck({
-        action: "integrations.write",
-        role: userRole,
-        customPermissionDescription: "install this integration",
-      }).error;
+    const workspace = workspaces.find(
+      (workspace) => workspace.slug === selectedWorkspace,
+    );
 
-      const scopesForRole = getScopesForRole(userRole);
-      const missingScopes = consolidateScopes(scope).filter(
-        (scope) => !scopesForRole.includes(scope) && scope !== "user.read",
-      );
+    if (!workspace) {
+      return "Please select a valid workspace";
+    }
 
-      return {
-        permissionsError,
-        missingScopes,
-        workspaceUnresolvedMessage: undefined,
-      };
-    }, [workspaces, workspacesLoading, selectedWorkspace, scope]);
+    if (!isWorkspaceAllowed(workspace)) {
+      return UNVERIFIED_APP_INSTALL_MESSAGE;
+    }
+
+    const userRole = workspace.users[0].role;
+
+    const permissionsError = clientAccessCheck({
+      action: "integrations.write",
+      role: userRole,
+      customPermissionDescription: "install this integration",
+    }).error;
+
+    if (typeof permissionsError === "string") {
+      return permissionsError;
+    }
+
+    const missingScopes = consolidateScopes(scope).filter(
+      (scope) =>
+        !getScopesForRole(userRole).includes(scope) && scope !== "user.read",
+    );
+
+    if (missingScopes.length > 0) {
+      return "You don't have the permission to install this integration";
+    }
+
+    return undefined;
+  }, [
+    workspaces,
+    workspacesLoading,
+    selectedWorkspace,
+    scope,
+    isWorkspaceAllowed,
+  ]);
 
   // Decline the request
   const onDecline = () => {
@@ -168,21 +219,7 @@ export const AuthorizeForm = ({
           text="Authorize"
           type="submit"
           loading={submitting}
-          disabled={
-            !selectedWorkspace ||
-            !!workspaceUnresolvedMessage ||
-            !!permissionsError ||
-            missingScopes.length > 0
-          }
-          disabledTooltip={
-            !selectedWorkspace
-              ? "Please select a workspace to continue"
-              : workspaceUnresolvedMessage ||
-                permissionsError ||
-                (missingScopes.length > 0
-                  ? "You don't have the permission to install this integration"
-                  : undefined)
-          }
+          disabledTooltip={authorizeDisabledTooltip}
         />
       </div>
     </form>
