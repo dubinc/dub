@@ -49,17 +49,6 @@ export const VERIFICATION_TOKEN_CONFIG = {
       email: z.email(),
     }),
   },
-
-  // Signup email OTP (action — must never create a session)
-  signupOtp: {
-    purpose: "action",
-    prefix: "signup:",
-    expiresIn: 5 * 60 * 1000, // 5 minutes
-    valueSchema: z.object({
-      targetEmail: z.email(),
-      code: z.string().length(6),
-    }),
-  },
 } as const;
 
 export type VerificationTokenKind = keyof typeof VERIFICATION_TOKEN_CONFIG;

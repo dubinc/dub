@@ -2,11 +2,6 @@
 
 import { hashPassword } from "@/lib/auth/password";
 import { auth } from "@/lib/better-auth/auth";
-import {
-  consumeVerificationToken,
-  deleteVerificationTokens,
-  findVerificationToken,
-} from "@/lib/better-auth/verification-token";
 import { prisma } from "@/lib/prisma";
 import { ratelimit } from "@/lib/upstash";
 import { waitUntil } from "@vercel/functions";
@@ -50,16 +45,16 @@ export const createUserAccountAction = actionClient
       }
     }
 
-    const verification = await findVerificationToken({
-      kind: "signupOtp",
-      identifier: email,
+    const verificationToken = await prisma.emailVerificationToken.findUnique({
+      where: {
+        identifier_token: {
+          identifier: email,
+          token: code,
+        },
+      },
     });
 
-    if (
-      !verification ||
-      verification.value.code !== code ||
-      verification.value.targetEmail !== email
-    ) {
+    if (!verificationToken) {
       await ratelimit(MAX_OTP_ATTEMPTS, OTP_LOCKOUT_DURATION).limit(
         signupAttemptKey,
       );
@@ -67,11 +62,13 @@ export const createUserAccountAction = actionClient
       throw new Error("Invalid verification code entered.");
     }
 
-    if (verification.isExpired) {
+    if (verificationToken.expires && verificationToken.expires < new Date()) {
       waitUntil(
-        deleteVerificationTokens({
-          kind: "signupOtp",
-          identifier: email,
+        prisma.emailVerificationToken.delete({
+          where: {
+            identifier: email,
+            token: code,
+          },
         }),
       );
 
@@ -102,14 +99,12 @@ export const createUserAccountAction = actionClient
       );
     }
 
-    const consumed = await consumeVerificationToken({
-      kind: "signupOtp",
-      identifier: email,
+    await prisma.emailVerificationToken.delete({
+      where: {
+        identifier: email,
+        token: code,
+      },
     });
-
-    if (!consumed) {
-      throw new Error("The OTP has expired. Please request a new one.");
-    }
 
     const ctx = await auth.$context;
     const passwordHash = await hashPassword(password);

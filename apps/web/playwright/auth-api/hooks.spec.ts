@@ -18,10 +18,7 @@ test.afterAll(async () => {
   await disconnectFixtures();
 });
 
-const ACTION_TOKEN_PREFIXES = [
-  "email-change:",
-  "signup:",
-] as const;
+const ACTION_TOKEN_PREFIXES = ["email-change:"] as const;
 
 test.describe("Better Auth custom hooks", () => {
   test("blocks locked accounts on password sign-in", async ({ request }) => {
