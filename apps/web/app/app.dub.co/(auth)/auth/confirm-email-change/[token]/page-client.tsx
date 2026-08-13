@@ -12,11 +12,11 @@ import { toast } from "sonner";
 
 export default function ConfirmEmailChangePageClient({
   token,
-  currentEmail,
+  email,
   newEmail,
 }: {
   token: string;
-  currentEmail: string;
+  email: string;
   newEmail: string;
 }) {
   const router = useRouter();
@@ -32,9 +32,14 @@ export default function ConfirmEmailChangePageClient({
         }
 
         setConfirmed(true);
+
+        const redirectTo =
+          data.redirectTo ??
+          (data.isPartnerProfile ? "/profile" : "/account/settings");
+
         await refetch({ query: { disableCookieCache: true } });
         toast.success("Successfully updated your email!");
-        router.replace(data.redirectTo);
+        router.replace(redirectTo);
       },
       onError({ error }) {
         toast.error(error.serverError ?? "Failed to confirm the email change.");
@@ -74,7 +79,7 @@ export default function ConfirmEmailChangePageClient({
       </h3>
       <p className="mt-2 text-center text-sm text-neutral-500">
         Confirm the update to your email from{" "}
-        <span className="font-medium text-neutral-700">{currentEmail}</span> to{" "}
+        <span className="font-medium text-neutral-700">{email}</span> to{" "}
         <span className="font-medium text-neutral-900">{newEmail}</span>.
       </p>
 
@@ -97,4 +102,4 @@ export default function ConfirmEmailChangePageClient({
       </div>
     </div>
   );
-}
+};

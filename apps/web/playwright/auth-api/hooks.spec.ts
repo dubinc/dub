@@ -6,7 +6,7 @@ import {
   ensureAuthApiFixtures,
   resetLockedUserState,
 } from "./fixtures";
-import { authGet, authPost, expectJson, signInWithEmail } from "./helpers";
+import { authPost, expectJson, signInWithEmail } from "./helpers";
 
 test.describe.configure({ mode: "serial" });
 
@@ -17,8 +17,6 @@ test.beforeAll(async () => {
 test.afterAll(async () => {
   await disconnectFixtures();
 });
-
-const ACTION_TOKEN_PREFIXES = ["email-change:"] as const;
 
 test.describe("Better Auth custom hooks", () => {
   test("blocks locked accounts on password sign-in", async ({ request }) => {
@@ -76,25 +74,6 @@ test.describe("Better Auth custom hooks", () => {
 
     const data = await expectJson<{ code?: string }>(response, 403);
     expect(data.code).toBe("REQUIRE_SAML_SSO");
-  });
-
-  test("rejects all action verification token prefixes on magic-link verify", async ({
-    request,
-  }) => {
-    for (const prefix of ACTION_TOKEN_PREFIXES) {
-      const verify = await authGet(request, "/magic-link/verify", {
-        token: `${prefix}fake-token`,
-      });
-      const data = await expectJson<{ code?: string; message?: string }>(
-        verify,
-        401,
-      );
-
-      expect(data.code).toBe("INVALID_TOKEN");
-
-      const session = await authGet(request, "/get-session");
-      expect(await session.json()).toBeNull();
-    }
   });
 
   test("blocks locked accounts on magic-link send", async ({ request }) => {

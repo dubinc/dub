@@ -2,22 +2,6 @@ import { TWO_WEEKS_IN_SECONDS } from "@dub/utils";
 import { z } from "zod/v4";
 
 export const VERIFICATION_TOKEN_CONFIG = {
-  // Email change token (action — must never create a session)
-  emailChange: {
-    purpose: "action",
-    prefix: "email-change:",
-    expiresIn: 15 * 60 * 1000, // 15 minutes
-    valueSchema: z.object({
-      ownerId: z.string().min(1),
-      currentEmail: z.email(),
-      newEmail: z.email(),
-      isPartnerProfile: z.boolean().optional(),
-      syncIdentity: z.boolean().optional(),
-      partnerId: z.string().optional(),
-      redirectTo: z.enum(["/profile", "/account/settings"]).optional(),
-    }),
-  },
-
   // Admin impersonation token (magic-link login)
   adminImpersonation: {
     purpose: "magicLinkLogin",

@@ -24,7 +24,7 @@ export const hooks = {
   before: createAuthMiddleware(async (ctx) => {
     const { path, body } = ctx;
 
-    // Reject non-login Verification kinds on magic-link verify (e.g. email-change:)
+    // Reject non-login Verification kinds on magic-link verify
     if (path === "/magic-link/verify") {
       const token = ctx.query?.token;
       if (typeof token === "string") {

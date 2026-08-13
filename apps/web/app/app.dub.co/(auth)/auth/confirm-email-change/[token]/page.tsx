@@ -1,6 +1,13 @@
-import { assertCanConfirmEmailChange } from "@/lib/auth/assert-can-confirm-email-change";
+import {
+  assertCanConfirmEmailChange,
+  deleteEmailChangeRequest,
+  EmailChangeAuthError,
+  EmailChangeRequestData,
+} from "@/lib/auth/confirm-email-change";
+import { hashToken } from "@/lib/auth/hash-token";
 import { requireServerSessionRedirect } from "@/lib/better-auth/get-session";
-import { findVerificationToken } from "@/lib/better-auth/verification-token";
+import { prisma } from "@/lib/prisma";
+import { redis } from "@/lib/upstash";
 import { AuthLayout } from "@/ui/layout/auth-layout";
 import EmptyState from "@/ui/shared/empty-state";
 import { InputPassword, LoadingSpinner } from "@dub/ui";
@@ -9,6 +16,7 @@ import ConfirmEmailChangePageClient from "./page-client";
 
 interface PageProps {
   params: Promise<{ token: string }>;
+  searchParams: Promise<{ cancel?: string }>;
 }
 
 export default async function ConfirmEmailChangePage(props: PageProps) {
@@ -27,24 +35,59 @@ export default async function ConfirmEmailChangePage(props: PageProps) {
   );
 }
 
-const VerifyEmailChange = async ({ params }: PageProps) => {
+const VerifyEmailChange = async ({ params, searchParams }: PageProps) => {
   const { token } = await params;
 
-  const { user } = await requireServerSessionRedirect(
-    `/login?next=/auth/confirm-email-change/${token}`,
-  );
-
-  const verification = await findVerificationToken({
-    kind: "emailChange",
-    identifier: token,
+  const tokenFound = await prisma.verificationToken.findUnique({
+    where: {
+      token: await hashToken(token, { secret: true }),
+    },
+    select: {
+      token: true,
+      expires: true,
+      identifier: true,
+    },
   });
 
-  if (!verification || verification.isExpired || !verification.value.ownerId) {
+  if (!tokenFound || tokenFound.expires < new Date()) {
     return (
       <EmptyState
         icon={InputPassword}
         title="Invalid Token"
         description="This token is invalid or expired. Please request a new one."
+      />
+    );
+  }
+
+  // Cancel the email change request (?cancel=true)
+  const { cancel } = await searchParams;
+
+  if (cancel && cancel === "true") {
+    await deleteEmailChangeRequest(token);
+
+    return (
+      <EmptyState
+        icon={InputPassword}
+        title="Email Change Request Canceled"
+        description="Your email change request has been canceled. No changes have been made to your account. You can close this page."
+      />
+    );
+  }
+
+  const { user } = await requireServerSessionRedirect(
+    `/login?next=/auth/confirm-email-change/${token}`,
+  );
+
+  const data = await redis.get<EmailChangeRequestData>(
+    `email-change-request:token:${tokenFound.token}`,
+  );
+
+  if (!data) {
+    return (
+      <EmptyState
+        icon={InputPassword}
+        title="Invalid Token"
+        description="This token is invalid. Please request a new one."
       />
     );
   }
@@ -52,26 +95,37 @@ const VerifyEmailChange = async ({ params }: PageProps) => {
   try {
     await assertCanConfirmEmailChange({
       userId: user.id,
-      data: verification.value,
+      tokenFound,
+      data,
     });
-  } catch {
+  } catch (error) {
+    if (error instanceof EmailChangeAuthError) {
+      return (
+        <EmptyState
+          icon={InputPassword}
+          title={
+            error.reason === "unauthorized" ? "Unauthorized" : "Invalid Token"
+          }
+          description={error.message}
+        />
+      );
+    }
+
     return (
       <EmptyState
         icon={InputPassword}
-        title="Invalid Token"
-        description="This token is invalid or expired. Please request a new one."
+        title="Something Went Wrong"
+        description="We couldn't verify your email change request. Please try again later."
       />
     );
   }
-
-  const { currentEmail, newEmail } = verification.value;
 
   return (
     <AuthLayout>
       <ConfirmEmailChangePageClient
         token={token}
-        currentEmail={currentEmail}
-        newEmail={newEmail}
+        email={data.email}
+        newEmail={data.newEmail}
       />
     </AuthLayout>
   );

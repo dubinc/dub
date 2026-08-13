@@ -2,11 +2,12 @@ import { prisma } from "@/lib/prisma";
 import { sendEmail } from "@dub/email";
 import ConfirmEmailChange from "@dub/email/templates/confirm-email-change";
 import { waitUntil } from "@vercel/functions";
+import { randomBytes } from "crypto";
+import { hashToken } from ".";
 import { DubApiError } from "../api/errors";
-import { buildLookupKey } from "../better-auth/utils";
-import { createVerificationToken } from "../better-auth/verification-token";
 import { isEmailDomainBlocked } from "../email/is-email-domain-blocked";
 import { isGenericEmail } from "../email/is-generic-email";
+import { redis } from "../upstash";
 import { assertRateLimit } from "../upstash/assert-rate-limit";
 import { RATELIMIT_POLICIES } from "../upstash/ratelimit-policies";
 
@@ -45,7 +46,6 @@ export const requestEmailChange = async ({
     policy: RATELIMIT_POLICIES.emailChangeRequest,
     identifier: userId,
   });
-
   const user = await prisma.user.findUnique({
     where: {
       id: userId,
@@ -88,19 +88,40 @@ export const requestEmailChange = async ({
     });
   }
 
-  const { token } = await createVerificationToken({
-    kind: "emailChange",
-    value: {
-      ownerId: identifier,
-      currentEmail: email,
+  // Remove existing verification tokens
+  await prisma.verificationToken.deleteMany({
+    where: {
+      identifier,
+    },
+  });
+
+  const token = randomBytes(32).toString("hex");
+  const hashedToken = await hashToken(token, { secret: true });
+  const expiresIn = 15 * 60 * 1000;
+
+  // Create a new verification token
+  await prisma.verificationToken.create({
+    data: {
+      identifier,
+      token: hashedToken,
+      expires: new Date(Date.now() + expiresIn),
+    },
+  });
+
+  // Set the email change request in Redis, we'll use this to verify the email change in /auth/confirm-email-change/[token]
+  await redis.set(
+    `email-change-request:token:${hashedToken}`,
+    {
+      email,
       newEmail,
       ...(isPartnerProfile && { isPartnerProfile }),
       ...(syncIdentity && { syncIdentity, partnerId }),
       ...(redirectTo && { redirectTo }),
     },
-    lookupKey: buildLookupKey("email-change", identifier),
-    removePreviousTokens: true,
-  });
+    {
+      px: expiresIn,
+    },
+  );
 
   waitUntil(
     sendEmail({

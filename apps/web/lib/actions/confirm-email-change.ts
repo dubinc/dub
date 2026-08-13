@@ -1,17 +1,19 @@
 "use server";
 
-import { assertCanConfirmEmailChange } from "@/lib/auth/assert-can-confirm-email-change";
+import { hashToken } from "@/lib/auth";
+import {
+  assertCanConfirmEmailChange,
+  EmailChangeRequestData,
+} from "@/lib/auth/confirm-email-change";
+import { auth } from "@/lib/better-auth/auth";
 import { syncPlainCustomerEmail } from "@/lib/plain/upsert-plain-customer";
 import { prisma } from "@/lib/prisma";
+import { redis } from "@/lib/upstash";
 import { sendEmail } from "@dub/email";
 import EmailUpdated from "@dub/email/templates/email-updated";
 import { waitUntil } from "@vercel/functions";
 import { flattenValidationErrors } from "next-safe-action";
 import * as z from "zod/v4";
-import {
-  consumeVerificationToken,
-  findVerificationToken,
-} from "../better-auth/verification-token";
 import { authUserActionClient } from "./safe-action";
 
 const confirmEmailChangeSchema = z.object({
@@ -27,12 +29,28 @@ export const confirmEmailChangeAction = authUserActionClient
     const { token } = parsedInput;
     const { user } = ctx;
 
-    const verification = await findVerificationToken({
-      kind: "emailChange",
-      identifier: token,
+    const tokenFound = await prisma.verificationToken.findUnique({
+      where: {
+        token: await hashToken(token, { secret: true }),
+      },
+      select: {
+        identifier: true,
+        token: true,
+        expires: true,
+      },
     });
 
-    if (!verification || verification.isExpired) {
+    if (!tokenFound || tokenFound.expires < new Date()) {
+      throw new Error(
+        "This token is invalid or expired. Please request a new one.",
+      );
+    }
+
+    const data = await redis.get<EmailChangeRequestData>(
+      `email-change-request:token:${tokenFound.token}`,
+    );
+
+    if (!data) {
       throw new Error(
         "This token is invalid or expired. Please request a new one.",
       );
@@ -40,61 +58,59 @@ export const confirmEmailChangeAction = authUserActionClient
 
     await assertCanConfirmEmailChange({
       userId: user.id,
-      data: verification.value,
+      tokenFound,
+      data,
     });
 
-    const consumed = await consumeVerificationToken({
-      kind: "emailChange",
-      identifier: token,
+    // Consume the token before mutating so concurrent confirms fail closed
+    const deleted = await prisma.verificationToken.deleteMany({
+      where: {
+        token: tokenFound.token,
+        expires: {
+          gte: new Date(),
+        },
+      },
     });
 
-    if (!consumed) {
+    if (deleted.count !== 1) {
       throw new Error(
         "This token is invalid or expired. Please request a new one.",
       );
     }
 
-    const {
-      ownerId,
-      currentEmail,
-      newEmail,
-      isPartnerProfile,
-      syncIdentity,
-      partnerId,
-      redirectTo,
-    } = verification.value;
+    const tokenIdentifier = tokenFound.identifier;
 
     // Sync identity: Sync the email to the partner profile
-    if (syncIdentity) {
+    if (data.syncIdentity) {
       await prisma.$transaction([
         prisma.user.update({
           where: {
             id: user.id,
           },
           data: {
-            email: newEmail,
+            email: data.newEmail,
           },
         }),
 
         prisma.partner.update({
           where: {
-            id: partnerId,
+            id: data.partnerId!,
           },
           data: {
-            email: newEmail,
+            email: data.newEmail,
           },
         }),
       ]);
     }
 
     // Update the partner profile email
-    else if (isPartnerProfile) {
+    else if (data.isPartnerProfile) {
       await prisma.partner.update({
         where: {
-          id: ownerId,
+          id: tokenIdentifier,
         },
         data: {
-          email: newEmail,
+          email: data.newEmail,
         },
       });
     }
@@ -106,23 +122,33 @@ export const confirmEmailChangeAction = authUserActionClient
           id: user.id,
         },
         data: {
-          email: newEmail,
+          email: data.newEmail,
         },
       });
     }
 
-    const shouldSyncPlainCustomerEmail = !!syncIdentity || !isPartnerProfile;
+    const shouldSyncUserEmail = !!data.syncIdentity || !data.isPartnerProfile;
+
+    if (shouldSyncUserEmail) {
+      const authCtx = await auth.$context;
+      await authCtx.internalAdapter.updateUser(user.id, {
+        email: data.newEmail,
+        emailVerified: true,
+      });
+    }
+
+    const shouldSyncPlainCustomerEmail = shouldSyncUserEmail;
 
     waitUntil(
       Promise.allSettled([
         sendEmail({
           subject: "Your email address has been changed",
-          to: currentEmail,
+          to: data.email,
           react: EmailUpdated({
-            oldEmail: currentEmail,
-            newEmail: newEmail,
-            isPartnerProfile: !!isPartnerProfile,
-            syncIdentity: !!syncIdentity,
+            oldEmail: data.email,
+            newEmail: data.newEmail,
+            isPartnerProfile: !!data.isPartnerProfile,
+            syncIdentity: !!data.syncIdentity,
           }),
         }),
 
@@ -131,16 +157,18 @@ export const confirmEmailChangeAction = authUserActionClient
               syncPlainCustomerEmail({
                 id: user.id,
                 name: user.name ?? null,
-                email: newEmail,
-                oldEmail: currentEmail,
+                email: data.newEmail,
+                oldEmail: data.email,
               }),
             ]
           : []),
+
+        redis.del(`email-change-request:token:${tokenFound.token}`),
       ]),
     );
 
     return {
-      redirectTo:
-        redirectTo ?? (isPartnerProfile ? "/profile" : "/account/settings"),
+      isPartnerProfile: !!data.isPartnerProfile,
+      redirectTo: data.redirectTo,
     };
   });
