@@ -27,6 +27,7 @@ const ALLOWED_CHAT_IMAGE_TYPES = new Set([
 ]);
 const MAX_CHAT_IMAGES = 3;
 const MAX_DATA_URL_LENGTH = 1_400_000;
+const MAX_BODY_BYTES = MAX_CHAT_IMAGES * MAX_DATA_URL_LENGTH + 512 * 1024;
 
 function isAllowedChatImage(part: { mediaType: string; url: string }) {
   const urlMediaType = /^data:([^;,]+)[;,]/.exec(part.url)?.[1];
@@ -37,6 +38,11 @@ function isAllowedChatImage(part: { mediaType: string; url: string }) {
 }
 
 export const POST = withSession(async ({ req, session }) => {
+  const contentLength = Number(req.headers.get("content-length"));
+  if (Number.isFinite(contentLength) && contentLength > MAX_BODY_BYTES) {
+    return new Response("Request too large", { status: 413 });
+  }
+
   const body = await req.json();
   const { messages, globalContext } = body as {
     messages: UIMessage[];
