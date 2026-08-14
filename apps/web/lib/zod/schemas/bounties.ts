@@ -121,7 +121,10 @@ export const createBountySchema = z.object({
   performanceCondition: awardBountyConditionSchema.nullish(),
   performanceScope: z.enum(BountyPerformanceScope).nullish(),
   sendNotificationEmails: z.boolean().optional(),
-  startMode: z.enum(BountyStartMode).optional(),
+  startMode: z
+    .enum(BountyStartMode)
+    .optional()
+    .default(BountyStartMode.absolute),
   endsAfterDays: z.number().int().positive().nullish(),
 });
 
