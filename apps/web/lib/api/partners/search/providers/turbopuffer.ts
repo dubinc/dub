@@ -1,6 +1,7 @@
 import { chunk } from "@dub/utils";
 import { Turbopuffer } from "@turbopuffer/turbopuffer";
 import {
+  getPartnerIdentityValues,
   getPartnerSearchableValues,
   normalizePartnerSearchQuery,
 } from "../searchable-values";
@@ -9,7 +10,7 @@ import { validatePartnerSearchCandidateLimit } from "../types";
 import { withQueryDeadline, withTransientRetry } from "./resilience";
 import { getEmailNgrams, getQueryNgrams, resolveIndexName } from "./shared";
 
-const DEFAULT_NAMESPACE = "partner-search-v1";
+const DEFAULT_NAMESPACE = "partner-search-v2";
 const WRITE_BATCH_SIZE = 500;
 const QUERY_OPERATION_TIMEOUT_MS = 1_000;
 
@@ -30,6 +31,7 @@ interface TurbopufferPartnerSearchRow extends Record<string, unknown> {
   id: string;
   programId: string;
   searchText: string;
+  identityText: string;
   emailNgrams: string;
 }
 
@@ -46,39 +48,24 @@ interface TurbopufferPartnerSearchRow extends Record<string, unknown> {
  */
 const SEARCH_TEXT_TOKENIZER = "word_v2";
 
-/**
- * BM25 length normalization, left at turbopuffer's default.
- *
- * Lowering it is tempting: `searchText` is concatenated field values, so length
- * tracks how many links a partner has rather than how much prose they wrote,
- * and at 0.75 that demotes the most active partners. Searching "steven te" on
- * the production index ranks Steven Tey below a partner whose description
- * merely contains "tech", and the ordering flips at b=0.1.
- *
- * It was measured and rejected. On the same 100K index, b=0.1 against b=0.75
- * minutes apart: 16.05% vs 11.01% timeouts and 836ms vs 720ms p99 — flattening
- * the score distribution appears to defeat top-k pruning. The ranking gain only
- * applies to half-typed multi-word queries, since the all-terms branch already
- * handles complete ones.
- */
-const SEARCH_TEXT_LENGTH_NORMALIZATION = 0.75;
-
-// `searchText` and `emailNgrams` are BM25-indexed. BM25 attributes are not
-// filterable by default, but `emailNgrams` needs to be: the n-gram branch uses
-// a ContainsAllTokens filter to require every trigram.
+// No text attribute is filterable. The n-gram and all-terms branches narrow with
+// ContainsAllTokens, which reads the BM25 index rather than a filter index, so
+// marking them filterable would buy nothing and cost plenty: turbopuffer bills
+// an attribute per enabled index, so FTS + filterable is 200% of logical size.
+// Only `programId` needs one, for its scalar Eq.
 const TURBOPUFFER_SCHEMA = {
   programId: { type: "string", filterable: true },
   searchText: {
     type: "string",
-    full_text_search: {
-      tokenizer: SEARCH_TEXT_TOKENIZER,
-      b: SEARCH_TEXT_LENGTH_NORMALIZATION,
-    },
+    full_text_search: { tokenizer: SEARCH_TEXT_TOKENIZER },
+  },
+  identityText: {
+    type: "string",
+    full_text_search: { tokenizer: SEARCH_TEXT_TOKENIZER },
   },
   emailNgrams: {
     type: "string",
     full_text_search: { tokenizer: SEARCH_TEXT_TOKENIZER },
-    filterable: true,
   },
 } as const;
 
@@ -118,58 +105,67 @@ function createNamespace(namespaceName: string): TurbopufferNamespace {
   return client.namespace(namespaceName) as unknown as TurbopufferNamespace;
 }
 
+function normalizeValues(values: string[]): string {
+  return values.map(normalizePartnerSearchQuery).join(" ");
+}
+
 function serializeTurbopufferRow(
   document: PartnerSearchDocument,
 ): TurbopufferPartnerSearchRow {
   return {
     id: document.id,
     programId: document.programId,
-    searchText: getPartnerSearchableValues(document)
-      .map(normalizePartnerSearchQuery)
-      .join(" "),
+    searchText: normalizeValues(getPartnerSearchableValues(document)),
+    identityText: normalizeValues(getPartnerIdentityValues(document)),
     emailNgrams: getEmailNgrams(document.email),
   };
 }
 
 /**
- * Up to three ranked branches, rank-fused by the caller (see mergeBranchRows).
+ * Each branch is ranked independently and rank-fused by the caller (see
+ * mergeBranchRows).
  *
- * The text branch treats the last token as a prefix so "john" reaches
- * "johnson", matching how the Redis provider's $smart behaves. The n-gram
- * branch carries a ContainsAllTokens filter so every trigram must be present —
- * BM25 alone would score a document that shares just one, which is how an
- * unrelated address ends up looking like a partial-email match.
+ * Identity is searched separately from everything else because a single-token
+ * `last_as_prefix` query scores every match at exactly 1, so the broad branch
+ * cannot order its own results. Matching an identity field puts a document in
+ * two branches, which is what the fusion orders on.
+ *
+ * The all-terms branch requires every query word, which BM25 does not: term
+ * frequency saturates while length normalization keeps biting, so a partner
+ * matching both words can otherwise rank below one matching only the first. It
+ * runs on identityText so a full name is not out-weighted by a long description
+ * or a pile of links.
+ *
+ * The n-gram branch requires every trigram; BM25 alone scores a document that
+ * shares just one, which is how an unrelated address looks like a partial-email
+ * match.
  */
 function buildQueryBranches(programId: string, query: string) {
   const programFilter = ["programId", "Eq", programId];
   const branches: Record<string, unknown>[] = [
-    {
-      rank_by: ["searchText", "BM25", query, { last_as_prefix: true }],
-      filters: programFilter,
-    },
-  ];
+    "searchText",
+    "identityText",
+  ].map((attribute) => ({
+    rank_by: [attribute, "BM25", query, { last_as_prefix: true }],
+    filters: programFilter,
+  }));
 
-  // A multi-word query should prefer partners matching every word, and BM25
-  // alone does not: term frequency saturates while length normalization keeps
-  // biting, so a long document matching both words can rank below a short one
-  // matching only the first. Measured on the production index, "steven tey" put
-  // the actual Steven Tey third, behind two partners with no "tey" at all. This
-  // branch admits only documents containing every term, so the rank fusion
-  // lifts them over partial matches without excluding those partial matches.
   if (/\s/u.test(query)) {
     branches.push({
-      rank_by: ["searchText", "BM25", query, { last_as_prefix: true }],
+      rank_by: ["identityText", "BM25", query, { last_as_prefix: true }],
       filters: [
         "And",
         [
           programFilter,
-          // Prefix on the last token here too. Without it the branch requires an
+          // Prefix on the last token here too. Without it the branch needs an
           // exact final token, so a half-typed "steven te" matches nothing and
-          // search-as-you-type loses the boost exactly while it is being typed.
-          // Prefix on the last token here too. Without it the branch requires an
-          // exact final token, so a half-typed "steven te" matches nothing and
-          // the boost disappears exactly while the user is still typing.
-          ["searchText", "ContainsAllTokens", query, { last_as_prefix: true }],
+          // the boost disappears while the user is still typing.
+          [
+            "identityText",
+            "ContainsAllTokens",
+            query,
+            { last_as_prefix: true },
+          ],
         ],
       ],
     });

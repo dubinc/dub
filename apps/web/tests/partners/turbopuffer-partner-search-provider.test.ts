@@ -39,6 +39,23 @@ function createNamespaceMock(): TurbopufferNamespace {
   } as unknown as TurbopufferNamespace;
 }
 
+function branchesOf(call: number = 0) {
+  const [{ queries }] = mocks.multiQuery.mock.calls[call];
+  return {
+    all: queries,
+    // Located by attribute rather than position, so adding a branch does not
+    // break every assertion.
+    rankedOn: (attribute: string) =>
+      queries.filter((branch: any) => branch.rank_by[0] === attribute),
+    filteredOn: (attribute: string) =>
+      queries.filter((branch: any) =>
+        JSON.stringify(branch.filters).includes(
+          `["${attribute}","ContainsAllTokens"`,
+        ),
+      ),
+  };
+}
+
 function createProvider() {
   return createTurbopufferPartnerSearchProvider({
     namespace: createNamespaceMock(),
@@ -61,6 +78,27 @@ describe("Turbopuffer partner search provider", () => {
     vi.unstubAllEnvs();
   });
 
+  it("indexes identity fields separately, and only those fields", async () => {
+    await createProvider().upsert([document]);
+
+    const [{ upsert_rows, schema }] = mocks.write.mock.calls[0];
+    const [row] = upsert_rows;
+
+    expect(row.identityText).toBe(
+      "pn_test rafi hasan partner@example.com hasan labs",
+    );
+    // Description, platforms, and links stay out, so a name cannot be
+    // out-weighted by how much else a partner has.
+    for (const value of ["affiliate marketer", "youtube", "@rafi", "dub.sh"]) {
+      expect(row.identityText).not.toContain(value);
+    }
+    // ContainsAllTokens reads the BM25 index, so no text attribute needs a
+    // filter index — and turbopuffer bills FTS + filterable at 200%.
+    expect(schema.identityText.filterable).toBeUndefined();
+    expect(schema.emailNgrams.filterable).toBeUndefined();
+    expect(schema.programId).toMatchObject({ filterable: true });
+  });
+
   it("flattens every searchable field into one BM25 attribute", async () => {
     await createProvider().upsert([document]);
 
@@ -77,17 +115,11 @@ describe("Turbopuffer partner search provider", () => {
       "affiliate marketer",
       "youtube",
       "@rafi",
-      "dub.sh",
       "https://dub.sh/rafi",
       "https://example.com/referrals/rafi",
     ]) {
       expect(row.searchText).toContain(value);
     }
-
-    // BM25 attributes are not filterable by default, but the n-gram branch
-    // filters on emailNgrams.
-    expect(schema.emailNgrams).toMatchObject({ filterable: true });
-    expect(schema.programId).toMatchObject({ filterable: true });
   });
 
   it("pins a tokenizer that splits URLs into their components", async () => {
@@ -103,6 +135,22 @@ describe("Turbopuffer partner search provider", () => {
     expect(schema.emailNgrams.full_text_search).toEqual({
       tokenizer: "word_v2",
     });
+  });
+
+  it("always searches identity separately, so single-word queries can rank", async () => {
+    // A single-token last_as_prefix query scores every match at exactly 1, so
+    // the broad branch returns them unordered. Matching an identity field puts a
+    // document in two branches, which is what the rank fusion orders on.
+    await createProvider().searchCandidates({
+      programId: "prog_test",
+      query: "rafi",
+      limit: 10,
+    });
+
+    const [{ queries }] = mocks.multiQuery.mock.calls[0];
+    expect(queries.map((branch: any) => branch.rank_by[0])).toEqual(
+      expect.arrayContaining(["searchText", "identityText"]),
+    );
   });
 
   it("scopes both branches to the program and matches prefixes", async () => {
@@ -139,12 +187,9 @@ describe("Turbopuffer partner search provider", () => {
       limit: 10,
     });
 
-    const [{ queries }] = mocks.multiQuery.mock.calls[0];
-    expect(queries).toHaveLength(2);
-
-    const [, allTermsBranch] = queries;
+    const [allTermsBranch] = branchesOf().filteredOn("identityText");
     expect(allTermsBranch.rank_by).toEqual([
-      "searchText",
+      "identityText",
       "BM25",
       "steven tey",
       { last_as_prefix: true },
@@ -154,7 +199,7 @@ describe("Turbopuffer partner search provider", () => {
       [
         ["programId", "Eq", "prog_test"],
         [
-          "searchText",
+          "identityText",
           "ContainsAllTokens",
           "steven tey",
           { last_as_prefix: true },
@@ -174,11 +219,10 @@ describe("Turbopuffer partner search provider", () => {
       limit: 10,
     });
 
-    const [{ queries }] = mocks.multiQuery.mock.calls[0];
-    const [, allTermsBranch] = queries;
+    const [allTermsBranch] = branchesOf().filteredOn("identityText");
 
     expect(allTermsBranch.filters[1][1]).toEqual([
-      "searchText",
+      "identityText",
       "ContainsAllTokens",
       "steven te",
       { last_as_prefix: true },
@@ -192,16 +236,7 @@ describe("Turbopuffer partner search provider", () => {
       limit: 10,
     });
 
-    // The n-gram branch still uses ContainsAllTokens, so this checks for the
-    // all-terms filter on searchText specifically.
-    const [{ queries }] = mocks.multiQuery.mock.calls[0];
-    expect(
-      queries.some((branch: any) =>
-        JSON.stringify(branch.filters).includes(
-          '["searchText","ContainsAllTokens"',
-        ),
-      ),
-    ).toBe(false);
+    expect(branchesOf().filteredOn("identityText")).toHaveLength(0);
   });
 
   it("requires every trigram on the n-gram branch", async () => {
@@ -213,10 +248,7 @@ describe("Turbopuffer partner search provider", () => {
       limit: 10,
     });
 
-    const [{ queries }] = mocks.multiQuery.mock.calls[0];
-    expect(queries).toHaveLength(2);
-
-    const [, ngramBranch] = queries;
+    const [ngramBranch] = branchesOf().rankedOn("emailNgrams");
     expect(ngramBranch.rank_by).toEqual(["emailNgrams", "BM25", "exa xam amp"]);
     expect(ngramBranch.filters).toEqual([
       "And",
@@ -234,8 +266,7 @@ describe("Turbopuffer partner search provider", () => {
       limit: 10,
     });
 
-    const [{ queries }] = mocks.multiQuery.mock.calls[0];
-    expect(queries).toHaveLength(1);
+    expect(branchesOf().rankedOn("emailNgrams")).toHaveLength(0);
   });
 
   it("fuses branches by rank, boosting documents found by both", async () => {
@@ -343,6 +374,6 @@ describe("Turbopuffer partner search provider", () => {
       namespace: createNamespaceMock(),
     });
 
-    expect(namespaceName).toBe("partner-search-v1");
+    expect(namespaceName).toBe("partner-search-v2");
   });
 });
