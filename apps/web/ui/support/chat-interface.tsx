@@ -806,165 +806,170 @@ export function ChatInterface({
           </button>
         </div>
       ) : hasRequestedTicket ? null : (
-        <div
-          className="shrink-0 border-t border-neutral-100 bg-white p-3"
-          onDragOver={(e) => {
-            if (!canChat) return;
-            e.preventDefault();
-            setIsDragging(true);
-          }}
-          onDragLeave={() => setIsDragging(false)}
-          onDrop={(e) => {
-            e.preventDefault();
-            setIsDragging(false);
-            if (!canChat) return;
-            addFiles(Array.from(e.dataTransfer.files));
-          }}
-        >
-          {pendingImages.length > 0 && (
-            <div className="mb-2 flex flex-wrap gap-2">
-              {pendingImages.map((image) => (
-                <div key={image.id} className="relative size-16 shrink-0">
-                  <img
-                    src={image.previewUrl}
-                    alt={image.file.name}
-                    className="size-full rounded-lg object-cover"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setPendingImages((prev) => {
-                        const entry = prev.find((item) => item.id === image.id);
-                        if (entry) URL.revokeObjectURL(entry.previewUrl);
-                        return prev.filter((item) => item.id !== image.id);
-                      });
-                    }}
-                    disabled={
-                      isCompressing ||
-                      status === "streaming" ||
-                      status === "submitted"
-                    }
-                    aria-label="Remove image"
-                    className="absolute -right-1.5 -top-1.5 flex size-5 items-center justify-center rounded-full bg-neutral-900 text-white transition-colors hover:bg-neutral-700 disabled:cursor-not-allowed disabled:opacity-50"
-                  >
-                    <Xmark className="size-2.5" />
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
+        <div className="shrink-0 border-t border-neutral-100 bg-white p-3">
           <div
-            className={cn(
-              "relative rounded-xl",
-              isDragging && "ring-2 ring-neutral-400",
-            )}
+            onDragOver={(e) => {
+              if (!canChat || isCompressing) return;
+              e.preventDefault();
+              setIsDragging(true);
+            }}
+            onDragLeave={(e) => {
+              if (e.currentTarget.contains(e.relatedTarget as Node)) return;
+              setIsDragging(false);
+            }}
+            onDrop={(e) => {
+              e.preventDefault();
+              setIsDragging(false);
+              if (!canChat) return;
+              addFiles(Array.from(e.dataTransfer.files));
+            }}
           >
-            <TextareaAutosize
-              ref={textareaRef}
-              minRows={3}
-              maxRows={6}
-              placeholder={
-                !canChat
-                  ? "Select an account above to start chatting..."
-                  : effectiveAccountType === "partner"
-                    ? "Ask about payouts, referrals, or commissions..."
-                    : "Ask about links, analytics, or your account..."
-              }
-              value={input}
-              disabled={
-                !canChat ||
-                status === "streaming" ||
-                status === "submitted" ||
-                isCompressing
-              }
-              onChange={(e) => setInput(e.target.value)}
-              onPaste={(e) => {
-                const fromFiles = Array.from(
-                  e.clipboardData?.files ?? [],
-                ).filter(isChatImageFile);
-                const fromItems =
-                  fromFiles.length > 0
-                    ? []
-                    : Array.from(e.clipboardData?.items ?? [])
-                        .filter((item) => item.kind === "file")
-                        .map((item) => item.getAsFile())
-                        .filter(
-                          (file): file is File =>
-                            !!file && isChatImageFile(file),
-                        );
-                const imageFiles = fromFiles.length > 0 ? fromFiles : fromItems;
-                if (imageFiles.length === 0) return;
-                e.preventDefault();
-                addFiles(imageFiles);
-              }}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey) {
-                  e.preventDefault();
-                  handleSend();
+            {pendingImages.length > 0 && (
+              <div className="mb-2 flex flex-wrap gap-2">
+                {pendingImages.map((image) => (
+                  <div key={image.id} className="relative size-16 shrink-0">
+                    <img
+                      src={image.previewUrl}
+                      alt={image.file.name}
+                      className="size-full rounded-lg object-cover"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setPendingImages((prev) => {
+                          const entry = prev.find(
+                            (item) => item.id === image.id,
+                          );
+                          if (entry) URL.revokeObjectURL(entry.previewUrl);
+                          return prev.filter((item) => item.id !== image.id);
+                        });
+                      }}
+                      disabled={
+                        isCompressing ||
+                        status === "streaming" ||
+                        status === "submitted"
+                      }
+                      aria-label="Remove image"
+                      className="absolute -right-1.5 -top-1.5 flex size-5 items-center justify-center rounded-full bg-neutral-900 text-white transition-colors hover:bg-neutral-700 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      <Xmark className="size-2.5" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+            <div className="relative">
+              <TextareaAutosize
+                ref={textareaRef}
+                minRows={3}
+                maxRows={6}
+                placeholder={
+                  !canChat
+                    ? "Select an account above to start chatting..."
+                    : effectiveAccountType === "partner"
+                      ? "Ask about payouts, referrals, or commissions..."
+                      : "Ask about links, analytics, or your account..."
                 }
-              }}
-              className={cn(
-                "w-full resize-none rounded-xl border border-neutral-200 py-2.5 pl-3 pr-24 text-sm text-neutral-900 placeholder-neutral-400 shadow-sm transition-colors",
-                "focus:border-neutral-400 focus:outline-none focus:ring-2 focus:ring-neutral-200 disabled:cursor-not-allowed disabled:bg-neutral-50 disabled:opacity-60",
-              )}
-            />
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/png,image/jpeg,image/webp"
-              multiple
-              className="hidden"
-              onChange={(e) => {
-                addFiles(Array.from(e.target.files ?? []));
-                e.target.value = "";
-              }}
-            />
-            <button
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
-              disabled={
-                !canChat ||
-                status === "streaming" ||
-                status === "submitted" ||
-                isCompressing ||
-                pendingImages.length >= MAX_CHAT_IMAGES
-              }
-              className={cn(
-                "absolute bottom-4 right-12 flex size-8 items-center justify-center rounded-full transition-all",
-                canChat &&
-                  status === "ready" &&
-                  !isCompressing &&
-                  pendingImages.length < MAX_CHAT_IMAGES
-                  ? "text-neutral-500 hover:bg-neutral-100 hover:text-neutral-800"
-                  : "cursor-not-allowed text-neutral-300",
-              )}
-              aria-label="Attach image"
-            >
-              <Paperclip className="size-4" />
-            </button>
-            <button
-              type="button"
-              onClick={() => handleSend()}
-              disabled={
-                !canChat ||
-                status === "streaming" ||
-                status === "submitted" ||
-                isCompressing ||
-                (!input.trim() && pendingImages.length === 0)
-              }
-              className={cn(
-                "absolute bottom-4 right-3 flex size-8 items-center justify-center rounded-full transition-all",
-                canChat &&
-                  status === "ready" &&
-                  !isCompressing &&
-                  (input.trim() || pendingImages.length > 0)
-                  ? "bg-neutral-900 text-white hover:bg-neutral-700"
-                  : "cursor-not-allowed bg-neutral-200 text-neutral-400",
-              )}
-              aria-label="Send message"
-            >
-              <PaperPlane className="size-4" />
-            </button>
+                value={input}
+                disabled={
+                  !canChat ||
+                  status === "streaming" ||
+                  status === "submitted" ||
+                  isCompressing
+                }
+                onChange={(e) => setInput(e.target.value)}
+                onPaste={(e) => {
+                  const fromFiles = Array.from(
+                    e.clipboardData?.files ?? [],
+                  ).filter(isChatImageFile);
+                  const fromItems =
+                    fromFiles.length > 0
+                      ? []
+                      : Array.from(e.clipboardData?.items ?? [])
+                          .filter((item) => item.kind === "file")
+                          .map((item) => item.getAsFile())
+                          .filter(
+                            (file): file is File =>
+                              !!file && isChatImageFile(file),
+                          );
+                  const imageFiles =
+                    fromFiles.length > 0 ? fromFiles : fromItems;
+                  if (imageFiles.length === 0) return;
+                  e.preventDefault();
+                  addFiles(imageFiles);
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSend();
+                  }
+                }}
+                className={cn(
+                  "w-full resize-none rounded-xl border py-2.5 pl-3 pr-24 text-sm text-neutral-900 placeholder-neutral-400 shadow-sm transition-colors",
+                  "focus:outline-none disabled:cursor-not-allowed disabled:bg-neutral-50 disabled:opacity-60",
+                  isDragging
+                    ? "border-dashed border-neutral-400 bg-neutral-50 shadow-none focus:border-neutral-400 focus:ring-0"
+                    : "border-neutral-200 focus:border-neutral-400 focus:ring-2 focus:ring-neutral-200",
+                )}
+              />
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/png,image/jpeg,image/webp"
+                multiple
+                className="hidden"
+                onChange={(e) => {
+                  addFiles(Array.from(e.target.files ?? []));
+                  e.target.value = "";
+                }}
+              />
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={
+                  !canChat ||
+                  status === "streaming" ||
+                  status === "submitted" ||
+                  isCompressing ||
+                  pendingImages.length >= MAX_CHAT_IMAGES
+                }
+                className={cn(
+                  "absolute bottom-4 right-12 flex size-8 items-center justify-center rounded-full transition-all",
+                  canChat &&
+                    status === "ready" &&
+                    !isCompressing &&
+                    pendingImages.length < MAX_CHAT_IMAGES
+                    ? "text-neutral-500 hover:bg-neutral-100 hover:text-neutral-800"
+                    : "cursor-not-allowed text-neutral-300",
+                )}
+                aria-label="Attach image"
+              >
+                <Paperclip className="size-4" />
+              </button>
+              <button
+                type="button"
+                onClick={() => handleSend()}
+                disabled={
+                  !canChat ||
+                  status === "streaming" ||
+                  status === "submitted" ||
+                  isCompressing ||
+                  (!input.trim() && pendingImages.length === 0)
+                }
+                className={cn(
+                  "absolute bottom-4 right-3 flex size-8 items-center justify-center rounded-full transition-all",
+                  canChat &&
+                    status === "ready" &&
+                    !isCompressing &&
+                    (input.trim() || pendingImages.length > 0)
+                    ? "bg-neutral-900 text-white hover:bg-neutral-700"
+                    : "cursor-not-allowed bg-neutral-200 text-neutral-400",
+                )}
+                aria-label="Send message"
+              >
+                <PaperPlane className="size-4" />
+              </button>
+            </div>
           </div>
 
           <div className="mt-px flex flex-col items-center gap-1">
