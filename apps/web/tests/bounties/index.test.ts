@@ -368,7 +368,7 @@ describe.sequential(
       expect(data).toMatchObject({
         error: {
           message:
-            "maxSubmissions is required when submissionFrequency is set.",
+            "`maxSubmissions` is required when `submissionFrequency` is set.",
         },
       });
     });
@@ -387,7 +387,7 @@ describe.sequential(
       expect(status).toEqual(400);
       expect(data).toMatchObject({
         error: {
-          message: "An end date is required when submissionFrequency is set.",
+          message: "`endsAt` is required when `submissionFrequency` is set.",
         },
       });
     });
@@ -432,8 +432,7 @@ describe.sequential(
       expect(status).toEqual(400);
       expect(data).toMatchObject({
         error: {
-          message:
-            "An end date is required to determine when the submission window opens.",
+          message: "`endsAt` is required when `submissionsOpenAt` is set.",
         },
       });
     });
@@ -449,8 +448,7 @@ describe.sequential(
       expect(status).toEqual(400);
       expect(data).toMatchObject({
         error: {
-          message:
-            "Bounty submissions open date (submissionsOpenAt) must be on or after start date (startsAt).",
+          message: "`submissionsOpenAt` must be on or after `startsAt`.",
         },
       });
     });
@@ -466,8 +464,7 @@ describe.sequential(
       expect(status).toEqual(400);
       expect(data).toMatchObject({
         error: {
-          message:
-            "Bounty submissions open date (submissionsOpenAt) must be on or before end date (endsAt).",
+          message: "`submissionsOpenAt` must be on or before `endsAt`.",
         },
       });
     });
@@ -541,7 +538,7 @@ describe.sequential(
       expect(status).toEqual(400);
       expect(data).toMatchObject({
         error: {
-          message: "An end date is required when submissionFrequency is set.",
+          message: "`endsAt` is required when `submissionFrequency` is set.",
         },
       });
     });
@@ -557,8 +554,7 @@ describe.sequential(
       expect(status).toEqual(400);
       expect(data).toMatchObject({
         error: {
-          message:
-            "An end date is required to determine when the submission window opens.",
+          message: "`endsAt` is required when `submissionsOpenAt` is set.",
         },
       });
     });
@@ -652,13 +648,9 @@ describe.sequential("/bounties - relative start mode", async () => {
     expect(data).toMatchObject({
       error: {
         message:
-          "startsAt is not supported when the bounty starts when a partner joins. It must be null for relative bounties.",
+          "`startsAt` is not supported when the `startMode` is `relative`.",
         code: "bad_request",
       },
-    });
-
-    onTestFinished(async () => {
-      await h.deleteBounty(bounty.id);
     });
   });
 
@@ -675,8 +667,7 @@ describe.sequential("/bounties - relative start mode", async () => {
     expect(status).toEqual(400);
     expect(data).toMatchObject({
       error: {
-        message:
-          "Bounty cannot have both an end date (endsAt) and endsAfterDays.",
+        message: "Bounties cannot have both `endsAt` and `endsAfterDays`.",
         code: "bad_request",
       },
     });
