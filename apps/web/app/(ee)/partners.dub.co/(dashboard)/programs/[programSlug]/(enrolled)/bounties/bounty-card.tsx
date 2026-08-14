@@ -39,7 +39,11 @@ export function PartnerBountyCard({
     <As
       href={href ?? "#"}
       onClick={onClick}
-      className="border-border-subtle hover:border-border-default bg-bg-default group relative flex w-full cursor-pointer flex-col overflow-hidden rounded-xl border text-left transition-all hover:shadow-lg"
+      className={cn(
+        "border-border-subtle bg-bg-default group relative flex w-full cursor-pointer flex-col overflow-hidden rounded-xl border text-left",
+        (href || onClick) &&
+          "hover:border-border-default transition-all hover:shadow-lg",
+      )}
     >
       <div className="p-3 pb-0">
         <div className="bg-bg-subtle relative flex h-[124px] items-center justify-center rounded-lg">
