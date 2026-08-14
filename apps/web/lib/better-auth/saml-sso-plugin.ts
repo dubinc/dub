@@ -83,9 +83,7 @@ export const samlIdp = {
         const { jackson } = await import("@/lib/jackson");
         const { oauthController } = await jackson();
 
-        const redirectUri = process.env.BETTER_AUTH_URL;
-
-        if (!redirectUri) {
+        if (!baseURL) {
           throw new APIError("INTERNAL_SERVER_ERROR", {
             message: "SAML redirect URI is not configured.",
           });
@@ -94,7 +92,7 @@ export const samlIdp = {
         const { access_token: accessToken } = await oauthController.token({
           code,
           grant_type: "authorization_code",
-          redirect_uri: redirectUri,
+          redirect_uri: baseURL,
           client_id: "dummy",
           client_secret: process.env.NEXTAUTH_SECRET!,
         });
