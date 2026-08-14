@@ -57,11 +57,8 @@ export interface PartnerSearchDocument {
   shortLinks: string[];
   destinationUrls: string[];
 
-  // Filterable fields, chosen because they change when someone acts on a
-  // partner rather than continuously. Metrics are deliberately absent: they move
-  // on every click and conversion, so indexing them would make the document
-  // churn constantly and turn the index into a second source of truth for
-  // numbers the table displays.
+  // Filterable fields. Metrics are deliberately absent: they move on every click
+  // and conversion, so indexing them would make the document churn continuously.
   status: ProgramEnrollmentStatus;
   groupId: string | null;
   country: string | null;
@@ -108,6 +105,8 @@ export interface PartnerSearchProvider {
   searchCandidates(
     query: PartnerSearchCandidateQuery,
   ): Promise<PartnerSearchResult>;
+  /** How many documents match, ignoring `limit`. */
+  countCandidates(query: PartnerSearchCandidateQuery): Promise<number>;
   upsert(documents: PartnerSearchDocument[]): Promise<void>;
   delete(documentIds: string[]): Promise<void>;
 }

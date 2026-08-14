@@ -13,6 +13,7 @@ function createProvider(
 ) {
   return {
     searchCandidates,
+    countCandidates: vi.fn(),
     upsert: vi.fn(),
     delete: vi.fn(),
   } as unknown as PartnerSearchProvider & {

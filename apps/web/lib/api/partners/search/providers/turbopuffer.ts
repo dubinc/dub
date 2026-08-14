@@ -67,9 +67,9 @@ const SEARCH_TEXT_TOKENIZER = "word_v2";
 // marking them filterable would buy nothing and cost plenty: turbopuffer bills
 // an attribute per enabled index, so FTS + filterable is 200% of logical size.
 //
-// The scalar attributes below are filterable because they narrow *before* the
-// ranking truncates. Applying them afterwards is what made a broad query with
-// `country=US` return 85 rows out of 7,698 real matches.
+// The scalar attributes are filterable so the provider narrows before it
+// truncates to `limit`, rather than leaving filters to run over an already
+// truncated list.
 const TURBOPUFFER_SCHEMA = {
   programId: { type: "string", filterable: true },
   status: { type: "string", filterable: true },
@@ -100,6 +100,9 @@ export interface TurbopufferNamespace {
   write(params: Record<string, unknown>): Promise<{ rows_affected: number }>;
   multiQuery(params: Record<string, unknown>): Promise<{
     results?: { rows?: { id: string | number; $dist?: number }[] }[];
+  }>;
+  query(params: Record<string, unknown>): Promise<{
+    aggregations?: Record<string, unknown>;
   }>;
   deleteAll(): Promise<unknown>;
 }
@@ -165,12 +168,7 @@ function serializeTurbopufferRow(
  * shares just one, which is how an unrelated address looks like a partial-email
  * match.
  */
-/**
- * Turns the discrete filters into turbopuffer clauses. Exclusion uses NotIn and
- * NotContainsAny, which match documents that omit the attribute entirely — the
- * partners with no group or no country, which the database also includes when
- * it negates.
- */
+/** Turns the discrete filters into turbopuffer clauses. */
 function buildFilterClauses(
   filters: PartnerSearchCandidateQuery["filters"],
 ): unknown[] {
@@ -256,6 +254,38 @@ function buildQueryBranches(
   return branches;
 }
 
+/**
+ * The same documents the ranked branches would return, as one filter.
+ *
+ * `identityText` holds a subset of what `searchText` holds, so a single
+ * ContainsAnyToken over `searchText` covers both text branches and the all-terms
+ * branch that narrows them. BM25 matches a document sharing any query token, and
+ * ContainsAnyToken is that same test without the scoring.
+ */
+function buildCountFilter(
+  programId: string,
+  query: string,
+  filters: PartnerSearchCandidateQuery["filters"],
+) {
+  const matchClauses: unknown[] = [
+    ["searchText", "ContainsAnyToken", query, { last_as_prefix: true }],
+  ];
+
+  const ngrams = getQueryNgrams(query).join(" ");
+  if (ngrams) {
+    matchClauses.push(["emailNgrams", "ContainsAllTokens", ngrams]);
+  }
+
+  return [
+    "And",
+    [
+      ["programId", "Eq", programId],
+      ...buildFilterClauses(filters),
+      ["Or", matchClauses],
+    ],
+  ];
+}
+
 // The standard reciprocal-rank-fusion constant: dampens the gap between
 // neighboring ranks so one branch's top result cannot drown out the other's.
 const RRF_RANK_CONSTANT = 60;
@@ -334,6 +364,22 @@ export function createTurbopufferPartnerSearchProvider({
       const hits = mergeBranchRows(results ?? [], limit);
 
       return { hits };
+    },
+
+    async countCandidates({ programId, query, filters }) {
+      const normalizedQuery = normalizePartnerSearchQuery(query);
+      const response = await withQueryDeadline(
+        () =>
+          resolvedNamespace.query({
+            filters: buildCountFilter(programId, normalizedQuery, filters),
+            aggregate_by: { total: ["Count"] },
+          }),
+        QUERY_OPERATION_TIMEOUT_MS,
+      );
+
+      const total = response.aggregations?.total;
+
+      return typeof total === "number" ? total : 0;
     },
 
     async upsert(documents) {

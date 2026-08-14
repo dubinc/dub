@@ -41,6 +41,7 @@ function createSource(id: string): PartnerSearchDocumentSource {
 function createProvider(): PartnerSearchProvider {
   return {
     searchCandidates: vi.fn(),
+    countCandidates: vi.fn(),
     upsert: vi.fn(),
     delete: vi.fn(),
   };

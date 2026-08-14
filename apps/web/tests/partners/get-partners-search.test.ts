@@ -37,6 +37,7 @@ function createSearchProvider(
 ): PartnerSearchProvider {
   return {
     searchCandidates: vi.fn().mockResolvedValue({ hits }),
+    countCandidates: vi.fn(),
     upsert: vi.fn(),
     delete: vi.fn(),
   };

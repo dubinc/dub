@@ -260,6 +260,32 @@ export async function getPartnersCount<T>(
     })) as T;
   }
 
+  // Counting the candidate IDs reports a floor, because the provider truncated
+  // them to the candidate ceiling — "999 partners" when there are twelve
+  // thousand. Ask the provider for the real total instead, but only when it can
+  // see every filter that applies: `partnerIds`, `tenantId`, and the metric
+  // ranges are database-only, so leaving them out would over-count.
+  const databaseOnlyFilters =
+    Boolean(tenantId) ||
+    Boolean(partnerIds?.length) ||
+    Object.keys(buildMetricRangeWhere(enrollmentBase)).length > 0;
+
+  if (
+    searchProvider &&
+    candidateQuery &&
+    candidateResult &&
+    !databaseOnlyFilters
+  ) {
+    try {
+      return (await searchProvider.countCandidates(candidateQuery)) as T;
+    } catch (error) {
+      console.error(
+        "[Partner Search] Count aggregation failed, falling back to counting candidates.",
+        error,
+      );
+    }
+  }
+
   // Get absolute count of partners
   const count = await prisma.programEnrollment.count({
     where: {
