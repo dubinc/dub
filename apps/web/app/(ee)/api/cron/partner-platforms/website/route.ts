@@ -1,9 +1,9 @@
+import { ahrefsClient } from "@/lib/ahrefs/client";
 import { withCron } from "@/lib/cron/with-cron";
 import { prisma } from "@/lib/prisma";
 import { chunk, getDomainWithoutWWW } from "@dub/utils";
 import { PlatformType } from "@prisma/client";
 import { logAndRespond } from "../../utils";
-import { getDomainRating } from "./get-domain-rating";
 
 export const dynamic = "force-dynamic";
 
@@ -49,7 +49,7 @@ export const GET = withCron(async () => {
         }
 
         try {
-          const domainRating = await getDomainRating(target);
+          const domainRating = await ahrefsClient.getDomainRating(target);
 
           await prisma.partnerPlatform.update({
             where: {
