@@ -21,6 +21,8 @@ export const acceptProgramInviteAction = authPartnerActionClient
     const { partner } = ctx;
     const { programId } = parsedInput;
 
+    const now = new Date();
+
     const enrollment = await prisma.programEnrollment.update({
       where: {
         partnerId_programId: {
@@ -31,7 +33,7 @@ export const acceptProgramInviteAction = authPartnerActionClient
       },
       data: {
         status: "approved",
-        createdAt: new Date(),
+        createdAt: now,
       },
       include: {
         links: true,

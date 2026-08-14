@@ -212,7 +212,7 @@ async function createCustomer({
     import_id: importId,
     source: "partnerstack",
     entity: "customer",
-    entity_id: customer.customer_key || customer.email,
+    entity_id: customer.customer_key || customer.email || customer.key,
   } as const;
 
   if (links.length === 0) {
