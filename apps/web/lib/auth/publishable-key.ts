@@ -25,18 +25,7 @@ interface WithPublishableKeyHandler {
 
 export const withPublishableKey = (
   handler: WithPublishableKeyHandler,
-  {
-    requiredPlan = [
-      "free",
-      "pro",
-      "business",
-      "business plus",
-      "business max",
-      "business extra",
-      "advanced",
-      "enterprise",
-    ],
-  },
+  { requiredPlan = ["free", "pro", "business", "advanced", "enterprise"] },
 ) =>
   withAxiom(
     async (
@@ -100,7 +89,15 @@ export const withPublishableKey = (
             });
           }
 
-          if (!requiredPlan.includes(workspace.plan)) {
+          const normalizedWorkspacePlan = [
+            "business plus",
+            "business max",
+            "business extra",
+          ].includes(workspace.plan)
+            ? "business"
+            : workspace.plan;
+
+          if (!requiredPlan.includes(normalizedWorkspacePlan)) {
             throw new DubApiError({
               code: "forbidden",
               message: "Unauthorized: Need higher plan.",

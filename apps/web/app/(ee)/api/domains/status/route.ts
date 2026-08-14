@@ -51,8 +51,9 @@ export const GET = withWorkspace(
         domainsOnDub.map(({ slug: domain }) => ({
           domain,
           available: false,
-          price: null,
           premium: null,
+          prices: null,
+          price: null,
         })),
       );
     }

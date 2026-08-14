@@ -53,7 +53,7 @@ export default function WorkspaceMembersPage() {
 
   const { setShowInviteCodeModal, InviteCodeModal } = useInviteCodeModal();
 
-  const { role, plan, usersLimit } = useWorkspace();
+  const { role, plan, planPeriod, usersLimit } = useWorkspace();
   const { data: session } = useSession();
   const { id: workspaceId } = useWorkspace();
   const { users: workspaceUsers } = useWorkspaceUsers();
@@ -106,7 +106,12 @@ export default function WorkspaceMembersPage() {
 
   const inviteUserLimitError =
     isAtUserLimit && plan
-      ? exceededLimitError({ plan, limit: usersLimit, type: "users" })
+      ? exceededLimitError({
+          plan,
+          planPeriod,
+          limit: usersLimit,
+          type: "users",
+        })
       : undefined;
 
   const availableRolesForPlan = useMemo(() => {
@@ -194,9 +199,23 @@ export default function WorkspaceMembersPage() {
                   )}
                 </h3>
                 <p className="text-xs text-neutral-500">
-                  {status === "invited"
-                    ? `Invited ${timeAgo(user.createdAt)}`
-                    : user.email}
+                  {status === "invited" ? (
+                    `Invited ${timeAgo(user.createdAt)}`
+                  ) : user.isMachine ? (
+                    <>
+                      Machine user for API authentication.{" "}
+                      <a
+                        href="https://dub.co/docs/api-reference/authentication#machine-users"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="underline decoration-dotted underline-offset-2 transition-colors hover:text-neutral-800"
+                      >
+                        Learn more ↗
+                      </a>
+                    </>
+                  ) : (
+                    user.email
+                  )}
                 </p>
               </div>
             </div>
@@ -315,7 +334,7 @@ export default function WorkspaceMembersPage() {
               />
               {inviteCount && status !== "invited" ? (
                 <Button
-                  text="View pending invites"
+                  text="Pending invites"
                   variant="secondary"
                   className="w-fit"
                   right={

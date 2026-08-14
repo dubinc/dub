@@ -122,14 +122,7 @@ export const GET = withWorkspace(
     );
   },
   {
-    requiredPlan: [
-      "business",
-      "business extra",
-      "business max",
-      "business plus",
-      "advanced",
-      "enterprise",
-    ],
+    requiredPlan: ["business", "advanced", "enterprise"],
   },
 );
 
@@ -162,7 +155,7 @@ export const POST = withWorkspace(
     });
   },
   {
-    requiredPlan: ["advanced", "enterprise"],
+    requiredPlan: ["business", "advanced", "enterprise"],
     requiredRoles: ["owner", "member"],
   },
 );

@@ -1,9 +1,10 @@
+import { renderCampaignEmailHTML } from "@/lib/api/campaigns/render-campaign-email-html";
 import { validateCampaignFromAddress } from "@/lib/api/campaigns/validate-campaign";
 import { createId } from "@/lib/api/create-id";
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
-import { renderCampaignEmailHTML } from "@/lib/api/workflows/render-campaign-email-html";
 import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
+import { resolveCampaignFromAddress } from "@/lib/email/parse-campaign-from-address";
 import { constructPartnerLink } from "@/lib/partners/construct-partner-link";
 import { prisma } from "@/lib/prisma";
 import { TiptapNode } from "@/lib/types";
@@ -249,7 +250,14 @@ export async function POST(req: Request) {
 
         const { data, error } = await sendBatchEmail(
           partnerUsersChunk.map((partnerUser) => ({
-            from: `${program.name} <${campaign.from}>`,
+            ...(campaign.from
+              ? {
+                  from: resolveCampaignFromAddress({
+                    from: campaign.from,
+                    programName: program.name,
+                  }),
+                }
+              : {}),
             to: partnerUser.email!,
             subject: campaign.subject,
             ...(program.supportEmail ? { replyTo: program.supportEmail } : {}),

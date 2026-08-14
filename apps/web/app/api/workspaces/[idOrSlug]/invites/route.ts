@@ -132,6 +132,7 @@ export const POST = withWorkspace(
         code: "exceeded_limit",
         message: exceededLimitError({
           plan: workspace.plan,
+          planPeriod: workspace.planPeriod,
           limit: workspace.usersLimit,
           type: "users",
         }),

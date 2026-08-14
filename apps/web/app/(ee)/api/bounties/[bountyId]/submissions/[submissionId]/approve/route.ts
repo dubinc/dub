@@ -38,7 +38,7 @@ export const POST = withWorkspace(
     return NextResponse.json(approvedSubmission);
   },
   {
-    requiredPlan: ["advanced", "enterprise"],
+    requiredPlan: ["business", "advanced", "enterprise"],
     requiredRoles: ["owner", "member"],
   },
 );

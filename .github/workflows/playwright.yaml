@@ -2,7 +2,6 @@ name: Playwright E2E Tests
 
 on:
   pull_request:
-    branches: [main]
     paths:
       - "apps/web/**"
       - "packages/**"
@@ -22,6 +21,8 @@ jobs:
     env:
       CI: "true"
       NODE_OPTIONS: "--max-old-space-size=8192"
+      DOTENV_FLOW_SILENT: "true"
+      RUNTIME_CACHE_DISABLE_BUILD_CACHE: "true"
       DATABASE_URL: "mysql://root:@localhost:3306/planetscale"
       PLANETSCALE_DATABASE_URL: "http://root:unused@localhost:3900/planetscale"
 
@@ -34,15 +35,13 @@ jobs:
       TINYBIRD_API_KEY: "xx"
       TINYBIRD_API_URL: "xx"
 
-      AXIOM_TOKEN: "xx"
-      AXIOM_DATASET: "xx"
-
       # serverless-redis-http (SRH) — must match jobs.e2e.services.srh env
       SRH_TOKEN: "e2e_srh_token"
       UPSTASH_REDIS_REST_URL: "http://127.0.0.1:8079"
       UPSTASH_REDIS_REST_TOKEN: "e2e_srh_token"
       UPSTASH_VECTOR_REST_URL: "https://sensible-camel-xxxx.upstash.io"
       UPSTASH_VECTOR_REST_TOKEN: "xx"
+      QSTASH_URL: "https://qstash-us-east-1.upstash.io"
       QSTASH_TOKEN: "xx"
       QSTASH_CURRENT_SIGNING_KEY: "xx"
       QSTASH_NEXT_SIGNING_KEY: "xx"

@@ -49,6 +49,11 @@ export const INACTIVE_ENROLLMENT_STATUSES: ProgramEnrollmentStatus[] = [
 export const COMMISSION_ELIGIBLE_ENROLLMENT_STATUSES: ProgramEnrollmentStatus[] =
   [...ACTIVE_ENROLLMENT_STATUSES, ProgramEnrollmentStatus.invited];
 
+export const DELETABLE_ENROLLMENT_STATUSES: ProgramEnrollmentStatus[] = [
+  ProgramEnrollmentStatus.deactivated,
+  ProgramEnrollmentStatus.banned,
+];
+
 export const exportPartnerColumns = [
   { id: "id", label: "ID", default: true },
   { id: "name", label: "Name", default: true },
@@ -190,7 +195,7 @@ export const getPartnersQuerySchema = z
       .string()
       .optional()
       .describe(
-        "A search query to filter partners by ID, name, email, or link.",
+        "A search query to filter partners by ID, name, email, or company name.",
       )
       .meta({ example: "john" }),
   })
@@ -198,10 +203,7 @@ export const getPartnersQuerySchema = z
 
 // Only Dub UI uses the following query parameters
 export const getPartnersQuerySchemaExtended = getPartnersQuerySchema.extend({
-  status: z
-    .enum(ProgramEnrollmentStatus)
-    .or(z.enum(["approved_invited"]))
-    .optional(),
+  status: z.enum(ProgramEnrollmentStatus).optional(),
   // TODO: refactor to use multi/negative filtering syntax
   partnerIds: z
     .union([z.string(), z.array(z.string())])
@@ -1015,6 +1017,11 @@ export const deactivatePartnerSchema = z.object({
 });
 
 export const deactivatePartnerApiSchema = partnerIdTenantIdSchema;
+
+export const deletePartnerSchema = z.object({
+  workspaceId: z.string(),
+  partnerId: z.string(),
+});
 
 export const archivePartnerSchema = z.object({
   workspaceId: z.string(),

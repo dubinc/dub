@@ -1,5 +1,4 @@
-import { handleAndReturnErrorResponse } from "@/lib/api/errors";
-import { verifyVercelSignature } from "@/lib/cron/verify-vercel";
+import { withCron } from "@/lib/cron/with-cron";
 import { conn } from "@/lib/planetscale";
 import { prisma } from "@/lib/prisma";
 import {
@@ -9,7 +8,7 @@ import {
 import { toCentsNumber } from "@dub/utils";
 import { ProgramEnrollment } from "@prisma/client";
 import { differenceInDays, format } from "date-fns";
-import { NextResponse } from "next/server";
+import { logAndRespond } from "../../utils";
 
 export const dynamic = "force-dynamic";
 
@@ -346,37 +345,26 @@ const processPartnerActivityStreamBatch = () =>
 // This route is used to process partner activity events from Redis streams
 // It runs every 5 minutes with a batch size of 6,000 to consume high-frequency partner activity updates
 // GET /api/cron/streams/update-partner-stats
-export async function GET(req: Request) {
-  try {
-    await verifyVercelSignature(req);
 
-    console.log("Processing partner activity events from Redis stream...");
+export const GET = withCron(async () => {
+  const { updates, errors, totalProcessed } =
+    await processPartnerActivityStreamBatch();
 
-    const { updates, errors, totalProcessed } =
-      await processPartnerActivityStreamBatch();
-
-    if (!updates.length) {
-      return NextResponse.json({
-        success: true,
-        message: "No updates to process",
-        processed: 0,
-      });
-    }
-
-    // Get stream info for monitoring
-    const streamInfo = await partnerActivityStream.getStreamInfo();
-    const response = {
+  if (!updates.length) {
+    return logAndRespond({
       success: true,
-      processed: totalProcessed,
-      errors: errors?.length || 0,
-      streamInfo,
-      message: `Successfully processed ${totalProcessed} partner activity updates`,
-    };
-    console.log(response);
-
-    return NextResponse.json(response);
-  } catch (error) {
-    console.error("Failed to process partner activity updates:", error);
-    return handleAndReturnErrorResponse(error);
+      message: "No updates to process",
+      processed: 0,
+    });
   }
-}
+
+  const streamInfo = await partnerActivityStream.getStreamInfo();
+
+  return logAndRespond({
+    success: true,
+    processed: totalProcessed,
+    errors: errors?.length || 0,
+    streamInfo,
+    message: `Successfully processed ${totalProcessed} partner activity updates`,
+  });
+});

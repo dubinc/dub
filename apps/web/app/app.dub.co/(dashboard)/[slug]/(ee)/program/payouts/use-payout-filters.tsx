@@ -79,9 +79,7 @@ export function usePayoutFilters() {
                   )}
                 />
               ),
-              ...(value !== "hold" && {
-                right: nFormatter(count || 0, { full: true }),
-              }),
+              right: nFormatter(count || 0, { full: true }),
             };
           },
         ),

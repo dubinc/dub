@@ -16,6 +16,7 @@ import {
   useMediaQuery,
   useRouterStuff,
 } from "@dub/ui";
+import { X } from "@/ui/shared/icons";
 import { cn, currencyFormatter, fetcher } from "@dub/utils";
 import { Command } from "cmdk";
 import { ArrowRight, ServerOff, Users } from "lucide-react";
@@ -43,7 +44,6 @@ function ImportRewardfulModal({
 }) {
   const router = useRouter();
   const { program } = useProgram();
-  const searchParams = useSearchParams();
   const { queryParams } = useRouterStuff();
   const { id: workspaceId } = useWorkspace();
   const [apiToken, setApiToken] = useState("");
@@ -98,14 +98,6 @@ function ImportRewardfulModal({
     fetcher,
   );
 
-  useEffect(() => {
-    if (searchParams?.get("import") === "rewardful") {
-      setShowImportRewardfulModal(true);
-    } else {
-      setShowImportRewardfulModal(false);
-    }
-  }, [searchParams]);
-
   // submit the api token to get the campaigns
   const handleTokenSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -152,6 +144,17 @@ function ImportRewardfulModal({
         })
       }
     >
+      <Button
+        variant="outline"
+        icon={<X className="size-5" />}
+        className="absolute right-4 top-4 h-auto w-fit p-1"
+        onClick={() => {
+          setShowImportRewardfulModal(false);
+          queryParams({
+            del: "import",
+          });
+        }}
+      />
       <div className="flex flex-col items-center justify-center space-y-3 border-b border-neutral-200 px-4 py-4 pt-8 sm:px-8">
         <div className="flex items-center space-x-3">
           <img
@@ -530,6 +533,14 @@ function CampaignsStep({
 export function useImportRewardfulModal() {
   const [showImportRewardfulModal, setShowImportRewardfulModal] =
     useState(false);
+  const searchParams = useSearchParams();
+
+  // Sync the modal state with the `?import=` query param here in the hook
+  // rather than in the modal itself, which remounts on every open/close
+  // and would re-open from a stale param mid-navigation
+  useEffect(() => {
+    setShowImportRewardfulModal(searchParams?.get("import") === "rewardful");
+  }, [searchParams]);
 
   const ImportRewardfulModalCallback = useCallback(() => {
     return (

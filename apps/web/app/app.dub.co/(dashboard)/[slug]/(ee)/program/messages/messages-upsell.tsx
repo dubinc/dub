@@ -1,13 +1,13 @@
 "use client";
 
 import { PageContent } from "@/ui/layout/page-content";
-import { usePartnersUpgradeModal } from "@/ui/partners/partners-upgrade-modal";
+import { useAdvancedUpsellModal } from "@/ui/partners/advanced-upsell-modal";
 import { Button } from "@dub/ui";
 import { cn } from "@dub/utils";
 
 export function MessagesUpsell() {
-  const { partnersUpgradeModal, setShowPartnersUpgradeModal } =
-    usePartnersUpgradeModal();
+  const { advancedUpsellModal, setShowAdvancedUpsellModal } =
+    useAdvancedUpsellModal();
 
   return (
     <PageContent
@@ -18,7 +18,7 @@ export function MessagesUpsell() {
         href: "https://dub.co/help/article/messaging-partners",
       }}
     >
-      {partnersUpgradeModal}
+      {advancedUpsellModal}
       <div className="flex min-h-[calc(100vh-200px)] flex-col items-center justify-center gap-6 overflow-hidden px-4 py-10">
         <div className="flex w-full max-w-md flex-col gap-4 [mask-image:linear-gradient(black_60%,transparent)]">
           <DemoMessage
@@ -57,7 +57,7 @@ export function MessagesUpsell() {
         </div>
         <div className="flex items-center gap-2">
           <Button
-            onClick={() => setShowPartnersUpgradeModal(true)}
+            onClick={() => setShowAdvancedUpsellModal(true)}
             text="Upgrade to Advanced"
             className="h-8 px-3"
           />

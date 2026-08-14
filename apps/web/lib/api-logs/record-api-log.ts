@@ -20,6 +20,7 @@ type RecordApiLogParams = {
   duration: number;
   userAgent: string | null;
   requestBody: unknown;
+  queryParams?: unknown;
   responseBody: unknown;
   tokenId: string | null;
   userId: string | null;
@@ -41,6 +42,7 @@ export const recordApiLog = async ({
   duration,
   userAgent,
   requestBody,
+  queryParams,
   responseBody,
   tokenId,
   userId,
@@ -57,6 +59,7 @@ export const recordApiLog = async ({
     duration,
     user_agent: userAgent ?? "",
     request_body: JSON.stringify(requestBody),
+    query_params: queryParams ? JSON.stringify(queryParams) : "",
     response_body: JSON.stringify(responseBody),
     token_id: tokenId ?? "",
     user_id: userId ?? "",
@@ -74,6 +77,10 @@ export const recordApiLog = async ({
           setTimeout(resolve, 100 * Math.pow(2, attempt)),
         );
         continue;
+      }
+
+      if (process.env.CI) {
+        return;
       }
 
       console.error("Failed to record API log", error, JSON.stringify(apiLog));

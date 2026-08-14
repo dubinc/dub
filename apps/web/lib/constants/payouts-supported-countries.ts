@@ -3,16 +3,15 @@ import {
   COUNTRIES,
   PAYPAL_SUPPORTED_COUNTRIES,
   STABLECOIN_SUPPORTED_COUNTRIES,
-  TREMENDOUS_SUPPORTED_COUNTRIES,
 } from "@dub/utils";
 import { getPayoutMethodsForCountry } from "../partners/get-payout-methods-for-country";
 
+// not including TREMENDOUS_SUPPORTED_COUNTRIES for now
 export const PAYOUT_SUPPORTED_COUNTRIES = [
   ...new Set([
     ...STABLECOIN_SUPPORTED_COUNTRIES,
     ...CONNECT_SUPPORTED_COUNTRIES,
     ...PAYPAL_SUPPORTED_COUNTRIES,
-    ...TREMENDOUS_SUPPORTED_COUNTRIES,
   ]),
 ]
   .sort((a, b) => COUNTRIES[a].localeCompare(COUNTRIES[b]))

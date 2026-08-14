@@ -2,14 +2,15 @@
 
 import { OnboardingStep } from "@/lib/onboarding/types";
 import {
-  BoltFill,
+  Bolt,
   Button,
-  CircleCheckFill,
+  CircleCheck,
   Crown,
   CursorRays,
   Flask,
   Globe,
   type Icon,
+  withFillVariant,
 } from "@dub/ui";
 import { capitalize, cn } from "@dub/utils";
 import { usePlausible } from "next-plausible";
@@ -31,7 +32,7 @@ export function DefaultDomainSelector() {
         <DomainOption
           step="domain/custom"
           icon="https://assets.dub.co/icons/domain-sign.webp"
-          bannerIcon={CircleCheckFill}
+          bannerIcon={withFillVariant(CircleCheck)}
           bannerText="Recommended setup"
           bannerVariant="recommended"
           title="Connect a custom domain"
@@ -81,7 +82,7 @@ export function DefaultDomainSelector() {
           <DomainOption
             step="domain/subdomain"
             icon="https://assets.dub.co/icons/gift.webp"
-            bannerIcon={BoltFill}
+            bannerIcon={withFillVariant(Bolt)}
             bannerText="Instant setup"
             title={
               <>
@@ -94,7 +95,7 @@ export function DefaultDomainSelector() {
                 text: "Best for testing purposes",
               },
               {
-                icon: BoltFill,
+                icon: withFillVariant(Bolt),
                 text: "Instant subdomain setup",
               },
             ]}

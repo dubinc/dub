@@ -81,7 +81,7 @@ export async function triggerDraftBountySubmissionCreation({
     await Promise.allSettled(
       eligibleBounties.map((bounty) =>
         qstash.publishJSON({
-          url: `${APP_DOMAIN_WITH_NGROK}/api/cron/bounties/create-draft-submissions`,
+          url: `${APP_DOMAIN_WITH_NGROK}/api/cron/bounties/upsert-draft-submissions`,
           body: {
             bountyId: bounty.id,
             partnerIds: groupPartnerIds,
@@ -97,7 +97,7 @@ function isEligiblePerformanceBounty(bounty: Bounty) {
 
   if (bounty.type !== "performance") return false;
   if (bounty.performanceScope === "new") return false;
-  if (bounty.startsAt > now) return false;
+  if (bounty.startsAt && bounty.startsAt > now) return false;
   if (bounty.endsAt && bounty.endsAt <= now) return false;
 
   return true;

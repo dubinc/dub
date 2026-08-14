@@ -2,6 +2,7 @@ import "dotenv-flow/config";
 
 import { PrismaClient } from "@prisma/client";
 import { hashSync } from "bcryptjs";
+import { assertLocalDatabaseEnv } from "./assert-local-database";
 
 const prisma = new PrismaClient();
 
@@ -12,6 +13,8 @@ const E2E_PARTNER = {
 };
 
 async function main() {
+  assertLocalDatabaseEnv();
+
   const passwordHash = hashSync(E2E_PARTNER.password, 10);
 
   const user = await prisma.user.upsert({

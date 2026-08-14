@@ -2,7 +2,7 @@ import { getProgram } from "@/lib/fetchers/get-program";
 import { prisma } from "@/lib/prisma";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { Logo } from "@dub/ui";
-import { BoltFill, CursorRays, LinesY, MoneyBills2 } from "@dub/ui/icons";
+import { Bolt, CursorRays, LinesY, MoneyBills2 } from "@dub/ui/icons";
 import { OG_AVATAR_URL } from "@dub/utils";
 import { Store } from "lucide-react";
 import { notFound, redirect } from "next/navigation";
@@ -161,7 +161,10 @@ export default async function SuccessPage(props: {
                   src={program.logo || `${OG_AVATAR_URL}${program.name}`}
                   alt={`${program.name} logo`}
                 />
-                <BoltFill className="shrink-0 text-[var(--brand)] opacity-30" />
+                <Bolt
+                  variant="fill"
+                  className="shrink-0 text-[var(--brand)] opacity-30"
+                />
                 <Logo className="size-10 shrink-0" />
               </div>
             )}

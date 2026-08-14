@@ -32,7 +32,7 @@ export default function AdvancedPlanDowngradeNotice({
       <Head />
       <Preview>
         Removed features: Email campaigns, messaging center, advanced reward
-        conditions, fraud detection, embedded referral dashboard
+        conditions, risk monitoring, embedded referral dashboard
       </Preview>
       <Tailwind>
         <Body className="mx-auto my-auto bg-white font-sans">

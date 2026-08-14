@@ -23,7 +23,7 @@ export async function pauseOrCancelCampaignsForProgramOnPlanDowngrade({
 
     if (campaign.qstashMessageId) {
       try {
-        await qstash.messages.delete(campaign.qstashMessageId);
+        await qstash.messages.cancel(campaign.qstashMessageId);
         qstashDeleteSucceeded = true;
       } catch (error) {
         console.warn(

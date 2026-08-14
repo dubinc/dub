@@ -12,25 +12,20 @@ import {
 } from "@/lib/bounty/social-content";
 import {
   BountyPerformanceScope,
+  BountyStartMode,
   BountySubmissionFrequency,
   BountySubmissionRejectionReason,
   BountySubmissionStatus,
   BountyType,
 } from "@prisma/client";
 import * as z from "zod/v4";
+import { awardBountyConditionSchema } from "../../api/workflows/award-bounty/schema";
 import { CommissionSchema } from "./commissions";
 import { GroupSchema } from "./groups";
 import { booleanQuerySchema, getPaginationQuerySchema } from "./misc";
 import { EnrolledPartnerSchema } from "./partners";
 import { UserSchema } from "./users";
 import { nullableCountSchema, parseDateSchema } from "./utils";
-import { WORKFLOW_ATTRIBUTES } from "./workflows";
-
-export const bountyPerformanceConditionSchema = z.object({
-  attribute: z.enum(WORKFLOW_ATTRIBUTES),
-  operator: z.literal("gte").default("gte"),
-  value: z.number(),
-});
 
 // Eg: for each additional 1000 views, earn $1, up to $100
 export const bountySocialContentIncrementalBonusSchema = z
@@ -90,7 +85,10 @@ export const createBountySchema = z.object({
     .string()
     .trim()
     .max(100, "Name must be less than 100 characters")
-    .nullish(),
+    .nullish()
+    .describe(
+      "The name of the bounty. E.g.: `June Product Launch Promo`. Only applicable for `submission` bounties.",
+    ),
   description: z
     .string()
     .trim()
@@ -98,34 +96,118 @@ export const createBountySchema = z.object({
       BOUNTY_DESCRIPTION_MAX_LENGTH,
       `Description must be less than ${BOUNTY_DESCRIPTION_MAX_LENGTH} characters`,
     )
-    .nullish(),
-  type: z.enum(BountyType),
-  startsAt: parseDateSchema.nullish(),
-  endsAt: parseDateSchema.nullish(),
-  submissionsOpenAt: parseDateSchema.nullish(),
-  submissionFrequency: z.enum(BountySubmissionFrequency).nullish(),
+    .nullish()
+    .describe(
+      "The description of the bounty. Use this field to outline the rules and requirements for the bounty.",
+    ),
+  type: z
+    .enum(BountyType)
+    .describe(
+      [
+        "The type of bounty.",
+        "`performance`: Bounties that are awarded based on partner performance (leads, conversions, revenue, commissions).",
+        "`submission`: Bounties that are awarded based on partner submissions (can be an arbitrary submission or a social content submission).",
+      ].join("\n"),
+    ),
+  startMode: z
+    .enum(BountyStartMode)
+    .optional()
+    .describe(
+      [
+        "How the bounty's start date is determined.",
+        "`absolute`: Bounty starts at a specific date and time.",
+        "`relative`: Bounty starts when a partner joins the program.",
+      ].join("\n"),
+    ),
+  startsAt: parseDateSchema
+    .nullish()
+    .describe(
+      "The date and time the bounty starts. Only applicable when `startMode` is absolute.",
+    ),
+  endsAt: parseDateSchema
+    .nullish()
+    .describe(
+      "The date and time the bounty ends. Only applicable when `startMode` is absolute.",
+    ),
+  endsAfterDays: z
+    .number()
+    .int()
+    .positive()
+    .nullish()
+    .describe(
+      "How long after a partner joins the program is the bounty open for. Only applicable when `startMode` is relative.",
+    ),
+  submissionsOpenAt: parseDateSchema
+    .nullish()
+    .describe(
+      "The date and time after which partners can finalize their bounty submissions. Only applicable for `submission` bounties.",
+    ),
   maxSubmissions: z
     .number()
     .int()
-    .min(2, "Total submissions allowed must be at least 2")
+    .min(2, "If `maxSubmissions` is set, it must be at least 2")
     .max(BOUNTY_MAX_SUBMISSIONS)
-    .nullish(),
+    .nullish()
+    .describe(
+      "The maximum number of submissions a partner can enter. Only applicable for `submission` bounties.",
+    ),
+  submissionFrequency: z
+    .enum(BountySubmissionFrequency)
+    .nullish()
+    .describe(
+      [
+        "How often partners can submit their bounty submissions.",
+        "`daily`: Partners can submit their bounty submissions once per day.",
+        "`weekly`: Partners can submit their bounty submissions once per week.",
+        "`monthly`: Partners can submit their bounty submissions once per month.",
+        "Only applicable for bounties that have `maxSubmissions` set.",
+      ].join("\n"),
+    ),
   rewardAmount: z
     .number()
     .positive()
     .min(1, "Reward amount must be greater than 1")
-    .nullable(),
+    .nullable()
+    .describe("The reward amount for the bounty in USD cents."),
   rewardDescription: z
     .string()
     .trim()
     .max(100, "Reward description must be less than 100 characters")
     .transform((v) => (v === "" ? null : v))
-    .nullish(),
-  submissionRequirements: submissionRequirementsSchema.nullish(),
-  groupIds: z.array(z.string()).nullable(),
-  performanceCondition: bountyPerformanceConditionSchema.nullish(),
-  performanceScope: z.enum(BountyPerformanceScope).nullish(),
-  sendNotificationEmails: z.boolean().optional(),
+    .nullish()
+    .describe(
+      "The reward description for `submission` bounties if a custom reward amount is set",
+    ),
+  performanceCondition: awardBountyConditionSchema
+    .nullish()
+    .describe(
+      "The condition that must be met for a `performance` bounty to be awarded. Only applicable for `performance` bounties.",
+    ),
+  performanceScope: z
+    .enum(BountyPerformanceScope)
+    .nullish()
+    .describe(
+      [
+        "The scpoe of the performance criteria:",
+        "`lifetime`: Bounty takes into account all-time performance data",
+        "`new`: Bounty only counts performance data after the bounty starts",
+      ].join("\n"),
+    ),
+  submissionRequirements: submissionRequirementsSchema
+    .nullish()
+    .describe(
+      "The requirements that must be met for a bounty submission to be finalized. Only applicable for `submission` bounties.",
+    ),
+  groupIds: z
+    .array(z.string())
+    .nullable()
+    .describe("The IDs of the partner groups that this bounty is available to"),
+  sendNotificationEmails: z
+    .boolean()
+    .optional()
+    .describe(
+      "Whether to send notification emails to partners when the bounty is created.",
+    ),
 });
 
 export const updateBountySchema = createBountySchema
@@ -148,16 +230,16 @@ export const BountySchema = z.object({
   name: z.string().nullable(),
   description: z.string().nullable(),
   type: z.enum(BountyType),
-  startsAt: z.date(),
+  startsAt: z.date().nullable(),
   endsAt: z.date().nullable(),
+  startMode: z.enum(BountyStartMode),
+  endsAfterDays: z.number().nullable(),
   submissionsOpenAt: z.date().nullable(),
   submissionFrequency: z.enum(BountySubmissionFrequency).nullable(),
   maxSubmissions: z.number(),
   rewardAmount: z.number().nullable(),
   rewardDescription: z.string().nullable(),
-  performanceCondition: bountyPerformanceConditionSchema
-    .nullable()
-    .default(null),
+  performanceCondition: awardBountyConditionSchema.nullable().default(null),
   performanceScope: z.enum(BountyPerformanceScope).nullable(),
   submissionRequirements: submissionRequirementsSchema.nullable().default(null),
   socialMetricsLastSyncedAt: z.date().nullable().optional(),

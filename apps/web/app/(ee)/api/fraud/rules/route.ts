@@ -134,6 +134,7 @@ export const PATCH = withWorkspace(
             userId: session.user.id,
             resolutionReason:
               "Resolved automatically because the fraud rule was disabled.",
+            releaseHoldCommissions: true,
           });
         }
       })(),

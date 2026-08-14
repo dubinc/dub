@@ -211,6 +211,11 @@ export async function updatePartnerCommission({
     include: {
       customer: true,
       partner: true,
+      payout: {
+        select: {
+          paidAt: true,
+        },
+      },
     },
   });
 
@@ -232,7 +237,7 @@ export async function updatePartnerCommission({
         partnerId: commission.partnerId,
         customerId: commission.customerId,
         status: {
-          in: ["pending", "processed"],
+          in: ["pending", "processed", "hold"],
         },
         id: {
           not: commission.id,

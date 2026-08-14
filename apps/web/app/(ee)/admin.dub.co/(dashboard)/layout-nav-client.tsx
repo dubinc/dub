@@ -40,6 +40,10 @@ const tabs = [
     href: "/revenue",
     label: "Revenue",
   },
+  {
+    href: "/domains",
+    label: "Domains",
+  },
 ];
 
 export function AdminNav() {

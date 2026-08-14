@@ -62,13 +62,25 @@ export const DiscountCodeSchema = z.object({
   discountId: z.string().nullable(),
   partnerId: z.string(),
   linkId: z.string(),
+  disabledAt: z.coerce
+    .date()
+    .nullish()
+    .describe(
+      "When this discount code was disabled, which happens when a partner is banned or deactivated.",
+    ),
 });
 
 export const createDiscountCodeSchema = z.object({
   code: z
     .string()
-    .max(100, "Code must be less than 100 characters.")
-    .optional(),
+    .trim()
+    .max(100, "Code must be 100 characters or fewer.")
+    .regex(
+      /^[a-zA-Z0-9\-_]+$/,
+      "Code can only contain letters, numbers, dashes, and underscores.",
+    )
+    .optional()
+    .or(z.literal("").transform(() => undefined)),
   partnerId: z.string(),
   linkId: z.string(),
 });

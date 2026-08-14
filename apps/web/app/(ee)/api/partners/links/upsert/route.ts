@@ -242,6 +242,6 @@ export const PUT = withWorkspace(
   },
   {
     requiredPermissions: ["links.write"],
-    requiredPlan: ["advanced", "enterprise"],
+    requiredPlan: ["business", "advanced", "enterprise"],
   },
 );

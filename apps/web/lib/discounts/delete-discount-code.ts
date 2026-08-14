@@ -10,6 +10,13 @@ type DeleteDiscountCodesParams = Pick<
   discount: Pick<Discount, "provider"> | null;
 };
 
+type EnqueueDeleteDiscountCodeParams = Pick<
+  DiscountCode,
+  "code" | "programId"
+> & {
+  discount: Pick<Discount, "provider"> | null;
+};
+
 // Triggered in the following cases:
 // 1. When a discount is deleted
 // 2. When a link is deleted that has a discount code associated with it
@@ -17,6 +24,7 @@ type DeleteDiscountCodesParams = Pick<
 // 4. When a partner is moved to a different group
 export async function deleteDiscountCodes(
   input: (DeleteDiscountCodesParams | null | undefined)[],
+  { isSoftDelete = false }: { isSoftDelete?: boolean } = {},
 ) {
   const discountCodes = input.filter(
     (dc): dc is NonNullable<typeof dc> => dc != null,
@@ -29,32 +37,53 @@ export async function deleteDiscountCodes(
     return;
   }
 
-  // Delete the discount codes from the database
-  const deletedDiscountCodes = await prisma.discountCode.deleteMany({
-    where: {
-      id: {
-        in: discountCodes.map(({ id }) => id),
+  if (isSoftDelete) {
+    // Soft delete the discount codes from the database (mark them as disabled)
+    const disabledDiscountCodes = await prisma.discountCode.updateMany({
+      where: {
+        id: {
+          in: discountCodes.map(({ id }) => id),
+        },
       },
-    },
-  });
+      data: {
+        disabledAt: new Date(),
+      },
+    });
 
-  console.log(
-    `[deleteDiscountCodes] Deleted ${deletedDiscountCodes.count} discount codes.`,
-  );
+    console.log(
+      `[deleteDiscountCodes] Disabled ${disabledDiscountCodes.count} discount codes.`,
+    );
+  } else {
+    // Delete the discount codes from the database
+    const deletedDiscountCodes = await prisma.discountCode.deleteMany({
+      where: {
+        id: {
+          in: discountCodes.map(({ id }) => id),
+        },
+      },
+    });
 
-  // Only enqueue external-provider cleanup for codes whose provider is known.
-  // Orphaned codes (discount relation is null) still get deleted locally above
-  // but we can't tell which external provider to clean up, so we skip them.
+    console.log(
+      `[deleteDiscountCodes] Deleted ${deletedDiscountCodes.count} discount codes.`,
+    );
+  }
+
+  await enqueueDeleteDiscountCode(discountCodes);
+}
+
+// Only enqueue external-provider cleanup for codes whose provider is known.
+// Orphaned codes (discount relation is null) still get deleted locally above
+// but we can't tell which external provider to clean up, so we skip them.
+export async function enqueueDeleteDiscountCode(
+  discountCodes: EnqueueDeleteDiscountCodeParams[],
+) {
   const codesWithProvider = discountCodes.filter(
     (dc): dc is typeof dc & { discount: Pick<Discount, "provider"> } =>
       dc.discount != null,
   );
 
-  const orphanedCount = discountCodes.length - codesWithProvider.length;
-  if (orphanedCount > 0) {
-    console.warn(
-      `[deleteDiscountCodes] Skipping external provider cleanup for ${orphanedCount} orphaned discount code(s) with no discount relation.`,
-    );
+  if (codesWithProvider.length === 0) {
+    return;
   }
 
   // Queue the job to remove the discount codes from provider
@@ -63,7 +92,7 @@ export async function deleteDiscountCodes(
   for (const chunkOfCodes of chunks) {
     await enqueueBatchJobs(
       chunkOfCodes.map((discountCode) => ({
-        url: `${APP_DOMAIN_WITH_NGROK}/api/cron/discount-codes/delete`,
+        url: `${APP_DOMAIN_WITH_NGROK}/api/cron/discount-codes/disable`,
         method: "POST",
         queueName: "delete-discount-code",
         body: {

@@ -4,6 +4,11 @@ import { hasPermission } from "@/lib/auth/partner-users/partner-user-permissions
 import { mutatePrefix } from "@/lib/swr/mutate";
 import usePartnerPayoutsCount from "@/lib/swr/use-partner-payouts-count";
 import { PartnerProps } from "@/lib/types";
+import {
+  IdentitySyncField,
+  IdentitySyncSnapshot,
+  useIdentitySyncConfirmModal,
+} from "@/ui/modals/identity-sync-confirm-modal";
 import { CountryCombobox } from "@/ui/partners/country-combobox";
 import {
   PartnerPlatformsForm,
@@ -22,8 +27,16 @@ import {
 import { OG_AVATAR_URL, cn } from "@dub/utils";
 import { PartnerProfileType } from "@prisma/client";
 import { AnimatePresence, LayoutGroup, motion } from "motion/react";
+import { useSession } from "next-auth/react";
 import { useAction } from "next-safe-action/hooks";
-import { Dispatch, RefObject, SetStateAction, useEffect, useRef } from "react";
+import {
+  Dispatch,
+  RefObject,
+  SetStateAction,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import {
   Controller,
   FormProvider,
@@ -43,6 +56,39 @@ type BasicInfoFormData = {
   profileType: PartnerProfileType;
   companyName: string | null;
 };
+
+type PendingProfileSubmit = {
+  data: BasicInfoFormData;
+  imageChanged: boolean;
+};
+
+function getProfileSyncCandidates({
+  data,
+  partner,
+  user,
+  imageChanged,
+}: {
+  data: BasicInfoFormData;
+  partner?: PartnerProps;
+  user?: { name?: string | null; email?: string | null; image?: string | null };
+  imageChanged: boolean;
+}) {
+  const candidates: IdentitySyncField[] = [];
+
+  if (data.name !== partner?.name && data.name !== user?.name) {
+    candidates.push("name");
+  }
+
+  if (data.email !== partner?.email && data.email !== user?.email) {
+    candidates.push("email");
+  }
+
+  if (imageChanged && data.image !== user?.image) {
+    candidates.push("image");
+  }
+
+  return candidates;
+}
 
 export function ProfileDetailsForm({
   partner,
@@ -182,18 +228,19 @@ function BasicInfoForm({
   }, [isSubmitSuccessful, reset, getValues]);
 
   const { profileType } = watch();
+  const { data: session, update: updateSession } = useSession();
+  const pendingSubmitRef = useRef<PendingProfileSubmit | null>(null);
+  const [syncModalContent, setSyncModalContent] = useState<{
+    changedFields: IdentitySyncField[];
+    current: IdentitySyncSnapshot;
+    next: IdentitySyncSnapshot;
+  }>({
+    changedFields: [],
+    current: {},
+    next: {},
+  });
 
   const { executeAsync } = useAction(updatePartnerProfileAction, {
-    onSuccess: async ({ data }) => {
-      if (data?.needsEmailVerification) {
-        toast.success(
-          "Please check your email to verify your new email address.",
-        );
-      } else {
-        toast.success("Your profile has been updated.");
-      }
-      mutatePrefix("/api/partner-profile");
-    },
     onError({ error }) {
       if (error.validationErrors) {
         toast.error(parseActionError(error, "Could not update your profile."));
@@ -217,249 +264,346 @@ function BasicInfoForm({
     },
   });
 
+  const saveProfile = async ({
+    data,
+    imageChanged,
+    syncIdentity,
+  }: PendingProfileSubmit & { syncIdentity: boolean }) => {
+    const result = await executeAsync({
+      ...data,
+      username: data.username || undefined,
+      ...(imageChanged ? { image: data.image } : {}),
+      syncIdentity,
+    });
+
+    if (!result?.data) {
+      throw new Error("Profile update failed");
+    }
+
+    if (result.data.needsEmailVerification) {
+      toast.success(
+        "Please check your email to verify your new email address.",
+      );
+    } else {
+      toast.success("Your profile has been updated.");
+    }
+
+    setTimeout(() => {
+      mutatePrefix("/api/partner-profile");
+    }, 0);
+
+    if (syncIdentity) {
+      await updateSession();
+    }
+  };
+
+  const submitProfile = async (syncIdentity: boolean) => {
+    const pending = pendingSubmitRef.current;
+
+    if (!pending) {
+      return;
+    }
+
+    await saveProfile({ ...pending, syncIdentity });
+    pendingSubmitRef.current = null;
+  };
+
+  const { setShowModal: setShowConfirmModal, confirmModal } =
+    useIdentitySyncConfirmModal({
+      title: "Also update your user account?",
+      intro:
+        "You're updating your partner account. These fields differ from your user account:",
+      changedFields: syncModalContent.changedFields,
+      current: syncModalContent.current,
+      next: syncModalContent.next,
+      onConfirm: async () => {
+        await submitProfile(true);
+      },
+      onCancel: async () => {
+        await submitProfile(false);
+      },
+      onDismiss: () => {
+        pendingSubmitRef.current = null;
+      },
+    });
+
   return (
-    <form
-      ref={formRef}
-      onKeyDown={(e) => {
-        if (e.key !== "Enter") return;
+    <>
+      {confirmModal}
+      <form
+        ref={formRef}
+        onKeyDown={(e) => {
+          if (e.key !== "Enter") return;
 
-        const target = e.target as HTMLElement;
-        if (target.tagName !== "INPUT") return;
+          const target = e.target as HTMLElement;
+          if (target.tagName !== "INPUT") return;
 
-        e.preventDefault();
-        onSubmitAction();
-      }}
-      onSubmit={handleSubmit(async (data) => {
-        const imageChanged = data.image !== partner?.image;
+          e.preventDefault();
+          onSubmitAction();
+        }}
+        onSubmit={handleSubmit(async (data) => {
+          const imageChanged = data.image !== partner?.image;
+          const syncCandidates = getProfileSyncCandidates({
+            data,
+            partner,
+            user: session?.user,
+            imageChanged,
+          });
 
-        await executeAsync({
-          ...data,
-          username: data.username || undefined,
-          image: imageChanged ? data.image : null,
-        });
-      })}
-    >
-      <div className="flex flex-col gap-6">
-        <label>
-          <div className="flex items-center gap-5">
-            <Controller
-              control={control}
-              name="image"
-              render={({ field }) => (
-                <FileUpload
-                  accept="images"
-                  className="size-20 shrink-0 rounded-full border border-neutral-300 sm:size-32"
-                  iconClassName="w-5 h-5"
-                  previewClassName="size-20 sm:size-32 rounded-full"
-                  variant="plain"
-                  imageSrc={field.value || `${OG_AVATAR_URL}${partner?.name}`}
-                  readFile
-                  disabled={disabled}
-                  onChange={({ src }) => field.onChange(src)}
-                  content={null}
-                  maxFileSizeMB={2}
-                  targetResolution={{ width: 160, height: 160 }}
-                />
-              )}
-            />
-            <div>
-              <div
-                className={cn(
-                  buttonVariants({ variant: "secondary" }),
-                  "flex h-8 w-fit cursor-pointer items-center rounded-md border px-2.5 text-xs",
+          if (syncCandidates.length === 0) {
+            await saveProfile({
+              data,
+              imageChanged,
+              syncIdentity: false,
+            });
+            return;
+          }
+
+          pendingSubmitRef.current = { data, imageChanged };
+          setSyncModalContent({
+            changedFields: syncCandidates,
+            current: {
+              name: session?.user?.name,
+              email: session?.user?.email,
+              image: session?.user?.image,
+            },
+            next: {
+              name: data.name,
+              email: data.email,
+              image: data.image,
+              id: partner?.id,
+            },
+          });
+          setShowConfirmModal(true);
+        })}
+      >
+        <div className="flex flex-col gap-6">
+          <label>
+            <div className="flex items-center gap-5">
+              <Controller
+                control={control}
+                name="image"
+                render={({ field }) => (
+                  <FileUpload
+                    accept="images"
+                    className="size-20 shrink-0 rounded-full border border-neutral-300 sm:size-32"
+                    iconClassName="w-5 h-5"
+                    previewClassName="size-20 sm:size-32 rounded-full"
+                    variant="plain"
+                    imageSrc={field.value || `${OG_AVATAR_URL}${partner?.name}`}
+                    readFile
+                    disabled={disabled}
+                    onChange={({ src }) => field.onChange(src)}
+                    content={null}
+                    maxFileSizeMB={2}
+                    targetResolution={{ width: 160, height: 160 }}
+                  />
                 )}
-              >
-                Upload image
+              />
+              <div>
+                <div
+                  className={cn(
+                    buttonVariants({ variant: "secondary" }),
+                    "flex h-8 w-fit cursor-pointer items-center rounded-md border px-2.5 text-xs",
+                  )}
+                >
+                  Upload image
+                </div>
+                <p className="mt-1.5 text-xs text-neutral-500">
+                  Recommended size: 160x160px
+                </p>
               </div>
-              <p className="mt-1.5 text-xs text-neutral-500">
-                Recommended size: 160x160px
-              </p>
             </div>
-          </div>
-        </label>
-        <label className="flex flex-col gap-1.5">
-          <span className="text-sm font-medium text-neutral-800">
-            Full name
-          </span>
-          <div>
+          </label>
+          <label className="flex flex-col gap-1.5">
+            <span className="text-sm font-medium text-neutral-800">
+              Full name
+            </span>
+            <div>
+              <input
+                type="text"
+                disabled={disabled}
+                className={cn(
+                  "block w-full rounded-md focus:outline-none sm:text-sm",
+                  disabled &&
+                    "cursor-not-allowed bg-neutral-50 text-neutral-400",
+                  errors.name
+                    ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
+                    : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500",
+                )}
+                placeholder="Brendon Urie"
+                {...register("name", {
+                  required: true,
+                })}
+              />
+            </div>
+          </label>
+          <label className="flex flex-col gap-1.5">
+            <span className="text-sm font-medium text-neutral-800">Email</span>
             <input
-              type="text"
+              type="email"
               disabled={disabled}
               className={cn(
                 "block w-full rounded-md focus:outline-none sm:text-sm",
                 disabled && "cursor-not-allowed bg-neutral-50 text-neutral-400",
-                errors.name
+                errors.email
                   ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
                   : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500",
               )}
-              placeholder="Brendon Urie"
-              {...register("name", {
+              placeholder="panic@thedis.co"
+              {...register("email", {
                 required: true,
               })}
             />
-          </div>
-        </label>
-        <label className="flex flex-col gap-1.5">
-          <span className="text-sm font-medium text-neutral-800">Email</span>
-          <input
-            type="email"
-            disabled={disabled}
-            className={cn(
-              "block w-full rounded-md focus:outline-none sm:text-sm",
-              disabled && "cursor-not-allowed bg-neutral-50 text-neutral-400",
-              errors.email
-                ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
-                : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500",
-            )}
-            placeholder="panic@thedis.co"
-            {...register("email", {
-              required: true,
-            })}
-          />
-        </label>
+          </label>
 
-        <label className="flex flex-col gap-1.5">
-          <span className="text-sm font-medium text-neutral-800">Username</span>
-          <div className="relative w-full">
-            <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-sm text-neutral-400">
-              @
+          <label className="flex flex-col gap-1.5">
+            <span className="text-sm font-medium text-neutral-800">
+              Username
             </span>
-            <input
-              type="text"
-              disabled={disabled}
-              className={cn(
-                "block w-full rounded-md pl-7 focus:outline-none sm:text-sm",
-                disabled && "cursor-not-allowed bg-neutral-50 text-neutral-400",
-                errors.username
-                  ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
-                  : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500",
-              )}
-              placeholder={partner?.email?.split("@")[0] ?? ""}
-              autoCapitalize="off"
-              autoCorrect="off"
-              spellCheck={false}
-              pattern="^[a-z0-9]+(?:-[a-z0-9]+)*$"
-              minLength={3}
-              maxLength={30}
-              {...register("username")}
-            />
-          </div>
-          <p className="text-xs text-neutral-500">
-            3–30 characters. Lowercase letters, numbers, hyphens, and
-            underscores only.
-          </p>
-        </label>
-
-        <label className="flex flex-col">
-          <span className="text-sm font-medium text-neutral-800">Country</span>
-          <Controller
-            control={control}
-            name="country"
-            rules={{ required: true }}
-            render={({ field }) => (
-              <CountryCombobox
-                value={field.value || ""}
-                onChange={field.onChange}
-                disabledTooltip={
-                  <TooltipContent
-                    title="Your profile country is based on your current location and cannot be changed. If you need to update your country, please contact support."
-                    cta="Contact support"
-                    href="https://dub.co/support"
-                    target="_blank"
-                  />
-                }
+            <div className="relative w-full">
+              <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-sm text-neutral-400">
+                @
+              </span>
+              <input
+                type="text"
+                disabled={disabled}
+                className={cn(
+                  "block w-full rounded-md pl-7 focus:outline-none sm:text-sm",
+                  disabled &&
+                    "cursor-not-allowed bg-neutral-50 text-neutral-400",
+                  errors.username
+                    ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
+                    : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500",
+                )}
+                placeholder={partner?.email?.split("@")[0] ?? ""}
+                autoCapitalize="off"
+                autoCorrect="off"
+                spellCheck={false}
+                pattern="^[a-z0-9]+(?:-[a-z0-9]+)*$"
+                minLength={3}
+                maxLength={30}
+                {...register("username")}
               />
-            )}
-          />
-        </label>
+            </div>
+            <p className="text-xs text-neutral-500">
+              3–30 characters. Lowercase letters, numbers, and hyphens only.
+            </p>
+          </label>
 
-        <label className="flex flex-col gap-1.5">
-          <span className="text-sm font-medium text-neutral-800">
-            Profile type
-          </span>
-          <DynamicTooltipWrapper
-            tooltipProps={{
-              content: disabled
-                ? "You don't have permission to update this field"
-                : undefined,
-            }}
-          >
-            <LayoutGroup>
-              <div className="w-full">
-                <ToggleGroup
-                  options={[
-                    {
-                      value: "individual",
-                      label: "Individual",
-                    },
-                    {
-                      value: "company",
-                      label: "Company",
-                    },
-                  ]}
-                  selected={profileType}
-                  selectAction={(option: "individual" | "company") => {
-                    if (!disabled) {
-                      setValue("profileType", option);
-                    }
-                  }}
-                  className={cn(
-                    "flex w-full items-center gap-0.5 rounded-lg border-neutral-300 bg-neutral-100 p-0.5",
-                    disabled && "cursor-not-allowed",
-                  )}
-                  optionClassName={cn(
-                    "h-9 flex items-center justify-center rounded-lg flex-1",
-                    disabled && "pointer-events-none text-neutral-400",
-                  )}
-                  indicatorClassName="bg-white"
+          <label className="flex flex-col">
+            <span className="text-sm font-medium text-neutral-800">
+              Country
+            </span>
+            <Controller
+              control={control}
+              name="country"
+              rules={{ required: true }}
+              render={({ field }) => (
+                <CountryCombobox
+                  value={field.value || ""}
+                  onChange={field.onChange}
+                  disabledTooltip={
+                    <TooltipContent
+                      title="Your profile country is based on your current location and cannot be changed. If you need to update your country, please contact support."
+                      cta="Contact support"
+                      href="https://dub.co/support"
+                      target="_blank"
+                    />
+                  }
                 />
-              </div>
-            </LayoutGroup>
-          </DynamicTooltipWrapper>
-        </label>
+              )}
+            />
+          </label>
 
-        <AnimatePresence mode="popLayout">
-          {profileType === "company" && (
-            <motion.div
-              layout
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              exit={{ opacity: 0, height: 0 }}
-              transition={{
-                type: "spring",
-                stiffness: 300,
-                damping: 30,
-                opacity: { duration: 0.2 },
-                layout: { duration: 0.3, type: "spring" },
+          <label className="flex flex-col gap-1.5">
+            <span className="text-sm font-medium text-neutral-800">
+              Profile type
+            </span>
+            <DynamicTooltipWrapper
+              tooltipProps={{
+                content: disabled
+                  ? "You don't have permission to update this field"
+                  : undefined,
               }}
-              className="contents"
             >
-              <label className="flex flex-col gap-1.5">
-                <span className="text-sm font-medium text-neutral-800">
-                  Legal company name
-                </span>
-                <div>
-                  <input
-                    type="text"
-                    disabled={disabled}
+              <LayoutGroup>
+                <div className="w-full">
+                  <ToggleGroup
+                    options={[
+                      {
+                        value: "individual",
+                        label: "Individual",
+                      },
+                      {
+                        value: "company",
+                        label: "Company",
+                      },
+                    ]}
+                    selected={profileType}
+                    selectAction={(option: "individual" | "company") => {
+                      if (!disabled) {
+                        setValue("profileType", option);
+                      }
+                    }}
                     className={cn(
-                      "block w-full rounded-md focus:outline-none sm:text-sm",
-                      disabled &&
-                        "cursor-not-allowed bg-neutral-50 text-neutral-400",
-                      errors.companyName
-                        ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
-                        : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500",
+                      "flex w-full items-center gap-0.5 rounded-lg border-neutral-300 bg-neutral-100 p-0.5",
+                      disabled && "cursor-not-allowed",
                     )}
-                    {...register("companyName", {
-                      required: profileType === "company",
-                    })}
+                    optionClassName={cn(
+                      "h-9 flex items-center justify-center rounded-lg flex-1",
+                      disabled && "pointer-events-none text-neutral-400",
+                    )}
+                    indicatorClassName="bg-white"
                   />
                 </div>
-              </label>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
-    </form>
+              </LayoutGroup>
+            </DynamicTooltipWrapper>
+          </label>
+
+          <AnimatePresence mode="popLayout">
+            {profileType === "company" && (
+              <motion.div
+                layout
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{
+                  type: "spring",
+                  stiffness: 300,
+                  damping: 30,
+                  opacity: { duration: 0.2 },
+                  layout: { duration: 0.3, type: "spring" },
+                }}
+                className="contents"
+              >
+                <label className="flex flex-col gap-1.5">
+                  <span className="text-sm font-medium text-neutral-800">
+                    Legal company name
+                  </span>
+                  <div>
+                    <input
+                      type="text"
+                      disabled={disabled}
+                      className={cn(
+                        "block w-full rounded-md focus:outline-none sm:text-sm",
+                        disabled &&
+                          "cursor-not-allowed bg-neutral-50 text-neutral-400",
+                        errors.companyName
+                          ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
+                          : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500",
+                      )}
+                      {...register("companyName", {
+                        required: profileType === "company",
+                      })}
+                    />
+                  </div>
+                </label>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      </form>
+    </>
   );
 }

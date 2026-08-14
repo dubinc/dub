@@ -79,14 +79,7 @@ export const GET = withWorkspace(
     return NextResponse.json(response);
   },
   {
-    requiredPlan: [
-      "business",
-      "business plus",
-      "business extra",
-      "business max",
-      "advanced",
-      "enterprise",
-    ],
+    requiredPlan: ["business", "advanced", "enterprise"],
     requiredPermissions: ["analytics.read"],
   },
 );

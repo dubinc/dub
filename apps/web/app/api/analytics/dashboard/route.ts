@@ -4,7 +4,6 @@ import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { assertValidDateRangeForPlan } from "@/lib/api/utils/assert-valid-date-range-for-plan";
 import { exceededLimitError } from "@/lib/exceeded-limit-error";
 import { prisma } from "@/lib/prisma";
-import { PlanProps } from "@/lib/types";
 import { redis } from "@/lib/upstash";
 import { parseAnalyticsQuery } from "@/lib/zod/schemas/analytics";
 import { DUB_DEMO_LINKS, DUB_WORKSPACE_ID, getSearchParams } from "@dub/utils";
@@ -140,7 +139,8 @@ export const GET = async (req: Request) => {
       throw new DubApiError({
         code: "forbidden",
         message: exceededLimitError({
-          plan: workspace.plan as PlanProps,
+          plan: workspace.plan,
+          planPeriod: workspace.planPeriod,
           limit: workspace.usageLimit,
           type: "clicks",
         }),

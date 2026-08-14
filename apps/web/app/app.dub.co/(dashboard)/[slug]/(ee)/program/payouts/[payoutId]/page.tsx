@@ -1,24 +1,19 @@
 "use client";
 
 import { clientAccessCheck } from "@/lib/client-access-check";
-import { getPlanCapabilities } from "@/lib/plan-capabilities";
-import { useFraudGroupCount } from "@/lib/swr/use-fraud-groups-count";
 import { usePayout } from "@/lib/swr/use-payout";
 import useWorkspace from "@/lib/swr/use-workspace";
-import {
-  CommissionResponse,
-  FraudGroupCountByPartner,
-  PayoutResponse,
-} from "@/lib/types";
+import { CommissionResponse, PayoutResponse } from "@/lib/types";
+import { formatCommissionDescriptionTooltip } from "@/lib/commissions/format-commission-description-tooltip";
 import { CustomerAvatar } from "@/ui/customers/customer-avatar";
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { ActivityEvent } from "@/ui/partners/activity-event";
 import { CommissionTypeIcon } from "@/ui/partners/comission-type-icon";
 import { CommissionRowMenu } from "@/ui/partners/commission-row-menu";
+import { CommissionDescriptionLabel } from "@/ui/partners/commission-description-label";
 import {
   CommissionTypeBadge,
-  getCommissionTypeLabel,
 } from "@/ui/partners/commission-type-badge";
 import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
@@ -58,6 +53,8 @@ type PayoutActivityItem = {
   timestamp: string | Date | null;
   user?: PayoutResponse["user"];
 };
+
+const terminalStatuses = ["completed", "sent", "failed", "canceled"] as const;
 
 export default function PayoutDetailsPage() {
   const { slug, id: workspaceId } = useWorkspace();
@@ -281,13 +278,6 @@ function PayoutDetailsContent({
       });
     }
 
-    const terminalStatuses = [
-      "completed",
-      "sent",
-      "failed",
-      "canceled",
-      "hold",
-    ] as const;
     const terminalStatus = terminalStatuses.find((s) => s === payout.status);
 
     if (terminalStatus) {
@@ -335,9 +325,11 @@ function PayoutDetailsContent({
                   {row.original.customer.email || row.original.customer.name}
                 </Link>
               ) : (
-                <span className="max-w-xs truncate text-sm text-neutral-700">
-                  {getCommissionTypeLabel(row.original)}
-                </span>
+                <CommissionDescriptionLabel
+                  commission={row.original}
+                  context={{ variant: "program", workspaceSlug: slug }}
+                  className="max-w-xs truncate text-sm text-neutral-700"
+                />
               )}
               <span className="text-xs text-neutral-500">
                 {formatDateTime(row.original.createdAt)}
@@ -362,7 +354,41 @@ function PayoutDetailsContent({
         minSize: 120,
         size: 120,
         maxSize: 120,
-        cell: ({ row }) => currencyFormatter(row.original.earnings),
+        cell: ({ row }) => {
+          const commission = row.original;
+          const earnings = currencyFormatter(commission.earnings);
+
+          if (commission.description) {
+            return (
+              <Tooltip
+                content={formatCommissionDescriptionTooltip(
+                  commission.description,
+                  { variant: "program", workspaceSlug: slug },
+                )}
+              >
+                <span
+                  className={cn(
+                    "cursor-help truncate underline decoration-dotted underline-offset-2",
+                    commission.earnings < 0 && "text-red-600",
+                  )}
+                >
+                  {earnings}
+                </span>
+              </Tooltip>
+            );
+          }
+
+          return (
+            <span
+              className={cn(
+                commission.earnings < 0 && "text-red-600",
+                "truncate",
+              )}
+            >
+              {earnings}
+            </span>
+          );
+        },
       },
       {
         id: "menu",
@@ -481,26 +507,9 @@ function PayoutDetailsskeleton() {
 }
 
 function PayoutConfirmButton() {
-  const { slug, role, plan } = useWorkspace();
+  const { slug, role } = useWorkspace();
   const { payout } = usePayout();
   const router = useRouter();
-
-  const { canManageFraudEvents } = getPlanCapabilities(plan);
-
-  const { fraudGroupCount } = useFraudGroupCount<FraudGroupCountByPartner[]>({
-    ignoreParams: true,
-    enabled: !!payout?.partner?.id,
-    query: {
-      groupBy: "partnerId",
-      status: "pending",
-      ...(payout?.partner?.id && { partnerId: payout.partner.id }),
-    },
-  });
-
-  const hasHold =
-    payout?.status === "pending" &&
-    canManageFraudEvents &&
-    (fraudGroupCount?.length ?? 0) > 0;
 
   const { error: _permissionsError } = clientAccessCheck({
     action: "payouts.write",
@@ -514,10 +523,7 @@ function PayoutConfirmButton() {
 
   useKeyboardShortcut("c", () => router.push(url), {
     enabled:
-      !hasHold &&
-      !!payout?.id &&
-      !!payout.partner.payoutsEnabledAt &&
-      !permissionsError,
+      !!payout?.id && !!payout.partner.payoutsEnabledAt && !permissionsError,
   });
 
   if (payout?.status !== "pending") {
@@ -532,11 +538,9 @@ function PayoutConfirmButton() {
           className="h-8 px-3 sm:h-9"
           shortcut="C"
           disabledTooltip={
-            hasHold
-              ? `This partner's payouts are on hold due to [unresolved risk events](${APP_DOMAIN}/${slug}/program/risks?partnerId=${payout.partner.id}). They cannot be paid out until resolved.`
-              : !payout.partner.payoutsEnabledAt
-                ? "This partner has not [connected a bank account](https://dub.co/help/article/receiving-payouts) to receive payouts yet, which means they won't be able to receive payouts from your program."
-                : permissionsError || undefined
+            !payout.partner.payoutsEnabledAt
+              ? "This partner has not [connected a bank account](https://dub.co/help/article/receiving-payouts) to receive payouts yet, which means they won't be able to receive payouts from your program."
+              : permissionsError || undefined
           }
         />
       </Link>

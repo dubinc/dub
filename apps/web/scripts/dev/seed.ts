@@ -465,6 +465,7 @@ const truncate = async () => {
 
   const tables = [
     "InstalledIntegration",
+    "FolderWebhook",
     "LinkWebhook",
     "Webhook",
     "UtmTemplate",

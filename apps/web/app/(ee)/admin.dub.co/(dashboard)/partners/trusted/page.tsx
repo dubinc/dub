@@ -5,7 +5,7 @@ import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import { Button, CopyText, Sheet, TimestampTooltip, Tooltip } from "@dub/ui";
 import {
-  BadgeCheck2Fill,
+  BadgeCheck2,
   Instagram,
   LinkedIn,
   TikTok,
@@ -415,7 +415,10 @@ export default function PartnersPage() {
                                       <Icon className="size-3 shrink-0" />
                                       <span>{value}</span>
                                       {verified && (
-                                        <BadgeCheck2Fill className="size-3 text-green-600" />
+                                        <BadgeCheck2
+                                          variant="fill"
+                                          className="size-3 text-green-600"
+                                        />
                                       )}
                                     </Link>
                                   }
@@ -430,7 +433,10 @@ export default function PartnersPage() {
                                     <Icon className="size-3" />
                                     <span className="sr-only">{label}</span>
                                     {verified && (
-                                      <BadgeCheck2Fill className="absolute -right-1 -top-1 size-3 text-green-600" />
+                                      <BadgeCheck2
+                                        variant="fill"
+                                        className="absolute -right-1 -top-1 size-3 text-green-600"
+                                      />
                                     )}
                                   </Link>
                                 </Tooltip>

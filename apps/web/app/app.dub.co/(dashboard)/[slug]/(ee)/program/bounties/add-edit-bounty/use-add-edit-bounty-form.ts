@@ -1,7 +1,9 @@
 "use client";
 
+import { awardBountyConditionSchema } from "@/lib/api/workflows/award-bounty/schema";
 import { isCurrencyAttribute } from "@/lib/api/workflows/utils";
 import { generatePerformanceBountyName } from "@/lib/bounty/api/generate-performance-bounty-name";
+import { resolveBountyTiming } from "@/lib/bounty/bounty-period";
 import {
   BOUNTY_DESCRIPTION_MAX_LENGTH,
   BOUNTY_MAX_SUBMISSIONS,
@@ -11,13 +13,21 @@ import { mutatePrefix } from "@/lib/swr/mutate";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { BountyProps } from "@/lib/types";
-import { bountyPerformanceConditionSchema } from "@/lib/zod/schemas/bounties";
+import { bountySocialContentRequirementsSchema } from "@/lib/zod/schemas/bounties";
 import { formatDate } from "@dub/utils";
-import { BountySubmissionFrequency } from "@prisma/client";
-import { Dispatch, SetStateAction, useEffect, useMemo, useState } from "react";
+import { BountyStartMode, BountySubmissionFrequency } from "@prisma/client";
+import { addDays } from "date-fns";
+import {
+  Dispatch,
+  SetStateAction,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { CreateBountyInputExtended } from "./bounty-form-context";
+import { BountyTypeUI, CreateBountyInputExtended } from "./bounty-form-context";
 import { useConfirmCreateBountyModal } from "./confirm-create-bounty-modal";
 
 const ACCORDION_ITEMS = [
@@ -27,8 +37,54 @@ const ACCORDION_ITEMS = [
   "groups",
 ];
 
+const DEFAULT_SOCIAL_METRICS_CRITERIA = {
+  platform: "youtube",
+  metric: "views",
+} as const;
+
+const resolveSocialMetricsCriteria = (
+  existing?: NonNullable<
+    CreateBountyInputExtended["submissionRequirements"]
+  >["socialMetrics"],
+) => ({
+  ...DEFAULT_SOCIAL_METRICS_CRITERIA,
+  ...existing,
+});
+
 const isEmpty = (value: unknown) =>
   value === undefined || value === null || value === "";
+
+function getEffectiveEndsAt({
+  startsAt,
+  endsAt,
+  endsAfterDays,
+}: {
+  startsAt: Date;
+  endsAt: Date | null;
+  endsAfterDays: number | null;
+}) {
+  if (endsAt) {
+    return endsAt;
+  }
+
+  if (endsAfterDays != null) {
+    return addDays(startsAt, endsAfterDays);
+  }
+
+  return null;
+}
+
+function getSubmissionWindowFromBounty(bounty?: BountyProps): number | null {
+  if (!bounty?.submissionsOpenAt || !bounty?.endsAt) return null;
+
+  const days = Math.ceil(
+    (new Date(bounty.endsAt).getTime() -
+      new Date(bounty.submissionsOpenAt).getTime()) /
+      (1000 * 60 * 60 * 24),
+  );
+
+  return days >= 2 && days <= 14 ? days : null;
+}
 
 export function useAddEditBountyForm({
   bounty,
@@ -40,8 +96,14 @@ export function useAddEditBountyForm({
   const { id: workspaceId } = useWorkspace();
   const { makeRequest, isSubmitting } = useApiMutation<BountyProps>();
 
-  const [hasStartDate, setHasStartDate] = useState(!!bounty?.startsAt);
-  const [hasEndDate, setHasEndDate] = useState(!!bounty?.endsAt);
+  const defaultTiming = resolveBountyTiming({
+    startPreset: "today",
+    endPreset: "never",
+  });
+
+  const [hasEndDate, setHasEndDate] = useState(
+    !!bounty?.endsAt || !!bounty?.endsAfterDays,
+  );
   const [openAccordions, setOpenAccordions] = useState(ACCORDION_ITEMS);
   const [allowedSubmissions, setAllowedSubmissions] = useState<number>(
     bounty?.maxSubmissions ?? 1,
@@ -51,16 +113,8 @@ export function useAddEditBountyForm({
       bounty?.submissionFrequency ?? null,
     );
 
-  const [submissionWindow, setSubmissionWindow] = useState<number | null>(
-    () => {
-      if (!bounty?.submissionsOpenAt || !bounty?.endsAt) return null;
-      const days = Math.ceil(
-        (new Date(bounty.endsAt).getTime() -
-          new Date(bounty.submissionsOpenAt).getTime()) /
-          (1000 * 60 * 60 * 24),
-      );
-      return days >= 2 && days <= 14 ? days : null;
-    },
+  const [submissionWindow, setSubmissionWindow] = useState<number | null>(() =>
+    getSubmissionWindowFromBounty(bounty),
   );
 
   const initialSubmissionRequirements = (() => {
@@ -86,34 +140,42 @@ export function useAddEditBountyForm({
     defaultValues: {
       name: bounty?.name || undefined,
       description: bounty?.description || undefined,
-      startsAt: bounty?.startsAt || undefined,
-      endsAt: bounty?.endsAt || undefined,
+      startsAt: bounty?.startsAt || defaultTiming.startsAt,
+      endsAt: bounty?.endsAt ?? defaultTiming.endsAt,
+      startMode: bounty?.startMode ?? defaultTiming.startMode,
+      endsAfterDays: bounty?.endsAfterDays ?? defaultTiming.endsAfterDays,
       submissionsOpenAt: bounty?.submissionsOpenAt || undefined,
       rewardAmount: bounty?.rewardAmount
         ? bounty.rewardAmount / 100
         : undefined,
       rewardDescription: bounty?.rewardDescription || undefined,
       type: bounty?.type || "performance",
+      bountyTypeUI:
+        bounty?.type === "performance"
+          ? "performance"
+          : bounty?.submissionRequirements &&
+              typeof bounty.submissionRequirements === "object" &&
+              "socialMetrics" in bounty.submissionRequirements
+            ? "socialMetrics"
+            : bounty
+              ? "submission"
+              : "performance",
       submissionRequirements: initialSubmissionRequirements,
       groupIds: bounty?.groups?.map(({ id }) => id) || null,
       performanceCondition: bounty?.performanceCondition
         ? {
             ...bounty.performanceCondition,
-            value: isCurrencyAttribute(bounty.performanceCondition.attribute)
-              ? bounty.performanceCondition.value / 100
-              : bounty.performanceCondition.value,
+            value:
+              typeof bounty.performanceCondition.value === "number" &&
+              isCurrencyAttribute(bounty.performanceCondition.attribute)
+                ? bounty.performanceCondition.value / 100
+                : bounty.performanceCondition.value,
           }
         : {
             operator: "gte",
           },
       performanceScope: bounty?.performanceScope ?? "new",
       rewardType: bounty ? (bounty.rewardAmount ? "flat" : "custom") : "flat",
-      submissionCriteriaType:
-        bounty?.submissionRequirements &&
-        typeof bounty.submissionRequirements === "object" &&
-        "socialMetrics" in bounty.submissionRequirements
-          ? "socialMetrics"
-          : "manualSubmission",
     },
     shouldUnregister: false,
   });
@@ -130,9 +192,12 @@ export function useAddEditBountyForm({
   const [
     startsAt,
     endsAt,
+    startMode,
+    endsAfterDays,
     rewardAmount,
     rewardDescription,
     type,
+    bountyTypeUI,
     name,
     description,
     performanceCondition,
@@ -142,9 +207,12 @@ export function useAddEditBountyForm({
   ] = watch([
     "startsAt",
     "endsAt",
+    "startMode",
+    "endsAfterDays",
     "rewardAmount",
     "rewardDescription",
     "type",
+    "bountyTypeUI",
     "name",
     "description",
     "performanceCondition",
@@ -153,50 +221,67 @@ export function useAddEditBountyForm({
     "submissionRequirements",
   ]);
 
-  const handleStartDateToggle = (checked: boolean) => {
-    setHasStartDate(checked);
-    if (!checked) {
-      setValue("startsAt", null, { shouldDirty: true, shouldValidate: true });
-    }
-  };
-
-  const handleEndDateToggle = (checked: boolean) => {
-    setHasEndDate(checked);
-    if (!checked) {
-      setValue("endsAt", null, { shouldDirty: true, shouldValidate: true });
-      setSubmissionWindow(null);
-      setValue("submissionsOpenAt", null, { shouldDirty: true });
-    }
-  };
-
-  const handleEndDateChange = (date: Date | null) => {
-    setValue("endsAt", date, {
-      shouldDirty: true,
-      shouldValidate: true,
-    });
-    if (date && submissionWindow != null) {
-      const submissionsOpenAt = new Date(date);
-      submissionsOpenAt.setDate(submissionsOpenAt.getDate() - submissionWindow);
-      setValue("submissionsOpenAt", submissionsOpenAt, {
+  const handleTimingChange = useCallback(
+    ({
+      startMode: nextStartMode,
+      startsAt: nextStartsAt,
+      endsAt: nextEndsAt,
+      endsAfterDays: nextEndsAfterDays,
+    }: ReturnType<typeof resolveBountyTiming>) => {
+      setValue("startMode", nextStartMode, {
         shouldDirty: true,
         shouldValidate: true,
       });
-    }
-  };
 
-  const getInitialSubmissionWindow = () => {
-    if (!bounty?.submissionsOpenAt || !bounty?.endsAt) return null;
-    const days = Math.ceil(
-      (new Date(bounty.endsAt).getTime() -
-        new Date(bounty.submissionsOpenAt).getTime()) /
-        (1000 * 60 * 60 * 24),
-    );
-    return days >= 2 && days <= 14 ? days : null;
-  };
+      setValue("startsAt", nextStartsAt, {
+        shouldDirty: true,
+        shouldValidate: true,
+      });
+
+      setValue("endsAt", nextEndsAt, {
+        shouldDirty: true,
+        shouldValidate: true,
+      });
+
+      setValue("endsAfterDays", nextEndsAfterDays, {
+        shouldDirty: true,
+        shouldValidate: true,
+      });
+
+      if (nextStartMode === BountyStartMode.relative) {
+        setValue("performanceScope", "new", {
+          shouldDirty: true,
+          shouldValidate: true,
+        });
+      }
+
+      setHasEndDate(
+        Boolean(nextEndsAt) ||
+          (nextStartMode === BountyStartMode.relative &&
+            Boolean(nextEndsAfterDays)),
+      );
+
+      if (!nextEndsAt) {
+        setSubmissionWindow(null);
+        setValue("submissionsOpenAt", null, { shouldDirty: true });
+      } else if (submissionWindow != null) {
+        const submissionsOpenAt = new Date(nextEndsAt);
+        submissionsOpenAt.setDate(
+          submissionsOpenAt.getDate() - submissionWindow,
+        );
+
+        setValue("submissionsOpenAt", submissionsOpenAt, {
+          shouldDirty: true,
+          shouldValidate: true,
+        });
+      }
+    },
+    [setValue, submissionWindow],
+  );
 
   const handleSubmissionWindowToggle = (checked: boolean) => {
     if (checked) {
-      const val = getInitialSubmissionWindow() ?? 2;
+      const val = getSubmissionWindowFromBounty(bounty) ?? 2;
       setSubmissionWindow(val);
       if (endsAt) {
         const submissionsOpenAt = new Date(endsAt);
@@ -254,11 +339,21 @@ export function useAddEditBountyForm({
     }
   };
 
+  const effectiveEndsAt = useMemo(
+    () =>
+      getEffectiveEndsAt({
+        startsAt: startsAt ? new Date(startsAt) : new Date(),
+        endsAt: endsAt ? new Date(endsAt) : null,
+        endsAfterDays: endsAfterDays ?? null,
+      }),
+    [startsAt, endsAt, endsAfterDays],
+  );
+
   const maxAllowedSubmissions = useMemo(() => {
-    if (!submissionFrequency || !endsAt) return BOUNTY_MAX_SUBMISSIONS;
+    if (!submissionFrequency || !effectiveEndsAt) return BOUNTY_MAX_SUBMISSIONS;
 
     const start = startsAt ? new Date(startsAt) : new Date();
-    const end = new Date(endsAt);
+    const end = effectiveEndsAt;
 
     let count = 0;
     for (let i = 0; i < BOUNTY_MAX_SUBMISSIONS; i++) {
@@ -272,7 +367,7 @@ export function useAddEditBountyForm({
     }
 
     return count;
-  }, [submissionFrequency, startsAt, endsAt]);
+  }, [submissionFrequency, startsAt, effectiveEndsAt]);
 
   useEffect(() => {
     if (allowedSubmissions > maxAllowedSubmissions) {
@@ -305,22 +400,74 @@ export function useAddEditBountyForm({
     }
   };
 
+  const handleBountyTypeUIChange = (bountyTypeUI: BountyTypeUI) => {
+    setValue("bountyTypeUI", bountyTypeUI, { shouldDirty: true });
+
+    if (bountyTypeUI === "performance") {
+      setValue("type", "performance", { shouldDirty: true });
+      setValue("submissionRequirements", null, { shouldDirty: true });
+      return;
+    }
+
+    setValue("type", "submission", { shouldDirty: true });
+
+    const currentSubmissionRequirements = form.getValues(
+      "submissionRequirements",
+    );
+
+    if (bountyTypeUI === "socialMetrics") {
+      setValue(
+        "submissionRequirements",
+        {
+          socialMetrics: resolveSocialMetricsCriteria(
+            currentSubmissionRequirements &&
+              typeof currentSubmissionRequirements === "object" &&
+              currentSubmissionRequirements.socialMetrics
+              ? currentSubmissionRequirements.socialMetrics
+              : undefined,
+          ),
+        },
+        { shouldDirty: true },
+      );
+      return;
+    }
+
+    if (
+      currentSubmissionRequirements &&
+      typeof currentSubmissionRequirements === "object" &&
+      "socialMetrics" in currentSubmissionRequirements
+    ) {
+      const { socialMetrics: _socialMetrics, ...rest } =
+        currentSubmissionRequirements;
+
+      setValue(
+        "submissionRequirements",
+        Object.keys(rest).length > 0 ? rest : null,
+        { shouldDirty: true },
+      );
+    }
+  };
+
   const validationError = useMemo(() => {
     const now = new Date();
 
     const effectiveStartDate = startsAt ? new Date(startsAt) : now;
 
-    if (endsAt) {
-      const endDate = new Date(endsAt);
+    const effectiveEndDate = endsAfterDays
+      ? addDays(effectiveStartDate, endsAfterDays)
+      : endsAt
+        ? new Date(endsAt)
+        : null;
 
-      if (endDate <= effectiveStartDate) {
+    if (effectiveEndDate) {
+      if (effectiveEndDate <= effectiveStartDate) {
         return `Please choose an end date that is after the start date (${formatDate(effectiveStartDate)}).`;
       }
 
       const minEndDate = new Date(
         effectiveStartDate.getTime() + 60 * 60 * 1000,
       );
-      if (endDate < minEndDate) {
+      if (effectiveEndDate < minEndDate) {
         return "End date must be at least 1 hour after the start date.";
       }
     }
@@ -363,17 +510,35 @@ export function useAddEditBountyForm({
       }
 
       if ((rewardType ?? "flat") === "custom") {
-        const isSocialMetrics =
-          submissionRequirements &&
-          typeof submissionRequirements === "object" &&
-          "socialMetrics" in submissionRequirements;
-        if (!isSocialMetrics) {
+        if (bountyTypeUI !== "socialMetrics") {
           if (!rewardDescription?.trim()) {
             return "Reward description is required for custom rewards.";
           }
           if (rewardDescription && rewardDescription.length > 100) {
             return "Reward description must be 100 characters or less.";
           }
+        }
+      }
+
+      if (bountyTypeUI === "socialMetrics") {
+        const socialMetrics = submissionRequirements?.socialMetrics;
+
+        if (!socialMetrics) {
+          return "Social metrics criteria are required.";
+        }
+
+        const parsed =
+          bountySocialContentRequirementsSchema.safeParse(socialMetrics);
+
+        if (!parsed.success) {
+          return (
+            parsed.error.issues[0]?.message ??
+            "Invalid social metrics criteria."
+          );
+        }
+
+        if (!socialMetrics.minCount || socialMetrics.minCount <= 0) {
+          return "Minimum metric count must be greater than 0.";
         }
       }
     }
@@ -393,7 +558,11 @@ export function useAddEditBountyForm({
         return "Performance value is required.";
       }
 
-      if (condition?.value !== null && condition.value < 0) {
+      if (
+        condition?.value !== null &&
+        typeof condition.value === "number" &&
+        condition.value < 0
+      ) {
         return "Performance value must be greater than or equal to 0.";
       }
 
@@ -419,11 +588,13 @@ export function useAddEditBountyForm({
     bounty,
     startsAt,
     endsAt,
+    endsAfterDays,
     submissionWindow,
     rewardAmount,
     rewardDescription,
     rewardType,
     type,
+    bountyTypeUI,
     name,
     description,
     performanceCondition?.attribute,
@@ -439,9 +610,14 @@ export function useAddEditBountyForm({
 
     const {
       rewardType: formRewardType,
-      submissionCriteriaType: _submissionCriteriaType,
+      bountyTypeUI: _bountyTypeUI,
       ...data
     } = form.getValues();
+
+    // Relative bounties start when a partner joins, so startsAt must be null
+    if (data.startMode === BountyStartMode.relative) {
+      data.startsAt = null;
+    }
 
     const rawRewardAmount = data.rewardAmount;
     const numAmount =
@@ -452,7 +628,7 @@ export function useAddEditBountyForm({
       numAmount != null && numAmount > 0 ? numAmount * 100 : null;
 
     if (data.type === "performance") {
-      const result = bountyPerformanceConditionSchema.safeParse(
+      const result = awardBountyConditionSchema.safeParse(
         data.performanceCondition,
       );
 
@@ -467,9 +643,11 @@ export function useAddEditBountyForm({
 
       condition = {
         ...condition,
-        value: isCurrencyAttribute(condition.attribute)
-          ? condition.value * 100
-          : condition.value,
+        value:
+          typeof condition.value === "number" &&
+          isCurrencyAttribute(condition.attribute)
+            ? condition.value * 100
+            : condition.value,
       };
 
       data.performanceCondition = condition;
@@ -520,18 +698,28 @@ export function useAddEditBountyForm({
               type === "performance" && performanceCondition
                 ? generatePerformanceBountyName({
                     rewardAmount: rewardAmount ? rewardAmount * 100 : 0,
-                    condition: isCurrencyAttribute(
-                      performanceCondition?.attribute,
-                    )
-                      ? {
-                          ...performanceCondition,
-                          value: performanceCondition?.value * 100,
-                        }
-                      : performanceCondition,
+                    condition:
+                      typeof performanceCondition?.value === "number" &&
+                      isCurrencyAttribute(performanceCondition?.attribute)
+                        ? {
+                            ...performanceCondition,
+                            value: performanceCondition.value * 100,
+                          }
+                        : performanceCondition,
                   })
                 : name || "New bounty",
-            startsAt: startsAt || new Date(),
-            endsAt: endsAt || null,
+            startsAt:
+              startMode === BountyStartMode.relative
+                ? null
+                : startsAt || new Date(),
+            endsAt:
+              startMode === BountyStartMode.relative
+                ? endsAfterDays != null
+                  ? null
+                  : endsAt ?? null
+                : effectiveEndsAt,
+            startMode: startMode ?? BountyStartMode.absolute,
+            endsAfterDays: endsAfterDays ?? null,
             rewardAmount: rewardAmount ? rewardAmount * 100 : null,
             rewardDescription: rewardDescription || null,
             submissionRequirements: submissionRequirements ?? null,
@@ -553,13 +741,11 @@ export function useAddEditBountyForm({
 
   return {
     form,
-    hasStartDate,
-    setHasStartDate,
     hasEndDate,
-    handleEndDateToggle,
     openAccordions,
     setOpenAccordions,
     type,
+    bountyTypeUI,
     name,
     control,
     register,
@@ -567,8 +753,11 @@ export function useAddEditBountyForm({
     watch,
     errors,
     isDirty,
-    handleStartDateToggle,
-    handleEndDateChange,
+    startsAt,
+    endsAt,
+    startMode,
+    endsAfterDays,
+    handleTimingChange,
     allowedSubmissions,
     handleAllowedSubmissionsChange,
     maxAllowedSubmissions,
@@ -578,6 +767,7 @@ export function useAddEditBountyForm({
     submissionWindow,
     handleSubmissionWindowToggle,
     handleSubmissionWindowChange,
+    handleBountyTypeUIChange,
     validationError,
     confirmCreateBountyModal,
     setShowConfirmCreateBountyModal,

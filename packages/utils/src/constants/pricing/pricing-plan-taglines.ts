@@ -3,7 +3,7 @@ export const PRICING_PLAN_TAGLINES = {
     Pro: "For small teams or creators needing advanced link features",
     Business: "For fast-growing startups and businesses looking to scale",
     Advanced: "For hyperscalers needing higher usage quotas",
-    Enterprise: "For large organizations and governments with custom needs",
+    Enterprise: "For large organizations with custom needs",
   },
   partners: {
     Business:

@@ -16,7 +16,7 @@ export function BrandLogoBadge({
         <img
           src={`${GOOGLE_FAVICON_URL}${getApexDomain(link.url)}`}
           alt={`${appName} logo`}
-          className="size-10 shrink-0 overflow-visible rounded-full"
+          className="size-12 shrink-0 overflow-visible"
         />
       </div>
       <h1 className="text-xl font-semibold text-neutral-900">{appName}</h1>

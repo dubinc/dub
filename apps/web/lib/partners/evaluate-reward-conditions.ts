@@ -1,3 +1,4 @@
+import { prepareMetadataFieldValue } from "../api/rewards/reward-condition-metadata";
 import {
   RewardCondition,
   RewardConditions,
@@ -22,15 +23,7 @@ export const evaluateRewardConditions = ({
   for (const conditionGroup of conditions) {
     // Evaluate each condition in the group
     const conditionResults = conditionGroup.conditions.map((condition) => {
-      let fieldValue = undefined;
-
-      if (condition.entity === "customer") {
-        fieldValue = context.customer?.[condition.attribute];
-      } else if (condition.entity === "sale") {
-        fieldValue = context.sale?.[condition.attribute];
-      } else if (condition.entity === "partner") {
-        fieldValue = context.partner?.[condition.attribute];
-      }
+      const fieldValue = resolveConditionFieldValue({ condition, context });
 
       if (fieldValue === undefined) {
         return false;
@@ -75,6 +68,43 @@ export const evaluateRewardConditions = ({
   )[0];
 };
 
+function resolveConditionFieldValue({
+  condition,
+  context,
+}: {
+  condition: RewardCondition;
+  context: RewardContext;
+}): string | number | string[] | number[] | undefined {
+  if (condition.attribute === "metadata") {
+    const metaKey = condition.metadataField?.trim();
+
+    if (!metaKey) {
+      return undefined;
+    }
+
+    const entityMap = {
+      partner: undefined,
+      customer: undefined,
+      lead: context.lead,
+      sale: context.sale,
+    } as const;
+
+    return prepareMetadataFieldValue(
+      entityMap[condition.entity]?.metadata?.[metaKey],
+      condition,
+    );
+  }
+
+  const entityMap = {
+    partner: context.partner,
+    customer: context.customer,
+    lead: undefined,
+    sale: context.sale,
+  } as const;
+
+  return entityMap[condition.entity]?.[condition.attribute];
+}
+
 const evaluateCondition = ({
   condition,
   fieldValue,
@@ -94,7 +124,11 @@ const evaluateCondition = ({
 
   // Starts with
   if (condition.operator === "starts_with") {
-    if (typeof fieldValue !== "string" || typeof condition.value !== "string") {
+    if (
+      typeof fieldValue !== "string" ||
+      typeof condition.value !== "string" ||
+      condition.value === ""
+    ) {
       return false;
     }
 
@@ -103,11 +137,45 @@ const evaluateCondition = ({
 
   // Ends with
   if (condition.operator === "ends_with") {
-    if (typeof fieldValue !== "string" || typeof condition.value !== "string") {
+    if (
+      typeof fieldValue !== "string" ||
+      typeof condition.value !== "string" ||
+      condition.value === ""
+    ) {
       return false;
     }
 
     return fieldValue.endsWith(condition.value);
+  }
+
+  // Contains
+  if (condition.operator === "contains") {
+    if (typeof fieldValue !== "string" || typeof condition.value !== "string") {
+      return false;
+    }
+
+    const trimmedValue = condition.value.trim();
+
+    if (trimmedValue === "") {
+      return false;
+    }
+
+    return String(fieldValue).includes(trimmedValue);
+  }
+
+  // Not contains
+  if (condition.operator === "not_contains") {
+    if (typeof fieldValue !== "string" || typeof condition.value !== "string") {
+      return false;
+    }
+
+    const trimmedValue = condition.value.trim();
+
+    if (trimmedValue === "") {
+      return false;
+    }
+
+    return !String(fieldValue).includes(trimmedValue);
   }
 
   // In
@@ -123,7 +191,7 @@ const evaluateCondition = ({
 
   // Not in
   if (condition.operator === "not_in") {
-    if (!Array.isArray(condition.value)) {
+    if (!Array.isArray(condition.value) || condition.value.length === 0) {
       return false;
     }
 

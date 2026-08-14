@@ -5,13 +5,19 @@ enum PlanPeriod {
   biweekly
 }
 
+enum DubProduct {
+  program
+  links
+}
+
 model Project {
-  id               String  @id
+  id               String     @id
   name             String
-  slug             String  @unique
+  slug             String     @unique
   logo             String?
-  inviteCode       String? @unique
-  defaultProgramId String? @unique // default affiliate program ID for the workspace
+  inviteCode       String?    @unique
+  defaultProduct   DubProduct @default(links)
+  defaultProgramId String?    @unique // default affiliate program ID for the workspace
 
   plan                   String      @default("free")
   planTier               Int         @default(1)

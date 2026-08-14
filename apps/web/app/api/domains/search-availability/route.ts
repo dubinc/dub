@@ -1,6 +1,5 @@
+import { getDomainSearchAvailability } from "@/lib/api/domains/get-domain-search-availability";
 import { withWorkspace } from "@/lib/auth";
-import { searchDomainsAvailability } from "@/lib/dynadot/search-domains";
-import { prisma } from "@/lib/prisma";
 import { ratelimit } from "@/lib/upstash";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
@@ -8,6 +7,7 @@ import * as z from "zod/v4";
 const schema = z.object({
   domain: z
     .string()
+    .trim()
     .min(1)
     .endsWith(".link")
     .transform((domain) => domain.toLowerCase())
@@ -28,33 +28,7 @@ export const GET = withWorkspace(
       return new Response("Don't DDoS me pls 🥺", { status: 429 });
     }
 
-    // check if the domain is already registered on Dub
-    const domainOnDub = await prisma.domain.findUnique({
-      where: {
-        slug: domain,
-        verified: true,
-      },
-    });
-
-    if (domainOnDub) {
-      return NextResponse.json([
-        {
-          domain: domainOnDub.slug,
-          available: false,
-          price: null,
-        },
-      ]);
-    }
-
-    // search for the domain on Dynadot
-    const response = await searchDomainsAvailability({
-      domains: {
-        domain0: domain,
-        domain1: `get${domain}`,
-        domain2: `try${domain}`,
-        domain3: `use${domain}`,
-      },
-    });
+    const response = await getDomainSearchAvailability(domain);
 
     return NextResponse.json(response);
   },
