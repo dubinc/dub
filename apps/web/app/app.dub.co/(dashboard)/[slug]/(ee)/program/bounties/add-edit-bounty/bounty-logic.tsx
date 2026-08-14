@@ -12,6 +12,7 @@ import {
 } from "@/ui/shared/inline-badge-popover";
 import { Trophy } from "@dub/ui/icons";
 import { cn, currencyFormatter, nFormatter } from "@dub/utils";
+import { BountyStartMode } from "@prisma/client";
 import { Controller } from "react-hook-form";
 import { BountyAmountInput } from "./bounty-amount-input";
 import { useBountyFormContext } from "./bounty-form-context";
@@ -24,10 +25,13 @@ const PERFORMANCE_SCOPE_DESCRIPTIONS = {
 export function BountyLogic({ className }: { className?: string }) {
   const { control, watch } = useBountyFormContext();
 
-  const [attribute, value] = watch([
+  const [attribute, value, startMode] = watch([
     "performanceCondition.attribute",
     "performanceCondition.value",
+    "startMode",
   ]);
+
+  const isRelative = startMode === BountyStartMode.relative;
 
   return (
     <div className={cn("flex w-full items-center gap-1.5", className)}>
@@ -56,9 +60,12 @@ export function BountyLogic({ className }: { className?: string }) {
                       description: PERFORMANCE_SCOPE_DESCRIPTIONS.new,
                     },
                     {
-                      text: "lifetime",
+                      text: isRelative
+                        ? "lifetime (not available)"
+                        : "lifetime",
                       value: "lifetime",
-                      description: PERFORMANCE_SCOPE_DESCRIPTIONS.lifetime,
+                      description: `${PERFORMANCE_SCOPE_DESCRIPTIONS.lifetime}${isRelative ? " (not available for relative start dates)" : ""}`,
+                      disabled: isRelative,
                     },
                   ]}
                 />

@@ -171,21 +171,23 @@ export function EmbedBountySubmissionForm({
     isDraft ? setIsDraftSaving(true) : setIsSubmitting(true);
 
     try {
-      const res = await fetch("/api/embed/referrals/submissions", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
+      const res = await fetch(
+        `/api/embed/referrals/bounties/${bounty.id}/submissions`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            files: completedFiles,
+            urls: submissionUrls,
+            description: description || undefined,
+            isDraft,
+            periodNumber,
+          }),
         },
-        body: JSON.stringify({
-          bountyId: bounty.id,
-          files: completedFiles,
-          urls: submissionUrls,
-          description: description || undefined,
-          isDraft,
-          periodNumber,
-        }),
-      });
+      );
 
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));

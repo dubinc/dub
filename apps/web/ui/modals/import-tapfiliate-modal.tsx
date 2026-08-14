@@ -2,6 +2,7 @@ import { setTapfiliateTokenAction } from "@/lib/actions/partners/set-tapfiliate-
 import { startTapfiliateImportAction } from "@/lib/actions/partners/start-tapfiliate-import";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { TapfiliateProgram } from "@/lib/tapfiliate/types";
+import { X } from "@/ui/shared/icons";
 import {
   Button,
   Check2,
@@ -36,18 +37,9 @@ function ImportTapfiliateModal({
   showImportTapfiliateModal: boolean;
   setShowImportTapfiliateModal: Dispatch<SetStateAction<boolean>>;
 }) {
-  const searchParams = useSearchParams();
   const { queryParams } = useRouterStuff();
   const [step, setStep] = useState<Step>("set-token");
   const [programs, setPrograms] = useState<TapfiliateProgram[]>([]);
-
-  useEffect(() => {
-    if (searchParams?.get("import") === "tapfiliate") {
-      setShowImportTapfiliateModal(true);
-    } else {
-      setShowImportTapfiliateModal(false);
-    }
-  }, [searchParams]);
 
   // Reset the step and programs when the modal is closed
   useEffect(() => {
@@ -67,6 +59,17 @@ function ImportTapfiliateModal({
         })
       }
     >
+      <Button
+        variant="outline"
+        icon={<X className="size-5" />}
+        className="absolute right-4 top-4 h-auto w-fit p-1"
+        onClick={() => {
+          setShowImportTapfiliateModal(false);
+          queryParams({
+            del: "import",
+          });
+        }}
+      />
       <div className="flex flex-col items-center justify-center space-y-3 border-b border-neutral-200 px-4 py-8 sm:px-16">
         <div className="flex items-center space-x-3 py-4">
           <img
@@ -303,6 +306,14 @@ function SelectProgram({
 export function useImportTapfiliateModal() {
   const [showImportTapfiliateModal, setShowImportTapfiliateModal] =
     useState(false);
+  const searchParams = useSearchParams();
+
+  // Sync the modal state with the `?import=` query param here in the hook
+  // rather than in the modal itself, which remounts on every open/close
+  // and would re-open from a stale param mid-navigation
+  useEffect(() => {
+    setShowImportTapfiliateModal(searchParams?.get("import") === "tapfiliate");
+  }, [searchParams]);
 
   const ImportTapfiliateModalCallback = useCallback(() => {
     return (
