@@ -27,4 +27,29 @@ describe("buildPartnerSearchCandidateQuery", () => {
   ])("keeps %s on the database path", (_name, input) => {
     expect(buildPartnerSearchCandidateQuery(input)).toBeNull();
   });
+
+  describe("pasted partner IDs", () => {
+    it.each([
+      ["24-char suffix, the production minimum", "pn_dlszeepb38rvcnrfbd0srkzb"],
+      ["25-char suffix, the common case", "pn_1K0NM7HCN944PEMZ3CQPH43H8"],
+    ])(
+      "keeps %s on the database, which has it as a primary key",
+      (_label, search) => {
+        expect(
+          buildPartnerSearchCandidateQuery({ programId: "prog_1", search }),
+        ).toBeNull();
+      },
+    );
+
+    it.each([
+      ["a bare prefix", "pn_"],
+      ["a partial ID", "pn_dls"],
+      ["one character short of the minimum", "pn_dlszeepb38rvcnrfbd0srkz"],
+      ["an ID with a space", "pn_dlszeepb38rvcnrfbd0srkzb other"],
+    ])("sends %s to the provider", (_label, search) => {
+      expect(
+        buildPartnerSearchCandidateQuery({ programId: "prog_1", search }),
+      ).toMatchObject({ query: search });
+    });
+  });
 });
