@@ -21,6 +21,8 @@ jobs:
     env:
       CI: "true"
       NODE_OPTIONS: "--max-old-space-size=8192"
+      DOTENV_FLOW_SILENT: "true"
+      RUNTIME_CACHE_DISABLE_BUILD_CACHE: "true"
       DATABASE_URL: "mysql://root:@localhost:3306/planetscale"
       PLANETSCALE_DATABASE_URL: "http://root:unused@localhost:3900/planetscale"
 
