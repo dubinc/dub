@@ -46,6 +46,23 @@ interface TurbopufferPartnerSearchRow extends Record<string, unknown> {
  */
 const SEARCH_TEXT_TOKENIZER = "word_v2";
 
+/**
+ * BM25 length normalization, left at turbopuffer's default.
+ *
+ * Lowering it is tempting: `searchText` is concatenated field values, so length
+ * tracks how many links a partner has rather than how much prose they wrote,
+ * and at 0.75 that demotes the most active partners. Searching "steven te" on
+ * the production index ranks Steven Tey below a partner whose description
+ * merely contains "tech", and the ordering flips at b=0.1.
+ *
+ * It was measured and rejected. On the same 100K index, b=0.1 against b=0.75
+ * minutes apart: 16.05% vs 11.01% timeouts and 836ms vs 720ms p99 — flattening
+ * the score distribution appears to defeat top-k pruning. The ranking gain only
+ * applies to half-typed multi-word queries, since the all-terms branch already
+ * handles complete ones.
+ */
+const SEARCH_TEXT_LENGTH_NORMALIZATION = 0.75;
+
 // `searchText` and `emailNgrams` are BM25-indexed. BM25 attributes are not
 // filterable by default, but `emailNgrams` needs to be: the n-gram branch uses
 // a ContainsAllTokens filter to require every trigram.
@@ -53,7 +70,10 @@ const TURBOPUFFER_SCHEMA = {
   programId: { type: "string", filterable: true },
   searchText: {
     type: "string",
-    full_text_search: { tokenizer: SEARCH_TEXT_TOKENIZER },
+    full_text_search: {
+      tokenizer: SEARCH_TEXT_TOKENIZER,
+      b: SEARCH_TEXT_LENGTH_NORMALIZATION,
+    },
   },
   emailNgrams: {
     type: "string",
@@ -112,7 +132,7 @@ function serializeTurbopufferRow(
 }
 
 /**
- * Two ranked branches, rank-fused by the caller (see mergeBranchRows).
+ * Up to three ranked branches, rank-fused by the caller (see mergeBranchRows).
  *
  * The text branch treats the last token as a prefix so "john" reaches
  * "johnson", matching how the Redis provider's $smart behaves. The n-gram
@@ -128,6 +148,32 @@ function buildQueryBranches(programId: string, query: string) {
       filters: programFilter,
     },
   ];
+
+  // A multi-word query should prefer partners matching every word, and BM25
+  // alone does not: term frequency saturates while length normalization keeps
+  // biting, so a long document matching both words can rank below a short one
+  // matching only the first. Measured on the production index, "steven tey" put
+  // the actual Steven Tey third, behind two partners with no "tey" at all. This
+  // branch admits only documents containing every term, so the rank fusion
+  // lifts them over partial matches without excluding those partial matches.
+  if (/\s/u.test(query)) {
+    branches.push({
+      rank_by: ["searchText", "BM25", query, { last_as_prefix: true }],
+      filters: [
+        "And",
+        [
+          programFilter,
+          // Prefix on the last token here too. Without it the branch requires an
+          // exact final token, so a half-typed "steven te" matches nothing and
+          // search-as-you-type loses the boost exactly while it is being typed.
+          // Prefix on the last token here too. Without it the branch requires an
+          // exact final token, so a half-typed "steven te" matches nothing and
+          // the boost disappears exactly while the user is still typing.
+          ["searchText", "ContainsAllTokens", query, { last_as_prefix: true }],
+        ],
+      ],
+    });
+  }
 
   const ngrams = getQueryNgrams(query).join(" ");
   if (ngrams) {

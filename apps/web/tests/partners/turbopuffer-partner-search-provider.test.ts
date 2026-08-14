@@ -97,7 +97,7 @@ describe("Turbopuffer partner search provider", () => {
     await createProvider().upsert([document]);
 
     const [{ schema }] = mocks.write.mock.calls[0];
-    expect(schema.searchText.full_text_search).toEqual({
+    expect(schema.searchText.full_text_search).toMatchObject({
       tokenizer: "word_v2",
     });
     expect(schema.emailNgrams.full_text_search).toEqual({
@@ -127,6 +127,81 @@ describe("Turbopuffer partner search provider", () => {
       expect(JSON.stringify(branch.filters)).toContain("prog_test");
       expect(branch.top_k).toBe(10);
     }
+  });
+
+  it("adds an all-terms branch for a multi-word query", async () => {
+    // BM25 alone does not require every word, and length normalization can rank
+    // a long document matching both words below a short one matching only the
+    // first. This branch admits only documents containing every term.
+    await createProvider().searchCandidates({
+      programId: "prog_test",
+      query: "steven tey",
+      limit: 10,
+    });
+
+    const [{ queries }] = mocks.multiQuery.mock.calls[0];
+    expect(queries).toHaveLength(2);
+
+    const [, allTermsBranch] = queries;
+    expect(allTermsBranch.rank_by).toEqual([
+      "searchText",
+      "BM25",
+      "steven tey",
+      { last_as_prefix: true },
+    ]);
+    expect(allTermsBranch.filters).toEqual([
+      "And",
+      [
+        ["programId", "Eq", "prog_test"],
+        [
+          "searchText",
+          "ContainsAllTokens",
+          "steven tey",
+          { last_as_prefix: true },
+        ],
+      ],
+    ]);
+  });
+
+  it("keeps the last token a prefix while it is still being typed", async () => {
+    // An exact-token filter would match nothing for a half-typed final word, so
+    // the all-terms boost would vanish exactly while the user is typing.
+    // Measured on the production index: "steven te" puts Steven Tey at rank 2
+    // with the prefix and rank 4 without it.
+    await createProvider().searchCandidates({
+      programId: "prog_test",
+      query: "steven te",
+      limit: 10,
+    });
+
+    const [{ queries }] = mocks.multiQuery.mock.calls[0];
+    const [, allTermsBranch] = queries;
+
+    expect(allTermsBranch.filters[1][1]).toEqual([
+      "searchText",
+      "ContainsAllTokens",
+      "steven te",
+      { last_as_prefix: true },
+    ]);
+  });
+
+  it("skips the all-terms branch for a single-word query", async () => {
+    await createProvider().searchCandidates({
+      programId: "prog_test",
+      query: "steven",
+      limit: 10,
+    });
+
+    // The n-gram branch still uses ContainsAllTokens, so this checks for the
+    // all-terms filter on searchText specifically.
+    const [{ queries }] = mocks.multiQuery.mock.calls[0];
+    expect(
+      queries.some((branch: any) =>
+        JSON.stringify(branch.filters).includes(
+          '["searchText","ContainsAllTokens"',
+        ),
+      ),
+    ).toBe(false);
   });
 
   it("requires every trigram on the n-gram branch", async () => {
