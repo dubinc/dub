@@ -4,17 +4,23 @@ import { GlobalChatContext } from "@/lib/ai/build-system-prompt";
 import useProgramEnrollments from "@/lib/swr/use-program-enrollments";
 import { useChat } from "@ai-sdk/react";
 import { Combobox } from "@dub/ui";
-import { OfficeBuilding, PaperPlane, Users2 } from "@dub/ui/icons";
+import { OfficeBuilding, PaperPlane, Users2, Xmark } from "@dub/ui/icons";
 import { cn, fetcher, OG_AVATAR_URL } from "@dub/utils";
-import { DefaultChatTransport } from "ai";
+import { DefaultChatTransport, isFileUIPart } from "ai";
+import { Paperclip } from "lucide-react";
 import { useSession } from "next-auth/react";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import TextareaAutosize from "react-textarea-autosize";
 import { toast } from "sonner";
 import { Streamdown } from "streamdown";
 import "streamdown/styles.css";
 import useSWR from "swr";
 import { MarkdownCodeBlock } from "./code-block";
+import {
+  compressChatImage,
+  isChatImageFile,
+  MAX_CHAT_IMAGES,
+} from "./compress-chat-image";
 import { SupportMessage } from "./message";
 import { ProgramCombobox, ProgramSummary } from "./program-combobox";
 import { extractSources, SourceCitations } from "./source-citations";
@@ -24,6 +30,12 @@ import { TicketUpload } from "./ticket-upload";
 import { WorkspaceCombobox, WorkspaceSummary } from "./workspace-combobox";
 
 type AccountType = "workspace" | "partner";
+
+type PendingImage = {
+  id: string;
+  file: File;
+  previewUrl: string;
+};
 
 export function ChatInterface({
   className,
@@ -37,7 +49,12 @@ export function ChatInterface({
   const { data: session, status: sessionStatus } = useSession();
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const pendingImagesRef = useRef<PendingImage[]>([]);
   const [input, setInput] = useState("");
+  const [pendingImages, setPendingImages] = useState<PendingImage[]>([]);
+  const [isDragging, setIsDragging] = useState(false);
+  const [isCompressing, setIsCompressing] = useState(false);
   const [ticketSubmitted, setTicketSubmitted] = useState(false);
   const [selection, setSelection] = useState<GlobalChatContext>({});
 
@@ -128,7 +145,16 @@ export function ChatInterface({
       const stored = raw ? JSON.parse(raw) : {};
       localStorage.setItem(
         storageKey,
-        JSON.stringify({ ...stored, messages, ticketSubmitted }),
+        JSON.stringify({
+          ...stored,
+          messages: messages.map((message) => ({
+            ...message,
+            parts: message.parts?.map((part) =>
+              part.type === "file" ? { ...part, url: "" } : part,
+            ),
+          })),
+          ticketSubmitted,
+        }),
       );
     } catch {}
   }, [messages, ticketSubmitted, status, storageKey]);
@@ -141,6 +167,47 @@ export function ChatInterface({
     }
   };
 
+  pendingImagesRef.current = pendingImages;
+
+  useEffect(() => {
+    return () => {
+      pendingImagesRef.current.forEach((image) =>
+        URL.revokeObjectURL(image.previewUrl),
+      );
+    };
+  }, []);
+
+  const addFiles = useCallback((incoming: File[]) => {
+    const supported = incoming.filter(isChatImageFile);
+    const rejected = incoming.length - supported.length;
+
+    if (rejected > 0) {
+      toast.error("Please attach a PNG, JPEG, or WebP image.");
+    }
+
+    if (supported.length === 0) return;
+
+    setPendingImages((prev) => {
+      const remaining = MAX_CHAT_IMAGES - prev.length;
+      if (remaining <= 0) {
+        toast.error(`You can attach up to ${MAX_CHAT_IMAGES} images.`);
+        return prev;
+      }
+
+      const next = supported.slice(0, remaining).map((file) => ({
+        id: `${file.name}-${file.size}-${Date.now()}-${Math.random()}`,
+        file,
+        previewUrl: URL.createObjectURL(file),
+      }));
+
+      if (supported.length > remaining) {
+        toast.error(`You can attach up to ${MAX_CHAT_IMAGES} images.`);
+      }
+
+      return [...prev, ...next];
+    });
+  }, []);
+
   const getSlackThreadTs = () => {
     for (let i = messages.length - 1; i >= 0; i--) {
       const meta = (messages[i] as any).metadata as
@@ -151,25 +218,68 @@ export function ChatInterface({
     return undefined;
   };
 
-  const handleSend = (text?: string) => {
-    const messageText = text ?? input;
-    if (!messageText.trim() || status === "streaming" || !canChat) return;
-    sendMessage(
-      { text: messageText },
-      {
-        body: {
-          globalContext: {
-            ...selection,
-            chatLocation:
-              effectiveAccountType === "partner" ? "partners" : "app",
-            accountType: effectiveAccountType,
-          },
-          slackThreadTs: getSlackThreadTs(),
-        },
+  const handleSend = async (text?: string) => {
+    const messageText = (text ?? input).trim();
+    const imagesToSend = pendingImages;
+    if (
+      (!messageText && imagesToSend.length === 0) ||
+      status === "streaming" ||
+      status === "submitted" ||
+      isCompressing ||
+      !canChat
+    ) {
+      return;
+    }
+
+    const requestBody = {
+      globalContext: {
+        ...selection,
+        chatLocation: effectiveAccountType === "partner" ? "partners" : "app",
+        accountType: effectiveAccountType,
       },
-    );
-    setInput("");
-    textareaRef.current?.focus();
+      slackThreadTs: getSlackThreadTs(),
+    };
+
+    if (imagesToSend.length === 0) {
+      sendMessage({ text: messageText }, { body: requestBody });
+      setInput("");
+      textareaRef.current?.focus();
+      return;
+    }
+
+    setIsCompressing(true);
+    try {
+      const files = await Promise.all(
+        imagesToSend.map(async (image) => {
+          const compressed = await compressChatImage(image.file);
+          return {
+            type: "file" as const,
+            filename: compressed.filename,
+            mediaType: compressed.mediaType,
+            url: compressed.dataUrl,
+          };
+        }),
+      );
+
+      if (messageText) {
+        sendMessage({ text: messageText, files }, { body: requestBody });
+      } else {
+        sendMessage({ files }, { body: requestBody });
+      }
+
+      imagesToSend.forEach((image) => URL.revokeObjectURL(image.previewUrl));
+      setPendingImages([]);
+      setInput("");
+      textareaRef.current?.focus();
+    } catch (err) {
+      toast.error(
+        err instanceof Error
+          ? err.message
+          : "Could not process image. Try a different PNG or JPEG.",
+      );
+    } finally {
+      setIsCompressing(false);
+    }
   };
 
   const handleEscalateViaForm = (
@@ -425,16 +535,44 @@ export function ChatInterface({
               const textContent = message.parts
                 .filter((p) => p.type === "text")
                 .map((p) => (p as { type: "text"; text: string }).text)
-                .join("\n\n");
-              if (!textContent) return null;
+                .join("\n\n")
+                .trim();
+              const fileParts = message.parts.filter(isFileUIPart);
+              if (!textContent && fileParts.length === 0) return null;
               return (
                 <SupportMessage
                   key={message.id}
                   avatar={userAvatar}
                   isUser
                   animate
+                  media={
+                    fileParts.length > 0 ? (
+                      <div className="flex flex-wrap justify-end gap-1.5">
+                        {fileParts.map((part, partIndex) =>
+                          part.url ? (
+                            <img
+                              key={partIndex}
+                              src={part.url}
+                              alt={part.filename ?? "Attached image"}
+                              className="max-h-32 max-w-[200px] rounded-lg object-cover"
+                              draggable={false}
+                            />
+                          ) : (
+                            <div
+                              key={partIndex}
+                              className="rounded-lg bg-neutral-200 px-2 py-1 text-xs text-neutral-500"
+                            >
+                              Image attached
+                            </div>
+                          ),
+                        )}
+                      </div>
+                    ) : undefined
+                  }
                 >
-                  <p className="text-sm">{textContent}</p>
+                  {textContent ? (
+                    <p className="text-sm">{textContent}</p>
+                  ) : null}
                 </SupportMessage>
               );
             }
@@ -588,8 +726,54 @@ export function ChatInterface({
           </button>
         </div>
       ) : hasRequestedTicket ? null : (
-        <div className="shrink-0 border-t border-neutral-100 bg-white p-3">
-          <div className="relative">
+        <div
+          className="shrink-0 border-t border-neutral-100 bg-white p-3"
+          onDragOver={(e) => {
+            if (!canChat) return;
+            e.preventDefault();
+            setIsDragging(true);
+          }}
+          onDragLeave={() => setIsDragging(false)}
+          onDrop={(e) => {
+            e.preventDefault();
+            setIsDragging(false);
+            if (!canChat) return;
+            addFiles(Array.from(e.dataTransfer.files));
+          }}
+        >
+          {pendingImages.length > 0 && (
+            <div className="mb-2 flex flex-wrap gap-2">
+              {pendingImages.map((image) => (
+                <div key={image.id} className="relative size-16 shrink-0">
+                  <img
+                    src={image.previewUrl}
+                    alt={image.file.name}
+                    className="size-full rounded-lg object-cover"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setPendingImages((prev) => {
+                        const entry = prev.find((item) => item.id === image.id);
+                        if (entry) URL.revokeObjectURL(entry.previewUrl);
+                        return prev.filter((item) => item.id !== image.id);
+                      });
+                    }}
+                    aria-label="Remove image"
+                    className="absolute -right-1.5 -top-1.5 flex size-5 items-center justify-center rounded-full bg-neutral-900 text-white transition-colors hover:bg-neutral-700"
+                  >
+                    <Xmark className="size-2.5" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+          <div
+            className={cn(
+              "relative rounded-xl",
+              isDragging && "ring-2 ring-neutral-400",
+            )}
+          >
             <TextareaAutosize
               ref={textareaRef}
               minRows={3}
@@ -603,9 +787,31 @@ export function ChatInterface({
               }
               value={input}
               disabled={
-                !canChat || status === "streaming" || status === "submitted"
+                !canChat ||
+                status === "streaming" ||
+                status === "submitted" ||
+                isCompressing
               }
               onChange={(e) => setInput(e.target.value)}
+              onPaste={(e) => {
+                const fromFiles = Array.from(
+                  e.clipboardData?.files ?? [],
+                ).filter(isChatImageFile);
+                const fromItems =
+                  fromFiles.length > 0
+                    ? []
+                    : Array.from(e.clipboardData?.items ?? [])
+                        .filter((item) => item.kind === "file")
+                        .map((item) => item.getAsFile())
+                        .filter(
+                          (file): file is File =>
+                            !!file && isChatImageFile(file),
+                        );
+                const imageFiles = fromFiles.length > 0 ? fromFiles : fromItems;
+                if (imageFiles.length === 0) return;
+                e.preventDefault();
+                addFiles(imageFiles);
+              }}
               onKeyDown={(e) => {
                 if (e.key === "Enter" && !e.shiftKey) {
                   e.preventDefault();
@@ -613,10 +819,44 @@ export function ChatInterface({
                 }
               }}
               className={cn(
-                "w-full resize-none rounded-xl border border-neutral-200 py-2.5 pl-3 pr-[72px] text-sm text-neutral-900 placeholder-neutral-400 shadow-sm transition-colors",
+                "w-full resize-none rounded-xl border border-neutral-200 py-2.5 pl-3 pr-24 text-sm text-neutral-900 placeholder-neutral-400 shadow-sm transition-colors",
                 "focus:border-neutral-400 focus:outline-none focus:ring-2 focus:ring-neutral-200 disabled:cursor-not-allowed disabled:bg-neutral-50 disabled:opacity-60",
               )}
             />
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/png,image/jpeg,image/webp"
+              multiple
+              className="hidden"
+              onChange={(e) => {
+                addFiles(Array.from(e.target.files ?? []));
+                e.target.value = "";
+              }}
+            />
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={
+                !canChat ||
+                status === "streaming" ||
+                status === "submitted" ||
+                isCompressing ||
+                pendingImages.length >= MAX_CHAT_IMAGES
+              }
+              className={cn(
+                "absolute bottom-4 right-12 flex size-8 items-center justify-center rounded-full transition-all",
+                canChat &&
+                  status === "ready" &&
+                  !isCompressing &&
+                  pendingImages.length < MAX_CHAT_IMAGES
+                  ? "text-neutral-500 hover:bg-neutral-100 hover:text-neutral-800"
+                  : "cursor-not-allowed text-neutral-300",
+              )}
+              aria-label="Attach image"
+            >
+              <Paperclip className="size-4" />
+            </button>
             <button
               type="button"
               onClick={() => handleSend()}
@@ -624,11 +864,15 @@ export function ChatInterface({
                 !canChat ||
                 status === "streaming" ||
                 status === "submitted" ||
-                !input.trim()
+                isCompressing ||
+                (!input.trim() && pendingImages.length === 0)
               }
               className={cn(
                 "absolute bottom-4 right-3 flex size-8 items-center justify-center rounded-full transition-all",
-                canChat && input.trim() && status === "ready"
+                canChat &&
+                  status === "ready" &&
+                  !isCompressing &&
+                  (input.trim() || pendingImages.length > 0)
                   ? "bg-neutral-900 text-white hover:bg-neutral-700"
                   : "cursor-not-allowed bg-neutral-200 text-neutral-400",
               )}
