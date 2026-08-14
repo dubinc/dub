@@ -28,6 +28,14 @@ const ALLOWED_CHAT_IMAGE_TYPES = new Set([
 const MAX_CHAT_IMAGES = 3;
 const MAX_DATA_URL_LENGTH = 1_400_000;
 
+function isAllowedChatImage(part: { mediaType: string; url: string }) {
+  const urlMediaType = /^data:([^;,]+)[;,]/.exec(part.url)?.[1];
+  return (
+    urlMediaType === part.mediaType &&
+    ALLOWED_CHAT_IMAGE_TYPES.has(part.mediaType)
+  );
+}
+
 export const POST = withSession(async ({ req, session }) => {
   const body = await req.json();
   const { messages, globalContext } = body as {
@@ -55,7 +63,7 @@ export const POST = withSession(async ({ req, session }) => {
     return new Response("Too many images", { status: 400 });
   }
   for (const part of latestImages) {
-    if (!ALLOWED_CHAT_IMAGE_TYPES.has(part.mediaType)) {
+    if (!isAllowedChatImage(part)) {
       return new Response("Invalid image type", { status: 400 });
     }
     if (part.url.length > MAX_DATA_URL_LENGTH) {
@@ -74,10 +82,7 @@ export const POST = withSession(async ({ req, session }) => {
       }
 
       if (index === lastUserIndex) {
-        if (
-          part.url?.startsWith("data:image/") &&
-          ALLOWED_CHAT_IMAGE_TYPES.has(part.mediaType)
-        ) {
+        if (isAllowedChatImage(part)) {
           nextParts.push(part);
         }
         continue;

@@ -864,11 +864,13 @@ export function ChatInterface({
                 minRows={3}
                 maxRows={6}
                 placeholder={
-                  !canChat
-                    ? "Select an account above to start chatting..."
-                    : effectiveAccountType === "partner"
-                      ? "Ask about payouts, referrals, or commissions..."
-                      : "Ask about links, analytics, or your account..."
+                  isDragging
+                    ? "Drop image to attach..."
+                    : !canChat
+                      ? "Select an account above to start chatting..."
+                      : effectiveAccountType === "partner"
+                        ? "Ask about payouts, referrals, or commissions..."
+                        : "Ask about links, analytics, or your account..."
                 }
                 value={input}
                 disabled={
