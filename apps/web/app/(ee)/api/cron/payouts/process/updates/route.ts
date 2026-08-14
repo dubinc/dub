@@ -1,5 +1,6 @@
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
+import { withAxiom } from "@/lib/axiom/server";
 import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { prisma } from "@/lib/prisma";
@@ -20,7 +21,7 @@ const BATCH_SIZE = 100;
 
 // POST /api/cron/payouts/process/updates
 // Recursive cron job to handle side effects of the `cron/payouts/process` job (recordAuditLog, sendBatchEmails)
-export async function POST(req: Request) {
+export const POST = withAxiom(async (req: Request) => {
   try {
     const rawBody = await req.text();
 
@@ -151,4 +152,4 @@ export async function POST(req: Request) {
 
     return handleAndReturnErrorResponse(error);
   }
-}
+});

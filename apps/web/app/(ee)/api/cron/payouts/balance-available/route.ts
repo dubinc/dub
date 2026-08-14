@@ -1,4 +1,5 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
+import { withAxiom } from "@/lib/axiom/server";
 import { BANK_ACCOUNT_STATUS_DESCRIPTIONS } from "@/lib/constants/payouts";
 import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
@@ -24,7 +25,7 @@ const payloadSchema = z.object({
 });
 
 // POST /api/cron/payouts/balance-available
-export async function POST(req: Request) {
+export const POST = withAxiom(async (req: Request) => {
   try {
     const rawBody = await req.text();
     await verifyQstashSignature({ req, rawBody });
@@ -224,4 +225,4 @@ export async function POST(req: Request) {
 
     return handleAndReturnErrorResponse(error);
   }
-}
+});

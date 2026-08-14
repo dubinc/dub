@@ -1,4 +1,5 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
+import { withAxiom } from "@/lib/axiom/server";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { prisma } from "@/lib/prisma";
 import { createPaymentIntent } from "@/lib/stripe/create-payment-intent";
@@ -12,7 +13,7 @@ const schema = z.object({
 });
 
 // POST /api/cron/invoices/retry-failed
-export async function POST(req: Request) {
+export const POST = withAxiom(async (req: Request) => {
   try {
     const rawBody = await req.text();
 
@@ -101,4 +102,4 @@ export async function POST(req: Request) {
   } catch (error) {
     return handleAndReturnErrorResponse(error);
   }
-}
+});

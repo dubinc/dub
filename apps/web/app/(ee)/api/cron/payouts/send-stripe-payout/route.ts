@@ -1,4 +1,5 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
+import { withAxiom } from "@/lib/axiom/server";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { createStablecoinPayout } from "@/lib/partners/create-stablecoin-payout";
 import { createStripeTransfer } from "@/lib/partners/create-stripe-transfer";
@@ -16,7 +17,7 @@ const payloadSchema = z.object({
 });
 
 // POST /api/cron/payouts/send-stripe-payout
-export async function POST(req: Request) {
+export const POST = withAxiom(async (req: Request) => {
   try {
     const rawBody = await req.text();
 
@@ -78,4 +79,4 @@ export async function POST(req: Request) {
 
     return handleAndReturnErrorResponse(error);
   }
-}
+});

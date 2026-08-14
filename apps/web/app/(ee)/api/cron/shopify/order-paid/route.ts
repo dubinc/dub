@@ -1,4 +1,5 @@
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
+import { withAxiom } from "@/lib/axiom/server";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { processOrder } from "@/lib/integrations/shopify/process-order";
 import { redis } from "@/lib/upstash";
@@ -12,7 +13,7 @@ const schema = z.object({
 });
 
 // POST /api/cron/shopify/order-paid
-export async function POST(req: Request) {
+export const POST = withAxiom(async (req: Request) => {
   try {
     const rawBody = await req.text();
     await verifyQstashSignature({ req, rawBody });
@@ -68,4 +69,4 @@ export async function POST(req: Request) {
   } catch (error) {
     return handleAndReturnErrorResponse(error);
   }
-}
+});

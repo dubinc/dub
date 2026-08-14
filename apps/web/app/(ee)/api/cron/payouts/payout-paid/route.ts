@@ -1,4 +1,5 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
+import { withAxiom } from "@/lib/axiom/server";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { prisma } from "@/lib/prisma";
 import { sendEmail } from "@dub/email";
@@ -19,7 +20,7 @@ const payloadSchema = z.object({
 });
 
 // POST /api/cron/payouts/payout-paid
-export async function POST(req: Request) {
+export const POST = withAxiom(async (req: Request) => {
   try {
     const rawBody = await req.text();
     await verifyQstashSignature({ req, rawBody });
@@ -85,4 +86,4 @@ export async function POST(req: Request) {
 
     return handleAndReturnErrorResponse(error);
   }
-}
+});
