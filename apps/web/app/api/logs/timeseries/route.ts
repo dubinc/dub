@@ -1,16 +1,16 @@
 import { getApiLogsDateRange } from "@/lib/api-logs/api-log-retention";
-import { getApiLogsCount } from "@/lib/api-logs/get-api-logs-count";
-import { getApiLogsCountQuerySchema } from "@/lib/api-logs/schemas";
+import { getApiLogsTimeseries } from "@/lib/api-logs/get-api-logs-timeseries";
+import { getApiLogsTimeseriesQuerySchema } from "@/lib/api-logs/schemas";
 import { withWorkspace } from "@/lib/auth/workspace";
 import { NextResponse } from "next/server";
 
-// GET /api/logs/count
+// GET /api/logs/timeseries
 export const GET = withWorkspace(
   async ({ workspace, searchParams }) => {
     const { start, end, interval, timezone, exactRange, ...filters } =
-      getApiLogsCountQuerySchema.parse(searchParams);
+      getApiLogsTimeseriesQuerySchema.parse(searchParams);
 
-    const { startDate, endDate } = getApiLogsDateRange({
+    const { startDate, endDate, granularity } = getApiLogsDateRange({
       plan: workspace.plan,
       start,
       end,
@@ -19,10 +19,12 @@ export const GET = withWorkspace(
       exactRange: Boolean(exactRange),
     });
 
-    const rows = await getApiLogsCount({
+    const rows = await getApiLogsTimeseries({
       ...filters,
       start: startDate,
       end: endDate,
+      timezone: timezone ?? "UTC",
+      granularity,
       workspaceId: workspace.id,
     });
 
