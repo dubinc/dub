@@ -8,7 +8,7 @@ import { logAndRespond } from "../../utils";
 export const dynamic = "force-dynamic";
 
 const BATCH_SIZE = 60;
-const CONCURRENCY = 10;
+const CONCURRENCY = 5;
 
 /**
  * This route is used to update domain rating (DR) for verified website partners using the Ahrefs free API
