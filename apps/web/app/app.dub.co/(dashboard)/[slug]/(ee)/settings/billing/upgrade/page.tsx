@@ -110,7 +110,6 @@ export default function WorkspaceBillingUpgradePage() {
   }, [linksUsage, eventsUsage]);
 
   const planQueryParam = searchParams.get("plan");
-  const showRecommendedHighlight = Boolean(planQueryParam && recommendedPlan);
 
   const hideProPlan = Boolean(defaultProgramId && currentPlan !== "pro");
 
@@ -131,23 +130,39 @@ export default function WorkspaceBillingUpgradePage() {
     [recommendedPlan, hideProPlan],
   );
 
-  const recommendedPlanIndex = useMemo(() => {
-    if (!recommendedPlan) return null;
+  const resolvedRequestedPlan = useMemo(() => {
+    if (!planQueryParam) return null;
+
+    return (
+      plans.find(
+        ({ plan }) => plan.name.toLowerCase() === planQueryParam.toLowerCase(),
+      ) ?? null
+    );
+  }, [planQueryParam, plans]);
+
+  const highlightedPlan = useMemo(() => {
+    if (resolvedRequestedPlan) return resolvedRequestedPlan;
+    if (!planQueryParam) return recommendedPlan;
+    return null;
+  }, [resolvedRequestedPlan, planQueryParam, recommendedPlan]);
+
+  const highlightedPlanIndex = useMemo(() => {
+    if (!highlightedPlan) return null;
 
     const index = plans.findIndex(
       ({ plan, planTier }) =>
-        plan.name === recommendedPlan.plan.name &&
-        planTier === recommendedPlan.planTier,
+        plan.name === highlightedPlan.plan.name &&
+        planTier === highlightedPlan.planTier,
     );
 
     return index >= 0 ? index : null;
-  }, [plans, recommendedPlan]);
+  }, [plans, highlightedPlan]);
 
   useEffect(() => {
-    if (planQueryParam && recommendedPlanIndex !== null) {
-      setMobilePlanIndex(recommendedPlanIndex);
+    if (highlightedPlanIndex !== null) {
+      setMobilePlanIndex(highlightedPlanIndex);
     }
-  }, [planQueryParam, recommendedPlanIndex]);
+  }, [highlightedPlanIndex]);
 
   useEffect(() => {
     if (mobilePlanIndex >= plans.length) {
@@ -220,9 +235,9 @@ export default function WorkspaceBillingUpgradePage() {
             >
               {plans.map(({ plan, planTier }, idx) => {
                 const isRecommended = Boolean(
-                  showRecommendedHighlight &&
-                    plan.name === recommendedPlan!.plan.name &&
-                    planTier === recommendedPlan!.planTier,
+                  highlightedPlan &&
+                    plan.name === highlightedPlan.plan.name &&
+                    planTier === highlightedPlan.planTier,
                 );
 
                 // disable upgrade button if user has a Stripe ID and is on the current plan
@@ -397,9 +412,7 @@ export default function WorkspaceBillingUpgradePage() {
               mobilePlanIndex={mobilePlanIndex}
               plans={plans}
               planPeriod={period}
-              recommendedPlan={
-                showRecommendedHighlight ? recommendedPlan : null
-              }
+              recommendedPlan={highlightedPlan}
             />
           ))}
         </div>
