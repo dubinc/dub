@@ -134,6 +134,16 @@ export function Form() {
     });
   };
 
+  const isLoading = isSubmitting || isPending || hasSubmitted;
+
+  const rewardAmount = type === "flat" ? amountInCents : amountInPercentage;
+  const isRewardAmountMissing =
+    rewardAmount == null || Number.isNaN(rewardAmount);
+
+  const disabledTooltip = isRewardAmountMissing
+    ? `Please enter a valid ${type === "percentage" ? "percentage" : "amount"} per ${defaultRewardType}.`
+    : undefined;
+
   return (
     <form
       onSubmit={handleSubmit(onSubmit)}
@@ -141,7 +151,7 @@ export function Form() {
     >
       <div className="grid grid-cols-1 gap-2">
         <h2 className="text-content-emphasis text-sm font-semibold">
-          Reward type
+          Reward type <span className="text-red-800">*</span>
         </h2>
 
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -235,7 +245,7 @@ export function Form() {
             {defaultRewardType === "sale" && (
               <div className="space-y-2">
                 <h2 className="text-content-emphasis text-sm font-semibold">
-                  Commission structure
+                  Commission structure <span className="text-red-800">*</span>
                 </h2>
 
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -316,7 +326,7 @@ export function Form() {
               commissionStructure === "recurring" && (
                 <label className="space-y-2">
                   <span className="block text-sm font-medium text-neutral-800">
-                    Duration
+                    Duration <span className="text-red-800">*</span>
                   </span>
                   <select
                     {...register("maxDuration", {
@@ -345,7 +355,7 @@ export function Form() {
             {defaultRewardType === "sale" && (
               <div className="space-y-2">
                 <h2 className="text-content-emphasis text-sm font-semibold">
-                  Payout model
+                  Payout model <span className="text-red-800">*</span>
                 </h2>
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   {PAYOUT_MODELS.map(
@@ -415,7 +425,7 @@ export function Form() {
                   className="text-content-emphasis block text-sm font-semibold"
                 >
                   {type === "percentage" ? "Percentage" : "Amount"} per{" "}
-                  {defaultRewardType}
+                  {defaultRewardType} <span className="text-red-800">*</span>
                 </label>
                 <RewardQualityFieldIndicator
                   event={defaultRewardType as EventType}
@@ -465,8 +475,8 @@ export function Form() {
       <Button
         text="Continue"
         className="w-full"
-        loading={isSubmitting || isPending}
-        disabled={hasSubmitted}
+        loading={isLoading}
+        disabledTooltip={!isLoading ? disabledTooltip : undefined}
         type="submit"
       />
     </form>
