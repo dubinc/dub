@@ -1,8 +1,6 @@
 import {
-  assertCanConfirmEmailChange,
   deleteEmailChangeRequest,
-  EmailChangeAuthError,
-  EmailChangeRequestData,
+  type EmailChangeRequestData,
 } from "@/lib/auth/confirm-email-change";
 import { hashToken } from "@/lib/auth/hash-token";
 import { requireServerSessionRedirect } from "@/lib/better-auth/get-session";
@@ -37,29 +35,6 @@ export default async function ConfirmEmailChangePage(props: PageProps) {
 
 const VerifyEmailChange = async ({ params, searchParams }: PageProps) => {
   const { token } = await params;
-
-  const tokenFound = await prisma.verificationToken.findUnique({
-    where: {
-      token: await hashToken(token, { secret: true }),
-    },
-    select: {
-      token: true,
-      expires: true,
-      identifier: true,
-    },
-  });
-
-  if (!tokenFound || tokenFound.expires < new Date()) {
-    return (
-      <EmptyState
-        icon={InputPassword}
-        title="Invalid Token"
-        description="This token is invalid or expired. Please request a new one."
-      />
-    );
-  }
-
-  // Cancel the email change request (?cancel=true)
   const { cancel } = await searchParams;
 
   if (cancel && cancel === "true") {
@@ -74,58 +49,34 @@ const VerifyEmailChange = async ({ params, searchParams }: PageProps) => {
     );
   }
 
-  const { user } = await requireServerSessionRedirect(
+  await requireServerSessionRedirect(
     `/login?next=/auth/confirm-email-change/${token}`,
   );
 
-  const data = await redis.get<EmailChangeRequestData>(
-    `email-change-request:token:${tokenFound.token}`,
-  );
+  const tokenFound = await prisma.verificationToken.findUnique({
+    where: {
+      token: await hashToken(token, { secret: true }),
+    },
+    select: {
+      token: true,
+      expires: true,
+    },
+  });
 
-  if (!data) {
-    return (
-      <EmptyState
-        icon={InputPassword}
-        title="Invalid Token"
-        description="This token is invalid. Please request a new one."
-      />
-    );
-  }
+  const isTokenValid = tokenFound && tokenFound.expires >= new Date();
 
-  try {
-    await assertCanConfirmEmailChange({
-      userId: user.id,
-      tokenFound,
-      data,
-    });
-  } catch (error) {
-    if (error instanceof EmailChangeAuthError) {
-      return (
-        <EmptyState
-          icon={InputPassword}
-          title={
-            error.reason === "unauthorized" ? "Unauthorized" : "Invalid Token"
-          }
-          description={error.message}
-        />
-      );
-    }
-
-    return (
-      <EmptyState
-        icon={InputPassword}
-        title="Something Went Wrong"
-        description="We couldn't verify your email change request. Please try again later."
-      />
-    );
-  }
+  const data = isTokenValid
+    ? await redis.get<EmailChangeRequestData>(
+        `email-change-request:token:${tokenFound.token}`,
+      )
+    : null;
 
   return (
     <AuthLayout>
       <ConfirmEmailChangePageClient
         token={token}
-        email={data.email}
-        newEmail={data.newEmail}
+        email={data?.email}
+        newEmail={data?.newEmail}
       />
     </AuthLayout>
   );

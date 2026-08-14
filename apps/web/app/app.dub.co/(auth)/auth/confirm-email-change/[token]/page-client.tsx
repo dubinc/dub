@@ -16,11 +16,11 @@ export default function ConfirmEmailChangePageClient({
   newEmail,
 }: {
   token: string;
-  email: string;
-  newEmail: string;
+  email?: string;
+  newEmail?: string;
 }) {
   const router = useRouter();
-  const { refetch } = useSession();
+  const { update } = useSession();
   const [canceled, setCanceled] = useState(false);
   const [confirmed, setConfirmed] = useState(false);
 
@@ -37,7 +37,7 @@ export default function ConfirmEmailChangePageClient({
           data.redirectTo ??
           (data.isPartnerProfile ? "/profile" : "/account/settings");
 
-        await refetch({ query: { disableCookieCache: true } });
+        await update();
         toast.success("Successfully updated your email!");
         router.replace(redirectTo);
       },
@@ -78,9 +78,18 @@ export default function ConfirmEmailChangePageClient({
         Confirm your email change
       </h3>
       <p className="mt-2 text-center text-sm text-neutral-500">
-        Confirm the update to your email from{" "}
-        <span className="font-medium text-neutral-700">{email}</span> to{" "}
-        <span className="font-medium text-neutral-900">{newEmail}</span>.
+        {email && newEmail ? (
+          <>
+            Confirm the update to your email from{" "}
+            <span className="font-medium text-neutral-700">{email}</span> to{" "}
+            <span className="font-medium text-neutral-900">{newEmail}</span>.
+          </>
+        ) : (
+          <>
+            Confirm the update to your email address. This change will take
+            effect immediately.
+          </>
+        )}
       </p>
 
       <div className="mt-8 flex gap-3">
