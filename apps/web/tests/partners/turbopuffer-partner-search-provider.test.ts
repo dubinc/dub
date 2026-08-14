@@ -32,6 +32,7 @@ const document: PartnerSearchDocument = {
 const mocks = vi.hoisted(() => ({
   write: vi.fn(),
   multiQuery: vi.fn(),
+  query: vi.fn(),
   deleteAll: vi.fn(),
 }));
 
@@ -39,6 +40,7 @@ function createNamespaceMock(): TurbopufferNamespace {
   return {
     write: mocks.write,
     multiQuery: mocks.multiQuery,
+    query: mocks.query,
     deleteAll: mocks.deleteAll,
   } as unknown as TurbopufferNamespace;
 }
@@ -74,6 +76,7 @@ describe("Turbopuffer partner search provider", () => {
     }
     mocks.write.mockResolvedValue({ rows_affected: 1 });
     mocks.multiQuery.mockResolvedValue({ results: [] });
+    mocks.query.mockResolvedValue({ aggregations: { total: 12_000 } });
   });
 
   // In afterEach rather than the test body, so a failed assertion cannot leak
@@ -386,6 +389,44 @@ describe("Turbopuffer partner search provider", () => {
       }),
     ).rejects.toThrow("Partner search candidate limit");
   });
+
+  it("counts matches without the candidate ceiling", async () => {
+    const total = await createProvider().countCandidates({
+      programId: "prog_test",
+      query: "creator",
+      limit: 10,
+      filters: { status: { values: ["approved"] } },
+    });
+
+    expect(total).toBe(12_000);
+
+    const [request] = mocks.query.mock.calls[0];
+    expect(request.aggregate_by).toEqual({ total: ["Count"] });
+    // One clause covers both text branches, since identityText holds a subset
+    // of what searchText holds.
+    const filters = JSON.stringify(request.filters);
+    expect(filters).toContain('["searchText","ContainsAnyToken","creator"');
+    expect(filters).toContain('["status","In",["approved"]]');
+  });
+
+  it.each([
+    ["a single character", "a"],
+    ["a half-typed final token", "steven a"],
+  ])(
+    "declines to count %s, which the prefix expands too far",
+    async (_label, query) => {
+      // Measured against 626K documents: a one-character prefix takes the
+      // aggregation from ~50ms to ~1.2s, past the deadline every time.
+      const total = await createProvider().countCandidates({
+        programId: "prog_test",
+        query,
+        limit: 10,
+      });
+
+      expect(total).toBeNull();
+      expect(mocks.query).not.toHaveBeenCalled();
+    },
+  );
 
   it("deletes by document ID", async () => {
     await createProvider().delete(["pge_1", "pge_2"]);

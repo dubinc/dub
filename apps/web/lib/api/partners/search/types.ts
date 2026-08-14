@@ -105,8 +105,11 @@ export interface PartnerSearchProvider {
   searchCandidates(
     query: PartnerSearchCandidateQuery,
   ): Promise<PartnerSearchResult>;
-  /** How many documents match, ignoring `limit`. */
-  countCandidates(query: PartnerSearchCandidateQuery): Promise<number>;
+  /**
+   * How many documents match, ignoring `limit`. Null when the provider cannot
+   * answer cheaply, which the caller handles by counting another way.
+   */
+  countCandidates(query: PartnerSearchCandidateQuery): Promise<number | null>;
   upsert(documents: PartnerSearchDocument[]): Promise<void>;
   delete(documentIds: string[]): Promise<void>;
 }

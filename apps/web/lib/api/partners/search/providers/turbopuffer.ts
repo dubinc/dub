@@ -22,6 +22,18 @@ import { getEmailNgrams, getQueryNgrams } from "./shared";
  */
 const NAMESPACE = "partner-search-v3";
 const WRITE_BATCH_SIZE = 500;
+
+/**
+ * Below this, the counting aggregation is not worth attempting.
+ *
+ * The final token is a prefix, so a short one expands to every term beginning
+ * with it. Measured against 626K documents: one character takes the count from
+ * ~50ms to ~1.2s, past the query deadline on every attempt, and two characters
+ * are still 2-3x slower than three. Production holds roughly 1.6M documents, so
+ * the margin matters more there than the extra character costs — the first
+ * keystrokes of a search fall back to the database count instead.
+ */
+const MIN_COUNT_PREFIX_LENGTH = 3;
 const QUERY_OPERATION_TIMEOUT_MS = 1_000;
 
 /**
@@ -368,6 +380,12 @@ export function createTurbopufferPartnerSearchProvider({
 
     async countCandidates({ programId, query, filters }) {
       const normalizedQuery = normalizePartnerSearchQuery(query);
+      const lastToken = normalizedQuery.split(/\s+/u).at(-1) ?? "";
+
+      if (lastToken.length < MIN_COUNT_PREFIX_LENGTH) {
+        return null;
+      }
+
       const response = await withQueryDeadline(
         () =>
           resolvedNamespace.query({

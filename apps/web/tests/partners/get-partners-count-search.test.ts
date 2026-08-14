@@ -95,6 +95,21 @@ describe("getPartnersCount search", () => {
     },
   );
 
+  it("falls back to the database count when the provider declines to count", async () => {
+    const searchProvider = createSearchProvider();
+    (
+      searchProvider.countCandidates as ReturnType<typeof vi.fn>
+    ).mockResolvedValue(null);
+    mocks.count.mockResolvedValue(5);
+
+    const count = await getPartnersCount<number>(
+      { programId: "prog_test", search: "a" },
+      { searchProvider },
+    );
+
+    expect(count).toBe(5);
+  });
+
   it("falls back to the database count when the aggregation fails", async () => {
     const searchProvider = createSearchProvider();
     (

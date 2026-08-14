@@ -283,7 +283,11 @@ export async function getPartnersCount<T>(
     !databaseOnlyFilters
   ) {
     try {
-      return (await searchProvider.countCandidates(candidateQuery)) as T;
+      const total = await searchProvider.countCandidates(candidateQuery);
+
+      if (typeof total === "number") {
+        return total as T;
+      }
     } catch (error) {
       console.error(
         "[Partner Search] Count aggregation failed, falling back to counting candidates.",
