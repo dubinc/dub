@@ -6,7 +6,7 @@ import { useChat } from "@ai-sdk/react";
 import { Combobox } from "@dub/ui";
 import { OfficeBuilding, PaperPlane, Users2, Xmark } from "@dub/ui/icons";
 import { cn, fetcher, OG_AVATAR_URL } from "@dub/utils";
-import { DefaultChatTransport, isFileUIPart } from "ai";
+import { DefaultChatTransport, isFileUIPart, UIMessage } from "ai";
 import { Paperclip } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -37,6 +37,30 @@ type PendingImage = {
   previewUrl: string;
 };
 
+function blankFilePartUrls<
+  M extends { parts?: Array<{ type: string; url?: string }> },
+>(messages: M[]): M[] {
+  return messages.map((message) => ({
+    ...message,
+    parts: message.parts?.map((part) =>
+      part.type === "file" ? { ...part, url: "" } : part,
+    ),
+  }));
+}
+
+function stripHistoricalFileUrls(messages: UIMessage[]): UIMessage[] {
+  const lastUserIndex = messages.findLastIndex((msg) => msg.role === "user");
+  return messages.map((message, index) => {
+    if (index === lastUserIndex || !message.parts) return message;
+    return {
+      ...message,
+      parts: message.parts.map((part) =>
+        part.type === "file" ? { ...part, url: "" } : part,
+      ),
+    };
+  });
+}
+
 export function ChatInterface({
   className,
   embedded,
@@ -51,6 +75,8 @@ export function ChatInterface({
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const pendingImagesRef = useRef<PendingImage[]>([]);
+  const pendingSendRef = useRef<PendingImage[] | null>(null);
+  const sendingRef = useRef(false);
   const [input, setInput] = useState("");
   const [pendingImages, setPendingImages] = useState<PendingImage[]>([]);
   const [isDragging, setIsDragging] = useState(false);
@@ -88,8 +114,24 @@ export function ChatInterface({
   const { messages, sendMessage, status, setMessages } = useChat({
     transport: new DefaultChatTransport({
       api: "/api/ai/support-chat",
+      prepareSendMessagesRequest: ({
+        id,
+        messages: nextMessages,
+        body,
+        trigger,
+        messageId,
+      }) => ({
+        body: {
+          ...body,
+          id,
+          messages: stripHistoricalFileUrls(nextMessages),
+          trigger,
+          messageId,
+        },
+      }),
     }),
     onError: (err) => {
+      sendingRef.current = false;
       toast.error(err.message || "Something went wrong. Please try again.");
     },
   });
@@ -104,10 +146,43 @@ export function ChatInterface({
   }, [messages, status, embedded]);
 
   useEffect(() => {
-    if (status === "ready") {
-      textareaRef.current?.focus();
+    if (status === "error") {
+      sendingRef.current = false;
+      if (pendingSendRef.current?.length) {
+        setMessages((current) => {
+          if (current.length === 0) return current;
+          const last = current[current.length - 1];
+          return last.role === "user" ? current.slice(0, -1) : current;
+        });
+        pendingSendRef.current = null;
+      }
+      return;
     }
-  }, [status]);
+
+    if (status !== "ready") return;
+
+    sendingRef.current = false;
+
+    if (pendingSendRef.current?.length) {
+      pendingSendRef.current.forEach((image) =>
+        URL.revokeObjectURL(image.previewUrl),
+      );
+      pendingSendRef.current = null;
+      setPendingImages([]);
+    }
+
+    setMessages((current) => {
+      const needsStrip = current.some((message) =>
+        message.parts?.some(
+          (part) => part.type === "file" && "url" in part && part.url,
+        ),
+      );
+      if (!needsStrip) return current;
+      return blankFilePartUrls(current);
+    });
+
+    textareaRef.current?.focus();
+  }, [status, setMessages]);
 
   useEffect(() => {
     if (!storageKey || restoredRef.current) return;
@@ -147,12 +222,7 @@ export function ChatInterface({
         storageKey,
         JSON.stringify({
           ...stored,
-          messages: messages.map((message) => ({
-            ...message,
-            parts: message.parts?.map((part) =>
-              part.type === "file" ? { ...part, url: "" } : part,
-            ),
-          })),
+          messages: blankFilePartUrls(messages),
           ticketSubmitted,
         }),
       );
@@ -179,7 +249,7 @@ export function ChatInterface({
 
   const addFiles = useCallback(
     (incoming: File[]) => {
-      if (isCompressing) return;
+      if (isCompressing || sendingRef.current) return;
 
       const supported = incoming.filter(isChatImageFile);
       const rejected = incoming.length - supported.length;
@@ -231,10 +301,13 @@ export function ChatInterface({
       status === "streaming" ||
       status === "submitted" ||
       isCompressing ||
+      sendingRef.current ||
       !canChat
     ) {
       return;
     }
+
+    sendingRef.current = true;
 
     const requestBody = {
       globalContext: {
@@ -266,17 +339,19 @@ export function ChatInterface({
         }),
       );
 
+      pendingSendRef.current = imagesToSend;
+
       if (messageText) {
         sendMessage({ text: messageText, files }, { body: requestBody });
       } else {
         sendMessage({ files }, { body: requestBody });
       }
 
-      imagesToSend.forEach((image) => URL.revokeObjectURL(image.previewUrl));
-      setPendingImages([]);
       setInput("");
       textareaRef.current?.focus();
     } catch (err) {
+      sendingRef.current = false;
+      pendingSendRef.current = null;
       toast.error(
         err instanceof Error
           ? err.message
@@ -764,8 +839,13 @@ export function ChatInterface({
                         return prev.filter((item) => item.id !== image.id);
                       });
                     }}
+                    disabled={
+                      isCompressing ||
+                      status === "streaming" ||
+                      status === "submitted"
+                    }
                     aria-label="Remove image"
-                    className="absolute -right-1.5 -top-1.5 flex size-5 items-center justify-center rounded-full bg-neutral-900 text-white transition-colors hover:bg-neutral-700"
+                    className="absolute -right-1.5 -top-1.5 flex size-5 items-center justify-center rounded-full bg-neutral-900 text-white transition-colors hover:bg-neutral-700 disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     <Xmark className="size-2.5" />
                   </button>

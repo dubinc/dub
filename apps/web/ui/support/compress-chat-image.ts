@@ -4,6 +4,8 @@ export const MAX_CHAT_IMAGES = 3;
 
 const MAX_LONG_EDGE = 1568;
 const TARGET_MAX_BYTES = 400 * 1024;
+const MAX_DATA_URL_LENGTH = 1_400_000;
+const JPEG_QUALITIES = [0.8, 0.6, 0.4];
 
 export function isChatImageFile(file: File) {
   return CHAT_IMAGE_TYPES.has(file.type);
@@ -32,10 +34,12 @@ export async function compressChatImage(file: File) {
   const needsCompress = file.size > TARGET_MAX_BYTES;
 
   if (!needsResize && !needsCompress) {
+    const dataUrl = await blobToDataUrl(file);
+    assertDataUrlFits(dataUrl);
     return {
       filename: file.name || "screenshot.png",
       mediaType: file.type,
-      dataUrl: await blobToDataUrl(file),
+      dataUrl,
     };
   }
 
@@ -54,7 +58,29 @@ export async function compressChatImage(file: File) {
 
   ctx.drawImage(img, 0, 0, width, height);
 
-  const blob = await new Promise<Blob>((resolve, reject) => {
+  let blob: Blob | undefined;
+  for (const quality of JPEG_QUALITIES) {
+    blob = await canvasToJpegBlob(canvas, quality);
+    if (blob.size <= TARGET_MAX_BYTES) break;
+  }
+
+  if (!blob) {
+    throw new Error("Could not process image. Try a different PNG or JPEG.");
+  }
+
+  const base = file.name.replace(/\.[^.]+$/, "") || "screenshot";
+  const dataUrl = await blobToDataUrl(blob);
+  assertDataUrlFits(dataUrl);
+
+  return {
+    filename: `${base}.jpg`,
+    mediaType: "image/jpeg",
+    dataUrl,
+  };
+}
+
+function canvasToJpegBlob(canvas: HTMLCanvasElement, quality: number) {
+  return new Promise<Blob>((resolve, reject) => {
     canvas.toBlob(
       (result) => {
         if (result) resolve(result);
@@ -64,17 +90,15 @@ export async function compressChatImage(file: File) {
           );
       },
       "image/jpeg",
-      0.8,
+      quality,
     );
   });
+}
 
-  const base = file.name.replace(/\.[^.]+$/, "") || "screenshot";
-
-  return {
-    filename: `${base}.jpg`,
-    mediaType: "image/jpeg",
-    dataUrl: await blobToDataUrl(blob),
-  };
+function assertDataUrlFits(dataUrl: string) {
+  if (dataUrl.length > MAX_DATA_URL_LENGTH) {
+    throw new Error("Image too large. Try a smaller screenshot.");
+  }
 }
 
 function blobToDataUrl(blob: Blob) {
