@@ -6,7 +6,9 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { WorkflowCondition } from "@/lib/api/workflows/types";
 import { validateWorkflowConditions } from "@/lib/api/workflows/validate-workflow-conditions";
 import { withWorkspace } from "@/lib/auth";
+import { bountyEligibilityIncludes } from "@/lib/bounty/api/bounty-availability";
 import { generatePerformanceBountyName } from "@/lib/bounty/api/generate-performance-bounty-name";
+import { getBountyOrThrow } from "@/lib/bounty/api/get-bounty-or-throw";
 import { getBountyWithDetails } from "@/lib/bounty/api/get-bounty-with-details";
 import { PERFORMANCE_BOUNTY_SCOPE_ATTRIBUTES } from "@/lib/bounty/api/performance-bounty-scope-attributes";
 import { shouldUpsertDraftSubmissionsOnReopen } from "@/lib/bounty/api/upsert-draft-bounty-submissions";
@@ -21,7 +23,7 @@ import {
   updateBountySchema,
 } from "@/lib/zod/schemas/bounties";
 import { APP_DOMAIN_WITH_NGROK, arrayEqual, deepEqual } from "@dub/utils";
-import { PartnerGroup, Prisma } from "@prisma/client";
+import { BountyStartMode, PartnerGroup, Prisma } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
@@ -57,6 +59,8 @@ export const PATCH = withWorkspace(
       description,
       startsAt,
       endsAt,
+      startMode,
+      endsAfterDays,
       submissionsOpenAt,
       submissionFrequency,
       maxSubmissions,
@@ -67,26 +71,57 @@ export const PATCH = withWorkspace(
       groupIds,
     } = updateBountySchema.parse(await parseRequestBody(req));
 
-    const bounty = await prisma.bounty.findUniqueOrThrow({
-      where: {
-        id: bountyId,
-        programId,
-      },
+    const bounty = await getBountyOrThrow({
+      bountyId,
+      programId,
       include: {
-        groups: true,
         workflow: true,
         _count: {
           select: {
             submissions: true,
           },
         },
+        ...bountyEligibilityIncludes,
       },
     });
 
+    const nextStartMode =
+      startMode !== undefined ? startMode : bounty.startMode;
+
+    // Absolute end dates are cleared when switching to relative (unless the
+    // client explicitly sends endsAt) or when setting endsAfterDays.
+    let endsAtUpdate: { endsAt?: Date | null } = {};
+
+    if (endsAt !== undefined) {
+      endsAtUpdate = { endsAt };
+    } else if (endsAfterDays != null) {
+      endsAtUpdate = { endsAt: null };
+    } else if (
+      nextStartMode === BountyStartMode.relative &&
+      bounty.endsAt != null
+    ) {
+      endsAtUpdate = { endsAt: null };
+    }
+
     validateBounty({
       type: bounty.type,
-      startsAt,
-      endsAt: endsAt !== undefined ? endsAt : bounty.endsAt,
+      // Relative bounties never store startsAt; coerce so mode switches don't
+      // fail validation against a leftover absolute startsAt.
+      startsAt:
+        nextStartMode === BountyStartMode.relative
+          ? null
+          : startsAt !== undefined
+            ? startsAt
+            : bounty.startsAt,
+      endsAt:
+        endsAtUpdate.endsAt !== undefined ? endsAtUpdate.endsAt : bounty.endsAt,
+      startMode: nextStartMode,
+      endsAfterDays:
+        endsAfterDays !== undefined
+          ? endsAfterDays
+          : nextStartMode === BountyStartMode.absolute
+            ? null
+            : bounty.endsAfterDays,
       submissionsOpenAt,
       submissionFrequency:
         submissionFrequency !== undefined
@@ -123,17 +158,22 @@ export const PATCH = withWorkspace(
 
     // if groupIds is provided and is different from the current groupIds, update the groups
     let updatedPartnerGroups: PartnerGroup[] | undefined = undefined;
-    if (
-      groupIds &&
-      !arrayEqual(
-        bounty.groups.map((group) => group.groupId),
-        groupIds,
-      )
-    ) {
-      updatedPartnerGroups = await throwIfInvalidGroupIds({
-        programId,
-        groupIds,
-      });
+    let shouldUpdatePartnerGroups = false;
+
+    if (groupIds !== undefined) {
+      const currentGroupIds = bounty.groups.map((group) => group.groupId);
+      const newGroupIds = groupIds || [];
+
+      if (!arrayEqual(currentGroupIds, newGroupIds)) {
+        if (newGroupIds.length > 0) {
+          updatedPartnerGroups = await throwIfInvalidGroupIds({
+            programId,
+            groupIds: newGroupIds,
+          });
+        }
+
+        shouldUpdatePartnerGroups = true;
+      }
     }
 
     // Prevent updates if `performanceCondition.attribute` differs from the current value if there are existing submissions
@@ -189,6 +229,19 @@ export const PATCH = withWorkspace(
       });
     }
 
+    // Relative bounties start when a partner joins, so startsAt is cleared.
+    // For absolute bounties, only update startsAt when explicitly provided.
+    let startsAtUpdate: { startsAt?: Date | null } = {};
+
+    if (nextStartMode === BountyStartMode.relative) {
+      startsAtUpdate = { startsAt: null };
+    } else if (startsAt !== undefined) {
+      startsAtUpdate = { startsAt: startsAt ?? new Date() };
+    } else if (bounty.startsAt === null) {
+      // Switching relative -> absolute without a startsAt: default to now
+      startsAtUpdate = { startsAt: new Date() };
+    }
+
     const data = await prisma.$transaction(async (tx) => {
       const updatedBounty = await tx.bounty.update({
         where: {
@@ -197,8 +250,15 @@ export const PATCH = withWorkspace(
         data: {
           name: bountyName ?? undefined,
           description,
-          startsAt: startsAt!, // Can remove the ! when we're on a newer TS version (currently 5.4.4)
-          endsAt,
+          ...startsAtUpdate,
+          ...endsAtUpdate,
+          ...(startMode !== undefined && { startMode }),
+          ...(endsAfterDays !== undefined
+            ? { endsAfterDays }
+            : nextStartMode === BountyStartMode.absolute &&
+                bounty.endsAfterDays != null
+              ? { endsAfterDays: null }
+              : {}),
           submissionsOpenAt:
             bounty.type === "submission" ? submissionsOpenAt : null,
           ...(bounty.type === "submission" &&
@@ -214,18 +274,21 @@ export const PATCH = withWorkspace(
             submissionRequirements !== undefined && {
               submissionRequirements: submissionRequirements ?? Prisma.DbNull,
             }),
-          ...(updatedPartnerGroups && {
+          ...(shouldUpdatePartnerGroups && {
             groups: {
               deleteMany: {},
-              create: updatedPartnerGroups.map((group) => ({
-                groupId: group.id,
-              })),
+              ...(updatedPartnerGroups &&
+                updatedPartnerGroups.length > 0 && {
+                  create: updatedPartnerGroups.map((group) => ({
+                    groupId: group.id,
+                  })),
+                }),
             },
           }),
         },
         include: {
           workflow: true,
-          groups: true,
+          ...bountyEligibilityIncludes,
         },
       });
 
@@ -290,7 +353,9 @@ export const PATCH = withWorkspace(
             body: {
               bountyId: bounty.id,
             },
-            notBefore: Math.floor(data.startsAt.getTime() / 1000),
+            ...(data.startsAt && {
+              notBefore: Math.floor(data.startsAt.getTime() / 1000),
+            }),
           }),
       ]),
     );
@@ -309,19 +374,17 @@ export const DELETE = withWorkspace(
     const { bountyId } = params;
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    const bounty = await prisma.bounty.findUniqueOrThrow({
-      where: {
-        id: bountyId,
-        programId,
-      },
+    const bounty = await getBountyOrThrow({
+      bountyId,
+      programId,
       include: {
-        groups: true,
         workflow: true,
         _count: {
           select: {
             submissions: true,
           },
         },
+        ...bountyEligibilityIncludes,
       },
     });
 
