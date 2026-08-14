@@ -2,6 +2,7 @@ import { getPaginationQuerySchema } from "@/lib/zod/schemas/misc";
 import { tokenSchema } from "@/lib/zod/schemas/token";
 import { UserSchema } from "@/lib/zod/schemas/users";
 import * as z from "zod/v4";
+import { sanitizeTimezone } from "../analytics/utils/sanitize-timezone";
 import { parseDateSchema } from "../zod/schemas/utils";
 import { API_LOGS_MAX_PAGE_SIZE } from "./constants";
 
@@ -105,6 +106,11 @@ export const getApiLogsQuerySchema = z
     start: parseDateSchema.optional(),
     end: parseDateSchema.optional(),
     interval: z.enum(["24h", "7d", "30d", "60d", "90d"]).optional(),
+    timezone: z
+      .string()
+      .optional()
+      .overwrite((v) => (v === undefined ? undefined : sanitizeTimezone(v))),
+    exactRange: z.enum(["1", "true"]).optional(),
   })
   .extend(
     getPaginationQuerySchema({
@@ -117,3 +123,27 @@ export const getApiLogsCountQuerySchema = getApiLogsQuerySchema
   .extend({
     groupBy: apiLogCountGroupBySchema.optional(),
   });
+
+export const getApiLogsTimeseriesQuerySchema = getApiLogsCountQuerySchema.omit({
+  groupBy: true,
+});
+
+export const apiLogTimeseriesGranularitySchema = z.enum(["hour", "day"]);
+
+export const apiLogTimeseriesFilterSchemaTB = apiLogFilterSchemaTB
+  .omit({
+    limit: true,
+    offset: true,
+  })
+  .extend({
+    timezone: z.string().optional(),
+    granularity: apiLogTimeseriesGranularitySchema.optional(),
+  });
+
+export const apiLogTimeseriesRowSchema = z.object({
+  date: z.string(),
+  status2xx: z.number(),
+  status4xx: z.number(),
+  status5xx: z.number(),
+  statusOther: z.number(),
+});
