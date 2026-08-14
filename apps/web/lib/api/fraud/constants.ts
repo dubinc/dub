@@ -101,6 +101,10 @@ export const FRAUD_RULES_BY_TYPE = Object.fromEntries(
 
 export const FRAUD_GROUP_EXPIRY_DAYS = 30;
 
+export const NON_EXPIRING_FRAUD_RULE_TYPES: FraudRuleType[] = [
+  FraudRuleType.partnerCrossProgramBan,
+];
+
 export const CONFIGURABLE_FRAUD_RULES = FRAUD_RULES.filter(
   (rule) => rule.configurable,
 );

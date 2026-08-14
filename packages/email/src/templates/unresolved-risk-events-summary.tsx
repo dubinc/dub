@@ -93,7 +93,8 @@ export default function UnresolvedRiskEventsSummary({
               Here are your detected risk events reported for{" "}
               <strong>{todayDate}</strong> for the{" "}
               <strong>{program.name}</strong> program. These risk events will
-              automatically expire in 30 days if not resolved.
+              automatically expire in 30 days if not resolved, except confirmed
+              cross-program bans.
             </Text>
 
             <Section className="my-6 rounded-xl border border-solid border-neutral-200 bg-white p-0">

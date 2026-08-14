@@ -12,7 +12,8 @@ export function RiskDisclaimerBanner({ className }: { className?: string }) {
       <TriangleWarning className="mt-0.5 size-4 shrink-0 text-amber-600" />
       <p className="flex-1 text-sm text-amber-900">
         We recommend reviewing the risk events thoroughly before taking action.
-        Unresolved events expire after 30 days.{" "}
+        Unresolved events expire after 30 days, except confirmed cross-program
+        bans.{" "}
         <a
           href="https://dub.co/help/article/risk-monitoring"
           target="_blank"
