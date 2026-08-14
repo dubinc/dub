@@ -64,6 +64,7 @@ export async function getPartnersCount<T>(
     groupId,
     partnerTagId,
     tenantId,
+    referredByPartnerId,
     partnerTagIdOperator = "IN",
     groupIdOperator = "IN",
     countryOperator = "IN",
@@ -265,9 +266,14 @@ export async function getPartnersCount<T>(
   // thousand. Ask the provider for the real total instead, but only when it can
   // see every filter that applies: `partnerIds`, `tenantId`, and the metric
   // ranges are database-only, so leaving them out would over-count.
+  // Every filter the provider does not carry. `email` is absent because it stops
+  // a candidate query being built at all. Adding a filter to
+  // buildProgramEnrollmentWhereForList without adding it here or to the
+  // document would silently over-count.
   const databaseOnlyFilters =
     Boolean(tenantId) ||
     Boolean(partnerIds?.length) ||
+    Boolean(referredByPartnerId) ||
     Object.keys(buildMetricRangeWhere(enrollmentBase)).length > 0;
 
   if (

@@ -75,6 +75,7 @@ describe("getPartnersCount search", () => {
     ["a tenant ID", { tenantId: "tenant_1" }],
     ["explicit partner IDs", { partnerIds: ["pn_1"] }],
     ["a metric range", { totalClicksMin: 10 }],
+    ["a referral filter", { referredByPartnerId: "pn_referrer" }],
   ])(
     "falls back to the database count when the provider cannot see %s",
     async (_label, extra) => {
