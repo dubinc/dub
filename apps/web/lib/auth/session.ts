@@ -76,14 +76,14 @@ export const withSession = (handler: WithSessionHandler) =>
           });
         }
 
-        const response = await enforceRateLimit({
+        const rateLimit = await enforceRateLimit({
           identifier: result.rateLimitIdentifier,
           authMethod: result.authMethod,
         });
 
-        responseHeaders = response.headers;
+        responseHeaders = rateLimit.headers;
 
-        if (!response.success) {
+        if (!rateLimit.success) {
           throw new DubApiError({
             code: "rate_limit_exceeded",
             message: "Too many requests.",
@@ -94,12 +94,19 @@ export const withSession = (handler: WithSessionHandler) =>
           waitUntil(updateApiKeyLastUsed(result.token));
         }
 
-        return await handler({
+        const response = await handler({
           req,
           params,
           searchParams: getSearchParams(req.url),
           session: { user },
         });
+
+        // Add rate limit headers to the response
+        for (const [key, value] of responseHeaders.entries()) {
+          response.headers.set(key, value);
+        }
+
+        return response;
       } catch (error) {
         return handleAndReturnErrorResponse(error, responseHeaders);
       }

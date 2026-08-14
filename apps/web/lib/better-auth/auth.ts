@@ -161,7 +161,9 @@ export const auth = betterAuth({
     modelName: "account",
     accountLinking: {
       enabled: true,
-      trustedProviders: ["google", "github", "saml"],
+      // GitHub is omitted: it can return unverified emails, so implicit
+      // linking requires GitHub's own verified flag instead of trust-by-name.
+      trustedProviders: ["google", "saml"],
     },
   },
   verification: {
