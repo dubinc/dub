@@ -177,36 +177,41 @@ export function ChatInterface({
     };
   }, []);
 
-  const addFiles = useCallback((incoming: File[]) => {
-    const supported = incoming.filter(isChatImageFile);
-    const rejected = incoming.length - supported.length;
+  const addFiles = useCallback(
+    (incoming: File[]) => {
+      if (isCompressing) return;
 
-    if (rejected > 0) {
-      toast.error("Please attach a PNG, JPEG, or WebP image.");
-    }
+      const supported = incoming.filter(isChatImageFile);
+      const rejected = incoming.length - supported.length;
 
-    if (supported.length === 0) return;
-
-    setPendingImages((prev) => {
-      const remaining = MAX_CHAT_IMAGES - prev.length;
-      if (remaining <= 0) {
-        toast.error(`You can attach up to ${MAX_CHAT_IMAGES} images.`);
-        return prev;
+      if (rejected > 0) {
+        toast.error("Please attach a PNG, JPEG, or WebP image.");
       }
 
-      const next = supported.slice(0, remaining).map((file) => ({
-        id: `${file.name}-${file.size}-${Date.now()}-${Math.random()}`,
-        file,
-        previewUrl: URL.createObjectURL(file),
-      }));
+      if (supported.length === 0) return;
 
-      if (supported.length > remaining) {
-        toast.error(`You can attach up to ${MAX_CHAT_IMAGES} images.`);
-      }
+      setPendingImages((prev) => {
+        const remaining = MAX_CHAT_IMAGES - prev.length;
+        if (remaining <= 0) {
+          toast.error(`You can attach up to ${MAX_CHAT_IMAGES} images.`);
+          return prev;
+        }
 
-      return [...prev, ...next];
-    });
-  }, []);
+        const next = supported.slice(0, remaining).map((file) => ({
+          id: `${file.name}-${file.size}-${Date.now()}-${Math.random()}`,
+          file,
+          previewUrl: URL.createObjectURL(file),
+        }));
+
+        if (supported.length > remaining) {
+          toast.error(`You can attach up to ${MAX_CHAT_IMAGES} images.`);
+        }
+
+        return [...prev, ...next];
+      });
+    },
+    [isCompressing],
+  );
 
   const getSlackThreadTs = () => {
     for (let i = messages.length - 1; i >= 0; i--) {

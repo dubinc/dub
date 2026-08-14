@@ -39,8 +39,13 @@ export const POST = withSession(async ({ req, session }) => {
     return new Response("Invalid messages", { status: 400 });
   }
 
-  const latestParts = Array.isArray(messages[messages.length - 1].parts)
-    ? messages[messages.length - 1].parts
+  const lastUserIndex = messages.findLastIndex((msg) => msg.role === "user");
+  if (lastUserIndex === -1 || lastUserIndex !== messages.length - 1) {
+    return new Response("Invalid messages", { status: 400 });
+  }
+
+  const latestParts = Array.isArray(messages[lastUserIndex].parts)
+    ? messages[lastUserIndex].parts
     : [];
   const latestImages = latestParts
     .filter(isFileUIPart)
@@ -58,7 +63,6 @@ export const POST = withSession(async ({ req, session }) => {
     }
   }
 
-  const lastUserIndex = messages.findLastIndex((msg) => msg.role === "user");
   const modelMessages = messages.map((msg, index) => {
     const parts = Array.isArray(msg.parts) ? msg.parts : [];
     const nextParts: UIMessage["parts"] = [];
