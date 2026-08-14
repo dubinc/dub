@@ -1,9 +1,13 @@
 /**
  * Bulk-seeds partners for local development and partner-search benchmarking.
  *
- * Writes User, Partner, PartnerUser, ProgramEnrollment, PartnerPlatform, and Link
- * rows — every field the search index reads — in atomic chunks of CHUNK_SIZE
- * partners, so 100K partners lands ~400K rows in seconds.
+ * Writes User, Partner, PartnerUser, ProgramEnrollment, PartnerPlatform, Link,
+ * and ProgramPartnerTag rows — every field the search index reads — in atomic
+ * chunks of CHUNK_SIZE partners, so 100K partners lands ~500K rows in seconds.
+ *
+ * Statuses, groups, and tags are spread across each partner so the filters have
+ * something to select on: seeding everything as approved and ungrouped makes a
+ * filtered search look correct while matching every row.
  *
  * Re-running with the same `--seed` collides. `seedFingerprint` is a deterministic
  * hash of the program ID and `--seed`, so identical arguments regenerate identical
@@ -26,7 +30,7 @@ import { createId } from "@/lib/api/create-id";
 import { hashPassword } from "@/lib/auth/password";
 import { prisma } from "@/lib/prisma";
 import { parsePositiveInteger } from "@/scripts/utils/parse-cli-number";
-import { PlatformType, Prisma } from "@prisma/client";
+import { PlatformType, Prisma, ProgramEnrollmentStatus } from "@prisma/client";
 import { createHash } from "crypto";
 import "dotenv-flow/config";
 
@@ -132,6 +136,25 @@ const DESCRIPTION_SPECIALTIES = [
   "normalization", "partitioning", "replication",
 ];
 
+// Weighted so most partners are approved, which is what the table shows by
+// default, while leaving enough of every other status to filter on.
+// prettier-ignore
+const STATUS_WEIGHTS: ProgramEnrollmentStatus[] = [
+  ...Array<ProgramEnrollmentStatus>(84).fill("approved"),
+  ...Array<ProgramEnrollmentStatus>(6).fill("pending"),
+  ...Array<ProgramEnrollmentStatus>(3).fill("rejected"),
+  ...Array<ProgramEnrollmentStatus>(3).fill("banned"),
+  ...Array<ProgramEnrollmentStatus>(2).fill("archived"),
+  ...Array<ProgramEnrollmentStatus>(2).fill("deactivated"),
+];
+
+// prettier-ignore
+const TAG_NAMES = [
+  "VIP", "Newsletter", "YouTube", "Enterprise", "Agency", "Beta", "Inactive", "High Intent",
+];
+
+const SEEDED_GROUP_NAMES = ["Creators", "Agencies", "Enterprise", "Affiliates"];
+
 const PLATFORM_TYPES: PlatformType[] = [
   PlatformType.website,
   PlatformType.youtube,
@@ -155,6 +178,7 @@ type PartnerChunk = {
   enrollments: Prisma.ProgramEnrollmentCreateManyInput[];
   platforms: Prisma.PartnerPlatformCreateManyInput[];
   links: Prisma.LinkCreateManyInput[];
+  programPartnerTags: Prisma.ProgramPartnerTagCreateManyInput[];
 };
 
 type GeneratePartnerChunkOptions = {
@@ -164,9 +188,10 @@ type GeneratePartnerChunkOptions = {
   passwordHash: string;
   runStartedAt: Date;
   programId: string;
-  defaultGroupId: string | null;
   programDomain: string | null;
   workspaceId: string;
+  groupIds: (string | null)[];
+  tagIds: string[];
 };
 
 // FNV-1a with murmur3's fmix32 finalizer. Cheap enough to call several times
@@ -338,9 +363,10 @@ const generatePartnerChunk = ({
   passwordHash,
   runStartedAt,
   programId,
-  defaultGroupId,
   programDomain,
   workspaceId,
+  groupIds,
+  tagIds,
 }: GeneratePartnerChunkOptions): PartnerChunk => {
   const users: Prisma.UserCreateManyInput[] = [];
   const partners: Prisma.PartnerCreateManyInput[] = [];
@@ -348,6 +374,7 @@ const generatePartnerChunk = ({
   const enrollments: Prisma.ProgramEnrollmentCreateManyInput[] = [];
   const platforms: Prisma.PartnerPlatformCreateManyInput[] = [];
   const links: Prisma.LinkCreateManyInput[] = [];
+  const programPartnerTags: Prisma.ProgramPartnerTagCreateManyInput[] = [];
 
   // Pick from a pool by hashing rather than `index % pool.length`. The benchmark
   // samples every Nth partner, so a stride sharing a factor with the pool size
@@ -429,11 +456,23 @@ const generatePartnerChunk = ({
       id: enrollmentId,
       partnerId,
       programId,
-      groupId: defaultGroupId,
-      status: "approved",
+      groupId: pick(groupIds, "groupId", i),
+      status: pick(STATUS_WEIGHTS, "status", i),
       ...generatePartnerMetrics(i),
       createdAt,
     });
+
+    // 0-3 tags per partner, so the array filter has partners to include and
+    // partners to exclude rather than everything matching.
+    const tagCount = hashToUint32(`${seedFingerprint}:tagCount:${i}`) % 4;
+    const firstTag = hashToUint32(`${seedFingerprint}:tag:${i}`);
+    for (let t = 0; t < tagCount; t++) {
+      programPartnerTags.push({
+        programId,
+        partnerId,
+        partnerTagId: tagIds[(firstTag + t) % tagIds.length],
+      });
+    }
 
     // Offsetting a hashed start keeps each partner's platform types distinct,
     // which PartnerPlatform requires per partner.
@@ -474,7 +513,15 @@ const generatePartnerChunk = ({
     });
   }
 
-  return { users, partners, partnerUsers, enrollments, platforms, links };
+  return {
+    users,
+    partners,
+    partnerUsers,
+    enrollments,
+    platforms,
+    links,
+    programPartnerTags,
+  };
 };
 
 const insertPartnerChunk = async ({
@@ -484,6 +531,7 @@ const insertPartnerChunk = async ({
   enrollments,
   platforms,
   links,
+  programPartnerTags,
 }: PartnerChunk) => {
   // Keep every chunk atomic so a failed write cannot leave partial relations.
   const [, partnerResult] = await prisma.$transaction([
@@ -493,6 +541,7 @@ const insertPartnerChunk = async ({
     prisma.programEnrollment.createMany({ data: enrollments }),
     prisma.partnerPlatform.createMany({ data: platforms }),
     prisma.link.createMany({ data: links }),
+    prisma.programPartnerTag.createMany({ data: programPartnerTags }),
   ]);
 
   return partnerResult.count;
@@ -572,6 +621,42 @@ async function main() {
     .digest("hex")
     .slice(0, 16);
   const runStartedAt = new Date();
+
+  // Tags and groups are created once per run and reused, so filters have a
+  // small stable set of values to select on rather than one value per partner.
+  const tagIds = TAG_NAMES.map((_, index) => createId({ prefix: "ptag_" }));
+  await prisma.partnerTag.createMany({
+    data: TAG_NAMES.map((name, index) => ({
+      id: tagIds[index],
+      programId: program.id,
+      name: `${name} ${seed}`,
+    })),
+  });
+
+  const seededGroupIds = SEEDED_GROUP_NAMES.map(() =>
+    createId({ prefix: "grp_" }),
+  );
+  await prisma.partnerGroup.createMany({
+    data: SEEDED_GROUP_NAMES.map((name, index) => ({
+      id: seededGroupIds[index],
+      programId: program.id,
+      name: `${name} ${seed}`,
+      slug: `${name.toLowerCase()}-${seedFingerprint.slice(0, 6)}`,
+    })),
+  });
+
+  // The program's own default group, the seeded ones, and null — so "no group"
+  // is represented too, which is what a negated filter has to include.
+  const groupIds: (string | null)[] = [
+    program.defaultGroupId,
+    ...seededGroupIds,
+    null,
+  ];
+
+  console.log(
+    `Created ${tagIds.length} tags and ${seededGroupIds.length} groups for filtering\n`,
+  );
+
   const totalChunks = Math.ceil(totalCount / CHUNK_SIZE);
   const startTime = Date.now();
   let insertedPartners = 0;
@@ -586,9 +671,10 @@ async function main() {
       passwordHash,
       runStartedAt,
       programId: program.id,
-      defaultGroupId: program.defaultGroupId,
       programDomain: program.domain,
       workspaceId: workspace.id,
+      groupIds,
+      tagIds,
     });
 
     if (chunk === 0) {
