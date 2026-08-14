@@ -630,9 +630,6 @@ describe.sequential("/bounties - relative start mode", async () => {
     });
 
     createdBountyIds.push(bounty.id);
-    onTestFinished(async () => {
-      await h.deleteBounty(bounty.id);
-    });
 
     const { status: patchStatus, data: updated } = await http.patch<Bounty>({
       path: `/bounties/${bounty.id}`,
