@@ -12,7 +12,8 @@ SQL >
             {{ String(timezone, 'UTC') }}
         ) AS start,
         toStartOfDay(
-            toDateTime64({{ DateTime64(end, '2024-06-07 00:00:00.000') }}, 3),
+            toDateTime64({{ DateTime64(end, '2024-06-07 00:00:00.000') }}, 3)
+                - toIntervalMillisecond(1),
             {{ String(timezone, 'UTC') }}
         ) AS end,
         dateDiff('day', start, end) + 1 AS days_diff
@@ -36,12 +37,42 @@ SQL >
             {{ String(timezone, 'UTC') }}
         ) AS start,
         toStartOfHour(
-            toDateTime64({{ DateTime64(end, '2024-06-07 00:00:00.000') }}, 3),
+            toDateTime64({{ DateTime64(end, '2024-06-07 00:00:00.000') }}, 3)
+                - toIntervalMillisecond(1),
             {{ String(timezone, 'UTC') }}
-        ) AS end
+        ) AS end,
+        dateDiff('hour', start, end) + 1 AS hours_diff
     SELECT
         arrayJoin(
-            arrayMap(x -> toDateTime64(x, 3), range(toUInt32(start), toUInt32(end + 3600), 3600))
+            arrayMap(
+                x -> toDateTime64(start + toIntervalHour(x), 3, {{ String(timezone, 'UTC') }}),
+                range(0, hours_diff)
+            )
+        ) as interval
+
+
+
+NODE minute_intervals
+SQL >
+
+%
+    WITH
+        toStartOfMinute(
+            toDateTime64({{ DateTime64(start, '2024-06-01 00:00:00.000') }}, 3),
+            {{ String(timezone, 'UTC') }}
+        ) AS start,
+        toStartOfMinute(
+            toDateTime64({{ DateTime64(end, '2024-06-07 00:00:00.000') }}, 3)
+                - toIntervalMillisecond(1),
+            {{ String(timezone, 'UTC') }}
+        ) AS end,
+        dateDiff('minute', start, end) + 1 AS minutes_diff
+    SELECT
+        arrayJoin(
+            arrayMap(
+                x -> toDateTime64(start + toIntervalMinute(x), 3, {{ String(timezone, 'UTC') }}),
+                range(0, minutes_diff)
+            )
         ) as interval
 
 
@@ -51,7 +82,9 @@ SQL >
 
 %
     SELECT
-        {% if defined(granularity) and granularity == 'hour' %}
+        {% if defined(granularity) and granularity == 'minute' %}
+            toDateTime64(toStartOfMinute(timestamp, {{ String(timezone, 'UTC') }}), 3)
+        {% elif defined(granularity) and granularity == 'hour' %}
             toDateTime64(toStartOfHour(timestamp, {{ String(timezone, 'UTC') }}), 3)
         {% else %}
             toDateTime64(toStartOfDay(timestamp, {{ String(timezone, 'UTC') }}), 3)
@@ -83,12 +116,23 @@ SQL >
 %
     SELECT
         formatDateTime(interval, '%FT%T.000%z') as date,
+        formatDateTime(
+            {% if defined(granularity) and granularity == 'minute' %}
+                interval + toIntervalMinute(1)
+            {% elif defined(granularity) and granularity == 'hour' %}
+                interval + toIntervalHour(1)
+            {% else %}
+                interval + toIntervalDay(1)
+            {% end %},
+            '%FT%T.000%z'
+        ) as dateEnd,
         coalesce(status2xx, 0) as status2xx,
         coalesce(status4xx, 0) as status4xx,
         coalesce(status5xx, 0) as status5xx,
         coalesce(statusOther, 0) as statusOther
     FROM
-        {% if defined(granularity) and granularity == 'hour' %} hour_intervals
+        {% if defined(granularity) and granularity == 'minute' %} minute_intervals
+        {% elif defined(granularity) and granularity == 'hour' %} hour_intervals
         {% else %} day_intervals
         {% end %}
     LEFT JOIN counts USING interval

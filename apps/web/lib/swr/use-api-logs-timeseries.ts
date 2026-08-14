@@ -29,7 +29,7 @@ export function useApiLogsTimeseries() {
     },
   );
 
-  const { data, error } = useSWR<ApiLogsTimeseriesRow[]>(
+  const { data, error, isLoading } = useSWR<ApiLogsTimeseriesRow[]>(
     workspaceId ? `/api/logs/timeseries${queryString}` : null,
     fetcher,
     {
@@ -40,6 +40,6 @@ export function useApiLogsTimeseries() {
   return {
     data,
     error,
-    isLoading: !error && data === undefined,
+    isLoading: isLoading || (!error && data === undefined),
   };
 }

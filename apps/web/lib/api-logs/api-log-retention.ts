@@ -128,6 +128,8 @@ function clampToRetention({
   };
 }
 
+const HOUR_MS = 60 * 60 * 1000;
+
 function granularityFromRange({
   startDate,
   endDate,
@@ -137,6 +139,12 @@ function granularityFromRange({
   endDate: Date;
   timezone: string;
 }): ApiLogsGranularity {
+  const durationMs = endDate.getTime() - startDate.getTime();
+
+  if (durationMs <= 2 * HOUR_MS) {
+    return "minute";
+  }
+
   const daysDifference = differenceInDays(endDate, startDate, {
     in: tz(timezone),
   });
