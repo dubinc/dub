@@ -40,6 +40,7 @@ export const API_DOMAIN =
 
 export const ADMIN_HOSTNAMES = new Set([
   "admin.dub.co",
+  "admin-staging.dub.co",
   "admin.localhost:8888",
   "admin.localhost",
 ]);
