@@ -16,6 +16,34 @@ describe("buildPartnerSearchCandidateQuery", () => {
       programId: "prog_test",
       query: "examp",
       limit: 999,
+      filters: {
+        status: undefined,
+        groupId: undefined,
+        country: undefined,
+        partnerTagIds: undefined,
+      },
+    });
+  });
+
+  it("passes the discrete filters through, with exclusion", () => {
+    expect(
+      buildPartnerSearchCandidateQuery({
+        ...defaultInput,
+        status: "approved",
+        groupId: ["grp_1", "grp_2"],
+        country: "US",
+        countryOperator: "NOT IN",
+        partnerTagId: ["ptag_1"],
+      }),
+    ).toMatchObject({
+      filters: {
+        status: { values: ["approved"], exclude: false },
+        groupId: { values: ["grp_1", "grp_2"], exclude: false },
+        // Exclusion also matches partners with no country, matching the
+        // database's OR against IS NULL.
+        country: { values: ["US"], exclude: true },
+        partnerTagIds: { values: ["ptag_1"], exclude: false },
+      },
     });
   });
 

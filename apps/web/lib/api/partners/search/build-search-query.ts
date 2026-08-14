@@ -3,6 +3,7 @@ import { getPartnersQuerySchemaExtended } from "@/lib/zod/schemas/partners";
 import * as z from "zod/v4";
 import {
   PARTNER_SEARCH_CANDIDATE_LIMIT,
+  PartnerSearchCandidateFilter,
   PartnerSearchCandidateQuery,
 } from "./types";
 
@@ -17,14 +18,44 @@ export type PartnerSearchQueryInput = z.infer<
 
 type PartnerSearchCandidateQueryInput = Pick<
   PartnerSearchQueryInput,
-  "programId" | "search" | "email" | "tenantId"
+  | "programId"
+  | "search"
+  | "email"
+  | "tenantId"
+  | "status"
+  | "groupId"
+  | "country"
+  | "partnerTagId"
+  | "groupIdOperator"
+  | "countryOperator"
+  | "partnerTagIdOperator"
 >;
+
+function toFilter(
+  value: string | string[] | undefined | null,
+  operator?: "IN" | "NOT IN",
+): PartnerSearchCandidateFilter | undefined {
+  const values = (Array.isArray(value) ? value : [value]).filter(
+    (entry): entry is string => Boolean(entry),
+  );
+
+  return values.length > 0
+    ? { values, exclude: operator === "NOT IN" }
+    : undefined;
+}
 
 export function buildPartnerSearchCandidateQuery({
   programId,
   search,
   email,
   tenantId,
+  status,
+  groupId,
+  country,
+  partnerTagId,
+  groupIdOperator,
+  countryOperator,
+  partnerTagIdOperator,
 }: PartnerSearchCandidateQueryInput): PartnerSearchCandidateQuery | null {
   const query = search?.trim();
 
@@ -42,5 +73,11 @@ export function buildPartnerSearchCandidateQuery({
     programId,
     query,
     limit: PARTNER_SEARCH_CANDIDATE_LIMIT,
+    filters: {
+      status: toFilter(status),
+      groupId: toFilter(groupId, groupIdOperator),
+      country: toFilter(country, countryOperator),
+      partnerTagIds: toFilter(partnerTagId, partnerTagIdOperator),
+    },
   };
 }

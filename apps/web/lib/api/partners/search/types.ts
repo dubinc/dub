@@ -1,4 +1,4 @@
-import { PlatformType } from "@prisma/client";
+import { PlatformType, ProgramEnrollmentStatus } from "@prisma/client";
 
 /**
  * How many ranked enrollment IDs a provider may return for one query.
@@ -56,6 +56,16 @@ export interface PartnerSearchDocument {
   linkKeys: string[];
   shortLinks: string[];
   destinationUrls: string[];
+
+  // Filterable fields, chosen because they change when someone acts on a
+  // partner rather than continuously. Metrics are deliberately absent: they move
+  // on every click and conversion, so indexing them would make the document
+  // churn constantly and turn the index into a second source of truth for
+  // numbers the table displays.
+  status: ProgramEnrollmentStatus;
+  groupId: string | null;
+  country: string | null;
+  partnerTagIds: string[];
 }
 
 export interface PartnerSearchHit {
@@ -67,10 +77,31 @@ export interface PartnerSearchResult {
   hits: PartnerSearchHit[];
 }
 
+/**
+ * A discrete filter, plus whether the caller is excluding those values. Exclusion
+ * also matches partners that have no value at all, which is what the database
+ * does when it ORs the negation with IS NULL.
+ */
+export interface PartnerSearchCandidateFilter {
+  values: string[];
+  exclude?: boolean;
+}
+
 export interface PartnerSearchCandidateQuery {
   programId: string;
   query: string;
   limit: number;
+  /**
+   * Applied by the provider before it truncates to `limit`. The database still
+   * re-applies every one of them, so the index only ever narrows the candidate
+   * pool — it never decides the result on its own.
+   */
+  filters?: {
+    status?: PartnerSearchCandidateFilter;
+    groupId?: PartnerSearchCandidateFilter;
+    country?: PartnerSearchCandidateFilter;
+    partnerTagIds?: PartnerSearchCandidateFilter;
+  };
 }
 
 export interface PartnerSearchProvider {

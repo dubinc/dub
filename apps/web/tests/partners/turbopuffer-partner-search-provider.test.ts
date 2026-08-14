@@ -23,6 +23,10 @@ const document: PartnerSearchDocument = {
   linkKeys: ["rafi"],
   shortLinks: ["https://dub.sh/rafi"],
   destinationUrls: ["https://example.com/referrals/rafi"],
+  status: "approved",
+  groupId: "grp_test",
+  country: "US",
+  partnerTagIds: ["ptag_a", "ptag_b"],
 };
 
 const mocks = vi.hoisted(() => ({
@@ -239,6 +243,48 @@ describe("Turbopuffer partner search provider", () => {
     expect(branchesOf().filteredOn("identityText")).toHaveLength(0);
   });
 
+  it("narrows every branch with the discrete filters", async () => {
+    // The filters have to sit inside each branch: applying them after the
+    // ranking truncates is what made a broad query with country=US return 85
+    // rows out of 7,698 real matches.
+    await createProvider().searchCandidates({
+      programId: "prog_test",
+      query: "examp",
+      limit: 10,
+      filters: {
+        status: { values: ["approved"] },
+        country: { values: ["US", "CA"], exclude: true },
+        partnerTagIds: { values: ["ptag_1"] },
+      },
+    });
+
+    const [{ queries }] = mocks.multiQuery.mock.calls[0];
+    expect(queries.length).toBeGreaterThan(1);
+
+    for (const branch of queries) {
+      const filters = JSON.stringify(branch.filters);
+      expect(filters).toContain('["programId","Eq","prog_test"]');
+      expect(filters).toContain('["status","In",["approved"]]');
+      // Exclusion uses NotIn, which also matches documents that omit country.
+      expect(filters).toContain('["country","NotIn",["US","CA"]]');
+      expect(filters).toContain('["partnerTagIds","ContainsAny",["ptag_1"]]');
+    }
+  });
+
+  it("omits absent filters rather than sending empty clauses", async () => {
+    await createProvider().searchCandidates({
+      programId: "prog_test",
+      query: "examp",
+      limit: 10,
+      filters: { status: undefined, country: { values: [] } },
+    });
+
+    const [{ queries }] = mocks.multiQuery.mock.calls[0];
+    for (const branch of queries) {
+      expect(JSON.stringify(branch.filters)).not.toContain('"country"');
+    }
+  });
+
   it("requires every trigram on the n-gram branch", async () => {
     // BM25 alone would score a document sharing a single trigram, which is how
     // an unrelated address looks like a partial-email match.
@@ -368,6 +414,6 @@ describe("Turbopuffer partner search provider", () => {
       namespace: createNamespaceMock(),
     });
 
-    expect(namespaceName).toBe("partner-search-v2");
+    expect(namespaceName).toBe("partner-search-v3");
   });
 });

@@ -59,6 +59,12 @@ describe("getPartnersCount search", () => {
       programId: "prog_test",
       query: "examp",
       limit: 999,
+      filters: {
+        status: { values: ["approved"], exclude: false },
+        groupId: undefined,
+        country: { values: ["CA"], exclude: false },
+        partnerTagIds: undefined,
+      },
     });
     expect(mocks.count).toHaveBeenCalledWith({
       where: expect.objectContaining({

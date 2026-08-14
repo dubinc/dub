@@ -5,7 +5,11 @@ import {
   getPartnerSearchableValues,
   normalizePartnerSearchQuery,
 } from "../searchable-values";
-import type { PartnerSearchDocument, PartnerSearchProvider } from "../types";
+import type {
+  PartnerSearchCandidateQuery,
+  PartnerSearchDocument,
+  PartnerSearchProvider,
+} from "../types";
 import { validatePartnerSearchCandidateLimit } from "../types";
 import { withQueryDeadline, withTransientRetry } from "./resilience";
 import { getEmailNgrams, getQueryNgrams } from "./shared";
@@ -16,7 +20,7 @@ import { getEmailNgrams, getQueryNgrams } from "./shared";
  * existing namespace. A new version is backfilled alongside the old one and
  * swapped in, rather than rebuilt in place.
  */
-const NAMESPACE = "partner-search-v2";
+const NAMESPACE = "partner-search-v3";
 const WRITE_BATCH_SIZE = 500;
 const QUERY_OPERATION_TIMEOUT_MS = 1_000;
 
@@ -39,6 +43,10 @@ interface TurbopufferPartnerSearchRow extends Record<string, unknown> {
   searchText: string;
   identityText: string;
   emailNgrams: string;
+  status: string;
+  groupId?: string;
+  country?: string;
+  partnerTagIds: string[];
 }
 
 /**
@@ -58,9 +66,16 @@ const SEARCH_TEXT_TOKENIZER = "word_v2";
 // ContainsAllTokens, which reads the BM25 index rather than a filter index, so
 // marking them filterable would buy nothing and cost plenty: turbopuffer bills
 // an attribute per enabled index, so FTS + filterable is 200% of logical size.
-// Only `programId` needs one, for its scalar Eq.
+//
+// The scalar attributes below are filterable because they narrow *before* the
+// ranking truncates. Applying them afterwards is what made a broad query with
+// `country=US` return 85 rows out of 7,698 real matches.
 const TURBOPUFFER_SCHEMA = {
   programId: { type: "string", filterable: true },
+  status: { type: "string", filterable: true },
+  groupId: { type: "string", filterable: true },
+  country: { type: "string", filterable: true },
+  partnerTagIds: { type: "[]string", filterable: true },
   searchText: {
     type: "string",
     full_text_search: { tokenizer: SEARCH_TEXT_TOKENIZER },
@@ -121,6 +136,13 @@ function serializeTurbopufferRow(
     searchText: normalizeValues(getPartnerSearchableValues(document)),
     identityText: normalizeValues(getPartnerIdentityValues(document)),
     emailNgrams: getEmailNgrams(document.email),
+    status: document.status,
+    // Omitted rather than stored null, which is what makes a NotIn filter match
+    // the partners that have no group or no country — the same rows the
+    // database includes when it ORs the negation with IS NULL.
+    ...(document.groupId ? { groupId: document.groupId } : {}),
+    ...(document.country ? { country: document.country } : {}),
+    partnerTagIds: document.partnerTagIds,
   };
 }
 
@@ -143,8 +165,54 @@ function serializeTurbopufferRow(
  * shares just one, which is how an unrelated address looks like a partial-email
  * match.
  */
-function buildQueryBranches(programId: string, query: string) {
-  const programFilter = ["programId", "Eq", programId];
+/**
+ * Turns the discrete filters into turbopuffer clauses. Exclusion uses NotIn and
+ * NotContainsAny, which match documents that omit the attribute entirely — the
+ * partners with no group or no country, which the database also includes when
+ * it negates.
+ */
+function buildFilterClauses(
+  filters: PartnerSearchCandidateQuery["filters"],
+): unknown[] {
+  if (!filters) {
+    return [];
+  }
+
+  const clauses: unknown[] = [];
+
+  for (const [attribute, filter] of Object.entries(filters)) {
+    // An empty value list would become `In []`, which matches nothing and would
+    // silently empty the results rather than leaving them unfiltered.
+    if (!filter || filter.values.length === 0) {
+      continue;
+    }
+
+    const isArray = attribute === "partnerTagIds";
+    const operator = filter.exclude
+      ? isArray
+        ? "NotContainsAny"
+        : "NotIn"
+      : isArray
+        ? "ContainsAny"
+        : "In";
+
+    clauses.push([attribute, operator, filter.values]);
+  }
+
+  return clauses;
+}
+
+function buildQueryBranches(
+  programId: string,
+  query: string,
+  filters?: PartnerSearchCandidateQuery["filters"],
+) {
+  const scope = ["programId", "Eq", programId];
+  const filterClauses = buildFilterClauses(filters);
+  // Every branch carries the same scope, because a root-level clause beside the
+  // branches would not narrow them individually.
+  const programFilter =
+    filterClauses.length > 0 ? ["And", [scope, ...filterClauses]] : scope;
   const branches: Record<string, unknown>[] = [
     "searchText",
     "identityText",
@@ -243,13 +311,19 @@ export function createTurbopufferPartnerSearchProvider({
   const resolvedNamespace = namespace ?? createNamespace(resolvedNamespaceName);
 
   return {
-    async searchCandidates({ programId, query, limit }) {
+    async searchCandidates({ programId, query, limit, filters }) {
       validatePartnerSearchCandidateLimit(limit);
 
       const normalizedQuery = normalizePartnerSearchQuery(query);
-      const branches = buildQueryBranches(programId, normalizedQuery).map(
-        (branch) => ({ ...branch, top_k: limit, include_attributes: false }),
-      );
+      const branches = buildQueryBranches(
+        programId,
+        normalizedQuery,
+        filters,
+      ).map((branch) => ({
+        ...branch,
+        top_k: limit,
+        include_attributes: false,
+      }));
 
       // One round trip regardless of branch count.
       const { results } = await withQueryDeadline(

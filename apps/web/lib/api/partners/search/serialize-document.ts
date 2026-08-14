@@ -5,12 +5,23 @@ export const partnerSearchDocumentSelect = {
   id: true,
   programId: true,
   partnerId: true,
+  status: true,
+  groupId: true,
   partner: {
     select: {
       name: true,
       email: true,
       companyName: true,
       description: true,
+      country: true,
+      // Tags are per (program, partner) and this select cannot take a program,
+      // so the serializer narrows them to the enrollment's own program.
+      programPartnerTags: {
+        select: {
+          programId: true,
+          partnerTagId: true,
+        },
+      },
       platforms: {
         select: {
           type: true,
@@ -58,5 +69,13 @@ export function serializePartnerSearchDocument(
     linkKeys: unique(links.map(({ key }) => key)),
     shortLinks: unique(links.map(({ shortLink }) => shortLink)),
     destinationUrls: unique(links.map(({ url }) => url)),
+    status: enrollment.status,
+    groupId: enrollment.groupId,
+    country: partner.country,
+    partnerTagIds: unique(
+      partner.programPartnerTags
+        .filter(({ programId }) => programId === enrollment.programId)
+        .map(({ partnerTagId }) => partnerTagId),
+    ),
   };
 }
