@@ -1,6 +1,5 @@
 "use server";
 
-import { consumeEmailVerificationOtp } from "@/lib/auth/consume-email-verification-otp";
 import { generateOTP } from "@/lib/auth/utils";
 import { qstash } from "@/lib/cron";
 import { prisma } from "@/lib/prisma";
@@ -224,23 +223,65 @@ const verifyTokens = async ({
     );
   }
 
-  const sourceConsumed = await consumeEmailVerificationOtp({
-    identifier: sourceEmail,
-    token: sourceCode,
-  });
+  const otps = [
+    { identifier: sourceEmail, token: sourceCode },
+    { identifier: targetEmail, token: targetCode },
+  ];
 
-  if (!sourceConsumed) {
-    throw new Error(
-      `The code entered for ${sourceEmail} does not match. Please double-check it and enter it again.`,
+  const { consumed, unmatched } = await prisma.$transaction(async (tx) => {
+    const matches = await tx.emailVerificationToken.findMany({
+      where: {
+        OR: otps.map(({ identifier, token }) => ({
+          identifier,
+          token,
+          expires: {
+            gte: new Date(),
+          },
+        })),
+      },
+      select: {
+        identifier: true,
+        token: true,
+      },
+    });
+
+    const matched = new Set(
+      matches.map((match) => `${match.identifier}:${match.token}`),
     );
-  }
 
-  const targetConsumed = await consumeEmailVerificationOtp({
-    identifier: targetEmail,
-    token: targetCode,
+    const unmatchedIdentifiers = otps
+      .filter((otp) => !matched.has(`${otp.identifier}:${otp.token}`))
+      .map((otp) => otp.identifier);
+
+    if (unmatchedIdentifiers.length > 0) {
+      return {
+        consumed: false,
+        unmatched: unmatchedIdentifiers,
+      };
+    }
+
+    await tx.emailVerificationToken.deleteMany({
+      where: {
+        OR: otps.map(({ identifier, token }) => ({
+          identifier,
+          token,
+        })),
+      },
+    });
+
+    return {
+      consumed: true,
+      unmatched: [],
+    };
   });
 
-  if (!targetConsumed) {
+  if (!consumed) {
+    if (unmatched.includes(sourceEmail)) {
+      throw new Error(
+        `The code entered for ${sourceEmail} does not match. Please double-check it and enter it again.`,
+      );
+    }
+
     throw new Error(
       `The code entered for ${targetEmail} does not match. Please double-check it and enter it again.`,
     );

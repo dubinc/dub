@@ -7,9 +7,9 @@ import { parse } from "./utils/parse";
 export async function AdminMiddleware(req: NextRequest) {
   const { path } = parse(req);
 
-  const { user } = await getMiddlewareSession(req);
+  const { user, hasUnverifiedSessionCookie } = await getMiddlewareSession(req);
 
-  if (!user && path !== "/login") {
+  if (!user && !hasUnverifiedSessionCookie && path !== "/login") {
     return NextResponse.redirect(new URL("/login", req.url));
   }
 
