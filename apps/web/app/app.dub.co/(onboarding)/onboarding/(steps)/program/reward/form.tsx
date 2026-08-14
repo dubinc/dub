@@ -109,6 +109,7 @@ export function Form() {
     },
     onError: ({ error }) => {
       toast.error(error.serverError);
+      setHasSubmitted(false);
     },
   });
 
