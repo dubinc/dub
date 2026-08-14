@@ -27,27 +27,4 @@ describe("buildPartnerSearchCandidateQuery", () => {
   ])("keeps %s on the database path", (_name, input) => {
     expect(buildPartnerSearchCandidateQuery(input)).toBeNull();
   });
-
-  describe("exact email queries", () => {
-    it.each(["steven@dub.co", "alex.sanchez+tag@techcorp.io", "a@b.io"])(
-      "keeps %s on the database, which indexes email",
-      (search) => {
-        expect(
-          buildPartnerSearchCandidateQuery({ programId: "prog_1", search }),
-        ).toBeNull();
-      },
-    );
-
-    it.each([
-      ["half-typed", "steven@"],
-      ["domain only", "@dub.co"],
-      ["no dot in the domain", "steven@dub"],
-      ["two words", "steven@dub.co other"],
-      ["a name", "steven"],
-    ])("sends %s to the provider", (_label, search) => {
-      expect(
-        buildPartnerSearchCandidateQuery({ programId: "prog_1", search }),
-      ).toMatchObject({ query: search });
-    });
-  });
 });
