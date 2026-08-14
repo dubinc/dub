@@ -7,7 +7,9 @@ import {
 import { createAuthClient } from "better-auth/react";
 import type { auth } from "./auth";
 
-const isVercelProduction = process.env.NEXT_PUBLIC_VERCEL_ENV === "production";
+const isVercelDeployment =
+  process.env.NEXT_PUBLIC_VERCEL_ENV === "production" ||
+  process.env.NEXT_PUBLIC_VERCEL_ENV === "preview";
 
 export const authClient = createAuthClient({
   plugins: [
@@ -18,7 +20,8 @@ export const authClient = createAuthClient({
     genericOAuthClient(),
 
     lastLoginMethodClient({
-      domain: isVercelProduction ? ".dub.co" : undefined,
+      // Must match auth.ts crossSubDomainCookies.domain
+      domain: isVercelDeployment ? ".dub.co" : undefined,
     }),
   ],
 });

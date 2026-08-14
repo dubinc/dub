@@ -35,6 +35,13 @@ export const RATELIMIT_POLICIES = {
     keyPrefix: "rl:auth:signup:otp:send",
   },
 
+  signupOtpVerify: {
+    attempts: 5,
+    window: "24 h",
+    keyPrefix: "rl:auth:signup:otp:verify",
+    message: "Too many failed attempts. You have to try again later.",
+  },
+
   accountExistsCheck: {
     attempts: 8,
     window: "1 m",

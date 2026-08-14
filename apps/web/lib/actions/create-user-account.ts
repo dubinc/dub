@@ -4,11 +4,11 @@ import { consumeEmailVerificationOtp } from "@/lib/auth/consume-email-verificati
 import { hashPassword } from "@/lib/auth/password";
 import { auth } from "@/lib/better-auth/auth";
 import { prisma } from "@/lib/prisma";
-import { ratelimit } from "@/lib/upstash";
+import { assertRateLimit } from "@/lib/upstash/assert-rate-limit";
+import { RATELIMIT_POLICIES } from "@/lib/upstash/ratelimit-policies";
 import { flattenValidationErrors } from "next-safe-action";
 import { headers } from "next/headers";
 import * as z from "zod/v4";
-import { shouldApplyRateLimit } from "../api/environment";
 import { signUpSchema } from "../zod/schemas/auth";
 import { throwIfAuthenticated } from "./auth/throw-if-authenticated";
 import { actionClient } from "./safe-action";
@@ -16,9 +16,6 @@ import { actionClient } from "./safe-action";
 const schema = signUpSchema.extend({
   code: z.string().min(6, "OTP must be 6 characters long."),
 });
-
-const MAX_OTP_ATTEMPTS = 5; // Block after 5 failed attempts
-const OTP_LOCKOUT_DURATION = "24 h"; // Block for 24 hours
 
 // Sign up a new user using email and password
 export const createUserAccountAction = actionClient
@@ -30,20 +27,10 @@ export const createUserAccountAction = actionClient
   .action(async ({ parsedInput }) => {
     const { email, password, code } = parsedInput;
 
-    const signupAttemptKey = `signup:attempts:${email}`;
-
-    if (shouldApplyRateLimit) {
-      const { remaining: attemptsRemaining } = await ratelimit(
-        MAX_OTP_ATTEMPTS,
-        OTP_LOCKOUT_DURATION,
-      ).getRemaining(signupAttemptKey);
-
-      if (attemptsRemaining <= 0) {
-        throw new Error(
-          "Too many failed attempts. You have to try again later.",
-        );
-      }
-    }
+    await assertRateLimit({
+      policy: RATELIMIT_POLICIES.signupOtpVerify,
+      identifier: email,
+    });
 
     const consumed = await consumeEmailVerificationOtp({
       identifier: email,
@@ -51,10 +38,6 @@ export const createUserAccountAction = actionClient
     });
 
     if (!consumed) {
-      await ratelimit(MAX_OTP_ATTEMPTS, OTP_LOCKOUT_DURATION).limit(
-        signupAttemptKey,
-      );
-
       throw new Error("Invalid verification code entered.");
     }
 

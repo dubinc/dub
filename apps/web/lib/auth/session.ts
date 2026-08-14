@@ -1,7 +1,8 @@
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { prisma } from "@/lib/prisma";
-import { ratelimit, redis } from "@/lib/upstash";
+import { ratelimit } from "@/lib/upstash";
 import { getSearchParams } from "@dub/utils";
+import { Token } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { headers } from "next/headers";
 import { withAxiom } from "../axiom/server";
@@ -12,6 +13,13 @@ import { Session } from "./utils";
 type SessionUser = Session["user"];
 
 type AuthMethod = "apiKey" | "session";
+
+interface AuthResult {
+  user: SessionUser;
+  authMethod: AuthMethod;
+  rateLimitIdentifier: string;
+  token: Pick<Token, "hashedKey" | "lastUsed"> | null;
+}
 
 const RATELIMIT_POLICIES: Record<
   AuthMethod,
@@ -82,6 +90,10 @@ export const withSession = (handler: WithSessionHandler) =>
           });
         }
 
+        if (result.token) {
+          waitUntil(updateApiKeyLastUsed(result.token));
+        }
+
         return await handler({
           req,
           params,
@@ -95,11 +107,7 @@ export const withSession = (handler: WithSessionHandler) =>
   );
 
 // Authenticate request via API key
-async function authenticateApiKey(authHeader: string): Promise<{
-  user: SessionUser;
-  authMethod: "apiKey";
-  rateLimitIdentifier: string;
-}> {
+async function authenticateApiKey(authHeader: string): Promise<AuthResult> {
   if (!authHeader.startsWith("Bearer ")) {
     throw new DubApiError({
       code: "bad_request",
@@ -116,7 +124,9 @@ async function authenticateApiKey(authHeader: string): Promise<{
       hashedKey,
     },
     select: {
+      hashedKey: true,
       expires: true,
+      lastUsed: true,
       user: {
         select: {
           id: true,
@@ -150,6 +160,10 @@ async function authenticateApiKey(authHeader: string): Promise<{
   return {
     authMethod: "apiKey",
     rateLimitIdentifier: apiKey,
+    token: {
+      hashedKey: token.hashedKey,
+      lastUsed: token.lastUsed,
+    },
     user: {
       id: user.id,
       name: user.name || "",
@@ -163,11 +177,7 @@ async function authenticateApiKey(authHeader: string): Promise<{
 }
 
 // Authenticate request via session
-async function authenticateSession(): Promise<{
-  user: SessionUser;
-  authMethod: "session";
-  rateLimitIdentifier: string;
-}> {
+async function authenticateSession(): Promise<AuthResult> {
   const result = await getServerSession();
 
   if (!result.session || !result.user?.email) {
@@ -177,20 +187,19 @@ async function authenticateSession(): Promise<{
     });
   }
 
-  const user: SessionUser = {
-    id: result.user.id,
-    name: result.user.name || "",
-    email: result.user.email,
-    image: result.user.image ?? null,
-    isMachine: result.user.isMachine ?? false,
-    defaultWorkspace: result.user.defaultWorkspace ?? null,
-    defaultPartnerId: result.user.defaultPartnerId ?? null,
-  };
-
   return {
-    rateLimitIdentifier: result.user.id,
     authMethod: "session",
-    user,
+    rateLimitIdentifier: result.user.id,
+    token: null,
+    user: {
+      id: result.user.id,
+      name: result.user.name || "",
+      email: result.user.email,
+      image: result.user.image ?? null,
+      isMachine: result.user.isMachine ?? false,
+      defaultWorkspace: result.user.defaultWorkspace ?? null,
+      defaultPartnerId: result.user.defaultPartnerId ?? null,
+    },
   };
 }
 
@@ -216,10 +225,6 @@ async function enforceRateLimit({
   headers.set("X-RateLimit-Remaining", remaining.toString());
   headers.set("X-RateLimit-Reset", reset.toString());
 
-  if (authMethod === "apiKey" && success) {
-    waitUntil(updateApiKeyLastUsed(identifier));
-  }
-
   return {
     success,
     headers,
@@ -227,15 +232,11 @@ async function enforceRateLimit({
 }
 
 // Update last used time for the token (only once every minute)
-async function updateApiKeyLastUsed(apiKey: string) {
-  const hashedKey = await hashToken(apiKey);
-
-  const acquired = await redis.set(`last-used:${hashedKey}`, "1", {
-    nx: true,
-    ex: 60,
-  });
-
-  if (!acquired) {
+async function updateApiKeyLastUsed({
+  hashedKey,
+  lastUsed,
+}: Pick<Token, "hashedKey" | "lastUsed">) {
+  if (lastUsed && Date.now() - lastUsed.getTime() < 60_000) {
     return;
   }
 

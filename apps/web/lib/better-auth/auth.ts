@@ -24,8 +24,6 @@ import { invite } from "./invite-plugin";
 import { programOAuthConfigs } from "./program-oauth";
 import { samlIdp, samlOAuthConfig } from "./saml-sso-plugin";
 
-const isVercelProduction = process.env.VERCEL_ENV === "production";
-
 export const auth = betterAuth({
   secret: process.env.BETTER_AUTH_SECRET,
   trustedOrigins: [APP_DOMAIN, PARTNERS_DOMAIN, ADMIN_DOMAIN],
@@ -187,8 +185,8 @@ export const auth = betterAuth({
       },
     },
     crossSubDomainCookies: {
-      enabled: isVercelProduction,
-      domain: isVercelProduction ? ".dub.co" : undefined,
+      enabled: isVercelDeployment,
+      domain: isVercelDeployment ? ".dub.co" : undefined,
     },
     useSecureCookies: isVercelDeployment,
   },
