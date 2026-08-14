@@ -1,8 +1,12 @@
 import { DubApiError } from "@/lib/api/errors";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { withPartnerProfile } from "@/lib/auth/partner";
+import {
+  canPartnerSeeBounty,
+  getEffectiveBountyPeriod,
+} from "@/lib/bounty/api/bounty-availability";
+import { getBountyOrThrow } from "@/lib/bounty/api/get-bounty-or-throw";
 import { aggregatePartnerLinksStats } from "@/lib/partners/aggregate-partner-links-stats";
-import { prisma } from "@/lib/prisma";
 import { PartnerBountySchema } from "@/lib/zod/schemas/partner-profile";
 import { NextResponse } from "next/server";
 
@@ -15,16 +19,27 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
       partnerId: partner.id,
       programId,
       include: {
-        program: true,
-        links: true,
+        program: {
+          select: {
+            id: true,
+            defaultGroupId: true,
+          },
+        },
+        links: {
+          select: {
+            clicks: true,
+            leads: true,
+            conversions: true,
+            sales: true,
+            saleAmount: true,
+          },
+        },
       },
     });
 
-  const bounty = await prisma.bounty.findUnique({
-    where: {
-      id: bountyId,
-      programId: program.id,
-    },
+  const bounty = await getBountyOrThrow({
+    programId: program.id,
+    bountyId,
     include: {
       workflow: {
         select: {
@@ -50,38 +65,31 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
     },
   });
 
-  if (!bounty) {
+  const canSeeBounty = canPartnerSeeBounty({
+    program,
+    bounty,
+    programEnrollment,
+  });
+
+  if (!canSeeBounty) {
     throw new DubApiError({
       code: "not_found",
       message: "Bounty not found.",
     });
   }
 
-  if (bounty.startsAt > new Date()) {
-    throw new DubApiError({
-      code: "not_found",
-      message: "Bounty not found.",
-    });
-  }
-
-  const partnerGroupId = programEnrollment.groupId || program.defaultGroupId;
-  const bountyGroupIds = bounty.groups.map((g) => g.groupId);
-  const partnerCanSeeBounty =
-    bountyGroupIds.length === 0 ||
-    (partnerGroupId && bountyGroupIds.includes(partnerGroupId));
-
-  if (!partnerCanSeeBounty) {
-    throw new DubApiError({
-      code: "not_found",
-      message: "Bounty not found.",
-    });
-  }
+  const { startsAt, endsAt } = getEffectiveBountyPeriod({
+    programEnrollment,
+    bounty,
+  });
 
   const { groups, ...bountyWithoutGroups } = bounty;
 
   return NextResponse.json(
     PartnerBountySchema.parse({
       ...bountyWithoutGroups,
+      startsAt,
+      endsAt,
       performanceCondition: bounty.workflow?.triggerConditions?.[0] || null,
       partner: {
         ...aggregatePartnerLinksStats(links),

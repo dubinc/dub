@@ -250,8 +250,10 @@ export async function createCommissionFromPS({
 
   const customer = customersData.find(
     ({ email, externalId }) =>
-      email === commission.customer?.email ||
-      externalId === commission.customer?.external_key,
+      (commission.customer?.email != null &&
+        email === commission.customer.email) ||
+      (commission.customer?.external_key != null &&
+        externalId === commission.customer.external_key),
   );
 
   if (!customer) {

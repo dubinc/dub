@@ -1,4 +1,7 @@
-import { FRAUD_GROUP_EXPIRY_DAYS } from "@/lib/api/fraud/constants";
+import {
+  FRAUD_GROUP_EXPIRY_DAYS,
+  NON_EXPIRING_FRAUD_RULE_TYPES,
+} from "@/lib/api/fraud/constants";
 import { queueReleaseHoldCommissions } from "@/lib/api/fraud/release-hold-commissions";
 import { withCron } from "@/lib/cron/with-cron";
 import { prisma } from "@/lib/prisma";
@@ -9,7 +12,8 @@ export const dynamic = "force-dynamic";
 
 const BATCH_SIZE = 250;
 
-// This route is used to expire fraud event groups after 30 days
+// This route is used to expire fraud event groups after 30 days,
+// except for types in NON_EXPIRING_FRAUD_RULE_TYPES.
 // Runs once every day at 02:30:00 AM UTC (30 2 * * *)
 // POST /api/cron/cleanup/expired-fraud-groups
 export const POST = withCron(async () => {
@@ -18,6 +22,9 @@ export const POST = withCron(async () => {
     const groupsToExpire = await prisma.fraudEventGroup.findMany({
       where: {
         status: "pending",
+        type: {
+          notIn: NON_EXPIRING_FRAUD_RULE_TYPES,
+        },
         lastEventAt: {
           lt: subDays(new Date(), FRAUD_GROUP_EXPIRY_DAYS),
         },
