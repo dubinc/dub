@@ -36,6 +36,7 @@ import { useRouter } from "next/navigation";
 import { useMemo } from "react";
 import useSWR from "swr";
 import { getStatusCodeBadgeVariant } from "./log-utils";
+import { LogsHistogram } from "./logs-histogram";
 import { useLogFilters } from "./use-log-filters";
 
 const LOGS_TABLE_COLUMNS = {
@@ -308,6 +309,7 @@ export function LogsTable() {
         setSelectedFilter={setSelectedFilter}
         plan={plan || "free"}
       />
+      <LogsHistogram />
       {logs?.length !== 0 ? (
         <Table {...tableProps} table={table} />
       ) : (
