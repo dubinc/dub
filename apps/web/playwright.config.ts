@@ -1,6 +1,9 @@
 import "dotenv-flow/config";
 
 import { defineConfig, devices } from "@playwright/test";
+import { assertLocalDatabaseEnv } from "./playwright/assert-local-database";
+
+assertLocalDatabaseEnv();
 
 const workspaceBaseURL = "http://localhost:8888";
 const partnersBaseURL = "http://partners.localhost:8888";
