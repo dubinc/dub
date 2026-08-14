@@ -1,4 +1,4 @@
-import { Bounty } from "@prisma/client";
+import { Bounty, BountyStartMode } from "@prisma/client";
 import { addDays, addMonths, subDays } from "date-fns";
 import { E2E_PARTNER_GROUP } from "tests/utils/resource";
 import { describe, expect, onTestFinished, test } from "vitest";
@@ -368,7 +368,7 @@ describe.sequential(
       expect(data).toMatchObject({
         error: {
           message:
-            "maxSubmissions is required when submissionFrequency is set.",
+            "`maxSubmissions` is required when `submissionFrequency` is set.",
         },
       });
     });
@@ -387,8 +387,38 @@ describe.sequential(
       expect(status).toEqual(400);
       expect(data).toMatchObject({
         error: {
-          message: "An end date is required when submissionFrequency is set.",
+          message:
+            "`endsAt` or `endsAfterDays` is required when `submissionFrequency` is set.",
         },
+      });
+    });
+
+    test("POST /bounties - submissionFrequency with relative endsAfterDays is accepted", async () => {
+      const { status, data: bounty } = await http.post<Bounty>({
+        path: "/bounties",
+        body: {
+          ...base,
+          startMode: BountyStartMode.relative,
+          startsAt: null,
+          endsAt: null,
+          endsAfterDays: 30,
+          maxSubmissions: 4,
+          submissionFrequency: "week",
+        },
+      });
+
+      expect(status).toEqual(200);
+      expect(bounty).toMatchObject({
+        startMode: BountyStartMode.relative,
+        startsAt: null,
+        endsAt: null,
+        endsAfterDays: 30,
+        maxSubmissions: 4,
+        submissionFrequency: "week",
+      });
+
+      onTestFinished(async () => {
+        await h.deleteBounty(bounty.id);
       });
     });
 
@@ -403,8 +433,7 @@ describe.sequential(
       expect(status).toEqual(400);
       expect(data).toMatchObject({
         error: {
-          message:
-            "An end date is required to determine when the submission window opens.",
+          message: "`endsAt` is required when `submissionsOpenAt` is set.",
         },
       });
     });
@@ -420,8 +449,7 @@ describe.sequential(
       expect(status).toEqual(400);
       expect(data).toMatchObject({
         error: {
-          message:
-            "Bounty submissions open date (submissionsOpenAt) must be on or after start date (startsAt).",
+          message: "`submissionsOpenAt` must be on or after `startsAt`.",
         },
       });
     });
@@ -437,8 +465,7 @@ describe.sequential(
       expect(status).toEqual(400);
       expect(data).toMatchObject({
         error: {
-          message:
-            "Bounty submissions open date (submissionsOpenAt) must be on or before end date (endsAt).",
+          message: "`submissionsOpenAt` must be on or before `endsAt`.",
         },
       });
     });
@@ -512,7 +539,8 @@ describe.sequential(
       expect(status).toEqual(400);
       expect(data).toMatchObject({
         error: {
-          message: "An end date is required when submissionFrequency is set.",
+          message:
+            "`endsAt` or `endsAfterDays` is required when `submissionFrequency` is set.",
         },
       });
     });
@@ -528,8 +556,7 @@ describe.sequential(
       expect(status).toEqual(400);
       expect(data).toMatchObject({
         error: {
-          message:
-            "An end date is required to determine when the submission window opens.",
+          message: "`endsAt` is required when `submissionsOpenAt` is set.",
         },
       });
     });
@@ -558,3 +585,93 @@ describe.sequential(
     });
   },
 );
+
+describe.sequential("/bounties - relative start mode", async () => {
+  const h = new IntegrationHarness();
+  const { http } = await h.init();
+
+  const relativeSubmissionBase = {
+    name: "Relative Submission Bounty",
+    description: "starts when a partner joins",
+    type: "submission",
+    startMode: BountyStartMode.relative,
+    startsAt: null,
+    endsAt: null,
+    rewardAmount: 1000,
+    submissionRequirements: { image: { max: 4 } },
+    groupIds: [E2E_PARTNER_GROUP.id],
+  };
+
+  test("POST /bounties - relative with endsAfterDays", async () => {
+    const { status, data: bounty } = await http.post<Bounty>({
+      path: "/bounties",
+      body: {
+        ...relativeSubmissionBase,
+        endsAfterDays: 30,
+      },
+    });
+
+    expect(status).toEqual(200);
+    expect(bounty).toMatchObject({
+      startMode: BountyStartMode.relative,
+      startsAt: null,
+      endsAt: null,
+      endsAfterDays: 30,
+    });
+
+    const { status: patchStatus, data: updated } = await http.patch<Bounty>({
+      path: `/bounties/${bounty.id}`,
+      body: { endsAfterDays: 180 },
+    });
+
+    expect(patchStatus).toEqual(200);
+    expect(updated).toMatchObject({
+      startMode: BountyStartMode.relative,
+      startsAt: null,
+      endsAfterDays: 180,
+    });
+
+    onTestFinished(async () => {
+      await h.deleteBounty(bounty.id);
+    });
+  });
+
+  test("POST /bounties - relative with startsAt is rejected", async () => {
+    const { status, data } = await http.post({
+      path: "/bounties",
+      body: {
+        ...relativeSubmissionBase,
+        startsAt: new Date(Date.now() + 5 * 60 * 1000).toISOString(),
+        endsAfterDays: 30,
+      },
+    });
+
+    expect(status).toEqual(400);
+    expect(data).toMatchObject({
+      error: {
+        message:
+          "`startsAt` is not supported when the `startMode` is `relative`.",
+        code: "bad_request",
+      },
+    });
+  });
+
+  test("POST /bounties - both endsAt and endsAfterDays is rejected", async () => {
+    const { status, data } = await http.post({
+      path: "/bounties",
+      body: {
+        ...relativeSubmissionBase,
+        endsAt: addDays(new Date(), 30).toISOString(),
+        endsAfterDays: 30,
+      },
+    });
+
+    expect(status).toEqual(400);
+    expect(data).toMatchObject({
+      error: {
+        message: "Bounties cannot have both `endsAt` and `endsAfterDays`.",
+        code: "bad_request",
+      },
+    });
+  });
+});

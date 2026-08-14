@@ -1,5 +1,6 @@
 import { startFirstPromoterImportAction } from "@/lib/actions/partners/start-firstpromoter-import";
 import useWorkspace from "@/lib/swr/use-workspace";
+import { X } from "@/ui/shared/icons";
 import { Button, Logo, Modal, useMediaQuery, useRouterStuff } from "@dub/ui";
 import { ArrowRight } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
@@ -23,15 +24,6 @@ function ImportFirstPromoterModal({
   setShowImportFirstPromoterModal: Dispatch<SetStateAction<boolean>>;
 }) {
   const { queryParams } = useRouterStuff();
-  const searchParams = useSearchParams();
-
-  useEffect(() => {
-    if (searchParams?.get("import") === "firstpromoter") {
-      setShowImportFirstPromoterModal(true);
-    } else {
-      setShowImportFirstPromoterModal(false);
-    }
-  }, [searchParams]);
 
   return (
     <Modal
@@ -39,6 +31,17 @@ function ImportFirstPromoterModal({
       setShowModal={setShowImportFirstPromoterModal}
       onClose={() => queryParams({ del: "import" })}
     >
+      <Button
+        variant="outline"
+        icon={<X className="size-5" />}
+        className="absolute right-4 top-4 h-auto w-fit p-1"
+        onClick={() => {
+          setShowImportFirstPromoterModal(false);
+          queryParams({
+            del: "import",
+          });
+        }}
+      />
       <div className="flex flex-col items-center justify-center space-y-3 border-b border-neutral-200 px-4 py-8 sm:px-16">
         <div className="flex items-center space-x-3 py-4">
           <img
@@ -178,6 +181,16 @@ function CredentialsForm({ onClose }: { onClose: () => void }) {
 export function useImportFirstPromoterModal() {
   const [showImportFirstPromoterModal, setShowImportFirstPromoterModal] =
     useState(false);
+  const searchParams = useSearchParams();
+
+  // Sync the modal state with the `?import=` query param here in the hook
+  // rather than in the modal itself, which remounts on every open/close
+  // and would re-open from a stale param mid-navigation
+  useEffect(() => {
+    setShowImportFirstPromoterModal(
+      searchParams?.get("import") === "firstpromoter",
+    );
+  }, [searchParams]);
 
   const ImportFirstPromoterModalCallback = useCallback(() => {
     return (

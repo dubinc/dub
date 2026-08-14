@@ -43,9 +43,22 @@ export async function POST(req: Request) {
         id: bountyId,
       },
       include: {
-        groups: true,
-        program: true,
-        workflow: true,
+        workflow: {
+          select: {
+            triggerConditions: true,
+          },
+        },
+        groups: {
+          select: {
+            groupId: true,
+          },
+        },
+        program: {
+          select: {
+            id: true,
+            defaultGroupId: true,
+          },
+        },
       },
     });
 
@@ -55,12 +68,14 @@ export async function POST(req: Request) {
       });
     }
 
-    let diffMinutes = differenceInMinutes(bounty.startsAt, new Date());
+    if (bounty.startsAt) {
+      let diffMinutes = differenceInMinutes(bounty.startsAt, new Date());
 
-    if (diffMinutes >= 10) {
-      return logAndRespond(
-        `Bounty ${bountyId} not started yet, it will start at ${bounty.startsAt.toISOString()}`,
-      );
+      if (diffMinutes >= 10) {
+        return logAndRespond(
+          `Bounty ${bountyId} not started yet, it will start at ${bounty.startsAt.toISOString()}`,
+        );
+      }
     }
 
     if (bounty.type !== "performance") {
@@ -77,16 +92,15 @@ export async function POST(req: Request) {
       return logAndRespond(`Bounty ${bountyId} has no workflow.`);
     }
 
-    // Find groupIds
-    const groupIds = bounty.groups.map(({ groupId }) => groupId);
+    const bountyGroupIds = bounty.groups.map(({ groupId }) => groupId);
 
     // Find program enrollments
     const programEnrollments = await prisma.programEnrollment.findMany({
       where: {
         programId: bounty.programId,
-        ...(groupIds.length > 0 && {
+        ...(bountyGroupIds.length > 0 && {
           groupId: {
-            in: groupIds,
+            in: bountyGroupIds,
           },
         }),
         ...(partnerIds && {
@@ -98,9 +112,7 @@ export async function POST(req: Request) {
           in: COMMISSION_ELIGIBLE_ENROLLMENT_STATUSES,
         },
       },
-      select: {
-        partnerId: true,
-        totalCommissions: true,
+      include: {
         links: {
           select: {
             clicks: true,
