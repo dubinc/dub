@@ -387,7 +387,8 @@ describe.sequential(
       expect(status).toEqual(400);
       expect(data).toMatchObject({
         error: {
-          message: "`endsAt` is required when `submissionFrequency` is set.",
+          message:
+            "`endsAt` or `endsAfterDays` is required when `submissionFrequency` is set.",
         },
       });
     });
@@ -538,7 +539,8 @@ describe.sequential(
       expect(status).toEqual(400);
       expect(data).toMatchObject({
         error: {
-          message: "`endsAt` is required when `submissionFrequency` is set.",
+          message:
+            "`endsAt` or `endsAfterDays` is required when `submissionFrequency` is set.",
         },
       });
     });

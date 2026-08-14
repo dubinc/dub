@@ -40,9 +40,9 @@ export function PartnerBountyCard({
       href={href ?? "#"}
       onClick={onClick}
       className={cn(
-        "border-border-subtle bg-bg-default group relative flex w-full cursor-pointer flex-col overflow-hidden rounded-xl border text-left",
+        "border-border-subtle bg-bg-default group relative flex w-full flex-col overflow-hidden rounded-xl border text-left",
         (href || onClick) &&
-          "hover:border-border-default transition-all hover:shadow-lg",
+          "hover:border-border-default cursor-pointer transition-all hover:shadow-lg",
       )}
     >
       <div className="p-3 pb-0">

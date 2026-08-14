@@ -139,7 +139,7 @@ export function isPartnerEligibleForBounty({
   if (bounty.startMode === BountyStartMode.relative) {
     if (programEnrollment.createdAt < bounty.createdAt) {
       console.log(
-        `Partner enrolled before relative bounty ${bounty.id} was created.`,
+        `Partner enrolled before relative bounty ${bounty.id} was created and is not eligible for the bounty.`,
       );
       return false;
     }
