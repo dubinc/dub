@@ -1,4 +1,3 @@
-import { consumeAdminImpersonation } from "@/lib/auth/admin-impersonation";
 import { trackDubLead } from "@/lib/auth/track-dub-lead";
 import { qstash } from "@/lib/cron";
 import { isBlacklistedEmail } from "@/lib/edge-config";
@@ -10,6 +9,7 @@ import { waitUntil } from "@vercel/functions";
 import type { BetterAuthOptions } from "better-auth";
 import { APIError } from "better-auth/api";
 import { isSamlEnforcedForEmailDomain } from "../api/workspaces/is-saml-enforced-for-email-domain";
+import { isAdminImpersonation } from "./admin-impersonation-plugin";
 import { assertAdminAccess } from "./assert-admin-access";
 import {
   backupUserAvatar,
@@ -228,12 +228,8 @@ export const databaseHooks = {
         }
 
         // Only magic-link verify (admin impersonation) may bypass SAML.
-        // Consume the marker only on that path so other sign-ins cannot
-        // clear it or skip enforcement.
-        if (
-          context?.path === "/magic-link/verify" &&
-          (await consumeAdminImpersonation(user.email))
-        ) {
+        // The plugin before-hook sets adminImpersonationEmail on this request.
+        if (await isAdminImpersonation({ context, email: user.email })) {
           return {
             data: session,
           };
