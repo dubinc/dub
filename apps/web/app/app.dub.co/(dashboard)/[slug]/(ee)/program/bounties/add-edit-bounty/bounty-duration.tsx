@@ -9,15 +9,21 @@ import {
   StartPreset,
 } from "@/lib/bounty/bounty-period";
 import {
-  InlineBadgePopover,
   InlineBadgePopoverContext,
   InlineBadgePopoverMenu,
 } from "@/ui/shared/inline-badge-popover";
-import { Calendar, CalendarIcon } from "@dub/ui";
-import { formatDate } from "@dub/utils";
+import {
+  AnimatedSizeContainer,
+  CalendarIcon,
+  ChevronLeft,
+  DatePicker,
+  DatePickerContext,
+  Label,
+} from "@dub/ui";
+import { cn, formatDate } from "@dub/utils";
 import { BountyStartMode } from "@prisma/client";
 import { addDays, addMonths, addWeeks } from "date-fns";
-import { useContext, useEffect, useState } from "react";
+import { ReactNode, useContext, useEffect, useState } from "react";
 
 type PresetOption<T extends string> = { value: T; label: string };
 type BountyTimingInput = ReturnType<typeof resolveBountyTiming>;
@@ -42,7 +48,7 @@ const START_OPTIONS = [
     value: p,
     label: DURATION_LABELS[p].start,
   })),
-  { value: "onPartnerJoin", label: "When a new partner joins" },
+  { value: "onPartnerJoin", label: "when a new partner joins" },
   { value: "custom", label: "custom" },
 ] satisfies PresetOption<StartPreset>[];
 
@@ -62,6 +68,9 @@ const START_DURATION_DATES: Record<DurationPreset, (now: Date) => Date> = {
 };
 
 const DATE_TOLERANCE_MS = 60_000;
+
+const BADGE_TRIGGER_CLASSNAME =
+  "mx-0.5 inline-block rounded px-1.5 text-left text-sm font-semibold transition-colors bg-blue-50 text-blue-700 hover:bg-blue-100 data-[state=open]:bg-blue-100";
 
 function datesAreClose(a: Date, b: Date, toleranceMs = DATE_TOLERANCE_MS) {
   return Math.abs(a.getTime() - b.getTime()) <= toleranceMs;
@@ -262,21 +271,21 @@ function mergeDateWithTime(date: Date, previous: Date | null | undefined) {
   return merged;
 }
 
-function BountyDatePopoverContent<T extends string>({
+function BountyDatePickerContent<T extends string>({
+  calendar,
   options,
   selectedPreset,
-  customDate,
   onSelectPreset,
-  onSelectDate,
 }: {
+  calendar: ReactNode;
   options: PresetOption<T>[];
   selectedPreset: T | undefined;
-  customDate: Date | null | undefined;
   onSelectPreset: (preset: T) => void;
-  onSelectDate: (date: Date) => void;
 }) {
-  const { isOpen, setIsOpen } = useContext(InlineBadgePopoverContext);
-  const [showCustomCalendar, setShowCustomCalendar] = useState(false);
+  const { isOpen, setIsOpen } = useContext(DatePickerContext);
+  const [showCustomCalendar, setShowCustomCalendar] = useState(
+    selectedPreset === "custom",
+  );
 
   useEffect(() => {
     if (!isOpen) return;
@@ -285,49 +294,93 @@ function BountyDatePopoverContent<T extends string>({
     }
   }, [isOpen, selectedPreset]);
 
-  if (showCustomCalendar) {
-    return (
-      <div className="flex flex-col gap-1.5">
+  return (
+    <InlineBadgePopoverContext.Provider value={{ isOpen, setIsOpen }}>
+      <AnimatedSizeContainer height width>
+        {showCustomCalendar ? (
+          <div className="flex flex-col">
+            <button
+              type="button"
+              onClick={() => setShowCustomCalendar(false)}
+              className={cn(
+                "group mx-2 mt-1.5 flex w-fit items-center gap-0.5 rounded-md px-1.5 py-1",
+                "text-neutral-500 transition-colors",
+                "hover:bg-neutral-100 hover:text-neutral-800",
+              )}
+            >
+              <ChevronLeft className="size-3.5 transition-transform duration-100 group-hover:-translate-x-0.5" />
+              <span className="text-xs font-medium">Presets</span>
+            </button>
+            {calendar}
+          </div>
+        ) : (
+          <div className="p-1">
+            <InlineBadgePopoverMenu
+              selectedValue={selectedPreset}
+              onSelect={(preset) => {
+                if (preset === "custom") {
+                  setShowCustomCalendar(true);
+                  onSelectPreset(preset);
+                  return;
+                }
+
+                setShowCustomCalendar(false);
+                onSelectPreset(preset);
+              }}
+              items={options.map((option) => ({
+                value: option.value,
+                text: option.label,
+                ...(option.value === "custom" ? { preventClose: true } : {}),
+              }))}
+            />
+          </div>
+        )}
+      </AnimatedSizeContainer>
+    </InlineBadgePopoverContext.Provider>
+  );
+}
+
+function BountyDatePicker<T extends string>({
+  label,
+  options,
+  selectedPreset,
+  customDate,
+  onSelectPreset,
+  onSelectDate,
+}: {
+  label: string;
+  options: PresetOption<T>[];
+  selectedPreset: T | undefined;
+  customDate: Date | null | undefined;
+  onSelectPreset: (preset: T) => void;
+  onSelectDate: (date: Date) => void;
+}) {
+  return (
+    <DatePicker
+      className="p-0"
+      value={customDate}
+      align="start"
+      onChange={(date) => {
+        if (!date) return;
+        onSelectDate(mergeDateWithTime(date, customDate));
+      }}
+      trigger={({ open }) => (
         <button
           type="button"
-          onClick={() => setShowCustomCalendar(false)}
-          className="flex items-center gap-1 rounded px-0.5 text-xs text-neutral-500 transition-colors hover:text-neutral-700"
+          data-state={open ? "open" : "closed"}
+          className={BADGE_TRIGGER_CLASSNAME}
         >
-          ← Presets
+          {label}
         </button>
-        <Calendar
-          mode="single"
-          selected={customDate ?? undefined}
-          onSelect={(date) => {
-            if (!date) return;
-            onSelectDate(mergeDateWithTime(date, customDate));
-            setIsOpen(false);
-          }}
-          showYearNavigation
-          className="p-2"
+      )}
+      renderContent={({ calendar }) => (
+        <BountyDatePickerContent
+          calendar={calendar}
+          options={options}
+          selectedPreset={selectedPreset}
+          onSelectPreset={onSelectPreset}
         />
-      </div>
-    );
-  }
-
-  return (
-    <InlineBadgePopoverMenu
-      selectedValue={selectedPreset}
-      onSelect={(preset) => {
-        if (preset === "custom") {
-          setShowCustomCalendar(true);
-          onSelectPreset(preset);
-          return;
-        }
-
-        setShowCustomCalendar(false);
-        onSelectPreset(preset);
-      }}
-      items={options.map((option) => ({
-        value: option.value,
-        text: option.label,
-        ...(option.value === "custom" ? { preventClose: true } : {}),
-      }))}
+      )}
     />
   );
 }
@@ -436,82 +489,79 @@ export function BountyDuration({
 
   return (
     <div>
-      <div className="flex items-center gap-2.5 rounded-lg border border-neutral-200 bg-white px-3 py-2.5">
+      <Label>Bounty duration</Label>
+      <div className="mt-2 flex items-center gap-2.5 rounded-lg border border-neutral-200 bg-white px-3 py-2.5">
         <CalendarIcon className="size-4 shrink-0 text-neutral-500" />
         <span className="text-sm font-medium leading-relaxed text-neutral-800">
           Starts{" "}
-          <InlineBadgePopover text={startLabel} buttonClassName="mx-0.5">
-            <BountyDatePopoverContent
-              options={START_OPTIONS}
-              selectedPreset={startPreset}
-              customDate={customStartsAt ?? value.startsAt}
-              onSelectPreset={(preset) => {
-                setStartPreset(preset);
+          <BountyDatePicker
+            label={startLabel ?? "today"}
+            options={START_OPTIONS}
+            selectedPreset={startPreset}
+            customDate={customStartsAt ?? value.startsAt}
+            onSelectPreset={(preset) => {
+              setStartPreset(preset);
 
-                if (preset === "custom") {
-                  const nextCustomStartsAt = customStartsAt ?? value.startsAt;
-                  setCustomStartsAt(nextCustomStartsAt);
-                  applyTiming({
-                    nextStartPreset: "custom",
-                    nextCustomStartsAt,
-                  });
-                  return;
-                }
-
-                applyTiming({ nextStartPreset: preset });
-              }}
-              onSelectDate={(date) => {
-                setStartPreset("custom");
-                setCustomStartsAt(date);
+              if (preset === "custom") {
+                const nextCustomStartsAt = customStartsAt ?? value.startsAt;
+                setCustomStartsAt(nextCustomStartsAt);
                 applyTiming({
                   nextStartPreset: "custom",
-                  nextCustomStartsAt: date,
+                  nextCustomStartsAt,
                 });
-              }}
-            />
-          </InlineBadgePopover>{" "}
+                return;
+              }
+
+              applyTiming({ nextStartPreset: preset });
+            }}
+            onSelectDate={(date) => {
+              setStartPreset("custom");
+              setCustomStartsAt(date);
+              applyTiming({
+                nextStartPreset: "custom",
+                nextCustomStartsAt: date,
+              });
+            }}
+          />{" "}
           and ends{" "}
-          <InlineBadgePopover text={endLabel} buttonClassName="mx-0.5">
-            <BountyDatePopoverContent
-              options={endOptions}
-              selectedPreset={
-                customEndsAfterDays != null ? undefined : endPreset
+          <BountyDatePicker
+            label={endLabel ?? "never"}
+            options={endOptions}
+            selectedPreset={customEndsAfterDays != null ? undefined : endPreset}
+            customDate={
+              customEndsAt ?? value.endsAt ?? addWeeks(value.startsAt, 2)
+            }
+            onSelectPreset={(preset) => {
+              if (endDateLocked && preset === "never") {
+                return;
               }
-              customDate={
-                customEndsAt ?? value.endsAt ?? addWeeks(value.startsAt, 2)
-              }
-              onSelectPreset={(preset) => {
-                if (endDateLocked && preset === "never") {
-                  return;
-                }
 
-                setEndPreset(preset);
-                setCustomEndsAfterDays(null);
+              setEndPreset(preset);
+              setCustomEndsAfterDays(null);
 
-                if (preset === "custom") {
-                  const nextCustomEndsAt =
-                    customEndsAt ?? value.endsAt ?? addWeeks(value.startsAt, 2);
-                  setCustomEndsAt(nextCustomEndsAt);
-                  applyTiming({
-                    nextEndPreset: "custom",
-                    nextCustomEndsAt,
-                  });
-                  return;
-                }
-
-                applyTiming({ nextEndPreset: preset });
-              }}
-              onSelectDate={(date) => {
-                setEndPreset("custom");
-                setCustomEndsAfterDays(null);
-                setCustomEndsAt(date);
+              if (preset === "custom") {
+                const nextCustomEndsAt =
+                  customEndsAt ?? value.endsAt ?? addWeeks(value.startsAt, 2);
+                setCustomEndsAt(nextCustomEndsAt);
                 applyTiming({
                   nextEndPreset: "custom",
-                  nextCustomEndsAt: date,
+                  nextCustomEndsAt,
                 });
-              }}
-            />
-          </InlineBadgePopover>
+                return;
+              }
+
+              applyTiming({ nextEndPreset: preset });
+            }}
+            onSelectDate={(date) => {
+              setEndPreset("custom");
+              setCustomEndsAfterDays(null);
+              setCustomEndsAt(date);
+              applyTiming({
+                nextEndPreset: "custom",
+                nextCustomEndsAt: date,
+              });
+            }}
+          />
           {endSuffix && <span> {endSuffix}</span>}
         </span>
       </div>

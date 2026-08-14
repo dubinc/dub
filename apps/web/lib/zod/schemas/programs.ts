@@ -79,6 +79,7 @@ export const ProgramSchema = z.object({
   createdAt: z.date(),
   updatedAt: z.date(),
   startedAt: z.date().nullish(),
+  deactivatedAt: z.date().nullish(),
 });
 
 // TODO: move to group-level soon

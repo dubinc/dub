@@ -23,7 +23,7 @@ export function validateBounty({
     if (startsAt != null) {
       throw new DubApiError({
         message:
-          "startsAt is not supported when the bounty starts when a partner joins. It must be null for relative bounties.",
+          "`startsAt` is not supported when the `startMode` is `relative`.",
         code: "bad_request",
       });
     }
@@ -34,8 +34,7 @@ export function validateBounty({
 
   if (endsAt && endsAfterDays) {
     throw new DubApiError({
-      message:
-        "Bounty cannot have both an end date (endsAt) and endsAfterDays.",
+      message: "Bounties cannot have both `endsAt` and `endsAfterDays`.",
       code: "bad_request",
     });
   }
@@ -43,7 +42,7 @@ export function validateBounty({
   if (startMode === BountyStartMode.absolute && endsAfterDays) {
     throw new DubApiError({
       message:
-        "endsAfterDays is only supported when the bounty starts when a partner joins.",
+        "`endsAfterDays` is only supported when the `startMode` is `relative`.",
       code: "bad_request",
     });
   }
@@ -51,7 +50,7 @@ export function validateBounty({
   if (endsAt && startsAt && endsAt < startsAt) {
     throw new DubApiError({
       message:
-        "Bounty end date (endsAt) must be on or after start date (startsAt).",
+        "The bounty's end date (`endsAt`) must be on or after the start date (`startsAt`).",
       code: "bad_request",
     });
   }
@@ -59,24 +58,21 @@ export function validateBounty({
   if (submissionsOpenAt) {
     if (!endsAt) {
       throw new DubApiError({
-        message:
-          "An end date is required to determine when the submission window opens.",
+        message: "`endsAt` is required when `submissionsOpenAt` is set.",
         code: "bad_request",
       });
     }
 
     if (startsAt && submissionsOpenAt < startsAt) {
       throw new DubApiError({
-        message:
-          "Bounty submissions open date (submissionsOpenAt) must be on or after start date (startsAt).",
+        message: "`submissionsOpenAt` must be on or after `startsAt`.",
         code: "bad_request",
       });
     }
 
     if (submissionsOpenAt > endsAt) {
       throw new DubApiError({
-        message:
-          "Bounty submissions open date (submissionsOpenAt) must be on or before end date (endsAt).",
+        message: "`submissionsOpenAt` must be on or before `endsAt`.",
         code: "bad_request",
       });
     }
@@ -86,7 +82,7 @@ export function validateBounty({
     if (type === "performance") {
       throw new DubApiError({
         code: "bad_request",
-        message: "Reward amount is required for performance bounties.",
+        message: "`rewardAmount` is required for `performance` bounties.",
       });
     }
 
@@ -94,7 +90,7 @@ export function validateBounty({
       throw new DubApiError({
         code: "bad_request",
         message:
-          "For submission bounties, either reward amount or reward description is required.",
+          "For `submission` bounties, either `rewardAmount` or `rewardDescription` is required.",
       });
     }
   }
@@ -102,7 +98,7 @@ export function validateBounty({
   if (!performanceScope && type === "performance") {
     throw new DubApiError({
       code: "bad_request",
-      message: "performanceScope must be set for performance bounties.",
+      message: "`performanceScope` must be set for `performance` bounties.",
     });
   }
 
@@ -113,7 +109,7 @@ export function validateBounty({
     throw new DubApiError({
       code: "bad_request",
       message:
-        "Lifetime stats are not supported when the bounty starts when a partner joins.",
+        "`lifetime` performance scope is not supported when the `startMode` is `relative`.",
     });
   }
 
@@ -122,14 +118,16 @@ export function validateBounty({
     if (submissionFrequency && maxSubmissions == null) {
       throw new DubApiError({
         code: "bad_request",
-        message: "maxSubmissions is required when submissionFrequency is set.",
+        message:
+          "`maxSubmissions` is required when `submissionFrequency` is set.",
       });
     }
 
     if (submissionFrequency && !endsAt && !endsAfterDays) {
       throw new DubApiError({
         code: "bad_request",
-        message: "An end date is required when submissionFrequency is set.",
+        message:
+          "`endsAt` or `endsAfterDays` is required when `submissionFrequency` is set.",
       });
     }
   }

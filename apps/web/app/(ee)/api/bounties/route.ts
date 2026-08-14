@@ -241,7 +241,7 @@ export const POST = withWorkspace(
     // startsAt is only stored for absolute bounties (defaulting to now when
     // omitted); relative bounties start when a partner joins, so it stays null.
     startsAt =
-      startMode === BountyStartMode.absolute ? startsAt || new Date() : null;
+      startMode === BountyStartMode.relative ? null : startsAt || new Date();
 
     const bounty = await prisma.$transaction(async (tx) => {
       let workflow: Workflow | null = null;
@@ -321,12 +321,12 @@ export const POST = withWorkspace(
     const shouldScheduleDraftSubmissions =
       bounty.type === "performance" &&
       bounty.performanceScope === "lifetime" &&
-      bounty.startMode === BountyStartMode.absolute;
+      bounty.startMode !== BountyStartMode.relative;
 
     const shouldSchedulePartnerNotifications =
       sendNotificationEmails &&
       canSendEmailCampaigns &&
-      bounty.startMode === BountyStartMode.absolute;
+      bounty.startMode !== BountyStartMode.relative;
 
     waitUntil(
       Promise.allSettled([
