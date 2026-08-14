@@ -28,7 +28,6 @@ function createSearchProvider(): PartnerSearchProvider {
     searchCandidates: vi.fn().mockResolvedValue({
       hits: [{ id: "pge_2" }, { id: "pge_1" }],
     }),
-    waitForIndexing: vi.fn(),
     upsert: vi.fn(),
     delete: vi.fn(),
   };

@@ -77,7 +77,6 @@ export interface PartnerSearchProvider {
   searchCandidates(
     query: PartnerSearchCandidateQuery,
   ): Promise<PartnerSearchResult>;
-  waitForIndexing(): Promise<void>;
   upsert(documents: PartnerSearchDocument[]): Promise<void>;
   delete(documentIds: string[]): Promise<void>;
 }

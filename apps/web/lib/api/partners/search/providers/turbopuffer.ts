@@ -8,9 +8,15 @@ import {
 import type { PartnerSearchDocument, PartnerSearchProvider } from "../types";
 import { validatePartnerSearchCandidateLimit } from "../types";
 import { withQueryDeadline, withTransientRetry } from "./resilience";
-import { getEmailNgrams, getQueryNgrams, resolveIndexName } from "./shared";
+import { getEmailNgrams, getQueryNgrams } from "./shared";
 
-const DEFAULT_NAMESPACE = "partner-search-v2";
+/**
+ * Bumped whenever the document shape changes, because turbopuffer keeps the
+ * schema a namespace was created with — writing a new one does not migrate an
+ * existing namespace. A new version is backfilled alongside the old one and
+ * swapped in, rather than rebuilt in place.
+ */
+const NAMESPACE = "partner-search-v2";
 const WRITE_BATCH_SIZE = 500;
 const QUERY_OPERATION_TIMEOUT_MS = 1_000;
 
@@ -84,10 +90,7 @@ export interface TurbopufferNamespace {
 }
 
 function getNamespaceName(namespaceName?: string): string {
-  return resolveIndexName(
-    [namespaceName, process.env.PARTNER_SEARCH_INDEX_NAME],
-    DEFAULT_NAMESPACE,
-  );
+  return namespaceName?.trim() || NAMESPACE;
 }
 
 function createNamespace(namespaceName: string): TurbopufferNamespace {
@@ -257,11 +260,6 @@ export function createTurbopufferPartnerSearchProvider({
       const hits = mergeBranchRows(results ?? [], limit);
 
       return { hits };
-    },
-
-    async waitForIndexing() {
-      // Turbopuffer writes are read-after-write consistent — a committed write
-      // is immediately queryable, so there is no indexing lag to wait on.
     },
 
     async upsert(documents) {

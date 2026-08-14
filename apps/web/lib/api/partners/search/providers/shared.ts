@@ -44,15 +44,3 @@ export function getQueryNgrams(query: string): string[] {
 
   return toNgrams(query);
 }
-
-/**
- * First non-blank wins. `||` rather than `??` because a blank value has to fall
- * through to the default, otherwise an empty env var silently targets an index
- * named "".
- */
-export function resolveIndexName(
-  candidates: (string | undefined)[],
-  fallback: string,
-): string {
-  return candidates.map((value) => value?.trim()).find(Boolean) || fallback;
-}

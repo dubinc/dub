@@ -349,11 +349,6 @@ describe("Turbopuffer partner search provider", () => {
     });
   });
 
-  it("does not wait for indexing, which turbopuffer does not need", async () => {
-    await expect(createProvider().waitForIndexing()).resolves.toBeUndefined();
-    expect(mocks.write).not.toHaveBeenCalled();
-  });
-
   it("empties the namespace", async () => {
     mocks.deleteAll.mockResolvedValue({});
 
@@ -366,8 +361,7 @@ describe("Turbopuffer partner search provider", () => {
     expect(result).toEqual({ namespaceName: "test-namespace" });
   });
 
-  it("falls back to the default namespace when the env var is blank", async () => {
-    vi.stubEnv("PARTNER_SEARCH_INDEX_NAME", "");
+  it("uses the pinned namespace when none is passed", async () => {
     mocks.deleteAll.mockResolvedValue({});
 
     const { namespaceName } = await deleteTurbopufferPartnerSearchNamespace({
