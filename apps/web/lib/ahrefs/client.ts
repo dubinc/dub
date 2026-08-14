@@ -1,3 +1,4 @@
+import { assertEnv } from "@/lib/assert-env";
 import { HttpBaseClient } from "@/lib/http/base-client";
 import {
   getDomainRatingInputSchema,
@@ -13,7 +14,9 @@ class AhrefsClient extends HttpBaseClient {
   }
 
   protected buildAuthHeaders() {
-    return {};
+    return {
+      Authorization: `Bearer ${assertEnv("AHREFS_API_KEY")}`,
+    };
   }
 
   // GET /v3/public/domain-rating-free
