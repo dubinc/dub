@@ -188,14 +188,12 @@ async function setupTestProgram({
     update: {
       projectId: workspaceId,
       verified: true,
-      primary: true,
     },
     create: {
       id: createId({ prefix: "dom_" }),
       slug: TEST_WORKSPACE.program.domain,
       projectId: workspaceId,
       verified: true,
-      primary: true,
     },
   });
 
@@ -277,6 +275,15 @@ async function setupTestProgram({
     update: {
       name: DEFAULT_PARTNER_GROUP.name,
       maxPartnerLinks: DEFAULT_ADDITIONAL_PARTNER_LINKS,
+    },
+  });
+
+  await prisma.program.update({
+    where: {
+      id: program.id,
+    },
+    data: {
+      defaultGroupId: group.id,
     },
   });
 
