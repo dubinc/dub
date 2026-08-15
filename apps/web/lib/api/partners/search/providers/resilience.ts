@@ -54,7 +54,7 @@ export async function withTransientRetry<T>(
  * not cancelled — `Promise.race` cannot do that — so only pass work that
  * settles on its own.
  */
-export async function withDeadline<T>(
+async function withDeadline<T>(
   operation: () => Promise<T>,
   timeoutMs: number,
   message: string,
