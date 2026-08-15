@@ -1,6 +1,6 @@
 import { expect } from "@playwright/test";
 import type { UtmTemplate } from "@prisma/client";
-import { randomName } from "../../utils";
+import { apiError, randomName } from "../../utils";
 import { test, type ApiClient } from "../fixtures";
 
 type UtmTemplateResponse = Pick<
@@ -48,10 +48,6 @@ async function deleteUtmTemplate(api: ApiClient, id: string | undefined) {
   if (!id) return;
   await api.delete(`/api/utm/${id}`);
 }
-
-test.describe.configure({
-  mode: "parallel",
-});
 
 test("POST /utm", async ({ api, workspace }) => {
   let id: string | undefined;
@@ -122,65 +118,37 @@ const errorCases = [
   {
     name: "POST /utm – missing name",
     body: {},
-    expected: {
-      status: 422,
-      data: {
-        error: {
-          code: "unprocessable_entity",
-          message:
-            "invalid_type: name: Invalid input: expected string, received undefined",
-          doc_url:
-            "https://dub.co/docs/api-reference/errors#unprocessable-entity",
-        },
-      },
-    },
+    expected: apiError({
+      code: "unprocessable_entity",
+      message:
+        "invalid_type: name: Invalid input: expected string, received undefined",
+    }),
   },
   {
     name: "POST /utm – empty name",
     body: { name: "" },
-    expected: {
-      status: 422,
-      data: {
-        error: {
-          code: "unprocessable_entity",
-          message: "too_small: name: UTM name is required",
-          doc_url:
-            "https://dub.co/docs/api-reference/errors#unprocessable-entity",
-        },
-      },
-    },
+    expected: apiError({
+      code: "unprocessable_entity",
+      message: "too_small: name: UTM name is required",
+    }),
   },
   {
     name: "POST /utm – name too long",
     body: { name: "a".repeat(51) },
-    expected: {
-      status: 422,
-      data: {
-        error: {
-          code: "unprocessable_entity",
-          message:
-            "too_big: name: Too big: expected string to have <=50 characters",
-          doc_url:
-            "https://dub.co/docs/api-reference/errors#unprocessable-entity",
-        },
-      },
-    },
+    expected: apiError({
+      code: "unprocessable_entity",
+      message:
+        "too_big: name: Too big: expected string to have <=50 characters",
+    }),
   },
   {
     name: "POST /utm – utm_source too long",
     body: { name: randomName("utm"), utm_source: "a".repeat(256) },
-    expected: {
-      status: 422,
-      data: {
-        error: {
-          code: "unprocessable_entity",
-          message:
-            "too_big: utm_source: Too big: expected string to have <=255 characters",
-          doc_url:
-            "https://dub.co/docs/api-reference/errors#unprocessable-entity",
-        },
-      },
-    },
+    expected: apiError({
+      code: "unprocessable_entity",
+      message:
+        "too_big: utm_source: Too big: expected string to have <=255 characters",
+    }),
   },
 ];
 
@@ -204,14 +172,12 @@ test("POST /utm – existing name", async ({ api }) => {
       name: templateName,
     });
 
-    expect(status).toBe(409);
-    expect(error).toEqual({
-      error: {
+    expect({ status, data: error }).toEqual(
+      apiError({
         code: "conflict",
         message: "A template with that name already exists.",
-        doc_url: "https://dub.co/docs/api-reference/errors#conflict",
-      },
-    });
+      }),
+    );
   } finally {
     await deleteUtmTemplate(api, id);
   }
@@ -294,16 +260,12 @@ test("PATCH /utm/{id}", async ({ api }) => {
 test("PATCH /utm/{id} – not found", async ({ api }) => {
   expect(
     await api.patch("/api/utm/utm_missing", { name: randomName("utm") }),
-  ).toEqual({
-    status: 404,
-    data: {
-      error: {
-        code: "not_found",
-        message: "Template not found.",
-        doc_url: "https://dub.co/docs/api-reference/errors#not-found",
-      },
-    },
-  });
+  ).toEqual(
+    apiError({
+      code: "not_found",
+      message: "Template not found.",
+    }),
+  );
 });
 
 test("DELETE /utm/{id}", async ({ api }) => {
@@ -324,14 +286,10 @@ test("DELETE /utm/{id}", async ({ api }) => {
 });
 
 test("DELETE /utm/{id} – not found", async ({ api }) => {
-  expect(await api.delete("/api/utm/utm_missing")).toEqual({
-    status: 404,
-    data: {
-      error: {
-        code: "not_found",
-        message: "UTM template not found.",
-        doc_url: "https://dub.co/docs/api-reference/errors#not-found",
-      },
-    },
-  });
+  expect(await api.delete("/api/utm/utm_missing")).toEqual(
+    apiError({
+      code: "not_found",
+      message: "UTM template not found.",
+    }),
+  );
 });
