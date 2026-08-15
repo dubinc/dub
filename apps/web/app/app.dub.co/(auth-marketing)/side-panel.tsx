@@ -31,7 +31,7 @@ export function SidePanel() {
         <div className="flex flex-col gap-6">
           <div className="relative overflow-hidden rounded-xl border border-neutral-900/10">
             <img
-              src="https://assets.dub.co/cms/framer-thumbnail.png"
+              src="https://assets.dub.co/cms/framer-thumbnail.jpg"
               alt="Framer team"
               className="aspect-[16/12] w-full object-cover"
             />

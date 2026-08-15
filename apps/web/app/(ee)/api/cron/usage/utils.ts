@@ -242,7 +242,7 @@ export const updateUsage = async () => {
           )} Plan* usage limit. Usage: ${usage}, Limit: ${usageLimit}, Email: ${emails.join(
             ", ",
           )}`,
-          type: plan === "free" ? "cron" : "alerts",
+          type: "cron",
           mention: plan !== "free",
         });
         const firstUsageLimitEmail = sentEmails.find(
