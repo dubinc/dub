@@ -157,6 +157,10 @@ jobs:
       - name: Build application
         run: pnpm turbo build --filter=web
 
-      - name: Run Playwright tests
+      - name: Run Playwright API tests
         working-directory: apps/web
-        run: pnpm test:e2e
+        run: pnpm test:e2e -- --project=api
+
+      - name: Run Playwright UI tests
+        working-directory: apps/web
+        run: pnpm test:e2e -- --project=partners --project=workspaces --project=chromium-workspace
