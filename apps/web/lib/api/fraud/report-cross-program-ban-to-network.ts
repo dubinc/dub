@@ -43,7 +43,7 @@ export async function reportCrossProgramBanToNetwork({
   });
 
   if (affectedProgramEnrollments.length === 0) {
-    return;
+    return 0;
   }
 
   // Filter out programs where the partnerCrossProgramBan rule is disabled
@@ -55,7 +55,7 @@ export async function reportCrossProgramBanToNetwork({
   );
 
   if (affectedProgramEnrollments.length === 0) {
-    return;
+    return 0;
   }
 
   const { affectedGroups } = await createFraudEvents(
@@ -78,4 +78,6 @@ export async function reportCrossProgramBanToNetwork({
   results
     .filter((r): r is PromiseRejectedResult => r.status === "rejected")
     .forEach((r) => console.error("Failed to hold commissions:", r.reason));
+
+  return affectedProgramEnrollments.length;
 }

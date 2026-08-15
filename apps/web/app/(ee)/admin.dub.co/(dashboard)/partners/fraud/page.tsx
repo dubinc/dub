@@ -3,6 +3,7 @@
 import { adminFraudAlertSchema } from "@/lib/zod/schemas/admin";
 import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import {
+  Button,
   Filter,
   StatusBadge,
   Table,
@@ -17,6 +18,8 @@ import { FraudAlertStatus } from "@prisma/client";
 import { Suspense, useCallback, useMemo, useState } from "react";
 import useSWR from "swr";
 import * as z from "zod/v4";
+import { FlagPartnerFraudSheet } from "./flag-partner-fraud-sheet";
+import { FraudAlertReporter } from "./fraud-alert-reporter";
 import { ReviewFraudAlertSheet } from "./review-fraud-alert-sheet";
 
 type AdminFraudAlert = z.infer<typeof adminFraudAlertSchema>;
@@ -45,6 +48,7 @@ function FraudAlertsPageClient() {
   const [selectedAlert, setSelectedAlert] = useState<AdminFraudAlert | null>(
     null,
   );
+  const [showFlagPartnerSheet, setShowFlagPartnerSheet] = useState(false);
 
   const {
     data: { fraudAlerts, total } = {},
@@ -166,20 +170,8 @@ function FraudAlertsPageClient() {
       },
       {
         id: "program",
-        header: "Program",
-        cell: ({ row }) => (
-          <div className="flex items-center gap-1.5">
-            <img
-              src={
-                row.original.program.logo ||
-                `${OG_AVATAR_URL}${row.original.program.name}`
-              }
-              alt={row.original.program.name}
-              className="size-4 rounded-full"
-            />
-            <span className="text-sm">{row.original.program.name}</span>
-          </div>
-        ),
+        header: "Flagged by",
+        cell: ({ row }) => <FraudAlertReporter fraudAlert={row.original} />,
       },
       {
         id: "reason",
@@ -245,13 +237,19 @@ function FraudAlertsPageClient() {
 
   return (
     <>
-      <div>
+      <div className="flex w-full flex-col gap-2 min-[550px]:flex-row min-[550px]:items-center min-[550px]:justify-between">
         <Filter.Select
           className="w-full md:w-fit"
           filters={filters}
           activeFilters={activeFilters}
           onSelect={onSelect}
           onRemove={onRemove}
+        />
+        <Button
+          variant="primary"
+          className="h-9 w-fit shrink-0 px-3"
+          text="Flag Partner"
+          onClick={() => setShowFlagPartnerSheet(true)}
         />
       </div>
 
@@ -282,6 +280,14 @@ function FraudAlertsPageClient() {
           if (!open) setSelectedAlert(null);
         }}
         onReviewed={async () => {
+          await mutate();
+        }}
+      />
+
+      <FlagPartnerFraudSheet
+        isOpen={showFlagPartnerSheet}
+        setIsOpen={setShowFlagPartnerSheet}
+        onFlagged={async () => {
           await mutate();
         }}
       />

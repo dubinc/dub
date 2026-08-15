@@ -39,6 +39,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import useSWR from "swr";
 import * as z from "zod/v4";
+import { FraudAlertReporter } from "./fraud-alert-reporter";
 
 type AdminFraudAlert = z.infer<typeof adminFraudAlertSchema>;
 
@@ -179,17 +180,7 @@ function SheetContent({
           {/* Current alert context */}
           <div>
             <div className="flex items-center gap-3">
-              <img
-                src={
-                  fraudAlert.program.logo ||
-                  `${OG_AVATAR_URL}${fraudAlert.program.name}`
-                }
-                alt={fraudAlert.program.name}
-                className="size-5 rounded-full"
-              />
-              <span className="text-sm font-medium">
-                {fraudAlert.program.name}
-              </span>
+              <FraudAlertReporter fraudAlert={fraudAlert} />
               <span className="text-xs text-neutral-400">
                 {formatDateTime(fraudAlert.createdAt)}
               </span>
@@ -434,8 +425,8 @@ function FraudAlertsTable({
     columns: [
       {
         id: "program",
-        header: "Program",
-        cell: ({ row }) => <ProgramCell program={row.original.program} />,
+        header: "Flagged by",
+        cell: ({ row }) => <FraudAlertReporter fraudAlert={row.original} />,
       },
       {
         id: "reason",

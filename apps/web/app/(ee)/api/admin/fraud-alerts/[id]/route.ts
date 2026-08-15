@@ -1,9 +1,8 @@
-import { reportCrossProgramBanToNetwork } from "@/lib/api/fraud/report-cross-program-ban-to-network";
+import { confirmPartnerFraudAlerts } from "@/lib/api/fraud/confirm-partner-fraud-alerts";
 import { withAdmin } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { MAX_FRAUD_REASON_LENGTH } from "@/lib/zod/schemas/partners";
 import { Prisma } from "@prisma/client";
-import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 
@@ -26,11 +25,18 @@ export const PATCH = withAdmin(
       },
       select: {
         partnerId: true,
+        status: true,
       },
     });
 
     if (!fraudAlert) {
       return new Response("Fraud alert not found.", { status: 404 });
+    }
+
+    if (newStatus === "confirmed" && fraudAlert.status !== "pending") {
+      return new Response("Fraud alert has already been reviewed.", {
+        status: 409,
+      });
     }
 
     const reviewData: Prisma.FraudAlertUpdateManyArgs["data"] = {
@@ -60,65 +66,17 @@ export const PATCH = withAdmin(
       return NextResponse.json({ success: true });
     }
 
-    // Fetch all pending fraud alerts for this partner (for cross-program ban reporting)
-    const pendingFraudAlerts = await prisma.fraudAlert.findMany({
-      where: {
-        partnerId: fraudAlert.partnerId,
-        status: "pending",
-      },
-      select: {
-        id: true,
-        createdAt: true,
-        programEnrollment: {
-          select: {
-            programId: true,
-            partnerId: true,
-            bannedReason: true,
-            bannedAt: true,
-            application: {
-              select: {
-                reviewedAt: true,
-              },
-            },
-          },
-        },
-      },
+    const { confirmedCount } = await confirmPartnerFraudAlerts({
+      partnerId: fraudAlert.partnerId,
+      reviewedById: session.user.id,
+      reviewNote,
     });
 
-    if (pendingFraudAlerts.length === 0) {
+    if (confirmedCount === 0) {
       return new Response("Fraud alert has already been reviewed.", {
         status: 409,
       });
     }
-
-    await prisma.fraudAlert.updateMany({
-      where: {
-        id: {
-          in: pendingFraudAlerts.map((fa) => fa.id),
-        },
-        status: "pending",
-      },
-      data: {
-        status: "confirmed",
-        ...reviewData,
-      },
-    });
-
-    waitUntil(
-      Promise.allSettled(
-        pendingFraudAlerts.map(({ programEnrollment, createdAt }) =>
-          reportCrossProgramBanToNetwork({
-            partnerId: programEnrollment.partnerId,
-            programId: programEnrollment.programId,
-            bannedReason: programEnrollment.bannedReason ?? "fraud",
-            bannedAt:
-              programEnrollment.bannedAt ??
-              programEnrollment.application?.reviewedAt ??
-              createdAt,
-          }),
-        ),
-      ),
-    );
 
     return NextResponse.json({ success: true });
   },
