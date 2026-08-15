@@ -82,14 +82,14 @@ describe("getPartnersCount search", () => {
       // The aggregation only knows the filters it was given, so counting with
       // one of these applied would over-count.
       const searchProvider = createSearchProvider(12_000);
-      mocks.count.mockResolvedValue(3);
+      mocks.count.mockResolvedValue(2);
 
       const count = await getPartnersCount<number>(
         { programId: "prog_test", search: "examp", ...extra },
         { searchProvider },
       );
 
-      expect(count).toBe(3);
+      expect(count).toBe(2);
       expect(searchProvider.countCandidates).not.toHaveBeenCalled();
       expect(mocks.count).toHaveBeenCalled();
     },
@@ -115,7 +115,7 @@ describe("getPartnersCount search", () => {
     (
       searchProvider.countCandidates as ReturnType<typeof vi.fn>
     ).mockRejectedValue(new Error("aggregation down"));
-    mocks.count.mockResolvedValue(7);
+    mocks.count.mockResolvedValue(2);
     vi.spyOn(console, "error").mockImplementation(() => {});
 
     const count = await getPartnersCount<number>(
@@ -123,7 +123,7 @@ describe("getPartnersCount search", () => {
       { searchProvider },
     );
 
-    expect(count).toBe(7);
+    expect(count).toBe(2);
   });
 
   it("groups database-filtered relevance candidates", async () => {

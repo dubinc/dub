@@ -397,7 +397,10 @@ export function createTurbopufferPartnerSearchProvider({
 
       const total = response.aggregations?.total;
 
-      return typeof total === "number" ? total : 0;
+      // A missing aggregate means the response was not what we asked for.
+      // Reporting it as zero would render an unanswered count as an exact
+      // empty result.
+      return typeof total === "number" ? total : null;
     },
 
     async upsert(documents) {

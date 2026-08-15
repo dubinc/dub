@@ -390,6 +390,29 @@ describe("Turbopuffer partner search provider", () => {
     ).rejects.toThrow("Partner search candidate limit");
   });
 
+  it("counts a three-character prefix, the shortest it will answer", async () => {
+    const total = await createProvider().countCandidates({
+      programId: "prog_test",
+      query: "ale",
+      limit: 10,
+    });
+
+    expect(total).toBe(12_000);
+  });
+
+  it("returns null when the response carries no aggregate", async () => {
+    // Zero would render an unanswered count as an exact empty result.
+    mocks.query.mockResolvedValue({});
+
+    await expect(
+      createProvider().countCandidates({
+        programId: "prog_test",
+        query: "creator",
+        limit: 10,
+      }),
+    ).resolves.toBeNull();
+  });
+
   it("counts matches without the candidate ceiling", async () => {
     const total = await createProvider().countCandidates({
       programId: "prog_test",

@@ -261,11 +261,6 @@ export async function getPartnersCount<T>(
     })) as T;
   }
 
-  // Counting the candidate IDs reports a floor, because the provider truncated
-  // them to the candidate ceiling — "999 partners" when there are twelve
-  // thousand. Ask the provider for the real total instead, but only when it can
-  // see every filter that applies: `partnerIds`, `tenantId`, and the metric
-  // ranges are database-only, so leaving them out would over-count.
   // Every filter the provider does not carry. `email` is absent because it stops
   // a candidate query being built at all. Adding a filter to
   // buildProgramEnrollmentWhereForList without adding it here or to the
@@ -296,7 +291,11 @@ export async function getPartnersCount<T>(
     }
   }
 
-  // Get absolute count of partners
+  // Counting the candidate IDs reports a floor rather than a total, because the
+  // provider already truncated them to the candidate ceiling. Every path that
+  // lands here accepts that: a database-only filter, a declined short prefix, or
+  // a failed aggregation. It stays consistent with the list, which is capped at
+  // the same ceiling, but a broad query will under-report.
   const count = await prisma.programEnrollment.count({
     where: {
       ...buildProgramEnrollmentWhereForList(enrollmentBase),
