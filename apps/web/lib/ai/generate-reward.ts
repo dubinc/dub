@@ -6,7 +6,6 @@ import {
 } from "@/lib/api/links/usage-checks";
 import { normalizeWorkspaceId } from "@/lib/api/workspaces/workspace-id";
 import { getSession } from "@/lib/auth";
-import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { prisma } from "@/lib/prisma";
 import { PlanProps } from "@/lib/types";
 import { assertRateLimit } from "@/lib/upstash/assert-rate-limit";
@@ -103,15 +102,6 @@ export async function generateReward(input: z.infer<typeof inputSchema>) {
     role,
     requiredRoles: ["owner", "member"],
   });
-
-  const { canUseAdvancedRewardLogic } = getPlanCapabilities(
-    workspace.plan as PlanProps,
-  );
-  if (!canUseAdvancedRewardLogic) {
-    throw new Error(
-      "AI reward builder is only available on the Advanced plan and above.",
-    );
-  }
 
   await assertRateLimit({
     policy: RATELIMIT_POLICIES.aiRewardGenerate,

@@ -6,12 +6,11 @@ import {
   getAIRewardSchema,
 } from "@/lib/ai/ai-reward-schema";
 import { generateReward } from "@/lib/ai/generate-reward";
-import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { REWARD_CONDITION_ATTRIBUTES } from "@/lib/zod/schemas/rewards";
 import { CustomToast } from "@/ui/shared/custom-toast";
 import { readStreamableValue } from "@ai-sdk/rsc";
-import { AnimatedSizeContainer, Button, TooltipContent } from "@dub/ui";
+import { AnimatedSizeContainer, Button } from "@dub/ui";
 import { ArrowTurnRight2, Sparkle3 } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
 import { EventType, RewardStructure } from "@prisma/client";
@@ -147,10 +146,8 @@ export function useAIRewardBuilder({
   const {
     id: workspaceId,
     slug: workspaceSlug,
-    plan,
     mutate: mutateWorkspace,
   } = useWorkspace();
-  const { canUseAdvancedRewardLogic } = getPlanCapabilities(plan);
 
   const [prompt, setPrompt] = useState("");
   const [phase, setPhase] = useState<BuilderPhase>("idle");
@@ -227,7 +224,7 @@ export function useAIRewardBuilder({
 
   const selectPreset = useCallback(
     (draft: AIRewardDraft) => {
-      if (!canUseAdvancedRewardLogic || streamingRef.current) return;
+      if (streamingRef.current) return;
 
       clearPresetTimeout();
       const generationId = ++generationIdRef.current;
@@ -246,16 +243,11 @@ export function useAIRewardBuilder({
         streamingRef.current = false;
       }, 1500);
     },
-    [applyDraft, canUseAdvancedRewardLogic, clearPresetTimeout, ensureSnapshot],
+    [applyDraft, clearPresetTimeout, ensureSnapshot],
   );
 
   const generate = useCallback(async () => {
-    if (
-      !workspaceId ||
-      !prompt.trim() ||
-      !canUseAdvancedRewardLogic ||
-      streamingRef.current
-    ) {
+    if (!workspaceId || !prompt.trim() || streamingRef.current) {
       return;
     }
 
@@ -332,7 +324,6 @@ export function useAIRewardBuilder({
     }
   }, [
     applyDraft,
-    canUseAdvancedRewardLogic,
     clearPresetTimeout,
     discard,
     ensureSnapshot,
@@ -359,7 +350,6 @@ export function useAIRewardBuilder({
     presets,
     isReviewing,
     hasPreviewContent,
-    canUseAdvancedRewardLogic,
     workspaceSlug,
     generate,
     selectPreset,
@@ -403,15 +393,8 @@ export function AIRewardInput({
   const shouldReduceMotion = useReducedMotion();
   const [focused, setFocused] = useState(false);
 
-  const {
-    prompt,
-    setPrompt,
-    presets,
-    canUseAdvancedRewardLogic,
-    workspaceSlug,
-    generate,
-    selectPreset,
-  } = builder;
+  const { prompt, setPrompt, presets, workspaceSlug, generate, selectPreset } =
+    builder;
 
   return (
     <div className="relative">
@@ -465,7 +448,6 @@ export function AIRewardInput({
                     }
                   }}
                   placeholder={`Describe your ${event} reward...`}
-                  disabled={!canUseAdvancedRewardLogic}
                   minRows={1}
                   maxRows={2}
                   className={cn(
@@ -489,7 +471,6 @@ export function AIRewardInput({
                           <button
                             key={preset.id}
                             type="button"
-                            disabled={!canUseAdvancedRewardLogic}
                             onMouseDown={(e) => e.preventDefault()}
                             onClick={() => selectPreset(preset.draft)}
                             className={cn(
@@ -515,17 +496,7 @@ export function AIRewardInput({
                         className="h-7 w-fit shrink-0 rounded-lg px-2.5 py-2 text-sm active:scale-[0.97]"
                         onMouseDown={(e) => e.preventDefault()}
                         onClick={() => void generate()}
-                        disabled={!canUseAdvancedRewardLogic || !prompt.trim()}
-                        disabledTooltip={
-                          !canUseAdvancedRewardLogic ? (
-                            <TooltipContent
-                              title="AI reward builder is only available on the Advanced plan and above."
-                              cta="Upgrade to Advanced"
-                              href={`/${workspaceSlug}/upgrade?plan=advanced&showAdvancedUpsellModal=true`}
-                              target="_blank"
-                            />
-                          ) : undefined
-                        }
+                        disabled={!prompt.trim()}
                       />
                     </div>
                   </div>

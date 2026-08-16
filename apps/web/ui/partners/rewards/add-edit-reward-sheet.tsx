@@ -41,6 +41,7 @@ import { motion } from "motion/react";
 import { useAction } from "next-safe-action/hooks";
 import {
   Dispatch,
+  MutableRefObject,
   PropsWithChildren,
   ReactNode,
   SetStateAction,
@@ -204,7 +205,10 @@ function RewardSheetContent({
   event,
   reward,
   defaultRewardValues,
-}: RewardSheetProps) {
+  hasPendingChangesRef,
+}: RewardSheetProps & {
+  hasPendingChangesRef: MutableRefObject<boolean>;
+}) {
   const { group, mutateGroup } = useGroup();
   const { partnersCount, loading, isValidating } = usePartnersCount<
     number | undefined
@@ -216,12 +220,18 @@ function RewardSheetContent({
     group?.id && !loading && !isValidating ? partnersCount : undefined;
   const { openConfirmRewardChangeModal, ConfirmRewardChangeModal } =
     useConfirmRewardChangeModal();
+
   const {
     id: workspaceId,
     slug: workspaceSlug,
     defaultProgramId,
     plan,
-  } = useWorkspace();
+  } = useWorkspace({
+    swrOpts: {
+      revalidateOnFocus: true, // revalidate on focus in case user upgrades their plan in another tab
+    },
+  });
+
   const formRef = useRef<HTMLFormElement>(null);
   const { mutate: mutateProgram } = useProgram();
   const { queryParams } = useRouterStuff();
@@ -287,7 +297,15 @@ function RewardSheetContent({
     },
   });
 
-  const { handleSubmit, watch, setValue, setError, getValues, reset } = form;
+  const {
+    handleSubmit,
+    watch,
+    setValue,
+    setError,
+    getValues,
+    reset,
+    formState: { isDirty },
+  } = form;
 
   const [
     selectedEvent,
@@ -328,6 +346,8 @@ function RewardSheetContent({
     reset: (values, options) => reset(values as FormData, options),
   });
 
+  hasPendingChangesRef.current = isDirty || aiBuilder.isReviewing;
+
   const spendLimitEnabled =
     canSetRewardSpendLimit && spendLimitInterval != null;
   const hasIncompleteMainSpendLimit =
@@ -339,6 +359,7 @@ function RewardSheetContent({
     createRewardAction,
     {
       onSuccess: async () => {
+        hasPendingChangesRef.current = false;
         setIsOpen(false);
         toast.success("Reward created!");
         await mutateProgram();
@@ -354,6 +375,7 @@ function RewardSheetContent({
     updateRewardAction,
     {
       onSuccess: async () => {
+        hasPendingChangesRef.current = false;
         queryParams({ del: "rewardId" });
         toast.success("Reward updated!");
         await mutateProgram();
@@ -369,6 +391,7 @@ function RewardSheetContent({
     deleteRewardAction,
     {
       onSuccess: async () => {
+        hasPendingChangesRef.current = false;
         setIsOpen(false);
         toast.success("Reward deleted!");
         await mutate(`/api/programs/${defaultProgramId}`);
@@ -479,13 +502,12 @@ function RewardSheetContent({
             <Sheet.Title className="text-lg font-semibold">
               {reward ? "Edit" : "Create"} {selectedEvent} reward
             </Sheet.Title>
-            <Sheet.Close asChild>
-              <Button
-                variant="outline"
-                icon={<X className="size-5" />}
-                className="h-auto w-fit p-1"
-              />
-            </Sheet.Close>
+            <Button
+              variant="outline"
+              icon={<X className="size-5" />}
+              className="h-auto w-fit p-1"
+              onClick={() => setIsOpen(false)}
+            />
           </div>
 
           <div className="flex flex-1 flex-col overflow-y-auto p-6">
@@ -1082,15 +1104,60 @@ export function RewardSheet({
   nested?: boolean;
 }) {
   const { queryParams } = useRouterStuff();
+  const hasPendingChangesRef = useRef(false);
+
+  const setIsOpen: RewardSheetProps["setIsOpen"] = (value) => {
+    const nextOpen = typeof value === "function" ? value(isOpen) : value;
+
+    if (
+      !nextOpen &&
+      hasPendingChangesRef.current &&
+      !window.confirm(
+        "You have unsaved changes. Are you sure you want to exit the reward builder?",
+      )
+    ) {
+      return;
+    }
+
+    rest.setIsOpen(value);
+
+    if (!nextOpen) {
+      queryParams({ del: "rewardId" });
+    }
+  };
 
   return (
     <Sheet
       open={isOpen}
-      onOpenChange={rest.setIsOpen}
+      onOpenChange={setIsOpen}
       nested={nested}
-      onClose={() => queryParams({ del: "rewardId" })}
+      contentProps={{
+        onPointerDownOutside: (e) => {
+          if (
+            e.target instanceof Element &&
+            e.target.closest("[data-sonner-toast]")
+          ) {
+            return;
+          }
+
+          if (hasPendingChangesRef.current) {
+            e.preventDefault();
+            setIsOpen(false);
+          }
+        },
+        onEscapeKeyDown: (e) => {
+          if (hasPendingChangesRef.current) {
+            e.preventDefault();
+            setIsOpen(false);
+          }
+        },
+      }}
     >
-      <RewardSheetContent {...rest} />
+      <RewardSheetContent
+        {...rest}
+        setIsOpen={setIsOpen}
+        hasPendingChangesRef={hasPendingChangesRef}
+      />
     </Sheet>
   );
 }
