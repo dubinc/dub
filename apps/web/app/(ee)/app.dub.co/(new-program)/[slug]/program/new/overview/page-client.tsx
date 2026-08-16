@@ -131,6 +131,7 @@ export function PageClient() {
               title="You can only create a partner program on a Business plan and above."
               cta="Upgrade to Business"
               href={`/${workspaceSlug}/settings/billing/upgrade?plan=business`}
+              target="_blank"
             />
           ) : undefined
         }

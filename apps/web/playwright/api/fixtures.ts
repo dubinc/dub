@@ -21,6 +21,8 @@ function loadApiAuth() {
     token: string;
     workspaceId: string;
     workspaceSlug: string;
+    programId: string;
+    defaultGroupId: string;
   };
 }
 
@@ -48,6 +50,7 @@ function createApiClient(request: APIRequestContext): ApiClient {
 export const test = base.extend<{
   api: ApiClient;
   workspace: { id: string; slug: string };
+  program: { id: string; defaultGroupId: string };
 }>({
   // Authenticated API request context (token from globalSetup → .auth/api.json).
   request: async ({ playwright, baseURL }, use) => {
@@ -70,5 +73,10 @@ export const test = base.extend<{
   workspace: async ({}, use) => {
     const { workspaceId, workspaceSlug } = loadApiAuth();
     await use({ id: workspaceId, slug: workspaceSlug });
+  },
+
+  program: async ({}, use) => {
+    const { programId, defaultGroupId } = loadApiAuth();
+    await use({ id: programId, defaultGroupId });
   },
 });

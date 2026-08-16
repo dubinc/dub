@@ -105,6 +105,7 @@ export type InlineBadgePopoverMenuItem<T> = {
   value: T;
   onSelect?: () => void;
   preventClose?: boolean;
+  disabled?: boolean;
 };
 
 export function InlineBadgePopoverMenu<T extends any>({
@@ -206,11 +207,14 @@ export function InlineBadgePopoverMenu<T extends any>({
                 value,
                 onSelect: itemOnSelect,
                 preventClose,
+                disabled,
               }) => (
                 <Command.Item
                   key={String(value)}
                   value={`${text} ${description ?? ""} ${value}`}
+                  disabled={disabled}
                   onSelect={() => {
+                    if (disabled) return;
                     itemOnSelect?.();
                     onSelect?.(value);
                     !isMultiSelect && !preventClose && setIsOpen(false);
@@ -218,6 +222,8 @@ export function InlineBadgePopoverMenu<T extends any>({
                   className={cn(
                     "flex cursor-pointer justify-between rounded-md px-1.5 py-1 transition-colors duration-150 data-[selected=true]:bg-neutral-100",
                     description ? "items-start gap-2 py-1.5" : "items-center",
+                    disabled &&
+                      "cursor-not-allowed opacity-50 data-[selected=true]:bg-transparent",
                   )}
                 >
                   <div
