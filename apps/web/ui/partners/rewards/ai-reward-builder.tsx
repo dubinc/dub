@@ -9,6 +9,7 @@ import { generateReward } from "@/lib/ai/generate-reward";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { REWARD_CONDITION_ATTRIBUTES } from "@/lib/zod/schemas/rewards";
+import { CustomToast } from "@/ui/shared/custom-toast";
 import { readStreamableValue } from "@ai-sdk/rsc";
 import { AnimatedSizeContainer, Button, TooltipContent } from "@dub/ui";
 import { ArrowTurnRight2, Sparkle3 } from "@dub/ui/icons";
@@ -296,10 +297,12 @@ export function useAIRewardBuilder({
 
       if (lastPartial.supported === false) {
         discard({ keepPrompt: true });
-        toast.error("This reward setup isn't supported yet.", {
-          description:
-            "Reach out to support if you need help configuring this.",
-        });
+        toast.custom(() => (
+          <CustomToast variant="error">
+            This reward setup isn't supported yet. [Reach out to
+            support](https://dub.co/support) if you need help configuring this.
+          </CustomToast>
+        ));
         void mutateWorkspace();
         return;
       }
@@ -737,8 +740,15 @@ export function AIRewardPreviewFrame({
   builder: AIRewardBuilderState;
 }>) {
   const shouldReduceMotion = useReducedMotion();
-  const { isReviewing, phase, error, accept, discard, hasPreviewContent, event } =
-    builder;
+  const {
+    isReviewing,
+    phase,
+    error,
+    accept,
+    discard,
+    hasPreviewContent,
+    event,
+  } = builder;
 
   const [chromeMounted, setChromeMounted] = useState(false);
   const [chromeOpen, setChromeOpen] = useState(false);
@@ -949,11 +959,7 @@ function SkeletonPill({ className }: { className?: string }) {
   );
 }
 
-function ReviewSkeletons({
-  event,
-}: {
-  event: Exclude<EventType, "referral">;
-}) {
+function ReviewSkeletons({ event }: { event: Exclude<EventType, "referral"> }) {
   return (
     <div className="border-border-subtle rounded-xl border bg-white text-sm shadow-sm">
       <div className="flex items-start gap-2.5 p-2.5">
