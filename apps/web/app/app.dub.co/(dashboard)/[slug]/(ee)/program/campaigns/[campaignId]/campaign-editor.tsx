@@ -67,7 +67,7 @@ const DisabledInputWrapper = ({
   hideIcon = false,
 }: {
   children: React.ReactNode;
-  tooltip: string;
+  tooltip: React.ReactNode;
   disabled?: boolean;
   hideIcon?: boolean;
 }) => {
@@ -77,22 +77,29 @@ const DisabledInputWrapper = ({
 
   return (
     <Tooltip content={tooltip}>
-      <div className="relative">
+      <div className="group/locked relative cursor-not-allowed rounded-md transition-colors duration-150 hover:bg-neutral-100">
         <div className="pointer-events-none select-none opacity-80">
           {children}
         </div>
-        {!hideIcon && (
-          <Lock className="absolute right-2 top-1/2 size-3 -translate-y-1/2 text-neutral-400" />
-        )}
+        <Lock
+          className={cn(
+            "pointer-events-none absolute right-2 top-4 size-3 -translate-y-1/2 text-neutral-400 transition-opacity duration-150",
+            hideIcon
+              ? "opacity-0 group-hover/locked:opacity-100"
+              : "opacity-100",
+          )}
+        />
       </div>
     </Tooltip>
   );
 };
 
-const statusMessages = {
+const statusMessages: Partial<Record<CampaignStatus, string>> = {
   sending: "Edits aren't allowed while sending.",
   sent: "Edits aren't allowed after sending.",
   canceled: "Edits aren't allowed after cancellation.",
+  active:
+    "Edits aren't allowed while the campaign is active. Pause the campaign to make changes.",
 };
 
 function CampaignFromField({
@@ -236,6 +243,8 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
 
   const isActive = campaign.status === CampaignStatus.active;
   const isReadOnly = CAMPAIGN_READONLY_STATUSES.includes(campaign.status);
+  const isLocked = isActive || isReadOnly;
+  const lockTooltip = isLocked ? statusMessages[campaign.status] : undefined;
 
   const { makeRequest, isSubmitting: isSavingCampaign } =
     useApiMutation<Campaign>();
@@ -395,7 +404,7 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
         saveCampaign({ isDraft: false });
       }
     },
-    { enabled: true },
+    { enabled: !isLocked },
   );
 
   const { executeAsync: executeImageUpload } = useAction(
@@ -473,15 +482,15 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
           <div className="grid grid-cols-[max-content_minmax(0,1fr)] items-center gap-x-6 [&>*:nth-child(n+3)]:mt-2">
             <span className={labelClassName}>Name</span>
             <DisabledInputWrapper
-              tooltip={isReadOnly ? statusMessages[campaign.status] : ""}
-              disabled={isReadOnly}
-              hideIcon={true}
+              tooltip={lockTooltip}
+              disabled={isLocked}
+              hideIcon
             >
               <input
                 type="text"
                 placeholder="Enter a name..."
                 className={inputClassName}
-                disabled={isReadOnly}
+                disabled={isLocked}
                 {...register("name")}
               />
             </DisabledInputWrapper>
@@ -492,13 +501,13 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
                 control={control}
                 name="from"
                 render={({ field }) => {
-                  const isDisabled = isReadOnly || !verifiedEmailDomain;
+                  const isDisabled = isLocked || !verifiedEmailDomain;
 
                   return (
                     <DisabledInputWrapper
                       tooltip={
-                        isReadOnly ? (
-                          statusMessages[campaign.status]
+                        isLocked ? (
+                          lockTooltip
                         ) : !verifiedEmailDomain ? (
                           <TooltipContent
                             title="You haven't configured an email domain yet. Please configure an email domain to enable campaign sending."
@@ -509,7 +518,7 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
                         ) : undefined
                       }
                       disabled={isDisabled}
-                      hideIcon={true}
+                      hideIcon
                     >
                       <CampaignFromField
                         value={field.value}
@@ -530,13 +539,9 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
               name="groupIds"
               render={({ field }) => (
                 <DisabledInputWrapper
-                  tooltip={
-                    isReadOnly
-                      ? statusMessages[campaign.status]
-                      : "Cannot change recipients while campaign is active. Pause the campaign to make changes."
-                  }
-                  disabled={isActive || isReadOnly}
-                  hideIcon={isReadOnly}
+                  tooltip={lockTooltip}
+                  disabled={isLocked}
+                  hideIcon
                 >
                   <CampaignGroupsSelector
                     selectedGroupIds={field.value ?? null}
@@ -552,13 +557,9 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
               name="partnerTagIds"
               render={({ field }) => (
                 <DisabledInputWrapper
-                  tooltip={
-                    isReadOnly
-                      ? statusMessages[campaign.status]
-                      : "Cannot change recipients while campaign is active. Pause the campaign to make changes."
-                  }
-                  disabled={isActive || isReadOnly}
-                  hideIcon={isReadOnly}
+                  tooltip={lockTooltip}
+                  disabled={isLocked}
+                  hideIcon
                 >
                   <CampaignTagsSelector
                     selectedPartnerTagIds={field.value ?? null}
@@ -576,11 +577,9 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
                   name="scheduledAt"
                   render={({ field }) => (
                     <DisabledInputWrapper
-                      tooltip={
-                        isReadOnly ? statusMessages[campaign.status] : undefined
-                      }
-                      disabled={isReadOnly}
-                      hideIcon={true}
+                      tooltip={lockTooltip}
+                      disabled={isLocked}
+                      hideIcon
                     >
                       <SmartDateTimePicker
                         value={field.value}
@@ -596,9 +595,9 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
 
             <span className={labelClassName}>Subject</span>
             <DisabledInputWrapper
-              tooltip={isReadOnly ? statusMessages[campaign.status] : ""}
-              disabled={isReadOnly}
-              hideIcon={true}
+              tooltip={lockTooltip}
+              disabled={isLocked}
+              hideIcon
             >
               <div className="relative">
                 <input
@@ -606,12 +605,12 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
                   placeholder="Enter a subject..."
                   className={cn(
                     inputClassName,
-                    !isReadOnly && !showPreviewText && "pr-24",
+                    !isLocked && !showPreviewText && "pr-24",
                   )}
-                  disabled={isReadOnly}
+                  disabled={isLocked}
                   {...register("subject")}
                 />
-                {!isReadOnly && (
+                {!isLocked && (
                   <div className="absolute right-0 top-1/2 -translate-y-1/2">
                     <button
                       type="button"
@@ -636,17 +635,23 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
               </span>
             </ConditionalColumn>
             <ConditionalColumn show={showPreviewText}>
-              <input
-                type="text"
-                placeholder="Enter preview text..."
-                className={inputClassName}
-                disabled={isReadOnly}
-                {...previewInputProps}
-                ref={(e) => {
-                  previewInputProps.ref(e);
-                  previewInputRef.current = e;
-                }}
-              />
+              <DisabledInputWrapper
+                tooltip={lockTooltip}
+                disabled={isLocked}
+                hideIcon
+              >
+                <input
+                  type="text"
+                  placeholder="Enter preview text..."
+                  className={inputClassName}
+                  disabled={isLocked}
+                  {...previewInputProps}
+                  ref={(e) => {
+                    previewInputProps.ref(e);
+                    previewInputRef.current = e;
+                  }}
+                />
+              </DisabledInputWrapper>
             </ConditionalColumn>
 
             {campaign.type === "transactional" && (
@@ -655,81 +660,82 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
                   Logic
                 </span>
                 <DisabledInputWrapper
-                  tooltip={
-                    isReadOnly
-                      ? statusMessages[campaign.status]
-                      : "Cannot change trigger logic while campaign is active. Pause the campaign to make changes."
-                  }
-                  disabled={isActive || isReadOnly}
+                  tooltip={lockTooltip}
+                  disabled={isLocked}
+                  hideIcon
                 >
-                  <TransactionalCampaignLogic />
+                  <TransactionalCampaignLogic locked={isLocked} />
                 </DisabledInputWrapper>
               </>
             )}
           </div>
 
-          {!isReadOnly && <DuplicateLogicWarning />}
+          {!isLocked && <DuplicateLogicWarning />}
 
           <div className="mt-4">
             <Controller
               control={control}
               name="bodyJson"
               render={({ field }) => (
-                <RichTextProvider
-                  ref={editorRef}
-                  editorClassName="-m-2 min-h-[200px] p-2"
-                  style="relaxed"
-                  features={[...DEFAULT_RICH_TEXT_FEATURES, "imageControls"]}
-                  initialValue={field.value}
-                  onChange={(editor) => field.onChange(editor.getJSON())}
-                  variables={[...EMAIL_TEMPLATE_VARIABLES]}
-                  editable={
-                    campaign.type === "marketing" ? !isReadOnly : !isActive
-                  }
-                  uploadImage={async (file) => {
-                    try {
-                      const result = await executeImageUpload({
-                        workspaceId: workspaceId!,
-                      });
-
-                      if (!result?.data) {
-                        throw new Error("Failed to get signed upload URL");
-                      }
-
-                      const { signedUrl, destinationUrl } = result.data;
-
-                      const uploadResponse = await fetch(signedUrl, {
-                        method: "PUT",
-                        body: file,
-                        headers: {
-                          "Content-Type": file.type,
-                          "Content-Length": file.size.toString(),
-                        },
-                      });
-
-                      if (!uploadResponse.ok) {
-                        throw new Error("Failed to upload to signed URL");
-                      }
-
-                      return destinationUrl;
-                    } catch (e) {
-                      console.error("Failed to upload image", e);
-                      toast.error("Failed to upload image");
-                    }
-
-                    return null;
-                  }}
+                <DisabledInputWrapper
+                  tooltip={lockTooltip}
+                  disabled={isLocked}
+                  hideIcon
                 >
-                  <div className="relative z-0 flex flex-col gap-1">
-                    <div className="sticky -top-4 z-10 sm:-top-6">
-                      <div className="bg-white pb-1 pt-2">
-                        <RichTextToolbar />
+                  <RichTextProvider
+                    ref={editorRef}
+                    editorClassName="-m-2 min-h-[200px] p-2"
+                    style="relaxed"
+                    features={[...DEFAULT_RICH_TEXT_FEATURES, "imageControls"]}
+                    initialValue={field.value}
+                    onChange={(editor) => field.onChange(editor.getJSON())}
+                    variables={[...EMAIL_TEMPLATE_VARIABLES]}
+                    editable={!isLocked}
+                    uploadImage={async (file) => {
+                      try {
+                        const result = await executeImageUpload({
+                          workspaceId: workspaceId!,
+                        });
+
+                        if (!result?.data) {
+                          throw new Error("Failed to get signed upload URL");
+                        }
+
+                        const { signedUrl, destinationUrl } = result.data;
+
+                        const uploadResponse = await fetch(signedUrl, {
+                          method: "PUT",
+                          body: file,
+                          headers: {
+                            "Content-Type": file.type,
+                            "Content-Length": file.size.toString(),
+                          },
+                        });
+
+                        if (!uploadResponse.ok) {
+                          throw new Error("Failed to upload to signed URL");
+                        }
+
+                        return destinationUrl;
+                      } catch (e) {
+                        console.error("Failed to upload image", e);
+                        toast.error("Failed to upload image");
+                      }
+
+                      return null;
+                    }}
+                  >
+                    <div className="relative z-0 flex flex-col gap-1">
+                      <div className="sticky -top-4 z-10 sm:-top-6">
+                        <div className="bg-white pb-1 pt-2">
+                          <RichTextToolbar />
+                        </div>
+                        <div className="h-2 bg-gradient-to-b from-white" />
                       </div>
-                      <div className="h-2 bg-gradient-to-b from-white" />
+                      <RichTextArea />
                     </div>
-                    <RichTextArea />
-                  </div>
-                </RichTextProvider>
+                  </RichTextProvider>
+                </DisabledInputWrapper>
               )}
             />
           </div>

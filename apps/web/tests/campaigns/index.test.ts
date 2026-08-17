@@ -1,7 +1,7 @@
 import { Campaign, CampaignList } from "@/lib/types";
 import { updateCampaignSchema } from "@/lib/zod/schemas/campaigns";
 import { E2E_PARTNER_GROUP } from "tests/utils/resource";
-import { describe, expect, onTestFinished, test } from "vitest";
+import { afterAll, describe, expect, test } from "vitest";
 import * as z from "zod/v4";
 import { IntegrationHarness } from "../utils/integration";
 
@@ -49,6 +49,11 @@ describe.sequential("/campaigns/**", async () => {
   const { http } = await h.init();
 
   let campaignId = "";
+  const createdCampaignIds: string[] = [];
+
+  afterAll(async () => {
+    await Promise.all(createdCampaignIds.map((id) => h.deleteCampaign(id)));
+  });
 
   test("POST /campaigns - create draft campaign", async () => {
     const { status, data } = await http.post<{ id: string }>({
@@ -58,12 +63,15 @@ describe.sequential("/campaigns/**", async () => {
       },
     });
 
+    if (data?.id) {
+      campaignId = data.id;
+      createdCampaignIds.push(data.id);
+    }
+
     expect(status).toEqual(201);
     expect(data).toMatchObject({
       id: expect.any(String),
     });
-
-    campaignId = data.id;
   });
 
   test("PATCH /campaigns/[campaignId] - update campaign content", async () => {
@@ -183,12 +191,12 @@ describe.sequential("/campaigns/**", async () => {
       path: `/campaigns/${campaignId}/duplicate`,
     });
 
+    if (data?.id) {
+      createdCampaignIds.push(data.id);
+    }
+
     expect(status).toEqual(200);
     expect(data.id).toBeDefined();
-
-    onTestFinished(async () => {
-      await h.deleteCampaign(data.id);
-    });
 
     const { data: duplicatedCampaign } = await http.get<Campaign>({
       path: `/campaigns/${data.id}`,

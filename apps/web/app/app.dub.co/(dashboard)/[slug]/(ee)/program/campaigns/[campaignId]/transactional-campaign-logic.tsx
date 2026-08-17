@@ -33,7 +33,7 @@ function isSendCampaignEnrollmentAttribute(
   ).includes(attribute);
 }
 
-export function TransactionalCampaignLogic() {
+export function TransactionalCampaignLogic({ locked }: { locked: boolean }) {
   const { control, watch } = useCampaignFormContext();
 
   const { fields, append, remove, update } = useFieldArray({
@@ -63,8 +63,6 @@ export function TransactionalCampaignLogic() {
     );
   }, [usedAttributes]);
 
-  const canAddCondition = availableAttributesToAdd.length > 0;
-
   return (
     <div className="flex w-full flex-col gap-1.5 px-2 py-1">
       {fields.map((field, index) => {
@@ -84,7 +82,7 @@ export function TransactionalCampaignLogic() {
             key={field.id}
             index={index}
             availableAttributes={availableAttributes}
-            canRemove={fields.length > 1}
+            canRemove={!locked && fields.length > 1}
             onRemove={() => remove(index)}
             onUpdate={(updates) => {
               update(index, {
@@ -96,12 +94,12 @@ export function TransactionalCampaignLogic() {
         );
       })}
 
-      {canAddCondition && (
+      {!locked && availableAttributesToAdd.length > 0 && (
         <Button
           type="button"
           text="Add condition"
           variant="secondary"
-          className="text-content-emphasis mt-1.5 h-8 w-fit rounded-lg text-xs font-medium"
+          className="mt-1.5 h-8 w-fit rounded-lg px-3"
           onClick={() => {
             const nextAttribute = availableAttributesToAdd[0];
             append({
