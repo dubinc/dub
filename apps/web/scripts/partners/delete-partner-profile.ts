@@ -1,4 +1,5 @@
 import { bulkDeleteLinks } from "@/lib/api/links/bulk-delete-links";
+import { queuePartnerSearchSync } from "@/lib/api/partners/queue-partner-search-sync";
 import { prisma } from "@/lib/prisma";
 import "dotenv-flow/config";
 import { conn } from "../../lib/planetscale";
@@ -12,6 +13,7 @@ async function main() {
     include: {
       programs: {
         select: {
+          id: true,
           links: true,
         },
       },
@@ -94,6 +96,11 @@ async function main() {
     },
   });
   console.log(`Deleted ${deletedProgramEnrollments.count} program enrollments`);
+
+  // Queue an index update for the deleted enrollments.
+  await queuePartnerSearchSync({
+    enrollmentIds: partner.programs.map(({ id }) => id),
+  });
 
   const deletedPartnerUsers = await prisma.partnerUser.deleteMany({
     where: {
