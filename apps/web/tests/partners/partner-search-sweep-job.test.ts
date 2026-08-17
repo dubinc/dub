@@ -67,5 +67,4 @@ describe("partnerSearchSweepJob", () => {
       { delay: 1 },
     );
   });
-
 });

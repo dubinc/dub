@@ -255,7 +255,10 @@ main()
             `--afterProgram=${resumeState.programId}`,
             ...(resumeState.after ? [`--after=${resumeState.after}`] : []),
           ]
-        : [...args, ...(resumeState.after ? [`--after=${resumeState.after}`] : [])];
+        : [
+            ...args,
+            ...(resumeState.after ? [`--after=${resumeState.after}`] : []),
+          ];
 
       console.error(
         `Resume with:\n  pnpm run script partners/backfill-partner-search ${resumeArgs.join(" ")}`,

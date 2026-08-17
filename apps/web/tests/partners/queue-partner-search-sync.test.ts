@@ -69,10 +69,6 @@ describe("queuePartnerSearchSync", () => {
     ]);
   });
 
-
-
-
-
   it("chunks past the batch size so no payload exceeds what the job accepts", async () => {
     await queuePartnerSearchSync({
       enrollmentIds: ["pge_1", "pge_2", "pge_3", "pge_4"],
@@ -96,8 +92,6 @@ describe("queuePartnerSearchSync", () => {
       { type: "partners", partnerIds: ["pn_1"], programId: "prog_1" },
     ]);
   });
-
-
 
   // QStash suppresses a repeated key for ten minutes from the first publish,
   // not merely while one is pending. Keying by subject would therefore drop the
@@ -174,7 +168,9 @@ describe("queuePartnerSearchSyncForLinks", () => {
 
     expect(mocks.dispatchBatch).toHaveBeenCalledTimes(2);
 
-    const queued = mocks.dispatchBatch.mock.calls.map(([payloads]) => payloads[0]);
+    const queued = mocks.dispatchBatch.mock.calls.map(
+      ([payloads]) => payloads[0],
+    );
 
     expect(queued).toEqual([
       { type: "partners", partnerIds: ["pn_1", "pn_2"], programId: "prog_1" },
@@ -190,9 +186,9 @@ describe("queuePartnerSearchSyncForLinks", () => {
 
     const [, getOptions] = mocks.dispatchBatch.mock.calls[0];
 
-    expect(getOptions({ type: "partners", partnerIds: ["pn_1"] }, 0).delay).toBe(
-      PARTNER_SEARCH_LINK_SYNC_DELAY_SECONDS,
-    );
+    expect(
+      getOptions({ type: "partners", partnerIds: ["pn_1"] }, 0).delay,
+    ).toBe(PARTNER_SEARCH_LINK_SYNC_DELAY_SECONDS);
   });
 
   it("defaults to the interactive delay when none is given", async () => {
@@ -202,9 +198,9 @@ describe("queuePartnerSearchSyncForLinks", () => {
 
     const [, getOptions] = mocks.dispatchBatch.mock.calls[0];
 
-    expect(getOptions({ type: "partners", partnerIds: ["pn_1"] }, 0).delay).toBe(
-      PARTNER_SEARCH_SYNC_DELAY_SECONDS,
-    );
+    expect(
+      getOptions({ type: "partners", partnerIds: ["pn_1"] }, 0).delay,
+    ).toBe(PARTNER_SEARCH_SYNC_DELAY_SECONDS);
   });
 
   it("queues nothing for an empty link set", async () => {

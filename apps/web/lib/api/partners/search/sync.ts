@@ -63,7 +63,9 @@ export async function syncPartnerSearchDocuments({
   const missingIds = ids.filter((id) => !foundIds.has(id));
 
   if (enrollments.length > 0) {
-    await searchProvider.upsert(enrollments.map(serializePartnerSearchDocument));
+    await searchProvider.upsert(
+      enrollments.map(serializePartnerSearchDocument),
+    );
   }
 
   if (missingIds.length > 0) {
