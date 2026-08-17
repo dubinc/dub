@@ -2,7 +2,7 @@
  * Measures p99 latency of the relevance-ranked partner list for a program.
  *
  * Calls `getPartners` in process, not over HTTP, so the numbers exclude route
- * handling, auth, and serialization, so treat them as a floor for the endpoint.
+ * handling, auth, and serialization. Treat them as a floor for the endpoint.
  *
  * --searchOnly times the provider's candidate query alone and skips the
  * database. Use it to compare providers: they are the same remote services
