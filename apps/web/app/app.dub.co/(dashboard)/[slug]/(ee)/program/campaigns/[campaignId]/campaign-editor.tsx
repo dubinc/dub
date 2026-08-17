@@ -469,7 +469,7 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
         individualScrolling
         contentWrapperClassName="flex flex-col"
       >
-        <PageWidthWrapper className="mb-8 max-w-[600px]">
+        <PageWidthWrapper className="mb-8 max-w-[720px]">
           <div className="grid grid-cols-[max-content_minmax(0,1fr)] items-center gap-x-6 [&>*:nth-child(n+3)]:mt-2">
             <span className={labelClassName}>Name</span>
             <DisabledInputWrapper

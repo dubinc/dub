@@ -18,7 +18,7 @@ export const WORKFLOW_OPERATORS = {
   // Greater than or equal to
   gte: {
     name: "gte",
-    label: "at least",
+    label: "is at least",
     validate(value: ConditionValue) {
       if (typeof value !== "number" || isNaN(value) || value < 0) {
         throw new Error("Please enter a value greater than or equal to 0.");
@@ -39,7 +39,7 @@ export const WORKFLOW_OPERATORS = {
   // Less than or equal to
   lte: {
     name: "lte",
-    label: "at most",
+    label: "is less than or equal to",
     validate(value: ConditionValue) {
       if (typeof value !== "number" || isNaN(value) || value < 0) {
         throw new Error("Please enter a value greater than or equal to 0.");
@@ -60,7 +60,7 @@ export const WORKFLOW_OPERATORS = {
   // Between (inclusive)
   between: {
     name: "between",
-    label: "between",
+    label: "is between",
     validate(value: ConditionValue) {
       if (typeof value !== "object" || value === null || Array.isArray(value)) {
         throw new Error("Please enter a valid value.");

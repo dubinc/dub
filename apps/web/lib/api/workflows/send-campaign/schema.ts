@@ -5,19 +5,19 @@ import { WORKFLOW_ATTRIBUTES } from "../attribute-definitions";
 const SEND_CAMPAIGN_METRIC_ATTRIBUTES = {
   totalLeads: {
     ...WORKFLOW_ATTRIBUTES.totalLeads,
-    operators: ["gte", "lte"] as const,
+    operators: ["lte", "gte"] as const,
   },
   totalConversions: {
     ...WORKFLOW_ATTRIBUTES.totalConversions,
-    operators: ["gte", "lte"] as const,
+    operators: ["lte", "gte"] as const,
   },
   totalSaleAmount: {
     ...WORKFLOW_ATTRIBUTES.totalSaleAmount,
-    operators: ["gte", "lte"] as const,
+    operators: ["lte", "gte"] as const,
   },
   totalCommissions: {
     ...WORKFLOW_ATTRIBUTES.totalCommissions,
-    operators: ["gte", "lte"] as const,
+    operators: ["lte", "gte"] as const,
   },
 } as const;
 
@@ -49,8 +49,8 @@ export const SEND_CAMPAIGN_ENROLLMENT_ATTRIBUTE_KEYS = Object.keys(
 ) as readonly (keyof typeof SEND_CAMPAIGN_ENROLLMENT_ATTRIBUTES)[];
 
 export const SEND_CAMPAIGN_OPERATORS = {
-  gte: WORKFLOW_OPERATORS.gte,
   lte: WORKFLOW_OPERATORS.lte,
+  gte: WORKFLOW_OPERATORS.gte,
 };
 
 export const SEND_CAMPAIGN_OPERATOR_KEYS = Object.keys(

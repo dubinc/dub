@@ -1,7 +1,7 @@
 import { qstash } from "@/lib/cron";
 import { prisma } from "@/lib/prisma";
 import { PARTNER_ENROLLED_WORKFLOW_CRON } from "@/lib/zod/schemas/workflows";
-import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
+import { APP_DOMAIN_WITH_NGROK, log } from "@dub/utils";
 import { Campaign, CampaignType, Workflow } from "@prisma/client";
 import { isScheduledWorkflow } from "../workflows/utils";
 
@@ -158,10 +158,13 @@ export const scheduleTransactionalCampaign = async ({
         scheduleId: updatedCampaign.workflow.id,
       });
     } catch (error) {
-      console.warn(
-        `Failed to create QStash schedule ${updatedCampaign.workflow.id}:`,
-        error,
-      );
+      // should never happen, but just in case
+      const errorMessage = `Failed to create QStash schedule ${updatedCampaign.workflow.id}: ${error}`;
+      console.warn(errorMessage);
+      await log({
+        type: "errors",
+        message: errorMessage,
+      });
     }
     return;
   }
@@ -173,10 +176,13 @@ export const scheduleTransactionalCampaign = async ({
     try {
       return await qstash.schedules.delete(updatedCampaign.workflow.id);
     } catch (error) {
-      console.warn(
-        `Failed to delete QStash schedule ${updatedCampaign.workflow.id}:`,
-        error,
-      );
+      // should never happen, but just in case
+      const errorMessage = `Failed to delete QStash schedule ${updatedCampaign.workflow.id}: ${error}`;
+      console.warn(errorMessage);
+      await log({
+        type: "errors",
+        message: errorMessage,
+      });
     }
   }
 };

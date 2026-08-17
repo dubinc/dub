@@ -24,7 +24,7 @@ export function CampaignEditorSkeleton() {
         </div>
       }
     >
-      <PageWidthWrapper className="mb-8 max-w-[600px]">
+      <PageWidthWrapper className="mb-8 max-w-[720px]">
         <div className="grid grid-cols-[max-content_minmax(0,1fr)] items-center gap-x-6 gap-y-2">
           <span className={labelClassName}>Name</span>
           <div className="h-8 w-full animate-pulse rounded-md bg-neutral-100" />
