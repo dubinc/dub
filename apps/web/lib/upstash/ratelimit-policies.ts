@@ -89,4 +89,10 @@ export const RATELIMIT_POLICIES = {
     window: "1 h",
     keyPrefix: "rl:partner-profile:invite",
   },
+
+  aiRewardGenerate: {
+    attempts: 10,
+    window: "1 m",
+    keyPrefix: "rl:ai:reward:generate",
+  },
 } as const satisfies Record<string, RatelimitPolicy>;
