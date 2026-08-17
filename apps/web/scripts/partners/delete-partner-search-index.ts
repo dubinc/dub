@@ -2,7 +2,7 @@
  * Empties a partner search namespace.
  *
  * Takes the namespace explicitly rather than reading the one the code writes to,
- * so retiring an old version after a migration is possible — and requires it
+ * so retiring an old version after a migration is possible, and requires it
  * twice, because this is not recoverable without a backfill.
  *
  *   cd apps/web

@@ -645,7 +645,7 @@ async function main() {
     })),
   });
 
-  // The program's own default group, the seeded ones, and null — so "no group"
+  // The program's own default group, the seeded ones, and null, so "no group"
   // is represented too, which is what a negated filter has to include.
   const groupIds: (string | null)[] = [
     program.defaultGroupId,

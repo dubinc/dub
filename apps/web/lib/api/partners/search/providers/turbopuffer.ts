@@ -16,7 +16,7 @@ import { getEmailNgrams, getQueryNgrams } from "./shared";
 
 /**
  * Bumped whenever the document shape changes, because turbopuffer keeps the
- * schema a namespace was created with — writing a new one does not migrate an
+ * schema a namespace was created with, and writing a new one does not migrate an
  * existing namespace. A new version is backfilled alongside the old one and
  * swapped in, rather than rebuilt in place.
  */
@@ -30,7 +30,7 @@ const WRITE_BATCH_SIZE = 500;
  * with it. Measured against 626K documents: one character takes the count from
  * ~50ms to ~1.2s, past the query deadline on every attempt, and two characters
  * are still 2-3x slower than three. Production holds roughly 1.6M documents, so
- * the margin matters more there than the extra character costs — the first
+ * the margin matters more there than the extra character costs, so the first
  * keystrokes of a search fall back to the database count instead.
  */
 const MIN_COUNT_PREFIX_LENGTH = 3;
@@ -153,7 +153,7 @@ function serializeTurbopufferRow(
     emailNgrams: getEmailNgrams(document.email),
     status: document.status,
     // Omitted rather than stored null, which is what makes a NotIn filter match
-    // the partners that have no group or no country — the same rows the
+    // the partners that have no group or no country, the same rows the
     // database includes when it ORs the negation with IS NULL.
     ...(document.groupId ? { groupId: document.groupId } : {}),
     ...(document.country ? { country: document.country } : {}),
