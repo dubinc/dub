@@ -143,11 +143,16 @@ export const POST = withWorkspace(
         return NextResponse.json({});
       }
 
-      const { socialMetricCount, socialMetricsLastSyncedAt } = update;
+      const {
+        socialMetricCount,
+        socialMetricResults,
+        socialMetricsLastSyncedAt,
+      } = update;
       const submission = bounty.submissions![0];
 
       const updateData: Prisma.BountySubmissionUpdateInput = {
         socialMetricCount,
+        socialMetricResults,
         socialMetricsLastSyncedAt,
       };
 

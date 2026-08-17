@@ -85,6 +85,7 @@ model BountySubmission {
   bountyId                  String
   performanceCount          BigInt?
   socialMetricCount         Int?
+  socialMetricResults       Json?
   commissionId              String?                          @unique
   userId                    String?
   description               String?                          @db.Text

@@ -1,6 +1,10 @@
 import { currencyFormatter } from "@dub/utils";
 import { Prisma } from "@prisma/client";
-import { BountyProps, BountySubmissionProps } from "../types";
+import {
+  BountyProps,
+  BountySocialPlatform,
+  BountySubmissionProps,
+} from "../types";
 import { resolveBountyDetails } from "./utils";
 
 interface BountyInfoInput {
@@ -12,6 +16,9 @@ export interface SocialMetricsRewardTier {
   threshold: number;
   rewardAmount: number;
   status: "met" | "unmet";
+  // Set for incremental-bonus tiers on multi-platform AND bounties, where
+  // tiers are computed independently per required platform.
+  platform?: BountySocialPlatform;
 }
 
 export function getSocialMetricsRewardTiers({
@@ -19,7 +26,10 @@ export function getSocialMetricsRewardTiers({
   submission,
 }: {
   bounty: BountyInfoInput | undefined | null;
-  submission: Pick<BountySubmissionProps, "socialMetricCount">;
+  submission: Pick<
+    BountySubmissionProps,
+    "socialMetricCount" | "socialMetricResults"
+  >;
 }): SocialMetricsRewardTier[] {
   const bountyInfo = resolveBountyDetails(bounty);
   const socialMetrics = bountyInfo?.socialMetrics;
@@ -30,9 +40,12 @@ export function getSocialMetricsRewardTiers({
     return [];
   }
 
-  const { minCount, incrementalBonus } = socialMetrics;
+  const { minCount, incrementalBonus, logic } = socialMetrics;
+  const platforms = bountyInfo?.socialPlatforms ?? [];
+  const isAnd = logic === "AND" && platforms.length > 1;
 
-  // Base tier
+  // Base tier — a single flat reward gated on the aggregate completion
+  // (for AND, socialMetricCount is already the min across required platforms)
   const tiers: SocialMetricsRewardTier[] = [
     {
       threshold: minCount,
@@ -46,33 +59,69 @@ export function getSocialMetricsRewardTiers({
   }
 
   // Incremental bonus tiers
-  if (incrementalBonus) {
-    const { incrementCount, bonusPerIncrement, maxCount } = incrementalBonus;
+  if (!incrementalBonus) {
+    return tiers;
+  }
 
-    const hasValidIncrementalBonus =
-      incrementCount != null &&
-      bonusPerIncrement != null &&
-      maxCount != null &&
-      incrementCount > 0;
+  const { incrementCount, bonusPerIncrement, maxCount } = incrementalBonus;
 
-    if (hasValidIncrementalBonus) {
-      for (
-        let t = minCount + incrementCount;
-        t <= maxCount;
-        t += incrementCount
-      ) {
-        const status = socialMetricCount >= t ? "met" : "unmet";
+  const hasValidIncrementalBonus =
+    incrementCount != null &&
+    bonusPerIncrement != null &&
+    maxCount != null &&
+    incrementCount > 0;
 
-        tiers.push({
-          threshold: t,
-          rewardAmount: bonusPerIncrement,
-          status,
-        });
+  if (!hasValidIncrementalBonus) {
+    return tiers;
+  }
 
-        // Stop after first unmet
-        if (status === "unmet") {
-          break;
-        }
+  if (!isAnd) {
+    for (
+      let t = minCount + incrementCount;
+      t <= maxCount;
+      t += incrementCount
+    ) {
+      const status = socialMetricCount >= t ? "met" : "unmet";
+
+      tiers.push({
+        threshold: t,
+        rewardAmount: bonusPerIncrement,
+        status,
+      });
+
+      // Stop after first unmet
+      if (status === "unmet") {
+        break;
+      }
+    }
+
+    return tiers;
+  }
+
+  // AND: incremental tiers are computed independently per required platform
+  // (same shared increment/bonus/cap config), then summed for the total reward.
+  for (const platform of platforms) {
+    const platformCount =
+      submission.socialMetricResults?.find((r) => r.platform === platform.value)
+        ?.metricCount ?? 0;
+
+    for (
+      let t = minCount + incrementCount;
+      t <= maxCount;
+      t += incrementCount
+    ) {
+      const status = platformCount >= t ? "met" : "unmet";
+
+      tiers.push({
+        threshold: t,
+        rewardAmount: bonusPerIncrement,
+        status,
+        platform: platform.value,
+      });
+
+      // Stop after first unmet for this platform
+      if (status === "unmet") {
+        break;
       }
     }
   }
@@ -85,7 +134,10 @@ export function calculateSocialMetricsRewardAmount({
   submission,
 }: {
   bounty: BountyInfoInput | undefined | null;
-  submission: Pick<BountySubmissionProps, "socialMetricCount">;
+  submission: Pick<
+    BountySubmissionProps,
+    "socialMetricCount" | "socialMetricResults"
+  >;
 }) {
   const tiers = getSocialMetricsRewardTiers({ bounty, submission });
 
@@ -120,6 +172,9 @@ export function getBountyRewardDescription(
     const baseRewardCents = bounty.rewardAmount ?? 0;
     const minCount = socialMetrics?.minCount ?? 0;
 
+    const platformsCount = bountyInfo?.socialPlatforms.length ?? 1;
+    const isAnd = socialMetrics?.logic === "AND" && platformsCount > 1;
+
     const incrementalCapCents =
       Math.max(
         0,
@@ -127,7 +182,10 @@ export function getBountyRewardDescription(
           (incrementalBonus.maxCount - minCount) /
             incrementalBonus.incrementCount,
         ),
-      ) * incrementalBonus.bonusPerIncrement;
+      ) *
+      incrementalBonus.bonusPerIncrement *
+      // AND: the incremental bonus is computed per required platform and summed
+      (isAnd ? platformsCount : 1);
 
     const earningsCapCents = baseRewardCents + incrementalCapCents;
 

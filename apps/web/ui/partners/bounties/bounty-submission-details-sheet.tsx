@@ -23,14 +23,12 @@ import {
   currencyFormatter,
   formatDate,
   formatDateTimeSmart,
-  nFormatter,
 } from "@dub/utils";
 import { formatDistanceToNow } from "date-fns";
 import { Dispatch, Fragment, ReactNode, SetStateAction, useState } from "react";
 import { toast } from "sonner";
-import { PLATFORM_ICONS } from "./bounty-platform-icons";
-import { EmphasisNumber } from "./bounty-progress-bar-row";
 import { BountySocialContentPreview } from "./bounty-social-content-preview";
+import { BountySocialMetricsProgress } from "./bounty-social-metrics-progress";
 import { BountySocialMetricsRewardsTable } from "./bounty-social-metrics-rewards-table";
 
 interface BountySubmissionDetailsSheetProps {
@@ -50,21 +48,12 @@ export function SocialContentPreview({
   submission: PartnerBountySubmission;
 }) {
   const bountyInfo = resolveBountyDetails(bounty);
-  const { socialMetrics, socialPlatform } = bountyInfo ?? {};
+  const { socialMetrics, socialPlatforms } = bountyInfo ?? {};
 
-  const url = submission.urls?.[0] ?? "";
-
-  if (!socialMetrics || !socialPlatform || !url) {
+  if (!socialMetrics || !socialPlatforms?.length || !submission.urls?.length) {
     return null;
   }
 
-  const socialMetricCount = submission.socialMetricCount ?? 0;
-  const minCount = socialMetrics.minCount ?? 0;
-  const percent =
-    minCount > 0 ? Math.min((socialMetricCount / minCount) * 100, 100) : 100;
-  const isComplete = percent >= 100;
-
-  const PlatformIcon = PLATFORM_ICONS[socialPlatform.value];
   const lastSyncedAt = submission.socialMetricsLastSyncedAt;
 
   return (
@@ -84,29 +73,10 @@ export function SocialContentPreview({
       <div className="border-border-default bg-bg-subtle rounded-xl border">
         {/* Progress section */}
         <div className="flex flex-col gap-3 px-4 pb-3 pt-4">
-          <div className="bg-bg-emphasis h-1 w-full rounded-full">
-            <div
-              className={cn(
-                "h-full rounded-full",
-                isComplete ? "bg-green-600" : "bg-amber-600",
-              )}
-              style={{ width: `${percent}%` }}
-            />
-          </div>
-
-          <div className="flex items-center gap-2">
-            <PlatformIcon className="size-4 shrink-0" />
-            <p className="text-content-subtle text-sm font-medium">
-              <EmphasisNumber>
-                {nFormatter(socialMetricCount, { full: true })}
-              </EmphasisNumber>
-              {" of "}
-              <EmphasisNumber>
-                {nFormatter(minCount, { full: true })}
-              </EmphasisNumber>
-              {` ${socialMetrics.metric} generated`}
-            </p>
-          </div>
+          <BountySocialMetricsProgress
+            bounty={bounty}
+            submission={submission}
+          />
         </div>
 
         <BountySocialContentPreview bounty={bounty} submission={submission} />

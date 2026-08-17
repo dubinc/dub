@@ -1,20 +1,23 @@
 "use client";
 
 import { getPeriodLabel } from "@/lib/bounty/periods";
-import { resolveBountyDetails } from "@/lib/bounty/utils";
+import {
+  buildInitialSubmissionUrls,
+  resolveBountyDetails,
+} from "@/lib/bounty/utils";
 import { PartnerBountyProps, PartnerBountySubmission } from "@/lib/types";
 import { SocialAccountNotVerifiedWarning } from "@/ui/partners/bounties/bounty-social-content";
 import { Button, ChevronRight, Popover, Trophy } from "@dub/ui";
 import { PlatformType } from "@prisma/client";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { v4 as uuid } from "uuid";
 import { useEmbedToken } from "../../use-embed-token";
 import {
   EmbedDescriptionField,
   EmbedImagesField,
-  EmbedSocialUrlField,
+  EmbedSocialUrlFields,
   EmbedUrlsField,
   type FileInput,
 } from "./submission-fields";
@@ -90,12 +93,19 @@ export function EmbedBountySubmissionForm({
   const token = useEmbedToken();
   const bountyInfo = resolveBountyDetails(bounty);
   const isSocialMetricsBounty = bountyInfo?.hasSocialMetrics ?? false;
-  const partnerPlatform = bountyInfo?.socialPlatform
-    ? partnerPlatforms.find((p) => p.type === bountyInfo.socialPlatform?.value)
-    : undefined;
+  const socialPlatforms = bountyInfo?.socialPlatforms ?? [];
+  const socialUrlSlotCount = bountyInfo?.socialUrlSlotCount ?? 0;
   const imageRequired = !!bounty.submissionRequirements?.image;
   const urlRequired =
     !!bounty.submissionRequirements?.url && !isSocialMetricsBounty;
+
+  const initialSlotState = useMemo(
+    () =>
+      Object.fromEntries(
+        Array.from({ length: socialUrlSlotCount }, (_, i) => [i, false]),
+      ) as Record<number, boolean>,
+    [socialUrlSlotCount],
+  );
 
   const [files, setFiles] = useState<FileInput[]>(() =>
     (existingSubmission?.files ?? []).map((f) => ({
@@ -106,10 +116,9 @@ export function EmbedBountySubmissionForm({
       originalFileSize: f.size,
     })),
   );
-  const [urls, setUrls] = useState<string[]>(() => {
-    if (existingSubmission?.urls?.length) return existingSubmission.urls;
-    return isSocialMetricsBounty ? [""] : [""];
-  });
+  const [urls, setUrls] = useState<string[]>(() =>
+    buildInitialSubmissionUrls(bountyInfo, existingSubmission?.urls),
+  );
   const [description, setDescription] = useState(
     existingSubmission?.description ?? "",
   );
@@ -117,9 +126,48 @@ export function EmbedBountySubmissionForm({
   const [fileUploading, setFileUploading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDraftSaving, setIsDraftSaving] = useState(false);
-  const [socialContentVerifying, setSocialContentVerifying] = useState(false);
-  const [socialContentRequirementsMet, setSocialContentRequirementsMet] =
-    useState(true);
+  const [verifyingBySlot, setVerifyingBySlot] =
+    useState<Record<number, boolean>>(initialSlotState);
+  const [requirementsMetBySlot, setRequirementsMetBySlot] =
+    useState<Record<number, boolean>>(initialSlotState);
+
+  const setSocialContentVerifying = useCallback(
+    (slot: number, value: boolean) => {
+      setVerifyingBySlot((prev) =>
+        prev[slot] === value ? prev : { ...prev, [slot]: value },
+      );
+    },
+    [],
+  );
+
+  const setSocialContentRequirementsMet = useCallback(
+    (slot: number, value: boolean) => {
+      setRequirementsMetBySlot((prev) =>
+        prev[slot] === value ? prev : { ...prev, [slot]: value },
+      );
+    },
+    [],
+  );
+
+  const socialContentVerifying = useMemo(
+    () =>
+      Array.from(
+        { length: socialUrlSlotCount },
+        (_, i) => verifyingBySlot[i],
+      ).some(Boolean),
+    [socialUrlSlotCount, verifyingBySlot],
+  );
+
+  const socialContentRequirementsMet = useMemo(
+    () =>
+      socialUrlSlotCount === 0 ||
+      Array.from(
+        { length: socialUrlSlotCount },
+        (_, i) => requirementsMetBySlot[i] === true,
+      ).every(Boolean),
+    [socialUrlSlotCount, requirementsMetBySlot],
+  );
+
   const [confirmSubmitOpen, setConfirmSubmitOpen] = useState(false);
 
   const submissionsOpenAt = bounty.submissionsOpenAt
@@ -152,13 +200,26 @@ export function EmbedBountySubmissionForm({
         size: f.file?.size ?? f.originalFileSize ?? 0,
       }));
 
-    const submissionUrls = isSocialMetricsBounty
-      ? urls.slice(0, 1).filter(Boolean)
-      : urls.filter(Boolean);
+    const submissionUrls = urls.filter(Boolean);
 
     if (!isDraft) {
       if (imageRequired && completedFiles.length === 0) {
         toast.error("You must upload at least one image.");
+        return;
+      }
+
+      if (bountyInfo?.isAndSocialMetrics) {
+        const missing = socialPlatforms.filter((_, i) => !urls[i]?.trim());
+        if (missing.length > 0) {
+          toast.error(
+            `You must provide a link for each of: ${missing.map((p) => p.label).join(", ")}.`,
+          );
+          return;
+        }
+      } else if (isSocialMetricsBounty && !urls[0]?.trim()) {
+        toast.error(
+          `You must provide the ${socialPlatforms.map((p) => p.label).join(" or ")} link.`,
+        );
         return;
       }
 
@@ -303,18 +364,19 @@ export function EmbedBountySubmissionForm({
           />
         )}
 
-        {isSocialMetricsBounty && bountyInfo?.socialPlatform ? (
+        {isSocialMetricsBounty && socialPlatforms.length > 0 ? (
           <>
-            {!partnerPlatform?.verifiedAt && (
-              <SocialAccountNotVerifiedWarning bounty={bounty} />
-            )}
-            <EmbedSocialUrlField
+            <SocialAccountNotVerifiedWarning
               bounty={bounty}
-              value={urls[0] ?? ""}
-              onChange={(v) => setUrls([v])}
-              partnerPlatform={partnerPlatform}
-              onVerifyingChange={setSocialContentVerifying}
-              onRequirementsMetChange={setSocialContentRequirementsMet}
+              partnerPlatforms={partnerPlatforms}
+            />
+            <EmbedSocialUrlFields
+              bounty={bounty}
+              urls={urls}
+              setUrls={setUrls}
+              partnerPlatforms={partnerPlatforms}
+              setSocialContentVerifying={setSocialContentVerifying}
+              setSocialContentRequirementsMet={setSocialContentRequirementsMet}
             />
           </>
         ) : (

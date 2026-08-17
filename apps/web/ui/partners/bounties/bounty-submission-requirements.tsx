@@ -1,4 +1,7 @@
-import { resolveBountyDetails } from "@/lib/bounty/utils";
+import {
+  formatSocialPlatformsList,
+  resolveBountyDetails,
+} from "@/lib/bounty/utils";
 import { PartnerBountyProps } from "@/lib/types";
 import { Check2 } from "@dub/ui";
 
@@ -27,9 +30,17 @@ export function getBountySubmissionRequirements(bounty: PartnerBountyProps) {
     }
   }
 
-  if (bountyInfo?.hasSocialMetrics && bountyInfo.socialPlatform) {
+  if (bountyInfo?.hasSocialMetrics && bountyInfo.socialPlatforms.length > 0) {
+    const { socialPlatforms, isAndSocialMetrics } = bountyInfo;
+    const platformsList = formatSocialPlatformsList(
+      socialPlatforms,
+      isAndSocialMetrics ? "AND" : "OR",
+    );
+
     requirements.push(
-      `Submit a ${bountyInfo.socialPlatform.label} link from your connected account`,
+      isAndSocialMetrics
+        ? `Submit a link from each of your connected ${platformsList} accounts`
+        : `Submit a ${platformsList} link from your connected account`,
       "The content shared is posted after this bounty started",
     );
   }

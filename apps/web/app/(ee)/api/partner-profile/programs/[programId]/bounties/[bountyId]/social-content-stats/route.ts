@@ -4,6 +4,7 @@ import { getSocialContent } from "@/lib/api/scrape-creators/get-social-content";
 import { withPartnerProfile } from "@/lib/auth/partner";
 import { canPartnerSubmitBounty } from "@/lib/bounty/api/bounty-availability";
 import { getBountyOrThrow } from "@/lib/bounty/api/get-bounty-or-throw";
+import { getPlatformFromSocialUrl } from "@/lib/bounty/social-content";
 import { resolveBountyDetails } from "@/lib/bounty/utils";
 import { ratelimit } from "@/lib/upstash";
 import { NextResponse } from "next/server";
@@ -19,17 +20,6 @@ export const GET = withPartnerProfile(
     const { programId, bountyId } = params;
 
     const { url } = searchParamsSchema.parse(searchParams);
-
-    const { success } = await ratelimit(10, "1 h").limit(
-      `partner-profile:social-content-stats:${partner.id}`,
-    );
-
-    if (!success) {
-      throw new DubApiError({
-        code: "rate_limit_exceeded",
-        message: "You've been rate limited. Please try again later.",
-      });
-    }
 
     const programEnrollment = await getProgramEnrollmentOrThrow({
       partnerId: partner.id,
@@ -83,8 +73,32 @@ export const GET = withPartnerProfile(
       });
     }
 
+    const rateLimit = 10 * Math.max(1, bountyInfo.socialPlatforms.length);
+    const { success } = await ratelimit(rateLimit, "1 h").limit(
+      `partner-profile:social-content-stats:${partner.id}`,
+    );
+
+    if (!success) {
+      throw new DubApiError({
+        code: "rate_limit_exceeded",
+        message: "You've been rate limited. Please try again later.",
+      });
+    }
+
+    const platform = getPlatformFromSocialUrl(url);
+
+    if (
+      !platform ||
+      !bountyInfo.socialPlatforms.some((p) => p.value === platform)
+    ) {
+      throw new DubApiError({
+        code: "bad_request",
+        message: `This link must be from one of: ${bountyInfo.socialPlatforms.map((p) => p.label).join(", ")}.`,
+      });
+    }
+
     const content = await getSocialContent({
-      platform: bountyInfo.socialMetrics.platform,
+      platform,
       url,
     });
 
