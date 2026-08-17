@@ -70,6 +70,7 @@ export function DatePicker({
       onSelect={onSelect}
       locale={locale}
       {...props}
+      defaultMonth={selected}
     />
   );
 

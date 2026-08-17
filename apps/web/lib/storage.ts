@@ -257,6 +257,38 @@ class StorageClient {
     }
   }
 
+  private async safeFetch(url: string): Promise<Response> {
+    const maxRedirects = 5;
+    let currentUrl = url;
+
+    for (let redirectCount = 0; redirectCount <= maxRedirects; redirectCount++) {
+      await this.assertSafeUrl(currentUrl);
+
+      const response = await fetchWithTimeout(currentUrl, {
+        redirect: "manual",
+      });
+
+      if (response.ok) {
+        return response;
+      }
+
+      if (response.status >= 300 && response.status < 400) {
+        const location = response.headers.get("location");
+        if (!location) {
+          throw new Error("Redirect response missing location header");
+        }
+        currentUrl = new URL(location, currentUrl).href;
+        continue;
+      }
+
+      throw new Error(
+        `Failed to fetch URL: ${response.status} ${response.statusText}`,
+      );
+    }
+
+    throw new Error("Too many redirects");
+  }
+
   private async urlToBlob(url: string, opts?: imageOptions): Promise<Blob> {
     let response: Response;
     if (opts?.height || opts?.width) {
@@ -268,12 +300,10 @@ class StorageClient {
         proxyUrl.searchParams.set("fit", "cover");
         response = await fetchWithTimeout(proxyUrl.toString());
       } catch (error) {
-        await this.assertSafeUrl(url);
-        response = await fetch(url, { redirect: "error" });
+        response = await this.safeFetch(url);
       }
     } else {
-      await this.assertSafeUrl(url);
-      response = await fetch(url, { redirect: "error" });
+      response = await this.safeFetch(url);
     }
     if (!response.ok) {
       throw new Error(`Failed to fetch URL: ${response.statusText}`);

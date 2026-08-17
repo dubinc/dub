@@ -7,9 +7,9 @@ import { holdPendingCommissions } from "./hold-pending-commissions";
 import { holdProcessedCommissions } from "./hold-processed-commissions";
 
 // Creates partnerCrossProgramBan fraud events in other programs where the partner is enrolled.
-// Used when a program bans a partner so that other programs can be alerted about cross-program
+// Used when a program bans a partner so that other programs can be alerted about network-level
 // fraud risk. Only programs with the partnerCrossProgramBan rule enabled receive events.
-export async function reportCrossProgramBanToNetwork({
+export async function reportNetworkLevelBan({
   partnerId,
   programId,
   bannedReason,
