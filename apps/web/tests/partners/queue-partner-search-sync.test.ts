@@ -266,3 +266,56 @@ describe("queuePartnerSearchSyncForLinks", () => {
     expect(mocks.dispatchBatch).not.toHaveBeenCalled();
   });
 });
+
+describe("queuePartnerSearchSyncForLinks — ownership transfer", () => {
+  beforeEach(() => {
+    mocks.getPartnerSearchProvider
+      .mockReset()
+      .mockReturnValue({ name: "turbopuffer" });
+    mocks.dispatchBatch.mockReset().mockResolvedValue({
+      published: 1,
+      deferred: 0,
+      failed: 0,
+      results: [],
+    });
+  });
+
+  // A link update can rewrite partnerId, so the former owner has to be
+  // re-serialized without the link. Syncing only the new owner would leave it
+  // searchable under a partner who no longer has it.
+  it("syncs both owners when a link moves between partners", async () => {
+    await queuePartnerSearchSyncForLinks([
+      { programId: "prog_1", partnerId: "pn_old" },
+      { programId: "prog_1", partnerId: "pn_new" },
+    ]);
+
+    expect(mocks.dispatchBatch.mock.calls[0][0]).toEqual([
+      {
+        type: "partners",
+        partnerIds: ["pn_old", "pn_new"],
+        programId: "prog_1",
+      },
+    ]);
+  });
+
+  it("syncs both programs when a link moves across programs", async () => {
+    await queuePartnerSearchSyncForLinks([
+      { programId: "prog_old", partnerId: "pn_1" },
+      { programId: "prog_new", partnerId: "pn_1" },
+    ]);
+
+    expect(mocks.dispatchBatch).toHaveBeenCalledTimes(2);
+  });
+
+  // An unowned link gaining a partner has no former owner to re-serialize.
+  it("skips the null side when a link gains its first owner", async () => {
+    await queuePartnerSearchSyncForLinks([
+      { programId: null, partnerId: null },
+      { programId: "prog_1", partnerId: "pn_1" },
+    ]);
+
+    expect(mocks.dispatchBatch.mock.calls[0][0]).toEqual([
+      { type: "partners", partnerIds: ["pn_1"], programId: "prog_1" },
+    ]);
+  });
+});

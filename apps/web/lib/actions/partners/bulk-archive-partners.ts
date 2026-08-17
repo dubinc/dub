@@ -84,9 +84,12 @@ export const bulkArchivePartnersAction = authActionClient
           })),
         ),
 
-        queuePartnerSearchSync({
-          enrollmentIds: programEnrollments.map(({ id }) => id),
-        }),
+        // Scoped to match the updateMany above, not the findMany. The select
+        // is narrowed to ACTIVE_ENROLLMENT_STATUSES while the update is not,
+        // so archiving a banned or rejected partner changes a status the
+        // selected rows never carried. Passing the partners re-resolves
+        // exactly the enrollments the update touched.
+        queuePartnerSearchSync({ partnerIds, programId }),
       ]),
     );
   });

@@ -1,6 +1,6 @@
 import {
   PARTNER_SEARCH_LINK_SYNC_DELAY_SECONDS,
-  queuePartnerSearchSync,
+  queuePartnerSearchSyncForLinks,
 } from "@/lib/api/partners/queue-partner-search-sync";
 import { getPartnerEnrollmentInfo } from "@/lib/planetscale/get-partner-enrollment-info";
 import { prisma } from "@/lib/prisma";
@@ -33,6 +33,12 @@ export async function updateLink({
     key: string;
     image?: string | null;
     testCompletedAt?: Date | null;
+    // Required, not optional, because the link body accepts `partnerId` and so
+    // an update can move a link between partners. The former owner has to be
+    // re-serialized without it, and an optional field here would let the next
+    // caller omit it and silently lose that.
+    programId: string | null;
+    partnerId: string | null;
   };
   updatedLink: ProcessedLinkProps &
     Pick<LinkProps, "id" | "clicks" | "lastClicked" | "updatedAt">;
@@ -209,13 +215,15 @@ export async function updateLink({
         // Only the short link and destination URL reach the document, and link
         // edits are frequent, so this takes the longer link delay. The job
         // re-reads the whole document, so nothing else goes stale by waiting.
-        response.programId &&
-          response.partnerId &&
-          queuePartnerSearchSync({
-            partnerIds: [response.partnerId],
-            programId: response.programId,
-            delay: PARTNER_SEARCH_LINK_SYNC_DELAY_SECONDS,
-          }),
+        //
+        // Both owners, because `partnerId` and `programId` are not excluded
+        // from the spread above and so can be rewritten. When a link moves
+        // between partners the former owner has to be re-serialized without
+        // it, and syncing only the new one would leave the link searchable
+        // under a partner who no longer has it.
+        queuePartnerSearchSyncForLinks([oldLink, response], {
+          delay: PARTNER_SEARCH_LINK_SYNC_DELAY_SECONDS,
+        }),
 
         // If proxy is true and image is not stored in R2, upload image to R2
         proxy &&

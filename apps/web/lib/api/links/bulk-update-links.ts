@@ -43,6 +43,20 @@ export async function bulkUpdateLinks(
 
   const imageUrlNonce = nanoid(7);
 
+  // The bulk payload is createLinkBodySchema minus domain/key/externalId, and
+  // that omit list does not drop `partnerId` or `programId` — so a bulk update
+  // can move links between partners. Read the current owners first, because
+  // after the write they are unrecoverable and syncing only the new owner
+  // would leave the links searchable under a partner who no longer has them.
+  // Only paid for when the payload actually carries an owner.
+  const previousOwners =
+    rest.partnerId !== undefined || rest.programId !== undefined
+      ? await prisma.link.findMany({
+          where: { id: { in: linkIds } },
+          select: { programId: true, partnerId: true },
+        })
+      : [];
+
   const updatedLinks = await Promise.all(
     linkIds.map((linkId) =>
       prisma.link.update({
@@ -122,7 +136,7 @@ export async function bulkUpdateLinks(
       // A bulk edit can move the destination URL, and the key or domain behind
       // the short link. Queued on the link delay: the job re-reads the whole
       // document, so nothing else goes stale by waiting.
-      queuePartnerSearchSyncForLinks(updatedLinks, {
+      queuePartnerSearchSyncForLinks([...previousOwners, ...updatedLinks], {
         delay: PARTNER_SEARCH_LINK_SYNC_DELAY_SECONDS,
       }),
       // if proxy is true and image is not stored in R2, upload image to R2
