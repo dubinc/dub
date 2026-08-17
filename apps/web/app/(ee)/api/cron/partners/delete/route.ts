@@ -1,6 +1,7 @@
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { bulkDeleteLinks } from "@/lib/api/links/bulk-delete-links";
 import { includeTags } from "@/lib/api/links/include-tags";
+import { queuePartnerSearchSync } from "@/lib/api/partners/queue-partner-search-sync";
 import { withCron } from "@/lib/cron/with-cron";
 import { aggregatePartnerLinksStats } from "@/lib/partners/aggregate-partner-links-stats";
 import { canDeletePartner } from "@/lib/partners/utils";
@@ -156,6 +157,11 @@ export const POST = withCron(async ({ rawBody }) => {
       },
     }),
   ]);
+
+  // Queued after the enrollment is gone, so the job reads nothing back and
+  // removes the document. The sweep can never do this for us: a pass only sees
+  // rows that still exist, so an orphaned document is invisible to it.
+  await queuePartnerSearchSync({ enrollmentIds: [enrollment.id] });
 
   await recordAuditLog({
     workspaceId,
