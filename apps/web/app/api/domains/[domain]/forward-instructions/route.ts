@@ -6,7 +6,9 @@ import {
   DUB_CUSTOM_DOMAIN_A_RECORD,
   DUB_CUSTOM_DOMAIN_CNAME,
 } from "@/lib/domain-connect/constants";
-import { ratelimit } from "@/lib/upstash";
+import { assertEmailSent } from "@/lib/email/assert-email-sent";
+import { assertRateLimit } from "@/lib/upstash/assert-rate-limit";
+import { RATELIMIT_POLICIES } from "@/lib/upstash/ratelimit-policies";
 import { sendEmail } from "@dub/email";
 import DomainDnsInstructions from "@dub/email/templates/domain-dns-instructions";
 import { getApexDomain, getSubdomain } from "@dub/utils";
@@ -17,6 +19,12 @@ const bodySchema = z.object({
   email: z.email(),
   recordType: z.enum(["A", "CNAME"]),
 });
+
+type DnsRecord = {
+  type: string;
+  name: string;
+  value: string;
+};
 
 // POST /api/domains/[domain]/forward-instructions
 export const POST = withWorkspace(
@@ -29,17 +37,17 @@ export const POST = withWorkspace(
 
     const { email, recordType } = bodySchema.parse(await req.json());
 
-    const { success } = await ratelimit(10, "1 h").limit(
-      `forward-dns-instructions:${workspace.id}`,
-    );
-    if (!success) {
-      throw new DubApiError({
-        code: "rate_limit_exceeded",
-        message: "Don't DDoS me pls 🥺",
-      });
-    }
+    await assertRateLimit({
+      policy: RATELIMIT_POLICIES.forwardDnsInstructions,
+      identifier: [workspace.id, session.user.id],
+    });
 
-    const records: { type: string; name: string; value: string }[] = [];
+    await assertRateLimit({
+      policy: RATELIMIT_POLICIES.forwardDnsInstructionsTarget,
+      identifier: email.toLowerCase(),
+    });
+
+    const records: DnsRecord[] = [];
 
     const domainJson = await getDomainResponse(domain);
 
@@ -87,7 +95,7 @@ export const POST = withWorkspace(
       }
     }
 
-    await sendEmail({
+    const result = await sendEmail({
       subject: `DNS instructions for ${domain}`,
       to: email,
       react: DomainDnsInstructions({
@@ -98,9 +106,11 @@ export const POST = withWorkspace(
       }),
     });
 
+    assertEmailSent(result);
+
     return NextResponse.json({ ok: true });
   },
   {
-    requiredPermissions: ["domains.read"],
+    requiredPermissions: ["domains.write"],
   },
 );

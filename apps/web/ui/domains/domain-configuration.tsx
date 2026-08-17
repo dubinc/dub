@@ -1,7 +1,13 @@
 "use client";
 
+import { clientAccessCheck } from "@/lib/client-access-check";
 import { isAllowedSyncUXOrigin } from "@/lib/domain-connect/allowed-origins";
+import {
+  DUB_CUSTOM_DOMAIN_A_RECORD,
+  DUB_CUSTOM_DOMAIN_CNAME,
+} from "@/lib/domain-connect/constants";
 import type { DomainConnectDiscovery } from "@/lib/domain-connect/types";
+import useWorkspace from "@/lib/swr/use-workspace";
 import { DomainVerificationStatusProps } from "@/lib/types";
 import { useForwardDnsInstructionsModal } from "@/ui/modals/forward-dns-instructions-modal";
 import {
@@ -32,12 +38,18 @@ export default function DomainConfiguration({
   workspaceSlug?: string;
 }) {
   const pathname = usePathname();
+  const { role } = useWorkspace();
   const { domainJson, configJson } = data.response;
   const subdomain = getSubdomain(domainJson.name, domainJson.apexName);
   const [recordType, setRecordType] = useState<"A" | "CNAME">(
     !!subdomain ? "CNAME" : "A",
   );
   const [autoLoading, setAutoLoading] = useState(false);
+
+  const { error: permissionsError } = clientAccessCheck({
+    action: "domains.write",
+    role,
+  });
 
   const { ForwardDnsInstructionsModal, setShowForwardDnsModal } =
     useForwardDnsInstructionsModal({
@@ -119,7 +131,10 @@ export default function DomainConfiguration({
             {
               type: recordType,
               name: recordType === "A" ? "@" : subdomain ?? "www",
-              value: recordType === "A" ? `76.76.21.21` : `cname.dub.co`,
+              value:
+                recordType === "A"
+                  ? DUB_CUSTOM_DOMAIN_A_RECORD
+                  : DUB_CUSTOM_DOMAIN_CNAME,
               ttl: "86400",
             },
           ]}
@@ -172,7 +187,10 @@ export default function DomainConfiguration({
           {
             type: recordType,
             name: recordType === "A" ? "@" : subdomain ?? "www",
-            value: recordType === "A" ? `76.76.21.21` : `cname.dub.co`,
+            value:
+              recordType === "A"
+                ? DUB_CUSTOM_DOMAIN_A_RECORD
+                : DUB_CUSTOM_DOMAIN_CNAME,
             ttl: "86400",
           },
           ...(txtVerification
@@ -227,6 +245,7 @@ export default function DomainConfiguration({
               icon={<EnvelopeArrowRight className="size-4 shrink-0" />}
               className="w-fit"
               onClick={() => setShowForwardDnsModal(true)}
+              disabledTooltip={permissionsError || undefined}
             />
           )}
         </div>

@@ -1,5 +1,6 @@
 "use client";
 
+import { clientAccessCheck } from "@/lib/client-access-check";
 import { isAllowedSyncUXOrigin } from "@/lib/domain-connect/allowed-origins";
 import type { DomainConnectDiscovery } from "@/lib/domain-connect/types";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -194,9 +195,14 @@ function DnsRecordsTable({
 const ENABLE_EMAIL_DNS_ACTIONS = false;
 
 export function EmailDomainDnsRecords({ domain }: EmailDomainDnsRecordsProps) {
-  const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
+  const { id: workspaceId, slug: workspaceSlug, role } = useWorkspace();
   const pathname = usePathname();
   const [autoLoading, setAutoLoading] = useState(false);
+
+  const { error: permissionsError } = clientAccessCheck({
+    action: "domains.write",
+    role,
+  });
 
   const { data, error, isLoading, isValidating, mutate } =
     useSWR<EmailDomainVerifyResponse>(
@@ -375,6 +381,7 @@ export function EmailDomainDnsRecords({ domain }: EmailDomainDnsRecordsProps) {
                   icon={<EnvelopeArrowRight className="size-4 shrink-0" />}
                   className="w-fit"
                   onClick={() => setShowForwardDnsModal(true)}
+                  disabledTooltip={permissionsError || undefined}
                 />
               )}
             </div>
