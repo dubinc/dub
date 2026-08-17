@@ -8,7 +8,7 @@ import { logAndRespond } from "../../utils";
 export const dynamic = "force-dynamic";
 
 const BATCH_SIZE = 60;
-const CONCURRENCY = 10;
+const CONCURRENCY = 5;
 
 /**
  * This route is used to update domain rating (DR) for verified website partners using the Ahrefs free API
@@ -21,6 +21,10 @@ export const GET = withCron(async () => {
       type: PlatformType.website,
       verifiedAt: {
         not: null,
+      },
+      // only check websites that haven't been checked in the last 24 hours
+      lastCheckedAt: {
+        lt: new Date(Date.now() - 1000 * 60 * 60 * 24),
       },
     },
     take: BATCH_SIZE,

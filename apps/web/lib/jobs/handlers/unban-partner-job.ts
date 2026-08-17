@@ -109,7 +109,7 @@ export const unbanPartnerJob = defineJob({
       ]);
     }
 
-    // Clean up any pending cross-program ban alerts that originated from this program.
+    // Clean up any pending network-level ban alerts that originated from this program.
     await prisma.$transaction([
       prisma.fraudEvent.deleteMany({
         where: {
