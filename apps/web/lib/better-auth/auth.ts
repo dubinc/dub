@@ -43,7 +43,7 @@ export const auth = betterAuth({
     freshAge: 60 * 60 * 24,
     cookieCache: {
       enabled: true,
-      maxAge: 2 * 60, // Cache duration in seconds
+      maxAge: 60, // 1 minute cache duration in seconds
     },
   },
 
@@ -177,6 +177,7 @@ export const auth = betterAuth({
     },
   },
   advanced: {
+    useSecureCookies: isVercelDeployment,
     database: {
       generateId: ({ model }) => {
         if (model === "user") {
@@ -190,12 +191,13 @@ export const auth = betterAuth({
       enabled: isVercelDeployment,
       domain: isVercelDeployment ? ".dub.co" : undefined,
     },
-    useSecureCookies: isVercelDeployment,
   },
 
+  // Hooks
   hooks,
   databaseHooks,
 
+  // Plugins
   plugins: [
     // Magic link plugin
     magicLink({
