@@ -234,6 +234,7 @@ export function EmbedSocialUrlField({
 }) {
   const inputId = useId();
   const [urlToCheck, setUrlToCheck] = useState("");
+  const [placeholderIndex, setPlaceholderIndex] = useState(0);
 
   useEffect(() => {
     setUrlToCheck("");
@@ -281,9 +282,23 @@ export function EmbedSocialUrlField({
     setSocialContentRequirementsMet,
   ]);
 
+  const showIcon = isValidating || (!!error && !!urlToCheck);
+
+  useEffect(() => {
+    if (platforms.length < 2) {
+      setPlaceholderIndex(0);
+      return;
+    }
+
+    const interval = window.setInterval(() => {
+      setPlaceholderIndex((i) => (i + 1) % platforms.length);
+    }, 3000);
+
+    return () => window.clearInterval(interval);
+  }, [platforms.length]);
+
   if (!matchedPlatform) return null;
 
-  const showIcon = isValidating || (!!error && !!urlToCheck);
   const isSinglePlatform = platforms.length === 1;
   const label = isSinglePlatform
     ? `${matchedPlatform.label} URL`
@@ -302,7 +317,9 @@ export function EmbedSocialUrlField({
           type="text"
           inputMode="url"
           autoComplete="url"
-          placeholder={matchedPlatform.placeholder}
+          placeholder={
+            platforms[placeholderIndex % platforms.length]?.placeholder
+          }
           value={value}
           onChange={(e) => onChange(e.target.value)}
           onBlur={(e) => {

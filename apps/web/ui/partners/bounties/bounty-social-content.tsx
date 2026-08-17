@@ -103,6 +103,7 @@ export function SocialContentUrlField({
   const { watch, setValue, getValues } = useClaimBountyForm();
 
   const [urlToCheck, setUrlToCheck] = useState<string>("");
+  const [placeholderIndex, setPlaceholderIndex] = useState(0);
   const inputId = useId();
 
   const contentUrl = watch("urls")?.[slot] ?? "";
@@ -148,6 +149,19 @@ export function SocialContentUrlField({
 
   const showIcon = isValidating || (error && urlToCheck);
 
+  useEffect(() => {
+    if (platforms.length < 2) {
+      setPlaceholderIndex(0);
+      return;
+    }
+
+    const interval = window.setInterval(() => {
+      setPlaceholderIndex((i) => (i + 1) % platforms.length);
+    }, 3000);
+
+    return () => window.clearInterval(interval);
+  }, [platforms.length]);
+
   if (platforms.length === 0 || !matchedPlatform) {
     return null;
   }
@@ -184,7 +198,9 @@ export function SocialContentUrlField({
           type="text"
           inputMode="url"
           autoComplete="url"
-          placeholder={matchedPlatform.placeholder}
+          placeholder={
+            platforms[placeholderIndex % platforms.length]?.placeholder
+          }
           value={contentUrl}
           onChange={(e) => handleChange(e.target.value)}
           onBlur={handleBlur}
