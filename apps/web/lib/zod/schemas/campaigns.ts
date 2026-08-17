@@ -14,6 +14,10 @@ export const EMAIL_TEMPLATE_VARIABLES = [
   "PartnerName",
   "PartnerEmail",
   "PartnerLink",
+  "SaleReward",
+  "LeadReward",
+  "ClickReward",
+  "ReferralReward",
 ] as const;
 
 export const CAMPAIGN_FROM_FORMAT_ERROR =

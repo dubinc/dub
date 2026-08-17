@@ -36,7 +36,7 @@ const updatePosition = (editor: Editor, element: HTMLElement) => {
 export const suggestions = (variables: string[]) => ({
   items: ({ query }: { query: string }) => {
     const q = query.trim().toLowerCase();
-    if (!q) return variables.slice(0, 5);
+    if (!q) return variables.slice(0, 10);
     return variables
       .filter((item) => item.toLowerCase().includes(q))
       .sort((a, b) => {
@@ -47,7 +47,7 @@ export const suggestions = (variables: string[]) => ({
         if (aPrefix !== bPrefix) return aPrefix - bPrefix;
         return a.localeCompare(b);
       })
-      .slice(0, 5);
+      .slice(0, 10);
   },
 
   render: () => {
