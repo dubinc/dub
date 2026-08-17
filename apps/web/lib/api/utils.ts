@@ -1,6 +1,6 @@
 import { ipAddress } from "@vercel/functions";
 import { NextRequest } from "next/server";
-import { readCookieCache } from "../better-auth/read-cookie-cache";
+import { getCookieCache } from "../better-auth/get-cookie-cache";
 import { ratelimit } from "../upstash";
 import { DubApiError } from "./errors";
 
@@ -24,7 +24,7 @@ export const ratelimitOrThrow = async (
   identifier?: string,
 ) => {
   // Rate limit if user is not logged in
-  const cachedSession = await readCookieCache(req).catch(() => null);
+  const cachedSession = await getCookieCache(req).catch(() => null);
 
   if (!cachedSession) {
     const ip = ipAddress(req);

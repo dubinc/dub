@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getMiddlewareSession } from "../better-auth/get-middleware-session";
+import { getSessionCookie } from "../better-auth/get-session-cookie";
 import { getDefaultPartnerId } from "./utils/get-default-partner";
 import { isValidInternalRedirect } from "./utils/is-valid-internal-redirect";
 import { parse } from "./utils/parse";
@@ -25,7 +25,7 @@ const AUTHENTICATED_PATHS = [
 export async function PartnersMiddleware(req: NextRequest) {
   const { path, fullPath, searchParamsObj, searchParamsString } = parse(req);
 
-  const { user, hasUnverifiedSessionCookie } = await getMiddlewareSession(req);
+  const { user, hasUnverifiedSessionCookie } = await getSessionCookie(req);
   const isPartnerInvite = req.nextUrl.pathname.endsWith("/invite");
 
   const isAuthenticatedPath = AUTHENTICATED_PATHS.some(
