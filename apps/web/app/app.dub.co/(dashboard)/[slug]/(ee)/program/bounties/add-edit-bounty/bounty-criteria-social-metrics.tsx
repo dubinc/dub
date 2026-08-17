@@ -39,7 +39,7 @@ import {
 interface SocialMetricsVariableBonusProps {
   variableBonus: BountySocialMetricsIncrementalBonus;
   metricLabel: string;
-  isMultiPlatform: boolean;
+  appliesPerPlatform: boolean;
   onUpdate: (updates: Partial<BountySocialMetricsIncrementalBonus>) => void;
   onRemove: () => void;
 }
@@ -354,7 +354,7 @@ export function BountyCriteriaSocialMetrics() {
         <SocialMetricsIncrementalBonus
           variableBonus={incrementalBonus}
           metricLabel={metricLabel}
-          isMultiPlatform={isMultiPlatform}
+          appliesPerPlatform={isMultiPlatform && logic === "AND"}
           onUpdate={(updates) =>
             updateRequirements({
               socialMetrics: {
@@ -383,7 +383,7 @@ export function BountyCriteriaSocialMetrics() {
 function SocialMetricsIncrementalBonus({
   variableBonus,
   metricLabel,
-  isMultiPlatform,
+  appliesPerPlatform,
   onUpdate,
   onRemove,
 }: SocialMetricsVariableBonusProps) {
@@ -397,8 +397,8 @@ function SocialMetricsIncrementalBonus({
           </span>
           <Tooltip
             content={
-              isMultiPlatform
-                ? "Partners earn the base payout once all criteria are met, plus an extra amount for each additional increment reached on each platform, up to the cap."
+              appliesPerPlatform
+                ? "Partners earn the base payout once every platform hits the threshold, plus an extra amount for each additional increment reached on each platform, up to the cap."
                 : "Partners earn the base payout when they hit the threshold, plus an extra amount for each additional increment up to the cap."
             }
             side="top"
@@ -471,7 +471,7 @@ function SocialMetricsIncrementalBonus({
                 />
               </InlineBadgePopover>{" "}
               {metricLabel}
-              {isMultiPlatform ? " on each platform" : ""}
+              {appliesPerPlatform ? " on each platform" : ""}
             </span>
           </div>
         </div>
@@ -509,7 +509,7 @@ function SocialMetricsIncrementalBonus({
                   onChange={(v) => onUpdate({ bonusPerIncrement: v })}
                 />
               </InlineBadgePopover>
-              {isMultiPlatform ? " per platform" : ""}
+              {appliesPerPlatform ? " per platform" : ""}
             </span>
           </div>
         </div>
@@ -558,7 +558,7 @@ function SocialMetricsIncrementalBonus({
                 />
               </InlineBadgePopover>{" "}
               {metricLabel}
-              {isMultiPlatform ? " on each platform" : ""}
+              {appliesPerPlatform ? " on each platform" : ""}
             </span>
           </div>
         </div>
