@@ -1,3 +1,7 @@
+import {
+  PARTNER_SEARCH_LINK_SYNC_DELAY_SECONDS,
+  queuePartnerSearchSync,
+} from "@/lib/api/partners/queue-partner-search-sync";
 import { getPartnerEnrollmentInfo } from "@/lib/planetscale/get-partner-enrollment-info";
 import { prisma } from "@/lib/prisma";
 import { isNotHostedImage, storage } from "@/lib/storage";
@@ -201,6 +205,17 @@ export async function updateLink({
 
         // If key is changed: delete the old key in Redis
         (changedDomain || changedKey) && linkCache.delete(oldLink),
+
+        // Only the short link and destination URL reach the document, and link
+        // edits are frequent, so this takes the longer link delay. The job
+        // re-reads the whole document, so nothing else goes stale by waiting.
+        response.programId &&
+          response.partnerId &&
+          queuePartnerSearchSync({
+            partnerIds: [response.partnerId],
+            programId: response.programId,
+            delay: PARTNER_SEARCH_LINK_SYNC_DELAY_SECONDS,
+          }),
 
         // If proxy is true and image is not stored in R2, upload image to R2
         proxy &&

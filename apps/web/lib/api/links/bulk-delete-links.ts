@@ -1,3 +1,7 @@
+import {
+  PARTNER_SEARCH_LINK_SYNC_DELAY_SECONDS,
+  queuePartnerSearchSync,
+} from "@/lib/api/partners/queue-partner-search-sync";
 import { deleteDiscountCodes } from "@/lib/discounts/delete-discount-code";
 import { prisma } from "@/lib/prisma";
 import { storage } from "@/lib/storage";
@@ -60,6 +64,27 @@ export async function bulkDeleteLinks(
           .map((link) =>
             storage.delete({ key: link.image!.replace(`${R2_URL}/`, "") }),
           ),
+
+        // Grouped by program so each queued payload carries the scope the job
+        // needs to resolve enrollments, rather than one payload per link.
+        ...Array.from(
+          links.reduce((byProgram, { programId, partnerId }) => {
+            if (!programId || !partnerId) {
+              return byProgram;
+            }
+
+            const partnerIds = byProgram.get(programId) ?? new Set<string>();
+            partnerIds.add(partnerId);
+
+            return byProgram.set(programId, partnerIds);
+          }, new Map<string, Set<string>>()),
+          ([programId, partnerIds]) =>
+            queuePartnerSearchSync({
+              partnerIds: [...partnerIds],
+              programId,
+              delay: PARTNER_SEARCH_LINK_SYNC_DELAY_SECONDS,
+            }),
+        ),
       ]),
     );
   }

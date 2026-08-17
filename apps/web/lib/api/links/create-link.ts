@@ -1,3 +1,4 @@
+import { queuePartnerSearchSync } from "@/lib/api/partners/queue-partner-search-sync";
 import { qstash } from "@/lib/cron";
 import { getPartnerEnrollmentInfo } from "@/lib/planetscale/get-partner-enrollment-info";
 import { prisma } from "@/lib/prisma";
@@ -152,6 +153,15 @@ export async function createLink(link: ProcessedLinkProps) {
           ...(partner && { partner }),
           ...(discount && { discount }),
         }),
+
+        // A new partner link is how people search for that partner, so this
+        // takes the default delay rather than the longer link one.
+        response.programId &&
+          response.partnerId &&
+          queuePartnerSearchSync({
+            partnerIds: [response.partnerId],
+            programId: response.programId,
+          }),
 
         // Record link in Tinybird
         recordLink({

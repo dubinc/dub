@@ -1,3 +1,7 @@
+import {
+  PARTNER_SEARCH_LINK_SYNC_DELAY_SECONDS,
+  queuePartnerSearchSync,
+} from "@/lib/api/partners/queue-partner-search-sync";
 import { enqueueDeleteDiscountCode } from "@/lib/discounts/delete-discount-code";
 import { prisma } from "@/lib/prisma";
 import { storage } from "@/lib/storage";
@@ -74,6 +78,18 @@ export async function deleteLink(linkId: string) {
         }),
 
       link.discountCode && enqueueDeleteDiscountCode([link.discountCode]),
+
+      // The enrollment outlives the link, so this re-serializes the document
+      // without it rather than removing the document. Takes the link delay:
+      // a deleted short link matching a search is a stale hit, not a wrong one,
+      // since the database still filters the candidates the index returns.
+      link.programId &&
+        link.partnerId &&
+        queuePartnerSearchSync({
+          partnerIds: [link.partnerId],
+          programId: link.programId,
+          delay: PARTNER_SEARCH_LINK_SYNC_DELAY_SECONDS,
+        }),
     ]),
   );
 
