@@ -2,6 +2,7 @@ import { conn } from "@/lib/planetscale";
 import { prisma } from "@/lib/prisma";
 import { ACME_PROGRAM_ID } from "@dub/utils";
 import { bulkDeleteLinks } from "../links/bulk-delete-links";
+import { queuePartnerSearchSync } from "./queue-partner-search-sync";
 
 const BATCH_SIZE = 250;
 
@@ -159,6 +160,11 @@ export async function bulkDeletePartners({
     console.log(
       `Deleted ${deletedProgramEnrollments.count} program enrollments`,
     );
+
+    // Deletions are invisible to the reconciliation sweep, which only sees rows
+    // that still exist. The job removes what it cannot read back, so passing
+    // the now-gone IDs is what clears them from the index.
+    await queuePartnerSearchSync({ enrollmentIds: programEnrollmentIds });
 
     if (deletedProgramEnrollments.count > 0) {
       await prisma.project.updateMany({

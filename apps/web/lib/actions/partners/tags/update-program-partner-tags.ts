@@ -2,6 +2,7 @@
 
 import { includeProgramEnrollment } from "@/lib/api/links/include-program-enrollment";
 import { includeTags } from "@/lib/api/links/include-tags";
+import { queuePartnerSearchSync } from "@/lib/api/partners/queue-partner-search-sync";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { prisma } from "@/lib/prisma";
 import { recordLink } from "@/lib/tinybird";
@@ -93,6 +94,11 @@ export const updateProgramPartnerTagsAction = authActionClient
         }),
       ]);
     });
+
+    // Tags carry no timestamps, so the reconciliation sweep cannot notice this
+    // change on its own. This hook is the only thing keeping tag filters in the
+    // index honest between full rebuilds.
+    waitUntil(queuePartnerSearchSync({ partnerIds, programId }));
 
     // Sync updated partner tags to Tinybird for analytics (top_partner_tags)
     waitUntil(

@@ -1,4 +1,5 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
+import { queuePartnerSearchSync } from "@/lib/api/partners/queue-partner-search-sync";
 import { PRISMA_UPDATEMANY_LIMIT } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { prisma } from "@/lib/prisma";
@@ -58,6 +59,12 @@ export async function POST(req: Request) {
       console.log(
         `Deleted ${deletedProgramEnrollments.count} rejected programEnrollments that are older than 30 days`,
       );
+
+      // Deletions are invisible to the reconciliation sweep, so the index only
+      // loses these documents if this hook queues them.
+      await queuePartnerSearchSync({
+        enrollmentIds: rejectedProgramEnrollments.map(({ id }) => id),
+      });
 
       totalDeletedProgramEnrollments += deletedProgramEnrollments.count;
     }
