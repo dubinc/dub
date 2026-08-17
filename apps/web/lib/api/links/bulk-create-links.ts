@@ -1,3 +1,4 @@
+import { queuePartnerSearchSyncForLinks } from "@/lib/api/partners/queue-partner-search-sync";
 import { prisma } from "@/lib/prisma";
 import { ProcessedLinkProps } from "@/lib/types";
 import { publishWorkspaceLinksUsageEvent } from "@/lib/upstash/redis-streams/workspace-links-usage";
@@ -235,6 +236,9 @@ export async function bulkCreateLinks({
         linksCount: links.length,
         timestamp: new Date().toISOString(),
       }),
+      // Default delay rather than the link delay: a new short link is how
+      // people go looking for that partner, so it is worth indexing promptly.
+      queuePartnerSearchSyncForLinks(createdLinksData),
     ]),
   );
 

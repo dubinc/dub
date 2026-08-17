@@ -1,3 +1,7 @@
+import {
+  PARTNER_SEARCH_LINK_SYNC_DELAY_SECONDS,
+  queuePartnerSearchSyncForLinks,
+} from "@/lib/api/partners/queue-partner-search-sync";
 import { prisma } from "@/lib/prisma";
 import { isNotHostedImage, storage } from "@/lib/storage";
 import { bulkUpdateLinksBodySchema } from "@/lib/zod/schemas/links";
@@ -114,6 +118,12 @@ export async function bulkUpdateLinks(
       // propagate changes to redis and tinybird
       propagateBulkLinkChanges({
         links: updatedLinks,
+      }),
+      // A bulk edit can move the destination URL, and the key or domain behind
+      // the short link. Queued on the link delay: the job re-reads the whole
+      // document, so nothing else goes stale by waiting.
+      queuePartnerSearchSyncForLinks(updatedLinks, {
+        delay: PARTNER_SEARCH_LINK_SYNC_DELAY_SECONDS,
       }),
       // if proxy is true and image is not stored in R2, upload image to R2
       proxy &&

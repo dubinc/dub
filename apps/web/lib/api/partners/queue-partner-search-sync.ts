@@ -157,3 +157,45 @@ export async function queuePartnerSearchSync({
     );
   }
 }
+
+interface PartnerSearchSyncLink {
+  programId: string | null;
+  partnerId: string | null;
+}
+
+/**
+ * Queues a sync for every partner whose links changed.
+ *
+ * A link reaches the document through its (programId, partnerId) pair, so this
+ * groups by program and queues one payload per program rather than one per
+ * link. Links carrying neither are ordinary workspace links and hold nothing
+ * the document indexes, which is why the bulk link helpers can call this
+ * unconditionally: an import of a hundred thousand workspace links queues
+ * nothing at all.
+ */
+export async function queuePartnerSearchSyncForLinks(
+  links: PartnerSearchSyncLink[],
+  { delay }: { delay?: number } = {},
+) {
+  const partnersByProgram = new Map<string, Set<string>>();
+
+  for (const { programId, partnerId } of links) {
+    if (!programId || !partnerId) {
+      continue;
+    }
+
+    const partners = partnersByProgram.get(programId) ?? new Set<string>();
+    partners.add(partnerId);
+    partnersByProgram.set(programId, partners);
+  }
+
+  await Promise.all(
+    Array.from(partnersByProgram, ([programId, partnerIds]) =>
+      queuePartnerSearchSync({
+        partnerIds: [...partnerIds],
+        programId,
+        ...(delay !== undefined && { delay }),
+      }),
+    ),
+  );
+}

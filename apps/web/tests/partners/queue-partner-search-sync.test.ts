@@ -3,6 +3,7 @@ import {
   PARTNER_SEARCH_SYNC_DELAY_SECONDS,
   QSTASH_DEDUPLICATION_WINDOW_SECONDS,
   queuePartnerSearchSync,
+  queuePartnerSearchSyncForLinks,
 } from "@/lib/api/partners/queue-partner-search-sync";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -187,5 +188,81 @@ describe("queuePartnerSearchSync", () => {
     for (const payload of mocks.dispatchBatch.mock.calls[0][0]) {
       expect(payload.partnerIds.length).toBeLessThanOrEqual(BATCH_SIZE);
     }
+  });
+});
+
+describe("queuePartnerSearchSyncForLinks", () => {
+  beforeEach(() => {
+    mocks.getPartnerSearchProvider
+      .mockReset()
+      .mockReturnValue({ name: "turbopuffer" });
+    mocks.dispatchBatch.mockReset().mockResolvedValue({
+      published: 1,
+      deferred: 0,
+      failed: 0,
+      results: [],
+    });
+  });
+
+  // The bulk link helpers call this on every write, including workspace-link
+  // imports of a hundred thousand rows. Those carry no partner, so this must
+  // cost nothing rather than being guarded at each call site.
+  it("queues nothing for links with no program or partner", async () => {
+    await queuePartnerSearchSyncForLinks([
+      { programId: null, partnerId: null },
+      { programId: "prog_1", partnerId: null },
+      { programId: null, partnerId: "pn_1" },
+    ]);
+
+    expect(mocks.dispatchBatch).not.toHaveBeenCalled();
+  });
+
+  it("queues one payload per program, not per link", async () => {
+    await queuePartnerSearchSyncForLinks([
+      { programId: "prog_1", partnerId: "pn_1" },
+      { programId: "prog_1", partnerId: "pn_2" },
+      { programId: "prog_1", partnerId: "pn_1" },
+      { programId: "prog_2", partnerId: "pn_3" },
+    ]);
+
+    expect(mocks.dispatchBatch).toHaveBeenCalledTimes(2);
+
+    const queued = mocks.dispatchBatch.mock.calls.map(([payloads]) => payloads[0]);
+
+    expect(queued).toEqual([
+      { type: "partners", partnerIds: ["pn_1", "pn_2"], programId: "prog_1" },
+      { type: "partners", partnerIds: ["pn_3"], programId: "prog_2" },
+    ]);
+  });
+
+  it("passes the delay through so link edits can batch harder than creations", async () => {
+    await queuePartnerSearchSyncForLinks(
+      [{ programId: "prog_1", partnerId: "pn_1" }],
+      { delay: PARTNER_SEARCH_LINK_SYNC_DELAY_SECONDS },
+    );
+
+    const [, getOptions] = mocks.dispatchBatch.mock.calls[0];
+
+    expect(getOptions({ type: "partners", partnerIds: ["pn_1"] }, 0).delay).toBe(
+      PARTNER_SEARCH_LINK_SYNC_DELAY_SECONDS,
+    );
+  });
+
+  it("defaults to the interactive delay when none is given", async () => {
+    await queuePartnerSearchSyncForLinks([
+      { programId: "prog_1", partnerId: "pn_1" },
+    ]);
+
+    const [, getOptions] = mocks.dispatchBatch.mock.calls[0];
+
+    expect(getOptions({ type: "partners", partnerIds: ["pn_1"] }, 0).delay).toBe(
+      PARTNER_SEARCH_SYNC_DELAY_SECONDS,
+    );
+  });
+
+  it("queues nothing for an empty link set", async () => {
+    await queuePartnerSearchSyncForLinks([]);
+
+    expect(mocks.dispatchBatch).not.toHaveBeenCalled();
   });
 });
