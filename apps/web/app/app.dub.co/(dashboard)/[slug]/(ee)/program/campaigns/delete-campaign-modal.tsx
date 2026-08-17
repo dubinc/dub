@@ -42,10 +42,10 @@ const DeleteCampaignModal = ({
     await deleteCampaign(`/api/campaigns/${campaign.id}`, {
       method: "DELETE",
       onSuccess: async () => {
-        setShowModal(false);
-        await mutatePrefix("/api/campaigns");
-        toast.success("Campaign deleted successfully!");
         router.push(`/${slug}/program/campaigns`);
+        await mutatePrefix("/api/campaigns");
+        setShowModal(false);
+        toast.success("Campaign deleted successfully!");
       },
     });
   };

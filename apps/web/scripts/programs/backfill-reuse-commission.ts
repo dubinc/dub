@@ -320,8 +320,7 @@ async function main() {
   if (["lead", "sale"].includes(commissionType)) {
     await Promise.allSettled([
       executeWorkflows({
-        trigger: "partnerMetricsUpdated",
-        reason: "commission",
+        event: "commissionRecorded",
         identity: {
           workspaceId,
           programId,

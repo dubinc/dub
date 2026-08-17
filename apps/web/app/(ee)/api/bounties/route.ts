@@ -2,6 +2,7 @@ import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { createId } from "@/lib/api/create-id";
 import { DubApiError } from "@/lib/api/errors";
 import { throwIfInvalidGroupIds } from "@/lib/api/groups/throw-if-invalid-group-ids";
+import { throwIfInvalidPartnerTagIds } from "@/lib/api/partner-tags/throw-if-invalid-partner-tag-ids";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
@@ -15,6 +16,7 @@ import {
   isPartnerEligibleForBounty,
 } from "@/lib/bounty/api/bounty-availability";
 import { generatePerformanceBountyName } from "@/lib/bounty/api/generate-performance-bounty-name";
+import { transformBounty } from "@/lib/bounty/api/transform-bounty";
 import { validateBounty } from "@/lib/bounty/api/validate-bounty";
 import { qstash } from "@/lib/cron";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
@@ -26,11 +28,8 @@ import {
   createBountySchema,
   getBountiesQuerySchema,
 } from "@/lib/zod/schemas/bounties";
-import {
-  WORKFLOW_ACTION_TYPES,
-  WORKFLOW_ATTRIBUTE_TRIGGER,
-} from "@/lib/zod/schemas/workflows";
-import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
+import { WORKFLOW_ACTION_TYPES } from "@/lib/zod/schemas/workflows";
+import { APP_DOMAIN_WITH_NGROK, pluck } from "@dub/utils";
 import { BountyStartMode, Workflow } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
@@ -53,18 +52,30 @@ export const GET = withWorkspace(
                 defaultGroupId: true,
               },
             },
+            programPartnerTags: {
+              select: {
+                partnerTagId: true,
+              },
+            },
           },
         })
       : null;
 
     const partnerGroupId =
       programEnrollment?.groupId || programEnrollment?.program.defaultGroupId;
+    const partnerTagIds = programEnrollment
+      ? pluck(programEnrollment.programPartnerTags, "partnerTagId")
+      : [];
 
     const [bounties, allBountiesSubmissionsCount] = await Promise.all([
       prisma.bounty.findMany({
         where: {
           programId,
-          ...(programEnrollment && buildBountyEligibilityWhere(partnerGroupId)),
+          ...(programEnrollment &&
+            buildBountyEligibilityWhere({
+              groupId: partnerGroupId,
+              partnerTagIds,
+            })),
         },
         include: {
           ...bountyEligibilityIncludes,
@@ -138,11 +149,10 @@ export const GET = withWorkspace(
 
       return [
         BountyListSchema.parse({
-          ...bounty,
+          ...transformBounty(bounty),
           ...(allBountiesSubmissionsCount && {
             submissionsCountData: aggregateSubmissionsCountForBounty(bounty.id),
           }),
-          groups: bounty.groups.map(({ groupId }) => ({ id: groupId })),
         }),
       ];
     });
@@ -174,6 +184,7 @@ export const POST = withWorkspace(
       maxSubmissions,
       submissionRequirements,
       groupIds,
+      partnerTagIds,
       performanceCondition,
       performanceScope,
       sendNotificationEmails,
@@ -203,6 +214,11 @@ export const POST = withWorkspace(
     const partnerGroups = await throwIfInvalidGroupIds({
       programId,
       groupIds,
+    });
+
+    const partnerTags = await throwIfInvalidPartnerTagIds({
+      programId,
+      partnerTagIds,
     });
 
     // Bounty name
@@ -244,7 +260,6 @@ export const POST = withWorkspace(
           data: {
             id: createId({ prefix: "wf_" }),
             programId,
-            trigger: WORKFLOW_ATTRIBUTE_TRIGGER[performanceCondition.attribute],
             triggerConditions: [performanceCondition],
             actions: [action],
           },
@@ -284,6 +299,15 @@ export const POST = withWorkspace(
               },
             },
           }),
+          ...(partnerTags.length && {
+            partnerTags: {
+              createMany: {
+                data: partnerTags.map(({ id }) => ({
+                  partnerTagId: id,
+                })),
+              },
+            },
+          }),
         },
         include: {
           workflow: true,
@@ -292,11 +316,7 @@ export const POST = withWorkspace(
       });
     });
 
-    const createdBounty = BountySchema.parse({
-      ...bounty,
-      groups: bounty.groups.map(({ groupId }) => ({ id: groupId })),
-      performanceCondition: bounty.workflow?.triggerConditions?.[0],
-    });
+    const createdBounty = BountySchema.parse(transformBounty(bounty));
 
     const shouldScheduleDraftSubmissions =
       bounty.type === "performance" &&
