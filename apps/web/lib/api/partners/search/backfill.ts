@@ -1,18 +1,13 @@
-import { prisma } from "@/lib/prisma";
-import { getPartnerSearchProvider } from "./provider";
 import {
-  partnerSearchDocumentSelect,
-  serializePartnerSearchDocument,
-} from "./serialize-document";
+  indexPartnerSearchEnrollments,
+  type PartnerSearchIndexProgress,
+} from "./index-enrollments";
+import { getPartnerSearchProvider } from "./provider";
 import type { PartnerSearchProvider } from "./types";
 
 const DEFAULT_BATCH_SIZE = 500;
 
-export interface PartnerSearchBackfillProgress {
-  batchSize: number;
-  processed: number;
-  lastDocumentId: string;
-}
+export type PartnerSearchBackfillProgress = PartnerSearchIndexProgress;
 
 interface BackfillPartnerSearchOptions {
   programId: string;
@@ -37,47 +32,16 @@ export async function backfillPartnerSearch({
     throw new Error("Batch size must be a positive integer.");
   }
 
-  let lastDocumentId = after;
-  let processed = 0;
-
-  while (true) {
-    const enrollments = await prisma.programEnrollment.findMany({
-      where: {
-        programId,
-        ...(lastDocumentId && {
-          id: { gt: lastDocumentId },
-        }),
-      },
-      select: partnerSearchDocumentSelect,
-      orderBy: {
-        id: "asc",
-      },
-      take: batchSize,
-    });
-
-    if (enrollments.length === 0) {
-      break;
-    }
-
-    await searchProvider.upsert(
-      enrollments.map(serializePartnerSearchDocument),
-    );
-
-    lastDocumentId = enrollments[enrollments.length - 1].id;
-    processed += enrollments.length;
-    onProgress?.({
-      batchSize: enrollments.length,
-      processed,
-      lastDocumentId,
-    });
-
-    if (enrollments.length < batchSize) {
-      break;
-    }
-  }
+  const { processed, lastDocumentId } = await indexPartnerSearchEnrollments({
+    searchProvider,
+    where: { programId },
+    after,
+    batchSize,
+    onProgress,
+  });
 
   return {
     processed,
-    lastDocumentId: lastDocumentId ?? null,
+    lastDocumentId,
   };
 }
