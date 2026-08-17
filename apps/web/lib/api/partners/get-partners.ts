@@ -5,7 +5,7 @@ import { buildProgramEnrollmentWhereForList } from "./program-enrollment-query";
 import {
   buildPartnerSearchCandidateQuery,
   findPartnerSearchCandidates,
-  getPartnerSearchProvider,
+  getPartnerSearchReadProvider,
   orderByPartnerSearchHits,
   PartnerSearchProvider,
   PartnerSearchQueryInput,
@@ -23,7 +23,7 @@ interface GetPartnersOptions {
 export async function getPartners(
   filters: PartnerFilters,
   {
-    searchProvider = getPartnerSearchProvider(),
+    searchProvider = getPartnerSearchReadProvider(),
     throwOnSearchError = false,
   }: GetPartnersOptions = {},
 ) {
