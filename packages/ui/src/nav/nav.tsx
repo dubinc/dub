@@ -68,6 +68,7 @@ export const navItems = [
       "/blog",
       "/changelog",
       "/contact",
+      "/marketplace",
     ],
   },
   {
