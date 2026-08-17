@@ -41,10 +41,12 @@ jobs:
       UPSTASH_REDIS_REST_TOKEN: "e2e_srh_token"
       UPSTASH_VECTOR_REST_URL: "https://sensible-camel-xxxx.upstash.io"
       UPSTASH_VECTOR_REST_TOKEN: "xx"
-      QSTASH_URL: "https://qstash-us-east-1.upstash.io"
-      QSTASH_TOKEN: "xx"
-      QSTASH_CURRENT_SIGNING_KEY: "xx"
-      QSTASH_NEXT_SIGNING_KEY: "xx"
+
+      # QStash local-dev (User 1) — must match jobs.e2e Start QStash step
+      QSTASH_URL: "http://127.0.0.1:8080"
+      QSTASH_TOKEN: "eyJVc2VySUQiOiJkZWZhdWx0VXNlciIsIlBhc3N3b3JkIjoiZGVmYXVsdFBhc3N3b3JkIn0="
+      QSTASH_CURRENT_SIGNING_KEY: "sig_7kYjw48mhY7kAjqNGcy6cr29RJ6r"
+      QSTASH_NEXT_SIGNING_KEY: "sig_5ZB6DVzB1wjE8S6rZ7eenA8Pdnhs"
 
       # RESEND_API_KEY must be unset so emails route through SMTP to MailHog
       SMTP_HOST: "localhost"
@@ -118,6 +120,22 @@ jobs:
             -mysql-dbname=planetscale \
             -mysql-no-pass \
             -mysql-addr=127.0.0.1
+
+      - name: Start QStash dev server
+        run: |
+          docker run -d --name qstash-dev \
+            --network host \
+            public.ecr.aws/upstash/qstash:latest \
+            qstash dev
+          for i in $(seq 1 30); do
+            if curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:8080 | grep -qE '^[0-9]{3}$'; then
+              echo "QStash is up"
+              exit 0
+            fi
+            sleep 1
+          done
+          docker logs qstash-dev
+          exit 1
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v3
