@@ -237,8 +237,8 @@ describe("getPartnersCount search", () => {
         mock: mocks.applicationEventGroupBy,
         extra: {},
       },
-      // The ungrouped count only reaches the database when a filter the provider
-      // cannot see forces it to, so give it one.
+      // The ungrouped count only reaches the database when a database-only
+      // filter forces it to.
       { groupBy: undefined, mock: mocks.count, extra: { totalClicksMin: 1 } },
     ] as const;
 
