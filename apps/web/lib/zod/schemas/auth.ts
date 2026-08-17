@@ -31,6 +31,15 @@ export const signUpSchema = z.object({
   password: passwordSchema,
 });
 
+export const userSessionSchema = z.object({
+  id: z.string(),
+  token: z.string().optional(),
+  ipAddress: z.string().nullable(),
+  userAgent: z.string().nullable(),
+  createdAt: z.coerce.date(),
+  isCurrent: z.boolean(),
+});
+
 export function parseEmail(value: string | null | undefined) {
   if (!value) {
     return null;

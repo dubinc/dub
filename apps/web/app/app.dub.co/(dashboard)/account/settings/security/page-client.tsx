@@ -1,6 +1,7 @@
 "use client";
 
 import useUser from "@/lib/swr/use-user";
+import { RecentSessions } from "@/ui/account/recent-sessions";
 import { SignInMethods } from "@/ui/account/sign-in-methods";
 import { useState } from "react";
 import { UpdatePassword } from "./update-password";
@@ -15,6 +16,7 @@ export default function SecurityPageClient() {
     <div className="flex flex-col gap-6">
       <SignInMethods onManagePassword={() => setShowPasswordForm(true)} />
       {user?.hasPassword && showPasswordForm && <UpdatePassword />}
+      <RecentSessions />
     </div>
   );
 }
