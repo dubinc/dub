@@ -7,6 +7,7 @@ import { partnerProfileProgramsQuerySchema } from "../zod/schemas/partner-profil
 
 export default function useProgramEnrollments(
   query: z.infer<typeof partnerProfileProgramsQuerySchema> = {},
+  { enabled = true }: { enabled?: boolean } = {},
 ) {
   const { data: session } = useSession();
   const partnerId = session?.user?.["defaultPartnerId"];
@@ -14,7 +15,8 @@ export default function useProgramEnrollments(
   const { data: programEnrollments, isLoading } = useSWR<
     ProgramEnrollmentProps[]
   >(
-    partnerId &&
+    enabled &&
+      partnerId &&
       `/api/partner-profile/programs?${new URLSearchParams(
         Object.fromEntries(
           Object.entries(query).map(([key, value]) => [key, value.toString()]),

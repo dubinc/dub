@@ -1,3 +1,4 @@
+import { getOAuthErrorCallbackURL } from "@/lib/better-auth/account-linking";
 import { authClient } from "@/lib/better-auth/auth-client";
 import { Button, Github } from "@dub/ui";
 import { useSearchParams } from "next/navigation";
@@ -24,6 +25,7 @@ export const GitHubButton = ({ next }: { next?: string }) => {
         const { error } = await authClient.signIn.social({
           provider: "github",
           callbackURL: finalNext,
+          errorCallbackURL: getOAuthErrorCallbackURL("github"),
         });
 
         if (error) {

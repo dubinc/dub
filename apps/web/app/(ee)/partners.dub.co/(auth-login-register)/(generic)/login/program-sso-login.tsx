@@ -1,7 +1,8 @@
 "use client";
 
+import { getOAuthErrorCallbackURL } from "@/lib/better-auth/account-linking";
 import { authClient } from "@/lib/better-auth/auth-client";
-import { ProgramSsoAccountExistsModal } from "@/ui/auth/program-sso-account-exists-modal";
+import { AccountAlreadyExistsModal } from "@/ui/auth/account-already-exists-modal";
 import { Beehiiv, Button } from "@dub/ui";
 import { cn, PARTNERS_DOMAIN } from "@dub/utils";
 import { Framer } from "lucide-react";
@@ -60,7 +61,7 @@ export function ProgramSsoLogin({
               const { data, error } = await authClient.signIn.oauth2({
                 providerId: slug,
                 callbackURL: `${PARTNERS_DOMAIN}/programs/${slug}`,
-                errorCallbackURL: `${PARTNERS_DOMAIN}/${slug}/login`,
+                errorCallbackURL: getOAuthErrorCallbackURL(slug),
                 disableRedirect: true,
               });
 
@@ -89,7 +90,7 @@ export function ProgramSsoLogin({
         </div>
       </div>
 
-      <ProgramSsoAccountExistsModal name={name} slug={slug} />
+      <AccountAlreadyExistsModal />
     </>
   );
 }

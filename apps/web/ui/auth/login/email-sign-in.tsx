@@ -2,12 +2,13 @@
 
 import { checkAccountExistsAction } from "@/lib/actions/check-account-exists";
 import { authClient } from "@/lib/better-auth/auth-client";
+import { parseEmail } from "@/lib/zod/schemas/auth";
 import { Button, Input, useCurrentSubdomain, useMediaQuery } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { getPostLoginRedirect } from "./get-post-login-redirect";
 import { errorCodes, LoginFormContext } from "./login-form";
@@ -25,7 +26,8 @@ export const EmailSignIn = ({ next }: { next?: string }) => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { isMobile } = useMediaQuery();
-  const [email, setEmail] = useState("");
+  const prefilledEmail = parseEmail(searchParams?.get("email"));
+  const [email, setEmail] = useState(prefilledEmail ?? "");
   const [password, setPassword] = useState("");
 
   const finalNext = getPostLoginRedirect({
@@ -48,6 +50,19 @@ export const EmailSignIn = ({ next }: { next?: string }) => {
       toast.error(error.serverError);
     },
   });
+
+  useEffect(() => {
+    if (!prefilledEmail) {
+      return;
+    }
+
+    void executeAsync({ email: prefilledEmail }).then((result) => {
+      if (result?.data?.accountExists && result.data.hasPassword) {
+        setShowPasswordField(true);
+      }
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <>

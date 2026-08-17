@@ -14,10 +14,8 @@ export const metadata = constructMetadata({
 
 export default async function LoginPage(props: {
   params: Promise<{ programSlug?: string }>;
-  searchParams: Promise<{ connect?: string }>;
 }) {
   const { programSlug } = await props.params;
-  const { connect } = await props.searchParams;
 
   const customSSOLoginProgram = programSlug
     ? SSO_LOGIN_PROGRAMS.find((program) => program.slug === programSlug)
@@ -42,31 +40,15 @@ export default async function LoginPage(props: {
     redirect("/login");
   }
 
-  const connectProgram = connect
-    ? SSO_LOGIN_PROGRAMS.find((program) => program.slug === connect)
-    : undefined;
-
-  const next = connectProgram
-    ? `/?connect=${connectProgram.slug}`
-    : programSlug
-      ? `/programs/${programSlug}`
-      : "/";
+  const next = programSlug ? `/programs/${programSlug}` : "/";
 
   return (
     <div className="relative w-full">
       <AuthLayout showTerms="partners" className={cn(programSlug && "pt-20")}>
         <div className="w-full max-w-sm">
           <h1 className="text-center text-xl font-semibold">
-            {connectProgram
-              ? `Sign in to connect ${connectProgram.name}`
-              : "Log in to your Dub Partner account"}
+            Log in to your Dub Partner account
           </h1>
-          {connectProgram && (
-            <p className="mt-2 text-center text-sm text-neutral-500">
-              Use your existing Dub Partners account, then we&apos;ll connect{" "}
-              {connectProgram.name}.
-            </p>
-          )}
           <div className="mt-8">
             <LoginForm methods={["email", "password", "google"]} next={next} />
           </div>
@@ -80,7 +62,7 @@ export default async function LoginPage(props: {
             </Link>
           </p>
 
-          {!programSlug && !connectProgram && (
+          {!programSlug && (
             <div className="mt-12 w-full">
               <AuthAlternativeBanner
                 text="Looking for your Dub workspace account?"

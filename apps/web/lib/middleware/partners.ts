@@ -22,29 +22,8 @@ const AUTHENTICATED_PATHS = [
   "/rewind",
 ];
 
-function redirectWithQuery(
-  path: string,
-  req: NextRequest,
-  query: Record<string, string | undefined>,
-) {
-  const url = new URL(path, req.url);
-
-  for (const [key, value] of Object.entries(query)) {
-    if (value) {
-      url.searchParams.set(key, value);
-    }
-  }
-
-  return NextResponse.redirect(url);
-}
-
 export async function PartnersMiddleware(req: NextRequest) {
   const { path, fullPath, searchParamsObj, searchParamsString } = parse(req);
-  // Preserve program SSO ?connect= across auth redirects (slug-shaped only).
-  const connect =
-    searchParamsObj.connect && /^[a-z0-9-]+$/i.test(searchParamsObj.connect)
-      ? searchParamsObj.connect
-      : undefined;
 
   const { user, hasUnverifiedSessionCookie } = await getMiddlewareSession(req);
   const isPartnerInvite = req.nextUrl.pathname.endsWith("/invite");
@@ -101,12 +80,13 @@ export async function PartnersMiddleware(req: NextRequest) {
       !isPartnerInvite &&
       !["/onboarding", "/account"].some((p) => path.startsWith(p))
     ) {
-      return redirectWithQuery(
-        path === "/"
-          ? "/onboarding"
-          : `/onboarding?next=${encodeURIComponent(fullPath)}`,
-        req,
-        { connect },
+      return NextResponse.redirect(
+        new URL(
+          path === "/"
+            ? "/onboarding"
+            : `/onboarding?next=${encodeURIComponent(fullPath)}`,
+          req.url,
+        ),
       );
     }
 
@@ -124,7 +104,7 @@ export async function PartnersMiddleware(req: NextRequest) {
     }
 
     if (path === "/" || path.startsWith("/pn_")) {
-      return redirectWithQuery("/programs", req, { connect });
+      return NextResponse.redirect(new URL("/programs", req.url));
     } else if (isLoginPath) {
       // if is custom program login or register path, redirect to /programs/:programSlug
       const programSlugRegex = /^\/([^\/]+)\/(login|register)$/;
@@ -132,8 +112,7 @@ export async function PartnersMiddleware(req: NextRequest) {
       if (match) {
         return NextResponse.redirect(new URL(`/programs/${match[1]}`, req.url));
       }
-      // Redirect authenticated users to dashboard (keep ?connect for SSO linking)
-      return redirectWithQuery("/", req, { connect });
+      return NextResponse.redirect(new URL("/", req.url));
     } else if (partnersRedirect(path)) {
       return NextResponse.redirect(
         new URL(`${partnersRedirect(path)}${searchParamsString}`, req.url),

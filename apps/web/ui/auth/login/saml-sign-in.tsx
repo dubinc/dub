@@ -1,5 +1,6 @@
 "use client";
 
+import { getOAuthErrorCallbackURL } from "@/lib/better-auth/account-linking";
 import { authClient } from "@/lib/better-auth/auth-client";
 import { Button, InfoTooltip, useMediaQuery } from "@dub/ui";
 import { Lock } from "lucide-react";
@@ -50,6 +51,7 @@ export const SAMLSignIn = () => {
       additionalData: {
         tenant: workspaceId,
       },
+      errorCallbackURL: getOAuthErrorCallbackURL("saml"),
     });
 
     if (error) {

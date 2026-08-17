@@ -39,12 +39,7 @@ export function PartnerProfileAuth({ children }: { children: ReactNode }) {
   }
 
   if (!loading && error && error.status === 404) {
-    const connect = searchParams?.get("connect");
-    redirect(
-      connect
-        ? `/onboarding?connect=${encodeURIComponent(connect)}`
-        : "/onboarding",
-    );
+    redirect("/onboarding");
   }
 
   return children;

@@ -30,3 +30,12 @@ export const signUpSchema = z.object({
   email: emailSchema,
   password: passwordSchema,
 });
+
+export function parseEmail(value: string | null | undefined) {
+  if (!value) {
+    return null;
+  }
+
+  const result = emailSchema.safeParse(value);
+  return result.success ? result.data : null;
+}

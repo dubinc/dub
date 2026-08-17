@@ -1,11 +1,13 @@
 "use client";
 
+import { getOAuthErrorCallbackURL } from "@/lib/better-auth/account-linking";
 import { authClient } from "@/lib/better-auth/auth-client";
 import { getValidInternalRedirectPath } from "@/lib/middleware/utils/is-valid-internal-redirect";
 import { Button, Github, Google } from "@dub/ui";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { AccountAlreadyExistsModal } from "../account-already-exists-modal";
 
 export const SignUpOAuth = ({
   methods,
@@ -30,6 +32,7 @@ export const SignUpOAuth = ({
 
   return (
     <>
+      <AccountAlreadyExistsModal />
       {methods.includes("google") && (
         <Button
           variant="secondary"
@@ -39,6 +42,7 @@ export const SignUpOAuth = ({
             const { error } = await authClient.signIn.social({
               provider: "google",
               ...(next && next.length > 0 ? { callbackURL: next } : {}),
+              errorCallbackURL: getOAuthErrorCallbackURL("google"),
             });
 
             if (error) {
@@ -59,6 +63,7 @@ export const SignUpOAuth = ({
             const { error } = await authClient.signIn.social({
               provider: "github",
               ...(next && next.length > 0 ? { callbackURL: next } : {}),
+              errorCallbackURL: getOAuthErrorCallbackURL("github"),
             });
 
             if (error) {

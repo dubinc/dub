@@ -53,6 +53,7 @@ export const auth = betterAuth({
       clientId: process.env.GOOGLE_CLIENT_ID as string,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
     },
+    // GitHub is untrusted: implicit sign-in must not silent-link an existing user.
     github: {
       clientId: process.env.GITHUB_CLIENT_ID as string,
       clientSecret: process.env.GITHUB_CLIENT_SECRET as string,
@@ -161,8 +162,7 @@ export const auth = betterAuth({
     modelName: "account",
     accountLinking: {
       enabled: true,
-      // GitHub is omitted: it can return unverified emails, so implicit
-      // linking requires GitHub's own verified flag instead of trust-by-name.
+      allowDifferentEmails: false,
       trustedProviders: ["google", "saml"],
     },
   },
@@ -249,6 +249,7 @@ export const auth = betterAuth({
   ],
 
   onAPIError: {
+    errorURL: `${APP_DOMAIN}/login`,
     onError: async (error) => {
       if (isLocalDev) {
         console.error("[BetterAuth] API error:", error);

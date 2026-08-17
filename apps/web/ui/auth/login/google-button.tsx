@@ -1,3 +1,4 @@
+import { getOAuthErrorCallbackURL } from "@/lib/better-auth/account-linking";
 import { authClient } from "@/lib/better-auth/auth-client";
 import { Button } from "@dub/ui";
 import { Google } from "@dub/ui/icons";
@@ -25,6 +26,7 @@ export function GoogleButton({ next }: { next?: string }) {
         const { error } = await authClient.signIn.social({
           provider: "google",
           callbackURL: finalNext,
+          errorCallbackURL: getOAuthErrorCallbackURL("google"),
         });
 
         if (error) {

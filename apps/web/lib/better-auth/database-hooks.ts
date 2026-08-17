@@ -7,8 +7,13 @@ import { isStored } from "@/lib/storage";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import type { BetterAuthOptions } from "better-auth";
-import { APIError } from "better-auth/api";
+import { APIError, getSessionFromCtx } from "better-auth/api";
+import { isVercelDeployment } from "../api/environment";
 import { isSamlEnforcedForEmailDomain } from "../api/workspaces/is-saml-enforced-for-email-domain";
+import {
+  ACCOUNT_EXISTS_EMAIL_COOKIE,
+  UNTRUSTED_IMPLICIT_LINK_PROVIDERS,
+} from "./account-linking";
 import { isAdminImpersonation } from "./admin-impersonation-plugin";
 import { assertAdminAccess } from "./assert-admin-access";
 import {
@@ -73,6 +78,63 @@ export const databaseHooks = {
 
   account: {
     create: {
+      // Block silent GitHub / program SSO linking on sign-in. Explicit
+      // linkSocial / oauth2.link while logged in still has a session.
+      before: async (account, context) => {
+        const { providerId, userId } = account;
+
+        if (
+          !providerId ||
+          !userId ||
+          !UNTRUSTED_IMPLICIT_LINK_PROVIDERS.has(providerId)
+        ) {
+          return;
+        }
+
+        if (context) {
+          const session = await getSessionFromCtx(context).catch(() => null);
+
+          if (session) {
+            return;
+          }
+        }
+
+        const existingAccountCount = await prisma.account.count({
+          where: {
+            userId,
+          },
+        });
+
+        if (existingAccountCount === 0) {
+          return;
+        }
+
+        const user = await prisma.user.findUnique({
+          where: {
+            id: userId,
+          },
+          select: {
+            email: true,
+          },
+        });
+
+        if (user?.email && context) {
+          context.setCookie(ACCOUNT_EXISTS_EMAIL_COOKIE, user.email, {
+            path: "/",
+            maxAge: 60 * 5,
+            httpOnly: false,
+            sameSite: "lax",
+            secure: isVercelDeployment,
+            domain: isVercelDeployment ? ".dub.co" : undefined,
+          });
+        }
+
+        throw new APIError("UNAUTHORIZED", {
+          message: "account not linked",
+          code: "ACCOUNT_NOT_LINKED",
+        });
+      },
+
       // Runs after a provider account is linked
       after: async (account) => {
         const { providerId, userId, accessToken } = account;

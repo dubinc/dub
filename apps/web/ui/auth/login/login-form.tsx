@@ -1,5 +1,10 @@
 "use client";
 
+import {
+  ACCOUNT_NOT_LINKED_ERRORS,
+  EMAIL_DOESNT_MATCH_ERROR,
+  EMAIL_DOESNT_MATCH_MESSAGE,
+} from "@/lib/better-auth/account-linking";
 import { authClient } from "@/lib/better-auth/auth-client";
 import { AnimatedSizeContainer, Button } from "@dub/ui";
 import { useSearchParams } from "next/navigation";
@@ -13,6 +18,7 @@ import {
   useState,
 } from "react";
 import { toast } from "sonner";
+import { AccountAlreadyExistsModal } from "../account-already-exists-modal";
 import { AuthMethodsSeparator } from "../auth-methods-separator";
 import { EmailSignIn } from "./email-sign-in";
 import { GitHubButton } from "./github-button";
@@ -53,9 +59,11 @@ export const errorCodes = {
   OAuthAccountNotLinked:
     "It looks like you already have an account with this email. Please sign in with your account email instead.",
   account_not_linked:
-    "It looks like you already have an account with this email. Please sign in with your existing method, then connect this provider.",
+    "It looks like you already have an account with this email. Please sign in with your existing method, then connect this provider from Account → Security.",
   unable_to_link_account:
-    "It looks like you already have an account with this email. Please sign in with your existing method, then connect this provider.",
+    "It looks like you already have an account with this email. Please sign in with your existing method, then connect this provider from Account → Security.",
+  email_doesnt_match: EMAIL_DOESNT_MATCH_MESSAGE,
+  [EMAIL_DOESNT_MATCH_ERROR]: EMAIL_DOESNT_MATCH_MESSAGE,
 };
 
 export const LoginFormContext = createContext<{
@@ -102,9 +110,9 @@ export default function LoginForm({
 
   useEffect(() => {
     const error = searchParams?.get("error");
-    if (error) {
+    if (error && !ACCOUNT_NOT_LINKED_ERRORS.has(error)) {
       toast.error(
-        errorCodes[error] ||
+        errorCodes[error as keyof typeof errorCodes] ||
           "An unexpected error occurred. Please try again later.",
       );
     }
@@ -161,6 +169,7 @@ export default function LoginForm({
       }}
     >
       <div className="flex flex-col gap-3">
+        <AccountAlreadyExistsModal />
         <AnimatedSizeContainer height>
           <div className="flex flex-col gap-3 p-1">
             {authMethod && (
