@@ -83,20 +83,24 @@ export const databaseHooks = {
       before: async (account, context) => {
         const { providerId, userId } = account;
 
-        if (
-          !providerId ||
-          !userId ||
-          !UNTRUSTED_IMPLICIT_LINK_PROVIDERS.has(providerId)
-        ) {
+        if (!providerId || !userId) {
           return;
         }
 
-        if (context) {
-          const session = await getSessionFromCtx(context).catch(() => null);
+        const session = context
+          ? await getSessionFromCtx(context).catch(() => null)
+          : null;
 
-          if (session) {
-            return;
-          }
+        // Explicit connect must attach to the logged-in user, never another account.
+        if (session && session.user.id !== userId) {
+          throw new APIError("UNAUTHORIZED", {
+            message: "account not linked",
+            code: "ACCOUNT_NOT_LINKED",
+          });
+        }
+
+        if (!UNTRUSTED_IMPLICIT_LINK_PROVIDERS.has(providerId) || session) {
+          return;
         }
 
         const existingAccountCount = await prisma.account.count({

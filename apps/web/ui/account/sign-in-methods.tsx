@@ -2,12 +2,11 @@
 
 import { SSO_LOGIN_PROGRAMS } from "@/lib/auth/sso-login-programs";
 import {
-  EMAIL_DOESNT_MATCH_ERROR,
-  EMAIL_DOESNT_MATCH_MESSAGE,
   getAuthProviderLabel,
   getOAuthErrorCallbackURL,
 } from "@/lib/better-auth/account-linking";
 import { authClient } from "@/lib/better-auth/auth-client";
+import { getAuthError } from "@/lib/better-auth/auth-errors";
 import useProgramEnrollments from "@/lib/swr/use-program-enrollments";
 import useUser from "@/lib/swr/use-user";
 import {
@@ -74,9 +73,12 @@ export function SignInMethods({
     useProgramEnrollments({ status: "approved" }, { enabled: isPartners });
 
   useEffect(() => {
-    const error = new URLSearchParams(window.location.search).get("error");
-    if (error === EMAIL_DOESNT_MATCH_ERROR || error === "email_doesnt_match") {
-      toast.error(EMAIL_DOESNT_MATCH_MESSAGE);
+    const message = getAuthError({
+      error: new URLSearchParams(window.location.search).get("error"),
+    });
+
+    if (message) {
+      toast.error(message);
     }
   }, []);
 

@@ -2,6 +2,7 @@
 
 import { checkAccountExistsAction } from "@/lib/actions/check-account-exists";
 import { authClient } from "@/lib/better-auth/auth-client";
+import { AUTH_ERROR_MESSAGES } from "@/lib/better-auth/auth-errors";
 import { parseEmail } from "@/lib/zod/schemas/auth";
 import { Button, Input, useCurrentSubdomain, useMediaQuery } from "@dub/ui";
 import { cn } from "@dub/utils";
@@ -11,14 +12,14 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useContext, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { getPostLoginRedirect } from "./get-post-login-redirect";
-import { errorCodes, LoginFormContext } from "./login-form";
+import { LoginFormContext } from "./login-form";
 
 function authErrorMessage(message?: string | null) {
   if (!message) {
     return null;
   }
 
-  return errorCodes[message as keyof typeof errorCodes] ?? message;
+  return AUTH_ERROR_MESSAGES[message] ?? message;
 }
 
 export const EmailSignIn = ({ next }: { next?: string }) => {
@@ -82,7 +83,7 @@ export const EmailSignIn = ({ next }: { next?: string }) => {
 
             if (requireSAML) {
               setClickedMethod(undefined);
-              toast.error(errorCodes["require-saml-sso"]);
+              toast.error(AUTH_ERROR_MESSAGES["require-saml-sso"]);
               return;
             }
 
@@ -124,7 +125,7 @@ export const EmailSignIn = ({ next }: { next?: string }) => {
             if (error) {
               toast.error(
                 authErrorMessage(error.message) ??
-                  errorCodes["invalid-credentials"],
+                  AUTH_ERROR_MESSAGES["invalid-credentials"],
               );
               setClickedMethod(undefined);
               return;

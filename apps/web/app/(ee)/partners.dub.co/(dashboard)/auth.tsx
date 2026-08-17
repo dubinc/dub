@@ -26,9 +26,12 @@ export function PartnerProfileAuth({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const error = searchParams?.get("error");
+    const message = error
+      ? ERROR_CODES[error as keyof typeof ERROR_CODES]
+      : undefined;
 
-    if (error) {
-      toast.error(ERROR_CODES[error] || error);
+    if (message) {
+      toast.error(message);
     }
   }, [searchParams]);
 
