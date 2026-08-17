@@ -4,6 +4,7 @@ import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { createId } from "@/lib/api/create-id";
 import { bulkCreateLinks } from "@/lib/api/links";
 import { getGroupRewardsAndBounties } from "@/lib/api/partners/get-group-rewards-and-bounties";
+import { queuePartnerSearchSync } from "@/lib/api/partners/queue-partner-search-sync";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { extractUtmParams } from "@/lib/api/utm/extract-utm-params";
 import { throwIfPartnersLimitExceeded } from "@/lib/partners/throw-if-partners-limit-exceeded";
@@ -198,6 +199,16 @@ export const bulkInvitePartnersAction = authActionClient
             `Created ${links.length} links for the partner for the default link ${partnerGroupDefaultLink.id}`,
           );
         }
+
+        // createMany returns no IDs, so this passes partners scoped by program
+        // and lets the job resolve the enrollments. Queued after the default
+        // links exist so the first document already carries them. Partners that
+        // skipDuplicates left untouched are re-indexed unchanged, which is
+        // cheaper than working out which ones were new.
+        await queuePartnerSearchSync({
+          partnerIds: partners.map(({ id }) => id),
+          programId,
+        });
 
         const { rewards, bounties } = await getGroupRewardsAndBounties({
           programId,

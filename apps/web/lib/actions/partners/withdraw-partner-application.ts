@@ -1,6 +1,8 @@
 "use server";
 
+import { queuePartnerSearchSync } from "@/lib/api/partners/queue-partner-search-sync";
 import { prisma } from "@/lib/prisma";
+import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
 import { authPartnerActionClient } from "../safe-action";
 
@@ -46,4 +48,9 @@ export const withdrawPartnerApplicationAction = authPartnerActionClient
 
       return deletedProgramEnrollment;
     });
+
+    // A withdrawal deletes the enrollment, which no sweep can notice.
+    waitUntil(
+      queuePartnerSearchSync({ enrollmentIds: [programEnrollment.id] }),
+    );
   });

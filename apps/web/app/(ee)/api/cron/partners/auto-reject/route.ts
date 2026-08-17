@@ -1,4 +1,5 @@
 import { resolveFraudGroups } from "@/lib/api/fraud/resolve-fraud-groups";
+import { queuePartnerSearchSync } from "@/lib/api/partners/queue-partner-search-sync";
 import { trackApplicationEvents } from "@/lib/application-events/update-application-event";
 import { withCron } from "@/lib/cron/with-cron";
 import { evaluateApplicationRequirements } from "@/lib/partners/evaluate-application-requirements";
@@ -142,6 +143,8 @@ export const POST = withCron(async ({ rawBody }) => {
       programId,
       partnerIds: [partnerId],
     }),
+
+    queuePartnerSearchSync({ enrollmentIds: [programEnrollment.id] }),
 
     partner.email &&
       sendEmail({

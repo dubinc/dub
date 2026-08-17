@@ -4,6 +4,7 @@ import { PlatformType, Prisma } from "@prisma/client";
 import { createId } from "../api/create-id";
 import { detectAndRecordFraudApplication } from "../api/fraud/detect-record-fraud-application";
 import { notifyPartnerApplication } from "../api/partners/notify-partner-application";
+import { queuePartnerSearchSync } from "../api/partners/queue-partner-search-sync";
 import { markApplicationEventSubmitted } from "../application-events/update-application-event";
 import { qstash } from "../cron";
 import { buildSocialPlatformLookup } from "../social-utils";
@@ -270,6 +271,13 @@ export async function completeProgramApplications(userEmail: string) {
         markApplicationEventSubmitted(programEnrollment),
       ),
     );
+
+    // One queue at the end covers both the new enrollments and the platforms
+    // backfilled from the application above, since the job re-reads the whole
+    // document rather than the fields any one write touched.
+    await queuePartnerSearchSync({
+      enrollmentIds: programEnrollments.map(({ id }) => id!),
+    });
   } catch (error) {
     console.error("Failed to complete program applications", error);
   }

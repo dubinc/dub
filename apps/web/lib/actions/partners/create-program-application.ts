@@ -4,6 +4,7 @@ import { createId } from "@/lib/api/create-id";
 import { isCI, isLocalDev } from "@/lib/api/environment";
 import { detectAndRecordFraudApplication } from "@/lib/api/fraud/detect-record-fraud-application";
 import { notifyPartnerApplication } from "@/lib/api/partners/notify-partner-application";
+import { queuePartnerSearchSync } from "@/lib/api/partners/queue-partner-search-sync";
 import { getIP } from "@/lib/api/utils/get-ip";
 import { markApplicationEventSubmitted } from "@/lib/application-events/update-application-event";
 import { getApplicationEventCookieName } from "@/lib/application-events/utils";
@@ -382,6 +383,8 @@ async function createApplicationAndEnrollment({
         }),
 
         markApplicationEventSubmitted(programEnrollment),
+
+        queuePartnerSearchSync({ enrollmentIds: [programEnrollment.id] }),
       ]);
     })(),
   );

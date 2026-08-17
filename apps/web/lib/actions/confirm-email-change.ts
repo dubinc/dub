@@ -5,6 +5,7 @@ import {
   assertCanConfirmEmailChange,
   EmailChangeRequestData,
 } from "@/lib/auth/confirm-email-change";
+import { queuePartnerSearchSync } from "@/lib/api/partners/queue-partner-search-sync";
 import { syncPlainCustomerEmail } from "@/lib/plain/upsert-plain-customer";
 import { prisma } from "@/lib/prisma";
 import { redis } from "@/lib/upstash";
@@ -129,6 +130,14 @@ export const confirmEmailChangeAction = authUserActionClient
     const shouldSyncPlainCustomerEmail =
       !!data.syncIdentity || !data.isPartnerProfile;
 
+    // Whichever of the two partner branches above ran, if either. The email-only
+    // branch touches no partner and so has nothing to re-index.
+    const changedPartnerId = data.syncIdentity
+      ? data.partnerId
+      : data.isPartnerProfile
+        ? tokenIdentifier
+        : undefined;
+
     waitUntil(
       Promise.allSettled([
         sendEmail({
@@ -154,6 +163,12 @@ export const confirmEmailChangeAction = authUserActionClient
           : []),
 
         redis.del(`email-change-request:token:${tokenFound.token}`),
+
+        // Email is both a searchable field and the n-gram source, so a stale
+        // one leaves the partner findable under an address they no longer have.
+        ...(changedPartnerId
+          ? [queuePartnerSearchSync({ partnerIds: [changedPartnerId] })]
+          : []),
       ]),
     );
 
