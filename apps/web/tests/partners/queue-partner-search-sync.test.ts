@@ -267,7 +267,7 @@ describe("queuePartnerSearchSyncForLinks", () => {
   });
 });
 
-describe("queuePartnerSearchSyncForLinks — ownership transfer", () => {
+describe("queuePartnerSearchSyncForLinks: ownership transfer", () => {
   beforeEach(() => {
     mocks.getPartnerSearchProvider
       .mockReset()

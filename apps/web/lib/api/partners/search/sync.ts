@@ -89,7 +89,7 @@ interface FindPartnerSearchSyncEnrollmentIdsOptions {
  * touches every program the partner is enrolled in.
  *
  * Paged by enrollment ID so the caller can resume, because the fan-out is
- * unbounded — a partner enrolled in hundreds of programs produces hundreds of
+ * unbounded: a partner enrolled in hundreds of programs produces hundreds of
  * documents from one profile write.
  *
  * `programId` narrows to a single enrollment per partner, which is what the

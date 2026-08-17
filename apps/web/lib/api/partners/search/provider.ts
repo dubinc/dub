@@ -14,10 +14,10 @@ let cachedSearchProvider: PartnerSearchProvider | null = null;
  * an unset key costs the wider field coverage rather than the partner list.
  *
  * Once set in an environment that serves traffic, leave it set. Removing a
- * document is something only the live sync hooks can do — the backfill and the
- * sweep upsert and never delete — so any window where the app runs with this
- * unset turns every enrollment deleted during it into a document nothing can
- * remove short of rebuilding the namespace.
+ * document is something only the live sync hooks can do, because the backfill
+ * and the sweep upsert and never delete. Any window where the app runs with
+ * this unset therefore turns every enrollment deleted during it into a document
+ * nothing can remove short of rebuilding the namespace.
  */
 export function getPartnerSearchProvider(): PartnerSearchProvider | null {
   if (!process.env.TURBOPUFFER_API_KEY?.trim()) {
@@ -34,16 +34,15 @@ export function getPartnerSearchProvider(): PartnerSearchProvider | null {
  * database.
  *
  * Reads get their own switch so that turning search off never means turning
- * indexing off. That is the whole point: writes stay on from the first day and
- * are never flipped, so the index keeps tracking deletions even while nothing
- * is reading it, and coming back is flipping this one flag rather than
- * rebuilding a namespace.
+ * indexing off. Writes stay on from the first day and are never flipped, so the
+ * index keeps tracking deletions even while nothing is reading it, and coming
+ * back is a matter of setting this flag rather than rebuilding a namespace.
  *
- * It also keeps the initial rollout honest. An empty index does not degrade
- * gracefully — a program with no documents yet produces a successful, empty
- * candidate list, which the callers apply as `id IN ()` after clearing the
- * database search predicate, so every query returns nothing. Reads therefore
- * stay off until the backfill has finished.
+ * The same switch is what lets reads stay off until the backfill has finished.
+ * An empty index does not fall back to the database: a program with no
+ * documents yet produces a successful, empty candidate list, which the callers
+ * apply as `id IN ()` after clearing the database search predicate, so every
+ * query returns nothing.
  */
 export function isPartnerSearchReadEnabled(): boolean {
   return process.env.PARTNER_SEARCH_READ_ENABLED?.trim() === "true";

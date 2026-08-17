@@ -44,7 +44,7 @@ export async function bulkUpdateLinks(
   const imageUrlNonce = nanoid(7);
 
   // The bulk payload is createLinkBodySchema minus domain/key/externalId, and
-  // that omit list does not drop `partnerId` or `programId` — so a bulk update
+  // that omit list does not drop `partnerId` or `programId`, so a bulk update
   // can move links between partners. Read the current owners first, because
   // after the write they are unrecoverable and syncing only the new owner
   // would leave the links searchable under a partner who no longer has them.

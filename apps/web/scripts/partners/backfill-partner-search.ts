@@ -99,7 +99,7 @@ function createProgressReporter({
     const elapsedSec = ((Date.now() - startTime) / 1000).toFixed(1);
 
     // `totalDocuments` is a snapshot from before the run, so enrollments
-    // written while it pages can push the final chunk past it; the percentage
+    // written while it pages can push the final chunk past it, so the percentage
     // is clamped rather than reporting >100%.
     const progress =
       totalDocuments === null

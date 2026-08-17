@@ -20,7 +20,7 @@ const SYNC_PARALLELISM = 20;
  * Two shapes, because the two kinds of change have different blast radii.
  *
  * `enrollments` carries IDs the caller already knows, and is the only shape
- * that can express a deletion — the handler discovers an enrollment is gone by
+ * that can express a deletion, because the handler discovers an enrollment is gone by
  * failing to read it back.
  *
  * `partners` is for changes that fan out beyond one enrollment (a profile edit,
@@ -91,7 +91,7 @@ export const partnerSearchSyncJob = defineJob({
     }
 
     // These IDs came from the database a moment ago, so the sync will upsert
-    // rather than delete them — unless the enrollment disappeared in between,
+    // rather than delete them, unless the enrollment disappeared in between,
     // in which case removing it from the index is the right outcome anyway.
     const { upserted, deleted } = await syncPartnerSearchDocuments({
       enrollmentIds,

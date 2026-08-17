@@ -31,7 +31,7 @@ export const PARTNER_SEARCH_SYNC_DELAY_SECONDS = 5;
  *
  * Half the deduplication window rather than all of it. Deduplication only ever
  * collapses repeat edits to the *same* partner, so the delay is not what keeps
- * a bulk link change cheap — chunking and flow control do that. Buying a little
+ * a bulk link change cheap. Chunking and flow control do that. Buying a little
  * more collapse by sitting at the window boundary would trade a real margin for
  * a rare case.
  *
@@ -78,7 +78,7 @@ function unique(values: string[] | undefined): string[] {
  *
  * A delay at or past the deduplication window gets no key at all. QStash would
  * have forgotten the ID before the first message fired, so every edit would
- * write anyway; sending a key regardless would just make the caller believe in
+ * write anyway, and sending a key regardless would just make the caller believe in
  * a collapse that is not happening. Failing openly beats failing quietly.
  */
 function buildDeduplicationId(
@@ -105,7 +105,7 @@ function buildDeduplicationId(
  *
  * Never throws. A search index that falls behind costs relevance ranking and
  * the wider field coverage, which the read path already degrades to when no
- * provider is configured; a partner mutation failing because a queue was
+ * provider is configured. A partner mutation failing because a queue was
  * unreachable would be a far worse outcome. Job dispatch already persists to
  * the database when QStash is unavailable, so reaching the catch here means
  * both paths failed, and the reconciliation sweep is what recovers from it.

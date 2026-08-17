@@ -128,7 +128,7 @@ export const onboardPartnerAction = authUserActionClient
 
         // Onboarding sets name, country, and description, all of which the
         // document carries. Runs after completeProgramApplications above, which
-        // queues its own sync for the enrollments it creates; both collapse on
+        // queues its own sync for the enrollments it creates. Both collapse on
         // the same partner, and re-indexing twice is harmless either way.
         queuePartnerSearchSync({ partnerIds: [updatedPartner.id] }),
       ]),

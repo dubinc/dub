@@ -103,7 +103,7 @@ export async function syncNameAndImageToPartner({
     },
   });
 
-  // Only the name reaches the document; an image-only sync changes nothing the
+  // Only the name reaches the document, so an image-only sync changes nothing the
   // index holds, so it is not worth a queue.
   if (hasNameUpdate && name) {
     await queuePartnerSearchSync({ partnerIds: [partnerId] });
