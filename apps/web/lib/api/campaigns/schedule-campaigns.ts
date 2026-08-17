@@ -143,6 +143,7 @@ export const scheduleTransactionalCampaign = async ({
     !updatedCampaign.workflow ||
     !isScheduledWorkflow(updatedCampaign.workflow)
   ) {
+    console.log(`No workflow found for campaign ${campaign.id}. Skipping...`);
     return;
   }
 

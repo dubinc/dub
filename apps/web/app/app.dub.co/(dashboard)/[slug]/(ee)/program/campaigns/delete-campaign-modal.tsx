@@ -2,7 +2,7 @@ import { mutatePrefix } from "@/lib/swr/mutate";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { Campaign } from "@/lib/types";
-import { Button, Modal } from "@dub/ui";
+import { Button, Modal, useMediaQuery } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { useRouter } from "next/navigation";
 import { useCallback, useMemo, useState } from "react";
@@ -56,6 +56,8 @@ const DeleteCampaignModal = ({
     return confirm !== "confirm delete campaign";
   }, [confirm]);
 
+  const { isMobile } = useMediaQuery();
+
   return (
     <Modal showModal={showModal} setShowModal={setShowModal}>
       <div className="border-b border-neutral-200 p-4 sm:p-6">
@@ -96,6 +98,7 @@ const DeleteCampaignModal = ({
                 placeholder="confirm delete campaign"
                 type="text"
                 autoComplete="off"
+                autoFocus={!isMobile}
                 {...register("confirm", {
                   required: true,
                 })}

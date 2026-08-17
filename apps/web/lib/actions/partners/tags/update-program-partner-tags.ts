@@ -97,13 +97,6 @@ export const updateProgramPartnerTagsAction = authActionClient
 
     waitUntil(
       (async () => {
-        if (addTagIds.length > 0) {
-          await triggerDraftBountySubmissionCreation({
-            programId,
-            partnerIds,
-          });
-        }
-
         // Sync updated partner tags to Tinybird for analytics (top_partner_tags)
         let cursor: string | undefined;
 
@@ -128,6 +121,13 @@ export const updateProgramPartnerTagsAction = authActionClient
 
           await recordLink(links);
           cursor = links[links.length - 1]!.id;
+        }
+
+        if (addTagIds.length > 0) {
+          await triggerDraftBountySubmissionCreation({
+            programId,
+            partnerIds,
+          });
         }
       })(),
     );
