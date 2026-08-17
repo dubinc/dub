@@ -44,6 +44,7 @@ function TimeSeriesChartInner<T extends Datum>({
   tooltipClassName = "",
   defaultTooltipIndex = null,
   onHoverDateChange,
+  onXValueClick,
   margin: marginProp = {
     top: 12,
     right: 5,
@@ -223,6 +224,17 @@ function TimeSeriesChartInner<T extends Datum>({
               onTouchMove={handleTooltip}
               onMouseMove={handleTooltip}
               onMouseLeave={hideTooltip}
+              onClick={() => {
+                if (tooltipData) {
+                  onXValueClick?.(tooltipData);
+                }
+              }}
+              onTouchEnd={() => {
+                if (tooltipData) {
+                  onXValueClick?.(tooltipData);
+                }
+              }}
+              className={onXValueClick ? "cursor-pointer" : undefined}
               fill="transparent"
             />
           </Group>

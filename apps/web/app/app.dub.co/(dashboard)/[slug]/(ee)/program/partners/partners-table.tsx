@@ -803,7 +803,7 @@ function RowMenuButton({
 
   return (
     <>
-      <ChangeGroupModal />
+      {ChangeGroupModal}
       <UpdatePartnerTagsModal
         showUpdatePartnerTagsModal={showUpdatePartnerTagsModal}
         setShowUpdatePartnerTagsModal={setShowUpdatePartnerTagsModal}
@@ -1064,7 +1064,7 @@ const PartnersBulkActionsBar = memo(function PartnersBulkActionsBar({
 
   return (
     <>
-      <ChangeGroupModal />
+      {ChangeGroupModal}
       <UpdatePartnerTagsModal
         showUpdatePartnerTagsModal={showUpdatePartnerTagsModal}
         setShowUpdatePartnerTagsModal={setShowUpdatePartnerTagsModal}
