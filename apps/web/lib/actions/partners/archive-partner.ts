@@ -3,6 +3,7 @@
 import { trackActivityLog } from "@/lib/api/activity-log/track-activity-log";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
+import { queuePartnerSearchSync } from "@/lib/api/partners/queue-partner-search-sync";
 import { prisma } from "@/lib/prisma";
 import { archivePartnerSchema } from "@/lib/zod/schemas/partners";
 import { waitUntil } from "@vercel/functions";
@@ -46,20 +47,24 @@ export const archivePartnerAction = authActionClient
     });
 
     waitUntil(
-      trackActivityLog({
-        workspaceId: workspace.id,
-        programId,
-        resourceType: "partner",
-        resourceId: partnerId,
-        userId: user.id,
-        action:
-          status === "archived" ? "partner.archived" : "partner.unarchived",
-        changeSet: {
-          status: {
-            old: programEnrollment.status,
-            new: status,
+      Promise.allSettled([
+        trackActivityLog({
+          workspaceId: workspace.id,
+          programId,
+          resourceType: "partner",
+          resourceId: partnerId,
+          userId: user.id,
+          action:
+            status === "archived" ? "partner.archived" : "partner.unarchived",
+          changeSet: {
+            status: {
+              old: programEnrollment.status,
+              new: status,
+            },
           },
-        },
-      }),
+        }),
+
+        queuePartnerSearchSync({ partnerIds: [partnerId], programId }),
+      ]),
     );
   });

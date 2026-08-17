@@ -1,6 +1,7 @@
 "use server";
 
 import { trackActivityLog } from "@/lib/api/activity-log/track-activity-log";
+import { queuePartnerSearchSync } from "@/lib/api/partners/queue-partner-search-sync";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { prisma } from "@/lib/prisma";
 import {
@@ -65,21 +66,27 @@ export const bulkArchivePartnersAction = authActionClient
     });
 
     waitUntil(
-      trackActivityLog(
-        programEnrollments.map(({ partnerId, status }) => ({
-          workspaceId: workspace.id,
-          programId,
-          resourceType: "partner",
-          resourceId: partnerId,
-          userId: user.id,
-          action: "partner.archived",
-          changeSet: {
-            status: {
-              old: status,
-              new: "archived",
+      Promise.allSettled([
+        trackActivityLog(
+          programEnrollments.map(({ partnerId, status }) => ({
+            workspaceId: workspace.id,
+            programId,
+            resourceType: "partner",
+            resourceId: partnerId,
+            userId: user.id,
+            action: "partner.archived",
+            changeSet: {
+              status: {
+                old: status,
+                new: "archived",
+              },
             },
-          },
-        })),
-      ),
+          })),
+        ),
+
+        queuePartnerSearchSync({
+          enrollmentIds: programEnrollments.map(({ id }) => id),
+        }),
+      ]),
     );
   });

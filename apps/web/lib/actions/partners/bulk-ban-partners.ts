@@ -2,6 +2,7 @@
 
 import { trackActivityLog } from "@/lib/api/activity-log/track-activity-log";
 import { resolveFraudGroups } from "@/lib/api/fraud/resolve-fraud-groups";
+import { queuePartnerSearchSync } from "@/lib/api/partners/queue-partner-search-sync";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { enqueueBatchJobs } from "@/lib/cron/enqueue-batch-jobs";
 import { prisma } from "@/lib/prisma";
@@ -91,6 +92,10 @@ export const bulkBanPartnersAction = authActionClient
 
     waitUntil(
       Promise.allSettled([
+        queuePartnerSearchSync({
+          enrollmentIds: programEnrollments.map(({ id }) => id),
+        }),
+
         trackActivityLog(
           programEnrollments.map(({ partnerId, status }) => ({
             workspaceId: workspace.id,

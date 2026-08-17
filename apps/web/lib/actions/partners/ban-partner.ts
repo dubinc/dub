@@ -5,6 +5,7 @@ import { DubApiError } from "@/lib/api/errors";
 import { resolveFraudGroups } from "@/lib/api/fraud/resolve-fraud-groups";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
+import { queuePartnerSearchSync } from "@/lib/api/partners/queue-partner-search-sync";
 import { qstash } from "@/lib/cron";
 import { prisma } from "@/lib/prisma";
 import { UserProps, WorkspaceProps } from "@/lib/types";
@@ -139,6 +140,10 @@ export const banPartner = async ({
           programId,
           partnerId,
         },
+      }),
+
+      queuePartnerSearchSync({
+        enrollmentIds: [programEnrollmentUpdated.id],
       }),
 
       flagForFraud && flagForFraudReason

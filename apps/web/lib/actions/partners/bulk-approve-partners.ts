@@ -2,6 +2,7 @@
 
 import { trackActivityLog } from "@/lib/api/activity-log/track-activity-log";
 import { getGroupOrThrow } from "@/lib/api/groups/get-group-or-throw";
+import { queuePartnerSearchSync } from "@/lib/api/partners/queue-partner-search-sync";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { trackApplicationEvents } from "@/lib/application-events/update-application-event";
 import { triggerQStashWorkflow } from "@/lib/cron/qstash-workflow";
@@ -158,6 +159,10 @@ export const bulkApprovePartnersAction = authActionClient
             event: "approved",
             programId: program.id,
             partnerIds: updatedEnrollments.map(({ partnerId }) => partnerId),
+          }),
+
+          queuePartnerSearchSync({
+            enrollmentIds: updatedEnrollments.map(({ id }) => id),
           }),
         ]);
       })(),
