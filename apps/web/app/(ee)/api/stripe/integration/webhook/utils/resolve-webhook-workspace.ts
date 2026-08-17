@@ -29,7 +29,11 @@ export async function resolveWebhookWorkspace({
     return null;
   }
 
-  if ((mode === "test" || mode === "sandbox") && workspace.stagingWorkspaceId) {
+  // Test/sandbox events still arrive with the live workspace's Connect account.
+  // If that workspace has a staging workspace that hasn't connected Stripe
+  // itself, route the event there so test data doesn't land on live. Overlay
+  // stripeConnectId so handlers can still call Stripe with the connected account.
+  if (["test", "sandbox"].includes(mode) && workspace.stagingWorkspaceId) {
     const stagingWorkspace = await prisma.project.findUnique({
       where: {
         id: workspace.stagingWorkspaceId,
