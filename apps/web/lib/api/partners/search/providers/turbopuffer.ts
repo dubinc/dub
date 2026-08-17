@@ -29,8 +29,8 @@ const WRITE_BATCH_SIZE = 500;
  * The final token is a prefix, so a short one expands to every term beginning
  * with it. Measured against 626K documents: one character takes the count from
  * ~50ms to ~1.2s, past the query deadline on every attempt, and two characters
- * are still 2-3x slower than three. Production holds roughly 1.6M documents, so
- * the margin matters more there than the extra character costs, so the first
+ * are still 2-3x slower than three. Production holds roughly 1.6M documents,
+ * where the margin matters more than the extra character costs, so the first
  * keystrokes of a search fall back to the database count instead.
  */
 const MIN_COUNT_PREFIX_LENGTH = 3;
@@ -64,8 +64,8 @@ interface TurbopufferPartnerSearchRow extends Record<string, unknown> {
 /**
  * Pinned rather than left to default. Turbopuffer's newer tokenizers keep a URL
  * as a single token, so `scottdigital` cannot match
- * `https://www.scottdigital-42.techcorp.io`, and partner websites, short
- * links, and destination URLs are all searchable fields here. word_v2 splits
+ * `https://www.scottdigital-42.techcorp.io`. Partner websites, short links, and
+ * destination URLs are all searchable fields here, and word_v2 splits
  * URLs into their components while handling emails, handles, and hyphenated
  * keys the same way the newer ones do.
  *
@@ -75,8 +75,8 @@ interface TurbopufferPartnerSearchRow extends Record<string, unknown> {
 const SEARCH_TEXT_TOKENIZER = "word_v2";
 
 // No text attribute is filterable. The n-gram and all-terms branches narrow with
-// ContainsAllTokens, which reads the BM25 index rather than a filter index, so
-// marking them filterable would buy nothing and cost plenty: turbopuffer bills
+// ContainsAllTokens, which reads the BM25 index rather than a filter index.
+// Marking them filterable would buy nothing and cost plenty: turbopuffer bills
 // an attribute per enabled index, so FTS + filterable is 200% of logical size.
 //
 // The scalar attributes are filterable so the provider narrows before it
@@ -161,25 +161,6 @@ function serializeTurbopufferRow(
   };
 }
 
-/**
- * Each branch is ranked independently and rank-fused by the caller (see
- * mergeBranchRows).
- *
- * Identity is searched separately from everything else because a single-token
- * `last_as_prefix` query scores every match at exactly 1, so the broad branch
- * cannot order its own results. Matching an identity field puts a document in
- * two branches, which is what the fusion orders on.
- *
- * The all-terms branch requires every query word, which BM25 does not: term
- * frequency saturates while length normalization keeps biting, so a partner
- * matching both words can otherwise rank below one matching only the first. It
- * runs on identityText so a full name is not out-weighted by a long description
- * or a pile of links.
- *
- * The n-gram branch requires every trigram; BM25 alone scores a document that
- * shares just one, which is how an unrelated address looks like a partial-email
- * match.
- */
 /** Turns the discrete filters into turbopuffer clauses. */
 function buildFilterClauses(
   filters: PartnerSearchCandidateQuery["filters"],
@@ -212,6 +193,25 @@ function buildFilterClauses(
   return clauses;
 }
 
+/**
+ * Each branch is ranked independently and rank-fused by the caller (see
+ * mergeBranchRows).
+ *
+ * Identity is searched separately from everything else because a single-token
+ * `last_as_prefix` query scores every match at exactly 1, so the broad branch
+ * cannot order its own results. Matching an identity field puts a document in
+ * two branches, which is what the fusion orders on.
+ *
+ * The all-terms branch requires every query word, which BM25 does not: term
+ * frequency saturates while length normalization keeps biting, so a partner
+ * matching both words can otherwise rank below one matching only the first. It
+ * runs on identityText so a full name is not out-weighted by a long description
+ * or a pile of links.
+ *
+ * The n-gram branch requires every trigram; BM25 alone scores a document that
+ * shares just one, which is how an unrelated address looks like a partial-email
+ * match.
+ */
 function buildQueryBranches(
   programId: string,
   query: string,
