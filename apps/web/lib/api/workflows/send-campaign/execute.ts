@@ -184,6 +184,13 @@ export const executeSendCampaignWorkflow = async ({
         })),
     );
 
+    if (partnerUsers.length === 0) {
+      console.log(
+        `Workflow ${workflow.id} found enrollments but no partner users with emails to send campaign emails to.`,
+      );
+      continue;
+    }
+
     // Send emails
     const { data } = await sendBatchEmail(
       partnerUsers.map((partnerUser) => ({

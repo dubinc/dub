@@ -5,7 +5,6 @@ import { describe, expect, onTestFinished, test } from "vitest";
 import { randomPartnerEmail } from "../utils/helpers";
 import { IntegrationHarness } from "../utils/integration";
 import { E2E_USER_ID } from "../utils/resource";
-import { trackE2ELead } from "./utils/track-e2e-lead";
 import { verifyCampaignSent } from "./utils/verify-campaign-sent";
 
 describe.sequential("Workflow - SendCampaign", async () => {
@@ -755,15 +754,20 @@ describe.sequential("Workflow - SendCampaign", async () => {
       expect(partnerStatus).toEqual(201);
       expect(partner.links).not.toBeNull();
 
-      await http.patch({
+      // API-created partners have no PartnerUser, and campaign emails only
+      // go to users with an email. Create one and set link.leads directly so
+      // the cron AND conditions are met without racing Tinybird waitUntil.
+      const { status: enrollmentStatus } = await http.patch({
         path: "/e2e/enrollments",
         body: {
           partnerId: partner.id,
           createdAt: subHours(new Date(), 18).toISOString(),
+          leads: 1,
+          createUser: true,
         },
       });
 
-      await trackE2ELead(http, partner.links![0]);
+      expect(enrollmentStatus).toEqual(200);
 
       const { status, data } = await http.post<{ message: string }>({
         path: `/e2e/trigger-workflow/${workflow.id}`,
