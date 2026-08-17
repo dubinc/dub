@@ -159,8 +159,8 @@ jobs:
 
       - name: Run Playwright API tests
         working-directory: apps/web
-        run: pnpm test:e2e -- --project=api
+        run: pnpm test:e2e --project=api
 
       - name: Run Playwright UI tests
         working-directory: apps/web
-        run: pnpm test:e2e -- --project=partners --project=workspaces --project=chromium-workspace
+        run: pnpm test:e2e --project=partners --project=workspaces --project=chromium-workspace
