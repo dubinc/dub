@@ -633,4 +633,4 @@ SQL >
         {% else %} click_events
         {% end %}
 
-
+TYPE ENDPOINT

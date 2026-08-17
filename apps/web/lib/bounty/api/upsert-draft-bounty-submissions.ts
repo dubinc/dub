@@ -1,7 +1,7 @@
 import { createId } from "@/lib/api/create-id";
 import { awardBountyConditionSchema } from "@/lib/api/workflows/award-bounty/schema";
 import { evaluateWorkflowConditions } from "@/lib/api/workflows/evaluate-workflow-conditions";
-import { BountyPerformanceScope, BountyType, Prisma } from "@prisma/client";
+import { Bounty, BountyPerformanceScope, Prisma } from "@prisma/client";
 import * as z from "zod/v4";
 
 type AwardBountyCondition = z.infer<typeof awardBountyConditionSchema>;
@@ -34,20 +34,17 @@ export function shouldUpsertDraftSubmissionsOnReopen({
   endsAt,
   archivedAt,
   now = new Date(),
-}: {
-  type: BountyType;
+}: Pick<Bounty, "type" | "startsAt" | "endsAt" | "archivedAt"> & {
   performanceScope: BountyPerformanceScope | null;
   previousEndsAt: Date | null;
-  startsAt: Date;
-  endsAt: Date | null;
-  archivedAt: Date | null;
   now?: Date;
 }): boolean {
   if (type !== "performance") return false;
   if (performanceScope !== "lifetime") return false;
 
   const wasExpired = previousEndsAt != null && previousEndsAt < now;
-  const stillExpired = endsAt != null && endsAt < now && startsAt <= now;
+  const stillExpired =
+    endsAt != null && endsAt < now && startsAt != null && startsAt <= now;
   const nowOrSoonActive = !archivedAt && !stillExpired;
 
   return wasExpired && nowOrSoonActive;
@@ -101,7 +98,7 @@ export function planDraftBountySubmissionUpserts({
         programId,
         partnerId: partner.id,
         bountyId,
-        performanceCount,
+        performanceCount: conditionMet ? condition.value : performanceCount,
         ...(conditionMet && {
           status: "submitted",
           completedAt: new Date(),
@@ -114,7 +111,7 @@ export function planDraftBountySubmissionUpserts({
     if (existing.performanceCount !== performanceCount || conditionMet) {
       toUpdate.push({
         id: existing.id,
-        performanceCount,
+        performanceCount: conditionMet ? condition.value : performanceCount,
         promoteToSubmitted: conditionMet,
       });
     }

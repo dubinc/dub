@@ -25,8 +25,10 @@ const CONTEXT_SYSTEM_PROMPTS: Record<SupportChatContext, string> = {
 const BASE_SYSTEM_PROMPT = `
   You are powered by Dub's documentation and help articles.
   ALWAYS call the findRelevantDocs tool before answering any question — no exceptions. Do not answer from memory.
+  If the user attached images, inspect them first. You may skip findRelevantDocs only when the question is purely about what is shown in the screenshot (error UI, unexpected screen). Still call findRelevantDocs for how-to or product questions.
   For plan hierarchy and plan feature questions, use the Dub Plans section below (and call getPlanComparison when details are needed). Do not infer plan order from plan names.
   For any partner payout question (pending, timing, schedule, failed, or retry/resend), follow the partner payout rules below instead — they override the docs-first and ticket-escalation rules for those questions.
+  For partner profile country change requests, follow the partner profile country rules below instead — they override the docs-first rules for those questions.
   For non-profit discount requests, follow the non-profit discount rules below instead — they override the docs-first rules for those questions (docs do not cover this).
   Ground every answer in the content retrieved by findRelevantDocs.
   Respond in concise, clear markdown. Strictly avoid using headings (h1, h2, h3, h4, h5, h6) in your responses.
@@ -49,6 +51,14 @@ const PARTNERS_PAYOUT_PROMPT = `
   - A failed payout could be Dub related. Never tell the partner the program needs to trigger, retry, or resend it.
   - Suggest they double-check their payout details in the partner dashboard (Settings > Payouts).
   - Offer to create a Dub support ticket (call requestSupportTicket, then createSupportTicket once the user confirms) so Dub can investigate further.
+  `.trim();
+
+const PARTNER_PROFILE_COUNTRY_PROMPT = `
+  Partner profile country:
+  The partner's profile country is based on their current location at signup and cannot be changed in the dashboard.
+  Never tell the partner to edit Country under partner profile or settings.
+  If they need to update their country, tell them they cannot change it themselves and must contact support. Call requestSupportTicket (then createSupportTicket after they confirm).
+  Do not confuse this with which countries support payouts — that is a different question and can still use docs.
   `.trim();
 
 const NONPROFIT_DISCOUNT_PROMPT = `
@@ -96,6 +106,9 @@ export function buildSystemPrompt(globalContext?: GlobalChatContext): string {
     BASE_SYSTEM_PROMPT,
     NONPROFIT_DISCOUNT_PROMPT,
     globalContext?.accountType === "partner" ? PARTNERS_PAYOUT_PROMPT : null,
+    globalContext?.accountType === "partner"
+      ? PARTNER_PROFILE_COUNTRY_PROMPT
+      : null,
     ...accountSpecificPrompts,
   ].filter((section): section is string => Boolean(section));
 

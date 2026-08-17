@@ -2,25 +2,20 @@
 
 import { APP_DOMAIN, cn, createHref, fetcher } from "@dub/utils";
 import * as NavigationMenuPrimitive from "@radix-ui/react-navigation-menu";
-import { LayoutGroup } from "motion/react";
+import { motion } from "motion/react";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
 import {
-  ComponentType,
   PropsWithChildren,
   ReactNode,
   SVGProps,
   createContext,
-  useId,
+  useRef,
+  useState,
 } from "react";
 import useSWR from "swr";
 import { buttonVariants } from "../button";
-import {
-  FEATURES_LIST,
-  RESOURCES,
-  SOLUTIONS,
-  type NavItemChildren,
-} from "../content";
+import { FEATURES_LIST, RESOURCES, SOLUTIONS } from "../content";
 import { useScroll } from "../hooks";
 import { MaxWidthWrapper } from "../max-width-wrapper";
 import { NavWordmark } from "../nav-wordmark";
@@ -33,14 +28,6 @@ export type NavTheme = "light" | "dark";
 export const NavContext = createContext<{ theme: NavTheme }>({
   theme: "light",
 });
-
-export type NavItem = {
-  name: string;
-  href?: string;
-  segments?: string[];
-  content?: ComponentType<{ domain: string }>;
-  childItems?: NavItemChildren;
-};
 
 export const navItems = [
   {
@@ -60,7 +47,13 @@ export const navItems = [
     name: "Solutions",
     content: SolutionsContent,
     childItems: SOLUTIONS,
-    segments: ["/solutions", "/sdks"],
+    segments: [
+      // comment to help with line diff
+      "/solutions",
+      "/enterprise",
+      "/startups",
+      "/sdks",
+    ],
   },
   {
     name: "Resources",
@@ -78,11 +71,6 @@ export const navItems = [
     ],
   },
   {
-    name: "Enterprise",
-    href: "/enterprise",
-    segments: ["/enterprise"],
-  },
-  {
     name: "Customers",
     href: "/customers",
     segments: ["/customers"],
@@ -92,29 +80,54 @@ export const navItems = [
     href: "/pricing",
     segments: ["/pricing"],
   },
+  {
+    name: "Enterprise",
+    href: "/enterprise",
+    segments: ["/enterprise"],
+    mobileOnly: true,
+  },
+  {
+    name: "Startups",
+    href: "/startups",
+    segments: ["/startups"],
+    mobileOnly: true,
+  },
 ];
 
 const navItemClassName = cn(
-  "relative group/item flex items-center rounded-md px-4 py-2 text-sm rounded-lg font-medium text-neutral-700 hover:text-neutral-900 transition-colors",
+  "relative group/item flex items-center rounded-md px-3 h-8 text-sm rounded-lg font-medium text-neutral-700 hover:text-neutral-900 transition-[color]",
   "dark:text-white/90 dark:hover:text-white",
-  "hover:bg-neutral-900/5 dark:hover:bg-white/10",
+  // Idle active state — hidden whenever the floating pill is showing
   "data-[active=true]:bg-neutral-900/5 dark:data-[active=true]:bg-white/10",
-
-  // Hide active state when another item is hovered
-  "group-has-[:hover]:data-[active=true]:[&:not(:hover)]:bg-transparent",
+  "group-data-[pill=true]/nav:data-[active=true]:bg-transparent",
 );
+
+function getHoverStyle(list: HTMLElement, item: HTMLElement) {
+  const listRect = list.getBoundingClientRect();
+  const itemRect = item.getBoundingClientRect();
+  return {
+    left: itemRect.left - listRect.left,
+    width: itemRect.width,
+    opacity: 1,
+  };
+}
+
+const pillSpring = {
+  type: "spring" as const,
+  stiffness: 400,
+  damping: 30,
+  opacity: { duration: 0 },
+};
 
 export function Nav({
   theme = "light",
   staticDomain,
   maxWidthWrapperClassName,
-  navItems: items = navItems,
   logo,
 }: {
   theme?: NavTheme;
   staticDomain?: string;
   maxWidthWrapperClassName?: string;
-  navItems?: NavItem[];
   logo?: ReactNode;
 }) {
   let { domain = "dub.co" } = useParams() as { domain: string };
@@ -122,7 +135,12 @@ export function Nav({
     domain = staticDomain;
   }
 
-  const layoutGroupId = useId();
+  const navListRef = useRef<HTMLUListElement>(null);
+  const [hoverStyle, setHoverStyle] = useState({
+    left: 0,
+    width: 0,
+    opacity: 0,
+  });
 
   const scrolled = useScroll(40);
   const pathname = usePathname();
@@ -134,51 +152,90 @@ export function Nav({
     },
   );
 
+  const showHover = (item: HTMLElement) => {
+    const list = navListRef.current;
+    if (!list) return;
+    setHoverStyle(getHoverStyle(list, item));
+  };
+
+  const hideHover = () => {
+    setHoverStyle((style) => ({ ...style, opacity: 0 }));
+  };
+
   return (
     <NavContext.Provider value={{ theme }}>
-      <LayoutGroup id={layoutGroupId}>
+      <div
+        className={cn(
+          `sticky inset-x-0 top-0 z-30 w-full transition-all`,
+          theme === "dark" && "dark",
+        )}
+      >
+        {/* Scrolled background */}
         <div
           className={cn(
-            `sticky inset-x-0 top-0 z-30 w-full transition-all`,
-            theme === "dark" && "dark",
+            "absolute inset-0 block border-b border-transparent transition-all",
+            scrolled &&
+              "border-neutral-100 bg-white/75 backdrop-blur-lg dark:border-white/10 dark:bg-black/75",
           )}
-        >
-          {/* Scrolled background */}
-          <div
-            className={cn(
-              "absolute inset-0 block border-b border-transparent transition-all",
-              scrolled &&
-                "border-neutral-100 bg-white/75 backdrop-blur-lg dark:border-white/10 dark:bg-black/75",
-            )}
-          />
-          <MaxWidthWrapper className={cn("relative", maxWidthWrapperClassName)}>
-            <div className="flex h-14 items-center justify-between">
-              <div className="grow basis-0">
-                {logo ?? (
-                  <Link
-                    className="block w-fit py-2 pr-2"
-                    href={createHref("/home", domain, {
-                      utm_source: "Custom Domain",
-                      utm_medium: "Navbar",
-                      utm_campaign: domain,
-                      utm_content: "Logo",
-                    })}
-                  >
-                    <NavWordmark />
-                  </Link>
-                )}
-              </div>
-              <NavigationMenuPrimitive.Root
-                delayDuration={0}
-                className="relative hidden lg:block"
+        />
+        <MaxWidthWrapper className={cn("relative", maxWidthWrapperClassName)}>
+          <div className="flex h-14 items-center justify-between">
+            <div className="grow basis-0">
+              {logo ?? (
+                <Link
+                  className="block w-fit py-2 pr-2"
+                  href={createHref("/home", domain, {
+                    utm_source: "Custom Domain",
+                    utm_medium: "Navbar",
+                    utm_campaign: domain,
+                    utm_content: "Logo",
+                  })}
+                >
+                  <NavWordmark />
+                </Link>
+              )}
+            </div>
+
+            <NavigationMenuPrimitive.Root
+              delayDuration={0}
+              className="hidden lg:block"
+              onValueChange={(value) => {
+                // Closing a dropdown while moving to another nav item shouldn't clear the pill
+                if (!value && !navListRef.current?.matches(":hover")) {
+                  hideHover();
+                }
+              }}
+            >
+              <NavigationMenuPrimitive.List
+                ref={navListRef}
+                data-pill={hoverStyle.opacity > 0 ? "true" : undefined}
+                className="group/nav relative flex"
+                onMouseLeave={() => {
+                  const list = navListRef.current;
+                  const openTrigger = list?.querySelector<HTMLElement>(
+                    "[data-state=open]",
+                  );
+                  // Keep the pill on the open trigger so it doesn't flicker into the dropdown
+                  if (list && openTrigger) {
+                    setHoverStyle(getHoverStyle(list, openTrigger));
+                  } else {
+                    hideHover();
+                  }
+                }}
               >
-                <NavigationMenuPrimitive.List className="group relative z-0 flex">
-                  {items.map(({ name, href, segments, content: Content }) => {
+                <motion.div
+                  className="pointer-events-none absolute top-0 h-8 rounded-lg bg-neutral-900/5 dark:bg-white/10"
+                  animate={hoverStyle}
+                  transition={pillSpring}
+                />
+                {navItems
+                  .filter(({ mobileOnly }) => !mobileOnly)
+                  .map(({ name, href, segments, content: Content }) => {
                     const isActive = (segments ?? []).some((segment) =>
                       pathname?.startsWith(segment),
                     );
                     return (
-                      <NavigationMenuPrimitive.Item key={name}>
+                      <NavigationMenuPrimitive.Item key={name} value={name}>
                         <WithTrigger trigger={!!Content}>
                           {href !== undefined ? (
                             <Link
@@ -191,6 +248,7 @@ export function Nav({
                               })}
                               className={navItemClassName}
                               data-active={isActive}
+                              onMouseEnter={(e) => showHover(e.currentTarget)}
                             >
                               {name}
                             </Link>
@@ -198,6 +256,7 @@ export function Nav({
                             <button
                               className={navItemClassName}
                               data-active={isActive}
+                              onMouseEnter={(e) => showHover(e.currentTarget)}
                             >
                               {name}
                               <AnimatedChevron className="ml-1.5 size-2.5 text-neutral-700" />
@@ -213,60 +272,60 @@ export function Nav({
                       </NavigationMenuPrimitive.Item>
                     );
                   })}
-                </NavigationMenuPrimitive.List>
+              </NavigationMenuPrimitive.List>
 
-                <div className="absolute left-1/2 top-full mt-3 -translate-x-1/2">
-                  <NavigationMenuPrimitive.Viewport
-                    className={cn(
-                      "relative flex origin-[top_center] justify-start overflow-hidden rounded-[20px] border border-neutral-200 bg-white shadow-md dark:border-white/[0.15] dark:bg-black",
-                      "data-[state=closed]:animate-scale-out-content data-[state=open]:animate-scale-in-content",
-                      "h-[var(--radix-navigation-menu-viewport-height)] w-[var(--radix-navigation-menu-viewport-width)] transition-[width,height]",
-                    )}
-                  />
-                </div>
-              </NavigationMenuPrimitive.Root>
+              {/* Positioned against MaxWidthWrapper so the dropdown centers on the page */}
+              <div className="absolute left-1/2 top-full mt-3 -translate-x-1/2">
+                <NavigationMenuPrimitive.Viewport
+                  className={cn(
+                    "relative flex origin-top justify-start overflow-hidden rounded-[20px] border border-neutral-200 bg-white shadow-md dark:border-white/[0.15] dark:bg-black",
+                    "data-[state=closed]:animate-scale-out-content data-[state=open]:animate-scale-in-content",
+                    "h-[var(--radix-navigation-menu-viewport-height)] w-[var(--radix-navigation-menu-viewport-width)] transition-[width,height]",
+                  )}
+                />
+              </div>
+            </NavigationMenuPrimitive.Root>
 
-              <div className="hidden grow basis-0 justify-end gap-2 lg:flex">
-                {session && Object.keys(session).length > 0 ? (
+            <div className="hidden grow basis-0 justify-end gap-2 lg:flex">
+              {session && Object.keys(session).length > 0 ? (
+                <Link
+                  href={APP_DOMAIN}
+                  className={cn(
+                    buttonVariants({ variant: "primary" }),
+                    "flex h-8 items-center rounded-lg border px-4 text-sm",
+                    "dark:border-white dark:bg-white dark:text-black dark:hover:bg-neutral-50 dark:hover:ring-white/10",
+                  )}
+                >
+                  Dashboard
+                </Link>
+              ) : !isLoading ? (
+                <>
                   <Link
-                    href={APP_DOMAIN}
+                    href="https://app.dub.co/login"
+                    className={cn(
+                      buttonVariants({ variant: "secondary" }),
+                      "flex h-8 items-center rounded-lg border px-4 text-sm",
+                      "dark:border-white/10 dark:bg-black dark:text-white dark:hover:bg-neutral-900",
+                    )}
+                  >
+                    Log in
+                  </Link>
+                  <Link
+                    href="https://app.dub.co/register"
                     className={cn(
                       buttonVariants({ variant: "primary" }),
                       "flex h-8 items-center rounded-lg border px-4 text-sm",
                       "dark:border-white dark:bg-white dark:text-black dark:hover:bg-neutral-50 dark:hover:ring-white/10",
                     )}
                   >
-                    Dashboard
+                    Sign up
                   </Link>
-                ) : !isLoading ? (
-                  <>
-                    <Link
-                      href="https://app.dub.co/login"
-                      className={cn(
-                        buttonVariants({ variant: "secondary" }),
-                        "flex h-8 items-center rounded-lg border px-4 text-sm",
-                        "dark:border-white/10 dark:bg-black dark:text-white dark:hover:bg-neutral-900",
-                      )}
-                    >
-                      Log in
-                    </Link>
-                    <Link
-                      href="https://app.dub.co/register"
-                      className={cn(
-                        buttonVariants({ variant: "primary" }),
-                        "flex h-8 items-center rounded-lg border px-4 text-sm",
-                        "dark:border-white dark:bg-white dark:text-black dark:hover:bg-neutral-50 dark:hover:ring-white/10",
-                      )}
-                    >
-                      Sign up
-                    </Link>
-                  </>
-                ) : null}
-              </div>
+                </>
+              ) : null}
             </div>
-          </MaxWidthWrapper>
-        </div>
-      </LayoutGroup>
+          </div>
+        </MaxWidthWrapper>
+      </div>
     </NavContext.Provider>
   );
 }

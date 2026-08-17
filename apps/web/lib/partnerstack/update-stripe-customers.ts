@@ -53,6 +53,9 @@ export async function updateStripeCustomers(
       where: {
         projectId: workspace.id,
         stripeCustomerId: null,
+        email: {
+          not: null,
+        },
       },
       select: {
         id: true,
@@ -147,6 +150,10 @@ async function searchStripeAndUpdateCustomer({
     entity: "customer",
     entity_id: customer.id,
   } as const;
+
+  if (!customer.email) {
+    return null;
+  }
 
   try {
     const stripeCustomers = await stripe.customers.search(

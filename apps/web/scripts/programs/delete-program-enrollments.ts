@@ -1,4 +1,5 @@
 import { bulkDeleteLinks } from "@/lib/api/links/bulk-delete-links";
+import { PRISMA_UPDATEMANY_LIMIT } from "@/lib/cron";
 import { prisma } from "@/lib/prisma";
 import "dotenv-flow/config";
 
@@ -11,7 +12,7 @@ async function main() {
         programId,
         totalLeads: 0,
       },
-      take: 250,
+      take: PRISMA_UPDATEMANY_LIMIT,
       include: {
         links: true,
       },

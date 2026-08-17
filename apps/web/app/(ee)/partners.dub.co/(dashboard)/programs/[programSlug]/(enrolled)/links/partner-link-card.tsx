@@ -1,5 +1,6 @@
 import { formatDateTooltip } from "@/lib/analytics/format-date-tooltip";
 import { constructPartnerLink } from "@/lib/partners/construct-partner-link";
+import { QueryLinkStructureHelpText } from "@/lib/partners/query-link-structure-help-text";
 import usePartnerAnalytics from "@/lib/swr/use-partner-analytics";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import { PartnerProfileLinkProps } from "@/lib/types";
@@ -137,18 +138,25 @@ export function PartnerLinkCard({ link }: { link: PartnerProfileLinkProps }) {
                 {/* The max width implementation here is a bit hacky, we should improve in the future */}
                 <div className="flex max-w-[100px] items-center gap-1 py-0 pl-1 pr-1.5 sm:w-fit sm:max-w-[400px]">
                   <ArrowTurnRight2 className="h-3 w-3 shrink-0 text-neutral-400" />
-                  <a
-                    href={isDeactivated ? undefined : link.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="cursor-alias truncate text-sm text-neutral-500 decoration-dotted transition-colors hover:text-neutral-700 hover:underline hover:underline-offset-2"
-                    title={getPrettyUrl(link.url)}
-                    onClick={
-                      isDeactivated ? (e) => e.preventDefault() : undefined
-                    }
-                  >
-                    {getPrettyUrl(link.url)}
-                  </a>
+                  {programEnrollment?.group?.linkStructure === "query" ? (
+                    <QueryLinkStructureHelpText
+                      link={link}
+                      className="mt-0.5"
+                    />
+                  ) : (
+                    <a
+                      href={isDeactivated ? undefined : link.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="cursor-alias truncate text-sm text-neutral-500 decoration-dotted transition-colors hover:text-neutral-700 hover:underline hover:underline-offset-2"
+                      title={getPrettyUrl(link.url)}
+                      onClick={
+                        isDeactivated ? (e) => e.preventDefault() : undefined
+                      }
+                    >
+                      {getPrettyUrl(link.url)}
+                    </a>
+                  )}
                 </div>
               </div>
             </div>

@@ -623,4 +623,4 @@ SQL >
         {% else %} count_clicks
         {% end %}
 
-
+TYPE ENDPOINT

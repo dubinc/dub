@@ -36,6 +36,7 @@ export const ROUTE_PATTERNS = [
   // Links
   "/links/bulk",
   "/links/upsert",
+  "/links/sync",
   "/links/:linkId/transfer",
   "/links/:linkId",
   "/links",
@@ -117,7 +118,22 @@ export const ROUTE_PATTERNS = [
   "/oauth/apps/:appId",
   "/oauth/apps",
 
+  // Integrations
+  "/integrations/uninstall",
+  "/stripe/integration",
+
   // Workspaces
+  "/workspaces/:id/users",
+  "/workspaces/:id/invites/reset",
+  "/workspaces/:id/invites",
+  "/workspaces/:id/saml",
+  "/workspaces/:id/scim",
+  "/workspaces/:id/billing/activate-paid-plan",
+  "/workspaces/:id/billing/cancel",
+  "/workspaces/:id/billing/manage",
+  "/workspaces/:id/billing/payment-methods",
+  "/workspaces/:id/billing/retry-payment",
+  "/workspaces/:id/billing/upgrade",
   "/workspaces/:id",
 ] as const;
 

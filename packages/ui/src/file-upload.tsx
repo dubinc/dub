@@ -1,6 +1,6 @@
 import { cn, resizeImage } from "@dub/utils";
 import { VariantProps, cva } from "class-variance-authority";
-import { DragEvent, ReactNode, useState } from "react";
+import { DragEvent, ReactNode, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { CloudUpload, Icon, LoadingCircle } from "./icons";
 
@@ -143,6 +143,8 @@ export type FileUploadProps = FileUploadReadFileProps & {
   accessibilityLabel?: string;
 
   disabled?: boolean;
+
+  "data-testid"?: string;
 } & VariantProps<typeof imageUploadVariants>;
 
 export function FileUpload({
@@ -165,9 +167,15 @@ export function FileUpload({
   targetResolution,
   accessibilityLabel = "File upload",
   disabled = false,
+  "data-testid": dataTestId,
 }: FileUploadProps) {
   const [dragActive, setDragActive] = useState(false);
   const [fileName, setFileName] = useState<string | null>(null);
+  const [imageError, setImageError] = useState(false);
+
+  useEffect(() => {
+    setImageError(false);
+  }, [imageSrc]);
 
   const onFileChange = async (
     e: React.ChangeEvent<HTMLInputElement> | DragEvent,
@@ -266,7 +274,7 @@ export function FileUpload({
           dragActive &&
             !disabled &&
             "cursor-copy border-black bg-neutral-50 opacity-100",
-          imageSrc
+          imageSrc && !imageError
             ? cn(
                 "opacity-0",
                 showHoverOverlay && !disabled && "group-hover:opacity-100",
@@ -303,10 +311,13 @@ export function FileUpload({
         <span className="sr-only">{accessibilityLabel}</span>
       </div>
       {imageSrc &&
+        !imageError &&
         (customPreview ?? (
           <img
             src={imageSrc}
             alt="Preview"
+            referrerPolicy="no-referrer"
+            onError={() => setImageError(true)}
             className={cn(
               "h-full w-full rounded-[inherit] object-cover",
               previewClassName,
@@ -322,6 +333,7 @@ export function FileUpload({
             accept={acceptFileTypes[accept].types.join(",")}
             onChange={onFileChange}
             disabled={disabled}
+            data-testid={dataTestId}
           />
         </div>
       )}

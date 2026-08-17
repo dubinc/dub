@@ -82,7 +82,7 @@ const getPartnersStandards = (
     tooltip: {
       title:
         "Send payouts to your partners with 1-click (or automate it completely) – all across the world.",
-      cta: "Learn more.",
+      cta: "Learn more ↗",
       href: "https://dub.co/help/article/partner-payouts",
     },
   },
@@ -113,7 +113,7 @@ export const getPricingPlanMainFeatures = (
             tooltip: {
               title:
                 "Get a free .link custom domain for 1 year with any of Dub's paid plans.",
-              cta: "Learn more.",
+              cta: "Learn more ↗",
               href: "https://dub.co/help/article/free-dot-link-domain",
             },
           },
@@ -123,7 +123,7 @@ export const getPricingPlanMainFeatures = (
             tooltip: {
               title:
                 "Organize and manage access to your links on Dub using folders.",
-              cta: "Learn more.",
+              cta: "Learn more ↗",
               href: "https://dub.co/help/article/link-folders",
             },
           },
@@ -133,7 +133,7 @@ export const getPricingPlanMainFeatures = (
             tooltip: {
               title:
                 "Redirect users to a specific page within your mobile application using deep links.",
-              cta: "Learn more.",
+              cta: "Learn more ↗",
               href: "https://dub.co/docs/concepts/deep-links/quickstart",
             },
           },
@@ -153,7 +153,7 @@ export const getPricingPlanMainFeatures = (
             tooltip: {
               title:
                 "Track how your link clicks are converting to signups and sales.",
-              cta: "Learn more.",
+              cta: "Learn more ↗",
               href: "https://dub.co/docs/quickstart/server",
             },
           },
@@ -163,7 +163,7 @@ export const getPricingPlanMainFeatures = (
             tooltip: {
               title:
                 "Run A/B tests to compare different short-link variations and identify what drives the highest conversions.",
-              cta: "Learn more.",
+              cta: "Learn more ↗",
               href: "https://dub.co/help/article/ab-testing",
             },
           },
@@ -173,7 +173,7 @@ export const getPricingPlanMainFeatures = (
             tooltip: {
               title:
                 "Get real-time insights into your customers' behavior and preferences.",
-              cta: "Learn more.",
+              cta: "Learn more ↗",
               href: "https://dub.co/help/article/customer-insights",
             },
           },
@@ -183,7 +183,7 @@ export const getPricingPlanMainFeatures = (
             tooltip: {
               title:
                 "Get real-time notifications when a link is clicked or a QR code is scanned using webhooks.",
-              cta: "Learn more.",
+              cta: "Learn more ↗",
               href: "https://dub.co/docs/webhooks/introduction",
             },
           },
@@ -221,7 +221,7 @@ export const getPricingPlanMainFeatures = (
           ),
           {
             id: "sso",
-            text: "SSO/SAML",
+            text: "SAML/SSO",
           },
           {
             id: "logs",
@@ -249,7 +249,7 @@ export const getPricingPlanMainFeatures = (
             tooltip: {
               title:
                 "Create custom click, lead, or sale-based rewards, tailored to each partner's needs.",
-              cta: "Learn more.",
+              cta: "Learn more ↗",
               href: "https://dub.co/help/article/partner-rewards",
             },
           },
@@ -259,7 +259,7 @@ export const getPricingPlanMainFeatures = (
             tooltip: {
               title:
                 "Offer dual-sided incentives to your partners and the users they refer.",
-              cta: "Learn more.",
+              cta: "Learn more ↗",
               href: "https://dub.co/help/article/dual-sided-incentives",
             },
           },
@@ -268,19 +268,17 @@ export const getPricingPlanMainFeatures = (
             text: "Program bounties",
             tooltip: {
               title:
-                "Drive partner engagement by creating performance and submission bounties for your partner program.",
-              cta: "Learn more.",
+                "Drive partner engagement with performance and submission bounties.",
+              cta: "Learn more ↗",
               href: "https://dub.co/help/article/program-bounties",
             },
           },
           {
             id: "analytics",
-            text: "Real-time analytics",
+            text: "Powerful, real-time analytics",
             tooltip: {
               title:
-                "Get real-time insights into your partner program's performance and engagement.",
-              cta: "Learn more.",
-              href: "https://dub.co/help/article/program-analytics",
+                "Get real-time insights into your partner program's [performance](https://dub.co/help/article/program-analytics), [commissions](https://dub.co/help/article/commission-analytics), and [applications stats](https://dub.co/help/article/application-analytics).",
             },
           },
           {
@@ -289,8 +287,16 @@ export const getPricingPlanMainFeatures = (
             tooltip: {
               title:
                 "Generate compelling landing pages using Dub AI to attract high-quality partners to join your program.",
-              cta: "Learn more.",
+              cta: "Learn more ↗",
               href: "https://dub.co/help/article/program-landing-page",
+            },
+          },
+          {
+            id: "api",
+            text: "REST API + MCP Server",
+            tooltip: {
+              title:
+                "Manage your program with your AI agent through our [REST API](https://dub.co/docs/api-reference/introduction) and [MCP Server](https://dub.co/docs/mcp-server).",
             },
           },
           {
@@ -298,8 +304,8 @@ export const getPricingPlanMainFeatures = (
             text: "Real-time event webhooks",
             tooltip: {
               title:
-                "Get real-time notifications when a link is clicked or a QR code is scanned using webhooks.",
-              cta: "Learn more.",
+                "Get real-time notifications when a partner [applies to your program](https://dub.co/docs/webhooks/events/partner-application-submitted) / [generates a sale](https://dub.co/docs/webhooks/events/sale-created) / [earns a commission](https://dub.co/docs/webhooks/events/commission-created).",
+              cta: "Learn more ↗",
               href: "https://dub.co/docs/webhooks/introduction",
             },
           },
@@ -323,8 +329,18 @@ export const getPricingPlanMainFeatures = (
             tooltip: {
               title:
                 "Create dynamic click, lead, or sale-based rewards with country and product-specific modifiers.",
-              cta: "Learn more.",
+              cta: "Learn more ↗",
               href: "https://dub.co/help/article/partner-rewards",
+            },
+          },
+          {
+            id: "embeddedreferrals",
+            text: "Embedded referral dashboard",
+            tooltip: {
+              title:
+                "Let users join your referral program and start sharing + earning commissions – all without leaving your app.",
+              cta: "Learn more ↗",
+              href: "https://dub.co/docs/partners/embedded-referrals",
             },
           },
           {
@@ -333,7 +349,7 @@ export const getPricingPlanMainFeatures = (
             tooltip: {
               title:
                 "Send marketing and transactional emails to your partners to increase engagement and drive conversions.",
-              cta: "Learn more.",
+              cta: "Learn more ↗",
               href: "https://dub.co/help/article/email-campaigns",
             },
           },
@@ -346,23 +362,23 @@ export const getPricingPlanMainFeatures = (
             },
           },
           {
-            id: "sso",
+            id: "workflows",
+            text: "Partner group move rules",
+            tooltip: {
+              title:
+                "Automatically move partners between [groups](https://dub.co/help/article/partner-groups) based on their activity and performance.",
+              cta: "Learn more ↗",
+              href: "https://dub.co/help/article/partner-groups#group-move-rules",
+            },
+          },
+          {
+            id: "security",
             text: "Risk monitoring",
             tooltip: {
               title:
                 "Safeguard your partner program by automatically flagging, reviewing, and resolving suspicious activity.",
-              cta: "Learn more.",
+              cta: "Learn more ↗",
               href: "https://dub.co/help/article/risk-monitoring",
-            },
-          },
-          {
-            id: "embeddedreferrals",
-            text: "Embedded referral dashboard",
-            tooltip: {
-              title:
-                "Create an embedded referral dashboard directly in your app in just a few lines of code.",
-              cta: "Learn more.",
-              href: "https://dub.co/docs/partners/embedded-referrals",
             },
           },
           {
@@ -371,7 +387,7 @@ export const getPricingPlanMainFeatures = (
             tooltip: {
               title:
                 "Reward partners for referring other partners to your affiliate program.",
-              cta: "Learn more.",
+              cta: "Learn more ↗",
               href: "https://dub.co/help/article/partner-referrals",
             },
           },
@@ -410,18 +426,18 @@ export const getPricingPlanMainFeatures = (
             text: "Featured in Program Marketplace",
             tooltip: {
               title:
-                "Get featured in front of our network of 500,000+ total affiliates and receive 10x more applications.",
-              cta: "Learn more.",
+                "Get featured in front of our network of 250,000+ total affiliates and receive 10x more applications.",
+              cta: "Learn more ↗",
               href: "https://dub.co/help/article/program-marketplace",
             },
           },
           {
             id: "sso",
-            text: "SSO/SAML",
+            text: "SAML/SSO",
             tooltip: {
               title:
                 "Enable single sign-on (SSO) for your entire organization using SAML.",
-              cta: "Learn more.",
+              cta: "Learn more ↗",
               href: "https://dub.co/help/category/saml-sso",
             },
           },
@@ -432,6 +448,10 @@ export const getPricingPlanMainFeatures = (
           {
             id: "sla",
             text: "Custom SLA",
+          },
+          {
+            id: "security",
+            text: "Enterprise security & legal",
           },
           {
             id: "slack",

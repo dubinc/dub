@@ -1,3 +1,5 @@
+import { TikTokClient } from "@/lib/tiktok/client";
+
 type PartnerPlatformsProvider = {
   authUrl: string;
   tokenUrl: string;
@@ -80,42 +82,22 @@ export const PARTNER_PLATFORMS_PROVIDERS: Record<
         };
       }
 
-      // Fetch user info
-      const response = await fetch(
-        "https://open.tiktokapis.com/v2/user/info/?fields=username",
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        },
-      );
+      const tiktokClient = new TikTokClient({ accessToken });
 
-      const userResponse = await response.json();
+      try {
+        const user = await tiktokClient.getUserInfo();
+        const username = user.data.user.username;
 
-      if (!response.ok) {
-        console.error("Failed to verify TikTok handle", userResponse);
+        return {
+          verified: handle.toLowerCase() === username.toLowerCase(),
+        };
+      } catch (error) {
+        console.error("Failed to verify TikTok handle", error);
 
         return {
           verified: false,
         };
       }
-
-      const username = userResponse?.data?.user?.username;
-
-      if (!username) {
-        console.error(
-          "No username found in TikTok user response",
-          userResponse,
-        );
-
-        return {
-          verified: false,
-        };
-      }
-
-      return {
-        verified: handle.toLowerCase() === username.toLowerCase(),
-      };
     },
   },
 };
