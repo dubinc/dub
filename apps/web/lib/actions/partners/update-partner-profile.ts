@@ -1,6 +1,7 @@
 "use server";
 
 import { DubApiError } from "@/lib/api/errors";
+import { queuePartnerSearchSync } from "@/lib/api/partners/queue-partner-search-sync";
 import { throwIfNoPermission } from "@/lib/auth/partner-users/throw-if-no-permission";
 import { requestEmailChange } from "@/lib/auth/request-email-change";
 import { qstash } from "@/lib/cron";
@@ -255,6 +256,11 @@ export const updatePartnerProfileAction = authPartnerActionClient
 
       waitUntil(
         Promise.allSettled([
+          // Name, description, and company name are all searchable, and a
+          // profile is shared across programs, so this fans out to every
+          // enrollment the partner holds rather than being scoped to one.
+          queuePartnerSearchSync({ partnerIds: [partner.id] }),
+
           (async () => {
             const shouldExpireCache = !deepEqual(
               {
