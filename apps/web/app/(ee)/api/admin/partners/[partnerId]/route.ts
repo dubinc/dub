@@ -1,3 +1,4 @@
+import { queuePartnerSearchSync } from "@/lib/api/partners/queue-partner-search-sync";
 import { withAdmin } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
 import { prisma } from "@/lib/prisma";
@@ -158,6 +159,10 @@ export const PATCH = withAdmin(async ({ params, req }) => {
       cryptoWalletAddress: null,
     },
   });
+
+  // Country is a filterable field on the document, so an admin correcting it
+  // has to reach the index or the partner stays findable under the old one.
+  waitUntil(queuePartnerSearchSync({ partnerIds: [partner.id] }));
 
   // if there was an existing veriff session, trigger a country change verification
   if (partner.identityVerifiedAt) {
