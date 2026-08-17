@@ -23,8 +23,8 @@ interface FindPartnerSearchCandidatesOptions {
  * A complete email address takes the same exit, but only once the database
  * confirms it: `email` is unique and indexed, so the lookup is a point read
  * against a network round trip. A miss still goes to the provider, because an
- * address matching nothing exactly is usually one the caller is still typing —
- * `steven@dub.co` on the way to `steven@dub.com` — and n-grams still match it.
+ * address matching nothing exactly is usually one the caller is still typing,
+ * `steven@dub.co` on the way to `steven@dub.com`, and n-grams still match it.
  */
 export async function findPartnerSearchCandidates(
   searchProvider: PartnerSearchProvider,

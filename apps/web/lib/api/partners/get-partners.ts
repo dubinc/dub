@@ -99,7 +99,7 @@ export async function getPartners(
   if (relevanceHits) {
     // Relevance order cannot be expressed in SQL, so the page has to be chosen
     // in memory. Resolve which candidates survive the filters as bare IDs
-    // first — hydrating all of them to show one page costs ~330ms at the
+    // first, because hydrating all of them to show one page costs ~330ms at the
     // candidate limit against ~4ms for the page alone.
     const matches = await prisma.programEnrollment.findMany({
       where: candidateWhere,

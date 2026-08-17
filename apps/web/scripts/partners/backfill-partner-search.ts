@@ -11,7 +11,7 @@
  * trusting. Per-program means each finished program is genuinely done.
  *
  * The backfill only upserts. Documents whose enrollment was deleted are removed
- * by rebuilding the index wholesale, not incrementally: delete it and backfill
+ * by rebuilding the index wholesale, not incrementally. Delete it and backfill
  * again.
  *
  *   cd apps/web

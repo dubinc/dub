@@ -100,7 +100,7 @@ export interface PartnerSearchCandidateQuery {
   /**
    * Applied by the provider before it truncates to `limit`. The database still
    * re-applies every one of them, so the index only ever narrows the candidate
-   * pool — it never decides the result on its own.
+   * pool, and it never decides the result on its own.
    */
   filters?: {
     status?: PartnerSearchCandidateFilter;

@@ -111,7 +111,7 @@ const EMAIL_PATTERN = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
  *
  * Debug-only: `searchCandidates` asks for no attributes, because the API only
  * ever needs IDs. This exists so --searchOnly can show what was indexed when the
- * rows are not in the local database — a production index against a seeded one.
+ * rows are not in the local database, such as a production index against a seeded one.
  */
 async function fetchIndexedText(ids: string[]): Promise<Map<string, string>> {
   const apiKey = process.env.TURBOPUFFER_API_KEY;
@@ -148,8 +148,8 @@ const PLATFORM_TYPES = [
 /**
  * `searchText` is every searchable value lowercased and space-joined in a fixed
  * order: partner ID, name, email, company, description, platform types, handles,
- * then links. Three of those boundaries are recoverable — the ID is prefixed,
- * the email is address-shaped, and the platform types are a known enum — so the
+ * then links. Three of those boundaries are recoverable, since the ID is prefixed,
+ * the email is address-shaped, and the platform types are a known enum, so the
  * blob splits into name / profile / platforms-and-links. Company and description
  * cannot be told apart once joined, so they stay together as `profile`.
  */
