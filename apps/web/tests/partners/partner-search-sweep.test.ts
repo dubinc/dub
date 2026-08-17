@@ -1,4 +1,5 @@
 import {
+  PARTNER_SEARCH_SWEEP_TIME_BUDGET_MS,
   partnerSearchDocumentSelect,
   sweepPartnerSearch,
   type PartnerSearchDocumentSource,
@@ -79,15 +80,20 @@ describe("sweepPartnerSearch", () => {
     });
   });
 
-  it("stops at the batch ceiling and returns a resumable cursor", async () => {
+  it("stops at the time budget and returns a resumable cursor", async () => {
     const searchProvider = createProvider();
     mocks.findMany
       .mockResolvedValueOnce([createSource("pge_1"), createSource("pge_2")])
       .mockResolvedValueOnce([createSource("pge_3"), createSource("pge_4")]);
 
+    // Each batch costs 40s against a 60s budget, so the second one crosses it.
+    let clock = 0;
+    const now = () => (clock += 40_000);
+
     const result = await sweepPartnerSearch({
       batchSize: 2,
-      maxBatches: 2,
+      timeBudgetMs: 60_000,
+      now,
       searchProvider,
     });
 
@@ -97,6 +103,45 @@ describe("sweepPartnerSearch", () => {
       done: false,
     });
     expect(mocks.findMany).toHaveBeenCalledTimes(2);
+  });
+
+  // Otherwise a hop that starts with no time left makes no progress, and the
+  // pass retries the same cursor forever without advancing.
+  it("always indexes at least one batch, however tight the budget", async () => {
+    const searchProvider = createProvider();
+    mocks.findMany.mockResolvedValueOnce([
+      createSource("pge_1"),
+      createSource("pge_2"),
+    ]);
+
+    // Budget already blown by the time the first batch finishes.
+    let reads = 0;
+    const now = () => (reads++ === 0 ? 0 : 10_000);
+
+    const result = await sweepPartnerSearch({
+      batchSize: 2,
+      timeBudgetMs: 1,
+      now,
+      searchProvider,
+    });
+
+    expect(result.processed).toBe(2);
+    expect(result.lastDocumentId).toBe("pge_2");
+    expect(mocks.findMany).toHaveBeenCalledTimes(1);
+  });
+
+  it("reports done rather than exhausted when the range runs out first", async () => {
+    const searchProvider = createProvider();
+    mocks.findMany.mockResolvedValueOnce([createSource("pge_1")]);
+
+    const result = await sweepPartnerSearch({
+      batchSize: 2,
+      timeBudgetMs: 60_000,
+      now: () => 0,
+      searchProvider,
+    });
+
+    expect(result.done).toBe(true);
   });
 
   it("resumes from the cursor it was given", async () => {
@@ -168,11 +213,21 @@ describe("sweepPartnerSearch", () => {
     expect(mocks.findMany).not.toHaveBeenCalled();
   });
 
-  it("rejects a non-positive batch ceiling", async () => {
+  it("rejects a non-positive time budget", async () => {
     const searchProvider = createProvider();
 
     await expect(
-      sweepPartnerSearch({ maxBatches: 0, searchProvider }),
-    ).rejects.toThrow("Max batches must be a positive integer.");
+      sweepPartnerSearch({ timeBudgetMs: 0, searchProvider }),
+    ).rejects.toThrow("Time budget must be a positive integer.");
+  });
+
+  // The hop budget is only meaningful if it finishes well inside the function
+  // limit, since the batch in flight when it expires cannot be interrupted.
+  it("leaves the job route room to finish the batch in flight", () => {
+    const JOB_ROUTE_MAX_DURATION_MS = 600_000;
+
+    expect(PARTNER_SEARCH_SWEEP_TIME_BUDGET_MS).toBeLessThanOrEqual(
+      JOB_ROUTE_MAX_DURATION_MS / 2,
+    );
   });
 });

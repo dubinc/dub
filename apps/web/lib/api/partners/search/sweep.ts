@@ -6,11 +6,18 @@ import type { PartnerSearchProvider } from "./types";
 export const PARTNER_SEARCH_SWEEP_BATCH_SIZE = 500;
 
 /**
- * Batches per invocation. At 500 documents each this is 20K per hop, which
- * leaves room under the job route's duration limit while keeping the number of
- * hops for a full pass in the dozens rather than the thousands.
+ * How long one hop indexes before handing off to the next.
+ *
+ * The job route allows 600s, so this leaves more than half the budget spare.
+ * The margin covers the batch in flight when the budget runs out, since the
+ * check happens between batches and cannot interrupt one.
+ *
+ * Deliberately generous rather than tuned. Overrunning the route's limit kills
+ * the hop, and QStash then retries the same cursor until it gives up, which
+ * stalls the pass with nothing to say so. Finishing a hop early costs one extra
+ * message.
  */
-export const PARTNER_SEARCH_SWEEP_MAX_BATCHES = 40;
+export const PARTNER_SEARCH_SWEEP_TIME_BUDGET_MS = 240_000;
 
 interface SweepPartnerSearchOptions {
   after?: string;
@@ -28,7 +35,8 @@ interface SweepPartnerSearchOptions {
    */
   since?: Date;
   batchSize?: number;
-  maxBatches?: number;
+  timeBudgetMs?: number;
+  now?: () => number;
   searchProvider?: PartnerSearchProvider | null;
 }
 
@@ -67,7 +75,8 @@ export async function sweepPartnerSearch({
   after,
   since,
   batchSize = PARTNER_SEARCH_SWEEP_BATCH_SIZE,
-  maxBatches = PARTNER_SEARCH_SWEEP_MAX_BATCHES,
+  timeBudgetMs = PARTNER_SEARCH_SWEEP_TIME_BUDGET_MS,
+  now,
   searchProvider = getPartnerSearchProvider(),
 }: SweepPartnerSearchOptions = {}) {
   if (!searchProvider) {
@@ -78,8 +87,8 @@ export async function sweepPartnerSearch({
     throw new Error("Batch size must be a positive integer.");
   }
 
-  if (!Number.isSafeInteger(maxBatches) || maxBatches <= 0) {
-    throw new Error("Max batches must be a positive integer.");
+  if (!Number.isSafeInteger(timeBudgetMs) || timeBudgetMs <= 0) {
+    throw new Error("Time budget must be a positive integer.");
   }
 
   return await indexPartnerSearchEnrollments({
@@ -87,6 +96,7 @@ export async function sweepPartnerSearch({
     where: buildSweepWhere(since),
     after,
     batchSize,
-    maxBatches,
+    timeBudgetMs,
+    ...(now && { now }),
   });
 }

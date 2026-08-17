@@ -22,10 +22,19 @@ interface IndexPartnerSearchEnrollmentsOptions {
   after?: string;
   batchSize: number;
   /**
-   * Batches to run before returning, so a caller on a request timeout can stop
-   * and resume from the returned cursor. Runs to exhaustion when omitted.
+   * Wall-clock budget, checked between batches, so a caller running under a
+   * function timeout stops on its own and resumes from the returned cursor.
+   * Runs to exhaustion when omitted.
+   *
+   * A budget rather than a batch count because the constraint being respected
+   * is a duration. A batch count only stands in for one if you already know how
+   * long a batch takes, which depends on document size, provider latency, and
+   * how loaded the database is, and is therefore exactly the thing not worth
+   * pinning to a constant.
    */
-  maxBatches?: number;
+  timeBudgetMs?: number;
+  /** Injectable clock, so the budget is testable without real time passing. */
+  now?: () => number;
   onProgress?: (progress: PartnerSearchIndexProgress) => void;
 }
 
@@ -46,15 +55,16 @@ export async function indexPartnerSearchEnrollments({
   where,
   after,
   batchSize,
-  maxBatches,
+  timeBudgetMs,
+  now = Date.now,
   onProgress,
 }: IndexPartnerSearchEnrollmentsOptions) {
+  const startedAt = now();
   let lastDocumentId = after;
   let processed = 0;
-  let batches = 0;
   let done = false;
 
-  while (maxBatches === undefined || batches < maxBatches) {
+  while (true) {
     const enrollments = await prisma.programEnrollment.findMany({
       where: {
         ...where,
@@ -80,7 +90,6 @@ export async function indexPartnerSearchEnrollments({
 
     lastDocumentId = enrollments[enrollments.length - 1].id;
     processed += enrollments.length;
-    batches++;
 
     onProgress?.({
       batchSize: enrollments.length,
@@ -91,6 +100,13 @@ export async function indexPartnerSearchEnrollments({
     // A short page means the range is exhausted.
     if (enrollments.length < batchSize) {
       done = true;
+      break;
+    }
+
+    // Checked after a batch rather than before, so a run always makes progress
+    // however tight the budget is. One batch can therefore overrun it, which is
+    // why callers leave headroom rather than budgeting to their whole limit.
+    if (timeBudgetMs !== undefined && now() - startedAt >= timeBudgetMs) {
       break;
     }
   }
