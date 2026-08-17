@@ -182,18 +182,6 @@ function SidebarAreasPanel<T extends Record<any, any>>({
   const { scrollProgress, updateScrollProgress } = useScrollProgress(scrollRef);
   const showNews = currentArea && areas[currentArea]?.(data).showNews;
 
-  const hasOverflow = useMemo(() => {
-    if (!currentArea) return false;
-    const { content } = areas[currentArea](data);
-    // assume custom ReactNode elements always overflow
-    if (isValidElement(content)) return true;
-
-    const totalItems = Array.isArray(content)
-      ? content.flatMap((c) => c.items).length
-      : 0;
-    return totalItems > 10;
-  }, [currentArea, areas, data]);
-
   return (
     <div className="flex h-full w-[calc(var(--sidebar-areas-width)-0.5rem)] flex-col rounded-xl bg-neutral-100">
       {/* Scrollable content with gradient overlay */}
@@ -201,13 +189,10 @@ function SidebarAreasPanel<T extends Record<any, any>>({
         <div
           ref={scrollRef}
           onScroll={updateScrollProgress}
-          className={cn(
-            "scrollbar-hide h-full overflow-x-hidden rounded-xl",
-            hasOverflow ? "overflow-y-auto" : "overflow-hidden",
-          )}
+          className="scrollbar-hide max-h-full overflow-y-auto overflow-x-hidden rounded-xl"
         >
           <div className="relative flex flex-col p-3 text-neutral-500">
-            <div className="relative w-full grow">
+            <div className="relative w-full overflow-hidden">
               {Object.entries(areas).map(([area, areaConfig]) => {
                 const { title, backHref, content, direction } =
                   areaConfig(data);
@@ -268,12 +253,10 @@ function SidebarAreasPanel<T extends Record<any, any>>({
           </div>
         </div>
         {/* Bottom scroll fade - shows when content overflows */}
-        {hasOverflow && (
-          <div
-            className="pointer-events-none absolute bottom-0 left-0 z-10 h-16 w-full rounded-b-lg bg-gradient-to-t from-neutral-100 to-transparent"
-            style={{ opacity: 1 - Math.pow(scrollProgress, 2) }}
-          />
-        )}
+        <div
+          className="pointer-events-none absolute bottom-0 left-0 z-10 h-16 w-full rounded-b-lg bg-gradient-to-t from-neutral-100 to-transparent"
+          style={{ opacity: 1 - Math.pow(scrollProgress, 2) }}
+        />
       </div>
 
       {/* Fixed bottom sections - always visible */}
@@ -509,11 +492,11 @@ export function Area({
   return (
     <div
       className={cn(
-        "left-0 top-0 flex size-full flex-col md:transition-[opacity,transform] md:duration-300",
+        "left-0 top-0 flex flex-col md:transition-[opacity,transform] md:duration-300",
         visible
-          ? "opacity-1 relative"
+          ? "relative w-full opacity-100"
           : cn(
-              "pointer-events-none absolute opacity-0",
+              "pointer-events-none absolute inset-0 overflow-hidden opacity-0",
               direction === "left" ? "-translate-x-full" : "translate-x-full",
             ),
       )}
