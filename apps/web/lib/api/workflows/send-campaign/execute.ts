@@ -2,7 +2,6 @@ import { evaluateWorkflowConditions } from "@/lib/api/workflows/evaluate-workflo
 import { WorkflowCondition, WorkflowContext } from "@/lib/api/workflows/types";
 import { resolveCampaignFromAddress } from "@/lib/email/parse-campaign-from-address";
 import { aggregatePartnerLinksStats } from "@/lib/partners/aggregate-partner-links-stats";
-import { constructPartnerLink } from "@/lib/partners/construct-partner-link";
 import { prisma } from "@/lib/prisma";
 import { TiptapNode } from "@/lib/types";
 import { WORKFLOW_ACTION_TYPES } from "@/lib/zod/schemas/workflows";
@@ -17,6 +16,7 @@ import {
   Workflow,
 } from "@prisma/client";
 import { addHours, differenceInDays, subDays } from "date-fns";
+import { resolveCampaignEmailVariables } from "../../campaigns/interpolate-email-template";
 import { renderCampaignEmailHTML } from "../../campaigns/render-campaign-email-html";
 import { campaignEligibilityIncludes } from "../../campaigns/transform-campaign";
 import { validateCampaignFromAddress } from "../../campaigns/validate-campaign";
@@ -211,15 +211,10 @@ export const executeSendCampaignWorkflow = async ({
             preview: campaign.preview,
             body: renderCampaignEmailHTML({
               content: campaign.bodyJson as unknown as TiptapNode,
-              variables: {
-                PartnerName: partnerUser.partner.name,
-                PartnerEmail: partnerUser.partner.email,
-                PartnerLink:
-                  constructPartnerLink({
-                    group: partnerUser.enrollment.partnerGroup,
-                    link: partnerUser.enrollment.links?.[0],
-                  }) || null,
-              },
+              variables: resolveCampaignEmailVariables({
+                partner: partnerUser.partner,
+                enrollment: partnerUser.enrollment,
+              }),
             }),
           },
         }),
@@ -284,6 +279,10 @@ const programEnrollmentInclude = {
       id: "asc" as const,
     },
   },
+  clickReward: true,
+  leadReward: true,
+  saleReward: true,
+  referralReward: true,
 } satisfies Prisma.ProgramEnrollmentInclude;
 
 function buildWorkflowContext({

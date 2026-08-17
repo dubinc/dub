@@ -1,3 +1,4 @@
+import { resolveCampaignEmailVariables } from "@/lib/api/campaigns/interpolate-email-template";
 import { renderCampaignEmailHTML } from "@/lib/api/campaigns/render-campaign-email-html";
 import { campaignEligibilityIncludes } from "@/lib/api/campaigns/transform-campaign";
 import { validateCampaignFromAddress } from "@/lib/api/campaigns/validate-campaign";
@@ -6,7 +7,6 @@ import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { resolveCampaignFromAddress } from "@/lib/email/parse-campaign-from-address";
-import { constructPartnerLink } from "@/lib/partners/construct-partner-link";
 import { prisma } from "@/lib/prisma";
 import { TiptapNode } from "@/lib/types";
 import { ACTIVE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
@@ -185,6 +185,10 @@ export async function POST(req: Request) {
             id: "asc",
           },
         },
+        clickReward: true,
+        leadReward: true,
+        saleReward: true,
+        referralReward: true,
         partner: {
           select: {
             id: true,
@@ -285,15 +289,10 @@ export async function POST(req: Request) {
                 preview: campaign.preview,
                 body: renderCampaignEmailHTML({
                   content: campaign.bodyJson as unknown as TiptapNode,
-                  variables: {
-                    PartnerName: partnerUser.partner.name,
-                    PartnerEmail: partnerUser.partner.email,
-                    PartnerLink:
-                      constructPartnerLink({
-                        group: partnerUser.enrollment.partnerGroup,
-                        link: partnerUser.enrollment.links?.[0],
-                      }) || null,
-                  },
+                  variables: resolveCampaignEmailVariables({
+                    partner: partnerUser.partner,
+                    enrollment: partnerUser.enrollment,
+                  }),
                 }),
               },
             }),
