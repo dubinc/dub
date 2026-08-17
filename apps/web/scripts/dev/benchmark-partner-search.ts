@@ -2,7 +2,7 @@
  * Measures p99 latency of the relevance-ranked partner list for a program.
  *
  * Calls `getPartners` in process, not over HTTP, so the numbers exclude route
- * handling, auth, and serialization — treat them as a floor for the endpoint.
+ * handling, auth, and serialization, so treat them as a floor for the endpoint.
  *
  * --searchOnly times the provider's candidate query alone and skips the
  * database. Use it to compare providers: they are the same remote services
@@ -583,7 +583,7 @@ async function main() {
         .map(({ field }) => field)
         .join(
           ", ",
-        )}. There is no p99 to compare against the threshold — check that the search index is backfilled for this program.`,
+        )}. There is no p99 to compare against the threshold. Check that the search index is backfilled for this program.`,
     );
   }
 

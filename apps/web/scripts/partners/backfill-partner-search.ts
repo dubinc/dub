@@ -6,7 +6,7 @@
  * last indexed document, so a partial backfill is never redone from zero.
  *
  * The backfill only upserts. Documents whose enrollment was deleted are removed
- * by rebuilding the index wholesale, not incrementally — delete it and backfill
+ * by rebuilding the index wholesale, not incrementally. Delete it and backfill
  * again.
  *
  *   cd apps/web

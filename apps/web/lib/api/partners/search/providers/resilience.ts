@@ -4,7 +4,7 @@ function isTransientError(error: unknown): boolean {
   const message = error instanceof Error ? error.message : String(error);
 
   // fetch network failures surface as TypeError ("fetch failed"), but so do
-  // ordinary programming errors — only the network ones deserve a retry.
+  // ordinary programming errors, and only the network ones deserve a retry.
   if (error instanceof TypeError) {
     const normalized = message.toLowerCase();
     return (
@@ -51,7 +51,7 @@ export async function withTransientRetry<T>(
 
 /**
  * Rejects if `operation` has not settled within `timeoutMs`. The operation is
- * not cancelled — `Promise.race` cannot do that — so only pass work that
+ * not cancelled, because `Promise.race` cannot do that, so only pass work that
  * settles on its own.
  */
 export async function withDeadline<T>(

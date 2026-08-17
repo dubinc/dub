@@ -93,7 +93,7 @@ describe("Turbopuffer partner search provider", () => {
       expect(row.identityText).not.toContain(value);
     }
     // ContainsAllTokens reads the BM25 index, so no text attribute needs a
-    // filter index — and turbopuffer bills FTS + filterable at 200%.
+    // filter index, and turbopuffer bills FTS + filterable at 200%.
     expect(schema.identityText.filterable).toBeUndefined();
     expect(schema.emailNgrams.filterable).toBeUndefined();
     expect(schema.programId).toMatchObject({ filterable: true });
@@ -124,7 +124,7 @@ describe("Turbopuffer partner search provider", () => {
 
   it("pins a tokenizer that splits URLs into their components", async () => {
     // The default tokenizer keeps a URL as one token, so "scottdigital" cannot
-    // match "https://www.scottdigital-42.techcorp.io" — and websites, short
+    // match "https://www.scottdigital-42.techcorp.io", and websites, short
     // links, and destination URLs are all searchable here.
     await createProvider().upsert([document]);
 

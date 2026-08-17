@@ -12,11 +12,11 @@ import { PlatformType } from "@prisma/client";
  *   2. the database applies status/group/country/tag/metric to those 999
  *
  * A query matching fewer than 999 is unaffected. Beyond that, both the rows and
- * the count are a floor, and nothing reports that — neither response has a
+ * the count are a floor, and nothing reports that, because neither response has a
  * field for it that could be added without breaking its shape.
  *
  * The fix is indexing the filterable fields so the provider filters before it
- * ranks, which means keeping them in sync on every write — out of scope here.
+ * ranks, which means keeping them in sync on every write. That is out of scope here.
  */
 export const PARTNER_SEARCH_CANDIDATE_LIMIT = 999;
 

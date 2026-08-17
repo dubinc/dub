@@ -4,9 +4,9 @@ const NGRAM_SIZE = 3;
 
 /**
  * Three-character tokens, which is what lets a partial email match without a
- * leading-wildcard query. Providers package these differently — Redis Search
+ * leading-wildcard query. Providers package these differently. Redis Search
  * requires each one as a separate `$eq`, Turbopuffer takes them as a single
- * query string — so this returns the tokens and leaves the packaging to them.
+ * query string, so this returns the tokens and leaves the packaging to them.
  */
 function toNgrams(value: string): string[] {
   return Array.from(

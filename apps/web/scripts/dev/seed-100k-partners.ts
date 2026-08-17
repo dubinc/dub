@@ -2,7 +2,7 @@
  * Bulk-seeds partners for local development and partner-search benchmarking.
  *
  * Writes User, Partner, PartnerUser, ProgramEnrollment, PartnerPlatform, and Link
- * rows — every field the search index reads — in atomic chunks of CHUNK_SIZE
+ * rows (every field the search index reads) in atomic chunks of CHUNK_SIZE
  * partners, so 100K partners lands ~400K rows in seconds.
  *
  * Re-running with the same `--seed` collides. `seedFingerprint` is a deterministic
@@ -106,7 +106,7 @@ const DOMAINS = [
 const COUNTRIES = ["US", "CA", "GB", "DE", "FR", "AU", "JP", "IN", "BR", "NL", "ES", "SE", "SG"];
 
 // A description's longest word becomes its benchmark query, so the specialty is
-// what has to vary — every other word here is shorter than every specialty, and
+// what has to vary, since every other word here is shorter than every specialty, and
 // the specialties differ within their first twelve characters (the query is
 // truncated there).
 const DESCRIPTION_TEMPLATES = [
@@ -278,7 +278,7 @@ const assertSeedableDatabase = (allowRemoteDatabase: boolean) => {
 
   // The host allowlist cannot tell a truly local database from a production
   // one reached through a local tunnel, so a production environment refuses
-  // outright — --allowRemoteDatabase does not override this.
+  // outright. --allowRemoteDatabase does not override this.
   if (
     process.env.NODE_ENV === "production" ||
     process.env.VERCEL_ENV === "production"
@@ -500,7 +500,7 @@ const insertPartnerChunk = async ({
 
 // Generation is deterministic given (programId, seed), so index 0's link key is
 // always the same. Keyed on the link key rather than the email because the key
-// is built from the fingerprint and index alone — editing the name or domain
+// is built from the fingerprint and index alone, so editing the name or domain
 // pools changes index 0's email, which would let this miss an applied seed and
 // surface a raw constraint error partway through instead.
 const assertSeedNotAlreadyApplied = async (
@@ -522,7 +522,7 @@ const assertSeedNotAlreadyApplied = async (
 
   if (existing) {
     throw new Error(
-      `Seed "${seed}" has already been applied to this program (found ${firstLink.domain}/${firstLink.key}). Re-running would collide on unique emails, usernames, and link keys — pass a different --seed to add another batch.`,
+      `Seed "${seed}" has already been applied to this program (found ${firstLink.domain}/${firstLink.key}). Re-running would collide on unique emails, usernames, and link keys. Pass a different --seed to add another batch.`,
     );
   }
 };

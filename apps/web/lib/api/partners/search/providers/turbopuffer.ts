@@ -38,7 +38,7 @@ interface TurbopufferPartnerSearchRow extends Record<string, unknown> {
 /**
  * Pinned rather than left to default. Turbopuffer's newer tokenizers keep a URL
  * as a single token, so `scottdigital` cannot match
- * `https://www.scottdigital-42.techcorp.io` — and partner websites, short
+ * `https://www.scottdigital-42.techcorp.io`, and partner websites, short
  * links, and destination URLs are all searchable fields here. word_v2 splits
  * URLs into their components while handling emails, handles, and hyphenated
  * keys the same way the newer ones do.
@@ -191,8 +191,8 @@ const RRF_RANK_CONSTANT = 60;
 
 /**
  * Fuses the branches by rank (RRF) rather than by score. BM25 scores from
- * different clauses are not comparable — the n-gram branch sums over many
- * trigram terms and runs numerically hotter than the text branch — but rank
+ * different clauses are not comparable, because the n-gram branch sums over many
+ * trigram terms and runs numerically hotter than the text branch, but rank
  * positions are. Each document scores Σ 1/(60 + rank) across the branches it
  * appears in, so a document found by both branches receives a contribution
  * from each, and the raw `$dist` values are deliberately unused. Relies on
@@ -260,7 +260,7 @@ export function createTurbopufferPartnerSearchProvider({
     },
 
     async waitForIndexing() {
-      // Turbopuffer writes are read-after-write consistent — a committed write
+      // Turbopuffer writes are read-after-write consistent, so a committed write
       // is immediately queryable, so there is no indexing lag to wait on.
     },
 
