@@ -95,28 +95,32 @@ test("POST /things", async ({ api }) => {
 
 ## Required conventions
 
-| Rule                                            | Detail                                                                                                       |
-| ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
-| Import `test` from `../fixtures`                | Provides `api` and `workspace`                                                                               |
-| `test.describe.configure({ mode: "parallel" })` | At top of every API spec file                                                                                |
-| Cleanup in `finally`                            | Create → assert → always delete created rows                                                                 |
-| Unique names/ids                                | Use `randomName` / `randomCustomer` from `../../utils` — never fixed colliding names across parallel workers |
-| Assert status + body                            | Prefer `toStrictEqual` / `toEqual` on full shapes; use `expect.any(String)` for ids/timestamps               |
-| Error responses                                 | Match `{ error: { code, message, doc_url } }` exactly                                                        |
-| Typed generics                                  | `api.get<T>`, `api.post<T>`, etc.                                                                            |
-| Workspace fixture                               | Use `{ workspace }` for id/slug from seed (`workspaces/workspaces.spec.ts`) — do not hardcode slug           |
+| Rule                                            | Detail                                                                                                        |
+| ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| Import `test` from `../fixtures`                | Provides `api`, `workspace`, and `program`                                                                    |
+| `test.describe.configure({ mode: "parallel" })` | At top of every API spec file                                                                                 |
+| Cleanup in `finally`                            | Create → assert → always delete created rows                                                                  |
+| Unique names/ids                                | Use `randomName` / `randomCustomer` / `randomPartnerEmail` from `../../utils` — never fixed colliding names   |
+| Assert status + body                            | Prefer `toStrictEqual` / `toEqual` on full shapes; use `expect.any(String)` for ids/timestamps                |
+| Default shape once                              | Happy-path POST owns the full default resource (and nested) shape. Variant tests assert only what they change |
+| HTTP contract only                              | Assert status + JSON. Do not poll/sleep for `waitUntil`, R2, or other background jobs — CI has no `STORAGE_*` |
+| Error responses                                 | Match `{ error: { code, message, doc_url } }` exactly                                                         |
+| Typed generics                                  | `api.get<T>`, `api.post<T>`, etc.                                                                             |
+| Seeded fixtures                                 | `{ workspace }`, `{ program }` (`id`, `defaultGroupId`), `TEST_WORKSPACE` — not Vitest `E2E_*` constants      |
 
-### Fixtures (`api` / `workspace`)
+### Fixtures (`api` / `workspace` / `program`)
 
 - `api.get/post/patch/delete(url, data?)` → `{ status, data }` (JSON parsed).
 - Paths are app-relative (`/api/...`); `baseURL` is `http://localhost:8888`.
-- `workspace.id` / `workspace.slug` come from `.auth/api.json`.
+- `workspace.id` / `workspace.slug` and `program.id` / `program.defaultGroupId` come from `.auth/api.json`.
+- Seeded program domain/url: `TEST_WORKSPACE.program` in `setup-test-workspace.ts`.
 
 ### Helpers
 
 - Shared randomizers / sort assertions: `apps/web/playwright/utils.ts`.
 - Local `createX` / `deleteX` helpers in the spec file when the same setup repeats.
-- Prisma direct seed is allowed for bulk fixtures (see `customers/customers-pagination.spec.ts`); still clean up in `finally` / after hooks.
+- Once `createX` exists, use it for setup **and** follow-up creates (pass overrides for identity fields that must stay stable, e.g. `email`). Happy-path tests may still inline `api.post` so the asserted body is local.
+- Prisma direct seed is allowed for bulk fixtures (see `customers/customers-pagination.spec.ts`); still clean up in `finally` / after hooks. No DELETE route → Prisma/`conn` cleanup is fine (`partners/partners.spec.ts`).
 
 ### Error / table-driven cases
 
@@ -148,6 +152,15 @@ for (const { name, body, expected } of errorCases) {
 
 Optional: validate richer payloads with Zod (`.parse(...)`) like `workspaces/workspaces.spec.ts` / enriched customer fields.
 
+## Migrating Vitest API tests
+
+When converting `apps/web/tests/<resource>/*.test.ts`:
+
+1. Add or extend `playwright/api/<resource>/<resource>.spec.ts` — do not leave a parallel Vitest HTTP spec.
+2. Map `IntegrationHarness` / `http.post({ path })` → `api` fixture (`/api/...` paths).
+3. Replace `E2E_*` / `E2E_PARTNER_GROUP` with `{ workspace }`, `{ program }`, and `TEST_WORKSPACE`.
+4. Delete the Vitest file after the Playwright spec covers its cases.
+
 ## Do not
 
 - Call `setupTestWorkspace` from specs (only `globalSetup`).
@@ -155,6 +168,8 @@ Optional: validate richer payloads with Zod (`.parse(...)`) like `workspaces/wor
 - Commit secrets or change the fixed Playwright token unless intentionally rotating local/CI test auth.
 - Skip cleanup (parallel API project will leak / flake).
 - Run `pnpm build` after adding tests.
+- Poll or `setTimeout` for R2/storage/`waitUntil` side effects (no `STORAGE_*` in CI). Assert the immediate JSON body instead (e.g. foreign `image` URLs stay `null` on create).
+- Copy Vitest `IntegrationHarness` or `E2E_*` constants into Playwright specs.
 
 ## Run
 

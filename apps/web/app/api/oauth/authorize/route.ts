@@ -1,4 +1,8 @@
 import { DubApiError } from "@/lib/api/errors";
+import {
+  canInstallOAuthApp,
+  UNVERIFIED_APP_INSTALL_MESSAGE,
+} from "@/lib/api/oauth/can-install-oauth-app";
 import { OAUTH_CONFIG } from "@/lib/api/oauth/constants";
 import { createToken } from "@/lib/api/oauth/utils";
 import { consolidateScopes, getScopesForRole } from "@/lib/api/tokens/scopes";
@@ -42,13 +46,27 @@ export const POST = withWorkspace(
       select: {
         redirectUris: true,
         pkce: true,
-        integrationId: true,
+        integration: {
+          select: {
+            id: true,
+            verified: true,
+            projectId: true,
+            userId: true,
+          },
+        },
       },
     });
 
+    if (!app.integration) {
+      throw new DubApiError({
+        code: "not_found",
+        message: "Could not find OAuth application.",
+      });
+    }
+
     if (
       [STRIPE_INTEGRATION_ID, SHOPIFY_INTEGRATION_ID].includes(
-        app.integrationId,
+        app.integration.id,
       ) &&
       (workspace.plan === "free" || workspace.plan === "pro")
     ) {
@@ -73,6 +91,19 @@ export const POST = withWorkspace(
       throw new DubApiError({
         code: "bad_request",
         message: "Missing code_challenge or code_challenge_method parameters.",
+      });
+    }
+
+    if (
+      !canInstallOAuthApp({
+        integration: app.integration,
+        workspace,
+        userId: session.user.id,
+      })
+    ) {
+      throw new DubApiError({
+        code: "forbidden",
+        message: UNVERIFIED_APP_INSTALL_MESSAGE,
       });
     }
 

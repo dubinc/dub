@@ -133,10 +133,14 @@ export function PartnersTable() {
   const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
   const { program } = useProgram();
 
+  const defaultStatus = program?.deactivatedAt
+    ? ProgramEnrollmentStatus.deactivated
+    : ProgramEnrollmentStatus.approved;
+
   const status = (
     searchParams.get("status") || searchParams.get("search")
       ? undefined
-      : ProgramEnrollmentStatus.approved
+      : defaultStatus
   ) as ProgramEnrollmentStatus;
 
   const sortBy =
@@ -187,9 +191,31 @@ export function PartnersTable() {
           enableHiding: false,
           minSize: 150,
           maxSize: 250,
-          cell: ({ row }) => (
-            <PartnerRowItem partner={row.original} showPermalink={false} />
-          ),
+          cell: ({ row }) => {
+            const showDeactivatedInline =
+              columnVisibility.status === false &&
+              row.original.status === ProgramEnrollmentStatus.deactivated &&
+              searchParams.get("status") !==
+                ProgramEnrollmentStatus.deactivated;
+
+            return (
+              <PartnerRowItem
+                partner={row.original}
+                showPermalink={false}
+                suffix={
+                  showDeactivatedInline ? (
+                    <StatusBadge
+                      size="sm"
+                      icon={null}
+                      variant={PartnerStatusBadges.deactivated.variant}
+                    >
+                      {PartnerStatusBadges.deactivated.label}
+                    </StatusBadge>
+                  ) : null
+                }
+              />
+            );
+          },
         },
         {
           id: "group",
@@ -427,7 +453,13 @@ export function PartnersTable() {
           ),
         },
       ].filter((c) => c.id === "menu" || partnersColumns.all.includes(c.id)),
-    [workspaceId, groups, workspaceSlug],
+    [
+      workspaceId,
+      groups,
+      workspaceSlug,
+      columnVisibility.status,
+      searchParams.get("status"),
+    ],
   );
 
   const { table, ...tableProps } = useTable({
@@ -490,8 +522,8 @@ export function PartnersTable() {
       <PartnersBulkActionsBar
         table={table}
         showBulkActionsMenu={
-          !searchParams.get("status") ||
-          searchParams.get("status") === "approved"
+          (searchParams.get("status") || status) ===
+          ProgramEnrollmentStatus.approved
         }
       />
     ),
@@ -771,7 +803,7 @@ function RowMenuButton({
 
   return (
     <>
-      <ChangeGroupModal />
+      {ChangeGroupModal}
       <UpdatePartnerTagsModal
         showUpdatePartnerTagsModal={showUpdatePartnerTagsModal}
         setShowUpdatePartnerTagsModal={setShowUpdatePartnerTagsModal}
@@ -1032,7 +1064,7 @@ const PartnersBulkActionsBar = memo(function PartnersBulkActionsBar({
 
   return (
     <>
-      <ChangeGroupModal />
+      {ChangeGroupModal}
       <UpdatePartnerTagsModal
         showUpdatePartnerTagsModal={showUpdatePartnerTagsModal}
         setShowUpdatePartnerTagsModal={setShowUpdatePartnerTagsModal}

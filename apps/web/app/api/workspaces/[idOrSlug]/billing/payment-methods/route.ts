@@ -96,7 +96,6 @@ export const GET = withWorkspace(
         defaultPaymentMethodId,
       });
     } catch (error) {
-      console.error(error);
       return NextResponse.json({
         paymentMethods: [],
         defaultPaymentMethodId: null,

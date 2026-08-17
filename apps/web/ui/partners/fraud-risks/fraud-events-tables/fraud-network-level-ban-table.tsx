@@ -11,7 +11,7 @@ type EventDataProps = z.infer<
   (typeof fraudEventSchemas)["partnerCrossProgramBan"]
 >;
 
-export function FraudCrossProgramBanTable() {
+export function FraudNetworkLevelBanTable() {
   const {
     fraudEvents,
     loading,

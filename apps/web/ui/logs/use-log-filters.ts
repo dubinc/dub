@@ -174,6 +174,7 @@ export function useLogFilters() {
           "start",
           "end",
           "interval",
+          "exactRange",
         ],
       }),
     [queryParams],
@@ -203,6 +204,12 @@ export function useLogFilters() {
       params.interval = searchParamsObj.interval;
     }
 
+    params.timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+    if (searchParamsObj.exactRange) {
+      params.exactRange = searchParamsObj.exactRange;
+    }
+
     return new URLSearchParams(params).toString();
   }, [
     activeFilters,
@@ -211,6 +218,7 @@ export function useLogFilters() {
     searchParamsObj.start,
     searchParamsObj.end,
     searchParamsObj.interval,
+    searchParamsObj.exactRange,
   ]);
 
   return {
