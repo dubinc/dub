@@ -95,9 +95,7 @@ export const updateProgramPartnerTagsAction = authActionClient
       ]);
     });
 
-    // Tags carry no timestamps, so the reconciliation sweep cannot notice this
-    // change on its own. This hook is the only thing keeping tag filters in the
-    // index honest between full rebuilds.
+    // Queue an index update for the changed tags.
     waitUntil(queuePartnerSearchSync({ partnerIds, programId }));
 
     // Sync updated partner tags to Tinybird for analytics (top_partner_tags)

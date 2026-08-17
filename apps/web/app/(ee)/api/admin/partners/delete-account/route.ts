@@ -135,8 +135,7 @@ export const POST = withAdmin(
           `Deleted ${partner.programs.length} program enrollments for partner ${partner.email} (${partner.id})`,
         );
 
-        // Deletions are invisible to the reconciliation sweep, so without this
-        // the documents would survive their enrollments until a full rebuild.
+        // Queue an index update for the deleted enrollments.
         await queuePartnerSearchSync({
           enrollmentIds: partner.programs.map(({ id }) => id),
         });

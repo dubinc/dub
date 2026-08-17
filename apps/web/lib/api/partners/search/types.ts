@@ -3,29 +3,20 @@ import { PlatformType, ProgramEnrollmentStatus } from "@prisma/client";
 /**
  * How many ranked enrollment IDs a provider may return for one query.
  *
- * 999 is inherited rather than derived: the original Redis provider rejected
- * anything from 1000 up. Nothing enforces it now, so it is simply the ceiling
- * this was tuned and measured against.
- *
- * Status, group, country, and tags are applied by the provider *before* this
- * cut, because they are indexed as filterable attributes. The filters the
- * document does not carry are applied by the database *after* it, over an
- * already truncated list:
+ * Status, group, country, and tags are indexed as filterable attributes, so the
+ * provider applies them *before* this cut. The filters the document does not
+ * carry are applied by the database *after* it, over an already truncated list:
  *
  *   - tenant ID and explicit partner IDs
  *   - the referral filter
  *   - every metric range, deliberately absent from the document because
  *     metrics move on each click and would churn it continuously
  *
- * A query still matching more than 999 documents after the provider's filters
- * reports a floor rather than a total, for both the rows and the count, and
- * neither response has a field that could surface it without changing shape.
- * That is an accepted trade: a search matching that many partners is one being
- * refined rather than read, while raising the ceiling is paid on every query,
- * in a larger `top_k` across each ranked branch, a longer `IN` list for the
- * database, and more rows ordered in memory for a relevance sort. Narrowing by
- * a database-only filter lowers the floor further, since it removes rows the
- * cut had already kept.
+ * A query still matching more than this after the provider's filters reports a
+ * floor rather than a total, for both the rows and the count. Raising the
+ * ceiling is paid on every query, in a larger `top_k` across each ranked
+ * branch, a longer `IN` list for the database, and more rows ordered in memory
+ * for a relevance sort.
  */
 export const PARTNER_SEARCH_CANDIDATE_LIMIT = 999;
 

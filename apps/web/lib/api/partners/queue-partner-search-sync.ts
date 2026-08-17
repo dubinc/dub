@@ -50,12 +50,8 @@ function unique(values: string[] | undefined): string[] {
 /**
  * Queues an index sync for whatever the caller just changed.
  *
- * Never throws. A search index that falls behind costs relevance ranking and
- * the wider field coverage, which the read path already degrades to when no
- * provider is configured. A partner mutation failing because a queue was
- * unreachable would be a far worse outcome. Job dispatch already persists to
- * the database when QStash is unavailable, so reaching the catch here means
- * both paths failed, and the reconciliation sweep is what recovers from it.
+ * Never throws, so a queue error cannot fail the source mutation. The sweep
+ * repairs a missed upsert, but not a missed delete.
  */
 export async function queuePartnerSearchSync({
   enrollmentIds,
@@ -92,7 +88,7 @@ export async function queuePartnerSearchSync({
     await partnerSearchSyncJob.dispatchBatch(payloads, () => ({ delay }));
   } catch (error) {
     console.error(
-      "[Partner Search] Failed to queue an index sync. The reconciliation sweep will pick this up.",
+      "[Partner Search] Failed to queue an index sync. The sweep repairs a missed upsert, but not a missed delete.",
       error,
     );
   }

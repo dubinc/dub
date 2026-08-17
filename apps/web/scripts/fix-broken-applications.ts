@@ -1,3 +1,4 @@
+import { queuePartnerSearchSync } from "@/lib/api/partners/queue-partner-search-sync";
 import { prisma } from "@/lib/prisma";
 import { sendBatchEmail } from "@dub/email";
 import NotifyPartnerReapply from "@dub/email/templates/notify-partner-reapply";
@@ -64,15 +65,20 @@ async function main() {
     );
   }
 
+  const enrollmentIds = missingApplications.map((p) => p.id);
+
   const res = await prisma.programEnrollment.deleteMany({
     where: {
       id: {
-        in: missingApplications.map((p) => p.id),
+        in: enrollmentIds,
       },
     },
   });
 
   console.log("Deleted program enrollments", res);
+
+  // Queue an index update for the deleted enrollments.
+  await queuePartnerSearchSync({ enrollmentIds });
 }
 
 main();

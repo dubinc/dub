@@ -1,4 +1,5 @@
 import { bulkDeleteLinks } from "@/lib/api/links/bulk-delete-links";
+import { queuePartnerSearchSync } from "@/lib/api/partners/queue-partner-search-sync";
 import { PRISMA_UPDATEMANY_LIMIT } from "@/lib/cron";
 import { prisma } from "@/lib/prisma";
 import "dotenv-flow/config";
@@ -38,15 +39,20 @@ async function main() {
 
     await bulkDeleteLinks(linksToDelete);
 
+    const enrollmentIds = programEnrollments.map(({ id }) => id);
+
     const deleteProgramEnrollment = await prisma.programEnrollment.deleteMany({
       where: {
         id: {
-          in: programEnrollments.map(({ id }) => id),
+          in: enrollmentIds,
         },
       },
     });
 
     console.log("deleteProgramEnrollment", deleteProgramEnrollment);
+
+    // Queue an index update for the deleted enrollments.
+    await queuePartnerSearchSync({ enrollmentIds });
   }
 }
 

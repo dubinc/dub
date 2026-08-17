@@ -158,9 +158,7 @@ export const POST = withCron(async ({ rawBody }) => {
     }),
   ]);
 
-  // Queued after the enrollment is gone, so the job reads nothing back and
-  // removes the document. No sweep can do this: a pass only sees rows that
-  // still exist.
+  // Queue an index update for the deleted enrollment.
   await queuePartnerSearchSync({ enrollmentIds: [enrollment.id] });
 
   await recordAuditLog({

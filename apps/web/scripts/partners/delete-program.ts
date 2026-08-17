@@ -1,3 +1,4 @@
+import { queuePartnerSearchSync } from "@/lib/api/partners/queue-partner-search-sync";
 import { prisma } from "@/lib/prisma";
 import { R2_URL } from "@dub/utils";
 import "dotenv-flow/config";
@@ -11,6 +12,16 @@ async function main() {
     },
     include: {
       workspace: true,
+    },
+  });
+
+  // deleteMany does not return the rows it removed, so read the IDs first.
+  const enrollments = await prisma.programEnrollment.findMany({
+    where: {
+      programId: program.id,
+    },
+    select: {
+      id: true,
     },
   });
 
@@ -92,6 +103,11 @@ async function main() {
       timeout: 20000, // default: 5000
     },
   );
+
+  // Queue an index update for the deleted enrollments.
+  await queuePartnerSearchSync({
+    enrollmentIds: enrollments.map(({ id }) => id),
+  });
 
   await workspaceProductCache.set({
     slug: program.workspace.slug,

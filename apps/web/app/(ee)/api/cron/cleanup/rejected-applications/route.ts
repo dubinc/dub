@@ -60,8 +60,7 @@ export async function POST(req: Request) {
         `Deleted ${deletedProgramEnrollments.count} rejected programEnrollments that are older than 30 days`,
       );
 
-      // Deletions are invisible to the reconciliation sweep, so the index only
-      // loses these documents if this hook queues them.
+      // Queue an index update for the deleted enrollments.
       await queuePartnerSearchSync({
         enrollmentIds: rejectedProgramEnrollments.map(({ id }) => id),
       });
