@@ -256,9 +256,8 @@ export const updatePartnerProfileAction = authPartnerActionClient
 
       waitUntil(
         Promise.allSettled([
-          // Name, description, and company name are all searchable, and a
-          // profile is shared across programs, so this fans out to every
-          // enrollment the partner holds rather than being scoped to one.
+          // A profile is shared across programs, so this is deliberately not
+          // scoped to one.
           queuePartnerSearchSync({ partnerIds: [partner.id] }),
 
           (async () => {

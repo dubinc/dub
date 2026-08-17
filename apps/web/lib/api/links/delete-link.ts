@@ -80,9 +80,7 @@ export async function deleteLink(linkId: string) {
       link.discountCode && enqueueDeleteDiscountCode([link.discountCode]),
 
       // The enrollment outlives the link, so this re-serializes the document
-      // without it rather than removing the document. Takes the link delay:
-      // a deleted short link matching a search is a stale hit, not a wrong one,
-      // since the database still filters the candidates the index returns.
+      // without it rather than removing the document.
       link.programId &&
         link.partnerId &&
         queuePartnerSearchSync({

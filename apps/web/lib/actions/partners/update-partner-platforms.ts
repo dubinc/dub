@@ -192,8 +192,7 @@ export const updatePartnerPlatformsAction = authPartnerActionClient
 
     await Promise.all(operations);
 
-    // One queue for the whole action rather than one per platform: a profile
-    // change fans out to every program the partner is enrolled in, so this is
-    // deliberately not scoped by program.
+    // One queue for the action rather than one per platform, and deliberately
+    // not scoped by program.
     waitUntil(queuePartnerSearchSync({ partnerIds: [partner.id] }));
   });

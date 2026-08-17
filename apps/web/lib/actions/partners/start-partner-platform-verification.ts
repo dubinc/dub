@@ -97,9 +97,8 @@ export const startPartnerPlatformVerificationAction = authPartnerActionClient
 
     const result = await startVerification();
 
-    // All three paths upsert the platform identifier, which is searchable.
-    // Queued here, after the write, rather than at each of the four upserts,
-    // so one verification produces one sync rather than one per platform row.
+    // All three paths upsert the searchable identifier. Queued once here rather
+    // than at each of the four upserts.
     waitUntil(queuePartnerSearchSync({ partnerIds: [partner.id] }));
 
     return result;

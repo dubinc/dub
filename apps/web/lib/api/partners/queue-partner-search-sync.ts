@@ -6,33 +6,21 @@ import {
 } from "./search";
 
 /**
- * How long a sync waits before it runs, so the mutation's transaction has
- * settled by the time the job reads the row back.
+ * How long a sync waits, so the mutation has committed before the job reads the
+ * row back.
  *
- * Deliberately not deduplicated. QStash suppresses a repeated key for ten
- * minutes from the first publish, not merely while one is pending, so keying
- * by subject would drop the second of two changes inside that window rather
- * than collapse them. A dropped delete leaves a document nothing can remove.
- * Every edit gets its own job instead, which is safe because the job re-reads
- * current state and is therefore idempotent.
+ * Not deduplicated by subject. QStash suppresses a repeated key for ten minutes
+ * from the first publish, not just while one is pending, so the second of two
+ * changes in that window would be dropped rather than collapsed.
  */
 export const PARTNER_SEARCH_SYNC_DELAY_SECONDS = 5;
 
 /**
- * Links change far more often than the other document sources, and a link edit
- * only moves `shortLinks` and `destinationUrls`, so their syncs are spread out
- * rather than run at once. Nothing is lost by waiting: the handler re-reads the
- * whole document, so a late link sync still picks up every other change that
- * landed meanwhile.
+ * Link edits are frequent and only move `shortLinks` and `destinationUrls`, so
+ * their syncs are spread out. Creation uses the default delay, since a new
+ * short link is how people search for that partner.
  *
- * This no longer reduces the number of writes. It did when these were
- * deduplicated by subject, and that is gone, so what remains is smoothing when
- * a bulk link operation's jobs run. Flow control is what actually caps the load
- * on the provider, which makes this worth revisiting.
- *
- * Link *creation* uses the default delay instead: a partner's short link is how
- * people search for them, so a newly enrolled partner being unfindable by link
- * is a worse trade than running the job sooner.
+ * Worth revisiting: this stopped reducing writes when deduplication was removed.
  */
 export const PARTNER_SEARCH_LINK_SYNC_DELAY_SECONDS = 300;
 

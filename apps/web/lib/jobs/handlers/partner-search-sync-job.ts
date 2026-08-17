@@ -8,24 +8,20 @@ import * as z from "zod/v4";
 import { defineJob } from "../index";
 
 /**
- * How many concurrent syncs may aim writes at the provider at once. A bulk
- * group move fans out to dozens of jobs, and without a ceiling they would all
- * write at the same moment. Interactive single-partner edits queue behind that
- * work, which is the tradeoff: a search index a few seconds stale is cheaper
- * than a rate-limited provider. Tune against the provider's write limits.
+ * How many syncs may write to the provider at once. A bulk group move fans out
+ * to dozens of jobs that would otherwise all write at the same moment.
+ * Interactive edits queue behind that, which is the trade. Tune against the
+ * provider's write limits.
  */
 const SYNC_PARALLELISM = 20;
 
 /**
  * Two shapes, because the two kinds of change have different blast radii.
  *
- * `enrollments` carries IDs the caller already knows, and is the only shape
- * that can express a deletion, because the handler discovers an enrollment is gone by
- * failing to read it back.
- *
- * `partners` is for changes that fan out beyond one enrollment (a profile edit,
- * a platform change), where the caller knows the partner but not how many
- * programs it reaches.
+ * `enrollments` carries IDs the caller already has, and is the only shape that
+ * can express a deletion, since the handler finds out by failing to read one
+ * back. `partners` is for changes that fan out past one enrollment, where the
+ * caller knows the partner but not how many programs it reaches.
  */
 const inputSchema = z.discriminatedUnion("type", [
   z.object({
@@ -56,9 +52,8 @@ export const partnerSearchSyncJob = defineJob({
   async handle(input) {
     const searchProvider = getPartnerSearchProvider();
 
-    // Matches the read path, which falls back to the database search rather
-    // than failing. An environment without the key should not accumulate a
-    // backlog of jobs that can never succeed.
+    // An environment without the key should not accumulate a backlog of jobs
+    // that can never succeed.
     if (!searchProvider) {
       console.log(
         "[partnerSearchSyncJob] No search provider configured. Skipping...",
@@ -90,9 +85,8 @@ export const partnerSearchSyncJob = defineJob({
       return;
     }
 
-    // These IDs came from the database a moment ago, so the sync will upsert
-    // rather than delete them, unless the enrollment disappeared in between,
-    // in which case removing it from the index is the right outcome anyway.
+    // These IDs came from the database a moment ago, so this upserts rather
+    // than deletes, unless one vanished in between, which is also correct.
     const { upserted, deleted } = await syncPartnerSearchDocuments({
       enrollmentIds,
       searchProvider,

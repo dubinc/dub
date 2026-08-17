@@ -33,10 +33,9 @@ export async function updateLink({
     key: string;
     image?: string | null;
     testCompletedAt?: Date | null;
-    // Required, not optional, because the link body accepts `partnerId` and so
-    // an update can move a link between partners. The former owner has to be
-    // re-serialized without it, and an optional field here would let the next
-    // caller omit it and silently lose that.
+    // Required rather than optional: the link body accepts `partnerId`, so an
+    // update can move a link, and an optional field here would let the next
+    // caller omit the former owner and silently lose its re-index.
     programId: string | null;
     partnerId: string | null;
   };
@@ -212,15 +211,8 @@ export async function updateLink({
         // If key is changed: delete the old key in Redis
         (changedDomain || changedKey) && linkCache.delete(oldLink),
 
-        // Only the short link and destination URL reach the document, and link
-        // edits are frequent, so this takes the longer link delay. The job
-        // re-reads the whole document, so nothing else goes stale by waiting.
-        //
-        // Both owners, because `partnerId` and `programId` are not excluded
-        // from the spread above and so can be rewritten. When a link moves
-        // between partners the former owner has to be re-serialized without
-        // it, and syncing only the new one would leave the link searchable
-        // under a partner who no longer has it.
+        // Both owners, because the spread above can rewrite `partnerId`: when a
+        // link moves, the former owner has to be re-serialized without it.
         queuePartnerSearchSyncForLinks([oldLink, response], {
           delay: PARTNER_SEARCH_LINK_SYNC_DELAY_SECONDS,
         }),

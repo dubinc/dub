@@ -147,10 +147,9 @@ export async function rejectPartner({
 
   waitUntil(
     Promise.allSettled([
-      // Covers both outcomes above: an instant re-application timeframe deletes
-      // the enrollment, anything else rejects it. The job reads the ID back and
-      // upserts or deletes accordingly, so this hook does not need to know
-      // which branch ran.
+      // Covers both outcomes above: an instant reapplication timeframe deletes
+      // the enrollment, anything else rejects it. The job reads the ID back, so
+      // this does not need to know which ran.
       queuePartnerSearchSync({ enrollmentIds: [programEnrollment.id] }),
 
       trackActivityLog({
