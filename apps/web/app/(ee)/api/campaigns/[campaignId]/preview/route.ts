@@ -106,6 +106,11 @@ export const POST = withWorkspace(
                 PartnerName: "Partner",
                 PartnerEmail: "partner@acme.com",
                 PartnerLink: "https://acme.com/partner",
+                SaleReward: "30% per sale for 6 months",
+                LeadReward: "$10 per lead",
+                ClickReward: "$0.50 per click",
+                ReferralReward:
+                  "10% per referred partner's commission for 1 year",
               },
             }),
           },
