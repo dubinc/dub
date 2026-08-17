@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { COUNTRIES, COUNTRY_CODES } from "@dub/utils";
 import { PartnerGroup, Program } from "@prisma/client";
 import { createId } from "../api/create-id";
+import { queuePartnerSearchSync } from "../api/partners/queue-partner-search-sync";
 import { logImportError } from "../tinybird/log-import-error";
 import { redis } from "../upstash";
 import { DEFAULT_PARTNER_GROUP } from "../zod/schemas/groups";
@@ -56,7 +57,7 @@ export async function importPartners(payload: PartnerStackImportPayload) {
       break;
     }
 
-    await Promise.allSettled(
+    const results = await Promise.allSettled(
       partners.map((partner) =>
         createPartner({
           program,
@@ -66,6 +67,15 @@ export async function importPartners(payload: PartnerStackImportPayload) {
         }),
       ),
     );
+
+    // Queued per page rather than per partner, so a large import produces a
+    // handful of chunked payloads instead of one message each.
+    await queuePartnerSearchSync({
+      partnerIds: results.flatMap((result) =>
+        result.status === "fulfilled" && result.value ? [result.value] : [],
+      ),
+      programId,
+    });
 
     await new Promise((resolve) => setTimeout(resolve, 2000));
 
@@ -199,4 +209,6 @@ async function createPartner({
   await redis.hset(`${PARTNER_IDS_KEY_PREFIX}:${program.id}`, {
     [partner.key]: partnerId,
   });
+
+  return partnerId;
 }

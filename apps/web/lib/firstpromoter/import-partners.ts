@@ -9,6 +9,7 @@ import {
 import { createId } from "../api/create-id";
 import { bulkCreateLinks } from "../api/links";
 import { upsertPartnerPlatform } from "../api/partner-profile/upsert-partner-platform";
+import { queuePartnerSearchSync } from "../api/partners/queue-partner-search-sync";
 import { DEFAULT_PARTNER_GROUP } from "../zod/schemas/groups";
 import { FirstPromoterApi } from "./api";
 import { firstPromoterImporter, MAX_BATCHES } from "./importer";
@@ -88,6 +89,14 @@ export async function importPartners(payload: FirstPromoterImportPayload) {
             result.reason,
           );
         }
+      });
+
+      // Queued per page rather than per partner, so a large import produces a
+      // handful of chunked payloads instead of one message each.
+      await queuePartnerSearchSync({
+        enrollmentIds: results.flatMap((result) =>
+          result.status === "fulfilled" && result.value ? [result.value] : [],
+        ),
       });
     }
 
@@ -199,12 +208,12 @@ async function createPartnerAndLinks({
 
   if (!program.domain || !program.url) {
     console.error("Program domain or url not found", program.id);
-    return;
+    return programEnrollment.id;
   }
 
   if (programEnrollment.links.length > 0) {
     console.log("Partner already has links", partner.id);
-    return;
+    return programEnrollment.id;
   }
 
   const links = affiliate.promoter_campaigns.map((campaign, idx) => ({
@@ -224,4 +233,6 @@ async function createPartnerAndLinks({
   await bulkCreateLinks({
     links,
   });
+
+  return programEnrollment.id;
 }

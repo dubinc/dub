@@ -1,4 +1,5 @@
 import { bulkDeleteLinks } from "@/lib/api/links/bulk-delete-links";
+import { queuePartnerSearchSync } from "@/lib/api/partners/queue-partner-search-sync";
 import { prisma } from "@/lib/prisma";
 import { toltImporter } from "./importer";
 
@@ -51,6 +52,21 @@ export async function cleanupPartners({ programId }: { programId: string }) {
 
       await bulkDeleteLinks(linksToDelete);
 
+      // Resolved before the delete, because afterwards nothing can map these
+      // partners back to the enrollments they had, and a deletion is invisible
+      // to the reconciliation sweep.
+      const removedEnrollments = await prisma.programEnrollment.findMany({
+        where: {
+          programId,
+          partnerId: {
+            in: partnerIdsToRemove,
+          },
+        },
+        select: {
+          id: true,
+        },
+      });
+
       await prisma.programEnrollment.deleteMany({
         where: {
           programId,
@@ -58,6 +74,10 @@ export async function cleanupPartners({ programId }: { programId: string }) {
             in: partnerIdsToRemove,
           },
         },
+      });
+
+      await queuePartnerSearchSync({
+        enrollmentIds: removedEnrollments.map(({ id }) => id),
       });
 
       // Remove partners that are not enrolled in any other program

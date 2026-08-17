@@ -3,6 +3,7 @@ import { nanoid } from "@dub/utils";
 import { Program } from "@prisma/client";
 import { createId } from "../api/create-id";
 import { bulkCreateLinks } from "../api/links";
+import { queuePartnerSearchSync } from "../api/partners/queue-partner-search-sync";
 import { logImportError } from "../tinybird/log-import-error";
 import { redis } from "../upstash";
 import { RewardfulApi } from "./api";
@@ -124,6 +125,13 @@ export async function importPartners(payload: RewardfulImportPayload) {
             ]),
           ),
         );
+
+        // Queued per page rather than per partner, so a large import produces a
+        // handful of chunked payloads instead of one message each.
+        await queuePartnerSearchSync({
+          partnerIds: filteredPartners.map((p) => p.dubPartnerId),
+          programId: program.id,
+        });
       }
     }
 

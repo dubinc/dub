@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { Partner, Program } from "@prisma/client";
 import { createId } from "../api/create-id";
+import { queuePartnerSearchSync } from "../api/partners/queue-partner-search-sync";
 import { logImportError } from "../tinybird/log-import-error";
 import { DEFAULT_PARTNER_GROUP } from "../zod/schemas/groups";
 import { ToltApi } from "./api";
@@ -84,6 +85,13 @@ export async function importPartners(payload: ToltImportPayload) {
         .map((p) => p.value);
 
       if (partners.length > 0) {
+        // Queued per page rather than per partner, so a large import produces a
+        // handful of chunked payloads instead of one message each.
+        await queuePartnerSearchSync({
+          partnerIds: partners.map((p) => p.id),
+          programId,
+        });
+
         await toltImporter.addPartners({
           programId,
           partnerIds: partners.map((p) => p.id),
