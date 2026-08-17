@@ -143,6 +143,8 @@ export type FileUploadProps = FileUploadReadFileProps & {
   accessibilityLabel?: string;
 
   disabled?: boolean;
+
+  "data-testid"?: string;
 } & VariantProps<typeof imageUploadVariants>;
 
 export function FileUpload({
@@ -165,6 +167,7 @@ export function FileUpload({
   targetResolution,
   accessibilityLabel = "File upload",
   disabled = false,
+  "data-testid": dataTestId,
 }: FileUploadProps) {
   const [dragActive, setDragActive] = useState(false);
   const [fileName, setFileName] = useState<string | null>(null);
@@ -330,6 +333,7 @@ export function FileUpload({
             accept={acceptFileTypes[accept].types.join(",")}
             onChange={onFileChange}
             disabled={disabled}
+            data-testid={dataTestId}
           />
         </div>
       )}

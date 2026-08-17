@@ -448,6 +448,7 @@ export function Form() {
                 </span>
                 <input
                   id={rewardAmountInputId}
+                  data-testid="onboarding-reward-amount"
                   className={cn(
                     "block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
                     type === "flat" ? "pl-6 pr-12" : "pr-7",
@@ -479,6 +480,7 @@ export function Form() {
         loading={isLoading}
         disabledTooltip={!isLoading ? disabledTooltip : undefined}
         type="submit"
+        data-testid="onboarding-reward-continue"
       />
     </form>
   );
