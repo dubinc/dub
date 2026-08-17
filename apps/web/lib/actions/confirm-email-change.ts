@@ -1,11 +1,11 @@
 "use server";
 
+import { queuePartnerSearchSync } from "@/lib/api/partners/queue-partner-search-sync";
 import { hashToken } from "@/lib/auth";
 import {
   assertCanConfirmEmailChange,
   EmailChangeRequestData,
 } from "@/lib/auth/confirm-email-change";
-import { queuePartnerSearchSync } from "@/lib/api/partners/queue-partner-search-sync";
 import { syncPlainCustomerEmail } from "@/lib/plain/upsert-plain-customer";
 import { prisma } from "@/lib/prisma";
 import { redis } from "@/lib/upstash";
