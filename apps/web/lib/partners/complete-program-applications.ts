@@ -90,19 +90,23 @@ export async function completeProgramApplications(userEmail: string) {
 
     const partner = user.partners[0].partner;
 
-    // Program enrollments to create
-    const programEnrollments: Prisma.ProgramEnrollmentCreateManyInput[] =
-      filteredProgramApplications.map((programApplication) => ({
-        id: createId({ prefix: "pge_" }),
-        programId: programApplication.programId,
-        partnerId: user.partners[0].partnerId,
-        applicationId: programApplication.id,
-        groupId: programApplication?.partnerGroup?.id,
-        clickRewardId: programApplication?.partnerGroup?.clickRewardId,
-        leadRewardId: programApplication?.partnerGroup?.leadRewardId,
-        saleRewardId: programApplication?.partnerGroup?.saleRewardId,
-        discountId: programApplication?.partnerGroup?.discountId,
-      }));
+    // Program enrollments to create. `id` is narrowed to required because the
+    // search sync below reads it back: Prisma leaves it optional on the create
+    // input, so without this the invariant would have to be asserted at the
+    // point of use rather than guaranteed here, where it is actually set.
+    const programEnrollments: (Prisma.ProgramEnrollmentCreateManyInput & {
+      id: string;
+    })[] = filteredProgramApplications.map((programApplication) => ({
+      id: createId({ prefix: "pge_" }),
+      programId: programApplication.programId,
+      partnerId: user.partners[0].partnerId,
+      applicationId: programApplication.id,
+      groupId: programApplication?.partnerGroup?.id,
+      clickRewardId: programApplication?.partnerGroup?.clickRewardId,
+      leadRewardId: programApplication?.partnerGroup?.leadRewardId,
+      saleRewardId: programApplication?.partnerGroup?.saleRewardId,
+      discountId: programApplication?.partnerGroup?.discountId,
+    }));
 
     const enrollmentsByApplicationId = new Map(
       programEnrollments.map((enrollment) => [
@@ -276,7 +280,7 @@ export async function completeProgramApplications(userEmail: string) {
     // backfilled from the application above, since the job re-reads the whole
     // document rather than the fields any one write touched.
     await queuePartnerSearchSync({
-      enrollmentIds: programEnrollments.map(({ id }) => id!),
+      enrollmentIds: programEnrollments.map(({ id }) => id),
     });
   } catch (error) {
     console.error("Failed to complete program applications", error);
