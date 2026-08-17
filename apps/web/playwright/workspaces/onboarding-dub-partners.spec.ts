@@ -124,16 +124,27 @@ test.describe("Dub Partners onboarding", () => {
     await page
       .getByTestId("onboarding-program-company-name")
       .fill(`Test Program ${nanoid(4)}`);
+
+    const uploadUrlPost = page.waitForResponse(
+      (r) =>
+        r.request().method() === "POST" &&
+        new URL(r.url()).pathname.endsWith("/upload-url"),
+      { timeout: STEP_NAV_TIMEOUT },
+    );
     await page.getByTestId("onboarding-program-logo").setInputFiles({
       name: "logo.png",
       mimeType: "image/png",
       buffer: MINIMAL_PNG,
     });
-    await expect
-      .poll(async () => page.locator('img[alt="Preview"]').count(), {
-        timeout: 30_000,
-      })
-      .toBeGreaterThan(0);
+    const uploadUrlRes = await uploadUrlPost;
+    if (!uploadUrlRes.ok()) {
+      throw new Error(
+        `Logo upload-url failed: HTTP ${uploadUrlRes.status()} ${await uploadUrlRes.text()}`,
+      );
+    }
+    await expect(page.getByText("logo.png uploaded!")).toBeVisible({
+      timeout: 30_000,
+    });
 
     await page
       .getByTestId("onboarding-program-destination-url")
