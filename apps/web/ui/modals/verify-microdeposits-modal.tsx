@@ -85,7 +85,7 @@ function VerifyMicrodepositsModal({
 
       if (!/^[0-9A-Z]{4}$/.test(suffix)) {
         toast.error(
-          "Enter the 6-digit code from the statement descriptor of this deposit.",
+          "Enter the 6-character code from the statement descriptor of this deposit.",
         );
         return;
       }
@@ -160,7 +160,7 @@ function VerifyMicrodepositsModal({
             </h3>
             <p className="mt-1 text-sm text-neutral-600">
               {isDescriptorCode
-                ? "Stripe sent a small deposit to this bank account. To verify this account, please confirm the 6-digit code in the statement descriptor of this deposit."
+                ? "Stripe sent a small deposit to this bank account. To verify this account, please confirm the 6-character code in the statement descriptor of this deposit."
                 : arrivalDate
                   ? `Stripe sent two small deposits to this bank account. Enter the amounts below to verify it. They typically appear by ${arrivalDate}.`
                   : "Stripe sent two small deposits to this bank account. Enter the amounts below to verify it. They typically appear within 1–2 business days."}
