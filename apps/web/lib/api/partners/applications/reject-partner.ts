@@ -12,6 +12,7 @@ import { trackActivityLog } from "../../activity-log/track-activity-log";
 import { DubApiError } from "../../errors";
 import { resolveFraudGroups } from "../../fraud/resolve-fraud-groups";
 import { getDefaultProgramIdOrThrow } from "../../programs/get-default-program-id-or-throw";
+import { queuePartnerSearchSync } from "../queue-partner-search-sync";
 
 type RejectPartnerInput = z.infer<typeof rejectPartnerSchema> & {
   userId: string;
@@ -146,6 +147,12 @@ export async function rejectPartner({
 
   waitUntil(
     Promise.allSettled([
+      // Covers both outcomes above: an instant re-application timeframe deletes
+      // the enrollment, anything else rejects it. The job reads the ID back and
+      // upserts or deletes accordingly, so this hook does not need to know
+      // which branch ran.
+      queuePartnerSearchSync({ enrollmentIds: [programEnrollment.id] }),
+
       trackActivityLog({
         workspaceId: workspace.id,
         programId,

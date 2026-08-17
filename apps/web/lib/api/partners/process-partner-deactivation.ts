@@ -5,6 +5,7 @@ import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { Partner, ProgramEnrollmentStatus } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { trackActivityLog } from "../activity-log/track-activity-log";
+import { queuePartnerSearchSync } from "./queue-partner-search-sync";
 
 interface ProcessPartnerDeactivationParams {
   workspaceId: string;
@@ -89,6 +90,10 @@ export async function processPartnerDeactivation({
       partnerIds,
     },
   );
+
+  // Queued outside the `user` branch below, which only runs for operator-driven
+  // deactivations. The index has to follow the status either way.
+  await queuePartnerSearchSync({ partnerIds, programId });
 
   if (user) {
     waitUntil(
