@@ -132,6 +132,7 @@ export function Form() {
           autoFocus={!isMobile}
           className="max-w-full"
           error={errors.name?.message}
+          data-testid="onboarding-program-company-name"
         />
 
         <p className="text-content-subtle text-xs">
@@ -162,6 +163,7 @@ export function Form() {
                 onChange={({ file }) => handleUpload(file)}
                 content={null}
                 maxFileSizeMB={2}
+                data-testid="onboarding-program-logo"
               />
             )}
           />
@@ -189,6 +191,7 @@ export function Form() {
               placeholder="https://"
               className="max-w-full"
               error={errors.url?.message}
+              data-testid="onboarding-program-destination-url"
             />
           )}
         />
@@ -216,6 +219,7 @@ export function Form() {
               type="email"
               className="max-w-full"
               error={errors.supportEmail?.message}
+              data-testid="onboarding-program-support-email"
             />
           )}
         />
@@ -231,6 +235,7 @@ export function Form() {
         disabledTooltip={!isLoading ? disabledTooltip : undefined}
         text="Continue"
         className="w-full"
+        data-testid="onboarding-program-continue"
       />
     </form>
   );
