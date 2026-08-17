@@ -29,7 +29,7 @@ export async function resolveWebhookWorkspace({
     return null;
   }
 
-  if (mode === "test" && workspace.stagingWorkspaceId) {
+  if ((mode === "test" || mode === "sandbox") && workspace.stagingWorkspaceId) {
     const stagingWorkspace = await prisma.project.findUnique({
       where: {
         id: workspace.stagingWorkspaceId,
