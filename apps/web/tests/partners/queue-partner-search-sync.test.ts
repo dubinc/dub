@@ -1,7 +1,6 @@
 import {
   PARTNER_SEARCH_LINK_SYNC_DELAY_SECONDS,
   PARTNER_SEARCH_SYNC_DELAY_SECONDS,
-  QSTASH_DEDUPLICATION_WINDOW_SECONDS,
   queuePartnerSearchSync,
   queuePartnerSearchSyncForLinks,
 } from "@/lib/api/partners/queue-partner-search-sync";
@@ -70,58 +69,9 @@ describe("queuePartnerSearchSync", () => {
     ]);
   });
 
-  it("collapses repeat syncs of a single enrollment", async () => {
-    await queuePartnerSearchSync({ enrollmentIds: ["pge_1"] });
 
-    const [{ options }] = dispatchedWithOptions();
 
-    expect(options).toEqual({
-      delay: PARTNER_SEARCH_SYNC_DELAY_SECONDS,
-      deduplicationId: `enrollment:pge_1:${PARTNER_SEARCH_SYNC_DELAY_SECONDS}`,
-    });
-  });
 
-  it("scopes a single partner's dedup key by program", async () => {
-    await queuePartnerSearchSync({
-      partnerIds: ["pn_1"],
-      programId: "prog_1",
-    });
-
-    const [{ options }] = dispatchedWithOptions();
-
-    expect(options.deduplicationId).toBe(
-      `partner:pn_1:prog_1:${PARTNER_SEARCH_SYNC_DELAY_SECONDS}`,
-    );
-  });
-
-  it("does not deduplicate bulk chunks, whose composition never repeats", async () => {
-    await queuePartnerSearchSync({ enrollmentIds: ["pge_1", "pge_2"] });
-
-    const [{ options }] = dispatchedWithOptions();
-
-    expect(options.deduplicationId).toBeUndefined();
-  });
-
-  it("keeps a slow link sync from suppressing a fast one", async () => {
-    await queuePartnerSearchSync({
-      enrollmentIds: ["pge_1"],
-      delay: PARTNER_SEARCH_LINK_SYNC_DELAY_SECONDS,
-    });
-    await queuePartnerSearchSync({ enrollmentIds: ["pge_1"] });
-
-    const slow = mocks.dispatchBatch.mock.calls[0][1](
-      { type: "enrollments", enrollmentIds: ["pge_1"] },
-      0,
-    );
-    const fast = mocks.dispatchBatch.mock.calls[1][1](
-      { type: "enrollments", enrollmentIds: ["pge_1"] },
-      0,
-    );
-
-    expect(slow.delay).toBe(PARTNER_SEARCH_LINK_SYNC_DELAY_SECONDS);
-    expect(fast.delay).toBe(PARTNER_SEARCH_SYNC_DELAY_SECONDS);
-    expect(slow.deduplicationId).not.toBe(fast.deduplicationId);
-  });
 
   it("chunks past the batch size so no payload exceeds what the job accepts", async () => {
     await queuePartnerSearchSync({
@@ -147,29 +97,26 @@ describe("queuePartnerSearchSync", () => {
     ]);
   });
 
-  // The delays are only collapsed while QStash still remembers the key, so this
-  // is the invariant that keeps the batching real rather than assumed. If the
-  // documented window ever shrinks below a delay, this fails here rather than
-  // silently costing writes in production.
-  it("keeps every delay it deduplicates on inside the deduplication window", () => {
-    expect(PARTNER_SEARCH_SYNC_DELAY_SECONDS).toBeLessThan(
-      QSTASH_DEDUPLICATION_WINDOW_SECONDS,
-    );
-    expect(PARTNER_SEARCH_LINK_SYNC_DELAY_SECONDS).toBeLessThan(
-      QSTASH_DEDUPLICATION_WINDOW_SECONDS,
-    );
-  });
 
-  it("drops the dedup key past the window rather than claiming a collapse", async () => {
-    await queuePartnerSearchSync({
-      enrollmentIds: ["pge_1"],
-      delay: QSTASH_DEDUPLICATION_WINDOW_SECONDS,
-    });
 
-    const [{ options }] = dispatchedWithOptions();
+  // QStash suppresses a repeated key for ten minutes from the first publish,
+  // not merely while one is pending. Keying by subject would therefore drop the
+  // second of two changes inside that window, and a dropped delete leaves a
+  // document nothing can remove. Every change gets its own job instead.
+  it("never deduplicates, so a later change cannot be dropped", async () => {
+    await queuePartnerSearchSync({ enrollmentIds: ["pge_1"] });
+    await queuePartnerSearchSync({ enrollmentIds: ["pge_1"] });
 
-    expect(options.delay).toBe(QSTASH_DEDUPLICATION_WINDOW_SECONDS);
-    expect(options.deduplicationId).toBeUndefined();
+    expect(mocks.dispatchBatch).toHaveBeenCalledTimes(2);
+
+    for (const [, getOptions] of mocks.dispatchBatch.mock.calls) {
+      const options = getOptions(
+        { type: "enrollments", enrollmentIds: ["pge_1"] },
+        0,
+      );
+      expect(options.deduplicationId).toBeUndefined();
+      expect(options.delay).toBe(PARTNER_SEARCH_SYNC_DELAY_SECONDS);
+    }
   });
 
   it("swallows a dispatch failure so it cannot break the mutation that queued it", async () => {
