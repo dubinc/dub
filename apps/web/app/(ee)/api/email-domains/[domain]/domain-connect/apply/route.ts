@@ -1,6 +1,7 @@
 import { getEmailDomainOrThrow } from "@/lib/api/domains/get-email-domain-or-throw";
 import { DubApiError } from "@/lib/api/errors";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
+import { assertEnv } from "@/lib/assert-env";
 import { withWorkspace } from "@/lib/auth";
 import { isAllowedSyncUXOrigin } from "@/lib/domain-connect/allowed-origins";
 import {
@@ -22,16 +23,9 @@ const bodySchema = z.object({
 // POST /api/email-domains/[domain]/domain-connect/apply
 export const POST = withWorkspace(
   async ({ req, workspace, params }) => {
-    const privateKeyPem =
-      process.env.DOMAIN_CONNECT_PRIVATE_KEY?.trim().replace(/\\n/g, "\n") ||
-      null;
-
-    if (!privateKeyPem) {
-      throw new DubApiError({
-        code: "internal_server_error",
-        message: "Domain Connect signing is not configured.",
-      });
-    }
+    const privateKeyPem = assertEnv("DOMAIN_CONNECT_PRIVATE_KEY")
+      .trim()
+      .replace(/\\n/g, "\n");
 
     if (!resend) {
       throw new DubApiError({
@@ -48,7 +42,7 @@ export const POST = withWorkspace(
 
     if (!emailDomain.resendDomainId) {
       throw new DubApiError({
-        code: "not_found",
+        code: "internal_server_error",
         message: "Resend domain ID is not found for this domain.",
       });
     }

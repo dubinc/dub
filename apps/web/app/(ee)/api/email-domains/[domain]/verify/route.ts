@@ -1,6 +1,7 @@
 import { getEmailDomainOrThrow } from "@/lib/api/domains/get-email-domain-or-throw";
 import { DubApiError } from "@/lib/api/errors";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
+import { assertEnv } from "@/lib/assert-env";
 import { withWorkspace } from "@/lib/auth";
 import { discoverDomainConnect } from "@/lib/domain-connect/discover";
 import type { DomainConnectDiscovery } from "@/lib/domain-connect/types";
@@ -29,7 +30,7 @@ export const GET = withWorkspace(
 
     if (!emailDomain.resendDomainId) {
       throw new DubApiError({
-        code: "not_found",
+        code: "internal_server_error",
         message: "Resend domain ID is not found for this domain.",
       });
     }
@@ -62,10 +63,8 @@ export const GET = withWorkspace(
     }
 
     let domainConnect: DomainConnectDiscovery | null = null;
-    if (
-      domainResponse.data.status !== "verified" &&
-      process.env.DOMAIN_CONNECT_PRIVATE_KEY?.trim()
-    ) {
+    if (domainResponse.data.status !== "verified") {
+      assertEnv("DOMAIN_CONNECT_PRIVATE_KEY");
       const apex = getApexDomain(`https://${emailDomain.slug}`);
       domainConnect = await discoverDomainConnect(apex);
     }

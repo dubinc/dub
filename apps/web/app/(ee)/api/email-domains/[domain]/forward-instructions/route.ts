@@ -3,7 +3,9 @@ import { DubApiError } from "@/lib/api/errors";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { withWorkspace } from "@/lib/auth";
 import { mapResendRecordsToForwardRows } from "@/lib/domain-connect/map-email-domain-records";
-import { ratelimit } from "@/lib/upstash";
+import { assertEmailSent } from "@/lib/email/assert-email-sent";
+import { assertRateLimit } from "@/lib/upstash/assert-rate-limit";
+import { RATELIMIT_POLICIES } from "@/lib/upstash/ratelimit-policies";
 import { sendEmail } from "@dub/email";
 import { resend } from "@dub/email/resend";
 import DomainDnsInstructions from "@dub/email/templates/domain-dns-instructions";
@@ -26,15 +28,15 @@ export const POST = withWorkspace(
 
     const { email } = bodySchema.parse(await req.json());
 
-    const { success } = await ratelimit(10, "1 h").limit(
-      `forward-email-dns-instructions:${workspace.id}`,
-    );
-    if (!success) {
-      throw new DubApiError({
-        code: "rate_limit_exceeded",
-        message: "Don't DDoS me pls 🥺",
-      });
-    }
+    await assertRateLimit({
+      policy: RATELIMIT_POLICIES.forwardDnsInstructions,
+      identifier: [workspace.id, session.user.id],
+    });
+
+    await assertRateLimit({
+      policy: RATELIMIT_POLICIES.forwardDnsInstructionsTarget,
+      identifier: email.toLowerCase(),
+    });
 
     if (!resend) {
       throw new DubApiError({
@@ -45,7 +47,7 @@ export const POST = withWorkspace(
 
     if (!emailDomain.resendDomainId) {
       throw new DubApiError({
-        code: "not_found",
+        code: "internal_server_error",
         message: "Resend domain ID is not found for this domain.",
       });
     }
@@ -74,7 +76,7 @@ export const POST = withWorkspace(
       apex,
     });
 
-    await sendEmail({
+    const result = await sendEmail({
       subject: `DNS instructions for ${emailDomain.slug}`,
       to: email,
       react: DomainDnsInstructions({
@@ -85,10 +87,12 @@ export const POST = withWorkspace(
       }),
     });
 
+    assertEmailSent(result);
+
     return NextResponse.json({ ok: true });
   },
   {
     requiredPlan: ["advanced", "enterprise"],
-    requiredPermissions: ["domains.read"],
+    requiredPermissions: ["domains.write"],
   },
 );

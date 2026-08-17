@@ -2,6 +2,7 @@ import { getConfigResponse } from "@/lib/api/domains/get-config-response";
 import { getDomainOrThrow } from "@/lib/api/domains/get-domain-or-throw";
 import { getDomainResponse } from "@/lib/api/domains/get-domain-response";
 import { DubApiError } from "@/lib/api/errors";
+import { assertEnv } from "@/lib/assert-env";
 import { withWorkspace } from "@/lib/auth";
 import { isAllowedSyncUXOrigin } from "@/lib/domain-connect/allowed-origins";
 import {
@@ -22,16 +23,9 @@ const bodySchema = z.object({
 // POST /api/domains/[domain]/domain-connect/apply
 export const POST = withWorkspace(
   async ({ req, workspace, params }) => {
-    const privateKeyPem =
-      process.env.DOMAIN_CONNECT_PRIVATE_KEY?.trim().replace(/\\n/g, "\n") ||
-      null;
-
-    if (!privateKeyPem) {
-      throw new DubApiError({
-        code: "internal_server_error",
-        message: "Domain Connect signing is not configured.",
-      });
-    }
+    const privateKeyPem = assertEnv("DOMAIN_CONNECT_PRIVATE_KEY")
+      .trim()
+      .replace(/\\n/g, "\n");
 
     const { slug: domain } = await getDomainOrThrow({
       workspace,
