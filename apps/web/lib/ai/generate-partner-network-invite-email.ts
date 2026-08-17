@@ -1,16 +1,15 @@
 "use server";
 
-import { DubApiError } from "@/lib/api/errors";
+import {
+  refundAIUsageCredit,
+  reserveAIUsageCredit,
+} from "@/lib/api/links/usage-checks";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramPartnerEarningsClaim } from "@/lib/api/programs/get-program-partner-earnings-claim";
-import { normalizeWorkspaceId } from "@/lib/api/workspaces/workspace-id";
-import { exceededLimitError } from "@/lib/exceeded-limit-error";
 import { getUsableNetworkPartnerName } from "@/lib/network/get-program-network-invite-email-defaults";
 import { prisma } from "@/lib/prisma";
-import { PlanProps } from "@/lib/types";
 import { emailSchema } from "@/lib/zod/schemas/auth";
 import { anthropic } from "@ai-sdk/anthropic";
-import { PlanPeriod } from "@prisma/client";
 import { generateText, Output } from "ai";
 import * as z from "zod/v4";
 import { authActionClient } from "../actions/safe-action";
@@ -86,12 +85,7 @@ export const generatePartnerNetworkInviteEmailAction = authActionClient
         : null;
     const partnerGreetingName = partnerName ?? companyName ?? "there";
 
-    await reserveAIUsageCredit({
-      workspaceId: workspace.id,
-      aiLimit: workspace.aiLimit,
-      plan: workspace.plan,
-      planPeriod: workspace.planPeriod,
-    });
+    await reserveAIUsageCredit(workspace);
 
     try {
       const { output } = await generateText({
@@ -225,60 +219,4 @@ function getPlatformDescription(metadata: unknown) {
   return typeof value === "string" && value.trim().length > 0
     ? value.trim()
     : null;
-}
-
-async function reserveAIUsageCredit({
-  workspaceId,
-  aiLimit,
-  plan,
-  planPeriod,
-}: {
-  workspaceId: string;
-  aiLimit: number;
-  plan: PlanProps;
-  planPeriod: PlanPeriod | null;
-}) {
-  const { count } = await prisma.project.updateMany({
-    where: {
-      id: normalizeWorkspaceId(workspaceId),
-      aiUsage: {
-        lt: aiLimit,
-      },
-    },
-    data: {
-      aiUsage: {
-        increment: 1,
-      },
-    },
-  });
-
-  if (count === 0) {
-    throw new DubApiError({
-      code: "forbidden",
-      message: exceededLimitError({
-        plan,
-        planPeriod,
-        limit: aiLimit,
-        type: "AI",
-      }),
-    });
-  }
-}
-
-async function refundAIUsageCredit(workspaceId: string) {
-  // Guard against driving aiUsage negative (e.g. if the monthly cron reset the
-  // counter to 0 between reserving and refunding the credit).
-  await prisma.project.updateMany({
-    where: {
-      id: normalizeWorkspaceId(workspaceId),
-      aiUsage: {
-        gt: 0,
-      },
-    },
-    data: {
-      aiUsage: {
-        decrement: 1,
-      },
-    },
-  });
 }
