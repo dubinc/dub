@@ -227,8 +227,10 @@ function RewardSheetContent({
     defaultProgramId,
     plan,
   } = useWorkspace({
+    // lower dedupingInterval + revalidateOnFocus in case user upgrades their plan in another tab
     swrOpts: {
-      revalidateOnFocus: true, // revalidate on focus in case user upgrades their plan in another tab
+      dedupingInterval: 2000,
+      revalidateOnFocus: true,
     },
   });
 
