@@ -1,3 +1,4 @@
+import { queuePartnerSearchSync } from "@/lib/api/partners/queue-partner-search-sync";
 import { qstash } from "@/lib/cron";
 import { withCron } from "@/lib/cron/with-cron";
 import { prisma } from "@/lib/prisma";
@@ -99,13 +100,18 @@ export const POST = withCron(async ({ rawBody }) => {
             }),
           };
 
+          // Broken out because it is the only change here the search index
+          // cares about. The rest are stats, which the document does not carry.
+          const identifierChanged =
+            "identifier" in newStats &&
+            partnerPlatform.identifier !== newStats.identifier;
+
           const hasChanges =
             partnerPlatform.subscribers !== BigInt(newStats.subscribers) ||
             partnerPlatform.posts !== BigInt(newStats.posts) ||
             partnerPlatform.views !== BigInt(newStats.views) ||
             partnerPlatform.avatarUrl !== newStats.avatarUrl ||
-            ("identifier" in newStats &&
-              partnerPlatform.identifier !== newStats.identifier);
+            identifierChanged;
 
           if (!hasChanges) {
             console.log(
@@ -123,6 +129,12 @@ export const POST = withCron(async ({ rawBody }) => {
               lastCheckedAt: new Date(),
             },
           });
+
+          if (identifierChanged) {
+            await queuePartnerSearchSync({
+              partnerIds: [partnerPlatform.partnerId],
+            });
+          }
 
           console.log(
             `Updated YouTube stats for @${partnerPlatform.identifier}`,
