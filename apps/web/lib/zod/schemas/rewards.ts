@@ -8,6 +8,12 @@ import * as z from "zod/v4";
 import { getPaginationQuerySchema, maxDurationSchema } from "./misc";
 import { centsSchema } from "./utils";
 
+export function isOneOffRewardEvent(
+  event: EventType | "click" | "lead" | "sale" | "referral",
+): event is "click" | "lead" {
+  return event === "click" || event === "lead";
+}
+
 export const COMMISSION_TYPES = [
   {
     value: "recurring",
@@ -484,9 +490,9 @@ export const createOrUpdateRewardSchema = z.object({
 
 export const createRewardSchema = createOrUpdateRewardSchema.superRefine(
   (data) => {
-    if (data.event === EventType.click || data.event === EventType.lead) {
-      data.maxDuration = 0;
+    if (isOneOffRewardEvent(data.event)) {
       data.type = "flat";
+      data.maxDuration = 0;
     }
   },
 );

@@ -108,4 +108,10 @@ export const RATELIMIT_POLICIES = {
     window: "24 h",
     keyPrefix: "rl:tremendous:verify-otp",
   },
+
+  aiRewardGenerate: {
+    attempts: 10,
+    window: "1 m",
+    keyPrefix: "rl:ai:reward:generate",
+  },
 } as const satisfies Record<string, RatelimitPolicy>;
