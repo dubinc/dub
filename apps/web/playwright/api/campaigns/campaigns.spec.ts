@@ -94,11 +94,13 @@ test("PATCH /campaigns/:id – update transactional content", async ({
 
   try {
     id = await createDraft(api);
+
     const triggerCondition = {
       attribute: "totalConversions",
       operator: "gte",
       value: 50,
     } as const;
+
     const body = campaignContent({
       triggerCondition,
       groupIds: [program.defaultGroupId],
@@ -290,11 +292,13 @@ test("POST /campaigns/:id/duplicate – transactional", async ({
 }) => {
   let id: string | undefined;
   let duplicateId: string | undefined;
+
   const triggerCondition = {
     attribute: "totalConversions",
     operator: "gte",
     value: 50,
   } as const;
+
   const body = campaignContent({
     triggerCondition,
     groupIds: [program.defaultGroupId],
