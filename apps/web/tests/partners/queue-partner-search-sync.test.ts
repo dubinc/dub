@@ -1,6 +1,7 @@
 import {
   PARTNER_SEARCH_LINK_SYNC_DELAY_SECONDS,
   PARTNER_SEARCH_SYNC_DELAY_SECONDS,
+  QSTASH_DEDUPLICATION_WINDOW_SECONDS,
   queuePartnerSearchSync,
 } from "@/lib/api/partners/queue-partner-search-sync";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -143,6 +144,31 @@ describe("queuePartnerSearchSync", () => {
       { type: "enrollments", enrollmentIds: ["pge_1"] },
       { type: "partners", partnerIds: ["pn_1"], programId: "prog_1" },
     ]);
+  });
+
+  // The delays are only collapsed while QStash still remembers the key, so this
+  // is the invariant that keeps the batching real rather than assumed. If the
+  // documented window ever shrinks below a delay, this fails here rather than
+  // silently costing writes in production.
+  it("keeps every delay it deduplicates on inside the deduplication window", () => {
+    expect(PARTNER_SEARCH_SYNC_DELAY_SECONDS).toBeLessThan(
+      QSTASH_DEDUPLICATION_WINDOW_SECONDS,
+    );
+    expect(PARTNER_SEARCH_LINK_SYNC_DELAY_SECONDS).toBeLessThan(
+      QSTASH_DEDUPLICATION_WINDOW_SECONDS,
+    );
+  });
+
+  it("drops the dedup key past the window rather than claiming a collapse", async () => {
+    await queuePartnerSearchSync({
+      enrollmentIds: ["pge_1"],
+      delay: QSTASH_DEDUPLICATION_WINDOW_SECONDS,
+    });
+
+    const [{ options }] = dispatchedWithOptions();
+
+    expect(options.delay).toBe(QSTASH_DEDUPLICATION_WINDOW_SECONDS);
+    expect(options.deduplicationId).toBeUndefined();
   });
 
   it("swallows a dispatch failure so it cannot break the mutation that queued it", async () => {

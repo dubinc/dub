@@ -6,6 +6,17 @@ import {
 } from "./search";
 
 /**
+ * How long QStash remembers a deduplication ID.
+ *
+ * A delayed message is only collapsed while it is still pending *and* still
+ * inside this window, so any delay at or above it gets no deduplication at all.
+ * That makes this an upper bound on every delay below, not a trivium.
+ *
+ * https://upstash.com/docs/qstash/features/deduplication
+ */
+export const QSTASH_DEDUPLICATION_WINDOW_SECONDS = 600;
+
+/**
  * How long a sync waits before it runs. The delay is what gives deduplication
  * something to collapse: an admin editing one partner three times in a row
  * should produce one write, not three.
@@ -14,16 +25,21 @@ export const PARTNER_SEARCH_SYNC_DELAY_SECONDS = 5;
 
 /**
  * Links change far more often than the other document sources, and a link edit
- * only moves `shortLinks` and `destinationUrls`, so they are worth batching
- * harder. Nothing is lost by waiting: the handler re-reads the whole document,
- * so a link sync that runs ten minutes late still picks up every other change
- * that landed in the meantime.
+ * only moves `shortLinks` and `destinationUrls`, so they are worth deferring.
+ * Nothing is lost by waiting: the handler re-reads the whole document, so a
+ * late link sync still picks up every other change that landed meanwhile.
  *
- * Link *creation* should use the default delay instead — a partner's short link
+ * Half the deduplication window rather than all of it. Deduplication only ever
+ * collapses repeat edits to the *same* partner, so the delay is not what keeps
+ * a bulk link change cheap — chunking and flow control do that. Buying a little
+ * more collapse by sitting at the window boundary would trade a real margin for
+ * a rare case.
+ *
+ * Link *creation* should use the default delay instead: a partner's short link
  * is how people search for them, so a newly enrolled partner being unfindable
- * by link for ten minutes is a worse trade than the extra write.
+ * by link is a worse trade than the extra write.
  */
-export const PARTNER_SEARCH_LINK_SYNC_DELAY_SECONDS = 600;
+export const PARTNER_SEARCH_LINK_SYNC_DELAY_SECONDS = 300;
 
 type PartnerSearchSyncPayload =
   | { type: "enrollments"; enrollmentIds: string[] }
@@ -60,13 +76,19 @@ function unique(values: string[] | undefined): string[] {
  * queued behind it, which would drag an interactive edit out to the link delay.
  * The cost is at most one redundant write, and the job is idempotent.
  *
- * If the delay ever exceeds QStash's deduplication retention the collapse stops
- * happening and every edit writes, which is wasteful but still correct.
+ * A delay at or past the deduplication window gets no key at all. QStash would
+ * have forgotten the ID before the first message fired, so every edit would
+ * write anyway; sending a key regardless would just make the caller believe in
+ * a collapse that is not happening. Failing openly beats failing quietly.
  */
 function buildDeduplicationId(
   payload: PartnerSearchSyncPayload,
   delay: number,
 ): string | undefined {
+  if (delay >= QSTASH_DEDUPLICATION_WINDOW_SECONDS) {
+    return undefined;
+  }
+
   if (payload.type === "enrollments") {
     return payload.enrollmentIds.length === 1
       ? `enrollment:${payload.enrollmentIds[0]}:${delay}`
