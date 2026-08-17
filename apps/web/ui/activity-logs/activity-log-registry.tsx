@@ -1,5 +1,6 @@
 import { ActivityLog, ActivityLogAction } from "@/lib/types";
 import {
+  CircleDotted,
   CircleInfo,
   FileSend,
   MoneyBill2,
@@ -10,9 +11,21 @@ import {
 import { CircleMinus, CirclePlusIcon } from "lucide-react";
 import { ComponentType, ReactNode } from "react";
 import { PartnerGroupChangedRenderer } from "./action-renderers/partner-group-changed-renderer";
+import { PartnerStatusChangedRenderer } from "./action-renderers/partner-status-changed-renderer";
 import { RewardActivityRenderer } from "./action-renderers/reward-activity-renderer";
 import { SubmittedLeadCreatedRenderer } from "./action-renderers/submitted-lead-created-renderer";
 import { SubmittedLeadStatusChangedRenderer } from "./action-renderers/submitted-lead-status-changed-renderer";
+
+const PARTNER_STATUS_ACTIONS = [
+  "partner_application.approved",
+  "partner_application.rejected",
+  "partner.banned",
+  "partner.unbanned",
+  "partner.deactivated",
+  "partner.reactivated",
+  "partner.archived",
+  "partner.unarchived",
+] as const satisfies readonly ActivityLogAction[];
 
 export type ActorType = "USER" | "SYSTEM";
 
@@ -26,6 +39,9 @@ const ACTIVITY_LOG_ICONS: Partial<
   Record<ActivityLogAction, ComponentType<{ className?: string }>>
 > = {
   "partner.groupChanged": UserArrowRight,
+  ...Object.fromEntries(
+    PARTNER_STATUS_ACTIONS.map((action) => [action, CircleDotted]),
+  ),
 
   "submittedLead.created": FileSend,
   "submittedLead.qualified": UserClock,
@@ -51,6 +67,10 @@ const ACTIVITY_LOG_REGISTRY: Array<{
     action: "partner.groupChanged",
     renderer: PartnerGroupChangedRenderer,
   },
+  ...PARTNER_STATUS_ACTIONS.map((action) => ({
+    action,
+    renderer: PartnerStatusChangedRenderer,
+  })),
   {
     action: "submittedLead.created",
     renderer: SubmittedLeadCreatedRenderer,

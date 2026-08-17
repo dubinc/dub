@@ -1,7 +1,7 @@
 import { DubApiError } from "@/lib/api/errors";
 import { withSession } from "@/lib/auth";
-import { confirmEmailChange } from "@/lib/auth/confirm-email-change";
 import { hasPermission } from "@/lib/auth/partner-users/partner-user-permissions";
+import { requestEmailChange } from "@/lib/auth/request-email-change";
 import {
   assertEmailAvailableForIdentitySync,
   isImageReferencedByPartner,
@@ -164,10 +164,11 @@ export const PATCH = withSession(async ({ req, session }) => {
         });
       }
 
-      await confirmEmailChange({
+      await requestEmailChange({
         email: session.user.email,
         newEmail: email,
         identifier: session.user.id,
+        userId: session.user.id,
         hostName: emailChangeHost,
       });
     }

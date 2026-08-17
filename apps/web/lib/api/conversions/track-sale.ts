@@ -409,8 +409,7 @@ const _trackLead = async ({
       if (link.programId && link.partnerId && customer) {
         await Promise.allSettled([
           executeWorkflows({
-            trigger: "partnerMetricsUpdated",
-            reason: "lead",
+            event: "leadRecorded",
             identity: {
               workspaceId: workspace.id,
               programId: link.programId,
@@ -599,8 +598,7 @@ const _trackSale = async ({
 
         await Promise.allSettled([
           executeWorkflows({
-            trigger: "partnerMetricsUpdated",
-            reason: "sale",
+            event: "saleRecorded",
             identity: {
               workspaceId: workspace.id,
               programId: link.programId,

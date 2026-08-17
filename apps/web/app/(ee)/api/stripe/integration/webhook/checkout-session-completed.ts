@@ -35,16 +35,17 @@ export async function checkoutSessionCompleted({
   mode,
   workspace,
 }: WebhookHandlerInput<Stripe.CheckoutSessionCompletedEvent>): Promise<WebhookHandlerResponse> {
-  let charge = event.data.object;
+  let checkoutSession = event.data.object;
   let dubCustomerExternalId =
-    charge.metadata?.dubCustomerExternalId || charge.metadata?.dubCustomerId;
-  const clientReferenceId = charge.client_reference_id;
+    checkoutSession.metadata?.dubCustomerExternalId ||
+    checkoutSession.metadata?.dubCustomerId;
+  const clientReferenceId = checkoutSession.client_reference_id;
   const stripeAccountId = event.account as string;
-  const stripeCustomerId = charge.customer as string;
-  const stripeCustomerName = charge.customer_details?.name;
-  const stripeCustomerEmail = charge.customer_details?.email;
-  const invoiceId = charge.invoice as string;
-  const promotionCodeId = charge.discounts?.[0]?.promotion_code as
+  const stripeCustomerId = checkoutSession.customer as string;
+  const stripeCustomerName = checkoutSession.customer_details?.name;
+  const stripeCustomerEmail = checkoutSession.customer_details?.email;
+  const invoiceId = checkoutSession.invoice as string;
+  const promotionCodeId = checkoutSession.discounts?.[0]?.promotion_code as
     | string
     | null
     | undefined;
@@ -199,9 +200,9 @@ export async function checkoutSessionCompleted({
             workspace,
             mode,
             customerDetails: {
-              name: charge.customer_details?.name,
-              email: charge.customer_details?.email,
-              address: charge.customer_details?.address,
+              name: checkoutSession.customer_details?.name,
+              email: checkoutSession.customer_details?.email,
+              address: checkoutSession.customer_details?.address,
               stripeCustomerId,
             },
           });
@@ -270,9 +271,9 @@ export async function checkoutSessionCompleted({
             workspace,
             mode,
             customerDetails: {
-              name: charge.customer_details?.name,
-              email: charge.customer_details?.email,
-              address: charge.customer_details?.address,
+              name: checkoutSession.customer_details?.name,
+              email: checkoutSession.customer_details?.email,
+              address: checkoutSession.customer_details?.address,
               stripeCustomerId,
             },
           });
@@ -311,23 +312,24 @@ export async function checkoutSessionCompleted({
     };
   }
 
-  let chargeAmountTotal =
-    (charge.amount_total ?? 0) - (charge.total_details?.amount_tax ?? 0);
+  let checkoutSessionAmountTotal =
+    (checkoutSession.amount_total ?? 0) -
+    (checkoutSession.total_details?.amount_tax ?? 0);
 
   // should never be below 0, but just in case
-  if (chargeAmountTotal <= 0) {
+  if (checkoutSessionAmountTotal <= 0) {
     return {
       response: `Checkout session completed for Stripe customer ${stripeCustomerId} but amount is 0, skipping...`,
     };
   }
 
-  if (charge.mode === "setup") {
+  if (checkoutSession.mode === "setup") {
     return {
       response: `Checkout session completed for Stripe customer ${stripeCustomerId} but mode is "setup", skipping...`,
     };
   }
 
-  if (charge.payment_status !== "paid") {
+  if (checkoutSession.payment_status !== "paid") {
     return {
       response: `Checkout session completed for Stripe customer ${stripeCustomerId} but payment_status is not "paid", skipping...`,
     };
@@ -345,8 +347,8 @@ export async function checkoutSessionCompleted({
         invoiceId,
         customerId: customer.id,
         workspaceId: customer.projectId,
-        amount: chargeAmountTotal,
-        currency: charge.currency,
+        amount: checkoutSessionAmountTotal,
+        currency: checkoutSession.currency,
       },
       {
         ex: 60 * 60 * 24 * 7,
@@ -366,23 +368,29 @@ export async function checkoutSessionCompleted({
     }
   }
 
-  if (charge.currency && charge.currency !== "usd" && chargeAmountTotal) {
+  if (
+    checkoutSession.currency &&
+    checkoutSession.currency !== "usd" &&
+    checkoutSessionAmountTotal
+  ) {
     // support for Stripe Adaptive Pricing: https://docs.stripe.com/payments/checkout/adaptive-pricing
-    if (charge.currency_conversion) {
-      charge.currency = charge.currency_conversion.source_currency;
-      chargeAmountTotal = charge.currency_conversion.amount_total;
+    if (checkoutSession.currency_conversion) {
+      checkoutSession.currency =
+        checkoutSession.currency_conversion.source_currency;
+      checkoutSessionAmountTotal =
+        checkoutSession.currency_conversion.amount_total;
 
       // if Stripe Adaptive Pricing is not enabled, we convert the amount to USD based on the current FX rate
       // TODO: allow custom "defaultCurrency" on workspace table in the future
     } else {
       const { currency: convertedCurrency, amount: convertedAmount } =
         await convertCurrency({
-          currency: charge.currency,
-          amount: chargeAmountTotal,
+          currency: checkoutSession.currency,
+          amount: checkoutSessionAmountTotal,
         });
 
-      charge.currency = convertedCurrency;
-      chargeAmountTotal = convertedAmount;
+      checkoutSession.currency = convertedCurrency;
+      checkoutSessionAmountTotal = convertedAmount;
     }
   }
 
@@ -390,15 +398,15 @@ export async function checkoutSessionCompleted({
     ...leadEvent,
     workspace_id: leadEvent.workspace_id || customer.projectId, // in case for some reason the lead event doesn't have workspace_id
     event_id: nanoid(16),
-    // if the charge is a one-time payment, we set the event name to "Purchase"
+    // if the checkoutSession is a one-time payment, we set the event name to "Purchase"
     event_name:
-      charge.mode === "payment" ? "Purchase" : "Subscription creation",
+      checkoutSession.mode === "payment" ? "Purchase" : "Subscription creation",
     payment_processor: "stripe",
-    amount: chargeAmountTotal,
-    currency: charge.currency!,
+    amount: checkoutSessionAmountTotal,
+    currency: checkoutSession.currency!,
     invoice_id: invoiceId || "",
     metadata: JSON.stringify({
-      charge,
+      checkoutSession,
     }),
   };
 
@@ -433,7 +441,7 @@ export async function checkoutSessionCompleted({
             increment: 1,
           },
           saleAmount: {
-            increment: chargeAmountTotal,
+            increment: checkoutSessionAmountTotal,
           },
         },
         include: includeTags,
@@ -467,7 +475,7 @@ export async function checkoutSessionCompleted({
           increment: 1,
         },
         saleAmount: {
-          increment: chargeAmountTotal,
+          increment: checkoutSessionAmountTotal,
         },
         firstSaleAt: customer.firstSaleAt ? undefined : new Date(),
         subscriptionCanceledAt: null,
@@ -485,7 +493,7 @@ export async function checkoutSessionCompleted({
 
   if (link && link.programId && link.partnerId) {
     const products = await getCheckoutSessionProducts({
-      checkoutSessionId: charge.id,
+      checkoutSessionId: checkoutSession.id,
       stripeAccountId,
       mode,
     });
@@ -509,8 +517,9 @@ export async function checkoutSessionCompleted({
         sale: {
           products,
           amount: saleData.amount,
-          ...(charge.metadata && Object.keys(charge.metadata).length > 0
-            ? { metadata: charge.metadata }
+          ...(checkoutSession.metadata &&
+          Object.keys(checkoutSession.metadata).length > 0
+            ? { metadata: checkoutSession.metadata }
             : {}),
         },
       },
@@ -524,8 +533,7 @@ export async function checkoutSessionCompleted({
     waitUntil(
       Promise.allSettled([
         executeWorkflows({
-          trigger: "partnerMetricsUpdated",
-          reason: "sale",
+          event: "saleRecorded",
           identity: {
             workspaceId: workspace.id,
             programId: link.programId,

@@ -12,18 +12,18 @@ import {
 
 const mainLinks = [
   {
-    icon: LifeRing,
-    title: "Help Center",
-    description: "Answers to your questions",
-    thumbnail: "https://assets.dub.co/misc/help-thumbnail.jpg",
-    href: "/help",
-  },
-  {
     icon: Book2,
     title: "Docs",
     description: "Platform documentation",
     thumbnail: "https://assets.dub.co/misc/docs-thumbnail.jpg",
     href: "/docs",
+  },
+  {
+    icon: LifeRing,
+    title: "Help Center",
+    description: "Answers to your questions",
+    thumbnail: "https://assets.dub.co/misc/help-thumbnail.jpg",
+    href: "/help",
   },
 ];
 

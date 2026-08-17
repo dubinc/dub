@@ -7,6 +7,10 @@ import {
   PAYMENT_METHOD_TYPES,
 } from "@/lib/constants/payouts";
 import { stripe } from "@/lib/stripe";
+import {
+  listPendingMicrodeposits,
+  withMicrodepositStatus,
+} from "@/lib/stripe/microdeposits";
 import { APP_DOMAIN } from "@dub/utils";
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
@@ -61,6 +65,10 @@ export const GET = withWorkspace(
         stripe.customers.retrieve(workspace.stripeId),
       ]);
 
+      const pendingMicrodeposits = await listPendingMicrodeposits(
+        workspace.stripeId,
+      ).catch(() => []);
+
       const defaultPaymentMethod =
         customer.deleted !== true
           ? customer.invoice_settings?.default_payment_method
@@ -71,22 +79,24 @@ export const GET = withWorkspace(
           ? defaultPaymentMethod
           : defaultPaymentMethod?.id ?? null;
 
+      const methods = withMicrodepositStatus({
+        paymentMethods: paymentMethods.data,
+        pendingMicrodeposits,
+      });
+
       // reorder to put direct debit first
-      const directDebit = paymentMethods.data.find((method) =>
+      const directDebit = methods.find((method) =>
         DIRECT_DEBIT_PAYMENT_METHOD_TYPES.includes(method.type),
       );
 
       return NextResponse.json({
         paymentMethods: [
           ...(directDebit ? [directDebit] : []),
-          ...paymentMethods.data.filter(
-            (method) => method.id !== directDebit?.id,
-          ),
+          ...methods.filter((method) => method.id !== directDebit?.id),
         ],
         defaultPaymentMethodId,
       });
     } catch (error) {
-      console.error(error);
       return NextResponse.json({
         paymentMethods: [],
         defaultPaymentMethodId: null,
@@ -115,7 +125,7 @@ export const POST = withWorkspace(
     if (!method) {
       const { url } = await stripe.billingPortal.sessions.create({
         customer: workspace.stripeId,
-        return_url: `${APP_DOMAIN}/${workspace.slug}/settings/billing`,
+        return_url: `${APP_DOMAIN}/${workspace.slug}/settings/billing#payment-methods`,
         flow_data: {
           type: "payment_method_update",
         },
@@ -145,8 +155,8 @@ export const POST = withWorkspace(
         [method]: paymentMethodOption,
       },
       currency: "usd",
-      success_url: `${APP_DOMAIN}/${workspace.slug}/settings/billing`,
-      cancel_url: `${APP_DOMAIN}/${workspace.slug}/settings/billing`,
+      success_url: `${APP_DOMAIN}/${workspace.slug}/settings/billing#payment-methods`,
+      cancel_url: `${APP_DOMAIN}/${workspace.slug}/settings/billing#payment-methods`,
     });
 
     return NextResponse.json({ url });

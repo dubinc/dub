@@ -2,7 +2,7 @@ import {
   workflowActionSchema,
   workflowConditionSchema,
 } from "@/lib/zod/schemas/workflows";
-import { WorkflowTrigger } from "@prisma/client";
+import { ProgramEnrollment, ProgramPartnerTag } from "@prisma/client";
 import type * as z from "zod/v4";
 
 export type WorkflowCondition = z.infer<typeof workflowConditionSchema>;
@@ -26,13 +26,24 @@ interface PartnerMetrics {
 }
 
 export interface WorkflowContext {
-  trigger: WorkflowTrigger;
-  reason?: "lead" | "sale" | "commission";
+  event: WorkflowTriggerEvent;
   identity: WorkflowIdentity;
   metrics?: {
     current?: PartnerMetrics;
     aggregated?: PartnerMetrics;
   };
+  programEnrollment?: Pick<
+    ProgramEnrollment,
+    "groupId" | "createdAt" | "partnerId" | "programId" | "status"
+  > & {
+    programPartnerTags: Pick<ProgramPartnerTag, "partnerTagId">[];
+  };
 }
 
 export type WorkflowType = "awardBounty" | "sendCampaign" | "moveGroup";
+
+export type WorkflowTriggerEvent =
+  | "partnerEnrolled"
+  | "leadRecorded"
+  | "saleRecorded"
+  | "commissionRecorded";

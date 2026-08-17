@@ -1,3 +1,4 @@
+import { PRISMA_UPDATEMANY_LIMIT } from "@/lib/cron";
 import { prisma } from "@/lib/prisma";
 import { LINK_CLICK_WEBHOOK_TRIGGER } from "@/lib/webhook/constants";
 
@@ -26,7 +27,7 @@ export const cleanupRedundantLinkWebhookEntries = async () => {
           in: nonLinkScopeWebhooks.map((webhook) => webhook.id),
         },
       },
-      take: 250,
+      take: PRISMA_UPDATEMANY_LIMIT,
     });
     const deleted = await prisma.linkWebhook.deleteMany({
       where: {
