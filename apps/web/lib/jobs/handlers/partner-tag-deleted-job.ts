@@ -70,7 +70,7 @@ export const partnerTagDeletedJob = defineJob({
         `[partnerTagDeletedJob] Deleted ${count} program–partner tag associations.`,
       );
 
-      // Tags carry no timestamps, so the reconciliation sweep cannot see this.
+      // Queue an index update for the affected enrollments.
       await queuePartnerSearchSync({
         enrollmentIds: programPartnerTags.map(
           ({ programEnrollment }) => programEnrollment.id,

@@ -161,9 +161,7 @@ export async function bulkDeletePartners({
       `Deleted ${deletedProgramEnrollments.count} program enrollments`,
     );
 
-    // Deletions are invisible to the reconciliation sweep, which only sees rows
-    // that still exist. The job removes what it cannot read back, so passing
-    // the now-gone IDs is what clears them from the index.
+    // Queue an index update for the deleted enrollments.
     await queuePartnerSearchSync({ enrollmentIds: programEnrollmentIds });
 
     if (deletedProgramEnrollments.count > 0) {

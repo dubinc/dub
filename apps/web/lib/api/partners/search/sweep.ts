@@ -26,10 +26,10 @@ interface SweepPartnerSearchOptions {
  * next pass.
  *
  * Re-indexes everything rather than filtering by timestamp, because a watermark
- * cannot see a tag change (ProgramPartnerTag has no timestamps) or a link edit
- * (which moves neither the enrollment's nor the partner's).
+ * misses a tag change (ProgramPartnerTag has no timestamps) and a link edit
+ * (which moves neither the enrollment's timestamp nor the partner's).
  *
- * Deletions stay outside this. A pass only sees rows that still exist.
+ * Upserts only: a pass re-indexes the rows it reads.
  */
 export async function sweepPartnerSearch({
   after,

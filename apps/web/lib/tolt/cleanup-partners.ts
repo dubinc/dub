@@ -52,9 +52,8 @@ export async function cleanupPartners({ programId }: { programId: string }) {
 
       await bulkDeleteLinks(linksToDelete);
 
-      // Resolved before the delete, because afterwards nothing can map these
-      // partners back to the enrollments they had, and a deletion is invisible
-      // to the reconciliation sweep.
+      // Resolved before the delete, since nothing can map these partners back
+      // to their enrollments afterwards.
       const removedEnrollments = await prisma.programEnrollment.findMany({
         where: {
           programId,

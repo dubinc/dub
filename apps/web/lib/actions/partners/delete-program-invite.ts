@@ -117,8 +117,7 @@ export const deleteProgramInviteAction = authActionClient
           ],
         }),
 
-        // Deletions are invisible to the reconciliation sweep, so this hook is
-        // the only thing that clears the document.
+        // Queue an index update for the deleted enrollment.
         queuePartnerSearchSync({ enrollmentIds: [programEnrollment.id] }),
       ]),
     );

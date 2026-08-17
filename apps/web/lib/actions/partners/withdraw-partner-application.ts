@@ -49,7 +49,7 @@ export const withdrawPartnerApplicationAction = authPartnerActionClient
       return deletedProgramEnrollment;
     });
 
-    // A withdrawal deletes the enrollment, which no sweep can notice.
+    // Queue an index update for the deleted enrollment.
     waitUntil(
       queuePartnerSearchSync({ enrollmentIds: [programEnrollment.id] }),
     );

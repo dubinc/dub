@@ -130,8 +130,7 @@ export async function bulkUpdateLinks(
       propagateBulkLinkChanges({
         links: updatedLinks,
       }),
-      // A bulk edit can move the destination URL, and the key or domain behind
-      // the short link.
+      // A bulk edit can change the destination URL or the link owner.
       queuePartnerSearchSyncForLinks([...previousOwners, ...updatedLinks], {
         delay: PARTNER_SEARCH_LINK_SYNC_DELAY_SECONDS,
       }),
