@@ -126,10 +126,8 @@ export const onboardPartnerAction = authUserActionClient
         // Mark the application event as submitted for the `network` program
         markApplicationEventSubmittedNetwork(updatedPartner),
 
-        // Onboarding sets name, country, and description, all of which the
-        // document carries. Runs after completeProgramApplications above, which
-        // queues its own sync for the enrollments it creates. Both collapse on
-        // the same partner, and re-indexing twice is harmless either way.
+        // Onboarding sets name, country and description. Overlaps with the
+        // sync completeProgramApplications queues above, which is harmless.
         queuePartnerSearchSync({ partnerIds: [updatedPartner.id] }),
       ]),
     );

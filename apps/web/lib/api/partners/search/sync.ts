@@ -7,9 +7,8 @@ import {
 import type { PartnerSearchProvider } from "./types";
 
 /**
- * How many enrollments one sync resolves at a time, matching the backfill's
- * batch size. The provider chunks its own writes below this, so the ceiling
- * here is about how much the database hydrates at once, not the write size.
+ * How many enrollments one sync hydrates at a time. The provider chunks its own
+ * writes below this, so this bounds the database read, not the write.
  */
 export const PARTNER_SEARCH_SYNC_BATCH_SIZE = 500;
 
@@ -30,15 +29,10 @@ function unique(values: string[]): string[] {
 /**
  * Brings the index in line with the database for the given enrollments.
  *
- * Current state is read here rather than passed in by the caller, so a delayed
- * or replayed sync converges on the truth instead of re-applying whatever was
- * true when it was queued. That is also what makes deletes fall out for free:
- * an ID the database no longer has is removed from the index rather than
- * treated as an error, so a caller reacting to a deletion queues the same job
- * as one reacting to an edit.
- *
- * No-ops when no provider is configured, matching the read path, which falls
- * back to the database search rather than failing.
+ * State is read here rather than passed in, so a delayed or replayed sync
+ * converges on current truth. That is also what makes deletes free: an ID the
+ * database no longer has is removed rather than treated as an error, so callers
+ * queue the same payload whether they edited or deleted.
  */
 export async function syncPartnerSearchDocuments({
   enrollmentIds,
@@ -86,16 +80,12 @@ interface FindPartnerSearchSyncEnrollmentIdsOptions {
 }
 
 /**
- * One page of enrollment IDs belonging to the given partners, for the changes
- * that fan out beyond a single enrollment: a profile edit or a platform change
- * touches every program the partner is enrolled in.
+ * One page of enrollment IDs for the given partners, for changes that fan out
+ * beyond a single enrollment: a profile or platform edit touches every program
+ * the partner is in.
  *
- * Paged by enrollment ID so the caller can resume, because the fan-out is
- * unbounded: a partner enrolled in hundreds of programs produces hundreds of
- * documents from one profile write.
- *
- * `programId` narrows to a single enrollment per partner, which is what the
- * enrollment-scoped callers (group moves, status changes, tags) pass.
+ * Paged because that fan-out is unbounded. `programId` narrows it to one
+ * enrollment per partner.
  */
 export async function findPartnerSearchSyncEnrollmentIds({
   partnerIds,

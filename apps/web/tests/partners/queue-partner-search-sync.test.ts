@@ -94,9 +94,8 @@ describe("queuePartnerSearchSync", () => {
   });
 
   // QStash suppresses a repeated key for ten minutes from the first publish,
-  // not merely while one is pending. Keying by subject would therefore drop the
-  // second of two changes inside that window, and a dropped delete leaves a
-  // document nothing can remove. Every change gets its own job instead.
+  // not just while one is pending, so keying by subject would drop the second of
+  // two changes rather than collapse them.
   it("never deduplicates, so a later change cannot be dropped", async () => {
     await queuePartnerSearchSync({ enrollmentIds: ["pge_1"] });
     await queuePartnerSearchSync({ enrollmentIds: ["pge_1"] });

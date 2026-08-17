@@ -22,15 +22,12 @@ interface IndexPartnerSearchEnrollmentsOptions {
   after?: string;
   batchSize: number;
   /**
-   * Wall-clock budget, checked between batches, so a caller running under a
-   * function timeout stops on its own and resumes from the returned cursor.
-   * Runs to exhaustion when omitted.
+   * Wall-clock budget, checked between batches, so a caller under a function
+   * timeout stops itself and resumes from the returned cursor. Runs to
+   * exhaustion when omitted.
    *
-   * A budget rather than a batch count because the constraint being respected
-   * is a duration. A batch count only stands in for one if you already know how
-   * long a batch takes, which depends on document size, provider latency, and
-   * how loaded the database is, and is therefore exactly the thing not worth
-   * pinning to a constant.
+   * A duration rather than a batch count, because a batch count only stands in
+   * for one if you already know how long a batch takes.
    */
   timeBudgetMs?: number;
   /** Injectable clock, so the budget is testable without real time passing. */
@@ -39,16 +36,11 @@ interface IndexPartnerSearchEnrollmentsOptions {
 }
 
 /**
- * Pages enrollments by ID and writes them to the index.
+ * Pages enrollments by ID and writes them to the index. Keyset paging, so
+ * per-batch cost stays flat however deep the run gets.
  *
- * Keyset paging rather than offset, so per-batch cost stays flat however deep
- * the run gets. Shared by the backfill, which narrows to one program and runs
- * to exhaustion, and the reconciliation sweep, which runs unnarrowed in bounded
- * slices.
- *
- * Upserts only. A document whose enrollment was deleted is not removed here,
- * because an ID absent from a range scan is indistinguishable from one that was
- * never in range. Deletions are the call sites' responsibility.
+ * Upserts only. An ID absent from a range scan is indistinguishable from one
+ * that was never in range, so deletions are the call sites' responsibility.
  */
 export async function indexPartnerSearchEnrollments({
   searchProvider,
@@ -103,9 +95,8 @@ export async function indexPartnerSearchEnrollments({
       break;
     }
 
-    // Checked after a batch rather than before, so a run always makes progress
-    // however tight the budget is. One batch can therefore overrun it, which is
-    // why callers leave headroom rather than budgeting to their whole limit.
+    // Checked after a batch, so a run always makes progress however tight the
+    // budget is. One batch can therefore overrun it, hence the caller headroom.
     if (timeBudgetMs !== undefined && now() - startedAt >= timeBudgetMs) {
       break;
     }

@@ -327,10 +327,9 @@ export async function POST(req: Request) {
       }
     }
 
-    // Both sides, because a merge either reassigns a source enrollment to the
-    // target partner, which changes every identity field on the document, or
-    // deletes it in favour of the target's. Passing all of them lets the job
-    // read each one back and work out which happened.
+    // Both sides: a merge either reassigns a source enrollment to the target
+    // partner or deletes it in favour of the target's, and passing all of them
+    // lets the job work out which happened.
     await queuePartnerSearchSync({
       enrollmentIds: [
         ...sourcePartnerEnrollments.map(({ id }) => id),

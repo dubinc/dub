@@ -91,9 +91,7 @@ export async function completeProgramApplications(userEmail: string) {
     const partner = user.partners[0].partner;
 
     // Program enrollments to create. `id` is narrowed to required because the
-    // search sync below reads it back: Prisma leaves it optional on the create
-    // input, so without this the invariant would have to be asserted at the
-    // point of use rather than guaranteed here, where it is actually set.
+    // search sync below reads it back, and Prisma leaves it optional here.
     const programEnrollments: (Prisma.ProgramEnrollmentCreateManyInput & {
       id: string;
     })[] = filteredProgramApplications.map((programApplication) => ({
@@ -276,9 +274,8 @@ export async function completeProgramApplications(userEmail: string) {
       ),
     );
 
-    // One queue at the end covers both the new enrollments and the platforms
-    // backfilled from the application above, since the job re-reads the whole
-    // document rather than the fields any one write touched.
+    // One queue covers both the new enrollments and the platforms backfilled
+    // above, since the job re-reads the whole document.
     await queuePartnerSearchSync({
       enrollmentIds: programEnrollments.map(({ id }) => id),
     });

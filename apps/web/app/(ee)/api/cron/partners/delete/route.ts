@@ -159,8 +159,8 @@ export const POST = withCron(async ({ rawBody }) => {
   ]);
 
   // Queued after the enrollment is gone, so the job reads nothing back and
-  // removes the document. The sweep can never do this for us: a pass only sees
-  // rows that still exist, so an orphaned document is invisible to it.
+  // removes the document. No sweep can do this: a pass only sees rows that
+  // still exist.
   await queuePartnerSearchSync({ enrollmentIds: [enrollment.id] });
 
   await recordAuditLog({
