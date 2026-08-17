@@ -159,42 +159,6 @@ describe("sweepPartnerSearch", () => {
     });
   });
 
-  it("narrows to enrollment and partner timestamps in watermark mode", async () => {
-    const searchProvider = createProvider();
-    const since = new Date("2026-08-01T00:00:00.000Z");
-    mocks.findMany.mockResolvedValueOnce([]);
-
-    await sweepPartnerSearch({ since, batchSize: 2, searchProvider });
-
-    expect(mocks.findMany.mock.calls[0][0].where).toEqual({
-      OR: [
-        { updatedAt: { gte: since } },
-        { partner: { updatedAt: { gte: since } } },
-      ],
-    });
-  });
-
-  it("keeps the watermark filter alongside the cursor when resuming", async () => {
-    const searchProvider = createProvider();
-    const since = new Date("2026-08-01T00:00:00.000Z");
-    mocks.findMany.mockResolvedValueOnce([]);
-
-    await sweepPartnerSearch({
-      since,
-      after: "pge_5",
-      batchSize: 2,
-      searchProvider,
-    });
-
-    expect(mocks.findMany.mock.calls[0][0].where).toEqual({
-      OR: [
-        { updatedAt: { gte: since } },
-        { partner: { updatedAt: { gte: since } } },
-      ],
-      id: { gt: "pge_5" },
-    });
-  });
-
   it("never deletes, because an out-of-range id looks the same as a missing one", async () => {
     const searchProvider = createProvider();
     mocks.findMany.mockResolvedValueOnce([createSource("pge_1")]);

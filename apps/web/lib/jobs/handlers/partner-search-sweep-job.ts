@@ -15,8 +15,6 @@ const inputSchema = z.object({
    * at every call site.
    */
   processed: z.number().int().nonnegative().optional(),
-  /** One-shot watermark mode. See sweepPartnerSearch. */
-  since: z.iso.datetime().optional(),
 });
 
 export const partnerSearchSweepJob = defineJob({
@@ -31,7 +29,7 @@ export const partnerSearchSweepJob = defineJob({
       parallelism: 1,
     },
   },
-  async handle({ after, processed: alreadyProcessed = 0, since }) {
+  async handle({ after, processed: alreadyProcessed = 0 }) {
     if (!getPartnerSearchProvider()) {
       console.log(
         "[partnerSearchSweepJob] No search provider configured. Skipping...",
@@ -41,7 +39,6 @@ export const partnerSearchSweepJob = defineJob({
 
     const { processed, lastDocumentId, done } = await sweepPartnerSearch({
       after,
-      ...(since && { since: new Date(since) }),
     });
 
     const totalProcessed = alreadyProcessed + processed;
@@ -63,7 +60,6 @@ export const partnerSearchSweepJob = defineJob({
       {
         ...(lastDocumentId && { after: lastDocumentId }),
         processed: totalProcessed,
-        ...(since && { since }),
       },
       {
         delay: 1,

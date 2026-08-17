@@ -68,33 +68,4 @@ describe("partnerSearchSweepJob", () => {
     );
   });
 
-  it("keeps the watermark across hops so a catch-up stays narrowed", async () => {
-    const dispatch = vi
-      .spyOn(partnerSearchSweepJob, "dispatch")
-      .mockResolvedValue({ status: "published", messageId: "msg_1" });
-
-    const since = "2026-08-01T00:00:00.000Z";
-    mocks.sweepPartnerSearch.mockResolvedValue({
-      processed: 20,
-      lastDocumentId: "pge_20",
-      done: false,
-    });
-
-    await partnerSearchSweepJob.execute({ since });
-
-    expect(mocks.sweepPartnerSearch).toHaveBeenCalledWith({
-      after: undefined,
-      since: new Date(since),
-    });
-    expect(dispatch).toHaveBeenCalledWith(
-      { after: "pge_20", processed: 20, since },
-      { delay: 1 },
-    );
-  });
-
-  it("rejects a malformed watermark rather than sweeping everything", async () => {
-    await expect(
-      partnerSearchSweepJob.execute({ since: "last tuesday" }),
-    ).rejects.toThrow();
-  });
 });
