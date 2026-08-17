@@ -6,38 +6,33 @@ import {
 } from "./search";
 
 /**
- * How long QStash remembers a deduplication ID.
+ * How long a sync waits before it runs, so the mutation's transaction has
+ * settled by the time the job reads the row back.
  *
- * A delayed message is only collapsed while it is still pending *and* still
- * inside this window, so any delay at or above it gets no deduplication at all.
- * That makes this an upper bound on every delay below, not a trivium.
- *
- * https://upstash.com/docs/qstash/features/deduplication
- */
-export const QSTASH_DEDUPLICATION_WINDOW_SECONDS = 600;
-
-/**
- * How long a sync waits before it runs. The delay is what gives deduplication
- * something to collapse: an admin editing one partner three times in a row
- * should produce one write, not three.
+ * Deliberately not deduplicated. QStash suppresses a repeated key for ten
+ * minutes from the first publish, not merely while one is pending, so keying
+ * by subject would drop the second of two changes inside that window rather
+ * than collapse them. A dropped delete leaves a document nothing can remove.
+ * Every edit gets its own job instead, which is safe because the job re-reads
+ * current state and is therefore idempotent.
  */
 export const PARTNER_SEARCH_SYNC_DELAY_SECONDS = 5;
 
 /**
  * Links change far more often than the other document sources, and a link edit
- * only moves `shortLinks` and `destinationUrls`, so they are worth deferring.
- * Nothing is lost by waiting: the handler re-reads the whole document, so a
- * late link sync still picks up every other change that landed meanwhile.
+ * only moves `shortLinks` and `destinationUrls`, so their syncs are spread out
+ * rather than run at once. Nothing is lost by waiting: the handler re-reads the
+ * whole document, so a late link sync still picks up every other change that
+ * landed meanwhile.
  *
- * Half the deduplication window rather than all of it. Deduplication only ever
- * collapses repeat edits to the *same* partner, so the delay is not what keeps
- * a bulk link change cheap. Chunking and flow control do that. Buying a little
- * more collapse by sitting at the window boundary would trade a real margin for
- * a rare case.
+ * This no longer reduces the number of writes. It did when these were
+ * deduplicated by subject, and that is gone, so what remains is smoothing when
+ * a bulk link operation's jobs run. Flow control is what actually caps the load
+ * on the provider, which makes this worth revisiting.
  *
- * Link *creation* should use the default delay instead: a partner's short link
- * is how people search for them, so a newly enrolled partner being unfindable
- * by link is a worse trade than the extra write.
+ * Link *creation* uses the default delay instead: a partner's short link is how
+ * people search for them, so a newly enrolled partner being unfindable by link
+ * is a worse trade than running the job sooner.
  */
 export const PARTNER_SEARCH_LINK_SYNC_DELAY_SECONDS = 300;
 
@@ -62,42 +57,6 @@ interface QueuePartnerSearchSyncInput {
 
 function unique(values: string[] | undefined): string[] {
   return Array.from(new Set((values ?? []).filter(Boolean)));
-}
-
-/**
- * Collapses repeat syncs of the same subject while one is still pending.
- *
- * Only for single-subject payloads: bulk operations produce chunks whose exact
- * composition never repeats, so a key built from them would never match, and
- * they are not the traffic worth collapsing anyway. Repeated edits to one
- * partner are.
- *
- * The delay is part of the key so a slow link sync cannot suppress a fast one
- * queued behind it, which would drag an interactive edit out to the link delay.
- * The cost is at most one redundant write, and the job is idempotent.
- *
- * A delay at or past the deduplication window gets no key at all. QStash would
- * have forgotten the ID before the first message fired, so every edit would
- * write anyway, and sending a key regardless would just make the caller believe in
- * a collapse that is not happening. Failing openly beats failing quietly.
- */
-function buildDeduplicationId(
-  payload: PartnerSearchSyncPayload,
-  delay: number,
-): string | undefined {
-  if (delay >= QSTASH_DEDUPLICATION_WINDOW_SECONDS) {
-    return undefined;
-  }
-
-  if (payload.type === "enrollments") {
-    return payload.enrollmentIds.length === 1
-      ? `enrollment:${payload.enrollmentIds[0]}:${delay}`
-      : undefined;
-  }
-
-  return payload.partnerIds.length === 1
-    ? `partner:${payload.partnerIds[0]}:${payload.programId ?? "all"}:${delay}`
-    : undefined;
 }
 
 /**
@@ -142,14 +101,7 @@ export async function queuePartnerSearchSync({
   ];
 
   try {
-    await partnerSearchSyncJob.dispatchBatch(payloads, (payload) => {
-      const deduplicationId = buildDeduplicationId(payload, delay);
-
-      return {
-        delay,
-        ...(deduplicationId && { deduplicationId }),
-      };
-    });
+    await partnerSearchSyncJob.dispatchBatch(payloads, () => ({ delay }));
   } catch (error) {
     console.error(
       "[Partner Search] Failed to queue an index sync. The reconciliation sweep will pick this up.",
