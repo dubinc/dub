@@ -13,15 +13,14 @@
  *   pnpm run script partners/backfill-partner-search --programId=prog_123
  *     [--batchSize=500] [--after=pge_123]
  *
- * Requires PARTNER_SEARCH_PROVIDER to be configured.
+ * Requires TURBOPUFFER_API_KEY to be configured.
  */
 
 import {
   backfillPartnerSearch,
-  getPartnerSearchProviderName,
+  getPartnerSearchProvider,
   type PartnerSearchBackfillProgress,
 } from "@/lib/api/partners/search";
-import { createUpstashRedisPartnerSearchIndex } from "@/lib/api/partners/search/providers/upstash-redis";
 import { prisma } from "@/lib/prisma";
 import { parsePositiveInteger } from "@/scripts/utils/parse-cli-number";
 import "dotenv-flow/config";
@@ -102,15 +101,8 @@ function createProgressReporter(totalDocuments: number, batchSize: number) {
 async function main() {
   const { programId, batchSize, after } = parseArguments(process.argv.slice(2));
   resumeAfter = after;
-  const providerName = getPartnerSearchProviderName();
-  if (!providerName) {
-    throw new Error("PARTNER_SEARCH_PROVIDER is not configured.");
-  }
-
-  // Redis Search indexes have an explicit schema and must exist before the
-  // backfill starts. Turbopuffer creates its namespace on the first upsert.
-  if (providerName === "upstash-redis") {
-    await createUpstashRedisPartnerSearchIndex();
+  if (!getPartnerSearchProvider()) {
+    throw new Error("TURBOPUFFER_API_KEY is not configured.");
   }
 
   // Same where-clause the backfill pages with, so chunk totals line up.
@@ -122,7 +114,6 @@ async function main() {
   });
 
   console.log(`Starting partner search backfill for program ${programId}`);
-  console.log(`Provider: ${providerName}`);
   console.log(
     `Batch size: ${batchSize.toLocaleString()}${after ? `, resuming after ${after}` : ""}`,
   );

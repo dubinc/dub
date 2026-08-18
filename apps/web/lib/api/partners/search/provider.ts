@@ -1,54 +1,21 @@
 import { createTurbopufferPartnerSearchProvider } from "./providers/turbopuffer";
-import { createUpstashRedisPartnerSearchProvider } from "./providers/upstash-redis";
 import type { PartnerSearchProvider } from "./types";
 
-const PARTNER_SEARCH_PROVIDER_NAMES = ["upstash-redis", "turbopuffer"] as const;
+// Built once per process. A fresh client per call would create a new HTTP
+// connection pool each time, paying a TLS handshake on every search.
+let cachedSearchProvider: PartnerSearchProvider | null = null;
 
-export type PartnerSearchProviderName =
-  (typeof PARTNER_SEARCH_PROVIDER_NAMES)[number];
-
-const providerFactories: Record<
-  PartnerSearchProviderName,
-  () => PartnerSearchProvider
-> = {
-  "upstash-redis": createUpstashRedisPartnerSearchProvider,
-  turbopuffer: createTurbopufferPartnerSearchProvider,
-};
-
-const providerCache = new Map<
-  PartnerSearchProviderName,
-  PartnerSearchProvider
->();
-
-export function getPartnerSearchProviderName(): PartnerSearchProviderName | null {
-  const provider = process.env.PARTNER_SEARCH_PROVIDER?.trim();
-
-  if (!provider) {
-    return null;
-  }
-
-  if ((PARTNER_SEARCH_PROVIDER_NAMES as readonly string[]).includes(provider)) {
-    return provider as PartnerSearchProviderName;
-  }
-
-  throw new Error(
-    `Unsupported partner search provider: ${provider}. Expected one of ${PARTNER_SEARCH_PROVIDER_NAMES.join(", ")}.`,
-  );
-}
-
+/**
+ * Null until turbopuffer is configured, which is what keeps this dark: every
+ * caller falls back to the database search path when there is no provider, so
+ * an unset key costs the wider field coverage rather than the partner list.
+ */
 export function getPartnerSearchProvider(): PartnerSearchProvider | null {
-  const provider = getPartnerSearchProviderName();
-
-  if (!provider) {
+  if (!process.env.TURBOPUFFER_API_KEY?.trim()) {
     return null;
   }
 
-  let instance = providerCache.get(provider);
+  cachedSearchProvider ??= createTurbopufferPartnerSearchProvider();
 
-  if (!instance) {
-    instance = providerFactories[provider]();
-    providerCache.set(provider, instance);
-  }
-
-  return instance;
+  return cachedSearchProvider;
 }

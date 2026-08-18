@@ -64,6 +64,7 @@ export async function getPartnersCount<T>(
     groupId,
     partnerTagId,
     tenantId,
+    referredByPartnerId,
     partnerTagIdOperator = "IN",
     groupIdOperator = "IN",
     countryOperator = "IN",
@@ -260,7 +261,41 @@ export async function getPartnersCount<T>(
     })) as T;
   }
 
-  // Get absolute count of partners
+  // Every filter the provider does not carry. `email` is absent because it stops
+  // a candidate query being built at all. Adding a filter to
+  // buildProgramEnrollmentWhereForList without adding it here or to the
+  // document would silently over-count.
+  const databaseOnlyFilters =
+    Boolean(tenantId) ||
+    Boolean(partnerIds?.length) ||
+    Boolean(referredByPartnerId) ||
+    Object.keys(buildMetricRangeWhere(enrollmentBase)).length > 0;
+
+  if (
+    searchProvider &&
+    candidateQuery &&
+    candidateResult &&
+    !databaseOnlyFilters
+  ) {
+    try {
+      const total = await searchProvider.countCandidates(candidateQuery);
+
+      if (typeof total === "number") {
+        return total as T;
+      }
+    } catch (error) {
+      console.error(
+        "[Partner Search] Count aggregation failed, falling back to counting candidates.",
+        error,
+      );
+    }
+  }
+
+  // Counting the candidate IDs reports a floor rather than a total, because the
+  // provider already truncated them to the candidate ceiling. Every path that
+  // lands here accepts that: a database-only filter, a declined short prefix, or
+  // a failed aggregation. It stays consistent with the list, which is capped at
+  // the same ceiling, but a broad query will under-report.
   const count = await prisma.programEnrollment.count({
     where: {
       ...buildProgramEnrollmentWhereForList(enrollmentBase),

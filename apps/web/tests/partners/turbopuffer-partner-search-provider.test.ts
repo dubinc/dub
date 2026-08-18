@@ -23,11 +23,16 @@ const document: PartnerSearchDocument = {
   linkKeys: ["rafi"],
   shortLinks: ["https://dub.sh/rafi"],
   destinationUrls: ["https://example.com/referrals/rafi"],
+  status: "approved",
+  groupId: "grp_test",
+  country: "US",
+  partnerTagIds: ["ptag_a", "ptag_b"],
 };
 
 const mocks = vi.hoisted(() => ({
   write: vi.fn(),
   multiQuery: vi.fn(),
+  query: vi.fn(),
   deleteAll: vi.fn(),
 }));
 
@@ -35,6 +40,7 @@ function createNamespaceMock(): TurbopufferNamespace {
   return {
     write: mocks.write,
     multiQuery: mocks.multiQuery,
+    query: mocks.query,
     deleteAll: mocks.deleteAll,
   } as unknown as TurbopufferNamespace;
 }
@@ -70,6 +76,7 @@ describe("Turbopuffer partner search provider", () => {
     }
     mocks.write.mockResolvedValue({ rows_affected: 1 });
     mocks.multiQuery.mockResolvedValue({ results: [] });
+    mocks.query.mockResolvedValue({ aggregations: { total: 12_000 } });
   });
 
   // In afterEach rather than the test body, so a failed assertion cannot leak
@@ -239,6 +246,48 @@ describe("Turbopuffer partner search provider", () => {
     expect(branchesOf().filteredOn("identityText")).toHaveLength(0);
   });
 
+  it("narrows every branch with the discrete filters", async () => {
+    // The filters have to sit inside each branch: applying them after the
+    // ranking truncates is what made a broad query with country=US return 85
+    // rows out of 7,698 real matches.
+    await createProvider().searchCandidates({
+      programId: "prog_test",
+      query: "examp",
+      limit: 10,
+      filters: {
+        status: { values: ["approved"] },
+        country: { values: ["US", "CA"], exclude: true },
+        partnerTagIds: { values: ["ptag_1"] },
+      },
+    });
+
+    const [{ queries }] = mocks.multiQuery.mock.calls[0];
+    expect(queries.length).toBeGreaterThan(1);
+
+    for (const branch of queries) {
+      const filters = JSON.stringify(branch.filters);
+      expect(filters).toContain('["programId","Eq","prog_test"]');
+      expect(filters).toContain('["status","In",["approved"]]');
+      // Exclusion uses NotIn, which also matches documents that omit country.
+      expect(filters).toContain('["country","NotIn",["US","CA"]]');
+      expect(filters).toContain('["partnerTagIds","ContainsAny",["ptag_1"]]');
+    }
+  });
+
+  it("omits absent filters rather than sending empty clauses", async () => {
+    await createProvider().searchCandidates({
+      programId: "prog_test",
+      query: "examp",
+      limit: 10,
+      filters: { status: undefined, country: { values: [] } },
+    });
+
+    const [{ queries }] = mocks.multiQuery.mock.calls[0];
+    for (const branch of queries) {
+      expect(JSON.stringify(branch.filters)).not.toContain('"country"');
+    }
+  });
+
   it("requires every trigram on the n-gram branch", async () => {
     // BM25 alone would score a document sharing a single trigram, which is how
     // an unrelated address looks like a partial-email match.
@@ -341,17 +390,73 @@ describe("Turbopuffer partner search provider", () => {
     ).rejects.toThrow("Partner search candidate limit");
   });
 
+  it("counts a three-character prefix, the shortest it will answer", async () => {
+    const total = await createProvider().countCandidates({
+      programId: "prog_test",
+      query: "ale",
+      limit: 10,
+    });
+
+    expect(total).toBe(12_000);
+  });
+
+  it("returns null when the response carries no aggregate", async () => {
+    // Zero would render an unanswered count as an exact empty result.
+    mocks.query.mockResolvedValue({});
+
+    await expect(
+      createProvider().countCandidates({
+        programId: "prog_test",
+        query: "creator",
+        limit: 10,
+      }),
+    ).resolves.toBeNull();
+  });
+
+  it("counts matches without the candidate ceiling", async () => {
+    const total = await createProvider().countCandidates({
+      programId: "prog_test",
+      query: "creator",
+      limit: 10,
+      filters: { status: { values: ["approved"] } },
+    });
+
+    expect(total).toBe(12_000);
+
+    const [request] = mocks.query.mock.calls[0];
+    expect(request.aggregate_by).toEqual({ total: ["Count"] });
+    // One clause covers both text branches, since identityText holds a subset
+    // of what searchText holds.
+    const filters = JSON.stringify(request.filters);
+    expect(filters).toContain('["searchText","ContainsAnyToken","creator"');
+    expect(filters).toContain('["status","In",["approved"]]');
+  });
+
+  it.each([
+    ["a single character", "a"],
+    ["a half-typed final token", "steven a"],
+  ])(
+    "declines to count %s, which the prefix expands too far",
+    async (_label, query) => {
+      // Measured against 626K documents: a one-character prefix takes the
+      // aggregation from ~50ms to ~1.2s, past the deadline every time.
+      const total = await createProvider().countCandidates({
+        programId: "prog_test",
+        query,
+        limit: 10,
+      });
+
+      expect(total).toBeNull();
+      expect(mocks.query).not.toHaveBeenCalled();
+    },
+  );
+
   it("deletes by document ID", async () => {
     await createProvider().delete(["pge_1", "pge_2"]);
 
     expect(mocks.write).toHaveBeenCalledWith({
       deletes: ["pge_1", "pge_2"],
     });
-  });
-
-  it("does not wait for indexing, which turbopuffer does not need", async () => {
-    await expect(createProvider().waitForIndexing()).resolves.toBeUndefined();
-    expect(mocks.write).not.toHaveBeenCalled();
   });
 
   it("empties the namespace", async () => {
@@ -366,14 +471,13 @@ describe("Turbopuffer partner search provider", () => {
     expect(result).toEqual({ namespaceName: "test-namespace" });
   });
 
-  it("falls back to the default namespace when the env var is blank", async () => {
-    vi.stubEnv("PARTNER_SEARCH_INDEX_NAME", "");
+  it("uses the pinned namespace when none is passed", async () => {
     mocks.deleteAll.mockResolvedValue({});
 
     const { namespaceName } = await deleteTurbopufferPartnerSearchNamespace({
       namespace: createNamespaceMock(),
     });
 
-    expect(namespaceName).toBe("partner-search-v2");
+    expect(namespaceName).toBe("partner-search-v3");
   });
 });
