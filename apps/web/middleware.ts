@@ -40,7 +40,10 @@ export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
   ev.waitUntil(logger.flush());
 
   // for app.dub.co
-  if (APP_HOSTNAMES.has(domain)) {
+  if (
+    APP_HOSTNAMES.has(domain) ||
+    (process.env.VERCEL_ENV === "preview" && domain.endsWith(".dub.co"))
+  ) {
     return AppMiddleware(req);
   }
 
