@@ -179,6 +179,20 @@ export async function bulkDeletePartners({
   }
 
   if (deletePartners) {
+    // The enrollment delete above is scoped to ACME, but this one is not, and
+    // ProgramEnrollment.partner is onDelete: Cascade. Read whatever is left in
+    // other programs first, since the rows are unrecoverable afterwards.
+    const cascadedEnrollments = await prisma.programEnrollment.findMany({
+      where: {
+        partnerId: {
+          in: partnerIds,
+        },
+      },
+      select: {
+        id: true,
+      },
+    });
+
     // using conn.execute here since Prisma is throwing a weird error
     const res = await conn.execute(
       `DELETE FROM Partner WHERE id IN (${partnerIds.map(() => "?").join(",")})`,
@@ -187,5 +201,10 @@ export async function bulkDeletePartners({
     console.log(JSON.stringify(res, null, 2));
 
     console.log(`Deleted ${partnerIds.length} partners`);
+
+    // Queue an index update for the cascade-deleted enrollments.
+    await queuePartnerSearchSync({
+      enrollmentIds: cascadedEnrollments.map(({ id }) => id),
+    });
   }
 }
