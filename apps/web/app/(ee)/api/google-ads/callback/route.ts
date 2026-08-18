@@ -109,7 +109,16 @@ export const GET = async (req: Request) => {
       });
     }
 
+    const existingInstallation = await prisma.installedIntegration.findFirst({
+      where: {
+        integrationId: GOOGLE_ADS_INTEGRATION_ID,
+        projectId: workspaceId,
+      },
+      select: { settings: true },
+    });
+
     const settings = googleAdsSettingsSchema.parse({
+      ...((existingInstallation?.settings as Record<string, unknown>) ?? {}),
       customers,
       customerId,
       customerName,
