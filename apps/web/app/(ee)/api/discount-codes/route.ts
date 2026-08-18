@@ -1,5 +1,6 @@
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { DubApiError } from "@/lib/api/errors";
+import { getDiscountOrThrow } from "@/lib/api/partners/get-discount-or-throw";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
@@ -15,26 +16,50 @@ import { APP_DOMAIN } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
-// GET /api/discount-codes - get all discount codes for a partner
+// GET /api/discount-codes - list discount codes
 export const GET = withWorkspace(
   async ({ workspace, searchParams }) => {
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    const { partnerId } = getDiscountCodesQuerySchema.parse(searchParams);
-
-    const programEnrollment = await getProgramEnrollmentOrThrow({
+    const {
       partnerId,
-      programId,
-      include: {
-        discountCodes: true,
+      discountId,
+      page = 1,
+      pageSize,
+    } = getDiscountCodesQuerySchema.parse(searchParams);
+
+    if (discountId) {
+      await getDiscountOrThrow({
+        discountId,
+        programId,
+      });
+    }
+
+    if (partnerId) {
+      await getProgramEnrollmentOrThrow({
+        partnerId,
+        programId,
+        include: {},
+      });
+    }
+
+    const discountCodes = await prisma.discountCode.findMany({
+      where: {
+        programId,
+        ...(partnerId && { partnerId }),
+        ...(discountId && { discountId }),
       },
+      include: {
+        discount: true,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+      take: pageSize,
+      skip: (page - 1) * pageSize,
     });
 
-    const response = DiscountCodeSchema.array().parse(
-      programEnrollment.discountCodes,
-    );
-
-    return NextResponse.json(response);
+    return NextResponse.json(DiscountCodeSchema.array().parse(discountCodes));
   },
   {
     requiredPlan: ["business", "advanced", "enterprise"],
@@ -54,9 +79,18 @@ export const POST = withWorkspace(
       partnerId,
       programId,
       include: {
-        links: true,
         discount: true,
-        discountCodes: true,
+        links: {
+          select: {
+            id: true,
+          },
+        },
+        discountCodes: {
+          select: {
+            code: true,
+            linkId: true,
+          },
+        },
         partner: {
           select: {
             id: true,

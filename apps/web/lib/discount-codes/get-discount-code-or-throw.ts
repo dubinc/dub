@@ -13,11 +13,7 @@ export async function getDiscountCodeOrThrow({
       id: discountCodeId,
     },
     include: {
-      discount: {
-        select: {
-          provider: true,
-        },
-      },
+      discount: true,
     },
   });
 

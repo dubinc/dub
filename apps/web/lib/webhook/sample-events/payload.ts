@@ -2,6 +2,9 @@ import type { WebhookTrigger } from "@/lib/webhook/types";
 import bountyCreated from "./bounty-created.json";
 import bountyUpdated from "./bounty-updated.json";
 import commissionCreated from "./commission-created.json";
+import discountCodeCreated from "./discount-code-created.json";
+import discountCodeDeleted from "./discount-code-deleted.json";
+import discountCodeUpdated from "./discount-code-updated.json";
 import leadCreated from "./lead-created.json";
 import linkClicked from "./link-clicked.json";
 import linkCreated from "./link-created.json";
@@ -25,4 +28,7 @@ export const samplePayload: Record<WebhookTrigger, any> = {
   "bounty.created": bountyCreated,
   "bounty.updated": bountyUpdated,
   "payout.confirmed": payoutConfirmed,
+  "discount_code.created": discountCodeCreated,
+  "discount_code.updated": discountCodeUpdated,
+  "discount_code.deleted": discountCodeDeleted,
 };

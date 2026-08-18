@@ -44,6 +44,7 @@ const actionSchema = z.enum([
   "discount.updated",
   "discount.deleted",
   "discount_code.created",
+  "discount_code.updated",
   "discount_code.deleted",
 
   // Partner applications

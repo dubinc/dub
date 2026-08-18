@@ -26,6 +26,9 @@ export const PROGRAM_LEVEL_WEBHOOK_TRIGGERS = [
   "bounty.created",
   "bounty.updated",
   "payout.confirmed",
+  "discount_code.created",
+  "discount_code.updated",
+  "discount_code.deleted",
 ] as const;
 
 export const WEBHOOK_TRIGGERS = [
@@ -46,6 +49,9 @@ export const WEBHOOK_TRIGGER_DESCRIPTIONS: Record<WebhookTrigger, string> = {
   "bounty.created": "Bounty created",
   "bounty.updated": "Bounty updated",
   "payout.confirmed": "Payout confirmed",
+  "discount_code.created": "Discount code created",
+  "discount_code.updated": "Discount code updated",
+  "discount_code.deleted": "Discount code deleted",
 } as const;
 
 export const WEBHOOK_FAILURE_NOTIFY_THRESHOLDS = [5, 10, 15] as const;

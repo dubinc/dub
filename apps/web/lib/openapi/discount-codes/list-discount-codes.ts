@@ -11,7 +11,7 @@ export const listDiscountCodes: ZodOpenApiOperationObject = {
   "x-speakeasy-name-override": "list",
   summary: "List discount codes",
   description:
-    "Retrieve a list of discount codes for a partner in your program.",
+    "Retrieve a paginated list of discount codes for the partner program.",
   requestParams: {
     query: getDiscountCodesQuerySchema,
   },
