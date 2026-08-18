@@ -23,6 +23,7 @@ import { awardBountyConditionSchema } from "../../api/workflows/award-bounty/sch
 import { CommissionSchema } from "./commissions";
 import { GroupSchema } from "./groups";
 import { booleanQuerySchema, getPaginationQuerySchema } from "./misc";
+import { PartnerTagSchema } from "./partner-tags";
 import { EnrolledPartnerSchema } from "./partners";
 import { UserSchema } from "./users";
 import { nullableCountSchema, parseDateSchema } from "./utils";
@@ -201,7 +202,14 @@ export const createBountySchema = z.object({
   groupIds: z
     .array(z.string())
     .nullable()
-    .describe("The IDs of the partner groups that this bounty is available to"),
+    .describe(
+      "The IDs of the partner groups that this bounty is available to.",
+    ),
+  partnerTagIds: z
+    .array(z.string())
+    .nullable()
+    .optional()
+    .describe("The IDs of the partner tags that this bounty is available to."),
   sendNotificationEmails: z
     .boolean()
     .optional()
@@ -216,7 +224,12 @@ export const updateBountySchema = createBountySchema
     type: true,
     performanceScope: true,
   })
-  .partial();
+  .partial()
+  // Avoid inheriting create's `.default(absolute)` — Zod still applies defaults
+  // on omitted keys after `.partial()`, which would coerce relative bounties.
+  .extend({
+    startMode: z.enum(BountyStartMode).optional(),
+  });
 
 export const BountySubmissionFileSchema = z.object({
   url: z.httpUrl().describe("The URL of the uploaded file."),
@@ -244,6 +257,7 @@ export const BountySchema = z.object({
   submissionRequirements: submissionRequirementsSchema.nullable().default(null),
   socialMetricsLastSyncedAt: z.date().nullable().optional(),
   groups: z.array(GroupSchema.pick({ id: true })),
+  partnerTags: z.array(PartnerTagSchema.pick({ id: true })),
 });
 
 export const getBountiesQuerySchema = z.object({
