@@ -97,11 +97,13 @@ export async function createDiscountCode({
   }
 
   waitUntil(
-    sendWorkspaceWebhook({
-      workspace,
-      trigger: "discount_code.created",
-      data: DiscountCodeWebhookSchema.parse(discountCode),
-    }),
+    (async () => {
+      await sendWorkspaceWebhook({
+        workspace,
+        trigger: "discount_code.created",
+        data: DiscountCodeWebhookSchema.parse(discountCode),
+      });
+    })(),
   );
 
   return discountCode;

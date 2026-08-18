@@ -24,9 +24,7 @@ export const DeleteDiscountCodeModal = ({
   const [inputValue, setInputValue] = useState("");
 
   useEffect(() => {
-    if (!showModal) {
-      setInputValue("");
-    }
+    setInputValue("");
   }, [showModal, discountCode.id]);
 
   const onSubmit = async (e: FormEvent<HTMLFormElement>) => {
