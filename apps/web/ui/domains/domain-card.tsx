@@ -1,4 +1,5 @@
 import { clientAccessCheck } from "@/lib/client-access-check";
+import type { DomainConnectDiscovery } from "@/lib/domain-connect/types";
 import useDomains from "@/lib/swr/use-domains";
 import useWorkspace from "@/lib/swr/use-workspace";
 import {
@@ -44,7 +45,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
-import useSWRImmutable from "swr/immutable";
+import useSWR from "swr";
 import { useAddEditDomainModal } from "../modals/add-edit-domain-modal";
 import { useArchiveDomainModal } from "../modals/archive-domain-modal";
 import { useDeleteDomainModal } from "../modals/delete-domain-modal";
@@ -66,14 +67,19 @@ export default function DomainCard({ props }: { props: DomainProps }) {
   const domainRef = useRef<HTMLDivElement>(null);
   const isVisible = useInViewport(domainRef, { defaultValue: true });
 
-  const { data, isValidating, mutate } = useSWRImmutable<{
+  const { data, isValidating, mutate } = useSWR<{
     status: DomainVerificationStatusProps;
     response: any;
+    domainConnect?: DomainConnectDiscovery | null;
   }>(
     workspaceId &&
       isVisible &&
       `/api/domains/${domain}/verify?workspaceId=${workspaceId}`,
     fetcher,
+    {
+      revalidateOnFocus: false,
+      dedupingInterval: 5000,
+    },
   );
 
   const verificationData = useMemo(() => {
@@ -81,9 +87,11 @@ export default function DomainCard({ props }: { props: DomainProps }) {
       return {
         status: "Valid Configuration",
         response: null,
+        domainConnect: null,
       } as {
         status: DomainVerificationStatusProps;
         response: any;
+        domainConnect?: DomainConnectDiscovery | null;
       };
     }
     return data;
@@ -316,7 +324,13 @@ export default function DomainCard({ props }: { props: DomainProps }) {
                   </div>
                 </div>
               ) : (
-                <DomainConfiguration data={verificationData} />
+                <DomainConfiguration
+                  data={verificationData}
+                  domainConnect={verificationData.domainConnect}
+                  domain={domain}
+                  workspaceId={workspaceId ?? undefined}
+                  workspaceSlug={slug ?? undefined}
+                />
               )
             ) : (
               <div className="mt-6 h-6 w-32 animate-pulse rounded-md bg-neutral-200" />
