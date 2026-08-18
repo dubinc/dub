@@ -47,8 +47,7 @@ async function main() {
   });
   console.log(`Restored ${res.count} program enrollments`);
 
-  // Queued after the last write the document reads, and before the Tinybird and
-  // Stripe work, which must not be able to skip it.
+  // Queued before the Tinybird and Stripe work below.
   const queueSearchSync = () =>
     queuePartnerSearchSync({
       enrollmentIds: programEnrollmentsToRestore.map(({ id }) => id),
