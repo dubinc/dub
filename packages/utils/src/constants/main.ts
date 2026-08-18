@@ -58,12 +58,8 @@ export const APP_DOMAIN_WITH_NGROK =
 
 export const isAppHostname = (hostname: string) => {
   if (process.env.NEXT_PUBLIC_VERCEL_ENV === "preview") {
-    return (
-      !API_HOSTNAMES.has(hostname) &&
-      !ADMIN_HOSTNAMES.has(hostname) &&
-      !PARTNERS_HOSTNAMES.has(hostname) &&
-      hostname.endsWith(".dub.co")
-    );
+    // pattern of our preview URLs are always "dub-<random-string>.dub.co"
+    return hostname.startsWith("dub-") && hostname.endsWith(".dub.co");
   }
   return new Set(["app.dub.co", "localhost:8888", "localhost"]).has(hostname);
 };

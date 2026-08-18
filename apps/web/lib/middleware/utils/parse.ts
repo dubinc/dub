@@ -1,4 +1,4 @@
-import { SHORT_DOMAIN } from "@dub/utils";
+import { isAppHostname, SHORT_DOMAIN } from "@dub/utils";
 import { NextRequest } from "next/server";
 
 export const parse = (req: NextRequest) => {
@@ -10,9 +10,12 @@ export const parse = (req: NextRequest) => {
   domain = domain.replace(/^www./, "").toLowerCase();
 
   const isE2ERedirectTestRequest =
-    domain === "dub.localhost:8888" || // local development
-    (req.headers.get("x-e2e-redirect-test") === "true" &&
-      domain.endsWith(".dub.co")); // preview environment
+    // local development
+    domain === "dub.localhost:8888" ||
+    // preview environment
+    (process.env.VERCEL_ENV === "preview" &&
+      isAppHostname(domain) &&
+      req.headers.get("x-e2e-redirect-test") === "true");
 
   if (isE2ERedirectTestRequest) {
     if (path.toLowerCase() === "/case-sensitive-test") {
