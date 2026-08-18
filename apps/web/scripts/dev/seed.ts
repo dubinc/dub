@@ -415,7 +415,25 @@ const createPartners = async (data: SeedData) => {
     })),
   });
 
+  // Query PartnerUsers to get the actual IDs (since createMany doesn't return them)
+  const partnerUsers = await prisma.partnerUser.findMany({
+    where: {
+      partnerId: { in: partners.map((p) => p.id) },
+      userId: { in: partners.map((p) => p.user.id) },
+    },
+  });
+
+  const { count: notificationPreferencesCount } =
+    await prisma.partnerNotificationPreferences.createMany({
+      data: partnerUsers.map((partnerUser) => ({
+        partnerUserId: partnerUser.id,
+      })),
+    });
+
   console.log(`Created ${partnerCount} partners`);
+  console.log(
+    `Created ${notificationPreferencesCount} partner notification preferences`,
+  );
 
   // Create program enrollments
   const { count: enrollmentCount } = await prisma.programEnrollment.createMany({

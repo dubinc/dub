@@ -1,4 +1,4 @@
-import { logger } from "@/lib/axiom/server";
+import { logger, toErrorFields } from "@/lib/axiom/server";
 import { APP_DOMAIN_WITH_NGROK, pluralize } from "@dub/utils";
 import { FlowControl } from "@upstash/qstash";
 import { Client } from "@upstash/workflow";
@@ -6,6 +6,10 @@ import { Client } from "@upstash/workflow";
 const client = new Client({
   baseUrl: process.env.QSTASH_URL || "https://qstash-us-east-1.upstash.io",
   token: process.env.QSTASH_TOKEN || "",
+  headers: {
+    "x-vercel-protection-bypass":
+      process.env.VERCEL_AUTOMATION_BYPASS_SECRET || "",
+  },
 });
 
 type WorkflowType = "partner-approved" | "create-partner-commission";
@@ -62,8 +66,7 @@ export async function triggerQStashWorkflow(
           service: "qstash",
           event: "workflow.trigger_failed",
           workflowType: workflow.workflowType,
-          errorName: error instanceof Error ? error.name : undefined,
-          errorStack: error instanceof Error ? error.stack : undefined,
+          error: toErrorFields(error),
           correlation,
         });
       }

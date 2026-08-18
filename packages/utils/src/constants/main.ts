@@ -1,28 +1,5 @@
 export const SHORT_DOMAIN = "dub.sh";
 
-export const APP_HOSTNAMES = new Set([
-  "app.dub.co",
-  "preview.dub.co",
-  "localhost:8888",
-  "localhost",
-]);
-
-export const APP_DOMAIN =
-  process.env.NEXT_PUBLIC_VERCEL_ENV === "production"
-    ? "https://app.dub.co"
-    : process.env.NEXT_PUBLIC_VERCEL_ENV === "preview"
-      ? "https://preview.dub.co"
-      : "http://localhost:8888";
-
-export const APP_DOMAIN_WITH_NGROK =
-  process.env.NEXT_PUBLIC_VERCEL_ENV === "production"
-    ? "https://app.dub.co"
-    : process.env.NEXT_PUBLIC_VERCEL_ENV === "preview"
-      ? process.env.VERCEL_URL
-        ? `https://${process.env.VERCEL_URL}`
-        : "https://preview.dub.co"
-      : process.env.NEXT_PUBLIC_NGROK_URL || "http://localhost:8888";
-
 export const API_HOSTNAMES = new Set([
   "api.dub.co",
   "api-staging.dub.co",
@@ -64,6 +41,28 @@ export const PARTNERS_DOMAIN_WITH_NGROK =
     : process.env.NEXT_PUBLIC_VERCEL_ENV === "preview"
       ? "https://partners-staging.dub.co"
       : process.env.NEXT_PUBLIC_NGROK_URL || "http://partners.localhost:8888";
+
+export const APP_DOMAIN =
+  process.env.NEXT_PUBLIC_VERCEL_ENV === "production"
+    ? "https://app.dub.co"
+    : process.env.NEXT_PUBLIC_VERCEL_ENV === "preview"
+      ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL || "preview.dub.co"}`
+      : "http://localhost:8888";
+
+export const APP_DOMAIN_WITH_NGROK =
+  process.env.NEXT_PUBLIC_VERCEL_ENV === "production"
+    ? "https://app.dub.co"
+    : process.env.NEXT_PUBLIC_VERCEL_ENV === "preview"
+      ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL || "preview.dub.co"}`
+      : process.env.NEXT_PUBLIC_NGROK_URL || "http://localhost:8888";
+
+export const isAppHostname = (hostname: string) => {
+  if (process.env.NEXT_PUBLIC_VERCEL_ENV === "preview") {
+    // pattern of our preview URLs are always "dub-<random-string>.dub.co"
+    return hostname.startsWith("dub-") && hostname.endsWith(".dub.co");
+  }
+  return new Set(["app.dub.co", "localhost:8888", "localhost"]).has(hostname);
+};
 
 export const DUB_LOGO = "https://assets.dub.co/logo.png";
 export const DUB_LOGO_SQUARE = "https://assets.dub.co/logo-square.png";

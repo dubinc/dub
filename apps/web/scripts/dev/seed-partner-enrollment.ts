@@ -52,6 +52,9 @@ async function main() {
       userId,
       partnerId,
       role: "owner",
+      notificationPreferences: {
+        create: {},
+      },
     },
   });
 

@@ -21,7 +21,6 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
     },
     select: {
       id: true,
-      trigger: true,
       actions: true,
       triggerConditions: true,
       disabledAt: true,
