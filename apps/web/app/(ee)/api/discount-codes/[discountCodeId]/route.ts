@@ -9,35 +9,6 @@ import { DiscountProvider } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
-// PATCH /api/discount-codes/[discountCodeId] - update a discount code
-export const PATCH = withWorkspace(
-  async ({ workspace, params, session }) => {
-    const { discountCodeId } = params;
-    const programId = getDefaultProgramIdOrThrow(workspace);
-
-    const discountCode = await getDiscountCodeOrThrow({
-      discountCodeId,
-      programId,
-    });
-
-    if (discountCode.discount.provider !== DiscountProvider.custom) {
-      throw new DubApiError({
-        code: "bad_request",
-        message: `This operation is only available for "custom" discount provider.`,
-      });
-    }
-
-    // TODO:
-    // - Update the discount code
-
-    return NextResponse.json({ id: discountCode.id });
-  },
-  {
-    requiredPlan: ["business", "advanced", "enterprise"],
-    requiredRoles: ["owner", "member"],
-  },
-);
-
 // DELETE /api/discount-codes/[discountCodeId] - soft delete a discount code
 export const DELETE = withWorkspace(
   async ({ workspace, params, session }) => {
@@ -78,6 +49,35 @@ export const DELETE = withWorkspace(
         deleteDiscountCodes([discountCode]),
       ]),
     );
+
+    return NextResponse.json({ id: discountCode.id });
+  },
+  {
+    requiredPlan: ["business", "advanced", "enterprise"],
+    requiredRoles: ["owner", "member"],
+  },
+);
+
+// PATCH /api/discount-codes/[discountCodeId] - update a discount code
+export const PATCH = withWorkspace(
+  async ({ workspace, params, session }) => {
+    const { discountCodeId } = params;
+    const programId = getDefaultProgramIdOrThrow(workspace);
+
+    const discountCode = await getDiscountCodeOrThrow({
+      discountCodeId,
+      programId,
+    });
+
+    if (discountCode.discount.provider !== DiscountProvider.custom) {
+      throw new DubApiError({
+        code: "bad_request",
+        message: `This operation is only available for "custom" discount provider.`,
+      });
+    }
+
+    // TODO:
+    // - Update the discount code
 
     return NextResponse.json({ id: discountCode.id });
   },
