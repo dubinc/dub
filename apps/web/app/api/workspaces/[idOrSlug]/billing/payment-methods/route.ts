@@ -5,6 +5,7 @@ import {
   DIRECT_DEBIT_PAYMENT_METHOD_TYPES,
   DIRECT_DEBIT_PAYMENT_TYPES_INFO,
   PAYMENT_METHOD_TYPES,
+  SEPA_ENABLED_WORKSPACE_IDS,
 } from "@/lib/constants/payouts";
 import { isProductionEnvironment } from "@/lib/sandbox/environment";
 import { SANDBOX_PAYMENT_METHOD } from "@/lib/sandbox/mock-payment-provider";
@@ -146,7 +147,11 @@ export const POST = withWorkspace(
       return NextResponse.json({ url });
     }
 
-    if (method === "sepa_debit" && workspace.plan !== "enterprise") {
+    if (
+      method === "sepa_debit" &&
+      workspace.plan !== "enterprise" &&
+      !SEPA_ENABLED_WORKSPACE_IDS.has(workspace.id)
+    ) {
       throw new DubApiError({
         code: "forbidden",
         message: "SEPA Debit is only available on the Enterprise plan.",
