@@ -3,6 +3,7 @@ import { resolveFraudGroups } from "@/lib/api/fraud/resolve-fraud-groups";
 import { linkCache } from "@/lib/api/links/cache";
 import { includeProgramEnrollment } from "@/lib/api/links/include-program-enrollment";
 import { includeTags } from "@/lib/api/links/include-tags";
+import { queuePartnerSearchSync } from "@/lib/api/partners/queue-partner-search-sync";
 import { syncTotalCommissions } from "@/lib/api/partners/sync-total-commissions";
 import { PRISMA_UPDATEMANY_LIMIT } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
@@ -66,6 +67,9 @@ export async function POST(req: Request) {
         image: true,
         programs: {
           select: {
+            // Needed to re-index both sides of the merge afterwards, including
+            // the source enrollments that get deleted rather than reassigned.
+            id: true,
             programId: true,
             tenantId: true,
             status: true,
@@ -322,6 +326,16 @@ export async function POST(req: Request) {
         );
       }
     }
+
+    // Queue an index update because the merge either reassigned each source
+    // enrollment to the target partner or deleted it. Passing both sides lets
+    // the job work out which.
+    await queuePartnerSearchSync({
+      enrollmentIds: [
+        ...sourcePartnerEnrollments.map(({ id }) => id),
+        ...targetPartnerEnrollments.map(({ id }) => id),
+      ],
+    });
 
     // Remove the user if there are no workspaces left
     // TODO: we need to handle deleting multiple users when we allow partners to invite their team members in the future

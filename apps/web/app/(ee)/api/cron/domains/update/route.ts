@@ -6,6 +6,10 @@ import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { linkCache } from "@/lib/api/links/cache";
 import { includeProgramEnrollment } from "@/lib/api/links/include-program-enrollment";
 import { includeTags } from "@/lib/api/links/include-tags";
+import {
+  PARTNER_SEARCH_LINK_SYNC_DELAY_SECONDS,
+  queuePartnerSearchSyncForLinks,
+} from "@/lib/api/partners/queue-partner-search-sync";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { prisma } from "@/lib/prisma";
 import { recordLink } from "@/lib/tinybird";
@@ -100,6 +104,13 @@ export async function POST(req: Request) {
       // expire the redis cache for the old links
       linkCache.expireMany(linksToUpdate),
     ]);
+
+    // Queue an index update because the domain change rewrote each link's
+    // shortLink. Queued after updateShortLinks above, which performs the
+    // rewrite.
+    await queuePartnerSearchSyncForLinks(updatedLinks, {
+      delay: PARTNER_SEARCH_LINK_SYNC_DELAY_SECONDS,
+    });
 
     const response = await queueDomainUpdate({
       ...payload,

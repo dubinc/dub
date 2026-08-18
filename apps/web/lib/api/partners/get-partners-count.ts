@@ -12,7 +12,7 @@ import {
 import {
   buildPartnerSearchCandidateQuery,
   findPartnerSearchCandidates,
-  getPartnerSearchProvider,
+  getPartnerSearchReadProvider,
   PartnerSearchProvider,
 } from "./search";
 
@@ -26,7 +26,7 @@ type PartnersCountFilters = z.infer<typeof partnersCountQuerySchema> & {
 export async function getPartnersCount<T>(
   filters: PartnersCountFilters,
   {
-    searchProvider = getPartnerSearchProvider(),
+    searchProvider = getPartnerSearchReadProvider(),
     throwOnSearchError = false,
   }: {
     searchProvider?: PartnerSearchProvider | null;

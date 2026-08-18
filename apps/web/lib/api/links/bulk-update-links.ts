@@ -1,3 +1,7 @@
+import {
+  PARTNER_SEARCH_LINK_SYNC_DELAY_SECONDS,
+  queuePartnerSearchSyncForLinks,
+} from "@/lib/api/partners/queue-partner-search-sync";
 import { prisma } from "@/lib/prisma";
 import { isNotHostedImage, storage } from "@/lib/storage";
 import { bulkUpdateLinksBodySchema } from "@/lib/zod/schemas/links";
@@ -38,6 +42,17 @@ export async function bulkUpdateLinks(
   const combinedTagIds = combineTagIds({ tagId, tagIds });
 
   const imageUrlNonce = nanoid(7);
+
+  // The bulk payload omits domain/key/externalId but not `partnerId`, so an
+  // update can move links between partners. The former owners are unrecoverable
+  // after the write, so read them first, and only when the payload can move one.
+  const previousOwners =
+    rest.partnerId !== undefined || rest.programId !== undefined
+      ? await prisma.link.findMany({
+          where: { id: { in: linkIds } },
+          select: { programId: true, partnerId: true },
+        })
+      : [];
 
   const updatedLinks = await Promise.all(
     linkIds.map((linkId) =>
@@ -114,6 +129,11 @@ export async function bulkUpdateLinks(
       // propagate changes to redis and tinybird
       propagateBulkLinkChanges({
         links: updatedLinks,
+      }),
+      // Queue an index update because a bulk edit can change the destination
+      // URL or the link owner.
+      queuePartnerSearchSyncForLinks([...previousOwners, ...updatedLinks], {
+        delay: PARTNER_SEARCH_LINK_SYNC_DELAY_SECONDS,
       }),
       // if proxy is true and image is not stored in R2, upload image to R2
       proxy &&

@@ -1,3 +1,7 @@
+import {
+  PARTNER_SEARCH_LINK_SYNC_DELAY_SECONDS,
+  queuePartnerSearchSyncForLinks,
+} from "@/lib/api/partners/queue-partner-search-sync";
 import { deleteDiscountCodes } from "@/lib/discounts/delete-discount-code";
 import { prisma } from "@/lib/prisma";
 import { storage } from "@/lib/storage";
@@ -60,6 +64,12 @@ export async function bulkDeleteLinks(
           .map((link) =>
             storage.delete({ key: link.image!.replace(`${R2_URL}/`, "") }),
           ),
+
+        // Queue an index update because the links were deleted. The enrollment
+        // outlives them, so the document is re-serialized without them.
+        queuePartnerSearchSyncForLinks(links, {
+          delay: PARTNER_SEARCH_LINK_SYNC_DELAY_SECONDS,
+        }),
       ]),
     );
   }

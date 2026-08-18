@@ -15,6 +15,7 @@ import { getGroupOrThrow } from "../groups/get-group-or-throw";
 import { createOrGetProgramEnrollment } from "./create-or-get-program-enrollment";
 import { createPartnerDefaultLinks } from "./create-partner-default-links";
 import { getOrCreatePartner } from "./get-or-create-partner";
+import { queuePartnerSearchSync } from "./queue-partner-search-sync";
 import { throwIfExistingTenantEnrollmentExists } from "./throw-if-existing-tenant-id-exists";
 
 interface CreateAndEnrollPartnerInput {
@@ -252,6 +253,10 @@ export const createAndEnrollPartner = async ({
           trigger: "partner.enrolled",
           data: enrolledPartner,
         }),
+
+      // Queue an index update because a new enrollment was created. Queued
+      // after the default links exist, so the first document carries them.
+      queuePartnerSearchSync({ enrollmentIds: [programEnrollment.id] }),
     ]),
   );
 

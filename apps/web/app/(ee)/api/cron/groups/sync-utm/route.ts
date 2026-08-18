@@ -1,5 +1,9 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { linkCache } from "@/lib/api/links/cache";
+import {
+  PARTNER_SEARCH_LINK_SYNC_DELAY_SECONDS,
+  queuePartnerSearchSync,
+} from "@/lib/api/partners/queue-partner-search-sync";
 import { extractUtmParams } from "@/lib/api/utm/extract-utm-params";
 import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
@@ -125,6 +129,13 @@ export async function POST(req: Request) {
 
     const redisRes = await linkCache.expireMany(linksToUpdate);
     console.log(`Updated Redis cache: ${JSON.stringify(redisRes, null, 2)}`);
+
+    // Queue an index update because the UTM template rewrote each link's
+    // destination URL.
+    await queuePartnerSearchSync({
+      enrollmentIds: programEnrollments.map(({ id }) => id),
+      delay: PARTNER_SEARCH_LINK_SYNC_DELAY_SECONDS,
+    });
 
     if (programEnrollments.length === PAGE_SIZE) {
       await qstash.publishJSON({

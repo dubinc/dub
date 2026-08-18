@@ -91,6 +91,10 @@
     {
       "path": "/api/cron/queue/retry",
       "schedule": "* * * * *"
+    },
+    {
+      "path": "/api/cron/partners/search-sweep",
+      "schedule": "0 3 * * 0"
     }
   ],
   "functions": {

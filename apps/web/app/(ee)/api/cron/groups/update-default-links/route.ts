@@ -1,5 +1,9 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { linkCache } from "@/lib/api/links/cache";
+import {
+  PARTNER_SEARCH_LINK_SYNC_DELAY_SECONDS,
+  queuePartnerSearchSyncForLinks,
+} from "@/lib/api/partners/queue-partner-search-sync";
 import { extractUtmParams } from "@/lib/api/utm/extract-utm-params";
 import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
@@ -121,6 +125,9 @@ export async function POST(req: Request) {
           url: true,
           domain: true,
           key: true,
+          // Needed to re-index the owners after the URL changes below.
+          programId: true,
+          partnerId: true,
           partner: {
             select: {
               name: true,
@@ -136,6 +143,7 @@ export async function POST(req: Request) {
 
       const linksToUpdate: {
         id: string;
+        owner: { programId: string | null; partnerId: string | null };
         link: Pick<
           Link,
           | "url"
@@ -171,6 +179,10 @@ export async function POST(req: Request) {
 
         linksToUpdate.push({
           id: defaultPartnerLink.id,
+          owner: {
+            programId: defaultPartnerLink.programId,
+            partnerId: defaultPartnerLink.partnerId,
+          },
           link: {
             url,
             ...extractUtmParams(group.utmTemplate, { excludeRef: true }),
@@ -188,6 +200,13 @@ export async function POST(req: Request) {
               data: link,
             }),
           ),
+        );
+
+        // Queue an index update because the default link change rewrote
+        // destination URLs.
+        await queuePartnerSearchSyncForLinks(
+          linksToUpdate.map(({ owner }) => owner),
+          { delay: PARTNER_SEARCH_LINK_SYNC_DELAY_SECONDS },
         );
       }
 

@@ -1,5 +1,6 @@
 "use server";
 
+import { queuePartnerSearchSync } from "@/lib/api/partners/queue-partner-search-sync";
 import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
 import { triggerDraftBountySubmissionCreation } from "@/lib/bounty/api/trigger-draft-bounty-submissions";
 import { generateDiscountCodeForPartner } from "@/lib/discounts/generate-discount-code-for-partner";
@@ -94,6 +95,11 @@ export const acceptProgramInviteAction = authPartnerActionClient
               programId,
               partnerId: enrolledPartner.id,
             },
+          }),
+          // Queue an index update because the enrollment status moved to
+          // approved.
+          queuePartnerSearchSync({
+            enrollmentIds: [enrollment.id],
           }),
         ]);
       })(),
