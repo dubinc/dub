@@ -1,4 +1,4 @@
-import { SHORT_DOMAIN } from "@dub/utils";
+import { isAppHostname, SHORT_DOMAIN } from "@dub/utils";
 import { NextRequest } from "next/server";
 
 export const parse = (req: NextRequest) => {
@@ -8,7 +8,16 @@ export const parse = (req: NextRequest) => {
 
   // remove www. from domain and convert to lowercase
   domain = domain.replace(/^www./, "").toLowerCase();
-  if (domain === "dub.localhost:8888" || domain.endsWith(".vercel.app")) {
+
+  const isE2ERedirectTestRequest =
+    // local development
+    domain === "dub.localhost:8888" ||
+    // preview environment
+    (process.env.VERCEL_ENV === "preview" &&
+      isAppHostname(domain) &&
+      req.headers.get("x-e2e-redirect-test") === "true");
+
+  if (isE2ERedirectTestRequest) {
     if (path.toLowerCase() === "/case-sensitive-test") {
       // special case for case-sensitive link test
       domain = "dub-internal-test.com";
