@@ -15,7 +15,6 @@ import CampaignEmail from "@dub/email/templates/campaign-email";
 import { APP_DOMAIN_WITH_NGROK, chunk, log, pluck } from "@dub/utils";
 import { NotificationEmailType } from "@prisma/client";
 import { differenceInMinutes } from "date-fns";
-import { headers } from "next/headers";
 import * as z from "zod/v4";
 import { logAndRespond } from "../../utils";
 
@@ -102,20 +101,6 @@ export async function POST(req: Request) {
       }
     }
 
-    // This is a safety check to ensure the campaign broadcast is not "initiated" multiple times
-    const headersList = await headers();
-    const upstashMessageId = headersList.get("Upstash-Message-Id");
-
-    if (
-      !startingAfter && // First run
-      campaign.qstashMessageId &&
-      upstashMessageId !== campaign.qstashMessageId
-    ) {
-      return logAndRespond(
-        `Campaign ${campaignId} broadcast was skipped because it is not the current message being processed.`,
-      );
-    }
-
     const program = campaign.program;
 
     // TODO: We should make the from address required. There are existing campaign without from address
@@ -126,19 +111,23 @@ export async function POST(req: Request) {
       });
     }
 
-    // Mark the campaign as sending (if it's in scheduled status)
-    if (campaign.status === "scheduled") {
-      try {
-        await prisma.campaign.update({
-          where: {
-            id: campaignId,
-          },
-          data: {
-            status: "sending",
-          },
-        });
-      } catch (error) {
-        //
+    // Claim the first run so leftover delayed messages / scanner retries
+    // cannot start a second broadcast.
+    if (!startingAfter) {
+      const claimed = await prisma.campaign.updateMany({
+        where: {
+          id: campaignId,
+          status: "scheduled",
+        },
+        data: {
+          status: "sending",
+        },
+      });
+
+      if (claimed.count === 0) {
+        return logAndRespond(
+          `Campaign ${campaignId} broadcast already initiated. Skipping...`,
+        );
       }
     }
 

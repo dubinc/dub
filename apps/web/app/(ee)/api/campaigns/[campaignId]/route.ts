@@ -1,9 +1,5 @@
 import { getCampaignOrThrow } from "@/lib/api/campaigns/get-campaign-or-throw";
 import {
-  deleteCampaignSchedule,
-  scheduleCampaign,
-} from "@/lib/api/campaigns/schedule-campaigns";
-import {
   campaignEligibilityIncludes,
   transformCampaign,
 } from "@/lib/api/campaigns/transform-campaign";
@@ -21,7 +17,6 @@ import {
 } from "@/lib/zod/schemas/campaigns";
 import { arrayEqual, pluck } from "@dub/utils";
 import { PartnerGroup } from "@prisma/client";
-import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
 // GET /api/campaigns/[campaignId] - get an email campaign
@@ -191,13 +186,6 @@ export const PATCH = withWorkspace(
       });
     });
 
-    waitUntil(
-      scheduleCampaign({
-        campaign,
-        updatedCampaign,
-      }),
-    );
-
     return NextResponse.json(
       CampaignSchema.parse(transformCampaign(updatedCampaign)),
     );
@@ -217,15 +205,6 @@ export const DELETE = withWorkspace(
     const campaign = await getCampaignOrThrow({
       programId,
       campaignId,
-      include: {
-        workflow: {
-          select: {
-            id: true,
-            actions: true,
-            triggerConditions: true,
-          },
-        },
-      },
     });
 
     await prisma.$transaction(async (tx) => {
@@ -243,8 +222,6 @@ export const DELETE = withWorkspace(
         });
       }
     });
-
-    waitUntil(deleteCampaignSchedule(campaign));
 
     return NextResponse.json({ id: campaignId });
   },
