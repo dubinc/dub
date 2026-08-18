@@ -1,4 +1,3 @@
-import { queuePartnerSearchSyncForLinks } from "@/lib/api/partners/queue-partner-search-sync";
 import { prisma } from "@/lib/prisma";
 import "dotenv-flow/config";
 import { linkCache } from "../../lib/api/links/cache";
@@ -34,6 +33,16 @@ async function main() {
 
   console.log(updatedLinks);
 
+  const res = await Promise.all([
+    linkCache.expireMany(links),
+    recordLink(
+      links.map((link) => ({
+        ...link,
+        domain: newDomain,
+      })),
+    ),
+  ]);
+
   await Promise.all(
     links.map(async (link) => {
       return await prisma.link.update({
@@ -46,20 +55,6 @@ async function main() {
       });
     }),
   );
-
-  // Queue an index update because the links changed domain. Queued before the
-  // cache and Tinybird work below.
-  await queuePartnerSearchSyncForLinks(links);
-
-  const res = await Promise.all([
-    linkCache.expireMany(links),
-    recordLink(
-      links.map((link) => ({
-        ...link,
-        domain: newDomain,
-      })),
-    ),
-  ]);
 
   console.log(res);
 }

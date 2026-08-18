@@ -1,5 +1,4 @@
 import { bulkDeleteLinks } from "@/lib/api/links/bulk-delete-links";
-import { queuePartnerSearchSync } from "@/lib/api/partners/queue-partner-search-sync";
 import { prisma } from "@/lib/prisma";
 import "dotenv-flow/config";
 
@@ -52,9 +51,6 @@ async function main() {
   });
 
   console.log("deleteProgramEnrollment", deleteProgramEnrollment);
-
-  // Queue an index update because the enrollment was deleted.
-  await queuePartnerSearchSync({ enrollmentIds: [programEnrollment.id] });
 }
 
 main();

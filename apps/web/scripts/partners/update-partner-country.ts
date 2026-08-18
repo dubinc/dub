@@ -1,4 +1,3 @@
-import { queuePartnerSearchSync } from "@/lib/api/partners/queue-partner-search-sync";
 import { prisma } from "@/lib/prisma";
 import "dotenv-flow/config";
 import { stripeConnectClient } from "../stripe/connect-client";
@@ -16,9 +15,6 @@ async function main() {
       profileType: "company",
     },
   });
-
-  // Queue an index update because the partner country changed.
-  await queuePartnerSearchSync({ partnerIds: [partner.id] });
 
   if (partner.stripeConnectId) {
     console.log("deleting stripe connect account");

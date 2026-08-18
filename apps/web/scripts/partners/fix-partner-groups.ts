@@ -1,4 +1,3 @@
-import { queuePartnerSearchSync } from "@/lib/api/partners/queue-partner-search-sync";
 import { prisma } from "@/lib/prisma";
 import "dotenv-flow/config";
 
@@ -55,12 +54,6 @@ async function main() {
   });
 
   console.log(`Updated ${updateMany.count} partners`);
-
-  // Queue an index update because the enrollments gained a group, which is
-  // filterable.
-  await queuePartnerSearchSync({
-    enrollmentIds: partnersMissingGroup.map((partner) => partner.id),
-  });
 }
 
 main();

@@ -1,5 +1,4 @@
 import { includeProgramEnrollment } from "@/lib/api/links/include-program-enrollment";
-import { queuePartnerSearchSync } from "@/lib/api/partners/queue-partner-search-sync";
 import { prisma } from "@/lib/prisma";
 import "dotenv-flow/config";
 import { includeTags } from "../../lib/api/links/include-tags";
@@ -60,10 +59,6 @@ async function main() {
       partnerId: newPartnerId,
     },
   });
-
-  // Queue an index update because the enrollment moved to the new partner.
-  // Queued before the Tinybird write below.
-  await queuePartnerSearchSync({ enrollmentIds: [programEnrollment.id] });
 
   const updatedLinks = await prisma.link.findMany({
     where: {
