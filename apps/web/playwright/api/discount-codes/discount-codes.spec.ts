@@ -25,11 +25,6 @@ const customDiscount = {
   provider: DiscountProvider.custom,
 };
 
-const expectedDiscountShape = {
-  id: expect.any(String),
-  ...customDiscount,
-};
-
 let customDiscountId: string | undefined;
 let partnerGroupId: string | undefined;
 
@@ -186,13 +181,13 @@ test("POST /discount-codes", async ({ api }) => {
     partnerId = partner.id;
 
     expect(status).toEqual(200);
-    expect(DiscountCodeSchema.parse(data)).toMatchObject({
+    expect(data).toEqual({
       id: expect.any(String),
       code: body.code,
+      discountId: customDiscountId,
       partnerId: partner.id,
       linkId: body.linkId,
       disabledAt: null,
-      discount: expectedDiscountShape,
     });
   } finally {
     await deletePartner(partnerId);

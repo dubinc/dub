@@ -33,8 +33,16 @@ export async function createDiscountCode({
     });
 
   const linkWithCode = await prisma.link.findUnique({
-    where: { id: link.id },
-    select: { discountCode: { select: { code: true } } },
+    where: {
+      id: link.id,
+    },
+    select: {
+      discountCode: {
+        select: {
+          code: true,
+        },
+      },
+    },
   });
 
   if (linkWithCode?.discountCode) {

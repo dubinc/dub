@@ -49,9 +49,6 @@ export const GET = withWorkspace(
         ...(partnerId && { partnerId }),
         ...(discountId && { discountId }),
       },
-      include: {
-        discount: true,
-      },
       orderBy: {
         createdAt: "desc",
       },
@@ -119,6 +116,18 @@ export const POST = withWorkspace(
       });
     }
 
+    // A link can have only one discount code
+    const duplicateByLink = programEnrollment.discountCodes.find(
+      (discountCode) => discountCode.linkId === linkId,
+    );
+
+    if (duplicateByLink) {
+      throw new DubApiError({
+        code: "bad_request",
+        message: `This link already has a discount code (${duplicateByLink.code}) assigned.`,
+      });
+    }
+
     // Check for duplicate by code
     if (code) {
       const duplicateByCode = await prisma.discountCode.findUnique({
@@ -139,18 +148,6 @@ export const POST = withWorkspace(
           message: `This discount code "${code}" is already in use by [${duplicateByCode.partner.email}](${APP_DOMAIN}/${workspace.slug}/program/partners/${duplicateByCode.partner.id}). Please choose a different code.`,
         });
       }
-    }
-
-    // A link can have only one discount code
-    const duplicateByLink = programEnrollment.discountCodes.find(
-      (discountCode) => discountCode.linkId === linkId,
-    );
-
-    if (duplicateByLink) {
-      throw new DubApiError({
-        code: "bad_request",
-        message: `This link already has a discount code (${duplicateByLink.code}) assigned.`,
-      });
     }
 
     const discountCode = await createDiscountCode({

@@ -3,7 +3,7 @@ import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import { DiscountCodeProps } from "@/lib/types";
 import { Button, Modal, useMediaQuery } from "@dub/ui";
 import { Tag } from "@dub/ui/icons";
-import { FormEvent } from "react";
+import { FormEvent, useState } from "react";
 import { toast } from "sonner";
 
 interface DeleteDiscountCodeModalProps {
@@ -12,6 +12,8 @@ interface DeleteDiscountCodeModalProps {
   setShowModal: (showModal: boolean) => void;
 }
 
+const DELETE_DISCOUNT_CODE_CONFIRMATION = "delete discount code";
+
 export const DeleteDiscountCodeModal = ({
   discountCode,
   showModal,
@@ -19,6 +21,7 @@ export const DeleteDiscountCodeModal = ({
 }: DeleteDiscountCodeModalProps) => {
   const { isMobile } = useMediaQuery();
   const { makeRequest: deleteDiscountCode, isSubmitting } = useApiMutation();
+  const [inputValue, setInputValue] = useState("");
 
   const onSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -62,7 +65,10 @@ export const DeleteDiscountCodeModal = ({
               <div className="flex items-center gap-2">
                 <p className="text-content-emphasis block text-sm font-medium">
                   To verify, type{" "}
-                  <span className="font-semibold">delete code</span> below
+                  <span className="font-semibold">
+                    {DELETE_DISCOUNT_CODE_CONFIRMATION}
+                  </span>{" "}
+                  below
                 </p>
               </div>
 
@@ -75,7 +81,9 @@ export const DeleteDiscountCodeModal = ({
                     className="block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
                     aria-invalid="true"
                     autoFocus={!isMobile}
-                    pattern="delete code"
+                    pattern={DELETE_DISCOUNT_CODE_CONFIRMATION}
+                    value={inputValue}
+                    onChange={(e) => setInputValue(e.target.value)}
                   />
                 </div>
               </div>
@@ -96,6 +104,7 @@ export const DeleteDiscountCodeModal = ({
               text="Delete discount code"
               variant="danger"
               loading={isSubmitting}
+              disabled={inputValue !== DELETE_DISCOUNT_CODE_CONFIRMATION}
               className="h-9 w-fit"
             />
           </div>
