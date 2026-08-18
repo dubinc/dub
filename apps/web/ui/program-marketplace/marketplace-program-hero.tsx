@@ -4,7 +4,7 @@ import { NetworkProgramExtendedProps } from "@/lib/types";
 import { marketplaceProgramDetailsColumnClassName } from "@/ui/program-marketplace/marketplace-program-details-layout";
 import { ProgramCategory } from "@/ui/program-marketplace/program-category";
 import { getMarketplaceCategoryHref } from "@/ui/program-marketplace/utils/urls";
-import { Globe } from "@dub/ui/icons";
+import { ArrowUpRight, Globe } from "@dub/ui/icons";
 import { OG_AVATAR_URL, cn, getDomainWithoutWWW } from "@dub/utils";
 import Link from "next/link";
 import { ReactNode } from "react";
@@ -106,12 +106,13 @@ export function MarketplaceProgramHero({
                 href={program.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-content-default hover:text-content-emphasis flex h-7 max-w-[220px] items-center gap-1.5 text-sm font-medium leading-none"
+                className="flex h-7 max-w-[220px] items-center gap-1 text-sm font-medium text-neutral-900 transition-colors hover:text-neutral-600"
               >
                 <Globe className="size-4 shrink-0" />
                 <span className="truncate">
-                  {getDomainWithoutWWW(program.url)} ↗
+                  {getDomainWithoutWWW(program.url)}
                 </span>
+                <ArrowUpRight className="size-3.5 shrink-0" />
               </Link>
             </div>
           )}

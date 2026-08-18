@@ -308,7 +308,7 @@ export const { POST } = serve<Input>(
     // Step 6: Execute Dub workflows using the “partnerEnrolled” trigger.
     await context.run("execute-workflows", async () => {
       await executeWorkflows({
-        trigger: "partnerEnrolled",
+        event: "partnerEnrolled",
         identity: {
           workspaceId: program.workspaceId,
           programId,

@@ -10,7 +10,7 @@ import {
   getMarketplaceProgramHref,
 } from "@/ui/program-marketplace/utils/urls";
 import { Tooltip } from "@dub/ui";
-import { ArrowUpRight, Link4 } from "@dub/ui/icons";
+import { ArrowUpRight, Globe } from "@dub/ui/icons";
 import { OG_AVATAR_URL, getDomainWithoutWWW } from "@dub/utils";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -172,7 +172,7 @@ export function FeaturedProgramCard({
                   }}
                   className="mt-2 flex max-w-[220px] items-center gap-1 text-sm font-medium text-neutral-900 transition-colors hover:text-neutral-600"
                 >
-                  <Link4 className="size-4 shrink-0" />
+                  <Globe className="size-4 shrink-0" />
                   <span className="truncate">
                     {getDomainWithoutWWW(program.url)}
                   </span>
