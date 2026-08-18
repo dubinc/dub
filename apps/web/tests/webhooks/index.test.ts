@@ -101,7 +101,6 @@ const eventSchemas: Record<WebhookTrigger, z.ZodSchema> = {
   "bounty.updated": bountyWebhookEventSchemaExtended,
   "payout.confirmed": payoutWebhookEventSchemaExtended,
   "discount_code.created": DiscountCodeWebhookSchema,
-  "discount_code.updated": DiscountCodeWebhookSchema,
   "discount_code.deleted": DiscountCodeWebhookSchema,
 };
 

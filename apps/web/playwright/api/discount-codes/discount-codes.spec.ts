@@ -457,57 +457,6 @@ test("GET /discount-codes – unknown partner", async ({ api, program }) => {
   });
 });
 
-test("PATCH /discount-codes/{id}", async ({ api }) => {
-  let partnerId: string | undefined;
-
-  try {
-    const created = await createDiscountCode(api);
-    partnerId = created.partner.id;
-    const nextCode = `PW${nanoid(8)}`;
-
-    const { status, data } = await api.patch<DiscountCode>(
-      `/api/discount-codes/${created.data.id}`,
-      { code: nextCode },
-    );
-
-    expect(status).toEqual(200);
-    expect(data).toEqual({
-      ...created.data,
-      code: nextCode,
-    });
-  } finally {
-    await deletePartner(partnerId);
-  }
-});
-
-test("PATCH /discount-codes/{id} – invalid code", async ({ api }) => {
-  let partnerId: string | undefined;
-
-  try {
-    const created = await createDiscountCode(api);
-    partnerId = created.partner.id;
-
-    expect(
-      await api.patch(`/api/discount-codes/${created.data.id}`, {
-        code: "not valid!",
-      }),
-    ).toEqual({
-      status: 422,
-      data: {
-        error: {
-          code: "unprocessable_entity",
-          message:
-            "invalid_format: code: Code can only contain letters, numbers, dashes, and underscores.",
-          doc_url:
-            "https://dub.co/docs/api-reference/errors#unprocessable-entity",
-        },
-      },
-    });
-  } finally {
-    await deletePartner(partnerId);
-  }
-});
-
 test("DELETE /discount-codes/{id}", async ({ api }) => {
   let partnerId: string | undefined;
 

@@ -65,13 +65,12 @@ export async function deleteDiscountCodes(
     );
 
     waitUntil(
-      sendDiscountCodeWebhooks({
-        trigger: "discount_code.updated",
-        discountCodes: discountCodes.map((discountCode) => ({
+      sendDiscountCodeDeletedWebhooks(
+        discountCodes.map((discountCode) => ({
           ...discountCode,
           disabledAt,
         })),
-      }),
+      ),
     );
   } else {
     // Delete the discount codes from the database
@@ -87,12 +86,7 @@ export async function deleteDiscountCodes(
       `[deleteDiscountCodes] Deleted ${deletedDiscountCodes.count} discount codes.`,
     );
 
-    waitUntil(
-      sendDiscountCodeWebhooks({
-        trigger: "discount_code.deleted",
-        discountCodes,
-      }),
-    );
+    waitUntil(sendDiscountCodeDeletedWebhooks(discountCodes));
   }
 
   await enqueueDeleteDiscountCode(discountCodes);
@@ -133,13 +127,9 @@ export async function enqueueDeleteDiscountCode(
   }
 }
 
-async function sendDiscountCodeWebhooks({
-  trigger,
-  discountCodes,
-}: {
-  trigger: "discount_code.updated" | "discount_code.deleted";
-  discountCodes: DeleteDiscountCodesParams[];
-}) {
+async function sendDiscountCodeDeletedWebhooks(
+  discountCodes: DeleteDiscountCodesParams[],
+) {
   const programIds = [...new Set(discountCodes.map((dc) => dc.programId))];
 
   const workspaces = await prisma.project.findMany({
@@ -168,7 +158,7 @@ async function sendDiscountCodeWebhooks({
       }
 
       return sendDiscountCodeWebhook({
-        trigger,
+        trigger: "discount_code.deleted",
         workspace,
         data: DiscountCodeWebhookSchema.parse(discountCode),
       });

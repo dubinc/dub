@@ -118,12 +118,6 @@ export const createDiscountCodeSchema = z.object({
     ),
 });
 
-export const updateDiscountCodeSchema = z.object({
-  code: discountCodeValueSchema.describe(
-    "The updated discount code. Only available for custom discount providers.",
-  ),
-});
-
 export const getDiscountCodesQuerySchema = z
   .object({
     partnerId: z

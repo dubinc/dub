@@ -8,10 +8,7 @@ export async function sendDiscountCodeWebhook({
   data,
   workspace,
 }: {
-  trigger:
-    | "discount_code.created"
-    | "discount_code.updated"
-    | "discount_code.deleted";
+  trigger: "discount_code.created" | "discount_code.deleted";
   data: z.infer<typeof DiscountCodeWebhookSchema>;
   workspace: Pick<Project, "id" | "webhookEnabled">;
 }) {

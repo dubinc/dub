@@ -606,7 +606,6 @@ const discountCodeTemplates = ({
 }) => {
   const eventMessages = {
     "discount_code.created": "*Discount code created* :ticket:",
-    "discount_code.updated": "*Discount code updated* :ticket:",
     "discount_code.deleted": "*Discount code deleted* :ticket:",
   };
 
@@ -650,7 +649,6 @@ const slackTemplates: Record<WebhookTrigger, any> = {
   "bounty.updated": bountyTemplates,
   "payout.confirmed": payoutConfirmedTemplate,
   "discount_code.created": discountCodeTemplates,
-  "discount_code.updated": discountCodeTemplates,
   "discount_code.deleted": discountCodeTemplates,
 };
 
@@ -670,7 +668,6 @@ export const formatEventForSlack = (
   const isBountyEvent = ["bounty.created", "bounty.updated"].includes(event);
   const isDiscountCodeEvent = [
     "discount_code.created",
-    "discount_code.updated",
     "discount_code.deleted",
   ].includes(event);
 

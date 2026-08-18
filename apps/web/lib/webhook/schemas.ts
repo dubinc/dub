@@ -175,15 +175,13 @@ export const webhookEventSchema = z
         id: z.string(),
         event: z.union([
           z.literal("discount_code.created"),
-          z.literal("discount_code.updated"),
           z.literal("discount_code.deleted"),
         ]),
         createdAt: z.string(),
         data: DiscountCodeWebhookSchema,
       })
       .meta({
-        description:
-          "Triggered when a discount code is created, updated, or deleted.",
+        description: "Triggered when a discount code is created or deleted.",
         id: "DiscountCodeWebhookEvent",
         outputId: "DiscountCodeWebhookEvent",
       }),

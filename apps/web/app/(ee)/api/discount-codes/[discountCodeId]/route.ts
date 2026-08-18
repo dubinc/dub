@@ -1,15 +1,9 @@
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
-import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { getDiscountCodeOrThrow } from "@/lib/discount-codes/get-discount-code-or-throw";
 import { deleteDiscountCodes } from "@/lib/discounts/delete-discount-code";
-import { updateDiscountCode } from "@/lib/discounts/update-discount-code";
 import { prisma } from "@/lib/prisma";
-import {
-  DiscountCodeSchema,
-  updateDiscountCodeSchema,
-} from "@/lib/zod/schemas/discount";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
@@ -55,52 +49,6 @@ export const DELETE = withWorkspace(
     );
 
     return NextResponse.json({ id: discountCode.id });
-  },
-  {
-    requiredPlan: ["business", "advanced", "enterprise"],
-    requiredRoles: ["owner", "member"],
-  },
-);
-
-// PATCH /api/discount-codes/[discountCodeId] - update a discount code
-export const PATCH = withWorkspace(
-  async ({ workspace, params, req, session }) => {
-    const { discountCodeId } = params;
-    const programId = getDefaultProgramIdOrThrow(workspace);
-
-    const discountCode = await getDiscountCodeOrThrow({
-      discountCodeId,
-      programId,
-    });
-
-    const { code: newCode } = updateDiscountCodeSchema.parse(
-      await parseRequestBody(req),
-    );
-
-    const updatedDiscountCode = await updateDiscountCode({
-      workspace,
-      discountCode,
-      newCode,
-    });
-
-    waitUntil(
-      recordAuditLog({
-        workspaceId: workspace.id,
-        programId,
-        action: "discount_code.updated",
-        description: `Discount code (${updatedDiscountCode.code}) updated`,
-        actor: session.user,
-        targets: [
-          {
-            type: "discount_code",
-            id: updatedDiscountCode.id,
-            metadata: updatedDiscountCode,
-          },
-        ],
-      }),
-    );
-
-    return NextResponse.json(DiscountCodeSchema.parse(updatedDiscountCode));
   },
   {
     requiredPlan: ["business", "advanced", "enterprise"],
