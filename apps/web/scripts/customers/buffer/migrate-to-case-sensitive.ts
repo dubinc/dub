@@ -94,11 +94,12 @@ async function main() {
     });
   }
 
+  // Queue an index update for the owners of the links that changed key, ahead
+  // of the cache expiry below.
+  await queuePartnerSearchSyncForLinks(links);
+
   // expire the Redis cache for the links so it fetches the latest version from the database
   await linkCache.expireMany(links);
-
-  // Queue an index update for the owners of the links that changed key.
-  await queuePartnerSearchSyncForLinks(links);
 }
 
 main();
