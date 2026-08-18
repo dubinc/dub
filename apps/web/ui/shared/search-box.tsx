@@ -96,6 +96,8 @@ export const SearchBox = forwardRef(
         {showClearButton && value.length > 0 && (
           <button
             onClick={() => {
+              // Or a pending keystroke lands after this and restores the term.
+              debounced.cancel();
               onChange("");
               onChangeDebounced?.("");
             }}
@@ -127,7 +129,9 @@ export function SearchBoxPersisted({
 
   // Set URL param when debounced value changes
   useEffect(() => {
-    if (searchParams.get(urlParam) ?? "" !== debouncedValue)
+    // Parens matter: `!==` binds tighter than `??`, so without them this reads
+    // `get() ?? ("" !== debouncedValue)` and never skips.
+    if ((searchParams.get(urlParam) ?? "") !== debouncedValue)
       queryParams(
         debouncedValue === ""
           ? { del: [urlParam, "page", ...resetParamsOnChange] }
@@ -142,7 +146,8 @@ export function SearchBoxPersisted({
   useEffect(() => {
     const search = searchParams.get(urlParam);
     // Only update if the value and debouncedValue are synced (the user isn't actively typing)
-    if ((search ?? "" !== value) && value === debouncedValue)
+    // Same precedence trap.
+    if ((search ?? "") !== value && value === debouncedValue)
       setValue(search ?? "");
   }, [searchParams.get(urlParam)]);
 
