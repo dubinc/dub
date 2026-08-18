@@ -1,9 +1,13 @@
 import { DubApiError } from "@/lib/api/errors";
 import { getSocialContent } from "@/lib/api/scrape-creators/get-social-content";
-import { canPartnerSubmitBounty } from "@/lib/bounty/api/bounty-availability";
+import {
+  bountyEligibilityIncludes,
+  canPartnerSubmitBounty,
+} from "@/lib/bounty/api/bounty-availability";
 import { getBountyOrThrow } from "@/lib/bounty/api/get-bounty-or-throw";
 import { resolveBountyDetails } from "@/lib/bounty/utils";
 import { withReferralsEmbedToken } from "@/lib/embed/referrals/auth";
+import { prisma } from "@/lib/prisma";
 import { ratelimit } from "@/lib/upstash";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
@@ -33,11 +37,7 @@ export const GET = withReferralsEmbedToken(
       bountyId,
       programId: programEnrollment.programId,
       include: {
-        groups: {
-          select: {
-            groupId: true,
-          },
-        },
+        ...bountyEligibilityIncludes,
       },
     });
 
@@ -50,10 +50,23 @@ export const GET = withReferralsEmbedToken(
       });
     }
 
+    const partnerTags = await prisma.programPartnerTag.findMany({
+      where: {
+        programId: programEnrollment.programId,
+        partnerId: programEnrollment.partnerId,
+      },
+      select: {
+        partnerTagId: true,
+      },
+    });
+
     const canSubmitBounty = canPartnerSubmitBounty({
       program,
       bounty,
-      programEnrollment,
+      programEnrollment: {
+        ...programEnrollment,
+        programPartnerTags: partnerTags,
+      },
     });
 
     if (!canSubmitBounty) {

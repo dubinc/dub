@@ -4,7 +4,8 @@ import {
 } from "@/lib/partners/aggregate-partner-links-stats";
 import { prisma } from "@/lib/prisma";
 import { PartnerBountySchema } from "@/lib/zod/schemas/partner-profile";
-import { Program, ProgramEnrollment } from "@prisma/client";
+import { pluck } from "@dub/utils";
+import { Program, ProgramEnrollment, ProgramPartnerTag } from "@prisma/client";
 import * as z from "zod/v4";
 import {
   bountyEligibilityIncludes,
@@ -20,16 +21,19 @@ type GetBountiesForPartnerParams = Pick<
 > & {
   links: PartnerLink[];
   program: Pick<Program, "id" | "defaultGroupId">;
+  programPartnerTags: Pick<ProgramPartnerTag, "partnerTagId">[];
 };
 
 export async function getBountiesForPartner({
   program,
   links,
+  programPartnerTags,
   ...programEnrollment
 }: GetBountiesForPartnerParams) {
   const { groupId, partnerId, totalCommissions, createdAt } = programEnrollment;
 
   const partnerGroupId = groupId || program.defaultGroupId;
+  const partnerTagIds = pluck(programPartnerTags, "partnerTagId");
 
   const bounties = await prisma.bounty.findMany({
     where: {
@@ -45,7 +49,10 @@ export async function getBountiesForPartner({
         },
         {
           AND: [
-            buildBountyEligibilityWhere(partnerGroupId),
+            buildBountyEligibilityWhere({
+              groupId: partnerGroupId,
+              partnerTagIds,
+            }),
             buildBountyActivePeriodWhere(),
           ],
         },
@@ -82,7 +89,10 @@ export async function getBountiesForPartner({
     canPartnerSeeBounty({
       program,
       bounty,
-      programEnrollment,
+      programEnrollment: {
+        ...programEnrollment,
+        programPartnerTags,
+      },
     }),
   );
 

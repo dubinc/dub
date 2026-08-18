@@ -11,8 +11,10 @@ import {
 } from "@/lib/email/parse-campaign-from-address";
 import { TiptapNode } from "@/lib/types";
 import {
-  CampaignSchema,
   campaignFromSchema,
+  CampaignSchema,
+  EMAIL_TEMPLATE_VARIABLE_INFO,
+  EMAIL_TEMPLATE_VARIABLES,
 } from "@/lib/zod/schemas/campaigns";
 import { sendBatchEmail } from "@dub/email";
 import CampaignEmail from "@dub/email/templates/campaign-email";
@@ -102,11 +104,12 @@ export const POST = withWorkspace(
             preview,
             body: renderCampaignEmailHTML({
               content: bodyJson as unknown as TiptapNode,
-              variables: {
-                PartnerName: "Partner",
-                PartnerEmail: "partner@acme.com",
-                PartnerLink: "https://acme.com/partner",
-              },
+              variables: Object.fromEntries(
+                EMAIL_TEMPLATE_VARIABLES.map((key) => [
+                  key,
+                  EMAIL_TEMPLATE_VARIABLE_INFO[key].example,
+                ]),
+              ),
             }),
           },
         }),

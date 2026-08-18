@@ -355,8 +355,7 @@ export async function invoicePaid({
     waitUntil(
       Promise.allSettled([
         executeWorkflows({
-          trigger: "partnerMetricsUpdated",
-          reason: "sale",
+          event: "saleRecorded",
           identity: {
             workspaceId: workspace.id,
             programId: link.programId,
