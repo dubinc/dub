@@ -2,11 +2,16 @@ import { createId } from "@/lib/api/create-id";
 import { DubApiError } from "@/lib/api/errors";
 import { prisma } from "@/lib/prisma";
 import { Discount, Link, Partner, Prisma, Project } from "@prisma/client";
+import { waitUntil } from "@vercel/functions";
 import { constructDiscountCode } from "./construct-discount-code";
+import { sendDiscountCodeWebhook } from "./discount-code-webhook";
 import { getDiscountProvider } from "./discount-provider";
 
 interface CreateDiscountCodeArgs {
-  workspace: Pick<Project, "id" | "stripeConnectId" | "shopifyStoreId">;
+  workspace: Pick<
+    Project,
+    "id" | "stripeConnectId" | "shopifyStoreId" | "webhookEnabled"
+  >;
   partner: Pick<Partner, "id" | "name">;
   link: Pick<Link, "id">;
   discount: Discount;
@@ -48,8 +53,12 @@ export async function createDiscountCode({
     shouldRetry: code ? false : true,
   });
 
+  let discountCode: Prisma.DiscountCodeGetPayload<{
+    include: { discount: true };
+  }>;
+
   try {
-    return await prisma.discountCode.create({
+    discountCode = await prisma.discountCode.create({
       data: {
         id: createId({ prefix: "dcode_" }),
         code: externalDiscountCode.code,
@@ -57,6 +66,9 @@ export async function createDiscountCode({
         partnerId: partner.id,
         linkId: link.id,
         discountId: discount.id,
+      },
+      include: {
+        discount: true,
       },
     });
   } catch (error) {
@@ -85,4 +97,14 @@ export async function createDiscountCode({
 
     throw error;
   }
+
+  waitUntil(
+    sendDiscountCodeWebhook({
+      trigger: "discount_code.created",
+      data: discountCode,
+      workspace,
+    }),
+  );
+
+  return discountCode;
 }

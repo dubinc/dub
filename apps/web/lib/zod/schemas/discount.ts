@@ -33,7 +33,7 @@ export const createDiscountSchema = z.object({
   amount: z.number().min(0),
   type: z.enum(RewardStructure).default("flat"),
   maxDuration: maxDurationSchema,
-  couponId: z.string(),
+  couponId: z.string().optional(),
   couponTestId: z.string().nullish(),
   groupId: z.string(),
   autoProvision: z.boolean().optional(),
@@ -90,17 +90,19 @@ export const DiscountCodeSchema = z
     title: "DiscountCode",
   });
 
+const discountCodeValueSchema = z
+  .string()
+  .trim()
+  .max(100, "Code must be 100 characters or fewer.")
+  .regex(
+    /^[a-zA-Z0-9\-_]+$/,
+    "Code can only contain letters, numbers, dashes, and underscores.",
+  );
+
 export const createDiscountCodeSchema = z.object({
   code: z.preprocess(
     (val) => (typeof val === "string" && val.trim() === "" ? undefined : val),
-    z
-      .string()
-      .trim()
-      .max(100, "Code must be 100 characters or fewer.")
-      .regex(
-        /^[a-zA-Z0-9\-_]+$/,
-        "Code can only contain letters, numbers, dashes, and underscores.",
-      )
+    discountCodeValueSchema
       .optional()
       .describe(
         "The discount code to create. If omitted, a unique code will be generated automatically from the partner's name.",
@@ -116,8 +118,36 @@ export const createDiscountCodeSchema = z.object({
     ),
 });
 
-export const getDiscountCodesQuerySchema = z.object({
-  partnerId: z
-    .string()
-    .describe("The ID of the partner to retrieve discount codes for."),
+export const updateDiscountCodeSchema = z.object({
+  code: discountCodeValueSchema.describe(
+    "The updated discount code. Only available for custom discount providers.",
+  ),
+});
+
+export const getDiscountCodesQuerySchema = z
+  .object({
+    partnerId: z
+      .string()
+      .optional()
+      .describe(
+        "The ID of the partner to retrieve discount codes for. If omitted, returns discount codes for the whole program.",
+      ),
+    discountId: z
+      .string()
+      .optional()
+      .describe("Filter discount codes by discount ID."),
+  })
+  .extend(getPaginationQuerySchema({ pageSize: 100 }));
+
+// Schema for the discount code webhook
+export const DiscountCodeWebhookSchema = DiscountCodeSchema.omit({
+  discountId: true,
+}).extend({
+  discount: DiscountSchema.pick({
+    id: true,
+    amount: true,
+    type: true,
+    maxDuration: true,
+    provider: true,
+  }).nullable(),
 });
