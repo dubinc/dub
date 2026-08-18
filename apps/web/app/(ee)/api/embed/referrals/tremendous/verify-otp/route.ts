@@ -9,6 +9,7 @@ import {
 } from "@/lib/tremendous/constants";
 import { ratelimit, redis } from "@/lib/upstash";
 import { emailSchema } from "@/lib/zod/schemas/auth";
+import { ACTIVE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
 import { TREMENDOUS_SUPPORTED_COUNTRIES } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
@@ -22,6 +23,14 @@ const verifyOtpSchema = z.object({
 // POST /api/embed/referrals/tremendous/verify-otp
 export const POST = withReferralsEmbedToken(
   async ({ req, programEnrollment }) => {
+    if (!ACTIVE_ENROLLMENT_STATUSES.includes(programEnrollment.status)) {
+      throw new DubApiError({
+        code: "forbidden",
+        message:
+          "You cannot set up payouts because your enrollment in this program is not active.",
+      });
+    }
+
     if (!TREMENDOUS_ENABLED_PROGRAM_IDS.includes(programEnrollment.programId)) {
       throw new DubApiError({
         code: "forbidden",
@@ -73,30 +82,16 @@ export const POST = withReferralsEmbedToken(
       });
     }
 
-    const [partner, duplicatePartner] = await prisma.$transaction([
-      prisma.partner.findUniqueOrThrow({
-        where: {
-          id: partnerId,
-        },
-        select: {
-          id: true,
-          country: true,
-          defaultPayoutMethod: true,
-        },
-      }),
-
-      prisma.partner.findFirst({
-        where: {
-          tremendousEmail: email,
-          id: {
-            not: partnerId,
-          },
-        },
-        select: {
-          id: true,
-        },
-      }),
-    ]);
+    const partner = await prisma.partner.findUniqueOrThrow({
+      where: {
+        id: partnerId,
+      },
+      select: {
+        id: true,
+        country: true,
+        defaultPayoutMethod: true,
+      },
+    });
 
     if (
       partner.country &&
@@ -112,14 +107,6 @@ export const POST = withReferralsEmbedToken(
       throw new DubApiError({
         code: "bad_request",
         message: "You already have a payout method connected.",
-      });
-    }
-
-    if (duplicatePartner) {
-      throw new DubApiError({
-        code: "conflict",
-        message:
-          "Unable to save partner details. Please verify the email address and try again.",
       });
     }
 

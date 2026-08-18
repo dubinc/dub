@@ -20,6 +20,9 @@ vi.mock("@axiomhq/logging", () => ({
   AxiomJSTransport: class {
     constructor(_config: any) {}
   },
+  ConsoleTransport: class {
+    constructor(_config?: any) {}
+  },
   Logger: class {
     constructor(_config: any) {}
     log = vi.fn();

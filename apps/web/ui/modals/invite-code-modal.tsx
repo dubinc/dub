@@ -33,7 +33,8 @@ function InviteCodeModal({
       <div className="space-y-2 border-b border-neutral-200 px-4 py-4 sm:px-6">
         <h3 className="text-lg font-medium">Invite Link</h3>
         <p className="text-sm text-neutral-500">
-          Allow other people to join your workspace through the link below.
+          Allow other people to join your workspace through the link below (not
+          recommended for security).
         </p>
       </div>
 

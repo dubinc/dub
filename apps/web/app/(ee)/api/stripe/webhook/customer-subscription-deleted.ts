@@ -10,7 +10,6 @@ import { wouldLoseAdvancedFeatures } from "@/lib/plans/would-lose-advanced-featu
 import { prisma } from "@/lib/prisma";
 import { stripe } from "@/lib/stripe";
 import { recordLink } from "@/lib/tinybird";
-import { webhookCache } from "@/lib/webhook/cache";
 import { sendEmail } from "@dub/email";
 import AdvancedPlanDowngradeNotice from "@dub/email/templates/advanced-plan-downgrade-notice";
 import { capitalize, FREE_PLAN, log } from "@dub/utils";
@@ -205,6 +204,10 @@ export async function customerSubscriptionDeleted(
     tokenCache.expireMany({
       hashedKeys: workspace.restrictedTokens.map(({ hashedKey }) => hashedKey),
     }),
+
+    // Open/uncollectible invoices remain payable after cancellation
+    // Voiding is the only terminal status that prevents payment for a canceled subscription
+    voidLatestInvoiceIfPayable(deletedSubscription),
   ]);
 
   // Reset cancellation feedback dedupe so a future resubscribe + cancel can send again
@@ -214,22 +217,6 @@ export async function customerSubscriptionDeleted(
       type: CANCELLATION_FEEDBACK_EMAIL_TYPE,
     },
   });
-
-  // Update the webhooks cache
-  const webhooks = await prisma.webhook.findMany({
-    where: {
-      projectId: workspace.id,
-    },
-    select: {
-      id: true,
-      url: true,
-      secret: true,
-      triggers: true,
-      disabledAt: true,
-    },
-  });
-
-  await webhookCache.mset(webhooks);
 
   await deleteWorkspaceFolders({
     workspaceId: workspace.id,
@@ -278,4 +265,34 @@ export async function customerSubscriptionDeleted(
   }
 
   return `Workspace ${workspace.slug} subscription deleted; downgraded to free.`;
+}
+
+async function voidLatestInvoiceIfPayable(subscription: Stripe.Subscription) {
+  const latestInvoiceId =
+    typeof subscription.latest_invoice === "string"
+      ? subscription.latest_invoice
+      : subscription.latest_invoice?.id;
+
+  if (!latestInvoiceId) {
+    return;
+  }
+
+  try {
+    const invoice = await stripe.invoices.retrieve(latestInvoiceId);
+
+    if (invoice.status !== "open" && invoice.status !== "uncollectible") {
+      return;
+    }
+
+    await stripe.invoices.voidInvoice(latestInvoiceId);
+
+    console.log(
+      `Voided invoice ${latestInvoiceId} for canceled subscription ${subscription.id}.`,
+    );
+  } catch (error) {
+    console.log(
+      `Failed to void invoice ${latestInvoiceId} for subscription ${subscription.id}:`,
+      error,
+    );
+  }
 }

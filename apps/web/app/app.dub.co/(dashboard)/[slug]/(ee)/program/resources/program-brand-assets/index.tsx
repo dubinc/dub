@@ -11,6 +11,7 @@ import {
 } from "@/lib/zod/schemas/program-resources";
 import { ResourceCard } from "@/ui/partners/resources/resource-card";
 import { AnimatedSizeContainer, Button, FileContent } from "@dub/ui";
+import { Envelope } from "@dub/ui/icons";
 import {
   capitalize,
   formatFileSize,
@@ -214,11 +215,15 @@ export function ProgramBrandAssets() {
                         resourceType="link"
                         icon={
                           <div className="flex size-full items-center justify-center bg-neutral-50">
-                            <img
-                              src={`${GOOGLE_FAVICON_URL}${getApexDomain(link.url)}`}
-                              alt={link.name}
-                              className="size-6 rounded-full object-contain"
-                            />
+                            {link.url.startsWith("mailto:") ? (
+                              <Envelope className="size-4 text-neutral-800" />
+                            ) : (
+                              <img
+                                src={`${GOOGLE_FAVICON_URL}${getApexDomain(link.url)}`}
+                                alt={link.name}
+                                className="size-6 rounded-full object-contain"
+                              />
+                            )}
                           </div>
                         }
                         title={link.name}

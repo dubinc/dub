@@ -16,6 +16,7 @@ import {
   TimestampTooltip,
   Tooltip,
   useColumnVisibility,
+  useCurrentProduct,
   usePagination,
   useRouterStuff,
   useTable,
@@ -147,6 +148,8 @@ export default function EventsTable({
 }) {
   const { slug } = useWorkspace();
   const { searchParams, queryParams } = useRouterStuff();
+  const { product } = useCurrentProduct();
+
   const { setExportQueryString } = useContext(EventsContext);
   const {
     selectedTab: tab,
@@ -275,7 +278,7 @@ export default function EventsTable({
               href={
                 partnerPage
                   ? `/programs/${programSlug}/customers/${getValue().id}`
-                  : `/${slug}/customers/${getValue().id}`
+                  : `/${slug}/${product}/customers/${getValue().id}`
               }
               className="px-4 py-2.5"
             />
@@ -694,7 +697,7 @@ export default function EventsTable({
           minSize: col.minSize || 100,
           maxSize: col.maxSize || 1000,
         })),
-    [tab, partnerPage],
+    [tab, product, partnerPage],
   );
 
   const { pagination, setPagination } = usePagination();
@@ -729,7 +732,9 @@ export default function EventsTable({
   );
 
   const { data, isLoading, error } = useSWR<EventDatum[]>(
-    !requiresUpgrade && `${eventsApiPath || "/api/events"}?${queryString}`,
+    !requiresUpgrade &&
+      product &&
+      `${eventsApiPath || "/api/events"}?${queryString}`,
     fetcher,
     {
       keepPreviousData: true,

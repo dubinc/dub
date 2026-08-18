@@ -3,8 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
-import { webhookCache } from "../webhook/cache";
-import { toggleWebhooksForWorkspace } from "../webhook/update-webhook";
+import { syncWorkspaceWebhookStatus } from "../webhook/click-webhook-workspaces";
 import { authActionClient } from "./safe-action";
 import { throwIfNoPermission } from "./throw-if-no-permission";
 
@@ -41,7 +40,7 @@ export const enableOrDisableWebhook = authActionClient
 
     const disabledAt = webhook.disabledAt ? null : new Date();
 
-    const updatedWebhook = await prisma.webhook.update({
+    await prisma.webhook.update({
       where: {
         id: webhookId,
         projectId: workspace.id,
@@ -51,17 +50,7 @@ export const enableOrDisableWebhook = authActionClient
       },
     });
 
-    waitUntil(
-      (async () => {
-        await Promise.all([
-          toggleWebhooksForWorkspace({
-            workspaceId: workspace.id,
-          }),
-
-          webhookCache.set(updatedWebhook),
-        ]);
-      })(),
-    );
+    waitUntil(syncWorkspaceWebhookStatus(workspace.id));
 
     return {
       disabledAt,

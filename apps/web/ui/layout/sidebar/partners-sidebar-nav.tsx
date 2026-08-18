@@ -6,7 +6,7 @@ import { usePartnerProgramBounties } from "@/lib/swr/use-partner-program-bountie
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import useProgramEnrollmentsCount from "@/lib/swr/use-program-enrollments-count";
 import { MarketplaceSidebarFilters } from "@/ui/program-marketplace/marketplace-sidebar-filters";
-import { ProgramsPromoCard } from "@/ui/program-marketplace/programs-promo-card";
+import { ProgramMarketplaceCard } from "@/ui/program-marketplace/program-marketplace-card";
 import { isMarketplaceFilterSidebarPath } from "@/ui/program-marketplace/utils/urls";
 import { type Icon, useMediaQuery, useRouterStuff } from "@dub/ui";
 import {
@@ -434,7 +434,7 @@ export function PartnersSidebarNav({
           <ProgramHelpSupport />
         ) : (
           <>
-            <ProgramsPromoCard />
+            <ProgramMarketplaceCard />
             <PayoutStats />
           </>
         )

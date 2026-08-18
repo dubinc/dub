@@ -1,12 +1,14 @@
 import { convertToCSV } from "@/lib/analytics/utils/convert-to-csv";
 import { createDownloadableExport } from "@/lib/api/create-downloadable-export";
 import { formatPayoutsForExport } from "@/lib/api/payouts/format-payouts-for-export";
-import { parsePayoutsQuery } from "@/lib/api/payouts/get-payouts";
 import { generateExportFilename } from "@/lib/api/utils/generate-export-filename";
 import { generateRandomString } from "@/lib/api/utils/generate-random-string";
 import { withCron } from "@/lib/cron/with-cron";
 import { prisma } from "@/lib/prisma";
-import { payoutsExportCronInputSchema } from "@/lib/zod/schemas/payouts";
+import {
+  payoutsExportCronInputSchema,
+  payoutsQuerySchema,
+} from "@/lib/zod/schemas/payouts";
 import { sendEmail } from "@dub/email";
 import ExportReady from "@dub/email/templates/export-ready";
 import { logAndRespond } from "../../utils";
@@ -18,14 +20,17 @@ export const dynamic = "force-dynamic";
 
 // POST /api/cron/export/payouts - QStash worker for processing large payout exports
 export const POST = withCron(async ({ rawBody }) => {
-  const raw = JSON.parse(rawBody);
-  const isHoldStatus = raw.status === "hold";
-  const { status: _status, ...restRaw } = raw;
+  const payload = JSON.parse(rawBody);
 
   const { workspaceId, programId, userId, columns } =
-    payoutsExportCronInputSchema.parse(isHoldStatus ? restRaw : raw);
+    payoutsExportCronInputSchema.parse(payload);
 
-  const filters = parsePayoutsQuery(raw);
+  const filters = payoutsQuerySchema
+    .omit({
+      page: true,
+      pageSize: true,
+    })
+    .parse(payload);
 
   const user = await prisma.user.findUnique({
     where: {

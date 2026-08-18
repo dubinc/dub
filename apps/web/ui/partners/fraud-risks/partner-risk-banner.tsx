@@ -7,7 +7,7 @@ import {
   FraudGroupCountByPartner,
 } from "@/lib/types";
 import { ButtonLink } from "@/ui/placeholders/button-link";
-import { FlagFill } from "@dub/ui";
+import { Flag } from "@dub/ui";
 import { useParams } from "next/navigation";
 
 export function PartnerApplicationRiskBanner({
@@ -28,7 +28,7 @@ export function PartnerApplicationRiskBanner({
   return (
     <div className="flex items-center justify-between gap-2 rounded-t-xl border border-b-0 border-red-200 bg-red-100 px-4 py-2">
       <div className="flex items-center gap-2">
-        <FlagFill className="size-4 text-red-700" />
+        <Flag variant="fill" className="size-4 text-red-700" />
         <h3 className="text-sm font-semibold leading-5 text-red-700">
           Potential risk detected
         </h3>
@@ -70,7 +70,7 @@ export function PartnerRiskBanner({
   return (
     <div className="flex items-center justify-between gap-2 rounded-t-xl border border-b-0 border-red-200 bg-red-100 px-4 py-2">
       <div className="flex items-center gap-2">
-        <FlagFill className="size-4 text-red-700" />
+        <Flag variant="fill" className="size-4 text-red-700" />
         <h3 className="text-sm font-semibold leading-5 text-red-700">
           Potential risk detected
         </h3>

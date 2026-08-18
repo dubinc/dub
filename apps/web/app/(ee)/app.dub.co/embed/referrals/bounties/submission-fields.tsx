@@ -11,7 +11,7 @@ import { evaluateSocialContentRequirements } from "@/ui/partners/bounties/evalua
 import { X } from "@/ui/shared/icons";
 import {
   Button,
-  CircleCheckFill,
+  CircleCheck,
   FileUpload,
   Label,
   LoadingSpinner,
@@ -314,7 +314,8 @@ export function EmbedSocialUrlField({
               : "text-content-muted",
           )}
         >
-          <CircleCheckFill
+          <CircleCheck
+            variant="fill"
             className={cn(
               "size-2.5 transition-opacity",
               isPostedFromYourAccount
@@ -324,24 +325,21 @@ export function EmbedSocialUrlField({
           />
           <span>Posted from your account</span>
         </li>
-        {bounty.startsAt && (
-          <li
+        <li
+          className={cn(
+            "flex items-center gap-1 text-xs font-medium transition-colors",
+            isAfterStartDate ? "text-content-success" : "text-content-muted",
+          )}
+        >
+          <CircleCheck
+            variant="fill"
             className={cn(
-              "flex items-center gap-1 text-xs font-medium transition-colors",
+              "size-2.5 transition-opacity",
               isAfterStartDate ? "text-content-success" : "text-content-muted",
             )}
-          >
-            <CircleCheckFill
-              className={cn(
-                "size-2.5 transition-opacity",
-                isAfterStartDate
-                  ? "text-content-success"
-                  : "text-content-muted",
-              )}
-            />
-            <span>{`Posted after ${formatDate(bounty.startsAt, { month: "short", day: "numeric", year: "numeric" })}`}</span>
-          </li>
-        )}
+          />
+          <span>{`Posted after ${formatDate(bounty.startsAt, { month: "short", day: "numeric", year: "numeric" })}`}</span>
+        </li>
       </ul>
     </div>
   );

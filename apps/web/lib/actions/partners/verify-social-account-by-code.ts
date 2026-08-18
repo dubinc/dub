@@ -142,7 +142,7 @@ export const verifySocialAccountByCodeAction = authPartnerActionClient
     if (!isValid) {
       throw new Error(
         `The verification code was not found in your ${
-          platform === "youtube" ? "channel description" : "bio"
+          platform === "youtube" ? "English channel description" : "bio"
         }. Please add the code exactly as provided, save your changes, and try again.`,
       );
     }

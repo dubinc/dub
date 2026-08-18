@@ -2,6 +2,7 @@ import { setToltTokenAction } from "@/lib/actions/partners/set-tolt-token";
 import { startToltImportAction } from "@/lib/actions/partners/start-tolt-import";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { ToltProgram } from "@/lib/tolt/types";
+import { X } from "@/ui/shared/icons";
 import { Button, Logo, Modal, useMediaQuery, useRouterStuff } from "@dub/ui";
 import { ArrowRight } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
@@ -27,18 +28,9 @@ function ImportToltModal({
   showImportToltModal: boolean;
   setShowImportToltModal: Dispatch<SetStateAction<boolean>>;
 }) {
-  const searchParams = useSearchParams();
   const { queryParams } = useRouterStuff();
   const [step, setStep] = useState<Step>("set-token");
   const [toltProgram, setToltProgram] = useState<ToltProgram | null>(null);
-
-  useEffect(() => {
-    if (searchParams?.get("import") === "tolt") {
-      setShowImportToltModal(true);
-    } else {
-      setShowImportToltModal(false);
-    }
-  }, [searchParams]);
 
   return (
     <Modal
@@ -50,6 +42,17 @@ function ImportToltModal({
         })
       }
     >
+      <Button
+        variant="outline"
+        icon={<X className="size-5" />}
+        className="absolute right-4 top-4 h-auto w-fit p-1"
+        onClick={() => {
+          setShowImportToltModal(false);
+          queryParams({
+            del: "import",
+          });
+        }}
+      />
       <div className="flex flex-col items-center justify-center space-y-3 border-b border-neutral-200 px-4 py-8 sm:px-16">
         <div className="flex items-center space-x-3 py-4">
           <img
@@ -292,6 +295,14 @@ function ProgramInfo({
 
 export function useImportToltModal() {
   const [showImportToltModal, setShowImportToltModal] = useState(false);
+  const searchParams = useSearchParams();
+
+  // Sync the modal state with the `?import=` query param here in the hook
+  // rather than in the modal itself, which remounts on every open/close
+  // and would re-open from a stale param mid-navigation
+  useEffect(() => {
+    setShowImportToltModal(searchParams?.get("import") === "tolt");
+  }, [searchParams]);
 
   const ImportToltModalCallback = useCallback(() => {
     return (

@@ -3,7 +3,6 @@ import { prisma } from "@/lib/prisma";
 import { isNotHostedImage, storage } from "@/lib/storage";
 import { recordLink } from "@/lib/tinybird";
 import { LinkProps, ProcessedLinkProps } from "@/lib/types";
-import { propagateWebhookTriggerChanges } from "@/lib/webhook/update-webhook";
 import {
   R2_URL,
   getParamsFromURL,
@@ -221,12 +220,6 @@ export async function updateLink({
           oldLink.image.startsWith(`${R2_URL}/images/${id}`) &&
           oldLink.image !== image &&
           storage.delete({ key: oldLink.image.replace(`${R2_URL}/`, "") }),
-
-        // Propagate webhook trigger changes
-        webhookIds != undefined &&
-          propagateWebhookTriggerChanges({
-            webhookIds,
-          }),
 
         // Schedule AB test completion
         changedTestCompletedAt &&

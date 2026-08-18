@@ -6,7 +6,7 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import type { GroupProps, RewardProps } from "@/lib/types";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { useRewardHistorySheet } from "@/ui/activity-logs/reward-history-sheet";
-import { usePartnersUpgradeModal } from "@/ui/partners/partners-upgrade-modal";
+import { useAdvancedUpsellModal } from "@/ui/partners/advanced-upsell-modal";
 import { ProgramRewardDescription } from "@/ui/partners/program-reward-description";
 import {
   RewardSheet,
@@ -138,8 +138,8 @@ const RewardItem = ({
   const { plan } = useWorkspace();
   const { queryParams } = useRouterStuff();
   const { canCreateReferralReward } = getPlanCapabilities(plan);
-  const { partnersUpgradeModal, setShowPartnersUpgradeModal } =
-    usePartnersUpgradeModal();
+  const { advancedUpsellModal, setShowAdvancedUpsellModal } =
+    useAdvancedUpsellModal();
 
   const { RewardSheet, setIsOpen } = useRewardSheet({
     event,
@@ -147,6 +147,7 @@ const RewardItem = ({
   });
 
   const {
+    loading: activityLogsLoading,
     hasActivityLogs,
     finalActivityLogDate,
     rewardHistorySheet,
@@ -162,7 +163,7 @@ const RewardItem = ({
 
   return (
     <>
-      {partnersUpgradeModal}
+      {advancedUpsellModal}
       {RewardSheet}
       {rewardHistorySheet}
       <As
@@ -213,9 +214,9 @@ const RewardItem = ({
                     </TimestampTooltip>
                   )}
 
-                  {!hasActivityLogs ? (
+                  {activityLogsLoading ? (
                     <div className="ml-1 h-3 w-20 animate-pulse rounded bg-neutral-100" />
-                  ) : (
+                  ) : hasActivityLogs ? (
                     <>
                       <span
                         className="ml-1 size-1 shrink-0 rounded-full bg-neutral-400"
@@ -232,7 +233,7 @@ const RewardItem = ({
                         }}
                       />
                     </>
-                  )}
+                  ) : null}
                 </div>
               </div>
             ) : (
@@ -285,7 +286,7 @@ const RewardItem = ({
                     <TooltipContent
                       title="Referral rewards are only available on the Advanced plan and above."
                       cta="Upgrade to Advanced"
-                      onClick={() => setShowPartnersUpgradeModal(true)}
+                      onClick={() => setShowAdvancedUpsellModal(true)}
                     />
                   ) : undefined
                 }

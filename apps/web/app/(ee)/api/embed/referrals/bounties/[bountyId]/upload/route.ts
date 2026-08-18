@@ -1,5 +1,7 @@
+import { parseRequestBody } from "@/lib/api/utils";
 import { getBountySubmissionUploadUrl } from "@/lib/bounty/api/get-bounty-submission-upload-url";
 import { withReferralsEmbedToken } from "@/lib/embed/referrals/auth";
+import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 
@@ -14,15 +16,28 @@ export const POST = withReferralsEmbedToken(
   async ({ req, programEnrollment, params }) => {
     const { bountyId } = params;
     const { fileName, contentType, contentLength } = bodySchema.parse(
-      await req.json(),
+      await parseRequestBody(req),
     );
+
+    const programPartnerTags = await prisma.programPartnerTag.findMany({
+      where: {
+        programId: programEnrollment.programId,
+        partnerId: programEnrollment.partnerId,
+      },
+      select: {
+        partnerTagId: true,
+      },
+    });
 
     const { signedUrl, destinationUrl } = await getBountySubmissionUploadUrl({
       bountyId,
       fileName,
       contentType,
       contentLength,
-      programEnrollment,
+      programEnrollment: {
+        ...programEnrollment,
+        programPartnerTags,
+      },
     });
 
     return NextResponse.json({

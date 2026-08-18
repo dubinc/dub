@@ -1,5 +1,6 @@
 import { formatDateTooltip } from "@/lib/analytics/format-date-tooltip";
 import { constructPartnerLink } from "@/lib/partners/construct-partner-link";
+import { QueryLinkStructureHelpText } from "@/lib/partners/query-link-structure-help-text";
 import usePartnerAnalytics from "@/lib/swr/use-partner-analytics";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import { PartnerProfileLinkProps } from "@/lib/types";
@@ -28,6 +29,7 @@ import {
   getApexDomain,
   getPrettyUrl,
   nFormatter,
+  PARTNERS_DOMAIN,
 } from "@dub/utils";
 import NumberFlow from "@number-flow/react";
 import Link from "next/link";
@@ -74,6 +76,19 @@ export function PartnerLinkCard({ link }: { link: PartnerProfileLinkProps }) {
   });
 
   const isDeactivated = programEnrollment?.status === "deactivated";
+
+  const discountCodeSection = link.discountCode ? (
+    <div className="hidden items-center gap-1.5 rounded-xl border border-neutral-200 py-1 pl-2 pr-1 sm:flex">
+      <span className="text-sm leading-none text-neutral-500">
+        Discount code
+      </span>
+      <DiscountCodeBadge
+        code={link.discountCode}
+        disabledAt={link.discountCodeDisabledAt}
+        disabledTooltip={`This discount code was disabled by the program. [Contact the program owner](${PARTNERS_DOMAIN}/messages/${programEnrollment?.program.slug}) if you need a new code.`}
+      />
+    </div>
+  ) : null;
 
   return (
     <CardList.Card
@@ -123,18 +138,25 @@ export function PartnerLinkCard({ link }: { link: PartnerProfileLinkProps }) {
                 {/* The max width implementation here is a bit hacky, we should improve in the future */}
                 <div className="flex max-w-[100px] items-center gap-1 py-0 pl-1 pr-1.5 sm:w-fit sm:max-w-[400px]">
                   <ArrowTurnRight2 className="h-3 w-3 shrink-0 text-neutral-400" />
-                  <a
-                    href={isDeactivated ? undefined : link.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="cursor-alias truncate text-sm text-neutral-500 decoration-dotted transition-colors hover:text-neutral-700 hover:underline hover:underline-offset-2"
-                    title={getPrettyUrl(link.url)}
-                    onClick={
-                      isDeactivated ? (e) => e.preventDefault() : undefined
-                    }
-                  >
-                    {getPrettyUrl(link.url)}
-                  </a>
+                  {programEnrollment?.group?.linkStructure === "query" ? (
+                    <QueryLinkStructureHelpText
+                      link={link}
+                      className="mt-0.5"
+                    />
+                  ) : (
+                    <a
+                      href={isDeactivated ? undefined : link.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="cursor-alias truncate text-sm text-neutral-500 decoration-dotted transition-colors hover:text-neutral-700 hover:underline hover:underline-offset-2"
+                      title={getPrettyUrl(link.url)}
+                      onClick={
+                        isDeactivated ? (e) => e.preventDefault() : undefined
+                      }
+                    >
+                      {getPrettyUrl(link.url)}
+                    </a>
+                  )}
                 </div>
               </div>
             </div>
@@ -153,20 +175,14 @@ export function PartnerLinkCard({ link }: { link: PartnerProfileLinkProps }) {
                   </StatusBadge>
                 );
               })()}
-            {link.discountCode && (
-              <Tooltip
-                content={
-                  "This program supports discount code tracking. Copy the code to use it in podcasts, videos, etc. [Learn more](https://dub.co/help/article/dual-sided-incentives)"
-                }
-              >
-                <div className="hidden items-center gap-1.5 rounded-xl border border-neutral-200 py-1 pl-2 pr-1 sm:flex">
-                  <span className="text-sm leading-none text-neutral-500">
-                    Discount code
-                  </span>
-                  <DiscountCodeBadge code={link.discountCode} />
-                </div>
-              </Tooltip>
-            )}
+            {discountCodeSection &&
+              (link.discountCodeDisabledAt ? (
+                discountCodeSection
+              ) : (
+                <Tooltip content="This program supports discount code tracking. Copy the code to use it in podcasts, videos, etc. [Learn more](https://dub.co/help/article/dual-sided-incentives)">
+                  {discountCodeSection}
+                </Tooltip>
+              ))}
             {displayOption === "cards" && <StatsBadge link={link} />}
             <Controls link={link} />
           </div>

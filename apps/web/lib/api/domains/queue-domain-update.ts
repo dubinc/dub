@@ -32,19 +32,3 @@ export async function queueDomainUpdate({
     },
   });
 }
-
-export async function queueDomainDeletion({
-  domain,
-  delay,
-}: {
-  domain: string;
-  delay?: number;
-}) {
-  return await qstash.publishJSON({
-    url: `${APP_DOMAIN_WITH_NGROK}/api/cron/domains/delete`,
-    ...(delay && { delay }),
-    body: {
-      domain,
-    },
-  });
-}

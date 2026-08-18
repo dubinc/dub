@@ -14,6 +14,14 @@ export const POST = withWorkspace(
       });
     }
 
+    if (workspace.plan === "enterprise") {
+      throw new DubApiError({
+        code: "forbidden",
+        message:
+          "Since you're on an Enterprise plan, billing is managed by your account team. Please reach out to them to manage your subscription.",
+      });
+    }
+
     try {
       const { data } = await stripe.subscriptions.list({
         customer: workspace.stripeId,

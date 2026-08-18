@@ -1,4 +1,4 @@
-import { recordLink } from "@/lib/tinybird";
+import { recordLink } from "@/lib/tinybird/record-link";
 import { linkCache } from "./cache";
 import { ExpandedLink } from "./utils/transform-link";
 

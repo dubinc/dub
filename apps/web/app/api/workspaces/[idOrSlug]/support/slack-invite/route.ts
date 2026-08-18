@@ -104,7 +104,7 @@ export const POST = withWorkspace(
     return NextResponse.json({ inviteIds });
   },
   {
-    requiredPlan: ["advanced", "enterprise"],
+    requiredPlan: ["enterprise"],
     requiredPermissions: ["workspaces.write"],
   },
 );

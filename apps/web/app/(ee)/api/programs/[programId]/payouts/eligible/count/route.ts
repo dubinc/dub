@@ -31,7 +31,6 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
   if (cutoffPeriodValue) {
     const eligiblePayouts = await getEligiblePayouts({
       program,
-      workspace,
       cutoffPeriod,
       selectedPayoutIds,
       excludedPayoutIds,
@@ -48,7 +47,7 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
   const data = await prisma.payout.aggregate({
     where: {
       ...payoutIdSelectionWhere({ selectedPayoutIds, excludedPayoutIds }),
-      ...getPayoutEligibilityFilter({ program, workspace }),
+      ...getPayoutEligibilityFilter({ program }),
     },
     _count: true,
     _sum: {

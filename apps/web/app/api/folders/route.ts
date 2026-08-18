@@ -68,6 +68,7 @@ export const POST = withWorkspace(
               code: "exceeded_limit",
               message: exceededLimitError({
                 plan: workspace.plan,
+                planPeriod: workspace.planPeriod,
                 limit: foldersLimit,
                 type: "folders",
               }),
@@ -127,14 +128,6 @@ export const POST = withWorkspace(
   },
   {
     requiredPermissions: ["folders.write"],
-    requiredPlan: [
-      "pro",
-      "business",
-      "business plus",
-      "business extra",
-      "business max",
-      "advanced",
-      "enterprise",
-    ],
+    requiredPlan: ["pro", "business", "advanced", "enterprise"],
   },
 );

@@ -1,13 +1,14 @@
 "use client";
 
-import { getPlanCapabilities } from "@/lib/plan-capabilities";
-import { useFraudGroupCount } from "@/lib/swr/use-fraud-groups-count";
 import useGroups from "@/lib/swr/use-groups";
 import { usePayoutsCount } from "@/lib/swr/use-payouts-count";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { TREMENDOUS_MAX_PAYOUT_AMOUNT_CENTS } from "@/lib/tremendous/constants";
-import { FraudGroupCountByPartner, PayoutResponse } from "@/lib/types";
+import {
+  TREMENDOUS_MAX_PAYOUT_AMOUNT_CENTS,
+  TREMENDOUS_MIN_PAYOUT_AMOUNT_CENTS,
+} from "@/lib/tremendous/constants";
+import { PayoutResponse } from "@/lib/types";
 import { ExternalPayoutsIndicator } from "@/ui/partners/external-payouts-indicator";
 import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
@@ -37,12 +38,12 @@ import {
   PayoutStatus,
   ProgramPayoutMode,
 } from "@prisma/client";
-import { PayoutPaidCell } from "app/app.dub.co/(dashboard)/[slug]/(ee)/program/payouts/payout-paid-cell";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useMemo } from "react";
 import { toast } from "sonner";
 import useSWR from "swr";
+import { PayoutPaidCell } from "./payout-paid-cell";
 import { usePayoutFilters } from "./use-payout-filters";
 
 /** Matches server `getPayoutEligibilityFilter` and in-table warnings in `AmountRowItem`. */
@@ -51,13 +52,9 @@ function isPayoutEligibleForBatchConfirm(
   {
     minPayoutAmount,
     programPayoutMode,
-    canManageFraudEvents,
-    partnersWithPendingFraud,
   }: {
     minPayoutAmount: number;
     programPayoutMode: ProgramPayoutMode;
-    canManageFraudEvents: boolean;
-    partnersWithPendingFraud: Set<string>;
   },
 ) {
   if (payout.status !== PayoutStatus.pending) {
@@ -82,13 +79,10 @@ function isPayoutEligibleForBatchConfirm(
     return false;
   }
 
-  if (canManageFraudEvents && partnersWithPendingFraud.has(payout.partner.id)) {
-    return false;
-  }
-
   if (
     payout.partner.defaultPayoutMethod === PartnerPayoutMethod.tremendous &&
-    payout.amount > TREMENDOUS_MAX_PAYOUT_AMOUNT_CENTS
+    (payout.amount < TREMENDOUS_MIN_PAYOUT_AMOUNT_CENTS ||
+      payout.amount > TREMENDOUS_MAX_PAYOUT_AMOUNT_CENTS)
   ) {
     return false;
   }
@@ -103,6 +97,19 @@ const payoutsColumns = {
   defaultVisible: ["periodEnd", "partner", "status", "initiatedAt", "amount"],
 };
 
+const MIN_GIFT_CARD_PAYOUT_AMOUNT = currencyFormatter(
+  TREMENDOUS_MIN_PAYOUT_AMOUNT_CENTS,
+  {
+    trailingZeroDisplay: "stripIfInteger",
+  },
+);
+const MAX_GIFT_CARD_PAYOUT_AMOUNT = currencyFormatter(
+  TREMENDOUS_MAX_PAYOUT_AMOUNT_CENTS,
+  {
+    trailingZeroDisplay: "stripIfInteger",
+  },
+);
+
 export function PayoutTable() {
   const router = useRouter();
   const { queryParams, searchParams, searchParamsObj, getQueryString } =
@@ -111,7 +118,6 @@ export function PayoutTable() {
   const {
     id: workspaceId,
     slug: workspaceSlug,
-    plan,
     defaultProgramId,
   } = useWorkspace();
 
@@ -157,25 +163,6 @@ export function PayoutTable() {
   );
 
   const { pagination, setPagination } = usePagination(PAYOUTS_MAX_PAGE_SIZE);
-
-  const { canManageFraudEvents } = getPlanCapabilities(plan);
-
-  const { fraudGroupCount } = useFraudGroupCount<FraudGroupCountByPartner[]>({
-    query: {
-      groupBy: "partnerId",
-      status: "pending",
-    },
-    ignoreParams: true,
-  });
-
-  // Memoized map of partner IDs with pending risk events
-  const fraudGroupCountMap = useMemo(() => {
-    if (!fraudGroupCount) {
-      return new Set<string>();
-    }
-
-    return new Set(fraudGroupCount.map(({ partnerId }) => partnerId));
-  }, [fraudGroupCount]);
 
   const isFiltered = Object.keys(searchParamsObj).some(
     (key) => !["sortBy", "sortOrder", "page"].includes(key),
@@ -229,16 +216,7 @@ export function PayoutTable() {
           id: "status",
           header: "Status",
           cell: ({ row }) => {
-            const hasPendingFraudEvents =
-              canManageFraudEvents &&
-              fraudGroupCountMap.has(row.original.partner.id);
-
-            const status =
-              hasPendingFraudEvents && row.original.status === "pending"
-                ? "hold"
-                : row.original.status;
-
-            const badge = PayoutStatusBadges[status];
+            const badge = PayoutStatusBadges[row.original.status];
 
             return badge ? (
               <StatusBadge icon={badge.icon} variant={badge.variant}>
@@ -274,15 +252,7 @@ export function PayoutTable() {
         {
           id: "amount",
           header: "Amount",
-          cell: ({ row }) => (
-            <AmountRowItem
-              payout={row.original}
-              hasPendingFraudEvents={
-                canManageFraudEvents &&
-                fraudGroupCountMap.has(row.original.partner.id)
-              }
-            />
-          ),
+          cell: ({ row }) => <AmountRowItem payout={row.original} />,
         },
         {
           id: "menu",
@@ -291,7 +261,7 @@ export function PayoutTable() {
           cell: () => null,
         },
       ].filter((c) => c.id === "menu" || payoutsColumns.all.includes(c.id)),
-    [canManageFraudEvents, fraudGroupCountMap, groups, workspaceSlug],
+    [groups, workspaceSlug],
   );
 
   const { table, ...tableProps } = useTable({
@@ -337,8 +307,6 @@ export function PayoutTable() {
       const eligibilityCtx = {
         minPayoutAmount,
         programPayoutMode: program?.payoutMode ?? "internal",
-        canManageFraudEvents,
-        partnersWithPendingFraud: fraudGroupCountMap,
       };
 
       const hasIneligibleAmongSelection =
@@ -346,13 +314,6 @@ export function PayoutTable() {
         selectedPayouts.some(
           (payout) => !isPayoutEligibleForBatchConfirm(payout, eligibilityCtx),
         );
-
-      const maxGiftCardPayoutAmount = currencyFormatter(
-        TREMENDOUS_MAX_PAYOUT_AMOUNT_CENTS,
-        {
-          trailingZeroDisplay: "stripIfInteger",
-        },
-      );
 
       return (
         <Button
@@ -380,17 +341,9 @@ export function PayoutTable() {
                   </li>
                   <li>Partner has not connected payouts</li>
                   <li>
-                    Exceeds the {maxGiftCardPayoutAmount} cap for gift card
-                    payouts
-                  </li>
-                  <li>
-                    On hold due to{" "}
-                    <Link
-                      href={`/${workspaceSlug}/program/payouts?status=hold`}
-                      className="cursor-alias underline decoration-dotted underline-offset-2"
-                    >
-                      unresolved risk events
-                    </Link>
+                    Not within the gift card payout amount range of{" "}
+                    {MIN_GIFT_CARD_PAYOUT_AMOUNT} –{" "}
+                    {MAX_GIFT_CARD_PAYOUT_AMOUNT}
                   </li>
                 </ul>
               </div>
@@ -495,10 +448,8 @@ function PayoutFilters() {
 
 function AmountRowItem({
   payout,
-  hasPendingFraudEvents,
 }: {
   payout: Pick<PayoutResponse, "amount" | "status" | "mode" | "partner">;
-  hasPendingFraudEvents: boolean;
 }) {
   const { slug } = useParams();
   const { program } = useProgram();
@@ -569,32 +520,14 @@ function AmountRowItem({
       );
     }
 
-    if (hasPendingFraudEvents) {
-      return (
-        <Tooltip
-          content={`This partner's payouts are on hold due to [unresolved risk events](${`/${slug}/program/risks?partnerId=${payout.partner.id}`}). They cannot be paid out until resolved.`}
-        >
-          <span className="cursor-help truncate text-neutral-400 underline decoration-dotted underline-offset-2">
-            {display}
-          </span>
-        </Tooltip>
-      );
-    }
-
     if (
       payout.partner.defaultPayoutMethod === PartnerPayoutMethod.tremendous &&
-      payout.amount > TREMENDOUS_MAX_PAYOUT_AMOUNT_CENTS
+      (payout.amount < TREMENDOUS_MIN_PAYOUT_AMOUNT_CENTS ||
+        payout.amount > TREMENDOUS_MAX_PAYOUT_AMOUNT_CENTS)
     ) {
-      const maxPayoutAmount = currencyFormatter(
-        TREMENDOUS_MAX_PAYOUT_AMOUNT_CENTS,
-        {
-          trailingZeroDisplay: "stripIfInteger",
-        },
-      );
-
       return (
         <Tooltip
-          content={`This payout exceeds the ${maxPayoutAmount} cap for gift card payouts. The partner must connect another payout method to receive this amount.`}
+          content={`This payout ${payout.amount < TREMENDOUS_MIN_PAYOUT_AMOUNT_CENTS ? `is below the minimum amount (${MIN_GIFT_CARD_PAYOUT_AMOUNT})` : `exceeds the ${MAX_GIFT_CARD_PAYOUT_AMOUNT} cap`} for gift card payouts. The partner must connect another payout method to receive this payout.`}
         >
           <span className="cursor-help truncate text-neutral-400 underline decoration-dotted underline-offset-2">
             {display}

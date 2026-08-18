@@ -14,6 +14,7 @@ import {
 } from "@/lib/zod/schemas/programs";
 import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
+import { Markdown } from "@/ui/shared/markdown";
 import {
   Button,
   LoadingSpinner,
@@ -23,7 +24,7 @@ import {
   Tooltip,
   useTable,
 } from "@dub/ui";
-import { BadgeCheck2Fill, Xmark } from "@dub/ui/icons";
+import { BadgeCheck2, Xmark } from "@dub/ui/icons";
 import {
   cn,
   COUNTRIES,
@@ -193,7 +194,9 @@ function SheetContent({
                 {formatDateTime(fraudAlert.createdAt)}
               </span>
             </div>
-            <p className="mt-2 text-sm text-neutral-600">{fraudAlert.reason}</p>
+            <Markdown className="prose-headings:text-base prose-headings:font-semibold mt-2 text-sm text-neutral-600">
+              {fraudAlert.reason}
+            </Markdown>
           </div>
 
           {/* Partner info */}
@@ -255,7 +258,10 @@ function SheetContent({
                                 <Icon className="size-3 shrink-0" />
                                 <span>{value}</span>
                                 {verified && (
-                                  <BadgeCheck2Fill className="size-3 text-green-600" />
+                                  <BadgeCheck2
+                                    variant="fill"
+                                    className="size-3 text-green-600"
+                                  />
                                 )}
                               </Link>
                             }
@@ -269,7 +275,10 @@ function SheetContent({
                               <Icon className="size-3" />
                               <span className="sr-only">{label}</span>
                               {verified && (
-                                <BadgeCheck2Fill className="absolute -right-1 -top-1 size-3 text-green-600" />
+                                <BadgeCheck2
+                                  variant="fill"
+                                  className="absolute -right-1 -top-1 size-3 text-green-600"
+                                />
                               )}
                             </Link>
                           </Tooltip>

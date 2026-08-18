@@ -19,7 +19,7 @@ interface SocialVerificationByCodeModalProps {
 interface PlatformInfo {
   name: string;
   title: string;
-  instruction: string;
+  instruction: ReactNode;
   openLabel: string;
   verifyTitle: string;
   verifyDescription: string;
@@ -32,9 +32,24 @@ const PLATFORM_INFO: Record<
 > = {
   youtube: {
     name: "YouTube",
-    title: "Edit your YouTube channel",
-    instruction:
-      "Navigate to your channel settings and add the 6 digit code above to your channel description temporarily. If you have an English description, add it there.",
+    title: "Edit your YouTube channel description",
+    instruction: (
+      <>
+        Add the 6-digit code above to your English channel description
+        temporarily.
+        {"\n\n"}
+        Add to your main description if it's in English. Otherwise, add the code
+        to an existing English description, or create one first.{" "}
+        <a
+          href="https://dub.co/help/article/partner-profile#youtube"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="hover:text-content-emphasis underline transition-colors"
+        >
+          Learn more
+        </a>
+      </>
+    ),
     openLabel: "Open channel",
     verifyTitle: "Verify account",
     verifyDescription:
@@ -75,6 +90,7 @@ export function SocialVerificationByCodeModal(
     <Modal
       showModal={props.showSocialVerificationModal}
       setShowModal={props.setShowSocialVerificationModal}
+      className="max-h-[calc(100dvh-64px)] sm:max-h-[90dvh]"
     >
       <SocialVerificationByCodeModalInner {...props} />
     </Modal>
@@ -130,7 +146,7 @@ function SocialVerificationByCodeModalInner({
 
   return (
     <>
-      <div className="flex items-center justify-between border-b border-neutral-200 p-4 sm:px-6">
+      <div className="sticky top-7 z-10 flex items-center justify-between border-b border-neutral-200 bg-white p-4 sm:top-0 sm:px-6">
         <h3 className="text-lg font-semibold leading-none">
           Verify {platformInfo.name} account
         </h3>
@@ -210,7 +226,7 @@ function Step({
 }: {
   stepNumber: number;
   title: string;
-  description: string;
+  description: ReactNode;
   children?: ReactNode;
 }) {
   return (
@@ -220,7 +236,7 @@ function Step({
       </div>
       <div className="space-y-1">
         <h4 className="text-sm font-medium text-black">{title}</h4>
-        <p className="text-content-default text-sm font-normal">
+        <p className="text-content-default whitespace-pre-line text-sm font-normal">
           {description}
         </p>
       </div>

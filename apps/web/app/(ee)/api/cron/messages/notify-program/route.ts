@@ -1,6 +1,7 @@
 import { createId } from "@/lib/api/create-id";
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
+import { messageAttachmentsOrderBy } from "@/lib/messages/utils";
 import { prisma } from "@/lib/prisma";
 import { sendBatchEmail } from "@dub/email";
 import NewMessageFromPartner from "@dub/email/templates/new-message-from-partner";
@@ -57,6 +58,7 @@ export async function POST(req: Request) {
             include: {
               senderPartner: true,
               attachments: {
+                orderBy: messageAttachmentsOrderBy,
                 select: {
                   name: true,
                   size: true,

@@ -1,5 +1,10 @@
 import { editQueryString } from "@/lib/analytics/utils";
-import { MiniAreaChart, useMediaQuery, useRouterStuff } from "@dub/ui";
+import {
+  MiniAreaChart,
+  useCurrentProduct,
+  useMediaQuery,
+  useRouterStuff,
+} from "@dub/ui";
 import { capitalize, cn, fetcher } from "@dub/utils";
 import NumberFlow from "@number-flow/react";
 import { useCallback, useContext, useEffect } from "react";
@@ -17,6 +22,7 @@ type TimeseriesData = {
 export default function EventsTabs() {
   const { searchParams, queryParams } = useRouterStuff();
   const { isMobile } = useMediaQuery();
+  const { product } = useCurrentProduct();
 
   const tab = searchParams.get("event") || "clicks";
 
@@ -31,10 +37,11 @@ export default function EventsTabs() {
 
   const { data: timeseriesData, isLoading: isLoadingTimeseries } =
     useSWRImmutable<TimeseriesData>(
-      `${baseApiPath}?${editQueryString(queryString, {
-        groupBy: "timeseries",
-        event: fetchCompositeStats ? "composite" : "clicks",
-      })}`,
+      product &&
+        `${baseApiPath}?${editQueryString(queryString, {
+          groupBy: "timeseries",
+          event: fetchCompositeStats ? "composite" : "clicks",
+        })}`,
       fetcher,
       {
         shouldRetryOnError: !requiresUpgrade,

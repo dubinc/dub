@@ -1,22 +1,25 @@
 import { getCampaignOrThrow } from "@/lib/api/campaigns/get-campaign-or-throw";
 import {
-  scheduleMarketingCampaign,
-  scheduleTransactionalCampaign,
+  deleteCampaignSchedule,
+  scheduleCampaign,
 } from "@/lib/api/campaigns/schedule-campaigns";
+import {
+  campaignEligibilityIncludes,
+  transformCampaign,
+} from "@/lib/api/campaigns/transform-campaign";
 import { validateCampaign } from "@/lib/api/campaigns/validate-campaign";
 import { throwIfInvalidGroupIds } from "@/lib/api/groups/throw-if-invalid-group-ids";
+import { throwIfInvalidPartnerTagIds } from "@/lib/api/partner-tags/throw-if-invalid-partner-tag-ids";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
-import { parseWorkflowConfig } from "@/lib/api/workflows/parse-workflow-config";
+import { validateWorkflowConditions } from "@/lib/api/workflows/validate-workflow-conditions";
 import { withWorkspace } from "@/lib/auth";
-import { qstash } from "@/lib/cron";
 import { prisma } from "@/lib/prisma";
 import {
   CampaignSchema,
   updateCampaignSchema,
 } from "@/lib/zod/schemas/campaigns";
-import { WORKFLOW_ATTRIBUTE_TRIGGER } from "@/lib/zod/schemas/workflows";
-import { arrayEqual } from "@dub/utils";
+import { arrayEqual, pluck } from "@dub/utils";
 import { PartnerGroup } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
@@ -30,17 +33,17 @@ export const GET = withWorkspace(
     const campaign = await getCampaignOrThrow({
       programId,
       campaignId,
-      includeWorkflow: true,
-      includeGroups: true,
+      include: {
+        ...campaignEligibilityIncludes,
+        workflow: {
+          select: {
+            triggerConditions: true,
+          },
+        },
+      },
     });
 
-    const parsedCampaign = CampaignSchema.parse({
-      ...campaign,
-      groups: campaign.groups.map(({ groupId }) => ({ id: groupId })),
-      triggerCondition: campaign.workflow?.triggerConditions?.[0],
-    });
-
-    return NextResponse.json(parsedCampaign);
+    return NextResponse.json(CampaignSchema.parse(transformCampaign(campaign)));
   },
   {
     requiredPlan: ["advanced", "enterprise"],
@@ -57,8 +60,14 @@ export const PATCH = withWorkspace(
     const campaign = await getCampaignOrThrow({
       programId,
       campaignId,
-      includeWorkflow: true,
-      includeGroups: true,
+      include: {
+        ...campaignEligibilityIncludes,
+        workflow: {
+          select: {
+            triggerConditions: true,
+          },
+        },
+      },
     });
 
     const {
@@ -69,19 +78,29 @@ export const PATCH = withWorkspace(
       status,
       bodyJson,
       groupIds,
-      triggerCondition,
+      partnerTagIds,
+      triggerConditions,
       scheduledAt,
     } = await validateCampaign({
       input: updateCampaignSchema.parse(await parseRequestBody(req)),
       campaign,
     });
 
+    if (triggerConditions !== undefined && triggerConditions?.length) {
+      await validateWorkflowConditions({
+        conditions: triggerConditions,
+        workflowType: "sendCampaign",
+      });
+    }
+
     // if groupIds is provided and is different from the current groupIds, update the groups
     let updatedPartnerGroups: PartnerGroup[] | undefined = undefined;
     let shouldUpdateGroups = false;
+    let updatedPartnerTags: { id: string }[] | undefined = undefined;
+    let shouldUpdatePartnerTags = false;
 
     if (groupIds !== undefined) {
-      const currentGroupIds = campaign.groups.map(({ groupId }) => groupId);
+      const currentGroupIds = pluck(campaign.groups, "groupId");
       const newGroupIds = groupIds || []; // treat null as empty array (all groups)
 
       if (!arrayEqual(currentGroupIds, newGroupIds)) {
@@ -96,6 +115,22 @@ export const PATCH = withWorkspace(
       }
     }
 
+    if (partnerTagIds !== undefined) {
+      const currentPartnerTagIds = pluck(campaign.partnerTags, "partnerTagId");
+      const newPartnerTagIds = partnerTagIds || []; // treat null as empty array (no tag restriction)
+
+      if (!arrayEqual(currentPartnerTagIds, newPartnerTagIds)) {
+        if (newPartnerTagIds.length > 0) {
+          updatedPartnerTags = await throwIfInvalidPartnerTagIds({
+            programId,
+            partnerTagIds: newPartnerTagIds,
+          });
+        }
+
+        shouldUpdatePartnerTags = true;
+      }
+    }
+
     const updatedCampaign = await prisma.$transaction(async (tx) => {
       if (campaign.workflowId) {
         await tx.workflow.update({
@@ -103,9 +138,8 @@ export const PATCH = withWorkspace(
             id: campaign.workflowId,
           },
           data: {
-            ...(triggerCondition && {
-              triggerConditions: [triggerCondition],
-              trigger: WORKFLOW_ATTRIBUTE_TRIGGER[triggerCondition.attribute],
+            ...(triggerConditions !== undefined && {
+              triggerConditions: triggerConditions ?? [],
             }),
             ...(status && {
               disabledAt: status === "paused" ? new Date() : null,
@@ -138,37 +172,35 @@ export const PATCH = withWorkspace(
                 }),
             },
           }),
+          ...(shouldUpdatePartnerTags && {
+            partnerTags: {
+              deleteMany: {},
+              ...(updatedPartnerTags &&
+                updatedPartnerTags.length > 0 && {
+                  create: updatedPartnerTags.map((tag) => ({
+                    partnerTagId: tag.id,
+                  })),
+                }),
+            },
+          }),
         },
         include: {
-          groups: true,
+          ...campaignEligibilityIncludes,
           workflow: true,
         },
       });
     });
 
     waitUntil(
-      (async () => {
-        if (updatedCampaign.type === "marketing") {
-          await scheduleMarketingCampaign({
-            campaign,
-            updatedCampaign,
-          });
-        } else if (updatedCampaign.type === "transactional") {
-          await scheduleTransactionalCampaign({
-            campaign,
-            updatedCampaign,
-          });
-        }
-      })(),
+      scheduleCampaign({
+        campaign,
+        updatedCampaign,
+      }),
     );
 
-    const response = CampaignSchema.parse({
-      ...updatedCampaign,
-      groups: updatedCampaign.groups.map(({ groupId }) => ({ id: groupId })),
-      triggerCondition: updatedCampaign.workflow?.triggerConditions?.[0],
-    });
-
-    return NextResponse.json(response);
+    return NextResponse.json(
+      CampaignSchema.parse(transformCampaign(updatedCampaign)),
+    );
   },
   {
     requiredPlan: ["advanced", "enterprise"],
@@ -185,7 +217,15 @@ export const DELETE = withWorkspace(
     const campaign = await getCampaignOrThrow({
       programId,
       campaignId,
-      includeWorkflow: true,
+      include: {
+        workflow: {
+          select: {
+            id: true,
+            actions: true,
+            triggerConditions: true,
+          },
+        },
+      },
     });
 
     await prisma.$transaction(async (tx) => {
@@ -204,21 +244,7 @@ export const DELETE = withWorkspace(
       }
     });
 
-    waitUntil(
-      (async () => {
-        if (campaign.type === "marketing" && campaign.qstashMessageId) {
-          await qstash.messages.delete(campaign.qstashMessageId);
-        } else if (campaign.type === "transactional" && campaign.workflow) {
-          const { condition } = parseWorkflowConfig(campaign.workflow);
-
-          if (condition.attribute === "partnerJoined") {
-            return;
-          }
-
-          await qstash.schedules.delete(campaign.workflow.id);
-        }
-      })(),
-    );
+    waitUntil(deleteCampaignSchedule(campaign));
 
     return NextResponse.json({ id: campaignId });
   },

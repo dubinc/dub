@@ -10,7 +10,10 @@ import {
   intercomCredentialsSchema,
 } from "@/lib/integrations/intercom/schema";
 import { PROGRAM_ALLOWED_ATTACHMENT_TYPES } from "@/lib/messages/constants";
-import { sanitizeFileName } from "@/lib/messages/utils";
+import {
+  mapMessageAttachmentsForCreate,
+  sanitizeFileName,
+} from "@/lib/messages/utils";
 import { prisma } from "@/lib/prisma";
 import { storage } from "@/lib/storage";
 import {
@@ -112,13 +115,7 @@ export async function handleConversationAdminReplied({
           text: originalMessage,
           ...(storedAttachments.length > 0 && {
             attachments: {
-              create: storedAttachments.map((attachment) => ({
-                id: createId({ prefix: "msa_" }),
-                storageKey: attachment.storageKey,
-                name: attachment.name,
-                size: attachment.size,
-                type: attachment.type,
-              })),
+              create: mapMessageAttachmentsForCreate(storedAttachments),
             },
           }),
         },

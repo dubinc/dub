@@ -2,6 +2,10 @@
 
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
+import {
+  ALLOWED_MIN_PAYOUT_AMOUNTS,
+  getAllowedMinPayoutAmounts,
+} from "@/lib/constants/payouts";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { prisma } from "@/lib/prisma";
 import { submittedLeadFormSchema } from "@/lib/zod/schemas/submitted-lead-form";
@@ -36,6 +40,15 @@ export const updateProgramAction = authActionClient
       role: workspace.role,
       requiredRoles: ["owner", "member"],
     });
+
+    if (
+      minPayoutAmount !== undefined &&
+      !getAllowedMinPayoutAmounts(workspace.id).includes(minPayoutAmount)
+    ) {
+      throw new Error(
+        `Invalid minimum payout amount: Must be one of ${ALLOWED_MIN_PAYOUT_AMOUNTS.join(", ")}`,
+      );
+    }
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 

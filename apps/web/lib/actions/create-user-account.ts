@@ -46,8 +46,10 @@ export const createUserAccountAction = actionClient
 
     const verificationToken = await prisma.emailVerificationToken.findUnique({
       where: {
-        identifier: email,
-        token: code,
+        identifier_token: {
+          identifier: email,
+          token: code,
+        },
       },
     });
 

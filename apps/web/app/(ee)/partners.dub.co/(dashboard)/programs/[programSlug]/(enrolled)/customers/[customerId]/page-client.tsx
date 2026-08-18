@@ -10,7 +10,7 @@ import { CustomerSalesTable } from "@/ui/customers/customer-sales-table";
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { ProgramRewardList } from "@/ui/partners/program-reward-list";
-import { ChevronRight, MoneyBill2, Tooltip, User } from "@dub/ui";
+import { Button, ChevronRight, MoneyBill2, Tooltip, User } from "@dub/ui";
 import { cn, fetcher, formatDate } from "@dub/utils";
 import { addMonths, isBefore } from "date-fns";
 import { AlertCircle } from "lucide-react";
@@ -139,6 +139,15 @@ export function ProgramCustomerPageClient() {
                 <h2 className="py-3 text-lg font-semibold text-neutral-900">
                   Activity
                 </h2>
+                <Link
+                  href={`/programs/${programSlug}/events?interval=all&event=sales&customerId=${customerId}`}
+                >
+                  <Button
+                    variant="secondary"
+                    text="View all"
+                    className="h-7 px-2"
+                  />
+                </Link>
               </div>
               <CustomerActivityList
                 activity={customer?.activity}

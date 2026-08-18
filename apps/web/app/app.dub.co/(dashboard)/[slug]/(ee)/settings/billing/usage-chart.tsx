@@ -250,11 +250,6 @@ export function UsageChart() {
   const deferredHoveredGroupsMeta = useDeferredValue(hoveredGroupsMeta);
   const deferredHoveredTotalUsage = useDeferredValue(hoveredTotalUsage);
 
-  const allZeroes = useMemo(
-    () => chartData?.every(({ values }) => values.usage === 0),
-    [chartData],
-  );
-
   const sortedGroupEntries = useMemo(
     () =>
       groupsMeta
@@ -366,8 +361,13 @@ export function UsageChart() {
       <div
         className={cn("h-64 transition-opacity", isValidating && "opacity-50")}
       >
-        {chartData && chartData.length > 0 ? (
-          !allZeroes ? (
+        {chartData ? (
+          chartData.length === 0 ||
+          chartData.every(({ values }) => values.usage === 0) ? (
+            <div className="flex size-full items-center justify-center">
+              <EmptyState {...resourceEmptyStates[activeResource]} />
+            </div>
+          ) : (
             <TimeSeriesChart
               key={activeResource}
               type="bar"
@@ -444,10 +444,6 @@ export function UsageChart() {
               <YAxis showGridLines tickFormat={nFormatter} />
               <Bars />
             </TimeSeriesChart>
-          ) : (
-            <div className="flex size-full items-center justify-center">
-              <EmptyState {...resourceEmptyStates[activeResource]} />
-            </div>
           )
         ) : (
           <div className="flex size-full items-center justify-center text-sm text-neutral-500">
@@ -518,31 +514,23 @@ export function UsageChart() {
                   );
                 })}
               </>
-            ) : (
-              <>
-                {loading ? (
-                  [...Array(3)].map((_, idx) => (
-                    <div
-                      key={idx}
-                      className="flex animate-pulse items-center justify-between gap-4 px-3 py-2 text-xs font-medium"
-                    >
-                      <div className="flex items-center gap-2">
-                        <div className="size-2 rounded-full bg-neutral-200" />
-                        <div className="h-4 w-32 min-w-0 rounded-md bg-neutral-200" />
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <div className="h-4 w-8 rounded-md bg-neutral-200" />
-                        <div className="h-4 w-6 rounded-md bg-neutral-200" />
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <p className="text-content-subtle flex size-full items-center justify-center py-5 text-sm">
-                    Failed to load usage data
-                  </p>
-                )}
-              </>
-            )}
+            ) : loading ? (
+              [...Array(3)].map((_, idx) => (
+                <div
+                  key={idx}
+                  className="flex animate-pulse items-center justify-between gap-4 px-3 py-2 text-xs font-medium"
+                >
+                  <div className="flex items-center gap-2">
+                    <div className="size-2 rounded-full bg-neutral-200" />
+                    <div className="h-4 w-32 min-w-0 rounded-md bg-neutral-200" />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="h-4 w-8 rounded-md bg-neutral-200" />
+                    <div className="h-4 w-6 rounded-md bg-neutral-200" />
+                  </div>
+                </div>
+              ))
+            ) : null}
           </NumberFlowGroup>
         </div>
 

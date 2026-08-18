@@ -17,9 +17,6 @@ export const GET = withWorkspace(
     await getBountyOrThrow({
       bountyId,
       programId,
-      include: {
-        groups: true,
-      },
     });
 
     const {
@@ -78,13 +75,6 @@ export const GET = withWorkspace(
     return NextResponse.json(bountySubmissions);
   },
   {
-    requiredPlan: [
-      "business",
-      "business plus",
-      "business extra",
-      "business max",
-      "advanced",
-      "enterprise",
-    ],
+    requiredPlan: ["business", "advanced", "enterprise"],
   },
 );

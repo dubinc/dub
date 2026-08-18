@@ -3,7 +3,7 @@
 import useProgramEnrollments from "@/lib/swr/use-program-enrollments";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { ProgramCard, ProgramCardSkeleton } from "@/ui/partners/program-card";
-import { ProgramsPromoBanner } from "@/ui/program-marketplace/programs-promo-banner";
+import { ProgramMarketplaceBanner } from "@/ui/program-marketplace/program-marketplace-banner";
 import { SimpleEmptyState } from "@/ui/shared/simple-empty-state";
 import { HexadecagonStar } from "@dub/ui/icons";
 import { useId } from "react";
@@ -21,7 +21,7 @@ export function PartnersDashboardPageClient() {
 
   return (
     <PageWidthWrapper className="pb-10">
-      <ProgramsPromoBanner />
+      <ProgramMarketplaceBanner />
 
       {programEnrollments?.length == 0 ? (
         <SimpleEmptyState

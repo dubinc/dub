@@ -7,3 +7,6 @@ export const qstash = new Client({
 
 // Default batch size for cron jobs that process records in batches
 export const CRON_BATCH_SIZE = 100;
+
+// 250 is generally the best size limit for Prisma updateMany operations
+export const PRISMA_UPDATEMANY_LIMIT = 250;

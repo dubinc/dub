@@ -1,4 +1,4 @@
-import { reportCrossProgramBanToNetwork } from "@/lib/api/fraud/report-cross-program-ban-to-network";
+import { reportNetworkLevelBan } from "@/lib/api/fraud/report-network-level-ban";
 import { withAdmin } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { MAX_FRAUD_REASON_LENGTH } from "@/lib/zod/schemas/partners";
@@ -60,7 +60,7 @@ export const PATCH = withAdmin(
       return NextResponse.json({ success: true });
     }
 
-    // Fetch all pending fraud alerts for this partner (for cross-program ban reporting)
+    // Fetch all pending fraud alerts for this partner (for network-level ban reporting)
     const pendingFraudAlerts = await prisma.fraudAlert.findMany({
       where: {
         partnerId: fraudAlert.partnerId,
@@ -107,7 +107,7 @@ export const PATCH = withAdmin(
     waitUntil(
       Promise.allSettled(
         pendingFraudAlerts.map(({ programEnrollment, createdAt }) =>
-          reportCrossProgramBanToNetwork({
+          reportNetworkLevelBan({
             partnerId: programEnrollment.partnerId,
             programId: programEnrollment.programId,
             bannedReason: programEnrollment.bannedReason ?? "fraud",
