@@ -8,7 +8,13 @@ export const parse = (req: NextRequest) => {
 
   // remove www. from domain and convert to lowercase
   domain = domain.replace(/^www./, "").toLowerCase();
-  if (domain === "dub.localhost:8888" || domain.endsWith(".vercel.app")) {
+
+  const isE2ERedirectTestRequest =
+    domain === "dub.localhost:8888" || // local development
+    (req.headers.get("x-e2e-redirect-test") === "true" &&
+      domain.endsWith(".dub.co")); // preview environment
+
+  if (isE2ERedirectTestRequest) {
     if (path.toLowerCase() === "/case-sensitive-test") {
       // special case for case-sensitive link test
       domain = "dub-internal-test.com";
