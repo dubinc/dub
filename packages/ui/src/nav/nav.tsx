@@ -284,7 +284,10 @@ export function Nav({
                   className={cn(
                     "relative flex origin-top justify-start overflow-hidden rounded-[20px] border border-neutral-200 bg-white shadow-md dark:border-white/[0.15] dark:bg-black",
                     "data-[state=closed]:animate-scale-out-content data-[state=open]:animate-scale-in-content",
-                    "h-[var(--radix-navigation-menu-viewport-height)] w-[var(--radix-navigation-menu-viewport-width)] transition-[width,height]",
+                    // +2px: Radix measures the content's border-box, but this element's
+                    // 1px borders eat into it (border-box sizing), clipping fixed-width
+                    // content by 2px on the right/bottom
+                    "h-[calc(var(--radix-navigation-menu-viewport-height)_+_2px)] w-[calc(var(--radix-navigation-menu-viewport-width)_+_2px)] transition-[width,height]",
                   )}
                 />
               </div>

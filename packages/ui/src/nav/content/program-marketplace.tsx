@@ -158,7 +158,7 @@ export function ProgramMarketplaceSection({ domain }: { domain: string }) {
           utm_content: "Program Marketplace",
         })}
         className={cn(
-          "group relative isolate flex items-center overflow-hidden border-t border-neutral-100 bg-neutral-50 px-6 py-3 transition-colors duration-75",
+          "group relative isolate flex items-center overflow-hidden bg-neutral-50 px-6 py-3 transition-colors duration-75",
           "hover:bg-neutral-100 dark:border-white/[0.15] dark:bg-white/[0.03] dark:hover:bg-white/[0.06]",
         )}
       >
