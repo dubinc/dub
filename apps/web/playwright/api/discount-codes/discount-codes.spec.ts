@@ -1,4 +1,5 @@
 import { createId } from "@/lib/api/create-id";
+import { constructDiscountCode } from "@/lib/discounts/construct-discount-code";
 import { conn } from "@/lib/planetscale";
 import { prisma } from "@/lib/prisma";
 import type { EnrolledPartnerProps } from "@/lib/types";
@@ -114,7 +115,10 @@ test.afterAll(async () => {
   }
 });
 
-async function createPartner(api: ApiClient) {
+async function createPartner(
+  api: ApiClient,
+  overrides: Record<string, unknown> = {},
+) {
   if (!partnerGroupId) {
     throw new Error("Custom discount group was not seeded.");
   }
@@ -123,6 +127,7 @@ async function createPartner(api: ApiClient) {
     name: randomName(),
     email: randomPartnerEmail(),
     groupId: partnerGroupId,
+    ...overrides,
   });
 }
 
@@ -218,6 +223,49 @@ test("POST /discount-codes – omits code and auto-generates", async ({
     expect(data.partnerId).toEqual(partner.id);
   } finally {
     await deletePartner(partnerId);
+  }
+});
+
+test("POST /discount-codes – auto-generated first-name collision retries", async ({
+  api,
+}) => {
+  let partnerIdA: string | undefined;
+  let partnerIdB: string | undefined;
+
+  try {
+    const firstName = `Sarah${nanoid(6)}`;
+    const { data: partnerA } = await createPartner(api, {
+      name: `${firstName} One`,
+    });
+    const { data: partnerB } = await createPartner(api, {
+      name: `${firstName} Two`,
+    });
+    partnerIdA = partnerA.id;
+    partnerIdB = partnerB.id;
+
+    const expectedBase = constructDiscountCode({
+      partner: partnerA,
+      discount: customDiscount,
+    });
+
+    const first = await api.post<DiscountCode>("/api/discount-codes", {
+      partnerId: partnerA.id,
+      linkId: partnerA.links?.[0]?.id,
+    });
+    const second = await api.post<DiscountCode>("/api/discount-codes", {
+      partnerId: partnerB.id,
+      linkId: partnerB.links?.[0]?.id,
+    });
+
+    expect(first.status).toEqual(200);
+    expect(second.status).toEqual(200);
+    expect(first.data.code).toEqual(expectedBase);
+    expect(second.data.code).not.toEqual(first.data.code);
+    expect(second.data.code.startsWith(expectedBase)).toBe(true);
+    expect(second.data.code.length).toEqual(expectedBase.length + 2);
+  } finally {
+    await deletePartner(partnerIdA);
+    await deletePartner(partnerIdB);
   }
 });
 

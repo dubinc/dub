@@ -1,7 +1,6 @@
 import { openApiErrorResponses } from "@/lib/openapi/responses";
 import {
   DiscountCodeSchema,
-  DiscountCodeWebhookSchema,
   updateDiscountCodeSchema,
 } from "@/lib/zod/schemas/discount";
 import { ZodOpenApiOperationObject } from "zod-openapi";
@@ -33,7 +32,7 @@ export const updateDiscountCode: ZodOpenApiOperationObject = {
       description: "The updated discount code.",
       content: {
         "application/json": {
-          schema: DiscountCodeWebhookSchema,
+          schema: DiscountCodeSchema,
         },
       },
     },
