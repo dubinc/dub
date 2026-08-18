@@ -3,6 +3,10 @@ import { Client } from "@upstash/qstash";
 export const qstash = new Client({
   baseUrl: process.env.QSTASH_URL || "https://qstash-us-east-1.upstash.io",
   token: process.env.QSTASH_TOKEN || "",
+  headers: {
+    "x-vercel-protection-bypass":
+      process.env.VERCEL_AUTOMATION_BYPASS_SECRET || "",
+  },
 });
 
 // Default batch size for cron jobs that process records in batches
