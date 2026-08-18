@@ -41,11 +41,6 @@ const LOGO_SIZES = LOGO_SLOTS.map(({ size }) => size);
 const MIN_LOGO_SIZE = Math.min(...LOGO_SIZES);
 const MAX_LOGO_SIZE = Math.max(...LOGO_SIZES);
 
-/**
- * Fake depth: the smallest logos read as furthest away, so they get the most
- * blur and the least shadow/movement, and vice versa for the largest ones.
- * Returns 0 (furthest back) to 1 (closest to the viewer).
- */
 function getDepth(size: number) {
   return (size - MIN_LOGO_SIZE) / (MAX_LOGO_SIZE - MIN_LOGO_SIZE);
 }
@@ -127,12 +122,11 @@ function ProgramMarketplaceLogos() {
           >
             <div
               className={cn(
-                "size-full overflow-hidden rounded-full border border-neutral-50 bg-neutral-200 transition-opacity duration-300 dark:border-white/10 dark:bg-white/10",
+                "relative size-full overflow-hidden rounded-full border border-neutral-50 bg-neutral-200 transition-opacity duration-300 dark:border-white/10 dark:bg-white/10",
                 !program && "opacity-40",
               )}
               style={{
-                // furthest back = softest, closest = crisp with a faint shadow
-                filter: `blur(${((1 - depth) * 1.4).toFixed(2)}px)`,
+                // closer logos get a slightly stronger (but still faint) shadow
                 boxShadow: `0 ${1 + depth}px ${4 + depth * 4}px rgba(0,0,0,${(0.02 + depth * 0.05).toFixed(3)})`,
                 ...(rotate ? { transform: `rotate(${rotate}deg)` } : {}),
               }}
@@ -145,6 +139,7 @@ function ProgramMarketplaceLogos() {
                   className="size-full object-cover"
                 />
               )}
+              <div className="pointer-events-none absolute inset-0 rounded-full border-[0.5px] border-white/30" />
             </div>
           </motion.div>
         );
