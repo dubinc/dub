@@ -9,6 +9,7 @@ jobs:
     if: github.event_name == 'deployment_status' && github.event.deployment_status.state == 'success'
     runs-on: ubuntu-latest
     permissions:
+      contents: read
       id-token: write
     steps:
       - name: Check out code
@@ -29,18 +30,6 @@ jobs:
       - name: Build utils
         working-directory: packages/utils
         run: pnpm build
-
-      - name: Configure OIDC token
-        uses: actions/github-script@v7
-        id: token
-        with:
-          script: |
-            const token = await core.getIDToken();
-            core.setSecret(token);
-            core.setOutput('token', token);
-      - run: |
-          curl -sSf https://protected-project.vercel.app/api/data \
-            -H "x-vercel-trusted-oidc-idp-token: ${{ steps.token.outputs.token }}"
 
       - name: Run tests
         working-directory: apps/web
