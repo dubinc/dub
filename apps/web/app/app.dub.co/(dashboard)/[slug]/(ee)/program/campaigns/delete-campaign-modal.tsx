@@ -2,7 +2,7 @@ import { mutatePrefix } from "@/lib/swr/mutate";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { Campaign } from "@/lib/types";
-import { Button, Modal } from "@dub/ui";
+import { Button, Modal, useMediaQuery } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { useRouter } from "next/navigation";
 import { useCallback, useMemo, useState } from "react";
@@ -42,10 +42,10 @@ const DeleteCampaignModal = ({
     await deleteCampaign(`/api/campaigns/${campaign.id}`, {
       method: "DELETE",
       onSuccess: async () => {
-        setShowModal(false);
-        await mutatePrefix("/api/campaigns");
-        toast.success("Campaign deleted successfully!");
         router.push(`/${slug}/program/campaigns`);
+        await mutatePrefix("/api/campaigns");
+        setShowModal(false);
+        toast.success("Campaign deleted successfully!");
       },
     });
   };
@@ -55,6 +55,8 @@ const DeleteCampaignModal = ({
   const isDisabled = useMemo(() => {
     return confirm !== "confirm delete campaign";
   }, [confirm]);
+
+  const { isMobile } = useMediaQuery();
 
   return (
     <Modal showModal={showModal} setShowModal={setShowModal}>
@@ -96,6 +98,7 @@ const DeleteCampaignModal = ({
                 placeholder="confirm delete campaign"
                 type="text"
                 autoComplete="off"
+                autoFocus={!isMobile}
                 {...register("confirm", {
                   required: true,
                 })}

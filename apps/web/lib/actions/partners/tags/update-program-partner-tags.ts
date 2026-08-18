@@ -4,6 +4,7 @@ import { includeProgramEnrollment } from "@/lib/api/links/include-program-enroll
 import { includeTags } from "@/lib/api/links/include-tags";
 import { queuePartnerSearchSync } from "@/lib/api/partners/queue-partner-search-sync";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
+import { triggerDraftBountySubmissionCreation } from "@/lib/bounty/api/trigger-draft-bounty-submissions";
 import { prisma } from "@/lib/prisma";
 import { recordLink } from "@/lib/tinybird";
 import { updatePartnerTagsSchema } from "@/lib/zod/schemas/partner-tags";
@@ -98,9 +99,9 @@ export const updateProgramPartnerTagsAction = authActionClient
     // Queue an index update for the changed tags.
     waitUntil(queuePartnerSearchSync({ partnerIds, programId }));
 
-    // Sync updated partner tags to Tinybird for analytics (top_partner_tags)
     waitUntil(
       (async () => {
+        // Sync updated partner tags to Tinybird for analytics (top_partner_tags)
         let cursor: string | undefined;
 
         while (true) {
@@ -124,6 +125,13 @@ export const updateProgramPartnerTagsAction = authActionClient
 
           await recordLink(links);
           cursor = links[links.length - 1]!.id;
+        }
+
+        if (addTagIds.length > 0) {
+          await triggerDraftBountySubmissionCreation({
+            programId,
+            partnerIds,
+          });
         }
       })(),
     );

@@ -418,14 +418,6 @@ export function BountyDuration({
     initialPresets.customEndsAfterDays,
   );
 
-  const [endDateLocked] = useState(
-    () => isEditing && (value.endsAt != null || value.endsAfterDays != null),
-  );
-
-  const endOptions = endDateLocked
-    ? END_OPTIONS.filter((option) => option.value !== "never")
-    : END_OPTIONS;
-
   useEffect(() => {
     const presets = parsePresetsFromValue(value, isEditing);
     setStartPreset(presets.startPreset);
@@ -526,16 +518,12 @@ export function BountyDuration({
           and ends{" "}
           <BountyDatePicker
             label={endLabel ?? "never"}
-            options={endOptions}
+            options={END_OPTIONS}
             selectedPreset={customEndsAfterDays != null ? undefined : endPreset}
             customDate={
               customEndsAt ?? value.endsAt ?? addWeeks(value.startsAt, 2)
             }
             onSelectPreset={(preset) => {
-              if (endDateLocked && preset === "never") {
-                return;
-              }
-
               setEndPreset(preset);
               setCustomEndsAfterDays(null);
 

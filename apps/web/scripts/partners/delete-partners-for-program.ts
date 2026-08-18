@@ -1,4 +1,5 @@
 import { bulkDeleteLinks } from "@/lib/api/links/bulk-delete-links";
+import { queuePartnerSearchSync } from "@/lib/api/partners/queue-partner-search-sync";
 import { prisma } from "@/lib/prisma";
 import "dotenv-flow/config";
 
@@ -41,6 +42,9 @@ async function main() {
 
   console.log("finalPartnersToDelete", finalPartnersToDelete.length);
 
+  // Captured before the delete: removing the partner cascades to these rows.
+  const enrollmentIds = finalPartnersToDelete.map(({ id }) => id);
+
   await bulkDeleteLinks(finalPartnersToDelete.flatMap((p) => p.links));
 
   const deletePartners = await prisma.partner.deleteMany({
@@ -52,6 +56,9 @@ async function main() {
   });
 
   console.log("deletePartners", deletePartners);
+
+  // Queue an index update for the cascade-deleted enrollments.
+  await queuePartnerSearchSync({ enrollmentIds });
 }
 
 main();

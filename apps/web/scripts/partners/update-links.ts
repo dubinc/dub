@@ -1,3 +1,4 @@
+import { queuePartnerSearchSyncForLinks } from "@/lib/api/partners/queue-partner-search-sync";
 import { prisma } from "@/lib/prisma";
 import "dotenv-flow/config";
 import { linkCache } from "../../lib/api/links/cache";
@@ -57,6 +58,10 @@ async function main() {
   );
 
   console.log(res);
+
+  // Queue an index update for the links that changed domain. The helper only
+  // reads programId and partnerId, which the move does not touch.
+  await queuePartnerSearchSyncForLinks(links);
 }
 
 main();

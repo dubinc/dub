@@ -1,34 +1,12 @@
-import {
-  WORKFLOW_ATTRIBUTE_KEYS,
-  WorkflowAttributeKey,
-} from "@/lib/api/workflows/attribute-definitions";
+import { WORKFLOW_ATTRIBUTE_KEYS } from "@/lib/api/workflows/attribute-definitions";
 import {
   WORKFLOW_OPERATOR_KEYS,
   WORKFLOW_OPERATORS,
 } from "@/lib/api/workflows/operator-definitions";
-import { WorkflowTrigger } from "@prisma/client";
 import * as z from "zod/v4";
 
-export const WORKFLOW_ATTRIBUTE_TRIGGER: Record<
-  WorkflowAttributeKey,
-  WorkflowTrigger
-> = {
-  totalLeads: WorkflowTrigger.partnerMetricsUpdated,
-  totalConversions: WorkflowTrigger.partnerMetricsUpdated,
-  totalSaleAmount: WorkflowTrigger.partnerMetricsUpdated,
-  totalCommissions: WorkflowTrigger.partnerMetricsUpdated,
-  partnerEnrolledDays: WorkflowTrigger.partnerEnrolled,
-  partnerJoined: WorkflowTrigger.partnerEnrolled,
-  partnerGroup: WorkflowTrigger.partnerMetricsUpdated,
-} as const;
-
-export const SCHEDULED_WORKFLOW_TRIGGERS: WorkflowTrigger[] = [
-  "partnerEnrolled",
-];
-
-export const WORKFLOW_SCHEDULES: Partial<Record<WorkflowTrigger, string>> = {
-  partnerEnrolled: "0 */12 * * *", // every 12 hours
-};
+// Cron for scheduled workflows that use partnerEnrolledDays conditions
+export const PARTNER_ENROLLED_WORKFLOW_CRON = "0 */12 * * *"; // every 12 hours
 
 export enum WORKFLOW_ACTION_TYPES {
   AwardBounty = "awardBounty",
