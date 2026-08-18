@@ -13,6 +13,10 @@ export function isDiscountEquivalent(
     return false;
   }
 
+  if (firstDiscount.provider !== secondDiscount.provider) {
+    return false;
+  }
+
   // If both groups use the same coupon
   if (
     firstDiscount.couponId &&
