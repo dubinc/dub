@@ -64,6 +64,7 @@ export const archivePartnerAction = authActionClient
           },
         }),
 
+        // Status moved to archived.
         queuePartnerSearchSync({ partnerIds: [partnerId], programId }),
       ]),
     );

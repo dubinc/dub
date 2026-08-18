@@ -131,6 +131,7 @@ export const POST = withCron(async ({ rawBody }) => {
           });
 
           if (identifierChanged) {
+            // The identifier is searchable, the stats above are not.
             await queuePartnerSearchSync({
               partnerIds: [partnerPlatform.partnerId],
             });

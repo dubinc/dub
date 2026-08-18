@@ -142,6 +142,7 @@ export const banPartner = async ({
         },
       }),
 
+      // Status moved to banned.
       queuePartnerSearchSync({
         enrollmentIds: [programEnrollmentUpdated.id],
       }),

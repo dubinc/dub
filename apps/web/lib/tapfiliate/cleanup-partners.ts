@@ -81,6 +81,7 @@ export async function cleanupPartners(payload: TapfiliateImportPayload) {
         },
       });
 
+      // The enrollments were just deleted.
       await queuePartnerSearchSync({
         enrollmentIds: removedEnrollments.map(({ id }) => id),
       });

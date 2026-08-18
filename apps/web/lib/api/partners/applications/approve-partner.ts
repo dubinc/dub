@@ -132,6 +132,7 @@ export async function approvePartner({
 
   waitUntil(
     Promise.allSettled([
+      // Status moved to approved.
       queuePartnerSearchSync({ partnerIds: [partnerId], programId }),
 
       trackActivityLog({

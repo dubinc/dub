@@ -75,6 +75,7 @@ export async function cleanupPartners({ programId }: { programId: string }) {
         },
       });
 
+      // The enrollments were just deleted.
       await queuePartnerSearchSync({
         enrollmentIds: removedEnrollments.map(({ id }) => id),
       });

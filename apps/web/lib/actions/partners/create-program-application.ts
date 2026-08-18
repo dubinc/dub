@@ -384,6 +384,7 @@ async function createApplicationAndEnrollment({
 
         markApplicationEventSubmitted(programEnrollment),
 
+        // A new enrollment, pending approval.
         queuePartnerSearchSync({ enrollmentIds: [programEnrollment.id] }),
       ]);
     })(),
