@@ -678,8 +678,7 @@ async function executeSideEffects(args: ExecuteSideEffectsArgs) {
     }),
 
     executeWorkflows({
-      trigger: "partnerMetricsUpdated",
-      reason: "commission",
+      event: "commissionRecorded",
       identity: {
         workspaceId: workspace.id,
         programId,
