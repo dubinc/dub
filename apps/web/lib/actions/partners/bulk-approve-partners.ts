@@ -161,6 +161,7 @@ export const bulkApprovePartnersAction = authActionClient
             partnerIds: updatedEnrollments.map(({ partnerId }) => partnerId),
           }),
 
+          // Status moved to approved.
           queuePartnerSearchSync({
             enrollmentIds: updatedEnrollments.map(({ id }) => id),
           }),

@@ -107,6 +107,7 @@ export const unbanPartnerAction = authActionClient
           },
         }),
 
+        // Status moved back to approved.
         queuePartnerSearchSync({ partnerIds: [partnerId], programId }),
       ]),
     );

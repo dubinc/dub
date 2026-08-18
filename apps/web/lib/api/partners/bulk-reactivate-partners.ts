@@ -155,6 +155,7 @@ export async function bulkReactivatePartners({
         })),
       ),
 
+      // Status moved back to approved.
       queuePartnerSearchSync({
         enrollmentIds: programEnrollments.map(({ id }) => id),
       }),

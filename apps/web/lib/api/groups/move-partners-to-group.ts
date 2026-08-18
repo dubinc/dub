@@ -190,6 +190,7 @@ export async function movePartnersToGroup({
 
         recordLink(partnerLinks),
 
+        // The group is a filterable field on the document.
         queuePartnerSearchSync({
           enrollmentIds: updatedProgramEnrollments.map(({ id }) => id),
         }),
