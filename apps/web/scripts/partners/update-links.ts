@@ -47,8 +47,8 @@ async function main() {
     }),
   );
 
-  // Queued before the cache and Tinybird work below. The helper reads only
-  // programId and partnerId, which the move does not touch.
+  // Queue an index update because the links changed domain. Queued before the
+  // cache and Tinybird work below.
   await queuePartnerSearchSyncForLinks(links);
 
   const res = await Promise.all([

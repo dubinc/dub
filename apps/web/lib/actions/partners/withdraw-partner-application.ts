@@ -49,7 +49,7 @@ export const withdrawPartnerApplicationAction = authPartnerActionClient
       return deletedProgramEnrollment;
     });
 
-    // Queue an index update for the deleted enrollment.
+    // Queue an index update because the enrollment was deleted.
     waitUntil(
       queuePartnerSearchSync({ enrollmentIds: [programEnrollment.id] }),
     );

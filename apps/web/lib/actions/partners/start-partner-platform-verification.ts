@@ -97,8 +97,9 @@ export const startPartnerPlatformVerificationAction = authPartnerActionClient
 
     const result = await startVerification();
 
-    // All three paths upsert the searchable identifier. Queued once here rather
-    // than at each of the four upserts.
+    // Queue an index update because verification upserts the searchable
+    // platform identifier. Queued once here rather than at each of the four
+    // upserts.
     waitUntil(queuePartnerSearchSync({ partnerIds: [partner.id] }));
 
     return result;

@@ -104,7 +104,8 @@ async function main() {
     },
   );
 
-  // Queue an index update for the deleted enrollments.
+  // Queue an index update because deleting the program deleted every enrollment
+  // in it.
   await queuePartnerSearchSync({
     enrollmentIds: enrollments.map(({ id }) => id),
   });

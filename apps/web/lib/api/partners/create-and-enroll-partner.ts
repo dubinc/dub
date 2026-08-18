@@ -254,8 +254,8 @@ export const createAndEnrollPartner = async ({
           data: enrolledPartner,
         }),
 
-      // Queued after the default links exist, so the first document already
-      // carries them and the partner is findable by short link right away.
+      // Queue an index update because a new enrollment was created. Queued
+      // after the default links exist, so the first document carries them.
       queuePartnerSearchSync({ enrollmentIds: [programEnrollment.id] }),
     ]),
   );

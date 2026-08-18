@@ -92,7 +92,8 @@ export const bulkBanPartnersAction = authActionClient
 
     waitUntil(
       Promise.allSettled([
-        // Status moved to banned.
+        // Queue an index update because the enrollment statuses moved to
+        // banned.
         queuePartnerSearchSync({
           enrollmentIds: programEnrollments.map(({ id }) => id),
         }),

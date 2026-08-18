@@ -192,7 +192,7 @@ export const updatePartnerPlatformsAction = authPartnerActionClient
 
     await Promise.all(operations);
 
-    // One queue for the action rather than one per platform, and deliberately
-    // not scoped by program.
+    // Queue an index update because the platform identifiers changed. Not
+    // scoped by program, since platforms are shared across them.
     waitUntil(queuePartnerSearchSync({ partnerIds: [partner.id] }));
   });

@@ -117,7 +117,7 @@ export const deleteProgramInviteAction = authActionClient
           ],
         }),
 
-        // Queue an index update for the deleted enrollment.
+        // Queue an index update because the invited enrollment was deleted.
         queuePartnerSearchSync({ enrollmentIds: [programEnrollment.id] }),
       ]),
     );

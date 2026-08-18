@@ -144,7 +144,7 @@ export const POST = withCron(async ({ rawBody }) => {
       partnerIds: [partnerId],
     }),
 
-    // Status moved to rejected.
+    // Queue an index update because the enrollment status moved to rejected.
     queuePartnerSearchSync({ enrollmentIds: [programEnrollment.id] }),
 
     partner.email &&

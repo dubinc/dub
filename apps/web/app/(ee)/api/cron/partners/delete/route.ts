@@ -158,7 +158,7 @@ export const POST = withCron(async ({ rawBody }) => {
     }),
   ]);
 
-  // Queue an index update for the deleted enrollment.
+  // Queue an index update because the enrollment was deleted.
   await queuePartnerSearchSync({ enrollmentIds: [enrollment.id] });
 
   await recordAuditLog({

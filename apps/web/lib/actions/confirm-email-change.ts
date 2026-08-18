@@ -164,8 +164,8 @@ export const confirmEmailChangeAction = authUserActionClient
 
         redis.del(`email-change-request:token:${tokenFound.token}`),
 
-        // Email is both a searchable field and the n-gram source, so a stale
-        // one leaves the partner findable under an address they no longer have.
+        // Queue an index update because the partner email changed, which is
+        // searchable and the n-gram source.
         ...(changedPartnerId
           ? [queuePartnerSearchSync({ partnerIds: [changedPartnerId] })]
           : []),

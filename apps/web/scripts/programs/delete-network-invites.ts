@@ -68,7 +68,7 @@ async function main() {
 
   console.log("res2", res2);
 
-  // Queue an index update for the deleted enrollments.
+  // Queue an index update because the invited enrollments were deleted.
   await queuePartnerSearchSync({ enrollmentIds });
 }
 

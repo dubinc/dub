@@ -327,9 +327,9 @@ export async function POST(req: Request) {
       }
     }
 
-    // Both sides: a merge either reassigns a source enrollment to the target
-    // partner or deletes it in favour of the target's, and passing all of them
-    // lets the job work out which happened.
+    // Queue an index update because the merge either reassigned each source
+    // enrollment to the target partner or deleted it. Passing both sides lets
+    // the job work out which.
     await queuePartnerSearchSync({
       enrollmentIds: [
         ...sourcePartnerEnrollments.map(({ id }) => id),

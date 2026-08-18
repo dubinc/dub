@@ -131,7 +131,8 @@ export const POST = withCron(async ({ rawBody }) => {
           });
 
           if (identifierChanged) {
-            // The identifier is searchable, the stats above are not.
+            // Queue an index update because the platform identifier moved. The
+            // stats above are not indexed.
             await queuePartnerSearchSync({
               partnerIds: [partnerPlatform.partnerId],
             });

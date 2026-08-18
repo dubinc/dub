@@ -79,8 +79,8 @@ export async function deleteLink(linkId: string) {
 
       link.discountCode && enqueueDeleteDiscountCode([link.discountCode]),
 
-      // The enrollment outlives the link, so this re-serializes the document
-      // without it rather than removing the document.
+      // Queue an index update because the link was deleted. The enrollment
+      // outlives it, so the document is re-serialized without it.
       link.programId &&
         link.partnerId &&
         queuePartnerSearchSync({

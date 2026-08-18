@@ -29,6 +29,6 @@ export const declineProgramInviteAction = authPartnerActionClient
       },
     });
 
-    // Status moved to declined.
+    // Queue an index update because the enrollment status moved to declined.
     waitUntil(queuePartnerSearchSync({ enrollmentIds: [enrollment.id] }));
   });

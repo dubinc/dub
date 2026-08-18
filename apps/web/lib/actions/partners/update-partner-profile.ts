@@ -256,8 +256,8 @@ export const updatePartnerProfileAction = authPartnerActionClient
 
       waitUntil(
         Promise.allSettled([
-          // A profile is shared across programs, so this is deliberately not
-          // scoped to one.
+          // Queue an index update because the partner profile changed. Not
+          // scoped by program, since a profile is shared across them.
           queuePartnerSearchSync({ partnerIds: [partner.id] }),
 
           (async () => {

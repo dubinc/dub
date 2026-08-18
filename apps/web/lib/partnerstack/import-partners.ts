@@ -68,8 +68,8 @@ export async function importPartners(payload: PartnerStackImportPayload) {
       ),
     );
 
-    // Queued per page rather than per partner, so a large import produces a
-    // handful of chunked payloads instead of one message each.
+    // Queue an index update because the imported partners were enrolled. Queued
+    // per page rather than per partner.
     await queuePartnerSearchSync({
       partnerIds: results.flatMap((result) =>
         result.status === "fulfilled" && result.value ? [result.value] : [],

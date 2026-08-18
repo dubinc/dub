@@ -57,7 +57,8 @@ async function main() {
 
   console.log("deletePartners", deletePartners);
 
-  // Queue an index update for the cascade-deleted enrollments.
+  // Queue an index update because deleting the partners cascades to their
+  // enrollments.
   await queuePartnerSearchSync({ enrollmentIds });
 }
 

@@ -91,8 +91,9 @@ export async function processPartnerDeactivation({
     },
   );
 
-  // Queued outside the `user` branch below, which only runs for operator-driven
-  // deactivations. The index has to follow the status either way.
+  // Queue an index update because the enrollment statuses moved to deactivated.
+  // Outside the user branch below, which only runs for operator-driven
+  // deactivations.
   await queuePartnerSearchSync({ partnerIds, programId });
 
   if (user) {

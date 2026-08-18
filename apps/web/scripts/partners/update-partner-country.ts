@@ -17,7 +17,7 @@ async function main() {
     },
   });
 
-  // Queue an index update for the changed country.
+  // Queue an index update because the partner country changed.
   await queuePartnerSearchSync({ partnerIds: [partner.id] });
 
   if (partner.stripeConnectId) {

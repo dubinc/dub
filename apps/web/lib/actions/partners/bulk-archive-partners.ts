@@ -84,9 +84,9 @@ export const bulkArchivePartnersAction = authActionClient
           })),
         ),
 
-        // Scoped to the updateMany above, not the findMany: the select is
-        // narrowed to ACTIVE_ENROLLMENT_STATUSES and the update is not, so it
-        // also archives statuses the selected rows never carried.
+        // Queue an index update because the enrollment statuses moved to
+        // archived. Scoped to the updateMany above, not the findMany, which is
+        // narrowed to ACTIVE_ENROLLMENT_STATUSES.
         queuePartnerSearchSync({ partnerIds, programId }),
       ]),
     );

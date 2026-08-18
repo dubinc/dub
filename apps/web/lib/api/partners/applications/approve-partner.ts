@@ -132,7 +132,7 @@ export async function approvePartner({
 
   waitUntil(
     Promise.allSettled([
-      // Status moved to approved.
+      // Queue an index update because the enrollment status moved to approved.
       queuePartnerSearchSync({ partnerIds: [partnerId], programId }),
 
       trackActivityLog({

@@ -97,7 +97,7 @@ async function main() {
   });
   console.log(`Deleted ${deletedProgramEnrollments.count} program enrollments`);
 
-  // Queue an index update for the deleted enrollments.
+  // Queue an index update because the partner's enrollments were deleted.
   await queuePartnerSearchSync({
     enrollmentIds: partner.programs.map(({ id }) => id),
   });

@@ -130,8 +130,8 @@ export async function POST(req: Request) {
     const redisRes = await linkCache.expireMany(linksToUpdate);
     console.log(`Updated Redis cache: ${JSON.stringify(redisRes, null, 2)}`);
 
-    // A UTM template rewrites each link's destination URL. The enrollments are
-    // already in hand, so this skips resolving them back from the links.
+    // Queue an index update because the UTM template rewrote each link's
+    // destination URL.
     await queuePartnerSearchSync({
       enrollmentIds: programEnrollments.map(({ id }) => id),
       delay: PARTNER_SEARCH_LINK_SYNC_DELAY_SECONDS,
