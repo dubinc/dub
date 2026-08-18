@@ -166,8 +166,7 @@ export async function createShopifySale({
     waitUntil(
       Promise.allSettled([
         executeWorkflows({
-          trigger: "partnerMetricsUpdated",
-          reason: "sale",
+          event: "saleRecorded",
           identity: {
             workspaceId: workspaceId,
             programId: link.programId,

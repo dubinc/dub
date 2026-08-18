@@ -36,6 +36,7 @@ model Campaign {
   program         Program             @relation(fields: [programId], references: [id])
   workflow        Workflow?           @relation(fields: [workflowId], references: [id], onDelete: Cascade)
   groups          CampaignGroup[]
+  partnerTags     CampaignPartnerTag[]
   emails          NotificationEmail[]
 
   @@index(programId)
@@ -51,4 +52,16 @@ model CampaignGroup {
 
   @@unique([campaignId, groupId])
   @@index(groupId)
+}
+
+model CampaignPartnerTag {
+  id           String @id @default(cuid())
+  campaignId   String
+  partnerTagId String
+
+  campaign   Campaign   @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  partnerTag PartnerTag @relation(fields: [partnerTagId], references: [id], onDelete: Cascade)
+
+  @@unique([campaignId, partnerTagId])
+  @@index(partnerTagId)
 }
