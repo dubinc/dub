@@ -10,6 +10,10 @@ import { isProductionEnvironment } from "@/lib/sandbox/environment";
 import { SANDBOX_PAYMENT_METHOD } from "@/lib/sandbox/mock-payment-provider";
 import { assertNotStagingWorkspace } from "@/lib/sandbox/workspace-guards";
 import { stripe } from "@/lib/stripe";
+import {
+  listPendingMicrodeposits,
+  withMicrodepositStatus,
+} from "@/lib/stripe/microdeposits";
 import { APP_DOMAIN } from "@dub/utils";
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
@@ -71,6 +75,10 @@ export const GET = withWorkspace(
         stripe.customers.retrieve(workspace.stripeId),
       ]);
 
+      const pendingMicrodeposits = await listPendingMicrodeposits(
+        workspace.stripeId,
+      ).catch(() => []);
+
       const defaultPaymentMethod =
         customer.deleted !== true
           ? customer.invoice_settings?.default_payment_method
@@ -81,17 +89,20 @@ export const GET = withWorkspace(
           ? defaultPaymentMethod
           : defaultPaymentMethod?.id ?? null;
 
+      const methods = withMicrodepositStatus({
+        paymentMethods: paymentMethods.data,
+        pendingMicrodeposits,
+      });
+
       // reorder to put direct debit first
-      const directDebit = paymentMethods.data.find((method) =>
+      const directDebit = methods.find((method) =>
         DIRECT_DEBIT_PAYMENT_METHOD_TYPES.includes(method.type),
       );
 
       return NextResponse.json({
         paymentMethods: [
           ...(directDebit ? [directDebit] : []),
-          ...paymentMethods.data.filter(
-            (method) => method.id !== directDebit?.id,
-          ),
+          ...methods.filter((method) => method.id !== directDebit?.id),
         ],
         defaultPaymentMethodId,
       });

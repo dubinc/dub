@@ -24,6 +24,11 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
           saleAmount: true,
         },
       },
+      programPartnerTags: {
+        select: {
+          partnerTagId: true,
+        },
+      },
     },
   });
 
