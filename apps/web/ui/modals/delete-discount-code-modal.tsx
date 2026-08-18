@@ -3,7 +3,7 @@ import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import { DiscountCodeProps } from "@/lib/types";
 import { Button, Modal, useMediaQuery } from "@dub/ui";
 import { Tag } from "@dub/ui/icons";
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { toast } from "sonner";
 
 interface DeleteDiscountCodeModalProps {
@@ -22,6 +22,12 @@ export const DeleteDiscountCodeModal = ({
   const { isMobile } = useMediaQuery();
   const { makeRequest: deleteDiscountCode, isSubmitting } = useApiMutation();
   const [inputValue, setInputValue] = useState("");
+
+  useEffect(() => {
+    if (!showModal) {
+      setInputValue("");
+    }
+  }, [showModal, discountCode.id]);
 
   const onSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
