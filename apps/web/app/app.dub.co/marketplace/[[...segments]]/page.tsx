@@ -16,9 +16,7 @@ export async function generateMetadata(props: {
   const { segments = [] } = await props.params;
   const pathname = `/marketplace${segments.length > 0 ? `/${segments.join("/")}` : ""}`;
 
-  const year = new Date().getFullYear();
-
-  let title = `Best SaaS affiliate programs in ${year}`;
+  let title = `Best SaaS affiliate programs in ${new Date().getFullYear()}`;
   let description = `Browse and apply to the best SaaS affiliate programs on Dub's Partner Network.`;
   let image: string | undefined;
 
