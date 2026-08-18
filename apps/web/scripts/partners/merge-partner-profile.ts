@@ -61,6 +61,10 @@ async function main() {
     },
   });
 
+  // Queue an index update for the reassigned enrollment, ahead of the
+  // Tinybird write below.
+  await queuePartnerSearchSync({ enrollmentIds: [programEnrollment.id] });
+
   const updatedLinks = await prisma.link.findMany({
     where: {
       programId,
@@ -76,9 +80,6 @@ async function main() {
 
   const tbRes = await recordLink(updatedLinks);
   console.log("tbRes", tbRes);
-
-  // Queue an index update for the reassigned enrollment.
-  await queuePartnerSearchSync({ enrollmentIds: [programEnrollment.id] });
 }
 
 main();

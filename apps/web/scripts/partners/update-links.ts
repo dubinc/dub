@@ -34,16 +34,6 @@ async function main() {
 
   console.log(updatedLinks);
 
-  const res = await Promise.all([
-    linkCache.expireMany(links),
-    recordLink(
-      links.map((link) => ({
-        ...link,
-        domain: newDomain,
-      })),
-    ),
-  ]);
-
   await Promise.all(
     links.map(async (link) => {
       return await prisma.link.update({
@@ -57,11 +47,22 @@ async function main() {
     }),
   );
 
-  console.log(res);
-
-  // Queue an index update for the links that changed domain. The helper only
-  // reads programId and partnerId, which the move does not touch.
+  // Queue an index update for the links that changed domain, ahead of the cache
+  // and Tinybird work below. The helper only reads programId and partnerId,
+  // which the move does not touch.
   await queuePartnerSearchSyncForLinks(links);
+
+  const res = await Promise.all([
+    linkCache.expireMany(links),
+    recordLink(
+      links.map((link) => ({
+        ...link,
+        domain: newDomain,
+      })),
+    ),
+  ]);
+
+  console.log(res);
 }
 
 main();

@@ -47,6 +47,13 @@ async function main() {
   });
   console.log(`Restored ${res.count} program enrollments`);
 
+  // Queued after the last write the document reads, and before the Tinybird and
+  // Stripe work, which must not be able to skip it.
+  const queueSearchSync = () =>
+    queuePartnerSearchSync({
+      enrollmentIds: programEnrollmentsToRestore.map(({ id }) => id),
+    });
+
   // Restore payouts first (commissions may reference payoutId)
   const payoutsToRestore = await prismaOld.payout.findMany({
     where: { partnerId },
@@ -128,6 +135,8 @@ async function main() {
     });
     console.log(`Restored ${createdLinkTagsCount} link tags`);
 
+    await queueSearchSync();
+
     const restoredLinks = await prisma.link.findMany({
       where: { partnerId },
       include: {
@@ -151,6 +160,8 @@ async function main() {
       );
       console.log(`Restored ${createdCustomersCount} customers`);
     }
+  } else {
+    await queueSearchSync();
   }
 
   const discountCodesToRestore = await prismaOld.discountCode.findMany({
@@ -212,11 +223,6 @@ async function main() {
       console.log(`Restored promotion code ${JSON.stringify(res, null, 2)}`);
     }
   }
-
-  // Queue an index update for the restored enrollments.
-  await queuePartnerSearchSync({
-    enrollmentIds: programEnrollmentsToRestore.map(({ id }) => id),
-  });
 }
 
 main();
