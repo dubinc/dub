@@ -27,10 +27,11 @@ export const GET = withCron(async () => {
     "cleanupRedundantLinkWebhookEntries",
     "syncGoogleAdsInstalledWorkspaceSet",
   ].map((name, index) => {
-    if (result[index].status === "fulfilled") {
-      console.log(`${name}: ${result[index].value}`);
-    } else if (result[index].status === "rejected") {
-      console.error(`${name}: ${result[index].reason}`);
+    const settled = result[index];
+    if (settled.status === "fulfilled") {
+      console.log(`${name}: ${settled.value}`);
+    } else if (settled.status === "rejected") {
+      console.error(`${name}: ${settled.reason}`);
     } else {
       console.error(`${name}: unknown error`);
     }
