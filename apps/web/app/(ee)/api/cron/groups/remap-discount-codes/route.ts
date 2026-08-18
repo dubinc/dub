@@ -149,6 +149,7 @@ export const POST = withCron(async ({ rawBody }) => {
         },
         select: {
           id: true,
+          webhookEnabled: true,
           stripeConnectId: true,
           shopifyStoreId: true,
         },

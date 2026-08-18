@@ -1,11 +1,14 @@
 import { prisma } from "@/lib/prisma";
+import { DiscountCodeWebhookSchema } from "@/lib/zod/schemas/discount";
 import { APP_DOMAIN_WITH_NGROK, chunk } from "@dub/utils";
 import { Discount, DiscountCode } from "@prisma/client";
+import { waitUntil } from "@vercel/functions";
 import { enqueueBatchJobs } from "../cron/enqueue-batch-jobs";
+import { sendDiscountCodeWebhook } from "./discount-code-webhook";
 
 type DeleteDiscountCodesParams = Pick<
   DiscountCode,
-  "id" | "code" | "programId"
+  "id" | "code" | "programId" | "partnerId" | "linkId" | "disabledAt"
 > & {
   discount: Pick<Discount, "provider"> | null;
 };
@@ -68,6 +71,10 @@ export async function deleteDiscountCodes(
     );
   }
 
+  if (!isSoftDelete) {
+    waitUntil(sendDiscountCodeDeletedWebhooks(discountCodes));
+  }
+
   await enqueueDeleteDiscountCode(discountCodes);
 }
 
@@ -105,4 +112,41 @@ export async function enqueueDeleteDiscountCode(
   }
 }
 
-// TODO: Send webhook when a discount code is deleted
+async function sendDiscountCodeDeletedWebhooks(
+  discountCodes: DeleteDiscountCodesParams[],
+) {
+  const programIds = [...new Set(discountCodes.map((dc) => dc.programId))];
+
+  const workspaces = await prisma.project.findMany({
+    where: {
+      defaultProgramId: {
+        in: programIds,
+      },
+    },
+    select: {
+      id: true,
+      webhookEnabled: true,
+      defaultProgramId: true,
+    },
+  });
+
+  const workspaceByProgramId = new Map(
+    workspaces.map((workspace) => [workspace.defaultProgramId, workspace]),
+  );
+
+  await Promise.all(
+    discountCodes.map((discountCode) => {
+      const workspace = workspaceByProgramId.get(discountCode.programId);
+
+      if (!workspace) {
+        return;
+      }
+
+      return sendDiscountCodeWebhook({
+        trigger: "discount_code.deleted",
+        workspace,
+        data: DiscountCodeWebhookSchema.parse(discountCode),
+      });
+    }),
+  );
+}
