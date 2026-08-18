@@ -1,6 +1,9 @@
 "use client";
 
-import { DIRECT_DEBIT_PAYMENT_TYPES_INFO } from "@/lib/constants/payouts";
+import {
+  DIRECT_DEBIT_PAYMENT_TYPES_INFO,
+  SEPA_ENABLED_WORKSPACE_IDS,
+} from "@/lib/constants/payouts";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { X } from "@/ui/shared/icons";
 import { AnimatedSizeContainer, GreekTemple, Modal } from "@dub/ui";
@@ -36,7 +39,7 @@ function AddPaymentMethodModalInner({
   setShowAddPaymentMethodModal: Dispatch<SetStateAction<boolean>>;
 }) {
   const router = useRouter();
-  const { slug, plan } = useWorkspace();
+  const { id: workspaceId, slug, plan } = useWorkspace();
   const [isLoading, setIsLoading] = useState(false);
 
   const addPaymentMethod = async (type: Stripe.PaymentMethod.Type) => {
@@ -117,7 +120,10 @@ function AddPaymentMethodModalInner({
                   className="group flex flex-col items-center justify-end gap-4 rounded-lg bg-neutral-200/40 p-8 px-2 py-4 transition-colors duration-100 hover:bg-neutral-200/60 disabled:cursor-not-allowed disabled:opacity-50"
                   onClick={() => addPaymentMethod(type)}
                   disabled={
-                    isLoading || (enterpriseOnly && plan !== "enterprise")
+                    isLoading ||
+                    (enterpriseOnly &&
+                      plan !== "enterprise" &&
+                      !SEPA_ENABLED_WORKSPACE_IDS.has(workspaceId || ""))
                   }
                 >
                   <span
