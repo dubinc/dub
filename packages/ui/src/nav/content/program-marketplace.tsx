@@ -62,7 +62,7 @@ function getDrift(index: number, depth: number) {
     x: [0, x, -x * 0.6, 0],
     y: [0, y, -y, 0],
     duration: 9 + (index % 5),
-    delay: (index % 7) * 0.5,
+    delay: -(1.5 + index * 0.7),
   };
 }
 
@@ -76,11 +76,6 @@ function useProgramMarketplaceLogos() {
   });
 }
 
-/**
- * Warms the program logos (both the API response and the images themselves)
- * so they're already cached by the time the Resources dropdown first opens.
- * Call from a component that's mounted with the nav, not inside the dropdown.
- */
 export function usePreloadProgramMarketplaceLogos() {
   const { data: programs } = useProgramMarketplaceLogos();
 
