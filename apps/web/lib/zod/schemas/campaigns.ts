@@ -30,27 +30,27 @@ export const EMAIL_TEMPLATE_VARIABLE_INFO: Record<
     example: "John Doe",
   },
   PartnerEmail: {
-    description: "Email address",
+    description: "The partner's email address",
     example: "partner@acme.com",
   },
   PartnerLink: {
-    description: "Referral link",
-    example: "https://acme.com/partner",
+    description: "The partner's default referral link",
+    example: "https://refer.dub.co/john",
   },
   SaleReward: {
-    description: "Sale commission",
+    description: "The partner's sale commission",
     example: "30% per sale for 6 months",
   },
   LeadReward: {
-    description: "Lead commission",
+    description: "The partner's lead commission",
     example: "$10 per lead",
   },
   ClickReward: {
-    description: "Click commission",
+    description: "The partner's click commission",
     example: "$0.50 per click",
   },
   ReferralReward: {
-    description: "Referral reward",
+    description: "The partner's commission for referring another partner",
     example: "10% per referred partner's commission for 1 year",
   },
 };

@@ -266,9 +266,6 @@ const Menu = forwardRef(
         {items.length ? (
           items.map((item, index) => {
             const info = variableInfo?.[item];
-            const supportingText = [info?.description, info?.example]
-              .filter(Boolean)
-              .join(" · ");
 
             return (
               <button
@@ -286,9 +283,21 @@ const Menu = forwardRef(
                 {info ? (
                   <div className="flex min-w-0 flex-col text-left">
                     <span className="font-mono text-sm leading-5">{item}</span>
-                    {supportingText ? (
-                      <span className="text-content-subtle text-xs font-normal leading-4">
-                        {supportingText}
+                    {info.description || info.example ? (
+                      <span className="text-xs font-normal leading-4">
+                        {info.description ? (
+                          <span className="text-content-subtle">
+                            {info.description}
+                          </span>
+                        ) : null}
+                        {info.description && info.example ? (
+                          <span className="text-content-muted"> · </span>
+                        ) : null}
+                        {info.example ? (
+                          <span className="text-content-default">
+                            {info.example}
+                          </span>
+                        ) : null}
                       </span>
                     ) : null}
                   </div>
