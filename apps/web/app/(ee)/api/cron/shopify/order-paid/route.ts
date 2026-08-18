@@ -1,6 +1,5 @@
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
-import { withAxiom } from "@/lib/axiom/server";
-import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
+import { withCron } from "@/lib/cron/with-cron";
 import { processOrder } from "@/lib/integrations/shopify/process-order";
 import { redis } from "@/lib/upstash";
 import * as z from "zod/v4";
@@ -13,11 +12,8 @@ const schema = z.object({
 });
 
 // POST /api/cron/shopify/order-paid
-export const POST = withAxiom(async (req: Request) => {
+export const POST = withCron(async ({ rawBody }) => {
   try {
-    const rawBody = await req.text();
-    await verifyQstashSignature({ req, rawBody });
-
     const { workspaceId, checkoutToken } = schema.parse(JSON.parse(rawBody));
 
     // Find Shopify order

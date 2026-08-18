@@ -1,6 +1,5 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
-import { withAxiom } from "@/lib/axiom/server";
-import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
+import { withCron } from "@/lib/cron/with-cron";
 import { CUTOFF_PERIOD_ENUM } from "@/lib/partners/cutoff-period";
 import { prisma } from "@/lib/prisma";
 import { log } from "@dub/utils";
@@ -25,12 +24,8 @@ const processPayoutsCronSchema = z.object({
 // POST /api/cron/payouts/process
 // This route is used to process payouts for a given invoice
 // we're intentionally offloading this to a cron job to avoid blocking the main thread
-export const POST = withAxiom(async (req: Request) => {
+export const POST = withCron(async ({ rawBody }) => {
   try {
-    const rawBody = await req.text();
-
-    await verifyQstashSignature({ req, rawBody });
-
     const {
       workspaceId,
       userId,

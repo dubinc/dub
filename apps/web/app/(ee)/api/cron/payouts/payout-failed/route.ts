@@ -1,6 +1,5 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
-import { withAxiom } from "@/lib/axiom/server";
-import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
+import { withCron } from "@/lib/cron/with-cron";
 import { getPartnerBankAccount } from "@/lib/partners/get-partner-bank-account";
 import { prisma } from "@/lib/prisma";
 import { sendEmail } from "@dub/email";
@@ -20,11 +19,8 @@ const payloadSchema = z.object({
 });
 
 // POST /api/cron/payouts/payout-failed
-export const POST = withAxiom(async (req: Request) => {
+export const POST = withCron(async ({ rawBody }) => {
   try {
-    const rawBody = await req.text();
-    await verifyQstashSignature({ req, rawBody });
-
     const { stripeAccount, stripePayout } = payloadSchema.parse(
       JSON.parse(rawBody),
     );
