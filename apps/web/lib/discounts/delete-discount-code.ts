@@ -5,7 +5,7 @@ import { Discount, DiscountCode, DiscountProvider } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
 import { enqueueBatchJobs } from "../cron/enqueue-batch-jobs";
-import { sendDiscountCodeWebhook } from "./discount-code-webhook";
+import { sendWorkspaceWebhook } from "../webhook/publish";
 
 type DiscountCodeWebhookDiscount = z.infer<
   typeof DiscountCodeWebhookSchema
@@ -157,9 +157,9 @@ async function sendDiscountCodeDeletedWebhooks(
         return;
       }
 
-      return sendDiscountCodeWebhook({
-        trigger: "discount_code.deleted",
+      return sendWorkspaceWebhook({
         workspace,
+        trigger: "discount_code.deleted",
         data: DiscountCodeWebhookSchema.parse(discountCode),
       });
     }),
