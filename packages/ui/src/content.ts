@@ -207,22 +207,22 @@ export const RESOURCES = [
  * slugs that don't resolve to a marketplace program are skipped.
  */
 export const PROGRAM_MARKETPLACE_SLUGS = [
-  "framer",
   "beehiiv",
-  "tella",
-  "buffer",
+  "flow",
+  "granola",
   "superhuman",
-  "perplexity",
   "polymarket",
-  "fillout",
-  "copper",
-  "chatbase",
-  "flora",
   "viktor",
-  "copper",
-  "chatbase",
+  "framer",
   "flora",
-  "viktor",
+  "dub",
+  "superpower",
+  "chatbase",
+  "copper",
+  "anything",
+  "tradezella",
+  "buffer",
+  "coderabbit",
 ];
 
 export const COMPARE_PAGES = [

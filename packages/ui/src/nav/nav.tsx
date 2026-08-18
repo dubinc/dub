@@ -20,6 +20,7 @@ import { useScroll } from "../hooks";
 import { MaxWidthWrapper } from "../max-width-wrapper";
 import { NavWordmark } from "../nav-wordmark";
 import { ProductContent } from "./content/product-content";
+import { usePreloadProgramMarketplaceLogos } from "./content/program-marketplace";
 import { ResourcesContent } from "./content/resources-content";
 import { SolutionsContent } from "./content/solutions-content";
 
@@ -153,6 +154,9 @@ export function Nav({
     },
   );
 
+  // warm the marketplace logos so the Resources dropdown opens without a stutter
+  usePreloadProgramMarketplaceLogos();
+
   const showHover = (item: HTMLElement) => {
     const list = navListRef.current;
     if (!list) return;
@@ -213,9 +217,8 @@ export function Nav({
                 className="group/nav relative flex"
                 onMouseLeave={() => {
                   const list = navListRef.current;
-                  const openTrigger = list?.querySelector<HTMLElement>(
-                    "[data-state=open]",
-                  );
+                  const openTrigger =
+                    list?.querySelector<HTMLElement>("[data-state=open]");
                   // Keep the pill on the open trigger so it doesn't flicker into the dropdown
                   if (list && openTrigger) {
                     setHoverStyle(getHoverStyle(list, openTrigger));

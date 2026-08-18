@@ -2,6 +2,7 @@ import { APP_DOMAIN, cn, createHref, fetcher } from "@dub/utils";
 import { Link as NavigationMenuLink } from "@radix-ui/react-navigation-menu";
 import { motion, useReducedMotion } from "motion/react";
 import Link from "next/link";
+import { useEffect } from "react";
 import useSWR from "swr";
 import {
   PROGRAM_MARKETPLACE_HREF,
@@ -36,11 +37,26 @@ const LOGO_SLOTS = [
   { left: 225.5, top: 34.5, size: 29, rotate: 0 },
 ];
 
+const LOGO_SIZES = LOGO_SLOTS.map(({ size }) => size);
+const MIN_LOGO_SIZE = Math.min(...LOGO_SIZES);
+const MAX_LOGO_SIZE = Math.max(...LOGO_SIZES);
+
+/**
+ * Fake depth: the smallest logos read as furthest away, so they get the most
+ * blur and the least shadow/movement, and vice versa for the largest ones.
+ * Returns 0 (furthest back) to 1 (closest to the viewer).
+ */
+function getDepth(size: number) {
+  return (size - MIN_LOGO_SIZE) / (MAX_LOGO_SIZE - MIN_LOGO_SIZE);
+}
+
 // deterministic (so it matches between server and client) per-slot drift, to
-// make the logos bob around like they're floating in water
-function getDrift(index: number) {
-  const x = Math.sin(index * 12.9898) * 4;
-  const y = Math.cos(index * 78.233) * 3;
+// make the logos bob around like they're floating in water – the closer a logo
+// is, the more it moves, which sells the parallax
+function getDrift(index: number, depth: number) {
+  const amplitude = 0.6 + depth * 0.8;
+  const x = Math.sin(index * 12.9898) * 6 * amplitude;
+  const y = Math.cos(index * 78.233) * 4.5 * amplitude;
 
   return {
     x: [0, x, -x * 0.6, 0],
@@ -50,20 +66,46 @@ function getDrift(index: number) {
   };
 }
 
+const PROGRAM_LOGOS_API_URL = `${APP_DOMAIN}/api/misc/program-logos?slugs=${PROGRAM_MARKETPLACE_SLUGS.join(",")}`;
+
+function useProgramMarketplaceLogos() {
+  return useSWR<MarketplaceProgram[]>(PROGRAM_LOGOS_API_URL, fetcher, {
+    dedupingInterval: 600000,
+    revalidateOnFocus: false,
+    keepPreviousData: true,
+  });
+}
+
+/**
+ * Warms the program logos (both the API response and the images themselves)
+ * so they're already cached by the time the Resources dropdown first opens.
+ * Call from a component that's mounted with the nav, not inside the dropdown.
+ */
+export function usePreloadProgramMarketplaceLogos() {
+  const { data: programs } = useProgramMarketplaceLogos();
+
+  useEffect(() => {
+    programs?.forEach(({ logo }) => {
+      if (logo) new Image().src = logo;
+    });
+  }, [programs]);
+}
+
 function ProgramMarketplaceLogos() {
   const reducedMotion = useReducedMotion();
 
-  const { data: programs } = useSWR<MarketplaceProgram[]>(
-    `${APP_DOMAIN}/api/misc/program-logos?slugs=${PROGRAM_MARKETPLACE_SLUGS.join(",")}`,
-    fetcher,
-    {
-      dedupingInterval: 600000,
-      revalidateOnFocus: false,
-      keepPreviousData: true,
-    },
-  );
+  const { data: programs } = useProgramMarketplaceLogos();
 
-  const logos = programs?.filter(({ logo }) => Boolean(logo)) ?? [];
+  // build from the configured list so order (and any intentional duplicate
+  // slugs) is preserved even though the API dedupes and filters
+  const programsBySlug = new Map(
+    (programs ?? []).map((program) => [program.slug, program]),
+  );
+  const logos = PROGRAM_MARKETPLACE_SLUGS.map((slug) =>
+    programsBySlug.get(slug),
+  ).filter((program): program is MarketplaceProgram & { logo: string } =>
+    Boolean(program?.logo),
+  );
 
   return (
     <div
@@ -72,7 +114,8 @@ function ProgramMarketplaceLogos() {
     >
       {LOGO_SLOTS.map(({ left, top, size, rotate }, index) => {
         const program = logos.length ? logos[index % logos.length] : null;
-        const { x, y, duration, delay } = getDrift(index);
+        const depth = getDepth(size);
+        const { x, y, duration, delay } = getDrift(index, depth);
 
         return (
           <motion.div
@@ -92,13 +135,18 @@ function ProgramMarketplaceLogos() {
                 "size-full overflow-hidden rounded-full border border-neutral-50 bg-neutral-200 transition-opacity duration-300 dark:border-white/10 dark:bg-white/10",
                 !program && "opacity-40",
               )}
-              style={rotate ? { transform: `rotate(${rotate}deg)` } : undefined}
+              style={{
+                // furthest back = softest, closest = crisp with a faint shadow
+                filter: `blur(${((1 - depth) * 1.4).toFixed(2)}px)`,
+                boxShadow: `0 ${1 + depth}px ${4 + depth * 4}px rgba(0,0,0,${(0.02 + depth * 0.05).toFixed(3)})`,
+                ...(rotate ? { transform: `rotate(${rotate}deg)` } : {}),
+              }}
             >
               {program?.logo && (
                 <img
                   src={program.logo}
                   alt=""
-                  loading="lazy"
+                  decoding="async"
                   className="size-full object-cover"
                 />
               )}
