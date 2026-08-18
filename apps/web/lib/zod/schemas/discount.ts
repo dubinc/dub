@@ -56,35 +56,68 @@ export const discountPartnersQuerySchema = z
   })
   .extend(getPaginationQuerySchema({ pageSize: 25 }));
 
-export const DiscountCodeSchema = z.object({
-  id: z.string(),
-  code: z.string(),
-  discountId: z.string().nullable(),
-  partnerId: z.string(),
-  linkId: z.string(),
-  disabledAt: z.coerce
-    .date()
-    .nullish()
+export const DiscountCodeSchema = z
+  .object({
+    id: z.string().describe("The unique ID of the discount code.").meta({
+      example: "dcode_1JVR7XRCSR0EDBAF39FZ4PMYE",
+    }),
+    code: z
+      .string()
+      .describe("The discount code that customers can apply at checkout.")
+      .meta({
+        example: "PARTNER10OFF",
+      }),
+    discountId: z
+      .string()
+      .nullable()
+      .describe("The ID of the discount this code belongs to."),
+    partnerId: z
+      .string()
+      .describe("The ID of the partner this discount code is assigned to."),
+    linkId: z
+      .string()
+      .describe(
+        "The ID of the partner's referral link this discount code is associated with.",
+      ),
+    disabledAt: z.coerce
+      .date()
+      .nullish()
+      .describe(
+        "When this discount code was disabled, which happens when a partner is banned or deactivated.",
+      ),
+  })
+  .meta({
+    title: "DiscountCode",
+  });
+
+export const createDiscountCodeSchema = z.object({
+  code: z.preprocess(
+    (val) => (typeof val === "string" && val.trim() === "" ? undefined : val),
+    z
+      .string()
+      .trim()
+      .max(100, "Code must be 100 characters or fewer.")
+      .regex(
+        /^[a-zA-Z0-9\-_]+$/,
+        "Code can only contain letters, numbers, dashes, and underscores.",
+      )
+      .optional()
+      .describe(
+        "The discount code to create. If omitted, a unique code will be generated automatically from the partner's name.",
+      ),
+  ),
+  partnerId: z
+    .string()
+    .describe("The ID of the partner to create a discount code for."),
+  linkId: z
+    .string()
     .describe(
-      "When this discount code was disabled, which happens when a partner is banned or deactivated.",
+      "The ID of the partner's referral link to associate this discount code with. Each link can only have one discount code.",
     ),
 });
 
-export const createDiscountCodeSchema = z.object({
-  code: z
-    .string()
-    .trim()
-    .max(100, "Code must be 100 characters or fewer.")
-    .regex(
-      /^[a-zA-Z0-9\-_]+$/,
-      "Code can only contain letters, numbers, dashes, and underscores.",
-    )
-    .optional()
-    .or(z.literal("").transform(() => undefined)),
-  partnerId: z.string(),
-  linkId: z.string(),
-});
-
 export const getDiscountCodesQuerySchema = z.object({
-  partnerId: z.string(),
+  partnerId: z
+    .string()
+    .describe("The ID of the partner to retrieve discount codes for."),
 });
