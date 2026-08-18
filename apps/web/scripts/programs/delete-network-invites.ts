@@ -1,5 +1,4 @@
 import { bulkDeleteLinks } from "@/lib/api/links/bulk-delete-links";
-import { queuePartnerSearchSync } from "@/lib/api/partners/queue-partner-search-sync";
 import { prisma } from "@/lib/prisma";
 import "dotenv-flow/config";
 
@@ -44,10 +43,6 @@ async function main() {
     }
   }
 
-  const enrollmentIds = discoveredPartners
-    .map(({ programEnrollment }) => programEnrollment?.id)
-    .filter((id): id is string => Boolean(id));
-
   const res2 = await prisma.$transaction([
     prisma.discoveredPartner.deleteMany({
       where: {
@@ -60,16 +55,13 @@ async function main() {
     prisma.programEnrollment.deleteMany({
       where: {
         id: {
-          in: enrollmentIds,
+          in: discoveredPartners.map((i) => i.programEnrollment?.id!),
         },
       },
     }),
   ]);
 
   console.log("res2", res2);
-
-  // Queue an index update because the invited enrollments were deleted.
-  await queuePartnerSearchSync({ enrollmentIds });
 }
 
 main();

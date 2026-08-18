@@ -25,7 +25,6 @@ Then, replace `prisma as prismaOld` below with just `prismaOld`
 
 import { includeProgramEnrollment } from "@/lib/api/links/include-program-enrollment";
 import { includeTags } from "@/lib/api/links/include-tags";
-import { queuePartnerSearchSync } from "@/lib/api/partners/queue-partner-search-sync";
 // import { prisma, prismaOld } from "@/lib/prisma";
 import { prisma, prisma as prismaOld } from "@/lib/prisma";
 import "dotenv-flow/config";
@@ -46,13 +45,6 @@ async function main() {
     data: programEnrollmentsToRestore,
   });
   console.log(`Restored ${res.count} program enrollments`);
-
-  // Queue an index update because the enrollments and their links were
-  // restored. Queued before the Tinybird and Stripe work below.
-  const queueSearchSync = () =>
-    queuePartnerSearchSync({
-      enrollmentIds: programEnrollmentsToRestore.map(({ id }) => id),
-    });
 
   // Restore payouts first (commissions may reference payoutId)
   const payoutsToRestore = await prismaOld.payout.findMany({
@@ -135,8 +127,6 @@ async function main() {
     });
     console.log(`Restored ${createdLinkTagsCount} link tags`);
 
-    await queueSearchSync();
-
     const restoredLinks = await prisma.link.findMany({
       where: { partnerId },
       include: {
@@ -160,8 +150,6 @@ async function main() {
       );
       console.log(`Restored ${createdCustomersCount} customers`);
     }
-  } else {
-    await queueSearchSync();
   }
 
   const discountCodesToRestore = await prismaOld.discountCode.findMany({
