@@ -8,7 +8,7 @@ const client = new Client({
   token: process.env.QSTASH_TOKEN || "",
   headers: {
     "x-vercel-protection-bypass":
-      process.env.QSTASH_VERCEL_PROTECTION_BYPASS_KEY || "",
+      process.env.VERCEL_AUTOMATION_BYPASS_SECRET || "",
   },
 });
 
