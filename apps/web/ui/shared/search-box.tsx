@@ -111,10 +111,15 @@ export const SearchBox = forwardRef(
 
 export function SearchBoxPersisted({
   urlParam = "search",
+  resetParamsOnChange = [],
   onChange,
   onChangeDebounced,
   ...props
-}: { urlParam?: string } & Partial<SearchBoxProps>) {
+}: {
+  urlParam?: string;
+  /** Params to clear whenever the search changes, e.g. a stale sort. */
+  resetParamsOnChange?: string[];
+} & Partial<SearchBoxProps>) {
   const { queryParams, searchParams } = useRouterStuff();
 
   const [value, setValue] = useState(searchParams.get(urlParam) ?? "");
@@ -125,8 +130,11 @@ export function SearchBoxPersisted({
     if (searchParams.get(urlParam) ?? "" !== debouncedValue)
       queryParams(
         debouncedValue === ""
-          ? { del: [urlParam, "page"] }
-          : { set: { [urlParam]: debouncedValue }, del: "page" },
+          ? { del: [urlParam, "page", ...resetParamsOnChange] }
+          : {
+              set: { [urlParam]: debouncedValue },
+              del: ["page", ...resetParamsOnChange],
+            },
       );
   }, [debouncedValue]);
 

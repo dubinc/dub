@@ -117,6 +117,11 @@ const partnersColumns = {
   ],
 };
 
+// Searching sorts by relevance so the closest match to the query is the first
+// row. A column sort still applies to the same relevance-ranked candidates, but
+// it reorders them, so the best match moves down the list.
+const PARTNER_SEARCH_RESET_PARAMS = ["sortBy", "sortOrder"];
+
 const getPartnerUrl = ({
   workspaceSlug,
   id,
@@ -133,6 +138,10 @@ export function PartnersTable() {
   const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
   const { program } = useProgram();
 
+  // A blank query is not searchable, and asking for relevance without one is a
+  // 400 from the API.
+  const search = searchParams.get("search")?.trim();
+
   const defaultStatus = program?.deactivatedAt
     ? ProgramEnrollmentStatus.deactivated
     : ProgramEnrollmentStatus.approved;
@@ -145,7 +154,11 @@ export function PartnersTable() {
 
   const sortBy =
     searchParams.get("sortBy") ||
-    (program?.primaryRewardEvent === "lead" ? "totalLeads" : "totalSaleAmount");
+    (search
+      ? "relevance"
+      : program?.primaryRewardEvent === "lead"
+        ? "totalLeads"
+        : "totalSaleAmount");
   const sortOrder = searchParams.get("sortOrder") === "asc" ? "asc" : "desc";
 
   const { partnersCount, error: countError } = usePartnersCount<number>({
@@ -160,6 +173,7 @@ export function PartnersTable() {
     data: partners,
     error,
     isLoading,
+    isValidating,
   } = useSWR<EnrolledPartnerProps[]>(
     `/api/partners${getQueryString({
       workspaceId,
@@ -537,7 +551,12 @@ export function PartnersTable() {
 
   return (
     <div className="flex flex-col gap-4">
-      <PartnersFilters sortBy={sortBy} sortOrder={sortOrder} status={status} />
+      <PartnersFilters
+        sortBy={sortBy}
+        sortOrder={sortOrder}
+        status={status}
+        searchLoading={isValidating}
+      />
       {partners?.length !== 0 ? (
         <Table {...tableProps} table={table} />
       ) : (
@@ -564,15 +583,18 @@ function PartnersFilters({
   sortBy,
   sortOrder,
   status,
+  searchLoading,
 }: {
   sortBy: string;
   sortOrder: "asc" | "desc";
-  status: ProgramEnrollmentStatus;
+  status: ProgramEnrollmentStatus | undefined;
+  searchLoading: boolean;
 }) {
   const { queryParams, searchParams } = useRouterStuff();
 
   const { partnersCount: inviteCount } = usePartnersCount<number>({
     status: ProgramEnrollmentStatus.invited,
+    ignoreParams: true,
   });
 
   const {
@@ -583,7 +605,13 @@ function PartnersFilters({
     onRemoveFilter,
     onRemoveAll,
     onToggleOperator,
-  } = usePartnerFilters({ sortBy, sortOrder, status });
+    setSelectedFilter,
+    setSearch,
+  } = usePartnerFilters({
+    sortBy,
+    sortOrder,
+    ...(status && { status }),
+  });
 
   const showPendingInvitesButton =
     inviteCount > 0 &&
@@ -600,6 +628,8 @@ function PartnersFilters({
             onSelect={onSelect}
             onRemove={onRemove}
             onRemoveFilter={onRemoveFilter}
+            onSearchChange={setSearch}
+            onSelectedFilterChange={setSelectedFilter}
           />
           {showPendingInvitesButton ? (
             <Button
@@ -621,8 +651,10 @@ function PartnersFilters({
           ) : null}
         </div>
         <SearchBoxPersisted
-          placeholder="Search by name, email, or company"
+          placeholder="Search name, email, company, platform, or link"
           inputClassName="md:w-80"
+          loading={searchLoading}
+          resetParamsOnChange={PARTNER_SEARCH_RESET_PARAMS}
         />
       </div>
       <AnimatedSizeContainer height>

@@ -1,0 +1,426 @@
+import {
+  PARTNER_SEARCH_CANDIDATE_LIMIT,
+  type PartnerSearchDocument,
+} from "@/lib/api/partners/search";
+import {
+  createUpstashRedisPartnerSearchIndex,
+  createUpstashRedisPartnerSearchProvider,
+  upstashPartnerSearchSchema,
+} from "@/lib/api/partners/search/providers/upstash-redis";
+import type { Redis } from "@upstash/redis";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+const document: PartnerSearchDocument = {
+  id: "pge_test",
+  programId: "prog_test",
+  partnerId: "pn_test",
+  name: "Rafi Hasan",
+  email: "partner@example.com",
+  companyName: "Dub Partners",
+  description: "Developer tools educator",
+  platformTypes: ["website", "youtube", "twitter"],
+  platformIdentifiers: ["rafi.dev", "@rafi-youtube", "@rafi-on-x"],
+  linkDomains: ["dub.sh"],
+  linkKeys: ["rafi"],
+  shortLinks: ["https://dub.sh/rafi"],
+  destinationUrls: ["https://example.com/referrals/rafi"],
+};
+
+const mocks = vi.hoisted(() => ({
+  createIndex: vi.fn(),
+  del: vi.fn(),
+  describe: vi.fn(),
+  index: vi.fn(),
+  jsonMset: vi.fn(),
+  query: vi.fn(),
+  waitIndexing: vi.fn(),
+}));
+
+function createRedisMock(): Redis {
+  const searchIndex = {
+    describe: mocks.describe,
+    query: mocks.query,
+    waitIndexing: mocks.waitIndexing,
+  };
+
+  mocks.index.mockReturnValue(searchIndex);
+  mocks.createIndex.mockReturnValue(searchIndex);
+
+  const redisMock = {
+    del: mocks.del,
+    json: {
+      mset: mocks.jsonMset,
+    },
+    search: {
+      createIndex: mocks.createIndex,
+      index: mocks.index,
+    },
+  } as unknown as Redis;
+
+  return redisMock;
+}
+
+describe("Upstash Redis partner search provider", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mocks.del.mockResolvedValue(0);
+    mocks.describe.mockResolvedValue({
+      name: "test-index",
+      dataType: "json",
+      prefixes: ["test-index:partner:"],
+      schema: upstashPartnerSearchSchema,
+    });
+    mocks.jsonMset.mockResolvedValue("OK");
+    mocks.query.mockResolvedValue([]);
+    mocks.waitIndexing.mockResolvedValue(1);
+  });
+
+  // In afterEach rather than the test body, so a failed assertion cannot leak
+  // a stubbed env var into later tests.
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
+  it("retrieves bounded relevance candidates without business filters", async () => {
+    mocks.query.mockResolvedValue([
+      {
+        key: "test-index:partner:pge_test",
+        score: 4,
+        data: {},
+      },
+    ]);
+    const provider = createUpstashRedisPartnerSearchProvider({
+      redisClient: createRedisMock(),
+      indexName: "test-index",
+    });
+
+    await expect(
+      provider.searchCandidates({
+        programId: document.programId,
+        query: "rafi",
+        limit: PARTNER_SEARCH_CANDIDATE_LIMIT,
+      }),
+    ).resolves.toEqual({
+      hits: [{ id: document.id, score: 4 }],
+    });
+
+    expect(mocks.query).toHaveBeenCalledWith(
+      expect.objectContaining({
+        limit: PARTNER_SEARCH_CANDIDATE_LIMIT,
+        select: {},
+      }),
+    );
+    const request = mocks.query.mock.calls[0]![0];
+    expect(request.offset).toBeUndefined();
+    expect(request.orderBy).toBeUndefined();
+    expect(JSON.stringify(request.filter)).toContain(
+      '"programId":{"$eq":"prog_test"}',
+    );
+  });
+
+  it("requires program-scoped text or partial email matches", async () => {
+    const provider = createUpstashRedisPartnerSearchProvider({
+      redisClient: createRedisMock(),
+      indexName: "test-index",
+    });
+
+    await provider.searchCandidates({
+      programId: document.programId,
+      query: "examp",
+      limit: 25,
+    });
+
+    const filter = mocks.query.mock.calls[0]![0].filter;
+    expect(filter.$must).toBeUndefined();
+    expect(filter.$should).toHaveLength(2);
+    for (const branch of filter.$should) {
+      expect(branch.$must).toEqual(
+        expect.arrayContaining([{ programId: { $eq: "prog_test" } }]),
+      );
+    }
+    expect(JSON.stringify(filter)).toContain('"emailNgrams":{"$eq":"exa"}');
+    expect(JSON.stringify(filter)).toContain('"emailNgrams":{"$eq":"xam"}');
+    expect(JSON.stringify(filter)).toContain('"emailNgrams":{"$eq":"amp"}');
+  });
+
+  it("retries a transient provider error", async () => {
+    mocks.query
+      .mockRejectedValueOnce(new Error("Upstash returned 503"))
+      .mockResolvedValueOnce([]);
+    const provider = createUpstashRedisPartnerSearchProvider({
+      redisClient: createRedisMock(),
+      indexName: "test-index",
+    });
+
+    await expect(
+      provider.searchCandidates({
+        programId: document.programId,
+        query: "rafi",
+        limit: 10,
+      }),
+    ).resolves.toEqual({ hits: [] });
+    expect(mocks.query).toHaveBeenCalledTimes(2);
+  });
+
+  it("does not retry a permanent provider error", async () => {
+    mocks.query.mockRejectedValue(new Error("Invalid search filter"));
+    const provider = createUpstashRedisPartnerSearchProvider({
+      redisClient: createRedisMock(),
+      indexName: "test-index",
+    });
+
+    await expect(
+      provider.searchCandidates({
+        programId: document.programId,
+        query: "rafi",
+        limit: 10,
+      }),
+    ).rejects.toThrow("Invalid search filter");
+    expect(mocks.query).toHaveBeenCalledTimes(1);
+  });
+
+  it("retries a network TypeError", async () => {
+    // undici surfaces network failures as `TypeError: fetch failed`.
+    mocks.query
+      .mockRejectedValueOnce(new TypeError("fetch failed"))
+      .mockResolvedValueOnce([]);
+    const provider = createUpstashRedisPartnerSearchProvider({
+      redisClient: createRedisMock(),
+      indexName: "test-index",
+    });
+
+    await expect(
+      provider.searchCandidates({
+        programId: document.programId,
+        query: "rafi",
+        limit: 10,
+      }),
+    ).resolves.toEqual({ hits: [] });
+    expect(mocks.query).toHaveBeenCalledTimes(2);
+  });
+
+  it("does not retry a programming TypeError", async () => {
+    mocks.query.mockRejectedValue(
+      new TypeError("Cannot read properties of undefined (reading 'query')"),
+    );
+    const provider = createUpstashRedisPartnerSearchProvider({
+      redisClient: createRedisMock(),
+      indexName: "test-index",
+    });
+
+    await expect(
+      provider.searchCandidates({
+        programId: document.programId,
+        query: "rafi",
+        limit: 10,
+      }),
+    ).rejects.toThrow("Cannot read properties of undefined");
+    expect(mocks.query).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not retry a request timeout after it consumes the query budget", async () => {
+    mocks.query.mockRejectedValue(
+      new DOMException(
+        "The operation was aborted due to timeout",
+        "TimeoutError",
+      ),
+    );
+    const provider = createUpstashRedisPartnerSearchProvider({
+      redisClient: createRedisMock(),
+      indexName: "test-index",
+    });
+
+    await expect(
+      provider.searchCandidates({
+        programId: document.programId,
+        query: "rafi",
+        limit: 10,
+      }),
+    ).rejects.toThrow("The operation was aborted due to timeout");
+    expect(mocks.query).toHaveBeenCalledTimes(1);
+  });
+
+  it("allows query latency within the one-second deadline", async () => {
+    vi.useFakeTimers();
+    mocks.query.mockImplementation(
+      () => new Promise((resolve) => setTimeout(() => resolve([]), 500)),
+    );
+    const provider = createUpstashRedisPartnerSearchProvider({
+      redisClient: createRedisMock(),
+      indexName: "test-index",
+    });
+
+    try {
+      const result = provider.searchCandidates({
+        programId: document.programId,
+        query: "rafi",
+        limit: 10,
+      });
+      await vi.advanceTimersByTimeAsync(500);
+
+      await expect(result).resolves.toEqual({ hits: [] });
+      expect(vi.getTimerCount()).toBe(0);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("bounds the total query operation to one second", async () => {
+    vi.useFakeTimers();
+    mocks.query.mockImplementation(() => new Promise(() => {}));
+    const provider = createUpstashRedisPartnerSearchProvider({
+      redisClient: createRedisMock(),
+      indexName: "test-index",
+    });
+
+    try {
+      const result = expect(
+        provider.searchCandidates({
+          programId: document.programId,
+          query: "rafi",
+          limit: 10,
+        }),
+      ).rejects.toThrow("Partner search query timed out after 1000ms");
+      await vi.advanceTimersByTimeAsync(1_000);
+
+      await result;
+      expect(vi.getTimerCount()).toBe(0);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("writes one lean search document per enrollment", async () => {
+    const provider = createUpstashRedisPartnerSearchProvider({
+      redisClient: createRedisMock(),
+      indexName: "test-index",
+    });
+
+    await provider.upsert([document]);
+
+    const entries = mocks.jsonMset.mock.calls[0]!;
+    expect(entries).toHaveLength(1);
+    expect(entries[0]).toEqual({
+      key: "test-index:partner:pge_test",
+      path: "$",
+      value: {
+        programId: "prog_test",
+        searchText: expect.any(String),
+        emailNgrams: expect.any(String),
+      },
+    });
+    expect(entries[0].value.searchText).toContain("partner@example.com");
+    expect(entries[0].value.searchText).toContain("dub partners");
+    expect(entries[0].value.searchText).toContain("rafi-on-x");
+    expect(entries[0].value.searchText).toContain("referrals/rafi");
+    expect(entries[0].value.emailNgrams).toContain("exa");
+    expect(entries[0].value).not.toHaveProperty("partnerId");
+    expect(entries[0].value).not.toHaveProperty("status");
+    expect(entries[0].value).not.toHaveProperty("partnerTagIds");
+    expect(entries[0].value).not.toHaveProperty("totalSaleAmount");
+  });
+
+  it("bounds Upstash write batches", async () => {
+    const provider = createUpstashRedisPartnerSearchProvider({
+      redisClient: createRedisMock(),
+      indexName: "test-index",
+    });
+    const documents = Array.from({ length: 101 }, (_, index) => ({
+      ...document,
+      id: `pge_${index}`,
+    }));
+
+    await provider.upsert(documents);
+
+    expect(mocks.jsonMset).toHaveBeenCalledTimes(2);
+    expect(mocks.jsonMset.mock.calls[0]).toHaveLength(100);
+    expect(mocks.jsonMset.mock.calls[1]).toHaveLength(1);
+  });
+
+  it("deletes the enrollment document directly", async () => {
+    const provider = createUpstashRedisPartnerSearchProvider({
+      redisClient: createRedisMock(),
+      indexName: "test-index",
+    });
+
+    await provider.delete([document.id]);
+
+    expect(mocks.del).toHaveBeenCalledWith("test-index:partner:pge_test");
+  });
+
+  it("waits for pending index updates", async () => {
+    vi.useFakeTimers();
+    const provider = createUpstashRedisPartnerSearchProvider({
+      redisClient: createRedisMock(),
+      indexName: "test-index",
+    });
+
+    try {
+      await provider.waitForIndexing();
+
+      expect(mocks.waitIndexing).toHaveBeenCalledOnce();
+      expect(vi.getTimerCount()).toBe(0);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("creates the index explicitly with the partner-search prefix", async () => {
+    const redisClient = createRedisMock();
+
+    await createUpstashRedisPartnerSearchIndex({
+      redisClient,
+      indexName: "test-index",
+    });
+
+    expect(mocks.createIndex).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: "test-index",
+        dataType: "json",
+        prefix: "test-index:partner:",
+        existsOk: true,
+        skipInitialScan: true,
+      }),
+    );
+    expect(Object.keys(upstashPartnerSearchSchema).sort()).toEqual([
+      "emailNgrams",
+      "programId",
+      "searchText",
+    ]);
+  });
+
+  it("rejects an existing index with a stale schema", async () => {
+    mocks.describe.mockResolvedValue({
+      name: "test-index",
+      dataType: "json",
+      prefixes: ["test-index:partner:"],
+      schema: { id: { type: "KEYWORD" } },
+    });
+
+    await expect(
+      createUpstashRedisPartnerSearchIndex({
+        redisClient: createRedisMock(),
+        indexName: "test-index",
+      }),
+    ).rejects.toThrow("Delete and recreate it before backfilling");
+  });
+
+  it.each([
+    ["blank", ""],
+    ["whitespace", "   "],
+  ])(
+    "falls back to the default index when the env var is %s",
+    async (_l, value) => {
+      vi.stubEnv("PARTNER_SEARCH_INDEX_NAME", value);
+      const provider = createUpstashRedisPartnerSearchProvider({
+        redisClient: createRedisMock(),
+      });
+
+      await provider.upsert([document]);
+
+      expect(mocks.jsonMset).toHaveBeenCalledWith(
+        expect.objectContaining({ key: "partner-search-v1:partner:pge_test" }),
+      );
+    },
+  );
+});

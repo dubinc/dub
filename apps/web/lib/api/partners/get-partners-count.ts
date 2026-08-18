@@ -9,6 +9,12 @@ import {
   buildProgramEnrollmentWhereForList,
   mergePartnerCountryAndSearchWhere,
 } from "./program-enrollment-query";
+import {
+  buildPartnerSearchCandidateQuery,
+  findPartnerSearchCandidates,
+  getPartnerSearchProvider,
+  PartnerSearchProvider,
+} from "./search";
 
 type PartnersCountFilters = z.infer<typeof partnersCountQuerySchema> & {
   programId: string;
@@ -19,10 +25,36 @@ type PartnersCountFilters = z.infer<typeof partnersCountQuerySchema> & {
 
 export async function getPartnersCount<T>(
   filters: PartnersCountFilters,
+  {
+    searchProvider = getPartnerSearchProvider(),
+    throwOnSearchError = false,
+  }: {
+    searchProvider?: PartnerSearchProvider | null;
+    throwOnSearchError?: boolean;
+  } = {},
 ): Promise<T> {
   const { groupBy, programId, ...enrollmentFilters } = filters;
-  const enrollmentBase = { ...enrollmentFilters, programId };
+  const candidateQuery = searchProvider
+    ? buildPartnerSearchCandidateQuery({ ...enrollmentFilters, programId })
+    : null;
+  const candidateResult =
+    searchProvider && candidateQuery
+      ? await findPartnerSearchCandidates(searchProvider, candidateQuery, {
+          throwOnError: throwOnSearchError,
+        })
+      : null;
+  const candidateIds = candidateResult?.hits.map(({ id }) => id);
+  const enrollmentBase = {
+    ...enrollmentFilters,
+    programId,
+    ...(candidateResult ? { search: undefined } : {}),
+  };
 
+  // Read from `enrollmentBase` so the grouping paths below see the same
+  // cleared `search` as `buildProgramEnrollmentWhereForList`. Destructuring
+  // `enrollmentFilters` here would AND the database full-text predicate on top
+  // of the relevance candidates, which drops every match the database cannot
+  // find on its own (e.g. partial emails, links, platforms, descriptions).
   const {
     status,
     country,
@@ -35,11 +67,12 @@ export async function getPartnersCount<T>(
     partnerTagIdOperator = "IN",
     groupIdOperator = "IN",
     countryOperator = "IN",
-  } = enrollmentFilters;
+  } = enrollmentBase;
 
   const enrollmentScope: Prisma.ProgramEnrollmentWhereInput = {
     programId,
     ...(tenantId ? { tenantId } : {}),
+    ...(candidateIds ? { id: { in: candidateIds } } : {}),
   };
 
   const partnerTagIdNotIn = partnerTagIdOperator === "NOT IN";
@@ -172,10 +205,13 @@ export async function getPartnersCount<T>(
   }
 
   if (groupBy === "partnerTagId") {
-    const enrollmentWhere = buildProgramEnrollmentWhereForList({
-      ...enrollmentBase,
-      partnerTagId: undefined,
-    });
+    const enrollmentWhere: Prisma.ProgramEnrollmentWhereInput = {
+      ...buildProgramEnrollmentWhereForList({
+        ...enrollmentBase,
+        partnerTagId: undefined,
+      }),
+      ...(candidateIds ? { id: { in: candidateIds } } : {}),
+    };
 
     const partners = await prisma.programPartnerTag.groupBy({
       by: ["partnerTagId"],
@@ -226,7 +262,10 @@ export async function getPartnersCount<T>(
 
   // Get absolute count of partners
   const count = await prisma.programEnrollment.count({
-    where: buildProgramEnrollmentWhereForList(enrollmentBase),
+    where: {
+      ...buildProgramEnrollmentWhereForList(enrollmentBase),
+      ...(candidateIds ? { id: { in: candidateIds } } : {}),
+    },
   });
 
   return count as T;
