@@ -23,7 +23,7 @@ export const EMAIL_TEMPLATE_VARIABLES = [
 
 export const EMAIL_TEMPLATE_VARIABLE_INFO: Record<
   (typeof EMAIL_TEMPLATE_VARIABLES)[number],
-  { description: string; example: string }
+  { description: string; example: string; hideExample?: boolean }
 > = {
   PartnerName: {
     description: "The partner's full name",
@@ -35,7 +35,7 @@ export const EMAIL_TEMPLATE_VARIABLE_INFO: Record<
   },
   PartnerLink: {
     description: "The partner's default referral link",
-    example: "https://refer.dub.co/john",
+    example: "refer.dub.co/john",
   },
   SaleReward: {
     description: "The partner's sale commission",
@@ -52,6 +52,7 @@ export const EMAIL_TEMPLATE_VARIABLE_INFO: Record<
   ReferralReward: {
     description: "The partner's commission for referring another partner",
     example: "10% per referred partner's commission for 1 year",
+    hideExample: true,
   },
 };
 

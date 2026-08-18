@@ -14,6 +14,7 @@ import { Input } from "../input";
 export type RichTextVariableInfo = {
   description?: string;
   example?: string;
+  hideExample?: boolean;
 };
 
 const updatePosition = (editor: Editor, element: HTMLElement) => {
@@ -266,6 +267,7 @@ const Menu = forwardRef(
         {items.length ? (
           items.map((item, index) => {
             const info = variableInfo?.[item];
+            const example = info?.hideExample ? undefined : info?.example;
 
             return (
               <button
@@ -283,19 +285,19 @@ const Menu = forwardRef(
                 {info ? (
                   <div className="flex min-w-0 flex-col text-left">
                     <span className="font-mono text-sm leading-5">{item}</span>
-                    {info.description || info.example ? (
+                    {info.description || example ? (
                       <span className="text-xs font-normal leading-4">
                         {info.description ? (
                           <span className="text-content-subtle">
                             {info.description}
                           </span>
                         ) : null}
-                        {info.description && info.example ? (
+                        {info.description && example ? (
                           <span className="text-content-muted"> · </span>
                         ) : null}
-                        {info.example ? (
+                        {example ? (
                           <span className="text-content-default">
-                            {info.example}
+                            {example}
                           </span>
                         ) : null}
                       </span>
