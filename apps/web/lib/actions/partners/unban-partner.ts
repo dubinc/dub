@@ -107,7 +107,8 @@ export const unbanPartnerAction = authActionClient
           },
         }),
 
-        // Status moved back to approved.
+        // Queue an index update because the enrollment status moved back to
+        // approved.
         queuePartnerSearchSync({ partnerIds: [partnerId], programId }),
       ]),
     );

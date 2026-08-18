@@ -47,7 +47,8 @@ async function main() {
   });
   console.log(`Restored ${res.count} program enrollments`);
 
-  // Queued before the Tinybird and Stripe work below.
+  // Queue an index update because the enrollments and their links were
+  // restored. Queued before the Tinybird and Stripe work below.
   const queueSearchSync = () =>
     queuePartnerSearchSync({
       enrollmentIds: programEnrollmentsToRestore.map(({ id }) => id),

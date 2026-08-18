@@ -61,6 +61,7 @@ async function main() {
     },
   });
 
+  // Queue an index update because the enrollment moved to the new partner.
   // Queued before the Tinybird write below.
   await queuePartnerSearchSync({ enrollmentIds: [programEnrollment.id] });
 

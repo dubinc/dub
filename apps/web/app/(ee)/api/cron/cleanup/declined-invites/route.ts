@@ -53,7 +53,7 @@ export async function POST(req: Request) {
         `Deleted ${deletedRes.count} declined programEnrollments that are older than 90 days`,
       );
 
-      // Queue an index update for the deleted enrollments.
+      // Queue an index update because the declined enrollments were deleted.
       await queuePartnerSearchSync({
         enrollmentIds: declinedProgramEnrollments.map(({ id }) => id),
       });

@@ -94,7 +94,8 @@ async function main() {
     });
   }
 
-  // Queued before the cache expiry below.
+  // Queue an index update because the link keys and shortLinks changed. Queued
+  // before the cache expiry below.
   await queuePartnerSearchSyncForLinks(links);
 
   // expire the Redis cache for the links so it fetches the latest version from the database

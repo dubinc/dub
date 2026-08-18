@@ -161,7 +161,7 @@ export async function bulkDeletePartners({
       `Deleted ${deletedProgramEnrollments.count} program enrollments`,
     );
 
-    // Queue an index update for the deleted enrollments.
+    // Queue an index update because the ACME enrollments were deleted.
     await queuePartnerSearchSync({ enrollmentIds: programEnrollmentIds });
 
     if (deletedProgramEnrollments.count > 0) {
@@ -202,7 +202,8 @@ export async function bulkDeletePartners({
 
     console.log(`Deleted ${partnerIds.length} partners`);
 
-    // Queue an index update for the cascade-deleted enrollments.
+    // Queue an index update because deleting the partners cascades to their
+    // remaining enrollments in other programs.
     await queuePartnerSearchSync({
       enrollmentIds: cascadedEnrollments.map(({ id }) => id),
     });

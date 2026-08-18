@@ -202,8 +202,8 @@ export async function POST(req: Request) {
           ),
         );
 
-        // The destination URL is searchable, so the owners of the links that
-        // actually changed have to be re-indexed.
+        // Queue an index update because the default link change rewrote
+        // destination URLs.
         await queuePartnerSearchSyncForLinks(
           linksToUpdate.map(({ owner }) => owner),
           { delay: PARTNER_SEARCH_LINK_SYNC_DELAY_SECONDS },

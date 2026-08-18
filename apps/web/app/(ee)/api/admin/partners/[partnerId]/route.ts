@@ -160,8 +160,8 @@ export const PATCH = withAdmin(async ({ params, req }) => {
     },
   });
 
-  // Country is a filterable field on the document, so an admin correcting it
-  // has to reach the index or the partner stays findable under the old one.
+  // Queue an index update because an admin corrected the partner country, a
+  // filterable field.
   waitUntil(queuePartnerSearchSync({ partnerIds: [partner.id] }));
 
   // if there was an existing veriff session, trigger a country change verification

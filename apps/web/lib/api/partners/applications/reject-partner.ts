@@ -147,9 +147,9 @@ export async function rejectPartner({
 
   waitUntil(
     Promise.allSettled([
-      // Covers both outcomes above: an instant reapplication timeframe deletes
-      // the enrollment, anything else rejects it. The job reads the ID back, so
-      // this does not need to know which ran.
+      // Queue an index update because the enrollment was either rejected or
+      // deleted. The job reads the ID back, so this does not need to know
+      // which.
       queuePartnerSearchSync({ enrollmentIds: [programEnrollment.id] }),
 
       trackActivityLog({

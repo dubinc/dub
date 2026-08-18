@@ -90,7 +90,8 @@ export const bulkRejectPartnerApplicationsAction = authActionClient
     waitUntil(
       (async () => {
         await Promise.allSettled([
-          // Status moved to rejected.
+          // Queue an index update because the enrollment statuses moved to
+          // rejected.
           queuePartnerSearchSync({
             enrollmentIds: programEnrollments.map(({ id }) => id),
           }),

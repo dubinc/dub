@@ -105,8 +105,9 @@ export async function POST(req: Request) {
       linkCache.expireMany(linksToUpdate),
     ]);
 
-    // Queued after the block above rather than inside it, because
-    // updateShortLinks runs there and the document indexes `shortLink`.
+    // Queue an index update because the domain change rewrote each link's
+    // shortLink. Queued after updateShortLinks above, which performs the
+    // rewrite.
     await queuePartnerSearchSyncForLinks(updatedLinks, {
       delay: PARTNER_SEARCH_LINK_SYNC_DELAY_SECONDS,
     });

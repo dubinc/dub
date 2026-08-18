@@ -64,7 +64,8 @@ export const archivePartnerAction = authActionClient
           },
         }),
 
-        // Status moved to archived.
+        // Queue an index update because the enrollment status moved to
+        // archived.
         queuePartnerSearchSync({ partnerIds: [partnerId], programId }),
       ]),
     );

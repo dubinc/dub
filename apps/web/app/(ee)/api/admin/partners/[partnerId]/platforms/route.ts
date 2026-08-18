@@ -129,8 +129,8 @@ export const POST = withAdmin(
       },
     });
 
-    // The identifier is searchable, so an admin correcting a handle has to
-    // reach the index too.
+    // Queue an index update because an admin corrected the searchable platform
+    // identifier.
     waitUntil(queuePartnerSearchSync({ partnerIds: [partnerId] }));
 
     return NextResponse.json({

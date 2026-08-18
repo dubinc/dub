@@ -96,7 +96,8 @@ export const acceptProgramInviteAction = authPartnerActionClient
               partnerId: enrolledPartner.id,
             },
           }),
-          // 5. Reflect the accepted status in the partner search index
+          // Queue an index update because the enrollment status moved to
+          // approved.
           queuePartnerSearchSync({
             enrollmentIds: [enrollment.id],
           }),

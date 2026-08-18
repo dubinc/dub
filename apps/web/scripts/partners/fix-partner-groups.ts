@@ -56,7 +56,8 @@ async function main() {
 
   console.log(`Updated ${updateMany.count} partners`);
 
-  // Queue an index update for the changed groups.
+  // Queue an index update because the enrollments gained a group, which is
+  // filterable.
   await queuePartnerSearchSync({
     enrollmentIds: partnersMissingGroup.map((partner) => partner.id),
   });

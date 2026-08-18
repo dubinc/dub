@@ -135,7 +135,7 @@ export const POST = withAdmin(
           `Deleted ${partner.programs.length} program enrollments for partner ${partner.email} (${partner.id})`,
         );
 
-        // Queue an index update for the deleted enrollments.
+        // Queue an index update because the partner's enrollments were deleted.
         await queuePartnerSearchSync({
           enrollmentIds: partner.programs.map(({ id }) => id),
         });

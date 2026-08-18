@@ -27,7 +27,7 @@ async function main() {
 
   console.log("Deleted program enrollment", deleteProgramEnrollment);
 
-  // Queue an index update for the deleted enrollment.
+  // Queue an index update because the enrollment was deleted.
   await queuePartnerSearchSync({ enrollmentIds: [programEnrollment.id] });
 
   if (programEnrollment.applicationId) {

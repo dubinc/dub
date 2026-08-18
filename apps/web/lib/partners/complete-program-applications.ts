@@ -274,8 +274,9 @@ export async function completeProgramApplications(userEmail: string) {
       ),
     );
 
-    // One queue covers both the new enrollments and the platforms backfilled
-    // above, since the job re-reads the whole document.
+    // Queue an index update because the applications completed into
+    // enrollments. One queue also covers the platforms backfilled above, since
+    // the job re-reads the document.
     await queuePartnerSearchSync({
       enrollmentIds: programEnrollments.map(({ id }) => id),
     });

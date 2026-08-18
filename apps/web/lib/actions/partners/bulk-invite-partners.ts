@@ -200,9 +200,9 @@ export const bulkInvitePartnersAction = authActionClient
           );
         }
 
-        // createMany returns no IDs, so this passes partners and lets the job
-        // resolve the enrollments. Queued after the default links exist, so the
-        // first document already carries them.
+        // Queue an index update because the partners were enrolled. createMany
+        // returns no IDs, so this passes partners and lets the job resolve
+        // them, after the default links exist.
         await queuePartnerSearchSync({
           partnerIds: partners.map(({ id }) => id),
           programId,

@@ -211,8 +211,9 @@ export async function updateLink({
         // If key is changed: delete the old key in Redis
         (changedDomain || changedKey) && linkCache.delete(oldLink),
 
-        // Both owners, because the spread above can rewrite `partnerId`: when a
-        // link moves, the former owner has to be re-serialized without it.
+        // Queue an index update because the edit can change the destination URL
+        // or move the link. Both owners, so a former one is re-serialized
+        // without it.
         queuePartnerSearchSyncForLinks([oldLink, response], {
           delay: PARTNER_SEARCH_LINK_SYNC_DELAY_SECONDS,
         }),

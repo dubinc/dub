@@ -82,7 +82,8 @@ export async function completeABTests(link: Link) {
       linkCache.set(response),
       // record the link
       recordLink(response),
-      // The winning variant replaces the destination URL, which is searchable.
+      // Queue an index update because the winning variant replaced the
+      // destination URL.
       queuePartnerSearchSyncForLinks([response], {
         delay: PARTNER_SEARCH_LINK_SYNC_DELAY_SECONDS,
       }),

@@ -87,7 +87,8 @@ export const reactivatePartnerAction = authActionClient
           // TODO send email to partner
           linkCache.expireMany(links),
 
-          // Status moved back to approved.
+          // Queue an index update because the enrollment status moved back to
+          // approved.
           queuePartnerSearchSync({ partnerIds: [partnerId], programId }),
 
           trackActivityLog({

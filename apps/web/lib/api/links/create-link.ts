@@ -154,8 +154,8 @@ export async function createLink(link: ProcessedLinkProps) {
           ...(discount && { discount }),
         }),
 
-        // A new partner link is how people search for that partner, so this
-        // takes the default delay rather than the longer link one.
+        // Queue an index update because the new link adds a searchable
+        // shortLink. Default delay rather than the longer link one.
         response.programId &&
           response.partnerId &&
           queuePartnerSearchSync({

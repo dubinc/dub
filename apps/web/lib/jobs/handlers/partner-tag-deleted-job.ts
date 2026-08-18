@@ -70,7 +70,8 @@ export const partnerTagDeletedJob = defineJob({
         `[partnerTagDeletedJob] Deleted ${count} program–partner tag associations.`,
       );
 
-      // Queue an index update for the affected enrollments.
+      // Queue an index update because the tag was removed from these
+      // enrollments.
       await queuePartnerSearchSync({
         enrollmentIds: programPartnerTags.map(
           ({ programEnrollment }) => programEnrollment.id,
