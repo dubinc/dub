@@ -1,3 +1,4 @@
+import { queuePartnerSearchSyncForLinks } from "@/lib/api/partners/queue-partner-search-sync";
 import { prisma } from "@/lib/prisma";
 import { linkConstructorSimple } from "@dub/utils";
 import { Prisma } from "@prisma/client";
@@ -27,6 +28,8 @@ async function main() {
       domain: true,
       key: true,
       shortLink: true,
+      programId: true,
+      partnerId: true,
     },
     take: 100,
     orderBy: {
@@ -93,6 +96,9 @@ async function main() {
 
   // expire the Redis cache for the links so it fetches the latest version from the database
   await linkCache.expireMany(links);
+
+  // Queue an index update for the owners of the links that changed key.
+  await queuePartnerSearchSyncForLinks(links);
 }
 
 main();

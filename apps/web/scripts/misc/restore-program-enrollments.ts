@@ -25,6 +25,7 @@ Then, replace `prisma as prismaOld` below with just `prismaOld`
 
 import { includeProgramEnrollment } from "@/lib/api/links/include-program-enrollment";
 import { includeTags } from "@/lib/api/links/include-tags";
+import { queuePartnerSearchSync } from "@/lib/api/partners/queue-partner-search-sync";
 // import { prisma, prismaOld } from "@/lib/prisma";
 import { prisma, prisma as prismaOld } from "@/lib/prisma";
 import "dotenv-flow/config";
@@ -211,6 +212,11 @@ async function main() {
       console.log(`Restored promotion code ${JSON.stringify(res, null, 2)}`);
     }
   }
+
+  // Queue an index update for the restored enrollments.
+  await queuePartnerSearchSync({
+    enrollmentIds: programEnrollmentsToRestore.map(({ id }) => id),
+  });
 }
 
 main();
