@@ -22,7 +22,7 @@ model Campaign {
   programId       String
   workflowId      String?              @unique
   userId          String
-  qstashMessageId String?              @unique
+  qstashMessageId String?              @unique // TODO: remove this column
   type            CampaignType
   status          CampaignStatus       @default(draft)
   name            String

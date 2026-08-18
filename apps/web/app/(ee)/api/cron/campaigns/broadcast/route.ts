@@ -13,7 +13,7 @@ import { ACTIVE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
 import { sendBatchEmail } from "@dub/email";
 import CampaignEmail from "@dub/email/templates/campaign-email";
 import { APP_DOMAIN_WITH_NGROK, chunk, log, pluck } from "@dub/utils";
-import { NotificationEmailType } from "@prisma/client";
+import { CampaignStatus, NotificationEmailType } from "@prisma/client";
 import { differenceInMinutes } from "date-fns";
 import * as z from "zod/v4";
 import { logAndRespond } from "../../utils";
@@ -112,22 +112,30 @@ export async function POST(req: Request) {
     }
 
     // Claim the first run so leftover delayed messages / scanner retries
-    // cannot start a second broadcast.
+    // cannot start a second broadcast. A QStash retry of the message that
+    // already claimed (Upstash-Retried > 0) is allowed to continue.
     if (!startingAfter) {
       const claimed = await prisma.campaign.updateMany({
         where: {
           id: campaignId,
-          status: "scheduled",
+          status: CampaignStatus.scheduled,
         },
         data: {
-          status: "sending",
+          status: CampaignStatus.sending,
         },
       });
 
       if (claimed.count === 0) {
-        return logAndRespond(
-          `Campaign ${campaignId} broadcast already initiated. Skipping...`,
+        const retried = Number.parseInt(
+          req.headers.get("Upstash-Retried") ?? "0",
+          10,
         );
+
+        if (!Number.isFinite(retried) || retried < 1) {
+          return logAndRespond(
+            `Campaign ${campaignId} broadcast already initiated. Skipping...`,
+          );
+        }
       }
     }
 

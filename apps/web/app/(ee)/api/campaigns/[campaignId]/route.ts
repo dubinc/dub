@@ -1,4 +1,5 @@
 import { getCampaignOrThrow } from "@/lib/api/campaigns/get-campaign-or-throw";
+import { shouldEnqueueDueMarketingBroadcast } from "@/lib/api/campaigns/marketing-campaign-broadcast";
 import {
   campaignEligibilityIncludes,
   transformCampaign,
@@ -10,13 +11,15 @@ import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-progr
 import { parseRequestBody } from "@/lib/api/utils";
 import { validateWorkflowConditions } from "@/lib/api/workflows/validate-workflow-conditions";
 import { withWorkspace } from "@/lib/auth";
+import { qstash } from "@/lib/cron";
 import { prisma } from "@/lib/prisma";
 import {
   CampaignSchema,
   updateCampaignSchema,
 } from "@/lib/zod/schemas/campaigns";
-import { arrayEqual, pluck } from "@dub/utils";
+import { APP_DOMAIN_WITH_NGROK, arrayEqual, pluck } from "@dub/utils";
 import { PartnerGroup } from "@prisma/client";
+import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
 // GET /api/campaigns/[campaignId] - get an email campaign
@@ -185,6 +188,27 @@ export const PATCH = withWorkspace(
         },
       });
     });
+
+    if (
+      shouldEnqueueDueMarketingBroadcast({
+        previous: campaign,
+        next: updatedCampaign,
+      })
+    ) {
+      waitUntil(
+        qstash.publishJSON({
+          url: `${APP_DOMAIN_WITH_NGROK}/api/cron/campaigns/broadcast`,
+          deduplicationId: campaignId,
+          flowControl: {
+            key: "broadcast-marketing-campaign",
+            parallelism: 1,
+          },
+          body: {
+            campaignId,
+          },
+        }),
+      );
+    }
 
     return NextResponse.json(
       CampaignSchema.parse(transformCampaign(updatedCampaign)),
