@@ -156,6 +156,12 @@ async function createDiscountCodeRecord({
       error.code === "P2002";
 
     if (isUniqueConflict && canRetry) {
+      await rollbackExternalDiscountCode({
+        discountProvider,
+        workspace,
+        code,
+      });
+
       const existingForLink = await prisma.discountCode.findUnique({
         where: {
           linkId: link.id,
@@ -171,12 +177,6 @@ async function createDiscountCodeRecord({
           message: `This link already has a discount code (${existingForLink.code}) assigned.`,
         });
       }
-
-      await rollbackExternalDiscountCode({
-        discountProvider,
-        workspace,
-        code,
-      });
 
       const nextCode = `${code}${nanoid(2)}`;
       console.warn(
