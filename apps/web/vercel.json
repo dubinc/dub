@@ -85,7 +85,7 @@
       "schedule": "0 2 * * *"
     },
     {
-      "path": "/api/cron/webhooks/sync-click-workspaces",
+      "path": "/api/cron/sync-redis-resources",
       "schedule": "*/5 * * * *"
     },
     {

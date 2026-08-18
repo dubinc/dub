@@ -88,7 +88,7 @@ export const acceptProgramInviteAction = authPartnerActionClient
           }),
           // 4. Execute Dub workflows using the “partnerEnrolled” trigger.
           executeWorkflows({
-            trigger: "partnerEnrolled",
+            event: "partnerEnrolled",
             identity: {
               workspaceId: workspace.id,
               programId,
