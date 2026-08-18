@@ -3,11 +3,10 @@ import { transformMiddlewareRequest } from "@axiomhq/nextjs";
 import {
   ADMIN_HOSTNAMES,
   API_HOSTNAMES,
-  APP_HOSTNAMES,
   DEFAULT_REDIRECTS,
   isValidUrl,
 } from "@dub/utils";
-import { PARTNERS_HOSTNAMES } from "@dub/utils/src/constants";
+import { isAppHostname, PARTNERS_HOSTNAMES } from "@dub/utils/src/constants";
 import { NextFetchEvent, NextRequest, NextResponse } from "next/server";
 import { AdminMiddleware } from "./lib/middleware/admin";
 import { ApiMiddleware } from "./lib/middleware/api";
@@ -40,10 +39,7 @@ export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
   ev.waitUntil(logger.flush());
 
   // for app.dub.co
-  if (
-    APP_HOSTNAMES.has(domain) ||
-    (process.env.VERCEL_ENV === "preview" && domain.endsWith(".dub.co"))
-  ) {
+  if (isAppHostname(domain)) {
     return AppMiddleware(req);
   }
 
