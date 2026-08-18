@@ -20,7 +20,7 @@ import { getEmailNgrams, getQueryNgrams } from "./shared";
  * existing namespace. A new version is backfilled alongside the old one and
  * swapped in, rather than rebuilt in place.
  */
-const NAMESPACE = "partner-search-v3";
+export const PARTNER_SEARCH_NAMESPACE = "partner-search-v3";
 const WRITE_BATCH_SIZE = 500;
 
 /**
@@ -120,7 +120,7 @@ export interface TurbopufferNamespace {
 }
 
 function getNamespaceName(namespaceName?: string): string {
-  return namespaceName?.trim() || NAMESPACE;
+  return namespaceName?.trim() || PARTNER_SEARCH_NAMESPACE;
 }
 
 function createNamespace(namespaceName: string): TurbopufferNamespace {
