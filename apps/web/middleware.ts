@@ -39,12 +39,15 @@ export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
   logger.info(...transformMiddlewareRequest(req));
   ev.waitUntil(logger.flush());
 
-  // for App
-  if (APP_HOSTNAMES.has(domain)) {
+  // for app.dub.co
+  if (
+    APP_HOSTNAMES.has(domain) ||
+    (process.env.VERCEL_ENV === "preview" && domain.endsWith(".dub.co"))
+  ) {
     return AppMiddleware(req);
   }
 
-  // for API
+  // for api.dub.co
   if (API_HOSTNAMES.has(domain)) {
     return ApiMiddleware(req);
   }

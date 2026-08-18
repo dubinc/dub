@@ -11,16 +11,14 @@ export const APP_DOMAIN =
   process.env.NEXT_PUBLIC_VERCEL_ENV === "production"
     ? "https://app.dub.co"
     : process.env.NEXT_PUBLIC_VERCEL_ENV === "preview"
-      ? "https://preview.dub.co"
+      ? `https://${process.env.VERCEL_URL}`
       : "http://localhost:8888";
 
 export const APP_DOMAIN_WITH_NGROK =
   process.env.NEXT_PUBLIC_VERCEL_ENV === "production"
     ? "https://app.dub.co"
     : process.env.NEXT_PUBLIC_VERCEL_ENV === "preview"
-      ? process.env.VERCEL_URL
-        ? `https://${process.env.VERCEL_URL}`
-        : "https://preview.dub.co"
+      ? `https://${process.env.VERCEL_URL}`
       : process.env.NEXT_PUBLIC_NGROK_URL || "http://localhost:8888";
 
 export const API_HOSTNAMES = new Set([
