@@ -223,57 +223,69 @@ const verifyTokens = async ({
     );
   }
 
-  const [sourceToken, targetToken] = await Promise.all([
-    prisma.emailVerificationToken.findUnique({
+  const otps = [
+    { identifier: sourceEmail, token: sourceCode },
+    { identifier: targetEmail, token: targetCode },
+  ];
+
+  const { consumed, unmatched } = await prisma.$transaction(async (tx) => {
+    const matches = await tx.emailVerificationToken.findMany({
       where: {
-        identifier_token: {
-          identifier: sourceEmail,
-          token: sourceCode,
-        },
+        OR: otps.map(({ identifier, token }) => ({
+          identifier,
+          token,
+          expires: {
+            gte: new Date(),
+          },
+        })),
       },
-    }),
+      select: {
+        identifier: true,
+        token: true,
+      },
+    });
 
-    prisma.emailVerificationToken.findUnique({
+    const matched = new Set(
+      matches.map((match) => `${match.identifier}:${match.token}`),
+    );
+
+    const unmatchedIdentifiers = otps
+      .filter((otp) => !matched.has(`${otp.identifier}:${otp.token}`))
+      .map((otp) => otp.identifier);
+
+    if (unmatchedIdentifiers.length > 0) {
+      return {
+        consumed: false,
+        unmatched: unmatchedIdentifiers,
+      };
+    }
+
+    await tx.emailVerificationToken.deleteMany({
       where: {
-        identifier_token: {
-          identifier: targetEmail,
-          token: targetCode,
-        },
+        OR: otps.map(({ identifier, token }) => ({
+          identifier,
+          token,
+        })),
       },
-    }),
-  ]);
+    });
 
-  if (!sourceToken) {
-    throw new Error(
-      `The code entered for ${sourceEmail} does not match. Please double-check it and enter it again.`,
-    );
-  }
+    return {
+      consumed: true,
+      unmatched: [],
+    };
+  });
 
-  if (sourceToken.expires < new Date()) {
-    throw new Error(
-      `The code entered for ${sourceEmail} has expired. Please request a new code.`,
-    );
-  }
+  if (!consumed) {
+    if (unmatched.includes(sourceEmail)) {
+      throw new Error(
+        `The code entered for ${sourceEmail} does not match. Please double-check it and enter it again.`,
+      );
+    }
 
-  if (!targetToken) {
     throw new Error(
       `The code entered for ${targetEmail} does not match. Please double-check it and enter it again.`,
     );
   }
-
-  if (targetToken.expires < new Date()) {
-    throw new Error(
-      `The code entered for ${targetEmail} has expired. Please request a new code.`,
-    );
-  }
-
-  await prisma.emailVerificationToken.deleteMany({
-    where: {
-      identifier: {
-        in: [sourceEmail, targetEmail],
-      },
-    },
-  });
 
   // Make sure this is set before going to the next step
   await redis.set(

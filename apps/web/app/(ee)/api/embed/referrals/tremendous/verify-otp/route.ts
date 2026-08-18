@@ -1,5 +1,6 @@
 import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
+import { consumeEmailVerificationOtp } from "@/lib/auth/consume-email-verification-otp";
 import { extractEmailDomain } from "@/lib/email/extract-email-domain";
 import { withReferralsEmbedToken } from "@/lib/embed/referrals/auth";
 import { prisma } from "@/lib/prisma";
@@ -7,11 +8,12 @@ import {
   TREMENDOUS_ENABLED_PROGRAM_IDS,
   TREMENDOUS_PROHIBITED_TOP_LEVEL_DOMAINS,
 } from "@/lib/tremendous/constants";
-import { ratelimit, redis } from "@/lib/upstash";
+import { redis } from "@/lib/upstash";
+import { assertRateLimit } from "@/lib/upstash/assert-rate-limit";
+import { RATELIMIT_POLICIES } from "@/lib/upstash/ratelimit-policies";
 import { emailSchema } from "@/lib/zod/schemas/auth";
 import { ACTIVE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
 import { TREMENDOUS_SUPPORTED_COUNTRIES } from "@dub/utils";
-import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 
@@ -41,16 +43,10 @@ export const POST = withReferralsEmbedToken(
     const { email, code } = verifyOtpSchema.parse(await parseRequestBody(req));
     const { partnerId } = programEnrollment;
 
-    const { success } = await ratelimit(10, "24 h").limit(
-      `tremendous-verify-otp:${partnerId}`,
-    );
-
-    if (!success) {
-      throw new DubApiError({
-        code: "rate_limit_exceeded",
-        message: "Too many requests. Please try again later.",
-      });
-    }
+    await assertRateLimit({
+      policy: RATELIMIT_POLICIES.tremendousVerifyOtp,
+      identifier: partnerId,
+    });
 
     const emailDomain = extractEmailDomain(email)!;
 
@@ -110,37 +106,12 @@ export const POST = withReferralsEmbedToken(
       });
     }
 
-    const identifier = `tremendous:${partnerId}:${email}`;
-
-    const verificationToken = await prisma.emailVerificationToken.findUnique({
-      where: {
-        identifier_token: {
-          identifier,
-          token: code,
-        },
-      },
+    const consumed = await consumeEmailVerificationOtp({
+      identifier: `tremendous:${partnerId}:${email}`,
+      token: code,
     });
 
-    if (!verificationToken) {
-      throw new DubApiError({
-        code: "bad_request",
-        message:
-          "The verification code is incorrect or has expired. Please request a new code and try again.",
-      });
-    }
-
-    if (verificationToken.expires < new Date()) {
-      waitUntil(
-        prisma.emailVerificationToken.delete({
-          where: {
-            identifier_token: {
-              identifier,
-              token: code,
-            },
-          },
-        }),
-      );
-
+    if (!consumed) {
       throw new DubApiError({
         code: "bad_request",
         message:
@@ -149,29 +120,18 @@ export const POST = withReferralsEmbedToken(
     }
 
     try {
-      await prisma.$transaction([
-        prisma.emailVerificationToken.delete({
-          where: {
-            identifier_token: {
-              identifier,
-              token: code,
-            },
-          },
-        }),
-
-        prisma.partner.update({
-          where: {
-            id: partner.id,
-            defaultPayoutMethod: null,
-            payoutsEnabledAt: null,
-          },
-          data: {
-            tremendousEmail: email,
-            defaultPayoutMethod: "tremendous",
-            payoutsEnabledAt: new Date(),
-          },
-        }),
-      ]);
+      await prisma.partner.update({
+        where: {
+          id: partner.id,
+          defaultPayoutMethod: null,
+          payoutsEnabledAt: null,
+        },
+        data: {
+          tremendousEmail: email,
+          defaultPayoutMethod: "tremendous",
+          payoutsEnabledAt: new Date(),
+        },
+      });
     } catch (error) {
       if (error.code === "P2025") {
         throw new DubApiError({

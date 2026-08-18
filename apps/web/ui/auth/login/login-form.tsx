@@ -1,6 +1,8 @@
 "use client";
 
-import { AnimatedSizeContainer, Button, useLocalStorage } from "@dub/ui";
+import { authClient } from "@/lib/better-auth/auth-client";
+import { getAuthError } from "@/lib/better-auth/auth-errors";
+import { AnimatedSizeContainer, Button } from "@dub/ui";
 import { useSearchParams } from "next/navigation";
 import {
   ComponentType,
@@ -12,11 +14,12 @@ import {
   useState,
 } from "react";
 import { toast } from "sonner";
+import { AccountAlreadyExistsModal } from "../account-already-exists-modal";
 import { AuthMethodsSeparator } from "../auth-methods-separator";
 import { EmailSignIn } from "./email-sign-in";
 import { GitHubButton } from "./github-button";
 import { GoogleButton } from "./google-button";
-import { SSOSignIn } from "./sso-sign-in";
+import { SAMLSignIn } from "./saml-sign-in";
 
 export const authMethods = [
   "google",
@@ -28,26 +31,9 @@ export const authMethods = [
 
 export type AuthMethod = (typeof authMethods)[number];
 
-export const errorCodes = {
-  "no-credentials": "Please provide an email and password.",
-  "invalid-credentials": "Email or password is incorrect.",
-  "exceeded-login-attempts":
-    "Account has been locked due to too many login attempts. Please contact support to unlock your account.",
-  "too-many-login-attempts": "Too many login attempts. Please try again later.",
-  "email-not-verified": "Please verify your email address.",
-  "require-saml-sso":
-    "Your organization requires authentication through your company's identity provider.",
-  EmailSignin:
-    "Failed to send login email. Please try again in a minute or contact support.",
-  Callback:
-    "We encountered an issue processing your request. Please try again or contact support if the problem persists.",
-  OAuthSignin:
-    "There was an issue signing you in. Please ensure your provider settings are correct.",
-  OAuthCallback:
-    "We faced a problem while processing the response from the OAuth provider. Please try again.",
-  OAuthAccountNotLinked:
-    "It looks like you already have an account with this email. Please sign in with your account email instead.",
-};
+function getLastUsedAuthMethod(): AuthMethod | undefined {
+  return authMethods.find((m) => m === authClient.getLastUsedLoginMethod());
+}
 
 export const LoginFormContext = createContext<{
   authMethod: AuthMethod | undefined;
@@ -57,7 +43,6 @@ export const LoginFormContext = createContext<{
   showSSOOption: boolean;
   setShowPasswordField: Dispatch<SetStateAction<boolean>>;
   setClickedMethod: Dispatch<SetStateAction<AuthMethod | undefined>>;
-  setLastUsedAuthMethod: Dispatch<SetStateAction<AuthMethod | undefined>>;
   setShowSSOOption: Dispatch<SetStateAction<boolean>>;
 }>({
   authMethod: undefined,
@@ -67,7 +52,6 @@ export const LoginFormContext = createContext<{
   showSSOOption: false,
   setShowPasswordField: () => {},
   setClickedMethod: () => {},
-  setLastUsedAuthMethod: () => {},
   setShowSSOOption: () => {},
 });
 
@@ -85,24 +69,22 @@ export default function LoginForm({
     undefined,
   );
 
-  const [lastUsedAuthMethodLive, setLastUsedAuthMethod] = useLocalStorage<
-    AuthMethod | undefined
-  >("last-used-auth-method", undefined);
   const { current: lastUsedAuthMethod } = useRef<AuthMethod | undefined>(
-    lastUsedAuthMethodLive,
+    getLastUsedAuthMethod(),
   );
 
   const [authMethod, setAuthMethod] = useState<AuthMethod | undefined>(
-    authMethods.find((m) => m === lastUsedAuthMethodLive) ?? "email",
+    lastUsedAuthMethod ?? "email",
   );
 
   useEffect(() => {
-    const error = searchParams?.get("error");
-    if (error) {
-      toast.error(
-        errorCodes[error] ||
-          "An unexpected error occurred. Please try again later.",
-      );
+    const message = getAuthError({
+      error: searchParams?.get("error"),
+      fallback: "An unexpected error occurred. Please try again later.",
+    });
+
+    if (message) {
+      toast.error(message);
     }
   }, [searchParams]);
 
@@ -122,6 +104,7 @@ export default function LoginForm({
     {
       method: "github",
       component: GitHubButton,
+      props: { next },
     },
     {
       method: "email",
@@ -130,7 +113,7 @@ export default function LoginForm({
     },
     {
       method: "saml",
-      component: SSOSignIn,
+      component: SAMLSignIn,
     },
   ];
 
@@ -152,11 +135,11 @@ export default function LoginForm({
         showSSOOption,
         setShowPasswordField,
         setClickedMethod,
-        setLastUsedAuthMethod,
         setShowSSOOption,
       }}
     >
       <div className="flex flex-col gap-3">
+        <AccountAlreadyExistsModal />
         <AnimatedSizeContainer height>
           <div className="flex flex-col gap-3 p-1">
             {authMethod && (
@@ -197,7 +180,7 @@ export default function LoginForm({
                 )
                 .map((provider) => (
                   <div key={provider.method}>
-                    <provider.component />
+                    <provider.component {...provider.props} />
                   </div>
                 ))
             )}

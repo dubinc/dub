@@ -1,10 +1,10 @@
 "use client";
 
+import { useSession } from "@/lib/better-auth/use-session";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { AuthLayout } from "@/ui/layout/auth-layout";
 import { Button } from "@dub/ui";
-import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";

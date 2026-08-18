@@ -16,17 +16,6 @@ export const emailSchema = z
   .min(1)
   .transform((email) => email.toLowerCase());
 
-export const resetPasswordSchema = z
-  .object({
-    token: z.string().min(1),
-    password: passwordSchema,
-    confirmPassword: z.string(),
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: "Confirm password must match password",
-    path: ["confirmPassword"],
-  });
-
 export const updatePasswordSchema = z
   .object({
     currentPassword: z.string().min(1),
@@ -42,6 +31,20 @@ export const signUpSchema = z.object({
   password: passwordSchema,
 });
 
-export const requestPasswordResetSchema = z.object({
-  email: emailSchema,
+export const userSessionSchema = z.object({
+  id: z.string(),
+  token: z.string().optional(),
+  ipAddress: z.string().nullable(),
+  userAgent: z.string().nullable(),
+  createdAt: z.coerce.date(),
+  isCurrent: z.boolean(),
 });
+
+export function parseEmail(value: string | null | undefined) {
+  if (!value) {
+    return null;
+  }
+
+  const result = emailSchema.safeParse(value);
+  return result.success ? result.data : null;
+}

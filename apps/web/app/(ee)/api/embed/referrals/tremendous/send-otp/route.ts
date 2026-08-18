@@ -9,7 +9,9 @@ import {
   TREMENDOUS_ENABLED_PROGRAM_IDS,
   TREMENDOUS_PROHIBITED_TOP_LEVEL_DOMAINS,
 } from "@/lib/tremendous/constants";
-import { ratelimit, redis } from "@/lib/upstash";
+import { redis } from "@/lib/upstash";
+import { assertRateLimit } from "@/lib/upstash/assert-rate-limit";
+import { RATELIMIT_POLICIES } from "@/lib/upstash/ratelimit-policies";
 import { emailSchema } from "@/lib/zod/schemas/auth";
 import { ACTIVE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
 import { sendEmail } from "@dub/email";
@@ -43,16 +45,10 @@ export const POST = withReferralsEmbedToken(
     const { email } = sendOtpSchema.parse(await parseRequestBody(req));
     const { partnerId } = programEnrollment;
 
-    const { success } = await ratelimit(10, "24 h").limit(
-      `tremendous-send-otp:${partnerId}`,
-    );
-
-    if (!success) {
-      throw new DubApiError({
-        code: "rate_limit_exceeded",
-        message: "Too many requests. Please try again later.",
-      });
-    }
+    await assertRateLimit({
+      policy: RATELIMIT_POLICIES.tremendousSendOtp,
+      identifier: partnerId,
+    });
 
     const emailDomain = extractEmailDomain(email)!;
 

@@ -1,5 +1,6 @@
 "use client";
 
+import { useSession } from "@/lib/better-auth/use-session";
 import { clientAccessCheck } from "@/lib/client-access-check";
 import { isEligibleForTrial } from "@/lib/stripe/is-eligible-for-trial";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -38,7 +39,6 @@ import {
 import NumberFlow from "@number-flow/react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { motion } from "motion/react";
-import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { CSSProperties, useEffect, useMemo, useState } from "react";
 import { AdjustUsageRow } from "./adjust-usage-row";

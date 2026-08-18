@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getSessionCookie } from "../better-auth/get-session-cookie";
 import { getDefaultPartnerId } from "./utils/get-default-partner";
-import { getUserViaToken } from "./utils/get-user-via-token";
 import { isValidInternalRedirect } from "./utils/is-valid-internal-redirect";
 import { parse } from "./utils/parse";
 import {
@@ -25,7 +25,7 @@ const AUTHENTICATED_PATHS = [
 export async function PartnersMiddleware(req: NextRequest) {
   const { path, fullPath, searchParamsObj, searchParamsString } = parse(req);
 
-  const user = await getUserViaToken(req);
+  const { user, hasUnverifiedSessionCookie } = await getSessionCookie(req);
   const isPartnerInvite = req.nextUrl.pathname.endsWith("/invite");
 
   const isAuthenticatedPath = AUTHENTICATED_PATHS.some(
@@ -60,7 +60,7 @@ export async function PartnersMiddleware(req: NextRequest) {
     );
   }
 
-  if (!user && isAuthenticatedPath) {
+  if (!user && !hasUnverifiedSessionCookie && isAuthenticatedPath) {
     if (path.startsWith("/programs/")) {
       const programSlug = path.split("/")[2];
       return NextResponse.redirect(new URL(`/${programSlug}/login`, req.url));
@@ -82,7 +82,9 @@ export async function PartnersMiddleware(req: NextRequest) {
     ) {
       return NextResponse.redirect(
         new URL(
-          `/onboarding${path === "/" ? "" : `?next=${encodeURIComponent(fullPath)}`}`,
+          path === "/"
+            ? "/onboarding"
+            : `/onboarding?next=${encodeURIComponent(fullPath)}`,
           req.url,
         ),
       );
@@ -110,7 +112,7 @@ export async function PartnersMiddleware(req: NextRequest) {
       if (match) {
         return NextResponse.redirect(new URL(`/programs/${match[1]}`, req.url));
       }
-      return NextResponse.redirect(new URL("/", req.url)); // Redirect authenticated users to dashboard
+      return NextResponse.redirect(new URL("/", req.url));
     } else if (partnersRedirect(path)) {
       return NextResponse.redirect(
         new URL(`${partnersRedirect(path)}${searchParamsString}`, req.url),

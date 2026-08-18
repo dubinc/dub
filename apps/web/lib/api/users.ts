@@ -1,11 +1,12 @@
-import { Session, hashToken } from "@/lib/auth";
+import { Session } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { WorkspaceWithUsers } from "@/lib/types";
 import { sendEmail } from "@dub/email";
 import WorkspaceInvite from "@dub/email/templates/workspace-invite";
-import { TWO_WEEKS_IN_SECONDS } from "@dub/utils";
+import { APP_DOMAIN, TWO_WEEKS_IN_SECONDS } from "@dub/utils";
 import { WorkspaceRole } from "@prisma/client";
-import { randomBytes } from "crypto";
+import { buildLookupKey, buildMagicLinkUrl } from "../better-auth/utils";
+import { createVerificationToken } from "../better-auth/verification-token";
 import { DubApiError } from "./errors";
 
 export async function inviteUser({
@@ -19,8 +20,8 @@ export async function inviteUser({
   workspace: WorkspaceWithUsers;
   session?: Session;
 }) {
-  // same method of generating a token as next-auth
-  const token = randomBytes(32).toString("hex");
+  email = email.trim().toLowerCase();
+
   const expires = new Date(Date.now() + TWO_WEEKS_IN_SECONDS * 1000);
 
   // create a workspace invite record and a verification request token that lasts for a week
@@ -44,21 +45,21 @@ export async function inviteUser({
     }
   }
 
-  await prisma.verificationToken.create({
-    data: {
-      identifier: email,
-      token: await hashToken(token, { secret: true }),
-      expires,
+  const { token } = await createVerificationToken({
+    kind: "invite",
+    value: {
+      email,
+      isInvite: true,
     },
+    lookupKey: buildLookupKey("invite", email, workspace.id),
+    removePreviousTokens: true,
   });
 
-  const params = new URLSearchParams({
-    callbackUrl: `${process.env.NEXTAUTH_URL}/${workspace.slug}/invite`,
-    email,
+  const url = buildMagicLinkUrl({
     token,
+    origin: APP_DOMAIN,
+    callbackURL: `${APP_DOMAIN}/${workspace.slug}/invite`,
   });
-
-  const url = `${process.env.NEXTAUTH_URL}/api/auth/callback/email?${params}`;
 
   return await sendEmail({
     subject: "You've been invited to join a workspace on Dub",

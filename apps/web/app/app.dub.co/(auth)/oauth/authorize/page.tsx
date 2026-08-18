@@ -1,12 +1,11 @@
 import { validateAuthorizeRequest } from "@/lib/api/oauth/actions";
-import { getSession } from "@/lib/auth";
+import { requireServerSessionRedirect } from "@/lib/better-auth/get-session";
 import { authorizeRequestSchema } from "@/lib/zod/schemas/oauth";
 import EmptyState from "@/ui/shared/empty-state";
 import { BlurImage, Logo } from "@dub/ui";
 import { CircleWarning, CubeSettings } from "@dub/ui/icons";
 import { constructMetadata } from "@dub/utils";
 import { ArrowLeftRight } from "lucide-react";
-import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import * as z from "zod/v4";
 import { AuthorizeForm } from "./authorize-form";
@@ -22,11 +21,7 @@ export default async function Authorize(props: {
   searchParams?: Promise<z.infer<typeof authorizeRequestSchema>>;
 }) {
   const searchParams = await props.searchParams;
-  const session = await getSession();
-
-  if (!session) {
-    redirect("/login");
-  }
+  await requireServerSessionRedirect();
 
   const { error, integration, requestParams } =
     await validateAuthorizeRequest(searchParams);

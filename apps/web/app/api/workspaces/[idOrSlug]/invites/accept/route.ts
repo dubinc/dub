@@ -2,6 +2,8 @@ import { DubApiError } from "@/lib/api/errors";
 import { assertRoleAllowedForPlan } from "@/lib/api/workspaces/assert-role-plan";
 import { onboardingStepCache } from "@/lib/api/workspaces/onboarding-step-cache";
 import { withSession } from "@/lib/auth";
+import { buildLookupKey } from "@/lib/better-auth/utils";
+import { deleteVerificationTokens } from "@/lib/better-auth/verification-token";
 import { exceededLimitError } from "@/lib/exceeded-limit-error";
 import { prisma } from "@/lib/prisma";
 import { PlanProps } from "@/lib/types";
@@ -142,6 +144,10 @@ export const POST = withSession(async ({ session, params }) => {
         }),
       });
     }
+  });
+
+  await deleteVerificationTokens({
+    lookupKey: buildLookupKey("invite", session.user.email, workspace.id),
   });
 
   // Update default workspace

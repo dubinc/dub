@@ -1,5 +1,5 @@
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
-import { getSession } from "@/lib/auth";
+import { requireServerSession } from "@/lib/better-auth/get-session";
 import { encrypt } from "@/lib/encryption";
 import { installIntegration } from "@/lib/integrations/install";
 import { slackOAuthProvider } from "@/lib/integrations/slack/oauth";
@@ -19,14 +19,7 @@ export const GET = async (req: Request) => {
     | null = null;
 
   try {
-    const session = await getSession();
-
-    if (!session?.user.id) {
-      throw new DubApiError({
-        code: "unauthorized",
-        message: "Unauthorized",
-      });
-    }
+    const { user } = await requireServerSession();
 
     const { token, contextId: workspaceId } =
       await slackOAuthProvider.exchangeCodeForToken<string>(req);
@@ -41,7 +34,7 @@ export const GET = async (req: Request) => {
         plan: true,
         users: {
           where: {
-            userId: session.user.id,
+            userId: user.id,
           },
         },
       },
@@ -80,7 +73,7 @@ export const GET = async (req: Request) => {
 
     const installation = await installIntegration({
       integrationId: integration.id,
-      userId: session.user.id,
+      userId: user.id,
       workspaceId,
       credentials,
     });

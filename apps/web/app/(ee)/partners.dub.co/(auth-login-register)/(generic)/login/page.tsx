@@ -6,7 +6,7 @@ import { AuthLayout } from "@/ui/layout/auth-layout";
 import { cn, constructMetadata } from "@dub/utils";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { SSOLoginButton } from "./sso-login-button";
+import { ProgramSsoLogin } from "./program-sso-login";
 
 export const metadata = constructMetadata({
   fullTitle: "Login to partners.dub.co",
@@ -24,38 +24,12 @@ export default async function LoginPage(props: {
   if (customSSOLoginProgram) {
     return (
       <AuthLayout showTerms="partners">
-        <div className="mx-auto my-10 flex w-full max-w-sm flex-col gap-8">
-          <div className="animate-slide-up-fade relative flex w-auto flex-col items-center [--offset:10px] [animation-duration:1.3s] [animation-fill-mode:both]">
-            <img
-              src={customSSOLoginProgram.logo}
-              alt={`${customSSOLoginProgram.name} Logo`}
-              className="h-8"
-            />
-          </div>
-          <div className="animate-slide-up-fade flex flex-col items-center justify-center gap-2 [--offset:10px] [animation-delay:0.15s] [animation-duration:1.3s] [animation-fill-mode:both]">
-            <h1 className="text-lg font-medium text-neutral-800">
-              Sign in to {customSSOLoginProgram.name} Partners
-            </h1>
-            <p className="text-center text-sm text-neutral-700">
-              Not a {customSSOLoginProgram.name} Partner?&nbsp;
-              <a
-                href={customSSOLoginProgram.applyUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="font-normal underline decoration-dotted underline-offset-2 transition-colors hover:text-black"
-              >
-                Apply today
-              </a>
-            </p>
-          </div>
-
-          <div className="animate-slide-up-fade [--offset:10px] [animation-delay:0.3s] [animation-duration:1.3s] [animation-fill-mode:both]">
-            <SSOLoginButton
-              name={customSSOLoginProgram.name}
-              slug={customSSOLoginProgram.slug}
-            />
-          </div>
-        </div>
+        <ProgramSsoLogin
+          name={customSSOLoginProgram.name}
+          slug={customSSOLoginProgram.slug}
+          logo={customSSOLoginProgram.logo}
+          applyUrl={customSSOLoginProgram.applyUrl}
+        />
       </AuthLayout>
     );
   }
@@ -66,6 +40,8 @@ export default async function LoginPage(props: {
     redirect("/login");
   }
 
+  const next = programSlug ? `/programs/${programSlug}` : "/";
+
   return (
     <div className="relative w-full">
       <AuthLayout showTerms="partners" className={cn(programSlug && "pt-20")}>
@@ -74,10 +50,7 @@ export default async function LoginPage(props: {
             Log in to your Dub Partner account
           </h1>
           <div className="mt-8">
-            <LoginForm
-              methods={["email", "password", "google"]}
-              next={programSlug ? `/programs/${programSlug}` : "/"}
-            />
+            <LoginForm methods={["email", "password", "google"]} next={next} />
           </div>
           <p className="mt-6 text-center text-sm font-medium text-neutral-500">
             Don't have a partner account?&nbsp;

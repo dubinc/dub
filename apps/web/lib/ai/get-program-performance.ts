@@ -2,7 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { CommissionStatus, PayoutStatus } from "@prisma/client";
 import { tool } from "ai";
 import { z } from "zod";
-import { getSession } from "../auth/utils";
+import { getServerSession } from "../better-auth/get-session";
 
 const programPerformanceSchema = z.object({
   program: z.object({
@@ -56,19 +56,21 @@ export const getProgramPerformanceTool = tool({
   }),
   outputSchema: programPerformanceSchema,
   execute: async ({ programId }) => {
-    const session = await getSession();
-    if (!session?.user.id) {
+    const { user } = await getServerSession();
+
+    if (!user?.id) {
       return {
         error: "Unauthorized. Please log in to continue.",
       };
     }
+
     const programEnrollment = await prisma.programEnrollment.findFirst({
       where: {
         programId,
         partner: {
           users: {
             some: {
-              userId: session.user.id,
+              userId: user.id,
             },
           },
         },

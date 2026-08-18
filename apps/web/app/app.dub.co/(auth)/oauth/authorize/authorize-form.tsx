@@ -5,6 +5,7 @@ import {
   UNVERIFIED_APP_INSTALL_MESSAGE,
 } from "@/lib/api/oauth/can-install-oauth-app";
 import { consolidateScopes, getScopesForRole } from "@/lib/api/tokens/scopes";
+import { useSession } from "@/lib/better-auth/use-session";
 import { clientAccessCheck } from "@/lib/client-access-check";
 import useWorkspaces from "@/lib/swr/use-workspaces";
 import { WorkspaceProps } from "@/lib/types";
@@ -12,7 +13,6 @@ import { authorizeRequestSchema } from "@/lib/zod/schemas/oauth";
 import { WorkspaceSelector } from "@/ui/workspaces/workspace-selector";
 import { Button } from "@dub/ui";
 import { Integration } from "@prisma/client";
-import { useSession } from "next-auth/react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import * as z from "zod/v4";

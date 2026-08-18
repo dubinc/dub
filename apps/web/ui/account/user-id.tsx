@@ -1,7 +1,7 @@
 "use client";
 
+import { useSession } from "@/lib/better-auth/use-session";
 import { CopyButton } from "@dub/ui";
-import { useSession } from "next-auth/react";
 
 export default function UserId() {
   const { data: session } = useSession() as

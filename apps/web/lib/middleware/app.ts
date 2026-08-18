@@ -3,11 +3,11 @@ import {
   ONBOARDING_WINDOW_SECONDS,
   onboardingStepCache,
 } from "../api/workspaces/onboarding-step-cache";
+import { getSessionCookie } from "../better-auth/get-session-cookie";
 import { EmbedMiddleware } from "./embed";
 import { NewLinkMiddleware } from "./new-link";
 import { appRedirect } from "./utils/app-redirect";
 import { getDefaultWorkspace } from "./utils/get-default-workspace";
-import { getUserViaToken } from "./utils/get-user-via-token";
 import { hasPendingInvites } from "./utils/has-pending-invites";
 import { isTopLevelSettingsRedirect } from "./utils/is-top-level-settings-redirect";
 import { parse } from "./utils/parse";
@@ -20,16 +20,17 @@ export async function AppMiddleware(req: NextRequest) {
     return EmbedMiddleware(req);
   }
 
-  const user = await getUserViaToken(req);
+  const { user, hasUnverifiedSessionCookie } = await getSessionCookie(req);
 
   // if there's no user and the path is not a public page, redirect to /login
   if (
     !user &&
+    !hasUnverifiedSessionCookie &&
     path !== "/login" &&
     path !== "/forgot-password" &&
     path !== "/register" &&
     path !== "/auth/saml" &&
-    !path.startsWith("/auth/reset-password/") &&
+    path !== "/auth/reset-password" &&
     !path.startsWith("/share/") &&
     !path.startsWith("/deeplink/") &&
     !path.startsWith("/unsubscribe/")
@@ -59,6 +60,7 @@ export async function AppMiddleware(req: NextRequest) {
       new Date(user.createdAt).getTime() >
         Date.now() - ONBOARDING_WINDOW_SECONDS * 1000 &&
       !["/onboarding", "/account"].some((p) => path.startsWith(p)) &&
+      path !== "/auth/reset-password" &&
       !(await getDefaultWorkspace(user)) &&
       !(await hasPendingInvites({ req, user })) &&
       (await onboardingStepCache.get({ userId: user.id })) !== "completed"

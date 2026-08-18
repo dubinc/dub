@@ -28,6 +28,18 @@ export default defineConfig({
     screenshot: "only-on-failure",
   },
   projects: [
+    // Better Auth API tests (HTTP only, no UI)
+    {
+      name: "auth-api",
+      testDir: "./playwright/auth-api",
+      use: {
+        baseURL: workspaceBaseURL,
+        extraHTTPHeaders: {
+          "Content-Type": "application/json",
+          Origin: workspaceBaseURL,
+        },
+      },
+    },
     // API tests (Bearer token seeded in globalSetup)
     {
       name: "api",

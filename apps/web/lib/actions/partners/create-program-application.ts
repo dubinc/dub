@@ -7,7 +7,7 @@ import { notifyPartnerApplication } from "@/lib/api/partners/notify-partner-appl
 import { getIP } from "@/lib/api/utils/get-ip";
 import { markApplicationEventSubmitted } from "@/lib/application-events/update-application-event";
 import { getApplicationEventCookieName } from "@/lib/application-events/utils";
-import { getSession } from "@/lib/auth";
+import { getServerSession } from "@/lib/better-auth/get-session";
 import { qstash } from "@/lib/cron";
 import { getNetworkProfileChecklistProgress } from "@/lib/network/get-network-profile-checklist-progress";
 import { evaluateApplicationRequirements } from "@/lib/partners/evaluate-application-requirements";
@@ -159,13 +159,13 @@ export const createProgramApplicationAction = actionClient
       throw new Error("Invalid group.");
     }
 
-    const session = await getSession();
+    const { user } = await getServerSession();
 
     // Get currently logged in partner
-    const existingPartner = session?.user.id
+    const existingPartner = user?.id
       ? await prisma.partner.findFirst({
           where: {
-            users: { some: { userId: session.user.id } },
+            users: { some: { userId: user.id } },
           },
           include: {
             programs: true,

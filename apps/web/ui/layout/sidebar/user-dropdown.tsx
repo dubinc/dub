@@ -1,5 +1,6 @@
 "use client";
 
+import { signOut, useSession } from "@/lib/better-auth/use-session";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { UserAvatar } from "@/ui/users/user-avatar";
 import {
@@ -13,7 +14,6 @@ import {
 import { Gear } from "@dub/ui/icons";
 import { APP_DOMAIN, cn, PARTNERS_DOMAIN } from "@dub/utils";
 import { LogOut } from "lucide-react";
-import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import {

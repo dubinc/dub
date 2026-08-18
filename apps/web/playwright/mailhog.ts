@@ -1,6 +1,6 @@
 const MAILHOG_API = "http://localhost:8025/api";
 
-interface MailHogMessage {
+export interface MailHogMessage {
   Content: {
     Body: string;
     Headers: Record<string, string[]>;

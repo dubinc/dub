@@ -5,7 +5,7 @@ import {
   reserveAIUsageCredit,
 } from "@/lib/api/links/usage-checks";
 import { normalizeWorkspaceId } from "@/lib/api/workspaces/workspace-id";
-import { getSession } from "@/lib/auth";
+import { requireServerSession } from "@/lib/better-auth/get-session";
 import { prisma } from "@/lib/prisma";
 import { PlanProps } from "@/lib/types";
 import { assertRateLimit } from "@/lib/upstash/assert-rate-limit";
@@ -69,6 +69,8 @@ ${entities.join("\n")}`;
 }
 
 export async function generateReward(input: z.infer<typeof inputSchema>) {
+  const { user } = await requireServerSession();
+
   const parsed = inputSchema.safeParse(input);
   if (!parsed.success) {
     throw new Error("Invalid request.");
@@ -76,18 +78,13 @@ export async function generateReward(input: z.infer<typeof inputSchema>) {
 
   const { event, prompt } = parsed.data;
 
-  const session = await getSession();
-  if (!session?.user.id) {
-    throw new Error("Unauthorized: Login required.");
-  }
-
   const workspaceId = normalizeWorkspaceId(parsed.data.workspaceId);
 
   const workspace = await prisma.project.findUnique({
     where: { id: workspaceId },
     include: {
       users: {
-        where: { userId: session.user.id },
+        where: { userId: user.id },
         select: { role: true },
       },
     },
@@ -105,7 +102,7 @@ export async function generateReward(input: z.infer<typeof inputSchema>) {
 
   await assertRateLimit({
     policy: RATELIMIT_POLICIES.aiRewardGenerate,
-    identifier: [session.user.id, workspaceId],
+    identifier: [user.id, workspaceId],
   });
 
   await reserveAIUsageCredit({

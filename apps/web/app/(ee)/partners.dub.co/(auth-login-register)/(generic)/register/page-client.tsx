@@ -1,6 +1,6 @@
 "use client";
 
-import { emailSchema } from "@/lib/zod/schemas/auth";
+import { parseEmail } from "@/lib/zod/schemas/auth";
 import { ApplicationAnalytics } from "@/ui/application-analytics";
 import { AuthAlternativeBanner } from "@/ui/auth/auth-alternative-banner";
 import {
@@ -27,15 +27,12 @@ export default function RegisterPageClient({
   lockEmail?: boolean;
 }) {
   const searchParams = useSearchParams();
-  const searchEmailResult = emailSchema.safeParse(searchParams.get("email"));
+  const searchEmail = parseEmail(searchParams.get("email"));
 
   return (
     <RegisterProvider
-      email={
-        (searchEmailResult.success ? searchEmailResult.data : undefined) ??
-        email
-      }
-      lockEmail={searchEmailResult.success || lockEmail}
+      email={searchEmail ?? email}
+      lockEmail={!!searchEmail || lockEmail}
     >
       <ApplicationAnalytics />
       <RegisterFlow program={program} />

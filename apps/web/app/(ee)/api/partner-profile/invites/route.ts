@@ -2,6 +2,8 @@ import { DubApiError } from "@/lib/api/errors";
 import { invitePartnerUser } from "@/lib/api/partners/invite-partner-user";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withPartnerProfile } from "@/lib/auth/partner";
+import { buildLookupKey } from "@/lib/better-auth/utils";
+import { deleteVerificationTokens } from "@/lib/better-auth/verification-token";
 import {
   MAX_INVITES_PER_REQUEST,
   MAX_PARTNER_USERS,
@@ -223,22 +225,18 @@ export const DELETE = withPartnerProfile(
   async ({ searchParams, partner }) => {
     const { email } = removeInviteSchema.parse(searchParams);
 
-    await prisma.$transaction([
-      prisma.partnerInvite.delete({
-        where: {
-          email_partnerId: {
-            email,
-            partnerId: partner.id,
-          },
+    await prisma.partnerInvite.delete({
+      where: {
+        email_partnerId: {
+          email,
+          partnerId: partner.id,
         },
-      }),
+      },
+    });
 
-      prisma.verificationToken.deleteMany({
-        where: {
-          identifier: email,
-        },
-      }),
-    ]);
+    await deleteVerificationTokens({
+      lookupKey: buildLookupKey("invite", email, partner.id),
+    });
 
     return NextResponse.json({ email });
   },

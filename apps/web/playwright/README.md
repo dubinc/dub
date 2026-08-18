@@ -30,6 +30,8 @@
 
    The seeded test user (`E2E_PARTNER_EMAIL`) must exist in your local database — run `tsx apps/web/playwright/seed.ts` to create it. Signup tests generate a fresh user each run via MailHog email verification.
 
+   Better Auth API tests (`auth-api` project) seed their own users via Prisma on first run (no env vars beyond MailHog SMTP). MailHog is required for magic-link and password-reset specs.
+
 ## API tests
 
 API specs under `playwright/api` use a Bearer token. `globalSetup` upserts a dedicated user, workspace, and token into `playwright/.auth/api.json` before any project runs. No MailHog or browser auth required.
@@ -49,6 +51,9 @@ Make sure the dev server is running first (`pnpm dev`), then:
 ```sh
 # Headless (default)
 pnpm --filter web test:e2e
+
+# Better Auth API endpoints only (HTTP, no UI)
+pnpm --filter web test:e2e --project=auth-api
 
 # With browser visible
 pnpm --filter web test:e2e:headed

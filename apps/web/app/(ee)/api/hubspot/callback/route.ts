@@ -1,5 +1,5 @@
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
-import { getSession } from "@/lib/auth";
+import { requireServerSession } from "@/lib/better-auth/get-session";
 import { encrypt } from "@/lib/encryption";
 import { HubSpotApi } from "@/lib/integrations/hubspot/api";
 import { HUBSPOT_DUB_CONTACT_PROPERTIES } from "@/lib/integrations/hubspot/constants";
@@ -28,14 +28,7 @@ export const GET = async (req: Request) => {
   }
 
   try {
-    const session = await getSession();
-
-    if (!session?.user.id) {
-      throw new DubApiError({
-        code: "unauthorized",
-        message: "Unauthorized. Please login to continue.",
-      });
-    }
+    const { user } = await requireServerSession();
 
     const { token, contextId: workspaceId } =
       await hubSpotOAuthProvider.exchangeCodeForToken<string>(req);
@@ -49,7 +42,7 @@ export const GET = async (req: Request) => {
         slug: true,
         users: {
           where: {
-            userId: session.user.id,
+            userId: user.id,
           },
           select: {
             role: true,
@@ -93,7 +86,7 @@ export const GET = async (req: Request) => {
 
     const installedIntegration = await installIntegration({
       integrationId: integration.id,
-      userId: session.user.id,
+      userId: user.id,
       workspaceId,
       credentials,
     });

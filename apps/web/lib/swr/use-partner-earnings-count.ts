@@ -1,6 +1,6 @@
+import { useSession } from "@/lib/better-auth/use-session";
 import { useRouterStuff } from "@dub/ui";
 import { fetcher } from "@dub/utils";
-import { useSession } from "next-auth/react";
 import { useParams } from "next/navigation";
 import useSWR from "swr";
 

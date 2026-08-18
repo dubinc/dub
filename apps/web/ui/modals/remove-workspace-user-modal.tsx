@@ -1,3 +1,4 @@
+import { useSession } from "@/lib/better-auth/use-session";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { TokenProps, UserProps } from "@/lib/types";
@@ -5,7 +6,6 @@ import { UserAvatar } from "@/ui/users/user-avatar";
 import { Button, Modal, useMediaQuery } from "@dub/ui";
 import { TriangleWarning } from "@dub/ui/icons";
 import { fetcher, timeAgo } from "@dub/utils";
-import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 import {

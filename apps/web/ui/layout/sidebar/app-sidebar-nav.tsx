@@ -1,5 +1,6 @@
 "use client";
 
+import { Session, useSession } from "@/lib/better-auth/use-session";
 import { clientAccessCheck } from "@/lib/client-access-check";
 import { usePartnerMessagesCount } from "@/lib/messages/hooks/use-partner-messages-count";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
@@ -50,8 +51,6 @@ import {
 } from "@dub/ui/icons";
 import { isWorkspaceBillingTrialActive } from "@dub/utils";
 import { DubProduct } from "@prisma/client";
-import { Session } from "next-auth";
-import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
 import { ReactNode, useMemo } from "react";

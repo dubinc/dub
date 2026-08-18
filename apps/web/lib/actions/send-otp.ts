@@ -68,9 +68,7 @@ export const sendOtpAction = actionClient
     });
 
     if (isExistingUser) {
-      throw new Error(
-        "User already exists. Please login instead of requesting a new OTP.",
-      );
+      return;
     }
 
     const code = generateOTP();

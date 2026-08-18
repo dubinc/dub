@@ -1,7 +1,7 @@
-import { getSession } from "@/lib/auth";
+import { getServerSession } from "@/lib/better-auth/get-session";
 
 export const throwIfAuthenticated = async ({ next, ctx }) => {
-  const session = await getSession();
+  const { session } = await getServerSession();
 
   if (session) {
     throw new Error("You are already logged in.");
