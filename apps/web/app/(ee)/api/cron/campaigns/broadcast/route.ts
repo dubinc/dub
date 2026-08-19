@@ -109,9 +109,11 @@ export async function POST(req: Request) {
     const program = campaign.program;
 
     // Claim the first run so leftover delayed messages / scanner retries
-    // cannot start a second broadcast. A QStash retry of the message that
-    // already claimed (Upstash-Retried > 0) is allowed to continue.
+    // cannot start a second broadcast. A QStash retry of the claiming
+    // message (matching qstashMessageId) is allowed to continue.
     if (!startingAfter) {
+      const messageId = req.headers.get("Upstash-Message-Id");
+
       const claimed = await prisma.campaign.updateMany({
         where: {
           id: campaignId,
@@ -119,16 +121,12 @@ export async function POST(req: Request) {
         },
         data: {
           status: CampaignStatus.sending,
+          qstashMessageId: messageId,
         },
       });
 
       if (claimed.count === 0) {
-        const retried = Number.parseInt(
-          req.headers.get("Upstash-Retried") ?? "0",
-          10,
-        );
-
-        if (!Number.isFinite(retried) || retried < 1) {
+        if (!messageId || campaign.qstashMessageId !== messageId) {
           return logAndRespond(
             `Campaign ${campaignId} broadcast already initiated. Skipping...`,
           );
