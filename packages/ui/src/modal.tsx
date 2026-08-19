@@ -47,7 +47,9 @@ function useWarnOnRemountWhileOpen(showModal?: boolean) {
       if (showModalRef.current) {
         pendingOpenUnmount = instance.current;
         queueMicrotask(() => {
-          pendingOpenUnmount = null;
+          if (pendingOpenUnmount === instance.current) {
+            pendingOpenUnmount = null;
+          }
         });
       }
     };
