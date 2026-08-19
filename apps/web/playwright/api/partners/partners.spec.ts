@@ -6,13 +6,9 @@ import { nanoid } from "@dub/utils";
 import { expect } from "@playwright/test";
 import slugify from "@sindresorhus/slugify";
 import * as z from "zod/v4";
-import { randomName, randomPartnerEmail } from "../../utils";
+import { apiError, randomName, randomPartnerEmail } from "../../utils";
 import { test, type ApiClient } from "../fixtures";
 import { TEST_WORKSPACE } from "../setup-test-workspace";
-
-test.describe.configure({
-  mode: "parallel",
-});
 
 const EnrolledPartnerSchema = EnrolledPartnerSchemaDate.extend({
   createdAt: z.string(),
@@ -175,18 +171,13 @@ test("POST /partners – invalid username", async ({ api }) => {
       email: randomPartnerEmail(),
       username: "invalid username",
     }),
-  ).toEqual({
-    status: 422,
-    data: {
-      error: {
-        code: "unprocessable_entity",
-        message:
-          "custom: username: Invalid username. Must be a URL-friendly string.",
-        doc_url:
-          "https://dub.co/docs/api-reference/errors#unprocessable-entity",
-      },
-    },
-  });
+  ).toEqual(
+    apiError({
+      code: "unprocessable_entity",
+      message:
+        "custom: username: Invalid username. Must be a URL-friendly string.",
+    }),
+  );
 });
 
 test("POST /partners – linkProps.prefix on default link", async ({
