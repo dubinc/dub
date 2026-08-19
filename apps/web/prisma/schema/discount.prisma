@@ -1,6 +1,7 @@
 enum DiscountProvider {
   stripe
   shopify
+  custom
 }
 
 model Discount {
