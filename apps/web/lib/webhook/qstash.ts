@@ -99,6 +99,13 @@ const publishWebhookEventToQStash = async ({
       "Dub-Signature": signature,
       "Upstash-Hide-Headers": "true",
 
+      ...(process.env.VERCEL_ENV === "preview" && {
+        "Upstash-Callback-Forward-x-vercel-protection-bypass":
+          process.env.VERCEL_AUTOMATION_BYPASS_SECRET || "",
+        "Upstash-Failure-Callback-Forward-x-vercel-protection-bypass":
+          process.env.VERCEL_AUTOMATION_BYPASS_SECRET || "",
+      }),
+
       // Integration specific headers
       ...(receiver === "segment" && {
         "Upstash-Forward-Authorization": createSegmentBasicAuthHeader(
@@ -108,6 +115,8 @@ const publishWebhookEventToQStash = async ({
     },
     callback: callbackUrl.href,
     failureCallback: failureCallbackUrl.href,
+
+    // for E2E tests, add a 5s delay
     ...(process.env.NODE_ENV === "test" && { delay: 5 }),
   });
 
