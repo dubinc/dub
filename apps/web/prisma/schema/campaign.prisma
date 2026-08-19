@@ -22,7 +22,7 @@ model Campaign {
   programId       String
   workflowId      String?              @unique
   userId          String
-  qstashMessageId String?              @unique // Claiming QStash message id for the in-flight broadcast
+  qstashMessageId String?              @unique
   type            CampaignType
   status          CampaignStatus       @default(draft)
   name            String
