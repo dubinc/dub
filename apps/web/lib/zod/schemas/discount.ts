@@ -63,7 +63,9 @@ export const DiscountCodeSchema = z
     }),
     code: z
       .string()
-      .describe("The discount code that customers can apply at checkout.")
+      .describe(
+        "The alphanumeric discount code that customers can apply at checkout.",
+      )
       .meta({
         example: "PARTNER10OFF",
       }),
@@ -83,7 +85,7 @@ export const DiscountCodeSchema = z
       .date()
       .nullish()
       .describe(
-        "When this discount code was disabled, which happens when a partner is banned or deactivated.",
+        "When this discount code was disabled, which happens when a partner is banned or deactivated. We don't delete the discount code to avoid another partner claiming a banned/deactivated code (abuse vector).",
       ),
   })
   .meta({
