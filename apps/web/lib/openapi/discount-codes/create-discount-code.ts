@@ -10,7 +10,7 @@ export const createDiscountCode: ZodOpenApiOperationObject = {
   "x-speakeasy-name-override": "create",
   summary: "Create a discount code",
   description:
-    "Create a discount code for a partner. A discount must already be assigned to the partner's group, and the specified link cannot already have a discount code.",
+    "Create a discount code for a partner. The partner's group must already have a discount assigned to it, and the discount code must be associated with a link that is not already linked with another discount code.",
   requestBody: {
     content: {
       "application/json": {

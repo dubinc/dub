@@ -9,7 +9,7 @@ export const deleteDiscountCode: ZodOpenApiOperationObject = {
   "x-speakeasy-max-method-params": 1,
   summary: "Delete a discount code",
   description:
-    "Delete a discount code for a partner. This will also disable the code in your connected discount provider (Stripe, Shopify, or custom via webhook).",
+    "Delete a discount code for a partner. This will also disable the code in your connected discount provider (Stripe, Shopify, or custom via `disccount.deleted` webhook).",
   requestParams: {
     path: z.object({
       id: DiscountCodeSchema.shape.id.describe(
