@@ -1,26 +1,44 @@
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
+import { DubApiError } from "@/lib/api/errors";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { withWorkspace } from "@/lib/auth";
-import { getDiscountCodeOrThrow } from "@/lib/discount-codes/get-discount-code-or-throw";
 import { deleteDiscountCodes } from "@/lib/discounts/delete-discount-code";
 import { prisma } from "@/lib/prisma";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
-// DELETE /api/discount-codes/[discountCodeId] - delete a discount code
+// DELETE /api/discount-codes/[idOrCode] - delete a discount code
 export const DELETE = withWorkspace(
   async ({ workspace, params, session }) => {
-    const { discountCodeId } = params;
+    const { idOrCode } = params;
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    const discountCode = await getDiscountCodeOrThrow({
-      discountCodeId,
-      programId,
+    const discountCode = await prisma.discountCode.findUnique({
+      where: idOrCode.startsWith("dcode_")
+        ? { id: idOrCode }
+        : { programId_code: { programId, code: idOrCode } },
+      include: {
+        discount: true,
+      },
     });
+
+    if (!discountCode || !discountCode.discount) {
+      throw new DubApiError({
+        code: "not_found",
+        message: `Discount code (${idOrCode}) not found.`,
+      });
+    }
+
+    if (discountCode.programId !== programId) {
+      throw new DubApiError({
+        code: "not_found",
+        message: `Discount code (${idOrCode}) not found.`,
+      });
+    }
 
     await prisma.discountCode.update({
       where: {
-        id: discountCodeId,
+        id: discountCode.id,
       },
       data: {
         discountId: null,

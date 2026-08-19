@@ -8,7 +8,7 @@ export const discountCodesPaths: ZodOpenApiPathsObject = {
     get: listDiscountCodes,
     post: createDiscountCode,
   },
-  "/discount-codes/{id}": {
+  "/discount-codes/{idOrCode}": {
     delete: deleteDiscountCode,
   },
 };
