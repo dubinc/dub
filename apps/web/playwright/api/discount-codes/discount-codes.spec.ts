@@ -483,7 +483,7 @@ test("GET /discount-codes – unknown partner", async ({ api, program }) => {
   });
 });
 
-test("DELETE /discount-codes/{id}", async ({ api }) => {
+test("DELETE /discount-codes/{idOrCode} – by id", async ({ api }) => {
   let partnerId: string | undefined;
 
   try {
@@ -501,17 +501,39 @@ test("DELETE /discount-codes/{id}", async ({ api }) => {
   }
 });
 
-test("DELETE /discount-codes/{id} – not found", async ({ api }) => {
-  const { status, data } = await api.delete(
-    "/api/discount-codes/dcode_does_not_exist",
-  );
+test("DELETE /discount-codes/{idOrCode} – by code", async ({ api }) => {
+  let partnerId: string | undefined;
 
-  expect(status).toEqual(404);
-  expect(data).toEqual({
-    error: {
-      code: "not_found",
-      message: "Discount code (dcode_does_not_exist) not found.",
-      doc_url: "https://dub.co/docs/api-reference/errors#not-found",
-    },
-  });
+  try {
+    const created = await createDiscountCode(api);
+    partnerId = created.partner.id;
+
+    const { status, data } = await api.delete<{ id: string }>(
+      `/api/discount-codes/${created.data.code}`,
+    );
+
+    expect(status).toEqual(200);
+    expect(data).toEqual({ id: created.data.id });
+  } finally {
+    await deletePartner(partnerId);
+  }
 });
+
+for (const idOrCode of ["dcode_does_not_exist", "CODE_DOES_NOT_EXIST"]) {
+  test(`DELETE /discount-codes/{idOrCode} – not found (${idOrCode})`, async ({
+    api,
+  }) => {
+    const { status, data } = await api.delete(
+      `/api/discount-codes/${idOrCode}`,
+    );
+
+    expect(status).toEqual(404);
+    expect(data).toEqual({
+      error: {
+        code: "not_found",
+        message: `Discount code (${idOrCode}) not found.`,
+        doc_url: "https://dub.co/docs/api-reference/errors#not-found",
+      },
+    });
+  });
+}
