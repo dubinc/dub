@@ -646,7 +646,7 @@ export const partnerMergedWebhookSchema = z.object({
       "Whether the surviving partner was already enrolled in this program before the merge. If `true`, the workspace had both partners and should collapse the source into the target. If `false`, only the source was enrolled and its Dub partner ID changed.",
     ),
   source: partnerMergedAccountSchema.describe(
-    "The partner account that was merged away. Its ID no longer exists.",
+    "The partner account that was merged away. Its enrollment in this program no longer exists; use `target.id` instead.",
   ),
   target: partnerMergedAccountSchema.describe(
     "The surviving partner account. `tenantId` is the post-merge value for this program.",
