@@ -40,6 +40,7 @@ import Link from "next/link";
 import { Fragment, ReactNode, createElement } from "react";
 import useSWR from "swr";
 import { PartnerApplicationRiskSummary } from "./fraud-risks/partner-application-risk-summary";
+import { PartnerProgramOwnerActivity } from "./fraud-risks/partner-program-owner-activity";
 import {
   PartnerApplicationRiskBanner,
   PartnerRiskBanner,
@@ -372,6 +373,9 @@ export function PartnerInfoCards({
 
           {partner && isEnrolled && showApplicationRiskAnalysis && (
             <PartnerApplicationRiskSummary partner={partner} />
+          )}
+          {partner && isEnrolled && showApplicationRiskAnalysis && (
+            <PartnerProgramOwnerActivity partnerId={partner.id} />
           )}
         </div>
       </div>
