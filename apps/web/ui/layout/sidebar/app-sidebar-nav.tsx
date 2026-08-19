@@ -113,7 +113,7 @@ const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({
     active: pathname.startsWith(`/${slug}/links`),
   };
 
-  return (defaultProduct ?? "links") === "links"
+  return defaultProduct === "links"
     ? [linksGroup, programGroup]
     : [programGroup, linksGroup];
 };

@@ -1,3 +1,5 @@
+import { createId } from "@/lib/api/create-id";
+import { prisma } from "@/lib/prisma";
 import type { BountyProps } from "@/lib/types";
 import { expect } from "@playwright/test";
 import { BountyStartMode, type Program } from "@prisma/client";
@@ -13,6 +15,7 @@ type BountyJson = Omit<
   endsAt: string | null;
   submissionsOpenAt: string | null;
   socialMetricsLastSyncedAt?: string | null;
+  partnerTags: { id: string }[];
 };
 
 type ProgramFixture = Pick<Program, "id" | "defaultGroupId">;
@@ -56,6 +59,21 @@ async function deleteBounty(api: ApiClient, id: string | undefined) {
   await api.delete(`/api/bounties/${id}`);
 }
 
+async function createPartnerTag(programId: string) {
+  return prisma.partnerTag.create({
+    data: {
+      id: createId({ prefix: "ptag_" }),
+      programId,
+      name: randomName("tag"),
+    },
+  });
+}
+
+async function deletePartnerTag(id: string | undefined) {
+  if (!id) return;
+  await prisma.partnerTag.delete({ where: { id } });
+}
+
 const expectedBountyDefaults = {
   id: expect.any(String),
   endsAt: null,
@@ -68,6 +86,7 @@ const expectedBountyDefaults = {
   performanceCondition: null,
   performanceScope: null,
   socialMetricsLastSyncedAt: null,
+  partnerTags: [],
 };
 
 test("POST /bounties", async ({ api, program }) => {
@@ -617,6 +636,19 @@ test("POST /bounties – relative with endsAfterDays", async ({
       startsAt: null,
       endsAfterDays: 180,
     });
+
+    const { status: descriptionPatchStatus, data: descriptionUpdated } =
+      await api.patch<BountyJson>(`/api/bounties/${id}`, {
+        description: "updated description only",
+      });
+
+    expect(descriptionPatchStatus).toEqual(200);
+    expect(descriptionUpdated).toMatchObject({
+      startMode: BountyStartMode.relative,
+      startsAt: null,
+      endsAfterDays: 180,
+      description: "updated description only",
+    });
   } finally {
     await deleteBounty(api, id);
   }
@@ -742,6 +774,111 @@ test("POST /bounties – invalid group IDs", async ({ api, program }) => {
       message: "Invalid group IDs detected: invalid-group-id",
     }),
   );
+});
+
+test("POST /bounties – invalid partner tag IDs", async ({ api, program }) => {
+  expect(
+    await api.post("/api/bounties", {
+      ...bountyPayload(program, {
+        partnerTagIds: ["invalid-partner-tag-id"],
+      }),
+    }),
+  ).toEqual(
+    badRequest("Invalid partner tag IDs detected: invalid-partner-tag-id"),
+  );
+});
+
+test("POST /bounties – with partnerTagIds null returns empty partnerTags", async ({
+  api,
+  program,
+}) => {
+  let id: string | undefined;
+
+  try {
+    const { status, data } = await createBounty(api, program, {
+      partnerTagIds: null,
+    });
+    id = data.id;
+
+    expect(status).toEqual(200);
+    expect(data.partnerTags).toEqual([]);
+  } finally {
+    await deleteBounty(api, id);
+  }
+});
+
+test("POST /bounties – with valid partnerTagIds", async ({ api, program }) => {
+  let id: string | undefined;
+  let partnerTagId: string | undefined;
+
+  try {
+    const partnerTag = await createPartnerTag(program.id);
+    partnerTagId = partnerTag.id;
+
+    const { status, data } = await createBounty(api, program, {
+      partnerTagIds: [partnerTag.id],
+    });
+    id = data.id;
+
+    expect(status).toEqual(200);
+    expect(data.partnerTags).toEqual([{ id: partnerTag.id }]);
+  } finally {
+    await deleteBounty(api, id);
+    await deletePartnerTag(partnerTagId);
+  }
+});
+
+test("PATCH /bounties/{bountyId} – clear partner tags", async ({
+  api,
+  program,
+}) => {
+  let id: string | undefined;
+  let partnerTagId: string | undefined;
+
+  try {
+    const partnerTag = await createPartnerTag(program.id);
+    partnerTagId = partnerTag.id;
+
+    const { data: created } = await createBounty(api, program, {
+      partnerTagIds: [partnerTag.id],
+    });
+    id = created.id;
+
+    expect(created.partnerTags).toEqual([{ id: partnerTag.id }]);
+
+    const { status, data } = await api.patch<BountyJson>(
+      `/api/bounties/${id}`,
+      { partnerTagIds: null },
+    );
+
+    expect(status).toEqual(200);
+    expect(data.partnerTags).toEqual([]);
+  } finally {
+    await deleteBounty(api, id);
+    await deletePartnerTag(partnerTagId);
+  }
+});
+
+test("PATCH /bounties/{bountyId} – invalid partner tag IDs", async ({
+  api,
+  program,
+}) => {
+  let id: string | undefined;
+
+  try {
+    const { data: created } = await createBounty(api, program);
+    id = created.id;
+
+    expect(
+      await api.patch(`/api/bounties/${id}`, {
+        partnerTagIds: ["invalid-partner-tag-id"],
+      }),
+    ).toEqual(
+      badRequest("Invalid partner tag IDs detected: invalid-partner-tag-id"),
+    );
+  } finally {
+    await deleteBounty(api, id);
+  }
 });
 
 test("POST /bounties – maxSubmissions below minimum is rejected", async ({
