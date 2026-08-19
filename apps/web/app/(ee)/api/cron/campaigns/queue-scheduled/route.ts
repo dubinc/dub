@@ -1,8 +1,14 @@
 import { isScheduledWorkflow } from "@/lib/api/workflows/utils";
-import { CRON_BATCH_SIZE, qstash } from "@/lib/cron";
+import { CRON_BATCH_SIZE } from "@/lib/cron";
+import { enqueueBatchJobs } from "@/lib/cron/enqueue-batch-jobs";
 import { withCron } from "@/lib/cron/with-cron";
 import { prisma } from "@/lib/prisma";
-import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
+import {
+  APP_DOMAIN_WITH_NGROK,
+  isRejected,
+  log,
+  serializeError,
+} from "@dub/utils";
 import { CampaignStatus, CampaignType } from "@prisma/client";
 import { logAndRespond } from "../../utils";
 
@@ -14,19 +20,46 @@ export const maxDuration = 600;
 export const GET = withCron(async () => {
   const now = new Date();
 
-  await Promise.all([
+  const [transactional, marketing] = await Promise.allSettled([
     queueTransactionalCampaigns(now),
     queueMarketingCampaigns(now),
   ]);
 
-  return logAndRespond("Finished the campaigns queueing process.");
+  const failures: string[] = [];
+
+  if (isRejected(transactional)) {
+    failures.push(`transactional: ${serializeError(transactional.reason)}`);
+  }
+
+  if (isRejected(marketing)) {
+    failures.push(`marketing: ${serializeError(marketing.reason)}`);
+  }
+
+  if (failures.length > 0) {
+    const message = `Campaign queueing partially failed: ${failures.join("; ")}`;
+    await log({ type: "errors", message });
+    return logAndRespond(message, { logLevel: "error" });
+  }
+
+  const transactionalQueued =
+    transactional.status === "fulfilled" ? transactional.value : 0;
+  const marketingQueued =
+    marketing.status === "fulfilled" ? marketing.value : 0;
+
+  if (transactionalQueued + marketingQueued === 0) {
+    return logAndRespond("No campaigns to queue.");
+  }
+
+  return logAndRespond(
+    `Queued ${marketingQueued} marketing and ${transactionalQueued} transactional campaigns.`,
+  );
 });
 
 async function queueTransactionalCampaigns(now: Date) {
   // Matches the 12h enrollment window in executeSendCampaignWorkflow.
-  if (now.getUTCMinutes() !== 0 || now.getUTCHours() % 12 !== 0) {
-    console.log("[Transactional] Not the 12h tick, skipping campaigns.");
-    return;
+  // 5-minute window absorbs Vercel cron jitter; QStash dedup (10 min) collapses extra publishes.
+  if (!isTransactionalTick(now)) {
+    return 0;
   }
 
   let queued = 0;
@@ -58,7 +91,6 @@ async function queueTransactionalCampaigns(now: Date) {
     });
 
     if (campaigns.length === 0) {
-      console.log("[Transactional] No more campaigns to queue.");
       break;
     }
 
@@ -69,10 +101,11 @@ async function queueTransactionalCampaigns(now: Date) {
     );
 
     if (scheduledWorkflows.length > 0) {
-      await qstash.batchJSON(
+      await enqueueBatchJobs(
         scheduledWorkflows.map((workflow) => ({
           url: `${APP_DOMAIN_WITH_NGROK}/api/cron/workflows/${workflow.id}`,
           deduplicationId: workflow.id,
+          label: "execute-scheduled-workflow",
           flowControl: {
             key: "execute-scheduled-workflow",
             parallelism: 10,
@@ -87,41 +120,42 @@ async function queueTransactionalCampaigns(now: Date) {
     page++;
   }
 
-  console.log(`[Transactional] Queued ${queued} campaigns.`);
+  return queued;
 }
 
 async function queueMarketingCampaigns(now: Date) {
   let queued = 0;
-  let page = 0;
+  let lastCampaignId: string | undefined;
 
   while (true) {
     const campaigns = await prisma.campaign.findMany({
       where: {
         type: CampaignType.marketing,
+        // Do not reclaim `sending` campaigns; failures Slack-alert and we resume them manually.
         status: CampaignStatus.scheduled,
         OR: [{ scheduledAt: null }, { scheduledAt: { lte: now } }],
+        ...(lastCampaignId && { id: { gt: lastCampaignId } }),
       },
       select: {
         id: true,
       },
       take: CRON_BATCH_SIZE,
-      skip: page * CRON_BATCH_SIZE,
       orderBy: {
         id: "asc",
       },
     });
 
     if (campaigns.length === 0) {
-      console.log("[Marketing] No more campaigns to queue.");
       break;
     }
 
-    await qstash.batchJSON(
+    await enqueueBatchJobs(
       campaigns.map((campaign) => ({
         url: `${APP_DOMAIN_WITH_NGROK}/api/cron/campaigns/broadcast`,
         deduplicationId: campaign.id,
+        label: "broadcast-marketing-campaign",
         flowControl: {
-          key: "broadcast-marketing-campaign",
+          key: `broadcast-marketing-campaign-${campaign.id}`,
           parallelism: 1,
         },
         body: {
@@ -131,8 +165,8 @@ async function queueMarketingCampaigns(now: Date) {
     );
 
     queued += campaigns.length;
-    page++;
+    lastCampaignId = campaigns[campaigns.length - 1].id;
   }
 
-  console.log(`[Marketing] Queued ${queued} campaigns.`);
+  return queued;
 }

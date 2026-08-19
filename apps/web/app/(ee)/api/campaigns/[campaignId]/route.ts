@@ -200,7 +200,7 @@ export const PATCH = withWorkspace(
           url: `${APP_DOMAIN_WITH_NGROK}/api/cron/campaigns/broadcast`,
           deduplicationId: campaignId,
           flowControl: {
-            key: "broadcast-marketing-campaign",
+            key: `broadcast-marketing-campaign-${campaignId}`,
             parallelism: 1,
           },
           body: {

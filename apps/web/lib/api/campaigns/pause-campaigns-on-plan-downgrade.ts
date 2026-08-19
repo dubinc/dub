@@ -6,6 +6,7 @@ export async function pauseOrCancelCampaignsForProgramOnPlanDowngrade({
 }: {
   programId: string;
 }): Promise<void> {
+  // Cancel marketing campaigns
   await prisma.campaign.updateMany({
     where: {
       programId,
@@ -25,28 +26,39 @@ export async function pauseOrCancelCampaignsForProgramOnPlanDowngrade({
       type: CampaignType.transactional,
       status: CampaignStatus.active,
     },
+    select: {
+      workflowId: true,
+    },
   });
 
-  for (const campaign of transactionalCampaigns) {
-    try {
-      await prisma.$transaction(async (tx) => {
-        if (campaign.workflowId) {
-          await tx.workflow.update({
-            where: { id: campaign.workflowId },
-            data: { disabledAt: new Date() },
-          });
-        }
+  const workflowIds = transactionalCampaigns.flatMap((campaign) =>
+    campaign.workflowId ? [campaign.workflowId] : [],
+  );
 
-        await tx.campaign.update({
-          where: { id: campaign.id },
-          data: { status: CampaignStatus.paused },
-        });
+  await prisma.$transaction(async (tx) => {
+    if (workflowIds.length > 0) {
+      await tx.workflow.updateMany({
+        where: {
+          id: {
+            in: workflowIds,
+          },
+          disabledAt: null,
+        },
+        data: {
+          disabledAt: new Date(),
+        },
       });
-    } catch (error) {
-      console.warn(
-        `Failed to pause transactional campaign ${campaign.id} on plan downgrade:`,
-        error,
-      );
     }
-  }
+
+    await tx.campaign.updateMany({
+      where: {
+        programId,
+        type: CampaignType.transactional,
+        status: CampaignStatus.active,
+      },
+      data: {
+        status: CampaignStatus.paused,
+      },
+    });
+  });
 }
