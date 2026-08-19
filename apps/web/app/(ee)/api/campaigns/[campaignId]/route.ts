@@ -198,7 +198,6 @@ export const PATCH = withWorkspace(
       waitUntil(
         qstash.publishJSON({
           url: `${APP_DOMAIN_WITH_NGROK}/api/cron/campaigns/broadcast`,
-          deduplicationId: campaignId,
           flowControl: {
             key: `broadcast-marketing-campaign-${campaignId}`,
             parallelism: 1,

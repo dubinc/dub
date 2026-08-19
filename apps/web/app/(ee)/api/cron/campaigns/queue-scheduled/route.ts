@@ -159,7 +159,6 @@ async function queueMarketingCampaigns(now: Date) {
     await enqueueBatchJobs(
       campaigns.map((campaign) => ({
         url: `${APP_DOMAIN_WITH_NGROK}/api/cron/campaigns/broadcast`,
-        deduplicationId: campaign.id,
         label: "broadcast-marketing-campaign",
         flowControl: {
           key: `broadcast-marketing-campaign-${campaign.id}`,
