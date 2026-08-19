@@ -135,9 +135,9 @@ export default function DomainCard({ props }: { props: DomainProps }) {
         onPointerLeave={() => setGroupHover(false)}
       >
         {isDubProvisioned && (
-          <div className="flex items-center justify-between gap-2 rounded-t-xl border-b border-neutral-100 bg-neutral-50 px-5 py-2 text-xs">
-            <div className="flex items-center gap-2">
-              <div className="flex items-center gap-1.5">
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 rounded-t-xl border-b border-neutral-100 bg-neutral-50 px-4 py-2 text-xs sm:px-5">
+            <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-2 gap-y-1">
+              <div className="flex shrink-0 items-center gap-1.5">
                 <Wordmark className="h-4" />
                 <span className="font-medium text-neutral-900">
                   Provisioned by Dub
@@ -146,8 +146,9 @@ export default function DomainCard({ props }: { props: DomainProps }) {
 
               {expiresAt && (
                 <button
+                  type="button"
                   className={cn(
-                    "flex items-center gap-1 decoration-dotted underline-offset-2 hover:underline",
+                    "flex items-center gap-1 whitespace-nowrap decoration-dotted underline-offset-2 hover:underline",
                     isExpired
                       ? "text-red-600"
                       : autoRenew
@@ -159,9 +160,9 @@ export default function DomainCard({ props }: { props: DomainProps }) {
                   }}
                 >
                   {autoRenew ? (
-                    <Repeat className="size-3.5" />
+                    <Repeat className="size-3.5 shrink-0" />
                   ) : (
-                    <CircleHalfDottedClock className="size-3.5" />
+                    <CircleHalfDottedClock className="size-3.5 shrink-0" />
                   )}
                   <span className="text-xs font-medium">
                     {autoRenew
@@ -175,7 +176,7 @@ export default function DomainCard({ props }: { props: DomainProps }) {
             <a
               href="https://dub.co/help/article/free-dot-link-domain"
               target="_blank"
-              className="text-neutral-500 underline transition-colors hover:text-neutral-800"
+              className="ml-auto shrink-0 text-neutral-500 underline transition-colors hover:text-neutral-800"
             >
               Learn more
             </a>
