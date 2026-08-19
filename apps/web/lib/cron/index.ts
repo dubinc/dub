@@ -11,6 +11,8 @@ export const qstash = new Client({
   }),
 });
 
+// This is a special client only used for publishWebhookEventToQStash
+// (to avoid forwarding the Vercel automation bypass secret to third party webhook receivers)
 export const qstashWithoutBypass = new Client({
   baseUrl: process.env.QSTASH_URL || "https://qstash-us-east-1.upstash.io",
   token: process.env.QSTASH_TOKEN || "",
