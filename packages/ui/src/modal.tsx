@@ -17,9 +17,12 @@ import { useMediaQuery } from "./hooks";
 // Dev-only detector for modal remount bugs: an open Modal unmounting while
 // another mounts open in the same commit means its element type changed
 // (unstable hook dep) and any user state in it was lost
-let pendingOpenUnmount = false;
+let pendingOpenUnmount: unknown = null;
 
 function useWarnOnRemountWhileOpen(showModal?: boolean) {
+  // Per-instance token so Strict Mode's same-instance setup/cleanup/setup
+  // cycle doesn't register as a remount
+  const instance = useRef({});
   const showModalRef = useRef(showModal);
 
   useEffect(() => {
@@ -29,8 +32,12 @@ function useWarnOnRemountWhileOpen(showModal?: boolean) {
   useEffect(() => {
     if (process.env.NODE_ENV !== "development") return;
 
-    if (showModalRef.current && pendingOpenUnmount) {
-      pendingOpenUnmount = false;
+    if (
+      showModalRef.current &&
+      pendingOpenUnmount &&
+      pendingOpenUnmount !== instance.current
+    ) {
+      pendingOpenUnmount = null;
       console.warn(
         "[Modal] remounted while open — the modal's element type changed mid-session (unstable hook dep?) and any user state in it was lost.",
       );
@@ -38,9 +45,9 @@ function useWarnOnRemountWhileOpen(showModal?: boolean) {
 
     return () => {
       if (showModalRef.current) {
-        pendingOpenUnmount = true;
+        pendingOpenUnmount = instance.current;
         queueMicrotask(() => {
-          pendingOpenUnmount = false;
+          pendingOpenUnmount = null;
         });
       }
     };
