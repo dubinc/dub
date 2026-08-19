@@ -10,6 +10,7 @@ import {
   BountyEventWebhookPayload,
   ClickEventWebhookPayload,
   CommissionEventWebhookPayload,
+  DiscountCodeEventWebhookPayload,
   LeadEventWebhookPayload,
   PartnerApplicationWebhookPayload,
   PartnerEventWebhookPayload,
@@ -660,6 +661,44 @@ const payoutConfirmedTemplate = ({
   };
 };
 
+const discountCodeTemplates = ({
+  data,
+  event,
+}: {
+  data: DiscountCodeEventWebhookPayload;
+  event: WebhookTrigger;
+}) => {
+  const eventMessages = {
+    "discount_code.created": "*Discount code created* :ticket:",
+    "discount_code.deleted": "*Discount code deleted* :ticket:",
+  };
+
+  return {
+    blocks: [
+      {
+        type: "section",
+        text: {
+          type: "mrkdwn",
+          text: eventMessages[event as keyof typeof eventMessages],
+        },
+      },
+      {
+        type: "section",
+        fields: [
+          {
+            type: "mrkdwn",
+            text: `*Code*\n${data.code}`,
+          },
+          {
+            type: "mrkdwn",
+            text: `*Partner ID*\n${data.partnerId}`,
+          },
+        ],
+      },
+    ],
+  };
+};
+
 const slackTemplates: Record<WebhookTrigger, any> = {
   "link.created": linkTemplates,
   "link.updated": linkTemplates,
@@ -674,6 +713,8 @@ const slackTemplates: Record<WebhookTrigger, any> = {
   "bounty.created": bountyTemplates,
   "bounty.updated": bountyTemplates,
   "payout.confirmed": payoutConfirmedTemplate,
+  "discount_code.created": discountCodeTemplates,
+  "discount_code.deleted": discountCodeTemplates,
 };
 
 export const formatEventForSlack = (
@@ -690,9 +731,13 @@ export const formatEventForSlack = (
     event,
   );
   const isBountyEvent = ["bounty.created", "bounty.updated"].includes(event);
+  const isDiscountCodeEvent = [
+    "discount_code.created",
+    "discount_code.deleted",
+  ].includes(event);
 
   return template({
     data,
-    ...((isLinkEvent || isBountyEvent) && { event }),
+    ...((isLinkEvent || isBountyEvent || isDiscountCodeEvent) && { event }),
   });
 };
