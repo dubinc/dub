@@ -6,14 +6,24 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { EmailDomainProps } from "@/lib/types";
 import { useAddEditEmailDomainModal } from "@/ui/modals/add-edit-email-domain-modal";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
-import { ArrowTurnRight2, Button, buttonVariants } from "@dub/ui";
+import {
+  ArrowTurnRight2,
+  Button,
+  buttonVariants,
+  useRouterStuff,
+} from "@dub/ui";
 import { cn } from "@dub/utils";
 import { EmailDomainCard } from "app/app.dub.co/(dashboard)/[slug]/(ee)/settings/domains/email/email-domain-card";
 import { Mail } from "lucide-react";
 import Link from "next/link";
+import { useEffect } from "react";
+import { toast } from "sonner";
+import { useSWRConfig } from "swr";
 
 export function EmailDomains() {
   const { slug, plan } = useWorkspace();
+  const { searchParams, queryParams } = useRouterStuff();
+  const { mutate } = useSWRConfig();
 
   const {
     emailDomains,
@@ -22,6 +32,43 @@ export function EmailDomains() {
   } = useEmailDomains();
 
   const { canSendEmailCampaigns } = getPlanCapabilities(plan);
+
+  useEffect(() => {
+    if (searchParams.get("domain_connect") !== "callback") return;
+    const error = searchParams.get("error");
+    const errorDesc = searchParams.get("error_description");
+    if (error) {
+      toast.error(
+        errorDesc === "user_cancel"
+          ? "DNS setup was cancelled."
+          : "Your DNS provider returned an error. Try again or configure manually.",
+      );
+    } else {
+      toast.success(
+        "DNS changes submitted. Checking email domain verification…",
+      );
+      const revalidateEmailDomains = () => {
+        void mutate(
+          (key) =>
+            typeof key === "string" &&
+            key.includes("/api/email-domains/") &&
+            key.includes("/verify"),
+        );
+        void mutate(
+          (key) =>
+            typeof key === "string" && key.startsWith("/api/email-domains"),
+        );
+      };
+      revalidateEmailDomains();
+      window.setTimeout(revalidateEmailDomains, 4000);
+      window.setTimeout(revalidateEmailDomains, 10000);
+    }
+    queryParams({
+      del: ["domain_connect", "error", "error_description", "state"],
+      replace: true,
+      scroll: false,
+    });
+  }, [searchParams, queryParams, mutate]);
 
   if (!canSendEmailCampaigns) {
     return (
