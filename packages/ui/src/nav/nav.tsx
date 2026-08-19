@@ -212,9 +212,8 @@ export function Nav({
                 className="group/nav relative flex"
                 onMouseLeave={() => {
                   const list = navListRef.current;
-                  const openTrigger = list?.querySelector<HTMLElement>(
-                    "[data-state=open]",
-                  );
+                  const openTrigger =
+                    list?.querySelector<HTMLElement>("[data-state=open]");
                   // Keep the pill on the open trigger so it doesn't flicker into the dropdown
                   if (list && openTrigger) {
                     setHoverStyle(getHoverStyle(list, openTrigger));

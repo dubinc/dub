@@ -1,6 +1,7 @@
 import { logger } from "@/lib/axiom/server";
 import { qstash } from "@/lib/cron";
 import { prisma } from "@/lib/prisma";
+import { assertProductionWorkspace } from "@/lib/sandbox/workspace-guards";
 import {
   TREMENDOUS_MAX_PAYOUT_AMOUNT_CENTS,
   TREMENDOUS_MIN_PAYOUT_AMOUNT_CENTS,
@@ -11,6 +12,7 @@ import {
   PartnerPayoutMethod,
   PayoutMode,
   PayoutStatus,
+  Project,
 } from "@prisma/client";
 
 const queue = qstash.queue({
@@ -18,10 +20,15 @@ const queue = qstash.queue({
 });
 
 export async function queueTremendousPayouts({
+  workspace,
   invoice,
 }: {
+  workspace: Pick<Project, "environment">;
   invoice: Pick<Invoice, "id" | "payoutMode" | "programId">;
 }) {
+  // Extra safety check to make sure we're not processing payouts for a non-production workspace
+  assertProductionWorkspace(workspace);
+
   if (invoice.payoutMode === "external") {
     console.log(
       `Invoice ${invoice.id} is paid externally, skipping Tremendous payouts...`,

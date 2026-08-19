@@ -7,7 +7,7 @@ import {
   currencyFormatter,
   log,
 } from "@dub/utils";
-import { Prisma } from "@prisma/client";
+import { Prisma, WorkspaceEnvironment } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { CreateOrder200Response, OrdersApi } from "tremendous";
 import { trackCommissionStatusUpdatesByProgram } from "../api/commissions/track-commission-update-activity-log";
@@ -79,12 +79,18 @@ export async function sendTremendousPayouts({
             gte: TREMENDOUS_MIN_PAYOUT_AMOUNT_CENTS,
             lte: TREMENDOUS_MAX_PAYOUT_AMOUNT_CENTS,
           },
+          program: {
+            workspace: {
+              environment: WorkspaceEnvironment.production,
+            },
+          },
         },
         orderBy: {
           id: "asc",
         },
         include: commonInclude,
       }),
+
       invoiceId
         ? prisma.payout.findMany({
             where: {
@@ -97,6 +103,11 @@ export async function sendTremendousPayouts({
               amount: {
                 gte: TREMENDOUS_MIN_PAYOUT_AMOUNT_CENTS,
                 lte: TREMENDOUS_MAX_PAYOUT_AMOUNT_CENTS,
+              },
+              program: {
+                workspace: {
+                  environment: WorkspaceEnvironment.production,
+                },
               },
             },
             orderBy: {

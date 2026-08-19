@@ -29,6 +29,16 @@ const jobLoaders = {
     import("./handlers/create-tremendous-campaign-job").then(
       (m) => m.createTremendousCampaignJob,
     ),
+
+  "create-staging-workspace-job": () =>
+    import("./handlers/create-staging-workspace-job").then(
+      (m) => m.createStagingWorkspaceJob,
+    ),
+
+  "sync-staging-workspace-job": () =>
+    import("./handlers/sync-staging-workspace-job").then(
+      (m) => m.syncStagingWorkspaceJob,
+    ),
 } as const satisfies Record<string, () => Promise<JobDefinition>>;
 
 const jobCache = new Map<string, JobDefinition>();

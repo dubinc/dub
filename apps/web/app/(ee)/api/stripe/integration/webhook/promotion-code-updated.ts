@@ -11,7 +11,7 @@ export async function promotionCodeUpdated({
   "mode"
 >): Promise<WebhookHandlerResponse> {
   const promotionCode = event.data.object;
-  const stripeAccountId = event.account as string;
+  const stripeAccountId = workspace.stripeConnectId!;
 
   if (!workspace.defaultProgramId) {
     return {

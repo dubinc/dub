@@ -4,11 +4,14 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { validateAllowedHostnames } from "@/lib/api/validate-allowed-hostnames";
 import { deleteWorkspace } from "@/lib/api/workspaces/delete-workspace";
 import { prefixWorkspaceId } from "@/lib/api/workspaces/workspace-id";
+import { getWorkspaceLogoKeyPrefix } from "@/lib/api/workspaces/workspace-logo";
 import { workspaceProductCache } from "@/lib/api/workspaces/workspace-product-cache";
 import { withWorkspace } from "@/lib/auth";
 import { getFeatureFlags } from "@/lib/edge-config";
 import { jackson } from "@/lib/jackson";
+import { syncStagingWorkspaceJob } from "@/lib/jobs/handlers/sync-staging-workspace-job";
 import { prisma } from "@/lib/prisma";
+import { assertNotStagingWorkspace } from "@/lib/sandbox/workspace-guards";
 import { mergeSiteVisitTrackingSettings } from "@/lib/sitemaps/site-visit-tracking";
 import { storage } from "@/lib/storage";
 import {
@@ -98,6 +101,10 @@ export const PATCH = withWorkspace(
       siteVisitTrackingSettings,
     } = await updateWorkspaceSchema.parseAsync(await parseRequestBody(req));
 
+    assertNotStagingWorkspace(workspace, {
+      when: !!(name || slug || logo),
+    });
+
     if (["free", "pro"].includes(workspace.plan) && conversionEnabled) {
       throw new DubApiError({
         code: "forbidden",
@@ -111,7 +118,7 @@ export const PATCH = withWorkspace(
 
     const logoUploaded = logo
       ? await storage.upload({
-          key: `workspaces/${prefixWorkspaceId(workspace.id)}/logo_${nanoid(7)}`,
+          key: `${getWorkspaceLogoKeyPrefix(workspace.id)}${nanoid(7)}`,
           body: logo,
         })
       : null;
@@ -276,6 +283,11 @@ export const PATCH = withWorkspace(
               });
             }
           }
+
+          await syncStagingWorkspaceJob.dispatch({
+            action: "sync-workspace",
+            workspaceId: updatedWorkspace.id,
+          });
         })(),
       );
 
@@ -316,6 +328,10 @@ export const DELETE = withWorkspace(
           "You cannot delete a workspace with an active partner program.",
       });
     }
+
+    assertNotStagingWorkspace(workspace, {
+      message: "Deleting a staging workspace is not allowed.",
+    });
 
     await deleteWorkspace(workspace);
 

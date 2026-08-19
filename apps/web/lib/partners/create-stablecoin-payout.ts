@@ -11,7 +11,11 @@ import {
   pluralize,
   prettyPrint,
 } from "@dub/utils";
-import { PartnerPayoutMethod, Prisma } from "@prisma/client";
+import {
+  PartnerPayoutMethod,
+  Prisma,
+  WorkspaceEnvironment,
+} from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { PARTNER_IDS_TO_LOG_PAYOUTS_FOR } from "../constants/misc";
 import {
@@ -83,6 +87,11 @@ export const createStablecoinPayout = async ({
           method: {
             in: [PartnerPayoutMethod.stablecoin, PartnerPayoutMethod.connect],
           },
+          program: {
+            workspace: {
+              environment: WorkspaceEnvironment.production,
+            },
+          },
         },
         orderBy: {
           id: "asc",
@@ -98,6 +107,11 @@ export const createStablecoinPayout = async ({
               stripePayoutId: null,
               method: "stablecoin",
               invoiceId,
+              program: {
+                workspace: {
+                  environment: WorkspaceEnvironment.production,
+                },
+              },
             },
             orderBy: {
               id: "asc",

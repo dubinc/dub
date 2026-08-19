@@ -3,8 +3,10 @@ import { claimDotLinkDomain } from "@/lib/api/domains/claim-dot-link-domain";
 import { reactivateProgram } from "@/lib/api/programs/reactivate-program";
 import { onboardingStepCache } from "@/lib/api/workspaces/onboarding-step-cache";
 import { tokenCache } from "@/lib/auth/token-cache";
+import { syncStagingWorkspaceJob } from "@/lib/jobs/handlers/sync-staging-workspace-job";
 import { wouldGainPartnerAccess } from "@/lib/plans/has-partner-access";
 import { prisma } from "@/lib/prisma";
+import { queueCreateStagingWorkspace } from "@/lib/sandbox/create-staging-workspace";
 import { stripe } from "@/lib/stripe";
 import { getSubscriptionBillingFields } from "@/lib/stripe/workspace-subscription-fields";
 import { redis } from "@/lib/upstash";
@@ -137,13 +139,21 @@ export async function checkoutSessionCompleted(
 
   await Promise.allSettled([
     completeOnboarding({ users, workspaceId, subscription }),
+
+    queueCreateStagingWorkspace(updatedWorkspace),
+
+    syncStagingWorkspaceJob.dispatch({
+      action: "sync-workspace",
+      workspaceId: updatedWorkspace.id,
+    }),
+
     // if workspace had a program from before and is upgrading to an eligible plan, reactivate it
     updatedWorkspace.defaultProgramId &&
       wouldGainPartnerAccess({
         currentPlan: "free",
         newPlan: updatedWorkspace.plan,
       }) &&
-      reactivateProgram(updatedWorkspace.defaultProgramId),
+      reactivateProgram(updatedWorkspace),
     // If no programOnboarding data (Links trial), send TrialStartedEmail
     // For program trial we send it in create-program.ts
     subscription.status === "trialing" &&
