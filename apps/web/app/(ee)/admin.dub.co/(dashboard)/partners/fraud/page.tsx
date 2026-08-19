@@ -319,8 +319,8 @@ function FraudAlertsPageClient() {
     resourceName: (plural) => `fraud alert${plural ? "s" : ""}`,
     rowCount: total ?? 0,
     loading: isLoading,
-    thClassName: (id) => (id === "partner" ? "pl-4" : undefined),
-    tdClassName: (id) => (id === "partner" ? "pl-4" : undefined),
+    thClassName: (id) => (id === "partner" ? "pl-4" : ""),
+    tdClassName: (id) => (id === "partner" ? "pl-4" : ""),
     getRowId: (row) => row.id,
     selectionControls: (tableInstance) => {
       const selectedAlerts = tableInstance
