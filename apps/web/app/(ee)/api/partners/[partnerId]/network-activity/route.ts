@@ -4,11 +4,11 @@ import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import {
   ACTIVE_ENROLLMENT_STATUSES,
-  partnerCrossProgramSummarySchema,
+  partnerNetworkActivitySummarySchema,
 } from "@/lib/zod/schemas/partners";
 import { NextResponse } from "next/server";
 
-// GET /api/partners/:partnerId/cross-program-summary - get cross-program summary for a partner
+// GET /api/partners/:partnerId/network-activity - get network activity summary for a partner
 export const GET = withWorkspace(
   async ({ workspace, params }) => {
     const { partnerId } = params;
@@ -41,7 +41,7 @@ export const GET = withWorkspace(
         ?._count ?? 0;
 
     return NextResponse.json(
-      partnerCrossProgramSummarySchema.parse({
+      partnerNetworkActivitySummarySchema.parse({
         totalPrograms: activePrograms + bannedPrograms,
         activePrograms,
         bannedPrograms,
