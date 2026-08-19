@@ -55,6 +55,12 @@ export const GET = withCron(async () => {
   );
 });
 
+// First 5 minutes of 00:00/12:00 UTC. QStash dedup lasts 10 minutes, so this
+// absorbs Vercel cron jitter without leaking a second publish after expiry.
+function isTransactionalTick(now: Date) {
+  return now.getUTCHours() % 12 === 0 && now.getUTCMinutes() < 5;
+}
+
 async function queueTransactionalCampaigns(now: Date) {
   // Matches the 12h enrollment window in executeSendCampaignWorkflow.
   // 5-minute window absorbs Vercel cron jitter; QStash dedup (10 min) collapses extra publishes.
