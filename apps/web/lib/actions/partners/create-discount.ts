@@ -82,8 +82,12 @@ export const createDiscountAction = authActionClient
           type,
           maxDuration,
           provider,
-          couponId: coupon?.id || couponId || null,
-          ...(couponTestId && { couponTestId }),
+          couponId:
+            provider === DiscountProvider.stripe
+              ? coupon?.id || couponId || null
+              : null,
+          ...(provider === DiscountProvider.stripe &&
+            couponTestId && { couponTestId }),
           ...(autoProvision && { autoProvisionEnabledAt: new Date() }),
         },
       });
