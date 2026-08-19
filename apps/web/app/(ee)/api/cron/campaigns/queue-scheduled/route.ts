@@ -69,7 +69,7 @@ async function queueTransactionalCampaigns(now: Date) {
   }
 
   let queued = 0;
-  let page = 0;
+  let lastCampaignId: string | undefined;
 
   while (true) {
     const campaigns = await prisma.campaign.findMany({
@@ -79,8 +79,10 @@ async function queueTransactionalCampaigns(now: Date) {
         workflow: {
           disabledAt: null,
         },
+        ...(lastCampaignId && { id: { gt: lastCampaignId } }),
       },
       select: {
+        id: true,
         workflow: {
           select: {
             id: true,
@@ -90,7 +92,6 @@ async function queueTransactionalCampaigns(now: Date) {
         },
       },
       take: CRON_BATCH_SIZE,
-      skip: page * CRON_BATCH_SIZE,
       orderBy: {
         id: "asc",
       },
@@ -123,7 +124,7 @@ async function queueTransactionalCampaigns(now: Date) {
       queued += scheduledWorkflows.length;
     }
 
-    page++;
+    lastCampaignId = campaigns[campaigns.length - 1].id;
   }
 
   return queued;
