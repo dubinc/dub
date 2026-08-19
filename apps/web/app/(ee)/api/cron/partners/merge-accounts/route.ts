@@ -11,6 +11,8 @@ import { prisma } from "@/lib/prisma";
 import { storage } from "@/lib/storage";
 import { recordLink } from "@/lib/tinybird";
 import { redis } from "@/lib/upstash";
+import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
+import { partnerMergedWebhookSchema } from "@/lib/zod/schemas/partners";
 import { sendBatchEmail } from "@dub/email";
 import PartnerAccountMerged from "@dub/email/templates/partner-account-merged";
 import { log, prettyPrint, R2_URL } from "@dub/utils";
@@ -69,6 +71,16 @@ export async function POST(req: Request) {
             programId: true,
             tenantId: true,
             status: true,
+            program: {
+              select: {
+                workspace: {
+                  select: {
+                    id: true,
+                    webhookEnabled: true,
+                  },
+                },
+              },
+            },
           },
         },
         users: {
@@ -321,6 +333,37 @@ export async function POST(req: Request) {
           `Deleted old source enrollment for program ${sourceEnrollment.programId}.${sourceEnrollment.tenantId ? ` Since there was a tenantId, we updated the target enrollment with the same tenantId: ${sourceEnrollment.tenantId}` : ""}`,
         );
       }
+    }
+
+    if (sourcePartnerEnrollments.length > 0) {
+      const webhookResults = await Promise.allSettled(
+        sourcePartnerEnrollments.map((sourceEnrollment) => {
+          const targetEnrollment = targetPartnerEnrollments.find(
+            ({ programId }) => programId === sourceEnrollment.programId,
+          );
+
+          return sendWorkspaceWebhook({
+            workspace: sourceEnrollment.program.workspace,
+            trigger: "partner.merged",
+            data: partnerMergedWebhookSchema.parse({
+              programId: sourceEnrollment.programId,
+              targetAlreadyEnrolled: Boolean(targetEnrollment),
+              source: {
+                id: sourcePartnerId,
+                tenantId: sourceEnrollment.tenantId,
+                email: sourceAccount.email ?? null,
+              },
+              target: {
+                id: targetPartnerId,
+                tenantId:
+                  targetEnrollment?.tenantId ?? sourceEnrollment.tenantId,
+                email: targetAccount.email ?? null,
+              },
+            }),
+          });
+        }),
+      );
+      console.log(prettyPrint(webhookResults));
     }
 
     // Remove the user if there are no workspaces left

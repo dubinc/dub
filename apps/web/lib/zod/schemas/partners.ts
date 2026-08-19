@@ -629,6 +629,30 @@ export const WebhookPartnerSchema = PartnerSchema.pick({
   totalCommissions: centsSchema,
 });
 
+const partnerMergedAccountSchema = z.object({
+  id: z.string().describe("The partner's unique ID on Dub."),
+  tenantId: z
+    .string()
+    .nullable()
+    .describe("The partner's unique ID within your database for this program."),
+  email: z.string().nullable().describe("The partner's email address."),
+});
+
+export const partnerMergedWebhookSchema = z.object({
+  programId: z.string().describe("The program's unique ID on Dub."),
+  targetAlreadyEnrolled: z
+    .boolean()
+    .describe(
+      "Whether the surviving partner was already enrolled in this program before the merge. If `true`, the workspace had both partners and should collapse the source into the target. If `false`, only the source was enrolled and its Dub partner ID changed.",
+    ),
+  source: partnerMergedAccountSchema.describe(
+    "The partner account that was merged away. Its ID no longer exists.",
+  ),
+  target: partnerMergedAccountSchema.describe(
+    "The surviving partner account. `tenantId` is the post-merge value for this program.",
+  ),
+});
+
 export const LeaderboardPartnerSchema = z.object({
   id: z.string(),
   totalCommissions: centsSchemaWithDefault,
