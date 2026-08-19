@@ -8,6 +8,9 @@ jobs:
     timeout-minutes: 30
     if: github.event_name == 'deployment_status' && github.event.deployment_status.state == 'success'
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
     steps:
       - name: Check out code
         uses: actions/checkout@v2

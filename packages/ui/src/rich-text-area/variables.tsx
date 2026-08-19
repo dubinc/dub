@@ -11,6 +11,12 @@ import {
 import { Button } from "../button";
 import { Input } from "../input";
 
+export type RichTextVariableInfo = {
+  description?: string;
+  example?: string;
+  hideExample?: boolean;
+};
+
 const updatePosition = (editor: Editor, element: HTMLElement) => {
   const virtualElement = {
     getBoundingClientRect: () =>
@@ -33,7 +39,10 @@ const updatePosition = (editor: Editor, element: HTMLElement) => {
   });
 };
 
-export const suggestions = (variables: string[]) => ({
+export const suggestions = (
+  variables: string[],
+  variableInfo?: Record<string, RichTextVariableInfo>,
+) => ({
   items: ({ query }: { query: string }) => {
     const q = query.trim().toLowerCase();
     if (!q) return variables.slice(0, 10);
@@ -60,7 +69,7 @@ export const suggestions = (variables: string[]) => ({
         command?: (props: any) => void;
       }) => {
         component = new ReactRenderer(Menu, {
-          props,
+          props: { ...props, variableInfo },
           editor: props.editor,
         });
 
@@ -74,7 +83,7 @@ export const suggestions = (variables: string[]) => ({
       },
 
       onUpdate(props: any) {
-        component.updateProps(props);
+        component.updateProps({ ...props, variableInfo });
 
         if (!props.clientRect) return;
 
@@ -102,7 +111,7 @@ export const suggestions = (variables: string[]) => ({
 });
 
 const menuItemClassName = cn(
-  "flex cursor-pointer select-none items-center gap-2 whitespace-nowrap rounded-md px-2 py-1 font-mono text-sm text-neutral-950",
+  "flex cursor-pointer select-none items-center gap-2 whitespace-nowrap rounded-md px-2 py-1 text-sm text-neutral-950",
   "data-[selected=true]:bg-neutral-100",
 );
 
@@ -111,9 +120,11 @@ const Menu = forwardRef(
     {
       items,
       command,
+      variableInfo,
     }: {
       items: string[];
       command: (props: any) => void;
+      variableInfo?: Record<string, RichTextVariableInfo>;
     },
     ref,
   ) => {
@@ -241,22 +252,63 @@ const Menu = forwardRef(
       );
     }
 
+    const hasInfo = items.some(
+      (item) =>
+        variableInfo?.[item]?.description || variableInfo?.[item]?.example,
+    );
+
     return (
-      <div className="border-border-subtle flex flex-col rounded-lg border bg-white p-1 shadow-sm">
+      <div
+        className={cn(
+          "border-border-subtle flex flex-col rounded-lg border bg-white p-1 shadow-sm",
+          hasInfo && "w-96",
+        )}
+      >
         {items.length ? (
-          items.map((item, index) => (
-            <button
-              key={index}
-              type="button"
-              onMouseDown={(e) => e.preventDefault()}
-              onClick={() => selectVar(item)}
-              data-selected={selectedIndex === index}
-              onPointerEnter={() => setSelectedIndex(index)}
-              className={menuItemClassName}
-            >
-              {item}
-            </button>
-          ))
+          items.map((item, index) => {
+            const info = variableInfo?.[item];
+            const example = info?.hideExample ? undefined : info?.example;
+
+            return (
+              <button
+                key={index}
+                type="button"
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => selectVar(item)}
+                data-selected={selectedIndex === index}
+                onPointerEnter={() => setSelectedIndex(index)}
+                className={cn(
+                  menuItemClassName,
+                  info ? "items-start whitespace-normal py-1" : "font-mono",
+                )}
+              >
+                {info ? (
+                  <div className="flex min-w-0 flex-col text-left">
+                    <span className="font-mono text-sm leading-5">{item}</span>
+                    {info.description || example ? (
+                      <span className="text-xs font-normal leading-4">
+                        {info.description ? (
+                          <span className="text-content-subtle">
+                            {info.description}
+                          </span>
+                        ) : null}
+                        {info.description && example ? (
+                          <span className="text-content-muted"> · </span>
+                        ) : null}
+                        {example ? (
+                          <span className="text-content-default">
+                            {example}
+                          </span>
+                        ) : null}
+                      </span>
+                    ) : null}
+                  </div>
+                ) : (
+                  item
+                )}
+              </button>
+            );
+          })
         ) : (
           <div
             className={cn(menuItemClassName, "text-content-subtle font-sans")}
