@@ -21,6 +21,41 @@ export const EMAIL_TEMPLATE_VARIABLES = [
   "ReferralReward",
 ] as const;
 
+export const EMAIL_TEMPLATE_VARIABLE_INFO: Record<
+  (typeof EMAIL_TEMPLATE_VARIABLES)[number],
+  { description: string; example: string; hideExample?: boolean }
+> = {
+  PartnerName: {
+    description: "The partner's full name",
+    example: "John Doe",
+  },
+  PartnerEmail: {
+    description: "The partner's email address",
+    example: "partner@acme.com",
+  },
+  PartnerLink: {
+    description: "The partner's default referral link",
+    example: "refer.dub.co/john",
+  },
+  SaleReward: {
+    description: "The partner's sale commission",
+    example: "30% per sale for 6 months",
+  },
+  LeadReward: {
+    description: "The partner's lead commission",
+    example: "$10 per lead",
+  },
+  ClickReward: {
+    description: "The partner's click commission",
+    example: "$0.50 per click",
+  },
+  ReferralReward: {
+    description: "The partner's commission for referring another partner",
+    example: "10% per referred partner's commission for 1 year",
+    hideExample: true,
+  },
+};
+
 export const CAMPAIGN_FROM_FORMAT_ERROR =
   'From must be an email or "Name <email@domain.com>" format.';
 

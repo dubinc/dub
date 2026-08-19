@@ -20,6 +20,9 @@ export function usePartnerCrossProgramSummary({
       ? `/api/partners/${partnerId}/cross-program-summary?workspaceId=${workspaceId}`
       : null,
     fetcher,
+    {
+      revalidateOnMount: true,
+    },
   );
 
   return {

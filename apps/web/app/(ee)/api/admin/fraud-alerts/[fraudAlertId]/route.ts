@@ -3,7 +3,6 @@ import { withAdmin } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { MAX_FRAUD_REASON_LENGTH } from "@/lib/zod/schemas/partners";
 import { Prisma } from "@prisma/client";
-import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 
@@ -12,17 +11,17 @@ const reviewSchema = z.object({
   reviewNote: z.string().trim().max(MAX_FRAUD_REASON_LENGTH).optional(),
 });
 
-// PATCH /api/admin/fraud-alerts/[id]
+// PATCH /api/admin/fraud-alerts/[fraudAlertId]
 export const PATCH = withAdmin(
   async ({ req, params, session }) => {
-    const { id } = params;
+    const { fraudAlertId } = params;
     const { status: newStatus, reviewNote } = reviewSchema.parse(
       await req.json(),
     );
 
     const fraudAlert = await prisma.fraudAlert.findUnique({
       where: {
-        id,
+        id: fraudAlertId,
       },
       select: {
         partnerId: true,
@@ -42,7 +41,7 @@ export const PATCH = withAdmin(
     if (newStatus === "dismissed") {
       const { count } = await prisma.fraudAlert.updateMany({
         where: {
-          id,
+          id: fraudAlertId,
           status: "pending",
         },
         data: {
@@ -104,19 +103,17 @@ export const PATCH = withAdmin(
       },
     });
 
-    waitUntil(
-      Promise.allSettled(
-        pendingFraudAlerts.map(({ programEnrollment, createdAt }) =>
-          reportNetworkLevelBan({
-            partnerId: programEnrollment.partnerId,
-            programId: programEnrollment.programId,
-            bannedReason: programEnrollment.bannedReason ?? "fraud",
-            bannedAt:
-              programEnrollment.bannedAt ??
-              programEnrollment.application?.reviewedAt ??
-              createdAt,
-          }),
-        ),
+    await Promise.allSettled(
+      pendingFraudAlerts.map(({ programEnrollment, createdAt }) =>
+        reportNetworkLevelBan({
+          partnerId: programEnrollment.partnerId,
+          programId: programEnrollment.programId,
+          bannedReason: programEnrollment.bannedReason ?? "fraud",
+          bannedAt:
+            programEnrollment.bannedAt ??
+            programEnrollment.application?.reviewedAt ??
+            createdAt,
+        }),
       ),
     );
 
