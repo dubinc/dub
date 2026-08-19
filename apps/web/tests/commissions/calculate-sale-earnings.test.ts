@@ -1,20 +1,6 @@
 import { calculateSaleEarnings } from "@/lib/api/sales/calculate-sale-earnings";
 import { describe, expect, test } from "vitest";
 
-const percentageEarnings = (
-  saleAmount: number,
-  percent: number,
-  quantity = 1,
-) =>
-  calculateSaleEarnings({
-    reward: {
-      type: "percentage",
-      amountInCents: null,
-      amountInPercentage: percent,
-    },
-    sale: { amount: saleAmount, quantity },
-  });
-
 describe("calculateSaleEarnings", () => {
   describe("percentage – same as the old truncate path", () => {
     test.each([
@@ -61,7 +47,16 @@ describe("calculateSaleEarnings", () => {
         expected: 0,
       },
     ])("$label → $expected", ({ saleAmount, percent, expected }) => {
-      expect(percentageEarnings(saleAmount, percent)).toBe(expected);
+      expect(
+        calculateSaleEarnings({
+          reward: {
+            type: "percentage",
+            amountInCents: null,
+            amountInPercentage: percent,
+          },
+          sale: { amount: saleAmount, quantity: 1 },
+        }),
+      ).toBe(expected);
     });
   });
 
@@ -92,12 +87,30 @@ describe("calculateSaleEarnings", () => {
         expected: 15,
       },
     ])("$label → $expected", ({ saleAmount, percent, expected }) => {
-      expect(percentageEarnings(saleAmount, percent)).toBe(expected);
+      expect(
+        calculateSaleEarnings({
+          reward: {
+            type: "percentage",
+            amountInCents: null,
+            amountInPercentage: percent,
+          },
+          sale: { amount: saleAmount, quantity: 1 },
+        }),
+      ).toBe(expected);
     });
   });
 
   test("percentage ignores quantity (uses sale amount only)", () => {
-    expect(percentageEarnings(1000, 20, 5)).toBe(200);
+    expect(
+      calculateSaleEarnings({
+        reward: {
+          type: "percentage",
+          amountInCents: null,
+          amountInPercentage: 20,
+        },
+        sale: { amount: 1000, quantity: 5 },
+      }),
+    ).toBe(200);
   });
 
   describe("flat", () => {
