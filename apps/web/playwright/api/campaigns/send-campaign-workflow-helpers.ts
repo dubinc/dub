@@ -7,7 +7,13 @@ import { subHours } from "date-fns";
 import { randomName, randomPartnerEmail } from "../../utils";
 import { PLAYWRIGHT_API_BASE } from "../constants";
 import type { ApiClient } from "../fixtures";
-import { campaignContent, createCampaign, deleteCampaign } from "./helpers";
+import {
+  campaignContent,
+  createCampaign,
+  createPartnerTag,
+  deleteCampaign,
+  deletePartnerTag,
+} from "./helpers";
 
 export const enrolledDaysCondition = {
   attribute: "partnerEnrolledDays",
@@ -355,3 +361,124 @@ export async function cleanupCampaign(api: ApiClient, campaignId?: string) {
   });
   await deleteCampaign(api, campaignId);
 }
+
+type CreatePartnerOptions = {
+  mailbox?: boolean;
+  hoursAgo?: number | null;
+  groupId?: string;
+};
+
+export function createCampaignSession(
+  api: ApiClient,
+  program: { id: string; defaultGroupId: string },
+) {
+  const partnerIds: string[] = [];
+  const campaignIds: string[] = [];
+  const groupIds: string[] = [];
+  const tagIds: string[] = [];
+  const programId = program.id;
+
+  return {
+    programId,
+    defaultGroupId: program.defaultGroupId,
+
+    trackPartner(partnerId: string) {
+      partnerIds.push(partnerId);
+    },
+
+    trackCampaign(campaignId: string) {
+      campaignIds.push(campaignId);
+    },
+
+    async createGroup() {
+      const groupId = await createTestGroup(api);
+      groupIds.push(groupId);
+      return groupId;
+    },
+
+    async createTag() {
+      const tag = await createPartnerTag(programId);
+      tagIds.push(tag.id);
+      return tag;
+    },
+
+    async setup(overrides: Record<string, unknown> = {}) {
+      const campaignId = await publishTransactionalCampaign(api, overrides);
+      campaignIds.push(campaignId);
+      const workflow = await getCampaignWorkflow(campaignId);
+
+      return {
+        id: campaignId,
+        workflow,
+
+        async createPartner(options: CreatePartnerOptions = {}) {
+          const partner = await createTestPartner(api, {
+            ...(options.groupId && { groupId: options.groupId }),
+          });
+          partnerIds.push(partner.id);
+
+          if (options.mailbox !== false) {
+            await createPartnerMailbox(partner.id);
+          }
+
+          if (options.hoursAgo !== null) {
+            await backdateEnrollment({
+              partnerId: partner.id,
+              programId,
+              hoursAgo: options.hoursAgo ?? 18,
+            });
+          }
+
+          return partner;
+        },
+
+        async run() {
+          return runScheduledCampaignWorkflow(workflow.id);
+        },
+
+        async expectSentTo(partner: Pick<EnrolledPartnerProps, "id">) {
+          await expectCampaignEmailCount({
+            campaignId,
+            partnerId: partner.id,
+            count: 1,
+          });
+        },
+
+        async expectNotSentTo(partner: Pick<EnrolledPartnerProps, "id">) {
+          await expectCampaignEmailCount({
+            campaignId,
+            partnerId: partner.id,
+            count: 0,
+          });
+        },
+
+        async disableWorkflow() {
+          await prisma.workflow.update({
+            where: { id: workflow.id },
+            data: { disabledAt: new Date() },
+          });
+        },
+      };
+    },
+
+    async cleanup() {
+      for (const partnerId of partnerIds) {
+        await deleteTestPartner(partnerId);
+      }
+      for (const campaignId of campaignIds) {
+        await cleanupCampaign(api, campaignId);
+      }
+      for (const tagId of tagIds) {
+        await deletePartnerTag(tagId);
+      }
+      for (const groupId of groupIds) {
+        await deleteTestGroup(api, groupId);
+      }
+    },
+  };
+}
+
+export type CampaignSession = ReturnType<typeof createCampaignSession>;
+export type ScheduledCampaign = Awaited<
+  ReturnType<CampaignSession["setup"]>
+>;

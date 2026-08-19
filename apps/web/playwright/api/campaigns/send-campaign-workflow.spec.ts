@@ -1,524 +1,347 @@
 import { prisma } from "@/lib/prisma";
-import type { EnrolledPartnerProps } from "@/lib/types";
 import { expect } from "@playwright/test";
 import { trackClick, trackLead } from "../conversions/helpers";
-import { test } from "../fixtures";
-import { createCampaign, createPartnerTag, deletePartnerTag } from "./helpers";
+import { createCampaign } from "./helpers";
+import { test } from "./send-campaign-workflow-fixtures";
 import {
-  backdateEnrollment,
   campaignEmails,
-  cleanupCampaign,
-  createPartnerMailbox,
   createTestCommission,
-  createTestGroup,
-  createTestPartner,
-  deleteTestGroup,
-  deleteTestPartner,
   enrolledDaysCondition,
-  expectCampaignEmailCount,
   getCampaignWorkflow,
   insertCampaignEmail,
-  publishTransactionalCampaign,
   runScheduledCampaignWorkflow,
   setEnrollmentStatus,
   setLinkStats,
   tagPartner,
 } from "./send-campaign-workflow-helpers";
 
-test("transactional draft workflow is disabled", async ({ api }) => {
-  let campaignId: string | undefined;
-
-  try {
+test.describe("Lifecycle", () => {
+  test("transactional draft workflow is disabled", async ({
+    api,
+    campaign,
+  }) => {
     const { status, data } = await createCampaign(api);
     expect(status).toEqual(201);
-    campaignId = data.id;
+    campaign.trackCampaign(data.id);
 
-    const workflow = await getCampaignWorkflow(campaignId);
+    const workflow = await getCampaignWorkflow(data.id);
     expect(workflow.disabledAt).not.toBeNull();
     expect(workflow.actions).toEqual([
       {
         type: "sendCampaign",
-        data: { campaignId },
+        data: { campaignId: data.id },
       },
     ]);
-  } finally {
-    await cleanupCampaign(api, campaignId);
-  }
-});
+  });
 
-test("publishing a transactional campaign enables the workflow", async ({
-  api,
-}) => {
-  let campaignId: string | undefined;
+  test("publishing a transactional campaign enables the workflow", async ({
+    campaign,
+  }) => {
+    const ctx = await campaign.setup();
 
-  try {
-    campaignId = await publishTransactionalCampaign(api);
-    const workflow = await getCampaignWorkflow(campaignId);
-
-    expect(workflow.disabledAt).toBeNull();
-    expect(workflow.triggerConditions).toEqual([enrolledDaysCondition]);
-    expect(workflow.actions).toEqual([
+    expect(ctx.workflow.disabledAt).toBeNull();
+    expect(ctx.workflow.triggerConditions).toEqual([enrolledDaysCondition]);
+    expect(ctx.workflow.actions).toEqual([
       {
         type: "sendCampaign",
-        data: { campaignId },
+        data: { campaignId: ctx.id },
       },
     ]);
-  } finally {
-    await cleanupCampaign(api, campaignId);
-  }
-});
+  });
 
-test("pausing a campaign disables the workflow", async ({ api }) => {
-  let campaignId: string | undefined;
+  test("pausing a campaign disables the workflow", async ({
+    api,
+    campaign,
+  }) => {
+    const ctx = await campaign.setup();
 
-  try {
-    campaignId = await publishTransactionalCampaign(api);
-
-    const paused = await api.patch(`/api/campaigns/${campaignId}`, {
+    const paused = await api.patch(`/api/campaigns/${ctx.id}`, {
       status: "paused",
     });
     expect(paused.status).toEqual(200);
 
-    const workflow = await getCampaignWorkflow(campaignId);
+    const workflow = await getCampaignWorkflow(ctx.id);
     expect(workflow.disabledAt).not.toBeNull();
-  } finally {
-    await cleanupCampaign(api, campaignId);
-  }
-});
+  });
 
-test("scheduled run skips a disabled workflow", async ({ api, program }) => {
-  let campaignId: string | undefined;
-  let partnerId: string | undefined;
-
-  try {
-    campaignId = await publishTransactionalCampaign(api);
-    const partner = await createTestPartner(api);
-    partnerId = partner.id;
-    await createPartnerMailbox(partnerId);
-    await backdateEnrollment({
-      partnerId,
-      programId: program.id,
-      hoursAgo: 18,
+  test("draft and paused campaigns do not send", async ({ api, campaign }) => {
+    const { data: draft } = await createCampaign(api);
+    campaign.trackCampaign(draft.id);
+    await api.patch(`/api/campaigns/${draft.id}`, {
+      triggerConditions: [enrolledDaysCondition],
     });
 
-    const workflow = await getCampaignWorkflow(campaignId);
-    await prisma.workflow.update({
-      where: { id: workflow.id },
-      data: { disabledAt: new Date() },
-    });
+    const paused = await campaign.setup();
+    await api.patch(`/api/campaigns/${paused.id}`, { status: "paused" });
 
-    expect(await runScheduledCampaignWorkflow(workflow.id)).toEqual(
+    const partner = await paused.createPartner();
+    const draftWorkflow = await getCampaignWorkflow(draft.id);
+
+    expect(await runScheduledCampaignWorkflow(draftWorkflow.id)).toEqual(
       "disabled",
     );
-    await expectCampaignEmailCount({ campaignId, partnerId, count: 0 });
-  } finally {
-    await deleteTestPartner(partnerId);
-    await cleanupCampaign(api, campaignId);
-  }
+    expect(await paused.run()).toEqual("disabled");
+    await paused.expectNotSentTo(partner);
+    expect(await campaignEmails(draft.id, partner.id)).toHaveLength(0);
+  });
 });
 
-test("scheduled window only includes enrollments from 12–24h ago", async ({
-  api,
-  program,
-}) => {
-  let campaignId: string | undefined;
-  const partnerIds: string[] = [];
+test.describe("Scheduled window and recipients", () => {
+  test("scheduled run skips a disabled workflow", async ({ campaign }) => {
+    const ctx = await campaign.setup();
+    const partner = await ctx.createPartner();
+    await ctx.disableWorkflow();
 
-  try {
-    campaignId = await publishTransactionalCampaign(api);
+    expect(await ctx.run()).toEqual("disabled");
+    await ctx.expectNotSentTo(partner);
+  });
 
-    for (const hoursAgo of [6, 18, 30]) {
-      const partner = await createTestPartner(api);
-      partnerIds.push(partner.id);
-      await createPartnerMailbox(partner.id);
-      await backdateEnrollment({
-        partnerId: partner.id,
-        programId: program.id,
-        hoursAgo,
-      });
-    }
+  test("scheduled window only includes enrollments from 12–24h ago", async ({
+    campaign,
+  }) => {
+    const ctx = await campaign.setup();
+    const tooRecent = await ctx.createPartner({ hoursAgo: 6 });
+    const inWindow = await ctx.createPartner({ hoursAgo: 18 });
+    const tooOld = await ctx.createPartner({ hoursAgo: 30 });
 
-    const workflow = await getCampaignWorkflow(campaignId);
-    expect(await runScheduledCampaignWorkflow(workflow.id)).toEqual(
-      "finished",
-    );
+    expect(await ctx.run()).toEqual("finished");
+    await ctx.expectNotSentTo(tooRecent);
+    await ctx.expectSentTo(inWindow);
+    await ctx.expectNotSentTo(tooOld);
+  });
 
-    await expectCampaignEmailCount({
-      campaignId,
-      partnerId: partnerIds[0],
-      count: 0,
-    });
-    await expectCampaignEmailCount({
-      campaignId,
-      partnerId: partnerIds[1],
-      count: 1,
-    });
-    await expectCampaignEmailCount({
-      campaignId,
-      partnerId: partnerIds[2],
-      count: 0,
-    });
-  } finally {
-    for (const partnerId of partnerIds) {
-      await deleteTestPartner(partnerId);
-    }
-    await cleanupCampaign(api, campaignId);
-  }
-});
+  test("scheduled run skips eligible partners without a partner user", async ({
+    campaign,
+  }) => {
+    const ctx = await campaign.setup();
+    const partner = await ctx.createPartner({ mailbox: false });
 
-test("scheduled run skips eligible partners without a partner user", async ({
-  api,
-  program,
-}) => {
-  let campaignId: string | undefined;
-  let partnerId: string | undefined;
+    expect(await ctx.run()).toEqual("finished");
+    await ctx.expectNotSentTo(partner);
+  });
 
-  try {
-    campaignId = await publishTransactionalCampaign(api);
-    const partner = await createTestPartner(api);
-    partnerId = partner.id;
-    await backdateEnrollment({
-      partnerId,
-      programId: program.id,
-      hoursAgo: 18,
-    });
+  test("scheduled run does not send duplicate campaign emails", async ({
+    campaign,
+  }) => {
+    const ctx = await campaign.setup();
+    const partner = await ctx.createPartner();
 
-    const workflow = await getCampaignWorkflow(campaignId);
-    expect(await runScheduledCampaignWorkflow(workflow.id)).toEqual(
-      "finished",
-    );
-    await expectCampaignEmailCount({ campaignId, partnerId, count: 0 });
-  } finally {
-    await deleteTestPartner(partnerId);
-    await cleanupCampaign(api, campaignId);
-  }
-});
+    expect(await ctx.run()).toEqual("finished");
+    expect(await ctx.run()).toEqual("finished");
 
-test("scheduled run does not send duplicate campaign emails", async ({
-  api,
-  program,
-}) => {
-  let campaignId: string | undefined;
-  let partnerId: string | undefined;
-
-  try {
-    campaignId = await publishTransactionalCampaign(api);
-    const partner = await createTestPartner(api);
-    partnerId = partner.id;
-    await createPartnerMailbox(partnerId);
-    await backdateEnrollment({
-      partnerId,
-      programId: program.id,
-      hoursAgo: 18,
-    });
-
-    const workflow = await getCampaignWorkflow(campaignId);
-    expect(await runScheduledCampaignWorkflow(workflow.id)).toEqual(
-      "finished",
-    );
-    expect(await runScheduledCampaignWorkflow(workflow.id)).toEqual(
-      "finished",
-    );
-
-    const emails = await expectCampaignEmailCount({
-      campaignId,
-      partnerId,
-      count: 1,
-    });
+    const emails = await campaignEmails(ctx.id, partner.id);
+    expect(emails).toHaveLength(1);
     expect(emails[0].type).toEqual("Campaign");
-  } finally {
-    await deleteTestPartner(partnerId);
-    await cleanupCampaign(api, campaignId);
-  }
-});
+  });
 
-test("scheduled run skips partners who already received the campaign", async ({
-  api,
-  program,
-}) => {
-  let campaignId: string | undefined;
-  let partnerId: string | undefined;
-
-  try {
-    campaignId = await publishTransactionalCampaign(api);
-    const partner = await createTestPartner(api);
-    partnerId = partner.id;
-    const userId = await createPartnerMailbox(partnerId);
-    await backdateEnrollment({
-      partnerId,
-      programId: program.id,
-      hoursAgo: 18,
+  test("scheduled run skips partners who already received the campaign", async ({
+    campaign,
+  }) => {
+    const ctx = await campaign.setup();
+    const partner = await ctx.createPartner();
+    const mailbox = await prisma.partnerUser.findFirstOrThrow({
+      where: { partnerId: partner.id },
+      select: { userId: true },
     });
 
     const existing = await insertCampaignEmail({
-      campaignId,
-      programId: program.id,
-      partnerId,
-      recipientUserId: userId,
+      campaignId: ctx.id,
+      programId: campaign.programId,
+      partnerId: partner.id,
+      recipientUserId: mailbox.userId,
     });
 
-    const workflow = await getCampaignWorkflow(campaignId);
-    expect(await runScheduledCampaignWorkflow(workflow.id)).toEqual(
-      "finished",
-    );
+    expect(await ctx.run()).toEqual("finished");
 
-    const emails = await campaignEmails(campaignId, partnerId);
+    const emails = await campaignEmails(ctx.id, partner.id);
     expect(emails).toHaveLength(1);
     expect(emails[0].id).toEqual(existing.id);
-  } finally {
-    await deleteTestPartner(partnerId);
-    await cleanupCampaign(api, campaignId);
-  }
+  });
 });
 
-test("scheduled AND sends when enrollment window and leads match", async ({
-  api,
-  program,
-}) => {
-  let campaignId: string | undefined;
-  let partnerId: string | undefined;
-
-  try {
-    campaignId = await publishTransactionalCampaign(api, {
-      triggerConditions: [
-        enrolledDaysCondition,
-        { attribute: "totalLeads", operator: "gte", value: 1 },
-      ],
-    });
-
-    const partner = await createTestPartner(api);
-    partnerId = partner.id;
-    await createPartnerMailbox(partnerId);
-    await backdateEnrollment({
-      partnerId,
-      programId: program.id,
-      hoursAgo: 18,
-    });
-    await setLinkStats({
-      partnerId,
-      programId: program.id,
-      leads: 1,
-    });
-
-    const workflow = await getCampaignWorkflow(campaignId);
-    expect(await runScheduledCampaignWorkflow(workflow.id)).toEqual(
-      "finished",
-    );
-    await expectCampaignEmailCount({ campaignId, partnerId, count: 1 });
-  } finally {
-    await deleteTestPartner(partnerId);
-    await cleanupCampaign(api, campaignId);
-  }
-});
-
-test("scheduled AND does not send when the metric condition fails", async ({
-  api,
-  program,
-}) => {
-  let campaignId: string | undefined;
-  let partnerId: string | undefined;
-
-  try {
-    campaignId = await publishTransactionalCampaign(api, {
-      triggerConditions: [
-        enrolledDaysCondition,
-        { attribute: "totalLeads", operator: "gte", value: 1 },
-      ],
-    });
-
-    const partner = await createTestPartner(api);
-    partnerId = partner.id;
-    await createPartnerMailbox(partnerId);
-    await backdateEnrollment({
-      partnerId,
-      programId: program.id,
-      hoursAgo: 18,
-    });
-
-    const workflow = await getCampaignWorkflow(campaignId);
-    expect(await runScheduledCampaignWorkflow(workflow.id)).toEqual(
-      "finished",
-    );
-    await expectCampaignEmailCount({ campaignId, partnerId, count: 0 });
-  } finally {
-    await deleteTestPartner(partnerId);
-    await cleanupCampaign(api, campaignId);
-  }
-});
-
-test("scheduled AND sends when totalLeads lte 0", async ({ api, program }) => {
-  let campaignId: string | undefined;
-  let partnerId: string | undefined;
-
-  try {
-    campaignId = await publishTransactionalCampaign(api, {
-      triggerConditions: [
-        enrolledDaysCondition,
-        { attribute: "totalLeads", operator: "lte", value: 0 },
-      ],
-    });
-
-    const partner = await createTestPartner(api);
-    partnerId = partner.id;
-    await createPartnerMailbox(partnerId);
-    await backdateEnrollment({
-      partnerId,
-      programId: program.id,
-      hoursAgo: 18,
-    });
-
-    const workflow = await getCampaignWorkflow(campaignId);
-    expect(await runScheduledCampaignWorkflow(workflow.id)).toEqual(
-      "finished",
-    );
-    await expectCampaignEmailCount({ campaignId, partnerId, count: 1 });
-  } finally {
-    await deleteTestPartner(partnerId);
-    await cleanupCampaign(api, campaignId);
-  }
-});
-
-const scheduledMetricCases = [
-  {
-    name: "totalConversions",
-    condition: {
-      attribute: "totalConversions",
-      operator: "gte",
-      value: 1,
+test.describe("Scheduled AND conditions", () => {
+  const scheduledAndCases = [
+    {
+      title: "sends when enrollment window and leads match",
+      condition: { attribute: "totalLeads", operator: "gte", value: 1 },
+      sent: true,
+      seed: (partner, programId) =>
+        setLinkStats({
+          partnerId: partner.id,
+          programId,
+          leads: 1,
+        }),
     },
-    stats: { conversions: 1 },
-  },
-  {
-    name: "totalSaleAmount",
-    condition: {
-      attribute: "totalSaleAmount",
-      operator: "gte",
-      value: 100,
+    {
+      title: "does not send when the metric condition fails",
+      condition: { attribute: "totalLeads", operator: "gte", value: 1 },
+      sent: false,
     },
-    stats: { saleAmount: 100 },
-  },
-] as const;
+    {
+      title: "sends when totalLeads lte 0",
+      condition: { attribute: "totalLeads", operator: "lte", value: 0 },
+      sent: true,
+    },
+    {
+      title: "sends when totalConversions matches",
+      condition: {
+        attribute: "totalConversions",
+        operator: "gte",
+        value: 1,
+      },
+      sent: true,
+      seed: (partner, programId) =>
+        setLinkStats({
+          partnerId: partner.id,
+          programId,
+          conversions: 1,
+        }),
+    },
+    {
+      title: "sends when totalSaleAmount matches",
+      condition: {
+        attribute: "totalSaleAmount",
+        operator: "gte",
+        value: 100,
+      },
+      sent: true,
+      seed: (partner, programId) =>
+        setLinkStats({
+          partnerId: partner.id,
+          programId,
+          saleAmount: 100,
+        }),
+    },
+    {
+      title: "sends when totalCommissions matches",
+      condition: {
+        attribute: "totalCommissions",
+        operator: "gte",
+        value: 1,
+      },
+      sent: true,
+      seed: async (partner, programId) => {
+        await createTestCommission({
+          programId,
+          partnerId: partner.id,
+          earnings: 500,
+        });
+      },
+    },
+  ];
 
-for (const { name, condition, stats } of scheduledMetricCases) {
-  test(`scheduled AND sends when ${name} matches`, async ({ api, program }) => {
-    let campaignId: string | undefined;
-    let partnerId: string | undefined;
-
-    try {
-      campaignId = await publishTransactionalCampaign(api, {
+  for (const { title, condition, sent, seed } of scheduledAndCases) {
+    test(`scheduled AND ${title}`, async ({ campaign }) => {
+      const ctx = await campaign.setup({
         triggerConditions: [enrolledDaysCondition, condition],
       });
+      const partner = await ctx.createPartner();
+      await seed?.(partner, campaign.programId);
 
-      const partner = await createTestPartner(api);
-      partnerId = partner.id;
-      await createPartnerMailbox(partnerId);
-      await backdateEnrollment({
-        partnerId,
-        programId: program.id,
-        hoursAgo: 18,
-      });
-      await setLinkStats({
-        partnerId,
-        programId: program.id,
-        ...stats,
-      });
-
-      const workflow = await getCampaignWorkflow(campaignId);
-      expect(await runScheduledCampaignWorkflow(workflow.id)).toEqual(
-        "finished",
-      );
-      await expectCampaignEmailCount({ campaignId, partnerId, count: 1 });
-    } finally {
-      await deleteTestPartner(partnerId);
-      await cleanupCampaign(api, campaignId);
-    }
-  });
-}
-
-test("scheduled AND sends when totalCommissions matches", async ({
-  api,
-  program,
-}) => {
-  let campaignId: string | undefined;
-  let partnerId: string | undefined;
-
-  try {
-    campaignId = await publishTransactionalCampaign(api, {
-      triggerConditions: [
-        enrolledDaysCondition,
-        { attribute: "totalCommissions", operator: "gte", value: 1 },
-      ],
+      expect(await ctx.run()).toEqual("finished");
+      if (sent) {
+        await ctx.expectSentTo(partner);
+      } else {
+        await ctx.expectNotSentTo(partner);
+      }
     });
-
-    const partner = await createTestPartner(api);
-    partnerId = partner.id;
-    await createPartnerMailbox(partnerId);
-    await backdateEnrollment({
-      partnerId,
-      programId: program.id,
-      hoursAgo: 18,
-    });
-    await createTestCommission({
-      programId: program.id,
-      partnerId,
-      earnings: 500,
-    });
-
-    const workflow = await getCampaignWorkflow(campaignId);
-    expect(await runScheduledCampaignWorkflow(workflow.id)).toEqual(
-      "finished",
-    );
-    await expectCampaignEmailCount({ campaignId, partnerId, count: 1 });
-  } finally {
-    await deleteTestPartner(partnerId);
-    await cleanupCampaign(api, campaignId);
   }
 });
 
-test("partnerJoined does not send on the scheduled runner", async ({
-  api,
-}) => {
-  let campaignId: string | undefined;
-  let partnerId: string | undefined;
+test.describe("Audience", () => {
+  test("group filter only sends to partners in selected groups", async ({
+    campaign,
+  }) => {
+    const groupId = await campaign.createGroup();
+    const ctx = await campaign.setup({ groupIds: [groupId] });
+    const inGroup = await ctx.createPartner({ groupId });
+    const outGroup = await ctx.createPartner({
+      groupId: campaign.defaultGroupId,
+    });
 
-  try {
-    campaignId = await publishTransactionalCampaign(api, {
+    expect(await ctx.run()).toEqual("finished");
+    await ctx.expectSentTo(inGroup);
+    await ctx.expectNotSentTo(outGroup);
+  });
+
+  test("partner tag filter only sends to tagged partners", async ({
+    campaign,
+  }) => {
+    const tag = await campaign.createTag();
+    const ctx = await campaign.setup({ partnerTagIds: [tag.id] });
+    const tagged = await ctx.createPartner();
+    await tagPartner({
+      programId: campaign.programId,
+      partnerId: tagged.id,
+      partnerTagId: tag.id,
+    });
+    const untagged = await ctx.createPartner();
+
+    expect(await ctx.run()).toEqual("finished");
+    await ctx.expectSentTo(tagged);
+    await ctx.expectNotSentTo(untagged);
+  });
+
+  test("group and tag filters both have to match", async ({ campaign }) => {
+    const groupId = await campaign.createGroup();
+    const tag = await campaign.createTag();
+    const ctx = await campaign.setup({
+      groupIds: [groupId],
+      partnerTagIds: [tag.id],
+    });
+    const partner = await ctx.createPartner({ groupId });
+
+    expect(await ctx.run()).toEqual("finished");
+    await ctx.expectNotSentTo(partner);
+
+    await tagPartner({
+      programId: campaign.programId,
+      partnerId: partner.id,
+      partnerTagId: tag.id,
+    });
+    expect(await ctx.run()).toEqual("finished");
+    await ctx.expectSentTo(partner);
+  });
+
+  test("non-approved enrollments are not sent", async ({ campaign }) => {
+    const ctx = await campaign.setup();
+    const partner = await ctx.createPartner();
+    await setEnrollmentStatus({
+      partnerId: partner.id,
+      programId: campaign.programId,
+      status: "pending",
+    });
+
+    expect(await ctx.run()).toEqual("finished");
+    await ctx.expectNotSentTo(partner);
+  });
+});
+
+test.describe("Event path", () => {
+  test("partnerJoined does not send on the scheduled runner", async ({
+    campaign,
+  }) => {
+    const ctx = await campaign.setup({
       triggerConditions: [
         { attribute: "partnerJoined", operator: "gte", value: 0 },
       ],
     });
+    const partner = await ctx.createPartner({ hoursAgo: null });
 
-    const partner = await createTestPartner(api);
-    partnerId = partner.id;
-    await createPartnerMailbox(partnerId);
+    expect(await ctx.run()).toEqual("finished");
+    await ctx.expectNotSentTo(partner);
+  });
 
-    const workflow = await getCampaignWorkflow(campaignId);
-    expect(await runScheduledCampaignWorkflow(workflow.id)).toEqual(
-      "finished",
-    );
-    await expectCampaignEmailCount({ campaignId, partnerId, count: 0 });
-  } finally {
-    await deleteTestPartner(partnerId);
-    await cleanupCampaign(api, campaignId);
-  }
-});
-
-test("leadRecorded sends when totalLeads matches and skips when it does not", async ({
-  api,
-}) => {
-  let campaignId: string | undefined;
-  let match: EnrolledPartnerProps | undefined;
-  let miss: EnrolledPartnerProps | undefined;
-
-  try {
-    campaignId = await publishTransactionalCampaign(api, {
+  test("leadRecorded sends when totalLeads matches and skips when it does not", async ({
+    campaign,
+  }) => {
+    const ctx = await campaign.setup({
       triggerConditions: [
         { attribute: "totalLeads", operator: "gte", value: 2 },
       ],
     });
 
-    match = await createTestPartner(api);
-    await createPartnerMailbox(match.id);
+    const match = await ctx.createPartner({ hoursAgo: null });
     const matchClick1 = await trackClick({
       domain: match.links![0].domain,
       key: match.links![0].key,
@@ -530,50 +353,25 @@ test("leadRecorded sends when totalLeads matches and skips when it does not", as
     });
     await trackLead({ clickId: matchClick2.clickId });
 
-    miss = await createTestPartner(api);
-    await createPartnerMailbox(miss.id);
+    const miss = await ctx.createPartner({ hoursAgo: null });
     const missClick = await trackClick({
       domain: miss.links![0].domain,
       key: miss.links![0].key,
     });
     await trackLead({ clickId: missClick.clickId });
 
-    await expectCampaignEmailCount({
-      campaignId,
-      partnerId: match.id,
-      count: 1,
-    });
-    await expectCampaignEmailCount({
-      campaignId,
-      partnerId: miss.id,
-      count: 0,
-    });
-  } finally {
-    await deleteTestPartner(match?.id);
-    await deleteTestPartner(miss?.id);
-    await cleanupCampaign(api, campaignId);
-  }
-});
+    await ctx.expectSentTo(match);
+    await ctx.expectNotSentTo(miss);
+  });
 
-test("event runner skips disabled workflows", async ({ api }) => {
-  let campaignId: string | undefined;
-  let partner: EnrolledPartnerProps | undefined;
-
-  try {
-    campaignId = await publishTransactionalCampaign(api, {
+  test("event runner skips disabled workflows", async ({ campaign }) => {
+    const ctx = await campaign.setup({
       triggerConditions: [
         { attribute: "totalLeads", operator: "gte", value: 1 },
       ],
     });
-
-    partner = await createTestPartner(api);
-    await createPartnerMailbox(partner.id);
-
-    const workflow = await getCampaignWorkflow(campaignId);
-    await prisma.workflow.update({
-      where: { id: workflow.id },
-      data: { disabledAt: new Date() },
-    });
+    const partner = await ctx.createPartner({ hoursAgo: null });
+    await ctx.disableWorkflow();
 
     const { clickId } = await trackClick({
       domain: partner.links![0].domain,
@@ -581,262 +379,6 @@ test("event runner skips disabled workflows", async ({ api }) => {
     });
     await trackLead({ clickId });
 
-    await expectCampaignEmailCount({
-      campaignId,
-      partnerId: partner.id,
-      count: 0,
-    });
-  } finally {
-    await deleteTestPartner(partner?.id);
-    await cleanupCampaign(api, campaignId);
-  }
-});
-
-test("group filter only sends to partners in selected groups", async ({
-  api,
-  program,
-}) => {
-  let campaignId: string | undefined;
-  let groupId: string | undefined;
-  let inGroupId: string | undefined;
-  let outGroupId: string | undefined;
-
-  try {
-    groupId = await createTestGroup(api);
-    campaignId = await publishTransactionalCampaign(api, {
-      groupIds: [groupId],
-    });
-
-    const inGroup = await createTestPartner(api, { groupId });
-    inGroupId = inGroup.id;
-    await createPartnerMailbox(inGroupId);
-    await backdateEnrollment({
-      partnerId: inGroupId,
-      programId: program.id,
-      hoursAgo: 18,
-    });
-
-    const outGroup = await createTestPartner(api, {
-      groupId: program.defaultGroupId,
-    });
-    outGroupId = outGroup.id;
-    await createPartnerMailbox(outGroupId);
-    await backdateEnrollment({
-      partnerId: outGroupId,
-      programId: program.id,
-      hoursAgo: 18,
-    });
-
-    const workflow = await getCampaignWorkflow(campaignId);
-    expect(await runScheduledCampaignWorkflow(workflow.id)).toEqual(
-      "finished",
-    );
-
-    await expectCampaignEmailCount({
-      campaignId,
-      partnerId: inGroupId,
-      count: 1,
-    });
-    await expectCampaignEmailCount({
-      campaignId,
-      partnerId: outGroupId,
-      count: 0,
-    });
-  } finally {
-    await deleteTestPartner(inGroupId);
-    await deleteTestPartner(outGroupId);
-    await cleanupCampaign(api, campaignId);
-    await deleteTestGroup(api, groupId);
-  }
-});
-
-test("partner tag filter only sends to tagged partners", async ({
-  api,
-  program,
-}) => {
-  let campaignId: string | undefined;
-  let partnerTagId: string | undefined;
-  let taggedId: string | undefined;
-  let untaggedId: string | undefined;
-
-  try {
-    const tag = await createPartnerTag(program.id);
-    partnerTagId = tag.id;
-    campaignId = await publishTransactionalCampaign(api, {
-      partnerTagIds: [tag.id],
-    });
-
-    const tagged = await createTestPartner(api);
-    taggedId = tagged.id;
-    await createPartnerMailbox(taggedId);
-    await tagPartner({
-      programId: program.id,
-      partnerId: taggedId,
-      partnerTagId: tag.id,
-    });
-    await backdateEnrollment({
-      partnerId: taggedId,
-      programId: program.id,
-      hoursAgo: 18,
-    });
-
-    const untagged = await createTestPartner(api);
-    untaggedId = untagged.id;
-    await createPartnerMailbox(untaggedId);
-    await backdateEnrollment({
-      partnerId: untaggedId,
-      programId: program.id,
-      hoursAgo: 18,
-    });
-
-    const workflow = await getCampaignWorkflow(campaignId);
-    expect(await runScheduledCampaignWorkflow(workflow.id)).toEqual(
-      "finished",
-    );
-
-    await expectCampaignEmailCount({
-      campaignId,
-      partnerId: taggedId,
-      count: 1,
-    });
-    await expectCampaignEmailCount({
-      campaignId,
-      partnerId: untaggedId,
-      count: 0,
-    });
-  } finally {
-    await deleteTestPartner(taggedId);
-    await deleteTestPartner(untaggedId);
-    await cleanupCampaign(api, campaignId);
-    await deletePartnerTag(partnerTagId);
-  }
-});
-
-test("group and tag filters both have to match", async ({ api, program }) => {
-  let campaignId: string | undefined;
-  let groupId: string | undefined;
-  let partnerTagId: string | undefined;
-  let partnerId: string | undefined;
-
-  try {
-    groupId = await createTestGroup(api);
-    const tag = await createPartnerTag(program.id);
-    partnerTagId = tag.id;
-    campaignId = await publishTransactionalCampaign(api, {
-      groupIds: [groupId],
-      partnerTagIds: [tag.id],
-    });
-
-    const partner = await createTestPartner(api, { groupId });
-    partnerId = partner.id;
-    await createPartnerMailbox(partnerId);
-    await backdateEnrollment({
-      partnerId,
-      programId: program.id,
-      hoursAgo: 18,
-    });
-
-    const workflow = await getCampaignWorkflow(campaignId);
-    expect(await runScheduledCampaignWorkflow(workflow.id)).toEqual(
-      "finished",
-    );
-    await expectCampaignEmailCount({ campaignId, partnerId, count: 0 });
-
-    await tagPartner({
-      programId: program.id,
-      partnerId,
-      partnerTagId: tag.id,
-    });
-    expect(await runScheduledCampaignWorkflow(workflow.id)).toEqual(
-      "finished",
-    );
-    await expectCampaignEmailCount({ campaignId, partnerId, count: 1 });
-  } finally {
-    await deleteTestPartner(partnerId);
-    await cleanupCampaign(api, campaignId);
-    await deletePartnerTag(partnerTagId);
-    await deleteTestGroup(api, groupId);
-  }
-});
-
-test("non-approved enrollments are not sent", async ({ api, program }) => {
-  let campaignId: string | undefined;
-  let partnerId: string | undefined;
-
-  try {
-    campaignId = await publishTransactionalCampaign(api);
-    const partner = await createTestPartner(api);
-    partnerId = partner.id;
-    await createPartnerMailbox(partnerId);
-    await backdateEnrollment({
-      partnerId,
-      programId: program.id,
-      hoursAgo: 18,
-    });
-    await setEnrollmentStatus({
-      partnerId,
-      programId: program.id,
-      status: "pending",
-    });
-
-    const workflow = await getCampaignWorkflow(campaignId);
-    expect(await runScheduledCampaignWorkflow(workflow.id)).toEqual(
-      "finished",
-    );
-    await expectCampaignEmailCount({ campaignId, partnerId, count: 0 });
-  } finally {
-    await deleteTestPartner(partnerId);
-    await cleanupCampaign(api, campaignId);
-  }
-});
-
-test("draft and paused campaigns do not send", async ({ api, program }) => {
-  let draftId: string | undefined;
-  let pausedId: string | undefined;
-  let partnerId: string | undefined;
-
-  try {
-    const { data: draft } = await createCampaign(api);
-    draftId = draft.id;
-    await api.patch(`/api/campaigns/${draftId}`, {
-      triggerConditions: [enrolledDaysCondition],
-    });
-
-    pausedId = await publishTransactionalCampaign(api);
-    await api.patch(`/api/campaigns/${pausedId}`, { status: "paused" });
-
-    const partner = await createTestPartner(api);
-    partnerId = partner.id;
-    await createPartnerMailbox(partnerId);
-    await backdateEnrollment({
-      partnerId,
-      programId: program.id,
-      hoursAgo: 18,
-    });
-
-    const draftWorkflow = await getCampaignWorkflow(draftId);
-    const pausedWorkflow = await getCampaignWorkflow(pausedId);
-
-    expect(await runScheduledCampaignWorkflow(draftWorkflow.id)).toEqual(
-      "disabled",
-    );
-    expect(await runScheduledCampaignWorkflow(pausedWorkflow.id)).toEqual(
-      "disabled",
-    );
-
-    await expectCampaignEmailCount({
-      campaignId: draftId,
-      partnerId,
-      count: 0,
-    });
-    await expectCampaignEmailCount({
-      campaignId: pausedId,
-      partnerId,
-      count: 0,
-    });
-  } finally {
-    await deleteTestPartner(partnerId);
-    await cleanupCampaign(api, draftId);
-    await cleanupCampaign(api, pausedId);
-  }
+    await ctx.expectNotSentTo(partner);
+  });
 });
