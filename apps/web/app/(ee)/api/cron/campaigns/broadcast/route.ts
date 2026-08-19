@@ -118,6 +118,7 @@ export async function POST(req: Request) {
         where: {
           id: campaignId,
           status: CampaignStatus.scheduled,
+          OR: [{ scheduledAt: null }, { scheduledAt: { lte: new Date() } }],
         },
         data: {
           status: CampaignStatus.sending,
