@@ -85,6 +85,12 @@ describe("calculateSaleEarnings", () => {
         percent: 50,
         expected: 1,
       },
+      {
+        label: "500¢ at 2.9% (14.5¢; float 2.9/100 used to round to 14)",
+        saleAmount: 500,
+        percent: 2.9,
+        expected: 15,
+      },
     ])("$label → $expected", ({ saleAmount, percent, expected }) => {
       expect(percentageEarnings(saleAmount, percent)).toBe(expected);
     });
