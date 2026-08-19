@@ -1,4 +1,5 @@
 import { DEFAULT_CAMPAIGN_BODY } from "@/lib/api/campaigns/constants";
+import { EMAIL_TEMPLATE_VARIABLES } from "@/lib/zod/schemas/campaigns";
 import { expect } from "@playwright/test";
 import type { CampaignType } from "@prisma/client";
 import { apiError, randomName } from "../../utils";
@@ -6,8 +7,12 @@ import { test, type ApiClient } from "../fixtures";
 import {
   campaignContent,
   createCampaign,
-  defaultTransactionalTrigger,
+  createPartnerTag,
+  defaultTransactionalTriggers,
   deleteCampaign,
+  deletePartnerTag,
+  mentionBodyJson,
+  multipleTriggerConditions,
   type CampaignJson,
 } from "./helpers";
 
@@ -21,9 +26,10 @@ function defaultCampaign(type: CampaignType) {
     bodyJson: DEFAULT_CAMPAIGN_BODY,
     type,
     status: "draft",
-    triggerCondition:
-      type === "transactional" ? defaultTransactionalTrigger : null,
+    triggerConditions:
+      type === "transactional" ? [...defaultTransactionalTriggers] : null,
     groups: [],
+    partnerTags: [],
     scheduledAt: null,
     createdAt: expect.any(String),
     updatedAt: expect.any(String),
@@ -95,14 +101,16 @@ test("PATCH /campaigns/:id – update transactional content", async ({
   try {
     id = await createDraft(api);
 
-    const triggerCondition = {
-      attribute: "totalConversions",
-      operator: "gte",
-      value: 50,
-    } as const;
+    const triggerConditions = [
+      {
+        attribute: "totalConversions",
+        operator: "gte",
+        value: 50,
+      },
+    ] as const;
 
     const body = campaignContent({
-      triggerCondition,
+      triggerConditions,
       groupIds: [program.defaultGroupId],
     });
 
@@ -118,7 +126,7 @@ test("PATCH /campaigns/:id – update transactional content", async ({
       name: body.name,
       subject: body.subject,
       bodyJson: body.bodyJson,
-      triggerCondition,
+      triggerConditions,
       groups: [{ id: program.defaultGroupId }],
     });
   } finally {
@@ -138,11 +146,7 @@ test("PATCH /campaigns/:id – update marketing content", async ({
     const body = campaignContent({
       groupIds: [program.defaultGroupId],
       scheduledAt,
-      triggerCondition: {
-        attribute: "totalConversions",
-        operator: "gte",
-        value: 50,
-      },
+      triggerConditions: [...multipleTriggerConditions],
     });
 
     const { status, data } = await api.patch<CampaignJson>(
@@ -157,8 +161,9 @@ test("PATCH /campaigns/:id – update marketing content", async ({
       name: body.name,
       subject: body.subject,
       bodyJson: body.bodyJson,
-      triggerCondition: null,
+      triggerConditions: null,
       groups: [{ id: program.defaultGroupId }],
+      partnerTags: [],
     });
     expect(data.scheduledAt).toEqual(scheduledAt);
   } finally {
@@ -292,19 +297,22 @@ test("POST /campaigns/:id/duplicate – transactional", async ({
 }) => {
   let id: string | undefined;
   let duplicateId: string | undefined;
+  let partnerTagId: string | undefined;
 
-  const triggerCondition = {
-    attribute: "totalConversions",
-    operator: "gte",
-    value: 50,
-  } as const;
-
-  const body = campaignContent({
-    triggerCondition,
-    groupIds: [program.defaultGroupId],
-  });
+  const bodyJson = mentionBodyJson(EMAIL_TEMPLATE_VARIABLES);
+  const triggerConditions = [...multipleTriggerConditions];
 
   try {
+    const partnerTag = await createPartnerTag(program.id);
+    partnerTagId = partnerTag.id;
+
+    const body = campaignContent({
+      triggerConditions,
+      groupIds: [program.defaultGroupId],
+      partnerTagIds: [partnerTag.id],
+      bodyJson,
+    });
+
     id = await createDraft(api);
     await api.patch(`/api/campaigns/${id}`, body);
 
@@ -327,14 +335,16 @@ test("POST /campaigns/:id/duplicate – transactional", async ({
       id: duplicateId,
       name: `${body.name} (copy)`,
       subject: body.subject,
-      bodyJson: body.bodyJson,
-      triggerCondition,
+      bodyJson,
+      triggerConditions,
       groups: [{ id: program.defaultGroupId }],
+      partnerTags: [{ id: partnerTag.id }],
       status: "draft",
     });
   } finally {
     await deleteCampaign(api, duplicateId);
     await deleteCampaign(api, id);
+    await deletePartnerTag(partnerTagId);
   }
 });
 
@@ -364,7 +374,8 @@ test("POST /campaigns/:id/duplicate – marketing", async ({ api }) => {
       name: `${body.name} (copy)`,
       subject: body.subject,
       bodyJson: body.bodyJson,
-      triggerCondition: null,
+      triggerConditions: null,
+      partnerTags: [],
       status: "draft",
     });
   } finally {
@@ -461,6 +472,223 @@ test("PATCH /campaigns/:id – transactional draft cannot become scheduled", asy
         message: "A draft campaign can't be moved to scheduled.",
       }),
     );
+  } finally {
+    await deleteCampaign(api, id);
+  }
+});
+
+test("PATCH /campaigns/:id – with valid partnerTagIds", async ({
+  api,
+  program,
+}) => {
+  let id: string | undefined;
+  let partnerTagId: string | undefined;
+
+  try {
+    const partnerTag = await createPartnerTag(program.id);
+    partnerTagId = partnerTag.id;
+    id = await createDraft(api);
+
+    const { status, data } = await api.patch<CampaignJson>(
+      `/api/campaigns/${id}`,
+      {
+        groupIds: [program.defaultGroupId],
+        partnerTagIds: [partnerTag.id],
+      },
+    );
+
+    expect(status).toEqual(200);
+    expect(data.groups).toEqual([{ id: program.defaultGroupId }]);
+    expect(data.partnerTags).toEqual([{ id: partnerTag.id }]);
+  } finally {
+    await deleteCampaign(api, id);
+    await deletePartnerTag(partnerTagId);
+  }
+});
+
+test("PATCH /campaigns/:id – clear partner tags", async ({ api, program }) => {
+  let id: string | undefined;
+  let partnerTagId: string | undefined;
+
+  try {
+    const partnerTag = await createPartnerTag(program.id);
+    partnerTagId = partnerTag.id;
+    id = await createDraft(api);
+
+    const { data: withTags } = await api.patch<CampaignJson>(
+      `/api/campaigns/${id}`,
+      { partnerTagIds: [partnerTag.id] },
+    );
+    expect(withTags.partnerTags).toEqual([{ id: partnerTag.id }]);
+
+    const { status, data } = await api.patch<CampaignJson>(
+      `/api/campaigns/${id}`,
+      { partnerTagIds: null },
+    );
+
+    expect(status).toEqual(200);
+    expect(data.partnerTags).toEqual([]);
+  } finally {
+    await deleteCampaign(api, id);
+    await deletePartnerTag(partnerTagId);
+  }
+});
+
+test("PATCH /campaigns/:id – invalid partner tag IDs", async ({ api }) => {
+  let id: string | undefined;
+
+  try {
+    id = await createDraft(api);
+    expect(
+      await api.patch(`/api/campaigns/${id}`, {
+        partnerTagIds: ["invalid-partner-tag-id"],
+      }),
+    ).toEqual(
+      apiError({
+        code: "bad_request",
+        message: "Invalid partner tag IDs detected: invalid-partner-tag-id",
+      }),
+    );
+  } finally {
+    await deleteCampaign(api, id);
+  }
+});
+
+test("PATCH /campaigns/:id – multiple trigger conditions", async ({ api }) => {
+  let id: string | undefined;
+  const triggerConditions = [...multipleTriggerConditions];
+
+  try {
+    id = await createDraft(api);
+
+    const { status, data } = await api.patch<CampaignJson>(
+      `/api/campaigns/${id}`,
+      { triggerConditions },
+    );
+
+    expect(status).toEqual(200);
+    expect(data.triggerConditions).toEqual(triggerConditions);
+
+    const { data: fetched } = await api.get<CampaignJson>(
+      `/api/campaigns/${id}`,
+    );
+    expect(fetched.triggerConditions).toEqual(triggerConditions);
+
+    const { status: listStatus, data: campaigns } = await api.get<
+      CampaignJson[]
+    >(
+      `/api/campaigns?triggerConditions=${encodeURIComponent(JSON.stringify(triggerConditions))}`,
+    );
+
+    expect(listStatus).toEqual(200);
+    expect(campaigns.find((campaign) => campaign.id === id)).toMatchObject({
+      id,
+      triggerConditions,
+    });
+  } finally {
+    await deleteCampaign(api, id);
+  }
+});
+
+test("PATCH /campaigns/:id – duplicate trigger condition attribute", async ({
+  api,
+}) => {
+  let id: string | undefined;
+
+  try {
+    id = await createDraft(api);
+    expect(
+      await api.patch(`/api/campaigns/${id}`, {
+        triggerConditions: [
+          { attribute: "totalConversions", operator: "gte", value: 50 },
+          { attribute: "totalConversions", operator: "lte", value: 100 },
+        ],
+      }),
+    ).toEqual(
+      apiError({
+        code: "bad_request",
+        message: "Each activity can only be used once in the campaign logic.",
+      }),
+    );
+  } finally {
+    await deleteCampaign(api, id);
+  }
+});
+
+test("PATCH /campaigns/:id – exclusive trigger condition cannot mix", async ({
+  api,
+}) => {
+  let id: string | undefined;
+
+  try {
+    id = await createDraft(api);
+    expect(
+      await api.patch(`/api/campaigns/${id}`, {
+        triggerConditions: [
+          { attribute: "partnerJoined", operator: "gte", value: 0 },
+          { attribute: "totalConversions", operator: "gte", value: 50 },
+        ],
+      }),
+    ).toEqual(
+      apiError({
+        code: "bad_request",
+        message:
+          'Campaign logic with "joins the program" cannot include other conditions.',
+      }),
+    );
+  } finally {
+    await deleteCampaign(api, id);
+  }
+});
+
+test("PATCH /campaigns/:id – triggerConditions must be an array", async ({
+  api,
+}) => {
+  let id: string | undefined;
+
+  try {
+    id = await createDraft(api);
+    expect(
+      await api.patch(`/api/campaigns/${id}`, {
+        triggerConditions: {
+          attribute: "totalConversions",
+          operator: "gte",
+          value: 50,
+        },
+      }),
+    ).toEqual(
+      apiError({
+        code: "unprocessable_entity",
+        message:
+          "invalid_type: triggerConditions: Invalid input: expected array, received object",
+      }),
+    );
+  } finally {
+    await deleteCampaign(api, id);
+  }
+});
+
+test("PATCH /campaigns/:id – email template variables in bodyJson", async ({
+  api,
+}) => {
+  let id: string | undefined;
+  const bodyJson = mentionBodyJson(EMAIL_TEMPLATE_VARIABLES);
+
+  try {
+    id = await createDraft(api);
+
+    const { status, data } = await api.patch<CampaignJson>(
+      `/api/campaigns/${id}`,
+      { bodyJson },
+    );
+
+    expect(status).toEqual(200);
+    expect(data.bodyJson).toEqual(bodyJson);
+
+    const { data: fetched } = await api.get<CampaignJson>(
+      `/api/campaigns/${id}`,
+    );
+    expect(fetched.bodyJson).toEqual(bodyJson);
   } finally {
     await deleteCampaign(api, id);
   }
