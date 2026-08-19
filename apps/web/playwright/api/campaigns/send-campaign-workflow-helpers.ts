@@ -5,6 +5,7 @@ import { nanoid } from "@dub/utils";
 import { expect } from "@playwright/test";
 import { subHours } from "date-fns";
 import { randomName, randomPartnerEmail } from "../../utils";
+import { PLAYWRIGHT_API_BASE } from "../constants";
 import type { ApiClient } from "../fixtures";
 import { campaignContent, createCampaign, deleteCampaign } from "./helpers";
 
@@ -44,40 +45,28 @@ export async function getCampaignWorkflow(campaignId: string) {
   });
 }
 
-export async function runScheduledCampaignWorkflow(
-  api: ApiClient,
-  workflowId: string,
-) {
-  const { status, data } = await api.post<{ message: string }>(
-    `/api/e2e/trigger-workflow/${workflowId}`,
-    {},
+export async function runScheduledCampaignWorkflow(workflowId: string) {
+  const response = await fetch(
+    `${PLAYWRIGHT_API_BASE}/api/cron/workflows/${workflowId}`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: "{}",
+    },
   );
+  const message = await response.text();
 
-  expect(status).toEqual(200);
+  expect(response.status).toEqual(200);
 
-  if (data.message.includes("disabled")) {
+  if (message.includes("disabled")) {
     return "disabled";
   }
 
-  if (data.message.includes("not found")) {
+  if (message.includes("not found")) {
     return "not found";
   }
 
   return "finished";
-}
-
-export async function runPartnerCampaignWorkflow(
-  api: ApiClient,
-  workflowId: string,
-  partnerId: string,
-) {
-  const { status, data } = await api.post<{ message: string }>(
-    `/api/e2e/trigger-workflow/${workflowId}`,
-    { partnerId },
-  );
-
-  expect(status).toEqual(200);
-  return data.message.includes("disabled") ? "disabled" : "finished";
 }
 
 export async function createTestPartner(
@@ -324,6 +313,10 @@ export async function deleteTestPartner(partnerId: string | undefined) {
   });
 
   await prisma.commission.deleteMany({
+    where: { partnerId },
+  });
+
+  await prisma.customer.deleteMany({
     where: { partnerId },
   });
 
