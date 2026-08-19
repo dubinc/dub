@@ -68,9 +68,13 @@ export const POST = withWorkspace(
   async ({ workspace, req, session }) => {
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    const { partnerId, linkId, code } = createDiscountCodeSchema.parse(
-      await parseRequestBody(req),
-    );
+    const body = await parseRequestBody(req);
+
+    if (typeof body.code === "string" && body.code.trim() === "") {
+      delete body.code;
+    }
+
+    const { partnerId, linkId, code } = createDiscountCodeSchema.parse(body);
 
     const programEnrollment = await getProgramEnrollmentOrThrow({
       partnerId,

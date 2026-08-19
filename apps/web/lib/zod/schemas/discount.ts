@@ -90,24 +90,19 @@ export const DiscountCodeSchema = z
     title: "DiscountCode",
   });
 
-const discountCodeValueSchema = z
-  .string()
-  .trim()
-  .max(100, "Code must be 100 characters or fewer.")
-  .regex(
-    /^[a-zA-Z0-9\-_]+$/,
-    "Code can only contain letters, numbers, dashes, and underscores.",
-  );
-
 export const createDiscountCodeSchema = z.object({
-  code: z.preprocess(
-    (val) => (typeof val === "string" && val.trim() === "" ? undefined : val),
-    discountCodeValueSchema
-      .optional()
-      .describe(
-        "The discount code to create. If omitted, a unique code will be generated automatically from the partner's name.",
-      ),
-  ),
+  code: z
+    .string()
+    .trim()
+    .max(100, "Code must be 100 characters or fewer.")
+    .regex(
+      /^[a-zA-Z0-9\-_]+$/,
+      "Code can only contain letters, numbers, dashes, and underscores.",
+    )
+    .optional()
+    .describe(
+      "The discount code to create. If omitted, a unique code will be generated automatically from the partner's name.",
+    ),
   partnerId: z
     .string()
     .describe("The ID of the partner to create a discount code for."),

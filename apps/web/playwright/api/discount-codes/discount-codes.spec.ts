@@ -226,6 +226,32 @@ test("POST /discount-codes – omits code and auto-generates", async ({
   }
 });
 
+test("POST /discount-codes – empty code auto-generates", async ({ api }) => {
+  let partnerId: string | undefined;
+
+  try {
+    const { data: partner } = await createPartner(api);
+    partnerId = partner.id;
+    const linkId = partner.links?.[0]?.id;
+
+    const { status, data } = await api.post<DiscountCode>(
+      "/api/discount-codes",
+      {
+        partnerId: partner.id,
+        linkId,
+        code: "",
+      },
+    );
+
+    expect(status).toEqual(200);
+    expect(data.code).toEqual(expect.any(String));
+    expect(data.code.length).toBeGreaterThan(0);
+    expect(data.partnerId).toEqual(partner.id);
+  } finally {
+    await deletePartner(partnerId);
+  }
+});
+
 test("POST /discount-codes – auto-generated first-name collision retries", async ({
   api,
 }) => {
