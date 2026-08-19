@@ -71,6 +71,7 @@ export async function setupTestWorkspace() {
       foldersLimit: 100,
       aiLimit: 1000,
       partnersLimit: 1000,
+      groupsLimit: 100,
     },
     create: {
       id: createId({ prefix: "ws_" }),
@@ -86,6 +87,7 @@ export async function setupTestWorkspace() {
       foldersLimit: 100,
       aiLimit: 1000,
       partnersLimit: 1000,
+      groupsLimit: 100,
     },
   });
 

@@ -784,7 +784,10 @@ test("POST /bounties – invalid partner tag IDs", async ({ api, program }) => {
       }),
     }),
   ).toEqual(
-    badRequest("Invalid partner tag IDs detected: invalid-partner-tag-id"),
+    apiError({
+      code: "bad_request",
+      message: "Invalid partner tag IDs detected: invalid-partner-tag-id",
+    }),
   );
 });
 
@@ -874,7 +877,10 @@ test("PATCH /bounties/{bountyId} – invalid partner tag IDs", async ({
         partnerTagIds: ["invalid-partner-tag-id"],
       }),
     ).toEqual(
-      badRequest("Invalid partner tag IDs detected: invalid-partner-tag-id"),
+      apiError({
+        code: "bad_request",
+        message: "Invalid partner tag IDs detected: invalid-partner-tag-id",
+      }),
     );
   } finally {
     await deleteBounty(api, id);
