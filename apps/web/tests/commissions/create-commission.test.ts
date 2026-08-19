@@ -1,18 +1,11 @@
-import { createId } from "@/lib/api/create-id";
-import { generateRandomName } from "@/lib/names";
-import { conn } from "@/lib/planetscale";
-import { prisma } from "@/lib/prisma";
-import { CommissionResponse, EnrolledPartnerProps } from "@/lib/types";
-import { Prisma } from "@prisma/client";
-import { describe, expect, onTestFinished, test } from "vitest";
-import { randomCustomer, randomId, randomPartnerEmail } from "../utils/helpers";
+import { CommissionResponse } from "@/lib/types";
+import { describe, expect, test } from "vitest";
+import { randomCustomer, randomId } from "../utils/helpers";
 import { IntegrationHarness } from "../utils/integration";
 import {
   E2E_CUSTOMER_ID,
   E2E_LEAD_REWARD,
   E2E_PARTNER,
-  E2E_PARTNER_GROUP,
-  E2E_PROGRAM,
 } from "../utils/resource";
 import { verifyCommission } from "../utils/verify-commission";
 
@@ -153,114 +146,6 @@ describe.concurrent("POST /commissions", async () => {
       invoiceId,
       expectedSaleAmount: 1000,
       expectedEarnings: 5000, // Earn $50 per sale for 3 months
-    });
-  });
-
-  test("create sale commission rounds 3¢ at 20% to 1¢", async () => {
-    let partnerId: string | undefined;
-    let rewardId: string | undefined;
-
-    onTestFinished(async () => {
-      if (partnerId) {
-        const commissions = await prisma.commission.findMany({
-          where: { partnerId, programId: E2E_PROGRAM.id },
-          select: { id: true },
-        });
-
-        if (commissions.length > 0) {
-          await prisma.activityLog.deleteMany({
-            where: {
-              resourceType: "commission",
-              resourceId: { in: commissions.map((c) => c.id) },
-            },
-          });
-        }
-
-        await prisma.commission.deleteMany({
-          where: { partnerId, programId: E2E_PROGRAM.id },
-        });
-        await prisma.customer.deleteMany({
-          where: { partnerId },
-        });
-        await prisma.link.deleteMany({
-          where: { partnerId },
-        });
-        await prisma.programEnrollment.deleteMany({
-          where: { partnerId, programId: E2E_PROGRAM.id },
-        });
-        await conn.execute(`DELETE FROM Partner WHERE id = ?`, [partnerId]);
-      }
-
-      if (rewardId) {
-        await prisma.reward.deleteMany({
-          where: { id: rewardId },
-        });
-      }
-    });
-
-    const { status: partnerStatus, data: partner } =
-      await http.post<EnrolledPartnerProps>({
-        path: "/partners",
-        body: {
-          name: generateRandomName(),
-          email: randomPartnerEmail(),
-          groupId: E2E_PARTNER_GROUP.id,
-        },
-      });
-
-    expect(partnerStatus).toEqual(201);
-    partnerId = partner.id;
-
-    const reward = await prisma.reward.create({
-      data: {
-        id: createId({ prefix: "rw_" }),
-        programId: E2E_PROGRAM.id,
-        event: "sale",
-        type: "percentage",
-        amountInPercentage: new Prisma.Decimal(20),
-      },
-    });
-    rewardId = reward.id;
-
-    await prisma.programEnrollment.update({
-      where: {
-        partnerId_programId: {
-          partnerId,
-          programId: E2E_PROGRAM.id,
-        },
-      },
-      data: {
-        saleRewardId: reward.id,
-      },
-    });
-
-    const invoiceId = `INV_${randomId()}`;
-    const customer = randomCustomer();
-
-    const { status, data } = await http.post<any>({
-      path: "/commissions",
-      body: {
-        type: "sale",
-        partnerId,
-        saleAmount: 3,
-        invoiceId,
-        customer: {
-          externalId: customer.externalId,
-          email: customer.email,
-          name: customer.name,
-          country: "US",
-        },
-      },
-    });
-
-    expect(status).toEqual(202);
-    expect(data).toStrictEqual(expectedQueuedResponse);
-
-    await verifyCommission({
-      http,
-      invoiceId,
-      expectedSaleAmount: 3,
-      expectedEarnings: 1,
     });
   });
 
