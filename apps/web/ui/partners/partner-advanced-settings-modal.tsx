@@ -73,7 +73,13 @@ function PartnerAdvancedSettingsModal({
     setValue,
     setError,
     handleSubmit,
-    formState: { errors, isSubmitting, isSubmitSuccessful, isDirty },
+    formState: {
+      errors,
+      isSubmitting,
+      isSubmitSuccessful,
+      isDirty,
+      dirtyFields,
+    },
   } = useForm<FormData>({
     defaultValues: {
       tenantId: partner.tenantId,
@@ -123,10 +129,16 @@ function PartnerAdvancedSettingsModal({
           const result = await executeAsync({
             workspaceId: workspaceId!,
             partnerId: partner.id,
-            tenantId: data.tenantId || null,
-            customerDataSharingEnabledAt: data.customerDataSharingEnabledAt,
-            groupMoveDisabledAt: data.groupMoveDisabledAt,
-            riskMonitoringDisabledAt: data.riskMonitoringDisabledAt,
+            ...(dirtyFields.tenantId && { tenantId: data.tenantId || null }),
+            ...(dirtyFields.customerDataSharingEnabledAt && {
+              customerDataSharingEnabledAt: data.customerDataSharingEnabledAt,
+            }),
+            ...(dirtyFields.groupMoveDisabledAt && {
+              groupMoveDisabledAt: data.groupMoveDisabledAt,
+            }),
+            ...(dirtyFields.riskMonitoringDisabledAt && {
+              riskMonitoringDisabledAt: data.riskMonitoringDisabledAt,
+            }),
           });
 
           if (result?.serverError || result?.validationErrors) {
@@ -282,11 +294,7 @@ export function usePartnerAdvancedSettingsModal({
         partner={partner}
       />
     );
-  }, [
-    showPartnerAdvancedSettingsModal,
-    setShowPartnerAdvancedSettingsModal,
-    partner,
-  ]);
+  }, [showPartnerAdvancedSettingsModal, setShowPartnerAdvancedSettingsModal]);
 
   return useMemo(
     () => ({

@@ -4,9 +4,48 @@ import { cn } from "@dub/utils";
 import * as Dialog from "@radix-ui/react-dialog";
 import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 import { useRouter } from "next/navigation";
-import { ComponentProps, Dispatch, SetStateAction } from "react";
+import {
+  ComponentProps,
+  Dispatch,
+  SetStateAction,
+  useEffect,
+  useRef,
+} from "react";
 import { Drawer } from "vaul";
 import { useMediaQuery } from "./hooks";
+
+// Dev-only detector for modal remount bugs: an open Modal unmounting while
+// another mounts open in the same commit means its element type changed
+// (unstable hook dep) and any user state in it was lost
+let pendingOpenUnmount = false;
+
+function useWarnOnRemountWhileOpen(showModal?: boolean) {
+  const showModalRef = useRef(showModal);
+
+  useEffect(() => {
+    showModalRef.current = showModal;
+  });
+
+  useEffect(() => {
+    if (process.env.NODE_ENV !== "development") return;
+
+    if (showModalRef.current && pendingOpenUnmount) {
+      pendingOpenUnmount = false;
+      console.warn(
+        "[Modal] remounted while open — the modal's element type changed mid-session (unstable hook dep?) and any user state in it was lost.",
+      );
+    }
+
+    return () => {
+      if (showModalRef.current) {
+        pendingOpenUnmount = true;
+        queueMicrotask(() => {
+          pendingOpenUnmount = false;
+        });
+      }
+    };
+  }, []);
+}
 
 export function Modal({
   children,
@@ -28,6 +67,8 @@ export function Modal({
   drawerRootProps?: ComponentProps<typeof Drawer.Root>;
 }) {
   const router = useRouter();
+
+  useWarnOnRemountWhileOpen(showModal);
 
   const closeModal = ({ dragged }: { dragged?: boolean } = {}) => {
     if (preventDefaultClose && !dragged) {

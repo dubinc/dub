@@ -3,7 +3,7 @@
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import useUser from "@/lib/swr/use-user";
 import { Button, Modal, useEnterSubmit, useMediaQuery } from "@dub/ui";
-import { Dispatch, SetStateAction, useState } from "react";
+import { Dispatch, SetStateAction, useCallback, useState } from "react";
 import { useWatch } from "react-hook-form";
 import { toast } from "sonner";
 import { useCampaignFormContext } from "./campaign-form-context";
@@ -24,7 +24,8 @@ function SendEmailPreviewModal({
   const { handleKeyDown } = useEnterSubmit();
   const { control } = useCampaignFormContext();
   const { isSubmitting, makeRequest } = useApiMutation();
-  const [emailAddresses, setEmailAddresses] = useState(user?.email ?? "");
+  const [emailAddresses, setEmailAddresses] = useState<string | null>(null);
+  const emailAddressesValue = emailAddresses ?? user?.email ?? "";
 
   const [subject, preview, bodyJson, from] = useWatch({
     control,
@@ -34,7 +35,7 @@ function SendEmailPreviewModal({
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!emailAddresses.trim()) {
+    if (!emailAddressesValue.trim()) {
       toast.error("Please enter at least one email address.");
       return;
     }
@@ -46,7 +47,7 @@ function SendEmailPreviewModal({
       return;
     }
 
-    const emails = emailAddresses
+    const emails = emailAddressesValue
       .split(",")
       .map((email) => email.trim())
       .filter((email) => email.length > 0);
@@ -95,7 +96,7 @@ function SendEmailPreviewModal({
                 placeholder="Separate multiple addresses with commas"
                 autoFocus={!isMobile}
                 required
-                value={emailAddresses}
+                value={emailAddressesValue}
                 onChange={(e) => setEmailAddresses(e.target.value)}
                 onKeyDown={handleKeyDown}
                 rows={3}
@@ -117,7 +118,7 @@ function SendEmailPreviewModal({
               type="submit"
               text="Send preview"
               loading={isSubmitting}
-              disabled={!emailAddresses.trim()}
+              disabled={!emailAddressesValue.trim()}
               className="h-8 w-fit"
             />
           </div>
@@ -135,15 +136,20 @@ export function useSendEmailPreviewModal({
   const [showSendEmailPreviewModal, setShowSendEmailPreviewModal] =
     useState(false);
 
-  return {
-    showSendEmailPreviewModal,
-    setShowSendEmailPreviewModal,
-    SendEmailPreviewModal: () => (
+  const SendEmailPreviewModalCallback = useCallback(
+    () => (
       <SendEmailPreviewModal
         showModal={showSendEmailPreviewModal}
         setShowModal={setShowSendEmailPreviewModal}
         campaignId={campaignId}
       />
     ),
+    [showSendEmailPreviewModal, campaignId],
+  );
+
+  return {
+    showSendEmailPreviewModal,
+    setShowSendEmailPreviewModal,
+    SendEmailPreviewModal: SendEmailPreviewModalCallback,
   };
 }
