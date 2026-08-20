@@ -171,7 +171,7 @@ const clawbackErrorCases = [
     expected: apiError({
       code: "unprocessable_entity",
       message:
-        "Description is required when creating a clawback (negative amount).",
+        "`description` is required when creating a clawback (negative amount).",
     }),
   },
 ];
