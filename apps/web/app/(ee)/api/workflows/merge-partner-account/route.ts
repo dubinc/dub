@@ -4,6 +4,7 @@ import { includeProgramEnrollment } from "@/lib/api/links/include-program-enroll
 import { includeTags } from "@/lib/api/links/include-tags";
 import { syncTotalCommissions } from "@/lib/api/partners/sync-total-commissions";
 import { logger } from "@/lib/axiom/server";
+import { PRISMA_UPDATEMANY_LIMIT } from "@/lib/cron";
 import { getWorkflowConfig } from "@/lib/cron/qstash-workflow";
 import { conn } from "@/lib/planetscale";
 import { prisma } from "@/lib/prisma";
@@ -27,7 +28,6 @@ const inputSchema = z.object({
 type Input = z.infer<typeof inputSchema>;
 
 const CACHE_KEY_PREFIX = "merge-partner-accounts";
-const MERGE_BATCH_SIZE = 500;
 
 /**
  * Steps:
@@ -343,10 +343,18 @@ async function loadMergePlan({
   };
 }
 
-async function transferRowsInBatches(updateBatch: () => Promise<number>) {
+async function transferRowsInBatches(
+  updateBatch: () => Promise<number>,
+  {
+    resourceName,
+  }: {
+    resourceName: string;
+  },
+) {
   while (true) {
     const count = await updateBatch();
-    if (count < MERGE_BATCH_SIZE) {
+    console.log(`Transferred ${count} ${resourceName} in batch`);
+    if (count < PRISMA_UPDATEMANY_LIMIT) {
       break;
     }
   }
@@ -373,44 +381,39 @@ async function transferPartnerProgramData({
   };
 
   await Promise.all([
-    // High-volume tables: move in batches of MERGE_BATCH_SIZE
+    // High-volume tables: move in batches of PRISMA_UPDATEMANY_LIMIT
     transferRowsInBatches(
       async () =>
         (
           await prisma.commission.updateMany({
             ...payload,
-            limit: MERGE_BATCH_SIZE,
+            limit: PRISMA_UPDATEMANY_LIMIT,
           })
         ).count,
+      { resourceName: "commission" },
     ),
     transferRowsInBatches(
       async () =>
         (
           await prisma.link.updateMany({
             ...payload,
-            limit: MERGE_BATCH_SIZE,
+            limit: PRISMA_UPDATEMANY_LIMIT,
           })
         ).count,
+      { resourceName: "link" },
     ),
     transferRowsInBatches(
       async () =>
         (
           await prisma.customer.updateMany({
             ...payload,
-            limit: MERGE_BATCH_SIZE,
+            limit: PRISMA_UPDATEMANY_LIMIT,
           })
         ).count,
-    ),
-    transferRowsInBatches(
-      async () =>
-        (
-          await prisma.payout.updateMany({
-            ...payload,
-            limit: MERGE_BATCH_SIZE,
-          })
-        ).count,
+      { resourceName: "customer" },
     ),
     // Low-volume tables: single updateMany is fine
+    prisma.payout.updateMany(payload),
     prisma.discountCode.updateMany(payload),
     prisma.notificationEmail.updateMany(payload),
     prisma.message.updateMany(payload),
@@ -577,6 +580,7 @@ async function transferBountySubmissions({
     },
   });
 
+  // only transfer bounty submissions if the target partner has no submissions for the same bounty
   const bountiesToTransfer = bountySubmissionStats
     .filter(({ _count }) => _count.partnerId === 1)
     .map(({ bountyId }) => bountyId);
