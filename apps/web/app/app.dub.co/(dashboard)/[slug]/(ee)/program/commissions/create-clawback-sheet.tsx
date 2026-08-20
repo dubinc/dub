@@ -1,14 +1,14 @@
-import { createClawbackAction } from "@/lib/actions/partners/create-clawback";
 import { mutatePrefix } from "@/lib/swr/mutate";
+import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import useWorkspace from "@/lib/swr/use-workspace";
 import {
   CLAWBACK_REASONS,
   createClawbackSchema,
+  createCommissionResponseSchema,
 } from "@/lib/zod/schemas/commissions";
 import { PartnerSelector } from "@/ui/partners/partner-selector";
 import { X } from "@/ui/shared/icons";
 import { Button, Sheet } from "@dub/ui";
-import { useAction } from "next-safe-action/hooks";
 import { useParams } from "next/navigation";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
@@ -41,42 +41,38 @@ function CreateClawbackSheetContent(
   } = useForm<FormData>({
     defaultValues: {
       partnerId: params.partnerId,
-      description: "",
+      reason: undefined,
     },
   });
 
-  const [partnerId, amount, description] = watch([
-    "partnerId",
-    "amount",
-    "description",
-  ]);
+  const [partnerId, amount, reason] = watch(["partnerId", "amount", "reason"]);
 
-  const { executeAsync, isPending } = useAction(createClawbackAction, {
-    onSuccess: () => {
-      toast.success("A clawback has been created for the partner!");
-      setIsOpen(false);
-      mutatePrefix(`/api/commissions?workspaceId=${workspaceId}`);
-      const currentValues = getValues();
-      reset(currentValues);
-    },
-    onError({ error }) {
-      toast.error(error.serverError || "Failed to create clawback.");
-    },
-  });
+  const { makeRequest, isSubmitting: isCreating } =
+    useApiMutation<z.infer<typeof createCommissionResponseSchema>>();
 
   const onSubmit = async (data: FormData) => {
     if (!workspaceId || !defaultProgramId) {
       return;
     }
 
-    await executeAsync({
-      ...data,
-      amount: data.amount * 100,
-      workspaceId,
+    await makeRequest("/api/clawbacks", {
+      method: "POST",
+      body: {
+        partnerId: data.partnerId,
+        amount: data.amount ? Math.round(data.amount * 100) : 0,
+        reason: data.reason,
+      },
+      onSuccess: async ({ message }) => {
+        toast.success(message);
+        setIsOpen(false);
+        await mutatePrefix("/api/commissions");
+        const currentValues = getValues();
+        reset(currentValues);
+      },
     });
   };
 
-  const disableSubmitButton = !partnerId || !amount || !description;
+  const disableSubmitButton = !partnerId || !amount || !reason;
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="flex h-full flex-col">
@@ -110,7 +106,7 @@ function CreateClawbackSheetContent(
                 rules={{ required: true }}
                 render={({ field }) => (
                   <PartnerSelector
-                    selectedPartnerId={field.value}
+                    selectedPartnerId={field.value ?? null}
                     setSelectedPartnerId={field.onChange}
                   />
                 )}
@@ -171,21 +167,21 @@ function CreateClawbackSheetContent(
 
           <div>
             <label
-              htmlFor="description"
+              htmlFor="reason"
               className="text-sm font-medium text-neutral-900"
             >
               Reason
             </label>
             <div className="relative mt-2 rounded-md shadow-sm">
               <Controller
-                name="description"
+                name="reason"
                 control={control}
                 rules={{ required: true }}
                 render={({ field }) => (
                   <select
-                    id="description"
+                    id="reason"
                     className="block w-full rounded-md border-neutral-300 pr-10 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
-                    value={field.value}
+                    value={field.value ?? ""}
                     onChange={field.onChange}
                   >
                     <option value="" disabled>
@@ -199,9 +195,9 @@ function CreateClawbackSheetContent(
                   </select>
                 )}
               />
-              {errors.description && (
+              {errors.reason && (
                 <span className="text-xs text-red-600">
-                  {errors.description.message}
+                  {errors.reason.message}
                 </span>
               )}
             </div>
@@ -216,14 +212,14 @@ function CreateClawbackSheetContent(
             onClick={() => setIsOpen(false)}
             text="Cancel"
             className="w-fit"
-            disabled={isPending || isSubmitting || isSubmitSuccessful}
+            disabled={isCreating || isSubmitting || isSubmitSuccessful}
           />
           <Button
             type="submit"
             variant="primary"
             text="Create clawback"
             className="w-fit"
-            loading={isPending || isSubmitting || isSubmitSuccessful}
+            loading={isCreating || isSubmitting || isSubmitSuccessful}
             disabled={disableSubmitButton}
           />
         </div>

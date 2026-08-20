@@ -7,7 +7,11 @@ import {
   getCursorPaginationQuerySchema,
   getPaginationQuerySchema,
 } from "./misc";
-import { EnrolledPartnerSchema, WebhookPartnerSchema } from "./partners";
+import {
+  EnrolledPartnerSchema,
+  partnerIdTenantIdSchema,
+  WebhookPartnerSchema,
+} from "./partners";
 import { PayoutSchema } from "./payouts";
 import { rewardContextSchema, RewardSchema } from "./rewards";
 import { UserSchema } from "./users";
@@ -318,13 +322,13 @@ export const CLAWBACK_REASONS_MAP = Object.fromEntries(
   CLAWBACK_REASONS.map((r) => [r.value, r]),
 );
 
-export const createClawbackSchema = z.object({
-  workspaceId: z.string(),
-  partnerId: z.string(),
-  amount: z.number().gt(0, "Amount must be greater than 0."),
-  description: z.enum(
-    CLAWBACK_REASONS.map((r) => r.value) as [string, ...string[]],
-  ),
+export const createClawbackSchema = partnerIdTenantIdSchema.extend({
+  amount: centsSchema
+    .pipe(z.number().gt(0, "Amount must be greater than 0."))
+    .describe("The clawback amount in cents (positive)."),
+  reason: z
+    .enum(CLAWBACK_REASONS.map((r) => r.value) as [string, ...string[]])
+    .describe("The reason for the clawback."),
 });
 
 export const COMMISSION_EXPORT_COLUMNS = [

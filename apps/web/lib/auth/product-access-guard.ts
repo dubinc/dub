@@ -34,6 +34,7 @@ export const PROGRAM_API_PATHS = [
   "/api/programs",
   "/api/partners",
   "/api/commissions",
+  "/api/clawbacks",
   "/api/payouts",
   "/api/rewards",
   "/api/bounties",
