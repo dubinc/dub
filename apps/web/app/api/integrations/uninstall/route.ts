@@ -3,7 +3,11 @@ import { withWorkspace } from "@/lib/auth";
 import { googleAdsInstalledWorkspaces } from "@/lib/integrations/google-ads/installed-workspaces";
 import { slackOAuthProvider } from "@/lib/integrations/slack/oauth";
 import { prisma } from "@/lib/prisma";
-import { GOOGLE_ADS_INTEGRATION_ID, SLACK_INTEGRATION_ID } from "@dub/utils";
+import {
+  GOOGLE_ADS_INTEGRATION_ID,
+  RAYCAST_INTEGRATION_ID,
+  SLACK_INTEGRATION_ID,
+} from "@dub/utils/src/constants/integrations";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
@@ -26,12 +30,17 @@ export const DELETE = withWorkspace(
       });
     }
 
+    const isInstaller = installation.userId === session.user.id;
     const isOwner = workspace.users[0].role === "owner";
-    if (installation.userId !== session.user.id && !isOwner) {
+    const isPersonalIntegration =
+      installation.integrationId === RAYCAST_INTEGRATION_ID;
+
+    if (!isInstaller && (!isOwner || isPersonalIntegration)) {
       throw new DubApiError({
         code: "unauthorized",
-        message:
-          "You are not authorized to uninstall this integration. Only the user who installed it or a workspace owner can uninstall it.",
+        message: isPersonalIntegration
+          ? "You are not authorized to uninstall this integration. Only the user who installed it can uninstall it."
+          : "You are not authorized to uninstall this integration. Only the user who installed it or a workspace owner can uninstall it.",
       });
     }
 
