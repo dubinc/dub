@@ -63,6 +63,19 @@ export class DubApiError extends Error {
 const docErrorUrl = "https://dub.co/docs/api-reference/errors";
 
 export function fromZodError(error: z.ZodError): ErrorResponse {
+  const [issue] = error.issues;
+
+  // Custom business rules already include human-readable messages.
+  if (error.issues.length === 1 && issue.code === "custom") {
+    return {
+      error: {
+        code: "unprocessable_entity",
+        message: issue.message,
+        doc_url: `${docErrorUrl}#unprocessable-entity`,
+      },
+    };
+  }
+
   return {
     error: {
       code: "unprocessable_entity",

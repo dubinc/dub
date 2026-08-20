@@ -577,7 +577,7 @@ export const createManualCommissionBodySchema = z
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           message:
-            "`description` is required when creating a clawback (negative amount).",
+            "Description is required when creating a clawback (negative amount).",
           path: ["description"],
         });
       }
@@ -589,8 +589,7 @@ export const createManualCommissionBodySchema = z
     if (!data.importStripeInvoices && data.saleAmount == null) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message:
-          "`saleAmount` is required when `importStripeInvoices` is false.",
+        message: "saleAmount is required when importStripeInvoices is false.",
         path: ["saleAmount"],
       });
     }
