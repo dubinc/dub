@@ -110,6 +110,7 @@ export async function expectCommissionCreated({
         quantity: commission.quantity,
         description: commission.description,
         invoiceId: commission.invoiceId,
+        currency: commission.currency,
         createdAt: commission.createdAt.toISOString(),
       };
     })
@@ -122,6 +123,7 @@ export async function expectCommissionCreated({
       quantity: 1,
       description: description ?? null,
       invoiceId: invoiceId ?? null,
+      currency: "usd",
       createdAt: expectedCreatedAt
         ? expectedCreatedAt.toISOString()
         : expect.any(String),

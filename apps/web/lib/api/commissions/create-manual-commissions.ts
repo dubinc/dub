@@ -1,3 +1,4 @@
+import { convertCurrency } from "@/lib/analytics/convert-currency";
 import { isFirstConversion } from "@/lib/analytics/is-first-conversion";
 import { Session } from "@/lib/auth";
 import { generateRandomName } from "@/lib/names";
@@ -488,11 +489,11 @@ async function recordEvents(args: RecordEventsArgs) {
 
     const invoiceId = sale?.invoiceId ?? args.invoiceId;
     const productId = sale?.metadata?.productId ?? args.productId;
-    const saleAmount = sale?.amount ?? args.saleAmount;
     const saleEventDate = args.date ?? args.saleEventDate ?? Date.now();
     const eventName = sale?.eventName ?? "Purchase";
-    const currency = sale?.currency ?? "usd";
     const paymentProcessor = sale?.paymentProcessor ?? "custom";
+    let saleAmount = sale?.amount ?? args.saleAmount;
+    let currency = sale?.currency ?? "usd";
     const metadata = {
       ...(productId ? { productId } : {}),
       ...(sale?.metadata ?? {}),
@@ -508,12 +509,24 @@ async function recordEvents(args: RecordEventsArgs) {
           amount: invoice.amount,
           customer_id: targetCustomer.id,
           payment_processor: "stripe",
-          currency,
+          currency: "usd",
           timestamp: invoice.createdAt.toISOString(),
           metadata: JSON.stringify(invoice.metadata),
         }),
       );
     } else if (saleAmount) {
+      // For non-USD currencies, convert the sale amount to USD based on the current FX rate
+      if (currency !== "usd") {
+        const { currency: convertedCurrency, amount: convertedAmount } =
+          await convertCurrency({
+            currency,
+            amount: saleAmount,
+          });
+
+        currency = convertedCurrency;
+        saleAmount = convertedAmount;
+      }
+
       saleEvents = [
         saleEventSchemaTBWithTimestamp.parse({
           ...clickEvent,

@@ -1,5 +1,6 @@
 import { createId } from "@/lib/api/create-id";
 import { prisma } from "@/lib/prisma";
+import { redis } from "@/lib/upstash";
 import { nanoid } from "@dub/utils";
 import { expect } from "@playwright/test";
 import { apiError, randomCustomer } from "../../utils";
@@ -289,6 +290,44 @@ test.describe("Sale commissions", () => {
           TEST_COMMISSION_REWARDS.sale.modifiers[0].amountInCents,
       });
     });
+  });
+
+  test("converts nested sale.currency to USD", async ({ api, program }) => {
+    const invoiceId = `INV_${nanoid()}`;
+    const previousEurRate = await redis.hget("fxRates:usd", "EUR");
+
+    try {
+      await redis.hset("fxRates:usd", { EUR: 2 });
+
+      await withCommissionPartner(api, program, async (partnerId) => {
+        expect(
+          await api.post("/api/commissions", {
+            type: "sale",
+            partnerId,
+            sale: {
+              amount: 10000,
+              currency: "eur",
+              invoiceId,
+            },
+            customer: customerBody(),
+          }),
+        ).toEqual(expectedQueuedResponse);
+
+        await expectCommissionCreated({
+          partnerId,
+          programId: program.id,
+          type: "sale",
+          invoiceId,
+          expectedAmount: 5000,
+        });
+      });
+    } finally {
+      if (previousEurRate == null) {
+        await redis.hdel("fxRates:usd", "EUR");
+      } else {
+        await redis.hset("fxRates:usd", { EUR: previousEurRate });
+      }
+    }
   });
 
   test("supports deprecated sale fields", async ({ api, program }) => {

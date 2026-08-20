@@ -19,20 +19,52 @@ export const CommissionSchema = z.object({
   id: z.string().describe("The commission's unique ID on Dub.").meta({
     example: "cm_1JVR7XRCSR0EDBAF39FZ4PMYE",
   }),
-  type: z.enum(CommissionType).optional(), // Note: Not sure the type will ever be optional
-  amount: z.number(),
-  earnings: z.number(),
-  currency: z.string(),
-  status: z.enum(CommissionStatus),
-  invoiceId: z.string().nullable(),
-  description: z.string().nullable(),
-  quantity: z.number(),
+  type: z
+    .enum(CommissionType)
+    .describe(
+      "The type of commission. Can be `click`, `lead`, `sale`, `referral`, or `custom`.",
+    ),
+  amount: z
+    .number()
+    .describe(
+      "The associated event amount in cents. For sale commissions, this is the sale amount.",
+    ),
+  earnings: z.number().describe("The amount earned by the partner, in cents."),
+  currency: z
+    .string()
+    .describe("The currency of the commission, as an ISO 4217 currency code."),
+  status: z
+    .enum(CommissionStatus)
+    .describe("The current status of the commission."),
+  invoiceId: z
+    .string()
+    .nullable()
+    .describe("The associated invoice ID. Only set for sale commissions."),
+  description: z
+    .string()
+    .nullable()
+    .describe("An optional description of the commission."),
+  quantity: z
+    .number()
+    .describe(
+      "The event quantity. Used for click and lead commissions; typically `1` for sale and custom commissions.",
+    ),
   userId: z
     .string()
     .nullish()
     .describe("The user who created the manual commission."),
-  createdAt: z.date(),
-  updatedAt: z.date(),
+  metadata: z
+    .record(z.string(), z.any())
+    .nullable()
+    .describe(
+      "User-provided metadata from the associated lead or sale event (`lead.metadata` / `sale.metadata`).",
+    ),
+  createdAt: z
+    .date()
+    .describe("The date and time when the commission was created."),
+  updatedAt: z
+    .date()
+    .describe("The date and time when the commission was last updated."),
 });
 
 // Represents the commission object used in webhook and API responses (/api/commissions/**)
@@ -148,6 +180,14 @@ export const getCommissionsQuerySchema = z
       .optional()
       .describe(
         "Filter the list of commissions by the associated invoice. Since invoiceId is unique on a per-program basis, this will only return one commission per invoice.",
+      ),
+    query: z
+      .string()
+      .max(10000)
+      .optional()
+      .describe(
+        "Search commissions by a custom metadata value. Only matches lead and sale commissions with persisted user-provided metadata. " +
+          "Examples: `metadata['key']:'value'`",
       ),
     status: z
       .enum(CommissionStatus)
