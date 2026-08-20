@@ -341,7 +341,7 @@ const mergeAccounts = async ({ userId }: { userId: string }) => {
   const { sourceEmail, targetEmail } = accounts;
 
   await triggerQStashWorkflow({
-    workflowType: "merge-partner-account",
+    workflowType: "merge-partner-accounts",
     workflowLabel: userId,
     body: {
       userId,

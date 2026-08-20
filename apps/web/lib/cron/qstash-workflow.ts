@@ -17,7 +17,7 @@ const client = new Client({
 type WorkflowType =
   | "partner-approved"
   | "create-partner-commission"
-  | "merge-partner-account";
+  | "merge-partner-accounts";
 
 interface QStashWorkflow {
   workflowType: WorkflowType;
@@ -110,7 +110,7 @@ export function getWorkflowConfig({
       };
     }
 
-    case "merge-partner-account": {
+    case "merge-partner-accounts": {
       return {
         correlation: {
           userId: body.userId,

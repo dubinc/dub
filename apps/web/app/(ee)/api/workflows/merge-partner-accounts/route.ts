@@ -43,7 +43,7 @@ const CACHE_KEY_PREFIX = "merge-partner-accounts";
  * 5. send-merged-emails: clear the verification cache + notify both accounts.
  */
 
-// POST /api/workflows/merge-partner-account
+// POST /api/workflows/merge-partner-accounts
 export const { POST } = serve<Input>(
   async (context) => {
     const { userId, sourceEmail, targetEmail } = context.requestPayload;
@@ -201,7 +201,7 @@ export const { POST } = serve<Input>(
       await redis.del(`${CACHE_KEY_PREFIX}:${userId}`);
 
       const { correlation } = getWorkflowConfig({
-        workflowType: "merge-partner-account",
+        workflowType: "merge-partner-accounts",
         body: context.requestPayload,
       });
 
@@ -214,7 +214,7 @@ export const { POST } = serve<Input>(
       logger.error("workflow.failed", {
         service: "qstash",
         event: "workflow.failed",
-        workflowType: "merge-partner-account",
+        workflowType: "merge-partner-accounts",
         workflowRunId: context.workflowRunId,
         failStatus,
         failResponse,

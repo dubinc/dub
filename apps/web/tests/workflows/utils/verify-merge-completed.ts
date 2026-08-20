@@ -15,7 +15,7 @@ interface VerifyMergeCompletedProps {
 }
 
 /**
- * Polls until the merge-partner-account workflow has finished:
+ * Polls until the merge-partner-accounts workflow has finished:
  * - the source partner is deleted (GET /partners/:id returns 404), and
  * - the target partner now owns the source's moved link.
  */

@@ -53,7 +53,7 @@ export const POST = withWorkspace(
     const userId = `e2e-merge-${nanoid()}`;
 
     const res = await triggerQStashWorkflow({
-      workflowType: "merge-partner-account",
+      workflowType: "merge-partner-accounts",
       workflowLabel: userId,
       body: {
         userId,
