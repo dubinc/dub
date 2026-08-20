@@ -13,7 +13,7 @@ const bodySchema = z.object({
   targetEmail: z.email(),
 });
 
-// POST /api/e2e/trigger-merge-account
+// POST /api/e2e/trigger-merge-accounts
 export const POST = withWorkspace(
   async ({ req, workspace }) => {
     assertE2EWorkspace(workspace);
