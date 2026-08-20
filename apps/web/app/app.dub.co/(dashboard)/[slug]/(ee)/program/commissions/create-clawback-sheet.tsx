@@ -40,7 +40,7 @@ function CreateClawbackSheetContent(
     reset,
     watch,
     getValues,
-    formState: { errors, isSubmitting, isSubmitSuccessful },
+    formState: { errors, isSubmitting },
   } = useForm<FormData>({
     defaultValues: {
       partnerId: params.partnerId,
@@ -66,8 +66,8 @@ function CreateClawbackSheetContent(
         amount: data.amount ? -Math.round(data.amount * 100) : 0,
         description: data.reason,
       },
-      onSuccess: async ({ message }) => {
-        toast.success(message);
+      onSuccess: async () => {
+        toast.success("A clawback has been created for the partner!");
         setIsOpen(false);
         await mutatePrefix("/api/commissions");
         const currentValues = getValues();
@@ -75,8 +75,6 @@ function CreateClawbackSheetContent(
       },
     });
   };
-
-  const disableSubmitButton = !partnerId || !amount || !reason;
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="flex h-full flex-col">
@@ -216,15 +214,15 @@ function CreateClawbackSheetContent(
             onClick={() => setIsOpen(false)}
             text="Cancel"
             className="w-fit"
-            disabled={isCreating || isSubmitting || isSubmitSuccessful}
+            disabled={isCreating || isSubmitting}
           />
           <Button
             type="submit"
             variant="primary"
             text="Create clawback"
             className="w-fit"
-            loading={isCreating || isSubmitting || isSubmitSuccessful}
-            disabled={disableSubmitButton}
+            loading={isCreating || isSubmitting}
+            disabled={!partnerId || !amount || !reason}
           />
         </div>
       </div>

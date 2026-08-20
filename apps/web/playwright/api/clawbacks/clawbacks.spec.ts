@@ -162,7 +162,7 @@ const clawbackErrorCases = [
     },
     expected: apiError({
       code: "unprocessable_entity",
-      message: "Amount cannot be 0.",
+      message: "custom: amount: Amount cannot be 0.",
     }),
   },
   {
@@ -171,7 +171,7 @@ const clawbackErrorCases = [
     expected: apiError({
       code: "unprocessable_entity",
       message:
-        "`description` is required when creating a clawback (negative amount).",
+        "custom: description: `description` is required when creating a clawback (negative amount).",
     }),
   },
 ];

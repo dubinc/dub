@@ -31,7 +31,7 @@ const validationCases = [
     name: "custom commission with amount 0",
     body: { type: "custom", partnerId: E2E_PARTNER.id, amount: 0 },
     expectedStatus: 422,
-    expectedMessage: "Amount cannot be 0.",
+    expectedMessage: "custom: amount: Amount cannot be 0.",
   },
   {
     name: "sale commission missing saleAmount",
@@ -43,7 +43,19 @@ const validationCases = [
     },
     expectedStatus: 422,
     expectedMessage:
-      "saleAmount is required when importStripeInvoices is false.",
+      "custom: saleAmount: `saleAmount` is required when `importStripeInvoices` is false.",
+  },
+  {
+    name: "sale commission with saleAmount 0",
+    body: {
+      type: "sale",
+      partnerId: E2E_PARTNER.id,
+      customerId: E2E_CUSTOMER_ID,
+      importStripeInvoices: false,
+      saleAmount: 0,
+    },
+    expectedStatus: 422,
+    expectedMessage: "custom: saleAmount: Sale amount cannot be 0.",
   },
 ];
 

@@ -547,7 +547,14 @@ export const createManualCommissionBodySchema = z
           "When `true`, import all unimported paid Stripe invoices for the customer and create a commission for each. When `false`, create a single manual sale event using `saleAmount`.",
         ),
       saleAmount: centsSchema
-        .pipe(z.number().min(0))
+        .pipe(
+          z
+            .number()
+            .min(0)
+            .refine((n) => n !== 0, {
+              message: "Sale amount cannot be 0.",
+            }),
+        )
         .nullish()
         .describe(
           "Required when `importStripeInvoices` is `false`. The sale amount in cents for the manual sale event. Ignored when importing from Stripe.",
