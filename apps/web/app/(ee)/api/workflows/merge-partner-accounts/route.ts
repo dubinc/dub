@@ -546,11 +546,48 @@ async function mergeSingleEnrollment({
     });
   }
 
-  // Scope the transfer to the source partner so a concurrent reassignment
-  // can't make us steal another partner's enrollment.
-  const { count } = await prisma.programEnrollment.updateMany({
-    where: { id: sourceEnrollment.id, partnerId: sourcePartnerId },
-    data: { partnerId: targetPartnerId },
+  // Target leftover apply-event / discovered-partner rows are unique on
+  // (programId, partnerId). Rewriting enrollment.partnerId remaps those
+  // children and collides unless we drop the source row first.
+  const { count, cleared } = await prisma.$transaction(async (tx) => {
+    const cleared: string[] = [];
+
+    const targetEvent = await tx.programApplicationEvent.findUnique({
+      where: {
+        programId_partnerId: { programId, partnerId: targetPartnerId },
+      },
+      select: { id: true },
+    });
+
+    if (targetEvent) {
+      await tx.programApplicationEvent.deleteMany({
+        where: { programId, partnerId: sourcePartnerId },
+      });
+      cleared.push("cleared source application event");
+    }
+
+    const targetDiscoveredPartner = await tx.discoveredPartner.findUnique({
+      where: {
+        programId_partnerId: { programId, partnerId: targetPartnerId },
+      },
+      select: { id: true },
+    });
+
+    if (targetDiscoveredPartner) {
+      await tx.discoveredPartner.deleteMany({
+        where: { programId, partnerId: sourcePartnerId },
+      });
+      cleared.push("cleared source discovered partner");
+    }
+
+    // Scope the transfer to the source partner so a concurrent reassignment
+    // can't make us steal another partner's enrollment.
+    const { count } = await tx.programEnrollment.updateMany({
+      where: { id: sourceEnrollment.id, partnerId: sourcePartnerId },
+      data: { partnerId: targetPartnerId },
+    });
+
+    return { count, cleared };
   });
 
   if (count === 0) {
@@ -561,10 +598,12 @@ async function mergeSingleEnrollment({
     });
   }
 
+  const clearedLog = cleared.length > 0 ? ` (${cleared.join(", ")})` : "";
+
   return logAndReturn({
     programId,
     action: "transfer",
-    outputLog: `Transferred enrollment for program ${programId}`,
+    outputLog: `Transferred enrollment for program ${programId}${clearedLog}`,
   });
 }
 
