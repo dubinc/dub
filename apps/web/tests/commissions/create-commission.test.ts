@@ -31,7 +31,7 @@ const validationCases = [
     name: "custom commission with amount 0",
     body: { type: "custom", partnerId: E2E_PARTNER.id, amount: 0 },
     expectedStatus: 422,
-    expectedMessage: "too_small: amount: Too small: expected number to be >=1",
+    expectedMessage: "custom: amount: Amount cannot be 0.",
   },
   {
     name: "sale commission missing saleAmount",

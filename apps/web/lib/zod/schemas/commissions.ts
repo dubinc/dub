@@ -7,11 +7,7 @@ import {
   getCursorPaginationQuerySchema,
   getPaginationQuerySchema,
 } from "./misc";
-import {
-  EnrolledPartnerSchema,
-  partnerIdTenantIdSchema,
-  WebhookPartnerSchema,
-} from "./partners";
+import { EnrolledPartnerSchema, WebhookPartnerSchema } from "./partners";
 import { PayoutSchema } from "./payouts";
 import { rewardContextSchema, RewardSchema } from "./rewards";
 import { UserSchema } from "./users";
@@ -322,15 +318,6 @@ export const CLAWBACK_REASONS_MAP = Object.fromEntries(
   CLAWBACK_REASONS.map((r) => [r.value, r]),
 );
 
-export const createClawbackSchema = partnerIdTenantIdSchema.extend({
-  amount: centsSchema
-    .pipe(z.number().gt(0, "Amount must be greater than 0."))
-    .describe("The clawback amount in cents (positive)."),
-  reason: z
-    .enum(CLAWBACK_REASONS.map((r) => r.value) as [string, ...string[]])
-    .describe("The reason for the clawback."),
-});
-
 export const COMMISSION_EXPORT_COLUMNS = [
   { id: "id", label: "ID", type: "string", default: true },
   { id: "type", label: "Type", type: "string", default: true },
@@ -465,15 +452,21 @@ export const createPartnerCommissionSchema = z.object({
 
 export const createManualCommissionBodySchema = z
   .discriminatedUnion("type", [
-    // Custom commission
+    // Custom commission (negative amount = clawback)
     z.object({
       type: z.literal("custom"),
       partnerId: z
         .string()
         .describe("The ID of the partner to create the commission for."),
       amount: centsSchema
-        .pipe(z.number().min(1))
-        .describe("The commission amount in cents."),
+        .pipe(
+          z.number().refine((n) => n !== 0, {
+            message: "Amount cannot be 0.",
+          }),
+        )
+        .describe(
+          "The commission amount in cents. Use a negative amount to create a clawback.",
+        ),
       date: parseDateSchema
         .nullish()
         .describe("If not provided, the current date will be used."),
@@ -481,7 +474,9 @@ export const createManualCommissionBodySchema = z
         .string()
         .max(190)
         .nullish()
-        .describe("The description of the commission."),
+        .describe(
+          "The description of the commission. Required for clawbacks (negative `amount`). May be a known clawback reason (`order_canceled`, `fraud`, `terms_violation`, `tracking_error`, `payment_failed`, `ineligible_partner`, `duplicate_commission`, `other`) or any other string.",
+        ),
     }),
 
     // Lead commission
@@ -577,6 +572,18 @@ export const createManualCommissionBodySchema = z
     }),
   ])
   .superRefine((data, ctx) => {
+    if (data.type === "custom" && data.amount < 0) {
+      if (!data.description?.trim()) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message:
+            "`description` is required when creating a clawback (negative amount).",
+          path: ["description"],
+        });
+      }
+      return;
+    }
+
     if (data.type !== "sale") return;
 
     if (!data.importStripeInvoices && data.saleAmount == null) {

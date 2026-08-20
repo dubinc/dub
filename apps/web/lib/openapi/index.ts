@@ -7,7 +7,6 @@ import { LinkErrorSchema, LinkSchema } from "../zod/schemas/links";
 import { LinkTagSchema } from "../zod/schemas/tags";
 import { analyticsPath } from "./analytics";
 import { bountiesPaths } from "./bounties";
-import { clawbacksPaths } from "./clawbacks";
 import { commissionsPaths } from "./commissions";
 import { customersPaths } from "./customers";
 import { discountCodesPaths } from "./discount-codes";
@@ -58,7 +57,6 @@ export const document = createDocument({
     ...partnersPaths,
     ...discountCodesPaths,
     ...commissionsPaths,
-    ...clawbacksPaths,
     ...payoutsPaths,
     ...embedTokensPaths,
     ...qrCodePaths,

@@ -7,155 +7,19 @@ import { createPartner, deletePartner } from "../partners/helpers";
 
 const expectedQueuedResponse = {
   success: true,
-  message: "Your clawback is being created and will appear shortly.",
+  message: "Your commissions are being created and will appear shortly.",
 };
-
-test("POST /clawbacks – by partnerId", async ({ api, program }) => {
-  let partnerId: string | undefined;
-
-  try {
-    const { status: createStatus, data: created } = await createPartner(api, {
-      groupId: program.defaultGroupId,
-    });
-    partnerId = created.id;
-    expect(createStatus).toEqual(201);
-
-    const { status, data } = await api.post("/api/clawbacks", {
-      partnerId,
-      amount: 500,
-      reason: "fraud",
-    });
-
-    expect(status).toEqual(202);
-    expect(data).toStrictEqual(expectedQueuedResponse);
-
-    await expectClawbackCreated({
-      partnerId: created.id,
-      programId: program.id,
-      amount: 500,
-      reason: "fraud",
-    });
-  } finally {
-    await deletePartner(partnerId);
-  }
-});
-
-test("POST /clawbacks – by tenantId", async ({ api, program }) => {
-  let partnerId: string | undefined;
-  const tenantId = nanoid();
-
-  try {
-    const { status: createStatus, data: created } = await createPartner(api, {
-      tenantId,
-      groupId: program.defaultGroupId,
-    });
-    partnerId = created.id;
-    expect(createStatus).toEqual(201);
-    expect(created.tenantId).toBe(tenantId);
-
-    const { status, data } = await api.post("/api/clawbacks", {
-      tenantId,
-      amount: 250,
-      reason: "order_canceled",
-    });
-
-    expect(status).toEqual(202);
-    expect(data).toStrictEqual(expectedQueuedResponse);
-
-    await expectClawbackCreated({
-      partnerId: created.id,
-      programId: program.id,
-      amount: 250,
-      reason: "order_canceled",
-    });
-  } finally {
-    await deletePartner(partnerId);
-  }
-});
-
-const missingPartnerId = `pn_${nanoid()}`;
-const missingTenantId = nanoid();
-
-const clawbackErrorCases = [
-  {
-    name: "POST /clawbacks – partner not found",
-    body: { partnerId: missingPartnerId, amount: 500, reason: "fraud" },
-    expected: ({ program }: { program: { id: string } }) =>
-      apiError({
-        code: "not_found",
-        message: `Partner ${missingPartnerId} is not enrolled in program ${program.id}.`,
-      }),
-  },
-  {
-    name: "POST /clawbacks – tenantId not found",
-    body: { tenantId: missingTenantId, amount: 500, reason: "fraud" },
-    expected: apiError({
-      code: "not_found",
-      message: `Partner with specified tenantId ${missingTenantId} not found.`,
-    }),
-  },
-  {
-    name: "POST /clawbacks – missing partnerId and tenantId",
-    body: { amount: 500, reason: "fraud" },
-    expected: apiError({
-      code: "bad_request",
-      message: "Either `partnerId` or `tenantId` must be provided.",
-    }),
-  },
-  {
-    name: "POST /clawbacks – amount 0",
-    body: { partnerId: "pn_test", amount: 0, reason: "fraud" },
-    expected: apiError({
-      code: "unprocessable_entity",
-      message: "too_small: amount: Amount must be greater than 0.",
-    }),
-  },
-  {
-    name: "POST /clawbacks – amount negative",
-    body: { partnerId: "pn_test", amount: -100, reason: "fraud" },
-    expected: apiError({
-      code: "unprocessable_entity",
-      message: "too_small: amount: Amount must be greater than 0.",
-    }),
-  },
-  {
-    name: "POST /clawbacks – missing reason",
-    body: { partnerId: "pn_test", amount: 500 },
-    expected: apiError({
-      code: "unprocessable_entity",
-      message:
-        'invalid_value: reason: Invalid option: expected one of "order_canceled"|"fraud"|"terms_violation"|"tracking_error"|"payment_failed"|"ineligible_partner"|"duplicate_commission"|"other"',
-    }),
-  },
-  {
-    name: "POST /clawbacks – invalid reason",
-    body: { partnerId: "pn_test", amount: 500, reason: "not_a_reason" },
-    expected: apiError({
-      code: "unprocessable_entity",
-      message:
-        'invalid_value: reason: Invalid option: expected one of "order_canceled"|"fraud"|"terms_violation"|"tracking_error"|"payment_failed"|"ineligible_partner"|"duplicate_commission"|"other"',
-    }),
-  },
-];
-
-for (const { name, body, expected } of clawbackErrorCases) {
-  test(name, async ({ api, program }) => {
-    expect(await api.post("/api/clawbacks", body)).toEqual(
-      typeof expected === "function" ? expected({ program }) : expected,
-    );
-  });
-}
 
 async function expectClawbackCreated({
   partnerId,
   programId,
   amount,
-  reason,
+  description,
 }: {
   partnerId: string;
   programId: string;
   amount: number;
-  reason: string;
+  description: string;
 }) {
   await expect
     .poll(async () => {
@@ -164,7 +28,7 @@ async function expectClawbackCreated({
           partnerId,
           programId,
           type: "custom",
-          description: reason,
+          description,
         },
         orderBy: {
           createdAt: "desc",
@@ -192,6 +56,130 @@ async function expectClawbackCreated({
       amount: 0,
       earnings: -amount,
       quantity: 1,
-      description: reason,
+      description,
     });
+}
+
+test("POST /commissions – clawback by partnerId", async ({ api, program }) => {
+  let partnerId: string | undefined;
+
+  try {
+    const { status: createStatus, data: created } = await createPartner(api, {
+      groupId: program.defaultGroupId,
+    });
+    partnerId = created.id;
+    expect(createStatus).toEqual(201);
+
+    const { status, data } = await api.post("/api/commissions", {
+      type: "custom",
+      partnerId,
+      amount: -500,
+      description: "fraud",
+    });
+
+    expect(status).toEqual(202);
+    expect(data).toStrictEqual(expectedQueuedResponse);
+
+    await expectClawbackCreated({
+      partnerId: created.id,
+      programId: program.id,
+      amount: 500,
+      description: "fraud",
+    });
+  } finally {
+    await deletePartner(partnerId);
+  }
+});
+
+test("POST /commissions – clawback with arbitrary description", async ({
+  api,
+  program,
+}) => {
+  let partnerId: string | undefined;
+  const description = `chargeback-${nanoid()}`;
+
+  try {
+    const { status: createStatus, data: created } = await createPartner(api, {
+      groupId: program.defaultGroupId,
+    });
+    partnerId = created.id;
+    expect(createStatus).toEqual(201);
+
+    const { status, data } = await api.post("/api/commissions", {
+      type: "custom",
+      partnerId,
+      amount: -100,
+      description,
+    });
+
+    expect(status).toEqual(202);
+    expect(data).toStrictEqual(expectedQueuedResponse);
+
+    await expectClawbackCreated({
+      partnerId: created.id,
+      programId: program.id,
+      amount: 100,
+      description,
+    });
+  } finally {
+    await deletePartner(partnerId);
+  }
+});
+
+const missingPartnerId = `pn_${nanoid()}`;
+
+const clawbackErrorCases = [
+  {
+    name: "POST /commissions – clawback partner not found",
+    body: {
+      type: "custom",
+      partnerId: missingPartnerId,
+      amount: -500,
+      description: "fraud",
+    },
+    expected: ({ program }: { program: { id: string } }) =>
+      apiError({
+        code: "not_found",
+        message: `Partner ${missingPartnerId} is not enrolled in program ${program.id}.`,
+      }),
+  },
+  {
+    name: "POST /commissions – clawback missing partnerId",
+    body: { type: "custom", amount: -500, description: "fraud" },
+    expected: apiError({
+      code: "unprocessable_entity",
+      message:
+        "invalid_type: partnerId: Invalid input: expected string, received undefined",
+    }),
+  },
+  {
+    name: "POST /commissions – clawback amount 0",
+    body: {
+      type: "custom",
+      partnerId: "pn_test",
+      amount: 0,
+      description: "fraud",
+    },
+    expected: apiError({
+      code: "unprocessable_entity",
+      message: "custom: amount: Amount cannot be 0.",
+    }),
+  },
+  {
+    name: "POST /commissions – clawback missing description",
+    body: { type: "custom", partnerId: "pn_test", amount: -500 },
+    expected: apiError({
+      code: "unprocessable_entity",
+      message:
+        "custom: description: `description` is required when creating a clawback (negative amount).",
+    }),
+  },
+];
+
+for (const { name, body, expected } of clawbackErrorCases) {
+  test(name, async ({ api, program }) => {
+    expect(await api.post("/api/commissions", body)).toEqual(
+      typeof expected === "function" ? expected({ program }) : expected,
+    );
+  });
 }

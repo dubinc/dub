@@ -3,7 +3,6 @@ import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import useWorkspace from "@/lib/swr/use-workspace";
 import {
   CLAWBACK_REASONS,
-  createClawbackSchema,
   createCommissionResponseSchema,
 } from "@/lib/zod/schemas/commissions";
 import { PartnerSelector } from "@/ui/partners/partner-selector";
@@ -21,7 +20,11 @@ interface CreateClawbackSheetProps {
   nested?: boolean;
 }
 
-type FormData = z.infer<typeof createClawbackSchema>;
+type FormData = {
+  partnerId?: string;
+  amount?: number;
+  reason?: (typeof CLAWBACK_REASONS)[number]["value"];
+};
 
 function CreateClawbackSheetContent(
   props: Omit<CreateClawbackSheetProps, "nested">,
@@ -55,12 +58,13 @@ function CreateClawbackSheetContent(
       return;
     }
 
-    await makeRequest("/api/clawbacks", {
+    await makeRequest("/api/commissions", {
       method: "POST",
       body: {
+        type: "custom",
         partnerId: data.partnerId,
-        amount: data.amount ? Math.round(data.amount * 100) : 0,
-        reason: data.reason,
+        amount: data.amount ? -Math.round(data.amount * 100) : 0,
+        description: data.reason,
       },
       onSuccess: async ({ message }) => {
         toast.success(message);
