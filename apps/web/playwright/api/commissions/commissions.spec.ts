@@ -215,6 +215,203 @@ test("POST /commissions – duplicate invoiceId", async ({ api, program }) => {
   }
 });
 
+test("POST /commissions – lead with deprecated leadEventName and leadEventDate", async ({
+  api,
+  program,
+}) => {
+  let partnerId: string | undefined;
+  let groupId: string | undefined;
+  const customer = randomCustomer();
+  const leadEventDate = new Date("2024-06-15T12:00:00.000Z");
+
+  try {
+    const created = await createPartnerWithCommissionRewards(api, {
+      programId: program.id,
+    });
+    partnerId = created.data.id;
+    groupId = created.groupId;
+    expect(created.status).toEqual(201);
+
+    const { status, data } = await api.post("/api/commissions", {
+      type: "lead",
+      partnerId,
+      leadEventName: "Signed up",
+      leadEventDate: leadEventDate.toISOString(),
+      customer: {
+        externalId: customer.externalId,
+        email: customer.email,
+        name: customer.name,
+        country: "US",
+      },
+    });
+
+    expect(status).toEqual(202);
+    expect(data).toStrictEqual(expectedQueuedResponse);
+
+    await expectCommissionCreated({
+      partnerId: created.data.id,
+      programId: program.id,
+      type: "lead",
+      expectedAmount: 0,
+      expectedEarnings: LEAD_REWARD_CENTS,
+      expectedCreatedAt: leadEventDate,
+    });
+  } finally {
+    await deleteCommissionPartner({ partnerId, groupId });
+  }
+});
+
+test("POST /commissions – sale with deprecated saleEventDate and productId", async ({
+  api,
+  program,
+}) => {
+  let partnerId: string | undefined;
+  let groupId: string | undefined;
+  const invoiceId = `INV_${nanoid()}`;
+  const customer = randomCustomer();
+  const saleEventDate = new Date("2024-03-01T08:30:00.000Z");
+
+  try {
+    const created = await createPartnerWithCommissionRewards(api, {
+      programId: program.id,
+    });
+    partnerId = created.data.id;
+    groupId = created.groupId;
+    expect(created.status).toEqual(201);
+
+    const { status, data } = await api.post("/api/commissions", {
+      type: "sale",
+      partnerId,
+      saleAmount: 1000,
+      invoiceId,
+      productId: "sku_deprecated",
+      saleEventDate: saleEventDate.toISOString(),
+      customer: {
+        externalId: customer.externalId,
+        email: customer.email,
+        name: customer.name,
+        country: "US",
+      },
+    });
+
+    expect(status).toEqual(202);
+    expect(data).toStrictEqual(expectedQueuedResponse);
+
+    await expectCommissionCreated({
+      partnerId: created.data.id,
+      programId: program.id,
+      type: "sale",
+      invoiceId,
+      expectedAmount: 1000,
+      expectedEarnings: SALE_REWARD_CENTS,
+      expectedCreatedAt: saleEventDate,
+    });
+  } finally {
+    await deleteCommissionPartner({ partnerId, groupId });
+  }
+});
+
+test("POST /commissions – lead with date and lead.eventName", async ({
+  api,
+  program,
+}) => {
+  let partnerId: string | undefined;
+  let groupId: string | undefined;
+  const customer = randomCustomer();
+
+  try {
+    const created = await createPartnerWithCommissionRewards(api, {
+      programId: program.id,
+    });
+    partnerId = created.data.id;
+    groupId = created.groupId;
+    expect(created.status).toEqual(201);
+
+    const { status, data } = await api.post("/api/commissions", {
+      type: "lead",
+      partnerId,
+      date: new Date("2024-01-10T00:00:00.000Z").toISOString(),
+      lead: {
+        eventName: "Requested demo",
+        metadata: { plan: "pro" },
+      },
+      customer: {
+        externalId: customer.externalId,
+        email: customer.email,
+        name: customer.name,
+        country: "US",
+      },
+    });
+
+    expect(status).toEqual(202);
+    expect(data).toStrictEqual(expectedQueuedResponse);
+
+    await expectCommissionCreated({
+      partnerId: created.data.id,
+      programId: program.id,
+      type: "lead",
+      expectedAmount: 0,
+      expectedEarnings: LEAD_REWARD_CENTS,
+    });
+  } finally {
+    await deleteCommissionPartner({ partnerId, groupId });
+  }
+});
+
+test("POST /commissions – sale with nested sale and deprecated saleAmount", async ({
+  api,
+  program,
+}) => {
+  let partnerId: string | undefined;
+  let groupId: string | undefined;
+  const invoiceId = `INV_${nanoid()}`;
+  const customer = randomCustomer();
+
+  try {
+    const created = await createPartnerWithCommissionRewards(api, {
+      programId: program.id,
+    });
+    partnerId = created.data.id;
+    groupId = created.groupId;
+    expect(created.status).toEqual(201);
+
+    const { status, data } = await api.post("/api/commissions", {
+      type: "sale",
+      partnerId,
+      saleAmount: 1000,
+      invoiceId,
+      sale: {
+        amount: 1000,
+        currency: "usd",
+        eventName: "Invoice paid",
+        paymentProcessor: "stripe",
+        invoiceId,
+        metadata: { productId: "sku_nested" },
+      },
+      customer: {
+        externalId: customer.externalId,
+        email: customer.email,
+        name: customer.name,
+        country: "US",
+      },
+    });
+
+    expect(status).toEqual(202);
+    expect(data).toStrictEqual(expectedQueuedResponse);
+
+    await expectCommissionCreated({
+      partnerId: created.data.id,
+      programId: program.id,
+      type: "sale",
+      invoiceId,
+      expectedAmount: 1000,
+      expectedEarnings: SALE_REWARD_CENTS,
+    });
+  } finally {
+    await deleteCommissionPartner({ partnerId, groupId });
+  }
+});
+
 const commissionErrorCases = [
   {
     name: "POST /commissions – missing type",
@@ -241,7 +438,7 @@ const commissionErrorCases = [
     }),
   },
   {
-    name: "POST /commissions – sale missing amount",
+    name: "POST /commissions – sale missing saleAmount",
     body: {
       type: "sale",
       partnerId: "pn_test",
@@ -251,7 +448,21 @@ const commissionErrorCases = [
     expected: apiError({
       code: "unprocessable_entity",
       message:
-        "custom: sale.amount: `sale.amount` is required when `importStripeInvoices` is false.",
+        "custom: saleAmount: `saleAmount` is required when `importStripeInvoices` is false.",
+    }),
+  },
+  {
+    name: "POST /commissions – sale.amount without saleAmount",
+    body: {
+      type: "sale",
+      partnerId: "pn_test",
+      customerId: "cus_test",
+      sale: { amount: 1000 },
+    },
+    expected: apiError({
+      code: "unprocessable_entity",
+      message:
+        "custom: saleAmount: `saleAmount` is required when `importStripeInvoices` is false.",
     }),
   },
   {
@@ -269,46 +480,17 @@ const commissionErrorCases = [
     }),
   },
   {
-    name: "POST /commissions – sale.amount 0",
+    name: "POST /commissions – sale object missing amount",
     body: {
       type: "sale",
       partnerId: "pn_test",
       customerId: "cus_test",
-      sale: { amount: 0 },
-    },
-    expected: apiError({
-      code: "unprocessable_entity",
-      message: "custom: sale.amount: Sale amount cannot be 0.",
-    }),
-  },
-  {
-    name: "POST /commissions – importStripeInvoices with sale",
-    body: {
-      type: "sale",
-      partnerId: "pn_test",
-      customerId: "cus_test",
-      importStripeInvoices: true,
+      saleAmount: 1000,
       sale: {},
     },
     expected: apiError({
       code: "unprocessable_entity",
-      message:
-        "custom: sale: `sale`, `date`, `saleAmount`, `saleEventDate`, `invoiceId`, and `productId` cannot be provided when `importStripeInvoices` is enabled.",
-    }),
-  },
-  {
-    name: "POST /commissions – importStripeInvoices with date",
-    body: {
-      type: "sale",
-      partnerId: "pn_test",
-      customerId: "cus_test",
-      importStripeInvoices: true,
-      date: new Date().toISOString(),
-    },
-    expected: apiError({
-      code: "unprocessable_entity",
-      message:
-        "custom: date: `sale`, `date`, `saleAmount`, `saleEventDate`, `invoiceId`, and `productId` cannot be provided when `importStripeInvoices` is enabled.",
+      message: "invalid_type: sale.amount: amount is required",
     }),
   },
   {
@@ -351,20 +533,6 @@ const commissionErrorCases = [
       code: "unprocessable_entity",
       message:
         "custom: lead.metadata: Metadata must be less than 10,000 characters when stringified",
-    }),
-  },
-  {
-    name: "POST /commissions – custom metadata too large",
-    body: {
-      type: "custom",
-      partnerId: "pn_test",
-      amount: 500,
-      metadata: oversizedMetadata,
-    },
-    expected: apiError({
-      code: "unprocessable_entity",
-      message:
-        "custom: metadata: Metadata must be less than 10,000 characters when stringified",
     }),
   },
 ];

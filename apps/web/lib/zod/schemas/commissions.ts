@@ -452,171 +452,173 @@ export const createPartnerCommissionSchema = z.object({
     ),
 });
 
-export const createCommissionBodySchemaV2 = z
-  .discriminatedUnion("type", [
-    // Custom commission (negative amount = clawback)
-    z.object({
-      type: z.literal("custom"),
-      partnerId: z
-        .string()
-        .describe("The ID of the partner to create the commission for."),
-      amount: centsSchema
-        .pipe(
-          z.number().refine((n) => n !== 0, {
-            message: "Amount cannot be 0.",
-          }),
-        )
-        .describe(
-          "The commission amount in cents. Use a negative amount to create a clawback.",
-        ),
-      date: parseDateSchema
-        .nullish()
-        .describe("If not provided, the current date will be used."),
-      description: z
-        .string()
-        .max(190)
-        .nullish()
-        .describe(
-          "The description of the commission. Required for clawbacks (negative `amount`). May be a known clawback reason (`order_canceled`, `fraud`, `terms_violation`, `tracking_error`, `payment_failed`, `ineligible_partner`, `duplicate_commission`, `other`) or any other string.",
-        ),
-    }),
+// Custom commission (negative amount = clawback)
+const createCustomCommissionSchema = z.object({
+  type: z.literal("custom"),
+  partnerId: z
+    .string()
+    .describe("The ID of the partner to create the commission for."),
+  amount: centsSchema
+    .pipe(
+      z.number().refine((n) => n !== 0, {
+        message: "Amount cannot be 0.",
+      }),
+    )
+    .describe(
+      "The commission amount in cents. Use a negative amount to create a clawback.",
+    ),
+  date: parseDateSchema
+    .nullish()
+    .describe("If not provided, the current date will be used."),
+  description: z
+    .string()
+    .max(190)
+    .nullish()
+    .describe(
+      "The description of the commission. Required for clawbacks (negative `amount`). May be a known clawback reason (`order_canceled`, `fraud`, `terms_violation`, `tracking_error`, `payment_failed`, `ineligible_partner`, `duplicate_commission`, `other`) or any other string.",
+    ),
+});
 
-    // Lead commission
-    z.object({
-      type: z.literal("lead"),
-      partnerId: z
+const createLeadCommissionSchema = z.object({
+  type: z.literal("lead"),
+  partnerId: z
+    .string()
+    .describe("The ID of the partner to create the commission for."),
+  customerId: z
+    .string()
+    .nullish()
+    .describe(
+      "The customer ID to associate the commission with. Useful if the customer was already created in a prior operation and you want to associate the commission with it.",
+    ),
+  customer: createCustomerBodySchema
+    .nullish()
+    .describe(
+      "The full customer object to associate the commission with. Useful for creating the customer on demand.",
+    ),
+  linkId: z
+    .string()
+    .nullish()
+    .describe(
+      "The partner link ID to associate the commission with. If not provided, default to the link with the most revenue.",
+    ),
+  date: parseDateSchema
+    .nullish()
+    .describe(
+      "The date and time of the lead event. If not provided, defaults to the current date and time.",
+    ),
+  lead: z
+    .object({
+      eventName: z
         .string()
-        .describe("The ID of the partner to create the commission for."),
-      customerId: z
-        .string()
-        .nullish()
-        .describe(
-          "The customer ID to associate the commission with. Useful if the customer was already created in a prior operation and you want to associate the commission with it.",
-        ),
-      customer: createCustomerBodySchema
-        .nullish()
-        .describe(
-          "The full customer object to associate the commission with. Useful for creating the customer on demand.",
-        ),
-      linkId: z
-        .string()
-        .nullish()
-        .describe(
-          "The partner link ID to associate the commission with. If not provided, default to the link with the most revenue.",
-        ),
-      date: parseDateSchema
-        .nullish()
-        .describe(
-          "The date and time of the lead event. If not provided, defaults to the current date and time.",
-        ),
-      lead: z
-        .object({
-          eventName: z
-            .string()
-            .trim()
-            .max(255)
-            .default("Sign up")
-            .describe(
-              "The name of the lead event to track.  If not provided, defaults to 'Sign up'.",
-            )
-            .meta({ example: "Sign up" }),
-          metadata: trackLeadRequestSchema.shape.metadata,
-        })
-        .nullish()
-        .describe("The lead event object to associate the commission with."),
-
-      // Deprecated fields
-      leadEventDate: parseDateSchema
-        .nullish()
-        .describe(
-          "Deprecated: Use `date` instead. The date and time of the lead event. If not provided, defaults to the current date and time.",
-        )
-        .meta({ deprecated: true }),
-      leadEventName: z
-        .string()
-        .nullish()
+        .trim()
+        .max(255)
         .default("Sign up")
         .describe(
-          "Deprecated: Use `lead.eventName` instead. The name of the lead event. If not provided, defaults to 'Sign up'.",
+          "The name of the lead event to track.  If not provided, defaults to 'Sign up'.",
         )
-        .meta({ deprecated: true }),
-    }),
+        .meta({ example: "Sign up" }),
+      metadata: trackLeadRequestSchema.shape.metadata,
+    })
+    .nullish()
+    .describe("The lead event object to associate the commission with."),
 
-    // Sale commission
-    z.object({
-      type: z.literal("sale"),
-      partnerId: z
-        .string()
-        .describe("The ID of the partner to create the commission for."),
-      customerId: z
-        .string()
-        .nullish()
-        .describe(
-          "The customer ID to associate the commission with. Useful if the customer was already created in a prior operation and you want to associate the commission with it.",
-        ),
-      customer: createCustomerBodySchema
-        .nullish()
-        .describe(
-          "The full customer object to associate the commission with. Useful for creating the customer on demand.",
-        ),
-      linkId: z
-        .string()
-        .nullish()
-        .describe(
-          "The partner link ID to associate the commission with. If not provided, default to the link with the most revenue.",
-        ),
-      importStripeInvoices: z
-        .boolean()
-        .nullish()
-        .default(false)
-        .describe(
-          "When `true`, import all unimported paid Stripe invoices for the customer and create a commission for each. When `false`, create a single manual sale event using `saleAmount`.",
-        ),
-      date: parseDateSchema
-        .nullish()
-        .describe(
-          "Only used when `importStripeInvoices` is `false`. The date of the manual sale event. Defaults to the current date and time if not provided.",
-        ),
-      sale: z
-        .object({
-          amount: trackSaleRequestSchema.shape.amount,
-          currency: trackSaleRequestSchema.shape.currency,
-          eventName: trackSaleRequestSchema.shape.eventName,
-          paymentProcessor: trackSaleRequestSchema.shape.paymentProcessor,
-          invoiceId: trackSaleRequestSchema.shape.invoiceId,
-          metadata: trackSaleRequestSchema.shape.metadata,
-        })
-        .nullish(),
+  // Deprecated fields
+  leadEventDate: parseDateSchema
+    .nullish()
+    .describe(
+      "Deprecated: Use `date` instead. The date and time of the lead event. If not provided, defaults to the current date and time.",
+    )
+    .meta({ deprecated: true }),
+  leadEventName: z
+    .string()
+    .nullish()
+    .default("Sign up")
+    .describe(
+      "Deprecated: Use `lead.eventName` instead. The name of the lead event. If not provided, defaults to 'Sign up'.",
+    )
+    .meta({ deprecated: true }),
+});
 
-      // Deprecated fields
-      saleAmount: centsSchema
-        .pipe(z.number().min(0))
-        .nullish()
-        .describe(
-          "Deprecated: Use `sale.amount` instead. Required when `importStripeInvoices` is `false`. The sale amount in cents for the manual sale event. Ignored when importing from Stripe.",
-        )
-        .meta({ deprecated: true }),
-      saleEventDate: parseDateSchema
-        .nullish()
-        .describe(
-          "Deprecated: Use `date` instead. Only used when `importStripeInvoices` is `false`. The date of the manual sale event. Defaults to the current date and time if not provided.",
-        )
-        .meta({ deprecated: true }),
-      invoiceId: z
-        .string()
-        .nullish()
-        .describe(
-          "Deprecated: Use `sale.invoiceId` instead. Only used when `importStripeInvoices` is `false`. An optional invoice ID to attach to the generated sale event and commission entry for deduplication.",
-        )
-        .meta({ deprecated: true }),
-      productId: z
-        .string()
-        .nullish()
-        .describe(
-          "Deprecated: Use `sale.metadata.productId` instead. Only used when `importStripeInvoices` is `false`. An optional product ID stored on the sale event metadata – will also impact commission earnings calculation (if a `Sale` `Product ID` modifier is set).",
-        )
-        .meta({ deprecated: true }),
-    }),
+const createSaleCommissionSchema = z.object({
+  type: z.literal("sale"),
+  partnerId: z
+    .string()
+    .describe("The ID of the partner to create the commission for."),
+  customerId: z
+    .string()
+    .nullish()
+    .describe(
+      "The customer ID to associate the commission with. Useful if the customer was already created in a prior operation and you want to associate the commission with it.",
+    ),
+  customer: createCustomerBodySchema
+    .nullish()
+    .describe(
+      "The full customer object to associate the commission with. Useful for creating the customer on demand.",
+    ),
+  linkId: z
+    .string()
+    .nullish()
+    .describe(
+      "The partner link ID to associate the commission with. If not provided, default to the link with the most revenue.",
+    ),
+  importStripeInvoices: z
+    .boolean()
+    .nullish()
+    .default(false)
+    .describe(
+      "When `true`, import all unimported paid Stripe invoices for the customer and create a commission for each. When `false`, create a single manual sale event using `saleAmount`.",
+    ),
+  date: parseDateSchema
+    .nullish()
+    .describe(
+      "Only used when `importStripeInvoices` is `false`. The date of the manual sale event. Defaults to the current date and time if not provided.",
+    ),
+  sale: z
+    .object({
+      amount: trackSaleRequestSchema.shape.amount,
+      currency: trackSaleRequestSchema.shape.currency,
+      eventName: trackSaleRequestSchema.shape.eventName,
+      paymentProcessor: trackSaleRequestSchema.shape.paymentProcessor,
+      invoiceId: trackSaleRequestSchema.shape.invoiceId,
+      metadata: trackSaleRequestSchema.shape.metadata,
+    })
+    .nullish(),
+
+  // Deprecated fields
+  saleAmount: centsSchema
+    .pipe(z.number().min(0))
+    .nullish()
+    .describe(
+      "Deprecated: Use `sale.amount` instead. Required when `importStripeInvoices` is `false`. The sale amount in cents for the manual sale event. Ignored when importing from Stripe.",
+    )
+    .meta({ deprecated: true }),
+  saleEventDate: parseDateSchema
+    .nullish()
+    .describe(
+      "Deprecated: Use `date` instead. Only used when `importStripeInvoices` is `false`. The date of the manual sale event. Defaults to the current date and time if not provided.",
+    )
+    .meta({ deprecated: true }),
+  invoiceId: z
+    .string()
+    .nullish()
+    .describe(
+      "Deprecated: Use `sale.invoiceId` instead. Only used when `importStripeInvoices` is `false`. An optional invoice ID to attach to the generated sale event and commission entry for deduplication.",
+    )
+    .meta({ deprecated: true }),
+  productId: z
+    .string()
+    .nullish()
+    .describe(
+      "Deprecated: Use `sale.metadata.productId` instead. Only used when `importStripeInvoices` is `false`. An optional product ID stored on the sale event metadata – will also impact commission earnings calculation (if a `Sale` `Product ID` modifier is set).",
+    )
+    .meta({ deprecated: true }),
+});
+
+export const createManualCommissionBodySchema = z
+  .discriminatedUnion("type", [
+    createCustomCommissionSchema,
+    createLeadCommissionSchema,
+    createSaleCommissionSchema,
   ])
   .superRefine((data, ctx) => {
     if (data.type === "custom") {
@@ -655,167 +657,6 @@ export const createCommissionBodySchemaV2 = z
       }
     }
   });
-
-export const createManualCommissionBodySchema = createCommissionBodySchemaV2;
-
-// z
-//   .discriminatedUnion("type", [
-//     // Custom commission (negative amount = clawback)
-//     z.object({
-//       type: z.literal("custom"),
-//       partnerId: z
-//         .string()
-//         .describe("The ID of the partner to create the commission for."),
-//       amount: centsSchema
-//         .pipe(
-//           z.number().refine((n) => n !== 0, {
-//             message: "Amount cannot be 0.",
-//           }),
-//         )
-//         .describe(
-//           "The commission amount in cents. Use a negative amount to create a clawback.",
-//         ),
-//       date: parseDateSchema
-//         .nullish()
-//         .describe("If not provided, the current date will be used."),
-//       description: z
-//         .string()
-//         .max(190)
-//         .nullish()
-//         .describe(
-//           "The description of the commission. Required for clawbacks (negative `amount`). May be a known clawback reason (`order_canceled`, `fraud`, `terms_violation`, `tracking_error`, `payment_failed`, `ineligible_partner`, `duplicate_commission`, `other`) or any other string.",
-//         ),
-//     }),
-
-//     // Lead commission
-//     z.object({
-//       type: z.literal("lead"),
-//       partnerId: z
-//         .string()
-//         .describe("The ID of the partner to create the commission for."),
-//       customerId: z
-//         .string()
-//         .nullish()
-//         .describe(
-//           "The customer ID to associate the commission with. Useful if the customer was already created in a prior operation and you want to associate the commission with it.",
-//         ),
-//       customer: createCustomerBodySchema
-//         .nullish()
-//         .describe(
-//           "The full customer object to associate the commission with. Useful for creating the customer on demand.",
-//         ),
-//       linkId: z
-//         .string()
-//         .nullish()
-//         .describe(
-//           "The partner link ID to associate the commission with. If not provided, default to the link with the most revenue.",
-//         ),
-//       leadEventDate: parseDateSchema
-//         .nullish()
-//         .describe(
-//           "The date and time of the lead event. If not provided, defaults to the current date and time.",
-//         ),
-//       leadEventName: z
-//         .string()
-//         .nullish()
-//         .default("Sign up")
-//         .describe(
-//           "The name of the lead event. If not provided, defaults to 'Sign up'.",
-//         ),
-//     }),
-
-//     // Sale commission
-//     z.object({
-//       type: z.literal("sale"),
-//       partnerId: z
-//         .string()
-//         .describe("The ID of the partner to create the commission for."),
-//       customerId: z
-//         .string()
-//         .nullish()
-//         .describe(
-//           "The customer ID to associate the commission with. Useful if the customer was already created in a prior operation and you want to associate the commission with it.",
-//         ),
-//       customer: createCustomerBodySchema
-//         .nullish()
-//         .describe(
-//           "The full customer object to associate the commission with. Useful for creating the customer on demand.",
-//         ),
-//       linkId: z
-//         .string()
-//         .nullish()
-//         .describe(
-//           "The partner link ID to associate the commission with. If not provided, default to the link with the most revenue.",
-//         ),
-//       importStripeInvoices: z
-//         .boolean()
-//         .nullish()
-//         .default(false)
-//         .describe(
-//           "When `true`, import all unimported paid Stripe invoices for the customer and create a commission for each. When `false`, create a single manual sale event using `saleAmount`.",
-//         ),
-//       saleAmount: centsSchema
-//         .pipe(z.number().min(0))
-//         .nullish()
-//         .describe(
-//           "Required when `importStripeInvoices` is `false`. The sale amount in cents for the manual sale event. Ignored when importing from Stripe.",
-//         ),
-//       saleEventDate: parseDateSchema
-//         .nullish()
-//         .describe(
-//           "Only used when `importStripeInvoices` is `false`. The date of the manual sale event. Defaults to the current date and time if not provided.",
-//         ),
-//       invoiceId: z
-//         .string()
-//         .nullish()
-//         .describe(
-//           "Only used when `importStripeInvoices` is `false`. An optional invoice ID to attach to the generated sale event and commission entry for deduplication.",
-//         ),
-//       productId: z
-//         .string()
-//         .nullish()
-//         .describe(
-//           "Only used when `importStripeInvoices` is `false`. An optional product ID stored on the sale event metadata – will also impact commission earnings calculation (if a `Sale` `Product ID` modifier is set).",
-//         ),
-//     }),
-//   ])
-//   .superRefine((data, ctx) => {
-//     if (data.type === "custom") {
-//       if (data.amount < 0 && !data.description?.trim()) {
-//         ctx.addIssue({
-//           code: z.ZodIssueCode.custom,
-//           message:
-//             "`description` is required when creating a clawback (negative amount).",
-//           path: ["description"],
-//         });
-//       }
-//       return;
-//     }
-
-//     if (data.type === "sale") {
-//       if (data.importStripeInvoices) {
-//         return;
-//       }
-
-//       if (data.saleAmount == null) {
-//         ctx.addIssue({
-//           code: z.ZodIssueCode.custom,
-//           message:
-//             "`saleAmount` is required when `importStripeInvoices` is false.",
-//           path: ["saleAmount"],
-//         });
-//         return;
-//       }
-
-//       if (data.saleAmount === 0) {
-//         ctx.addIssue({
-//           code: z.ZodIssueCode.custom,
-//           message: "Sale amount cannot be 0.",
-//           path: ["saleAmount"],
-//         });
-//       }
-//     }
-//   });
 
 export const createCommissionResponseSchema = z.object({
   success: z.boolean(),

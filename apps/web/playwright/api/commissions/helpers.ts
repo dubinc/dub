@@ -165,6 +165,7 @@ export async function expectCommissionCreated({
   invoiceId,
   expectedAmount,
   expectedEarnings,
+  expectedCreatedAt,
 }: {
   partnerId: string;
   programId: string;
@@ -173,6 +174,7 @@ export async function expectCommissionCreated({
   invoiceId?: string;
   expectedAmount: number;
   expectedEarnings: number;
+  expectedCreatedAt?: Date;
 }) {
   await expect
     .poll(async () => {
@@ -202,6 +204,7 @@ export async function expectCommissionCreated({
         quantity: commission.quantity,
         description: commission.description,
         invoiceId: commission.invoiceId,
+        createdAt: commission.createdAt.toISOString(),
       };
     })
     .toEqual({
@@ -213,5 +216,8 @@ export async function expectCommissionCreated({
       quantity: 1,
       description: description ?? null,
       invoiceId: invoiceId ?? null,
+      createdAt: expectedCreatedAt
+        ? expectedCreatedAt.toISOString()
+        : expect.any(String),
     });
 }
