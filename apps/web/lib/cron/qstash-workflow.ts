@@ -6,6 +6,12 @@ import { Client } from "@upstash/workflow";
 const client = new Client({
   baseUrl: process.env.QSTASH_URL || "https://qstash-us-east-1.upstash.io",
   token: process.env.QSTASH_TOKEN || "",
+  ...(process.env.VERCEL_ENV === "preview" && {
+    headers: {
+      "x-vercel-protection-bypass":
+        process.env.VERCEL_AUTOMATION_BYPASS_SECRET || "",
+    },
+  }),
 });
 
 type WorkflowType = "partner-approved" | "create-partner-commission";

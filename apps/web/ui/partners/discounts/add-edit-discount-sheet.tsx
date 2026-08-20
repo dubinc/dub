@@ -302,7 +302,10 @@ function DiscountSheetContent({
                               onProviderChange(e);
                               setUseExistingCoupon(false);
                               setUseStripeTestCouponId(false);
-                              if (e.target.value === DiscountProvider.shopify) {
+                              if (
+                                e.target.value === DiscountProvider.shopify ||
+                                e.target.value === DiscountProvider.custom
+                              ) {
                                 setValue("couponId", "");
                                 setValue("couponTestId", "");
                               }
@@ -315,6 +318,7 @@ function DiscountSheetContent({
                         <option value={DiscountProvider.shopify}>
                           Shopify
                         </option>
+                        <option value={DiscountProvider.custom}>Custom</option>
                       </select>
                     </div>
                   </div>
@@ -456,6 +460,10 @@ function DiscountSheetContent({
                   <>
                     {effectiveProvider === DiscountProvider.shopify ? (
                       <Shopify className="h-7 w-auto" />
+                    ) : effectiveProvider === DiscountProvider.custom ? (
+                      <div className="flex size-7 shrink-0 items-center justify-center rounded-md bg-neutral-100">
+                        <Tag className="size-4 text-neutral-800" />
+                      </div>
                     ) : (
                       <StripeIcon className="size-7" />
                     )}
