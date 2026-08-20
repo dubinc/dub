@@ -21,7 +21,7 @@
       "schedule": "* * * * *"
     },
     {
-      "path": "/api/cron/streams/update-workspace-clicks",
+      "path": "/api/cron/streams/update-click-stats",
       "schedule": "* * * * *"
     },
     {
@@ -53,6 +53,10 @@
       "schedule": "0 * * * *"
     },
     {
+      "path": "/api/cron/payouts/reconcile-amounts",
+      "schedule": "* * * * *"
+    },
+    {
       "path": "/api/cron/trigger-withdrawal",
       "schedule": "0 1,13 * * *"
     },
@@ -81,8 +85,16 @@
       "schedule": "0 2 * * *"
     },
     {
-      "path": "/api/cron/webhooks/sync-click-workspaces",
+      "path": "/api/cron/sync-redis-resources",
       "schedule": "*/5 * * * *"
+    },
+    {
+      "path": "/api/cron/queue/retry",
+      "schedule": "* * * * *"
+    },
+    {
+      "path": "/api/cron/campaigns/queue-scheduled",
+      "schedule": "* * * * *"
     }
   ],
   "functions": {

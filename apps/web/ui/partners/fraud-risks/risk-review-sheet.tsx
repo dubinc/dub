@@ -29,7 +29,7 @@ import useSWR from "swr";
 import { AssociatedCommissionsTable } from "./associated-commissions-table";
 import { FraudEventsTableWrapper } from "./fraud-events-tables";
 import { useMarkAllAsFraudModal } from "./mark-all-as-fraud-modal";
-import { PartnerCrossProgramSummary } from "./partner-cross-program-summary";
+import { PartnerNetworkActivitySummary } from "./partner-network-activity-summary";
 import { RequestDetailsBanner } from "./request-details-banner";
 import { useResolveFraudGroupModal } from "./resolve-fraud-group-modal";
 import { ResolvedRiskEventsTable } from "./resolved-risk-events-table";
@@ -226,12 +226,12 @@ function RiskReviewSheetContent({
                 </div>
               </Link>
 
-              <div className="bg-bg-muted border-border-subtle flex flex-col gap-3 rounded-xl border px-4 py-3 sm:shrink-0">
+              <div className="bg-bg-muted border-border-subtle flex flex-col gap-3 rounded-xl border px-4 py-3 sm:w-80 sm:shrink-0">
                 <h2 className="text-content-default text-sm font-semibold leading-5">
-                  Program owner activity
+                  Network activity
                 </h2>
                 <div className="flex flex-col gap-2">
-                  <PartnerCrossProgramSummary partnerId={partner.id} />
+                  <PartnerNetworkActivitySummary partnerId={partner.id} />
                 </div>
               </div>
             </div>

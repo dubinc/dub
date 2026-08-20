@@ -1,7 +1,8 @@
 import { createId } from "@/lib/api/create-id";
-import { createOrGetCustomer } from "@/lib/api/customers/create-or-get-customer";
+import { getOrCreateCustomer } from "@/lib/api/customers/get-or-create-customer";
 import { DubApiError } from "@/lib/api/errors";
 import { includeTags } from "@/lib/api/links/include-tags";
+import { queueGoogleAdsConversionUpload } from "@/lib/integrations/google-ads/upload-conversion";
 import { generateRandomName } from "@/lib/names";
 import { queuePartnerCommissionCreation } from "@/lib/partners/queue-partner-commission-creation";
 import { sendPartnerPostback } from "@/lib/postback/send-partner-postback";
@@ -17,7 +18,7 @@ import {
   trackLeadResponseSchema,
 } from "@/lib/zod/schemas/leads";
 import { nanoid, R2_URL } from "@dub/utils";
-import { Link } from "@prisma/client";
+import { EventType, Link } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
 import { syncPartnerLinksStats } from "../partners/sync-partner-links-stats";
@@ -167,7 +168,7 @@ export const trackLead = async ({
     };
 
     if (!customer) {
-      const { customer: createdOrFoundCustomer } = await createOrGetCustomer({
+      const { customer: existingOrNewCustomer } = await getOrCreateCustomer({
         where: {
           projectId_externalId: {
             projectId: workspace.id,
@@ -191,7 +192,7 @@ export const trackLead = async ({
         },
       });
 
-      customer = createdOrFoundCustomer;
+      customer = existingOrNewCustomer;
     }
 
     // if wait mode, record the lead event synchronously
@@ -316,8 +317,7 @@ export const trackLead = async ({
 
             await Promise.allSettled([
               executeWorkflows({
-                trigger: "partnerMetricsUpdated",
-                reason: "lead",
+                event: "leadRecorded",
                 identity: {
                   workspaceId: workspace.id,
                   programId: link.programId,
@@ -350,6 +350,18 @@ export const trackLead = async ({
                 metadata,
               }),
               workspace,
+            }),
+
+            queueGoogleAdsConversionUpload({
+              workspaceId: workspace.id,
+              eventType: EventType.lead,
+              eventId: leadEventId,
+              conversionDateTime: new Date().toISOString(),
+              conversionCount: eventQuantity ?? undefined,
+              click: {
+                id: clickData.click_id,
+                url: clickData.url,
+              },
             }),
 
             ...(link.partnerId

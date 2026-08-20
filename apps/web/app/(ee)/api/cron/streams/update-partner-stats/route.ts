@@ -8,7 +8,7 @@ import {
 import { toCentsNumber } from "@dub/utils";
 import { ProgramEnrollment } from "@prisma/client";
 import { differenceInDays, format } from "date-fns";
-import { NextResponse } from "next/server";
+import { logAndRespond } from "../../utils";
 
 export const dynamic = "force-dynamic";
 
@@ -351,7 +351,7 @@ export const GET = withCron(async () => {
     await processPartnerActivityStreamBatch();
 
   if (!updates.length) {
-    return NextResponse.json({
+    return logAndRespond({
       success: true,
       message: "No updates to process",
       processed: 0,
@@ -360,15 +360,11 @@ export const GET = withCron(async () => {
 
   const streamInfo = await partnerActivityStream.getStreamInfo();
 
-  const response = {
+  return logAndRespond({
     success: true,
     processed: totalProcessed,
     errors: errors?.length || 0,
     streamInfo,
     message: `Successfully processed ${totalProcessed} partner activity updates`,
-  };
-
-  console.log(response);
-
-  return NextResponse.json(response);
+  });
 });

@@ -12,7 +12,7 @@ import {
 } from "@/lib/types";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { INACTIVE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
-import { usePartnerGroupHistorySheet } from "@/ui/activity-logs/partner-group-history-sheet";
+import { usePartnerEnrollmentHistorySheet } from "@/ui/activity-logs/partner-enrollment-history-sheet";
 import {
   Button,
   CalendarIcon,
@@ -40,6 +40,7 @@ import Link from "next/link";
 import { Fragment, ReactNode, createElement } from "react";
 import useSWR from "swr";
 import { PartnerApplicationRiskSummary } from "./fraud-risks/partner-application-risk-summary";
+import { PartnerNetworkActivitySummary } from "./fraud-risks/partner-network-activity-summary";
 import {
   PartnerApplicationRiskBanner,
   PartnerRiskBanner,
@@ -100,17 +101,18 @@ export function PartnerInfoCards({
 }: PartnerInfoCardsProps) {
   const { id: workspaceId, slug: workspaceSlug, plan } = useWorkspace();
 
-  const { canCreateReferralReward } = getPlanCapabilities(plan);
+  const { canCreateReferralReward, canManageFraudEvents } =
+    getPlanCapabilities(plan);
 
   const isEnrolled = type === "enrolled" || type === undefined;
   const isNetwork = type === "network";
   const isAdmin = type === "admin";
 
   const {
-    partnerGroupHistorySheet,
-    setIsOpen: setGroupHistoryOpen,
+    partnerEnrollmentHistorySheet,
+    setIsOpen: setPartnerEnrollmentHistoryOpen,
     hasActivityLogs,
-  } = usePartnerGroupHistorySheet({ partner: partner || null });
+  } = usePartnerEnrollmentHistorySheet({ partner: partner || null });
 
   const { group } = useGroup(
     {
@@ -163,21 +165,21 @@ export function PartnerInfoCards({
         ) : (
           <Users className="size-3.5" />
         ),
-        text: isPendingApplication ? (
-          <span className="inline-flex flex-wrap items-center gap-1">
-            <TimestampTooltip
-              timestamp={partner.createdAt}
-              rows={["local", "utc", "unix"]}
-              side="left"
-              delayDuration={250}
-            >
-              <span>Applied {formatDate(partner.createdAt)}</span>
-            </TimestampTooltip>
-          </span>
-        ) : (
-          `${isPendingApplication ? "Applied" : "Partner since"} ${formatDate(partner.createdAt)}`
-        ),
-        timestamp: isPendingApplication ? undefined : partner.createdAt,
+        text: `${isPendingApplication ? "Applied" : "Partner since"} ${formatDate(partner.createdAt)}`,
+        timestamp: partner.createdAt,
+        ...(isPendingApplication || !isEnrolled
+          ? {}
+          : {
+              wrapper: ({ children }) => (
+                <button
+                  type="button"
+                  onClick={() => setPartnerEnrollmentHistoryOpen(true)}
+                  className="underline decoration-dotted underline-offset-2"
+                >
+                  {children}
+                </button>
+              ),
+            }),
       },
       {
         id: "payoutMethod" as const,
@@ -373,6 +375,17 @@ export function PartnerInfoCards({
           {partner && isEnrolled && showApplicationRiskAnalysis && (
             <PartnerApplicationRiskSummary partner={partner} />
           )}
+          {partner &&
+            isEnrolled &&
+            showApplicationRiskAnalysis &&
+            canManageFraudEvents && (
+              <div className="flex flex-col gap-3 p-4">
+                <h3 className="text-content-emphasis text-sm font-semibold">
+                  Network activity
+                </h3>
+                <PartnerNetworkActivitySummary partnerId={partner.id} />
+              </div>
+            )}
         </div>
       </div>
 
@@ -391,13 +404,13 @@ export function PartnerInfoCards({
                     variant="outline"
                     text="View history"
                     className="h-7 w-fit rounded-lg px-1.5 text-xs font-medium text-neutral-400"
-                    onClick={() => setGroupHistoryOpen(true)}
+                    onClick={() => setPartnerEnrollmentHistoryOpen(true)}
                   />
                 )}
               </div>
             )}
 
-            {partnerGroupHistorySheet}
+            {partnerEnrollmentHistorySheet}
             {partner ? (
               <PartnerInfoGroup
                 partner={partner}

@@ -1,4 +1,5 @@
 import { isFirstConversion } from "@/lib/analytics/is-first-conversion";
+import { getProgramBountyMeta } from "@/lib/bounty/bounty-period";
 import { getBountyRewardDescription } from "@/lib/bounty/rewards";
 import { APP_DOMAIN, COUNTRIES, currencyFormatter, truncate } from "@dub/utils";
 import { LinkWebhookEvent } from "dub/models/components";
@@ -9,6 +10,7 @@ import {
   BountyEventWebhookPayload,
   ClickEventWebhookPayload,
   CommissionEventWebhookPayload,
+  DiscountCodeEventWebhookPayload,
   LeadEventWebhookPayload,
   PartnerApplicationWebhookPayload,
   PartnerEventWebhookPayload,
@@ -451,6 +453,8 @@ const bountyTemplates = ({
     type,
     startsAt,
     endsAt,
+    startMode,
+    endsAfterDays,
   } = data;
 
   const eventMessages = {
@@ -462,6 +466,13 @@ const bountyTemplates = ({
     rewardAmount,
     rewardDescription,
     submissionRequirements,
+  });
+
+  const { dateRangeLabel } = getProgramBountyMeta({
+    startsAt,
+    endsAt,
+    startMode,
+    endsAfterDays,
   });
 
   const hrefToBounty = `${APP_DOMAIN}/program/bounties/${id}`;
@@ -497,7 +508,7 @@ const bountyTemplates = ({
           },
           {
             type: "mrkdwn",
-            text: `*Duration*\n${new Date(startsAt).toLocaleDateString()}${endsAt ? ` - ${new Date(endsAt).toLocaleDateString()}` : " (No end date)"}`,
+            text: `*Duration*\n${dateRangeLabel}`,
           },
         ],
       },
@@ -586,6 +597,44 @@ const payoutConfirmedTemplate = ({
   };
 };
 
+const discountCodeTemplates = ({
+  data,
+  event,
+}: {
+  data: DiscountCodeEventWebhookPayload;
+  event: WebhookTrigger;
+}) => {
+  const eventMessages = {
+    "discount_code.created": "*Discount code created* :ticket:",
+    "discount_code.deleted": "*Discount code deleted* :ticket:",
+  };
+
+  return {
+    blocks: [
+      {
+        type: "section",
+        text: {
+          type: "mrkdwn",
+          text: eventMessages[event as keyof typeof eventMessages],
+        },
+      },
+      {
+        type: "section",
+        fields: [
+          {
+            type: "mrkdwn",
+            text: `*Code*\n${data.code}`,
+          },
+          {
+            type: "mrkdwn",
+            text: `*Partner ID*\n${data.partnerId}`,
+          },
+        ],
+      },
+    ],
+  };
+};
+
 const slackTemplates: Record<WebhookTrigger, any> = {
   "link.created": linkTemplates,
   "link.updated": linkTemplates,
@@ -599,6 +648,8 @@ const slackTemplates: Record<WebhookTrigger, any> = {
   "bounty.created": bountyTemplates,
   "bounty.updated": bountyTemplates,
   "payout.confirmed": payoutConfirmedTemplate,
+  "discount_code.created": discountCodeTemplates,
+  "discount_code.deleted": discountCodeTemplates,
 };
 
 export const formatEventForSlack = (
@@ -615,9 +666,13 @@ export const formatEventForSlack = (
     event,
   );
   const isBountyEvent = ["bounty.created", "bounty.updated"].includes(event);
+  const isDiscountCodeEvent = [
+    "discount_code.created",
+    "discount_code.deleted",
+  ].includes(event);
 
   return template({
     data,
-    ...((isLinkEvent || isBountyEvent) && { event }),
+    ...((isLinkEvent || isBountyEvent || isDiscountCodeEvent) && { event }),
   });
 };

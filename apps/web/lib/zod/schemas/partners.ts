@@ -203,10 +203,7 @@ export const getPartnersQuerySchema = z
 
 // Only Dub UI uses the following query parameters
 export const getPartnersQuerySchemaExtended = getPartnersQuerySchema.extend({
-  status: z
-    .enum(ProgramEnrollmentStatus)
-    .or(z.enum(["approved_invited"]))
-    .optional(),
+  status: z.enum(ProgramEnrollmentStatus).optional(),
   // TODO: refactor to use multi/negative filtering syntax
   partnerIds: z
     .union([z.string(), z.array(z.string())])
@@ -1055,7 +1052,7 @@ export const partnerPayoutSettingsSchema = z.object({
   taxId: z.string().max(100).trim().nullish(),
 });
 
-export const partnerCrossProgramSummarySchema = z.object({
+export const partnerNetworkActivitySummarySchema = z.object({
   totalPrograms: z.number(),
   activePrograms: z.number(),
   bannedPrograms: z.number(),

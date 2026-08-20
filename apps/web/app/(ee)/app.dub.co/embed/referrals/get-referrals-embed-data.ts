@@ -17,7 +17,6 @@ export const getReferralsEmbedData = async (token: string) => {
     notFound();
   }
 
-  const now = new Date();
   const programEnrollment = await getProgramEnrollmentOrThrow({
     partnerId,
     programId,
@@ -51,18 +50,6 @@ export const getReferralsEmbedData = async (token: string) => {
           termsUrl: true,
           embedData: true,
           resources: true,
-          _count: {
-            select: {
-              bounties: {
-                where: {
-                  startsAt: {
-                    lte: now,
-                  },
-                  OR: [{ endsAt: null }, { endsAt: { gte: now } }],
-                },
-              },
-            },
-          },
         },
       },
       links: true,
@@ -72,6 +59,11 @@ export const getReferralsEmbedData = async (token: string) => {
       saleReward: true,
       referralReward: true,
       discount: true,
+      programPartnerTags: {
+        select: {
+          partnerTagId: true,
+        },
+      },
     },
   });
 
@@ -112,9 +104,7 @@ export const getReferralsEmbedData = async (token: string) => {
       },
     }),
 
-    program._count.bounties > 0
-      ? getBountiesForPartner(programEnrollment)
-      : Promise.resolve([]),
+    getBountiesForPartner(programEnrollment),
   ]);
 
   return {

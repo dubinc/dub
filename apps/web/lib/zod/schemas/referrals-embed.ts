@@ -9,8 +9,7 @@ export const ReferralsEmbedLinkSchema = LinkSchema.pick({
   shortLink: true,
   clicks: true,
   leads: true,
-  sales: true,
-  saleAmount: true,
+  conversions: true,
 }).extend({
   partnerGroupDefaultLinkId: z.string().nullish(),
 });

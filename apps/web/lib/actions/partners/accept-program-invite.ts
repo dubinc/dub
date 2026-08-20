@@ -21,6 +21,8 @@ export const acceptProgramInviteAction = authPartnerActionClient
     const { partner } = ctx;
     const { programId } = parsedInput;
 
+    const now = new Date();
+
     const enrollment = await prisma.programEnrollment.update({
       where: {
         partnerId_programId: {
@@ -31,7 +33,7 @@ export const acceptProgramInviteAction = authPartnerActionClient
       },
       data: {
         status: "approved",
-        createdAt: new Date(),
+        createdAt: now,
       },
       include: {
         links: true,
@@ -52,6 +54,8 @@ export const acceptProgramInviteAction = authPartnerActionClient
           select: {
             id: true,
             webhookEnabled: true,
+            stripeConnectId: true,
+            shopifyStoreId: true,
           },
         });
 
@@ -70,7 +74,7 @@ export const acceptProgramInviteAction = authPartnerActionClient
         await Promise.allSettled([
           // 1. Generate discount code for partner (if enabled)
           generateDiscountCodeForPartner({
-            workspaceId: workspace.id,
+            workspace,
             partner: enrolledPartner,
           }),
           // 2. Send "partner.enrolled" webhook to workspace
@@ -86,7 +90,7 @@ export const acceptProgramInviteAction = authPartnerActionClient
           }),
           // 4. Execute Dub workflows using the “partnerEnrolled” trigger.
           executeWorkflows({
-            trigger: "partnerEnrolled",
+            event: "partnerEnrolled",
             identity: {
               workspaceId: workspace.id,
               programId,

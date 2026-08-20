@@ -5,7 +5,7 @@ DESCRIPTION >
 NODE endpoint
 SQL >
 
-    %
+%
             SELECT *
             FROM dub_postback_events
             WHERE
@@ -21,4 +21,4 @@ SQL >
                 ORDER BY timestamp DESC
                 limit 100
 
-
+TYPE ENDPOINT

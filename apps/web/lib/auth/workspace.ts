@@ -1,4 +1,4 @@
-import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
+import { DubApiError, handleApiError } from "@/lib/api/errors";
 import { prisma } from "@/lib/prisma";
 import { BetaFeatures, PlanProps, WorkspaceWithUsers } from "@/lib/types";
 import { ratelimit } from "@/lib/upstash";
@@ -6,6 +6,7 @@ import { API_DOMAIN, getSearchParams } from "@dub/utils";
 import { WorkspaceRole } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { headers } from "next/headers";
+import { NextResponse } from "next/server";
 import { captureRequestLog } from "../api-logs/capture-request-log";
 import { getRatelimitForPlan } from "../api/get-ratelimit-for-plan";
 import {
@@ -375,6 +376,10 @@ export const withWorkspace = (
             },
           });
 
+          // Clear so non-member denials are not attributed to this workspace
+          // in API logs or Axiom error context.
+          workspace = undefined;
+
           if (!pendingInvites) {
             throw new DubApiError({
               code: "not_found",
@@ -498,7 +503,7 @@ export const withWorkspace = (
           token,
         });
 
-        if (workspace) {
+        if (workspace?.users?.length) {
           waitUntil(
             captureRequestLog({
               req: reqForLog,
@@ -514,17 +519,22 @@ export const withWorkspace = (
         }
 
         return response;
-      } catch (error) {
-        const errorResponse = handleAndReturnErrorResponse(
-          error,
-          responseHeaders,
+      } catch (err) {
+        const { error, status } = handleApiError({
+          error: err,
+          workspace,
+        });
+
+        const response = NextResponse.json(
+          { error },
+          { headers: responseHeaders, status },
         );
 
-        if (workspace) {
+        if (workspace?.users?.length) {
           waitUntil(
             captureRequestLog({
               req: reqForLog,
-              response: errorResponse,
+              response,
               workspace,
               session,
               token,
@@ -535,7 +545,7 @@ export const withWorkspace = (
           );
         }
 
-        return errorResponse;
+        return response;
       }
     },
   );

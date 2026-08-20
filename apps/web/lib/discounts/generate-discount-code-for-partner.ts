@@ -1,12 +1,16 @@
 import { prisma } from "@/lib/prisma";
 import { EnrolledPartnerProps } from "@/lib/types";
+import { Project } from "@prisma/client";
 import { createDiscountCode } from "./create-discount-code";
 
 export async function generateDiscountCodeForPartner({
-  workspaceId,
+  workspace,
   partner,
 }: {
-  workspaceId: string;
+  workspace: Pick<
+    Project,
+    "id" | "webhookEnabled" | "stripeConnectId" | "shopifyStoreId"
+  >;
   partner: Pick<EnrolledPartnerProps, "id" | "name" | "groupId">;
 }) {
   if (!partner.groupId) {
@@ -31,17 +35,6 @@ export async function generateDiscountCodeForPartner({
     );
     return;
   }
-
-  const workspace = await prisma.project.findUniqueOrThrow({
-    where: {
-      id: workspaceId,
-    },
-    select: {
-      id: true,
-      stripeConnectId: true,
-      shopifyStoreId: true,
-    },
-  });
 
   const partnerDefaultLink = await prisma.link.findFirst({
     where: {
