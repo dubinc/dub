@@ -24,8 +24,7 @@ function SendEmailPreviewModal({
   const { handleKeyDown } = useEnterSubmit();
   const { control } = useCampaignFormContext();
   const { isSubmitting, makeRequest } = useApiMutation();
-  const [emailAddresses, setEmailAddresses] = useState<string | null>(null);
-  const emailAddressesValue = emailAddresses ?? user?.email ?? "";
+  const [emailAddresses, setEmailAddresses] = useState(user?.email ?? "");
 
   const [subject, preview, bodyJson, from] = useWatch({
     control,
@@ -35,7 +34,7 @@ function SendEmailPreviewModal({
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!emailAddressesValue.trim()) {
+    if (!emailAddresses.trim()) {
       toast.error("Please enter at least one email address.");
       return;
     }
@@ -47,7 +46,7 @@ function SendEmailPreviewModal({
       return;
     }
 
-    const emails = emailAddressesValue
+    const emails = emailAddresses
       .split(",")
       .map((email) => email.trim())
       .filter((email) => email.length > 0);
@@ -96,7 +95,7 @@ function SendEmailPreviewModal({
                 placeholder="Separate multiple addresses with commas"
                 autoFocus={!isMobile}
                 required
-                value={emailAddressesValue}
+                value={emailAddresses}
                 onChange={(e) => setEmailAddresses(e.target.value)}
                 onKeyDown={handleKeyDown}
                 rows={3}
@@ -118,7 +117,7 @@ function SendEmailPreviewModal({
               type="submit"
               text="Send preview"
               loading={isSubmitting}
-              disabled={!emailAddressesValue.trim()}
+              disabled={!emailAddresses.trim()}
               className="h-8 w-fit"
             />
           </div>

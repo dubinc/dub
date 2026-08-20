@@ -16,10 +16,10 @@ import { throwIfNoPermission } from "../throw-if-no-permission";
 const updatePartnerEnrollmentSchema = z.object({
   workspaceId: z.string(),
   partnerId: z.string(),
-  tenantId: z.string().nullable().optional(),
-  customerDataSharingEnabledAt: z.coerce.date().nullable().optional(),
-  groupMoveDisabledAt: z.coerce.date().nullable().optional(),
-  riskMonitoringDisabledAt: z.coerce.date().nullable().optional(),
+  tenantId: z.string().nullable(),
+  customerDataSharingEnabledAt: z.coerce.date().nullable(),
+  groupMoveDisabledAt: z.coerce.date().nullable(),
+  riskMonitoringDisabledAt: z.coerce.date().nullable(),
 });
 
 // Update a partner's program enrollment data
@@ -64,28 +64,22 @@ export const updatePartnerEnrollmentAction = authActionClient
     }
 
     const programEnrollment = await prisma.$transaction(async (tx) => {
-      if (tenantId !== undefined) {
-        await tx.link.updateMany({
-          where,
-          data: {
-            tenantId,
-          },
-        });
-      }
+      await tx.link.updateMany({
+        where,
+        data: {
+          tenantId,
+        },
+      });
 
       return await tx.programEnrollment.update({
         where: {
           partnerId_programId: where,
         },
         data: {
-          ...(tenantId !== undefined && { tenantId }),
-          ...(customerDataSharingEnabledAt !== undefined && {
-            customerDataSharingEnabledAt,
-          }),
-          ...(groupMoveDisabledAt !== undefined && { groupMoveDisabledAt }),
-          ...(riskMonitoringDisabledAt !== undefined && {
-            riskMonitoringDisabledAt,
-          }),
+          tenantId,
+          customerDataSharingEnabledAt,
+          groupMoveDisabledAt,
+          riskMonitoringDisabledAt,
         },
         include: {
           links: {
