@@ -452,7 +452,7 @@ async function stepCreateCommission(
         status,
         description,
         createdAt,
-        metadata,
+        metadata: metadata ?? Prisma.DbNull,
       },
     });
 
