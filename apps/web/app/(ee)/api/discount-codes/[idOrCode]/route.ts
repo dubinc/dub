@@ -7,42 +7,38 @@ import { prisma } from "@/lib/prisma";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
-// DELETE /api/discount-codes/[discountCodeId] - soft delete a discount code
+// DELETE /api/discount-codes/[idOrCode] - delete a discount code
 export const DELETE = withWorkspace(
   async ({ workspace, params, session }) => {
-    const { discountCodeId } = params;
+    const { idOrCode } = params;
     const programId = getDefaultProgramIdOrThrow(workspace);
 
     const discountCode = await prisma.discountCode.findUnique({
-      where: {
-        id: discountCodeId,
-      },
+      where: idOrCode.startsWith("dcode_")
+        ? { id: idOrCode }
+        : { programId_code: { programId, code: idOrCode } },
       include: {
-        discount: {
-          select: {
-            provider: true,
-          },
-        },
+        discount: true,
       },
     });
 
     if (!discountCode || !discountCode.discount) {
       throw new DubApiError({
-        message: `Discount code (${discountCodeId}) not found.`,
-        code: "bad_request",
+        code: "not_found",
+        message: `Discount code (${idOrCode}) not found.`,
       });
     }
 
     if (discountCode.programId !== programId) {
       throw new DubApiError({
-        message: `Discount code (${discountCodeId}) is not associated with the program.`,
-        code: "bad_request",
+        code: "not_found",
+        message: `Discount code (${idOrCode}) not found.`,
       });
     }
 
     await prisma.discountCode.update({
       where: {
-        id: discountCodeId,
+        id: discountCode.id,
       },
       data: {
         discountId: null,

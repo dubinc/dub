@@ -8,6 +8,7 @@ import {
 import { config as loadEnv } from "dotenv-flow";
 import { mkdir, writeFile } from "fs/promises";
 import path from "path";
+import { PLAYWRIGHT_API_BASE } from "./constants";
 
 loadEnv({
   silent: true,
@@ -33,7 +34,6 @@ export const TEST_WORKSPACE = {
 } as const;
 
 const authFile = path.join(__dirname, "../.auth/api.json");
-const apiBaseURL = "http://localhost:8888";
 
 // Upserts a dedicated Playwright API user, workspace, membership,
 // RestrictedToken, and partner program. Safe to run repeatedly from globalSetup.
@@ -71,6 +71,7 @@ export async function setupTestWorkspace() {
       foldersLimit: 100,
       aiLimit: 1000,
       partnersLimit: 1000,
+      groupsLimit: 100,
     },
     create: {
       id: createId({ prefix: "ws_" }),
@@ -86,6 +87,7 @@ export async function setupTestWorkspace() {
       foldersLimit: 100,
       aiLimit: 1000,
       partnersLimit: 1000,
+      groupsLimit: 100,
     },
   });
 
@@ -153,7 +155,7 @@ export async function setupTestWorkspace() {
       {
         token,
         workspaceId: workspace.id,
-        baseURL: apiBaseURL,
+        baseURL: PLAYWRIGHT_API_BASE,
         userId: user.id,
         workspaceSlug: workspace.slug,
         programId,
