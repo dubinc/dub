@@ -13,6 +13,7 @@ import {
   useState,
 } from "react";
 import { PartnerApplicationFraudSeverityIndicator } from "./partner-application-fraud-severity-indicator";
+import { RiskDisclaimerBanner } from "./risk-disclaimer-banner";
 
 interface PartnerApplicationRiskSummaryModalProps {
   showModal: boolean;
@@ -47,6 +48,10 @@ function PartnerApplicationRiskSummaryModal({
       </div>
 
       <div className="flex flex-col gap-6 bg-white p-4 sm:p-6">
+        {severity === "high" && (
+          <RiskDisclaimerBanner className="gap-2 px-3 py-2" />
+        )}
+
         <PartnerApplicationFraudSeverityIndicator severity={severity} />
 
         <ul className="space-y-4">
