@@ -419,6 +419,13 @@ async function transferPartnerProgramData({
     prisma.message.updateMany(payload),
     prisma.partnerComment.updateMany(payload),
   ]);
+
+  // After payouts are moved onto the target partner, fold any duplicate
+  // pending payouts for this program into a single payout.
+  await combinePendingPayouts({
+    partnerId: targetPartnerId,
+    programId,
+  });
 }
 
 async function mergeSingleEnrollment({
@@ -601,6 +608,94 @@ async function transferBountySubmissions({
 
   return logAndReturn({
     outputLog: `Transferred ${updatedBountySubmissions.count} bounty submissions`,
+  });
+}
+
+async function combinePendingPayouts({
+  partnerId,
+  programId,
+}: {
+  partnerId: string;
+  programId: string;
+}) {
+  const payoutsToCombine = await prisma.payout.findMany({
+    where: {
+      programId,
+      partnerId,
+      status: "pending",
+    },
+    orderBy: {
+      createdAt: "asc",
+    },
+  });
+
+  if (payoutsToCombine.length < 2) {
+    return;
+  }
+
+  const periodStarts = payoutsToCombine
+    .map((payout) => payout.periodStart)
+    .filter((date): date is Date => date !== null);
+  const periodEnds = payoutsToCombine
+    .map((payout) => payout.periodEnd)
+    .filter((date): date is Date => date !== null);
+
+  const periodStart =
+    periodStarts.length > 0
+      ? new Date(Math.min(...periodStarts.map((date) => date.getTime())))
+      : payoutsToCombine[0].periodStart;
+  const periodEnd =
+    periodEnds.length > 0
+      ? new Date(Math.max(...periodEnds.map((date) => date.getTime())))
+      : payoutsToCombine[0].periodEnd;
+
+  const totalAmount = payoutsToCombine.reduce(
+    (sum, payout) => sum + payout.amount,
+    0,
+  );
+
+  const combinedPayoutId = payoutsToCombine[0].id;
+  const payoutIdsToDelete = payoutsToCombine.slice(1).map((p) => p.id);
+
+  await prisma.payout.update({
+    where: {
+      id: combinedPayoutId,
+    },
+    data: {
+      amount: totalAmount,
+      periodStart,
+      periodEnd,
+    },
+  });
+
+  await transferRowsInBatches(
+    async () =>
+      (
+        await prisma.commission.updateMany({
+          where: {
+            payoutId: {
+              in: payoutIdsToDelete,
+            },
+          },
+          data: {
+            payoutId: combinedPayoutId,
+          },
+          limit: PRISMA_UPDATEMANY_LIMIT,
+        })
+      ).count,
+    { resourceName: "commission" },
+  );
+
+  const deletedPayouts = await prisma.payout.deleteMany({
+    where: {
+      id: {
+        in: payoutIdsToDelete,
+      },
+    },
+  });
+
+  return logAndReturn({
+    outputLog: `Combined ${payoutsToCombine.length} pending payouts for program ${programId} into ${combinedPayoutId} (deleted ${deletedPayouts.count})`,
   });
 }
 
