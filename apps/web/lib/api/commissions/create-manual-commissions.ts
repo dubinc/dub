@@ -113,14 +113,10 @@ export async function createManualCommissions(args: CreateCommissionsArgs) {
     });
 
   if (type === "sale") {
-    const {
-      importStripeInvoices,
-      saleAmount,
-      saleEventDate,
-      invoiceId,
-      productId,
-    } = args;
+    const { importStripeInvoices, saleAmount, saleEventDate, productId, sale } =
+      args;
 
+    const invoiceId = sale?.invoiceId ?? args.invoiceId;
     const hasManualSaleFields =
       saleAmount || saleEventDate || invoiceId || productId;
 
@@ -447,7 +443,7 @@ async function recordEvents(args: RecordEventsArgs) {
 
     finalLeadEventDate = stripeCustomerInvoices[0].createdAt;
   } else {
-    finalLeadEventDate = args.saleEventDate ?? new Date();
+    finalLeadEventDate = args.date ?? args.saleEventDate ?? new Date();
   }
 
   const clickId = nanoid(16);
@@ -478,7 +474,7 @@ async function recordEvents(args: RecordEventsArgs) {
   const leadEvent = leadEventSchemaTBWithTimestamp.parse({
     ...clickEvent,
     event_id: nanoid(16),
-    event_name: lead?.eventName,
+    event_name: lead?.eventName ?? "Sign up",
     customer_id: targetCustomer.id,
     timestamp: finalLeadEventDate.toISOString(),
     metadata: lead?.metadata ? JSON.stringify(lead.metadata) : "",
@@ -488,13 +484,19 @@ async function recordEvents(args: RecordEventsArgs) {
   let saleEvents: z.infer<typeof saleEventSchemaTBWithTimestamp>[] = [];
 
   if (type === "sale") {
-    const {
-      invoiceId,
-      saleAmount,
-      saleEventDate,
-      productId,
-      importStripeInvoices,
-    } = args;
+    const { importStripeInvoices, sale } = args;
+
+    const invoiceId = sale?.invoiceId ?? args.invoiceId;
+    const productId = sale?.metadata?.productId ?? args.productId;
+    const saleAmount = sale?.amount ?? args.saleAmount;
+    const saleEventDate = args.date ?? args.saleEventDate ?? Date.now();
+    const eventName = sale?.eventName ?? "Purchase";
+    const currency = sale?.currency ?? "usd";
+    const paymentProcessor = sale?.paymentProcessor ?? "custom";
+    const metadata = {
+      ...(productId ? { productId } : {}),
+      ...(sale?.metadata ?? {}),
+    };
 
     if (importStripeInvoices) {
       saleEvents = stripeCustomerInvoices.map((invoice) =>
@@ -506,7 +508,7 @@ async function recordEvents(args: RecordEventsArgs) {
           amount: invoice.amount,
           customer_id: targetCustomer.id,
           payment_processor: "stripe",
-          currency: "usd",
+          currency,
           timestamp: invoice.createdAt.toISOString(),
           metadata: JSON.stringify(invoice.metadata),
         }),
@@ -517,13 +519,13 @@ async function recordEvents(args: RecordEventsArgs) {
           ...clickEvent,
           event_id: nanoid(16),
           invoice_id: invoiceId ?? "",
-          event_name: "Purchase",
+          event_name: eventName,
           amount: saleAmount,
           customer_id: targetCustomer.id,
-          payment_processor: "custom",
-          currency: "usd",
-          timestamp: new Date(saleEventDate ?? Date.now()).toISOString(),
-          metadata: productId ? JSON.stringify({ productId }) : undefined,
+          payment_processor: paymentProcessor,
+          currency,
+          timestamp: new Date(saleEventDate).toISOString(),
+          metadata: metadata ? JSON.stringify(metadata) : "",
         }),
       ];
     }
