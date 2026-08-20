@@ -7,7 +7,7 @@ import { createPartner, deletePartner } from "../partners/helpers";
 
 const expectedQueuedResponse = {
   success: true,
-  message: "Your commissions are being created and will appear shortly.",
+  message: "A clawback has been queued for the partner!",
 };
 
 async function expectClawbackCreated({

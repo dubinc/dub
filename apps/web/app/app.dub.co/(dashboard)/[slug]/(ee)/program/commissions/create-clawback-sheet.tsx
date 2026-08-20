@@ -66,8 +66,8 @@ function CreateClawbackSheetContent(
         amount: data.amount ? -Math.round(data.amount * 100) : 0,
         description: data.reason,
       },
-      onSuccess: async () => {
-        toast.success("A clawback has been created for the partner!");
+      onSuccess: async ({ message }) => {
+        toast.success(message);
         setIsOpen(false);
         await mutatePrefix("/api/commissions");
         const currentValues = getValues();

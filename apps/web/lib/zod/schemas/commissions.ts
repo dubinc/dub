@@ -547,14 +547,7 @@ export const createManualCommissionBodySchema = z
           "When `true`, import all unimported paid Stripe invoices for the customer and create a commission for each. When `false`, create a single manual sale event using `saleAmount`.",
         ),
       saleAmount: centsSchema
-        .pipe(
-          z
-            .number()
-            .min(0)
-            .refine((n) => n !== 0, {
-              message: "Sale amount cannot be 0.",
-            }),
-        )
+        .pipe(z.number().min(0))
         .nullish()
         .describe(
           "Required when `importStripeInvoices` is `false`. The sale amount in cents for the manual sale event. Ignored when importing from Stripe.",
@@ -579,8 +572,8 @@ export const createManualCommissionBodySchema = z
     }),
   ])
   .superRefine((data, ctx) => {
-    if (data.type === "custom" && data.amount < 0) {
-      if (!data.description?.trim()) {
+    if (data.type === "custom") {
+      if (data.amount < 0 && !data.description?.trim()) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           message:
@@ -591,15 +584,28 @@ export const createManualCommissionBodySchema = z
       return;
     }
 
-    if (data.type !== "sale") return;
+    if (data.type === "sale") {
+      if (data.importStripeInvoices) {
+        return;
+      }
 
-    if (!data.importStripeInvoices && data.saleAmount == null) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message:
-          "`saleAmount` is required when `importStripeInvoices` is false.",
-        path: ["saleAmount"],
-      });
+      if (data.saleAmount == null) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message:
+            "`saleAmount` is required when `importStripeInvoices` is false.",
+          path: ["saleAmount"],
+        });
+        return;
+      }
+
+      if (data.saleAmount === 0) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Sale amount cannot be 0.",
+          path: ["saleAmount"],
+        });
+      }
     }
   });
 
