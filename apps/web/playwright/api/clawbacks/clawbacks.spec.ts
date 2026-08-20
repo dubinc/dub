@@ -1,3 +1,4 @@
+import { prisma } from "@/lib/prisma";
 import { nanoid } from "@dub/utils";
 import { expect } from "@playwright/test";
 import { apiError } from "../../utils";
@@ -27,6 +28,13 @@ test("POST /clawbacks – by partnerId", async ({ api, program }) => {
 
     expect(status).toEqual(202);
     expect(data).toStrictEqual(expectedQueuedResponse);
+
+    await expectClawbackCreated({
+      partnerId: created.id,
+      programId: program.id,
+      amount: 500,
+      reason: "fraud",
+    });
   } finally {
     await deletePartner(partnerId);
   }
@@ -53,6 +61,13 @@ test("POST /clawbacks – by tenantId", async ({ api, program }) => {
 
     expect(status).toEqual(202);
     expect(data).toStrictEqual(expectedQueuedResponse);
+
+    await expectClawbackCreated({
+      partnerId: created.id,
+      programId: program.id,
+      amount: 250,
+      reason: "order_canceled",
+    });
   } finally {
     await deletePartner(partnerId);
   }
@@ -129,4 +144,54 @@ for (const { name, body, expected } of clawbackErrorCases) {
       typeof expected === "function" ? expected({ program }) : expected,
     );
   });
+}
+
+async function expectClawbackCreated({
+  partnerId,
+  programId,
+  amount,
+  reason,
+}: {
+  partnerId: string;
+  programId: string;
+  amount: number;
+  reason: string;
+}) {
+  await expect
+    .poll(async () => {
+      const commission = await prisma.commission.findFirst({
+        where: {
+          partnerId,
+          programId,
+          type: "custom",
+          description: reason,
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+      });
+
+      if (!commission) {
+        return null;
+      }
+
+      return {
+        partnerId: commission.partnerId,
+        programId: commission.programId,
+        type: commission.type,
+        amount: Number(commission.amount),
+        earnings: Number(commission.earnings),
+        quantity: commission.quantity,
+        description: commission.description,
+      };
+    })
+    .toEqual({
+      partnerId,
+      programId,
+      type: "custom",
+      amount: 0,
+      earnings: -amount,
+      quantity: 1,
+      description: reason,
+    });
 }

@@ -24,6 +24,12 @@ export async function deletePartner(partnerId: string | undefined) {
     },
   });
 
+  await prisma.payout.deleteMany({
+    where: {
+      partnerId,
+    },
+  });
+
   await prisma.discountCode.deleteMany({
     where: {
       partnerId,
