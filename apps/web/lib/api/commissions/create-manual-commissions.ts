@@ -119,6 +119,7 @@ export async function createManualCommissions(args: CreateCommissionsArgs) {
       saleEventDate,
       invoiceId,
       productId,
+      metadata,
     } = args;
 
     if (!importStripeInvoices && !saleAmount) {
@@ -129,14 +130,14 @@ export async function createManualCommissions(args: CreateCommissionsArgs) {
     }
 
     const hasManualSaleFields =
-      saleAmount || saleEventDate || invoiceId || productId;
+      saleAmount || saleEventDate || invoiceId || metadata || productId;
 
     if (importStripeInvoices) {
       if (hasManualSaleFields) {
         throw new DubApiError({
           code: "bad_request",
           message:
-            "saleAmount, saleEventDate, invoiceId, and productId cannot be provided when importStripeInvoices is enabled.",
+            "You cannot pass any manual sale fields when `importStripeInvoices` is enabled.",
         });
       }
 
@@ -203,6 +204,9 @@ export async function createManualCommissions(args: CreateCommissionsArgs) {
         customer: {
           country: targetCustomer.country,
         },
+        lead: {
+          ...(args.metadata != null && { metadata: args.metadata }),
+        },
       },
     });
   }
@@ -235,6 +239,7 @@ export async function createManualCommissions(args: CreateCommissionsArgs) {
           sale: {
             productId: saleEvent.productId,
             amount: saleEvent.amount,
+            ...(saleEvent.metadata != null && { metadata: saleEvent.metadata }),
           },
         },
         isFirstConversion,
@@ -477,6 +482,8 @@ async function recordEvents(args: RecordEventsArgs) {
     event_name: leadEventName ?? "Sign up",
     customer_id: targetCustomer.id,
     timestamp: finalLeadEventDate.toISOString(),
+    metadata:
+      type === "lead" && args.metadata ? JSON.stringify(args.metadata) : "",
   });
 
   // Record sale events
@@ -486,6 +493,7 @@ async function recordEvents(args: RecordEventsArgs) {
       saleAmount,
       saleEventDate,
       productId,
+      metadata,
       importStripeInvoices,
     } = args;
 
@@ -505,6 +513,13 @@ async function recordEvents(args: RecordEventsArgs) {
         }),
       );
     } else if (saleAmount) {
+      // Merge deprecated `productId` into metadata for backwards compatibility.
+      // `metadata.productId` takes precedence when both are provided.
+      const saleMetadata = {
+        ...(productId ? { productId } : {}),
+        ...metadata,
+      };
+
       saleEvents = [
         saleEventSchemaTBWithTimestamp.parse({
           ...clickEvent,
@@ -516,7 +531,10 @@ async function recordEvents(args: RecordEventsArgs) {
           payment_processor: "custom",
           currency: "usd",
           timestamp: new Date(saleEventDate ?? Date.now()).toISOString(),
-          metadata: productId ? JSON.stringify({ productId }) : undefined,
+          metadata:
+            Object.keys(saleMetadata).length > 0
+              ? JSON.stringify(saleMetadata)
+              : "",
         }),
       ];
     }
@@ -553,6 +571,7 @@ async function recordEvents(args: RecordEventsArgs) {
         currency: saleEvent.currency,
         invoiceId: saleEvent.invoice_id,
         productId: metadata?.productId,
+        metadata,
         ...(stripeInvoice?.refunded && {
           status: "refunded" as const,
         }),

@@ -282,7 +282,7 @@ function CreateCommissionSheetContent({
               saleAmount: null,
               saleEventDate: null,
               invoiceId: null,
-              productId: null,
+              metadata: null,
             }
           : {
               saleAmount: data.saleAmount
@@ -292,7 +292,9 @@ function CreateCommissionSheetContent({
                 ? data.saleEventDate.toISOString()
                 : null,
               invoiceId: data.invoiceId || null,
-              productId: data.productId || null,
+              metadata: data.productId
+                ? { productId: data.productId }
+                : null,
             }),
       };
     }

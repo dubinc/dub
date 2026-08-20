@@ -515,6 +515,16 @@ export const createManualCommissionBodySchema = z
         .describe(
           "The name of the lead event. If not provided, defaults to 'Sign up'.",
         ),
+      metadata: z
+        .record(z.string(), z.any())
+        .nullish()
+        .refine((val) => !val || JSON.stringify(val).length <= 10000, {
+          message:
+            "Metadata must be less than 10,000 characters when stringified",
+        })
+        .describe(
+          "Additional metadata to be stored with the lead event – will also impact commission earnings calculation. Max 10,000 characters when stringified.",
+        ),
     }),
 
     // Sale commission
@@ -564,12 +574,23 @@ export const createManualCommissionBodySchema = z
         .describe(
           "Only used when `importStripeInvoices` is `false`. An optional invoice ID to attach to the generated sale event and commission entry for deduplication.",
         ),
+      metadata: z
+        .record(z.string(), z.any())
+        .nullish()
+        .refine((val) => !val || JSON.stringify(val).length <= 10000, {
+          message:
+            "Metadata must be less than 10,000 characters when stringified",
+        })
+        .describe(
+          "Only used when `importStripeInvoices` is `false`. Additional metadata to be stored with the sale event – will also impact commission earnings calculation. Max 10,000 characters when stringified.",
+        ),
       productId: z
         .string()
         .nullish()
         .describe(
-          "Only used when `importStripeInvoices` is `false`. An optional product ID stored on the sale event metadata – will also impact commission earnings calculation (if a `Sale` `Product ID` modifier is set).",
-        ),
+          "Deprecated: Use `metadata['productId']` instead. An optional product ID stored on the sale event metadata – will also impact commission earnings calculation (if a `Sale` `Product ID` modifier is set).",
+        )
+        .meta({ deprecated: true }),
     }),
   ])
   .superRefine((data, ctx) => {
