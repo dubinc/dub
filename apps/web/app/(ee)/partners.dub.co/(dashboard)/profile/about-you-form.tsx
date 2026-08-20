@@ -156,6 +156,7 @@ export function AboutYouForm({ partner }: { partner?: PartnerProps }) {
                           key={idx}
                           type="button"
                           disabled={disabled}
+                          aria-label="Add industry interest"
                           onClick={() => setShowIndustryInterestsModal(true)}
                           className={cn(
                             "relative flex h-11 w-32 items-center justify-center rounded-full bg-white",
