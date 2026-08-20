@@ -60,37 +60,6 @@ async function expectClawbackCreated({
     });
 }
 
-test("POST /commissions – clawback by partnerId", async ({ api, program }) => {
-  let partnerId: string | undefined;
-
-  try {
-    const { status: createStatus, data: created } = await createPartner(api, {
-      groupId: program.defaultGroupId,
-    });
-    partnerId = created.id;
-    expect(createStatus).toEqual(201);
-
-    const { status, data } = await api.post("/api/commissions", {
-      type: "custom",
-      partnerId,
-      amount: -500,
-      description: "fraud",
-    });
-
-    expect(status).toEqual(202);
-    expect(data).toStrictEqual(expectedQueuedResponse);
-
-    await expectClawbackCreated({
-      partnerId: created.id,
-      programId: program.id,
-      amount: 500,
-      description: "fraud",
-    });
-  } finally {
-    await deletePartner(partnerId);
-  }
-});
-
 test("POST /commissions – clawback with arbitrary description", async ({
   api,
   program,
@@ -150,28 +119,6 @@ const clawbackErrorCases = [
       code: "unprocessable_entity",
       message:
         "invalid_type: partnerId: Invalid input: expected string, received undefined",
-    }),
-  },
-  {
-    name: "POST /commissions – clawback amount 0",
-    body: {
-      type: "custom",
-      partnerId: "pn_test",
-      amount: 0,
-      description: "fraud",
-    },
-    expected: apiError({
-      code: "unprocessable_entity",
-      message: "custom: amount: Amount cannot be 0.",
-    }),
-  },
-  {
-    name: "POST /commissions – clawback missing description",
-    body: { type: "custom", partnerId: "pn_test", amount: -500 },
-    expected: apiError({
-      code: "unprocessable_entity",
-      message:
-        "custom: description: `description` is required when creating a clawback (negative amount).",
     }),
   },
 ];

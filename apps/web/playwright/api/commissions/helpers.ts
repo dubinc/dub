@@ -1,82 +1,32 @@
-import { createId } from "@/lib/api/create-id";
 import { prisma } from "@/lib/prisma";
-import { DEFAULT_ADDITIONAL_PARTNER_LINKS } from "@/lib/zod/schemas/groups";
-import { nanoid } from "@dub/utils";
 import { expect } from "@playwright/test";
-import { EventType, RewardStructure } from "@prisma/client";
 import type { ApiClient } from "../fixtures";
 import { createPartner, deletePartner } from "../partners/helpers";
-import { TEST_WORKSPACE } from "../setup-test-workspace";
+import { TEST_COMMISSION_REWARDS } from "../setup-test-workspace";
 
-export const LEAD_REWARD_CENTS = 1000;
-export const SALE_REWARD_CENTS = 2500;
-
-export async function createPartnerWithCommissionRewards(
+export async function withCommissionPartner(
   api: ApiClient,
-  { programId }: { programId: string },
+  program: { defaultGroupId: string },
+  run: (partnerId: string) => Promise<void>,
 ) {
-  const groupId = createId({ prefix: "grp_" });
+  let partnerId: string | undefined;
 
-  const [leadReward, saleReward] = await Promise.all([
-    prisma.reward.create({
-      data: {
-        id: createId({ prefix: "rw_" }),
-        programId,
-        event: EventType.lead,
-        type: RewardStructure.flat,
-        amountInCents: LEAD_REWARD_CENTS,
-      },
-    }),
-    prisma.reward.create({
-      data: {
-        id: createId({ prefix: "rw_" }),
-        programId,
-        event: EventType.sale,
-        type: RewardStructure.flat,
-        amountInCents: SALE_REWARD_CENTS,
-        maxDuration: 0,
-      },
-    }),
-  ]);
-
-  await prisma.partnerGroup.create({
-    data: {
-      id: groupId,
-      programId,
-      slug: `pw-cm-${nanoid(8).toLowerCase()}`,
-      name: "Playwright Commissions",
-      maxPartnerLinks: DEFAULT_ADDITIONAL_PARTNER_LINKS,
-      leadRewardId: leadReward.id,
-      saleRewardId: saleReward.id,
-    },
-  });
-
-  await prisma.partnerGroupDefaultLink.create({
-    data: {
-      id: createId({ prefix: "pgdl_" }),
-      programId,
-      groupId,
-      domain: TEST_WORKSPACE.program.domain,
-      url: TEST_WORKSPACE.program.url,
-    },
-  });
-
-  const created = await createPartner(api, {
-    groupId,
-  });
-
-  return {
-    ...created,
-    groupId,
-  };
+  try {
+    const { status, data } = await createPartner(api, {
+      groupId: program.defaultGroupId,
+    });
+    partnerId = data.id;
+    expect(status).toEqual(201);
+    await run(partnerId);
+  } finally {
+    await deleteCommissionPartner({ partnerId });
+  }
 }
 
 export async function deleteCommissionPartner({
   partnerId,
-  groupId,
 }: {
   partnerId: string | undefined;
-  groupId?: string;
 }) {
   if (partnerId) {
     const links = await prisma.link.findMany({
@@ -101,60 +51,6 @@ export async function deleteCommissionPartner({
   }
 
   await deletePartner(partnerId);
-
-  if (!groupId) {
-    return;
-  }
-
-  const group = await prisma.partnerGroup.findUnique({
-    where: {
-      id: groupId,
-    },
-    select: {
-      leadRewardId: true,
-      saleRewardId: true,
-    },
-  });
-
-  if (!group) {
-    return;
-  }
-
-  await prisma.partnerGroupDefaultLink.deleteMany({
-    where: {
-      groupId,
-    },
-  });
-
-  await prisma.partnerGroup.update({
-    where: {
-      id: groupId,
-    },
-    data: {
-      leadRewardId: null,
-      saleRewardId: null,
-    },
-  });
-
-  await prisma.partnerGroup.delete({
-    where: {
-      id: groupId,
-    },
-  });
-
-  const rewardIds = [group.leadRewardId, group.saleRewardId].filter(
-    (id): id is string => id != null,
-  );
-
-  if (rewardIds.length > 0) {
-    await prisma.reward.deleteMany({
-      where: {
-        id: {
-          in: rewardIds,
-        },
-      },
-    });
-  }
 }
 
 export async function expectCommissionCreated({
@@ -172,10 +68,20 @@ export async function expectCommissionCreated({
   type: "custom" | "lead" | "sale";
   description?: string;
   invoiceId?: string;
-  expectedAmount: number;
-  expectedEarnings: number;
+  expectedAmount?: number;
+  expectedEarnings?: number;
   expectedCreatedAt?: Date;
 }) {
+  const amount =
+    expectedAmount ?? (type === "lead" ? 0 : type === "sale" ? 1000 : 0);
+  const earnings =
+    expectedEarnings ??
+    (type === "lead"
+      ? TEST_COMMISSION_REWARDS.lead.amountInCents
+      : type === "sale"
+        ? TEST_COMMISSION_REWARDS.sale.amountInCents
+        : 0);
+
   await expect
     .poll(async () => {
       const commission = await prisma.commission.findFirst({
@@ -211,8 +117,8 @@ export async function expectCommissionCreated({
       partnerId,
       programId,
       type,
-      amount: expectedAmount,
-      earnings: expectedEarnings,
+      amount,
+      earnings,
       quantity: 1,
       description: description ?? null,
       invoiceId: invoiceId ?? null,

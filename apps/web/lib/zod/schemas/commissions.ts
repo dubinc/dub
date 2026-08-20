@@ -512,9 +512,9 @@ const createLeadCommissionSchema = z.object({
         .string()
         .trim()
         .max(255)
-        .default("Sign up")
+        .nullish()
         .describe(
-          "The name of the lead event to track.  If not provided, defaults to 'Sign up'.",
+          "The name of the lead event to track. If not provided, defaults to 'Sign up'.",
         )
         .meta({ example: "Sign up" }),
       metadata: trackLeadRequestSchema.shape.metadata,

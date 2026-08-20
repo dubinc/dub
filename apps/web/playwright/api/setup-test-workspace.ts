@@ -5,6 +5,7 @@ import {
   DEFAULT_ADDITIONAL_PARTNER_LINKS,
   DEFAULT_PARTNER_GROUP,
 } from "@/lib/zod/schemas/groups";
+import { EventType, RewardStructure } from "@prisma/client";
 import { config as loadEnv } from "dotenv-flow";
 import { mkdir, writeFile } from "fs/promises";
 import path from "path";
@@ -30,6 +31,38 @@ export const TEST_WORKSPACE = {
   program: {
     domain: "playwright-api.dub-internal-test.com",
     url: "https://example.com",
+  },
+} as const;
+
+export const TEST_COMMISSION_REWARDS = {
+  lead: {
+    id: "rw_playwright_api_lead",
+    event: EventType.lead,
+    type: RewardStructure.flat,
+    amountInCents: 1000,
+    modifiers: [
+      {
+        operator: "AND",
+        type: RewardStructure.flat,
+        amountInCents: 5000,
+        conditions: [
+          {
+            entity: "lead",
+            attribute: "metadata",
+            metadataField: "plan",
+            operator: "equals_to",
+            value: "pro",
+          },
+        ],
+      },
+    ],
+  },
+  sale: {
+    id: "rw_playwright_api_sale",
+    event: EventType.sale,
+    type: RewardStructure.flat,
+    amountInCents: 2500,
+    maxDuration: 0,
   },
 } as const;
 
@@ -259,6 +292,25 @@ async function setupTestProgram({
     },
   });
 
+  await Promise.all(
+    [TEST_COMMISSION_REWARDS.lead, TEST_COMMISSION_REWARDS.sale].map(
+      (reward) => {
+        const { id, ...data } = reward;
+        return prisma.reward.upsert({
+          where: {
+            id,
+          },
+          create: {
+            id,
+            programId: program.id,
+            ...data,
+          },
+          update: data,
+        });
+      },
+    ),
+  );
+
   const group = await prisma.partnerGroup.upsert({
     where: {
       programId_slug: {
@@ -273,10 +325,14 @@ async function setupTestProgram({
       name: DEFAULT_PARTNER_GROUP.name,
       color: DEFAULT_PARTNER_GROUP.color,
       maxPartnerLinks: DEFAULT_ADDITIONAL_PARTNER_LINKS,
+      leadRewardId: TEST_COMMISSION_REWARDS.lead.id,
+      saleRewardId: TEST_COMMISSION_REWARDS.sale.id,
     },
     update: {
       name: DEFAULT_PARTNER_GROUP.name,
       maxPartnerLinks: DEFAULT_ADDITIONAL_PARTNER_LINKS,
+      leadRewardId: TEST_COMMISSION_REWARDS.lead.id,
+      saleRewardId: TEST_COMMISSION_REWARDS.sale.id,
     },
   });
 

@@ -181,6 +181,8 @@ export async function createManualCommissions(args: CreateCommissionsArgs) {
 
   // Lead commission
   if (type === CommissionType.lead) {
+    const leadMetadata = args.lead?.metadata;
+
     commissionsToCreate.push({
       event: CommissionType.lead,
       programId,
@@ -195,6 +197,9 @@ export async function createManualCommissions(args: CreateCommissionsArgs) {
       context: {
         customer: {
           country: targetCustomer.country,
+        },
+        lead: {
+          ...(leadMetadata != null && { metadata: leadMetadata }),
         },
       },
     });
@@ -415,7 +420,7 @@ async function recordEvents(args: RecordEventsArgs) {
   const { workspace, programId, targetLink, targetCustomer } = args;
 
   if (type === "lead") {
-    finalLeadEventDate = args.leadEventDate ?? new Date();
+    finalLeadEventDate = args.date ?? args.leadEventDate ?? new Date();
   } else if (args.importStripeInvoices) {
     stripeCustomerInvoices = await getCustomerStripeInvoices({
       stripeCustomerId: targetCustomer.stripeCustomerId!,
@@ -447,8 +452,6 @@ async function recordEvents(args: RecordEventsArgs) {
 
   const clickId = nanoid(16);
   const clickedAt = new Date(finalLeadEventDate.getTime() - 5 * 60 * 1000);
-  const leadEventName = type === "lead" ? args.leadEventName : "Sign up";
-  let saleEvents: z.infer<typeof saleEventSchemaTBWithTimestamp>[] = [];
 
   // Record click event
   const clickEvent = recordClickZodSchema.parse({
@@ -464,15 +467,26 @@ async function recordEvents(args: RecordEventsArgs) {
   });
 
   // Record lead event
+  const lead =
+    type === "lead"
+      ? {
+          eventName: args.lead?.eventName ?? args.leadEventName ?? "Sign up",
+          metadata: args.lead?.metadata ?? null,
+        }
+      : null;
+
   const leadEvent = leadEventSchemaTBWithTimestamp.parse({
     ...clickEvent,
     event_id: nanoid(16),
-    event_name: leadEventName ?? "Sign up",
+    event_name: lead?.eventName,
     customer_id: targetCustomer.id,
     timestamp: finalLeadEventDate.toISOString(),
+    metadata: lead?.metadata ? JSON.stringify(lead.metadata) : "",
   });
 
   // Record sale events
+  let saleEvents: z.infer<typeof saleEventSchemaTBWithTimestamp>[] = [];
+
   if (type === "sale") {
     const {
       invoiceId,
