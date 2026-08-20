@@ -114,22 +114,9 @@ export async function createManualCommissions(args: CreateCommissionsArgs) {
     });
 
   if (type === "sale") {
-    const { importStripeInvoices, saleAmount, saleEventDate, productId, sale } =
-      args;
-
-    const invoiceId = sale?.invoiceId ?? args.invoiceId;
-    const hasManualSaleFields =
-      saleAmount || saleEventDate || invoiceId || productId;
+    const { importStripeInvoices, sale } = args;
 
     if (importStripeInvoices) {
-      if (hasManualSaleFields) {
-        throw new DubApiError({
-          code: "bad_request",
-          message:
-            "saleAmount, saleEventDate, invoiceId, and productId cannot be provided when importStripeInvoices is enabled.",
-        });
-      }
-
       if (!workspace.stripeConnectId) {
         throw new DubApiError({
           code: "bad_request",
@@ -144,6 +131,8 @@ export async function createManualCommissions(args: CreateCommissionsArgs) {
         });
       }
     }
+
+    const invoiceId = sale?.invoiceId ?? args.invoiceId;
 
     if (invoiceId) {
       const commission = await prisma.commission.findUnique({

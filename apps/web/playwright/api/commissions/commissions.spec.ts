@@ -597,7 +597,7 @@ test.describe("Sale commissions", () => {
         expected: apiError({
           code: "unprocessable_entity",
           message:
-            "custom: sale: `sale` and `date` cannot be provided when `importStripeInvoices` is enabled.",
+            "custom: sale: `sale`, `date`, `invoiceId`, `productId` cannot be provided when `importStripeInvoices` is enabled.",
         }),
       },
       {
