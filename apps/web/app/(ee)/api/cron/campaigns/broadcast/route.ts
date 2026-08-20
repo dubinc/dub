@@ -3,7 +3,7 @@ import { renderCampaignEmailHTML } from "@/lib/api/campaigns/render-campaign-ema
 import { campaignEligibilityIncludes } from "@/lib/api/campaigns/transform-campaign";
 import { validateCampaignFromAddress } from "@/lib/api/campaigns/validate-campaign";
 import { createId } from "@/lib/api/create-id";
-import { handleAndReturnErrorResponse } from "@/lib/api/errors";
+import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { resolveCampaignFromAddress } from "@/lib/email/parse-campaign-from-address";
@@ -13,9 +13,13 @@ import { ACTIVE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
 import { sendBatchEmail } from "@dub/email";
 import CampaignEmail from "@dub/email/templates/campaign-email";
 import { APP_DOMAIN_WITH_NGROK, chunk, log, pluck } from "@dub/utils";
-import { NotificationEmailType } from "@prisma/client";
+import {
+  Campaign,
+  CampaignStatus,
+  EmailDomain,
+  NotificationEmailType,
+} from "@prisma/client";
 import { differenceInMinutes } from "date-fns";
-import { headers } from "next/headers";
 import * as z from "zod/v4";
 import { logAndRespond } from "../../utils";
 
@@ -102,44 +106,42 @@ export async function POST(req: Request) {
       }
     }
 
-    // This is a safety check to ensure the campaign broadcast is not "initiated" multiple times
-    const headersList = await headers();
-    const upstashMessageId = headersList.get("Upstash-Message-Id");
-
-    if (
-      !startingAfter && // First run
-      campaign.qstashMessageId &&
-      upstashMessageId !== campaign.qstashMessageId
-    ) {
-      return logAndRespond(
-        `Campaign ${campaignId} broadcast was skipped because it is not the current message being processed.`,
-      );
-    }
-
     const program = campaign.program;
 
-    // TODO: We should make the from address required. There are existing campaign without from address
-    if (campaign.from) {
-      validateCampaignFromAddress({
-        campaign,
-        emailDomains: program.emailDomains,
+    // Claim the first run so leftover delayed messages / scanner retries
+    // cannot start a second broadcast. A QStash retry of the claiming
+    // message (matching qstashMessageId) is allowed to continue.
+    if (!startingAfter) {
+      const messageId = req.headers.get("Upstash-Message-Id");
+
+      const claimed = await prisma.campaign.updateMany({
+        where: {
+          id: campaignId,
+          status: CampaignStatus.scheduled,
+          OR: [{ scheduledAt: null }, { scheduledAt: { lte: new Date() } }],
+        },
+        data: {
+          status: CampaignStatus.sending,
+          qstashMessageId: messageId,
+        },
       });
+
+      if (claimed.count === 0) {
+        if (!messageId || campaign.qstashMessageId !== messageId) {
+          return logAndRespond(
+            `Campaign ${campaignId} broadcast already initiated. Skipping...`,
+          );
+        }
+      }
     }
 
-    // Mark the campaign as sending (if it's in scheduled status)
-    if (campaign.status === "scheduled") {
-      try {
-        await prisma.campaign.update({
-          where: {
-            id: campaignId,
-          },
-          data: {
-            status: "sending",
-          },
-        });
-      } catch (error) {
-        //
-      }
+    const invalidFromResponse = await cancelCampaignIfInvalidFromAddress({
+      campaign,
+      emailDomains: program.emailDomains,
+    });
+
+    if (invalidFromResponse) {
+      return invalidFromResponse;
     }
 
     const campaignGroupIds = pluck(campaign.groups, "groupId");
@@ -374,5 +376,49 @@ export async function POST(req: Request) {
     });
 
     return handleAndReturnErrorResponse(error);
+  }
+}
+
+async function cancelCampaignIfInvalidFromAddress({
+  campaign,
+  emailDomains,
+}: {
+  campaign: Pick<Campaign, "id" | "from" | "programId">;
+  emailDomains: Pick<EmailDomain, "slug" | "status">[];
+}) {
+  if (!campaign.from) {
+    return;
+  }
+
+  try {
+    validateCampaignFromAddress({
+      campaign,
+      emailDomains,
+    });
+  } catch (error) {
+    if (!(error instanceof DubApiError)) {
+      throw error;
+    }
+
+    await prisma.campaign.updateMany({
+      where: {
+        id: campaign.id,
+        status: {
+          in: [CampaignStatus.scheduled, CampaignStatus.sending],
+        },
+      },
+      data: {
+        status: CampaignStatus.canceled,
+      },
+    });
+
+    await log({
+      type: "errors",
+      message: `Campaign ${campaign.id} canceled: ${error.message}`,
+    });
+
+    return logAndRespond(
+      `Campaign ${campaign.id} canceled: invalid from address.`,
+    );
   }
 }
