@@ -77,6 +77,20 @@ export const TEST_COMMISSION_REWARDS = {
           },
         ],
       },
+      {
+        operator: "AND",
+        type: RewardStructure.flat,
+        amountInCents: 7500,
+        conditions: [
+          {
+            entity: "sale",
+            attribute: "metadata",
+            metadataField: "plan",
+            operator: "equals_to",
+            value: "pro",
+          },
+        ],
+      },
     ],
   },
 } as const;

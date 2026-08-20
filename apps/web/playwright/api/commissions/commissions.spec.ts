@@ -134,8 +134,12 @@ test.describe("Lead commissions", () => {
     });
   });
 
-  test("creates using date + lead.eventName", async ({ api, program }) => {
+  test("creates using date, eventName, and metadata", async ({
+    api,
+    program,
+  }) => {
     const date = new Date("2024-01-10T00:00:00.000Z");
+    const metadata = { plan: "pro" };
 
     await withCommissionPartner(api, program, async (partnerId) => {
       expect(
@@ -145,7 +149,7 @@ test.describe("Lead commissions", () => {
           date: date.toISOString(),
           lead: {
             eventName: "Requested demo",
-            metadata: { plan: "pro" },
+            metadata,
           },
           customer: customerBody(),
         }),
@@ -158,6 +162,7 @@ test.describe("Lead commissions", () => {
         expectedEarnings:
           TEST_COMMISSION_REWARDS.lead.modifiers[0].amountInCents,
         expectedCreatedAt: date,
+        expectedMetadata: metadata,
       });
     });
   });
@@ -259,6 +264,7 @@ test.describe("Sale commissions", () => {
   test("creates using nested sale", async ({ api, program }) => {
     const invoiceId = `INV_${nanoid()}`;
     const date = new Date("2024-02-20T00:00:00.000Z");
+    const metadata = { plan: "pro" };
 
     await withCommissionPartner(api, program, async (partnerId) => {
       expect(
@@ -272,9 +278,7 @@ test.describe("Sale commissions", () => {
             eventName: "Invoice paid",
             paymentProcessor: "stripe",
             invoiceId,
-            metadata: {
-              productId: "sku_pro",
-            },
+            metadata,
           },
           customer: customerBody(),
         }),
@@ -287,7 +291,8 @@ test.describe("Sale commissions", () => {
         invoiceId,
         expectedCreatedAt: date,
         expectedEarnings:
-          TEST_COMMISSION_REWARDS.sale.modifiers[0].amountInCents,
+          TEST_COMMISSION_REWARDS.sale.modifiers[1].amountInCents,
+        expectedMetadata: metadata,
       });
     });
   });

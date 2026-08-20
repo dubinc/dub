@@ -62,6 +62,7 @@ export async function expectCommissionCreated({
   expectedAmount,
   expectedEarnings,
   expectedCreatedAt,
+  expectedMetadata,
 }: {
   partnerId: string;
   programId: string;
@@ -71,6 +72,7 @@ export async function expectCommissionCreated({
   expectedAmount?: number;
   expectedEarnings?: number;
   expectedCreatedAt?: Date;
+  expectedMetadata?: Record<string, unknown> | null;
 }) {
   const amount =
     expectedAmount ?? (type === "lead" ? 0 : type === "sale" ? 1000 : 0);
@@ -112,6 +114,9 @@ export async function expectCommissionCreated({
         invoiceId: commission.invoiceId,
         currency: commission.currency,
         createdAt: commission.createdAt.toISOString(),
+        ...(expectedMetadata !== undefined && {
+          metadata: commission.metadata,
+        }),
       };
     })
     .toEqual({
@@ -127,5 +132,6 @@ export async function expectCommissionCreated({
       createdAt: expectedCreatedAt
         ? expectedCreatedAt.toISOString()
         : expect.any(String),
+      ...(expectedMetadata !== undefined && { metadata: expectedMetadata }),
     });
 }

@@ -14,6 +14,7 @@ interface VerifyCommissionProps {
   expectedSaleAmount?: number;
   expectedEarnings: number;
   expectedType?: string;
+  expectedMetadata?: CommissionResponse["metadata"];
   query?: Record<string, string>; // to pass additional query params to GET /commissions
 }
 
@@ -25,6 +26,7 @@ export const verifyCommission = async ({
   expectedSaleAmount,
   expectedEarnings,
   expectedType,
+  expectedMetadata,
   query: queryOverrides,
 }: VerifyCommissionProps) => {
   let customerId: string | undefined;
@@ -93,6 +95,10 @@ export const verifyCommission = async ({
 
       if (expectedType) {
         expect(commission.type).toEqual(expectedType);
+      }
+
+      if (expectedMetadata !== undefined) {
+        expect(commission.metadata).toEqual(expectedMetadata);
       }
 
       return;
