@@ -93,3 +93,11 @@ export const getCursorPaginationQuerySchema = ({
       example,
     }),
 });
+
+export const metadataSchema = z
+  .record(z.string(), z.any())
+  .nullish()
+  .default(null)
+  .refine((val) => !val || JSON.stringify(val).length <= 10000, {
+    message: "Metadata must be less than 10,000 characters when stringified",
+  });
