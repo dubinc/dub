@@ -13,6 +13,7 @@ import { Icon, InfoTooltip } from "@dub/ui";
 export function PartnerAbout({
   partner,
   error,
+  showSharedPlatforms,
 }: {
   partner?: Pick<
     EnrolledPartnerExtendedProps,
@@ -25,6 +26,7 @@ export function PartnerAbout({
     | "platforms"
   >;
   error?: any;
+  showSharedPlatforms?: boolean;
 }) {
   return partner ? (
     <>
@@ -49,6 +51,7 @@ export function PartnerAbout({
           platforms={partner.platforms}
           partnerId={partner.id}
           className="gap-y-2"
+          showSharedPlatforms={showSharedPlatforms}
         />
       </div>
 
