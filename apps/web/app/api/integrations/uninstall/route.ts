@@ -26,11 +26,12 @@ export const DELETE = withWorkspace(
       });
     }
 
-    if (installation.userId !== session.user.id) {
+    const isOwner = workspace.users[0].role === "owner";
+    if (installation.userId !== session.user.id && !isOwner) {
       throw new DubApiError({
         code: "unauthorized",
         message:
-          "You are not authorized to uninstall this integration. Only the user who installed it can uninstall it.",
+          "You are not authorized to uninstall this integration. Only the user who installed it or a workspace owner can uninstall it.",
       });
     }
 
