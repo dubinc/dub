@@ -468,6 +468,7 @@ export const createPartnerCommissionSchema = z.object({
   createdAt: z.coerce.date().optional(),
   status: commissionPatchStatusSchema.optional(), // used for create-manual-commission (import commission as refunded)
   userId: z.string().optional(),
+  metadata: z.record(z.string(), z.any()).nullish(),
   context: rewardContextSchema.optional(),
   skipWorkflow: z.boolean().default(false).optional(),
   isFirstConversion: z.boolean().optional(),

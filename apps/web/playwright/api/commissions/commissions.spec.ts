@@ -581,6 +581,26 @@ test.describe("Sale commissions", () => {
         }),
       },
       {
+        name: "rejects nested sale fields when importing Stripe invoices",
+        body: {
+          type: "sale",
+          partnerId: "pn_test",
+          customerId: "cus_test",
+          importStripeInvoices: true,
+          date: "2024-03-01T08:30:00.000Z",
+          sale: {
+            amount: 5000,
+            invoiceId: "in_test",
+            metadata: { productId: "sku" },
+          },
+        },
+        expected: apiError({
+          code: "unprocessable_entity",
+          message:
+            "custom: sale: `sale` and `date` cannot be provided when `importStripeInvoices` is enabled.",
+        }),
+      },
+      {
         name: "rejects invalid paymentProcessor",
         body: {
           type: "sale",
