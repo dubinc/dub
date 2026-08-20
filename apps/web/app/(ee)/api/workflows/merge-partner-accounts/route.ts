@@ -546,9 +546,9 @@ async function mergeSingleEnrollment({
     });
   }
 
-  // Target leftover apply-event / discovered-partner rows are unique on
-  // (programId, partnerId). Rewriting enrollment.partnerId remaps those
-  // children and collides unless we drop the source row first.
+  // Application events and discovered partners are unique on
+  // (programId, partnerId). Move the source row when the target has none;
+  // otherwise delete it so rewriting enrollment.partnerId cannot collide.
   const { count, cleared } = await prisma.$transaction(async (tx) => {
     const cleared: string[] = [];
 
@@ -563,7 +563,17 @@ async function mergeSingleEnrollment({
       await tx.programApplicationEvent.deleteMany({
         where: { programId, partnerId: sourcePartnerId },
       });
-      cleared.push("cleared source application event");
+      cleared.push("deleted source application event");
+    } else {
+      const { count: transferredEvents } =
+        await tx.programApplicationEvent.updateMany({
+          where: { programId, partnerId: sourcePartnerId },
+          data: { partnerId: targetPartnerId },
+        });
+
+      if (transferredEvents > 0) {
+        cleared.push("transferred application event");
+      }
     }
 
     const targetDiscoveredPartner = await tx.discoveredPartner.findUnique({
@@ -577,7 +587,17 @@ async function mergeSingleEnrollment({
       await tx.discoveredPartner.deleteMany({
         where: { programId, partnerId: sourcePartnerId },
       });
-      cleared.push("cleared source discovered partner");
+      cleared.push("deleted source discovered partner");
+    } else {
+      const { count: transferredDiscovered } =
+        await tx.discoveredPartner.updateMany({
+          where: { programId, partnerId: sourcePartnerId },
+          data: { partnerId: targetPartnerId },
+        });
+
+      if (transferredDiscovered > 0) {
+        cleared.push("transferred discovered partner");
+      }
     }
 
     // Scope the transfer to the source partner so a concurrent reassignment
