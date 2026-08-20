@@ -40,8 +40,8 @@ function BankAccountRequirementsModal({
       </div>
 
       <div className="flex flex-col gap-6 border-t border-neutral-200 bg-neutral-50 p-6">
-        <div className="flex flex-col gap-2.5 rounded-lg border border-amber-200 bg-amber-50 p-3">
-          <TriangleWarning className="size-3.5 text-amber-500" />
+        <div className="flex items-start gap-2.5 rounded-lg border border-amber-200 bg-amber-50 p-3">
+          <TriangleWarning className="mt-0.5 size-3.5 shrink-0 text-amber-500" />
           <p className="text-sm leading-5 text-amber-900">
             If your bank account does not meet these requirements, payouts may
             be delayed or rejected.
