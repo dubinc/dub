@@ -181,14 +181,6 @@ export const getCommissionsQuerySchema = z
       .describe(
         "Filter the list of commissions by the associated invoice. Since invoiceId is unique on a per-program basis, this will only return one commission per invoice.",
       ),
-    query: z
-      .string()
-      .max(10000)
-      .optional()
-      .describe(
-        "Search commissions by a custom metadata value. Only matches lead and sale commissions with persisted user-provided metadata. " +
-          "Examples: `metadata['key']:'value'`",
-      ),
     status: z
       .enum(CommissionStatus)
       .optional()
