@@ -257,21 +257,23 @@ test.describe("Sale commissions", () => {
 
   test("creates using nested sale", async ({ api, program }) => {
     const invoiceId = `INV_${nanoid()}`;
+    const date = new Date("2024-02-20T00:00:00.000Z");
 
     await withCommissionPartner(api, program, async (partnerId) => {
       expect(
         await api.post("/api/commissions", {
           type: "sale",
           partnerId,
-          saleAmount: 1000,
-          invoiceId,
+          date: date.toISOString(),
           sale: {
             amount: 1000,
             currency: "usd",
             eventName: "Invoice paid",
             paymentProcessor: "stripe",
             invoiceId,
-            metadata: { productId: "sku_nested" },
+            metadata: {
+              productId: "sku_pro",
+            },
           },
           customer: customerBody(),
         }),
@@ -282,6 +284,9 @@ test.describe("Sale commissions", () => {
         programId: program.id,
         type: "sale",
         invoiceId,
+        expectedCreatedAt: date,
+        expectedEarnings:
+          TEST_COMMISSION_REWARDS.sale.modifiers[0].amountInCents,
       });
     });
   });
@@ -297,7 +302,7 @@ test.describe("Sale commissions", () => {
           partnerId,
           saleAmount: 1000,
           invoiceId,
-          productId: "sku_deprecated",
+          productId: "sku_pro",
           saleEventDate: saleEventDate.toISOString(),
           customer: customerBody(),
         }),
@@ -309,6 +314,101 @@ test.describe("Sale commissions", () => {
         type: "sale",
         invoiceId,
         expectedCreatedAt: saleEventDate,
+        expectedEarnings:
+          TEST_COMMISSION_REWARDS.sale.modifiers[0].amountInCents,
+      });
+    });
+  });
+
+  test("creates with saleAmount when nested sale has no amount", async ({
+    api,
+    program,
+  }) => {
+    const invoiceId = `INV_${nanoid()}`;
+
+    await withCommissionPartner(api, program, async (partnerId) => {
+      expect(
+        await api.post("/api/commissions", {
+          type: "sale",
+          partnerId,
+          saleAmount: 1000,
+          sale: {
+            eventName: "Invoice paid",
+            invoiceId,
+          },
+          customer: customerBody(),
+        }),
+      ).toEqual(expectedQueuedResponse);
+
+      await expectCommissionCreated({
+        partnerId,
+        programId: program.id,
+        type: "sale",
+        invoiceId,
+      });
+    });
+  });
+
+  test("date takes precedence over saleEventDate", async ({ api, program }) => {
+    const date = new Date("2024-08-01T00:00:00.000Z");
+    const saleEventDate = new Date("2020-01-01T00:00:00.000Z");
+
+    await withCommissionPartner(api, program, async (partnerId) => {
+      expect(
+        await api.post("/api/commissions", {
+          type: "sale",
+          partnerId,
+          saleAmount: 1000,
+          date: date.toISOString(),
+          saleEventDate: saleEventDate.toISOString(),
+          customer: customerBody(),
+        }),
+      ).toEqual(expectedQueuedResponse);
+
+      await expectCommissionCreated({
+        partnerId,
+        programId: program.id,
+        type: "sale",
+        expectedCreatedAt: date,
+      });
+    });
+  });
+
+  test("nested sale takes precedence over deprecated fields", async ({
+    api,
+    program,
+  }) => {
+    const invoiceId = `INV_${nanoid()}`;
+    const date = new Date("2024-09-15T00:00:00.000Z");
+
+    await withCommissionPartner(api, program, async (partnerId) => {
+      expect(
+        await api.post("/api/commissions", {
+          type: "sale",
+          partnerId,
+          saleAmount: 500,
+          invoiceId: `INV_${nanoid()}`,
+          productId: "sku_old",
+          saleEventDate: new Date("2020-01-01T00:00:00.000Z").toISOString(),
+          date: date.toISOString(),
+          sale: {
+            amount: 2000,
+            invoiceId,
+            metadata: { productId: "sku_pro" },
+          },
+          customer: customerBody(),
+        }),
+      ).toEqual(expectedQueuedResponse);
+
+      await expectCommissionCreated({
+        partnerId,
+        programId: program.id,
+        type: "sale",
+        invoiceId,
+        expectedAmount: 2000,
+        expectedCreatedAt: date,
+        expectedEarnings:
+          TEST_COMMISSION_REWARDS.sale.modifiers[0].amountInCents,
       });
     });
   });
@@ -347,6 +447,39 @@ test.describe("Sale commissions", () => {
     });
   });
 
+  test("rejects duplicate nested sale.invoiceId", async ({ api, program }) => {
+    const invoiceId = `INV_${nanoid()}`;
+
+    await withCommissionPartner(api, program, async (partnerId) => {
+      await prisma.commission.create({
+        data: {
+          id: createId({ prefix: "cm_" }),
+          programId: program.id,
+          partnerId,
+          type: "sale",
+          amount: 1000,
+          earnings: 100,
+          quantity: 1,
+          invoiceId,
+        },
+      });
+
+      expect(
+        await api.post("/api/commissions", {
+          type: "sale",
+          partnerId,
+          sale: { amount: 1000, invoiceId },
+          customer: customerBody(),
+        }),
+      ).toEqual(
+        apiError({
+          code: "conflict",
+          message: `There is already a commission for the invoice ${invoiceId}.`,
+        }),
+      );
+    });
+  });
+
   test("imports Stripe invoices", async ({ api, program, workspace }) => {
     await withCommissionPartner(api, program, async (partnerId) => {
       expect(
@@ -368,7 +501,7 @@ test.describe("Sale commissions", () => {
   test.describe("validates", () => {
     const errorCases = [
       {
-        name: "rejects missing saleAmount",
+        name: "rejects missing sale.amount and saleAmount",
         body: {
           type: "sale",
           partnerId: "pn_test",
@@ -378,7 +511,7 @@ test.describe("Sale commissions", () => {
         expected: apiError({
           code: "unprocessable_entity",
           message:
-            "custom: saleAmount: `saleAmount` is required when `importStripeInvoices` is false.",
+            "custom: saleAmount: `sale.amount` or `saleAmount` is required when `importStripeInvoices` is false.",
         }),
       },
       {
@@ -396,17 +529,16 @@ test.describe("Sale commissions", () => {
         }),
       },
       {
-        name: "rejects missing sale.amount",
+        name: "rejects sale.amount of 0",
         body: {
           type: "sale",
           partnerId: "pn_test",
           customerId: "cus_test",
-          saleAmount: 1000,
-          sale: {},
+          sale: { amount: 0 },
         },
         expected: apiError({
           code: "unprocessable_entity",
-          message: "invalid_type: sale.amount: amount is required",
+          message: "custom: sale.amount: Sale amount cannot be 0.",
         }),
       },
       {
@@ -435,20 +567,6 @@ test.describe("Sale commissions", () => {
           code: "unprocessable_entity",
           message:
             "custom: sale.metadata: Metadata must be less than 10,000 characters when stringified",
-        }),
-      },
-      {
-        name: "rejects sale.amount without saleAmount",
-        body: {
-          type: "sale",
-          partnerId: "pn_test",
-          customerId: "cus_test",
-          sale: { amount: 1000 },
-        },
-        expected: apiError({
-          code: "unprocessable_entity",
-          message:
-            "custom: saleAmount: `saleAmount` is required when `importStripeInvoices` is false.",
         }),
       },
     ];

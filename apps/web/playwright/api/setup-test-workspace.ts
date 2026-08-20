@@ -63,6 +63,21 @@ export const TEST_COMMISSION_REWARDS = {
     type: RewardStructure.flat,
     amountInCents: 2500,
     maxDuration: 0,
+    modifiers: [
+      {
+        operator: "AND",
+        type: RewardStructure.flat,
+        amountInCents: 5000,
+        conditions: [
+          {
+            entity: "sale",
+            attribute: "productId",
+            operator: "equals_to",
+            value: "sku_pro",
+          },
+        ],
+      },
+    ],
   },
 } as const;
 

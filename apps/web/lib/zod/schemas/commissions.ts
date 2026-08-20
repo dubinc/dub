@@ -566,7 +566,7 @@ const createSaleCommissionSchema = z.object({
     .nullish()
     .default(false)
     .describe(
-      "When `true`, import all unimported paid Stripe invoices for the customer and create a commission for each. When `false`, create a single manual sale event using `saleAmount`.",
+      "When `true`, import all unimported paid Stripe invoices for the customer and create a commission for each. When `false`, create a single manual sale event using `sale.amount` (or deprecated `saleAmount`).",
     ),
   date: parseDateSchema
     .nullish()
@@ -575,42 +575,35 @@ const createSaleCommissionSchema = z.object({
     ),
   sale: z
     .object({
-      amount: trackSaleRequestSchema.shape.amount,
+      amount: trackSaleRequestSchema.shape.amount.nullish(),
       currency: trackSaleRequestSchema.shape.currency,
       eventName: trackSaleRequestSchema.shape.eventName,
       paymentProcessor: trackSaleRequestSchema.shape.paymentProcessor,
       invoiceId: trackSaleRequestSchema.shape.invoiceId,
       metadata: trackSaleRequestSchema.shape.metadata,
     })
-    .nullish(),
+    .nullish()
+    .describe("The sale event object to associate the commission with."),
 
   // Deprecated fields
+  saleEventDate: parseDateSchema
+    .nullish()
+    .describe("Deprecated: Use `date` instead.")
+    .meta({ deprecated: true }),
   saleAmount: centsSchema
     .pipe(z.number().min(0))
     .nullish()
-    .describe(
-      "Deprecated: Use `sale.amount` instead. Required when `importStripeInvoices` is `false`. The sale amount in cents for the manual sale event. Ignored when importing from Stripe.",
-    )
-    .meta({ deprecated: true }),
-  saleEventDate: parseDateSchema
-    .nullish()
-    .describe(
-      "Deprecated: Use `date` instead. Only used when `importStripeInvoices` is `false`. The date of the manual sale event. Defaults to the current date and time if not provided.",
-    )
+    .describe("Deprecated: Use `sale.amount` instead.")
     .meta({ deprecated: true }),
   invoiceId: z
     .string()
     .nullish()
-    .describe(
-      "Deprecated: Use `sale.invoiceId` instead. Only used when `importStripeInvoices` is `false`. An optional invoice ID to attach to the generated sale event and commission entry for deduplication.",
-    )
+    .describe("Deprecated: Use `sale.invoiceId` instead.")
     .meta({ deprecated: true }),
   productId: z
     .string()
     .nullish()
-    .describe(
-      "Deprecated: Use `sale.metadata.productId` instead. Only used when `importStripeInvoices` is `false`. An optional product ID stored on the sale event metadata – will also impact commission earnings calculation (if a `Sale` `Product ID` modifier is set).",
-    )
+    .describe("Deprecated: Use `sale.metadata.productId` instead.")
     .meta({ deprecated: true }),
 });
 
@@ -638,21 +631,23 @@ export const createManualCommissionBodySchema = z
         return;
       }
 
-      if (data.saleAmount == null) {
+      const saleAmount = data.sale?.amount ?? data.saleAmount;
+
+      if (saleAmount == null) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           message:
-            "`saleAmount` is required when `importStripeInvoices` is false.",
-          path: ["saleAmount"],
+            "`sale.amount` or `saleAmount` is required when `importStripeInvoices` is false.",
+          path: data.sale ? ["sale", "amount"] : ["saleAmount"],
         });
         return;
       }
 
-      if (data.saleAmount === 0) {
+      if (saleAmount === 0) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           message: "Sale amount cannot be 0.",
-          path: ["saleAmount"],
+          path: data.sale?.amount != null ? ["sale", "amount"] : ["saleAmount"],
         });
       }
     }
