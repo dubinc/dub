@@ -1,8 +1,8 @@
 import { PartnerApplicationProps } from "@/lib/types";
 import { PartnerApplicationSchema } from "@/lib/zod/schemas/program-application";
 import { describe, expect, test } from "vitest";
-import { IntegrationHarness } from "../../utils/integration";
-import { E2E_PARTNER_GROUP, E2E_PARTNERS } from "../../utils/resource";
+import { IntegrationHarness } from "../utils/integration";
+import { E2E_PARTNER_GROUP, E2E_PARTNERS } from "../utils/resource";
 
 describe.sequential("GET /partners/applications", async () => {
   const h = new IntegrationHarness();
