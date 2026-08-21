@@ -9,6 +9,7 @@ import {
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { prisma } from "@/lib/prisma";
 import { submittedLeadFormSchema } from "@/lib/zod/schemas/submitted-lead-form";
+import { Prisma } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { revalidatePath } from "next/cache";
 import * as z from "zod/v4";
@@ -90,7 +91,7 @@ export const updateProgramAction = authActionClient
         ...(invoiceSettings !== undefined && {
           invoiceSettings: hasInvoiceSettings
             ? normalizedInvoiceSettings
-            : null,
+            : Prisma.DbNull,
         }),
       },
     });
