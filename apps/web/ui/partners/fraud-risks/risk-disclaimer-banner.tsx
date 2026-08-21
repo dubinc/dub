@@ -2,7 +2,7 @@ import { Callout } from "../../shared/callout";
 
 export function RiskDisclaimerBanner({ className }: { className?: string }) {
   return (
-    <Callout variant="warn" size={2}>
+    <Callout variant="warn" size={2} className={className}>
       We recommend reviewing the risk events thoroughly before taking action.
       Unresolved events expire after 30 days, except confirmed network-level
       bans.{" "}
