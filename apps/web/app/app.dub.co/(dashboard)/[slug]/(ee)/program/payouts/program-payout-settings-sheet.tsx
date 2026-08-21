@@ -11,6 +11,7 @@ import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { ProgramProps } from "@/lib/types";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
+import { programInvoiceSettingsSchema } from "@/lib/zod/schemas/programs";
 import { X } from "@/ui/shared/icons";
 import { Button, Sheet, Slider } from "@dub/ui";
 import NumberFlow from "@number-flow/react";
@@ -57,10 +58,15 @@ function ProgramPayoutSettingsSheetContent({
 
   useEffect(() => {
     if (program) {
+      const invoiceSettings = programInvoiceSettingsSchema.safeParse(
+        program.invoiceSettings,
+      );
+      const parsed = invoiceSettings.success ? invoiceSettings.data : null;
+
       setValue("minPayoutAmount", program.minPayoutAmount);
-      setValue("companyName", program.invoiceSettings?.companyName ?? "");
-      setValue("address", program.invoiceSettings?.address ?? "");
-      setValue("taxId", program.invoiceSettings?.taxId ?? "");
+      setValue("companyName", parsed?.companyName ?? "");
+      setValue("address", parsed?.address ?? "");
+      setValue("taxId", parsed?.taxId ?? "");
     }
   }, [program, setValue]);
 

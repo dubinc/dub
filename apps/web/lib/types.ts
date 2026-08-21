@@ -175,7 +175,6 @@ import {
   eligibilityConditionSchema,
   PartnerCommentSchema,
   ProgramEnrollmentSchema,
-  programInvoiceSettingsSchema,
   ProgramSchema,
 } from "./zod/schemas/programs";
 import {
@@ -575,7 +574,7 @@ export type ProgramProps = Omit<
 > & {
   referralFormData?: Prisma.JsonValue | null;
   applicationRequirements?: Prisma.JsonValue | null;
-  invoiceSettings?: z.infer<typeof programInvoiceSettingsSchema> | null;
+  invoiceSettings?: Prisma.JsonValue | null;
 };
 
 export type ProgramInviteEmailData = z.infer<
