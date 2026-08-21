@@ -114,9 +114,7 @@ export async function expectCommissionCreated({
         invoiceId: commission.invoiceId,
         currency: commission.currency,
         createdAt: commission.createdAt.toISOString(),
-        ...(expectedMetadata !== undefined && {
-          metadata: commission.metadata,
-        }),
+        metadata: commission.metadata,
       };
     })
     .toEqual({
@@ -132,6 +130,6 @@ export async function expectCommissionCreated({
       createdAt: expectedCreatedAt
         ? expectedCreatedAt.toISOString()
         : expect.any(String),
-      ...(expectedMetadata !== undefined && { metadata: expectedMetadata }),
+      metadata: expectedMetadata === undefined ? null : expectedMetadata,
     });
 }

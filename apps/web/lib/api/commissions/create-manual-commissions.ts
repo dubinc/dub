@@ -475,6 +475,8 @@ async function recordEvents(args: RecordEventsArgs) {
 
   // Record sale events
   let saleEvents: z.infer<typeof saleEventSchemaTBWithTimestamp>[] = [];
+  // Only persist user-provided sale.metadata on the commission (not deprecated top-level productId).
+  let commissionMetadata: Record<string, unknown> | null = null;
 
   if (type === "sale") {
     const { importStripeInvoices, sale } = args;
@@ -486,10 +488,13 @@ async function recordEvents(args: RecordEventsArgs) {
     const paymentProcessor = sale?.paymentProcessor ?? "custom";
     let saleAmount = sale?.amount ?? args.saleAmount;
     let currency = sale?.currency ?? "usd";
-    const metadata = {
+    // Include productId in Tinybird event metadata for Sale → Product ID reward modifiers.
+    const eventMetadata = {
       ...(productId ? { productId } : {}),
       ...(sale?.metadata ?? {}),
     };
+    const hasEventMetadata = Object.keys(eventMetadata).length > 0;
+    commissionMetadata = sale?.metadata ?? null;
 
     if (importStripeInvoices) {
       saleEvents = stripeCustomerInvoices.map((invoice) =>
@@ -530,7 +535,7 @@ async function recordEvents(args: RecordEventsArgs) {
           payment_processor: paymentProcessor,
           currency,
           timestamp: new Date(saleEventDate).toISOString(),
-          metadata: metadata ? JSON.stringify(metadata) : "",
+          metadata: hasEventMetadata ? JSON.stringify(eventMetadata) : "",
         }),
       ];
     }
@@ -556,7 +561,7 @@ async function recordEvents(args: RecordEventsArgs) {
         (invoice) => invoice.id === saleEvent.invoice_id,
       );
 
-      const metadata = saleEvent.metadata
+      const eventMetadata = saleEvent.metadata
         ? JSON.parse(saleEvent.metadata)
         : null;
 
@@ -566,9 +571,9 @@ async function recordEvents(args: RecordEventsArgs) {
         amount: saleEvent.amount,
         currency: saleEvent.currency,
         invoiceId: saleEvent.invoice_id,
-        productId: metadata?.productId,
+        productId: eventMetadata?.productId,
         // Only persist user-provided metadata on the commission.
-        metadata: stripeInvoice ? null : metadata,
+        metadata: stripeInvoice ? null : commissionMetadata,
         ...(stripeInvoice?.refunded && {
           status: "refunded" as const,
         }),

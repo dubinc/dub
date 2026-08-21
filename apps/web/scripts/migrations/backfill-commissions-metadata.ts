@@ -1,3 +1,4 @@
+import { formatUTCDateTimeClickhouse } from "@/lib/analytics/utils/format-utc-datetime-clickhouse";
 import { prisma } from "@/lib/prisma";
 import { tb } from "@/lib/tinybird/client";
 import { CommissionType, Prisma } from "@prisma/client";
@@ -12,23 +13,29 @@ Create this once in Tinybird before running:
 SELECT event_id, metadata
 FROM dub_lead_events_mv
 WHERE event_id IN {{ Array(eventIds, 'String') }}
+  AND timestamp BETWEEN {{ DateTime(start) }} AND {{ DateTime(end) }}
   AND metadata != ''
 UNION ALL
 SELECT event_id, metadata
 FROM dub_sale_events_mv
 WHERE event_id IN {{ Array(eventIds, 'String') }}
+  AND timestamp BETWEEN {{ DateTime(start) }} AND {{ DateTime(end) }}
   AND metadata != ''
 */
 
 const DRY_RUN = true;
-const BATCH_SIZE = 100;
+const BATCH_SIZE = 1000;
 const THROTTLE_MS = 1000;
 const LAST_CURSOR_ID: string | null = null; // Paste the last printed cursor id here to resume after a crash.
+const USER_METADATA_MAX_CHARS = 10_000; // Matches metadataSchema in lib/zod/schemas/misc.ts
+const TIMESTAMP_PAD_MS = 86_400_000; // ±1 day: commission createdAt can lag Tinybird event timestamp
 
 const getEventsMetadata = tb.buildPipe({
   pipe: "internal_get_events_metadata",
   parameters: z.object({
     eventIds: z.string().array(),
+    start: z.string(),
+    end: z.string(),
   }),
   data: z.object({
     event_id: z.string(),
@@ -40,14 +47,62 @@ async function sleep(ms: number) {
   await new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-function parseMetadataObject(raw: string): Record<string, unknown> | null {
-  const parsed = JSON.parse(raw);
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  return value !== null && typeof value === "object" && !Array.isArray(value);
+}
+
+// Tinybird event metadata is not always user-provided. Stripe/Shopify/importers
+// store full internal payloads; Commission.metadata is a public API field.
+// Match nested resource shapes (not just key names) to avoid false positives
+// from coincidental user metadata like { invoice: "in_123" }.
+function looksLikeInternalEventPayload(metadata: Record<string, unknown>) {
+  // Stripe webhook: { invoice } or { checkoutSession } — nested Stripe objects
+  if (
+    isPlainObject(metadata.invoice) ||
+    isPlainObject(metadata.checkoutSession)
+  ) {
+    return true;
+  }
+
+  // Shopify order body
+  if (
+    typeof metadata.checkout_token === "string" &&
+    typeof metadata.confirmation_number === "string" &&
+    isPlainObject(metadata.current_subtotal_price_set)
+  ) {
+    return true;
+  }
+
+  // Skip Rewardful/Tapfiliate/Tolt/PartnerStack fingerprints: oversized dumps
+  // are already dropped by USER_METADATA_MAX_CHARS, and small payloads are
+  // allowed through (avoids rejecting coincidental user keys).
+
+  return false;
+}
+
+function parseUserProvidedMetadata(
+  raw: string,
+): Record<string, unknown> | null {
+  if (raw.length > USER_METADATA_MAX_CHARS) {
+    return null;
+  }
+
+  const parsed: unknown = JSON.parse(raw);
 
   if (parsed === null || typeof parsed !== "object" || Array.isArray(parsed)) {
     return null;
   }
 
-  return parsed as Record<string, unknown>;
+  const metadata = parsed as Record<string, unknown>;
+
+  if (
+    Object.keys(metadata).length === 0 ||
+    looksLikeInternalEventPayload(metadata)
+  ) {
+    return null;
+  }
+
+  return metadata;
 }
 
 async function main() {
@@ -87,6 +142,7 @@ async function main() {
         id: true,
         eventId: true,
         type: true,
+        createdAt: true,
       },
       take: BATCH_SIZE,
       orderBy: {
@@ -104,7 +160,21 @@ async function main() {
       .map((c) => c.eventId)
       .filter((id): id is string => Boolean(id));
 
-    const { data: tbRows } = await getEventsMetadata({ eventIds });
+    const start = new Date(
+      Math.min(...commissions.map((c) => c.createdAt.getTime())) -
+        TIMESTAMP_PAD_MS,
+    );
+
+    const end = new Date(
+      Math.max(...commissions.map((c) => c.createdAt.getTime())) +
+        TIMESTAMP_PAD_MS,
+    );
+
+    const { data: tbRows } = await getEventsMetadata({
+      eventIds,
+      start: formatUTCDateTimeClickhouse(start),
+      end: formatUTCDateTimeClickhouse(end),
+    });
     const metadataByEventId = new Map(
       tbRows.map((row) => [row.event_id, row.metadata]),
     );
@@ -124,12 +194,13 @@ async function main() {
       }
 
       try {
-        const parsed = parseMetadataObject(raw);
-        if (!parsed) {
+        const metadata = parseUserProvidedMetadata(raw);
+        if (!metadata) {
           batchSkipped++;
           continue;
         }
-        updates.push({ id: commission.id, metadata: parsed });
+
+        updates.push({ id: commission.id, metadata });
       } catch (error) {
         batchErrors++;
         console.error(
@@ -170,8 +241,7 @@ async function main() {
               ),
               " ",
             )}
-          END,
-          updatedAt = NOW()
+          END
         WHERE id IN (${Prisma.join(updates.map((u) => u.id))})
           AND metadata IS NULL
       `;

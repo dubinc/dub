@@ -130,6 +130,7 @@ test.describe("Lead commissions", () => {
         partnerId,
         programId: program.id,
         type: "lead",
+        expectedMetadata: null,
       });
     });
   });
@@ -189,6 +190,7 @@ test.describe("Lead commissions", () => {
         programId: program.id,
         type: "lead",
         expectedCreatedAt: leadEventDate,
+        expectedMetadata: null,
       });
     });
   });
@@ -257,6 +259,7 @@ test.describe("Sale commissions", () => {
         programId: program.id,
         type: "sale",
         invoiceId,
+        expectedMetadata: null,
       });
     });
   });
@@ -293,6 +296,34 @@ test.describe("Sale commissions", () => {
         expectedEarnings:
           TEST_COMMISSION_REWARDS.sale.modifiers[1].amountInCents,
         expectedMetadata: metadata,
+      });
+    });
+  });
+
+  test("creates using nested sale with string amount", async ({
+    api,
+    program,
+  }) => {
+    const invoiceId = `INV_${nanoid()}`;
+
+    await withCommissionPartner(api, program, async (partnerId) => {
+      expect(
+        await api.post("/api/commissions", {
+          type: "sale",
+          partnerId,
+          sale: {
+            amount: "1000",
+            invoiceId,
+          },
+          customer: customerBody(),
+        }),
+      ).toEqual(expectedQueuedResponse);
+
+      await expectCommissionCreated({
+        partnerId,
+        programId: program.id,
+        type: "sale",
+        invoiceId,
       });
     });
   });
@@ -360,6 +391,8 @@ test.describe("Sale commissions", () => {
         expectedCreatedAt: saleEventDate,
         expectedEarnings:
           TEST_COMMISSION_REWARDS.sale.modifiers[0].amountInCents,
+        // Deprecated top-level productId must not leak into commission.metadata.
+        expectedMetadata: null,
       });
     });
   });
@@ -453,6 +486,42 @@ test.describe("Sale commissions", () => {
         expectedCreatedAt: date,
         expectedEarnings:
           TEST_COMMISSION_REWARDS.sale.modifiers[0].amountInCents,
+        // User-provided sale.metadata persists; deprecated productId does not.
+        expectedMetadata: { productId: "sku_pro" },
+      });
+    });
+  });
+
+  test("coerces non-string sale.metadata.productId in reward context", async ({
+    api,
+    program,
+  }) => {
+    const invoiceId = `INV_${nanoid()}`;
+    const metadata = { productId: 12345 };
+
+    await withCommissionPartner(api, program, async (partnerId) => {
+      expect(
+        await api.post("/api/commissions", {
+          type: "sale",
+          partnerId,
+          sale: {
+            amount: 1000,
+            invoiceId,
+            metadata,
+          },
+          customer: customerBody(),
+        }),
+      ).toEqual(expectedQueuedResponse);
+
+      await expectCommissionCreated({
+        partnerId,
+        programId: program.id,
+        type: "sale",
+        invoiceId,
+        // Non-string productId is dropped from reward context (no productId modifier).
+        expectedEarnings: TEST_COMMISSION_REWARDS.sale.amountInCents,
+        // Original metadata still persists on the commission.
+        expectedMetadata: metadata,
       });
     });
   });
@@ -583,6 +652,20 @@ test.describe("Sale commissions", () => {
         expected: apiError({
           code: "unprocessable_entity",
           message: "custom: sale.amount: Sale amount cannot be 0.",
+        }),
+      },
+      {
+        name: "rejects non-integer sale.amount",
+        body: {
+          type: "sale",
+          partnerId: "pn_test",
+          customerId: "cus_test",
+          sale: { amount: 10.5 },
+        },
+        expected: apiError({
+          code: "unprocessable_entity",
+          message:
+            "invalid_type: sale.amount: Invalid input: expected int, received number",
         }),
       },
       {

@@ -612,7 +612,12 @@ const createSaleCommissionSchema = z
       ),
     sale: z
       .object({
-        amount: trackSaleRequestSchema.shape.amount.nullish(),
+        amount: centsSchema
+          .pipe(z.number().int().min(0))
+          .nullish()
+          .describe(
+            "The amount of the sale in cents (for all two-decimal currencies). If the sale is in a zero-decimal currency, pass the full integer value (e.g. `1580` JPY). Learn more: https://d.to/currency",
+          ),
         currency: trackSaleRequestSchema.shape.currency,
         eventName: trackSaleRequestSchema.shape.eventName,
         paymentProcessor: trackSaleRequestSchema.shape.paymentProcessor,
