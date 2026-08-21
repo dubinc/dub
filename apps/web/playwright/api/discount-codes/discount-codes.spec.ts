@@ -1,16 +1,17 @@
 import { createId } from "@/lib/api/create-id";
 import { constructDiscountCode } from "@/lib/discounts/construct-discount-code";
-import { conn } from "@/lib/planetscale";
 import { prisma } from "@/lib/prisma";
-import type { EnrolledPartnerProps } from "@/lib/types";
 import { DiscountCodeSchema } from "@/lib/zod/schemas/discount";
 import { DEFAULT_ADDITIONAL_PARTNER_LINKS } from "@/lib/zod/schemas/groups";
 import { nanoid } from "@dub/utils";
 import { expect } from "@playwright/test";
 import { DiscountProvider, RewardStructure } from "@prisma/client";
 import * as z from "zod/v4";
-import { randomName, randomPartnerEmail } from "../../utils";
 import { test, type ApiClient } from "../fixtures";
+import {
+  createPartner as createPartnerApi,
+  deletePartner,
+} from "../partners/helpers";
 import { TEST_WORKSPACE } from "../setup-test-workspace";
 
 type DiscountCode = z.infer<typeof DiscountCodeSchema>;
@@ -123,36 +124,10 @@ async function createPartner(
     throw new Error("Custom discount group was not seeded.");
   }
 
-  return api.post<EnrolledPartnerProps>("/api/partners", {
-    name: randomName(),
-    email: randomPartnerEmail(),
+  return createPartnerApi(api, {
     groupId: partnerGroupId,
     ...overrides,
   });
-}
-
-async function deletePartner(partnerId: string | undefined) {
-  if (!partnerId) return;
-
-  await prisma.discountCode.deleteMany({
-    where: {
-      partnerId,
-    },
-  });
-
-  await prisma.link.deleteMany({
-    where: {
-      partnerId,
-    },
-  });
-
-  await prisma.programEnrollment.deleteMany({
-    where: {
-      partnerId,
-    },
-  });
-
-  await conn.execute(`DELETE FROM Partner WHERE id = ?`, [partnerId]);
 }
 
 async function createDiscountCode(
