@@ -508,7 +508,10 @@ const createCustomCommissionSchema = z.object({
     .max(190)
     .nullish()
     .describe(
-      "The description of the commission. Required for clawbacks (negative `amount`). May be a known clawback reason (`order_canceled`, `fraud`, `terms_violation`, `tracking_error`, `payment_failed`, `ineligible_partner`, `duplicate_commission`, `other`) or any other string.",
+      [
+        "The description of the commission. Required for clawbacks (negative `amount`).",
+        "May be a known clawback reason (`order_canceled`, `fraud`, `terms_violation`, `tracking_error`, `payment_failed`, `ineligible_partner`, `duplicate_commission`) or an arbitrary string (max 190 characters).",
+      ].join(" "),
     ),
 });
 
@@ -692,7 +695,7 @@ export const createManualCommissionBodySchema = z
     if (data.type === "custom") {
       if (data.amount < 0 && !data.description?.trim()) {
         ctx.addIssue({
-          code: z.ZodIssueCode.custom,
+          code: "custom",
           message:
             "`description` is required when creating a clawback (negative amount).",
           path: ["description"],

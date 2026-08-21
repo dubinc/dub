@@ -239,7 +239,7 @@ export function useRemoveWorkspaceUserModal({ user }: { user: UserProps }) {
         user={user}
       />
     );
-  }, [showRemoveWorkspaceUserModal, setShowRemoveWorkspaceUserModal, user]);
+  }, [showRemoveWorkspaceUserModal, setShowRemoveWorkspaceUserModal]);
 
   return useMemo(
     () => ({

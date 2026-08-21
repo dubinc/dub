@@ -6,6 +6,7 @@ import { DiscountCodeWebhookSchema } from "../zod/schemas/discount";
 import { linkEventSchema } from "../zod/schemas/links";
 import {
   EnrolledPartnerSchema,
+  partnerMergedWebhookSchema,
   WebhookPartnerSchema,
 } from "../zod/schemas/partners";
 import { partnerApplicationWebhookSchema } from "../zod/schemas/program-application";
@@ -155,6 +156,20 @@ export const webhookEventSchema = z
           "Triggered when a partner submits an application to join a program.",
         id: "PartnerApplicationSubmittedEvent",
         outputId: "PartnerApplicationSubmittedEvent",
+      }),
+
+    z
+      .object({
+        id: z.string(),
+        event: z.literal("partner.merged"),
+        createdAt: z.string(),
+        data: partnerMergedWebhookSchema,
+      })
+      .meta({
+        description:
+          "Triggered when two partner accounts are merged. Fired once per program the source partner was enrolled in.",
+        id: "PartnerMergedEvent",
+        outputId: "PartnerMergedEvent",
       }),
 
     z
