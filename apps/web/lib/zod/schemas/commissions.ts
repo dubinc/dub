@@ -475,7 +475,10 @@ export const createManualCommissionBodySchema = z
         .max(190)
         .nullish()
         .describe(
-          "The description of the commission. Required for clawbacks (negative `amount`). May be a known clawback reason (`order_canceled`, `fraud`, `terms_violation`, `tracking_error`, `payment_failed`, `ineligible_partner`, `duplicate_commission`, `other`) or any other string.",
+          [
+            "The description of the commission. Required for clawbacks (negative `amount`).",
+            "May be a known clawback reason (`order_canceled`, `fraud`, `terms_violation`, `tracking_error`, `payment_failed`, `ineligible_partner`, `duplicate_commission`) or an arbitrary string (max 190 characters).",
+          ].join("\n"),
         ),
     }),
 
@@ -575,7 +578,7 @@ export const createManualCommissionBodySchema = z
     if (data.type === "custom") {
       if (data.amount < 0 && !data.description?.trim()) {
         ctx.addIssue({
-          code: z.ZodIssueCode.custom,
+          code: "custom",
           message:
             "`description` is required when creating a clawback (negative amount).",
           path: ["description"],
@@ -591,7 +594,7 @@ export const createManualCommissionBodySchema = z
 
       if (data.saleAmount == null) {
         ctx.addIssue({
-          code: z.ZodIssueCode.custom,
+          code: "custom",
           message:
             "`saleAmount` is required when `importStripeInvoices` is false.",
           path: ["saleAmount"],
@@ -601,7 +604,7 @@ export const createManualCommissionBodySchema = z
 
       if (data.saleAmount === 0) {
         ctx.addIssue({
-          code: z.ZodIssueCode.custom,
+          code: "custom",
           message: "Sale amount cannot be 0.",
           path: ["saleAmount"],
         });
