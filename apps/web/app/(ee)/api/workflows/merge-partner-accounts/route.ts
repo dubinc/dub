@@ -347,6 +347,7 @@ async function loadMergePlan({
   };
 }
 
+// High-volume resources: move in batches of PRISMA_UPDATEMANY_LIMIT
 async function transferRowsInBatches(
   updateBatch: () => Promise<number>,
   {
@@ -362,6 +363,31 @@ async function transferRowsInBatches(
       break;
     }
   }
+}
+
+// Rows unique on (programId, partnerId): move the source row when the target
+// has none, otherwise delete it so rewriting enrollment.partnerId cannot collide.
+async function transferIfNotExistElseDelete({
+  findTarget,
+  transferSource,
+  deleteSource,
+  resourceName,
+}: {
+  findTarget: () => Promise<unknown>;
+  transferSource: () => Promise<number>;
+  deleteSource: () => Promise<number>;
+  resourceName: string;
+}) {
+  if (await findTarget()) {
+    const count = await deleteSource();
+    console.log(
+      `Deleted ${count} source ${resourceName} (target already exists)`,
+    );
+    return;
+  }
+
+  const count = await transferSource();
+  console.log(`Transferred ${count} ${resourceName}`);
 }
 
 async function transferPartnerProgramData({
@@ -422,6 +448,33 @@ async function transferPartnerProgramData({
     prisma.notificationEmail.updateMany(payload),
     prisma.message.updateMany(payload),
     prisma.partnerComment.updateMany(payload),
+    // Unique on (programId, partnerId) — transfer or delete, never rewrite over
+    transferIfNotExistElseDelete({
+      findTarget: () =>
+        prisma.programApplicationEvent.findUnique({
+          where: {
+            programId_partnerId: { programId, partnerId: targetPartnerId },
+          },
+        }),
+      transferSource: async () =>
+        (await prisma.programApplicationEvent.updateMany(payload)).count,
+      deleteSource: async () =>
+        (await prisma.programApplicationEvent.deleteMany({ where })).count,
+      resourceName: "application event",
+    }),
+    transferIfNotExistElseDelete({
+      findTarget: () =>
+        prisma.discoveredPartner.findUnique({
+          where: {
+            programId_partnerId: { programId, partnerId: targetPartnerId },
+          },
+        }),
+      transferSource: async () =>
+        (await prisma.discoveredPartner.updateMany(payload)).count,
+      deleteSource: async () =>
+        (await prisma.discoveredPartner.deleteMany({ where })).count,
+      resourceName: "discovered partner",
+    }),
   ]);
 
   // After payouts are moved onto the target partner, fold any duplicate
