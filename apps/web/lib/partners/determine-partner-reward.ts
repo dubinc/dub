@@ -1,7 +1,7 @@
-import { EventType, Link, Prisma, Reward } from "@dub/prisma/client";
-import { toCentsNumber } from "@dub/utils";
+import { prettyPrint, toCentsNumber } from "@dub/utils";
+import { EventType, Link, Prisma, Reward } from "@prisma/client";
 import { serializeReward } from "../api/partners/serialize-reward";
-import { RewardContext } from "../types";
+import { RewardContext, RewardProps } from "../types";
 import {
   rewardConditionsArraySchema,
   RewardSchema,
@@ -23,6 +23,14 @@ interface ProgramEnrollmentWithReward {
   clickReward?: Reward | null;
   leadReward?: Reward | null;
   saleReward?: Reward | null;
+}
+
+interface ProductReward {
+  reward: RewardProps;
+  sale: {
+    amount: number;
+    quantity: number;
+  };
 }
 
 export const determinePartnerReward = ({
@@ -95,4 +103,81 @@ export const determinePartnerReward = ({
   }
 
   return RewardSchema.parse(partnerReward);
+};
+
+export const determinePartnerRewards = ({
+  event,
+  programEnrollment,
+  context,
+  amount,
+  quantity,
+}: {
+  event: EventType;
+  programEnrollment: ProgramEnrollmentWithReward;
+  context?: RewardContext; // additional reward context (e.g. customer.country, sale.productId, etc.)
+  amount: number;
+  quantity: number;
+}): ProductReward[] => {
+  const rewards: ProductReward[] = [];
+  const products = context?.sale?.products ?? [];
+  const modifiers = rewardConditionsArraySchema.safeParse(
+    programEnrollment.saleReward?.modifiers,
+  );
+
+  const hasProductIdModifier = modifiers.success
+    ? modifiers.data.some((m) =>
+        m.conditions.some(
+          (c) => c.entity === "sale" && c.attribute === "productId",
+        ),
+      )
+    : false;
+
+  // If there are products and a productId modifier,
+  // we need to calculate the reward for each product (for Stripe integration only)
+  if (products.length > 0 && hasProductIdModifier) {
+    for (const product of products) {
+      const reward = determinePartnerReward({
+        event,
+        programEnrollment,
+        context: {
+          ...context,
+          sale: {
+            ...context?.sale,
+            productId: product.id,
+            amount: product.amount,
+          },
+        },
+      });
+
+      if (reward) {
+        rewards.push({
+          reward,
+          sale: {
+            amount: product.amount,
+            quantity: product.quantity,
+          },
+        });
+      }
+    }
+  } else {
+    const reward = determinePartnerReward({
+      event,
+      programEnrollment,
+      ...(context ? { context } : {}),
+    });
+
+    if (reward) {
+      rewards.push({
+        reward,
+        sale: {
+          amount,
+          quantity,
+        },
+      });
+    }
+  }
+
+  console.log("Reward context", prettyPrint(context));
+
+  return rewards;
 };

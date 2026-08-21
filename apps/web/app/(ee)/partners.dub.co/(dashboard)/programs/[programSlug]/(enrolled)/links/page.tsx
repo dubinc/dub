@@ -1,13 +1,12 @@
 import { PageContent } from "@/ui/layout/page-content";
-
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
-import { ProgramLinksPageClient } from "./page-client";
+import { PartnerProgramLinksPageClient } from "./page-client";
 
-export default function ProgramLinks() {
+export default function PartnerProgramLinksPage() {
   return (
     <PageContent title="Links">
       <PageWidthWrapper className="pb-10">
-        <ProgramLinksPageClient />
+        <PartnerProgramLinksPageClient />
       </PageWidthWrapper>
     </PageContent>
   );

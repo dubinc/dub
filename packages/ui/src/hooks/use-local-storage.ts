@@ -3,8 +3,12 @@ import { useEffect, useState } from "react";
 function getItemFromLocalStorage(key: string) {
   if (typeof window === "undefined") return null;
 
-  const item = window.localStorage.getItem(key);
-  if (item) return JSON.parse(item);
+  try {
+    const item = window.localStorage.getItem(key);
+    if (item) return JSON.parse(item);
+  } catch {
+    return null;
+  }
 
   return null;
 }
@@ -24,10 +28,13 @@ export function useLocalStorage<T>(
   }, [key]);
 
   const setValue = (value: T) => {
-    // Save state
     setStoredValue(value);
-    // Save to localStorage
-    window.localStorage.setItem(key, JSON.stringify(value));
+    if (typeof window === "undefined") return;
+    try {
+      window.localStorage.setItem(key, JSON.stringify(value));
+    } catch {
+      // Ignore write failures (storage blocked or quota exceeded).
+    }
   };
 
   return [storedValue, setValue];

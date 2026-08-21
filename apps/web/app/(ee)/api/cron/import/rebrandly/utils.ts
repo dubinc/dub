@@ -1,11 +1,11 @@
 import { createId } from "@/lib/api/create-id";
 import { bulkCreateLinks } from "@/lib/api/links";
 import { qstash } from "@/lib/cron";
+import { prisma } from "@/lib/prisma";
 import { redis } from "@/lib/upstash";
 import { randomBadgeColor } from "@/ui/links/tag-badge";
 import { sendEmail } from "@dub/email";
 import LinksImported from "@dub/email/templates/links-imported";
-import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK, linkConstructorSimple } from "@dub/utils";
 
 export const importTagsFromRebrandly = async ({

@@ -3,6 +3,7 @@
 import { AnalyticsResponse } from "@/lib/analytics/types";
 import { editQueryString } from "@/lib/analytics/utils";
 import { AnalyticsContext } from "@/ui/analytics/analytics-provider";
+import { CountryFlag } from "@/ui/shared/country-flag";
 import {
   Button,
   Table,
@@ -59,7 +60,6 @@ export function AnalyticsPartnersTable() {
     queryParams({
       set: { partnerId: stagedPartnerIds.join(",") },
       del: "page",
-      scroll: false,
     });
     setStagedPartnerIds(null);
   }, [queryParams, stagedPartnerIds]);
@@ -67,7 +67,7 @@ export function AnalyticsPartnersTable() {
   const clearFilter = useCallback(() => {
     setStagedPartnerIds(null);
     if (searchParams.has("partnerId")) {
-      queryParams({ del: ["partnerId", "page"], scroll: false });
+      queryParams({ del: ["partnerId", "page"] });
     }
   }, [queryParams, searchParams]);
 
@@ -117,7 +117,7 @@ export function AnalyticsPartnersTable() {
               isApplied={activePartnerIdsFromUrl.includes(partnerId)}
               onToggle={() => toggleStagePartner(partnerId)}
               onApplyImmediate={() => {
-                queryParams({ set: { partnerId }, del: "page", scroll: false });
+                queryParams({ set: { partnerId }, del: "page" });
                 setStagedPartnerIds(null);
               }}
             />
@@ -132,13 +132,7 @@ export function AnalyticsPartnersTable() {
           const country = row.original.partner.country;
           return (
             <div className="flex items-center gap-2">
-              {country && (
-                <img
-                  alt={`${country} flag`}
-                  src={`https://hatscripts.github.io/circle-flags/flags/${country.toLowerCase()}.svg`}
-                  className="size-4 shrink-0"
-                />
-              )}
+              {country && <CountryFlag countryCode={country} />}
               <span className="min-w-0 truncate">
                 {(country ? COUNTRIES[country] : null) ?? "-"}
               </span>
@@ -172,7 +166,6 @@ export function AnalyticsPartnersTable() {
     ],
     pagination,
     onPaginationChange: setPagination,
-    sortableColumns: ["clicks", "leads", "saleAmount"],
     sortBy: selectedTab === "sales" ? "saleAmount" : selectedTab,
     thClassName: "border-l-0",
     tdClassName: "border-l-0",

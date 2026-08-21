@@ -47,6 +47,28 @@ export const POST = withWorkspace(
 
     const { directorySyncController } = await jackson();
 
+    if (currentDirectoryId) {
+      const directory =
+        await directorySyncController.directories.get(currentDirectoryId);
+
+      if (!directory || directory.error || !directory.data) {
+        throw new DubApiError({
+          code: "not_found",
+          message: directory?.error?.message ?? "Directory not found.",
+        });
+      }
+
+      if (
+        directory.data.tenant !== workspace.id ||
+        directory.data.product !== "Dub"
+      ) {
+        throw new DubApiError({
+          code: "not_found",
+          message: "Directory not found.",
+        });
+      }
+    }
+
     const [data, _] = await Promise.all([
       directorySyncController.directories.create({
         name: "Dub SCIM Directory",
@@ -54,6 +76,7 @@ export const POST = withWorkspace(
         product: "Dub",
         type: provider,
       }),
+
       currentDirectoryId &&
         directorySyncController.directories.delete(currentDirectoryId),
     ]);
@@ -68,10 +91,30 @@ export const POST = withWorkspace(
 
 // DELETE /api/workspaces/[idOrSlug]/scim – delete a SCIM directory
 export const DELETE = withWorkspace(
-  async ({ searchParams }) => {
+  async ({ workspace, searchParams }) => {
     const { directoryId } = deleteDirectorySchema.parse(searchParams);
 
     const { directorySyncController } = await jackson();
+
+    const directory =
+      await directorySyncController.directories.get(directoryId);
+
+    if (!directory || directory.error || !directory.data) {
+      throw new DubApiError({
+        code: "not_found",
+        message: directory?.error?.message ?? "Directory not found.",
+      });
+    }
+
+    if (
+      directory.data.tenant !== workspace.id ||
+      directory.data.product !== "Dub"
+    ) {
+      throw new DubApiError({
+        code: "not_found",
+        message: "Directory not found.",
+      });
+    }
 
     const { error, data } =
       await directorySyncController.directories.delete(directoryId);

@@ -1,6 +1,7 @@
 "use server";
 
 import { authActionClient } from "@/lib/actions/safe-action";
+import { throwIfNoPermission } from "@/lib/actions/throw-if-no-permission";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { APPSFLYER_INTEGRATION_ID } from "@dub/utils";
 import { revalidatePath } from "next/cache";
@@ -21,6 +22,11 @@ export const installAppsFlyerAction = authActionClient
         "AppsFlyer integration is only available on Advanced and Enterprise plans.",
       );
     }
+
+    throwIfNoPermission({
+      role: workspace.role,
+      requiredPermissions: ["integrations.write"],
+    });
 
     await installIntegration({
       integrationId: APPSFLYER_INTEGRATION_ID,

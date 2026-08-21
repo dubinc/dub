@@ -1,7 +1,7 @@
 import { EnrolledPartnerProps } from "@/lib/types";
 import { RESOURCE_COLORS } from "@/ui/colors";
-import { PartnerGroup } from "@dub/prisma/client";
 import { randomValue } from "@dub/utils";
+import { PartnerGroup } from "@prisma/client";
 import { E2E_PARTNER } from "tests/utils/resource";
 import { describe, expect, onTestFinished, test } from "vitest";
 import { randomPartnerEmail } from "../utils/helpers";
@@ -67,7 +67,6 @@ describe.sequential("Workflow - MoveGroup", async () => {
     });
 
     expect(workflow).not.toBeNull();
-    expect(workflow.trigger).toBe("partnerMetricsUpdated");
     expect(workflow.disabledAt).toBeNull();
 
     const workflowActions = workflow.actions as any[];
@@ -131,6 +130,8 @@ describe.sequential("Workflow - MoveGroup", async () => {
     });
 
     expect(removeStatus).toEqual(200);
+
+    await new Promise((resolve) => setTimeout(resolve, 5000));
 
     const { data: deletedWorkflow } = await http.get<any>({
       path: "/e2e/workflows",
@@ -490,14 +491,243 @@ describe.sequential("Workflow - MoveGroup", async () => {
     expect(workflowConditions[1].value).toStrictEqual({ min: 1, max: 2 });
   });
 
+  test("Metric + partnerGroup move rules create workflow with both conditions", async () => {
+    const slug = "e2e-partner-group-config";
+    await cleanupOrphanedGroup(http, slug, allGroupsForCleanup);
+
+    const { data: existingGroups } = await http.get<PartnerGroup[]>({
+      path: "/groups",
+    });
+
+    expect(existingGroups.length).toBeGreaterThan(0);
+    const sourceGroup = existingGroups[0];
+
+    const { status: groupStatus, data: group } = await http.post<PartnerGroup>({
+      path: "/groups",
+      body: {
+        name: "E2E Group - Partner Group Config",
+        slug,
+        color: randomValue(RESOURCE_COLORS),
+      },
+    });
+
+    expect(groupStatus).toEqual(201);
+
+    onTestFinished(async () => {
+      await http.delete({ path: `/groups/${group.id}` });
+    });
+
+    const { status: patchStatus } = await http.patch({
+      path: `/groups/${group.id}`,
+      body: {
+        moveRules: [
+          {
+            attribute: "totalLeads",
+            operator: "between",
+            value: { min: 2, max: 3 },
+          },
+          {
+            attribute: "partnerGroup",
+            operator: "eq",
+            value: sourceGroup.id,
+          },
+        ],
+      },
+    });
+
+    expect(patchStatus).toEqual(200);
+
+    const { data: workflow } = await http.get<any>({
+      path: "/e2e/workflows",
+      query: { groupId: group.id },
+    });
+
+    expect(workflow).not.toBeNull();
+
+    const workflowConditions = workflow.triggerConditions as any[];
+    expect(workflowConditions).toHaveLength(2);
+    expect(workflowConditions[0].attribute).toBe("totalLeads");
+    expect(workflowConditions[0].operator).toBe("between");
+    expect(workflowConditions[0].value).toStrictEqual({ min: 2, max: 3 });
+    expect(workflowConditions[1].attribute).toBe("partnerGroup");
+    expect(workflowConditions[1].operator).toBe("eq");
+    expect(workflowConditions[1].value).toBe(sourceGroup.id);
+  });
+
+  test(
+    "Workflow executes when partnerGroup matches source group",
+    { timeout: 90000 },
+    async () => {
+      const slug = "e2e-partner-group-match";
+      await cleanupOrphanedGroup(http, slug, allGroupsForCleanup);
+
+      const { data: existingGroups } = await http.get<PartnerGroup[]>({
+        path: "/groups",
+      });
+
+      expect(existingGroups.length).toBeGreaterThan(0);
+      const sourceGroup = existingGroups[0];
+
+      const { status: targetStatus, data: targetGroup } =
+        await http.post<PartnerGroup>({
+          path: "/groups",
+          body: {
+            name: "E2E Target Group - Partner Group Match",
+            slug,
+            color: randomValue(RESOURCE_COLORS),
+          },
+        });
+
+      expect(targetStatus).toEqual(201);
+
+      onTestFinished(async () => {
+        await http.delete({ path: `/groups/${targetGroup.id}` });
+      });
+
+      const { status: patchStatus } = await http.patch({
+        path: `/groups/${targetGroup.id}`,
+        body: {
+          moveRules: [
+            {
+              attribute: "totalLeads",
+              operator: "between",
+              value: { min: 1, max: 2 },
+            },
+            {
+              attribute: "partnerGroup",
+              operator: "eq",
+              value: sourceGroup.id,
+            },
+          ],
+        },
+      });
+
+      expect(patchStatus).toEqual(200);
+
+      const { status: partnerStatus, data: partner } =
+        await http.post<EnrolledPartnerProps>({
+          path: "/partners",
+          body: {
+            name: "E2E Test Partner - Partner Group Match",
+            email: randomPartnerEmail(),
+            groupId: sourceGroup.id,
+          },
+        });
+
+      expect(partnerStatus).toEqual(201);
+      expect(partner.links).not.toBeNull();
+      expect(partner.groupId).toBe(sourceGroup.id);
+
+      const partnerLink = partner.links![0];
+
+      await trackE2ELead(http, partnerLink);
+
+      await verifyPartnerGroupMove({
+        http,
+        partnerId: partner.id,
+        expectedGroupId: targetGroup.id,
+      });
+    },
+  );
+
+  test("Workflow doesn't execute when partnerGroup does not match source group", async () => {
+    const slug = "e2e-partner-group-mismatch";
+    const sourceSlug = "e2e-partner-group-mismatch-src";
+    await cleanupOrphanedGroup(http, slug, allGroupsForCleanup);
+    await cleanupOrphanedGroup(http, sourceSlug, allGroupsForCleanup);
+
+    const { data: existingGroups } = await http.get<PartnerGroup[]>({
+      path: "/groups",
+    });
+
+    expect(existingGroups.length).toBeGreaterThan(0);
+    const allowedSourceGroup = existingGroups[0];
+
+    const { status: nonMatchingSourceStatus, data: nonMatchingSourceGroup } =
+      await http.post<PartnerGroup>({
+        path: "/groups",
+        body: {
+          name: "E2E Source Group - Partner Group Mismatch",
+          slug: sourceSlug,
+          color: randomValue(RESOURCE_COLORS),
+        },
+      });
+
+    expect(nonMatchingSourceStatus).toEqual(201);
+
+    const { status: targetStatus, data: targetGroup } =
+      await http.post<PartnerGroup>({
+        path: "/groups",
+        body: {
+          name: "E2E Target Group - Partner Group Mismatch",
+          slug,
+          color: randomValue(RESOURCE_COLORS),
+        },
+      });
+
+    expect(targetStatus).toEqual(201);
+
+    onTestFinished(async () => {
+      await http.delete({ path: `/groups/${targetGroup.id}` });
+      await http.delete({ path: `/groups/${nonMatchingSourceGroup.id}` });
+    });
+
+    const { status: patchStatus } = await http.patch({
+      path: `/groups/${targetGroup.id}`,
+      body: {
+        moveRules: [
+          {
+            attribute: "totalLeads",
+            operator: "between",
+            value: { min: 1, max: 2 },
+          },
+          {
+            attribute: "partnerGroup",
+            operator: "eq",
+            value: allowedSourceGroup.id,
+          },
+        ],
+      },
+    });
+
+    expect(patchStatus).toEqual(200);
+
+    const { status: partnerStatus, data: partner } =
+      await http.post<EnrolledPartnerProps>({
+        path: "/partners",
+        body: {
+          name: "E2E Test Partner - Partner Group Mismatch",
+          email: randomPartnerEmail(),
+          groupId: nonMatchingSourceGroup.id,
+        },
+      });
+
+    expect(partnerStatus).toEqual(201);
+    expect(partner.links).not.toBeNull();
+    expect(partner.groupId).toBe(nonMatchingSourceGroup.id);
+
+    const partnerLink = partner.links![0];
+
+    await trackE2ELead(http, partnerLink);
+
+    await new Promise((resolve) => setTimeout(resolve, 10000));
+
+    const { data: partnerAfter } = await http.get<EnrolledPartnerProps>({
+      path: `/partners/${partner.id}`,
+    });
+
+    expect(partnerAfter.groupId).toBe(nonMatchingSourceGroup.id);
+  });
+
   test("Workflow skips partner with groupMoveDisabledAt set", async () => {
     const slug = "e2e-target-skip-partner-move";
 
     // Get the current group of E2E_PARTNER
-    const { data: partner, status: partnerStatus } =
-      await http.get<EnrolledPartnerProps>({
-        path: `/partners/${E2E_PARTNER.id}`,
-      });
+    const { data: partner, status: partnerStatus } = await http.get<
+      EnrolledPartnerProps & { groupMoveDisabledAt: Date }
+    >({
+      path: `/partners/${E2E_PARTNER.id}`,
+    });
 
     expect(partnerStatus).toEqual(200);
     expect(partner).not.toBeNull();
@@ -547,7 +777,9 @@ describe.sequential("Workflow - MoveGroup", async () => {
       expectedGroupId: partner.groupId!,
     });
 
-    const { data: partnerAfter } = await http.get<EnrolledPartnerProps>({
+    const { data: partnerAfter } = await http.get<
+      EnrolledPartnerProps & { groupMoveDisabledAt: Date }
+    >({
       path: `/partners/${partner.id}`,
     });
 

@@ -1,4 +1,4 @@
-import { capitalize, currencyFormatter, DUB_WORDMARK } from "@dub/utils";
+import { currencyFormatter, DUB_WORDMARK } from "@dub/utils";
 import {
   Body,
   Column,
@@ -37,6 +37,11 @@ export default function NewSaleAlertProgramOwner({
     name: "Steven",
     email: "steven@dub.co",
   },
+  customer = {
+    id: "cus_1234567890",
+    name: "Jane Smith",
+    email: "jane@example.com",
+  },
   commission = {
     amount: 1330,
     earnings: 399,
@@ -62,6 +67,11 @@ export default function NewSaleAlertProgramOwner({
     name: string | null;
     email: string | null;
   };
+  customer?: {
+    id: string;
+    name?: string | null;
+    email?: string | null;
+  } | null;
   commission: {
     amount: number;
     earnings: number;
@@ -91,9 +101,7 @@ export default function NewSaleAlertProgramOwner({
     });
   }
 
-  const finalName = user.name
-    ? user.name.split(" ")[0]
-    : capitalize(user.email.split("@")[0]);
+  const customerLabel = customer?.name || customer?.email;
 
   return (
     <Html>
@@ -117,14 +125,17 @@ export default function NewSaleAlertProgramOwner({
             </Heading>
 
             <Text className="text-sm leading-6 text-neutral-600">
-              <strong>{program.name}</strong> earned a sale from a new customer
-              referred by{" "}
-              <strong>
+              <strong className="font-medium text-black">{program.name}</strong>{" "}
+              earned a sale from a new customer referred by{" "}
+              <Link
+                href={`https://app.dub.co/${workspace.slug}/program/partners/${partner.id}`}
+                className="font-medium text-black underline"
+              >
                 {partner.name
                   ? `${partner.name} (${partner.email})`
                   : partner.email}
-              </strong>
-              .
+              </Link>
+              :
             </Text>
 
             <Section className="my-8 w-full">
@@ -132,7 +143,21 @@ export default function NewSaleAlertProgramOwner({
                 <Row>
                   <Column>
                     <Text className="m-0 text-sm leading-6 text-neutral-600">
-                      Sale amount
+                      {customerLabel ? (
+                        <>
+                          Payment from{" "}
+                          <Link
+                            href={`https://app.dub.co/${workspace.slug}/program/customers/${customer.id}`}
+                            className="font-medium text-black underline"
+                          >
+                            <strong className="font-medium text-black">
+                              {customerLabel}
+                            </strong>
+                          </Link>
+                        </>
+                      ) : (
+                        "Sale amount"
+                      )}
                     </Text>
                   </Column>
                   <Column align="right">
@@ -175,7 +200,10 @@ export default function NewSaleAlertProgramOwner({
             {formattedDueDate && (
               <Text className="text-sm leading-6 text-neutral-600">
                 Payment for this commission will be due on{" "}
-                <strong>{formattedDueDate}</strong>, as per this partner group's{" "}
+                <strong className="font-medium text-black">
+                  {formattedDueDate}
+                </strong>
+                , as per this partner group's{" "}
                 <Link
                   href="https://dub.co/help/article/partner-payouts#payout-holding-period"
                   className="font-semibold text-black underline"

@@ -1,4 +1,4 @@
-import { DUB_WORDMARK } from "@dub/utils";
+import { DUB_WORDMARK, getPrettyUrl } from "@dub/utils";
 import {
   Body,
   Column,
@@ -106,7 +106,8 @@ export default function ProgramInvite({
   program = {
     name: "Acme",
     slug: "acme",
-    logo: DUB_WORDMARK,
+    logo: "https://assets.dub.co/misc/acme-logo.png",
+    website: "https://acme.dub.sh",
   },
   rewards = [
     {
@@ -138,6 +139,7 @@ export default function ProgramInvite({
     name: string;
     slug: string;
     logo: string | null;
+    website?: string | null;
   };
   rewards: { icon: string; label: string }[] | null;
   bounties: { icon: string; label: string }[] | null;
@@ -157,11 +159,7 @@ export default function ProgramInvite({
         <Body className="mx-auto my-auto bg-white font-sans">
           <Container className="mx-auto my-8 max-w-[600px] px-8 py-8">
             <Section className="mb-8 mt-6">
-              <Img
-                src={program.logo || "https://assets.dub.co/wordmark.png"}
-                height="32"
-                alt={program.name}
-              />
+              <Img src={DUB_WORDMARK} height="32" alt="Dub" />
             </Section>
 
             <Heading className="bt-5 mx-0 mt-10 p-0 text-lg font-medium text-black">
@@ -195,22 +193,42 @@ export default function ProgramInvite({
               </>
             )}
 
-            <Section className="my-8">
-              <Link
-                className="rounded-lg bg-neutral-900 px-4 py-3 text-xs font-semibold text-white no-underline"
-                href={`https://partners.dub.co/${program.slug}/register?email=${encodeURIComponent(email)}&next=/programs/${program.slug}/invite`}
-              >
-                Accept Invite
-              </Link>
-            </Section>
-
-            {Boolean(rewards?.length || bounties?.length) && (
-              <>
-                <Text className="text-sm leading-6 text-neutral-600">
-                  If you accept the invite, you're immediately eligible for the
-                  following:
-                </Text>
-                <Section className="rounded-xl border border-solid border-neutral-200 bg-neutral-50 px-5 py-4">
+            <>
+              <Text className="text-sm leading-6 text-neutral-600">
+                Here’s more details about the program and what you’ll be
+                eligible to earn:
+              </Text>
+              <Section className="overflow-hidden rounded-xl border border-solid border-neutral-200 bg-white">
+                <Section className="px-5 py-4">
+                  <Row>
+                    <Column className="w-[48px] align-top">
+                      <Img
+                        src={
+                          program.logo ||
+                          "https://assets.dub.co/misc/acme-logo.png"
+                        }
+                        width="40"
+                        height="40"
+                        alt={program.name}
+                        className="rounded-full"
+                      />
+                    </Column>
+                    <Column className="w-full pl-3">
+                      <Text className="my-0 text-base font-semibold leading-5 text-black">
+                        {program.name}
+                      </Text>
+                      {program.website && (
+                        <Link
+                          href={program.website}
+                          className="mt-0 block text-xs font-medium leading-4 text-neutral-500 underline"
+                        >
+                          {getPrettyUrl(program.website)}
+                        </Link>
+                      )}
+                    </Column>
+                  </Row>
+                </Section>
+                <Section className="rounded-xl border-t border-solid border-neutral-200 bg-neutral-50 px-5 py-4">
                   {rewards && Boolean(rewards.length) && (
                     <>
                       <Text className="my-0 text-base font-semibold text-black">
@@ -251,9 +269,15 @@ export default function ProgramInvite({
                       ))}
                     </>
                   )}
+                  <Link
+                    className="mt-5 block rounded-lg bg-neutral-900 px-4 py-3 text-center text-xs font-semibold text-white no-underline"
+                    href={`https://partners.dub.co/${program.slug}/register?email=${encodeURIComponent(email)}&next=/programs/${program.slug}/invite`}
+                  >
+                    View invite
+                  </Link>
                 </Section>
-              </>
-            )}
+              </Section>
+            </>
 
             <Footer email={email} />
           </Container>

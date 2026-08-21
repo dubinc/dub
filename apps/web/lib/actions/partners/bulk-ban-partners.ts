@@ -1,16 +1,16 @@
 "use server";
 
-import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
+import { trackActivityLog } from "@/lib/api/activity-log/track-activity-log";
 import { resolveFraudGroups } from "@/lib/api/fraud/resolve-fraud-groups";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { enqueueBatchJobs } from "@/lib/cron/enqueue-batch-jobs";
+import { prisma } from "@/lib/prisma";
 import {
   ACTIVE_ENROLLMENT_STATUSES,
   bulkBanPartnersSchema,
 } from "@/lib/zod/schemas/partners";
-import { prisma } from "@dub/prisma";
-import { ProgramEnrollmentStatus } from "@dub/prisma/client";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
+import { ProgramEnrollmentStatus } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
 import { throwIfNoPermission } from "../throw-if-no-permission";
@@ -42,6 +42,7 @@ export const bulkBanPartnersAction = authActionClient
         id: true,
         programId: true,
         partnerId: true,
+        status: true,
         partner: {
           select: {
             id: true,
@@ -70,6 +71,7 @@ export const bulkBanPartnersAction = authActionClient
         clickRewardId: null,
         leadRewardId: null,
         saleRewardId: null,
+        referralRewardId: null,
         discountId: null,
       },
     });
@@ -89,20 +91,20 @@ export const bulkBanPartnersAction = authActionClient
 
     waitUntil(
       Promise.allSettled([
-        recordAuditLog(
-          programEnrollments.map(({ partner }) => ({
+        trackActivityLog(
+          programEnrollments.map(({ partnerId, status }) => ({
             workspaceId: workspace.id,
             programId,
+            resourceType: "partner",
+            resourceId: partnerId,
+            userId: user.id,
             action: "partner.banned",
-            description: `Partner ${partner.id} banned`,
-            actor: user,
-            targets: [
-              {
-                type: "partner",
-                id: partner.id,
-                metadata: partner,
+            changeSet: {
+              status: {
+                old: status,
+                new: "banned",
               },
-            ],
+            },
           })),
         ),
 

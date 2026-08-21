@@ -93,6 +93,7 @@ export function extractWorkspaceLinkFilters(params: {
   folderId?: ParsedFilter;
   tagId?: ParsedFilter;
   partnerId?: ParsedFilter;
+  partnerTagId?: ParsedFilter;
   groupId?: ParsedFilter;
   tenantId?: ParsedFilter;
 }) {
@@ -108,6 +109,7 @@ export function extractWorkspaceLinkFilters(params: {
   const tagId = extractFilter(params.tagId);
   const folderId = extractFilter(params.folderId);
   const partnerId = extractFilter(params.partnerId);
+  const partnerTagId = extractFilter(params.partnerTagId);
   const groupId = extractFilter(params.groupId);
   const tenantId = extractFilter(params.tenantId);
 
@@ -122,6 +124,8 @@ export function extractWorkspaceLinkFilters(params: {
     folderIdOperator: folderId.operator,
     partnerId: partnerId.values,
     partnerIdOperator: partnerId.operator,
+    partnerTagId: partnerTagId.values,
+    partnerTagIdOperator: partnerTagId.operator,
     groupId: groupId.values,
     groupIdOperator: groupId.operator,
     tenantId: tenantId.values,
@@ -171,4 +175,21 @@ export function buildAdvancedFilters(
   }
 
   return filters;
+}
+
+/**
+ * Returns true when the linkId filter scopes analytics to exactly one link.
+ * Used to omit top_links.csv from exports, since that breakdown is redundant
+ * for a single-link view.
+ */
+export function hasExactlyOneLinkIdFilter(
+  linkId: string | ParsedFilter | undefined,
+): boolean {
+  if (!linkId) return false;
+  if (typeof linkId === "string") return linkId.length > 0;
+  return (
+    linkId.sqlOperator === "IN" &&
+    linkId.values.length === 1 &&
+    linkId.values[0].length > 0
+  );
 }

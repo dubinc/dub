@@ -1,13 +1,17 @@
 import { trackCommissionStatusUpdate } from "@/lib/api/commissions/track-commission-update-activity-log";
 import { syncTotalCommissions } from "@/lib/api/partners/sync-total-commissions";
+import { prisma } from "@/lib/prisma";
 import { stripeAppClient } from "@/lib/stripe";
-import { StripeMode } from "@/lib/types";
-import { prisma } from "@dub/prisma";
 import type Stripe from "stripe";
+import { WebhookHandlerInput, WebhookHandlerResponse } from "./types";
 
 // Handle event "charge.refunded"
-export async function chargeRefunded(event: Stripe.Event, mode: StripeMode) {
-  const charge = event.data.object as Stripe.Charge;
+export async function chargeRefunded({
+  event,
+  mode,
+  workspace,
+}: WebhookHandlerInput<Stripe.ChargeRefundedEvent>): Promise<WebhookHandlerResponse> {
+  const charge = event.data.object;
   const stripeAccountId = event.account as string;
 
   const stripe = stripeAppClient({
@@ -31,32 +35,22 @@ export async function chargeRefunded(event: Stripe.Event, mode: StripeMode) {
     invoicePayments.data.length > 0 ? invoicePayments.data[0] : null;
 
   if (!invoicePayment || !invoicePayment.invoice) {
-    return `Charge ${charge.id} has no invoice, skipping...`;
+    return {
+      response: `Charge ${charge.id} has no invoice, skipping...`,
+    };
   }
 
-  const workspace = await prisma.project.findUnique({
-    where: {
-      stripeConnectId: stripeAccountId,
-    },
-    select: {
-      id: true,
-      programs: true,
-    },
-  });
-
-  if (!workspace) {
-    return `Workspace not found for stripe account ${stripeAccountId}`;
-  }
-
-  if (!workspace.programs.length) {
-    return `Workspace ${workspace.id} for stripe account ${stripeAccountId} has no programs, skipping...`;
+  if (!workspace.defaultProgramId) {
+    return {
+      response: `Workspace ${workspace.id} for stripe account ${stripeAccountId} has no program, skipping...`,
+    };
   }
 
   const commission = await prisma.commission.findUnique({
     where: {
       invoiceId_programId: {
         invoiceId: invoicePayment.invoice as string,
-        programId: workspace.programs[0].id,
+        programId: workspace.defaultProgramId,
       },
     },
     select: {
@@ -71,11 +65,15 @@ export async function chargeRefunded(event: Stripe.Event, mode: StripeMode) {
   });
 
   if (!commission) {
-    return `Commission not found for invoice ${invoicePayment.invoice}`;
+    return {
+      response: `Commission not found for invoice ${invoicePayment.invoice}`,
+    };
   }
 
   if (commission.status === "paid") {
-    return `Commission ${commission.id} is already paid, skipping...`;
+    return {
+      response: `Commission ${commission.id} is already paid, skipping...`,
+    };
   }
 
   // if the commission is processed and has a payout, we need to update the payout total
@@ -122,5 +120,7 @@ export async function chargeRefunded(event: Stripe.Event, mode: StripeMode) {
     newStatus: "refunded",
   });
 
-  return `Commission ${commission.id} updated to status "refunded"`;
+  return {
+    response: `Commission ${commission.id} updated to status "refunded"`,
+  };
 }

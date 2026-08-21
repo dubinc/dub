@@ -2,19 +2,21 @@ import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { DubApiError } from "@/lib/api/errors";
 import { getGroupOrThrow } from "@/lib/api/groups/get-group-or-throw";
 import { movePartnersToGroup } from "@/lib/api/groups/move-partners-to-group";
+import { removeGroupIdFromMoveRules } from "@/lib/api/groups/remove-group-id-from-move-rules";
 import { upsertGroupMoveRules } from "@/lib/api/groups/upsert-group-move-rules";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { extractUtmParams } from "@/lib/api/utm/extract-utm-params";
 import { withWorkspace } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
+import { prisma } from "@/lib/prisma";
 import { GroupWithProgramSchema } from "@/lib/zod/schemas/group-with-program";
 import {
   DEFAULT_PARTNER_GROUP,
   GroupSchema,
+  sanitizeAdditionalLinks,
   updateGroupSchema,
 } from "@/lib/zod/schemas/groups";
-import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK, constructURLFromUTMParams } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
@@ -35,14 +37,7 @@ export const GET = withWorkspace(
   },
   {
     requiredPermissions: ["groups.read"],
-    requiredPlan: [
-      "business",
-      "business extra",
-      "business max",
-      "business plus",
-      "advanced",
-      "enterprise",
-    ],
+    requiredPlan: ["business", "advanced", "enterprise"],
   },
 );
 
@@ -140,7 +135,9 @@ export const PATCH = withWorkspace(
           name,
           slug,
           color,
-          additionalLinks,
+          ...(additionalLinks !== undefined && {
+            additionalLinks: sanitizeAdditionalLinks(additionalLinks),
+          }),
           maxPartnerLinks,
           linkStructure,
           utmTemplateId,
@@ -162,6 +159,7 @@ export const PATCH = withWorkspace(
           clickReward: true,
           leadReward: true,
           saleReward: true,
+          referralReward: true,
           discount: true,
         },
       }),
@@ -257,14 +255,7 @@ export const PATCH = withWorkspace(
   },
   {
     requiredPermissions: ["groups.write"],
-    requiredPlan: [
-      "business",
-      "business extra",
-      "business max",
-      "business plus",
-      "advanced",
-      "enterprise",
-    ],
+    requiredPlan: ["business", "advanced", "enterprise"],
   },
 );
 
@@ -300,6 +291,13 @@ export const DELETE = withWorkspace(
       }),
     ]);
 
+    if (group.programId !== programId) {
+      throw new DubApiError({
+        code: "forbidden",
+        message: `Group "${groupIdOrSlug}" not found in your program.`,
+      });
+    }
+
     if (group.slug === DEFAULT_PARTNER_GROUP.slug) {
       throw new DubApiError({
         code: "forbidden",
@@ -334,6 +332,7 @@ export const DELETE = withWorkspace(
       group.clickRewardId,
       group.leadRewardId,
       group.saleRewardId,
+      group.referralRewardId,
     ].filter(Boolean) as string[];
 
     if (groupRewardIds.length > 0) {
@@ -388,20 +387,27 @@ export const DELETE = withWorkspace(
 
     if (deletedGroup) {
       waitUntil(
-        recordAuditLog({
-          workspaceId: workspace.id,
-          programId,
-          action: "group.deleted",
-          description: `Group ${group.name} (${group.id}) deleted`,
-          actor: session.user,
-          targets: [
-            {
-              type: "group",
-              id: group.id,
-              metadata: group,
-            },
-          ],
-        }),
+        Promise.allSettled([
+          recordAuditLog({
+            workspaceId: workspace.id,
+            programId,
+            action: "group.deleted",
+            description: `Group ${group.name} (${group.id}) deleted`,
+            actor: session.user,
+            targets: [
+              {
+                type: "group",
+                id: group.id,
+                metadata: group,
+              },
+            ],
+          }),
+
+          removeGroupIdFromMoveRules({
+            programId,
+            groupId: group.id,
+          }),
+        ]),
       );
     }
 
@@ -409,13 +415,6 @@ export const DELETE = withWorkspace(
   },
   {
     requiredPermissions: ["groups.write"],
-    requiredPlan: [
-      "business",
-      "business extra",
-      "business max",
-      "business plus",
-      "advanced",
-      "enterprise",
-    ],
+    requiredPlan: ["business", "advanced", "enterprise"],
   },
 );

@@ -1,6 +1,6 @@
 "use client";
 
-import { useProgramMessages } from "@/lib/swr/use-program-messages";
+import { useProgramMessages } from "@/lib/messages/hooks/use-program-messages";
 import { NavButton } from "@/ui/layout/page-content/nav-button";
 import { MessagesContext, MessagesPanel } from "@/ui/messages/messages-context";
 import { MessagesList } from "@/ui/messages/messages-list";

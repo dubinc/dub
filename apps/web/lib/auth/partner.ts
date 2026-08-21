@@ -1,12 +1,18 @@
-import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
+import { DubApiError, handleApiError } from "@/lib/api/errors";
 import { withAxiom } from "@/lib/axiom/server";
+import { prisma } from "@/lib/prisma";
 import { PartnerBetaFeatures, PartnerProps } from "@/lib/types";
 import { flattenVeriffMetadata } from "@/lib/veriff/veriff-metadata";
-import { prisma } from "@dub/prisma";
-import { PartnerUser } from "@dub/prisma/client";
-import { getSearchParams, PARTNERS_DOMAIN } from "@dub/utils";
+import {
+  getSearchParams,
+  NETWORK_PROGRAM_ID,
+  NETWORK_PROGRAM_SLUG,
+  PARTNERS_DOMAIN,
+} from "@dub/utils";
+import { PartnerUser } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { headers } from "next/headers";
+import { NextResponse } from "next/server";
 import { getPartnerFeatureFlags } from "../edge-config";
 import { ratelimit } from "../upstash";
 import { partnerPlatformSchema } from "../zod/schemas/partners";
@@ -68,8 +74,25 @@ export const withPartnerProfile = (
       let apiKey: string | undefined;
       let requestHeaders = await headers();
       let responseHeaders = new Headers();
+      let partner: Pick<PartnerProps, "id"> | undefined;
 
       try {
+        // Restrict access to the network program
+        const programIdParam = params.programId?.toLowerCase();
+
+        if (
+          programIdParam &&
+          [
+            NETWORK_PROGRAM_ID.toLowerCase(),
+            NETWORK_PROGRAM_SLUG.toLowerCase(),
+          ].includes(programIdParam)
+        ) {
+          throw new DubApiError({
+            code: "not_found",
+            message: "Program not found.",
+          });
+        }
+
         const authorizationHeader = requestHeaders.get("Authorization");
         if (authorizationHeader) {
           if (!authorizationHeader.startsWith("Bearer ")) {
@@ -174,12 +197,17 @@ export const withPartnerProfile = (
         }
 
         const { defaultPartnerId, id: userId } = session.user;
+
         if (!defaultPartnerId) {
           throw new DubApiError({
             code: "not_found",
             message: "Partner profile not found.",
           });
         }
+
+        partner = {
+          id: defaultPartnerId,
+        };
 
         // Check API rate limit
         const url = new URL(req.url || "", PARTNERS_DOMAIN);
@@ -224,9 +252,6 @@ export const withPartnerProfile = (
                 salesChannels: true,
                 platforms: true,
               },
-              omit: {
-                veriffIdentityHash: true,
-              },
             },
           },
         });
@@ -263,7 +288,7 @@ export const withPartnerProfile = (
           preferredEarningStructures,
           salesChannels,
           platforms,
-          ...partner
+          ...partnerProps
         } = partnerUser.partner;
 
         return await handler({
@@ -272,7 +297,7 @@ export const withPartnerProfile = (
           searchParams,
           session,
           partner: {
-            ...flattenVeriffMetadata(partner),
+            ...flattenVeriffMetadata(partnerProps),
             industryInterests: industryInterests.map(
               ({ industryInterest }) => industryInterest,
             ),
@@ -290,8 +315,16 @@ export const withPartnerProfile = (
           },
           headers: responseHeaders,
         });
-      } catch (error) {
-        return handleAndReturnErrorResponse(error, responseHeaders);
+      } catch (err) {
+        const { error, status } = handleApiError({
+          error: err,
+          partner,
+        });
+
+        return NextResponse.json(
+          { error },
+          { headers: responseHeaders, status },
+        );
       }
     },
   );

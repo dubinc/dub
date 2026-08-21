@@ -1,7 +1,6 @@
 import { FAST_ACH_FEE_CENTS } from "@/lib/constants/payouts";
+import { prisma } from "@/lib/prisma";
 import { stripe } from "@/lib/stripe";
-import { prisma } from "@dub/prisma";
-import { Invoice, Project } from "@dub/prisma/client";
 import {
   APP_DOMAIN,
   currencyFormatter,
@@ -11,6 +10,7 @@ import {
   nFormatter,
   OG_AVATAR_URL,
 } from "@dub/utils";
+import { Invoice, Project } from "@prisma/client";
 import {
   Document,
   Image,
@@ -182,6 +182,18 @@ export async function PartnerPayoutInvoice({
       label: "Invoice total",
       value: `${currencyFormatter(invoice.total)}${nonUsdTransactionDisplay}`,
     },
+    ...(invoice.refundedAmount > 0
+      ? [
+          {
+            label: "Refunded amount",
+            value: `-${currencyFormatter(invoice.refundedAmount)}`,
+          },
+          {
+            label: "Refund reason",
+            value: invoice.refundReason ?? "-",
+          },
+        ]
+      : []),
     // if customer is in EU or AU, add VAT/GST reverse charge note
     ...(EU_CUSTOMER || AU_CUSTOMER
       ? [
@@ -368,15 +380,16 @@ export async function PartnerPayoutInvoice({
             ))}
 
             {/* Stacked avatars and View +N more row */}
-            {(hiddenPayouts.length > 0 || remainingPayoutsTotal > 0) && (
-              <View
-                style={tw(
-                  "flex-row items-center gap-2 p-3.5 w-full text-sm font-medium text-neutral-700 border-neutral-200 border-t",
-                )}
-              >
-                {/* Stacked avatars for hidden partners */}
-                <View style={tw("flex-row -space-x-1")}>
-                  {hiddenPayouts.slice(0, 4).map((payout, index) => (
+            <View
+              style={tw(
+                "flex-row items-center gap-2 p-3.5 w-full text-sm font-medium text-neutral-700 border-neutral-200 border-t",
+              )}
+            >
+              {/* Stacked avatars for hidden partners */}
+              <View style={tw("flex-row -space-x-1")}>
+                {(hiddenPayouts.length > 0 ? hiddenPayouts : visiblePayouts)
+                  .slice(0, 4)
+                  .map((payout, index) => (
                     <Image
                       key={index}
                       src={
@@ -388,19 +401,25 @@ export async function PartnerPayoutInvoice({
                       )}
                     />
                   ))}
-                </View>
-                <Link
-                  href={`${APP_DOMAIN}/${workspace.slug}/program/payouts?invoiceId=${invoice.id}`}
-                  style={tw("text-blue-600")}
-                >
-                  View +
-                  {nFormatter(hiddenPayouts.length + remainingPayoutsTotal, {
-                    full: true,
-                  })}{" "}
-                  more payouts
-                </Link>
               </View>
-            )}
+              <Link
+                href={`${APP_DOMAIN}/${workspace.slug}/program/payouts?invoiceId=${invoice.id}`}
+                style={tw("text-blue-600")}
+              >
+                View{" "}
+                {hiddenPayouts.length
+                  ? `+ ${nFormatter(
+                      hiddenPayouts.length + remainingPayoutsTotal,
+                      {
+                        full: true,
+                      },
+                    )} more payouts`
+                  : visiblePayouts.length > 1
+                    ? "all payouts"
+                    : "payout"}{" "}
+                in Dub
+              </Link>
+            </View>
           </View>
         )}
 

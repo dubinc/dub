@@ -1,5 +1,5 @@
-import { publishPartnerActivityEvent } from "@/lib/upstash/redis-streams";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
+import { publishPartnerActivityEvent } from "@/lib/upstash/redis-streams/partner-activity";
 
 async function aggregateAndUpdateTotalCommissions({
   partnerId,
@@ -37,15 +37,10 @@ async function aggregateAndUpdateTotalCommissions({
 export const syncTotalCommissions = async ({
   partnerId,
   programId,
-  mode = "queue",
 }: {
   partnerId: string;
   programId: string;
-  mode?: "queue" | "direct";
 }) => {
-  if (mode === "direct") {
-    return await aggregateAndUpdateTotalCommissions({ partnerId, programId });
-  }
   try {
     return await publishPartnerActivityEvent({
       programId,

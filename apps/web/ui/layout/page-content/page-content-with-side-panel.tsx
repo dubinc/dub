@@ -77,7 +77,7 @@ export function PageContentWithSidePanel({
           />
           <div
             className={cn(
-              "grow rounded-t-[inherit] bg-white pt-3 lg:pt-6",
+              "grow rounded-t-[inherit] bg-white pt-3 lg:pt-5",
               individualScrolling && "scrollbar-hide min-h-0 overflow-y-auto",
               contentWrapperClassName,
             )}

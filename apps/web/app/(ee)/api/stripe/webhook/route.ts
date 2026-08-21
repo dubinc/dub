@@ -2,10 +2,12 @@ import { stripe } from "@/lib/stripe";
 import { log } from "@dub/utils";
 import Stripe from "stripe";
 import { logAndRespond } from "../../cron/utils";
+import { chargeDisputeCreated } from "./charge-dispute-created";
 import { chargeFailed } from "./charge-failed";
 import { chargeRefunded } from "./charge-refunded";
 import { chargeSucceeded } from "./charge-succeeded";
 import { checkoutSessionCompleted } from "./checkout-session-completed";
+import { customerSubscriptionCreated } from "./customer-subscription-created";
 import { customerSubscriptionDeleted } from "./customer-subscription-deleted";
 import { customerSubscriptionUpdated } from "./customer-subscription-updated";
 import { invoicePaymentFailed } from "./invoice-payment-failed";
@@ -16,7 +18,9 @@ const relevantEvents = new Set([
   "charge.succeeded",
   "charge.failed",
   "charge.refunded",
+  "charge.dispute.created",
   "checkout.session.completed",
+  "customer.subscription.created",
   "customer.subscription.updated",
   "customer.subscription.deleted",
   "invoice.payment_failed",
@@ -59,8 +63,14 @@ export const POST = async (req: Request) => {
       case "charge.refunded":
         response = await chargeRefunded(event);
         break;
+      case "charge.dispute.created":
+        response = await chargeDisputeCreated(event);
+        break;
       case "checkout.session.completed":
         response = await checkoutSessionCompleted(event);
+        break;
+      case "customer.subscription.created":
+        response = await customerSubscriptionCreated(event);
         break;
       case "customer.subscription.updated":
         response = await customerSubscriptionUpdated(event);

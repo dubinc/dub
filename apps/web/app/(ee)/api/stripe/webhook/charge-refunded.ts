@@ -1,10 +1,10 @@
 import { setRenewOption } from "@/lib/dynadot/set-renew-option";
-import { prisma } from "@dub/prisma";
-import { Invoice } from "@dub/prisma/client";
+import { prisma } from "@/lib/prisma";
+import { Invoice } from "@prisma/client";
 import Stripe from "stripe";
 
-export async function chargeRefunded(event: Stripe.Event) {
-  const charge = event.data.object as Stripe.Charge;
+export async function chargeRefunded(event: Stripe.ChargeRefundedEvent) {
+  const charge = event.data.object;
 
   const { transfer_group: invoiceId } = charge;
 

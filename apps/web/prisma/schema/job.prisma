@@ -1,0 +1,15 @@
+// Background jobs that could not be published to QStash (e.g. QStash outage).
+// The /api/cron/queue/retry cron republishes these and deletes them on success.
+model Job {
+  id           String    @id
+  name         String
+  payload      Json
+  options      Json? // dispatch options replayed verbatim: deduplicationId, retries, queue, flowControl, label
+  scheduledFor DateTime? // absolute time the job should run (derived from delay/notBefore at dispatch time)
+  attempts     Int       @default(0)
+  lastError    String?   @db.Text
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@index([createdAt])
+}

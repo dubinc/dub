@@ -1,13 +1,11 @@
+import { triggerAggregateDueCommissionsCronJob } from "@/lib/actions/partners/trigger-aggregate-due-commissions";
 import { isFirstConversion } from "@/lib/analytics/is-first-conversion";
 import { createId } from "@/lib/api/create-id";
 import { updateLinkStatsForImporter } from "@/lib/api/links/update-link-stats-for-importer";
 import { syncPartnerLinksStats } from "@/lib/api/partners/sync-partner-links-stats";
 import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
-import { qstash } from "@/lib/cron";
-import {
-  createPartnerCommission,
-  CreatePartnerCommissionProps,
-} from "@/lib/partners/create-partner-commission";
+import { queuePartnerCommissionCreation } from "@/lib/partners/queue-partner-commission-creation";
+import { prisma } from "@/lib/prisma";
 import { getCustomerEventsTB } from "@/lib/tinybird/get-customer-events-tb";
 import {
   recordClickZod,
@@ -15,10 +13,10 @@ import {
 } from "@/lib/tinybird/record-click-zod";
 import { recordLeadWithTimestamp } from "@/lib/tinybird/record-lead";
 import { recordSaleWithTimestamp } from "@/lib/tinybird/record-sale";
+import { CreatePartnerCommissionProps } from "@/lib/types";
 import { leadEventSchemaTB } from "@/lib/zod/schemas/leads";
 import { saleEventSchemaTB } from "@/lib/zod/schemas/sales";
-import { prisma } from "@dub/prisma";
-import { APP_DOMAIN_WITH_NGROK, nanoid, prettyPrint } from "@dub/utils";
+import { nanoid } from "@dub/utils";
 import "dotenv-flow/config";
 import * as z from "zod/v4";
 
@@ -130,7 +128,6 @@ async function main() {
         eventId: leadEventData.event_id,
         quantity: 1,
         createdAt: new Date(leadEventData.timestamp + "Z"), // add the "Z" to the timestamp to make it UTC
-        user,
         context: {
           customer: { country: customer.country },
         },
@@ -316,15 +313,14 @@ async function main() {
   console.log("Commissions to create: ", commissionsToCreate);
   await Promise.allSettled(
     commissionsToCreate.map((commission) =>
-      createPartnerCommission({ ...commission, skipWorkflow: true }),
+      queuePartnerCommissionCreation({ ...commission, skipWorkflow: true }),
     ),
   );
 
   if (["lead", "sale"].includes(commissionType)) {
     await Promise.allSettled([
       executeWorkflows({
-        trigger: "partnerMetricsUpdated",
-        reason: "commission",
+        event: "commissionRecorded",
         identity: {
           workspaceId,
           programId,
@@ -346,13 +342,7 @@ async function main() {
     ]);
   }
 
-  const qstashResponse = await qstash.publishJSON({
-    url: `${APP_DOMAIN_WITH_NGROK}/api/cron/payouts/aggregate-due-commissions`,
-    body: { programId },
-  });
-  console.log(
-    `Triggered aggregate due commissions cron job for program ${programId}: ${prettyPrint(qstashResponse)}`,
-  );
+  await triggerAggregateDueCommissionsCronJob(programId);
 }
 
 main();

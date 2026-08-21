@@ -4,7 +4,6 @@ import usePartnerPayoutsCount from "@/lib/swr/use-partner-payouts-count";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { ConnectPayoutButton } from "@/ui/partners/payouts/connect-payout-button";
 import { AlertCircleFill } from "@/ui/shared/icons";
-import { PayoutStatus } from "@dub/prisma/client";
 import {
   AnimatedSizeContainer,
   ChevronRight,
@@ -12,6 +11,7 @@ import {
   Tooltip,
 } from "@dub/ui";
 import { currencyFormatter } from "@dub/utils";
+import { PayoutStatus } from "@prisma/client";
 import Link from "next/link";
 import { memo } from "react";
 
@@ -42,7 +42,7 @@ export const PayoutStats = memo(() => {
             <div className="flex items-center gap-1">
               {partner && !partner.payoutsEnabledAt && (
                 <Tooltip
-                  content="You need to connect your payout account to be able to receive payouts from the programs you are enrolled in. [Learn more](https://dub.co/help/article/receiving-payouts)"
+                  content="You need to [connect your payout account](/payouts?settings=true) to be able to receive payouts from the programs you are enrolled in. [Learn more](https://dub.co/help/article/receiving-payouts)"
                   side="right"
                 >
                   <div>

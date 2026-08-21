@@ -1,12 +1,12 @@
 "use client";
 
 import usePartnerRewind from "@/lib/swr/use-partner-rewind";
+import { ProgramMarketplaceBanner } from "@/ui/program-marketplace/program-marketplace-banner";
 import { X } from "@/ui/shared/icons";
 import { Button, Grid, buttonVariants } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { AnimatePresence, motion } from "motion/react";
 import Link from "next/link";
-import { ProgramMarketplaceBanner } from "../program-marketplace/program-marketplace-banner";
 import { usePartnerRewindStatus } from "./use-partner-rewind-status";
 
 export function PartnerRewindBanner() {

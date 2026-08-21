@@ -22,8 +22,9 @@ export const getCustomers: ZodOpenApiOperationObject = {
       nextCursor: "$[-1].id",
     },
   },
-  summary: "Retrieve a list of customers",
-  description: "Retrieve a list of customers for the authenticated workspace.",
+  summary: "List all customers",
+  description:
+    "Retrieve a paginated list of customers for the authenticated workspace.",
   requestParams: {
     query: getCustomersQuerySchema,
   },

@@ -1,10 +1,10 @@
 "use server";
 
 import { getIP } from "@/lib/api/utils/get-ip";
+import { prisma } from "@/lib/prisma";
 import { storage } from "@/lib/storage";
 import { ratelimit } from "@/lib/upstash";
-import { RATE_LIMITS } from "@/lib/upstash/ratelimit-policy";
-import { prisma } from "@dub/prisma";
+import { RATELIMIT_POLICIES } from "@/lib/upstash/ratelimit-policies";
 import { nanoid, R2_URL } from "@dub/utils";
 import * as z from "zod/v4";
 import { actionClient } from "../safe-action";
@@ -13,7 +13,7 @@ const inputSchema = z.object({
   programSlug: z.string().trim().toLowerCase().min(1),
 });
 
-const rateLimitPolicy = RATE_LIMITS.programImageUpload;
+const rateLimitPolicy = RATELIMIT_POLICIES.programImageUpload;
 
 export const uploadProgramApplicationImageAction = actionClient
   .inputSchema(inputSchema)

@@ -1,8 +1,8 @@
-import { createDiscountCode } from "@/lib/api/discounts/create-discount-code";
+import { DubApiError } from "@/lib/api/errors";
 import { withCron } from "@/lib/cron/with-cron";
-import { stripeIntegrationSettingsSchema } from "@/lib/integrations/stripe/schema";
-import { prisma } from "@dub/prisma";
-import { STRIPE_INTEGRATION_ID } from "@dub/utils";
+import { createDiscountCode } from "@/lib/discounts/create-discount-code";
+import { isNonRecoverableDiscountError } from "@/lib/discounts/discount-error";
+import { prisma } from "@/lib/prisma";
 import * as z from "zod/v4";
 import { logAndRespond } from "../../utils";
 
@@ -45,12 +45,9 @@ export const POST = withCron(async ({ rawBody }) => {
       project: {
         select: {
           id: true,
+          webhookEnabled: true,
           stripeConnectId: true,
-          installedIntegrations: {
-            where: {
-              integrationId: STRIPE_INTEGRATION_ID,
-            },
-          },
+          shopifyStoreId: true,
         },
       },
     },
@@ -76,20 +73,10 @@ export const POST = withCron(async ({ rawBody }) => {
     );
   }
 
-  const { project: workspace, programEnrollment } = link;
-  const { partner, discount, program } = programEnrollment;
-
-  if (!workspace.stripeConnectId) {
-    return logAndRespond(
-      `Workspace ${workspace.id} does not have stripeConnectId set. Skipping...`,
-    );
-  }
-
-  if (!workspace.installedIntegrations.length) {
-    return logAndRespond(
-      `Workspace ${workspace.id} does not have the Stripe integration installed. Skipping...`,
-    );
-  }
+  const {
+    project: workspace,
+    programEnrollment: { program, partner, discount },
+  } = link;
 
   if (!discount) {
     return logAndRespond(
@@ -97,17 +84,27 @@ export const POST = withCron(async ({ rawBody }) => {
     );
   }
 
-  const stripeIntegrationSettings = stripeIntegrationSettingsSchema.parse(
-    workspace.installedIntegrations[0].settings || {},
-  );
+  try {
+    await createDiscountCode({
+      workspace,
+      partner,
+      link,
+      discount,
+    });
+  } catch (error) {
+    if (isNonRecoverableDiscountError(error)) {
+      return logAndRespond(error.message, { logLevel: "warn" });
+    }
 
-  await createDiscountCode({
-    stripeConnectId: workspace.stripeConnectId,
-    stripeMode: stripeIntegrationSettings.stripeMode,
-    partner,
-    link,
-    discount,
-  });
+    if (
+      error instanceof DubApiError &&
+      (error.code === "conflict" || error.code === "bad_request")
+    ) {
+      return logAndRespond(error.message, { logLevel: "warn" });
+    }
+
+    throw error;
+  }
 
   return logAndRespond(`Discount code created for link ${linkId}.`);
 });

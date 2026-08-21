@@ -1,0 +1,26 @@
+export const TREMENDOUS_MIN_PAYOUT_AMOUNT_CENTS = 500; // $5
+export const TREMENDOUS_MAX_PAYOUT_AMOUNT_CENTS = 2000_00; // $2,000
+
+// https://api.tremendous.com/prohibited_top_level_domains.txt
+export const TREMENDOUS_PROHIBITED_TOP_LEVEL_DOMAINS = [
+  ".af",
+  ".by",
+  ".cu",
+  ".ir",
+  ".iq",
+  ".mm",
+  ".kp",
+  ".ru",
+  ".su",
+  ".рф",
+  ".sy",
+  ".ua",
+  ".ve",
+  ".ye",
+];
+
+export const TREMENDOUS_PRODUCT_IDS = [
+  "A2J05SWPI2QG", // Virtual Visa
+  "Q24BD9EZ332JT", // Physical Visa
+  "OKMHM2X2OHYV", // Amazon.com
+];

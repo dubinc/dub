@@ -1,4 +1,4 @@
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import "dotenv-flow/config";
 
 // fix approved partners with no groups
@@ -48,6 +48,7 @@ async function main() {
       clickRewardId: group.clickRewardId,
       leadRewardId: group.leadRewardId,
       saleRewardId: group.saleRewardId,
+      referralRewardId: group.referralRewardId,
       discountId: group.discountId,
     },
   });

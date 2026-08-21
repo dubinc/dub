@@ -33,11 +33,15 @@ class ToltImporter {
     return await redis.del(`${CACHE_KEY_PREFIX}:${workspaceId}`);
   }
 
-  async queue(body: z.infer<typeof toltImportPayloadSchema>) {
+  async queue(
+    body: z.infer<typeof toltImportPayloadSchema>,
+    options?: { delay?: number },
+  ) {
     return await qstash.publishJSON({
       url: `${APP_DOMAIN_WITH_NGROK}/api/cron/import/tolt`,
       body,
       contentBasedDeduplication: true,
+      ...(options?.delay != null && { delay: options.delay }),
     });
   }
 

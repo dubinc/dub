@@ -1,5 +1,10 @@
 import * as z from "zod/v4";
 
+export const scrapedCountSchema = z
+  .number()
+  .nullish()
+  .transform((val) => Math.round(val ?? 0));
+
 export const socialProfileSchema = z.preprocess(
   (data: any) => {
     if (typeof data === "object" && data !== null) {
@@ -65,18 +70,9 @@ export const socialProfileSchema = z.preprocess(
       platform: z.literal("youtube"),
       description: z.string(),
       channelId: z.string(),
-      videoCount: z
-        .number()
-        .nullish()
-        .transform((val) => val ?? 0),
-      subscriberCount: z
-        .number()
-        .nullish()
-        .transform((val) => val ?? 0),
-      viewCount: z
-        .number()
-        .nullish()
-        .transform((val) => val ?? 0),
+      videoCount: scrapedCountSchema,
+      subscriberCount: scrapedCountSchema,
+      viewCount: scrapedCountSchema,
       avatar: z.object({
         image: z.object({
           sources: z.array(
@@ -96,16 +92,10 @@ export const socialProfileSchema = z.preprocess(
         user: z.object({
           biography: z.string(),
           edge_followed_by: z.object({
-            count: z
-              .number()
-              .nullish()
-              .transform((val) => val ?? 0),
+            count: scrapedCountSchema,
           }),
           edge_owner_to_timeline_media: z.object({
-            count: z
-              .number()
-              .nullish()
-              .transform((val) => val ?? 0),
+            count: scrapedCountSchema,
           }),
           profile_pic_url: z.url().nullish().default(null),
         }),
@@ -121,18 +111,9 @@ export const socialProfileSchema = z.preprocess(
         avatarThumb: z.url().nullish().default(null),
       }),
       stats: z.object({
-        followerCount: z
-          .number()
-          .nullish()
-          .transform((val) => val ?? 0),
-        videoCount: z
-          .number()
-          .nullish()
-          .transform((val) => val ?? 0),
-        heartCount: z
-          .number()
-          .nullish()
-          .transform((val) => val ?? 0),
+        followerCount: scrapedCountSchema,
+        videoCount: scrapedCountSchema,
+        heartCount: scrapedCountSchema,
       }),
     }),
 
@@ -141,14 +122,8 @@ export const socialProfileSchema = z.preprocess(
       rest_id: z.string(),
       legacy: z.object({
         description: z.string(),
-        followers_count: z
-          .number()
-          .nullish()
-          .transform((val) => val ?? 0),
-        statuses_count: z
-          .number()
-          .nullish()
-          .transform((val) => val ?? 0),
+        followers_count: scrapedCountSchema,
+        statuses_count: scrapedCountSchema,
       }),
       avatar: z.object({
         image_url: z.url().nullish().default(null),
@@ -211,14 +186,8 @@ export const socialContentSchema = z.preprocess(
         id: z.string(),
         handle: z.string(),
       }),
-      viewCountInt: z
-        .number()
-        .nullable()
-        .transform((val) => val ?? 0),
-      likeCountInt: z
-        .number()
-        .nullable()
-        .transform((val) => val ?? 0),
+      viewCountInt: scrapedCountSchema,
+      likeCountInt: scrapedCountSchema,
       title: z.string().nullish(),
       description: z.string().nullish(),
       thumbnailUrl: z.string().nullish(),
@@ -230,15 +199,10 @@ export const socialContentSchema = z.preprocess(
       owner: z.object({
         username: z.string(),
       }),
-      video_play_count: z
-        .number()
-        .nullish()
-        .transform((val) => val ?? 0),
+      video_play_count: scrapedCountSchema,
+      video_view_count: scrapedCountSchema,
       edge_media_preview_like: z.object({
-        count: z
-          .number()
-          .nullable()
-          .transform((val) => val ?? 0),
+        count: scrapedCountSchema,
       }),
       edge_media_to_caption: z
         .object({
@@ -281,14 +245,11 @@ export const socialContentSchema = z.preprocess(
         count: z
           .string()
           .nullable()
-          .transform((val) => (val == null ? 0 : Number(val))),
+          .transform((val) => (val == null ? 0 : Math.round(Number(val)))),
       }),
       legacy: z.object({
         created_at: z.string(),
-        favorite_count: z
-          .number()
-          .nullable()
-          .transform((val) => val ?? 0),
+        favorite_count: scrapedCountSchema,
         full_text: z.string().optional(),
       }),
     }),
@@ -300,14 +261,8 @@ export const socialContentSchema = z.preprocess(
         unique_id: z.string(),
       }),
       statistics: z.object({
-        play_count: z
-          .number()
-          .nullable()
-          .transform((val) => val ?? 0),
-        digg_count: z
-          .number()
-          .nullable()
-          .transform((val) => val ?? 0),
+        play_count: scrapedCountSchema,
+        digg_count: scrapedCountSchema,
       }),
       desc: z.string().optional(),
       video: z
@@ -327,16 +282,10 @@ export const socialContentSchema = z.preprocess(
       description: z.string().nullish(),
       headline: z.string().nullish(),
       datePublished: z.string().nullish(),
-      likeCount: z
-        .number()
-        .nullish()
-        .transform((val) => val ?? 0),
+      likeCount: scrapedCountSchema,
       author: z.object({
         url: z.string(),
-        followers: z
-          .number()
-          .nullish()
-          .transform((val) => val ?? 0),
+        followers: scrapedCountSchema,
       }),
     }),
   ]),

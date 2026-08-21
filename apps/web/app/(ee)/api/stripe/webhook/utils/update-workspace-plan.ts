@@ -1,5 +1,9 @@
+import { recomputeWorkspaceUsage } from "@/lib/api/billing/recompute-workspace-usage";
+import { pauseOrCancelCampaignsForProgramOnPlanDowngrade } from "@/lib/api/campaigns/pause-campaigns-on-plan-downgrade";
 import { deleteWorkspaceFolders } from "@/lib/api/folders/delete-workspace-folders";
+import { stripAdvancedRewardModifiersForProgram } from "@/lib/api/partners/strip-advanced-reward-modifiers";
 import { deactivateProgram } from "@/lib/api/programs/deactivate-program";
+import { reactivateProgram } from "@/lib/api/programs/reactivate-program";
 import { tokenCache } from "@/lib/auth/token-cache";
 import { qstash } from "@/lib/cron";
 import { syncUserPlanToPlain } from "@/lib/plain/sync-user-plan";
@@ -8,25 +12,43 @@ import {
   wouldGainPartnerAccess,
   wouldLosePartnerAccess,
 } from "@/lib/plans/has-partner-access";
+import { wouldLoseAdvancedFeatures } from "@/lib/plans/would-lose-advanced-features";
+import { prisma } from "@/lib/prisma";
+import {
+  getSubscriptionBillingFields,
+  getSubscriptionTrialEndsAt,
+} from "@/lib/stripe/workspace-subscription-fields";
 import { WorkspaceProps } from "@/lib/types";
-import { webhookCache } from "@/lib/webhook/cache";
-import { prisma } from "@dub/prisma";
-import { APP_DOMAIN_WITH_NGROK, getPlanAndTierFromPriceId } from "@dub/utils";
-import { NEW_BUSINESS_PRICE_IDS } from "@dub/utils/src";
-import { waitUntil } from "@vercel/functions";
+import { sendBatchEmail } from "@dub/email";
+import AdvancedPlanDowngradeNotice from "@dub/email/templates/advanced-plan-downgrade-notice";
+import UpgradeEmail from "@dub/email/templates/upgrade-email";
+import {
+  APP_DOMAIN_WITH_NGROK,
+  getPlanAndTierFromPriceId,
+  NEW_BUSINESS_PRICE_IDS,
+} from "@dub/utils";
+import type Stripe from "stripe";
+import { getPlanPeriodFromStripeSubscription } from "./get-plan-period-from-stripe-subscription";
+import { getWorkspaceLimitsFromStripeSubscription } from "./get-workspace-limits-from-stripe-subscription";
 
 export async function updateWorkspacePlan({
   workspace,
   priceId,
+  subscription,
 }: {
   workspace: Pick<
     WorkspaceProps,
     | "id"
-    | "planTier"
-    | "paymentFailedAt"
-    | "payoutsLimit"
-    | "foldersUsage"
+    | "name"
+    | "slug"
     | "defaultProgramId"
+    | "planPeriod"
+    | "planTier"
+    | "trialEndsAt"
+    | "billingCycleEndsAt"
+    | "subscriptionCanceledAt"
+    | "billingCycleStart"
+    | "partnersLimit"
   > & {
     plan: string;
     restrictedTokens: {
@@ -34,25 +56,71 @@ export async function updateWorkspacePlan({
     }[];
   };
   priceId: string;
+  subscription: Stripe.Subscription;
 }) {
+  const cancellationFields = getSubscriptionBillingFields(subscription);
+  const planPeriod = getPlanPeriodFromStripeSubscription(subscription);
+  const trialEndsAt = getSubscriptionTrialEndsAt(subscription);
+  const isPaidPlanActivated =
+    workspace.trialEndsAt !== null && trialEndsAt === null;
+
+  const datetimeFieldsUpdated =
+    workspace.billingCycleEndsAt?.getTime() !==
+      cancellationFields.billingCycleEndsAt?.getTime() ||
+    workspace.subscriptionCanceledAt?.getTime() !==
+      cancellationFields.subscriptionCanceledAt?.getTime() ||
+    (trialEndsAt !== undefined &&
+      workspace.trialEndsAt?.getTime() !== trialEndsAt?.getTime());
+
   const { plan: newPlan, planTier: newPlanTier } = getPlanAndTierFromPriceId({
     priceId,
   });
-  if (!newPlan) return;
+
+  // if not a hardcoded price ID (e.g. Enterprise plans), update billingCycleEndsAt and planPeriod
+  if (!newPlan) {
+    console.log(
+      `Not a hardcoded price ID, updating billingCycleEndsAt and planPeriod for workspace ${workspace.id}`,
+    );
+    await prisma.project.update({
+      where: {
+        id: workspace.id,
+      },
+      data: {
+        ...cancellationFields,
+        planPeriod,
+      },
+    });
+    return;
+  }
 
   const newPlanName = newPlan.name.toLowerCase();
-  const shouldDisableWebhooks = newPlanName === "free" || newPlanName === "pro";
 
-  const { canManageProgram, canMessagePartners } =
+  const { canMessagePartners, canCreateWebhooks, canAddFolder } =
     getPlanCapabilities(newPlanName);
 
-  // If a workspace upgrades/downgrades their subscription
-  // or if the payouts limit increases and the updated price ID is a new business price ID
-  // update their usage limit in the database
+  const limits = getWorkspaceLimitsFromStripeSubscription({
+    planLimits: newPlan.limits,
+    subscription,
+  });
+
+  const isYearlyToMonthly =
+    workspace.planPeriod === "yearly" && planPeriod === "monthly";
+
+  const recomputedUsage = isYearlyToMonthly
+    ? await recomputeWorkspaceUsage(workspace)
+    : null;
+
+  // Update workspace plan / limits / subscription details if:
+  // - workspace upgrades/downgrades their subscription
+  // - workspace changes their plan period / tier
+  // - trialEndsAt changes (i.e. free trial -> paid subscription)
+  // - the partners limit increases and the updated price ID is a new business price ID
   if (
     workspace.plan !== newPlanName ||
+    workspace.planPeriod !== planPeriod ||
     workspace.planTier !== newPlanTier ||
-    (workspace.payoutsLimit < newPlan.limits.payouts &&
+    isPaidPlanActivated ||
+    (workspace.partnersLimit < newPlan.limits.partners &&
       NEW_BUSINESS_PRICE_IDS.includes(priceId))
   ) {
     const [updatedWorkspace] = await Promise.allSettled([
@@ -63,22 +131,49 @@ export async function updateWorkspacePlan({
         data: {
           plan: newPlanName,
           planTier: newPlanTier,
-          usageLimit: newPlan.limits.clicks,
-          linksLimit: newPlan.limits.links,
-          payoutsLimit: newPlan.limits.payouts,
-          domainsLimit: newPlan.limits.domains,
-          aiLimit: newPlan.limits.ai,
-          tagsLimit: newPlan.limits.tags,
-          foldersLimit: newPlan.limits.folders,
-          groupsLimit: newPlan.limits.groups,
-          networkInvitesLimit: newPlan.limits.networkInvites,
-          usersLimit: newPlan.limits.users,
-          paymentFailedAt: null,
+          usageLimit: limits.clicks,
+          linksLimit: limits.links,
+          payoutsLimit: limits.payouts,
+          domainsLimit: limits.domains,
+          aiLimit: limits.ai,
+          tagsLimit: limits.tags,
+          partnerTagsLimit: limits.partnerTags,
+          foldersLimit: limits.folders,
+          groupsLimit: limits.groups,
+          networkInvitesLimit: limits.networkInvites,
+          partnersLimit: limits.partners,
+          usersLimit: limits.users,
+          ...(["active", "trialing"].includes(subscription.status)
+            ? { paymentFailedAt: null }
+            : {}),
+          ...(trialEndsAt !== undefined && { trialEndsAt }),
+          ...cancellationFields,
+          ...(planPeriod !== undefined && { planPeriod }),
+          ...(recomputedUsage && {
+            usage: recomputedUsage.usage,
+            linksUsage: recomputedUsage.linksUsage,
+            payoutsUsage: recomputedUsage.payoutsUsage,
+            sentEmails: {
+              deleteMany: {
+                type: {
+                  in: [
+                    "firstUsageLimitEmail",
+                    "secondUsageLimitEmail",
+                    "firstLinksLimitEmail",
+                    "secondLinksLimitEmail",
+                  ],
+                },
+              },
+            },
+          }),
         },
         include: {
           users: {
             where: {
               role: "owner",
+              user: {
+                isMachine: false,
+              },
             },
             select: {
               user: {
@@ -92,7 +187,6 @@ export async function updateWorkspacePlan({
             orderBy: {
               createdAt: "asc",
             },
-            take: 1,
           },
         },
       }),
@@ -103,8 +197,6 @@ export async function updateWorkspacePlan({
           ({ hashedKey }) => hashedKey,
         ),
       }),
-
-      // if workspace has a program, need to update deactivatedAt and messagingEnabledAt columns based on the plan capabilities
       ...(workspace.defaultProgramId
         ? [
             prisma.program.update({
@@ -112,17 +204,19 @@ export async function updateWorkspacePlan({
                 id: workspace.defaultProgramId,
               },
               data: {
-                deactivatedAt: canManageProgram ? null : undefined,
                 messagingEnabledAt: canMessagePartners ? new Date() : null,
               },
             }),
           ]
         : []),
     ]);
+    console.log(
+      `Updated workspace ${workspace.id} plan / limits / subscription details.`,
+    );
 
     // Disable the webhooks if the new plan does not support webhooks
-    if (shouldDisableWebhooks) {
-      await Promise.all([
+    if (!canCreateWebhooks) {
+      await Promise.allSettled([
         prisma.project.update({
           where: {
             id: workspace.id,
@@ -141,31 +235,16 @@ export async function updateWorkspacePlan({
           },
         }),
       ]);
-
-      // Update the webhooks cache
-      const webhooks = await prisma.webhook.findMany({
-        where: {
-          projectId: workspace.id,
-        },
-        select: {
-          id: true,
-          url: true,
-          secret: true,
-          triggers: true,
-          disabledAt: true,
-        },
-      });
-
-      await webhookCache.mset(webhooks);
     }
 
-    // Delete the folders if the new plan is free
+    // Delete the folders if the new plan does not support folders
     // For downgrade from Business → Pro, it should be fine since we're accounting that to make sure all folders get write access.
-    if (newPlanName === "free") {
+    if (!canAddFolder) {
       await deleteWorkspaceFolders({
         workspaceId: workspace.id,
         defaultProgramId: workspace.defaultProgramId,
       });
+      console.log(`Deleted folders for workspace ${workspace.id}.`);
     }
 
     // Deactivate the program if the workspace loses partner access (Business/Enterprise -> Pro/Free)
@@ -177,6 +256,7 @@ export async function updateWorkspacePlan({
       workspace.defaultProgramId
     ) {
       await deactivateProgram(workspace.defaultProgramId);
+      console.log(`Deactivated program for workspace ${workspace.id}.`);
     }
 
     // Reactivate all partners if the workspace gains partner access (Pro/Free -> Business/Enterprise)
@@ -187,34 +267,108 @@ export async function updateWorkspacePlan({
       }) &&
       workspace.defaultProgramId
     ) {
-      const response = await qstash.publishJSON({
-        url: `${APP_DOMAIN_WITH_NGROK}/api/cron/partners/reactivate`,
-        body: {
-          programId: workspace.defaultProgramId,
-        },
-        deduplicationId: `reactivate-program-${workspace.defaultProgramId}`,
-      });
-
-      console.log("Reactivation job enqueued.", {
-        response,
-      });
+      await reactivateProgram(workspace.defaultProgramId);
+      console.log(`Reactivated program for workspace ${workspace.id}.`);
     }
+
+    const workspaceOwners =
+      updatedWorkspace.status === "fulfilled"
+        ? updatedWorkspace.value.users.map((user) => user.user)
+        : [];
 
     if (
-      updatedWorkspace.status === "fulfilled" &&
-      updatedWorkspace.value.users.length
+      workspace.defaultProgramId &&
+      wouldLoseAdvancedFeatures({
+        currentPlan: workspace.plan,
+        newPlan: newPlanName,
+      })
     ) {
-      const workspaceOwner = updatedWorkspace.value.users[0].user;
-      waitUntil(syncUserPlanToPlain(workspaceOwner));
+      const results = await Promise.allSettled([
+        stripAdvancedRewardModifiersForProgram({
+          programId: workspace.defaultProgramId,
+        }),
+        pauseOrCancelCampaignsForProgramOnPlanDowngrade({
+          programId: workspace.defaultProgramId,
+        }),
+        qstash.publishJSON({
+          url: `${APP_DOMAIN_WITH_NGROK}/api/cron/fraud/release-all-hold-commissions`,
+          method: "POST",
+          body: {
+            programId: workspace.defaultProgramId,
+          },
+        }),
+        workspaceOwners.length > 0 &&
+          sendBatchEmail(
+            workspaceOwners.map((owner) => ({
+              to: owner.email!,
+              subject: "Your Advanced plan features have been removed",
+              react: AdvancedPlanDowngradeNotice({
+                email: owner.email!,
+                workspace: {
+                  name: workspace.name,
+                  slug: workspace.slug,
+                },
+              }),
+              variant: "notifications",
+              headers: {
+                "Idempotency-Key": `advanced-downgrade-notice:${workspace.id}:${owner.email}`,
+              },
+            })),
+          ),
+      ]);
+      console.log(
+        [
+          "stripAdvancedRewardModifiersForProgram",
+          "pauseOrCancelCampaignsForProgramOnPlanDowngrade",
+          "queueReleaseAllHoldCommissions",
+          "notifyWorkspaceOwners",
+        ].map((step, index) => ({
+          step,
+          result: results[index],
+        })),
+      );
     }
-  } else if (workspace.paymentFailedAt) {
+
+    if (workspaceOwners.length > 0) {
+      await Promise.allSettled([
+        ...(isPaidPlanActivated
+          ? [
+              // send thank you email to workspace owners
+              sendBatchEmail(
+                workspaceOwners.map((user) => ({
+                  to: user.email as string,
+                  replyTo: "steven.tey@dub.co",
+                  subject: `Thank you for upgrading to Dub ${newPlan.name}!`,
+                  react: UpgradeEmail({
+                    name: user.name,
+                    email: user.email as string,
+                    plan: newPlan.name,
+                  }),
+                  variant: "marketing",
+                })),
+              ),
+            ]
+          : []),
+        ...workspaceOwners.map((owner) => syncUserPlanToPlain(owner)),
+      ]);
+      console.log(
+        `Sent thank you emails to ${workspaceOwners.length} workspace owners for workspace ${workspace.slug}.`,
+      );
+    }
+  } else if (datetimeFieldsUpdated) {
     await prisma.project.update({
       where: {
         id: workspace.id,
       },
       data: {
-        paymentFailedAt: null,
+        ...cancellationFields,
+        ...(trialEndsAt !== undefined && { trialEndsAt }),
       },
     });
+    console.log(`Updated workspace ${workspace.id} datetime fields`);
+  } else {
+    console.log(
+      `No plan or datetime field updates for workspace ${workspace.id}, skipping...`,
+    );
   }
 }

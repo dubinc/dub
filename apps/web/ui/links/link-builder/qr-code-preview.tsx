@@ -1,3 +1,4 @@
+import { QRCodeDesign } from "@/lib/qr/types";
 import useDomain from "@/lib/swr/use-domain";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { LinkFormData } from "@/ui/links/link-builder/link-builder-provider";
@@ -16,7 +17,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { useMemo, useRef } from "react";
 import { useFormContext, useWatch } from "react-hook-form";
 import { useDebounce } from "use-debounce";
-import { QRCodeDesign, useLinkQRModal } from "../../modals/link-qr-modal";
+import { useLinkQRModal } from "../../modals/link-qr-modal";
 import { useLinkBuilderKeyboardShortcut } from "./use-link-builder-keyboard-shortcut";
 
 export function QRCodePreview() {
@@ -45,6 +46,9 @@ export function QRCodePreview() {
     {
       fgColor: "#000000",
       hideLogo: true,
+      dotStyle: "square",
+      markerCenterStyle: "square",
+      markerBorderStyle: "square",
     },
   );
 
@@ -110,6 +114,10 @@ export function QRCodePreview() {
                 hideLogo={hideLogo}
                 logo={logo}
                 scale={0.5}
+                dotStyle={data.dotStyle}
+                markerCenterStyle={data.markerCenterStyle}
+                markerBorderStyle={data.markerBorderStyle}
+                markerColor={data.markerColor}
               />
             </motion.div>
           </AnimatePresence>

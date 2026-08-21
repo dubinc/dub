@@ -1,8 +1,8 @@
 "use client";
 
-import { PartnerGroup } from "@dub/prisma/client";
 import { Button, useScroll, Wordmark } from "@dub/ui";
 import { cn } from "@dub/utils";
+import { PartnerGroup } from "@prisma/client";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";

@@ -33,6 +33,7 @@ interface AddCustomerModalProps {
 
 type FormData = z.infer<typeof createCustomerBodySchema>;
 type StripeCustomer = z.infer<typeof StripeCustomerSchema>;
+const isValidEmail = (email: string) => z.email().safeParse(email).success;
 
 function getCustomerInitials(customer: StripeCustomer): string {
   const raw = customer.name || customer.email || customer.id;
@@ -112,37 +113,49 @@ export const AddCustomerModal = ({
     }
   }, [hasStripeCustomerId, setValue]);
 
+  const searchStripeByEmail = useCallback(
+    async (email: string) => {
+      const normalizedEmail = email.trim();
+      if (!normalizedEmail) {
+        setStripeSearchError("Enter an email to search.");
+        return;
+      }
+      setStripeSearchError(null);
+      setStripeSearchResults(null);
+      setStripeSearchLoading(true);
+      try {
+        const response = await fetch(
+          `/api/customers/search-stripe?workspaceId=${workspaceId}&search=${encodeURIComponent(normalizedEmail)}`,
+        );
+        if (!response.ok) {
+          const { error } = await response.json();
+          throw new Error(error?.message || "Search failed.");
+        }
+        const data = await response.json();
+        setStripeSearchResults(data);
+        if (data.length === 0) {
+          setStripeSearchError("No Stripe customers found for this email.");
+        }
+      } catch (err) {
+        setStripeSearchError(
+          err instanceof Error ? err.message : "Something went wrong.",
+        );
+        setStripeSearchResults([]);
+      } finally {
+        setStripeSearchLoading(false);
+      }
+    },
+    [workspaceId],
+  );
+
   const onSearchStripe = useCallback(async () => {
     const email = stripeSearchEmail.trim();
     if (!email) {
       setStripeSearchError("Enter an email to search.");
       return;
     }
-    setStripeSearchError(null);
-    setStripeSearchResults(null);
-    setStripeSearchLoading(true);
-    try {
-      const response = await fetch(
-        `/api/customers/search-stripe?workspaceId=${workspaceId}&search=${encodeURIComponent(email)}`,
-      );
-      if (!response.ok) {
-        const { error } = await response.json();
-        throw new Error(error?.message || "Search failed.");
-      }
-      const data = await response.json();
-      setStripeSearchResults(data);
-      if (data.length === 0) {
-        setStripeSearchError("No Stripe customers found for this email.");
-      }
-    } catch (err) {
-      setStripeSearchError(
-        err instanceof Error ? err.message : "Something went wrong.",
-      );
-      setStripeSearchResults([]);
-    } finally {
-      setStripeSearchLoading(false);
-    }
-  }, [workspaceId, stripeSearchEmail]);
+    await searchStripeByEmail(email);
+  }, [stripeSearchEmail, searchStripeByEmail]);
 
   const onSelectStripeCustomer = useCallback(
     (customer: StripeCustomer) => {
@@ -208,10 +221,14 @@ export const AddCustomerModal = ({
             icon={<StripeIcon className="size-4" />}
             text="Import from Stripe"
             onClick={() => {
+              const email = (getValues("email") ?? "").trim();
               setShowStripeImport(true);
               setStripeSearchResults(null);
               setStripeSearchError(null);
-              setStripeSearchEmail(getValues("email") ?? "");
+              setStripeSearchEmail(email);
+              if (isValidEmail(email)) {
+                void searchStripeByEmail(email);
+              }
             }}
           />
         )}

@@ -122,15 +122,20 @@ export function CommissionActivity({
           icon: CommissionStatusBadges["pending"].icon,
           timestamp: commission.createdAt,
           note: (() => {
-            const text = commission.reward
-              ? `Earn ${
-                  commission.reward.type === "percentage"
-                    ? `${commission.reward.amountInPercentage ?? 0}%`
-                    : currencyFormatter(commission.reward.amountInCents ?? 0, {
-                        trailingZeroDisplay: "stripIfInteger",
-                      })
-                } per ${commission.reward.event}`
-              : commission.description ?? null;
+            const text =
+              commission.description ||
+              (commission.reward
+                ? `Earn ${
+                    commission.reward.type === "percentage"
+                      ? `${commission.reward.amountInPercentage ?? 0}%`
+                      : currencyFormatter(
+                          commission.reward.amountInCents ?? 0,
+                          {
+                            trailingZeroDisplay: "stripIfInteger",
+                          },
+                        )
+                  } per ${commission.reward.event}`
+                : null);
 
             if (!text) return undefined;
 

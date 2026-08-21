@@ -88,6 +88,10 @@ export function GroupAdditionalLinksForm({ group }: { group: GroupProps }) {
   const onSubmit = async (data: FormData) => {
     if (!group) return;
 
+    if (enableAdditionalLinks && (data.additionalLinks?.length ?? 0) === 0) {
+      return;
+    }
+
     await updateGroup(`/api/groups/${group.id}`, {
       method: "PATCH",
       body: data,
@@ -102,6 +106,8 @@ export function GroupAdditionalLinksForm({ group }: { group: GroupProps }) {
 
   const additionalLinks = watch("additionalLinks") || [];
   const maxPartnerLinks = watch("maxPartnerLinks") || 0;
+  const hasLinkFormat = additionalLinks.length > 0;
+  const cannotSaveWithoutLinkFormat = enableAdditionalLinks && !hasLinkFormat;
 
   const { addDestinationUrlModal, setIsOpen } = useAddDestinationUrlModal({
     additionalLinks,
@@ -120,25 +126,6 @@ export function GroupAdditionalLinksForm({ group }: { group: GroupProps }) {
     >
       {enableAdditionalLinks && (
         <>
-          <SettingsRow
-            heading="Link limit"
-            description="Set how many extra links a partner can create"
-          >
-            <NumberStepper
-              value={maxPartnerLinks}
-              onChange={(v) =>
-                setValue("maxPartnerLinks", v, {
-                  shouldDirty: true,
-                  shouldValidate: true,
-                })
-              }
-              min={0}
-              max={MAX_ADDITIONAL_PARTNER_LINKS}
-              step={1}
-              className="w-full"
-            />
-          </SettingsRow>
-
           <SettingsRow
             heading="Link formats"
             description="Specify the domains or URLs partners can create additional links on"
@@ -185,6 +172,25 @@ export function GroupAdditionalLinksForm({ group }: { group: GroupProps }) {
               />
             </div>
           </SettingsRow>
+
+          <SettingsRow
+            heading="Link limit"
+            description="Set how many extra links a partner can create"
+          >
+            <NumberStepper
+              value={maxPartnerLinks}
+              onChange={(v) =>
+                setValue("maxPartnerLinks", v, {
+                  shouldDirty: true,
+                  shouldValidate: true,
+                })
+              }
+              min={0}
+              max={MAX_ADDITIONAL_PARTNER_LINKS}
+              step={1}
+              className="w-full"
+            />
+          </SettingsRow>
         </>
       )}
 
@@ -218,7 +224,12 @@ export function GroupAdditionalLinksForm({ group }: { group: GroupProps }) {
             text="Save changes"
             className="h-8"
             loading={isSubmitting}
-            disabled={!isValid || !isDirty}
+            disabled={!isValid || !isDirty || cannotSaveWithoutLinkFormat}
+            disabledTooltip={
+              cannotSaveWithoutLinkFormat
+                ? "Add at least one link format before saving."
+                : undefined
+            }
           />
         </div>
       </div>

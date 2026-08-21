@@ -1,17 +1,23 @@
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
-import { parseRequestBody, ratelimitOrThrow } from "@/lib/api/utils";
+import { parseRequestBody } from "@/lib/api/utils";
+import { getIP } from "@/lib/api/utils/get-ip";
 import { hashPassword, validatePassword } from "@/lib/auth/password";
+import { prisma } from "@/lib/prisma";
+import { assertRateLimit } from "@/lib/upstash/assert-rate-limit";
+import { RATELIMIT_POLICIES } from "@/lib/upstash/ratelimit-policies";
 import { resetPasswordSchema } from "@/lib/zod/schemas/auth";
 import { sendEmail } from "@dub/email";
 import PasswordUpdated from "@dub/email/templates/password-updated";
-import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import { NextRequest, NextResponse } from "next/server";
 
 // POST /api/auth/reset-password - reset password using the reset token
 export async function POST(req: NextRequest) {
   try {
-    await ratelimitOrThrow(req, "reset-password");
+    await assertRateLimit({
+      policy: RATELIMIT_POLICIES.passwordReset,
+      identifier: await getIP(),
+    });
 
     const { token, password } = resetPasswordSchema.parse(
       await parseRequestBody(req),

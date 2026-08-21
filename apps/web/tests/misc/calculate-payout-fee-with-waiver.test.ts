@@ -1,8 +1,13 @@
+import {
+  CARD_PAYOUT_HARD_COST_RATE,
+  FAST_ACH_FEE_CENTS,
+} from "@/lib/constants/payouts";
 import { calculatePayoutFeeWithWaiver } from "@/lib/partners/calculate-payout-fee-with-waiver";
 import { describe, expect, it } from "vitest";
 
 describe("calculatePayoutFeeWithWaiver", () => {
   const payoutFee = 0.03; // 3% fee
+  const cardPayoutFee = payoutFee + CARD_PAYOUT_HARD_COST_RATE;
 
   it("zero waiver limit (backward compatibility)", () => {
     const result = calculatePayoutFeeWithWaiver({
@@ -10,6 +15,7 @@ describe("calculatePayoutFeeWithWaiver", () => {
       payoutFee,
       payoutFeeWaiverLimit: 0,
       payoutFeeWaiverUsage: 0,
+      paymentMethod: "ach",
     });
 
     expect(result).toEqual({
@@ -26,6 +32,7 @@ describe("calculatePayoutFeeWithWaiver", () => {
       payoutFee,
       payoutFeeWaiverLimit: 50000, // $500.00 limit
       payoutFeeWaiverUsage: 0, // nothing used yet
+      paymentMethod: "ach",
     });
 
     expect(result).toEqual({
@@ -42,6 +49,7 @@ describe("calculatePayoutFeeWithWaiver", () => {
       payoutFee,
       payoutFeeWaiverLimit: 50000, // $500.00 limit
       payoutFeeWaiverUsage: 45000, // $450.00 already used
+      paymentMethod: "ach",
     });
 
     expect(result).toEqual({
@@ -58,6 +66,7 @@ describe("calculatePayoutFeeWithWaiver", () => {
       payoutFee,
       payoutFeeWaiverLimit: 50000, // $500.00 limit
       payoutFeeWaiverUsage: 50000, // fully used
+      paymentMethod: "ach",
     });
 
     expect(result).toEqual({
@@ -68,20 +77,71 @@ describe("calculatePayoutFeeWithWaiver", () => {
     });
   });
 
-  it("includes fastAchFee when provided", () => {
+  it("includes fast ACH fee for ach_fast payment method", () => {
     const result = calculatePayoutFeeWithWaiver({
       payoutAmount: 10000,
       payoutFeeWaiverLimit: 50000,
       payoutFeeWaiverUsage: 45000,
       payoutFee,
-      fastAchFee: 50,
+      paymentMethod: "ach_fast",
     });
 
     expect(result).toEqual({
-      fee: 200, // 3% of $50.00 + $0.50 fast ACH fee
+      fee: 150 + FAST_ACH_FEE_CENTS, // 3% of $50.00 + fast ACH fee
       feeFreeAmount: 5000,
       feeChargedAmount: 5000,
       feeWaiverRemaining: 5000,
+    });
+  });
+
+  it("card payment fully within waiver still charges hard cost", () => {
+    const result = calculatePayoutFeeWithWaiver({
+      payoutAmount: 10000, // $100.00
+      payoutFee: cardPayoutFee,
+      payoutFeeWaiverLimit: 50000,
+      payoutFeeWaiverUsage: 0,
+      paymentMethod: "card",
+    });
+
+    expect(result).toEqual({
+      fee: 300, // 3% card hard cost on full amount
+      feeFreeAmount: 10000,
+      feeChargedAmount: 0,
+      feeWaiverRemaining: 50000,
+    });
+  });
+
+  it("card payment partially within waiver charges hard cost on full amount", () => {
+    const result = calculatePayoutFeeWithWaiver({
+      payoutAmount: 10000, // $100.00
+      payoutFee: cardPayoutFee,
+      payoutFeeWaiverLimit: 50000,
+      payoutFeeWaiverUsage: 45000,
+      paymentMethod: "card",
+    });
+
+    expect(result).toEqual({
+      fee: 450, // 3% of $100.00 + 3% of $50.00
+      feeFreeAmount: 5000,
+      feeChargedAmount: 5000,
+      feeWaiverRemaining: 5000,
+    });
+  });
+
+  it("card payment with exhausted waiver charges full fee", () => {
+    const result = calculatePayoutFeeWithWaiver({
+      payoutAmount: 10000,
+      payoutFee: cardPayoutFee,
+      payoutFeeWaiverLimit: 50000,
+      payoutFeeWaiverUsage: 50000,
+      paymentMethod: "card",
+    });
+
+    expect(result).toEqual({
+      fee: 600, // 6% of $100.00
+      feeFreeAmount: 0,
+      feeChargedAmount: 10000,
+      feeWaiverRemaining: 0,
     });
   });
 });

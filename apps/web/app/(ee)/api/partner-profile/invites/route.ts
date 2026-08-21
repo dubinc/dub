@@ -6,14 +6,16 @@ import {
   MAX_INVITES_PER_REQUEST,
   MAX_PARTNER_USERS,
 } from "@/lib/constants/partner-profile";
+import { prisma } from "@/lib/prisma";
+import { assertRateLimit } from "@/lib/upstash/assert-rate-limit";
+import { RATELIMIT_POLICIES } from "@/lib/upstash/ratelimit-policies";
 import {
   getPartnerUsersQuerySchema,
   invitePartnerUserSchema,
   partnerUserSchema,
 } from "@/lib/zod/schemas/partner-profile";
-import { prisma } from "@dub/prisma";
-import { PartnerRole } from "@dub/prisma/client";
 import { isRejected, pluralize } from "@dub/utils";
+import { PartnerRole } from "@prisma/client";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 
@@ -55,6 +57,11 @@ export const POST = withPartnerProfile(
         message: "You can only invite up to 5 members at a time.",
       });
     }
+
+    await assertRateLimit({
+      policy: RATELIMIT_POLICIES.partnerProfileInvite,
+      identifier: partner.id,
+    });
 
     const emails = Array.from(new Set([...invites.map(({ email }) => email)]));
 

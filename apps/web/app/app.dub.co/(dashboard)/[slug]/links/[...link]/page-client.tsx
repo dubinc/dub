@@ -82,7 +82,7 @@ export function LinkPageClient() {
   );
 
   return link ? (
-    <LinkBuilderProvider props={link} workspace={workspace} modal={false}>
+    <LinkBuilderProvider props={link} modal={false}>
       <LinkBuilder link={link} />
     </LinkBuilderProvider>
   ) : (

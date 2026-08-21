@@ -5,6 +5,7 @@ import {
   IndustryInterest,
   MonthlyTraffic,
   PartnerBannedReason,
+  PartnerNetworkStatus,
   PartnerPayoutMethod,
   PartnerProfileType,
   PlatformType,
@@ -12,11 +13,11 @@ import {
   ProgramApplicationRejectionReason,
   ProgramEnrollmentStatus,
   SalesChannel,
-} from "@dub/prisma/client";
-import { COUNTRY_CODES } from "@dub/utils";
+} from "@prisma/client";
 import * as z from "zod/v4";
 import { analyticsQuerySchema } from "./analytics";
 import { analyticsResponse } from "./analytics-response";
+import { DiscountSchema } from "./discount";
 import {
   base64ImageSchema,
   googleFaviconUrlSchema,
@@ -25,6 +26,7 @@ import {
 } from "./images";
 import { createLinkBodySchema } from "./links";
 import { booleanQuerySchema, getPaginationQuerySchema } from "./misc";
+import { PartnerTagSchema } from "./partner-tags";
 import { ProgramEnrollmentSchema } from "./programs";
 import { centsSchema, centsSchemaWithDefault, parseUrlSchema } from "./utils";
 
@@ -44,12 +46,21 @@ export const INACTIVE_ENROLLMENT_STATUSES: ProgramEnrollmentStatus[] = [
   ProgramEnrollmentStatus.rejected,
 ];
 
+export const COMMISSION_ELIGIBLE_ENROLLMENT_STATUSES: ProgramEnrollmentStatus[] =
+  [...ACTIVE_ENROLLMENT_STATUSES, ProgramEnrollmentStatus.invited];
+
+export const DELETABLE_ENROLLMENT_STATUSES: ProgramEnrollmentStatus[] = [
+  ProgramEnrollmentStatus.deactivated,
+  ProgramEnrollmentStatus.banned,
+];
+
 export const exportPartnerColumns = [
   { id: "id", label: "ID", default: true },
   { id: "name", label: "Name", default: true },
   { id: "email", label: "Email", default: true },
   { id: "country", label: "Country", default: true },
   { id: "status", label: "Status", default: true },
+  { id: "group", label: "Group", default: true },
   { id: "createdAt", label: "Enrolled at", default: true },
   {
     id: "payoutsEnabledAt",
@@ -184,21 +195,27 @@ export const getPartnersQuerySchema = z
       .string()
       .optional()
       .describe(
-        "A search query to filter partners by ID, name, email, or link.",
+        "A search query to filter partners by ID, name, email, or company name.",
       )
       .meta({ example: "john" }),
   })
   .extend(getPaginationQuerySchema({ pageSize: PARTNERS_MAX_PAGE_SIZE }));
 
+// Only Dub UI uses the following query parameters
 export const getPartnersQuerySchemaExtended = getPartnersQuerySchema.extend({
-  status: z
-    .enum(ProgramEnrollmentStatus)
-    .or(z.enum(["approved_invited"]))
-    .optional(),
+  status: z.enum(ProgramEnrollmentStatus).optional(),
+  // TODO: refactor to use multi/negative filtering syntax
   partnerIds: z
     .union([z.string(), z.array(z.string())])
     .transform((v) => (Array.isArray(v) ? v : v.split(",")))
     .optional(),
+  groupId: z.union([z.string(), z.array(z.string())]).optional(),
+  partnerTagId: z
+    .union([z.string(), z.array(z.string())])
+    .transform((v) => (Array.isArray(v) ? v : v.split(",")))
+    .optional(),
+  country: z.union([z.string(), z.array(z.string())]).optional(),
+  referredByPartnerId: z.string().optional(),
   includePartnerPlatforms: booleanQuerySchema.optional(),
   // metric range query fields (TODO: Add to public API once we finalize the syntax)
   totalClicksMin: z.coerce
@@ -280,7 +297,15 @@ export const partnersCountQuerySchema = getPartnersQuerySchemaExtended
     pageSize: true,
   })
   .extend({
-    groupBy: z.enum(["status", "country", "groupId"]).optional(),
+    groupBy: z
+      .enum([
+        "status",
+        "country",
+        "groupId",
+        "partnerTagId",
+        "referredByPartnerId",
+      ])
+      .optional(),
   });
 
 export const partnerPlatformSchema = z.object({
@@ -294,7 +319,7 @@ export const partnerPlatformSchema = z.object({
   views: z.bigint().default(BigInt(0)),
 });
 
-export const PartnerPartnerPlatformsSchema = z.object({
+export const OldPartnerPlatformsFields = z.object({
   website: z
     .string()
     .nullish()
@@ -321,7 +346,7 @@ export const PartnerPartnerPlatformsSchema = z.object({
     .describe("The partner's TikTok username (e.g. `johndoe`)."),
 });
 
-export const PartnerProfileSchema = z.object({
+export const PartnerProfileDetailsSchema = z.object({
   monthlyTraffic: z
     .enum(MonthlyTraffic)
     .nullable()
@@ -351,16 +376,10 @@ export const PartnerSchema = z
   .object({
     id: z.string().describe("The partner's unique ID on Dub."),
     name: z.string().max(190).describe("The partner's full legal name."),
-    companyName: z
+    username: z
       .string()
-      .max(190)
       .nullable()
-      .describe(
-        "If the partner profile type is a company, this is the partner's legal company name.",
-      ),
-    profileType: z
-      .enum(PartnerProfileType)
-      .describe("The partner's profile type on Dub."),
+      .describe("The partner's unique username on Dub."),
     email: z
       .string()
       .max(190)
@@ -378,6 +397,19 @@ export const PartnerSchema = z
       .string()
       .nullable()
       .describe("The partner's country (required for tax purposes)."),
+    companyName: z
+      .string()
+      .max(190)
+      .nullable()
+      .describe(
+        "If the partner profile type is a company, this is the partner's legal company name.",
+      ),
+    profileType: z
+      .enum(PartnerProfileType)
+      .describe("The partner's profile type on Dub."),
+    networkStatus: z
+      .enum(PartnerNetworkStatus)
+      .describe("The partner's network status on Dub."),
     defaultPayoutMethod: z
       .enum(PartnerPayoutMethod)
       .nullable()
@@ -416,16 +448,6 @@ export const PartnerSchema = z
     createdAt: z
       .date()
       .describe("The date when the partner was created on Dub."),
-    discoverableAt: z
-      .date()
-      .nullable()
-      .describe("The date when the partner was added to the partner network."),
-    trustedAt: z
-      .date()
-      .nullable()
-      .describe(
-        "The date when the partner received the trusted badge in the partner network.",
-      ),
     identityVerificationStatus: z
       .enum(IdentityVerificationStatus)
       .nullable()
@@ -446,11 +468,11 @@ export const PartnerSchema = z
       .nullable()
       .describe("The date when the partner's identity was verified."),
   })
-  .extend(PartnerPartnerPlatformsSchema.shape)
-  .extend(PartnerProfileSchema.partial().shape);
+  .extend(OldPartnerPlatformsFields.shape)
+  .extend(PartnerProfileDetailsSchema.partial().shape);
 
 export const PartnerWithProfileSchema = PartnerSchema.extend(
-  PartnerProfileSchema.shape,
+  PartnerProfileDetailsSchema.shape,
 );
 
 export const PartnerRewindSchema = z.object({
@@ -471,16 +493,17 @@ export const PartnerRewindSchema = z.object({
 export const EnrolledPartnerSchema = PartnerSchema.pick({
   id: true,
   name: true,
-  companyName: true,
+  username: true,
   email: true,
   image: true,
   description: true,
   country: true,
+  companyName: true,
+  networkStatus: true,
   defaultPayoutMethod: true,
   paypalEmail: true,
   stripeConnectId: true,
   payoutsEnabledAt: true,
-  trustedAt: true,
   identityVerifiedAt: true,
 })
   .extend(
@@ -491,9 +514,14 @@ export const EnrolledPartnerSchema = PartnerSchema.pick({
       group: true,
       customerDataSharingEnabledAt: true,
       groupMoveDisabledAt: true,
+      riskMonitoringDisabledAt: true,
     }).shape,
   )
   .extend({
+    tags: z
+      .array(PartnerTagSchema)
+      .optional()
+      .describe("The tags associated with the partner."),
     totalClicks: z
       .number()
       .default(0)
@@ -556,33 +584,33 @@ export const EnrolledPartnerSchema = PartnerSchema.pick({
         "Return On Ad Spend (ROAS) (`Total Revenue ÷ Total Commissions`)",
       ),
   })
-  .extend(
-    PartnerPartnerPlatformsSchema.pick({
-      website: true,
-      youtube: true,
-      twitter: true,
-      linkedin: true,
-      instagram: true,
-      tiktok: true,
-    }).shape,
-  );
+  .extend(OldPartnerPlatformsFields.shape)
+  .extend({
+    trustedAt: z.date().nullish().meta({
+      deprecated: true,
+      description: "DEPRECATED: Use `networkStatus` instead.",
+    }),
+  });
 
 export const EnrolledPartnerSchemaExtended = EnrolledPartnerSchema.extend({
   lastLeadAt: z.date().nullish(),
   lastConversionAt: z.date().nullish(),
   customerDataSharingEnabledAt: z.date().nullish(),
   groupMoveDisabledAt: z.date().nullish(),
+  riskMonitoringDisabledAt: z.date().nullish(),
   platforms: z.array(partnerPlatformSchema).nullable(),
-})
-  .extend(
-    PartnerSchema.pick({
-      monthlyTraffic: true,
-      industryInterests: true,
-      preferredEarningStructures: true,
-      salesChannels: true,
-    }).shape,
-  )
-  .extend(PartnerPartnerPlatformsSchema.shape);
+  discount: DiscountSchema.pick({
+    id: true,
+    provider: true,
+  }).nullish(),
+}).extend(
+  PartnerSchema.pick({
+    monthlyTraffic: true,
+    industryInterests: true,
+    preferredEarningStructures: true,
+    salesChannels: true,
+  }).shape,
+);
 
 export const WebhookPartnerSchema = PartnerSchema.pick({
   id: true,
@@ -727,12 +755,12 @@ export const onboardPartnerSchema = createPartnerSchema
   .omit({
     username: true,
     email: true,
+    country: true,
     linkProps: true,
   })
   .extend({
     name: z.string().min(1, "Name is required"),
     image: partnerImageSchema,
-    country: z.enum(COUNTRY_CODES),
     profileType: z.enum(PartnerProfileType).default("individual"),
     companyName: z.string().nullish(),
   })
@@ -860,9 +888,13 @@ export const bulkInvitePartnersSchema = z.object({
 });
 
 export const approvePartnerSchema = z.object({
-  workspaceId: z.string(),
-  partnerId: z.string(),
-  groupId: z.string().nullish(),
+  partnerId: z.string().describe("The ID of the partner to approve."),
+  groupId: z
+    .string()
+    .nullish()
+    .describe(
+      "The ID of the group to assign the partner to. If not provided, the partner will be assigned to the group they applied to, or the program's default group if no application group is set.",
+    ),
 });
 
 export const bulkApprovePartnersSchema = z.object({
@@ -882,9 +914,13 @@ export const PROGRAM_APPLICATION_REJECTION_NOTE_MAX_LENGTH = 500;
 export const MAX_FRAUD_REASON_LENGTH = 2000;
 
 export const rejectPartnerSchema = z.object({
-  workspaceId: z.string(),
-  partnerId: z.string(),
-  rejectionReason: z.enum(ProgramApplicationRejectionReason).optional(),
+  partnerId: z.string().describe("The ID of the partner to reject."),
+  rejectionReason: z
+    .enum(ProgramApplicationRejectionReason)
+    .optional()
+    .describe(
+      "The reason for rejecting the partner application. This will be shared with the partner via email.",
+    ),
   rejectionNote: z
     .string()
     .max(PROGRAM_APPLICATION_REJECTION_NOTE_MAX_LENGTH)
@@ -892,13 +928,32 @@ export const rejectPartnerSchema = z.object({
     .transform((s) => {
       const t = s?.trim();
       return t === "" ? undefined : t;
-    }),
-  allowImmediateReapply: z
+    })
+    .describe(
+      "Additional details about the rejection. This will be shared with the partner via email.",
+    ),
+  reapplicationTimeframe: z
+    .enum(["instant", "standard", "never"])
+    .default("standard")
+    .describe(
+      "The mode for reapplying for the program. `instant`: The partner can reapply immediately. `standard`: The partner can reapply after 30 days. `never`: The partner can never reapply for the program. Defaults to `standard` if undefined.",
+    ),
+  flagForFraud: z
     .boolean()
     .optional()
-    .default(false)
     .describe(
-      "When true, pending enrollment is removed so the partner can submit a new application immediately",
+      "Whether to flag the partner for fraud review by the Dub team. Cannot be combined with `reapplicationTimeframe: instant`.",
+    ),
+  flagForFraudReason: z
+    .string()
+    .max(MAX_FRAUD_REASON_LENGTH)
+    .optional()
+    .transform((s) => {
+      const t = s?.trim();
+      return t === "" ? undefined : t;
+    })
+    .describe(
+      "The reason for flagging the partner for fraud. Required when flagForFraud is true.",
     ),
 });
 
@@ -963,6 +1018,11 @@ export const deactivatePartnerSchema = z.object({
 
 export const deactivatePartnerApiSchema = partnerIdTenantIdSchema;
 
+export const deletePartnerSchema = z.object({
+  workspaceId: z.string(),
+  partnerId: z.string(),
+});
+
 export const archivePartnerSchema = z.object({
   workspaceId: z.string(),
   partnerId: z.string(),
@@ -992,8 +1052,48 @@ export const partnerPayoutSettingsSchema = z.object({
   taxId: z.string().max(100).trim().nullish(),
 });
 
-export const partnerCrossProgramSummarySchema = z.object({
+export const partnerNetworkActivitySummarySchema = z.object({
   totalPrograms: z.number(),
   activePrograms: z.number(),
   bannedPrograms: z.number(),
+});
+
+export const partnerSharedPlatformSchema = z.object({
+  type: z.enum(PlatformType),
+  identifier: z.string(),
+  partners: z.array(
+    z.object({
+      id: z.string(),
+      name: z.string(),
+      email: z.email().nullable(),
+      image: z.string().nullable(),
+    }),
+  ),
+});
+
+const partnerMergedAccountSchema = z.object({
+  id: z.string().describe("The partner's unique ID on Dub."),
+  tenantId: z
+    .string()
+    .nullable()
+    .describe("The partner's unique ID in your system"),
+  email: z.string().nullable().describe("The partner's email address."),
+});
+
+export const partnerMergedWebhookSchema = z.object({
+  sourcePartner: partnerMergedAccountSchema.describe(
+    "The source partner account that was merged away. Its enrollment in this program no longer exists; use `targetPartner.id` instead.",
+  ),
+  targetPartner: partnerMergedAccountSchema.describe(
+    "The target partner account that the source account was merged into.",
+  ),
+  targetAlreadyEnrolled: z
+    .boolean()
+    .describe(
+      [
+        "Whether the target partner account was already enrolled in this program before the merge.",
+        "If `true`, both partners were already enrolled in the program and the merge process will collapse the source account into the target account.",
+        "If `false`, only the source partner account was enrolled in the program, which means the partner's ID in your program will be updated to the target partner's ID.",
+      ].join("\n"),
+    ),
 });

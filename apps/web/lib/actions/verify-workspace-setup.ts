@@ -1,6 +1,6 @@
 "use server";
 
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import FirecrawlApp from "@mendable/firecrawl-js";
 import * as z from "zod/v4";
 import { authActionClient } from "./safe-action";

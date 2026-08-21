@@ -1,12 +1,15 @@
 "use client";
 
 import { DIRECT_DEBIT_PAYMENT_METHOD_TYPES } from "@/lib/constants/payouts";
+import { useSyncedLocalStorage } from "@/lib/hooks/use-synced-local-storage";
+import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import useDomains from "@/lib/swr/use-domains";
 import usePaymentMethods from "@/lib/swr/use-payment-methods";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { WorkspaceProps } from "@/lib/types";
 import { useAnalyticsConnectedStatus } from "@/ui/analytics/use-analytics-connected-status";
 import { MarkdownDescription } from "@/ui/shared/markdown-description";
+import { SlackSupportInviteModal } from "@/ui/workspaces/slack-support-invite-modal";
 import {
   BlurImage,
   Book2,
@@ -24,8 +27,11 @@ import {
   Plug2,
   Users,
 } from "@dub/ui";
-import { cn } from "@dub/utils";
+import { Slack } from "@dub/ui/icons";
+import { capitalize, cn, isWorkspaceBillingTrialActive } from "@dub/utils";
+import { usePlausible } from "next-plausible";
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { useOnboardingProgress } from "../../use-onboarding-progress";
 
 export function SuccessPageClient({
@@ -33,10 +39,25 @@ export function SuccessPageClient({
 }: {
   workspace: Pick<
     WorkspaceProps,
-    "name" | "slug" | "logo" | "defaultProgramId"
+    "name" | "slug" | "logo" | "plan" | "defaultProgramId"
   >;
 }) {
-  const { loading: isLoadingWorkspace } = useWorkspace();
+  const {
+    plan,
+    planPeriod,
+    trialEndsAt,
+    loading: isLoadingWorkspace,
+  } = useWorkspace();
+
+  const showSlackInvite =
+    getPlanCapabilities(workspace.plan).canRequestSlackSupportInvite &&
+    !isWorkspaceBillingTrialActive(trialEndsAt);
+
+  const [slackInviteDone, setSlackInviteDone] = useSyncedLocalStorage(
+    workspace.slug ? `slack-support-dismissed:${workspace.slug}` : "__none__",
+    false,
+  );
+  const [slackInviteModalOpen, setSlackInviteModalOpen] = useState(false);
 
   const { finish, isLoading, isSuccessful } = useOnboardingProgress();
 
@@ -53,6 +74,20 @@ export function SuccessPageClient({
   const connectedBankAccount = paymentMethods?.some((pm) =>
     DIRECT_DEBIT_PAYMENT_METHOD_TYPES.includes(pm.type),
   );
+
+  const plausible = usePlausible();
+  useEffect(() => {
+    if (plan && plan !== "free") {
+      plausible(`Upgraded to ${capitalize(plan)}`);
+      plausible("Upgraded Plan", {
+        props: {
+          product: hasProgram ? "Partners" : "Links",
+          plan: capitalize(plan),
+          planPeriod: capitalize(planPeriod),
+        },
+      });
+    }
+  }, [plan]);
 
   return (
     <div className="mx-auto flex w-full max-w-sm flex-col items-center pb-10">
@@ -236,6 +271,35 @@ export function SuccessPageClient({
         </h3>
 
         <div className="divide-border-subtle border-border-subtle bg-bg-muted flex flex-col divide-y rounded-lg border">
+          {showSlackInvite && (
+            <div className="flex items-center justify-between gap-2 px-2.5 py-2">
+              <div className="flex min-w-0 items-center gap-2">
+                <div className="flex size-8 items-center justify-center rounded-md bg-black/5">
+                  <Slack className="size-4" />
+                </div>
+                <div className="min-w-0">
+                  <div className="text-content-default text-sm font-medium">
+                    Slack invite
+                  </div>
+                  <p className="text-content-subtle truncate text-xs font-medium">
+                    Get priority support
+                  </p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                disabled={slackInviteDone}
+                onClick={() => setSlackInviteModalOpen(true)}
+                className={cn(
+                  "border-subtle bg-bg-default hover:bg-bg-muted flex h-7 items-center rounded-lg border px-2.5 text-sm font-medium transition-transform active:scale-[0.98]",
+                  "disabled:pointer-events-none disabled:opacity-50",
+                )}
+              >
+                {slackInviteDone ? "Invite sent" : "Request invite"}
+              </button>
+            </div>
+          )}
           {[
             {
               icon: Users,
@@ -295,6 +359,15 @@ export function SuccessPageClient({
           ))}
         </div>
       </div>
+      {showSlackInvite && (
+        <SlackSupportInviteModal
+          showModal={slackInviteModalOpen}
+          setShowModal={setSlackInviteModalOpen}
+          workspaceSlug={workspace.slug}
+          onInviteSent={() => setSlackInviteDone(true)}
+          onInviteConflict={() => setSlackInviteDone(true)}
+        />
+      )}
     </div>
   );
 }

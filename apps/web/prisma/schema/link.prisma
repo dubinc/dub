@@ -1,0 +1,106 @@
+model Link {
+  id              String    @id
+  domain          String // domain of the link (e.g. dub.sh) – also stored on Redis
+  key             String // key of the link (e.g. /github) – also stored on Redis
+  url             String    @db.LongText // target url (e.g. https://github.com/dubinc/dub) – also stored on Redis
+  shortLink       String    @unique @db.VarChar(400) // new column for the full short link
+  archived        Boolean   @default(false) // whether the link is archived or not
+  expiresAt       DateTime? // when the link expires – stored on Redis via ttl
+  expiredUrl      String?   @db.Text // URL to redirect the user to when the link is expired
+  disabledAt      DateTime? // when the link was disabled
+  password        String? // password to access the link
+  trackConversion Boolean   @default(false) // whether to track conversions or not
+  proxy           Boolean   @default(false) // Proxy to use custom OG tags (stored on redis) – if false, will use OG tags from target url
+  title           String? // OG title for the link (e.g. Dub - open-source link attribution platform)
+  description     String?   @db.VarChar(280) // OG description for the link (e.g. The modern link attribution platform for short links, conversion tracking, and affiliate programs.)
+  image           String?   @db.LongText // OG image for the link (e.g. https://d.to/og)
+  video           String?   @db.Text // OG video for the link
+
+  // UTM parameters
+  utm_source   String? @db.VarChar(255) // UTM source for the link (e.g. youtube.com)
+  utm_medium   String? @db.VarChar(255) // UTM medium for the link (e.g. social)
+  utm_campaign String? @db.VarChar(255) // UTM campaign for the link (e.g. summer-sale)
+  utm_term     String? @db.VarChar(255) // UTM term for the link (e.g. dub)
+  utm_content  String? @db.VarChar(255) // UTM content for the link (e.g. description)
+
+  rewrite Boolean @default(false) // whether to rewrite the link or not
+
+  linkRetentionCleanupDisabledAt DateTime? // When link retention cleanup (see domain.linkRetentionDays) was explicitly disabled
+  doIndex                        Boolean   @default(false) // we don't index short links by default
+
+  // Custom device targeting
+  ios     String? @db.Text // custom link for iOS devices
+  android String? @db.Text // custom link for Android devices
+  geo     Json?   @db.Json // custom link for specific countries
+
+  // A/B Testing
+  testVariants    Json?     @db.Json
+  testStartedAt   DateTime? // When tests were started
+  testCompletedAt DateTime? // When tests were or will be completed
+
+  // User who created the link
+  user   User?   @relation(fields: [userId], references: [id])
+  userId String?
+
+  // Project that the link belongs to
+  project   Project? @relation(fields: [projectId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  projectId String?
+
+  folderId String?
+  folder   Folder? @relation(fields: [folderId], references: [id], onUpdate: Cascade, onDelete: SetNull)
+
+  // External & tenant IDs (for API usage + multi-tenancy)
+  externalId String?
+  tenantId   String?
+
+  publicStats Boolean @default(false) // whether to show public stats or not
+  clicks      Int     @default(0) // number of clicks
+  leads       Int     @default(0) // number of leads
+  conversions Int     @default(0) // number of leads that converted to sales
+  sales       Int     @default(0) // number of sales (includes recurring sales)
+  saleAmount  BigInt  @default(0) // total revenue from sales (in cents)
+
+  lastClicked      DateTime? // when the link was last clicked
+  lastLeadAt       DateTime? // when the link last brought in a new lead
+  lastConversionAt DateTime? // when the link last brought in a new conversion
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  // Link short domain
+  shortDomain Domain @relation(fields: [domain], references: [slug])
+
+  // Link tags
+  tags LinkTag[]
+
+  // Link webhooks
+  webhooks LinkWebhook[]
+
+  // Comments on the particular shortlink
+  comments String? @db.Text
+
+  dashboard Dashboard?
+
+  programId                 String?
+  program                   Program?                 @relation(fields: [programId], references: [id])
+  partnerId                 String?
+  partner                   Partner?                 @relation(fields: [partnerId], references: [id])
+  programEnrollment         ProgramEnrollment?       @relation(fields: [programId, partnerId], references: [programId, partnerId])
+  partnerGroupDefaultLinkId String?
+  partnerGroupDefaultLink   PartnerGroupDefaultLink? @relation(fields: [partnerGroupDefaultLinkId], references: [id])
+  discountCode              DiscountCode?
+  customers                 Customer[]
+  commissions               Commission[]
+  fraudEvents               FraudEvent[]
+
+  @@unique([domain, key]) // for getting a link by domain and key
+  @@unique([projectId, externalId]) // for getting a link by externalId
+  @@index([projectId, tenantId]) // for filtering by tenantId
+  @@index([projectId, url(length: 500)]) // for upserting a link by URL
+  @@index([projectId, folderId, archived, createdAt(sort: Desc)]) // most getLinksForWorkspace queries
+  @@index([programId, partnerId]) // for getting a referral link (programId + partnerId)
+  @@index(partnerId) // for getting links by partnerId
+  @@index([domain, createdAt]) // for bulk link deletion workflows (by domain) + deleting old short-lived links
+  @@index(folderId) // used in /api/folders
+  @@index(userId) // for relation to User table, used in /api/cron/cleanup/e2e-tests too
+  @@index(partnerGroupDefaultLinkId)
+}

@@ -1,3 +1,4 @@
+import { withAxiomBodyLog } from "@/lib/axiom/server";
 import { stripe } from "@/lib/stripe";
 import { log } from "@dub/utils";
 import { logAndRespond } from "app/(ee)/api/cron/utils";
@@ -17,28 +18,42 @@ const relevantEvents = new Set([
   "payout.failed",
 ]);
 
-// POST /api/stripe/connect/webhook – listen to Stripe Connect webhooks (for connected accounts)
-export const POST = async (req: Request) => {
-  const buf = await req.text();
-  const sig = req.headers.get("Stripe-Signature");
-  const webhookSecret = process.env.STRIPE_CONNECT_WEBHOOK_SECRET;
-  let event: Stripe.Event;
+const webhookSecret = process.env.STRIPE_CONNECT_WEBHOOK_SECRET;
 
+// POST /api/stripe/connect/webhook – listen to Stripe Connect webhooks (for connected accounts)
+export const POST = withAxiomBodyLog(async (req: Request) => {
+  const clonedReq = req.clone();
+  const buf = await clonedReq.text();
+
+  const signature = clonedReq.headers.get("Stripe-Signature");
+
+  if (!signature) {
+    return logAndRespond("Missing Stripe-Signature header.", {
+      status: 400,
+    });
+  }
+
+  if (!webhookSecret) {
+    return logAndRespond(
+      "STRIPE_CONNECT_WEBHOOK_SECRET environment variable is not set.",
+      {
+        status: 500,
+      },
+    );
+  }
+
+  let event: Stripe.Event;
   try {
-    if (!sig || !webhookSecret) return;
-    event = stripe.webhooks.constructEvent(buf, sig, webhookSecret);
+    event = stripe.webhooks.constructEvent(buf, signature, webhookSecret);
   } catch (err: any) {
-    console.log(`❌ Error message: ${err.message}`);
-    return new Response(`Webhook Error: ${err.message}`, {
+    return logAndRespond(`Webhook Error: ${err.message}`, {
       status: 400,
     });
   }
 
   // Ignore unsupported events
   if (!relevantEvents.has(event.type)) {
-    return new Response("Unsupported event, skipping...", {
-      status: 200,
-    });
+    return logAndRespond(`Unsupported event ${event.type}, skipping...`);
   }
 
   let response = "OK";
@@ -67,10 +82,10 @@ export const POST = async (req: Request) => {
       type: "errors",
     });
 
-    return new Response(`Webhook error: ${error.message}`, {
+    return logAndRespond(`Webhook error: ${error.message}`, {
       status: 400,
     });
   }
 
   return logAndRespond(`[${event.type}]: ${response}`);
-};
+});

@@ -1,5 +1,5 @@
 import { fraudGroupSchema } from "@/lib/zod/schemas/fraud";
-import { FraudEventStatus, FraudRuleType } from "@dub/prisma/client";
+import { FraudEventStatus, FraudRuleType } from "@prisma/client";
 import { describe, expect, test } from "vitest";
 import * as z from "zod/v4";
 import { IntegrationHarness } from "../utils/integration";
@@ -66,6 +66,7 @@ describe.concurrent("/fraud/groups", async () => {
       FraudRuleType.customerEmailSuspiciousDomain,
       FraudRuleType.referralSourceBanned,
       FraudRuleType.paidTrafficDetected,
+      FraudRuleType.partnerDuplicateAccount,
     ];
 
     for (const fraudType of typesToTest) {

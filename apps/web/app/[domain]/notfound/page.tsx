@@ -1,10 +1,10 @@
+import { prisma } from "@/lib/prisma";
 import { BubbleIcon } from "@/ui/placeholders/bubble-icon";
 import { ButtonLink } from "@/ui/placeholders/button-link";
 import { CTA } from "@/ui/placeholders/cta";
 import { FeaturesSection } from "@/ui/placeholders/features-section";
 import { Hero } from "@/ui/placeholders/hero";
 import { LearnMoreButton } from "@/ui/placeholders/learn-more-button";
-import { prisma } from "@dub/prisma";
 import { GlobeSearch } from "@dub/ui";
 import { cn, constructMetadata } from "@dub/utils";
 import { redirect } from "next/navigation";

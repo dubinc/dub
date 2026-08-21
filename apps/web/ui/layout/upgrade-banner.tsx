@@ -1,74 +1,173 @@
 "use client";
 
+import { clientAccessCheck } from "@/lib/client-access-check";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { Crown } from "@dub/ui";
-import { cn } from "@dub/utils";
+import { useRetryPaymentModal } from "@/ui/modals/retry-payment-modal";
+import { useTrialLimitActivateModal } from "@/ui/modals/trial-limit-activate-modal";
+import {
+  Button,
+  Crown,
+  DynamicTooltipWrapper,
+  TriangleWarning,
+  useMediaQuery,
+} from "@dub/ui";
+import {
+  cn,
+  getTrialLimitResourceForOverageBanner,
+  isWorkspaceBillingTrialActive,
+} from "@dub/utils";
 import { motion } from "motion/react";
 import Link from "next/link";
-import ManageSubscriptionButton from "../workspaces/manage-subscription-button";
 
-export function useUpgradeBannerVisible() {
-  const { exceededEvents, exceededLinks, exceededPayouts, paymentFailedAt } =
-    useWorkspace();
+export function useUpgradeBannerVisibility() {
+  const {
+    exceededEvents,
+    exceededLinks,
+    exceededPayouts,
+    paymentFailedAt,
+    subscriptionCanceledAt,
+  } = useWorkspace();
 
   const needsUpgrade = exceededEvents || exceededLinks || exceededPayouts;
-  return needsUpgrade || !!paymentFailedAt;
+  const subscriptionCanceled =
+    subscriptionCanceledAt && new Date(subscriptionCanceledAt) < new Date();
+
+  return {
+    isVisible: needsUpgrade || !!paymentFailedAt || subscriptionCanceled,
+    needsUpgrade,
+    paymentFailed: !!paymentFailedAt,
+    subscriptionCanceled,
+  };
 }
 
 export function UpgradeBanner() {
-  const { slug, exceededEvents, exceededLinks, exceededPayouts } =
-    useWorkspace();
+  const {
+    slug,
+    exceededEvents,
+    exceededLinks,
+    exceededPayouts,
+    trialEndsAt,
+    role,
+  } = useWorkspace();
+  const { openTrialLimitModal, TrialLimitActivateModal } =
+    useTrialLimitActivateModal();
+  const { setShowRetryPaymentModal, RetryPaymentModal } =
+    useRetryPaymentModal();
+  const trialActive = isWorkspaceBillingTrialActive(trialEndsAt);
 
-  const needsUpgrade = exceededEvents || exceededLinks || exceededPayouts;
+  const { isVisible, needsUpgrade, subscriptionCanceled } =
+    useUpgradeBannerVisibility();
 
-  const isVisible = useUpgradeBannerVisible();
+  const permissionsError = clientAccessCheck({
+    action: "billing.write",
+    role,
+  }).error;
+
+  const overageLimitResource = getTrialLimitResourceForOverageBanner({
+    exceededEvents: Boolean(exceededEvents),
+    exceededLinks: Boolean(exceededLinks),
+    exceededPayouts: Boolean(exceededPayouts),
+  });
+
+  const customButtonClassname = "ml-4 h-7 w-fit px-2.5 text-sm font-medium";
+
+  const { isMobile } = useMediaQuery();
+
   if (!isVisible) return null;
 
   return (
-    <motion.div
-      initial={{ transform: "translateY(-100%)" }}
-      animate={{ transform: "translateY(0)" }}
-      className="text-content-inverted bg-bg-inverted fixed left-0 right-0 top-0 z-50 flex h-12 items-center justify-center overflow-hidden px-6"
-    >
-      {needsUpgrade && <Crown className="mr-2 size-4 shrink-0" />}
-      <p className="text-sm">
-        {needsUpgrade ? (
-          <>
-            You&rsquo;ve hit the{" "}
-            <Link href={`/${slug}/settings/billing`} className="underline">
-              monthly{" "}
-              {exceededEvents ? "events" : exceededLinks ? "links" : "payouts"}{" "}
-              limit
-            </Link>
-            <span className="xs:inline hidden">&nbsp;on your current plan</span>
-            <span className="hidden md:inline">
-              . Upgrade to keep using Dub.
-            </span>
-          </>
-        ) : (
-          <>
-            Your last payment failed. Please update your payment method to
-            continue using Dub.
-          </>
+    <>
+      <TrialLimitActivateModal />
+      <RetryPaymentModal />
+      <motion.div
+        initial={{ transform: "translateY(-100%)" }}
+        animate={{ transform: "translateY(0)" }}
+        className={cn(
+          "fixed left-0 right-0 top-0 z-50 flex items-center justify-center overflow-hidden px-6 py-2 text-white sm:h-12 sm:py-0",
+          needsUpgrade ? "bg-amber-600" : "bg-red-600",
         )}
-      </p>
-      {needsUpgrade ? (
-        <Link
-          href={`/${slug}/settings/billing/upgrade`}
-          className={cn(
-            "bg-bg-default text-content-emphasis border-border-subtle ml-4 flex h-7 items-center justify-center rounded-lg border px-2.5 text-sm font-medium",
-            "hover:bg-bg-subtle transition-colors duration-150",
+      >
+        {needsUpgrade ? (
+          <Crown className="mr-2 size-4 shrink-0" />
+        ) : (
+          <TriangleWarning className="mr-2 size-4 shrink-0" variant="fill" />
+        )}
+        <p className="text-sm">
+          {needsUpgrade ? (
+            <>
+              You&rsquo;ve hit the{" "}
+              <Link href={`/${slug}/settings/billing`} className="underline">
+                {exceededEvents
+                  ? "events"
+                  : exceededLinks
+                    ? "links"
+                    : "payouts"}{" "}
+                limit
+              </Link>
+              <span className="xs:inline hidden">
+                &nbsp;on your current plan
+              </span>
+              <span className="hidden md:inline">
+                . Upgrade to avoid service disruption.
+              </span>
+            </>
+          ) : subscriptionCanceled ? (
+            "Your subscription has been canceled. To reactivate, please upgrade to a paid plan."
+          ) : (
+            <>
+              Your last payment failed. Please{" "}
+              <Link
+                href={`/${slug}/settings/billing#payment-methods`}
+                className="underline"
+              >
+                update your payment method
+              </Link>{" "}
+              to avoid service disruption.
+            </>
           )}
-        >
-          Upgrade
-        </Link>
-      ) : (
-        <ManageSubscriptionButton
-          text="Update Payment Method"
-          variant="secondary"
-          className="ml-4 h-7 w-fit px-2.5 text-sm font-medium"
-        />
-      )}
-    </motion.div>
+        </p>
+        {needsUpgrade || subscriptionCanceled ? (
+          trialActive ? (
+            <Button
+              text="Upgrade"
+              variant="secondary"
+              onClick={() =>
+                openTrialLimitModal(
+                  overageLimitResource ??
+                    (exceededEvents
+                      ? "clicks"
+                      : exceededLinks
+                        ? "links"
+                        : "payouts"),
+                )
+              }
+              className={customButtonClassname}
+            />
+          ) : (
+            <Link href={`/${slug}/settings/billing/upgrade`}>
+              <Button
+                text="Upgrade"
+                variant="secondary"
+                className={customButtonClassname}
+              />
+            </Link>
+          )
+        ) : (
+          <DynamicTooltipWrapper
+            tooltipProps={
+              permissionsError ? { content: permissionsError } : undefined
+            }
+          >
+            <Button
+              text={isMobile ? "Retry" : "Retry payment"}
+              variant="secondary"
+              disabled={Boolean(permissionsError)}
+              onClick={() => setShowRetryPaymentModal(true)}
+              className={customButtonClassname}
+            />
+          </DynamicTooltipWrapper>
+        )}
+      </motion.div>
+    </>
   );
 }

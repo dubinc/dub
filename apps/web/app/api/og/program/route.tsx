@@ -1,8 +1,8 @@
 import { serializeReward } from "@/lib/api/partners/serialize-reward";
 import { constructRewardAmount } from "@/lib/api/sales/construct-reward-amount";
+import { prisma } from "@/lib/prisma";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
-import { prisma } from "@dub/prisma";
-import { Reward } from "@dub/prisma/client";
+import { Reward } from "@prisma/client";
 import { ImageResponse } from "next/og";
 import { NextRequest } from "next/server";
 import { SVGProps } from "react";
@@ -15,6 +15,7 @@ const DARK_CELLS = [
   [53, 1],
 ];
 
+// GET /api/og/program?slug=program&groupSlug=group
 export async function GET(req: NextRequest) {
   const slug = req.nextUrl.searchParams.get("slug");
   const groupSlug = req.nextUrl.searchParams.get("groupSlug");
@@ -39,6 +40,7 @@ export async function GET(req: NextRequest) {
             clickReward: true,
             saleReward: true,
             leadReward: true,
+            referralReward: true,
           },
         },
       },
@@ -46,12 +48,18 @@ export async function GET(req: NextRequest) {
   ]);
 
   if (!program) {
-    return new Response(`Program not found`, {
+    return new Response("Program not found", {
       status: 404,
     });
   }
 
   const group = program.groups[0];
+
+  if (!group) {
+    return new Response("Group not found", {
+      status: 404,
+    });
+  }
 
   const logo = group.wordmark || group.logo;
   const brandColor = group.brandColor || "#000000";

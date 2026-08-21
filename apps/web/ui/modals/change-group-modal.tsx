@@ -5,13 +5,12 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerExtendedProps } from "@/lib/types";
 import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import { Button, InfoTooltip, Modal, Switch } from "@dub/ui";
-import { cn } from "@dub/utils";
+import { cn, pluralize } from "@dub/utils";
 import {
   Dispatch,
   SetStateAction,
   useCallback,
   useEffect,
-  useMemo,
   useState,
 } from "react";
 import { toast } from "sonner";
@@ -48,6 +47,12 @@ function ChangeGroupModal({
       : false,
   );
 
+  // Key on the partner data itself so re-renders that recreate the `partners`
+  // array don't re-run the sync and stomp an in-progress selection
+  const partnersKey = partners
+    .map((p) => `${p.id}:${p.groupId}:${p.groupMoveDisabledAt ?? ""}`)
+    .join(",");
+
   // Sync state from the DB value whenever the modal opens or partners change
   useEffect(() => {
     if (partners.length === 1) {
@@ -58,7 +63,8 @@ function ChangeGroupModal({
     } else {
       setGroupMoveDisabled(false);
     }
-  }, [showChangeGroupModal, partners, canUseGroupMoveRule]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showChangeGroupModal, partnersKey, canUseGroupMoveRule]);
 
   const { makeRequest: changeGroup, isSubmitting } = useApiMutation();
 
@@ -90,6 +96,7 @@ function ChangeGroupModal({
   ]);
 
   const isSinglePartner = partners.length === 1;
+  const partnerWord = pluralize("partner", partners.length);
 
   return (
     <Modal
@@ -139,6 +146,12 @@ function ChangeGroupModal({
             </div>
           )}
         </div>
+
+        <p className="text-sm text-neutral-600">
+          This will change the group for the{" "}
+          {isSinglePartner ? partnerWord : `selected ${partnerWord}`} and notify
+          them by email.
+        </p>
 
         <div>
           <label className="block text-sm font-medium text-neutral-900">
@@ -204,22 +217,18 @@ export function useChangeGroupModal({
 }: Pick<ChangeGroupModalProps, "partners" | "onChangeGroup">) {
   const [showChangeGroupModal, setShowChangeGroupModal] = useState(false);
 
-  const ChangeGroupModalCallback = useCallback(() => {
-    return (
+  // Return an element (rendered as `{ChangeGroupModal}`) rather than a
+  // per-render component type, which would remount the modal – and reset its
+  // state – on every parent render
+  return {
+    setShowChangeGroupModal,
+    ChangeGroupModal: (
       <ChangeGroupModal
         showChangeGroupModal={showChangeGroupModal}
         setShowChangeGroupModal={setShowChangeGroupModal}
         partners={partners}
         onChangeGroup={onChangeGroup}
       />
-    );
-  }, [showChangeGroupModal, setShowChangeGroupModal, partners]);
-
-  return useMemo(
-    () => ({
-      setShowChangeGroupModal,
-      ChangeGroupModal: ChangeGroupModalCallback,
-    }),
-    [setShowChangeGroupModal, ChangeGroupModalCallback],
-  );
+    ),
+  };
 }

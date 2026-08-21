@@ -1,15 +1,16 @@
+import { finalizePremiumDomainRegistration } from "@/lib/api/domains/finalize-premium-domain-registration";
+import {
+  isDomainRegistrationInvoice,
+  parseRegisteredDomainSlugs,
+} from "@/lib/api/domains/is-domain-registration-invoice";
 import { qstash } from "@/lib/cron";
-import { setRenewOption } from "@/lib/dynadot/set-renew-option";
-import { sendBatchEmail } from "@dub/email";
-import DomainRenewed from "@dub/email/templates/domain-renewed";
-import { prisma } from "@dub/prisma";
-import { Invoice } from "@dub/prisma/client";
-import { APP_DOMAIN_WITH_NGROK, pluralize } from "@dub/utils";
-import { addDays } from "date-fns";
+import { prisma } from "@/lib/prisma";
+import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
+import { Invoice } from "@prisma/client";
 import Stripe from "stripe";
 
-export async function chargeSucceeded(event: Stripe.Event) {
-  const charge = event.data.object as Stripe.Charge;
+export async function chargeSucceeded(event: Stripe.ChargeSucceededEvent) {
+  const charge = event.data.object;
 
   const { transfer_group: invoiceId } = charge;
 
@@ -88,9 +89,10 @@ async function processPayoutInvoice({ invoice }: { invoice: Invoice }) {
 
   const qstashResponse = await qstash.publishJSON({
     url: `${APP_DOMAIN_WITH_NGROK}/api/cron/payouts/charge-succeeded`,
+    label: invoice.id,
     flowControl: {
       key: invoice.id,
-      rate: 1,
+      parallelism: 1,
     },
     body: {
       invoiceId: invoice.id,
@@ -105,10 +107,24 @@ async function processPayoutInvoice({ invoice }: { invoice: Invoice }) {
 }
 
 async function processDomainRenewalInvoice({ invoice }: { invoice: Invoice }) {
+  const slugs = parseRegisteredDomainSlugs(invoice.registeredDomains);
+
+  if (
+    await isDomainRegistrationInvoice({
+      slugs,
+      workspaceId: invoice.workspaceId,
+    })
+  ) {
+    return await finalizePremiumDomainRegistration({
+      domain: slugs[0],
+      workspaceId: invoice.workspaceId,
+    });
+  }
+
   const domains = await prisma.registeredDomain.findMany({
     where: {
       slug: {
-        in: invoice.registeredDomains as string[],
+        in: slugs,
       },
     },
     orderBy: {
@@ -120,66 +136,17 @@ async function processDomainRenewalInvoice({ invoice }: { invoice: Invoice }) {
     return `No domains found for invoice ${invoice.id}, skipping...`;
   }
 
-  const newExpiresAt = addDays(domains[0].expiresAt, 365);
-
-  await prisma.registeredDomain.updateMany({
-    where: {
-      id: {
-        in: domains.map(({ id }) => id),
-      },
-    },
-    data: {
-      expiresAt: newExpiresAt,
-      autoRenewalDisabledAt: null,
+  const qstashResponse = await qstash.publishJSON({
+    url: `${APP_DOMAIN_WITH_NGROK}/api/cron/domains/renewal-succeeded`,
+    deduplicationId: `domain-renewal-${invoice.id}`,
+    body: {
+      invoiceId: invoice.id,
     },
   });
 
-  await Promise.allSettled(
-    domains.map((domain) =>
-      setRenewOption({
-        domain: domain.slug,
-        autoRenew: true,
-      }),
-    ),
-  );
-
-  const workspace = await prisma.project.findUniqueOrThrow({
-    where: {
-      id: invoice.workspaceId,
-    },
-    include: {
-      users: {
-        where: {
-          role: "owner",
-        },
-        select: {
-          user: true,
-        },
-      },
-    },
-  });
-
-  const workspaceOwners = workspace.users.filter(({ user }) => user.email);
-
-  if (workspaceOwners.length === 0) {
-    return "No users found to send domain renewal success email.";
+  if (qstashResponse.messageId) {
+    return `Message sent to Qstash with id ${qstashResponse.messageId}`;
+  } else {
+    return `Error sending message to Qstash: ${JSON.stringify(qstashResponse)}`;
   }
-
-  await sendBatchEmail(
-    workspaceOwners.map(({ user }) => ({
-      variant: "notifications",
-      to: user.email!,
-      subject: `Your ${pluralize("domain", domains.length)} have been renewed`,
-      react: DomainRenewed({
-        email: user.email!,
-        workspace: {
-          slug: workspace.slug,
-        },
-        domains: domains.map(({ slug }) => ({ slug })),
-        expiresAt: newExpiresAt,
-      }),
-    })),
-  );
-
-  return `Domain renewal success email sent to ${workspaceOwners.length} users.`;
 }

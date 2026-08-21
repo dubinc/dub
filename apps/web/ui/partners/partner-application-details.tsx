@@ -1,9 +1,9 @@
 import { getProgramApplicationRejectionReasonLabel } from "@/lib/partners/program-application-rejection";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { ProgramApplication } from "@dub/prisma/client";
 import { CircleHalfDottedClock, Combobox, ComboboxOption } from "@dub/ui";
 import { cn, fetcher, formatDate, formatDateTime } from "@dub/utils";
+import { ProgramApplication } from "@prisma/client";
 import Linkify from "linkify-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import useSWR from "swr";
@@ -98,7 +98,7 @@ export function PartnerApplicationDetails({
   const { data: historyData, isLoading: historyLoading } =
     useSWR<ApplicationHistoryResponse>(
       program && workspaceId && partnerId
-        ? `/api/programs/${program.id}/applications/history?partnerId=${encodeURIComponent(partnerId)}&workspaceId=${workspaceId}`
+        ? `/api/partners/applications/history?partnerId=${encodeURIComponent(partnerId)}&workspaceId=${workspaceId}`
         : null,
       fetcher,
     );
@@ -139,7 +139,7 @@ export function PartnerApplicationDetails({
     program &&
     workspaceId &&
     resolvedApplicationId &&
-    `/api/programs/${program.id}/applications/${resolvedApplicationId}?workspaceId=${workspaceId}`;
+    `/api/partners/applications/${resolvedApplicationId}?workspaceId=${workspaceId}`;
 
   const { data: application, isLoading: applicationLoading } =
     useSWR<ProgramApplication>(applicationKey, fetcher);
@@ -292,7 +292,11 @@ export function PartnerApplicationDetails({
             ))}
           </div>
           <PartnerApplicationReviewOutcome application={application} />
-          <PartnerApplicationReviewFooter reviewedAt={application.reviewedAt} />
+          {historyItems.length > 1 ? (
+            <PartnerApplicationReviewFooter
+              reviewedAt={application.reviewedAt}
+            />
+          ) : null}
         </>
       )}
     </div>
@@ -338,7 +342,7 @@ function PartnerApplicationDetailsSkeleton() {
       {[...Array(3)].map((_, idx) => (
         <div key={idx}>
           <div
-            className="h-5 w-40 max-w-[min(100%,11rem)] min-w-0 animate-pulse rounded-md bg-neutral-200"
+            className="h-5 w-40 min-w-0 max-w-[min(100%,11rem)] animate-pulse rounded-md bg-neutral-200"
             aria-hidden
           />
 

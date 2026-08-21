@@ -1,11 +1,10 @@
-import { createDiscountCode } from "@/lib/api/discounts/create-discount-code";
-import { deleteDiscountCodes } from "@/lib/api/discounts/delete-discount-code";
-import { isDiscountEquivalent } from "@/lib/api/discounts/is-discount-equivalent";
 import { withCron } from "@/lib/cron/with-cron";
-import { stripeIntegrationSettingsSchema } from "@/lib/integrations/stripe/schema";
-import { prisma } from "@dub/prisma";
-import { DiscountCode } from "@dub/prisma/client";
-import { STRIPE_INTEGRATION_ID } from "@dub/utils";
+import { createDiscountCode } from "@/lib/discounts/create-discount-code";
+import { deleteDiscountCodes } from "@/lib/discounts/delete-discount-code";
+import { isDiscountProviderError } from "@/lib/discounts/discount-error";
+import { isDiscountEquivalent } from "@/lib/discounts/is-discount-equivalent";
+import { prisma } from "@/lib/prisma";
+import { DiscountCode } from "@prisma/client";
 import * as z from "zod/v4";
 import { logAndRespond } from "../../utils";
 
@@ -69,7 +68,7 @@ export const POST = withCron(async ({ rawBody }) => {
 
   // Find the discount codes to update and remove
   const discountCodesToUpdate: DiscountCode[] = [];
-  const discountCodesToRemove: DiscountCode[] = [];
+  const discountCodesToRemove: typeof discountCodes = [];
 
   for (const discountCode of discountCodes) {
     const keepDiscountCode = isDiscountEquivalent(
@@ -147,29 +146,37 @@ export const POST = withCron(async ({ rawBody }) => {
           defaultProgramId: programId,
         },
         select: {
+          id: true,
+          webhookEnabled: true,
           stripeConnectId: true,
-          installedIntegrations: {
-            where: {
-              integrationId: STRIPE_INTEGRATION_ID,
-            },
-          },
+          shopifyStoreId: true,
         },
       });
 
       // Create discount code for the partner default links
-      if (workspace.stripeConnectId && workspace.installedIntegrations.length) {
-        const stripeIntegrationSettings = stripeIntegrationSettingsSchema.parse(
-          workspace.installedIntegrations[0].settings || {},
-        );
-
-        for (const link of links) {
+      for (const link of links) {
+        try {
           await createDiscountCode({
-            stripeConnectId: workspace.stripeConnectId,
-            stripeMode: stripeIntegrationSettings.stripeMode,
+            workspace,
             partner: link.programEnrollment!.partner,
             link,
             discount: group.discount,
           });
+        } catch (error) {
+          if (isDiscountProviderError(error)) {
+            if (
+              error.providerCode === "INTEGRATION_NOT_AVAILABLE" ||
+              error.providerCode === "AUTH_EXPIRED" ||
+              error.providerCode === "PERMISSIONS_REQUIRED" ||
+              error.providerCode === "COUPON_NOT_FOUND"
+            ) {
+              console.warn(
+                `${error.message} Skipping remaining discount code creation for remap.`,
+              );
+              break;
+            }
+          }
+          throw error;
         }
       }
     }

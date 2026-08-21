@@ -7,11 +7,10 @@ import type { ComponentType } from "react";
 import { ReactNode } from "react";
 import { ConnectPayoutButton } from "./connect-payout-button";
 import {
+  getPayoutMethodFeaturesForSelector,
   PAYOUT_METHODS,
   type PayoutMethodFeature,
 } from "./payout-method-config";
-
-export { PAYOUT_METHODS };
 
 const CARD_VARIANTS = {
   default: {
@@ -54,25 +53,21 @@ export function PayoutMethodSelector({
   );
 
   const methodCount = filteredMethods.length;
-  const isSingleOption = methodCount === 1;
-  const isCompact = variantProp === "compact";
-
-  const gridClassName = isSingleOption
-    ? "w-full"
-    : methodCount === 2
-      ? "grid gap-3 sm:grid-cols-2"
-      : "grid gap-3 sm:grid-cols-3";
-
-  const cardVariant = isCompact
-    ? "compact"
-    : isSingleOption
-      ? "spotlight"
-      : "default";
-
-  const iconSize = isCompact ? "sm" : isSingleOption ? "lg" : "sm";
+  // isSingleOption is true if there is only one method and the variant is not compact
+  const isSingleOption = methodCount === 1 && variantProp !== "compact";
 
   return (
-    <div className={gridClassName}>
+    <div
+      className={cn(
+        methodCount === 2
+          ? "grid gap-3 sm:grid-cols-2"
+          : methodCount === 3
+            ? "grid gap-3 sm:grid-cols-3"
+            : "",
+        // for onboarding payouts page, if single option, limit width to max-w-sm
+        isSingleOption && "mx-auto w-full max-w-sm",
+      )}
+    >
       {filteredMethods.map((method) => {
         const setting = payoutMethods.find((s) => s.type === method.id)!;
         return (
@@ -82,24 +77,24 @@ export function PayoutMethodSelector({
               <PayoutMethodIcon
                 icon={method.icon}
                 wrapperClasses={method.iconWrapperClass}
-                size={iconSize}
+                size="sm"
               />
             }
             title={method.title}
-            features={method.features}
+            features={getPayoutMethodFeaturesForSelector(
+              method.id,
+              isSingleOption,
+            )}
             recommended={method.recommended}
             action={
               <ConnectPayoutButton
                 payoutMethod={method.id}
                 connected={setting.connected}
-                className={cn(
-                  "w-full rounded-lg",
-                  isSingleOption ? "h-10" : "h-9",
-                )}
+                className="h-9 w-full rounded-lg"
               />
             }
             actionFooter={actionFooter?.(setting)}
-            variant={cardVariant}
+            variant={variantProp}
           />
         );
       })}

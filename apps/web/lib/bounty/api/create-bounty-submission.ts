@@ -3,9 +3,16 @@ import { DubApiError } from "@/lib/api/errors";
 import { getWorkspaceUsers } from "@/lib/api/get-workspace-users";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { getSocialContent } from "@/lib/api/scrape-creators/get-social-content";
+import {
+  bountyEligibilityIncludes,
+  canPartnerSubmitBounty,
+  getEffectiveBountyPeriod,
+} from "@/lib/bounty/api/bounty-availability";
+import { getBountyOrThrow } from "@/lib/bounty/api/get-bounty-or-throw";
 import { BOUNTY_MAX_SUBMISSION_URLS } from "@/lib/bounty/constants";
 import { addFrequency, getCurrentPeriodNumber } from "@/lib/bounty/periods";
 import { resolveBountyDetails } from "@/lib/bounty/utils";
+import { prisma } from "@/lib/prisma";
 import {
   createBountySubmissionInputSchema,
   submissionRequirementsSchema,
@@ -13,15 +20,14 @@ import {
 import { sendBatchEmail, sendEmail } from "@dub/email";
 import NewBountySubmission from "@dub/email/templates/bounty-new-submission";
 import BountySubmitted from "@dub/email/templates/bounty-submitted";
-import { prisma } from "@dub/prisma";
+import { getDomainWithoutWWW, isValidUrl, R2_URL } from "@dub/utils";
 import {
   BountySubmission,
   Partner,
   PlatformType,
   Prisma,
   WorkspaceRole,
-} from "@dub/prisma/client";
-import { getDomainWithoutWWW, isValidUrl } from "@dub/utils";
+} from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { formatDistanceToNow, isBefore } from "date-fns";
 import * as z from "zod/v4";
@@ -34,8 +40,7 @@ type CreateBountySubmissionParams = z.infer<
 };
 
 type BountyWithRelations = Prisma.BountyGetPayload<{
-  include: {
-    groups: true;
+  include: typeof bountyEligibilityIncludes & {
     submissions: true;
   };
 }>;
@@ -57,7 +62,19 @@ export class BountySubmissionHandler {
   private submissions: BountySubmission[];
   private submissionData: Partial<Prisma.BountySubmissionUncheckedCreateInput>;
   private programEnrollment: Prisma.ProgramEnrollmentGetPayload<{
-    include: {};
+    include: {
+      program: {
+        select: {
+          id: true;
+          defaultGroupId: true;
+        };
+      };
+      programPartnerTags: {
+        select: {
+          partnerTagId: true;
+        };
+      };
+    };
   }>;
 
   constructor(params: CreateBountySubmissionParams) {
@@ -80,6 +97,8 @@ export class BountySubmissionHandler {
 
     this.validateRequirements();
 
+    this.validateFiles();
+
     await this.validateSocialContent();
 
     this.mergeSubmissionData();
@@ -97,15 +116,26 @@ export class BountySubmissionHandler {
       getProgramEnrollmentOrThrow({
         partnerId: this.partner.id,
         programId: this.programId,
-        include: {},
+        include: {
+          program: {
+            select: {
+              id: true,
+              defaultGroupId: true,
+            },
+          },
+          programPartnerTags: {
+            select: {
+              partnerTagId: true,
+            },
+          },
+        },
       }),
 
-      prisma.bounty.findUniqueOrThrow({
-        where: {
-          id: this.bountyId,
-        },
+      getBountyOrThrow({
+        bountyId: this.bountyId,
+        programId: this.programId,
         include: {
-          groups: true,
+          ...bountyEligibilityIncludes,
           submissions: {
             where: {
               partnerId: this.partner.id,
@@ -153,9 +183,14 @@ export class BountySubmissionHandler {
     }
 
     // Multi-submission WITH frequency — time-gated
+    const { startsAt, endsAt } = getEffectiveBountyPeriod({
+      programEnrollment: this.programEnrollment,
+      bounty: this.bounty,
+    });
+
     const currentPeriod = getCurrentPeriodNumber({
-      startsAt: this.bounty.startsAt,
-      endsAt: this.bounty.endsAt,
+      startsAt,
+      endsAt,
       submissionFrequency: this.bounty.submissionFrequency,
       maxSubmissions: this.bounty.maxSubmissions,
     });
@@ -184,7 +219,7 @@ export class BountySubmissionHandler {
 
     // Validate the period has started
     const periodStart = addFrequency({
-      date: this.bounty.startsAt,
+      date: startsAt,
       frequency: this.bounty.submissionFrequency,
       amount: periodNumber - 1,
     });
@@ -208,17 +243,17 @@ export class BountySubmissionHandler {
 
   // Validate the eligibility of the submission
   private validateEligibility() {
-    if (!["approved", "pending"].includes(this.programEnrollment.status)) {
+    if (
+      !canPartnerSubmitBounty({
+        program: this.programEnrollment.program,
+        bounty: this.bounty,
+        programEnrollment: this.programEnrollment,
+      })
+    ) {
       throw new DubApiError({
         code: "forbidden",
-        message: "You are not allowed to submit a bounty for this program.",
-      });
-    }
-
-    if (this.bounty.programId !== this.programId) {
-      throw new DubApiError({
-        code: "bad_request",
-        message: "This bounty is not for this program.",
+        message:
+          "You are not allowed to submit this bounty. Please contact the program if you think this is an error.",
       });
     }
 
@@ -241,50 +276,14 @@ export class BountySubmissionHandler {
       }
     }
 
-    // Check group membership
-    if (this.bounty.groups.length > 0) {
-      const isInGroup = this.bounty.groups.find(
-        ({ groupId }) => groupId === this.programEnrollment.groupId,
-      );
-
-      if (!isInGroup) {
-        throw new DubApiError({
-          code: "forbidden",
-          message: "You are not allowed to submit this bounty.",
-        });
-      }
-    }
-
-    // Validate bounty dates and status
-    const now = new Date();
-
-    if (this.bounty.startsAt && this.bounty.startsAt > now) {
-      throw new DubApiError({
-        code: "bad_request",
-        message: "This bounty is not yet available.",
-      });
-    }
-
-    if (this.bounty.endsAt && this.bounty.endsAt < now) {
-      throw new DubApiError({
-        code: "bad_request",
-        message: "This bounty is no longer available.",
-      });
-    }
-
-    if (this.bounty.archivedAt) {
-      throw new DubApiError({
-        code: "bad_request",
-        message: "This bounty is archived.",
-      });
-    }
-
     if (this.bounty.type === "performance") {
       throw new DubApiError({
         code: "forbidden",
         message: "You are not allowed to submit a performance bounty.",
       });
     }
+
+    const now = new Date();
 
     if (
       !this.isDraft &&
@@ -411,6 +410,30 @@ export class BountySubmissionHandler {
     }
   }
 
+  private validateFiles() {
+    if (this.files.length === 0) {
+      return;
+    }
+
+    // Validate the URL to the partner's own upload location in R2
+    const r2 = new URL(R2_URL);
+    const expectedPath = `/programs/${this.programId}/bounties/${this.bountyId}/submissions/${this.partner.id}/`;
+
+    for (const file of this.files) {
+      const parsed = new URL(file.url);
+
+      if (
+        parsed.origin !== r2.origin ||
+        !parsed.pathname.startsWith(expectedPath)
+      ) {
+        throw new DubApiError({
+          code: "unprocessable_entity",
+          message: "Invalid file URL.",
+        });
+      }
+    }
+  }
+
   // Validate the social content of the submission
   private async validateSocialContent() {
     const bountyInfo = resolveBountyDetails(this.bounty);
@@ -496,16 +519,19 @@ export class BountySubmissionHandler {
       });
     }
 
-    if (
-      socialContent.publishedAt &&
-      this.bounty.startsAt &&
-      isBefore(socialContent.publishedAt, this.bounty.startsAt)
-    ) {
-      throw new DubApiError({
-        code: "unprocessable_entity",
-        message:
-          "This content was published before the bounty started. Please submit content posted after the start date.",
+    if (socialContent.publishedAt) {
+      const { startsAt } = getEffectiveBountyPeriod({
+        programEnrollment: this.programEnrollment,
+        bounty: this.bounty,
       });
+
+      if (isBefore(socialContent.publishedAt, startsAt)) {
+        throw new DubApiError({
+          code: "unprocessable_entity",
+          message:
+            "This content was published before the bounty started. Please submit content posted after the start date.",
+        });
+      }
     }
 
     this.submissionData = {

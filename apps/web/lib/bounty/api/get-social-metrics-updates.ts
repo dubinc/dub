@@ -1,6 +1,6 @@
 import { getSocialContent } from "@/lib/api/scrape-creators/get-social-content";
 import { resolveBountyDetails } from "@/lib/bounty/utils";
-import { Bounty, BountySubmission } from "@dub/prisma/client";
+import { Bounty, BountySubmission } from "@prisma/client";
 
 export type SocialMetricsUpdate = Pick<
   BountySubmission,

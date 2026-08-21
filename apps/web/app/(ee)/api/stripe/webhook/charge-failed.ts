@@ -1,15 +1,16 @@
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import Stripe from "stripe";
+import { detectAndHandleFraudulentFailedCharge } from "./utils/detect-and-handle-fraudulent-failed-charge";
 import { processDomainRenewalFailure } from "./utils/process-domain-renewal-failure";
 import { processPayoutInvoiceFailure } from "./utils/process-payout-invoice-failure";
 
-export async function chargeFailed(event: Stripe.Event) {
-  const charge = event.data.object as Stripe.Charge;
+export async function chargeFailed(event: Stripe.ChargeFailedEvent) {
+  const charge = event.data.object;
 
   const { transfer_group: invoiceId, failure_message: failedReason } = charge;
 
   if (!invoiceId) {
-    return "No transfer group found, skipping...";
+    return detectAndHandleFraudulentFailedCharge(event);
   }
 
   let invoice = await prisma.invoice.findUnique({

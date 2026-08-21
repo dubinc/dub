@@ -201,7 +201,7 @@ export function PartnerApplicationSheet({
     <Sheet
       open={isOpen}
       onOpenChange={rest.setIsOpen}
-      onClose={() => queryParams({ del: "partnerId", scroll: false })}
+      onClose={() => queryParams({ del: "partnerId" })}
       nested={nested}
       contentProps={{
         // 540px - 1170px width based on viewport

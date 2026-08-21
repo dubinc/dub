@@ -1,12 +1,21 @@
+import "dotenv-flow/config";
+
 import { defineConfig, devices } from "@playwright/test";
+import { assertLocalDatabaseEnv } from "./playwright/assert-local-database";
+
+assertLocalDatabaseEnv();
+
+const workspaceBaseURL = "http://localhost:8888";
+const partnersBaseURL = "http://partners.localhost:8888";
 
 export default defineConfig({
-  globalSetup: require.resolve("./global-setup"),
+  globalSetup: require.resolve("./playwright/global-setup"),
   testDir: "./playwright",
   fullyParallel: false,
   forbidOnly: !!process.env.CI,
   retries: 1,
-  workers: process.env.CI ? 1 : undefined,
+  // Local .env often sets CI=true for other tooling; only pin to 1 worker on Actions.
+  workers: process.env.GITHUB_ACTIONS ? 1 : undefined,
   reporter: process.env.CI
     ? [["list"], ["html", { outputFolder: "playwright-report" }]]
     : [["html", { open: "always" }]],
@@ -14,21 +23,33 @@ export default defineConfig({
     timeout: 30000,
   },
   use: {
-    baseURL:
-      process.env.PLAYWRIGHT_BASE_URL || "http://partners.localhost:8888",
+    baseURL: workspaceBaseURL,
     trace: "on-first-retry",
     screenshot: "only-on-failure",
   },
   projects: [
+    // API tests (Bearer token seeded in globalSetup)
+    {
+      name: "api",
+      testDir: "./playwright/api",
+      fullyParallel: true,
+      use: {
+        baseURL: workspaceBaseURL,
+      },
+    },
     // Partner tests
     {
       name: "partner-setup",
       testMatch: /partners\/auth\.setup\.ts/,
+      use: {
+        baseURL: partnersBaseURL,
+      },
     },
     {
       name: "partners",
       use: {
         ...devices["Desktop Chrome"],
+        baseURL: partnersBaseURL,
         storageState: "playwright/.auth/partner.json",
       },
       testDir: "./playwright/partners",
@@ -44,12 +65,21 @@ export default defineConfig({
       name: "workspaces",
       use: {
         ...devices["Desktop Chrome"],
-        baseURL: "http://app.localhost:8888",
         storageState: "playwright/.auth/workspace.json",
       },
       testDir: "./playwright/workspaces",
-      testIgnore: /auth\.setup\.ts/,
+      testIgnore: /auth\.setup\.ts|billing-trial\.spec\.ts/,
       dependencies: ["workspace-setup"],
+    },
+    // Billing tests — runs after workspace onboarding so the workspace exists
+    {
+      name: "chromium-workspace",
+      testMatch: /workspaces\/billing-trial\.spec\.ts/,
+      use: {
+        ...devices["Desktop Chrome"],
+        storageState: "playwright/.auth/workspace.json",
+      },
+      dependencies: ["workspaces"],
     },
   ],
   webServer: process.env.CI
@@ -58,6 +88,10 @@ export default defineConfig({
         port: 8888,
         reuseExistingServer: true,
         timeout: 120_000,
+        // Zod 422s (and other expected API errors) log to stderr via
+        // handleApiError; ignore both streams so GH Actions logs stay readable.
+        stdout: "ignore",
+        stderr: "ignore",
       }
     : undefined,
 });

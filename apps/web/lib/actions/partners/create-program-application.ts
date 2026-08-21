@@ -1,17 +1,21 @@
 "use server";
 
 import { createId } from "@/lib/api/create-id";
+import { isCI, isLocalDev } from "@/lib/api/environment";
 import { detectAndRecordFraudApplication } from "@/lib/api/fraud/detect-record-fraud-application";
 import { notifyPartnerApplication } from "@/lib/api/partners/notify-partner-application";
 import { getIP } from "@/lib/api/utils/get-ip";
+import { markApplicationEventSubmitted } from "@/lib/application-events/update-application-event";
+import { getApplicationEventCookieName } from "@/lib/application-events/utils";
 import { getSession } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
-import { getPartnerProfileChecklistProgress } from "@/lib/network/get-partner-profile-checklist-progress";
+import { getNetworkProfileChecklistProgress } from "@/lib/network/get-network-profile-checklist-progress";
 import { evaluateApplicationRequirements } from "@/lib/partners/evaluate-application-requirements";
 import {
   formatApplicationFormData,
   formatWebsiteAndSocialsFields,
 } from "@/lib/partners/format-application-form-data";
+import { prisma } from "@/lib/prisma";
 import {
   ProgramApplicationFormData,
   ProgramApplicationFormDataWithValues,
@@ -21,22 +25,21 @@ import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { partnerApplicationWebhookSchema } from "@/lib/zod/schemas/program-application";
 import { programApplicationFormWebsiteAndSocialsFieldWithValueSchema } from "@/lib/zod/schemas/program-application-form";
 import { createProgramApplicationSchema } from "@/lib/zod/schemas/programs";
-import { prisma } from "@dub/prisma";
+import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import {
   Partner,
   PartnerGroup,
   Program,
   ProgramEnrollment,
   Project,
-} from "@dub/prisma/client";
-import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
+} from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { addDays } from "date-fns";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import * as z from "zod/v4";
 import { actionClient } from "../safe-action";
 
-export type PartnerData = { name: string; country: string };
+export type PartnerData = { name: string; country?: string };
 
 interface Response {
   programApplicationId: string;
@@ -183,7 +186,7 @@ export const createProgramApplicationAction = actionClient
       // for in-app applications from existing partners, we need to check
       // if the partner has an incomplete profile, if so we prompt them to complete it
       if (inAppApplication) {
-        const { isComplete } = getPartnerProfileChecklistProgress({
+        const { isComplete } = getNetworkProfileChecklistProgress({
           partner: {
             ...existingPartner,
             preferredEarningStructures:
@@ -199,6 +202,12 @@ export const createProgramApplicationAction = actionClient
         if (!isComplete) {
           throw new Error(
             "Please complete your partner profile to submit your application: https://partners.dub.co/profile",
+          );
+        }
+
+        if (!["approved", "trusted"].includes(existingPartner.networkStatus)) {
+          throw new Error(
+            "Your partner network profile is not approved. Please wait for it to be approved before applying to this program.",
           );
         }
       }
@@ -313,6 +322,7 @@ async function createApplicationAndEnrollment({
         clickRewardId: group.clickRewardId,
         leadRewardId: group.leadRewardId,
         saleRewardId: group.saleRewardId,
+        referralRewardId: group.referralRewardId,
         discountId: group.discountId,
       },
     }),
@@ -327,7 +337,7 @@ async function createApplicationAndEnrollment({
         }),
       );
 
-      await Promise.all([
+      await Promise.allSettled([
         notifyPartnerApplication({
           partner,
           program,
@@ -339,7 +349,6 @@ async function createApplicationAndEnrollment({
         group.autoApprovePartnersEnabledAt
           ? qstash.publishJSON({
               url: `${APP_DOMAIN_WITH_NGROK}/api/cron/partners/auto-approve`,
-              delay: 5 * 60,
               body: {
                 programId: program.id,
                 partnerId: partner.id,
@@ -371,6 +380,8 @@ async function createApplicationAndEnrollment({
             partner,
           },
         }),
+
+        markApplicationEventSubmitted(programEnrollment),
       ]);
     })(),
   );
@@ -380,7 +391,7 @@ async function createApplicationAndEnrollment({
     programEnrollmentId: enrollmentId,
     partnerData: {
       name: data.name,
-      country: data.country,
+      country: partner.country ?? data.country ?? undefined,
     },
   };
 }
@@ -394,9 +405,15 @@ async function createApplication({
   data: z.infer<typeof createProgramApplicationSchema>;
   group: PartnerGroup;
 }) {
+  const headerList = await headers();
+  const country =
+    headerList.get("x-vercel-ip-country") ??
+    (isLocalDev || isCI ? "US" : undefined);
+
   const application = await prisma.programApplication.create({
     data: {
       ...sanitizeData(data, group),
+      country,
       id: createId({ prefix: "pga_" }),
       programId: program.id,
       groupId: group.id,
@@ -418,11 +435,28 @@ async function createApplication({
     },
   );
 
+  // Attach application ID to application events
+  const cookieName = getApplicationEventCookieName(program.id);
+  const eventId = cookieStore.get(cookieName)?.value;
+
+  if (eventId) {
+    try {
+      await prisma.programApplicationEvent.update({
+        where: {
+          id: eventId,
+        },
+        data: {
+          programApplicationId: application.id,
+        },
+      });
+    } catch {}
+  }
+
   return {
     programApplicationId: application.id,
     partnerData: {
       name: data.name,
-      country: data.country,
+      country,
     },
   };
 }

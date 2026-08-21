@@ -1,6 +1,7 @@
 "use client";
 
 import { PageContent } from "@/ui/layout/page-content";
+import { CountryFlag } from "@/ui/shared/country-flag";
 import { buttonVariants } from "@dub/ui";
 import { cn, COUNTRIES } from "@dub/utils";
 import Link from "next/link";
@@ -90,9 +91,8 @@ function ExamplePartnerCell({
             {partner.name}
           </span>
           <div className="flex items-center gap-1">
-            <img
-              alt={`${partner.country} flag`}
-              src={`https://hatscripts.github.io/circle-flags/flags/${partner.country.toLowerCase()}.svg`}
+            <CountryFlag
+              countryCode={partner.country}
               className="size-2.5 rounded-full"
             />
             <span className="text-content-subtle whitespace-nowrap text-xs font-medium">

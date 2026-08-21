@@ -4,9 +4,9 @@ import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { getDiscountOrThrow } from "@/lib/api/partners/get-discount-or-throw";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { qstash } from "@/lib/cron";
+import { prisma } from "@/lib/prisma";
 import { updateDiscountSchema } from "@/lib/zod/schemas/discount";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
-import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { revalidatePath } from "next/cache";
@@ -72,7 +72,7 @@ export const updateDiscountAction = authActionClient
                       revalidatePath(`/partners.dub.co/${program.slug}/apply`),
                       program.addedToMarketplaceAt &&
                         revalidatePath(
-                          `/partners.dub.co/programs/marketplace/${program.slug}`,
+                          `/partners.dub.co/marketplace/${program.slug}`,
                         ),
                     ]
                   : []),

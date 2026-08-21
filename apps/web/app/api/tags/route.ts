@@ -2,13 +2,13 @@ import { createId } from "@/lib/api/create-id";
 import { DubApiError } from "@/lib/api/errors";
 import { withWorkspace } from "@/lib/auth";
 import { exceededLimitError } from "@/lib/exceeded-limit-error";
+import { prisma } from "@/lib/prisma";
 import {
   LinkTagSchema,
   createTagBodySchema,
   getTagsQuerySchemaExtended,
 } from "@/lib/zod/schemas/tags";
 import { randomBadgeColor } from "@/ui/links/tag-badge";
-import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 
 // GET /api/tags - get all tags for a workspace
@@ -107,6 +107,7 @@ export const POST = withWorkspace(
         code: "exceeded_limit",
         message: exceededLimitError({
           plan: workspace.plan,
+          planPeriod: workspace.planPeriod,
           limit: workspace.tagsLimit,
           type: "tags",
         }),
@@ -115,33 +116,30 @@ export const POST = withWorkspace(
 
     const { tag, color, name } = createTagBodySchema.parse(await req.json());
 
-    const existingTag = await prisma.tag.findFirst({
-      where: {
-        projectId: workspace.id,
-        name: name || tag,
-      },
-    });
-
-    if (existingTag) {
-      throw new DubApiError({
-        code: "conflict",
-        message: "A tag with that name already exists.",
+    try {
+      const createdTag = await prisma.tag.create({
+        data: {
+          id: createId({ prefix: "tag_" }),
+          name: tag || name!,
+          color: color || randomBadgeColor(),
+          projectId: workspace.id,
+        },
       });
+
+      return NextResponse.json(LinkTagSchema.parse(createdTag), {
+        headers,
+        status: 201,
+      });
+    } catch (error) {
+      if (error.code === "P2002") {
+        throw new DubApiError({
+          code: "conflict",
+          message: "A tag with that name already exists.",
+        });
+      }
+
+      throw error;
     }
-
-    const response = await prisma.tag.create({
-      data: {
-        id: createId({ prefix: "tag_" }),
-        name: tag || name!,
-        color: color || randomBadgeColor(),
-        projectId: workspace.id,
-      },
-    });
-
-    return NextResponse.json(LinkTagSchema.parse(response), {
-      headers,
-      status: 201,
-    });
   },
   {
     requiredPermissions: ["tags.write"],

@@ -13,6 +13,7 @@ import {
   Filter,
   SquareLayoutGrid6,
   TooltipContent,
+  useCurrentProduct,
   useMediaQuery,
   useRouterStuff,
   useScroll,
@@ -43,6 +44,7 @@ export function AnalyticsToggle({
 }) {
   const { slug, programSlug } = useParams();
   const { plan, createdAt } = useWorkspace();
+  const { product } = useCurrentProduct();
 
   const { queryParams, getQueryString } = useRouterStuff();
 
@@ -71,9 +73,10 @@ export function AnalyticsToggle({
     onRemoveAll,
     onOpenFilter,
     onToggleOperator,
-    streaming,
     activeFiltersWithStreaming,
   } = useAnalyticsFilters({ partnerPage, dashboardProps });
+
+  const hasActiveFilters = activeFiltersWithStreaming.length > 0;
 
   const filterSelect = (
     <Filter.Select
@@ -91,7 +94,7 @@ export function AnalyticsToggle({
   const dateRangePicker = (
     <DateRangePicker
       className="w-full md:w-fit"
-      align={dashboardProps ? "end" : "center"}
+      align="start"
       value={
         start && end
           ? {
@@ -110,7 +113,6 @@ export function AnalyticsToggle({
             set: {
               interval: preset.id,
             },
-            scroll: false,
           });
 
           return;
@@ -125,7 +127,6 @@ export function AnalyticsToggle({
             start: range.from.toISOString(),
             end: range.to.toISOString(),
           },
-          scroll: false,
         });
       }}
       presets={INTERVAL_DISPLAYS.map(({ display, value, shortcut }) => {
@@ -173,6 +174,7 @@ export function AnalyticsToggle({
           "sticky top-14 z-10 bg-neutral-50": dashboardProps,
           "sticky top-16 z-10 bg-neutral-50": adminPage,
           "shadow-md": scrolled && dashboardProps,
+          "pb-4 md:pb-4": !hasActiveFilters,
         })}
       >
         <div
@@ -242,7 +244,7 @@ export function AnalyticsToggle({
                       <>
                         <ShareButton />
                         <Link
-                          href={`/${partnerPage ? `programs/${programSlug}/` : adminPage ? "" : `${slug}/`}events${getQueryString()}`}
+                          href={`/${partnerPage ? `programs/${programSlug}/` : adminPage ? "" : `${slug}/${product ? `${product}/` : ""}`}events${getQueryString()}`}
                         >
                           <Button
                             variant="secondary"
@@ -258,7 +260,7 @@ export function AnalyticsToggle({
                     {page === "events" && (
                       <>
                         <Link
-                          href={`/${partnerPage ? `programs/${programSlug}/` : adminPage ? "" : `${slug}/`}analytics${getQueryString()}`}
+                          href={`/${partnerPage ? `programs/${programSlug}/` : adminPage ? "" : `${slug}/${product ? `${product}/` : ""}`}analytics${getQueryString()}`}
                         >
                           <Button
                             variant="secondary"
@@ -280,29 +282,26 @@ export function AnalyticsToggle({
         </div>
       </div>
 
-      <div
-        className={cn(
-          "mx-auto w-full max-w-screen-xl px-3 lg:px-10",
-          isAppPage && "lg:px-6",
-        )}
-      >
-        <Filter.List
-          filters={filters}
-          activeFilters={activeFiltersWithStreaming}
-          onSelect={onSelect}
-          onRemove={onRemove}
-          onRemoveFilter={onRemoveFilter}
-          onRemoveAll={onRemoveAll}
-          onToggleOperator={onToggleOperator}
-          isAdvancedFilter
-        />
+      {hasActiveFilters && (
         <div
           className={cn(
-            "transition-[height] duration-[300ms]",
-            streaming || activeFilters.length ? "h-3" : "h-0",
+            "mx-auto w-full max-w-screen-xl px-3 lg:px-10",
+            isAppPage && "lg:px-6",
           )}
-        />
-      </div>
+        >
+          <Filter.List
+            filters={filters}
+            activeFilters={activeFiltersWithStreaming}
+            onSelect={onSelect}
+            onRemove={onRemove}
+            onRemoveFilter={onRemoveFilter}
+            onRemoveAll={onRemoveAll}
+            onToggleOperator={onToggleOperator}
+            isAdvancedFilter
+          />
+          <div className="h-4 transition-[height] duration-[300ms]" />
+        </div>
+      )}
     </>
   );
 }

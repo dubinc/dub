@@ -5,6 +5,7 @@ const CACHE_EXPIRATION = 60 * 60 * 24; // 24 hours
 const CACHE_KEY_PREFIX = "dubTokenCache";
 
 const tokenCacheItemSchema = z.object({
+  id: z.string().nullish(),
   expires: z.date().nullish(),
   user: z.object({
     id: z.string(),
@@ -19,6 +20,7 @@ const tokenCacheItemSchema = z.object({
   project: z
     .object({
       plan: z.string().nullish(),
+      trialEndsAt: z.coerce.date().nullish(),
     })
     .nullish(),
   installationId: z.string().nullish(),

@@ -1,10 +1,8 @@
 import { DubApiError } from "@/lib/api/errors";
-import { includeProgramEnrollment } from "@/lib/api/links/include-program-enrollment";
-import { includeTags } from "@/lib/api/links/include-tags";
 import { withWorkspace } from "@/lib/auth";
-import { recordLink } from "@/lib/tinybird";
+import { linkTagDeletedJob } from "@/lib/jobs/handlers/link-tag-deleted-job";
+import { prisma } from "@/lib/prisma";
 import { LinkTagSchema, updateTagBodySchema } from "@/lib/zod/schemas/tags";
-import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
@@ -61,55 +59,39 @@ export const PUT = PATCH;
 // DELETE /api/tags/[id] – delete a tag for a workspace
 export const DELETE = withWorkspace(
   async ({ params, workspace }) => {
-    const { id } = params;
-    try {
-      const response = await prisma.tag.delete({
-        where: {
-          id,
-          projectId: workspace.id,
-        },
-        include: {
-          links: {
-            select: {
-              link: {
-                include: {
-                  ...includeTags,
-                  ...includeProgramEnrollment,
-                },
-              },
-            },
-          },
-        },
+    const { id: tagId } = params;
+
+    const { count } = await prisma.tag.updateMany({
+      where: {
+        id: tagId,
+        projectId: workspace.id,
+      },
+      data: {
+        projectId: null,
+      },
+    });
+
+    if (count === 0) {
+      throw new DubApiError({
+        code: "not_found",
+        message: "Tag not found.",
       });
-
-      if (!response) {
-        throw new DubApiError({
-          code: "not_found",
-          message: "Tag not found.",
-        });
-      }
-
-      // update links metadata in tinybird after deleting a tag
-      waitUntil(
-        recordLink(
-          response.links.map(({ link }) => ({
-            ...link,
-            tags: link.tags.filter(({ tag }) => tag.id !== id),
-          })),
-        ),
-      );
-
-      return NextResponse.json({ id });
-    } catch (error) {
-      if (error.code === "P2025") {
-        throw new DubApiError({
-          code: "not_found",
-          message: "Tag not found.",
-        });
-      }
-
-      throw error;
     }
+
+    waitUntil(
+      linkTagDeletedJob.dispatch(
+        {
+          tagId,
+        },
+        {
+          label: tagId,
+        },
+      ),
+    );
+
+    return NextResponse.json({
+      id: tagId,
+    });
   },
   {
     requiredPermissions: ["tags.write"],

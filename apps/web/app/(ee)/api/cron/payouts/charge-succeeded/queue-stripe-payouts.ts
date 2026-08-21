@@ -1,30 +1,81 @@
+import {
+  MIN_WITHDRAWAL_AMOUNT_CENTS,
+  STABLECOIN_PAYOUT_FIXED_FEE_CENTS,
+} from "@/lib/constants/payouts";
 import { qstash } from "@/lib/cron";
-import { prisma } from "@dub/prisma";
-import { Invoice, PartnerPayoutMethod } from "@dub/prisma/client";
+import { prisma } from "@/lib/prisma";
+import { fundFinancialAccount } from "@/lib/stripe/fund-financial-account";
 import { APP_DOMAIN_WITH_NGROK, chunk, log } from "@dub/utils";
-import * as z from "zod/v4";
-
-const stripeChargeMetadataSchema = z.object({
-  id: z.string(), // Stripe charge id
-});
+import { Invoice, PartnerPayoutMethod } from "@prisma/client";
+import { stripeChargeMetadataSchema } from "./utils";
 
 const queue = qstash.queue({
   queueName: "send-stripe-payout",
 });
 
-export async function queueStripePayouts(
+export async function queueStripePayouts({
+  invoice,
+  fundsAvailable,
+}: {
   invoice: Pick<
     Invoice,
     "id" | "paymentMethod" | "stripeChargeMetadata" | "payoutMode"
-  >,
-  skipStablecoinPayouts: boolean,
-) {
-  // All payouts are processed externally, hence no need to queue Stripe payouts
+  >;
+  fundsAvailable: boolean;
+}) {
   if (invoice.payoutMode === "external") {
+    console.log(
+      `Invoice ${invoice.id} is paid externally, skipping Stripe payouts...`,
+    );
     return;
   }
 
   const { id: invoiceId, paymentMethod, stripeChargeMetadata } = invoice;
+
+  if (fundsAvailable) {
+    // Fund the total Stablecoin payout amount for this invoice
+    const { _sum, _count } = await prisma.payout.aggregate({
+      _sum: {
+        amount: true,
+      },
+      _count: {
+        id: true,
+      },
+      where: {
+        invoiceId: invoice.id,
+        method: "stablecoin",
+        status: "processing",
+        // only transfer funds for stablecoin payouts >= minimum withdrawal amount
+        // for payouts below the minimum withdrawal amount, we will just mark them as processed
+        // and users can force withdraw them manually later (which triggers another fundFinancialAccount call)
+        amount: {
+          gte: MIN_WITHDRAWAL_AMOUNT_CENTS,
+        },
+      },
+    });
+
+    // We need to add the STABLECOIN_PAYOUT_FIXED_FEE_CENTS for each payout to the total funding amount
+    // to make sure that `createStablecoinPayout` later has enough funds to cover Stripe's fees
+    const stablecoinFundingAmount =
+      (_sum.amount ?? 0) + _count.id * STABLECOIN_PAYOUT_FIXED_FEE_CENTS;
+
+    // Send money to Financial Account to handle Stablecoin payouts
+    if (stablecoinFundingAmount > 0) {
+      try {
+        await fundFinancialAccount({
+          amount: stablecoinFundingAmount,
+          idempotencyKey: invoiceId,
+        });
+      } catch (error) {
+        await log({
+          message: `Failed to fund Dub's financial account for stablecoin payouts: ${error.message}`,
+          type: "errors",
+        });
+
+        throw error;
+      }
+    }
+  }
 
   // Find the id of the charge that was used to fund the transfer
   const parsedChargeMetadata =
@@ -53,7 +104,7 @@ export async function queueStripePayouts(
       method: {
         in: [
           PartnerPayoutMethod.connect,
-          ...(!skipStablecoinPayouts ? [PartnerPayoutMethod.stablecoin] : []),
+          ...(fundsAvailable ? [PartnerPayoutMethod.stablecoin] : []),
         ],
       },
       partner: {

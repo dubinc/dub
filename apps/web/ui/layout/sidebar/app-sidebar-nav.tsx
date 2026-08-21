@@ -1,30 +1,33 @@
 "use client";
 
+import { clientAccessCheck } from "@/lib/client-access-check";
+import { usePartnerMessagesCount } from "@/lib/messages/hooks/use-partner-messages-count";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
-import { REFERRAL_ENABLED_PROGRAM_IDS } from "@/lib/referrals/constants";
+import { SUBMITTED_LEADS_ENABLED_PROGRAM_IDS } from "@/lib/submitted-leads/constants";
 import {
   SubmissionsCountByStatus,
   useBountySubmissionsCount,
 } from "@/lib/swr/use-bounty-submissions-count";
 import { useFraudGroupCount } from "@/lib/swr/use-fraud-groups-count";
-import { usePartnerMessagesCount } from "@/lib/swr/use-partner-messages-count";
 import { usePayoutsCount } from "@/lib/swr/use-payouts-count";
 import useProgram from "@/lib/swr/use-program";
-import { useProgramReferralsCount } from "@/lib/swr/use-program-referrals-count";
+import { useProgramSubmittedLeadsCount } from "@/lib/swr/use-program-submitted-leads-count";
 import useWorkspace from "@/lib/swr/use-workspace";
-import useWorkspaces from "@/lib/swr/use-workspaces";
-import { useRouterStuff } from "@dub/ui";
+import { useKeyboardShortcut, useRouterStuff } from "@dub/ui";
 import {
   Bell,
+  BookOpen,
   Brush,
   ConnectedDots,
   CubeSettings,
   DiamondTurnRight,
+  Flag,
   Folder,
   Gauge6,
   Gear2,
   Gift,
   Globe,
+  GridPlus,
   InvoiceDollar,
   Key,
   LifeRing,
@@ -35,8 +38,8 @@ import {
   PaperPlane,
   Receipt2,
   ShieldCheck,
-  ShieldKeyhole,
   Sliders,
+  StackY3,
   Tag,
   Trophy,
   UserCheck,
@@ -45,10 +48,15 @@ import {
   Users6,
   Webhook,
 } from "@dub/ui/icons";
+import { isWorkspaceBillingTrialActive } from "@dub/utils";
+import { DubProduct } from "@prisma/client";
 import { Session } from "next-auth";
 import { useSession } from "next-auth/react";
+import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
-import { ReactNode, useEffect, useMemo } from "react";
+import { ReactNode, useMemo } from "react";
+import { toast } from "sonner";
+import { mutate } from "swr";
 import { DubPartnersPopup } from "./dub-partners-popup";
 import { Compass } from "./icons/compass";
 import { ConnectedDots4 } from "./icons/connected-dots4";
@@ -65,143 +73,64 @@ type SidebarNavData = {
   slug: string;
   pathname: string;
   queryString: string;
-  defaultProgramId?: string;
+  defaultProduct?: "program" | "links";
   session?: Session | null;
-  showNews?: boolean;
   pendingPayoutsCount?: number;
   applicationsCount?: number;
   submittedBountiesCount?: number;
   unreadMessagesCount?: number;
   pendingFraudEventsCount?: number;
-  pendingReferralsCount?: number;
-  showConversionGuides?: boolean;
+  pendingLeadsCount?: number;
   partnerNetworkEnabled?: boolean;
 };
 
 const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({
   slug,
   pathname,
-  defaultProgramId,
-}) => [
-  {
-    name: "Short Links",
-    description:
-      "Create, organize, and measure the performance of your short links.",
-    learnMoreHref: "https://dub.co/links",
-    icon: Compass,
-    href: slug ? `/${slug}/links` : "/links",
-    active:
-      !!slug &&
-      pathname.startsWith(`/${slug}`) &&
-      !pathname.startsWith(`/${slug}/program`) &&
-      !pathname.startsWith(`/${slug}/settings`),
-  },
-  {
+  defaultProduct,
+}) => {
+  const programGroup = {
     name: "Partner Program",
     description:
       "Kickstart viral product-led growth with powerful, branded referral and affiliate programs.",
     learnMoreHref: "https://dub.co/partners",
     icon: ConnectedDots4,
     href: slug ? `/${slug}/program` : "/program",
-    active: pathname.startsWith(`/${slug}/program`),
+    active:
+      !!slug &&
+      pathname.startsWith(`/${slug}`) &&
+      !pathname.startsWith(`/${slug}/links`) &&
+      !pathname.startsWith(`/${slug}/settings`),
     popup: DubPartnersPopup,
-  },
-];
+  };
+  const linksGroup = {
+    name: "Short Links",
+    description:
+      "Create, organize, and measure the performance of your short links.",
+    learnMoreHref: "https://dub.co/links",
+    icon: Compass,
+    href: slug ? `/${slug}/links` : "/links",
+    active: pathname.startsWith(`/${slug}/links`),
+  };
+
+  return defaultProduct === "links"
+    ? [linksGroup, programGroup]
+    : [programGroup, linksGroup];
+};
 
 const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
-  // Top-level
-  default: ({ slug, pathname, queryString, showNews }) => ({
-    title: "Short Links",
-    showNews,
-    direction: "left",
-    content: [
-      {
-        items: [
-          {
-            name: "Links",
-            icon: Hyperlink,
-            href: `/${slug}/links${pathname === `/${slug}/links` ? "" : queryString}`,
-            isActive: (pathname: string, href: string) => {
-              const basePath = href.split("?")[0];
-
-              // Exact match for the base links page
-              if (pathname === basePath) return true;
-
-              // Check if it's a link detail page (path segment after base contains a dot for domain)
-              if (pathname.startsWith(basePath + "/")) {
-                const nextSegment = pathname
-                  .slice(basePath.length + 1)
-                  .split("/")[0];
-                return nextSegment.includes(".");
-              }
-
-              return false;
-            },
-          },
-          {
-            name: "Domains",
-            icon: Globe,
-            href: `/${slug}/links/domains`,
-          },
-        ],
-      },
-      {
-        name: "Insights",
-        items: [
-          {
-            name: "Analytics",
-            icon: LinesY,
-            href: `/${slug}/analytics${pathname === `/${slug}/analytics` ? "" : queryString}`,
-          },
-          {
-            name: "Events",
-            icon: CursorRays,
-            href: `/${slug}/events${pathname === `/${slug}/events` ? "" : queryString}`,
-          },
-          {
-            name: "Customers",
-            icon: User,
-            href: `/${slug}/customers`,
-          },
-        ],
-      },
-      {
-        name: "Library",
-        items: [
-          {
-            name: "Folders",
-            icon: Folder,
-            href: `/${slug}/links/folders`,
-          },
-          {
-            name: "Tags",
-            icon: Tag,
-            href: `/${slug}/links/tags`,
-          },
-          {
-            name: "UTM Templates",
-            icon: DiamondTurnRight,
-            href: `/${slug}/links/utm`,
-          },
-        ],
-      },
-    ],
-  }),
-
-  // Program
+  // partner program
   program: ({
     slug,
-    showNews,
     pendingPayoutsCount,
     applicationsCount,
     submittedBountiesCount,
     unreadMessagesCount,
     pendingFraudEventsCount,
-    pendingReferralsCount,
+    pendingLeadsCount,
     partnerNetworkEnabled,
   }) => ({
     title: "Partner Program",
-    showNews,
     direction: "left",
     content: [
       {
@@ -279,15 +208,18 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             name: "Analytics",
             icon: LinesYStatic,
             href: `/${slug}/program/analytics`,
+            isActive: (pathname: string, href: string) =>
+              pathname.startsWith(href) ||
+              pathname.startsWith(href.replace("/analytics", "/events")),
           },
           {
             name: "Customers",
             icon: User,
             href: `/${slug}/program/customers`,
-            badge: pendingReferralsCount
-              ? pendingReferralsCount > 99
+            badge: pendingLeadsCount
+              ? pendingLeadsCount > 99
                 ? "99+"
-                : pendingReferralsCount
+                : pendingLeadsCount
               : undefined,
           },
           {
@@ -296,9 +228,9 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             href: `/${slug}/program/commissions`,
           },
           {
-            name: "Fraud Detection",
-            icon: ShieldKeyhole,
-            href: `/${slug}/program/fraud`,
+            name: "Risk Center",
+            icon: Flag,
+            href: `/${slug}/program/risks`,
             badge: pendingFraudEventsCount
               ? pendingFraudEventsCount > 99
                 ? "99+"
@@ -360,6 +292,83 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
       },
     ],
   }),
+  // short links
+  links: ({ slug, pathname, queryString }) => ({
+    title: "Short Links",
+    direction: "left",
+    content: [
+      {
+        items: [
+          {
+            name: "Links",
+            icon: Hyperlink,
+            href: `/${slug}/links${pathname === `/${slug}/links` ? "" : queryString}`,
+            isActive: (pathname: string, href: string) => {
+              const basePath = href.split("?")[0];
+
+              // Exact match for the base links page
+              if (pathname === basePath) return true;
+
+              // Check if it's a link detail page (path segment after base contains a dot for domain)
+              if (pathname.startsWith(basePath + "/")) {
+                const nextSegment = pathname
+                  .slice(basePath.length + 1)
+                  .split("/")[0];
+                return nextSegment.includes(".");
+              }
+
+              return false;
+            },
+          },
+          {
+            name: "Domains",
+            icon: Globe,
+            href: `/${slug}/links/domains`,
+          },
+        ],
+      },
+      {
+        name: "Insights",
+        items: [
+          {
+            name: "Analytics",
+            icon: LinesY,
+            href: `/${slug}/links/analytics${pathname === `/${slug}/links/analytics` ? "" : queryString}`,
+          },
+          {
+            name: "Events",
+            icon: CursorRays,
+            href: `/${slug}/links/events${pathname === `/${slug}/links/events` ? "" : queryString}`,
+          },
+          {
+            name: "Customers",
+            icon: User,
+            href: `/${slug}/links/customers`,
+          },
+        ],
+      },
+      {
+        name: "Library",
+        items: [
+          {
+            name: "Folders",
+            icon: Folder,
+            href: `/${slug}/links/folders`,
+          },
+          {
+            name: "Tags",
+            icon: Tag,
+            href: `/${slug}/links/tags`,
+          },
+          {
+            name: "UTM Templates",
+            icon: DiamondTurnRight,
+            href: `/${slug}/links/utm`,
+          },
+        ],
+      },
+    ],
+  }),
 
   // Workspace settings
   workspaceSettings: ({ slug }) => ({
@@ -409,6 +418,11 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             name: "API Keys",
             icon: Key,
             href: `/${slug}/settings/tokens`,
+          },
+          {
+            name: "Logs",
+            icon: StackY3,
+            href: `/${slug}/settings/logs`,
           },
           {
             name: "Tracking",
@@ -468,7 +482,7 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
           {
             name: "Notifications",
             icon: Bell,
-            href: `/${slug}/settings/notifications`,
+            href: "/settings/notifications",
             arrow: true,
           },
         ],
@@ -484,55 +498,56 @@ export function AppSidebarNav({
   toolContent?: ReactNode;
   newsContent?: ReactNode;
 }) {
-  const { slug: paramsSlug } = useParams() as { slug?: string };
+  const { slug } = useParams() as { slug?: string };
   const pathname = usePathname();
-  const { getQueryString } = useRouterStuff();
-  const { data: session, status } = useSession();
-  const { plan, defaultProgramId } = useWorkspace();
-  const { workspaces } = useWorkspaces();
+  const { router, getQueryString } = useRouterStuff();
+  const { data: session } = useSession();
+  const {
+    id: workspaceId,
+    plan,
+    defaultProduct,
+    defaultProgramId,
+    trialEndsAt,
+    role,
+  } = useWorkspace();
 
-  // Store the current workspace slug in sessionStorage so we can remember it on account settings pages
-  useEffect(() => {
-    if (paramsSlug) {
-      sessionStorage.setItem("dub_last_workspace", paramsSlug);
-    }
-  }, [paramsSlug]);
+  const canSetDefaultProduct = !clientAccessCheck({
+    action: "workspaces.write",
+    role,
+  }).error;
 
-  // Validate and clear sessionStorage if user doesn't have access to the stored workspace
-  useEffect(() => {
-    if (status === "unauthenticated") {
-      // Clear sessionStorage on logout
-      sessionStorage.removeItem("dub_last_workspace");
+  async function onSetDefaultProduct(product: DubProduct) {
+    if (!workspaceId || !slug) {
       return;
     }
 
-    if (workspaces && typeof window !== "undefined") {
-      const storedSlug = sessionStorage.getItem("dub_last_workspace");
-      if (storedSlug && !paramsSlug) {
-        // Only validate if we're not currently on a workspace page (to avoid clearing during navigation)
-        const hasAccess = workspaces.some((w) => w.slug === storedSlug);
-        if (!hasAccess) {
-          // User doesn't have access to the stored workspace, clear it
-          sessionStorage.removeItem("dub_last_workspace");
-        }
-      }
-    }
-  }, [workspaces, status, paramsSlug]);
+    await toast.promise(
+      (async () => {
+        const response = await fetch(`/api/workspaces/${workspaceId}`, {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            defaultProduct: product,
+          }),
+        });
 
-  // Use params slug when available, otherwise try sessionStorage (last visited workspace), then fall back to default workspace
-  const slug =
-    paramsSlug ||
-    (typeof window !== "undefined" && workspaces
-      ? (() => {
-          const storedSlug = sessionStorage.getItem("dub_last_workspace");
-          // Validate that the stored slug is accessible by the current user
-          if (storedSlug && workspaces.some((w) => w.slug === storedSlug)) {
-            return storedSlug;
-          }
-          return null;
-        })()
-      : null) ||
-    session?.user?.["defaultWorkspace"];
+        if (!response.ok) {
+          const { error } = await response.json();
+          throw new Error(error.message);
+        }
+
+        await mutate(`/api/workspaces/${slug}`);
+        router.push(`/${slug}/${product}`);
+      })(),
+      {
+        loading: "Setting default product...",
+        success: "Successfully updated your default product!",
+        error: (error) => error.message,
+      },
+    );
+  }
 
   const currentArea = useMemo(() => {
     return pathname.startsWith("/account/settings")
@@ -545,8 +560,17 @@ export function AppSidebarNav({
           ? null
           : pathname.startsWith(`/${slug}/program`)
             ? "program"
-            : "default";
+            : "links";
   }, [slug, pathname]);
+
+  // Navigate back to the default product when the Escape key is pressed in the workspace settings
+  useKeyboardShortcut(
+    "Escape",
+    () => router.push(`/${slug}/${defaultProduct}`),
+    {
+      enabled: currentArea === "workspaceSettings",
+    },
+  );
 
   const { program } = useProgram({
     enabled: Boolean(currentArea === "program" && defaultProgramId),
@@ -588,17 +612,42 @@ export function AppSidebarNav({
     ignoreParams: true,
   });
 
-  const { data: pendingReferralsCount } = useProgramReferralsCount<number>({
+  const { data: pendingLeadsCount } = useProgramSubmittedLeadsCount<number>({
     query: { status: "pending" },
     ignoreParams: true,
     enabled: Boolean(
       currentArea === "program" &&
         defaultProgramId &&
-        REFERRAL_ENABLED_PROGRAM_IDS.includes(defaultProgramId),
+        SUBMITTED_LEADS_ENABLED_PROGRAM_IDS.includes(defaultProgramId),
     ),
   });
 
   const { canTrackConversions } = getPlanCapabilities(plan);
+
+  const AppBottomContent =
+    canSetDefaultProduct &&
+    (currentArea === "program" || currentArea === "links") &&
+    (defaultProduct ?? "links") !== currentArea ? (
+      <button
+        type="button"
+        onClick={() => onSetDefaultProduct(currentArea)}
+        className="flex w-full items-center justify-center gap-2 rounded-lg bg-neutral-200/75 px-2.5 py-2 text-xs font-medium text-neutral-700 transition-colors hover:bg-neutral-200"
+      >
+        <GridPlus className="size-4" />
+        Set as default product tab
+      </button>
+    ) : canTrackConversions && pathname.startsWith(`/${slug}/links`) ? (
+      <Link
+        href={`/${slug}/settings/tracking`}
+        className="flex w-full items-center justify-center gap-2 rounded-lg bg-neutral-200/75 px-2.5 py-2 text-xs font-medium text-neutral-700 transition-colors hover:bg-neutral-200"
+      >
+        <BookOpen className="size-4" />
+        Set up conversion tracking
+      </Link>
+    ) : null;
+
+  const freePlanOrTrial =
+    plan && (plan === "free" || isWorkspaceBillingTrialActive(trialEndsAt));
 
   return (
     <SidebarNav
@@ -612,22 +661,25 @@ export function AppSidebarNav({
           include: ["folderId"],
         }),
         session: session || undefined,
-        showNews: true,
-        defaultProgramId: defaultProgramId || undefined,
+        defaultProduct,
         pendingPayoutsCount: pendingPayoutsCount?.[0]?.count ?? 0,
         applicationsCount,
         submittedBountiesCount,
         unreadMessagesCount,
         pendingFraudEventsCount,
-        pendingReferralsCount,
-        showConversionGuides:
-          canTrackConversions && pathname.startsWith(`/${slug}/links`),
+        pendingLeadsCount,
         partnerNetworkEnabled:
           program && program.partnerNetworkEnabledAt !== null,
       }}
-      toolContent={toolContent}
-      newsContent={plan && (plan === "free" ? <SidebarUsage /> : newsContent)}
       switcher={<WorkspaceDropdown />}
+      toolContent={toolContent}
+      bottomContent={
+        <>
+          <div className="px-3 pb-2">{AppBottomContent}</div>
+          {freePlanOrTrial && <SidebarUsage />}
+        </>
+      }
+      newsContent={!freePlanOrTrial && currentArea === "links" && newsContent}
     />
   );
 }

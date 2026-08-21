@@ -9,20 +9,12 @@ import { EU_COUNTRY_CODES } from "@dub/utils/src/constants/countries";
 import { geolocation, ipAddress, waitUntil } from "@vercel/functions";
 import { userAgent } from "next/server";
 import { recordClickCache } from "../api/links/record-click-cache";
-import { ExpandedLink, transformLink } from "../api/links/utils/transform-link";
 import { detectBot } from "../middleware/utils/detect-bot";
 import { detectQr } from "../middleware/utils/detect-qr";
 import { getIdentityHash } from "../middleware/utils/get-identity-hash";
-import { conn } from "../planetscale";
-import { WorkspaceProps } from "../types";
 import { redis } from "../upstash";
-import {
-  publishClickEvent,
-  publishPartnerActivityEvent,
-} from "../upstash/redis-streams";
-import { webhookCache } from "../webhook/cache";
-import { sendWebhooks } from "../webhook/qstash";
-import { transformClickEventData } from "../webhook/transform";
+import { publishLinkClickEvent } from "../upstash/redis-streams/link-click-events";
+import { publishWorkspaceClickEvent } from "../upstash/redis-streams/workspace-click-events";
 
 /**
  * Recording clicks with geo, ua, referer and timestamp data
@@ -37,7 +29,6 @@ export async function recordClick({
   url,
   programId,
   partnerId,
-  webhookIds,
   skipRatelimit,
   timestamp,
   referrer,
@@ -53,7 +44,6 @@ export async function recordClick({
   url?: string;
   programId?: string;
   partnerId?: string;
-  webhookIds?: string[];
   skipRatelimit?: boolean;
   timestamp?: string;
   referrer?: string;
@@ -191,44 +181,22 @@ export async function recordClick({
         ).then((res) => res.json()),
 
         // cache the recorded click for the corresponding IP address in Redis for 1 hour
-        recordClickCache.set({ domain, key, identityHash, clickId }),
+        recordClickCache.set({
+          domain,
+          key,
+          identityHash,
+          clickId,
+        }),
 
-        // increment the click count for the link (based on their ID)
-        // we have to use planetscale connection directly (not prismaEdge) because of connection pooling
-        conn.execute(
-          "UPDATE Link SET clicks = clicks + 1, lastClicked = NOW() WHERE id = ?",
-          [linkId],
-        ),
-        // if the link is associated with a workspace + has a destination URL
-        // increment the usage count for the workspace
-        workspaceId &&
-          url &&
-          publishClickEvent({
-            linkId,
-            workspaceId,
-            timestamp: clickData.timestamp,
-          }).catch(() => {
-            // Fallback on writing directly to the database
-            return conn.execute(
-              "UPDATE Project p JOIN Link l ON p.id = l.projectId SET p.usage = p.usage + 1, p.totalClicks = p.totalClicks + 1 WHERE l.id = ?",
-              [linkId],
-            );
-          }),
+        publishLinkClickEvent({
+          linkId,
+          timestamp: clickData.timestamp,
+          ...(workspaceId && url && { workspaceId }),
+          ...(programId && partnerId && { programId, partnerId }),
+        }),
 
-        programId &&
-          partnerId &&
-          publishPartnerActivityEvent({
-            programId,
-            partnerId,
-            eventType: "click",
-            timestamp: new Date().toISOString(),
-          }).catch(() => {
-            // Fallback on writing directly to the database
-            return conn.execute(
-              "UPDATE ProgramEnrollment SET totalClicks = totalClicks + 1 WHERE programId = ? AND partnerId = ?",
-              [programId, partnerId],
-            );
-          }),
+        // Publish the click event
+        publishWorkspaceClickEvent(clickData),
       ]);
 
       // Find the rejected promises and log them
@@ -239,9 +207,8 @@ export async function recordClick({
               const operations = [
                 "Tinybird click event ingestion",
                 "recordClickCache set",
-                "Link clicks increment",
-                "Workspace usage increment",
-                "Program enrollment totalClicks increment",
+                "Click stats stream publish",
+                "Workspace click event publish",
               ];
               return {
                 operation: operations[index] || `Operation ${index}`,
@@ -262,100 +229,8 @@ export async function recordClick({
           })),
         });
       }
-
-      // if the link has webhooks enabled, we need to check if the workspace usage has exceeded the limit
-      const hasWebhooks = webhookIds && webhookIds.length > 0;
-      if (workspaceId && hasWebhooks) {
-        const workspaceRows = await conn.execute(
-          "SELECT usage, usageLimit FROM Project WHERE id = ? LIMIT 1",
-          [workspaceId],
-        );
-
-        const workspaceData =
-          workspaceRows.rows.length > 0
-            ? (workspaceRows.rows[0] as Pick<
-                WorkspaceProps,
-                "usage" | "usageLimit"
-              >)
-            : null;
-
-        const hasExceededUsageLimit =
-          workspaceData && workspaceData.usage >= workspaceData.usageLimit;
-
-        // Send webhook events if link has webhooks enabled and the workspace usage has not exceeded the limit
-        if (!hasExceededUsageLimit) {
-          await sendLinkClickWebhooks({ webhookIds, linkId, clickData });
-        }
-      }
     })(),
   );
 
   return clickData;
-}
-
-async function sendLinkClickWebhooks({
-  webhookIds,
-  linkId,
-  clickData,
-}: {
-  webhookIds: string[];
-  linkId: string;
-  clickData: any;
-}) {
-  const webhooks = await webhookCache.mget(webhookIds);
-
-  // Couldn't find webhooks in the cache
-  // TODO: Should we look them up in the database?
-  if (!webhooks || webhooks.length === 0) {
-    return;
-  }
-
-  const activeLinkWebhooks = webhooks.filter((webhook) => {
-    return (
-      !webhook.disabledAt &&
-      webhook.triggers &&
-      Array.isArray(webhook.triggers) &&
-      webhook.triggers.includes("link.clicked")
-    );
-  });
-
-  if (activeLinkWebhooks.length === 0) {
-    return;
-  }
-
-  const link = await conn
-    .execute(
-      `
-    SELECT 
-      l.*,
-      JSON_ARRAYAGG(
-        IF(t.id IS NOT NULL,
-          JSON_OBJECT('tag', JSON_OBJECT('id', t.id, 'name', t.name, 'color', t.color)),
-          NULL
-        )
-      ) as tags
-    FROM Link l
-    LEFT JOIN LinkTag lt ON l.id = lt.linkId
-    LEFT JOIN Tag t ON lt.tagId = t.id
-    WHERE l.id = ?
-    GROUP BY l.id
-  `,
-      [linkId],
-    )
-    .then((res) => {
-      const row = res.rows[0] as any;
-      // Handle case where there are no tags (JSON_ARRAYAGG returns [null])
-      row.tags = row.tags?.[0] === null ? [] : row.tags;
-      return row;
-    });
-
-  await sendWebhooks({
-    trigger: "link.clicked",
-    webhooks: activeLinkWebhooks,
-    // @ts-ignore – bot & qr should be boolean
-    data: transformClickEventData({
-      ...clickData,
-      link: transformLink(link as ExpandedLink),
-    }),
-  });
 }

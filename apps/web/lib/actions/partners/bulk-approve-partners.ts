@@ -1,11 +1,13 @@
 "use server";
 
-import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
+import { trackActivityLog } from "@/lib/api/activity-log/track-activity-log";
 import { getGroupOrThrow } from "@/lib/api/groups/get-group-or-throw";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
-import { triggerWorkflows } from "@/lib/cron/qstash-workflow";
+import { trackApplicationEvents } from "@/lib/application-events/update-application-event";
+import { triggerQStashWorkflow } from "@/lib/cron/qstash-workflow";
+import { throwIfPartnersLimitExceeded } from "@/lib/partners/throw-if-partners-limit-exceeded";
+import { prisma } from "@/lib/prisma";
 import { bulkApprovePartnersSchema } from "@/lib/zod/schemas/partners";
-import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
 import { throwIfNoPermission } from "../throw-if-no-permission";
@@ -49,21 +51,29 @@ export const bulkApprovePartnersAction = authActionClient
     const now = new Date();
 
     await prisma.$transaction(async (tx) => {
-      await tx.programEnrollment.updateMany({
-        where: {
-          id: {
-            in: programEnrollments.map(({ id }) => id),
+      const { count: approvedEnrollmentsCount } =
+        await tx.programEnrollment.updateMany({
+          where: {
+            id: {
+              in: programEnrollments.map(({ id }) => id),
+            },
+            status: "pending",
           },
-        },
-        data: {
-          status: "approved",
-          createdAt: now,
-          groupId: group.id,
-          clickRewardId: group.clickRewardId,
-          leadRewardId: group.leadRewardId,
-          saleRewardId: group.saleRewardId,
-          discountId: group.discountId,
-        },
+          data: {
+            status: "approved",
+            createdAt: now,
+            groupId: group.id,
+            clickRewardId: group.clickRewardId,
+            leadRewardId: group.leadRewardId,
+            saleRewardId: group.saleRewardId,
+            referralRewardId: group.referralRewardId,
+            discountId: group.discountId,
+          },
+        });
+
+      throwIfPartnersLimitExceeded({
+        ...workspace,
+        additionalEnrollments: approvedEnrollmentsCount,
       });
 
       const applicationIds = programEnrollments
@@ -85,6 +95,19 @@ export const bulkApprovePartnersAction = authActionClient
           },
         });
       }
+
+      if (approvedEnrollmentsCount > 0) {
+        await tx.project.update({
+          where: {
+            id: workspace.id,
+          },
+          data: {
+            partnersUsage: {
+              increment: approvedEnrollmentsCount,
+            },
+          },
+        });
+      }
     });
 
     waitUntil(
@@ -102,26 +125,27 @@ export const bulkApprovePartnersAction = authActionClient
         });
 
         await Promise.allSettled([
-          recordAuditLog(
-            updatedEnrollments.map(({ partner }) => ({
+          trackActivityLog(
+            updatedEnrollments.map(({ partnerId }) => ({
               workspaceId: workspace.id,
               programId: program.id,
+              resourceType: "partner",
+              resourceId: partnerId,
+              userId: user.id,
               action: "partner_application.approved",
-              description: `Partner application approved for ${partner.id}`,
-              actor: user,
-              targets: [
-                {
-                  type: "partner",
-                  id: partner.id,
-                  metadata: partner,
+              changeSet: {
+                status: {
+                  old: "pending",
+                  new: "approved",
                 },
-              ],
+              },
             })),
           ),
 
-          triggerWorkflows(
+          triggerQStashWorkflow(
             updatedEnrollments.map(({ partnerId, programId }) => ({
-              workflowId: "partner-approved",
+              workflowType: "partner-approved",
+              workflowLabel: partnerId,
               body: {
                 programId,
                 partnerId,
@@ -129,6 +153,12 @@ export const bulkApprovePartnersAction = authActionClient
               },
             })),
           ),
+
+          trackApplicationEvents({
+            event: "approved",
+            programId: program.id,
+            partnerIds: updatedEnrollments.map(({ partnerId }) => partnerId),
+          }),
         ]);
       })(),
     );

@@ -25,8 +25,8 @@ export * from "./photo";
 export * from "./sort-order";
 export * from "./success";
 export * from "./tick";
-export * from "./verified-badge";
 export * from "./user-clock";
+export * from "./verified-badge";
 
 // loaders
 export * from "./loading-circle";
@@ -35,7 +35,9 @@ export * from "./loading-spinner";
 
 // brand logos
 export * from "./anthropic";
+export * from "./beehiiv";
 export * from "./bing";
+export * from "./cloudflare";
 export * from "./facebook";
 export * from "./github";
 export * from "./google";
@@ -45,9 +47,11 @@ export * from "./openai";
 export * from "./product-hunt";
 export * from "./reddit";
 export * from "./slack";
+export * from "./slack-colorful";
 export * from "./tiktok";
 export * from "./twitter";
 export * from "./unsplash";
+export * from "./vercel";
 export * from "./veriff";
 export * from "./youtube";
 
@@ -78,6 +82,8 @@ export * from "./default-domains/figma";
 export * from "./default-domains/github-enhanced";
 export * from "./default-domains/google-enhanced";
 export * from "./default-domains/spotify";
+
+export * from "./with-fill-variant";
 
 // Nucleo icons
 export * from "./nucleo";

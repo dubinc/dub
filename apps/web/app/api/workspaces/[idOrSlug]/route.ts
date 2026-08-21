@@ -4,24 +4,28 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { validateAllowedHostnames } from "@/lib/api/validate-allowed-hostnames";
 import { deleteWorkspace } from "@/lib/api/workspaces/delete-workspace";
 import { prefixWorkspaceId } from "@/lib/api/workspaces/workspace-id";
+import { workspaceProductCache } from "@/lib/api/workspaces/workspace-product-cache";
 import { withWorkspace } from "@/lib/auth";
 import { getFeatureFlags } from "@/lib/edge-config";
 import { jackson } from "@/lib/jackson";
+import { prisma } from "@/lib/prisma";
+import { mergeSiteVisitTrackingSettings } from "@/lib/sitemaps/site-visit-tracking";
 import { storage } from "@/lib/storage";
-import { redis } from "@/lib/upstash";
 import {
   createWorkspaceSchema,
+  siteVisitTrackingSettingsPatchSchema,
   WorkspaceSchema,
   WorkspaceSchemaExtended,
 } from "@/lib/zod/schemas/workspaces";
-import { prisma } from "@dub/prisma";
 import { nanoid, R2_URL } from "@dub/utils";
+import { Prisma } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 
 const updateWorkspaceSchema = createWorkspaceSchema
   .extend({
+    defaultProduct: z.enum(["program", "links"]).optional(),
     allowedHostnames: z.array(z.string()).optional(),
     publishableKey: z
       .union([
@@ -35,6 +39,9 @@ const updateWorkspaceSchema = createWorkspaceSchema
       ])
       .optional(),
     enforceSAML: z.boolean().nullish(),
+    siteVisitTrackingSettings: siteVisitTrackingSettingsPatchSchema
+      .nullable()
+      .optional(),
   })
   .partial();
 
@@ -83,10 +90,12 @@ export const PATCH = withWorkspace(
       name,
       slug,
       logo,
+      defaultProduct,
       conversionEnabled,
       allowedHostnames,
       publishableKey,
       enforceSAML,
+      siteVisitTrackingSettings,
     } = await updateWorkspaceSchema.parseAsync(await parseRequestBody(req));
 
     if (["free", "pro"].includes(workspace.plan) && conversionEnabled) {
@@ -130,6 +139,48 @@ export const PATCH = withWorkspace(
       }
     }
 
+    const flags = await getFeatureFlags({
+      workspaceId: workspace.id,
+    });
+
+    const mergedSiteVisitTrackingSettings =
+      siteVisitTrackingSettings !== undefined
+        ? mergeSiteVisitTrackingSettings(
+            workspace.siteVisitTrackingSettings,
+            siteVisitTrackingSettings,
+          )
+        : undefined;
+
+    if (
+      mergedSiteVisitTrackingSettings !== undefined &&
+      mergedSiteVisitTrackingSettings !== null &&
+      mergedSiteVisitTrackingSettings.siteDomainSlug
+    ) {
+      if (!flags.analyticsSettingsSiteVisitTracking) {
+        throw new DubApiError({
+          code: "forbidden",
+          message:
+            "Site visit tracking is not enabled for this workspace. Please contact support to enable it.",
+        });
+      }
+
+      const domain = await prisma.domain.findFirst({
+        where: {
+          projectId: workspace.id,
+          slug: mergedSiteVisitTrackingSettings.siteDomainSlug,
+          archived: false,
+        },
+      });
+
+      if (!domain) {
+        throw new DubApiError({
+          code: "bad_request",
+          message:
+            "The selected site links domain was not found for this workspace.",
+        });
+      }
+    }
+
     try {
       const updatedWorkspace = await prisma.project.update({
         where: {
@@ -139,6 +190,7 @@ export const PATCH = withWorkspace(
           ...(name && { name }),
           ...(slug && { slug }),
           ...(logoUploaded && { logo: logoUploaded.url }),
+          ...(defaultProduct && { defaultProduct }),
           ...(conversionEnabled !== undefined && { conversionEnabled }),
           ...(validHostnames !== undefined && {
             allowedHostnames: validHostnames,
@@ -146,6 +198,12 @@ export const PATCH = withWorkspace(
           ...(publishableKey !== undefined && { publishableKey }),
           ...(enforceSAML !== undefined && {
             ssoEnforcedAt: enforceSAML ? new Date() : null,
+          }),
+          ...(mergedSiteVisitTrackingSettings !== undefined && {
+            siteVisitTrackingSettings:
+              mergedSiteVisitTrackingSettings === null
+                ? Prisma.JsonNull
+                : (mergedSiteVisitTrackingSettings as Prisma.InputJsonValue),
           }),
         },
         include: {
@@ -161,23 +219,34 @@ export const PATCH = withWorkspace(
         },
       });
 
-      if (updatedWorkspace.slug !== workspace.slug) {
-        await Promise.allSettled([
-          prisma.user.updateMany({
-            where: {
-              defaultWorkspace: workspace.slug,
-            },
-            data: {
-              defaultWorkspace: updatedWorkspace.slug,
-            },
-          }),
-          // refresh the workspace product cache for both workspaces
-          redis.del(
-            `workspace:product:${updatedWorkspace.slug}`,
-            `workspace:product:${workspace.slug}`,
-          ),
-        ]);
-      }
+      await Promise.allSettled([
+        ...(updatedWorkspace.slug !== workspace.slug
+          ? [
+              prisma.user.updateMany({
+                where: {
+                  defaultWorkspace: workspace.slug,
+                },
+                data: {
+                  defaultWorkspace: updatedWorkspace.slug,
+                },
+              }),
+              // update the workspace product cache for both workspaces
+              workspaceProductCache.set({
+                slug: updatedWorkspace.slug,
+                product: updatedWorkspace.defaultProduct,
+              }),
+              workspaceProductCache.delete({ slug: workspace.slug }),
+            ]
+          : // if only the product has changed, update the cache
+            updatedWorkspace.defaultProduct !== workspace.defaultProduct
+            ? [
+                workspaceProductCache.set({
+                  slug: updatedWorkspace.slug,
+                  product: updatedWorkspace.defaultProduct,
+                }),
+              ]
+            : []),
+      ]);
 
       waitUntil(
         (async () => {
@@ -214,9 +283,6 @@ export const PATCH = withWorkspace(
         WorkspaceSchema.parse({
           ...updatedWorkspace,
           id: prefixWorkspaceId(updatedWorkspace.id),
-          flags: await getFeatureFlags({
-            workspaceId: updatedWorkspace.id,
-          }),
         }),
       );
     } catch (error) {

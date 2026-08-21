@@ -2,10 +2,10 @@ import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withSession } from "@/lib/auth";
 import { hashPassword, validatePassword } from "@/lib/auth/password";
+import { prisma } from "@/lib/prisma";
 import { updatePasswordSchema } from "@/lib/zod/schemas/auth";
 import { sendEmail } from "@dub/email";
 import PasswordUpdated from "@dub/email/templates/password-updated";
-import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
@@ -63,7 +63,7 @@ export const PATCH = withSession(async ({ req, session }) => {
   // Send the email to inform the user that their password has been updated
   waitUntil(
     sendEmail({
-      subject: `Your ${process.env.NEXT_PUBLIC_APP_NAME} account password has been updated`,
+      subject: "Your Dub account password has been updated",
       to: session.user.email,
       react: PasswordUpdated({
         email: session.user.email,

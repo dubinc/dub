@@ -1,27 +1,28 @@
 import { ElementType } from "react";
 import {
-  Book2Fill,
-  BriefcaseFill,
-  BulletListFill,
-  DiamondTurnRightFill,
+  Book2,
+  Briefcase,
+  BulletList,
+  DiamondTurnRight,
   DubAnalyticsIcon,
   DubLinksIcon,
   DubPartnersIcon,
-  EnvelopeFill,
-  FeatherFill,
+  Envelope,
+  Feather,
   Github,
   Go,
-  LifeRingFill,
+  LifeRing,
   LinkedIn,
-  MicrophoneFill,
+  Microphone,
   Php,
   Python,
   Ruby,
-  Toggle2Fill,
+  Toggle2,
   Twitter,
   Typescript,
-  UsersFill,
+  Users,
   YouTube,
+  withFillVariant,
 } from "./icons";
 import { DubApiIcon } from "./icons/dub-api";
 import { Logo } from "./logo";
@@ -41,13 +42,6 @@ export type NavItemChildren = (
 
 export const FEATURES_LIST = [
   {
-    id: "links",
-    title: "Dub Links",
-    description: "Short links with superpowers",
-    icon: DubLinksIcon,
-    href: "/links",
-  },
-  {
     id: "partners",
     title: "Dub Partners",
     description: "Grow your revenue with partnerships",
@@ -62,6 +56,13 @@ export const FEATURES_LIST = [
     href: "/analytics",
   },
   {
+    id: "links",
+    title: "Dub Links",
+    description: "Short links with superpowers",
+    icon: DubLinksIcon,
+    href: "/links",
+  },
+  {
     id: "api",
     title: "Dub API",
     description: "Programmatic link creation at scale",
@@ -71,7 +72,7 @@ export const FEATURES_LIST = [
   {
     title: "Dub Integrations",
     description: "Connect Dub with your favorite tools",
-    icon: Toggle2Fill,
+    icon: withFillVariant(Toggle2),
     href: "/integrations",
   },
 ];
@@ -114,22 +115,22 @@ export const SDKS = [
 
 export const SOLUTIONS: NavItemChildren = [
   {
-    icon: DiamondTurnRightFill,
+    icon: withFillVariant(Users),
+    title: "Affiliate Management",
+    description: "Manage affiliates and automate payouts",
+    href: "/partners",
+  },
+  {
+    icon: withFillVariant(DiamondTurnRight),
     title: "Marketing Attribution",
     description: "Easily track and measure marketing impact",
     href: "/analytics",
   },
   {
-    icon: MicrophoneFill,
-    title: "Content Creators",
+    icon: withFillVariant(Microphone),
+    title: "For Content Creators",
     description: "Intelligent audience insights and link tracking",
     href: "/solutions/creators",
-  },
-  {
-    icon: UsersFill,
-    title: "Affiliate Management",
-    description: "Manage affiliates and automate payouts",
-    href: "/partners",
   },
   {
     label: "SDKs",
@@ -139,37 +140,37 @@ export const SOLUTIONS: NavItemChildren = [
 
 export const RESOURCES = [
   {
-    icon: LifeRingFill,
+    icon: LifeRing,
     title: "Help Center",
     description: "Answers to your questions",
     href: "/help",
   },
   {
-    icon: Book2Fill,
+    icon: Book2,
     title: "Docs",
     description: "Platform documentation",
     href: "/docs",
   },
   {
-    icon: UsersFill,
+    icon: withFillVariant(Users),
     title: "About",
     description: "Company, values, and team",
     href: "/about",
   },
   {
-    icon: BriefcaseFill,
+    icon: Briefcase,
     title: "Careers",
     description: "Join our global, remote team",
     href: "/careers",
   },
   {
-    icon: FeatherFill,
+    icon: Feather,
     title: "Blog",
     description: "Insights and stories",
     href: "/blog",
   },
   {
-    icon: BulletListFill,
+    icon: BulletList,
     title: "Changelog",
     description: "Releases and updates",
     href: "/changelog",
@@ -181,7 +182,7 @@ export const RESOURCES = [
     href: "/brand",
   },
   {
-    icon: EnvelopeFill,
+    icon: Envelope,
     title: "Contact",
     description: "Reach out to support or sales",
     href: "/contact",

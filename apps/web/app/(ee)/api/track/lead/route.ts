@@ -53,21 +53,13 @@ export const POST = withWorkspace(
       customerAvatar,
       mode,
       metadata,
-      rawBody: body,
       workspace,
     });
 
     return NextResponse.json(response);
   },
   {
-    requiredPlan: [
-      "business",
-      "business plus",
-      "business extra",
-      "business max",
-      "advanced",
-      "enterprise",
-    ],
+    requiredPlan: ["business", "advanced", "enterprise"],
     requiredRoles: ["owner", "member"],
   },
 );

@@ -1,7 +1,7 @@
 import { get } from "@vercel/edge-config";
 
 export const isBlacklistedKey = async (key: string) => {
-  if (!process.env.NEXT_PUBLIC_IS_DUB || !process.env.EDGE_CONFIG) {
+  if (!process.env.EDGE_CONFIG) {
     return false;
   }
 

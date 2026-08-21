@@ -45,6 +45,7 @@ export const STABLECOIN_SUPPORTED_COUNTRIES = [
   "FR", // France
   "GA", // Gabon
   "GB", // United Kingdom
+  "GE", // Georgia
   "GG", // Guernsey
   "GH", // Ghana
   "GI", // Gibraltar
@@ -62,6 +63,7 @@ export const STABLECOIN_SUPPORTED_COUNTRIES = [
   "HU", // Hungary
   "ID", // Indonesia
   "IE", // Ireland
+  "IN", // India
   "IL", // Israel
   "IM", // Isle of Man
   "IS", // Iceland

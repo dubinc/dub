@@ -1,13 +1,15 @@
 "use client";
 
 import usePartnerEarningsCount from "@/lib/swr/use-partner-earnings-count";
+import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import { PartnerEarningsResponse } from "@/lib/types";
-import { CLAWBACK_REASONS_MAP } from "@/lib/zod/schemas/commissions";
+import { formatCommissionDescriptionTooltip } from "@/lib/commissions/format-commission-description-tooltip";
 import { CustomerRowItem } from "@/ui/customers/customer-row-item";
 import { CommissionStatusBadges } from "@/ui/partners/commission-status-badges";
 import { CommissionTypeBadge } from "@/ui/partners/commission-type-badge";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
+import { CountryFlag } from "@/ui/shared/country-flag";
 import { FilterButtonTableRow } from "@/ui/shared/filter-button-table-row";
 import {
   CopyText,
@@ -30,6 +32,7 @@ import {
   getApexDomain,
   getPrettyUrl,
 } from "@dub/utils";
+import { CommissionType } from "@prisma/client";
 import { Cell } from "@tanstack/react-table";
 import { useParams } from "next/navigation";
 import useSWR from "swr";
@@ -42,6 +45,7 @@ type ColumnMeta = {
 
 export function EarningsTablePartner({ limit }: { limit?: number }) {
   const { programSlug } = useParams();
+  const { partner } = usePartnerProfile();
   const { programEnrollment, showDetailedAnalytics } = useProgramEnrollment();
   const { queryParams, searchParamsObj, getQueryString } = useRouterStuff();
 
@@ -108,26 +112,39 @@ export function EarningsTablePartner({ limit }: { limit?: number }) {
           filterParams: ({ row }) =>
             row.original.link ? { linkId: row.original.link.id } : null,
         },
-        cell: ({ row }) =>
-          row.original.link ? (
+        cell: ({ row }) => {
+          const referralLink = row.original.link
+            ? {
+                apexDomain: getApexDomain(row.original.link.url),
+                shortLink: row.original.link.shortLink,
+              }
+            : row.original.type === CommissionType.referral && partner?.username
+              ? {
+                  apexDomain: "dub.co",
+                  shortLink: `https://partners.dub.co/${programSlug}/apply?via=${partner.username}`,
+                }
+              : null;
+
+          if (!referralLink) return "-";
+
+          return (
             <div className="flex items-center gap-3">
               <LinkLogo
-                apexDomain={getApexDomain(row.original.link.url)}
+                apexDomain={referralLink.apexDomain}
                 className="size-4 shrink-0 sm:size-4"
               />
               <CopyText
-                value={row.original.link.shortLink}
+                value={referralLink.shortLink}
                 successMessage="Copied link to clipboard!"
                 className="truncate"
               >
-                <span className="truncate" title={row.original.link.shortLink}>
-                  {getPrettyUrl(row.original.link.shortLink)}
+                <span className="truncate" title={referralLink.shortLink}>
+                  {getPrettyUrl(referralLink.shortLink)}
                 </span>
               </CopyText>
             </div>
-          ) : (
-            "-"
-          ),
+          );
+        },
         size: 250,
       },
       {
@@ -174,25 +191,26 @@ export function EarningsTablePartner({ limit }: { limit?: number }) {
               id: "country",
               header: "Country",
               accessorKey: "customer.country",
-              cell: ({ getValue }) => (
-                <div
-                  className="flex items-center gap-3"
-                  title={COUNTRIES[getValue()] ?? getValue()}
-                >
-                  {getValue() ? (
-                    <img
-                      alt={getValue()}
-                      src={`https://hatscripts.github.io/circle-flags/flags/${getValue().toLowerCase()}.svg`}
-                      className="size-4 shrink-0"
-                    />
-                  ) : (
-                    <Globe className="size-4 shrink-0" />
-                  )}
-                  <span className="truncate">
-                    {COUNTRIES[getValue()] || getValue() || "-"}
-                  </span>
-                </div>
-              ),
+              cell: ({ row }) => {
+                if (!row.original.customer) return "-";
+                const country = row.original.customer.country;
+
+                return (
+                  <div
+                    className="flex items-center gap-3"
+                    title={country ? COUNTRIES[country] ?? country : undefined}
+                  >
+                    {country ? (
+                      <CountryFlag countryCode={country} />
+                    ) : (
+                      <Globe className="size-4 shrink-0" />
+                    )}
+                    <span className="truncate">
+                      {(country ? COUNTRIES[country] || country : null) ?? "-"}
+                    </span>
+                  </div>
+                );
+              },
             },
           ]),
       {
@@ -205,12 +223,13 @@ export function EarningsTablePartner({ limit }: { limit?: number }) {
           const earnings = currencyFormatter(commission.earnings);
 
           if (commission.description) {
-            const reason =
-              CLAWBACK_REASONS_MAP[commission.description]?.description ??
-              commission.description;
-
             return (
-              <Tooltip content={reason}>
+              <Tooltip
+                content={formatCommissionDescriptionTooltip(
+                  commission.description,
+                  { variant: "partner" },
+                )}
+              >
                 <span
                   className={cn(
                     "cursor-help truncate underline decoration-dotted underline-offset-2",
@@ -279,7 +298,6 @@ export function EarningsTablePartner({ limit }: { limit?: number }) {
             ...(sortOrder && { sortOrder }),
           },
           del: "page",
-          scroll: false,
         }),
       enableColumnResizing: true,
     }),

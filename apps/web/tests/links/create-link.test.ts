@@ -1,6 +1,6 @@
 import { normalizeWorkspaceId } from "@/lib/api/workspaces/workspace-id";
 import { FolderSchema } from "@/lib/zod/schemas/folders";
-import { Link, Tag } from "@dub/prisma/client";
+import { Link, Tag } from "@prisma/client";
 import { IntegrationHarnessOld } from "tests/utils/integration-old";
 import { describe, expect, onTestFinished, test } from "vitest";
 import * as z from "zod/v4";
@@ -247,6 +247,27 @@ describe.sequential("POST /links", async () => {
       shortLink: `https://${domain}/${link.key}`,
       qrCode: `https://api.dub.co/qr?url=https://${domain}/${link.key}?qr=1`,
     });
+    expect(LinkSchema.strict().parse(link)).toBeTruthy();
+  });
+
+  test("utm_source at max length", async () => {
+    const utmSource = "a".repeat(255);
+
+    onTestFinished(async () => {
+      await h.deleteLink(link.id);
+    });
+
+    const { status, data: link } = await http.post<Link>({
+      path: "/links",
+      body: {
+        url,
+        domain,
+        utm_source: utmSource,
+      },
+    });
+
+    expect(status).toEqual(200);
+    expect(link.utm_source).toBe(utmSource);
     expect(LinkSchema.strict().parse(link)).toBeTruthy();
   });
 

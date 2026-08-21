@@ -1,6 +1,6 @@
-import { BountySubmissionStatus } from "@dub/prisma/client";
 import { useRouterStuff } from "@dub/ui";
 import { fetcher } from "@dub/utils";
+import { BountySubmissionStatus } from "@prisma/client";
 import { useParams } from "next/navigation";
 import useSWR from "swr";
 import useWorkspace from "./use-workspace";

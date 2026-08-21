@@ -18,7 +18,7 @@ export const trackOpenRequestSchema = z
   .superRefine((data, ctx) => {
     if (!data.deepLink && !data.dubDomain) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: "custom",
         message:
           "You need to provide either `deepLink` or `dubDomain` for deferred deep linking.",
       });
@@ -30,7 +30,7 @@ export const trackOpenResponseSchema = z.object({
     .string()
     .nullable()
     .describe(
-      "The click ID of the associated open event (or the prior click that led the user to the app store for probabilistic tracking). This will be `null` if the open event was not associated with a deep link (e.g. a direct download from the app store), or if the open event was performed by a bot (no click recorded). Learn more: https://d.to/ddl",
+      "The click ID of the associated open event (or the prior click that led the user to the app store for probabilistic tracking). Learn more: https://d.to/ddl",
     ),
   link: z
     .object({

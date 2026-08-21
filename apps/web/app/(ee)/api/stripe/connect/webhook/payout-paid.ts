@@ -6,14 +6,14 @@ const queue = qstash.queue({
   queueName: "handle-payout-paid",
 });
 
-export async function payoutPaid(event: Stripe.Event) {
+export async function payoutPaid(event: Stripe.PayoutPaidEvent) {
   const stripeAccount = event.account;
 
   if (!stripeAccount) {
     return "No stripeConnectId found in event. Skipping...";
   }
 
-  const stripePayout = event.data.object as Stripe.Payout;
+  const stripePayout = event.data.object;
   const stripePayoutTraceId = stripePayout.trace_id?.value ?? null;
 
   const response = await queue.enqueueJSON({

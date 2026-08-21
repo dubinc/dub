@@ -1,5 +1,5 @@
 import { FraudTriggeredRule } from "@/lib/types";
-import { FraudRuleType } from "@dub/prisma/client";
+import { FraudRuleType } from "@prisma/client";
 import { defineFraudRule } from "./define-fraud-rule";
 import { checkCustomerEmailMatch } from "./rules/check-customer-email-match";
 import { checkCustomerEmailSuspicious } from "./rules/check-customer-email-suspicious";
@@ -23,9 +23,7 @@ const FRAUD_RULES_REGISTRY: Record<
   referralSourceBanned: checkReferralSourceBanned,
   paidTrafficDetected: checkPaidTrafficDetected,
   partnerCrossProgramBan: defineFraudRuleStub("partnerCrossProgramBan"),
-  partnerDuplicatePayoutMethod: defineFraudRuleStub(
-    "partnerDuplicatePayoutMethod",
-  ),
+  partnerDuplicateAccount: defineFraudRuleStub("partnerDuplicateAccount"),
 };
 
 // Execute a fraud rule with the given context and configuration

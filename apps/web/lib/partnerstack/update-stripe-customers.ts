@@ -1,7 +1,7 @@
+import { prisma } from "@/lib/prisma";
 import { sendEmail } from "@dub/email";
 import ProgramImported from "@dub/email/templates/program-imported";
-import { prisma } from "@dub/prisma";
-import { Customer, Project } from "@dub/prisma/client";
+import { Customer, Project } from "@prisma/client";
 import Stripe from "stripe";
 import { stripeAppClient } from "../stripe";
 import { logImportError } from "../tinybird/log-import-error";
@@ -53,6 +53,9 @@ export async function updateStripeCustomers(
       where: {
         projectId: workspace.id,
         stripeCustomerId: null,
+        email: {
+          not: null,
+        },
       },
       select: {
         id: true,
@@ -147,6 +150,10 @@ async function searchStripeAndUpdateCustomer({
     entity: "customer",
     entity_id: customer.id,
   } as const;
+
+  if (!customer.email) {
+    return null;
+  }
 
   try {
     const stripeCustomers = await stripe.customers.search(

@@ -19,6 +19,7 @@ const prefixes = [
   "dpn_", // discovered partner
   "prog_", // program
   "pga_", // program application
+  "pga_evt_", // program application event
   "pgi_", // program invitation
   "pge_", // program enrollment
   "pgr_", // program resources
@@ -31,18 +32,22 @@ const prefixes = [
   "dub_embed_", // dub embed
   "audit_", // audit log
   "import_", // import log
-  "grp_", // group
+  "grp_", // partner group
+  "ptag_", // partner tag
   "bnty_", // bounty
   "bnty_sub_", // bounty submission
   "wf_", // workflow
   "msg_", // message
+  "msa_", // message attachment
   "em_", // notification email,
   "cmp_", // campaign
   "fr_", // fraud rule
   "fre_", // fraud event
   "frg_", // fraud event group
-  "ref_", // referral
+  "sbl_", // submitted lead
   "pb_", // partner postback
+  "req_", // api request log
+  "job_", // background job
 ] as const;
 
 // ULID uses base32 encoding

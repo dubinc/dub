@@ -1,4 +1,5 @@
 import { mutatePrefix } from "@/lib/swr/mutate";
+import useWorkspace from "@/lib/swr/use-workspace";
 import { UpgradeRequiredToast } from "@/ui/shared/upgrade-required-toast";
 import { Button, useCopyToClipboard } from "@dub/ui";
 import { useRouter } from "next/navigation";
@@ -14,7 +15,8 @@ export function useLinkBuilderSubmit({
   onSuccess?: (data: LinkFormData) => void;
 } = {}) {
   const router = useRouter();
-  const { workspace, props } = useLinkBuilderContext();
+  const { props } = useLinkBuilderContext();
+  const workspace = useWorkspace();
   const { getValues, setError } = useFormContext<LinkFormData>();
   const [, copyToClipboard] = useCopyToClipboard();
 
@@ -66,7 +68,6 @@ export function useLinkBuilderSubmit({
           onSuccess?.(data);
 
           // for editing links, if domain / key is changed, push to new url
-          console.log({ props, data });
           if (
             props &&
             (props.domain !== data.domain || props.key !== data.key)
@@ -121,11 +122,15 @@ export function useLinkBuilderSubmit({
           const { error } = await res.json();
 
           if (error) {
-            if (error.message.includes("Upgrade to")) {
+            if (error.message.includes("Upgrade to ")) {
+              const planToUpgradeTo =
+                error.message.split("Upgrade to ")[1].split(" ")[0] ||
+                workspace?.nextPlan?.name;
               toast.custom(() => (
                 <UpgradeRequiredToast
-                  title={`You've discovered a ${workspace?.nextPlan?.name} feature!`}
+                  title={`You've discovered a ${planToUpgradeTo} feature!`}
                   message={error.message}
+                  planToUpgradeTo={planToUpgradeTo}
                 />
               ));
             } else {
@@ -133,7 +138,12 @@ export function useLinkBuilderSubmit({
             }
             const message = error.message.toLowerCase();
 
-            if (message.includes("key"))
+            // Image errors contain the word "URL" but have no field of their own,
+            // so match "image" before the "url" branch below; otherwise they'd
+            // attach to the destination URL field instead of the form root.
+            if (message.includes("image"))
+              setError("root", { message: error.message });
+            else if (message.includes("key"))
               setError("key", { message: error.message });
             else if (message.includes("url"))
               setError("url", { message: error.message });

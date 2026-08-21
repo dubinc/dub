@@ -4,12 +4,12 @@ import { DubApiError } from "@/lib/api/errors";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 import {
   CommissionDetailSchema,
   CommissionEnrichedSchema,
   updateCommissionSchemaExtended,
 } from "@/lib/zod/schemas/commissions";
-import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 
 // GET /api/commissions/:commissionId - get a single commission by ID
@@ -69,6 +69,7 @@ export const GET = withWorkspace(async ({ workspace, params }) => {
   return NextResponse.json(
     CommissionDetailSchema.parse({
       ...rest,
+      paidAt: rest.payout?.paidAt ?? null,
       partner: {
         ...partner,
         groupId: programEnrollment.partnerGroup?.id ?? null,
@@ -125,6 +126,7 @@ export const PATCH = withWorkspace(
     return NextResponse.json(
       CommissionEnrichedSchema.parse({
         ...updatedCommission,
+        paidAt: updatedCommission.payout?.paidAt ?? null,
         customer: transformCustomerForCommission(updatedCommission.customer),
       }),
     );

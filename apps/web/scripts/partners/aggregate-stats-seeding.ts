@@ -1,6 +1,6 @@
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import "dotenv-flow/config";
-import { publishPartnerActivityEvent } from "../../lib/upstash/redis-streams";
+import { publishPartnerActivityEvent } from "../../lib/upstash/redis-streams/partner-activity";
 
 // Seeding script to seed the partner stats with activity
 async function main() {
@@ -54,7 +54,7 @@ async function main() {
       await publishPartnerActivityEvent({
         partnerId: partnerLink.partnerId!,
         programId: partnerLink.programId!,
-        eventType: "click",
+        eventType: "lead",
         timestamp: new Date().toISOString(),
       });
     }),

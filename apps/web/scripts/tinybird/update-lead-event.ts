@@ -1,23 +1,30 @@
+import { prisma } from "@/lib/prisma";
 import "dotenv-flow/config";
 import * as z from "zod/v4";
 import { tb } from "../../lib/tinybird/client";
 import { recordLeadWithTimestamp } from "../../lib/tinybird/record-lead";
 
-const getLeadEvent = tb.buildPipe({
-  pipe: "get_lead_event_by_id",
+const getLeadEvents = tb.buildPipe({
+  pipe: "internal_get_lead_events",
   parameters: z.object({
-    eventId: z.string(),
+    customerId: z.string(),
   }),
   data: z.any(),
 });
 
 // update tinybird lead event
 async function main() {
-  const eventId = "9Q22Mkh9edsHdePl";
-  const columnName = "event_name";
-  const columnValue = "Manual commission for QE6IwYufKjVaHFbreyW3";
+  const CUSTOMER_ID = "cus_xxx";
+  const OLD_LINK_ID = "link_xxx";
+  const NEW_LINK_ID = "link_xxx";
 
-  const { data } = await getLeadEvent({ eventId });
+  const newLink = await prisma.link.findUniqueOrThrow({
+    where: {
+      id: NEW_LINK_ID,
+    },
+  });
+
+  const { data } = await getLeadEvents({ customerId: CUSTOMER_ID });
   const oldData = data[0];
   if (!oldData) {
     console.log("No data found");
@@ -25,7 +32,8 @@ async function main() {
   }
   const updatedData = {
     ...oldData,
-    [columnName]: columnValue,
+    link_id: newLink.id,
+    key: newLink.key,
   };
   console.log(updatedData);
 
@@ -36,15 +44,15 @@ async function main() {
   const deleteRes = await Promise.allSettled([
     deleteData({
       dataSource: "dub_lead_events",
-      eventId,
-      columnName,
-      oldValue: oldData[columnName],
+      customerId: CUSTOMER_ID,
+      columnName: "link_id",
+      oldValue: OLD_LINK_ID,
     }),
     deleteData({
       dataSource: "dub_lead_events_mv",
-      eventId,
-      columnName,
-      oldValue: oldData[columnName],
+      customerId: CUSTOMER_ID,
+      columnName: "link_id",
+      oldValue: OLD_LINK_ID,
     }),
   ]);
   console.log(deleteRes);
@@ -52,12 +60,12 @@ async function main() {
 
 const deleteData = async ({
   dataSource,
-  eventId,
+  customerId,
   columnName,
   oldValue,
 }: {
   dataSource: string;
-  eventId: string;
+  customerId: string;
   columnName: string;
   oldValue: string;
 }) => {
@@ -69,7 +77,7 @@ const deleteData = async ({
         Authorization: `Bearer ${process.env.TINYBIRD_API_KEY}`,
         "Content-Type": "application/x-www-form-urlencoded",
       },
-      body: `delete_condition=event_id='${eventId}' and ${columnName}='${oldValue}'`,
+      body: `delete_condition=customer_id='${customerId}' and ${columnName}='${oldValue}'`,
     },
   ).then((res) => res.json());
 };

@@ -13,7 +13,11 @@ export function CTAButtons() {
 
   return (
     <>
-      <Link href={status === "authenticated" ? "/" : `${slugPrefix}/register`}>
+      <Link
+        href={
+          status === "authenticated" ? "/programs" : `${slugPrefix}/register`
+        }
+      >
         <Button
           type="button"
           text={

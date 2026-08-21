@@ -21,6 +21,16 @@ const child = spawn(
   {
     stdio: "inherit", // This pipes stdout/stderr directly to the parent process
     shell: true, // Allows running commands as if in a shell
+    env: {
+      ...process.env,
+      NODE_OPTIONS: [
+        process.env.NODE_OPTIONS,
+        "--conditions=react-server",
+        "--import=./scripts/runtime/async-local-storage.cjs",
+      ]
+        .filter(Boolean)
+        .join(" "),
+    },
   },
 );
 

@@ -1,8 +1,10 @@
 import { recomputePartnerPayoutState } from "@/lib/payouts/recompute-partner-payout-state";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import type Stripe from "stripe";
 
-export async function accountApplicationDeauthorized(event: Stripe.Event) {
+export async function accountApplicationDeauthorized(
+  event: Stripe.AccountApplicationDeauthorizedEvent,
+) {
   const stripeAccount = event.account;
 
   if (!stripeAccount) {
@@ -21,6 +23,7 @@ export async function accountApplicationDeauthorized(event: Stripe.Event) {
       paypalEmail: true,
       payoutsEnabledAt: true,
       defaultPayoutMethod: true,
+      tremendousEmail: true,
     },
   });
 

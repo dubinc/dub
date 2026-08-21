@@ -1,8 +1,9 @@
 import { createId } from "@/lib/api/create-id";
 import { linkCache } from "@/lib/api/links/cache";
 import { encodeKeyIfCaseSensitive } from "@/lib/api/links/case-sensitivity";
+import { prisma } from "@/lib/prisma";
 import { recordLink } from "@/lib/tinybird";
-import { prisma } from "@dub/prisma";
+import { publishWorkspaceLinksUsageEvent } from "@/lib/upstash/redis-streams/workspace-links-usage";
 import {
   DUB_HEADERS,
   getUrlFromStringIfValid,
@@ -50,14 +51,10 @@ export const crawlBitly = async (req: NextRequest, ev: NextFetchEvent) => {
             .then((data) =>
               Promise.allSettled([
                 recordLink(data),
-                prisma.project.update({
-                  where: {
-                    id: BUFFER_WORKSPACE_ID,
-                  },
-                  data: {
-                    linksUsage: { increment: 1 },
-                    totalLinks: { increment: 1 },
-                  },
+                publishWorkspaceLinksUsageEvent({
+                  workspaceId: BUFFER_WORKSPACE_ID,
+                  linksCount: 1,
+                  timestamp: new Date().toISOString(),
                 }),
               ]),
             ),

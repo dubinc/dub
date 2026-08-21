@@ -11,11 +11,10 @@ import {
   Msg,
   UserCheck,
 } from "@dub/ui";
-import { useParams, usePathname } from "next/navigation";
+import { useParams } from "next/navigation";
 import { useMemo } from "react";
 
 export function PartnerNav() {
-  const pathname = usePathname();
   const { partnerId } = useParams() as { partnerId: string };
   const { slug: workspaceSlug } = useWorkspace();
 

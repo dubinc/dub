@@ -1,11 +1,13 @@
 import { convertCurrency } from "@/lib/analytics/convert-currency";
 import { isFirstConversion } from "@/lib/analytics/is-first-conversion";
+import { getOrCreateCustomer } from "@/lib/api/customers/get-or-create-customer";
 import { DubApiError } from "@/lib/api/errors";
-import { detectAndRecordFraudEvent } from "@/lib/api/fraud/detect-record-fraud-event";
 import { includeTags } from "@/lib/api/links/include-tags";
+import { queueGoogleAdsConversionUpload } from "@/lib/integrations/google-ads/upload-conversion";
 import { generateRandomName } from "@/lib/names";
-import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
-import { sendPartnerPostback } from "@/lib/postback/api/send-partner-postback";
+import { queuePartnerCommissionCreation } from "@/lib/partners/queue-partner-commission-creation";
+import { sendPartnerPostback } from "@/lib/postback/send-partner-postback";
+import { prisma } from "@/lib/prisma";
 import { isStored, storage } from "@/lib/storage";
 import {
   getClickEvent,
@@ -13,13 +15,7 @@ import {
   recordLead,
   recordSale,
 } from "@/lib/tinybird";
-import { logConversionEvent } from "@/lib/tinybird/log-conversion-events";
-import {
-  ClickEventTB,
-  CustomerSource,
-  LeadEventTB,
-  WorkspaceProps,
-} from "@/lib/types";
+import { CustomerSource, LeadEventTB, WorkspaceProps } from "@/lib/types";
 import { redis } from "@/lib/upstash";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import {
@@ -30,9 +26,8 @@ import {
   trackSaleRequestSchema,
   trackSaleResponseSchema,
 } from "@/lib/zod/schemas/sales";
-import { prisma } from "@dub/prisma";
-import { Customer } from "@dub/prisma/client";
-import { nanoid, pick, R2_URL } from "@dub/utils";
+import { nanoid, R2_URL } from "@dub/utils";
+import { Customer, EventType } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
 import { createId } from "../create-id";
@@ -40,7 +35,6 @@ import { syncPartnerLinksStats } from "../partners/sync-partner-links-stats";
 import { executeWorkflows } from "../workflows/execute-workflows";
 
 type TrackSaleParams = z.input<typeof trackSaleRequestSchema> & {
-  rawBody: any;
   workspace: Pick<WorkspaceProps, "id" | "stripeConnectId" | "webhookEnabled">;
   source?: CustomerSource; // default is "tracked"
 };
@@ -58,13 +52,13 @@ export const trackSale = async ({
   invoiceId,
   leadEventName,
   metadata,
-  rawBody,
   workspace,
   source = "tracked",
 }: TrackSaleParams) => {
   let existingCustomer: Customer | null = null;
   let newCustomer: Customer | null = null;
   let leadEventData: LeadEventTB | null = null;
+  let shouldTrackDirectSaleLead = false;
 
   // Return idempotent response if invoiceId is already processed
   if (invoiceId) {
@@ -77,17 +71,50 @@ export const trackSale = async ({
   }
 
   // Find existing customer
-  existingCustomer = await prisma.customer.findUnique({
+  const existingCustomerData = await prisma.customer.findUnique({
     where: {
       projectId_externalId: {
         projectId: workspace.id,
         externalId: customerExternalId,
       },
     },
+    include: {
+      link: {
+        select: {
+          id: true,
+          projectId: true,
+          disabledAt: true,
+        },
+      },
+    },
   });
 
-  // Existing customer is found, find the lead event to associate the sale with
-  if (existingCustomer) {
+  // run link checks for existing customer if found
+  if (existingCustomerData) {
+    const { link: customerLink, ...rest } = existingCustomerData;
+    existingCustomer = rest;
+
+    if (!customerLink) {
+      throw new DubApiError({
+        code: "not_found",
+        message: `Link not found for customer ${existingCustomer.id}`,
+      });
+    }
+
+    if (customerLink.projectId !== workspace.id) {
+      throw new DubApiError({
+        code: "not_found",
+        message: `Link ${customerLink.id} for customer ${existingCustomer.id} does not belong to the workspace`,
+      });
+    }
+
+    if (customerLink.disabledAt) {
+      throw new DubApiError({
+        code: "not_found",
+        message: `Link ${customerLink.id} for customer ${existingCustomer.id} is disabled, sale not tracked`,
+      });
+    }
+
     const leadEvent = await getLeadEvent({
       customerId: existingCustomer.id,
       eventName: leadEventName,
@@ -95,15 +122,6 @@ export const trackSale = async ({
 
     if (!leadEvent) {
       const errorMessage = `Lead event not found for externalId: ${customerExternalId} and leadEventName: ${leadEventName}`;
-
-      waitUntil(
-        logConversionEvent({
-          workspace_id: workspace.id,
-          path: "/track/sale",
-          body: JSON.stringify(rawBody),
-          error: errorMessage,
-        }),
-      );
 
       throw new DubApiError({
         code: "not_found",
@@ -117,17 +135,8 @@ export const trackSale = async ({
     };
   }
 
-  // If no existing customer is found and no clickId is provided, return an error
+  // If no existing customer is found and no clickId is provided, return early
   if (!existingCustomer && !clickId) {
-    waitUntil(
-      logConversionEvent({
-        workspace_id: workspace.id,
-        path: "/track/sale",
-        body: JSON.stringify(rawBody),
-        error: `No existing customer with the provided customerExternalId (${customerExternalId}) was found, and there was no clickId provided for direct sale tracking.`,
-      }),
-    );
-
     return {
       eventName,
       customer: null,
@@ -135,11 +144,9 @@ export const trackSale = async ({
     };
   }
 
-  let clickData: ClickEventTB | null = null;
-
-  // Find the click event for the given clickId
-  if (clickId) {
-    clickData = await getClickEvent({
+  // Direct sale tracking: create the customer from the passed clickId (if exists)
+  if (!existingCustomer && clickId) {
+    const clickData = await getClickEvent({
       clickId,
     });
 
@@ -158,12 +165,8 @@ export const trackSale = async ({
         ...clickData,
       };
     }
-  }
 
-  // If no existing customer is found and a click event is found, create a new customer (for direct sale tracking)
-  if (!existingCustomer && clickData) {
-    // Create a new customer
-    const link = await prisma.link.findUnique({
+    const clickDataLink = await prisma.link.findUnique({
       where: {
         id: clickData.link_id,
       },
@@ -174,24 +177,25 @@ export const trackSale = async ({
       },
     });
 
-    if (!link) {
+    // same link checks as above for existing customer
+    if (!clickDataLink) {
       throw new DubApiError({
         code: "not_found",
         message: `Link not found for clickId: ${clickData.click_id}`,
       });
     }
 
-    if (link.projectId !== workspace.id) {
+    if (clickDataLink.projectId !== workspace.id) {
       throw new DubApiError({
         code: "not_found",
-        message: `Link ${link.id} for clickId ${clickData.click_id} does not belong to the workspace`,
+        message: `Link ${clickDataLink.id} for clickId ${clickData.click_id} does not belong to the workspace`,
       });
     }
 
-    if (link.disabledAt) {
+    if (clickDataLink.disabledAt) {
       throw new DubApiError({
         code: "not_found",
-        message: `Link ${link.id} for clickId ${clickData.click_id} is disabled, sale not tracked`,
+        message: `Link ${clickDataLink.id} for clickId ${clickData.click_id} is disabled, sale not tracked`,
       });
     }
 
@@ -203,24 +207,37 @@ export const trackSale = async ({
         ? `${R2_URL}/customers/${finalCustomerId}/avatar_${nanoid(7)}`
         : customerAvatar;
 
-    newCustomer = await prisma.customer.create({
-      data: {
-        id: finalCustomerId,
-        name: finalCustomerName,
-        email: customerEmail,
-        avatar: finalCustomerAvatar,
-        externalId: customerExternalId,
-        linkId: clickData.link_id,
-        clickId: clickData.click_id,
-        country: clickData.country,
-        projectId: workspace.id,
-        projectConnectId: workspace.stripeConnectId,
-        clickedAt: new Date(clickData.timestamp + "Z"),
-      },
-    });
+    const { customer: existingOrNewCustomer, created } =
+      await getOrCreateCustomer({
+        where: {
+          projectId_externalId: {
+            projectId: workspace.id,
+            externalId: customerExternalId,
+          },
+        },
+        create: {
+          id: finalCustomerId,
+          name: finalCustomerName,
+          email: customerEmail,
+          avatar: finalCustomerAvatar,
+          externalId: customerExternalId,
+          linkId: clickData.link_id,
+          clickId: clickData.click_id,
+          country: clickData.country,
+          projectId: workspace.id,
+          projectConnectId: workspace.stripeConnectId,
+          clickedAt: new Date(clickData.timestamp + "Z"),
+        },
+      });
 
+    if (created) {
+      newCustomer = existingOrNewCustomer;
+    } else {
+      existingCustomer = existingOrNewCustomer;
+    }
+
+    // Persist customer avatar to R2 if it's not already stored
     if (customerAvatar && !isStored(customerAvatar) && finalCustomerAvatar) {
-      // persist customer avatar to R2 if it's not already stored
       waitUntil(
         storage
           .upload({
@@ -233,41 +250,77 @@ export const trackSale = async ({
           })
           .catch(async (error) => {
             console.error("Error persisting customer avatar to R2", error);
+
             // if the avatar fails to upload to R2, set the avatar to null in the database
             if (newCustomer) {
               await prisma.customer.update({
-                where: { id: newCustomer.id },
-                data: { avatar: null },
+                where: {
+                  id: newCustomer.id,
+                },
+                data: {
+                  avatar: null,
+                },
               });
             }
           }),
       );
     }
 
-    leadEventData = {
-      ...clickData,
-      event_id: nanoid(16),
-      // if leadEventName is provided, use it
-      // otherwise use "Direct sale tracking lead event" (since it's for direct sale tracking)
-      event_name: leadEventName ?? "Direct sale tracking lead event",
-      customer_id: newCustomer.id,
-      metadata: metadata ? JSON.stringify(metadata) : "",
-    };
+    // if leadEventName is provided, use it
+    // otherwise use "Direct sale tracking lead event" (since it's for direct sale tracking)
+    const finalLeadEventName =
+      leadEventName ?? "Direct sale tracking lead event";
+
+    if (newCustomer) {
+      leadEventData = {
+        ...clickData,
+        event_id: nanoid(16),
+        event_name: finalLeadEventName,
+        customer_id: newCustomer.id,
+        metadata: metadata ? JSON.stringify(metadata) : "",
+      };
+    } else if (existingCustomer) {
+      const leadEvent = await getLeadEvent({
+        customerId: existingCustomer.id,
+        eventName: leadEventName,
+      });
+
+      leadEventData = leadEvent
+        ? {
+            ...leadEvent,
+            ...clickData,
+          }
+        : {
+            ...clickData,
+            event_id: nanoid(16),
+            event_name: finalLeadEventName,
+            customer_id: existingCustomer.id,
+            metadata: metadata ? JSON.stringify(metadata) : "",
+          };
+    }
+
+    // Deduplicate lead events across concurrent direct sale requests
+    if (leadEventData) {
+      const cacheKey = `directSaleTrackLead:${workspace.id}:${customerExternalId}:${finalLeadEventName.toLowerCase().replaceAll(" ", "-")}`;
+      const cachedLeadEvent = await redis.set(
+        cacheKey,
+        {
+          timestamp: Date.now(),
+        },
+        {
+          ex: 30, // 30 seconds
+          nx: true,
+        },
+      );
+
+      shouldTrackDirectSaleLead = cachedLeadEvent !== null;
+    }
   }
 
   const customer = existingCustomer ?? newCustomer;
 
   // This should never happen, but just in case
   if (!customer) {
-    waitUntil(
-      logConversionEvent({
-        workspace_id: workspace.id,
-        path: "/track/sale",
-        body: JSON.stringify(rawBody),
-        error: `Customer not found for customerExternalId: ${customerExternalId}`,
-      }),
-    );
-
     return {
       eventName,
       customer: null,
@@ -276,11 +329,11 @@ export const trackSale = async ({
   }
 
   const [_, trackedSale] = await Promise.all([
-    newCustomer &&
+    shouldTrackDirectSaleLead &&
       _trackLead({
         workspace,
         leadEventData,
-        customer: newCustomer,
+        customer,
       }),
 
     _trackSale({
@@ -290,7 +343,6 @@ export const trackSale = async ({
       paymentProcessor,
       invoiceId,
       metadata,
-      rawBody,
       workspace,
       leadEventData,
       customer,
@@ -357,8 +409,7 @@ const _trackLead = async ({
       if (link.programId && link.partnerId && customer) {
         await Promise.allSettled([
           executeWorkflows({
-            trigger: "partnerMetricsUpdated",
-            reason: "lead",
+            event: "leadRecorded",
             identity: {
               workspaceId: workspace.id,
               programId: link.programId,
@@ -416,7 +467,6 @@ const _trackSale = async ({
   paymentProcessor,
   invoiceId,
   metadata,
-  rawBody,
   workspace,
   leadEventData,
   customer,
@@ -434,15 +484,6 @@ const _trackSale = async ({
 
   // Skip if amount is 0 or less
   if (amount <= 0) {
-    waitUntil(
-      logConversionEvent({
-        workspace_id: workspace.id,
-        path: "/track/sale",
-        body: JSON.stringify(rawBody),
-        error: `Sale amount is ${amount}, skipping...`,
-      }),
-    );
-
     return {
       eventName,
       customer: null,
@@ -476,70 +517,56 @@ const _trackSale = async ({
     metadata: metadata ? JSON.stringify(metadata) : "",
   };
 
-  const firstConversionFlag = isFirstConversion({
+  let firstConversionFlag = isFirstConversion({
     customer,
     linkId: saleData.link_id,
   });
 
+  // Deduplicate concurrent first sales for the same customer + link so only one
+  // request is counted as the first conversion.
+  if (firstConversionFlag) {
+    const claim = await redis.set(
+      `firstConversion:${customer.id}:${saleData.link_id}`,
+      1,
+      {
+        ex: 30,
+        nx: true,
+      },
+    );
+
+    firstConversionFlag = claim !== null;
+  }
+
   waitUntil(
     (async () => {
-      const [_sale, link] = await Promise.all([
-        // Record sale event
-        recordSale({
-          ...saleData,
-          timestamp: undefined,
-        }),
-
-        // Update link conversions, sales, and saleAmount
-        prisma.link.update({
-          where: {
-            id: saleData.link_id,
-          },
-          data: {
-            ...(firstConversionFlag && {
-              conversions: {
-                increment: 1,
-              },
-              lastConversionAt: new Date(),
-            }),
-            sales: {
+      // Update link conversions, sales, and saleAmount
+      const link = await prisma.link.update({
+        where: {
+          id: saleData.link_id,
+        },
+        data: {
+          ...(firstConversionFlag && {
+            conversions: {
               increment: 1,
             },
-            saleAmount: {
-              increment: amount,
-            },
+            lastConversionAt: new Date(),
+          }),
+          sales: {
+            increment: 1,
           },
-          include: includeTags,
-        }),
-
-        // Update workspace events usage
-        prisma.project.update({
-          where: {
-            id: workspace.id,
+          saleAmount: {
+            increment: amount,
           },
-          data: {
-            usage: {
-              increment: 1,
-            },
-          },
-        }),
+        },
+        include: includeTags,
+      });
 
-        // Log conversion event
-        logConversionEvent({
-          workspace_id: workspace.id,
-          link_id: saleData.link_id,
-          path: "/track/sale",
-          body: JSON.stringify(rawBody),
-        }),
-      ]);
-
-      let createdCommission:
-        | Awaited<ReturnType<typeof createPartnerCommission>>
+      let result:
+        | Awaited<ReturnType<typeof queuePartnerCommissionCreation>>
         | undefined = undefined;
 
-      // Create partner commission and execute workflows
       if (link.programId && link.partnerId) {
-        createdCommission = await createPartnerCommission({
+        result = await queuePartnerCommissionCreation({
           event: "sale",
           programId: link.programId,
           partnerId: link.partnerId,
@@ -559,25 +586,30 @@ const _trackSale = async ({
             sale: {
               productId: metadata?.productId,
               amount: saleData.amount,
+              ...(metadata != null && { metadata }),
             },
           },
+          clickEvent: {
+            url: saleData.url,
+            referer: saleData.referer,
+          },
+          isFirstConversion: firstConversionFlag,
         });
-
-        const { webhookPartner, programEnrollment } = createdCommission;
 
         await Promise.allSettled([
           executeWorkflows({
-            trigger: "partnerMetricsUpdated",
-            reason: "sale",
+            event: "saleRecorded",
             identity: {
               workspaceId: workspace.id,
               programId: link.programId,
               partnerId: link.partnerId,
+              customerId: customer.id,
+              customerFirstSaleAt: customer.firstSaleAt ?? new Date(),
             },
             metrics: {
               current: {
-                saleAmount: saleData.amount,
                 conversions: firstConversionFlag ? 1 : 0,
+                saleAmount: saleData.amount,
               },
             },
           }),
@@ -587,24 +619,15 @@ const _trackSale = async ({
             programId: link.programId,
             eventType: "sale",
           }),
-
-          webhookPartner &&
-            detectAndRecordFraudEvent({
-              program: { id: link.programId },
-              partner: pick(webhookPartner, ["id", "email", "name"]),
-              programEnrollment: pick(programEnrollment, ["status"]),
-              customer: {
-                ...pick(customer, ["id", "email", "name"]),
-                isFirstConversion: firstConversionFlag,
-              },
-              link: pick(link, ["id"]),
-              click: pick(saleData, ["url", "referer"]),
-              event: { id: saleData.event_id },
-            }),
         ]);
       }
 
       await Promise.allSettled([
+        recordSale({
+          ...saleData,
+          timestamp: undefined,
+        }),
+
         sendWorkspaceWebhook({
           trigger: "sale.created",
           data: transformSaleEventData({
@@ -612,10 +635,23 @@ const _trackSale = async ({
             clickedAt: customer.clickedAt || customer.createdAt,
             link,
             customer,
-            partner: createdCommission?.webhookPartner,
+            partner: result?.webhookPartner,
             metadata,
           }),
           workspace,
+        }),
+
+        queueGoogleAdsConversionUpload({
+          workspaceId: workspace.id,
+          eventType: EventType.sale,
+          conversionDateTime: new Date().toISOString(),
+          eventId: saleData.event_id,
+          conversionValue: amount / 100, // Data Manager expects major currency units
+          currencyCode: currency,
+          click: {
+            id: leadEventData.click_id,
+            url: leadEventData.url,
+          },
         }),
 
         ...(link.partnerId
@@ -632,6 +668,17 @@ const _trackSale = async ({
               }),
             ]
           : []),
+
+        prisma.project.update({
+          where: {
+            id: workspace.id,
+          },
+          data: {
+            usage: {
+              increment: 1,
+            },
+          },
+        }),
       ]);
 
       // Update customer stats + program/partner associations

@@ -1,11 +1,11 @@
 import { createToken } from "@/lib/api/oauth/utils";
-import { getPostbackOrThrow } from "@/lib/api/postbacks/get-postback-or-throw";
 import { withPartnerProfile } from "@/lib/auth/partner";
 import {
   POSTBACK_SECRET_LENGTH,
   POSTBACK_SECRET_PREFIX,
 } from "@/lib/postback/constants";
-import { prisma } from "@dub/prisma";
+import { getPostbackOrThrow } from "@/lib/postback/get-postback-or-throw";
+import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
 // POST /api/partner-profile/postbacks/[postbackId]/rotate-secret

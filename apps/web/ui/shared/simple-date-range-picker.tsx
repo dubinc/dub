@@ -18,6 +18,7 @@ export default function SimpleDateRangePicker({
   values,
   disabled,
   presets,
+  fromDate,
 }: {
   className?: string;
   align?: "start" | "center" | "end";
@@ -25,6 +26,7 @@ export default function SimpleDateRangePicker({
   values?: Values;
   disabled?: boolean;
   presets?: (typeof DATE_RANGE_INTERVAL_PRESETS)[number][];
+  fromDate?: Date;
 }) {
   const { queryParams, searchParamsObj } = useRouterStuff();
   const { start, end, interval } = values ?? (searchParamsObj as Values);
@@ -45,11 +47,10 @@ export default function SimpleDateRangePicker({
       onChange={(range, preset) => {
         if (preset) {
           queryParams({
-            del: ["start", "end"],
+            del: ["start", "end", "exactRange"],
             set: {
               interval: preset.id,
             },
-            scroll: false,
           });
 
           return;
@@ -59,12 +60,11 @@ export default function SimpleDateRangePicker({
         if (!range || !range.from || !range.to) return;
 
         queryParams({
-          del: "interval",
+          del: ["interval", "exactRange"],
           set: {
             start: range.from.toISOString(),
             end: range.to.toISOString(),
           },
-          scroll: false,
         });
       }}
       presets={(presets
@@ -88,6 +88,7 @@ export default function SimpleDateRangePicker({
         };
       })}
       disabled={disabled}
+      fromDate={fromDate}
     />
   );
 }

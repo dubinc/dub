@@ -1,5 +1,5 @@
-import { prisma } from "@dub/prisma";
-import { PartnerNotificationPreferences } from "@dub/prisma/client";
+import { prisma } from "@/lib/prisma";
+import { PartnerNotificationPreferences } from "@prisma/client";
 
 type PartnerNotificationPreference = keyof Omit<
   PartnerNotificationPreferences,

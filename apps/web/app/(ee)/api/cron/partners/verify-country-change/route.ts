@@ -1,5 +1,6 @@
 import { withCron } from "@/lib/cron/with-cron";
-import { fetchVeriffSessionDecision } from "@/lib/veriff/fetch-veriff-session-decision";
+import { prisma } from "@/lib/prisma";
+import { veriffClient } from "@/lib/veriff/client";
 import {
   mergeVeriffMetadata,
   parseVeriffMetadata,
@@ -7,7 +8,6 @@ import {
 import { sendEmail } from "@dub/email";
 import PartnerIdentityVerificationFailed from "@dub/email/templates/partner-identity-verification-failed";
 import PartnerIdentityVerified from "@dub/email/templates/partner-identity-verified";
-import { prisma } from "@dub/prisma";
 import { logAndRespond } from "app/(ee)/api/cron/utils";
 import * as z from "zod/v4";
 
@@ -52,23 +52,13 @@ export const POST = withCron(async ({ rawBody }) => {
   // Fetch the original Veriff decision to get the document country
   let documentCountry: string | null = null;
 
-  try {
-    const { verification } = await fetchVeriffSessionDecision(
-      partner.veriffSessionId,
-    );
+  const { verification } = await veriffClient.fetchSessionDecision(
+    partner.veriffSessionId,
+  );
 
-    documentCountry =
-      (verification.document?.country || verification.person?.nationality) ??
-      null;
-  } catch (error) {
-    console.error(
-      `Failed to fetch Veriff decision for partner ${partnerId}:`,
-      error,
-    );
-
-    // Don't revoke on uncertainty — QStash will retry
-    throw error;
-  }
+  documentCountry =
+    (verification.document?.country || verification.person?.nationality) ??
+    null;
 
   if (!documentCountry) {
     return logAndRespond(

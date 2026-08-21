@@ -63,20 +63,12 @@ export const POST = withPublishableKey(
       leadEventName,
       metadata,
       workspace,
-      rawBody: body,
     });
 
     return NextResponse.json(response, { headers: COMMON_CORS_HEADERS });
   },
   {
-    requiredPlan: [
-      "business",
-      "business plus",
-      "business extra",
-      "business max",
-      "advanced",
-      "enterprise",
-    ],
+    requiredPlan: ["business", "advanced", "enterprise"],
   },
 );
 

@@ -6,10 +6,13 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { ProgramData } from "@/lib/types";
 import { RECURRING_MAX_DURATIONS } from "@/lib/zod/schemas/misc";
 import { COMMISSION_TYPES } from "@/lib/zod/schemas/rewards";
-import { AnimatedSizeContainer, Button, CircleCheckFill } from "@dub/ui";
-import { cn } from "@dub/utils";
+import { RewardQualityFieldIndicator } from "@/ui/partners/rewards/reward-quality";
+import { AnimatedSizeContainer, Button, CircleCheck } from "@dub/ui";
+import { capitalize, cn } from "@dub/utils";
+import type { EventType } from "@prisma/client";
+import { usePlausible } from "next-plausible";
 import { useAction } from "next-safe-action/hooks";
-import { useEffect, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { useFormContext } from "react-hook-form";
 import { toast } from "sonner";
 import { useOnboardingProgress } from "../../../use-onboarding-progress";
@@ -46,6 +49,7 @@ const PAYOUT_MODELS = [
 
 export function Form() {
   const { continueTo } = useOnboardingProgress();
+  const rewardAmountInputId = useId();
 
   const [hasSubmitted, setHasSubmitted] = useState(false);
   const { id: workspaceId, mutate } = useWorkspace();
@@ -58,28 +62,54 @@ export function Form() {
     formState: { isSubmitting },
   } = useFormContext<ProgramData>();
 
-  const [type, defaultRewardType, maxDuration] = watch([
+  const [
+    type,
+    defaultRewardType,
+    maxDuration,
+    amountInCents,
+    amountInPercentage,
+  ] = watch([
     "type",
     "defaultRewardType",
     "maxDuration",
+    "amountInCents",
+    "amountInPercentage",
   ]);
 
   const [commissionStructure, setCommissionStructure] = useState<
     "one-off" | "recurring"
   >("recurring");
+  const lastSaleMaxDurationRef = useRef<number | null | undefined>(
+    defaultRewardType === "sale" ? maxDuration : null,
+  );
 
   useEffect(
     () => setCommissionStructure(maxDuration === 0 ? "one-off" : "recurring"),
     [maxDuration],
   );
 
+  useEffect(() => {
+    if (defaultRewardType === "sale") {
+      lastSaleMaxDurationRef.current = maxDuration;
+    }
+  }, [defaultRewardType, maxDuration]);
+
+  const plausible = usePlausible();
   const { executeAsync, isPending } = useAction(onboardProgramAction, {
     onSuccess: () => {
+      plausible("Created Reward", {
+        props: {
+          rewardType: capitalize(defaultRewardType),
+          commissionStructure: capitalize(commissionStructure),
+          ...(type && { payoutModel: capitalize(type) }),
+        },
+      });
       continueTo("plan");
       mutate();
     },
     onError: ({ error }) => {
       toast.error(error.serverError);
+      setHasSubmitted(false);
     },
   });
 
@@ -105,6 +135,16 @@ export function Form() {
     });
   };
 
+  const isLoading = isSubmitting || isPending || hasSubmitted;
+
+  const rewardAmount = type === "flat" ? amountInCents : amountInPercentage;
+  const isRewardAmountMissing =
+    rewardAmount == null || Number.isNaN(rewardAmount);
+
+  const disabledTooltip = isRewardAmountMissing
+    ? `Please enter a valid ${type === "percentage" ? "percentage" : "amount"} per ${defaultRewardType}.`
+    : undefined;
+
   return (
     <form
       onSubmit={handleSubmit(onSubmit)}
@@ -112,10 +152,10 @@ export function Form() {
     >
       <div className="grid grid-cols-1 gap-2">
         <h2 className="text-content-emphasis text-sm font-semibold">
-          Reward type
+          Reward type <span className="text-red-800">*</span>
         </h2>
 
-        <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           {DEFAULT_REWARD_TYPES.map(
             ({ key, label, description, mostCommon }) => {
               const isSelected = key === defaultRewardType;
@@ -152,9 +192,18 @@ export function Form() {
                           setValue("type", "percentage", {
                             shouldDirty: true,
                           });
+                          setValue(
+                            "maxDuration",
+                            lastSaleMaxDurationRef.current ?? null,
+                            {
+                              shouldDirty: true,
+                              shouldValidate: true,
+                            },
+                          );
                         }
 
                         if (key === "lead") {
+                          lastSaleMaxDurationRef.current = maxDuration;
                           setValue("type", "flat", { shouldDirty: true });
                           setValue("maxDuration", 0, { shouldDirty: true });
                         }
@@ -168,7 +217,8 @@ export function Form() {
                         {description}
                       </span>
                     </div>
-                    <CircleCheckFill
+                    <CircleCheck
+                      variant="fill"
                       className={cn(
                         "-mr-px -mt-px flex size-4 scale-75 items-center justify-center rounded-full opacity-0 transition-[transform,opacity] duration-150",
                         isSelected && "scale-100 opacity-100",
@@ -196,10 +246,10 @@ export function Form() {
             {defaultRewardType === "sale" && (
               <div className="space-y-2">
                 <h2 className="text-content-emphasis text-sm font-semibold">
-                  Commission structure
+                  Commission structure <span className="text-red-800">*</span>
                 </h2>
 
-                <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   {COMMISSION_TYPES.map(
                     ({ value, label, shortDescription }) => {
                       const isSelected = value === commissionStructure;
@@ -252,7 +302,8 @@ export function Form() {
                                 {shortDescription}
                               </span>
                             </div>
-                            <CircleCheckFill
+                            <CircleCheck
+                              variant="fill"
                               className={cn(
                                 "-mr-px -mt-px flex size-4 scale-75 items-center justify-center rounded-full opacity-0 transition-[transform,opacity] duration-150",
                                 isSelected && "scale-100 opacity-100",
@@ -276,7 +327,7 @@ export function Form() {
               commissionStructure === "recurring" && (
                 <label className="space-y-2">
                   <span className="block text-sm font-medium text-neutral-800">
-                    Duration
+                    Duration <span className="text-red-800">*</span>
                   </span>
                   <select
                     {...register("maxDuration", {
@@ -305,9 +356,9 @@ export function Form() {
             {defaultRewardType === "sale" && (
               <div className="space-y-2">
                 <h2 className="text-content-emphasis text-sm font-semibold">
-                  Payout model
+                  Payout model <span className="text-red-800">*</span>
                 </h2>
-                <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   {PAYOUT_MODELS.map(
                     ({ key, label, description, mostCommon }) => {
                       const isSelected = key === type;
@@ -347,7 +398,8 @@ export function Form() {
                                 {description}
                               </span>
                             </div>
-                            <CircleCheckFill
+                            <CircleCheck
+                              variant="fill"
                               className={cn(
                                 "-mr-px -mt-px flex size-4 scale-75 items-center justify-center rounded-full opacity-0 transition-[transform,opacity] duration-150",
                                 isSelected && "scale-100 opacity-100",
@@ -367,16 +419,36 @@ export function Form() {
               </div>
             )}
 
-            <label className="space-y-2">
-              <span className="text-content-emphasis block text-sm font-semibold">
-                {type === "percentage" ? "Percentage" : "Amount"} per{" "}
-                {defaultRewardType}
-              </span>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between gap-3">
+                <label
+                  htmlFor={rewardAmountInputId}
+                  className="text-content-emphasis block text-sm font-semibold"
+                >
+                  {type === "percentage" ? "Percentage" : "Amount"} per{" "}
+                  {defaultRewardType} <span className="text-red-800">*</span>
+                </label>
+                <RewardQualityFieldIndicator
+                  event={defaultRewardType as EventType}
+                  type={type}
+                  amountInCents={
+                    type === "flat" && amountInCents != null
+                      ? amountInCents * 100
+                      : null
+                  }
+                  amountInPercentage={
+                    type === "percentage" ? amountInPercentage : null
+                  }
+                  maxDuration={maxDuration}
+                />
+              </div>
               <div className="relative rounded-md shadow-sm">
                 <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-sm text-neutral-400">
                   {type === "flat" && "$"}
                 </span>
                 <input
+                  id={rewardAmountInputId}
+                  data-testid="onboarding-reward-amount"
                   className={cn(
                     "block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
                     type === "flat" ? "pl-6 pr-12" : "pr-7",
@@ -397,7 +469,7 @@ export function Form() {
                   {type === "flat" ? "USD" : "%"}
                 </span>
               </div>
-            </label>
+            </div>
           </div>
         </AnimatedSizeContainer>
       </div>
@@ -405,9 +477,10 @@ export function Form() {
       <Button
         text="Continue"
         className="w-full"
-        loading={isSubmitting || isPending}
-        disabled={hasSubmitted}
+        loading={isLoading}
+        disabledTooltip={!isLoading ? disabledTooltip : undefined}
         type="submit"
+        data-testid="onboarding-reward-continue"
       />
     </form>
   );

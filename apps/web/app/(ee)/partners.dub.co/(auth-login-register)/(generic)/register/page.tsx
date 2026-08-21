@@ -1,5 +1,5 @@
 import { getProgram } from "@/lib/fetchers/get-program";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { constructMetadata } from "@dub/utils";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
@@ -13,10 +13,6 @@ export default async function RegisterPage(props: {
   params: Promise<{ programSlug?: string }>;
 }) {
   const { programSlug } = await props.params;
-
-  if (programSlug === "framer") {
-    redirect("/framer/login");
-  }
 
   const program = programSlug
     ? (await getProgram({ slug: programSlug })) ?? undefined

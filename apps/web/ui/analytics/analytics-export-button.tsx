@@ -16,7 +16,6 @@ export function AnalyticsExportButton({
   async function exportData() {
     setLoading(true);
     try {
-      // Use partner profile export endpoint if on partner page, otherwise use regular export endpoint
       const exportPath = partnerPage
         ? `${baseApiPath}/export`
         : "/api/analytics/export";
@@ -29,8 +28,18 @@ export function AnalyticsExportButton({
       });
 
       if (!response.ok) {
-        setLoading(false);
-        throw new Error(response.statusText);
+        let message = response.statusText;
+
+        try {
+          const body = await response.json();
+          if (body?.error?.message) {
+            message = body.error.message;
+          }
+        } catch {
+          // ignore JSON parse errors
+        }
+
+        throw new Error(message);
       }
 
       const blob = await response.blob();
@@ -39,10 +48,12 @@ export function AnalyticsExportButton({
       a.href = url;
       a.download = `Dub Analytics Export - ${new Date().toISOString()}.zip`;
       a.click();
+      window.URL.revokeObjectURL(url);
     } catch (error) {
-      throw new Error(error);
+      throw error instanceof Error ? error : new Error(String(error));
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   }
 
   return (
@@ -54,9 +65,10 @@ export function AnalyticsExportButton({
       onClick={() => {
         setOpenPopover(false);
         toast.promise(exportData(), {
-          loading: "Exporting files...",
+          loading: "Exporting analytics... This may take up to a minute.",
           success: "Exported successfully",
-          error: (error) => error,
+          error: (error) =>
+            error instanceof Error ? error.message : "Export failed",
         });
       }}
       loading={loading}

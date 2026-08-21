@@ -24,7 +24,13 @@ export default function ExportReady({
 }: {
   email: string;
   downloadUrl: string;
-  exportType: "partners" | "commissions" | "links" | "events" | "customers";
+  exportType:
+    | "partners"
+    | "commissions"
+    | "links"
+    | "events"
+    | "customers"
+    | "payouts";
   expiresInDays?: number;
   program?: {
     name: string;

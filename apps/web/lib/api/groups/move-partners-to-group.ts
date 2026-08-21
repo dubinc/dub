@@ -1,9 +1,9 @@
 import { triggerDraftBountySubmissionCreation } from "@/lib/bounty/api/trigger-draft-bounty-submissions";
 import { qstash } from "@/lib/cron";
+import { prisma } from "@/lib/prisma";
 import { recordLink } from "@/lib/tinybird";
-import { prisma } from "@dub/prisma";
-import { PartnerGroup, WorkspaceRole } from "@dub/prisma/client";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
+import { PartnerGroup, WorkspaceRole } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { buildProgramEnrollmentChangeSet } from "../activity-log/build-program-enrollment-change-set";
 import {
@@ -27,6 +27,7 @@ interface MovePartnersToGroupParams {
     | "clickRewardId"
     | "leadRewardId"
     | "saleRewardId"
+    | "referralRewardId"
     | "discountId"
   >;
   isGroupDeleted?: boolean;
@@ -56,6 +57,7 @@ export async function movePartnersToGroup({
     select: {
       id: true,
       partnerId: true,
+      status: true,
       partnerGroup: {
         select: {
           id: true,
@@ -83,6 +85,7 @@ export async function movePartnersToGroup({
       clickRewardId: group.clickRewardId,
       leadRewardId: group.leadRewardId,
       saleRewardId: group.saleRewardId,
+      referralRewardId: group.referralRewardId,
       discountId: group.discountId,
       ...(groupMoveDisabledAt !== undefined && { groupMoveDisabledAt }),
     },
@@ -170,7 +173,10 @@ export async function movePartnersToGroup({
           body: {
             programId,
             groupId: group.id,
-            partnerIds,
+            // skip remap-default-links / remap-discount-codes for pending applications (no links yet)
+            partnerIds: programEnrollments
+              .filter(({ status }) => status !== "pending")
+              .map(({ partnerId }) => partnerId),
             userId: workspaceUserId,
             isGroupDeleted,
           },

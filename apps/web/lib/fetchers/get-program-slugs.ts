@@ -1,4 +1,4 @@
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { cache } from "react";
 
 export const getProgramSlugs = cache(async () =>
@@ -6,5 +6,11 @@ export const getProgramSlugs = cache(async () =>
     select: {
       slug: true,
     },
+    orderBy: {
+      applications: {
+        _count: "desc",
+      },
+    },
+    take: 250,
   }),
 );

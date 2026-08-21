@@ -14,9 +14,9 @@ import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
 import { PAYOUT_STATUS_DESCRIPTIONS } from "@/ui/partners/payout-status-descriptions";
 import { AlertCircleFill } from "@/ui/shared/icons";
-import { PartnerPayoutMethod, PayoutStatus } from "@dub/prisma/client";
 import { Button, Tooltip } from "@dub/ui";
 import { cn, currencyFormatter } from "@dub/utils";
+import { PartnerPayoutMethod, PayoutStatus } from "@prisma/client";
 import { HelpCircle } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
 import { toast } from "sonner";
@@ -73,7 +73,7 @@ function PayoutStatsCard({
             <div className="flex items-center gap-2">
               {partner && !partner.payoutsEnabledAt && (
                 <Tooltip
-                  content="You need to connect your payout account to be able to receive payouts from the programs you are enrolled in."
+                  content="You need to [connect your payout account](/payouts?settings=true) to be able to receive payouts from the programs you are enrolled in."
                   side="right"
                 >
                   <div>
@@ -86,7 +86,7 @@ function PayoutStatsCard({
                 {error ? (
                   "-"
                 ) : (
-                  <>{amount > 0 ? currencyFormatter(amount) : "$0.00"}</>
+                  <>{amount !== 0 ? currencyFormatter(amount) : "$0.00"}</>
                 )}
               </span>
               {label === "Processed" && amount > 0 && (
@@ -96,9 +96,11 @@ function PayoutStatsCard({
                   className="ml-2 h-7 px-2 py-1"
                   onClick={() => setShowForceWithdrawalModal(true)}
                   disabledTooltip={
-                    amount < MIN_FORCE_WITHDRAWAL_AMOUNT_CENTS
-                      ? `Your current processed payouts balance is less than the minimum amount required for withdrawal (${currencyFormatter(MIN_FORCE_WITHDRAWAL_AMOUNT_CENTS)}).`
-                      : undefined
+                    !partner?.payoutsEnabledAt
+                      ? "You need to [connect your payout account](/payouts?settings=true) to withdraw funds."
+                      : amount < MIN_FORCE_WITHDRAWAL_AMOUNT_CENTS
+                        ? `Your current processed payouts balance is less than the minimum amount required for withdrawal (${currencyFormatter(MIN_FORCE_WITHDRAWAL_AMOUNT_CENTS)}).`
+                        : undefined
                   }
                 />
               )}

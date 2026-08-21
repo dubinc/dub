@@ -5,7 +5,7 @@ import { generateStripeAccountLink } from "@/lib/actions/partners/generate-strip
 import { generateStripeRecipientAccountLink } from "@/lib/actions/partners/generate-stripe-recipient-account-link";
 import { useBankAccountRequirementsModal } from "@/ui/partners/payouts/bank-account-requirements-modal";
 import { useStablecoinPayoutModal } from "@/ui/partners/payouts/stablecoin-payout-modal";
-import { PartnerPayoutMethod } from "@dub/prisma/client";
+import { PartnerPayoutMethod } from "@prisma/client";
 import { useAction } from "next-safe-action/hooks";
 import { useRouter } from "next/navigation";
 import { useCallback, useMemo } from "react";

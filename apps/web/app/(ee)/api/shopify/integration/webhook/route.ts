@@ -1,5 +1,8 @@
-import { prisma } from "@dub/prisma";
+import { captureWebhookLog } from "@/lib/api-logs/capture-webhook-log";
+import { isLocalDev } from "@/lib/api/environment";
+import { prisma } from "@/lib/prisma";
 import { log } from "@dub/utils";
+import { waitUntil } from "@vercel/functions";
 import crypto from "crypto";
 import { appUninstalled } from "./app-uninstalled";
 import { customersDataRequest } from "./customers-data-request";
@@ -19,21 +22,24 @@ const relevantTopics = new Set([
 
 // POST /api/shopify/integration/webhook – Listen to Shopify webhook events
 export const POST = async (req: Request) => {
+  const startTime = Date.now();
   const data = await req.text();
   const headers = req.headers;
   const topic = headers.get("x-shopify-topic") || "";
   const signature = headers.get("x-shopify-hmac-sha256") || "";
 
-  // Verify signature
-  const generatedSignature = crypto
-    .createHmac("sha256", `${process.env.SHOPIFY_WEBHOOK_SECRET}`)
-    .update(data, "utf8")
-    .digest("base64");
+  if (!isLocalDev) {
+    // Verify signature
+    const generatedSignature = crypto
+      .createHmac("sha256", `${process.env.SHOPIFY_WEBHOOK_SECRET}`)
+      .update(data, "utf8")
+      .digest("base64");
 
-  if (generatedSignature !== signature) {
-    return new Response(`[Shopify] Invalid webhook signature. Skipping...`, {
-      status: 401,
-    });
+    if (generatedSignature !== signature) {
+      return new Response(`[Shopify] Invalid webhook signature. Skipping...`, {
+        status: 401,
+      });
+    }
   }
 
   // Check if topic is relevant
@@ -51,6 +57,8 @@ export const POST = async (req: Request) => {
     },
     select: {
       id: true,
+      defaultProgramId: true,
+      webhookEnabled: true,
     },
   });
 
@@ -60,6 +68,14 @@ export const POST = async (req: Request) => {
     );
   }
 
+  const requestLog = {
+    workspaceId: workspace.id,
+    method: req.method,
+    path: "/shopify/integration/webhook" as const,
+    requestBody: event,
+    userAgent: req.headers.get("user-agent"),
+  };
+
   let response = "OK";
 
   try {
@@ -67,7 +83,7 @@ export const POST = async (req: Request) => {
       case "orders/paid":
         response = await ordersPaid({
           event,
-          workspaceId: workspace.id,
+          workspace,
         });
         break;
       case "customers/data_request":
@@ -100,8 +116,30 @@ export const POST = async (req: Request) => {
       type: "errors",
     });
 
-    return new Response(`[Shopify] Webhook handler failed. View logs`);
+    const response = new Response(
+      `[Shopify] Webhook handler failed. View logs`,
+    );
+
+    waitUntil(
+      captureWebhookLog({
+        ...requestLog,
+        statusCode: 500,
+        duration: Date.now() - startTime,
+        responseBody: response,
+      }),
+    );
+
+    return response;
   }
+
+  waitUntil(
+    captureWebhookLog({
+      ...requestLog,
+      statusCode: 200,
+      duration: Date.now() - startTime,
+      responseBody: response,
+    }),
+  );
 
   return new Response(response);
 };

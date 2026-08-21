@@ -10,11 +10,10 @@ import { PartnerPlatformProps, PartnerProps } from "@/lib/types";
 import { parseUrlSchemaAllowEmpty } from "@/lib/zod/schemas/utils";
 import { DomainVerificationModal } from "@/ui/modals/domain-verification-modal";
 import { SocialVerificationByCodeModal } from "@/ui/modals/social-verification-by-code-modal";
-import { PlatformType } from "@dub/prisma/client";
 import {
   AnimatedSizeContainer,
   Button,
-  CircleCheckFill,
+  CircleCheck,
   Globe,
   Icon,
   Instagram,
@@ -25,6 +24,7 @@ import {
 } from "@dub/ui";
 import { getPrettyUrl, nFormatter } from "@dub/utils";
 import { cn } from "@dub/utils/src/functions";
+import { PlatformType } from "@prisma/client";
 import { useAction } from "next-safe-action/hooks";
 import { forwardRef, ReactNode, useCallback, useMemo, useState } from "react";
 import {
@@ -128,11 +128,17 @@ export const PartnerPlatformsForm = forwardRef<
 
     const { executeAsync } = useAction(updatePartnerPlatformsAction, {
       onSuccess: async () => {
+        toast.success(
+          "Successfully updated your websites and social accounts.",
+        );
         await mutate("/api/partner-profile");
       },
       onError: ({ error }) => {
         toast.error(
-          parseActionError(error, "Failed to update partner platforms"),
+          parseActionError(
+            error,
+            "Failed to update your websites and social accounts.",
+          ),
         );
 
         reset(form.getValues(), { keepErrors: true });
@@ -326,24 +332,26 @@ export const PartnerPlatformsForm = forwardRef<
                     <span className="inline-flex items-center rounded-l-md border border-r-0 border-neutral-300 bg-neutral-50 px-3 text-neutral-500 sm:text-sm">
                       youtube.com
                     </span>
-                    <span className="absolute inset-y-0 left-[6.7rem] flex items-center pl-3 text-sm text-neutral-400">
-                      @
-                    </span>
-                    <input
-                      type="text"
-                      disabled={disabled}
-                      className={cn(
-                        "block w-full rounded-none rounded-r-md pl-7 focus:outline-none sm:text-sm",
-                        disabled &&
-                          "cursor-not-allowed bg-neutral-50 text-neutral-400",
-                        errors.youtube
-                          ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
-                          : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500",
-                      )}
-                      placeholder="handle"
-                      onPaste={(e) => onPasteSocial(e, "youtube")}
-                      {...register("youtube")}
-                    />
+                    <div className="relative w-full">
+                      <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-sm text-neutral-400">
+                        @
+                      </span>
+                      <input
+                        type="text"
+                        disabled={disabled}
+                        className={cn(
+                          "block w-full rounded-none rounded-r-md pl-7 focus:outline-none sm:text-sm",
+                          disabled &&
+                            "cursor-not-allowed bg-neutral-50 text-neutral-400",
+                          errors.youtube
+                            ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
+                            : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500",
+                        )}
+                        placeholder="handle"
+                        onPaste={(e) => onPasteSocial(e, "youtube")}
+                        {...register("youtube")}
+                      />
+                    </div>
                   </div>
                 }
                 variant={variant}
@@ -461,24 +469,26 @@ export const PartnerPlatformsForm = forwardRef<
                     <span className="inline-flex items-center rounded-l-md border border-r-0 border-neutral-300 bg-neutral-50 px-3 text-neutral-500 sm:text-sm">
                       tiktok.com
                     </span>
-                    <span className="absolute inset-y-0 left-[5.7rem] flex items-center pl-3 text-sm text-neutral-400">
-                      @
-                    </span>
-                    <input
-                      type="text"
-                      disabled={disabled}
-                      className={cn(
-                        "block w-full rounded-none rounded-r-md pl-7 focus:outline-none sm:text-sm",
-                        disabled &&
-                          "cursor-not-allowed bg-neutral-50 text-neutral-400",
-                        errors.tiktok
-                          ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
-                          : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500",
-                      )}
-                      placeholder="handle"
-                      onPaste={(e) => onPasteSocial(e, "tiktok")}
-                      {...register("tiktok")}
-                    />
+                    <div className="relative w-full">
+                      <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-sm text-neutral-400">
+                        @
+                      </span>
+                      <input
+                        type="text"
+                        disabled={disabled}
+                        className={cn(
+                          "block w-full rounded-none rounded-r-md pl-7 focus:outline-none sm:text-sm",
+                          disabled &&
+                            "cursor-not-allowed bg-neutral-50 text-neutral-400",
+                          errors.tiktok
+                            ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
+                            : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500",
+                        )}
+                        placeholder="handle"
+                        onPaste={(e) => onPasteSocial(e, "tiktok")}
+                        {...register("tiktok")}
+                      />
+                    </div>
                   </div>
                 }
                 variant={variant}
@@ -618,7 +628,7 @@ function VerifyButton({
       text={isVerified ? "Verified" : "Verify"}
       icon={
         isVerified ? (
-          <CircleCheckFill className="size-4 text-green-700" />
+          <CircleCheck variant="fill" className="size-4 text-green-700" />
         ) : (
           <Icon className="size-3.5" />
         )
@@ -674,6 +684,18 @@ function FormRow({
       const partnerWithPlatforms = partner as typeof partner & {
         platforms?: PartnerPlatformProps[];
       };
+
+      if (property === "website") {
+        const websitePlatform = getPlatformData(
+          partnerWithPlatforms.platforms,
+          "website",
+        );
+        const domainRating = websitePlatform?.subscribers ?? 0;
+
+        return [domainRating > 0 ? `${Number(domainRating)} DR` : null].filter(
+          Boolean,
+        ) as string[];
+      }
 
       if (property === "youtube") {
         const youtubePlatform = getPlatformData(

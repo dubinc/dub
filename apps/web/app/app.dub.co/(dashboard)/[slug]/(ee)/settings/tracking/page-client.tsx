@@ -149,7 +149,6 @@ export function WorkspaceTrackingSettingsPageClient() {
     if (expandedStep === step) {
       queryParams({
         del: ["step", "guide"],
-        scroll: false,
       });
     } else {
       queryParams({
@@ -157,7 +156,6 @@ export function WorkspaceTrackingSettingsPageClient() {
         set: {
           step,
         },
-        scroll: false,
       });
     }
   };
@@ -166,7 +164,6 @@ export function WorkspaceTrackingSettingsPageClient() {
     if (expandedStep === step) {
       queryParams({
         del: ["step", "guide"],
-        scroll: false,
       });
     }
   };

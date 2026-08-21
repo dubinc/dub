@@ -1,8 +1,8 @@
-import { prisma } from "@dub/prisma";
-import { Webhook } from "@dub/prisma/client";
-import { WebhookTrigger, WorkspaceProps } from "../types";
+import { prisma } from "@/lib/prisma";
+import { Webhook } from "@prisma/client";
+import { WorkspaceProps } from "../types";
 import { sendWebhooks } from "./qstash";
-import { WebhookEventPayload } from "./types";
+import type { WebhookEventPayload, WebhookTrigger } from "./types";
 
 // Send workspace level webhook
 export const sendWorkspaceWebhook = async ({

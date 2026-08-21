@@ -57,7 +57,6 @@ export default function WorkspaceUtmTemplatesClient() {
         </TemplatesListContext.Provider>
       ) : (
         <AnimatedEmptyState
-          className="mt-6"
           title="No UTM Templates Found"
           description="Create shared templates to streamline UTM campaign management across your team"
           cardContent={

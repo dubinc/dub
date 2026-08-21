@@ -1,13 +1,13 @@
 import { DubApiError } from "@/lib/api/errors";
 import { isBlacklistedKey, isReservedUsername } from "@/lib/edge-config";
 import { checkIfKeyExists } from "@/lib/planetscale";
-import { Project } from "@dub/prisma/client";
 import {
   DEFAULT_REDIRECTS,
   isDubDomain,
   isReservedKeyGlobal,
   RESERVED_SLUGS,
 } from "@dub/utils";
+import { Project } from "@prisma/client";
 
 export async function keyChecks({
   domain,
@@ -41,7 +41,7 @@ export async function keyChecks({
     };
   }
 
-  if (isDubDomain(domain) && process.env.NEXT_PUBLIC_IS_DUB) {
+  if (isDubDomain(domain)) {
     if (domain === "dub.sh" || domain === "dub.link") {
       if (DEFAULT_REDIRECTS[key] || RESERVED_SLUGS.includes(key)) {
         return {

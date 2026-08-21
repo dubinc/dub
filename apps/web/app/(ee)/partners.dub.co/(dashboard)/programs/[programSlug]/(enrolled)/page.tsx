@@ -1,8 +1,8 @@
 import { PageContent } from "@/ui/layout/page-content";
 import { HideProgramDetailsButton } from "./hide-program-details-button";
-import ProgramPageClient from "./page-client";
+import { PartnerProgramOverviewPageClient } from "./page-client";
 
-export default function ProgramPage() {
+export default function PartnerProgramOverviewPage() {
   return (
     <PageContent
       title="Overview"
@@ -13,7 +13,7 @@ export default function ProgramPage() {
       }}
       controls={<HideProgramDetailsButton />}
     >
-      <ProgramPageClient />
+      <PartnerProgramOverviewPageClient />
     </PageContent>
   );
 }

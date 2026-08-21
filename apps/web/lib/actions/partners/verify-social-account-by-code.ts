@@ -2,17 +2,17 @@
 
 import { getLinkedInPost } from "@/lib/api/scrape-creators/get-linkedin-post";
 import { getSocialProfile } from "@/lib/api/scrape-creators/get-social-profile";
+import { prisma } from "@/lib/prisma";
 import { ratelimit } from "@/lib/upstash";
 import { redis } from "@/lib/upstash/redis";
-import { prisma } from "@dub/prisma";
-import { PlatformType } from "@dub/prisma/client";
+import { PlatformType } from "@prisma/client";
 import * as z from "zod/v4";
 import { authPartnerActionClient } from "../safe-action";
 
 const schema = z.object({
   platform: z.enum(PlatformType),
   handle: z.string().min(1),
-  postUrl: z.url().optional(),
+  postUrl: z.httpUrl().optional(),
 });
 
 // Verify social accounts using the verification code
@@ -142,7 +142,7 @@ export const verifySocialAccountByCodeAction = authPartnerActionClient
     if (!isValid) {
       throw new Error(
         `The verification code was not found in your ${
-          platform === "youtube" ? "channel description" : "bio"
+          platform === "youtube" ? "English channel description" : "bio"
         }. Please add the code exactly as provided, save your changes, and try again.`,
       );
     }

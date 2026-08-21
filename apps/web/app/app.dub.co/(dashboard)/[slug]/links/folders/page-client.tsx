@@ -41,7 +41,7 @@ export const FoldersPageClient = () => {
 
   return (
     <div className="grid grid-cols-1 gap-4">
-      <div className="grid gap-5">
+      <div className="grid gap-4">
         <div className="flex w-full flex-wrap items-center justify-between gap-3 sm:w-auto">
           <div className="w-full md:w-56 lg:w-64">
             <SearchBoxPersisted

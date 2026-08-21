@@ -1,6 +1,6 @@
-import { prisma } from "@dub/prisma";
-import { Customer, Program, Project } from "@dub/prisma/client";
-import { nanoid } from "@dub/utils";
+import { prisma } from "@/lib/prisma";
+import { chunk, nanoid } from "@dub/utils";
+import { Customer, Program, Project } from "@prisma/client";
 import { createId } from "../api/create-id";
 import { updateLinkStatsForImporter } from "../api/links/update-link-stats-for-importer";
 import { syncPartnerLinksStats } from "../api/partners/sync-partner-links-stats";
@@ -9,7 +9,7 @@ import { recordClick } from "../tinybird/record-click";
 import { recordLeadWithTimestamp } from "../tinybird/record-lead";
 import { clickEventSchemaTB } from "../zod/schemas/clicks";
 import { RewardfulApi } from "./api";
-import { MAX_BATCHES, rewardfulImporter } from "./importer";
+import { REWARDFUL_REFERRALS_MAX_BATCHES, rewardfulImporter } from "./importer";
 import { RewardfulImportPayload, RewardfulReferral } from "./types";
 
 export async function importCustomers(payload: RewardfulImportPayload) {
@@ -32,7 +32,7 @@ export async function importCustomers(payload: RewardfulImportPayload) {
   let hasMore = true;
   let processedBatches = 0;
 
-  while (hasMore && processedBatches < MAX_BATCHES) {
+  while (hasMore && processedBatches < REWARDFUL_REFERRALS_MAX_BATCHES) {
     const referrals = await rewardfulApi.listCustomers({
       page: currentPage,
     });
@@ -47,6 +47,7 @@ export async function importCustomers(payload: RewardfulImportPayload) {
         (r) => r.stripe_customer_id && r.stripe_customer_id.startsWith("cus_"),
       )
       .map((r) => r.stripe_customer_id!);
+
     const externalIds = referrals.map((r) => r.customer.id);
 
     const existingCustomers = await prisma.customer.findMany({
@@ -61,28 +62,34 @@ export async function importCustomers(payload: RewardfulImportPayload) {
       },
     });
 
-    await Promise.allSettled(
-      referrals.map((referral) =>
-        createCustomer({
-          referral,
-          workspace,
-          program,
-          campaignIds,
-          importId,
-          existingCustomers,
-        }),
-      ),
-    );
+    const referrralChunks = chunk(referrals, 10);
+    for (const referralChunk of referrralChunks) {
+      await Promise.allSettled(
+        referralChunk.map((referral) =>
+          createCustomer({
+            referral,
+            workspace,
+            program,
+            campaignIds,
+            importId,
+            existingCustomers,
+          }),
+        ),
+      );
+    }
 
     currentPage++;
     processedBatches++;
   }
 
-  await rewardfulImporter.queue({
-    ...payload,
-    page: hasMore ? currentPage : undefined,
-    action: hasMore ? "import-customers" : "import-commissions",
-  });
+  await rewardfulImporter.queue(
+    {
+      ...payload,
+      page: hasMore ? currentPage : undefined,
+      action: hasMore ? "import-customers" : "import-commissions",
+    },
+    !hasMore ? { delay: 5 * 60 } : undefined,
+  );
 }
 
 // Create individual referral entries
@@ -131,9 +138,11 @@ async function createCustomer({
     return;
   }
 
-  const shortLinkToken = referral.link?.token || referral.coupon?.token;
+  const shortLinkKey =
+    referral.link?.token ||
+    (referral.coupon?.token ? `${referral.coupon?.token}-coupon` : undefined);
 
-  if (!shortLinkToken) {
+  if (!shortLinkKey) {
     console.error(`Short link token not found for referral ${referralId}.`);
     return;
   }
@@ -143,7 +152,7 @@ async function createCustomer({
   const link = await prisma.link.findFirst({
     where: {
       domain: program.domain!,
-      key: shortLinkToken,
+      key: shortLinkKey,
     },
   });
 
@@ -151,7 +160,7 @@ async function createCustomer({
     await logImportError({
       ...commonImportLogInputs,
       code: "LINK_NOT_FOUND",
-      message: `Link not found for referral ${referralId} (token: ${shortLinkToken}).`,
+      message: `Link not found for referral ${referralId} (token: ${shortLinkKey}).`,
     });
 
     return;
@@ -175,9 +184,6 @@ async function createCustomer({
   );
 
   if (customerFoundStripeId) {
-    console.log(
-      `A customer already exists with Stripe customer ID ${referral.stripe_customer_id}`,
-    );
     return;
   }
 
@@ -186,9 +192,6 @@ async function createCustomer({
   );
 
   if (customerFoundExternalId) {
-    console.log(
-      `A customer already exists with external ID ${referral.customer.id}`,
-    );
     return;
   }
 

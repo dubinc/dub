@@ -14,7 +14,7 @@ import {
 } from "@dub/ui";
 import { cn, fetcher, nFormatter } from "@dub/utils";
 import { ArrowRight, ServerOff } from "lucide-react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import {
   Dispatch,
   SetStateAction,
@@ -25,6 +25,7 @@ import {
 } from "react";
 import { toast } from "sonner";
 import useSWRImmutable from "swr/immutable";
+import { useImportModalParam } from "./use-import-modal-param";
 
 function ImportShortModal({
   showImportShortModal,
@@ -35,7 +36,6 @@ function ImportShortModal({
 }) {
   const router = useRouter();
   const { id: workspaceId, slug } = useWorkspace();
-  const searchParams = useSearchParams();
 
   const { folderId } = useCurrentFolderId();
 
@@ -67,13 +67,10 @@ function ImportShortModal({
   const [importing, setImporting] = useState(false);
 
   useEffect(() => {
-    if (searchParams?.get("import") === "short") {
+    if (showImportShortModal && domains !== undefined) {
       mutate();
-      setShowImportShortModal(true);
-    } else {
-      setShowImportShortModal(false);
     }
-  }, [searchParams]);
+  }, [showImportShortModal]);
 
   const isSelected = (domain: string) => {
     return selectedDomains.find((d) => d.domain === domain) ? true : false;
@@ -105,8 +102,8 @@ function ImportShortModal({
         </div>
         <h3 className="text-lg font-medium">Import Your Short.io Links</h3>
         <p className="text-center text-sm text-neutral-500">
-          Easily import all your existing Short.io links into{" "}
-          {process.env.NEXT_PUBLIC_APP_NAME} with just a few clicks.
+          Easily import all your existing Short.io links into Dub with just a
+          few clicks.
         </p>
       </div>
 
@@ -276,7 +273,8 @@ function ImportShortModal({
 }
 
 export function useImportShortModal() {
-  const [showImportShortModal, setShowImportShortModal] = useState(false);
+  const [showImportShortModal, setShowImportShortModal] =
+    useImportModalParam("short");
 
   const ImportShortModalCallback = useCallback(() => {
     return (

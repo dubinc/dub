@@ -1,9 +1,9 @@
 import { convertCurrency } from "@/lib/analytics/convert-currency";
 import { MUTABLE_PAYOUT_STATUSES } from "@/lib/constants/payouts";
 import { determinePartnerReward } from "@/lib/partners/determine-partner-reward";
+import { prisma } from "@/lib/prisma";
 import { updateCommissionSchemaExtended } from "@/lib/zod/schemas/commissions";
-import { prisma } from "@dub/prisma";
-import { Commission } from "@dub/prisma/client";
+import { Commission } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
 import { DubApiError } from "../errors";
@@ -204,11 +204,18 @@ export async function updatePartnerCommission({
       amount: isRefunded ? undefined : finalSaleAmount,
       earnings: isRefunded ? undefined : finalEarnings,
       status: finalStatus,
+      // if finalStatus is defined, the commission needs to be removed from the payout
+      // because commission can only be updated to pending, canceled, refunded, duplicate, or fraudulent states
       ...(finalStatus ? { payoutId: null } : {}),
     },
     include: {
       customer: true,
       partner: true,
+      payout: {
+        select: {
+          paidAt: true,
+        },
+      },
     },
   });
 
@@ -230,7 +237,7 @@ export async function updatePartnerCommission({
         partnerId: commission.partnerId,
         customerId: commission.customerId,
         status: {
-          in: ["pending", "processed"],
+          in: ["pending", "processed", "hold"],
         },
         id: {
           not: commission.id,

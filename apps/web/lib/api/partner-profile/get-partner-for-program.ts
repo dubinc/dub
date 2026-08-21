@@ -1,4 +1,4 @@
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { toCentsNumber } from "@dub/utils";
 
 export async function getPartnerForProgram({
@@ -21,10 +21,29 @@ export async function getPartnerForProgram({
           industryInterests: true,
           preferredEarningStructures: true,
           salesChannels: true,
+          programPartnerTags: {
+            where: {
+              programId,
+            },
+            include: {
+              partnerTag: true,
+            },
+          },
           platforms: true,
         },
       },
       links: true,
+      discount: {
+        select: {
+          id: true,
+          provider: true,
+        },
+      },
+      applicationEvent: {
+        select: {
+          referralSource: true,
+        },
+      },
     },
   });
 
@@ -32,16 +51,20 @@ export async function getPartnerForProgram({
     return null;
   }
 
-  const { partner, links, ...programEnrollment } = data;
+  const { partner, links, applicationEvent, ...programEnrollment } = data;
 
   return {
     ...partner,
     ...programEnrollment,
+    applicationEvent,
     netRevenue:
       toCentsNumber(programEnrollment.totalSaleAmount ?? 0) -
       toCentsNumber(programEnrollment.totalCommissions ?? 0),
     id: partner.id,
     createdAt: new Date(programEnrollment.createdAt),
+    tags: partner.programPartnerTags
+      .map(({ partnerTag }) => partnerTag)
+      .filter((t) => t.programId != null && t.programId === programId),
     links,
     lastLeadAt: links.reduce((acc, link) => {
       return link.lastLeadAt && link.lastLeadAt > (acc ?? new Date(0))

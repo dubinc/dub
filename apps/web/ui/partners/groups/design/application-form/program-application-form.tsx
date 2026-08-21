@@ -9,15 +9,15 @@ import {
   ProgramApplicationFormDataWithValues,
   ProgramProps,
 } from "@/lib/types";
+import { useTrackApplyStart } from "@/ui/application-analytics";
 import { Button, useLocalStorage, useMediaQuery } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { useSession } from "next-auth/react";
 import { useAction } from "next-safe-action/hooks";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
-import { Controller, FormProvider, useForm } from "react-hook-form";
+import { FormProvider, useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { CountryCombobox } from "../../../country-combobox";
 import { ProgramApplicationFormField } from "./fields";
 import { FormControlRequiredBadge } from "./fields/form-control";
 import { formDataForApplicationFormData } from "./form-data-for-application-form-data";
@@ -25,7 +25,6 @@ import { formDataForApplicationFormData } from "./form-data-for-application-form
 type FormData = {
   name: string;
   email: string;
-  country: string;
   termsAgreement: boolean;
   formData: ProgramApplicationFormDataWithValues;
 };
@@ -42,12 +41,14 @@ export function ProgramApplicationForm({
   const { isMobile } = useMediaQuery();
   const router = useRouter();
   const { data: session } = useSession();
+  const trackApplyStart = useTrackApplyStart({
+    preview,
+  });
 
   const form = useForm<FormData>({
     defaultValues: {
       name: "",
       email: "",
-      country: "",
       termsAgreement: false,
       formData: formDataForApplicationFormData(
         group.applicationFormData?.fields ?? [],
@@ -56,7 +57,6 @@ export function ProgramApplicationForm({
   });
 
   const {
-    control,
     register,
     handleSubmit,
     setError,
@@ -133,6 +133,7 @@ export function ProgramApplicationForm({
   return (
     <FormProvider {...form}>
       <form
+        onInputCapture={trackApplyStart}
         onSubmit={handleSubmit(async (data) => {
           const result = await executeAsync({
             ...data,
@@ -192,29 +193,6 @@ export function ProgramApplicationForm({
             {...register("email", {
               required: true,
             })}
-          />
-        </label>
-
-        <label className="flex flex-col">
-          <div className="flex items-center gap-1.5">
-            <span className="text-content-emphasis text-sm font-medium">
-              Country
-            </span>
-            <FormControlRequiredBadge />
-          </div>
-
-          <Controller
-            control={control}
-            name="country"
-            rules={{ required: true }}
-            render={({ field }) => (
-              <CountryCombobox
-                value={field.value || ""}
-                onChange={field.onChange}
-                error={errors.country ? true : false}
-                className="focus:border-[var(--brand)] focus:ring-[var(--brand)]"
-              />
-            )}
           />
         </label>
 

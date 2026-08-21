@@ -1,7 +1,7 @@
 "use server";
 
 import { verifyFolderAccess } from "@/lib/folder/permissions";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import * as z from "zod/v4";
 import { authActionClient } from "../safe-action";
 

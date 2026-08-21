@@ -1,4 +1,4 @@
-import { BountySubmissionFrequency } from "@dub/prisma/client";
+import { BountySubmissionFrequency } from "@prisma/client";
 import { addDays, addMonths, addWeeks } from "date-fns";
 
 export type SubmissionPeriodStatus =

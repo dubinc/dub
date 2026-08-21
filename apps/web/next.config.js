@@ -1,4 +1,4 @@
-const { PrismaPlugin } = require("@prisma/nextjs-monorepo-workaround-plugin");
+const { withPlausibleProxy } = require("next-plausible");
 
 // Suppress specific external package warnings
 const originalConsoleWarn = console.warn;
@@ -18,12 +18,15 @@ console.warn = (...args) => {
 };
 
 /** @type {import('next').NextConfig} */
-module.exports = {
+module.exports = withPlausibleProxy({
+  src: "https://plausible.io/js/pa-T9BPIqC3D0XQFZnP1vHfN.js",
+  scriptPath: "/_proxy/plausible/script.js",
+  apiPath: "/_proxy/plausible/event",
+})({
   reactStrictMode: false,
   transpilePackages: [
     "prettier",
     "shiki",
-    "@dub/prisma",
     "@dub/email",
     "@boxyhq/saml-jackson",
   ],
@@ -37,11 +40,12 @@ module.exports = {
     optimizePackageImports: [
       "@dub/email",
       "@dub/ui",
-      "@dub/utils",
+      // Disabled: causes "Module not found: chunk-WKSJXYEU.mjs" on Vercel due to tsup's chunked output
+      // "@dub/utils",
       "@team-plain/typescript-sdk",
     ],
     serverActions: {
-      bodySizeLimit: "2mb",
+      bodySizeLimit: "4mb",
     },
   },
   webpack: (config, { webpack, isServer }) => {
@@ -53,8 +57,6 @@ module.exports = {
             /(^@google-cloud\/spanner|^@mongodb-js\/zstd|^aws-crt|^aws4$|^pg-native$|^mongodb-client-encryption$|^@sap\/hana-client$|^@sap\/hana-client\/extension\/Stream$|^snappy$|^react-native-sqlite-storage$|^bson-ext$|^cardinal$|^kerberos$|^hdb-pool$|^sql.js$|^sqlite3$|^better-sqlite3$|^ioredis$|^typeorm-aurora-data-api-driver$|^pg-query-stream$|^oracledb$|^mysql$|^snappy\/package\.json$|^cloudflare:sockets$)/,
         }),
       );
-
-      config.plugins = [...config.plugins, new PrismaPlugin()];
     }
 
     config.module = {
@@ -199,9 +201,13 @@ module.exports = {
     return [
       // for dub proxy
       {
-        source: "/_proxy/dub/track/click",
-        destination: "https://api.dub.co/track/click",
+        source: "/_proxy/dub/script.js",
+        destination: "https://www.dubcdn.com/analytics/script.js",
+      },
+      {
+        source: "/_proxy/dub/track/:path*",
+        destination: "https://api.dub.co/track/:path*",
       },
     ];
   },
-};
+});

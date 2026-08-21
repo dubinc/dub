@@ -2,8 +2,8 @@
 
 import { throwIfNoPermission } from "@/lib/auth/partner-users/throw-if-no-permission";
 import { createPayPalBatchPayout } from "@/lib/paypal/create-batch-payout";
+import { prisma } from "@/lib/prisma";
 import { ratelimit } from "@/lib/upstash";
-import { prisma } from "@dub/prisma";
 import { nanoid } from "@dub/utils";
 import * as z from "zod/v4";
 import { authPartnerActionClient } from "../safe-action";
@@ -80,10 +80,6 @@ export const retryFailedPaypalPayoutsAction = authPartnerActionClient
         );
       }
 
-      if (!payout.paypalTransferId) {
-        throw new Error("This payout has no existing PayPal transfer ID.");
-      }
-
       if (!payout.invoiceId) {
         throw new Error("This payout has no invoice ID.");
       }
@@ -130,6 +126,7 @@ export const retryFailedPaypalPayoutsAction = authPartnerActionClient
         },
         data: {
           status: "sent",
+          method: "paypal",
         },
       });
     } catch (error) {

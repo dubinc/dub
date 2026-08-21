@@ -1,103 +1,275 @@
-import { handleMoneyInputChange, handleMoneyKeyDown } from "@/lib/form-utils";
-import { CAMPAIGN_WORKFLOW_ATTRIBUTE_CONFIG } from "@/lib/zod/schemas/campaigns";
-import { WORKFLOW_ATTRIBUTES } from "@/lib/zod/schemas/workflows";
+"use client";
+
+import {
+  SEND_CAMPAIGN_ATTRIBUTES,
+  SEND_CAMPAIGN_ATTRIBUTE_KEYS,
+  SEND_CAMPAIGN_ENROLLMENT_ATTRIBUTE_KEYS,
+  SEND_CAMPAIGN_OPERATORS,
+  SEND_CAMPAIGN_OPERATOR_KEYS,
+  type SendCampaignAttributeKey,
+} from "@/lib/api/workflows/send-campaign/schema";
+import { satisfiesExclusiveAttributeRules } from "@/lib/api/workflows/utils";
+import { DurationPopoverContent } from "@/ui/shared/duration-popover-content";
 import {
   InlineBadgePopover,
-  InlineBadgePopoverContext,
+  InlineBadgePopoverAmountInput,
   InlineBadgePopoverMenu,
 } from "@/ui/shared/inline-badge-popover";
-import { cn, currencyFormatter, pluralize } from "@dub/utils";
-import { useContext, useEffect, useRef } from "react";
-import { Controller } from "react-hook-form";
+import { Button } from "@dub/ui";
+import { Xmark } from "@dub/ui/icons";
+import { currencyFormatter, pluralize } from "@dub/utils";
+import { ChangeEvent, useEffect, useMemo, useRef } from "react";
+import { Controller, useFieldArray } from "react-hook-form";
 import { useCampaignFormContext } from "./campaign-form-context";
 
-export function TransactionalCampaignLogic() {
+type SendCampaignOperatorKey = (typeof SEND_CAMPAIGN_OPERATOR_KEYS)[number];
+
+function isSendCampaignEnrollmentAttribute(
+  attribute: string,
+): attribute is (typeof SEND_CAMPAIGN_ENROLLMENT_ATTRIBUTE_KEYS)[number] {
+  return (
+    SEND_CAMPAIGN_ENROLLMENT_ATTRIBUTE_KEYS as readonly string[]
+  ).includes(attribute);
+}
+
+export function TransactionalCampaignLogic({ locked }: { locked: boolean }) {
+  const { control, watch } = useCampaignFormContext();
+
+  const { fields, append, remove, update } = useFieldArray({
+    control,
+    name: "triggerConditions",
+  });
+
+  const triggerConditions = watch("triggerConditions") ?? [];
+
+  const usedAttributes = useMemo(
+    () =>
+      triggerConditions
+        .map((condition) => condition?.attribute)
+        .filter((attribute): attribute is SendCampaignAttributeKey =>
+          Boolean(attribute),
+        ),
+    [triggerConditions],
+  );
+
+  const availableAttributesToAdd = useMemo(() => {
+    return SEND_CAMPAIGN_ATTRIBUTE_KEYS.filter((attribute) =>
+      satisfiesExclusiveAttributeRules({
+        attribute,
+        usedAttributes,
+        attributes: SEND_CAMPAIGN_ATTRIBUTES,
+      }),
+    );
+  }, [usedAttributes]);
+
+  return (
+    <div className="flex w-full flex-col gap-1.5 px-2 py-1">
+      {fields.map((field, index) => {
+        const condition = triggerConditions[index];
+        const availableAttributes = SEND_CAMPAIGN_ATTRIBUTE_KEYS.filter(
+          (attribute) =>
+            satisfiesExclusiveAttributeRules({
+              attribute,
+              usedAttributes,
+              currentAttribute: condition?.attribute,
+              attributes: SEND_CAMPAIGN_ATTRIBUTES,
+            }),
+        );
+
+        return (
+          <ConditionRow
+            key={field.id}
+            index={index}
+            availableAttributes={availableAttributes}
+            canRemove={!locked && fields.length > 1}
+            onRemove={() => remove(index)}
+            onUpdate={(updates) => {
+              update(index, {
+                ...condition,
+                ...updates,
+              });
+            }}
+          />
+        );
+      })}
+
+      {!locked && availableAttributesToAdd.length > 0 && (
+        <Button
+          type="button"
+          text="Add condition"
+          variant="secondary"
+          className="mt-1.5 h-8 w-fit rounded-lg px-3"
+          onClick={() => {
+            const nextAttribute = availableAttributesToAdd[0];
+            append({
+              attribute: nextAttribute,
+              operator: "gte",
+              value:
+                nextAttribute === "partnerJoined"
+                  ? 0
+                  : (null as unknown as number),
+            });
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
+function ConditionRow({
+  index,
+  availableAttributes,
+  canRemove,
+  onRemove,
+  onUpdate,
+}: {
+  index: number;
+  availableAttributes: readonly SendCampaignAttributeKey[];
+  canRemove: boolean;
+  onRemove: () => void;
+  onUpdate: (updates: {
+    attribute?: SendCampaignAttributeKey;
+    operator?: SendCampaignOperatorKey;
+    value?: number;
+  }) => void;
+}) {
   const { control, watch, setValue } = useCampaignFormContext();
 
-  const attribute = watch("triggerCondition.attribute");
-  const value = watch("triggerCondition.value");
+  const attribute = watch(`triggerConditions.${index}.attribute`);
+  const value = watch(`triggerConditions.${index}.value`);
   const prevAttributeRef = useRef(attribute);
 
-  const config = attribute
-    ? CAMPAIGN_WORKFLOW_ATTRIBUTE_CONFIG[attribute]
-    : null;
+  const config = attribute ? SEND_CAMPAIGN_ATTRIBUTES[attribute] : null;
+  const isEnrollment = attribute
+    ? isSendCampaignEnrollmentAttribute(attribute)
+    : false;
+  const allowedOperators = config?.operators ?? (["gte"] as const);
 
   // Reset value when attribute changes
   useEffect(() => {
     if (prevAttributeRef.current && prevAttributeRef.current !== attribute) {
-      // Set value to 0 for partnerJoined, null for others
       setValue(
-        "triggerCondition.value",
+        `triggerConditions.${index}.value`,
         attribute === "partnerJoined" ? 0 : (null as any),
+        { shouldDirty: true },
       );
+      setValue(`triggerConditions.${index}.operator`, "gte", {
+        shouldDirty: true,
+      });
     }
 
     prevAttributeRef.current = attribute;
-  }, [attribute, setValue]);
+  }, [attribute, index, setValue]);
 
   // Ensure partnerJoined always has value 0
   useEffect(() => {
     if (attribute === "partnerJoined" && value !== 0) {
-      setValue("triggerCondition.value", 0);
+      setValue(`triggerConditions.${index}.value`, 0, { shouldDirty: true });
     }
-  }, [attribute, value, setValue]);
+  }, [attribute, value, index, setValue]);
 
   return (
-    <div className="flex h-8 w-full items-center px-2">
-      <span className="text-content-default flex gap-1 text-sm font-medium leading-relaxed">
-        When partner{config?.inputType !== "none" && "'s"}
-        <div className="inline-flex items-center gap-1">
-          <Controller
-            control={control}
-            name="triggerCondition.attribute"
-            render={({ field }) => (
-              <InlineBadgePopover
-                text={
-                  field.value
-                    ? CAMPAIGN_WORKFLOW_ATTRIBUTE_CONFIG[field.value].label
-                    : "activity"
-                }
-                invalid={!field.value}
-              >
-                <InlineBadgePopoverMenu
-                  selectedValue={field.value}
-                  onSelect={field.onChange}
-                  items={WORKFLOW_ATTRIBUTES.map((attr) => ({
-                    text: CAMPAIGN_WORKFLOW_ATTRIBUTE_CONFIG[attr].label,
-                    value: attr,
-                  }))}
-                />
-              </InlineBadgePopover>
-            )}
-          />
-
-          {config && config.inputType !== "none" && (
-            <>
-              reaches at least{" "}
-              {config.inputType === "dropdown" ? (
-                <DropdownValueInput config={config} />
-              ) : (
-                <ValueInput config={config} value={value} />
-              )}
-            </>
+    <div className="flex items-start gap-1">
+      <span className="text-content-default flex min-w-0 flex-1 flex-wrap items-center gap-1 text-sm font-medium leading-relaxed">
+        {index === 0 ? "When partner" : "And when partner"}
+        {config?.inputType !== "none" && "'s"}
+        <Controller
+          control={control}
+          name={`triggerConditions.${index}.attribute`}
+          render={({ field }) => (
+            <InlineBadgePopover
+              text={SEND_CAMPAIGN_ATTRIBUTES[field.value]?.label ?? "activity"}
+              invalid={!field.value}
+            >
+              <InlineBadgePopoverMenu
+                selectedValue={field.value}
+                onSelect={(nextAttribute) => {
+                  field.onChange(nextAttribute);
+                  onUpdate({
+                    attribute: nextAttribute as SendCampaignAttributeKey,
+                    operator: "gte",
+                    value:
+                      nextAttribute === "partnerJoined"
+                        ? 0
+                        : (null as unknown as number),
+                  });
+                }}
+                items={availableAttributes.map((attr) => ({
+                  text: SEND_CAMPAIGN_ATTRIBUTES[attr].label,
+                  value: attr,
+                }))}
+              />
+            </InlineBadgePopover>
           )}
-        </div>
+        />
+
+        {config && config.inputType !== "none" && (
+          <>
+            {isEnrollment ? (
+              <>reaches at least</>
+            ) : (
+              <Controller
+                control={control}
+                name={`triggerConditions.${index}.operator`}
+                render={({ field }) => (
+                  <InlineBadgePopover
+                    text={
+                      field.value
+                        ? SEND_CAMPAIGN_OPERATORS[
+                            field.value as SendCampaignOperatorKey
+                          ]?.label
+                        : "at least"
+                    }
+                    invalid={!field.value}
+                  >
+                    <InlineBadgePopoverMenu
+                      selectedValue={field.value}
+                      onSelect={field.onChange}
+                      items={allowedOperators.map((op) => ({
+                        text: SEND_CAMPAIGN_OPERATORS[op].label,
+                        value: op,
+                      }))}
+                    />
+                  </InlineBadgePopover>
+                )}
+              />
+            )}{" "}
+            {config.inputType === "dropdown" ? (
+              <DropdownValueInput index={index} config={config} />
+            ) : (
+              <ValueInput index={index} config={config} />
+            )}
+          </>
+        )}
       </span>
+
+      {canRemove && (
+        <Button
+          type="button"
+          variant="secondary"
+          onClick={onRemove}
+          icon={<Xmark className="size-3.5" />}
+          className="h-6 w-[26px] shrink-0 px-1.5"
+          aria-label="Remove condition"
+        />
+      )}
     </div>
   );
 }
 
 function DropdownValueInput({
+  index,
   config,
 }: {
-  config: { dropdownValues?: number[] };
+  index: number;
+  config: { dropdownValues?: readonly number[] };
 }) {
   const { control } = useCampaignFormContext();
 
   return (
     <Controller
       control={control}
-      name="triggerCondition.value"
+      name={`triggerConditions.${index}.value`}
       render={({ field }) => (
         <>
           <InlineBadgePopover
@@ -108,17 +280,15 @@ function DropdownValueInput({
             }
             invalid={field.value === undefined || field.value === null}
           >
-            <InlineBadgePopoverMenu
-              selectedValue={
-                field.value !== undefined && field.value !== null
-                  ? String(field.value)
-                  : "1"
+            <DurationPopoverContent
+              value={field.value ?? undefined}
+              onChange={field.onChange}
+              presetDurations={
+                config.dropdownValues ? Array.from(config.dropdownValues) : []
               }
-              onSelect={(val) => field.onChange(Number(val))}
-              items={(config.dropdownValues || []).map((val) => ({
-                text: String(val),
-                value: String(val),
-              }))}
+              presetsOnly
+              unit="days"
+              minValue={1}
             />
           </InlineBadgePopover>
           {pluralize("day", field.value || 1)}
@@ -129,81 +299,59 @@ function DropdownValueInput({
 }
 
 function ValueInput({
+  index,
   config,
-  value,
 }: {
+  index: number;
   config: { inputType?: string };
-  value: number | null | undefined;
 }) {
-  const { watch, setValue } = useCampaignFormContext();
-  const { setIsOpen } = useContext(InlineBadgePopoverContext);
-
-  const storedValue = watch("triggerCondition.value");
-
+  const { control } = useCampaignFormContext();
   const isCurrency = config.inputType === "currency";
 
-  const displayValue =
-    isCurrency && storedValue ? storedValue / 100 : storedValue;
-
   return (
-    <InlineBadgePopover
-      text={
-        value
-          ? isCurrency
-            ? currencyFormatter(value, {
-                trailingZeroDisplay: "stripIfInteger",
-              })
-            : value
-          : "amount"
-      }
-      invalid={!value}
-    >
-      <div className="relative rounded-md shadow-sm">
-        {isCurrency && (
-          <span className="absolute inset-y-0 left-0 flex items-center pl-1.5 text-sm text-neutral-400">
-            $
-          </span>
-        )}
-        <input
-          className={cn(
-            "block w-full rounded-md border-neutral-300 px-1.5 py-1 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:w-32 sm:text-sm",
-            isCurrency ? "pl-4 pr-12" : "pr-7",
-          )}
-          value={displayValue ?? ""}
-          onChange={(e) => {
-            const value = e.target.value;
-            if (value === "") {
-              setValue("triggerCondition.value", null as any);
-            } else {
-              const numValue = +value;
-              setValue(
-                "triggerCondition.value",
-                isCurrency ? Math.round(numValue * 100) : numValue,
-              );
-            }
+    <Controller
+      control={control}
+      name={`triggerConditions.${index}.value`}
+      render={({ field }) => {
+        const storedValue = field.value;
+        const displayValue =
+          isCurrency && storedValue ? storedValue / 100 : storedValue;
+        const hasValue = storedValue !== null && storedValue !== undefined;
 
-            if (isCurrency) {
-              handleMoneyInputChange(e);
+        return (
+          <InlineBadgePopover
+            text={
+              hasValue
+                ? isCurrency
+                  ? currencyFormatter(storedValue, {
+                      trailingZeroDisplay: "stripIfInteger",
+                    })
+                  : storedValue
+                : "amount"
             }
-          }}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") {
-              e.preventDefault();
-              setIsOpen(false);
-              return;
-            }
+            invalid={!hasValue}
+          >
+            <InlineBadgePopoverAmountInput
+              type={isCurrency ? "currency" : "number"}
+              value={displayValue ?? ""}
+              onChange={(e: ChangeEvent<HTMLInputElement>) => {
+                const nextValue = e.target.value;
 
-            if (isCurrency) {
-              handleMoneyKeyDown(e);
-            }
-          }}
-        />
-        {isCurrency && (
-          <span className="absolute inset-y-0 right-0 flex items-center pr-1.5 text-sm text-neutral-400">
-            USD
-          </span>
-        )}
-      </div>
-    </InlineBadgePopover>
+                if (nextValue === "") {
+                  field.onChange(null as unknown as number);
+                  return;
+                }
+
+                const numValue = +nextValue;
+                field.onChange(
+                  isCurrency ? Math.round(numValue * 100) : numValue,
+                );
+              }}
+              onBlur={field.onBlur}
+            />
+          </InlineBadgePopover>
+        );
+      }}
+    />
   );
 }

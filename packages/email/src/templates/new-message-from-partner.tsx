@@ -16,6 +16,10 @@ import {
   Text,
 } from "@react-email/components";
 import { Footer } from "../components/footer";
+import {
+  MessageAttachmentPlaceholder,
+  MessageAttachmentPlaceholders,
+} from "../components/message-attachment-placeholders";
 
 const MAX_DISPLAYED_MESSAGES = 3;
 
@@ -28,8 +32,24 @@ export default function NewMessageFromPartner({
   },
   messages = [
     {
-      text: "Am I eligible for that one _bounty_?",
+      text: "",
       createdAt: new Date(Date.now() - 1000 * 60 * 5),
+      attachments: [
+        {
+          name: "screenshot.png",
+          size: 245760,
+          type: "image/png",
+        },
+        {
+          name: "proof-of-work.webp",
+          size: 102400,
+          type: "image/webp",
+        },
+      ],
+    },
+    {
+      text: "Am I eligible for that one _bounty_?",
+      createdAt: new Date(),
     },
   ],
   email = "panic@thedis.co",
@@ -43,9 +63,12 @@ export default function NewMessageFromPartner({
   messages: {
     text: string;
     createdAt: Date;
+    attachments?: MessageAttachmentPlaceholder[];
   }[];
   email: string;
 }) {
+  const threadUrl = `https://app.dub.co/${workspaceSlug}/program/messages/${partner.id}`;
+
   return (
     <Html>
       <Head />
@@ -74,7 +97,7 @@ export default function NewMessageFromPartner({
 
             <Section className="rounded-xl border border-solid border-neutral-200 p-6">
               {messages.slice(0, MAX_DISPLAYED_MESSAGES).map((message, idx) => (
-                <Row className={idx > 0 ? "pt-3" : ""}>
+                <Row key={idx} className={idx > 0 ? "pt-3" : ""}>
                   <Column className="align-bottom">
                     <Img
                       src={partner.image || `${OG_AVATAR_URL}${partner.id}`}
@@ -85,19 +108,25 @@ export default function NewMessageFromPartner({
                     />
                   </Column>
                   <Column className="w-full pl-2">
-                    <Markdown
-                      markdownCustomStyles={{ link: { color: "black" } }}
-                      markdownContainerStyles={{
-                        borderRadius: 8,
-                        background: "#f5f5f5",
-                        padding: "1px 16px",
-                        fontSize: 14,
-                        lineHeight: "20px",
-                        color: "#262626",
-                      }}
-                    >
-                      {message.text}
-                    </Markdown>
+                    {message.text ? (
+                      <Markdown
+                        markdownCustomStyles={{ link: { color: "black" } }}
+                        markdownContainerStyles={{
+                          borderRadius: 8,
+                          background: "#f5f5f5",
+                          padding: "1px 16px",
+                          fontSize: 14,
+                          lineHeight: "20px",
+                          color: "#262626",
+                        }}
+                      >
+                        {message.text}
+                      </Markdown>
+                    ) : null}
+                    <MessageAttachmentPlaceholders
+                      attachments={message.attachments ?? []}
+                      href={threadUrl}
+                    />
                   </Column>
                 </Row>
               ))}
@@ -109,7 +138,7 @@ export default function NewMessageFromPartner({
               )}
               <Link
                 className="mt-4 block rounded-lg bg-neutral-900 px-6 py-3 text-center text-[13px] font-medium text-white no-underline"
-                href={`https://app.dub.co/${workspaceSlug}/program/messages/${partner.id}`}
+                href={threadUrl}
               >
                 View in Dub
               </Link>

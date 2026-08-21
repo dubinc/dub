@@ -15,7 +15,8 @@
     "usersLimit": 100,
     "aiLimit": 100,
     "groupsLimit": 100,
-    "defaultProgramId": "prog_1K2J9DRWPPJ2F1RX53N92TSGA",
+    "partnersLimit": 100,
+    "defaultProgramId": "prog_CYCu7IMAapjkRpTnr8F1azjN",
     "invoicePrefix": "ACME",
     "conversionEnabled": true,
     "webhookEnabled": true,
@@ -57,6 +58,13 @@
       "id": "dom_1KETZ919F83ZJH6A80HWEHW6E",
       "slug": "dub.sh",
       "verified": true
+    }
+  ],
+  "emailDomains": [
+    {
+      "id": "dom_1KETZ919F83ZJH6A80EMAILDOM",
+      "slug": "getacme.link",
+      "status": "verified"
     }
   ],
   "folders": [
@@ -112,7 +120,7 @@
     }
   ],
   "program": {
-    "id": "prog_1K2J9DRWPPJ2F1RX53N92TSGA",
+    "id": "prog_CYCu7IMAapjkRpTnr8F1azjN",
     "name": "Acme",
     "slug": "acme",
     "defaultFolderId": "fold_1K2J9DRWPPJ2F1RX53N92TSGB",
@@ -215,7 +223,7 @@
       ],
       "verified": 1,
       "installUrl": "https://d.to/make",
-      "category": "Automations",
+      "category": "Automation",
       "comingSoon": 0,
       "guideUrl": null
     },
@@ -259,7 +267,7 @@
       ],
       "verified": 1,
       "installUrl": "https://d.to/zapier",
-      "category": "Automations",
+      "category": "Automation",
       "comingSoon": 0,
       "guideUrl": null
     },

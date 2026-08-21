@@ -1,5 +1,6 @@
 import { getSession } from "@/lib/auth";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
+import { WorkspaceProps } from "@/lib/types";
 import { redirect } from "next/navigation";
 import { SuccessPageClient } from "./page-client";
 
@@ -18,6 +19,7 @@ export default async function SuccessPage({
       slug: true,
       name: true,
       logo: true,
+      plan: true,
       defaultProgramId: true,
     },
     where: {
@@ -31,5 +33,12 @@ export default async function SuccessPage({
   });
   if (!workspace) redirect("/onboarding");
 
-  return <SuccessPageClient workspace={workspace} />;
+  return (
+    <SuccessPageClient
+      workspace={{
+        ...workspace,
+        plan: workspace.plan as WorkspaceProps["plan"],
+      }}
+    />
+  );
 }

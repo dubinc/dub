@@ -36,7 +36,7 @@ export function ProgramRewardModifiersTooltip({
   if (!reward?.modifiers?.length && !reward?.tooltipDescription) return null;
 
   return (
-    <div className="inline-block align-text-top">
+    <span className="inline-block align-text-top">
       <InfoTooltip
         content={
           reward.tooltipDescription || (
@@ -49,7 +49,7 @@ export function ProgramRewardModifiersTooltip({
         }
         contentClassName={reward.tooltipDescription ? "text-left" : undefined}
       />
-    </div>
+    </span>
   );
 }
 
@@ -99,6 +99,8 @@ export function ProgramRewardModifiersTooltipContent({
                   modifier.maxDuration === undefined
                     ? reward.maxDuration
                     : modifier.maxDuration, // fallback to primary
+                spendLimitAmount: reward.spendLimitAmount,
+                spendLimitInterval: reward.spendLimitInterval,
               }}
               conditions={modifier.conditions}
               operator={modifier.operator}
@@ -168,9 +170,17 @@ const RewardItem = ({
               <li key={idx} className="flex items-start gap-1">
                 <span className="shrink-0 text-lg leading-none">&bull;</span>
                 <span className="min-w-0">
-                  {idx === 0 ? "If" : capitalize(operator.toLowerCase())}{" "}
-                  {condition.entity} {attribute?.label?.toLowerCase()}{" "}
-                  {CONDITION_OPERATOR_LABELS[condition.operator]}{" "}
+                  {idx === 0 ? "If" : capitalize(operator)}{" "}
+                  {capitalize(condition.entity)}{" "}
+                  {(condition.entity === "lead" ||
+                    condition.entity === "sale") &&
+                  condition.attribute === "metadata" &&
+                  condition.metadataField?.trim()
+                    ? `"${condition.metadataField.trim()}"`
+                    : capitalize(attribute?.label)}{" "}
+                  {condition.label
+                    ? "is" // if custom label is set, use "is" instead of the actual operator to sound more natural
+                    : CONDITION_OPERATOR_LABELS[condition.operator]}{" "}
                   {condition.value &&
                     (condition.attribute === "country"
                       ? // Country names
@@ -182,21 +192,20 @@ const RewardItem = ({
                           condition.value
                       : condition.attribute === "subscriptionDurationMonths"
                         ? formatSubscriptionDuration(Number(condition.value))
-                        : // Non-country value(s)
-                          Array.isArray(condition.value)
-                          ? // Basic array
-                            (attribute?.options
-                              ? (condition.value as string[] | number[]).map(
-                                  (v) =>
-                                    attribute.options?.find((o) => o.id === v)
-                                      ?.label ?? v,
-                                )
-                              : condition.value
-                            ).join(", ")
-                          : condition.attribute === "productId" &&
-                              condition.label
-                            ? // Product label
-                              condition.label
+                        : condition.attribute === "productId" &&
+                            condition.label?.trim()
+                          ? condition.label.trim()
+                          : // Non-country value(s)
+                            Array.isArray(condition.value)
+                            ? // Basic array
+                              (attribute?.options
+                                ? (condition.value as string[] | number[]).map(
+                                    (v) =>
+                                      attribute.options?.find((o) => o.id === v)
+                                        ?.label ?? v,
+                                  )
+                                : condition.value
+                              ).join(", ")
                             : attribute?.type === "currency"
                               ? // Currency value
                                 currencyFormatter(Number(condition.value))

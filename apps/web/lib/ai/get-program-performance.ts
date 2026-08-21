@@ -1,5 +1,5 @@
-import { prisma } from "@dub/prisma";
-import { CommissionStatus, PayoutStatus } from "@dub/prisma/client";
+import { prisma } from "@/lib/prisma";
+import { CommissionStatus, PayoutStatus } from "@prisma/client";
 import { tool } from "ai";
 import { z } from "zod";
 import { getSession } from "../auth/utils";

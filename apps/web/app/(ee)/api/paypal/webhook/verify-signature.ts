@@ -7,6 +7,26 @@ import crypto from "crypto";
 const CERT_CACHE_KEY_PREFIX = "paypal:cert:";
 const CERT_CACHE_TTL_SECONDS = 60 * 60 * 24 * 7; // 7 days
 
+const PAYPAL_CERT_HOST_ALLOWLIST = new Set([
+  "api.paypal.com",
+  "api-m.paypal.com",
+  "api.sandbox.paypal.com",
+  "api-m.sandbox.paypal.com",
+]);
+
+function isValidPayPalCertUrl(url: string): boolean {
+  try {
+    const parsed = new URL(url);
+
+    return (
+      parsed.protocol === "https:" &&
+      PAYPAL_CERT_HOST_ALLOWLIST.has(parsed.hostname)
+    );
+  } catch {
+    return false;
+  }
+}
+
 async function downloadAndCache(url: string) {
   const urlHash = crypto.createHash("sha256").update(url).digest("hex");
   const cacheKey = `${CERT_CACHE_KEY_PREFIX}${urlHash}`;
@@ -55,6 +75,11 @@ export async function verifySignature({
     console.error(
       "[PayPal] Missing required headers for signature verification",
     );
+    return false;
+  }
+
+  if (!isValidPayPalCertUrl(certUrl)) {
+    console.error(`[PayPal] Rejected non-PayPal certificate URL: ${certUrl}`);
     return false;
   }
 

@@ -2,7 +2,7 @@
 
 import { isCurrencyAttribute } from "@/lib/api/workflows/utils";
 import { PERFORMANCE_BOUNTY_SCOPE_ATTRIBUTES } from "@/lib/bounty/api/performance-bounty-scope-attributes";
-import { BOUNTY_SUBMISSION_STATUS_BADGES } from "@/lib/bounty/submission-status";
+import { BountySubmissionStatusBadges } from "@/lib/bounty/bounty-submission-status-badges";
 import { resolveBountyDetails } from "@/lib/bounty/utils";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
@@ -40,6 +40,7 @@ import {
   timeAgo,
 } from "@dub/utils";
 import { Row } from "@tanstack/react-table";
+import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -51,7 +52,7 @@ import { useBountySubmissionFilters } from "./use-bounty-submission-filters";
 export function BountySubmissionsTable() {
   const { bounty, loading: isBountyLoading } = useBounty();
   const { groups } = useGroups();
-  const { id: workspaceId } = useWorkspace();
+  const { id: workspaceId, slug } = useWorkspace();
   const { bountyId } = useParams<{ bountyId: string }>();
   const { pagination, setPagination } = usePagination();
   const { queryParams, searchParams, getQueryString } = useRouterStuff();
@@ -217,7 +218,16 @@ export function BountySubmissionsTable() {
           return (
             <div className="flex items-center gap-2">
               <GroupColorCircle group={group} />
-              <span className="truncate text-sm font-medium">{group.name}</span>
+              <Link
+                href={`/${slug}/program/groups/${group.slug}`}
+                target="_blank"
+                onClick={(e) => e.stopPropagation()}
+                onAuxClick={(e) => e.stopPropagation()}
+                className="min-w-0 cursor-alias truncate text-sm font-medium decoration-dotted hover:underline"
+                title={group.name}
+              >
+                {group.name}
+              </Link>
             </div>
           );
         },
@@ -230,7 +240,7 @@ export function BountySubmissionsTable() {
               header: "Status",
               cell: ({ row }) => {
                 const badge = row.original
-                  ? BOUNTY_SUBMISSION_STATUS_BADGES[row.original.status]
+                  ? BountySubmissionStatusBadges[row.original.status]
                   : null;
 
                 return badge ? (
@@ -374,6 +384,7 @@ export function BountySubmissionsTable() {
       performanceCondition,
       bountyInfo,
       workspaceId,
+      slug,
     ],
   );
 
@@ -390,7 +401,6 @@ export function BountySubmissionsTable() {
         set: {
           submissionId: row.original.id,
         },
-        scroll: false,
       });
     },
     sortableColumns: [
@@ -407,7 +417,6 @@ export function BountySubmissionsTable() {
           ...(sortOrder && { sortOrder }),
         },
         del: "page",
-        scroll: false,
       }),
     pagination,
     onPaginationChange: setPagination,
@@ -445,6 +454,7 @@ export function BountySubmissionsTable() {
           <BountySubmissionFilters
             bounty={bounty}
             bountyInfo={bountyInfo}
+            submissionsCount={submissionsCount}
             submissionsLength={submissions?.length ?? 0}
             isRefreshingStats={isRefreshingStats}
             refreshStats={refreshStats}
@@ -472,16 +482,19 @@ export function BountySubmissionsTable() {
 function BountySubmissionFilters({
   bounty,
   bountyInfo,
+  submissionsCount,
   submissionsLength,
   isRefreshingStats,
   refreshStats,
 }: {
   bounty: ReturnType<typeof useBounty>["bounty"];
   bountyInfo: ReturnType<typeof resolveBountyDetails>;
+  submissionsCount?: SubmissionsCountByStatus[];
   submissionsLength: number;
   isRefreshingStats: boolean;
   refreshStats: () => void;
 }) {
+  const { queryParams, searchParams } = useRouterStuff();
   const {
     filters,
     activeFilters,
@@ -492,18 +505,44 @@ function BountySubmissionFilters({
     setSelectedFilter,
   } = useBountySubmissionFilters({ bounty: bounty ?? undefined });
 
+  const submittedCount =
+    submissionsCount?.find((s) => s.status === "submitted")?.count ?? 0;
+
+  const showAwaitingReviewButton =
+    submittedCount > 0 && searchParams.get("status") !== "submitted";
+
   return (
     <>
       <div className="flex w-full items-center justify-between gap-4">
-        <Filter.Select
-          className="w-full md:w-fit"
-          filters={filters}
-          activeFilters={activeFilters}
-          onSelect={onSelect}
-          onRemove={onRemove}
-          onSearchChange={setSearch}
-          onSelectedFilterChange={setSelectedFilter}
-        />
+        <div className="flex items-center gap-2">
+          <Filter.Select
+            className="w-full md:w-fit"
+            filters={filters}
+            activeFilters={activeFilters}
+            onSelect={onSelect}
+            onRemove={onRemove}
+            onSearchChange={setSearch}
+            onSelectedFilterChange={setSelectedFilter}
+          />
+          {showAwaitingReviewButton ? (
+            <Button
+              text="Awaiting review"
+              variant="secondary"
+              className="w-fit"
+              right={
+                <span className="rounded-full bg-neutral-200 px-1.5 py-0.5 text-xs font-medium text-neutral-700">
+                  {submittedCount}
+                </span>
+              }
+              onClick={() =>
+                queryParams({
+                  set: { status: "submitted" },
+                  del: "page",
+                })
+              }
+            />
+          ) : null}
+        </div>
         {bountyInfo?.hasSocialMetrics && submissionsLength > 0 && (
           <div className="flex shrink-0 items-center gap-3">
             {bounty?.socialMetricsLastSyncedAt ? (

@@ -1,59 +1,55 @@
 import { trackLead } from "@/lib/api/conversions/track-lead";
 import { stripeIntegrationSettingsSchema } from "@/lib/integrations/stripe/schema";
-import { StripeMode } from "@/lib/types";
-import { prisma } from "@dub/prisma";
-import { Customer } from "@dub/prisma/client";
+import { prisma } from "@/lib/prisma";
 import { pick, STRIPE_INTEGRATION_ID } from "@dub/utils";
+import { Customer } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import type Stripe from "stripe";
+import { WebhookHandlerInput, WebhookHandlerResponse } from "./types";
 import { getConnectedCustomer } from "./utils/get-connected-customer";
 
 // Handle event "customer.subscription.created"
 // only used for recording free trial creations
-export async function customerSubscriptionCreated(
-  event: Stripe.Event,
-  mode: StripeMode,
-) {
-  const createdSubscription = event.data.object as Stripe.Subscription;
+export async function customerSubscriptionCreated({
+  event,
+  mode,
+  workspace,
+}: WebhookHandlerInput<Stripe.CustomerSubscriptionCreatedEvent>): Promise<WebhookHandlerResponse> {
+  const createdSubscription = event.data.object;
 
   if (createdSubscription.status !== "trialing") {
-    return "Subscription is not in trialing status, skipping...";
+    return {
+      response: "Subscription is not in trialing status, skipping...",
+    };
   }
 
   const stripeAccountId = event.account as string;
   const stripeCustomerId = createdSubscription.customer as string;
 
-  const workspace = await prisma.project.findUnique({
+  const installedIntegration = await prisma.installedIntegration.findFirst({
     where: {
-      stripeConnectId: stripeAccountId,
+      projectId: workspace.id,
+      integrationId: STRIPE_INTEGRATION_ID,
     },
-    select: {
-      id: true,
-      slug: true,
-      stripeConnectId: true,
-      webhookEnabled: true,
-      installedIntegrations: {
-        where: {
-          integrationId: STRIPE_INTEGRATION_ID,
-        },
-      },
+    orderBy: {
+      createdAt: "asc",
     },
   });
 
-  if (!workspace) {
-    return `Workspace with stripeConnectId ${stripeAccountId} not found, skipping...`;
-  }
-
-  if (!workspace.installedIntegrations.length) {
-    return `Workspace ${workspace.slug} has no Stripe integration installed, skipping...`;
+  if (!installedIntegration) {
+    return {
+      response: `Workspace ${workspace.id} has no Stripe integration installed, skipping...`,
+    };
   }
 
   const stripeIntegrationSettings = stripeIntegrationSettingsSchema.parse(
-    workspace.installedIntegrations[0].settings || {},
+    installedIntegration.settings || {},
   );
 
   if (!stripeIntegrationSettings?.freeTrials?.enabled) {
-    return `Stripe free trial tracking is not enabled for workspace ${workspace.slug}, skipping...`;
+    return {
+      response: `Stripe free trial tracking is not enabled for workspace ${workspace.id}, skipping...`,
+    };
   }
 
   let customer: Customer | null = null;
@@ -82,7 +78,9 @@ export async function customerSubscriptionCreated(
 
       if (!customer) {
         // this should never happen, but just in case
-        return `Customer ${stripeCustomer.id} with email ${stripeCustomer.email} has not been tracked yet, skipping...`;
+        return {
+          response: `Customer ${stripeCustomer.id} with email ${stripeCustomer.email} has not been tracked yet, skipping...`,
+        };
       }
       // update the customer with the Stripe customer ID (for future reference by invoice.paid)
       waitUntil(
@@ -97,16 +95,22 @@ export async function customerSubscriptionCreated(
       );
     } else {
       // this should never happen either, but just in case
-      return `Customer with stripeCustomerId ${stripeCustomerId} ${stripeCustomer ? "does not have an email on Stripe" : "does not exist"}, skipping...`;
+      return {
+        response: `Customer with stripeCustomerId ${stripeCustomerId} ${stripeCustomer ? "does not have an email on Stripe" : "does not exist"}, skipping...`,
+      };
     }
   }
 
   if (!customer.clickId) {
-    return `Customer ${customer.id} has no clickId, skipping...`;
+    return {
+      response: `Customer ${customer.id} has no clickId, skipping...`,
+    };
   }
 
   if (!customer.externalId) {
-    return `Customer ${customer.id} has no externalId, skipping...`;
+    return {
+      response: `Customer ${customer.id} has no externalId, skipping...`,
+    };
   }
 
   // if trackQuantity is enabled, use the quantity from the main subscription item
@@ -122,10 +126,11 @@ export async function customerSubscriptionCreated(
     customerName: customer.name,
     customerEmail: customer.email,
     eventQuantity,
-    rawBody: {},
     workspace: pick(workspace, ["id", "stripeConnectId", "webhookEnabled"]),
     source: "trial",
   });
 
-  return `Customer subscription created for customer ${customer.id} with stripeCustomerId ${stripeCustomerId} and workspace ${workspace.slug}`;
+  return {
+    response: `Customer subscription created for customer ${customer.id} with stripeCustomerId ${stripeCustomerId} and workspace ${workspace.id}`,
+  };
 }

@@ -24,7 +24,7 @@ export const getLinks: ZodOpenApiOperationObject = {
       results: "$",
     },
   },
-  summary: "Retrieve a list of links",
+  summary: "List all links",
   description:
     "Retrieve a paginated list of links for the authenticated workspace.",
   requestParams: {

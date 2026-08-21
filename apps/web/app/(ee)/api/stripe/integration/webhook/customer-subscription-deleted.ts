@@ -1,9 +1,12 @@
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import type Stripe from "stripe";
+import { WebhookHandlerResponse } from "./types";
 
 // Handle event "customer.subscription.deleted"
-export async function customerSubscriptionDeleted(event: Stripe.Event) {
-  const deletedSubscription = event.data.object as Stripe.Subscription;
+export async function customerSubscriptionDeleted(
+  event: Stripe.CustomerSubscriptionDeletedEvent,
+): Promise<WebhookHandlerResponse> {
+  const deletedSubscription = event.data.object;
 
   const customer = await prisma.customer.findUnique({
     where: {
@@ -12,7 +15,9 @@ export async function customerSubscriptionDeleted(event: Stripe.Event) {
   });
 
   if (!customer) {
-    return "Customer not found, skipping subscription cancellation...";
+    return {
+      response: "Customer not found, skipping subscription cancellation...",
+    };
   }
 
   const updatedCustomer = await prisma.customer.update({
@@ -20,5 +25,7 @@ export async function customerSubscriptionDeleted(event: Stripe.Event) {
     data: { subscriptionCanceledAt: new Date() },
   });
 
-  return `Subscription cancelled, updating customer ${updatedCustomer.id} with subscriptionCanceledAt: ${updatedCustomer.subscriptionCanceledAt}`;
+  return {
+    response: `Subscription cancelled, updating customer ${updatedCustomer.id} with subscriptionCanceledAt: ${updatedCustomer.subscriptionCanceledAt}`,
+  };
 }

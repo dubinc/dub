@@ -1,10 +1,10 @@
 import { Session } from "@/lib/auth";
-import { qstash } from "@/lib/cron";
-import { prisma } from "@dub/prisma";
-import { Partner } from "@dub/prisma/client";
+import { PRISMA_UPDATEMANY_LIMIT, qstash } from "@/lib/cron";
+import { prisma } from "@/lib/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
+import { Partner, ProgramEnrollmentStatus } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
-import { recordAuditLog } from "../audit-logs/record-audit-log";
+import { trackActivityLog } from "../activity-log/track-activity-log";
 
 interface ProcessPartnerDeactivationParams {
   workspaceId: string;
@@ -29,20 +29,26 @@ export async function processPartnerDeactivation({
 
   const partnerIds = partners.map((p) => p.id);
 
-  await prisma.$transaction([
-    prisma.link.updateMany({
-      where: {
-        programId,
-        partnerId: {
-          in: partnerIds,
-        },
+  // Capture old statuses for activity logging
+  const oldEnrollments = await prisma.programEnrollment.findMany({
+    where: {
+      programId,
+      partnerId: {
+        in: partnerIds,
       },
-      data: {
-        expiresAt: new Date(),
-      },
-    }),
+    },
+    select: {
+      partnerId: true,
+      status: true,
+    },
+  });
 
-    prisma.programEnrollment.updateMany({
+  const oldStatusByPartnerId = new Map<string, ProgramEnrollmentStatus>(
+    oldEnrollments.map((e) => [e.partnerId, e.status]),
+  );
+
+  const { count: deactivatedPartners } =
+    await prisma.programEnrollment.updateMany({
       where: {
         partnerId: {
           in: partnerIds,
@@ -54,35 +60,52 @@ export async function processPartnerDeactivation({
         clickRewardId: null,
         leadRewardId: null,
         saleRewardId: null,
+        referralRewardId: null,
         discountId: null,
       },
-    }),
-  ]);
+    });
 
-  console.log("[processPartnerDeactivation] Deactivated partners in program.", {
-    programId,
-    partnerIds,
-  });
+  while (true) {
+    const { count } = await prisma.link.updateMany({
+      where: {
+        programId,
+        partnerId: {
+          in: partnerIds,
+        },
+        expiresAt: null,
+      },
+      data: {
+        expiresAt: new Date(),
+      },
+      limit: PRISMA_UPDATEMANY_LIMIT,
+    });
+    console.log(`Expired ${count} links`);
+    if (count < PRISMA_UPDATEMANY_LIMIT) break;
+  }
+
+  console.log(
+    `[processPartnerDeactivation] Deactivated ${deactivatedPartners} partners in program ${programId}.`,
+    {
+      partnerIds,
+    },
+  );
 
   if (user) {
     waitUntil(
-      recordAuditLog(
+      trackActivityLog(
         partners.map((partner) => ({
           workspaceId,
           programId,
+          resourceType: "partner",
+          resourceId: partner.id,
+          userId: user.id,
           action: "partner.deactivated",
-          description: `Partner ${partner.id} deactivated`,
-          actor: user,
-          targets: [
-            {
-              type: "partner",
-              id: partner.id,
-              metadata: {
-                name: partner.name,
-                email: partner.email,
-              },
+          changeSet: {
+            status: {
+              old: oldStatusByPartnerId.get(partner.id),
+              new: "deactivated",
             },
-          ],
+          },
         })),
       ),
     );

@@ -9,12 +9,13 @@ const badgeVariants = cva(
         default: "border-neutral-400 text-neutral-500",
         violet: "border-violet-600 bg-violet-600 text-white",
         blue: "border-blue-500 bg-blue-500 text-white",
-        green: "border-green-100 bg-green-100 text-green-900",
+        green: "border-green-200 bg-green-100 text-green-900",
+        red: "border-red-100 bg-red-100 text-red-800",
         sky: "border-sky-900 bg-sky-900 text-white",
         black: "border-black bg-black text-white",
         gray: "border-neutral-200 bg-neutral-100 text-neutral-800",
         neutral: "border-neutral-400 text-neutral-500",
-        amber: "border-amber-800 bg-amber-800 text-white",
+        amber: "border-amber-200 bg-amber-100 text-amber-800",
         blueGradient:
           "bg-gradient-to-r from-blue-100 via-blue-100/50 to-blue-100 border border-blue-200 text-blue-900",
         rainbow:

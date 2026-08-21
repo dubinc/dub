@@ -6,9 +6,6 @@ import { CustomersTable } from "@/ui/customers/customers-table/customers-table";
 export default function ProgramCustomersPage() {
   const { defaultProgramId } = useWorkspace();
   return (
-    <CustomersTable
-      query={{ programId: defaultProgramId || undefined }}
-      isProgramPage
-    />
+    <CustomersTable query={{ programId: defaultProgramId || undefined }} />
   );
 }

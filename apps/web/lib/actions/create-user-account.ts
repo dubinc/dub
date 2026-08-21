@@ -1,7 +1,7 @@
 "use server";
 
+import { prisma } from "@/lib/prisma";
 import { ratelimit } from "@/lib/upstash";
-import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import { flattenValidationErrors } from "next-safe-action";
 import * as z from "zod/v4";
@@ -46,8 +46,10 @@ export const createUserAccountAction = actionClient
 
     const verificationToken = await prisma.emailVerificationToken.findUnique({
       where: {
-        identifier: email,
-        token: code,
+        identifier_token: {
+          identifier: email,
+          token: code,
+        },
       },
     });
 

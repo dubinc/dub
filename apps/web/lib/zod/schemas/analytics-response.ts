@@ -1,6 +1,7 @@
 import { TRIGGER_TYPES } from "@/lib/analytics/constants";
 import { CONTINENT_CODES } from "@dub/utils";
 import * as z from "zod/v4";
+import { PartnerTagSchema } from "./partner-tags";
 import { LinkTagSchema } from "./tags";
 import { centsSchemaWithDefault } from "./utils";
 
@@ -457,12 +458,13 @@ export const analyticsResponse = {
     partner: z.object({
       id: z.string().describe("The ID of the partner"),
       name: z.string().describe("The name of the partner"),
-      image: z.string().nullable().describe("The image of the partner"),
+      email: z.string().nullish().describe("The email of the partner"),
+      image: z.string().nullish().describe("The image of the partner"),
       payoutsEnabledAt: z
         .string()
-        .nullable()
+        .nullish()
         .describe("The date the partner enabled payouts"),
-      country: z.string().nullable().describe("The country of the partner"),
+      country: z.string().nullish().describe("The country of the partner"),
     }),
     clicks: z.number().describe("The total number of clicks").default(0),
     leads: z.number().describe("The total number of leads").default(0),
@@ -478,13 +480,24 @@ export const analyticsResponse = {
       id: z.string().describe("The ID of the group"),
       name: z.string().describe("The name of the group"),
       slug: z.string().describe("The slug of the group"),
-      color: z.string().nullable().describe("The color of the group"),
+      color: z.string().nullish().describe("The color of the group"),
     }),
     clicks: z.number().describe("The total number of clicks").default(0),
     leads: z.number().describe("The total number of leads").default(0),
     sales: z.number().describe("The total number of sales").default(0),
     saleAmount: centsSchemaWithDefault.describe(
       "The total amount of sales from this group, in cents",
+    ),
+  }),
+
+  top_partner_tags: z.object({
+    partnerTagId: z.string().describe("The ID of the partner tag"),
+    partnerTag: PartnerTagSchema,
+    clicks: z.number().describe("The total number of clicks").default(0),
+    leads: z.number().describe("The total number of leads").default(0),
+    sales: z.number().describe("The total number of sales").default(0),
+    saleAmount: centsSchemaWithDefault.describe(
+      "The total amount of sales from this partner tag, in cents",
     ),
   }),
 } as const;

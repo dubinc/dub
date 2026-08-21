@@ -11,6 +11,7 @@ import { useDeleteTokenModal } from "@/ui/modals/delete-token-modal";
 import { useTokenCreatedModal } from "@/ui/modals/token-created-modal";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { Delete } from "@/ui/shared/icons";
+import { UserAvatar } from "@/ui/users/user-avatar";
 import {
   Button,
   buttonVariants,
@@ -24,7 +25,7 @@ import {
   usePagination,
   useTable,
 } from "@dub/ui";
-import { cn, fetcher, OG_AVATAR_URL, timeAgo } from "@dub/utils";
+import { cn, fetcher, timeAgo } from "@dub/utils";
 import { Command } from "cmdk";
 import { useState } from "react";
 import useSWR from "swr";
@@ -117,16 +118,12 @@ export default function TokensPage() {
           return (
             <div className="flex items-center gap-2">
               <Tooltip content={row.original.user.name}>
-                <img
-                  src={
-                    row.original.user.isMachine
-                      ? `https://api.dicebear.com/7.x/bottts/svg?seed=${row.original.user.id}`
-                      : row.original.user.image ||
-                        `${OG_AVATAR_URL}${row.original.user.id}`
-                  }
-                  alt={row.original.user.name!}
-                  className="size-5 rounded-full"
-                />
+                <div>
+                  <UserAvatar
+                    user={row.original.user}
+                    className="size-5 rounded-full"
+                  />
+                </div>
               </Tooltip>
               <p>
                 {new Date(row.original.createdAt).toLocaleDateString("en-us", {

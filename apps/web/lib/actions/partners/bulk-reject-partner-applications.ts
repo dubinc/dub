@@ -1,13 +1,14 @@
 "use server";
 
-import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
+import { trackActivityLog } from "@/lib/api/activity-log/track-activity-log";
 import { resolveFraudGroups } from "@/lib/api/fraud/resolve-fraud-groups";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
+import { trackApplicationEvents } from "@/lib/application-events/update-application-event";
+import { prisma } from "@/lib/prisma";
 import { bulkRejectPartnersSchema } from "@/lib/zod/schemas/partners";
 import { sendBatchEmail } from "@dub/email";
 import PartnerApplicationRejected from "@dub/email/templates/partner-application-rejected";
-import { prisma } from "@dub/prisma";
-import { ProgramEnrollmentStatus } from "@dub/prisma/client";
+import { ProgramEnrollmentStatus } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
 import { throwIfNoPermission } from "../throw-if-no-permission";
@@ -63,6 +64,7 @@ export const bulkRejectPartnerApplicationsAction = authActionClient
           clickRewardId: null,
           leadRewardId: null,
           saleRewardId: null,
+          referralRewardId: null,
           discountId: null,
         },
       });
@@ -87,20 +89,20 @@ export const bulkRejectPartnerApplicationsAction = authActionClient
     waitUntil(
       (async () => {
         await Promise.allSettled([
-          recordAuditLog(
+          trackActivityLog(
             programEnrollments.map(({ partner }) => ({
               workspaceId: workspace.id,
               programId,
+              resourceType: "partner",
+              resourceId: partner.id,
+              userId: user.id,
               action: "partner_application.rejected",
-              description: `Partner application rejected for ${partner.id}`,
-              actor: user,
-              targets: [
-                {
-                  type: "partner",
-                  id: partner.id,
-                  metadata: partner,
+              changeSet: {
+                status: {
+                  old: "pending",
+                  new: "rejected",
                 },
-              ],
+              },
             })),
           ),
 
@@ -115,6 +117,12 @@ export const bulkRejectPartnerApplicationsAction = authActionClient
             userId: user.id,
             resolutionReason:
               "Resolved automatically because the partner application was rejected.",
+          }),
+
+          trackApplicationEvents({
+            event: "rejected",
+            programId,
+            partnerIds: programEnrollments.map(({ partner }) => partner.id),
           }),
         ]);
 
@@ -152,7 +160,7 @@ export const bulkRejectPartnerApplicationsAction = authActionClient
                 },
                 rejectionReason: undefined,
                 additionalNotes: undefined,
-                canReapplyImmediately: false,
+                reapplicationTimeframe: "standard",
               }),
             })),
           );

@@ -1,14 +1,14 @@
-import { deleteDiscountCodes } from "@/lib/api/discounts/delete-discount-code";
 import { linkCache } from "@/lib/api/links/cache";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { syncTotalCommissions } from "@/lib/api/partners/sync-total-commissions";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { withCron } from "@/lib/cron/with-cron";
+import { deleteDiscountCodes } from "@/lib/discounts/delete-discount-code";
+import { prisma } from "@/lib/prisma";
 import { recordLink } from "@/lib/tinybird";
 import { BAN_PARTNER_REASONS } from "@/lib/zod/schemas/partners";
 import { sendEmail } from "@dub/email";
 import PartnerBanned from "@dub/email/templates/partner-banned";
-import { prisma } from "@dub/prisma";
 import * as z from "zod/v4";
 import { logAndRespond } from "../../utils";
 import { cancelCommissions } from "./cancel-commissions";
@@ -24,21 +24,23 @@ export const POST = withCron(async ({ rawBody }) => {
 
   console.info(`Banning partner ${partnerId} from program ${programId}...`);
 
-  const { partner, links, program, ...programEnrollment } =
+  const { partner, links, program, discountCodes, ...programEnrollment } =
     await getProgramEnrollmentOrThrow({
       partnerId,
       programId,
       include: {
         partner: true,
         links: {
-          include: {
-            ...includeTags,
-            discountCode: true,
-          },
+          include: includeTags,
         },
         program: {
           select: {
             workspaceId: true,
+          },
+        },
+        discountCodes: {
+          include: {
+            discount: true,
           },
         },
       },
@@ -55,7 +57,7 @@ export const POST = withCron(async ({ rawBody }) => {
     partnerId,
   };
 
-  const [linksUpdated, bountySubmissions, discountCodes, payouts] =
+  const [linksUpdated, bountySubmissions, discountCodesDeleted, payouts] =
     await prisma.$transaction([
       // Disable links
       prisma.link.updateMany({
@@ -108,7 +110,7 @@ export const POST = withCron(async ({ rawBody }) => {
 
   console.info(`Disabled ${linksUpdated.count} links.`);
   console.info(`Rejected ${bountySubmissions.count} bounty submissions.`);
-  console.info(`Removed ${discountCodes.count} discount codes.`);
+  console.info(`Removed ${discountCodesDeleted.count} discount codes.`);
   console.info(`Canceled ${payouts.count} payouts.`);
 
   // Mark the commissions as canceled
@@ -132,7 +134,7 @@ export const POST = withCron(async ({ rawBody }) => {
     recordLink(links, { deleted: true }),
 
     // Queue discount code deletions
-    deleteDiscountCodes(links.map((link) => link.discountCode)),
+    deleteDiscountCodes(discountCodes, { isSoftDelete: true }),
   ]);
 
   // Send email

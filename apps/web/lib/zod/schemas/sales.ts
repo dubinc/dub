@@ -38,7 +38,16 @@ export const trackSaleRequestSchema = z.object({
     )
     .meta({ example: "Invoice paid" }),
   paymentProcessor: z
-    .enum(["stripe", "shopify", "polar", "paddle", "revenuecat", "custom"])
+    .enum([
+      "stripe",
+      "shopify",
+      "polar",
+      "paddle",
+      "apple",
+      "revenuecat",
+      "dub",
+      "custom",
+    ])
     .default("custom")
     .describe("The payment processor via which the sale was made."),
   invoiceId: z
@@ -155,6 +164,7 @@ export const saleEventSchemaTBEndpoint = z.object({
   device: z.string().nullable(),
   browser: z.string().nullable(),
   os: z.string().nullable(),
+  ua: z.string().nullish(),
   trigger: z.string().nullish(), // backwards compatibility
   referer: z.string().nullable(),
   referer_url: z.string().nullable(),

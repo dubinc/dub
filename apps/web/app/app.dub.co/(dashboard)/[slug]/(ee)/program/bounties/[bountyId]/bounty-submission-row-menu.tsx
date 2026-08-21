@@ -31,12 +31,8 @@ export function BountySubmissionRowMenu({
 
   const { setShowConfirmModal, confirmModal } = useConfirmModal({
     title: "Reopen submission",
-    description: (
-      <>
-        Are you sure you want to reopen this bounty submission? This will reset
-        the submission back to draft status.
-      </>
-    ),
+    description:
+      "Are you sure you want to reopen this bounty submission? This will reset the submission back to draft status.",
     confirmText: "Reopen",
     onConfirm: async () => {
       try {
@@ -74,7 +70,6 @@ export function BountySubmissionRowMenu({
                       set: {
                         submissionId: submission.id,
                       },
-                      scroll: false,
                     });
                     setIsOpen(false);
                   }}

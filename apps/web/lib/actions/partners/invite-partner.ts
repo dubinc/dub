@@ -4,6 +4,7 @@ import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { createAndEnrollPartner } from "@/lib/api/partners/create-and-enroll-partner";
 import { getGroupRewardsAndBounties } from "@/lib/api/partners/get-group-rewards-and-bounties";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
+import { throwIfPartnersLimitExceeded } from "@/lib/partners/throw-if-partners-limit-exceeded";
 import { invitePartnerSchema } from "@/lib/zod/schemas/partners";
 import { sendEmail } from "@dub/email";
 import ProgramInvite from "@dub/email/templates/program-invite";
@@ -64,6 +65,8 @@ export const invitePartnerAction = authActionClient
       throw new Error("No group ID provided and no default group ID found.");
     }
 
+    throwIfPartnersLimitExceeded(workspace);
+
     const enrolledPartner = await createAndEnrollPartner({
       workspace,
       program,
@@ -83,7 +86,7 @@ export const invitePartnerAction = authActionClient
 
     const sendPartnerInvitePromise = (async () => {
       try {
-        const rewardsAndBounties = await getGroupRewardsAndBounties({
+        const { rewards, bounties } = await getGroupRewardsAndBounties({
           programId,
           groupId: enrolledPartner.groupId || program.defaultGroupId,
         });
@@ -107,13 +110,15 @@ export const invitePartnerAction = authActionClient
               name: program.name,
               slug: program.slug,
               logo: program.logo,
+              website: program.url,
             },
             ...(inviteEmailData?.subject && {
               subject: inviteEmailData.subject,
             }),
             ...(inviteEmailData?.title && { title: inviteEmailData.title }),
             ...(inviteEmailData?.body && { body: inviteEmailData.body }),
-            ...rewardsAndBounties,
+            rewards,
+            bounties,
           }),
         });
       } catch (error) {

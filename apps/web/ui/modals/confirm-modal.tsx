@@ -3,9 +3,9 @@ import { Dispatch, ReactNode, SetStateAction, useState } from "react";
 
 type PromptModelProps = {
   title: string;
-  description?: ReactNode;
+  description: ReactNode | string;
 
-  onCancel?: () => void;
+  onCancel?: () => Promise<void> | void;
   cancelText?: string;
 
   onConfirm: () => Promise<void> | void;
@@ -41,6 +41,8 @@ function ConfirmModal({
   const [isLoading, setIsLoading] = useState(false);
 
   const handleConfirm = async () => {
+    if (isLoading) return;
+
     setIsLoading(true);
     try {
       await onConfirm();
@@ -50,8 +52,24 @@ function ConfirmModal({
     }
   };
 
+  const handleCancel = async () => {
+    if (isLoading) return;
+
+    setIsLoading(true);
+    try {
+      await onCancel?.();
+      setShowConfirmModal(false);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
-    <Modal showModal={showConfirmModal} setShowModal={setShowConfirmModal}>
+    <Modal
+      showModal={showConfirmModal}
+      setShowModal={setShowConfirmModal}
+      className="max-w-md"
+    >
       {showConfirmModal && confirmShortcut && (
         <KeyboardShortcut
           confirmShortcut={confirmShortcut}
@@ -59,28 +77,25 @@ function ConfirmModal({
           confirmShortcutOptions={confirmShortcutOptions}
         />
       )}
-      <div className="p-5 text-left">
-        <h3 className="text-content-emphasis text-base font-semibold">
-          {title}
-        </h3>
-        {description && (
-          <div className="text-content-subtle mt-1 text-sm">{description}</div>
-        )}
+      <div className="divide-y divide-neutral-200">
+        <div className="p-4 sm:px-6">
+          <h3 className="text-content-emphasis text-lg font-medium">{title}</h3>
+        </div>
+        <div className="px-4 py-6 text-sm text-neutral-600 sm:px-6">
+          {description}
+        </div>
       </div>
-
-      <div className="border-border-subtle flex items-center justify-end gap-2 border-t px-5 py-4">
+      <div className="flex items-center justify-end gap-2 border-t border-neutral-200 px-4 py-4 sm:px-6">
         <Button
           variant="secondary"
-          className="h-8 w-fit px-3"
+          className="h-8 w-fit"
           text={cancelText}
-          onClick={() => {
-            onCancel?.();
-            setShowConfirmModal(false);
-          }}
+          disabled={isLoading}
+          onClick={handleCancel}
         />
         <Button
           variant={confirmVariant}
-          className="h-8 w-fit px-3"
+          className="h-8 w-fit"
           text={confirmText}
           loading={isLoading}
           shortcut={

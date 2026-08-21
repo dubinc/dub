@@ -15,7 +15,6 @@ import {
   Button,
   buttonVariants,
   CircleCheck,
-  CircleCheckFill,
   Grid,
   LoadingSpinner,
   Sheet,
@@ -28,6 +27,7 @@ import { FormProvider, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import useSWR, { mutate } from "swr";
 import * as z from "zod/v4";
+import { useTrackApplyStart } from "../application-analytics";
 import { ProgramApplicationFormField } from "./groups/design/application-form/fields";
 import { formDataForApplicationFormData } from "./groups/design/application-form/form-data-for-application-form-data";
 import { PartnerAvatar } from "./partner-avatar";
@@ -103,6 +103,7 @@ function ProgramApplicationSheetForm({
   group: z.infer<typeof PartnerProgramGroupSchema>;
 }) {
   const { partner } = usePartnerProfile();
+  const trackApplyStart = useTrackApplyStart();
 
   const form = useForm<FormData>({
     defaultValues: {
@@ -128,7 +129,14 @@ function ProgramApplicationSheetForm({
   });
 
   const onSubmit = async (data: FormData) => {
-    if (!group || !program || !partner?.email || !partner.country) return;
+    if (!group || !program || !partner?.email) return;
+
+    if (!partner.country) {
+      toast.error(
+        "You haven't set your country yet. Please contact support to apply.",
+      );
+      return;
+    }
 
     const result = await executeAsync({
       ...data,
@@ -153,6 +161,7 @@ function ProgramApplicationSheetForm({
   return (
     <FormProvider {...form}>
       <form
+        onInputCapture={trackApplyStart}
         onSubmit={handleSubmit(onSubmit)}
         className={cn(
           "flex h-full flex-col transition-opacity duration-200",
@@ -293,7 +302,7 @@ function ProgramApplicationSheetForm({
               className="-ml-4 size-20 rotate-[15deg] drop-shadow-md"
             />
             <div className="absolute -bottom-2 left-1/2 z-10 -translate-x-1/2 rounded-full bg-white p-0.5">
-              <CircleCheckFill className="size-8 text-green-500" />
+              <CircleCheck variant="fill" className="size-8 text-green-500" />
             </div>
           </div>
           <span className="mt-6 block text-base font-semibold text-neutral-900">
@@ -305,9 +314,7 @@ function ProgramApplicationSheetForm({
           </p>
           <Link
             href={
-              backDestination === "marketplace"
-                ? "/programs/marketplace"
-                : "/programs"
+              backDestination === "marketplace" ? "/marketplace" : "/programs"
             }
             className={cn(
               buttonVariants({ variant: "primary" }),

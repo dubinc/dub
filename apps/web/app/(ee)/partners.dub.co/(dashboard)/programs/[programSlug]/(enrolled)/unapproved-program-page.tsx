@@ -53,7 +53,7 @@ export function UnapprovedProgramPage({
   const badge = PartnerStatusBadges[programEnrollment.status];
 
   const { setShowConfirmModal, confirmModal } = useConfirmModal({
-    title: "Withdraw Application",
+    title: "Withdraw application",
     description: `Are you sure you want to withdraw your application for ${programEnrollment.program.name}? This will delete your application completely and you'll have to re-apply if you want to join again.`,
     confirmText: "Withdraw application",
     onConfirm: async () => {
@@ -105,7 +105,7 @@ export function UnapprovedProgramPage({
             <div className="mt-6">
               <Button
                 variant="secondary"
-                text="Withdraw Application"
+                text="Withdraw application"
                 onClick={() => setShowConfirmModal(true)}
                 className="h-8 px-2.5"
               />

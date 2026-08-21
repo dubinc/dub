@@ -1,4 +1,4 @@
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 
 export async function appUninstalled({ shopDomain }: { shopDomain: string }) {
   await prisma.project.update({

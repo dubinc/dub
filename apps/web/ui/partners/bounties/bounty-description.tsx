@@ -3,7 +3,13 @@ import { Markdown } from "@/ui/shared/markdown";
 import { PROSE_STYLES } from "@dub/ui";
 import { cn } from "@dub/utils";
 
-export function BountyDescription({ bounty }: { bounty: PartnerBountyProps }) {
+export function BountyDescription({
+  bounty,
+  embed,
+}: {
+  bounty: PartnerBountyProps;
+  embed?: boolean;
+}) {
   const description = bounty.description?.trim();
 
   if (!description) {
@@ -21,6 +27,7 @@ export function BountyDescription({ bounty }: { bounty: PartnerBountyProps }) {
           className={cn(
             PROSE_STYLES.default,
             "text-content-subtle text-sm font-normal",
+            embed && "dark:prose-invert dark:prose-a:text-neutral-100",
           )}
         >
           {description}

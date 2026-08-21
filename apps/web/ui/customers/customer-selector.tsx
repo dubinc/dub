@@ -1,8 +1,7 @@
 import useCustomers from "@/lib/swr/use-customers";
-import { CUSTOMERS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/customers";
 import { Combobox, ComboboxProps } from "@dub/ui";
 import { cn } from "@dub/utils";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useDebounce } from "use-debounce";
 import {
   AddCustomerModal,
@@ -25,12 +24,11 @@ export function CustomerSelector({
   ...rest
 }: CustomerSelectorProps) {
   const [search, setSearch] = useState("");
-  const [useAsync, setUseAsync] = useState(false);
   const [debouncedSearch] = useDebounce(search, 500);
   const [openPopover, setOpenPopover] = useState(false);
 
   const { customers, loading } = useCustomers({
-    query: useAsync ? { search: debouncedSearch } : undefined,
+    query: { search: debouncedSearch },
   });
 
   const { customers: selectedCustomers, loading: selectedCustomersLoading } =
@@ -39,12 +37,6 @@ export function CustomerSelector({
         ? { customerIds: [selectedCustomerId] }
         : undefined,
     });
-
-  useEffect(() => {
-    if (customers && !useAsync && customers.length >= CUSTOMERS_MAX_PAGE_SIZE) {
-      setUseAsync(true);
-    }
-  }, [customers, useAsync]);
 
   const [showAddCustomerModal, setShowAddCustomerModal] = useState(false);
   const [initialData, setInitialData] = useState<
@@ -75,7 +67,7 @@ export function CustomerSelector({
     if (!customer) return null;
 
     return {
-      value: customer.id,
+      value: customer.email || customer.id,
       label: customer.name || customer.email || customer.externalId,
       icon: (
         <span className="shrink-0 text-neutral-600">
@@ -133,7 +125,7 @@ export function CustomerSelector({
             return true;
           },
         })}
-        shouldFilter={!useAsync}
+        shouldFilter={false}
         matchTriggerWidth
         open={openPopover}
         onOpenChange={setOpenPopover}

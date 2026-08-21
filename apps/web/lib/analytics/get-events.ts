@@ -1,6 +1,6 @@
+import { prisma } from "@/lib/prisma";
 import { tb } from "@/lib/tinybird";
-import { prisma } from "@dub/prisma";
-import { Link } from "@dub/prisma/client";
+import { Link } from "@prisma/client";
 import * as z from "zod/v4";
 import { decodeLinkIfCaseSensitive } from "../api/links/case-sensitivity";
 import { transformLink } from "../api/links/utils/transform-link";
@@ -49,6 +49,8 @@ export const getEvents = async (params: EventsFilters) => {
     dataAvailableFrom,
     query,
     includeMetadata = true,
+    page,
+    limit,
   } = params;
 
   const { startDate, endDate } = getStartEndDates({
@@ -95,6 +97,7 @@ export const getEvents = async (params: EventsFilters) => {
   const allFilters = [...metadataFilters, ...advancedFilters];
 
   const partnerIdFilter = ensureParsedFilter(params.partnerId);
+  const partnerTagIdFilter = ensureParsedFilter(params.partnerTagId);
   const linkIdFilter = ensureParsedFilter(params.linkId);
   const folderIdFilter = ensureParsedFilter(params.folderId);
 
@@ -109,6 +112,8 @@ export const getEvents = async (params: EventsFilters) => {
     folderIdOperator,
     partnerId: partnerIdParam,
     partnerIdOperator,
+    partnerTagId: partnerTagIdParam,
+    partnerTagIdOperator,
     groupId: groupIdParam,
     groupIdOperator,
     tenantId: tenantIdParam,
@@ -116,6 +121,7 @@ export const getEvents = async (params: EventsFilters) => {
   } = extractWorkspaceLinkFilters({
     ...params,
     partnerId: partnerIdFilter,
+    partnerTagId: partnerTagIdFilter,
     linkId: linkIdFilter,
     folderId: folderIdFilter,
   });
@@ -131,6 +137,8 @@ export const getEvents = async (params: EventsFilters) => {
     folderIdOperator,
     partnerId: partnerIdParam,
     partnerIdOperator,
+    partnerTagId: partnerTagIdParam,
+    partnerTagIdOperator,
     tenantId: tenantIdParam,
     tenantIdOperator,
     groupId: groupIdParam,
@@ -149,8 +157,8 @@ export const getEvents = async (params: EventsFilters) => {
     ...(params.root !== undefined ? { root: params.root } : {}),
     ...(params.saleType ? { saleType: params.saleType } : {}),
     order: sortOrder,
-    offset: (params.page - 1) * params.limit,
-    limit: params.limit,
+    offset: (page - 1) * limit,
+    limit,
     sortBy: params.sortBy,
     start: formatUTCDateTimeClickhouse(startDate),
     end: formatUTCDateTimeClickhouse(endDate),

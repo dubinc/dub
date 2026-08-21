@@ -1,3 +1,4 @@
+import { captureWebhookLog } from "@/lib/api-logs/capture-webhook-log";
 import { trackLead } from "@/lib/api/conversions/track-lead";
 import { trackSale } from "@/lib/api/conversions/track-sale";
 import { isLocalDev } from "@/lib/api/environment";
@@ -7,21 +8,31 @@ import { withAxiom } from "@/lib/axiom/server";
 import { appsflyerAmountToDubCents } from "@/lib/integrations/appsflyer/amount-to-dub-cents";
 import { APPSFLYER_IP_RANGES } from "@/lib/integrations/appsflyer/constants";
 import { isIpInRange } from "@/lib/middleware/utils/is-ip-in-range";
+import { prisma } from "@/lib/prisma";
 import { trackLeadRequestSchema } from "@/lib/zod/schemas/leads";
 import { trackSaleRequestSchema } from "@/lib/zod/schemas/sales";
-import { prisma } from "@dub/prisma";
 import { APPSFLYER_INTEGRATION_ID, getSearchParams } from "@dub/utils";
-import { NextResponse } from "next/server";
+import { Project } from "@prisma/client";
+import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
+import { logAndRespond } from "../../cron/utils";
 
 const querySchema = z.object({
   appId: z.string(),
-  partnerEventId: z.string(),
+  partnerEventId: z.string().nullish(),
   eventValue: z.string().nullish(),
 });
 
 // GET /api/appsflyer/webhook – listen to Postback events from AppsFlyer
 export const GET = withAxiom(async (req) => {
+  const startTime = Date.now();
+  let response = "OK";
+  let queryParams: Record<string, string> | null = null;
+  let workspace: Pick<
+    Project,
+    "id" | "stripeConnectId" | "webhookEnabled"
+  > | null = null;
+
   try {
     if (!isLocalDev) {
       const ip = await getIP();
@@ -37,12 +48,14 @@ export const GET = withAxiom(async (req) => {
       }
     }
 
-    const queryParams = getSearchParams(req.url);
+    queryParams = getSearchParams(req.url);
 
     const { appId, partnerEventId } = querySchema.parse(queryParams);
 
-    if (!["lead", "sale"].includes(partnerEventId)) {
-      return NextResponse.json("partnerEventId is not supported. Skipping...");
+    if (!partnerEventId || !["lead", "sale"].includes(partnerEventId)) {
+      return logAndRespond(
+        `"${partnerEventId}" is not a valid partner event ID (accepted values: "lead", "sale"). Skipping...`,
+      );
     }
 
     // Find the installation
@@ -68,9 +81,11 @@ export const GET = withAxiom(async (req) => {
     if (!installation) {
       throw new DubApiError({
         code: "bad_request",
-        message: "AppsFlyer integration is not configured for this app.",
+        message: `AppsFlyer integration is not configured for the appId: "${appId}". Did you add the app ID to the AppsFlyer integration settings?`,
       });
     }
+
+    workspace = installation.project;
 
     // Track lead event
     if (partnerEventId === "lead") {
@@ -83,7 +98,7 @@ export const GET = withAxiom(async (req) => {
         customerAvatar,
       } = trackLeadRequestSchema.parse(queryParams);
 
-      await trackLead({
+      const leadResponse = await trackLead({
         clickId,
         eventName,
         customerExternalId,
@@ -93,15 +108,14 @@ export const GET = withAxiom(async (req) => {
         eventQuantity: undefined,
         mode: undefined,
         metadata: null,
-        workspace: installation.project,
-        rawBody: queryParams,
+        workspace,
       });
 
-      return NextResponse.json("Lead event tracked successfully.");
+      response = JSON.stringify(leadResponse);
     }
 
     // Track sale event
-    if (partnerEventId === "sale") {
+    else if (partnerEventId === "sale") {
       const amountInCents = appsflyerAmountToDubCents(queryParams.amount);
       const { eventName, customerExternalId, amount, currency, invoiceId } =
         trackSaleRequestSchema.parse({
@@ -109,7 +123,7 @@ export const GET = withAxiom(async (req) => {
           ...(amountInCents !== undefined && { amount: amountInCents }),
         });
 
-      await trackSale({
+      const saleResponse = await trackSale({
         customerExternalId,
         amount,
         currency,
@@ -118,16 +132,45 @@ export const GET = withAxiom(async (req) => {
         invoiceId,
         leadEventName: undefined,
         metadata: null,
-        workspace: installation.project,
-        rawBody: queryParams,
+        workspace,
       });
 
-      return NextResponse.json("Sale event tracked successfully.");
+      response = JSON.stringify(saleResponse);
     }
 
-    return NextResponse.json("OK");
+    waitUntil(
+      captureWebhookLog({
+        workspaceId: workspace.id,
+        method: req.method,
+        path: "/appsflyer/webhook",
+        statusCode: 200,
+        duration: Date.now() - startTime,
+        requestBody: queryParams,
+        responseBody: response,
+        userAgent: req.headers.get("user-agent"),
+      }),
+    );
+
+    return logAndRespond(response);
   } catch (error) {
-    return handleAndReturnErrorResponse(error);
+    const errorResponse = handleAndReturnErrorResponse(error);
+
+    if (workspace) {
+      waitUntil(
+        captureWebhookLog({
+          workspaceId: workspace.id,
+          method: req.method,
+          path: "/appsflyer/webhook",
+          statusCode: errorResponse.status,
+          duration: Date.now() - startTime,
+          requestBody: queryParams,
+          responseBody: errorResponse,
+          userAgent: req.headers.get("user-agent"),
+        }),
+      );
+    }
+
+    return errorResponse;
   }
 });
 

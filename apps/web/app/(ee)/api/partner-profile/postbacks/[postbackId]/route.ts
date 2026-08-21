@@ -1,11 +1,11 @@
-import { getPostbackOrThrow } from "@/lib/api/postbacks/get-postback-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withPartnerProfile } from "@/lib/auth/partner";
+import { getPostbackOrThrow } from "@/lib/postback/get-postback-or-throw";
 import {
   postbackSchema,
   updatePostbackInputSchema,
 } from "@/lib/postback/schemas";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
 // GET /api/partner-profile/postbacks/[postbackId]

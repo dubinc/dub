@@ -1,6 +1,6 @@
+import { prisma } from "@/lib/prisma";
 import { sanitizeSocialHandle, sanitizeWebsite } from "@/lib/social-utils";
-import { prisma } from "@dub/prisma";
-import { youtubeChannelSchema } from "app/(ee)/api/cron/partner-platforms/youtube/youtube-channel-schema";
+import { youtubeChannelSchema } from "@/lib/youtube/schema";
 import "dotenv-flow/config";
 
 async function main() {

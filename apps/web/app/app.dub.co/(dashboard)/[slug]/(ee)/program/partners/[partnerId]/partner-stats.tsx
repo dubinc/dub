@@ -1,6 +1,6 @@
-import { EnrolledPartnerProps } from "@/lib/types";
-import { ArrowUpRight2 } from "@dub/ui";
-import { cn, currencyFormatter, nFormatter } from "@dub/utils";
+import { EnrolledPartnerExtendedProps } from "@/lib/types";
+import { ArrowUpRight2, TimestampTooltip } from "@dub/ui";
+import { cn, currencyFormatter, nFormatter, timeAgo } from "@dub/utils";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 
@@ -8,10 +8,29 @@ export function PartnerStats({
   partner,
   error,
 }: {
-  partner?: EnrolledPartnerProps;
+  partner?: EnrolledPartnerExtendedProps;
   error?: boolean;
 }) {
   const { slug } = useParams() as { slug: string };
+
+  const lastLeadDate = partner?.lastLeadAt
+    ? new Date(partner.lastLeadAt)
+    : null;
+  const lastConversionDate = partner?.lastConversionAt
+    ? new Date(partner.lastConversionAt)
+    : null;
+  const approved = partner?.status === "approved";
+  const leadsLastAt =
+    approved && lastLeadDate && !Number.isNaN(lastLeadDate.getTime())
+      ? lastLeadDate
+      : undefined;
+  const conversionsLastAt =
+    approved &&
+    lastConversionDate &&
+    !Number.isNaN(lastConversionDate.getTime())
+      ? lastConversionDate
+      : undefined;
+
   return (
     <div className="@container/stats">
       <div
@@ -31,7 +50,7 @@ export function PartnerStats({
                 ? "-"
                 : undefined,
             href: partner?.id
-              ? `/${slug}/events?event=clicks&partnerId=${partner.id}&interval=1y`
+              ? `/${slug}/events?event=clicks&partnerId=${partner.id}&interval=all`
               : undefined,
           },
           {
@@ -44,8 +63,9 @@ export function PartnerStats({
                 ? "-"
                 : undefined,
             href: partner?.id
-              ? `/${slug}/events?event=leads&partnerId=${partner.id}&interval=1y`
+              ? `/${slug}/events?event=leads&partnerId=${partner.id}&interval=all`
               : undefined,
+            lastAt: leadsLastAt,
           },
           {
             label: "Conversions",
@@ -57,8 +77,9 @@ export function PartnerStats({
                 ? "-"
                 : undefined,
             href: partner?.id
-              ? `/${slug}/events?event=sales&partnerId=${partner.id}&interval=1y&saleType=new`
+              ? `/${slug}/events?event=sales&partnerId=${partner.id}&interval=all&saleType=new`
               : undefined,
+            lastAt: conversionsLastAt,
           },
           {
             label: "Revenue",
@@ -72,7 +93,7 @@ export function PartnerStats({
                 ? "-"
                 : undefined,
             href: partner?.id
-              ? `/${slug}/events?event=sales&partnerId=${partner.id}&interval=1y`
+              ? `/${slug}/events?event=sales&partnerId=${partner.id}&interval=all`
               : undefined,
           },
           {
@@ -98,10 +119,10 @@ export function PartnerStats({
                 ? "-"
                 : undefined,
             href: partner?.id
-              ? `/${slug}/events?event=sales&partnerId=${partner.id}&interval=1y`
+              ? `/${slug}/events?event=sales&partnerId=${partner.id}&interval=all`
               : undefined,
           },
-        ].map(({ label, value, href }) => {
+        ].map(({ label, value, href, lastAt }) => {
           const As = href ? Link : "div";
           return (
             <As
@@ -119,6 +140,18 @@ export function PartnerStats({
                   {value}
                 </span>
               )}
+              {lastAt ? (
+                <TimestampTooltip
+                  timestamp={lastAt}
+                  rows={["local", "utc", "unix"]}
+                  side="top"
+                  delayDuration={250}
+                >
+                  <span className="text-content-muted absolute bottom-3 right-3 max-w-[calc(100%-1.5rem)] cursor-help text-right text-[0.6875rem] leading-tight underline decoration-neutral-300/70 decoration-dotted underline-offset-2 hover:decoration-neutral-400">
+                    Last {timeAgo(lastAt, { withAgo: true })}
+                  </span>
+                </TimestampTooltip>
+              ) : null}
             </As>
           );
         })}

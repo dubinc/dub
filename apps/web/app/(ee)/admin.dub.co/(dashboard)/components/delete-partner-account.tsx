@@ -20,7 +20,7 @@ export function DeletePartnerAccount() {
             return;
           }
 
-          await fetch("/api/admin/delete-partner-account", {
+          await fetch("/api/admin/partners/delete-account", {
             method: "POST",
             body: JSON.stringify({
               email: formData.get("email"),

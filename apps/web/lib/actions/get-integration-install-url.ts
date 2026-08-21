@@ -1,7 +1,10 @@
 "use server";
 
 import * as z from "zod/v4";
+import { googleAdsOAuthProvider } from "../integrations/google-ads/oauth";
+import { isGoogleAdsAllowedWorkspace } from "../integrations/google-ads/utils";
 import { hubSpotOAuthProvider } from "../integrations/hubspot/oauth";
+import { intercomOAuthProvider } from "../integrations/intercom/oauth";
 import { slackOAuthProvider } from "../integrations/slack/oauth";
 import { authActionClient } from "./safe-action";
 import { throwIfNoPermission } from "./throw-if-no-permission";
@@ -20,7 +23,7 @@ export const getIntegrationInstallUrl = authActionClient
 
     throwIfNoPermission({
       role: workspace.role,
-      requiredRoles: ["owner", "member"],
+      requiredPermissions: ["integrations.write"],
     });
 
     let url: string | null = null;
@@ -29,6 +32,16 @@ export const getIntegrationInstallUrl = authActionClient
       url = await slackOAuthProvider.generateAuthUrl(workspace.id);
     } else if (integrationSlug === "hubspot") {
       url = await hubSpotOAuthProvider.generateAuthUrl(workspace.id);
+    } else if (integrationSlug === "intercom") {
+      url = await intercomOAuthProvider.generateAuthUrl(workspace.id);
+    } else if (integrationSlug === "google-ads") {
+      if (!isGoogleAdsAllowedWorkspace(workspace.id)) {
+        throw new Error(
+          "Google Ads integration is not available for this workspace",
+        );
+      }
+
+      url = await googleAdsOAuthProvider.generateAuthUrl(workspace.id);
     } else {
       throw new Error("Invalid integration slug");
     }

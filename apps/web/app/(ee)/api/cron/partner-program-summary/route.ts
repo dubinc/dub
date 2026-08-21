@@ -1,6 +1,6 @@
 import { enqueueBatchJobs } from "@/lib/cron/enqueue-batch-jobs";
 import { withCron } from "@/lib/cron/with-cron";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { format, startOfMonth, subMonths } from "date-fns";
 import { logAndRespond } from "../utils";
@@ -20,6 +20,7 @@ export const GET = withCron(async () => {
 
   while (true) {
     const programs = await prisma.program.findMany({
+      where: { deactivatedAt: null },
       select: {
         id: true,
       },

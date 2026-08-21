@@ -33,7 +33,11 @@ export default function usePartnersCount<T>({
         },
       );
 
-  const { data: partnersCount, error } = useSWR<PartnersCount>(
+  const {
+    data: partnersCount,
+    error,
+    isValidating,
+  } = useSWR<PartnersCount>(
     enabled !== false && defaultProgramId
       ? `/api/partners/count${queryString}`
       : null,
@@ -47,5 +51,6 @@ export default function usePartnersCount<T>({
     partnersCount: partnersCount as T,
     error,
     loading: enabled !== false && !error && partnersCount === undefined,
+    isValidating,
   };
 }

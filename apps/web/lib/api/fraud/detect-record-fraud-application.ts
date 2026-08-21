@@ -1,7 +1,7 @@
+import { prisma } from "@/lib/prisma";
 import { CreateFraudEventInput, PartnerProps, ProgramProps } from "@/lib/types";
 import { INACTIVE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
-import { prisma } from "@dub/prisma";
-import { FraudRuleType } from "@dub/prisma/client";
+import { FraudRuleType } from "@prisma/client";
 import { createFraudEvents } from "./create-fraud-events";
 import { isFraudRuleEnabled } from "./get-merged-fraud-rules";
 
@@ -13,8 +13,7 @@ interface FraudApplicationContext {
   };
 }
 
-// Detect and record fraud events for the partner when they apply to a program
-// Checks for cross-program bans and duplicate payout methods
+// Detect and record fraud events for the partner when they apply to a program (partnerDuplicateAccount fraud rule)
 export async function detectAndRecordFraudApplication({
   context: { program, partner },
 }: {
@@ -33,7 +32,7 @@ export async function detectAndRecordFraudApplication({
   if (
     isFraudRuleEnabled({
       fraudRules,
-      ruleType: FraudRuleType.partnerDuplicatePayoutMethod,
+      ruleType: FraudRuleType.partnerDuplicateAccount,
     })
   ) {
     const { payoutMethodHash, cryptoWalletAddress } = partner;
@@ -61,18 +60,20 @@ export async function detectAndRecordFraudApplication({
             },
             select: {
               status: true,
+              riskMonitoringDisabledAt: true,
             },
           },
         },
       });
 
       if (duplicatePartners.length > 1) {
-        // For each partner, create fraud events pointing to all duplicates
         for (const sourcePartner of duplicatePartners) {
           const programEnrollment = sourcePartner.programs[0];
 
+          // Skip if the partner is inactive or risk detection is disabled
           if (
-            INACTIVE_ENROLLMENT_STATUSES.includes(programEnrollment?.status)
+            INACTIVE_ENROLLMENT_STATUSES.includes(programEnrollment.status) ||
+            programEnrollment.riskMonitoringDisabledAt
           ) {
             continue;
           }
@@ -81,7 +82,7 @@ export async function detectAndRecordFraudApplication({
             fraudEvents.push({
               programId: program.id,
               partnerId: sourcePartner.id,
-              type: FraudRuleType.partnerDuplicatePayoutMethod,
+              type: FraudRuleType.partnerDuplicateAccount,
               metadata: {
                 ...(payoutMethodHash ? { payoutMethodHash } : {}),
                 ...(cryptoWalletAddress ? { cryptoWalletAddress } : {}),

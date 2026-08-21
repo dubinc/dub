@@ -17,8 +17,8 @@ export default function Toolbar(props: ToolbarProps) {
           </div>
         )}
         {props.show?.includes("help") && (
-          <div className="shrink-0">
-            <HelpButton />
+          <div className="hidden shrink-0 md:block">
+            <HelpButton variant="secondary" />
           </div>
         )}
       </div>

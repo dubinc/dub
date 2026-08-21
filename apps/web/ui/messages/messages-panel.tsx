@@ -1,4 +1,9 @@
-import { Message, PartnerProps, ProgramProps } from "@/lib/types";
+import {
+  Message,
+  MessageAttachment,
+  PartnerProps,
+  ProgramProps,
+} from "@/lib/types";
 import {
   AnimatedSizeContainer,
   Check2,
@@ -9,8 +14,9 @@ import {
 } from "@dub/ui";
 import { OG_AVATAR_URL, cn, formatDateTime } from "@dub/utils";
 import { ChevronRight } from "lucide-react";
-import { Fragment, useMemo, useRef, useState } from "react";
-import { MessageInput } from "../shared/message-input";
+import { Fragment, ReactNode, useMemo, useRef, useState } from "react";
+import { MessageInput, PendingAttachment } from "../shared/message-input";
+import { MessageAttachmentsList } from "./message-attachments";
 import { MessageMarkdown } from "./message-markdown";
 
 interface Sender {
@@ -28,16 +34,35 @@ export function MessagesPanel({
   partner,
   onSendMessage,
   placeholder,
+  defaultValue,
   error,
+  footerSlot,
+  pendingAttachments,
+  onAddFiles,
+  onRemoveAttachment,
+  allowedFileTypes,
 }: {
   messages?: (Message & { delivered?: boolean })[];
   currentUserType: "partner" | "user";
   currentUserId: string;
   program?: Pick<ProgramProps, "logo" | "name">;
   partner?: Pick<PartnerProps, "name">;
-  onSendMessage: (message: string) => void;
+  onSendMessage: (
+    message: string,
+    attachments: Pick<
+      MessageAttachment,
+      "storageKey" | "name" | "size" | "type"
+    >[],
+  ) => void;
   placeholder?: string;
+  defaultValue?: string;
   error?: any;
+  /** When set, replaces the message composer (e.g. read-only enrollment states). */
+  footerSlot?: ReactNode;
+  pendingAttachments?: PendingAttachment[];
+  onAddFiles?: (files: File[]) => void;
+  onRemoveAttachment?: (id: string) => void;
+  allowedFileTypes?: readonly string[];
 }) {
   const { isMobile } = useMediaQuery();
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -54,10 +79,16 @@ export function MessagesPanel({
     [placeholder, currentUserType, program?.name, partner?.name],
   );
 
-  const sendMessage = (message: string) => {
+  const sendMessage = (
+    message: string,
+    attachments: Pick<
+      MessageAttachment,
+      "storageKey" | "name" | "size" | "type"
+    >[],
+  ) => {
     if (!messages) return false;
 
-    onSendMessage(message);
+    onSendMessage(message, attachments);
     scrollRef.current?.scrollTo({ top: 0 });
   };
 
@@ -93,142 +124,172 @@ export function MessagesPanel({
   return (
     <div className="flex size-full flex-col">
       {messages ? (
-        <div
-          ref={scrollRef}
-          className="scrollbar-hide flex grow flex-col-reverse overflow-y-auto"
-        >
-          <div className="flex flex-col items-stretch gap-2 p-6">
-            {messages?.map((message, idx) => {
-              const isNewDate =
-                idx === 0 || isMessageNewDate(message, messages[idx - 1]);
+        <>
+          <div
+            ref={scrollRef}
+            className="scrollbar-hide flex grow flex-col-reverse overflow-y-auto"
+          >
+            <div className="flex flex-col items-stretch gap-2 p-6">
+              {messages?.map((message, idx) => {
+                const isNewDate =
+                  idx === 0 || isMessageNewDate(message, messages[idx - 1]);
 
-              // If it's been more than 5 minutes since the last message
-              const isNewTime =
-                isNewDate || isMessageNewTime(message, messages[idx - 1]);
+                // If it's been more than 5 minutes since the last message
+                const isNewTime =
+                  isNewDate || isMessageNewTime(message, messages[idx - 1]);
 
-              const isMySide = isMessageMySide(message);
-              const isMe = isMessageFromMe(message);
+                const isMySide = isMessageMySide(message);
+                const isMe = isMessageFromMe(message);
 
-              // Only show avatar if it's the last from a side
-              const showAvatar =
-                idx === messages.length - 1 ||
-                !isMessageSameSender(message, messages[idx + 1]) ||
-                isMessageNewTime(message, messages[idx + 1]);
+                // Only show avatar if it's the last from a side
+                const showAvatar =
+                  idx === messages.length - 1 ||
+                  !isMessageSameSender(message, messages[idx + 1]) ||
+                  isMessageNewTime(message, messages[idx + 1]);
 
-              // Message is new if it was sent within the last 10 seconds (used for intro animations)
-              const isNew =
-                new Date(message.createdAt).getTime() >
-                new Date().getTime() - 10_000;
+                // Message is new if it was sent within the last 10 seconds (used for intro animations)
+                const isNew =
+                  new Date(message.createdAt).getTime() >
+                  new Date().getTime() - 10_000;
 
-              // only show status indicator for program owners
-              const showStatusIndicator =
-                currentUserType === "user" &&
-                isMySide &&
-                (idx === messages.length - 1 ||
-                  messages.slice(idx + 1).findIndex(isMessageMySide) === -1);
+                // only show status indicator for program owners
+                const showStatusIndicator =
+                  currentUserType === "user" &&
+                  isMySide &&
+                  (idx === messages.length - 1 ||
+                    messages.slice(idx + 1).findIndex(isMessageMySide) === -1);
 
-              const sender = message.senderPartner || message.senderUser;
+                const sender = message.senderPartner || message.senderUser;
 
-              const isFirstFromSender =
-                idx === 0 || !isMessageSameSender(message, messages[idx - 1]);
+                const isFirstFromSender =
+                  idx === 0 || !isMessageSameSender(message, messages[idx - 1]);
 
-              return (
-                <Fragment
-                  key={`${new Date(message.createdAt).getTime()}-${message.senderUserId}-${message.senderPartnerId}`}
-                >
-                  {isNewTime && (
-                    <div
-                      className={cn(
-                        "text-content-subtle text-center text-xs font-medium",
-                        idx > 0 && "pt-5",
-                        isNew && "animate-scale-in-fade",
-                        isNewDate && "text-content-default font-semibold",
-                      )}
-                    >
-                      {formatDateTime(
-                        message.createdAt,
-                        isNewDate
-                          ? undefined
-                          : {
-                              month: undefined,
-                              day: undefined,
-                              year: undefined,
-                            },
-                      )}
-                    </div>
-                  )}
-
-                  {message.type === "campaign" ? (
-                    <CampaignMessage
-                      message={message}
-                      isMySide={isMySide}
-                      isMe={isMe}
-                      sender={sender}
-                      showStatusIndicator={showStatusIndicator}
-                      isNewTime={isNewTime}
-                      isFirstFromSender={isFirstFromSender}
-                      isNew={isNew}
-                      program={program}
-                    />
-                  ) : (
-                    <div
-                      className={cn(
-                        "flex items-end gap-2",
-                        isMySide
-                          ? "origin-bottom-right flex-row-reverse"
-                          : "origin-bottom-left",
-                        isNew && "animate-scale-in-fade",
-                      )}
-                    >
-                      {/* Avatar */}
-                      {showAvatar ? (
-                        <MessageAvatar
-                          sender={sender}
-                          program={program}
-                          message={message}
-                        />
-                      ) : (
-                        <div className="size-8" />
-                      )}
-
+                return (
+                  <Fragment
+                    key={`${new Date(message.createdAt).getTime()}-${message.senderUserId}-${message.senderPartnerId}`}
+                  >
+                    {isNewTime && (
                       <div
                         className={cn(
-                          "flex min-w-0 flex-col items-start gap-1",
-                          isMySide && "items-end",
+                          "text-content-subtle text-center text-xs font-medium",
+                          idx > 0 && "pt-5",
+                          isNew && "animate-scale-in-fade",
+                          isNewDate && "text-content-default font-semibold",
                         )}
                       >
-                        {/* Name / timestamp */}
-                        <MessageHeader
-                          isMySide={isMySide}
-                          isMe={isMe}
-                          sender={sender}
-                          message={message}
-                          isNewTime={isNewTime}
-                          isFirstFromSender={isFirstFromSender}
-                          showStatusIndicator={showStatusIndicator}
-                          program={program}
-                        />
-                        {/* Message box */}
+                        {formatDateTime(
+                          message.createdAt,
+                          isNewDate
+                            ? undefined
+                            : {
+                                month: undefined,
+                                day: undefined,
+                                year: undefined,
+                              },
+                        )}
+                      </div>
+                    )}
+
+                    {message.type === "campaign" ? (
+                      <CampaignMessage
+                        message={message}
+                        isMySide={isMySide}
+                        isMe={isMe}
+                        sender={sender}
+                        showStatusIndicator={showStatusIndicator}
+                        isNewTime={isNewTime}
+                        isFirstFromSender={isFirstFromSender}
+                        isNew={isNew}
+                        program={program}
+                      />
+                    ) : (
+                      <div
+                        className={cn(
+                          "flex items-end gap-2",
+                          isMySide
+                            ? "origin-bottom-right flex-row-reverse"
+                            : "origin-bottom-left",
+                          isNew && "animate-scale-in-fade",
+                        )}
+                      >
+                        {/* Avatar */}
+                        {showAvatar ? (
+                          <MessageAvatar
+                            sender={sender}
+                            program={program}
+                            message={message}
+                          />
+                        ) : (
+                          <div className="size-8" />
+                        )}
+
                         <div
                           className={cn(
-                            "max-w-[min(100%,512px)] rounded-xl px-4 py-2.5 text-sm",
-                            isMySide
-                              ? "rounded-br bg-neutral-700"
-                              : "rounded-bl bg-neutral-100",
+                            "flex min-w-0 flex-col items-start gap-1",
+                            isMySide && "items-end",
                           )}
                         >
-                          <MessageMarkdown invert={isMySide}>
-                            {message.text}
-                          </MessageMarkdown>
+                          {/* Name / timestamp */}
+                          <MessageHeader
+                            isMySide={isMySide}
+                            isMe={isMe}
+                            sender={sender}
+                            message={message}
+                            isNewTime={isNewTime}
+                            isFirstFromSender={isFirstFromSender}
+                            showStatusIndicator={showStatusIndicator}
+                            program={program}
+                          />
+                          {/* Message bubble — text only */}
+                          {message.text && (
+                            <div
+                              className={cn(
+                                "max-w-[min(100%,512px)] rounded-xl px-4 py-2.5 text-sm",
+                                isMySide
+                                  ? "rounded-br bg-neutral-700"
+                                  : "rounded-bl bg-neutral-100",
+                              )}
+                            >
+                              <MessageMarkdown invert={isMySide}>
+                                {message.text}
+                              </MessageMarkdown>
+                            </div>
+                          )}
+                          {/* Attachments — rendered outside the bubble */}
+                          {message.attachments &&
+                            message.attachments.length > 0 && (
+                              <MessageAttachmentsList
+                                attachments={message.attachments}
+                                isMySide={isMySide}
+                              />
+                            )}
                         </div>
                       </div>
-                    </div>
-                  )}
-                </Fragment>
-              );
-            })}
+                    )}
+                  </Fragment>
+                );
+              })}
+            </div>
           </div>
-        </div>
+          {footerSlot ? (
+            <div className="border-border-subtle shrink-0 border-t">
+              {footerSlot}
+            </div>
+          ) : (
+            <div className="border-border-subtle border-t p-3 sm:p-6">
+              <MessageInput
+                placeholder={personalizedPlaceholder}
+                onSendMessage={sendMessage}
+                autoFocus={!isMobile}
+                attachments={pendingAttachments}
+                onAddFiles={onAddFiles}
+                onRemoveAttachment={onRemoveAttachment}
+                allowedFileTypes={allowedFileTypes}
+                defaultValue={defaultValue}
+              />
+            </div>
+          )}
+        </>
       ) : error ? (
         <div className="text-content-subtle flex size-full items-center justify-center text-sm font-medium">
           Failed to load messages
@@ -238,13 +299,6 @@ export function MessagesPanel({
           <LoadingSpinner />
         </div>
       )}
-      <div className="border-border-subtle border-t p-3 sm:p-6">
-        <MessageInput
-          placeholder={personalizedPlaceholder}
-          onSendMessage={sendMessage}
-          autoFocus={!isMobile}
-        />
-      </div>
     </div>
   );
 }
@@ -308,7 +362,7 @@ function MessageAvatar({
     <Tooltip content={avatarName}>
       <div className="relative shrink-0">
         <img
-          src={avatarImage ?? `${OG_AVATAR_URL}${avatarName}`}
+          src={avatarImage || `${OG_AVATAR_URL}${avatarName}`}
           alt={`${avatarName} avatar`}
           className="size-8 rounded-full"
           draggable={false}

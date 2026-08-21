@@ -1,6 +1,11 @@
 import { ReactNode } from "react";
 import { nFormatter } from "../../functions/nformatter";
 import { INFINITY_NUMBER } from "../misc";
+import {
+  getPlanLimitForPeriod,
+  getPlanPeriodSuffix,
+  PlanPeriod,
+} from "./plan-period-utils";
 import { PLANS } from "./pricing-plans";
 
 export const PRICING_PLAN_COMPARE_FEATURES: {
@@ -9,7 +14,11 @@ export const PRICING_PLAN_COMPARE_FEATURES: {
   features: {
     text:
       | string
-      | ((d: { id: string; plan: (typeof PLANS)[number] }) => ReactNode);
+      | ((d: {
+          id: string;
+          plan: (typeof PLANS)[number];
+          planPeriod?: PlanPeriod;
+        }) => ReactNode);
     href?: string;
     check?:
       | boolean
@@ -28,15 +37,23 @@ export const PRICING_PLAN_COMPARE_FEATURES: {
     href: "https://dub.co/links",
     features: [
       {
-        text: ({ plan }) => (
+        text: ({ plan, planPeriod = "monthly" }) => (
           <>
             <strong>
               {plan.name === "Enterprise"
                 ? "Unlimited"
-                : nFormatter(plan.limits.links)}
+                : nFormatter(
+                    getPlanLimitForPeriod({
+                      limit: plan.limits.links,
+                      planPeriod,
+                    }),
+                  )}
             </strong>{" "}
             new links
-            {plan.name === "Enterprise" ? "" : "/mo"}
+            {getPlanPeriodSuffix({
+              planPeriod,
+              isUnlimited: plan.name === "Enterprise",
+            })}
           </>
         ),
       },
@@ -155,15 +172,6 @@ export const PRICING_PLAN_COMPARE_FEATURES: {
           advanced: true,
           enterprise: true,
         },
-        text: "Unlimited partners",
-      },
-      {
-        check: {
-          default: false,
-          business: true,
-          advanced: true,
-          enterprise: true,
-        },
         text: "Automated global payouts",
         href: "https://dub.co/help/article/partner-payouts",
       },
@@ -174,7 +182,7 @@ export const PRICING_PLAN_COMPARE_FEATURES: {
           advanced: true,
           enterprise: true,
         },
-        text: ({ id, plan }) =>
+        text: ({ id, plan, planPeriod = "monthly" }) =>
           id === "free" || id === "pro" ? (
             "No partner payouts"
           ) : (
@@ -182,10 +190,18 @@ export const PRICING_PLAN_COMPARE_FEATURES: {
               <strong>
                 {plan.name === "Enterprise"
                   ? "Unlimited"
-                  : `$${nFormatter(plan.limits.payouts / 100)}`}
+                  : `$${nFormatter(
+                      getPlanLimitForPeriod({
+                        limit: plan.limits.payouts,
+                        planPeriod,
+                      }) / 100,
+                    )}`}
               </strong>{" "}
               partner payouts
-              {plan.name === "Enterprise" ? "" : "/mo"}
+              {getPlanPeriodSuffix({
+                planPeriod,
+                isUnlimited: plan.name === "Enterprise",
+              })}
             </>
           ),
       },
@@ -273,6 +289,27 @@ export const PRICING_PLAN_COMPARE_FEATURES: {
         text: ({ plan }) => (
           <>
             <strong>
+              {plan.limits.partners === 0
+                ? "No"
+                : plan.limits.partners === INFINITY_NUMBER
+                  ? "Unlimited"
+                  : nFormatter(plan.limits.partners)}
+            </strong>{" "}
+            partners
+          </>
+        ),
+        href: "https://dub.co/help/article/inviting-partners",
+      },
+      {
+        check: {
+          default: false,
+          business: true,
+          advanced: true,
+          enterprise: true,
+        },
+        text: ({ plan }) => (
+          <>
+            <strong>
               {plan.limits.groups === 0
                 ? "No"
                 : plan.limits.groups === INFINITY_NUMBER
@@ -280,6 +317,27 @@ export const PRICING_PLAN_COMPARE_FEATURES: {
                   : nFormatter(plan.limits.groups)}
             </strong>{" "}
             partner groups
+          </>
+        ),
+        href: "https://dub.co/help/article/partner-groups",
+      },
+      {
+        check: {
+          default: false,
+          business: true,
+          advanced: true,
+          enterprise: true,
+        },
+        text: ({ plan }) => (
+          <>
+            <strong>
+              {plan.limits.partnerTags === 0
+                ? "No"
+                : plan.limits.partnerTags === INFINITY_NUMBER
+                  ? "Unlimited"
+                  : nFormatter(plan.limits.partnerTags)}
+            </strong>{" "}
+            partner tags
           </>
         ),
         href: "https://dub.co/help/article/partner-groups",
@@ -299,8 +357,8 @@ export const PRICING_PLAN_COMPARE_FEATURES: {
           advanced: true,
           enterprise: true,
         },
-        text: "Partners API",
-        href: "https://dub.co/docs/api-reference/endpoint/create-a-partner",
+        text: "Partner referral rewards",
+        href: "https://dub.co/help/article/partner-referrals",
       },
       {
         check: {
@@ -309,6 +367,7 @@ export const PRICING_PLAN_COMPARE_FEATURES: {
           enterprise: true,
         },
         text: "Messaging center",
+        href: "https://dub.co/help/article/messaging-partners",
       },
       {
         check: {
@@ -317,6 +376,7 @@ export const PRICING_PLAN_COMPARE_FEATURES: {
           enterprise: true,
         },
         text: "Email campaigns",
+        href: "https://dub.co/help/article/email-campaigns",
       },
       {
         check: {
@@ -324,7 +384,17 @@ export const PRICING_PLAN_COMPARE_FEATURES: {
           advanced: true,
           enterprise: true,
         },
-        text: "Fraud & risk prevention",
+        text: "Social metrics bounties",
+        href: "https://dub.co/help/article/program-bounties#social-metrics",
+      },
+      {
+        check: {
+          default: false,
+          advanced: true,
+          enterprise: true,
+        },
+        text: "Risk monitoring",
+        href: "https://dub.co/help/article/risk-monitoring",
       },
       {
         check: {
@@ -344,15 +414,23 @@ export const PRICING_PLAN_COMPARE_FEATURES: {
         href: "https://dub.co/help/article/dub-analytics",
       },
       {
-        text: ({ plan }) => (
+        text: ({ plan, planPeriod = "monthly" }) => (
           <>
             <strong>
               {plan.name === "Enterprise"
                 ? "Unlimited"
-                : nFormatter(plan.limits.clicks)}
+                : nFormatter(
+                    getPlanLimitForPeriod({
+                      limit: plan.limits.clicks,
+                      planPeriod,
+                    }),
+                  )}
             </strong>{" "}
             tracked events
-            {plan.name === "Enterprise" ? "" : "/mo"}
+            {getPlanPeriodSuffix({
+              planPeriod,
+              isUnlimited: plan.name === "Enterprise",
+            })}
           </>
         ),
         href: "https://dub.co/help/article/dub-analytics-limits",
@@ -422,18 +500,6 @@ export const PRICING_PLAN_COMPARE_FEATURES: {
         },
         text: () => (
           <>
-            Premium <strong>dub.link</strong> domain
-          </>
-        ),
-        href: "https://dub.co/help/article/default-dub-domains#premium-dublink-domain",
-      },
-      {
-        check: {
-          default: true,
-          free: false,
-        },
-        text: () => (
-          <>
             Free <strong>.link</strong> domain
           </>
         ),
@@ -473,7 +539,7 @@ export const PRICING_PLAN_COMPARE_FEATURES: {
           enterprise: true,
         },
         text: "Event webhooks",
-        href: "https://dub.co/docs/concepts/webhooks/introduction",
+        href: "https://dub.co/docs/webhooks/introduction",
       },
     ],
   },
@@ -526,32 +592,21 @@ export const PRICING_PLAN_COMPARE_FEATURES: {
     href: "https://dub.co/contact/support",
     features: [
       {
-        text: ({ id }) => (
-          <>
-            <strong>
-              {
-                {
-                  free: "Basic support",
-                  pro: "Elevated support",
-                  business: "Priority support",
-                  advanced: "Priority via Slack",
-                  enterprise: "Priority with SLA",
-                }[id]
-              }
-            </strong>
-          </>
-        ),
+        text: ({ id }) =>
+          ({
+            free: "Community support",
+            pro: "Email support",
+            business: "Email support",
+            advanced: "Priority email support",
+            enterprise: "Slack support with SLA",
+          })[id],
       },
       {
         check: {
           default: false,
           enterprise: true,
         },
-        text: () => (
-          <>
-            <strong>Dedicated</strong> success manager
-          </>
-        ),
+        text: "Dedicated success manager",
       },
     ],
   },
