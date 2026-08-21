@@ -651,8 +651,10 @@ const createSaleCommissionSchema = z
         data.date != null && "date",
         data.saleAmount != null && "saleAmount",
         data.saleEventDate != null && "saleEventDate",
-        (data.invoiceId || data.sale?.invoiceId) && "invoiceId",
-        (data.productId || data.sale?.metadata?.productId) && "productId",
+        (data.invoiceId != null || data.sale?.invoiceId != null) &&
+          "invoiceId",
+        (data.productId != null || data.sale?.metadata?.productId != null) &&
+          "productId",
       ].filter((field): field is string => Boolean(field));
 
       if (conflicts.length > 0) {

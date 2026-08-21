@@ -689,6 +689,22 @@ test.describe("Sale commissions", () => {
         }),
       },
       {
+        name: "rejects empty invoiceId and productId when importing Stripe invoices",
+        body: {
+          type: "sale",
+          partnerId: "pn_test",
+          customerId: "cus_test",
+          importStripeInvoices: true,
+          invoiceId: "",
+          productId: "",
+        },
+        expected: apiError({
+          code: "unprocessable_entity",
+          message:
+            "custom: invoiceId: `invoiceId`, `productId` cannot be provided when `importStripeInvoices` is enabled.",
+        }),
+      },
+      {
         name: "rejects invalid paymentProcessor",
         body: {
           type: "sale",

@@ -1,6 +1,5 @@
 import "dotenv-flow/config";
 
-import { formatUTCDateTimeClickhouse } from "@/lib/analytics/utils/format-utc-datetime-clickhouse";
 import { prisma } from "@/lib/prisma";
 import { tb } from "@/lib/tinybird/client";
 import { CommissionType, Prisma } from "@prisma/client";
@@ -14,13 +13,11 @@ Create this once in Tinybird before running:
 SELECT event_id, metadata
 FROM dub_lead_events_mv
 WHERE event_id IN {{ Array(eventIds, 'String') }}
-  AND timestamp BETWEEN {{ DateTime(start) }} AND {{ DateTime(end) }}
   AND metadata != ''
 UNION ALL
 SELECT event_id, metadata
 FROM dub_sale_events_mv
 WHERE event_id IN {{ Array(eventIds, 'String') }}
-  AND timestamp BETWEEN {{ DateTime(start) }} AND {{ DateTime(end) }}
   AND metadata != ''
 */
 
@@ -29,14 +26,11 @@ const BATCH_SIZE = 1000;
 const THROTTLE_MS = 1000;
 const LAST_CURSOR_ID: string | null = null; // Paste the last printed cursor id here to resume after a crash.
 const USER_METADATA_MAX_CHARS = 10_000; // Matches metadataSchema in lib/zod/schemas/misc.ts
-const TIMESTAMP_PAD_MS = 86_400_000; // ±1 day: commission createdAt can lag Tinybird event timestamp
 
 const getEventsMetadata = tb.buildPipe({
   pipe: "internal_get_events_metadata",
   parameters: z.object({
     eventIds: z.string().array(),
-    start: z.string(),
-    end: z.string(),
   }),
   data: z.object({
     event_id: z.string(),
@@ -143,7 +137,6 @@ async function main() {
         id: true,
         eventId: true,
         type: true,
-        createdAt: true,
       },
       take: BATCH_SIZE,
       orderBy: {
@@ -161,20 +154,8 @@ async function main() {
       .map((c) => c.eventId)
       .filter((id): id is string => Boolean(id));
 
-    const start = new Date(
-      Math.min(...commissions.map((c) => c.createdAt.getTime())) -
-        TIMESTAMP_PAD_MS,
-    );
-
-    const end = new Date(
-      Math.max(...commissions.map((c) => c.createdAt.getTime())) +
-        TIMESTAMP_PAD_MS,
-    );
-
     const { data: tbRows } = await getEventsMetadata({
       eventIds,
-      start: formatUTCDateTimeClickhouse(start),
-      end: formatUTCDateTimeClickhouse(end),
     });
     const metadataByEventId = new Map(
       tbRows.map((row) => [row.event_id, row.metadata]),
