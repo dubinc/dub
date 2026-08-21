@@ -326,6 +326,7 @@ export const COMMISSION_EXPORT_COLUMNS = [
   { id: "currency", label: "Currency", type: "string", default: true },
   { id: "status", label: "Status", type: "string", default: true },
   { id: "invoiceId", label: "Invoice ID", type: "string", default: true },
+  { id: "description", label: "Description", type: "string", default: false },
   { id: "quantity", label: "Quantity", type: "number", default: true },
   { id: "createdAt", label: "Created at", type: "date", default: true },
   { id: "paidAt", label: "Paid at", type: "date", default: false },
