@@ -40,6 +40,16 @@ async function sleep(ms: number) {
   await new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+function parseMetadataObject(raw: string): Record<string, unknown> | null {
+  const parsed = JSON.parse(raw);
+
+  if (parsed === null || typeof parsed !== "object" || Array.isArray(parsed)) {
+    return null;
+  }
+
+  return parsed as Record<string, unknown>;
+}
+
 async function main() {
   console.log(
     `DRY_RUN=${DRY_RUN} BATCH_SIZE=${BATCH_SIZE} THROTTLE_MS=${THROTTLE_MS}`,
@@ -114,7 +124,11 @@ async function main() {
       }
 
       try {
-        const parsed = JSON.parse(raw) as Record<string, unknown>;
+        const parsed = parseMetadataObject(raw);
+        if (!parsed) {
+          batchSkipped++;
+          continue;
+        }
         updates.push({ id: commission.id, metadata: parsed });
       } catch (error) {
         batchErrors++;
