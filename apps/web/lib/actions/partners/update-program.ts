@@ -34,6 +34,7 @@ export const updateProgramAction = authActionClient
       minPayoutAmount,
       messagingEnabledAt,
       referralFormData,
+      invoiceSettings,
     } = parsedInput;
 
     throwIfNoPermission({
@@ -57,6 +58,20 @@ export const updateProgramAction = authActionClient
       programId,
     });
 
+    const normalizedInvoiceSettings = invoiceSettings
+      ? {
+          companyName: invoiceSettings.companyName || null,
+          address: invoiceSettings.address || null,
+          taxId: invoiceSettings.taxId || null,
+        }
+      : null;
+
+    const hasInvoiceSettings = Boolean(
+      normalizedInvoiceSettings?.companyName ||
+        normalizedInvoiceSettings?.address ||
+        normalizedInvoiceSettings?.taxId,
+    );
+
     const updatedProgram = await prisma.program.update({
       where: {
         id: programId,
@@ -71,6 +86,11 @@ export const updateProgramAction = authActionClient
             messagingEnabledAt === null) && { messagingEnabledAt }),
         ...(referralFormData !== undefined && {
           referralFormData: referralFormData ?? null,
+        }),
+        ...(invoiceSettings !== undefined && {
+          invoiceSettings: hasInvoiceSettings
+            ? normalizedInvoiceSettings
+            : null,
         }),
       },
     });

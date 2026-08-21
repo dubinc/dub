@@ -18,6 +18,7 @@ import { useAction } from "next-safe-action/hooks";
 import { useParams } from "next/navigation";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
+import TextareaAutosize from "react-textarea-autosize";
 import { toast } from "sonner";
 import { ProgramPayoutMethods } from "./program-payout-methods";
 import { ProgramPayoutModeSection } from "./program-payout-mode-section";
@@ -26,7 +27,11 @@ type ProgramPayoutSettingsSheetProps = {
   setIsOpen: Dispatch<SetStateAction<boolean>>;
 };
 
-type FormData = Pick<ProgramProps, "minPayoutAmount">;
+type FormData = Pick<ProgramProps, "minPayoutAmount"> & {
+  companyName: string;
+  address: string;
+  taxId: string;
+};
 
 function ProgramPayoutSettingsSheetContent({
   setIsOpen,
@@ -43,11 +48,19 @@ function ProgramPayoutSettingsSheetContent({
     formState: { isDirty, isValid, isSubmitting },
   } = useForm<FormData>({
     mode: "onBlur",
+    defaultValues: {
+      companyName: "",
+      address: "",
+      taxId: "",
+    },
   });
 
   useEffect(() => {
     if (program) {
       setValue("minPayoutAmount", program.minPayoutAmount);
+      setValue("companyName", program.invoiceSettings?.companyName ?? "");
+      setValue("address", program.invoiceSettings?.address ?? "");
+      setValue("taxId", program.invoiceSettings?.taxId ?? "");
     }
   }, [program, setValue]);
 
@@ -69,7 +82,12 @@ function ProgramPayoutSettingsSheetContent({
 
     await executeAsync({
       workspaceId,
-      ...data,
+      minPayoutAmount: data.minPayoutAmount,
+      invoiceSettings: {
+        companyName: data.companyName,
+        address: data.address,
+        taxId: data.taxId,
+      },
     });
   };
 
@@ -95,7 +113,7 @@ function ProgramPayoutSettingsSheetContent({
         </div>
       </div>
 
-      <div className="h-full divide-y divide-neutral-200 bg-neutral-50 p-4 sm:p-6">
+      <div className="min-h-0 flex-1 divide-y divide-neutral-200 overflow-y-auto bg-neutral-50 p-4 sm:p-6">
         {/* Payout holding period */}
         <div className="grid gap-3 pb-6">
           <div>
@@ -172,6 +190,66 @@ function ProgramPayoutSettingsSheetContent({
         {/* Payout methods */}
         <div className="py-6">
           <ProgramPayoutMethods />
+        </div>
+
+        {/* Invoice details */}
+        <div className="space-y-4 py-6">
+          <div>
+            <h4 className="text-base font-semibold leading-6 text-neutral-900">
+              Invoice details (optional)
+            </h4>
+            <p className="text-sm font-medium text-neutral-500">
+              This information replaces Dub's company details on partner payout
+              invoices.
+            </p>
+          </div>
+
+          <div>
+            <label
+              htmlFor="companyName"
+              className="text-sm font-medium text-neutral-900"
+            >
+              Company name
+            </label>
+            <div className="relative mt-1.5 rounded-md shadow-sm">
+              <input
+                id="companyName"
+                className="block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+                {...register("companyName")}
+              />
+            </div>
+          </div>
+
+          <div>
+            <label
+              htmlFor="address"
+              className="text-sm font-medium text-neutral-900"
+            >
+              Company address
+            </label>
+            <TextareaAutosize
+              id="address"
+              className="mt-1.5 block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+              minRows={3}
+              {...register("address")}
+            />
+          </div>
+
+          <div>
+            <label
+              htmlFor="taxId"
+              className="text-sm font-medium text-neutral-900"
+            >
+              Company ID
+            </label>
+            <div className="relative mt-1.5 rounded-md shadow-sm">
+              <input
+                id="taxId"
+                className="block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+                {...register("taxId")}
+              />
+            </div>
+          </div>
         </div>
 
         {program?.payoutMode !== "internal" && (

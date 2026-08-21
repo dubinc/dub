@@ -5,6 +5,7 @@ import {
   STABLECOIN_PAYOUT_FEE_RATE,
 } from "@/lib/constants/payouts";
 import { prisma } from "@/lib/prisma";
+import { programInvoiceSettingsSchema } from "@/lib/zod/schemas/programs";
 import {
   currencyFormatter,
   DUB_WORDMARK,
@@ -46,6 +47,7 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
           name: true,
           logo: true,
           supportEmail: true,
+          invoiceSettings: true,
         },
       },
     },
@@ -178,25 +180,78 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
         year: "numeric",
       });
 
+  const parsedInvoiceSettings = programInvoiceSettingsSchema.safeParse(
+    payout.program.invoiceSettings,
+  );
+  const programIssuer =
+    parsedInvoiceSettings.success &&
+    (parsedInvoiceSettings.data.companyName ||
+      parsedInvoiceSettings.data.address ||
+      parsedInvoiceSettings.data.taxId)
+      ? parsedInvoiceSettings.data
+      : null;
+
   const pdf = await renderToBuffer(
-    <Document>
+    <Document
+      title={`Payout invoice ${payout.id}`}
+      author={programIssuer?.companyName ?? "Dub Technologies INC"}
+      subject={
+        programIssuer
+          ? [programIssuer.address, programIssuer.taxId]
+              .filter(Boolean)
+              .join(" | ")
+          : "2261 Market Street STE 5906"
+      }
+    >
       <Page size="A4" style={tw("p-20 bg-white flex flex-col min-h-full")}>
         {/* Header */}
         <View style={tw("flex-row justify-between items-start mb-6")}>
           <Image src={DUB_WORDMARK} style={tw("w-20 h-10 mb-2")} />
           <View style={tw("text-right")}>
-            <Text style={tw("text-sm font-medium text-neutral-800 leading-6")}>
-              Dub Technologies INC
-            </Text>
-            <Text style={tw("text-sm text-neutral-500 leading-6")}>
-              2261 Market Street STE 5906
-            </Text>
-            <Text style={tw("text-sm text-neutral-500 leading-6")}>
-              San Francisco, CA 94114
-            </Text>
-            <Text style={tw("text-sm text-neutral-500 leading-6")}>
-              Tax ID: US EIN {process.env.DUB_EIN}
-            </Text>
+            {programIssuer ? (
+              <>
+                {programIssuer.companyName && (
+                  <Text
+                    style={tw("text-sm font-medium text-neutral-800 leading-6")}
+                  >
+                    {programIssuer.companyName}
+                  </Text>
+                )}
+                {programIssuer.address
+                  ?.split("\n")
+                  .filter((line) => line.length > 0)
+                  .map((line, index) => (
+                    <Text
+                      key={index}
+                      style={tw("text-sm text-neutral-500 leading-6")}
+                    >
+                      {line}
+                    </Text>
+                  ))}
+                {programIssuer.taxId && (
+                  <Text style={tw("text-sm text-neutral-500 leading-6")}>
+                    Company ID: {programIssuer.taxId}
+                  </Text>
+                )}
+              </>
+            ) : (
+              <>
+                <Text
+                  style={tw("text-sm font-medium text-neutral-800 leading-6")}
+                >
+                  Dub Technologies INC
+                </Text>
+                <Text style={tw("text-sm text-neutral-500 leading-6")}>
+                  2261 Market Street STE 5906
+                </Text>
+                <Text style={tw("text-sm text-neutral-500 leading-6")}>
+                  San Francisco, CA 94114
+                </Text>
+                <Text style={tw("text-sm text-neutral-500 leading-6")}>
+                  Tax ID: US EIN {process.env.DUB_EIN}
+                </Text>
+              </>
+            )}
             <Text style={tw("text-sm text-neutral-800 leading-6")}>
               Invoice Number: <Text style={tw("font-bold")}>{payout.id}</Text>
             </Text>
