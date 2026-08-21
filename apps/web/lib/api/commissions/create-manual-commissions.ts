@@ -506,8 +506,8 @@ async function recordEvents(args: RecordEventsArgs) {
       let saleAmount = sale?.amount ?? args.saleAmount;
 
       const eventMetadata = {
-        ...(productId ? { productId } : {}),
         ...(sale?.metadata ?? {}),
+        ...(productId ? { productId } : {}),
       };
 
       commissionMetadata = sale?.metadata ?? null;

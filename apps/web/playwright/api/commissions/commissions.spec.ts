@@ -311,7 +311,8 @@ test.describe("Sale commissions", () => {
 
   test("PATCH preserves metadata on the response", async ({ api, program }) => {
     const invoiceId = `INV_${nanoid()}`;
-    const metadata = { plan: "pro", campaign: "spring" };
+    // Avoid plan/productId keys that trigger sale reward modifiers.
+    const metadata = { campaign: "spring" };
 
     await withCommissionPartner(api, program, async (partnerId) => {
       expect(
@@ -338,13 +339,13 @@ test.describe("Sale commissions", () => {
 
       const { status, data } = await api.patch<CommissionResponse>(
         `/api/commissions/${commissionId}`,
-        { earnings: 2500 },
+        { earnings: 1111 },
       );
 
       expect(status).toEqual(200);
       expect(data).toMatchObject({
         id: commissionId,
-        earnings: 2500,
+        earnings: 1111,
         metadata,
       });
     });
