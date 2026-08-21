@@ -73,6 +73,16 @@ export const updateProgramAction = authActionClient
         normalizedInvoiceSettings?.taxId,
     );
 
+    const invoiceSettingsUpdate:
+      | Prisma.InputJsonValue
+      | typeof Prisma.DbNull
+      | undefined =
+      invoiceSettings === undefined
+        ? undefined
+        : hasInvoiceSettings && normalizedInvoiceSettings
+          ? normalizedInvoiceSettings
+          : Prisma.DbNull;
+
     const updatedProgram = await prisma.program.update({
       where: {
         id: programId,
@@ -88,10 +98,8 @@ export const updateProgramAction = authActionClient
         ...(referralFormData !== undefined && {
           referralFormData: referralFormData ?? null,
         }),
-        ...(invoiceSettings !== undefined && {
-          invoiceSettings: hasInvoiceSettings
-            ? normalizedInvoiceSettings
-            : Prisma.DbNull,
+        ...(invoiceSettingsUpdate !== undefined && {
+          invoiceSettings: invoiceSettingsUpdate,
         }),
       },
     });
