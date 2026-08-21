@@ -13,8 +13,8 @@ import { createPartner, deletePartner } from "../partners/helpers";
 test.describe.configure({ mode: "serial" });
 
 const invoiceSettings = {
-  companyName: `${randomName("invoice-co")} Inc`,
-  address: "100 Market Street, San Francisco, CA 94103",
+  companyName: "Acme Invoice Co",
+  address: "100 Market Street",
   taxId: "US-EIN-123456789",
 };
 
@@ -126,26 +126,56 @@ async function getPayoutInvoice(token: string, payoutId: string) {
   };
 }
 
+function decodePdfLiteralStrings(source: string) {
+  return [...source.matchAll(/\((?:\\.|[^\\)])*\)/g)]
+    .map((match) =>
+      match[0]
+        .slice(1, -1)
+        .replace(/\\n/g, "\n")
+        .replace(/\\r/g, "\r")
+        .replace(/\\t/g, "\t")
+        .replace(/\\(.)/g, "$1"),
+    )
+    .join("");
+}
+
+function decodePdfHexStrings(source: string) {
+  return [...source.matchAll(/<([0-9A-Fa-f]+)>/g)]
+    .map((match) => {
+      try {
+        return Buffer.from(match[1], "hex").toString("latin1");
+      } catch {
+        return "";
+      }
+    })
+    .join("");
+}
+
 function pdfContains(bytes: Uint8Array, value: string) {
   const raw = Buffer.from(bytes).toString("latin1");
-  if (raw.includes(value)) {
-    return true;
-  }
+  const chunks = [raw];
 
   for (const match of raw.matchAll(/stream\r?\n([\s\S]*?)\r?\nendstream/g)) {
     try {
-      const inflated = inflateSync(
-        Uint8Array.from(Buffer.from(match[1], "latin1")),
-      ).toString("utf8");
-      if (inflated.includes(value)) {
-        return true;
-      }
+      chunks.push(
+        inflateSync(Uint8Array.from(Buffer.from(match[1], "latin1"))).toString(
+          "latin1",
+        ),
+      );
     } catch {
       // stream is not flate-encoded
     }
   }
 
-  return false;
+  const haystack = [
+    ...chunks,
+    ...chunks.map(decodePdfLiteralStrings),
+    ...chunks.map(decodePdfHexStrings),
+  ].join("\n");
+  const compactHaystack = haystack.replace(/\s+/g, "");
+  const compactValue = value.replace(/\s+/g, "");
+
+  return haystack.includes(value) || compactHaystack.includes(compactValue);
 }
 
 test("GET /invoices/:payoutId – program invoice settings", async ({

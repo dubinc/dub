@@ -228,6 +228,13 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
       title={`Payout invoice ${payout.id}`}
       author="Dub Technologies INC"
       subject="2261 Market Street STE 5906"
+      keywords={[
+        programInvoiceSettings?.companyName,
+        programInvoiceSettings?.address,
+        programInvoiceSettings?.taxId,
+      ]
+        .filter(Boolean)
+        .join(", ")}
     >
       <Page size="A4" style={tw("p-20 bg-white flex flex-col min-h-full")}>
         {/* Header */}
