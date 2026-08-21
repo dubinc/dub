@@ -592,7 +592,7 @@ async function mergeSingleEnrollment({
       },
       targetPartner: {
         id: targetPartnerId,
-        tenantId: targetEnrollment?.tenantId ?? null,
+        tenantId: targetEnrollment?.tenantId ?? sourceEnrollment.tenantId,
         email: targetEmail,
       },
       targetAlreadyEnrolled: Boolean(targetEnrollment),
