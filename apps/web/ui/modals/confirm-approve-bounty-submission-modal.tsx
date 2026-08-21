@@ -89,7 +89,7 @@ function ConfirmApproveBountySubmissionModal({
           <span className="font-semibold text-neutral-900">
             {submission.partner.name}
           </span>
-          .
+          and notify them by email.
         </p>
       </div>
 

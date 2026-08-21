@@ -1,117 +1,91 @@
-import { prisma } from "@dub/prisma";
-import { Partner, PartnerPayoutMethod } from "@dub/prisma/client";
+import { prisma } from "@/lib/prisma";
 import "dotenv-flow/config";
 
-const BATCH_SIZE = 500;
-
+// Reconciles partners that ended up with payoutsEnabledAt set while defaultPayoutMethod is null.
 async function main() {
+  await scriptOne();
+  await scriptTwo();
+}
+
+// Backfills `defaultPayoutMethod` to "connect" for partners who have payouts enabled
+// via a Stripe Connect account but are missing a default payout method.
+async function scriptOne() {
+  const partners = await prisma.partner.findMany({
+    where: {
+      payoutsEnabledAt: {
+        not: null,
+      },
+      stripeConnectId: {
+        not: null,
+      },
+      defaultPayoutMethod: null,
+      paypalEmail: null,
+      stripeRecipientId: null,
+    },
+    select: {
+      id: true,
+      stripeConnectId: true,
+      stripeRecipientId: true,
+      paypalEmail: true,
+      payoutsEnabledAt: true,
+      defaultPayoutMethod: true,
+    },
+    orderBy: {
+      id: "asc",
+    },
+  });
+
+  console.table(partners);
+
+  if (partners.length === 0) {
+    console.log("No partners found");
+    return;
+  }
+
+  const { count } = await prisma.partner.updateMany({
+    where: {
+      id: {
+        in: partners.map((partner) => partner.id),
+      },
+    },
+    data: {
+      defaultPayoutMethod: "connect",
+    },
+  });
+
+  console.log(`Updated ${count} partners`);
+}
+
+// Clears `defaultPayoutMethod` for partners who no longer have payouts enabled,
+// processing in batches of 500 to avoid long-running queries.
+async function scriptTwo() {
   while (true) {
     const partners = await prisma.partner.findMany({
       where: {
         payoutsEnabledAt: null,
-        OR: [
-          {
-            stripeConnectId: {
-              not: null,
-            },
-          },
-          {
-            paypalEmail: {
-              not: null,
-            },
-          },
-          {
-            stripeRecipientId: {
-              not: null,
-            },
-          },
-        ],
-        payouts: {
-          some: {
-            status: "completed",
-          },
+        defaultPayoutMethod: {
+          not: null,
         },
       },
-      select: {
-        id: true,
-        stripeConnectId: true,
-        paypalEmail: true,
-        stripeRecipientId: true,
-      },
-      take: BATCH_SIZE,
+      take: 500,
     });
 
     if (partners.length === 0) {
       break;
     }
 
-    const stablecoinPartners: Pick<Partner, "id" | "stripeRecipientId">[] = [];
-    const connectPartners: Pick<Partner, "id" | "stripeConnectId">[] = [];
-    const paypalPartners: Pick<Partner, "id" | "paypalEmail">[] = [];
+    const { count } = await prisma.partner.updateMany({
+      where: {
+        id: {
+          in: partners.map((partner) => partner.id),
+        },
+      },
+      data: {
+        defaultPayoutMethod: null,
+      },
+    });
 
-    for (const partner of partners) {
-      if (partner.stripeRecipientId) {
-        stablecoinPartners.push(partner);
-      } else if (partner.stripeConnectId) {
-        connectPartners.push(partner);
-      } else if (partner.paypalEmail) {
-        paypalPartners.push(partner);
-      }
-    }
-
-    const promise0 =
-      stablecoinPartners.length > 0
-        ? prisma.partner.updateMany({
-            where: {
-              id: {
-                in: stablecoinPartners.map((partner) => partner.id),
-              },
-            },
-            data: {
-              defaultPayoutMethod: PartnerPayoutMethod.stablecoin,
-            },
-          })
-        : Promise.resolve({ count: 0 });
-
-    const promise1 =
-      connectPartners.length > 0
-        ? prisma.partner.updateMany({
-            where: {
-              id: {
-                in: connectPartners.map((partner) => partner.id),
-              },
-              defaultPayoutMethod: null,
-            },
-            data: {
-              defaultPayoutMethod: PartnerPayoutMethod.connect,
-            },
-          })
-        : Promise.resolve({ count: 0 });
-
-    const promise2 =
-      paypalPartners.length > 0
-        ? prisma.partner.updateMany({
-            where: {
-              id: {
-                in: paypalPartners.map((partner) => partner.id),
-              },
-              defaultPayoutMethod: null,
-            },
-            data: {
-              defaultPayoutMethod: PartnerPayoutMethod.paypal,
-            },
-          })
-        : Promise.resolve({ count: 0 });
-
-    const [stablecoinRes, connectRes, paypalRes] = await Promise.all([
-      promise0,
-      promise1,
-      promise2,
-    ]);
-
-    console.log(
-      `Updated ${stablecoinRes.count} stablecoin partners and ${connectRes.count} connect partners and ${paypalRes.count} paypal partners`,
-    );
+    console.log(`Updated ${count} partners`);
   }
 }
 

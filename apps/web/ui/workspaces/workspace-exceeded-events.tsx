@@ -1,15 +1,21 @@
 "use client";
 
 import useWorkspace from "@/lib/swr/use-workspace";
-import { MaxWidthWrapper } from "@dub/ui";
+import { useTrialLimitActivateModal } from "@/ui/modals/trial-limit-activate-modal";
+import { Button, MaxWidthWrapper } from "@dub/ui";
+import { isWorkspaceBillingTrialActive } from "@dub/utils";
 import { CursorRays } from "../layout/sidebar/icons/cursor-rays";
 import { AnimatedEmptyState } from "../shared/animated-empty-state";
 
 export default function WorkspaceExceededEvents() {
-  const { slug } = useWorkspace();
+  const { slug, trialEndsAt } = useWorkspace();
+  const { openTrialLimitModal, TrialLimitActivateModal } =
+    useTrialLimitActivateModal();
+  const trialActive = isWorkspaceBillingTrialActive(trialEndsAt);
 
   return (
     <MaxWidthWrapper>
+      <TrialLimitActivateModal />
       <div className="my-10 flex flex-col items-center justify-center py-12">
         <AnimatedEmptyState
           title="Stats Locked"
@@ -21,9 +27,19 @@ export default function WorkspaceExceededEvents() {
             </>
           )}
           className="border-none"
-          learnMoreText="Upgrade plan"
-          learnMoreHref={`/${slug}/settings/billing`}
+          learnMoreText={trialActive ? undefined : "Upgrade plan"}
+          learnMoreHref={trialActive ? undefined : `/${slug}/settings/billing`}
           learnMoreTarget="_self"
+          addButton={
+            trialActive ? (
+              <Button
+                variant="primary"
+                text="Start paid plan"
+                className="h-9"
+                onClick={() => openTrialLimitModal("clicks")}
+              />
+            ) : undefined
+          }
         />
       </div>
     </MaxWidthWrapper>

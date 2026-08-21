@@ -1,5 +1,6 @@
 "use client";
 
+import { formatCommissionDescriptionTooltip } from "@/lib/commissions/format-commission-description-tooltip";
 import { INVOICE_AVAILABLE_PAYOUT_STATUSES } from "@/lib/constants/payouts";
 import usePartnerPayouts from "@/lib/swr/use-partner-payouts";
 import usePartnerPayoutsCount from "@/lib/swr/use-partner-payouts-count";
@@ -7,7 +8,6 @@ import { PartnerPayoutResponse } from "@/lib/types";
 import { PayoutRowMenu } from "@/ui/partners/payout-row-menu";
 import { PayoutStatusBadgePartner } from "@/ui/partners/payout-status-badge-partner";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
-import { PayoutStatus } from "@dub/prisma/client";
 import {
   AnimatedSizeContainer,
   Filter,
@@ -31,6 +31,7 @@ import {
   formatDateTimeSmart,
   formatPeriod,
 } from "@dub/utils";
+import { PayoutStatus } from "@prisma/client";
 import { addBusinessDays } from "date-fns";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -203,14 +204,12 @@ export function PayoutTable() {
           ...(sortOrder && { sortOrder }),
         },
         del: "page",
-        scroll: false,
       }),
     onRowClick: (row) => {
       queryParams({
         set: {
           payoutId: row.original.id,
         },
-        scroll: false,
       });
     },
     thClassName: "border-l-0",
@@ -283,6 +282,21 @@ function PartnerPayoutFilters() {
 
 function AmountRowItem({ payout }: { payout: PartnerPayoutResponse }) {
   const display = currencyFormatter(payout.amount);
+
+  // for clawback payouts with description
+  if (payout.amount < 0 && payout.description) {
+    return (
+      <Tooltip
+        content={formatCommissionDescriptionTooltip(payout.description, {
+          variant: "partner",
+        })}
+      >
+        <span className="cursor-help truncate text-red-600 underline decoration-dotted underline-offset-2">
+          {display}
+        </span>
+      </Tooltip>
+    );
+  }
 
   if (
     payout.status === PayoutStatus.pending &&

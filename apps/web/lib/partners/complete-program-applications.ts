@@ -1,9 +1,10 @@
-import { prisma } from "@dub/prisma";
-import { PlatformType, Prisma } from "@dub/prisma/client";
+import { prisma } from "@/lib/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
+import { PlatformType, Prisma } from "@prisma/client";
 import { createId } from "../api/create-id";
 import { detectAndRecordFraudApplication } from "../api/fraud/detect-record-fraud-application";
 import { notifyPartnerApplication } from "../api/partners/notify-partner-application";
+import { markApplicationEventSubmitted } from "../application-events/update-application-event";
 import { qstash } from "../cron";
 import { buildSocialPlatformLookup } from "../social-utils";
 import { sendWorkspaceWebhook } from "../webhook/publish";
@@ -102,6 +103,13 @@ export async function completeProgramApplications(userEmail: string) {
         discountId: programApplication?.partnerGroup?.discountId,
       }));
 
+    const enrollmentsByApplicationId = new Map(
+      programEnrollments.map((enrollment) => [
+        enrollment.applicationId!,
+        enrollment,
+      ]),
+    );
+
     await prisma.programEnrollment.createMany({
       data: programEnrollments,
       skipDuplicates: true,
@@ -130,8 +138,8 @@ export async function completeProgramApplications(userEmail: string) {
       const application = programApplication;
       const program = programApplication.program;
       const group = programApplication.partnerGroup;
-      const programEnrollment = partner.programs.find(
-        (p) => p.programId === programApplication.programId,
+      const programEnrollment = enrollmentsByApplicationId.get(
+        programApplication.id,
       );
 
       const socialPlatforms = buildSocialPlatformLookup(partner.platforms);
@@ -196,7 +204,6 @@ export async function completeProgramApplications(userEmail: string) {
               group?.autoApprovePartnersEnabledAt
                 ? qstash.publishJSON({
                     url: `${APP_DOMAIN_WITH_NGROK}/api/cron/partners/auto-approve`,
-                    delay: 5 * 60,
                     body: {
                       programId: program.id,
                       partnerId: partner.id,
@@ -257,6 +264,12 @@ export async function completeProgramApplications(userEmail: string) {
         }),
       ]);
     }
+
+    await Promise.allSettled(
+      programEnrollments.map((programEnrollment) =>
+        markApplicationEventSubmitted(programEnrollment),
+      ),
+    );
   } catch (error) {
     console.error("Failed to complete program applications", error);
   }

@@ -16,25 +16,29 @@ import { PartnerApplicationSheet } from "@/ui/partners/partner-application-sheet
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { PartnerSocialColumn } from "@/ui/partners/partner-social-column";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
+import { CountryFlag } from "@/ui/shared/country-flag";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
-import { PlatformType } from "@dub/prisma/client";
 import {
   AnimatedSizeContainer,
   Button,
+  ChartLine,
   EditColumnsButton,
   Filter,
   MenuItem,
   Popover,
   Table,
   useColumnVisibility,
+  useMediaQuery,
   usePagination,
   useRouterStuff,
   useTable,
 } from "@dub/ui";
 import { Dots, UserCheck, Users, UserXmark } from "@dub/ui/icons";
 import { COUNTRIES, fetcher, formatDate } from "@dub/utils";
+import { PlatformType } from "@prisma/client";
 import { Row } from "@tanstack/react-table";
 import { Command } from "cmdk";
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import useSWR from "swr";
 import { usePartnerFilters } from "../use-partner-filters";
@@ -43,6 +47,8 @@ const applicationsColumns = {
   all: [
     "partner",
     "createdAt",
+    "source",
+    "group",
     "location",
     "website",
     "youtube",
@@ -54,6 +60,7 @@ const applicationsColumns = {
   defaultVisible: [
     "partner",
     "createdAt",
+    "source",
     "location",
     "website",
     "youtube",
@@ -62,9 +69,10 @@ const applicationsColumns = {
 };
 
 export function ProgramPartnersApplicationsPageClient() {
-  const { id: workspaceId } = useWorkspace();
+  const { id: workspaceId, slug } = useWorkspace();
   const { queryParams, searchParams, searchParamsObj, getQueryString } =
     useRouterStuff();
+  const { isMobile } = useMediaQuery();
 
   const sortBy = searchParams.get("sortBy") || "createdAt";
   const sortOrder = searchParams.get("sortOrder") === "asc" ? "asc" : "desc";
@@ -83,6 +91,7 @@ export function ProgramPartnersApplicationsPageClient() {
     status: "pending",
   });
 
+  // TODO: refactor to use `/partners/applications` endpoint
   const {
     data: partners,
     error,
@@ -158,7 +167,7 @@ export function ProgramPartnersApplicationsPageClient() {
     });
 
   const { columnVisibility, setColumnVisibility } = useColumnVisibility(
-    "applications-table-columns",
+    "applications-table-columns-v2",
     applicationsColumns,
   );
 
@@ -168,7 +177,7 @@ export function ProgramPartnersApplicationsPageClient() {
     () => [
       {
         id: "partner",
-        header: "Applicant",
+        header: "Partner",
         enableHiding: false,
         minSize: 250,
         cell: ({ row }) => {
@@ -189,7 +198,6 @@ export function ProgramPartnersApplicationsPageClient() {
       {
         id: "group",
         header: "Group",
-        enableHiding: false,
         minSize: 150,
         cell: ({ row }) => {
           if (!groups || !row.original.groupId) {
@@ -222,13 +230,7 @@ export function ProgramPartnersApplicationsPageClient() {
           const country = row.original.country;
           return (
             <div className="flex items-center gap-2">
-              {country && (
-                <img
-                  alt={`${country} flag`}
-                  src={`https://hatscripts.github.io/circle-flags/flags/${country.toLowerCase()}.svg`}
-                  className="size-4 shrink-0"
-                />
-              )}
+              {country && <CountryFlag countryCode={country} />}
               <span className="min-w-0 truncate">
                 {(country ? COUNTRIES[country] : null) ?? "-"}
               </span>
@@ -350,7 +352,6 @@ export function ProgramPartnersApplicationsPageClient() {
         set: {
           partnerId: row.original.id,
         },
-        scroll: false,
       });
     },
     pagination,
@@ -367,7 +368,6 @@ export function ProgramPartnersApplicationsPageClient() {
           ...(sortOrder && { sortOrder }),
         },
         del: "page",
-        scroll: false,
       }),
 
     getRowId: (row) => row.id,
@@ -438,7 +438,6 @@ export function ProgramPartnersApplicationsPageClient() {
               ? () =>
                   queryParams({
                     set: { partnerId: previousPartnerId },
-                    scroll: false,
                   })
               : undefined
           }
@@ -447,7 +446,6 @@ export function ProgramPartnersApplicationsPageClient() {
               ? () =>
                   queryParams({
                     set: { partnerId: nextPartnerId },
-                    scroll: false,
                   })
               : undefined
           }
@@ -457,7 +455,7 @@ export function ProgramPartnersApplicationsPageClient() {
       <BulkRejectPartnersModal />
 
       <div>
-        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        <div className="flex w-full flex-col items-center gap-2 min-[550px]:flex-row min-[550px]:items-center">
           <Filter.Select
             className="w-full md:w-fit"
             filters={filters}
@@ -465,10 +463,29 @@ export function ProgramPartnersApplicationsPageClient() {
             onSelect={onSelect}
             onRemove={onRemove}
           />
-          <SearchBoxPersisted
-            placeholder="Search by name, email, or company"
-            inputClassName="md:w-80"
-          />
+          <div className="flex w-full grow items-center gap-2 md:w-auto">
+            <div className="min-w-0 flex-1">
+              <SearchBoxPersisted
+                placeholder="Search by name, email, or company"
+                inputClassName="w-full md:w-80"
+              />
+            </div>
+            <div className="flex shrink-0 justify-end gap-2">
+              <Link
+                href={`/${slug}/program/analytics/applications${getQueryString(
+                  undefined,
+                  { include: ["country"] },
+                )}`}
+              >
+                <Button
+                  variant="secondary"
+                  className="w-fit"
+                  icon={<ChartLine className="h-4 w-4 text-neutral-600" />}
+                  text={isMobile ? undefined : "View Analytics"}
+                />
+              </Link>
+            </div>
+          </div>
         </div>
         <AnimatedSizeContainer height>
           <div>

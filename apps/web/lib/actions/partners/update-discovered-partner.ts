@@ -2,8 +2,8 @@
 
 import { createId } from "@/lib/api/create-id";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
+import { prisma } from "@/lib/prisma";
 import { updateDiscoveredPartnerSchema } from "@/lib/zod/schemas/partner-network";
-import { prisma } from "@dub/prisma";
 import { authActionClient } from "../safe-action";
 import { throwIfNoPermission } from "../throw-if-no-permission";
 

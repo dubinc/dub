@@ -1,6 +1,6 @@
+import { prisma } from "@/lib/prisma";
 import { sendEmail } from "@dub/email";
 import FailedPayment from "@dub/email/templates/failed-payment";
-import { prisma } from "@dub/prisma";
 import Stripe from "stripe";
 
 export async function invoicePaymentFailed(
@@ -61,11 +61,13 @@ export async function invoicePaymentFailed(
       sendEmail({
         to: user.email as string,
         subject: `${
-          attemptCount == 2
-            ? "2nd notice: "
-            : attemptCount == 3
-              ? "3rd notice: "
-              : ""
+          attemptCount === 1
+            ? ""
+            : attemptCount == 2
+              ? "2nd notice: "
+              : attemptCount == 3
+                ? "3rd notice: "
+                : "Final notice: "
         }Your payment for Dub.co failed`,
         react: (
           <FailedPayment

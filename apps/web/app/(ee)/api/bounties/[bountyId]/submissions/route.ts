@@ -1,11 +1,11 @@
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { withWorkspace } from "@/lib/auth";
 import { getBountyOrThrow } from "@/lib/bounty/api/get-bounty-or-throw";
+import { prisma } from "@/lib/prisma";
 import {
   BountySubmissionExtendedSchema,
   getBountySubmissionsQuerySchema,
 } from "@/lib/zod/schemas/bounties";
-import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 
 // GET /api/bounties/[bountyId]/submissions - get all submissions for a bounty
@@ -17,9 +17,6 @@ export const GET = withWorkspace(
     await getBountyOrThrow({
       bountyId,
       programId,
-      include: {
-        groups: true,
-      },
     });
 
     const {
@@ -78,13 +75,6 @@ export const GET = withWorkspace(
     return NextResponse.json(bountySubmissions);
   },
   {
-    requiredPlan: [
-      "business",
-      "business plus",
-      "business extra",
-      "business max",
-      "advanced",
-      "enterprise",
-    ],
+    requiredPlan: ["business", "advanced", "enterprise"],
   },
 );

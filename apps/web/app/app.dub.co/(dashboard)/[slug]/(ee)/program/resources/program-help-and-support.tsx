@@ -6,7 +6,7 @@ import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { ProgramProps } from "@/lib/types";
-import { usePartnersUpgradeModal } from "@/ui/partners/partners-upgrade-modal";
+import { useAdvancedUpsellModal } from "@/ui/partners/advanced-upsell-modal";
 import { Button, CrownSmall, Switch, TooltipContent } from "@dub/ui";
 import { useAction } from "next-safe-action/hooks";
 import { Controller, useForm } from "react-hook-form";
@@ -45,8 +45,8 @@ export function ProgramHelpAndSupportContent({
 }) {
   const { id: workspaceId, plan } = useWorkspace();
 
-  const { partnersUpgradeModal, setShowPartnersUpgradeModal } =
-    usePartnersUpgradeModal();
+  const { advancedUpsellModal, setShowAdvancedUpsellModal } =
+    useAdvancedUpsellModal();
 
   const {
     control,
@@ -100,7 +100,7 @@ export function ProgramHelpAndSupportContent({
 
   return (
     <>
-      {partnersUpgradeModal}
+      {advancedUpsellModal}
       <form onSubmit={handleSubmit(onSubmit)}>
         <div className="divide-y divide-neutral-200 border-t border-neutral-200 px-6">
           <SettingsRow
@@ -145,7 +145,7 @@ export function ProgramHelpAndSupportContent({
                             <TooltipContent
                               title="Messaging is only available on Advanced plans and above."
                               cta="Upgrade to Advanced"
-                              onClick={() => setShowPartnersUpgradeModal(true)}
+                              onClick={() => setShowAdvancedUpsellModal(true)}
                             />
                           ) : undefined
                         }

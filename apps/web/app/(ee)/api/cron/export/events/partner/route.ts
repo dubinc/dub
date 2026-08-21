@@ -13,13 +13,13 @@ import { generateRandomString } from "@/lib/api/utils/generate-random-string";
 import { MAX_PARTNER_LINKS_FOR_LOCAL_FILTERING } from "@/lib/constants/partner-profile";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { generateRandomName } from "@/lib/names";
+import { prisma } from "@/lib/prisma";
 import {
   partnerProfileEventsQuerySchema,
   PartnerProfileLinkSchema,
 } from "@/lib/zod/schemas/partner-profile";
 import { sendEmail } from "@dub/email";
 import ExportReady from "@dub/email/templates/export-ready";
-import { prisma } from "@dub/prisma";
 import { capitalize, log, parseFilterValue } from "@dub/utils";
 import * as z from "zod/v4";
 import { logAndRespond } from "../../../utils";
@@ -90,6 +90,23 @@ export async function POST(req: Request) {
         return logAndRespond(
           "One or more links are not found. Skipping the export.",
         );
+      }
+      if (linkId.sqlOperator === "NOT IN") {
+        // if using NOT IN operator, we need to include all links except the ones in the linkId.values
+        const finalIncludedLinkIds = links
+          .filter((link) => !linkId.values.includes(link.id))
+          .map((link) => link.id);
+
+        // early return if no links are left
+        if (finalIncludedLinkIds.length === 0) {
+          return logAndRespond("No links found. Skipping the export.");
+        }
+
+        parsedParams.linkId = {
+          operator: "IS",
+          sqlOperator: "IN",
+          values: finalIncludedLinkIds,
+        };
       }
     } else if (domain && key) {
       const link = links.find(

@@ -3,7 +3,7 @@
 import { authActionClient } from "@/lib/actions/safe-action";
 import { qstash } from "@/lib/cron";
 import { isAppsFlyerTrackingUrl } from "@/lib/middleware/utils/is-appsflyer-tracking-url";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { APP_DOMAIN_WITH_NGROK, APPSFLYER_INTEGRATION_ID } from "@dub/utils";
 import { revalidatePath } from "next/cache";
 import * as z from "zod/v4";

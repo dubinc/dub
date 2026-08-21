@@ -19,4 +19,23 @@ export const orderSchema = z.object({
       })
       .describe("Amount in shop currency."),
   }),
+  discount_codes: z.array(
+    z.object({
+      code: z.string().describe("The code of the discount."),
+    }),
+  ),
+  billing_address: z
+    .object({
+      province: z.string().nullish(),
+      country_code: z.string().nullish(),
+    })
+    .nullish(),
+});
+
+export const integrationCredentialsSchema = z.object({
+  accessToken: z
+    .string()
+    .nullish()
+    .describe("Encrypted access token for the Shopify store."),
+  scope: z.string().nullish().describe("Scope of the Shopify store."),
 });

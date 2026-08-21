@@ -4,8 +4,8 @@ import { getPeriodLabel } from "@/lib/bounty/periods";
 import { resolveBountyDetails } from "@/lib/bounty/utils";
 import { PartnerBountyProps, PartnerBountySubmission } from "@/lib/types";
 import { SocialAccountNotVerifiedWarning } from "@/ui/partners/bounties/bounty-social-content";
-import { PlatformType } from "@dub/prisma/client";
 import { Button, ChevronRight, Popover, Trophy } from "@dub/ui";
+import { PlatformType } from "@prisma/client";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -171,21 +171,23 @@ export function EmbedBountySubmissionForm({
     isDraft ? setIsDraftSaving(true) : setIsSubmitting(true);
 
     try {
-      const res = await fetch("/api/embed/referrals/submissions", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
+      const res = await fetch(
+        `/api/embed/referrals/bounties/${bounty.id}/submissions`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            files: completedFiles,
+            urls: submissionUrls,
+            description: description || undefined,
+            isDraft,
+            periodNumber,
+          }),
         },
-        body: JSON.stringify({
-          bountyId: bounty.id,
-          files: completedFiles,
-          urls: submissionUrls,
-          description: description || undefined,
-          isDraft,
-          periodNumber,
-        }),
-      });
+      );
 
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));

@@ -8,9 +8,10 @@ import { mutatePrefix } from "@/lib/swr/mutate";
 import { PartnerProps } from "@/lib/types";
 import { MAX_PARTNER_DESCRIPTION_LENGTH } from "@/lib/zod/schemas/partners";
 import { MaxCharactersCounter } from "@/ui/shared/max-characters-counter";
-import { IndustryInterest, MonthlyTraffic } from "@dub/prisma/client";
 import { Button, RadioGroup, RadioGroupItem, useEnterSubmit } from "@dub/ui";
+import { Plus } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
+import { IndustryInterest, MonthlyTraffic } from "@prisma/client";
 import { useAction } from "next-safe-action/hooks";
 import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
@@ -151,12 +152,40 @@ export function AboutYouForm({ partner }: { partner?: PartnerProps }) {
                           </div>
                         ))
                     : [...Array(3)].map((_, idx) => (
-                        <div
+                        <button
                           key={idx}
+                          type="button"
+                          disabled={disabled}
+                          aria-label="Add industry interest"
+                          onClick={() => setShowIndustryInterestsModal(true)}
                           className={cn(
-                            "border-border-subtle h-11 w-32 rounded-full border border-dashed bg-white",
+                            "relative flex h-11 w-32 items-center justify-center rounded-full bg-white",
+                            !disabled &&
+                              "transition-colors hover:bg-neutral-50/60",
+                            disabled && "cursor-not-allowed",
                           )}
-                        />
+                        >
+                          <svg
+                            className="pointer-events-none absolute inset-0 size-full text-neutral-300"
+                            aria-hidden="true"
+                          >
+                            <rect
+                              x="0.5"
+                              y="0.5"
+                              width="100%"
+                              height="100%"
+                              rx="21.5"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeDasharray="5 5"
+                              style={{
+                                width: "calc(100% - 1px)",
+                                height: "calc(100% - 1px)",
+                              }}
+                            />
+                          </svg>
+                          <Plus className="size-4 text-neutral-700" />
+                        </button>
                       ))}
                 </div>
                 <Button

@@ -1,7 +1,7 @@
+import { prisma } from "@/lib/prisma";
 import { CreateFraudEventInput } from "@/lib/types";
-import { prisma } from "@dub/prisma";
-import { Prisma } from "@dub/prisma/client";
 import { prettyPrint } from "@dub/utils";
+import { FraudEventGroup, Prisma } from "@prisma/client";
 import { createId } from "../create-id";
 import {
   createFraudEventHash,
@@ -10,12 +10,21 @@ import {
   sanitizeFraudEventMetadata,
 } from "./utils";
 
-export async function createFraudEvents(fraudEvents: CreateFraudEventInput[]) {
+type CreateFraudEventsResult = {
+  affectedGroups: Pick<FraudEventGroup, "partnerId" | "programId" | "type">[];
+};
+
+export async function createFraudEvents(
+  fraudEvents: CreateFraudEventInput[],
+): Promise<CreateFraudEventsResult> {
   const startTime = performance.now();
 
   if (fraudEvents.length === 0) {
     console.log(`[createFraudEvents] No fraud events to create`);
-    return;
+
+    return {
+      affectedGroups: [],
+    };
   }
 
   const eventsWithHash = fraudEvents.map((e) => ({
@@ -54,7 +63,10 @@ export async function createFraudEvents(fraudEvents: CreateFraudEventInput[]) {
 
   if (newEvents.length === 0) {
     console.log(`[createFraudEvents] No new fraud events to create`);
-    return;
+
+    return {
+      affectedGroups: [],
+    };
   }
 
   // Find existing groups to avoid creating duplicates and maintain group continuity
@@ -136,6 +148,7 @@ export async function createFraudEvents(fraudEvents: CreateFraudEventInput[]) {
   console.info(
     `[createFraudEvents] Created ${createdEvents.count} fraud events ${prettyPrint(newEventsWithGroup)}`,
   );
+
   await Promise.allSettled(
     finalGroups.map((group) =>
       prisma.fraudEventGroup.update({
@@ -158,4 +171,8 @@ export async function createFraudEvents(fraudEvents: CreateFraudEventInput[]) {
   console.info(
     `[createFraudEvents] completed in ${(endTime - startTime).toFixed(2)}ms`,
   );
+
+  return {
+    affectedGroups: finalGroups,
+  };
 }

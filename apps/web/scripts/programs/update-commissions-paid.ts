@@ -1,4 +1,5 @@
-import { prisma } from "@dub/prisma";
+import { retallyPayoutsAmount } from "@/lib/payouts/retally-payouts-amount";
+import { prisma } from "@/lib/prisma";
 import "dotenv-flow/config";
 
 async function main() {
@@ -54,35 +55,7 @@ async function main() {
     },
   });
 
-  for (const payoutId of payoutIdsToRetally) {
-    const data = await prisma.commission.aggregate({
-      _sum: {
-        earnings: true,
-      },
-      where: {
-        payoutId,
-      },
-    });
-    const payoutAmount = data._sum.earnings ?? 0;
-    if (payoutAmount === 0) {
-      console.log(`Deleting payout ${payoutId}`);
-      await prisma.payout.delete({
-        where: {
-          id: payoutId,
-        },
-      });
-    } else {
-      console.log(`Updating payout ${payoutId} with amount ${payoutAmount}`);
-      await prisma.payout.update({
-        where: {
-          id: payoutId,
-        },
-        data: {
-          amount: payoutAmount,
-        },
-      });
-    }
-  }
+  await retallyPayoutsAmount(payoutIdsToRetally);
 
   console.log(
     `Updated ${updatedCommissions.count} commissions to have status "paid"`,

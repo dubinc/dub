@@ -4,27 +4,28 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { validateAllowedHostnames } from "@/lib/api/validate-allowed-hostnames";
 import { deleteWorkspace } from "@/lib/api/workspaces/delete-workspace";
 import { prefixWorkspaceId } from "@/lib/api/workspaces/workspace-id";
+import { workspaceProductCache } from "@/lib/api/workspaces/workspace-product-cache";
 import { withWorkspace } from "@/lib/auth";
 import { getFeatureFlags } from "@/lib/edge-config";
 import { jackson } from "@/lib/jackson";
+import { prisma } from "@/lib/prisma";
 import { mergeSiteVisitTrackingSettings } from "@/lib/sitemaps/site-visit-tracking";
 import { storage } from "@/lib/storage";
-import { redis } from "@/lib/upstash";
 import {
   createWorkspaceSchema,
   siteVisitTrackingSettingsPatchSchema,
   WorkspaceSchema,
   WorkspaceSchemaExtended,
 } from "@/lib/zod/schemas/workspaces";
-import { prisma } from "@dub/prisma";
-import { Prisma } from "@dub/prisma/client";
 import { nanoid, R2_URL } from "@dub/utils";
+import { Prisma } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 
 const updateWorkspaceSchema = createWorkspaceSchema
   .extend({
+    defaultProduct: z.enum(["program", "links"]).optional(),
     allowedHostnames: z.array(z.string()).optional(),
     publishableKey: z
       .union([
@@ -89,6 +90,7 @@ export const PATCH = withWorkspace(
       name,
       slug,
       logo,
+      defaultProduct,
       conversionEnabled,
       allowedHostnames,
       publishableKey,
@@ -188,6 +190,7 @@ export const PATCH = withWorkspace(
           ...(name && { name }),
           ...(slug && { slug }),
           ...(logoUploaded && { logo: logoUploaded.url }),
+          ...(defaultProduct && { defaultProduct }),
           ...(conversionEnabled !== undefined && { conversionEnabled }),
           ...(validHostnames !== undefined && {
             allowedHostnames: validHostnames,
@@ -216,23 +219,34 @@ export const PATCH = withWorkspace(
         },
       });
 
-      if (updatedWorkspace.slug !== workspace.slug) {
-        await Promise.allSettled([
-          prisma.user.updateMany({
-            where: {
-              defaultWorkspace: workspace.slug,
-            },
-            data: {
-              defaultWorkspace: updatedWorkspace.slug,
-            },
-          }),
-          // refresh the workspace product cache for both workspaces
-          redis.del(
-            `workspace:product:${updatedWorkspace.slug}`,
-            `workspace:product:${workspace.slug}`,
-          ),
-        ]);
-      }
+      await Promise.allSettled([
+        ...(updatedWorkspace.slug !== workspace.slug
+          ? [
+              prisma.user.updateMany({
+                where: {
+                  defaultWorkspace: workspace.slug,
+                },
+                data: {
+                  defaultWorkspace: updatedWorkspace.slug,
+                },
+              }),
+              // update the workspace product cache for both workspaces
+              workspaceProductCache.set({
+                slug: updatedWorkspace.slug,
+                product: updatedWorkspace.defaultProduct,
+              }),
+              workspaceProductCache.delete({ slug: workspace.slug }),
+            ]
+          : // if only the product has changed, update the cache
+            updatedWorkspace.defaultProduct !== workspace.defaultProduct
+            ? [
+                workspaceProductCache.set({
+                  slug: updatedWorkspace.slug,
+                  product: updatedWorkspace.defaultProduct,
+                }),
+              ]
+            : []),
+      ]);
 
       waitUntil(
         (async () => {

@@ -29,6 +29,6 @@ export const normalizedPartnerDateFields = z.object({
   createdAt: z.string(),
   bannedAt: z.string().nullish(),
   payoutsEnabledAt: z.string().nullish(),
-  trustedAt: z.string().nullish(),
   identityVerifiedAt: z.string().nullish(),
+  trustedAt: z.string().nullish(),
 });

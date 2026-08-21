@@ -21,11 +21,11 @@ export const addDomainToVercel = async (
     }
   }
   return await fetch(
-    `https://api.vercel.com/v10/projects/${process.env.PROJECT_ID_VERCEL}/domains?teamId=${process.env.TEAM_ID_VERCEL}`,
+    `https://api.vercel.com/v10/projects/${process.env.VERCEL_PROJECT_ID}/domains?teamId=${process.env.TEAM_ID_VERCEL}`,
     {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${process.env.AUTH_BEARER_TOKEN}`,
+        Authorization: `Bearer ${process.env.VERCEL_API_KEY}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({

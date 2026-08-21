@@ -8,7 +8,7 @@ import { PARTNER_PLATFORMS_PROVIDERS } from "@/lib/api/partner-profile/partner-p
 import { upsertPartnerPlatform } from "@/lib/api/partner-profile/upsert-partner-platform";
 import { generateOTP } from "@/lib/auth/utils";
 import { extractEmailDomain } from "@/lib/email/extract-email-domain";
-import { isGenericEmail } from "@/lib/is-generic-email";
+import { isGenericEmail } from "@/lib/email/is-generic-email";
 import {
   sanitizeSocialHandle,
   SOCIAL_PLATFORM_CONFIGS,
@@ -16,12 +16,12 @@ import {
 import { PartnerProps } from "@/lib/types";
 import { ratelimit } from "@/lib/upstash/ratelimit";
 import { redis } from "@/lib/upstash/redis";
-import { PlatformType } from "@dub/prisma/client";
 import {
   getDomainWithoutWWW,
   nanoid,
   PARTNERS_DOMAIN_WITH_NGROK,
 } from "@dub/utils";
+import { PlatformType } from "@prisma/client";
 import { cookies } from "next/headers";
 import { v4 as uuid } from "uuid";
 import * as z from "zod/v4";

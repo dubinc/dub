@@ -1,9 +1,10 @@
 import { stripeIntegrationSettingsSchema } from "@/lib/integrations/stripe/schema";
+import { prisma } from "@/lib/prisma";
 import { stripeAppClient } from "@/lib/stripe";
 import { StripeCustomerInvoiceSchema } from "@/lib/zod/schemas/customers";
-import { prisma } from "@dub/prisma";
 import { STRIPE_INTEGRATION_ID } from "@dub/utils";
 import Stripe from "stripe";
+import { DubApiError } from "../errors";
 
 type ExpandedStripeInvoice = Stripe.Invoice & {
   id: string;
@@ -48,20 +49,45 @@ export async function getCustomerStripeInvoices({
     installedStripeIntegration.settings || {},
   );
 
+  if (!stripeCustomerId.startsWith("cus_")) {
+    throw new DubApiError({
+      code: "bad_request",
+      message: `Customer has an invalid Stripe customer ID (${stripeCustomerId}). Stripe customer IDs start with "cus_".`,
+    });
+  }
+
   const stripe = stripeAppClient({
     mode: stripeIntegrationSettings.stripeMode,
   });
-  const { data } = await stripe.invoices.list(
-    {
-      customer: stripeCustomerId,
-      status: "paid",
-      limit: 100,
-      expand: ["data.payments.data.payment"],
-    },
-    {
-      stripeAccount: stripeConnectId,
-    },
-  );
+
+  let data: Stripe.Invoice[];
+  try {
+    const res = await stripe.invoices.list(
+      {
+        customer: stripeCustomerId,
+        status: "paid",
+        limit: 100,
+        expand: ["data.payments.data.payment"],
+      },
+      {
+        stripeAccount: stripeConnectId,
+      },
+    );
+    data = res.data;
+  } catch (error) {
+    if (
+      error instanceof Stripe.errors.StripeError &&
+      error.code === "resource_missing"
+    ) {
+      throw new DubApiError({
+        code: "bad_request",
+        message: `Stripe customer "${stripeCustomerId}" was not found on the connected Stripe account. Update the customer's Stripe customer ID and try again.`,
+      });
+    }
+
+    throw error;
+  }
+
   const invoices = data.filter(
     (invoice) => invoice.id,
   ) as ExpandedStripeInvoice[];
@@ -137,7 +163,11 @@ export async function getCustomerStripeInvoices({
   const stripeCustomerInvoices = invoices.map((invoice) =>
     StripeCustomerInvoiceSchema.parse({
       id: invoice.id,
-      amount: invoice.amount_paid,
+      amount:
+        invoice.amount_paid === invoice.total &&
+        invoice.total_excluding_tax != null
+          ? invoice.total_excluding_tax
+          : invoice.amount_paid,
       createdAt: new Date(invoice.created * 1000),
       refunded: processInvoice(invoice).refunded,
       dubCommissionId: invoiceIdCommissionIdMap[invoice.id],

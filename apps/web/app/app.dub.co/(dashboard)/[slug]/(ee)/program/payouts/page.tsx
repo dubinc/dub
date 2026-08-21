@@ -1,6 +1,7 @@
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { ProgramPayoutsPageClient } from "./page-client";
+import { PayoutsMenuPopover } from "./payouts-menu-popover";
 import { ProgramPayoutSettingsButton } from "./program-payout-settings-button";
 
 export default function ProgramPayoutsPage() {
@@ -12,7 +13,12 @@ export default function ProgramPayoutsPage() {
           "Learn more about how you can send payouts to your affiliate partners globally with Dub.",
         href: "https://dub.co/help/article/partner-payouts",
       }}
-      controls={<ProgramPayoutSettingsButton />}
+      controls={
+        <>
+          <ProgramPayoutSettingsButton />
+          <PayoutsMenuPopover />
+        </>
+      }
     >
       <PageWidthWrapper>
         <ProgramPayoutsPageClient />

@@ -1,7 +1,7 @@
-import { prisma } from "@dub/prisma";
-import { APP_HOSTNAMES } from "@dub/utils";
+import { prisma } from "@/lib/prisma";
+import { isAppHostname } from "@dub/utils";
 import { headers } from "next/headers";
-import { isGenericEmail } from "../../is-generic-email";
+import { isGenericEmail } from "../../email/is-generic-email";
 
 // Checks if SAML SSO is enforced for a given email domain
 export const isSamlEnforcedForEmailDomain = async (email: string) => {
@@ -11,7 +11,7 @@ export const isSamlEnforcedForEmailDomain = async (email: string) => {
   if (
     !hostname ||
     !emailDomain ||
-    !APP_HOSTNAMES.has(hostname) ||
+    !isAppHostname(hostname) ||
     isGenericEmail(email)
   ) {
     return false;

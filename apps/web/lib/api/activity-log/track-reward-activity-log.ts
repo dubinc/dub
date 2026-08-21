@@ -1,7 +1,7 @@
 import { serializeReward } from "@/lib/api/partners/serialize-reward";
 import type { RewardConditions, RewardProps } from "@/lib/types";
 import { REWARD_EVENT_TO_RESOURCE_TYPE } from "@/lib/zod/schemas/activity-log";
-import type { Reward } from "@dub/prisma/client";
+import type { Reward } from "@prisma/client";
 import { getResourceDiff } from "./get-resource-diff";
 import type { TrackActivityLogInput } from "./track-activity-log";
 import { trackActivityLog } from "./track-activity-log";
@@ -25,6 +25,9 @@ function toRewardActivitySnapshot(reward: RewardProps) {
     description: reward.description ?? null,
     tooltipDescription: reward.tooltipDescription ?? null,
     modifiers: reward.modifiers ?? null,
+    config: reward.config ?? null,
+    spendLimitAmount: reward.spendLimitAmount ?? null,
+    spendLimitInterval: reward.spendLimitInterval ?? null,
   };
 }
 
@@ -125,8 +128,10 @@ function buildModifierChangeSetEntries(
 export function trackRewardActivityLog({
   old: oldReward,
   new: newReward,
+  description,
   ...baseInput
 }: TrackRewardActivityLogParams) {
+  const activityDescription = description?.trim() || null;
   const reward = oldReward || newReward;
   const resourceType = reward
     ? REWARD_EVENT_TO_RESOURCE_TYPE[reward.event]
@@ -146,6 +151,7 @@ export function trackRewardActivityLog({
       ...baseInput,
       resourceType,
       action: "reward.created",
+      description: activityDescription,
       changeSet: {
         reward: {
           old: null,
@@ -155,8 +161,10 @@ export function trackRewardActivityLog({
     });
   }
 
-  const activityLogs: Pick<TrackActivityLogInput, "action" | "changeSet">[] =
-    [];
+  const activityLogs: Pick<
+    TrackActivityLogInput,
+    "action" | "changeSet" | "description"
+  >[] = [];
 
   if (oldReward !== null && newReward !== null) {
     const oldSnapshot = toRewardActivitySnapshot(
@@ -175,6 +183,9 @@ export function trackRewardActivityLog({
         "maxDuration",
         "description",
         "tooltipDescription",
+        "config",
+        "spendLimitAmount",
+        "spendLimitInterval",
       ],
     });
 
@@ -211,6 +222,20 @@ export function trackRewardActivityLog({
         },
       },
     });
+  }
+
+  if (activityDescription && activityLogs.length > 0) {
+    const primaryLogIndex = activityLogs.findIndex((log) =>
+      ["reward.created", "reward.updated", "reward.deleted"].includes(
+        log.action,
+      ),
+    );
+    const targetIndex = primaryLogIndex >= 0 ? primaryLogIndex : 0;
+
+    activityLogs[targetIndex] = {
+      ...activityLogs[targetIndex],
+      description: activityDescription,
+    };
   }
 
   const batchId = activityLogs.length > 0 ? crypto.randomUUID() : undefined;

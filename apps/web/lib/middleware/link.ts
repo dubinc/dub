@@ -30,6 +30,7 @@ import { detectBot } from "./utils/detect-bot";
 import { getFinalUrl } from "./utils/get-final-url";
 import { getIdentityHash } from "./utils/get-identity-hash";
 import { isAppsFlyerTrackingUrl } from "./utils/is-appsflyer-tracking-url";
+import { isGooglePlayStoreUrl } from "./utils/is-google-play-store-url";
 import { isIosAppStoreUrl } from "./utils/is-ios-app-store-url";
 import { isSingularTrackingUrl } from "./utils/is-singular-tracking-url";
 import { isSupportedCustomURIScheme } from "./utils/is-supported-custom-uri-scheme";
@@ -112,7 +113,7 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
     ev.waitUntil(
       (async () => {
         if (!isPartnerLink) {
-          await linkCache.set(linkData as any);
+          await linkCache.set(linkData as any, { skipRevalidateTag: true });
           return;
         }
 
@@ -122,11 +123,14 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
         });
 
         // we'll use this data on /track/click
-        await linkCache.set({
-          ...(linkData as any),
-          ...(partner && { partner }),
-          ...(discount && { discount }),
-        });
+        await linkCache.set(
+          {
+            ...(linkData as any),
+            ...(partner && { partner }),
+            ...(discount && { discount }),
+          },
+          { skipRevalidateTag: true },
+        );
       })(),
     );
   }
@@ -144,7 +148,6 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
     android,
     expiredUrl,
     doIndex,
-    webhookIds,
     testVariants,
     testCompletedAt,
     projectId: workspaceId,
@@ -291,7 +294,6 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
         url,
         programId: cachedLink.programId,
         partnerId: cachedLink.partnerId,
-        webhookIds,
         shouldCacheClickId,
       }),
     );
@@ -350,7 +352,6 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
         url: finalUrl,
         programId: cachedLink.programId,
         partnerId: cachedLink.partnerId,
-        webhookIds,
         shouldCacheClickId,
       }),
     );
@@ -386,7 +387,6 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
         url: finalUrl,
         programId: cachedLink.programId,
         partnerId: cachedLink.partnerId,
-        webhookIds,
         shouldCacheClickId,
       }),
     );
@@ -424,7 +424,6 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
         url: finalUrl,
         programId: cachedLink.programId,
         partnerId: cachedLink.partnerId,
-        webhookIds,
         shouldCacheClickId,
       }),
     );
@@ -493,10 +492,43 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
         url: finalUrl,
         programId: cachedLink.programId,
         partnerId: cachedLink.partnerId,
-        webhookIds,
         shouldCacheClickId,
       }),
     );
+
+    // if it's a Google Play Store URL (and skip_deeplink_preview is not set)
+    // we need to show the interstitial page + cache deep link click data
+    if (
+      isGooglePlayStoreUrl(android) &&
+      !req.nextUrl.searchParams.get("skip_deeplink_preview")
+    ) {
+      ev.waitUntil(
+        cacheDeepLinkClickData({
+          req,
+          clickId,
+          link: {
+            id: linkId,
+            domain,
+            key,
+            url, // pass the main destination URL to the cache (for deferred deep linking)
+          },
+        }),
+      );
+
+      // redirect to the deeplink interstitial splash page "DeepLinkPreviewPage"
+      return createResponseWithCookies(
+        NextResponse.redirect(
+          new URL(`/deeplink/${domain}${fullPath}`, APP_DOMAIN),
+          {
+            headers: {
+              ...DUB_HEADERS,
+              ...(!shouldIndex && { "X-Robots-Tag": "googlebot: noindex" }),
+            },
+          },
+        ),
+        cookieData,
+      );
+    }
 
     return createResponseWithCookies(
       NextResponse.redirect(finalUrl, {
@@ -527,7 +559,6 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
         url: finalUrl,
         programId: cachedLink.programId,
         partnerId: cachedLink.partnerId,
-        webhookIds,
         shouldCacheClickId,
       }),
     );
@@ -561,7 +592,6 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
         url: finalUrl,
         programId: cachedLink.programId,
         partnerId: cachedLink.partnerId,
-        webhookIds,
         shouldCacheClickId,
       }),
     );

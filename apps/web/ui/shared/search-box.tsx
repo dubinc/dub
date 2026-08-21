@@ -111,6 +111,8 @@ export const SearchBox = forwardRef(
 
 export function SearchBoxPersisted({
   urlParam = "search",
+  onChange,
+  onChangeDebounced,
   ...props
 }: { urlParam?: string } & Partial<SearchBoxProps>) {
   const { queryParams, searchParams } = useRouterStuff();
@@ -139,8 +141,14 @@ export function SearchBoxPersisted({
   return (
     <SearchBox
       value={value}
-      onChange={setValue}
-      onChangeDebounced={setDebouncedValue}
+      onChange={(value) => {
+        setValue(value);
+        onChange?.(value);
+      }}
+      onChangeDebounced={(value) => {
+        setDebouncedValue(value);
+        onChangeDebounced?.(value);
+      }}
       {...props}
     />
   );

@@ -1,6 +1,6 @@
 import useWorkspace from "@/lib/swr/use-workspace";
-import { Folder } from "@dub/prisma/client";
 import { Button, Modal, useMediaQuery } from "@dub/ui";
+import { Folder } from "@prisma/client";
 import { FormEvent, useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { mutate } from "swr";
@@ -72,7 +72,7 @@ const DeleteFolderModal = ({
                 <p className="block text-sm text-neutral-500">
                   To verify, type{" "}
                   <span className="font-medium text-neutral-700">
-                    {folder.name}
+                    confirm delete folder
                   </span>{" "}
                   below
                 </p>
@@ -88,7 +88,7 @@ const DeleteFolderModal = ({
                       className="block w-full rounded-md border-0 text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-0 sm:text-sm"
                       aria-invalid="true"
                       autoFocus={!isMobile}
-                      pattern={folder.name}
+                      pattern="confirm delete folder"
                     />
                   </div>
                 </div>

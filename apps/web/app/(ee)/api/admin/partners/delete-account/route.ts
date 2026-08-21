@@ -1,8 +1,8 @@
+import { bulkDeleteLinks } from "@/lib/api/links/bulk-delete-links";
 import { withAdmin } from "@/lib/auth";
 import { conn } from "@/lib/planetscale";
+import { prisma } from "@/lib/prisma";
 import { stripe } from "@/lib/stripe";
-import { recordLink } from "@/lib/tinybird";
-import { prisma } from "@dub/prisma";
 import { prettyPrint } from "@dub/utils";
 import { NextResponse } from "next/server";
 
@@ -22,6 +22,15 @@ export const POST = withAdmin(
             program: true,
             links: true,
             groupId: true,
+            programPartnerTags: {
+              select: {
+                partnerTag: {
+                  select: {
+                    id: true,
+                  },
+                },
+              },
+            },
           },
         },
       },
@@ -68,6 +77,7 @@ export const POST = withAdmin(
           stripeConnectId: null,
           payoutsEnabledAt: null,
           payoutMethodHash: null,
+          defaultPayoutMethod: null,
         },
       });
       console.log(`Updated partner ${partner.email} with stripeConnectId null`);
@@ -96,26 +106,15 @@ export const POST = withAdmin(
       }
 
       if (partner.programs.length > 0) {
-        for (const { program, links, groupId } of partner.programs) {
+        for (const { links, groupId } of partner.programs) {
           if (links.length > 0) {
-            await Promise.allSettled([
-              prisma.link.deleteMany({
-                where: {
-                  id: {
-                    in: links.map((link) => link.id),
-                  },
+            await bulkDeleteLinks(
+              links.map((link) => ({
+                ...link,
+                programEnrollment: {
+                  groupId,
                 },
-              }),
-              recordLink(
-                links.map((link) => ({
-                  ...link,
-                  programEnrollment: { groupId },
-                })),
-                { deleted: true },
-              ),
-            ]);
-            console.log(
-              `Deleted ${links.length} links for program ${program.name} (${program.slug})`,
+              })),
             );
           }
         }

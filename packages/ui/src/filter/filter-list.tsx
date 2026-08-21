@@ -315,7 +315,9 @@ function OperatorFilterPill({
         onSelect?.(filterKey, value);
       }
 
-      if (!isAdvancedFilter && !filter.multiple) setValueDropdownOpen(false);
+      if (filter.singleSelect || (!isAdvancedFilter && !filter.multiple)) {
+        setValueDropdownOpen(false);
+      }
     },
     [filterKey, values, onSelect, onRemove, isAdvancedFilter, filter.multiple],
   );

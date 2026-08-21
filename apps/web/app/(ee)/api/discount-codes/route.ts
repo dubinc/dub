@@ -1,51 +1,65 @@
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
-import { createDiscountCode } from "@/lib/api/discounts/create-discount-code";
 import { DubApiError } from "@/lib/api/errors";
+import { getDiscountOrThrow } from "@/lib/api/partners/get-discount-or-throw";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
-import { stripeIntegrationSettingsSchema } from "@/lib/integrations/stripe/schema";
+import { createDiscountCode } from "@/lib/discounts/create-discount-code";
+import { prisma } from "@/lib/prisma";
 import {
   createDiscountCodeSchema,
   DiscountCodeSchema,
   getDiscountCodesQuerySchema,
 } from "@/lib/zod/schemas/discount";
-import { prisma } from "@dub/prisma";
-import { STRIPE_INTEGRATION_ID } from "@dub/utils";
+import { APP_DOMAIN } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
-// GET /api/discount-codes - get all discount codes for a partner
+// GET /api/discount-codes - list discount codes
 export const GET = withWorkspace(
   async ({ workspace, searchParams }) => {
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    const { partnerId } = getDiscountCodesQuerySchema.parse(searchParams);
-
-    const programEnrollment = await getProgramEnrollmentOrThrow({
+    const {
       partnerId,
-      programId,
-      include: {
-        discountCodes: true,
+      discountId,
+      page = 1,
+      pageSize,
+    } = getDiscountCodesQuerySchema.parse(searchParams);
+
+    if (discountId) {
+      await getDiscountOrThrow({
+        discountId,
+        programId,
+      });
+    }
+
+    if (partnerId) {
+      await getProgramEnrollmentOrThrow({
+        partnerId,
+        programId,
+        include: {},
+      });
+    }
+
+    const discountCodes = await prisma.discountCode.findMany({
+      where: {
+        programId,
+        ...(partnerId && { partnerId }),
+        ...(discountId && { discountId }),
       },
+      orderBy: {
+        createdAt: "desc",
+      },
+      take: pageSize,
+      skip: (page - 1) * pageSize,
     });
 
-    const response = DiscountCodeSchema.array().parse(
-      programEnrollment.discountCodes,
-    );
-
-    return NextResponse.json(response);
+    return NextResponse.json(DiscountCodeSchema.array().parse(discountCodes));
   },
   {
-    requiredPlan: [
-      "business",
-      "business plus",
-      "business extra",
-      "business max",
-      "advanced",
-      "enterprise",
-    ],
+    requiredPlan: ["business", "advanced", "enterprise"],
   },
 );
 
@@ -54,48 +68,30 @@ export const POST = withWorkspace(
   async ({ workspace, req, session }) => {
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    const { partnerId, linkId, code } = createDiscountCodeSchema.parse(
-      await parseRequestBody(req),
-    );
+    const body = await parseRequestBody(req);
 
-    if (!workspace.stripeConnectId) {
-      throw new DubApiError({
-        code: "bad_request",
-        message:
-          "Your workspace isn't connected to Stripe yet. Please install the Stripe integration under /settings/integrations/stripe to proceed.",
-      });
+    if (typeof body.code === "string" && body.code.trim() === "") {
+      delete body.code;
     }
 
-    const installedStripeIntegration =
-      await prisma.installedIntegration.findFirst({
-        where: {
-          projectId: workspace.id,
-          integrationId: STRIPE_INTEGRATION_ID,
-        },
-        select: {
-          settings: true,
-        },
-      });
-
-    if (!installedStripeIntegration) {
-      throw new DubApiError({
-        code: "bad_request",
-        message:
-          "The Stripe integration is not installed on your workspace. Please install the Stripe integration under /settings/integrations/stripe to proceed.",
-      });
-    }
-
-    const stripeIntegrationSettings = stripeIntegrationSettingsSchema.parse(
-      installedStripeIntegration.settings || {},
-    );
+    const { partnerId, linkId, code } = createDiscountCodeSchema.parse(body);
 
     const programEnrollment = await getProgramEnrollmentOrThrow({
       partnerId,
       programId,
       include: {
-        links: true,
         discount: true,
-        discountCodes: true,
+        links: {
+          select: {
+            id: true,
+          },
+        },
+        discountCodes: {
+          select: {
+            code: true,
+            linkId: true,
+          },
+        },
         partner: {
           select: {
             id: true,
@@ -124,25 +120,6 @@ export const POST = withWorkspace(
       });
     }
 
-    // Check for duplicate by code
-    if (code) {
-      const duplicateByCode = await prisma.discountCode.findUnique({
-        where: {
-          programId_code: {
-            programId,
-            code,
-          },
-        },
-      });
-
-      if (duplicateByCode) {
-        throw new DubApiError({
-          code: "bad_request",
-          message: `A discount with the code ${code} already exists in the program. Please choose a different code.`,
-        });
-      }
-    }
-
     // A link can have only one discount code
     const duplicateByLink = programEnrollment.discountCodes.find(
       (discountCode) => discountCode.linkId === linkId,
@@ -155,53 +132,57 @@ export const POST = withWorkspace(
       });
     }
 
-    try {
-      const discountCode = await createDiscountCode({
-        stripeConnectId: workspace.stripeConnectId,
-        stripeMode: stripeIntegrationSettings.stripeMode,
-        partner: programEnrollment.partner,
-        link,
-        discount,
-        code,
+    // Check for duplicate by code
+    if (code) {
+      const duplicateByCode = await prisma.discountCode.findUnique({
+        where: {
+          programId_code: {
+            programId: discount.programId,
+            code,
+          },
+        },
+        include: {
+          partner: true,
+        },
       });
 
-      waitUntil(
-        recordAuditLog({
-          workspaceId: workspace.id,
-          programId,
-          action: "discount_code.created",
-          description: `Discount code (${discountCode.code}) created`,
-          actor: session.user,
-          targets: [
-            {
-              type: "discount_code",
-              id: discountCode.id,
-              metadata: discountCode,
-            },
-          ],
-        }),
-      );
-
-      return NextResponse.json(DiscountCodeSchema.parse(discountCode));
-    } catch (error) {
-      throw new DubApiError({
-        code: "bad_request",
-        message:
-          error.code === "more_permissions_required_for_application"
-            ? "STRIPE_APP_UPGRADE_REQUIRED: Your connected Stripe account doesn't have the permissions needed to create discount codes. Please upgrade your Stripe integration in settings or reach out to our support team for help."
-            : error.message,
-      });
+      if (duplicateByCode) {
+        throw new DubApiError({
+          code: "conflict",
+          message: `This discount code "${code}" is already in use by [${duplicateByCode.partner.email}](${APP_DOMAIN}/${workspace.slug}/program/partners/${duplicateByCode.partner.id}). Please choose a different code.`,
+        });
+      }
     }
+
+    const discountCode = await createDiscountCode({
+      workspace,
+      partner: programEnrollment.partner,
+      link,
+      discount,
+      code,
+    });
+
+    waitUntil(
+      recordAuditLog({
+        workspaceId: workspace.id,
+        programId,
+        action: "discount_code.created",
+        description: `Discount code (${discountCode.code}) created`,
+        actor: session.user,
+        targets: [
+          {
+            type: "discount_code",
+            id: discountCode.id,
+            metadata: discountCode,
+          },
+        ],
+      }),
+    );
+
+    return NextResponse.json(DiscountCodeSchema.parse(discountCode));
   },
   {
-    requiredPlan: [
-      "business",
-      "business plus",
-      "business extra",
-      "business max",
-      "advanced",
-      "enterprise",
-    ],
+    requiredPlan: ["business", "advanced", "enterprise"],
     requiredRoles: ["owner", "member"],
   },
 );

@@ -15,7 +15,6 @@ export const deleteWorkspaceSchema = z.object({
     ])
     .optional()
     .default("delete-links"),
-  startingAfter: z.string().optional(),
 });
 
 export type DeleteWorkspacePayload = z.infer<typeof deleteWorkspaceSchema>;
@@ -33,13 +32,16 @@ export async function enqueueNextWorkspaceDeleteStep({
   items: { id: string }[];
   maxBatchSize: number;
 }) {
+  // Each step deletes the rows it fetched in-place, so the next invocation just
+  // re-fetches the first N remaining rows. We re-enqueue the same step until a
+  // batch comes back smaller than maxBatchSize, signaling that there's nothing
+  // left to delete for this step.
   const hasMore = items.length === maxBatchSize;
 
   const { messageId } = await qstash.publishJSON({
     url: `${APP_DOMAIN_WITH_NGROK}/api/cron/workspaces/delete`,
     body: {
       ...payload,
-      startingAfter: hasMore ? items[items.length - 1].id : undefined,
       step: hasMore ? currentStep : nextStep,
     },
   });

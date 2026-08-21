@@ -1,4 +1,4 @@
-import { BountyType } from "@dub/prisma/client";
+import { BountyType } from "@prisma/client";
 import * as z from "zod/v4";
 
 export const GroupBountySummarySchema = z.object({

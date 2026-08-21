@@ -1,11 +1,10 @@
 import { qstash } from "@/lib/cron";
 import { getPartnerEnrollmentInfo } from "@/lib/planetscale/get-partner-enrollment-info";
+import { prisma } from "@/lib/prisma";
 import { isNotHostedImage, storage } from "@/lib/storage";
 import { recordLink } from "@/lib/tinybird";
 import { ProcessedLinkProps } from "@/lib/types";
-import { propagateWebhookTriggerChanges } from "@/lib/webhook/update-webhook";
-import { prisma } from "@dub/prisma";
-import { Prisma } from "@dub/prisma/client";
+import { publishWorkspaceLinksUsageEvent } from "@/lib/upstash/redis-streams/workspace-links-usage";
 import {
   APP_DOMAIN_WITH_NGROK,
   R2_URL,
@@ -13,6 +12,7 @@ import {
   truncate,
 } from "@dub/utils";
 import { linkConstructorSimple } from "@dub/utils/src/functions/link-constructor";
+import { Prisma } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { createId } from "../create-id";
 import { combineTagIds } from "../tags/combine-tag-ids";
@@ -21,7 +21,6 @@ import { scheduleABTestCompletion } from "./ab-test-scheduler";
 import { linkCache } from "./cache";
 import { encodeKeyIfCaseSensitive } from "./case-sensitivity";
 import { includeTags } from "./include-tags";
-import { updateLinksUsage } from "./update-links-usage";
 import { transformLink } from "./utils";
 
 export async function createLink(link: ProcessedLinkProps) {
@@ -157,8 +156,17 @@ export async function createLink(link: ProcessedLinkProps) {
         // Record link in Tinybird
         recordLink({
           ...response,
-          ...(partner?.groupId && {
-            programEnrollment: { groupId: partner.groupId },
+          ...(partner && {
+            programEnrollment: {
+              ...(partner?.groupId && {
+                groupId: partner.groupId,
+              }),
+              programPartnerTags: partner?.partnerTagIds.map(
+                (partnerTagId: string) => ({
+                  partnerTagId,
+                }),
+              ),
+            },
           }),
         }),
 
@@ -200,15 +208,10 @@ export async function createLink(link: ProcessedLinkProps) {
 
         // Update links usage for workspace
         link.projectId &&
-          updateLinksUsage({
+          publishWorkspaceLinksUsageEvent({
             workspaceId: link.projectId,
-            increment: 1,
-          }),
-
-        // Propagate webhook trigger changes
-        webhookIds &&
-          propagateWebhookTriggerChanges({
-            webhookIds,
+            linksCount: 1,
+            timestamp: new Date().toISOString(),
           }),
 
         // Schedule AB test completion

@@ -1,6 +1,6 @@
 "use server";
 
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import * as z from "zod/v4";
 import { workspacePreferencesValueSchemas } from "../zod/schemas/workspace-preferences";
 import { authActionClient } from "./safe-action";

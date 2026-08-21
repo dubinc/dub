@@ -48,7 +48,7 @@ export default function UploadLogo() {
         <div className="flex flex-col space-y-1">
           <h2 className="text-base font-semibold">Workspace Logo</h2>
           <p className="text-sm text-neutral-500">
-            This is your workspace's logo on {process.env.NEXT_PUBLIC_APP_NAME}.
+            This is your workspace's logo on Dub.
           </p>
           <p className="text-sm text-neutral-500">
             Click the logo to upload a new image.

@@ -17,12 +17,24 @@
       "schedule": "0 8 * * *"
     },
     {
-      "path": "/api/cron/streams/update-workspace-clicks",
+      "path": "/api/cron/streams/send-link-clicked-webhooks",
+      "schedule": "* * * * *"
+    },
+    {
+      "path": "/api/cron/streams/update-click-stats",
+      "schedule": "* * * * *"
+    },
+    {
+      "path": "/api/cron/streams/update-workspace-links-usage",
       "schedule": "* * * * *"
     },
     {
       "path": "/api/cron/streams/update-partner-stats",
       "schedule": "*/2 * * * *"
+    },
+    {
+      "path": "/api/cron/partner-platforms/website",
+      "schedule": "* * * * *"
     },
     {
       "path": "/api/cron/partner-program-summary",
@@ -33,12 +45,20 @@
       "schedule": "0 9 * * *"
     },
     {
+      "path": "/api/cron/trial-emails",
+      "schedule": "0 * * * *"
+    },
+    {
       "path": "/api/cron/payouts/aggregate-due-commissions",
       "schedule": "0 * * * *"
     },
     {
+      "path": "/api/cron/payouts/reconcile-amounts",
+      "schedule": "* * * * *"
+    },
+    {
       "path": "/api/cron/trigger-withdrawal",
-      "schedule": "0 0,12 * * *"
+      "schedule": "0 1,13 * * *"
     },
     {
       "path": "/api/cron/trigger-backup",
@@ -63,6 +83,18 @@
     {
       "path": "/api/cron/sitemaps/queue",
       "schedule": "0 2 * * *"
+    },
+    {
+      "path": "/api/cron/sync-redis-resources",
+      "schedule": "*/5 * * * *"
+    },
+    {
+      "path": "/api/cron/queue/retry",
+      "schedule": "* * * * *"
+    },
+    {
+      "path": "/api/cron/campaigns/queue-scheduled",
+      "schedule": "* * * * *"
     }
   ],
   "functions": {

@@ -1,5 +1,5 @@
 import { PROGRAM_ONBOARDING_PARTNERS_LIMIT } from "@/lib/constants/program";
-import { PartnerLinkStructure, RewardStructure } from "@dub/prisma/client";
+import { PartnerLinkStructure, RewardStructure } from "@prisma/client";
 import * as z from "zod/v4";
 import { maxDurationSchema } from "./misc";
 import { updateProgramSchema } from "./programs";
@@ -15,6 +15,10 @@ export const programInfoSchema = z.object({
   logo: z.string(),
   domain: z.string(),
   url: parseUrlSchema.nullable(),
+  supportEmail: z
+    .email({ error: "Please enter a valid email" })
+    .max(255)
+    .nullish(),
   linkStructure: z.enum(PartnerLinkStructure).default("short"),
   linkParameter: z.string().nullish(),
 });

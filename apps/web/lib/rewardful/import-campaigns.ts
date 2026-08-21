@@ -1,7 +1,7 @@
+import { prisma } from "@/lib/prisma";
 import { RESOURCE_COLORS } from "@/ui/colors";
-import { prisma } from "@dub/prisma";
-import { EventType, Prisma, RewardStructure } from "@dub/prisma/client";
 import { randomValue } from "@dub/utils";
+import { EventType, Prisma, RewardStructure } from "@prisma/client";
 import { differenceInSeconds } from "date-fns";
 import { createId } from "../api/create-id";
 import { serializeReward } from "../api/partners/serialize-reward";
@@ -12,7 +12,10 @@ import {
   stripeCouponToDubDiscount,
   validateStripeCouponForDubDiscount,
 } from "../stripe/coupon-discount-converter";
-import { DEFAULT_PARTNER_GROUP } from "../zod/schemas/groups";
+import {
+  DEFAULT_PARTNER_GROUP,
+  sanitizeAdditionalLinks,
+} from "../zod/schemas/groups";
 import { RewardfulApi } from "./api";
 import { rewardfulImporter } from "./importer";
 import { RewardfulImportPayload } from "./types";
@@ -75,6 +78,7 @@ export async function importCampaigns(payload: RewardfulImportPayload) {
       minimum_payout_cents,
       commission_percent,
       max_commission_period_months,
+      max_commissions,
       days_until_commissions_are_due,
       reward_type,
     } = campaign;
@@ -99,7 +103,9 @@ export async function importCampaigns(payload: RewardfulImportPayload) {
         brandColor,
         holdingPeriodDays,
         autoApprovePartnersEnabledAt,
-        ...(additionalLinks && { additionalLinks }),
+        ...(additionalLinks && {
+          additionalLinks: sanitizeAdditionalLinks(additionalLinks),
+        }),
         ...(maxPartnerLinks && { maxPartnerLinks }),
         ...(linkStructure && { linkStructure }),
         ...(applicationFormData && { applicationFormData }),
@@ -142,7 +148,12 @@ export async function importCampaigns(payload: RewardfulImportPayload) {
             },
           },
           event: EventType.sale,
-          maxDuration: max_commission_period_months,
+          // if max_commissions is 1 OR max_commission_period_months is 0,
+          // map to Dub's maxDuration = 0 ("for the first sale").
+          maxDuration:
+            max_commissions === 1 || max_commission_period_months === 0
+              ? 0
+              : max_commission_period_months,
           type:
             reward_type === "amount"
               ? RewardStructure.flat

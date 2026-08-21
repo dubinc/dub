@@ -3,12 +3,13 @@ import { throwIfNoAccess } from "@/lib/api/tokens/throw-if-no-access";
 import { assertRoleAllowedForPlan } from "@/lib/api/workspaces/assert-role-plan";
 import { withWorkspace } from "@/lib/auth";
 import { generateRandomName } from "@/lib/names";
+import { prisma } from "@/lib/prisma";
 import {
   getWorkspaceUsersQuerySchema,
   workspaceUserSchema,
 } from "@/lib/zod/schemas/workspaces";
-import { prisma } from "@dub/prisma";
-import { WorkspaceRole } from "@dub/prisma/client";
+import { pluralize } from "@dub/utils";
+import { WorkspaceRole } from "@prisma/client";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 
@@ -148,6 +149,24 @@ export const DELETE = withWorkspace(
         code: "bad_request",
         message:
           "Cannot remove owner from workspace. Please transfer ownership to another user first.",
+      });
+    }
+
+    const activeRestrictedTokens = await prisma.restrictedToken.count({
+      where: {
+        projectId: workspace.id,
+        userId,
+        lastUsed: {
+          not: null,
+        },
+      },
+    });
+
+    if (activeRestrictedTokens) {
+      const tokenTense = pluralize("token", activeRestrictedTokens);
+      throw new DubApiError({
+        code: "bad_request",
+        message: `This user has ${activeRestrictedTokens} active restricted ${tokenTense}. Please remove the ${tokenTense} first before removing the user from the workspace.`,
       });
     }
 

@@ -1,11 +1,12 @@
-import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
+import { DubApiError, handleApiError } from "@/lib/api/errors";
+import { prisma } from "@/lib/prisma";
 import { BetaFeatures, PlanProps, WorkspaceWithUsers } from "@/lib/types";
 import { ratelimit } from "@/lib/upstash";
-import { prisma } from "@dub/prisma";
-import { WorkspaceRole } from "@dub/prisma/client";
 import { API_DOMAIN, getSearchParams } from "@dub/utils";
+import { WorkspaceRole } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { headers } from "next/headers";
+import { NextResponse } from "next/server";
 import { captureRequestLog } from "../api-logs/capture-request-log";
 import { getRatelimitForPlan } from "../api/get-ratelimit-for-plan";
 import {
@@ -18,6 +19,7 @@ import { normalizeWorkspaceId } from "../api/workspaces/workspace-id";
 import { withAxiomBodyLog } from "../axiom/server";
 import { getFeatureFlags } from "../edge-config";
 import { hashToken } from "./hash-token";
+import { canAccessProgram, isProgramApiPath } from "./product-access-guard";
 import { rateLimitRequest } from "./rate-limit-request";
 import { TokenCacheItem, tokenCache } from "./token-cache";
 import { Session, getSession } from "./utils";
@@ -58,16 +60,7 @@ interface WithWorkspaceHandler {
 export const withWorkspace = (
   handler: WithWorkspaceHandler,
   {
-    requiredPlan = [
-      "free",
-      "pro",
-      "business",
-      "business plus",
-      "business max",
-      "business extra",
-      "advanced",
-      "enterprise",
-    ], // if the action needs a specific plan
+    requiredPlan = ["free", "pro", "business", "advanced", "enterprise"], // if the action needs a specific plan
     requiredPermissions = [],
     requiredRoles = [],
     featureFlag, // if the action needs a specific feature flag
@@ -194,6 +187,7 @@ export const withWorkspace = (
                   project: {
                     select: {
                       plan: true,
+                      trialEndsAt: true,
                     },
                   },
                 }),
@@ -239,7 +233,9 @@ export const withWorkspace = (
             ? "1 s"
             : "1 m";
 
-          const planLimit = getRatelimitForPlan(token.project?.plan || "free");
+          const planLimit = getRatelimitForPlan(token.project?.plan || "free", {
+            trialEndsAt: token.project?.trialEndsAt ?? null,
+          });
           limit = planLimit.limits[isAnalytics ? "analyticsApi" : "api"];
 
           const { success, headers } = await rateLimitRequest({
@@ -357,6 +353,9 @@ export const withWorkspace = (
 
         // workspace doesn't exist
         if (!workspace || !workspace.users) {
+          // Clear so the catch path won't record this error against a partial/wrong workspace.
+          workspace = undefined;
+
           throw new DubApiError({
             code: "not_found",
             message: "Workspace not found.",
@@ -376,6 +375,10 @@ export const withWorkspace = (
               expires: true,
             },
           });
+
+          // Clear so non-member denials are not attributed to this workspace
+          // in API logs or Axiom error context.
+          workspace = undefined;
 
           if (!pendingInvites) {
             throw new DubApiError({
@@ -446,8 +449,16 @@ export const withWorkspace = (
           }
         }
 
+        const normalizedWorkspacePlan = [
+          "business plus",
+          "business max",
+          "business extra",
+        ].includes(workspace.plan)
+          ? "business"
+          : workspace.plan;
+
         // plan checks
-        if (!requiredPlan.includes(workspace.plan)) {
+        if (!requiredPlan.includes(normalizedWorkspacePlan)) {
           throw new DubApiError({
             code: "forbidden",
             message: "Unauthorized: Need higher plan.",
@@ -456,13 +467,28 @@ export const withWorkspace = (
 
         // analytics API checks
         if (
-          workspace.plan === "free" &&
+          normalizedWorkspacePlan === "free" &&
           apiKey &&
           url.pathname.includes("/analytics")
         ) {
           throw new DubApiError({
             code: "forbidden",
             message: "Analytics API is only available on paid plans.",
+          });
+        }
+
+        // TEMPORARY: block program access for restricted workspace users
+        const isProgramPath = isProgramApiPath(url.pathname);
+        const hasProgramAccess = canAccessProgram({
+          workspaceId: workspace.id,
+          userId: session.user.id,
+        });
+
+        if (isProgramPath && !hasProgramAccess) {
+          throw new DubApiError({
+            code: "forbidden",
+            message:
+              "You don't have access to Dub Partners in this workspace. Please contact your workspace admin to get access.",
           });
         }
 
@@ -477,40 +503,49 @@ export const withWorkspace = (
           token,
         });
 
-        if (workspace) {
-          captureRequestLog({
-            req: reqForLog,
-            response,
-            workspace,
-            session,
-            token,
-            url,
-            requestHeaders,
-            startTime,
-          });
+        if (workspace?.users?.length) {
+          waitUntil(
+            captureRequestLog({
+              req: reqForLog,
+              response,
+              workspace,
+              session,
+              token,
+              url,
+              requestHeaders,
+              startTime,
+            }),
+          );
         }
 
         return response;
-      } catch (error) {
-        const errorResponse = handleAndReturnErrorResponse(
-          error,
-          responseHeaders,
+      } catch (err) {
+        const { error, status } = handleApiError({
+          error: err,
+          workspace,
+        });
+
+        const response = NextResponse.json(
+          { error },
+          { headers: responseHeaders, status },
         );
 
-        if (workspace) {
-          captureRequestLog({
-            req: reqForLog,
-            response: errorResponse,
-            workspace,
-            session,
-            token,
-            url,
-            requestHeaders,
-            startTime,
-          });
+        if (workspace?.users?.length) {
+          waitUntil(
+            captureRequestLog({
+              req: reqForLog,
+              response,
+              workspace,
+              session,
+              token,
+              url,
+              requestHeaders,
+              startTime,
+            }),
+          );
         }
 
-        return errorResponse;
+        return response;
       }
     },
   );

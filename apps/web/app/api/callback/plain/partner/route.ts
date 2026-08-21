@@ -1,6 +1,6 @@
 import { plain } from "@/lib/plain/client";
 import { upsertPlainCustomer } from "@/lib/plain/upsert-plain-customer";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import {
   COUNTRIES,
   currencyFormatter,
@@ -142,9 +142,52 @@ export async function POST(req: NextRequest) {
               ]
             : []),
           plainSpacer,
-          ...plainCopySection({
-            label: "Partner Country",
-            value: country ? COUNTRIES[country] : "Unknown",
+          uiComponent.row({
+            mainContent: [
+              uiComponent.text({
+                text: "Partner Country",
+              }),
+            ],
+            asideContent: [
+              uiComponent.badge({
+                label: country ? COUNTRIES[country] : "Unknown",
+                color: "GREY",
+              }),
+            ],
+          }),
+          plainSpacer,
+          uiComponent.row({
+            mainContent: [
+              uiComponent.text({
+                text: "Dub Admin View",
+                size: "M",
+                color: "NORMAL",
+              }),
+            ],
+            asideContent: [
+              uiComponent.linkButton({
+                url: `https://admin.dub.co/partners/network?search=${id}&partnerId=${id}`,
+                label: "View in Dub",
+              }),
+            ],
+          }),
+          plainSpacer,
+          uiComponent.row({
+            mainContent: [
+              uiComponent.text({
+                text: "Payouts Enabled (UTC)",
+              }),
+            ],
+            asideContent: [
+              uiComponent.badge({
+                label: payoutsEnabledAt
+                  ? formatDateTimeSmart(payoutsEnabledAt, {
+                      timeZone: "utc",
+                    })
+                  : "No",
+                color: payoutsEnabledAt ? "GREEN" : "RED",
+              }),
+            ],
           }),
           ...(stripeRecipientId
             ? [
@@ -214,24 +257,6 @@ export async function POST(req: NextRequest) {
                 }),
               ]
             : []),
-          plainSpacer,
-          uiComponent.row({
-            mainContent: [
-              uiComponent.text({
-                text: "Payouts Enabled (UTC)",
-              }),
-            ],
-            asideContent: [
-              uiComponent.badge({
-                label: payoutsEnabledAt
-                  ? formatDateTimeSmart(payoutsEnabledAt, {
-                      timeZone: "utc",
-                    })
-                  : "No",
-                color: payoutsEnabledAt ? "GREEN" : "RED",
-              }),
-            ],
-          }),
           ...(partnerProfile.programs.length > 0
             ? [
                 plainDivider,

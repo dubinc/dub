@@ -2,9 +2,14 @@ import { DubApiError } from "@/lib/api/errors";
 import { storage } from "@/lib/storage";
 import { ratelimit } from "@/lib/upstash";
 import { submissionRequirementsSchema } from "@/lib/zod/schemas/bounties";
-import { prisma } from "@dub/prisma";
-import { ProgramEnrollment } from "@dub/prisma/client";
+import { ACTIVE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
 import { nanoid, R2_URL } from "@dub/utils";
+import { ProgramEnrollment, ProgramPartnerTag } from "@prisma/client";
+import {
+  bountyEligibilityIncludes,
+  canPartnerSubmitBounty,
+} from "./bounty-availability";
+import { getBountyOrThrow } from "./get-bounty-or-throw";
 
 const MAX_ATTEMPTS = 25;
 const CACHE_KEY_PREFIX = "bounty:submission:file:upload";
@@ -16,8 +21,10 @@ type GetBountySubmissionUploadUrlParams = {
   contentLength: number;
   programEnrollment: Pick<
     ProgramEnrollment,
-    "programId" | "partnerId" | "groupId"
-  >;
+    "programId" | "partnerId" | "groupId" | "status" | "createdAt"
+  > & {
+    programPartnerTags: Pick<ProgramPartnerTag, "partnerTagId">[];
+  };
 };
 
 const MAX_UPLOAD_SIZE_BYTES = 5 * 1024 * 1024;
@@ -35,7 +42,14 @@ export async function getBountySubmissionUploadUrl({
   contentLength,
   programEnrollment,
 }: GetBountySubmissionUploadUrlParams) {
-  const { programId, partnerId } = programEnrollment;
+  const { programId, partnerId, status } = programEnrollment;
+
+  if (!ACTIVE_ENROLLMENT_STATUSES.includes(status)) {
+    throw new DubApiError({
+      code: "forbidden",
+      message: "You are not allowed to submit a bounty for this program.",
+    });
+  }
 
   if (!fileName.trim()) {
     throw new DubApiError({
@@ -74,73 +88,37 @@ export async function getBountySubmissionUploadUrl({
     });
   }
 
-  const bounty = await prisma.bounty.findUniqueOrThrow({
-    where: {
-      id: bountyId,
-    },
-    select: {
-      programId: true,
-      type: true,
-      startsAt: true,
-      endsAt: true,
-      archivedAt: true,
-      submissionRequirements: true,
-      groups: {
+  const bounty = await getBountyOrThrow({
+    bountyId,
+    programId,
+    include: {
+      ...bountyEligibilityIncludes,
+      program: {
         select: {
-          groupId: true,
+          id: true,
+          defaultGroupId: true,
         },
       },
     },
   });
 
-  if (bounty.programId !== programId) {
-    throw new DubApiError({
-      code: "forbidden",
-      message: "This bounty is not for this program.",
-    });
-  }
-
-  if (bounty.groups.length > 0) {
-    const isInGroup = bounty.groups.find(
-      ({ groupId }) => groupId === programEnrollment.groupId,
-    );
-
-    if (!isInGroup) {
-      throw new DubApiError({
-        code: "forbidden",
-        message: "You are not allowed to submit this bounty.",
-      });
-    }
-  }
-
-  // Validate the bounty dates
-  const now = new Date();
-
-  if (bounty.startsAt && bounty.startsAt > now) {
-    throw new DubApiError({
-      code: "forbidden",
-      message: "This bounty is not yet available.",
-    });
-  }
-
-  if (bounty.endsAt && bounty.endsAt < now) {
-    throw new DubApiError({
-      code: "forbidden",
-      message: "This bounty is no longer available.",
-    });
-  }
-
-  if (bounty.archivedAt) {
-    throw new DubApiError({
-      code: "forbidden",
-      message: "This bounty is archived.",
-    });
-  }
-
   if (bounty.type === "performance") {
     throw new DubApiError({
       code: "forbidden",
       message: "You are not allowed to submit a performance bounty.",
+    });
+  }
+
+  const canSubmitBounty = canPartnerSubmitBounty({
+    program: bounty.program,
+    bounty,
+    programEnrollment,
+  });
+
+  if (!canSubmitBounty) {
+    throw new DubApiError({
+      code: "not_found",
+      message: "Bounty not found.",
     });
   }
 

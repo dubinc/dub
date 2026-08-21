@@ -1,8 +1,18 @@
 import { plans } from "@/lib/types";
-import { WorkspaceRole } from "@dub/prisma/client";
+import { WorkspaceRole } from "@prisma/client";
 import * as z from "zod/v4";
 
-export const RECURRING_MAX_DURATIONS = [0, 1, 3, 6, 12, 18, 24, 36, 48];
+export const RECURRING_MAX_DURATIONS = [0, 1, 3, 6, 12, 24];
+export const MAX_DURATION_LIMIT = 600;
+
+export const maxDurationSchema = z.coerce
+  .number()
+  .int({ message: "Max duration must be an integer." })
+  .nonnegative({ message: "Max duration must be 0 or greater." })
+  .max(MAX_DURATION_LIMIT, {
+    message: "Max duration must be 600 months (50 years) or less.",
+  })
+  .nullish();
 
 export const planSchema = z.enum(plans).describe("The plan of the workspace.");
 
@@ -23,18 +33,21 @@ export const booleanQuerySchema = z
 export const getPaginationQuerySchema = ({
   pageSize,
   deprecated = false,
+  maxPageSize,
 }: {
   pageSize: number;
   deprecated?: boolean;
+  maxPageSize?: number;
 }) => ({
   page: z.coerce
     .number({ error: "Page must be a number." })
+    .int({ message: "Page must be an integer." })
     .positive({ message: "Page must be greater than 0." })
     .optional()
     .describe(
       deprecated
         ? "DEPRECATED. Use `startingAfter` instead."
-        : "The page number for pagination.",
+        : "The page number for pagination. The first page is `1`.",
     )
     .meta({
       example: 1,
@@ -42,9 +55,10 @@ export const getPaginationQuerySchema = ({
     }),
   pageSize: z.coerce
     .number({ error: "Page size must be a number." })
+    .int({ message: "Page size must be an integer." })
     .positive({ message: "Page size must be greater than 0." })
-    .max(pageSize, {
-      message: `Max page size is ${pageSize}.`,
+    .max(maxPageSize ?? pageSize, {
+      message: `Max page size is ${maxPageSize ?? pageSize}.`,
     })
     .optional()
     .default(pageSize)
@@ -79,10 +93,3 @@ export const getCursorPaginationQuerySchema = ({
       example,
     }),
 });
-
-export const maxDurationSchema = z.coerce
-  .number()
-  .refine((val) => RECURRING_MAX_DURATIONS.includes(val), {
-    message: `Max duration must be ${RECURRING_MAX_DURATIONS.join(", ")}`,
-  })
-  .nullish();

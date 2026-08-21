@@ -29,16 +29,20 @@ const tabs = [
     label: "Payouts",
   },
   {
-    href: "/partners",
+    href: "/partners/network",
     label: "Partners",
+  },
+  {
+    href: "/programs",
+    label: "Programs",
   },
   {
     href: "/revenue",
     label: "Revenue",
   },
   {
-    href: "/fraud-alerts",
-    label: "Fraud Alerts",
+    href: "/domains",
+    label: "Domains",
   },
 ];
 
@@ -54,8 +58,12 @@ export function AdminNav() {
           pathname === tab.href || pathname?.startsWith(`${tab.href}/`);
         return (
           <Link
-            href={tab.href}
             key={tab.href}
+            href={
+              tab.href === "/partners/network"
+                ? "/partners/network?networkStatus=submitted"
+                : tab.href
+            }
             className={`block w-full rounded-md px-4 py-2 text-left text-sm text-neutral-700 transition-colors hover:bg-neutral-100 active:bg-neutral-200 ${
               isActive ? "bg-neutral-100" : ""
             }`}
@@ -110,8 +118,12 @@ export function AdminNav() {
                     pathname?.startsWith(`${tab.href}/`);
                   return (
                     <Link
-                      href={tab.href}
                       key={tab.href}
+                      href={
+                        tab.href === "/partners/network"
+                          ? "/partners/network?networkStatus=submitted"
+                          : tab.href
+                      }
                       className={`rounded-md px-3 py-1.5 text-sm transition-colors ${
                         isActive
                           ? "bg-neutral-100 text-neutral-900"

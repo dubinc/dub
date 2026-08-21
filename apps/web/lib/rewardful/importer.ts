@@ -5,7 +5,9 @@ import { RewardfulCredentials, RewardfulImportPayload } from "./types";
 
 // Rewardful rate limit is 45 requests per 30 seconds
 // so we should be able to safely request up to 10 batches at a time
-export const MAX_BATCHES = 10;
+export const REWARDFUL_MAX_BATCHES = 10;
+// smaller batch size for referrals to make sure each batch succeeds
+export const REWARDFUL_REFERRALS_MAX_BATCHES = 1;
 
 // cache rewardful credentials for 24 hours
 export const CACHE_EXPIRY = 60 * 60 * 24;
@@ -34,11 +36,12 @@ class RewardfulImporter {
     return await redis.del(`${CACHE_KEY_PREFIX}:${workspaceId}`);
   }
 
-  async queue(body: RewardfulImportPayload) {
+  async queue(body: RewardfulImportPayload, options?: { delay?: number }) {
     return await qstash.publishJSON({
       url: `${APP_DOMAIN_WITH_NGROK}/api/cron/import/rewardful`,
       body,
       contentBasedDeduplication: true,
+      ...(options?.delay != null && { delay: options.delay }),
     });
   }
 }

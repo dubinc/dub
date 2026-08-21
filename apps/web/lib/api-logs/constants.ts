@@ -2,6 +2,7 @@ import type { PlanProps } from "@/lib/types";
 import {
   APPSFLYER_INTEGRATION_ID,
   HUBSPOT_INTEGRATION_ID,
+  INTERCOM_INTEGRATION_ID,
   SHOPIFY_INTEGRATION_ID,
   STRIPE_INTEGRATION_ID,
 } from "@dub/utils";
@@ -12,7 +13,8 @@ export const PUBLISHABLE_KEY_REQUEST_PATHS = [
 ] as const;
 
 // Route patterns for parameterized path matching.
-// Used both for logging eligibility and route pattern extraction.
+// Also the allowlist for which mutation routes are recorded in API logs.
+// Used for route_pattern extraction and sensitive-field masking keys.
 // Order matters: more specific patterns must come before less specific ones.
 export const ROUTE_PATTERNS = [
   // Track
@@ -24,6 +26,8 @@ export const ROUTE_PATTERNS = [
   // Partners
   "/partners/links/upsert",
   "/partners/links",
+  "/partners/applications/approve",
+  "/partners/applications/reject",
   "/partners/ban",
   "/partners/deactivate",
   "/partners/:partnerId",
@@ -32,6 +36,8 @@ export const ROUTE_PATTERNS = [
   // Links
   "/links/bulk",
   "/links/upsert",
+  "/links/sync",
+  "/links/:linkId/transfer",
   "/links/:linkId",
   "/links",
 
@@ -47,9 +53,89 @@ export const ROUTE_PATTERNS = [
   // Bounties
   "/bounties/:bountyId/submissions/:submissionId/approve",
   "/bounties/:bountyId/submissions/:submissionId/reject",
+  "/bounties/:bountyId/sync-social-metrics",
+  "/bounties/:bountyId",
+  "/bounties",
+
+  // Campaigns
+  "/campaigns/:campaignId/duplicate",
+  "/campaigns/:campaignId/preview",
+  "/campaigns/:campaignId",
+  "/campaigns",
+
+  // Folders
+  "/folders/:folderId",
+  "/folders",
+
+  // Domains
+  "/domains/client/register",
+  "/domains/client/saved",
+  "/domains/default",
+  "/domains/register",
+  "/domains/:domain/primary",
+  "/domains/:domain/transfer",
+  "/domains/:domain",
+  "/domains",
+
+  // Tags
+  "/tags/:id",
+  "/tags",
 
   // Tokens
   "/tokens/embed/referrals",
+  "/tokens/:id",
+  "/tokens",
+
+  // Webhooks
+  "/webhooks/:webhookId",
+  "/webhooks",
+
+  // UTM
+  "/utm/:id",
+  "/utm",
+
+  // Dashboards
+  "/dashboards/:id",
+  "/dashboards",
+
+  // Groups
+  "/groups/:groupId/default-links/:defaultLinkId",
+  "/groups/:groupId/default-links",
+  "/groups/:groupId/default",
+  "/groups/:groupId/partners",
+  "/groups/:groupId",
+  "/groups",
+
+  // Discount codes
+  "/discount-codes/:discountCodeId",
+  "/discount-codes",
+
+  // Email domains
+  "/email-domains/:domain",
+  "/email-domains",
+
+  // OAuth
+  "/oauth/apps/:appId",
+  "/oauth/apps",
+
+  // Integrations
+  "/integrations/uninstall",
+  "/stripe/integration",
+
+  // Workspaces
+  "/workspaces/:id/users",
+  "/workspaces/:id/invites/reset",
+  "/workspaces/:id/invites",
+  "/workspaces/:id/saml",
+  "/workspaces/:id/scim",
+  "/workspaces/:id/billing/activate-paid-plan",
+  "/workspaces/:id/billing/cancel",
+  "/workspaces/:id/billing/manage",
+  "/workspaces/:id/billing/payment-methods/verify-microdeposits",
+  "/workspaces/:id/billing/payment-methods",
+  "/workspaces/:id/billing/retry-payment",
+  "/workspaces/:id/billing/upgrade",
+  "/workspaces/:id",
 ] as const;
 
 export const REQUEST_TYPES = [
@@ -128,6 +214,12 @@ export const WEBHOOK_REQUEST_ACTORS_BY_PATH = {
   "/hubspot/webhook": {
     id: HUBSPOT_INTEGRATION_ID,
     name: "HubSpot",
+    image:
+      "https://dubassets.com/integrations/int_ffw3qgrFAahY6qs1hXaH3wHS_JPoCPOh",
+  },
+  "/intercom/webhook": {
+    id: INTERCOM_INTEGRATION_ID,
+    name: "Intercom",
     image:
       "https://dubassets.com/integrations/int_ffw3qgrFAahY6qs1hXaH3wHS_JPoCPOh",
   },

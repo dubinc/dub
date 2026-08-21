@@ -1,23 +1,37 @@
+import { deleteDiscountCodes } from "@/lib/discounts/delete-discount-code";
+import { prisma } from "@/lib/prisma";
 import { storage } from "@/lib/storage";
 import { recordLink } from "@/lib/tinybird";
-import { prisma } from "@dub/prisma";
 import { R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
-import { deleteDiscountCodes } from "../discounts/delete-discount-code";
 import { linkCache } from "./cache";
 import { includeProgramEnrollment } from "./include-program-enrollment";
 import { includeTags } from "./include-tags";
 import { transformLink } from "./utils";
 
 export async function deleteLink(linkId: string) {
-  const link = await prisma.link.delete({
+  const link = await prisma.link.findUniqueOrThrow({
     where: {
       id: linkId,
     },
     include: {
       ...includeTags,
       ...includeProgramEnrollment,
-      discountCode: true,
+      discountCode: {
+        include: {
+          discount: true,
+        },
+      },
+    },
+  });
+
+  if (link.discountCode) {
+    await deleteDiscountCodes([link.discountCode]);
+  }
+
+  await prisma.link.delete({
+    where: {
+      id: linkId,
     },
   });
 
@@ -40,11 +54,11 @@ export async function deleteLink(linkId: string) {
             id: link.projectId,
           },
           data: {
-            totalLinks: { decrement: 1 },
+            totalLinks: {
+              decrement: 1,
+            },
           },
         }),
-
-      link.discountCode && deleteDiscountCodes(link.discountCode),
     ]),
   );
 

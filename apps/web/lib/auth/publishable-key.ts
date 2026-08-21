@@ -1,10 +1,11 @@
 import { captureRequestLog } from "@/lib/api-logs/capture-request-log";
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { withAxiom } from "@/lib/axiom/server";
+import { prisma } from "@/lib/prisma";
 import { ratelimit } from "@/lib/upstash";
-import { prisma } from "@dub/prisma";
-import { Project } from "@dub/prisma/client";
 import { getSearchParams } from "@dub/utils";
+import { Project } from "@prisma/client";
+import { waitUntil } from "@vercel/functions";
 import { headers } from "next/headers";
 import { COMMON_CORS_HEADERS } from "../api/cors";
 
@@ -24,18 +25,7 @@ interface WithPublishableKeyHandler {
 
 export const withPublishableKey = (
   handler: WithPublishableKeyHandler,
-  {
-    requiredPlan = [
-      "free",
-      "pro",
-      "business",
-      "business plus",
-      "business max",
-      "business extra",
-      "advanced",
-      "enterprise",
-    ],
-  },
+  { requiredPlan = ["free", "pro", "business", "advanced", "enterprise"] },
 ) =>
   withAxiom(
     async (
@@ -99,7 +89,15 @@ export const withPublishableKey = (
             });
           }
 
-          if (!requiredPlan.includes(workspace.plan)) {
+          const normalizedWorkspacePlan = [
+            "business plus",
+            "business max",
+            "business extra",
+          ].includes(workspace.plan)
+            ? "business"
+            : workspace.plan;
+
+          if (!requiredPlan.includes(normalizedWorkspacePlan)) {
             throw new DubApiError({
               code: "forbidden",
               message: "Unauthorized: Need higher plan.",
@@ -114,16 +112,18 @@ export const withPublishableKey = (
             workspace,
           });
 
-          captureRequestLog({
-            req: reqForLog,
-            response,
-            workspace,
-            session: undefined,
-            token: null,
-            url,
-            requestHeaders,
-            startTime,
-          });
+          waitUntil(
+            captureRequestLog({
+              req: reqForLog,
+              response,
+              workspace,
+              session: undefined,
+              token: null,
+              url,
+              requestHeaders,
+              startTime,
+            }),
+          );
 
           return response;
         } else {
@@ -139,16 +139,18 @@ export const withPublishableKey = (
         );
 
         if (workspace) {
-          captureRequestLog({
-            req: reqForLog,
-            response: errorResponse,
-            workspace,
-            session: undefined,
-            token: null,
-            url,
-            requestHeaders,
-            startTime,
-          });
+          waitUntil(
+            captureRequestLog({
+              req: reqForLog,
+              response: errorResponse,
+              workspace,
+              session: undefined,
+              token: null,
+              url,
+              requestHeaders,
+              startTime,
+            }),
+          );
         }
 
         return errorResponse;

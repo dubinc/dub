@@ -1,8 +1,8 @@
 "use client";
 
+import { BountySubmissionStatusBadges } from "@/lib/bounty/bounty-submission-status-badges";
 import { REJECT_BOUNTY_SUBMISSION_REASONS } from "@/lib/bounty/constants";
 import { getPeriodLabel } from "@/lib/bounty/periods";
-import { BOUNTY_SUBMISSION_STATUS_BADGES } from "@/lib/bounty/submission-status";
 import { resolveBountyDetails } from "@/lib/bounty/utils";
 import { PartnerBountyProps, PartnerBountySubmission } from "@/lib/types";
 import { BountySocialMetricsRewardsTable } from "@/ui/partners/bounties/bounty-social-metrics-rewards-table";
@@ -193,7 +193,7 @@ function SubmissionRightColumn({
   submission: PartnerBountySubmission;
 }) {
   const bountyInfo = resolveBountyDetails(bounty);
-  const statusBadge = BOUNTY_SUBMISSION_STATUS_BADGES[submission.status];
+  const statusBadge = BountySubmissionStatusBadges[submission.status];
   const submittedDate = submission.completedAt ?? submission.createdAt;
 
   const textValue = (text: string) => (

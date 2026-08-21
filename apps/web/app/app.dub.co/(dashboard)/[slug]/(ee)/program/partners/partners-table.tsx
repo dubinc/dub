@@ -2,6 +2,7 @@
 
 import { deleteProgramInviteAction } from "@/lib/actions/partners/delete-program-invite";
 import { resendProgramInviteAction } from "@/lib/actions/partners/resend-program-invite";
+import { getDeletePartnerDisabledTooltip } from "@/lib/partners/utils";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useGroups from "@/lib/swr/use-groups";
 import usePartnersCount from "@/lib/swr/use-partners-count";
@@ -16,15 +17,21 @@ import { useBulkBanPartnersModal } from "@/ui/modals/bulk-ban-partners-modal";
 import { useBulkDeactivatePartnersModal } from "@/ui/modals/bulk-deactivate-partners-modal";
 import { useChangeGroupModal } from "@/ui/modals/change-group-modal";
 import { useDeactivatePartnerModal } from "@/ui/modals/deactivate-partner-modal";
+import { useDeletePartnerModal } from "@/ui/modals/delete-partner-modal";
 import { useReactivatePartnerModal } from "@/ui/modals/reactivate-partner-modal";
 import { useUnbanPartnerModal } from "@/ui/modals/unban-partner-modal";
 import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { PartnerStatusBadges } from "@/ui/partners/partner-status-badges";
+import { PartnerTagsList } from "@/ui/partners/partner-tags-list";
+import {
+  UpdatePartnerTagsModal,
+  useUpdatePartnerTagsModal,
+} from "@/ui/partners/update-partner-tags-modal";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
+import { CountryFlag } from "@/ui/shared/country-flag";
 import { ThreeDots } from "@/ui/shared/icons";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
-import { ProgramEnrollmentStatus } from "@dub/prisma/client";
 import {
   AnimatedSizeContainer,
   Button,
@@ -48,6 +55,7 @@ import {
   Dots,
   EnvelopeArrowRight,
   LoadingSpinner,
+  Tag,
   Trash,
   UserDelete,
   Users,
@@ -61,12 +69,14 @@ import {
   formatDate,
 } from "@dub/utils";
 import { nFormatter } from "@dub/utils/src/functions";
+import { ProgramEnrollmentStatus } from "@prisma/client";
 import { Row, Table as TableType } from "@tanstack/react-table";
 import { Command } from "cmdk";
 import { LockOpen } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
+import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { memo, useMemo, useState } from "react";
 import { toast } from "sonner";
 import useSWR from "swr";
 import { usePartnerFilters } from "./use-partner-filters";
@@ -75,6 +85,7 @@ const partnersColumns = {
   all: [
     "partner",
     "group",
+    "tags",
     "createdAt",
     "status",
     "location",
@@ -95,6 +106,7 @@ const partnersColumns = {
   defaultVisible: [
     "partner",
     "group",
+    "tags",
     "location",
     "totalClicks",
     "totalLeads",
@@ -121,10 +133,14 @@ export function PartnersTable() {
   const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
   const { program } = useProgram();
 
+  const defaultStatus = program?.deactivatedAt
+    ? ProgramEnrollmentStatus.deactivated
+    : ProgramEnrollmentStatus.approved;
+
   const status = (
     searchParams.get("status") || searchParams.get("search")
       ? undefined
-      : "approved_invited"
+      : defaultStatus
   ) as ProgramEnrollmentStatus;
 
   const sortBy =
@@ -159,52 +175,8 @@ export function PartnersTable() {
 
   const { groups } = useGroups();
 
-  const [pendingChangeGroupPartners, setPendingChangeGroupPartners] = useState<
-    EnrolledPartnerProps[]
-  >([]);
-
-  const { ChangeGroupModal, setShowChangeGroupModal } = useChangeGroupModal({
-    partners: pendingChangeGroupPartners,
-  });
-
-  const [pendingArchivePartners, setPendingArchivePartners] = useState<
-    EnrolledPartnerProps[]
-  >([]);
-
-  const { BulkArchivePartnersModal, setShowBulkArchivePartnersModal } =
-    useBulkArchivePartnersModal({
-      partners: pendingArchivePartners,
-      onConfirm: async () => {
-        await mutatePrefix("/api/partners");
-      },
-    });
-
-  const [pendingDeactivatePartners, setPendingDeactivatePartners] = useState<
-    EnrolledPartnerProps[]
-  >([]);
-
-  const { BulkDeactivatePartnersModal, setShowBulkDeactivatePartnersModal } =
-    useBulkDeactivatePartnersModal({
-      partners: pendingDeactivatePartners,
-      onConfirm: async () => {
-        await mutatePrefix("/api/partners");
-      },
-    });
-
-  const [pendingBanPartners, setPendingBanPartners] = useState<
-    EnrolledPartnerProps[]
-  >([]);
-
-  const { BulkBanPartnersModal, setShowBulkBanPartnersModal } =
-    useBulkBanPartnersModal({
-      partners: pendingBanPartners,
-      onConfirm: async () => {
-        await mutatePrefix("/api/partners");
-      },
-    });
-
   const { columnVisibility, setColumnVisibility } = useColumnVisibility(
-    "partners-table-columns-v2",
+    "partners-table-columns-v3",
     partnersColumns,
   );
 
@@ -220,8 +192,28 @@ export function PartnersTable() {
           minSize: 150,
           maxSize: 250,
           cell: ({ row }) => {
+            const showDeactivatedInline =
+              columnVisibility.status === false &&
+              row.original.status === ProgramEnrollmentStatus.deactivated &&
+              searchParams.get("status") !==
+                ProgramEnrollmentStatus.deactivated;
+
             return (
-              <PartnerRowItem partner={row.original} showPermalink={false} />
+              <PartnerRowItem
+                partner={row.original}
+                showPermalink={false}
+                suffix={
+                  showDeactivatedInline ? (
+                    <StatusBadge
+                      size="sm"
+                      icon={null}
+                      variant={PartnerStatusBadges.deactivated.variant}
+                    >
+                      {PartnerStatusBadges.deactivated.label}
+                    </StatusBadge>
+                  ) : null
+                }
+              />
             );
           },
         },
@@ -239,12 +231,26 @@ export function PartnersTable() {
             return (
               <div className="flex items-center gap-2">
                 <GroupColorCircle group={group} />
-                <span className="truncate text-sm font-medium">
+                <Link
+                  href={`/${workspaceSlug}/program/groups/${group.slug}`}
+                  target="_blank"
+                  onClick={(e) => e.stopPropagation()}
+                  onAuxClick={(e) => e.stopPropagation()}
+                  className="min-w-0 cursor-alias truncate text-sm font-medium decoration-dotted hover:underline"
+                  title={group.name}
+                >
                   {group.name}
-                </span>
+                </Link>
               </div>
             );
           },
+        },
+        {
+          id: "tags",
+          header: "Tags",
+          minSize: 120,
+          maxSize: 200,
+          cell: ({ row }) => <PartnerTagsCell partner={row.original} />,
         },
         {
           id: "createdAt",
@@ -294,13 +300,7 @@ export function PartnersTable() {
             const country = row.original.country;
             return (
               <div className="flex items-center gap-2 whitespace-nowrap">
-                {country && (
-                  <img
-                    alt={`${country} flag`}
-                    src={`https://hatscripts.github.io/circle-flags/flags/${country.toLowerCase()}.svg`}
-                    className="size-4 shrink-0"
-                  />
-                )}
+                {country && <CountryFlag countryCode={country} />}
                 <span className="whitespace-nowrap">
                   {(country ? COUNTRIES[country] : null) ?? "-"}
                 </span>
@@ -453,7 +453,13 @@ export function PartnersTable() {
           ),
         },
       ].filter((c) => c.id === "menu" || partnersColumns.all.includes(c.id)),
-    [workspaceId, groups],
+    [
+      workspaceId,
+      groups,
+      workspaceSlug,
+      columnVisibility.status,
+      searchParams.get("status"),
+    ],
   );
 
   const { table, ...tableProps } = useTable({
@@ -509,47 +515,17 @@ export function PartnersTable() {
           ...(sortOrder && { sortOrder }),
         },
         del: "page",
-        scroll: false,
       }),
 
     getRowId: (row) => row.id,
     selectionControls: (table) => (
-      <>
-        <Button
-          variant="primary"
-          text="Change group"
-          icon={<Users6 className="size-3.5 shrink-0" />}
-          className="h-7 w-fit rounded-lg px-2.5"
-          loading={false}
-          onClick={() => {
-            const partners = table
-              .getSelectedRowModel()
-              .rows.map((row) => row.original);
-
-            setPendingChangeGroupPartners(partners);
-            setShowChangeGroupModal(true);
-          }}
-        />
-
-        {(!searchParams.get("status") ||
-          searchParams.get("status") === "approved") && (
-          <BulkActionsMenu
-            table={table}
-            onArchivePartners={(partners) => {
-              setPendingArchivePartners(partners);
-              setShowBulkArchivePartnersModal(true);
-            }}
-            onDeactivatePartners={(partners) => {
-              setPendingDeactivatePartners(partners);
-              setShowBulkDeactivatePartnersModal(true);
-            }}
-            onBanPartners={(partners) => {
-              setPendingBanPartners(partners);
-              setShowBulkBanPartnersModal(true);
-            }}
-          />
-        )}
-      </>
+      <PartnersBulkActionsBar
+        table={table}
+        showBulkActionsMenu={
+          (searchParams.get("status") || status) ===
+          ProgramEnrollmentStatus.approved
+        }
+      />
     ),
     thClassName: "border-l-0",
     tdClassName: "border-l-0",
@@ -561,10 +537,6 @@ export function PartnersTable() {
 
   return (
     <div className="flex flex-col gap-4">
-      <ChangeGroupModal />
-      <BulkArchivePartnersModal />
-      <BulkDeactivatePartnersModal />
-      <BulkBanPartnersModal />
       <PartnersFilters sortBy={sortBy} sortOrder={sortOrder} status={status} />
       {partners?.length !== 0 ? (
         <Table {...tableProps} table={table} />
@@ -597,19 +569,57 @@ function PartnersFilters({
   sortOrder: "asc" | "desc";
   status: ProgramEnrollmentStatus;
 }) {
-  const { filters, activeFilters, onSelect, onRemove, onRemoveAll } =
-    usePartnerFilters({ sortBy, sortOrder, status });
+  const { queryParams, searchParams } = useRouterStuff();
+
+  const { partnersCount: inviteCount } = usePartnersCount<number>({
+    status: ProgramEnrollmentStatus.invited,
+  });
+
+  const {
+    filters,
+    activeFilters,
+    onSelect,
+    onRemove,
+    onRemoveFilter,
+    onRemoveAll,
+    onToggleOperator,
+  } = usePartnerFilters({ sortBy, sortOrder, status });
+
+  const showPendingInvitesButton =
+    inviteCount > 0 &&
+    searchParams.get("status") !== ProgramEnrollmentStatus.invited;
 
   return (
     <div>
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-        <Filter.Select
-          className="w-full md:w-fit"
-          filters={filters}
-          activeFilters={activeFilters}
-          onSelect={onSelect}
-          onRemove={onRemove}
-        />
+        <div className="flex items-center gap-2">
+          <Filter.Select
+            className="w-full md:w-fit"
+            filters={filters}
+            activeFilters={activeFilters}
+            onSelect={onSelect}
+            onRemove={onRemove}
+            onRemoveFilter={onRemoveFilter}
+          />
+          {showPendingInvitesButton ? (
+            <Button
+              text="Pending invites"
+              variant="secondary"
+              className="w-fit"
+              right={
+                <span className="rounded-full bg-neutral-200 px-1.5 py-0.5 text-xs font-medium text-neutral-700">
+                  {inviteCount}
+                </span>
+              }
+              onClick={() =>
+                queryParams({
+                  set: { status: ProgramEnrollmentStatus.invited },
+                  del: "page",
+                })
+              }
+            />
+          ) : null}
+        </div>
         <SearchBoxPersisted
           placeholder="Search by name, email, or company"
           inputClassName="md:w-80"
@@ -624,7 +634,9 @@ function PartnersFilters({
                 activeFilters={activeFilters}
                 onSelect={onSelect}
                 onRemove={onRemove}
+                onRemoveFilter={onRemoveFilter}
                 onRemoveAll={onRemoveAll}
+                onToggleOperator={onToggleOperator}
               />
             </div>
           )}
@@ -726,6 +738,9 @@ function RowMenuButton({
     partners: [row.original],
   });
 
+  const { showUpdatePartnerTagsModal, setShowUpdatePartnerTagsModal } =
+    useUpdatePartnerTagsModal();
+
   const { ArchivePartnerModal, setShowArchivePartnerModal } =
     useArchivePartnerModal({
       partner: row.original,
@@ -751,6 +766,15 @@ function RowMenuButton({
     useReactivatePartnerModal({
       partner: row.original,
     });
+
+  const { DeletePartnerModal, setShowDeletePartnerModal } =
+    useDeletePartnerModal({
+      partner: row.original,
+    });
+
+  const deletePartnerDisabledTooltip = getDeletePartnerDisabledTooltip(
+    row.original,
+  );
 
   const { executeAsync: resendInvite, isPending: isResendingInvite } =
     useAction(resendProgramInviteAction, {
@@ -779,54 +803,50 @@ function RowMenuButton({
 
   return (
     <>
-      <ChangeGroupModal />
+      {ChangeGroupModal}
+      <UpdatePartnerTagsModal
+        showUpdatePartnerTagsModal={showUpdatePartnerTagsModal}
+        setShowUpdatePartnerTagsModal={setShowUpdatePartnerTagsModal}
+        partners={[row.original]}
+      />
       <ArchivePartnerModal />
       <BanPartnerModal />
       <UnbanPartnerModal />
       <DeactivatePartnerModal />
       <ReactivatePartnerModal />
+      <DeletePartnerModal />
       <Popover
         openPopover={isOpen}
         setOpenPopover={setIsOpen}
         content={
           <Command tabIndex={0} loop className="focus:outline-none">
             <Command.List className="w-screen text-sm focus-visible:outline-none sm:w-auto sm:min-w-[200px]">
-              {row.original.status === "invited" ? (
+              {["invited", "declined"].includes(row.original.status) ? (
                 <Command.Group className="grid gap-px p-1.5">
-                  <MenuItem
-                    icon={Users6}
-                    label="Change group"
-                    onSelect={() => {
-                      setShowChangeGroupModal(true);
-                      setIsOpen(false);
-                    }}
-                  />
-
-                  <MenuItem
-                    icon={
-                      isResendingInvite ? LoadingSpinner : EnvelopeArrowRight
-                    }
-                    label="Resend invite"
-                    onSelect={async () => {
-                      if (row.original.status !== "invited") {
-                        return;
+                  {row.original.status === "invited" && (
+                    <MenuItem
+                      icon={
+                        isResendingInvite ? LoadingSpinner : EnvelopeArrowRight
                       }
+                      label="Resend invite"
+                      onSelect={async () => {
+                        if (row.original.status !== "invited") {
+                          return;
+                        }
 
-                      await resendInvite({
-                        workspaceId,
-                        partnerId: row.original.id,
-                      });
-                    }}
-                  />
+                        await resendInvite({
+                          workspaceId,
+                          partnerId: row.original.id,
+                        });
+                      }}
+                    />
+                  )}
 
                   <MenuItem
                     icon={isDeletingInvite ? LoadingSpinner : Trash}
                     label="Delete invite"
                     variant="danger"
                     onSelect={async () => {
-                      if (row.original.status !== "invited") {
-                        return;
-                      }
                       if (
                         !window.confirm(
                           "Are you sure you want to delete this invite? This action cannot be undone.",
@@ -861,6 +881,15 @@ function RowMenuButton({
                       label="Change group"
                       onSelect={() => {
                         setShowChangeGroupModal(true);
+                        setIsOpen(false);
+                      }}
+                    />
+
+                    <MenuItem
+                      icon={Tag}
+                      label="Update tags"
+                      onSelect={() => {
+                        setShowUpdatePartnerTagsModal(true);
                         setIsOpen(false);
                       }}
                     />
@@ -926,6 +955,17 @@ function RowMenuButton({
                         }}
                       />
                     )}
+
+                    <MenuItem
+                      icon={Trash}
+                      label="Permanently delete"
+                      variant="danger"
+                      onSelect={() => {
+                        setShowDeletePartnerModal(true);
+                        setIsOpen(false);
+                      }}
+                      disabledTooltip={deletePartnerDisabledTooltip}
+                    />
                   </Command.Group>
                 </>
               )}
@@ -944,6 +984,140 @@ function RowMenuButton({
     </>
   );
 }
+
+const PartnerTagsCell = memo(function PartnerTagsCell({
+  partner,
+}: {
+  partner: EnrolledPartnerProps;
+}) {
+  const { showUpdatePartnerTagsModal, setShowUpdatePartnerTagsModal } =
+    useUpdatePartnerTagsModal();
+
+  return (
+    <>
+      <UpdatePartnerTagsModal
+        showUpdatePartnerTagsModal={showUpdatePartnerTagsModal}
+        setShowUpdatePartnerTagsModal={setShowUpdatePartnerTagsModal}
+        partners={[partner]}
+      />
+      <PartnerTagsList
+        compact
+        tags={partner.tags}
+        onAddTag={() => {
+          setShowUpdatePartnerTagsModal(true);
+        }}
+      />
+    </>
+  );
+});
+
+const PartnersBulkActionsBar = memo(function PartnersBulkActionsBar({
+  table,
+  showBulkActionsMenu,
+}: {
+  table: TableType<EnrolledPartnerProps>;
+  showBulkActionsMenu: boolean;
+}) {
+  const [pendingChangeGroupPartners, setPendingChangeGroupPartners] = useState<
+    EnrolledPartnerProps[]
+  >([]);
+  const [pendingEditTagsPartners, setPendingEditTagsPartners] = useState<
+    EnrolledPartnerProps[]
+  >([]);
+  const [pendingArchivePartners, setPendingArchivePartners] = useState<
+    EnrolledPartnerProps[]
+  >([]);
+  const [pendingDeactivatePartners, setPendingDeactivatePartners] = useState<
+    EnrolledPartnerProps[]
+  >([]);
+  const [pendingBanPartners, setPendingBanPartners] = useState<
+    EnrolledPartnerProps[]
+  >([]);
+
+  const { ChangeGroupModal, setShowChangeGroupModal } = useChangeGroupModal({
+    partners: pendingChangeGroupPartners,
+  });
+  const { showUpdatePartnerTagsModal, setShowUpdatePartnerTagsModal } =
+    useUpdatePartnerTagsModal();
+
+  const { BulkArchivePartnersModal, setShowBulkArchivePartnersModal } =
+    useBulkArchivePartnersModal({
+      partners: pendingArchivePartners,
+      onConfirm: async () => {
+        await mutatePrefix("/api/partners");
+      },
+    });
+  const { BulkDeactivatePartnersModal, setShowBulkDeactivatePartnersModal } =
+    useBulkDeactivatePartnersModal({
+      partners: pendingDeactivatePartners,
+      onConfirm: async () => {
+        await mutatePrefix("/api/partners");
+      },
+    });
+  const { BulkBanPartnersModal, setShowBulkBanPartnersModal } =
+    useBulkBanPartnersModal({
+      partners: pendingBanPartners,
+      onConfirm: async () => {
+        await mutatePrefix("/api/partners");
+      },
+    });
+
+  return (
+    <>
+      {ChangeGroupModal}
+      <UpdatePartnerTagsModal
+        showUpdatePartnerTagsModal={showUpdatePartnerTagsModal}
+        setShowUpdatePartnerTagsModal={setShowUpdatePartnerTagsModal}
+        partners={pendingEditTagsPartners}
+      />
+      <BulkArchivePartnersModal />
+      <BulkDeactivatePartnersModal />
+      <BulkBanPartnersModal />
+      <Button
+        variant="primary"
+        text="Change group"
+        icon={<Users6 className="size-3.5 shrink-0" />}
+        className="h-7 w-fit rounded-lg px-2.5"
+        loading={false}
+        onClick={() => {
+          setPendingChangeGroupPartners(
+            table.getSelectedRowModel().rows.map((row) => row.original),
+          );
+          setShowChangeGroupModal(true);
+        }}
+      />
+      <Button
+        variant="secondary"
+        text="Update tags"
+        icon={<Tag className="size-3.5 shrink-0" />}
+        className="h-7 w-fit rounded-lg px-2.5"
+        onClick={() => {
+          setPendingEditTagsPartners(
+            table.getSelectedRowModel().rows.map((row) => row.original),
+          );
+          setShowUpdatePartnerTagsModal(true);
+        }}
+      />
+      {showBulkActionsMenu && (
+        <BulkActionsMenu
+          table={table}
+          onArchivePartners={(partners) => {
+            setPendingArchivePartners(partners);
+            setShowBulkArchivePartnersModal(true);
+          }}
+          onDeactivatePartners={(partners) => {
+            setPendingDeactivatePartners(partners);
+            setShowBulkDeactivatePartnersModal(true);
+          }}
+          onBanPartners={(partners) => {
+            setPendingBanPartners(partners);
+            setShowBulkBanPartnersModal(true);
+          }}
+        />
+      )}
+    </>
+  );
+});
 
 function MenuItem({
   icon: IconComp,
@@ -969,25 +1143,29 @@ function MenuItem({
     },
   };
 
-  const { text, icon } = variantStyles[variant];
+  const { text, icon } = disabledTooltip
+    ? { text: "text-content-disabled", icon: "text-content-disabled" }
+    : variantStyles[variant];
 
   return (
     <DynamicTooltipWrapper
       tooltipProps={disabledTooltip ? { content: disabledTooltip } : undefined}
     >
-      <Command.Item
-        className={cn(
-          "flex cursor-pointer select-none items-center gap-2 whitespace-nowrap rounded-md p-2 text-sm",
-          disabledTooltip
-            ? "cursor-not-allowed opacity-75"
-            : "data-[selected=true]:bg-neutral-100",
-          text,
-        )}
-        onSelect={disabledTooltip ? undefined : onSelect}
-      >
-        <IconComp className={cn("size-4 shrink-0", icon)} />
-        {label}
-      </Command.Item>
+      <div>
+        <Command.Item
+          className={cn(
+            "flex cursor-pointer select-none items-center gap-2 whitespace-nowrap rounded-md p-2 text-sm",
+            disabledTooltip
+              ? "cursor-not-allowed opacity-50"
+              : "data-[selected=true]:bg-neutral-100",
+            text,
+          )}
+          onSelect={disabledTooltip ? undefined : onSelect}
+        >
+          <IconComp className={cn("size-4 shrink-0", icon)} />
+          {label}
+        </Command.Item>
+      </div>
     </DynamicTooltipWrapper>
   );
 }

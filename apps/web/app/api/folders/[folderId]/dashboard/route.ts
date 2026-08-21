@@ -1,7 +1,7 @@
 import { withWorkspace } from "@/lib/auth";
 import { verifyFolderAccess } from "@/lib/folder/permissions";
+import { prisma } from "@/lib/prisma";
 import { dashboardSchema } from "@/lib/zod/schemas/dashboard";
-import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 
 // GET /folders/[folderId]/dashboard – get dashboard for a given folder

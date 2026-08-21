@@ -58,20 +58,12 @@ export const POST = withWorkspace(
       leadEventName,
       metadata,
       workspace,
-      rawBody: body,
     });
 
     return NextResponse.json(response);
   },
   {
-    requiredPlan: [
-      "business",
-      "business plus",
-      "business extra",
-      "business max",
-      "advanced",
-      "enterprise",
-    ],
+    requiredPlan: ["business", "advanced", "enterprise"],
     requiredRoles: ["owner", "member"],
   },
 );

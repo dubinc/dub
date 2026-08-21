@@ -5,7 +5,9 @@ export function PartnerAvatar({
   partner,
   className,
 }: {
-  partner: NullableOptional<PartnerProps>;
+  partner: NullableOptional<
+    Pick<PartnerProps, "id" | "name" | "email" | "image">
+  >;
   className?: string;
 }) {
   return (

@@ -28,6 +28,7 @@ export const POST = async (req: NextRequest) => {
   const key = `resumes/${nanoid(16)}`;
   const signedUrl = await storage.getSignedUploadUrl({
     key,
+    contentType: "application/pdf",
   });
 
   return NextResponse.json(

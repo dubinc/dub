@@ -5,11 +5,13 @@ import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { getRewardOrThrow } from "@/lib/api/partners/get-reward-or-throw";
 import { serializeReward } from "@/lib/api/partners/serialize-reward";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
+import { queueRewardProcessing } from "@/lib/api/rewards/queue-reward-processing";
 import { validateReward } from "@/lib/api/rewards/validate-reward";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
+import { prisma } from "@/lib/prisma";
 import { updateRewardSchema } from "@/lib/zod/schemas/rewards";
-import { prisma } from "@dub/prisma";
-import { Prisma } from "@dub/prisma/client";
+import { formatRewardDescription } from "@/ui/partners/format-reward-description";
+import { Prisma } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { revalidatePath } from "next/cache";
 import { authActionClient } from "../safe-action";
@@ -27,7 +29,11 @@ export const updateRewardAction = authActionClient
       description,
       tooltipDescription,
       modifiers,
+      config,
       rewardId,
+      spendLimitAmount,
+      spendLimitInterval,
+      activityDescription,
     } = parsedInput;
 
     throwIfNoPermission({
@@ -42,11 +48,27 @@ export const updateRewardAction = authActionClient
       programId,
     });
 
-    const { canUseAdvancedRewardLogic } = getPlanCapabilities(workspace.plan);
+    const {
+      canUseAdvancedRewardLogic,
+      canSetRewardSpendLimit,
+      canCreateReferralReward,
+    } = getPlanCapabilities(workspace.plan);
+
+    if (reward.event === "referral" && !canCreateReferralReward) {
+      throw new Error(
+        "Referral rewards are only available on the Advanced plan and above.",
+      );
+    }
 
     if (modifiers && !canUseAdvancedRewardLogic) {
       throw new Error(
         "Advanced reward structures are only available on the Advanced plan and above.",
+      );
+    }
+
+    if ((spendLimitAmount || spendLimitInterval) && !canSetRewardSpendLimit) {
+      throw new Error(
+        "Spend limits are only available on the Enterprise plan.",
       );
     }
 
@@ -65,6 +87,9 @@ export const updateRewardAction = authActionClient
         description: description || null,
         tooltipDescription: tooltipDescription || null,
         modifiers: modifiers === null ? Prisma.DbNull : modifiers,
+        config: config === null ? Prisma.DbNull : config,
+        spendLimitAmount,
+        spendLimitInterval,
         ...(type === "flat"
           ? {
               amountInCents,
@@ -80,6 +105,7 @@ export const updateRewardAction = authActionClient
         clickPartnerGroup: true,
         leadPartnerGroup: true,
         salePartnerGroup: true,
+        referralPartnerGroup: true,
       },
     });
 
@@ -88,6 +114,7 @@ export const updateRewardAction = authActionClient
       clickPartnerGroup,
       leadPartnerGroup,
       salePartnerGroup,
+      referralPartnerGroup,
       ...rewardMetadata
     } = updatedReward;
 
@@ -95,11 +122,33 @@ export const updateRewardAction = authActionClient
       clickPartnerGroup,
       leadPartnerGroup,
       salePartnerGroup,
+      referralPartnerGroup,
     ].some((group) => group?.slug === "default");
 
     // Determine the groupId from the partner group relation
     const partnerGroup =
-      clickPartnerGroup || leadPartnerGroup || salePartnerGroup;
+      clickPartnerGroup ||
+      leadPartnerGroup ||
+      salePartnerGroup ||
+      referralPartnerGroup;
+
+    if (!partnerGroup) {
+      throw new Error("Partner group not found.");
+    }
+
+    await queueRewardProcessing({
+      event: "reward-updated",
+      groupId: partnerGroup.id,
+      occurredAt: new Date().toISOString(),
+      rewardSnapshot: {
+        id: reward.id,
+        event: reward.event,
+        description: formatRewardDescription(serializeReward(updatedReward), {
+          includeEarnPrefix: false,
+        }),
+        activityDescription,
+      },
+    });
 
     waitUntil(
       Promise.allSettled([
@@ -124,20 +173,19 @@ export const updateRewardAction = authActionClient
           userId: user.id,
           resourceId: rewardMetadata.id,
           parentResourceType: "group",
-          parentResourceId: partnerGroup?.id,
+          parentResourceId: partnerGroup.id,
           old: reward,
           new: updatedReward,
+          description: activityDescription,
         }),
 
         // we only cache default group pages for now so we need to invalidate them
-        ...(isDefaultGroup
+        ...(isDefaultGroup && program
           ? [
               revalidatePath(`/partners.dub.co/${program.slug}`),
               revalidatePath(`/partners.dub.co/${program.slug}/apply`),
               program.addedToMarketplaceAt &&
-                revalidatePath(
-                  `/partners.dub.co/programs/marketplace/${program.slug}`,
-                ),
+                revalidatePath(`/partners.dub.co/marketplace/${program.slug}`),
             ]
           : []),
       ]),

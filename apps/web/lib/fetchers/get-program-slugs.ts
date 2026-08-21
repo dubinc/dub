@@ -1,4 +1,4 @@
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { cache } from "react";
 
 export const getProgramSlugs = cache(async () =>

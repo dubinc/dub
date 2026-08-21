@@ -1,6 +1,6 @@
 "use client";
 
-import { approvePartnerAction } from "@/lib/actions/partners/approve-partner";
+import { approvePartnerApplicationAction } from "@/lib/actions/partners/approve-partner-application";
 import { buildSocialPlatformLookup } from "@/lib/social-utils";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useGroups from "@/lib/swr/use-groups";
@@ -14,8 +14,8 @@ import { PartnerApplicationSheet } from "@/ui/partners/partner-application-sheet
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { PartnerSocialColumn } from "@/ui/partners/partner-social-column";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
+import { CountryFlag } from "@/ui/shared/country-flag";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
-import { PlatformType } from "@dub/prisma/client";
 import {
   AnimatedSizeContainer,
   Button,
@@ -31,6 +31,7 @@ import {
 } from "@dub/ui";
 import { Check, Dots, LoadingSpinner, Users } from "@dub/ui/icons";
 import { COUNTRIES, fetcher, formatDate } from "@dub/utils";
+import { PlatformType } from "@prisma/client";
 import { Row } from "@tanstack/react-table";
 import { Command } from "cmdk";
 import { useAction } from "next-safe-action/hooks";
@@ -146,7 +147,7 @@ export function ProgramPartnersRejectedApplicationsPageClient() {
     () => [
       {
         id: "partner",
-        header: "Applicant",
+        header: "Partner",
         enableHiding: false,
         minSize: 250,
         cell: ({ row }) => {
@@ -200,13 +201,7 @@ export function ProgramPartnersRejectedApplicationsPageClient() {
           const country = row.original.country;
           return (
             <div className="flex items-center gap-2">
-              {country && (
-                <img
-                  alt={`${country} flag`}
-                  src={`https://hatscripts.github.io/circle-flags/flags/${country.toLowerCase()}.svg`}
-                  className="size-4 shrink-0"
-                />
-              )}
+              {country && <CountryFlag countryCode={country} />}
               <span className="min-w-0 truncate">
                 {(country ? COUNTRIES[country] : null) ?? "-"}
               </span>
@@ -328,7 +323,6 @@ export function ProgramPartnersRejectedApplicationsPageClient() {
         set: {
           partnerId: row.original.id,
         },
-        scroll: false,
       });
     },
     pagination,
@@ -345,7 +339,6 @@ export function ProgramPartnersRejectedApplicationsPageClient() {
           ...(sortOrder && { sortOrder }),
         },
         del: "page",
-        scroll: false,
       }),
     thClassName: "border-l-0",
     tdClassName: "border-l-0",
@@ -383,7 +376,6 @@ export function ProgramPartnersRejectedApplicationsPageClient() {
               ? () =>
                   queryParams({
                     set: { partnerId: previousPartnerId },
-                    scroll: false,
                   })
               : undefined
           }
@@ -392,7 +384,6 @@ export function ProgramPartnersRejectedApplicationsPageClient() {
               ? () =>
                   queryParams({
                     set: { partnerId: nextPartnerId },
-                    scroll: false,
                   })
               : undefined
           }
@@ -456,7 +447,7 @@ function PartnerRowMenuButton({
   const [isOpen, setIsOpen] = useState(false);
 
   const { executeAsync: approvePartner, isPending: isApprovingPartner } =
-    useAction(approvePartnerAction, {
+    useAction(approvePartnerApplicationAction, {
       onError: ({ error }) => {
         toast.error(error.serverError);
       },

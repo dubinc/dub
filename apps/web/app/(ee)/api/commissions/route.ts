@@ -1,13 +1,17 @@
+import { createManualCommissions } from "@/lib/api/commissions/create-manual-commissions";
 import { getCommissions } from "@/lib/api/commissions/get-commissions";
 import { transformCustomerForCommission } from "@/lib/api/customers/transform-customer";
 import { DubApiError } from "@/lib/api/errors";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
+import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 import {
   CommissionEnrichedSchema,
+  createCommissionResponseSchema,
+  createManualCommissionBodySchema,
   getCommissionsQuerySchema,
 } from "@/lib/zod/schemas/commissions";
-import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 
@@ -15,16 +19,12 @@ import * as z from "zod/v4";
 export const GET = withWorkspace(async ({ workspace, searchParams }) => {
   const programId = getDefaultProgramIdOrThrow(workspace);
 
-  const isHoldStatus = searchParams.status === "hold";
-  const {
-    status: _status,
-    fraudEventGroupId,
-    ...restSearchParams
-  } = searchParams;
-
-  let { partnerId, tenantId, ...filters } = getCommissionsQuerySchema.parse(
-    isHoldStatus ? restSearchParams : searchParams,
-  );
+  let { partnerId, tenantId, ...filters } = getCommissionsQuerySchema
+    .extend({
+      fraudEventGroupId: z.string().optional(),
+      type: z.string().optional(), // May be comma-separated string, for multi-value handling
+    })
+    .parse(searchParams);
 
   if (tenantId && !partnerId) {
     const partner = await prisma.programEnrollment.findUnique({
@@ -53,14 +53,13 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
     ...filters,
     partnerId,
     programId,
-    isHoldStatus,
-    ...(fraudEventGroupId && { fraudEventGroupId }),
   });
 
   return NextResponse.json(
     z.array(CommissionEnrichedSchema).parse(
       commissions.map((c) => ({
         ...c,
+        paidAt: c.payout?.paidAt ?? null,
         customer: transformCustomerForCommission(c.customer),
         partner: {
           ...c.partner,
@@ -70,3 +69,42 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
     ),
   );
 });
+
+// POST /api/commissions - create manual commission
+export const POST = withWorkspace(
+  async ({ workspace, session, req }) => {
+    const programId = getDefaultProgramIdOrThrow(workspace);
+
+    const body = createManualCommissionBodySchema.parse(
+      await parseRequestBody(req),
+    );
+
+    console.time("createManualCommissions");
+
+    await createManualCommissions({
+      ...body,
+      workspace,
+      programId,
+      user: session.user,
+    });
+
+    console.timeEnd("createManualCommissions");
+
+    const isClawback = body.type === "custom" && body.amount < 0;
+
+    const response = createCommissionResponseSchema.parse({
+      success: true,
+      message: isClawback
+        ? "A clawback has been queued for the partner!"
+        : "Your commissions are being created and will appear shortly.",
+    });
+
+    return NextResponse.json(response, {
+      status: 202,
+    });
+  },
+  {
+    requiredPlan: ["business", "advanced", "enterprise"],
+    requiredRoles: ["owner", "member"],
+  },
+);

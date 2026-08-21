@@ -1,5 +1,5 @@
 import { isRoleAvailableForPlan } from "@/lib/workspace-roles";
-import { WorkspaceRole } from "@dub/prisma/client";
+import { WorkspaceRole } from "@prisma/client";
 import "server-only";
 import { DubApiError } from "../errors";
 

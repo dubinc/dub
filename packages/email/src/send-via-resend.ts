@@ -21,15 +21,15 @@ const resendEmailForOptions = (
     unsubscribeUrl,
   } = opts;
 
-  const isProdEnv = process.env.VERCEL_ENV === "production";
+  const isPreviewEnv = process.env.VERCEL_ENV === "preview";
   const gitBranch = process.env.VERCEL_GIT_COMMIT_REF;
 
   // Build base options without rendered outputs (react/text)
   // CreateEmailOptions requires at least one of react or text
   const baseOptions = {
-    to: isProdEnv ? to : "delivered@resend.dev",
+    to: isPreviewEnv ? "delivered@resend.dev" : to,
     from: from || VARIANT_TO_FROM_MAP[variant],
-    subject: `${subject}${!isProdEnv && gitBranch ? ` [${gitBranch}]` : ""}`,
+    subject: `${subject}${isPreviewEnv && gitBranch ? ` [${gitBranch}]` : ""}`,
     bcc,
     // if replyTo is set to "noreply@dub.co", don't set replyTo
     // else set it to the value of replyTo or fallback to support@dub.co

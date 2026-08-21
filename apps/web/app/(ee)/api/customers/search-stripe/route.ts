@@ -1,9 +1,9 @@
 import { DubApiError } from "@/lib/api/errors";
 import { withWorkspace } from "@/lib/auth";
 import { stripeIntegrationSettingsSchema } from "@/lib/integrations/stripe/schema";
+import { prisma } from "@/lib/prisma";
 import { stripeAppClient } from "@/lib/stripe";
 import { StripeCustomerSchema } from "@/lib/zod/schemas/customers";
-import { prisma } from "@dub/prisma";
 import { STRIPE_INTEGRATION_ID } from "@dub/utils";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";

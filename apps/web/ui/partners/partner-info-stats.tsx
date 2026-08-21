@@ -25,21 +25,21 @@ export function PartnerInfoStats({
           value: Number.isNaN(partner.totalClicks)
             ? "-"
             : nFormatter(partner.totalClicks, { full: true }),
-          href: `/${slug}/events?event=clicks&partnerId=${partner.id}&interval=1y`,
+          href: `/${slug}/events?event=clicks&partnerId=${partner.id}&interval=all`,
         },
         {
           label: "Leads",
           value: Number.isNaN(partner.totalLeads)
             ? "-"
             : nFormatter(partner.totalLeads, { full: true }),
-          href: `/${slug}/events?event=leads&partnerId=${partner.id}&interval=1y`,
+          href: `/${slug}/events?event=leads&partnerId=${partner.id}&interval=all`,
         },
         {
           label: "Conversions",
           value: Number.isNaN(partner.totalConversions)
             ? "-"
             : nFormatter(partner.totalConversions, { full: true }),
-          href: `/${slug}/events?event=sales&partnerId=${partner.id}&interval=1y`,
+          href: `/${slug}/events?event=sales&partnerId=${partner.id}&interval=all`,
         },
         {
           label: "Revenue",
@@ -48,7 +48,7 @@ export function PartnerInfoStats({
             : currencyFormatter(partner.totalSaleAmount, {
                 trailingZeroDisplay: "stripIfInteger",
               }),
-          href: `/${slug}/events?event=sales&partnerId=${partner.id}&interval=1y`,
+          href: `/${slug}/events?event=sales&partnerId=${partner.id}&interval=all`,
         },
         {
           label: "Commissions",
@@ -62,7 +62,7 @@ export function PartnerInfoStats({
           value: Number.isNaN(partner.netRevenue)
             ? "-"
             : currencyFormatter(partner.netRevenue),
-          href: `/${slug}/events?event=sales&partnerId=${partner.id}&interval=1y`,
+          href: `/${slug}/events?event=sales&partnerId=${partner.id}&interval=all`,
         },
       ].map(({ label, value, href }) => (
         <Link

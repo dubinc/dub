@@ -91,7 +91,7 @@ export default function NotifyPartnerReapply({
                   </Column>
                   <Column className="text-right text-sm">
                     <Link
-                      href={`https://partners.dub.co/programs/marketplace/${program.slug}`}
+                      href={`https://partners.dub.co/marketplace/${program.slug}`}
                       className="rounded-lg border border-neutral-200 px-2 py-1 text-sm font-medium text-neutral-600 no-underline"
                     >
                       Reapply

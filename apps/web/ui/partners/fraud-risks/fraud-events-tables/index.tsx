@@ -1,8 +1,8 @@
 import { FraudGroupProps } from "@/lib/types";
-import { FraudRuleType } from "@dub/prisma/client";
+import { FraudRuleType } from "@prisma/client";
 import React from "react";
-import { FraudCrossProgramBanTable } from "./fraud-cross-program-ban-table";
 import { FraudMatchingCustomerEmailTable } from "./fraud-matching-customer-email-table";
+import { FraudNetworkLevelBanTable } from "./fraud-network-level-ban-table";
 import { FraudPaidTrafficDetectedTable } from "./fraud-paid-traffic-detected-table";
 import { FraudPartnerInfoTable } from "./fraud-partner-info-table";
 import { FraudReferralSourceBannedTable } from "./fraud-referral-source-banned-table";
@@ -13,8 +13,8 @@ const FRAUD_EVENTS_TABLES: Partial<Record<FraudRuleType, React.ComponentType>> =
     customerEmailSuspiciousDomain: () => <FraudMatchingCustomerEmailTable />,
     referralSourceBanned: FraudReferralSourceBannedTable,
     paidTrafficDetected: FraudPaidTrafficDetectedTable,
-    partnerCrossProgramBan: FraudCrossProgramBanTable,
-    partnerDuplicatePayoutMethod: FraudPartnerInfoTable,
+    partnerCrossProgramBan: FraudNetworkLevelBanTable,
+    partnerDuplicateAccount: FraudPartnerInfoTable,
   };
 
 export function FraudEventsTableWrapper({

@@ -1,6 +1,7 @@
 "use client";
 
 import { emailSchema } from "@/lib/zod/schemas/auth";
+import { ApplicationAnalytics } from "@/ui/application-analytics";
 import { AuthAlternativeBanner } from "@/ui/auth/auth-alternative-banner";
 import {
   RegisterProvider,
@@ -9,8 +10,8 @@ import {
 import { SignUpForm } from "@/ui/auth/register/signup-form";
 import { VerifyEmailForm } from "@/ui/auth/register/verify-email-form";
 import { AuthLayout } from "@/ui/layout/auth-layout";
-import { Program } from "@dub/prisma/client";
 import { truncate } from "@dub/utils";
+import { Program } from "@prisma/client";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 
@@ -36,6 +37,7 @@ export default function RegisterPageClient({
       }
       lockEmail={searchEmailResult.success || lockEmail}
     >
+      <ApplicationAnalytics />
       <RegisterFlow program={program} />
     </RegisterProvider>
   );

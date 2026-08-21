@@ -1,11 +1,10 @@
-import { invitePartnerFromNetworkAction } from "@/lib/actions/partners/invite-partner-from-network";
 import { updateDiscoveredPartnerAction } from "@/lib/actions/partners/update-discovered-partner";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import usePartnerNetworkInvitesUsage from "@/lib/swr/use-partner-network-invites-usage";
-import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { NetworkPartnerProps } from "@/lib/types";
 import { useConfirmModal } from "@/ui/modals/confirm-modal";
+import { useTrialLimitActivateModal } from "@/ui/modals/trial-limit-activate-modal";
 import { X } from "@/ui/shared/icons";
 import {
   Button,
@@ -16,6 +15,9 @@ import {
   useKeyboardShortcut,
   useRouterStuff,
 } from "@dub/ui";
+import { isWorkspaceBillingTrialActive } from "@dub/utils";
+import { EmailContent } from "app/app.dub.co/(dashboard)/[slug]/(ee)/program/partners/invite-email-preview";
+import { InviteNetworkPartnerSheet } from "app/app.dub.co/(dashboard)/[slug]/(ee)/program/partners/invite-network-partner-sheet";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -176,7 +178,7 @@ export function NetworkPartnerSheet({
     <Sheet
       open={isOpen}
       onOpenChange={rest.setIsOpen}
-      onClose={() => queryParams({ del: "partnerId", scroll: false })}
+      onClose={() => queryParams({ del: "partnerId" })}
       nested={nested}
       contentProps={{
         // 540px - 1170px width based on viewport
@@ -197,54 +199,57 @@ function PartnerControls({
   setIsOpen: Dispatch<SetStateAction<boolean>>;
   groupId?: string | null;
 }) {
-  const { id: workspaceId } = useWorkspace();
-  const { program } = useProgram();
+  const { trialEndsAt } = useWorkspace();
+  const { openTrialLimitModal, TrialLimitActivateModal } =
+    useTrialLimitActivateModal();
+  const trialActive = isWorkspaceBillingTrialActive(trialEndsAt);
   const pathname = usePathname();
 
-  const { executeAsync, isPending } = useAction(
-    invitePartnerFromNetworkAction,
-    {
-      onSuccess: async () => {
-        toast.success("Invitation sent to partner!");
-        setIsOpen(false);
-        mutatePrefix(`/api/network/partners`);
-      },
-      onError({ error }) {
-        toast.error(error.serverError);
-      },
-    },
-  );
+  const [showInviteSheet, setShowInviteSheet] = useState(false);
 
-  const { setShowConfirmModal, confirmModal } = useConfirmModal({
-    title: "Invite Partner",
-    description:
-      "Are you sure you want to invite this partner to your program?",
-    confirmText: "Invite",
-    confirmShortcut: "s",
-    confirmShortcutOptions: { sheet: true, modal: true },
-    onConfirm: async () => {
-      if (!program || !workspaceId) return;
-
-      await executeAsync({
-        workspaceId: workspaceId,
-        partnerId: partner.id,
-        groupId,
-      });
-    },
-  });
+  // Saved per-partner invite email customization. Owned here so it survives
+  // the invite sheet being closed and reopened (PartnerControls is keyed by
+  // partner.id, so it resets when navigating to a different partner)
+  const [inviteEmailContent, setInviteEmailContent] =
+    useState<EmailContent | null>(null);
 
   const { remaining: remainingInvites } = usePartnerNetworkInvitesUsage();
 
-  const disabled = remainingInvites === 0;
+  const atNetworkInviteLimit = remainingInvites === 0;
+  const disabled = atNetworkInviteLimit && !trialActive;
 
-  useKeyboardShortcut("s", () => setShowConfirmModal(true), {
+  const handleInvitePress = () => {
+    if (trialActive && atNetworkInviteLimit) {
+      openTrialLimitModal("networkInvites");
+      return;
+    }
+    setShowInviteSheet(true);
+  };
+
+  useKeyboardShortcut("i", handleInvitePress, {
     sheet: true,
-    enabled: !disabled,
+    enabled: (!disabled || trialActive) && !showInviteSheet,
   });
 
   return (
     <>
-      {confirmModal}
+      <TrialLimitActivateModal />
+      <InviteNetworkPartnerSheet
+        nested
+        isOpen={showInviteSheet}
+        setIsOpen={setShowInviteSheet}
+        partner={partner}
+        groupId={groupId}
+        emailContent={inviteEmailContent}
+        onEmailContentChange={setInviteEmailContent}
+        onSuccess={() => {
+          setIsOpen(false);
+          mutatePrefix(`/api/network/partners`);
+        }}
+        {...(trialActive && {
+          onInviteLimitError: () => openTrialLimitModal("networkInvites"),
+        })}
+      />
       <div className="flex items-center justify-end gap-2">
         <div className="mr-2">
           <InvitesUsage />
@@ -257,11 +262,10 @@ function PartnerControls({
         <Button
           type="button"
           variant="primary"
-          text="Send invite"
+          text="Invite"
           disabled={disabled}
-          shortcut={disabled ? undefined : "S"}
-          loading={isPending}
-          onClick={() => setShowConfirmModal(true)}
+          shortcut={disabled && !trialActive ? undefined : "I"}
+          onClick={handleInvitePress}
           className="w-fit shrink-0"
         />
       </div>

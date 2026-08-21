@@ -2,8 +2,8 @@ import { mutatePrefix } from "@/lib/swr/mutate";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { Campaign } from "@/lib/types";
+import { campaignFromSchema } from "@/lib/zod/schemas/campaigns";
 import { ThreeDots } from "@/ui/shared/icons";
-import { CampaignStatus } from "@dub/prisma/client";
 import {
   Button,
   CircleXmark,
@@ -18,6 +18,7 @@ import {
   Trash,
   useMediaQuery,
 } from "@dub/ui";
+import { CampaignStatus } from "@prisma/client";
 import { Command } from "cmdk";
 import { isFuture } from "date-fns";
 import { useRouter } from "next/navigation";
@@ -57,7 +58,7 @@ export function CampaignControls({ campaign }: CampaignControlsProps) {
     subject,
     groupIds,
     bodyJson,
-    triggerCondition,
+    triggerConditions,
     from,
     scheduledAt,
   ] = useWatch({
@@ -67,7 +68,7 @@ export function CampaignControls({ campaign }: CampaignControlsProps) {
       "subject",
       "groupIds",
       "bodyJson",
-      "triggerCondition",
+      "triggerConditions",
       "from",
       "scheduledAt",
     ],
@@ -92,10 +93,17 @@ export function CampaignControls({ campaign }: CampaignControlsProps) {
         return "Please select a sender email address.";
       }
 
+      if (from) {
+        const fromResult = campaignFromSchema.safeParse(from);
+        if (!fromResult.success) {
+          return "Please enter a valid sender name and email address.";
+        }
+      }
+
       if (
         !sendPreview &&
         campaign.type === "transactional" &&
-        !triggerCondition
+        !triggerConditions?.length
       ) {
         return "Please select a trigger condition.";
       }
@@ -104,7 +112,7 @@ export function CampaignControls({ campaign }: CampaignControlsProps) {
         return "Please write the message you want to send to the partners.";
       }
     },
-    [name, subject, groupIds, triggerCondition, bodyJson, from],
+    [name, subject, groupIds, triggerConditions, bodyJson, from],
   );
 
   // Confirmation modals

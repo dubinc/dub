@@ -1,5 +1,5 @@
+import { prisma } from "@/lib/prisma";
 import { RewardSchema } from "@/lib/zod/schemas/rewards";
-import { prisma } from "@dub/prisma";
 import { DubApiError } from "../errors";
 
 export async function getRewardOrThrow({

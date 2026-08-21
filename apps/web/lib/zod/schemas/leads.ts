@@ -55,6 +55,9 @@ export const trackLeadRequestSchema = z.object({
     ),
   eventQuantity: z
     .number()
+    .int()
+    .positive()
+    .max(100)
     .nullish()
     .describe(
       "The numerical value associated with this lead event (e.g., number of provisioned seats in a free trial). If defined as N, the lead event will be tracked N times.",
@@ -121,6 +124,7 @@ export const leadEventSchemaTBEndpoint = z.object({
   device: z.string().nullable(),
   browser: z.string().nullable(),
   os: z.string().nullable(),
+  ua: z.string().nullish(),
   trigger: z.string().nullish(), // backwards compatibility
   referer: z.string().nullable(),
   referer_url: z.string().nullable(),

@@ -1,10 +1,6 @@
 import { ELIGIBLE_PAYOUTS_MAX_PAGE_SIZE } from "@/lib/constants/payouts";
 import { CUTOFF_PERIOD_ENUM } from "@/lib/partners/cutoff-period";
-import {
-  PartnerPayoutMethod,
-  PayoutMode,
-  PayoutStatus,
-} from "@dub/prisma/client";
+import { PartnerPayoutMethod, PayoutMode, PayoutStatus } from "@prisma/client";
 import * as z from "zod/v4";
 import { getPaginationQuerySchema } from "./misc";
 import { EnrolledPartnerSchema } from "./partners";
@@ -52,6 +48,14 @@ export const payoutsQuerySchema = z
       .describe(
         "Filter the list of payouts by invoice ID (the unique ID of the invoice you receive for each batch payout you process on Dub). Pending payouts will not have an invoice ID.",
       ),
+    groupId: z
+      .string()
+      .optional()
+      .describe(
+        "Filter the list of payouts by the associated partner group. " +
+          "Supports advanced filtering: single value, multiple values (comma-separated), or exclusion (prefix with `-`). " +
+          "Examples: `group_abc`, `group_abc,group_xyz`, `-group_abc`.",
+      ),
     sortBy: z
       .enum(["amount", "initiatedAt", "paidAt"])
       .default("amount")
@@ -68,6 +72,8 @@ export const payoutsCountQuerySchema = payoutsQuerySchema
     status: true,
     partnerId: true,
     invoiceId: true,
+    groupId: true,
+    tenantId: true,
   })
   .extend({
     programId: z.string().optional(),
@@ -205,3 +211,80 @@ export const eligiblePayoutsCountQuerySchema = eligiblePayoutsInputSchema
       });
     }
   });
+
+export const PAYOUT_EXPORT_COLUMNS = [
+  { id: "id", label: "ID", type: "string", default: true },
+  { id: "amount", label: "Amount", type: "money", default: true },
+  { id: "currency", label: "Currency", type: "string", default: true },
+  { id: "status", label: "Status", type: "string", default: true },
+  { id: "periodStart", label: "Period start", type: "date", default: true },
+  { id: "periodEnd", label: "Period end", type: "date", default: true },
+  { id: "initiatedAt", label: "Initiated at", type: "date", default: true },
+  { id: "paidAt", label: "Paid at", type: "date", default: true },
+  { id: "invoiceId", label: "Invoice ID", type: "string", default: false },
+  { id: "description", label: "Description", type: "string", default: false },
+  { id: "method", label: "Payout method", type: "string", default: false },
+  { id: "traceId", label: "Payout trace ID", type: "string", default: false },
+  {
+    id: "failureReason",
+    label: "Failure reason",
+    type: "string",
+    default: false,
+  },
+  { id: "partnerId", label: "Partner ID", type: "string", default: false },
+  { id: "partnerName", label: "Partner name", type: "string", default: false },
+  {
+    id: "partnerEmail",
+    label: "Partner email",
+    type: "string",
+    default: false,
+  },
+  {
+    id: "partnerTenantId",
+    label: "Partner tenant ID",
+    type: "string",
+    default: false,
+  },
+] as const;
+
+type PayoutExportColumnId = (typeof PAYOUT_EXPORT_COLUMNS)[number]["id"];
+
+export const DEFAULT_PAYOUT_EXPORT_COLUMNS = PAYOUT_EXPORT_COLUMNS.filter(
+  (column) => column.default,
+).map((column) => column.id);
+
+export const payoutsExportQuerySchema = payoutsQuerySchema
+  .omit({
+    page: true,
+    pageSize: true,
+  })
+  .extend({
+    columns: z
+      .string()
+      .default(DEFAULT_PAYOUT_EXPORT_COLUMNS.join(","))
+      .transform((v) =>
+        v
+          .split(",")
+          .map((s) => s.trim())
+          .filter(Boolean),
+      )
+      .refine(
+        (columns): columns is PayoutExportColumnId[] => {
+          const validColumnIds = PAYOUT_EXPORT_COLUMNS.map((col) => col.id);
+
+          return columns.every((column): column is PayoutExportColumnId =>
+            validColumnIds.includes(column as PayoutExportColumnId),
+          );
+        },
+        {
+          message:
+            "Invalid column IDs provided. Please check the available columns.",
+        },
+      ),
+  });
+
+export const payoutsExportCronInputSchema = payoutsExportQuerySchema.extend({
+  workspaceId: z.string(),
+  programId: z.string(),
+  userId: z.string(),
+});

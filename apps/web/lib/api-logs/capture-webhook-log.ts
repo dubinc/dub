@@ -33,6 +33,7 @@ export async function captureWebhookLog({
   userAgent: string | null;
 }) {
   const actor = WEBHOOK_REQUEST_ACTORS_BY_PATH[path];
+
   return await recordApiLog({
     workspaceId,
     method,

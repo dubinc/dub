@@ -57,7 +57,7 @@ export function useRouterStuff() {
       set,
       del,
       replace,
-      scroll = true,
+      scroll = false,
       getNewPath,
       arrayDelimiter = ",",
     }: {

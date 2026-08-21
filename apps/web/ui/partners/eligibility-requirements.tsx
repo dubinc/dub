@@ -1,6 +1,7 @@
 "use client";
 
 import { EligibilityConditionDB } from "@/lib/types";
+import { CountryFlag } from "@/ui/shared/country-flag";
 import {
   InlineBadgePopover,
   InlineBadgePopoverMenu,
@@ -53,13 +54,7 @@ export function generateId(): string {
 const COUNTRY_ITEMS = Object.entries(COUNTRIES).map(([code, name]) => ({
   text: name,
   value: code,
-  icon: (
-    <img
-      alt={`${code} flag`}
-      src={`https://hatscripts.github.io/circle-flags/flags/${code.toLowerCase()}.svg`}
-      className="size-3 shrink-0"
-    />
-  ),
+  icon: <CountryFlag countryCode={code} className="size-3" />,
 }));
 
 function CountryValueInput({

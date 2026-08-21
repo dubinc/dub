@@ -16,22 +16,16 @@ export const GET = withWorkspace(
       partnerId,
     });
 
-    if (!partner)
+    if (!partner) {
       throw new DubApiError({
         code: "not_found",
         message: "Partner not found.",
       });
+    }
 
     return NextResponse.json(EnrolledPartnerSchemaExtended.parse(partner));
   },
   {
-    requiredPlan: [
-      "business",
-      "business plus",
-      "business extra",
-      "business max",
-      "advanced",
-      "enterprise",
-    ],
+    requiredPlan: ["business", "advanced", "enterprise"],
   },
 );

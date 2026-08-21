@@ -68,12 +68,6 @@ export const getFinalUrl = (
       urlObj.searchParams.set("clickid", clickId);
     }
 
-    urlObj.searchParams.set("af_ua", ua);
-
-    if (ip) {
-      urlObj.searchParams.set("af_ip", ip);
-    }
-
     // set dynamic params (if not exist)
     if (!urlObj.searchParams.has("c") && via) {
       urlObj.searchParams.set("c", via);

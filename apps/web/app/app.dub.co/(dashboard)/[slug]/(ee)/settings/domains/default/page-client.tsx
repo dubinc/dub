@@ -5,7 +5,7 @@ import useDefaultDomains from "@/lib/swr/use-default-domains";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { DomainCardTitleColumn } from "@/ui/domains/domain-card-title-column";
 import { UpgradeRequiredToast } from "@/ui/shared/upgrade-required-toast";
-import { Logo, Switch, TooltipContent } from "@dub/ui";
+import { Logo, Switch } from "@dub/ui";
 import {
   Amazon,
   CalendarDays,
@@ -75,9 +75,7 @@ export function DefaultDomains() {
       </div>
 
       <div className="mt-2 grid grid-cols-1 gap-3">
-        {DUB_DOMAINS.filter(
-          (domain) => domain.slug !== "dub.link" || !flags?.noDubLink,
-        ).map(({ slug, description }) => {
+        {DUB_DOMAINS.map(({ slug, description }) => {
           return (
             <div
               key={slug}
@@ -91,16 +89,7 @@ export function DefaultDomains() {
               />
               <Switch
                 disabled={submitting}
-                disabledTooltip={
-                  permissionsError ||
-                  (slug === "dub.link" && plan === "free" ? (
-                    <TooltipContent
-                      title="You can only use dub.link on a Pro plan and above. Upgrade to Pro to use this domain."
-                      cta="Upgrade to Pro"
-                      href={`/${slug}/upgrade`}
-                    />
-                  ) : undefined)
-                }
+                disabledTooltip={permissionsError ?? undefined}
                 checked={defaultDomains?.includes(slug)}
                 fn={() => {
                   const oldDefaultDomains = defaultDomains.slice();

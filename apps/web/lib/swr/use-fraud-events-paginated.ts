@@ -12,7 +12,7 @@ export function useFraudEventsPaginated<T = unknown>({
     pageSize,
   });
 
-  const { fraudEvents, loading, error, isValidating } = useFraudEvents<T>({
+  const { fraudEvents, loading, error } = useFraudEvents<T>({
     page: pagination.pageIndex,
     pageSize: pagination.pageSize,
   });
@@ -21,7 +21,7 @@ export function useFraudEventsPaginated<T = unknown>({
 
   return {
     fraudEvents,
-    loading: loading || isValidating,
+    loading,
     error,
     pagination,
     setPagination,

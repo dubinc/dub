@@ -1,7 +1,7 @@
 "use client";
 
 import { Tooltip } from "@dub/ui";
-import { MsgsFill, Xmark } from "@dub/ui/icons";
+import { Msgs, Xmark } from "@dub/ui/icons";
 import { AnimatePresence, motion } from "motion/react";
 import { useSession } from "next-auth/react";
 import { useEffect, useRef, useState } from "react";
@@ -108,7 +108,7 @@ export function SupportChatBubble() {
               exit={{ opacity: 0, scale: 0.8 }}
               transition={{ duration: 0.15 }}
             >
-              <MsgsFill className="size-5 text-white" />
+              <Msgs variant="fill" className="size-5 text-white" />
             </motion.div>
           )}
         </AnimatePresence>

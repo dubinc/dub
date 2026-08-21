@@ -6,12 +6,13 @@ import { createAndEnrollPartner } from "@/lib/api/partners/create-and-enroll-par
 import { getGroupRewardsAndBounties } from "@/lib/api/partners/get-group-rewards-and-bounties";
 import { getNetworkInvitesUsage } from "@/lib/api/partners/get-network-invites-usage";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
+import { prisma } from "@/lib/prisma";
 import { invitePartnerFromNetworkSchema } from "@/lib/zod/schemas/partner-network";
 import { sendEmail } from "@dub/email";
-import ProgramNetworkInvite from "@dub/email/templates/program-network-invite";
-import { prisma } from "@dub/prisma";
+import ProgramInvite from "@dub/email/templates/program-invite";
 import { waitUntil } from "@vercel/functions";
 import { getProgramOrThrow } from "../../api/programs/get-program-or-throw";
+import { getProgramNetworkInviteEmailDefaults } from "../../network/get-program-network-invite-email-defaults";
 import { authActionClient } from "../safe-action";
 import { throwIfNoPermission } from "../throw-if-no-permission";
 
@@ -27,12 +28,20 @@ export const invitePartnerFromNetworkAction = authActionClient
 
     const networkInvitesUsage = await getNetworkInvitesUsage(workspace);
 
-    if (networkInvitesUsage >= workspace.networkInvitesLimit)
+    if (networkInvitesUsage >= workspace.networkInvitesLimit) {
       throw new Error(
         "You have reached your partner network invitations limit.",
       );
+    }
 
-    const { partnerId, groupId } = parsedInput;
+    const {
+      partnerId,
+      groupId,
+      username,
+      emailSubject,
+      emailTitle,
+      emailBody,
+    } = parsedInput;
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
@@ -45,6 +54,9 @@ export const invitePartnerFromNetworkAction = authActionClient
       prisma.partner.findFirst({
         where: {
           id: partnerId,
+          networkStatus: {
+            in: ["approved", "trusted"],
+          },
           programs: {
             none: {
               programId,
@@ -54,6 +66,10 @@ export const invitePartnerFromNetworkAction = authActionClient
       }),
     ]);
 
+    if (!program.partnerNetworkEnabledAt) {
+      throw new Error("Partner network is not enabled for this program.");
+    }
+
     if (!partner || !partner.email)
       throw new Error("Partner not found or already enrolled in this program.");
 
@@ -62,6 +78,9 @@ export const invitePartnerFromNetworkAction = authActionClient
       program,
       partner: {
         email: partner.email,
+        name: partner.name,
+        image: partner.image,
+        username: username || undefined,
         ...(groupId && { groupId }),
       },
       userId: user.id,
@@ -96,11 +115,16 @@ export const invitePartnerFromNetworkAction = authActionClient
             programId,
             groupId: enrolledPartner.groupId || program.defaultGroupId,
           });
+          const emailDefaults = getProgramNetworkInviteEmailDefaults({
+            programName: program.name,
+            partnerName: partner.name,
+          });
+
           await sendEmail({
-            subject: `${program.name} invited you to join on Dub Partners`,
+            subject: emailSubject || emailDefaults.subject,
             variant: "notifications",
             to: partner.email,
-            react: ProgramNetworkInvite({
+            react: ProgramInvite({
               email: partner.email,
               name: partner.name,
               program: {
@@ -111,6 +135,9 @@ export const invitePartnerFromNetworkAction = authActionClient
               },
               rewards,
               bounties,
+              subject: emailSubject || emailDefaults.subject,
+              title: emailTitle || emailDefaults.title,
+              body: emailBody || emailDefaults.body,
             }),
           });
         })(),

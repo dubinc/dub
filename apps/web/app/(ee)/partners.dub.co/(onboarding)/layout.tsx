@@ -64,7 +64,9 @@ export default function PartnerOnboardingLayout({
         </div>
 
         <div className="w-full flex-1 overflow-y-auto md:flex-none md:overflow-visible">
-          <div className="w-full pt-8 pb-8 sm:pb-4 md:py-16 px-5 md:px-0">{children}</div>
+          <div className="w-full px-5 pb-8 pt-8 sm:pb-4 md:px-0 md:py-16">
+            {children}
+          </div>
         </div>
 
         <div className="w-full md:hidden">
@@ -79,14 +81,7 @@ export default function PartnerOnboardingLayout({
         <SignedInHint />
       </div>
 
-      <a
-        href="https://dub.co/contact/support"
-        target="_blank"
-        className="fixed bottom-0 right-0 z-40 m-5 hidden h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-neutral-200 bg-white text-neutral-700 shadow-sm transition-colors hover:bg-neutral-100 md:flex"
-        aria-label="Help"
-      >
-        <CircleQuestion className="size-5" strokeWidth={2} />
-      </a>
+      <Toolbar show={["help"]} />
     </>
   );
 }

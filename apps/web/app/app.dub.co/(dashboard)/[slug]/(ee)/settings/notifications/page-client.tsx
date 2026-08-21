@@ -71,9 +71,9 @@ export default function NotificationsSettingsPageClient() {
     {
       type: "fraudEventsSummary",
       icon: ShieldAlert,
-      title: "Daily fraud events summary",
+      title: "Daily risk events summary",
       description:
-        "Daily summary email of unresolved fraud events detected in your partner program.",
+        "Daily summary email of unresolved risk events detected in your partner program.",
     },
   ];
 

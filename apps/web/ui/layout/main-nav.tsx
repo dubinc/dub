@@ -18,7 +18,7 @@ import {
   useLayoutEffect,
   useState,
 } from "react";
-import { useUpgradeBannerVisible } from "./upgrade-banner";
+import { useUpgradeBannerVisibility } from "./upgrade-banner";
 
 type SideNavContext = {
   isOpen: boolean;
@@ -48,7 +48,7 @@ export function MainNav({
 
   const { isDesktop } = useMediaQuery();
   const [isOpen, setIsOpen] = useState(false);
-  const isUpgradeBannerVisible = useUpgradeBannerVisible();
+  const { isVisible: isUpgradeBannerVisible } = useUpgradeBannerVisibility();
 
   // Prevent body scroll when side nav is open
   useEffect(() => {

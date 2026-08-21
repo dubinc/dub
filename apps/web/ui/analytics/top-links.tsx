@@ -94,11 +94,10 @@ export function TopLinks() {
       if (!filterParamKey) return;
 
       if (values.length === 0) {
-        queryParams({ del: filterParamKey, scroll: false });
+        queryParams({ del: filterParamKey });
       } else {
         queryParams({
           set: { [filterParamKey]: values.join(",") },
-          scroll: false,
         });
       }
 

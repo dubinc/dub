@@ -2,31 +2,23 @@
 
 import useIntegrations from "@/lib/swr/use-integrations";
 import useWorkspace from "@/lib/swr/use-workspace";
+import { InstalledIntegrationProps } from "@/lib/types";
 import { IntegrationLogo } from "@/ui/integrations/integration-logo";
-import { Integration } from "@dub/prisma/client";
+import { IntegrationStatusBadge } from "@/ui/integrations/integration-status-badge";
 import { cn } from "@dub/utils";
 import { ChevronRight } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { IntegrationsWithInstallations } from "./integrations-list";
 
-export function EnabledIntegrations({
-  integrations,
-}: {
-  integrations: IntegrationsWithInstallations;
-}) {
+export function EnabledIntegrations() {
   const searchParams = useSearchParams();
   const search = searchParams.get("search");
 
   const { slug } = useWorkspace();
   const { integrations: activeIntegrations } = useIntegrations();
 
-  const enabledIntegrations = integrations.filter((i) =>
-    activeIntegrations?.some((ai) => ai.id === i.id),
-  );
-
-  return enabledIntegrations?.length ? (
+  return activeIntegrations?.length ? (
     <AnimatePresence initial={false}>
       {!search && (
         <motion.div
@@ -44,11 +36,11 @@ export function EnabledIntegrations({
               href={`/${slug}/settings/integrations/enabled`}
               className="font-medium leading-4 text-neutral-500 transition-colors duration-100 hover:text-neutral-700"
             >
-              View all ({enabledIntegrations.length})
+              View all ({activeIntegrations.length})
             </Link>
           </div>
           <ul className="mt-4 divide-y divide-neutral-200 overflow-hidden rounded-lg border border-neutral-200">
-            {enabledIntegrations.slice(0, 3).map((integration) => (
+            {activeIntegrations.slice(0, 3).map((integration) => (
               <li key={integration.id}>
                 <IntegrationRow integration={integration} />
               </li>
@@ -60,7 +52,11 @@ export function EnabledIntegrations({
   ) : null;
 }
 
-function IntegrationRow({ integration }: { integration: Integration }) {
+function IntegrationRow({
+  integration,
+}: {
+  integration: InstalledIntegrationProps;
+}) {
   const { slug } = useWorkspace();
 
   return (
@@ -73,12 +69,16 @@ function IntegrationRow({ integration }: { integration: Integration }) {
     >
       <div className="flex items-center justify-between gap-3">
         <IntegrationLogo
-          src={integration.logo}
+          src={integration.logo ?? null}
           alt={`Logo for ${integration.name}`}
         />
 
-        <span className="text-sm font-medium text-neutral-800">
+        <span className="flex items-center gap-1.5 text-sm font-medium text-neutral-800">
           {integration.name}
+          <IntegrationStatusBadge
+            projectId={integration.projectId}
+            verified={integration.verified}
+          />
         </span>
       </div>
       <ChevronRight className="size-4 text-neutral-400 transition-all duration-150 group-hover:translate-x-0.5 group-hover:text-neutral-600" />

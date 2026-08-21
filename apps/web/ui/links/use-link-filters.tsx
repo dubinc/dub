@@ -1,7 +1,8 @@
 import useCurrentFolderId from "@/lib/swr/use-current-folder-id";
+import { useLinkTagsCount } from "@/lib/swr/use-link-tags-count";
 import useLinksCount from "@/lib/swr/use-links-count";
 import useTags from "@/lib/swr/use-tags";
-import useTagsCount from "@/lib/swr/use-tags-count";
+import useWorkspace from "@/lib/swr/use-workspace";
 import useWorkspaceUsers from "@/lib/swr/use-workspace-users";
 import { TagProps } from "@/lib/types";
 import { TAGS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/tags";
@@ -18,6 +19,7 @@ export function useLinkFilters() {
   const [search, setSearch] = useState("");
   const [debouncedSearch] = useDebounce(search, 500);
   const { folderId } = useCurrentFolderId();
+  const { isMegaWorkspace } = useWorkspace();
 
   const { tags, tagsAsync } = useTagFilterOptions({
     search: selectedFilter === "tagIds" ? debouncedSearch : "",
@@ -62,7 +64,9 @@ export function useLinkFilters() {
             icon: <TagBadge color={color} withIcon className="sm:p-1" />,
             label: name,
             data: { color },
-            right: nFormatter(count, { full: true }),
+            ...(isMegaWorkspace
+              ? {}
+              : { right: nFormatter(count, { full: true }) }),
             hideDuringSearch,
           })) ?? null,
       },
@@ -82,7 +86,10 @@ export function useLinkFilters() {
         options: domains.map(({ slug, count }) => ({
           value: slug,
           label: slug,
-          right: nFormatter(count, { full: true }),
+          ...(!isMegaWorkspace &&
+            count !== undefined && {
+              right: nFormatter(count, { full: true }),
+            }),
         })),
       },
       {
@@ -103,11 +110,13 @@ export function useLinkFilters() {
                 className="h-4 w-4"
               />
             ),
-            right: nFormatter(count, { full: true }),
+            ...(isMegaWorkspace
+              ? {}
+              : { right: nFormatter(count, { full: true }) }),
           })) ?? null,
       },
     ];
-  }, [domains, tags, users]);
+  }, [domains, tags, users, isMegaWorkspace]);
 
   const selectedTagIds = useMemo(
     () => searchParamsObj["tagIds"]?.split(",")?.filter(Boolean) ?? [],
@@ -197,7 +206,7 @@ function useTagFilterOptions({
     [searchParamsObj.tagIds],
   );
 
-  const { data: tagsCount } = useTagsCount();
+  const { data: tagsCount } = useLinkTagsCount();
   const tagsAsync = Boolean(tagsCount && tagsCount > TAGS_MAX_PAGE_SIZE);
   const { tags, loading: loadingTags } = useTags({
     query: { search: tagsAsync ? search : "" },
@@ -208,13 +217,17 @@ function useTagFilterOptions({
     enabled: tagsAsync,
   });
   const { showArchived } = useContext(LinksDisplayContext);
+  const { isMegaWorkspace } = useWorkspace();
 
   const { data: tagLinksCount } = useLinksCount<
     {
       tagId: string;
       _count: number;
     }[]
-  >({ query: { groupBy: "tagId", showArchived, folderId } });
+  >({
+    query: { groupBy: "tagId", showArchived, folderId },
+    enabled: !isMegaWorkspace,
+  });
 
   const tagsResult = useMemo(() => {
     return loadingTags ||
@@ -238,17 +251,22 @@ function useTagFilterOptions({
         )
           ?.map((tag) => ({
             ...tag,
-            count:
-              tagLinksCount?.find(({ tagId }) => tagId === tag.id)?._count || 0,
+            count: isMegaWorkspace
+              ? 0
+              : tagLinksCount?.find(({ tagId }) => tagId === tag.id)?._count ||
+                0,
           }))
-          .sort((a, b) => b.count - a.count) ?? null;
-  }, [loadingTags, tags, selectedTags, tagLinksCount, tagIds]);
+          .sort((a, b) =>
+            isMegaWorkspace ? a.name.localeCompare(b.name) : b.count - a.count,
+          ) ?? null;
+  }, [loadingTags, tags, selectedTags, tagLinksCount, tagIds, isMegaWorkspace]);
 
   return { tags: tagsResult, tagsAsync };
 }
 
 function useDomainFilterOptions({ folderId }: { folderId: string }) {
   const { showArchived } = useContext(LinksDisplayContext);
+  const { isMegaWorkspace, domains: workspaceDomains } = useWorkspace();
 
   const { data: domainsCount } = useLinksCount<
     {
@@ -261,9 +279,21 @@ function useDomainFilterOptions({ folderId }: { folderId: string }) {
       showArchived,
       folderId,
     },
+    enabled: !isMegaWorkspace,
   });
 
-  return useMemo(() => {
+  return useMemo((): { slug: string; count?: number }[] => {
+    if (isMegaWorkspace && workspaceDomains?.length) {
+      return [...workspaceDomains]
+        .sort((a, b) => {
+          if (Boolean(a.primary) !== Boolean(b.primary)) {
+            return a.primary ? -1 : 1;
+          }
+          return a.slug.localeCompare(b.slug);
+        })
+        .map(({ slug }) => ({ slug }));
+    }
+
     if (!domainsCount || domainsCount.length === 0) return [];
 
     return domainsCount
@@ -271,13 +301,14 @@ function useDomainFilterOptions({ folderId }: { folderId: string }) {
         slug: domain,
         count: _count,
       }))
-      .sort((a, b) => b.count - a.count);
-  }, [domainsCount]);
+      .sort((a, b) => (b.count ?? 0) - (a.count ?? 0));
+  }, [isMegaWorkspace, workspaceDomains, domainsCount]);
 }
 
 function useUserFilterOptions({ folderId }: { folderId: string }) {
   const { users } = useWorkspaceUsers();
   const { showArchived } = useContext(LinksDisplayContext);
+  const { isMegaWorkspace } = useWorkspace();
 
   const { data: usersCount } = useLinksCount<
     {
@@ -290,6 +321,7 @@ function useUserFilterOptions({ folderId }: { folderId: string }) {
       showArchived,
       folderId,
     },
+    enabled: !isMegaWorkspace,
   });
 
   return useMemo(
@@ -298,12 +330,17 @@ function useUserFilterOptions({ folderId }: { folderId: string }) {
         ? users
             .map((user) => ({
               ...user,
-              count:
-                usersCount?.find(({ userId }) => userId === user.id)?._count ||
-                0,
+              count: isMegaWorkspace
+                ? 0
+                : usersCount?.find(({ userId }) => userId === user.id)
+                    ?._count || 0,
             }))
-            .sort((a, b) => b.count - a.count)
+            .sort((a, b) =>
+              isMegaWorkspace
+                ? (a.name ?? "").localeCompare(b.name ?? "")
+                : b.count - a.count,
+            )
         : null,
-    [users, usersCount],
+    [users, usersCount, isMegaWorkspace],
   );
 }

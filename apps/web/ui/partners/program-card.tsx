@@ -70,7 +70,7 @@ function rejectedApplicationTooltipContent(
   }
 
   return (
-    <div className="flex w-full min-w-0 max-w-[min(100vw-2rem,17.5rem)] flex-col gap-2 p-3 pb-4 text-left">
+    <div className="flex w-full min-w-0 max-w-[min(100vw-2rem,17.5rem)] flex-col gap-2 p-3 text-left">
       {reviewedAt ? (
         <RejectionTooltipRow
           icon={<CalendarIcon className="size-4 shrink-0" aria-hidden />}

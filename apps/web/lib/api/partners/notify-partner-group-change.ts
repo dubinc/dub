@@ -42,6 +42,7 @@ export async function notifyPartnerGroupChange({
       to: user.email!,
       subject: `You've been moved to a new group in ${program.name}'s partner program!`,
       variant: "notifications",
+      replyTo: program.supportEmail || "noreply",
       templateName: "PartnerGroupChanged",
       templateProps: {
         program: {

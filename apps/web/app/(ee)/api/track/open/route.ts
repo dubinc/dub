@@ -162,16 +162,18 @@ export const POST = withAxiom(async (req) => {
       headers: COMMON_CORS_HEADERS,
     });
 
-    captureRequestLog({
-      req: reqForLog,
-      response: jsonResponse,
-      workspace: { id: workspaceId },
-      session: undefined,
-      token: null,
-      url,
-      requestHeaders,
-      startTime,
-    });
+    waitUntil(
+      captureRequestLog({
+        req: reqForLog,
+        response: jsonResponse,
+        workspace: { id: workspaceId },
+        session: undefined,
+        token: null,
+        url,
+        requestHeaders,
+        startTime,
+      }),
+    );
 
     return jsonResponse;
   } catch (error) {
@@ -181,16 +183,18 @@ export const POST = withAxiom(async (req) => {
     );
 
     if (workspaceId) {
-      captureRequestLog({
-        req: reqForLog,
-        response: errorResponse,
-        workspace: { id: workspaceId },
-        session: undefined,
-        token: null,
-        url,
-        requestHeaders,
-        startTime,
-      });
+      waitUntil(
+        captureRequestLog({
+          req: reqForLog,
+          response: errorResponse,
+          workspace: { id: workspaceId },
+          session: undefined,
+          token: null,
+          url,
+          requestHeaders,
+          startTime,
+        }),
+      );
     }
 
     return errorResponse;

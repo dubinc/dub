@@ -10,11 +10,10 @@ import { PartnerPlatformProps, PartnerProps } from "@/lib/types";
 import { parseUrlSchemaAllowEmpty } from "@/lib/zod/schemas/utils";
 import { DomainVerificationModal } from "@/ui/modals/domain-verification-modal";
 import { SocialVerificationByCodeModal } from "@/ui/modals/social-verification-by-code-modal";
-import { PlatformType } from "@dub/prisma/client";
 import {
   AnimatedSizeContainer,
   Button,
-  CircleCheckFill,
+  CircleCheck,
   Globe,
   Icon,
   Instagram,
@@ -25,6 +24,7 @@ import {
 } from "@dub/ui";
 import { getPrettyUrl, nFormatter } from "@dub/utils";
 import { cn } from "@dub/utils/src/functions";
+import { PlatformType } from "@prisma/client";
 import { useAction } from "next-safe-action/hooks";
 import { forwardRef, ReactNode, useCallback, useMemo, useState } from "react";
 import {
@@ -128,11 +128,17 @@ export const PartnerPlatformsForm = forwardRef<
 
     const { executeAsync } = useAction(updatePartnerPlatformsAction, {
       onSuccess: async () => {
+        toast.success(
+          "Successfully updated your websites and social accounts.",
+        );
         await mutate("/api/partner-profile");
       },
       onError: ({ error }) => {
         toast.error(
-          parseActionError(error, "Failed to update partner platforms"),
+          parseActionError(
+            error,
+            "Failed to update your websites and social accounts.",
+          ),
         );
 
         reset(form.getValues(), { keepErrors: true });
@@ -622,7 +628,7 @@ function VerifyButton({
       text={isVerified ? "Verified" : "Verify"}
       icon={
         isVerified ? (
-          <CircleCheckFill className="size-4 text-green-700" />
+          <CircleCheck variant="fill" className="size-4 text-green-700" />
         ) : (
           <Icon className="size-3.5" />
         )
@@ -678,6 +684,18 @@ function FormRow({
       const partnerWithPlatforms = partner as typeof partner & {
         platforms?: PartnerPlatformProps[];
       };
+
+      if (property === "website") {
+        const websitePlatform = getPlatformData(
+          partnerWithPlatforms.platforms,
+          "website",
+        );
+        const domainRating = websitePlatform?.subscribers ?? 0;
+
+        return [domainRating > 0 ? `${Number(domainRating)} DR` : null].filter(
+          Boolean,
+        ) as string[];
+      }
 
       if (property === "youtube") {
         const youtubePlatform = getPlatformData(

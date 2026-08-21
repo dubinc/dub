@@ -6,6 +6,7 @@ import {
 } from "@dub/utils";
 import { getPayoutMethodsForCountry } from "../partners/get-payout-methods-for-country";
 
+// not including TREMENDOUS_SUPPORTED_COUNTRIES for now
 export const PAYOUT_SUPPORTED_COUNTRIES = [
   ...new Set([
     ...STABLECOIN_SUPPORTED_COUNTRIES,

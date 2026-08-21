@@ -1,9 +1,11 @@
 import { DubApiError } from "@/lib/api/errors";
 import { getDubAdminRole, withWorkspace } from "@/lib/auth";
 import { getDubCustomer } from "@/lib/dub";
+import { getFeatureFlags } from "@/lib/edge-config";
 import { stripe } from "@/lib/stripe";
+import { isEligibleForTrial } from "@/lib/stripe/is-eligible-for-trial";
 import { booleanQuerySchema } from "@/lib/zod/schemas/misc";
-import { APP_DOMAIN } from "@dub/utils";
+import { APP_DOMAIN, DUB_TRIAL_PERIOD_DAYS } from "@dub/utils";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 
@@ -26,6 +28,7 @@ export const POST = withWorkspace(
 
     const lookupKey =
       tier > 1 ? `${plan}${tier}_${period}` : `${plan}_${period}`;
+
     const prices = await stripe.prices.list({
       lookup_keys: [lookupKey],
     });
@@ -37,11 +40,11 @@ export const POST = withWorkspace(
       });
     }
 
-    const activeSubscription = workspace.stripeId
+    const existingSubscription = workspace.stripeId
       ? await stripe.subscriptions
           .list({
             customer: workspace.stripeId,
-            status: "active",
+            limit: 1,
           })
           .then((res) => res.data[0])
       : null;
@@ -56,30 +59,80 @@ export const POST = withWorkspace(
       }
     }
 
-    // if the user has an active subscription, create billing portal to upgrade
-    if (workspace.stripeId && activeSubscription) {
-      const { url } = await stripe.billingPortal.sessions.create({
-        customer: workspace.stripeId,
-        return_url: baseUrl,
-        flow_data: {
-          type: "subscription_update_confirm",
-          subscription_update_confirm: {
-            subscription: activeSubscription.id,
-            items: [
-              {
-                id: activeSubscription.items.data[0].id,
-                quantity: 1,
-                price: prices.data[0].id,
-              },
-            ],
+    if (workspace.stripeId && existingSubscription) {
+      if (existingSubscription.status === "trialing") {
+        await stripe.subscriptions.update(existingSubscription.id, {
+          items: [
+            {
+              id: existingSubscription.items.data[0].id,
+              price: prices.data[0].id,
+            },
+          ],
+          proration_behavior: "none", // no invoice is created and no charge is issued
+        });
+
+        const successUrl = new URL(baseUrl);
+        successUrl.searchParams.set("upgraded", "true");
+        successUrl.searchParams.set("plan", plan);
+        successUrl.searchParams.set("period", period);
+        return NextResponse.json({ url: successUrl.toString() });
+      }
+
+      // Active subscriptions: use the billing portal's plan-change confirmation flow.
+      const currentItem = existingSubscription.items.data[0];
+      const targetPriceId = prices.data[0].id;
+      const alreadyOnTargetPlan =
+        currentItem.price.id === targetPriceId &&
+        (currentItem.quantity ?? 1) === 1;
+
+      if (alreadyOnTargetPlan) {
+        throw new DubApiError({
+          code: "bad_request",
+          message:
+            "You're already on this plan. Refresh the page or choose a different plan.",
+        });
+      }
+
+      const flags = await getFeatureFlags({ workspaceId: workspace.id });
+
+      try {
+        const { url } = await stripe.billingPortal.sessions.create({
+          customer: workspace.stripeId,
+          ...(flags.noProrationUpgrade
+            ? { configuration: "bpc_1TyLVFAlJJEpqkPVbJdDVr4m" }
+            : {}),
+          return_url: baseUrl,
+          flow_data: {
+            type: "subscription_update_confirm",
+            subscription_update_confirm: {
+              subscription: existingSubscription.id,
+              items: [
+                {
+                  id: currentItem.id,
+                  quantity: 1,
+                  price: targetPriceId,
+                },
+              ],
+            },
           },
-        },
-      });
-      return NextResponse.json({ url });
+        });
+        return NextResponse.json({ url });
+      } catch (error) {
+        if (
+          error instanceof Error &&
+          error.message.includes("no changes to confirm")
+        ) {
+          throw new DubApiError({
+            code: "bad_request",
+            message:
+              "You're already on this plan. Refresh the page or choose a different plan.",
+          });
+        }
+        throw error;
+      }
     } else {
       const customer = await getDubCustomer(session.user.id);
 
-      // For both new users and users with canceled subscriptions
       const stripeSession = await stripe.checkout.sessions.create({
         ...(workspace.stripeId
           ? {
@@ -119,6 +172,13 @@ export const POST = withWorkspace(
           enabled: true,
         },
         mode: "subscription",
+        ...(isEligibleForTrial({ workspace, session })
+          ? {
+              subscription_data: {
+                trial_period_days: DUB_TRIAL_PERIOD_DAYS,
+              },
+            }
+          : {}),
         client_reference_id: workspace.id,
         metadata: {
           dubCustomerId: session.user.id,

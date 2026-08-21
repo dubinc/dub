@@ -5,8 +5,7 @@ import {
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { BountyProps, CreateBountyInput } from "@/lib/types";
-import { GroupsMultiSelect } from "@/ui/partners/groups/groups-multi-select";
+import { BountyProps } from "@/lib/types";
 import {
   ProgramSheetAccordion,
   ProgramSheetAccordionContent,
@@ -20,9 +19,7 @@ import {
   InlineBadgePopoverInput,
 } from "@/ui/shared/inline-badge-popover";
 import { MaxCharactersCounter } from "@/ui/shared/max-characters-counter";
-import { BountySubmissionFrequency } from "@dub/prisma/client";
 import {
-  AnimatedSizeContainer,
   Button,
   CalendarIcon,
   CardSelector,
@@ -35,16 +32,18 @@ import {
   RichTextProvider,
   RichTextToolbar,
   Sheet,
-  SmartDateTimePicker,
   Switch,
   Tooltip,
   TooltipContent,
   useRouterStuff,
 } from "@dub/ui";
 import { cn } from "@dub/utils";
-import { Dispatch, SetStateAction, useState } from "react";
+import { BountyStartMode, BountySubmissionFrequency } from "@prisma/client";
+import { Dispatch, SetStateAction, useMemo, useState } from "react";
 import { Controller, FormProvider } from "react-hook-form";
+import { AudienceEligibilityPanel } from "./audience-eligibility-panel";
 import { BountyCriteria } from "./bounty-criteria";
+import { BountyDuration } from "./bounty-duration";
 import { useAddEditBountyForm } from "./use-add-edit-bounty-form";
 
 interface BountySheetProps {
@@ -63,6 +62,11 @@ const BOUNTY_TYPES: CardSelectorOption[] = [
     label: "Submission",
     description: "Reward for task completion",
   },
+  {
+    key: "socialMetrics",
+    label: "Social metrics",
+    description: "Reward based on social engagement",
+  },
 ];
 
 function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
@@ -73,11 +77,11 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
     form,
     openAccordions,
     setOpenAccordions,
-    hasStartDate,
-    handleStartDateToggle,
-    hasEndDate,
-    handleEndDateToggle,
-    handleEndDateChange,
+    startsAt,
+    endsAt,
+    startMode,
+    endsAfterDays,
+    handleTimingChange,
     allowedSubmissions,
     handleAllowedSubmissionsChange,
     maxAllowedSubmissions,
@@ -88,11 +92,10 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
     handleSubmissionFrequencyToggle,
     handleSubmissionFrequencyChange,
     type,
-    name,
+    bountyTypeUI,
+    handleBountyTypeUIChange,
     control,
     register,
-    setValue,
-    watch,
     errors,
     isDirty,
     validationError,
@@ -101,15 +104,20 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
     isSubmitting,
   } = useAddEditBountyForm({ bounty, setIsOpen });
 
-  const submissionRequirements = watch("submissionRequirements");
-  const hasSocialMetrics =
-    submissionRequirements &&
-    typeof submissionRequirements === "object" &&
-    "socialMetrics" in submissionRequirements;
   const canUseBountySocialMetrics =
     getPlanCapabilities(plan).canUseBountySocialMetrics;
   const showBountySocialMetricsUpsell =
-    hasSocialMetrics && !canUseBountySocialMetrics;
+    bountyTypeUI === "socialMetrics" && !canUseBountySocialMetrics;
+
+  const bountyTimingValue = useMemo(
+    () => ({
+      startMode: startMode ?? BountyStartMode.absolute,
+      startsAt: startsAt ? new Date(startsAt) : new Date(),
+      endsAt: endsAt ? new Date(endsAt) : null,
+      endsAfterDays: endsAfterDays ?? null,
+    }),
+    [startMode, startsAt, endsAt, endsAfterDays],
+  );
 
   return (
     <form onSubmit={onSubmit} className="flex h-full flex-col">
@@ -145,15 +153,14 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
                   <ProgramSheetAccordionContent>
                     <div className="space-y-4">
                       <p className="text-content-default text-sm">
-                        Set how the bounty will be completed
+                        Choose the type of bounty you want to create
                       </p>
                       <CardSelector
                         options={BOUNTY_TYPES}
-                        value={watch("type")}
-                        onChange={(value: CreateBountyInput["type"]) =>
-                          setValue("type", value)
-                        }
+                        value={bountyTypeUI}
+                        onChange={handleBountyTypeUIChange}
                         name="bounty-type"
+                        gridCols="3"
                       />
                     </div>
                   </ProgramSheetAccordionContent>
@@ -214,7 +221,7 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
                               features={["bold", "italic", "links"]}
                               markdown
                               placeholder="Provide any bounty requirements to the partner"
-                              editorClassName="block max-h-48 overflow-auto scrollbar-hide w-full resize-none border-none p-3 text-base sm:text-sm"
+                              editorClassName="block max-h-48 overflow-auto scrollbar-hide w-full resize-none border-none px-3 py-1 text-base sm:text-sm"
                               initialValue={field.value}
                               onChange={(editor: any) =>
                                 field.onChange(editor.getMarkdown() || null)
@@ -248,126 +255,11 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
                       </div>
                     </div>
 
-                    <AnimatedSizeContainer
-                      height
-                      transition={{ ease: "easeInOut", duration: 0.2 }}
-                      style={{
-                        height: hasStartDate ? "auto" : "0px",
-                        overflow: "hidden",
-                      }}
-                    >
-                      <div className="flex items-center gap-4">
-                        <Switch
-                          fn={handleStartDateToggle}
-                          checked={hasStartDate}
-                          trackDimensions="w-8 h-4"
-                          thumbDimensions="w-3 h-3"
-                          thumbTranslate="translate-x-4"
-                          disabled={Boolean(bounty?.startsAt)}
-                        />
-                        <Label>Start date</Label>
-                      </div>
-
-                      {hasStartDate && (
-                        <div className="mt-3 p-px">
-                          <Controller
-                            control={control}
-                            name="startsAt"
-                            render={({ field }) => (
-                              <SmartDateTimePicker
-                                value={field.value}
-                                onChange={(date) =>
-                                  field.onChange(date ?? undefined)
-                                }
-                                placeholder='E.g. "2026-02-28", "Last Thursday", "2 hours ago"'
-                              />
-                            )}
-                          />
-                        </div>
-                      )}
-                    </AnimatedSizeContainer>
-
-                    {type === "performance" && (
-                      <AnimatedSizeContainer
-                        height
-                        transition={{ ease: "easeInOut", duration: 0.2 }}
-                        style={{
-                          height: hasEndDate ? "auto" : "0px",
-                          overflow: "hidden",
-                        }}
-                      >
-                        <div className="flex items-center gap-4">
-                          <Switch
-                            fn={handleEndDateToggle}
-                            checked={hasEndDate}
-                            trackDimensions="w-8 h-4"
-                            thumbDimensions="w-3 h-3"
-                            thumbTranslate="translate-x-4"
-                            disabled={Boolean(bounty?.endsAt)}
-                          />
-                          <Label>End date</Label>
-                        </div>
-
-                        {hasEndDate && (
-                          <div className="mt-3 p-px">
-                            <Controller
-                              control={control}
-                              name="endsAt"
-                              render={({ field }) => (
-                                <SmartDateTimePicker
-                                  value={field.value}
-                                  onChange={(date) =>
-                                    handleEndDateChange(date ?? null)
-                                  }
-                                  placeholder='E.g. "2026-12-01", "Next Thursday", "After 10 days"'
-                                />
-                              )}
-                            />
-                          </div>
-                        )}
-                      </AnimatedSizeContainer>
-                    )}
-
-                    {type === "submission" && (
-                      <AnimatedSizeContainer
-                        height
-                        transition={{ ease: "easeInOut", duration: 0.2 }}
-                        style={{
-                          height: hasEndDate ? "auto" : "0px",
-                          overflow: "hidden",
-                        }}
-                      >
-                        <div className="flex items-center gap-4">
-                          <Switch
-                            fn={handleEndDateToggle}
-                            checked={hasEndDate}
-                            trackDimensions="w-8 h-4"
-                            thumbDimensions="w-3 h-3"
-                            thumbTranslate="translate-x-4"
-                            disabled={Boolean(bounty?.endsAt)}
-                          />
-                          <Label>End date</Label>
-                        </div>
-
-                        {hasEndDate && (
-                          <div className="mt-3 p-px">
-                            <Controller
-                              control={control}
-                              name="endsAt"
-                              render={({ field }) => (
-                                <SmartDateTimePicker
-                                  value={field.value}
-                                  onChange={(date) =>
-                                    handleEndDateChange(date ?? null)
-                                  }
-                                  placeholder='E.g. "2026-12-01", "Next Thursday", "After 10 days"'
-                                />
-                              )}
-                            />
-                          </div>
-                        )}
-                      </AnimatedSizeContainer>
-                    )}
+                    <BountyDuration
+                      isEditing={!!bounty}
+                      value={bountyTimingValue}
+                      onChange={handleTimingChange}
+                    />
 
                     {type === "submission" && (
                       <>
@@ -388,7 +280,7 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
                         <div>
                           <Tooltip
                             content={
-                              !hasEndDate
+                              !endsAt
                                 ? "Set an end date to use submission window."
                                 : allowedSubmissions > 1
                                   ? "Decrease allowed submissions to 1 to use submission window."
@@ -398,7 +290,7 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
                             <div
                               className={cn(
                                 "flex items-center gap-4 transition-opacity",
-                                (!hasEndDate || allowedSubmissions > 1) &&
+                                (!endsAt || allowedSubmissions > 1) &&
                                   "opacity-30",
                               )}
                             >
@@ -408,7 +300,7 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
                                 trackDimensions="w-8 h-4"
                                 thumbDimensions="w-3 h-3"
                                 thumbTranslate="translate-x-4"
-                                disabled={!hasEndDate || allowedSubmissions > 1}
+                                disabled={!endsAt || allowedSubmissions > 1}
                               />
                               <Label>Submission window</Label>
                             </div>
@@ -505,21 +397,12 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
 
               <BountyCriteria />
 
-              <ProgramSheetAccordionItem value="groups">
+              <ProgramSheetAccordionItem value="eligibility">
                 <ProgramSheetAccordionTrigger>
-                  Groups
+                  Eligibility
                 </ProgramSheetAccordionTrigger>
                 <ProgramSheetAccordionContent>
-                  <Controller
-                    control={control}
-                    name="groupIds"
-                    render={({ field }) => (
-                      <GroupsMultiSelect
-                        selectedGroupIds={field.value}
-                        setSelectedGroupIds={(ids) => field.onChange(ids)}
-                      />
-                    )}
-                  />
+                  <AudienceEligibilityPanel />
                 </ProgramSheetAccordionContent>
               </ProgramSheetAccordionItem>
             </ProgramSheetAccordion>
@@ -543,13 +426,17 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
               text={bounty ? "Update bounty" : "Create bounty"}
               className="h-9 w-fit"
               loading={isSubmitting}
-              disabled={Boolean(validationError) || (bounty && !isDirty)}
+              disabled={
+                Boolean(validationError) ||
+                (bounty && !isDirty) ||
+                showBountySocialMetricsUpsell
+              }
               disabledTooltip={
                 showBountySocialMetricsUpsell ? (
                   <TooltipContent
-                    title="[Social metrics bounties](https://dub.co/help/article/program-bounties#social-metrics-bounties) are only available on the Advanced plan and above."
+                    title="[Social metrics bounties](https://dub.co/help/article/program-bounties#social-metrics) are only available on the Advanced plan and above."
                     cta="Upgrade to Advanced"
-                    href={`/${workspaceSlug}/upgrade?showPartnersUpgradeModal=true`}
+                    href={`/${workspaceSlug}/upgrade?plan=advanced&showAdvancedUpsellModal=true`}
                     target="_blank"
                   />
                 ) : (
@@ -616,8 +503,11 @@ export function BountySheet({
     <Sheet
       open={isOpen}
       onOpenChange={rest.setIsOpen}
-      onClose={() => queryParams({ del: "bountyId", scroll: false })}
+      onClose={() => queryParams({ del: "bountyId" })}
       nested={nested}
+      contentProps={{
+        className: "[--sheet-width:600px]",
+      }}
     >
       <BountySheetContent {...rest} />
     </Sheet>

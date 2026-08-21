@@ -1,7 +1,6 @@
 import { conn } from "@/lib/planetscale";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { ACME_PROGRAM_ID } from "@dub/utils";
-import { deleteDiscountCodes } from "../discounts/delete-discount-code";
 import { bulkDeleteLinks } from "../links/bulk-delete-links";
 
 const BATCH_SIZE = 250;
@@ -59,33 +58,7 @@ export async function bulkDeletePartners({
       console.log(`Deleted ${deletedCustomers.count} customers`);
     }
 
-    const discountCodesToDelete = await prisma.discountCode.findMany({
-      where: {
-        linkId: {
-          in: linksToDelete.map((link) => link.id),
-        },
-      },
-      select: {
-        id: true,
-        code: true,
-        programId: true,
-      },
-    });
-
-    if (discountCodesToDelete.length > 0) {
-      await deleteDiscountCodes(discountCodesToDelete);
-    }
-
     await bulkDeleteLinks(linksToDelete);
-
-    const deletedLinks = await prisma.link.deleteMany({
-      where: {
-        id: {
-          in: linksToDelete.map((link) => link.id),
-        },
-      },
-    });
-    console.log(`Deleted ${deletedLinks.count} links`);
   }
 
   if (programEnrollmentIds.length > 0) {
@@ -142,10 +115,9 @@ export async function bulkDeletePartners({
     // Delete the messages
     const deletedMessages = await prisma.message.deleteMany({
       where: {
-        programEnrollment: {
-          id: {
-            in: programEnrollmentIds,
-          },
+        programId: ACME_PROGRAM_ID,
+        partnerId: {
+          in: partnerIds,
         },
       },
     });
@@ -174,6 +146,7 @@ export async function bulkDeletePartners({
     });
     console.log(`Deleted ${deletedActivityLogs.count} activity logs`);
 
+    // Delete the program enrollments
     const deletedProgramEnrollments = await prisma.programEnrollment.deleteMany(
       {
         where: {
@@ -186,6 +159,19 @@ export async function bulkDeletePartners({
     console.log(
       `Deleted ${deletedProgramEnrollments.count} program enrollments`,
     );
+
+    if (deletedProgramEnrollments.count > 0) {
+      await prisma.project.updateMany({
+        where: {
+          defaultProgramId: ACME_PROGRAM_ID,
+        },
+        data: {
+          partnersUsage: {
+            decrement: deletedProgramEnrollments.count,
+          },
+        },
+      });
+    }
   }
 
   if (deletePartners) {

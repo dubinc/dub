@@ -10,6 +10,7 @@ SCHEMA >
     `program_id` LowCardinality(String),
     `partner_id` String,
     `partner_group_id` String,
+    `partner_tag_ids` Array(String),
     `folder_id` String,
     `tag_ids` Array(String),
     `tenant_id` String,

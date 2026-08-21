@@ -3,6 +3,7 @@ import {
   CursorRays,
   InvoiceDollar,
   MoneyBills2,
+  Nodes4,
   UserCheck,
 } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
@@ -13,6 +14,7 @@ const ICONS_MAP = {
   lead: { icon: UserCheck, className: "text-purple-500" },
   sale: { icon: InvoiceDollar, className: "text-teal-500" },
   custom: { icon: MoneyBills2, className: "text-gray-500" },
+  referral: { icon: Nodes4, className: "text-gray-500" },
 };
 
 export const CommissionTypeIcon = ({

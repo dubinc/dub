@@ -1,7 +1,7 @@
 import { getAll } from "@vercel/edge-config";
 
 export const isBlacklistedDomain = async (domain: string): Promise<boolean> => {
-  if (!process.env.NEXT_PUBLIC_IS_DUB || !process.env.EDGE_CONFIG) {
+  if (!process.env.EDGE_CONFIG) {
     return false;
   }
 

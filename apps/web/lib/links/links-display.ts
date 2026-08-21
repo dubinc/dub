@@ -8,16 +8,16 @@ export const linksSortOptions = [
     slug: "createdAt",
   },
   {
+    display: "Total revenue",
+    slug: "saleAmount",
+  },
+  {
     display: "Total clicks",
     slug: "clicks",
   },
   {
     display: "Last clicked",
     slug: "lastClicked",
-  },
-  {
-    display: "Total sales",
-    slug: "saleAmount",
   },
 ] as const;
 

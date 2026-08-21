@@ -1,8 +1,8 @@
 import { withPartnerProfile } from "@/lib/auth/partner";
+import { prisma } from "@/lib/prisma";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { getNetworkProgramsCountQuerySchema } from "@/lib/zod/schemas/program-network";
-import { prisma } from "@dub/prisma";
-import { Prisma } from "@dub/prisma/client";
+import { Prisma } from "@prisma/client";
 import { NextResponse } from "next/server";
 
 const rewardTypeMap = {
@@ -29,10 +29,7 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
         ${
           rewardType && groupBy !== "rewardType"
             ? Prisma.sql`
-              AND ${Prisma.join(
-                rewardType.map((type) => rewardTypeMap[type]),
-                " AND ",
-              )}`
+              AND ${rewardTypeMap[rewardType]}`
             : Prisma.sql``
         }
     )

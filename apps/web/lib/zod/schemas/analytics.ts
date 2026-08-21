@@ -5,6 +5,7 @@ import {
   OLD_TO_NEW_ANALYTICS_ENDPOINTS,
   VALID_ANALYTICS_ENDPOINTS,
 } from "@/lib/analytics/constants";
+import { sanitizeTimezone } from "@/lib/analytics/utils/sanitize-timezone";
 import {
   DEFAULT_PAGINATION_LIMIT,
   DUB_FOUNDING_DATE,
@@ -13,7 +14,7 @@ import {
   parseFilterValue,
 } from "@dub/utils";
 import * as z from "zod/v4";
-import { booleanQuerySchema } from "./misc";
+import { booleanQuerySchema, getPaginationQuerySchema } from "./misc";
 import { parseDateSchema } from "./utils";
 
 const analyticsEvents = z
@@ -114,6 +115,15 @@ export const analyticsQuerySchema = z.object({
         "Examples: `folder_123`, `folder_123,folder_456`, `-folder_789`. " +
         "If not provided, return analytics for all links.",
     ),
+  partnerTagId: z
+    .string()
+    .optional()
+    .transform(parseFilterValue)
+    .describe(
+      "The partner tag ID(s) to retrieve analytics for. " +
+        "Supports advanced filtering: single value, multiple values (comma-separated), or exclusion (prefix with `-`). " +
+        "Examples: `ptag_123`, `ptag_123,ptag_456`, `-ptag_789`.",
+    ),
   groupId: z
     .string()
     .optional()
@@ -158,6 +168,7 @@ export const analyticsQuerySchema = z.object({
   timezone: z
     .string()
     .optional()
+    .overwrite((v) => (v === undefined ? undefined : sanitizeTimezone(v)))
     .describe(
       "The IANA time zone code for aligning timeseries granularity (e.g. America/New_York). Defaults to UTC.",
     )
@@ -461,6 +472,14 @@ export const analyticsFilterTB = z.object({
       "The partner ID(s) to retrieve analytics for (with operator support).",
     ),
   partnerIdOperator: z.enum(["IN", "NOT IN"]).optional(),
+  partnerTagId: z
+    .union([z.string(), z.array(z.string())])
+    .transform((v) => (Array.isArray(v) ? v : v.split(",")))
+    .optional()
+    .describe(
+      "The partner tag ID(s) to retrieve analytics for (with operator support).",
+    ),
+  partnerTagIdOperator: z.enum(["IN", "NOT IN"]).optional(),
   customerId: z.string().optional(),
   start: z.string(),
   end: z.string(),
@@ -509,6 +528,11 @@ const sortOrder = z
   .optional()
   .describe("The sort order. The default is `desc`.");
 
+const eventsPaginationQuerySchema = getPaginationQuerySchema({
+  pageSize: DEFAULT_PAGINATION_LIMIT,
+  maxPageSize: 1000,
+});
+
 export const eventsQuerySchema = analyticsQuerySchema
   .omit({ groupBy: true })
   .extend({
@@ -518,11 +542,8 @@ export const eventsQuerySchema = analyticsQuerySchema
       .describe(
         "The type of event to retrieve analytics for. Defaults to 'clicks'.",
       ),
-    page: z.coerce.number().default(1),
-    limit: z.coerce
-      .number()
-      .max(1000, { message: "Max pagination limit is 1000 items per page." })
-      .default(DEFAULT_PAGINATION_LIMIT),
+    page: eventsPaginationQuerySchema.page.default(1),
+    limit: eventsPaginationQuerySchema.pageSize,
     sortOrder,
     sortBy: z
       .enum(["timestamp"])

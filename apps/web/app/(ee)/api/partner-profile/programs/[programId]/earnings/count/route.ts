@@ -3,9 +3,9 @@ import { obfuscateCustomerEmail } from "@/lib/api/partner-profile/obfuscate-cust
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { withPartnerProfile } from "@/lib/auth/partner";
 import { generateRandomName } from "@/lib/names";
+import { prisma } from "@/lib/prisma";
 import { getPartnerEarningsCountQuerySchema } from "@/lib/zod/schemas/partner-profile";
-import { prisma } from "@dub/prisma";
-import { Prisma } from "@dub/prisma/client";
+import { Prisma } from "@prisma/client";
 import { NextResponse } from "next/server";
 
 // GET /api/partner-profile/programs/[programId]/earnings/count – get earnings count for a partner in a program enrollment

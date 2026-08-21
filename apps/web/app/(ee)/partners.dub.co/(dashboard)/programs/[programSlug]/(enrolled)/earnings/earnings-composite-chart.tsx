@@ -10,10 +10,9 @@ import { LinkIcon } from "@/ui/links/link-icon";
 import { CommissionTypeIcon } from "@/ui/partners/comission-type-icon";
 import { CommissionStatusBadges } from "@/ui/partners/commission-status-badges";
 import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
-import { CommissionType } from "@dub/prisma/client";
 import { Filter, LoadingSpinner, ToggleGroup, useRouterStuff } from "@dub/ui";
 import { Areas, TimeSeriesChart, XAxis, YAxis } from "@dub/ui/charts";
-import { CircleDotted, Hyperlink, Sliders, User } from "@dub/ui/icons";
+import { CircleDotted, Hyperlink, MoneyBill2, Sliders, User } from "@dub/ui/icons";
 import {
   capitalize,
   cn,
@@ -23,6 +22,7 @@ import {
   nFormatter,
 } from "@dub/utils";
 import NumberFlow from "@number-flow/react";
+import { CommissionType } from "@prisma/client";
 import { endOfDay, startOfDay } from "date-fns";
 import { Fragment, useMemo, useState } from "react";
 
@@ -39,6 +39,8 @@ const EVENT_TYPE_LINE_COLORS = {
   sale: "text-teal-500",
   lead: "text-purple-500",
   click: "text-blue-500",
+  referral: "text-orange-500",
+  custom: "text-gray-500",
 };
 
 const MAX_LINES = LINE_COLORS.length;
@@ -168,7 +170,6 @@ export function EarningsCompositeChart() {
             selectAction={(option) => {
               queryParams({
                 set: { groupBy: option },
-                scroll: false,
               });
             }}
           />
@@ -345,12 +346,13 @@ function EarningsTableControls() {
   );
 
   const activeFilters = useMemo(() => {
-    const { type, linkId, customerId, status } = searchParamsObj;
+    const { type, linkId, customerId, status, payoutId } = searchParamsObj;
     return [
       ...(type ? [{ key: "type", value: type }] : []),
       ...(linkId ? [{ key: "linkId", value: linkId }] : []),
       ...(customerId ? [{ key: "customerId", value: customerId }] : []),
       ...(status ? [{ key: "status", value: status }] : []),
+      ...(payoutId ? [{ key: "payoutId", value: payoutId }] : []),
     ];
   }, [searchParamsObj]);
 
@@ -360,19 +362,16 @@ function EarningsTableControls() {
         [key]: value,
       },
       del: "page",
-      scroll: false,
     });
 
   const onRemove = (key: string, _value: any) =>
     queryParams({
       del: [key, "page"],
-      scroll: false,
     });
 
   const onRemoveAll = () =>
     queryParams({
-      del: ["linkId", "customerId", "status", "page"],
-      scroll: false,
+      del: ["linkId", "customerId", "status", "payoutId", "page"],
     });
 
   return (
@@ -395,7 +394,15 @@ function EarningsTableControls() {
         )}
       />
       <Filter.List
-        filters={filters}
+        filters={[
+          ...filters,
+          {
+            key: "payoutId",
+            icon: MoneyBill2,
+            label: "Payout",
+            options: [],
+          },
+        ]}
         activeFilters={activeFilters}
         onSelect={onSelect}
         onRemove={onRemove}

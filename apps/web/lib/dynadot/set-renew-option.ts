@@ -1,13 +1,5 @@
 import { log } from "@dub/utils";
-import * as z from "zod/v4";
-import { DYNADOT_API_KEY, DYNADOT_BASE_URL } from "./constants";
-
-const responseSchema = z.object({
-  SetRenewOptionResponse: z.object({
-    ResponseCode: z.number(),
-    Status: z.string(),
-  }),
-});
+import { dynadotClient } from "./client";
 
 export const setRenewOption = async ({
   domain,
@@ -15,47 +7,44 @@ export const setRenewOption = async ({
 }: {
   domain: string;
   autoRenew: boolean;
-}) => {
-  const searchParams = new URLSearchParams({
-    key: DYNADOT_API_KEY,
-    command: "set_renew_option",
-    domain,
-    renew_option: autoRenew ? "auto" : "donot",
-  });
-
+}): Promise<boolean> => {
   try {
-    const response = await fetch(
-      `${DYNADOT_BASE_URL}?${searchParams.toString()}`,
-      {
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-        },
-      },
-    );
+    const parsedResponse = await dynadotClient.setRenewOption({
+      command: "set_renew_option",
+      domain,
+      renew_option: autoRenew ? "auto" : "donot",
+    });
 
-    if (!response.ok) {
-      console.error(response);
-      throw new Error(`Failed to set renew option: ${response.statusText}`);
+    console.info(`[setRenewOption] ${domain}`, parsedResponse);
+
+    if ("Response" in parsedResponse) {
+      throw new Error(
+        `Failed to set renew option: ${parsedResponse.Response.Error}`,
+      );
     }
 
-    const {
-      SetRenewOptionResponse: { Status },
-    } = responseSchema.parse(await response.json());
+    if ("SetRenewOptionResponse" in parsedResponse) {
+      const { Status } = parsedResponse.SetRenewOptionResponse;
 
-    if (Status !== "success") {
-      throw new Error(`Failed to set renew option: ${Status}`);
+      if (Status !== "success") {
+        throw new Error(`Failed to set renew option: ${Status}`);
+      }
     }
 
     console.log(
       `Auto-renew for ${domain} is ${autoRenew ? "enabled" : "disabled"}.`,
     );
+
+    return true;
   } catch (error) {
     await log({
-      message: `Failed to set renew option for ${domain}: ${error.message}`,
+      message: `Failed to set renew option for ${domain}: ${error instanceof Error ? error.message : String(error)}`,
       type: "errors",
       mention: true,
     });
 
     console.error(error);
+
+    return false;
   }
 };

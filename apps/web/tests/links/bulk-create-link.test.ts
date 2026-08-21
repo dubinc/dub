@@ -1,5 +1,5 @@
 import { normalizeWorkspaceId } from "@/lib/api/workspaces/workspace-id";
-import { Link } from "@dub/prisma/client";
+import { Link } from "@prisma/client";
 import { expect, onTestFinished, test } from "vitest";
 import * as z from "zod/v4";
 import { randomId } from "../utils/helpers";
@@ -254,4 +254,82 @@ test("POST /links/bulk assigns correct tags to each link (no tag mixing)", async
   expect(link3?.tags).toHaveLength(2);
   expect(link3?.tags?.map((t) => t.id)).toContain(E2E_TAG.id);
   expect(link3?.tags?.map((t) => t.id)).toContain(E2E_TAG_2.id);
+});
+
+test("POST /links/bulk rejects multiple links with invalid tagNames", async (ctx) => {
+  const testContext = await setupBulkTest(ctx);
+  const { h } = testContext;
+
+  const validUrl = `https://example.com/${randomId()}`;
+  const bulkLinks = [
+    {
+      url: `https://example.com/${randomId()}`,
+      domain,
+      tagNames: ["MissingA-DoNotExist"],
+    },
+    {
+      url: `https://example.com/${randomId()}`,
+      domain,
+      tagNames: [E2E_TAG.name, "Missing1-DoNotExist", "Missing2-DoNotExist"],
+    },
+    {
+      url: validUrl,
+      domain,
+    },
+  ];
+
+  const { status, data: links } = await testContext.http.post<
+    Array<LinkWithTags | { error: string; code: string; link: unknown }>
+  >({
+    path: "/links/bulk",
+    body: bulkLinks,
+  });
+
+  const created = links.filter(
+    (item): item is LinkWithTags => "id" in item && typeof item.id === "string",
+  );
+  const errors = links.filter(
+    (item): item is { error: string; code: string; link: unknown } =>
+      "error" in item,
+  );
+
+  onTestFinished(async () => {
+    await Promise.all(created.map((link) => h.deleteLink(link.id)));
+  });
+
+  expect(status).toEqual(200);
+  expect(errors).toHaveLength(2);
+  expect(errors.every((e) => e.code === "unprocessable_entity")).toBe(true);
+  expect(created).toHaveLength(1);
+  expect(created[0].url).toEqual(validUrl);
+});
+
+test("POST /links/bulk accepts both tagIds and tagNames", async (ctx) => {
+  const testContext = await setupBulkTest(ctx);
+  const { h } = testContext;
+
+  const bulkLinks = [
+    {
+      url: `https://example.com/${randomId()}`,
+      domain,
+      tagIds: [E2E_TAG.id],
+      tagNames: [E2E_TAG_2.name],
+    },
+  ];
+
+  const { status, data: links } = await testContext.http.post<LinkWithTags[]>({
+    path: "/links/bulk",
+    body: bulkLinks,
+  });
+
+  onTestFinished(async () => {
+    await Promise.all(links.map((link) => h.deleteLink(link.id)));
+  });
+
+  expect(status).toEqual(200);
+  expect(links).toHaveLength(1);
+  expect(links[0].tags).toHaveLength(2);
+  expect(links[0].tags?.map((t) => t.id).sort()).toEqual(
+    [E2E_TAG.id, E2E_TAG_2.id].sort(),
+  );
 });

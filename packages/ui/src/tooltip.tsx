@@ -4,7 +4,7 @@ import { cn } from "@dub/utils";
 import * as TooltipPrimitive from "@radix-ui/react-tooltip";
 import { HelpCircle } from "lucide-react";
 import Link from "next/link";
-import { ReactNode, useEffect, useRef, useState } from "react";
+import { isValidElement, ReactNode, useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import { Badge } from "./badge";
 import { Button, ButtonProps, buttonVariants } from "./button";
@@ -147,7 +147,7 @@ export function TooltipContent({
         (href ? (
           <Link
             href={href}
-            {...(target ? { target } : {})}
+            {...(target ? { target, rel: "noopener noreferrer" } : {})}
             className={cn(
               buttonVariants({ variant: "primary" }),
               "flex h-8 w-full items-center justify-center whitespace-nowrap rounded-lg border px-4 text-sm",
@@ -223,7 +223,7 @@ export function DynamicTooltipWrapper({
 }) {
   return tooltipProps ? (
     <Tooltip {...tooltipProps}>
-      <div>{children}</div>
+      {isValidElement(children) ? children : <span>{children}</span>}
     </Tooltip>
   ) : (
     children

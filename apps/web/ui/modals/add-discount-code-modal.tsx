@@ -17,7 +17,8 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { useDebounce } from "use-debounce";
 import * as z from "zod/v4";
-import { STRIPE_ERROR_MAP } from "../partners/constants";
+import { ERROR_MAP } from "../partners/constants";
+import { CustomToast } from "../shared/custom-toast";
 import { X } from "../shared/icons";
 import { UpgradeRequiredToast } from "../shared/upgrade-required-toast";
 
@@ -87,28 +88,30 @@ const AddDiscountCodeModal = ({
         toast.success("Discount code created and copied to clipboard!");
       },
       onError: (error) => {
-        if (error) {
-          const code = Object.keys(STRIPE_ERROR_MAP).find((key) =>
-            error.startsWith(key),
-          );
+        const code = Object.keys(ERROR_MAP).find((key) =>
+          error.startsWith(key),
+        );
 
-          if (code) {
-            const { title, ctaLabel, ctaUrl } = STRIPE_ERROR_MAP[code];
-            const message = error.replace(`${code}: `, "");
+        if (code) {
+          const { title, ctaLabel, ctaUrl } = ERROR_MAP[code];
+          const message = error.replace(`${code}: `, "");
 
-            toast.custom(() => (
-              <UpgradeRequiredToast
-                title={title}
-                message={message}
-                ctaLabel={ctaLabel}
-                ctaUrl={ctaUrl}
-              />
-            ));
-            return;
-          }
+          toast.custom(() => (
+            <UpgradeRequiredToast
+              title={title}
+              message={message}
+              ctaLabel={ctaLabel}
+              ctaUrl={ctaUrl}
+            />
+          ));
+          return;
+        } else if (error.includes("already in use")) {
+          toast.custom(() => (
+            <CustomToast variant="error">{error}</CustomToast>
+          ));
+        } else {
+          toast.error(error);
         }
-
-        toast.error(error);
       },
     });
   };
@@ -247,7 +250,7 @@ export function useAddDiscountCodeModal({
         partner={partner}
       />
     );
-  }, [showAddDiscountCodeModal, setShowAddDiscountCodeModal, partner]);
+  }, [showAddDiscountCodeModal, setShowAddDiscountCodeModal]);
 
   return useMemo(
     () => ({

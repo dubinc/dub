@@ -1,4 +1,4 @@
-import { fetcher, getFirstAndLastDay } from "@dub/utils";
+import { fetcher, getBillingPeriodBounds } from "@dub/utils";
 import { endOfDay, startOfDay } from "date-fns";
 import { useSearchParams } from "next/navigation";
 import { useMemo } from "react";
@@ -9,8 +9,20 @@ import useWorkspace from "./use-workspace";
 export function useUsageTimeseries({
   resource: definedResource,
 }: { resource?: "links" | "events" } = {}) {
-  const { id: workspaceId, billingCycleStart, totalLinks } = useWorkspace();
-  const { firstDay, lastDay } = getFirstAndLastDay(billingCycleStart ?? 0);
+  const {
+    id: workspaceId,
+    billingCycleStart,
+    billingCycleEndsAt,
+    planPeriod,
+    totalLinks,
+  } = useWorkspace();
+
+  const { start: firstDay, end: lastDay } = getBillingPeriodBounds({
+    planPeriod,
+    billingCycleStart: billingCycleStart ?? 0,
+    billingCycleEndsAt,
+  });
+
   const searchParams = useSearchParams();
 
   const defaultActiveTab = useMemo(() => {
@@ -47,10 +59,10 @@ export function useUsageTimeseries({
     };
   }, [searchParams, firstDay, lastDay]);
 
-  const groupBy: "folderId" | "domain" =
-    (["folderId", "domain"] as const).find(
+  const groupBy: "domain" | "folderId" =
+    (["domain", "folderId"] as const).find(
       (gb) => gb === searchParams.get("groupBy"),
-    ) ?? "folderId";
+    ) ?? "domain";
 
   const {
     data: usage,

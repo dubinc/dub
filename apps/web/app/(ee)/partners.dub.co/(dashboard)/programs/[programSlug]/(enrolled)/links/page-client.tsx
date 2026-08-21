@@ -41,7 +41,7 @@ export function usePartnerLinksContext() {
   return context;
 }
 
-export function ProgramLinksPageClient() {
+export function PartnerProgramLinksPageClient() {
   const { searchParamsObj } = useRouterStuff();
   const { links, error, loading, isValidating } = usePartnerLinks();
   const { programEnrollment, showDetailedAnalytics } = useProgramEnrollment();

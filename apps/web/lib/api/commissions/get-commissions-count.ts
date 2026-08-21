@@ -1,14 +1,15 @@
 import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
+import { prisma } from "@/lib/prisma";
 import { getCommissionsCountQuerySchema } from "@/lib/zod/schemas/commissions";
-import { prisma } from "@dub/prisma";
-import { CommissionStatus, FraudEventStatus } from "@dub/prisma/client";
+import { parseFilterValue } from "@dub/utils";
+import { CommissionStatus, CommissionType } from "@prisma/client";
 import * as z from "zod/v4";
+import { getFraudEventGroupEventIds } from "../fraud/get-fraud-event-group-event-ids";
 
 type CommissionsCountFilters = z.infer<
   typeof getCommissionsCountQuerySchema
 > & {
   programId: string;
-  isHoldStatus?: boolean;
   fraudEventGroupId?: string;
 };
 
@@ -20,33 +21,22 @@ export async function getCommissionsCount(filters: CommissionsCountFilters) {
     payoutId,
     customerId,
     groupId,
+    partnerTagId,
     fraudEventGroupId,
     start,
     end,
     interval,
     timezone,
     programId,
-    isHoldStatus,
   } = filters;
 
-  // Resolve fraudEventGroupId to eventIds
-  let eventIds: string[] | undefined;
-
-  if (fraudEventGroupId) {
-    const fraudEvents = await prisma.fraudEvent.findMany({
-      where: {
+  // Filter the commissions based on the risk event group
+  const eventIds = fraudEventGroupId
+    ? await getFraudEventGroupEventIds({
         fraudEventGroupId,
-        eventId: {
-          not: null,
-        },
-      },
-      select: {
-        eventId: true,
-      },
-    });
-
-    eventIds = fraudEvents.map((e) => e.eventId!);
-  }
+        programId,
+      })
+    : undefined;
 
   const { startDate, endDate } = getStartEndDates({
     interval,
@@ -55,26 +45,39 @@ export async function getCommissionsCount(filters: CommissionsCountFilters) {
     timezone,
   });
 
-  const statusFilter = isHoldStatus
-    ? { in: [CommissionStatus.pending, CommissionStatus.processed] }
-    : status ?? {
-        notIn: [
-          CommissionStatus.duplicate,
-          CommissionStatus.fraud,
-          CommissionStatus.canceled,
-        ],
-      };
+  const groupFilter = parseFilterValue(groupId);
+  const partnerTagFilter = parseFilterValue(partnerTagId);
+
+  const statusFilter = status
+    ? status
+    : type || customerId || payoutId || partnerId
+      ? undefined
+      : {
+          notIn: [
+            CommissionStatus.duplicate,
+            CommissionStatus.fraud,
+            CommissionStatus.canceled,
+          ],
+        };
 
   const programEnrollmentFilter = {
-    ...(groupId && { groupId }),
-    ...(isHoldStatus && {
-      fraudEventGroups: {
-        some: {
-          status: FraudEventStatus.pending,
-        },
-      },
+    ...(groupFilter && {
+      groupId:
+        groupFilter.sqlOperator === "NOT IN"
+          ? { notIn: groupFilter.values }
+          : { in: groupFilter.values },
+    }),
+    ...(partnerTagFilter && {
+      programPartnerTags:
+        partnerTagFilter.sqlOperator === "NOT IN"
+          ? { none: { partnerTagId: { in: partnerTagFilter.values } } }
+          : { some: { partnerTagId: { in: partnerTagFilter.values } } },
     }),
   };
+
+  const partnerFilter = parseFilterValue(partnerId);
+  const customerFilter = parseFilterValue(customerId);
+  const typeFilter = parseFilterValue(type);
 
   const commissionsCount = await prisma.commission.groupBy({
     by: ["status"],
@@ -83,11 +86,26 @@ export async function getCommissionsCount(filters: CommissionsCountFilters) {
         not: 0,
       },
       programId,
-      partnerId,
+      ...(partnerFilter && {
+        partnerId:
+          partnerFilter.sqlOperator === "NOT IN"
+            ? { notIn: partnerFilter.values }
+            : { in: partnerFilter.values },
+      }),
       status: statusFilter,
-      type,
+      ...(typeFilter && {
+        type:
+          typeFilter.sqlOperator === "NOT IN"
+            ? { notIn: typeFilter.values as CommissionType[] }
+            : { in: typeFilter.values as CommissionType[] },
+      }),
       payoutId,
-      customerId,
+      ...(customerFilter && {
+        customerId:
+          customerFilter.sqlOperator === "NOT IN"
+            ? { notIn: customerFilter.values }
+            : { in: customerFilter.values },
+      }),
       ...(eventIds && {
         eventId: {
           in: eventIds,

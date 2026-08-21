@@ -1,4 +1,4 @@
-import { Category, ProgramEnrollmentStatus } from "@dub/prisma/client";
+import { Category, ProgramEnrollmentStatus } from "@prisma/client";
 import * as z from "zod/v4";
 import { DiscountSchema } from "./discount";
 import { GroupBountySummarySchema } from "./group-bounties";
@@ -32,25 +32,33 @@ export const NetworkProgramExtendedSchema = NetworkProgramSchema.extend({
 
 export const PROGRAM_NETWORK_MAX_PAGE_SIZE = 100;
 
-const rewardTypes = ["sale", "lead", "click", "discount"] as const;
-const rewardTypeSchema = z.enum(rewardTypes);
+const queryBooleanSchema = z
+  .enum(["true", "false"])
+  .transform((v) => v === "true")
+  .optional();
+
+export const getPublicNetworkProgramsQuerySchema = z
+  .object({
+    category: z.enum(Category).optional(),
+    rewardType: z.enum(["sale", "lead", "click", "discount"]).optional(),
+    featured: queryBooleanSchema,
+    search: z.string().optional(),
+    sortBy: z.enum(["name", "recency", "popularity"]).default("popularity"),
+    sortOrder: z.enum(["asc", "desc"]).default("desc"),
+  })
+  .extend(
+    getPaginationQuerySchema({ pageSize: PROGRAM_NETWORK_MAX_PAGE_SIZE }),
+  );
 
 export const getNetworkProgramsQuerySchema = z
   .object({
     category: z.enum(Category).optional(),
-    rewardType: z
-      .union([z.string(), z.array(rewardTypeSchema)])
-      .transform((v) =>
-        Array.isArray(v)
-          ? v
-          : v.split(",").filter((v) => rewardTypes.includes(v as any)),
-      )
-      .optional(),
+    rewardType: z.enum(["sale", "lead", "click", "discount"]).optional(),
     status: z.preprocess(
       (v) => (v === "null" ? null : v),
       z.enum(ProgramEnrollmentStatus).nullish(),
     ),
-    featured: z.coerce.boolean().optional(),
+    featured: queryBooleanSchema,
     search: z.string().optional(),
     sortBy: z.enum(["name", "recency", "popularity"]).default("popularity"),
     sortOrder: z.enum(["asc", "desc"]).default("desc"),
@@ -61,9 +69,18 @@ export const getNetworkProgramsQuerySchema = z
 
 export const getNetworkProgramsCountQuerySchema = getNetworkProgramsQuerySchema
   .omit({
+    sortBy: true,
+    sortOrder: true,
     page: true,
     pageSize: true,
   })
   .extend({
     groupBy: z.enum(["category", "rewardType", "status"]).optional(),
   });
+
+export const MarketplaceProgramsSummarySchema = z.object({
+  featuredPrograms: z.array(NetworkProgramSchema),
+  mostPopular: z.array(NetworkProgramSchema),
+  newPrograms: z.array(NetworkProgramSchema),
+  categories: z.record(z.enum(Category), z.array(NetworkProgramSchema)),
+});

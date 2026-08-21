@@ -1,6 +1,6 @@
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
-import { ApplicationsMenu } from "./applications-menu";
+import { ApplicationsMenuPopover } from "./applications-menu-popover";
 import { ProgramPartnersApplicationsPageClient } from "./page-client";
 
 export default function ProgramPartnersApplications() {
@@ -9,10 +9,9 @@ export default function ProgramPartnersApplications() {
       title="Applications"
       titleInfo={{
         title:
-          "Learn how to manage your pending applications, and to bring the best partners to your program.",
-        href: "https://dub.co/help/article/program-applications",
+          "Learn how to review and [manage your program applications](https://dub.co/help/article/program-applications) and bring the best partners to your program.",
       }}
-      controls={<ApplicationsMenu />}
+      controls={<ApplicationsMenuPopover />}
     >
       <PageWidthWrapper>
         <ProgramPartnersApplicationsPageClient />

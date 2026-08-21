@@ -1,0 +1,339 @@
+import { prisma } from "@/lib/prisma";
+import { nanoid, STRIPE_INTEGRATION_ID, truncate } from "@dub/utils";
+import { PartnerGroup, Project } from "@prisma/client";
+import * as z from "zod/v4";
+import { DubApiError } from "../api/errors";
+import { stripeIntegrationSettingsSchema } from "../integrations/stripe/schema";
+import { stripeAppClient } from "../stripe";
+import {
+  dubDiscountToStripeCoupon,
+  stripeCouponToDubDiscount,
+  validateStripeCouponForDubDiscount,
+} from "../stripe/coupon-discount-converter";
+import { DiscountProps } from "../types";
+import { createDiscountSchema } from "../zod/schemas/discount";
+import { DiscountProviderError } from "./discount-error";
+
+const MAX_ATTEMPTS = 3;
+
+async function requireInstalledIntegration(
+  workspace: Pick<Project, "id" | "stripeConnectId">,
+) {
+  if (!workspace.stripeConnectId) {
+    throw new DiscountProviderError(
+      "stripe",
+      "INTEGRATION_NOT_AVAILABLE",
+      "STRIPE_CONNECTION_REQUIRED: Your workspace isn't connected to Stripe yet. Please install the Dub Stripe app in settings to create a discount.",
+    );
+  }
+
+  const installation = await prisma.installedIntegration.findFirst({
+    where: {
+      projectId: workspace.id,
+      integrationId: STRIPE_INTEGRATION_ID,
+    },
+  });
+
+  if (!installation) {
+    throw new DiscountProviderError(
+      "stripe",
+      "INTEGRATION_NOT_AVAILABLE",
+      "STRIPE_CONNECTION_REQUIRED: Your workspace isn't connected to Stripe yet. Please install the Dub Stripe app in settings to create a discount.",
+    );
+  }
+
+  const settings = stripeIntegrationSettingsSchema.parse(
+    installation.settings || {},
+  );
+
+  return {
+    ...installation,
+    settings,
+  };
+}
+
+function isStripePermissionsError(error: {
+  code?: string;
+  message?: string;
+  raw?: { message?: string };
+}): boolean {
+  const errorMessage = error.raw?.message || error.message;
+
+  return (
+    error.code === "more_permissions_required_for_application" ||
+    Boolean(
+      errorMessage?.includes(
+        "This application does not have the required permissions",
+      ),
+    )
+  );
+}
+
+function createStripeDiscountProvider() {
+  const getCoupon = async ({
+    couponId,
+    workspace,
+  }: {
+    couponId: string;
+    workspace: Project;
+  }) => {
+    const { settings } = await requireInstalledIntegration(workspace);
+
+    const stripeApp = stripeAppClient({
+      mode: settings.stripeMode,
+    });
+
+    try {
+      const coupon = await stripeApp.coupons.retrieve(couponId, {
+        stripeAccount: workspace.stripeConnectId!,
+      });
+
+      // Validate the Stripe coupon can be converted to a Dub discount
+      const validation = validateStripeCouponForDubDiscount(coupon);
+      if (!validation.isValid) {
+        throw new Error(
+          `Invalid Stripe coupon: ${validation.errors.join(", ")}`,
+        );
+      }
+
+      return stripeCouponToDubDiscount(coupon);
+    } catch (error) {
+      throw new DubApiError({
+        code: "bad_request",
+        message:
+          error.code === "more_permissions_required_for_application"
+            ? "STRIPE_APP_UPGRADE_REQUIRED: Your connected Stripe account doesn't have the permissions needed to create discount codes. Please upgrade your Stripe integration in settings or reach out to our support team for help."
+            : error.code === "resource_missing"
+              ? `The coupon ID you provided (${couponId}) was not found in your Stripe account. Please check the coupon ID and try again.`
+              : error.message,
+      });
+    }
+  };
+
+  const createCoupon = async ({
+    workspace,
+    group,
+    data,
+  }: {
+    workspace: Project;
+    group: PartnerGroup;
+    data: z.infer<typeof createDiscountSchema>;
+  }) => {
+    const { settings } = await requireInstalledIntegration(workspace);
+
+    const stripeApp = stripeAppClient({
+      mode: settings.stripeMode,
+    });
+
+    const stripeCouponData = dubDiscountToStripeCoupon({
+      name: `Dub Discount (${truncate(group.name, 25)})`,
+      amount: data.amount,
+      type: data.type,
+      maxDuration: data.maxDuration ?? null,
+    });
+
+    try {
+      const coupon = await stripeApp.coupons.create(stripeCouponData, {
+        stripeAccount: workspace.stripeConnectId!,
+      });
+
+      return stripeCouponToDubDiscount(coupon);
+    } catch (error) {
+      throw new DubApiError({
+        code: "bad_request",
+        message:
+          error.code === "more_permissions_required_for_application"
+            ? "STRIPE_APP_UPGRADE_REQUIRED: Your connected Stripe account doesn't have the permissions needed to create discount codes. Please upgrade your Stripe integration in settings or reach out to our support team for help."
+            : error.message,
+      });
+    }
+  };
+
+  const createDiscountCode = async ({
+    workspace,
+    discount,
+    code,
+    shouldRetry = true,
+  }: {
+    workspace: Pick<Project, "id" | "stripeConnectId">;
+    discount: Pick<DiscountProps, "id" | "couponId" | "amount" | "type">;
+    code: string;
+    shouldRetry?: boolean; // we don't retry if the code is provided by the user
+  }) => {
+    const { settings } = await requireInstalledIntegration(workspace);
+
+    const stripeApp = stripeAppClient({
+      mode: settings.stripeMode,
+    });
+
+    if (!discount.couponId) {
+      throw new DiscountProviderError(
+        "stripe",
+        "COUPON_NOT_FOUND",
+        "The coupon ID for this discount was not found. Please check the discount configuration and try again.",
+      );
+    }
+
+    const couponId = discount.couponId;
+
+    let attempt = 0;
+    let currentCode = code;
+
+    while (attempt < MAX_ATTEMPTS) {
+      try {
+        return await stripeApp.promotionCodes.create(
+          {
+            coupon: couponId,
+            code: currentCode.toUpperCase(),
+            restrictions: {
+              first_time_transaction:
+                settings.discountCodeRestrictions.firstTimeTransaction,
+            },
+          },
+          {
+            stripeAccount: workspace.stripeConnectId!,
+          },
+        );
+      } catch (error: any) {
+        const errorMessage = error.raw?.message || error.message;
+        const isDuplicateError = errorMessage?.includes("already exists");
+
+        if (isDuplicateError) {
+          if (!shouldRetry) {
+            throw new DiscountProviderError(
+              "stripe",
+              "DISCOUNT_ALREADY_EXISTS",
+              `The discount code ${currentCode} is already in use. Please choose a different code.`,
+            );
+          }
+
+          attempt++;
+
+          if (attempt >= MAX_ATTEMPTS) {
+            throw new DiscountProviderError(
+              "stripe",
+              "CREATE_FAILED",
+              `Failed to create a unique discount code after ${MAX_ATTEMPTS} attempts. Please try again.`,
+            );
+          }
+
+          const newCode = `${currentCode}${nanoid(2)}`;
+
+          console.warn(
+            `Discount code "${currentCode}" already exists. Retrying with "${newCode}" (attempt ${attempt}/${MAX_ATTEMPTS}).`,
+          );
+
+          currentCode = newCode;
+          continue;
+        }
+
+        if (isStripePermissionsError(error)) {
+          throw new DiscountProviderError(
+            "stripe",
+            "PERMISSIONS_REQUIRED",
+            errorMessage,
+          );
+        }
+
+        if (error.code === "resource_missing") {
+          throw new DiscountProviderError(
+            "stripe",
+            "COUPON_NOT_FOUND",
+            `The coupon ID you provided (${couponId}) was not found in your Stripe account. Please check the coupon ID and try again.`,
+          );
+        }
+
+        throw new DiscountProviderError(
+          "stripe",
+          "CREATE_FAILED",
+          errorMessage || "Failed to create Stripe discount code.",
+        );
+      }
+    }
+
+    throw new DiscountProviderError(
+      "stripe",
+      "CREATE_FAILED",
+      "Failed to create Stripe discount code.",
+    );
+  };
+
+  const disableDiscountCode = async ({
+    workspace,
+    code,
+  }: {
+    workspace: Pick<Project, "id" | "stripeConnectId">;
+    code: string;
+  }) => {
+    const { settings } = await requireInstalledIntegration(workspace);
+
+    const stripeApp = stripeAppClient({
+      mode: settings.stripeMode,
+    });
+
+    try {
+      const promotionCodes = await stripeApp.promotionCodes.list(
+        {
+          code,
+          limit: 1,
+        },
+        {
+          stripeAccount: workspace.stripeConnectId!,
+        },
+      );
+
+      if (promotionCodes.data.length === 0) {
+        console.error(
+          `Stripe promotion code ${code} not found (stripeConnectId=${workspace.stripeConnectId}).`,
+        );
+        return;
+      }
+
+      const promotionCode = promotionCodes.data[0];
+
+      await stripeApp.promotionCodes.update(
+        promotionCode.id,
+        {
+          active: false,
+        },
+        {
+          stripeAccount: workspace.stripeConnectId!,
+        },
+      );
+
+      console.info(
+        `Disabled Stripe promotion code ${promotionCode.code} (id=${promotionCode.id}, stripeConnectId=${workspace.stripeConnectId}).`,
+      );
+
+      return promotionCode;
+    } catch (error: any) {
+      if (isStripePermissionsError(error)) {
+        throw new DiscountProviderError(
+          "stripe",
+          "PERMISSIONS_REQUIRED",
+          error.raw?.message || error.message,
+        );
+      }
+
+      throw error;
+    }
+  };
+
+  const assertDiscountIntegration = async ({
+    workspace,
+  }: {
+    workspace: Pick<Project, "id" | "stripeConnectId" | "shopifyStoreId">;
+  }) => {
+    await requireInstalledIntegration(workspace);
+  };
+
+  return {
+    getCoupon,
+    createCoupon,
+    createDiscountCode,
+    disableDiscountCode,
+    assertDiscountIntegration,
+  };
+}
+
+export const stripeDiscountProvider = createStripeDiscountProvider();

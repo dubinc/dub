@@ -27,7 +27,7 @@ type LinkModalProps = {
 
 const linkFormSchema = z.object({
   name: z.string().min(1, "Display name is required"),
-  url: z.url("Please enter a valid URL"),
+  url: z.httpUrl("Please enter a valid URL"),
 });
 
 type LinkFormData = z.infer<typeof linkFormSchema>;

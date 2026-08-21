@@ -3,8 +3,8 @@
 import { trackActivityLog } from "@/lib/api/activity-log/track-activity-log";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
+import { prisma } from "@/lib/prisma";
 import { archivePartnerSchema } from "@/lib/zod/schemas/partners";
-import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
 import { throwIfNoPermission } from "../throw-if-no-permission";
@@ -52,7 +52,8 @@ export const archivePartnerAction = authActionClient
         resourceType: "partner",
         resourceId: partnerId,
         userId: user.id,
-        action: status === "archived" ? "partner.archived" : "partner.approved",
+        action:
+          status === "archived" ? "partner.archived" : "partner.unarchived",
         changeSet: {
           status: {
             old: programEnrollment.status,

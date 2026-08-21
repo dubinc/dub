@@ -59,7 +59,14 @@ const formatJson = (string: string) => {
 
 type FormData = z.infer<typeof createDomainBodySchemaExtended>;
 
-type DomainStatus = "checking" | "conflict" | "has site" | "available" | "idle";
+type DomainStatus =
+  | "checking"
+  | "conflict"
+  | "has site"
+  | "available"
+  | "idle"
+  | "invalid"
+  | "error";
 
 const STATUS_CONFIG: Record<
   DomainStatus,
@@ -83,6 +90,14 @@ const STATUS_CONFIG: Record<
     icon: AlertCircleFill,
     className: "bg-red-100 text-red-600",
   },
+  invalid: {
+    icon: AlertCircleFill,
+    className: "bg-red-100 text-red-600",
+  },
+  error: {
+    icon: AlertCircleFill,
+    className: "bg-red-100 text-red-600",
+  },
   "has site": {
     suffix:
       "is currently pointing to an existing website. Only proceed if you're sure you want to use this domain for short links on Dub.",
@@ -103,10 +118,16 @@ export function AddEditDomainForm({
   props,
   onSuccess,
   enableDomainConfig = true,
+  initialDomain,
+  fixedDomainSuffix,
+  isOnboardingSubdomainFlow = false,
 }: {
   props?: DomainProps;
   onSuccess?: (data: DomainProps) => void;
   enableDomainConfig?: boolean;
+  fixedDomainSuffix?: string;
+  initialDomain?: string;
+  isOnboardingSubdomainFlow?: boolean;
 }) {
   const { id: workspaceId, plan } = useWorkspace();
   const [lockDomain, setLockDomain] = useState(true);
@@ -114,9 +135,14 @@ export function AddEditDomainForm({
   const [domainStatus, setDomainStatus] = useState<DomainStatus>(
     props ? "available" : "idle",
   );
+  const [domainValidateMessage, setDomainValidateMessage] = useState<
+    string | null
+  >(null);
   const [showOptionStates, setShowOptionStates] = useState<
     Record<string, boolean>
   >({});
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const {
     register,
@@ -124,10 +150,13 @@ export function AddEditDomainForm({
     handleSubmit,
     watch,
     setValue,
-    formState: { isSubmitting, isDirty },
+    formState: { isDirty },
   } = useForm<FormData>({
     defaultValues: {
-      slug: props?.slug,
+      slug:
+        props?.slug ||
+        initialDomain ||
+        (fixedDomainSuffix ? `.${fixedDomainSuffix}` : ""),
       logo: props?.logo,
       expiredUrl: props?.expiredUrl,
       notFoundUrl: props?.notFoundUrl,
@@ -176,18 +205,75 @@ export function AddEditDomainForm({
   }, []);
 
   const domain = watch("slug");
+  const escapedFixedDomainSuffix = fixedDomainSuffix?.replace(
+    /[.*+?^${}()|[\]\\]/g,
+    "\\$&",
+  );
+  const subdomainPrefix = fixedDomainSuffix
+    ? (domain || "").replace(new RegExp(`\\.${escapedFixedDomainSuffix}$`), "")
+    : undefined;
 
   const debouncedValidateDomain = useDebouncedCallback(
     async (value: string) => {
       if (!isValidDomain(value)) return;
+      setDomainValidateMessage(null);
       setDomainStatus("checking");
-      fetch(`/api/domains/${value}/validate`).then(async (res) => {
-        const data = await res.json();
-        setDomainStatus(data.status);
-      });
+
+      const validationFailedMessage =
+        "Could not check domain availability. Please try again.";
+
+      fetch(`/api/domains/${encodeURIComponent(value)}/validate`)
+        .then(async (res) => {
+          if (!res.ok) {
+            setDomainStatus("error");
+            setDomainValidateMessage(validationFailedMessage);
+            return;
+          }
+
+          let data: { status?: unknown; message?: unknown };
+          try {
+            data = await res.json();
+          } catch {
+            setDomainStatus("error");
+            setDomainValidateMessage(validationFailedMessage);
+            return;
+          }
+
+          const status = data.status;
+          if (
+            status === "invalid" ||
+            status === "conflict" ||
+            status === "has site" ||
+            status === "available"
+          ) {
+            setDomainStatus(status);
+            setDomainValidateMessage(
+              typeof data.message === "string" ? data.message : null,
+            );
+          } else {
+            setDomainStatus("error");
+            setDomainValidateMessage(validationFailedMessage);
+          }
+        })
+        .catch(() => {
+          setDomainStatus("error");
+          setDomainValidateMessage(validationFailedMessage);
+        });
     },
     500,
   );
+
+  useEffect(() => {
+    if (domain && isValidDomain(domain)) {
+      if (props && domain === props.slug) {
+        debouncedValidateDomain.cancel();
+        setDomainStatus("available");
+        setDomainValidateMessage(null);
+        return;
+      }
+      debouncedValidateDomain(domain);
+    }
+  }, [domain, debouncedValidateDomain]);
 
   const saveDisabled = useMemo(() => {
     return (
@@ -219,7 +305,9 @@ export function AddEditDomainForm({
   const { handleKeyDown } = useEnterSubmit(formRef);
 
   const onSubmit = async (formData: FormData) => {
+    if (isSubmitting) return;
     try {
+      setIsSubmitting(true);
       const res = await fetch(endpoint.url, {
         method: endpoint.method,
         headers: {
@@ -239,6 +327,7 @@ export function AddEditDomainForm({
           ...(formData.deepviewData !== undefined && {
             deepviewData: sanitizeJson(formData.deepviewData),
           }),
+          isOnboardingSubdomainFlow,
         }),
       });
 
@@ -251,6 +340,7 @@ export function AddEditDomainForm({
         toast.success(endpoint.successMessage);
         onSuccess?.(data);
       } else {
+        setIsSubmitting(false);
         const { error } = await res.json();
         if (res.status === 422) {
           setDomainStatus("conflict");
@@ -267,6 +357,7 @@ export function AddEditDomainForm({
         }
       }
     } catch (error) {
+      setIsSubmitting(false);
       toast.error(`Failed to ${props ? "update" : "add"} domain`);
     }
   };
@@ -330,17 +421,49 @@ export function AddEditDomainForm({
                 )}
               >
                 <div className="flex rounded-md border border-neutral-300 bg-white">
-                  <input
-                    {...register("slug", {
-                      onChange: (e) => {
-                        setDomainStatus("idle");
-                        debouncedValidateDomain(e.target.value);
-                      },
-                    })}
-                    className="block w-full rounded-md border-0 text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-0 sm:text-sm"
-                    placeholder="go.acme.com"
-                    autoFocus={!isMobile}
-                  />
+                  {fixedDomainSuffix ? (
+                    <>
+                      <input
+                        value={subdomainPrefix}
+                        onChange={(e) => {
+                          const prefix = e.target.value
+                            .toLowerCase()
+                            .replace(/[^a-z0-9-]/g, "");
+                          const fullDomain = prefix
+                            ? `${prefix}.${fixedDomainSuffix}`
+                            : `.${fixedDomainSuffix}`;
+                          setValue("slug", fullDomain, {
+                            shouldDirty: true,
+                          });
+                          setDomainStatus("idle");
+                          setDomainValidateMessage(null);
+                          if (prefix) {
+                            debouncedValidateDomain(fullDomain);
+                          }
+                        }}
+                        className="block w-full rounded-l-md border-0 text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-0 sm:text-sm"
+                        placeholder="workspace"
+                        autoFocus={!isMobile}
+                      />
+                      <span className="inline-flex items-center rounded-r-md border-l border-neutral-300 bg-neutral-100 px-3 text-sm text-neutral-600">
+                        .{fixedDomainSuffix}
+                      </span>
+                      <input type="hidden" {...register("slug")} />
+                    </>
+                  ) : (
+                    <input
+                      {...register("slug", {
+                        onChange: (e) => {
+                          setDomainStatus("idle");
+                          setDomainValidateMessage(null);
+                          debouncedValidateDomain(e.target.value);
+                        },
+                      })}
+                      className="block w-full rounded-md border-0 text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-0 sm:text-sm"
+                      placeholder="go.acme.com"
+                      autoFocus={!isMobile}
+                    />
+                  )}
                 </div>
 
                 <AnimatedSizeContainer
@@ -350,19 +473,27 @@ export function AddEditDomainForm({
                   <div className="flex items-center justify-between gap-4 p-2 text-sm">
                     <p>
                       {domainStatus !== "idle" ? (
-                        <>
-                          {currentStatusProps.prefix || "The domain"}{" "}
-                          {currentStatusProps.useStrong ? (
-                            <strong className="font-semibold underline underline-offset-2">
-                              {domain}
-                            </strong>
-                          ) : (
-                            <span className="font-semibold underline underline-offset-2">
-                              {domain}
-                            </span>
-                          )}{" "}
-                          {currentStatusProps.suffix}
-                        </>
+                        domainStatus === "invalid" ||
+                        domainStatus === "error" ? (
+                          domainValidateMessage ??
+                          (domainStatus === "error"
+                            ? "Could not check domain availability. Please try again."
+                            : "This domain is not valid.")
+                        ) : (
+                          <>
+                            {currentStatusProps.prefix || "The domain"}{" "}
+                            {currentStatusProps.useStrong ? (
+                              <strong className="font-semibold underline underline-offset-2">
+                                {domain}
+                              </strong>
+                            ) : (
+                              <span className="font-semibold underline underline-offset-2">
+                                {domain}
+                              </span>
+                            )}{" "}
+                            {currentStatusProps.suffix}
+                          </>
+                        )
                       ) : (
                         currentStatusProps.message
                       )}

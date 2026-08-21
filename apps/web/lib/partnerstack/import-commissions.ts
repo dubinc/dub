@@ -1,6 +1,6 @@
-import { prisma } from "@dub/prisma";
-import { CommissionStatus, Customer, Link, Program } from "@dub/prisma/client";
+import { prisma } from "@/lib/prisma";
 import { nanoid } from "@dub/utils";
+import { CommissionStatus, Customer, Link, Program } from "@prisma/client";
 import { convertCurrencyWithFxRates } from "../analytics/convert-currency";
 import { isFirstConversion } from "../analytics/is-first-conversion";
 import { createId } from "../api/create-id";
@@ -250,8 +250,10 @@ export async function createCommissionFromPS({
 
   const customer = customersData.find(
     ({ email, externalId }) =>
-      email === commission.customer?.email ||
-      externalId === commission.customer?.external_key,
+      (commission.customer?.email != null &&
+        email === commission.customer.email) ||
+      (commission.customer?.external_key != null &&
+        externalId === commission.customer.external_key),
   );
 
   if (!customer) {

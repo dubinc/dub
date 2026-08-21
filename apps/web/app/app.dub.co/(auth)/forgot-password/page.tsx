@@ -3,7 +3,7 @@ import { AuthLayout } from "@/ui/layout/auth-layout";
 import { constructMetadata } from "@dub/utils";
 
 export const metadata = constructMetadata({
-  title: `Forgot Password for ${process.env.NEXT_PUBLIC_APP_NAME}`,
+  title: "Reset your Password",
 });
 
 export default function ForgotPasswordPage() {

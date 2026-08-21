@@ -1,4 +1,4 @@
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { pluralize } from "@dub/utils";
 import Stripe from "stripe";
 

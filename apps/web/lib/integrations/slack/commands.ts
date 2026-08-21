@@ -1,9 +1,10 @@
 import { createLink, processLink } from "@/lib/api/links";
+import { decryptOrPassthrough } from "@/lib/encryption";
+import { prisma } from "@/lib/prisma";
 import { WorkspaceProps } from "@/lib/types";
 import { createLinkBodySchema } from "@/lib/zod/schemas/links";
-import { prisma } from "@dub/prisma";
-import { User } from "@dub/prisma/client";
 import { APP_DOMAIN, SLACK_INTEGRATION_ID } from "@dub/utils";
+import { User } from "@prisma/client";
 import * as z from "zod/v4";
 import { SlackAuthToken } from "../types";
 import { slackSlashCommandSchema } from "./schema";
@@ -77,7 +78,10 @@ export const handleSlashCommand = async (req: Request) => {
   const credentials = installation.credentials as SlackAuthToken;
   const slackUser = await findSlackUser({
     userId: data.user_id,
-    credentials,
+    credentials: {
+      ...credentials,
+      accessToken: decryptOrPassthrough(credentials.accessToken),
+    },
   });
 
   const dubUser = await prisma.user.findUnique({
@@ -116,7 +120,7 @@ export const handleSlashCommand = async (req: Request) => {
   })) as WorkspaceProps;
 
   if (data.command === "/shorten") {
-    return createShortLink({
+    return await createShortLink({
       data,
       workspace,
       user: dubUser,

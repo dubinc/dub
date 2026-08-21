@@ -56,7 +56,7 @@ export async function fundFinancialAccount({
   );
 
   // small delay to make sure the funds are fully available in the financial account
-  await new Promise((resolve) => setTimeout(resolve, 1000));
+  await new Promise((resolve) => setTimeout(resolve, 5000));
 
   return data;
 }

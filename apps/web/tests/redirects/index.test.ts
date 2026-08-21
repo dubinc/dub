@@ -9,6 +9,7 @@ const fetchOptions: RequestInit = {
   redirect: "manual",
   headers: {
     "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)",
+    "x-e2e-redirect-test": "true",
   },
 };
 
@@ -183,11 +184,9 @@ describe.runIf(env.CI)("Link Redirects", async () => {
   test("appsflyer tracking url", async () => {
     const response = await fetch(`${h.baseUrl}/appsflyer`, fetchOptions);
 
-    // location to include clickid, af_siteid, af_ip, af_ua query params
+    // location to include clickid, af_siteid query params
     expect(response.headers.get("location")).toMatch(/pid=dubinc_int/);
     expect(response.headers.get("location")).toMatch(/clickid=[a-zA-Z0-9]+/);
-    expect(response.headers.get("location")).toMatch(/af_ua=.+/);
-    expect(response.headers.get("location")).toMatch(/af_ip=[a-zA-Z0-9.]+/);
     expect(response.headers.get("x-powered-by")).toBe(poweredBy);
     expect(response.status).toBe(302);
   });

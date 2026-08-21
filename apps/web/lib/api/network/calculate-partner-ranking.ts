@@ -1,7 +1,7 @@
+import { prisma } from "@/lib/prisma";
 import { getNetworkPartnersQuerySchema } from "@/lib/zod/schemas/partner-network";
-import { prisma } from "@dub/prisma";
-import { Prisma } from "@dub/prisma/client";
 import { ACME_PROGRAM_ID } from "@dub/utils";
+import { PlatformType, Prisma } from "@prisma/client";
 import * as z from "zod/v4";
 
 type PartnerRankingFilters = z.infer<typeof getNetworkPartnersQuerySchema>;
@@ -18,7 +18,7 @@ export interface PartnerRankingParams extends PartnerRankingFilters {
  * Scoring Breakdown (0-65+ points):
  *
  * 1. Trusted Partner Bonus (200 points): Top priority boost
- *    - Partners with trustedAt IS NOT NULL get 200 bonus points
+ *    - Partners with networkStatus = "trusted" get 200 bonus points
  *    - This ensures trusted partners appear at the very top
  *
  * 2. Similarity Score (0-50 points): Performance in similar programs
@@ -37,19 +37,45 @@ export interface PartnerRankingParams extends PartnerRankingFilters {
  * - clickToConversionRate: Average click-to-conversion rate across ALL programs the partner is enrolled in
  * - lastConversionAt: Most recent conversion date across ALL programs the partner is enrolled in
  */
+function buildOrderByClause({
+  starred,
+  sortBy,
+  platform,
+}: {
+  starred?: boolean | null;
+  sortBy?: "relevance" | "subscribers";
+  platform?: PlatformType;
+}) {
+  if (starred === true) {
+    return Prisma.sql`dp.starredAt DESC`;
+  }
+
+  if (sortBy === "subscribers" && platform) {
+    return Prisma.sql`(
+      SELECT COALESCE(MAX(pp_sort.subscribers), 0)
+      FROM PartnerPlatform pp_sort
+      WHERE pp_sort.partnerId = p.id
+        AND pp_sort.type = ${platform}
+        AND pp_sort.verifiedAt IS NOT NULL
+    ) DESC, p.id ASC`;
+  }
+
+  return Prisma.sql`finalScore DESC, p.id ASC`;
+}
+
 export async function calculatePartnerRanking({
   programId,
   partnerIds,
   country,
   starred,
+  sortBy = "relevance",
   platform,
-  subscribers,
   page = 1,
   pageSize,
   similarPrograms = [],
 }: PartnerRankingParams) {
   const conditions: Prisma.Sql[] = [
-    Prisma.sql`p.discoverableAt IS NOT NULL`,
+    Prisma.sql`p.networkStatus IN ("approved", "trusted")`,
     Prisma.sql`COALESCE(pe.clickToConversionRate, 0) < 1`,
     Prisma.sql`(dp.ignoredAt IS NULL OR dp.id IS NULL)`,
     Prisma.sql`enrolled.id IS NULL`,
@@ -63,38 +89,15 @@ export async function calculatePartnerRanking({
     conditions.push(Prisma.sql`p.country = ${country}`);
   }
 
-  // Filter by platform type and/or subscriber count (must have verified platform)
+  // Filter by platform type (must have verified platform)
   // Combine both filters into a single EXISTS clause so they apply to the same platform
-  if (platform || subscribers) {
+  if (platform) {
     const platformConditions: Prisma.Sql[] = [
       Prisma.sql`pp_filter.partnerId = p.id`,
       Prisma.sql`pp_filter.verifiedAt IS NOT NULL`,
     ];
 
-    if (platform) {
-      platformConditions.push(Prisma.sql`pp_filter.type = ${platform}`);
-    }
-
-    if (subscribers) {
-      switch (subscribers) {
-        case "<5000":
-          platformConditions.push(Prisma.sql`pp_filter.subscribers < 5000`);
-          break;
-        case "5000-25000":
-          platformConditions.push(
-            Prisma.sql`pp_filter.subscribers >= 5000 AND pp_filter.subscribers < 25000`,
-          );
-          break;
-        case "25000-100000":
-          platformConditions.push(
-            Prisma.sql`pp_filter.subscribers >= 25000 AND pp_filter.subscribers < 100000`,
-          );
-          break;
-        case "100000+":
-          platformConditions.push(Prisma.sql`pp_filter.subscribers >= 100000`);
-          break;
-      }
-    }
+    platformConditions.push(Prisma.sql`pp_filter.type = ${platform}`);
 
     conditions.push(
       Prisma.sql`EXISTS (
@@ -120,10 +123,7 @@ export async function calculatePartnerRanking({
     WHERE pp.partnerId = p.id
   )`;
 
-  const orderByClause =
-    starred === true
-      ? Prisma.sql`dp.starredAt ASC`
-      : Prisma.sql`finalScore DESC, p.id ASC`;
+  const orderByClause = buildOrderByClause({ starred, sortBy, platform });
 
   const offset = (page - 1) * pageSize;
 
@@ -131,7 +131,7 @@ export async function calculatePartnerRanking({
   // This dramatically reduces the dataset from 1.5M to 5,000 before expensive joins
   const buildDiscoverablePartnersFilter = (alias: string) => {
     const conditions: Prisma.Sql[] = [
-      Prisma.sql`${Prisma.raw(alias)}.discoverableAt IS NOT NULL`,
+      Prisma.sql`${Prisma.raw(alias)}.networkStatus IN ("approved", "trusted")`,
     ];
 
     if (partnerIds && partnerIds.length > 0) {
@@ -239,13 +239,13 @@ export async function calculatePartnerRanking({
       ${hasProfileCheck} as hasProfile,
 
       -- FINAL SCORE (0-765+ points): Similarity-based ranking for discovery
-      -- Trusted partners (trustedAt IS NOT NULL) get 200 bonus points to rank at the top
+      -- Trusted partners (networkStatus = "trusted") get 200 bonus points to rank at the top
       -- Partners with profiles get 500 bonus points to ensure they rank above those without profiles
       (
         -- Profile bonus: 500 points for partners with platforms (ensures they rank above those without)
         CASE WHEN ${hasProfileCheck} THEN 500 ELSE 0 END +
-        -- Trusted partner bonus: 200 points for partners with trustedAt set
-        CASE WHEN p.trustedAt IS NOT NULL THEN 200 ELSE 0 END +
+        -- Trusted partner bonus: 200 points for partners with networkStatus = "trusted"
+        CASE WHEN p.networkStatus = "trusted" THEN 200 ELSE 0 END +
         COALESCE(similarProgramMetrics.similarityScore, 0) +
         COALESCE(similarProgramMetrics.programMatchScore, 0)
       ) as finalScore

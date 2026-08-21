@@ -1,14 +1,15 @@
 import { DubApiError } from "@/lib/api/errors";
 import { calculatePartnerRanking } from "@/lib/api/network/calculate-partner-ranking";
+import { partnerNetworkListingWhere } from "@/lib/api/network/partner-network-listing-where";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { withWorkspace } from "@/lib/auth";
 import { PROGRAM_SIMILARITY_SCORE_THRESHOLD } from "@/lib/constants/program";
+import { prisma } from "@/lib/prisma";
 import {
   NetworkPartnerSchema,
   getNetworkPartnersQuerySchema,
 } from "@/lib/zod/schemas/partner-network";
-import { prisma } from "@dub/prisma";
-import { PreferredEarningStructure, SalesChannel } from "@dub/prisma/client";
+import { PreferredEarningStructure, SalesChannel } from "@prisma/client";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 
@@ -50,16 +51,27 @@ export const GET = withWorkspace(
       pageSize,
       country,
       starred,
+      sortBy,
       platform,
-      subscribers,
     } = getNetworkPartnersQuerySchema.parse(searchParams);
 
     if (status !== "discover") {
+      const partnerWhere = partnerNetworkListingWhere({
+        partnerIds,
+        country,
+        platform,
+      });
+
       const partners = await prisma.discoveredPartner.findMany({
         where: {
           programId,
+          partner: partnerWhere,
           ...(status === "ignored" && { ignoredAt: { not: null } }),
-          ...(status === "invited" && { invitedAt: { not: null } }),
+          ...(status === "invited" && {
+            invitedAt: { not: null },
+            ignoredAt: null,
+            programEnrollment: { status: "invited" },
+          }),
           ...(status === "recruited" && {
             invitedAt: { not: null },
             programEnrollment: { status: "approved" },
@@ -81,7 +93,7 @@ export const GET = withWorkspace(
           programEnrollment: true,
         },
         take: pageSize,
-        skip: (page ?? 1 - 1) * pageSize,
+        skip: ((page ?? 1) - 1) * pageSize,
       });
 
       return NextResponse.json(
@@ -113,8 +125,8 @@ export const GET = withWorkspace(
       page,
       pageSize,
       starred: starred ?? undefined,
+      sortBy,
       platform: platform ?? undefined,
-      subscribers: subscribers ?? undefined,
       similarPrograms,
     });
     console.timeEnd("calculatePartnerRanking");

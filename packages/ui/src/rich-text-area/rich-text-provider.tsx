@@ -12,11 +12,13 @@ import {
   createContext,
   forwardRef,
   useContext,
+  useEffect,
   useImperativeHandle,
   useMemo,
   useState,
 } from "react";
-import { suggestions } from "./variables";
+import { configureCampaignEditorImage } from "./campaign-editor-image";
+import { RichTextVariableInfo, suggestions } from "./variables";
 
 export const PROSE_STYLES = {
   default: "prose-p:my-2 prose-ul:my-2 prose-ol:my-2",
@@ -35,15 +37,24 @@ const FEATURES = [
   "strike",
 ] as const;
 
+export const DEFAULT_RICH_TEXT_FEATURES = FEATURES;
+
+const OPTIONAL_FEATURES = ["imageControls"] as const;
+
+export type RichTextFeature =
+  | (typeof FEATURES)[number]
+  | (typeof OPTIONAL_FEATURES)[number];
+
 type RichTextProviderProps = PropsWithChildren<{
   placeholder?: string;
   initialValue?: any;
-  features?: (typeof FEATURES)[number][];
+  features?: RichTextFeature[];
   markdown?: boolean;
   style?: keyof typeof PROSE_STYLES;
   onChange?: (editor: Editor) => void;
   uploadImage?: (file: File) => Promise<string | null>;
   variables?: string[];
+  variableInfo?: Record<string, RichTextVariableInfo>;
   editable?: boolean;
   autoFocus?: boolean;
 
@@ -84,6 +95,7 @@ export const RichTextProvider = forwardRef<
       editable,
       autoFocus,
       variables,
+      variableInfo,
       initialValue,
       onChange,
       editorProps,
@@ -156,12 +168,24 @@ export const RichTextProvider = forwardRef<
         // Images
         ...(features.includes("images") && handleImageUpload
           ? [
-              Image.configure({
-                inline: false,
-                HTMLAttributes: {
-                  class: "rounded-lg max-w-full h-auto",
-                },
-              }),
+              ...(features.includes("imageControls")
+                ? [
+                    configureCampaignEditorImage({
+                      inline: false,
+                      imageAltControls: true,
+                      HTMLAttributes: {
+                        class: "rounded-lg max-w-full h-auto",
+                      },
+                    }),
+                  ]
+                : [
+                    Image.configure({
+                      inline: false,
+                      HTMLAttributes: {
+                        class: "rounded-lg max-w-full h-auto",
+                      },
+                    }),
+                  ]),
               FileHandler.configure({
                 allowedMimeTypes: [
                   "image/png",
@@ -228,7 +252,7 @@ export const RichTextProvider = forwardRef<
                     : `{{${node.attrs.id}}}`;
                 },
               }).configure({
-                suggestion: suggestions(variables),
+                suggestion: suggestions(variables, variableInfo),
               }),
             ]
           : []),
@@ -241,6 +265,7 @@ export const RichTextProvider = forwardRef<
             "prose prose-sm prose-neutral",
             PROSE_STYLES[style],
             "[&_.ProseMirror-selectednode]:outline [&_.ProseMirror-selectednode]:outline-2 [&_.ProseMirror-selectednode]:outline-blue-500 [&_.ProseMirror-selectednode]:outline-offset-2",
+            "[&_.ProseMirror-selectednode:has(img)]:outline-none",
             editorClassName,
           ),
         },
@@ -251,6 +276,10 @@ export const RichTextProvider = forwardRef<
       onUpdate: ({ editor }) => onChange?.(editor),
       immediatelyRender: false,
     });
+
+    useEffect(() => {
+      editor?.setEditable(editable ?? true);
+    }, [editor, editable]);
 
     useImperativeHandle(ref, () => ({
       setContent: (content: any) => {

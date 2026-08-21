@@ -49,32 +49,64 @@ export const POST = withWorkspace(
     // Convert file to text
     const csvText = await file.text();
 
-    // Parse CSV and add rows to Redis
+    let chain: Promise<unknown> = Promise.resolve();
+    let killed = false;
+
     await new Promise<void>((resolve, reject) => {
+      const fail = (error: unknown) => {
+        if (killed) return;
+        killed = true;
+        void (async () => {
+          try {
+            await redis.del(
+              `${redisKey}:rows`,
+              `${redisKey}:created`,
+              `${redisKey}:processed`,
+              `${redisKey}:failed`,
+              `${redisKey}:domains`,
+            );
+          } catch {
+            // best-effort: avoid leaving a partial import queue on failure
+          }
+          reject(error);
+        })();
+      };
+
       Papa.parse(csvText, {
         header: true,
         skipEmptyLines: true,
-        step: async (results) => {
+        step: (results, parser) => {
+          if (killed) return;
           rows.push(results.data as Record<string, string>);
 
-          if (rows.length >= BATCH_SIZE) {
-            try {
-              await redis.lpush(`${redisKey}:rows`, ...rows);
-              rows = [];
-            } catch (error) {
-              reject(error);
-            }
-          }
+          if (rows.length < BATCH_SIZE) return;
+
+          const batch = rows;
+          rows = [];
+          parser.pause();
+          chain = chain
+            .then(() => redis.lpush(`${redisKey}:rows`, ...batch))
+            .then(() => {
+              if (!killed) parser.resume();
+            })
+            .catch(fail);
         },
-        complete: () => resolve(),
-        error: reject,
+        complete: () => {
+          void chain
+            .then(() => {
+              if (killed) return;
+              if (rows.length > 0) {
+                return redis.lpush(`${redisKey}:rows`, ...rows);
+              }
+            })
+            .then(() => {
+              if (!killed) resolve();
+            })
+            .catch(fail);
+        },
+        error: fail,
       });
     });
-
-    // Add any remaining rows to Redis
-    if (rows.length > 0) {
-      await redis.lpush(`${redisKey}:rows`, ...rows);
-    }
 
     // Initialize Redis counters
     await Promise.all([

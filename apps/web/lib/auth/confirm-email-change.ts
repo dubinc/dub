@@ -1,79 +1,109 @@
-import { sendEmail } from "@dub/email";
-import ConfirmEmailChange from "@dub/email/templates/confirm-email-change";
-import { prisma } from "@dub/prisma";
-import { waitUntil } from "@vercel/functions";
-import { randomBytes } from "crypto";
-import { hashToken } from ".";
-import { DubApiError } from "../api/errors";
-import { ratelimit, redis } from "../upstash";
+import { prisma } from "@/lib/prisma";
+import { redis } from "@/lib/upstash";
+import { VerificationToken } from "@prisma/client";
+import { hashToken } from "./hash-token";
+import { hasPermission } from "./partner-users/partner-user-permissions";
 
-// Send the OTP to confirm the email address change for existing users/partners
-export const confirmEmailChange = async ({
-  email,
-  newEmail,
-  identifier,
-  isPartnerProfile = false,
-  hostName,
-}: {
+export type EmailChangeAuthErrorReason = "invalid_token" | "unauthorized";
+
+const EMAIL_CHANGE_AUTH_ERROR_MESSAGES: Record<
+  EmailChangeAuthErrorReason,
+  string
+> = {
+  invalid_token: "This token is invalid. Please request a new one.",
+  unauthorized:
+    "You don't have access to update the partner profile associated with this email change request.",
+};
+
+export class EmailChangeAuthError extends Error {
+  readonly reason: EmailChangeAuthErrorReason;
+
+  constructor(reason: EmailChangeAuthErrorReason) {
+    super(EMAIL_CHANGE_AUTH_ERROR_MESSAGES[reason]);
+    this.name = "EmailChangeAuthError";
+    this.reason = reason;
+  }
+}
+
+export type EmailChangeRequestData = {
   email: string;
   newEmail: string;
-  identifier: string;
-  isPartnerProfile?: boolean; // If true, the email is being changed for a partner profile
-  hostName: string;
-}) => {
-  const { success } = await ratelimit(3, "1 d").limit(
-    `email-change-request:${identifier}`,
-  );
+  isPartnerProfile?: boolean;
+  syncIdentity?: boolean;
+  partnerId?: string;
+  redirectTo?: "/profile" | "/account/settings";
+};
 
-  if (!success) {
-    throw new DubApiError({
-      code: "rate_limit_exceeded",
-      message:
-        "You've requested too many email change requests. Please try again later.",
+export async function deleteEmailChangeRequest(token: string) {
+  const hashedToken = await hashToken(token, { secret: true });
+
+  try {
+    await Promise.allSettled([
+      prisma.verificationToken.delete({
+        where: {
+          token: hashedToken,
+        },
+      }),
+
+      redis.del(`email-change-request:token:${hashedToken}`),
+    ]);
+  } catch {}
+}
+
+export async function assertCanConfirmEmailChange({
+  userId,
+  tokenFound,
+  data,
+}: {
+  userId: string;
+  tokenFound: Pick<VerificationToken, "identifier">;
+  data: EmailChangeRequestData;
+}) {
+  if (tokenFound.identifier.startsWith("pn_")) {
+    const partnerUser = await prisma.partnerUser.findUnique({
+      where: {
+        userId_partnerId: {
+          userId,
+          partnerId: tokenFound.identifier,
+        },
+      },
+      select: {
+        role: true,
+      },
     });
+
+    if (
+      !partnerUser ||
+      !hasPermission(partnerUser.role, "partner_profile.update")
+    ) {
+      throw new EmailChangeAuthError("invalid_token");
+    }
+  } else if (tokenFound.identifier !== userId) {
+    throw new EmailChangeAuthError("invalid_token");
   }
 
-  // Remove existing verification tokens
-  await prisma.verificationToken.deleteMany({
-    where: {
-      identifier,
-    },
-  });
+  if (data.syncIdentity) {
+    if (!data.partnerId) {
+      throw new EmailChangeAuthError("invalid_token");
+    }
 
-  const token = randomBytes(32).toString("hex");
-  const expiresIn = 15 * 60 * 1000;
+    const partnerUser = await prisma.partnerUser.findUnique({
+      where: {
+        userId_partnerId: {
+          userId,
+          partnerId: data.partnerId,
+        },
+      },
+      select: {
+        role: true,
+      },
+    });
 
-  // Create a new verification token
-  await prisma.verificationToken.create({
-    data: {
-      identifier,
-      token: await hashToken(token, { secret: true }),
-      expires: new Date(Date.now() + expiresIn),
-    },
-  });
-
-  // Set the email change request in Redis, we'll use this to verify the email change in /auth/confirm-email-change/[token]
-  await redis.set(
-    `email-change-request:user:${identifier}`,
-    {
-      email,
-      newEmail,
-      ...(isPartnerProfile && { isPartnerProfile }),
-    },
-    {
-      px: expiresIn,
-    },
-  );
-
-  waitUntil(
-    sendEmail({
-      subject: "Confirm your email address change",
-      to: newEmail,
-      react: ConfirmEmailChange({
-        email,
-        newEmail,
-        confirmUrl: `${hostName}/auth/confirm-email-change/${token}`,
-      }),
-    }),
-  );
-};
+    if (
+      !partnerUser ||
+      !hasPermission(partnerUser.role, "partner_profile.update")
+    ) {
+      throw new EmailChangeAuthError("unauthorized");
+    }
+  }
+}

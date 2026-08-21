@@ -1,9 +1,9 @@
 import { propagateBulkLinkChanges } from "@/lib/api/links/propagate-bulk-link-changes";
-import { updateLinksUsage } from "@/lib/api/links/update-links-usage";
 import { withWorkspace } from "@/lib/auth";
 import { exceededLimitError } from "@/lib/exceeded-limit-error";
+import { prisma } from "@/lib/prisma";
 import { SimpleLinkProps } from "@/lib/types";
-import { prisma } from "@dub/prisma";
+import { publishWorkspaceLinksUsageEvent } from "@/lib/upstash/redis-streams/workspace-links-usage";
 import { NextResponse } from "next/server";
 
 // POST /api/links/sync – sync user's publicly created links to their accounts
@@ -41,6 +41,7 @@ export const POST = withWorkspace(
       return new Response(
         exceededLimitError({
           plan: workspace.plan,
+          planPeriod: workspace.planPeriod,
           limit: workspace.linksLimit,
           type: "links",
         }),
@@ -76,9 +77,10 @@ export const POST = withWorkspace(
           tags: [],
         })),
       }),
-      updateLinksUsage({
+      publishWorkspaceLinksUsageEvent({
         workspaceId: workspace.id,
-        increment: unclaimedLinks.length,
+        linksCount: unclaimedLinks.length,
+        timestamp: new Date().toISOString(),
       }),
     ]);
 

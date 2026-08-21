@@ -1,9 +1,51 @@
-import { Tag, useCopyToClipboard } from "@dub/ui";
+import { Tag, Tooltip, useCopyToClipboard } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { toast } from "sonner";
 
-export function DiscountCodeBadge({ code }: { code: string }) {
+export function DiscountCodeBadge({
+  code,
+  disabledAt,
+  disabledTooltip = "This discount code was disabled because the partner was banned or deactivated. To re-enable it, delete this code and create a new one.",
+}: {
+  code: string;
+  disabledAt?: Date | string | null;
+  disabledTooltip?: string;
+}) {
   const [copied, copyToClipboard] = useCopyToClipboard();
+  const isDisabled = !!disabledAt;
+
+  const content = (
+    <>
+      <Tag
+        className={cn(
+          "size-3",
+          isDisabled ? "text-neutral-500" : "text-green-700",
+        )}
+        strokeWidth={1.5}
+      />
+      <div
+        className={cn(
+          "text-xs font-medium",
+          isDisabled
+            ? "text-neutral-500 line-through"
+            : "text-green-700 decoration-dotted underline-offset-2 transition-colors group-hover/discountcode:underline",
+        )}
+      >
+        {code}
+      </div>
+    </>
+  );
+
+  if (isDisabled) {
+    return (
+      <Tooltip content={disabledTooltip}>
+        <div className="flex w-fit cursor-help items-center gap-1 rounded-lg bg-neutral-100 px-2 py-1">
+          {content}
+        </div>
+      </Tooltip>
+    );
+  }
+
   return (
     <button
       type="button"
@@ -20,10 +62,7 @@ export function DiscountCodeBadge({ code }: { code: string }) {
         })
       }
     >
-      <Tag className="size-3 text-green-700" strokeWidth={1.5} />
-      <div className="text-xs font-medium text-green-700 decoration-dotted underline-offset-2 transition-colors group-hover/discountcode:underline">
-        {code}
-      </div>
+      {content}
     </button>
   );
 }

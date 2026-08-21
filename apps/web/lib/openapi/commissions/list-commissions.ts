@@ -23,7 +23,8 @@ export const listCommissions: ZodOpenApiOperationObject = {
     },
   },
   summary: "List all commissions",
-  description: "Retrieve a list of commissions for your partner program.",
+  description:
+    "Retrieve a paginated list of commissions for your partner program.",
   requestParams: {
     query: getCommissionsQuerySchema,
   },

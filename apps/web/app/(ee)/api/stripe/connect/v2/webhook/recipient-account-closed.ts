@@ -1,6 +1,6 @@
 import { recomputePartnerPayoutState } from "@/lib/payouts/recompute-partner-payout-state";
 
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import type Stripe from "stripe";
 
 export async function recipientAccountClosed(event: Stripe.ThinEvent) {
@@ -24,6 +24,7 @@ export async function recipientAccountClosed(event: Stripe.ThinEvent) {
       paypalEmail: true,
       payoutsEnabledAt: true,
       defaultPayoutMethod: true,
+      tremendousEmail: true,
     },
   });
 

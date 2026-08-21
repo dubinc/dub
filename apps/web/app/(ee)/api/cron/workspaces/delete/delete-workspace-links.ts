@@ -1,5 +1,5 @@
 import { bulkDeleteLinks } from "@/lib/api/links/bulk-delete-links";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import {
   DeleteWorkspacePayload,
   enqueueNextWorkspaceDeleteStep,
@@ -8,7 +8,7 @@ import {
 const MAX_LINKS_PER_BATCH = 100;
 
 export async function deleteWorkspaceLinks(payload: DeleteWorkspacePayload) {
-  const { workspaceId, startingAfter } = payload;
+  const { workspaceId } = payload;
 
   const links = await prisma.link.findMany({
     where: {
@@ -17,28 +17,10 @@ export async function deleteWorkspaceLinks(payload: DeleteWorkspacePayload) {
     orderBy: {
       id: "asc",
     },
-    ...(startingAfter && {
-      skip: 1,
-      cursor: {
-        id: startingAfter,
-      },
-    }),
     take: MAX_LINKS_PER_BATCH,
   });
 
   if (links.length > 0) {
-    const deletedLinks = await prisma.link.deleteMany({
-      where: {
-        id: {
-          in: links.map(({ id }) => id),
-        },
-      },
-    });
-
-    console.log(
-      `Deleted ${deletedLinks.count} links for workspace ${workspaceId}.`,
-    );
-
     await bulkDeleteLinks(links);
   }
 

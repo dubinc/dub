@@ -1,8 +1,9 @@
 import { SVGProps } from "react";
 
-export function CircleWarning(
-  props: SVGProps<SVGSVGElement> & { invert?: boolean },
-) {
+export function CircleWarning({
+  variant = "outline",
+  ...props
+}: SVGProps<SVGSVGElement> & { variant?: "outline" | "fill" }) {
   return (
     <svg
       height="18"
@@ -12,7 +13,7 @@ export function CircleWarning(
       {...props}
     >
       <g fill="currentColor">
-        {props.invert ? (
+        {variant === "fill" ? (
           <path
             d="M9,1.5C4.86,1.5,1.5,4.86,1.5,9s3.36,7.5,7.5,7.5,7.5-3.36,7.5-7.5S13.14,1.5,9,1.5Zm0,11.917c-.552,0-1-.449-1-1s.448-1,1-1,1,.449,1,1-.448,1-1,1Zm.75-4.348c0,.414-.336,.75-.75,.75s-.75-.336-.75-.75V5.431c0-.414,.336-.75,.75-.75s.75,.336,.75,.75v3.638Z"
             fill="currentColor"

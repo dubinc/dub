@@ -14,9 +14,9 @@ import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
 import { PAYOUT_STATUS_DESCRIPTIONS } from "@/ui/partners/payout-status-descriptions";
 import { AlertCircleFill } from "@/ui/shared/icons";
-import { PartnerPayoutMethod, PayoutStatus } from "@dub/prisma/client";
 import { Button, Tooltip } from "@dub/ui";
 import { cn, currencyFormatter } from "@dub/utils";
+import { PartnerPayoutMethod, PayoutStatus } from "@prisma/client";
 import { HelpCircle } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
 import { toast } from "sonner";
@@ -86,7 +86,7 @@ function PayoutStatsCard({
                 {error ? (
                   "-"
                 ) : (
-                  <>{amount > 0 ? currencyFormatter(amount) : "$0.00"}</>
+                  <>{amount !== 0 ? currencyFormatter(amount) : "$0.00"}</>
                 )}
               </span>
               {label === "Processed" && amount > 0 && (

@@ -6,7 +6,7 @@ import {
   partnerPayoutMethodSchema,
   PartnerProfileCustomerSchema,
   PartnerProfileLinkSchema,
-  partnerReferralsCountByStatusSchema,
+  partnerSubmittedLeadsCountByStatusSchema,
   partnerUserSchema,
 } from "@/lib/zod/schemas/partner-profile";
 import { DirectorySyncProviders } from "@boxyhq/saml-jackson";
@@ -20,36 +20,49 @@ import {
   Link,
   PartnerGroup,
   PartnerPayoutMethod,
-  PartnerReferral,
   PartnerRole,
   PayoutStatus,
   Prisma,
   ProgramEnrollmentStatus,
   Project,
+  SubmittedLead,
   User,
   UtmTemplate,
   Webhook,
-  WorkflowTrigger,
   WorkspaceRole,
-} from "@dub/prisma/client";
+} from "@prisma/client";
 import * as z from "zod/v4";
 import { RESOURCE_COLORS } from "../ui/colors";
 import {
-  apiLogCountRowSchema,
+  apiLogCountGroupBySchema,
+  apiLogCountRowSchemas,
   apiLogEnrichedSchema,
   apiLogSchemaTB,
+  apiLogTimeseriesGranularitySchema,
+  apiLogTimeseriesRowSchema,
   requestTypeSchema,
 } from "./api-logs/schemas";
 import { PAID_TRAFFIC_PLATFORMS } from "./api/fraud/constants";
+import {
+  APPLICATION_EVENT_STAGES,
+  applicationEventAnalyticsQuerySchema,
+  applicationEventAnalyticsSchema,
+  applicationEventSchema,
+  applicationEventsQuerySchema,
+} from "./application-events/schema";
 import { BOUNTY_SUBMISSION_REQUIREMENTS } from "./bounty/constants";
 import { BOUNTY_SOCIAL_PLATFORMS } from "./bounty/social-content";
+import {
+  commissionAnalyticsQuerySchema,
+  commissionAnalyticsSchema,
+} from "./commissions/schema";
 import {
   FOLDER_PERMISSIONS,
   FOLDER_WORKSPACE_ACCESS,
 } from "./folder/constants";
+import { MessageAttachmentSchema, MessageSchema } from "./messages/schemas";
 import { POSTBACK_TRIGGERS } from "./postback/constants";
 import { postbackEventInputSchemaTB, postbackSchema } from "./postback/schemas";
-import { WEBHOOK_TRIGGER_DESCRIPTIONS } from "./webhook/constants";
 import {
   activityLogActionSchema,
   activityLogResourceTypeSchema,
@@ -57,9 +70,9 @@ import {
   fieldDiffSchema,
   getActivityLogsQuerySchema,
 } from "./zod/schemas/activity-log";
+import { adminNetworkPartnerSchema } from "./zod/schemas/admin";
 import {
   BountyListSchema,
-  bountyPerformanceConditionSchema,
   BountySchema,
   bountySocialContentIncrementalBonusSchema,
   BountySubmissionExtendedSchema,
@@ -72,7 +85,6 @@ import {
   CampaignListSchema,
   CampaignSchema,
   campaignSummarySchema,
-  campaignTriggerConditionSchema,
   EMAIL_TEMPLATE_VARIABLES,
   updateCampaignSchema,
 } from "./zod/schemas/campaigns";
@@ -83,6 +95,8 @@ import {
 import {
   CommissionDetailSchema,
   CommissionEnrichedSchema,
+  CommissionSchema,
+  createPartnerCommissionSchema,
 } from "./zod/schemas/commissions";
 import { customerActivityResponseSchema } from "./zod/schemas/customer-activity";
 import {
@@ -107,7 +121,10 @@ import {
   GroupWithFormDataSchema,
   PartnerGroupDefaultLinkSchema,
 } from "./zod/schemas/groups";
-import { integrationSchema } from "./zod/schemas/integration";
+import {
+  installedIntegrationSchema,
+  integrationSchema,
+} from "./zod/schemas/integration";
 import { InvoiceSchema } from "./zod/schemas/invoices";
 import {
   leadEventResponseSchema,
@@ -118,12 +135,12 @@ import {
   ABTestVariantsSchema,
   createLinkBodySchema,
 } from "./zod/schemas/links";
-import { MessageSchema } from "./zod/schemas/messages";
 import { createOAuthAppSchema, oAuthAppSchema } from "./zod/schemas/oauth";
 import {
   NetworkPartnerSchema,
   PartnerConversionScoreSchema,
 } from "./zod/schemas/partner-network";
+import { PartnerTagSchema } from "./zod/schemas/partner-tags";
 import {
   createPartnerSchema,
   EnrolledPartnerSchema,
@@ -131,12 +148,16 @@ import {
   partnerPlatformSchema,
   PartnerRewindSchema,
   PartnerSchema,
+  partnerSharedPlatformSchema,
   WebhookPartnerSchema,
 } from "./zod/schemas/partners";
 import {
   PartnerPayoutResponseSchema,
   PayoutResponseSchema,
+  payoutsCountQuerySchema,
+  payoutsQuerySchema,
 } from "./zod/schemas/payouts";
+import { PartnerApplicationSchema } from "./zod/schemas/program-application";
 import {
   programApplicationFormDataWithValuesSchema,
   programApplicationFormFieldWithValuesSchema,
@@ -156,11 +177,6 @@ import {
   ProgramEnrollmentSchema,
   ProgramSchema,
 } from "./zod/schemas/programs";
-import { referralFormDataSchema } from "./zod/schemas/referral-form";
-import {
-  referralSchema,
-  updateReferralStatusSchema,
-} from "./zod/schemas/referrals";
 import {
   CUSTOMER_SOURCES,
   rewardConditionsArraySchema,
@@ -174,6 +190,11 @@ import {
   trackSaleResponseSchema,
 } from "./zod/schemas/sales";
 import { fraudEventContext } from "./zod/schemas/schemas";
+import { submittedLeadFormDataSchema } from "./zod/schemas/submitted-lead-form";
+import {
+  submittedLeadSchema,
+  updateSubmittedLeadStatusSchema,
+} from "./zod/schemas/submitted-leads";
 import { tokenSchema } from "./zod/schemas/token";
 import { usageResponse } from "./zod/schemas/usage";
 import {
@@ -181,12 +202,6 @@ import {
   webhookEventSchemaTB,
   WebhookSchema,
 } from "./zod/schemas/webhooks";
-import {
-  WORKFLOW_ATTRIBUTES,
-  WORKFLOW_COMPARISON_OPERATORS,
-  workflowActionSchema,
-  workflowConditionSchema,
-} from "./zod/schemas/workflows";
 import { workspacePreferencesSchema } from "./zod/schemas/workspace-preferences";
 import { workspaceUserSchema } from "./zod/schemas/workspaces";
 
@@ -260,7 +275,9 @@ export type UtmTemplateWithUserProps = UtmTemplateProps & {
 
 export type PlanProps = (typeof plans)[number];
 
-export type BetaFeatures = "noDubLink" | "analyticsSettingsSiteVisitTracking";
+export type BetaFeatures =
+  | "analyticsSettingsSiteVisitTracking"
+  | "noProrationUpgrade";
 
 export type PartnerBetaFeatures = "postbacks";
 
@@ -414,22 +431,9 @@ export type NewOrExistingIntegration = Omit<
   id?: string;
 };
 
-export type InstalledIntegrationProps = Pick<
-  IntegrationProps,
-  | "id"
-  | "projectId"
-  | "slug"
-  | "logo"
-  | "name"
-  | "developer"
-  | "description"
-  | "verified"
-  | "comingSoon"
-  | "guideUrl"
-> & {
-  installations: number;
-  installed?: boolean;
-};
+export type InstalledIntegrationProps = z.infer<
+  typeof installedIntegrationSchema
+>;
 
 export type InstalledIntegrationInfoProps = Pick<
   IntegrationProps,
@@ -461,8 +465,6 @@ export type InstalledIntegrationInfoProps = Pick<
   settings?: Prisma.JsonValue;
   webhookId?: string; // Only if the webhook is managed by an integration
 };
-
-export type WebhookTrigger = keyof typeof WEBHOOK_TRIGGER_DESCRIPTIONS;
 
 export type WebhookProps = z.infer<typeof WebhookSchema>;
 
@@ -506,11 +508,16 @@ export type CustomerProps = z.infer<typeof CustomerSchema>;
 
 export type PartnerPlatformProps = z.infer<typeof partnerPlatformSchema>;
 
+export type PartnerSharedPlatformProps = z.infer<
+  typeof partnerSharedPlatformSchema
+>;
+
 export type PartnerProps = z.infer<typeof PartnerSchema> & {
   role: PartnerRole;
   userId: string;
   platforms: PartnerPlatformProps[];
   defaultPayoutMethod: PartnerPayoutMethod | null;
+  tremendousEmail: string | null;
 };
 
 export type PartnerRewindProps = z.infer<typeof PartnerRewindSchema>;
@@ -522,19 +529,24 @@ export type PartnerProfileCustomerProps = z.infer<
 
 export type PartnerProfileLinkProps = z.infer<typeof PartnerProfileLinkSchema>;
 
+export type PartnerTagProps = z.infer<typeof PartnerTagSchema>;
 export type PartnerPayoutMethodSetting = z.infer<
   typeof partnerPayoutMethodSchema
 >;
 
-export type PartnerProfileReferralsCountByStatus = z.infer<
-  typeof partnerReferralsCountByStatusSchema
+export type PartnerProfileSubmittedLeadsCountByStatus = z.infer<
+  typeof partnerSubmittedLeadsCountByStatusSchema
 >;
 
 export type EnrolledPartnerProps = z.infer<typeof EnrolledPartnerSchema> & {
   platforms: PartnerPlatformProps[];
 };
 
+export type PartnerApplicationProps = z.infer<typeof PartnerApplicationSchema>;
+
 export type NetworkPartnerProps = z.infer<typeof NetworkPartnerSchema>;
+
+export type AdminNetworkPartner = z.infer<typeof adminNetworkPartnerSchema>;
 
 export type PartnerConversionScore = z.infer<
   typeof PartnerConversionScoreSchema
@@ -702,37 +714,17 @@ export type BountySubmissionRequirement =
 export type SocialMetricsChannel =
   (typeof BOUNTY_SOCIAL_PLATFORMS)[number]["value"];
 
-export type WorkflowCondition = z.infer<typeof workflowConditionSchema>;
-
-export type BountyPerformanceCondition = z.infer<
-  typeof bountyPerformanceConditionSchema
->;
-
 export type BountySocialMetricsIncrementalBonus = z.infer<
   typeof bountySocialContentIncrementalBonusSchema
 >;
-
-export type CampaignTriggerCondition = z.infer<
-  typeof campaignTriggerConditionSchema
->;
-
-export type WorkflowConditionAttribute = (typeof WORKFLOW_ATTRIBUTES)[number];
-
-export type WorkflowComparisonOperator =
-  (typeof WORKFLOW_COMPARISON_OPERATORS)[number];
-
-export type WorkflowAction = z.infer<typeof workflowActionSchema>;
-
-export type OperatorFn = (
-  aV: number,
-  cV: number | { min: number; max?: number },
-) => boolean;
 
 export type BountySubmissionsQueryFilters = z.infer<
   typeof getBountySubmissionsQuerySchema
 >;
 
 export type Message = z.infer<typeof MessageSchema>;
+
+export type MessageAttachment = z.infer<typeof MessageAttachmentSchema>;
 
 export type CampaignList = z.infer<typeof CampaignListSchema>;
 
@@ -756,14 +748,6 @@ export interface TiptapNode {
   content?: TiptapNode[];
   marks?: Array<{ type: string; attrs?: Record<string, any> }>;
 }
-
-export interface CampaignWorkflowAttributeConfig {
-  label: string;
-  inputType: "number" | "currency" | "dropdown" | "none";
-  dropdownValues?: number[];
-}
-
-export type WorkflowAttribute = (typeof WORKFLOW_ATTRIBUTES)[number];
 
 export type EmailDomainProps = z.infer<typeof EmailDomainSchema>;
 
@@ -822,41 +806,19 @@ export type CreateFraudEventInput = Pick<
     metadata?: Record<string, unknown> | null;
   };
 
-interface WorkflowIdentity {
-  workspaceId: string;
-  programId: string;
-  partnerId: string;
-  groupId?: string;
-}
+export type SubmittedLeadProps = z.infer<typeof submittedLeadSchema>;
 
-interface PartnerMetrics {
-  leads?: number;
-  conversions?: number;
-  saleAmount?: number;
-  commissions?: number;
-}
+export type SubmittedLeadFormDataField = z.infer<
+  typeof submittedLeadFormDataSchema
+>;
 
-export interface WorkflowContext {
-  trigger: WorkflowTrigger;
-  reason?: "lead" | "sale" | "commission";
-  identity: WorkflowIdentity;
-  metrics?: {
-    current?: PartnerMetrics;
-    aggregated?: PartnerMetrics;
-  };
-}
-
-export type ReferralProps = z.infer<typeof referralSchema>;
-
-export type ReferralFormDataField = z.infer<typeof referralFormDataSchema>;
-
-export type UpdateReferralStatusPayload = z.infer<
-  typeof updateReferralStatusSchema
+export type UpdateSubmittedLeadStatusPayload = z.infer<
+  typeof updateSubmittedLeadStatusSchema
 >;
 
 export type CustomerSource = (typeof CUSTOMER_SOURCES)[number];
 
-export type ReferralWithCustomer = PartnerReferral & {
+export type SubmittedLeadWithCustomer = SubmittedLead & {
   customer: Customer | null;
 };
 
@@ -910,10 +872,73 @@ export type CommissionActivitySnapshot = Pick<
 
 export type EnrichedApiLog = z.infer<typeof apiLogEnrichedSchema>;
 
-export type ApiLogsCountRow = z.infer<typeof apiLogCountRowSchema>;
+export type ApiLogsCountRow = z.infer<
+  typeof apiLogCountRowSchemas.routePattern
+>;
 
 export type ApiLogsCountByRoutePattern = ApiLogsCountRow;
+
+export type ApiLogsCountByStatusCode = z.infer<
+  typeof apiLogCountRowSchemas.statusCode
+>;
+
+export type ApiLogsCountByMethod = z.infer<typeof apiLogCountRowSchemas.method>;
+
+export type ApiLogsCountGroupBy = z.infer<typeof apiLogCountGroupBySchema>;
 
 export type RequestType = z.infer<typeof requestTypeSchema>;
 
 export type ApiLogTB = z.infer<typeof apiLogSchemaTB>;
+
+export type ApiLogsTimeseriesRow = z.infer<typeof apiLogTimeseriesRowSchema>;
+
+export type ApiLogsGranularity = z.infer<
+  typeof apiLogTimeseriesGranularitySchema
+>;
+
+// Commission events
+export type CommissionAnalyticsQuery = z.infer<
+  typeof commissionAnalyticsQuerySchema
+>;
+
+export type CommissionAnalyticsGroupBy = CommissionAnalyticsQuery["groupBy"];
+
+export type CommissionAnalyticsByGroup = {
+  [K in keyof typeof commissionAnalyticsSchema]: z.infer<
+    (typeof commissionAnalyticsSchema)[K]
+  >;
+};
+
+export type CommissionCategoryRow = CommissionAnalyticsByGroup["type"][number];
+
+export type CommissionAnalyticsPartnerRow =
+  CommissionAnalyticsByGroup["partnerId"][number];
+
+// Application events
+export type ApplicationEvent = z.infer<typeof applicationEventSchema>;
+
+export type ApplicationEventsQuery = z.infer<
+  typeof applicationEventsQuerySchema
+>;
+
+export type ApplicationEventAnalyticsQuery = z.infer<
+  typeof applicationEventAnalyticsQuerySchema
+>;
+
+export type ApplicationEventStages = (typeof APPLICATION_EVENT_STAGES)[number];
+
+export type ApplicationAnalyticsByGroup = {
+  [K in keyof typeof applicationEventAnalyticsSchema]: z.infer<
+    (typeof applicationEventAnalyticsSchema)[K]
+  >;
+};
+
+export type CommissionProps = z.infer<typeof CommissionSchema>;
+
+export type CreatePartnerCommissionProps = z.infer<
+  typeof createPartnerCommissionSchema
+>;
+
+export type PayoutsQueryFilters = z.infer<typeof payoutsQuerySchema>;
+
+export type PayoutsCountQueryFilters = z.infer<typeof payoutsCountQuerySchema>;

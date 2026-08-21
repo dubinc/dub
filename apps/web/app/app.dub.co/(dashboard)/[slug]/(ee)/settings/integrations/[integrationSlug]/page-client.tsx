@@ -4,6 +4,7 @@ import { getIntegrationInstallUrl } from "@/lib/actions/get-integration-install-
 import { clientAccessCheck } from "@/lib/client-access-check";
 import { installAppsFlyerAction } from "@/lib/integrations/appsflyer/install";
 import { AppsFlyerSettings } from "@/lib/integrations/appsflyer/ui/settings";
+import { GoogleAdsSettings } from "@/lib/integrations/google-ads/ui/settings";
 import { HubSpotSettings } from "@/lib/integrations/hubspot/ui/settings";
 import { SegmentSettings } from "@/lib/integrations/segment/ui/settings";
 import { SlackSettings } from "@/lib/integrations/slack/ui/settings";
@@ -14,8 +15,8 @@ import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { InstalledIntegrationInfoProps } from "@/lib/types";
 import { IntegrationLogo } from "@/ui/integrations/integration-logo";
+import { IntegrationStatusBadge } from "@/ui/integrations/integration-status-badge";
 import { useUninstallIntegrationModal } from "@/ui/modals/uninstall-integration-modal";
-import { BackLink } from "@/ui/shared/back-link";
 import { CheckCircleFill, ThreeDots } from "@/ui/shared/icons";
 import { Markdown } from "@/ui/shared/markdown";
 import { UserAvatar } from "@/ui/users/user-avatar";
@@ -32,14 +33,11 @@ import {
   Logo,
   MaxWidthWrapper,
   Popover,
-  Tooltip,
   TooltipContent,
   useMediaQuery,
 } from "@dub/ui";
 import {
-  CircleWarning,
   ConnectedDots,
-  DubCraftedShield,
   Flask,
   Globe,
   OfficeBuilding,
@@ -51,12 +49,16 @@ import {
   DUB_WORKSPACE_ID,
   formatDate,
   getDomainWithoutWWW,
+  GOOGLE_ADS_INTEGRATION_ID,
   SEGMENT_INTEGRATION_ID,
   SLACK_INTEGRATION_ID,
   STRIPE_INTEGRATION_ID,
   ZAPIER_INTEGRATION_ID,
 } from "@dub/utils";
-import { HUBSPOT_INTEGRATION_ID } from "@dub/utils/src/constants/integrations";
+import {
+  HUBSPOT_INTEGRATION_ID,
+  INTERCOM_INTEGRATION_ID,
+} from "@dub/utils/src/constants/integrations";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
 import { useMemo, useState } from "react";
@@ -69,6 +71,7 @@ const integrationSettings = {
   [HUBSPOT_INTEGRATION_ID]: HubSpotSettings,
   [STRIPE_INTEGRATION_ID]: StripeIntegrationSettings,
   [APPSFLYER_INTEGRATION_ID]: AppsFlyerSettings,
+  [GOOGLE_ADS_INTEGRATION_ID]: GoogleAdsSettings,
 };
 
 export default function IntegrationPageClient({
@@ -76,15 +79,15 @@ export default function IntegrationPageClient({
 }: {
   integration: InstalledIntegrationInfoProps;
 }) {
-  const { id: workspaceId, slug, plan, role } = useWorkspace();
+  const { id: workspaceId, slug, plan, role, stripeConnectId } = useWorkspace();
+  const { isMobile } = useMediaQuery();
+  const [openPopover, setOpenPopover] = useState(false);
 
   const permissionsError = clientAccessCheck({
     action: "integrations.write",
     role,
   }).error;
-  const { isMobile } = useMediaQuery();
 
-  const [openPopover, setOpenPopover] = useState(false);
   const { execute, isPending } = useAction(getIntegrationInstallUrl, {
     onSuccess: ({ data }) => {
       if (!data?.url) {
@@ -154,12 +157,17 @@ export default function IntegrationPageClient({
     return variants[mode];
   }, [integration.id, integration.installed, integration.settings]);
 
+  const uninstallDisabledIntegrations = {
+    stripe: `https://dashboard.stripe.com/${stripeConnectId}/${stripeConnectionBannerConfig?.title === "Test Mode" ? "test/" : ""}apps/installed/dub.co`,
+    intercom:
+      "https://app.intercom.com/a/apps/_/settings/app-settings/app-store?app_package_code=dub-ejgb",
+  };
+
   const { canInstallAdvancedIntegrations } = getPlanCapabilities(plan);
 
   return (
     <MaxWidthWrapper className="grid max-w-screen-lg grid-cols-1 gap-6">
       {integration.installed && <UninstallIntegrationModal />}
-      <BackLink href={`/${slug}/settings/integrations`}>Integrations</BackLink>
       <div className="flex justify-between gap-8">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
           <IntegrationLogo
@@ -169,22 +177,13 @@ export default function IntegrationPageClient({
           />
           <div>
             <div className="flex items-center gap-1.5">
-              <h1 className="text-base font-semibold leading-none text-neutral-800">
+              <div className="text-base font-semibold leading-none text-neutral-800">
                 {integration.name}
-              </h1>
-              {integration.projectId === DUB_WORKSPACE_ID ? (
-                <Tooltip content="This is an official integration built and maintained by Dub">
-                  <div>
-                    <DubCraftedShield className="size-4 -translate-y-px" />
-                  </div>
-                </Tooltip>
-              ) : !integration.verified ? (
-                <Tooltip content="Dub hasn't verified this integration. Install it at your own risk.">
-                  <div>
-                    <CircleWarning className="size-5 text-neutral-500" invert />
-                  </div>
-                </Tooltip>
-              ) : null}
+              </div>
+              <IntegrationStatusBadge
+                projectId={integration.projectId}
+                verified={integration.verified}
+              />
             </div>
             <p className="mt-1 text-[0.8125rem] leading-snug text-neutral-600">
               {integration.description}
@@ -206,11 +205,11 @@ export default function IntegrationPageClient({
                     setShowUninstallIntegrationModal(true);
                   }}
                   disabledTooltip={
-                    integration.slug === "stripe" ? (
+                    uninstallDisabledIntegrations[integration.slug] ? (
                       <TooltipContent
-                        title="You cannot uninstall the Stripe integration from here. Please visit the Stripe dashboard to uninstall the app."
-                        cta="Go to Stripe"
-                        href="https://dashboard.stripe.com/settings/apps/dub.co"
+                        title={`You cannot uninstall the ${integration.name} integration from here. Please uninstall from your ${integration.name} dashboard instead.`}
+                        cta={`Go to ${integration.name}`}
+                        href={uninstallDisabledIntegrations[integration.slug]}
                         target="_blank"
                       />
                     ) : (
@@ -352,15 +351,21 @@ export default function IntegrationPageClient({
                   className="h-9 px-3"
                   icon={<ConnectedDots className="size-4" />}
                   disabledTooltip={
-                    [HUBSPOT_INTEGRATION_ID, APPSFLYER_INTEGRATION_ID].includes(
-                      integration.id,
-                    ) && !canInstallAdvancedIntegrations ? (
+                    [
+                      HUBSPOT_INTEGRATION_ID,
+                      APPSFLYER_INTEGRATION_ID,
+                      INTERCOM_INTEGRATION_ID,
+                      GOOGLE_ADS_INTEGRATION_ID,
+                    ].includes(integration.id) &&
+                    !canInstallAdvancedIntegrations ? (
                       <TooltipContent
                         title="This integration is only available on Advanced and Enterprise plans."
                         cta="Upgrade to Advanced"
                         href={`/${slug}/settings/billing/upgrade?plan=advanced`}
                       />
-                    ) : undefined
+                    ) : (
+                      permissionsError || undefined
+                    )
                   }
                 />
               )}
@@ -386,65 +391,90 @@ export default function IntegrationPageClient({
                 {stripeConnectionBannerConfig.title}
               </span>
             </div>
+            {stripeConnectId && (
+              <a
+                href={`https://dashboard.stripe.com/${stripeConnectId}/apps/installed/dub.co`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={cn(
+                  "font-mono text-xs opacity-75 transition-opacity hover:opacity-100",
+                  stripeConnectionBannerConfig.caption,
+                )}
+              >
+                {stripeConnectId}
+              </a>
+            )}
           </div>
         )}
       </div>
 
       <div className="w-full rounded-lg border border-neutral-200 bg-white">
         {integration.screenshots && integration.screenshots.length > 0 ? (
-          <Carousel autoplay={{ delay: 5000 }}>
-            <div className="relative rounded-t-lg bg-white p-4">
-              <CarouselContent>
-                {integration.screenshots.map((src, idx) => (
-                  <CarouselItem key={idx}>
-                    <BlurImage
-                      src={src}
-                      alt={`Screenshot ${idx + 1} of ${integration.name}`}
-                      width={900}
-                      height={580}
-                      className="aspect-[900/580] w-[5/6] overflow-hidden rounded-md border border-neutral-200 object-cover object-top"
-                    />
-                  </CarouselItem>
-                ))}
-              </CarouselContent>
-              <CarouselNavBar
-                variant="simple"
-                className="absolute bottom-6 left-1/2 -translate-x-1/2"
+          integration.screenshots.length === 1 ? (
+            <div className="rounded-t-lg bg-white p-4">
+              <BlurImage
+                src={integration.screenshots[0]}
+                alt={`Screenshot of ${integration.name}`}
+                width={900}
+                height={580}
+                className="aspect-[900/580] w-[5/6] overflow-hidden rounded-md border border-neutral-200 object-cover object-top"
               />
             </div>
-            {!isMobile && (
-              <div className="relative">
-                <CarouselThumbnails className="py-0.5">
+          ) : (
+            <Carousel autoplay={{ delay: 5000 }}>
+              <div className="relative rounded-t-lg bg-white p-4">
+                <CarouselContent>
                   {integration.screenshots.map((src, idx) => (
-                    <CarouselThumbnail
-                      key={idx}
-                      index={idx}
-                      className={({ active }) =>
-                        cn(
-                          "aspect-[900/580] h-[100px] shrink-0 select-none overflow-hidden rounded-[6px] border",
-                          "border-neutral-200 ring-2 ring-transparent transition-all duration-100",
-                          active
-                            ? "border-neutral-300 ring-black/10"
-                            : "hover:ring-black/5",
-                        )
-                      }
-                    >
+                    <CarouselItem key={idx}>
                       <BlurImage
                         src={src}
-                        alt={`Screenshot ${idx + 1} thumbnail`}
+                        alt={`Screenshot ${idx + 1} of ${integration.name}`}
                         width={900}
                         height={580}
-                        className="overflow-hidden rounded-[5px] object-cover object-top"
+                        className="aspect-[900/580] w-[5/6] overflow-hidden rounded-md border border-neutral-200 object-cover object-top"
                       />
-                    </CarouselThumbnail>
+                    </CarouselItem>
                   ))}
-                </CarouselThumbnails>
-
-                <div className="absolute inset-y-0 left-0 w-4 bg-gradient-to-r from-white" />
-                <div className="absolute inset-y-0 right-0 w-4 bg-gradient-to-l from-white" />
+                </CarouselContent>
+                <CarouselNavBar
+                  variant="simple"
+                  className="absolute bottom-6 left-1/2 -translate-x-1/2"
+                />
               </div>
-            )}
-          </Carousel>
+              {!isMobile && (
+                <div className="relative">
+                  <CarouselThumbnails className="py-0.5">
+                    {integration.screenshots.map((src, idx) => (
+                      <CarouselThumbnail
+                        key={idx}
+                        index={idx}
+                        className={({ active }) =>
+                          cn(
+                            "aspect-[900/580] h-[100px] shrink-0 select-none overflow-hidden rounded-[6px] border",
+                            "border-neutral-200 ring-2 ring-transparent transition-all duration-100",
+                            active
+                              ? "border-neutral-300 ring-black/10"
+                              : "hover:ring-black/5",
+                          )
+                        }
+                      >
+                        <BlurImage
+                          src={src}
+                          alt={`Screenshot ${idx + 1} thumbnail`}
+                          width={900}
+                          height={580}
+                          className="overflow-hidden rounded-[5px] object-cover object-top"
+                        />
+                      </CarouselThumbnail>
+                    ))}
+                  </CarouselThumbnails>
+
+                  <div className="absolute inset-y-0 left-0 w-4 bg-gradient-to-r from-white" />
+                  <div className="absolute inset-y-0 right-0 w-4 bg-gradient-to-l from-white" />
+                </div>
+              )}
+            </Carousel>
+          )
         ) : null}
 
         {integration.readme && (

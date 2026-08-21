@@ -1,5 +1,5 @@
-import { EXCLUDED_PROGRAM_IDS } from "@/lib/constants/partner-profile";
-import { prisma } from "@dub/prisma";
+import { PARTNER_NETWORK_EXCLUDED_PROGRAM_IDS } from "@/lib/constants/partner-profile";
+import { prisma } from "@/lib/prisma";
 import { chunk, toCentsNumber } from "@dub/utils";
 import "dotenv-flow/config";
 
@@ -10,7 +10,7 @@ async function main() {
     by: ["partnerId"],
     where: {
       programId: {
-        notIn: EXCLUDED_PROGRAM_IDS,
+        notIn: PARTNER_NETWORK_EXCLUDED_PROGRAM_IDS,
       },
       totalCommissions: {
         gte: REWIND_EARNINGS_MINIMUM,

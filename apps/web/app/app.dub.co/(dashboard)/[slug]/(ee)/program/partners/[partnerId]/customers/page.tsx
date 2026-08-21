@@ -5,6 +5,7 @@ import usePartner from "@/lib/swr/use-partner";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps } from "@/lib/types";
 import { CustomerRowItem } from "@/ui/customers/customer-row-item";
+import { CountryFlag } from "@/ui/shared/country-flag";
 import {
   LoadingSpinner,
   Table,
@@ -67,13 +68,7 @@ function PartnerCustomers({ partner }: { partner: EnrolledPartnerProps }) {
           const country = row.original.country;
           return (
             <div className="flex items-center gap-2">
-              {country && (
-                <img
-                  alt={`${country} flag`}
-                  src={`https://hatscripts.github.io/circle-flags/flags/${country.toLowerCase()}.svg`}
-                  className="size-4 shrink-0"
-                />
-              )}
+              {country && <CountryFlag countryCode={country} />}
               <span className="min-w-0 truncate">
                 {(country ? COUNTRIES[country] : null) ?? "-"}
               </span>

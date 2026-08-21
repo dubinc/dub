@@ -6,14 +6,15 @@ import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-progr
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { exceededLimitError } from "@/lib/exceeded-limit-error";
+import { prisma } from "@/lib/prisma";
 import {
   createGroupSchema,
   DEFAULT_PARTNER_GROUP,
   getGroupsQuerySchema,
   GroupSchema,
   GroupSchemaExtended,
+  sanitizeAdditionalLinks,
 } from "@/lib/zod/schemas/groups";
-import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
@@ -35,14 +36,7 @@ export const GET = withWorkspace(
   },
   {
     requiredPermissions: ["groups.read"],
-    requiredPlan: [
-      "business",
-      "business extra",
-      "business max",
-      "business plus",
-      "advanced",
-      "enterprise",
-    ],
+    requiredPlan: ["business", "advanced", "enterprise"],
   },
 );
 
@@ -100,6 +94,7 @@ export const POST = withWorkspace(
           code: "exceeded_limit",
           message: exceededLimitError({
             plan: workspace.plan,
+            planPeriod: workspace.planPeriod,
             limit: workspace.groupsLimit,
             type: "groups",
           }),
@@ -133,7 +128,9 @@ export const POST = withWorkspace(
           brandColor,
           holdingPeriodDays,
           autoApprovePartnersEnabledAt,
-          ...(additionalLinks && { additionalLinks }),
+          ...(additionalLinks && {
+            additionalLinks: sanitizeAdditionalLinks(additionalLinks),
+          }),
           ...(maxPartnerLinks && { maxPartnerLinks }),
           ...(linkStructure && { linkStructure }),
           ...(applicationFormData && { applicationFormData }),
@@ -153,6 +150,7 @@ export const POST = withWorkspace(
           clickReward: true,
           leadReward: true,
           saleReward: true,
+          referralReward: true,
           discount: true,
         },
       });
@@ -181,13 +179,6 @@ export const POST = withWorkspace(
   },
   {
     requiredPermissions: ["groups.write"],
-    requiredPlan: [
-      "business",
-      "business extra",
-      "business max",
-      "business plus",
-      "advanced",
-      "enterprise",
-    ],
+    requiredPlan: ["business", "advanced", "enterprise"],
   },
 );

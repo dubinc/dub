@@ -1,3 +1,7 @@
+import {
+  VITEST_POLL_INTERVAL_MS,
+  VITEST_TEST_TIMEOUT_MS,
+} from "@/lib/constants/misc";
 import { CommissionResponse, Customer } from "@/lib/types";
 import { expect } from "vitest";
 import { HttpClient } from "./http";
@@ -5,20 +9,23 @@ import { HttpClient } from "./http";
 interface VerifyCommissionProps {
   http: HttpClient;
   customerExternalId?: string;
-  invoiceId?: string;
-  expectedAmount?: number;
+  invoiceId?: string; // fetch commission by invoiceId
+  description?: string; // fetch commissions + filter by description
+  expectedSaleAmount?: number;
   expectedEarnings: number;
+  expectedType?: string;
+  query?: Record<string, string>; // to pass additional query params to GET /commissions
 }
-
-const POLL_INTERVAL_MS = 5000; // 5 seconds
-const TIMEOUT_MS = 45000; // 45 seconds
 
 export const verifyCommission = async ({
   http,
   customerExternalId,
   invoiceId,
-  expectedAmount,
+  description,
+  expectedSaleAmount,
   expectedEarnings,
+  expectedType,
+  query: queryOverrides,
 }: VerifyCommissionProps) => {
   let customerId: string | undefined;
 
@@ -33,7 +40,9 @@ export const verifyCommission = async ({
     customerId = customers[0].id;
   }
 
-  const query: Record<string, string> = {};
+  const query: Record<string, string> = {
+    ...queryOverrides,
+  };
 
   if (invoiceId) {
     query.invoiceId = invoiceId;
@@ -42,20 +51,32 @@ export const verifyCommission = async ({
   if (customerId) {
     query.customerId = customerId;
   }
+  const findMatchingCommission = (
+    commissions: CommissionResponse[],
+  ): CommissionResponse | undefined => {
+    if (description) {
+      return commissions.find((c) => c.description === description);
+    }
 
-  // Poll for commission every 5 seconds, timeout after 45 seconds
+    if (commissions.length === 1) {
+      return commissions[0];
+    }
+
+    return undefined;
+  };
+
+  // Poll for commission every 5 seconds, timeout after 60 seconds
   const startTime = Date.now();
 
-  while (Date.now() - startTime < TIMEOUT_MS) {
+  while (Date.now() - startTime < VITEST_TEST_TIMEOUT_MS) {
     const { status, data: commissions } = await http.get<CommissionResponse[]>({
       path: "/commissions",
       query,
     });
 
-    if (status === 200 && commissions.length === 1) {
-      const commission = commissions[0];
+    const commission = findMatchingCommission(commissions);
 
-      // Verify all expectations
+    if (status === 200 && commission) {
       if (invoiceId) {
         expect(commission.invoiceId).toEqual(invoiceId);
       }
@@ -64,22 +85,29 @@ export const verifyCommission = async ({
         expect(commission.customer?.id).toEqual(customerId);
       }
 
-      if (expectedAmount !== undefined) {
-        expect(commission.amount).toEqual(expectedAmount);
+      if (expectedSaleAmount !== undefined) {
+        expect(commission.amount).toEqual(expectedSaleAmount);
       }
 
       expect(commission.earnings).toEqual(expectedEarnings);
+
+      if (expectedType) {
+        expect(commission.type).toEqual(expectedType);
+      }
 
       return;
     }
 
     // Wait before next poll
-    await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL_MS));
+    await new Promise((resolve) =>
+      setTimeout(resolve, VITEST_POLL_INTERVAL_MS),
+    );
   }
 
   // Timeout reached - fail the test
   throw new Error(
-    `Commission not found within ${TIMEOUT_MS / 1000} seconds. ` +
-      `Query: ${JSON.stringify(query)}`,
+    `Commission not found within ${VITEST_TEST_TIMEOUT_MS / 1000} seconds. ` +
+      `Query: ${JSON.stringify(query)}` +
+      (description ? `, description: ${description}` : ""),
   );
 };

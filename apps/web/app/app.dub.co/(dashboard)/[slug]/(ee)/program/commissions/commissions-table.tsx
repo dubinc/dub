@@ -1,13 +1,11 @@
 "use client";
 
-import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import useCommissionsCount from "@/lib/swr/use-commissions-count";
-import { useFraudGroupCount } from "@/lib/swr/use-fraud-groups-count";
 import useGroups from "@/lib/swr/use-groups";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { CommissionResponse, FraudGroupCountByPartner } from "@/lib/types";
-import { CLAWBACK_REASONS_MAP } from "@/lib/zod/schemas/commissions";
+import { CommissionResponse } from "@/lib/types";
+import { formatCommissionDescriptionTooltip } from "@/lib/commissions/format-commission-description-tooltip";
 import { CustomerRowItem } from "@/ui/customers/customer-row-item";
 import { useBulkEditCommissionsModal } from "@/ui/partners/bulk-edit-commissions-modal";
 import { CommissionRowMenu } from "@/ui/partners/commission-row-menu";
@@ -21,6 +19,7 @@ import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
 import {
   AnimatedSizeContainer,
   Button,
+  ChartLine,
   EditColumnsButton,
   Filter,
   StatusBadge,
@@ -28,6 +27,7 @@ import {
   TimestampTooltip,
   Tooltip,
   useColumnVisibility,
+  useMediaQuery,
   usePagination,
   useRouterStuff,
   useTable,
@@ -38,8 +38,8 @@ import {
   currencyFormatter,
   fetcher,
   formatDateTimeSmart,
-  nFormatter,
 } from "@dub/utils";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo } from "react";
 import useSWR from "swr";
@@ -125,16 +125,6 @@ export function CommissionsTable() {
     },
   );
 
-  const { fraudGroupCount } = useFraudGroupCount<FraudGroupCountByPartner[]>({
-    query: {
-      groupBy: "partnerId",
-      status: "pending",
-    },
-    ignoreParams: true,
-  });
-
-  const { canManageFraudEvents } = getPlanCapabilities(workspace?.plan ?? "");
-
   const { openBulkEditCommissionsModal, BulkEditCommissionsModal } =
     useBulkEditCommissionsModal();
 
@@ -192,7 +182,7 @@ export function CommissionsTable() {
         },
         {
           id: "group",
-          header: "Group",
+          header: "Partner Group",
           cell: ({ row }) => {
             if (!groups) return "-";
 
@@ -205,9 +195,16 @@ export function CommissionsTable() {
             return (
               <div className="flex items-center gap-2">
                 <GroupColorCircle group={group} />
-                <span className="truncate text-sm font-medium">
+                <Link
+                  href={`/${slug}/program/groups/${group.slug}`}
+                  target="_blank"
+                  onClick={(e) => e.stopPropagation()}
+                  onAuxClick={(e) => e.stopPropagation()}
+                  className="min-w-0 cursor-alias truncate text-sm font-medium decoration-dotted hover:underline"
+                  title={group.name}
+                >
                   {group.name}
-                </span>
+                </Link>
               </div>
             );
           },
@@ -227,11 +224,9 @@ export function CommissionsTable() {
         },
         {
           id: "amount",
-          header: "Amount",
+          header: "Sale Amount",
           accessorFn: (d) =>
-            d.type === "sale"
-              ? currencyFormatter(d.amount)
-              : nFormatter(d.quantity),
+            d.type === "sale" ? currencyFormatter(d.amount) : "-",
         },
         {
           id: "commission",
@@ -242,12 +237,13 @@ export function CommissionsTable() {
             const earnings = currencyFormatter(commission.earnings);
 
             if (commission.description) {
-              const reason =
-                CLAWBACK_REASONS_MAP[commission.description]?.description ??
-                commission.description;
-
               return (
-                <Tooltip content={reason}>
+                <Tooltip
+                  content={formatCommissionDescriptionTooltip(
+                    commission.description,
+                    { variant: "program", workspaceSlug: slug! },
+                  )}
+                >
                   <span
                     className={cn(
                       "cursor-help truncate underline decoration-dotted underline-offset-2",
@@ -276,18 +272,7 @@ export function CommissionsTable() {
           id: "status",
           header: "Status",
           cell: ({ row }) => {
-            const partnerHasPendingFraud = fraudGroupCount?.find(
-              ({ partnerId }) => partnerId === row.original.partner.id,
-            );
-
-            const status =
-              canManageFraudEvents &&
-              partnerHasPendingFraud &&
-              ["pending", "processed"].includes(row.original.status)
-                ? "hold"
-                : row.original.status;
-
-            const badge = CommissionStatusBadges[status];
+            const badge = CommissionStatusBadges[row.original.status];
 
             return (
               <StatusBadge
@@ -317,7 +302,7 @@ export function CommissionsTable() {
           cell: ({ row }) => <CommissionRowMenu row={row} />,
         },
       ].filter((c) => c.id === "menu" || commissionsColumns.all.includes(c.id)),
-    [slug, groups, program, workspace, fraudGroupCount],
+    [slug, groups, program, workspace],
   );
 
   const { table, ...tableProps } = useTable<CommissionResponse>({
@@ -338,7 +323,6 @@ export function CommissionsTable() {
           ...(sortOrder && { sortOrder }),
         },
         del: "page",
-        scroll: false,
       }),
     onRowClick: (row, e) => {
       const url = `/${slug}/program/commissions/${row.original.id}`;
@@ -435,32 +419,65 @@ export function CommissionsTable() {
 }
 
 function CommissionsFilters() {
+  const { slug } = useWorkspace();
+  const { getQueryString } = useRouterStuff();
+  const { isMobile } = useMediaQuery();
   const {
     filters,
     activeFilters,
     onSelect,
     onRemove,
+    onRemoveFilter,
     onRemoveAll,
+    onToggleOperator,
+    onOpenFilter,
     setSearch,
-    setSelectedFilter,
   } = useCommissionFilters();
 
   return (
     <div>
-      <div className="flex flex-col gap-3 md:flex-row md:items-center">
+      <div className="flex w-full flex-col items-center gap-2 min-[550px]:flex-row min-[550px]:items-center">
         <Filter.Select
           className="w-full md:w-fit"
           filters={filters}
           activeFilters={activeFilters}
           onSelect={onSelect}
           onRemove={onRemove}
+          onOpenFilter={onOpenFilter}
           onSearchChange={setSearch}
-          onSelectedFilterChange={setSelectedFilter}
+          isAdvancedFilter
         />
-        <SimpleDateRangePicker
-          className="w-full sm:min-w-[200px] md:w-fit"
-          defaultInterval="all"
-        />
+        <div className="flex w-full grow items-center gap-2 md:w-auto">
+          <SimpleDateRangePicker
+            className="w-full min-w-0 sm:min-w-[200px] md:w-fit"
+            defaultInterval="all"
+          />
+          <div className="flex grow justify-end gap-2">
+            <Link
+              href={`/${slug}/program/analytics/commissions${getQueryString(
+                undefined,
+                {
+                  include: [
+                    "interval",
+                    "start",
+                    "end",
+                    "partnerId",
+                    "groupId",
+                    "partnerTagId",
+                    "type",
+                  ],
+                },
+              )}`}
+            >
+              <Button
+                variant="secondary"
+                className="w-fit"
+                icon={<ChartLine className="h-4 w-4 text-neutral-600" />}
+                text={isMobile ? undefined : "View Analytics"}
+              />
+            </Link>
+          </div>
+        </div>
       </div>
       <AnimatedSizeContainer height>
         <div>
@@ -479,7 +496,10 @@ function CommissionsFilters() {
                 activeFilters={activeFilters}
                 onSelect={onSelect}
                 onRemove={onRemove}
+                onRemoveFilter={onRemoveFilter}
                 onRemoveAll={onRemoveAll}
+                onToggleOperator={onToggleOperator}
+                isAdvancedFilter
               />
             </div>
           )}
