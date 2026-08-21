@@ -1,6 +1,11 @@
 import { cn } from "@dub/utils";
 import { ReactNode } from "react";
 
+/**
+ * Legacy shared container (`@dub/ui`), used by marketing nav/footer and
+ * older dashboard pages. For app/partners dashboard pages, use
+ * `PageWidthWrapper` (`apps/web/ui/layout/page-width-wrapper.tsx`) instead.
+ */
 export function MaxWidthWrapper({
   className,
   children,
