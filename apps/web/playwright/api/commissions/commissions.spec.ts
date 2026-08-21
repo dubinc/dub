@@ -818,6 +818,154 @@ test.describe("Sale commissions", () => {
   });
 });
 
+test.describe("GET /commissions metadata query", () => {
+  async function seedLeadCommission({
+    partnerId,
+    programId,
+    metadata,
+  }: {
+    partnerId: string;
+    programId: string;
+    metadata: { plan: string; tier?: string };
+  }) {
+    const link = await prisma.link.findFirstOrThrow({
+      where: {
+        partnerId,
+        programId,
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    return prisma.commission.create({
+      data: {
+        id: createId({ prefix: "cm_" }),
+        programId,
+        partnerId,
+        linkId: link.id,
+        type: "lead",
+        amount: 0,
+        quantity: 1,
+        earnings: 1000,
+        status: "pending",
+        metadata,
+      },
+    });
+  }
+
+  test("filters by metadata key and excludes non-matches", async ({
+    api,
+    program,
+  }) => {
+    await withCommissionPartner(api, program, async (partnerId) => {
+      const pro = await seedLeadCommission({
+        partnerId,
+        programId: program.id,
+        metadata: { plan: "pro" },
+      });
+      const basic = await seedLeadCommission({
+        partnerId,
+        programId: program.id,
+        metadata: { plan: "basic" },
+      });
+
+      const query = encodeURIComponent("metadata['plan']:'pro'");
+      const { status, data } = await api.get<CommissionResponse[]>(
+        `/api/commissions?partnerId=${partnerId}&query=${query}`,
+      );
+
+      expect(status).toEqual(200);
+      expect(data.map((c) => c.id)).toContain(pro.id);
+      expect(data.map((c) => c.id)).not.toContain(basic.id);
+    });
+  });
+
+  test("supports AND of two metadata keys", async ({ api, program }) => {
+    await withCommissionPartner(api, program, async (partnerId) => {
+      const match = await seedLeadCommission({
+        partnerId,
+        programId: program.id,
+        metadata: { plan: "pro", tier: "gold" },
+      });
+      const other = await seedLeadCommission({
+        partnerId,
+        programId: program.id,
+        metadata: { plan: "pro", tier: "silver" },
+      });
+
+      const query = encodeURIComponent(
+        "metadata['plan']:'pro' AND metadata['tier']:'gold'",
+      );
+      const { status, data } = await api.get<CommissionResponse[]>(
+        `/api/commissions?partnerId=${partnerId}&query=${query}`,
+      );
+
+      expect(status).toEqual(200);
+      expect(data.map((c) => c.id)).toContain(match.id);
+      expect(data.map((c) => c.id)).not.toContain(other.id);
+    });
+  });
+
+  test("supports != operator", async ({ api, program }) => {
+    await withCommissionPartner(api, program, async (partnerId) => {
+      const pro = await seedLeadCommission({
+        partnerId,
+        programId: program.id,
+        metadata: { plan: "pro" },
+      });
+      const basic = await seedLeadCommission({
+        partnerId,
+        programId: program.id,
+        metadata: { plan: "basic" },
+      });
+
+      const query = encodeURIComponent("metadata['plan']!='pro'");
+      const { status, data } = await api.get<CommissionResponse[]>(
+        `/api/commissions?partnerId=${partnerId}&query=${query}`,
+      );
+
+      expect(status).toEqual(200);
+      expect(data.map((c) => c.id)).toContain(basic.id);
+      expect(data.map((c) => c.id)).not.toContain(pro.id);
+    });
+  });
+
+  test("returns 422 for nested metadata keys", async ({ api }) => {
+    const query = encodeURIComponent("metadata['a']['b']:'x'");
+    expect(await api.get(`/api/commissions?query=${query}`)).toEqual(
+      apiError({
+        code: "unprocessable_entity",
+        message:
+          "Invalid metadata query. Use top-level keys only, e.g. metadata['key']:'value'. Nested keys and OR are not supported.",
+      }),
+    );
+  });
+
+  test("count endpoint respects metadata query", async ({ api, program }) => {
+    await withCommissionPartner(api, program, async (partnerId) => {
+      await seedLeadCommission({
+        partnerId,
+        programId: program.id,
+        metadata: { plan: "pro" },
+      });
+      await seedLeadCommission({
+        partnerId,
+        programId: program.id,
+        metadata: { plan: "basic" },
+      });
+
+      const query = encodeURIComponent("metadata['plan']:'pro'");
+      const { status, data } = await api.get<{
+        all: { count: number };
+      }>(`/api/commissions/count?partnerId=${partnerId}&query=${query}`);
+
+      expect(status).toEqual(200);
+      expect(data.all.count).toEqual(1);
+    });
+  });
+});
+
 const typeErrorCases = [
   {
     name: "rejects missing type",

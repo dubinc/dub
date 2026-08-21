@@ -52,6 +52,7 @@ export const getPartnerEarningsQuerySchema = getCommissionsQuerySchema
   .omit({
     partnerId: true,
     sortBy: true,
+    query: true,
   })
   .extend({
     interval: z
@@ -67,6 +68,7 @@ export const getPartnerEarningsQuerySchema = getCommissionsQuerySchema
 export const getPartnerEarningsCountQuerySchema = getCommissionsCountQuerySchema
   .omit({
     partnerId: true,
+    query: true,
   })
   .extend({
     interval: z
