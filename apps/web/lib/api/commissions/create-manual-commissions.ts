@@ -488,12 +488,13 @@ async function recordEvents(args: RecordEventsArgs) {
     const paymentProcessor = sale?.paymentProcessor ?? "custom";
     let saleAmount = sale?.amount ?? args.saleAmount;
     let currency = sale?.currency ?? "usd";
+
     // Include productId in Tinybird event metadata for Sale → Product ID reward modifiers.
     const eventMetadata = {
       ...(productId ? { productId } : {}),
       ...(sale?.metadata ?? {}),
     };
-    const hasEventMetadata = Object.keys(eventMetadata).length > 0;
+
     commissionMetadata = sale?.metadata ?? null;
 
     if (importStripeInvoices) {
@@ -535,7 +536,10 @@ async function recordEvents(args: RecordEventsArgs) {
           payment_processor: paymentProcessor,
           currency,
           timestamp: new Date(saleEventDate).toISOString(),
-          metadata: hasEventMetadata ? JSON.stringify(eventMetadata) : "",
+          metadata:
+            Object.keys(eventMetadata).length > 0
+              ? JSON.stringify(eventMetadata)
+              : "",
         }),
       ];
     }

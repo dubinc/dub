@@ -1,8 +1,9 @@
+import "dotenv-flow/config";
+
 import { formatUTCDateTimeClickhouse } from "@/lib/analytics/utils/format-utc-datetime-clickhouse";
 import { prisma } from "@/lib/prisma";
 import { tb } from "@/lib/tinybird/client";
 import { CommissionType, Prisma } from "@prisma/client";
-import "dotenv-flow/config";
 import * as z from "zod/v4";
 
 /*
