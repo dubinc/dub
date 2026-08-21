@@ -98,6 +98,7 @@ export const metadataSchema = z
   .record(z.string(), z.any())
   .nullish()
   .default(null)
+  .transform((val) => (val != null && Object.keys(val).length > 0 ? val : null))
   .refine((val) => !val || JSON.stringify(val).length <= 10000, {
     message: "Metadata must be less than 10,000 characters when stringified",
   });

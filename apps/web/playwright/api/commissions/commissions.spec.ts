@@ -173,6 +173,27 @@ test.describe("Lead commissions", () => {
     });
   });
 
+  test("treats empty lead metadata as absent", async ({ api, program }) => {
+    await withCommissionPartner(api, program, async (partnerId) => {
+      expect(
+        await api.post("/api/commissions", {
+          type: "lead",
+          partnerId,
+          lead: { metadata: {} },
+          customer: customerBody(),
+        }),
+      ).toEqual(expectedQueuedResponse);
+
+      await expectCommissionCreated({
+        api,
+        partnerId,
+        programId: program.id,
+        type: "lead",
+        expectedMetadata: null,
+      });
+    });
+  });
+
   test("supports deprecated leadEventName + leadEventDate", async ({
     api,
     program,
