@@ -1,14 +1,13 @@
 {
-  "programId": "prog_CYCu7IMAapjkRpTnr8F1azjN",
-  "targetAlreadyEnrolled": false,
-  "source": {
+  "sourcePartner": {
     "id": "pn_1K9BZE1K285BSTX4W6MPKXJFZ",
     "tenantId": "64dc9a8c-5cf9-4446-b53b-cdc15199fafc",
     "email": "old@example.com"
   },
-  "target": {
+  "targetPartner": {
     "id": "pn_1K06X6FX2GRB31NCM2VVCGJ72",
-    "tenantId": "64dc9a8c-5cf9-4446-b53b-cdc15199fafc",
+    "tenantId": null,
     "email": "kept@example.com"
-  }
+  },
+  "targetAlreadyEnrolled": false
 }

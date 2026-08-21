@@ -629,30 +629,6 @@ export const WebhookPartnerSchema = PartnerSchema.pick({
   totalCommissions: centsSchema,
 });
 
-const partnerMergedAccountSchema = z.object({
-  id: z.string().describe("The partner's unique ID on Dub."),
-  tenantId: z
-    .string()
-    .nullable()
-    .describe("The partner's unique ID within your database for this program."),
-  email: z.string().nullable().describe("The partner's email address."),
-});
-
-export const partnerMergedWebhookSchema = z.object({
-  programId: z.string().describe("The program's unique ID on Dub."),
-  targetAlreadyEnrolled: z
-    .boolean()
-    .describe(
-      "Whether the surviving partner was already enrolled in this program before the merge. If `true`, the workspace had both partners and should collapse the source into the target. If `false`, only the source was enrolled and its Dub partner ID changed.",
-    ),
-  source: partnerMergedAccountSchema.describe(
-    "The partner account that was merged away. Its enrollment in this program no longer exists; use `target.id` instead.",
-  ),
-  target: partnerMergedAccountSchema.describe(
-    "The surviving partner account. `tenantId` is the post-merge value for this program.",
-  ),
-});
-
 export const LeaderboardPartnerSchema = z.object({
   id: z.string(),
   totalCommissions: centsSchemaWithDefault,
@@ -1093,4 +1069,31 @@ export const partnerSharedPlatformSchema = z.object({
       image: z.string().nullable(),
     }),
   ),
+});
+
+const partnerMergedAccountSchema = z.object({
+  id: z.string().describe("The partner's unique ID on Dub."),
+  tenantId: z
+    .string()
+    .nullable()
+    .describe("The partner's unique ID in your system"),
+  email: z.string().nullable().describe("The partner's email address."),
+});
+
+export const partnerMergedWebhookSchema = z.object({
+  sourcePartner: partnerMergedAccountSchema.describe(
+    "The source partner account that was merged away. Its enrollment in this program no longer exists; use `target.id` instead.",
+  ),
+  targetPartner: partnerMergedAccountSchema.describe(
+    "The target partner account that the source account was merged into.",
+  ),
+  targetAlreadyEnrolled: z
+    .boolean()
+    .describe(
+      [
+        "Whether the target partner account was already enrolled in this program before the merge.",
+        "If `true`, both partners were already enrolled in the program and the merge process will collapse the source account into the target account.",
+        "If `false`, only the source partner account was enrolled in the program, which means the partner's ID in your program will be updated to the target partner's ID.",
+      ].join("\n"),
+    ),
 });

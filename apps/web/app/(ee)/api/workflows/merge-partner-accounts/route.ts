@@ -585,18 +585,17 @@ async function mergeSingleEnrollment({
     workspace: sourceEnrollment.program.workspace,
     trigger: "partner.merged",
     data: partnerMergedWebhookSchema.parse({
-      programId,
-      targetAlreadyEnrolled: Boolean(targetEnrollment),
-      source: {
+      sourcePartner: {
         id: sourcePartnerId,
         tenantId: sourceEnrollment.tenantId,
         email: sourceEmail,
       },
-      target: {
+      targetPartner: {
         id: targetPartnerId,
-        tenantId: targetEnrollment?.tenantId ?? sourceEnrollment.tenantId,
+        tenantId: targetEnrollment?.tenantId ?? null,
         email: targetEmail,
       },
+      targetAlreadyEnrolled: Boolean(targetEnrollment),
     }),
   });
 

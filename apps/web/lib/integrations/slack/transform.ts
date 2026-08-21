@@ -542,8 +542,8 @@ const partnerMergedTemplate = ({
 }: {
   data: PartnerMergedWebhookPayload;
 }) => {
-  const { targetAlreadyEnrolled, source, target } = data;
-  const hrefToPartnerPage = `${APP_DOMAIN}/program/partners/${target.id}`;
+  const { targetAlreadyEnrolled, sourcePartner, targetPartner } = data;
+  const hrefToPartnerPage = `${APP_DOMAIN}/program/partners/${targetPartner.id}`;
   const outcomeLabel = targetAlreadyEnrolled
     ? "Target was already enrolled"
     : "Target was not enrolled";
@@ -562,11 +562,11 @@ const partnerMergedTemplate = ({
         fields: [
           {
             type: "mrkdwn",
-            text: `*Source*\n\`${source.id}\`${source.email ? ` (${source.email})` : ""}`,
+            text: `*Source*\n\`${sourcePartner.id}\`${sourcePartner.email ? ` (${sourcePartner.email})` : ""}`,
           },
           {
             type: "mrkdwn",
-            text: `*Target*\n<${hrefToPartnerPage}|\`${target.id}\`>${target.email ? ` (${target.email})` : ""}`,
+            text: `*Target*\n<${hrefToPartnerPage}|\`${targetPartner.id}\`>${targetPartner.email ? ` (${targetPartner.email})` : ""}`,
           },
         ],
       },
@@ -577,11 +577,11 @@ const partnerMergedTemplate = ({
             type: "mrkdwn",
             text: `*Outcome*\n${outcomeLabel}`,
           },
-          ...(source.tenantId || target.tenantId
+          ...(sourcePartner.tenantId || targetPartner.tenantId
             ? [
                 {
                   type: "mrkdwn",
-                  text: `*Tenant ID*\n${source.tenantId ?? "—"} → ${target.tenantId ?? "—"}`,
+                  text: `*Tenant ID*\n${sourcePartner.tenantId ?? "—"} → ${targetPartner.tenantId ?? "—"}`,
                 },
               ]
             : []),
