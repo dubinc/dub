@@ -19,9 +19,9 @@ import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
 import {
   AnimatedSizeContainer,
   Button,
-  ChartLine,
   EditColumnsButton,
   Filter,
+  LinesY,
   StatusBadge,
   Table,
   TimestampTooltip,
@@ -472,7 +472,7 @@ function CommissionsFilters() {
               <Button
                 variant="secondary"
                 className="w-fit"
-                icon={<ChartLine className="h-4 w-4 text-neutral-600" />}
+                icon={<LinesY className="h-4 w-4 text-neutral-600" />}
                 text={isMobile ? undefined : "View Analytics"}
               />
             </Link>
