@@ -1082,7 +1082,7 @@ const partnerMergedAccountSchema = z.object({
 
 export const partnerMergedWebhookSchema = z.object({
   sourcePartner: partnerMergedAccountSchema.describe(
-    "The source partner account that was merged away. Its enrollment in this program no longer exists; use `target.id` instead.",
+    "The source partner account that was merged away. Its enrollment in this program no longer exists; use `targetPartner.id` instead.",
   ),
   targetPartner: partnerMergedAccountSchema.describe(
     "The target partner account that the source account was merged into.",
