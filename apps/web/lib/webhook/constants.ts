@@ -22,6 +22,7 @@ export const WORKSPACE_LEVEL_WEBHOOK_TRIGGERS = [
 export const PROGRAM_LEVEL_WEBHOOK_TRIGGERS = [
   "partner.application_submitted",
   "partner.enrolled",
+  "partner.merged",
   "commission.created",
   "bounty.created",
   "bounty.updated",
@@ -44,6 +45,7 @@ export const WEBHOOK_TRIGGER_DESCRIPTIONS: Record<WebhookTrigger, string> = {
   "sale.created": "Sale created",
   "partner.application_submitted": "Partner application submitted",
   "partner.enrolled": "Partner enrolled",
+  "partner.merged": "Partner accounts merged",
   "commission.created": "Commission created",
   "bounty.created": "Bounty created",
   "bounty.updated": "Bounty updated",

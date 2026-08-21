@@ -64,18 +64,21 @@ describe.sequential("Workflow - MergePartnerAccounts", async () => {
     "Overlap merge upgrades target status from pending to approved",
     { timeout: VITEST_TEST_TIMEOUT_MS },
     async () => {
-      const source = await createEnrolledPartner("upgrade-source");
-      const target = await createEnrolledPartner("upgrade-target");
+      const sourcePartner = await createEnrolledPartner("upgrade-source");
+      const targetPartner = await createEnrolledPartner("upgrade-target");
 
       const { status: pendingStatus } = await http.post({
         path: "/e2e/partners/pending-program-application",
-        body: { partnerId: target.id },
+        body: { partnerId: targetPartner.id },
       });
       expect(pendingStatus).toEqual(200);
 
       const { status: triggerStatus } = await http.post({
         path: "/e2e/trigger-merge-accounts",
-        body: { sourceEmail: source.email, targetEmail: target.email },
+        body: {
+          sourceEmail: sourcePartner.email,
+          targetEmail: targetPartner.email,
+        },
       });
       expect(triggerStatus).toEqual(200);
 
@@ -84,8 +87,10 @@ describe.sequential("Workflow - MergePartnerAccounts", async () => {
 
       while (Date.now() - startTime < VITEST_TEST_TIMEOUT_MS) {
         const [sourceRes, targetRes] = await Promise.all([
-          http.get({ path: `/partners/${source.id}` }),
-          http.get<EnrolledPartnerProps>({ path: `/partners/${target.id}` }),
+          http.get({ path: `/partners/${sourcePartner.id}` }),
+          http.get<EnrolledPartnerProps>({
+            path: `/partners/${targetPartner.id}`,
+          }),
         ]);
 
         lastTargetStatus =
