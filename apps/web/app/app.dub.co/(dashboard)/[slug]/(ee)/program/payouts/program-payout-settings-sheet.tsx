@@ -46,7 +46,7 @@ function ProgramPayoutSettingsSheetContent({
     handleSubmit,
     watch,
     setValue,
-    formState: { isDirty, isValid, isSubmitting },
+    formState: { isDirty, isValid, isSubmitting, dirtyFields },
   } = useForm<FormData>({
     mode: "onBlur",
     defaultValues: {
@@ -86,14 +86,19 @@ function ProgramPayoutSettingsSheetContent({
       return;
     }
 
+    const invoiceSettingsDirty =
+      dirtyFields.companyName || dirtyFields.address || dirtyFields.taxId;
+
     await executeAsync({
       workspaceId,
       minPayoutAmount: data.minPayoutAmount,
-      invoiceSettings: {
-        companyName: data.companyName,
-        address: data.address,
-        taxId: data.taxId,
-      },
+      ...(invoiceSettingsDirty && {
+        invoiceSettings: {
+          companyName: data.companyName,
+          address: data.address,
+          taxId: data.taxId,
+        },
+      }),
     });
   };
 
