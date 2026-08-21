@@ -570,9 +570,6 @@ export function AppSidebarNav({
     () => router.push(`/${slug}/${defaultProduct}`),
     {
       enabled: currentArea === "workspaceSettings",
-      priority: 2,
-      modal: false,
-      sheet: false,
     },
   );
 
