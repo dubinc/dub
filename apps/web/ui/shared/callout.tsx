@@ -49,7 +49,7 @@ export function Callout({
   return (
     <div
       className={cn(
-        "font-regular flex items-start gap-2.5 rounded-[10px] border text-sm",
+        "flex items-start gap-2.5 rounded-[10px] border text-sm font-normal",
         size === 2 ? "px-4 py-3" : "px-3 py-2",
         containerClassName,
         className,
