@@ -1,41 +1,9 @@
-import { conn } from "@/lib/planetscale";
-import { prisma } from "@/lib/prisma";
 import type { EnrolledPartnerProps } from "@/lib/types";
 import { nanoid } from "@dub/utils";
 import { expect } from "@playwright/test";
-import { apiError, randomName, randomPartnerEmail } from "../../utils";
+import { apiError } from "../../utils";
 import { test, type ApiClient } from "../fixtures";
-
-async function createPartner(
-  api: ApiClient,
-  overrides: Record<string, unknown> = {},
-) {
-  return api.post<EnrolledPartnerProps>("/api/partners", {
-    name: randomName(),
-    email: randomPartnerEmail(),
-    ...overrides,
-  });
-}
-
-async function deletePartner(partnerId: string | undefined) {
-  if (!partnerId) return;
-
-  await prisma.link.deleteMany({
-    where: {
-      partnerId,
-    },
-  });
-
-  await prisma.programEnrollment.deleteMany({
-    where: {
-      partnerId,
-    },
-  });
-
-  // Prisma partner.delete hits a PlanetScale relation quirk; raw SQL matches
-  // bulkDeletePartners cleanup used by e2e cron.
-  await conn.execute(`DELETE FROM Partner WHERE id = ?`, [partnerId]);
-}
+import { createPartner, deletePartner } from "./helpers";
 
 async function expectPartnerBanned(
   api: ApiClient,
