@@ -318,6 +318,7 @@ export const RichTextProvider = forwardRef<
 
           // Open the link edit modal when clicking a link in the editor
           if (
+            view.editable &&
             features.includes("links") &&
             event.target instanceof Element &&
             event.target.closest("a[href]")

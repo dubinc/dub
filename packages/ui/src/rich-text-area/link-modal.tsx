@@ -58,17 +58,25 @@ function RichTextLinkModalInner({ state }: { state: RichTextLinkModalState }) {
       return;
     }
 
-    editor
+    const trimmedText = text.trim();
+    const chain = editor
       .chain()
       .focus()
-      .insertContentAt({ from: state.from, to: state.to }, [
+      .setTextSelection({ from: state.from, to: state.to });
+
+    if (trimmedText && trimmedText === state.text.trim()) {
+      chain.setLink({ href: finalHref });
+    } else {
+      chain.insertContent([
         {
           type: "text",
-          text: text.trim() || finalHref,
+          text: trimmedText || finalHref,
           marks: [{ type: "link", attrs: { href: finalHref } }],
         },
-      ])
-      .run();
+      ]);
+    }
+
+    chain.run();
 
     setLinkModalState(null);
   };
