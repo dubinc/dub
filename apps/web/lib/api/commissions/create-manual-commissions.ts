@@ -475,29 +475,12 @@ async function recordEvents(args: RecordEventsArgs) {
 
   // Record sale events
   let saleEvents: z.infer<typeof saleEventSchemaTBWithTimestamp>[] = [];
-  // Only persist user-provided sale.metadata on the commission (not deprecated top-level productId).
+
+  // Only persist user-provided sale.metadata on the commission
   let commissionMetadata: Record<string, unknown> | null = null;
 
   if (type === "sale") {
-    const { importStripeInvoices, sale } = args;
-
-    const invoiceId = sale?.invoiceId ?? args.invoiceId;
-    const productId = sale?.metadata?.productId ?? args.productId;
-    const saleEventDate = args.date ?? args.saleEventDate ?? Date.now();
-    const eventName = sale?.eventName ?? "Purchase";
-    const paymentProcessor = sale?.paymentProcessor ?? "custom";
-    let saleAmount = sale?.amount ?? args.saleAmount;
-    let currency = sale?.currency ?? "usd";
-
-    // Include productId in Tinybird event metadata for Sale → Product ID reward modifiers.
-    const eventMetadata = {
-      ...(productId ? { productId } : {}),
-      ...(sale?.metadata ?? {}),
-    };
-
-    commissionMetadata = sale?.metadata ?? null;
-
-    if (importStripeInvoices) {
+    if (args.importStripeInvoices) {
       saleEvents = stripeCustomerInvoices.map((invoice) =>
         saleEventSchemaTBWithTimestamp.parse({
           ...clickEvent,
@@ -512,13 +495,29 @@ async function recordEvents(args: RecordEventsArgs) {
           metadata: JSON.stringify(invoice.metadata),
         }),
       );
-    } else if (saleAmount) {
-      // For non-USD currencies, convert the sale amount to USD based on the current FX rate
+    } else {
+      const { sale } = args;
+      const invoiceId = sale?.invoiceId ?? args.invoiceId;
+      const productId = sale?.metadata?.productId ?? args.productId;
+      const saleEventDate = args.date ?? args.saleEventDate ?? Date.now();
+      const eventName = sale?.eventName ?? "Purchase";
+      const paymentProcessor = sale?.paymentProcessor ?? "custom";
+      let currency = sale?.currency ?? "usd";
+      let saleAmount = sale?.amount ?? args.saleAmount;
+
+      const eventMetadata = {
+        ...(productId ? { productId } : {}),
+        ...(sale?.metadata ?? {}),
+      };
+
+      commissionMetadata = sale?.metadata ?? null;
+
+      // Convert the non-USD sale amount to USD based on the current FX rate
       if (currency !== "usd") {
         const { currency: convertedCurrency, amount: convertedAmount } =
           await convertCurrency({
             currency,
-            amount: saleAmount,
+            amount: saleAmount!,
           });
 
         currency = convertedCurrency;

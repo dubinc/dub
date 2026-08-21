@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import type { CommissionResponse } from "@/lib/types";
 import { expect } from "@playwright/test";
 import type { ApiClient } from "../fixtures";
 import { createPartner, deletePartner } from "../partners/helpers";
@@ -54,6 +55,7 @@ export async function deleteCommissionPartner({
 }
 
 export async function expectCommissionCreated({
+  api,
   partnerId,
   programId,
   type,
@@ -64,6 +66,7 @@ export async function expectCommissionCreated({
   expectedCreatedAt,
   expectedMetadata,
 }: {
+  api: ApiClient;
   partnerId: string;
   programId: string;
   type: "custom" | "lead" | "sale";
@@ -73,7 +76,7 @@ export async function expectCommissionCreated({
   expectedEarnings?: number;
   expectedCreatedAt?: Date;
   expectedMetadata?: Record<string, unknown> | null;
-}) {
+}): Promise<string> {
   const amount =
     expectedAmount ?? (type === "lead" ? 0 : type === "sale" ? 1000 : 0);
   const earnings =
@@ -83,6 +86,10 @@ export async function expectCommissionCreated({
       : type === "sale"
         ? TEST_COMMISSION_REWARDS.sale.amountInCents
         : 0);
+  const metadata =
+    expectedMetadata === undefined ? null : expectedMetadata;
+
+  let commissionId: string | undefined;
 
   await expect
     .poll(async () => {
@@ -102,6 +109,8 @@ export async function expectCommissionCreated({
       if (!commission) {
         return null;
       }
+
+      commissionId = commission.id;
 
       return {
         partnerId: commission.partnerId,
@@ -130,6 +139,46 @@ export async function expectCommissionCreated({
       createdAt: expectedCreatedAt
         ? expectedCreatedAt.toISOString()
         : expect.any(String),
-      metadata: expectedMetadata === undefined ? null : expectedMetadata,
+      metadata,
     });
+
+  if (!commissionId) {
+    throw new Error("Commission was not created");
+  }
+
+  const listQuery = new URLSearchParams({
+    partnerId,
+    type,
+    ...(invoiceId ? { invoiceId } : {}),
+  });
+
+  const { status: listStatus, data: commissions } = await api.get<
+    CommissionResponse[]
+  >(`/api/commissions?${listQuery}`);
+
+  expect(listStatus).toEqual(200);
+
+  const listed = invoiceId
+    ? commissions.find((c) => c.invoiceId === invoiceId)
+    : description
+      ? commissions.find((c) => c.description === description)
+      : commissions.find((c) => c.id === commissionId);
+
+  expect(listed).toMatchObject({
+    id: commissionId,
+    type,
+    metadata,
+  });
+
+  const { status: detailStatus, data: detail } =
+    await api.get<CommissionResponse>(`/api/commissions/${commissionId}`);
+
+  expect(detailStatus).toEqual(200);
+  expect(detail).toMatchObject({
+    id: commissionId,
+    type,
+    metadata,
+  });
+
+  return commissionId;
 }

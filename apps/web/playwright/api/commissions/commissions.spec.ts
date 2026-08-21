@@ -1,5 +1,6 @@
 import { createId } from "@/lib/api/create-id";
 import { prisma } from "@/lib/prisma";
+import type { CommissionResponse } from "@/lib/types";
 import { redis } from "@/lib/upstash";
 import { nanoid } from "@dub/utils";
 import { expect } from "@playwright/test";
@@ -54,6 +55,7 @@ test.describe("Custom commissions", () => {
       ).toEqual(expectedQueuedResponse);
 
       await expectCommissionCreated({
+        api,
         partnerId,
         programId: program.id,
         type: "custom",
@@ -76,6 +78,7 @@ test.describe("Custom commissions", () => {
       ).toEqual(expectedClawbackResponse);
 
       await expectCommissionCreated({
+        api,
         partnerId,
         programId: program.id,
         type: "custom",
@@ -127,6 +130,7 @@ test.describe("Lead commissions", () => {
       ).toEqual(expectedQueuedResponse);
 
       await expectCommissionCreated({
+        api,
         partnerId,
         programId: program.id,
         type: "lead",
@@ -157,6 +161,7 @@ test.describe("Lead commissions", () => {
       ).toEqual(expectedQueuedResponse);
 
       await expectCommissionCreated({
+        api,
         partnerId,
         programId: program.id,
         type: "lead",
@@ -186,6 +191,7 @@ test.describe("Lead commissions", () => {
       ).toEqual(expectedQueuedResponse);
 
       await expectCommissionCreated({
+        api,
         partnerId,
         programId: program.id,
         type: "lead",
@@ -211,6 +217,7 @@ test.describe("Lead commissions", () => {
       ).toEqual(expectedQueuedResponse);
 
       await expectCommissionCreated({
+        api,
         partnerId,
         programId: program.id,
         type: "lead",
@@ -255,6 +262,7 @@ test.describe("Sale commissions", () => {
       ).toEqual(expectedQueuedResponse);
 
       await expectCommissionCreated({
+        api,
         partnerId,
         programId: program.id,
         type: "sale",
@@ -288,6 +296,7 @@ test.describe("Sale commissions", () => {
       ).toEqual(expectedQueuedResponse);
 
       await expectCommissionCreated({
+        api,
         partnerId,
         programId: program.id,
         type: "sale",
@@ -296,6 +305,47 @@ test.describe("Sale commissions", () => {
         expectedEarnings:
           TEST_COMMISSION_REWARDS.sale.modifiers[1].amountInCents,
         expectedMetadata: metadata,
+      });
+    });
+  });
+
+  test("PATCH preserves metadata on the response", async ({ api, program }) => {
+    const invoiceId = `INV_${nanoid()}`;
+    const metadata = { plan: "pro", campaign: "spring" };
+
+    await withCommissionPartner(api, program, async (partnerId) => {
+      expect(
+        await api.post("/api/commissions", {
+          type: "sale",
+          partnerId,
+          sale: {
+            amount: 1000,
+            invoiceId,
+            metadata,
+          },
+          customer: customerBody(),
+        }),
+      ).toEqual(expectedQueuedResponse);
+
+      const commissionId = await expectCommissionCreated({
+        api,
+        partnerId,
+        programId: program.id,
+        type: "sale",
+        invoiceId,
+        expectedMetadata: metadata,
+      });
+
+      const { status, data } = await api.patch<CommissionResponse>(
+        `/api/commissions/${commissionId}`,
+        { earnings: 2500 },
+      );
+
+      expect(status).toEqual(200);
+      expect(data).toMatchObject({
+        id: commissionId,
+        earnings: 2500,
+        metadata,
       });
     });
   });
@@ -320,6 +370,7 @@ test.describe("Sale commissions", () => {
       ).toEqual(expectedQueuedResponse);
 
       await expectCommissionCreated({
+        api,
         partnerId,
         programId: program.id,
         type: "sale",
@@ -350,6 +401,7 @@ test.describe("Sale commissions", () => {
         ).toEqual(expectedQueuedResponse);
 
         await expectCommissionCreated({
+          api,
           partnerId,
           programId: program.id,
           type: "sale",
@@ -384,6 +436,7 @@ test.describe("Sale commissions", () => {
       ).toEqual(expectedQueuedResponse);
 
       await expectCommissionCreated({
+        api,
         partnerId,
         programId: program.id,
         type: "sale",
@@ -418,6 +471,7 @@ test.describe("Sale commissions", () => {
       ).toEqual(expectedQueuedResponse);
 
       await expectCommissionCreated({
+        api,
         partnerId,
         programId: program.id,
         type: "sale",
@@ -443,6 +497,7 @@ test.describe("Sale commissions", () => {
       ).toEqual(expectedQueuedResponse);
 
       await expectCommissionCreated({
+        api,
         partnerId,
         programId: program.id,
         type: "sale",
@@ -478,6 +533,7 @@ test.describe("Sale commissions", () => {
       ).toEqual(expectedQueuedResponse);
 
       await expectCommissionCreated({
+        api,
         partnerId,
         programId: program.id,
         type: "sale",
@@ -514,6 +570,7 @@ test.describe("Sale commissions", () => {
       ).toEqual(expectedQueuedResponse);
 
       await expectCommissionCreated({
+        api,
         partnerId,
         programId: program.id,
         type: "sale",
