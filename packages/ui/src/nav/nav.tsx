@@ -20,6 +20,7 @@ import { useScroll } from "../hooks";
 import { MaxWidthWrapper } from "../max-width-wrapper";
 import { NavWordmark } from "../nav-wordmark";
 import { ProductContent } from "./content/product-content";
+import { usePreloadProgramMarketplaceLogos } from "./content/program-marketplace";
 import { ResourcesContent } from "./content/resources-content";
 import { SolutionsContent } from "./content/solutions-content";
 
@@ -68,6 +69,7 @@ export const navItems = [
       "/blog",
       "/changelog",
       "/contact",
+      "/marketplace",
     ],
   },
   {
@@ -152,6 +154,9 @@ export function Nav({
     },
   );
 
+  // warm the marketplace logos so the Resources dropdown opens without a stutter
+  usePreloadProgramMarketplaceLogos();
+
   const showHover = (item: HTMLElement) => {
     const list = navListRef.current;
     if (!list) return;
@@ -212,9 +217,8 @@ export function Nav({
                 className="group/nav relative flex"
                 onMouseLeave={() => {
                   const list = navListRef.current;
-                  const openTrigger = list?.querySelector<HTMLElement>(
-                    "[data-state=open]",
-                  );
+                  const openTrigger =
+                    list?.querySelector<HTMLElement>("[data-state=open]");
                   // Keep the pill on the open trigger so it doesn't flicker into the dropdown
                   if (list && openTrigger) {
                     setHoverStyle(getHoverStyle(list, openTrigger));
@@ -280,7 +284,10 @@ export function Nav({
                   className={cn(
                     "relative flex origin-top justify-start overflow-hidden rounded-[20px] border border-neutral-200 bg-white shadow-md dark:border-white/[0.15] dark:bg-black",
                     "data-[state=closed]:animate-scale-out-content data-[state=open]:animate-scale-in-content",
-                    "h-[var(--radix-navigation-menu-viewport-height)] w-[var(--radix-navigation-menu-viewport-width)] transition-[width,height]",
+                    // +2px: Radix measures the content's border-box, but this element's
+                    // 1px borders eat into it (border-box sizing), clipping fixed-width
+                    // content by 2px on the right/bottom
+                    "h-[calc(var(--radix-navigation-menu-viewport-height)_+_2px)] w-[calc(var(--radix-navigation-menu-viewport-width)_+_2px)] transition-[width,height]",
                   )}
                 />
               </div>

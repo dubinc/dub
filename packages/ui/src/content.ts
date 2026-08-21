@@ -17,6 +17,7 @@ import {
   Php,
   Python,
   Ruby,
+  Shop,
   Toggle2,
   Twitter,
   Typescript,
@@ -138,17 +139,20 @@ export const SOLUTIONS: NavItemChildren = [
   },
 ];
 
+// TODO: replace with the public program marketplace URL once it's live
+export const PROGRAM_MARKETPLACE_HREF = "/marketplace";
+
 export const RESOURCES = [
   {
-    icon: LifeRing,
+    icon: withFillVariant(LifeRing),
     title: "Help Center",
     description: "Answers to your questions",
     href: "/help",
   },
   {
-    icon: Book2,
+    icon: withFillVariant(Book2),
     title: "Docs",
-    description: "Platform documentation",
+    description: "Developer documentation",
     href: "/docs",
   },
   {
@@ -158,35 +162,67 @@ export const RESOURCES = [
     href: "/about",
   },
   {
-    icon: Briefcase,
+    icon: withFillVariant(Briefcase),
     title: "Careers",
     description: "Join our global, remote team",
     href: "/careers",
   },
   {
-    icon: Feather,
+    icon: withFillVariant(Feather),
     title: "Blog",
     description: "Insights and stories",
     href: "/blog",
   },
   {
-    icon: BulletList,
+    icon: withFillVariant(BulletList),
     title: "Changelog",
     description: "Releases and updates",
     href: "/changelog",
   },
   {
     icon: Logo,
-    title: "Brand Guidelines",
+    title: "Dub Brand",
     description: "Logos, wordmark, etc.",
     href: "/brand",
   },
   {
-    icon: Envelope,
+    icon: withFillVariant(Envelope),
     title: "Contact",
     description: "Reach out to support or sales",
     href: "/contact",
   },
+  {
+    icon: withFillVariant(Shop),
+    title: "Program Marketplace",
+    description: "Browse our available partner programs",
+    href: PROGRAM_MARKETPLACE_HREF,
+  },
+];
+
+/**
+ * Programs whose logos are shown in the Program Marketplace section of the
+ * Resources dropdown, by program slug (i.e. dub.co/{slug}, not the workspace).
+ *
+ * Logos are pulled from each program's own logo via /api/misc/program-logos –
+ * slugs that don't resolve to a marketplace program are skipped.
+ */
+export const PROGRAM_MARKETPLACE_SLUGS = [
+  "beehiiv",
+  "flow",
+  "granola",
+  "superhuman",
+  "polymarket",
+  "viktor",
+  "framer",
+  "flora",
+  "dub",
+  "superpower",
+  "chatbase",
+  "copper",
+  "anything",
+  "tradezella",
+  "buffer",
+  "coderabbit",
 ];
 
 export const COMPARE_PAGES = [
