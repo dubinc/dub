@@ -2,12 +2,12 @@
   "sourcePartner": {
     "id": "pn_1K9BZE1K285BSTX4W6MPKXJFZ",
     "tenantId": "64dc9a8c-5cf9-4446-b53b-cdc15199fafc",
-    "email": "old@example.com"
+    "email": "source@example.com"
   },
   "targetPartner": {
     "id": "pn_1K06X6FX2GRB31NCM2VVCGJ72",
-    "tenantId": null,
-    "email": "kept@example.com"
+    "tenantId": "64dc9a8c-5cf9-4446-b53b-cdc15199fafc",
+    "email": "target@example.com"
   },
   "targetAlreadyEnrolled": false
 }
