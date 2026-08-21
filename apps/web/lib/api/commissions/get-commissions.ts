@@ -1,4 +1,6 @@
 import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
+import { buildMetadataSql } from "@/lib/metadata-filters/metadata-sql";
+import { parseMetadataQuery } from "@/lib/metadata-filters/parse-metadata-query";
 import { prisma } from "@/lib/prisma";
 import { getCommissionsQuerySchema } from "@/lib/zod/schemas/commissions";
 import { parseFilterValue } from "@dub/utils";
@@ -39,7 +41,10 @@ export async function getCommissions(filters: CommissionsFilters) {
     timezone,
     startingAfter,
     endingBefore,
+    query,
   } = filters;
+
+  const metadataFilters = parseMetadataQuery(query);
 
   const { cursorSql, orderBySql, limit, offsetSql, reverse } =
     buildPaginationSql({
@@ -227,6 +232,10 @@ export async function getCommissions(filters: CommissionsFilters) {
               AND ppt.partnerTagId IN (${list})
           )`,
     );
+  }
+
+  if (metadataFilters?.length) {
+    conditions.push(buildMetadataSql(metadataFilters));
   }
 
   const where = Prisma.sql`WHERE ${Prisma.join(conditions, " AND ")}`;

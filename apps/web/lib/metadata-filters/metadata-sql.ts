@@ -1,7 +1,7 @@
 import { Prisma } from "@prisma/client";
 import type { MetadataFilter } from "./parse-metadata-query";
 
-const OPERATOR_SQL: Record<MetadataFilter["operator"], string> = {
+const OPERATOR_SQL_MAP: Record<MetadataFilter["operator"], string> = {
   equals: "=",
   notEquals: "!=",
   greaterThan: ">",
@@ -19,7 +19,7 @@ export function buildMetadataSql(
   column: Prisma.Sql = Prisma.raw("c.metadata"),
 ): Prisma.Sql {
   const conditions = filters.map((filter) => {
-    const op = OPERATOR_SQL[filter.operator];
+    const op = OPERATOR_SQL_MAP[filter.operator];
     // Key is validated as [A-Za-z0-9_]+ before reaching here
     const jsonPath = `$.${filter.key}`;
 

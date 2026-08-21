@@ -25,6 +25,17 @@ describe("parseMetadataQuery", () => {
     ]);
   });
 
+  it.each([
+    [">", "greaterThan"],
+    ["<", "lessThan"],
+    [">=", "greaterThanOrEqual"],
+    ["<=", "lessThanOrEqual"],
+  ] as const)("parses %s as %s", (op, operator) => {
+    expect(parseMetadataQuery(`metadata['seats']${op}10`)).toEqual([
+      { key: "seats", operator, value: "10" },
+    ]);
+  });
+
   it("parses AND of two top-level keys", () => {
     expect(
       parseMetadataQuery("metadata['plan']:'pro' AND metadata['tier']:'gold'"),

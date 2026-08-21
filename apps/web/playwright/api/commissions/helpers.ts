@@ -18,6 +18,19 @@ export async function withCommissionPartner(
     });
     partnerId = data.id;
     expect(status).toEqual(201);
+
+    // Default links are created with the partner, but under load they can lag
+    // behind the 201 — lead/sale commission creation requires at least one.
+    await expect
+      .poll(async () =>
+        prisma.link.count({
+          where: {
+            partnerId,
+          },
+        }),
+      )
+      .toBeGreaterThan(0);
+
     await run(partnerId);
   } finally {
     await deleteCommissionPartner({ partnerId });
