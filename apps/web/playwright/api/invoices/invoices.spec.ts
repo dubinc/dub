@@ -169,10 +169,10 @@ test("GET /invoices/:payoutId – program invoice settings", async ({
     expect(invoice.contentDisposition).toContain(
       `filename="payout-invoice-${payout.id}.pdf"`,
     );
+    expect(invoice.pdfContains("Dub Technologies INC")).toBe(true);
     expect(invoice.pdfContains(invoiceSettings.companyName)).toBe(true);
     expect(invoice.pdfContains(invoiceSettings.address)).toBe(true);
     expect(invoice.pdfContains(invoiceSettings.taxId)).toBe(true);
-    expect(invoice.pdfContains("Dub Technologies INC")).toBe(false);
   } finally {
     await setInvoiceSettings(program.id, null);
     await deleteInvoicePartner(auth);

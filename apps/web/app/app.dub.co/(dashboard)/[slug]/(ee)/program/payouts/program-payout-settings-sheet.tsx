@@ -210,8 +210,8 @@ function ProgramPayoutSettingsSheetContent({
               Invoice details (optional)
             </h4>
             <p className="text-sm font-medium text-neutral-500">
-              This information replaces Dub's company details on partner payout
-              invoices.
+              This information is added to partner payout invoices. Only the
+              fields you fill in are shown.
             </p>
           </div>
 
