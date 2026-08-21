@@ -1,5 +1,5 @@
 import { logger, toErrorFields } from "@/lib/axiom/server";
-import { APP_DOMAIN_WITH_NGROK, pluralize } from "@dub/utils";
+import { APP_DOMAIN, pluralize } from "@dub/utils";
 import { FlowControl } from "@upstash/qstash";
 import { Client } from "@upstash/workflow";
 
@@ -14,7 +14,10 @@ const client = new Client({
   }),
 });
 
-type WorkflowType = "partner-approved" | "create-partner-commission";
+type WorkflowType =
+  | "partner-approved"
+  | "create-partner-commission"
+  | "merge-partner-accounts";
 
 interface QStashWorkflow {
   workflowType: WorkflowType;
@@ -34,7 +37,7 @@ export async function triggerQStashWorkflow(
     try {
       const response = await client.trigger(
         workflows.map((workflow) => ({
-          url: `${APP_DOMAIN_WITH_NGROK}/api/workflows/${workflow.workflowType}`,
+          url: `${APP_DOMAIN}/api/workflows/${workflow.workflowType}`,
           body: workflow.body,
           label: workflow.workflowLabel,
           retries: 5,
@@ -103,6 +106,16 @@ export function getWorkflowConfig({
           partnerId: body.partnerId,
           customerId: body.customerId,
           bountySubmissionId: body.bountySubmissionId,
+        },
+      };
+    }
+
+    case "merge-partner-accounts": {
+      return {
+        correlation: {
+          userId: body.userId,
+          sourceEmail: body.sourceEmail,
+          targetEmail: body.targetEmail,
         },
       };
     }

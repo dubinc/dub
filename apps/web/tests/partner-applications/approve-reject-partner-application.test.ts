@@ -1,9 +1,9 @@
 import { generateRandomName } from "@/lib/names";
 import { Partner } from "@prisma/client";
 import { describe, expect, test } from "vitest";
-import { randomPartnerEmail } from "../../utils/helpers";
-import { IntegrationHarness } from "../../utils/integration";
-import { E2E_PARTNER_GROUP } from "../../utils/resource";
+import { randomPartnerEmail } from "../utils/helpers";
+import { IntegrationHarness } from "../utils/integration";
+import { E2E_PARTNER_GROUP } from "../utils/resource";
 
 describe.sequential(
   "POST /partners/applications/reject and /approve",
