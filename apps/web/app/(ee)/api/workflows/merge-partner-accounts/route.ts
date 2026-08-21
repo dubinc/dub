@@ -11,6 +11,8 @@ import { prisma } from "@/lib/prisma";
 import { storage } from "@/lib/storage";
 import { recordLink } from "@/lib/tinybird";
 import { redis } from "@/lib/upstash";
+import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
+import { partnerMergedWebhookSchema } from "@/lib/zod/schemas/partners";
 import { sendBatchEmail } from "@dub/email";
 import PartnerAccountMerged from "@dub/email/templates/partner-account-merged";
 import { log, prettyPrint, R2_URL } from "@dub/utils";
@@ -87,6 +89,8 @@ export const { POST } = serve<Input>(
           enrollmentId,
           sourcePartnerId,
           targetPartnerId,
+          sourceEmail,
+          targetEmail,
         });
       });
     }
@@ -432,13 +436,29 @@ async function mergeSingleEnrollment({
   enrollmentId,
   sourcePartnerId,
   targetPartnerId,
+  sourceEmail,
+  targetEmail,
 }: {
   enrollmentId: string;
   sourcePartnerId: string;
   targetPartnerId: string;
+  sourceEmail: string;
+  targetEmail: string;
 }) {
   const sourceEnrollment = await prisma.programEnrollment.findUnique({
     where: { id: enrollmentId },
+    include: {
+      program: {
+        select: {
+          workspace: {
+            select: {
+              id: true,
+              webhookEnabled: true,
+            },
+          },
+        },
+      },
+    },
   });
 
   if (!sourceEnrollment) {
@@ -483,6 +503,8 @@ async function mergeSingleEnrollment({
     targetPartnerId,
     programId,
   });
+
+  let action: "overlap" | "transfer";
 
   if (targetEnrollment) {
     await prisma.$transaction(async (tx) => {
@@ -539,91 +561,51 @@ async function mergeSingleEnrollment({
       }
     });
 
-    return logAndReturn({
-      programId,
-      action: "overlap",
-      outputLog: `Merged overlapping enrollment for program ${programId}`,
-    });
-  }
-
-  // Application events and discovered partners are unique on
-  // (programId, partnerId). Move the source row when the target has none;
-  // otherwise delete it so rewriting enrollment.partnerId cannot collide.
-  const { count, cleared } = await prisma.$transaction(async (tx) => {
-    const cleared: string[] = [];
-
-    const targetEvent = await tx.programApplicationEvent.findUnique({
-      where: {
-        programId_partnerId: { programId, partnerId: targetPartnerId },
-      },
-      select: { id: true },
-    });
-
-    if (targetEvent) {
-      await tx.programApplicationEvent.deleteMany({
-        where: { programId, partnerId: sourcePartnerId },
-      });
-      cleared.push("deleted source application event");
-    } else {
-      const { count: transferredEvents } =
-        await tx.programApplicationEvent.updateMany({
-          where: { programId, partnerId: sourcePartnerId },
-          data: { partnerId: targetPartnerId },
-        });
-
-      if (transferredEvents > 0) {
-        cleared.push("transferred application event");
-      }
-    }
-
-    const targetDiscoveredPartner = await tx.discoveredPartner.findUnique({
-      where: {
-        programId_partnerId: { programId, partnerId: targetPartnerId },
-      },
-      select: { id: true },
-    });
-
-    if (targetDiscoveredPartner) {
-      await tx.discoveredPartner.deleteMany({
-        where: { programId, partnerId: sourcePartnerId },
-      });
-      cleared.push("deleted source discovered partner");
-    } else {
-      const { count: transferredDiscovered } =
-        await tx.discoveredPartner.updateMany({
-          where: { programId, partnerId: sourcePartnerId },
-          data: { partnerId: targetPartnerId },
-        });
-
-      if (transferredDiscovered > 0) {
-        cleared.push("transferred discovered partner");
-      }
-    }
-
+    action = "overlap";
+  } else {
     // Scope the transfer to the source partner so a concurrent reassignment
     // can't make us steal another partner's enrollment.
-    const { count } = await tx.programEnrollment.updateMany({
+    const { count } = await prisma.programEnrollment.updateMany({
       where: { id: sourceEnrollment.id, partnerId: sourcePartnerId },
       data: { partnerId: targetPartnerId },
     });
 
-    return { count, cleared };
-  });
+    if (count === 0) {
+      return logAndReturn({
+        programId,
+        action: "skip",
+        outputLog: `Enrollment ${sourceEnrollment.id} no longer owned by ${sourcePartnerId}, skipping transfer`,
+      });
+    }
 
-  if (count === 0) {
-    return logAndReturn({
-      programId,
-      action: "skip",
-      outputLog: `Enrollment ${sourceEnrollment.id} no longer owned by ${sourcePartnerId}, skipping transfer`,
-    });
+    action = "transfer";
   }
 
-  const clearedLog = cleared.length > 0 ? ` (${cleared.join(", ")})` : "";
+  await sendWorkspaceWebhook({
+    workspace: sourceEnrollment.program.workspace,
+    trigger: "partner.merged",
+    data: partnerMergedWebhookSchema.parse({
+      sourcePartner: {
+        id: sourcePartnerId,
+        tenantId: sourceEnrollment.tenantId,
+        email: sourceEmail,
+      },
+      targetPartner: {
+        id: targetPartnerId,
+        tenantId: targetEnrollment?.tenantId ?? sourceEnrollment.tenantId,
+        email: targetEmail,
+      },
+      targetAlreadyEnrolled: Boolean(targetEnrollment),
+    }),
+  });
 
   return logAndReturn({
     programId,
-    action: "transfer",
-    outputLog: `Transferred enrollment for program ${programId}${clearedLog}`,
+    action,
+    outputLog:
+      action === "overlap"
+        ? `Merged overlapping enrollment for program ${programId}: ${sourceEmail} (${sourcePartnerId}) -> ${targetEmail} (${targetPartnerId}).`
+        : `Transferred enrollment for program ${programId}: ${sourceEmail} (${sourcePartnerId}) -> ${targetEmail} (${targetPartnerId}).`,
   });
 }
 
