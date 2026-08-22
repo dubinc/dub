@@ -574,6 +574,7 @@ export type ProgramProps = Omit<
 > & {
   referralFormData?: Prisma.JsonValue | null;
   applicationRequirements?: Prisma.JsonValue | null;
+  invoiceSettings?: Prisma.JsonValue | null;
 };
 
 export type ProgramInviteEmailData = z.infer<
