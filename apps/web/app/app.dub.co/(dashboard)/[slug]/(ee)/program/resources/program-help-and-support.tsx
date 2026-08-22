@@ -183,7 +183,7 @@ export function ProgramHelpAndSupportContent({
 
           <SettingsRow
             heading="Terms of Service"
-            description="Program terms of service and legal information"
+            description="Program terms of service and legal information. [Generate terms for free.](https://dub.co/tools/affiliate-terms-generator)"
           >
             <div className="flex items-center justify-end">
               <div className="w-full max-w-md">
