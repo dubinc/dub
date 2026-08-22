@@ -180,6 +180,7 @@ export default function NetworkApplicationsPage() {
     queryParams({
       del: ["networkStatus", "country", "page", "sortBy"],
       scroll: false,
+      shallow: true,
     });
   };
 
