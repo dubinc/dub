@@ -1,12 +1,18 @@
 import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
+import { buildMetadataSql } from "@/lib/metadata-filters/metadata-sql";
+import { parseMetadataQuery } from "@/lib/metadata-filters/parse-metadata-query";
 import { prisma } from "@/lib/prisma";
 import { getCommissionsQuerySchema } from "@/lib/zod/schemas/commissions";
 import { parseFilterValue } from "@dub/utils";
-import { CommissionStatus, CommissionType } from "@prisma/client";
+import { CommissionStatus, CommissionType, Prisma } from "@prisma/client";
 import * as z from "zod/v4";
 import { DubApiError } from "../errors";
 import { getFraudEventGroupEventIds } from "../fraud/get-fraud-event-group-event-ids";
-import { buildPaginationQuery } from "../pagination";
+import { buildPaginationSql } from "../pagination";
+import {
+  type CommissionListRow,
+  mapCommissionListRow,
+} from "./map-commission-list-row";
 
 type CommissionsFilters = Omit<
   z.infer<typeof getCommissionsQuerySchema>,
@@ -35,9 +41,17 @@ export async function getCommissions(filters: CommissionsFilters) {
     timezone,
     startingAfter,
     endingBefore,
+    query,
   } = filters;
 
-  const paginationQuery = buildPaginationQuery(filters);
+  const metadataFilters = parseMetadataQuery(query);
+
+  const { cursorSql, orderBySql, limit, offsetSql, reverse } =
+    buildPaginationSql({
+      filters,
+      alias: "c",
+      allowedSortBy: ["createdAt", "amount"],
+    });
 
   // Validate the provided cursor ID
   const cursorId = startingAfter || endingBefore;
@@ -103,82 +117,172 @@ export async function getCommissions(filters: CommissionsFilters) {
         }
       : null;
 
-  const statusFilter = status
-    ? status
-    : type || customerId || payoutId || partnerId
-      ? undefined
-      : {
-          notIn: [
-            CommissionStatus.duplicate,
-            CommissionStatus.fraud,
-            CommissionStatus.canceled,
-          ],
-        };
-
-  const programEnrollmentFilter = {
-    ...(groupFilter && {
-      groupId:
-        groupFilter.sqlOperator === "NOT IN"
-          ? { notIn: groupFilter.values }
-          : { in: groupFilter.values },
-    }),
-    ...(partnerTagFilter && {
-      programPartnerTags:
-        partnerTagFilter.sqlOperator === "NOT IN"
-          ? { none: { partnerTagId: { in: partnerTagFilter.values } } }
-          : { some: { partnerTagId: { in: partnerTagFilter.values } } },
-    }),
-  };
-
-  return await prisma.commission.findMany({
-    where: invoiceId
-      ? {
-          invoiceId,
-          programId,
-        }
-      : {
-          earnings: {
-            not: 0,
+  // Invoice is unique within a program, so we can return the commission directly
+  if (invoiceId) {
+    return await prisma.commission.findMany({
+      where: {
+        invoiceId,
+        programId,
+      },
+      include: {
+        customer: true,
+        partner: true,
+        programEnrollment: true,
+        payout: {
+          select: {
+            paidAt: true,
           },
-          programId,
-          ...(partnerFilter && {
-            partnerId:
-              partnerFilter.sqlOperator === "NOT IN"
-                ? { notIn: partnerFilter.values }
-                : { in: partnerFilter.values },
-          }),
-          status: statusFilter,
-          ...(typeFilter && {
-            type:
-              typeFilter.sqlOperator === "NOT IN"
-                ? { notIn: typeFilter.values }
-                : { in: typeFilter.values },
-          }),
-          customerId,
-          payoutId,
-          ...(eventIds && {
-            eventId: {
-              in: eventIds,
-            },
-          }),
-          createdAt: {
-            gte: startDate,
-            lte: endDate,
-          },
-          ...(Object.keys(programEnrollmentFilter).length > 0 && {
-            programEnrollment: programEnrollmentFilter,
-          }),
-        },
-    include: {
-      customer: true,
-      partner: true,
-      programEnrollment: true,
-      payout: {
-        select: {
-          paidAt: true,
         },
       },
-    },
-    ...paginationQuery,
-  });
+    });
+  }
+
+  const conditions: Prisma.Sql[] = [
+    Prisma.sql`c.earnings != 0`,
+    Prisma.sql`c.programId = ${programId}`,
+  ];
+
+  if (partnerFilter) {
+    conditions.push(
+      partnerFilter.sqlOperator === "NOT IN"
+        ? Prisma.sql`c.partnerId NOT IN (${Prisma.join(partnerFilter.values)})`
+        : Prisma.sql`c.partnerId IN (${Prisma.join(partnerFilter.values)})`,
+    );
+  }
+
+  if (status) {
+    conditions.push(Prisma.sql`c.status = ${status}`);
+  } else if (!(type || customerId || payoutId || partnerId)) {
+    conditions.push(
+      Prisma.sql`c.status NOT IN (${Prisma.join(
+        [
+          CommissionStatus.duplicate,
+          CommissionStatus.fraud,
+          CommissionStatus.canceled,
+        ].map((s) => Prisma.sql`${s}`),
+      )})`,
+    );
+  }
+
+  if (typeFilter) {
+    const list = Prisma.join(typeFilter.values.map((v) => Prisma.sql`${v}`));
+
+    conditions.push(
+      typeFilter.sqlOperator === "NOT IN"
+        ? Prisma.sql`c.type NOT IN (${list})`
+        : Prisma.sql`c.type IN (${list})`,
+    );
+  }
+
+  if (customerId) {
+    conditions.push(Prisma.sql`c.customerId = ${customerId}`);
+  }
+
+  if (payoutId) {
+    conditions.push(Prisma.sql`c.payoutId = ${payoutId}`);
+  }
+
+  if (eventIds) {
+    conditions.push(Prisma.sql`c.eventId IN (${Prisma.join(eventIds)})`);
+  }
+
+  if (startDate && endDate) {
+    conditions.push(
+      Prisma.sql`c.createdAt BETWEEN ${startDate} AND ${endDate}`,
+    );
+  }
+
+  if (groupFilter) {
+    const list = Prisma.join(groupFilter.values.map((v) => Prisma.sql`${v}`));
+
+    conditions.push(
+      groupFilter.sqlOperator === "NOT IN"
+        ? Prisma.sql`EXISTS (
+            SELECT 1 FROM ProgramEnrollment pe
+            WHERE pe.programId = c.programId
+              AND pe.partnerId = c.partnerId
+              AND pe.groupId NOT IN (${list})
+          )`
+        : Prisma.sql`EXISTS (
+            SELECT 1 FROM ProgramEnrollment pe
+            WHERE pe.programId = c.programId
+              AND pe.partnerId = c.partnerId
+              AND pe.groupId IN (${list})
+          )`,
+    );
+  }
+
+  if (partnerTagFilter) {
+    const list = Prisma.join(
+      partnerTagFilter.values.map((v) => Prisma.sql`${v}`),
+    );
+
+    conditions.push(
+      partnerTagFilter.sqlOperator === "NOT IN"
+        ? Prisma.sql`NOT EXISTS (
+            SELECT 1 FROM ProgramPartnerTag ppt
+            WHERE ppt.programId = c.programId
+              AND ppt.partnerId = c.partnerId
+              AND ppt.partnerTagId IN (${list})
+          )`
+        : Prisma.sql`EXISTS (
+            SELECT 1 FROM ProgramPartnerTag ppt
+            WHERE ppt.programId = c.programId
+              AND ppt.partnerId = c.partnerId
+              AND ppt.partnerTagId IN (${list})
+          )`,
+    );
+  }
+
+  if (metadataFilters?.length) {
+    conditions.push(buildMetadataSql(metadataFilters));
+  }
+
+  const where = Prisma.sql`WHERE ${Prisma.join(conditions, " AND ")}`;
+
+  const commissions = await prisma.$queryRaw<CommissionListRow[]>`
+    SELECT
+      c.*,
+      cu.id AS customerId,
+      cu.name AS customerName,
+      cu.email AS customerEmail,
+      cu.avatar AS customerAvatar,
+      cu.externalId AS customerExternalId,
+      cu.stripeCustomerId AS customerStripeCustomerId,
+      cu.country AS customerCountry,
+      cu.sales AS customerSales,
+      cu.saleAmount AS customerSaleAmount,
+      cu.createdAt AS customerCreatedAt,
+      cu.firstSaleAt AS customerFirstSaleAt,
+      cu.subscriptionCanceledAt AS customerSubscriptionCanceledAt,
+      pa.id AS partnerId,
+      pa.name AS partnerName,
+      pa.email AS partnerEmail,
+      pa.image AS partnerImage,
+      pa.payoutsEnabledAt AS partnerPayoutsEnabledAt,
+      pa.country AS partnerCountry,
+      pe.groupId AS groupId,
+      pe.tenantId AS tenantId,
+      py.paidAt AS paidAt
+    FROM Commission c
+    LEFT JOIN Customer cu 
+      ON cu.id = c.customerId
+    LEFT JOIN Partner pa 
+      ON pa.id = c.partnerId
+    LEFT JOIN ProgramEnrollment pe 
+      ON pe.programId = c.programId AND pe.partnerId = c.partnerId
+    LEFT JOIN Payout py 
+      ON py.id = c.payoutId
+    ${where}
+    ${cursorSql}
+    ORDER BY ${orderBySql}
+    LIMIT ${limit}
+    ${offsetSql}
+  `;
+
+  const mapped = commissions.map(mapCommissionListRow);
+
+  // Reverse the result back to the requested order after using the
+  // opposite sort direction to emulate Prisma's negative `take` behavior.
+  return reverse ? mapped.reverse() : mapped;
 }

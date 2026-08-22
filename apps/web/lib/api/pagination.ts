@@ -21,6 +21,16 @@ interface PaginationQuery {
 
 export const MAX_OFFSET_PAGE = 1000;
 
+const SQL_IDENT = /^[A-Za-z_][A-Za-z0-9_]*$/;
+
+interface PaginationSql {
+  cursorSql: Prisma.Sql;
+  orderBySql: Prisma.Sql;
+  limit: number;
+  offsetSql: Prisma.Sql;
+  reverse: boolean;
+}
+
 export function buildPaginationQuery(filters: Filters): PaginationQuery {
   let { page, pageSize, startingAfter, endingBefore, sortBy, sortOrder } =
     filters;
@@ -86,4 +96,106 @@ export function buildPaginationQuery(filters: Filters): PaginationQuery {
     take: pageSize,
     skip: (page - 1) * pageSize,
   };
+}
+
+/**
+ * SQL equivalent of buildPaginationQuery for $queryRaw.
+ * Cursor uses id inequality (no OFFSET); endingBefore sets reverse.
+ */
+export function buildPaginationSql({
+  filters,
+  alias,
+  allowedSortBy,
+}: {
+  filters: Filters;
+  alias: string;
+  allowedSortBy: readonly string[];
+}): PaginationSql {
+  if (!SQL_IDENT.test(alias)) {
+    throw new DubApiError({
+      code: "unprocessable_entity",
+      message: `Invalid table alias: ${alias}`,
+    });
+  }
+
+  const { take, skip, cursor, orderBy } = buildPaginationQuery(filters);
+  // Cursor pagination orders by id (see buildPaginationQuery), not createdAt.
+  const allowed = new Set(["id", ...allowedSortBy]);
+
+  // Examples with alias "c", sortOrder desc, pageSize 25:
+  // offset page 1  → cursorSql: (empty)
+  //                   orderBySql: c.`createdAt` DESC
+  // offset page 2  → cursorSql: (empty)
+  //                   orderBySql: c.`createdAt` DESC  + OFFSET 25
+  // startingAfter  → cursorSql: AND c.id < ?
+  //                   orderBySql: c.`id` DESC
+  // endingBefore   → cursorSql: AND c.id > ?
+  //                   orderBySql: c.`id` DESC  + reverse rows
+  return {
+    cursorSql: buildCursorSql({
+      cursor,
+      take,
+      sortOrder: filters.sortOrder,
+      alias,
+    }),
+    orderBySql: buildOrderBySql({
+      orderBy,
+      alias,
+      allowed,
+    }),
+    offsetSql: !cursor && skip > 0 ? Prisma.sql`OFFSET ${skip}` : Prisma.empty,
+    limit: Math.abs(take),
+    reverse: take < 0,
+  };
+}
+
+function buildOrderBySql({
+  orderBy,
+  alias,
+  allowed,
+}: {
+  orderBy: PaginationQuery["orderBy"];
+  alias: string;
+  allowed: Set<string>;
+}): Prisma.Sql {
+  const entries = Array.isArray(orderBy)
+    ? orderBy.flatMap((o) => Object.entries(o))
+    : Object.entries(orderBy);
+
+  const parts = entries.map(([field, direction]) => {
+    if (!allowed.has(field) || !SQL_IDENT.test(field)) {
+      throw new DubApiError({
+        code: "unprocessable_entity",
+        message: `Invalid sort field: ${field}`,
+      });
+    }
+
+    const dir = direction === "asc" ? "ASC" : "DESC";
+    return Prisma.sql`${Prisma.raw(`${alias}.\`${field}\``)} ${Prisma.raw(dir)}`;
+  });
+
+  return Prisma.join(parts, ", ");
+}
+
+function buildCursorSql({
+  cursor,
+  take,
+  sortOrder,
+  alias,
+}: {
+  cursor: { id: string } | undefined;
+  take: number;
+  sortOrder: Prisma.SortOrder;
+  alias: string;
+}): Prisma.Sql {
+  if (!cursor) {
+    return Prisma.empty;
+  }
+
+  const forward = take > 0;
+  const useGreaterThan = forward === (sortOrder === "asc");
+
+  return useGreaterThan
+    ? Prisma.sql`AND ${Prisma.raw(`${alias}.id`)} > ${cursor.id}`
+    : Prisma.sql`AND ${Prisma.raw(`${alias}.id`)} < ${cursor.id}`;
 }
