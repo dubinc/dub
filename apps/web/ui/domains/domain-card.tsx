@@ -7,10 +7,10 @@ import {
   DomainVerificationStatusProps,
   LinkProps,
 } from "@/lib/types";
+import { Callout } from "@/ui/shared/callout";
 import { CheckCircleFill, Delete, Repeat, ThreeDots } from "@/ui/shared/icons";
 import {
   Button,
-  CircleCheck,
   Copy,
   Popover,
   Refresh2,
@@ -310,20 +310,17 @@ export default function DomainCard({ props }: { props: DomainProps }) {
           >
             {verificationData ? (
               verificationData.status === "Valid Configuration" ? (
-                <div className="mt-6 flex items-center gap-2 text-pretty rounded-lg bg-green-100/80 p-3 text-sm text-green-600">
-                  <CircleCheck className="h-5 w-5 shrink-0" />
-                  <div>
-                    Good news! Your DNS records are set up correctly, but it can
-                    take some time for them to propagate globally.{" "}
-                    <Link
-                      href="https://dub.co/help/article/how-to-add-custom-domain#how-long-do-i-have-to-wait-for-my-domain-to-work"
-                      target="_blank"
-                      className="underline transition-colors hover:text-green-800"
-                    >
-                      Learn more.
-                    </Link>
-                  </div>
-                </div>
+                <Callout variant="success" size={2} className="mt-6">
+                  Good news! Your DNS records are set up correctly, but it can
+                  take some time for them to propagate globally.{" "}
+                  <Link
+                    href="https://dub.co/help/article/how-to-add-custom-domain#how-long-do-i-have-to-wait-for-my-domain-to-work"
+                    target="_blank"
+                    className="underline transition-colors hover:text-green-800"
+                  >
+                    Learn more.
+                  </Link>
+                </Callout>
               ) : (
                 <DomainConfiguration
                   data={verificationData}
