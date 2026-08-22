@@ -1,7 +1,7 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { BANK_ACCOUNT_STATUS_DESCRIPTIONS } from "@/lib/constants/payouts";
 import { qstash } from "@/lib/cron";
-import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
+import { withCron } from "@/lib/cron/with-cron";
 import { getPartnerBankAccount } from "@/lib/partners/get-partner-bank-account";
 import { prisma } from "@/lib/prisma";
 import { stripe } from "@/lib/stripe";
@@ -24,11 +24,8 @@ const payloadSchema = z.object({
 });
 
 // POST /api/cron/payouts/balance-available
-export async function POST(req: Request) {
+export const POST = withCron(async ({ rawBody }) => {
   try {
-    const rawBody = await req.text();
-    await verifyQstashSignature({ req, rawBody });
-
     const { stripeAccount } = payloadSchema.parse(JSON.parse(rawBody));
 
     const partner = await prisma.partner.findUnique({
@@ -224,4 +221,4 @@ export async function POST(req: Request) {
 
     return handleAndReturnErrorResponse(error);
   }
-}
+});

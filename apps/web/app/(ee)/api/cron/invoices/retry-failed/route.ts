@@ -1,5 +1,5 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
-import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
+import { withCron } from "@/lib/cron/with-cron";
 import { prisma } from "@/lib/prisma";
 import { createPaymentIntent } from "@/lib/stripe/create-payment-intent";
 import { ACME_WORKSPACE_ID, DUB_WORKSPACE_ID } from "@dub/utils";
@@ -12,15 +12,8 @@ const schema = z.object({
 });
 
 // POST /api/cron/invoices/retry-failed
-export async function POST(req: Request) {
+export const POST = withCron(async ({ rawBody }) => {
   try {
-    const rawBody = await req.text();
-
-    await verifyQstashSignature({
-      req,
-      rawBody,
-    });
-
     const { invoiceId } = schema.parse(JSON.parse(rawBody));
 
     const invoice = await prisma.invoice.findUnique({
@@ -101,4 +94,4 @@ export async function POST(req: Request) {
   } catch (error) {
     return handleAndReturnErrorResponse(error);
   }
-}
+});
