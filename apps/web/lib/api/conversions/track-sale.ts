@@ -33,6 +33,7 @@ import * as z from "zod/v4";
 import { createId } from "../create-id";
 import { syncPartnerLinksStats } from "../partners/sync-partner-links-stats";
 import { executeWorkflows } from "../workflows/execute-workflows";
+import { invoiceDedupeKey } from "./invoice-idempotency";
 
 type TrackSaleParams = z.input<typeof trackSaleRequestSchema> & {
   workspace: Pick<WorkspaceProps, "id" | "stripeConnectId" | "webhookEnabled">;
@@ -63,8 +64,9 @@ export const trackSale = async ({
   // Return idempotent response if invoiceId is already processed
   if (invoiceId) {
     const cachedResponse = await redis.get(
-      `trackSale:${workspace.id}:invoiceId:${invoiceId}`,
+      invoiceDedupeKey(workspace.id, invoiceId),
     );
+
     if (cachedResponse) {
       return cachedResponse;
     }
@@ -719,13 +721,9 @@ const _trackSale = async ({
 
   if (invoiceId) {
     waitUntil(
-      redis.set(
-        `trackSale:${workspace.id}:invoiceId:${invoiceId}`,
-        trackSaleResponse,
-        {
-          ex: 60 * 60 * 24 * 7, // cache for 1 week
-        },
-      ),
+      redis.set(invoiceDedupeKey(workspace.id, invoiceId), trackSaleResponse, {
+        ex: 60 * 60 * 24 * 7, // cache for 1 week
+      }),
     );
   }
 
