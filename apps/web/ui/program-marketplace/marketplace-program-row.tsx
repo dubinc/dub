@@ -3,9 +3,7 @@
 import { NetworkProgramProps } from "@/lib/types";
 import { Carousel, CarouselContent, CarouselItem, useCarousel } from "@dub/ui";
 import { ChevronLeft, ChevronRight } from "@dub/ui/icons";
-import { cn, fetcher } from "@dub/utils";
 import Link from "next/link";
-import useSWR from "swr";
 import { MarketplaceViewAllCard } from "./marketplace-view-all-card";
 import {
   MarketplaceProgramCard,
@@ -58,30 +56,12 @@ export function MarketplaceProgramRow({
   viewAllHref,
   showViewAllCard = false,
   showStatus = true,
-  variant = "default",
-  ...props
+  programs,
 }: MarketplaceProgramRowProps) {
-  const { data: fetchedPrograms, error } = useSWR<NetworkProgramProps[]>(
-    props.apiPath ?? null,
-    fetcher,
-    { revalidateOnFocus: false, keepPreviousData: true },
-  );
+  const carouselItemClassName = "pl-0 basis-[310px] sm:basis-[419px]";
+  const cardClassName = "h-[260px] w-[310px] sm:h-[284px] sm:w-[419px] sm:p-8";
 
-  const programs = props.programs ?? fetchedPrograms;
-  const isHome = variant === "home";
-
-  const carouselItemClassName = cn(
-    "pl-0",
-    isHome
-      ? "basis-[310px] sm:basis-[419px]"
-      : "basis-[280px] md:basis-[320px]",
-  );
-
-  const cardClassName = isHome
-    ? "h-[260px] w-[310px] sm:h-[284px] sm:w-[419px] sm:p-8"
-    : undefined;
-
-  if (error || programs?.length === 0) {
+  if (programs && programs.length === 0) {
     return null;
   }
 

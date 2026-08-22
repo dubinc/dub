@@ -5,6 +5,7 @@ import { NewsRSC } from "@/ui/layout/sidebar/news-rsc";
 import { ReferButton } from "@/ui/layout/sidebar/refer-button";
 import Toolbar from "@/ui/layout/toolbar/toolbar";
 import { UpgradeBanner } from "@/ui/layout/upgrade-banner";
+import { ModalProvider } from "@/ui/modals/modal-provider";
 import { constructMetadata } from "@dub/utils";
 import { ReactNode } from "react";
 
@@ -13,7 +14,7 @@ export const metadata = constructMetadata();
 
 export default async function Layout({ children }: { children: ReactNode }) {
   return (
-    <>
+    <ModalProvider>
       <div className="min-h-screen w-full bg-white">
         <UpgradeBanner />
         <MainNav
@@ -30,6 +31,6 @@ export default async function Layout({ children }: { children: ReactNode }) {
         </MainNav>
       </div>
       <Toolbar show={["onboarding"]} />
-    </>
+    </ModalProvider>
   );
 }
