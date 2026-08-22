@@ -29,6 +29,11 @@ const jobLoaders = {
     import("./handlers/create-tremendous-campaign-job").then(
       (m) => m.createTremendousCampaignJob,
     ),
+
+  "process-shopify-order-job": () =>
+    import("./handlers/process-shopify-order-job").then(
+      (m) => m.processShopifyOrderJob,
+    ),
 } as const satisfies Record<string, () => Promise<JobDefinition>>;
 
 const jobCache = new Map<string, JobDefinition>();

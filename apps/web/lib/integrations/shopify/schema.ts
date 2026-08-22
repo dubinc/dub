@@ -1,6 +1,6 @@
 import * as z from "zod/v4";
 
-export const orderSchema = z.object({
+export const shopifyOrderSchema = z.object({
   confirmation_number: z.string(),
   checkout_token: z.string(),
   customer: z
@@ -39,3 +39,5 @@ export const integrationCredentialsSchema = z.object({
     .describe("Encrypted access token for the Shopify store."),
   scope: z.string().nullish().describe("Scope of the Shopify store."),
 });
+
+export type ShopifyOrder = z.infer<typeof shopifyOrderSchema>;

@@ -17,7 +17,7 @@ import { Link } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { createShopifyLead } from "./create-lead";
 import { createShopifySale } from "./create-sale";
-import { orderSchema } from "./schema";
+import { orderSchema, ShopifyOrder } from "./schema";
 
 // Process the order from Shopify webhook
 export async function processOrder({
@@ -26,7 +26,7 @@ export async function processOrder({
   customerId,
   clickId,
 }: {
-  event: unknown;
+  event: ShopifyOrder;
   workspaceId: string;
   customerId?: string; // ID of the customer in Dub
   clickId?: string; // ID of the click event from Shopify pixel

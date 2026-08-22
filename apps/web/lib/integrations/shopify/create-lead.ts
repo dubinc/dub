@@ -11,7 +11,7 @@ import { transformLeadEventData } from "@/lib/webhook/transform";
 import { leadEventSchemaTB } from "@/lib/zod/schemas/leads";
 import { nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
-import { orderSchema } from "./schema";
+import { shopifyOrderSchema } from "./schema";
 
 export async function createShopifyLead({
   clickId,
@@ -22,7 +22,7 @@ export async function createShopifyLead({
   workspaceId: string;
   event: any;
 }) {
-  const { customer: orderCustomer } = orderSchema.parse(event);
+  const { customer: orderCustomer } = shopifyOrderSchema.parse(event);
 
   const customerId = createId({ prefix: "cus_" });
   /*

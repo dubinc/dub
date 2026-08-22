@@ -12,7 +12,7 @@ import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { transformSaleEventData } from "@/lib/webhook/transform";
 import { nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
-import { orderSchema } from "./schema";
+import { shopifyOrderSchema } from "./schema";
 
 export async function createShopifySale({
   event,
@@ -25,7 +25,7 @@ export async function createShopifySale({
   workspaceId: string;
   leadData: LeadEventTB;
 }) {
-  const order = orderSchema.parse(event);
+  const order = shopifyOrderSchema.parse(event);
 
   const {
     checkout_token: checkoutToken,

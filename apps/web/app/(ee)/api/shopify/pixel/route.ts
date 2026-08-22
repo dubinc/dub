@@ -1,13 +1,15 @@
 import { COMMON_CORS_HEADERS } from "@/lib/api/cors";
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
+import {
+  tryDispatchShopifyOrderJob,
+  writeShopifyCheckoutFields,
+} from "@/lib/integrations/shopify/checkout-cache";
 import { getClickEvent } from "@/lib/tinybird";
-import { ratelimit, redis } from "@/lib/upstash";
+import { ratelimit } from "@/lib/upstash";
 import { LOCALHOST_IP } from "@dub/utils";
 import { ipAddress, waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
-
-export const runtime = "edge";
 
 // POST /api/shopify/pixel – Handle the Shopify Pixel events
 export const POST = async (req: Request) => {
@@ -42,9 +44,19 @@ export const POST = async (req: Request) => {
     }
 
     waitUntil(
-      redis.hset(`shopify:checkout:${checkoutToken}`, {
-        clickId: clickId || "",
-      }),
+      (async () => {
+        const checkout = await writeShopifyCheckoutFields({
+          checkoutToken,
+          fields: {
+            clickId,
+          },
+        });
+
+        await tryDispatchShopifyOrderJob({
+          checkoutToken,
+          checkout,
+        });
+      })(),
     );
 
     return NextResponse.json("OK", {
