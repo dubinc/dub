@@ -124,6 +124,51 @@ describe("parseCommissionMetadataQuery", () => {
       DubApiError,
     );
   });
+
+  it("preserves filter values containing --, ;, \\, /*, and */", () => {
+    expect(parseCommissionMetadataQuery("metadata['sku']='AB--12'")).toEqual({
+      logic: "AND",
+      filters: [{ key: "sku", op: "equals", value: "AB--12" }],
+    });
+    expect(
+      parseCommissionMetadataQuery("metadata['name']='Smith; Jane'"),
+    ).toEqual({
+      logic: "AND",
+      filters: [{ key: "name", op: "equals", value: "Smith; Jane" }],
+    });
+    expect(parseCommissionMetadataQuery("metadata['path']='a\\b'")).toEqual({
+      logic: "AND",
+      filters: [{ key: "path", op: "equals", value: "a\\b" }],
+    });
+    expect(
+      parseCommissionMetadataQuery("metadata['note']='/* comment */'"),
+    ).toEqual({
+      logic: "AND",
+      filters: [{ key: "note", op: "equals", value: "/* comment */" }],
+    });
+  });
+
+  it("allows up to 5 conditions and rejects more", () => {
+    const five = [
+      "metadata['a']='1'",
+      "metadata['b']='2'",
+      "metadata['c']='3'",
+      "metadata['d']='4'",
+      "metadata['e']='5'",
+    ].join(" AND ");
+    expect(parseCommissionMetadataQuery(five)?.filters).toHaveLength(5);
+
+    const six = `${five} AND metadata['f']='6'`;
+    expect(() => parseCommissionMetadataQuery(six)).toThrow(DubApiError);
+    try {
+      parseCommissionMetadataQuery(six);
+    } catch (error) {
+      expect((error as DubApiError).code).toBe("unprocessable_entity");
+      expect((error as DubApiError).message).toBe(
+        "Metadata query supports at most 5 conditions.",
+      );
+    }
+  });
 });
 
 describe("buildCommissionMetadataWhere", () => {

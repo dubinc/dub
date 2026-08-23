@@ -199,14 +199,7 @@ export async function getCommissions(filters: CommissionsFilters) {
       ...metadataWhere,
     },
     include: {
-      customer: true,
-      partner: true,
-      programEnrollment: true,
-      payout: {
-        select: {
-          paidAt: true,
-        },
-      },
+      ...commissionIncludes,
     },
     ...paginationQuery,
   });

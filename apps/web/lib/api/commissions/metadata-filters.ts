@@ -14,6 +14,8 @@ export type ParsedCommissionMetadataQuery = {
   filters: CommissionMetadataFilter[];
 };
 
+const MAX_METADATA_FILTER_CONDITIONS = 5;
+
 function mapOperator(operator: string): CommissionMetadataFilterOp {
   switch (operator) {
     case ":":
@@ -44,10 +46,7 @@ function parseCondition(condition: string): CommissionMetadataFilter {
   }
 
   const [, key, operator, rawValue] = match;
-  const value = rawValue
-    .trim()
-    .replace(/^['"`]|['"`]$/g, "")
-    .replace(/[;\\]|--|\*\/|\/\*/g, "");
+  const value = rawValue.trim().replace(/^['"`]|['"`]$/g, "");
 
   if (!value) {
     throw new DubApiError({
@@ -97,6 +96,13 @@ export function parseCommissionMetadataQuery(
     throw new DubApiError({
       code: "unprocessable_entity",
       message: "Invalid metadata query.",
+    });
+  }
+
+  if (filters.length > MAX_METADATA_FILTER_CONDITIONS) {
+    throw new DubApiError({
+      code: "unprocessable_entity",
+      message: `Metadata query supports at most ${MAX_METADATA_FILTER_CONDITIONS} conditions.`,
     });
   }
 
