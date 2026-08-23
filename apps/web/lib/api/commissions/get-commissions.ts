@@ -2,11 +2,15 @@ import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
 import { prisma } from "@/lib/prisma";
 import { getCommissionsQuerySchema } from "@/lib/zod/schemas/commissions";
 import { parseFilterValue } from "@dub/utils";
-import { CommissionStatus, CommissionType } from "@prisma/client";
+import { CommissionStatus, CommissionType, Prisma } from "@prisma/client";
 import * as z from "zod/v4";
 import { DubApiError } from "../errors";
 import { getFraudEventGroupEventIds } from "../fraud/get-fraud-event-group-event-ids";
 import { buildPaginationQuery } from "../pagination";
+import {
+  buildCommissionMetadataWhere,
+  parseCommissionMetadataQuery,
+} from "./metadata-filters";
 
 type CommissionsFilters = Omit<
   z.infer<typeof getCommissionsQuerySchema>,
@@ -15,6 +19,17 @@ type CommissionsFilters = Omit<
   type?: string;
   programId: string;
   fraudEventGroupId?: string;
+};
+
+const commissionIncludes: Prisma.CommissionInclude = {
+  customer: true,
+  partner: true,
+  programEnrollment: true,
+  payout: {
+    select: {
+      paidAt: true,
+    },
+  },
 };
 
 export async function getCommissions(filters: CommissionsFilters) {
@@ -35,7 +50,21 @@ export async function getCommissions(filters: CommissionsFilters) {
     timezone,
     startingAfter,
     endingBefore,
+    query,
   } = filters;
+
+  // InvoiceId is unique within a program
+  if (invoiceId) {
+    return await prisma.commission.findMany({
+      where: {
+        invoiceId,
+        programId,
+      },
+      include: {
+        ...commissionIncludes,
+      },
+    });
+  }
 
   const paginationQuery = buildPaginationQuery(filters);
 
@@ -130,45 +159,45 @@ export async function getCommissions(filters: CommissionsFilters) {
     }),
   };
 
+  // Metadata filter
+  const parsedMetadataQuery = parseCommissionMetadataQuery(query);
+  const metadataWhere = buildCommissionMetadataWhere(parsedMetadataQuery);
+
   return await prisma.commission.findMany({
-    where: invoiceId
-      ? {
-          invoiceId,
-          programId,
-        }
-      : {
-          earnings: {
-            not: 0,
-          },
-          programId,
-          ...(partnerFilter && {
-            partnerId:
-              partnerFilter.sqlOperator === "NOT IN"
-                ? { notIn: partnerFilter.values }
-                : { in: partnerFilter.values },
-          }),
-          status: statusFilter,
-          ...(typeFilter && {
-            type:
-              typeFilter.sqlOperator === "NOT IN"
-                ? { notIn: typeFilter.values }
-                : { in: typeFilter.values },
-          }),
-          customerId,
-          payoutId,
-          ...(eventIds && {
-            eventId: {
-              in: eventIds,
-            },
-          }),
-          createdAt: {
-            gte: startDate,
-            lte: endDate,
-          },
-          ...(Object.keys(programEnrollmentFilter).length > 0 && {
-            programEnrollment: programEnrollmentFilter,
-          }),
+    where: {
+      earnings: {
+        not: 0,
+      },
+      programId,
+      ...(partnerFilter && {
+        partnerId:
+          partnerFilter.sqlOperator === "NOT IN"
+            ? { notIn: partnerFilter.values }
+            : { in: partnerFilter.values },
+      }),
+      status: statusFilter,
+      ...(typeFilter && {
+        type:
+          typeFilter.sqlOperator === "NOT IN"
+            ? { notIn: typeFilter.values }
+            : { in: typeFilter.values },
+      }),
+      customerId,
+      payoutId,
+      ...(eventIds && {
+        eventId: {
+          in: eventIds,
         },
+      }),
+      createdAt: {
+        gte: startDate,
+        lte: endDate,
+      },
+      ...(Object.keys(programEnrollmentFilter).length > 0 && {
+        programEnrollment: programEnrollmentFilter,
+      }),
+      ...metadataWhere,
+    },
     include: {
       customer: true,
       partner: true,
