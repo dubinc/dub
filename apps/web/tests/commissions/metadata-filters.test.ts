@@ -75,10 +75,18 @@ describe("parseCommissionMetadataQuery", () => {
     }
   });
 
-  it("rejects dotted metadata keys", () => {
+  it("rejects dotted metadata keys with a charset message", () => {
     expect(() =>
       parseCommissionMetadataQuery("metadata['a.b']='value'"),
     ).toThrow(DubApiError);
+
+    try {
+      parseCommissionMetadataQuery("metadata['order-id']='123'");
+    } catch (error) {
+      expect((error as DubApiError).message).toBe(
+        "Invalid metadata query. Metadata keys may only contain letters, numbers, and underscores.",
+      );
+    }
   });
 
   it("rejects mixed AND and OR", () => {

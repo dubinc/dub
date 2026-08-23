@@ -53,12 +53,17 @@ export async function getCommissions(filters: CommissionsFilters) {
     query,
   } = filters;
 
+  // Metadata filter
+  const parsedMetadataQuery = parseCommissionMetadataQuery(query);
+  const metadataWhere = buildCommissionMetadataWhere(parsedMetadataQuery);
+
   // InvoiceId is unique within a program
   if (invoiceId) {
     return await prisma.commission.findMany({
       where: {
         invoiceId,
         programId,
+        ...metadataWhere,
       },
       include: {
         ...commissionIncludes,
@@ -158,10 +163,6 @@ export async function getCommissions(filters: CommissionsFilters) {
           : { some: { partnerTagId: { in: partnerTagFilter.values } } },
     }),
   };
-
-  // Metadata filter
-  const parsedMetadataQuery = parseCommissionMetadataQuery(query);
-  const metadataWhere = buildCommissionMetadataWhere(parsedMetadataQuery);
 
   return await prisma.commission.findMany({
     where: {

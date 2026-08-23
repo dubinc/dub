@@ -38,6 +38,18 @@ function parseCondition(condition: string): CommissionMetadataFilter {
   );
 
   if (!match) {
+    const invalidKeyMatch = condition.match(
+      /^metadata\[['"]([^'"]+)['"]\]\s*(!=|>=|<=|:|=|>|<)\s*(.+)$/,
+    );
+
+    if (invalidKeyMatch && !/^[A-Za-z0-9_]+$/.test(invalidKeyMatch[1])) {
+      throw new DubApiError({
+        code: "unprocessable_entity",
+        message:
+          "Invalid metadata query. Metadata keys may only contain letters, numbers, and underscores.",
+      });
+    }
+
     throw new DubApiError({
       code: "unprocessable_entity",
       message:
