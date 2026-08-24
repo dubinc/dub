@@ -124,7 +124,7 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
     ...(programInvoiceSettings?.taxId
       ? [
           {
-            label: "Company ID",
+            label: "Tax ID",
             value: (
               <Text style={tw("text-neutral-800 w-2/3")}>
                 {programInvoiceSettings.taxId}

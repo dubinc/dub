@@ -251,7 +251,7 @@ function ProgramPayoutSettingsSheetContent({
               htmlFor="taxId"
               className="text-sm font-medium text-neutral-900"
             >
-              Company ID
+              Tax ID
             </label>
             <div className="relative mt-1.5 rounded-md shadow-sm">
               <input
