@@ -97,8 +97,10 @@ export const GET = withPartnerProfile(
       };
     }
 
+    let events: Awaited<ReturnType<typeof getEvents>>;
+
     try {
-      const events = await getEvents({
+      events = await getEvents({
         ...parsedParams,
         workspaceId: program.workspaceId,
         includeMetadata: false,
@@ -109,40 +111,6 @@ export const GET = withPartnerProfile(
             : { linkId: parseFilterValue(links.map((link) => link.id)) }),
         dataAvailableFrom: program.startedAt ?? program.createdAt,
       });
-
-      const response = events.map((event) => {
-        // don't return ip address for partner profile
-        // @ts-ignore – ip is deprecated but present in the data
-        const { ip, click, customer, ...eventRest } = event;
-        const { ip: _, ...clickRest } = click;
-
-        return {
-          ...eventRest,
-          click: clickRest,
-          link: event?.link ? PartnerProfileLinkSchema.parse(event.link) : null,
-          ...(customer && {
-            customer: z
-              .object({
-                id: z.string(),
-                email: z.string(),
-                ...(customerDataSharingEnabledAt && { name: z.string() }),
-              })
-              .parse({
-                ...customer,
-                email: customer.email
-                  ? customerDataSharingEnabledAt
-                    ? customer.email
-                    : obfuscateCustomerEmail(customer.email)
-                  : customer.name || generateRandomName(),
-                ...(customerDataSharingEnabledAt && {
-                  name: customer.name || generateRandomName(),
-                }),
-              }),
-          }),
-        };
-      });
-
-      return NextResponse.json(response);
     } catch (error) {
       // Tinybird times out after 30s on heavy partner queries; return a 400
       // instead of 500 so the UI can show a retry hint.
@@ -155,5 +123,39 @@ export const GET = withPartnerProfile(
 
       throw error;
     }
+
+    const response = events.map((event) => {
+      // don't return ip address for partner profile
+      // @ts-ignore – ip is deprecated but present in the data
+      const { ip, click, customer, ...eventRest } = event;
+      const { ip: _, ...clickRest } = click;
+
+      return {
+        ...eventRest,
+        click: clickRest,
+        link: event?.link ? PartnerProfileLinkSchema.parse(event.link) : null,
+        ...(customer && {
+          customer: z
+            .object({
+              id: z.string(),
+              email: z.string(),
+              ...(customerDataSharingEnabledAt && { name: z.string() }),
+            })
+            .parse({
+              ...customer,
+              email: customer.email
+                ? customerDataSharingEnabledAt
+                  ? customer.email
+                  : obfuscateCustomerEmail(customer.email)
+                : customer.name || generateRandomName(),
+              ...(customerDataSharingEnabledAt && {
+                name: customer.name || generateRandomName(),
+              }),
+            }),
+        }),
+      };
+    });
+
+    return NextResponse.json(response);
   },
 );
