@@ -97,7 +97,7 @@ export const GET = withPartnerProfile(
       };
     }
 
-    let events: Awaited<ReturnType<typeof getEvents>>;
+    let events: Awaited<ReturnType<typeof getEvents>> = [];
 
     try {
       events = await getEvents({
