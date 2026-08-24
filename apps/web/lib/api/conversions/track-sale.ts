@@ -43,6 +43,9 @@ type TrackSaleParams = z.input<typeof trackSaleRequestSchema> & {
   idempotencyKey?: string | null;
 };
 
+const invoiceDedupeKey = (workspaceId: string, invoiceId: string) =>
+  `trackSale:${workspaceId}:invoiceId:${invoiceId}`;
+
 export const trackSale = async (params: TrackSaleParams) => {
   const {
     workspace,
@@ -57,6 +60,21 @@ export const trackSale = async (params: TrackSaleParams) => {
     leadEventName,
     metadata,
   } = params;
+
+  // Legacy read for Redis invoiceId caches written before Prisma idempotency
+  // (7-day TTL). Remove ~7 days after those writes stopped shipping.
+  if (invoiceId) {
+    const cachedResponse = await redis.get(
+      invoiceDedupeKey(workspace.id, invoiceId),
+    );
+
+    if (cachedResponse) {
+      return {
+        responseBody: cachedResponse,
+        replayed: true,
+      };
+    }
+  }
 
   const key = resolveIdempotencyKey({
     headerKey: idempotencyKey,
