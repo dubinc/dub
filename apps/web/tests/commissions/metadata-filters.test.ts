@@ -124,6 +124,34 @@ describe("parseCommissionMetadataQuery", () => {
     }
   });
 
+  it("rejects double-equals and dangling connectives", () => {
+    for (const query of [
+      "metadata['plan']=='pro'",
+      "metadata['a']='1' AND",
+      "metadata['a']='1' AND ",
+      "metadata['a']='1' OR",
+      "metadata['a']='1' OR ",
+    ]) {
+      expect(() => parseCommissionMetadataQuery(query)).toThrow(DubApiError);
+    }
+
+    try {
+      parseCommissionMetadataQuery("metadata['plan']=='pro'");
+    } catch (error) {
+      expect((error as DubApiError).code).toBe("unprocessable_entity");
+      expect((error as DubApiError).message).toBe(
+        "Metadata query only supports `=` and `!=` operators.",
+      );
+    }
+
+    try {
+      parseCommissionMetadataQuery("metadata['a']='1' AND");
+    } catch (error) {
+      expect((error as DubApiError).code).toBe("unprocessable_entity");
+      expect((error as DubApiError).message).toBe("Invalid metadata query.");
+    }
+  });
+
   it("rejects non-metadata fields and junk", () => {
     expect(() => parseCommissionMetadataQuery("status:active")).toThrow(
       DubApiError,

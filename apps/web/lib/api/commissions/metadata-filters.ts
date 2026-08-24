@@ -67,6 +67,14 @@ function parseCondition(condition: string): CommissionMetadataFilter {
     });
   }
 
+  // e.g. `==` leaves a leftover that starts with `=` after the first `=` is matched.
+  if (/^[=:!<>]/.test(value)) {
+    throw new DubApiError({
+      code: "unprocessable_entity",
+      message: "Metadata query only supports `=` and `!=` operators.",
+    });
+  }
+
   return {
     key,
     op: mapOperator(operator),
@@ -82,6 +90,14 @@ export function parseCommissionMetadataQuery(
   }
 
   const trimmed = query.trim();
+
+  if (/\s+(?:and|or)\s*$/i.test(trimmed)) {
+    throw new DubApiError({
+      code: "unprocessable_entity",
+      message: "Invalid metadata query.",
+    });
+  }
+
   const hasAnd = /\s+and\s+/i.test(trimmed);
   const hasOr = /\s+or\s+/i.test(trimmed);
 
@@ -99,7 +115,10 @@ export function parseCommissionMetadataQuery(
   for (const condition of conditions) {
     const trimmedCondition = condition.trim();
     if (!trimmedCondition) {
-      continue;
+      throw new DubApiError({
+        code: "unprocessable_entity",
+        message: "Invalid metadata query.",
+      });
     }
     filters.push(parseCondition(trimmedCondition));
   }
