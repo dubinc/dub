@@ -499,7 +499,7 @@ const createCustomCommissionSchema = z.object({
       }),
     )
     .describe(
-      "The commission amount in cents. Use a negative amount to create a clawback.",
+      "The commission earnings amount in cents. Use a negative amount to create a clawback.",
     ),
   date: parseDateSchema
     .nullish()
@@ -652,8 +652,7 @@ const createSaleCommissionSchema = z
         data.date != null && "date",
         data.saleAmount != null && "saleAmount",
         data.saleEventDate != null && "saleEventDate",
-        (data.invoiceId != null || data.sale?.invoiceId != null) &&
-          "invoiceId",
+        (data.invoiceId != null || data.sale?.invoiceId != null) && "invoiceId",
         (data.productId != null || data.sale?.metadata?.productId != null) &&
           "productId",
       ].filter((field): field is string => Boolean(field));
