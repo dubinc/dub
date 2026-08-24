@@ -48,6 +48,7 @@ const prefixes = [
   "pb_", // partner postback
   "req_", // api request log
   "job_", // background job
+  "idem_", // idempotency cache
 ] as const;
 
 // ULID uses base32 encoding

@@ -3,6 +3,9 @@ import { isFirstConversion } from "@/lib/analytics/is-first-conversion";
 import { getOrCreateCustomer } from "@/lib/api/customers/get-or-create-customer";
 import { DubApiError } from "@/lib/api/errors";
 import { includeTags } from "@/lib/api/links/include-tags";
+import { createFingerprint } from "@/lib/idempotency/create-fingerprint";
+import { resolveIdempotencyKey } from "@/lib/idempotency/resolve-idempotency-key";
+import { withIdempotency } from "@/lib/idempotency/with-idempotency";
 import { queueGoogleAdsConversionUpload } from "@/lib/integrations/google-ads/upload-conversion";
 import { generateRandomName } from "@/lib/names";
 import { queuePartnerCommissionCreation } from "@/lib/partners/queue-partner-commission-creation";
@@ -37,9 +40,55 @@ import { executeWorkflows } from "../workflows/execute-workflows";
 type TrackSaleParams = z.input<typeof trackSaleRequestSchema> & {
   workspace: Pick<WorkspaceProps, "id" | "stripeConnectId" | "webhookEnabled">;
   source?: CustomerSource; // default is "tracked"
+  idempotencyKey?: string | null;
 };
 
-export const trackSale = async ({
+export const trackSale = async (params: TrackSaleParams) => {
+  const {
+    workspace,
+    invoiceId,
+    idempotencyKey,
+    customerExternalId,
+    amount,
+    currency = "usd",
+    eventName,
+    paymentProcessor,
+    clickId,
+    leadEventName,
+    metadata,
+  } = params;
+
+  const key = resolveIdempotencyKey({
+    headerKey: idempotencyKey,
+    invoiceId,
+  });
+
+  const fingerprint = createFingerprint({
+    customerExternalId,
+    amount,
+    currency: currency.toLowerCase(),
+    eventName,
+    paymentProcessor,
+    clickId: clickId ?? null,
+    leadEventName: leadEventName ?? null,
+    metadata: metadata ?? null,
+  });
+
+  const { responseBody } = await withIdempotency({
+    namespace: "trackSale",
+    workspaceId: workspace.id,
+    key,
+    fingerprint,
+    fn: async () => ({
+      responseStatus: 200,
+      responseBody: await trackSaleInternal(params),
+    }),
+  });
+
+  return responseBody;
+};
+
+const trackSaleInternal = async ({
   clickId,
   customerExternalId,
   customerName,
@@ -59,16 +108,6 @@ export const trackSale = async ({
   let newCustomer: Customer | null = null;
   let leadEventData: LeadEventTB | null = null;
   let shouldTrackDirectSaleLead = false;
-
-  // Return idempotent response if invoiceId is already processed
-  if (invoiceId) {
-    const cachedResponse = await redis.get(
-      `trackSale:${workspace.id}:invoiceId:${invoiceId}`,
-    );
-    if (cachedResponse) {
-      return cachedResponse;
-    }
-  }
 
   // Find existing customer
   const existingCustomerData = await prisma.customer.findUnique({
@@ -705,7 +744,7 @@ const _trackSale = async ({
     })(),
   );
 
-  const trackSaleResponse = trackSaleResponseSchema.parse({
+  return trackSaleResponseSchema.parse({
     eventName,
     customer,
     sale: {
@@ -716,18 +755,4 @@ const _trackSale = async ({
       metadata,
     },
   });
-
-  if (invoiceId) {
-    waitUntil(
-      redis.set(
-        `trackSale:${workspace.id}:invoiceId:${invoiceId}`,
-        trackSaleResponse,
-        {
-          ex: 60 * 60 * 24 * 7, // cache for 1 week
-        },
-      ),
-    );
-  }
-
-  return trackSaleResponse;
 };

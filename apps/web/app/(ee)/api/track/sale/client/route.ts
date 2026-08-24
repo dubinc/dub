@@ -63,6 +63,7 @@ export const POST = withPublishableKey(
       leadEventName,
       metadata,
       workspace,
+      idempotencyKey: req.headers.get("Idempotency-Key"),
     });
 
     return NextResponse.json(response, { headers: COMMON_CORS_HEADERS });

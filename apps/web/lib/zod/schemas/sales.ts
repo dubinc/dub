@@ -52,10 +52,11 @@ export const trackSaleRequestSchema = z.object({
     .describe("The payment processor via which the sale was made."),
   invoiceId: z
     .string()
+    .max(190)
     .nullish()
     .default(null)
     .describe(
-      "The invoice ID of the sale. Can be used as a idempotency key – only one sale event can be recorded for a given invoice ID.",
+      "The invoice ID of the sale. Can be used as an idempotency key (unless an `Idempotency-Key` header is set) – only one sale event can be recorded for a given invoice ID.",
     ),
   metadata: z
     .record(z.string(), z.any())

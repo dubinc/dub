@@ -5,6 +5,10 @@ import { DubApiError } from "@/lib/api/errors";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
+import { createCommissionFingerprintPayload } from "@/lib/idempotency/create-commission-fingerprint";
+import { createFingerprint } from "@/lib/idempotency/create-fingerprint";
+import { resolveIdempotencyKey } from "@/lib/idempotency/resolve-idempotency-key";
+import { withIdempotency } from "@/lib/idempotency/with-idempotency";
 import { prisma } from "@/lib/prisma";
 import {
   CommissionEnrichedSchema,
@@ -72,35 +76,48 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
 
 // POST /api/commissions - create manual commission
 export const POST = withWorkspace(
-  async ({ workspace, session, req }) => {
+  async ({ workspace, session, req, idempotencyKey }) => {
     const programId = getDefaultProgramIdOrThrow(workspace);
 
     const body = createManualCommissionBodySchema.parse(
       await parseRequestBody(req),
     );
 
-    console.time("createManualCommissions");
-
-    await createManualCommissions({
-      ...body,
-      workspace,
-      programId,
-      user: session.user,
+    const invoiceId = body.type === "sale" ? body.invoiceId : null;
+    const key = resolveIdempotencyKey({
+      headerKey: idempotencyKey,
+      invoiceId,
     });
 
-    console.timeEnd("createManualCommissions");
+    const { responseStatus, responseBody } = await withIdempotency({
+      namespace: "createCommission",
+      workspaceId: workspace.id,
+      key,
+      fingerprint: createFingerprint(createCommissionFingerprintPayload(body)),
+      fn: async () => {
+        await createManualCommissions({
+          ...body,
+          workspace,
+          programId,
+          user: session.user,
+        });
 
-    const isClawback = body.type === "custom" && body.amount < 0;
+        const isClawback = body.type === "custom" && body.amount < 0;
 
-    const response = createCommissionResponseSchema.parse({
-      success: true,
-      message: isClawback
-        ? "A clawback has been queued for the partner!"
-        : "Your commissions are being created and will appear shortly.",
+        return {
+          responseStatus: 202,
+          responseBody: createCommissionResponseSchema.parse({
+            success: true,
+            message: isClawback
+              ? "A clawback has been queued for the partner!"
+              : "Your commissions are being created and will appear shortly.",
+          }),
+        };
+      },
     });
 
-    return NextResponse.json(response, {
-      status: 202,
+    return NextResponse.json(responseBody, {
+      status: responseStatus,
     });
   },
   {
