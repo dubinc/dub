@@ -295,7 +295,6 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
   // short links
   links: ({ slug, pathname, queryString }) => ({
     title: "Short Links",
-    showNews: true,
     direction: "left",
     content: [
       {
@@ -647,6 +646,9 @@ export function AppSidebarNav({
       </Link>
     ) : null;
 
+  const freePlanOrTrial =
+    plan && (plan === "free" || isWorkspaceBillingTrialActive(trialEndsAt));
+
   return (
     <SidebarNav
       groups={NAV_GROUPS}
@@ -669,17 +671,15 @@ export function AppSidebarNav({
         partnerNetworkEnabled:
           program && program.partnerNetworkEnabledAt !== null,
       }}
-      toolContent={toolContent}
-      newsContent={
-        plan &&
-        (plan === "free" || isWorkspaceBillingTrialActive(trialEndsAt) ? (
-          <SidebarUsage />
-        ) : (
-          newsContent
-        ))
-      }
       switcher={<WorkspaceDropdown />}
-      bottom={<div className="px-3 pb-2">{AppBottomContent}</div>}
+      toolContent={toolContent}
+      bottomContent={
+        <>
+          <div className="px-3 pb-2">{AppBottomContent}</div>
+          {freePlanOrTrial && <SidebarUsage />}
+        </>
+      }
+      newsContent={!freePlanOrTrial && currentArea === "links" && newsContent}
     />
   );
 }

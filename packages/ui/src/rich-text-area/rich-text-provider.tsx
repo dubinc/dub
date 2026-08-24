@@ -11,13 +11,17 @@ import {
   PropsWithChildren,
   createContext,
   forwardRef,
+  useCallback,
   useContext,
   useEffect,
   useImperativeHandle,
   useMemo,
+  useRef,
   useState,
 } from "react";
 import { configureCampaignEditorImage } from "./campaign-editor-image";
+import { RichTextLinkHoverTooltip } from "./link-hover-tooltip";
+import { RichTextLinkModal } from "./link-modal";
 import { RichTextVariableInfo, suggestions } from "./variables";
 
 export const PROSE_STYLES = {
@@ -62,6 +66,13 @@ type RichTextProviderProps = PropsWithChildren<{
   editorClassName?: string;
 }>;
 
+export type RichTextLinkModalState = {
+  from: number;
+  to: number;
+  text: string;
+  href: string;
+};
+
 export const RichTextContext = createContext<
   | (Pick<
       RichTextProviderProps,
@@ -72,6 +83,9 @@ export const RichTextContext = createContext<
       handleImageUpload:
         | ((file: File, currentEditor: Editor, pos: number) => Promise<void>)
         | null;
+      linkModalState: RichTextLinkModalState | null;
+      setLinkModalState: (state: RichTextLinkModalState | null) => void;
+      openLinkModal: (pos?: number) => void;
     })
   | null
 >(null);
@@ -104,6 +118,32 @@ export const RichTextProvider = forwardRef<
     ref,
   ) => {
     const [isUploading, setIsUploading] = useState(false);
+
+    const [linkModalState, setLinkModalState] =
+      useState<RichTextLinkModalState | null>(null);
+
+    // Ref to avoid stale closures in editorProps handlers below
+    const editorRef = useRef<Editor | null>(null);
+
+    const openLinkModal = useCallback((pos?: number) => {
+      const editor = editorRef.current;
+      if (!editor) return;
+
+      const chain = editor.chain();
+      if (pos !== undefined) chain.setTextSelection(pos);
+      chain.run();
+
+      if (editor.isActive("link")) editor.chain().extendMarkRange("link").run();
+
+      const { from, to } = editor.state.selection;
+
+      setLinkModalState({
+        from,
+        to,
+        text: editor.state.doc.textBetween(from, to, " "),
+        href: editor.getAttributes("link").href ?? "",
+      });
+    }, []);
 
     const handleImageUpload = useMemo(
       () =>
@@ -155,6 +195,9 @@ export const RichTextProvider = forwardRef<
           ? [
               Link.extend({
                 inclusive: false,
+              }).configure({
+                // Clicking a link opens the edit modal instead of the URL
+                openOnClick: false,
               }),
             ]
           : []),
@@ -270,12 +313,30 @@ export const RichTextProvider = forwardRef<
           ),
         },
         ...editorProps,
+        handleClick: (view, pos, event) => {
+          if (editorProps?.handleClick?.(view, pos, event)) return true;
+
+          // Open the link edit modal when clicking a link in the editor
+          if (
+            view.editable &&
+            features.includes("links") &&
+            event.target instanceof Element &&
+            event.target.closest("a[href]")
+          ) {
+            openLinkModal(pos);
+            return true;
+          }
+
+          return false;
+        },
       },
       content: initialValue,
       contentType: markdown ? "markdown" : undefined,
       onUpdate: ({ editor }) => onChange?.(editor),
       immediatelyRender: false,
     });
+
+    editorRef.current = editor;
 
     useEffect(() => {
       editor?.setEditable(editable ?? true);
@@ -297,9 +358,19 @@ export const RichTextProvider = forwardRef<
           editor,
           isUploading,
           handleImageUpload,
+          linkModalState,
+          setLinkModalState,
+          openLinkModal,
         }}
       >
         {children}
+
+        {features.includes("links") && (
+          <>
+            <RichTextLinkModal />
+            <RichTextLinkHoverTooltip />
+          </>
+        )}
       </RichTextContext.Provider>
     );
   },
