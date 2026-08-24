@@ -12,7 +12,7 @@ import { MaxCharactersCounter } from "@/ui/shared/max-characters-counter";
 import { Button, Modal, useKeyboardShortcut } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import * as z from "zod/v4";
@@ -197,22 +197,16 @@ export function useRejectBountySubmissionModal(
 ) {
   const [showRejectModal, setShowRejectModal] = useState(false);
 
-  const RejectBountySubmissionModalCallback = useCallback(() => {
-    return (
+  return {
+    setShowRejectModal,
+    RejectBountySubmissionModal: showRejectModal ? (
       <RejectBountySubmissionModal
+        key={submission.id}
         showModal={showRejectModal}
         setShowModal={setShowRejectModal}
         submission={submission}
         onReject={onReject}
       />
-    );
-  }, [showRejectModal, setShowRejectModal, onReject, submission]);
-
-  return useMemo(
-    () => ({
-      setShowRejectModal,
-      RejectBountySubmissionModal: RejectBountySubmissionModalCallback,
-    }),
-    [setShowRejectModal, RejectBountySubmissionModalCallback],
-  );
+    ) : null,
+  };
 }

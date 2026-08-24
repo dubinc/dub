@@ -1,18 +1,13 @@
-import { conn } from "@/lib/planetscale";
-import { prisma } from "@/lib/prisma";
 import type { EnrolledPartnerProps } from "@/lib/types";
 import { EnrolledPartnerSchema as EnrolledPartnerSchemaDate } from "@/lib/zod/schemas/partners";
 import { nanoid } from "@dub/utils";
 import { expect } from "@playwright/test";
 import slugify from "@sindresorhus/slugify";
 import * as z from "zod/v4";
-import { randomName, randomPartnerEmail } from "../../utils";
-import { test, type ApiClient } from "../fixtures";
+import { apiError, randomName, randomPartnerEmail } from "../../utils";
+import { test } from "../fixtures";
 import { TEST_WORKSPACE } from "../setup-test-workspace";
-
-test.describe.configure({
-  mode: "parallel",
-});
+import { createPartner, deletePartner } from "./helpers";
 
 const EnrolledPartnerSchema = EnrolledPartnerSchemaDate.extend({
   createdAt: z.string(),
@@ -24,37 +19,6 @@ const EnrolledPartnerSchema = EnrolledPartnerSchemaDate.extend({
 
 function reEscape(s: string) {
   return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-}
-
-async function createPartner(
-  api: ApiClient,
-  overrides: Record<string, unknown> = {},
-) {
-  return api.post<EnrolledPartnerProps>("/api/partners", {
-    name: randomName(),
-    email: randomPartnerEmail(),
-    ...overrides,
-  });
-}
-
-async function deletePartner(partnerId: string | undefined) {
-  if (!partnerId) return;
-
-  await prisma.link.deleteMany({
-    where: {
-      partnerId,
-    },
-  });
-
-  await prisma.programEnrollment.deleteMany({
-    where: {
-      partnerId,
-    },
-  });
-
-  // Prisma partner.delete hits a PlanetScale relation quirk; raw SQL matches
-  // bulkDeletePartners cleanup used by e2e cron.
-  await conn.execute(`DELETE FROM Partner WHERE id = ?`, [partnerId]);
 }
 
 test("POST /partners", async ({ api, program }) => {
@@ -175,18 +139,13 @@ test("POST /partners – invalid username", async ({ api }) => {
       email: randomPartnerEmail(),
       username: "invalid username",
     }),
-  ).toEqual({
-    status: 422,
-    data: {
-      error: {
-        code: "unprocessable_entity",
-        message:
-          "custom: username: Invalid username. Must be a URL-friendly string.",
-        doc_url:
-          "https://dub.co/docs/api-reference/errors#unprocessable-entity",
-      },
-    },
-  });
+  ).toEqual(
+    apiError({
+      code: "unprocessable_entity",
+      message:
+        "custom: username: Invalid username. Must be a URL-friendly string.",
+    }),
+  );
 });
 
 test("POST /partners – linkProps.prefix on default link", async ({

@@ -40,7 +40,7 @@ import Link from "next/link";
 import { Fragment, ReactNode, createElement } from "react";
 import useSWR from "swr";
 import { PartnerApplicationRiskSummary } from "./fraud-risks/partner-application-risk-summary";
-import { PartnerProgramOwnerActivity } from "./fraud-risks/partner-program-owner-activity";
+import { PartnerNetworkActivitySummary } from "./fraud-risks/partner-network-activity-summary";
 import {
   PartnerApplicationRiskBanner,
   PartnerRiskBanner,
@@ -101,7 +101,8 @@ export function PartnerInfoCards({
 }: PartnerInfoCardsProps) {
   const { id: workspaceId, slug: workspaceSlug, plan } = useWorkspace();
 
-  const { canCreateReferralReward } = getPlanCapabilities(plan);
+  const { canCreateReferralReward, canManageFraudEvents } =
+    getPlanCapabilities(plan);
 
   const isEnrolled = type === "enrolled" || type === undefined;
   const isNetwork = type === "network";
@@ -374,9 +375,17 @@ export function PartnerInfoCards({
           {partner && isEnrolled && showApplicationRiskAnalysis && (
             <PartnerApplicationRiskSummary partner={partner} />
           )}
-          {partner && isEnrolled && showApplicationRiskAnalysis && (
-            <PartnerProgramOwnerActivity partnerId={partner.id} />
-          )}
+          {partner &&
+            isEnrolled &&
+            showApplicationRiskAnalysis &&
+            canManageFraudEvents && (
+              <div className="flex flex-col gap-3 p-4">
+                <h3 className="text-content-emphasis text-sm font-semibold">
+                  Network activity
+                </h3>
+                <PartnerNetworkActivitySummary partnerId={partner.id} />
+              </div>
+            )}
         </div>
       </div>
 

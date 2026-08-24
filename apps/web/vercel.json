@@ -91,6 +91,10 @@
     {
       "path": "/api/cron/queue/retry",
       "schedule": "* * * * *"
+    },
+    {
+      "path": "/api/cron/campaigns/queue-scheduled",
+      "schedule": "* * * * *"
     }
   ],
   "functions": {

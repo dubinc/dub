@@ -7,7 +7,7 @@ import {
   bulkBanPartnersSchema,
 } from "@/lib/zod/schemas/partners";
 import { PartnerAvatar } from "@/ui/partners/partner-avatar";
-import { Button, Modal } from "@dub/ui";
+import { Button, Modal, useLatestCallback } from "@dub/ui";
 import { cn, pluralize } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import {
@@ -287,20 +287,21 @@ export function useBulkBanPartnersModal({
   const [showBulkBanPartnersModal, setShowBulkBanPartnersModal] =
     useState(false);
 
+  const onConfirmCallback = useLatestCallback(onConfirm);
+
   const BulkBanPartnersModalCallback = useCallback(() => {
     return (
       <BulkBanPartnersModal
         showBulkBanPartnersModal={showBulkBanPartnersModal}
         setShowBulkBanPartnersModal={setShowBulkBanPartnersModal}
         partners={partners}
-        onConfirm={onConfirm}
+        onConfirm={onConfirmCallback}
       />
     );
   }, [
     showBulkBanPartnersModal,
     setShowBulkBanPartnersModal,
-    partners,
-    onConfirm,
+    onConfirmCallback,
   ]);
 
   return useMemo(

@@ -34,8 +34,13 @@ export async function updateStripeCustomers(payload: TapfiliateImportPayload) {
 
   if (!workspace.stripeConnectId) {
     console.error(
-      `Workspace ${workspace.id} has no stripeConnectId. Skipping...`,
+      `Workspace ${workspace.id} has no stripeConnectId. Skipping Stripe customer matching...`,
     );
+
+    await tapfiliateImporter.queue({
+      ...payload,
+      action: "cleanup-partners",
+    });
     return;
   }
 
