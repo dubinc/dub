@@ -8,7 +8,7 @@ import * as z from "zod/v4";
 
 // POST /api/track/sale – Track a sale conversion event
 export const POST = withWorkspace(
-  async ({ req, workspace }) => {
+  async ({ req, workspace, idempotencyKey }) => {
     const body = await parseRequestBody(req);
 
     let {
@@ -58,6 +58,7 @@ export const POST = withWorkspace(
       leadEventName,
       metadata,
       workspace,
+      idempotencyKey,
     });
 
     return NextResponse.json(response);

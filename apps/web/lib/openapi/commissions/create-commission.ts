@@ -2,7 +2,9 @@ import {
   createCommissionResponseSchema,
   createManualCommissionBodySchema,
 } from "@/lib/zod/schemas/commissions";
+import { idempotencyKeyHeaderSchema } from "@/lib/zod/schemas/idempotency";
 import { ZodOpenApiOperationObject } from "zod-openapi";
+import * as z from "zod/v4";
 import { openApiErrorResponses } from "../responses";
 
 export const createCommission: ZodOpenApiOperationObject = {
@@ -11,6 +13,11 @@ export const createCommission: ZodOpenApiOperationObject = {
   summary: "Create commission",
   description:
     "Create one or more commissions (custom, lead or sale) for a partner. Custom commissions accept a negative `amount` to create a clawback. Commission creation is processed asynchronously – use the GET /commissions endpoint or webhooks to be notified when the commission is created.",
+  requestParams: {
+    header: z.object({
+      "Idempotency-Key": idempotencyKeyHeaderSchema,
+    }),
+  },
   requestBody: {
     content: {
       "application/json": {

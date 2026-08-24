@@ -143,6 +143,7 @@ export const getCommissionsQuerySchema = z
       ),
     invoiceId: z
       .string()
+      .max(190)
       .optional()
       .describe(
         "Filter the list of commissions by the associated invoice. Since invoiceId is unique on a per-program basis, this will only return one commission per invoice.",
@@ -563,9 +564,10 @@ export const createManualCommissionBodySchema = z
         ),
       invoiceId: z
         .string()
+        .max(190)
         .nullish()
         .describe(
-          "Only used when `importStripeInvoices` is `false`. An optional invoice ID to attach to the generated sale event and commission entry for deduplication.",
+          "Only used when `importStripeInvoices` is `false`. An optional invoice ID to attach to the generated sale event and commission entry for deduplication (unless an `Idempotency-Key` header is set).",
         ),
       productId: z
         .string()

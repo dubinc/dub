@@ -45,6 +45,7 @@ interface WithWorkspaceHandler {
     workspace,
     permissions,
     token,
+    idempotencyKey,
   }: {
     req: Request;
     params: Record<string, string>;
@@ -54,6 +55,7 @@ interface WithWorkspaceHandler {
     permissions: PermissionAction[];
     workspace: WorkspaceWithUsers;
     token: TokenCacheItem | null;
+    idempotencyKey: string | null;
   }): Promise<Response>;
 }
 
@@ -501,6 +503,7 @@ export const withWorkspace = (
           workspace,
           permissions,
           token,
+          idempotencyKey: requestHeaders.get("Idempotency-Key"),
         });
 
         if (workspace?.users?.length) {
