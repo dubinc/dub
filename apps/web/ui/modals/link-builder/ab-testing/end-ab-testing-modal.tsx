@@ -244,10 +244,13 @@ function EndABTestingModal({
             disabled={!selectedUrl}
             onClick={() => {
               if (selectedUrl) {
-                setValueParent("url", selectedUrl, { shouldDirty: true });
+                // Set testCompletedAt before url so the destination URL <->
+                // first variant sync sees the test as completed and doesn't
+                // overwrite testVariants[0].url with the selected winner
                 setValueParent("testCompletedAt", new Date(), {
                   shouldDirty: true,
                 });
+                setValueParent("url", selectedUrl, { shouldDirty: true });
                 setShowEndABTestingModal(false);
                 onEndTest?.();
               }

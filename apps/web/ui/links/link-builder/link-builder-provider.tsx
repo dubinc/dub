@@ -68,8 +68,9 @@ export function LinkBuilderProvider({
         const firstVariant = testVariants[0];
         if (!firstVariant) return;
 
-        // Don't rewrite the variants of a completed test
-        if (testCompletedAt && new Date(testCompletedAt) < new Date()) return;
+        // Don't rewrite the variants of a completed test (<= so a test ended
+        // in this same tick already counts as completed)
+        if (testCompletedAt && new Date(testCompletedAt) <= new Date()) return;
 
         if (firstVariant.url !== url)
           form.setValue(
