@@ -1,5 +1,4 @@
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
-import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { qstash } from "@/lib/cron";
 import { withCron } from "@/lib/cron/with-cron";
 import { prisma } from "@/lib/prisma";
@@ -142,6 +141,6 @@ export const POST = withCron(async ({ rawBody }) => {
       mention: true,
     });
 
-    return handleAndReturnErrorResponse(error);
+    throw error;
   }
 });

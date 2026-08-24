@@ -1,4 +1,3 @@
-import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { withCron } from "@/lib/cron/with-cron";
 import { prisma } from "@/lib/prisma";
 import { sendEmail } from "@dub/email";
@@ -80,6 +79,6 @@ export const POST = withCron(async ({ rawBody }) => {
       type: "errors",
     });
 
-    return handleAndReturnErrorResponse(error);
+    throw error;
   }
 });

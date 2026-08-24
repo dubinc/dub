@@ -1,4 +1,3 @@
-import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { withCron } from "@/lib/cron/with-cron";
 import { CUTOFF_PERIOD_ENUM } from "@/lib/partners/cutoff-period";
 import { prisma } from "@/lib/prisma";
@@ -103,6 +102,6 @@ export const POST = withCron(async ({ rawBody }) => {
       mention: true,
     });
 
-    return handleAndReturnErrorResponse(error);
+    throw error;
   }
 });

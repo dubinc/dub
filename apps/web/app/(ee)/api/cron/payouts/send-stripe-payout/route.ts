@@ -1,4 +1,3 @@
-import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { withCron } from "@/lib/cron/with-cron";
 import { createStablecoinPayout } from "@/lib/partners/create-stablecoin-payout";
 import { createStripeTransfer } from "@/lib/partners/create-stripe-transfer";
@@ -69,6 +68,6 @@ export const POST = withCron(async ({ rawBody }) => {
       mention: true,
     });
 
-    return handleAndReturnErrorResponse(error);
+    throw error;
   }
 });

@@ -1,4 +1,3 @@
-import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { BANK_ACCOUNT_STATUS_DESCRIPTIONS } from "@/lib/constants/payouts";
 import { qstash } from "@/lib/cron";
 import { withCron } from "@/lib/cron/with-cron";
@@ -219,6 +218,6 @@ export const POST = withCron(async ({ rawBody }) => {
       type: "errors",
     });
 
-    return handleAndReturnErrorResponse(error);
+    throw error;
   }
 });
