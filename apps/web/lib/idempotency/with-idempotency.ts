@@ -6,8 +6,13 @@ import { IdempotencyKey, IdempotencyStatus, Prisma } from "@prisma/client";
 
 // Pending: short lock while the handler runs.
 const DEFAULT_PENDING_TTL_SECONDS = 60; // 1 minute
+
 // Completed: how long we replay the cached response.
-const DEFAULT_COMPLETED_TTL_SECONDS = 60 * 60 * 24 * 7; // 7 days
+const DEFAULT_COMPLETED_TTL_SECONDS = 60 * 60 * 24; // 24 hours
+
+const COMPLETED_TTL_BY_NAMESPACE: Record<string, number> = {
+  trackSale: 60 * 60 * 24 * 7, // 7 days,
+};
 
 type IdempotencyResult<T> = {
   responseStatus: number;
@@ -34,12 +39,17 @@ export async function withIdempotency<T>({
   key,
   fingerprint,
   pendingTtlSeconds = DEFAULT_PENDING_TTL_SECONDS,
-  completedTtlSeconds = DEFAULT_COMPLETED_TTL_SECONDS,
+  completedTtlSeconds,
   fn,
 }: WithIdempotencyParams<T>): Promise<IdempotencyResult<T>> {
   if (!key) {
     return fn();
   }
+
+  const resolvedCompletedTtlSeconds =
+    completedTtlSeconds ??
+    COMPLETED_TTL_BY_NAMESPACE[namespace] ??
+    DEFAULT_COMPLETED_TTL_SECONDS;
 
   const claim = await claimIdempotencyKey({
     namespace,
@@ -112,7 +122,7 @@ export async function withIdempotency<T>({
         status: IdempotencyStatus.completed,
         responseStatus: result.responseStatus,
         responseBody: result.responseBody as Prisma.InputJsonValue,
-        expiresAt: new Date(Date.now() + completedTtlSeconds * 1000),
+        expiresAt: new Date(Date.now() + resolvedCompletedTtlSeconds * 1000),
       },
     });
 
@@ -223,11 +233,5 @@ async function claimIdempotencyKey({
   throw new DubApiError({
     code: "conflict",
     message: "A request with this idempotency key is already in progress.",
-  });
-}
-
-async function deleteIdempotencyKey(where: Prisma.IdempotencyKeyWhereInput) {
-  await prisma.idempotencyKey.deleteMany({
-    where,
   });
 }
