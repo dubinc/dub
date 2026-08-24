@@ -82,6 +82,30 @@ function parseCondition(condition: string): CommissionMetadataFilter {
   };
 }
 
+/** Mask quoted segments so AND/OR inside values are not treated as connectives. */
+function maskQuotedSegments(query: string): string {
+  return query.replace(/'[^']*'|"[^"]*"/g, (match) =>
+    "\u0000".repeat(match.length),
+  );
+}
+
+/** Split on AND/OR outside quotes by finding connectives on a masked copy. */
+function splitConditionsOutsideQuotes(query: string): string[] {
+  const masked = maskQuotedSegments(query);
+  const connective = /\s+(?:and|or)\s+/gi;
+  const conditions: string[] = [];
+  let lastIndex = 0;
+
+  for (const match of masked.matchAll(connective)) {
+    const start = match.index ?? 0;
+    conditions.push(query.slice(lastIndex, start));
+    lastIndex = start + match[0].length;
+  }
+
+  conditions.push(query.slice(lastIndex));
+  return conditions;
+}
+
 export function parseCommissionMetadataQuery(
   query: string | undefined,
 ): ParsedCommissionMetadataQuery | undefined {
@@ -90,16 +114,17 @@ export function parseCommissionMetadataQuery(
   }
 
   const trimmed = query.trim();
+  const masked = maskQuotedSegments(trimmed);
 
-  if (/\s+(?:and|or)\s*$/i.test(trimmed)) {
+  if (/\s+(?:and|or)\s*$/i.test(masked)) {
     throw new DubApiError({
       code: "unprocessable_entity",
       message: "Invalid metadata query.",
     });
   }
 
-  const hasAnd = /\s+and\s+/i.test(trimmed);
-  const hasOr = /\s+or\s+/i.test(trimmed);
+  const hasAnd = /\s+and\s+/i.test(masked);
+  const hasOr = /\s+or\s+/i.test(masked);
 
   if (hasAnd && hasOr) {
     throw new DubApiError({
@@ -109,7 +134,7 @@ export function parseCommissionMetadataQuery(
   }
 
   const logic: "AND" | "OR" = hasOr ? "OR" : "AND";
-  const conditions = trimmed.split(/\s+(?:and|or)\s+/i);
+  const conditions = splitConditionsOutsideQuotes(trimmed);
   const filters: CommissionMetadataFilter[] = [];
 
   for (const condition of conditions) {

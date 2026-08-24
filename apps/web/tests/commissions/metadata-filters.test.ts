@@ -63,6 +63,46 @@ describe("parseCommissionMetadataQuery", () => {
     });
   });
 
+  it("keeps and/or inside quoted values as part of a single condition", () => {
+    expect(
+      parseCommissionMetadataQuery("metadata['name']='Smith and Jones'"),
+    ).toEqual({
+      logic: "AND",
+      filters: [{ key: "name", op: "equals", value: "Smith and Jones" }],
+    });
+    expect(parseCommissionMetadataQuery("metadata['label']=\"A or B\"")).toEqual(
+      {
+        logic: "AND",
+        filters: [{ key: "label", op: "equals", value: "A or B" }],
+      },
+    );
+  });
+
+  it("parses AND/OR when a quoted value contains and/or", () => {
+    expect(
+      parseCommissionMetadataQuery(
+        "metadata['name']='Smith and Jones' AND metadata['plan']='pro'",
+      ),
+    ).toEqual({
+      logic: "AND",
+      filters: [
+        { key: "name", op: "equals", value: "Smith and Jones" },
+        { key: "plan", op: "equals", value: "pro" },
+      ],
+    });
+    expect(
+      parseCommissionMetadataQuery(
+        "metadata['label']=\"A or B\" OR metadata['plan']='enterprise'",
+      ),
+    ).toEqual({
+      logic: "OR",
+      filters: [
+        { key: "label", op: "equals", value: "A or B" },
+        { key: "plan", op: "equals", value: "enterprise" },
+      ],
+    });
+  });
+
   it("rejects nested metadata keys", () => {
     expect(() =>
       parseCommissionMetadataQuery("metadata['a']['b']='value'"),
@@ -80,13 +120,11 @@ describe("parseCommissionMetadataQuery", () => {
       parseCommissionMetadataQuery("metadata['a.b']='value'"),
     ).toThrow(DubApiError);
 
-    try {
-      parseCommissionMetadataQuery("metadata['order-id']='123'");
-    } catch (error) {
-      expect((error as DubApiError).message).toBe(
-        "Invalid metadata query. Metadata keys may only contain letters, numbers, and underscores.",
-      );
-    }
+    expect(() =>
+      parseCommissionMetadataQuery("metadata['order-id']='123'"),
+    ).toThrow(
+      "Invalid metadata query. Metadata keys may only contain letters, numbers, and underscores.",
+    );
   });
 
   it("rejects mixed AND and OR", () => {

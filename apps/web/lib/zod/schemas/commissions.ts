@@ -214,7 +214,7 @@ export const getCommissionsQuerySchema = z
       .optional()
       .meta({
         description:
-          "Filter by lead or sale event metadata. Top-level keys only.",
+          "Filter by lead or sale event metadata. Top-level keys only. Compares string values only — numeric and boolean metadata values are not matched.",
         examples: [
           "metadata['key']='value'",
           "metadata['key']!='value'",

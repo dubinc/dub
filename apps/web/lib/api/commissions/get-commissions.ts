@@ -21,7 +21,7 @@ type CommissionsFilters = Omit<
   fraudEventGroupId?: string;
 };
 
-const commissionIncludes: Prisma.CommissionInclude = {
+const commissionIncludes = {
   customer: true,
   partner: true,
   programEnrollment: true,
@@ -30,7 +30,7 @@ const commissionIncludes: Prisma.CommissionInclude = {
       paidAt: true,
     },
   },
-};
+} satisfies Prisma.CommissionInclude;
 
 export async function getCommissions(filters: CommissionsFilters) {
   const {
