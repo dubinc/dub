@@ -78,11 +78,17 @@ export function TrafficSplitSlider({
             style={{ width: `${test.percentage}%` }}
           >
             {i > 0 && <div className="w-1.5" />}
-            <div className="flex h-full grow items-center justify-center gap-2 rounded-md border border-neutral-300 text-xs">
+            <div className="flex h-full grow items-center justify-center rounded-md border border-neutral-300 text-xs">
               <span className="text-xs font-semibold text-neutral-900">
                 {i + 1}
               </span>
-              <span className="@[64px]:block hidden font-medium text-neutral-600">
+              <span
+                className={cn(
+                  "overflow-hidden font-medium text-neutral-600",
+                  "max-w-0 opacity-0 transition-[max-width,opacity,margin-left] duration-200 ease-out",
+                  "@[64px]:ml-2 @[64px]:max-w-12 @[64px]:opacity-100",
+                )}
+              >
                 {test.percentage}%
               </span>
             </div>
