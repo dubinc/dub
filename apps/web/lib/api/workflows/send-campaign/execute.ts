@@ -1,20 +1,44 @@
 import { evaluateWorkflowConditions } from "@/lib/api/workflows/evaluate-workflow-conditions";
 import { WorkflowCondition, WorkflowContext } from "@/lib/api/workflows/types";
+import { resolveCampaignFromAddress } from "@/lib/email/parse-campaign-from-address";
 import { aggregatePartnerLinksStats } from "@/lib/partners/aggregate-partner-links-stats";
-import { constructPartnerLink } from "@/lib/partners/construct-partner-link";
 import { prisma } from "@/lib/prisma";
 import { TiptapNode } from "@/lib/types";
 import { WORKFLOW_ACTION_TYPES } from "@/lib/zod/schemas/workflows";
 import { sendBatchEmail } from "@dub/email";
 import CampaignEmail from "@dub/email/templates/campaign-email";
-import { chunk } from "@dub/utils";
-import { NotificationEmailType, Prisma, Workflow } from "@prisma/client";
+import { chunk, pluck } from "@dub/utils";
+import {
+  CommissionStatus,
+  NotificationEmailType,
+  Prisma,
+  ProgramEnrollmentStatus,
+  Workflow,
+} from "@prisma/client";
 import { addHours, differenceInDays, subDays } from "date-fns";
+import { resolveCampaignEmailVariables } from "../../campaigns/interpolate-email-template";
 import { renderCampaignEmailHTML } from "../../campaigns/render-campaign-email-html";
+import { campaignEligibilityIncludes } from "../../campaigns/transform-campaign";
 import { validateCampaignFromAddress } from "../../campaigns/validate-campaign";
 import { createId } from "../../create-id";
 import { WorkflowAttributeKey } from "../attribute-definitions";
 import { parseWorkflowConfig } from "../parse-workflow-config";
+import { getWorkflowDataRequirements } from "../utils";
+
+type ResolveProgramEnrollment = {
+  partnerId: string;
+  programId: string;
+  groupIds: string[];
+  partnerTagIds: string[];
+  conditions: WorkflowCondition[];
+};
+
+type ProgramEnrollmentForWorkflowContext = Pick<
+  Prisma.ProgramEnrollmentGetPayload<{
+    include: typeof programEnrollmentInclude;
+  }>,
+  "links" | "createdAt" | "groupId"
+>;
 
 export const executeSendCampaignWorkflow = async ({
   workflow,
@@ -23,7 +47,7 @@ export const executeSendCampaignWorkflow = async ({
   workflow: Workflow;
   context?: WorkflowContext;
 }) => {
-  const { condition, action } = parseWorkflowConfig(workflow);
+  const { conditions, action } = parseWorkflowConfig(workflow);
 
   if (action.type !== WORKFLOW_ACTION_TYPES.SendCampaign) {
     console.log(
@@ -43,7 +67,7 @@ export const executeSendCampaignWorkflow = async ({
       id: campaignId,
     },
     include: {
-      groups: true,
+      ...campaignEligibilityIncludes,
       program: {
         include: {
           emailDomains: {
@@ -66,12 +90,23 @@ export const executeSendCampaignWorkflow = async ({
     return;
   }
 
-  let programEnrollments = await getProgramEnrollments({
-    programId,
-    partnerId,
-    groupIds: campaign.groups.map(({ groupId }) => groupId),
-    condition: condition as WorkflowCondition,
-  });
+  const campaignGroupIds = pluck(campaign.groups, "groupId");
+  const campaignPartnerTagIds = pluck(campaign.partnerTags, "partnerTagId");
+
+  let programEnrollments = partnerId
+    ? await resolveProgramEnrollment({
+        programId,
+        partnerId,
+        groupIds: campaignGroupIds,
+        partnerTagIds: campaignPartnerTagIds,
+        conditions,
+      })
+    : await resolveProgramEnrollments({
+        programId,
+        groupIds: campaignGroupIds,
+        partnerTagIds: campaignPartnerTagIds,
+        conditions,
+      });
 
   if (programEnrollments.length === 0) {
     console.log(
@@ -90,7 +125,7 @@ export const executeSendCampaignWorkflow = async ({
       campaignId: campaign.id,
       type: "Campaign",
       partnerId: {
-        in: programEnrollments.map(({ partnerId }) => partnerId),
+        in: pluck(programEnrollments, "partnerId"),
       },
     },
     select: {
@@ -98,19 +133,19 @@ export const executeSendCampaignWorkflow = async ({
     },
   });
 
-  if (alreadySentEmails.length > 0) {
+  const alreadySentPartnerIds = pluck(alreadySentEmails, "partnerId");
+
+  if (alreadySentPartnerIds.length > 0) {
     console.log(
-      `Workflow ${workflow.id} already sent campaign emails to ${alreadySentEmails.length} partners: ${alreadySentEmails.map(({ partnerId }) => partnerId).join(", ")}`,
+      `Workflow ${workflow.id} already sent campaign emails to ${alreadySentPartnerIds.length} partners: ${alreadySentPartnerIds.join(", ")}`,
     );
   }
 
-  const alreadySentPartnerIds = new Set(
-    alreadySentEmails.map(({ partnerId }) => partnerId),
-  );
+  const alreadySentPartnerIdSet = new Set(alreadySentPartnerIds);
 
   // Exclude partners who already got the campaign
   programEnrollments = programEnrollments.filter(
-    ({ partnerId }) => !alreadySentPartnerIds.has(partnerId),
+    ({ partnerId }) => !alreadySentPartnerIdSet.has(partnerId),
   );
 
   if (programEnrollments.length === 0) {
@@ -149,11 +184,25 @@ export const executeSendCampaignWorkflow = async ({
         })),
     );
 
+    if (partnerUsers.length === 0) {
+      console.log(
+        `Workflow ${workflow.id} found enrollments but no partner users with emails to send campaign emails to.`,
+      );
+      continue;
+    }
+
     // Send emails
     const { data } = await sendBatchEmail(
       partnerUsers.map((partnerUser) => ({
         variant: "notifications",
-        ...(campaign.from ? { from: campaign.from } : {}),
+        ...(campaign.from
+          ? {
+              from: resolveCampaignFromAddress({
+                from: campaign.from,
+                programName: program.name,
+              }),
+            }
+          : {}),
         to: partnerUser.email!,
         subject: campaign.subject,
         replyTo: program.supportEmail || "noreply",
@@ -169,15 +218,10 @@ export const executeSendCampaignWorkflow = async ({
             preview: campaign.preview,
             body: renderCampaignEmailHTML({
               content: campaign.bodyJson as unknown as TiptapNode,
-              variables: {
-                PartnerName: partnerUser.partner.name,
-                PartnerEmail: partnerUser.partner.email,
-                PartnerLink:
-                  constructPartnerLink({
-                    group: partnerUser.enrollment.partnerGroup,
-                    link: partnerUser.enrollment.links?.[0],
-                  }) || null,
-              },
+              variables: resolveCampaignEmailVariables({
+                partner: partnerUser.partner,
+                enrollment: partnerUser.enrollment,
+              }),
             }),
           },
         }),
@@ -212,7 +256,7 @@ export const executeSendCampaignWorkflow = async ({
   }
 };
 
-const includePartnerUsers = {
+const programEnrollmentInclude = {
   partner: {
     include: {
       users: {
@@ -232,142 +276,240 @@ const includePartnerUsers = {
       shortLink: true,
       key: true,
       url: true,
+      clicks: true,
+      leads: true,
+      conversions: true,
+      sales: true,
+      saleAmount: true,
     },
     orderBy: {
       id: "asc" as const,
     },
   },
+  clickReward: true,
+  leadReward: true,
+  saleReward: true,
+  referralReward: true,
 } satisfies Prisma.ProgramEnrollmentInclude;
 
-async function getProgramEnrollments({
+function buildWorkflowContext({
+  programEnrollment,
+  totalCommissions,
+}: {
+  programEnrollment: ProgramEnrollmentForWorkflowContext;
+  totalCommissions: number | null | undefined;
+}): Record<WorkflowAttributeKey, string | number | null> {
+  const { totalLeads, totalConversions, totalSaleAmount } =
+    aggregatePartnerLinksStats(programEnrollment.links);
+
+  const daysSinceEnrollment = differenceInDays(
+    new Date(),
+    programEnrollment.createdAt,
+  );
+
+  return {
+    totalLeads,
+    totalConversions,
+    totalSaleAmount,
+    totalCommissions: totalCommissions ?? 0,
+    partnerEnrolledDays: daysSinceEnrollment,
+    partnerJoined: daysSinceEnrollment,
+    partnerGroup: programEnrollment.groupId,
+  };
+}
+
+function campaignAudienceWhere({
+  groupIds,
+  partnerTagIds,
+}: {
+  groupIds: string[];
+  partnerTagIds: string[];
+}) {
+  return {
+    status: ProgramEnrollmentStatus.approved,
+    ...(groupIds.length > 0 && {
+      groupId: {
+        in: groupIds,
+      },
+    }),
+    ...(partnerTagIds.length > 0 && {
+      partner: {
+        programPartnerTags: {
+          some: {
+            partnerTagId: {
+              in: partnerTagIds,
+            },
+          },
+        },
+      },
+    }),
+  };
+}
+
+async function resolveProgramEnrollment({
   programId,
   partnerId,
   groupIds,
-  condition,
-}: {
-  programId: string;
-  partnerId?: string;
-  groupIds: string[];
-  condition: WorkflowCondition;
-}) {
-  if (partnerId) {
-    const { attribute } = condition;
+  partnerTagIds,
+  conditions,
+}: ResolveProgramEnrollment) {
+  const { commissions } = getWorkflowDataRequirements({
+    conditions,
+  });
 
-    const isPartnerLinkStatsAttribute = [
-      "totalLeads",
-      "totalConversions",
-      "totalSaleAmount",
-    ].includes(attribute);
-
-    const programEnrollment = await prisma.programEnrollment.findUnique({
+  const [programEnrollment, totalCommissions] = await Promise.all([
+    prisma.programEnrollment.findUnique({
       where: {
         partnerId_programId: {
           partnerId,
           programId,
         },
-        status: "approved",
-        ...(groupIds.length > 0 && {
-          groupId: {
-            in: groupIds,
-          },
+        ...campaignAudienceWhere({
+          groupIds,
+          partnerTagIds,
         }),
       },
-      include: {
-        ...includePartnerUsers,
-        ...(isPartnerLinkStatsAttribute
-          ? {
-              links: {
-                select: {
-                  shortLink: true,
-                  key: true,
-                  url: true,
-                  clicks: true,
-                  leads: true,
-                  conversions: true,
-                  sales: true,
-                  saleAmount: true,
-                },
-                orderBy: {
-                  id: "asc",
-                },
-              },
-            }
-          : {}),
-      },
-    });
+      include: programEnrollmentInclude,
+    }),
 
-    if (!programEnrollment) {
-      return [];
-    }
+    commissions
+      ? prisma.commission.aggregate({
+          where: {
+            earnings: {
+              not: 0,
+            },
+            programId,
+            partnerId,
+            status: {
+              in: [
+                CommissionStatus.pending,
+                CommissionStatus.processed,
+                CommissionStatus.paid,
+              ],
+            },
+          },
+          _sum: {
+            earnings: true,
+          },
+        })
+      : Promise.resolve({
+          _sum: {
+            earnings: 0,
+          },
+        }),
+  ]);
 
-    const context: Partial<Record<WorkflowAttributeKey, number | null>> = {
-      ...(isPartnerLinkStatsAttribute
-        ? aggregatePartnerLinksStats(
-            programEnrollment.links as unknown as NonNullable<
-              Parameters<typeof aggregatePartnerLinksStats>[0]
-            >,
-          )
-        : {}),
-      ...(attribute === "totalCommissions"
-        ? {
-            totalCommissions:
-              (
-                await prisma.commission.aggregate({
-                  where: {
-                    earnings: { not: 0 },
-                    programId,
-                    partnerId,
-                    status: { in: ["pending", "processed", "paid"] },
-                  },
-                  _sum: { earnings: true },
-                })
-              )._sum.earnings || 0,
-          }
-        : {}),
-      ...(attribute === "partnerJoined"
-        ? {
-            partnerJoined: differenceInDays(
-              new Date(),
-              programEnrollment.createdAt,
-            ),
-          }
-        : {}),
-    };
-
-    const shouldExecute = evaluateWorkflowConditions({
-      conditions: [condition],
-      attributes: {
-        [condition.attribute]: context[condition.attribute],
-      },
-    });
-
-    if (!shouldExecute) {
-      return [];
-    }
-
-    return [programEnrollment];
+  if (!programEnrollment) {
+    return [];
   }
 
-  const startDate = subDays(new Date(), condition.value as number);
-  // add 12 hours to the start date since we run the partnerEnrolled workflow every 12 hours
+  const workflowContext = buildWorkflowContext({
+    programEnrollment,
+    totalCommissions: totalCommissions._sum.earnings,
+  });
+
+  const shouldExecute = evaluateWorkflowConditions({
+    conditions,
+    context: workflowContext,
+  });
+
+  if (!shouldExecute) {
+    return [];
+  }
+
+  return [programEnrollment];
+}
+
+// Run only for scheduled workflows
+async function resolveProgramEnrollments({
+  programId,
+  groupIds,
+  partnerTagIds,
+  conditions,
+}: Omit<ResolveProgramEnrollment, "partnerId">) {
+  const partnerEnrolledDays = conditions.find(
+    (condition) => condition.attribute === "partnerEnrolledDays",
+  );
+
+  if (!partnerEnrolledDays) {
+    console.log("No partner enrolled days condition found. Skipping...");
+    return [];
+  }
+
+  const startDate = subDays(new Date(), partnerEnrolledDays.value as number);
+  // add 12 hours to the start date since we run the scheduled enrollment workflow every 12 hours
   const endDate = addHours(startDate, 12);
 
-  // We need to get all program enrollments that match the condition for the scheduled workflows
-  return await prisma.programEnrollment.findMany({
+  // partnerEnrolledDays is enforced by the enrollment window query below —
+  // re-evaluating it with differenceInDays can false-negative partners in the window.
+  const remainingConditions = conditions.filter(
+    (condition) => condition.attribute !== "partnerEnrolledDays",
+  );
+
+  const { commissions } = getWorkflowDataRequirements({
+    conditions: remainingConditions,
+  });
+
+  const programEnrollments = await prisma.programEnrollment.findMany({
     where: {
       programId,
-      status: "approved",
-      ...(groupIds.length > 0 && {
-        groupId: {
-          in: groupIds,
-        },
+      ...campaignAudienceWhere({
+        groupIds,
+        partnerTagIds,
       }),
       createdAt: {
         gte: startDate,
         lte: endDate,
       },
     },
-    include: includePartnerUsers,
+    include: programEnrollmentInclude,
     take: 1000, // rough estimate that a program cannot get more than 1000 enrollments every 12 hours
+  });
+
+  if (programEnrollments.length === 0 || remainingConditions.length === 0) {
+    return programEnrollments;
+  }
+
+  const commissionsByPartnerId = new Map<string, number>();
+
+  if (commissions) {
+    const commissionTotals = await prisma.commission.groupBy({
+      by: ["partnerId"],
+      where: {
+        earnings: {
+          not: 0,
+        },
+        programId,
+        partnerId: {
+          in: pluck(programEnrollments, "partnerId"),
+        },
+        status: {
+          in: [
+            CommissionStatus.pending,
+            CommissionStatus.processed,
+            CommissionStatus.paid,
+          ],
+        },
+      },
+      _sum: {
+        earnings: true,
+      },
+    });
+
+    for (const { partnerId, _sum } of commissionTotals) {
+      commissionsByPartnerId.set(partnerId, _sum.earnings ?? 0);
+    }
+  }
+
+  return programEnrollments.filter((programEnrollment) => {
+    const workflowContext = buildWorkflowContext({
+      programEnrollment,
+      totalCommissions: commissionsByPartnerId.get(programEnrollment.partnerId),
+    });
+
+    return evaluateWorkflowConditions({
+      conditions: remainingConditions,
+      context: workflowContext,
+    });
   });
 }

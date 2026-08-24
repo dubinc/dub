@@ -1,6 +1,6 @@
 import "dotenv-flow/config";
 
-import { isGenericEmail } from "@/lib/is-generic-email";
+import { isGenericEmail } from "@/lib/email/is-generic-email";
 import { prisma } from "@/lib/prisma";
 
 async function main() {

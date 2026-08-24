@@ -4,6 +4,7 @@ import { Session } from "../auth/utils";
 import { HTTP_MUTATION_METHODS, ROUTE_PATTERNS } from "./constants";
 import {
   maskSensitiveFields,
+  SENSITIVE_REQUEST_FIELDS_BY_ROUTE,
   SENSITIVE_RESPONSE_FIELDS_BY_ROUTE,
 } from "./mask-sensitive-fields";
 import { parseQueryParams } from "./query-params";
@@ -85,6 +86,19 @@ export async function captureRequestLog({
   } catch {}
 
   const queryParams = parseQueryParams(url.searchParams);
+
+  // Mask sensitive fields in the request body
+  if (requestBody) {
+    const sensitiveRequestFields =
+      SENSITIVE_REQUEST_FIELDS_BY_ROUTE[routePattern];
+
+    if (sensitiveRequestFields) {
+      requestBody = maskSensitiveFields({
+        body: requestBody,
+        keys: sensitiveRequestFields,
+      });
+    }
+  }
 
   // Mask sensitive fields in the response body
   if (responseBody) {

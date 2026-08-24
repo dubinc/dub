@@ -1,5 +1,5 @@
 import { DubApiError } from "@/lib/api/errors";
-import { confirmEmailChange } from "@/lib/auth/confirm-email-change";
+import { requestEmailChange } from "@/lib/auth/request-email-change";
 import { dispatchGroupUtmSyncForPartner } from "@/lib/partners/dispatch-partner-utm-sync";
 import { prisma } from "@/lib/prisma";
 import { storage } from "@/lib/storage";
@@ -173,10 +173,11 @@ export async function requestSyncedEmailChange({
   hostName: string;
   redirectTo: "/profile" | "/account/settings";
 }) {
-  await confirmEmailChange({
+  await requestEmailChange({
     email: currentEmail,
     newEmail,
     identifier: userId,
+    userId,
     hostName,
     syncIdentity: true,
     partnerId,

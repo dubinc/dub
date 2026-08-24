@@ -458,7 +458,7 @@ export const PLANS: PlanDetails[] = [
         text: "Embedded referral dashboard",
         tooltip: {
           title:
-            "Create an embedded referral dashboard directly in your app in just a few lines of code.",
+            "Let users join your referral program and start sharing + earning commissions – all without leaving your app.",
           cta: "Learn more.",
           href: "https://dub.co/docs/partners/embedded-referrals",
         },

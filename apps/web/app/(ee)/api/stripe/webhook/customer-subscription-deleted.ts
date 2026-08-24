@@ -204,6 +204,10 @@ export async function customerSubscriptionDeleted(
     tokenCache.expireMany({
       hashedKeys: workspace.restrictedTokens.map(({ hashedKey }) => hashedKey),
     }),
+
+    // Open/uncollectible invoices remain payable after cancellation
+    // Voiding is the only terminal status that prevents payment for a canceled subscription
+    voidLatestInvoiceIfPayable(deletedSubscription),
   ]);
 
   // Reset cancellation feedback dedupe so a future resubscribe + cancel can send again
@@ -261,4 +265,34 @@ export async function customerSubscriptionDeleted(
   }
 
   return `Workspace ${workspace.slug} subscription deleted; downgraded to free.`;
+}
+
+async function voidLatestInvoiceIfPayable(subscription: Stripe.Subscription) {
+  const latestInvoiceId =
+    typeof subscription.latest_invoice === "string"
+      ? subscription.latest_invoice
+      : subscription.latest_invoice?.id;
+
+  if (!latestInvoiceId) {
+    return;
+  }
+
+  try {
+    const invoice = await stripe.invoices.retrieve(latestInvoiceId);
+
+    if (invoice.status !== "open" && invoice.status !== "uncollectible") {
+      return;
+    }
+
+    await stripe.invoices.voidInvoice(latestInvoiceId);
+
+    console.log(
+      `Voided invoice ${latestInvoiceId} for canceled subscription ${subscription.id}.`,
+    );
+  } catch (error) {
+    console.log(
+      `Failed to void invoice ${latestInvoiceId} for subscription ${subscription.id}:`,
+      error,
+    );
+  }
 }

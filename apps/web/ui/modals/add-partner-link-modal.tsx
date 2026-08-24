@@ -7,6 +7,7 @@ import {
   InfoTooltip,
   Modal,
   useCopyToClipboard,
+  useLatestCallback,
   useMediaQuery,
 } from "@dub/ui";
 import { useCallback, useMemo, useRef, useState } from "react";
@@ -206,16 +207,18 @@ export function useAddPartnerLinkModal({
 }) {
   const [showAddPartnerLinkModal, setShowAddPartnerLinkModal] = useState(false);
 
+  const onSuccessCallback = useLatestCallback(onSuccess);
+
   const AddPartnerLinkModalCallback = useCallback(() => {
     return (
       <AddPartnerLinkModal
         showModal={showAddPartnerLinkModal}
         setShowModal={setShowAddPartnerLinkModal}
-        onSuccess={onSuccess}
+        onSuccess={onSuccessCallback}
         partner={partner}
       />
     );
-  }, [showAddPartnerLinkModal, setShowAddPartnerLinkModal, partner]);
+  }, [showAddPartnerLinkModal, setShowAddPartnerLinkModal, onSuccessCallback]);
 
   return useMemo(
     () => ({

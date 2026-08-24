@@ -5,7 +5,7 @@ type BountyEligibilityCandidate = {
   id: string;
   name: string | null;
   type: BountyType;
-  startsAt: Date;
+  startsAt: Date | null;
   endsAt: Date | null;
   archivedAt: Date | null;
   groups: { groupId: string }[];
@@ -26,7 +26,7 @@ export function filterActiveGroupBounties(
       return false;
     }
 
-    if (bounty.startsAt > now) {
+    if (bounty.startsAt && bounty.startsAt > now) {
       return false;
     }
 

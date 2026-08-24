@@ -9,7 +9,7 @@ import { CountryCombobox } from "@/ui/partners/country-combobox";
 import { Button, Modal, useMediaQuery } from "@dub/ui";
 import { COUNTRIES } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import * as z from "zod/v4";
@@ -55,7 +55,7 @@ function EditSubmittedLeadModal({
   const { isMobile } = useMediaQuery();
   const { id: workspaceId, defaultProgramId } = useWorkspace();
 
-  const customFormData = lead.formData ?? [];
+  const customFormData = lead.formData;
 
   const {
     register,
@@ -186,7 +186,7 @@ function EditSubmittedLeadModal({
               </div>
 
               {/* Custom form data fields */}
-              {customFormData.map((field) => {
+              {customFormData?.map((field) => {
                 const keyPath = `formData.${field.key}` as const;
 
                 if (field.type === "textarea") {
@@ -293,11 +293,7 @@ export function useEditSubmittedLeadModal() {
     setLead(lead);
   }
 
-  function closeEditSubmittedLeadModal() {
-    setLead(null);
-  }
-
-  function EditSubmittedLeadModalWrapper() {
+  const EditSubmittedLeadModalWrapper = useCallback(() => {
     if (!lead) return null;
 
     return (
@@ -305,15 +301,14 @@ export function useEditSubmittedLeadModal() {
         lead={lead}
         showModal
         setShowModal={(show) => {
-          if (!show) closeEditSubmittedLeadModal();
+          if (!show) setLead(null);
         }}
       />
     );
-  }
+  }, [lead]);
 
   return {
     openEditSubmittedLeadModal,
-    closeEditSubmittedLeadModal,
     EditSubmittedLeadModal: EditSubmittedLeadModalWrapper,
     isEditSubmittedLeadModalOpen: lead !== null,
   };

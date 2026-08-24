@@ -8,8 +8,8 @@ import { prisma } from "@/lib/prisma";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { linkEventSchema } from "@/lib/zod/schemas/links";
 import {
+  ACTIVE_ENROLLMENT_STATUSES,
   createPartnerLinkSchema,
-  INACTIVE_ENROLLMENT_STATUSES,
 } from "@/lib/zod/schemas/partners";
 import { ReferralsEmbedLinkSchema } from "@/lib/zod/schemas/referrals-embed";
 import { getPrettyUrl } from "@dub/utils";
@@ -19,16 +19,17 @@ import { NextResponse } from "next/server";
 // PATCH /api/embed/referrals/links/[linkId] - update a link for a partner
 export const PATCH = withReferralsEmbedToken(
   async ({ req, params, programEnrollment, program, links, group }) => {
+    if (!ACTIVE_ENROLLMENT_STATUSES.includes(programEnrollment.status)) {
+      throw new DubApiError({
+        code: "forbidden",
+        message:
+          "You cannot update links in this program because your enrollment is not active.",
+      });
+    }
+
     const { url, key } = createPartnerLinkSchema
       .pick({ url: true, key: true })
       .parse(await parseRequestBody(req));
-
-    if (INACTIVE_ENROLLMENT_STATUSES.includes(programEnrollment.status)) {
-      throw new DubApiError({
-        code: "forbidden",
-        message: `You are ${programEnrollment.status} from this program hence cannot create links.`,
-      });
-    }
 
     const link = links.find((link) => link.id === params.linkId);
 

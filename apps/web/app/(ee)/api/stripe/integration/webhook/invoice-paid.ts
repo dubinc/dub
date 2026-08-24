@@ -310,9 +310,19 @@ export async function invoicePaid({
 
         if (!productId) return null;
 
+        // Credit grants sit on the line, not in line.amount — subtract so
+        // productId rewards commission on the portion actually charged.
+        const creditGrantAmount = (line.pretax_credit_amounts ?? []).reduce(
+          (sum, credit) =>
+            credit.type === "credit_balance_transaction"
+              ? sum + credit.amount
+              : sum,
+          0,
+        );
+
         return {
           id: productId,
-          amount: line.amount,
+          amount: Math.max(line.amount - creditGrantAmount, 0),
           quantity: line.quantity ?? 0,
         };
       })
@@ -355,8 +365,7 @@ export async function invoicePaid({
     waitUntil(
       Promise.allSettled([
         executeWorkflows({
-          trigger: "partnerMetricsUpdated",
-          reason: "sale",
+          event: "saleRecorded",
           identity: {
             workspaceId: workspace.id,
             programId: link.programId,

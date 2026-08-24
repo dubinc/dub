@@ -1,5 +1,5 @@
 import { nanoid } from "@dub/utils";
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 import {
   finishOnboardingCheckoutWithoutStripeRedirect,
   installBillingCheckoutMocks,
@@ -9,6 +9,41 @@ const MINIMAL_PNG = Buffer.from(
   "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==",
   "base64",
 );
+
+/** Host Playwright intercepts for the R2 PUT. CI has no STORAGE_*. */
+const MOCK_SIGNED_URL = "https://storage.example.test/e2e-program-logo";
+const MOCK_DESTINATION_URL =
+  "https://assets.example.test/program-logos/e2e.png";
+
+/** Stubs POST /upload-url and the follow-up PUT so onboarding does not need R2. */
+async function installProgramLogoUploadMocks(page: Page) {
+  await page.route(
+    (url) => url.pathname.endsWith("/upload-url"),
+    async (route) => {
+      if (route.request().method() !== "POST") {
+        await route.continue();
+        return;
+      }
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          key: "program-logos/e2e",
+          signedUrl: MOCK_SIGNED_URL,
+          destinationUrl: MOCK_DESTINATION_URL,
+        }),
+      });
+    },
+  );
+
+  await page.route(MOCK_SIGNED_URL, async (route) => {
+    if (route.request().method() !== "PUT") {
+      await route.continue();
+      return;
+    }
+    await route.fulfill({ status: 200, body: "" });
+  });
+}
 
 function randomOnboardingDomain() {
   const id = nanoid(10).replace(/_/g, "-").toLowerCase();
@@ -121,40 +156,58 @@ test.describe("Dub Partners onboarding", () => {
       page.getByRole("heading", { name: "Create your partner program" }),
     ).toBeVisible({ timeout: STEP_NAV_TIMEOUT });
 
-    await page.getByLabel("Company name").fill(`Test Program ${nanoid(4)}`);
-    await page.locator('input[type="file"]').setInputFiles({
+    await page
+      .getByTestId("onboarding-program-company-name")
+      .fill(`Test Program ${nanoid(4)}`);
+
+    await installProgramLogoUploadMocks(page);
+
+    const uploadUrlPost = page.waitForResponse(
+      (r) =>
+        r.request().method() === "POST" &&
+        new URL(r.url()).pathname.endsWith("/upload-url"),
+      { timeout: STEP_NAV_TIMEOUT },
+    );
+    await page.getByTestId("onboarding-program-logo").setInputFiles({
       name: "logo.png",
       mimeType: "image/png",
       buffer: MINIMAL_PNG,
     });
-    await expect
-      .poll(async () => page.locator('img[alt="Preview"]').count(), {
-        timeout: 30_000,
-      })
-      .toBeGreaterThan(0);
+    const uploadUrlRes = await uploadUrlPost;
+    if (!uploadUrlRes.ok()) {
+      throw new Error(
+        `Logo upload-url failed: HTTP ${uploadUrlRes.status()} ${await uploadUrlRes.text()}`,
+      );
+    }
+    await expect(page.getByText("logo.png uploaded!")).toBeVisible({
+      timeout: 30_000,
+    });
 
-    await page.getByLabel("Destination URL").fill("https://acme.com");
-    await page.getByLabel("Support email").fill("support@acme.com");
+    await page
+      .getByTestId("onboarding-program-destination-url")
+      .fill("https://acme.com");
+    await page
+      .getByTestId("onboarding-program-support-email")
+      .fill("support@acme.com");
     await Promise.all([
       expect(page).toHaveURL(/\/onboarding\/program\/reward/, {
         timeout: STEP_NAV_TIMEOUT,
       }),
-      page.getByRole("button", { name: "Continue" }).click(),
+      page.getByTestId("onboarding-program-continue").click(),
     ]);
 
     // Default reward — keep Sale / recurring / percentage defaults, set 30%
     await expect(
       page.getByRole("heading", { name: "Create your default reward" }),
     ).toBeVisible({ timeout: STEP_NAV_TIMEOUT });
-    const pctInput = page.getByLabel(/Percentage per sale/i);
+    const pctInput = page.getByTestId("onboarding-reward-amount");
     await expect(pctInput).toBeVisible({ timeout: STEP_NAV_TIMEOUT });
-    await page.waitForTimeout(2000);
-    await pctInput.fill("30", { force: true });
+    await pctInput.fill("30");
     await Promise.all([
       expect(page).toHaveURL(/\/onboarding\/plan/, {
         timeout: STEP_NAV_TIMEOUT,
       }),
-      page.getByRole("button", { name: "Continue" }).click(),
+      page.getByTestId("onboarding-reward-continue").click(),
     ]);
 
     // Plan step — mocked checkout trial (no Stripe)

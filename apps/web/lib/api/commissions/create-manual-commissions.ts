@@ -121,13 +121,6 @@ export async function createManualCommissions(args: CreateCommissionsArgs) {
       productId,
     } = args;
 
-    if (!importStripeInvoices && !saleAmount) {
-      throw new DubApiError({
-        code: "bad_request",
-        message: "Either saleAmount or importStripeInvoices must be provided.",
-      });
-    }
-
     const hasManualSaleFields =
       saleAmount || saleEventDate || invoiceId || productId;
 
@@ -678,8 +671,7 @@ async function executeSideEffects(args: ExecuteSideEffectsArgs) {
     }),
 
     executeWorkflows({
-      trigger: "partnerMetricsUpdated",
-      reason: "commission",
+      event: "commissionRecorded",
       identity: {
         workspaceId: workspace.id,
         programId,

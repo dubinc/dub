@@ -5,8 +5,17 @@ import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-progr
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
+import {
+  parseCampaignFromAddress,
+  resolveCampaignFromAddress,
+} from "@/lib/email/parse-campaign-from-address";
 import { TiptapNode } from "@/lib/types";
-import { CampaignSchema } from "@/lib/zod/schemas/campaigns";
+import {
+  campaignFromSchema,
+  CampaignSchema,
+  EMAIL_TEMPLATE_VARIABLE_INFO,
+  EMAIL_TEMPLATE_VARIABLES,
+} from "@/lib/zod/schemas/campaigns";
 import { sendBatchEmail } from "@dub/email";
 import CampaignEmail from "@dub/email/templates/campaign-email";
 import { NextResponse } from "next/server";
@@ -17,7 +26,7 @@ const sendPreviewEmailSchema = CampaignSchema.pick({
   preview: true,
   bodyJson: true,
 }).extend({
-  from: z.email().optional(),
+  from: campaignFromSchema.optional(),
   emailAddresses: z
     .array(z.email())
     .min(1)
@@ -54,23 +63,33 @@ export const POST = withWorkspace(
     ]);
 
     // check if from email is a valid email domain
-    if (
-      from &&
-      !program.emailDomains.some(
-        ({ slug: emailDomain }) => from.split("@")[1] === emailDomain,
-      )
-    ) {
-      throw new DubApiError({
-        code: "bad_request",
-        message: "Invalid `from` email address.",
-      });
+    if (from) {
+      const parsed = parseCampaignFromAddress(from);
+      const domainPart = parsed?.email.split("@")[1];
+
+      if (
+        !parsed ||
+        !program.emailDomains.some(
+          ({ slug: emailDomain }) => domainPart === emailDomain,
+        )
+      ) {
+        throw new DubApiError({
+          code: "bad_request",
+          message: "Invalid domain. You can only send from a verified domain.",
+        });
+      }
     }
 
     const { data, error } = await sendBatchEmail(
       emailAddresses.map((email) => ({
         variant: campaign.type === "marketing" ? "marketing" : "notifications",
         to: email,
-        ...(from && { from: `${program.name} <${from}>` }),
+        ...(from && {
+          from: resolveCampaignFromAddress({
+            from,
+            programName: program.name,
+          }),
+        }),
         ...(program.supportEmail ? { replyTo: program.supportEmail } : {}),
         subject: `[TEST] ${subject}`,
         react: CampaignEmail({
@@ -85,11 +104,12 @@ export const POST = withWorkspace(
             preview,
             body: renderCampaignEmailHTML({
               content: bodyJson as unknown as TiptapNode,
-              variables: {
-                PartnerName: "Partner",
-                PartnerEmail: "partner@acme.com",
-                PartnerLink: "https://acme.com/partner",
-              },
+              variables: Object.fromEntries(
+                EMAIL_TEMPLATE_VARIABLES.map((key) => [
+                  key,
+                  EMAIL_TEMPLATE_VARIABLE_INFO[key].example,
+                ]),
+              ),
             }),
           },
         }),

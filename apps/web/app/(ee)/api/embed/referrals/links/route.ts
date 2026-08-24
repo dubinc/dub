@@ -7,7 +7,10 @@ import { withReferralsEmbedToken } from "@/lib/embed/referrals/auth";
 import { prisma } from "@/lib/prisma";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { linkEventSchema } from "@/lib/zod/schemas/links";
-import { createPartnerLinkSchema } from "@/lib/zod/schemas/partners";
+import {
+  ACTIVE_ENROLLMENT_STATUSES,
+  createPartnerLinkSchema,
+} from "@/lib/zod/schemas/partners";
 import { ReferralsEmbedLinkSchema } from "@/lib/zod/schemas/referrals-embed";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
@@ -22,16 +25,17 @@ export const GET = withReferralsEmbedToken(async ({ links }) => {
 // POST /api/embed/referrals/links – create links for a partner
 export const POST = withReferralsEmbedToken(
   async ({ req, programEnrollment, program, links, group }) => {
+    if (!ACTIVE_ENROLLMENT_STATUSES.includes(programEnrollment.status)) {
+      throw new DubApiError({
+        code: "forbidden",
+        message:
+          "You cannot create links in this program because your enrollment is not active.",
+      });
+    }
+
     const { url, key } = createPartnerLinkSchema
       .pick({ url: true, key: true })
       .parse(await parseRequestBody(req));
-
-    if (["banned", "deactivated"].includes(programEnrollment.status)) {
-      throw new DubApiError({
-        code: "forbidden",
-        message: `You are ${programEnrollment.status} from this program hence cannot create links.`,
-      });
-    }
 
     if (!program.domain || !program.url) {
       throw new DubApiError({
