@@ -1,74 +1,29 @@
 "use client";
 
-import { clientAccessCheck } from "@/lib/client-access-check";
-import useWorkspace from "@/lib/swr/use-workspace";
 import { X } from "@/ui/shared/icons";
-import { Button, LoadingDots, Modal, useMediaQuery } from "@dub/ui";
+import { Button, Modal, useMediaQuery } from "@dub/ui";
 import { cn, validDomainRegex } from "@dub/utils";
 import { useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
 
+const isValidHostname = (hostname: string) => {
+  return (
+    validDomainRegex.test(hostname) ||
+    hostname === "localhost" ||
+    hostname.startsWith("*.")
+  );
+};
+
 const AddHostnameForm = ({
-  onCreate,
+  existingHostnames,
+  onAdd,
   onCancel,
 }: {
-  onCreate: () => void;
+  existingHostnames: string[];
+  onAdd: (hostname: string) => void;
   onCancel?: () => void;
 }) => {
   const [hostname, setHostname] = useState("");
-  const [processing, setProcessing] = useState(false);
-  const { id, allowedHostnames, mutate, role } = useWorkspace();
-
-  const { error: permissionsError } = clientAccessCheck({
-    action: "workspaces.write",
-    role,
-    customPermissionDescription: "add hostnames",
-  });
-
-  const isValidHostname = (hostname: string) => {
-    return (
-      validDomainRegex.test(hostname) ||
-      hostname === "localhost" ||
-      hostname.startsWith("*.")
-    );
-  };
-
-  const addHostname = async () => {
-    if (allowedHostnames?.includes(hostname)) {
-      toast.error("Hostname already exists.");
-      return;
-    }
-
-    if (!isValidHostname(hostname)) {
-      toast.error("Enter a valid domain.");
-      return;
-    }
-
-    setProcessing(true);
-
-    const response = await fetch(`/api/workspaces/${id}`, {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        allowedHostnames: [...(allowedHostnames || []), hostname],
-      }),
-    });
-
-    if (response.ok) {
-      toast.success("Hostname added.");
-      onCreate();
-    } else {
-      const { error } = await response.json();
-      toast.error(error.message);
-    }
-
-    mutate();
-    setProcessing(false);
-    setHostname("");
-  };
-
   const { isMobile } = useMediaQuery();
 
   return (
@@ -76,7 +31,20 @@ const AddHostnameForm = ({
       className="bg-neutral-50"
       onSubmit={(e) => {
         e.preventDefault();
-        addHostname();
+        e.stopPropagation();
+
+        if (existingHostnames.includes(hostname)) {
+          toast.error("Hostname already exists.");
+          return;
+        }
+
+        if (!isValidHostname(hostname)) {
+          toast.error("Enter a valid domain.");
+          return;
+        }
+
+        onAdd(hostname);
+        setHostname("");
       }}
     >
       <div className="relative flex-1 rounded-md px-6 py-5">
@@ -94,25 +62,20 @@ const AddHostnameForm = ({
         />
       </div>
 
-      <div className="flex items-center justify-between gap-2 border-t border-neutral-200 px-6 py-5">
-        <div>{processing && <LoadingDots />}</div>
-        <div className="flex items-center gap-2">
-          <Button
-            onClick={() => onCancel?.()}
-            variant="secondary"
-            text="Cancel"
-            className="h-8 w-fit px-3"
-          />
-          <Button
-            type="submit"
-            variant="primary"
-            text="Add hostname"
-            className="h-8 w-fit px-3"
-            disabled={!isValidHostname(hostname)}
-            loading={processing}
-            disabledTooltip={permissionsError || undefined}
-          />
-        </div>
+      <div className="flex items-center justify-end gap-2 border-t border-neutral-200 px-6 py-5">
+        <Button
+          onClick={() => onCancel?.()}
+          variant="secondary"
+          text="Cancel"
+          className="h-8 w-fit px-3"
+        />
+        <Button
+          type="submit"
+          variant="primary"
+          text="Add hostname"
+          className="h-8 w-fit px-3"
+          disabled={!isValidHostname(hostname)}
+        />
       </div>
     </form>
   );
@@ -121,11 +84,15 @@ const AddHostnameForm = ({
 interface AddHostnameModalProps {
   showModal: boolean;
   setShowModal: (showModal: boolean) => void;
+  existingHostnames: string[];
+  onAdd: (hostname: string) => void;
 }
 
 const AddHostnameModal = ({
   showModal,
   setShowModal,
+  existingHostnames,
+  onAdd,
 }: AddHostnameModalProps) => {
   const close = () => setShowModal(false);
   return (
@@ -142,13 +109,26 @@ const AddHostnameModal = ({
       </div>
 
       <div className="bg-neutral-50">
-        <AddHostnameForm onCancel={close} onCreate={close} />
+        <AddHostnameForm
+          existingHostnames={existingHostnames}
+          onCancel={close}
+          onAdd={(hostname) => {
+            onAdd(hostname);
+            close();
+          }}
+        />
       </div>
     </Modal>
   );
 };
 
-export function useAddHostnameModal() {
+export function useAddHostnameModal({
+  existingHostnames,
+  onAdd,
+}: {
+  existingHostnames: string[];
+  onAdd: (hostname: string) => void;
+}) {
   const [showAddHostnameModal, setShowAddHostnameModal] = useState(false);
 
   const AddHostnameModalCallback = useCallback(() => {
@@ -156,15 +136,17 @@ export function useAddHostnameModal() {
       <AddHostnameModal
         showModal={showAddHostnameModal}
         setShowModal={setShowAddHostnameModal}
+        existingHostnames={existingHostnames}
+        onAdd={onAdd}
       />
     );
-  }, [showAddHostnameModal, setShowAddHostnameModal]);
+  }, [showAddHostnameModal, existingHostnames, onAdd]);
 
   return useMemo(
     () => ({
       setShowAddHostnameModal,
       AddHostnameModal: AddHostnameModalCallback,
     }),
-    [setShowAddHostnameModal, AddHostnameModalCallback],
+    [AddHostnameModalCallback],
   );
 }

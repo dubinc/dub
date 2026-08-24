@@ -15,7 +15,7 @@ export default function WorkspaceTrackingSettingsPage() {
       }}
       controls={<ConversionTrackingToggle />}
     >
-      <PageWidthWrapper className="max-w-[800px] pb-20">
+      <PageWidthWrapper className="pb-20">
         <Suspense>
           <WorkspaceTrackingSettingsPageClient />
         </Suspense>
