@@ -38,8 +38,8 @@ function PublishableKeyMenu({
     >
       <Button
         variant="outline"
-        className="h-8 w-fit shrink-0 px-1.5 outline-none transition-all duration-200 border-transparent data-[state=open]:border-neutral-500"
-        icon={<ThreeDots className="size-5 shrink-0 rotate-90" />}
+        className="size-7 shrink-0 border-transparent p-0 outline-none transition-all duration-200 data-[state=open]:border-neutral-500"
+        icon={<ThreeDots className="size-4 shrink-0 rotate-90" />}
         onClick={() => {
           setOpenPopover(!openPopover);
         }}

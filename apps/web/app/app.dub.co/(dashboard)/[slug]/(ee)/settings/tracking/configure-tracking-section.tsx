@@ -176,10 +176,11 @@ export function ConfigureTrackingSection() {
         await setConnectionComplete(true);
 
         const selectedGuideTypes = new Set(
-          data.stack.flatMap(
-            (stackId) =>
-              stackItems.find((item) => item.id === stackId)?.guideKeys ?? [],
-          )
+          data.stack
+            .flatMap(
+              (stackId) =>
+                stackItems.find((item) => item.id === stackId)?.guideKeys ?? [],
+            )
             .map((key) => guides.find((guide) => guide.key === key)?.type)
             .filter(Boolean),
         );
@@ -298,9 +299,6 @@ export function ConfigureTrackingSection() {
             <TrackingSettingsRow
               heading="Site visit tracking"
               description={SITE_VISIT_DESCRIPTION}
-              align={
-                watch("siteVisitTrackingEnabled") ? "start" : "center"
-              }
             >
               <SiteVisitTrackingField
                 enabled={watch("siteVisitTrackingEnabled")}
@@ -351,8 +349,7 @@ export function ConfigureTrackingSection() {
             loading={isSubmitting}
             disabled={!isDirty || loading}
             disabledTooltip={
-              disabledTooltip ||
-              (!isDirty ? "No unsaved changes" : undefined)
+              disabledTooltip || (!isDirty ? "No unsaved changes" : undefined)
             }
           />
         </div>

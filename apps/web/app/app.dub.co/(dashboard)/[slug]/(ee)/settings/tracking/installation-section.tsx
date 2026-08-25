@@ -28,13 +28,14 @@ export function InstallationSection() {
           heading="Setup instructions"
           description="Use the prompts and instructions to install Dub."
           leftExtra={ready ? <DeveloperGuides /> : undefined}
+          leftExtraAlign="end"
         >
           <SetupInstructions stack={stack} hasHostname={hostnames.length > 0} />
         </TrackingSettingsRow>
 
         <TrackingSettingsRow
           heading="Verify installation"
-          description="To make sure it's all working!"
+          description="Select your hostname to verify the Dub installation."
           align="center"
         >
           <VerifyInstall hostnames={hostnames} />

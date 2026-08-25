@@ -46,24 +46,28 @@ export function PublishableKeyField({
   return (
     <>
       {publishableKey ? (
-        <div className="flex flex-col gap-3 rounded-xl border border-neutral-200 bg-white p-3 sm:flex-row sm:items-center sm:justify-between sm:gap-2">
-          <div className="flex min-w-0 items-center gap-2">
+        <div className="flex items-center justify-between gap-3 rounded-xl border border-neutral-200 bg-white px-3 py-2.5">
+          <div className="flex min-w-0 items-center gap-2.5">
             <div className="flex size-7 shrink-0 items-center justify-center rounded-md bg-neutral-100">
               <Key className="size-4 text-neutral-800" />
             </div>
             <code className="min-w-0 truncate font-mono text-sm text-neutral-800">
               {publishableKey}
             </code>
-            <CopyButton value={publishableKey} className="shrink-0" />
           </div>
-          <div className="flex w-fit items-center gap-2 sm:shrink-0">
+          <div className="flex shrink-0 items-center gap-2">
+            <CopyButton
+              value={publishableKey}
+              className="flex size-7 items-center justify-center rounded-lg border border-neutral-200 p-0 hover:bg-neutral-50 [&_svg]:size-3.5"
+            />
             <Button
               text="Regenerate"
               variant="secondary"
               onClick={() => setShowGenerateModal(true)}
               disabled={disabled}
               disabledTooltip={disabledTooltip}
-              className="h-7 w-fit px-2 text-xs"
+              className="h-7 w-fit shrink-0 px-2.5"
+              textWrapperClassName="overflow-visible"
             />
             <PublishableKeyMenu
               onRevoke={() => setShowRevokeModal(true)}

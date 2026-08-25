@@ -247,6 +247,7 @@ export const workspaceStoreKeys = z.enum([
   "analyticsSettingsConnectionSetupComplete", // boolean
   "analyticsSettingsLeadTrackingSetupComplete", // boolean
   "analyticsSettingsSaleTrackingSetupComplete", // boolean
+  "analyticsSettingsInstallationVerified", // { hostname, verifiedAt, user }
 ]);
 
 export const getWorkspaceUsersQuerySchema = z.object({

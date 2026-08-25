@@ -3,13 +3,22 @@
 import { MAX_TRACKED_SITEMAPS_PER_WORKSPACE } from "@/lib/zod/schemas/site-visit-tracking";
 import { DomainSelector } from "@/ui/domains/domain-selector";
 import { ThreeDots } from "@/ui/shared/icons";
-import { Button, InfoTooltip, LoadingSpinner, Popover, Sitemap } from "@dub/ui";
+import {
+  AnimatedSizeContainer,
+  Button,
+  InfoTooltip,
+  LoadingSpinner,
+  Popover,
+  Sitemap,
+} from "@dub/ui";
 import { Trash } from "@dub/ui/icons";
 import { cn, formatDate } from "@dub/utils";
 import { RefreshCw } from "lucide-react";
+import { useReducedMotion } from "motion/react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useAddSitemapModal } from "./add-sitemap-modal";
+import { EmptyTrackingCard } from "./empty-tracking-card";
 import { EnableSwitch } from "./enable-switch";
 import { TrackedSitemapDraft } from "./tracking-form";
 
@@ -38,6 +47,8 @@ export function SiteVisitTrackingField({
   disabled?: boolean;
   disabledTooltip?: string;
 }) {
+  const shouldReduceMotion = useReducedMotion();
+  const [shouldAnimateHeight, setShouldAnimateHeight] = useState(false);
   const [refreshingSitemapUrl, setRefreshingSitemapUrl] = useState<
     string | null
   >(null);
@@ -123,95 +134,129 @@ export function SiteVisitTrackingField({
 
   return (
     <>
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col">
         <EnableSwitch
           checked={enabled}
-          onChange={onEnabledChange}
+          onChange={(next) => {
+            setShouldAnimateHeight(true);
+            onEnabledChange(next);
+          }}
           disabled={disabled}
           disabledTooltip={disabledTooltip}
         />
 
-        {enabled && (
-          <div className="flex flex-col gap-4">
-            <div className="flex flex-col gap-2">
-              <label className="text-content-emphasis text-sm font-semibold">
-                Domain for sitemap imports
-              </label>
-              <DomainSelector
-                selectedDomain={siteDomainSlug}
-                setSelectedDomain={onSiteDomainSlugChange}
-                disabled={disabled}
-                disabledTooltip={disabledTooltip}
-              />
-              <p className="text-content-subtle text-xs font-medium">
-                This domain will be used for links we create when importing
-                pages from the sitemaps you add.
-              </p>
-            </div>
+        <AnimatedSizeContainer
+          height
+          transition={
+            shouldReduceMotion || !shouldAnimateHeight
+              ? { duration: 0 }
+              : { duration: 0.18, ease: [0.23, 1, 0.32, 1] }
+          }
+        >
+          {enabled && (
+            <div className="flex flex-col gap-4 pt-4">
+              <div className="flex flex-col gap-2">
+                <label className="text-content-emphasis text-sm font-semibold">
+                  Domain for sitemap imports
+                </label>
+                <DomainSelector
+                  selectedDomain={siteDomainSlug}
+                  setSelectedDomain={onSiteDomainSlugChange}
+                  disabled={disabled}
+                  disabledTooltip={disabledTooltip}
+                />
+                <p className="text-content-subtle text-xs font-medium">
+                  This domain will be used for links we create when importing
+                  pages from the sitemaps you add.
+                </p>
+              </div>
 
-            <div className="flex flex-col gap-2">
-              <h4 className="text-content-emphasis flex items-center gap-1 text-sm font-semibold">
-                Sitemaps
-                <InfoTooltip content="Add sitemap URLs we should crawl to create links for site visit tracking." />
-              </h4>
+              <div className="flex flex-col gap-2">
+                <h4 className="text-content-emphasis flex items-center gap-1 text-sm font-semibold">
+                  Sitemaps
+                  <InfoTooltip content="Add sitemap URLs we should crawl to create links for site visit tracking." />
+                </h4>
 
-              {sitemaps.length > 0 && (
-                <div className="flex flex-col gap-2">
-                  {sitemaps.map((sitemap) => (
-                    <div
-                      key={sitemap.url}
-                      className="flex items-center justify-between gap-4 rounded-xl border border-neutral-200 bg-white p-3"
-                    >
-                      <div className="flex min-w-0 items-center gap-2">
-                        <div className="flex size-7 items-center justify-center rounded-md bg-neutral-100">
-                          <Sitemap className="size-4 text-neutral-800" />
-                        </div>
-                        <div className="flex min-w-0 flex-col">
-                          <span className="text-content-emphasis min-w-0 truncate text-sm font-semibold">
-                            {sitemap.url.replace(/^https?:\/\//, "")}
-                          </span>
-                          <span className="text-content-subtle text-xs font-medium">
-                            {sitemap.lastCrawledAt
-                              ? `Last crawled ${formatDate(sitemap.lastCrawledAt, { month: "short" })}`
-                              : "Not crawled yet"}
-                            {typeof sitemap.lastUrlCount === "number"
-                              ? ` • ${sitemap.lastUrlCount} URLs found`
-                              : ""}
-                          </span>
-                        </div>
-                      </div>
-                      {!disabled && (
-                        <SitemapRowMenu
-                          canRefresh={persistedSitemapUrls.includes(
-                            sitemap.url,
+                {sitemaps.length === 0 ? (
+                  <EmptyTrackingCard
+                    variant="stack"
+                    icon={
+                      <Sitemap className="size-[18px] text-neutral-500" />
+                    }
+                    text="No site maps added"
+                    action={
+                      <Button
+                        text="Add sitemap"
+                        variant="secondary"
+                        className="h-8 w-fit px-2.5 active:scale-[0.97]"
+                        onClick={() => setShowAddSitemapModal(true)}
+                        disabled={
+                          disabled || Boolean(addSitemapDisabledReason)
+                        }
+                        disabledTooltip={addSitemapDisabledReason}
+                      />
+                    }
+                  />
+                ) : (
+                  <>
+                    <div className="flex flex-col gap-2">
+                      {sitemaps.map((sitemap) => (
+                        <div
+                          key={sitemap.url}
+                          className="flex items-center justify-between gap-4 rounded-xl border border-neutral-200 bg-white p-3"
+                        >
+                          <div className="flex min-w-0 items-center gap-2">
+                            <div className="flex size-7 items-center justify-center rounded-md bg-neutral-100">
+                              <Sitemap className="size-4 text-neutral-800" />
+                            </div>
+                            <div className="flex min-w-0 flex-col">
+                              <span className="text-content-emphasis min-w-0 truncate text-sm font-semibold">
+                                {sitemap.url.replace(/^https?:\/\//, "")}
+                              </span>
+                              <span className="text-content-subtle text-xs font-medium">
+                                {sitemap.lastCrawledAt
+                                  ? `Last crawled ${formatDate(sitemap.lastCrawledAt, { month: "short" })}`
+                                  : "Not crawled yet"}
+                                {typeof sitemap.lastUrlCount === "number"
+                                  ? ` • ${sitemap.lastUrlCount} URLs found`
+                                  : ""}
+                              </span>
+                            </div>
+                          </div>
+                          {!disabled && (
+                            <SitemapRowMenu
+                              canRefresh={persistedSitemapUrls.includes(
+                                sitemap.url,
+                              )}
+                              onRefresh={() => refreshSitemap(sitemap.url)}
+                              onDelete={() =>
+                                onSitemapsChange(
+                                  sitemaps.filter(
+                                    (item) => item.url !== sitemap.url,
+                                  ),
+                                )
+                              }
+                              loading={refreshingSitemapUrl === sitemap.url}
+                            />
                           )}
-                          onRefresh={() => refreshSitemap(sitemap.url)}
-                          onDelete={() =>
-                            onSitemapsChange(
-                              sitemaps.filter(
-                                (item) => item.url !== sitemap.url,
-                              ),
-                            )
-                          }
-                          loading={refreshingSitemapUrl === sitemap.url}
-                        />
-                      )}
+                        </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
-              )}
 
-              <Button
-                text="Add sitemap"
-                variant="secondary"
-                className="h-8 w-fit px-2.5"
-                onClick={() => setShowAddSitemapModal(true)}
-                disabled={disabled || Boolean(addSitemapDisabledReason)}
-                disabledTooltip={addSitemapDisabledReason}
-              />
+                    <Button
+                      text="Add sitemap"
+                      variant="secondary"
+                      className="h-8 w-fit px-2.5 active:scale-[0.97]"
+                      onClick={() => setShowAddSitemapModal(true)}
+                      disabled={disabled || Boolean(addSitemapDisabledReason)}
+                      disabledTooltip={addSitemapDisabledReason}
+                    />
+                  </>
+                )}
+              </div>
             </div>
-          </div>
-        )}
+          )}
+        </AnimatedSizeContainer>
       </div>
       <AddSitemapModal />
     </>
@@ -273,14 +318,14 @@ function SitemapRowMenu({
       <Button
         variant="outline"
         className={cn(
-          "h-8 w-fit px-1.5 outline-none transition-all duration-200",
+          "size-7 shrink-0 p-0 outline-none transition-all duration-200",
           "border-transparent data-[state=open]:border-neutral-500",
         )}
         icon={
           loading ? (
-            <LoadingSpinner className="size-4 shrink-0" />
+            <LoadingSpinner className="size-3 shrink-0" />
           ) : (
-            <ThreeDots className="size-5 shrink-0 rotate-90" />
+            <ThreeDots className="size-4 shrink-0 rotate-90" />
           )
         }
         onClick={() => setOpenPopover(!openPopover)}

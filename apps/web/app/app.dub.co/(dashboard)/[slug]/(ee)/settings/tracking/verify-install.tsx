@@ -1,24 +1,52 @@
 "use client";
 
 import { verifyWorkspaceSetup } from "@/lib/actions/verify-workspace-setup";
+import {
+  getVerifyErrorHeadline,
+  toVerifySiteUrl,
+  VERIFY_DOCS_HREF,
+  VERIFY_SUPPORT_HREF,
+  type VerifyInstallationResult,
+} from "@/lib/analytics/verify-installation";
 import useWorkspace from "@/lib/swr/use-workspace";
+import { UserAvatar } from "@/ui/users/user-avatar";
 import { Button, Combobox, Globe } from "@dub/ui";
+import { cn, OG_AVATAR_URL, timeAgo } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
-import { useMemo, useState } from "react";
+import { type ReactNode, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 const HOSTNAME_REQUIRED_MESSAGE =
   "A hostname is required in order to verify installation.";
 
+type LastVerified = {
+  hostname: string;
+  verifiedAt: string;
+  user: {
+    id: string;
+    name: string | null;
+    image: string | null;
+  };
+};
+
+type HelperTone = "success" | "error" | "neutral";
+
 export function VerifyInstall({ hostnames }: { hostnames: string[] }) {
-  const { id: workspaceId } = useWorkspace();
+  const { id: workspaceId, store, mutate } = useWorkspace();
   const [selectedHostname, setSelectedHostname] = useState<string | null>(null);
+  const [result, setResult] = useState<VerifyInstallationResult | null>(null);
+
+  const lastVerified = store?.analyticsSettingsInstallationVerified as
+    | LastVerified
+    | undefined;
 
   const hostnameOptions = useMemo(
     () =>
       hostnames.map((hostname) => ({
         value: hostname,
-        label: hostname,
+        label: hostname.startsWith("*.")
+          ? hostname
+          : toVerifySiteUrl(hostname),
         icon: <Globe className="size-4 text-neutral-600" />,
       })),
     [hostnames],
@@ -27,49 +55,172 @@ export function VerifyInstall({ hostnames }: { hostnames: string[] }) {
   const selectedOption =
     hostnameOptions.find((option) => option.value === selectedHostname) ?? null;
 
+  const persistedForHostname =
+    selectedHostname && lastVerified?.hostname === selectedHostname
+      ? lastVerified
+      : null;
+
+  const showSuccess = result?.status === "success";
+  const showError = result?.status === "error";
+  const showLastVerified = !result && Boolean(persistedForHostname);
+  const showButton = !showSuccess && !showLastVerified;
+
+  const helperTone: HelperTone | null = showSuccess
+    ? "success"
+    : showError
+      ? "error"
+      : showLastVerified
+        ? "neutral"
+        : null;
+
   const { executeAsync, isPending } = useAction(verifyWorkspaceSetup, {
-    onSuccess() {
-      toast.success("Installation verified.");
+    onSuccess({ data }) {
+      if (!data) {
+        return;
+      }
+
+      setResult(data);
+
+      if (data.status === "success") {
+        void mutate();
+      }
     },
     onError({ error }) {
+      setResult({
+        status: "error",
+        hostname: selectedHostname ?? "",
+        error: "unreachable",
+      });
       toast.error(error.serverError || "Failed to verify installation.");
     },
   });
 
   return (
     <div className="flex w-full flex-col gap-3">
-      <Combobox
-        options={hostnameOptions}
-        selected={selectedOption}
-        setSelected={(option) => setSelectedHostname(option?.value ?? null)}
-        placeholder="Select hostname"
-        searchPlaceholder="Search hostnames..."
-        buttonProps={{
-          className: "w-full",
-          disabled: hostnames.length === 0,
-          disabledTooltip:
-            hostnames.length === 0 ? HOSTNAME_REQUIRED_MESSAGE : undefined,
-        }}
-        matchTriggerWidth
-      />
-      <Button
-        text="Verify installation"
-        className="h-9 w-full"
-        loading={isPending}
-        disabled={!workspaceId}
-        onClick={() => {
-          if (!workspaceId) {
-            return;
-          }
+      <div
+        className={cn(
+          "flex w-full flex-col",
+          helperTone && "gap-1.5 rounded-[10px] px-0.5 pb-1.5 pt-0.5",
+          helperTone === "success" && "bg-[#DCFCE7]",
+          helperTone === "error" && "bg-[#FFE2E2]",
+          helperTone === "neutral" && "bg-neutral-100",
+        )}
+      >
+        <Combobox
+          caret
+          options={hostnameOptions}
+          selected={selectedOption}
+          setSelected={(option) => {
+            setSelectedHostname(option?.value ?? null);
+            setResult(null);
+          }}
+          placeholder="Select hostname"
+          searchPlaceholder="Search hostnames..."
+          buttonProps={{
+            className: cn("h-10 w-full", helperTone && "bg-bg-default"),
+            disabled: hostnames.length === 0,
+            disabledTooltip:
+              hostnames.length === 0 ? HOSTNAME_REQUIRED_MESSAGE : undefined,
+          }}
+          matchTriggerWidth
+        />
 
-          if (!selectedHostname) {
-            toast.error(HOSTNAME_REQUIRED_MESSAGE);
-            return;
-          }
+        {showSuccess && (
+          <HelperText tone="success">
+            Successfully connected and ready to use.
+          </HelperText>
+        )}
 
-          void executeAsync({ workspaceId });
-        }}
-      />
+        {showError && result.status === "error" && (
+          <HelperText tone="error">
+            {getVerifyErrorHeadline(result.error)} After correcting, try
+            verifying again and if the issue still persists, check out our{" "}
+            <a
+              href={VERIFY_DOCS_HREF}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline underline-offset-2"
+            >
+              docs
+            </a>{" "}
+            or{" "}
+            <a
+              href={VERIFY_SUPPORT_HREF}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline underline-offset-2"
+            >
+              contact support
+            </a>
+            .
+          </HelperText>
+        )}
+
+        {showLastVerified && persistedForHostname && (
+          <HelperText tone="neutral" inline>
+            Last verified by
+            <UserAvatar
+              user={{
+                id: persistedForHostname.user.id,
+                name: persistedForHostname.user.name,
+                image:
+                  persistedForHostname.user.image ??
+                  `${OG_AVATAR_URL}${persistedForHostname.user.id}`,
+              }}
+              className="size-4 border-neutral-200"
+            />
+            <span className="font-medium">{persistedForHostname.user.name}</span>
+            {timeAgo(new Date(persistedForHostname.verifiedAt), {
+              withAgo: true,
+            })}
+          </HelperText>
+        )}
+      </div>
+
+      {showButton && (
+        <Button
+          text="Verify installation"
+          className="h-7 w-fit bg-bg-inverted px-2.5 text-sm font-medium tracking-[-0.02em] active:scale-[0.97]"
+          loading={isPending}
+          disabled={!workspaceId}
+          onClick={() => {
+            if (!workspaceId) {
+              return;
+            }
+
+            if (!selectedHostname) {
+              toast.error(HOSTNAME_REQUIRED_MESSAGE);
+              return;
+            }
+
+            void executeAsync({ workspaceId, hostname: selectedHostname });
+          }}
+        />
+      )}
     </div>
+  );
+}
+
+function HelperText({
+  tone,
+  inline = false,
+  children,
+}: {
+  tone: HelperTone;
+  inline?: boolean;
+  children: ReactNode;
+}) {
+  return (
+    <p
+      className={cn(
+        "min-h-5 px-3 text-sm leading-5",
+        inline && "flex flex-wrap items-center gap-2",
+        tone === "success" && "text-[#0D542B]",
+        tone === "error" && "text-[#82181A]",
+        tone === "neutral" && "text-content-subtle",
+      )}
+    >
+      {children}
+    </p>
   );
 }

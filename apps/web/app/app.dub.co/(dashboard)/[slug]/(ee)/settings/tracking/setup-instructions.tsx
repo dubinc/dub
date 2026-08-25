@@ -1,17 +1,19 @@
 "use client";
 
-import { GuideActionButton } from "@/ui/guides/guide-action-button";
-import {
-  guides,
-  IntegrationGuide,
-  stackItems,
-} from "@/ui/guides/integrations";
+import { guides, IntegrationGuide, stackItems } from "@/ui/guides/integrations";
 import { GuidesMarkdown } from "@/ui/guides/markdown";
-import { Button, CircleDotted } from "@dub/ui";
+import { BookOpen, Button, CopyButton, Tooltip } from "@dub/ui";
+import {
+  ChatGPTIcon,
+  ChatTask,
+  CircleDashed,
+  Claude,
+  Cursor,
+  Grok,
+} from "@dub/ui/icons";
 import { cn } from "@dub/utils";
-import { ArrowUpRight } from "lucide-react";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { useDynamicGuide } from "./use-dynamic-guide";
 
 const DEVELOPER_GUIDES = [
@@ -29,16 +31,74 @@ const DEVELOPER_GUIDES = [
   },
 ];
 
-function extractFirstCodeBlock(markdown: string) {
-  const match = markdown.match(/```(\w+)?\n([\s\S]*?)```/);
-  if (!match) {
-    return null;
-  }
+const OPEN_IN_APPS = [
+  {
+    id: "claude",
+    name: "Claude",
+    icon: Claude,
+    href: (prompt: string) =>
+      `https://claude.ai/new?q=${encodeURIComponent(prompt)}`,
+  },
+  {
+    id: "chatgpt",
+    name: "ChatGPT",
+    icon: ChatGPTIcon,
+    href: (prompt: string) =>
+      `https://chatgpt.com/?hints=search&q=${encodeURIComponent(prompt)}`,
+  },
+  {
+    id: "cursor",
+    name: "Cursor",
+    icon: Cursor,
+    href: (prompt: string) =>
+      `https://cursor.com/link/prompt?text=${encodeURIComponent(prompt)}`,
+  },
+  {
+    id: "grok",
+    name: "Grok",
+    icon: Grok,
+    href: (prompt: string) =>
+      `https://grok.com/?q=${encodeURIComponent(prompt)}`,
+  },
+] as const;
 
-  return {
-    language: match[1] ?? "text",
-    code: match[2].trim(),
-  };
+function getInstallPrompt(url: string) {
+  return `Read from ${url} and implement it.`;
+}
+
+function OpenInApps({ prompt }: { prompt: string }) {
+  return (
+    <div className="flex items-center gap-2">
+      <span className="text-xs font-medium leading-4 tracking-[-0.02em] text-neutral-500">
+        Open in
+      </span>
+      <div className="flex items-center">
+        {OPEN_IN_APPS.map((app) => {
+          const Icon = app.icon;
+
+          return (
+            <Tooltip key={app.id} content={`Open in ${app.name}`}>
+              <button
+                type="button"
+                aria-label={`Open in ${app.name}`}
+                onClick={() =>
+                  window.open(app.href(prompt), "_blank", "noopener,noreferrer")
+                }
+                className={cn(
+                  "flex size-6 items-center justify-center rounded-lg text-neutral-900",
+                  "transition-[transform,background-color] duration-150 ease-out",
+                  "hover:bg-neutral-100 active:scale-[0.97]",
+                  "motion-reduce:transition-none motion-reduce:active:scale-100",
+                )}
+              >
+                <Icon className="size-3.5" />
+              </button>
+            </Tooltip>
+          );
+        })}
+      </div>
+    </div>
+  );
 }
 
 function getSelectedStackItems(stackIds: string[]) {
@@ -69,21 +129,21 @@ export function isSetupInstructionsReady(
 
 export function DeveloperGuides() {
   return (
-    <div className="mt-4 flex flex-col gap-2">
-      <h4 className="text-content-emphasis text-sm font-semibold">
+    <div className="flex flex-col gap-1.5">
+      <h4 className="text-xs font-semibold leading-4 tracking-[-0.02em] text-neutral-600">
         Read developer guides
       </h4>
-      <div className="flex flex-col">
+      <div className="flex flex-col gap-1.5">
         {DEVELOPER_GUIDES.map((guide) => (
           <Link
             key={guide.href}
             href={guide.href}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-content-default flex items-center justify-between gap-2 rounded-lg py-2 text-sm font-medium transition-colors duration-150 hover:bg-neutral-50"
+            className="flex w-fit items-center gap-1.5 text-xs font-medium leading-4 tracking-[-0.02em] text-neutral-500 transition-colors duration-150 hover:text-neutral-700"
           >
-            {guide.title}
-            <ArrowUpRight className="size-3.5 shrink-0 text-neutral-400" />
+            <BookOpen className="size-3.5 shrink-0" />
+            {guide.title} ↗
           </Link>
         ))}
       </div>
@@ -106,9 +166,9 @@ export function SetupInstructions({
 
   if (!ready) {
     return (
-      <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-neutral-200 bg-neutral-50 px-6 py-16 text-center">
-        <CircleDotted className="size-8 text-neutral-300" />
-        <p className="text-content-subtle mt-3 max-w-sm text-sm font-medium">
+      <div className="flex h-[114px] w-full flex-col items-center justify-center gap-2 rounded-xl bg-neutral-50 py-6">
+        <CircleDashed className="size-[18px] shrink-0 text-neutral-500" />
+        <p className="text-center text-sm font-medium leading-5 tracking-[-0.02em] text-neutral-500">
           Select your stack, add at least one hostname to generate install
           instructions
         </p>
@@ -117,7 +177,7 @@ export function SetupInstructions({
   }
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-3">
       {primaryGuide && <MainPromptCard guide={primaryGuide} />}
 
       {clientSdkItems.length > 0 && (
@@ -133,18 +193,18 @@ export function SetupInstructions({
             return (
               <div
                 key={item.id}
-                className="flex items-center justify-between gap-3 rounded-xl border border-neutral-200 bg-white px-3 py-2.5"
+                className="flex h-[52px] w-full items-center justify-between gap-3 rounded-[10px] bg-neutral-50 p-3"
               >
                 <div className="flex min-w-0 items-center gap-2.5">
                   <Icon className="size-5 shrink-0" />
-                  <span className="text-sm font-medium text-neutral-800">
+                  <span className="truncate text-sm font-medium text-neutral-800">
                     {item.title}
                   </span>
                 </div>
                 <Button
                   text="Read install guide"
                   variant="secondary"
-                  className="h-8 w-fit px-2.5"
+                  className="h-8 w-fit shrink-0 px-2.5"
                   onClick={() =>
                     window.open(guide.url, "_blank", "noopener,noreferrer")
                   }
@@ -161,54 +221,67 @@ export function SetupInstructions({
 function MainPromptCard({ guide }: { guide: IntegrationGuide }) {
   const { loading, guideMarkdown } = useDynamicGuide({ guide: guide.key });
   const [expanded, setExpanded] = useState(false);
-
-  const snippet = useMemo(
-    () => (guideMarkdown ? extractFirstCodeBlock(guideMarkdown) : null),
-    [guideMarkdown],
-  );
+  const prompt = getInstallPrompt(guide.url);
 
   return (
-    <div className="overflow-hidden rounded-xl border border-neutral-200 bg-neutral-50">
-      <div className="flex items-center justify-between gap-2 px-3 py-2.5">
-        <h4 className="text-content-emphasis text-sm font-semibold">
-          Main prompt
-        </h4>
-        {guideMarkdown && (
-          <GuideActionButton guide={guide} markdown={guideMarkdown} />
-        )}
+    <div className="flex flex-col gap-3">
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
+          <ChatTask className="size-5 shrink-0 text-neutral-800" />
+          <h4 className="text-sm font-semibold leading-5 tracking-[-0.02em] text-neutral-800">
+            Main prompt
+          </h4>
+        </div>
+        <OpenInApps prompt={prompt} />
       </div>
 
-      <div className="rounded-t-xl border-t border-neutral-200 bg-white p-4">
-        {loading ? (
-          <div className="space-y-3">
-            <div className="h-4 w-1/2 animate-pulse rounded bg-neutral-200" />
-            <div className="h-4 w-full animate-pulse rounded bg-neutral-100" />
-            <div className="h-4 w-5/6 animate-pulse rounded bg-neutral-100" />
-          </div>
-        ) : expanded && guideMarkdown ? (
-          <GuidesMarkdown>{guideMarkdown}</GuidesMarkdown>
-        ) : snippet ? (
-          <pre
-            className={cn(
-              "overflow-x-auto font-mono text-[13px] leading-6 text-neutral-800",
-            )}
-          >
-            <code>{snippet.code}</code>
-          </pre>
-        ) : (
-          <p className="text-content-subtle text-sm">
-            Failed to load install instructions.
-          </p>
-        )}
+      <div className="relative overflow-hidden rounded-xl border border-neutral-200 bg-white">
+        <CopyButton
+          value={prompt}
+          className="absolute right-3 top-3 z-10 flex size-6 items-center justify-center rounded-lg border border-neutral-200 p-0 hover:bg-neutral-50 [&_svg]:size-3.5"
+          successMessage="Prompt copied to clipboard"
+        />
 
-        {guideMarkdown && (
+        <div className="p-4 pb-0">
+          {expanded && loading ? (
+            <div className="space-y-3 pr-8">
+              <div className="h-4 w-1/2 animate-pulse rounded bg-neutral-200" />
+              <div className="h-4 w-full animate-pulse rounded bg-neutral-100" />
+              <div className="h-4 w-5/6 animate-pulse rounded bg-neutral-100" />
+            </div>
+          ) : expanded && guideMarkdown ? (
+            <div className="pr-8">
+              <GuidesMarkdown>{guideMarkdown}</GuidesMarkdown>
+            </div>
+          ) : (
+            <p className="pr-8 font-mono text-[13px] leading-6 text-neutral-800">
+              {prompt}
+            </p>
+          )}
+        </div>
+
+        <div
+          className={cn(
+            "pointer-events-none relative flex justify-center px-4 pb-4",
+            expanded ? "pt-4" : "pt-5",
+          )}
+          style={
+            expanded
+              ? undefined
+              : {
+                  background:
+                    "linear-gradient(180deg, rgba(255, 255, 255, 0) 0%, #FFFFFF 100%)",
+                }
+          }
+        >
           <Button
             text={expanded ? "Show less" : "View all"}
             variant="secondary"
-            className="mt-4 h-8 w-fit px-2.5"
+            className="pointer-events-auto h-8 w-fit px-2.5"
+            disabled={!expanded && loading && !guideMarkdown}
             onClick={() => setExpanded((current) => !current)}
           />
-        )}
+        </div>
       </div>
     </div>
   );
