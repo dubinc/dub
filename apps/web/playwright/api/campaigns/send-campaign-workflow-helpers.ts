@@ -7,6 +7,7 @@ import { subHours } from "date-fns";
 import { randomName, randomPartnerEmail } from "../../utils";
 import { PLAYWRIGHT_API_BASE } from "../constants";
 import type { ApiClient } from "../fixtures";
+import { deletePartnerData } from "../partners/helpers";
 import {
   campaignContent,
   createCampaign,
@@ -279,13 +280,30 @@ export async function expectCampaignEmailCount({
   partnerId?: string;
   count: number;
 }) {
-  const emails = await campaignEmails(campaignId, partnerId);
-  expect(
-    emails,
-    count > 0
-      ? "expected a campaign NotificationEmail (SMTP/MailHog or Resend must be configured)"
-      : "did not expect a campaign NotificationEmail",
-  ).toHaveLength(count);
+  if (count === 0) {
+    const emails = await campaignEmails(campaignId, partnerId);
+    expect(
+      emails,
+      "did not expect a campaign NotificationEmail",
+    ).toHaveLength(0);
+    return emails;
+  }
+
+  // Event-triggered sends run in waitUntil after /api/track/lead returns.
+  let emails: Awaited<ReturnType<typeof campaignEmails>> = [];
+  await expect
+    .poll(
+      async () => {
+        emails = await campaignEmails(campaignId, partnerId);
+        return emails.length;
+      },
+      {
+        message:
+          "expected a campaign NotificationEmail (SMTP/MailHog or Resend must be configured)",
+      },
+    )
+    .toBe(count);
+
   return emails;
 }
 
@@ -314,18 +332,6 @@ export async function deleteTestPartner(partnerId: string | undefined) {
     select: { userId: true },
   });
 
-  await prisma.notificationEmail.deleteMany({
-    where: { partnerId },
-  });
-
-  await prisma.commission.deleteMany({
-    where: { partnerId },
-  });
-
-  await prisma.customer.deleteMany({
-    where: { partnerId },
-  });
-
   await prisma.programPartnerTag.deleteMany({
     where: { partnerId },
   });
@@ -340,13 +346,7 @@ export async function deleteTestPartner(partnerId: string | undefined) {
     });
   }
 
-  await prisma.link.deleteMany({
-    where: { partnerId },
-  });
-
-  await prisma.programEnrollment.deleteMany({
-    where: { partnerId },
-  });
+  await deletePartnerData(partnerId);
 
   // Prisma partner.delete hits a PlanetScale relation quirk; raw SQL matches
   // bulkDeletePartners cleanup used by e2e cron. Use Prisma so cleanup hits

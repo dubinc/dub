@@ -210,15 +210,16 @@ describe("Sale rewards with conditions", async () => {
 
     test("when {Sale} {Metadata} {Key} is {Value}", async () => {
       const sale = randomSale("E2E sale metadata key-value condition");
+      const metadata = {
+        bookTitle: "THGTTG",
+      };
 
       const trackSaleResponse = await http.post<TrackSaleResponse>({
         path: "/track/sale",
         body: {
           ...sale,
           customerExternalId: newCustomer.externalId,
-          metadata: {
-            bookTitle: "THGTTG",
-          },
+          metadata,
         },
       });
 
@@ -228,6 +229,7 @@ describe("Sale rewards with conditions", async () => {
         http,
         invoiceId: sale.invoiceId,
         expectedEarnings: E2E_SALE_REWARD.modifiers[6].amountInCents!,
+        expectedMetadata: metadata,
       });
     });
   });

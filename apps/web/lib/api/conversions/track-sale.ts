@@ -577,6 +577,7 @@ const _trackSale = async ({
           quantity: 1,
           invoiceId,
           currency,
+          ...(metadata != null && { metadata }),
           context: {
             customer: {
               country: customer.country,
