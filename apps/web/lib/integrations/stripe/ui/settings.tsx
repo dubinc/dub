@@ -62,7 +62,7 @@ export const StripeIntegrationSettings = ({
   const isDirty = useMemo(() => {
     return (
       freeTrialsEnabled !== savedFreeTrialsEnabled ||
-      trackQuantity !== savedTrackQuantity ||
+      (freeTrialsEnabled ? trackQuantity : false) !== savedTrackQuantity ||
       firstTimeTransaction !== savedFirstTimeTransaction
     );
   }, [
