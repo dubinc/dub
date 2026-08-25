@@ -15,7 +15,7 @@ export const updateStripeSettingsAction = authActionClient
   .inputSchema(schema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace } = ctx;
-    const { freeTrials } = parsedInput;
+    const { freeTrials, discountCodeRestrictions } = parsedInput;
 
     const installedIntegration = await prisma.installedIntegration.findFirst({
       where: {
@@ -38,6 +38,7 @@ export const updateStripeSettingsAction = authActionClient
         settings: {
           ...current,
           freeTrials,
+          discountCodeRestrictions,
         },
       },
     });
