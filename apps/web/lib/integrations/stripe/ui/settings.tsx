@@ -1,5 +1,6 @@
 "use client";
 
+import { clientAccessCheck } from "@/lib/client-access-check";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { InstalledIntegrationInfoProps } from "@/lib/types";
 import { MarkdownDescription } from "@/ui/shared/markdown-description";
@@ -22,7 +23,11 @@ export const StripeIntegrationSettings = ({
   installed,
   settings,
 }: InstalledIntegrationInfoProps) => {
-  const { id: workspaceId } = useWorkspace();
+  const { id: workspaceId, role } = useWorkspace();
+  const { error: permissionsError } = clientAccessCheck({
+    action: "integrations.write",
+    role,
+  });
 
   const stripeSettings = stripeIntegrationSettingsSchema.parse({
     ...STRIPE_DEFAULT_SETTINGS,
@@ -188,7 +193,10 @@ export const StripeIntegrationSettings = ({
               text="Save changes"
               className="h-8 w-fit"
               loading={isPending}
-              disabled={!isDirty || isPending}
+              disabled={!isDirty || isPending || Boolean(permissionsError)}
+              {...(permissionsError && {
+                disabledTooltip: permissionsError,
+              })}
             />
           </div>
         </div>
