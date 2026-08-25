@@ -3,6 +3,10 @@
 import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import { Button, CopyButton, Key } from "@dub/ui";
 import { nanoid } from "@dub/utils";
+import {
+  EmptyTrackingCard,
+  emptyTrackingActionClassName,
+} from "./empty-tracking-card";
 import PublishableKeyMenu from "./publishable-key-menu";
 
 export function PublishableKeyField({
@@ -68,21 +72,20 @@ export function PublishableKeyField({
           </div>
         </div>
       ) : (
-        <div className="flex items-center justify-between gap-3 rounded-xl border border-neutral-200 bg-neutral-100 px-3 py-2.5">
-          <div className="flex min-w-0 items-center gap-2.5">
-            <Key className="size-4 shrink-0 text-neutral-600" />
-            <span className="text-content-subtle text-sm font-medium">
-              No publishable key generated
-            </span>
-          </div>
-          <Button
-            text="Generate key"
-            className="h-8 w-fit px-2.5"
-            onClick={() => setShowGenerateModal(true)}
-            disabled={disabled}
-            disabledTooltip={disabledTooltip}
-          />
-        </div>
+        <EmptyTrackingCard
+          icon={<Key className="size-[18px] shrink-0 text-neutral-600" />}
+          text="No publishable key generated"
+          action={
+            <Button
+              text="Generate key"
+              className={emptyTrackingActionClassName}
+              textWrapperClassName="overflow-visible"
+              onClick={() => setShowGenerateModal(true)}
+              disabled={disabled}
+              disabledTooltip={disabledTooltip}
+            />
+          }
+        />
       )}
       {generateModal}
       {revokeModal}

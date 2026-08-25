@@ -36,14 +36,13 @@ function HostnameMenu({
       setOpenPopover={setOpenPopover}
     >
       <Button
-        variant="plain"
-        color="secondary"
-        className="h-9 border-none p-2"
+        variant="outline"
+        className="h-8 w-fit shrink-0 px-1.5 outline-none transition-all duration-200 border-transparent data-[state=open]:border-neutral-500"
         icon={
           loading ? (
             <LoadingSpinner className="size-4 shrink-0" />
           ) : (
-            <ThreeDots className="h-5 w-5 shrink-0 rotate-90" />
+            <ThreeDots className="size-5 shrink-0 rotate-90" />
           )
         }
         onClick={() => {

@@ -141,6 +141,7 @@ export * from "./input-search";
 export * from "./invoice-dollar";
 export * from "./key";
 export * from "./layout-sidebar";
+export * from "./layers-3";
 export * from "./license";
 export * from "./life-ring";
 export * from "./lines-y";

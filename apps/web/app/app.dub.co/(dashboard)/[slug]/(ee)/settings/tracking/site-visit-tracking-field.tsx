@@ -280,7 +280,7 @@ function SitemapRowMenu({
           loading ? (
             <LoadingSpinner className="size-4 shrink-0" />
           ) : (
-            <ThreeDots className="size-5 shrink-0" />
+            <ThreeDots className="size-5 shrink-0 rotate-90" />
           )
         }
         onClick={() => setOpenPopover(!openPopover)}

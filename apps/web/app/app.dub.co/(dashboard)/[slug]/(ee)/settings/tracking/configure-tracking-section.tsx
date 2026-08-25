@@ -344,7 +344,7 @@ export function ConfigureTrackingSection() {
           </TrackingSettingsRow>
         </div>
 
-        <div className="flex items-center justify-end border-t border-neutral-200 px-5 py-4">
+        <div className="flex h-16 items-center justify-end border-t border-neutral-200 bg-neutral-50 px-5 py-4">
           <Button
             text="Save changes"
             className="h-8 w-fit px-3"
