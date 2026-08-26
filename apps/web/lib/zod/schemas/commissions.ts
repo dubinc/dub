@@ -513,7 +513,7 @@ const createCustomCommissionSchema = z.object({
       }),
     )
     .describe(
-      "The commission amount in cents. Use a negative amount to create a clawback.",
+      "The commission earnings amount in cents. Use a negative amount to create a clawback.",
     ),
   date: parseDateSchema
     .nullish()
