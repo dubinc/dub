@@ -2,6 +2,7 @@ import { setLemonSqueezyTokenAction } from "@/lib/actions/partners/set-lemonsque
 import { startLemonSqueezyImportAction } from "@/lib/actions/partners/start-lemonsqueezy-import";
 import { LemonSqueezyStore } from "@/lib/lemonsqueezy/types";
 import useWorkspace from "@/lib/swr/use-workspace";
+import { X } from "@/ui/shared/icons";
 import {
   Button,
   Check2,
@@ -15,7 +16,7 @@ import { cn, nFormatter } from "@dub/utils";
 import { ArrowRight } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useAction } from "next-safe-action/hooks";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import {
   Dispatch,
   SetStateAction,
@@ -26,6 +27,7 @@ import {
 } from "react";
 import { toast } from "sonner";
 import { MarkdownDescription } from "../shared/markdown-description";
+import { useImportModalParam } from "./use-import-modal-param";
 
 type Step = "set-token" | "select-store";
 
@@ -36,19 +38,11 @@ function ImportLemonSqueezyModal({
   showImportLemonSqueezyModal: boolean;
   setShowImportLemonSqueezyModal: Dispatch<SetStateAction<boolean>>;
 }) {
-  const searchParams = useSearchParams();
   const { queryParams } = useRouterStuff();
   const [step, setStep] = useState<Step>("set-token");
   const [stores, setStores] = useState<LemonSqueezyStore[]>([]);
 
-  useEffect(() => {
-    if (searchParams?.get("import") === "lemonsqueezy") {
-      setShowImportLemonSqueezyModal(true);
-    } else {
-      setShowImportLemonSqueezyModal(false);
-    }
-  }, [searchParams]);
-
+  // Reset the step and stores when the modal is closed
   useEffect(() => {
     if (!showImportLemonSqueezyModal) {
       setStep("set-token");
@@ -66,6 +60,17 @@ function ImportLemonSqueezyModal({
         })
       }
     >
+      <Button
+        variant="outline"
+        icon={<X className="size-5" />}
+        className="absolute right-4 top-4 h-auto w-fit p-1"
+        onClick={() => {
+          setShowImportLemonSqueezyModal(false);
+          queryParams({
+            del: "import",
+          });
+        }}
+      />
       <div className="flex flex-col items-center justify-center space-y-3 border-b border-neutral-200 px-4 py-8 sm:px-16">
         <div className="flex items-center space-x-3 py-4">
           <img
@@ -313,7 +318,7 @@ function SelectStore({
 
 export function useImportLemonSqueezyModal() {
   const [showImportLemonSqueezyModal, setShowImportLemonSqueezyModal] =
-    useState(false);
+    useImportModalParam("lemonsqueezy");
 
   const ImportLemonSqueezyModalCallback = useCallback(() => {
     return (

@@ -235,8 +235,7 @@ export async function syncCustomer({
 
         await Promise.allSettled([
           executeWorkflows({
-            trigger: "partnerMetricsUpdated",
-            reason: "lead",
+            event: "leadRecorded",
             identity: {
               workspaceId: workspace.id,
               programId: link.programId,

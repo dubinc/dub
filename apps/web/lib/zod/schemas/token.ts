@@ -51,7 +51,7 @@ export const createReferralsEmbedTokenSchema = z
   .superRefine((data, ctx) => {
     if (!data.partnerId && !data.tenantId && !data.partner) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: "custom",
         message: "You must provide either partnerId, tenantId, or partner.",
       });
     }

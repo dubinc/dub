@@ -140,14 +140,12 @@ export function RichTextToolbar({
 }
 
 function LinkButton() {
-  const { editor, features } = useRichTextContext();
+  const { editor, features, openLinkModal } = useRichTextContext();
   const imageControlsEnabled = features?.includes("imageControls");
 
   const editorState = useEditorState({
     editor,
     selector: ({ editor }) => ({
-      isTextSelection:
-        editor?.state.selection.from !== editor?.state.selection.to,
       isImageSelected: Boolean(editor?.isActive("image")),
       isLinkActive: Boolean(
         editor?.isActive("link") ||
@@ -158,10 +156,11 @@ function LinkButton() {
     }),
   });
 
-  const canLink =
-    editorState?.isTextSelection ||
-    editorState?.isLinkActive ||
-    (imageControlsEnabled && editorState?.isImageSelected);
+  const canLink = Boolean(
+    editor &&
+      (!editorState?.isImageSelected ||
+        (imageControlsEnabled && editorState?.isImageSelected)),
+  );
 
   return (
     <RichTextToolbarButton
@@ -207,30 +206,7 @@ function LinkButton() {
           return;
         }
 
-        const previousUrl = editor.getAttributes("link").href;
-
-        const url = window.prompt("Link URL", previousUrl);
-
-        if (url === null) return;
-
-        if (!url.trim()) {
-          editor.chain().focus().extendMarkRange("link").unsetLink().run();
-          return;
-        }
-
-        if (!isSafeLinkHref(url.trim())) {
-          toast.error(
-            "Enter a full URL starting with http://, https://, or mailto: (e.g. https://dub.co).",
-          );
-          return;
-        }
-
-        editor
-          .chain()
-          .focus()
-          .extendMarkRange("link")
-          .setLink({ href: url.trim() })
-          .run();
+        openLinkModal();
       }}
       disabled={!canLink}
     />

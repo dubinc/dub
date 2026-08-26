@@ -131,6 +131,7 @@ export const ROUTE_PATTERNS = [
   "/workspaces/:id/billing/activate-paid-plan",
   "/workspaces/:id/billing/cancel",
   "/workspaces/:id/billing/manage",
+  "/workspaces/:id/billing/payment-methods/verify-microdeposits",
   "/workspaces/:id/billing/payment-methods",
   "/workspaces/:id/billing/retry-payment",
   "/workspaces/:id/billing/upgrade",

@@ -113,7 +113,7 @@ const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({
     active: pathname.startsWith(`/${slug}/links`),
   };
 
-  return (defaultProduct ?? "links") === "links"
+  return defaultProduct === "links"
     ? [linksGroup, programGroup]
     : [programGroup, linksGroup];
 };
@@ -295,7 +295,6 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
   // short links
   links: ({ slug, pathname, queryString }) => ({
     title: "Short Links",
-    showNews: true,
     direction: "left",
     content: [
       {
@@ -570,9 +569,6 @@ export function AppSidebarNav({
     () => router.push(`/${slug}/${defaultProduct}`),
     {
       enabled: currentArea === "workspaceSettings",
-      priority: 2,
-      modal: false,
-      sheet: false,
     },
   );
 
@@ -628,7 +624,7 @@ export function AppSidebarNav({
 
   const { canTrackConversions } = getPlanCapabilities(plan);
 
-  const setDefaultProductButton =
+  const AppBottomContent =
     canSetDefaultProduct &&
     (currentArea === "program" || currentArea === "links") &&
     (defaultProduct ?? "links") !== currentArea ? (
@@ -649,6 +645,9 @@ export function AppSidebarNav({
         Set up conversion tracking
       </Link>
     ) : null;
+
+  const freePlanOrTrial =
+    plan && (plan === "free" || isWorkspaceBillingTrialActive(trialEndsAt));
 
   return (
     <SidebarNav
@@ -672,17 +671,15 @@ export function AppSidebarNav({
         partnerNetworkEnabled:
           program && program.partnerNetworkEnabledAt !== null,
       }}
-      toolContent={toolContent}
-      newsContent={
-        plan &&
-        (plan === "free" || isWorkspaceBillingTrialActive(trialEndsAt) ? (
-          <SidebarUsage />
-        ) : (
-          newsContent
-        ))
-      }
       switcher={<WorkspaceDropdown />}
-      bottom={setDefaultProductButton}
+      toolContent={toolContent}
+      bottomContent={
+        <>
+          <div className="px-3 pb-2">{AppBottomContent}</div>
+          {freePlanOrTrial && <SidebarUsage />}
+        </>
+      }
+      newsContent={!freePlanOrTrial && currentArea === "links" && newsContent}
     />
   );
 }
