@@ -23,6 +23,7 @@ import {
 import { cn, formatDate } from "@dub/utils";
 import { BountyStartMode } from "@prisma/client";
 import { addDays, addMonths, addWeeks } from "date-fns";
+import { useParams } from "next/navigation";
 import { ReactNode, useContext, useEffect, useState } from "react";
 
 type PresetOption<T extends string> = { value: T; label: string };
@@ -388,14 +389,11 @@ function BountyDatePicker<T extends string>({
 interface BountyDurationProps {
   value: BountyTimingInput;
   onChange: (value: BountyTimingInput) => void;
-  isEditing?: boolean;
 }
 
-export function BountyDuration({
-  value,
-  onChange,
-  isEditing = false,
-}: BountyDurationProps) {
+export function BountyDuration({ value, onChange }: BountyDurationProps) {
+  const { bountyId } = useParams();
+  const isEditing = !!bountyId;
   const initialPresets = parsePresetsFromValue(value, isEditing);
 
   const [startPreset, setStartPreset] = useState<StartPreset>(
