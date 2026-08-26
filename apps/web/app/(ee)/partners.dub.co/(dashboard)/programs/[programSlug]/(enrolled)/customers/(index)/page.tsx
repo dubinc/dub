@@ -69,12 +69,12 @@ export default function PartnerProgramCustomersPage() {
       "country",
       "link",
       "createdAt",
-      "firstSaleAt",
       ...(CUSTOMER_LTV_EXCLUDED_PROGRAM_IDS.includes(
         programEnrollment?.programId ?? "",
       )
         ? []
         : ["saleAmount"]),
+      "firstSaleAt",
       "subscriptionCanceledAt",
     ],
     defaultVisible: [
@@ -82,12 +82,12 @@ export default function PartnerProgramCustomersPage() {
       "country",
       "link",
       "createdAt",
-      "firstSaleAt",
       ...(CUSTOMER_LTV_EXCLUDED_PROGRAM_IDS.includes(
         programEnrollment?.programId ?? "",
       )
         ? []
         : ["saleAmount"]),
+      "firstSaleAt",
       "subscriptionCanceledAt",
     ],
   };
@@ -175,6 +175,24 @@ export default function PartnerProgramCustomersPage() {
             </TimestampTooltip>
           ),
         },
+        ...(CUSTOMER_LTV_EXCLUDED_PROGRAM_IDS.includes(
+          programEnrollment?.programId ?? "",
+        )
+          ? []
+          : [
+              {
+                id: "saleAmount",
+                header: "LTV",
+                meta: {
+                  headerTooltip:
+                    "The customer's lifetime value (how much revenue the customer has generated over their lifetime).",
+                },
+                accessorKey: "saleAmount",
+                cell: ({ row }) => (
+                  <span>{currencyFormatter(row.original.saleAmount)}</span>
+                ),
+              },
+            ]),
         {
           id: "firstSaleAt",
           header: "Paid",
@@ -197,24 +215,6 @@ export default function PartnerProgramCustomersPage() {
               "-"
             ),
         },
-        ...(CUSTOMER_LTV_EXCLUDED_PROGRAM_IDS.includes(
-          programEnrollment?.programId ?? "",
-        )
-          ? []
-          : [
-              {
-                id: "saleAmount",
-                header: "LTV",
-                meta: {
-                  headerTooltip:
-                    "The customer's lifetime value (how much revenue the customer has generated over their lifetime).",
-                },
-                accessorKey: "saleAmount",
-                cell: ({ row }) => (
-                  <span>{currencyFormatter(row.original.saleAmount)}</span>
-                ),
-              },
-            ]),
         {
           id: "subscriptionCanceledAt",
           header: "Canceled",

@@ -106,8 +106,8 @@ export const PartnerProfileCustomerSchema = CustomerEnrichedSchema.pick({
   email: true,
   country: true,
   createdAt: true,
-  firstSaleAt: true,
   saleAmount: true,
+  firstSaleAt: true,
   subscriptionCanceledAt: true,
 }).extend({
   activity: customerActivityResponseSchema,
@@ -267,8 +267,8 @@ export const getPartnerCustomersQuerySchema = z
     sortBy: z
       .enum([
         "createdAt",
-        "firstSaleAt",
         "saleAmount",
+        "firstSaleAt",
         "subscriptionCanceledAt",
       ])
       .optional()
