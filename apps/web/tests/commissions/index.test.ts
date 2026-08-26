@@ -16,6 +16,23 @@ const expectedCommission = {
   customer: expect.any(Object),
 };
 
+function expectCommissionResponse(
+  commission: CommissionResponse,
+  overrides: Record<string, unknown> = {},
+) {
+  expect(commission).toMatchObject({
+    ...expectedCommission,
+    ...overrides,
+  });
+  // metadata is nullable but must be present on workspace commission responses
+  expect(commission).toHaveProperty("metadata");
+  expect(
+    commission.metadata === null ||
+      (typeof commission.metadata === "object" &&
+        !Array.isArray(commission.metadata)),
+  ).toBe(true);
+}
+
 describe.sequential("/commissions/**", async () => {
   const h = new IntegrationHarness();
   const { http } = await h.init();
@@ -37,7 +54,7 @@ describe.sequential("/commissions/**", async () => {
     expect(status).toEqual(200);
     expect(Array.isArray(commissions)).toBe(true);
     expect(commissions.length).toBeGreaterThan(0);
-    expect(commissions[0]).toMatchObject(expectedCommission);
+    expectCommissionResponse(commissions[0]);
 
     // Store the first sale and lead commission's ID for subsequent tests
     testCommissionId = commissions.find((c) => c.type === "sale")!.id;
@@ -60,7 +77,7 @@ describe.sequential("/commissions/**", async () => {
     expect(paidStatus).toEqual(200);
     expect(Array.isArray(paidCommissions)).toBe(true);
     expect(paidCommissions.length).toBeGreaterThan(0);
-    expect(paidCommissions[0]).toMatchObject(expectedCommission);
+    expectCommissionResponse(paidCommissions[0]);
     testPaidCommissionId = paidCommissions[0].id;
   });
 
@@ -75,10 +92,7 @@ describe.sequential("/commissions/**", async () => {
     });
 
     expect(status).toEqual(200);
-    expect(commission).toMatchObject({
-      ...expectedCommission,
-      earnings: toUpdate.earnings,
-    });
+    expectCommissionResponse(commission, { earnings: toUpdate.earnings });
   });
 
   test("PATCH /commissions/{id} - update saleAmount", async () => {
@@ -92,10 +106,7 @@ describe.sequential("/commissions/**", async () => {
     });
 
     expect(status).toEqual(200);
-    expect(commission).toMatchObject({
-      ...expectedCommission,
-      amount: toUpdate.saleAmount,
-    });
+    expectCommissionResponse(commission, { amount: toUpdate.saleAmount });
   });
 
   test("PATCH /commissions/{id} - modifySaleAmount", async () => {
@@ -111,6 +122,7 @@ describe.sequential("/commissions/**", async () => {
 
     expect(status).toEqual(200);
     expect(commission.amount).toEqual(6000);
+    expectCommissionResponse(commission, { amount: 6000 });
   });
 
   test("PATCH /commissions/{id} - update amount (backward compatibility)", async () => {
@@ -124,10 +136,7 @@ describe.sequential("/commissions/**", async () => {
     });
 
     expect(status).toEqual(200);
-    expect(commission).toMatchObject({
-      ...expectedCommission,
-      amount: toUpdate.amount,
-    });
+    expectCommissionResponse(commission, { amount: toUpdate.amount });
   });
 
   test("PATCH /commissions/{id} - foreign currency conversion", async () => {
@@ -145,6 +154,7 @@ describe.sequential("/commissions/**", async () => {
     expect(commission.currency).toEqual("usd");
     expect(commission.amount).toBeGreaterThanOrEqual(900); // 900 cents
     expect(commission.amount).toBeLessThanOrEqual(1100); // 1100 cents
+    expectCommissionResponse(commission);
   });
 
   test("PATCH /commissions/{id} - error on lead commission", async () => {
@@ -186,9 +196,6 @@ describe.sequential("/commissions/**", async () => {
     });
 
     expect(status).toEqual(200);
-    expect(commission).toMatchObject({
-      ...expectedCommission,
-      status: toUpdate.status,
-    });
+    expectCommissionResponse(commission, { status: toUpdate.status });
   });
 });

@@ -256,7 +256,6 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
                     </div>
 
                     <BountyDuration
-                      isEditing={!!bounty}
                       value={bountyTimingValue}
                       onChange={handleTimingChange}
                     />

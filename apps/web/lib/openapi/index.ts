@@ -1,5 +1,6 @@
 import { createDocument } from "zod-openapi";
 import { webhookEventSchema } from "../webhook/schemas";
+import { DiscountCodeSchema } from "../zod/schemas/discount";
 import { DomainSchema } from "../zod/schemas/domains";
 import { FolderSchema } from "../zod/schemas/folders";
 import { LinkErrorSchema, LinkSchema } from "../zod/schemas/links";
@@ -8,6 +9,7 @@ import { analyticsPath } from "./analytics";
 import { bountiesPaths } from "./bounties";
 import { commissionsPaths } from "./commissions";
 import { customersPaths } from "./customers";
+import { discountCodesPaths } from "./discount-codes";
 import { domainsPaths } from "./domains";
 import { embedTokensPaths } from "./embed-tokens";
 import { eventsPath } from "./events";
@@ -53,6 +55,7 @@ export const document = createDocument({
     ...trackPaths,
     ...customersPaths,
     ...partnersPaths,
+    ...discountCodesPaths,
     ...commissionsPaths,
     ...payoutsPaths,
     ...embedTokensPaths,
@@ -65,6 +68,7 @@ export const document = createDocument({
       LinkTagSchema,
       FolderSchema,
       DomainSchema,
+      DiscountCodeSchema,
       webhookEventSchema,
       LinkErrorSchema,
     },

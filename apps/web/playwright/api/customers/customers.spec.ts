@@ -36,10 +36,6 @@ async function deleteCustomer(api: ApiClient, id: string | undefined) {
   await api.delete(`/api/customers/${id}`);
 }
 
-test.describe.configure({
-  mode: "parallel",
-});
-
 test("POST /customers", async ({ api }) => {
   let customerId: string | undefined;
   const body = randomCustomer();

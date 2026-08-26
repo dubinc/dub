@@ -1,5 +1,6 @@
 import { bulkDeleteLinks } from "@/lib/api/links/bulk-delete-links";
 import { queuePartnerSearchSync } from "@/lib/api/partners/queue-partner-search-sync";
+import { conn } from "@/lib/planetscale";
 import { prisma } from "@/lib/prisma";
 import { sendEmail } from "@dub/email";
 import ProgramImported from "@dub/email/templates/program-imported";
@@ -128,13 +129,20 @@ export async function cleanupPartners(payload: TapfiliateImportPayload) {
         });
 
         if (partnersWithoutUserAccount.length > 0) {
-          await prisma.partner.deleteMany({
-            where: {
-              id: {
-                in: partnersWithoutUserAccount.map(({ id }) => id),
-              },
-            },
-          });
+          const partnerIdsToDelete = partnersWithoutUserAccount.map(
+            ({ id }) => id,
+          );
+
+          // using conn.execute here since Prisma throws on partner.deleteMany()
+          await conn.execute(
+            `DELETE FROM Partner WHERE id IN (${partnerIdsToDelete.map(() => "?").join(",")})`,
+            partnerIdsToDelete,
+          );
+
+          console.log(
+            "Removed the following partners",
+            partnersWithoutUserAccount,
+          );
         }
       }
     }

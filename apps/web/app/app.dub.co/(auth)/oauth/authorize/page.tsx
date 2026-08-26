@@ -1,9 +1,10 @@
 import { validateAuthorizeRequest } from "@/lib/api/oauth/actions";
 import { getSession } from "@/lib/auth";
 import { authorizeRequestSchema } from "@/lib/zod/schemas/oauth";
+import { Callout } from "@/ui/shared/callout";
 import EmptyState from "@/ui/shared/empty-state";
 import { BlurImage, Logo } from "@dub/ui";
-import { CircleWarning, CubeSettings } from "@dub/ui/icons";
+import { CubeSettings } from "@dub/ui/icons";
 import { constructMetadata } from "@dub/utils";
 import { ArrowLeftRight } from "lucide-react";
 import { redirect } from "next/navigation";
@@ -81,9 +82,12 @@ export default async function Authorize(props: {
         </span>
 
         {!integration.verified && (
-          <div className="flex w-full items-start gap-2.5 rounded-lg border border-amber-200 bg-amber-50 p-3 text-left sm:-mx-6 sm:w-auto sm:self-stretch">
-            <CircleWarning className="mt-0.5 size-4 shrink-0 text-amber-600" />
-            <div className="flex flex-col gap-0.5 text-sm text-amber-900">
+          <Callout
+            variant="warn"
+            size={2}
+            className="w-full text-left sm:-mx-6 sm:w-auto sm:self-stretch"
+          >
+            <div className="flex flex-col gap-0.5">
               <p className="font-medium">
                 Dub hasn't verified this integration
               </p>
@@ -92,7 +96,7 @@ export default async function Authorize(props: {
                 workspace.
               </p>
             </div>
-          </div>
+          </Callout>
         )}
       </div>
       <div className="flex flex-col space-y-3 px-4 py-6 sm:px-10">

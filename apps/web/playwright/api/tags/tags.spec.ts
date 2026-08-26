@@ -1,11 +1,7 @@
 import { expect } from "@playwright/test";
 import type { Tag } from "@prisma/client";
-import { randomName } from "../../utils";
+import { apiError, randomName } from "../../utils";
 import { test } from "../fixtures";
-
-test.describe.configure({
-  mode: "parallel",
-});
 
 test("POST /tags", async ({ api }) => {
   let tagId: string | undefined;
@@ -36,35 +32,21 @@ const errorCases = [
       tag: "news",
       color: "invalid",
     },
-    expected: {
-      status: 422,
-      data: {
-        error: {
-          code: "unprocessable_entity",
-          message:
-            "invalid_value: color: Invalid color. Must be one of: red, yellow, green, blue, purple, brown, gray, pink", // TODO: update this to use RESOURCE_COLORS
-          doc_url:
-            "https://dub.co/docs/api-reference/errors#unprocessable-entity",
-        },
-      },
-    },
+    expected: apiError({
+      code: "unprocessable_entity",
+      message:
+        "invalid_value: color: Invalid color. Must be one of: red, yellow, green, blue, purple, brown, gray, pink", // TODO: update this to use RESOURCE_COLORS
+    }),
   },
   {
     name: "POST /tags – without name",
     body: {
       color: "red",
     },
-    expected: {
-      status: 422,
-      data: {
-        error: {
-          code: "unprocessable_entity",
-          message: "custom: name: Name is required.",
-          doc_url:
-            "https://dub.co/docs/api-reference/errors#unprocessable-entity",
-        },
-      },
-    },
+    expected: apiError({
+      code: "unprocessable_entity",
+      message: "custom: name: Name is required.",
+    }),
   },
 ];
 
@@ -92,14 +74,12 @@ test("POST /tags – existing name", async ({ api }) => {
       color: "red",
     });
 
-    expect(status).toBe(409);
-    expect(error).toEqual({
-      error: {
+    expect({ status, data: error }).toEqual(
+      apiError({
         code: "conflict",
         message: "A tag with that name already exists.",
-        doc_url: "https://dub.co/docs/api-reference/errors#conflict",
-      },
-    });
+      }),
+    );
   } finally {
     if (tagId) await api.delete(`/api/tags/${tagId}`);
   }

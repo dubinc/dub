@@ -5,9 +5,11 @@ import {
   DEFAULT_ADDITIONAL_PARTNER_LINKS,
   DEFAULT_PARTNER_GROUP,
 } from "@/lib/zod/schemas/groups";
+import { EventType, RewardStructure } from "@prisma/client";
 import { config as loadEnv } from "dotenv-flow";
 import { mkdir, writeFile } from "fs/promises";
 import path from "path";
+import { PLAYWRIGHT_API_BASE } from "./constants";
 
 loadEnv({
   silent: true,
@@ -32,8 +34,68 @@ export const TEST_WORKSPACE = {
   },
 } as const;
 
+export const TEST_COMMISSION_REWARDS = {
+  lead: {
+    id: "rw_playwright_api_lead",
+    event: EventType.lead,
+    type: RewardStructure.flat,
+    amountInCents: 1000,
+    modifiers: [
+      {
+        operator: "AND",
+        type: RewardStructure.flat,
+        amountInCents: 5000,
+        conditions: [
+          {
+            entity: "lead",
+            attribute: "metadata",
+            metadataField: "plan",
+            operator: "equals_to",
+            value: "pro",
+          },
+        ],
+      },
+    ],
+  },
+  sale: {
+    id: "rw_playwright_api_sale",
+    event: EventType.sale,
+    type: RewardStructure.flat,
+    amountInCents: 2500,
+    maxDuration: 0,
+    modifiers: [
+      {
+        operator: "AND",
+        type: RewardStructure.flat,
+        amountInCents: 5000,
+        conditions: [
+          {
+            entity: "sale",
+            attribute: "productId",
+            operator: "equals_to",
+            value: "sku_pro",
+          },
+        ],
+      },
+      {
+        operator: "AND",
+        type: RewardStructure.flat,
+        amountInCents: 7500,
+        conditions: [
+          {
+            entity: "sale",
+            attribute: "metadata",
+            metadataField: "plan",
+            operator: "equals_to",
+            value: "pro",
+          },
+        ],
+      },
+    ],
+  },
+} as const;
+
 const authFile = path.join(__dirname, "../.auth/api.json");
-const apiBaseURL = "http://localhost:8888";
 
 // Upserts a dedicated Playwright API user, workspace, membership,
 // RestrictedToken, and partner program. Safe to run repeatedly from globalSetup.
@@ -71,6 +133,7 @@ export async function setupTestWorkspace() {
       foldersLimit: 100,
       aiLimit: 1000,
       partnersLimit: 1000,
+      groupsLimit: 100,
     },
     create: {
       id: createId({ prefix: "ws_" }),
@@ -86,6 +149,7 @@ export async function setupTestWorkspace() {
       foldersLimit: 100,
       aiLimit: 1000,
       partnersLimit: 1000,
+      groupsLimit: 100,
     },
   });
 
@@ -153,7 +217,7 @@ export async function setupTestWorkspace() {
       {
         token,
         workspaceId: workspace.id,
-        baseURL: apiBaseURL,
+        baseURL: PLAYWRIGHT_API_BASE,
         userId: user.id,
         workspaceSlug: workspace.slug,
         programId,
@@ -257,6 +321,25 @@ async function setupTestProgram({
     },
   });
 
+  await Promise.all(
+    [TEST_COMMISSION_REWARDS.lead, TEST_COMMISSION_REWARDS.sale].map(
+      (reward) => {
+        const { id, ...data } = reward;
+        return prisma.reward.upsert({
+          where: {
+            id,
+          },
+          create: {
+            id,
+            programId: program.id,
+            ...data,
+          },
+          update: data,
+        });
+      },
+    ),
+  );
+
   const group = await prisma.partnerGroup.upsert({
     where: {
       programId_slug: {
@@ -271,10 +354,14 @@ async function setupTestProgram({
       name: DEFAULT_PARTNER_GROUP.name,
       color: DEFAULT_PARTNER_GROUP.color,
       maxPartnerLinks: DEFAULT_ADDITIONAL_PARTNER_LINKS,
+      leadRewardId: TEST_COMMISSION_REWARDS.lead.id,
+      saleRewardId: TEST_COMMISSION_REWARDS.sale.id,
     },
     update: {
       name: DEFAULT_PARTNER_GROUP.name,
       maxPartnerLinks: DEFAULT_ADDITIONAL_PARTNER_LINKS,
+      leadRewardId: TEST_COMMISSION_REWARDS.lead.id,
+      saleRewardId: TEST_COMMISSION_REWARDS.sale.id,
     },
   });
 

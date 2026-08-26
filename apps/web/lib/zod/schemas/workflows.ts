@@ -5,9 +5,6 @@ import {
 } from "@/lib/api/workflows/operator-definitions";
 import * as z from "zod/v4";
 
-// Cron for scheduled workflows that use partnerEnrolledDays conditions
-export const PARTNER_ENROLLED_WORKFLOW_CRON = "0 */12 * * *"; // every 12 hours
-
 export enum WORKFLOW_ACTION_TYPES {
   AwardBounty = "awardBounty",
   SendCampaign = "sendCampaign",

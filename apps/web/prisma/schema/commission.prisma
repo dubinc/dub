@@ -37,6 +37,7 @@ model Commission {
   userId             String? // user who created the manual commission
   sourceCommissionId String?
   sourcePartnerId    String?
+  metadata           Json?            @db.Json
   createdAt          DateTime         @default(now())
   updatedAt          DateTime         @updatedAt
 

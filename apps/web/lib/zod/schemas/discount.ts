@@ -33,7 +33,7 @@ export const createDiscountSchema = z.object({
   amount: z.number().min(0),
   type: z.enum(RewardStructure).default("flat"),
   maxDuration: maxDurationSchema,
-  couponId: z.string(),
+  couponId: z.string().optional(),
   couponTestId: z.string().nullish(),
   groupId: z.string(),
   autoProvision: z.boolean().optional(),
@@ -56,19 +56,41 @@ export const discountPartnersQuerySchema = z
   })
   .extend(getPaginationQuerySchema({ pageSize: 25 }));
 
-export const DiscountCodeSchema = z.object({
-  id: z.string(),
-  code: z.string(),
-  discountId: z.string().nullable(),
-  partnerId: z.string(),
-  linkId: z.string(),
-  disabledAt: z.coerce
-    .date()
-    .nullish()
-    .describe(
-      "When this discount code was disabled, which happens when a partner is banned or deactivated.",
-    ),
-});
+export const DiscountCodeSchema = z
+  .object({
+    id: z.string().describe("The unique ID of the discount code.").meta({
+      example: "dcode_1JVR7XRCSR0EDBAF39FZ4PMYE",
+    }),
+    code: z
+      .string()
+      .describe(
+        "The alphanumeric discount code that customers can apply at checkout.",
+      )
+      .meta({
+        example: "PARTNER10OFF",
+      }),
+    discountId: z
+      .string()
+      .nullable()
+      .describe("The ID of the discount this code belongs to."),
+    partnerId: z
+      .string()
+      .describe("The ID of the partner this discount code is assigned to."),
+    linkId: z
+      .string()
+      .describe(
+        "The ID of the partner's referral link this discount code is associated with.",
+      ),
+    disabledAt: z.coerce
+      .date()
+      .nullish()
+      .describe(
+        "When this discount code was disabled, which happens when a partner is banned or deactivated. We don't delete the discount code to avoid another partner claiming a banned/deactivated code (abuse vector).",
+      ),
+  })
+  .meta({
+    title: "DiscountCode",
+  });
 
 export const createDiscountCodeSchema = z.object({
   code: z
@@ -80,11 +102,43 @@ export const createDiscountCodeSchema = z.object({
       "Code can only contain letters, numbers, dashes, and underscores.",
     )
     .optional()
-    .or(z.literal("").transform(() => undefined)),
-  partnerId: z.string(),
-  linkId: z.string(),
+    .describe(
+      "The discount code to create. If omitted, a unique code will be generated automatically from the partner's name.",
+    ),
+  partnerId: z
+    .string()
+    .describe("The ID of the partner to create a discount code for."),
+  linkId: z
+    .string()
+    .describe(
+      "The ID of the partner's referral link to associate this discount code with. Each link can only have one discount code.",
+    ),
 });
 
-export const getDiscountCodesQuerySchema = z.object({
-  partnerId: z.string(),
+export const getDiscountCodesQuerySchema = z
+  .object({
+    partnerId: z
+      .string()
+      .optional()
+      .describe(
+        "The ID of the partner to retrieve discount codes for. If omitted, returns discount codes for the whole program.",
+      ),
+    discountId: z
+      .string()
+      .optional()
+      .describe("Filter discount codes by discount ID."),
+  })
+  .extend(getPaginationQuerySchema({ pageSize: 100 }));
+
+// Schema for the discount code webhook
+export const DiscountCodeWebhookSchema = DiscountCodeSchema.omit({
+  discountId: true,
+}).extend({
+  discount: DiscountSchema.pick({
+    id: true,
+    amount: true,
+    type: true,
+    maxDuration: true,
+    provider: true,
+  }).nullable(),
 });
