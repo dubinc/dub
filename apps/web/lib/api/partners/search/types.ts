@@ -13,7 +13,9 @@ import { PlatformType, ProgramEnrollmentStatus } from "@prisma/client";
  *     metrics move on each click and would churn it continuously
  *
  * A query still matching more than this after the provider's filters reports a
- * floor rather than a total, for both the rows and the count. Raising the
+ * floor rather than a total for the rows and the grouped facet counts. The
+ * ungrouped count is exact via `countCandidates`, falling back to a floor on
+ * database-only filters, short prefixes, or a failed aggregation. Raising the
  * ceiling is paid on every query, in a larger `top_k` across each ranked
  * branch, a longer `IN` list for the database, and more rows ordered in memory
  * for a relevance sort.
