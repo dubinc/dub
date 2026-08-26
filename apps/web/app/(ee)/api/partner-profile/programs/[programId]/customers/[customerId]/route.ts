@@ -5,6 +5,7 @@ import { obfuscateCustomerEmail } from "@/lib/api/partner-profile/obfuscate-cust
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { withPartnerProfile } from "@/lib/auth/partner";
 import {
+  CUSTOMER_LTV_EXCLUDED_PROGRAM_IDS,
   LARGE_PROGRAM_IDS,
   LARGE_PROGRAM_MIN_TOTAL_COMMISSIONS_CENTS,
 } from "@/lib/constants/partner-profile";
@@ -86,21 +87,27 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
   return NextResponse.json(
     PartnerProfileCustomerSchema.extend({
       ...(customerDataSharingEnabledAt && { name: z.string().nullish() }),
-    }).parse({
-      ...transformCustomer({
-        ...customer,
-        firstSaleAt: customer.commissions[0]?.createdAt ?? null,
-        email: customer.email
-          ? customerDataSharingEnabledAt
-            ? customer.email
-            : obfuscateCustomerEmail(customer.email)
-          : customer.name || generateRandomName(),
+    })
+      .omit({
+        ...(CUSTOMER_LTV_EXCLUDED_PROGRAM_IDS.includes(program.id) && {
+          saleAmount: true,
+        }),
+      })
+      .parse({
+        ...transformCustomer({
+          ...customer,
+          firstSaleAt: customer.commissions[0]?.createdAt ?? null,
+          email: customer.email
+            ? customerDataSharingEnabledAt
+              ? customer.email
+              : obfuscateCustomerEmail(customer.email)
+            : customer.name || generateRandomName(),
+        }),
+        activity: {
+          ...customer,
+          events,
+          link,
+        },
       }),
-      activity: {
-        ...customer,
-        events,
-        link,
-      },
-    }),
   );
 });
