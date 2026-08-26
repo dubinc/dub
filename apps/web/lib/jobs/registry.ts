@@ -35,6 +35,11 @@ const jobLoaders = {
       (m) => m.partnerSearchSyncJob,
     ),
 
+  "partner-search-sweep-job": () =>
+    import("./handlers/partner-search-sweep-job").then(
+      (m) => m.partnerSearchSweepJob,
+    ),
+
   "welcome-user-job": () =>
     import("./handlers/welcome-user-job").then((m) => m.welcomeUserJob),
 
