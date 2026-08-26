@@ -34,11 +34,6 @@ const jobLoaders = {
     import("./handlers/partner-search-sync-job").then(
       (m) => m.partnerSearchSyncJob,
     ),
-
-  "partner-search-sweep-job": () =>
-    import("./handlers/partner-search-sweep-job").then(
-      (m) => m.partnerSearchSweepJob,
-    ),
 } as const satisfies Record<string, () => Promise<JobDefinition>>;
 
 const jobCache = new Map<string, JobDefinition>();

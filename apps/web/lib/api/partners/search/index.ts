@@ -6,6 +6,5 @@ export * from "./order-search-results";
 export * from "./provider";
 export * from "./searchable-values";
 export * from "./serialize-document";
-export * from "./sweep";
 export * from "./sync";
 export * from "./types";
