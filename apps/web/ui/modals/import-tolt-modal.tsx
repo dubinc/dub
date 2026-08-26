@@ -7,17 +7,17 @@ import { Button, Logo, Modal, useMediaQuery, useRouterStuff } from "@dub/ui";
 import { ArrowRight } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useAction } from "next-safe-action/hooks";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import {
   Dispatch,
   SetStateAction,
   useCallback,
-  useEffect,
   useMemo,
   useState,
 } from "react";
 import { toast } from "sonner";
 import { MarkdownDescription } from "../shared/markdown-description";
+import { useImportModalParam } from "./use-import-modal-param";
 
 type Step = "set-token" | "program-info";
 
@@ -294,15 +294,8 @@ function ProgramInfo({
 }
 
 export function useImportToltModal() {
-  const [showImportToltModal, setShowImportToltModal] = useState(false);
-  const searchParams = useSearchParams();
-
-  // Sync the modal state with the `?import=` query param here in the hook
-  // rather than in the modal itself, which remounts on every open/close
-  // and would re-open from a stale param mid-navigation
-  useEffect(() => {
-    setShowImportToltModal(searchParams?.get("import") === "tolt");
-  }, [searchParams]);
+  const [showImportToltModal, setShowImportToltModal] =
+    useImportModalParam("tolt");
 
   const ImportToltModalCallback = useCallback(() => {
     return (

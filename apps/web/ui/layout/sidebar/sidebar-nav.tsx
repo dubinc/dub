@@ -67,7 +67,6 @@ export type SidebarNavAreas<T extends Record<any, any>> = Record<
   (args: T) => {
     title?: string | ReactNode;
     backHref?: string;
-    showNews?: boolean; // show news segment – TODO: enable this for Partner Program too
     hideSwitcherIcons?: boolean; // hide workspace switcher + product icons for this area
     direction?: "left" | "right";
     // can either be a list of items, or a ReactNode
@@ -89,19 +88,19 @@ export function SidebarNav<T extends Record<any, any>>({
   areas,
   currentArea,
   data,
-  toolContent,
-  newsContent,
   switcher,
-  bottom,
+  toolContent,
+  bottomContent,
+  newsContent,
 }: {
   groups: SidebarNavGroups<T>;
   areas: SidebarNavAreas<T>;
   currentArea: string | null;
   data: T;
-  toolContent?: ReactNode;
-  newsContent?: ReactNode;
   switcher?: ReactNode;
-  bottom?: ReactNode;
+  toolContent?: ReactNode;
+  bottomContent?: ReactNode;
+  newsContent?: ReactNode;
 }) {
   return (
     <div
@@ -156,7 +155,7 @@ export function SidebarNav<T extends Record<any, any>>({
               data={data}
               currentArea={currentArea}
               newsContent={newsContent}
-              bottom={bottom}
+              bottomContent={bottomContent}
             />
           </div>
         </nav>
@@ -170,17 +169,16 @@ function SidebarAreasPanel<T extends Record<any, any>>({
   data,
   currentArea,
   newsContent,
-  bottom,
+  bottomContent,
 }: {
   areas: SidebarNavAreas<T>;
   data: T;
   currentArea: string | null;
   newsContent?: ReactNode;
-  bottom?: ReactNode;
+  bottomContent?: ReactNode;
 }) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const { scrollProgress, updateScrollProgress } = useScrollProgress(scrollRef);
-  const showNews = currentArea && areas[currentArea]?.(data).showNews;
 
   return (
     <div className="flex h-full w-[calc(var(--sidebar-areas-width)-0.5rem)] flex-col rounded-xl bg-neutral-100">
@@ -264,8 +262,8 @@ function SidebarAreasPanel<T extends Record<any, any>>({
         height
         className="flex flex-shrink-0 flex-col gap-2 rounded-b-xl"
       >
-        {bottom}
-        {showNews && newsContent}
+        {bottomContent}
+        {newsContent}
       </AnimatedSizeContainer>
     </div>
   );

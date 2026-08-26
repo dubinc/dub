@@ -250,7 +250,7 @@ export function useAddDiscountCodeModal({
         partner={partner}
       />
     );
-  }, [showAddDiscountCodeModal, setShowAddDiscountCodeModal, partner]);
+  }, [showAddDiscountCodeModal, setShowAddDiscountCodeModal]);
 
   return useMemo(
     () => ({

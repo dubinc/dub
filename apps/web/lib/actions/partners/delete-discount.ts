@@ -40,15 +40,8 @@ export const deleteDiscountAction = authActionClient
       where: {
         discountId: discount.id,
       },
-      select: {
-        id: true,
-        code: true,
-        programId: true,
-        discount: {
-          select: {
-            provider: true,
-          },
-        },
+      include: {
+        discount: true,
       },
     });
 

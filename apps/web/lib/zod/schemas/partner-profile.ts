@@ -32,6 +32,7 @@ import { centsSchema } from "./utils";
 export const PartnerEarningsSchema = CommissionSchema.omit({
   userId: true,
   invoiceId: true,
+  metadata: true,
 }).extend({
   customer: z
     .object({
