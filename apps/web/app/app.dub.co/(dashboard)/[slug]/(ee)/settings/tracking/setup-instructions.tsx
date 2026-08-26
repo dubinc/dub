@@ -1,7 +1,9 @@
 "use client";
 
-import { guides, IntegrationGuide, stackItems } from "@/ui/guides/integrations";
-import { GuidesMarkdown } from "@/ui/guides/markdown";
+import {
+  TrackingSetup,
+  TrackingSetupStep,
+} from "@/lib/tracking/build-tracking-setup";
 import { BookOpen, Button, CopyButton, Tooltip } from "@dub/ui";
 import {
   ChatGPTIcon,
@@ -13,10 +15,8 @@ import {
 } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
 import Link from "next/link";
-import { useState } from "react";
-import { useDynamicGuide } from "./use-dynamic-guide";
 
-const DEVELOPER_GUIDES = [
+const FALLBACK_DEVELOPER_GUIDES = [
   {
     title: "Client-side SDK install guide",
     href: "https://dub.co/docs/sdks/client-side",
@@ -62,10 +62,6 @@ const OPEN_IN_APPS = [
   },
 ] as const;
 
-function getInstallPrompt(url: string) {
-  return `Read from ${url} and implement it.`;
-}
-
 function OpenInApps({ prompt }: { prompt: string }) {
   return (
     <div className="flex items-center gap-2">
@@ -101,23 +97,24 @@ function OpenInApps({ prompt }: { prompt: string }) {
   );
 }
 
-function getSelectedStackItems(stackIds: string[]) {
-  return stackItems.filter((item) => stackIds.includes(item.id));
-}
-
-function getPrimaryGuide(stackIds: string[]): IntegrationGuide | undefined {
-  const selected = getSelectedStackItems(stackIds);
-  const preferred =
-    selected.find((item) => item.type === "client-sdk") ??
-    selected.find((item) => item.type === "track-lead") ??
-    selected.find((item) => item.type === "track-sale") ??
-    selected[0];
-
-  if (!preferred) {
-    return undefined;
+function StepIcon({ step }: { step: TrackingSetupStep }) {
+  if (!step.icon) {
+    return <BookOpen className="size-5 shrink-0 text-neutral-800" />;
   }
 
-  return guides.find((guide) => guide.key === preferred.guideKeys[0]);
+  const Icon = step.icon;
+
+  if (step.iconProps?.fullSize) {
+    return (
+      <Icon
+        className="size-5 shrink-0 overflow-hidden rounded"
+        width="auto"
+        height="100%"
+      />
+    );
+  }
+
+  return <Icon className="size-5 shrink-0" />;
 }
 
 export function isSetupInstructionsReady(
@@ -127,16 +124,24 @@ export function isSetupInstructionsReady(
   return stack.length > 0 && hasHostname;
 }
 
-export function DeveloperGuides() {
+export function DeveloperGuides({ steps }: { steps?: TrackingSetupStep[] }) {
+  const guides =
+    steps && steps.length > 0
+      ? steps.map((step) => ({
+          title: step.label,
+          href: step.url,
+        }))
+      : FALLBACK_DEVELOPER_GUIDES;
+
   return (
     <div className="flex flex-col gap-1.5">
       <h4 className="text-xs font-semibold leading-4 tracking-[-0.02em] text-neutral-600">
         Read developer guides
       </h4>
       <div className="flex flex-col gap-1.5">
-        {DEVELOPER_GUIDES.map((guide) => (
+        {guides.map((guide) => (
           <Link
-            key={guide.href}
+            key={`${guide.title}-${guide.href}`}
             href={guide.href}
             target="_blank"
             rel="noopener noreferrer"
@@ -152,18 +157,12 @@ export function DeveloperGuides() {
 }
 
 export function SetupInstructions({
-  stack,
-  hasHostname,
+  setup,
+  ready,
 }: {
-  stack: string[];
-  hasHostname: boolean;
+  setup: TrackingSetup;
+  ready: boolean;
 }) {
-  const ready = isSetupInstructionsReady(stack, hasHostname);
-  const primaryGuide = getPrimaryGuide(stack);
-  const clientSdkItems = getSelectedStackItems(stack).filter(
-    (item) => item.type === "client-sdk",
-  );
-
   if (!ready) {
     return (
       <div className="flex h-[114px] w-full flex-col items-center justify-center gap-2 rounded-xl bg-neutral-50 py-6">
@@ -178,51 +177,38 @@ export function SetupInstructions({
 
   return (
     <div className="flex flex-col gap-3">
-      {primaryGuide && <MainPromptCard guide={primaryGuide} />}
+      <MainPromptCard prompt={setup.prompt} />
 
-      {clientSdkItems.length > 0 && (
+      {setup.steps.length > 0 && (
         <div className="flex flex-col gap-2">
-          {clientSdkItems.map((item) => {
-            const guide = guides.find((g) => g.key === item.guideKeys[0]);
-            if (!guide) {
-              return null;
-            }
-
-            const Icon = item.icon;
-
-            return (
-              <div
-                key={item.id}
-                className="flex h-[52px] w-full items-center justify-between gap-3 rounded-[10px] bg-neutral-50 p-3"
-              >
-                <div className="flex min-w-0 items-center gap-2.5">
-                  <Icon className="size-5 shrink-0" />
-                  <span className="truncate text-sm font-medium text-neutral-800">
-                    {item.title}
-                  </span>
-                </div>
-                <Button
-                  text="Read install guide"
-                  variant="secondary"
-                  className="h-8 w-fit shrink-0 px-2.5"
-                  onClick={() =>
-                    window.open(guide.url, "_blank", "noopener,noreferrer")
-                  }
-                />
+          {setup.steps.map((step) => (
+            <div
+              key={`${step.type}-${step.guideKey ?? step.url}`}
+              className="flex h-[52px] w-full items-center justify-between gap-3 rounded-[10px] bg-neutral-50 p-3"
+            >
+              <div className="flex min-w-0 items-center gap-2.5">
+                <StepIcon step={step} />
+                <span className="truncate text-sm font-medium text-neutral-800">
+                  {step.label}
+                </span>
               </div>
-            );
-          })}
+              <Button
+                text="Read install guide"
+                variant="secondary"
+                className="h-8 w-fit shrink-0 px-2.5"
+                onClick={() =>
+                  window.open(step.url, "_blank", "noopener,noreferrer")
+                }
+              />
+            </div>
+          ))}
         </div>
       )}
     </div>
   );
 }
 
-function MainPromptCard({ guide }: { guide: IntegrationGuide }) {
-  const { loading, guideMarkdown } = useDynamicGuide({ guide: guide.key });
-  const [expanded, setExpanded] = useState(false);
-  const prompt = getInstallPrompt(guide.url);
-
+function MainPromptCard({ prompt }: { prompt: string }) {
   return (
     <div className="flex flex-col gap-3">
       <div className="flex items-center justify-between gap-2">
@@ -242,45 +228,10 @@ function MainPromptCard({ guide }: { guide: IntegrationGuide }) {
           successMessage="Prompt copied to clipboard"
         />
 
-        <div className="p-4 pb-0">
-          {expanded && loading ? (
-            <div className="space-y-3 pr-8">
-              <div className="h-4 w-1/2 animate-pulse rounded bg-neutral-200" />
-              <div className="h-4 w-full animate-pulse rounded bg-neutral-100" />
-              <div className="h-4 w-5/6 animate-pulse rounded bg-neutral-100" />
-            </div>
-          ) : expanded && guideMarkdown ? (
-            <div className="pr-8">
-              <GuidesMarkdown>{guideMarkdown}</GuidesMarkdown>
-            </div>
-          ) : (
-            <p className="pr-8 font-mono text-[13px] leading-6 text-neutral-800">
-              {prompt}
-            </p>
-          )}
-        </div>
-
-        <div
-          className={cn(
-            "pointer-events-none relative flex justify-center px-4 pb-4",
-            expanded ? "pt-4" : "pt-5",
-          )}
-          style={
-            expanded
-              ? undefined
-              : {
-                  background:
-                    "linear-gradient(180deg, rgba(255, 255, 255, 0) 0%, #FFFFFF 100%)",
-                }
-          }
-        >
-          <Button
-            text={expanded ? "Show less" : "View all"}
-            variant="secondary"
-            className="pointer-events-auto h-8 w-fit px-2.5"
-            disabled={!expanded && loading && !guideMarkdown}
-            onClick={() => setExpanded((current) => !current)}
-          />
+        <div className="p-4">
+          <p className="whitespace-pre-wrap pr-8 font-mono text-[13px] leading-6 text-neutral-800">
+            {prompt}
+          </p>
         </div>
       </div>
     </div>
