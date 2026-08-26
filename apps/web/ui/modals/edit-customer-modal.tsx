@@ -3,7 +3,7 @@ import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import { CustomerEnriched, CustomerProps } from "@/lib/types";
 import { updateCustomerBodySchema } from "@/lib/zod/schemas/customers";
 import { Button, Modal, useMediaQuery } from "@dub/ui";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import * as z from "zod/v4";
@@ -173,11 +173,7 @@ export function useEditCustomerModal() {
     setCustomer(customer);
   }
 
-  function closeEditCustomerModal() {
-    setCustomer(null);
-  }
-
-  function EditCustomerModalWrapper() {
+  const EditCustomerModalWrapper = useCallback(() => {
     if (!customer) return null;
 
     return (
@@ -185,15 +181,14 @@ export function useEditCustomerModal() {
         customer={customer}
         showModal
         setShowModal={(show) => {
-          if (!show) closeEditCustomerModal();
+          if (!show) setCustomer(null);
         }}
       />
     );
-  }
+  }, [customer]);
 
   return {
     openEditCustomerModal,
-    closeEditCustomerModal,
     EditCustomerModal: EditCustomerModalWrapper,
     isEditCustomerModalOpen: customer !== null,
   };

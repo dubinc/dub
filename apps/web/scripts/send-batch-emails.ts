@@ -1,4 +1,4 @@
-import { EXCLUDED_PROGRAM_IDS } from "@/lib/constants/partner-profile";
+import { PARTNER_NETWORK_EXCLUDED_PROGRAM_IDS } from "@/lib/constants/partner-profile";
 import { prisma } from "@/lib/prisma";
 import DubLaunchWeekDay5 from "@dub/email/templates/broadcasts/launch-week-day-5";
 import { chunk } from "@dub/utils";
@@ -31,7 +31,7 @@ async function main() {
                 programs: {
                   where: {
                     programId: {
-                      in: EXCLUDED_PROGRAM_IDS,
+                      in: PARTNER_NETWORK_EXCLUDED_PROGRAM_IDS,
                     },
                   },
                 },

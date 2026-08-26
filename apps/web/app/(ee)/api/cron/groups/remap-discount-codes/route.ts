@@ -4,7 +4,7 @@ import { deleteDiscountCodes } from "@/lib/discounts/delete-discount-code";
 import { isDiscountProviderError } from "@/lib/discounts/discount-error";
 import { isDiscountEquivalent } from "@/lib/discounts/is-discount-equivalent";
 import { prisma } from "@/lib/prisma";
-import { Discount, DiscountCode } from "@prisma/client";
+import { DiscountCode } from "@prisma/client";
 import * as z from "zod/v4";
 import { logAndRespond } from "../../utils";
 
@@ -68,9 +68,7 @@ export const POST = withCron(async ({ rawBody }) => {
 
   // Find the discount codes to update and remove
   const discountCodesToUpdate: DiscountCode[] = [];
-  const discountCodesToRemove: (DiscountCode & {
-    discount: Pick<Discount, "provider"> | null;
-  })[] = [];
+  const discountCodesToRemove: typeof discountCodes = [];
 
   for (const discountCode of discountCodes) {
     const keepDiscountCode = isDiscountEquivalent(
@@ -149,6 +147,7 @@ export const POST = withCron(async ({ rawBody }) => {
         },
         select: {
           id: true,
+          webhookEnabled: true,
           stripeConnectId: true,
           shopifyStoreId: true,
         },

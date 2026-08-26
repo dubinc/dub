@@ -540,7 +540,12 @@ export const rewardContextSchema = z.object({
 
   sale: z
     .object({
-      productId: z.string().nullish(),
+      // Non-string productIds (e.g. from sale.metadata) are dropped so reward
+      // conditions only match string product IDs.
+      productId: z.preprocess(
+        (val) => (typeof val === "string" ? val : undefined),
+        z.string().nullish(),
+      ),
       amount: z.number().nullish(),
       type: z.enum(["new", "recurring"]).nullish(),
       metadata: z.record(z.string(), z.unknown()).optional(),

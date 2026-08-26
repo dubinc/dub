@@ -601,7 +601,7 @@ function BountySubmissionDetailsSheetContent({
         </div>
       </div>
 
-      <RejectBountySubmissionModal />
+      {RejectBountySubmissionModal}
       {ConfirmApproveBountySubmissionModal}
     </div>
   );
