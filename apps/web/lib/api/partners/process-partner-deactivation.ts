@@ -94,7 +94,7 @@ export async function processPartnerDeactivation({
   // Queue an index update because the enrollment statuses moved to deactivated.
   // Outside the user branch below, which only runs for operator-driven
   // deactivations.
-  await queuePartnerSearchSync({ partnerIds, programId });
+  waitUntil(queuePartnerSearchSync({ partnerIds, programId }));
 
   if (user) {
     waitUntil(
