@@ -1,6 +1,23 @@
+import {
+  APIConnectionError,
+  APIConnectionTimeoutError,
+  APIError,
+} from "@turbopuffer/turbopuffer";
+
 const TRANSIENT_RETRY_ATTEMPTS = 2;
 
 function isTransientError(error: unknown): boolean {
+  // The SDK's errors carry the status code, so it is read rather than sniffed
+  // out of the message, where a stray "500" in an ID or a count would
+  // misclassify a permanent failure as transient.
+  if (error instanceof APIError) {
+    return (
+      error instanceof APIConnectionError ||
+      error.status === 429 ||
+      (typeof error.status === "number" && error.status >= 500)
+    );
+  }
+
   const message = error instanceof Error ? error.message : String(error);
 
   // fetch network failures surface as TypeError ("fetch failed"), but so do
@@ -14,12 +31,16 @@ function isTransientError(error: unknown): boolean {
     );
   }
 
-  return /\b(429|500|502|503|504)\b|rate.?limit|timeout|timed out|fetch failed|network|ECONNRESET|ETIMEDOUT/i.test(
+  return /timeout|timed out|fetch failed|network|ECONNRESET|ETIMEDOUT/i.test(
     message,
   );
 }
 
 function isTimeoutError(error: unknown): boolean {
+  if (error instanceof APIConnectionTimeoutError) {
+    return true;
+  }
+
   const message = error instanceof Error ? error.message : String(error);
   return /timeout|timed out|ETIMEDOUT/i.test(message);
 }
