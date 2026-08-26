@@ -10,9 +10,11 @@ import {
   InlineBadgePopover,
   InlineBadgePopoverMenu,
 } from "@/ui/shared/inline-badge-popover";
+import { DynamicTooltipWrapper } from "@dub/ui";
 import { Trophy } from "@dub/ui/icons";
 import { cn, currencyFormatter, nFormatter } from "@dub/utils";
 import { BountyStartMode } from "@prisma/client";
+import { useParams } from "next/navigation";
 import { Controller } from "react-hook-form";
 import { BountyAmountInput } from "./bounty-amount-input";
 import { useBountyFormContext } from "./bounty-form-context";
@@ -23,6 +25,9 @@ const PERFORMANCE_SCOPE_DESCRIPTIONS = {
 } as const;
 
 export function BountyLogic({ className }: { className?: string }) {
+  const { bountyId } = useParams();
+  const isEditing = !!bountyId;
+
   const { control, watch } = useBountyFormContext();
 
   const [attribute, value, startMode] = watch([
@@ -45,31 +50,45 @@ export function BountyLogic({ className }: { className?: string }) {
             control={control}
             name="performanceScope"
             render={({ field }) => (
-              <InlineBadgePopover
-                text={field.value}
-                invalid={!field.value}
-                align="center"
+              <DynamicTooltipWrapper
+                tooltipProps={
+                  isEditing
+                    ? {
+                        content:
+                          "Performance scope cannot be changed after bounty creation.",
+                      }
+                    : undefined
+                }
               >
-                <InlineBadgePopoverMenu
-                  selectedValue={field.value}
-                  onSelect={field.onChange}
-                  items={[
-                    {
-                      text: "new",
-                      value: "new",
-                      description: PERFORMANCE_SCOPE_DESCRIPTIONS.new,
-                    },
-                    {
-                      text: isRelative
-                        ? "lifetime (not available)"
-                        : "lifetime",
-                      value: "lifetime",
-                      description: `${PERFORMANCE_SCOPE_DESCRIPTIONS.lifetime}${isRelative ? " (not available for relative start dates)" : ""}`,
-                      disabled: isRelative,
-                    },
-                  ]}
-                />
-              </InlineBadgePopover>
+                <span>
+                  <InlineBadgePopover
+                    text={field.value}
+                    invalid={!field.value}
+                    align="center"
+                    disabled={isEditing}
+                  >
+                    <InlineBadgePopoverMenu
+                      selectedValue={field.value}
+                      onSelect={field.onChange}
+                      items={[
+                        {
+                          text: "new",
+                          value: "new",
+                          description: PERFORMANCE_SCOPE_DESCRIPTIONS.new,
+                        },
+                        {
+                          text: isRelative
+                            ? "lifetime (not available)"
+                            : "lifetime",
+                          value: "lifetime",
+                          description: `${PERFORMANCE_SCOPE_DESCRIPTIONS.lifetime}${isRelative ? " (not available for relative start dates)" : ""}`,
+                          disabled: isRelative,
+                        },
+                      ]}
+                    />
+                  </InlineBadgePopover>
+                </span>
+              </DynamicTooltipWrapper>
             )}
           />
           <Controller
