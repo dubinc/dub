@@ -29,11 +29,13 @@ export function isExactPartnerIdQuery(query: string): boolean {
  */
 export function buildPartnerEmailSearchWhere({
   email,
-  search,
+  search: rawSearch,
 }: {
   email?: string | null;
   search?: string | null;
 }): Prisma.PartnerWhereInput {
+  const search = rawSearch?.trim();
+
   if (email) {
     return { email };
   }
