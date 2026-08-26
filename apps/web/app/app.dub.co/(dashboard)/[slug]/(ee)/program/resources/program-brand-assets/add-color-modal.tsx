@@ -5,6 +5,7 @@ import { updateProgramResourceAction } from "@/lib/actions/partners/program-reso
 import useProgramResources from "@/lib/swr/use-program-resources";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { ProgramResourceColor } from "@/lib/zod/schemas/program-resources";
+import { ColorSelector } from "@/ui/shared/color-picker";
 import { Button, Modal } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
@@ -12,11 +13,9 @@ import {
   Dispatch,
   SetStateAction,
   useCallback,
-  useEffect,
   useMemo,
   useState,
 } from "react";
-import { HexColorPicker } from "react-colorful";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import * as z from "zod/v4";
@@ -55,10 +54,6 @@ function ColorModalInner({
   const { mutate } = useProgramResources();
   const isEditing = Boolean(existingResource);
 
-  const [hexInputValue, setHexInputValue] = useState(
-    existingResource?.color || "#000000",
-  );
-
   const {
     register,
     handleSubmit,
@@ -76,19 +71,6 @@ function ColorModalInner({
   });
 
   const selectedColor = watch("color");
-
-  // Keep hex input in sync with form value
-  useEffect(() => setHexInputValue(selectedColor), [selectedColor]);
-
-  const handleHexInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setHexInputValue(value);
-
-    // Only update form value if it's a valid hex color
-    if (/^#?[0-9A-F]{6}$/i.test(value)) {
-      setValue("color", value.startsWith("#") ? value : `#${value}`);
-    }
-  };
 
   const { executeAsync: executeAdd } = useAction(addProgramResourceAction, {
     onSuccess: () => {
@@ -160,33 +142,14 @@ function ColorModalInner({
         <div className="bg-neutral-50 p-4 sm:p-6">
           <div className="space-y-4">
             <div>
-              <span className="mb-1 block text-sm font-medium text-neutral-700">
-                Color
-              </span>
-              <div className="flex justify-center [&_.react-colorful]:h-[180px] [&_.react-colorful]:w-full">
-                <HexColorPicker
-                  color={selectedColor}
-                  onChange={(color) =>
-                    setValue("color", color, { shouldDirty: true })
-                  }
-                />
-              </div>
-            </div>
-
-            <label className="block">
-              <span className="mb-1 block text-sm font-medium text-neutral-700">
-                Hex
-              </span>
-              <input
-                type="text"
-                value={hexInputValue}
-                onChange={handleHexInputChange}
-                className={cn(
-                  "block w-full rounded-md border-neutral-300 shadow-sm focus:border-neutral-500 focus:ring-neutral-500 sm:text-sm",
-                  !/^#[0-9A-F]{6}$/i.test(hexInputValue) &&
-                    "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500",
-                )}
-                placeholder="#000000"
+              <ColorSelector
+                value={selectedColor}
+                onChange={(color) =>
+                  color && setValue("color", color, { shouldDirty: true })
+                }
+                showPicker
+                showHexInput
+                className="w-full"
               />
               <input
                 type="hidden"
@@ -197,7 +160,7 @@ function ColorModalInner({
                   {errors.color.message}
                 </p>
               )}
-            </label>
+            </div>
 
             <label className="block">
               <span className="mb-1 block text-sm font-medium text-neutral-700">
