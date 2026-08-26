@@ -8,6 +8,7 @@ import { useLinkBuilderKeyboardShortcut } from "@/ui/links/link-builder/use-link
 import { useAvailableDomains } from "@/ui/links/use-available-domains";
 import { useEndABTestingModal } from "@/ui/modals/link-builder/ab-testing/end-ab-testing-modal";
 import { BusinessBadgeTooltip } from "@/ui/shared/business-badge-tooltip";
+import { Callout } from "@/ui/shared/callout";
 import { X } from "@/ui/shared/icons";
 import {
   AnimatedSizeContainer,
@@ -16,7 +17,6 @@ import {
   InfoTooltip,
   Modal,
   Tooltip,
-  TriangleWarning,
 } from "@dub/ui";
 import {
   cn,
@@ -421,13 +421,10 @@ function ABTestingModal({
         </div>
 
         {testVariantsParent && (
-          <div className="mt-6 flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 p-4">
-            <TriangleWarning className="mt-0.5 size-4 shrink-0 text-amber-600" />
-            <p className="text-sm font-medium text-amber-900">
-              Changing the original A/B test settings will impact your future
-              analytics and event tracking.
-            </p>
-          </div>
+          <Callout variant="warn" size={2} className="mt-6">
+            Changing the original A/B test settings will impact your future
+            analytics and event tracking.
+          </Callout>
         )}
 
         <div className="mt-4 flex items-center justify-between">

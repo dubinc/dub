@@ -55,6 +55,8 @@ export const acceptProgramInviteAction = authPartnerActionClient
           select: {
             id: true,
             webhookEnabled: true,
+            stripeConnectId: true,
+            shopifyStoreId: true,
           },
         });
 
@@ -73,7 +75,7 @@ export const acceptProgramInviteAction = authPartnerActionClient
         await Promise.allSettled([
           // 1. Generate discount code for partner (if enabled)
           generateDiscountCodeForPartner({
-            workspaceId: workspace.id,
+            workspace,
             partner: enrolledPartner,
           }),
           // 2. Send "partner.enrolled" webhook to workspace

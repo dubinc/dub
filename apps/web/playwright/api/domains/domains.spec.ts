@@ -1,6 +1,6 @@
 import type { DomainProps } from "@/lib/types";
 import { expect } from "@playwright/test";
-import { randomName } from "../../utils";
+import { apiError, randomName } from "../../utils";
 import { test, type ApiClient } from "../fixtures";
 
 test.describe.configure({
@@ -283,51 +283,31 @@ test("DELETE /domains/{slug}", async ({ api }) => {
 });
 
 test("GET /domains/status – not eligible", async ({ api }) => {
-  const { status, data } = await api.get(
-    "/api/domains/status?domains=example.link",
-  );
-
-  expect(status).toEqual(403);
-  expect(data).toEqual({
-    error: {
+  expect(await api.get("/api/domains/status?domains=example.link")).toEqual(
+    apiError({
       code: "forbidden",
       message:
         "GET /domains/status is not available for your workspace. Contact support for more information.",
-      doc_url: "https://dub.co/docs/api-reference/errors#forbidden",
-    },
-  });
+    }),
+  );
 });
 
 const errorCases = [
   {
     name: "POST /domains – without slug",
     body: {},
-    expected: {
-      status: 422,
-      data: {
-        error: {
-          code: "unprocessable_entity",
-          message: "invalid_type: slug: slug is required",
-          doc_url:
-            "https://dub.co/docs/api-reference/errors#unprocessable-entity",
-        },
-      },
-    },
+    expected: apiError({
+      code: "unprocessable_entity",
+      message: "invalid_type: slug: slug is required",
+    }),
   },
   {
     name: "POST /domains – invalid domain",
     body: { slug: "not a domain" },
-    expected: {
-      status: 422,
-      data: {
-        error: {
-          code: "unprocessable_entity",
-          message: "Invalid domain",
-          doc_url:
-            "https://dub.co/docs/api-reference/errors#unprocessable-entity",
-        },
-      },
-    },
+    expected: apiError({
+      code: "unprocessable_entity",
+      message: "Invalid domain",
+    }),
   },
 ];
 
@@ -348,14 +328,12 @@ test("POST /domains – existing slug", async ({ api }) => {
       slug,
     });
 
-    expect(status).toEqual(409);
-    expect(data).toEqual({
-      error: {
+    expect({ status, data }).toEqual(
+      apiError({
         code: "conflict",
         message: "Domain is already in use.",
-        doc_url: "https://dub.co/docs/api-reference/errors#conflict",
-      },
-    });
+      }),
+    );
   } finally {
     await deleteDomain(api, slug);
   }
@@ -366,14 +344,12 @@ test("GET /domains/{slug} – not found", async ({ api }) => {
 
   const { status, data } = await api.get(`/api/domains/${slug}`);
 
-  expect(status).toEqual(404);
-  expect(data).toEqual({
-    error: {
+  expect({ status, data }).toEqual(
+    apiError({
       code: "not_found",
       message: `Domain ${slug} not found.`,
-      doc_url: "https://dub.co/docs/api-reference/errors#not-found",
-    },
-  });
+    }),
+  );
 });
 
 test.describe("JSON config fields", () => {
@@ -490,17 +466,12 @@ test.describe("JSON config fields", () => {
           ...domainBody(slug),
           [field]: INVALID_JSON,
         }),
-      ).toEqual({
-        status: 422,
-        data: {
-          error: {
-            code: "unprocessable_entity",
-            message: `Invalid ${label}`,
-            doc_url:
-              "https://dub.co/docs/api-reference/errors#unprocessable-entity",
-          },
-        },
-      });
+      ).toEqual(
+        apiError({
+          code: "unprocessable_entity",
+          message: `Invalid ${label}`,
+        }),
+      );
     });
 
     test(`PATCH /domains/{slug} – invalid ${field} JSON`, async ({ api }) => {
@@ -514,17 +485,12 @@ test.describe("JSON config fields", () => {
           await api.patch(`/api/domains/${slug}`, {
             [field]: INVALID_JSON,
           }),
-        ).toEqual({
-          status: 422,
-          data: {
-            error: {
-              code: "unprocessable_entity",
-              message: `Invalid ${label}`,
-              doc_url:
-                "https://dub.co/docs/api-reference/errors#unprocessable-entity",
-            },
-          },
-        });
+        ).toEqual(
+          apiError({
+            code: "unprocessable_entity",
+            message: `Invalid ${label}`,
+          }),
+        );
       } finally {
         await deleteDomain(api, slug);
       }

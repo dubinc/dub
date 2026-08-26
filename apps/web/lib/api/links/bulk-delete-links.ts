@@ -89,11 +89,7 @@ async function deleteLinksBatch(links: ExpandedLink[]): Promise<number> {
       },
     },
     include: {
-      discount: {
-        select: {
-          provider: true,
-        },
-      },
+      discount: true,
     },
   });
 

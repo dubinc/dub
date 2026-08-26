@@ -9,6 +9,7 @@ const fetchOptions: RequestInit = {
   redirect: "manual",
   headers: {
     "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)",
+    "x-e2e-redirect-test": "true",
   },
 };
 
