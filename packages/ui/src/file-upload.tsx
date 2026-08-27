@@ -22,14 +22,22 @@ const documentTypes = [
   "text/csv", // .csv
 ];
 
+const imageExtensionMimeTypes: Record<string, string> = {
+  png: "image/png",
+  jpg: "image/jpeg",
+  jpeg: "image/jpeg",
+  webp: "image/webp",
+  avif: "image/avif",
+};
+
 const acceptFileTypes: Record<
   AcceptedFileFormats,
   { types: string[]; errorMessage?: string }
 > = {
   any: { types: [] },
   images: {
-    types: ["image/png", "image/jpeg"],
-    errorMessage: "File type not supported (.png or .jpg only)",
+    types: ["image/png", "image/jpeg", "image/webp", "image/avif"],
+    errorMessage: "File type not supported (.png, .jpg, .webp, or .avif only)",
   },
   csv: {
     types: ["text/csv"],
@@ -194,22 +202,32 @@ export function FileUpload({
     }
 
     const acceptedTypes = acceptFileTypes[accept].types;
+    const extension = file.name.split(".").pop()?.toLowerCase();
+    const mimeType =
+      file.type ||
+      (extension ? imageExtensionMimeTypes[extension] : "") ||
+      "";
 
-    if (acceptedTypes.length && !acceptedTypes.includes(file.type)) {
+    if (acceptedTypes.length && !acceptedTypes.includes(mimeType)) {
       toast.error(
         acceptFileTypes[accept].errorMessage ?? "File type not supported",
       );
       return;
     }
 
-    let fileToUse = file;
+    let fileToUse =
+      !file.type && mimeType
+        ? new File([file], file.name, { type: mimeType })
+        : file;
 
     // Add image resizing logic
-    if (targetResolution && file.type.startsWith("image/")) {
+    if (targetResolution && mimeType.startsWith("image/")) {
       try {
-        const resizedFile = await resizeImage(file, targetResolution);
+        const resizedFile = await resizeImage(fileToUse, targetResolution);
         const blob = await fetch(resizedFile).then((r) => r.blob());
-        fileToUse = new File([blob], file.name, { type: file.type });
+        fileToUse = new File([blob], fileToUse.name, {
+          type: blob.type || "image/jpeg",
+        });
       } catch (error) {
         console.error("Error resizing image:", error);
         // Fallback to original file if resize fails
