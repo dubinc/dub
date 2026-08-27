@@ -49,8 +49,15 @@ const acceptFileTypes: Record<
   },
   // TODO: allow custom `accept` prop so we don't need specific options here
   programResourceImages: {
-    types: ["image/svg+xml", "image/png", "image/jpeg", "image/webp"],
-    errorMessage: "File type not supported (.svg, .png, .jpg, or .webp only)",
+    types: [
+      "image/svg+xml",
+      "image/png",
+      "image/jpeg",
+      "image/webp",
+      "image/avif",
+    ],
+    errorMessage:
+      "File type not supported (.svg, .png, .jpg, .webp, or .avif only)",
   },
   programResourceFiles: {
     types: [
@@ -58,11 +65,12 @@ const acceptFileTypes: Record<
       "image/png",
       "image/jpeg",
       "image/webp",
+      "image/avif",
       ...documentTypes,
       "application/zip",
     ],
     errorMessage:
-      "File type not supported (.svg, .png, .jpg, .webp, document, or zip files only)",
+      "File type not supported (.svg, .png, .jpg, .webp, .avif, document, or zip files only)",
   },
 };
 
