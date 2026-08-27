@@ -7,6 +7,7 @@ import {
   Envelope,
   Globe,
   Hyperlink,
+  MoneyBill2,
   TimestampTooltip,
   Tooltip,
   useCurrentProduct,
@@ -16,6 +17,7 @@ import {
   capitalize,
   cn,
   COUNTRIES,
+  currencyFormatter,
   getParamsFromURL,
   getPrettyUrl,
 } from "@dub/utils";
@@ -93,6 +95,21 @@ export function CustomerDetailsColumn({
                   })}
                 </span>
               </TimestampTooltip>
+            </span>
+          ),
+        }
+      : null,
+
+    customer?.saleAmount != null
+      ? {
+          id: "ltv",
+          icon: <MoneyBill2 className="size-3.5 shrink-0" />,
+          text: (
+            <span>
+              LTV:{" "}
+              {currencyFormatter(customer.saleAmount, {
+                trailingZeroDisplay: "stripIfInteger",
+              })}
             </span>
           ),
         }
