@@ -69,7 +69,11 @@ export function PublishableKeyField({
               className="h-7 w-fit shrink-0 px-2.5"
               textWrapperClassName="overflow-visible"
             />
-            <PublishableKeyMenu onRevoke={() => setShowRevokeModal(true)} />
+            <PublishableKeyMenu
+              onRevoke={() => setShowRevokeModal(true)}
+              disabled={disabled}
+              disabledTooltip={disabledTooltip}
+            />
           </div>
         </div>
       ) : (

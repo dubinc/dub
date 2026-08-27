@@ -11,7 +11,7 @@ import { UserAvatar } from "@/ui/users/user-avatar";
 import { Button, Combobox, Globe } from "@dub/ui";
 import { cn, OG_AVATAR_URL, timeAgo } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
-import { type ReactNode, useMemo, useState } from "react";
+import { type ReactNode, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 
 const HOSTNAME_REQUIRED_MESSAGE =
@@ -45,6 +45,9 @@ export function VerifyInstall({ hostnames }: { hostnames: string[] }) {
   const { id: workspaceId, role, store, mutate } = useWorkspace();
   const [selectedHostname, setSelectedHostname] = useState<string | null>(null);
   const [result, setResult] = useState<VerifyInstallationResult | null>(null);
+  const selectedHostnameRef = useRef(selectedHostname);
+  const pendingHostnameRef = useRef<string | null>(null);
+  selectedHostnameRef.current = selectedHostname;
 
   const permissionsError = clientAccessCheck({
     action: "workspaces.write",
@@ -80,9 +83,11 @@ export function VerifyInstall({ hostnames }: { hostnames: string[] }) {
       ? lastVerified
       : null;
 
-  const showSuccess = result?.status === "success";
-  const showError = result?.status === "error";
-  const showLastVerified = !result && Boolean(persistedForHostname);
+  const resultForSelection =
+    result && result.hostname === selectedHostname ? result : null;
+  const showSuccess = resultForSelection?.status === "success";
+  const showError = resultForSelection?.status === "error";
+  const showLastVerified = !resultForSelection && Boolean(persistedForHostname);
   const canReverify = showSuccess || showLastVerified;
 
   const helperTone: HelperTone | null = showSuccess
@@ -99,16 +104,26 @@ export function VerifyInstall({ hostnames }: { hostnames: string[] }) {
         return;
       }
 
-      setResult(data);
-
       if (data.status === "success") {
         void mutate();
       }
+
+      if (data.hostname !== selectedHostnameRef.current) {
+        return;
+      }
+
+      setResult(data);
     },
     onError({ error }) {
+      const hostname = pendingHostnameRef.current;
+
+      if (!hostname || hostname !== selectedHostnameRef.current) {
+        return;
+      }
+
       setResult({
         status: "error",
-        hostname: selectedHostname ?? "",
+        hostname,
         error: "unreachable",
       });
       toast.error(error.serverError || "Failed to verify installation.");
@@ -138,9 +153,13 @@ export function VerifyInstall({ hostnames }: { hostnames: string[] }) {
           searchPlaceholder="Search hostnames..."
           buttonProps={{
             className: cn("h-10 w-full", helperTone && "bg-bg-default"),
-            disabled: hostnames.length === 0,
+            disabled: hostnames.length === 0 || isPending,
             disabledTooltip:
-              hostnames.length === 0 ? HOSTNAME_REQUIRED_MESSAGE : undefined,
+              hostnames.length === 0
+                ? HOSTNAME_REQUIRED_MESSAGE
+                : isPending
+                  ? "Verification in progress"
+                  : undefined,
           }}
           matchTriggerWidth
         />
@@ -151,10 +170,10 @@ export function VerifyInstall({ hostnames }: { hostnames: string[] }) {
           </HelperText>
         )}
 
-        {showError && result.status === "error" && (
+        {showError && resultForSelection?.status === "error" && (
           <HelperText tone="error">
-            {ERROR_HEADLINE[result.error]} After correcting, try verifying again
-            and if the issue still persists, check out our{" "}
+            {ERROR_HEADLINE[resultForSelection.error]} After correcting, try
+            verifying again and if the issue still persists, check out our{" "}
             <a
               href={VERIFY_DOCS_HREF}
               target="_blank"
@@ -210,6 +229,7 @@ export function VerifyInstall({ hostnames }: { hostnames: string[] }) {
             return;
           }
 
+          pendingHostnameRef.current = selectedHostname;
           void executeAsync({ workspaceId, hostname: selectedHostname });
         }}
       />

@@ -89,7 +89,11 @@ export const verifyWorkspaceSetup = authActionClient
       image: user.image ?? null,
     };
 
-    const store = (workspace.store as Record<string, unknown> | null) ?? {};
+    const latest = await prisma.project.findUnique({
+      where: { id: workspace.id },
+      select: { store: true },
+    });
+    const store = (latest?.store as Record<string, unknown> | null) ?? {};
 
     await prisma.project.update({
       where: { id: workspace.id },

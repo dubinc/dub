@@ -18,7 +18,9 @@ export function InstallationSection() {
     loading: workspaceLoading,
   } = useWorkspace();
   const [savedStack, setSavedStack, { loading: stackLoading }] =
-    useWorkspaceStore<string[]>("analyticsSettingsSelectedStack");
+    useWorkspaceStore<string[]>("analyticsSettingsSelectedStack", {
+      mutateOnSet: true,
+    });
   const [siteVisitEnabled] = useWorkspaceStore<boolean>(
     "analyticsSettingsSiteVisitTrackingEnabled",
   );

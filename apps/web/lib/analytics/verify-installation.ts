@@ -26,9 +26,10 @@ export type VerifyInstallationResult =
 const SCRIPT_TAG_RE = /<script\b[^>]*>/gi;
 const DUB_SCRIPT_RE =
   /dubcdn\.com\/analytics|data-sdkn=["']@dub\/analytics["']|@dub\/analytics/i;
-const DUB_SRC_RE = /src=["'][^"']*dubcdn\.com\/analytics[^"']*["']/i;
+const DUB_SRC_RE =
+  /src\s*=\s*(?:["'][^"']*dubcdn\.com\/analytics[^"']*["']|[^\s>]*dubcdn\.com\/analytics[^\s>]*)/i;
 const CONVERSION_SRC_RE =
-  /src=["'][^"']*dubcdn\.com\/analytics[^"']*conversion-tracking[^"']*["']/i;
+  /src\s*=\s*(?:["'][^"']*dubcdn\.com\/analytics[^"']*conversion-tracking[^"']*["']|[^\s>]*dubcdn\.com\/analytics[^\s>]*conversion-tracking[^\s>]*)/i;
 const SDK_NAME_RE = /data-sdkn=["']@dub\/analytics["']/i;
 const PUBLISHABLE_KEY_RE = /data-publishable-key=/i;
 

@@ -3,7 +3,15 @@ import { Button, Popover } from "@dub/ui";
 import { Delete } from "lucide-react";
 import { useState } from "react";
 
-export function PublishableKeyMenu({ onRevoke }: { onRevoke: () => void }) {
+export function PublishableKeyMenu({
+  onRevoke,
+  disabled,
+  disabledTooltip,
+}: {
+  onRevoke: () => void;
+  disabled?: boolean;
+  disabledTooltip?: string;
+}) {
   const [openPopover, setOpenPopover] = useState(false);
 
   return (
@@ -20,6 +28,8 @@ export function PublishableKeyMenu({ onRevoke }: { onRevoke: () => void }) {
               }}
               icon={<Delete className="h-4 w-4" />}
               className="h-9 justify-start px-2 font-medium"
+              disabled={disabled}
+              disabledTooltip={disabledTooltip}
             />
           </div>
         </div>
@@ -32,6 +42,8 @@ export function PublishableKeyMenu({ onRevoke }: { onRevoke: () => void }) {
         variant="outline"
         className="size-7 shrink-0 border-transparent p-0 outline-none transition-all duration-200 data-[state=open]:border-neutral-500"
         icon={<ThreeDots className="size-4 shrink-0 rotate-90" />}
+        disabled={disabled}
+        disabledTooltip={disabledTooltip}
         onClick={() => {
           setOpenPopover(!openPopover);
         }}
