@@ -14,6 +14,14 @@ const schema = googleAdsSettingsSchema.omit({ customers: true }).extend({
   workspaceId: z.string(),
 });
 
+const uniqueMappingEventNames = (
+  mappings: z.infer<typeof googleAdsSettingsSchema>["leadMappings"],
+) =>
+  mappings.map((mapping) => ({
+    ...mapping,
+    eventNames: [...new Set(mapping.eventNames)],
+  }));
+
 export const updateGoogleAdsSettingsAction = authActionClient
   .inputSchema(schema)
   .action(async ({ parsedInput, ctx }) => {
@@ -22,8 +30,8 @@ export const updateGoogleAdsSettingsAction = authActionClient
       customerId,
       customerName,
       loginCustomerId: submittedLoginCustomerId,
-      leadConversionAction,
-      saleConversionAction,
+      leadMappings,
+      saleMappings,
     } = parsedInput;
 
     throwIfNoPermission({
@@ -75,7 +83,7 @@ export const updateGoogleAdsSettingsAction = authActionClient
         })
       : null;
 
-    if (!customerId && (leadConversionAction || saleConversionAction)) {
+    if (!customerId && (leadMappings.length || saleMappings.length)) {
       throw new Error(
         "A Google Ads account is required to configure conversion actions.",
       );
@@ -86,15 +94,17 @@ export const updateGoogleAdsSettingsAction = authActionClient
       const expectedPrefix = `customers/${normalizedCustomerId}/conversionActions/`;
 
       if (
-        leadConversionAction &&
-        !leadConversionAction.startsWith(expectedPrefix)
+        leadMappings.some(
+          (mapping) => !mapping.conversionAction.startsWith(expectedPrefix),
+        )
       ) {
         throw new Error("Invalid lead conversion action.");
       }
 
       if (
-        saleConversionAction &&
-        !saleConversionAction.startsWith(expectedPrefix)
+        saleMappings.some(
+          (mapping) => !mapping.conversionAction.startsWith(expectedPrefix),
+        )
       ) {
         throw new Error("Invalid sale conversion action.");
       }
@@ -110,8 +120,8 @@ export const updateGoogleAdsSettingsAction = authActionClient
           customerId,
           loginCustomerId: resolvedLoginCustomerId,
           customerName,
-          leadConversionAction,
-          saleConversionAction,
+          leadMappings: uniqueMappingEventNames(leadMappings),
+          saleMappings: uniqueMappingEventNames(saleMappings),
         },
       },
     });
