@@ -6,12 +6,8 @@ import type { PartnerSearchProvider } from "./types";
 let cachedSearchProvider: PartnerSearchProvider | null = null;
 
 /**
- * The provider for everything that writes: the sync jobs, backfill and sweep.
+ * The provider for everything that writes: the sync jobs and the backfill.
  * Null until turbopuffer is configured, which is what keeps this dark.
- *
- * Once set where traffic is served, leave it set. Only the live sync hooks can
- * remove a document, so any window with this unset strands every enrollment
- * deleted during it until the namespace is rebuilt.
  */
 export function getPartnerSearchProvider(): PartnerSearchProvider | null {
   if (!process.env.TURBOPUFFER_API_KEY?.trim()) {
@@ -27,9 +23,8 @@ export function getPartnerSearchProvider(): PartnerSearchProvider | null {
  * Whether the partners list and count read from the index rather than the
  * database.
  *
- * Separate from the key so that turning search off never turns indexing off.
- * Writes stay on and are never flipped, so the index keeps tracking deletions
- * while nothing reads it.
+ * Separate from the key so that turning search off never turns indexing off,
+ * which would strand deletions.
  *
  * It also keeps reads off until the backfill finishes. An empty index does not
  * fall back: an empty candidate list is applied as `id IN ()` once the database
