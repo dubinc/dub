@@ -184,9 +184,12 @@ function PartnerAdvancedSettingsModal({
                 <h3 className="text-sm font-medium leading-none text-neutral-700">
                   Enable customer data sharing
                 </h3>
-                <p className="text-xs text-neutral-500">
-                  Allow this partner to access customer data and analytics
-                </p>
+                <MarkdownDescription className="text-xs text-neutral-500">
+                  Allow this partner to access the names/emails of the customers
+                  they refer. Also allows access to the emails of [referred
+                  partners](https://dub.co/help/article/partner-referrals) (if
+                  applicable).
+                </MarkdownDescription>
               </div>
             </div>
           </div>
@@ -279,11 +282,7 @@ export function usePartnerAdvancedSettingsModal({
         partner={partner}
       />
     );
-  }, [
-    showPartnerAdvancedSettingsModal,
-    setShowPartnerAdvancedSettingsModal,
-    partner,
-  ]);
+  }, [showPartnerAdvancedSettingsModal, setShowPartnerAdvancedSettingsModal]);
 
   return useMemo(
     () => ({

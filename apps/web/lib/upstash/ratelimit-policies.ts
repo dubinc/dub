@@ -16,18 +16,6 @@ export type RatelimitPolicy = {
 };
 
 export const RATELIMIT_POLICIES = {
-  programImageUpload: {
-    attempts: 10,
-    window: "24 h",
-    keyPrefix: "rl:program:application:image:upload",
-  },
-
-  messageAttachmentUpload: {
-    attempts: 20,
-    window: "1 h",
-    keyPrefix: "rl:message:attachment:upload",
-  },
-
   login: {
     attempts: 5,
     window: "1 m",
@@ -82,5 +70,43 @@ export const RATELIMIT_POLICIES = {
     attempts: 10,
     window: "1 m",
     keyPrefix: "rl:auth:saml-verify",
+  },
+
+  programImageUpload: {
+    attempts: 10,
+    window: "24 h",
+    keyPrefix: "rl:program:application:image:upload",
+  },
+
+  messageAttachmentUpload: {
+    attempts: 20,
+    window: "1 h",
+    keyPrefix: "rl:message:attachment:upload",
+  },
+
+  partnerProfileInvite: {
+    attempts: 5,
+    window: "1 h",
+    keyPrefix: "rl:partner-profile:invite",
+  },
+
+  aiRewardGenerate: {
+    attempts: 10,
+    window: "1 m",
+    keyPrefix: "rl:ai:reward:generate",
+  },
+
+  // Keyed on workspace + user so one actor cannot exhaust the workspace quota
+  forwardDnsInstructions: {
+    attempts: 10,
+    window: "1 h",
+    keyPrefix: "rl:domains:forward-dns-instructions",
+  },
+
+  // Keyed on the recipient so many accounts can't spam the same address
+  forwardDnsInstructionsTarget: {
+    attempts: 10,
+    window: "1 h",
+    keyPrefix: "rl:domains:forward-dns-instructions:target",
   },
 } as const satisfies Record<string, RatelimitPolicy>;

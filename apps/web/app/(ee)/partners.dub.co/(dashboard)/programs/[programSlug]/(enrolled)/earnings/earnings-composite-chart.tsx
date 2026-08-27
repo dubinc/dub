@@ -13,7 +13,7 @@ import { CommissionStatusBadges } from "@/ui/partners/commission-status-badges";
 import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
 import { Filter, LoadingSpinner, ToggleGroup, useRouterStuff } from "@dub/ui";
 import { Areas, TimeSeriesChart, XAxis, YAxis } from "@dub/ui/charts";
-import { CircleDotted, Hyperlink, Sliders, User } from "@dub/ui/icons";
+import { CircleDotted, Hyperlink, MoneyBill2, Sliders, User } from "@dub/ui/icons";
 import {
   capitalize,
   cn,
@@ -362,12 +362,13 @@ function EarningsTableControls() {
   );
 
   const activeFilters = useMemo(() => {
-    const { type, linkId, customerId, status } = searchParamsObj;
+    const { type, linkId, customerId, status, payoutId } = searchParamsObj;
     return [
       ...(type ? [{ key: "type", value: type }] : []),
       ...(linkId ? [{ key: "linkId", value: linkId }] : []),
       ...(customerId ? [{ key: "customerId", value: customerId }] : []),
       ...(status ? [{ key: "status", value: status }] : []),
+      ...(payoutId ? [{ key: "payoutId", value: payoutId }] : []),
     ];
   }, [searchParamsObj]);
 
@@ -386,7 +387,7 @@ function EarningsTableControls() {
 
   const onRemoveAll = () =>
     queryParams({
-      del: ["linkId", "customerId", "status", "page"],
+      del: ["linkId", "customerId", "status", "payoutId", "page"],
     });
 
   return (
@@ -409,7 +410,15 @@ function EarningsTableControls() {
         )}
       />
       <Filter.List
-        filters={filters}
+        filters={[
+          ...filters,
+          {
+            key: "payoutId",
+            icon: MoneyBill2,
+            label: "Payout",
+            options: [],
+          },
+        ]}
         activeFilters={activeFilters}
         onSelect={onSelect}
         onRemove={onRemove}

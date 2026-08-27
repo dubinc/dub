@@ -13,7 +13,7 @@ import { RATELIMIT_POLICIES } from "@/lib/upstash/ratelimit-policies";
 import { nanoid } from "@dub/utils";
 import * as z from "zod/v4";
 import { authPartnerActionClient } from "../actions/safe-action";
-import { INACTIVE_ENROLLMENT_STATUSES } from "../zod/schemas/partners";
+import { COMMISSION_ELIGIBLE_ENROLLMENT_STATUSES } from "../zod/schemas/partners";
 
 const schema = z.object({
   programSlug: z.string(),
@@ -52,12 +52,12 @@ export const uploadPartnerMessageAttachmentAction = authPartnerActionClient
             messagingEnabledAt: {
               not: null,
             },
-            // partner is not banned, deactivated, or rejected
+            // partner is active, archived or invited
             partners: {
               some: {
                 partnerId: partner.id,
                 status: {
-                  notIn: INACTIVE_ENROLLMENT_STATUSES,
+                  in: COMMISSION_ELIGIBLE_ENROLLMENT_STATUSES,
                 },
               },
             },

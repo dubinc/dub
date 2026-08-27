@@ -9,8 +9,8 @@ export const ALLOWED_MIN_PAYOUT_AMOUNTS = [0, 1000, 2000, 5000, 10000];
 
 const EXTENDED_MIN_PAYOUT_AMOUNT_CENTS = 20000; // $200
 const EXTENDED_MIN_PAYOUT_WORKSPACE_IDS = new Set<string>([
-  "clsvopiw0000ejy0grp821me0",
   ACME_WORKSPACE_ID,
+  "clsvopiw0000ejy0grp821me0",
 ]);
 
 export function getAllowedMinPayoutAmounts(workspaceId: string): number[] {
@@ -22,6 +22,12 @@ export function getAllowedMinPayoutAmounts(workspaceId: string): number[] {
 
   return ALLOWED_MIN_PAYOUT_AMOUNTS;
 }
+
+export const SEPA_ENABLED_WORKSPACE_IDS = new Set<string>([
+  ACME_WORKSPACE_ID,
+  "ws_1KNN3RC8XVQEHTZBQ9XQVNHEB",
+  "ws_1KYSFA2ZKN8C1QTB356ASGQRV",
+]);
 
 export const PAYOUTS_SHEET_ITEMS_LIMIT = 10;
 export const ELIGIBLE_PAYOUTS_MAX_PAGE_SIZE = 500;

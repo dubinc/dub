@@ -1,3 +1,4 @@
+import { DubApiError } from "@/lib/api/errors";
 import { withCron } from "@/lib/cron/with-cron";
 import { createDiscountCode } from "@/lib/discounts/create-discount-code";
 import { isNonRecoverableDiscountError } from "@/lib/discounts/discount-error";
@@ -44,6 +45,7 @@ export const POST = withCron(async ({ rawBody }) => {
       project: {
         select: {
           id: true,
+          webhookEnabled: true,
           stripeConnectId: true,
           shopifyStoreId: true,
         },
@@ -91,6 +93,13 @@ export const POST = withCron(async ({ rawBody }) => {
     });
   } catch (error) {
     if (isNonRecoverableDiscountError(error)) {
+      return logAndRespond(error.message, { logLevel: "warn" });
+    }
+
+    if (
+      error instanceof DubApiError &&
+      (error.code === "conflict" || error.code === "bad_request")
+    ) {
       return logAndRespond(error.message, { logLevel: "warn" });
     }
 

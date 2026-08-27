@@ -15,7 +15,7 @@ interface NotifyPartnerRewardChangeParams {
   action: RewardJob["event"];
   program: Pick<Program, "id" | "name" | "logo" | "slug" | "supportEmail">;
   reward: Pick<Reward, "id" | "event">;
-  rewardSnapshot: { description: string };
+  rewardSnapshot: { description: string; activityDescription?: string };
   effectiveAt: Date | string;
   users: Pick<User, "name" | "email">[];
   idempotencyKey: string;
@@ -30,6 +30,12 @@ export async function notifyPartnerRewardChange({
   users,
   idempotencyKey,
 }: NotifyPartnerRewardChangeParams) {
+  // TODO: Remove after Aug 24
+  if (program.id === "prog_1JWVR53QX1NM7NDEK62E3J19H") {
+    console.log("Skipping notification for program", program.id);
+    return;
+  }
+
   const usersWithEmail = users.filter(
     (user): user is Pick<User, "name"> & { email: string } =>
       user.email !== null,
@@ -59,6 +65,7 @@ export async function notifyPartnerRewardChange({
         rewardSnapshot: {
           description: rewardSnapshot.description,
           icon: REWARD_ICONS[reward.event],
+          activityDescription: rewardSnapshot.activityDescription,
         },
         effectiveAt,
         action,

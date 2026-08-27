@@ -2,9 +2,9 @@
 
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { Button, Modal } from "@dub/ui";
-import { TriangleWarning } from "@dub/ui/icons";
 import { COUNTRIES, COUNTRY_CURRENCY_CODES } from "@dub/utils";
 import { Dispatch, SetStateAction, useMemo, useState } from "react";
+import { Callout } from "../../shared/callout";
 import { Markdown } from "../../shared/markdown";
 
 function BankAccountRequirementsModal({
@@ -40,13 +40,10 @@ function BankAccountRequirementsModal({
       </div>
 
       <div className="flex flex-col gap-6 border-t border-neutral-200 bg-neutral-50 p-6">
-        <div className="flex flex-col gap-2.5 rounded-lg border border-amber-200 bg-amber-50 p-3">
-          <TriangleWarning className="size-3.5 text-amber-500" />
-          <p className="text-sm leading-5 text-amber-900">
-            If your bank account does not meet these requirements, payouts may
-            be delayed or rejected.
-          </p>
-        </div>
+        <Callout variant="warn" size={2}>
+          If your bank account does not meet these requirements, payouts may be
+          delayed or rejected.
+        </Callout>
 
         <div className="flex flex-col gap-2 text-sm text-neutral-800">
           <p className="font-semibold">Requirements:</p>

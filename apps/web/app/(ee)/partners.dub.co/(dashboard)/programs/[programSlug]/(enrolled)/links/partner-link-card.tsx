@@ -1,5 +1,6 @@
 import { formatDateTooltip } from "@/lib/analytics/format-date-tooltip";
 import { constructPartnerLink } from "@/lib/partners/construct-partner-link";
+import { QueryLinkStructureHelpText } from "@/lib/partners/query-link-structure-help-text";
 import usePartnerAnalytics from "@/lib/swr/use-partner-analytics";
 import { PartnerLinksDisplayContext } from "@/lib/swr/use-partner-links-display";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
@@ -173,6 +174,11 @@ export function PartnerLinkCard({ link }: { link: PartnerProfileLinkProps }) {
                     >
                       {getPrettyUrl(partnerLink)}
                     </a>
+                  ) : programEnrollment?.group?.linkStructure === "query" ? (
+                    <QueryLinkStructureHelpText
+                      link={link}
+                      className="mt-0.5"
+                    />
                   ) : (
                     <a
                       href={isDeactivated ? undefined : link.url}

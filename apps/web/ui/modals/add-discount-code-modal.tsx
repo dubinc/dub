@@ -19,7 +19,7 @@ import { useDebounce } from "use-debounce";
 import * as z from "zod/v4";
 import { ERROR_MAP } from "../partners/constants";
 import { CustomToast } from "../shared/custom-toast";
-import { AlertCircleFill, X } from "../shared/icons";
+import { X } from "../shared/icons";
 import { UpgradeRequiredToast } from "../shared/upgrade-required-toast";
 
 type FormData = z.infer<typeof createDiscountCodeSchema>;
@@ -107,7 +107,7 @@ const AddDiscountCodeModal = ({
           return;
         } else if (error.includes("already in use")) {
           toast.custom(() => (
-            <CustomToast icon={AlertCircleFill}>{error}</CustomToast>
+            <CustomToast variant="error">{error}</CustomToast>
           ));
         } else {
           toast.error(error);
@@ -250,7 +250,7 @@ export function useAddDiscountCodeModal({
         partner={partner}
       />
     );
-  }, [showAddDiscountCodeModal, setShowAddDiscountCodeModal, partner]);
+  }, [showAddDiscountCodeModal, setShowAddDiscountCodeModal]);
 
   return useMemo(
     () => ({

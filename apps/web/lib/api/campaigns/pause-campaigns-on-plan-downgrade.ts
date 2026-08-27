@@ -1,5 +1,3 @@
-import { scheduleTransactionalCampaign } from "@/lib/api/campaigns/schedule-campaigns";
-import { qstash } from "@/lib/cron";
 import { prisma } from "@/lib/prisma";
 import { CampaignStatus, CampaignType } from "@prisma/client";
 
@@ -8,7 +6,8 @@ export async function pauseOrCancelCampaignsForProgramOnPlanDowngrade({
 }: {
   programId: string;
 }): Promise<void> {
-  const marketingCampaigns = await prisma.campaign.findMany({
+  // Cancel marketing campaigns
+  await prisma.campaign.updateMany({
     where: {
       programId,
       type: CampaignType.marketing,
@@ -16,31 +15,10 @@ export async function pauseOrCancelCampaignsForProgramOnPlanDowngrade({
         in: [CampaignStatus.scheduled, CampaignStatus.sending],
       },
     },
+    data: {
+      status: CampaignStatus.canceled,
+    },
   });
-
-  for (const campaign of marketingCampaigns) {
-    let qstashDeleteSucceeded = !campaign.qstashMessageId;
-
-    if (campaign.qstashMessageId) {
-      try {
-        await qstash.messages.cancel(campaign.qstashMessageId);
-        qstashDeleteSucceeded = true;
-      } catch (error) {
-        console.warn(
-          `Failed to delete QStash message ${campaign.qstashMessageId} for campaign ${campaign.id}:`,
-          error,
-        );
-      }
-    }
-
-    await prisma.campaign.update({
-      where: { id: campaign.id },
-      data: {
-        status: CampaignStatus.canceled,
-        ...(qstashDeleteSucceeded ? { qstashMessageId: null } : {}),
-      },
-    });
-  }
 
   const transactionalCampaigns = await prisma.campaign.findMany({
     where: {
@@ -48,37 +26,39 @@ export async function pauseOrCancelCampaignsForProgramOnPlanDowngrade({
       type: CampaignType.transactional,
       status: CampaignStatus.active,
     },
-    include: {
-      workflow: true,
+    select: {
+      workflowId: true,
     },
   });
 
-  for (const campaign of transactionalCampaigns) {
-    try {
-      const updatedCampaign = await prisma.$transaction(async (tx) => {
-        if (campaign.workflowId) {
-          await tx.workflow.update({
-            where: { id: campaign.workflowId },
-            data: { disabledAt: new Date() },
-          });
-        }
+  const workflowIds = transactionalCampaigns.flatMap((campaign) =>
+    campaign.workflowId ? [campaign.workflowId] : [],
+  );
 
-        return tx.campaign.update({
-          where: { id: campaign.id },
-          data: { status: CampaignStatus.paused },
-          include: { workflow: true },
-        });
+  await prisma.$transaction(async (tx) => {
+    if (workflowIds.length > 0) {
+      await tx.workflow.updateMany({
+        where: {
+          id: {
+            in: workflowIds,
+          },
+          disabledAt: null,
+        },
+        data: {
+          disabledAt: new Date(),
+        },
       });
-
-      await scheduleTransactionalCampaign({
-        campaign,
-        updatedCampaign,
-      });
-    } catch (error) {
-      console.warn(
-        `Failed to pause transactional campaign ${campaign.id} on plan downgrade:`,
-        error,
-      );
     }
-  }
+
+    await tx.campaign.updateMany({
+      where: {
+        programId,
+        type: CampaignType.transactional,
+        status: CampaignStatus.active,
+      },
+      data: {
+        status: CampaignStatus.paused,
+      },
+    });
+  });
 }

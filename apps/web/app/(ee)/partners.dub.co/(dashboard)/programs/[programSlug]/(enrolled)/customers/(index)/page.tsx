@@ -1,6 +1,9 @@
 "use client";
 
-import { PARTNER_CUSTOMERS_MAX_PAGE_SIZE } from "@/lib/constants/partner-profile";
+import {
+  CUSTOMER_LTV_EXCLUDED_PROGRAM_IDS,
+  PARTNER_CUSTOMERS_MAX_PAGE_SIZE,
+} from "@/lib/constants/partner-profile";
 import usePartnerCustomers from "@/lib/swr/use-partner-customers";
 import usePartnerCustomersCount from "@/lib/swr/use-partner-customers-count";
 import { usePartnerLinksDisplay } from "@/lib/swr/use-partner-links-display";
@@ -22,7 +25,13 @@ import {
   useTable,
 } from "@dub/ui";
 import { User } from "@dub/ui/icons";
-import { COUNTRIES, formatDate, getApexDomain, getPrettyUrl } from "@dub/utils";
+import {
+  COUNTRIES,
+  currencyFormatter,
+  formatDate,
+  getApexDomain,
+  getPrettyUrl,
+} from "@dub/utils";
 import { useParams, useRouter } from "next/navigation";
 import { useMemo } from "react";
 import { usePartnerCustomerFilters } from "./use-partner-customer-filters";
@@ -62,6 +71,11 @@ export default function PartnerProgramCustomersPage() {
       "country",
       "link",
       "createdAt",
+      ...(CUSTOMER_LTV_EXCLUDED_PROGRAM_IDS.includes(
+        programEnrollment?.programId ?? "",
+      )
+        ? []
+        : ["saleAmount"]),
       "firstSaleAt",
       "subscriptionCanceledAt",
     ],
@@ -70,6 +84,11 @@ export default function PartnerProgramCustomersPage() {
       "country",
       "link",
       "createdAt",
+      ...(CUSTOMER_LTV_EXCLUDED_PROGRAM_IDS.includes(
+        programEnrollment?.programId ?? "",
+      )
+        ? []
+        : ["saleAmount"]),
       "firstSaleAt",
       "subscriptionCanceledAt",
     ],
@@ -166,6 +185,24 @@ export default function PartnerProgramCustomersPage() {
             </TimestampTooltip>
           ),
         },
+        ...(CUSTOMER_LTV_EXCLUDED_PROGRAM_IDS.includes(
+          programEnrollment?.programId ?? "",
+        )
+          ? []
+          : [
+              {
+                id: "saleAmount",
+                header: "LTV",
+                meta: {
+                  headerTooltip:
+                    "The customer's lifetime value (how much revenue the customer has generated over their lifetime).",
+                },
+                accessorKey: "saleAmount",
+                cell: ({ row }) => (
+                  <span>{currencyFormatter(row.original.saleAmount)}</span>
+                ),
+              },
+            ]),
         {
           id: "firstSaleAt",
           header: "Paid",
@@ -248,7 +285,12 @@ export default function PartnerProgramCustomersPage() {
     onPaginationChange: setPagination,
     columnVisibility,
     onColumnVisibilityChange: setColumnVisibility,
-    sortableColumns: ["createdAt", "firstSaleAt", "subscriptionCanceledAt"],
+    sortableColumns: [
+      "createdAt",
+      "firstSaleAt",
+      "saleAmount",
+      "subscriptionCanceledAt",
+    ],
     sortBy,
     sortOrder,
     onSortChange: ({ sortBy, sortOrder }) =>

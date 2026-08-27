@@ -184,13 +184,21 @@ function PartnerLinkModalContent({
     };
   }, [programEnrollment]);
 
-  const destinationDomains = useMemo(
-    () =>
-      additionalLinks
-        .map((link) => link.domain)
-        .filter((d): d is string => d != null),
-    [additionalLinks],
-  );
+  const destinationDomains = useMemo(() => {
+    const domains = additionalLinks
+      .map((link) => link.domain)
+      .filter((d): d is string => d != null);
+
+    if (domains.length > 0) {
+      return domains;
+    }
+
+    const programUrlDomain = programEnrollment?.program?.url
+      ? getDomainWithoutWWW(programEnrollment.program.url)
+      : null;
+
+    return programUrlDomain ? [programUrlDomain] : [];
+  }, [additionalLinks, programEnrollment?.program?.url]);
 
   const [destinationDomain, setDestinationDomain] = useState(
     link

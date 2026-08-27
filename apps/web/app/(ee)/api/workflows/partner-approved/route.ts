@@ -126,6 +126,9 @@ export const { POST } = serve<Input>(
         select: {
           id: true,
           plan: true,
+          webhookEnabled: true,
+          stripeConnectId: true,
+          shopifyStoreId: true,
         },
       });
 
@@ -172,8 +175,21 @@ export const { POST } = serve<Input>(
 
     // Step 2: Auto-provision discount code if enabled
     await context.run("create-discount-codes", async () => {
+      const workspace = await prisma.project.findUniqueOrThrow({
+        where: {
+          id: program.workspaceId,
+        },
+        select: {
+          id: true,
+          plan: true,
+          webhookEnabled: true,
+          stripeConnectId: true,
+          shopifyStoreId: true,
+        },
+      });
+
       await generateDiscountCodeForPartner({
-        workspaceId: program.workspaceId,
+        workspace,
         partner: {
           id: partner.id,
           name: partner.name,
@@ -308,7 +324,7 @@ export const { POST } = serve<Input>(
     // Step 6: Execute Dub workflows using the “partnerEnrolled” trigger.
     await context.run("execute-workflows", async () => {
       await executeWorkflows({
-        trigger: "partnerEnrolled",
+        event: "partnerEnrolled",
         identity: {
           workspaceId: program.workspaceId,
           programId,

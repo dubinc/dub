@@ -38,6 +38,8 @@ import {
   apiLogCountRowSchemas,
   apiLogEnrichedSchema,
   apiLogSchemaTB,
+  apiLogTimeseriesGranularitySchema,
+  apiLogTimeseriesRowSchema,
   requestTypeSchema,
 } from "./api-logs/schemas";
 import { PAID_TRAFFIC_PLATFORMS } from "./api/fraud/constants";
@@ -890,6 +892,12 @@ export type ApiLogsCountGroupBy = z.infer<typeof apiLogCountGroupBySchema>;
 export type RequestType = z.infer<typeof requestTypeSchema>;
 
 export type ApiLogTB = z.infer<typeof apiLogSchemaTB>;
+
+export type ApiLogsTimeseriesRow = z.infer<typeof apiLogTimeseriesRowSchema>;
+
+export type ApiLogsGranularity = z.infer<
+  typeof apiLogTimeseriesGranularitySchema
+>;
 
 // Commission events
 export type CommissionAnalyticsQuery = z.infer<
