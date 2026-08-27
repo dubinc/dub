@@ -21,42 +21,6 @@ export function getTapfiliateCustomerExternalId(
   return conversion.customer?.customer_id ?? conversion.external_id ?? null;
 }
 
-function getTapfiliateCustomerRef(
-  conversion: Pick<
-    TapfiliateConversion,
-    "customer" | "external_id" | "affiliate"
-  >,
-): { externalId: string; affiliateId: string } | null {
-  const externalId = getTapfiliateCustomerExternalId(conversion);
-  const affiliateId =
-    conversion.affiliate?.id ?? conversion.customer?.affiliate?.id ?? null;
-
-  if (!externalId || !affiliateId) {
-    return null;
-  }
-
-  return { externalId, affiliateId };
-}
-
-function customerFromConversion(
-  conversion: TapfiliateConversion,
-): TapfiliateCustomer | null {
-  const ref = getTapfiliateCustomerRef(conversion);
-
-  if (!ref) {
-    return null;
-  }
-
-  return {
-    id: String(conversion.id),
-    customer_id: ref.externalId,
-    created_at: conversion.created_at,
-    click: conversion.click ?? null,
-    program: conversion.program,
-    affiliate: { id: ref.affiliateId },
-  };
-}
-
 export async function importCustomers(payload: TapfiliateImportPayload) {
   const {
     importId,
@@ -194,16 +158,25 @@ async function importCustomersFromConversions({
     const customersByExternalId = new Map<string, TapfiliateCustomer>();
 
     for (const conversion of conversions) {
-      const customer = customerFromConversion(conversion);
+      const externalId = getTapfiliateCustomerExternalId(conversion);
+      const affiliateId =
+        conversion.affiliate?.id ?? conversion.customer?.affiliate?.id;
 
-      if (!customer) {
+      if (!externalId || !affiliateId) {
         continue;
       }
 
-      const existing = customersByExternalId.get(customer.customer_id);
+      const existing = customersByExternalId.get(externalId);
 
       if (!existing || conversion.created_at < existing.created_at) {
-        customersByExternalId.set(customer.customer_id, customer);
+        customersByExternalId.set(externalId, {
+          id: String(conversion.id),
+          customer_id: externalId,
+          created_at: conversion.created_at,
+          click: conversion.click ?? null,
+          program: conversion.program,
+          affiliate: { id: affiliateId },
+        });
       }
     }
 
