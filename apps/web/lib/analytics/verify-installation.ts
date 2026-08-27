@@ -1,11 +1,10 @@
-const VERIFY_ERROR_CODES = [
-  "not_installed",
-  "missing_attributes",
-  "duplicate",
-  "malformed",
-] as const;
+type VerifyErrorCode =
+  | "not_installed"
+  | "missing_attributes"
+  | "duplicate"
+  | "malformed";
 
-export type VerifyErrorCode = (typeof VERIFY_ERROR_CODES)[number];
+type VerifyError = VerifyErrorCode | "unreachable" | "unsupported";
 
 export type VerifyInstallationResult =
   | {
@@ -21,29 +20,17 @@ export type VerifyInstallationResult =
   | {
       status: "error";
       hostname: string;
-      error: VerifyErrorCode | "unreachable";
+      error: VerifyError;
     };
-
-const ERROR_HEADLINE: Record<VerifyErrorCode | "unreachable", string> = {
-  not_installed: "Script is not installed.",
-  missing_attributes: "Script missing attributes.",
-  duplicate: "Duplicate script.",
-  malformed: "Malformed script.",
-  unreachable: "We couldn’t reach this hostname.",
-};
-
-export const VERIFY_DOCS_HREF = "https://dub.co/docs/sdks/client-side";
-export const VERIFY_SUPPORT_HREF = "https://dub.co/support";
-
-export function getVerifyErrorHeadline(error: VerifyErrorCode | "unreachable") {
-  return ERROR_HEADLINE[error];
-}
 
 const SCRIPT_TAG_RE = /<script\b[^>]*>/gi;
 const DUB_SCRIPT_RE =
   /dubcdn\.com\/analytics|data-sdkn=["']@dub\/analytics["']|@dub\/analytics/i;
 const DUB_SRC_RE = /src=["'][^"']*dubcdn\.com\/analytics[^"']*["']/i;
+const CONVERSION_SRC_RE =
+  /src=["'][^"']*dubcdn\.com\/analytics[^"']*conversion-tracking[^"']*["']/i;
 const SDK_NAME_RE = /data-sdkn=["']@dub\/analytics["']/i;
+const PUBLISHABLE_KEY_RE = /data-publishable-key=/i;
 
 export function analyzeDubAnalyticsScript(
   html: string,
@@ -71,7 +58,11 @@ export function analyzeDubAnalyticsScript(
     return "malformed";
   }
 
-  if (!hasSdkName) {
+  if (
+    CONVERSION_SRC_RE.test(tag) &&
+    !hasSdkName &&
+    !PUBLISHABLE_KEY_RE.test(tag)
+  ) {
     return "missing_attributes";
   }
 
@@ -81,6 +72,10 @@ export function analyzeDubAnalyticsScript(
 export function toVerifySiteUrl(hostname: string) {
   if (hostname.startsWith("http://") || hostname.startsWith("https://")) {
     return hostname;
+  }
+
+  if (hostname === "localhost" || hostname.startsWith("localhost:")) {
+    return `http://${hostname}`;
   }
 
   return `https://${hostname}`;

@@ -3,7 +3,7 @@
 import { clientAccessCheck } from "@/lib/client-access-check";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { useWorkspaceStore } from "@/lib/swr/use-workspace-store";
-import { guides, stackItems } from "@/ui/guides/integrations";
+import { stackItems } from "@/ui/guides/integrations";
 import { Button, Switch } from "@dub/ui";
 import { useEffect, useMemo } from "react";
 import { Controller, useForm } from "react-hook-form";
@@ -83,12 +83,6 @@ export function ConfigureTrackingSection() {
   );
   const [, setConnectionComplete] = useWorkspaceStore<boolean>(
     "analyticsSettingsConnectionSetupComplete",
-  );
-  const [, setLeadComplete] = useWorkspaceStore<boolean>(
-    "analyticsSettingsLeadTrackingSetupComplete",
-  );
-  const [, setSaleComplete] = useWorkspaceStore<boolean>(
-    "analyticsSettingsSaleTrackingSetupComplete",
   );
 
   const persistedSitemaps = useMemo(
@@ -195,24 +189,6 @@ export function ConfigureTrackingSection() {
 
       if (data.allowedHostnames.length > 0 && data.stack.length > 0) {
         await setConnectionComplete(true);
-
-        const selectedGuideTypes = new Set(
-          data.stack
-            .flatMap(
-              (stackId) =>
-                stackItems.find((item) => item.id === stackId)?.guideKeys ?? [],
-            )
-            .map((key) => guides.find((guide) => guide.key === key)?.type)
-            .filter(Boolean),
-        );
-
-        if (selectedGuideTypes.has("track-lead")) {
-          await setLeadComplete(true);
-        }
-
-        if (selectedGuideTypes.has("track-sale")) {
-          await setSaleComplete(true);
-        }
       }
 
       const existingUrls = new Set(persistedSitemapUrls);

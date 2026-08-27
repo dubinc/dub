@@ -2,12 +2,10 @@
 
 import { verifyWorkspaceSetup } from "@/lib/actions/verify-workspace-setup";
 import {
-  getVerifyErrorHeadline,
   toVerifySiteUrl,
-  VERIFY_DOCS_HREF,
-  VERIFY_SUPPORT_HREF,
   type VerifyInstallationResult,
 } from "@/lib/analytics/verify-installation";
+import { clientAccessCheck } from "@/lib/client-access-check";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { UserAvatar } from "@/ui/users/user-avatar";
 import { Button, Combobox, Globe } from "@dub/ui";
@@ -18,6 +16,18 @@ import { toast } from "sonner";
 
 const HOSTNAME_REQUIRED_MESSAGE =
   "A hostname is required in order to verify installation.";
+
+const VERIFY_DOCS_HREF = "https://dub.co/docs/sdks/client-side";
+const VERIFY_SUPPORT_HREF = "https://dub.co/support";
+
+const ERROR_HEADLINE = {
+  not_installed: "Script is not installed.",
+  missing_attributes: "Script missing attributes.",
+  duplicate: "Duplicate script.",
+  malformed: "Malformed script.",
+  unreachable: "We couldn’t reach this hostname.",
+  unsupported: "Wildcard hostnames can’t be verified.",
+};
 
 type LastVerified = {
   hostname: string;
@@ -32,9 +42,21 @@ type LastVerified = {
 type HelperTone = "success" | "error" | "neutral";
 
 export function VerifyInstall({ hostnames }: { hostnames: string[] }) {
-  const { id: workspaceId, store, mutate } = useWorkspace();
+  const { id: workspaceId, role, store, mutate } = useWorkspace();
   const [selectedHostname, setSelectedHostname] = useState<string | null>(null);
   const [result, setResult] = useState<VerifyInstallationResult | null>(null);
+
+  const permissionsError = clientAccessCheck({
+    action: "workspaces.write",
+    role,
+    customPermissionDescription: "verify tracking installation",
+  }).error;
+  const disabledTooltip =
+    typeof permissionsError === "string"
+      ? permissionsError
+      : !selectedHostname
+        ? HOSTNAME_REQUIRED_MESSAGE
+        : undefined;
 
   const lastVerified = store?.analyticsSettingsInstallationVerified as
     | LastVerified
@@ -61,7 +83,7 @@ export function VerifyInstall({ hostnames }: { hostnames: string[] }) {
   const showSuccess = result?.status === "success";
   const showError = result?.status === "error";
   const showLastVerified = !result && Boolean(persistedForHostname);
-  const showButton = !showSuccess && !showLastVerified;
+  const canReverify = showSuccess || showLastVerified;
 
   const helperTone: HelperTone | null = showSuccess
     ? "success"
@@ -131,8 +153,8 @@ export function VerifyInstall({ hostnames }: { hostnames: string[] }) {
 
         {showError && result.status === "error" && (
           <HelperText tone="error">
-            {getVerifyErrorHeadline(result.error)} After correcting, try
-            verifying again and if the issue still persists, check out our{" "}
+            {ERROR_HEADLINE[result.error]} After correcting, try verifying again
+            and if the issue still persists, check out our{" "}
             <a
               href={VERIFY_DOCS_HREF}
               target="_blank"
@@ -177,26 +199,20 @@ export function VerifyInstall({ hostnames }: { hostnames: string[] }) {
         )}
       </div>
 
-      {showButton && (
-        <Button
-          text="Verify installation"
-          className="bg-bg-inverted h-7 w-fit px-2.5 text-sm font-medium tracking-[-0.02em] active:scale-[0.97]"
-          loading={isPending}
-          disabled={!workspaceId}
-          onClick={() => {
-            if (!workspaceId) {
-              return;
-            }
+      <Button
+        text={canReverify ? "Verify again" : "Verify installation"}
+        className="bg-bg-inverted h-7 w-fit px-2.5 text-sm font-medium tracking-[-0.02em] active:scale-[0.97]"
+        loading={isPending}
+        disabled={!workspaceId || Boolean(disabledTooltip)}
+        disabledTooltip={disabledTooltip}
+        onClick={() => {
+          if (!workspaceId || !selectedHostname) {
+            return;
+          }
 
-            if (!selectedHostname) {
-              toast.error(HOSTNAME_REQUIRED_MESSAGE);
-              return;
-            }
-
-            void executeAsync({ workspaceId, hostname: selectedHostname });
-          }}
-        />
-      )}
+          void executeAsync({ workspaceId, hostname: selectedHostname });
+        }}
+      />
     </div>
   );
 }

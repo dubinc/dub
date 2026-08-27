@@ -6,6 +6,7 @@ import {
   type VerifyInstallationResult,
 } from "@/lib/analytics/verify-installation";
 import { prisma } from "@/lib/prisma";
+import { ratelimit } from "@/lib/upstash";
 import FirecrawlApp from "@mendable/firecrawl-js";
 import * as z from "zod/v4";
 import { authActionClient } from "./safe-action";
@@ -24,8 +25,18 @@ export const verifyWorkspaceSetup = authActionClient
 
     throwIfNoPermission({
       role: workspace.role,
-      requiredPermissions: ["workspaces.read"],
+      requiredPermissions: ["workspaces.write"],
     });
+
+    const { success } = await ratelimit(5, "1 m").limit(
+      `verify-workspace-setup:${workspace.id}`,
+    );
+
+    if (!success) {
+      throw new Error(
+        "Too many verification attempts. Please try again in a minute.",
+      );
+    }
 
     const hostnames = (workspace.allowedHostnames as string[]) || [];
 
@@ -37,7 +48,7 @@ export const verifyWorkspaceSetup = authActionClient
       return {
         status: "error",
         hostname,
-        error: "unreachable",
+        error: "unsupported",
       };
     }
 
@@ -49,8 +60,7 @@ export const verifyWorkspaceSetup = authActionClient
       formats: ["rawHtml"],
       onlyMainContent: false,
       parsePDF: false,
-      includeTags: ["head"],
-      maxAge: 14400000,
+      maxAge: 0,
       waitFor: 5000,
     });
 

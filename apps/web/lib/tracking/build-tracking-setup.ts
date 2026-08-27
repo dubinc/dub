@@ -59,12 +59,6 @@ export type TrackingSetup = {
   prompt: string;
 };
 
-function getSelectedStackItems(stack: string[]) {
-  return stack
-    .map((id) => stackItems.find((item) => item.id === id))
-    .filter((item): item is StackItem => Boolean(item));
-}
-
 function getGuideForType(item: StackItem, type: IntegrationType) {
   return item.guideKeys
     .map((key) => guides.find((guide) => guide.key === key))
@@ -91,7 +85,9 @@ function toStep(
 }
 
 function resolveTrackingSetupSteps(stack: string[]): TrackingSetupStep[] {
-  const selected = getSelectedStackItems(stack);
+  const selected = stack
+    .map((id) => stackItems.find((item) => item.id === id))
+    .filter((item): item is StackItem => Boolean(item));
   const steps: TrackingSetupStep[] = [];
 
   for (const type of STEP_TYPES) {
@@ -128,33 +124,6 @@ function resolveTrackingSetupSteps(stack: string[]): TrackingSetupStep[] {
   return steps;
 }
 
-function isReactOnlyClientStep(steps: TrackingSetupStep[]) {
-  const clientSteps = steps.filter((step) => step.type === "client-sdk");
-
-  return clientSteps.length === 1 && clientSteps[0]?.guideKey === "react";
-}
-
-function getAnalyticsScriptUrl({
-  siteVisitEnabled,
-  outboundEnabled,
-  publishableKey,
-}: Pick<
-  BuildTrackingSetupInput,
-  "siteVisitEnabled" | "outboundEnabled" | "publishableKey"
->) {
-  const segments = [
-    siteVisitEnabled ? "site-visit" : null,
-    outboundEnabled ? "outbound-domains" : null,
-    publishableKey ? "conversion-tracking" : null,
-  ].filter(Boolean);
-
-  if (segments.length === 0) {
-    return ANALYTICS_SCRIPT_BASE;
-  }
-
-  return `https://www.dubcdn.com/analytics/script.${segments.join(".")}.js`;
-}
-
 function composeTrackingSetupPrompt({
   steps,
   hostnames,
@@ -164,19 +133,24 @@ function composeTrackingSetupPrompt({
 }: {
   steps: TrackingSetupStep[];
 } & Omit<BuildTrackingSetupInput, "stack">) {
-  const reactOnlyClient = isReactOnlyClientStep(steps);
+  const clientSteps = steps.filter((step) => step.type === "client-sdk");
+  const reactOnlyClient =
+    clientSteps.length === 1 && clientSteps[0]?.guideKey === "react";
+  const scriptSegments = [
+    siteVisitEnabled ? "site-visit" : null,
+    outboundEnabled ? "outbound-domains" : null,
+    publishableKey ? "conversion-tracking" : null,
+  ].filter(Boolean);
+  const analyticsScriptUrl =
+    scriptSegments.length === 0
+      ? ANALYTICS_SCRIPT_BASE
+      : `https://www.dubcdn.com/analytics/script.${scriptSegments.join(".")}.js`;
   const workspaceLines = [
     hostnames.length > 0 ? `- Hostnames: ${hostnames.join(", ")}` : null,
     publishableKey
       ? `- Publishable key (client-side): ${publishableKey}`
       : null,
-    reactOnlyClient
-      ? null
-      : `- Analytics script: ${getAnalyticsScriptUrl({
-          siteVisitEnabled,
-          outboundEnabled,
-          publishableKey,
-        })}`,
+    reactOnlyClient ? null : `- Analytics script: ${analyticsScriptUrl}`,
   ].filter(Boolean);
 
   const hasDuplicateTypes = STEP_TYPES.some(
