@@ -21,6 +21,7 @@ export const updateGoogleAdsSettingsAction = authActionClient
     const {
       customerId,
       customerName,
+      loginCustomerId: submittedLoginCustomerId,
       leadConversionAction,
       saleConversionAction,
     } = parsedInput;
@@ -67,7 +68,8 @@ export const updateGoogleAdsSettingsAction = authActionClient
     }
 
     const resolvedLoginCustomerId = customerId
-      ? inferLoginCustomerId({
+      ? submittedLoginCustomerId?.replace(/-/g, "") ||
+        inferLoginCustomerId({
           customers: currentSettings.customers,
           selectedCustomerId: customerId,
         })
