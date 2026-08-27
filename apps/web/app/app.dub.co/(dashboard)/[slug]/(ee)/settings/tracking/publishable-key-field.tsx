@@ -7,7 +7,7 @@ import {
   EmptyTrackingCard,
   emptyTrackingActionClassName,
 } from "./empty-tracking-card";
-import PublishableKeyMenu from "./publishable-key-menu";
+import { PublishableKeyMenu } from "./publishable-key-menu";
 
 export function PublishableKeyField({
   publishableKey,
@@ -69,10 +69,7 @@ export function PublishableKeyField({
               className="h-7 w-fit shrink-0 px-2.5"
               textWrapperClassName="overflow-visible"
             />
-            <PublishableKeyMenu
-              onRevoke={() => setShowRevokeModal(true)}
-              loading={false}
-            />
+            <PublishableKeyMenu onRevoke={() => setShowRevokeModal(true)} />
           </div>
         </div>
       ) : (

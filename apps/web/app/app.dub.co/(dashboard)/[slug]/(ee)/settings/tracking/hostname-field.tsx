@@ -8,7 +8,7 @@ import {
   EmptyTrackingCard,
   emptyTrackingActionClassName,
 } from "./empty-tracking-card";
-import HostnameMenu from "./hostname-menu";
+import { HostnameMenu } from "./hostname-menu";
 
 export function HostnameField({
   hostnames,
@@ -109,12 +109,7 @@ function HostnameRow({
           {hostname}
         </span>
       </div>
-      {!disabled && (
-        <HostnameMenu
-          onDelete={() => setShowConfirmModal(true)}
-          loading={false}
-        />
-      )}
+      {!disabled && <HostnameMenu onDelete={() => setShowConfirmModal(true)} />}
       {confirmModal}
     </div>
   );

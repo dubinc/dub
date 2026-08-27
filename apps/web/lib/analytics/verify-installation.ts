@@ -1,4 +1,4 @@
-export const VERIFY_ERROR_CODES = [
+const VERIFY_ERROR_CODES = [
   "not_installed",
   "missing_attributes",
   "duplicate",
@@ -35,9 +35,7 @@ const ERROR_HEADLINE: Record<VerifyErrorCode | "unreachable", string> = {
 export const VERIFY_DOCS_HREF = "https://dub.co/docs/sdks/client-side";
 export const VERIFY_SUPPORT_HREF = "https://dub.co/support";
 
-export function getVerifyErrorHeadline(
-  error: VerifyErrorCode | "unreachable",
-) {
+export function getVerifyErrorHeadline(error: VerifyErrorCode | "unreachable") {
   return ERROR_HEADLINE[error];
 }
 

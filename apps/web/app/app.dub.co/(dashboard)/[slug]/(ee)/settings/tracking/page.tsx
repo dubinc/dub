@@ -1,8 +1,9 @@
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { Suspense } from "react";
+import { ConfigureTrackingSection } from "./configure-tracking-section";
 import { ConversionTrackingToggle } from "./conversion-tracking-toggle";
-import { WorkspaceTrackingSettingsPageClient } from "./page-client";
+import { InstallationSection } from "./installation-section";
 
 export default function WorkspaceTrackingSettingsPage() {
   return (
@@ -17,7 +18,10 @@ export default function WorkspaceTrackingSettingsPage() {
     >
       <PageWidthWrapper className="pb-20">
         <Suspense>
-          <WorkspaceTrackingSettingsPageClient />
+          <div className="flex flex-1 flex-col gap-8 overflow-hidden">
+            <ConfigureTrackingSection />
+            <InstallationSection />
+          </div>
         </Suspense>
       </PageWidthWrapper>
     </PageContent>

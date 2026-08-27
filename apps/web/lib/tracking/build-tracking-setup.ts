@@ -46,7 +46,7 @@ export type TrackingSetupStep = {
   iconProps?: StackItem["iconProps"];
 };
 
-export type BuildTrackingSetupInput = {
+type BuildTrackingSetupInput = {
   stack: string[];
   hostnames: string[];
   publishableKey: string | null;
@@ -90,9 +90,7 @@ function toStep(
   };
 }
 
-export function resolveTrackingSetupSteps(
-  stack: string[],
-): TrackingSetupStep[] {
+function resolveTrackingSetupSteps(stack: string[]): TrackingSetupStep[] {
   const selected = getSelectedStackItems(stack);
   const steps: TrackingSetupStep[] = [];
 
@@ -130,13 +128,13 @@ export function resolveTrackingSetupSteps(
   return steps;
 }
 
-export function isReactOnlyClientStep(steps: TrackingSetupStep[]) {
+function isReactOnlyClientStep(steps: TrackingSetupStep[]) {
   const clientSteps = steps.filter((step) => step.type === "client-sdk");
 
   return clientSteps.length === 1 && clientSteps[0]?.guideKey === "react";
 }
 
-export function getAnalyticsScriptUrl({
+function getAnalyticsScriptUrl({
   siteVisitEnabled,
   outboundEnabled,
   publishableKey,
@@ -157,7 +155,7 @@ export function getAnalyticsScriptUrl({
   return `https://www.dubcdn.com/analytics/script.${segments.join(".")}.js`;
 }
 
-export function composeTrackingSetupPrompt({
+function composeTrackingSetupPrompt({
   steps,
   hostnames,
   publishableKey,

@@ -94,7 +94,7 @@ export function StackPicker({
             onClick={() => toggleItem(item.id)}
             className={cn(
               "relative flex h-[42px] items-center gap-2.5 rounded-lg border p-2 text-left transition-[border-color,background-color,transform] duration-150 ease-out",
-              "focus-visible:ring-2 focus-visible:ring-black/50 focus-visible:outline-none",
+              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/50",
               "active:scale-[0.98]",
               selected
                 ? "border-neutral-600 bg-neutral-50"
@@ -104,7 +104,10 @@ export function StackPicker({
               disabled && "cursor-not-allowed opacity-50",
             )}
           >
-            <StackItemIcon icon={item.icon} fullSize={item.iconProps?.fullSize} />
+            <StackItemIcon
+              icon={item.icon}
+              fullSize={item.iconProps?.fullSize}
+            />
             <StackItemTitle title={item.title} />
           </button>
         );

@@ -4,18 +4,39 @@ import { clientAccessCheck } from "@/lib/client-access-check";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { useWorkspaceStore } from "@/lib/swr/use-workspace-store";
 import { guides, stackItems } from "@/ui/guides/integrations";
-import { Button } from "@dub/ui";
+import { Button, Switch } from "@dub/ui";
 import { useEffect, useMemo } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { HostnameField } from "./hostname-field";
-import { OutboundDomainTrackingField } from "./outbound-domain-tracking-field";
 import { PublishableKeyField } from "./publishable-key-field";
 import { SectionCard } from "./section-card";
-import { SiteVisitTrackingField } from "./site-visit-tracking-field";
+import {
+  SiteVisitTrackingField,
+  TrackedSitemapDraft,
+} from "./site-visit-tracking-field";
 import { StackPicker, StackSelectionStatus } from "./stack-picker";
-import { emptyTrackingFormValues, TrackingFormData } from "./tracking-form";
 import { TrackingSettingsRow } from "./tracking-settings-row";
+
+type TrackingFormData = {
+  stack: string[];
+  allowedHostnames: string[];
+  publishableKey: string | null;
+  siteVisitTrackingEnabled: boolean;
+  siteDomainSlug: string;
+  trackedSitemaps: TrackedSitemapDraft[];
+  outboundDomainTrackingEnabled: boolean;
+};
+
+const emptyTrackingFormValues: TrackingFormData = {
+  stack: [],
+  allowedHostnames: [],
+  publishableKey: null,
+  siteVisitTrackingEnabled: false,
+  siteDomainSlug: "",
+  trackedSitemaps: [],
+  outboundDomainTrackingEnabled: false,
+};
 
 const STACK_DESCRIPTION =
   "Select all items that apply to your stack. [Learn more](https://dub.co/docs/conversions/quickstart)";
@@ -329,16 +350,21 @@ export function ConfigureTrackingSection() {
             description={OUTBOUND_DESCRIPTION}
             align="center"
           >
-            <OutboundDomainTrackingField
-              enabled={watch("outboundDomainTrackingEnabled")}
-              onEnabledChange={(enabled) =>
-                setValue("outboundDomainTrackingEnabled", enabled, {
-                  shouldDirty: true,
-                })
-              }
-              disabled={disabled}
-              disabledTooltip={disabledTooltip}
-            />
+            <label className="flex w-fit cursor-pointer items-center gap-2">
+              <Switch
+                checked={watch("outboundDomainTrackingEnabled")}
+                fn={(enabled) =>
+                  setValue("outboundDomainTrackingEnabled", enabled, {
+                    shouldDirty: true,
+                  })
+                }
+                disabled={disabled}
+                disabledTooltip={disabledTooltip}
+              />
+              <span className="text-content-default text-sm font-medium">
+                Enable
+              </span>
+            </label>
           </TrackingSettingsRow>
         </div>
 

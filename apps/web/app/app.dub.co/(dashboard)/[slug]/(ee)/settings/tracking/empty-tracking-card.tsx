@@ -1,4 +1,3 @@
-import { cn } from "@dub/utils";
 import { ReactNode } from "react";
 
 export const emptyTrackingActionClassName =
@@ -33,11 +32,7 @@ export function EmptyTrackingCard({
     <div className="flex h-16 w-full items-center justify-between gap-4 rounded-xl bg-neutral-50 py-4 pl-6 pr-4">
       <div className="flex min-w-0 items-center gap-2">
         {icon}
-        <span
-          className={cn(
-            "text-content-subtle truncate text-center text-sm font-medium leading-5 tracking-[-0.02em]",
-          )}
-        >
+        <span className="text-content-subtle truncate text-center text-sm font-medium leading-5 tracking-[-0.02em]">
           {text}
         </span>
       </div>

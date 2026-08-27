@@ -44,9 +44,7 @@ export function VerifyInstall({ hostnames }: { hostnames: string[] }) {
     () =>
       hostnames.map((hostname) => ({
         value: hostname,
-        label: hostname.startsWith("*.")
-          ? hostname
-          : toVerifySiteUrl(hostname),
+        label: hostname.startsWith("*.") ? hostname : toVerifySiteUrl(hostname),
         icon: <Globe className="size-4 text-neutral-600" />,
       })),
     [hostnames],
@@ -169,7 +167,9 @@ export function VerifyInstall({ hostnames }: { hostnames: string[] }) {
               }}
               className="size-4 border-neutral-200"
             />
-            <span className="font-medium">{persistedForHostname.user.name}</span>
+            <span className="font-medium">
+              {persistedForHostname.user.name}
+            </span>
             {timeAgo(new Date(persistedForHostname.verifiedAt), {
               withAgo: true,
             })}
@@ -180,7 +180,7 @@ export function VerifyInstall({ hostnames }: { hostnames: string[] }) {
       {showButton && (
         <Button
           text="Verify installation"
-          className="h-7 w-fit bg-bg-inverted px-2.5 text-sm font-medium tracking-[-0.02em] active:scale-[0.97]"
+          className="bg-bg-inverted h-7 w-fit px-2.5 text-sm font-medium tracking-[-0.02em] active:scale-[0.97]"
           loading={isPending}
           disabled={!workspaceId}
           onClick={() => {

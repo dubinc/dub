@@ -3,14 +3,7 @@ import { Button, Popover } from "@dub/ui";
 import { Delete } from "lucide-react";
 import { useState } from "react";
 
-function PublishableKeyMenu({
-  onRevoke,
-  loading,
-}: {
-  onRevoke: () => void;
-  loading: boolean;
-  permissionsError?: string;
-}) {
+export function PublishableKeyMenu({ onRevoke }: { onRevoke: () => void }) {
   const [openPopover, setOpenPopover] = useState(false);
 
   return (
@@ -27,7 +20,6 @@ function PublishableKeyMenu({
               }}
               icon={<Delete className="h-4 w-4" />}
               className="h-9 justify-start px-2 font-medium"
-              loading={loading}
             />
           </div>
         </div>
@@ -47,5 +39,3 @@ function PublishableKeyMenu({
     </Popover>
   );
 }
-
-export default PublishableKeyMenu;

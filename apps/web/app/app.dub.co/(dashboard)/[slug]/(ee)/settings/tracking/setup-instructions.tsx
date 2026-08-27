@@ -16,21 +16,6 @@ import {
 import { cn } from "@dub/utils";
 import Link from "next/link";
 
-const FALLBACK_DEVELOPER_GUIDES = [
-  {
-    title: "Client-side SDK install guide",
-    href: "https://dub.co/docs/sdks/client-side",
-  },
-  {
-    title: "Tracking lead events",
-    href: "https://dub.co/docs/conversions/leads/introduction",
-  },
-  {
-    title: "Tracking sale events",
-    href: "https://dub.co/docs/conversions/sales/introduction",
-  },
-];
-
 const OPEN_IN_APPS = [
   {
     id: "claude",
@@ -117,21 +102,11 @@ function StepIcon({ step }: { step: TrackingSetupStep }) {
   return <Icon className="size-5 shrink-0" />;
 }
 
-export function isSetupInstructionsReady(
-  stack: string[],
-  hasHostname: boolean,
-) {
-  return stack.length > 0 && hasHostname;
-}
-
-export function DeveloperGuides({ steps }: { steps?: TrackingSetupStep[] }) {
-  const guides =
-    steps && steps.length > 0
-      ? steps.map((step) => ({
-          title: step.label,
-          href: step.url,
-        }))
-      : FALLBACK_DEVELOPER_GUIDES;
+export function DeveloperGuides({ steps }: { steps: TrackingSetupStep[] }) {
+  const guides = steps.map((step) => ({
+    title: step.label,
+    href: step.url,
+  }));
 
   return (
     <div className="flex flex-col gap-1.5">

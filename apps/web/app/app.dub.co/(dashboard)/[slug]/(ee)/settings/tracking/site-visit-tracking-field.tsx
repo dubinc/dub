@@ -10,6 +10,7 @@ import {
   LoadingSpinner,
   Popover,
   Sitemap,
+  Switch,
 } from "@dub/ui";
 import { Trash } from "@dub/ui/icons";
 import { cn, formatDate } from "@dub/utils";
@@ -19,8 +20,12 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { useAddSitemapModal } from "./add-sitemap-modal";
 import { EmptyTrackingCard } from "./empty-tracking-card";
-import { EnableSwitch } from "./enable-switch";
-import { TrackedSitemapDraft } from "./tracking-form";
+
+export type TrackedSitemapDraft = {
+  url: string;
+  lastCrawledAt?: string;
+  lastUrlCount?: number;
+};
 
 export function SiteVisitTrackingField({
   enabled,
@@ -135,15 +140,20 @@ export function SiteVisitTrackingField({
   return (
     <>
       <div className="flex flex-col">
-        <EnableSwitch
-          checked={enabled}
-          onChange={(next) => {
-            setShouldAnimateHeight(true);
-            onEnabledChange(next);
-          }}
-          disabled={disabled}
-          disabledTooltip={disabledTooltip}
-        />
+        <label className="flex w-fit cursor-pointer items-center gap-2">
+          <Switch
+            checked={enabled}
+            fn={(next) => {
+              setShouldAnimateHeight(true);
+              onEnabledChange(next);
+            }}
+            disabled={disabled}
+            disabledTooltip={disabledTooltip}
+          />
+          <span className="text-content-default text-sm font-medium">
+            Enable
+          </span>
+        </label>
 
         <AnimatedSizeContainer
           height
@@ -180,9 +190,7 @@ export function SiteVisitTrackingField({
                 {sitemaps.length === 0 ? (
                   <EmptyTrackingCard
                     variant="stack"
-                    icon={
-                      <Sitemap className="size-[18px] text-neutral-500" />
-                    }
+                    icon={<Sitemap className="size-[18px] text-neutral-500" />}
                     text="No site maps added"
                     action={
                       <Button
@@ -190,9 +198,7 @@ export function SiteVisitTrackingField({
                         variant="secondary"
                         className="h-8 w-fit px-2.5 active:scale-[0.97]"
                         onClick={() => setShowAddSitemapModal(true)}
-                        disabled={
-                          disabled || Boolean(addSitemapDisabledReason)
-                        }
+                        disabled={disabled || Boolean(addSitemapDisabledReason)}
                         disabledTooltip={addSitemapDisabledReason}
                       />
                     }
