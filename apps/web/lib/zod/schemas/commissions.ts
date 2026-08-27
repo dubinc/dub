@@ -208,6 +208,20 @@ export const getCommissionsQuerySchema = z
       .optional()
       .describe("The end date of the date range to filter the commissions by."),
     timezone: z.string().optional(),
+    query: z
+      .string()
+      .max(10000)
+      .optional()
+      .meta({
+        description:
+          "Filter by lead or sale event metadata. Top-level keys only. Compares string values only — numeric and boolean metadata values are not matched.",
+        examples: [
+          "metadata['key']='value'",
+          "metadata['key']!='value'",
+          "metadata['key']='value' AND metadata['key2']='value2'",
+          "metadata['key']='value' OR metadata['key2']='value2'",
+        ],
+      }),
   })
   .extend({
     ...getCursorPaginationQuerySchema({
