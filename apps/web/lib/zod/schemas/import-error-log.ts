@@ -9,6 +9,7 @@ export const importErrorLogSchema = z.object({
     "partnerstack",
     "firstpromoter",
     "tapfiliate",
+    "lemonsqueezy",
   ]),
   entity: z.enum(["partner", "link", "customer", "commission"]),
   entity_id: z.string(),
