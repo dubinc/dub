@@ -72,8 +72,8 @@ export default function UploadLogo() {
 
       <div className="flex flex-col items-start justify-between gap-4 rounded-b-xl border-t border-neutral-200 bg-neutral-50 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0 sm:py-3">
         <p className="text-sm text-neutral-500">
-          Square image recommended. Accepted file types: .png, .jpg. Max file
-          size: 2MB.
+          Square image recommended. Accepted file types: .png, .jpg, .webp,
+          .avif. Max file size: 2MB.
         </p>
         <div className="shrink-0">
           <Button

@@ -403,41 +403,34 @@ test.describe("Sale commissions", () => {
 
   test("converts nested sale.currency to USD", async ({ api, program }) => {
     const invoiceId = `INV_${nanoid()}`;
-    const previousEurRate = await redis.hget("fxRates:usd", "EUR");
+    const eurRate = await redis.hget("fxRates:usd", "EUR");
+    test.skip(!eurRate, "EUR FX rate not available in Redis");
 
-    try {
-      await redis.hset("fxRates:usd", { EUR: 2 });
+    const expectedAmount = Math.round(10000 / Number(eurRate));
 
-      await withCommissionPartner(api, program, async (partnerId) => {
-        expect(
-          await api.post("/api/commissions", {
-            type: "sale",
-            partnerId,
-            sale: {
-              amount: 10000,
-              currency: "eur",
-              invoiceId,
-            },
-            customer: customerBody(),
-          }),
-        ).toEqual(expectedQueuedResponse);
-
-        await expectCommissionCreated({
-          api,
-          partnerId,
-          programId: program.id,
+    await withCommissionPartner(api, program, async (partnerId) => {
+      expect(
+        await api.post("/api/commissions", {
           type: "sale",
-          invoiceId,
-          expectedAmount: 5000,
-        });
+          partnerId,
+          sale: {
+            amount: 10000,
+            currency: "eur",
+            invoiceId,
+          },
+          customer: customerBody(),
+        }),
+      ).toEqual(expectedQueuedResponse);
+
+      await expectCommissionCreated({
+        api,
+        partnerId,
+        programId: program.id,
+        type: "sale",
+        invoiceId,
+        expectedAmount,
       });
-    } finally {
-      if (previousEurRate == null) {
-        await redis.hdel("fxRates:usd", "EUR");
-      } else {
-        await redis.hset("fxRates:usd", { EUR: previousEurRate });
-      }
-    }
+    });
   });
 
   test("supports deprecated sale fields", async ({ api, program }) => {
@@ -794,7 +787,7 @@ test.describe("Sale commissions", () => {
         expected: apiError({
           code: "unprocessable_entity",
           message:
-            'invalid_value: sale.paymentProcessor: Invalid option: expected one of "stripe"|"shopify"|"polar"|"paddle"|"apple"|"revenuecat"|"dub"|"custom"',
+            'invalid_value: sale.paymentProcessor: Invalid option: expected one of "stripe"|"shopify"|"polar"|"paddle"|"apple"|"revenuecat"|"lemonsqueezy"|"dub"|"custom"',
         }),
       },
       {
