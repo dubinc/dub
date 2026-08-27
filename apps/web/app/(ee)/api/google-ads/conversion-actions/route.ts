@@ -57,6 +57,7 @@ export const GET = withWorkspace(
     const candidates = getLoginCustomerIdCandidates({
       customers: currentSettings.customers,
       selectedCustomerId: customerId,
+      loginCustomerId: currentSettings.loginCustomerId,
     });
 
     let lastError: unknown;

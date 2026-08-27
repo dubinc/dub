@@ -134,21 +134,28 @@ const dataManagerFetch = async <T>({
   return data as T;
 };
 
-const formatApiErrorDetail = (data: any, rawText: string) => {
+export const formatApiErrorDetail = (data: any, rawText: string) => {
   const payload = Array.isArray(data) ? data[0] : data;
-  const googleAdsError = payload?.error?.details?.[0]?.errors?.[0]?.message;
+  const adsError = payload?.error?.details?.[0]?.errors?.[0];
+  const authorizationError = adsError?.errorCode?.authorizationError;
+  const googleAdsError = adsError?.message;
 
-  return (
+  const detail =
     googleAdsError ??
     payload?.error?.message ??
-    (data ? JSON.stringify(data) : rawText)
-  );
+    (data ? JSON.stringify(data) : rawText);
+
+  if (authorizationError && !String(detail).includes(authorizationError)) {
+    return `${authorizationError}: ${detail}`;
+  }
+
+  return detail;
 };
 
 const normalizeGoogleAdsCustomerId = (customerId: string) =>
   customerId.replace(/-/g, "").replace(/^customers\//, "");
 
-const isGoogleAdsPermissionDenied = (error: unknown) => {
+export const isGoogleAdsPermissionDenied = (error: unknown) => {
   const message = error instanceof Error ? error.message : String(error);
   return message.includes("USER_PERMISSION_DENIED");
 };
@@ -534,6 +541,7 @@ export const inferLoginCustomerId = ({
 export const getLoginCustomerIdCandidates = ({
   customers,
   selectedCustomerId,
+  loginCustomerId,
 }: {
   customers: {
     id: string;
@@ -541,7 +549,10 @@ export const getLoginCustomerIdCandidates = ({
     loginCustomerId?: string | null;
   }[];
   selectedCustomerId: string;
+  loginCustomerId?: string | null;
 }) => {
+  const persistedLoginCustomerId = loginCustomerId?.replace(/-/g, "") || null;
+
   const managerIds = customers
     .filter((customer) => {
       if (!customer.manager) {
@@ -549,14 +560,18 @@ export const getLoginCustomerIdCandidates = ({
       }
 
       const id = customer.id.replace(/-/g, "");
-      const loginCustomerId = customer.loginCustomerId?.replace(/-/g, "");
+      const customerLoginCustomerId = customer.loginCustomerId?.replace(
+        /-/g,
+        "",
+      );
 
       // Sub-managers discovered via hierarchy aren't valid login-customer-ids.
-      return !loginCustomerId || loginCustomerId === id;
+      return !customerLoginCustomerId || customerLoginCustomerId === id;
     })
     .map((customer) => customer.id.replace(/-/g, ""));
 
   const candidates: (string | null)[] = [
+    ...(persistedLoginCustomerId ? [persistedLoginCustomerId] : []),
     inferLoginCustomerId({ customers, selectedCustomerId }),
     null,
     ...managerIds,
