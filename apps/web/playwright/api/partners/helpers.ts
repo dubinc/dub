@@ -15,38 +15,69 @@ export async function createPartner(
   });
 }
 
-export async function deletePartner(partnerId: string | undefined) {
-  if (!partnerId) return;
+function isRelationConstraintError(error: unknown) {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    (error.code === "P2014" || error.code === "P2003")
+  );
+}
 
-  await prisma.commission.deleteMany({
-    where: {
-      partnerId,
-    },
-  });
-
-  await prisma.payout.deleteMany({
-    where: {
-      partnerId,
-    },
+// Commissions/payouts/customers require ProgramEnrollment. Lead tracking also
+// queues create-partner-commission via QStash, so rows can appear after the
+// first deleteMany — retry until enrollment delete succeeds.
+export async function deletePartnerData(partnerId: string) {
+  await prisma.notificationEmail.deleteMany({
+    where: { partnerId },
   });
 
   await prisma.discountCode.deleteMany({
-    where: {
-      partnerId,
-    },
+    where: { partnerId },
   });
 
-  await prisma.link.deleteMany({
-    where: {
-      partnerId,
-    },
-  });
+  const deadline = Date.now() + 15_000;
 
-  await prisma.programEnrollment.deleteMany({
-    where: {
-      partnerId,
-    },
-  });
+  while (true) {
+    try {
+      await prisma.commission.deleteMany({
+        where: { partnerId },
+      });
+
+      await prisma.payout.deleteMany({
+        where: { partnerId },
+      });
+
+      await prisma.submittedLead.deleteMany({
+        where: { partnerId },
+      });
+
+      await prisma.customer.deleteMany({
+        where: { partnerId },
+      });
+
+      await prisma.link.deleteMany({
+        where: { partnerId },
+      });
+
+      await prisma.programEnrollment.deleteMany({
+        where: { partnerId },
+      });
+      return;
+    } catch (error) {
+      if (!isRelationConstraintError(error) || Date.now() >= deadline) {
+        throw error;
+      }
+
+      await new Promise((resolve) => setTimeout(resolve, 250));
+    }
+  }
+}
+
+export async function deletePartner(partnerId: string | undefined) {
+  if (!partnerId) return;
+
+  await deletePartnerData(partnerId);
 
   // Prisma partner.delete hits a PlanetScale relation quirk; raw SQL matches
   // bulkDeletePartners cleanup used by e2e cron.

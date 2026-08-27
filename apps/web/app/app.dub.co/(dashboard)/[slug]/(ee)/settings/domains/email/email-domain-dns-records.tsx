@@ -6,10 +6,10 @@ import type { DomainConnectDiscovery } from "@/lib/domain-connect/types";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { EmailDomainProps } from "@/lib/types";
 import { useForwardDnsInstructionsModal } from "@/ui/modals/forward-dns-instructions-modal";
+import { Callout } from "@/ui/shared/callout";
 import { GetDomainResponseSuccess } from "@dub/email/resend/types";
 import {
   Button,
-  CircleCheck,
   Cloudflare,
   CopyButton,
   StatusBadge,
@@ -310,13 +310,10 @@ export function EmailDomainDnsRecords({ domain }: EmailDomainDnsRecordsProps) {
   return (
     <div className="mt-4 space-y-4">
       {isVerified ? (
-        <div className="flex items-center gap-2 text-pretty rounded-lg bg-green-100/80 p-3 text-sm text-green-600">
-          <CircleCheck className="h-5 w-5 shrink-0" />
-          <div>
-            Good news! All the DNS records are verified. You are ready to start
-            sending emails with this domain.
-          </div>
-        </div>
+        <Callout variant="success" size={2}>
+          Good news! All the DNS records are verified. You are ready to start
+          sending emails with this domain.
+        </Callout>
       ) : records && records.length > 0 ? (
         <div className="flex flex-col gap-8">
           <div className="flex flex-col gap-4 rounded-lg border border-neutral-200 bg-neutral-100 p-4">
