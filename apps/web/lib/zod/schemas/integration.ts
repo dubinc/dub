@@ -57,8 +57,8 @@ export const createIntegrationSchema = z.object({
     .nullish(),
   readme: z
     .string()
-    .max(1000, {
-      message: "must be less than 1000 characters",
+    .max(5000, {
+      message: "must be less than 5000 characters",
     })
     .nullish(),
   screenshots: z
