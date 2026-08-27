@@ -4,7 +4,13 @@ import {
   TrackingSetup,
   TrackingSetupStep,
 } from "@/lib/tracking/build-tracking-setup";
-import { BookOpen, Button, CopyButton, Tooltip } from "@dub/ui";
+import {
+  AnimatedSizeContainer,
+  BookOpen,
+  Button,
+  CopyButton,
+  Tooltip,
+} from "@dub/ui";
 import {
   ChatGPTIcon,
   ChatTask,
@@ -14,7 +20,9 @@ import {
   Grok,
 } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
+import { useReducedMotion } from "motion/react";
 import Link from "next/link";
+import { useState } from "react";
 
 const OPEN_IN_APPS = [
   {
@@ -184,6 +192,9 @@ export function SetupInstructions({
 }
 
 function MainPromptCard({ prompt }: { prompt: string }) {
+  const [expanded, setExpanded] = useState(false);
+  const shouldReduceMotion = useReducedMotion();
+
   return (
     <div className="flex flex-col gap-3">
       <div className="flex items-center justify-between gap-2">
@@ -203,11 +214,53 @@ function MainPromptCard({ prompt }: { prompt: string }) {
           successMessage="Prompt copied to clipboard"
         />
 
-        <div className="p-4">
-          <p className="whitespace-pre-wrap pr-8 font-mono text-[13px] leading-6 text-neutral-800">
-            {prompt}
-          </p>
-        </div>
+        <AnimatedSizeContainer
+          height
+          transition={
+            shouldReduceMotion
+              ? { duration: 0 }
+              : { duration: 0.18, ease: [0.23, 1, 0.32, 1] }
+          }
+        >
+          <div className="relative">
+            <div
+              className={cn(
+                "p-4",
+                !expanded && "max-h-[200px] overflow-hidden",
+              )}
+            >
+              <p className="whitespace-pre-wrap pr-8 font-mono text-[13px] leading-6 text-neutral-800">
+                {prompt}
+              </p>
+            </div>
+
+            {expanded ? (
+              <div className="flex justify-center px-4 pb-4">
+                <Button
+                  text="Show less"
+                  variant="secondary"
+                  className="h-8 w-fit px-2.5"
+                  onClick={() => setExpanded(false)}
+                />
+              </div>
+            ) : (
+              <div
+                className="pointer-events-none absolute inset-x-0 bottom-0 flex h-[107px] items-end justify-center pb-4"
+                style={{
+                  background:
+                    "linear-gradient(180deg, rgba(255, 255, 255, 0) 0%, #FFFFFF 100%)",
+                }}
+              >
+                <Button
+                  text="View all"
+                  variant="secondary"
+                  className="pointer-events-auto h-8 w-fit px-2.5"
+                  onClick={() => setExpanded(true)}
+                />
+              </div>
+            )}
+          </div>
+        </AnimatedSizeContainer>
       </div>
     </div>
   );
