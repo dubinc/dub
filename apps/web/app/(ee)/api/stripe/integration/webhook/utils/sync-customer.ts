@@ -16,6 +16,7 @@ import { Prisma } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import type Stripe from "stripe";
 import { WebhookHandlerInput, WebhookHandlerResponse } from "../types";
+import { getDubCustomerExternalIdFromMetadata } from "./get-dub-customer-external-id-from-metadata";
 
 export async function syncCustomer({
   event,
@@ -28,9 +29,9 @@ export async function syncCustomer({
 >): Promise<WebhookHandlerResponse> {
   const stripeCustomer = event.data.object;
   const stripeAccountId = event.account as string;
-  const dubCustomerExternalId =
-    stripeCustomer.metadata?.dubCustomerExternalId ||
-    stripeCustomer.metadata?.dubCustomerId;
+  const dubCustomerExternalId = getDubCustomerExternalIdFromMetadata(
+    stripeCustomer.metadata,
+  );
   const clickId = stripeCustomer.metadata?.dubClickId;
 
   console.log(

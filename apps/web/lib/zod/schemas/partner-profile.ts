@@ -108,6 +108,7 @@ export const PartnerProfileCustomerSchema = CustomerEnrichedSchema.pick({
   email: true,
   country: true,
   createdAt: true,
+  saleAmount: true,
   firstSaleAt: true,
   subscriptionCanceledAt: true,
 }).extend({
@@ -266,7 +267,12 @@ export const getPartnerCustomersQuerySchema = z
         "A filter on the list based on the customer's `linkId` field (the referral link ID).",
       ),
     sortBy: z
-      .enum(["createdAt", "firstSaleAt", "subscriptionCanceledAt"])
+      .enum([
+        "createdAt",
+        "saleAmount",
+        "firstSaleAt",
+        "subscriptionCanceledAt",
+      ])
       .optional()
       .default("createdAt")
       .describe(
