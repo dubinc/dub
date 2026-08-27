@@ -46,16 +46,13 @@ const socials = [
 ];
 
 const navigation = {
-  product: [
-    ...FEATURES_LIST.filter(({ title }) => title !== "Dub Integrations").map(
-      ({ id, title, href }) => ({
-        id,
-        name: title,
-        href,
-      }),
-    ),
-    { id: null, name: "Dub Enterprise", href: "/enterprise" },
-  ],
+  product: FEATURES_LIST.filter(
+    ({ title }) => title !== "Dub Integrations",
+  ).map(({ id, title, href }) => ({
+    id,
+    name: title,
+    href,
+  })),
   solutions: [
     { name: "Marketing attribution", href: "/analytics" },
     { name: "Content creators", href: "/solutions/creators" },
@@ -64,6 +61,8 @@ const navigation = {
   resources: [
     { name: "Docs", href: "/docs" },
     { name: "Help Center", href: "/help" },
+    { name: "Enterprise", href: "/enterprise" },
+    { name: "Startups", href: "/startups" },
     { name: "Integrations", href: "/integrations" },
     { name: "Pricing", href: "/pricing" },
     {
@@ -82,17 +81,18 @@ const navigation = {
     { name: "Contact", href: "/contact" },
     { name: "Privacy", href: "/privacy" },
   ],
-  compare: COMPARE_PAGES.map(({ name, slug }) => ({
-    name,
-    href: `/compare/${slug}`,
-    product: "links",
-  })).concat(
-    ["Rewardful", "PartnerStack", "FirstPromoter", "Tolt"].map((name) => ({
+  compare: [
+    ...["Rewardful", "PartnerStack", "FirstPromoter", "Tolt"].map((name) => ({
       name,
       href: `/blog/dub-vs-${name.toLowerCase()}`,
       product: "partners",
     })),
-  ),
+    ...COMPARE_PAGES.map(({ name, slug }) => ({
+      name,
+      href: `/compare/${slug}`,
+      product: "links",
+    })),
+  ],
 };
 
 const linkListHeaderClassName = "text-sm font-medium text-neutral-900";

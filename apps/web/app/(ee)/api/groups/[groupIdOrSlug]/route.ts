@@ -2,6 +2,7 @@ import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { DubApiError } from "@/lib/api/errors";
 import { getGroupOrThrow } from "@/lib/api/groups/get-group-or-throw";
 import { movePartnersToGroup } from "@/lib/api/groups/move-partners-to-group";
+import { removeGroupIdFromMoveRules } from "@/lib/api/groups/remove-group-id-from-move-rules";
 import { upsertGroupMoveRules } from "@/lib/api/groups/upsert-group-move-rules";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
@@ -13,6 +14,7 @@ import { GroupWithProgramSchema } from "@/lib/zod/schemas/group-with-program";
 import {
   DEFAULT_PARTNER_GROUP,
   GroupSchema,
+  sanitizeAdditionalLinks,
   updateGroupSchema,
 } from "@/lib/zod/schemas/groups";
 import { APP_DOMAIN_WITH_NGROK, constructURLFromUTMParams } from "@dub/utils";
@@ -133,7 +135,9 @@ export const PATCH = withWorkspace(
           name,
           slug,
           color,
-          additionalLinks,
+          ...(additionalLinks !== undefined && {
+            additionalLinks: sanitizeAdditionalLinks(additionalLinks),
+          }),
           maxPartnerLinks,
           linkStructure,
           utmTemplateId,
@@ -383,20 +387,27 @@ export const DELETE = withWorkspace(
 
     if (deletedGroup) {
       waitUntil(
-        recordAuditLog({
-          workspaceId: workspace.id,
-          programId,
-          action: "group.deleted",
-          description: `Group ${group.name} (${group.id}) deleted`,
-          actor: session.user,
-          targets: [
-            {
-              type: "group",
-              id: group.id,
-              metadata: group,
-            },
-          ],
-        }),
+        Promise.allSettled([
+          recordAuditLog({
+            workspaceId: workspace.id,
+            programId,
+            action: "group.deleted",
+            description: `Group ${group.name} (${group.id}) deleted`,
+            actor: session.user,
+            targets: [
+              {
+                type: "group",
+                id: group.id,
+                metadata: group,
+              },
+            ],
+          }),
+
+          removeGroupIdFromMoveRules({
+            programId,
+            groupId: group.id,
+          }),
+        ]),
       );
     }
 

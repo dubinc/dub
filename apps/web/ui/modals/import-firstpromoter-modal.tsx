@@ -1,19 +1,20 @@
 import { startFirstPromoterImportAction } from "@/lib/actions/partners/start-firstpromoter-import";
 import useWorkspace from "@/lib/swr/use-workspace";
+import { X } from "@/ui/shared/icons";
 import { Button, Logo, Modal, useMediaQuery, useRouterStuff } from "@dub/ui";
 import { ArrowRight } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import {
   Dispatch,
   SetStateAction,
   useCallback,
-  useEffect,
   useMemo,
   useState,
 } from "react";
 import { toast } from "sonner";
 import { MarkdownDescription } from "../shared/markdown-description";
+import { useImportModalParam } from "./use-import-modal-param";
 
 function ImportFirstPromoterModal({
   showImportFirstPromoterModal,
@@ -23,15 +24,6 @@ function ImportFirstPromoterModal({
   setShowImportFirstPromoterModal: Dispatch<SetStateAction<boolean>>;
 }) {
   const { queryParams } = useRouterStuff();
-  const searchParams = useSearchParams();
-
-  useEffect(() => {
-    if (searchParams?.get("import") === "firstpromoter") {
-      setShowImportFirstPromoterModal(true);
-    } else {
-      setShowImportFirstPromoterModal(false);
-    }
-  }, [searchParams]);
 
   return (
     <Modal
@@ -39,6 +31,17 @@ function ImportFirstPromoterModal({
       setShowModal={setShowImportFirstPromoterModal}
       onClose={() => queryParams({ del: "import" })}
     >
+      <Button
+        variant="outline"
+        icon={<X className="size-5" />}
+        className="absolute right-4 top-4 h-auto w-fit p-1"
+        onClick={() => {
+          setShowImportFirstPromoterModal(false);
+          queryParams({
+            del: "import",
+          });
+        }}
+      />
       <div className="flex flex-col items-center justify-center space-y-3 border-b border-neutral-200 px-4 py-8 sm:px-16">
         <div className="flex items-center space-x-3 py-4">
           <img
@@ -177,7 +180,7 @@ function CredentialsForm({ onClose }: { onClose: () => void }) {
 
 export function useImportFirstPromoterModal() {
   const [showImportFirstPromoterModal, setShowImportFirstPromoterModal] =
-    useState(false);
+    useImportModalParam("firstpromoter");
 
   const ImportFirstPromoterModalCallback = useCallback(() => {
     return (

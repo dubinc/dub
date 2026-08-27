@@ -556,19 +556,10 @@ function ConditionLogic({
                         },
                       )
                     }
-                    items={entity.attributes
-                      .filter(
-                        (attribute) =>
-                          attribute.id !== "source" ||
-                          (program &&
-                            SUBMITTED_LEADS_ENABLED_PROGRAM_IDS.includes(
-                              program.id,
-                            )),
-                      )
-                      .map((attribute) => ({
-                        text: attribute.label,
-                        value: attribute.id,
-                      }))}
+                    items={entity.attributes.map((attribute) => ({
+                      text: attribute.label,
+                      value: attribute.id,
+                    }))}
                   />
                 </InlineBadgePopover>{" "}
                 {isMetadataCondition && (
@@ -697,7 +688,6 @@ function ConditionLogic({
                             {displayValue ?? placeholder}
                           </button>
                         )}
-                        showYearNavigation
                       />
                     ) : (
                       <InlineBadgePopover
@@ -773,10 +763,25 @@ function ConditionLogic({
                               condition.value,
                               isArrayValue,
                             )}
-                            items={attribute.options.map(({ id, label }) => ({
-                              text: label,
-                              value: id,
-                            }))}
+                            items={attribute.options
+                              .filter(({ id }) => {
+                                if (
+                                  isCustomerSourceCondition &&
+                                  id === "submitted"
+                                ) {
+                                  return (
+                                    program &&
+                                    SUBMITTED_LEADS_ENABLED_PROGRAM_IDS.includes(
+                                      program.id,
+                                    )
+                                  );
+                                }
+                                return true;
+                              })
+                              .map(({ id, label }) => ({
+                                text: label,
+                                value: id,
+                              }))}
                             onSelect={(value) => {
                               setValue(conditionKey, {
                                 ...condition,

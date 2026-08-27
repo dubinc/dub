@@ -17,7 +17,14 @@ import {
   useTable,
 } from "@dub/ui";
 import { CircleDotted, FlagWavy } from "@dub/ui/icons";
-import { cn, COUNTRIES, fetcher, formatDate } from "@dub/utils";
+import {
+  capitalize,
+  cn,
+  COUNTRIES,
+  fetcher,
+  formatDate,
+  timeAgo,
+} from "@dub/utils";
 import { PartnerNetworkStatus, PlatformType } from "@prisma/client";
 import { Row } from "@tanstack/react-table";
 import { useEffect, useMemo, useState } from "react";
@@ -34,6 +41,30 @@ const SOCIAL_FIELDS = [
   { id: "tiktok", label: "TikTok" },
 ] as const;
 
+function getDateColumnForNetworkStatus(networkStatus?: string) {
+  if (networkStatus === "submitted") {
+    return {
+      id: "submittedAt" as const,
+      header: "Submitted",
+      field: "submittedAt" as const,
+    };
+  }
+
+  if (networkStatus === "approved" || networkStatus === "rejected") {
+    return {
+      id: "reviewedAt" as const,
+      header: capitalize(networkStatus) as string,
+      field: "reviewedAt" as const,
+    };
+  }
+
+  return {
+    id: "createdAt" as const,
+    header: "Joined",
+    field: "createdAt" as const,
+  };
+}
+
 export default function NetworkApplicationsPage() {
   const { queryParams, searchParams, searchParamsObj, getQueryString } =
     useRouterStuff();
@@ -43,14 +74,24 @@ export default function NetworkApplicationsPage() {
     | { open: true; partnerId: string }
   >({ open: false, partnerId: null });
 
+  const dateColumn = useMemo(
+    () => getDateColumnForNetworkStatus(searchParamsObj.networkStatus),
+    [searchParamsObj.networkStatus],
+  );
+  const sortBy = searchParams.get("sortBy") || dateColumn.id;
+  const sortOrder = searchParams.get("sortOrder") === "asc" ? "asc" : "desc";
+
   const {
     data: partners = [],
     isLoading,
     mutate,
   } = useSWR<AdminNetworkPartner[]>(
-    `/api/admin/partners/network${getQueryString(undefined, {
-      exclude: ["partnerId"],
-    })}`,
+    `/api/admin/partners/network${getQueryString(
+      { sortBy },
+      {
+        exclude: ["partnerId"],
+      },
+    )}`,
     fetcher,
     {
       keepPreviousData: true,
@@ -137,7 +178,7 @@ export default function NetworkApplicationsPage() {
     }
 
     queryParams({
-      del: ["networkStatus", "country", "page"],
+      del: ["networkStatus", "country", "page", "sortBy"],
       scroll: false,
     });
   };
@@ -200,6 +241,18 @@ export default function NetworkApplicationsPage() {
   }, [detailsSheetState.partnerId, partners]);
 
   const onSelectFilter = (key: string, value: unknown) => {
+    if (key === "networkStatus") {
+      const status = String(value);
+      queryParams({
+        set: {
+          networkStatus: status,
+          sortBy: getDateColumnForNetworkStatus(status).id,
+        },
+        del: "page",
+      });
+      return;
+    }
+
     queryParams({
       set: {
         [key]: String(value),
@@ -210,13 +263,13 @@ export default function NetworkApplicationsPage() {
 
   const onRemoveFilter = (key: string) => {
     queryParams({
-      del: [key, "page"],
+      del: [key, "page", ...(key === "networkStatus" ? ["sortBy"] : [])],
     });
   };
 
   const onRemoveAllFilters = () => {
     queryParams({
-      del: ["networkStatus", "country", "page"],
+      del: ["networkStatus", "country", "page", "sortBy"],
     });
   };
 
@@ -314,20 +367,29 @@ export default function NetworkApplicationsPage() {
         ),
       },
       {
-        id: "createdAt",
-        header: "Joined",
-        cell: ({ row }: { row: Row<AdminNetworkPartner> }) => (
-          <TimestampTooltip
-            timestamp={row.original.createdAt}
-            rows={["local", "utc", "unix"]}
-            side="right"
-            delayDuration={150}
-          >
-            <span>
-              {formatDate(row.original.createdAt, { month: "short" })}
-            </span>
-          </TimestampTooltip>
-        ),
+        id: dateColumn.id,
+        header: dateColumn.header,
+        cell: ({ row }: { row: Row<AdminNetworkPartner> }) => {
+          const timestamp = row.original[dateColumn.field];
+          if (!timestamp) {
+            return <span>-</span>;
+          }
+
+          return (
+            <TimestampTooltip
+              timestamp={timestamp}
+              rows={["local", "utc", "unix"]}
+              side="right"
+              delayDuration={150}
+            >
+              <span>
+                {dateColumn.field === "createdAt"
+                  ? formatDate(timestamp, { month: "short" })
+                  : timeAgo(timestamp, { withAgo: true })}
+              </span>
+            </TimestampTooltip>
+          );
+        },
       },
       {
         id: "networkStatus",
@@ -375,11 +437,9 @@ export default function NetworkApplicationsPage() {
         },
       })),
     ],
-    [platformsMapByPartnerId],
+    [dateColumn, platformsMapByPartnerId],
   );
 
-  const sortBy = searchParams.get("sortBy") || "createdAt";
-  const sortOrder = searchParams.get("sortOrder") === "asc" ? "asc" : "desc";
   const { pagination, setPagination } = usePagination();
 
   const { table, ...tableProps } = useTable<AdminNetworkPartner>({
@@ -392,7 +452,7 @@ export default function NetworkApplicationsPage() {
         },
       }),
     loading: isLoading,
-    sortableColumns: ["createdAt"],
+    sortableColumns: [dateColumn.id],
     sortBy,
     sortOrder,
     onSortChange: ({ sortBy, sortOrder }) =>

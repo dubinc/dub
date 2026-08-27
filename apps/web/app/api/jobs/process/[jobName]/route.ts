@@ -1,3 +1,4 @@
+import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { logger, withAxiomBodyLog } from "@/lib/axiom/server";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { jobEnvelopeSchema } from "@/lib/jobs";
@@ -16,7 +17,11 @@ export const POST = withAxiomBodyLog(
     const clonedReq = req.clone();
     const rawBody = await clonedReq.text();
 
-    await verifyQstashSignature({ req, rawBody });
+    try {
+      await verifyQstashSignature({ req, rawBody });
+    } catch (error) {
+      return handleAndReturnErrorResponse(error);
+    }
 
     let parsedBody: unknown = null;
 

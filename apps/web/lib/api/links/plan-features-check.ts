@@ -62,3 +62,11 @@ export const businessFeaturesCheck = (payload: NewLinkProps) => {
     );
   }
 };
+
+export const dubLinkSubdomainCheck = (domain: string) => {
+  if (domain.endsWith(".dub.link")) {
+    throw new Error(
+      "You can only use .dub.link domains on a Business plan and above. Upgrade to Business to use this domain.",
+    );
+  }
+};

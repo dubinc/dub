@@ -2,6 +2,7 @@ import {
   DATE_RANGE_INTERVAL_PRESETS,
   DUB_PARTNERS_ANALYTICS_INTERVAL,
 } from "@/lib/analytics/constants";
+import { awardBountyConditionSchema } from "@/lib/api/workflows/award-bounty/schema";
 import { PARTNER_CUSTOMERS_MAX_PAGE_SIZE } from "@/lib/constants/partner-profile";
 import {
   CommissionType,
@@ -14,11 +15,7 @@ import {
 } from "@prisma/client";
 import * as z from "zod/v4";
 import { analyticsQuerySchema, eventsQuerySchema } from "./analytics";
-import {
-  bountyPerformanceConditionSchema,
-  BountySchema,
-  BountySubmissionSchema,
-} from "./bounties";
+import { BountySchema, BountySubmissionSchema } from "./bounties";
 import {
   CommissionSchema,
   getCommissionsCountQuerySchema,
@@ -35,6 +32,7 @@ import { centsSchema } from "./utils";
 export const PartnerEarningsSchema = CommissionSchema.omit({
   userId: true,
   invoiceId: true,
+  metadata: true,
 }).extend({
   customer: z
     .object({
@@ -108,6 +106,7 @@ export const PartnerProfileCustomerSchema = CustomerEnrichedSchema.pick({
   email: true,
   country: true,
   createdAt: true,
+  saleAmount: true,
   firstSaleAt: true,
   subscriptionCanceledAt: true,
 }).extend({
@@ -164,12 +163,12 @@ export const partnerBountySubmissionSchema = BountySubmissionSchema.extend({
 
 export const PartnerBountySchema = BountySchema.omit({
   groups: true,
+  partnerTags: true,
   socialMetricsLastSyncedAt: true,
 }).extend({
+  startsAt: z.date(), // Always resolved to the partner's effective start date (never null)
   submissions: z.array(partnerBountySubmissionSchema),
-  performanceCondition: bountyPerformanceConditionSchema
-    .nullable()
-    .default(null),
+  performanceCondition: awardBountyConditionSchema.nullable().default(null),
   partner: z.object({
     totalClicks: z.number(),
     totalLeads: z.number(),
@@ -266,7 +265,12 @@ export const getPartnerCustomersQuerySchema = z
         "A filter on the list based on the customer's `linkId` field (the referral link ID).",
       ),
     sortBy: z
-      .enum(["createdAt", "firstSaleAt", "subscriptionCanceledAt"])
+      .enum([
+        "createdAt",
+        "saleAmount",
+        "firstSaleAt",
+        "subscriptionCanceledAt",
+      ])
       .optional()
       .default("createdAt")
       .describe(

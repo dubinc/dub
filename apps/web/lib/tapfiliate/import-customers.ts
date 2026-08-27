@@ -7,12 +7,28 @@ import { syncPartnerLinksStats } from "../api/partners/sync-partner-links-stats"
 import { recordClick, recordLeadWithTimestamp } from "../tinybird";
 import { logImportError } from "../tinybird/log-import-error";
 import { clickEventSchemaTB } from "../zod/schemas/clicks";
-import { TapfiliateApi } from "./api";
+import { TapfiliateClient } from "./client";
 import { TAPFILIATE_MAX_BATCHES, tapfiliateImporter } from "./importer";
-import { TapfiliateCustomer, TapfiliateImportPayload } from "./types";
+import {
+  TapfiliateConversion,
+  TapfiliateCustomer,
+  TapfiliateImportPayload,
+} from "./types";
+
+export function getTapfiliateCustomerExternalId(
+  conversion: Pick<TapfiliateConversion, "customer" | "external_id">,
+): string | null {
+  return conversion.customer?.customer_id ?? conversion.external_id ?? null;
+}
 
 export async function importCustomers(payload: TapfiliateImportPayload) {
-  const { importId, programId, tapfiliateProgramId, page = 1 } = payload;
+  const {
+    importId,
+    programId,
+    tapfiliateProgramId,
+    page = 1,
+    customerSource = "customers",
+  } = payload;
 
   const program = await prisma.program.findUnique({
     where: {
@@ -43,9 +59,24 @@ export async function importCustomers(payload: TapfiliateImportPayload) {
 
   const { apiKey } = await tapfiliateImporter.getCredentials(workspace.id);
 
-  const tapfiliateApi = new TapfiliateApi({
+  const tapfiliateApi = new TapfiliateClient({
     apiKey,
   });
+
+  if (customerSource === "conversions") {
+    await importCustomersFromConversions({
+      payload,
+      program: {
+        domain: program.domain,
+        workspace,
+      },
+      tapfiliateApi,
+      tapfiliateProgramId,
+      importId,
+      page,
+    });
+    return;
+  }
 
   let currentPage = page;
   let hasMore = true;
@@ -68,76 +99,93 @@ export async function importCustomers(payload: TapfiliateImportPayload) {
         customer.program?.id === tapfiliateProgramId && customer.affiliate?.id,
     );
 
-    if (customers.length > 0) {
-      // Map the Tapfiliate affiliate id -> the partner's referral link (link key = affiliate id)
-      const affiliateIds = [
-        ...new Set(customers.map((customer) => customer.affiliate!.id)),
-      ];
+    await createCustomers({
+      workspace,
+      domain: program.domain,
+      importId,
+      customers,
+    });
 
-      const links = await prisma.link.findMany({
-        where: {
-          domain: program.domain,
-          key: {
-            in: affiliateIds,
-          },
-        },
-        select: {
-          id: true,
-          key: true,
-          domain: true,
-          url: true,
-          partnerId: true,
-          programId: true,
-          lastLeadAt: true,
-        },
-      });
+    currentPage++;
+    processedBatches++;
+  }
 
-      const affiliateIdToLink = new Map(links.map((link) => [link.key, link]));
-      const customerExternalIds = [
-        ...new Set(
-          customers
-            .map((customer) => customer.customer_id)
-            .filter((id): id is string => id !== null),
-        ),
-      ];
+  await tapfiliateImporter.queue({
+    ...payload,
+    action: "import-customers",
+    customerSource: hasMore ? "customers" : "conversions",
+    page: hasMore ? currentPage : 1,
+  });
+}
 
-      // Find the existing customers by their external customer_id
-      const existingCustomers = await prisma.customer.findMany({
-        where: {
-          projectId: workspace.id,
-          externalId: {
-            in: customerExternalIds,
-          },
-        },
-        select: {
-          id: true,
-          externalId: true,
-        },
-      });
+async function importCustomersFromConversions({
+  payload,
+  program,
+  tapfiliateApi,
+  tapfiliateProgramId,
+  importId,
+  page,
+}: {
+  payload: TapfiliateImportPayload;
+  program: {
+    domain: string;
+    workspace: Pick<Project, "id" | "stripeConnectId">;
+  };
+  tapfiliateApi: TapfiliateClient;
+  tapfiliateProgramId: string;
+  importId: string;
+  page: number;
+}) {
+  let currentPage = page;
+  let hasMore = true;
+  let processedBatches = 0;
 
-      // New customers to create
-      const newCustomers = customers.filter(
-        (customer) =>
-          !existingCustomers.some((c) => c.externalId === customer.customer_id),
-      );
+  while (hasMore && processedBatches < TAPFILIATE_MAX_BATCHES) {
+    let conversions = await tapfiliateApi.listConversions({
+      programId: tapfiliateProgramId,
+      page: currentPage,
+    });
 
-      if (newCustomers.length > 0) {
-        const customerChunks = chunk(newCustomers, 10);
+    if (conversions.length === 0) {
+      hasMore = false;
+      break;
+    }
 
-        for (const customerChunk of customerChunks) {
-          await Promise.all(
-            customerChunk.map((customer) =>
-              createCustomer({
-                workspace,
-                customer,
-                link: affiliateIdToLink.get(customer.affiliate!.id),
-                importId,
-              }),
-            ),
-          );
-        }
+    conversions = conversions.filter(
+      (conversion) => conversion.program?.id === tapfiliateProgramId,
+    );
+
+    const customersByExternalId = new Map<string, TapfiliateCustomer>();
+
+    for (const conversion of conversions) {
+      const externalId = getTapfiliateCustomerExternalId(conversion);
+      const affiliateId =
+        conversion.affiliate?.id ?? conversion.customer?.affiliate?.id;
+
+      if (!externalId || !affiliateId) {
+        continue;
+      }
+
+      const existing = customersByExternalId.get(externalId);
+
+      if (!existing || conversion.created_at < existing.created_at) {
+        customersByExternalId.set(externalId, {
+          id: String(conversion.id),
+          customer_id: externalId,
+          created_at: conversion.created_at,
+          click: conversion.click ?? null,
+          program: conversion.program,
+          affiliate: { id: affiliateId },
+        });
       }
     }
+
+    await createCustomers({
+      workspace: program.workspace,
+      domain: program.domain,
+      importId,
+      customers: [...customersByExternalId.values()],
+    });
 
     currentPage++;
     processedBatches++;
@@ -146,8 +194,97 @@ export async function importCustomers(payload: TapfiliateImportPayload) {
   await tapfiliateImporter.queue({
     ...payload,
     action: hasMore ? "import-customers" : "import-commissions",
+    customerSource: hasMore ? "conversions" : undefined,
     page: hasMore ? currentPage : undefined,
   });
+}
+
+async function createCustomers({
+  workspace,
+  domain,
+  importId,
+  customers,
+}: {
+  workspace: Pick<Project, "id" | "stripeConnectId">;
+  domain: string;
+  importId: string;
+  customers: TapfiliateCustomer[];
+}) {
+  const customersWithAffiliate = customers.filter(
+    (customer) => customer.affiliate?.id,
+  );
+
+  if (customersWithAffiliate.length === 0) {
+    return;
+  }
+
+  // Map the Tapfiliate affiliate id -> the partner's referral link (link key = affiliate id)
+  const affiliateIds = [
+    ...new Set(
+      customersWithAffiliate.map((customer) => customer.affiliate!.id),
+    ),
+  ];
+
+  const links = await prisma.link.findMany({
+    where: {
+      domain,
+      key: {
+        in: affiliateIds,
+      },
+    },
+    select: {
+      id: true,
+      key: true,
+      domain: true,
+      url: true,
+      partnerId: true,
+      programId: true,
+      lastLeadAt: true,
+    },
+  });
+
+  const affiliateIdToLink = new Map(links.map((link) => [link.key, link]));
+  const customerExternalIds = [
+    ...new Set(customersWithAffiliate.map((customer) => customer.customer_id)),
+  ];
+
+  // Find the existing customers by their external customer_id
+  const existingCustomers = await prisma.customer.findMany({
+    where: {
+      projectId: workspace.id,
+      externalId: {
+        in: customerExternalIds,
+      },
+    },
+    select: {
+      id: true,
+      externalId: true,
+    },
+  });
+
+  const newCustomers = customersWithAffiliate.filter(
+    (customer) =>
+      !existingCustomers.some((c) => c.externalId === customer.customer_id),
+  );
+
+  if (newCustomers.length === 0) {
+    return;
+  }
+
+  const customerChunks = chunk(newCustomers, 10);
+
+  for (const customerChunk of customerChunks) {
+    await Promise.all(
+      customerChunk.map((customer) =>
+        createCustomer({
+          workspace,
+          customer,
+          link: affiliateIdToLink.get(customer.affiliate!.id),
+          importId,
+        }),
+      ),
+    );
+  }
 }
 
 async function createCustomer({

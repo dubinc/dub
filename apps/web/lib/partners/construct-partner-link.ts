@@ -17,9 +17,9 @@ export function constructPartnerLink({
   const urlObj = link?.url ? getUrlObjFromString(link.url) : null;
 
   if (linkStructure === "query" && urlObj) {
-    return urlObj.hostname
-      ? `https://${urlObj.hostname}?via=${link.key}`
-      : `${link.url}?via=${link.key}`;
+    // Destination URL without query params, with ?via= appended
+    const baseUrl = `${urlObj.origin}${urlObj.pathname}`.replace(/\/$/, "");
+    return `${baseUrl || urlObj.origin}?via=${link.key}`;
   }
 
   // if (linkStructure === "path" && urlObj) {

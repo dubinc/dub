@@ -1,14 +1,23 @@
-import { logger } from "@/lib/axiom/server";
-import { APP_DOMAIN_WITH_NGROK, pluralize } from "@dub/utils";
+import { logger, toErrorFields } from "@/lib/axiom/server";
+import { APP_DOMAIN, pluralize } from "@dub/utils";
 import { FlowControl } from "@upstash/qstash";
 import { Client } from "@upstash/workflow";
 
 const client = new Client({
   baseUrl: process.env.QSTASH_URL || "https://qstash-us-east-1.upstash.io",
   token: process.env.QSTASH_TOKEN || "",
+  ...(process.env.VERCEL_ENV === "preview" && {
+    headers: {
+      "x-vercel-protection-bypass":
+        process.env.VERCEL_AUTOMATION_BYPASS_SECRET || "",
+    },
+  }),
 });
 
-type WorkflowType = "partner-approved" | "create-partner-commission";
+type WorkflowType =
+  | "partner-approved"
+  | "create-partner-commission"
+  | "merge-partner-accounts";
 
 interface QStashWorkflow {
   workflowType: WorkflowType;
@@ -28,7 +37,7 @@ export async function triggerQStashWorkflow(
     try {
       const response = await client.trigger(
         workflows.map((workflow) => ({
-          url: `${APP_DOMAIN_WITH_NGROK}/api/workflows/${workflow.workflowType}`,
+          url: `${APP_DOMAIN}/api/workflows/${workflow.workflowType}`,
           body: workflow.body,
           label: workflow.workflowLabel,
           retries: 5,
@@ -62,8 +71,7 @@ export async function triggerQStashWorkflow(
           service: "qstash",
           event: "workflow.trigger_failed",
           workflowType: workflow.workflowType,
-          errorName: error instanceof Error ? error.name : undefined,
-          errorStack: error instanceof Error ? error.stack : undefined,
+          error: toErrorFields(error),
           correlation,
         });
       }
@@ -98,6 +106,16 @@ export function getWorkflowConfig({
           partnerId: body.partnerId,
           customerId: body.customerId,
           bountySubmissionId: body.bountySubmissionId,
+        },
+      };
+    }
+
+    case "merge-partner-accounts": {
+      return {
+        correlation: {
+          userId: body.userId,
+          sourceEmail: body.sourceEmail,
+          targetEmail: body.targetEmail,
         },
       };
     }

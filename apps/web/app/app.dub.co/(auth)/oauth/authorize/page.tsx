@@ -1,9 +1,10 @@
 import { validateAuthorizeRequest } from "@/lib/api/oauth/actions";
 import { getSession } from "@/lib/auth";
 import { authorizeRequestSchema } from "@/lib/zod/schemas/oauth";
+import { Callout } from "@/ui/shared/callout";
 import EmptyState from "@/ui/shared/empty-state";
 import { BlurImage, Logo } from "@dub/ui";
-import { CircleWarning, CubeSettings } from "@dub/ui/icons";
+import { CubeSettings } from "@dub/ui/icons";
 import { constructMetadata } from "@dub/utils";
 import { ArrowLeftRight } from "lucide-react";
 import { redirect } from "next/navigation";
@@ -42,8 +43,8 @@ export default async function Authorize(props: {
   }
 
   return (
-    <div className="relative z-10 m-auto w-full max-w-md border-y border-neutral-200 sm:rounded-2xl sm:border sm:shadow-xl">
-      <div className="flex flex-col items-center justify-center gap-3 border-b border-neutral-200 bg-white px-4 py-6 pt-8 text-center sm:rounded-t-2xl sm:px-16">
+    <div className="relative z-10 mx-4 my-auto w-full max-w-md rounded-2xl border border-neutral-200 bg-white shadow-xl sm:mx-auto">
+      <div className="flex flex-col items-center justify-center gap-3 border-b border-neutral-200 px-4 py-6 pt-8 text-center sm:rounded-t-2xl sm:px-16">
         <div className="flex items-center gap-3">
           <a href={integration.website} target="_blank" rel="noreferrer">
             {integration.logo ? (
@@ -81,18 +82,29 @@ export default async function Authorize(props: {
         </span>
 
         {!integration.verified && (
-          <div className="flex items-center gap-2 rounded-md bg-yellow-50 p-2 text-sm text-yellow-700">
-            <CircleWarning className="size-4" />
-            <span>Dub hasn't verified this app</span>
-          </div>
+          <Callout
+            variant="warn"
+            size={2}
+            className="w-full text-left sm:-mx-6 sm:w-auto sm:self-stretch"
+          >
+            <div className="flex flex-col gap-0.5">
+              <p className="font-medium">
+                Dub hasn't verified this integration
+              </p>
+              <p className="text-amber-800">
+                It can only be installed by its developer or on the developer's
+                workspace.
+              </p>
+            </div>
+          </Callout>
         )}
       </div>
-      <div className="flex flex-col space-y-3 bg-white px-2 py-6 sm:px-10">
+      <div className="flex flex-col space-y-3 px-4 py-6 sm:px-10">
         <ScopesRequested scopes={requestParams.scope} />
       </div>
-      <div className="flex flex-col space-y-2 border-t border-neutral-200 bg-white px-2 py-6 sm:rounded-b-2xl sm:px-10">
+      <div className="flex flex-col space-y-2 border-t border-neutral-200 px-4 py-6 sm:rounded-b-2xl sm:px-10">
         <Suspense>
-          <AuthorizeForm {...requestParams} />
+          <AuthorizeForm {...requestParams} integration={integration} />
         </Suspense>
       </div>
     </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useLocalStorage, useMediaQuery } from "@dub/ui";
+import { Xmark } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
 import Image from "next/image";
 import Link from "next/link";
@@ -38,7 +39,10 @@ export function News({ articles }: { articles: NewsArticle[] }) {
 
   return cards.length || showCompleted ? (
     <div
-      className="group overflow-hidden border-t border-neutral-200 p-3 pt-6 transition-all duration-200 hover:pt-10"
+      className={cn(
+        "group overflow-hidden border-t border-neutral-200 p-3 pt-6 transition-all duration-200",
+        cardCount > 0 ? "hover:pt-10" : "pt-3",
+      )}
       data-active={cardCount !== 0}
     >
       <div className="relative size-full">
@@ -47,6 +51,7 @@ export function News({ articles }: { articles: NewsArticle[] }) {
             key={href}
             className={cn(
               "absolute left-0 top-0 size-full scale-[var(--scale)] transition-[opacity,transform] duration-200",
+              idx === cardCount - 1 && "overflow-visible",
               cardCount - idx > 3
                 ? [
                     "opacity-0 sm:group-hover:translate-y-[var(--y)] sm:group-hover:opacity-[var(--opacity)]",
@@ -78,6 +83,17 @@ export function News({ articles }: { articles: NewsArticle[] }) {
               onDismiss={
                 () => setDismissedNews([href, ...dismissedNews.slice(0, 50)]) // Limit to keep storage size low
               }
+              onDismissAll={
+                cardCount > 1
+                  ? () =>
+                      setDismissedNews(
+                        [
+                          ...cards.map((card) => card.href),
+                          ...dismissedNews,
+                        ].slice(0, 50),
+                      )
+                  : undefined
+              }
             />
           </div>
         ))}
@@ -106,6 +122,7 @@ function NewsCard({
   description,
   image,
   onDismiss,
+  onDismissAll,
   hideContent,
   href,
   active,
@@ -114,6 +131,7 @@ function NewsCard({
   description: string;
   image?: string;
   onDismiss?: () => void;
+  onDismissAll?: () => void;
   hideContent?: boolean;
   href?: string;
   active?: boolean;
@@ -231,6 +249,20 @@ function NewsCard({
       onPointerDown={onPointerDown}
       onClick={onClick}
     >
+      {active && onDismissAll && (
+        <button
+          type="button"
+          onPointerDown={(e) => e.stopPropagation()}
+          onClick={(e) => {
+            e.stopPropagation();
+            onDismissAll();
+          }}
+          className="absolute -right-2 -top-2 z-10 flex items-center gap-1 rounded-full border border-neutral-200 bg-white px-2 py-1 text-[0.625rem] font-medium leading-none text-neutral-500 opacity-0 shadow-sm transition-[border-color,color,box-shadow,opacity] duration-150 hover:border-neutral-300 hover:text-neutral-700 hover:shadow max-sm:opacity-100 sm:group-hover:opacity-100"
+        >
+          <Xmark className="size-2.5 shrink-0" />
+          Dismiss all
+        </button>
+      )}
       <div className={cn(hideContent && "invisible")}>
         <div className="flex flex-col gap-1">
           <span className="line-clamp-1 font-medium text-neutral-900">

@@ -2,16 +2,25 @@ import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { createId } from "@/lib/api/create-id";
 import { DubApiError } from "@/lib/api/errors";
 import { throwIfInvalidGroupIds } from "@/lib/api/groups/throw-if-invalid-group-ids";
+import { throwIfInvalidPartnerTagIds } from "@/lib/api/partner-tags/throw-if-invalid-partner-tag-ids";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
+import { WorkflowAction } from "@/lib/api/workflows/types";
+import { validateWorkflowConditions } from "@/lib/api/workflows/validate-workflow-conditions";
 import { withWorkspace } from "@/lib/auth";
+import {
+  bountyEligibilityIncludes,
+  buildBountyEligibilityWhere,
+  getEffectiveBountyPeriod,
+  isPartnerEligibleForBounty,
+} from "@/lib/bounty/api/bounty-availability";
 import { generatePerformanceBountyName } from "@/lib/bounty/api/generate-performance-bounty-name";
+import { transformBounty } from "@/lib/bounty/api/transform-bounty";
 import { validateBounty } from "@/lib/bounty/api/validate-bounty";
 import { qstash } from "@/lib/cron";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { prisma } from "@/lib/prisma";
-import { WorkflowAction } from "@/lib/types";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import {
   BountyListSchema,
@@ -19,12 +28,9 @@ import {
   createBountySchema,
   getBountiesQuerySchema,
 } from "@/lib/zod/schemas/bounties";
-import {
-  WORKFLOW_ACTION_TYPES,
-  WORKFLOW_ATTRIBUTE_TRIGGER,
-} from "@/lib/zod/schemas/workflows";
-import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
-import { Workflow } from "@prisma/client";
+import { WORKFLOW_ACTION_TYPES } from "@/lib/zod/schemas/workflows";
+import { APP_DOMAIN_WITH_NGROK, pluck } from "@dub/utils";
+import { BountyStartMode, Workflow } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
@@ -41,52 +47,41 @@ export const GET = withWorkspace(
           partnerId,
           programId,
           include: {
-            program: true,
+            program: {
+              select: {
+                defaultGroupId: true,
+              },
+            },
+            programPartnerTags: {
+              select: {
+                partnerTagId: true,
+              },
+            },
           },
         })
       : null;
+
+    const partnerGroupId =
+      programEnrollment?.groupId || programEnrollment?.program.defaultGroupId;
+    const partnerTagIds = programEnrollment
+      ? pluck(programEnrollment.programPartnerTags, "partnerTagId")
+      : [];
 
     const [bounties, allBountiesSubmissionsCount] = await Promise.all([
       prisma.bounty.findMany({
         where: {
           programId,
-          // Filter only bounties the specified partner is eligible for
-          ...(programEnrollment && {
-            AND: [
-              // Filter out expired bounties
-              {
-                OR: [{ endsAt: null }, { endsAt: { gt: new Date() } }],
-              },
-              // Filter by partner's group eligibility
-              {
-                OR: [
-                  {
-                    groups: {
-                      none: {},
-                    },
-                  },
-                  {
-                    groups: {
-                      some: {
-                        groupId:
-                          programEnrollment.groupId ||
-                          programEnrollment.program.defaultGroupId,
-                      },
-                    },
-                  },
-                ],
-              },
-            ],
-          }),
+          ...(programEnrollment &&
+            buildBountyEligibilityWhere({
+              groupId: partnerGroupId,
+              partnerTagIds,
+            })),
         },
         include: {
-          groups: {
-            select: {
-              groupId: true,
-            },
-          },
+          ...bountyEligibilityIncludes,
         },
       }),
+
       includeSubmissionsCount
         ? prisma.bountySubmission.groupBy({
             by: ["bountyId", "status"],
@@ -127,14 +122,39 @@ export const GET = withWorkspace(
       };
     };
 
-    const data = bounties.map((bounty) => {
-      return BountyListSchema.parse({
-        ...bounty,
-        groups: bounty.groups.map(({ groupId }) => ({ id: groupId })),
-        ...(allBountiesSubmissionsCount && {
-          submissionsCountData: aggregateSubmissionsCountForBounty(bounty.id),
+    // Transform the bounties to the response schema
+    const data = bounties.flatMap((bounty) => {
+      if (programEnrollment) {
+        const isEligible = isPartnerEligibleForBounty({
+          program: programEnrollment.program,
+          bounty,
+          programEnrollment,
+        });
+
+        if (!isEligible) {
+          return [];
+        }
+
+        const { startsAt, endsAt } = getEffectiveBountyPeriod({
+          programEnrollment,
+          bounty,
+        });
+
+        bounty = {
+          ...bounty,
+          startsAt,
+          endsAt,
+        };
+      }
+
+      return [
+        BountyListSchema.parse({
+          ...transformBounty(bounty),
+          ...(allBountiesSubmissionsCount && {
+            submissionsCountData: aggregateSubmissionsCountForBounty(bounty.id),
+          }),
         }),
-      });
+      ];
     });
 
     return NextResponse.json(data);
@@ -164,15 +184,22 @@ export const POST = withWorkspace(
       maxSubmissions,
       submissionRequirements,
       groupIds,
+      partnerTagIds,
       performanceCondition,
       performanceScope,
       sendNotificationEmails,
+      startMode,
+      endsAfterDays,
     } = parsedBody;
 
-    // Use current date as default if startsAt is not provided
-    startsAt = startsAt || new Date();
-
     validateBounty(parsedBody);
+
+    if (type === "performance" && performanceCondition) {
+      await validateWorkflowConditions({
+        conditions: [performanceCondition],
+        workflowType: "awardBounty",
+      });
+    }
 
     const { canUseBountySocialMetrics, canSendEmailCampaigns } =
       getPlanCapabilities(workspace.plan);
@@ -187,6 +214,11 @@ export const POST = withWorkspace(
     const partnerGroups = await throwIfInvalidGroupIds({
       programId,
       groupIds,
+    });
+
+    const partnerTags = await throwIfInvalidPartnerTagIds({
+      programId,
+      partnerTagIds,
     });
 
     // Bounty name
@@ -206,6 +238,11 @@ export const POST = withWorkspace(
       });
     }
 
+    // startsAt is only stored for absolute bounties (defaulting to now when
+    // omitted); relative bounties start when a partner joins, so it stays null.
+    startsAt =
+      startMode === BountyStartMode.relative ? null : startsAt || new Date();
+
     const bounty = await prisma.$transaction(async (tx) => {
       let workflow: Workflow | null = null;
       const bountyId = createId({ prefix: "bnty_" });
@@ -223,7 +260,6 @@ export const POST = withWorkspace(
           data: {
             id: createId({ prefix: "wf_" }),
             programId,
-            trigger: WORKFLOW_ATTRIBUTE_TRIGGER[performanceCondition.attribute],
             triggerConditions: [performanceCondition],
             actions: [action],
           },
@@ -248,6 +284,8 @@ export const POST = withWorkspace(
           rewardAmount,
           rewardDescription,
           performanceScope: type === "performance" ? performanceScope : null,
+          startMode,
+          endsAfterDays,
           ...(submissionRequirements &&
             type === "submission" && {
               submissionRequirements,
@@ -261,22 +299,34 @@ export const POST = withWorkspace(
               },
             },
           }),
+          ...(partnerTags.length && {
+            partnerTags: {
+              createMany: {
+                data: partnerTags.map(({ id }) => ({
+                  partnerTagId: id,
+                })),
+              },
+            },
+          }),
         },
         include: {
           workflow: true,
-          groups: true,
+          ...bountyEligibilityIncludes,
         },
       });
     });
 
-    const createdBounty = BountySchema.parse({
-      ...bounty,
-      groups: bounty.groups.map(({ groupId }) => ({ id: groupId })),
-      performanceCondition: bounty.workflow?.triggerConditions?.[0],
-    });
+    const createdBounty = BountySchema.parse(transformBounty(bounty));
 
     const shouldScheduleDraftSubmissions =
-      bounty.type === "performance" && bounty.performanceScope === "lifetime";
+      bounty.type === "performance" &&
+      bounty.performanceScope === "lifetime" &&
+      bounty.startMode !== BountyStartMode.relative;
+
+    const shouldSchedulePartnerNotifications =
+      sendNotificationEmails &&
+      canSendEmailCampaigns &&
+      bounty.startMode !== BountyStartMode.relative;
 
     waitUntil(
       Promise.allSettled([
@@ -301,23 +351,26 @@ export const POST = withWorkspace(
           data: createdBounty,
         }),
 
-        sendNotificationEmails &&
-          canSendEmailCampaigns &&
+        shouldSchedulePartnerNotifications &&
           qstash.publishJSON({
             url: `${APP_DOMAIN_WITH_NGROK}/api/cron/bounties/notify-partners`,
             body: {
               bountyId: bounty.id,
             },
-            notBefore: Math.floor(bounty.startsAt.getTime() / 1000),
+            ...(bounty.startsAt && {
+              notBefore: Math.floor(bounty.startsAt.getTime() / 1000),
+            }),
           }),
 
         shouldScheduleDraftSubmissions &&
           qstash.publishJSON({
-            url: `${APP_DOMAIN_WITH_NGROK}/api/cron/bounties/create-draft-submissions`,
+            url: `${APP_DOMAIN_WITH_NGROK}/api/cron/bounties/upsert-draft-submissions`,
             body: {
               bountyId: bounty.id,
             },
-            notBefore: Math.floor(bounty.startsAt.getTime() / 1000),
+            ...(bounty.startsAt && {
+              notBefore: Math.floor(bounty.startsAt.getTime() / 1000),
+            }),
           }),
       ]),
     );

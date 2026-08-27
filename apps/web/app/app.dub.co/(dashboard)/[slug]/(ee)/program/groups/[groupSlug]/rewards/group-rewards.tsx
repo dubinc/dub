@@ -147,6 +147,7 @@ const RewardItem = ({
   });
 
   const {
+    loading: activityLogsLoading,
     hasActivityLogs,
     finalActivityLogDate,
     rewardHistorySheet,
@@ -213,9 +214,9 @@ const RewardItem = ({
                     </TimestampTooltip>
                   )}
 
-                  {!hasActivityLogs ? (
+                  {activityLogsLoading ? (
                     <div className="ml-1 h-3 w-20 animate-pulse rounded bg-neutral-100" />
-                  ) : (
+                  ) : hasActivityLogs ? (
                     <>
                       <span
                         className="ml-1 size-1 shrink-0 rounded-full bg-neutral-400"
@@ -232,7 +233,7 @@ const RewardItem = ({
                         }}
                       />
                     </>
-                  )}
+                  ) : null}
                 </div>
               </div>
             ) : (

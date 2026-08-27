@@ -18,6 +18,7 @@ import type Stripe from "stripe";
 import { WebhookHandlerInput, WebhookHandlerResponse } from "./types";
 import { attributeViaPromotionCodeId } from "./utils/attribute-via-promotion-code-id";
 import { getConnectedCustomer } from "./utils/get-connected-customer";
+import { getDubCustomerExternalIdFromMetadata } from "./utils/get-dub-customer-external-id-from-metadata";
 
 // Handle event "invoice.paid"
 export async function invoicePaid({
@@ -57,9 +58,9 @@ export async function invoicePaid({
       mode,
     });
 
-    const dubCustomerExternalId =
-      connectedCustomer?.metadata.dubCustomerExternalId ||
-      connectedCustomer?.metadata.dubCustomerId;
+    const dubCustomerExternalId = getDubCustomerExternalIdFromMetadata(
+      connectedCustomer?.metadata,
+    );
 
     if (dubCustomerExternalId) {
       try {
@@ -310,9 +311,19 @@ export async function invoicePaid({
 
         if (!productId) return null;
 
+        // Credit grants sit on the line, not in line.amount — subtract so
+        // productId rewards commission on the portion actually charged.
+        const creditGrantAmount = (line.pretax_credit_amounts ?? []).reduce(
+          (sum, credit) =>
+            credit.type === "credit_balance_transaction"
+              ? sum + credit.amount
+              : sum,
+          0,
+        );
+
         return {
           id: productId,
-          amount: line.amount,
+          amount: Math.max(line.amount - creditGrantAmount, 0),
           quantity: line.quantity ?? 0,
         };
       })
@@ -355,8 +366,7 @@ export async function invoicePaid({
     waitUntil(
       Promise.allSettled([
         executeWorkflows({
-          trigger: "partnerMetricsUpdated",
-          reason: "sale",
+          event: "saleRecorded",
           identity: {
             workspaceId: workspace.id,
             programId: link.programId,
@@ -438,18 +448,30 @@ async function resolvePromotionCodeIdFromInvoice({
 > {
   const stripe = stripeAppClient({ mode });
 
+  type ExpandedDiscount = {
+    promotion_code: Stripe.PromotionCode | null;
+  };
+
   const expandedInvoice = (await stripe.invoices.retrieve(
     invoiceId,
     {
-      expand: ["discounts", "discounts.promotion_code"],
+      expand: [
+        "discounts",
+        "discounts.promotion_code",
+        "lines.data.discounts",
+        "lines.data.discounts.promotion_code",
+      ],
     },
     {
       stripeAccount: stripeAccountId,
     },
-  )) as Omit<Stripe.Invoice, "discounts"> & {
-    discounts: {
-      promotion_code: Stripe.PromotionCode | null;
-    }[];
+  )) as Omit<Stripe.Invoice, "discounts" | "lines"> & {
+    discounts: ExpandedDiscount[];
+    lines: {
+      data: {
+        discounts: (string | ExpandedDiscount)[];
+      }[];
+    };
   };
 
   if (!expandedInvoice) {
@@ -459,14 +481,24 @@ async function resolvePromotionCodeIdFromInvoice({
     };
   }
 
-  if (!expandedInvoice.discounts || expandedInvoice.discounts.length === 0) {
+  const invoiceDiscounts = expandedInvoice.discounts ?? [];
+  const lineItemDiscounts = (expandedInvoice.lines?.data ?? []).flatMap(
+    (line) =>
+      (line.discounts ?? []).filter(
+        (discount): discount is ExpandedDiscount =>
+          typeof discount === "object" && discount !== null,
+      ),
+  );
+  const discounts = [...invoiceDiscounts, ...lineItemDiscounts];
+
+  if (discounts.length === 0) {
     return {
       promotionCodeId: null,
       resolvePromotionCodeError: "No discounts found on invoice",
     };
   }
 
-  const discountWithPromotionCode = expandedInvoice.discounts.find((discount) =>
+  const discountWithPromotionCode = discounts.find((discount) =>
     Boolean(discount?.promotion_code?.id),
   );
 

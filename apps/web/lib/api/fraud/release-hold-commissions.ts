@@ -2,7 +2,7 @@ import { triggerAggregateDueCommissionsCronJob } from "@/lib/actions/partners/tr
 import { trackCommissionStatusUpdate } from "@/lib/api/commissions/track-commission-update-activity-log";
 import { syncTotalCommissions } from "@/lib/api/partners/sync-total-commissions";
 import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
-import { qstash } from "@/lib/cron";
+import { PRISMA_UPDATEMANY_LIMIT, qstash } from "@/lib/cron";
 import { prisma } from "@/lib/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import {
@@ -22,7 +22,7 @@ import {
  * Called with the group IDs that were just cleared. Before releasing anything,
  * we check whether the partner still has other pending fraud groups:
  *
- * 1. Partner-level groups (e.g. duplicate account, cross-program ban) — if any
+ * 1. Partner-level groups (e.g. duplicate account, network-level ban) — if any
  *    remain pending, all hold commissions stay on hold.
  * 2. Conversion-event groups (e.g. matching customer email) — commissions tied
  *    to customers in those groups stay on hold; only unrelated commissions are
@@ -129,7 +129,7 @@ export async function releaseHoldCommissions({
         earnings: true,
         status: true,
       },
-      take: 250,
+      take: PRISMA_UPDATEMANY_LIMIT,
     });
 
     if (commissionsToRelease.length === 0) {
@@ -203,8 +203,7 @@ export async function releaseHoldCommissions({
         // should always be > 0, but just in case
         releasedEarnings > 0 &&
           executeWorkflows({
-            trigger: "partnerMetricsUpdated",
-            reason: "commission",
+            event: "commissionRecorded",
             identity: {
               workspaceId: program.workspaceId,
               programId,

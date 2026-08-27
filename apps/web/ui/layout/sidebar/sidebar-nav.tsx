@@ -1,7 +1,6 @@
 import {
   AnimatedSizeContainer,
   ArrowUpRight2,
-  BookOpen,
   ChevronLeft,
   ClientOnly,
   Icon,
@@ -12,7 +11,7 @@ import {
 } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { ChevronDown } from "lucide-react";
-import { AnimatePresence, motion } from "motion/react";
+import { motion } from "motion/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -68,7 +67,6 @@ export type SidebarNavAreas<T extends Record<any, any>> = Record<
   (args: T) => {
     title?: string | ReactNode;
     backHref?: string;
-    showNews?: boolean; // show news segment – TODO: enable this for Partner Program too
     hideSwitcherIcons?: boolean; // hide workspace switcher + product icons for this area
     direction?: "left" | "right";
     // can either be a list of items, or a ReactNode
@@ -90,19 +88,19 @@ export function SidebarNav<T extends Record<any, any>>({
   areas,
   currentArea,
   data,
-  toolContent,
-  newsContent,
   switcher,
-  bottom,
+  toolContent,
+  bottomContent,
+  newsContent,
 }: {
   groups: SidebarNavGroups<T>;
   areas: SidebarNavAreas<T>;
   currentArea: string | null;
   data: T;
-  toolContent?: ReactNode;
-  newsContent?: ReactNode;
   switcher?: ReactNode;
-  bottom?: ReactNode;
+  toolContent?: ReactNode;
+  bottomContent?: ReactNode;
+  newsContent?: ReactNode;
 }) {
   return (
     <div
@@ -157,7 +155,7 @@ export function SidebarNav<T extends Record<any, any>>({
               data={data}
               currentArea={currentArea}
               newsContent={newsContent}
-              bottom={bottom}
+              bottomContent={bottomContent}
             />
           </div>
         </nav>
@@ -171,29 +169,16 @@ function SidebarAreasPanel<T extends Record<any, any>>({
   data,
   currentArea,
   newsContent,
-  bottom,
+  bottomContent,
 }: {
   areas: SidebarNavAreas<T>;
   data: T;
   currentArea: string | null;
   newsContent?: ReactNode;
-  bottom?: ReactNode;
+  bottomContent?: ReactNode;
 }) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const { scrollProgress, updateScrollProgress } = useScrollProgress(scrollRef);
-  const showNews = currentArea && areas[currentArea]?.(data).showNews;
-
-  const hasOverflow = useMemo(() => {
-    if (!currentArea) return false;
-    const { content } = areas[currentArea](data);
-    // assume custom ReactNode elements always overflow
-    if (isValidElement(content)) return true;
-
-    const totalItems = Array.isArray(content)
-      ? content.flatMap((c) => c.items).length
-      : 0;
-    return totalItems > 10;
-  }, [currentArea, areas, data]);
 
   return (
     <div className="flex h-full w-[calc(var(--sidebar-areas-width)-0.5rem)] flex-col rounded-xl bg-neutral-100">
@@ -202,13 +187,10 @@ function SidebarAreasPanel<T extends Record<any, any>>({
         <div
           ref={scrollRef}
           onScroll={updateScrollProgress}
-          className={cn(
-            "scrollbar-hide h-full overflow-x-hidden rounded-xl",
-            hasOverflow ? "overflow-y-auto" : "overflow-hidden",
-          )}
+          className="scrollbar-hide max-h-full overflow-y-auto overflow-x-hidden rounded-xl"
         >
           <div className="relative flex flex-col p-3 text-neutral-500">
-            <div className="relative w-full grow">
+            <div className="relative w-full overflow-hidden">
               {Object.entries(areas).map(([area, areaConfig]) => {
                 const { title, backHref, content, direction } =
                   areaConfig(data);
@@ -269,46 +251,20 @@ function SidebarAreasPanel<T extends Record<any, any>>({
           </div>
         </div>
         {/* Bottom scroll fade - shows when content overflows */}
-        {hasOverflow && (
-          <div
-            className="pointer-events-none absolute bottom-0 left-0 z-10 h-16 w-full rounded-b-lg bg-gradient-to-t from-neutral-100 to-transparent"
-            style={{ opacity: 1 - Math.pow(scrollProgress, 2) }}
-          />
-        )}
+        <div
+          className="pointer-events-none absolute bottom-0 left-0 z-10 h-16 w-full rounded-b-lg bg-gradient-to-t from-neutral-100 to-transparent"
+          style={{ opacity: 1 - Math.pow(scrollProgress, 2) }}
+        />
       </div>
 
       {/* Fixed bottom sections - always visible */}
-      <div className="flex flex-shrink-0 flex-col gap-2 rounded-b-xl">
-        {data.showConversionGuides && (
-          <div className="px-3 pb-2">
-            <Link
-              href={`/${data.slug}/settings/tracking`}
-              className="flex items-center gap-2 rounded-lg bg-neutral-200/75 px-2.5 py-2 text-xs text-neutral-700 transition-colors hover:bg-neutral-200"
-            >
-              <BookOpen className="size-4" />
-              Set up conversion tracking
-            </Link>
-          </div>
-        )}
-
-        <AnimatePresence>
-          {showNews && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 10 }}
-              transition={{
-                duration: 0.1,
-                ease: "easeInOut",
-              }}
-            >
-              {newsContent}
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {bottom && <div className="flex flex-col">{bottom}</div>}
-      </div>
+      <AnimatedSizeContainer
+        height
+        className="flex flex-shrink-0 flex-col gap-2 rounded-b-xl"
+      >
+        {bottomContent}
+        {newsContent}
+      </AnimatedSizeContainer>
     </div>
   );
 }
@@ -534,11 +490,11 @@ export function Area({
   return (
     <div
       className={cn(
-        "left-0 top-0 flex size-full flex-col md:transition-[opacity,transform] md:duration-300",
+        "left-0 top-0 flex flex-col md:transition-[opacity,transform] md:duration-300",
         visible
-          ? "opacity-1 relative"
+          ? "relative w-full opacity-100"
           : cn(
-              "pointer-events-none absolute opacity-0",
+              "pointer-events-none absolute inset-0 overflow-hidden opacity-0",
               direction === "left" ? "-translate-x-full" : "translate-x-full",
             ),
       )}

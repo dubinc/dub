@@ -1,6 +1,6 @@
 import { cn, resizeImage } from "@dub/utils";
 import { VariantProps, cva } from "class-variance-authority";
-import { DragEvent, ReactNode, useState } from "react";
+import { DragEvent, ReactNode, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { CloudUpload, Icon, LoadingCircle } from "./icons";
 
@@ -22,14 +22,22 @@ const documentTypes = [
   "text/csv", // .csv
 ];
 
+const imageExtensionMimeTypes: Record<string, string> = {
+  png: "image/png",
+  jpg: "image/jpeg",
+  jpeg: "image/jpeg",
+  webp: "image/webp",
+  avif: "image/avif",
+};
+
 const acceptFileTypes: Record<
   AcceptedFileFormats,
   { types: string[]; errorMessage?: string }
 > = {
   any: { types: [] },
   images: {
-    types: ["image/png", "image/jpeg"],
-    errorMessage: "File type not supported (.png or .jpg only)",
+    types: ["image/png", "image/jpeg", "image/webp", "image/avif"],
+    errorMessage: "File type not supported (.png, .jpg, .webp, or .avif only)",
   },
   csv: {
     types: ["text/csv"],
@@ -41,8 +49,15 @@ const acceptFileTypes: Record<
   },
   // TODO: allow custom `accept` prop so we don't need specific options here
   programResourceImages: {
-    types: ["image/svg+xml", "image/png", "image/jpeg", "image/webp"],
-    errorMessage: "File type not supported (.svg, .png, .jpg, or .webp only)",
+    types: [
+      "image/svg+xml",
+      "image/png",
+      "image/jpeg",
+      "image/webp",
+      "image/avif",
+    ],
+    errorMessage:
+      "File type not supported (.svg, .png, .jpg, .webp, or .avif only)",
   },
   programResourceFiles: {
     types: [
@@ -50,11 +65,12 @@ const acceptFileTypes: Record<
       "image/png",
       "image/jpeg",
       "image/webp",
+      "image/avif",
       ...documentTypes,
       "application/zip",
     ],
     errorMessage:
-      "File type not supported (.svg, .png, .jpg, .webp, document, or zip files only)",
+      "File type not supported (.svg, .png, .jpg, .webp, .avif, document, or zip files only)",
   },
 };
 
@@ -143,6 +159,8 @@ export type FileUploadProps = FileUploadReadFileProps & {
   accessibilityLabel?: string;
 
   disabled?: boolean;
+
+  "data-testid"?: string;
 } & VariantProps<typeof imageUploadVariants>;
 
 export function FileUpload({
@@ -165,9 +183,15 @@ export function FileUpload({
   targetResolution,
   accessibilityLabel = "File upload",
   disabled = false,
+  "data-testid": dataTestId,
 }: FileUploadProps) {
   const [dragActive, setDragActive] = useState(false);
   const [fileName, setFileName] = useState<string | null>(null);
+  const [imageError, setImageError] = useState(false);
+
+  useEffect(() => {
+    setImageError(false);
+  }, [imageSrc]);
 
   const onFileChange = async (
     e: React.ChangeEvent<HTMLInputElement> | DragEvent,
@@ -186,22 +210,32 @@ export function FileUpload({
     }
 
     const acceptedTypes = acceptFileTypes[accept].types;
+    const extension = file.name.split(".").pop()?.toLowerCase();
+    const mimeType =
+      file.type ||
+      (extension ? imageExtensionMimeTypes[extension] : "") ||
+      "";
 
-    if (acceptedTypes.length && !acceptedTypes.includes(file.type)) {
+    if (acceptedTypes.length && !acceptedTypes.includes(mimeType)) {
       toast.error(
         acceptFileTypes[accept].errorMessage ?? "File type not supported",
       );
       return;
     }
 
-    let fileToUse = file;
+    let fileToUse =
+      !file.type && mimeType
+        ? new File([file], file.name, { type: mimeType })
+        : file;
 
     // Add image resizing logic
-    if (targetResolution && file.type.startsWith("image/")) {
+    if (targetResolution && mimeType.startsWith("image/")) {
       try {
-        const resizedFile = await resizeImage(file, targetResolution);
+        const resizedFile = await resizeImage(fileToUse, targetResolution);
         const blob = await fetch(resizedFile).then((r) => r.blob());
-        fileToUse = new File([blob], file.name, { type: file.type });
+        fileToUse = new File([blob], fileToUse.name, {
+          type: blob.type || "image/jpeg",
+        });
       } catch (error) {
         console.error("Error resizing image:", error);
         // Fallback to original file if resize fails
@@ -266,7 +300,7 @@ export function FileUpload({
           dragActive &&
             !disabled &&
             "cursor-copy border-black bg-neutral-50 opacity-100",
-          imageSrc
+          imageSrc && !imageError
             ? cn(
                 "opacity-0",
                 showHoverOverlay && !disabled && "group-hover:opacity-100",
@@ -303,10 +337,13 @@ export function FileUpload({
         <span className="sr-only">{accessibilityLabel}</span>
       </div>
       {imageSrc &&
+        !imageError &&
         (customPreview ?? (
           <img
             src={imageSrc}
             alt="Preview"
+            referrerPolicy="no-referrer"
+            onError={() => setImageError(true)}
             className={cn(
               "h-full w-full rounded-[inherit] object-cover",
               previewClassName,
@@ -322,6 +359,7 @@ export function FileUpload({
             accept={acceptFileTypes[accept].types.join(",")}
             onChange={onFileChange}
             disabled={disabled}
+            data-testid={dataTestId}
           />
         </div>
       )}

@@ -3,6 +3,7 @@
 import {
   FRAUD_GROUP_EXPIRY_DAYS,
   FRAUD_RULES_BY_TYPE,
+  NON_EXPIRING_FRAUD_RULE_TYPES,
 } from "@/lib/api/fraud/constants";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import { useFraudGroups } from "@/lib/swr/use-fraud-groups";
@@ -188,7 +189,10 @@ export function RiskEventsTable() {
             "The date and time of the most recent occurrence of this risk event.",
         },
         cell: ({ row }) => (
-          <LastDetectedCell lastEventAt={row.original.lastEventAt} />
+          <LastDetectedCell
+            lastEventAt={row.original.lastEventAt}
+            type={row.original.type}
+          />
         ),
       },
       {
@@ -370,7 +374,26 @@ export function RiskEventsTable() {
   );
 }
 
-function LastDetectedCell({ lastEventAt }: { lastEventAt: Date | string }) {
+function LastDetectedCell({
+  lastEventAt,
+  type,
+}: {
+  lastEventAt: Date | string;
+  type: FraudGroupProps["type"];
+}) {
+  if (NON_EXPIRING_FRAUD_RULE_TYPES.includes(type)) {
+    return (
+      <TimestampTooltip
+        timestamp={lastEventAt}
+        side="right"
+        rows={["local", "utc", "unix"]}
+        delayDuration={150}
+      >
+        {formatDateTimeSmart(lastEventAt)}
+      </TimestampTooltip>
+    );
+  }
+
   const daysUntilExpiry = differenceInDays(
     addDays(new Date(lastEventAt), FRAUD_GROUP_EXPIRY_DAYS),
     new Date(),

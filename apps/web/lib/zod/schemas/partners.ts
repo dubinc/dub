@@ -203,10 +203,7 @@ export const getPartnersQuerySchema = z
 
 // Only Dub UI uses the following query parameters
 export const getPartnersQuerySchemaExtended = getPartnersQuerySchema.extend({
-  status: z
-    .enum(ProgramEnrollmentStatus)
-    .or(z.enum(["approved_invited"]))
-    .optional(),
+  status: z.enum(ProgramEnrollmentStatus).optional(),
   // TODO: refactor to use multi/negative filtering syntax
   partnerIds: z
     .union([z.string(), z.array(z.string())])
@@ -1055,7 +1052,7 @@ export const partnerPayoutSettingsSchema = z.object({
   taxId: z.string().max(100).trim().nullish(),
 });
 
-export const partnerCrossProgramSummarySchema = z.object({
+export const partnerNetworkActivitySummarySchema = z.object({
   totalPrograms: z.number(),
   activePrograms: z.number(),
   bannedPrograms: z.number(),
@@ -1072,4 +1069,31 @@ export const partnerSharedPlatformSchema = z.object({
       image: z.string().nullable(),
     }),
   ),
+});
+
+const partnerMergedAccountSchema = z.object({
+  id: z.string().describe("The partner's unique ID on Dub."),
+  tenantId: z
+    .string()
+    .nullable()
+    .describe("The partner's unique ID in your system"),
+  email: z.string().nullable().describe("The partner's email address."),
+});
+
+export const partnerMergedWebhookSchema = z.object({
+  sourcePartner: partnerMergedAccountSchema.describe(
+    "The source partner account that was merged away. Its enrollment in this program no longer exists; use `targetPartner.id` instead.",
+  ),
+  targetPartner: partnerMergedAccountSchema.describe(
+    "The target partner account that the source account was merged into.",
+  ),
+  targetAlreadyEnrolled: z
+    .boolean()
+    .describe(
+      [
+        "Whether the target partner account was already enrolled in this program before the merge.",
+        "If `true`, both partners were already enrolled in the program and the merge process will collapse the source account into the target account.",
+        "If `false`, only the source partner account was enrolled in the program, which means the partner's ID in your program will be updated to the target partner's ID.",
+      ].join("\n"),
+    ),
 });

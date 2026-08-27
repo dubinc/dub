@@ -7,6 +7,14 @@ export const isValidUrl = (url: string) => {
   }
 };
 
+export function safeDecodeURIComponent(value: string): string {
+  try {
+    return decodeURIComponent(value);
+  } catch {
+    return value;
+  }
+}
+
 const SAFE_LINK_SCHEMES = new Set(["http:", "https:", "mailto:"]);
 
 export function isSafeLinkHref(

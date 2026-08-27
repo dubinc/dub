@@ -1,4 +1,5 @@
 import { trackCommissionStatusUpdate } from "@/lib/api/commissions/track-commission-update-activity-log";
+import { PRISMA_UPDATEMANY_LIMIT } from "@/lib/cron";
 import { retallyPayoutsAmount } from "@/lib/payouts/retally-payouts-amount";
 import { prisma } from "@/lib/prisma";
 import { chunk, groupBy } from "@dub/utils";
@@ -11,7 +12,7 @@ import {
 import { syncTotalCommissions } from "../partners/sync-total-commissions";
 
 // Bulk-hold processed commissions for partner-program pairs flagged by partner-level fraud
-// (duplicate identity, duplicate payout method, cross-program ban).
+// (duplicate identity, duplicate payout method, network-level ban).
 export async function holdProcessedCommissions(
   programEnrollments: Pick<ProgramEnrollment, "programId" | "partnerId">[],
 ) {
@@ -72,7 +73,7 @@ export async function holdProcessedCommissions(
             },
           },
         },
-        take: 250,
+        take: PRISMA_UPDATEMANY_LIMIT,
       });
 
       if (processedCommissions.length === 0) {

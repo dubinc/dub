@@ -1,8 +1,8 @@
 "use server";
 
 import { DubApiError } from "@/lib/api/errors";
-import { confirmEmailChange } from "@/lib/auth/confirm-email-change";
 import { throwIfNoPermission } from "@/lib/auth/partner-users/throw-if-no-permission";
+import { requestEmailChange } from "@/lib/auth/request-email-change";
 import { qstash } from "@/lib/cron";
 import { isReservedUsername } from "@/lib/edge-config";
 import {
@@ -232,10 +232,11 @@ export const updatePartnerProfileAction = authPartnerActionClient
             );
           }
 
-          await confirmEmailChange({
+          await requestEmailChange({
             email: partner.email,
             newEmail,
             identifier: partner.id,
+            userId: user.id,
             isPartnerProfile: true,
             hostName: PARTNERS_DOMAIN,
           });

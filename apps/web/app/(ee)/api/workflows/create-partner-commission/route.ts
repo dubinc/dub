@@ -192,6 +192,7 @@ async function stepCreateCommission(
     createdAt,
     status,
     userId,
+    metadata,
     context,
     programEnrollment,
   } = input;
@@ -451,6 +452,7 @@ async function stepCreateCommission(
         status,
         description,
         createdAt,
+        metadata: metadata ?? Prisma.DbNull,
       },
     });
 
@@ -692,8 +694,7 @@ async function stepRunSideEffects(
     // Execute Dub workflows
     shouldTriggerWorkflow &&
       executeWorkflows({
-        trigger: "partnerMetricsUpdated",
-        reason: "commission",
+        event: "commissionRecorded",
         identity: {
           workspaceId: workspace.id,
           programId,

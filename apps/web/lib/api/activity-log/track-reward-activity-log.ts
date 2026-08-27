@@ -128,8 +128,10 @@ function buildModifierChangeSetEntries(
 export function trackRewardActivityLog({
   old: oldReward,
   new: newReward,
+  description,
   ...baseInput
 }: TrackRewardActivityLogParams) {
+  const activityDescription = description?.trim() || null;
   const reward = oldReward || newReward;
   const resourceType = reward
     ? REWARD_EVENT_TO_RESOURCE_TYPE[reward.event]
@@ -149,6 +151,7 @@ export function trackRewardActivityLog({
       ...baseInput,
       resourceType,
       action: "reward.created",
+      description: activityDescription,
       changeSet: {
         reward: {
           old: null,
@@ -158,8 +161,10 @@ export function trackRewardActivityLog({
     });
   }
 
-  const activityLogs: Pick<TrackActivityLogInput, "action" | "changeSet">[] =
-    [];
+  const activityLogs: Pick<
+    TrackActivityLogInput,
+    "action" | "changeSet" | "description"
+  >[] = [];
 
   if (oldReward !== null && newReward !== null) {
     const oldSnapshot = toRewardActivitySnapshot(
@@ -217,6 +222,20 @@ export function trackRewardActivityLog({
         },
       },
     });
+  }
+
+  if (activityDescription && activityLogs.length > 0) {
+    const primaryLogIndex = activityLogs.findIndex((log) =>
+      ["reward.created", "reward.updated", "reward.deleted"].includes(
+        log.action,
+      ),
+    );
+    const targetIndex = primaryLogIndex >= 0 ? primaryLogIndex : 0;
+
+    activityLogs[targetIndex] = {
+      ...activityLogs[targetIndex],
+      description: activityDescription,
+    };
   }
 
   const batchId = activityLogs.length > 0 ? crypto.randomUUID() : undefined;
