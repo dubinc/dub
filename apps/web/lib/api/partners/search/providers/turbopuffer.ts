@@ -367,7 +367,6 @@ export function createTurbopufferPartnerSearchProvider({
         include_attributes: false,
       }));
 
-      // One round trip regardless of branch count.
       const { results } = await withQueryDeadline(
         () => resolvedNamespace.multiQuery({ queries: branches }),
         QUERY_OPERATION_TIMEOUT_MS,
