@@ -4,6 +4,7 @@ import { obfuscateCustomerEmail } from "@/lib/api/partner-profile/obfuscate-cust
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { withPartnerProfile } from "@/lib/auth/partner";
 import {
+  CUSTOMER_LTV_EXCLUDED_PROGRAM_IDS,
   LARGE_PROGRAM_IDS,
   LARGE_PROGRAM_MIN_TOTAL_COMMISSIONS_CENTS,
 } from "@/lib/constants/partner-profile";
@@ -52,6 +53,16 @@ export const GET = withPartnerProfile(
       });
     }
 
+    if (
+      sortBy === "saleAmount" &&
+      CUSTOMER_LTV_EXCLUDED_PROGRAM_IDS.includes(program.id)
+    ) {
+      throw new DubApiError({
+        code: "bad_request",
+        message: "This feature is not available for your program.",
+      });
+    }
+
     // Get all customers with their first commission date in a single optimized query
     const customers = await prisma.customer.findMany({
       where: {
@@ -94,22 +105,28 @@ export const GET = withPartnerProfile(
     const customersWithData = customers.map((customer) => {
       return PartnerProfileCustomerSchema.extend({
         ...(customerDataSharingEnabledAt && { name: z.string().nullish() }),
-      }).parse({
-        ...transformCustomer({
-          ...customer,
-          firstSaleAt: customer.commissions[0]?.createdAt ?? null,
-          email: customer.email
-            ? customerDataSharingEnabledAt
-              ? customer.email
-              : obfuscateCustomerEmail(customer.email)
-            : customer.name || generateRandomName(),
-        }),
-        activity: {
-          ...customer,
-          events: [],
-          link: customer.link,
-        },
-      });
+      })
+        .omit({
+          ...(CUSTOMER_LTV_EXCLUDED_PROGRAM_IDS.includes(program.id) && {
+            saleAmount: true,
+          }),
+        })
+        .parse({
+          ...transformCustomer({
+            ...customer,
+            firstSaleAt: customer.commissions[0]?.createdAt ?? null,
+            email: customer.email
+              ? customerDataSharingEnabledAt
+                ? customer.email
+                : obfuscateCustomerEmail(customer.email)
+              : customer.name || generateRandomName(),
+          }),
+          activity: {
+            ...customer,
+            events: [],
+            link: customer.link,
+          },
+        });
     });
 
     return NextResponse.json(customersWithData);

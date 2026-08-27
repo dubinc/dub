@@ -14,6 +14,7 @@ import { LeadEventTB } from "../types";
 import { redis } from "../upstash";
 import { clickEventSchemaTB } from "../zod/schemas/clicks";
 import { TapfiliateClient } from "./client";
+import { getTapfiliateCustomerExternalId } from "./import-customers";
 import { TAPFILIATE_MAX_BATCHES, tapfiliateImporter } from "./importer";
 import {
   TapfiliateConversionWithCommission,
@@ -72,9 +73,13 @@ export async function importCommissions(payload: TapfiliateImportPayload) {
       (conversion) => conversion.program?.id === tapfiliateProgramId,
     );
 
-    const customerExternalIds = conversions
-      .map((conversion) => conversion.customer?.customer_id)
-      .filter((id): id is string => Boolean(id));
+    const customerExternalIds = [
+      ...new Set(
+        conversions
+          .map((conversion) => getTapfiliateCustomerExternalId(conversion))
+          .filter((id): id is string => Boolean(id)),
+      ),
+    ];
 
     const customersData = await prisma.customer.findMany({
       where: {
@@ -151,7 +156,8 @@ async function createCommission({
   customersData: (Customer & { link: Link | null })[];
   customerLeadEvents: LeadEventTB[];
 }) {
-  const { commission, customer } = conversion;
+  const { commission } = conversion;
+  const customerExternalId = getTapfiliateCustomerExternalId(conversion);
 
   const commonImportLogInputs = {
     workspace_id: program.workspaceId,
@@ -178,25 +184,25 @@ async function createCommission({
     return;
   }
 
-  if (!customer) {
+  if (!customerExternalId) {
     await logImportError({
       ...commonImportLogInputs,
       code: "CUSTOMER_NOT_FOUND",
-      message: `A customer is not associated with this commission ${commission.id}, skipping...`,
+      message: `No customer id or external_id associated with this commission ${commission.id}, skipping...`,
     });
 
     return;
   }
 
   const existingCustomer = customersData.find(
-    ({ externalId }) => externalId === customer?.customer_id,
+    ({ externalId }) => externalId === customerExternalId,
   );
 
   if (!existingCustomer) {
     await logImportError({
       ...commonImportLogInputs,
       code: "CUSTOMER_NOT_FOUND",
-      message: `No customer ${customer.customer_id} found for commission ${commission.id}.`,
+      message: `No customer ${customerExternalId} found for commission ${commission.id}.`,
     });
 
     return;
