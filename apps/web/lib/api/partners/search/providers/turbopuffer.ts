@@ -15,6 +15,17 @@ import { withQueryDeadline, withTransientRetry } from "./resilience";
 import { getEmailNgrams, getQueryNgrams } from "./shared";
 
 /**
+ * One namespace holding every program, scoped per query by a `programId`
+ * filter.
+ *
+ * Turbopuffer's idiomatic multi-tenancy is a namespace per tenant, which would
+ * make program isolation structural rather than filter-enforced. One shared
+ * namespace is used instead because Turbopuffer's latency is cache-dependent:
+ * traffic from every program keeps the single namespace warm, while per-program
+ * namespaces would leave rarely-searched programs paying the cold-start cost on
+ * most queries. The whole workload also fits one namespace comfortably (all
+ * programs together are ~1.6M enrollment documents).
+ *
  * Bumped whenever the document shape changes, because turbopuffer keeps the
  * schema a namespace was created with, and writing a new one does not migrate an
  * existing namespace. A new version is backfilled alongside the old one and
@@ -29,26 +40,12 @@ const WRITE_BATCH_SIZE = 500;
  * The final token is a prefix, so a short one expands to every term beginning
  * with it. Measured against 626K documents: one character takes the count from
  * ~50ms to ~1.2s, past the query deadline on every attempt, and two characters
- * are still 2-3x slower than three. Production holds roughly 1.6M documents,
- * where the margin matters more than the extra character costs, so the first
- * keystrokes of a search fall back to the database count instead.
+ * are still 2-3x slower than three. The first keystrokes of a search fall back
+ * to the database count instead.
  */
 const MIN_COUNT_PREFIX_LENGTH = 3;
 const QUERY_OPERATION_TIMEOUT_MS = 1_000;
 
-/**
- * One namespace holding every program, scoped per query by a `programId` filter.
- *
- * Turbopuffer's idiomatic multi-tenancy is a namespace per tenant, which would
- * make program isolation structural rather than filter-enforced. One shared
- * namespace is used instead because Turbopuffer's latency is cache-dependent:
- * traffic from every program keeps the single namespace warm, while per-program
- * namespaces would leave rarely-searched programs paying the cold-start cost on
- * most queries. The whole workload also fits one namespace comfortably (all
- * programs together are ~1.6M enrollment documents). A secondary benefit is
- * that provider methods can work with bare document IDs, which carry no program
- * to pick a namespace by.
- */
 interface TurbopufferPartnerSearchRow extends Record<string, unknown> {
   id: string;
   programId: string;
