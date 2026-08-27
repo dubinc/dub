@@ -3,7 +3,7 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import { useWorkspaceStore } from "@/lib/swr/use-workspace-store";
 import { buildTrackingSetup } from "@/lib/tracking/build-tracking-setup";
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { SectionCard } from "./section-card";
 import {
   DeveloperGuides,
@@ -13,24 +13,46 @@ import {
 import { TrackingSettingsRow } from "./tracking-settings-row";
 import { VerifyInstall } from "./verify-install";
 
+const DEFAULT_STACK = ["custom"] as const;
+
 export function InstallationSection() {
-  const { allowedHostnames, publishableKey } = useWorkspace();
-  const [savedStack] = useWorkspaceStore<string[]>(
-    "analyticsSettingsSelectedStack",
-  );
+  const {
+    allowedHostnames,
+    publishableKey,
+    loading: workspaceLoading,
+  } = useWorkspace();
+  const [savedStack, setSavedStack, { loading: stackLoading }] =
+    useWorkspaceStore<string[]>("analyticsSettingsSelectedStack");
   const [siteVisitEnabled] = useWorkspaceStore<boolean>(
     "analyticsSettingsSiteVisitTrackingEnabled",
   );
   const [outboundEnabled] = useWorkspaceStore<boolean>(
     "analyticsSettingsOutboundDomainTrackingEnabled",
   );
-  const [conversionEnabled] = useWorkspaceStore<boolean>(
-    "analyticsSettingsConversionTrackingEnabled",
-  );
 
   const stack = savedStack ?? [];
   const hostnames = allowedHostnames ?? [];
   const ready = isSetupInstructionsReady(stack, hostnames.length > 0);
+  const seedingRef = useRef(false);
+
+  useEffect(() => {
+    if (workspaceLoading || stackLoading || seedingRef.current) {
+      return;
+    }
+
+    if (savedStack !== undefined || hostnames.length === 0) {
+      return;
+    }
+
+    seedingRef.current = true;
+    void setSavedStack([...DEFAULT_STACK]);
+  }, [
+    workspaceLoading,
+    stackLoading,
+    savedStack,
+    hostnames.length,
+    setSavedStack,
+  ]);
 
   const setup = useMemo(
     () =>
@@ -40,16 +62,8 @@ export function InstallationSection() {
         publishableKey: publishableKey ?? null,
         siteVisitEnabled: Boolean(siteVisitEnabled),
         outboundEnabled: Boolean(outboundEnabled),
-        conversionEnabled: Boolean(conversionEnabled),
       }),
-    [
-      stack,
-      hostnames,
-      publishableKey,
-      siteVisitEnabled,
-      outboundEnabled,
-      conversionEnabled,
-    ],
+    [stack, hostnames, publishableKey, siteVisitEnabled, outboundEnabled],
   );
 
   return (

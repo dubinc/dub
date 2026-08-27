@@ -26,6 +26,15 @@ const FALLBACK_CLIENT_STEP = {
 
 const ANALYTICS_SCRIPT_BASE = "https://www.dubcdn.com/analytics/script.js";
 
+const REACT_PACKAGE_LINE =
+  "Use the @dub/analytics package with this workspace's publishable key. Do not add the Dub script tag unless a guide says to.";
+
+const KEY_PRESENT_FOOTER =
+  "Use the workspace values above. Do not invent a different publishable key or hostname.";
+
+const KEY_MISSING_FOOTER =
+  "Generate a publishable key in Tracking settings before tracking conversion events. Do not invent a key.";
+
 export type TrackingSetupStep = {
   type: IntegrationType;
   typeLabel: string;
@@ -43,7 +52,6 @@ export type BuildTrackingSetupInput = {
   publishableKey: string | null;
   siteVisitEnabled: boolean;
   outboundEnabled: boolean;
-  conversionEnabled: boolean;
 };
 
 export type TrackingSetup = {
@@ -122,18 +130,24 @@ export function resolveTrackingSetupSteps(
   return steps;
 }
 
+export function isReactOnlyClientStep(steps: TrackingSetupStep[]) {
+  const clientSteps = steps.filter((step) => step.type === "client-sdk");
+
+  return clientSteps.length === 1 && clientSteps[0]?.guideKey === "react";
+}
+
 export function getAnalyticsScriptUrl({
   siteVisitEnabled,
   outboundEnabled,
-  conversionEnabled,
+  publishableKey,
 }: Pick<
   BuildTrackingSetupInput,
-  "siteVisitEnabled" | "outboundEnabled" | "conversionEnabled"
+  "siteVisitEnabled" | "outboundEnabled" | "publishableKey"
 >) {
   const segments = [
     siteVisitEnabled ? "site-visit" : null,
     outboundEnabled ? "outbound-domains" : null,
-    conversionEnabled ? "conversion-tracking" : null,
+    publishableKey ? "conversion-tracking" : null,
   ].filter(Boolean);
 
   if (segments.length === 0) {
@@ -149,20 +163,22 @@ export function composeTrackingSetupPrompt({
   publishableKey,
   siteVisitEnabled,
   outboundEnabled,
-  conversionEnabled,
 }: {
   steps: TrackingSetupStep[];
 } & Omit<BuildTrackingSetupInput, "stack">) {
+  const reactOnlyClient = isReactOnlyClientStep(steps);
   const workspaceLines = [
     hostnames.length > 0 ? `- Hostnames: ${hostnames.join(", ")}` : null,
     publishableKey
       ? `- Publishable key (client-side): ${publishableKey}`
       : null,
-    `- Analytics script: ${getAnalyticsScriptUrl({
-      siteVisitEnabled,
-      outboundEnabled,
-      conversionEnabled,
-    })}`,
+    reactOnlyClient
+      ? null
+      : `- Analytics script: ${getAnalyticsScriptUrl({
+          siteVisitEnabled,
+          outboundEnabled,
+          publishableKey,
+        })}`,
   ].filter(Boolean);
 
   const hasDuplicateTypes = STEP_TYPES.some(
@@ -181,6 +197,7 @@ export function composeTrackingSetupPrompt({
     "",
     "Workspace:",
     ...workspaceLines,
+    ...(reactOnlyClient ? ["", REACT_PACKAGE_LINE] : []),
     "",
     "Implement these steps in order:",
     ...stepLines,
@@ -191,7 +208,7 @@ export function composeTrackingSetupPrompt({
         ]
       : []),
     "",
-    "Use the workspace values above. Do not invent a different publishable key or hostname.",
+    publishableKey ? KEY_PRESENT_FOOTER : KEY_MISSING_FOOTER,
   ].join("\n");
 }
 
@@ -208,7 +225,6 @@ export function buildTrackingSetup(
       publishableKey: input.publishableKey,
       siteVisitEnabled: input.siteVisitEnabled,
       outboundEnabled: input.outboundEnabled,
-      conversionEnabled: input.conversionEnabled,
     }),
   };
 }
