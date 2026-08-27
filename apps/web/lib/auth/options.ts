@@ -3,7 +3,8 @@ import { jackson } from "@/lib/jackson";
 import { prisma } from "@/lib/prisma";
 import { isStored, storage } from "@/lib/storage";
 import { UserProps } from "@/lib/types";
-import { ratelimit } from "@/lib/upstash";
+import { assertRateLimit } from "@/lib/upstash/assert-rate-limit";
+import { RATELIMIT_POLICIES } from "@/lib/upstash/ratelimit-policies";
 import { sendEmail } from "@dub/email";
 import LoginLink from "@dub/email/templates/login-link";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
@@ -18,7 +19,7 @@ import EmailProvider from "next-auth/providers/email";
 import GithubProvider from "next-auth/providers/github";
 import GoogleProvider from "next-auth/providers/google";
 import { createId } from "../api/create-id";
-import { isProduction, shouldApplyRateLimit } from "../api/environment";
+import { isProduction } from "../api/environment";
 import { isSamlEnforcedForEmailDomain } from "../api/workspaces/is-saml-enforced-for-email-domain";
 import { qstash } from "../cron";
 import { completeProgramApplications } from "../partners/complete-program-applications";
@@ -95,7 +96,12 @@ const CustomPrismaAdapter = (p: PrismaClient) => {
 export const authOptions: NextAuthOptions = {
   providers: [
     EmailProvider({
-      sendVerificationRequest({ identifier, url }) {
+      async sendVerificationRequest({ identifier, url }) {
+        await assertRateLimit({
+          policy: RATELIMIT_POLICIES.loginLinkSend,
+          identifier,
+        });
+
         if (!isProduction) {
           console.log(`Login link: ${url}`);
           return;
@@ -116,6 +122,7 @@ export const authOptions: NextAuthOptions = {
     GithubProvider({
       clientId: process.env.GITHUB_CLIENT_ID as string,
       clientSecret: process.env.GITHUB_CLIENT_SECRET as string,
+      issuer: "https://github.com/login/oauth",
       allowDangerousEmailAccountLinking: true,
     }),
     {
@@ -266,15 +273,10 @@ export const authOptions: NextAuthOptions = {
           throw new Error("no-credentials");
         }
 
-        if (shouldApplyRateLimit) {
-          const { success } = await ratelimit(5, "1 m").limit(
-            `login-attempts:${email}`,
-          );
-
-          if (!success) {
-            throw new Error("too-many-login-attempts");
-          }
-        }
+        await assertRateLimit({
+          policy: RATELIMIT_POLICIES.login,
+          identifier: email.trim().toLowerCase(),
+        });
 
         // SSO enforcement check
         const ssoEnforced = await isSamlEnforcedForEmailDomain(email);

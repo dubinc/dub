@@ -1,6 +1,7 @@
 enum DiscountProvider {
   stripe
   shopify
+  custom
 }
 
 model Discount {
@@ -26,14 +27,14 @@ model Discount {
 }
 
 model DiscountCode {
-  id         String   @id
+  id         String    @id
   code       String
   programId  String
   discountId String?
   partnerId  String
-  linkId     String   @unique
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  linkId     String    @unique
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
   disabledAt DateTime?
 
   program           Program            @relation(fields: [programId], references: [id], onDelete: Cascade)

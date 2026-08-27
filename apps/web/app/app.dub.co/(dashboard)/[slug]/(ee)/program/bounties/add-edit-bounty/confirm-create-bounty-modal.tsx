@@ -1,11 +1,11 @@
+import { getProgramBountyMeta } from "@/lib/bounty/bounty-period";
 import { getBountyRewardDescription } from "@/lib/bounty/rewards";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
-import useGroups from "@/lib/swr/use-groups";
 import { usePartnersCountByGroupIds } from "@/lib/swr/use-partners-count-by-groupids";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { BountyProps } from "@/lib/types";
+import { BountyEligibilitySummary } from "@/ui/partners/bounties/bounty-eligibility-summary";
 import { BountyThumbnailImage } from "@/ui/partners/bounties/bounty-thumbnail-image";
-import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
 import {
   Button,
   Calendar6,
@@ -13,14 +13,12 @@ import {
   DynamicTooltipWrapper,
   Gift,
   Modal,
-  ScrollableTooltipContent,
-  Tooltip,
   TooltipContent,
 } from "@dub/ui";
-import { Users6 } from "@dub/ui/icons";
-import { formatDate, nFormatter, pluralize } from "@dub/utils";
+import { nFormatter, pluck, pluralize } from "@dub/utils";
 import { cn } from "@dub/utils/src";
-import { Dispatch, SetStateAction, useMemo, useState } from "react";
+import { BountyStartMode } from "@prisma/client";
+import { Dispatch, SetStateAction, useState } from "react";
 
 type ConfirmCreateBountyModalProps = {
   bounty?: Pick<
@@ -29,10 +27,13 @@ type ConfirmCreateBountyModalProps = {
     | "name"
     | "startsAt"
     | "endsAt"
+    | "startMode"
+    | "endsAfterDays"
     | "rewardAmount"
     | "rewardDescription"
     | "submissionRequirements"
     | "groups"
+    | "partnerTags"
   >;
   onConfirm: (data: { sendNotificationEmails: boolean }) => Promise<void>;
 };
@@ -50,36 +51,45 @@ function ConfirmCreateBountyModal({
   const { canSendEmailCampaigns } = getPlanCapabilities(plan);
 
   const [isLoading, setIsLoading] = useState(false);
+
   const [sendNotificationEmails, setSendNotificationEmails] = useState(
     canSendEmailCampaigns,
   );
 
+  const isRelative = bounty?.startMode === BountyStartMode.relative;
+
   const { totalPartners, loading } = usePartnersCountByGroupIds({
-    groupIds: bounty?.groups?.map((group) => group.id) ?? [],
+    groupIds: isRelative
+      ? null
+      : bounty?.groups
+        ? pluck(bounty.groups, "id")
+        : [],
+    partnerTagIds: isRelative
+      ? null
+      : bounty?.partnerTags
+        ? pluck(bounty.partnerTags, "id")
+        : [],
   });
 
-  const { groups } = useGroups();
-
-  const eligibleGroups = useMemo(() => {
-    if (!groups || !bounty || bounty.groups.length === 0) {
-      return [];
-    }
-    return bounty.groups
-      .map((bountyGroup) => groups.find((g) => g.id === bountyGroup.id))
-      .filter((g): g is NonNullable<typeof g> => g !== undefined);
-  }, [groups, bounty?.groups]);
+  if (!bounty) {
+    return null;
+  }
 
   const handleConfirm = async () => {
     setIsLoading(true);
     try {
-      await onConfirm({ sendNotificationEmails });
+      await onConfirm({
+        sendNotificationEmails: isRelative ? false : sendNotificationEmails,
+      });
       setShowConfirmCreateBountyModal(false);
     } finally {
       setIsLoading(false);
     }
   };
 
-  return bounty ? (
+  const { dateRangeLabel } = getProgramBountyMeta(bounty);
+
+  return (
     <Modal
       showModal={showConfirmCreateBountyModal}
       setShowModal={setShowConfirmCreateBountyModal}
@@ -89,7 +99,7 @@ function ConfirmCreateBountyModal({
           Confirm bounty creation
         </h3>
         <p className="text-content-subtle mt-1 text-sm">
-          You are about to create this bounty for the selected partner groups.
+          You are about to create this bounty for the selected partners.
         </p>
 
         <div className="border-border-subtle mt-4 rounded-xl border bg-white p-2">
@@ -105,21 +115,13 @@ function ConfirmCreateBountyModal({
                 {bounty.name}
               </h3>
 
-              <div className="text-content-subtle font-regular flex items-center gap-2 text-sm">
+              <div className="text-content-subtle flex items-center gap-2 text-sm font-normal">
                 <Calendar6 className="size-3.5" />
-                <span>
-                  {formatDate(bounty.startsAt, { month: "short" })}
-                  {bounty.endsAt && (
-                    <>
-                      {" → "}
-                      {formatDate(bounty.endsAt, { month: "short" })}
-                    </>
-                  )}
-                </span>
+                <span>{dateRangeLabel}</span>
               </div>
 
               {!isOwner && (
-                <div className="text-content-subtle font-regular flex items-center gap-2 text-sm">
+                <div className="text-content-subtle flex items-center gap-2 text-sm font-normal">
                   <Gift className="size-3.5 shrink-0" />
                   <span className="truncate">
                     {getBountyRewardDescription(bounty)}
@@ -128,96 +130,67 @@ function ConfirmCreateBountyModal({
               )}
 
               {isOwner && (
-                <div className="text-content-subtle font-regular flex items-center gap-2 text-sm">
-                  <Users6 className="size-3.5" />
-                  {bounty.groups.length === 0 ? (
-                    <span>All groups</span>
-                  ) : eligibleGroups.length === 1 ? (
-                    <div className="flex items-center gap-1.5">
-                      <GroupColorCircle group={eligibleGroups[0]} />
-                      <span className="truncate">{eligibleGroups[0].name}</span>
-                    </div>
-                  ) : eligibleGroups.length > 1 ? (
-                    <Tooltip
-                      content={
-                        <ScrollableTooltipContent>
-                          {eligibleGroups.map((group) => (
-                            <div
-                              key={group.id}
-                              className="flex items-center gap-2"
-                            >
-                              <GroupColorCircle group={group} />
-                              <span className="font-regular text-sm text-neutral-700">
-                                {group.name}
-                              </span>
-                            </div>
-                          ))}
-                        </ScrollableTooltipContent>
-                      }
-                    >
-                      <div className="flex items-center gap-1.5">
-                        <GroupColorCircle group={eligibleGroups[0]} />
-                        <span className="truncate">
-                          {eligibleGroups[0].name} +{eligibleGroups.length - 1}
-                        </span>
-                      </div>
-                    </Tooltip>
-                  ) : null}
-                </div>
+                <BountyEligibilitySummary
+                  groups={bounty.groups}
+                  partnerTags={bounty.partnerTags}
+                  className="font-normal"
+                />
               )}
             </div>
           </div>
         </div>
 
-        <DynamicTooltipWrapper
-          tooltipProps={
-            !canSendEmailCampaigns
-              ? {
-                  content: (
-                    <TooltipContent
-                      title="New bounty notifications are only available on Advanced plans and above."
-                      cta="Upgrade to Advanced"
-                      href={`/${workspaceSlug}/upgrade?plan=advanced&showAdvancedUpsellModal=true`}
-                      target="_blank"
-                    />
-                  ),
-                }
-              : undefined
-          }
-        >
-          <label
-            className={cn(
-              "mt-4 flex items-center gap-2",
-              !canSendEmailCampaigns &&
-                "pointer-events-none cursor-not-allowed",
-            )}
+        {!isRelative && (
+          <DynamicTooltipWrapper
+            tooltipProps={
+              !canSendEmailCampaigns
+                ? {
+                    content: (
+                      <TooltipContent
+                        title="New bounty notifications are only available on Advanced plans and above."
+                        cta="Upgrade to Advanced"
+                        href={`/${workspaceSlug}/upgrade?plan=advanced&showAdvancedUpsellModal=true`}
+                        target="_blank"
+                      />
+                    ),
+                  }
+                : undefined
+            }
           >
-            <Checkbox
-              checked={canSendEmailCampaigns ? sendNotificationEmails : false}
-              onCheckedChange={(checked) =>
-                setSendNotificationEmails(Boolean(checked))
-              }
-              disabled={!canSendEmailCampaigns}
-              className="data-[state=checked]:bg-black"
-            />
-            <span
+            <label
               className={cn(
-                "text-content-default select-none text-sm font-medium",
-                !canSendEmailCampaigns && "opacity-50",
+                "mt-4 flex items-center gap-2",
+                !canSendEmailCampaigns &&
+                  "pointer-events-none cursor-not-allowed",
               )}
             >
-              Send notification to{" "}
-              <strong className="text-content-emphasis font-semibold">
-                {loading ? (
-                  <span className="inline-block h-4 w-6 animate-pulse rounded bg-neutral-200 align-text-bottom" />
-                ) : (
-                  nFormatter(totalPartners, { full: true })
-                )}{" "}
-                selected {pluralize("partner", totalPartners)}
-              </strong>
-            </span>
-          </label>
-        </DynamicTooltipWrapper>
+              <Checkbox
+                checked={canSendEmailCampaigns ? sendNotificationEmails : false}
+                onCheckedChange={(checked) =>
+                  setSendNotificationEmails(Boolean(checked))
+                }
+                disabled={!canSendEmailCampaigns}
+                className="data-[state=checked]:bg-black"
+              />
+              <span
+                className={cn(
+                  "text-content-default select-none text-sm font-medium",
+                  !canSendEmailCampaigns && "opacity-50",
+                )}
+              >
+                Send notification to{" "}
+                <strong className="text-content-emphasis font-semibold">
+                  {loading ? (
+                    <span className="inline-block h-4 w-6 animate-pulse rounded bg-neutral-200 align-text-bottom" />
+                  ) : (
+                    nFormatter(totalPartners, { full: true })
+                  )}{" "}
+                  selected {pluralize("partner", totalPartners)}
+                </strong>
+              </span>
+            </label>
+          </DynamicTooltipWrapper>
+        )}
       </div>
 
       <div className="border-border-subtle flex items-center justify-end gap-2 border-t px-5 py-4">
@@ -236,7 +209,7 @@ function ConfirmCreateBountyModal({
         />
       </div>
     </Modal>
-  ) : null;
+  );
 }
 
 export function useConfirmCreateBountyModal(

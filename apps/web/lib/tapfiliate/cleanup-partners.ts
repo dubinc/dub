@@ -1,3 +1,5 @@
+import { bulkDeleteLinks } from "@/lib/api/links/bulk-delete-links";
+import { conn } from "@/lib/planetscale";
 import { prisma } from "@/lib/prisma";
 import { sendEmail } from "@dub/email";
 import ProgramImported from "@dub/email/templates/program-imported";
@@ -45,25 +47,24 @@ export async function cleanupPartners(payload: TapfiliateImportPayload) {
       .filter((partnerId): partnerId is string => partnerId !== null);
 
     if (partnerIdsWithNoLeads.length > 0) {
-      // Remove program enrollments and links for partners with no leads
-      await prisma.$transaction(async (tx) => {
-        await tx.programEnrollment.deleteMany({
-          where: {
-            programId,
-            partnerId: {
-              in: partnerIdsWithNoLeads,
-            },
+      const linksToDelete = await prisma.link.findMany({
+        where: {
+          programId,
+          partnerId: {
+            in: partnerIdsWithNoLeads,
           },
-        });
+        },
+      });
 
-        await tx.link.deleteMany({
-          where: {
-            programId,
-            partnerId: {
-              in: partnerIdsWithNoLeads,
-            },
+      await bulkDeleteLinks(linksToDelete);
+
+      await prisma.programEnrollment.deleteMany({
+        where: {
+          programId,
+          partnerId: {
+            in: partnerIdsWithNoLeads,
           },
-        });
+        },
       });
 
       // Remove partners that are not enrolled in any other program
@@ -108,13 +109,20 @@ export async function cleanupPartners(payload: TapfiliateImportPayload) {
         });
 
         if (partnersWithoutUserAccount.length > 0) {
-          await prisma.partner.deleteMany({
-            where: {
-              id: {
-                in: partnersWithoutUserAccount.map(({ id }) => id),
-              },
-            },
-          });
+          const partnerIdsToDelete = partnersWithoutUserAccount.map(
+            ({ id }) => id,
+          );
+
+          // using conn.execute here since Prisma throws on partner.deleteMany()
+          await conn.execute(
+            `DELETE FROM Partner WHERE id IN (${partnerIdsToDelete.map(() => "?").join(",")})`,
+            partnerIdsToDelete,
+          );
+
+          console.log(
+            "Removed the following partners",
+            partnersWithoutUserAccount,
+          );
         }
       }
     }

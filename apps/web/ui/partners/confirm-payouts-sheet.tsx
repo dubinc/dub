@@ -517,7 +517,7 @@ function ConfirmPayoutsSheetContent() {
             )}
 
             <a
-              href={`/${slug}/settings/billing`}
+              href={`/${slug}/settings/billing#payment-methods`}
               className={cn(
                 buttonVariants({ variant: "secondary" }),
                 "flex items-center rounded-md border border-neutral-200 p-1.5 text-sm",

@@ -18,7 +18,7 @@ export const trackOpenRequestSchema = z
   .superRefine((data, ctx) => {
     if (!data.deepLink && !data.dubDomain) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: "custom",
         message:
           "You need to provide either `deepLink` or `dubDomain` for deferred deep linking.",
       });

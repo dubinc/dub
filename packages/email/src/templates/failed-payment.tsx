@@ -38,7 +38,13 @@ export default function FailedPayment({
   attemptCount: number;
 }) {
   const title = `${
-    attemptCount == 2 ? "2nd notice: " : attemptCount == 3 ? "3rd notice: " : ""
+    attemptCount === 1
+      ? ""
+      : attemptCount == 2
+        ? "2nd notice: "
+        : attemptCount == 3
+          ? "3rd notice: "
+          : "Final notice: "
   }Your payment for Dub failed`;
 
   // Check if plan has partner access (Business, Advanced, Enterprise have payouts > 0)
@@ -61,8 +67,9 @@ export default function FailedPayment({
               <Img src={DUB_WORDMARK} height="32" alt="Dub" />
             </Section>
             <Heading className="mx-0 my-7 p-0 text-lg font-medium text-black">
-              {attemptCount == 2 ? "2nd " : attemptCount == 3 ? "3rd " : ""}
-              payment attempt failed
+              {attemptCount == 2 || attemptCount == 3
+                ? `${attemptCount == 2 ? "2nd" : "3rd"} payment attempt failed`
+                : "Failed Payment for Dub"}
             </Heading>
             <Text className="text-sm leading-6 text-black">
               Hey{user.name ? ` ${user.name}` : ""},

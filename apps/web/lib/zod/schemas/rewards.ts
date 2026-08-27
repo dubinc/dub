@@ -8,6 +8,12 @@ import * as z from "zod/v4";
 import { getPaginationQuerySchema, maxDurationSchema } from "./misc";
 import { centsSchema } from "./utils";
 
+export function isOneOffRewardEvent(
+  event: EventType | "click" | "lead" | "sale" | "referral",
+): event is "click" | "lead" {
+  return event === "click" || event === "lead";
+}
+
 export const COMMISSION_TYPES = [
   {
     value: "recurring",
@@ -432,6 +438,18 @@ export const RewardSchema = z.object({
 
 export const REWARD_DESCRIPTION_MAX_LENGTH = 100;
 export const REWARD_TOOLTIP_DESCRIPTION_MAX_LENGTH = 2000;
+export const REWARD_CHANGE_DESCRIPTION_MAX_LENGTH = 240;
+
+export const rewardActivityDescriptionSchema = z.object({
+  activityDescription: z
+    .string()
+    .max(REWARD_CHANGE_DESCRIPTION_MAX_LENGTH)
+    .optional()
+    .transform((value) => {
+      const trimmed = value?.trim();
+      return trimmed ? trimmed : undefined;
+    }),
+});
 
 export const referralRewardConfigSchema = z
   .object({
@@ -467,13 +485,14 @@ export const createOrUpdateRewardSchema = z.object({
     .nullish(),
   groupId: z.string(),
   ...rewardSpendLimitSchema.shape,
+  ...rewardActivityDescriptionSchema.shape,
 });
 
 export const createRewardSchema = createOrUpdateRewardSchema.superRefine(
   (data) => {
-    if (data.event === EventType.click || data.event === EventType.lead) {
-      data.maxDuration = 0;
+    if (isOneOffRewardEvent(data.event)) {
       data.type = "flat";
+      data.maxDuration = 0;
     }
   },
 );
@@ -521,7 +540,12 @@ export const rewardContextSchema = z.object({
 
   sale: z
     .object({
-      productId: z.string().nullish(),
+      // Non-string productIds (e.g. from sale.metadata) are dropped so reward
+      // conditions only match string product IDs.
+      productId: z.preprocess(
+        (val) => (typeof val === "string" ? val : undefined),
+        z.string().nullish(),
+      ),
       amount: z.number().nullish(),
       type: z.enum(["new", "recurring"]).nullish(),
       metadata: z.record(z.string(), z.unknown()).optional(),

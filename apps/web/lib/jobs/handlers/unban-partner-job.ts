@@ -109,7 +109,7 @@ export const unbanPartnerJob = defineJob({
       ]);
     }
 
-    // Clean up any pending cross-program ban alerts that originated from this program.
+    // Clean up any pending network-level ban alerts that originated from this program.
     await prisma.$transaction([
       prisma.fraudEvent.deleteMany({
         where: {
@@ -168,6 +168,7 @@ async function restoreCanceledCommissions({
         amount: true,
         earnings: true,
         status: true,
+        payoutId: true,
       },
       orderBy: {
         id: "asc",
@@ -179,26 +180,58 @@ async function restoreCanceledCommissions({
       break;
     }
 
-    const { count } = await prisma.commission.updateMany({
-      where: {
-        id: {
-          in: commissions.map(({ id }) => id),
-        },
-        status: CommissionStatus.canceled,
-      },
-      data: {
-        status: CommissionStatus.pending,
-      },
-    });
+    const commissionsWithPayouts = commissions.filter(
+      (commission) => commission.payoutId,
+    );
 
-    await trackCommissionStatusUpdate({
-      workspaceId,
-      programId,
-      commissions,
-      newStatus: CommissionStatus.pending,
-    });
+    if (commissionsWithPayouts.length > 0) {
+      const { count: restoredProcessedCommissions } =
+        await prisma.commission.updateMany({
+          where: {
+            id: {
+              in: commissionsWithPayouts.map(({ id }) => id),
+            },
+            status: CommissionStatus.canceled,
+          },
+          data: {
+            status: CommissionStatus.processed,
+          },
+        });
+      restoredCommissions += restoredProcessedCommissions;
 
-    restoredCommissions += count;
+      await trackCommissionStatusUpdate({
+        workspaceId,
+        programId,
+        commissions: commissionsWithPayouts,
+        newStatus: CommissionStatus.processed,
+      });
+    }
+
+    const commissionsWithoutPayouts = commissions.filter(
+      (commission) => !commission.payoutId,
+    );
+    if (commissionsWithoutPayouts.length > 0) {
+      const { count: restoredPendingCommissions } =
+        await prisma.commission.updateMany({
+          where: {
+            id: {
+              in: commissionsWithoutPayouts.map(({ id }) => id),
+            },
+            status: CommissionStatus.canceled,
+          },
+          data: {
+            status: CommissionStatus.pending,
+          },
+        });
+      restoredCommissions += restoredPendingCommissions;
+
+      await trackCommissionStatusUpdate({
+        workspaceId,
+        programId,
+        commissions: commissionsWithoutPayouts,
+        newStatus: CommissionStatus.pending,
+      });
+    }
   }
 
   console.info(

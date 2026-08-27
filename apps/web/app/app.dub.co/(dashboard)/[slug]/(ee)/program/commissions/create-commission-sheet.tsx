@@ -17,6 +17,7 @@ import {
   ProgramSheetAccordionItem,
   ProgramSheetAccordionTrigger,
 } from "@/ui/partners/program-sheet-accordion";
+import { Callout } from "@/ui/shared/callout";
 import { X } from "@/ui/shared/icons";
 import { MaxCharactersCounter } from "@/ui/shared/max-characters-counter";
 import {
@@ -668,26 +669,26 @@ function CreateCommissionSheetContent({
                               <LoadingSpinner />
                             </div>
                           ) : noStripeCustomerId ? (
-                            <div className="rounded-lg border border-amber-200 bg-amber-50/80 p-4">
-                              <p className="text-sm font-medium text-amber-800">
+                            <Callout variant="warn" size={2}>
+                              <p className="font-medium">
                                 No Stripe customer ID
                               </p>
-                              <p className="mt-1 text-xs text-amber-700">
+                              <p className="mt-1">
                                 {noStripeCustomerMessage ??
                                   "This customer doesn't have a Stripe customer ID. Add one in the customer profile to use paid Stripe invoices here."}
                               </p>
                               <a
                                 href={`/${slug}/program/customers/${customerId}`}
                                 target="_blank"
-                                className="mt-2 inline-block text-xs font-medium text-amber-800 underline hover:no-underline"
+                                className="mt-2 inline-block font-medium underline hover:no-underline"
                               >
                                 Open customer profile →
                               </a>
-                            </div>
+                            </Callout>
                           ) : stripeInvoicesError ? (
-                            <div className="rounded-lg border border-red-200 bg-red-50/80 p-4 text-sm text-red-800">
+                            <Callout variant="error" size={2}>
                               Failed to load invoices. Try again.
-                            </div>
+                            </Callout>
                           ) : stripeInvoices.length === 0 ? (
                             <div className="flex h-24 flex-col items-center justify-center rounded-lg border border-neutral-200 bg-neutral-50/30 text-center">
                               <p className="text-sm font-medium text-neutral-600">

@@ -63,7 +63,7 @@ export const partnerStackLink = z.object({
 export const partnerStackCustomer = z.object({
   key: z.string(),
   name: z.string().nullable(),
-  email: z.string(),
+  email: z.string().nullable(),
   provider_key: z
     .string()
     .nullable()
@@ -85,7 +85,7 @@ export const partnerStackCommission = z.object({
   created_at: z.number(),
   customer: z
     .object({
-      email: z.string(),
+      email: z.string().nullable(),
       external_key: z.string().nullable(),
     })
     .nullable(),

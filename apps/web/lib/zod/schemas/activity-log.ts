@@ -59,7 +59,7 @@ export const activityLogSchema = z.object({
   description: z.string().nullable(),
   changeSet: z.record(z.string(), fieldDiffSchema).nullable(),
   createdAt: z.date(),
-  user: UserSchema.nullable().default(null),
+  user: UserSchema.nullable(),
 });
 
 export const REWARD_EVENT_TO_RESOURCE_TYPE = {

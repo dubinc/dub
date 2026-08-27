@@ -41,7 +41,7 @@ export const FRAUD_RULES: FraudRuleInfo[] = [
   // Partner rules
   {
     type: "partnerCrossProgramBan",
-    name: "Cross-program ban",
+    name: "Network-level ban",
     description:
       "This partner was banned from another program on Dub. Our team reviewed this decision and confirmed the fraudulent behavior or terms of service violation.",
     scope: "partner",
@@ -100,6 +100,10 @@ export const FRAUD_RULES_BY_TYPE = Object.fromEntries(
 ) as Record<FraudRuleInfo["type"], FraudRuleInfo>;
 
 export const FRAUD_GROUP_EXPIRY_DAYS = 30;
+
+export const NON_EXPIRING_FRAUD_RULE_TYPES: FraudRuleType[] = [
+  FraudRuleType.partnerCrossProgramBan,
+];
 
 export const CONFIGURABLE_FRAUD_RULES = FRAUD_RULES.filter(
   (rule) => rule.configurable,

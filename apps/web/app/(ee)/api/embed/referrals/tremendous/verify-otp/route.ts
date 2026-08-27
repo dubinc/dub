@@ -3,12 +3,10 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { extractEmailDomain } from "@/lib/email/extract-email-domain";
 import { withReferralsEmbedToken } from "@/lib/embed/referrals/auth";
 import { prisma } from "@/lib/prisma";
-import {
-  TREMENDOUS_ENABLED_PROGRAM_IDS,
-  TREMENDOUS_PROHIBITED_TOP_LEVEL_DOMAINS,
-} from "@/lib/tremendous/constants";
+import { TREMENDOUS_PROHIBITED_TOP_LEVEL_DOMAINS } from "@/lib/tremendous/constants";
 import { ratelimit, redis } from "@/lib/upstash";
 import { emailSchema } from "@/lib/zod/schemas/auth";
+import { ACTIVE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
 import { TREMENDOUS_SUPPORTED_COUNTRIES } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
@@ -22,10 +20,11 @@ const verifyOtpSchema = z.object({
 // POST /api/embed/referrals/tremendous/verify-otp
 export const POST = withReferralsEmbedToken(
   async ({ req, programEnrollment }) => {
-    if (!TREMENDOUS_ENABLED_PROGRAM_IDS.includes(programEnrollment.programId)) {
+    if (!ACTIVE_ENROLLMENT_STATUSES.includes(programEnrollment.status)) {
       throw new DubApiError({
         code: "forbidden",
-        message: "Gift card payouts are not available for this program.",
+        message:
+          "You cannot set up payouts because your enrollment in this program is not active.",
       });
     }
 

@@ -27,6 +27,7 @@ export * from "./nformatter";
 export * from "./normalize-string";
 export * from "./parse-filter-value";
 export * from "./pick";
+export * from "./pluck";
 export * from "./pluralize";
 export * from "./pretty-print";
 export * from "./process-in-batches";

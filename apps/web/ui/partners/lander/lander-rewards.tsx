@@ -111,8 +111,8 @@ const Item = ({
   children,
 }: PropsWithChildren<{ icon: Icon }>) => {
   return (
-    <li className="flex items-center gap-2 leading-5">
-      <IconComponent className="size-4 shrink-0 text-neutral-600" />
+    <li className="flex items-start gap-2 leading-5">
+      <IconComponent className="mt-0.5 size-4 shrink-0 text-neutral-600" />
       <div>{children}</div>
     </li>
   );

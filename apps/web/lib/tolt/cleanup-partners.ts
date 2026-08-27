@@ -1,3 +1,5 @@
+import { bulkDeleteLinks } from "@/lib/api/links/bulk-delete-links";
+import { conn } from "@/lib/planetscale";
 import { prisma } from "@/lib/prisma";
 import { toltImporter } from "./importer";
 
@@ -39,24 +41,24 @@ export async function cleanupPartners({ programId }: { programId: string }) {
       .filter((partnerId): partnerId is string => partnerId !== null);
 
     if (partnerIdsToRemove.length > 0) {
-      await prisma.$transaction(async (tx) => {
-        await tx.programEnrollment.deleteMany({
-          where: {
-            programId,
-            partnerId: {
-              in: partnerIdsToRemove,
-            },
+      const linksToDelete = await prisma.link.findMany({
+        where: {
+          programId,
+          partnerId: {
+            in: partnerIdsToRemove,
           },
-        });
+        },
+      });
 
-        await tx.link.deleteMany({
-          where: {
-            programId,
-            partnerId: {
-              in: partnerIdsToRemove,
-            },
+      await bulkDeleteLinks(linksToDelete);
+
+      await prisma.programEnrollment.deleteMany({
+        where: {
+          programId,
+          partnerId: {
+            in: partnerIdsToRemove,
           },
-        });
+        },
       });
 
       // Remove partners that are not enrolled in any other program
@@ -83,38 +85,38 @@ export async function cleanupPartners({ programId }: { programId: string }) {
       );
 
       if (removablePartnerIds.length > 0) {
-        await prisma.$transaction(async (tx) => {
-          // Find partners that have no user account
-          const partnersWithoutUserAccount = await tx.partner.findMany({
-            where: {
-              id: {
-                in: removablePartnerIds,
-              },
-              users: {
-                none: {},
-              },
+        // Find partners that have no user account
+        const partnersWithoutUserAccount = await prisma.partner.findMany({
+          where: {
+            id: {
+              in: removablePartnerIds,
             },
-            select: {
-              id: true,
-              email: true,
+            users: {
+              none: {},
             },
-          });
-
-          if (partnersWithoutUserAccount.length > 0) {
-            await tx.partner.deleteMany({
-              where: {
-                id: {
-                  in: partnersWithoutUserAccount.map(({ id }) => id),
-                },
-              },
-            });
-
-            console.log(
-              "Removed the following partners",
-              partnersWithoutUserAccount,
-            );
-          }
+          },
+          select: {
+            id: true,
+            email: true,
+          },
         });
+
+        if (partnersWithoutUserAccount.length > 0) {
+          const partnerIdsToDelete = partnersWithoutUserAccount.map(
+            ({ id }) => id,
+          );
+
+          // using conn.execute here since Prisma throws on partner.deleteMany()
+          await conn.execute(
+            `DELETE FROM Partner WHERE id IN (${partnerIdsToDelete.map(() => "?").join(",")})`,
+            partnerIdsToDelete,
+          );
+
+          console.log(
+            "Removed the following partners",
+            partnersWithoutUserAccount,
+          );
+        }
       }
     }
 
