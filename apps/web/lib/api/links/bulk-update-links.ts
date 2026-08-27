@@ -1,7 +1,4 @@
-import {
-  PARTNER_SEARCH_LINK_SYNC_DELAY_SECONDS,
-  queuePartnerSearchSyncForLinks,
-} from "@/lib/api/partners/queue-partner-search-sync";
+import { queuePartnerSearchSyncForLinks } from "@/lib/api/partners/queue-partner-search-sync";
 import { prisma } from "@/lib/prisma";
 import { isNotHostedImage, storage } from "@/lib/storage";
 import { bulkUpdateLinksBodySchema } from "@/lib/zod/schemas/links";
@@ -132,9 +129,7 @@ export async function bulkUpdateLinks(
       }),
       // Queue an index update because a bulk edit can change the destination
       // URL or the link owner.
-      queuePartnerSearchSyncForLinks([...previousOwners, ...updatedLinks], {
-        delay: PARTNER_SEARCH_LINK_SYNC_DELAY_SECONDS,
-      }),
+      queuePartnerSearchSyncForLinks([...previousOwners, ...updatedLinks]),
       // if proxy is true and image is not stored in R2, upload image to R2
       proxy &&
         image &&

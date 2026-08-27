@@ -1,7 +1,4 @@
-import {
-  PARTNER_SEARCH_LINK_SYNC_DELAY_SECONDS,
-  queuePartnerSearchSync,
-} from "@/lib/api/partners/queue-partner-search-sync";
+import { queuePartnerSearchSync } from "@/lib/api/partners/queue-partner-search-sync";
 import { deleteDiscountCodes } from "@/lib/discounts/delete-discount-code";
 import { prisma } from "@/lib/prisma";
 import { storage } from "@/lib/storage";
@@ -71,7 +68,6 @@ export async function deleteLink(linkId: string) {
         queuePartnerSearchSync({
           partnerIds: [link.partnerId],
           programId: link.programId,
-          delay: PARTNER_SEARCH_LINK_SYNC_DELAY_SECONDS,
         }),
     ]),
   );

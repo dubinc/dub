@@ -1,9 +1,6 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { linkCache } from "@/lib/api/links/cache";
-import {
-  PARTNER_SEARCH_LINK_SYNC_DELAY_SECONDS,
-  queuePartnerSearchSyncForLinks,
-} from "@/lib/api/partners/queue-partner-search-sync";
+import { queuePartnerSearchSyncForLinks } from "@/lib/api/partners/queue-partner-search-sync";
 import { extractUtmParams } from "@/lib/api/utm/extract-utm-params";
 import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
@@ -206,7 +203,6 @@ export async function POST(req: Request) {
         // destination URLs.
         await queuePartnerSearchSyncForLinks(
           linksToUpdate.map(({ owner }) => owner),
-          { delay: PARTNER_SEARCH_LINK_SYNC_DELAY_SECONDS },
         );
       }
 

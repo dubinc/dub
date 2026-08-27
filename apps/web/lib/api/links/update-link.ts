@@ -1,7 +1,4 @@
-import {
-  PARTNER_SEARCH_LINK_SYNC_DELAY_SECONDS,
-  queuePartnerSearchSyncForLinks,
-} from "@/lib/api/partners/queue-partner-search-sync";
+import { queuePartnerSearchSyncForLinks } from "@/lib/api/partners/queue-partner-search-sync";
 import { getPartnerEnrollmentInfo } from "@/lib/planetscale/get-partner-enrollment-info";
 import { prisma } from "@/lib/prisma";
 import { isNotHostedImage, storage } from "@/lib/storage";
@@ -215,7 +212,6 @@ export async function updateLink({
         // or move the link. Both owners, so a former one is re-serialized
         // without it.
         queuePartnerSearchSyncForLinks([oldLink, response], {
-          delay: PARTNER_SEARCH_LINK_SYNC_DELAY_SECONDS,
         }),
 
         // If proxy is true and image is not stored in R2, upload image to R2

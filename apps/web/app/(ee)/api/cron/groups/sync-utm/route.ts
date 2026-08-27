@@ -1,9 +1,6 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { linkCache } from "@/lib/api/links/cache";
-import {
-  PARTNER_SEARCH_LINK_SYNC_DELAY_SECONDS,
-  queuePartnerSearchSync,
-} from "@/lib/api/partners/queue-partner-search-sync";
+import { queuePartnerSearchSync } from "@/lib/api/partners/queue-partner-search-sync";
 import { extractUtmParams } from "@/lib/api/utm/extract-utm-params";
 import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
@@ -134,7 +131,6 @@ export async function POST(req: Request) {
     // destination URL.
     await queuePartnerSearchSync({
       enrollmentIds: programEnrollments.map(({ id }) => id),
-      delay: PARTNER_SEARCH_LINK_SYNC_DELAY_SECONDS,
     });
 
     if (programEnrollments.length === PAGE_SIZE) {

@@ -1,5 +1,4 @@
 import {
-  PARTNER_SEARCH_LINK_SYNC_DELAY_SECONDS,
   PARTNER_SEARCH_SYNC_DELAY_SECONDS,
   queuePartnerSearchSync,
   queuePartnerSearchSyncForLinks,
@@ -177,17 +176,17 @@ describe("queuePartnerSearchSyncForLinks", () => {
     ]);
   });
 
-  it("passes the delay through so link edits can batch harder than creations", async () => {
+  it("passes an explicit delay through", async () => {
     await queuePartnerSearchSyncForLinks(
       [{ programId: "prog_1", partnerId: "pn_1" }],
-      { delay: PARTNER_SEARCH_LINK_SYNC_DELAY_SECONDS },
+      { delay: 60 },
     );
 
     const [, getOptions] = mocks.dispatchBatch.mock.calls[0];
 
     expect(
       getOptions({ type: "partners", partnerIds: ["pn_1"] }, 0).delay,
-    ).toBe(PARTNER_SEARCH_LINK_SYNC_DELAY_SECONDS);
+    ).toBe(60);
   });
 
   it("defaults to the interactive delay when none is given", async () => {

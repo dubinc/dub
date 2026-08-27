@@ -15,15 +15,6 @@ import {
  */
 export const PARTNER_SEARCH_SYNC_DELAY_SECONDS = 5;
 
-/**
- * Link edits are frequent and only move `shortLinks` and `destinationUrls`, so
- * their syncs are spread out. Creation uses the default delay, since a new
- * short link is how people search for that partner.
- *
- * Worth revisiting: this stopped reducing writes when deduplication was removed.
- */
-export const PARTNER_SEARCH_LINK_SYNC_DELAY_SECONDS = 300;
-
 type PartnerSearchSyncPayload =
   | { type: "enrollments"; enrollmentIds: string[] }
   | { type: "partners"; partnerIds: string[]; programId?: string };

@@ -85,8 +85,6 @@ export const partnerSearchSyncJob = defineJob({
       return;
     }
 
-    // These IDs came from the database a moment ago, so this upserts rather
-    // than deletes, unless one vanished in between, which is also correct.
     const { upserted, deleted } = await syncPartnerSearchDocuments({
       enrollmentIds,
       searchProvider,
@@ -96,7 +94,6 @@ export const partnerSearchSyncJob = defineJob({
       `[partnerSearchSyncJob] Synced ${upserted} and removed ${deleted} enrollment documents for ${input.partnerIds.length} partner(s).`,
     );
 
-    // A full page means there may be more enrollments for these partners.
     if (enrollmentIds.length === PARTNER_SEARCH_SYNC_BATCH_SIZE) {
       await partnerSearchSyncJob.dispatch(
         {
