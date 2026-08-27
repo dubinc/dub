@@ -226,7 +226,7 @@ export const GoogleAdsSettings = ({
                 </p>
                 <p className="mb-4 text-sm leading-normal text-neutral-600">
                   Map Dub lead events to an existing Google Ads conversion
-                  action with type UPLOAD_CLICKS.
+                  action.
                 </p>
                 <Controller
                   name="leadConversionAction"
@@ -264,7 +264,7 @@ export const GoogleAdsSettings = ({
                 </p>
                 <p className="mb-4 text-sm leading-normal text-neutral-600">
                   Map Dub sale events to an existing Google Ads conversion
-                  action with type UPLOAD_CLICKS.
+                  action.
                 </p>
                 <Controller
                   name="saleConversionAction"

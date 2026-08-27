@@ -14,6 +14,8 @@ export const googleAdsCustomerSchema = z.object({
   resourceName: z.string(),
   descriptiveName: z.string(),
   manager: z.boolean(),
+  // Manager account to send as login-customer-id. Null means direct access.
+  loginCustomerId: z.string().nullish(),
 });
 
 export const googleAdsSettingsSchema = z.object({
