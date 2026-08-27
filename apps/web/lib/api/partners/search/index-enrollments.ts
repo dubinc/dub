@@ -25,9 +25,6 @@ interface IndexPartnerSearchEnrollmentsOptions {
    * Wall-clock budget, checked between batches, so a caller under a function
    * timeout stops itself and resumes from the returned cursor. Runs to
    * exhaustion when omitted.
-   *
-   * A duration rather than a batch count, because a batch count only stands in
-   * for one if you already know how long a batch takes.
    */
   timeBudgetMs?: number;
   /** Injectable clock, so the budget is testable without real time passing. */
