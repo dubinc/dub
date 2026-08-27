@@ -294,6 +294,23 @@ describe("Advanced Filters - Unit Tests", () => {
       ]);
     });
 
+    test("eventName field", () => {
+      const result = buildAdvancedFilters({
+        eventName: {
+          operator: "IS_ONE_OF",
+          sqlOperator: "IN",
+          values: ["Sign up", "Purchase"],
+        },
+      });
+      expect(result).toEqual([
+        {
+          field: "eventName",
+          operator: "IN",
+          values: ["Sign up", "Purchase"],
+        },
+      ]);
+    });
+
     test("maintains insertion order", () => {
       const result = buildAdvancedFilters({
         device: { operator: "IS", sqlOperator: "IN", values: ["Mobile"] },
