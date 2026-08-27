@@ -4,7 +4,7 @@ import { RAINBOW_CONIC_GRADIENT, RESOURCE_COLORS_DATA } from "@/ui/colors";
 import { Popover, Tooltip } from "@dub/ui";
 import { Check2 } from "@dub/ui/icons";
 import { capitalize, cn } from "@dub/utils";
-import { ComponentProps, useState } from "react";
+import { ComponentProps, MouseEvent, useEffect, useRef, useState } from "react";
 import { HexColorInput, HexColorPicker } from "react-colorful";
 import { useDebouncedCallback } from "use-debounce";
 
@@ -67,8 +67,11 @@ export function ColorPicker({
   className?: string;
 }) {
   const [isOpen, setIsOpen] = useState(false);
+  const pointerSelectRef = useRef(false);
 
-  const onSelect = (value: string | null) => {
+  const onSelect = (value: string | null, e?: MouseEvent) => {
+    // e.detail is 0 for keyboard-triggered clicks, >0 for pointer clicks
+    pointerSelectRef.current = (e?.detail ?? 0) > 0;
     onChange(value);
     setIsOpen(false);
   };
@@ -87,10 +90,14 @@ export function ColorPicker({
       side={side}
       align={align}
       popoverContentClassName="rounded-2xl"
-      // Prevent Radix from refocusing the trigger on close — Chrome treats the
-      // programmatic focus as :focus-visible after keyboard input, leaving a
-      // stray focus ring on the trigger after picking a color
-      onCloseAutoFocus={(e) => e.preventDefault()}
+      // On pointer selections, prevent Radix from refocusing the trigger on
+      // close — Chrome treats the programmatic focus as :focus-visible after
+      // keyboard input, leaving a stray focus ring on the trigger after
+      // picking a color. Keyboard closes still restore focus to the trigger.
+      onCloseAutoFocus={(e) => {
+        if (pointerSelectRef.current) e.preventDefault();
+        pointerSelectRef.current = false;
+      }}
       content={
         <div className="p-4">
           <div className="sr-only" tabIndex={0}>
@@ -148,7 +155,7 @@ export function ColorSelector({
   // Continuous changes (gradient drag, hex typing)
   onChange: (value: string | null) => void;
   // Discrete selections (swatch clicks); defaults to onChange
-  onSelect?: (value: string | null) => void;
+  onSelect?: (value: string | null, e?: MouseEvent) => void;
   swatches?: ColorPickerSwatch[];
   showDefault?: boolean;
   showPicker?: boolean;
@@ -162,7 +169,17 @@ export function ColorSelector({
     debounceMs ?? 0,
   );
   const onPickerChange = debounceMs ? debouncedOnChange : onChange;
-  const onSwatchSelect = onSelect ?? onChange;
+
+  // Flush any pending debounced change on unmount (e.g. the popover closing
+  // mid-debounce) so the last gradient/hex change isn't lost
+  useEffect(() => () => debouncedOnChange.flush(), [debouncedOnChange]);
+
+  const onSwatchSelect = (value: string | null, e?: MouseEvent) => {
+    // Drop any pending debounced change so it can't fire after (and overwrite)
+    // this selection
+    debouncedOnChange.cancel();
+    onSelect ? onSelect(value, e) : onChange(value);
+  };
 
   const hasSwatches = Boolean(showDefault || swatches?.length);
 
@@ -197,7 +214,7 @@ export function ColorSelector({
               <Swatch
                 name="Default"
                 selected={!value}
-                onSelect={() => onSwatchSelect(null)}
+                onSelect={(e) => onSwatchSelect(null, e)}
               />
             )}
             {swatches?.map((swatch) => (
@@ -208,7 +225,7 @@ export function ColorSelector({
                 selected={
                   !!value && swatch.value.toLowerCase() === value.toLowerCase()
                 }
-                onSelect={() => onSwatchSelect(swatch.value)}
+                onSelect={(e) => onSwatchSelect(swatch.value, e)}
               />
             ))}
           </div>
@@ -231,7 +248,7 @@ function Swatch({
   swatch?: ColorPickerSwatch;
   name?: string;
   selected: boolean;
-  onSelect: () => void;
+  onSelect: (e: MouseEvent) => void;
 }) {
   const button = (
     <button
