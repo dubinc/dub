@@ -12,7 +12,7 @@ import { getEmailNgrams, getQueryNgrams, resolveIndexName } from "./shared";
 
 const DEFAULT_NAMESPACE = "partner-search-v2";
 const WRITE_BATCH_SIZE = 500;
-const QUERY_OPERATION_TIMEOUT_MS = 1_000;
+const QUERY_OPERATION_TIMEOUT_MS = 2_000;
 
 /**
  * One namespace holding every program, scoped per query by a `programId` filter.
