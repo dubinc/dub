@@ -41,9 +41,9 @@ const emptyTrackingFormValues: TrackingFormData = {
 const STACK_DESCRIPTION =
   "Select all items that apply to your stack. [Learn more](https://dub.co/docs/conversions/quickstart)";
 const HOSTNAMES_DESCRIPTION =
-  "Allowlist domains that you want to allow client-side click tracking on. [Learn more](https://dub.co/docs/sdks/client-side/features/click-tracking)";
+  "Domains to allow client-side click tracking for. [Learn more](https://dub.co/docs/sdks/client-side/features/click-tracking)";
 const PUBLISHABLE_KEY_DESCRIPTION =
-  "Required for authenticating request when tracking conversion events on the client-side. [Learn more](https://dub.co/docs/api-reference/publishable-keys)";
+  "Required for client-side conversion tracking. [Learn more](https://dub.co/docs/api-reference/publishable-keys)";
 const SITE_VISIT_DESCRIPTION =
   "For tracking site visits (organic visits from Google/SEO/AEO). [Learn more](https://dub.co/docs/concepts/attribution)";
 const OUTBOUND_DESCRIPTION =
