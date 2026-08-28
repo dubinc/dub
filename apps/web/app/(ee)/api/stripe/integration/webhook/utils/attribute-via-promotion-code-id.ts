@@ -2,6 +2,7 @@ import { createId } from "@/lib/api/create-id";
 import { getOrCreateCustomer } from "@/lib/api/customers/get-or-create-customer";
 import { syncPartnerLinksStats } from "@/lib/api/partners/sync-partner-links-stats";
 import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
+import { queueGoogleAdsConversionUpload } from "@/lib/integrations/google-ads/upload-conversion";
 import { generateRandomName } from "@/lib/names";
 import { queuePartnerCommissionCreation } from "@/lib/partners/queue-partner-commission-creation";
 import { sendPartnerPostback } from "@/lib/postback/send-partner-postback";
@@ -13,7 +14,7 @@ import { redis } from "@/lib/upstash";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { transformLeadEventData } from "@/lib/webhook/transform";
 import { COUNTRIES_TO_CONTINENTS, nanoid } from "@dub/utils";
-import { Project } from "@prisma/client";
+import { EventType, Project } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import type Stripe from "stripe";
 import { getPromotionCode } from "./get-promotion-code";
@@ -252,6 +253,19 @@ export async function attributeViaPromotionCodeId({
             partner: result?.webhookPartner,
             metadata: null,
           }),
+        }),
+
+        queueGoogleAdsConversionUpload({
+          workspaceId: workspace.id,
+          eventType: EventType.lead,
+          eventId: leadEvent.event_id,
+          eventName: leadEvent.event_name,
+          conversionDateTime: new Date().toISOString(),
+          conversionCount: 1,
+          click: {
+            id: leadEvent.click_id,
+            url: leadEvent.url,
+          },
         }),
 
         ...(link.partnerId
