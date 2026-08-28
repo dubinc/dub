@@ -167,13 +167,14 @@ export const StripeIntegrationSettings = ({
               <div className="min-w-0 flex-1">
                 <div className="mb-1 flex items-center gap-1">
                   <label className="text-sm font-semibold text-neutral-900">
-                    Eligible for first-time order only
+                    Discounts eligible for first-time order only
                   </label>
                   <InfoTooltip content="Changes will only take effect for future discount codes." />
                 </div>
                 <MarkdownDescription className="text-sm text-neutral-600">
                   Whether to restrict discount codes to [first-time
-                  orders](https://docs.stripe.com/payments/advanced/discounts#limit-by-first-time-order).
+                  orders](https://docs.stripe.com/payments/advanced/discounts#limit-by-first-time-order)
+                  only.
                 </MarkdownDescription>
               </div>
               <Switch
