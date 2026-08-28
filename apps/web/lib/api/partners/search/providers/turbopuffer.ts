@@ -44,7 +44,7 @@ const WRITE_BATCH_SIZE = 500;
  * to the database count instead.
  */
 const MIN_COUNT_PREFIX_LENGTH = 3;
-const QUERY_OPERATION_TIMEOUT_MS = 1_000;
+const QUERY_OPERATION_TIMEOUT_MS = 2_000;
 
 interface TurbopufferPartnerSearchRow extends Record<string, unknown> {
   id: string;
