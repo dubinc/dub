@@ -5,8 +5,8 @@ export const GOOGLE_ADS_DEFAULT_SETTINGS = {
   customerId: null,
   loginCustomerId: null,
   customerName: null,
-  leadConversionAction: null,
-  saleConversionAction: null,
+  leadMappings: [],
+  saleMappings: [],
 } as const;
 
 export const GOOGLE_ADS_OAUTH_SCOPE = [

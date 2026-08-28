@@ -14,6 +14,14 @@ export const googleAdsCustomerSchema = z.object({
   resourceName: z.string(),
   descriptiveName: z.string(),
   manager: z.boolean(),
+  // Manager account to send as login-customer-id. Null means direct access.
+  loginCustomerId: z.string().nullish(),
+});
+
+export const googleAdsEventMappingSchema = z.object({
+  conversionAction: z.string().min(1),
+  // Empty means this mapping matches all event names of that type
+  eventNames: z.array(z.string().trim().min(1).max(255)).max(50).default([]),
 });
 
 export const googleAdsSettingsSchema = z.object({
@@ -21,8 +29,8 @@ export const googleAdsSettingsSchema = z.object({
   customerId: z.string().nullish(),
   loginCustomerId: z.string().nullish(),
   customerName: z.string().nullish(),
-  leadConversionAction: z.string().nullish(),
-  saleConversionAction: z.string().nullish(),
+  leadMappings: z.array(googleAdsEventMappingSchema).max(50).default([]),
+  saleMappings: z.array(googleAdsEventMappingSchema).max(50).default([]),
 });
 
 export const googleAdsConversionActionSchema = z.object({
@@ -40,6 +48,7 @@ export const googleAdsConversionUploadSchema = z.object({
   }),
   conversionDateTime: z.string(),
   eventId: z.string(),
+  eventName: z.string().optional(),
   conversionValue: z.number().optional(),
   currencyCode: z.string().optional(),
   conversionCount: z.number().positive().optional(),

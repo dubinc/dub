@@ -645,6 +645,7 @@ const _trackSale = async ({
         queueGoogleAdsConversionUpload({
           workspaceId: workspace.id,
           eventType: EventType.sale,
+          eventName,
           conversionDateTime: new Date().toISOString(),
           eventId: saleData.event_id,
           conversionValue: amount / 100, // Data Manager expects major currency units

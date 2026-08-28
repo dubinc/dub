@@ -1,9 +1,10 @@
 "use client";
 
+import { clientAccessCheck } from "@/lib/client-access-check";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { InstalledIntegrationInfoProps } from "@/lib/types";
 import { MarkdownDescription } from "@/ui/shared/markdown-description";
-import { AnimatedSizeContainer, Button, Switch } from "@dub/ui";
+import { AnimatedSizeContainer, Button, InfoTooltip, Switch } from "@dub/ui";
 import { useAction } from "next-safe-action/hooks";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -22,7 +23,11 @@ export const StripeIntegrationSettings = ({
   installed,
   settings,
 }: InstalledIntegrationInfoProps) => {
-  const { id: workspaceId } = useWorkspace();
+  const { id: workspaceId, role } = useWorkspace();
+  const { error: permissionsError } = clientAccessCheck({
+    action: "integrations.write",
+    role,
+  });
 
   const stripeSettings = stripeIntegrationSettingsSchema.parse({
     ...STRIPE_DEFAULT_SETTINGS,
@@ -32,6 +37,8 @@ export const StripeIntegrationSettings = ({
   const initialFreeTrialsEnabled = stripeSettings?.freeTrials?.enabled ?? false;
   const initialTrackQuantity =
     stripeSettings?.freeTrials?.trackQuantity ?? false;
+  const initialFirstTimeTransaction =
+    stripeSettings.discountCodeRestrictions.firstTimeTransaction;
 
   // Track saved values that can be updated after successful save
   const [savedFreeTrialsEnabled, setSavedFreeTrialsEnabled] = useState(
@@ -39,23 +46,32 @@ export const StripeIntegrationSettings = ({
   );
   const [savedTrackQuantity, setSavedTrackQuantity] =
     useState(initialTrackQuantity);
+  const [savedFirstTimeTransaction, setSavedFirstTimeTransaction] = useState(
+    initialFirstTimeTransaction,
+  );
 
   const [freeTrialsEnabled, setFreeTrialsEnabled] = useState(
     initialFreeTrialsEnabled,
   );
 
   const [trackQuantity, setTrackQuantity] = useState(initialTrackQuantity);
+  const [firstTimeTransaction, setFirstTimeTransaction] = useState(
+    initialFirstTimeTransaction,
+  );
 
   const isDirty = useMemo(() => {
     return (
       freeTrialsEnabled !== savedFreeTrialsEnabled ||
-      trackQuantity !== savedTrackQuantity
+      (freeTrialsEnabled ? trackQuantity : false) !== savedTrackQuantity ||
+      firstTimeTransaction !== savedFirstTimeTransaction
     );
   }, [
     freeTrialsEnabled,
     savedFreeTrialsEnabled,
     trackQuantity,
     savedTrackQuantity,
+    firstTimeTransaction,
+    savedFirstTimeTransaction,
   ]);
 
   const { executeAsync, isPending } = useAction(updateStripeSettingsAction, {
@@ -63,6 +79,7 @@ export const StripeIntegrationSettings = ({
       // Update saved values to match current values after successful save
       setSavedFreeTrialsEnabled(freeTrialsEnabled);
       setSavedTrackQuantity(freeTrialsEnabled ? trackQuantity : false);
+      setSavedFirstTimeTransaction(firstTimeTransaction);
       toast.success("Stripe settings updated successfully.");
     },
     onError({ error }) {
@@ -82,6 +99,9 @@ export const StripeIntegrationSettings = ({
       freeTrials: {
         enabled: freeTrialsEnabled,
         trackQuantity: freeTrialsEnabled ? trackQuantity : false,
+      },
+      discountCodeRestrictions: {
+        firstTimeTransaction,
       },
     });
   };
@@ -141,6 +161,29 @@ export const StripeIntegrationSettings = ({
               </div>
             )}
           </AnimatedSizeContainer>
+
+          <div className="border-t border-neutral-200">
+            <div className="flex items-center justify-between gap-4 p-5">
+              <div className="min-w-0 flex-1">
+                <div className="mb-1 flex items-center gap-1">
+                  <label className="text-sm font-semibold text-neutral-900">
+                    Discounts eligible for first-time order only
+                  </label>
+                  <InfoTooltip content="Changes will only take effect for future discount codes." />
+                </div>
+                <MarkdownDescription className="text-sm text-neutral-600">
+                  Whether to restrict discount codes to [first-time
+                  orders](https://docs.stripe.com/payments/advanced/discounts#limit-by-first-time-order)
+                  only.
+                </MarkdownDescription>
+              </div>
+              <Switch
+                checked={firstTimeTransaction}
+                fn={setFirstTimeTransaction}
+                disabled={isPending}
+              />
+            </div>
+          </div>
         </div>
 
         <div className="flex items-center justify-end rounded-b-lg border-t border-neutral-200 bg-neutral-50 px-4 py-3">
@@ -151,7 +194,10 @@ export const StripeIntegrationSettings = ({
               text="Save changes"
               className="h-8 w-fit"
               loading={isPending}
-              disabled={!isDirty || isPending}
+              disabled={!isDirty || isPending || Boolean(permissionsError)}
+              {...(permissionsError && {
+                disabledTooltip: permissionsError,
+              })}
             />
           </div>
         </div>
