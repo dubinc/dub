@@ -5,10 +5,6 @@ const NGRAM_SIZE = 3;
 /**
  * Three-character tokens, which is what lets a partial email match without a
  * leading-wildcard query.
- *
- * Returns the tokens rather than a joined string because the two callers below
- * want them differently: an indexed address is stored joined, while a query's
- * trigrams are checked for emptiness before the caller joins them.
  */
 function toNgrams(value: string): string[] {
   return Array.from(
