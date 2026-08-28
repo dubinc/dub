@@ -1,7 +1,7 @@
 "use client";
 
 import { useConfirmModal } from "@/ui/modals/confirm-modal";
-import { Button, CopyButton, Key } from "@dub/ui";
+import { Button, Copy, Key, Tick, Tooltip, useCopyToClipboard } from "@dub/ui";
 import { nanoid } from "@dub/utils";
 import {
   EmptyTrackingCard,
@@ -20,6 +20,8 @@ export function PublishableKeyField({
   disabled?: boolean;
   disabledTooltip?: string;
 }) {
+  const [copied, copyToClipboard] = useCopyToClipboard();
+
   const generateKey = () => `dub_pk_${nanoid(24)}`;
 
   const {
@@ -56,10 +58,20 @@ export function PublishableKeyField({
             </code>
           </div>
           <div className="flex shrink-0 items-center gap-2">
-            <CopyButton
-              value={publishableKey}
-              className="flex size-7 items-center justify-center rounded-lg border border-neutral-200 p-0 hover:bg-neutral-50 [&_svg]:size-3.5"
-            />
+            <Tooltip content={copied ? "Key copied" : "Copy key"}>
+              <button
+                type="button"
+                onClick={() => copyToClipboard(publishableKey)}
+                className="flex size-7 shrink-0 items-center justify-center rounded-lg border border-neutral-200 p-0 transition-colors duration-150 hover:bg-neutral-50 [&_svg]:size-3.5"
+              >
+                <span className="sr-only">Copy key</span>
+                {copied ? (
+                  <Tick className="text-neutral-800" />
+                ) : (
+                  <Copy className="text-neutral-800" />
+                )}
+              </button>
+            </Tooltip>
             <Button
               text="Regenerate"
               variant="secondary"

@@ -14,10 +14,10 @@ import {
 import {
   ChatGPTIcon,
   ChatTask,
-  CircleDashed,
   Claude,
   Cursor,
   Grok,
+  Layers3,
 } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
 import { useReducedMotion } from "motion/react";
@@ -110,21 +110,28 @@ function StepIcon({ step }: { step: TrackingSetupStep }) {
   return <Icon className="size-5 shrink-0" />;
 }
 
-export function DeveloperGuides({ steps }: { steps: TrackingSetupStep[] }) {
-  const guides = steps.map((step) => ({
-    title: step.label,
-    href: step.url,
-  }));
+const GENERAL_GUIDES = [
+  { title: "Dub docs", href: "https://dub.co/docs" },
+  {
+    title: "Conversion tracking guide",
+    href: "https://dub.co/docs/conversions/quickstart",
+  },
+  {
+    title: "API reference",
+    href: "https://dub.co/docs/api-reference/introduction",
+  },
+] as const;
 
+export function DeveloperGuides() {
   return (
     <div className="flex flex-col gap-1.5">
       <h4 className="text-xs font-semibold leading-4 tracking-[-0.02em] text-neutral-600">
         Read developer guides
       </h4>
       <div className="flex flex-col gap-1.5">
-        {guides.map((guide) => (
+        {GENERAL_GUIDES.map((guide) => (
           <Link
-            key={`${guide.title}-${guide.href}`}
+            key={guide.href}
             href={guide.href}
             target="_blank"
             rel="noopener noreferrer"
@@ -149,10 +156,10 @@ export function SetupInstructions({
   if (!ready) {
     return (
       <div className="flex h-[114px] w-full flex-col items-center justify-center gap-2 rounded-xl bg-neutral-50 py-6">
-        <CircleDashed className="size-[18px] shrink-0 text-neutral-500" />
+        <Layers3 className="size-[18px] shrink-0 text-neutral-500" />
         <p className="text-center text-sm font-medium leading-5 tracking-[-0.02em] text-neutral-500">
-          Select your stack, add at least one hostname to generate install
-          instructions
+          Save your changes after selecting your stack, and adding your
+          hostnames to generate install instructions
         </p>
       </div>
     );

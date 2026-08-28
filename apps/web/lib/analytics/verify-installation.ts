@@ -30,7 +30,8 @@ const DUB_SRC_RE =
   /src\s*=\s*(?:["'][^"']*dubcdn\.com\/analytics[^"']*["']|[^\s>]*dubcdn\.com\/analytics[^\s>]*)/i;
 const CONVERSION_SRC_RE =
   /src\s*=\s*(?:["'][^"']*dubcdn\.com\/analytics[^"']*conversion-tracking[^"']*["']|[^\s>]*dubcdn\.com\/analytics[^\s>]*conversion-tracking[^\s>]*)/i;
-const SDK_NAME_RE = /data-sdkn=["']@dub\/analytics["']/i;
+const SDK_NAME_RE =
+  /data-sdkn\s*=\s*(?:["']@dub\/analytics["']|@dub\/analytics(?=[\s>/]))/i;
 const PUBLISHABLE_KEY_RE = /data-publishable-key=/i;
 
 export function analyzeDubAnalyticsScript(

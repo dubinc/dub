@@ -70,9 +70,7 @@ export function InstallationSection() {
         <TrackingSettingsRow
           heading="Setup instructions"
           description="Use the prompts and instructions to install Dub."
-          leftExtra={
-            ready ? <DeveloperGuides steps={setup.steps} /> : undefined
-          }
+          leftExtra={ready ? <DeveloperGuides /> : undefined}
           leftExtraAlign="end"
         >
           <SetupInstructions setup={setup} ready={ready} />

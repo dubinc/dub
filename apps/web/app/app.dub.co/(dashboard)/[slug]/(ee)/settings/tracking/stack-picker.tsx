@@ -53,7 +53,7 @@ function StackItemTitle({ title }: { title: string }) {
 export function StackSelectionStatus({ count }: { count: number }) {
   return (
     <p className="text-content-subtle flex items-center gap-1.5 text-xs font-medium">
-      <Layers3 className="size-3.5 shrink-0" />
+      <Layers3 variant="fill" className="size-3.5 shrink-0" />
       {count} item{count === 1 ? "" : "s"} selected
     </p>
   );
@@ -93,14 +93,18 @@ export function StackPicker({
             aria-pressed={selected}
             onClick={() => toggleItem(item.id)}
             className={cn(
-              "relative flex h-[42px] items-center gap-2.5 rounded-lg border p-2 text-left transition-[border-color,background-color,transform] duration-150 ease-out",
+              "relative flex h-10 items-center gap-2.5 rounded-lg border bg-white px-3 py-2 text-left",
+              "transition-[border-color,background-color,box-shadow,transform] duration-150 ease-out",
               "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/50",
-              "active:scale-[0.98]",
+              "active:scale-[0.98] motion-reduce:transition-none motion-reduce:active:scale-100",
               selected
-                ? "border-neutral-600 bg-neutral-50"
-                : "border-neutral-200 bg-white",
+                ? "border-[1.5px] border-neutral-600"
+                : "border-neutral-200",
               !disabled &&
-                "[@media(hover:hover)_and_(pointer:fine)]:hover:border-neutral-600",
+                "[@media(hover:hover)_and_(pointer:fine)]:hover:bg-neutral-50 [@media(hover:hover)_and_(pointer:fine)]:hover:shadow-[0_0_0_3px_#0000000A]",
+              !disabled &&
+                !selected &&
+                "[@media(hover:hover)_and_(pointer:fine)]:hover:border-neutral-300",
               disabled && "cursor-not-allowed opacity-50",
             )}
           >

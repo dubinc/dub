@@ -29,6 +29,7 @@ export type IntegrationGuide = {
   recommended?: boolean;
   content?: string;
   url: string;
+  stepLabel?: string;
 };
 
 export const sections: {
@@ -187,7 +188,7 @@ export const stackItems: StackItem[] = [
     id: "custom",
     title: "Custom integration",
     icon: CodeEditor,
-    guideKeys: ["manual-client-sdk", "manual-track-lead", "manual-track-sale"],
+    guideKeys: ["manual-client-sdk", "manual-track-lead"],
     type: "client-sdk",
   },
 ];
@@ -252,7 +253,8 @@ export const guides: IntegrationGuide[] = [
     title: "Custom Integration",
     description: "Manual Lead Tracking",
     icon: CodeEditor,
-    url: "https://dub.co/docs/conversions/leads/introduction",
+    url: "https://dub.co/docs/quickstart/server",
+    stepLabel: "Server-side",
   },
   {
     type: "track-lead",
@@ -369,6 +371,7 @@ export const guides: IntegrationGuide[] = [
     title: "Custom Integration",
     description: "Manual Sale Tracking",
     icon: CodeEditor,
-    url: "https://dub.co/docs/conversions/sales/introduction",
+    url: "https://dub.co/docs/quickstart/server",
+    stepLabel: "Server-side",
   },
 ];

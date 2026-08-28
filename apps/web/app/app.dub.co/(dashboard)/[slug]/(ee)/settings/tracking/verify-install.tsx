@@ -220,7 +220,7 @@ export function VerifyInstall({ hostnames }: { hostnames: string[] }) {
 
       <Button
         text={canReverify ? "Verify again" : "Verify installation"}
-        className="bg-bg-inverted h-7 w-fit px-2.5 text-sm font-medium tracking-[-0.02em] active:scale-[0.97]"
+        className="h-8 w-fit px-3"
         loading={isPending}
         disabled={!workspaceId || Boolean(disabledTooltip)}
         disabledTooltip={disabledTooltip}
