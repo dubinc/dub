@@ -14,6 +14,7 @@ import {
   googleAdsConversionUploadSchema,
   googleAdsSettingsSchema,
 } from "./schema";
+import { resolveGoogleAdsConversionMapping } from "./utils";
 
 const extractGoogleAdsClickId = (url: string): GoogleAdsClickId | null => {
   try {
@@ -98,6 +99,7 @@ export const uploadGoogleAdsConversion = async (
     click,
     conversionDateTime,
     eventId,
+    eventName,
     conversionValue,
     currencyCode,
     conversionCount,
@@ -127,17 +129,30 @@ export const uploadGoogleAdsConversion = async (
       installedIntegration.settings ?? {},
     );
 
-    const conversionAction =
-      eventType === "lead"
-        ? settings.leadConversionAction
-        : settings.saleConversionAction;
+    const mappings =
+      eventType === "lead" ? settings.leadMappings : settings.saleMappings;
+    const mapping = resolveGoogleAdsConversionMapping({
+      mappings,
+      eventName,
+    });
 
-    if (!settings.customerId || !conversionAction) {
+    if (!settings.customerId) {
       return {
-        message: `Missing ${!settings.customerId ? "customerId" : `${eventType}ConversionAction`}. Skipping...`,
+        message: `Missing customerId. Skipping...`,
         status: "skipped",
       };
     }
+
+    if (!mapping) {
+      return {
+        message: mappings.length
+          ? `No ${eventType} conversion mapping matched event name "${eventName ?? ""}". Skipping...`
+          : `Missing ${eventType} conversion mapping. Skipping...`,
+        status: "skipped",
+      };
+    }
+
+    const conversionAction = mapping.conversionAction;
 
     const googleClickId = extractGoogleAdsClickId(click.url);
 

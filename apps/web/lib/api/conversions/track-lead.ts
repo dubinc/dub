@@ -357,6 +357,7 @@ export const trackLead = async ({
               workspaceId: workspace.id,
               eventType: EventType.lead,
               eventId: leadEventId,
+              eventName,
               conversionDateTime: new Date().toISOString(),
               conversionCount: eventQuantity ?? undefined,
               click: {
