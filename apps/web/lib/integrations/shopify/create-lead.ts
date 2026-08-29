@@ -10,7 +10,9 @@ import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { transformLeadEventData } from "@/lib/webhook/transform";
 import { leadEventSchemaTB } from "@/lib/zod/schemas/leads";
 import { nanoid } from "@dub/utils";
+import { EventType } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
+import { queueGoogleAdsConversionUpload } from "../google-ads/upload-conversion";
 import { orderSchema } from "./schema";
 
 export async function createShopifyLead({
@@ -136,6 +138,19 @@ export async function createShopifyLead({
           customer,
           metadata: null,
         }),
+      }),
+
+      queueGoogleAdsConversionUpload({
+        workspaceId: workspace.id,
+        eventType: EventType.lead,
+        eventId: leadData.event_id,
+        eventName: leadData.event_name,
+        conversionDateTime: new Date().toISOString(),
+        conversionCount: 1,
+        click: {
+          id: clickData.click_id,
+          url: clickData.url,
+        },
       }),
 
       ...(link.partnerId
