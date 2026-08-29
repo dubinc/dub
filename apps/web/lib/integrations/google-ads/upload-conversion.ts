@@ -5,6 +5,7 @@ import {
   APP_DOMAIN_WITH_NGROK,
   getSearchParams,
   GOOGLE_ADS_INTEGRATION_ID,
+  isZeroDecimalCurrency,
 } from "@dub/utils";
 import * as z from "zod/v4";
 import { GoogleAdsApi, GoogleAdsClickId } from "./api";
@@ -53,6 +54,16 @@ export const queueGoogleAdsConversionUpload = async (
 
   if (!(await googleAdsInstalledWorkspaces.has(payload.workspaceId))) {
     return;
+  }
+
+  // Data Manager expects major currency units, so we need to divide by 100
+  // if the currency is NOT a zero decimal currency (e.g. JPY doesn't have cents)
+  if (
+    payload.conversionValue &&
+    payload.currencyCode &&
+    !isZeroDecimalCurrency(payload.currencyCode)
+  ) {
+    payload.conversionValue = payload.conversionValue / 100;
   }
 
   try {

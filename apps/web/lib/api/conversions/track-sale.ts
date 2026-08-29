@@ -648,7 +648,7 @@ const _trackSale = async ({
           eventName: saleData.event_name,
           conversionDateTime: new Date().toISOString(),
           eventId: saleData.event_id,
-          conversionValue: saleData.amount / 100, // Data Manager expects major currency units
+          conversionValue: saleData.amount,
           currencyCode: saleData.currency,
           click: {
             id: saleData.click_id,
