@@ -57,6 +57,7 @@ export function useRouterStuff() {
       set,
       del,
       replace,
+      shallow,
       scroll = false,
       getNewPath,
       arrayDelimiter = ",",
@@ -64,6 +65,7 @@ export function useRouterStuff() {
       set?: Record<string, string | string[]>;
       del?: string | string[];
       replace?: boolean;
+      shallow?: boolean;
       scroll?: boolean;
       getNewPath?: boolean;
       arrayDelimiter?: string;
@@ -86,6 +88,26 @@ export function useRouterStuff() {
         queryString.length > 0 ? `?${queryString}` : ""
       }`;
       if (getNewPath) return newPath;
+
+      // Avoid no-op navigations, which can still trigger RSC work.
+      const currentQuery = searchParams.toString();
+      const currentPath = `${pathname}${
+        currentQuery.length > 0 ? `?${currentQuery}` : ""
+      }`;
+      if (newPath === currentPath) return;
+
+      // Client-owned params can update without triggering a new RSC round-trip.
+      if (shallow) {
+        // guard for SSR safety; mirror router.push/replace semantics.
+        if (typeof window !== "undefined") {
+          if (replace) {
+            window.history.replaceState({}, "", newPath);
+          } else {
+            window.history.pushState({}, "", newPath);
+          }
+        }
+        return;
+      }
 
       // Nested overflow container scroll is not preserved by Next's `scroll: false` (window-only).
       if (scroll === false && typeof document !== "undefined") {

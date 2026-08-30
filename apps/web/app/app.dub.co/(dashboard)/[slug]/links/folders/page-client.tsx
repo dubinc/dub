@@ -9,7 +9,7 @@ import { FolderCard } from "@/ui/folders/folder-card";
 import { FolderCardPlaceholder } from "@/ui/folders/folder-card-placeholder";
 import { useAddFolderModal } from "@/ui/modals/add-folder-modal";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
-import { PaginationControls, usePagination, useRouterStuff } from "@dub/ui";
+import { PaginationControls, usePagination } from "@dub/ui";
 import { useSearchParams } from "next/navigation";
 
 const allLinkFolder: Folder = {
@@ -21,7 +21,6 @@ const allLinkFolder: Folder = {
 
 export const FoldersPageClient = () => {
   const searchParams = useSearchParams();
-  const { queryParams } = useRouterStuff();
 
   const { folders, isValidating } = useFolders({
     includeParams: ["search", "page"],
@@ -44,16 +43,7 @@ export const FoldersPageClient = () => {
       <div className="grid gap-4">
         <div className="flex w-full flex-wrap items-center justify-between gap-3 sm:w-auto">
           <div className="w-full md:w-56 lg:w-64">
-            <SearchBoxPersisted
-              loading={isValidating}
-              onChangeDebounced={(t) => {
-                if (t) {
-                  queryParams({ set: { search: t }, del: "page" });
-                } else {
-                  queryParams({ del: "search" });
-                }
-              }}
-            />
+            <SearchBoxPersisted loading={isValidating} />
           </div>
         </div>
 
