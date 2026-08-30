@@ -6,11 +6,10 @@ import {
   LEGAL_WORKSPACE_ID,
   LOCALHOST_GEO_DATA,
   REDIRECTION_QUERY_PARAM,
-  getUrlFromStringIfValid,
   isDubDomain,
   isGoogleClickTrackerDomain,
-  isSafeLinkHref,
   isUnsupportedKey,
+  isValidUrl,
   nanoid,
   punyEncode,
 } from "@dub/utils";
@@ -288,12 +287,14 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
   // for Google click tracker domains (dub.sh, dub.link):
   // if there is a redirection url set, then use it instead of the target
   if (isGoogleClickTrackerDomain(domain)) {
-    const redirectionUrl = getUrlFromStringIfValid(
-      searchParamsObj[REDIRECTION_QUERY_PARAM] ?? "",
-    );
+    const redirectionUrl = searchParamsObj[REDIRECTION_QUERY_PARAM];
 
-    // if redirectionUrl is present, return it immediately
-    if (redirectionUrl && isSafeLinkHref(redirectionUrl)) {
+    // if a valid redirection url is present, return it immediately
+    if (
+      redirectionUrl &&
+      isValidUrl(redirectionUrl) &&
+      redirectionUrl.startsWith("https://")
+    ) {
       ev.waitUntil(
         recordClick({
           req,
