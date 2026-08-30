@@ -85,7 +85,7 @@ export const unbanPartnerJob = defineJob({
           status: BountySubmissionStatus.rejected,
         },
         data: {
-          status: BountySubmissionStatus.submitted,
+          status: BountySubmissionStatus.draft,
         },
       }),
     ]);
