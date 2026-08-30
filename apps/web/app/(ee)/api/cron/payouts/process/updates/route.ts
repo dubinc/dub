@@ -144,7 +144,7 @@ export async function POST(req: Request) {
     const errorMessage = error instanceof Error ? error.message : String(error);
 
     await log({
-      message: `Error sending Stripe payout: ${errorMessage}`,
+      message: `Error running payouts/process/updates cron job: ${errorMessage}`,
       type: "errors",
       mention: true,
     });

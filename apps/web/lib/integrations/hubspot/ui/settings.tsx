@@ -66,7 +66,7 @@ export const HubSpotSettings = ({
   }
 
   return (
-    <form className="mt-4 space-y-4" onSubmit={onSubmit}>
+    <form className="space-y-4" onSubmit={onSubmit}>
       <div className="rounded-lg border border-neutral-200 bg-white">
         <div className="flex items-center gap-x-2 border-b border-neutral-200 px-4 py-4">
           <p className="text-sm font-medium text-neutral-700">
