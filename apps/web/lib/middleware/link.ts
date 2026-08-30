@@ -9,6 +9,7 @@ import {
   getUrlFromStringIfValid,
   isDubDomain,
   isGoogleClickTrackerDomain,
+  isSafeLinkHref,
   isUnsupportedKey,
   nanoid,
   punyEncode,
@@ -204,43 +205,6 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
     dubTestUrlValue: testUrl,
   };
 
-  // for Google click tracker domains (dub.sh, dub.link):
-  // if there is a redirection url set, then use it instead of the target
-  if (isGoogleClickTrackerDomain(domain)) {
-    const redirectionUrl = getUrlFromStringIfValid(
-      searchParamsObj[REDIRECTION_QUERY_PARAM] ?? "",
-    );
-
-    // if redirectionUrl is present, return it immediately
-    if (redirectionUrl) {
-      ev.waitUntil(
-        recordClick({
-          req,
-          clickId,
-          workspaceId,
-          linkId,
-          domain,
-          key,
-          url: redirectionUrl,
-          programId: cachedLink.programId,
-          partnerId: cachedLink.partnerId,
-          shouldCacheClickId,
-        }),
-      );
-
-      return createResponseWithCookies(
-        NextResponse.redirect(redirectionUrl, {
-          headers: {
-            ...DUB_HEADERS,
-            ...(!shouldIndex && { "X-Robots-Tag": "googlebot: noindex" }),
-          },
-          status: key === "_root" ? 301 : 302,
-        }),
-        cookieData,
-      );
-    }
-  }
-
   // only show inspect modal if the link is not password protected
   if (inspectMode && !password) {
     return NextResponse.rewrite(
@@ -318,6 +282,43 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
           ...(!shouldIndex && { "X-Robots-Tag": "googlebot: noindex" }),
         },
       });
+    }
+  }
+
+  // for Google click tracker domains (dub.sh, dub.link):
+  // if there is a redirection url set, then use it instead of the target
+  if (isGoogleClickTrackerDomain(domain)) {
+    const redirectionUrl = getUrlFromStringIfValid(
+      searchParamsObj[REDIRECTION_QUERY_PARAM] ?? "",
+    );
+
+    // if redirectionUrl is present, return it immediately
+    if (redirectionUrl && isSafeLinkHref(redirectionUrl)) {
+      ev.waitUntil(
+        recordClick({
+          req,
+          clickId,
+          workspaceId,
+          linkId,
+          domain,
+          key,
+          url: redirectionUrl,
+          programId: cachedLink.programId,
+          partnerId: cachedLink.partnerId,
+          shouldCacheClickId,
+        }),
+      );
+
+      return createResponseWithCookies(
+        NextResponse.redirect(redirectionUrl, {
+          headers: {
+            ...DUB_HEADERS,
+            ...(!shouldIndex && { "X-Robots-Tag": "googlebot: noindex" }),
+          },
+          status: key === "_root" ? 301 : 302,
+        }),
+        cookieData,
+      );
     }
   }
 
