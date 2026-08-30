@@ -100,7 +100,7 @@ export const formFieldsSchema = z
         ctx.addIssue({
           path: ["fields"],
           message: `Duplicate field key: ${field.key}`,
-          code: z.ZodIssueCode.custom,
+          code: "custom",
         });
       }
 
@@ -108,7 +108,7 @@ export const formFieldsSchema = z
         ctx.addIssue({
           path: ["fields"],
           message: `Duplicate field position: ${field.position}`,
-          code: z.ZodIssueCode.custom,
+          code: "custom",
         });
       }
 

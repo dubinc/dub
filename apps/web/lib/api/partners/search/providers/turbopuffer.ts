@@ -5,17 +5,18 @@ import {
   getPartnerSearchableValues,
   normalizePartnerSearchQuery,
 } from "../searchable-values";
-import type { PartnerSearchDocument, PartnerSearchProvider } from "../types";
+import type {
+  PartnerSearchCandidateQuery,
+  PartnerSearchDocument,
+  PartnerSearchProvider,
+} from "../types";
 import { validatePartnerSearchCandidateLimit } from "../types";
 import { withQueryDeadline, withTransientRetry } from "./resilience";
-import { getEmailNgrams, getQueryNgrams, resolveIndexName } from "./shared";
-
-const DEFAULT_NAMESPACE = "partner-search-v2";
-const WRITE_BATCH_SIZE = 500;
-const QUERY_OPERATION_TIMEOUT_MS = 1_000;
+import { getEmailNgrams, getQueryNgrams } from "./shared";
 
 /**
- * One namespace holding every program, scoped per query by a `programId` filter.
+ * One namespace holding every program, scoped per query by a `programId`
+ * filter.
  *
  * Turbopuffer's idiomatic multi-tenancy is a namespace per tenant, which would
  * make program isolation structural rather than filter-enforced. One shared
@@ -23,23 +24,45 @@ const QUERY_OPERATION_TIMEOUT_MS = 1_000;
  * traffic from every program keeps the single namespace warm, while per-program
  * namespaces would leave rarely-searched programs paying the cold-start cost on
  * most queries. The whole workload also fits one namespace comfortably (all
- * programs together are ~1.6M enrollment documents). A secondary benefit is
- * that provider methods can work with bare document IDs, which carry no program
- * to pick a namespace by.
+ * programs together are ~1.6M enrollment documents).
+ *
+ * Bumped whenever the document shape changes, because turbopuffer keeps the
+ * schema a namespace was created with, and writing a new one does not migrate an
+ * existing namespace. A new version is backfilled alongside the old one and
+ * swapped in, rather than rebuilt in place.
  */
+export const PARTNER_SEARCH_NAMESPACE = "partner-search-v3";
+const WRITE_BATCH_SIZE = 500;
+
+/**
+ * Below this, the counting aggregation is not worth attempting.
+ *
+ * The final token is a prefix, so a short one expands to every term beginning
+ * with it. Measured against 626K documents: one character takes the count from
+ * ~50ms to ~1.2s, past the query deadline on every attempt, and two characters
+ * are still 2-3x slower than three. The first keystrokes of a search fall back
+ * to the database count instead.
+ */
+const MIN_COUNT_PREFIX_LENGTH = 3;
+const QUERY_OPERATION_TIMEOUT_MS = 2_000;
+
 interface TurbopufferPartnerSearchRow extends Record<string, unknown> {
   id: string;
   programId: string;
   searchText: string;
   identityText: string;
   emailNgrams: string;
+  status: string;
+  groupId?: string;
+  country?: string;
+  partnerTagIds: string[];
 }
 
 /**
  * Pinned rather than left to default. Turbopuffer's newer tokenizers keep a URL
  * as a single token, so `scottdigital` cannot match
- * `https://www.scottdigital-42.techcorp.io`, and partner websites, short
- * links, and destination URLs are all searchable fields here. word_v2 splits
+ * `https://www.scottdigital-42.techcorp.io`. Partner websites, short links, and
+ * destination URLs are all searchable fields here, and word_v2 splits
  * URLs into their components while handling emails, handles, and hyphenated
  * keys the same way the newer ones do.
  *
@@ -49,12 +72,19 @@ interface TurbopufferPartnerSearchRow extends Record<string, unknown> {
 const SEARCH_TEXT_TOKENIZER = "word_v2";
 
 // No text attribute is filterable. The n-gram and all-terms branches narrow with
-// ContainsAllTokens, which reads the BM25 index rather than a filter index, so
-// marking them filterable would buy nothing and cost plenty: turbopuffer bills
+// ContainsAllTokens, which reads the BM25 index rather than a filter index.
+// Marking them filterable would buy nothing and cost plenty: turbopuffer bills
 // an attribute per enabled index, so FTS + filterable is 200% of logical size.
-// Only `programId` needs one, for its scalar Eq.
+//
+// The scalar attributes are filterable so the provider narrows before it
+// truncates to `limit`, rather than leaving filters to run over an already
+// truncated list.
 const TURBOPUFFER_SCHEMA = {
   programId: { type: "string", filterable: true },
+  status: { type: "string", filterable: true },
+  groupId: { type: "string", filterable: true },
+  country: { type: "string", filterable: true },
+  partnerTagIds: { type: "[]string", filterable: true },
   searchText: {
     type: "string",
     full_text_search: { tokenizer: SEARCH_TEXT_TOKENIZER },
@@ -80,14 +110,14 @@ export interface TurbopufferNamespace {
   multiQuery(params: Record<string, unknown>): Promise<{
     results?: { rows?: { id: string | number; $dist?: number }[] }[];
   }>;
+  query(params: Record<string, unknown>): Promise<{
+    aggregations?: Record<string, unknown>;
+  }>;
   deleteAll(): Promise<unknown>;
 }
 
 function getNamespaceName(namespaceName?: string): string {
-  return resolveIndexName(
-    [namespaceName, process.env.PARTNER_SEARCH_INDEX_NAME],
-    DEFAULT_NAMESPACE,
-  );
+  return namespaceName?.trim() || PARTNER_SEARCH_NAMESPACE;
 }
 
 function createNamespace(namespaceName: string): TurbopufferNamespace {
@@ -118,7 +148,46 @@ function serializeTurbopufferRow(
     searchText: normalizeValues(getPartnerSearchableValues(document)),
     identityText: normalizeValues(getPartnerIdentityValues(document)),
     emailNgrams: getEmailNgrams(document.email),
+    status: document.status,
+    // Omitted rather than stored null, which is what makes a NotIn filter match
+    // the partners that have no group or no country, the same rows the
+    // database includes when it ORs the negation with IS NULL.
+    ...(document.groupId ? { groupId: document.groupId } : {}),
+    ...(document.country ? { country: document.country } : {}),
+    partnerTagIds: document.partnerTagIds,
   };
+}
+
+/** Turns the discrete filters into turbopuffer clauses. */
+function buildFilterClauses(
+  filters: PartnerSearchCandidateQuery["filters"],
+): unknown[] {
+  if (!filters) {
+    return [];
+  }
+
+  const clauses: unknown[] = [];
+
+  for (const [attribute, filter] of Object.entries(filters)) {
+    // An empty value list would become `In []`, which matches nothing and would
+    // silently empty the results rather than leaving them unfiltered.
+    if (!filter || filter.values.length === 0) {
+      continue;
+    }
+
+    const isArray = attribute === "partnerTagIds";
+    const operator = filter.exclude
+      ? isArray
+        ? "NotContainsAny"
+        : "NotIn"
+      : isArray
+        ? "ContainsAny"
+        : "In";
+
+    clauses.push([attribute, operator, filter.values]);
+  }
+
+  return clauses;
 }
 
 /**
@@ -140,8 +209,17 @@ function serializeTurbopufferRow(
  * shares just one, which is how an unrelated address looks like a partial-email
  * match.
  */
-function buildQueryBranches(programId: string, query: string) {
-  const programFilter = ["programId", "Eq", programId];
+function buildQueryBranches(
+  programId: string,
+  query: string,
+  filters?: PartnerSearchCandidateQuery["filters"],
+) {
+  const scope = ["programId", "Eq", programId];
+  const filterClauses = buildFilterClauses(filters);
+  // Every branch carries the same scope, because a root-level clause beside the
+  // branches would not narrow them individually.
+  const programFilter =
+    filterClauses.length > 0 ? ["And", [scope, ...filterClauses]] : scope;
   const branches: Record<string, unknown>[] = [
     "searchText",
     "identityText",
@@ -183,6 +261,38 @@ function buildQueryBranches(programId: string, query: string) {
   }
 
   return branches;
+}
+
+/**
+ * The same documents the ranked branches would return, as one filter.
+ *
+ * `identityText` holds a subset of what `searchText` holds, so a single
+ * ContainsAnyToken over `searchText` covers both text branches and the all-terms
+ * branch that narrows them. BM25 matches a document sharing any query token, and
+ * ContainsAnyToken is that same test without the scoring.
+ */
+function buildCountFilter(
+  programId: string,
+  query: string,
+  filters: PartnerSearchCandidateQuery["filters"],
+) {
+  const matchClauses: unknown[] = [
+    ["searchText", "ContainsAnyToken", query, { last_as_prefix: true }],
+  ];
+
+  const ngrams = getQueryNgrams(query).join(" ");
+  if (ngrams) {
+    matchClauses.push(["emailNgrams", "ContainsAllTokens", ngrams]);
+  }
+
+  return [
+    "And",
+    [
+      ["programId", "Eq", programId],
+      ...buildFilterClauses(filters),
+      ["Or", matchClauses],
+    ],
+  ];
 }
 
 // The standard reciprocal-rank-fusion constant: dampens the gap between
@@ -240,15 +350,20 @@ export function createTurbopufferPartnerSearchProvider({
   const resolvedNamespace = namespace ?? createNamespace(resolvedNamespaceName);
 
   return {
-    async searchCandidates({ programId, query, limit }) {
+    async searchCandidates({ programId, query, limit, filters }) {
       validatePartnerSearchCandidateLimit(limit);
 
       const normalizedQuery = normalizePartnerSearchQuery(query);
-      const branches = buildQueryBranches(programId, normalizedQuery).map(
-        (branch) => ({ ...branch, top_k: limit, include_attributes: false }),
-      );
+      const branches = buildQueryBranches(
+        programId,
+        normalizedQuery,
+        filters,
+      ).map((branch) => ({
+        ...branch,
+        top_k: limit,
+        include_attributes: false,
+      }));
 
-      // One round trip regardless of branch count.
       const { results } = await withQueryDeadline(
         () => resolvedNamespace.multiQuery({ queries: branches }),
         QUERY_OPERATION_TIMEOUT_MS,
@@ -259,9 +374,29 @@ export function createTurbopufferPartnerSearchProvider({
       return { hits };
     },
 
-    async waitForIndexing() {
-      // Turbopuffer writes are read-after-write consistent, so a committed write
-      // is immediately queryable, so there is no indexing lag to wait on.
+    async countCandidates({ programId, query, filters }) {
+      const normalizedQuery = normalizePartnerSearchQuery(query);
+      const lastToken = normalizedQuery.split(/\s+/u).at(-1) ?? "";
+
+      if (lastToken.length < MIN_COUNT_PREFIX_LENGTH) {
+        return null;
+      }
+
+      const response = await withQueryDeadline(
+        () =>
+          resolvedNamespace.query({
+            filters: buildCountFilter(programId, normalizedQuery, filters),
+            aggregate_by: { total: ["Count"] },
+          }),
+        QUERY_OPERATION_TIMEOUT_MS,
+      );
+
+      const total = response.aggregations?.total;
+
+      // A missing aggregate means the response was not what we asked for.
+      // Reporting it as zero would render an unanswered count as an exact
+      // empty result.
+      return typeof total === "number" ? total : null;
     },
 
     async upsert(documents) {

@@ -1,8 +1,9 @@
 import { mergePartnerAccountsAction } from "@/lib/actions/partners/merge-partner-accounts";
 import useUser from "@/lib/swr/use-user";
 import { PartnerAvatar } from "@/ui/partners/partner-avatar";
+import { Callout } from "@/ui/shared/callout";
 import { Button } from "@dub/ui";
-import { AlertTriangle, ArrowDown } from "lucide-react";
+import { ArrowDown } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { useAction } from "next-safe-action/hooks";
 import { toast } from "sonner";
@@ -100,22 +101,22 @@ export function MergeAccountForm({
           </div>
         </AccountInputGroup>
 
-        <div className="mt-2 flex flex-col gap-3 rounded-lg border border-amber-200 bg-amber-50 px-5 py-4">
-          <AlertTriangle className="size-4 text-amber-600" />
-          <h3 className="text-sm font-semibold leading-5 text-amber-900">
-            This action can't be undone.
-          </h3>
-          <p className="text-sm font-normal leading-5 text-amber-900">
-            All data — including links, commissions, and payouts from{" "}
-            {sourceAccount.email} will be transferred to {targetAccount.email}.
-            Duplicate bounty submissions from {sourceAccount.email} will also be
-            deleted.
-            <br />
-            <br />
-            After the merge, {sourceAccount.email} will be permanently deleted.
-            If you're unsure, please contact our support team before proceeding.
-          </p>
-        </div>
+        <Callout variant="warn" size={2} className="mt-2">
+          <div className="space-y-3">
+            <h3 className="font-semibold">This action can't be undone.</h3>
+            <p>
+              All data — including links, commissions, and payouts from{" "}
+              {sourceAccount.email} will be transferred to{" "}
+              {targetAccount.email}. Duplicate bounty submissions from{" "}
+              {sourceAccount.email} will also be deleted.
+              <br />
+              <br />
+              After the merge, {sourceAccount.email} will be permanently
+              deleted. If you're unsure, please contact our support team before
+              proceeding.
+            </p>
+          </div>
+        </Callout>
       </div>
 
       <div className="flex items-center justify-between gap-4">

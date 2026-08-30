@@ -1,9 +1,11 @@
+import { queuePartnerSearchSync } from "@/lib/api/partners/queue-partner-search-sync";
 import { getLinkedInPost } from "@/lib/api/scrape-creators/get-linkedin-post";
 import { getSocialProfile } from "@/lib/api/scrape-creators/get-social-profile";
 import { withAdmin } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { sanitizeSocialHandle, sanitizeWebsite } from "@/lib/social-utils";
 import { PlatformType } from "@prisma/client";
+import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 
@@ -126,6 +128,10 @@ export const POST = withAdmin(
         lastCheckedAt: new Date(),
       },
     });
+
+    // Queue an index update because an admin corrected the searchable platform
+    // identifier.
+    waitUntil(queuePartnerSearchSync({ partnerIds: [partnerId] }));
 
     return NextResponse.json({
       platform: {

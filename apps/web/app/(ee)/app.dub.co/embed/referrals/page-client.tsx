@@ -3,7 +3,6 @@
 import { constructPartnerReferralLink } from "@/lib/partner-referrals/utils";
 import { constructPartnerLink } from "@/lib/partners/construct-partner-link";
 import { QueryLinkStructureHelpText } from "@/lib/partners/query-link-structure-help-text";
-import { TREMENDOUS_ENABLED_PROGRAM_IDS } from "@/lib/tremendous/constants";
 import {
   DiscountProps,
   PartnerBountyProps,
@@ -206,12 +205,11 @@ export function ReferralsEmbedPageClient({
       TREMENDOUS_SUPPORTED_COUNTRIES.includes(partner.country),
   );
 
-  // Show Tremendous payout settings if the partner already uses Tremendous,
+  // Show Tremendous payout settings if the partner already uses Tremendous for payouts,
   // or hasn't selected a payout method yet and is eligible based on country.
   const showSettingsTab =
-    TREMENDOUS_ENABLED_PROGRAM_IDS.includes(program.id) &&
-    (partner.defaultPayoutMethod === "tremendous" ||
-      (!partner.defaultPayoutMethod && isTremendousCountrySupported));
+    partner.defaultPayoutMethod === "tremendous" ||
+    (!partner.defaultPayoutMethod && isTremendousCountrySupported);
 
   const customerRewards = useMemo(
     () => rewards.filter((reward) => reward.event !== "referral"),

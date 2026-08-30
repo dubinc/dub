@@ -1,54 +1,39 @@
 import { createTurbopufferPartnerSearchProvider } from "./providers/turbopuffer";
-import { createUpstashRedisPartnerSearchProvider } from "./providers/upstash-redis";
 import type { PartnerSearchProvider } from "./types";
 
-const PARTNER_SEARCH_PROVIDER_NAMES = ["upstash-redis", "turbopuffer"] as const;
+// Built once per process. A fresh client per call would create a new HTTP
+// connection pool each time, paying a TLS handshake on every search.
+let cachedSearchProvider: PartnerSearchProvider | null = null;
 
-export type PartnerSearchProviderName =
-  (typeof PARTNER_SEARCH_PROVIDER_NAMES)[number];
-
-const providerFactories: Record<
-  PartnerSearchProviderName,
-  () => PartnerSearchProvider
-> = {
-  "upstash-redis": createUpstashRedisPartnerSearchProvider,
-  turbopuffer: createTurbopufferPartnerSearchProvider,
-};
-
-const providerCache = new Map<
-  PartnerSearchProviderName,
-  PartnerSearchProvider
->();
-
-export function getPartnerSearchProviderName(): PartnerSearchProviderName | null {
-  const provider = process.env.PARTNER_SEARCH_PROVIDER?.trim();
-
-  if (!provider) {
+/**
+ * The provider for everything that writes: the sync jobs and the backfill.
+ * Null until turbopuffer is configured, which is what keeps this dark.
+ */
+export function getPartnerSearchProvider(): PartnerSearchProvider | null {
+  if (!process.env.TURBOPUFFER_API_KEY?.trim()) {
     return null;
   }
 
-  if ((PARTNER_SEARCH_PROVIDER_NAMES as readonly string[]).includes(provider)) {
-    return provider as PartnerSearchProviderName;
-  }
+  cachedSearchProvider ??= createTurbopufferPartnerSearchProvider();
 
-  throw new Error(
-    `Unsupported partner search provider: ${provider}. Expected one of ${PARTNER_SEARCH_PROVIDER_NAMES.join(", ")}.`,
-  );
+  return cachedSearchProvider;
 }
 
-export function getPartnerSearchProvider(): PartnerSearchProvider | null {
-  const provider = getPartnerSearchProviderName();
+/**
+ * Whether the partners list and count read from the index rather than the
+ * database.
+ *
+ * Separate from the key so that turning search off never turns indexing off,
+ * which would strand deletions.
+ *
+ * It also keeps reads off until the backfill finishes. An empty index does not
+ * fall back: an empty candidate list is applied as `id IN ()` once the database
+ * search predicate is cleared, so every query returns nothing.
+ */
+export function isPartnerSearchReadEnabled(): boolean {
+  return process.env.PARTNER_SEARCH_READ_ENABLED?.trim() === "true";
+}
 
-  if (!provider) {
-    return null;
-  }
-
-  let instance = providerCache.get(provider);
-
-  if (!instance) {
-    instance = providerFactories[provider]();
-    providerCache.set(provider, instance);
-  }
-
-  return instance;
+export function getPartnerSearchReadProvider(): PartnerSearchProvider | null {
+  return isPartnerSearchReadEnabled() ? getPartnerSearchProvider() : null;
 }

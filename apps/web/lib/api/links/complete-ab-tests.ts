@@ -1,4 +1,5 @@
 import { getAnalytics } from "@/lib/analytics/get-analytics";
+import { queuePartnerSearchSyncForLinks } from "@/lib/api/partners/queue-partner-search-sync";
 import { prisma } from "@/lib/prisma";
 import { recordLink } from "@/lib/tinybird";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
@@ -78,6 +79,9 @@ export async function completeABTests(link: Link) {
       linkCache.set(response),
       // record the link
       recordLink(response),
+      // Queue an index update because the winning variant replaced the
+      // destination URL.
+      queuePartnerSearchSyncForLinks([response]),
       // send a link.updated webhook to the workspace
       response.project &&
         sendWorkspaceWebhook({

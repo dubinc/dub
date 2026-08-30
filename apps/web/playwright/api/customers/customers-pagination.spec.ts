@@ -4,6 +4,7 @@ import type { Customer } from "@/lib/types";
 import { nanoid } from "@dub/utils";
 import { expect } from "@playwright/test";
 import {
+  apiError,
   expectNoOverlap,
   expectSortedByCreatedAt,
   expectSortedById,
@@ -13,61 +14,50 @@ import { test } from "../fixtures";
 const PAGE_SIZE = 5;
 const SEED_COUNT = 25;
 
-test.describe.configure({
-  mode: "parallel",
-});
-
 test("GET /customers – rejects both startingAfter and endingBefore", async ({
   api,
 }) => {
-  const { status, data: error } = await api.get(
-    `/api/customers?${new URLSearchParams({
-      pageSize: String(PAGE_SIZE),
-      startingAfter: "id",
-      endingBefore: "id",
-    })}`,
-  );
-
-  expect(status).toEqual(422);
-  expect(error).toStrictEqual({
-    error: {
+  expect(
+    await api.get(
+      `/api/customers?${new URLSearchParams({
+        pageSize: String(PAGE_SIZE),
+        startingAfter: "id",
+        endingBefore: "id",
+      })}`,
+    ),
+  ).toEqual(
+    apiError({
       code: "unprocessable_entity",
       message:
         "You cannot use both startingAfter and endingBefore at the same time.",
-      doc_url: "https://dub.co/docs/api-reference/errors#unprocessable-entity",
-    },
-  });
+    }),
+  );
 });
 
 test("GET /customers – rejects page > MAX_OFFSET_PAGE", async ({ api }) => {
-  const { status, data: error } = await api.get(
-    `/api/customers?${new URLSearchParams({
-      page: "1001",
-      pageSize: "10",
-    })}`,
-  );
-
-  expect(status).toEqual(422);
-  expect(error).toStrictEqual({
-    error: {
+  expect(
+    await api.get(
+      `/api/customers?${new URLSearchParams({
+        page: "1001",
+        pageSize: "10",
+      })}`,
+    ),
+  ).toEqual(
+    apiError({
       code: "unprocessable_entity",
       message:
         "Page is too big (cannot be more than 1000), recommend using cursor-based pagination instead.",
-      doc_url: "https://dub.co/docs/api-reference/errors#unprocessable-entity",
-    },
-  });
+    }),
+  );
 });
 
 test("GET /customers – invalid cursor ID (startingAfter / endingBefore)", async ({
   api,
 }) => {
-  const invalidCursorError = {
-    error: {
-      code: "unprocessable_entity",
-      message: "Invalid cursor: the provided ID does not exist.",
-      doc_url: "https://dub.co/docs/api-reference/errors#unprocessable-entity",
-    },
-  };
+  const invalidCursorError = apiError({
+    code: "unprocessable_entity",
+    message: "Invalid cursor: the provided ID does not exist.",
+  });
 
   const { status: statusAfter, data: errorAfter } = await api.get(
     `/api/customers?${new URLSearchParams({
@@ -76,8 +66,7 @@ test("GET /customers – invalid cursor ID (startingAfter / endingBefore)", asyn
     })}`,
   );
 
-  expect(statusAfter).toEqual(422);
-  expect(errorAfter).toStrictEqual(invalidCursorError);
+  expect({ status: statusAfter, data: errorAfter }).toEqual(invalidCursorError);
 
   const { status: statusBefore, data: errorBefore } = await api.get(
     `/api/customers?${new URLSearchParams({
@@ -86,8 +75,9 @@ test("GET /customers – invalid cursor ID (startingAfter / endingBefore)", asyn
     })}`,
   );
 
-  expect(statusBefore).toEqual(422);
-  expect(errorBefore).toStrictEqual(invalidCursorError);
+  expect({ status: statusBefore, data: errorBefore }).toEqual(
+    invalidCursorError,
+  );
 });
 
 test.describe("with seeded customers", () => {
@@ -224,15 +214,11 @@ test.describe("with seeded customers", () => {
   test("GET /customers – rejects mixing page with startingAfter / endingBefore", async ({
     api,
   }) => {
-    const mixedPaginationError = {
-      error: {
-        code: "unprocessable_entity",
-        message:
-          "You cannot use both page and startingAfter/endingBefore at the same time. Please use one pagination method.",
-        doc_url:
-          "https://dub.co/docs/api-reference/errors#unprocessable-entity",
-      },
-    };
+    const mixedPaginationError = apiError({
+      code: "unprocessable_entity",
+      message:
+        "You cannot use both page and startingAfter/endingBefore at the same time. Please use one pagination method.",
+    });
 
     const { status: statusAfter, data: errorAfter } = await api.get(
       `/api/customers?${new URLSearchParams({
@@ -242,8 +228,9 @@ test.describe("with seeded customers", () => {
       })}`,
     );
 
-    expect(statusAfter).toEqual(422);
-    expect(errorAfter).toStrictEqual(mixedPaginationError);
+    expect({ status: statusAfter, data: errorAfter }).toEqual(
+      mixedPaginationError,
+    );
 
     const { status: statusBefore, data: errorBefore } = await api.get(
       `/api/customers?${new URLSearchParams({
@@ -253,8 +240,9 @@ test.describe("with seeded customers", () => {
       })}`,
     );
 
-    expect(statusBefore).toEqual(422);
-    expect(errorBefore).toStrictEqual(mixedPaginationError);
+    expect({ status: statusBefore, data: errorBefore }).toEqual(
+      mixedPaginationError,
+    );
   });
 
   test("GET /customers – rejects cursor pagination with unsupported sort field", async ({
@@ -268,15 +256,12 @@ test.describe("with seeded customers", () => {
       })}`,
     );
 
-    expect(status).toEqual(422);
-    expect(error).toStrictEqual({
-      error: {
+    expect({ status, data: error }).toEqual(
+      apiError({
         code: "unprocessable_entity",
         message:
           "Cursor-based pagination only supports sorting by `createdAt`. Use offset-based pagination (page/pageSize) for other sort fields.",
-        doc_url:
-          "https://dub.co/docs/api-reference/errors#unprocessable-entity",
-      },
-    });
+      }),
+    );
   });
 });

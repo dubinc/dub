@@ -23,12 +23,12 @@ vi.mock("@/lib/prisma", () => ({
   },
 }));
 
-function createSearchProvider(): PartnerSearchProvider {
+function createSearchProvider(total = 12_000): PartnerSearchProvider {
   return {
     searchCandidates: vi.fn().mockResolvedValue({
       hits: [{ id: "pge_2" }, { id: "pge_1" }],
     }),
-    waitForIndexing: vi.fn(),
+    countCandidates: vi.fn().mockResolvedValue(total),
     upsert: vi.fn(),
     delete: vi.fn(),
   };
@@ -41,9 +41,10 @@ describe("getPartnersCount search", () => {
     }
   });
 
-  it("counts database-filtered relevance candidates", async () => {
-    const searchProvider = createSearchProvider();
-    mocks.count.mockResolvedValue(1);
+  it("reports the provider's real total, not the truncated candidate count", async () => {
+    // Counting the hits would report the candidate ceiling as the answer.
+    const searchProvider = createSearchProvider(12_000);
+    mocks.count.mockResolvedValue(999);
 
     const count = await getPartnersCount<number>(
       {
@@ -55,20 +56,74 @@ describe("getPartnersCount search", () => {
       { searchProvider },
     );
 
-    expect(count).toBe(1);
-    expect(searchProvider.searchCandidates).toHaveBeenCalledWith({
+    expect(count).toBe(12_000);
+    expect(searchProvider.countCandidates).toHaveBeenCalledWith({
       programId: "prog_test",
       query: "examp",
       limit: 999,
+      filters: {
+        status: { values: ["approved"], exclude: false },
+        groupId: undefined,
+        country: { values: ["CA"], exclude: false },
+        partnerTagIds: undefined,
+      },
     });
-    expect(mocks.count).toHaveBeenCalledWith({
-      where: expect.objectContaining({
-        programId: "prog_test",
-        status: "approved",
-        id: { in: ["pge_2", "pge_1"] },
-        partner: { country: "CA" },
-      }),
-    });
+    expect(mocks.count).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ["a tenant ID", { tenantId: "tenant_1" }],
+    ["explicit partner IDs", { partnerIds: ["pn_1"] }],
+    ["a metric range", { totalClicksMin: 10 }],
+    ["a referral filter", { referredByPartnerId: "pn_referrer" }],
+  ])(
+    "falls back to the database count when the provider cannot see %s",
+    async (_label, extra) => {
+      // The aggregation only knows the filters it was given, so counting with
+      // one of these applied would over-count.
+      const searchProvider = createSearchProvider(12_000);
+      mocks.count.mockResolvedValue(2);
+
+      const count = await getPartnersCount<number>(
+        { programId: "prog_test", search: "examp", ...extra },
+        { searchProvider },
+      );
+
+      expect(count).toBe(2);
+      expect(searchProvider.countCandidates).not.toHaveBeenCalled();
+      expect(mocks.count).toHaveBeenCalled();
+    },
+  );
+
+  it("falls back to the database count when the provider declines to count", async () => {
+    const searchProvider = createSearchProvider();
+    (
+      searchProvider.countCandidates as ReturnType<typeof vi.fn>
+    ).mockResolvedValue(null);
+    mocks.count.mockResolvedValue(5);
+
+    const count = await getPartnersCount<number>(
+      { programId: "prog_test", search: "a" },
+      { searchProvider },
+    );
+
+    expect(count).toBe(5);
+  });
+
+  it("falls back to the database count when the aggregation fails", async () => {
+    const searchProvider = createSearchProvider();
+    (
+      searchProvider.countCandidates as ReturnType<typeof vi.fn>
+    ).mockRejectedValue(new Error("aggregation down"));
+    mocks.count.mockResolvedValue(2);
+    vi.spyOn(console, "error").mockImplementation(() => {});
+
+    const count = await getPartnersCount<number>(
+      { programId: "prog_test", search: "examp" },
+      { searchProvider },
+    );
+
+    expect(count).toBe(2);
   });
 
   it("groups database-filtered relevance candidates", async () => {
@@ -173,21 +228,28 @@ describe("getPartnersCount search", () => {
     mocks.count.mockResolvedValue(0);
 
     const groupings = [
-      { groupBy: "status", mock: mocks.enrollmentGroupBy },
-      { groupBy: "groupId", mock: mocks.enrollmentGroupBy },
-      { groupBy: "country", mock: mocks.partnerGroupBy },
-      { groupBy: "partnerTagId", mock: mocks.partnerTagGroupBy },
-      { groupBy: "referredByPartnerId", mock: mocks.applicationEventGroupBy },
-      { groupBy: undefined, mock: mocks.count },
+      { groupBy: "status", mock: mocks.enrollmentGroupBy, extra: {} },
+      { groupBy: "groupId", mock: mocks.enrollmentGroupBy, extra: {} },
+      { groupBy: "country", mock: mocks.partnerGroupBy, extra: {} },
+      { groupBy: "partnerTagId", mock: mocks.partnerTagGroupBy, extra: {} },
+      {
+        groupBy: "referredByPartnerId",
+        mock: mocks.applicationEventGroupBy,
+        extra: {},
+      },
+      // The ungrouped count only reaches the database when a database-only
+      // filter forces it to.
+      { groupBy: undefined, mock: mocks.count, extra: { totalClicksMin: 1 } },
     ] as const;
 
-    for (const { groupBy, mock } of groupings) {
+    for (const { groupBy, mock, extra } of groupings) {
       mock.mockClear();
 
       await getPartnersCount(
         {
           programId: "prog_test",
           search: "examp",
+          ...extra,
           ...(groupBy && { groupBy }),
         },
         { searchProvider: createSearchProvider() },

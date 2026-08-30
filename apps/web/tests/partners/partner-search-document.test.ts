@@ -8,11 +8,19 @@ const source: PartnerSearchDocumentSource = {
   id: "pge_test",
   programId: "prog_test",
   partnerId: "pn_test",
+  status: "approved" as const,
+  groupId: "grp_test",
   partner: {
     name: "Rafi Hasan",
     email: "partner@example.com",
     companyName: "Dub Partners",
     description: "Developer tools educator",
+    country: "US",
+    programPartnerTags: [
+      { programId: "prog_test", partnerTagId: "ptag_a" },
+      // A tag from a different program must not leak into this document.
+      { programId: "prog_other", partnerTagId: "ptag_other" },
+    ],
     platforms: [
       {
         type: "website",
@@ -59,6 +67,11 @@ describe("serializePartnerSearchDocument", () => {
         "https://example.com/referrals/rafi",
         "https://rafi.dev/tools",
       ],
+      status: "approved",
+      groupId: "grp_test",
+      country: "US",
+      // The tag from prog_other is dropped: tags are per program.
+      partnerTagIds: ["ptag_a"],
     });
   });
 });
