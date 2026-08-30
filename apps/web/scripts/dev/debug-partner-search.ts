@@ -8,6 +8,7 @@ import {
   type PartnerSearchDocument,
   type PartnerSearchHit,
 } from "@/lib/api/partners/search";
+import { PARTNER_SEARCH_NAMESPACE } from "@/lib/api/partners/search/providers/turbopuffer";
 import { prisma } from "@/lib/prisma";
 import { parsePositiveInteger } from "@/scripts/utils/parse-cli-number";
 import { ProgramEnrollmentStatus } from "@prisma/client";
@@ -103,7 +104,6 @@ function containsLiteralQuery(
     : false;
 }
 
-const NAMESPACE = "partner-search-v2";
 const EMAIL_PATTERN = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 
 /**
@@ -123,7 +123,7 @@ async function fetchIndexedText(ids: string[]): Promise<Map<string, string>> {
   const namespace = new Turbopuffer({
     apiKey,
     region: "aws-us-east-1",
-  }).namespace(NAMESPACE);
+  }).namespace(PARTNER_SEARCH_NAMESPACE);
   const { rows } = await namespace.query({
     rank_by: ["id", "asc"],
     top_k: ids.length,

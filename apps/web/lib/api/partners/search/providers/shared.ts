@@ -4,9 +4,7 @@ const NGRAM_SIZE = 3;
 
 /**
  * Three-character tokens, which is what lets a partial email match without a
- * leading-wildcard query. Providers package these differently. Redis Search
- * requires each one as a separate `$eq`, Turbopuffer takes them as a single
- * query string, so this returns the tokens and leaves the packaging to them.
+ * leading-wildcard query.
  */
 function toNgrams(value: string): string[] {
   return Array.from(
@@ -18,7 +16,7 @@ function toNgrams(value: string): string[] {
   );
 }
 
-/** N-grams of an indexed email, as the space-separated field both providers store. */
+/** N-grams of an indexed email, as the space-separated field the document stores. */
 export function getEmailNgrams(email: string | null): string {
   if (!email) {
     return "";
@@ -43,16 +41,4 @@ export function getQueryNgrams(query: string): string[] {
   }
 
   return toNgrams(query);
-}
-
-/**
- * First non-blank wins. `||` rather than `??` because a blank value has to fall
- * through to the default, otherwise an empty env var silently targets an index
- * named "".
- */
-export function resolveIndexName(
-  candidates: (string | undefined)[],
-  fallback: string,
-): string {
-  return candidates.map((value) => value?.trim()).find(Boolean) || fallback;
 }

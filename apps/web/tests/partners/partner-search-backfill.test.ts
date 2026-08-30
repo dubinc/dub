@@ -23,11 +23,15 @@ function createSource(id: string): PartnerSearchDocumentSource {
     id,
     programId: "prog_test",
     partnerId: `pn_${id}`,
+    status: "approved" as const,
+    groupId: null,
     partner: {
       name: "Rafi Hasan",
       email: "partner@example.com",
       companyName: "Dub Partners",
       description: "Developer tools educator",
+      country: null,
+      programPartnerTags: [],
       platforms: [],
     },
     links: [],
@@ -37,7 +41,7 @@ function createSource(id: string): PartnerSearchDocumentSource {
 function createProvider(): PartnerSearchProvider {
   return {
     searchCandidates: vi.fn(),
-    waitForIndexing: vi.fn(),
+    countCandidates: vi.fn(),
     upsert: vi.fn(),
     delete: vi.fn(),
   };
@@ -78,7 +82,6 @@ describe("backfillPartnerSearch", () => {
       take: 2,
     });
     expect(searchProvider.upsert).toHaveBeenCalledTimes(2);
-    expect(searchProvider.waitForIndexing).toHaveBeenCalledOnce();
     expect(onProgress).toHaveBeenLastCalledWith({
       batchSize: 1,
       processed: 3,

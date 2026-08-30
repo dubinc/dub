@@ -1,6 +1,7 @@
 import * as z from "zod/v4";
 import { includeProgramEnrollment } from "../../api/links/include-program-enrollment";
 import { includeTags } from "../../api/links/include-tags";
+import { queuePartnerSearchSync } from "../../api/partners/queue-partner-search-sync";
 import { CRON_BATCH_SIZE } from "../../cron";
 import { prisma } from "../../prisma";
 import { recordLink } from "../../tinybird";
@@ -68,6 +69,14 @@ export const partnerTagDeletedJob = defineJob({
       console.log(
         `[partnerTagDeletedJob] Deleted ${count} program–partner tag associations.`,
       );
+
+      // Queue an index update because the tag was removed from these
+      // enrollments.
+      await queuePartnerSearchSync({
+        enrollmentIds: programPartnerTags.map(
+          ({ programEnrollment }) => programEnrollment.id,
+        ),
+      });
 
       // Update the links to remove the partner tag from TB
       const linksToUpdate = await prisma.link.findMany({

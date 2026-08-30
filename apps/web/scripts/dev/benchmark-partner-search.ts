@@ -2,7 +2,7 @@
  * Measures p99 latency of the relevance-ranked partner list for a program.
  *
  * Calls `getPartners` in process, not over HTTP, so the numbers exclude route
- * handling, auth, and serialization, so treat them as a floor for the endpoint.
+ * handling, auth, and serialization. Treat them as a floor for the endpoint.
  *
  * --searchOnly times the provider's candidate query alone and skips the
  * database. Use it to compare providers: they are the same remote services
@@ -21,14 +21,13 @@
  *   pnpm run script dev/benchmark-partner-search --programId=prog_123 [--requests=1000]
  *     [--sampleSize=100] [--concurrency=10] [--warmup=50] [--thresholdMs=1000] [--searchOnly]
  *
- * Requires PARTNER_SEARCH_PROVIDER and an index backfilled for the program:
+ * Requires TURBOPUFFER_API_KEY and an index backfilled for the program:
  *   pnpm run script partners/backfill-partner-search --programId=prog_123
  */
 
 import { getPartners } from "@/lib/api/partners/get-partners";
 import {
   getPartnerSearchProvider,
-  getPartnerSearchProviderName,
   PARTNER_SEARCH_CANDIDATE_LIMIT,
   partnerSearchDocumentSelect,
   serializePartnerSearchDocument,
@@ -370,7 +369,6 @@ async function runWithConcurrency<T>(
 async function main() {
   const options = parseArguments(process.argv.slice(2));
   const searchProvider = getPartnerSearchProvider();
-  const providerName = getPartnerSearchProviderName();
 
   if (!searchProvider) {
     throw new Error(
@@ -451,7 +449,6 @@ async function main() {
   };
 
   console.log(`Partner search benchmark for program ${options.programId}`);
-  console.log(`Provider: ${providerName}`);
   console.log(`${partnerCount.toLocaleString()} program partners`);
   console.log(
     `${options.requests.toLocaleString()} measured requests, ${options.warmupRequests.toLocaleString()} warm-up requests, concurrency ${options.concurrency}`,

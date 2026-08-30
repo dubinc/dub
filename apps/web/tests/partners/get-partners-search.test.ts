@@ -37,7 +37,7 @@ function createSearchProvider(
 ): PartnerSearchProvider {
   return {
     searchCandidates: vi.fn().mockResolvedValue({ hits }),
-    waitForIndexing: vi.fn(),
+    countCandidates: vi.fn(),
     upsert: vi.fn(),
     delete: vi.fn(),
   };
@@ -99,10 +99,18 @@ describe("getPartners search", () => {
       { searchProvider },
     );
 
+    // The status filter reaches the provider, so it narrows before the ranking
+    // truncates rather than after.
     expect(searchProvider.searchCandidates).toHaveBeenCalledWith({
       programId: "prog_test",
       query: "examp",
       limit: 999,
+      filters: {
+        status: { values: ["approved"], exclude: false },
+        groupId: undefined,
+        country: undefined,
+        partnerTagIds: undefined,
+      },
     });
     expect(mocks.findMany).toHaveBeenCalledWith(
       expect.objectContaining({
