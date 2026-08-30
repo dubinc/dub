@@ -56,9 +56,7 @@ export async function getPartners(filters: PartnerFilters) {
     },
     take: pageSize,
     skip: (page - 1) * pageSize,
-    orderBy: {
-      [sortBy]: sortOrder,
-    },
+    orderBy: [{ [sortBy]: sortOrder }, { id: sortOrder }],
   });
 
   return partners.map(
