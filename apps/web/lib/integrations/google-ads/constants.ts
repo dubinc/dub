@@ -1,5 +1,8 @@
 import { DUB_WORKSPACE_ID } from "@dub/utils";
 
+export const GOOGLE_ADS_LOGO =
+  "https://dubassets.com/integrations/int_1M096GK5Q66FJ78WQAH82SD7V_5icvkj4";
+
 export const GOOGLE_ADS_DEFAULT_SETTINGS = {
   customers: [],
   customerId: null,

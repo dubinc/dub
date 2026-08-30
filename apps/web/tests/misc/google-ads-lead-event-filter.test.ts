@@ -1,4 +1,7 @@
-import { resolveGoogleAdsConversionMapping } from "@/lib/integrations/google-ads/utils";
+import {
+  getGoogleAdsEventMappingsError,
+  resolveGoogleAdsConversionMapping,
+} from "@/lib/integrations/google-ads/utils";
 import { describe, expect, it } from "vitest";
 
 const signUpAction = "customers/1/conversionActions/signup";
@@ -77,5 +80,43 @@ describe("resolveGoogleAdsConversionMapping", () => {
         eventName: undefined,
       }),
     ).toEqual({ conversionAction: signUpAction, eventNames: [] });
+  });
+});
+
+describe("getGoogleAdsEventMappingsError", () => {
+  it("returns null when event names are unique", () => {
+    expect(
+      getGoogleAdsEventMappingsError([
+        { conversionAction: signUpAction, eventNames: ["Sign Up"] },
+        { conversionAction: trialAction, eventNames: ["Started Trial"] },
+      ]),
+    ).toBeNull();
+  });
+
+  it("rejects the same event name on multiple conversion actions", () => {
+    expect(
+      getGoogleAdsEventMappingsError([
+        { conversionAction: signUpAction, eventNames: ["Sign Up"] },
+        { conversionAction: trialAction, eventNames: ["Sign Up"] },
+      ]),
+    ).toContain("Sign Up");
+  });
+
+  it("rejects the same conversion action more than once", () => {
+    expect(
+      getGoogleAdsEventMappingsError([
+        { conversionAction: signUpAction, eventNames: ["Sign Up"] },
+        { conversionAction: signUpAction, eventNames: ["Started Trial"] },
+      ]),
+    ).toBe("Each conversion action can only be used once.");
+  });
+
+  it("rejects more than one catch-all mapping", () => {
+    expect(
+      getGoogleAdsEventMappingsError([
+        { conversionAction: signUpAction, eventNames: [] },
+        { conversionAction: trialAction, eventNames: [] },
+      ]),
+    ).toBe("Only one conversion action can receive unmatched events.");
   });
 });
