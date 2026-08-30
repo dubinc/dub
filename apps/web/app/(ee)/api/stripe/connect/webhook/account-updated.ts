@@ -108,8 +108,7 @@ export async function accountUpdated(event: Stripe.AccountUpdatedEvent) {
     },
   });
 
-  // Queue an index update because the partner country moved, a filterable
-  // field.
+  // Queue an index update because the partner country moved (filterable field)
   if (countryChanged) {
     await queuePartnerSearchSync({ partnerIds: [partner.id] });
   }

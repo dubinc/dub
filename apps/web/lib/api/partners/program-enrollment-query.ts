@@ -17,8 +17,7 @@ export function isExactEmailQuery(query: string): boolean {
 
 /**
  * A pasted partner ID, not a prefix of one. IDs are 24 or 25 characters after
- * `pn_`, verified against all 626,348 production documents, so a shorter
- * suffix is someone typing, and matching it exactly would return nothing.
+ * `pn_`, so a shorter suffix is someone typing, and matching it exactly would return nothing.
  */
 export function isExactPartnerIdQuery(query: string): boolean {
   return /^pn_[a-z0-9]{24,}$/iu.test(query);
