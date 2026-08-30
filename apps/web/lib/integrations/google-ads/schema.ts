@@ -1,4 +1,5 @@
 import * as z from "zod/v4";
+import { getGoogleAdsEventMappingsError } from "./utils";
 
 export const googleAdsAuthTokenSchema = z.object({
   access_token: z.string(),
@@ -20,17 +21,31 @@ export const googleAdsCustomerSchema = z.object({
 
 export const googleAdsEventMappingSchema = z.object({
   conversionAction: z.string().min(1),
-  // Empty means this mapping matches all event names of that type
+  // Empty means this mapping matches unmatched event names of that type
   eventNames: z.array(z.string().trim().min(1).max(255)).max(50).default([]),
 });
+
+const googleAdsEventMappingsSchema = z
+  .array(googleAdsEventMappingSchema)
+  .max(50)
+  .superRefine((mappings, ctx) => {
+    const error = getGoogleAdsEventMappingsError(mappings);
+    if (error) {
+      ctx.addIssue({
+        code: "custom",
+        message: error,
+      });
+    }
+  })
+  .default([]);
 
 export const googleAdsSettingsSchema = z.object({
   customers: z.array(googleAdsCustomerSchema).default([]),
   customerId: z.string().nullish(),
   loginCustomerId: z.string().nullish(),
   customerName: z.string().nullish(),
-  leadMappings: z.array(googleAdsEventMappingSchema).max(50).default([]),
-  saleMappings: z.array(googleAdsEventMappingSchema).max(50).default([]),
+  leadMappings: googleAdsEventMappingsSchema,
+  saleMappings: googleAdsEventMappingsSchema,
 });
 
 export const googleAdsConversionActionSchema = z.object({
