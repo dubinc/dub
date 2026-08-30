@@ -281,7 +281,7 @@ export async function getPartnersCount<T>(
       const total = await searchProvider.countCandidates(candidateQuery);
 
       if (typeof total === "number") {
-        return total as T;
+        return Math.min(total, candidateQuery.limit) as T;
       }
     } catch (error) {
       console.error(

@@ -651,7 +651,7 @@ function PartnersFilters({
           ) : null}
         </div>
         <SearchBoxPersisted
-          placeholder="Search name, email, company, platform, or link"
+          placeholder="Search by name, email, link, etc."
           inputClassName="md:w-80"
           loading={searchLoading}
           resetParamsOnChange={PARTNER_SEARCH_RESET_PARAMS}

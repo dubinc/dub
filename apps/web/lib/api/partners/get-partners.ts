@@ -113,7 +113,10 @@ export async function getPartners(
     const pageEnrollments =
       pageIds.length > 0
         ? await prisma.programEnrollment.findMany({
-            where: { id: { in: pageIds } },
+            where: {
+              ...candidateWhere,
+              id: { in: pageIds },
+            },
             include,
           })
         : [];
