@@ -2,7 +2,6 @@ import {
   LOCALHOST_IP,
   REDIRECTION_QUERY_PARAM,
 } from "@dub/utils/src/constants";
-import { getUrlFromStringIfValid } from "@dub/utils/src/functions";
 import { ipAddress } from "@vercel/functions";
 import { NextRequest, userAgent } from "next/server";
 import { isAppsFlyerTrackingUrl } from "./is-appsflyer-tracking-url";
@@ -24,19 +23,6 @@ export const getFinalUrl = (
 ) => {
   // query is the query string (e.g. d.to/github?utm_source=twitter -> ?utm_source=twitter)
   const searchParams = req.nextUrl.searchParams;
-
-  // for Google-certified click tracker domains (dub.sh, dub.link):
-  // if there is a redirection url set, then use it instead of the target
-  if (["dub.sh", "dub.link"].includes(parse(req).domain)) {
-    const redirectionUrl = getUrlFromStringIfValid(
-      searchParams.get(REDIRECTION_QUERY_PARAM) ?? "",
-    );
-
-    // if redirectionUrl is present, return it immediately
-    if (redirectionUrl) {
-      return redirectionUrl;
-    }
-  }
 
   const urlObj = new URL(url);
 
