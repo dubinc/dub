@@ -25,13 +25,20 @@ export const getFinalUrl = (
   // query is the query string (e.g. d.to/github?utm_source=twitter -> ?utm_source=twitter)
   const searchParams = req.nextUrl.searchParams;
 
-  // if there is a redirection url set, then use it instead of the target url
-  const redirectionUrl = getUrlFromStringIfValid(
-    searchParams.get(REDIRECTION_QUERY_PARAM) ?? "",
-  );
+  // for Google-certified click tracker domains (dub.sh, dub.link):
+  // if there is a redirection url set, then use it instead of the target
+  if (["dub.sh", "dub.link"].includes(parse(req).domain)) {
+    const redirectionUrl = getUrlFromStringIfValid(
+      searchParams.get(REDIRECTION_QUERY_PARAM) ?? "",
+    );
 
-  // get the query params of the target url
-  const urlObj = redirectionUrl ? new URL(redirectionUrl) : new URL(url);
+    // if redirectionUrl is present, return it immediately
+    if (redirectionUrl) {
+      return redirectionUrl;
+    }
+  }
+
+  const urlObj = new URL(url);
 
   if (via) {
     urlObj.searchParams.set("via", via);
@@ -58,9 +65,6 @@ export const getFinalUrl = (
 
   // for AppsFlyer tracking links
   if (isAppsFlyerTrackingUrl(url)) {
-    const { ua } = userAgent(req);
-    const ip = process.env.VERCEL === "1" ? ipAddress(req) : LOCALHOST_IP;
-
     // set hardcoded query params
     urlObj.searchParams.set("pid", "dubinc_int");
 
