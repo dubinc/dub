@@ -1,4 +1,5 @@
 import { DubApiError } from "@/lib/api/errors";
+import { queuePartnerSearchSync } from "@/lib/api/partners/queue-partner-search-sync";
 import { requestEmailChange } from "@/lib/auth/request-email-change";
 import { prisma } from "@/lib/prisma";
 import { storage } from "@/lib/storage";
@@ -101,6 +102,12 @@ export async function syncNameAndImageToPartner({
       ...(hasImageUpdate && { image: partnerImage ?? null }),
     },
   });
+
+  // Queue an index update because the partner name changed. An image-only sync
+  // is skipped, since the image is not indexed.
+  if (hasNameUpdate && name) {
+    await queuePartnerSearchSync({ partnerIds: [partnerId] });
+  }
 }
 
 export async function syncNameAndImageToUser({

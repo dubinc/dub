@@ -12,6 +12,7 @@ import { trackActivityLog } from "../../activity-log/track-activity-log";
 import { DubApiError } from "../../errors";
 import { resolveFraudGroups } from "../../fraud/resolve-fraud-groups";
 import { getDefaultProgramIdOrThrow } from "../../programs/get-default-program-id-or-throw";
+import { queuePartnerSearchSync } from "../queue-partner-search-sync";
 
 type RejectPartnerInput = z.infer<typeof rejectPartnerSchema> & {
   userId: string;
@@ -146,6 +147,11 @@ export async function rejectPartner({
 
   waitUntil(
     Promise.allSettled([
+      // Queue an index update because the enrollment was either rejected or
+      // deleted. The job reads the ID back, so this does not need to know
+      // which.
+      queuePartnerSearchSync({ enrollmentIds: [programEnrollment.id] }),
+
       trackActivityLog({
         workspaceId: workspace.id,
         programId,

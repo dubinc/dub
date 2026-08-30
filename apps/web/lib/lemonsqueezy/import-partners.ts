@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { PartnerGroup, Program } from "@prisma/client";
 import { createId } from "../api/create-id";
+import { queuePartnerSearchSync } from "../api/partners/queue-partner-search-sync";
 import { createLink } from "../api/links";
 import { generatePartnerLink } from "../api/partners/generate-partner-link";
 import { logImportError } from "../tinybird/log-import-error";
@@ -136,6 +137,15 @@ export async function importPartners(payload: LemonSqueezyImportPayload) {
           })),
         );
       }
+
+      // Queue an index update because the imported partners were enrolled.
+      // Queued per page rather than per partner.
+      await queuePartnerSearchSync({
+        partnerIds: results.flatMap((result) =>
+          result.status === "fulfilled" && result.value ? [result.value] : [],
+        ),
+        programId: program.id,
+      });
     }
 
     if (notImportedAffiliates.length > 0) {
@@ -247,7 +257,7 @@ async function createPartnerAndLinks({
     console.log(
       `Partner ${partner.id} already has a link with key ${affiliate.id}, skipping...`,
     );
-    return;
+    return partner.id;
   }
 
   try {
@@ -279,7 +289,7 @@ async function createPartnerAndLinks({
         code: "LINK_NOT_FOUND",
         message: `Partner link key conflict for affiliate ${affiliate.id}: generated key "${partnerLink.key}" instead of "${affiliate.id}".`,
       });
-      return;
+      return partner.id;
     }
 
     await createLink(partnerLink);
@@ -297,4 +307,6 @@ async function createPartnerAndLinks({
       }`,
     });
   }
+
+  return partner.id;
 }

@@ -2,6 +2,7 @@ import { resolveFraudGroups } from "@/lib/api/fraud/resolve-fraud-groups";
 import { linkCache } from "@/lib/api/links/cache";
 import { includeProgramEnrollment } from "@/lib/api/links/include-program-enrollment";
 import { includeTags } from "@/lib/api/links/include-tags";
+import { queuePartnerSearchSync } from "@/lib/api/partners/queue-partner-search-sync";
 import { syncTotalCommissions } from "@/lib/api/partners/sync-total-commissions";
 import { logger } from "@/lib/axiom/server";
 import { PRISMA_UPDATEMANY_LIMIT } from "@/lib/cron";
@@ -633,6 +634,16 @@ async function mergeSingleEnrollment({
 
     action = "transfer";
   }
+
+  // Queue an index update because the merge either reassigned the source
+  // enrollment to the target partner or deleted it. Passing both sides lets the
+  // job work out which.
+  await queuePartnerSearchSync({
+    enrollmentIds: [
+      sourceEnrollment.id,
+      ...(targetEnrollment ? [targetEnrollment.id] : []),
+    ],
+  });
 
   await sendWorkspaceWebhook({
     workspace: sourceEnrollment.program.workspace,
