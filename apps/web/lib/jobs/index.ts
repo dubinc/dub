@@ -1,33 +1,18 @@
 import { createId } from "@/lib/api/create-id";
-import { logger } from "@/lib/axiom/server";
+import { logger, toErrorFields } from "@/lib/axiom/server";
 import { qstash } from "@/lib/cron";
 import { prisma } from "@/lib/prisma";
-import { APP_DOMAIN_WITH_NGROK, chunk } from "@dub/utils";
-import { JobStatus, Prisma } from "@prisma/client";
-import { PublishRequest } from "@upstash/qstash";
+import { chunk } from "@dub/utils";
+import { Prisma } from "@prisma/client";
 import * as z from "zod/v4";
+import { QSTASH_BATCH_CHUNK_SIZE } from "./constants";
 import {
-  LAST_ERROR_MAX_LENGTH,
-  MAX_JOB_ATTEMPTS,
-  MAX_JOBS_PER_BATCH,
-  QSTASH_BATCH_CHUNK_SIZE,
-} from "./constants";
-
-type JobEnvelope = z.infer<typeof jobEnvelopeSchema>;
-
-type JobPublishOptions = Pick<
-  PublishRequest,
-  | "delay"
-  | "notBefore"
-  | "deduplicationId"
-  | "retries"
-  | "flowControl"
-  | "label"
->;
-
-export type JobDispatchOptions = JobPublishOptions & {
-  queue?: string;
-};
+  buildJobLabel,
+  buildQStashJobRequest,
+  isPublishSuccess,
+  jobNameSchema,
+  type JobDispatchOptions,
+} from "./send-jobs";
 
 // Per-job defaults, merged under per-dispatch options
 export type JobDefaults = Pick<
@@ -52,48 +37,7 @@ interface DispatchJobInput {
   options?: JobDispatchOptions;
 }
 
-const JOBS_ENDPOINT_URL = `${APP_DOMAIN_WITH_NGROK}/api/jobs/process`;
-
 const QSTASH_PUBLISH_MAX_RETRIES = 3;
-
-export const jobNameSchema = z
-  .string()
-  .regex(
-    /^[a-z][a-z0-9]*(-[a-z0-9]+)*-job$/,
-    'Job name must be kebab-case ending in "-job"',
-  );
-
-function getJobsEndpointUrl(name: string) {
-  return `${JOBS_ENDPOINT_URL}/${name}`;
-}
-
-// QStash label: user-provided tag first, job name appended for log filtering
-function buildJobLabel(name: string, label?: string) {
-  return label ? `${label},${name}` : name;
-}
-
-// QStash deduplicationId: user-provided id first, job name appended for cross-job isolation
-function buildJobDeduplicationId(name: string, deduplicationId?: string) {
-  if (!deduplicationId) {
-    return undefined;
-  }
-
-  return `${deduplicationId},${name}`;
-}
-
-// Wire format published to QStash and consumed by /api/jobs/process/[jobName]
-export const jobEnvelopeSchema = z.object({
-  name: jobNameSchema,
-  dispatchedAt: z.string(),
-  payload: z.unknown(),
-});
-
-function toErrorFields(error: unknown) {
-  return {
-    errorName: error instanceof Error ? error.name : undefined,
-    errorMessage: error instanceof Error ? error.message : String(error),
-  };
-}
 
 async function withQStashRetry<T>(fn: () => Promise<T>): Promise<T> {
   for (let attempt = 0; attempt <= QSTASH_PUBLISH_MAX_RETRIES; attempt++) {
@@ -112,90 +56,6 @@ async function withQStashRetry<T>(fn: () => Promise<T>): Promise<T> {
   }
 
   throw new Error("Failed to publish to QStash.");
-}
-
-type JobReplayOptions = Pick<
-  JobDispatchOptions,
-  "deduplicationId" | "retries" | "queue" | "flowControl" | "label"
->;
-
-function buildQStashJobRequest(
-  { name, payload, options }: DispatchJobInput,
-  opts?: {
-    dispatchedAt?: string;
-    batch?: boolean;
-    notBefore?: number;
-  },
-) {
-  const envelope: JobEnvelope = {
-    name,
-    payload,
-    dispatchedAt: opts?.dispatchedAt ?? new Date().toISOString(),
-  };
-
-  const notBefore = opts?.notBefore ?? options?.notBefore;
-  const deduplicationId = buildJobDeduplicationId(
-    name,
-    options?.deduplicationId,
-  );
-
-  return {
-    url: getJobsEndpointUrl(name),
-    body: envelope,
-    label: buildJobLabel(name, options?.label),
-    ...(options?.delay &&
-      opts?.notBefore === undefined && {
-        delay: options.delay,
-      }),
-    ...(notBefore && { notBefore }),
-    ...(deduplicationId && { deduplicationId }),
-    ...(options?.retries !== undefined && { retries: options.retries }),
-    ...(options?.flowControl && { flowControl: options.flowControl }),
-    ...(opts?.batch && options?.queue && { queueName: options.queue }),
-  };
-}
-
-// Used by /api/cron/queue/retry to republish deferred defineJob rows
-export function buildReplayRequest(
-  job: {
-    name: string;
-    payload: Prisma.JsonValue;
-    options: Prisma.JsonValue | null;
-    createdAt: Date;
-    scheduledAt: Date | null;
-  },
-  now: Date = new Date(),
-) {
-  const options = (job.options ?? {}) as JobReplayOptions;
-
-  const notBefore =
-    job.scheduledAt && job.scheduledAt > now
-      ? Math.floor(job.scheduledAt.getTime() / 1000)
-      : undefined;
-
-  return buildQStashJobRequest(
-    {
-      name: job.name,
-      payload: job.payload,
-      options,
-    },
-    {
-      dispatchedAt: job.createdAt.toISOString(),
-      batch: true,
-      notBefore,
-    },
-  );
-}
-
-export function isPublishSuccess(
-  response: unknown,
-): response is { messageId: string } {
-  return (
-    typeof response === "object" &&
-    response !== null &&
-    "messageId" in response &&
-    typeof response.messageId === "string"
-  );
 }
 
 // Persist jobs that could not be published to QStash. The
@@ -342,7 +202,7 @@ async function dispatchJobs(
           logger.error("jobs.dispatch_lost", {
             jobName,
             jobCount: failedInputs.length,
-            ...toErrorFields(error),
+            error: toErrorFields(error),
           });
 
           failed += failedInputs.length;
@@ -364,7 +224,7 @@ async function dispatchJobs(
         jobName,
         jobCount: inputChunk.length,
         batch: !isSingleDispatch,
-        ...toErrorFields(error),
+        error: toErrorFields(error),
       });
 
       try {
@@ -375,7 +235,7 @@ async function dispatchJobs(
         logger.error("jobs.dispatch_lost", {
           jobName,
           jobCount: inputChunk.length,
-          ...toErrorFields(persistError),
+          error: toErrorFields(persistError),
         });
 
         failed += inputChunk.length;
@@ -448,113 +308,3 @@ export function defineJob<TSchema extends z.ZodType>({
 }
 
 export type JobDefinition = ReturnType<typeof defineJob<z.ZodType>>;
-
-/** Republish deferred defineJob rows that failed to publish at dispatch time. */
-export async function publishPendingDefineJobs(): Promise<{
-  attempted: number;
-  published: number;
-  failed: number;
-}> {
-  const jobs = await prisma.job.findMany({
-    where: {
-      name: {
-        endsWith: "-job",
-      },
-      scheduledAt: {
-        lte: new Date(),
-      },
-      status: {
-        in: [JobStatus.pending, JobStatus.failed],
-      },
-      attempts: {
-        lt: MAX_JOB_ATTEMPTS,
-      },
-    },
-    orderBy: {
-      createdAt: "asc",
-    },
-    take: MAX_JOBS_PER_BATCH,
-  });
-
-  if (jobs.length === 0) {
-    return { attempted: 0, published: 0, failed: 0 };
-  }
-
-  const now = new Date();
-  const publishedIds: string[] = [];
-  const failedByError = new Map<string, string[]>();
-
-  for (const jobChunk of chunk(jobs, QSTASH_BATCH_CHUNK_SIZE)) {
-    try {
-      const responses = await qstash.batchJSON(
-        jobChunk.map((job) => buildReplayRequest(job, now)),
-      );
-
-      jobChunk.forEach((job, index) => {
-        if (isPublishSuccess(responses[index])) {
-          publishedIds.push(job.id);
-        } else {
-          const key = "QStash batch publish did not return a messageId";
-          const ids = failedByError.get(key) ?? [];
-          ids.push(job.id);
-          failedByError.set(key, ids);
-        }
-      });
-    } catch (error) {
-      const lastError = (
-        error instanceof Error ? error.message : String(error)
-      ).slice(0, LAST_ERROR_MAX_LENGTH);
-
-      for (const job of jobChunk) {
-        const ids = failedByError.get(lastError) ?? [];
-        ids.push(job.id);
-        failedByError.set(lastError, ids);
-      }
-    }
-  }
-
-  if (publishedIds.length > 0) {
-    await prisma.job.deleteMany({
-      where: {
-        id: {
-          in: publishedIds,
-        },
-      },
-    });
-  }
-
-  for (const [lastError, ids] of failedByError) {
-    await prisma.job.updateMany({
-      where: {
-        id: {
-          in: ids,
-        },
-      },
-      data: {
-        status: JobStatus.failed,
-        lastError,
-        attempts: {
-          increment: 1,
-        },
-      },
-    });
-  }
-
-  const failedIds = new Set([...failedByError.values()].flat());
-  const exhaustedJobs = jobs.filter(
-    (job) => failedIds.has(job.id) && job.attempts + 1 >= MAX_JOB_ATTEMPTS,
-  );
-
-  if (exhaustedJobs.length > 0) {
-    logger.error("jobs.retry_exhausted", {
-      jobs: exhaustedJobs.map(({ id, name }) => ({ id, name })),
-    });
-    await logger.flush();
-  }
-
-  return {
-    attempted: jobs.length,
-    published: publishedIds.length,
-    failed: failedIds.size,
-  };
-}

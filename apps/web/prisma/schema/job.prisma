@@ -1,21 +1,15 @@
-enum JobStatus {
-  pending
-  published
-  failed
-}
-
+// Background jobs that could not be published to QStash (e.g. QStash outage).
+// The /api/cron/queue/retry cron republishes these and deletes them on success.
 model Job {
-  id          String    @id
+  id          String   @id
   name        String
   payload     Json
   options     Json? // dispatch options replayed verbatim: deduplicationId, retries, queue, flowControl, label
   scheduledAt DateTime @default(now()) // when we should publish the job
-  status      JobStatus @default(pending)
-  attempts    Int       @default(0)
-  lastError   String?   @db.Text
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  attempts    Int      @default(0)
+  lastError   String?  @db.Text
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
-  @@index([status, scheduledAt, attempts]) // retry cron: due pending/failed jobs
-  @@index([status, createdAt]) // daily cleanup by status + age
+  @@index([scheduledAt, attempts]) // retry cron: due jobs under the attempt cap
 }
