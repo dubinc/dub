@@ -1,7 +1,7 @@
 import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
-import { dispatchJobs } from "@/lib/jobs/publish-jobs";
+import { dispatchWorkflows } from "@/lib/jobs/publish-workflows";
 import { prisma } from "@/lib/prisma";
 import { ACME_PROGRAM_ID, nanoid } from "@dub/utils";
 import { NextResponse } from "next/server";
@@ -52,7 +52,7 @@ export const POST = withWorkspace(
 
     const userId = `e2e-merge-${nanoid()}`;
 
-    const res = await dispatchJobs({
+    const res = await dispatchWorkflows({
       name: "mergePartnerAccounts",
       payload: {
         userId,

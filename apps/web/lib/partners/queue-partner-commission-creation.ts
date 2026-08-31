@@ -1,5 +1,5 @@
 import { getProgramEnrollmentOrThrow } from "../api/programs/get-program-enrollment-or-throw";
-import { dispatchJobs } from "../jobs/publish-jobs";
+import { dispatchWorkflows } from "../jobs/publish-workflows";
 import { CreatePartnerCommissionProps } from "../types";
 import { constructWebhookPartner } from "./constuct-webhook-partner";
 
@@ -19,7 +19,7 @@ export const queuePartnerCommissionCreation = async (
 
   const { partner, links, ...programEnrollment } = result;
 
-  await dispatchJobs({
+  await dispatchWorkflows({
     name: "createPartnerCommission",
     payload: params,
     options: {

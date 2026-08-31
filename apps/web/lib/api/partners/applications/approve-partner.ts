@@ -1,5 +1,5 @@
 import { trackApplicationEvents } from "@/lib/application-events/update-application-event";
-import { dispatchJobs } from "@/lib/jobs/publish-jobs";
+import { dispatchWorkflows } from "@/lib/jobs/publish-workflows";
 import { prisma } from "@/lib/prisma";
 import { ProgramEnrollmentStatus } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
@@ -156,7 +156,7 @@ export async function approvePartner({
         partnerIds: [partnerId],
       }),
 
-      dispatchJobs({
+      dispatchWorkflows({
         name: "partnerApproved",
         payload: {
           programId,

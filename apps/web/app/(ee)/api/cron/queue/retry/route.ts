@@ -1,5 +1,6 @@
 import { withCron } from "@/lib/cron/with-cron";
-import { publishPendingJobs } from "@/lib/jobs/publish-jobs";
+import { publishPendingDefineJobs } from "@/lib/jobs";
+import { publishPendingWorkflows } from "@/lib/jobs/publish-workflows";
 import { redis } from "@/lib/upstash/redis";
 import { logAndRespond } from "../../utils";
 
@@ -11,8 +12,8 @@ export const dynamic = "force-dynamic";
 const LOCK_KEY = "lock:queue-retry";
 const LOCK_TTL_SECONDS = 600;
 
-// GET /api/cron/queue/retry – republish background jobs that failed to
-// publish to QStash at dispatch time; rows are marked published on success
+// GET /api/cron/queue/retry – republish workflows / defineJob rows that failed
+// to publish to QStash at dispatch time; rows are deleted on successful publish
 export const GET = withCron(async () => {
   const acquired = await redis.set(LOCK_KEY, "1", {
     nx: true,
@@ -26,7 +27,14 @@ export const GET = withCron(async () => {
   }
 
   try {
-    const { attempted, published, failed } = await publishPendingJobs();
+    const [workflows, defineJobs] = await Promise.all([
+      publishPendingWorkflows(),
+      publishPendingDefineJobs(),
+    ]);
+
+    const attempted = workflows.attempted + defineJobs.attempted;
+    const published = workflows.published + defineJobs.published;
+    const failed = workflows.failed + defineJobs.failed;
 
     if (attempted === 0) {
       return logAndRespond("No background jobs to retry.");

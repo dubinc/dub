@@ -2,7 +2,7 @@ import { createId } from "@/lib/api/create-id";
 import { DubApiError } from "@/lib/api/errors";
 import { obfuscateCustomerEmail } from "@/lib/api/partner-profile/obfuscate-customer-email";
 import { withPartnerProfile } from "@/lib/auth/partner";
-import { dispatchJobs } from "@/lib/jobs/publish-jobs";
+import { dispatchWorkflows } from "@/lib/jobs/publish-workflows";
 import {
   getNetworkReferralsQuerySchema,
   networkReferralSchema,
@@ -57,7 +57,7 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
             "Program enrollment created in the last 1 min, most likely it's a new partner",
           );
 
-          await dispatchJobs({
+          await dispatchWorkflows({
             name: "partnerApproved",
             payload: {
               programId: NETWORK_PROGRAM_ID,

@@ -1,7 +1,7 @@
 "use server";
 
 import { generateOTP } from "@/lib/auth/utils";
-import { dispatchJobs } from "@/lib/jobs/publish-jobs";
+import { dispatchWorkflows } from "@/lib/jobs/publish-workflows";
 import { prisma } from "@/lib/prisma";
 import { ratelimit, redis } from "@/lib/upstash";
 import { emailSchema } from "@/lib/zod/schemas/auth";
@@ -340,7 +340,7 @@ const mergeAccounts = async ({ userId }: { userId: string }) => {
 
   const { sourceEmail, targetEmail } = accounts;
 
-  await dispatchJobs({
+  await dispatchWorkflows({
     name: "mergePartnerAccounts",
     payload: {
       userId,

@@ -5,7 +5,7 @@ import { getGroupOrThrow } from "@/lib/api/groups/get-group-or-throw";
 import { queuePartnerSearchSync } from "@/lib/api/partners/queue-partner-search-sync";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { trackApplicationEvents } from "@/lib/application-events/update-application-event";
-import { dispatchJobs } from "@/lib/jobs/publish-jobs";
+import { dispatchWorkflows } from "@/lib/jobs/publish-workflows";
 import { throwIfPartnersLimitExceeded } from "@/lib/partners/throw-if-partners-limit-exceeded";
 import { prisma } from "@/lib/prisma";
 import { bulkApprovePartnersSchema } from "@/lib/zod/schemas/partners";
@@ -143,7 +143,7 @@ export const bulkApprovePartnersAction = authActionClient
             })),
           ),
 
-          dispatchJobs(
+          dispatchWorkflows(
             updatedEnrollments.map(({ partnerId, programId }) => ({
               name: "partnerApproved",
               payload: {
