@@ -10,7 +10,7 @@ export const GET = withWorkspace(
 
     const count = await prisma.domain.count({
       where: {
-        projectId: workspace.id,
+        projectId: searchParams.workspaceId || workspace.id,
         archived,
         ...(search && { slug: { contains: search } }),
       },
