@@ -2,6 +2,7 @@
 
 import { trackActivityLog } from "@/lib/api/activity-log/track-activity-log";
 import { getGroupOrThrow } from "@/lib/api/groups/get-group-or-throw";
+import { queuePartnerSearchSync } from "@/lib/api/partners/queue-partner-search-sync";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { unbanPartnerJob } from "@/lib/jobs/handlers/unban-partner-job";
 import { prisma } from "@/lib/prisma";
@@ -90,19 +91,25 @@ export const unbanPartnerAction = authActionClient
     );
 
     waitUntil(
-      trackActivityLog({
-        workspaceId: workspace.id,
-        programId,
-        resourceType: "partner",
-        resourceId: partnerId,
-        userId: user.id,
-        action: "partner.unbanned",
-        changeSet: {
-          status: {
-            old: "banned",
-            new: "approved",
+      Promise.allSettled([
+        trackActivityLog({
+          workspaceId: workspace.id,
+          programId,
+          resourceType: "partner",
+          resourceId: partnerId,
+          userId: user.id,
+          action: "partner.unbanned",
+          changeSet: {
+            status: {
+              old: "banned",
+              new: "approved",
+            },
           },
-        },
-      }),
+        }),
+
+        // Queue an index update because the enrollment status moved back to
+        // approved.
+        queuePartnerSearchSync({ partnerIds: [partnerId], programId }),
+      ]),
     );
   });

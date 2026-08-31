@@ -1,3 +1,4 @@
+import { queuePartnerSearchSyncForLinks } from "@/lib/api/partners/queue-partner-search-sync";
 import { getPartnerEnrollmentInfo } from "@/lib/planetscale/get-partner-enrollment-info";
 import { prisma } from "@/lib/prisma";
 import { isNotHostedImage, storage } from "@/lib/storage";
@@ -29,6 +30,11 @@ export async function updateLink({
     key: string;
     image?: string | null;
     testCompletedAt?: Date | null;
+    // Required rather than optional: the link body accepts `partnerId`, so an
+    // update can move a link, and an optional field here would let the next
+    // caller omit the former owner and silently lose its re-index.
+    programId: string | null;
+    partnerId: string | null;
   };
   updatedLink: ProcessedLinkProps &
     Pick<LinkProps, "id" | "clicks" | "lastClicked" | "updatedAt">;
@@ -201,6 +207,12 @@ export async function updateLink({
 
         // If key is changed: delete the old key in Redis
         (changedDomain || changedKey) && linkCache.delete(oldLink),
+
+        // Queue an index update because the edit can change the destination URL
+        // or move the link. Both owners, so a former one is re-serialized
+        // without it.
+        queuePartnerSearchSyncForLinks([oldLink, response], {
+        }),
 
         // If proxy is true and image is not stored in R2, upload image to R2
         proxy &&
