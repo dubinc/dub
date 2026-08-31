@@ -71,7 +71,13 @@ function ExportPartnersModal({
       };
 
       const searchParams = data.useFilters
-        ? getQueryString(params, { exclude: ["search"] })
+        ? getQueryString(params, {
+            exclude: [
+              "search",
+              // Relevance only exists for searches, which exports skip
+              ...(searchParamsObj.sortBy === "relevance" ? ["sortBy"] : []),
+            ],
+          })
         : "?" + new URLSearchParams(params);
 
       const response = await fetch(`/api/partners/export${searchParams}`, {
