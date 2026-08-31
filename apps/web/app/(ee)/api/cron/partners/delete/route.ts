@@ -1,6 +1,7 @@
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { bulkDeleteLinks } from "@/lib/api/links/bulk-delete-links";
 import { includeTags } from "@/lib/api/links/include-tags";
+import { queuePartnerSearchSync } from "@/lib/api/partners/queue-partner-search-sync";
 import { withCron } from "@/lib/cron/with-cron";
 import { aggregatePartnerLinksStats } from "@/lib/partners/aggregate-partner-links-stats";
 import { canDeletePartner } from "@/lib/partners/utils";
@@ -156,6 +157,9 @@ export const POST = withCron(async ({ rawBody }) => {
       },
     }),
   ]);
+
+  // Queue an index update because the enrollment was deleted.
+  await queuePartnerSearchSync({ enrollmentIds: [enrollment.id] });
 
   await recordAuditLog({
     workspaceId,

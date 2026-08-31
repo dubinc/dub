@@ -2,6 +2,7 @@
 
 import { trackActivityLog } from "@/lib/api/activity-log/track-activity-log";
 import { getGroupOrThrow } from "@/lib/api/groups/get-group-or-throw";
+import { queuePartnerSearchSync } from "@/lib/api/partners/queue-partner-search-sync";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { trackApplicationEvents } from "@/lib/application-events/update-application-event";
 import { dispatchJobs } from "@/lib/jobs/publish-jobs";
@@ -160,6 +161,11 @@ export const bulkApprovePartnersAction = authActionClient
             event: "approved",
             programId: program.id,
             partnerIds: updatedEnrollments.map(({ partnerId }) => partnerId),
+          }),
+
+          // Queue an index update because the enrollment statuses moved to approved
+          queuePartnerSearchSync({
+            enrollmentIds: updatedEnrollments.map(({ id }) => id),
           }),
         ]);
       })(),
