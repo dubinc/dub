@@ -108,8 +108,12 @@ export async function syncNameAndImageToPartner({
   // Queue an index update because the partner name changed. An image-only sync
   // is skipped, since the image is not indexed.
   if (hasNameUpdate && name) {
-    waitUntil(dispatchGroupUtmSyncForPartner(partnerId));
-    await queuePartnerSearchSync({ partnerIds: [partnerId] });
+    waitUntil(
+      Promise.all([
+        dispatchGroupUtmSyncForPartner(partnerId),
+        queuePartnerSearchSync({ partnerIds: [partnerId] }),
+      ]),
+    );
   }
 }
 
