@@ -2,7 +2,7 @@ import { createId } from "@/lib/api/create-id";
 import { DubApiError } from "@/lib/api/errors";
 import { obfuscateCustomerEmail } from "@/lib/api/partner-profile/obfuscate-customer-email";
 import { withPartnerProfile } from "@/lib/auth/partner";
-import { triggerQStashWorkflow } from "@/lib/cron/qstash-workflow";
+import { dispatchJobs } from "@/lib/jobs/publish-jobs";
 import {
   getNetworkReferralsQuerySchema,
   networkReferralSchema,
@@ -56,10 +56,10 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
           console.log(
             "Program enrollment created in the last 1 min, most likely it's a new partner",
           );
-          await triggerQStashWorkflow({
-            workflowType: "partner-approved",
-            workflowLabel: partner.id,
-            body: {
+
+          await dispatchJobs({
+            name: "partnerApproved",
+            payload: {
               programId: NETWORK_PROGRAM_ID,
               partnerId: partner.id,
               userId: NETWORK_USER_ID,

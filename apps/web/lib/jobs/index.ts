@@ -154,22 +154,13 @@ function buildQStashJobRequest(
   };
 }
 
-export function buildReplayRequest(
-  job: {
-    name: string;
-    payload: Prisma.JsonValue;
-    options: Prisma.JsonValue | null;
-    createdAt: Date;
-    scheduledFor: Date | null;
-  },
-  now: Date = new Date(),
-) {
+export function buildReplayRequest(job: {
+  name: string;
+  payload: Prisma.JsonValue;
+  options: Prisma.JsonValue | null;
+  createdAt: Date;
+}) {
   const options = (job.options ?? {}) as JobReplayOptions;
-
-  const notBefore =
-    job.scheduledFor && job.scheduledFor > now
-      ? Math.floor(job.scheduledFor.getTime() / 1000)
-      : undefined;
 
   return buildQStashJobRequest(
     {
@@ -180,7 +171,6 @@ export function buildReplayRequest(
     {
       dispatchedAt: job.createdAt.toISOString(),
       batch: true,
-      notBefore,
     },
   );
 }
@@ -200,12 +190,12 @@ export function isPublishSuccess(
 // /api/cron/queue/retry cron republishes them and deletes the rows on success.
 async function persistBackgroundJobs(inputs: DispatchJobInput[]) {
   const jobs = inputs.map(({ name, payload, options }) => {
-    let scheduledFor: Date | null = null;
+    let scheduledAt = new Date();
 
     if (options?.notBefore) {
-      scheduledFor = new Date(options.notBefore * 1000);
+      scheduledAt = new Date(options.notBefore * 1000);
     } else if (typeof options?.delay === "number") {
-      scheduledFor = new Date(Date.now() + options.delay * 1000);
+      scheduledAt = new Date(Date.now() + options.delay * 1000);
     }
 
     const replayOptions = {
@@ -223,7 +213,7 @@ async function persistBackgroundJobs(inputs: DispatchJobInput[]) {
       name,
       payload: payload as Prisma.InputJsonValue,
       options: replayOptions as Prisma.InputJsonValue,
-      scheduledFor,
+      scheduledAt,
     };
   });
 

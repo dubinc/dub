@@ -1,9 +1,9 @@
 import { trackApplicationEvents } from "@/lib/application-events/update-application-event";
+import { dispatchJobs } from "@/lib/jobs/publish-jobs";
 import { prisma } from "@/lib/prisma";
 import { ProgramEnrollmentStatus } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
-import { triggerQStashWorkflow } from "../../../cron/qstash-workflow";
 import { throwIfPartnersLimitExceeded } from "../../../partners/throw-if-partners-limit-exceeded";
 import { approvePartnerSchema } from "../../../zod/schemas/partners";
 import { trackActivityLog } from "../../activity-log/track-activity-log";
@@ -152,13 +152,15 @@ export async function approvePartner({
         partnerIds: [partnerId],
       }),
 
-      triggerQStashWorkflow({
-        workflowType: "partner-approved",
-        workflowLabel: partnerId,
-        body: {
+      dispatchJobs({
+        name: "partnerApproved",
+        payload: {
           programId,
           partnerId,
           userId,
+        },
+        options: {
+          label: partnerId,
         },
       }),
     ]),

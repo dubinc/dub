@@ -1,7 +1,7 @@
 "use server";
 
 import { generateOTP } from "@/lib/auth/utils";
-import { triggerQStashWorkflow } from "@/lib/cron/qstash-workflow";
+import { dispatchJobs } from "@/lib/jobs/publish-jobs";
 import { prisma } from "@/lib/prisma";
 import { ratelimit, redis } from "@/lib/upstash";
 import { emailSchema } from "@/lib/zod/schemas/auth";
@@ -340,17 +340,18 @@ const mergeAccounts = async ({ userId }: { userId: string }) => {
 
   const { sourceEmail, targetEmail } = accounts;
 
-  await triggerQStashWorkflow({
-    workflowType: "merge-partner-accounts",
-    workflowLabel: userId,
-    body: {
+  await dispatchJobs({
+    name: "mergePartnerAccounts",
+    payload: {
       userId,
       sourceEmail,
       targetEmail,
     },
-    flowControl: {
-      key: userId,
-      parallelism: 1,
+    options: {
+      flowControl: {
+        key: userId,
+        parallelism: 1,
+      },
     },
   });
 };
