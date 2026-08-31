@@ -1,6 +1,7 @@
 "use server";
 
 import { DubApiError } from "@/lib/api/errors";
+import { queuePartnerSearchSync } from "@/lib/api/partners/queue-partner-search-sync";
 import { throwIfNoPermission } from "@/lib/auth/partner-users/throw-if-no-permission";
 import { requestEmailChange } from "@/lib/auth/request-email-change";
 import { qstash } from "@/lib/cron";
@@ -185,6 +186,10 @@ export const updatePartnerProfileAction = authPartnerActionClient
           }),
         },
       });
+
+      // Queue an index update because the partner profile changed. Not scoped
+      // by program, since a profile is shared across them.
+      waitUntil(queuePartnerSearchSync({ partnerIds: [partner.id] }));
 
       // If the email is being changed, we need to verify the new email address
       if (emailChanged) {

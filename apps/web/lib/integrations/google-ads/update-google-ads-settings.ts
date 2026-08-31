@@ -9,6 +9,7 @@ import { revalidatePath } from "next/cache";
 import * as z from "zod/v4";
 import { inferLoginCustomerId } from "./api";
 import { googleAdsSettingsSchema } from "./schema";
+import { getGoogleAdsEventMappingsError } from "./utils";
 
 const schema = googleAdsSettingsSchema.omit({ customers: true }).extend({
   workspaceId: z.string(),
@@ -108,6 +109,16 @@ export const updateGoogleAdsSettingsAction = authActionClient
       ) {
         throw new Error("Invalid sale conversion action.");
       }
+    }
+
+    const leadMappingsError = getGoogleAdsEventMappingsError(leadMappings);
+    if (leadMappingsError) {
+      throw new Error(`Lead events: ${leadMappingsError}`);
+    }
+
+    const saleMappingsError = getGoogleAdsEventMappingsError(saleMappings);
+    if (saleMappingsError) {
+      throw new Error(`Sale events: ${saleMappingsError}`);
     }
 
     await prisma.installedIntegration.update({
