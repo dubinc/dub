@@ -5,6 +5,7 @@ import { isCI, isLocalDev } from "@/lib/api/environment";
 import { generatePartnerUsername } from "@/lib/api/partners/generate-partner-username";
 import { markApplicationEventSubmittedNetwork } from "@/lib/application-events/mark-application-event-submitted-network";
 import { completeProgramApplications } from "@/lib/partners/complete-program-applications";
+import { dispatchGroupUtmSyncForPartner } from "@/lib/partners/dispatch-partner-utm-sync";
 import { prisma } from "@/lib/prisma";
 import { storage } from "@/lib/storage";
 import { onboardPartnerSchema } from "@/lib/zod/schemas/partners";
@@ -29,6 +30,7 @@ export const onboardPartnerAction = authUserActionClient
       },
       select: {
         id: true,
+        name: true,
         username: true,
         country: true,
         profileType: true,
@@ -124,6 +126,10 @@ export const onboardPartnerAction = authUserActionClient
 
         // Mark the application event as submitted for the `network` program
         markApplicationEventSubmittedNetwork(updatedPartner),
+
+        existingPartner && existingPartner.name !== updatedPartner.name
+          ? dispatchGroupUtmSyncForPartner(updatedPartner.id)
+          : undefined,
       ]),
     );
 
