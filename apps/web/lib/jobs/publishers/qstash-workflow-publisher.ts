@@ -83,6 +83,7 @@ export class QStashWorkflowPublisher implements JobPublisher {
     return {
       url: `${APP_DOMAIN_WITH_NGROK}${workflowPath}`,
       body: job.payload,
+      workflowRunId: options.deduplicationId ?? job.id,
       retries: options.retries ?? 5,
       flowControl: options.flowControl ?? {
         key: workflowKey,

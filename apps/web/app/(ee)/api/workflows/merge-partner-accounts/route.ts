@@ -5,7 +5,6 @@ import { includeTags } from "@/lib/api/links/include-tags";
 import { syncTotalCommissions } from "@/lib/api/partners/sync-total-commissions";
 import { logger } from "@/lib/axiom/server";
 import { PRISMA_UPDATEMANY_LIMIT } from "@/lib/cron";
-import { getWorkflowConfig } from "@/lib/cron/qstash-workflow";
 import { conn } from "@/lib/planetscale";
 import { prisma } from "@/lib/prisma";
 import { storage } from "@/lib/storage";
@@ -15,7 +14,7 @@ import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { partnerMergedWebhookSchema } from "@/lib/zod/schemas/partners";
 import { sendBatchEmail } from "@dub/email";
 import PartnerAccountMerged from "@dub/email/templates/partner-account-merged";
-import { log, prettyPrint, R2_URL } from "@dub/utils";
+import { prettyPrint, R2_URL } from "@dub/utils";
 import { FraudRuleType } from "@prisma/client";
 import { serve } from "@upstash/workflow/nextjs";
 import * as z from "zod/v4";
@@ -204,17 +203,6 @@ export const { POST } = serve<Input>(
       // Clear the verification cache so the partner can retry from the start
       await redis.del(`${CACHE_KEY_PREFIX}:${userId}`);
 
-      const { correlation } = getWorkflowConfig({
-        workflowType: "merge-partner-accounts",
-        body: context.requestPayload,
-      });
-
-      await log({
-        message: `Error merging partner accounts: ${JSON.stringify(correlation)}, workflowRunId=${context.workflowRunId}, failStatus=${failStatus}, failResponse=${failResponse}. Some enrollments may already be merged (see workflow run for completed steps) - manual cleanup may be required.`,
-        type: "alerts",
-        mention: true,
-      });
-
       logger.error("workflow.failed", {
         service: "qstash",
         event: "workflow.failed",
@@ -223,7 +211,6 @@ export const { POST } = serve<Input>(
         failStatus,
         failResponse,
         failHeaders,
-        correlation,
       });
 
       await logger.flush();

@@ -68,10 +68,8 @@ export class QStashJobPublisher implements JobPublisher {
     return {
       url: `${APP_DOMAIN_WITH_NGROK}${jobPath}`,
       body: job.payload,
+      deduplicationId: options.deduplicationId ?? job.id,
       ...(options.label && { label: options.label }),
-      ...(options.deduplicationId && {
-        deduplicationId: options.deduplicationId,
-      }),
       ...(options.retries !== undefined && { retries: options.retries }),
       ...(options.flowControl && { flowControl: options.flowControl }),
       ...(options.queue && { queueName: options.queue }),

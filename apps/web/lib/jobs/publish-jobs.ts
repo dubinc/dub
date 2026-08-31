@@ -34,15 +34,22 @@ export async function dispatchJobs(
     return;
   }
 
-  const data = jobs.map((job) => ({
-    id: createId({ prefix: "job_" }),
-    name: job.name,
-    scheduledAt: new Date(),
-    payload: job.payload as Prisma.InputJsonValue,
-    ...(job.options && {
-      options: job.options as Prisma.InputJsonValue,
-    }),
-  }));
+  const data = jobs.map((job) => {
+    const id = createId({ prefix: "job_" });
+
+    return {
+      id,
+      name: job.name,
+      scheduledAt: new Date(),
+      payload: job.payload as Prisma.InputJsonValue,
+      // Default deduplicationId to the job id so best-effort publish and the
+      // retry cron cannot deliver the same job twice via QStash
+      options: {
+        ...job.options,
+        deduplicationId: job.options?.deduplicationId ?? id,
+      } as Prisma.InputJsonValue,
+    };
+  });
 
   // Durably persist the jobs in the database
   await prisma.job.createMany({
