@@ -24,10 +24,13 @@ jobs:
         with:
           fetch-depth: 0
           ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
 
       - name: Fetch PR base
         working-directory: .
-        run: git fetch origin "${{ github.event.pull_request.base.ref }}"
+        env:
+          PR_BASE_REF: ${{ github.event.pull_request.base.ref }}
+        run: git fetch origin "$PR_BASE_REF"
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
@@ -46,15 +49,14 @@ jobs:
           pnpm install --frozen-lockfile --ignore-workspace
           test -x node_modules/.bin/deepsec
 
-      - name: Install Codex CLI
-        run: npm install -g @openai/codex
-
       - name: List changed apps/web files
         id: files
         working-directory: .
+        env:
+          PR_BASE_REF: ${{ github.event.pull_request.base.ref }}
         run: |
           mkdir -p .deepsec
-          .deepsec/scripts/list-pr-files.sh "origin/${{ github.event.pull_request.base.ref }}...HEAD" \
+          .deepsec/scripts/list-pr-files.sh "origin/${PR_BASE_REF}...HEAD" \
             > .deepsec/pr-files.txt
           if [ -s .deepsec/pr-files.txt ]; then
             echo "has_files=true" >> "$GITHUB_OUTPUT"
@@ -75,14 +77,14 @@ jobs:
             --project-id web \
             --files-from pr-files.txt \
             --reinvestigate \
-            --comment-out "${{ github.workspace }}/comment.md"
+            --comment-out "${{ github.workspace }}/.deepsec/comment.md"
 
       - name: Upload PR comment
-        if: always() && hashFiles('comment.md') != ''
+        if: always() && hashFiles('.deepsec/comment.md') != ''
         uses: actions/upload-artifact@v4
         with:
           name: deepsec-comment
-          path: comment.md
+          path: .deepsec/comment.md
           retention-days: 1
 
   comment:
@@ -109,7 +111,7 @@ jobs:
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: fs.readFileSync('comment.md', 'utf8'),
+              body: fs.readFileSync('.deepsec/comment.md', 'utf8'),
             });
 
       - name: Notify Slack
@@ -130,7 +132,12 @@ jobs:
           const prUrl = process.env.PR_URL;
           const prTitle = (process.env.PR_TITLE || "PR").replace(/[<>&]/g, "");
           const prNumber = process.env.PR_NUMBER;
-          const findings = fs.readFileSync("comment.md", "utf8").slice(0, 2200);
+          const findings = fs
+            .readFileSync(".deepsec/comment.md", "utf8")
+            .slice(0, 2200)
+            .replaceAll("&", "&amp;")
+            .replaceAll("<", "&lt;")
+            .replaceAll(">", "&gt;");
           const text = [
             `:alert: DeepSec findings on <${prUrl}|#${prNumber} ${prTitle}>`,
             "",

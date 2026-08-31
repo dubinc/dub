@@ -37,7 +37,7 @@ function keep(finding) {
   const severity = finding.metadata?.severity ?? finding.severity;
   if (!HIGH.has(severity)) return false;
   const verdict = finding.metadata?.revalidation?.verdict;
-  return !verdict || verdict === "true-positive";
+  return verdict === "true-positive";
 }
 
 function titleText(finding) {
