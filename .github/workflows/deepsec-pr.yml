@@ -23,6 +23,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
 
       - name: Fetch PR base
         working-directory: .
@@ -64,6 +65,19 @@ jobs:
             echo "No in-scope apps/web files to review."
           fi
 
+      - name: Show files DeepSec will read
+        if: steps.files.outputs.has_files == 'true'
+        working-directory: .
+        run: |
+          echo "HEAD $(git rev-parse HEAD)"
+          echo "PR head ${{ github.event.pull_request.head.sha }}"
+          while IFS= read -r rel; do
+            [ -z "$rel" ] && continue
+            echo "======== apps/web/${rel} ========"
+            wc -l "apps/web/${rel}"
+            cat "apps/web/${rel}"
+          done < .deepsec/pr-files.txt
+
       - name: Review diff
         id: deepsec
         if: steps.files.outputs.has_files == 'true'
@@ -73,6 +87,7 @@ jobs:
           pnpm exec deepsec process \
             --project-id web \
             --files-from pr-files.txt \
+            --reinvestigate \
             --comment-out "${{ github.workspace }}/comment.md"
 
       - name: Upload PR comment
