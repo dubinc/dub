@@ -1,3 +1,4 @@
+import { convertCurrency } from "@/lib/analytics/convert-currency";
 import { isFirstConversion } from "@/lib/analytics/is-first-conversion";
 import { Session } from "@/lib/auth";
 import { generateRandomName } from "@/lib/names";
@@ -113,26 +114,9 @@ export async function createManualCommissions(args: CreateCommissionsArgs) {
     });
 
   if (type === "sale") {
-    const {
-      importStripeInvoices,
-      saleAmount,
-      saleEventDate,
-      invoiceId,
-      productId,
-    } = args;
-
-    const hasManualSaleFields =
-      saleAmount || saleEventDate || invoiceId || productId;
+    const { importStripeInvoices, sale } = args;
 
     if (importStripeInvoices) {
-      if (hasManualSaleFields) {
-        throw new DubApiError({
-          code: "bad_request",
-          message:
-            "saleAmount, saleEventDate, invoiceId, and productId cannot be provided when importStripeInvoices is enabled.",
-        });
-      }
-
       if (!workspace.stripeConnectId) {
         throw new DubApiError({
           code: "bad_request",
@@ -147,6 +131,8 @@ export async function createManualCommissions(args: CreateCommissionsArgs) {
         });
       }
     }
+
+    const invoiceId = sale?.invoiceId ?? args.invoiceId;
 
     if (invoiceId) {
       const commission = await prisma.commission.findUnique({
@@ -181,6 +167,8 @@ export async function createManualCommissions(args: CreateCommissionsArgs) {
 
   // Lead commission
   if (type === CommissionType.lead) {
+    const metadata = args.lead?.metadata;
+
     commissionsToCreate.push({
       event: CommissionType.lead,
       programId,
@@ -192,9 +180,13 @@ export async function createManualCommissions(args: CreateCommissionsArgs) {
       // we don't add the "Z" to the timestamp because it's already in UTC
       createdAt: new Date(leadEvent.timestamp),
       userId: user.id,
+      ...(metadata != null && { metadata }),
       context: {
         customer: {
           country: targetCustomer.country,
+        },
+        lead: {
+          ...(metadata != null && { metadata }),
         },
       },
     });
@@ -220,6 +212,7 @@ export async function createManualCommissions(args: CreateCommissionsArgs) {
           status: "refunded" as const,
         }),
         userId: user.id,
+        ...(saleEvent.metadata != null && { metadata: saleEvent.metadata }),
         context: {
           customer: {
             country: targetCustomer.country,
@@ -228,6 +221,7 @@ export async function createManualCommissions(args: CreateCommissionsArgs) {
           sale: {
             productId: saleEvent.productId,
             amount: saleEvent.amount,
+            ...(saleEvent.metadata != null && { metadata: saleEvent.metadata }),
           },
         },
         isFirstConversion,
@@ -415,7 +409,7 @@ async function recordEvents(args: RecordEventsArgs) {
   const { workspace, programId, targetLink, targetCustomer } = args;
 
   if (type === "lead") {
-    finalLeadEventDate = args.leadEventDate ?? new Date();
+    finalLeadEventDate = args.date ?? args.leadEventDate ?? new Date();
   } else if (args.importStripeInvoices) {
     stripeCustomerInvoices = await getCustomerStripeInvoices({
       stripeCustomerId: targetCustomer.stripeCustomerId!,
@@ -442,13 +436,11 @@ async function recordEvents(args: RecordEventsArgs) {
 
     finalLeadEventDate = stripeCustomerInvoices[0].createdAt;
   } else {
-    finalLeadEventDate = args.saleEventDate ?? new Date();
+    finalLeadEventDate = args.date ?? args.saleEventDate ?? new Date();
   }
 
   const clickId = nanoid(16);
   const clickedAt = new Date(finalLeadEventDate.getTime() - 5 * 60 * 1000);
-  const leadEventName = type === "lead" ? args.leadEventName : "Sign up";
-  let saleEvents: z.infer<typeof saleEventSchemaTBWithTimestamp>[] = [];
 
   // Record click event
   const clickEvent = recordClickZodSchema.parse({
@@ -464,25 +456,31 @@ async function recordEvents(args: RecordEventsArgs) {
   });
 
   // Record lead event
+  const lead =
+    type === "lead"
+      ? {
+          eventName: args.lead?.eventName ?? args.leadEventName ?? "Sign up",
+          metadata: args.lead?.metadata ?? null,
+        }
+      : null;
+
   const leadEvent = leadEventSchemaTBWithTimestamp.parse({
     ...clickEvent,
     event_id: nanoid(16),
-    event_name: leadEventName ?? "Sign up",
+    event_name: lead?.eventName ?? "Sign up",
     customer_id: targetCustomer.id,
     timestamp: finalLeadEventDate.toISOString(),
+    metadata: lead?.metadata ? JSON.stringify(lead.metadata) : "",
   });
 
   // Record sale events
-  if (type === "sale") {
-    const {
-      invoiceId,
-      saleAmount,
-      saleEventDate,
-      productId,
-      importStripeInvoices,
-    } = args;
+  let saleEvents: z.infer<typeof saleEventSchemaTBWithTimestamp>[] = [];
 
-    if (importStripeInvoices) {
+  // Only persist user-provided sale.metadata on the commission
+  let commissionMetadata: Record<string, unknown> | null = null;
+
+  if (type === "sale") {
+    if (args.importStripeInvoices) {
       saleEvents = stripeCustomerInvoices.map((invoice) =>
         saleEventSchemaTBWithTimestamp.parse({
           ...clickEvent,
@@ -497,19 +495,50 @@ async function recordEvents(args: RecordEventsArgs) {
           metadata: JSON.stringify(invoice.metadata),
         }),
       );
-    } else if (saleAmount) {
+    } else {
+      const { sale } = args;
+      const invoiceId = sale?.invoiceId ?? args.invoiceId;
+      const productId = sale?.metadata?.productId ?? args.productId;
+      const saleEventDate = args.date ?? args.saleEventDate ?? Date.now();
+      const eventName = sale?.eventName ?? "Purchase";
+      const paymentProcessor = sale?.paymentProcessor ?? "custom";
+      let currency = sale?.currency ?? "usd";
+      let saleAmount = sale?.amount ?? args.saleAmount;
+
+      const eventMetadata = {
+        ...(sale?.metadata ?? {}),
+        ...(productId ? { productId } : {}),
+      };
+
+      commissionMetadata = sale?.metadata ?? null;
+
+      // Convert the non-USD sale amount to USD based on the current FX rate
+      if (currency !== "usd") {
+        const { currency: convertedCurrency, amount: convertedAmount } =
+          await convertCurrency({
+            currency,
+            amount: saleAmount!,
+          });
+
+        currency = convertedCurrency;
+        saleAmount = convertedAmount;
+      }
+
       saleEvents = [
         saleEventSchemaTBWithTimestamp.parse({
           ...clickEvent,
           event_id: nanoid(16),
           invoice_id: invoiceId ?? "",
-          event_name: "Purchase",
+          event_name: eventName,
           amount: saleAmount,
           customer_id: targetCustomer.id,
-          payment_processor: "custom",
-          currency: "usd",
-          timestamp: new Date(saleEventDate ?? Date.now()).toISOString(),
-          metadata: productId ? JSON.stringify({ productId }) : undefined,
+          payment_processor: paymentProcessor,
+          currency,
+          timestamp: new Date(saleEventDate).toISOString(),
+          metadata:
+            Object.keys(eventMetadata).length > 0
+              ? JSON.stringify(eventMetadata)
+              : "",
         }),
       ];
     }
@@ -535,9 +564,9 @@ async function recordEvents(args: RecordEventsArgs) {
         (invoice) => invoice.id === saleEvent.invoice_id,
       );
 
-      const metadata = saleEvent.metadata
+      const eventMetadata = saleEvent.metadata
         ? JSON.parse(saleEvent.metadata)
-        : undefined;
+        : null;
 
       return {
         id: saleEvent.event_id,
@@ -545,7 +574,9 @@ async function recordEvents(args: RecordEventsArgs) {
         amount: saleEvent.amount,
         currency: saleEvent.currency,
         invoiceId: saleEvent.invoice_id,
-        productId: metadata?.productId,
+        productId: eventMetadata?.productId,
+        // Only persist user-provided metadata on the commission.
+        metadata: stripeInvoice ? null : commissionMetadata,
         ...(stripeInvoice?.refunded && {
           status: "refunded" as const,
         }),

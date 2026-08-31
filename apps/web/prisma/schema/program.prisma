@@ -187,6 +187,7 @@ model ProgramEnrollment {
   @@index([programId, status, leadToConversionRate])
   @@index([programId, status, returnOnAdSpend])
   // other indexes
+  @@index([programId, id])
   @@index([programId, groupId])
   @@index([groupId, status])
   @@index(status)

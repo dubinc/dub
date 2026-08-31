@@ -4,7 +4,6 @@ import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enro
 import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
 import { logger } from "@/lib/axiom/server";
 import { triggerDraftBountySubmissionCreation } from "@/lib/bounty/api/trigger-draft-bounty-submissions";
-import { getWorkflowConfig } from "@/lib/cron/qstash-workflow";
 import { generateDiscountCodeForPartner } from "@/lib/discounts/generate-discount-code-for-partner";
 import { createReferralCommission } from "@/lib/partner-referrals/create-referral-commission";
 import { prisma } from "@/lib/prisma";
@@ -351,11 +350,6 @@ export const { POST } = serve<Input>(
       failResponse,
       failHeaders,
     }) => {
-      const { correlation } = getWorkflowConfig({
-        workflowType: "partner-approved",
-        body: context.requestPayload,
-      });
-
       logger.error("workflow.failed", {
         service: "qstash",
         event: "workflow.failed",
@@ -364,7 +358,6 @@ export const { POST } = serve<Input>(
         failStatus,
         failResponse,
         failHeaders,
-        correlation,
       });
 
       await logger.flush();

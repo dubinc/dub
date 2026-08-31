@@ -5,6 +5,7 @@ import {
   APP_DOMAIN_WITH_NGROK,
   getSearchParams,
   GOOGLE_ADS_INTEGRATION_ID,
+  isZeroDecimalCurrency,
 } from "@dub/utils";
 import * as z from "zod/v4";
 import { GoogleAdsApi, GoogleAdsClickId } from "./api";
@@ -14,6 +15,7 @@ import {
   googleAdsConversionUploadSchema,
   googleAdsSettingsSchema,
 } from "./schema";
+import { resolveGoogleAdsConversionMapping } from "./utils";
 
 const extractGoogleAdsClickId = (url: string): GoogleAdsClickId | null => {
   try {
@@ -52,6 +54,16 @@ export const queueGoogleAdsConversionUpload = async (
 
   if (!(await googleAdsInstalledWorkspaces.has(payload.workspaceId))) {
     return;
+  }
+
+  // Data Manager expects major currency units, so we need to divide by 100
+  // if the currency is NOT a zero decimal currency (e.g. JPY doesn't have cents)
+  if (
+    payload.conversionValue &&
+    payload.currencyCode &&
+    !isZeroDecimalCurrency(payload.currencyCode)
+  ) {
+    payload.conversionValue = payload.conversionValue / 100;
   }
 
   try {
@@ -98,6 +110,7 @@ export const uploadGoogleAdsConversion = async (
     click,
     conversionDateTime,
     eventId,
+    eventName,
     conversionValue,
     currencyCode,
     conversionCount,
@@ -127,17 +140,30 @@ export const uploadGoogleAdsConversion = async (
       installedIntegration.settings ?? {},
     );
 
-    const conversionAction =
-      eventType === "lead"
-        ? settings.leadConversionAction
-        : settings.saleConversionAction;
+    const mappings =
+      eventType === "lead" ? settings.leadMappings : settings.saleMappings;
+    const mapping = resolveGoogleAdsConversionMapping({
+      mappings,
+      eventName,
+    });
 
-    if (!settings.customerId || !conversionAction) {
+    if (!settings.customerId) {
       return {
-        message: `Missing ${!settings.customerId ? "customerId" : `${eventType}ConversionAction`}. Skipping...`,
+        message: `Missing customerId. Skipping...`,
         status: "skipped",
       };
     }
+
+    if (!mapping) {
+      return {
+        message: mappings.length
+          ? `No ${eventType} conversion mapping matched event name "${eventName ?? ""}". Skipping...`
+          : `Missing ${eventType} conversion mapping. Skipping...`,
+        status: "skipped",
+      };
+    }
+
+    const conversionAction = mapping.conversionAction;
 
     const googleClickId = extractGoogleAdsClickId(click.url);
 

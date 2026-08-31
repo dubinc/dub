@@ -1,6 +1,7 @@
 "use server";
 
 import { DubApiError } from "@/lib/api/errors";
+import { queuePartnerSearchSync } from "@/lib/api/partners/queue-partner-search-sync";
 import { throwIfNoPermission } from "@/lib/auth/partner-users/throw-if-no-permission";
 import { requestEmailChange } from "@/lib/auth/request-email-change";
 import { qstash } from "@/lib/cron";
@@ -255,33 +256,39 @@ export const updatePartnerProfileAction = authPartnerActionClient
       }
 
       waitUntil(
-        (async () => {
-          const shouldExpireCache = !deepEqual(
-            {
-              name: partner.name,
-              image: partner.image,
-            },
-            {
-              name: updatedPartner.name,
-              image: updatedPartner.image,
-            },
-          );
+        Promise.allSettled([
+          // Queue an index update because the partner profile changed. Not
+          // scoped by program, since a profile is shared across them.
+          queuePartnerSearchSync({ partnerIds: [partner.id] }),
 
-          await Promise.allSettled([
-            shouldExpireCache
-              ? qstash.publishJSON({
-                  url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/invalidate-for-partners`,
-                  body: {
-                    partnerId: partner.id,
-                  },
-                })
-              : undefined,
+          partner.name !== updatedPartner.name
+            ? dispatchGroupUtmSyncForPartner(partner.id)
+            : undefined,
 
-            partner.name !== updatedPartner.name
-              ? dispatchGroupUtmSyncForPartner(partner.id)
-              : undefined,
-          ]);
-        })(),
+          (async () => {
+            const shouldExpireCache = !deepEqual(
+              {
+                name: partner.name,
+                image: partner.image,
+              },
+              {
+                name: updatedPartner.name,
+                image: updatedPartner.image,
+              },
+            );
+
+            if (!shouldExpireCache) {
+              return;
+            }
+
+            await qstash.publishJSON({
+              url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/invalidate-for-partners`,
+              body: {
+                partnerId: partner.id,
+              },
+            });
+          })(),
+        ]),
       );
 
       return {

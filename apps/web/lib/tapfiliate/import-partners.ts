@@ -4,6 +4,7 @@ import slugify from "@sindresorhus/slugify";
 import { createId } from "../api/create-id";
 import { createLink } from "../api/links";
 import { generatePartnerLink } from "../api/partners/generate-partner-link";
+import { queuePartnerSearchSync } from "../api/partners/queue-partner-search-sync";
 import { logImportError } from "../tinybird/log-import-error";
 import { WorkspaceProps } from "../types";
 import { DEFAULT_PARTNER_GROUP } from "../zod/schemas/groups";
@@ -111,6 +112,10 @@ export async function importPartners(payload: TapfiliateImportPayload) {
       .map((p) => p.value);
 
     if (partnerIds.length > 0) {
+      // Queue an index update because the imported partners were enrolled.
+      // Queued per page rather than per partner.
+      await queuePartnerSearchSync({ partnerIds, programId });
+
       await tapfiliateImporter.trackImportedPartnerIds({
         programId,
         partnerIds,

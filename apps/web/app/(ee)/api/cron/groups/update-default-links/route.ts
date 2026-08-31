@@ -1,5 +1,6 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { linkCache } from "@/lib/api/links/cache";
+import { queuePartnerSearchSyncForLinks } from "@/lib/api/partners/queue-partner-search-sync";
 import { applyGroupUtmToLink } from "@/lib/api/utm/apply-group-utm-to-link";
 import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
@@ -118,6 +119,9 @@ export async function POST(req: Request) {
           url: true,
           domain: true,
           key: true,
+          // Needed to re-index the owners after the URL changes below.
+          programId: true,
+          partnerId: true,
           partner: {
             select: {
               name: true,
@@ -133,6 +137,7 @@ export async function POST(req: Request) {
 
       const linksToUpdate: {
         id: string;
+        owner: { programId: string | null; partnerId: string | null };
         link: Pick<
           Link,
           | "url"
@@ -178,6 +183,10 @@ export async function POST(req: Request) {
 
         linksToUpdate.push({
           id: defaultPartnerLink.id,
+          owner: {
+            programId: defaultPartnerLink.programId,
+            partnerId: defaultPartnerLink.partnerId,
+          },
           link: {
             url,
             utm_source: linkWithUtm.utm_source ?? null,
@@ -199,6 +208,12 @@ export async function POST(req: Request) {
               data: link,
             }),
           ),
+        );
+
+        // Queue an index update because the default link change rewrote
+        // destination URLs.
+        await queuePartnerSearchSyncForLinks(
+          linksToUpdate.map(({ owner }) => owner),
         );
       }
 

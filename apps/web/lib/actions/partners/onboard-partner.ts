@@ -3,6 +3,7 @@
 import { createId } from "@/lib/api/create-id";
 import { isCI, isLocalDev } from "@/lib/api/environment";
 import { generatePartnerUsername } from "@/lib/api/partners/generate-partner-username";
+import { queuePartnerSearchSync } from "@/lib/api/partners/queue-partner-search-sync";
 import { markApplicationEventSubmittedNetwork } from "@/lib/application-events/mark-application-event-submitted-network";
 import { completeProgramApplications } from "@/lib/partners/complete-program-applications";
 import { dispatchGroupUtmSyncForPartner } from "@/lib/partners/dispatch-partner-utm-sync";
@@ -130,6 +131,10 @@ export const onboardPartnerAction = authUserActionClient
         existingPartner && existingPartner.name !== updatedPartner.name
           ? dispatchGroupUtmSyncForPartner(updatedPartner.id)
           : undefined,
+
+        // Queue an index update because onboarding set the partner name,
+        // country and description.
+        queuePartnerSearchSync({ partnerIds: [updatedPartner.id] }),
       ]),
     );
 
