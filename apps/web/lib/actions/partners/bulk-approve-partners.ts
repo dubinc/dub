@@ -161,8 +161,7 @@ export const bulkApprovePartnersAction = authActionClient
             partnerIds: updatedEnrollments.map(({ partnerId }) => partnerId),
           }),
 
-          // Queue an index update because the enrollment statuses moved to
-          // approved.
+          // Queue an index update because the enrollment statuses moved to approved
           queuePartnerSearchSync({
             enrollmentIds: updatedEnrollments.map(({ id }) => id),
           }),

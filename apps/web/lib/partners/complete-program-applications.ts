@@ -274,8 +274,7 @@ export async function completeProgramApplications(userEmail: string) {
       ),
     );
 
-    // Queue an index update because the applications completed into
-    // enrollments.
+    // Queue an index update because the applications completed into enrollments.
     await queuePartnerSearchSync({
       enrollmentIds: programEnrollments.map(({ id }) => id),
     });

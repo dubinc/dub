@@ -98,8 +98,7 @@ export const acceptProgramInviteAction = authPartnerActionClient
               partnerId: enrolledPartner.id,
             },
           }),
-          // Queue an index update because the enrollment status moved to
-          // approved.
+          // Queue an index update because the enrollment status moved to approved
           queuePartnerSearchSync({
             enrollmentIds: [enrollment.id],
           }),

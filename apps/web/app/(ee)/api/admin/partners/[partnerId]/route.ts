@@ -160,8 +160,7 @@ export const PATCH = withAdmin(async ({ params, req }) => {
     },
   });
 
-  // Queue an index update because an admin corrected the partner country, a
-  // filterable field.
+  // Queue an index update because an admin corrected the partner country (filterable field)
   waitUntil(queuePartnerSearchSync({ partnerIds: [partner.id] }));
 
   // if there was an existing veriff session, trigger a country change verification

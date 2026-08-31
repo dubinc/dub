@@ -155,8 +155,7 @@ export async function bulkReactivatePartners({
         })),
       ),
 
-      // Queue an index update because the enrollment statuses moved back to
-      // approved.
+      // Queue an index update because the enrollment statuses moved back to approved
       queuePartnerSearchSync({
         enrollmentIds: programEnrollments.map(({ id }) => id),
       }),

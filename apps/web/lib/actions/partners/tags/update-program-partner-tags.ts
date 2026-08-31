@@ -96,8 +96,7 @@ export const updateProgramPartnerTagsAction = authActionClient
       ]);
     });
 
-    // Queue an index update because the partner's tags for this program
-    // changed.
+    // Queue an index update because the partner's tags for this program changed
     waitUntil(queuePartnerSearchSync({ partnerIds, programId }));
 
     waitUntil(

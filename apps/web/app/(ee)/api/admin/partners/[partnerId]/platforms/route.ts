@@ -129,8 +129,7 @@ export const POST = withAdmin(
       },
     });
 
-    // Queue an index update because an admin corrected the searchable platform
-    // identifier.
+    // Queue an index update because an admin corrected the searchable platform identifier
     waitUntil(queuePartnerSearchSync({ partnerIds: [partnerId] }));
 
     return NextResponse.json({

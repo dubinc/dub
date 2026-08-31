@@ -142,7 +142,7 @@ export const banPartner = async ({
         },
       }),
 
-      // Queue an index update because the enrollment status moved to banned.
+      // Queue an index update because the enrollment status moved to banned
       queuePartnerSearchSync({
         enrollmentIds: [programEnrollmentUpdated.id],
       }),

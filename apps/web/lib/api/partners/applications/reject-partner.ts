@@ -147,9 +147,8 @@ export async function rejectPartner({
 
   waitUntil(
     Promise.allSettled([
-      // Queue an index update because the enrollment was either rejected or
-      // deleted. The job reads the ID back, so this does not need to know
-      // which.
+      // Queue an index update because the enrollment was either rejected or deleted.
+      // The job reads the ID back, so this does not need to know which.
       queuePartnerSearchSync({ enrollmentIds: [programEnrollment.id] }),
 
       trackActivityLog({

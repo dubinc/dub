@@ -103,8 +103,7 @@ export async function POST(req: Request) {
     ]);
 
     // Queue an index update because the domain change rewrote each link's
-    // shortLink. Queued after updateShortLinks above, which performs the
-    // rewrite.
+    // shortLink. Queued after updateShortLinks above, which performs the rewrite
     await queuePartnerSearchSyncForLinks(updatedLinks);
 
     const response = await queueDomainUpdate({
