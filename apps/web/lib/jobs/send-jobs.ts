@@ -4,10 +4,7 @@ import { APP_DOMAIN_WITH_NGROK, chunk } from "@dub/utils";
 import { Job, Prisma } from "@prisma/client";
 import { PublishRequest } from "@upstash/qstash";
 import * as z from "zod/v4";
-import {
-  LAST_ERROR_MAX_LENGTH,
-  QSTASH_BATCH_CHUNK_SIZE,
-} from "./constants";
+import { LAST_ERROR_MAX_LENGTH, QSTASH_BATCH_CHUNK_SIZE } from "./constants";
 import type { PublishResult } from "./types";
 
 export type JobDispatchOptions = Pick<
@@ -62,7 +59,10 @@ export function buildJobLabel(name: string, label?: string) {
   return label ? `${label},${name}` : name;
 }
 
-export function buildJobDeduplicationId(name: string, deduplicationId?: string) {
+export function buildJobDeduplicationId(
+  name: string,
+  deduplicationId?: string,
+) {
   if (!deduplicationId) {
     return undefined;
   }
@@ -148,7 +148,6 @@ export function isPublishSuccess(
   );
 }
 
-/** Publish defineJob rows to QStash (no DB writes). */
 export async function sendJobs(jobs: Job[]): Promise<PublishResult[]> {
   if (jobs.length === 0) {
     return [];
