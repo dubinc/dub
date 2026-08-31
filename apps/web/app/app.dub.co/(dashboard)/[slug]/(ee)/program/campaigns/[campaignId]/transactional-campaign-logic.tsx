@@ -9,17 +9,16 @@ import {
   type SendCampaignAttributeKey,
 } from "@/lib/api/workflows/send-campaign/schema";
 import { satisfiesExclusiveAttributeRules } from "@/lib/api/workflows/utils";
-import { handleMoneyInputChange, handleMoneyKeyDown } from "@/lib/form-utils";
 import { DurationPopoverContent } from "@/ui/shared/duration-popover-content";
 import {
   InlineBadgePopover,
-  InlineBadgePopoverContext,
+  InlineBadgePopoverAmountInput,
   InlineBadgePopoverMenu,
 } from "@/ui/shared/inline-badge-popover";
 import { Button } from "@dub/ui";
 import { Xmark } from "@dub/ui/icons";
-import { cn, currencyFormatter, pluralize } from "@dub/utils";
-import { useContext, useEffect, useMemo, useRef } from "react";
+import { currencyFormatter, pluralize } from "@dub/utils";
+import { ChangeEvent, useEffect, useMemo, useRef } from "react";
 import { Controller, useFieldArray } from "react-hook-form";
 import { useCampaignFormContext } from "./campaign-form-context";
 
@@ -152,8 +151,11 @@ function ConditionRow({
       setValue(
         `triggerConditions.${index}.value`,
         attribute === "partnerJoined" ? 0 : (null as any),
+        { shouldDirty: true },
       );
-      setValue(`triggerConditions.${index}.operator`, "gte");
+      setValue(`triggerConditions.${index}.operator`, "gte", {
+        shouldDirty: true,
+      });
     }
 
     prevAttributeRef.current = attribute;
@@ -162,7 +164,7 @@ function ConditionRow({
   // Ensure partnerJoined always has value 0
   useEffect(() => {
     if (attribute === "partnerJoined" && value !== 0) {
-      setValue(`triggerConditions.${index}.value`, 0);
+      setValue(`triggerConditions.${index}.value`, 0, { shouldDirty: true });
     }
   }, [attribute, value, index, setValue]);
 
@@ -235,7 +237,7 @@ function ConditionRow({
             {config.inputType === "dropdown" ? (
               <DropdownValueInput index={index} config={config} />
             ) : (
-              <ValueInput index={index} config={config} value={value} />
+              <ValueInput index={index} config={config} />
             )}
           </>
         )}
@@ -299,83 +301,57 @@ function DropdownValueInput({
 function ValueInput({
   index,
   config,
-  value,
 }: {
   index: number;
   config: { inputType?: string };
-  value: number | null | undefined;
 }) {
-  const { watch, setValue } = useCampaignFormContext();
-  const { setIsOpen } = useContext(InlineBadgePopoverContext);
-
-  const storedValue = watch(`triggerConditions.${index}.value`);
-
+  const { control } = useCampaignFormContext();
   const isCurrency = config.inputType === "currency";
 
-  const displayValue =
-    isCurrency && storedValue ? storedValue / 100 : storedValue;
-
-  const hasValue = value !== null && value !== undefined;
-
   return (
-    <InlineBadgePopover
-      text={
-        hasValue
-          ? isCurrency
-            ? currencyFormatter(value, {
-                trailingZeroDisplay: "stripIfInteger",
-              })
-            : value
-          : "amount"
-      }
-      invalid={!hasValue}
-    >
-      <div className="relative rounded-md shadow-sm">
-        {isCurrency && (
-          <span className="absolute inset-y-0 left-0 flex items-center pl-1.5 text-sm text-neutral-400">
-            $
-          </span>
-        )}
-        <input
-          className={cn(
-            "block w-full rounded-md border-neutral-300 px-1.5 py-1 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:w-32 sm:text-sm",
-            isCurrency ? "pl-4 pr-12" : "pr-7",
-          )}
-          value={displayValue ?? ""}
-          onChange={(e) => {
-            const nextValue = e.target.value;
-            if (nextValue === "") {
-              setValue(`triggerConditions.${index}.value`, null as any);
-            } else {
-              const numValue = +nextValue;
-              setValue(
-                `triggerConditions.${index}.value`,
-                isCurrency ? Math.round(numValue * 100) : numValue,
-              );
-            }
+    <Controller
+      control={control}
+      name={`triggerConditions.${index}.value`}
+      render={({ field }) => {
+        const storedValue = field.value;
+        const displayValue =
+          isCurrency && storedValue ? storedValue / 100 : storedValue;
+        const hasValue = storedValue !== null && storedValue !== undefined;
 
-            if (isCurrency) {
-              handleMoneyInputChange(e);
+        return (
+          <InlineBadgePopover
+            text={
+              hasValue
+                ? isCurrency
+                  ? currencyFormatter(storedValue, {
+                      trailingZeroDisplay: "stripIfInteger",
+                    })
+                  : storedValue
+                : "amount"
             }
-          }}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") {
-              e.preventDefault();
-              setIsOpen(false);
-              return;
-            }
+            invalid={!hasValue}
+          >
+            <InlineBadgePopoverAmountInput
+              type={isCurrency ? "currency" : "number"}
+              value={displayValue ?? ""}
+              onChange={(e: ChangeEvent<HTMLInputElement>) => {
+                const nextValue = e.target.value;
 
-            if (isCurrency) {
-              handleMoneyKeyDown(e);
-            }
-          }}
-        />
-        {isCurrency && (
-          <span className="absolute inset-y-0 right-0 flex items-center pr-1.5 text-sm text-neutral-400">
-            USD
-          </span>
-        )}
-      </div>
-    </InlineBadgePopover>
+                if (nextValue === "") {
+                  field.onChange(null as unknown as number);
+                  return;
+                }
+
+                const numValue = +nextValue;
+                field.onChange(
+                  isCurrency ? Math.round(numValue * 100) : numValue,
+                );
+              }}
+              onBlur={field.onBlur}
+            />
+          </InlineBadgePopover>
+        );
+      }}
+    />
   );
 }

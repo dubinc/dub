@@ -30,6 +30,12 @@ export async function notifyPartnerRewardChange({
   users,
   idempotencyKey,
 }: NotifyPartnerRewardChangeParams) {
+  // TODO: Remove after Aug 24
+  if (program.id === "prog_1JWVR53QX1NM7NDEK62E3J19H") {
+    console.log("Skipping notification for program", program.id);
+    return;
+  }
+
   const usersWithEmail = users.filter(
     (user): user is Pick<User, "name"> & { email: string } =>
       user.email !== null,

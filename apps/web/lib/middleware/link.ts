@@ -5,8 +5,11 @@ import {
   DUB_HEADERS,
   LEGAL_WORKSPACE_ID,
   LOCALHOST_GEO_DATA,
+  REDIRECTION_QUERY_PARAM,
   isDubDomain,
+  isGoogleClickTrackerDomain,
   isUnsupportedKey,
+  isValidUrl,
   nanoid,
   punyEncode,
 } from "@dub/utils";
@@ -38,7 +41,7 @@ import { parse } from "./utils/parse";
 import { resolveABTestURL } from "./utils/resolve-ab-test-url";
 
 export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
-  let { domain, fullKey: originalKey, fullPath } = parse(req);
+  let { domain, fullKey: originalKey, fullPath, searchParamsObj } = parse(req);
 
   if (!domain) {
     return NextResponse.next();
@@ -174,6 +177,33 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
   // everything else is not indexed by default, unless the user has explicitly set it to be indexed
   const shouldIndex = isDubDomain(domain) || doIndex === true;
 
+  const dubIdCookieName = `dub_id_${domain}_${key}`;
+
+  const cookieStore = await cookies();
+  let clickId = cookieStore.get(dubIdCookieName)?.value;
+  if (!clickId) {
+    // if we need to pass the clickId, check if clickId is cached in Redis
+    if (shouldCacheClickId) {
+      const identityHash = await getIdentityHash(req);
+      clickId =
+        (await recordClickCache
+          .get({ domain, key, identityHash })
+          .catch(() => undefined)) || undefined;
+    }
+
+    // if there's still no clickId, generate a new one
+    if (!clickId) {
+      clickId = nanoid(16);
+    }
+  }
+
+  const cookieData = {
+    path: `/${encodeURI(originalKey)}`,
+    dubIdCookieName,
+    dubIdCookieValue: clickId,
+    dubTestUrlValue: testUrl,
+  };
+
   // only show inspect modal if the link is not password protected
   if (inspectMode && !password) {
     return NextResponse.rewrite(
@@ -254,32 +284,44 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
     }
   }
 
-  const dubIdCookieName = `dub_id_${domain}_${key}`;
+  // for Google click tracker domains (dub.sh, dub.link):
+  // if there is a redirection url set, then use it instead of the target
+  if (isGoogleClickTrackerDomain(domain)) {
+    const redirectionUrl = searchParamsObj[REDIRECTION_QUERY_PARAM];
 
-  const cookieStore = await cookies();
-  let clickId = cookieStore.get(dubIdCookieName)?.value;
-  if (!clickId) {
-    // if we need to pass the clickId, check if clickId is cached in Redis
-    if (shouldCacheClickId) {
-      const identityHash = await getIdentityHash(req);
-      clickId =
-        (await recordClickCache
-          .get({ domain, key, identityHash })
-          .catch(() => undefined)) || undefined;
-    }
+    // if a valid redirection url is present, return it immediately
+    if (
+      redirectionUrl &&
+      isValidUrl(redirectionUrl) &&
+      redirectionUrl.startsWith("https://")
+    ) {
+      ev.waitUntil(
+        recordClick({
+          req,
+          clickId,
+          workspaceId,
+          linkId,
+          domain,
+          key,
+          url: redirectionUrl,
+          programId: cachedLink.programId,
+          partnerId: cachedLink.partnerId,
+          shouldCacheClickId,
+        }),
+      );
 
-    // if there's still no clickId, generate a new one
-    if (!clickId) {
-      clickId = nanoid(16);
+      return createResponseWithCookies(
+        NextResponse.redirect(redirectionUrl, {
+          headers: {
+            ...DUB_HEADERS,
+            ...(!shouldIndex && { "X-Robots-Tag": "googlebot: noindex" }),
+          },
+          status: key === "_root" ? 301 : 302,
+        }),
+        cookieData,
+      );
     }
   }
-
-  const cookieData = {
-    path: `/${encodeURI(originalKey)}`,
-    dubIdCookieName,
-    dubIdCookieValue: clickId,
-    dubTestUrlValue: testUrl,
-  };
 
   // for root domain links, if there's no destination URL, rewrite to placeholder page
   if (!url) {

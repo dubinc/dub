@@ -26,6 +26,7 @@ export function getAllowedMinPayoutAmounts(workspaceId: string): number[] {
 export const SEPA_ENABLED_WORKSPACE_IDS = new Set<string>([
   ACME_WORKSPACE_ID,
   "ws_1KNN3RC8XVQEHTZBQ9XQVNHEB",
+  "ws_1KYSFA2ZKN8C1QTB356ASGQRV",
 ]);
 
 export const PAYOUTS_SHEET_ITEMS_LIMIT = 10;

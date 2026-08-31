@@ -29,7 +29,7 @@ export const textFieldSchema = fieldCommonSchema.extend({
   type: z.literal("text"),
   constraints: z
     .object({
-      maxLength: z.number().int().positive().optional(),
+      maxLength: z.number().int().min(1).optional(),
       pattern: z.string().optional(),
     })
     .optional(),
@@ -40,7 +40,7 @@ export const textareaFieldSchema = fieldCommonSchema.extend({
   type: z.literal("textarea"),
   constraints: z
     .object({
-      maxLength: z.number().int().positive().optional(),
+      maxLength: z.number().int().min(1).optional(),
     })
     .optional(),
 });
@@ -100,7 +100,7 @@ export const formFieldsSchema = z
         ctx.addIssue({
           path: ["fields"],
           message: `Duplicate field key: ${field.key}`,
-          code: z.ZodIssueCode.custom,
+          code: "custom",
         });
       }
 
@@ -108,7 +108,7 @@ export const formFieldsSchema = z
         ctx.addIssue({
           path: ["fields"],
           message: `Duplicate field position: ${field.position}`,
-          code: z.ZodIssueCode.custom,
+          code: "custom",
         });
       }
 

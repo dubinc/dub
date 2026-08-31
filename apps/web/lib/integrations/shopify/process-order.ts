@@ -13,8 +13,9 @@ import { WorkspaceProps } from "@/lib/types";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { transformLeadEventData } from "@/lib/webhook/transform";
 import { COUNTRIES_TO_CONTINENTS, nanoid } from "@dub/utils";
-import { Link } from "@prisma/client";
+import { EventType, Link } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
+import { queueGoogleAdsConversionUpload } from "../google-ads/upload-conversion";
 import { createShopifyLead } from "./create-lead";
 import { createShopifySale } from "./create-sale";
 import { orderSchema } from "./schema";
@@ -205,6 +206,19 @@ export async function attributeViaDiscountCode({
             partner: result?.webhookPartner,
             metadata: null,
           }),
+        }),
+
+        queueGoogleAdsConversionUpload({
+          workspaceId: workspace.id,
+          eventType: EventType.lead,
+          eventId: leadEvent.event_id,
+          eventName: leadEvent.event_name,
+          conversionDateTime: new Date().toISOString(),
+          conversionCount: 1,
+          click: {
+            id: leadEvent.click_id,
+            url: leadEvent.url,
+          },
         }),
 
         ...(link.partnerId

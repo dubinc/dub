@@ -37,6 +37,7 @@ export * from "./loading-spinner";
 export * from "./anthropic";
 export * from "./beehiiv";
 export * from "./bing";
+export * from "./cloudflare";
 export * from "./facebook";
 export * from "./github";
 export * from "./google";
@@ -50,6 +51,7 @@ export * from "./slack-colorful";
 export * from "./tiktok";
 export * from "./twitter";
 export * from "./unsplash";
+export * from "./vercel";
 export * from "./veriff";
 export * from "./youtube";
 

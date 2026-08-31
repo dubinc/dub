@@ -5,6 +5,7 @@ import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { Partner, ProgramEnrollmentStatus } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { trackActivityLog } from "../activity-log/track-activity-log";
+import { queuePartnerSearchSync } from "./queue-partner-search-sync";
 
 interface ProcessPartnerDeactivationParams {
   workspaceId: string;
@@ -89,6 +90,9 @@ export async function processPartnerDeactivation({
       partnerIds,
     },
   );
+
+  // Queue an index update because the enrollment statuses moved to deactivated.
+  waitUntil(queuePartnerSearchSync({ partnerIds, programId }));
 
   if (user) {
     waitUntil(

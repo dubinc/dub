@@ -3,6 +3,7 @@ import { hashPassword } from "@/lib/auth/password";
 import { prisma } from "@/lib/prisma";
 import {
   Domain,
+  EmailDomain,
   Folder,
   Integration,
   Partner,
@@ -18,7 +19,7 @@ import {
 import "dotenv-flow/config";
 import fs from "fs";
 import path from "path";
-import readline from "readline";
+import { assertLocalDatabaseEnv } from "../../playwright/assert-local-database";
 
 type Workspace = Pick<
   Project,
@@ -47,6 +48,8 @@ type Workspace = Pick<
 >;
 
 type DomainSeed = Pick<Domain, "id" | "slug" | "verified">;
+
+type EmailDomainSeed = Pick<EmailDomain, "id" | "slug" | "status">;
 
 type FolderSeed = Pick<Folder, "id" | "name" | "description" | "accessLevel">;
 
@@ -118,6 +121,7 @@ type SeedData = {
   workspace: Workspace;
   users: WorkspaceUser[];
   domains: DomainSeed[];
+  emailDomains: EmailDomainSeed[];
   folders: FolderSeed[];
   rewards: RewardSeed[];
   groups: GroupSeed[];
@@ -224,6 +228,33 @@ const createDomains = async (data: SeedData) => {
   });
 
   console.log(`Created ${count} domains`);
+};
+
+// Create email domains
+const createEmailDomains = async (data: SeedData) => {
+  const { emailDomains, workspace, program } = data;
+
+  if (!emailDomains || emailDomains.length === 0) {
+    console.log("No email domains to insert");
+    return;
+  }
+
+  if (!program) {
+    console.log("Program is required to create email domains");
+    return;
+  }
+
+  const { count } = await prisma.emailDomain.createMany({
+    data: emailDomains.map((emailDomain) => ({
+      id: emailDomain.id,
+      slug: emailDomain.slug,
+      status: emailDomain.status,
+      workspaceId: workspace.id,
+      programId: program.id,
+    })),
+  });
+
+  console.log(`Created ${count} email domains`);
 };
 
 // Create folders
@@ -568,44 +599,14 @@ const truncate = async () => {
   console.log("Database truncated successfully");
 };
 
-// Ask for confirmation - requires typing "YES DELETE DATA"
-const askConfirmation = (question: string): Promise<boolean> => {
-  const rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout,
-  });
-
-  return new Promise((resolve) => {
-    rl.question(
-      `${question}\nType "YES DELETE DATA" to confirm: `,
-      (answer) => {
-        rl.close();
-        resolve(answer === "YES DELETE DATA");
-      },
-    );
-  });
-};
-
 async function main() {
+  assertLocalDatabaseEnv();
+
   // Check for --truncate flag
   // process.argv[0] = node, process.argv[1] = script path, process.argv[2+] = arguments
   const shouldTruncate = process.argv.slice(2).includes("--truncate");
 
   if (shouldTruncate) {
-    console.log(
-      "\n⚠️  WARNING: This will delete ALL data from the database.\n",
-    );
-    console.log("⚠️  Make sure you are NOT on production database!\n");
-    const confirmed = await askConfirmation(
-      "Are you sure you want to delete ALL data from the database?",
-    );
-
-    if (!confirmed) {
-      console.log("\nTruncate canceled. Exiting...");
-      process.exit(0);
-    }
-
-    console.log("\n");
     await truncate();
     console.log("\n");
   }
@@ -617,6 +618,7 @@ async function main() {
   await createDomains(data);
   await createFolders(data);
   await createProgram(data);
+  await createEmailDomains(data);
   await createRewards(data);
   await createGroups(data);
   await createPartners(data);

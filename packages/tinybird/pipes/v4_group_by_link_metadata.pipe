@@ -252,6 +252,7 @@ SQL >
         {% if defined(device) %} AND device = {{ device }} {% end %}
         {% if defined(browser) %} AND browser = {{ browser }} {% end %}
         {% if defined(os) %} AND os = {{ os }} {% end %}
+        {% if defined(eventName) %} AND event_name = {{ eventName }} {% end %}
         {% if defined(referer) %} AND referer = {{ referer }} {% end %}
         {% if defined(refererUrl) %} AND splitByString('?', referer_url)[1] = {{ refererUrl }} {% end %}
         {% if defined(utm_source) %}
@@ -305,6 +306,10 @@ SQL >
                     {% elif field == 'trigger' %}
                         {% if operator == 'IN' %} AND trigger IN {{ Array(values, 'String') }}
                         {% elif operator == 'NOT IN' %} AND trigger NOT IN {{ Array(values, 'String') }}
+                        {% end %}
+                    {% elif field == 'eventName' %}
+                        {% if operator == 'IN' %} AND event_name IN {{ Array(values, 'String') }}
+                        {% elif operator == 'NOT IN' %} AND event_name NOT IN {{ Array(values, 'String') }}
                         {% end %}
                     {% elif field == 'referer' %}
                         {% if operator == 'IN' %} AND referer IN {{ Array(values, 'String') }}
@@ -439,6 +444,7 @@ SQL >
             {% if defined(device) %} AND se.device = {{ device }} {% end %}
             {% if defined(browser) %} AND se.browser = {{ browser }} {% end %}
             {% if defined(os) %} AND se.os = {{ os }} {% end %}
+            {% if defined(eventName) %} AND se.event_name = {{ eventName }} {% end %}
             {% if defined(referer) %} AND se.referer = {{ referer }} {% end %}
             {% if defined(refererUrl) %} AND splitByString('?', se.referer_url)[1] = {{ refererUrl }} {% end %}
             {% if defined(utm_source) %}
@@ -492,6 +498,10 @@ SQL >
                         {% elif field == 'trigger' %}
                             {% if operator == 'IN' %} AND se.trigger IN {{ Array(values, 'String') }}
                             {% elif operator == 'NOT IN' %} AND se.trigger NOT IN {{ Array(values, 'String') }}
+                            {% end %}
+                        {% elif field == 'eventName' %}
+                            {% if operator == 'IN' %} AND se.event_name IN {{ Array(values, 'String') }}
+                            {% elif operator == 'NOT IN' %} AND se.event_name NOT IN {{ Array(values, 'String') }}
                             {% end %}
                         {% elif field == 'referer' %}
                             {% if operator == 'IN' %} AND se.referer IN {{ Array(values, 'String') }}

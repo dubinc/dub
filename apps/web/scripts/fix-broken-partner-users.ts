@@ -6,7 +6,7 @@ async function main() {
   while (true) {
     const partnerUserIds = await prisma.partnerUser.findMany({
       select: {
-        userId: true,
+        partnerId: true,
       },
       take: 5000,
       skip: batch * 5000,
@@ -14,27 +14,43 @@ async function main() {
     if (partnerUserIds.length === 0) {
       break;
     }
-    const users = await prisma.user.findMany({
+    const partners = await prisma.partner.findMany({
       where: {
         id: {
-          in: partnerUserIds.map((partnerUser) => partnerUser.userId),
+          in: partnerUserIds.map((partnerUser) => partnerUser.partnerId),
         },
       },
     });
-    const usersThatDontExist = partnerUserIds.filter(
-      (partnerUser) => !users.some((user) => user.id === partnerUser.userId),
+    const partnersThatDontExist = partnerUserIds.filter(
+      (partnerUser) =>
+        !partners.some((partner) => partner.id === partnerUser.partnerId),
     );
-    console.log(usersThatDontExist);
+    console.log(partnersThatDontExist);
 
-    if (usersThatDontExist.length > 0) {
+    if (partnersThatDontExist.length > 0) {
       const deletedPartnerUsers = await prisma.partnerUser.deleteMany({
         where: {
-          userId: {
-            in: usersThatDontExist.map((partnerUser) => partnerUser.userId),
+          partnerId: {
+            in: partnersThatDontExist.map(
+              (partnerUser) => partnerUser.partnerId,
+            ),
           },
         },
       });
       console.log(`Deleted ${deletedPartnerUsers.count} partner users`);
+      const updatedUsers = await prisma.user.updateMany({
+        where: {
+          defaultPartnerId: {
+            in: partnersThatDontExist.map(
+              (partnerUser) => partnerUser.partnerId,
+            ),
+          },
+        },
+        data: {
+          defaultPartnerId: null,
+        },
+      });
+      console.log(`Reset defaultPartnerId for ${updatedUsers.count} users`);
     }
     batch++;
   }
