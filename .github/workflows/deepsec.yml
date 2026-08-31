@@ -1,0 +1,111 @@
+name: DeepSec quarterly
+
+on:
+  schedule:
+    # 1 Jan, 1 Apr, 1 Jul, 1 Oct at 08:00 UTC
+    - cron: "0 8 1 1,4,7,10 *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deepsec-quarterly
+  cancel-in-progress: false
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    defaults:
+      run:
+        working-directory: .deepsec
+    env:
+      AI_GATEWAY_API_KEY: ${{ secrets.DEEPSEC_AI_GATEWAY_API_KEY }}
+      VERCEL_TOKEN: ${{ secrets.DEEPSEC_VERCEL_TOKEN }}
+      VERCEL_TEAM_ID: ${{ secrets.DEEPSEC_VERCEL_TEAM_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.DEEPSEC_VERCEL_PROJECT_ID }}
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.9
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: .deepsec/pnpm-lock.yaml
+
+      - name: Install DeepSec
+        run: pnpm install --frozen-lockfile
+
+      - name: Restore file records
+        uses: actions/cache@v4
+        with:
+          path: .deepsec/data/web/files
+          key: deepsec-web-files-${{ github.run_id }}
+          restore-keys: |
+            deepsec-web-files-
+
+      - name: Scan
+        run: pnpm deepsec scan --project-id web
+
+      - name: Process in Vercel Sandboxes
+        id: process
+        continue-on-error: true
+        run: |
+          pnpm deepsec sandbox process \
+            --project-id web \
+            --sandboxes 10 \
+            --concurrency 4 \
+            --timeout 18000000
+
+      - name: Revalidate HIGH+
+        id: revalidate
+        if: ${{ !cancelled() }}
+        continue-on-error: true
+        run: pnpm deepsec revalidate --project-id web --min-severity HIGH
+
+      - name: Export findings
+        if: ${{ !cancelled() }}
+        run: |
+          pnpm deepsec export \
+            --project-id web \
+            --format json \
+            --min-severity HIGH \
+            --out findings.json
+          pnpm deepsec export \
+            --project-id web \
+            --format md-dir \
+            --min-severity HIGH \
+            --out ./findings
+
+      - name: Notify Slack
+        if: ${{ !cancelled() }}
+        env:
+          DEEPSEC_SLACK_HOOK: ${{ secrets.DEEPSEC_SLACK_HOOK }}
+        run: pnpm notify-slack findings.json
+
+      - name: Upload report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: deepsec-quarterly-findings
+          path: |
+            .deepsec/findings.json
+            .deepsec/findings
+            .deepsec/data/web/files
+          if-no-files-found: warn
+          retention-days: 90
+
+      - name: Fail if process or revalidate errored
+        if: ${{ !cancelled() && (steps.process.outcome == 'failure' || steps.revalidate.outcome == 'failure') }}
+        run: |
+          echo "process=${{ steps.process.outcome }} revalidate=${{ steps.revalidate.outcome }}"
+          echo "DeepSec exited non-zero. Re-run via workflow_dispatch; finished files are kept and pending files resume."
+          exit 1

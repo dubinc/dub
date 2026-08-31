@@ -1,0 +1,109 @@
+name: DeepSec PR
+
+on:
+  pull_request:
+    paths:
+      - "apps/web/**"
+      - ".deepsec/**"
+      - ".github/workflows/deepsec-pr.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  analyze:
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: .deepsec
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Fetch PR base
+        working-directory: .
+        run: git fetch origin "${{ github.event.pull_request.base.ref }}"
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.9
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: .deepsec/pnpm-lock.yaml
+
+      - name: Install DeepSec
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Codex CLI
+        run: npm install -g @openai/codex
+
+      - name: List changed apps/web files
+        id: files
+        working-directory: .
+        run: |
+          mkdir -p .deepsec
+          .deepsec/scripts/list-pr-files.sh "origin/${{ github.event.pull_request.base.ref }}...HEAD" \
+            > .deepsec/pr-files.txt
+          if [ -s .deepsec/pr-files.txt ]; then
+            echo "has_files=true" >> "$GITHUB_OUTPUT"
+            echo "Changed files:"
+            cat .deepsec/pr-files.txt
+          else
+            echo "has_files=false" >> "$GITHUB_OUTPUT"
+            echo "No in-scope apps/web files to review."
+          fi
+
+      - name: Review diff
+        id: deepsec
+        if: steps.files.outputs.has_files == 'true'
+        env:
+          AI_GATEWAY_API_KEY: ${{ secrets.DEEPSEC_AI_GATEWAY_API_KEY }}
+        run: |
+          pnpm deepsec process \
+            --project-id web \
+            --files-from pr-files.txt \
+            --comment-out "${{ github.workspace }}/comment.md"
+
+      - name: Upload PR comment
+        if: always() && hashFiles('comment.md') != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: deepsec-comment
+          path: comment.md
+          retention-days: 1
+
+  comment:
+    needs: analyze
+    if: always() && needs.analyze.result == 'failure'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - id: dl
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          name: deepsec-comment
+
+      - if: steps.dl.outcome == 'success'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: fs.readFileSync('comment.md', 'utf8'),
+            });
