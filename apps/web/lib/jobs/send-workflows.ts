@@ -2,6 +2,7 @@ import { logger, toErrorFields } from "@/lib/axiom/server";
 import { APP_DOMAIN_WITH_NGROK, chunk, serializeError } from "@dub/utils";
 import { PublishRequest } from "@upstash/qstash";
 import { Client, TriggerOptions } from "@upstash/workflow";
+import * as z from "zod/v4";
 import { LAST_ERROR_MAX_LENGTH, QSTASH_BATCH_CHUNK_SIZE } from "./constants";
 import type { PersistableJob, PublishResult } from "./types";
 
@@ -16,11 +17,23 @@ const workflowClient = new Client({
   }),
 });
 
+export const workflowNameSchema = z
+  .string()
+  .regex(
+    /^[a-z][a-z0-9]*(-[a-z0-9]+)*-workflow$/,
+    'Workflow name must be kebab-case ending in "-workflow"',
+  );
+
 const workflowPathMap = {
-  partnerApproved: "/api/workflows/partner-approved",
-  mergePartnerAccounts: "/api/workflows/merge-partner-accounts",
-  createPartnerCommission: "/api/workflows/create-partner-commission",
+  "partner-approved-workflow": "/api/workflows/partner-approved",
+  "merge-partner-accounts-workflow": "/api/workflows/merge-partner-accounts",
+  "create-partner-commission-workflow":
+    "/api/workflows/create-partner-commission",
 } as const;
+
+for (const name of Object.keys(workflowPathMap)) {
+  workflowNameSchema.parse(name);
+}
 
 export type WorkflowName = keyof typeof workflowPathMap;
 

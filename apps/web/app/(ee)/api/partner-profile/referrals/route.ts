@@ -58,7 +58,7 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
           );
 
           await dispatchWorkflows({
-            name: "partnerApproved",
+            name: "partner-approved-workflow",
             payload: {
               programId: NETWORK_PROGRAM_ID,
               partnerId: partner.id,

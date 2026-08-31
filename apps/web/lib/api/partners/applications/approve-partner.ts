@@ -157,7 +157,7 @@ export async function approvePartner({
       }),
 
       dispatchWorkflows({
-        name: "partnerApproved",
+        name: "partner-approved-workflow",
         payload: {
           programId,
           partnerId,

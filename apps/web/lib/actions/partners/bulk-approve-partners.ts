@@ -145,7 +145,7 @@ export const bulkApprovePartnersAction = authActionClient
 
           dispatchWorkflows(
             updatedEnrollments.map(({ partnerId, programId }) => ({
-              name: "partnerApproved",
+              name: "partner-approved-workflow",
               payload: {
                 programId,
                 partnerId,

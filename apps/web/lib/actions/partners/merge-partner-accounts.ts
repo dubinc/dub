@@ -341,7 +341,7 @@ const mergeAccounts = async ({ userId }: { userId: string }) => {
   const { sourceEmail, targetEmail } = accounts;
 
   await dispatchWorkflows({
-    name: "mergePartnerAccounts",
+    name: "merge-partner-accounts-workflow",
     payload: {
       userId,
       sourceEmail,

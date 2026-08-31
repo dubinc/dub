@@ -53,7 +53,7 @@ export const POST = withWorkspace(
     const userId = `e2e-merge-${nanoid()}`;
 
     const res = await dispatchWorkflows({
-      name: "mergePartnerAccounts",
+      name: "merge-partner-accounts-workflow",
       payload: {
         userId,
         sourceEmail,

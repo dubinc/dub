@@ -20,7 +20,7 @@ export const queuePartnerCommissionCreation = async (
   const { partner, links, ...programEnrollment } = result;
 
   await dispatchWorkflows({
-    name: "createPartnerCommission",
+    name: "create-partner-commission-workflow",
     payload: params,
     options: {
       flowControl: {

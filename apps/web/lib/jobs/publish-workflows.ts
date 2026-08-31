@@ -39,12 +39,7 @@ export async function dispatchWorkflows(
       id,
       name: job.name,
       payload: job.payload,
-      // Default deduplicationId to the job id so inline publish and the
-      // retry cron cannot deliver the same workflow twice
-      options: {
-        ...job.options,
-        deduplicationId: job.options?.deduplicationId ?? id,
-      },
+      options: job.options,
     };
   });
 
