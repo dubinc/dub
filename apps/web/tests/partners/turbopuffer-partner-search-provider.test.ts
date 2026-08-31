@@ -5,6 +5,7 @@ import {
 import {
   createTurbopufferPartnerSearchProvider,
   deleteTurbopufferPartnerSearchNamespace,
+  PARTNER_SEARCH_NAMESPACE,
   type TurbopufferNamespace,
 } from "@/lib/api/partners/search/providers/turbopuffer";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -478,6 +479,6 @@ describe("Turbopuffer partner search provider", () => {
       namespace: createNamespaceMock(),
     });
 
-    expect(namespaceName).toBe("partner-search-v3");
+    expect(namespaceName).toBe(PARTNER_SEARCH_NAMESPACE);
   });
 });
