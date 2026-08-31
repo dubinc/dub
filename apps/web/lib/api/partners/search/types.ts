@@ -53,9 +53,7 @@ export interface PartnerSearchDocument {
   platformTypes: PlatformType[];
   platformIdentifiers: string[];
 
-  // The only searchable link field. Domains and destination URLs are absent:
-  // a program's partners share them, so they never narrow a search, and
-  // partner-specific sites are already indexed via the website platform.
+  // Searchable link field
   linkKeys: string[];
 
   // Filterable fields. Metrics are deliberately absent: they move on every click
