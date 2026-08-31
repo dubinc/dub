@@ -14,7 +14,7 @@ type JobTransport = {
 const transports: JobTransport[] = [
   {
     matches: isWorkflowName,
-    send: (jobs) => triggerWorkflows(jobs),
+    send: triggerWorkflows,
   },
   {
     matches: isDefineJobName,
@@ -22,7 +22,7 @@ const transports: JobTransport[] = [
   },
 ];
 
-/** Persist jobs that failed to publish. Swallow DB errors (log only). */
+// Persist jobs that failed to publish. Swallow DB errors (log only)
 export async function persistFailedJobs({
   jobs,
   failedResults,
@@ -70,7 +70,7 @@ export async function persistFailedJobs({
   }
 }
 
-/** Delete successfully republished rows; bump attempts on failures. */
+// Delete successfully republished rows; bump attempts on failures.
 export async function settlePublishResults({
   results,
   jobs,
@@ -128,10 +128,10 @@ export async function settlePublishResults({
     ),
   );
 
+  const failedIds = new Set(failedResults.map((result) => result.id));
+
   const exhaustedJobs = jobs.filter(
-    (job) =>
-      failedResults.some((result) => result.id === job.id) &&
-      job.attempts + 1 >= MAX_JOB_ATTEMPTS,
+    (job) => failedIds.has(job.id) && job.attempts + 1 >= MAX_JOB_ATTEMPTS,
   );
 
   if (exhaustedJobs.length > 0) {
@@ -147,7 +147,7 @@ export async function settlePublishResults({
   };
 }
 
-/** Select due rows once (indexed), send via matching transport, then settle. */
+// Select due rows once (indexed), send via matching transport, then settle.
 export async function publishPendingJobs(): Promise<{
   attempted: number;
   published: number;
@@ -169,27 +169,39 @@ export async function publishPendingJobs(): Promise<{
   });
 
   if (jobs.length === 0) {
-    return { attempted: 0, published: 0, failed: 0 };
+    return {
+      attempted: 0,
+      published: 0,
+      failed: 0,
+    };
   }
 
   const matched = new Set<string>();
+  const pending: Promise<PublishResult[]>[] = [];
 
-  const results = (
-    await Promise.all(
-      transports.map((transport) => {
-        const batch = jobs.filter((job) => transport.matches(job.name));
-        for (const job of batch) {
-          matched.add(job.id);
-        }
-        return transport.send(batch);
-      }),
-    )
-  ).flat();
+  for (const transport of transports) {
+    const batch = jobs.filter((job) => transport.matches(job.name));
+
+    for (const job of batch) {
+      matched.add(job.id);
+    }
+
+    pending.push(transport.send(batch));
+  }
+
+  const results = (await Promise.all(pending)).flat();
 
   for (const job of jobs) {
-    if (!matched.has(job.id)) {
-      logger.error("jobs.unknown_kind", { id: job.id, name: job.name });
+    if (matched.has(job.id)) {
+      continue;
     }
+
+    logger.error("jobs.unknown_kind", { id: job.id, name: job.name });
+    results.push({
+      id: job.id,
+      status: "failed",
+      lastError: `Unknown job kind: ${job.name}`,
+    });
   }
 
   if (matched.size < jobs.length) {

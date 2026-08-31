@@ -11,6 +11,7 @@ import {
   buildQStashJobRequest,
   isPublishSuccess,
   jobNameSchema,
+  type DispatchJobInput,
   type JobDispatchOptions,
 } from "./send-jobs";
 
@@ -30,12 +31,6 @@ type DispatchBatchResult = {
   failed: number;
   results: DispatchResult[];
 };
-
-interface DispatchJobInput {
-  name: string;
-  payload: unknown;
-  options?: JobDispatchOptions;
-}
 
 const QSTASH_PUBLISH_MAX_RETRIES = 3;
 

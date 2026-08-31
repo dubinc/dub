@@ -1,6 +1,6 @@
-import { logger } from "@/lib/axiom/server";
+import { logger, toErrorFields } from "@/lib/axiom/server";
 import { qstash } from "@/lib/cron";
-import { APP_DOMAIN_WITH_NGROK, chunk } from "@dub/utils";
+import { APP_DOMAIN_WITH_NGROK, chunk, serializeError } from "@dub/utils";
 import { Job, Prisma } from "@prisma/client";
 import { PublishRequest } from "@upstash/qstash";
 import * as z from "zod/v4";
@@ -24,7 +24,7 @@ type JobReplayOptions = Pick<
   "deduplicationId" | "retries" | "queue" | "flowControl" | "label"
 >;
 
-type DispatchJobInput = {
+export type DispatchJobInput = {
   name: string;
   payload: unknown;
   options?: JobDispatchOptions;
@@ -51,7 +51,7 @@ export function isDefineJobName(name: string) {
   return jobNameSchema.safeParse(name).success;
 }
 
-export function getJobsEndpointUrl(name: string) {
+function getJobsEndpointUrl(name: string) {
   return `${JOBS_ENDPOINT_URL}/${name}`;
 }
 
@@ -59,10 +59,7 @@ export function buildJobLabel(name: string, label?: string) {
   return label ? `${label},${name}` : name;
 }
 
-export function buildJobDeduplicationId(
-  name: string,
-  deduplicationId?: string,
-) {
+function buildJobDeduplicationId(name: string, deduplicationId?: string) {
   if (!deduplicationId) {
     return undefined;
   }
@@ -106,13 +103,13 @@ export function buildQStashJobRequest(
   };
 }
 
-export function buildReplayRequest(
+function buildReplayRequest(
   job: {
     name: string;
     payload: Prisma.JsonValue;
     options: Prisma.JsonValue | null;
     createdAt: Date;
-    scheduledAt: Date | null;
+    scheduledAt: Date;
   },
   now: Date = new Date(),
 ) {
@@ -181,13 +178,11 @@ export async function sendJobs(jobs: Job[]): Promise<PublishResult[]> {
         }
       });
     } catch (error) {
-      const lastError = (
-        error instanceof Error ? error.message : String(error)
-      ).slice(0, LAST_ERROR_MAX_LENGTH);
+      const lastError = serializeError(error).slice(0, LAST_ERROR_MAX_LENGTH);
 
       logger.error("jobs.publish_failed", {
         jobCount: jobChunk.length,
-        errorMessage: lastError,
+        error: toErrorFields(error),
       });
 
       for (const job of jobChunk) {
