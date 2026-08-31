@@ -1,14 +1,14 @@
 import { logger } from "@/lib/axiom/server";
 import { pluck } from "@dub/utils";
-import { JobStatus, Prisma } from "@prisma/client";
+import { Job, JobStatus, Prisma } from "@prisma/client";
 import { createId } from "../api/create-id";
 import { prisma } from "../prisma";
 import { QStashJobPublisher } from "./publishers/qstash-job-publisher";
 import { QStashWorkflowPublisher } from "./publishers/qstash-workflow-publisher";
-import type { QStashJobOptions } from "./publishers/types";
+import type { PublishSendResult, QStashJobOptions } from "./publishers/types";
 
 const MAX_ATTEMPTS = 10;
-const BATCH_SIZE = 100;
+const MAX_JOBS_PER_BATCH = 100;
 
 type DispatchJobInput = {
   name: string;
@@ -99,7 +99,7 @@ export async function publishPendingJobs(
       orderBy: {
         createdAt: "asc" as const,
       },
-      take: BATCH_SIZE,
+      take: MAX_JOBS_PER_BATCH,
     }),
   });
 
@@ -119,66 +119,86 @@ export async function publishPendingJobs(
     ])
   ).flat();
 
-  const publishedIds = results
-    .filter((result) => result.status === JobStatus.published)
-    .map((result) => result.id);
+  const publishedResults = results.filter(
+    (result) => result.status === JobStatus.published,
+  );
 
   const failedResults = results.filter(
     (result) => result.status === JobStatus.failed,
   );
 
-  // Job has been published successfully
-  if (publishedIds.length > 0) {
-    await prisma.job.updateMany({
-      where: {
-        id: {
-          in: publishedIds,
-        },
-      },
-      data: {
-        status: JobStatus.published,
-      },
-    });
-  }
-
-  // Job has failed
-  if (failedResults.length > 0) {
-    await Promise.all(
-      failedResults.map((result) =>
-        prisma.job.update({
-          where: {
-            id: result.id,
-          },
-          data: {
-            status: JobStatus.failed,
-            lastError: result.lastError,
-            attempts: {
-              increment: 1,
-            },
-          },
-        }),
-      ),
-    );
-
-    // Jobs that just ran out of attempts are excluded from future runs by the
-    // MAX_ATTEMPTS filter and need manual intervention
-    const exhaustedJobs = jobs.filter(
-      (job) =>
-        failedResults.some((result) => result.id === job.id) &&
-        job.attempts + 1 >= MAX_ATTEMPTS,
-    );
-
-    if (exhaustedJobs.length > 0) {
-      logger.error("jobs.retry_exhausted", {
-        jobs: exhaustedJobs.map(({ id, name }) => ({ id, name })),
-      });
-      await logger.flush();
-    }
-  }
+  await markAsPublished({ publishedResults });
+  await markAsFailed({ failedResults, jobs });
 
   return {
     attempted: jobs.length,
-    published: publishedIds.length,
+    published: publishedResults.length,
     failed: failedResults.length,
   };
+}
+
+async function markAsPublished({
+  publishedResults,
+}: {
+  publishedResults: PublishSendResult[];
+}) {
+  if (publishedResults.length === 0) {
+    return;
+  }
+
+  await prisma.job.updateMany({
+    where: {
+      id: {
+        in: publishedResults.map((result) => result.id),
+      },
+    },
+    data: {
+      status: JobStatus.published,
+    },
+  });
+}
+
+async function markAsFailed({
+  failedResults,
+  jobs,
+}: {
+  failedResults: PublishSendResult[];
+  jobs: Pick<Job, "id" | "name" | "attempts">[];
+}) {
+  if (failedResults.length === 0) {
+    return;
+  }
+
+  await Promise.all(
+    failedResults.map((result) =>
+      prisma.job.update({
+        where: {
+          id: result.id,
+        },
+        data: {
+          status: JobStatus.failed,
+          lastError: result.lastError,
+          attempts: {
+            increment: 1,
+          },
+        },
+      }),
+    ),
+  );
+
+  // Jobs that just ran out of attempts are excluded from future runs by the
+  // MAX_ATTEMPTS filter and need manual intervention
+  const exhaustedJobs = jobs.filter(
+    (job) =>
+      failedResults.some((result) => result.id === job.id) &&
+      job.attempts + 1 >= MAX_ATTEMPTS,
+  );
+
+  if (exhaustedJobs.length > 0) {
+    for (const { id, name } of exhaustedJobs) {
+      logger.error("jobs.retry_exhausted", { id, name });
+    }
+
+    await logger.flush();
+  }
 }

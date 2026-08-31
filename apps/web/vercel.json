@@ -93,6 +93,10 @@
       "schedule": "* * * * *"
     },
     {
+      "path": "/api/cron/queue/cleanup",
+      "schedule": "0 2 * * *"
+    },
+    {
       "path": "/api/cron/campaigns/queue-scheduled",
       "schedule": "* * * * *"
     }
