@@ -64,6 +64,9 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
               partnerId: partner.id,
               userId: NETWORK_USER_ID,
             },
+            options: {
+              label: partner.id,
+            },
           });
         }
       }),

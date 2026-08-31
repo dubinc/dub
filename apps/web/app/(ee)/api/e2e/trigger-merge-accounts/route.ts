@@ -64,6 +64,7 @@ export const POST = withWorkspace(
           key: userId,
           parallelism: 1,
         },
+        label: userId,
       },
     });
 

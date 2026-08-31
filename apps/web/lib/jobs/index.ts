@@ -7,7 +7,7 @@ import { Prisma } from "@prisma/client";
 import { PublishRequest } from "@upstash/qstash";
 import * as z from "zod/v4";
 
-export type JobEnvelope = z.infer<typeof jobEnvelopeSchema>;
+type JobEnvelope = z.infer<typeof jobEnvelopeSchema>;
 
 type JobPublishOptions = Pick<
   PublishRequest,
@@ -29,11 +29,11 @@ export type JobDefaults = Pick<
   "retries" | "queue" | "flowControl" | "label"
 >;
 
-export type DispatchResult =
+type DispatchResult =
   | { status: "published"; messageId: string }
   | { status: "deferred"; backgroundJobId: string };
 
-export type DispatchBatchResult = {
+type DispatchBatchResult = {
   published: number;
   deferred: number;
   failed: number;
@@ -45,11 +45,6 @@ interface DispatchJobInput {
   payload: unknown;
   options?: JobDispatchOptions;
 }
-
-type JobReplayOptions = Pick<
-  JobDispatchOptions,
-  "deduplicationId" | "retries" | "queue" | "flowControl" | "label"
->;
 
 const JOBS_ENDPOINT_URL = `${APP_DOMAIN_WITH_NGROK}/api/jobs/process`;
 
@@ -64,20 +59,17 @@ export const jobNameSchema = z
     'Job name must be kebab-case ending in "-job"',
   );
 
-export function getJobsEndpointUrl(name: string) {
+function getJobsEndpointUrl(name: string) {
   return `${JOBS_ENDPOINT_URL}/${name}`;
 }
 
 // QStash label: user-provided tag first, job name appended for log filtering
-export function buildJobLabel(name: string, label?: string) {
+function buildJobLabel(name: string, label?: string) {
   return label ? `${label},${name}` : name;
 }
 
 // QStash deduplicationId: user-provided id first, job name appended for cross-job isolation
-export function buildJobDeduplicationId(
-  name: string,
-  deduplicationId?: string,
-) {
+function buildJobDeduplicationId(name: string, deduplicationId?: string) {
   if (!deduplicationId) {
     return undefined;
   }
@@ -121,18 +113,15 @@ async function withQStashRetry<T>(fn: () => Promise<T>): Promise<T> {
 function buildQStashJobRequest(
   { name, payload, options }: DispatchJobInput,
   opts?: {
-    dispatchedAt?: string;
     batch?: boolean;
-    notBefore?: number;
   },
 ) {
   const envelope: JobEnvelope = {
     name,
     payload,
-    dispatchedAt: opts?.dispatchedAt ?? new Date().toISOString(),
+    dispatchedAt: new Date().toISOString(),
   };
 
-  const notBefore = opts?.notBefore ?? options?.notBefore;
   const deduplicationId = buildJobDeduplicationId(
     name,
     options?.deduplicationId,
@@ -142,37 +131,13 @@ function buildQStashJobRequest(
     url: getJobsEndpointUrl(name),
     body: envelope,
     label: buildJobLabel(name, options?.label),
-    ...(options?.delay &&
-      opts?.notBefore === undefined && {
-        delay: options.delay,
-      }),
-    ...(notBefore && { notBefore }),
+    ...(options?.delay && { delay: options.delay }),
+    ...(options?.notBefore && { notBefore: options.notBefore }),
     ...(deduplicationId && { deduplicationId }),
     ...(options?.retries !== undefined && { retries: options.retries }),
     ...(options?.flowControl && { flowControl: options.flowControl }),
     ...(opts?.batch && options?.queue && { queueName: options.queue }),
   };
-}
-
-export function buildReplayRequest(job: {
-  name: string;
-  payload: Prisma.JsonValue;
-  options: Prisma.JsonValue | null;
-  createdAt: Date;
-}) {
-  const options = (job.options ?? {}) as JobReplayOptions;
-
-  return buildQStashJobRequest(
-    {
-      name: job.name,
-      payload: job.payload,
-      options,
-    },
-    {
-      dispatchedAt: job.createdAt.toISOString(),
-      batch: true,
-    },
-  );
 }
 
 export function isPublishSuccess(

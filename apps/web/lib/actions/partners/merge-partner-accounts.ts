@@ -352,6 +352,7 @@ const mergeAccounts = async ({ userId }: { userId: string }) => {
         key: userId,
         parallelism: 1,
       },
+      label: userId,
     },
   });
 };

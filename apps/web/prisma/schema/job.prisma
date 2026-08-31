@@ -16,5 +16,6 @@ model Job {
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
-  @@index([createdAt])
+  @@index([status, scheduledAt, attempts]) // retry cron: due pending/failed jobs
+  @@index([status, createdAt]) // daily cleanup by status + age
 }
