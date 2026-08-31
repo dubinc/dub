@@ -31,7 +31,7 @@ import { getEmailNgrams, getQueryNgrams } from "./shared";
  * existing namespace. A new version is backfilled alongside the old one and
  * swapped in, rather than rebuilt in place.
  */
-export const PARTNER_SEARCH_NAMESPACE = "partner-search-v5";
+export const PARTNER_SEARCH_NAMESPACE = "partner-search-v4";
 const WRITE_BATCH_SIZE = 500;
 
 /**

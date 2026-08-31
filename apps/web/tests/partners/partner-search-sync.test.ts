@@ -28,9 +28,6 @@ function createSource(
     partnerId: `pn_${id}`,
     status: "approved" as const,
     groupId: null,
-    program: {
-      url: "https://example.com",
-    },
     partner: {
       name: "Rafi Hasan",
       email: "partner@example.com",

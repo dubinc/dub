@@ -11,8 +11,6 @@ const mocks = vi.hoisted(() => ({
   partnerGroupBy: vi.fn(),
   partnerTagGroupBy: vi.fn(),
   applicationEventGroupBy: vi.fn(),
-  enrollmentFindUnique: vi.fn(),
-  linkFindUnique: vi.fn(),
 }));
 
 vi.mock("@/lib/prisma", () => ({
@@ -21,12 +19,10 @@ vi.mock("@/lib/prisma", () => ({
     programEnrollment: {
       count: mocks.count,
       groupBy: mocks.enrollmentGroupBy,
-      findUnique: mocks.enrollmentFindUnique,
     },
     partner: { groupBy: mocks.partnerGroupBy, findUnique: vi.fn() },
     programPartnerTag: { groupBy: mocks.partnerTagGroupBy },
     programApplicationEvent: { groupBy: mocks.applicationEventGroupBy },
-    link: { findUnique: mocks.linkFindUnique },
   },
 }));
 
@@ -75,29 +71,6 @@ describe("getPartnersCount search", () => {
       },
     });
     expect(mocks.count).not.toHaveBeenCalled();
-  });
-
-  it("counts an exact short-link result from its hits, not the aggregation", async () => {
-    // The aggregation would count every document sharing a token with the
-    // pasted link, which is most of the program.
-    mocks.linkFindUnique.mockResolvedValue({
-      programId: "prog_test",
-      partnerId: "pn_1",
-    });
-    mocks.enrollmentFindUnique.mockResolvedValue({ id: "pge_9" });
-    mocks.count.mockResolvedValue(1);
-    const searchProvider = createSearchProvider(12_000);
-
-    const count = await getPartnersCount<number>(
-      { programId: "prog_test", search: "go.acme.com/partnername" },
-      { searchProvider },
-    );
-
-    expect(count).toBe(1);
-    expect(searchProvider.countCandidates).not.toHaveBeenCalled();
-    expect(mocks.count).toHaveBeenCalledWith({
-      where: expect.objectContaining({ id: { in: ["pge_9"] } }),
-    });
   });
 
   it.each([

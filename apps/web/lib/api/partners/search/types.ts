@@ -53,12 +53,10 @@ export interface PartnerSearchDocument {
   platformTypes: PlatformType[];
   platformIdentifiers: string[];
 
-  // Searchable link fields. Short-link domains are absent: a program's
-  // partners share one, so it never narrows a search. A full short link is an
-  // exact database lookup instead. Destination URLs are stored sanitized (see
-  // serialize-document).
+  // The only searchable link field. Domains and destination URLs are absent:
+  // a program's partners share them, so they never narrow a search, and
+  // partner-specific sites are already indexed via the website platform.
   linkKeys: string[];
-  destinationUrls: string[];
 
   // Filterable fields. Metrics are deliberately absent: they move on every click
   // and conversion, so indexing them would make the document churn continuously.
@@ -75,12 +73,6 @@ export interface PartnerSearchHit {
 
 export interface PartnerSearchResult {
   hits: PartnerSearchHit[];
-  /**
-   * The hits are an exact lookup rather than ranked matches, so the count must
-   * come from them and never from the text aggregation, which would count
-   * every document sharing a token with the pasted value.
-   */
-  exact?: boolean;
 }
 
 /**

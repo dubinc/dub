@@ -30,7 +30,6 @@ export function getPartnerSearchableValues(
     ...document.platformTypes,
     ...document.platformIdentifiers,
     ...document.linkKeys,
-    ...document.destinationUrls,
   ].filter((value): value is string => Boolean(value));
 }
 

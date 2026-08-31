@@ -2,18 +2,10 @@ import type { PartnerSearchProvider } from "@/lib/api/partners/search";
 import { findPartnerSearchCandidates } from "@/lib/api/partners/search";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const mocks = vi.hoisted(() => ({
-  findUnique: vi.fn(),
-  linkFindUnique: vi.fn(),
-  enrollmentFindUnique: vi.fn(),
-}));
+const mocks = vi.hoisted(() => ({ findUnique: vi.fn() }));
 
 vi.mock("@/lib/prisma", () => ({
-  prisma: {
-    partner: { findUnique: mocks.findUnique },
-    link: { findUnique: mocks.linkFindUnique },
-    programEnrollment: { findUnique: mocks.enrollmentFindUnique },
-  },
+  prisma: { partner: { findUnique: mocks.findUnique } },
 }));
 
 function createProvider(
@@ -38,73 +30,7 @@ const query = (search: string) => ({
 describe("findPartnerSearchCandidates", () => {
   beforeEach(() => {
     mocks.findUnique.mockReset();
-    mocks.linkFindUnique.mockReset();
-    mocks.enrollmentFindUnique.mockReset();
     vi.spyOn(console, "error").mockImplementation(() => {});
-  });
-
-  describe("pasted short links", () => {
-    it.each([
-      ["with protocol", "https://go.acme.com/partnername"],
-      ["without protocol", "go.acme.com/partnername"],
-    ])("resolves %s to exactly that enrollment", async (_label, search) => {
-      mocks.linkFindUnique.mockResolvedValue({
-        programId: "prog_1",
-        partnerId: "pn_1",
-      });
-      mocks.enrollmentFindUnique.mockResolvedValue({ id: "pge_9" });
-      const provider = createProvider();
-
-      await expect(
-        findPartnerSearchCandidates(provider, query(search)),
-      ).resolves.toEqual({ hits: [{ id: "pge_9" }], exact: true });
-
-      expect(mocks.linkFindUnique).toHaveBeenCalledWith({
-        where: { shortLink: "https://go.acme.com/partnername" },
-        select: { programId: true, partnerId: true },
-      });
-      expect(provider.searchCandidates).not.toHaveBeenCalled();
-    });
-
-    it("returns no hits for a link from another program", async () => {
-      // Its domain tokens would only flood the ranked results.
-      mocks.linkFindUnique.mockResolvedValue({
-        programId: "prog_other",
-        partnerId: "pn_1",
-      });
-      const provider = createProvider();
-
-      await expect(
-        findPartnerSearchCandidates(provider, query("go.acme.com/theirs")),
-      ).resolves.toEqual({ hits: [], exact: true });
-
-      expect(provider.searchCandidates).not.toHaveBeenCalled();
-    });
-
-    it("falls through to the ranked search on a miss", async () => {
-      // A partial paste still matches the link key by prefix.
-      mocks.linkFindUnique.mockResolvedValue(null);
-      const provider = createProvider();
-
-      await expect(
-        findPartnerSearchCandidates(provider, query("go.acme.com/partnern")),
-      ).resolves.toEqual({ hits: [{ id: "pge_1" }] });
-
-      expect(provider.searchCandidates).toHaveBeenCalledOnce();
-    });
-
-    it.each([
-      ["a bare domain", "go.acme.com"],
-      ["a name", "drew moore"],
-      ["a key alone", "partnername"],
-    ])("does not treat %s as a short link", async (_label, search) => {
-      const provider = createProvider();
-
-      await findPartnerSearchCandidates(provider, query(search));
-
-      expect(mocks.linkFindUnique).not.toHaveBeenCalled();
-      expect(provider.searchCandidates).toHaveBeenCalledOnce();
-    });
   });
 
   it("answers a known email from the database, without calling the provider", async () => {

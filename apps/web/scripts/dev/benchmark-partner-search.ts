@@ -217,7 +217,6 @@ function createSearchCases(document: PartnerSearchDocument): SearchCase[] {
   const platformType = document.platformTypes[0];
   const platformIdentifier = document.platformIdentifiers[0];
   const linkKey = document.linkKeys[0];
-  const destinationUrl = document.destinationUrls[0];
 
   if (
     !document.email ||
@@ -225,8 +224,7 @@ function createSearchCases(document: PartnerSearchDocument): SearchCase[] {
     !document.description ||
     !platformType ||
     !platformIdentifier ||
-    !linkKey ||
-    !destinationUrl
+    !linkKey
   ) {
     throw new Error(
       "The benchmark sample must have an email, company, description, platform, and link.",
@@ -244,10 +242,6 @@ function createSearchCases(document: PartnerSearchDocument): SearchCase[] {
       query: longestSearchToken(platformIdentifier),
     },
     { field: "link key", query: linkKey },
-    {
-      field: "destination URL",
-      query: longestSearchToken(destinationUrl),
-    },
   ];
 }
 

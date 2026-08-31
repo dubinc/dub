@@ -10,9 +10,6 @@ const source: PartnerSearchDocumentSource = {
   partnerId: "pn_test",
   status: "approved" as const,
   groupId: "grp_test",
-  program: {
-    url: "https://www.example.com/landing",
-  },
   partner: {
     name: "Rafi Hasan",
     email: "partner@example.com",
@@ -35,16 +32,7 @@ const source: PartnerSearchDocumentSource = {
       },
     ],
   },
-  links: [
-    {
-      key: "rafi",
-      url: "https://example.com/referrals/rafi?utm_source=partner&token=abc",
-    },
-    {
-      key: "rafi-tools",
-      url: "https://rafi.dev/tools#pricing",
-    },
-  ],
+  links: [{ key: "rafi" }, { key: "rafi-tools" }],
 };
 
 describe("serializePartnerSearchDocument", () => {
@@ -60,12 +48,6 @@ describe("serializePartnerSearchDocument", () => {
       platformTypes: ["website", "twitter"],
       platformIdentifiers: ["https://rafi.dev", "@rafi-on-x"],
       linkKeys: ["rafi", "rafi-tools"],
-      destinationUrls: [
-        // The program's own host is dropped, the query string with it. A
-        // partner-specific host is kept: it identifies the partner.
-        "/referrals/rafi",
-        "rafi.dev/tools",
-      ],
       status: "approved",
       groupId: "grp_test",
       country: "US",
@@ -74,31 +56,4 @@ describe("serializePartnerSearchDocument", () => {
     });
   });
 
-  it("drops a destination that is only the program's root", () => {
-    const document = serializePartnerSearchDocument({
-      ...source,
-      links: [{ key: "root", url: "https://example.com/" }],
-    });
-
-    expect(document.destinationUrls).toEqual([]);
-  });
-
-  it("keeps the whole host when the program has no URL", () => {
-    const document = serializePartnerSearchDocument({
-      ...source,
-      program: { url: null },
-      links: [{ key: "rafi", url: "https://example.com/referrals/rafi" }],
-    });
-
-    expect(document.destinationUrls).toEqual(["example.com/referrals/rafi"]);
-  });
-
-  it("keeps an unparseable destination as is", () => {
-    const document = serializePartnerSearchDocument({
-      ...source,
-      links: [{ key: "raw", url: "not a url" }],
-    });
-
-    expect(document.destinationUrls).toEqual(["not a url"]);
-  });
 });

@@ -21,7 +21,6 @@ const document: PartnerSearchDocument = {
   platformTypes: ["youtube"],
   platformIdentifiers: ["@rafi"],
   linkKeys: ["rafi-link"],
-  destinationUrls: ["/referrals/rafi"],
   status: "approved",
   groupId: "grp_test",
   country: "US",
@@ -122,7 +121,6 @@ describe("Turbopuffer partner search provider", () => {
       "youtube",
       "@rafi",
       "rafi-link",
-      "/referrals/rafi",
     ]) {
       expect(row.searchText).toContain(value);
     }
