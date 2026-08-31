@@ -1,5 +1,8 @@
 import { getPartnersCount } from "@/lib/api/partners/get-partners-count";
-import { PartnerSearchProvider } from "@/lib/api/partners/search";
+import {
+  PARTNER_SEARCH_CANDIDATE_LIMIT,
+  PartnerSearchProvider,
+} from "@/lib/api/partners/search";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
@@ -41,10 +44,9 @@ describe("getPartnersCount search", () => {
     }
   });
 
-  it("reports the provider's real total, not the truncated candidate count", async () => {
-    // Counting the hits would report the candidate ceiling as the answer.
+  it("reports the truncated candidate count when the total exceeds the candidate ceiling", async () => {
     const searchProvider = createSearchProvider(12_000);
-    mocks.count.mockResolvedValue(999);
+    mocks.count.mockResolvedValue(PARTNER_SEARCH_CANDIDATE_LIMIT);
 
     const count = await getPartnersCount<number>(
       {
@@ -56,11 +58,11 @@ describe("getPartnersCount search", () => {
       { searchProvider },
     );
 
-    expect(count).toBe(12_000);
+    expect(count).toBe(PARTNER_SEARCH_CANDIDATE_LIMIT);
     expect(searchProvider.countCandidates).toHaveBeenCalledWith({
       programId: "prog_test",
       query: "examp",
-      limit: 999,
+      limit: PARTNER_SEARCH_CANDIDATE_LIMIT,
       filters: {
         status: { values: ["approved"], exclude: false },
         groupId: undefined,

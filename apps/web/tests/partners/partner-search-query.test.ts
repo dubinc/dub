@@ -1,4 +1,7 @@
-import { buildPartnerSearchCandidateQuery } from "@/lib/api/partners/search";
+import {
+  buildPartnerSearchCandidateQuery,
+  PARTNER_SEARCH_CANDIDATE_LIMIT,
+} from "@/lib/api/partners/search";
 import { describe, expect, it } from "vitest";
 
 const defaultInput = {
@@ -15,7 +18,7 @@ describe("buildPartnerSearchCandidateQuery", () => {
     expect(buildPartnerSearchCandidateQuery(defaultInput)).toEqual({
       programId: "prog_test",
       query: "examp",
-      limit: 999,
+      limit: PARTNER_SEARCH_CANDIDATE_LIMIT,
       filters: {
         status: undefined,
         groupId: undefined,

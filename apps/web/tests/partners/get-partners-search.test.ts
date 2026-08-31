@@ -1,5 +1,8 @@
 import { getPartners } from "@/lib/api/partners/get-partners";
-import { PartnerSearchProvider } from "@/lib/api/partners/search";
+import {
+  PARTNER_SEARCH_CANDIDATE_LIMIT,
+  PartnerSearchProvider,
+} from "@/lib/api/partners/search";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
@@ -104,7 +107,7 @@ describe("getPartners search", () => {
     expect(searchProvider.searchCandidates).toHaveBeenCalledWith({
       programId: "prog_test",
       query: "examp",
-      limit: 999,
+      limit: PARTNER_SEARCH_CANDIDATE_LIMIT,
       filters: {
         status: { values: ["approved"], exclude: false },
         groupId: undefined,
@@ -156,9 +159,14 @@ describe("getPartners search", () => {
     expect(idQuery.select).toEqual({ id: true });
     expect(idQuery.include).toBeUndefined();
 
-    // pge_1 ranks first and lands on page 1, so page 2 asks only for pge_3.
+    // pge_1 ranks first and lands on page 1, so page 2 hydrates only pge_3.
+    // The candidate filters stay on the query so IDs from another program
+    // cannot leak through.
     const [pageQuery] = mocks.findMany.mock.calls[1];
-    expect(pageQuery.where).toEqual({ id: { in: ["pge_3"] } });
+    expect(pageQuery.where).toMatchObject({
+      programId: "prog_test",
+      id: { in: ["pge_3"] },
+    });
     expect(pageQuery.include).toBeDefined();
     expect(pageQuery.take).toBeUndefined();
 
