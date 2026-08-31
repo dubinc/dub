@@ -1,7 +1,7 @@
 import { formatUTCDateTimeClickhouse } from "@/lib/analytics/utils/format-utc-datetime-clickhouse";
 import { prisma } from "@/lib/prisma";
 import { tb } from "@/lib/tinybird";
-import { ACME_PROGRAM_ID } from "@dub/utils";
+import { ACME_PROGRAM_ID, DEMO_PROGRAM_ID } from "@dub/utils";
 import * as z from "zod/v4";
 
 export async function getTopProgramsBySales({
@@ -29,7 +29,7 @@ export async function getTopProgramsBySales({
 
   const programIds = topProgramsData
     .map((item) => item.programId)
-    .filter((id) => id !== ACME_PROGRAM_ID);
+    .filter((id) => id !== ACME_PROGRAM_ID && id !== DEMO_PROGRAM_ID);
 
   const programs = await prisma.program.findMany({
     where: {
