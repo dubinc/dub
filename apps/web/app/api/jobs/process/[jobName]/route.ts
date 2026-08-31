@@ -1,7 +1,7 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { logger, withAxiomBodyLog } from "@/lib/axiom/server";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
-import { jobEnvelopeSchema } from "@/lib/jobs";
+import { jobEnvelopeSchema } from "@/lib/jobs/send-jobs";
 import { loadJob } from "@/lib/jobs/registry";
 import * as z from "zod/v4";
 

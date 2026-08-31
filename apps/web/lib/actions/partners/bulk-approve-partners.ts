@@ -5,7 +5,7 @@ import { getGroupOrThrow } from "@/lib/api/groups/get-group-or-throw";
 import { queuePartnerSearchSync } from "@/lib/api/partners/queue-partner-search-sync";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { trackApplicationEvents } from "@/lib/application-events/update-application-event";
-import { triggerQStashWorkflow } from "@/lib/cron/qstash-workflow";
+import { dispatchWorkflows } from "@/lib/jobs/publish-workflows";
 import { throwIfPartnersLimitExceeded } from "@/lib/partners/throw-if-partners-limit-exceeded";
 import { prisma } from "@/lib/prisma";
 import { bulkApprovePartnersSchema } from "@/lib/zod/schemas/partners";
@@ -143,14 +143,16 @@ export const bulkApprovePartnersAction = authActionClient
             })),
           ),
 
-          triggerQStashWorkflow(
+          dispatchWorkflows(
             updatedEnrollments.map(({ partnerId, programId }) => ({
-              workflowType: "partner-approved",
-              workflowLabel: partnerId,
-              body: {
+              name: "partner-approved-workflow",
+              payload: {
                 programId,
                 partnerId,
                 userId: user.id,
+              },
+              options: {
+                label: partnerId,
               },
             })),
           ),
