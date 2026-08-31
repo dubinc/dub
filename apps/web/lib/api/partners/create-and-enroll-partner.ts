@@ -180,6 +180,9 @@ export const createAndEnrollPartner = async ({
     });
   }
 
+  // Queue an index update because a new enrollment was created.
+  waitUntil(queuePartnerSearchSync({ enrollmentIds: [programEnrollment.id] }));
+
   // Create the partner links based on group defaults
   const links = await createPartnerDefaultLinks({
     workspace: {
@@ -253,9 +256,6 @@ export const createAndEnrollPartner = async ({
           trigger: "partner.enrolled",
           data: enrolledPartner,
         }),
-
-      // Queue an index update because a new enrollment was created.
-      queuePartnerSearchSync({ enrollmentIds: [programEnrollment.id] }),
     ]),
   );
 

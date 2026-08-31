@@ -96,6 +96,9 @@ export async function movePartnersToGroup({
     return 0;
   }
 
+  // Queue an index update because the enrollments moved group (filterable field)
+  waitUntil(queuePartnerSearchSync({ partnerIds, programId }));
+
   waitUntil(
     (async () => {
       const partnerLinks = await prisma.link.findMany({
@@ -189,11 +192,6 @@ export async function movePartnersToGroup({
         }),
 
         recordLink(partnerLinks),
-
-        // Queue an index update because the enrollments moved group (filterable field)
-        queuePartnerSearchSync({
-          enrollmentIds: updatedProgramEnrollments.map(({ id }) => id),
-        }),
 
         notifyPartnerGroupChange({
           programId,
