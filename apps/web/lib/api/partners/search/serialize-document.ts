@@ -7,6 +7,13 @@ export const partnerSearchDocumentSelect = {
   partnerId: true,
   status: true,
   groupId: true,
+  // The program's destination host, so the serializer can drop it from
+  // destination URLs below.
+  program: {
+    select: {
+      url: true,
+    },
+  },
   partner: {
     select: {
       name: true,
@@ -32,9 +39,7 @@ export const partnerSearchDocumentSelect = {
   },
   links: {
     select: {
-      domain: true,
       key: true,
-      shortLink: true,
       url: true,
     },
   },
@@ -48,10 +53,46 @@ function unique<T>(values: T[]): T[] {
   return Array.from(new Set(values));
 }
 
+function getHost(url: string | null): string | null {
+  if (!url) {
+    return null;
+  }
+
+  try {
+    return new URL(url).hostname.replace(/^www\./, "");
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * The distinctive part of a destination URL. Query strings and fragments are
+ * stripped so tracking parameters never reach the index, and the host is
+ * dropped when it is the program's own: measured in production, ~99% of
+ * destination hosts in a program are its one domain, so indexing it floods
+ * every search containing a domain token. A host that differs (a partner's own
+ * site) identifies the partner and is kept.
+ */
+function sanitizeDestinationUrl(
+  url: string,
+  programHost: string | null,
+): string | null {
+  try {
+    const parsed = new URL(url);
+    const host = parsed.hostname.replace(/^www\./, "");
+    const path = parsed.pathname === "/" ? "" : parsed.pathname;
+
+    return `${host === programHost ? "" : host}${path}` || null;
+  } catch {
+    return url;
+  }
+}
+
 export function serializePartnerSearchDocument(
   enrollment: PartnerSearchDocumentSource,
 ): PartnerSearchDocument {
-  const { partner, links } = enrollment;
+  const { partner, links, program } = enrollment;
+  const programHost = getHost(program.url);
 
   return {
     id: enrollment.id,
@@ -65,10 +106,13 @@ export function serializePartnerSearchDocument(
     platformIdentifiers: unique(
       partner.platforms.map(({ identifier }) => identifier),
     ),
-    linkDomains: unique(links.map(({ domain }) => domain)),
     linkKeys: unique(links.map(({ key }) => key)),
-    shortLinks: unique(links.map(({ shortLink }) => shortLink)),
-    destinationUrls: unique(links.map(({ url }) => url)),
+    destinationUrls: unique(
+      links.flatMap(({ url }) => {
+        const sanitized = sanitizeDestinationUrl(url, programHost);
+        return sanitized ? [sanitized] : [];
+      }),
+    ),
     status: enrollment.status,
     groupId: enrollment.groupId,
     country: partner.country,

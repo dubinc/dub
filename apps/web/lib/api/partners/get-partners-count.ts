@@ -275,6 +275,9 @@ export async function getPartnersCount<T>(
     searchProvider &&
     candidateQuery &&
     candidateResult &&
+    // An exact lookup already names its hits; the text aggregation would count
+    // every document sharing a token with the pasted link instead.
+    !candidateResult.exact &&
     !databaseOnlyFilters
   ) {
     try {

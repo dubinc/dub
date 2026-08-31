@@ -10,6 +10,9 @@ const source: PartnerSearchDocumentSource = {
   partnerId: "pn_test",
   status: "approved" as const,
   groupId: "grp_test",
+  program: {
+    url: "https://www.example.com/landing",
+  },
   partner: {
     name: "Rafi Hasan",
     email: "partner@example.com",
@@ -34,16 +37,12 @@ const source: PartnerSearchDocumentSource = {
   },
   links: [
     {
-      domain: "dub.sh",
       key: "rafi",
-      shortLink: "https://dub.sh/rafi",
-      url: "https://example.com/referrals/rafi",
+      url: "https://example.com/referrals/rafi?utm_source=partner&token=abc",
     },
     {
-      domain: "dub.sh",
       key: "rafi-tools",
-      shortLink: "https://dub.sh/rafi-tools",
-      url: "https://rafi.dev/tools",
+      url: "https://rafi.dev/tools#pricing",
     },
   ],
 };
@@ -60,12 +59,12 @@ describe("serializePartnerSearchDocument", () => {
       description: "Developer tools educator",
       platformTypes: ["website", "twitter"],
       platformIdentifiers: ["https://rafi.dev", "@rafi-on-x"],
-      linkDomains: ["dub.sh"],
       linkKeys: ["rafi", "rafi-tools"],
-      shortLinks: ["https://dub.sh/rafi", "https://dub.sh/rafi-tools"],
       destinationUrls: [
-        "https://example.com/referrals/rafi",
-        "https://rafi.dev/tools",
+        // The program's own host is dropped, the query string with it. A
+        // partner-specific host is kept: it identifies the partner.
+        "/referrals/rafi",
+        "rafi.dev/tools",
       ],
       status: "approved",
       groupId: "grp_test",
@@ -73,5 +72,33 @@ describe("serializePartnerSearchDocument", () => {
       // The tag from prog_other is dropped: tags are per program.
       partnerTagIds: ["ptag_a"],
     });
+  });
+
+  it("drops a destination that is only the program's root", () => {
+    const document = serializePartnerSearchDocument({
+      ...source,
+      links: [{ key: "root", url: "https://example.com/" }],
+    });
+
+    expect(document.destinationUrls).toEqual([]);
+  });
+
+  it("keeps the whole host when the program has no URL", () => {
+    const document = serializePartnerSearchDocument({
+      ...source,
+      program: { url: null },
+      links: [{ key: "rafi", url: "https://example.com/referrals/rafi" }],
+    });
+
+    expect(document.destinationUrls).toEqual(["example.com/referrals/rafi"]);
+  });
+
+  it("keeps an unparseable destination as is", () => {
+    const document = serializePartnerSearchDocument({
+      ...source,
+      links: [{ key: "raw", url: "not a url" }],
+    });
+
+    expect(document.destinationUrls).toEqual(["not a url"]);
   });
 });
