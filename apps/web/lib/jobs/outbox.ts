@@ -1,8 +1,9 @@
+import { createId } from "@/lib/api/create-id";
 import { logger, toErrorFields } from "@/lib/axiom/server";
 import { Job, Prisma } from "@prisma/client";
 import { prisma } from "../prisma";
 import { MAX_JOB_ATTEMPTS, MAX_JOBS_PER_BATCH } from "./constants";
-import { isDefineJobName, sendJobs } from "./send-jobs";
+import { isDefineJobName, sendJobs, type DispatchJobInput } from "./send-jobs";
 import { isWorkflowName, triggerWorkflows } from "./send-workflows";
 import type { PersistableJob, PublishResult } from "./types";
 
@@ -21,6 +22,25 @@ const transports: JobTransport[] = [
     send: sendJobs,
   },
 ];
+
+// First failed publish counts as attempt 1 so retry budget matches MAX_JOB_ATTEMPTS.
+function toJobCreateInput({
+  job,
+  lastError,
+}: {
+  job: PersistableJob;
+  lastError?: string | null;
+}): Prisma.JobCreateManyInput {
+  return {
+    id: job.id,
+    name: job.name,
+    payload: job.payload as Prisma.InputJsonValue,
+    options: (job.options ?? {}) as Prisma.InputJsonValue,
+    scheduledAt: job.scheduledAt ?? new Date(),
+    lastError,
+    attempts: 1,
+  };
+}
 
 // Persist jobs that failed to publish. Swallow DB errors (log only)
 export async function persistFailedJobs({
@@ -42,19 +62,12 @@ export async function persistFailedJobs({
 
   const data = jobs
     .filter((job) => failedById.has(job.id))
-    .map((job) => {
-      const failed = failedById.get(job.id)!;
-
-      return {
-        id: job.id,
-        name: job.name,
-        payload: job.payload as Prisma.InputJsonValue,
-        options: (job.options ?? {}) as Prisma.InputJsonValue,
-        scheduledAt: job.scheduledAt ?? new Date(),
-        lastError: failed.lastError,
-        attempts: 1,
-      };
-    });
+    .map((job) =>
+      toJobCreateInput({
+        job,
+        lastError: failedById.get(job.id)!.lastError,
+      }),
+    );
 
   try {
     await prisma.job.createMany({
@@ -68,6 +81,44 @@ export async function persistFailedJobs({
     });
     await logger.flush();
   }
+}
+
+// Persist jobs that could not be published to QStash.
+// /api/cron/queue/retry cron republishes them and deletes the rows on success.
+export async function persistBackgroundJobs(inputs: DispatchJobInput[]) {
+  const jobs: PersistableJob[] = inputs.map(({ name, payload, options }) => {
+    let scheduledAt = new Date();
+
+    if (options?.notBefore) {
+      scheduledAt = new Date(options.notBefore * 1000);
+    } else if (typeof options?.delay === "number") {
+      scheduledAt = new Date(Date.now() + options.delay * 1000);
+    }
+
+    const replayOptions = {
+      ...(options?.deduplicationId && {
+        deduplicationId: options.deduplicationId,
+      }),
+      ...(options?.retries !== undefined && { retries: options.retries }),
+      ...(options?.queue && { queue: options.queue }),
+      ...(options?.flowControl && { flowControl: options.flowControl }),
+      ...(options?.label && { label: options.label }),
+    };
+
+    return {
+      id: createId({ prefix: "job_" }),
+      name,
+      payload,
+      options: replayOptions,
+      scheduledAt,
+    };
+  });
+
+  await prisma.job.createMany({
+    data: jobs.map((job) => toJobCreateInput({ job })),
+  });
+
+  return jobs;
 }
 
 // Delete successfully republished rows; bump attempts on failures.

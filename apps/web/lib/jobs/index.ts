@@ -1,11 +1,9 @@
-import { createId } from "@/lib/api/create-id";
 import { logger, toErrorFields } from "@/lib/axiom/server";
 import { qstash } from "@/lib/cron";
-import { prisma } from "@/lib/prisma";
 import { chunk } from "@dub/utils";
-import { Prisma } from "@prisma/client";
 import * as z from "zod/v4";
 import { QSTASH_BATCH_CHUNK_SIZE } from "./constants";
+import { persistBackgroundJobs } from "./outbox";
 import {
   buildJobLabel,
   buildQStashJobRequest,
@@ -51,44 +49,6 @@ async function withQStashRetry<T>(fn: () => Promise<T>): Promise<T> {
   }
 
   throw new Error("Failed to publish to QStash.");
-}
-
-// Persist jobs that could not be published to QStash. The
-// /api/cron/queue/retry cron republishes them and deletes the rows on success.
-async function persistBackgroundJobs(inputs: DispatchJobInput[]) {
-  const jobs = inputs.map(({ name, payload, options }) => {
-    let scheduledAt = new Date();
-
-    if (options?.notBefore) {
-      scheduledAt = new Date(options.notBefore * 1000);
-    } else if (typeof options?.delay === "number") {
-      scheduledAt = new Date(Date.now() + options.delay * 1000);
-    }
-
-    const replayOptions = {
-      ...(options?.deduplicationId && {
-        deduplicationId: options.deduplicationId,
-      }),
-      ...(options?.retries !== undefined && { retries: options.retries }),
-      ...(options?.queue && { queue: options.queue }),
-      ...(options?.flowControl && { flowControl: options.flowControl }),
-      ...(options?.label && { label: options.label }),
-    };
-
-    return {
-      id: createId({ prefix: "job_" }),
-      name,
-      payload: payload as Prisma.InputJsonValue,
-      options: replayOptions as Prisma.InputJsonValue,
-      scheduledAt,
-    };
-  });
-
-  await prisma.job.createMany({
-    data: jobs,
-  });
-
-  return jobs;
 }
 
 async function deferJobs(inputs: DispatchJobInput[]) {
