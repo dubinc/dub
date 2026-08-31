@@ -41,7 +41,9 @@ jobs:
           cache-dependency-path: .deepsec/pnpm-lock.yaml
 
       - name: Install DeepSec
-        run: pnpm install --frozen-lockfile
+        run: |
+          pnpm install --frozen-lockfile --ignore-workspace
+          test -x node_modules/.bin/deepsec
 
       - name: Install Codex CLI
         run: npm install -g @openai/codex
@@ -68,7 +70,7 @@ jobs:
         env:
           AI_GATEWAY_API_KEY: ${{ secrets.DEEPSEC_AI_GATEWAY_API_KEY }}
         run: |
-          pnpm deepsec process \
+          pnpm exec deepsec process \
             --project-id web \
             --files-from pr-files.txt \
             --comment-out "${{ github.workspace }}/comment.md"
@@ -107,3 +109,43 @@ jobs:
               repo: context.repo.repo,
               body: fs.readFileSync('comment.md', 'utf8'),
             });
+
+      - name: Notify Slack
+        if: steps.dl.outcome == 'success'
+        env:
+          DEEPSEC_SLACK_HOOK: ${{ secrets.DEEPSEC_SLACK_HOOK }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          if [ -z "$DEEPSEC_SLACK_HOOK" ]; then
+            echo "DEEPSEC_SLACK_HOOK is not set; skipping Slack notify."
+            exit 0
+          fi
+          node <<'EOF'
+          const fs = require("fs");
+          const hook = process.env.DEEPSEC_SLACK_HOOK;
+          const prUrl = process.env.PR_URL;
+          const prTitle = (process.env.PR_TITLE || "PR").replace(/[<>&]/g, "");
+          const prNumber = process.env.PR_NUMBER;
+          const findings = fs.readFileSync("comment.md", "utf8").slice(0, 2200);
+          const text = [
+            `:alert: DeepSec findings on <${prUrl}|#${prNumber} ${prTitle}>`,
+            "",
+            findings,
+          ].join("\n").slice(0, 2900);
+
+          fetch(hook, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              blocks: [{ type: "section", text: { type: "mrkdwn", text } }],
+            }),
+          }).then(async (res) => {
+            if (!res.ok) {
+              console.error(`Slack webhook failed (${res.status}): ${await res.text()}`);
+              process.exit(1);
+            }
+            console.log("Posted DeepSec PR findings to Slack.");
+          });
+          EOF

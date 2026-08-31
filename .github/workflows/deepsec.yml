@@ -42,7 +42,9 @@ jobs:
           cache-dependency-path: .deepsec/pnpm-lock.yaml
 
       - name: Install DeepSec
-        run: pnpm install --frozen-lockfile
+        run: |
+          pnpm install --frozen-lockfile --ignore-workspace
+          test -x node_modules/.bin/deepsec
 
       - name: Restore file records
         uses: actions/cache@v4
@@ -53,13 +55,13 @@ jobs:
             deepsec-web-files-
 
       - name: Scan
-        run: pnpm deepsec scan --project-id web
+        run: pnpm exec deepsec scan --project-id web
 
       - name: Process in Vercel Sandboxes
         id: process
         continue-on-error: true
         run: |
-          pnpm deepsec sandbox process \
+          pnpm exec deepsec sandbox process \
             --project-id web \
             --sandboxes 10 \
             --concurrency 4 \
@@ -69,17 +71,17 @@ jobs:
         id: revalidate
         if: ${{ !cancelled() }}
         continue-on-error: true
-        run: pnpm deepsec revalidate --project-id web --min-severity HIGH
+        run: pnpm exec deepsec revalidate --project-id web --min-severity HIGH
 
       - name: Export findings
         if: ${{ !cancelled() }}
         run: |
-          pnpm deepsec export \
+          pnpm exec deepsec export \
             --project-id web \
             --format json \
             --min-severity HIGH \
             --out findings.json
-          pnpm deepsec export \
+          pnpm exec deepsec export \
             --project-id web \
             --format md-dir \
             --min-severity HIGH \
