@@ -230,9 +230,18 @@ async function createPartnerAndLinks({
       idx === 0 ? group.partnerGroupDefaultLinks[0]?.id ?? null : null,
   }));
 
-  await bulkCreateLinks({
-    links,
-  });
+  try {
+    await bulkCreateLinks({
+      links,
+    });
+  } catch (error) {
+    // The enrollment is already committed, so its ID must still reach the
+    // page-level search sync even when link creation fails.
+    console.error(
+      `Failed to create links for imported affiliate ${affiliate.id}`,
+      error,
+    );
+  }
 
   return programEnrollment.id;
 }
