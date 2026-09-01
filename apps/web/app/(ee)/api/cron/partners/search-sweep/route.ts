@@ -1,6 +1,9 @@
 import { getPartnerSearchProvider } from "@/lib/api/partners/search";
 import { withCron } from "@/lib/cron/with-cron";
-import { partnerSearchSweepJob } from "@/lib/jobs/handlers/partner-search-sweep-job";
+import {
+  partnerSearchSweepDeduplicationId,
+  partnerSearchSweepJob,
+} from "@/lib/jobs/handlers/partner-search-sweep-job";
 import { logAndRespond } from "../../utils";
 
 export const dynamic = "force-dynamic";
@@ -15,7 +18,10 @@ export const GET = withCron(async () => {
   }
 
   // A fresh pass each run, so a stalled one cannot wedge the schedule
-  await partnerSearchSweepJob.dispatch({});
+  await partnerSearchSweepJob.dispatch(
+    {},
+    { deduplicationId: partnerSearchSweepDeduplicationId() },
+  );
 
   return logAndRespond("Partner search sweep started.");
 });

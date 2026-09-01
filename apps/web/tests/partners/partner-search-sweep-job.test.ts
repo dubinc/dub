@@ -1,4 +1,7 @@
-import { partnerSearchSweepJob } from "@/lib/jobs/handlers/partner-search-sweep-job";
+import {
+  partnerSearchSweepDeduplicationId,
+  partnerSearchSweepJob,
+} from "@/lib/jobs/handlers/partner-search-sweep-job";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
@@ -64,7 +67,7 @@ describe("partnerSearchSweepJob", () => {
     expect(mocks.sweepPartnerSearch).toHaveBeenCalledWith({ after: undefined });
     expect(dispatch).toHaveBeenCalledWith(
       { after: "pge_20", processed: 20 },
-      { delay: 1 },
+      { delay: 1, deduplicationId: "partner-search-sweep-pge_20" },
     );
   });
 
@@ -84,7 +87,16 @@ describe("partnerSearchSweepJob", () => {
     expect(mocks.sweepPartnerSearch).toHaveBeenCalledWith({ after: "pge_10" });
     expect(dispatch).toHaveBeenCalledWith(
       { after: "pge_20", processed: 50 },
-      { delay: 1 },
+      { delay: 1, deduplicationId: "partner-search-sweep-pge_20" },
+    );
+  });
+
+  it("gives every hop of a pass a cursor-bound deduplication id", () => {
+    expect(partnerSearchSweepDeduplicationId()).toBe(
+      "partner-search-sweep-start",
+    );
+    expect(partnerSearchSweepDeduplicationId("pge_20")).toBe(
+      "partner-search-sweep-pge_20",
     );
   });
 });
