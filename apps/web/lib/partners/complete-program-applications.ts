@@ -7,6 +7,7 @@ import { notifyPartnerApplication } from "../api/partners/notify-partner-applica
 import { queuePartnerSearchSync } from "../api/partners/queue-partner-search-sync";
 import { markApplicationEventSubmitted } from "../application-events/update-application-event";
 import { qstash } from "../cron";
+import { autoApprovePartnerJob } from "../jobs/handlers/auto-approve-partner-job";
 import { buildSocialPlatformLookup } from "../social-utils";
 import { sendWorkspaceWebhook } from "../webhook/publish";
 import { partnerApplicationWebhookSchema } from "../zod/schemas/program-application";
@@ -205,13 +206,15 @@ export async function completeProgramApplications(userEmail: string) {
 
               // Auto-approve the partner if the group has auto-approval enabled
               group?.autoApprovePartnersEnabledAt
-                ? qstash.publishJSON({
-                    url: `${APP_DOMAIN_WITH_NGROK}/api/cron/partners/auto-approve`,
-                    body: {
+                ? autoApprovePartnerJob.dispatch(
+                    {
                       programId: program.id,
                       partnerId: partner.id,
                     },
-                  })
+                    {
+                      label: partner.id,
+                    },
+                  )
                 : Promise.resolve(null),
 
               // Send "partner.application_submitted" webhook

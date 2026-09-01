@@ -37,6 +37,11 @@ const jobLoaders = {
 
   "welcome-user-job": () =>
     import("./handlers/welcome-user-job").then((m) => m.welcomeUserJob),
+
+  "auto-approve-partner-job": () =>
+    import("./handlers/auto-approve-partner-job").then(
+      (m) => m.autoApprovePartnerJob,
+    ),
 } as const satisfies Record<string, () => Promise<JobDefinition>>;
 
 const jobCache = new Map<string, JobDefinition>();

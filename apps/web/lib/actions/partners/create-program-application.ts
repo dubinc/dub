@@ -10,6 +10,7 @@ import { markApplicationEventSubmitted } from "@/lib/application-events/update-a
 import { getApplicationEventCookieName } from "@/lib/application-events/utils";
 import { getSession } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
+import { autoApprovePartnerJob } from "@/lib/jobs/handlers/auto-approve-partner-job";
 import { getNetworkProfileChecklistProgress } from "@/lib/network/get-network-profile-checklist-progress";
 import { evaluateApplicationRequirements } from "@/lib/partners/evaluate-application-requirements";
 import {
@@ -348,13 +349,15 @@ async function createApplicationAndEnrollment({
 
         // Auto-approve the partner if the group has auto-approval enabled
         group.autoApprovePartnersEnabledAt
-          ? qstash.publishJSON({
-              url: `${APP_DOMAIN_WITH_NGROK}/api/cron/partners/auto-approve`,
-              body: {
+          ? autoApprovePartnerJob.dispatch(
+              {
                 programId: program.id,
                 partnerId: partner.id,
               },
-            })
+              {
+                label: partner.id,
+              },
+            )
           : Promise.resolve(null),
 
         // Send "partner.application_submitted" webhook
