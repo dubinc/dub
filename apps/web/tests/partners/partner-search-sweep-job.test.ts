@@ -48,6 +48,26 @@ describe("partnerSearchSweepJob", () => {
     expect(dispatch).not.toHaveBeenCalled();
   });
 
+  it("starts the running total from zero on the first hop", async () => {
+    const dispatch = vi
+      .spyOn(partnerSearchSweepJob, "dispatch")
+      .mockResolvedValue({ status: "published", messageId: "msg_1" });
+
+    mocks.sweepPartnerSearch.mockResolvedValue({
+      processed: 20,
+      lastDocumentId: "pge_20",
+      done: false,
+    });
+
+    await partnerSearchSweepJob.execute({});
+
+    expect(mocks.sweepPartnerSearch).toHaveBeenCalledWith({ after: undefined });
+    expect(dispatch).toHaveBeenCalledWith(
+      { after: "pge_20", processed: 20 },
+      { delay: 1 },
+    );
+  });
+
   it("carries the cursor and running total to the next hop", async () => {
     const dispatch = vi
       .spyOn(partnerSearchSweepJob, "dispatch")

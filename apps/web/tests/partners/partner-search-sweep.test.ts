@@ -177,6 +177,16 @@ describe("sweepPartnerSearch", () => {
     expect(mocks.findMany).not.toHaveBeenCalled();
   });
 
+  it("rejects a non-positive batch size", async () => {
+    const searchProvider = createProvider();
+
+    await expect(
+      sweepPartnerSearch({ batchSize: 0, searchProvider }),
+    ).rejects.toThrow("Batch size must be a positive integer.");
+
+    expect(mocks.findMany).not.toHaveBeenCalled();
+  });
+
   it("rejects a non-positive time budget", async () => {
     const searchProvider = createProvider();
 
