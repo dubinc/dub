@@ -1,6 +1,6 @@
 import {
+  shopifyCheckoutCache,
   tryDispatchShopifyOrderJob,
-  writeShopifyCheckoutFields,
 } from "@/lib/integrations/shopify/checkout-cache";
 import { shopifyOrderSchema } from "@/lib/integrations/shopify/schema";
 import { processShopifyOrderJob } from "@/lib/jobs/handlers/process-shopify-order-job";
@@ -88,7 +88,7 @@ export async function ordersPaid({
 
   // At this stage, we know the order has no customer or partner discount code
   // so we need to wait for the pixel event to arrive as this could be a new customer coming via a link
-  const checkout = await writeShopifyCheckoutFields({
+  const checkout = await shopifyCheckoutCache.set({
     checkoutToken,
     fields: {
       order,
@@ -101,9 +101,7 @@ export async function ordersPaid({
     checkout,
   });
 
-  if (dispatched) {
-    return `[Shopify] Click ID ${checkout.clickId} found. Order queued for processing.`;
-  }
-
-  return "[Shopify] Waiting for pixel event to arrive...";
+  return dispatched
+    ? `[Shopify] Click ID ${checkout.clickId} found. Order queued for processing.`
+    : "[Shopify] Waiting for pixel event to arrive...";
 }

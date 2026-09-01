@@ -1,6 +1,6 @@
 import { createId } from "@/lib/api/create-id";
+import { shopifyCheckoutCache } from "@/lib/integrations/shopify/checkout-cache";
 import { prisma } from "@/lib/prisma";
-import { redis } from "@/lib/upstash";
 import { nanoid } from "@dub/utils";
 import { expect } from "@playwright/test";
 import { DiscountProvider, EventType, RewardStructure } from "@prisma/client";
@@ -118,8 +118,10 @@ export async function waitForShopifyCheckoutClickId({
 }) {
   await expect
     .poll(
-      async () =>
-        redis.hget<string>(`shopify:checkout:${checkoutToken}`, "clickId"),
+      async () => {
+        const { clickId } = await shopifyCheckoutCache.get(checkoutToken);
+        return clickId;
+      },
       { timeout: 5_000 },
     )
     .toEqual(clickId);

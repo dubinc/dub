@@ -1,8 +1,7 @@
 import { DubApiError } from "@/lib/api/errors";
 import { withCron } from "@/lib/cron/with-cron";
-import { shopifyOrderSchema } from "@/lib/integrations/shopify/schema";
+import { shopifyCheckoutCache } from "@/lib/integrations/shopify/checkout-cache";
 import { processShopifyOrderJob } from "@/lib/jobs/handlers/process-shopify-order-job";
-import { redis } from "@/lib/upstash";
 import * as z from "zod/v4";
 import { logAndRespond } from "../../utils";
 
@@ -13,33 +12,27 @@ const schema = z.object({
   checkoutToken: z.string(),
 });
 
-// Matches the old qstash.publishJSON({ retries: 5 }) for this route.
 const MAX_PIXEL_WAIT_RETRIES = 5;
 
-// Cutover shim: drains in-flight QStash messages with the old
-// { workspaceId, checkoutToken } body.
-
 // POST /api/cron/shopify/order-paid
+// Cutover shim for in-flight QStash messages with the old
+// { workspaceId, checkoutToken } body. Remove after a week.
 export const POST = withCron(async ({ req, rawBody }) => {
   const { workspaceId, checkoutToken } = schema.parse(JSON.parse(rawBody));
 
-  // Find Shopify order
-  const event = await redis.hget(`shopify:checkout:${checkoutToken}`, "order");
+  const checkout = await shopifyCheckoutCache.get(checkoutToken);
 
-  if (!event) {
+  if (!checkout.order) {
     return logAndRespond(
       `[Shopify] Order with checkout token ${checkoutToken} not found. Skipping...`,
     );
   }
 
-  const clickId = await redis.hget<string>(
-    `shopify:checkout:${checkoutToken}`,
-    "clickId",
-  );
+  const { clickId, order } = checkout;
 
   // clickId is empty, order is not from a Dub link
   if (clickId === "") {
-    await redis.del(`shopify:checkout:${checkoutToken}`);
+    await shopifyCheckoutCache.delete(checkoutToken);
     return logAndRespond(`[Shopify] Order is not from a Dub link. Skipping...`);
   }
 
@@ -48,7 +41,7 @@ export const POST = withCron(async ({ req, rawBody }) => {
     await processShopifyOrderJob.execute({
       workspaceId,
       clickId,
-      order: shopifyOrderSchema.parse(event),
+      order,
     });
 
     return logAndRespond("[Shopify] Order event processed successfully.");

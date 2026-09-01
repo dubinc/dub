@@ -2,8 +2,8 @@ import { COMMON_CORS_HEADERS } from "@/lib/api/cors";
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import {
+  shopifyCheckoutCache,
   tryDispatchShopifyOrderJob,
-  writeShopifyCheckoutFields,
 } from "@/lib/integrations/shopify/checkout-cache";
 import { getClickEvent } from "@/lib/tinybird";
 import { ratelimit } from "@/lib/upstash";
@@ -43,19 +43,21 @@ export const POST = async (req: Request) => {
       }
     }
 
-    waitUntil(
-      (async () => {
-        const checkout = await writeShopifyCheckoutFields({
-          checkoutToken,
-          fields: clickId ? { clickId } : {},
-        });
+    if (clickId) {
+      waitUntil(
+        (async () => {
+          const checkout = await shopifyCheckoutCache.set({
+            checkoutToken,
+            fields: { clickId },
+          });
 
-        await tryDispatchShopifyOrderJob({
-          checkoutToken,
-          checkout,
-        });
-      })(),
-    );
+          await tryDispatchShopifyOrderJob({
+            checkoutToken,
+            checkout,
+          });
+        })(),
+      );
+    }
 
     return NextResponse.json("OK", {
       headers: COMMON_CORS_HEADERS,

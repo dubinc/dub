@@ -12,6 +12,7 @@ import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { transformSaleEventData } from "@/lib/webhook/transform";
 import { nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
+import { shopifyCheckoutCache } from "./checkout-cache";
 import { ShopifyError } from "./error";
 import { ShopifyOrder } from "./schema";
 
@@ -126,7 +127,7 @@ export async function createShopifySale({
         firstSaleAt: existingCustomer.firstSaleAt ? undefined : new Date(),
       },
     }),
-    redis.del(`shopify:checkout:${checkoutToken}`),
+    shopifyCheckoutCache.delete(checkoutToken),
   ]);
 
   // for program links
