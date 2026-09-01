@@ -121,6 +121,9 @@ export async function POST(req: Request) {
           url: true,
           domain: true,
           key: true,
+          // Needed to re-index the owners after the URL changes below.
+          programId: true,
+          partnerId: true,
           partner: {
             select: {
               name: true,
@@ -136,6 +139,7 @@ export async function POST(req: Request) {
 
       const linksToUpdate: {
         id: string;
+        owner: { programId: string | null; partnerId: string | null };
         link: Pick<
           Link,
           | "url"
@@ -171,6 +175,10 @@ export async function POST(req: Request) {
 
         linksToUpdate.push({
           id: defaultPartnerLink.id,
+          owner: {
+            programId: defaultPartnerLink.programId,
+            partnerId: defaultPartnerLink.partnerId,
+          },
           link: {
             url,
             ...extractUtmParams(group.utmTemplate, { excludeRef: true }),

@@ -4,6 +4,7 @@ import { PlatformType, Prisma } from "@prisma/client";
 import { createId } from "../api/create-id";
 import { detectAndRecordFraudApplication } from "../api/fraud/detect-record-fraud-application";
 import { notifyPartnerApplication } from "../api/partners/notify-partner-application";
+import { queuePartnerSearchSync } from "../api/partners/queue-partner-search-sync";
 import { markApplicationEventSubmitted } from "../application-events/update-application-event";
 import { qstash } from "../cron";
 import { buildSocialPlatformLookup } from "../social-utils";
@@ -89,19 +90,21 @@ export async function completeProgramApplications(userEmail: string) {
 
     const partner = user.partners[0].partner;
 
-    // Program enrollments to create
-    const programEnrollments: Prisma.ProgramEnrollmentCreateManyInput[] =
-      filteredProgramApplications.map((programApplication) => ({
-        id: createId({ prefix: "pge_" }),
-        programId: programApplication.programId,
-        partnerId: user.partners[0].partnerId,
-        applicationId: programApplication.id,
-        groupId: programApplication?.partnerGroup?.id,
-        clickRewardId: programApplication?.partnerGroup?.clickRewardId,
-        leadRewardId: programApplication?.partnerGroup?.leadRewardId,
-        saleRewardId: programApplication?.partnerGroup?.saleRewardId,
-        discountId: programApplication?.partnerGroup?.discountId,
-      }));
+    // Program enrollments to create. `id` is narrowed to required because the
+    // search sync below reads it back, and Prisma leaves it optional here.
+    const programEnrollments: (Prisma.ProgramEnrollmentCreateManyInput & {
+      id: string;
+    })[] = filteredProgramApplications.map((programApplication) => ({
+      id: createId({ prefix: "pge_" }),
+      programId: programApplication.programId,
+      partnerId: user.partners[0].partnerId,
+      applicationId: programApplication.id,
+      groupId: programApplication?.partnerGroup?.id,
+      clickRewardId: programApplication?.partnerGroup?.clickRewardId,
+      leadRewardId: programApplication?.partnerGroup?.leadRewardId,
+      saleRewardId: programApplication?.partnerGroup?.saleRewardId,
+      discountId: programApplication?.partnerGroup?.discountId,
+    }));
 
     const enrollmentsByApplicationId = new Map(
       programEnrollments.map((enrollment) => [
@@ -270,6 +273,11 @@ export async function completeProgramApplications(userEmail: string) {
         markApplicationEventSubmitted(programEnrollment),
       ),
     );
+
+    // Queue an index update because the applications completed into enrollments.
+    await queuePartnerSearchSync({
+      enrollmentIds: programEnrollments.map(({ id }) => id),
+    });
   } catch (error) {
     console.error("Failed to complete program applications", error);
   }

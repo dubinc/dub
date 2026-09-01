@@ -15,6 +15,7 @@ import { getGroupOrThrow } from "../groups/get-group-or-throw";
 import { createOrGetProgramEnrollment } from "./create-or-get-program-enrollment";
 import { createPartnerDefaultLinks } from "./create-partner-default-links";
 import { getOrCreatePartner } from "./get-or-create-partner";
+import { queuePartnerSearchSync } from "./queue-partner-search-sync";
 import { throwIfExistingTenantEnrollmentExists } from "./throw-if-existing-tenant-id-exists";
 
 interface CreateAndEnrollPartnerInput {
@@ -178,6 +179,9 @@ export const createAndEnrollPartner = async ({
       ...polyfillSocialMediaFields(programEnrollment.partner.platforms),
     });
   }
+
+  // Queue an index update because a new enrollment was created.
+  waitUntil(queuePartnerSearchSync({ enrollmentIds: [programEnrollment.id] }));
 
   // Create the partner links based on group defaults
   const links = await createPartnerDefaultLinks({

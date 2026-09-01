@@ -1,21 +1,33 @@
 "use server";
 
 import { authActionClient } from "@/lib/actions/safe-action";
+import { throwIfNoPermission } from "@/lib/actions/throw-if-no-permission";
 import { prisma } from "@/lib/prisma";
 import { STRIPE_INTEGRATION_ID } from "@dub/utils";
 import { revalidatePath } from "next/cache";
 import * as z from "zod/v4";
 import { stripeIntegrationSettingsSchema } from "./schema";
 
-const schema = stripeIntegrationSettingsSchema.extend({
+const schema = z.object({
   workspaceId: z.string(),
+  freeTrials: stripeIntegrationSettingsSchema.shape.freeTrials,
+  discountCodeRestrictions: z
+    .object({
+      firstTimeTransaction: z.boolean(),
+    })
+    .optional(),
 });
 
 export const updateStripeSettingsAction = authActionClient
   .inputSchema(schema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace } = ctx;
-    const { freeTrials } = parsedInput;
+    const { freeTrials, discountCodeRestrictions } = parsedInput;
+
+    throwIfNoPermission({
+      role: workspace.role,
+      requiredPermissions: ["integrations.write"],
+    });
 
     const installedIntegration = await prisma.installedIntegration.findFirst({
       where: {
@@ -38,6 +50,9 @@ export const updateStripeSettingsAction = authActionClient
         settings: {
           ...current,
           freeTrials,
+          ...(discountCodeRestrictions !== undefined
+            ? { discountCodeRestrictions }
+            : {}),
         },
       },
     });

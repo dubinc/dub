@@ -10,16 +10,18 @@ export function createResponseWithCookies(
   }: {
     path: string;
     dubIdCookieName: string;
-    dubIdCookieValue: string;
+    dubIdCookieValue?: string;
     dubTestUrlValue?: string | null;
   },
 ): NextResponse {
   // set dub_id_<domain>_<key> cookie
   // this caches dub_id for 1 hour (for deduplication)
-  response.cookies.set(dubIdCookieName, dubIdCookieValue, {
-    path,
-    maxAge: 60 * 60, // 1 hour
-  });
+  if (dubIdCookieValue) {
+    response.cookies.set(dubIdCookieName, dubIdCookieValue, {
+      path,
+      maxAge: 60 * 60, // 1 hour
+    });
+  }
 
   // set dub_test_url if this link has testVariants
   // caches for 1 week (for consistent user experience)

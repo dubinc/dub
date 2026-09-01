@@ -2,7 +2,6 @@ import {
   LOCALHOST_IP,
   REDIRECTION_QUERY_PARAM,
 } from "@dub/utils/src/constants";
-import { getUrlFromStringIfValid } from "@dub/utils/src/functions";
 import { ipAddress } from "@vercel/functions";
 import { NextRequest, userAgent } from "next/server";
 import { isAppsFlyerTrackingUrl } from "./is-appsflyer-tracking-url";
@@ -25,13 +24,7 @@ export const getFinalUrl = (
   // query is the query string (e.g. d.to/github?utm_source=twitter -> ?utm_source=twitter)
   const searchParams = req.nextUrl.searchParams;
 
-  // if there is a redirection url set, then use it instead of the target url
-  const redirectionUrl = getUrlFromStringIfValid(
-    searchParams.get(REDIRECTION_QUERY_PARAM) ?? "",
-  );
-
-  // get the query params of the target url
-  const urlObj = redirectionUrl ? new URL(redirectionUrl) : new URL(url);
+  const urlObj = new URL(url);
 
   if (via) {
     urlObj.searchParams.set("via", via);
@@ -58,9 +51,6 @@ export const getFinalUrl = (
 
   // for AppsFlyer tracking links
   if (isAppsFlyerTrackingUrl(url)) {
-    const { ua } = userAgent(req);
-    const ip = process.env.VERCEL === "1" ? ipAddress(req) : LOCALHOST_IP;
-
     // set hardcoded query params
     urlObj.searchParams.set("pid", "dubinc_int");
 

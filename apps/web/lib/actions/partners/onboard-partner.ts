@@ -3,6 +3,7 @@
 import { createId } from "@/lib/api/create-id";
 import { isCI, isLocalDev } from "@/lib/api/environment";
 import { generatePartnerUsername } from "@/lib/api/partners/generate-partner-username";
+import { queuePartnerSearchSync } from "@/lib/api/partners/queue-partner-search-sync";
 import { markApplicationEventSubmittedNetwork } from "@/lib/application-events/mark-application-event-submitted-network";
 import { completeProgramApplications } from "@/lib/partners/complete-program-applications";
 import { prisma } from "@/lib/prisma";
@@ -124,6 +125,10 @@ export const onboardPartnerAction = authUserActionClient
 
         // Mark the application event as submitted for the `network` program
         markApplicationEventSubmittedNetwork(updatedPartner),
+
+        // Queue an index update because onboarding set the partner name,
+        // country and description.
+        queuePartnerSearchSync({ partnerIds: [updatedPartner.id] }),
       ]),
     );
 
