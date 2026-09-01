@@ -2,6 +2,7 @@ import { createId } from "@/lib/api/create-id";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { syncPartnerLinksStats } from "@/lib/api/partners/sync-partner-links-stats";
 import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
+import { queueGoogleAdsConversionUpload } from "@/lib/integrations/google-ads/upload-conversion";
 import { generateRandomName } from "@/lib/names";
 import { queuePartnerCommissionCreation } from "@/lib/partners/queue-partner-commission-creation";
 import { sendPartnerPostback } from "@/lib/postback/send-partner-postback";
@@ -12,7 +13,7 @@ import { WorkspaceProps } from "@/lib/types";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { transformLeadEventData } from "@/lib/webhook/transform";
 import { COUNTRIES_TO_CONTINENTS, nanoid } from "@dub/utils";
-import { Link } from "@prisma/client";
+import { EventType, Link } from "@prisma/client";
 import { ShopifyOrder } from "./schema";
 
 export async function attributeViaDiscountCode({
@@ -145,6 +146,19 @@ export async function attributeViaDiscountCode({
         partner: result?.webhookPartner,
         metadata: null,
       }),
+    }),
+
+    queueGoogleAdsConversionUpload({
+      workspaceId: workspace.id,
+      eventType: EventType.lead,
+      eventId: leadEvent.event_id,
+      eventName: leadEvent.event_name,
+      conversionDateTime: new Date().toISOString(),
+      conversionCount: 1,
+      click: {
+        id: clickEvent.click_id,
+        url: clickEvent.url,
+      },
     }),
 
     ...(link.partnerId
