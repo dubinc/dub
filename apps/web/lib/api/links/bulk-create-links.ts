@@ -236,8 +236,11 @@ export async function bulkCreateLinks({
         linksCount: links.length,
         timestamp: new Date().toISOString(),
       }),
-      // Queue an index update because the new links carry searchable link keys
-      queuePartnerSearchSyncForLinks(createdLinksData),
+      // Queue an index update if any of the new links are associated with a partner
+      createdLinksData.some((link) => link.partnerId) &&
+        queuePartnerSearchSyncForLinks(
+          createdLinksData.filter((link) => link.partnerId),
+        ),
     ]),
   );
 
