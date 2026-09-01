@@ -7,6 +7,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   findMany: vi.fn(),
+  programFindUnique: vi.fn(),
 }));
 
 vi.mock("@/lib/prisma", () => ({
@@ -15,6 +16,7 @@ vi.mock("@/lib/prisma", () => ({
     programEnrollment: {
       findMany: mocks.findMany,
     },
+    program: { findUnique: mocks.programFindUnique },
   },
 }));
 
@@ -49,6 +51,29 @@ function createSearchProvider(
 describe("getPartners search", () => {
   beforeEach(() => {
     mocks.findMany.mockReset();
+    mocks.programFindUnique.mockReset();
+  });
+
+  it("searches a pasted program short link by its key", async () => {
+    mocks.findMany.mockResolvedValue([enrollment("pge_1", "pn_1")]);
+    mocks.programFindUnique.mockResolvedValue({ domain: "go.acme.com" });
+    const searchProvider = createSearchProvider([{ id: "pge_1" }]);
+
+    await getPartners(
+      {
+        programId: "prog_test",
+        search: "https://go.acme.com/partner",
+        page: 1,
+        pageSize: 25,
+        sortBy: "totalSaleAmount",
+        sortOrder: "desc",
+      },
+      { searchProvider },
+    );
+
+    expect(searchProvider.searchCandidates).toHaveBeenCalledWith(
+      expect.objectContaining({ query: "partner" }),
+    );
   });
 
   it("keeps a tenant filter on the database search path", async () => {

@@ -45,6 +45,16 @@ describe("resolvePartnerSearchCandidateQuery", () => {
     expect(query?.query).toBe("dub.sh/partner");
   });
 
+  it("keeps the link when the program is not found", async () => {
+    mocks.findUnique.mockResolvedValue(null);
+
+    const query = await resolvePartnerSearchCandidateQuery(
+      input("go.acme.com/partner"),
+    );
+
+    expect(query?.query).toBe("go.acme.com/partner");
+  });
+
   it("does not look the program up for a plain query", async () => {
     const query = await resolvePartnerSearchCandidateQuery(input("steven"));
 
