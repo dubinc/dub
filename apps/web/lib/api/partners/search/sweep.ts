@@ -5,10 +5,10 @@ import type { PartnerSearchProvider } from "./types";
 export const PARTNER_SEARCH_SWEEP_BATCH_SIZE = 500;
 
 /**
- * How long one hop indexes before handing off. The job route allows 600s, and
- * the margin covers the batch in flight when the budget expires, since the
- * check happens between batches. Errs generous: overrunning kills the hop and
- * QStash retries the same cursor, stalling the pass silently.
+ * How long one hop indexes before handing off. The job route allows 600s. The
+ * budget is checked between batches, so the batch in flight runs past it.
+ * Overrunning kills the hop, QStash retries the same cursor, and the pass
+ * stalls silently.
  */
 export const PARTNER_SEARCH_SWEEP_TIME_BUDGET_MS = 240_000;
 
@@ -21,15 +21,10 @@ interface SweepPartnerSearchOptions {
 }
 
 /**
- * Re-indexes a slice of the corpus, resuming from `after`. The backstop for
- * call-site drift: a mutation path that never queued a sync is corrected by the
- * next pass.
- *
- * Re-indexes everything rather than filtering by timestamp, because a watermark
- * misses a tag change (ProgramPartnerTag has no timestamps) and a link edit
- * (which moves neither the enrollment's timestamp nor the partner's).
- *
- * Upserts only: a pass re-indexes the rows it reads.
+ * Re-indexes a slice of the corpus, resuming from `after`. Everything, not a
+ * timestamp filter, because a watermark misses a tag change (ProgramPartnerTag
+ * has no timestamps) and a link edit (which moves neither the enrollment's
+ * timestamp nor the partner's).
  */
 export async function sweepPartnerSearch({
   after,

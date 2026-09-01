@@ -9,10 +9,8 @@ const inputSchema = z.object({
   /** Keyset cursor, carried across hops. Absent starts a fresh pass. */
   after: z.string().optional(),
   /**
-   * Documents indexed so far in this pass, for logging continuity. Defaulted in
-   * the handler rather than by the schema, because defineJob types the dispatch
-   * payload from the schema's output and a zod default would make this required
-   * at every call site.
+   * Documents indexed so far in this pass, for logging. Defaulted in the
+   * handler. A zod default would make it required in the dispatch payload type.
    */
   processed: z.number().int().nonnegative().optional(),
 });
@@ -23,8 +21,7 @@ export const partnerSearchSweepJob = defineJob({
   defaults: {
     retries: 3,
     flowControl: {
-      // A pass is inherently sequential, and holding it to one in flight keeps
-      // a long sweep from competing with interactive syncs for write capacity.
+      // Hops are sequential. One in flight bounds the sweep's write load.
       key: "partner-search-sweep",
       parallelism: 1,
     },
@@ -54,8 +51,6 @@ export const partnerSearchSweepJob = defineJob({
       `[partnerSearchSweepJob] Re-indexed ${totalProcessed} documents so far, continuing after ${lastDocumentId}.`,
     );
 
-    // Cursor lives in the payload rather than in storage, so a pass needs no
-    // state of its own and an interrupted one simply restarts on the next cron.
     await partnerSearchSweepJob.dispatch(
       {
         ...(lastDocumentId && { after: lastDocumentId }),
