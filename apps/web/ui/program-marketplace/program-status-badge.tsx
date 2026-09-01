@@ -35,12 +35,17 @@ export function ProgramStatusBadge({
 }: {
   program: Pick<NetworkProgramProps, "slug" | "applicationRequirements">;
 }) {
-  const { programEnrollments } = useProgramEnrollments();
-  const { partner } = usePartnerProfile();
+  const { programEnrollments, isLoading: programEnrollmentsLoading } =
+    useProgramEnrollments();
+  const { partner, loading: partnerLoading } = usePartnerProfile();
 
   const programEnrollmentStatus = programEnrollments?.find(
     (programEnrollment) => programEnrollment.program.slug === program.slug,
   )?.status;
+
+  // Eligibility can't be evaluated until both the partner profile and their
+  // enrollment statuses have loaded
+  const eligibilityLoading = partnerLoading || programEnrollmentsLoading;
 
   const { reason } = evaluateApplicationRequirements({
     applicationRequirements: program.applicationRequirements,
@@ -54,7 +59,7 @@ export function ProgramStatusBadge({
 
   const statusBadge = programEnrollmentStatus
     ? ProgramNetworkStatusBadges[programEnrollmentStatus]
-    : reason === "requirementsNotMet"
+    : !eligibilityLoading && reason === "requirementsNotMet"
       ? notEligibleBadge
       : null;
 

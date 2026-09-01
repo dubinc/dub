@@ -109,6 +109,21 @@ export function isAccountAttributeMet(
     : !account.hasProgramBans;
 }
 
+// Shared between enforcement and the eligibility card so the two can't drift.
+// A missing country fails closed for both operators.
+export function isCountryConditionMet(
+  country: Context["country"],
+  condition: Pick<EligibilityConditionDB, "operator" | "value">,
+): boolean {
+  if (!country) {
+    return false;
+  }
+
+  const matches = condition.value.includes(country);
+
+  return condition.operator === "is_not" ? !matches : matches;
+}
+
 interface Result {
   valid: boolean;
   reason:
@@ -207,13 +222,7 @@ function evaluateCondition({
 
   switch (condition.key) {
     case "country": {
-      if (!context.country) {
-        return false;
-      }
-
-      matches = condition.value.includes(context.country);
-
-      break;
+      return isCountryConditionMet(context.country, condition);
     }
 
     case "emailDomain": {

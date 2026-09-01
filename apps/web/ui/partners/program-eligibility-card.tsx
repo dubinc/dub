@@ -4,6 +4,7 @@ import {
   EligibilityContext,
   getEligibilityContext,
   isAccountAttributeMet,
+  isCountryConditionMet,
   isProfileAttributeMet,
 } from "@/lib/partners/evaluate-application-requirements";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
@@ -45,6 +46,8 @@ function EligibilityPill({
   );
 }
 
+// Only renders what the partner is missing: met conditions (and met
+// account/profile attributes) are hidden
 function conditionSection(
   condition: EligibilityConditionDB,
   context: EligibilityContext,
@@ -53,7 +56,9 @@ function conditionSection(
   pills: ReactNode;
 } | null {
   switch (condition.key) {
-    case "country":
+    case "country": {
+      if (isCountryConditionMet(context.country, condition)) return null;
+
       return {
         label: condition.operator === "is_not" ? "Not based in" : "Based in",
         pills: condition.value.map((code) => (
@@ -63,8 +68,8 @@ function conditionSection(
           </EligibilityPill>
         )),
       };
+    }
 
-    // Account/profile pills only show the requirements the partner is missing
     case "account": {
       const unmet = condition.value.filter(
         (attribute) =>
@@ -150,14 +155,18 @@ export function ProgramEligibilityCard({
 } = {}) {
   const { programEnrollment } = useProgramEnrollment({ programSlug });
   const { partner, loading } = usePartnerProfile();
-  const { programEnrollments } = useProgramEnrollments();
+  const { programEnrollments, isLoading: programEnrollmentsLoading } =
+    useProgramEnrollments();
 
   const requirements =
     requirementsProp !== undefined
       ? requirementsProp
       : programEnrollment?.program?.applicationRequirements;
 
-  if (!requirements?.length || loading) return null;
+  // Wait for enrollments too: evaluating without them would treat the
+  // no_program_bans requirement as met
+  if (!requirements?.length || loading || programEnrollmentsLoading)
+    return null;
 
   const context = getEligibilityContext({
     partner,

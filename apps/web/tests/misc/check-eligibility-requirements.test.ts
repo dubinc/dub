@@ -3,6 +3,7 @@ import {
   evaluateApplicationRequirements,
   getEligibilityContext,
   isAccountAttributeMet,
+  isCountryConditionMet,
   isProfileAttributeMet,
 } from "@/lib/partners/evaluate-application-requirements";
 import { describe, expect, it } from "vitest";
@@ -373,6 +374,25 @@ describe("evaluateApplicationRequirements", () => {
       expect(isAccountAttributeMet(account, "dub_network_approved")).toBe(true);
       expect(isAccountAttributeMet(account, "no_program_bans")).toBe(false);
       expect(isAccountAttributeMet(undefined, "no_program_bans")).toBe(false);
+    });
+
+    it("isCountryConditionMet applies the operator", () => {
+      const isCondition = { operator: "is" as const, value: ["US", "CA"] };
+      expect(isCountryConditionMet("US", isCondition)).toBe(true);
+      expect(isCountryConditionMet("GB", isCondition)).toBe(false);
+
+      const isNotCondition = { operator: "is_not" as const, value: ["US"] };
+      expect(isCountryConditionMet("GB", isNotCondition)).toBe(true);
+      expect(isCountryConditionMet("US", isNotCondition)).toBe(false);
+    });
+
+    it("isCountryConditionMet fails closed on a missing country for both operators", () => {
+      const isCondition = { operator: "is" as const, value: ["US"] };
+      const isNotCondition = { operator: "is_not" as const, value: ["US"] };
+      expect(isCountryConditionMet(null, isCondition)).toBe(false);
+      expect(isCountryConditionMet(undefined, isCondition)).toBe(false);
+      expect(isCountryConditionMet(null, isNotCondition)).toBe(false);
+      expect(isCountryConditionMet(undefined, isNotCondition)).toBe(false);
     });
   });
 

@@ -57,13 +57,20 @@ function ApplyButton({ program }: { program: NetworkProgramProps }) {
       onSuccess: () => mutatePrefix("/api/network/programs"),
     });
 
-  const { partner, mutate } = usePartnerProfile();
+  const { partner, mutate, loading: partnerLoading } = usePartnerProfile();
 
-  const { programEnrollments } = useProgramEnrollments();
+  const { programEnrollments, isLoading: programEnrollmentsLoading } =
+    useProgramEnrollments();
 
-  const { programEnrollment } = useProgramEnrollment({
-    programSlug: program.slug,
-  });
+  const { programEnrollment, loading: programEnrollmentLoading } =
+    useProgramEnrollment({
+      programSlug: program.slug,
+    });
+
+  // Eligibility can't be evaluated until the partner profile and enrollment
+  // data have loaded, so the apply action stays disabled until then
+  const eligibilityLoading =
+    partnerLoading || programEnrollmentLoading || programEnrollmentsLoading;
 
   const { completedCount, totalCount, isComplete } =
     getNetworkProfileChecklistProgress({
@@ -104,7 +111,7 @@ function ApplyButton({ program }: { program: NetworkProgramProps }) {
   });
 
   const requirementsNotMet =
-    reason === "requirementsNotMet"
+    !eligibilityLoading && reason === "requirementsNotMet"
       ? "You do not meet the eligibility requirements for this program"
       : undefined;
 
@@ -177,7 +184,7 @@ function ApplyButton({ program }: { program: NetworkProgramProps }) {
     );
 
   useKeyboardShortcut("a", () => setIsApplicationSheetOpen(true), {
-    enabled: !disabledTooltip,
+    enabled: !disabledTooltip && !eligibilityLoading,
   });
 
   return (
@@ -188,6 +195,7 @@ function ApplyButton({ program }: { program: NetworkProgramProps }) {
         text="Apply"
         shortcut="A"
         onClick={() => setIsApplicationSheetOpen(true)}
+        disabled={!disabledTooltip && eligibilityLoading ? true : undefined}
         disabledTooltip={disabledTooltip}
         className="h-9 rounded-lg"
       />
