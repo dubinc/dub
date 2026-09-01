@@ -57,20 +57,35 @@ function ApplyButton({ program }: { program: NetworkProgramProps }) {
       onSuccess: () => mutatePrefix("/api/network/programs"),
     });
 
-  const { partner, mutate, loading: partnerLoading } = usePartnerProfile();
+  const {
+    partner,
+    mutate,
+    loading: partnerLoading,
+    error: partnerError,
+  } = usePartnerProfile();
 
-  const { programEnrollments, isLoading: programEnrollmentsLoading } =
-    useProgramEnrollments();
+  const {
+    programEnrollments,
+    isLoading: programEnrollmentsLoading,
+    error: programEnrollmentsError,
+  } = useProgramEnrollments();
 
   const { programEnrollment, loading: programEnrollmentLoading } =
     useProgramEnrollment({
       programSlug: program.slug,
     });
 
-  // Eligibility can't be evaluated until the partner profile and enrollment
-  // data have loaded, so the apply action stays disabled until then
-  const eligibilityLoading =
-    partnerLoading || programEnrollmentLoading || programEnrollmentsLoading;
+  // Eligibility is unresolved until the partner profile and enrollment data
+  // have loaded successfully, so the apply action stays disabled until then.
+  // A failed fetch counts as unresolved — never as "no bans". The singular
+  // enrollment's error is deliberately excluded: a 404 there just means
+  // "not enrolled".
+  const eligibilityUnresolved =
+    partnerLoading ||
+    programEnrollmentLoading ||
+    programEnrollmentsLoading ||
+    !!partnerError ||
+    !!programEnrollmentsError;
 
   const { completedCount, totalCount, isComplete } =
     getNetworkProfileChecklistProgress({
@@ -111,7 +126,7 @@ function ApplyButton({ program }: { program: NetworkProgramProps }) {
   });
 
   const requirementsNotMet =
-    !eligibilityLoading && reason === "requirementsNotMet"
+    !eligibilityUnresolved && reason === "requirementsNotMet"
       ? "You do not meet the eligibility requirements for this program"
       : undefined;
 
@@ -184,7 +199,7 @@ function ApplyButton({ program }: { program: NetworkProgramProps }) {
     );
 
   useKeyboardShortcut("a", () => setIsApplicationSheetOpen(true), {
-    enabled: !disabledTooltip && !eligibilityLoading,
+    enabled: !disabledTooltip && !eligibilityUnresolved,
   });
 
   return (
@@ -195,7 +210,7 @@ function ApplyButton({ program }: { program: NetworkProgramProps }) {
         text="Apply"
         shortcut="A"
         onClick={() => setIsApplicationSheetOpen(true)}
-        disabled={!disabledTooltip && eligibilityLoading ? true : undefined}
+        disabled={!disabledTooltip && eligibilityUnresolved ? true : undefined}
         disabledTooltip={disabledTooltip}
         className="h-9 rounded-lg"
       />

@@ -154,18 +154,27 @@ export function ProgramEligibilityCard({
   requirements?: EligibilityConditionDB[] | null;
 } = {}) {
   const { programEnrollment } = useProgramEnrollment({ programSlug });
-  const { partner, loading } = usePartnerProfile();
-  const { programEnrollments, isLoading: programEnrollmentsLoading } =
-    useProgramEnrollments();
+  const { partner, loading, error: partnerError } = usePartnerProfile();
+  const {
+    programEnrollments,
+    isLoading: programEnrollmentsLoading,
+    error: programEnrollmentsError,
+  } = useProgramEnrollments();
 
   const requirements =
     requirementsProp !== undefined
       ? requirementsProp
       : programEnrollment?.program?.applicationRequirements;
 
-  // Wait for enrollments too: evaluating without them would treat the
-  // no_program_bans requirement as met
-  if (!requirements?.length || loading || programEnrollmentsLoading)
+  // Eligibility is unknown until both requests settle successfully — while
+  // loading or after a failed fetch, showing requirements would be a guess
+  if (
+    !requirements?.length ||
+    loading ||
+    programEnrollmentsLoading ||
+    partnerError ||
+    programEnrollmentsError
+  )
     return null;
 
   const context = getEligibilityContext({

@@ -66,12 +66,17 @@ export function getEligibilityContext({
       hasSalesChannel: (partner.salesChannels?.length ?? 0) > 0,
       hasMonthlyTraffic: !!partner.monthlyTraffic,
     },
-    account: {
-      isDubNetworkApproved: ["approved", "trusted"].includes(
-        partner.networkStatus ?? "",
-      ),
-      hasProgramBans: (programEnrollmentStatuses ?? []).includes("banned"),
-    },
+    // Unknown enrollment statuses (still loading or failed to load) leave the
+    // account null so its attributes fail closed, rather than reading "no
+    // data" as "no bans"; an empty array is a known state and evaluates
+    account: programEnrollmentStatuses
+      ? {
+          isDubNetworkApproved: ["approved", "trusted"].includes(
+            partner.networkStatus ?? "",
+          ),
+          hasProgramBans: programEnrollmentStatuses.includes("banned"),
+        }
+      : null,
   };
 }
 

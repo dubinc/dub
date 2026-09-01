@@ -437,15 +437,40 @@ describe("evaluateApplicationRequirements", () => {
       });
     });
 
-    it("treats a non-approved network status and missing enrollments as defaults", () => {
+    it("treats an empty enrollment list as a known no-bans state", () => {
       const context = getEligibilityContext({
         partner: { networkStatus: "submitted" },
+        programEnrollmentStatuses: [],
       });
 
       expect(context.account).toEqual({
         isDubNetworkApproved: false,
         hasProgramBans: false,
       });
+    });
+
+    it("marks the account unknown when enrollment statuses are missing", () => {
+      const context = getEligibilityContext({
+        partner: { networkStatus: "trusted" },
+      });
+
+      expect(context.account).toBeNull();
+    });
+
+    it("fails closed on account requirements when enrollment statuses are missing", () => {
+      const condition = {
+        key: "account" as const,
+        operator: "is" as const,
+        value: ["no_program_bans"],
+      };
+
+      const result = evaluate(
+        [condition],
+        getEligibilityContext({ partner: { networkStatus: "trusted" } }),
+      );
+
+      expect(result.valid).toBe(false);
+      expect(result.reason).toBe("requirementsNotMet");
     });
   });
 });

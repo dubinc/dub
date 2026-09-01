@@ -51,7 +51,12 @@ export function ProgramSidebar({
   applicationRewards: RewardProps[];
   applicationDiscount: DiscountProps | null;
 }) {
-  const { partner, mutate, loading: partnerLoading } = usePartnerProfile();
+  const {
+    partner,
+    mutate,
+    loading: partnerLoading,
+    error: partnerError,
+  } = usePartnerProfile();
 
   const { completedCount, totalCount, isComplete } =
     getNetworkProfileChecklistProgress({
@@ -94,13 +99,23 @@ export function ProgramSidebar({
     ? applicationRequirementsSchema.parse(program.applicationRequirements)
     : null;
 
-  const { programEnrollments, isLoading: programEnrollmentsLoading } =
-    useProgramEnrollments();
+  const {
+    programEnrollments,
+    isLoading: programEnrollmentsLoading,
+    error: programEnrollmentsError,
+  } = useProgramEnrollments();
 
-  // Eligibility can't be evaluated until the partner profile and enrollment
-  // data have loaded, so the apply action stays disabled until then
-  const eligibilityLoading =
-    partnerLoading || programEnrollmentLoading || programEnrollmentsLoading;
+  // Eligibility is unresolved until the partner profile and enrollment data
+  // have loaded successfully, so the apply action stays disabled until then.
+  // A failed fetch counts as unresolved — never as "no bans". The singular
+  // enrollment's error is deliberately excluded: a 404 there just means
+  // "not enrolled".
+  const eligibilityUnresolved =
+    partnerLoading ||
+    programEnrollmentLoading ||
+    programEnrollmentsLoading ||
+    !!partnerError ||
+    !!programEnrollmentsError;
 
   const { reason } = evaluateApplicationRequirements({
     applicationRequirements,
@@ -113,7 +128,7 @@ export function ProgramSidebar({
   });
 
   const requirementsNotMet =
-    !eligibilityLoading && reason === "requirementsNotMet"
+    !eligibilityUnresolved && reason === "requirementsNotMet"
       ? "You do not meet the eligibility requirements for this program"
       : undefined;
 
@@ -290,7 +305,7 @@ export function ProgramSidebar({
         icon={justApplied ? <CircleCheck className="size-4" /> : undefined}
         disabled={
           !applyDisabledTooltip &&
-          (!!programEnrollment || justApplied || eligibilityLoading)
+          (!!programEnrollment || justApplied || eligibilityUnresolved)
             ? true
             : undefined
         }
