@@ -2,6 +2,7 @@
 
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
+import { revalidateProgramPublicPages } from "@/lib/api/programs/revalidate-program-public-pages";
 import {
   ALLOWED_MIN_PAYOUT_AMOUNTS,
   getAllowedMinPayoutAmounts,
@@ -10,7 +11,6 @@ import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { prisma } from "@/lib/prisma";
 import { submittedLeadFormSchema } from "@/lib/zod/schemas/submitted-lead-form";
 import { waitUntil } from "@vercel/functions";
-import { revalidatePath } from "next/cache";
 import * as z from "zod/v4";
 import { getProgramOrThrow } from "../../api/programs/get-program-or-throw";
 import { ProgramSchema, updateProgramSchema } from "../../zod/schemas/programs";
@@ -75,25 +75,25 @@ export const updateProgramAction = authActionClient
       },
     });
 
-    if (updatedProgram.termsUrl !== program.termsUrl) {
-      revalidatePath(`/partners.dub.co/${program.slug}/apply`);
-    }
-
     waitUntil(
-      recordAuditLog({
-        workspaceId: workspace.id,
-        programId: program.id,
-        action: "program.updated",
-        description: `Program ${program.name} updated`,
-        actor: user,
-        targets: [
-          {
-            type: "program",
-            id: program.id,
-            metadata: updatedProgram,
-          },
-        ],
-      }),
+      Promise.allSettled([
+        updatedProgram.termsUrl !== program.termsUrl &&
+          revalidateProgramPublicPages(programId),
+        recordAuditLog({
+          workspaceId: workspace.id,
+          programId: program.id,
+          action: "program.updated",
+          description: `Program ${program.name} updated`,
+          actor: user,
+          targets: [
+            {
+              type: "program",
+              id: program.id,
+              metadata: updatedProgram,
+            },
+          ],
+        }),
+      ]),
     );
 
     return {

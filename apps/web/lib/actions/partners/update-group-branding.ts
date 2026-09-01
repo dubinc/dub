@@ -3,6 +3,7 @@
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { getGroupOrThrow } from "@/lib/api/groups/get-group-or-throw";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
+import { revalidateProgramPublicPages } from "@/lib/api/programs/revalidate-program-public-pages";
 import { prisma } from "@/lib/prisma";
 import { isStored, storage } from "@/lib/storage";
 import { ProgramLanderData } from "@/lib/types";
@@ -14,7 +15,6 @@ import {
 } from "@/lib/zod/schemas/program-lander";
 import { isFulfilled, isRejected, nanoid, R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
-import { revalidatePath } from "next/cache";
 import * as z from "zod/v4";
 import { authActionClient } from "../safe-action";
 import { throwIfNoPermission } from "../throw-if-no-permission";
@@ -121,17 +121,7 @@ export const updateGroupBrandingAction = authActionClient
          - application form data
         */
           ...(landerDataInput || applicationFormDataInput || unpublish
-            ? [
-                revalidatePath(`/partners.dub.co/${program.slug}`),
-                revalidatePath(`/partners.dub.co/${program.slug}/apply`),
-                revalidatePath(
-                  `/partners.dub.co/${program.slug}/apply/success`,
-                ),
-                program.addedToMarketplaceAt &&
-                  revalidatePath(
-                    `/partners.dub.co/marketplace/${program.slug}`,
-                  ),
-              ]
+            ? [revalidateProgramPublicPages(programId)]
             : []),
 
           recordAuditLog({

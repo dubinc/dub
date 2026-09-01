@@ -3,13 +3,12 @@
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { getDiscountOrThrow } from "@/lib/api/partners/get-discount-or-throw";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
+import { revalidateProgramPublicPages } from "@/lib/api/programs/revalidate-program-public-pages";
 import { qstash } from "@/lib/cron";
 import { prisma } from "@/lib/prisma";
 import { updateDiscountSchema } from "@/lib/zod/schemas/discount";
-import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
-import { revalidatePath } from "next/cache";
 import { authActionClient } from "../safe-action";
 import { throwIfNoPermission } from "../throw-if-no-permission";
 
@@ -31,24 +30,22 @@ export const updateDiscountAction = authActionClient
       discountId,
     });
 
-    const { program, partnerGroup, ...updatedDiscount } =
-      await prisma.discount.update({
-        where: {
-          id: discountId,
-        },
-        data: {
-          couponTestId: couponTestId || null,
-          ...(autoProvision !== undefined && {
-            autoProvisionEnabledAt: autoProvision
-              ? discount.autoProvisionEnabledAt ?? new Date()
-              : null,
-          }),
-        },
-        include: {
-          program: true,
-          partnerGroup: true,
-        },
-      });
+    const { partnerGroup, ...updatedDiscount } = await prisma.discount.update({
+      where: {
+        id: discountId,
+      },
+      data: {
+        couponTestId: couponTestId || null,
+        ...(autoProvision !== undefined && {
+          autoProvisionEnabledAt: autoProvision
+            ? discount.autoProvisionEnabledAt ?? new Date()
+            : null,
+        }),
+      },
+      include: {
+        partnerGroup: true,
+      },
+    });
 
     waitUntil(
       (async () => {
@@ -65,17 +62,7 @@ export const updateDiscountAction = authActionClient
                   },
                 }),
 
-                // we only cache default group pages for now so we need to invalidate them
-                ...(partnerGroup?.slug === DEFAULT_PARTNER_GROUP.slug
-                  ? [
-                      revalidatePath(`/partners.dub.co/${program.slug}`),
-                      revalidatePath(`/partners.dub.co/${program.slug}/apply`),
-                      program.addedToMarketplaceAt &&
-                        revalidatePath(
-                          `/partners.dub.co/marketplace/${program.slug}`,
-                        ),
-                    ]
-                  : []),
+                revalidateProgramPublicPages(programId),
               ]
             : []),
 
