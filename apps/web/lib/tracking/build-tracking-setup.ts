@@ -1,4 +1,4 @@
-import { StackItem, stackItems } from "@/ui/guides/integrations";
+import { guides, StackItem, stackItems } from "@/ui/guides/integrations";
 
 const ANALYTICS_SCRIPT_BASE = "https://www.dubcdn.com/analytics/script.js";
 
@@ -82,21 +82,43 @@ function resolveIntegrationSteps(stack: string[]): TrackingSetupStep[] {
   const steps: TrackingSetupStep[] = [];
 
   for (const id of stack) {
-    const slot = INTEGRATION_SLOTS.find((item) => item.stackIds.includes(id));
-    if (!slot || seen.has(slot.id)) {
+    // "custom" has no dedicated install guide beyond the server/client
+    // tracking step already included above.
+    if (id === "custom") {
       continue;
     }
 
-    seen.add(slot.id);
+    const slot = INTEGRATION_SLOTS.find((item) => item.stackIds.includes(id));
     const item = stackItems.find((stackItem) => stackItem.id === id);
 
+    if (slot) {
+      if (seen.has(slot.id)) continue;
+
+      seen.add(slot.id);
+      steps.push({
+        type: "integration",
+        label: slot.title,
+        url: slot.url,
+        guideKey: slot.id,
+        icon: item?.icon ?? null,
+        iconProps: item?.iconProps,
+      });
+      continue;
+    }
+
+    if (!item || seen.has(id)) continue;
+
+    const guide = guides.find((g) => item.guideKeys.includes(g.key));
+    if (!guide) continue;
+
+    seen.add(id);
     steps.push({
       type: "integration",
-      label: slot.title,
-      url: slot.url,
-      guideKey: slot.id,
-      icon: item?.icon ?? null,
-      iconProps: item?.iconProps,
+      label: item.title,
+      url: guide.url,
+      guideKey: id,
+      icon: item.icon,
+      iconProps: item.iconProps,
     });
   }
 
