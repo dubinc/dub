@@ -95,6 +95,10 @@
     {
       "path": "/api/cron/campaigns/queue-scheduled",
       "schedule": "* * * * *"
+    },
+    {
+      "path": "/api/cron/partners/search-sweep",
+      "schedule": "0 3 * * 0"
     }
   ],
   "functions": {
