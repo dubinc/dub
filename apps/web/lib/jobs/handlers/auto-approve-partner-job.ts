@@ -126,10 +126,17 @@ export const autoApprovePartnerJob = defineJob({
       }
     }
 
+    const owner = program.workspace.users[0];
+
+    if (!owner) {
+      console.warn(`Owner not found for program ${programId}.`);
+      return;
+    }
+
     await approvePartner({
       programId,
       partnerId,
-      userId: program.workspace.users[0].userId,
+      userId: owner.userId,
       groupId: programEnrollment.groupId,
     });
 
