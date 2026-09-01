@@ -17,6 +17,7 @@ export async function processShopifyOrder({
   clickId: string | null; // ID of the click event from Shopify pixel
 }) {
   const { customer: orderCustomer, discount_codes: discountCodes } = order;
+
   const sharedData = {
     checkoutToken: order.checkout_token,
     shopifyCustomerId: orderCustomer?.id,
