@@ -2,6 +2,8 @@ import {
   EligibilityContext,
   evaluateApplicationRequirements,
   getEligibilityContext,
+  isAccountAttributeMet,
+  isProfileAttributeMet,
 } from "@/lib/partners/evaluate-application-requirements";
 import { describe, expect, it } from "vitest";
 
@@ -355,6 +357,22 @@ describe("evaluateApplicationRequirements", () => {
       const result = evaluate([condition], {});
       expect(result.valid).toBe(false);
       expect(result.reason).toBe("requirementsNotMet");
+    });
+  });
+
+  describe("per-attribute checks (used by the eligibility card)", () => {
+    it("isProfileAttributeMet checks the selected attribute only", () => {
+      const profile = { ...fullProfile, hasSalesChannel: false };
+      expect(isProfileAttributeMet(profile, "sales_channels")).toBe(false);
+      expect(isProfileAttributeMet(profile, "description")).toBe(true);
+      expect(isProfileAttributeMet(undefined, "description")).toBe(false);
+    });
+
+    it("isAccountAttributeMet checks approval and bans independently", () => {
+      const account = { isDubNetworkApproved: true, hasProgramBans: true };
+      expect(isAccountAttributeMet(account, "dub_network_approved")).toBe(true);
+      expect(isAccountAttributeMet(account, "no_program_bans")).toBe(false);
+      expect(isAccountAttributeMet(undefined, "no_program_bans")).toBe(false);
     });
   });
 

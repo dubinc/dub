@@ -75,6 +75,40 @@ export function getEligibilityContext({
   };
 }
 
+// Missing context data fails closed (attribute counts as unmet)
+export function isProfileAttributeMet(
+  profile: Context["profile"],
+  attribute: EligibilityProfileAttribute,
+): boolean {
+  if (!profile) {
+    return false;
+  }
+
+  const checks: Record<EligibilityProfileAttribute, boolean> = {
+    description: profile.hasDescription,
+    verified_website: profile.hasVerifiedWebsite,
+    verified_social_account: profile.hasVerifiedSocialAccount,
+    preferred_earning_structure: profile.hasPreferredEarningStructure,
+    sales_channels: profile.hasSalesChannel,
+    estimated_monthly_traffic: profile.hasMonthlyTraffic,
+  };
+
+  return checks[attribute];
+}
+
+export function isAccountAttributeMet(
+  account: Context["account"],
+  attribute: EligibilityAccountAttribute,
+): boolean {
+  if (!account) {
+    return false;
+  }
+
+  return attribute === "dub_network_approved"
+    ? account.isDubNetworkApproved
+    : !account.hasProgramBans;
+}
+
 interface Result {
   valid: boolean;
   reason:
@@ -195,42 +229,22 @@ function evaluateCondition({
     }
 
     case "profile": {
-      const { profile } = context;
-
-      if (!profile) {
-        return false;
-      }
-
-      const checks: Record<EligibilityProfileAttribute, boolean> = {
-        description: profile.hasDescription,
-        verified_website: profile.hasVerifiedWebsite,
-        verified_social_account: profile.hasVerifiedSocialAccount,
-        preferred_earning_structure: profile.hasPreferredEarningStructure,
-        sales_channels: profile.hasSalesChannel,
-        estimated_monthly_traffic: profile.hasMonthlyTraffic,
-      };
-
-      matches = condition.value.every(
-        (attribute) => checks[attribute as EligibilityProfileAttribute],
+      matches = condition.value.every((attribute) =>
+        isProfileAttributeMet(
+          context.profile,
+          attribute as EligibilityProfileAttribute,
+        ),
       );
 
       break;
     }
 
     case "account": {
-      const { account } = context;
-
-      if (!account) {
-        return false;
-      }
-
-      const checks: Record<EligibilityAccountAttribute, boolean> = {
-        dub_network_approved: account.isDubNetworkApproved,
-        no_program_bans: !account.hasProgramBans,
-      };
-
-      matches = condition.value.every(
-        (attribute) => checks[attribute as EligibilityAccountAttribute],
+      matches = condition.value.every((attribute) =>
+        isAccountAttributeMet(
+          context.account,
+          attribute as EligibilityAccountAttribute,
+        ),
       );
 
       break;

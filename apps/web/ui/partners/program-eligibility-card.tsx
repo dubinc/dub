@@ -1,6 +1,14 @@
 "use client";
 
+import {
+  EligibilityContext,
+  getEligibilityContext,
+  isAccountAttributeMet,
+  isProfileAttributeMet,
+} from "@/lib/partners/evaluate-application-requirements";
+import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
+import useProgramEnrollments from "@/lib/swr/use-program-enrollments";
 import { EligibilityConditionDB } from "@/lib/types";
 import {
   EligibilityAccountAttribute,
@@ -37,7 +45,10 @@ function EligibilityPill({
   );
 }
 
-function conditionSection(condition: EligibilityConditionDB): {
+function conditionSection(
+  condition: EligibilityConditionDB,
+  context: EligibilityContext,
+): {
   label: string;
   pills: ReactNode;
 } | null {
@@ -53,10 +64,21 @@ function conditionSection(condition: EligibilityConditionDB): {
         )),
       };
 
-    case "account":
+    // Account/profile pills only show the requirements the partner is missing
+    case "account": {
+      const unmet = condition.value.filter(
+        (attribute) =>
+          !isAccountAttributeMet(
+            context.account,
+            attribute as EligibilityAccountAttribute,
+          ),
+      );
+
+      if (unmet.length === 0) return null;
+
       return {
         label: "Account must be",
-        pills: condition.value.map((attribute) => {
+        pills: unmet.map((attribute) => {
           const meta =
             ELIGIBILITY_ACCOUNT_ATTRIBUTE_META[
               attribute as EligibilityAccountAttribute
@@ -73,11 +95,22 @@ function conditionSection(condition: EligibilityConditionDB): {
           );
         }),
       };
+    }
 
-    case "profile":
+    case "profile": {
+      const unmet = condition.value.filter(
+        (attribute) =>
+          !isProfileAttributeMet(
+            context.profile,
+            attribute as EligibilityProfileAttribute,
+          ),
+      );
+
+      if (unmet.length === 0) return null;
+
       return {
         label: "Profile must include",
-        pills: condition.value.map((attribute) => {
+        pills: unmet.map((attribute) => {
           const meta =
             ELIGIBILITY_PROFILE_ATTRIBUTE_META[
               attribute as EligibilityProfileAttribute
@@ -94,6 +127,7 @@ function conditionSection(condition: EligibilityConditionDB): {
           );
         }),
       };
+    }
 
     // legacy emailDomain conditions are enforced but not displayed
     default:
@@ -115,19 +149,26 @@ export function ProgramEligibilityCard({
   requirements?: EligibilityConditionDB[] | null;
 } = {}) {
   const { programEnrollment } = useProgramEnrollment({ programSlug });
+  const { partner, loading } = usePartnerProfile();
+  const { programEnrollments } = useProgramEnrollments();
 
   const requirements =
     requirementsProp !== undefined
       ? requirementsProp
       : programEnrollment?.program?.applicationRequirements;
 
-  if (!requirements?.length) return null;
+  if (!requirements?.length || loading) return null;
+
+  const context = getEligibilityContext({
+    partner,
+    programEnrollmentStatuses: programEnrollments?.map(({ status }) => status),
+  });
 
   const sections = SECTION_ORDER.flatMap((key) => {
     const condition = requirements.find(
       (requirement) => requirement.key === key,
     );
-    const section = condition ? conditionSection(condition) : null;
+    const section = condition ? conditionSection(condition, context) : null;
     return section ? [section] : [];
   });
 
