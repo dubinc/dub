@@ -28,8 +28,20 @@ export async function attributeViaDiscountCode({
 
   const billingAddressCountry = billingAddress?.country_code?.toUpperCase();
 
+  // Record a fake click for this event
+  const clickEvent = await recordFakeClick({
+    link,
+    customer: {
+      continent: billingAddressCountry
+        ? COUNTRIES_TO_CONTINENTS[billingAddressCountry] ?? "Unknown"
+        : "Unknown",
+      country: billingAddressCountry ?? "Unknown",
+      region: billingAddress?.province ?? "Unknown",
+    },
+  });
+
   const customerId = createId({ prefix: "cus_" });
-  const clickId = nanoid(16);
+  const clickId = clickEvent.click_id;
 
   // Create the customer before recording the fake click so a P2002 on
   // projectId_externalId never leaves an orphaned Tinybird click behind.
@@ -48,19 +60,6 @@ export async function attributeViaDiscountCode({
       projectId: workspace.id,
       programId: link.programId,
       partnerId: link.partnerId,
-    },
-  });
-
-  // Record a fake click for this event
-  const clickEvent = await recordFakeClick({
-    link,
-    clickId,
-    customer: {
-      continent: billingAddressCountry
-        ? COUNTRIES_TO_CONTINENTS[billingAddressCountry] ?? "Unknown"
-        : "Unknown",
-      country: billingAddressCountry ?? "Unknown",
-      region: billingAddress?.province ?? "Unknown",
     },
   });
 

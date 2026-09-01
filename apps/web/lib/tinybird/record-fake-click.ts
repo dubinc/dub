@@ -25,7 +25,6 @@ export async function recordFakeClick({
   link,
   customer,
   timestamp,
-  clickId,
 }: {
   link: Pick<Link, "id" | "url" | "domain" | "key" | "projectId">;
   customer?: {
@@ -34,7 +33,6 @@ export async function recordFakeClick({
     continent?: string | null;
   };
   timestamp?: string | number;
-  clickId?: string;
 }) {
   const dummyRequest = new Request(link.url, {
     headers: new Headers({
@@ -48,7 +46,7 @@ export async function recordFakeClick({
 
   const clickData = await recordClick({
     req: dummyRequest,
-    clickId: clickId ?? nanoid(16),
+    clickId: nanoid(16),
     workspaceId: link.projectId!,
     linkId: link.id,
     domain: link.domain,

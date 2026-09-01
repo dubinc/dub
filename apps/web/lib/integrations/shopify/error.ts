@@ -8,7 +8,3 @@ export class ShopifyError extends Error {
     Object.setPrototypeOf(this, new.target.prototype);
   }
 }
-
-export function isShopifyError(error: unknown): error is ShopifyError {
-  return error instanceof ShopifyError;
-}
