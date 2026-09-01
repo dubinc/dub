@@ -187,22 +187,25 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
 
   const dubIdCookieName = `dub_id_${domain}_${key}`;
 
-  const cookieStore = await cookies();
-  let clickId = cookieStore.get(dubIdCookieName)?.value;
-  // only mint a new clickId if not in Redis failover mode
-  if (!clickId && !redisFailOver) {
-    // if we need to cache the clickId, check if clickId is cached in Redis
-    if (shouldCacheClickId) {
-      const identityHash = await getIdentityHash(req);
-      clickId =
-        (await recordClickCache
-          .get({ domain, key, identityHash })
-          .catch(() => undefined)) || undefined;
-    }
-
-    // if there's still no clickId, generate a new one
+  let clickId: string | undefined;
+  // only lookup/mint a new clickId if not in Redis failover mode
+  if (!redisFailOver) {
+    const cookieStore = await cookies();
+    clickId = cookieStore.get(dubIdCookieName)?.value;
     if (!clickId) {
-      clickId = nanoid(16);
+      // if we need to cache the clickId, check if clickId is cached in Redis
+      if (shouldCacheClickId) {
+        const identityHash = await getIdentityHash(req);
+        clickId =
+          (await recordClickCache
+            .get({ domain, key, identityHash })
+            .catch(() => undefined)) || undefined;
+      }
+
+      // if there's still no clickId, generate a new one
+      if (!clickId) {
+        clickId = nanoid(16);
+      }
     }
   }
 
