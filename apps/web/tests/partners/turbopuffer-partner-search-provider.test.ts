@@ -94,7 +94,12 @@ describe("Turbopuffer partner search provider", () => {
     );
     // Description, platforms, and links stay out, so a name cannot be
     // out-weighted by how much else a partner has.
-    for (const value of ["affiliate marketer", "youtube", "@rafi", "rafi-link"]) {
+    for (const value of [
+      "affiliate marketer",
+      "youtube",
+      "@rafi",
+      "rafi-link",
+    ]) {
       expect(row.identityText).not.toContain(value);
     }
     // ContainsAllTokens reads the BM25 index, so no text attribute needs a
@@ -128,8 +133,8 @@ describe("Turbopuffer partner search provider", () => {
 
   it("pins a tokenizer that splits URLs into their components", async () => {
     // The default tokenizer keeps a URL as one token, so "scottdigital" cannot
-    // match "https://www.scottdigital-42.techcorp.io", and websites, short
-    // links, and destination URLs are all searchable here.
+    // match "https://www.scottdigital-42.techcorp.io"
+    // and websites + partner links are all searchable here
     await createProvider().upsert([document]);
 
     const [{ schema }] = mocks.write.mock.calls[0];

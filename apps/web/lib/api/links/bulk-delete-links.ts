@@ -64,8 +64,7 @@ export async function bulkDeleteLinks(
 
         // Queue an index update because the links were deleted. The enrollment
         // outlives them, so the document is re-serialized without them.
-        queuePartnerSearchSyncForLinks(links, {
-        }),
+        queuePartnerSearchSyncForLinks(links),
       ]),
     );
   }

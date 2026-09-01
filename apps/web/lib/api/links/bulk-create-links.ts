@@ -236,9 +236,7 @@ export async function bulkCreateLinks({
         linksCount: links.length,
         timestamp: new Date().toISOString(),
       }),
-      // Queue an index update because the new links carry searchable
-      // shortLinks. Default delay, since a new short link is how people find
-      // that partner.
+      // Queue an index update because the new links carry searchable link keys
       queuePartnerSearchSyncForLinks(createdLinksData),
     ]),
   );

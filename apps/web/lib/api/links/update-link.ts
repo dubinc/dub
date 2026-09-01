@@ -211,8 +211,7 @@ export async function updateLink({
         // Queue an index update because the edit can change the destination URL
         // or move the link. Both owners, so a former one is re-serialized
         // without it.
-        queuePartnerSearchSyncForLinks([oldLink, response], {
-        }),
+        queuePartnerSearchSyncForLinks([oldLink, response]),
 
         // If proxy is true and image is not stored in R2, upload image to R2
         proxy &&
