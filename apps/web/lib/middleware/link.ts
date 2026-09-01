@@ -1,4 +1,4 @@
-import { recordClick } from "@/lib/tinybird";
+import { recordClick as recordClickJob } from "@/lib/tinybird";
 import { formatRedisLink } from "@/lib/upstash";
 import {
   APP_DOMAIN,
@@ -86,8 +86,16 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
     });
   }
 
-  let cachedLink = await linkCache.get({ domain, key });
+  let { cachedLink, redisFailOver } = await linkCache.get({ domain, key });
   let isPartnerLink = Boolean(cachedLink?.programId && cachedLink?.partnerId);
+
+  // skip click tracking during Redis failover to avoid timeouts
+  const recordClick = redisFailOver
+    ? async () => {
+        console.log("Redis failover detected, skipping click tracking...");
+        return;
+      }
+    : recordClickJob;
 
   if (!cachedLink) {
     let linkData = await getLinkViaEdge({
@@ -182,8 +190,8 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
   const cookieStore = await cookies();
   let clickId = cookieStore.get(dubIdCookieName)?.value;
   if (!clickId) {
-    // if we need to pass the clickId, check if clickId is cached in Redis
-    if (shouldCacheClickId) {
+    // if we need to cache the clickId, check if clickId is cached in Redis (assuming no redisFailOver)
+    if (shouldCacheClickId && !redisFailOver) {
       const identityHash = await getIdentityHash(req);
       clickId =
         (await recordClickCache
