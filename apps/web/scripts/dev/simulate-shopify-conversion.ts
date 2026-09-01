@@ -4,18 +4,24 @@ import { nanoid } from "@dub/utils";
 import { createHmac } from "crypto";
 
 async function main() {
-  const clickId = "";
+  const clickId = "RZjkGhi04FGxWjcK";
   const checkoutToken = nanoid(10);
   const storeId = "store.dub.co";
+  const existingCustomerId = null;
+  const discountCode = null;
 
   await trackPixel({
     clickId,
     checkoutToken,
   });
 
+  await new Promise((resolve) => setTimeout(resolve, 4000));
+
   await trackOrderPaid({
     checkoutToken,
     storeId,
+    existingCustomerId,
+    discountCode,
   });
 }
 
@@ -37,17 +43,32 @@ async function trackPixel({
     }),
   });
 
-  return response.json();
+  const data = await response.json();
+
+  console.log("trackPixel", data);
 }
 
 async function trackOrderPaid({
   checkoutToken,
   storeId,
+  existingCustomerId,
+  discountCode,
 }: {
   checkoutToken: string;
   storeId: string;
+  existingCustomerId?: string | null;
+  discountCode?: string | null;
 }) {
-  const payload = shopifyOrderPayload({ checkoutToken });
+  const payload = shopifyOrderPayload({
+    checkoutToken,
+    ...(existingCustomerId && {
+      customer: { id: existingCustomerId },
+    }),
+    ...(discountCode && {
+      discount_codes: [{ code: discountCode }],
+    }),
+  });
+
   const body = JSON.stringify(payload);
   const signature = shopifyWebhookSignature(body);
 
@@ -65,7 +86,9 @@ async function trackOrderPaid({
     },
   );
 
-  return response.json();
+  const data = await response.text();
+
+  console.log("trackOrderPaid", data);
 }
 
 function shopifyWebhookSignature(body: string) {
@@ -95,7 +118,7 @@ function shopifyOrderPayload({
     },
     current_subtotal_price_set: {
       shop_money: {
-        amount: 50,
+        amount: "72",
         currency_code: "USD",
       },
     },
