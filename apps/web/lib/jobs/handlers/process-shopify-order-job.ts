@@ -1,9 +1,9 @@
 import { captureWebhookLog } from "@/lib/api-logs/capture-webhook-log";
+import { logger } from "@/lib/axiom/server";
 import { processShopifyOrder } from "@/lib/integrations/shopify/process-order";
 import { shopifyOrderSchema } from "@/lib/integrations/shopify/schema";
 import { prisma } from "@/lib/prisma";
 import { serializeError } from "@dub/utils";
-import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
 import { defineJob } from "../index";
 
@@ -46,23 +46,34 @@ export const processShopifyOrderJob = defineJob({
         clickId,
       });
 
-      waitUntil(
-        captureWebhookLog({
-          ...requestLog,
-          statusCode: 200,
-          duration: Date.now() - startTime,
-          responseBody: result,
-        }),
-      );
+      // Keep this for a while to help us debug issues with the job.
+      logger.info("shopify.order.processed", {
+        ...result,
+        workspaceId: workspace.id,
+      });
+
+      await logger.flush();
+
+      await captureWebhookLog({
+        ...requestLog,
+        statusCode: 200,
+        duration: Date.now() - startTime,
+        responseBody: result,
+      });
     } catch (error) {
-      waitUntil(
-        captureWebhookLog({
-          ...requestLog,
-          statusCode: 400,
-          duration: Date.now() - startTime,
-          responseBody: serializeError(error),
-        }),
-      );
+      await captureWebhookLog({
+        ...requestLog,
+        statusCode: 400,
+        duration: Date.now() - startTime,
+        responseBody: serializeError(error),
+      });
+
+      logger.error("shopify.order.failed", {
+        error: serializeError(error),
+        workspaceId: workspace.id,
+      });
+
+      await logger.flush();
     }
   },
 });
