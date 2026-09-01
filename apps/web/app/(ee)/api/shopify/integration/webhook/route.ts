@@ -132,14 +132,17 @@ export const POST = async (req: Request) => {
     return response;
   }
 
-  waitUntil(
-    captureWebhookLog({
-      ...requestLog,
-      statusCode: 200,
-      duration: Date.now() - startTime,
-      responseBody: response,
-    }),
-  );
+  // orders/paid is logged by processShopifyOrderJob after the order is processed
+  if (topic !== "orders/paid") {
+    waitUntil(
+      captureWebhookLog({
+        ...requestLog,
+        statusCode: 200,
+        duration: Date.now() - startTime,
+        responseBody: response,
+      }),
+    );
+  }
 
   return new Response(response);
 };

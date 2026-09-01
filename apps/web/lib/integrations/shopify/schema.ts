@@ -5,7 +5,7 @@ export const shopifyOrderSchema = z.object({
   checkout_token: z.string(),
   customer: z
     .object({
-      id: z.number(),
+      id: z.union([z.number(), z.string()]),
       email: z.string().nullish(),
       first_name: z.string().nullish(),
       last_name: z.string().nullish(),

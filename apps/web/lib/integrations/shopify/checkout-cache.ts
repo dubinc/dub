@@ -7,7 +7,10 @@ const SHOPIFY_CHECKOUT_CACHE_TTL_SECONDS = 60 * 60 * 24; // 24 hours
 const SHOPIFY_CHECKOUT_CACHE_KEY_PREFIX = "shopify:checkout:";
 
 const shopifyCheckoutCacheSchema = z.object({
-  clickId: z.string().optional(),
+  clickId: z
+    .string()
+    .nullish()
+    .transform((value) => value ?? undefined),
   workspaceId: z.string().optional(),
   order: shopifyOrderSchema.optional(),
   dispatched: z.boolean().optional(),
@@ -24,19 +27,19 @@ export async function writeShopifyCheckoutFields({
   fields,
 }: {
   checkoutToken: string;
-  fields: Record<string, unknown>;
+  fields: Partial<ShopifyCheckoutCache>;
 }) {
   const key = shopifyCheckoutCacheKey(checkoutToken);
 
   const pipeline = redis.pipeline();
   pipeline.hset(key, fields);
   pipeline.expire(key, SHOPIFY_CHECKOUT_CACHE_TTL_SECONDS);
-  pipeline.hgetall<ShopifyCheckoutCache>(key);
+  pipeline.hgetall(key);
 
   const results = await pipeline.exec();
-  const cache = results[2] as ShopifyCheckoutCache | null;
+  const parsed = shopifyCheckoutCacheSchema.safeParse(results[2]);
 
-  return cache ?? {};
+  return parsed.success ? parsed.data : {};
 }
 
 export async function tryDispatchShopifyOrderJob({

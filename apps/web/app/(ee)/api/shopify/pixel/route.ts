@@ -39,7 +39,7 @@ export const POST = async (req: Request) => {
       const clickEvent = await getClickEvent({ clickId });
 
       if (!clickEvent) {
-        clickId = null;
+        clickId = undefined;
       }
     }
 
@@ -47,9 +47,7 @@ export const POST = async (req: Request) => {
       (async () => {
         const checkout = await writeShopifyCheckoutFields({
           checkoutToken,
-          fields: {
-            clickId,
-          },
+          fields: clickId ? { clickId } : {},
         });
 
         await tryDispatchShopifyOrderJob({
