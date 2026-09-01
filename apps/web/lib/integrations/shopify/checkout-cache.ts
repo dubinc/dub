@@ -82,16 +82,21 @@ export async function tryDispatchShopifyOrderJob({
     return false;
   }
 
-  await processShopifyOrderJob.dispatch(
-    {
-      workspaceId: checkout.workspaceId,
-      clickId: checkout.clickId,
-      order: checkout.order,
-    },
-    {
-      deduplicationId: `shopify-order-${checkoutToken}`,
-    },
-  );
+  try {
+    await processShopifyOrderJob.dispatch(
+      {
+        workspaceId: checkout.workspaceId,
+        clickId: checkout.clickId,
+        order: checkout.order,
+      },
+      {
+        deduplicationId: `shopify-order-${checkoutToken}`,
+      },
+    );
+  } catch (error) {
+    await redis.hdel(key, "dispatched");
+    throw error;
+  }
 
   await shopifyCheckoutCache.delete(checkoutToken);
 
