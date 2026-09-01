@@ -1,6 +1,5 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { linkCache } from "@/lib/api/links/cache";
-import { queuePartnerSearchSyncForLinks } from "@/lib/api/partners/queue-partner-search-sync";
 import { extractUtmParams } from "@/lib/api/utm/extract-utm-params";
 import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
@@ -197,12 +196,6 @@ export async function POST(req: Request) {
               data: link,
             }),
           ),
-        );
-
-        // Queue an index update because the default link change rewrote
-        // destination URLs.
-        await queuePartnerSearchSyncForLinks(
-          linksToUpdate.map(({ owner }) => owner),
         );
       }
 
