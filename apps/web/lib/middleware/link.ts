@@ -189,9 +189,10 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
 
   const cookieStore = await cookies();
   let clickId = cookieStore.get(dubIdCookieName)?.value;
-  if (!clickId) {
-    // if we need to cache the clickId, check if clickId is cached in Redis (assuming no redisFailOver)
-    if (shouldCacheClickId && !redisFailOver) {
+  // only mint a new clickId if not in Redis failover mode
+  if (!clickId && !redisFailOver) {
+    // if we need to cache the clickId, check if clickId is cached in Redis
+    if (shouldCacheClickId) {
       const identityHash = await getIdentityHash(req);
       clickId =
         (await recordClickCache
@@ -484,18 +485,20 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
       isIosAppStoreUrl(ios) &&
       !req.nextUrl.searchParams.get("skip_deeplink_preview")
     ) {
-      ev.waitUntil(
-        cacheDeepLinkClickData({
-          req,
-          clickId,
-          link: {
-            id: linkId,
-            domain,
-            key,
-            url, // pass the main destination URL to the cache (for deferred deep linking)
-          },
-        }),
-      );
+      if (clickId) {
+        ev.waitUntil(
+          cacheDeepLinkClickData({
+            req,
+            clickId,
+            link: {
+              id: linkId,
+              domain,
+              key,
+              url, // pass the main destination URL to the cache (for deferred deep linking)
+            },
+          }),
+        );
+      }
 
       // redirect to the deeplink interstitial splash page "DeepLinkPreviewPage"
       // we're doing this because the interstitial page needs to be on a different domain than the actual deep link domain
@@ -552,18 +555,20 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
       isGooglePlayStoreUrl(android) &&
       !req.nextUrl.searchParams.get("skip_deeplink_preview")
     ) {
-      ev.waitUntil(
-        cacheDeepLinkClickData({
-          req,
-          clickId,
-          link: {
-            id: linkId,
-            domain,
-            key,
-            url, // pass the main destination URL to the cache (for deferred deep linking)
-          },
-        }),
-      );
+      if (clickId) {
+        ev.waitUntil(
+          cacheDeepLinkClickData({
+            req,
+            clickId,
+            link: {
+              id: linkId,
+              domain,
+              key,
+              url, // pass the main destination URL to the cache (for deferred deep linking)
+            },
+          }),
+        );
+      }
 
       // redirect to the deeplink interstitial splash page "DeepLinkPreviewPage"
       return createResponseWithCookies(
