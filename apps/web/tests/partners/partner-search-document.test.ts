@@ -32,20 +32,7 @@ const source: PartnerSearchDocumentSource = {
       },
     ],
   },
-  links: [
-    {
-      domain: "dub.sh",
-      key: "rafi",
-      shortLink: "https://dub.sh/rafi",
-      url: "https://example.com/referrals/rafi",
-    },
-    {
-      domain: "dub.sh",
-      key: "rafi-tools",
-      shortLink: "https://dub.sh/rafi-tools",
-      url: "https://rafi.dev/tools",
-    },
-  ],
+  links: [{ key: "rafi" }, { key: "rafi-tools" }],
 };
 
 describe("serializePartnerSearchDocument", () => {
@@ -60,13 +47,7 @@ describe("serializePartnerSearchDocument", () => {
       description: "Developer tools educator",
       platformTypes: ["website", "twitter"],
       platformIdentifiers: ["https://rafi.dev", "@rafi-on-x"],
-      linkDomains: ["dub.sh"],
       linkKeys: ["rafi", "rafi-tools"],
-      shortLinks: ["https://dub.sh/rafi", "https://dub.sh/rafi-tools"],
-      destinationUrls: [
-        "https://example.com/referrals/rafi",
-        "https://rafi.dev/tools",
-      ],
       status: "approved",
       groupId: "grp_test",
       country: "US",
@@ -74,4 +55,5 @@ describe("serializePartnerSearchDocument", () => {
       partnerTagIds: ["ptag_a"],
     });
   });
+
 });

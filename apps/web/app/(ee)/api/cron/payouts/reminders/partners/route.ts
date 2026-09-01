@@ -5,7 +5,11 @@ import { withCron } from "@/lib/cron/with-cron";
 import { queueBatchEmail } from "@/lib/email/queue-batch-email";
 import { prisma } from "@/lib/prisma";
 import ConnectPayoutReminder from "@dub/email/templates/connect-payout-reminder";
-import { ACME_PROGRAM_ID, APP_DOMAIN_WITH_NGROK } from "@dub/utils";
+import {
+  ACME_PROGRAM_ID,
+  APP_DOMAIN_WITH_NGROK,
+  DEMO_PROGRAM_ID,
+} from "@dub/utils";
 import { logAndRespond } from "../../../utils";
 
 export const dynamic = "force-dynamic";
@@ -29,6 +33,7 @@ export const GET = withCron(async () => {
       programId: {
         notIn: [
           ACME_PROGRAM_ID,
+          DEMO_PROGRAM_ID,
           // programs that are in the migration process
           "prog_1KPAZMF49X9A1WEWRBM55KZY7",
         ],

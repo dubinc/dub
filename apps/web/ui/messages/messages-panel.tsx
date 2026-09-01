@@ -250,7 +250,7 @@ export function MessagesPanel({
                           {message.text && (
                             <div
                               className={cn(
-                                "max-w-[min(100%,512px)] rounded-xl px-4 py-2.5 text-sm",
+                                "min-w-0 max-w-[min(100%,512px)] rounded-xl px-4 py-2.5 text-sm",
                                 isMySide
                                   ? "rounded-br bg-neutral-700"
                                   : "rounded-bl bg-neutral-100",
@@ -493,7 +493,7 @@ function CampaignMessage({
 
         <div
           className={cn(
-            "max-w-[min(100%,512px)] rounded-xl text-sm",
+            "min-w-0 max-w-[min(100%,512px)] rounded-xl text-sm",
             isMySide
               ? "text-content-inverted rounded-br bg-neutral-700"
               : "text-content-default rounded-bl bg-neutral-100",

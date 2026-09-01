@@ -53,11 +53,8 @@ export interface PartnerSearchDocument {
   platformTypes: PlatformType[];
   platformIdentifiers: string[];
 
-  // Searchable link fields
-  linkDomains: string[];
+  // Searchable link field
   linkKeys: string[];
-  shortLinks: string[];
-  destinationUrls: string[];
 
   // Filterable fields. Metrics are deliberately absent: they move on every click
   // and conversion, so indexing them would make the document churn continuously.

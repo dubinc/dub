@@ -322,8 +322,9 @@ export const getPartnersRouteQuerySchema = getPartnersQuerySchemaExtended
   );
 
 export const partnersExportQuerySchema = getPartnersQuerySchemaExtended
-  .omit({ page: true, pageSize: true })
+  .omit({ page: true, pageSize: true, search: true })
   .extend({
+    sortBy: getPartnersQuerySchema.shape.sortBy,
     columns: z
       .string()
       .default(exportPartnersColumnsDefault.join(","))
