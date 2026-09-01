@@ -69,32 +69,6 @@ export async function processShopifyOrder({
     }
   }
 
-  // New customer
-  if (clickId) {
-    const { leadData } = await createShopifyLead({
-      order,
-      clickId,
-      workspaceId: workspace.id,
-    });
-
-    const { saleData } = await createShopifySale({
-      leadData,
-      order,
-      workspaceId: workspace.id,
-      customerId: leadData.customer_id,
-    });
-
-    return {
-      message: "Sale has been tracked for this order.",
-      data: {
-        ...sharedData,
-        eventId: saleData.event_id,
-        customerId: leadData.customer_id,
-        attribution: "click",
-      },
-    };
-  }
-
   // Check if the order has created using a program discount code
   if (discountCodes && discountCodes.length > 0 && workspace.defaultProgramId) {
     const programDiscountCodes = await prisma.discountCode.findMany({
@@ -137,5 +111,31 @@ export async function processShopifyOrder({
         },
       };
     }
+  }
+
+  // New customer
+  if (clickId) {
+    const { leadData } = await createShopifyLead({
+      order,
+      clickId,
+      workspaceId: workspace.id,
+    });
+
+    const { saleData } = await createShopifySale({
+      leadData,
+      order,
+      workspaceId: workspace.id,
+      customerId: leadData.customer_id,
+    });
+
+    return {
+      message: "Sale has been tracked for this order.",
+      data: {
+        ...sharedData,
+        eventId: saleData.event_id,
+        customerId: leadData.customer_id,
+        attribution: "click",
+      },
+    };
   }
 }
