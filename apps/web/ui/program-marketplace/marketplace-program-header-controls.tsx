@@ -3,7 +3,10 @@
 import { acceptProgramInviteAction } from "@/lib/actions/partners/accept-program-invite";
 import { submitNetworkProfileAction } from "@/lib/actions/partners/submit-network-profile";
 import { getNetworkProfileChecklistProgress } from "@/lib/network/get-network-profile-checklist-progress";
-import { evaluateApplicationRequirements } from "@/lib/partners/evaluate-application-requirements";
+import {
+  evaluateApplicationRequirements,
+  getEligibilityContext,
+} from "@/lib/partners/evaluate-application-requirements";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
@@ -56,6 +59,8 @@ function ApplyButton({ program }: { program: NetworkProgramProps }) {
 
   const { partner, mutate } = usePartnerProfile();
 
+  const { programEnrollments } = useProgramEnrollments();
+
   const { programEnrollment } = useProgramEnrollment({
     programSlug: program.slug,
   });
@@ -90,10 +95,12 @@ function ApplyButton({ program }: { program: NetworkProgramProps }) {
 
   const { reason } = evaluateApplicationRequirements({
     applicationRequirements: program.applicationRequirements,
-    context: {
-      country: partner?.country,
-      email: partner?.email,
-    },
+    context: getEligibilityContext({
+      partner,
+      programEnrollmentStatuses: programEnrollments?.map(
+        ({ status }) => status,
+      ),
+    }),
   });
 
   const requirementsNotMet =

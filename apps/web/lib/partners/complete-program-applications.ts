@@ -10,7 +10,10 @@ import { qstash } from "../cron";
 import { buildSocialPlatformLookup } from "../social-utils";
 import { sendWorkspaceWebhook } from "../webhook/publish";
 import { partnerApplicationWebhookSchema } from "../zod/schemas/program-application";
-import { evaluateApplicationRequirements } from "./evaluate-application-requirements";
+import {
+  evaluateApplicationRequirements,
+  getEligibilityContext,
+} from "./evaluate-application-requirements";
 import {
   formatApplicationFormData,
   formatWebsiteAndSocialsFields,
@@ -31,6 +34,8 @@ export async function completeProgramApplications(userEmail: string) {
             partner: {
               include: {
                 platforms: true,
+                preferredEarningStructures: true,
+                salesChannels: true,
                 programs: {
                   select: {
                     programId: true,
@@ -187,10 +192,12 @@ export async function completeProgramApplications(userEmail: string) {
 
       const { valid: validApplication } = evaluateApplicationRequirements({
         applicationRequirements: program.applicationRequirements,
-        context: {
-          country: partner.country,
-          email: partner.email,
-        },
+        context: getEligibilityContext({
+          partner,
+          programEnrollmentStatuses: partner.programs.map(
+            ({ status }) => status,
+          ),
+        }),
       });
 
       await Promise.allSettled([

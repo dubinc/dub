@@ -1,7 +1,10 @@
 import { getPartnerApplicationRisks } from "@/lib/api/fraud/get-partner-application-risks";
 import { approvePartner } from "@/lib/api/partners/applications/approve-partner";
 import { withCron } from "@/lib/cron/with-cron";
-import { evaluateApplicationRequirements } from "@/lib/partners/evaluate-application-requirements";
+import {
+  evaluateApplicationRequirements,
+  getEligibilityContext,
+} from "@/lib/partners/evaluate-application-requirements";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { prisma } from "@/lib/prisma";
 import * as z from "zod/v4";
@@ -31,6 +34,13 @@ export const POST = withCron(async ({ rawBody }) => {
       partner: {
         include: {
           platforms: true,
+          preferredEarningStructures: true,
+          salesChannels: true,
+          programs: {
+            select: {
+              status: true,
+            },
+          },
         },
       },
     },
@@ -99,10 +109,12 @@ export const POST = withCron(async ({ rawBody }) => {
 
   const result = evaluateApplicationRequirements({
     applicationRequirements: program.applicationRequirements,
-    context: {
-      country: programEnrollment.partner.country,
-      email: programEnrollment.partner.email,
-    },
+    context: getEligibilityContext({
+      partner: programEnrollment.partner,
+      programEnrollmentStatuses: programEnrollment.partner.programs.map(
+        ({ status }) => status,
+      ),
+    }),
   });
 
   if (!result.valid) {

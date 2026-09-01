@@ -6,6 +6,7 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { ApplicationRequirementsDB } from "@/lib/types";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import {
+  ELIGIBILITY_CONDITION_KEYS,
   EligibilityCondition,
   EligibilityRequirements,
   generateId,
@@ -59,8 +60,10 @@ function ApplicationSettingsModal({
         (program?.applicationRequirements as ApplicationRequirementsDB | null) ??
         []
       )
-        .filter((c) => c.key === "country")
-        .map((c) => ({ ...c, key: "country" as const, id: generateId() })),
+        .filter((c) =>
+          (ELIGIBILITY_CONDITION_KEYS as readonly string[]).includes(c.key),
+        )
+        .map((c) => ({ ...c, id: generateId() })),
     },
   });
 

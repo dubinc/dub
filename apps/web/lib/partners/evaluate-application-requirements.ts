@@ -1,9 +1,78 @@
 import { EligibilityConditionDB } from "../types";
-import { applicationRequirementsSchema } from "../zod/schemas/programs";
+import {
+  applicationRequirementsSchema,
+  EligibilityAccountAttribute,
+  EligibilityProfileAttribute,
+} from "../zod/schemas/programs";
 
 interface Context {
   country?: string | null;
   email?: string | null;
+  profile?: {
+    hasDescription: boolean;
+    hasVerifiedWebsite: boolean;
+    hasVerifiedSocialAccount: boolean;
+    hasPreferredEarningStructure: boolean;
+    hasSalesChannel: boolean;
+    hasMonthlyTraffic: boolean;
+  } | null;
+  account?: {
+    isDubNetworkApproved: boolean;
+    hasProgramBans: boolean;
+  } | null;
+}
+
+export type EligibilityContext = Context;
+
+// Builds the evaluation context from a partner (plus their program enrollment
+// statuses). Handles both the client-side PartnerProps shape (enum arrays for
+// preferredEarningStructures/salesChannels) and the server-side Prisma shape
+// (relation rows) — only array length is used for those fields.
+export function getEligibilityContext({
+  partner,
+  programEnrollmentStatuses,
+}: {
+  partner?: {
+    country?: string | null;
+    email?: string | null;
+    description?: string | null;
+    monthlyTraffic?: string | null;
+    networkStatus?: string | null;
+    platforms?: { type: string; verifiedAt: Date | string | null }[] | null;
+    preferredEarningStructures?: unknown[] | null;
+    salesChannels?: unknown[] | null;
+  } | null;
+  programEnrollmentStatuses?: string[] | null;
+}): Context {
+  if (!partner) {
+    return {};
+  }
+
+  const platforms = partner.platforms ?? [];
+
+  return {
+    country: partner.country,
+    email: partner.email,
+    profile: {
+      hasDescription: !!partner.description,
+      hasVerifiedWebsite: platforms.some(
+        (p) => p.type === "website" && !!p.verifiedAt,
+      ),
+      hasVerifiedSocialAccount: platforms.some(
+        (p) => p.type !== "website" && !!p.verifiedAt,
+      ),
+      hasPreferredEarningStructure:
+        (partner.preferredEarningStructures?.length ?? 0) > 0,
+      hasSalesChannel: (partner.salesChannels?.length ?? 0) > 0,
+      hasMonthlyTraffic: !!partner.monthlyTraffic,
+    },
+    account: {
+      isDubNetworkApproved: ["approved", "trusted"].includes(
+        partner.networkStatus ?? "",
+      ),
+      hasProgramBans: (programEnrollmentStatuses ?? []).includes("banned"),
+    },
+  };
 }
 
 interface Result {
@@ -89,7 +158,7 @@ export function evaluateApplicationRequirements({
   };
 }
 
-export function evaluateCondition({
+function evaluateCondition({
   condition,
   context,
 }: {
@@ -125,9 +194,51 @@ export function evaluateCondition({
       break;
     }
 
+    case "profile": {
+      const { profile } = context;
+
+      if (!profile) {
+        return false;
+      }
+
+      const checks: Record<EligibilityProfileAttribute, boolean> = {
+        description: profile.hasDescription,
+        verified_website: profile.hasVerifiedWebsite,
+        verified_social_account: profile.hasVerifiedSocialAccount,
+        preferred_earning_structure: profile.hasPreferredEarningStructure,
+        sales_channels: profile.hasSalesChannel,
+        estimated_monthly_traffic: profile.hasMonthlyTraffic,
+      };
+
+      matches = condition.value.every(
+        (attribute) => checks[attribute as EligibilityProfileAttribute],
+      );
+
+      break;
+    }
+
+    case "account": {
+      const { account } = context;
+
+      if (!account) {
+        return false;
+      }
+
+      const checks: Record<EligibilityAccountAttribute, boolean> = {
+        dub_network_approved: account.isDubNetworkApproved,
+        no_program_bans: !account.hasProgramBans,
+      };
+
+      matches = condition.value.every(
+        (attribute) => checks[attribute as EligibilityAccountAttribute],
+      );
+
+      break;
+    }
+
     default:
       return false;
   }
 
-  return condition.operator === "is" ? matches : !matches;
+  return condition.operator === "is_not" ? !matches : matches;
 }
