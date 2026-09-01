@@ -3,7 +3,7 @@ import { redis } from "@/lib/upstash";
 import * as z from "zod/v4";
 import { shopifyOrderSchema } from "./schema";
 
-const SHOPIFY_CHECKOUT_CACHE_TTL_SECONDS = 60 * 60 * 24; // 24 hours
+const SHOPIFY_CHECKOUT_CACHE_TTL_SECONDS = 60 * 60 * 6; // 6 hours
 const SHOPIFY_CHECKOUT_CACHE_KEY_PREFIX = "shopify:checkout:";
 
 const shopifyCheckoutCacheSchema = z.object({
@@ -28,7 +28,7 @@ export async function writeShopifyCheckoutFields({
 }: {
   checkoutToken: string;
   fields: Partial<ShopifyCheckoutCache>;
-}) {
+}): Promise<ShopifyCheckoutCache> {
   const key = shopifyCheckoutCacheKey(checkoutToken);
 
   const pipeline = redis.pipeline();
@@ -39,7 +39,7 @@ export async function writeShopifyCheckoutFields({
   const results = await pipeline.exec();
   const parsed = shopifyCheckoutCacheSchema.safeParse(results[2]);
 
-  return parsed.success ? parsed.data : {};
+  return parsed.success ? parsed.data : shopifyCheckoutCacheSchema.parse({});
 }
 
 export async function tryDispatchShopifyOrderJob({
