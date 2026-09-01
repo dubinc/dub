@@ -38,6 +38,9 @@ async function IntegrationsListRSC() {
   const integrations = await prisma.integration.findMany({
     where: {
       verified: true,
+      category: {
+        not: null,
+      },
     },
     include: {
       _count: {

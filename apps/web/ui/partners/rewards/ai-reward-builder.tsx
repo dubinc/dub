@@ -37,13 +37,23 @@ const CHROME_ENTER_MS = 240;
 
 type BuilderPhase = "idle" | "streaming" | "review" | "error";
 
+type DraftCondition = NonNullable<
+  NonNullable<AIRewardDraft["modifiers"]>[number]["conditions"]
+>[number];
+
+type DraftModifier = NonNullable<AIRewardDraft["modifiers"]>[number] & {
+  conditions?: Array<DraftCondition | null | undefined>;
+};
+
 function buildRewardFormValuesFromDraft({
   draft,
   event,
   current,
   finalize = false,
 }: {
-  draft: AIRewardDraft | Partial<AIRewardDraft>;
+  draft: Omit<Partial<AIRewardDraft>, "modifiers"> & {
+    modifiers?: Array<DraftModifier | null | undefined>;
+  };
   event: Exclude<EventType, "referral">;
   current: Record<string, unknown>;
   finalize?: boolean;
@@ -77,11 +87,27 @@ function buildRewardFormValuesFromDraft({
     next.maxDuration = maxDuration;
   }
 
-  const modifiers = draft.modifiers?.filter((m) => m.conditions?.length);
-  if (!modifiers?.length) {
+  const modifiers = (draft.modifiers ?? [])
+    .map((modifier) => {
+      if (!modifier) return null;
+
+      const conditions = (modifier.conditions ?? []).filter(
+        (condition): condition is DraftCondition => condition != null,
+      );
+
+      if (!conditions.length) return null;
+
+      return { ...modifier, conditions };
+    })
+    .filter((modifier): modifier is NonNullable<typeof modifier> =>
+      Boolean(modifier),
+    );
+
+  if (!modifiers.length) {
     // Only clear stale conditions on the final draft so partial streams do not wipe them.
+    // Empty array (not undefined) so react-hook-form useFieldArray syncs and unmounts rows.
     if (finalize) {
-      next.modifiers = undefined;
+      next.modifiers = [];
     }
     return next;
   }
