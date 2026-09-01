@@ -85,6 +85,7 @@ jobs:
         with:
           name: deepsec-comment
           path: .deepsec/comment.md
+          include-hidden-files: true
           retention-days: 1
 
   comment:

@@ -67,8 +67,8 @@ const findings = (
 
 const header =
   findings.length === 0
-    ? "quarterly DeepSec: no HIGH+ after revalidation"
-    : `:alert: quarterly DeepSec: ${findings.length} HIGH+ finding(s) after revalidation`;
+    ? "DeepSec full scan: no HIGH+ after revalidation"
+    : `:alert: DeepSec full scan: ${findings.length} HIGH+ finding(s) after revalidation`;
 
 const lines = findings.slice(0, 20).map((finding) => {
   const severity = finding.metadata?.severity ?? finding.severity;

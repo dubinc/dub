@@ -1,16 +1,42 @@
-name: DeepSec quarterly
+name: DeepSec full scan
 
 on:
-  schedule:
-    # 1 Jan, 1 Apr, 1 Jul, 1 Oct at 08:00 UTC
-    - cron: "0 8 1 1,4,7,10 *"
   workflow_dispatch:
+    inputs:
+      agent:
+        description: Agent backend (must match the model)
+        required: true
+        type: choice
+        options:
+          - codex
+          - claude
+        default: codex
+      model:
+        description: Model for process and revalidate
+        required: true
+        type: choice
+        options:
+          - gpt-5.5
+          - gpt-5.5-pro
+          - gpt-5.4
+          - claude-opus-4-8
+          - claude-sonnet-4-6
+        default: gpt-5.5
+      thinking_level:
+        description: Reasoning effort (xhigh finds more, costs more)
+        required: true
+        type: choice
+        options:
+          - xhigh
+          - high
+          - medium
+        default: xhigh
 
 permissions:
   contents: read
 
 concurrency:
-  group: deepsec-quarterly
+  group: deepsec-full
   cancel-in-progress: false
 
 jobs:
@@ -25,9 +51,26 @@ jobs:
       VERCEL_TOKEN: ${{ secrets.DEEPSEC_VERCEL_TOKEN }}
       VERCEL_TEAM_ID: ${{ secrets.DEEPSEC_VERCEL_TEAM_ID }}
       VERCEL_PROJECT_ID: ${{ secrets.DEEPSEC_VERCEL_PROJECT_ID }}
+      DEEPSEC_AGENT: ${{ inputs.agent }}
+      DEEPSEC_MODEL: ${{ inputs.model }}
+      DEEPSEC_THINKING_LEVEL: ${{ inputs.thinking_level }}
     steps:
       - name: Check out code
         uses: actions/checkout@v4
+
+      - name: Check agent and model
+        working-directory: .
+        run: |
+          echo "agent=${DEEPSEC_AGENT} model=${DEEPSEC_MODEL} thinking=${DEEPSEC_THINKING_LEVEL}"
+          case "${DEEPSEC_AGENT}:${DEEPSEC_MODEL}" in
+            codex:gpt-*) ;;
+            claude:claude-*) ;;
+            *)
+              echo "Model ${DEEPSEC_MODEL} does not match agent ${DEEPSEC_AGENT}."
+              echo "Use gpt-* with codex, or claude-* with claude."
+              exit 1
+              ;;
+          esac
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
@@ -63,6 +106,9 @@ jobs:
         run: |
           pnpm exec deepsec sandbox process \
             --project-id web \
+            --agent "${DEEPSEC_AGENT}" \
+            --model "${DEEPSEC_MODEL}" \
+            --thinking-level "${DEEPSEC_THINKING_LEVEL}" \
             --sandboxes 10 \
             --concurrency 4 \
             --timeout 18000000
@@ -71,7 +117,13 @@ jobs:
         id: revalidate
         if: ${{ !cancelled() }}
         continue-on-error: true
-        run: pnpm exec deepsec revalidate --project-id web --min-severity HIGH
+        run: |
+          pnpm exec deepsec revalidate \
+            --project-id web \
+            --min-severity HIGH \
+            --agent "${DEEPSEC_AGENT}" \
+            --model "${DEEPSEC_MODEL}" \
+            --thinking-level "${DEEPSEC_THINKING_LEVEL}"
 
       - name: Export findings
         if: ${{ !cancelled() }}
@@ -97,7 +149,7 @@ jobs:
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v4
         with:
-          name: deepsec-quarterly-findings
+          name: deepsec-full-findings
           path: |
             .deepsec/findings.json
             .deepsec/findings
@@ -109,5 +161,5 @@ jobs:
         if: ${{ !cancelled() && (steps.process.outcome == 'failure' || steps.revalidate.outcome == 'failure') }}
         run: |
           echo "process=${{ steps.process.outcome }} revalidate=${{ steps.revalidate.outcome }}"
-          echo "DeepSec exited non-zero. Re-run via workflow_dispatch; finished files are kept and pending files resume."
+          echo "DeepSec exited non-zero. Re-run this workflow with the same agent/model; finished files are kept and pending files resume."
           exit 1
