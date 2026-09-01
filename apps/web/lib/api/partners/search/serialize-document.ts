@@ -32,10 +32,7 @@ export const partnerSearchDocumentSelect = {
   },
   links: {
     select: {
-      domain: true,
       key: true,
-      shortLink: true,
-      url: true,
     },
   },
 } satisfies Prisma.ProgramEnrollmentSelect;
@@ -65,10 +62,7 @@ export function serializePartnerSearchDocument(
     platformIdentifiers: unique(
       partner.platforms.map(({ identifier }) => identifier),
     ),
-    linkDomains: unique(links.map(({ domain }) => domain)),
     linkKeys: unique(links.map(({ key }) => key)),
-    shortLinks: unique(links.map(({ shortLink }) => shortLink)),
-    destinationUrls: unique(links.map(({ url }) => url)),
     status: enrollment.status,
     groupId: enrollment.groupId,
     country: partner.country,

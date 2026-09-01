@@ -20,7 +20,7 @@ vi.mock("@/lib/prisma", () => ({
       count: mocks.count,
       groupBy: mocks.enrollmentGroupBy,
     },
-    partner: { groupBy: mocks.partnerGroupBy },
+    partner: { groupBy: mocks.partnerGroupBy, findUnique: vi.fn() },
     programPartnerTag: { groupBy: mocks.partnerTagGroupBy },
     programApplicationEvent: { groupBy: mocks.applicationEventGroupBy },
   },
