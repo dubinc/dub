@@ -1,13 +1,12 @@
 import { prisma } from "@/lib/prisma";
-import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { PlatformType, Prisma } from "@prisma/client";
 import { createId } from "../api/create-id";
 import { detectAndRecordFraudApplication } from "../api/fraud/detect-record-fraud-application";
 import { notifyPartnerApplication } from "../api/partners/notify-partner-application";
 import { queuePartnerSearchSync } from "../api/partners/queue-partner-search-sync";
 import { markApplicationEventSubmitted } from "../application-events/update-application-event";
-import { qstash } from "../cron";
 import { autoApprovePartnerJob } from "../jobs/handlers/auto-approve-partner-job";
+import { autoRejectPartnerJob } from "../jobs/handlers/auto-reject-partner-job";
 import { buildSocialPlatformLookup } from "../social-utils";
 import { sendWorkspaceWebhook } from "../webhook/publish";
 import { partnerApplicationWebhookSchema } from "../zod/schemas/program-application";
@@ -237,14 +236,16 @@ export async function completeProgramApplications(userEmail: string) {
                 }),
             ]
           : [
-              qstash.publishJSON({
-                url: `${APP_DOMAIN_WITH_NGROK}/api/cron/partners/auto-reject`,
-                delay: 5 * 60, // 5 minutes
-                body: {
+              autoRejectPartnerJob.dispatch(
+                {
                   programId: program.id,
                   partnerId: partner.id,
                 },
-              }),
+                {
+                  delay: 5 * 60, // 5 minutes
+                  label: partner.id,
+                },
+              ),
             ]),
 
         // if the application has any website or social fields but the partner doesn't have the corresponding one (maybe they forgot to add during onboarding)
