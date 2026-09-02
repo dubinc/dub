@@ -76,6 +76,10 @@ export const POST = async (req: Request) => {
     );
   }
 
+  console.info("Workspace found", {
+    workspaceId: workspace.id,
+  });
+
   const requestLog = {
     workspaceId: workspace.id,
     method: req.method,
