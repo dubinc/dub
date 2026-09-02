@@ -13,18 +13,22 @@ import { HostnameMenu } from "./hostname-menu";
 export function HostnameField({
   hostnames,
   onChange,
+  onSave,
   disabled,
   disabledTooltip,
 }: {
   hostnames: string[];
   onChange: (hostnames: string[]) => void;
+  onSave?: (hostnames: string[]) => void | Promise<void>;
   disabled?: boolean;
   disabledTooltip?: string;
 }) {
-  const { AddHostnameModal, setShowAddHostnameModal } = useAddHostnameModal({
+  const { addHostnameModal, setShowAddHostnameModal } = useAddHostnameModal({
     existingHostnames: hostnames,
-    onAdd: (hostname) => {
-      onChange([...hostnames, hostname]);
+    onAdd: async (hostname) => {
+      const nextHostnames = [...hostnames, hostname];
+      await onSave?.(nextHostnames);
+      onChange(nextHostnames);
     },
   });
 
@@ -55,9 +59,13 @@ export function HostnameField({
                   key={hostname}
                   hostname={hostname}
                   disabled={disabled}
-                  onDelete={() =>
-                    onChange(hostnames.filter((item) => item !== hostname))
-                  }
+                  onDelete={async () => {
+                    const nextHostnames = hostnames.filter(
+                      (item) => item !== hostname,
+                    );
+                    await onSave?.(nextHostnames);
+                    onChange(nextHostnames);
+                  }}
                 />
               ))}
             </div>
@@ -73,7 +81,7 @@ export function HostnameField({
           </>
         )}
       </div>
-      <AddHostnameModal />
+      {addHostnameModal}
     </>
   );
 }
@@ -85,12 +93,12 @@ function HostnameRow({
 }: {
   hostname: string;
   disabled?: boolean;
-  onDelete: () => void;
+  onDelete: () => void | Promise<void>;
 }) {
   const { setShowConfirmModal, confirmModal } = useConfirmModal({
-    title: "Delete Hostname",
+    title: "Delete hostname",
     description: `Are you sure you want to delete "${hostname}"? This action cannot be undone.`,
-    confirmText: "Delete Hostname",
+    confirmText: "Delete hostname",
     onConfirm: onDelete,
   });
 

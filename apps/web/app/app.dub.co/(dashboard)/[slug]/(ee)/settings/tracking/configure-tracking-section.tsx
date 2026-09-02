@@ -267,6 +267,11 @@ export function ConfigureTrackingSection() {
                 <HostnameField
                   hostnames={field.value}
                   onChange={field.onChange}
+                  onSave={(allowedHostnames) =>
+                    handleSubmit((data) =>
+                      onSubmit({ ...data, allowedHostnames }),
+                    )()
+                  }
                   disabled={disabled}
                   disabledTooltip={disabledTooltip}
                 />
