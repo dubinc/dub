@@ -1,8 +1,8 @@
 import { captureWebhookLog } from "@/lib/api-logs/capture-webhook-log";
 import { isLocalDev } from "@/lib/api/environment";
 import { prisma } from "@/lib/prisma";
-import { log } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
+import { logAndRespond } from "app/(ee)/api/cron/utils";
 import crypto from "crypto";
 import { appUninstalled } from "./app-uninstalled";
 import { customersDataRequest } from "./customers-data-request";
@@ -36,15 +36,23 @@ export const POST = async (req: Request) => {
       .digest("base64");
 
     if (generatedSignature !== signature) {
-      return new Response(`[Shopify] Invalid webhook signature. Skipping...`, {
-        status: 401,
+      console.log({
+        generatedSignature,
+        signature,
       });
+
+      return logAndRespond(
+        "Shopify webhook signature verification failed. Skipping...",
+        {
+          status: 401,
+        },
+      );
     }
   }
 
   // Check if topic is relevant
   if (!relevantTopics.has(topic)) {
-    return new Response(`[Shopify] Unsupported topic: ${topic}. Skipping...`);
+    return logAndRespond(`Unsupported topic: ${topic}. Skipping...`);
   }
 
   const event = JSON.parse(data);
@@ -63,10 +71,16 @@ export const POST = async (req: Request) => {
   });
 
   if (!workspace) {
-    return new Response(
-      `[Shopify] Workspace not found for shop: ${shopDomain}. Skipping...`,
+    return logAndRespond(
+      `Workspace not found for shop: ${shopDomain}. Skipping...`,
     );
   }
+
+  console.info("Webhook event", {
+    workspaceId: workspace.id,
+    shopDomain,
+    topic,
+  });
 
   const requestLog = {
     workspaceId: workspace.id,
@@ -111,14 +125,7 @@ export const POST = async (req: Request) => {
         break;
     }
   } catch (error) {
-    await log({
-      message: `Shopify webhook failed. Error: ${error.message}`,
-      type: "errors",
-    });
-
-    const response = new Response(
-      `[Shopify] Webhook handler failed. View logs`,
-    );
+    const response = new Response("Webhook handler failed. View logs.");
 
     waitUntil(
       captureWebhookLog({

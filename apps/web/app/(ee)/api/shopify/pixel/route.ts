@@ -23,6 +23,11 @@ export const POST = async (req: Request) => {
       });
     }
 
+    console.info("Shopify pixel event", {
+      clickId,
+      checkoutToken,
+    });
+
     // Rate limit the request
     const ip = process.env.VERCEL === "1" ? ipAddress(req) : LOCALHOST_IP;
     const { success } = await ratelimit().limit(`shopify-track-pixel:${ip}`);
@@ -39,6 +44,7 @@ export const POST = async (req: Request) => {
       const clickEvent = await getClickEvent({ clickId });
 
       if (!clickEvent) {
+        console.warn(`Click event not found for the clickId ${clickId}`);
         clickId = undefined;
       }
     }
