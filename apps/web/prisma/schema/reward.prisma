@@ -3,6 +3,7 @@ enum EventType {
   lead
   sale
   referral
+  custom
 }
 
 enum RewardStructure {
@@ -39,10 +40,12 @@ model Reward {
   leadEnrollments      ProgramEnrollment[] @relation("LeadRewardEnrollments")
   saleEnrollments      ProgramEnrollment[] @relation("SaleRewardEnrollments")
   referralEnrollments  ProgramEnrollment[] @relation("ReferralRewardEnrollments")
+  customEnrollments    ProgramEnrollment[] @relation("CustomRewardEnrollments")
   clickPartnerGroup    PartnerGroup?       @relation("ClickReward")
   leadPartnerGroup     PartnerGroup?       @relation("LeadReward")
   salePartnerGroup     PartnerGroup?       @relation("SaleReward")
   referralPartnerGroup PartnerGroup?       @relation("ReferralReward")
+  customPartnerGroup   PartnerGroup?       @relation("CustomReward")
   commissions          Commission[]
 
   @@index([programId, event])

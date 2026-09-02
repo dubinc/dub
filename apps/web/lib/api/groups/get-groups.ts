@@ -29,6 +29,7 @@ export async function getGroups(filters: GroupFilters) {
       pg.clickRewardId,
       pg.leadRewardId,
       pg.saleRewardId,
+      pg.customRewardId,
       pg.discountId,
       pg.additionalLinks,
       pg.maxPartnerLinks,

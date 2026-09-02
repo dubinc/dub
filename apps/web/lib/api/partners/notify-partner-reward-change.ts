@@ -4,7 +4,7 @@ import { RewardProps } from "@/lib/types";
 import type PartnerRewardUpdated from "@dub/email/templates/partner-reward-updated";
 import { Program, Reward, User } from "@prisma/client";
 
-const REWARD_ICONS: Record<RewardProps["event"], string> = {
+const REWARD_ICONS: Record<Exclude<RewardProps["event"], "custom">, string> = {
   click: "https://assets.dub.co/email-assets/icons/cursor-rays.png",
   lead: "https://assets.dub.co/email-assets/icons/user-plus.png",
   sale: "https://assets.dub.co/email-assets/icons/invoice-dollar.png",

@@ -2,9 +2,10 @@ import { formatDiscountDescription } from "@/ui/partners/format-discount-descrip
 import { formatRewardDescription } from "@/ui/partners/format-reward-description";
 import { BountyType, EventType, Reward } from "@prisma/client";
 import { getGroupOrThrow } from "../groups/get-group-or-throw";
+import { isEventBasedReward } from "../rewards/custom-reward-utils";
 import { serializeReward } from "./serialize-reward";
 
-const REWARD_ICONS: Record<EventType, string> = {
+const REWARD_ICONS: Record<Exclude<EventType, "custom">, string> = {
   click: "https://assets.dub.co/email-assets/icons/cursor-rays.png",
   lead: "https://assets.dub.co/email-assets/icons/user-plus.png",
   sale: "https://assets.dub.co/email-assets/icons/invoice-dollar.png",
@@ -39,6 +40,7 @@ export async function getGroupRewardsAndBounties({
         group.referralReward,
       ]
         .filter((r): r is Reward => r !== null)
+        .filter(isEventBasedReward)
         .map((reward) => ({
           label: formatRewardDescription(serializeReward(reward)),
           icon: REWARD_ICONS[reward.event],

@@ -68,6 +68,7 @@ export const bulkApprovePartnersAction = authActionClient
             leadRewardId: group.leadRewardId,
             saleRewardId: group.saleRewardId,
             referralRewardId: group.referralRewardId,
+            customRewardId: group.customRewardId,
             discountId: group.discountId,
           },
         });

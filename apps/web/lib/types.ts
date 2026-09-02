@@ -13,6 +13,7 @@ import { DirectorySyncProviders } from "@boxyhq/saml-jackson";
 import {
   Commission,
   CommissionStatus,
+  EventType,
   FolderUserRole,
   FraudEvent,
   FraudEventGroup,
@@ -179,6 +180,7 @@ import {
 } from "./zod/schemas/programs";
 import {
   CUSTOMER_SOURCES,
+  customRewardConfigSchema,
   rewardConditionsArraySchema,
   rewardConditionSchema,
   rewardConditionsSchema,
@@ -570,10 +572,11 @@ export type DiscountCodeProps = z.infer<typeof DiscountCodeSchema>;
 
 export type ProgramProps = Omit<
   z.infer<typeof ProgramSchema>,
-  "referralFormData" | "applicationRequirements"
+  "referralFormData" | "applicationRequirements" | "primaryRewardEvent"
 > & {
   referralFormData?: Prisma.JsonValue | null;
   applicationRequirements?: Prisma.JsonValue | null;
+  primaryRewardEvent: EventType;
 };
 
 export type ProgramInviteEmailData = z.infer<
@@ -648,6 +651,8 @@ export type FolderSummary = Pick<
 >;
 
 export type RewardProps = z.infer<typeof RewardSchema>;
+
+export type CustomRewardConfig = z.infer<typeof customRewardConfigSchema>;
 
 export type CreatePartnerProps = z.infer<typeof createPartnerSchema>;
 
