@@ -127,6 +127,8 @@ export const updateRewardAction = authActionClient
       throw new Error("Partner group not found.");
     }
 
+    await revalidateProgramPublicPages(programId);
+
     await queueRewardProcessing({
       event: "reward-updated",
       groupId: partnerGroup.id,
@@ -169,8 +171,6 @@ export const updateRewardAction = authActionClient
           new: updatedReward,
           description: activityDescription,
         }),
-
-        revalidateProgramPublicPages(programId),
       ]),
     );
   });

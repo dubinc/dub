@@ -112,18 +112,13 @@ export const updateGroupBrandingAction = authActionClient
       },
     });
 
+    if (landerDataInput || applicationFormDataInput || unpublish) {
+      await revalidateProgramPublicPages(programId);
+    }
+
     waitUntil(
       (async () => {
         const res = await Promise.allSettled([
-          /*
-         Revalidate public pages if the following fields were updated:
-         - lander data
-         - application form data
-        */
-          ...(landerDataInput || applicationFormDataInput || unpublish
-            ? [revalidateProgramPublicPages(programId)]
-            : []),
-
           recordAuditLog({
             workspaceId: workspace.id,
             programId: program.id,

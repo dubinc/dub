@@ -47,11 +47,15 @@ export const updateDiscountAction = authActionClient
       },
     });
 
+    const shouldExpireCache =
+      discount.couponTestId !== updatedDiscount.couponTestId;
+
+    if (shouldExpireCache) {
+      await revalidateProgramPublicPages(programId);
+    }
+
     waitUntil(
       (async () => {
-        const shouldExpireCache =
-          discount.couponTestId !== updatedDiscount.couponTestId;
-
         await Promise.allSettled([
           ...(shouldExpireCache
             ? [
@@ -61,8 +65,6 @@ export const updateDiscountAction = authActionClient
                     groupId: partnerGroup?.id,
                   },
                 }),
-
-                revalidateProgramPublicPages(programId),
               ]
             : []),
 

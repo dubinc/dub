@@ -75,25 +75,25 @@ export const updateProgramAction = authActionClient
       },
     });
 
+    if (updatedProgram.termsUrl !== program.termsUrl) {
+      await revalidateProgramPublicPages(programId);
+    }
+
     waitUntil(
-      Promise.allSettled([
-        updatedProgram.termsUrl !== program.termsUrl &&
-          revalidateProgramPublicPages(programId),
-        recordAuditLog({
-          workspaceId: workspace.id,
-          programId: program.id,
-          action: "program.updated",
-          description: `Program ${program.name} updated`,
-          actor: user,
-          targets: [
-            {
-              type: "program",
-              id: program.id,
-              metadata: updatedProgram,
-            },
-          ],
-        }),
-      ]),
+      recordAuditLog({
+        workspaceId: workspace.id,
+        programId: program.id,
+        action: "program.updated",
+        description: `Program ${program.name} updated`,
+        actor: user,
+        targets: [
+          {
+            type: "program",
+            id: program.id,
+            metadata: updatedProgram,
+          },
+        ],
+      }),
     );
 
     return {
