@@ -95,6 +95,10 @@
     {
       "path": "/api/cron/campaigns/queue-scheduled",
       "schedule": "* * * * *"
+    },
+    {
+      "path": "/api/cron/rewards/queue-custom-commissions",
+      "schedule": "0 0 * * *"
     }
   ],
   "functions": {

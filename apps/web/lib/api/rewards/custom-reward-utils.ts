@@ -1,5 +1,5 @@
 import type { CustomRewardConfig } from "@/lib/types";
-import type { EventType } from "@prisma/client";
+import { EventType } from "@prisma/client";
 import {
   differenceInCalendarDays,
   differenceInCalendarMonths,
@@ -10,7 +10,7 @@ import {
 export function isEventBasedReward<T extends { event: EventType }>(
   reward: T,
 ): reward is T & { event: Exclude<EventType, "custom"> } {
-  return reward.event !== "custom";
+  return reward.event !== EventType.custom;
 }
 
 export function toUtcDateOnly(date: Date | string): Date {
@@ -33,6 +33,10 @@ function formatUtcDate(date: Date): string {
 
 export function getUtcPeriodDate(date: Date | string = new Date()): string {
   return formatUtcDate(toUtcDateOnly(date));
+}
+
+export function isCustomRewardStartDateInPast(anchorDate: string): boolean {
+  return anchorDate < getUtcPeriodDate();
 }
 
 function daysInUtcMonth(year: number, monthIndex: number) {

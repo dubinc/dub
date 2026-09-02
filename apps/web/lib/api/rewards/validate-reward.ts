@@ -10,6 +10,7 @@ import {
 } from "@/lib/zod/schemas/rewards";
 import * as z from "zod/v4";
 import { DubApiError } from "../errors";
+import { isCustomRewardStartDateInPast } from "./custom-reward-utils";
 
 export function validateReward(
   reward: Partial<z.infer<typeof createOrUpdateRewardSchema>>,
@@ -82,6 +83,13 @@ export function validateReward(
         code: "bad_request",
         message:
           "config must include frequency, interval, and anchorDate for custom rewards.",
+      });
+    }
+
+    if (isCustomRewardStartDateInPast(parsedConfig.data.anchorDate)) {
+      throw new DubApiError({
+        code: "bad_request",
+        message: "Start date cannot be in the past.",
       });
     }
   }

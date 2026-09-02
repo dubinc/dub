@@ -1,3 +1,4 @@
+import { isEventBasedReward } from "@/lib/api/rewards/custom-reward-utils";
 import type { RewardJob } from "@/lib/api/rewards/queue-reward-processing";
 import { queueBatchEmail } from "@/lib/email/queue-batch-email";
 import { RewardProps } from "@/lib/types";
@@ -33,6 +34,10 @@ export async function notifyPartnerRewardChange({
   // TODO: Remove after Aug 24
   if (program.id === "prog_1JWVR53QX1NM7NDEK62E3J19H") {
     console.log("Skipping notification for program", program.id);
+    return;
+  }
+
+  if (!isEventBasedReward(reward)) {
     return;
   }
 
