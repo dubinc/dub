@@ -36,11 +36,6 @@ export const POST = async (req: Request) => {
       .digest("base64");
 
     if (generatedSignature !== signature) {
-      console.log({
-        generatedSignature,
-        signature,
-      });
-
       return logAndRespond(
         "Shopify webhook signature verification failed. Skipping...",
         {
