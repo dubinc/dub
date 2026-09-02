@@ -1,15 +1,12 @@
 "use client";
 
 import { verifyWorkspaceSetup } from "@/lib/actions/verify-workspace-setup";
-import {
-  toVerifySiteUrl,
-  type VerifyInstallationResult,
-} from "@/lib/analytics/verify-installation";
+import type { VerifyInstallationResult } from "@/lib/analytics/verify-installation";
 import { clientAccessCheck } from "@/lib/client-access-check";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { UserAvatar } from "@/ui/users/user-avatar";
 import { Button, Combobox, Globe } from "@dub/ui";
-import { cn, OG_AVATAR_URL, timeAgo } from "@dub/utils";
+import { cn, getPrettyUrl, OG_AVATAR_URL, timeAgo } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import { type ReactNode, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
@@ -17,16 +14,32 @@ import { toast } from "sonner";
 const HOSTNAME_REQUIRED_MESSAGE =
   "A hostname is required in order to verify installation.";
 
-const VERIFY_DOCS_HREF = "https://dub.co/docs/sdks/client-side";
+const isVerifiableHostname = (hostname: string) =>
+  !hostname.startsWith("*.") &&
+  hostname !== "localhost" &&
+  !hostname.startsWith("localhost:");
+
+const VERIFY_DOCS_HREF = "https://dub.co/docs/sdks/client-side/introduction";
 const VERIFY_SUPPORT_HREF = "https://dub.co/support";
 
 const ERROR_HEADLINE = {
   not_installed: "Script is not installed.",
   missing_attributes: "Script missing attributes.",
+  missing_refer_domain: "Script is missing the referral link domain.",
   duplicate: "Duplicate script.",
   malformed: "Malformed script.",
   unreachable: "We couldn’t reach this hostname.",
   unsupported: "Wildcard hostnames can’t be verified.",
+};
+
+const getErrorHeadline = (
+  result: Extract<VerifyInstallationResult, { status: "error" }>,
+) => {
+  if (result.error === "missing_refer_domain" && result.referDomain) {
+    return `Script is missing the referral link domain (${result.referDomain}).`;
+  }
+
+  return ERROR_HEADLINE[result.error];
 };
 
 type LastVerified = {
@@ -67,9 +80,9 @@ export function VerifyInstall({ hostnames }: { hostnames: string[] }) {
 
   const hostnameOptions = useMemo(
     () =>
-      hostnames.map((hostname) => ({
+      hostnames.filter(isVerifiableHostname).map((hostname) => ({
         value: hostname,
-        label: hostname.startsWith("*.") ? hostname : toVerifySiteUrl(hostname),
+        label: getPrettyUrl(hostname),
         icon: <Globe className="size-4 text-neutral-600" />,
       })),
     [hostnames],
@@ -153,12 +166,12 @@ export function VerifyInstall({ hostnames }: { hostnames: string[] }) {
           searchPlaceholder="Search hostnames..."
           buttonProps={{
             className: cn("h-10 w-full", helperTone && "bg-bg-default"),
-            disabled: hostnames.length === 0 || isPending,
+            disabled: hostnameOptions.length === 0 || isPending,
             disabledTooltip:
-              hostnames.length === 0
+              hostnameOptions.length === 0
                 ? HOSTNAME_REQUIRED_MESSAGE
                 : isPending
-                  ? "Verification in progress"
+                  ? "Verification in progress..."
                   : undefined,
           }}
           matchTriggerWidth
@@ -172,7 +185,7 @@ export function VerifyInstall({ hostnames }: { hostnames: string[] }) {
 
         {showError && resultForSelection?.status === "error" && (
           <HelperText tone="error">
-            {ERROR_HEADLINE[resultForSelection.error]} After correcting, try
+            {getErrorHeadline(resultForSelection)} After correcting, try
             verifying again and if the issue still persists, check out our{" "}
             <a
               href={VERIFY_DOCS_HREF}
