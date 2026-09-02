@@ -38,7 +38,7 @@ export async function handleConversationAdminReplied({
   data: z.infer<typeof intercomConversationRepliedSchema>;
   program: Pick<Program, "id" | "workspaceId">;
   installation: Pick<InstalledIntegration, "credentials" | "userId">;
-}): Promise<string> {
+}): Promise<{ message: string; partnersFound: boolean }> {
   const credentials = intercomCredentialsSchema.parse(installation.credentials);
 
   const partners = await identifyPartnersFromContacts({
@@ -48,7 +48,10 @@ export async function handleConversationAdminReplied({
   });
 
   if (partners.length === 0) {
-    return `No partners found for ${pluralize("contact", data.item.contacts.contacts.length)} ${data.item.contacts.contacts.map((contact) => contact.id).join(", ")}. Skipping message forwarding.`;
+    return {
+      message: `No partners found for ${pluralize("contact", data.item.contacts.contacts.length)} ${data.item.contacts.contacts.map((contact) => contact.id).join(", ")}. Skipping message forwarding.`,
+      partnersFound: false,
+    };
   }
 
   const { conversation_parts: conversations } = data.item.conversation_parts;
@@ -154,7 +157,10 @@ export async function handleConversationAdminReplied({
     ),
   );
 
-  return `Message forwarded to ${pluralize("partner", partners.length)}.`;
+  return {
+    message: `Message forwarded to ${pluralize("partner", partners.length)}.`,
+    partnersFound: true,
+  };
 }
 
 async function resolveWorkspaceUser({
