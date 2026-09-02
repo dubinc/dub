@@ -447,9 +447,13 @@ async function recordEvents(args: RecordEventsArgs) {
     timestamp: clickedAt.toISOString(),
     identity_hash: targetCustomer.externalId || targetCustomer.id,
     click_id: clickId,
+    workspace_id: workspace.id,
     link_id: targetLink.id,
+    domain: targetLink.domain,
+    key: targetLink.key,
     url: targetLink.url,
     ip: "127.0.0.1",
+    country: targetCustomer.country || "Unknown",
     continent: targetCustomer.country
       ? COUNTRIES_TO_CONTINENTS[targetCustomer.country.toUpperCase()] || ""
       : "",
