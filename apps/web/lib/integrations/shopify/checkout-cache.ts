@@ -69,7 +69,7 @@ export async function tryDispatchShopifyOrderJob({
     checkoutToken,
     workspaceId: checkout.workspaceId,
     clickId: checkout.clickId,
-    confirmationNumber: checkout.order?.confirmation_number,
+    hasClickId: Boolean(checkout.clickId),
     hasOrder: Boolean(checkout.order),
     dispatched: Boolean(checkout.dispatched),
   };
