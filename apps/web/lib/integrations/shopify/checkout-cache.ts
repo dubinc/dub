@@ -65,11 +65,28 @@ export async function tryDispatchShopifyOrderJob({
   checkoutToken: string;
   checkout: ShopifyCheckoutCacheItem;
 }) {
+  const logContext = {
+    checkoutToken,
+    workspaceId: checkout.workspaceId,
+    clickId: checkout.clickId,
+    hasClickId: Boolean(checkout.clickId),
+    hasOrder: Boolean(checkout.order),
+    dispatched: Boolean(checkout.dispatched),
+  };
+
   if (!checkout.order || !checkout.workspaceId || !checkout.clickId) {
+    console.info(
+      "Shopify order dispatch skipped: checkout incomplete",
+      logContext,
+    );
     return false;
   }
 
   if (checkout.dispatched) {
+    console.info(
+      "Shopify order dispatch skipped: already dispatched",
+      logContext,
+    );
     return false;
   }
 
@@ -79,6 +96,7 @@ export async function tryDispatchShopifyOrderJob({
   const claimed = Boolean(claim);
 
   if (!claimed) {
+    console.info("Shopify order dispatch skipped: claim lost", logContext);
     return false;
   }
 
@@ -94,11 +112,17 @@ export async function tryDispatchShopifyOrderJob({
       },
     );
   } catch (error) {
+    console.error("Shopify order dispatch failed, releasing claim", {
+      ...logContext,
+      error,
+    });
     await redis.hdel(key, "dispatched");
     throw error;
   }
 
   await shopifyCheckoutCache.delete(checkoutToken);
+
+  console.info("Shopify order job dispatched", logContext);
 
   return true;
 }
