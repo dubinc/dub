@@ -26,6 +26,7 @@ import { markPayoutsAsProcessed } from "../payouts/mark-payouts-as-processed";
 import { createStripeOutboundPayment } from "../stripe/create-stripe-outbound-payment";
 import { fundFinancialAccount } from "../stripe/fund-financial-account";
 import { getStripeRecipientAccount } from "../stripe/get-stripe-recipient-account";
+import { getStripeRecipientPayoutMethod } from "../stripe/get-stripe-recipient-payout-method";
 
 interface CreateStablecoinPayoutParams {
   partnerId: string;
@@ -226,6 +227,32 @@ export const createStablecoinPayout = async ({
     }
   }
 
+  const stripePayoutMethod = await getStripeRecipientPayoutMethod(
+    partner.stripeRecipientId,
+  );
+
+  if (!stripePayoutMethod?.id) {
+    await prisma.partner.update({
+      where: {
+        id: partner.id,
+      },
+      data: {
+        payoutsEnabledAt: null,
+      },
+    });
+
+    await markPayoutsAsProcessed(currentInvoicePayouts);
+
+    const message = `Stripe recipient account for partner ${partner.email} does not have an active crypto wallet payout method.`;
+
+    if (forceWithdrawal) {
+      throw new Error(message);
+    } else {
+      console.warn(message);
+      return;
+    }
+  }
+
   const allPayoutsProgramNames = [
     ...new Set(allPayouts.map((p) => p.program.name)),
   ];
@@ -245,6 +272,7 @@ export const createStablecoinPayout = async ({
 
   const outboundPayment = await createStripeOutboundPayment({
     stripeRecipientId: partner.stripeRecipientId,
+    payoutMethodId: stripePayoutMethod.id,
     amount: totalTransferableAmount,
     description: `Dub Partners payout (${allPayoutsProgramNames.join(", ")})`,
     idempotencyKey,
