@@ -27,6 +27,12 @@ export const POST = async (req: Request) => {
   const headers = req.headers;
   const topic = headers.get("x-shopify-topic") || "";
   const signature = headers.get("x-shopify-hmac-sha256") || "";
+  const shopDomain = headers.get("x-shopify-shop-domain") || "";
+
+  console.info("Webhook event", {
+    shopDomain,
+    topic,
+  });
 
   if (!isLocalDev) {
     // Verify signature
@@ -51,7 +57,6 @@ export const POST = async (req: Request) => {
   }
 
   const event = JSON.parse(data);
-  const shopDomain = headers.get("x-shopify-shop-domain") || "";
 
   // Find workspace
   const workspace = await prisma.project.findUnique({
@@ -70,12 +75,6 @@ export const POST = async (req: Request) => {
       `Workspace not found for shop: ${shopDomain}. Skipping...`,
     );
   }
-
-  console.info("Webhook event", {
-    workspaceId: workspace.id,
-    shopDomain,
-    topic,
-  });
 
   const requestLog = {
     workspaceId: workspace.id,
