@@ -75,10 +75,12 @@ export const updateProgramAction = authActionClient
       },
     });
 
+    if (updatedProgram.termsUrl !== program.termsUrl) {
+      revalidateProgramPublicPages(programId);
+    }
+
     waitUntil(
       Promise.allSettled([
-        updatedProgram.termsUrl !== program.termsUrl &&
-          revalidateProgramPublicPages(programId),
         recordAuditLog({
           workspaceId: workspace.id,
           programId: program.id,

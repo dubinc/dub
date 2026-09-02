@@ -361,6 +361,8 @@ export const PATCH = withWorkspace(
       archivedAt: data.archivedAt,
     });
 
+    revalidateProgramPublicPages(programId);
+
     waitUntil(
       Promise.allSettled([
         recordAuditLog({
@@ -394,8 +396,6 @@ export const PATCH = withWorkspace(
               notBefore: Math.floor(data.startsAt.getTime() / 1000),
             }),
           }),
-
-        revalidateProgramPublicPages(programId),
       ]),
     );
 
@@ -453,6 +453,8 @@ export const DELETE = withWorkspace(
 
     const deletedBounty = BountySchema.parse(transformBounty(bounty));
 
+    revalidateProgramPublicPages(programId);
+
     waitUntil(
       Promise.allSettled([
         recordAuditLog({
@@ -469,8 +471,6 @@ export const DELETE = withWorkspace(
             },
           ],
         }),
-
-        revalidateProgramPublicPages(programId),
       ]),
     );
 

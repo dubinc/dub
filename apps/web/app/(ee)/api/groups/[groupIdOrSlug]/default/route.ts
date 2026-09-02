@@ -7,7 +7,6 @@ import { DEFAULT_PARTNER_GROUP, GroupSchema } from "@/lib/zod/schemas/groups";
 import { RESOURCE_COLORS } from "@/ui/colors";
 import { nanoid, randomValue } from "@dub/utils";
 import slugify from "@sindresorhus/slugify";
-import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
 // POST /api/groups/[groupIdOrSlug]/default – set a group as default
@@ -85,7 +84,7 @@ export const POST = withWorkspace(
       });
     });
 
-    waitUntil(revalidateProgramPublicPages(programId));
+    revalidateProgramPublicPages(programId);
 
     return NextResponse.json(GroupSchema.parse(updatedGroup));
   },
