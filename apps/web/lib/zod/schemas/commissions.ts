@@ -629,6 +629,7 @@ const createSaleCommissionSchema = z
       ),
     discountCode: z
       .string()
+      .min(1)
       .nullish()
       .describe(
         "The partner discount code to resolve the associated link. Use this when the link ID is unknown. Cannot be provided together with `linkId`.",

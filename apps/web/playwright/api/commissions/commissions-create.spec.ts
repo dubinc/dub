@@ -886,6 +886,21 @@ test.describe("Sale commissions", () => {
             "custom: discountCode: Either `linkId` or `discountCode` may be provided, not both.",
         }),
       },
+      {
+        name: "rejects empty discountCode",
+        body: {
+          type: "sale",
+          partnerId: "pn_test",
+          customerId: "cus_test",
+          saleAmount: 1000,
+          discountCode: "",
+        },
+        expected: apiError({
+          code: "unprocessable_entity",
+          message:
+            "too_small: discountCode: Too small: expected string to have >=1 characters",
+        }),
+      },
     ];
 
     for (const { name, body, expected } of errorCases) {
