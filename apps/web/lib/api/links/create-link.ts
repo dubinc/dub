@@ -61,6 +61,9 @@ export async function createLink(link: ProcessedLinkProps) {
         shortLink: linkConstructorSimple({ domain: link.domain, key }),
         title: truncate(title, 120),
         description: truncate(description, 240),
+        partnerLinkTitle: rest.partnerLinkTitle
+          ? truncate(rest.partnerLinkTitle, 120)
+          : rest.partnerLinkTitle,
         // if it's an uploaded image, make this null first because we'll update it later
         image: proxy && image && isNotHostedImage(image) ? null : image,
         utm_source,

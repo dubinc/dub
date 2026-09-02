@@ -6,6 +6,7 @@ import {
 } from "@/lib/constants/partner-profile";
 import usePartnerCustomers from "@/lib/swr/use-partner-customers";
 import usePartnerCustomersCount from "@/lib/swr/use-partner-customers-count";
+import { usePartnerLinksDisplay } from "@/lib/swr/use-partner-links-display";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import { CustomerRowItem } from "@/ui/customers/customer-row-item";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
@@ -41,6 +42,7 @@ export default function PartnerProgramCustomersPage() {
 
   const { programSlug } = useParams<{ programSlug: string }>();
   const { programEnrollment } = useProgramEnrollment();
+  const { displayProperties } = usePartnerLinksDisplay();
 
   const { data: customersCount, error: countError } =
     usePartnerCustomersCount();
@@ -145,9 +147,17 @@ export default function PartnerProgramCustomersPage() {
                 />
                 <span
                   className="truncate"
-                  title={row.original.activity.link.shortLink}
+                  title={
+                    displayProperties.includes("title") &&
+                    row.original.activity.link.partnerLinkTitle
+                      ? row.original.activity.link.partnerLinkTitle
+                      : row.original.activity.link.shortLink
+                  }
                 >
-                  {getPrettyUrl(row.original.activity.link.shortLink)}
+                  {displayProperties.includes("title") &&
+                  row.original.activity.link.partnerLinkTitle
+                    ? row.original.activity.link.partnerLinkTitle
+                    : getPrettyUrl(row.original.activity.link.shortLink)}
                 </span>
               </a>
             ) : (
@@ -246,7 +256,7 @@ export default function PartnerProgramCustomersPage() {
           header: () => <EditColumnsButton table={table} />,
         },
       ].filter((c) => c.id === "menu" || customersColumns.all.includes(c.id)),
-    [programSlug],
+    [programSlug, displayProperties],
   );
 
   const { table, ...tableProps } = useTable({

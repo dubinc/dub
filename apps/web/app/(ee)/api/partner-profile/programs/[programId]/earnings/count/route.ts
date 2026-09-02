@@ -86,6 +86,7 @@ export const GET = withPartnerProfile(
             domain: link?.domain,
             key: link?.key,
             url: link?.url,
+            partnerLinkTitle: link?.partnerLinkTitle,
             _count,
           };
         }) as any[]; // TODO: find a better fix for types
