@@ -1,4 +1,4 @@
-import { CursorRays, Icon, InvoiceDollar, Nodes4, UserPlus } from "@dub/ui";
+import { CalendarDays, CursorRays, Icon, InvoiceDollar, Nodes4, UserPlus } from "@dub/ui";
 import { EventType } from "@prisma/client";
 
 export const REWARD_EVENT_DESCRIPTIONS: Record<
@@ -41,5 +41,13 @@ export const REWARD_EVENT_DESCRIPTIONS: Record<
     description: "Reward when partners refer more partners",
     bestFor: "driving partner growth to your program",
     learnMoreHref: "https://dub.co/help/article/partner-referrals",
+  },
+  custom: {
+    icon: CalendarDays,
+    title: "Custom reward",
+    description: "Pay a fixed amount on a regular cadence",
+    bestFor: "retainers and scheduled partner payments",
+    learnMoreHref:
+      "https://dub.co/help/article/partner-rewards#configuring-reward-types",
   },
 };

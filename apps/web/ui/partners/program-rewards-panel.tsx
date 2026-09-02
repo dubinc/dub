@@ -1,5 +1,6 @@
 "use client";
 
+import { isEventBasedReward } from "@/lib/api/rewards/custom-reward-utils";
 import { constructRewardAmount } from "@/lib/api/sales/construct-reward-amount";
 import { getRewardAmount } from "@/lib/partners/get-reward-amount";
 import { DiscountProps, RewardProps } from "@/lib/types";
@@ -31,7 +32,7 @@ function CustomRewardModifiersTooltip({ reward }: { reward: RewardProps }) {
 export const ProgramRewardsPanel = memo(
   ({ rewards, discount }: ProgramRewardsPanelProps) => {
     const sortedFilteredRewards = rewards.filter(
-      (r) => getRewardAmount(r) >= 0,
+      (r) => isEventBasedReward(r) && getRewardAmount(r) >= 0,
     );
 
     const rewardItems = [

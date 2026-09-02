@@ -5,13 +5,28 @@ import {
   PartnerReferralPercentageTrigger,
 } from "@/lib/partner-referrals/constants";
 import { RewardProps } from "@/lib/types";
-import { referralRewardConfigSchema } from "@/lib/zod/schemas/rewards";
+import {
+  CUSTOM_REWARD_CADENCE_PRESETS,
+  customRewardConfigSchema,
+  referralRewardConfigSchema,
+} from "@/lib/zod/schemas/rewards";
 import { currencyFormatter } from "@dub/utils";
 import { RewardSpendLimitInterval } from "@prisma/client";
 import { getSpendLimitDescriptionParts } from "./program-reward-spend-limit";
 
 export function formatRewardDescription(
-  reward: RewardProps,
+  reward: Pick<
+    RewardProps,
+    | "description"
+    | "event"
+    | "type"
+    | "amountInCents"
+    | "amountInPercentage"
+    | "maxDuration"
+    | "config"
+    | "spendLimitAmount"
+    | "spendLimitInterval"
+  >,
   { includeEarnPrefix = true }: { includeEarnPrefix?: boolean } = {},
 ) {
   if (reward.description) {
@@ -20,6 +35,10 @@ export function formatRewardDescription(
 
   if (reward.event === "referral") {
     return formatReferralRewardDescription(reward, { includeEarnPrefix });
+  }
+
+  if (reward.event === "custom") {
+    return formatCustomRewardDescription(reward, { includeEarnPrefix });
   }
 
   const rewardAmount = constructRewardAmount(reward);
@@ -61,8 +80,51 @@ export function formatRewardDescription(
   return description;
 }
 
+function formatCustomRewardDescription(
+  reward: Pick<
+    RewardProps,
+    | "type"
+    | "amountInCents"
+    | "amountInPercentage"
+    | "maxDuration"
+    | "config"
+  >,
+  { includeEarnPrefix }: { includeEarnPrefix: boolean },
+) {
+  const rewardAmount = constructRewardAmount(reward);
+  const parsed = customRewardConfigSchema.safeParse(reward.config);
+  const config = parsed.success ? parsed.data : undefined;
+
+  const preset = config
+    ? CUSTOM_REWARD_CADENCE_PRESETS.find(
+        (p) =>
+          p.frequency === config.frequency && p.interval === config.interval,
+      )
+    : undefined;
+
+  const cadenceLabel = preset?.label.toLowerCase() ?? "on a schedule";
+
+  const duration =
+    reward.maxDuration == null
+      ? null
+      : reward.maxDuration % 12 === 0
+        ? `for ${reward.maxDuration / 12} year${reward.maxDuration / 12 > 1 ? "s" : ""}`
+        : `for ${reward.maxDuration} months`;
+
+  return [includeEarnPrefix ? "Earn" : null, rewardAmount, cadenceLabel, duration]
+    .filter(Boolean)
+    .join(" ");
+}
+
 function formatReferralRewardDescription(
-  reward: RewardProps,
+  reward: Pick<
+    RewardProps,
+    | "type"
+    | "amountInCents"
+    | "amountInPercentage"
+    | "maxDuration"
+    | "config"
+  >,
   { includeEarnPrefix }: { includeEarnPrefix: boolean },
 ) {
   const rewardAmount = constructRewardAmount(reward);

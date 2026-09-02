@@ -164,7 +164,7 @@ export const POST = withCron(async ({ rawBody }) => {
       shouldNotify = count > 0;
     }
 
-    if (shouldNotify) {
+    if (shouldNotify && reward.event !== "custom") {
       const users = programEnrollments
         .filter(({ status }) => ACTIVE_ENROLLMENT_STATUSES.includes(status))
         .flatMap(({ partner }) => partner.users.map(({ user }) => user));

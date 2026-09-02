@@ -1,3 +1,4 @@
+import { isEventBasedReward } from "@/lib/api/rewards/custom-reward-utils";
 import { withPartnerProfile } from "@/lib/auth/partner";
 import { prisma } from "@/lib/prisma";
 import { partnerProfileProgramsQuerySchema } from "@/lib/zod/schemas/partner-profile";
@@ -75,7 +76,9 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
             enrollment.clickReward,
             enrollment.leadReward,
             enrollment.saleReward,
-          ].filter((r): r is Reward => r !== null)
+          ]
+            .filter((r): r is Reward => r !== null)
+            .filter(isEventBasedReward)
         : [],
       application: enrollment.application
         ? {

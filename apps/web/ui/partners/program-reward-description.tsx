@@ -8,6 +8,7 @@ import {
 import { DiscountProps, RewardProps } from "@/lib/types";
 import { referralRewardConfigSchema } from "@/lib/zod/schemas/rewards";
 import { cn, currencyFormatter } from "@dub/utils";
+import { formatRewardDescription } from "./format-reward-description";
 import { ProgramRewardModifiersTooltip } from "./program-reward-modifiers-tooltip";
 import { ProgramRewardSpendLimit } from "./program-reward-spend-limit";
 
@@ -48,6 +49,8 @@ export function ProgramRewardDescription({
                 amountClassName={amountClassName}
                 periodClassName={periodClassName}
               />
+            ) : reward.event === "custom" ? (
+              <>{formatRewardDescription(reward)}</>
             ) : (
               <>
                 Earn{" "}
