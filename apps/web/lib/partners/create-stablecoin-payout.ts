@@ -270,7 +270,7 @@ export const createStablecoinPayout = async ({
       // we need to add the STABLECOIN_PAYOUT_FIXED_FEE_CENTS to the amount to transfer to the FA (to cover the Stablecoin payout fee)
       amount:
         amountToTransferToFA +
-        (currentInvoicePayouts.length === 0
+        (currentInvoicePayouts.length === 0 && forceWithdrawal
           ? STABLECOIN_PAYOUT_FIXED_FEE_CENTS
           : 0),
       idempotencyKey,
