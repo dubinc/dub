@@ -4,7 +4,6 @@ import {
   differenceInCalendarDays,
   differenceInCalendarMonths,
   differenceInCalendarYears,
-  differenceInMonths,
 } from "date-fns";
 
 export function isEventBasedReward<T extends { event: EventType }>(
@@ -94,36 +93,4 @@ export function isCadenceDue(
 
   const yearsDiff = differenceInCalendarYears(today, anchor);
   return yearsDiff % interval === 0;
-}
-
-export function buildCustomCommissionInvoiceId({
-  rewardId,
-  partnerId,
-  periodDate,
-}: {
-  rewardId: string;
-  partnerId: string;
-  periodDate: string;
-}) {
-  return `custom_${rewardId}_${partnerId}_${periodDate}`;
-}
-
-export function hasCustomRewardMaxDurationElapsed({
-  firstCommissionAt,
-  maxDuration,
-  periodDate,
-}: {
-  firstCommissionAt: Date;
-  maxDuration: number | null | undefined;
-  periodDate: Date | string;
-}): boolean {
-  // null / undefined = infinite
-  if (maxDuration == null) {
-    return false;
-  }
-
-  const period = toUtcDateOnly(periodDate);
-  const first = toUtcDateOnly(firstCommissionAt);
-
-  return differenceInMonths(period, first) >= maxDuration;
 }

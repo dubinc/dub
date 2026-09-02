@@ -1,4 +1,5 @@
 import { notifyPartnerRewardChange } from "@/lib/api/partners/notify-partner-reward-change";
+import { isEventBasedReward } from "@/lib/api/rewards/custom-reward-utils";
 import {
   queueRewardProcessing,
   rewardJobSchema,
@@ -164,7 +165,7 @@ export const POST = withCron(async ({ rawBody }) => {
       shouldNotify = count > 0;
     }
 
-    if (shouldNotify && reward.event !== "custom") {
+    if (shouldNotify && isEventBasedReward(reward)) {
       const users = programEnrollments
         .filter(({ status }) => ACTIVE_ENROLLMENT_STATUSES.includes(status))
         .flatMap(({ partner }) => partner.users.map(({ user }) => user));
