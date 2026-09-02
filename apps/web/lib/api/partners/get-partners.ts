@@ -3,12 +3,12 @@ import { toCentsNumber } from "@dub/utils";
 import { Prisma } from "@prisma/client";
 import { buildProgramEnrollmentWhereForList } from "./program-enrollment-query";
 import {
-  buildPartnerSearchCandidateQuery,
   findPartnerSearchCandidates,
   getPartnerSearchReadProvider,
   orderByPartnerSearchHits,
   PartnerSearchProvider,
   PartnerSearchQueryInput,
+  resolvePartnerSearchCandidateQuery,
 } from "./search";
 
 type PartnerFilters = PartnerSearchQueryInput & {
@@ -39,7 +39,7 @@ export async function getPartners(
   } = filters;
 
   const candidateQuery = searchProvider
-    ? buildPartnerSearchCandidateQuery(filters)
+    ? await resolvePartnerSearchCandidateQuery(filters)
     : null;
   const candidateResult =
     searchProvider && candidateQuery
