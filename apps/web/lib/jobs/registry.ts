@@ -35,6 +35,11 @@ const jobLoaders = {
       (m) => m.partnerSearchSyncJob,
     ),
 
+  "process-shopify-order-job": () =>
+    import("./handlers/process-shopify-order-job").then(
+      (m) => m.processShopifyOrderJob,
+    ),
+
   "welcome-user-job": () =>
     import("./handlers/welcome-user-job").then((m) => m.welcomeUserJob),
 
