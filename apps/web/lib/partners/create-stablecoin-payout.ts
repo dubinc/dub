@@ -19,6 +19,7 @@ import {
   MIN_FORCE_WITHDRAWAL_AMOUNT_CENTS,
   MIN_WITHDRAWAL_AMOUNT_CENTS,
   STABLECOIN_PAYOUT_FEE_RATE,
+  STABLECOIN_PAYOUT_FIXED_FEE_CENTS,
 } from "../constants/payouts";
 import { enqueueBatchJobs } from "../cron/enqueue-batch-jobs";
 import { createPayoutsIdempotencyKey } from "../payouts/create-payouts-idempotency-key";
@@ -265,7 +266,13 @@ export const createStablecoinPayout = async ({
 
   if (amountToTransferToFA > 0) {
     await fundFinancialAccount({
-      amount: amountToTransferToFA,
+      // if there are no current invoice payouts (meaning partner is running a forceWithdrawal for previously processed payouts)
+      // we need to add the STABLECOIN_PAYOUT_FIXED_FEE_CENTS to the amount to transfer to the FA (to cover the Stablecoin payout fee)
+      amount:
+        amountToTransferToFA +
+        (currentInvoicePayouts.length === 0
+          ? STABLECOIN_PAYOUT_FIXED_FEE_CENTS
+          : 0),
       idempotencyKey,
     });
   }
