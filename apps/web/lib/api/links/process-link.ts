@@ -36,7 +36,7 @@ export async function processLink<T extends Record<string, any>>({
   skipProgramChecks = false, // only skip for when program is already validated
 }: {
   payload: NewLinkProps & T;
-  workspace?: Pick<Project, "id" | "plan"> & {
+  workspace?: Pick<Project, "id" | "plan" | "defaultProgramId"> & {
     users: { role: WorkspaceRole }[];
   };
   userId?: string;
@@ -438,6 +438,17 @@ export async function processLink<T extends Record<string, any>>({
 
     // Program validity checks
     if (programId && !skipProgramChecks) {
+      if (
+        workspace?.defaultProgramId &&
+        programId !== workspace.defaultProgramId
+      ) {
+        return {
+          link: payload,
+          error: "Program not found.",
+          code: "not_found",
+        };
+      }
+
       const program = await prisma.program.findUnique({
         where: { id: programId },
         select: {
@@ -464,8 +475,16 @@ export async function processLink<T extends Record<string, any>>({
       }
 
       if (!partnerId) {
-        partnerId =
-          program?.partners?.length > 0 ? program.partners[0].partnerId : null;
+        if (program?.partners?.length > 0) {
+          partnerId = program.partners[0].partnerId;
+        } else {
+          return {
+            link: payload,
+            error:
+              "programId was passed but no valid partnerId or tenantId was provided.",
+            code: "unprocessable_entity",
+          };
+        }
       }
 
       defaultProgramFolderId = program.defaultFolderId;
