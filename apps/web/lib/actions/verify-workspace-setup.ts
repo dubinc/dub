@@ -1,93 +1,118 @@
 "use server";
 
+import {
+  analyzeDubAnalyticsScript,
+  toVerifySiteUrl,
+  type VerifyInstallationResult,
+} from "@/lib/analytics/verify-installation";
 import { prisma } from "@/lib/prisma";
+import { ratelimit } from "@/lib/upstash";
 import FirecrawlApp from "@mendable/firecrawl-js";
 import * as z from "zod/v4";
 import { authActionClient } from "./safe-action";
 import { throwIfNoPermission } from "./throw-if-no-permission";
 
-const getExpectedScriptForWorkspace = (store: Record<string, any>) => {
-  const {
-    analyticsSettingsConversionTrackingEnabled: conversionTrackingEnabled,
-    analyticsSettingsSiteVisitTrackingEnabled: siteVisitEnabled,
-    analyticsSettingsOutboundDomainTrackingEnabled: outboundDomainsEnabled,
-  } = store;
-
-  const components = [
-    "script",
-    siteVisitEnabled ? "site-visit" : null,
-    outboundDomainsEnabled ? "outbound-domains" : null,
-    conversionTrackingEnabled ? "conversion-tracking" : null,
-  ].filter(Boolean);
-
-  return `${components.join(".")}.js`;
-};
-
 const schema = z.object({
   workspaceId: z.string(),
+  hostname: z.string().min(1),
 });
 
-// Attempt to verify the workspace setup
 export const verifyWorkspaceSetup = authActionClient
   .inputSchema(schema)
-  .action(async ({ ctx }) => {
-    const { workspace } = ctx;
+  .action(async ({ ctx, parsedInput }): Promise<VerifyInstallationResult> => {
+    const { workspace, user } = ctx;
+    const { hostname } = parsedInput;
 
     throwIfNoPermission({
       role: workspace.role,
-      requiredPermissions: ["workspaces.read"],
+      requiredPermissions: ["workspaces.write"],
     });
 
-    const domains = await prisma.domain.findMany({
-      where: { projectId: workspace.id },
-      select: { slug: true },
-    });
+    const { success } = await ratelimit(5, "1 m").limit(
+      `verify-workspace-setup:${workspace.id}`,
+    );
 
-    const domain = domains[0];
-
-    if (!domain) {
-      throw new Error(`Please setup a domain`);
+    if (!success) {
+      throw new Error(
+        "Too many verification attempts. Please try again in a minute.",
+      );
     }
-
-    // const siteUrl = domain.slug;
-    const siteUrl = "https://dub.co/home";
 
     const hostnames = (workspace.allowedHostnames as string[]) || [];
 
-    if (!hostnames.length) {
-      throw new Error(`Add a hostname for your domain`);
+    if (!hostnames.includes(hostname)) {
+      throw new Error("Select a hostname from your allowlist.");
+    }
+
+    if (hostname.startsWith("*.")) {
+      return {
+        status: "error",
+        hostname,
+        error: "unsupported",
+      };
     }
 
     const firecrawl = new FirecrawlApp({
       apiKey: process.env.FIRECRAWL_API_KEY,
     });
 
-    const scrapeResult = await firecrawl.scrapeUrl(siteUrl, {
+    const scrapeResult = await firecrawl.scrapeUrl(toVerifySiteUrl(hostname), {
       formats: ["rawHtml"],
       onlyMainContent: false,
       parsePDF: false,
-      includeTags: ["head"],
-      maxAge: 14400000,
+      maxAge: 0,
       waitFor: 5000,
     });
 
-    if (!scrapeResult.success) {
-      throw new Error("Failed to verify site");
+    if (!scrapeResult.success || !scrapeResult.rawHtml) {
+      return {
+        status: "error",
+        hostname,
+        error: "unreachable",
+      };
     }
 
-    //console.log("RAW HTML: ", scrapeResult.rawHtml);
+    const analysis = analyzeDubAnalyticsScript(scrapeResult.rawHtml);
 
-    console.log(`result: `, {
-      hasDataAttribute: scrapeResult.rawHtml?.includes(
-        `data-sdkn="@dub/analytics"`,
-      ),
-      hasExpectedScript: scrapeResult.rawHtml?.includes(
-        getExpectedScriptForWorkspace(workspace.store as Record<string, any>),
-      ),
+    if (analysis !== "ok") {
+      return {
+        status: "error",
+        hostname,
+        error: analysis,
+      };
+    }
+
+    const verifiedAt = new Date().toISOString();
+    const verifiedUser = {
+      id: user.id,
+      name: user.name ?? user.email ?? "Unknown",
+      image: user.image ?? null,
+    };
+
+    const latest = await prisma.project.findUnique({
+      where: { id: workspace.id },
+      select: { store: true },
+    });
+    const store = (latest?.store as Record<string, unknown> | null) ?? {};
+
+    await prisma.project.update({
+      where: { id: workspace.id },
+      data: {
+        store: {
+          ...store,
+          analyticsSettingsInstallationVerified: {
+            hostname,
+            verifiedAt,
+            user: verifiedUser,
+          },
+        },
+      },
     });
 
     return {
-      verifiedAt: new Date().toISOString(),
-      // analyticsScriptSrc: scriptTag,
+      status: "success",
+      hostname,
+      verifiedAt,
+      user: verifiedUser,
     };
   });
