@@ -19,9 +19,6 @@ function toSafeHeaderValue(value: string | null | undefined) {
   return value;
 }
 
-const DEFAULT_USER_AGENT =
-  "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)";
-
 // TODO:
 // Use this in other places where we need to record a fake click event (Eg: import-customers)
 export async function recordFakeClick({
@@ -55,7 +52,8 @@ export async function recordFakeClick({
 
   const dummyRequest = new Request(link.url, {
     headers: new Headers({
-      "user-agent": userAgent || DEFAULT_USER_AGENT,
+      "user-agent":
+        userAgent || "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)",
       "x-forwarded-for": "127.0.0.1",
       "x-vercel-ip-country": country,
       "x-vercel-ip-country-region": toSafeHeaderValue(customer?.region) || "CA",
