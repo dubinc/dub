@@ -746,7 +746,11 @@ export const createManualCommissionBodySchema = z
       return;
     }
 
-    if (data.type === "sale" && data.linkId && data.discountCode) {
+    if (
+      data.type === "sale" &&
+      data.linkId != null &&
+      data.discountCode != null
+    ) {
       ctx.addIssue({
         code: "custom",
         message: "Either `linkId` or `discountCode` may be provided, not both.",
