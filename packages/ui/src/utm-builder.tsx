@@ -124,7 +124,6 @@ function UTMInput({
 
   const [menuOpen, setMenuOpen] = useState(false);
   const [query, setQuery] = useState("");
-  const [tokenStart, setTokenStart] = useState(0);
   const [highlightedIndex, setHighlightedIndex] = useState(0);
   const [menuStyle, setMenuStyle] = useState<CSSProperties>({});
 
@@ -161,13 +160,7 @@ function UTMInput({
     }
 
     const token = getOpenMacroToken(nextValue, caret);
-    if (!token) {
-      setMenuOpen(false);
-      return;
-    }
-
-    setTokenStart(token.start);
-    setQuery(token.query);
+    setQuery(token ? token.query : nextValue);
     setHighlightedIndex(0);
     updateMenuPosition();
     setMenuOpen(true);
@@ -177,11 +170,13 @@ function UTMInput({
     const input = localRef.current;
     const caret = input?.selectionStart ?? value.length;
     const token = getOpenMacroToken(value, caret);
-    const start = token?.start ?? tokenStart;
 
-    const nextValue =
-      value.slice(0, start) + suggestion.value + value.slice(caret);
-    const nextCaret = start + suggestion.value.length;
+    const nextValue = token
+      ? value.slice(0, token.start) + suggestion.value + value.slice(caret)
+      : suggestion.value;
+    const nextCaret = token
+      ? token.start + suggestion.value.length
+      : suggestion.value.length;
 
     onChange(nextValue);
     setMenuOpen(false);
