@@ -6,6 +6,7 @@ import { throwIfNoPermission } from "@/lib/auth/partner-users/throw-if-no-permis
 import { requestEmailChange } from "@/lib/auth/request-email-change";
 import { qstash } from "@/lib/cron";
 import { isReservedUsername } from "@/lib/edge-config";
+import { dispatchGroupUtmSyncForPartner } from "@/lib/partners/dispatch-partner-utm-sync";
 import {
   assertEmailAvailableForIdentitySync,
   requestSyncedEmailChange,
@@ -260,6 +261,10 @@ export const updatePartnerProfileAction = authPartnerActionClient
 
       waitUntil(
         Promise.allSettled([
+          partner.name !== updatedPartner.name
+            ? dispatchGroupUtmSyncForPartner(partner.id)
+            : undefined,
+
           (async () => {
             const shouldExpireCache = !deepEqual(
               {

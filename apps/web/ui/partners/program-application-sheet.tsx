@@ -60,11 +60,9 @@ function ProgramApplicationSheetContent({
     program?.defaultGroupId ||
     DEFAULT_PARTNER_GROUP.slug;
 
-  const {
-    data: group,
-    isLoading: isGroupLoading,
-    error: groupError,
-  } = useSWR<z.infer<typeof PartnerProgramGroupSchema>>(
+  const { data: group, error: groupError } = useSWR<
+    z.infer<typeof PartnerProgramGroupSchema>
+  >(
     groupIdOrSlug
       ? `/api/partner-profile/programs/${program.id}/groups/${groupIdOrSlug}`
       : null,
