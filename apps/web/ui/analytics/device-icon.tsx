@@ -56,7 +56,8 @@ export function DeviceIcon({
             alt={display}
             width={20}
             height={20}
-            className={className}
+            // Non-square sources (e.g. Facebook/Instagram at 3:2) squash without this
+            className={`${className} object-cover`}
           />
         );
     }
