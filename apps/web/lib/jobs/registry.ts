@@ -30,6 +30,9 @@ const jobLoaders = {
       (m) => m.createTremendousCampaignJob,
     ),
 
+  "sync-group-utm-job": () =>
+    import("./handlers/sync-group-utm-job").then((m) => m.syncGroupUtmJob),
+
   "partner-search-sync-job": () =>
     import("./handlers/partner-search-sync-job").then(
       (m) => m.partnerSearchSyncJob,

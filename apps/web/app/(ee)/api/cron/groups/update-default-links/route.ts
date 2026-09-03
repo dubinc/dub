@@ -1,6 +1,6 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { linkCache } from "@/lib/api/links/cache";
-import { extractUtmParams } from "@/lib/api/utm/extract-utm-params";
+import { applyGroupUtmToLink } from "@/lib/api/utm/apply-group-utm-to-link";
 import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import {
@@ -10,11 +10,8 @@ import {
 import { AppsFlyerSettings } from "@/lib/integrations/appsflyer/schema";
 import { isAppsFlyerTrackingUrl } from "@/lib/middleware/utils/is-appsflyer-tracking-url";
 import { prisma } from "@/lib/prisma";
-import {
-  APP_DOMAIN_WITH_NGROK,
-  constructURLFromUTMParams,
-  log,
-} from "@dub/utils";
+import { ProcessedLinkProps } from "@/lib/types";
+import { APP_DOMAIN_WITH_NGROK, log } from "@dub/utils";
 import { Link } from "@prisma/client";
 import * as z from "zod/v4";
 import { logAndRespond } from "../../utils";
@@ -152,10 +149,24 @@ export async function POST(req: Request) {
       }[] = [];
 
       for (const defaultPartnerLink of defaultPartnerLinks) {
-        let url = constructURLFromUTMParams(
-          defaultLink.url,
-          extractUtmParams(group.utmTemplate),
-        );
+        const utmContext = {
+          partnerName:
+            defaultPartnerLink.partner?.name || defaultPartnerLink.key,
+          partnerLinkKey: defaultPartnerLink.key,
+        };
+
+        const linkWithUtm = applyGroupUtmToLink({
+          link: {
+            domain: defaultPartnerLink.domain,
+            key: defaultPartnerLink.key,
+            url: defaultLink.url,
+            projectId: defaultLink.program.workspaceId,
+          } as ProcessedLinkProps,
+          utmTemplate: group.utmTemplate,
+          partnerName: defaultPartnerLink.partner?.name,
+        });
+
+        let url = linkWithUtm.url;
 
         // Inject AppsFlyer parameters with resolved macros
         if (
@@ -165,11 +176,7 @@ export async function POST(req: Request) {
           url = applyAppsFlyerParameters({
             url,
             parameters: appsFlyerParameters,
-            context: {
-              partnerName:
-                defaultPartnerLink.partner?.name || defaultPartnerLink.key,
-              partnerLinkKey: defaultPartnerLink.key,
-            },
+            context: utmContext,
           });
         }
 
@@ -181,7 +188,11 @@ export async function POST(req: Request) {
           },
           link: {
             url,
-            ...extractUtmParams(group.utmTemplate, { excludeRef: true }),
+            utm_source: linkWithUtm.utm_source ?? null,
+            utm_medium: linkWithUtm.utm_medium ?? null,
+            utm_campaign: linkWithUtm.utm_campaign ?? null,
+            utm_term: linkWithUtm.utm_term ?? null,
+            utm_content: linkWithUtm.utm_content ?? null,
           },
         });
       }
