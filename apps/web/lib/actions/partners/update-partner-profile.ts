@@ -188,6 +188,10 @@ export const updatePartnerProfileAction = authPartnerActionClient
         },
       });
 
+      // Queue an index update because the partner profile changed. Not scoped
+      // by program, since a profile is shared across them.
+      waitUntil(queuePartnerSearchSync({ partnerIds: [partner.id] }));
+
       // If the email is being changed, we need to verify the new email address
       if (emailChanged) {
         if (syncIdentity) {
@@ -257,10 +261,6 @@ export const updatePartnerProfileAction = authPartnerActionClient
 
       waitUntil(
         Promise.allSettled([
-          // Queue an index update because the partner profile changed. Not
-          // scoped by program, since a profile is shared across them.
-          queuePartnerSearchSync({ partnerIds: [partner.id] }),
-
           partner.name !== updatedPartner.name
             ? dispatchGroupUtmSyncForPartner(partner.id)
             : undefined,

@@ -11,6 +11,7 @@ const mocks = vi.hoisted(() => ({
   partnerGroupBy: vi.fn(),
   partnerTagGroupBy: vi.fn(),
   applicationEventGroupBy: vi.fn(),
+  programFindUnique: vi.fn(),
 }));
 
 vi.mock("@/lib/prisma", () => ({
@@ -20,9 +21,10 @@ vi.mock("@/lib/prisma", () => ({
       count: mocks.count,
       groupBy: mocks.enrollmentGroupBy,
     },
-    partner: { groupBy: mocks.partnerGroupBy },
+    partner: { groupBy: mocks.partnerGroupBy, findUnique: vi.fn() },
     programPartnerTag: { groupBy: mocks.partnerTagGroupBy },
     programApplicationEvent: { groupBy: mocks.applicationEventGroupBy },
+    program: { findUnique: mocks.programFindUnique },
   },
 }));
 
@@ -42,6 +44,28 @@ describe("getPartnersCount search", () => {
     for (const mock of Object.values(mocks)) {
       mock.mockReset();
     }
+  });
+
+  it("counts a pasted program short link by its key", async () => {
+    const searchProvider = createSearchProvider(1);
+    mocks.programFindUnique.mockResolvedValue({ domain: "go.acme.com" });
+
+    const count = await getPartnersCount<number>(
+      {
+        programId: "prog_test",
+        search: "https://go.acme.com/partner",
+        status: "approved",
+      },
+      { searchProvider },
+    );
+
+    expect(count).toBe(1);
+    expect(searchProvider.searchCandidates).toHaveBeenCalledWith(
+      expect.objectContaining({ query: "partner" }),
+    );
+    expect(searchProvider.countCandidates).toHaveBeenCalledWith(
+      expect.objectContaining({ query: "partner" }),
+    );
   });
 
   it("reports the truncated candidate count when the total exceeds the candidate ceiling", async () => {

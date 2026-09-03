@@ -5,6 +5,7 @@ import { throwIfInvalidGroupIds } from "@/lib/api/groups/throw-if-invalid-group-
 import { throwIfInvalidPartnerTagIds } from "@/lib/api/partner-tags/throw-if-invalid-partner-tag-ids";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
+import { revalidateProgramPublicPages } from "@/lib/api/programs/revalidate-program-public-pages";
 import { parseRequestBody } from "@/lib/api/utils";
 import { WorkflowAction } from "@/lib/api/workflows/types";
 import { validateWorkflowConditions } from "@/lib/api/workflows/validate-workflow-conditions";
@@ -327,6 +328,8 @@ export const POST = withWorkspace(
       sendNotificationEmails &&
       canSendEmailCampaigns &&
       bounty.startMode !== BountyStartMode.relative;
+
+    revalidateProgramPublicPages(programId);
 
     waitUntil(
       Promise.allSettled([

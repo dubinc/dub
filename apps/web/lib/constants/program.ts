@@ -1,4 +1,4 @@
-import { ACME_PROGRAM_ID } from "@dub/utils";
+import { ACME_PROGRAM_ID, DEMO_PROGRAM_ID } from "@dub/utils";
 
 export const PROGRAM_ONBOARDING_PARTNERS_LIMIT = 5;
 export const MAX_PARTNERS_INVITES_PER_REQUEST = 50;
@@ -57,5 +57,6 @@ export const PROGRAM_APPLICATION_IMAGE_ALLOWED_TYPES_LABEL = "JPG, PNG, WebP";
 
 export const EXTERNAL_PAYOUTS_PROGRAM_IDS = [
   ACME_PROGRAM_ID, // Acme
+  DEMO_PROGRAM_ID, // Demo
   "prog_1JWVR53QX1NM7NDEK62E3J19H",
 ];

@@ -51,9 +51,11 @@ export async function updateLink({
     proxy,
     geo,
     publicStats,
+    partnerId,
   } = updatedLink;
   const changedKey = key.toLowerCase() !== oldLink.key.toLowerCase();
   const changedDomain = domain !== oldLink.domain;
+  const changedPartnerId = partnerId !== oldLink.partnerId;
 
   const { utm_source, utm_medium, utm_campaign, utm_term, utm_content } =
     getParamsFromURL(url);
@@ -208,11 +210,9 @@ export async function updateLink({
         // If key is changed: delete the old key in Redis
         (changedDomain || changedKey) && linkCache.delete(oldLink),
 
-        // Queue an index update because the edit can change the destination URL
-        // or move the link. Both owners, so a former one is re-serialized
-        // without it.
-        queuePartnerSearchSyncForLinks([oldLink, response], {
-        }),
+        // Queue an index update if the link key or partner ID changed (indexed fields)
+        (changedKey || changedPartnerId) &&
+          queuePartnerSearchSyncForLinks([oldLink, response]),
 
         // If proxy is true and image is not stored in R2, upload image to R2
         proxy &&

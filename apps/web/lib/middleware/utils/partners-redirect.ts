@@ -47,6 +47,7 @@ const PARTNERS_PROGRAM_REDIRECTS = {
   "voice-os": "voiceos",
   "speechify-inc": "speechifyai",
   "ggms-labs-ltd-ai": "mira",
+  missioncontrolhq: "squad-so",
 };
 
 export const partnersProgramRedirects = (path: string) => {

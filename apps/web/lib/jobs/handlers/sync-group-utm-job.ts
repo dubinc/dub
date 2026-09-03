@@ -1,5 +1,4 @@
 import { linkCache } from "@/lib/api/links/cache";
-import { queuePartnerSearchSync } from "@/lib/api/partners/queue-partner-search-sync";
 import { extractAndResolveUtmParams } from "@/lib/api/utm/extract-and-resolve-utm-params";
 import { prisma } from "@/lib/prisma";
 import { LinkProps } from "@/lib/types";
@@ -173,12 +172,6 @@ export const syncGroupUtmJob = defineJob({
     );
 
     await linkCache.expireMany(linksToExpire);
-
-    // Queue an index update because the UTM template rewrote each link's
-    // destination URL.
-    await queuePartnerSearchSync({
-      enrollmentIds: programEnrollments.map(({ id }) => id),
-    });
 
     if (programEnrollments.length === PAGE_SIZE) {
       startAfterProgramEnrollmentId =

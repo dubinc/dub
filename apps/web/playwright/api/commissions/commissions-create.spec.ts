@@ -40,6 +40,40 @@ function customerBody() {
   };
 }
 
+async function seedDiscountCode({
+  programId,
+  partnerId,
+  disabledAt,
+}: {
+  programId: string;
+  partnerId: string;
+  disabledAt?: Date;
+}) {
+  const link = await prisma.link.findFirst({
+    where: { partnerId },
+    orderBy: { createdAt: "asc" },
+  });
+
+  if (!link) {
+    throw new Error("Partner was created without a default link.");
+  }
+
+  const code = `PW${nanoid(8)}`;
+
+  await prisma.discountCode.create({
+    data: {
+      id: createId({ prefix: "dcode_" }),
+      code,
+      programId,
+      partnerId,
+      linkId: link.id,
+      disabledAt,
+    },
+  });
+
+  return { code, linkId: link.id };
+}
+
 test.describe("Custom commissions", () => {
   test("creates a custom commission", async ({ api, program }) => {
     const description = `custom-${nanoid()}`;
@@ -288,6 +322,38 @@ test.describe("Sale commissions", () => {
         programId: program.id,
         type: "sale",
         invoiceId,
+        expectedMetadata: null,
+      });
+    });
+  });
+
+  test("creates using discountCode", async ({ api, program }) => {
+    const invoiceId = `INV_${nanoid()}`;
+
+    await withCommissionPartner(api, program, async (partnerId) => {
+      const { code, linkId } = await seedDiscountCode({
+        programId: program.id,
+        partnerId,
+      });
+
+      expect(
+        await api.post("/api/commissions", {
+          type: "sale",
+          partnerId,
+          discountCode: code,
+          saleAmount: 1000,
+          invoiceId,
+          customer: customerBody(),
+        }),
+      ).toEqual(expectedQueuedResponse);
+
+      await expectCommissionCreated({
+        api,
+        partnerId,
+        programId: program.id,
+        type: "sale",
+        invoiceId,
+        expectedLinkId: linkId,
         expectedMetadata: null,
       });
     });
@@ -804,6 +870,37 @@ test.describe("Sale commissions", () => {
             "custom: sale.metadata: Metadata must be less than 10,000 characters when stringified",
         }),
       },
+      {
+        name: "rejects linkId and discountCode together",
+        body: {
+          type: "sale",
+          partnerId: "pn_test",
+          customerId: "cus_test",
+          saleAmount: 1000,
+          linkId: "link_test",
+          discountCode: "SAVE10",
+        },
+        expected: apiError({
+          code: "unprocessable_entity",
+          message:
+            "custom: discountCode: Either `linkId` or `discountCode` may be provided, not both.",
+        }),
+      },
+      {
+        name: "rejects empty discountCode",
+        body: {
+          type: "sale",
+          partnerId: "pn_test",
+          customerId: "cus_test",
+          saleAmount: 1000,
+          discountCode: "",
+        },
+        expected: apiError({
+          code: "unprocessable_entity",
+          message:
+            "too_small: discountCode: Too small: expected string to have >=1 characters",
+        }),
+      },
     ];
 
     for (const { name, body, expected } of errorCases) {
@@ -825,6 +922,83 @@ test.describe("Sale commissions", () => {
           apiError({
             code: "not_found",
             message: "Customer cus_nonexistent not found.",
+          }),
+        );
+      });
+    });
+
+    test("rejects unknown discountCode", async ({ api, program }) => {
+      await withCommissionPartner(api, program, async (partnerId) => {
+        const code = `MISSING${nanoid(8)}`;
+
+        expect(
+          await api.post("/api/commissions", {
+            type: "sale",
+            partnerId,
+            discountCode: code,
+            saleAmount: 1000,
+            customer: customerBody(),
+          }),
+        ).toEqual(
+          apiError({
+            code: "not_found",
+            message: `Discount code ${code} not found.`,
+          }),
+        );
+      });
+    });
+
+    test("rejects another partner's discountCode", async ({ api, program }) => {
+      await withCommissionPartner(api, program, async (partnerId) => {
+        await withCommissionPartner(api, program, async (otherPartnerId) => {
+          const { code } = await seedDiscountCode({
+            programId: program.id,
+            partnerId: otherPartnerId,
+          });
+
+          const partner = await prisma.partner.findUniqueOrThrow({
+            where: { id: partnerId },
+            select: { id: true, email: true },
+          });
+
+          expect(
+            await api.post("/api/commissions", {
+              type: "sale",
+              partnerId,
+              discountCode: code,
+              saleAmount: 1000,
+              customer: customerBody(),
+            }),
+          ).toEqual(
+            apiError({
+              code: "not_found",
+              message: `Discount code ${code} does not belong to partner ${partner.email} (${partner.id}).`,
+            }),
+          );
+        });
+      });
+    });
+
+    test("rejects disabled discountCode", async ({ api, program }) => {
+      await withCommissionPartner(api, program, async (partnerId) => {
+        const { code } = await seedDiscountCode({
+          programId: program.id,
+          partnerId,
+          disabledAt: new Date(),
+        });
+
+        expect(
+          await api.post("/api/commissions", {
+            type: "sale",
+            partnerId,
+            discountCode: code,
+            saleAmount: 1000,
+            customer: customerBody(),
+          }),
+        ).toEqual(
+          apiError({
+            code: "bad_request",
+            message: `Discount code ${code} is disabled.`,
           }),
         );
       });

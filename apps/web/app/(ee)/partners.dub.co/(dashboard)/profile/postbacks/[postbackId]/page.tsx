@@ -15,18 +15,13 @@ import { BackLink } from "@/ui/shared/back-link";
 import { TokenAvatar } from "@/ui/token-avatar";
 import { EmptyState, Webhook } from "@dub/ui";
 import { fetcher } from "@dub/utils";
-import { redirect, useRouter } from "next/navigation";
+import { redirect, useParams, useRouter } from "next/navigation";
 import { useState } from "react";
 import useSWR from "swr";
 
-interface PostbackDetailPageClientProps {
-  postbackId: string;
-}
-
-export function PostbackDetailPageClient({
-  postbackId,
-}: PostbackDetailPageClientProps) {
+export default function PostbackDetailPage() {
   const router = useRouter();
+  const { postbackId } = useParams();
   const [openPopover, setOpenPopover] = useState(false);
 
   const {
