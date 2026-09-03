@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import {
   ACME_PROGRAM_ID,
+  DEMO_PROGRAM_ID,
   currencyFormatter,
   log,
   nanoid,
@@ -40,9 +41,13 @@ export const createNetworkReferralCommission = async ({
     return null;
   }
 
-  if ([NETWORK_PROGRAM_ID, ACME_PROGRAM_ID].includes(payout.programId)) {
+  if (
+    [NETWORK_PROGRAM_ID, ACME_PROGRAM_ID, DEMO_PROGRAM_ID].includes(
+      payout.programId,
+    )
+  ) {
     console.error(
-      `Payout ${payout.id} is from Network or Acme program, skipping...`,
+      `Payout ${payout.id} is from Network, Acme, or Demo program, skipping...`,
     );
     return null;
   }

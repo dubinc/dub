@@ -577,6 +577,7 @@ const _trackSale = async ({
           quantity: 1,
           invoiceId,
           currency,
+          ...(metadata != null && { metadata }),
           context: {
             customer: {
               country: customer.country,
@@ -644,13 +645,14 @@ const _trackSale = async ({
         queueGoogleAdsConversionUpload({
           workspaceId: workspace.id,
           eventType: EventType.sale,
+          eventName: saleData.event_name,
           conversionDateTime: new Date().toISOString(),
           eventId: saleData.event_id,
-          conversionValue: amount / 100, // Data Manager expects major currency units
-          currencyCode: currency,
+          conversionValue: saleData.amount,
+          currencyCode: saleData.currency,
           click: {
-            id: leadEventData.click_id,
-            url: leadEventData.url,
+            id: saleData.click_id,
+            url: saleData.url,
           },
         }),
 

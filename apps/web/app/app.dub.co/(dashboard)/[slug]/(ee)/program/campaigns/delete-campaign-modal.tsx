@@ -142,7 +142,7 @@ export function useDeleteCampaignModal(
         campaign={campaign}
       />
     );
-  }, [showDeleteCampaignModal, setShowDeleteCampaignModal, campaign]);
+  }, [showDeleteCampaignModal, setShowDeleteCampaignModal]);
 
   return useMemo(
     () => ({

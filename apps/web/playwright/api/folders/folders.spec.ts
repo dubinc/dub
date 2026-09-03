@@ -31,10 +31,6 @@ async function deleteFolder(api: ApiClient, folderId: string) {
   await api.delete(`/api/folders/${folderId}`);
 }
 
-test.describe.configure({
-  mode: "parallel",
-});
-
 test("POST /folders", async ({ api }) => {
   let folderId: string | undefined;
   const folderName = randomName("folder");

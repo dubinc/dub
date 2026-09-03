@@ -20,7 +20,7 @@ export async function verifyPassword(_prevState: any, data: FormData) {
   }
 
   (await cookies()).set(`dub_password_${dashboardId}`, password, {
-    path: `/share/${dashboardId}`,
+    path: "/",
     httpOnly: true,
     secure: true,
   });

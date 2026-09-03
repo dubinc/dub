@@ -137,7 +137,6 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
     title: <PartnerProgramDropdown />,
     content: PROGRAMS_CONTENT({ invitationsCount }),
     direction: "left",
-    showNews: true,
   }),
 
   marketplace: ({ isMobile, invitationsCount }) => ({
@@ -428,8 +427,7 @@ export function PartnersSidebarNav({
         newsContent,
       }}
       toolContent={composedToolContent}
-      newsContent={newsContent}
-      bottom={
+      bottomContent={
         isEnrolledProgramPage ? (
           <ProgramHelpSupport />
         ) : (

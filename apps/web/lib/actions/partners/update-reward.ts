@@ -5,6 +5,7 @@ import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { getRewardOrThrow } from "@/lib/api/partners/get-reward-or-throw";
 import { serializeReward } from "@/lib/api/partners/serialize-reward";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
+import { revalidateProgramPublicPages } from "@/lib/api/programs/revalidate-program-public-pages";
 import { queueRewardProcessing } from "@/lib/api/rewards/queue-reward-processing";
 import { validateReward } from "@/lib/api/rewards/validate-reward";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
@@ -13,7 +14,6 @@ import { updateRewardSchema } from "@/lib/zod/schemas/rewards";
 import { formatRewardDescription } from "@/ui/partners/format-reward-description";
 import { Prisma } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
-import { revalidatePath } from "next/cache";
 import { authActionClient } from "../safe-action";
 import { throwIfNoPermission } from "../throw-if-no-permission";
 
@@ -101,7 +101,6 @@ export const updateRewardAction = authActionClient
             }),
       },
       include: {
-        program: true,
         clickPartnerGroup: true,
         leadPartnerGroup: true,
         salePartnerGroup: true,
@@ -110,20 +109,12 @@ export const updateRewardAction = authActionClient
     });
 
     const {
-      program,
       clickPartnerGroup,
       leadPartnerGroup,
       salePartnerGroup,
       referralPartnerGroup,
       ...rewardMetadata
     } = updatedReward;
-
-    const isDefaultGroup = [
-      clickPartnerGroup,
-      leadPartnerGroup,
-      salePartnerGroup,
-      referralPartnerGroup,
-    ].some((group) => group?.slug === "default");
 
     // Determine the groupId from the partner group relation
     const partnerGroup =
@@ -149,6 +140,8 @@ export const updateRewardAction = authActionClient
         activityDescription,
       },
     });
+
+    revalidateProgramPublicPages(programId);
 
     waitUntil(
       Promise.allSettled([
@@ -178,16 +171,6 @@ export const updateRewardAction = authActionClient
           new: updatedReward,
           description: activityDescription,
         }),
-
-        // we only cache default group pages for now so we need to invalidate them
-        ...(isDefaultGroup && program
-          ? [
-              revalidatePath(`/partners.dub.co/${program.slug}`),
-              revalidatePath(`/partners.dub.co/${program.slug}/apply`),
-              program.addedToMarketplaceAt &&
-                revalidatePath(`/partners.dub.co/marketplace/${program.slug}`),
-            ]
-          : []),
       ]),
     );
   });

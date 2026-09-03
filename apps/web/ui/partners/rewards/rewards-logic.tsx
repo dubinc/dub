@@ -386,25 +386,27 @@ function ConditionLogic({
     name: ["event", conditionKey, `${modifierKey}.operator`],
   });
 
+  const [displayProductLabel, setDisplayProductLabel] = useState(false);
+
   const entities = REWARD_CONDITIONS[event].entities;
-  const entity = condition.entity
+  const entity = condition?.entity
     ? entities.find((e) => e.id === condition.entity)
     : undefined;
 
   const attribute =
-    entity && condition.attribute
+    entity && condition?.attribute
       ? entity.attributes.find((a) => a.id === condition.attribute)
       : undefined;
 
   const attributeType = attribute?.type ?? "string";
 
   const isMetadataCondition =
-    (condition.entity === "lead" || condition.entity === "sale") &&
-    condition.attribute === "metadata";
+    (condition?.entity === "lead" || condition?.entity === "sale") &&
+    condition?.attribute === "metadata";
 
   const isMetadataNumeric =
     isMetadataCondition &&
-    !!condition.operator &&
+    !!condition?.operator &&
     METADATA_NUMBER_CONDITION_OPERATORS.includes(condition.operator);
 
   const icon = entity
@@ -417,18 +419,17 @@ function ConditionLogic({
     : ArrowTurnRight2;
 
   const isArrayValue =
-    condition.operator === "in" || condition.operator === "not_in";
+    condition?.operator === "in" || condition?.operator === "not_in";
 
   const isContainsOperator =
-    condition.operator === "contains" || condition.operator === "not_contains";
-
-  const [displayProductLabel, setDisplayProductLabel] = useState(false);
+    condition?.operator === "contains" ||
+    condition?.operator === "not_contains";
 
   // Auto-set operator to "equals_to" for customer.source
   const isCustomerSourceCondition =
-    condition.entity === "customer" && condition.attribute === "source";
+    condition?.entity === "customer" && condition?.attribute === "source";
   const isSaleTypeCondition =
-    condition.entity === "sale" && condition.attribute === "type";
+    condition?.entity === "sale" && condition?.attribute === "type";
 
   const availableConditionOperators: (typeof CONDITION_OPERATORS)[number][] =
     attributeType === "metadata"
@@ -443,6 +444,7 @@ function ConditionLogic({
 
   useEffect(() => {
     if (
+      condition &&
       isMetadataCondition &&
       condition.operator &&
       !METADATA_CONDITION_OPERATORS.includes(condition.operator)
@@ -461,7 +463,7 @@ function ConditionLogic({
     }
   }, [
     isMetadataCondition,
-    condition.operator,
+    condition?.operator,
     condition,
     conditionKey,
     setValue,
@@ -469,6 +471,7 @@ function ConditionLogic({
 
   useEffect(() => {
     if (
+      condition &&
       (isCustomerSourceCondition || isSaleTypeCondition) &&
       condition.operator !== "equals_to"
     ) {
@@ -486,11 +489,13 @@ function ConditionLogic({
   }, [
     isCustomerSourceCondition,
     isSaleTypeCondition,
-    condition.operator,
+    condition?.operator,
     condition,
     conditionKey,
     setValue,
   ]);
+
+  if (!condition) return null;
 
   return (
     <div className="flex w-full flex-col">
@@ -498,7 +503,7 @@ function ConditionLogic({
         <div className="flex items-center gap-1.5">
           <RewardIconSquare icon={icon} />
           <span className="text-content-emphasis font-medium leading-relaxed">
-            {conditionIndex === 0 ? "If" : capitalize(operator.toLowerCase())}{" "}
+            {conditionIndex === 0 ? "If" : capitalize(operator?.toLowerCase())}{" "}
             <InlineBadgePopover
               text={capitalize(condition.entity) || "Select item"}
               invalid={!condition.entity}
@@ -556,19 +561,10 @@ function ConditionLogic({
                         },
                       )
                     }
-                    items={entity.attributes
-                      .filter(
-                        (attribute) =>
-                          attribute.id !== "source" ||
-                          (program &&
-                            SUBMITTED_LEADS_ENABLED_PROGRAM_IDS.includes(
-                              program.id,
-                            )),
-                      )
-                      .map((attribute) => ({
-                        text: attribute.label,
-                        value: attribute.id,
-                      }))}
+                    items={entity.attributes.map((attribute) => ({
+                      text: attribute.label,
+                      value: attribute.id,
+                    }))}
                   />
                 </InlineBadgePopover>{" "}
                 {isMetadataCondition && (
@@ -772,10 +768,25 @@ function ConditionLogic({
                               condition.value,
                               isArrayValue,
                             )}
-                            items={attribute.options.map(({ id, label }) => ({
-                              text: label,
-                              value: id,
-                            }))}
+                            items={attribute.options
+                              .filter(({ id }) => {
+                                if (
+                                  isCustomerSourceCondition &&
+                                  id === "submitted"
+                                ) {
+                                  return (
+                                    program &&
+                                    SUBMITTED_LEADS_ENABLED_PROGRAM_IDS.includes(
+                                      program.id,
+                                    )
+                                  );
+                                }
+                                return true;
+                              })
+                              .map(({ id, label }) => ({
+                                text: label,
+                                value: id,
+                              }))}
                             onSelect={(value) => {
                               setValue(conditionKey, {
                                 ...condition,

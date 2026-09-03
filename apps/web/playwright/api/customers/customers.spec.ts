@@ -36,10 +36,6 @@ async function deleteCustomer(api: ApiClient, id: string | undefined) {
   await api.delete(`/api/customers/${id}`);
 }
 
-test.describe.configure({
-  mode: "parallel",
-});
-
 test("POST /customers", async ({ api }) => {
   let customerId: string | undefined;
   const body = randomCustomer();
@@ -106,6 +102,7 @@ test("PATCH /customers/{id}", async ({ api }) => {
     const toUpdate = {
       name: "Updated",
       avatar: "https://api.dub.co/og/avatar/1234567890",
+      country: "BR",
     };
 
     const { status, data } = await api.patch<Customer>(

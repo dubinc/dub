@@ -95,4 +95,18 @@ export const RATELIMIT_POLICIES = {
     window: "1 m",
     keyPrefix: "rl:ai:reward:generate",
   },
+
+  // Keyed on workspace + user so one actor cannot exhaust the workspace quota
+  forwardDnsInstructions: {
+    attempts: 10,
+    window: "1 h",
+    keyPrefix: "rl:domains:forward-dns-instructions",
+  },
+
+  // Keyed on the recipient so many accounts can't spam the same address
+  forwardDnsInstructionsTarget: {
+    attempts: 10,
+    window: "1 h",
+    keyPrefix: "rl:domains:forward-dns-instructions:target",
+  },
 } as const satisfies Record<string, RatelimitPolicy>;

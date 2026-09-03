@@ -4,11 +4,14 @@ import { createId } from "@/lib/api/create-id";
 import { isCI, isLocalDev } from "@/lib/api/environment";
 import { detectAndRecordFraudApplication } from "@/lib/api/fraud/detect-record-fraud-application";
 import { notifyPartnerApplication } from "@/lib/api/partners/notify-partner-application";
+import { queuePartnerSearchSync } from "@/lib/api/partners/queue-partner-search-sync";
 import { getIP } from "@/lib/api/utils/get-ip";
 import { markApplicationEventSubmitted } from "@/lib/application-events/update-application-event";
 import { getApplicationEventCookieName } from "@/lib/application-events/utils";
 import { getSession } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
+import { autoApprovePartnerJob } from "@/lib/jobs/handlers/auto-approve-partner-job";
+import { autoRejectPartnerJob } from "@/lib/jobs/handlers/auto-reject-partner-job";
 import { getNetworkProfileChecklistProgress } from "@/lib/network/get-network-profile-checklist-progress";
 import { evaluateApplicationRequirements } from "@/lib/partners/evaluate-application-requirements";
 import {
@@ -277,25 +280,16 @@ async function createApplicationAndEnrollment({
       );
     }
 
-    const qstashResponse = await qstash.publishJSON({
-      url: `${APP_DOMAIN_WITH_NGROK}/api/cron/partners/auto-reject`,
-      delay: 30 * 60, // 30 minutes
-      body: {
+    await autoRejectPartnerJob.dispatch(
+      {
         programId: program.id,
         partnerId: partner.id,
       },
-    });
-
-    if (qstashResponse.messageId) {
-      console.log(
-        `The partner did not meet the eligibility requirements for this program. Auto-reject job enqueued successfully.`,
-        {
-          ...qstashResponse,
-          programId: program.id,
-          partnerId: partner.id,
-        },
-      );
-    }
+      {
+        delay: 30 * 60, // 30 minutes
+        label: partner.id,
+      },
+    );
   }
 
   const applicationId = createId({ prefix: "pga_" });
@@ -347,13 +341,15 @@ async function createApplicationAndEnrollment({
 
         // Auto-approve the partner if the group has auto-approval enabled
         group.autoApprovePartnersEnabledAt
-          ? qstash.publishJSON({
-              url: `${APP_DOMAIN_WITH_NGROK}/api/cron/partners/auto-approve`,
-              body: {
+          ? autoApprovePartnerJob.dispatch(
+              {
                 programId: program.id,
                 partnerId: partner.id,
               },
-            })
+              {
+                label: partner.id,
+              },
+            )
           : Promise.resolve(null),
 
         // Send "partner.application_submitted" webhook
@@ -382,6 +378,9 @@ async function createApplicationAndEnrollment({
         }),
 
         markApplicationEventSubmitted(programEnrollment),
+
+        // Queue an index update because a new pending enrollment was created.
+        queuePartnerSearchSync({ enrollmentIds: [programEnrollment.id] }),
       ]);
     })(),
   );

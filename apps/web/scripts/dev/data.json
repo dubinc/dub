@@ -60,6 +60,13 @@
       "verified": true
     }
   ],
+  "emailDomains": [
+    {
+      "id": "dom_1KETZ919F83ZJH6A80EMAILDOM",
+      "slug": "getacme.link",
+      "status": "verified"
+    }
+  ],
   "folders": [
     {
       "id": "fold_1K2J9DRWPPJ2F1RX53N92TSGB",

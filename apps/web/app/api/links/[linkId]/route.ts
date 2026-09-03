@@ -175,6 +175,8 @@ export const PATCH = withWorkspace(
           domain: link.domain,
           key: link.key,
           image: link.image,
+          programId: link.programId,
+          partnerId: link.partnerId,
         },
         updatedLink: processedLink,
       });
