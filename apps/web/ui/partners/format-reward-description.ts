@@ -83,11 +83,7 @@ export function formatRewardDescription(
 function formatCustomRewardDescription(
   reward: Pick<
     RewardProps,
-    | "type"
-    | "amountInCents"
-    | "amountInPercentage"
-    | "maxDuration"
-    | "config"
+    "type" | "amountInCents" | "amountInPercentage" | "maxDuration" | "config"
   >,
   { includeEarnPrefix }: { includeEarnPrefix: boolean },
 ) {
@@ -109,9 +105,14 @@ function formatCustomRewardDescription(
       ? null
       : reward.maxDuration % 12 === 0
         ? `for ${reward.maxDuration / 12} year${reward.maxDuration / 12 > 1 ? "s" : ""}`
-        : `for ${reward.maxDuration} months`;
+        : `for ${reward.maxDuration} month${reward.maxDuration > 1 ? "s" : ""}`;
 
-  return [includeEarnPrefix ? "Earn" : null, rewardAmount, cadenceLabel, duration]
+  return [
+    includeEarnPrefix ? "Earn" : null,
+    rewardAmount,
+    cadenceLabel,
+    duration,
+  ]
     .filter(Boolean)
     .join(" ");
 }
@@ -119,11 +120,7 @@ function formatCustomRewardDescription(
 function formatReferralRewardDescription(
   reward: Pick<
     RewardProps,
-    | "type"
-    | "amountInCents"
-    | "amountInPercentage"
-    | "maxDuration"
-    | "config"
+    "type" | "amountInCents" | "amountInPercentage" | "maxDuration" | "config"
   >,
   { includeEarnPrefix }: { includeEarnPrefix: boolean },
 ) {

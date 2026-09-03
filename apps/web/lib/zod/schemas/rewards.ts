@@ -484,9 +484,7 @@ export const CUSTOM_REWARD_FREQUENCIES = [
 export const customRewardConfigSchema = z.object({
   frequency: z.enum(CUSTOM_REWARD_FREQUENCIES),
   interval: z.number().int().positive(),
-  anchorDate: z
-    .string()
-    .regex(/^\d{4}-\d{2}-\d{2}$/, "anchorDate must be YYYY-MM-DD"),
+  anchorDate: z.iso.date(),
 });
 
 export const CUSTOM_REWARD_CADENCE_PRESETS = [

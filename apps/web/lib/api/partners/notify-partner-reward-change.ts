@@ -1,15 +1,15 @@
-import { isEventBasedReward } from "@/lib/api/rewards/custom-reward-utils";
 import type { RewardJob } from "@/lib/api/rewards/queue-reward-processing";
 import { queueBatchEmail } from "@/lib/email/queue-batch-email";
 import { RewardProps } from "@/lib/types";
 import type PartnerRewardUpdated from "@dub/email/templates/partner-reward-updated";
 import { Program, Reward, User } from "@prisma/client";
 
-const REWARD_ICONS: Record<Exclude<RewardProps["event"], "custom">, string> = {
+const REWARD_ICONS: Record<RewardProps["event"], string> = {
   click: "https://assets.dub.co/email-assets/icons/cursor-rays.png",
   lead: "https://assets.dub.co/email-assets/icons/user-plus.png",
   sale: "https://assets.dub.co/email-assets/icons/invoice-dollar.png",
   referral: "https://assets.dub.co/email-assets/icons/nodes-4.png",
+  custom: "https://assets.dub.co/cms/icon-calendar-bounty.png",
 };
 
 interface NotifyPartnerRewardChangeParams {
@@ -34,10 +34,6 @@ export async function notifyPartnerRewardChange({
   // TODO: Remove after Aug 24
   if (program.id === "prog_1JWVR53QX1NM7NDEK62E3J19H") {
     console.log("Skipping notification for program", program.id);
-    return;
-  }
-
-  if (!isEventBasedReward(reward)) {
     return;
   }
 

@@ -9,6 +9,7 @@ import {
   isEventBasedReward,
 } from "@/lib/api/rewards/custom-reward-utils";
 import type { CustomRewardConfig } from "@/lib/types";
+import { customRewardConfigSchema } from "@/lib/zod/schemas/rewards";
 import { createHash } from "crypto";
 import { describe, expect, test } from "vitest";
 
@@ -172,5 +173,38 @@ describe("isCustomRewardStartDateInPast", () => {
 
   test("rejects a past date", () => {
     expect(isCustomRewardStartDateInPast("2020-01-01")).toBe(true);
+  });
+});
+
+describe("customRewardConfigSchema.anchorDate", () => {
+  const base = { frequency: "month" as const, interval: 1 };
+
+  test("accepts valid YYYY-MM-DD calendar dates", () => {
+    expect(
+      customRewardConfigSchema.parse({ ...base, anchorDate: "2026-01-31" })
+        .anchorDate,
+    ).toBe("2026-01-31");
+    expect(
+      customRewardConfigSchema.parse({ ...base, anchorDate: "2024-02-29" })
+        .anchorDate,
+    ).toBe("2024-02-29");
+  });
+
+  test("rejects impossible month-end dates", () => {
+    expect(
+      customRewardConfigSchema.safeParse({ ...base, anchorDate: "2026-02-31" })
+        .success,
+    ).toBe(false);
+    expect(
+      customRewardConfigSchema.safeParse({ ...base, anchorDate: "2026-04-31" })
+        .success,
+    ).toBe(false);
+  });
+
+  test("rejects leap-day dates in non-leap years", () => {
+    expect(
+      customRewardConfigSchema.safeParse({ ...base, anchorDate: "2025-02-29" })
+        .success,
+    ).toBe(false);
   });
 });

@@ -1,6 +1,5 @@
 "use client";
 
-import { isEventBasedReward } from "@/lib/api/rewards/custom-reward-utils";
 import { RewardProps } from "@/lib/types";
 import { REWARD_CHANGE_DESCRIPTION_MAX_LENGTH } from "@/lib/zod/schemas/rewards";
 import { ProgramRewardDescription } from "@/ui/partners/program-reward-description";
@@ -116,7 +115,7 @@ export function ConfirmRewardChangeModal({
           </h3>
           <p className="text-content-subtle mt-1 text-sm">
             The reward below will be {change} the group
-            {isEventBasedReward(reward) && partnerCount && partnerCount > 0 ? (
+            {partnerCount && partnerCount > 0 ? (
               <>
                 , and {partnerCount} {pluralize("partner", partnerCount)} will
                 be <PartnerEmailNotificationTooltipHelper />
@@ -141,47 +140,45 @@ export function ConfirmRewardChangeModal({
             </div>
           </div>
 
-          {isEventBasedReward(reward) && (
-            <div className="mt-4">
-              <div className="flex items-center justify-between">
-                <label
-                  htmlFor="activityDescription"
-                  className="text-content-emphasis text-sm font-medium"
-                >
-                  Message to partners
-                  <span className="ml-1 font-normal text-neutral-500">
-                    (optional)
-                  </span>
-                </label>
-                <MaxCharactersCounter
-                  name="activityDescription"
-                  maxLength={REWARD_CHANGE_DESCRIPTION_MAX_LENGTH}
-                  control={control}
-                />
-              </div>
-              <textarea
-                id="activityDescription"
-                rows={3}
+          <div className="mt-4">
+            <div className="flex items-center justify-between">
+              <label
+                htmlFor="activityDescription"
+                className="text-content-emphasis text-sm font-medium"
+              >
+                Message to partners
+                <span className="ml-1 font-normal text-neutral-500">
+                  (optional)
+                </span>
+              </label>
+              <MaxCharactersCounter
+                name="activityDescription"
                 maxLength={REWARD_CHANGE_DESCRIPTION_MAX_LENGTH}
-                placeholder="Add context about this change..."
-                className={cn(
-                  "mt-2 block w-full rounded-md border-neutral-300 text-sm text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500",
-                  errors.activityDescription && "border-red-600",
-                )}
-                {...register("activityDescription", {
-                  maxLength: {
-                    value: REWARD_CHANGE_DESCRIPTION_MAX_LENGTH,
-                    message: `Must be ${REWARD_CHANGE_DESCRIPTION_MAX_LENGTH} characters or fewer`,
-                  },
-                })}
+                control={control}
               />
-              {errors.activityDescription && (
-                <p className="mt-1 text-xs text-red-600">
-                  {errors.activityDescription.message}
-                </p>
-              )}
             </div>
-          )}
+            <textarea
+              id="activityDescription"
+              rows={3}
+              maxLength={REWARD_CHANGE_DESCRIPTION_MAX_LENGTH}
+              placeholder="Add context about this change..."
+              className={cn(
+                "mt-2 block w-full rounded-md border-neutral-300 text-sm text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500",
+                errors.activityDescription && "border-red-600",
+              )}
+              {...register("activityDescription", {
+                maxLength: {
+                  value: REWARD_CHANGE_DESCRIPTION_MAX_LENGTH,
+                  message: `Must be ${REWARD_CHANGE_DESCRIPTION_MAX_LENGTH} characters or fewer`,
+                },
+              })}
+            />
+            {errors.activityDescription && (
+              <p className="mt-1 text-xs text-red-600">
+                {errors.activityDescription.message}
+              </p>
+            )}
+          </div>
         </div>
 
         <div className="border-border-subtle flex items-center justify-end gap-2 border-t px-5 py-4">

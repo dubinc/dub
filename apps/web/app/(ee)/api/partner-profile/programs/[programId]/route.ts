@@ -1,5 +1,4 @@
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
-import { isEventBasedReward } from "@/lib/api/rewards/custom-reward-utils";
 import { withPartnerProfile } from "@/lib/auth/partner";
 import { ProgramEnrollmentSchema } from "@/lib/zod/schemas/programs";
 import { Reward } from "@prisma/client";
@@ -18,6 +17,7 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
       leadReward: true,
       saleReward: true,
       referralReward: true,
+      customReward: true,
       discount: true,
       partnerGroup: true,
       application: {
@@ -35,9 +35,8 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
     programEnrollment.leadReward,
     programEnrollment.saleReward,
     programEnrollment.referralReward,
-  ]
-    .filter((r): r is Reward => r !== null)
-    .filter(isEventBasedReward);
+    programEnrollment.customReward,
+  ].filter((r): r is Reward => r !== null);
 
   return NextResponse.json(
     ProgramEnrollmentSchema.parse({
