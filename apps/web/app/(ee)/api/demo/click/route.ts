@@ -1,15 +1,11 @@
+import { assertDemoLink, verifyDemoSecret } from "@/lib/api/demo/guard";
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
-import { prefixWorkspaceId } from "@/lib/api/workspaces/workspace-id";
 import { withAxiom } from "@/lib/axiom/server";
 import { getLinkWithPartner } from "@/lib/planetscale/get-link-with-partner";
 import { recordFakeClick } from "@/lib/tinybird/record-fake-click";
-import {
-  COUNTRY_CODES,
-  DEMO_PROGRAM_ID,
-  DEMO_WORKSPACE_ID,
-  getDomainWithoutWWW,
-} from "@dub/utils";
+import { parseDateSchema } from "@/lib/zod/schemas/utils";
+import { COUNTRY_CODES, getDomainWithoutWWW } from "@dub/utils";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 
@@ -25,24 +21,13 @@ const demoClickSchema = z.object({
   continent: z.string().nullish(),
   referrer: z.string().nullish(),
   userAgent: z.string().nullish(),
+  timestamp: parseDateSchema.nullish(),
 });
-
-function verifyDemoClickSecret(req: Request) {
-  const secret = process.env.DEMO_CLICK_SECRET;
-  const authorization = req.headers.get("authorization");
-
-  if (!secret || authorization !== `Bearer ${secret}`) {
-    throw new DubApiError({
-      code: "unauthorized",
-      message: "Invalid or missing DEMO_CLICK_SECRET.",
-    });
-  }
-}
 
 // POST /api/demo/click – mint a geo-accurate click for the LoopWork demo workspace only
 export const POST = withAxiom(async (req) => {
   try {
-    verifyDemoClickSecret(req);
+    verifyDemoSecret(req);
 
     const {
       domain,
@@ -53,6 +38,7 @@ export const POST = withAxiom(async (req) => {
       continent,
       referrer,
       userAgent,
+      timestamp,
     } = demoClickSchema.parse(await parseRequestBody(req));
 
     const link = await getLinkWithPartner({ domain, key });
@@ -64,21 +50,7 @@ export const POST = withAxiom(async (req) => {
       });
     }
 
-    if (
-      prefixWorkspaceId(link.projectId) !== prefixWorkspaceId(DEMO_WORKSPACE_ID)
-    ) {
-      throw new DubApiError({
-        code: "forbidden",
-        message: "This endpoint can only record clicks for the demo workspace.",
-      });
-    }
-
-    if (link.programId && link.programId !== DEMO_PROGRAM_ID) {
-      throw new DubApiError({
-        code: "forbidden",
-        message: "This endpoint can only record clicks for the demo program.",
-      });
-    }
+    assertDemoLink(link);
 
     const clickEvent = await recordFakeClick({
       link: {
@@ -98,6 +70,7 @@ export const POST = withAxiom(async (req) => {
       },
       referrer,
       userAgent,
+      ...(timestamp && { timestamp: timestamp.toISOString() }),
     });
 
     return NextResponse.json({ clickId: clickEvent.click_id });

@@ -53,7 +53,8 @@ export async function recordFakeClick({
   const dummyRequest = new Request(link.url, {
     headers: new Headers({
       "user-agent":
-        userAgent || "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)",
+        toSafeHeaderValue(userAgent) ||
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)",
       "x-forwarded-for": "127.0.0.1",
       "x-vercel-ip-country": country,
       "x-vercel-ip-country-region": toSafeHeaderValue(customer?.region) || "CA",
