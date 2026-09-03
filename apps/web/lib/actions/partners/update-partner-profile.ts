@@ -1,10 +1,12 @@
 "use server";
 
 import { DubApiError } from "@/lib/api/errors";
+import { queuePartnerSearchSync } from "@/lib/api/partners/queue-partner-search-sync";
 import { throwIfNoPermission } from "@/lib/auth/partner-users/throw-if-no-permission";
 import { requestEmailChange } from "@/lib/auth/request-email-change";
 import { qstash } from "@/lib/cron";
 import { isReservedUsername } from "@/lib/edge-config";
+import { dispatchGroupUtmSyncForPartner } from "@/lib/partners/dispatch-partner-utm-sync";
 import {
   assertEmailAvailableForIdentitySync,
   requestSyncedEmailChange,
@@ -186,6 +188,10 @@ export const updatePartnerProfileAction = authPartnerActionClient
         },
       });
 
+      // Queue an index update because the partner profile changed. Not scoped
+      // by program, since a profile is shared across them.
+      waitUntil(queuePartnerSearchSync({ partnerIds: [partner.id] }));
+
       // If the email is being changed, we need to verify the new email address
       if (emailChanged) {
         if (syncIdentity) {
@@ -255,6 +261,10 @@ export const updatePartnerProfileAction = authPartnerActionClient
 
       waitUntil(
         Promise.allSettled([
+          partner.name !== updatedPartner.name
+            ? dispatchGroupUtmSyncForPartner(partner.id)
+            : undefined,
+
           (async () => {
             const shouldExpireCache = !deepEqual(
               {

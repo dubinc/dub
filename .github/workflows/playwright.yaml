@@ -130,10 +130,7 @@ jobs:
 
       - name: Start QStash dev server
         run: |
-          docker run -d --name qstash-dev \
-            --network host \
-            public.ecr.aws/upstash/qstash:latest \
-            qstash dev
+          nohup npx --yes @upstash/qstash-cli@2.37.18 dev > /tmp/qstash.log 2>&1 &
           for i in $(seq 1 30); do
             if curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:8080 | grep -qE '^[0-9]{3}$'; then
               echo "QStash is up"
@@ -141,7 +138,8 @@ jobs:
             fi
             sleep 1
           done
-          docker logs qstash-dev
+          echo "QStash failed to start"
+          cat /tmp/qstash.log
           exit 1
 
       - name: Configure Tinybird Local

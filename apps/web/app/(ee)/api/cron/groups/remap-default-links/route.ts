@@ -1,10 +1,12 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { bulkCreateLinks } from "@/lib/api/links";
 import { generatePartnerLink } from "@/lib/api/partners/generate-partner-link";
+import { applyGroupUtmToLink } from "@/lib/api/utm/apply-group-utm-to-link";
 import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { loadAppsFlyerParameters } from "@/lib/integrations/appsflyer/apply-parameters";
 import { AppsFlyerSettings } from "@/lib/integrations/appsflyer/schema";
+import { syncGroupUtmJob } from "@/lib/jobs/handlers/sync-group-utm-job";
 import { isAppsFlyerTrackingUrl } from "@/lib/middleware/utils/is-appsflyer-tracking-url";
 import { prisma } from "@/lib/prisma";
 import { WorkspaceProps } from "@/lib/types";
@@ -158,14 +160,14 @@ export async function POST(req: Request) {
 
       const processedLinks = (
         await Promise.allSettled(
-          linksToCreate.map((link) => {
+          linksToCreate.map(async (link) => {
             const programEnrollment = programEnrollments.find(
               (p) => p.partner.id === link.partnerId,
             );
 
             const partner = programEnrollment?.partner;
 
-            return generatePartnerLink({
+            const processedLink = await generatePartnerLink({
               workspace: {
                 id: program.workspace.id,
                 plan: program.workspace.plan as WorkspaceProps["plan"],
@@ -188,6 +190,12 @@ export async function POST(req: Request) {
               },
               userId: userId ?? undefined,
               appsFlyerParameters,
+            });
+
+            return applyGroupUtmToLink({
+              link: processedLink,
+              utmTemplate: partnerGroup.utmTemplate,
+              partnerName: partner?.name,
             });
           }),
         )
@@ -251,17 +259,10 @@ export async function POST(req: Request) {
       );
     }
 
-    const syncUtmJob = await qstash.publishJSON({
-      url: `${APP_DOMAIN_WITH_NGROK}/api/cron/groups/sync-utm`,
-      body: {
-        groupId,
-        partnerIds,
-      },
+    await syncGroupUtmJob.dispatch({
+      groupId,
+      partnerIds,
     });
-
-    console.log(
-      `Scheduled sync-utm job for group ${groupId}: ${prettyPrint(syncUtmJob)}`,
-    );
 
     const remapDiscountCodesJob = await qstash.publishJSON({
       url: `${APP_DOMAIN_WITH_NGROK}/api/cron/groups/remap-discount-codes`,

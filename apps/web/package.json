@@ -54,6 +54,7 @@
     "@tiptap/html": "^3.15.3",
     "@tiptap/starter-kit": "^3.15.3",
     "@tiptap/static-renderer": "^3.15.3",
+    "@turbopuffer/turbopuffer": "^2.8.0",
     "@types/base-x": "^3.0.10",
     "@types/bcryptjs": "^2.4.6",
     "@types/buffer-crc32": "0.2.0",

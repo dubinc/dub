@@ -16,6 +16,12 @@ export type ApiClient = {
   delete: <T>(url: string) => Promise<ApiResponse<T>>;
 };
 
+type WorkerFixtures = {
+  api: ApiClient;
+  workspace: { id: string; slug: string };
+  program: { id: string; defaultGroupId: string };
+};
+
 function loadApiAuth() {
   return JSON.parse(readFileSync(authFile, "utf-8")) as {
     token: string;
@@ -47,36 +53,38 @@ function createApiClient(request: APIRequestContext): ApiClient {
   };
 }
 
-export const test = base.extend<{
-  api: ApiClient;
-  workspace: { id: string; slug: string };
-  program: { id: string; defaultGroupId: string };
-}>({
-  // Authenticated API request context (token from globalSetup → .auth/api.json).
-  request: async ({ playwright, baseURL }, use) => {
-    const { token } = loadApiAuth();
-    const context = await playwright.request.newContext({
-      baseURL,
-      extraHTTPHeaders: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-    });
-    await use(context);
-    await context.dispose();
-  },
+export const test = base.extend<{}, WorkerFixtures>({
+  // Authenticated API client (token from globalSetup → .auth/api.json).
+  // Worker-scoped so beforeAll hooks can use api/program (Playwright rejects test-scoped fixtures there).
+  api: [
+    async ({ playwright }, use, workerInfo) => {
+      const { token } = loadApiAuth();
+      const context = await playwright.request.newContext({
+        baseURL: workerInfo.project.use.baseURL,
+        extraHTTPHeaders: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+      await use(createApiClient(context));
+      await context.dispose();
+    },
+    { scope: "worker" },
+  ],
 
-  api: async ({ request }, use) => {
-    await use(createApiClient(request));
-  },
+  workspace: [
+    async ({}, use) => {
+      const { workspaceId, workspaceSlug } = loadApiAuth();
+      await use({ id: workspaceId, slug: workspaceSlug });
+    },
+    { scope: "worker" },
+  ],
 
-  workspace: async ({}, use) => {
-    const { workspaceId, workspaceSlug } = loadApiAuth();
-    await use({ id: workspaceId, slug: workspaceSlug });
-  },
-
-  program: async ({}, use) => {
-    const { programId, defaultGroupId } = loadApiAuth();
-    await use({ id: programId, defaultGroupId });
-  },
+  program: [
+    async ({}, use) => {
+      const { programId, defaultGroupId } = loadApiAuth();
+      await use({ id: programId, defaultGroupId });
+    },
+    { scope: "worker" },
+  ],
 });

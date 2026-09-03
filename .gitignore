@@ -51,3 +51,4 @@ playwright-report/
 **/playwright/.auth/
 test-results/
 blob-report/
+.pnpm-store

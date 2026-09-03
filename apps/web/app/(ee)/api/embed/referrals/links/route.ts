@@ -2,7 +2,7 @@ import { DubApiError, ErrorCodes } from "@/lib/api/errors";
 import { createLink, processLink } from "@/lib/api/links";
 import { validatePartnerLinkUrl } from "@/lib/api/links/validate-partner-link-url";
 import { parseRequestBody } from "@/lib/api/utils";
-import { extractUtmParams } from "@/lib/api/utm/extract-utm-params";
+import { applyGroupUtmToLink } from "@/lib/api/utm/apply-group-utm-to-link";
 import { withReferralsEmbedToken } from "@/lib/embed/referrals/auth";
 import { prisma } from "@/lib/prisma";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
@@ -12,7 +12,6 @@ import {
   createPartnerLinkSchema,
 } from "@/lib/zod/schemas/partners";
 import { ReferralsEmbedLinkSchema } from "@/lib/zod/schemas/referrals-embed";
-import { getUTMParamsFromURL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
@@ -55,7 +54,7 @@ export const POST = withReferralsEmbedToken(
 
     validatePartnerLinkUrl({ group, url });
 
-    const [workspaceOwner, partnerGroup] = await Promise.all([
+    const [workspaceOwner, partnerGroup, partner] = await Promise.all([
       prisma.projectUsers.findFirst({
         where: {
           projectId: program.workspaceId,
@@ -83,6 +82,15 @@ export const POST = withReferralsEmbedToken(
           utmTemplate: true,
         },
       }),
+
+      prisma.partner.findUnique({
+        where: {
+          id: programEnrollment.partnerId,
+        },
+        select: {
+          name: true,
+        },
+      }),
     ]);
 
     // shouldn't happen but just in case
@@ -99,12 +107,6 @@ export const POST = withReferralsEmbedToken(
       payload: {
         key: key || undefined,
         url: linkUrl,
-        ...(partnerGroup.utmTemplate
-          ? {
-              ...extractUtmParams(partnerGroup.utmTemplate),
-              ...getUTMParamsFromURL(linkUrl),
-            }
-          : {}),
         domain: program.domain,
         programId: program.id,
         folderId: program.defaultFolderId,
@@ -130,7 +132,13 @@ export const POST = withReferralsEmbedToken(
       });
     }
 
-    const partnerLink = await createLink(link);
+    const linkWithUtm = applyGroupUtmToLink({
+      link,
+      utmTemplate: partnerGroup.utmTemplate,
+      partnerName: partner?.name,
+    });
+
+    const partnerLink = await createLink(linkWithUtm);
 
     // this should always be present but just in case
     const workspace = workspaceOwner?.project;

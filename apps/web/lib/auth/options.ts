@@ -1,5 +1,6 @@
 import { isBlacklistedEmail } from "@/lib/edge-config";
 import { jackson } from "@/lib/jackson";
+import { welcomeUserJob } from "@/lib/jobs/handlers/welcome-user-job";
 import { prisma } from "@/lib/prisma";
 import { isStored, storage } from "@/lib/storage";
 import { UserProps } from "@/lib/types";
@@ -7,7 +8,6 @@ import { assertRateLimit } from "@/lib/upstash/assert-rate-limit";
 import { RATELIMIT_POLICIES } from "@/lib/upstash/ratelimit-policies";
 import { sendEmail } from "@dub/email";
 import LoginLink from "@dub/email/templates/login-link";
-import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { PrismaClient } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
@@ -21,7 +21,6 @@ import GoogleProvider from "next-auth/providers/google";
 import { createId } from "../api/create-id";
 import { isProduction } from "../api/environment";
 import { isSamlEnforcedForEmailDomain } from "../api/workspaces/is-saml-enforced-for-email-domain";
-import { qstash } from "../cron";
 import { completeProgramApplications } from "../partners/complete-program-applications";
 import {
   consumeAdminImpersonation,
@@ -610,11 +609,15 @@ export const authOptions: NextAuthOptions = {
             // track lead if dub_id cookie is present
             trackDubLead(user),
             // trigger welcome workflow 45 minutes after the user signed up
-            qstash.publishJSON({
-              url: `${APP_DOMAIN_WITH_NGROK}/api/cron/welcome-user`,
-              delay: 45 * 60,
-              body: { userId: user.id },
-            }),
+            welcomeUserJob.dispatch(
+              {
+                userId: user.id,
+              },
+              {
+                delay: 45 * 60,
+                label: user.id,
+              },
+            ),
           ]),
         );
       }

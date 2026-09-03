@@ -133,9 +133,14 @@ export const getCommissionsQuerySchema = z
       .enum(CommissionType)
       .optional()
       .describe(
-        "Filter the list of commissions by type. " +
+        [
+          "Filter the list of commissions by type.",
           "Supports advanced filtering: single value, multiple values (comma-separated), or exclusion (prefix with `-`). " +
-          "Examples: `sale`, `sale,lead`, `-click`.",
+            "Examples:",
+          `- "sale"`,
+          `- "sale,lead"`,
+          `- "-click"`,
+        ].join("\n"),
       ),
     customerId: z
       .string()
@@ -149,9 +154,14 @@ export const getCommissionsQuerySchema = z
       .string()
       .optional()
       .describe(
-        "Filter the list of commissions by the associated partner. When specified, takes precedence over `tenantId`. " +
-          "Supports advanced filtering: single value, multiple values (comma-separated), or exclusion (prefix with `-`). " +
-          "Examples: `partner_abc`, `partner_abc,partner_xyz`, `-partner_abc`.",
+        [
+          "Filter the list of commissions by the associated partner. When specified, takes precedence over `tenantId`.",
+          "Supports advanced filtering: single value, multiple values (comma-separated), or exclusion (prefix with `-`).",
+          "Examples:",
+          `- "partner_abc"`,
+          `- "partner_abc,partner_xyz"`,
+          `- "-partner_abc"`,
+        ].join("\n"),
       ),
     tenantId: z
       .string()
@@ -163,17 +173,27 @@ export const getCommissionsQuerySchema = z
       .string()
       .optional()
       .describe(
-        "Filter the list of commissions by the associated partner group. " +
+        [
+          "Filter the list of commissions by the associated partner group.",
           "Supports advanced filtering: single value, multiple values (comma-separated), or exclusion (prefix with `-`). " +
-          "Examples: `group_abc`, `group_abc,group_xyz`, `-group_abc`.",
+            "Examples:",
+          `- "group_abc"`,
+          `- "group_abc,group_xyz"`,
+          `- "-group_abc"`,
+        ].join("\n"),
       ),
     partnerTagId: z
       .string()
       .optional()
       .describe(
-        "Filter the list of commissions by the associated partner tag. " +
-          "Supports advanced filtering: single value, multiple values (comma-separated), or exclusion (prefix with `-`). " +
-          "Examples: `ptag_abc`, `ptag_abc,ptag_xyz`, `-ptag_abc`.",
+        [
+          "Filter the list of commissions by the associated partner tag.",
+          "Supports advanced filtering: single value, multiple values (comma-separated), or exclusion (prefix with `-`).",
+          "Examples:",
+          `- "ptag_abc"`,
+          `- "ptag_abc,ptag_xyz"`,
+          `- "-ptag_abc"`,
+        ].join("\n"),
       ),
     invoiceId: z
       .string()
@@ -208,6 +228,18 @@ export const getCommissionsQuerySchema = z
       .optional()
       .describe("The end date of the date range to filter the commissions by."),
     timezone: z.string().optional(),
+    query: z
+      .string()
+      .max(10000)
+      .optional()
+      .meta({
+        description: [
+          "Filter by lead or sale event metadata. Top-level keys only. Compares string values only — numeric and boolean metadata values are not matched.",
+          "Examples:",
+          `- "metadata['key']='value'"`,
+          `- "metadata['key']!='value'"`,
+        ].join("\n"),
+      }),
   })
   .extend({
     ...getCursorPaginationQuerySchema({
@@ -593,7 +625,14 @@ const createSaleCommissionSchema = z
       .string()
       .nullish()
       .describe(
-        "The partner link ID to associate the commission with. If not provided, default to the link with the most revenue.",
+        "The partner link ID to associate the commission with. If neither `linkId` nor `discountCode` is provided, default to the link with the most revenue.",
+      ),
+    discountCode: z
+      .string()
+      .min(1)
+      .nullish()
+      .describe(
+        "The partner discount code to resolve the associated link. Use this when the link ID is unknown. Cannot be provided together with `linkId`.",
       ),
     importStripeInvoices: z
       .boolean()
@@ -704,6 +743,19 @@ export const createManualCommissionBodySchema = z
           path: ["description"],
         });
       }
+      return;
+    }
+
+    if (
+      data.type === "sale" &&
+      data.linkId != null &&
+      data.discountCode != null
+    ) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Either `linkId` or `discountCode` may be provided, not both.",
+        path: ["discountCode"],
+      });
     }
   });
 
