@@ -1,5 +1,4 @@
-import { handleAndReturnErrorResponse } from "@/lib/api/errors";
-import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
+import { withCron } from "@/lib/cron/with-cron";
 import { prisma } from "@/lib/prisma";
 import { createPaymentIntent } from "@/lib/stripe/create-payment-intent";
 import { ACME_WORKSPACE_ID, DUB_WORKSPACE_ID } from "@dub/utils";
@@ -12,93 +11,82 @@ const schema = z.object({
 });
 
 // POST /api/cron/invoices/retry-failed
-export async function POST(req: Request) {
-  try {
-    const rawBody = await req.text();
+export const POST = withCron(async ({ rawBody }) => {
+  const { invoiceId } = schema.parse(JSON.parse(rawBody));
 
-    await verifyQstashSignature({
-      req,
-      rawBody,
-    });
-
-    const { invoiceId } = schema.parse(JSON.parse(rawBody));
-
-    const invoice = await prisma.invoice.findUnique({
-      where: {
-        id: invoiceId,
-      },
-      select: {
-        id: true,
-        type: true,
-        status: true,
-        total: true,
-        failedAttempts: true,
-        workspace: {
-          select: {
-            id: true,
-            stripeId: true,
-          },
-        },
-      },
-    });
-
-    if (!invoice) {
-      console.log(`Invoice ${invoiceId} not found.`);
-      return new Response(`Invoice ${invoiceId} not found.`);
-    }
-
-    if (invoice.status !== "failed") {
-      console.log(`Invoice ${invoiceId} is not failed.`);
-      return new Response(`Invoice ${invoiceId} is not failed.`);
-    }
-
-    if (invoice.failedAttempts >= 3) {
-      console.log(`Invoice ${invoiceId} has reached max failed attempts of 3.`);
-      return new Response(
-        `Invoice ${invoiceId} has reached max failed attempts of 3.`,
-      );
-    }
-
-    if (invoice.type !== "domainRenewal") {
-      console.log(`Only domain renewals can be retried at this time.`);
-      return new Response(`Only domain renewals can be retried at this time.`);
-    }
-
-    let { workspace } = invoice;
-
-    // If Acme workspace, use Dub workspace stripeId
-    if (workspace.id === ACME_WORKSPACE_ID) {
-      const dubWorkspace = await prisma.project.findUniqueOrThrow({
-        where: {
-          id: DUB_WORKSPACE_ID,
-        },
+  const invoice = await prisma.invoice.findUnique({
+    where: {
+      id: invoiceId,
+    },
+    select: {
+      id: true,
+      type: true,
+      status: true,
+      total: true,
+      failedAttempts: true,
+      workspace: {
         select: {
+          id: true,
           stripeId: true,
         },
-      });
+      },
+    },
+  });
 
-      workspace = {
-        ...workspace,
-        stripeId: dubWorkspace.stripeId,
-      };
-    }
+  if (!invoice) {
+    console.log(`Invoice ${invoiceId} not found.`);
+    return new Response(`Invoice ${invoiceId} not found.`);
+  }
 
-    if (!workspace.stripeId) {
-      console.log(`Workspace ${workspace.id} has no stripeId.`);
-      return new Response(`Workspace ${workspace.id} has no stripeId.`);
-    }
+  if (invoice.status !== "failed") {
+    console.log(`Invoice ${invoiceId} is not failed.`);
+    return new Response(`Invoice ${invoiceId} is not failed.`);
+  }
 
-    await createPaymentIntent({
-      stripeId: workspace.stripeId,
-      amount: invoice.total,
-      invoiceId: invoice.id,
-      statementDescriptor: "DUB.CO DOMAIN RENEWAL",
-      description: `Domain renewal invoice (${invoice.id})`,
-      idempotencyKey: `${invoice.id}-${invoice.failedAttempts}`,
+  if (invoice.failedAttempts >= 3) {
+    console.log(`Invoice ${invoiceId} has reached max failed attempts of 3.`);
+    return new Response(
+      `Invoice ${invoiceId} has reached max failed attempts of 3.`,
+    );
+  }
+
+  if (invoice.type !== "domainRenewal") {
+    console.log(`Only domain renewals can be retried at this time.`);
+    return new Response(`Only domain renewals can be retried at this time.`);
+  }
+
+  let { workspace } = invoice;
+
+  // If Acme workspace, use Dub workspace stripeId
+  if (workspace.id === ACME_WORKSPACE_ID) {
+    const dubWorkspace = await prisma.project.findUniqueOrThrow({
+      where: {
+        id: DUB_WORKSPACE_ID,
+      },
+      select: {
+        stripeId: true,
+      },
     });
 
-    return new Response(`Retrying invoice charge ${invoice.id}...`);
-  } catch (error) {
-    return handleAndReturnErrorResponse(error);
+    workspace = {
+      ...workspace,
+      stripeId: dubWorkspace.stripeId,
+    };
   }
-}
+
+  if (!workspace.stripeId) {
+    console.log(`Workspace ${workspace.id} has no stripeId.`);
+    return new Response(`Workspace ${workspace.id} has no stripeId.`);
+  }
+
+  await createPaymentIntent({
+    stripeId: workspace.stripeId,
+    amount: invoice.total,
+    invoiceId: invoice.id,
+    statementDescriptor: "DUB.CO DOMAIN RENEWAL",
+    description: `Domain renewal invoice (${invoice.id})`,
+    idempotencyKey: `${invoice.id}-${invoice.failedAttempts}`,
+  });
+
+  return new Response(`Retrying invoice charge ${invoice.id}...`);
+});

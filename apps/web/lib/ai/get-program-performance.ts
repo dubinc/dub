@@ -1,8 +1,12 @@
 import { prisma } from "@/lib/prisma";
+import { currencyFormatter } from "@dub/utils";
 import { CommissionStatus, PayoutStatus } from "@prisma/client";
 import { tool } from "ai";
 import { z } from "zod";
 import { getSession } from "../auth/utils";
+
+const formatUsd = (valueInCents: number) =>
+  currencyFormatter(valueInCents, { trailingZeroDisplay: "stripIfInteger" });
 
 const programPerformanceSchema = z.object({
   program: z.object({
@@ -13,9 +17,9 @@ const programPerformanceSchema = z.object({
         "The support email of the program. Useful for letting the user know how to contact the program's support team.",
       ),
     minPayoutAmount: z
-      .number()
+      .string()
       .describe(
-        "The minimum payout amount for the program in USD cents. If the partner's earnings are less than this amount, it will not be eligible for payout.",
+        'The minimum payout amount for the program, already formatted as USD (e.g. "$10"). If the partner\'s earnings are less than this amount, it will not be eligible for payout.',
       ),
   }),
   commissions: z.array(
@@ -23,12 +27,18 @@ const programPerformanceSchema = z.object({
       status: z
         .enum(CommissionStatus)
         .describe("The status of the commission."),
-      earningsInCents: z.number().describe("Total earnings in USD cents"),
+      earnings: z
+        .string()
+        .describe('Total earnings, already formatted as USD (e.g. "$10").'),
     }),
   ),
   payouts: z.array(
     z.object({
-      amount: z.number().describe("The amount of the payout in USD cents."),
+      amount: z
+        .string()
+        .describe(
+          'The amount of the payout, already formatted as USD (e.g. "$10").',
+        ),
       status: z.enum(PayoutStatus).describe("The status of the payout."),
       stripePayoutTraceId: z
         .string()
@@ -118,16 +128,22 @@ export const getProgramPerformanceTool = tool({
     ]);
 
     const data = programPerformanceSchema.parse({
-      program: programEnrollment.program,
+      program: {
+        ...programEnrollment.program,
+        minPayoutAmount: formatUsd(programEnrollment.program.minPayoutAmount),
+      },
       holdingPeriodDays:
         programEnrollment.partnerGroup?.holdingPeriodDays ??
         programEnrollment.program.groups[0]?.holdingPeriodDays ??
         0,
       commissions: commissions.map((commission) => ({
         status: commission.status,
-        earningsInCents: commission._sum.earnings,
+        earnings: formatUsd(commission._sum.earnings ?? 0),
       })),
-      payouts,
+      payouts: payouts.map((payout) => ({
+        ...payout,
+        amount: formatUsd(payout.amount),
+      })),
     });
 
     return data;
