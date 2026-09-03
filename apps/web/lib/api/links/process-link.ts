@@ -36,7 +36,7 @@ export async function processLink<T extends Record<string, any>>({
   skipProgramChecks = false, // only skip for when program is already validated
 }: {
   payload: NewLinkProps & T;
-  workspace?: Pick<Project, "id" | "plan" | "defaultProgramId"> & {
+  workspace?: Pick<Project, "id" | "plan"> & {
     users: { role: WorkspaceRole }[];
   };
   userId?: string;
@@ -438,14 +438,12 @@ export async function processLink<T extends Record<string, any>>({
 
     // only perform program validity checks if not bulk creation (we do that check separately in the route itself)
     if (programId && !skipProgramChecks) {
-      if (
-        workspace?.defaultProgramId &&
-        programId !== workspace.defaultProgramId
-      ) {
+      if (!partnerId && !tenantId) {
         return {
           link: payload,
-          error: "Program not found.",
-          code: "not_found",
+          error:
+            "programId was passed but no valid partnerId or tenantId was provided.",
+          code: "unprocessable_entity",
         };
       }
 
@@ -454,15 +452,11 @@ export async function processLink<T extends Record<string, any>>({
         select: {
           workspaceId: true,
           defaultFolderId: true,
-          ...(!partnerId && tenantId
-            ? {
-                partners: {
-                  where: {
-                    tenantId,
-                  },
-                },
-              }
-            : {}),
+          partners: {
+            where: {
+              ...(partnerId ? { partnerId } : { tenantId }),
+            },
+          },
         },
       });
 
@@ -474,19 +468,15 @@ export async function processLink<T extends Record<string, any>>({
         };
       }
 
-      if (!partnerId) {
-        if (program?.partners?.length > 0) {
-          partnerId = program.partners[0].partnerId;
-        } else {
-          return {
-            link: payload,
-            error:
-              "programId was passed but no valid partnerId or tenantId was provided.",
-            code: "unprocessable_entity",
-          };
-        }
+      if (!program.partners.length) {
+        return {
+          link: payload,
+          error: "Invalid partnerId or tenantId provided.",
+          code: "not_found",
+        };
       }
 
+      partnerId = program.partners[0].partnerId;
       defaultProgramFolderId = program.defaultFolderId;
     }
 

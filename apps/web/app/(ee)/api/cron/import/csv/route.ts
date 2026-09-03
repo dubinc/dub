@@ -384,7 +384,6 @@ const processMappedLinks = async ({
     select: {
       id: true,
       plan: true,
-      defaultProgramId: true,
       users: {
         where: {
           userId,
