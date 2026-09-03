@@ -35,8 +35,23 @@ export const POST = withAxiom(async (req) => {
       .update(sourceString)
       .digest("hex");
 
-    // Compare with provided signature
-    if (signature !== expectedHash) {
+    // Compare with provided signature using constant-time comparison
+    const providedBuffer = Buffer.from(signature, "utf8");
+    const expectedBuffer = Buffer.from(expectedHash, "utf8");
+
+    if (providedBuffer.length !== expectedBuffer.length) {
+      throw new DubApiError({
+        code: "unauthorized",
+        message: "Invalid webhook signature.",
+      });
+    }
+
+    const isSignatureValid = crypto.timingSafeEqual(
+      Uint8Array.from(providedBuffer),
+      Uint8Array.from(expectedBuffer),
+    );
+
+    if (!isSignatureValid) {
       throw new DubApiError({
         code: "unauthorized",
         message: "Invalid webhook signature.",

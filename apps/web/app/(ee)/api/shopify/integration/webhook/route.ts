@@ -41,7 +41,24 @@ export const POST = async (req: Request) => {
       .update(data, "utf8")
       .digest("base64");
 
-    if (generatedSignature !== signature) {
+    const providedBuffer = Buffer.from(signature, "utf8");
+    const expectedBuffer = Buffer.from(generatedSignature, "utf8");
+
+    if (providedBuffer.length !== expectedBuffer.length) {
+      return logAndRespond(
+        "Shopify webhook signature verification failed. Skipping...",
+        {
+          status: 401,
+        },
+      );
+    }
+
+    const isSignatureValid = crypto.timingSafeEqual(
+      Uint8Array.from(providedBuffer),
+      Uint8Array.from(expectedBuffer),
+    );
+
+    if (!isSignatureValid) {
       return logAndRespond(
         "Shopify webhook signature verification failed. Skipping...",
         {
