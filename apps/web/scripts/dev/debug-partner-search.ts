@@ -148,32 +148,32 @@ const PLATFORM_TYPES = [
 /**
  * `searchText` is every searchable value lowercased and space-joined in a fixed
  * order: partner ID, name, email, company, description, platform types, handles,
- * then links. Three of those boundaries are recoverable, since the ID is prefixed,
- * the email is address-shaped, and the platform types are a known enum, so the
- * blob splits into name / profile / platforms-and-links. Company and description
- * cannot be told apart once joined, so they stay together as `profile`.
+ * then link keys. Three of those boundaries are recoverable, since the ID is
+ * prefixed, the email is address-shaped, and the platform types are a known
+ * enum, so the blob splits into name / profile / platforms-and-keys. A document
+ * without platforms has no recoverable boundary after the email, so everything
+ * past it stays together as `profile`.
  */
 function parseIndexedText(searchText: string) {
   const tokens = searchText.split(" ").filter(Boolean);
   const hasPartnerId = tokens[0]?.startsWith("pn_") ?? false;
   const emailIndex = tokens.findIndex((token) => EMAIL_PATTERN.test(token));
+  // Without an email there is no boundary after the name, so it is assumed to
+  // end at the fourth token, and the profile starts where the name ends.
+  const nameEnd = emailIndex === -1 ? 4 : emailIndex;
+  const profileStart = emailIndex === -1 ? nameEnd : emailIndex + 1;
   const platformIndex = tokens.findIndex(
-    (token, index) => index > emailIndex && PLATFORM_TYPES.includes(token),
+    (token, index) => index >= profileStart && PLATFORM_TYPES.includes(token),
   );
 
   return {
     tokens,
-    name: tokens
-      .slice(hasPartnerId ? 1 : 0, emailIndex === -1 ? 4 : emailIndex)
-      .join(" "),
+    name: tokens.slice(hasPartnerId ? 1 : 0, nameEnd).join(" "),
     email: emailIndex === -1 ? "" : tokens[emailIndex],
     profile: tokens
-      .slice(
-        emailIndex + 1,
-        platformIndex === -1 ? emailIndex + 1 : platformIndex,
-      )
+      .slice(profileStart, platformIndex === -1 ? undefined : platformIndex)
       .join(" "),
-    platformsAndLinks:
+    platformsAndKeys:
       platformIndex === -1 ? "" : tokens.slice(platformIndex).join(" "),
   };
 }
@@ -228,10 +228,13 @@ function reportProviderHits(
   hits.forEach((hit, index) => {
     const parsed = parseIndexedText(indexedText.get(hit.id) ?? "");
     console.log(`\n${index + 1}. ${hit.id}`);
-    console.log(`   profile   ${parsed.profile.slice(0, 150) || "—"}`);
+    console.log(`   profile         ${parsed.profile.slice(0, 150) || "—"}`);
     console.log(
-      `   platforms ${parsed.platformsAndLinks.slice(0, 150) || "—"}`,
+      `   platforms+keys  ${parsed.platformsAndKeys.slice(0, 150) || "—"}`,
     );
+    // The parsed sections are heuristic. The raw text is the ground truth for
+    // checking what a document actually contains, so it is never truncated.
+    console.log(`   raw             ${indexedText.get(hit.id) ?? ""}`);
   });
 }
 

@@ -10,7 +10,7 @@ import { validatePartnerLinkUrl } from "@/lib/api/links/validate-partner-link-ur
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
-import { extractUtmParams } from "@/lib/api/utm/extract-utm-params";
+import { applyGroupUtmToLink } from "@/lib/api/utm/apply-group-utm-to-link";
 import { withWorkspace } from "@/lib/auth";
 import { throwIfNoPartnerIdOrTenantId } from "@/lib/partners/throw-if-no-partnerid-tenantid";
 import { prisma } from "@/lib/prisma";
@@ -18,7 +18,7 @@ import { NewLinkProps } from "@/lib/types";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { linkEventSchema } from "@/lib/zod/schemas/links";
 import { upsertPartnerLinkSchema } from "@/lib/zod/schemas/partners";
-import { deepEqual, getUTMParamsFromURL } from "@dub/utils";
+import { deepEqual } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
@@ -50,6 +50,11 @@ export const PUT = withWorkspace(
         ? { partnerId_programId: { partnerId, programId } }
         : { tenantId_programId: { tenantId: tenantId!, programId } },
       include: {
+        partner: {
+          select: {
+            name: true,
+          },
+        },
         partnerGroup: {
           include: {
             partnerGroupDefaultLinks: true,
@@ -164,6 +169,12 @@ export const PUT = withWorkspace(
         });
       }
 
+      const linkWithUtm = applyGroupUtmToLink({
+        link: processedLink,
+        utmTemplate: partnerGroup.utmTemplate,
+        partnerName: partner.partner.name,
+      });
+
       try {
         const response = await updateLink({
           oldLink: {
@@ -173,7 +184,7 @@ export const PUT = withWorkspace(
             programId: link.programId,
             partnerId: link.partnerId,
           },
-          updatedLink: processedLink,
+          updatedLink: linkWithUtm,
         });
 
         waitUntil(
@@ -203,12 +214,6 @@ export const PUT = withWorkspace(
           domain: program.domain,
           key: key || undefined,
           url: linkUrl,
-          ...(partnerGroup.utmTemplate
-            ? {
-                ...extractUtmParams(partnerGroup.utmTemplate),
-                ...getUTMParamsFromURL(linkUrl),
-              }
-            : {}),
           programId: program.id,
           tenantId: partner.tenantId,
           partnerId: partner.partnerId,
@@ -227,7 +232,13 @@ export const PUT = withWorkspace(
         });
       }
 
-      const partnerLink = await createLink(link);
+      const linkWithUtm = applyGroupUtmToLink({
+        link,
+        utmTemplate: partnerGroup.utmTemplate,
+        partnerName: partner.partner.name,
+      });
+
+      const partnerLink = await createLink(linkWithUtm);
 
       waitUntil(
         sendWorkspaceWebhook({

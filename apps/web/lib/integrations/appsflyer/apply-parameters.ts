@@ -1,16 +1,10 @@
+import {
+  PartnerMacroContext,
+  resolvePartnerMacros,
+} from "@/lib/partners/macros";
 import { prisma } from "@/lib/prisma";
 import { APPSFLYER_INTEGRATION_ID } from "@dub/utils";
 import { AppsFlyerSettings, appsFlyerSettingsSchema } from "./schema";
-
-interface AppsFlyerParameterContext {
-  partnerName: string;
-  partnerLinkKey: string;
-}
-
-const macroReplacements: Record<string, keyof AppsFlyerParameterContext> = {
-  "{{PARTNER_NAME}}": "partnerName",
-  "{{PARTNER_LINK_KEY}}": "partnerLinkKey",
-};
 
 // Resolve macros in parameter values and append them to a URL
 export function applyAppsFlyerParameters({
@@ -20,21 +14,12 @@ export function applyAppsFlyerParameters({
 }: {
   url: string;
   parameters: { key: string; value: string }[];
-  context: AppsFlyerParameterContext;
+  context: PartnerMacroContext;
 }) {
   const urlObj = new URL(url);
 
   for (const { key, value } of parameters) {
-    let resolvedValue = value;
-
-    for (const [macro, contextKey] of Object.entries(macroReplacements)) {
-      resolvedValue = resolvedValue.replaceAll(
-        macro,
-        context[contextKey] ?? "",
-      );
-    }
-
-    urlObj.searchParams.set(key, resolvedValue);
+    urlObj.searchParams.set(key, resolvePartnerMacros(value, context));
   }
 
   return urlObj.toString();

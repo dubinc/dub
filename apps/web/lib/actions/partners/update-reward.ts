@@ -144,6 +144,8 @@ export const updateRewardAction = authActionClient
       },
     });
 
+    revalidateProgramPublicPages(programId);
+
     waitUntil(
       Promise.allSettled([
         recordAuditLog({
@@ -172,8 +174,6 @@ export const updateRewardAction = authActionClient
           new: updatedReward,
           description: activityDescription,
         }),
-
-        revalidateProgramPublicPages(programId),
       ]),
     );
   });

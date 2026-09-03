@@ -259,7 +259,9 @@ async function resolveLinkAndCustomer(args: ResolveLinkAndCustomerArgs) {
 
   let targetLink: Link;
   let targetCustomer: Customer | null = null;
-  const { workspace, partner, links, linkId, customerId, customer } = args;
+  const { workspace, partner, links, programId, linkId, customerId, customer } =
+    args;
+  const discountCode = type === "sale" ? args.discountCode : undefined;
 
   if (links.length === 0) {
     throw new DubApiError({
@@ -282,13 +284,49 @@ async function resolveLinkAndCustomer(args: ResolveLinkAndCustomerArgs) {
     });
   }
 
-  if (linkId) {
-    const link = links.find((l) => l.id === linkId);
+  let resolvedLinkId = linkId ?? null;
+
+  if (discountCode) {
+    const found = await prisma.discountCode.findUnique({
+      where: {
+        programId_code: {
+          programId,
+          code: discountCode,
+        },
+      },
+    });
+
+    if (!found) {
+      throw new DubApiError({
+        code: "not_found",
+        message: `Discount code ${discountCode} not found.`,
+      });
+    }
+
+    if (found.partnerId !== partner.id) {
+      throw new DubApiError({
+        code: "not_found",
+        message: `Discount code ${discountCode} does not belong to partner ${partner.email} (${partner.id}).`,
+      });
+    }
+
+    if (found.disabledAt) {
+      throw new DubApiError({
+        code: "bad_request",
+        message: `Discount code ${discountCode} is disabled.`,
+      });
+    }
+
+    resolvedLinkId = found.linkId;
+  }
+
+  if (resolvedLinkId) {
+    const link = links.find((l) => l.id === resolvedLinkId);
 
     if (!link) {
       throw new DubApiError({
         code: "not_found",
-        message: `Link ${linkId} does not belong to partner ${partner.email} (${partner.id}).`,
+        message: `Link ${resolvedLinkId} does not belong to partner ${partner.email} (${partner.id}).`,
       });
     }
 
@@ -442,14 +480,18 @@ async function recordEvents(args: RecordEventsArgs) {
   const clickId = nanoid(16);
   const clickedAt = new Date(finalLeadEventDate.getTime() - 5 * 60 * 1000);
 
-  // Record click event
+  // Record a dummy click event (start of the conversion funnel)
   const clickEvent = recordClickZodSchema.parse({
     timestamp: clickedAt.toISOString(),
     identity_hash: targetCustomer.externalId || targetCustomer.id,
+    workspace_id: workspace.id,
     click_id: clickId,
     link_id: targetLink.id,
+    domain: targetLink.domain,
+    key: targetLink.key,
     url: targetLink.url,
     ip: "127.0.0.1",
+    country: targetCustomer.country,
     continent: targetCustomer.country
       ? COUNTRIES_TO_CONTINENTS[targetCustomer.country.toUpperCase()] || ""
       : "",

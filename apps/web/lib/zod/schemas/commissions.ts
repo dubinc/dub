@@ -626,7 +626,14 @@ const createSaleCommissionSchema = z
       .string()
       .nullish()
       .describe(
-        "The partner link ID to associate the commission with. If not provided, default to the link with the most revenue.",
+        "The partner link ID to associate the commission with. If neither `linkId` nor `discountCode` is provided, default to the link with the most revenue.",
+      ),
+    discountCode: z
+      .string()
+      .min(1)
+      .nullish()
+      .describe(
+        "The partner discount code to resolve the associated link. Use this when the link ID is unknown. Cannot be provided together with `linkId`.",
       ),
     importStripeInvoices: z
       .boolean()
@@ -737,6 +744,19 @@ export const createManualCommissionBodySchema = z
           path: ["description"],
         });
       }
+      return;
+    }
+
+    if (
+      data.type === "sale" &&
+      data.linkId != null &&
+      data.discountCode != null
+    ) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Either `linkId` or `discountCode` may be provided, not both.",
+        path: ["discountCode"],
+      });
     }
   });
 

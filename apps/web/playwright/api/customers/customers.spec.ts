@@ -102,6 +102,7 @@ test("PATCH /customers/{id}", async ({ api }) => {
     const toUpdate = {
       name: "Updated",
       avatar: "https://api.dub.co/og/avatar/1234567890",
+      country: "BR",
     };
 
     const { status, data } = await api.patch<Customer>(

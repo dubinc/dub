@@ -172,7 +172,7 @@ export async function customerSubscriptionDeleted(
           "`* deleted their *`" +
           capitalize(workspace.plan) +
           "`* subscription",
-        type: "cron",
+        type: "alerts",
         mention: true,
       }),
 
