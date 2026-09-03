@@ -436,22 +436,27 @@ export async function processLink<T extends Record<string, any>>({
       }
     }
 
-    // Program validity checks
+    // only perform program validity checks if not bulk creation (we do that check separately in the route itself)
     if (programId && !skipProgramChecks) {
+      if (!partnerId && !tenantId) {
+        return {
+          link: payload,
+          error:
+            "programId was passed but no valid partnerId or tenantId was provided.",
+          code: "unprocessable_entity",
+        };
+      }
+
       const program = await prisma.program.findUnique({
         where: { id: programId },
         select: {
           workspaceId: true,
           defaultFolderId: true,
-          ...(!partnerId && tenantId
-            ? {
-                partners: {
-                  where: {
-                    tenantId,
-                  },
-                },
-              }
-            : {}),
+          partners: {
+            where: {
+              ...(partnerId ? { partnerId } : { tenantId }),
+            },
+          },
         },
       });
 
@@ -463,11 +468,15 @@ export async function processLink<T extends Record<string, any>>({
         };
       }
 
-      if (!partnerId) {
-        partnerId =
-          program?.partners?.length > 0 ? program.partners[0].partnerId : null;
+      if (!program.partners.length) {
+        return {
+          link: payload,
+          error: "Invalid partnerId or tenantId provided.",
+          code: "not_found",
+        };
       }
 
+      partnerId = program.partners[0].partnerId;
       defaultProgramFolderId = program.defaultFolderId;
     }
 
