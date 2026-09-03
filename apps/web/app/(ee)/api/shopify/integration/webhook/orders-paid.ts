@@ -97,10 +97,11 @@ export async function ordersPaid({
     const clickEvent = await getClickEvent({ clickId });
 
     if (!clickEvent) {
-      console.warn(
-        `Click event not found for the clickId ${clickId} from note_attributes`,
-      );
-      clickId = undefined;
+      return "[Shopify] Click event not found. Skipping the order...";
+    }
+
+    if (clickEvent.workspace_id !== workspace.id) {
+      return "[Shopify] Click event not found in the workspace. Skipping the order...";
     }
   }
 
