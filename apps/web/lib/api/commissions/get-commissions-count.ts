@@ -5,6 +5,10 @@ import { parseFilterValue } from "@dub/utils";
 import { CommissionStatus, CommissionType } from "@prisma/client";
 import * as z from "zod/v4";
 import { getFraudEventGroupEventIds } from "../fraud/get-fraud-event-group-event-ids";
+import {
+  buildCommissionMetadataWhere,
+  parseCommissionMetadataQuery,
+} from "./metadata-filters";
 
 type CommissionsCountFilters = z.infer<
   typeof getCommissionsCountQuerySchema
@@ -28,6 +32,7 @@ export async function getCommissionsCount(filters: CommissionsCountFilters) {
     interval,
     timezone,
     programId,
+    query,
   } = filters;
 
   // Filter the commissions based on the risk event group
@@ -79,6 +84,10 @@ export async function getCommissionsCount(filters: CommissionsCountFilters) {
   const customerFilter = parseFilterValue(customerId);
   const typeFilter = parseFilterValue(type);
 
+  // Metadata filter
+  const parsedMetadataQuery = parseCommissionMetadataQuery(query);
+  const metadataWhere = buildCommissionMetadataWhere(parsedMetadataQuery);
+
   const commissionsCount = await prisma.commission.groupBy({
     by: ["status"],
     where: {
@@ -118,6 +127,7 @@ export async function getCommissionsCount(filters: CommissionsCountFilters) {
       ...(Object.keys(programEnrollmentFilter).length > 0 && {
         programEnrollment: programEnrollmentFilter,
       }),
+      ...metadataWhere,
     },
     _count: true,
     _sum: {

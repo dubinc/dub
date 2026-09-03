@@ -100,7 +100,7 @@ export const EmailSignIn = ({ next }: { next?: string }) => {
             return;
           }
 
-          if (!response.ok && response.error) {
+          if (response.error) {
             if (errorCodes[response.error]) {
               toast.error(errorCodes[response.error]);
             } else {

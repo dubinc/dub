@@ -5,6 +5,7 @@ import { getOrCreateCustomer } from "@/lib/api/customers/get-or-create-customer"
 import { includeTags } from "@/lib/api/links/include-tags";
 import { syncPartnerLinksStats } from "@/lib/api/partners/sync-partner-links-stats";
 import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
+import { queueGoogleAdsConversionUpload } from "@/lib/integrations/google-ads/upload-conversion";
 import { queuePartnerCommissionCreation } from "@/lib/partners/queue-partner-commission-creation";
 import { sendPartnerPostback } from "@/lib/postback/send-partner-postback";
 import { prisma } from "@/lib/prisma";
@@ -19,7 +20,7 @@ import { redis } from "@/lib/upstash";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { transformSaleEventData } from "@/lib/webhook/transform";
 import { nanoid } from "@dub/utils";
-import { Customer } from "@prisma/client";
+import { Customer, EventType } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import type Stripe from "stripe";
 import { WebhookHandlerInput, WebhookHandlerResponse } from "./types";
@@ -571,6 +572,20 @@ export async function checkoutSessionCompleted({
           partner: result?.webhookPartner,
           metadata: null,
         }),
+      }),
+
+      queueGoogleAdsConversionUpload({
+        workspaceId: workspace.id,
+        eventType: EventType.sale,
+        eventName: saleData.event_name,
+        conversionDateTime: new Date().toISOString(),
+        eventId: saleData.event_id,
+        conversionValue: saleData.amount,
+        currencyCode: saleData.currency,
+        click: {
+          id: saleData.click_id,
+          url: saleData.url,
+        },
       }),
 
       ...(link?.partnerId

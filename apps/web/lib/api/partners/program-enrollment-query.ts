@@ -4,23 +4,45 @@ import { Prisma } from "@prisma/client";
 import * as z from "zod/v4";
 
 /**
+ * A complete address, not merely something containing "@". `steven@` is what a
+ * half-typed query looks like, and treating that as an exact lookup returns
+ * nothing instead of the partial matches the caller wanted.
+ *
+ * `@dub.co` fails this on purpose: it is a domain search, which the email index
+ * cannot serve (a trailing-wildcard match), so it belongs on the search path.
+ */
+export function isExactEmailQuery(query: string): boolean {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/u.test(query);
+}
+
+/**
+ * A pasted partner ID, not a prefix of one. IDs are 24 or 25 characters after
+ * `pn_`, so a shorter suffix is someone typing, and matching it exactly would return nothing.
+ */
+export function isExactPartnerIdQuery(query: string): boolean {
+  return /^pn_[a-z0-9]{24,}$/iu.test(query);
+}
+
+/**
  * Email / search filters on `Partner` (exact email, exact partner ID, or full-text on email/name/company).
  */
 export function buildPartnerEmailSearchWhere({
   email,
-  search,
+  search: rawSearch,
 }: {
   email?: string | null;
   search?: string | null;
 }): Prisma.PartnerWhereInput {
+  const search = rawSearch?.trim();
+
   if (email) {
     return { email };
   }
   if (search) {
-    if (search.includes("@")) {
+    if (isExactEmailQuery(search)) {
       return { email: search };
     }
-    if (search.startsWith("pn_")) {
+    if (isExactPartnerIdQuery(search)) {
       return { id: search };
     }
     const q = sanitizeFullTextSearch(search);

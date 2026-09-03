@@ -1,14 +1,15 @@
 import { trackApplicationEvents } from "@/lib/application-events/update-application-event";
+import { dispatchWorkflows } from "@/lib/jobs/publish-workflows";
 import { prisma } from "@/lib/prisma";
 import { ProgramEnrollmentStatus } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
-import { triggerQStashWorkflow } from "../../../cron/qstash-workflow";
 import { throwIfPartnersLimitExceeded } from "../../../partners/throw-if-partners-limit-exceeded";
 import { approvePartnerSchema } from "../../../zod/schemas/partners";
 import { trackActivityLog } from "../../activity-log/track-activity-log";
 import { DubApiError } from "../../errors";
 import { getGroupOrThrow } from "../../groups/get-group-or-throw";
+import { queuePartnerSearchSync } from "../queue-partner-search-sync";
 
 type ApprovePartnerInput = z.infer<typeof approvePartnerSchema> & {
   programId: string;
@@ -131,6 +132,9 @@ export async function approvePartner({
 
   waitUntil(
     Promise.allSettled([
+      // Queue an index update because the enrollment status moved to approved.
+      queuePartnerSearchSync({ partnerIds: [partnerId], programId }),
+
       trackActivityLog({
         workspaceId: program.workspace.id,
         programId,
@@ -152,13 +156,15 @@ export async function approvePartner({
         partnerIds: [partnerId],
       }),
 
-      triggerQStashWorkflow({
-        workflowType: "partner-approved",
-        workflowLabel: partnerId,
-        body: {
+      dispatchWorkflows({
+        name: "partner-approved-workflow",
+        payload: {
           programId,
           partnerId,
           userId,
+        },
+        options: {
+          label: partnerId,
         },
       }),
     ]),

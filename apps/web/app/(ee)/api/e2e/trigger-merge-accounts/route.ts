@@ -1,7 +1,7 @@
 import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
-import { triggerQStashWorkflow } from "@/lib/cron/qstash-workflow";
+import { dispatchWorkflows } from "@/lib/jobs/publish-workflows";
 import { prisma } from "@/lib/prisma";
 import { ACME_PROGRAM_ID, nanoid } from "@dub/utils";
 import { NextResponse } from "next/server";
@@ -52,17 +52,19 @@ export const POST = withWorkspace(
 
     const userId = `e2e-merge-${nanoid()}`;
 
-    const res = await triggerQStashWorkflow({
-      workflowType: "merge-partner-accounts",
-      workflowLabel: userId,
-      body: {
+    const res = await dispatchWorkflows({
+      name: "merge-partner-accounts-workflow",
+      payload: {
         userId,
         sourceEmail,
         targetEmail,
       },
-      flowControl: {
-        key: userId,
-        parallelism: 1,
+      options: {
+        flowControl: {
+          key: userId,
+          parallelism: 1,
+        },
+        label: userId,
       },
     });
 

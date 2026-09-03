@@ -50,7 +50,7 @@ export const PATCH = withWorkspace(
     const { includeExpandedFields } =
       getCustomersQuerySchema.parse(searchParams);
 
-    const { name, email, avatar, externalId, stripeCustomerId } =
+    const { name, email, avatar, externalId, stripeCustomerId, country } =
       updateCustomerBodySchema.parse(await parseRequestBody(req));
 
     const customer = await getCustomerOrThrow(
@@ -84,6 +84,7 @@ export const PATCH = withWorkspace(
           avatar: finalCustomerAvatar,
           externalId,
           stripeCustomerId,
+          country,
         },
       });
 

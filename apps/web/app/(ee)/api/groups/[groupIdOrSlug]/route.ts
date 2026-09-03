@@ -8,7 +8,7 @@ import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-progr
 import { parseRequestBody } from "@/lib/api/utils";
 import { extractUtmParams } from "@/lib/api/utm/extract-utm-params";
 import { withWorkspace } from "@/lib/auth";
-import { qstash } from "@/lib/cron";
+import { syncGroupUtmJob } from "@/lib/jobs/handlers/sync-group-utm-job";
 import { prisma } from "@/lib/prisma";
 import { GroupWithProgramSchema } from "@/lib/zod/schemas/group-with-program";
 import {
@@ -17,7 +17,7 @@ import {
   sanitizeAdditionalLinks,
   updateGroupSchema,
 } from "@/lib/zod/schemas/groups";
-import { APP_DOMAIN_WITH_NGROK, constructURLFromUTMParams } from "@dub/utils";
+import { constructURLFromUTMParams } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
@@ -241,11 +241,8 @@ export const PATCH = withWorkspace(
           }),
 
           group.utmTemplateId !== updatedGroup.utmTemplateId &&
-            qstash.publishJSON({
-              url: `${APP_DOMAIN_WITH_NGROK}/api/cron/groups/sync-utm`,
-              body: {
-                groupId: group.id,
-              },
+            syncGroupUtmJob.dispatch({
+              groupId: group.id,
             }),
         ]);
       })(),

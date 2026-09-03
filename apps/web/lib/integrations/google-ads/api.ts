@@ -134,8 +134,49 @@ const dataManagerFetch = async <T>({
   return data as T;
 };
 
-const formatApiErrorDetail = (data: any, rawText: string) => {
-  return data?.error?.message ?? JSON.stringify(data) ?? rawText;
+export const formatApiErrorDetail = (data: any, rawText: string) => {
+  const payload = Array.isArray(data) ? data[0] : data;
+  const adsError = payload?.error?.details?.[0]?.errors?.[0];
+  const authorizationError = adsError?.errorCode?.authorizationError;
+  const googleAdsError = adsError?.message;
+
+  const detail =
+    googleAdsError ??
+    payload?.error?.message ??
+    (data ? JSON.stringify(data) : rawText);
+
+  if (authorizationError && !String(detail).includes(authorizationError)) {
+    return `${authorizationError}: ${detail}`;
+  }
+
+  return detail;
+};
+
+const normalizeGoogleAdsCustomerId = (customerId: string) =>
+  customerId.replace(/-/g, "").replace(/^customers\//, "");
+
+export const isGoogleAdsPermissionDenied = (error: unknown) => {
+  const message = error instanceof Error ? error.message : String(error);
+  return message.includes("USER_PERMISSION_DENIED");
+};
+
+type SearchStreamRow = {
+  customer?: {
+    id?: string | number;
+    descriptiveName?: string;
+    manager?: boolean;
+  };
+  conversionAction?: {
+    id?: string | number;
+    resourceName?: string;
+    name?: string;
+  };
+  customerClient?: {
+    id?: string | number;
+    resourceName?: string;
+    descriptiveName?: string;
+    manager?: boolean;
+  };
 };
 
 const searchStream = async ({
@@ -146,23 +187,10 @@ const searchStream = async ({
   customerId: string;
   query: string;
 }) => {
-  const normalizedCustomerId = customerId.replace(/-/g, "");
+  const normalizedCustomerId = normalizeGoogleAdsCustomerId(customerId);
 
   const response = await googleAdsFetch<
-    {
-      results?: {
-        customer?: {
-          id?: string;
-          descriptiveName?: string;
-          manager?: boolean;
-        };
-        conversionAction?: {
-          id?: string;
-          resourceName?: string;
-          name?: string;
-        };
-      }[];
-    }[]
+    { results?: SearchStreamRow[] }[] | { results?: SearchStreamRow[] }
   >({
     ...options,
     path: `customers/${normalizedCustomerId}/googleAds:searchStream`,
@@ -170,7 +198,8 @@ const searchStream = async ({
     body: { query },
   });
 
-  return response.flatMap((batch) => batch.results ?? []);
+  const batches = Array.isArray(response) ? response : [response];
+  return batches.flatMap((batch) => batch.results ?? []);
 };
 
 export class GoogleAdsApi {
@@ -191,6 +220,42 @@ export class GoogleAdsApi {
     });
 
     const resourceNames = response.resourceNames ?? [];
+    const customersById = new Map<
+      string,
+      z.infer<typeof googleAdsCustomerSchema>
+    >();
+
+    const toCustomer = ({
+      id,
+      resourceName,
+      descriptiveName,
+      manager,
+      loginCustomerId,
+    }: {
+      id: string;
+      resourceName?: string;
+      descriptiveName?: string;
+      manager?: boolean;
+      loginCustomerId?: string | null;
+    }) => {
+      const normalizedId = normalizeGoogleAdsCustomerId(id);
+
+      return googleAdsCustomerSchema.parse({
+        id: normalizedId,
+        resourceName: resourceName ?? `customers/${normalizedId}`,
+        descriptiveName: descriptiveName || `Account ${normalizedId}`,
+        manager: manager ?? false,
+        loginCustomerId: loginCustomerId ?? (manager ? normalizedId : null),
+      });
+    };
+
+    const setCustomer = (customer: z.infer<typeof googleAdsCustomerSchema>) => {
+      const id = normalizeGoogleAdsCustomerId(customer.id);
+
+      if (!customersById.has(id)) {
+        customersById.set(id, customer);
+      }
+    };
 
     const fetchCustomer = async ({
       resourceName,
@@ -199,7 +264,7 @@ export class GoogleAdsApi {
       resourceName: string;
       loginCustomerId?: string | null;
     }) => {
-      const customerId = resourceName.replace("customers/", "");
+      const customerId = normalizeGoogleAdsCustomerId(resourceName);
 
       const results = await searchStream({
         ...this.options,
@@ -211,15 +276,24 @@ export class GoogleAdsApi {
 
       const customer = results[0]?.customer;
 
-      return googleAdsCustomerSchema.parse({
-        id: customer?.id?.toString() ?? customerId,
+      if (!customer) {
+        throw new Error(
+          `[Google Ads API] No customer data returned for ${customerId}`,
+        );
+      }
+
+      const id = customer.id?.toString() ?? customerId;
+
+      return toCustomer({
+        id,
         resourceName,
-        descriptiveName: customer?.descriptiveName ?? `Account ${customerId}`,
-        manager: customer?.manager ?? false,
+        descriptiveName: customer.descriptiveName,
+        manager: customer.manager,
+        loginCustomerId: loginCustomerId ?? (customer.manager ? id : null),
       });
     };
 
-    const initialResults = await Promise.all(
+    const directResults = await Promise.all(
       resourceNames.map(async (resourceName) => {
         try {
           return {
@@ -227,10 +301,12 @@ export class GoogleAdsApi {
             customer: await fetchCustomer({ resourceName }),
           };
         } catch (error) {
-          console.error(
-            `[Google Ads API] Failed to fetch customer ${resourceName.replace("customers/", "")}`,
-            error,
-          );
+          if (!isGoogleAdsPermissionDenied(error)) {
+            console.error(
+              `[Google Ads API] Failed to fetch customer ${normalizeGoogleAdsCustomerId(resourceName)}`,
+              error,
+            );
+          }
 
           return {
             resourceName,
@@ -240,45 +316,100 @@ export class GoogleAdsApi {
       }),
     );
 
-    const managerAccounts = initialResults
-      .map((result) => result.customer)
-      .filter((customer): customer is z.infer<typeof googleAdsCustomerSchema> =>
-        Boolean(customer?.manager),
+    for (const { customer } of directResults) {
+      if (customer) {
+        setCustomer(customer);
+      }
+    }
+
+    // Only directly accessible managers are valid login-customer-id values.
+    const managerAccounts = [...customersById.values()].filter(
+      (customer) => customer.manager,
+    );
+
+    const failedResourceNames = directResults
+      .filter((result) => result.customer === null)
+      .map((result) => result.resourceName);
+
+    for (const manager of managerAccounts) {
+      const remainingResourceNames = failedResourceNames.filter(
+        (resourceName) =>
+          !customersById.has(normalizeGoogleAdsCustomerId(resourceName)),
       );
 
-    const loginCustomerId =
-      managerAccounts.length === 1 ? managerAccounts[0].id : null;
+      if (remainingResourceNames.length === 0) {
+        break;
+      }
 
-    const customers = await Promise.all(
-      initialResults.map(async ({ resourceName, customer }) => {
-        if (customer) {
-          return customer;
-        }
+      await Promise.all(
+        remainingResourceNames.map(async (resourceName) => {
+          const customerId = normalizeGoogleAdsCustomerId(resourceName);
 
-        if (!loginCustomerId) {
-          return null;
-        }
+          try {
+            setCustomer(
+              await fetchCustomer({
+                resourceName,
+                loginCustomerId: manager.id,
+              }),
+            );
+          } catch (error) {
+            if (!isGoogleAdsPermissionDenied(error)) {
+              console.error(
+                `[Google Ads API] Failed to fetch customer ${customerId} with login-customer-id ${manager.id}`,
+                error,
+              );
+            }
+          }
+        }),
+      );
+    }
 
-        const customerId = resourceName.replace("customers/", "");
-
+    await Promise.all(
+      managerAccounts.map(async (manager) => {
         try {
-          return await fetchCustomer({ resourceName, loginCustomerId });
+          const results = await searchStream({
+            ...this.options,
+            customerId: manager.id,
+            loginCustomerId: manager.id,
+            query:
+              "SELECT customer_client.id, customer_client.descriptive_name, customer_client.manager, customer_client.resource_name FROM customer_client WHERE customer_client.status = ENABLED",
+          });
+
+          for (const result of results) {
+            const client = result.customerClient;
+
+            if (!client?.id) {
+              continue;
+            }
+
+            const normalizedId = normalizeGoogleAdsCustomerId(
+              client.id.toString(),
+            );
+
+            if (customersById.has(normalizedId)) {
+              continue;
+            }
+
+            setCustomer(
+              toCustomer({
+                id: normalizedId,
+                resourceName: `customers/${normalizedId}`,
+                descriptiveName: client.descriptiveName,
+                manager: client.manager,
+                loginCustomerId: manager.id,
+              }),
+            );
+          }
         } catch (error) {
           console.error(
-            `[Google Ads API] Failed to fetch customer ${customerId} with login-customer-id ${loginCustomerId}`,
+            `[Google Ads API] Failed to list client accounts for manager ${manager.id}`,
             error,
           );
-
-          return null;
         }
       }),
     );
 
-    // Only keep accounts we could actually read (skip permission-denied ones).
-    return customers.filter(
-      (customer): customer is z.infer<typeof googleAdsCustomerSchema> =>
-        customer !== null,
-    );
+    return [...customersById.values()];
   }
 
   async listUploadClickConversionActions(customerId: string) {
@@ -372,8 +503,9 @@ export class GoogleAdsApi {
   }
 }
 
-// Resolves the login-customer-id header: use the selected account if it's a
-// manager, otherwise the sole accessible manager account (or null if ambiguous).
+// Resolves the login-customer-id header for a selected account.
+// Prefers the manager that actually granted access; does not guess a sole MCC
+// because that 403s when the client isn't under that manager.
 export const inferLoginCustomerId = ({
   customers,
   selectedCustomerId,
@@ -381,6 +513,7 @@ export const inferLoginCustomerId = ({
   customers: {
     id: string;
     manager: boolean;
+    loginCustomerId?: string | null;
   }[];
   selectedCustomerId: string;
 }) => {
@@ -389,17 +522,76 @@ export const inferLoginCustomerId = ({
     (customer) => customer.id.replace(/-/g, "") === normalizedSelectedId,
   );
 
-  if (selectedCustomer?.manager) {
+  if (!selectedCustomer) {
+    return null;
+  }
+
+  if (selectedCustomer.loginCustomerId) {
+    return selectedCustomer.loginCustomerId.replace(/-/g, "");
+  }
+
+  if (selectedCustomer.manager) {
     return normalizedSelectedId;
   }
 
-  const managerAccounts = customers.filter((customer) => customer.manager);
+  return null;
+};
 
-  if (managerAccounts.length === 1) {
-    return managerAccounts[0].id.replace(/-/g, "");
+// login-customer-id candidates to try when the stored/inferred value 403s.
+export const getLoginCustomerIdCandidates = ({
+  customers,
+  selectedCustomerId,
+  loginCustomerId,
+}: {
+  customers: {
+    id: string;
+    manager: boolean;
+    loginCustomerId?: string | null;
+  }[];
+  selectedCustomerId: string;
+  loginCustomerId?: string | null;
+}) => {
+  const persistedLoginCustomerId = loginCustomerId?.replace(/-/g, "") || null;
+
+  const managerIds = customers
+    .filter((customer) => {
+      if (!customer.manager) {
+        return false;
+      }
+
+      const id = customer.id.replace(/-/g, "");
+      const customerLoginCustomerId = customer.loginCustomerId?.replace(
+        /-/g,
+        "",
+      );
+
+      // Sub-managers discovered via hierarchy aren't valid login-customer-ids.
+      return !customerLoginCustomerId || customerLoginCustomerId === id;
+    })
+    .map((customer) => customer.id.replace(/-/g, ""));
+
+  const candidates: (string | null)[] = [
+    ...(persistedLoginCustomerId ? [persistedLoginCustomerId] : []),
+    inferLoginCustomerId({ customers, selectedCustomerId }),
+    null,
+    ...managerIds,
+  ];
+
+  const seen = new Set<string>();
+  const unique: (string | null)[] = [];
+
+  for (const candidate of candidates) {
+    const key = candidate ?? "";
+
+    if (seen.has(key)) {
+      continue;
+    }
+
+    seen.add(key);
+    unique.push(candidate);
   }
 
-  return null;
+  return unique;
 };
 
 // Formats a date as RFC 3339 for Data Manager API event uploads.

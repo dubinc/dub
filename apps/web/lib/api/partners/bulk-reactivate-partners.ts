@@ -6,6 +6,7 @@ import { Partner, Program, ProgramEnrollment } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { trackActivityLog } from "../activity-log/track-activity-log";
 import { linkCache } from "../links/cache";
+import { queuePartnerSearchSync } from "./queue-partner-search-sync";
 
 type ProgramEnrollmentWithPartner = Pick<
   ProgramEnrollment,
@@ -137,21 +138,28 @@ export async function bulkReactivatePartners({
   }
 
   waitUntil(
-    trackActivityLog(
-      programEnrollments.map(({ partnerId }) => ({
-        workspaceId: program.workspaceId,
-        programId: program.id,
-        resourceType: "partner",
-        resourceId: partnerId,
-        action: "partner.reactivated",
-        changeSet: {
-          status: {
-            old: "deactivated",
-            new: "approved",
+    Promise.allSettled([
+      trackActivityLog(
+        programEnrollments.map(({ partnerId }) => ({
+          workspaceId: program.workspaceId,
+          programId: program.id,
+          resourceType: "partner",
+          resourceId: partnerId,
+          action: "partner.reactivated",
+          changeSet: {
+            status: {
+              old: "deactivated",
+              new: "approved",
+            },
           },
-        },
-      })),
-    ),
+        })),
+      ),
+
+      // Queue an index update because the enrollment statuses moved back to approved
+      queuePartnerSearchSync({
+        enrollmentIds: programEnrollments.map(({ id }) => id),
+      }),
+    ]),
   );
 
   // Send email notifications

@@ -33,7 +33,7 @@ export const FRAUD_RULES: FraudRuleInfo[] = [
     type: "referralSourceBanned",
     name: "Banned referral source",
     description:
-      "A conversion, event, or click was made on a banned referral domain.",
+      "A conversion, event, or click was made on a banned referral source.",
     scope: "conversionEvent",
     configurable: true,
   },

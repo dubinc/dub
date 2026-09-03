@@ -3,6 +3,7 @@ import { DubApiError } from "@/lib/api/errors";
 import { throwIfInvalidGroupIds } from "@/lib/api/groups/throw-if-invalid-group-ids";
 import { throwIfInvalidPartnerTagIds } from "@/lib/api/partner-tags/throw-if-invalid-partner-tag-ids";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
+import { revalidateProgramPublicPages } from "@/lib/api/programs/revalidate-program-public-pages";
 import { parseRequestBody } from "@/lib/api/utils";
 import { WorkflowCondition } from "@/lib/api/workflows/types";
 import { validateWorkflowConditions } from "@/lib/api/workflows/validate-workflow-conditions";
@@ -360,6 +361,8 @@ export const PATCH = withWorkspace(
       archivedAt: data.archivedAt,
     });
 
+    revalidateProgramPublicPages(programId);
+
     waitUntil(
       Promise.allSettled([
         recordAuditLog({
@@ -450,21 +453,25 @@ export const DELETE = withWorkspace(
 
     const deletedBounty = BountySchema.parse(transformBounty(bounty));
 
+    revalidateProgramPublicPages(programId);
+
     waitUntil(
-      recordAuditLog({
-        workspaceId: workspace.id,
-        programId,
-        action: "bounty.deleted",
-        description: `Bounty ${bountyId} deleted`,
-        actor: session?.user,
-        targets: [
-          {
-            type: "bounty",
-            id: bountyId,
-            metadata: deletedBounty,
-          },
-        ],
-      }),
+      Promise.allSettled([
+        recordAuditLog({
+          workspaceId: workspace.id,
+          programId,
+          action: "bounty.deleted",
+          description: `Bounty ${bountyId} deleted`,
+          actor: session?.user,
+          targets: [
+            {
+              type: "bounty",
+              id: bountyId,
+              metadata: deletedBounty,
+            },
+          ],
+        }),
+      ]),
     );
 
     return NextResponse.json({ id: bountyId });

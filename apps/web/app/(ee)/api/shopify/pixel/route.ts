@@ -1,13 +1,15 @@
 import { COMMON_CORS_HEADERS } from "@/lib/api/cors";
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
+import {
+  shopifyCheckoutCache,
+  tryDispatchShopifyOrderJob,
+} from "@/lib/integrations/shopify/checkout-cache";
 import { getClickEvent } from "@/lib/tinybird";
-import { ratelimit, redis } from "@/lib/upstash";
+import { ratelimit } from "@/lib/upstash";
 import { LOCALHOST_IP } from "@dub/utils";
 import { ipAddress, waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
-
-export const runtime = "edge";
 
 // POST /api/shopify/pixel – Handle the Shopify Pixel events
 export const POST = async (req: Request) => {
@@ -20,6 +22,11 @@ export const POST = async (req: Request) => {
         message: "checkoutToken is required.",
       });
     }
+
+    console.info("Shopify pixel event", {
+      clickId,
+      checkoutToken,
+    });
 
     // Rate limit the request
     const ip = process.env.VERCEL === "1" ? ipAddress(req) : LOCALHOST_IP;
@@ -37,15 +44,26 @@ export const POST = async (req: Request) => {
       const clickEvent = await getClickEvent({ clickId });
 
       if (!clickEvent) {
-        clickId = null;
+        console.warn(`Click event not found for the clickId ${clickId}`);
+        clickId = undefined;
       }
     }
 
-    waitUntil(
-      redis.hset(`shopify:checkout:${checkoutToken}`, {
-        clickId: clickId || "",
-      }),
-    );
+    if (clickId) {
+      waitUntil(
+        (async () => {
+          const checkout = await shopifyCheckoutCache.set({
+            checkoutToken,
+            fields: { clickId },
+          });
+
+          await tryDispatchShopifyOrderJob({
+            checkoutToken,
+            checkout,
+          });
+        })(),
+      );
+    }
 
     return NextResponse.json("OK", {
       headers: COMMON_CORS_HEADERS,
