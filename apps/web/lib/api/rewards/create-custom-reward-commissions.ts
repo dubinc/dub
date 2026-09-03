@@ -6,6 +6,7 @@ import {
   CUSTOM_REWARD_CADENCE_PRESETS,
   customRewardConfigSchema,
 } from "@/lib/zod/schemas/rewards";
+import { tz } from "@date-fns/tz";
 import { pluck } from "@dub/utils";
 import { CommissionType, EventType } from "@prisma/client";
 import { createHash } from "crypto";
@@ -14,7 +15,7 @@ import { toUtcDateOnly } from "./custom-reward-utils";
 
 const PAGE_SIZE = 100;
 
-function formatCommissionDescription({
+export function formatCommissionDescription({
   amountInCents,
   frequency,
   interval,
@@ -29,7 +30,9 @@ function formatCommissionDescription({
     (p) => p.frequency === frequency && p.interval === interval,
   );
   const cadenceLabel = preset?.label.toLowerCase() ?? `${frequency}ly`;
-  const periodLabel = format(toUtcDateOnly(periodDate), "MMM yyyy");
+  const periodLabel = format(toUtcDateOnly(periodDate), "MMM yyyy", {
+    in: tz("UTC"),
+  });
   const amountLabel = constructRewardAmount({
     type: "flat",
     amountInCents,
@@ -70,7 +73,7 @@ export function hasRewardMaxDurationElapsed({
   const period = toUtcDateOnly(periodDate);
   const first = toUtcDateOnly(firstCommissionAt);
 
-  return differenceInMonths(period, first) >= maxDuration;
+  return differenceInMonths(period, first, { in: tz("UTC") }) >= maxDuration;
 }
 
 export async function createCustomRewardCommissions({

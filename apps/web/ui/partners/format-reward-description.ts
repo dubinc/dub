@@ -5,13 +5,10 @@ import {
   PartnerReferralPercentageTrigger,
 } from "@/lib/partner-referrals/constants";
 import { RewardProps } from "@/lib/types";
-import {
-  CUSTOM_REWARD_CADENCE_PRESETS,
-  customRewardConfigSchema,
-  referralRewardConfigSchema,
-} from "@/lib/zod/schemas/rewards";
+import { referralRewardConfigSchema } from "@/lib/zod/schemas/rewards";
 import { currencyFormatter } from "@dub/utils";
 import { RewardSpendLimitInterval } from "@prisma/client";
+import { formatCustomRewardDescription } from "./custom-reward-description";
 import { getSpendLimitDescriptionParts } from "./program-reward-spend-limit";
 
 export function formatRewardDescription(
@@ -78,43 +75,6 @@ export function formatRewardDescription(
   }
 
   return description;
-}
-
-function formatCustomRewardDescription(
-  reward: Pick<
-    RewardProps,
-    "type" | "amountInCents" | "amountInPercentage" | "maxDuration" | "config"
-  >,
-  { includeEarnPrefix }: { includeEarnPrefix: boolean },
-) {
-  const rewardAmount = constructRewardAmount(reward);
-  const parsed = customRewardConfigSchema.safeParse(reward.config);
-  const config = parsed.success ? parsed.data : undefined;
-
-  const preset = config
-    ? CUSTOM_REWARD_CADENCE_PRESETS.find(
-        (p) =>
-          p.frequency === config.frequency && p.interval === config.interval,
-      )
-    : undefined;
-
-  const cadenceLabel = preset?.label.toLowerCase() ?? "on a schedule";
-
-  const duration =
-    reward.maxDuration == null
-      ? null
-      : reward.maxDuration % 12 === 0
-        ? `for ${reward.maxDuration / 12} year${reward.maxDuration / 12 > 1 ? "s" : ""}`
-        : `for ${reward.maxDuration} month${reward.maxDuration > 1 ? "s" : ""}`;
-
-  return [
-    includeEarnPrefix ? "Earn" : null,
-    rewardAmount,
-    cadenceLabel,
-    duration,
-  ]
-    .filter(Boolean)
-    .join(" ");
 }
 
 function formatReferralRewardDescription(

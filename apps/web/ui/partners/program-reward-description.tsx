@@ -6,12 +6,9 @@ import {
   PartnerReferralPercentageTrigger,
 } from "@/lib/partner-referrals/constants";
 import { DiscountProps, RewardProps } from "@/lib/types";
-import {
-  CUSTOM_REWARD_CADENCE_PRESETS,
-  customRewardConfigSchema,
-  referralRewardConfigSchema,
-} from "@/lib/zod/schemas/rewards";
+import { referralRewardConfigSchema } from "@/lib/zod/schemas/rewards";
 import { cn, currencyFormatter } from "@dub/utils";
+import { CustomRewardDescription } from "./custom-reward-description";
 import { ProgramRewardModifiersTooltip } from "./program-reward-modifiers-tooltip";
 import { ProgramRewardSpendLimit } from "./program-reward-spend-limit";
 
@@ -140,58 +137,6 @@ export function ProgramRewardDescription({
           ) : null}
         </>
       ) : null}
-    </>
-  );
-}
-
-function CustomRewardDescription({
-  reward,
-  amountClassName,
-  periodClassName,
-}: {
-  reward: Pick<
-    RewardProps,
-    "type" | "config" | "maxDuration" | "amountInCents" | "amountInPercentage"
-  >;
-  amountClassName?: string;
-  periodClassName?: string;
-}) {
-  const parsed = customRewardConfigSchema.safeParse(reward.config);
-  const config = parsed.success ? parsed.data : undefined;
-
-  const preset = config
-    ? CUSTOM_REWARD_CADENCE_PRESETS.find(
-        (p) =>
-          p.frequency === config.frequency && p.interval === config.interval,
-      )
-    : undefined;
-
-  const cadenceLabel = preset?.label.toLowerCase() ?? "on a schedule";
-
-  return (
-    <>
-      Earn{" "}
-      <strong className={cn("font-semibold lowercase", amountClassName)}>
-        {constructRewardAmount(reward)}{" "}
-      </strong>
-      {cadenceLabel}
-      {reward.maxDuration == null ? null : reward.maxDuration % 12 === 0 ? (
-        <>
-          {" "}
-          for{" "}
-          <strong className={cn("font-semibold", periodClassName)}>
-            {`${reward.maxDuration / 12} year${reward.maxDuration / 12 > 1 ? "s" : ""}`}
-          </strong>
-        </>
-      ) : (
-        <>
-          {" "}
-          for{" "}
-          <strong className={cn("font-semibold", periodClassName)}>
-            {`${reward.maxDuration} months`}
-          </strong>
-        </>
-      )}
     </>
   );
 }

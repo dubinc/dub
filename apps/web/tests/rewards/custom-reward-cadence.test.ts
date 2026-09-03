@@ -1,5 +1,6 @@
 import {
   buildCommissionIdempotencyKey,
+  formatCommissionDescription,
   hasRewardMaxDurationElapsed,
 } from "@/lib/api/rewards/create-custom-reward-commissions";
 import {
@@ -127,6 +128,20 @@ describe("buildCommissionIdempotencyKey", () => {
   });
 });
 
+describe("formatCommissionDescription", () => {
+  test("formats period label from UTC calendar month", () => {
+    // UTC midnight on the 1st is still the prior local month in US timezones.
+    expect(
+      formatCommissionDescription({
+        amountInCents: 1000,
+        frequency: "month",
+        interval: 1,
+        periodDate: "2026-09-01",
+      }),
+    ).toBe("$10 monthly · Sep 2026");
+  });
+});
+
 describe("hasRewardMaxDurationElapsed", () => {
   test("null maxDuration never elapses", () => {
     expect(
@@ -152,6 +167,17 @@ describe("hasRewardMaxDurationElapsed", () => {
         firstCommissionAt: new Date("2026-01-15T00:00:00.000Z"),
         maxDuration: 12,
         periodDate: "2027-01-15",
+      }),
+    ).toBe(true);
+  });
+
+  test("counts UTC calendar months when period is midnight on the 1st", () => {
+    // Jan 31 → Mar 1 is 1 full UTC month. Local US fields can read that as 0.
+    expect(
+      hasRewardMaxDurationElapsed({
+        firstCommissionAt: new Date("2026-01-31T00:00:00.000Z"),
+        maxDuration: 1,
+        periodDate: "2026-03-01",
       }),
     ).toBe(true);
   });
