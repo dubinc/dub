@@ -188,14 +188,14 @@ export const getPartnersQuerySchema = z
       .string()
       .optional()
       .describe(
-        "Filter the partner list based on the partner's `tenantId`. The value must be a string. Takes precedence over `email` and `search`.",
+        "Filter the partner list based on the partner's `tenantId`. The value must be a string. Combines with the other filters.",
       )
       .meta({ example: "1K0NM7HCN944PEMZ3CQPH43H8" }),
     search: z
       .string()
       .optional()
       .describe(
-        "A search query to filter partners by ID, name, email, or company name.",
+        "A search query to filter partners by ID, name, email, company name, description, social platforms, or referral links. Partial matches are supported.",
       )
       .meta({ example: "john" }),
   })
@@ -203,6 +203,7 @@ export const getPartnersQuerySchema = z
 
 // Only Dub UI uses the following query parameters
 export const getPartnersQuerySchemaExtended = getPartnersQuerySchema.extend({
+  sortBy: getPartnersQuerySchema.shape.sortBy.or(z.literal("relevance")),
   status: z.enum(ProgramEnrollmentStatus).optional(),
   // TODO: refactor to use multi/negative filtering syntax
   partnerIds: z
@@ -280,9 +281,50 @@ export const getPartnersQuerySchemaExtended = getPartnersQuerySchema.extend({
     .describe("Maximum total commissions (inclusive) in USD cents."),
 });
 
-export const partnersExportQuerySchema = getPartnersQuerySchemaExtended
-  .omit({ page: true, pageSize: true })
+/**
+ * Parse schema for `GET /api/partners`. Kept here rather than inline in the
+ * route so the relevance guards below are testable.
+ */
+export const getPartnersRouteQuerySchema = getPartnersQuerySchemaExtended
   .extend({
+    // Also accept the sort values these columns were named before, which the
+    // route maps onto the current ones (`clicks` → `totalClicks`, and so on).
+    sortBy: getPartnersQuerySchemaExtended.shape.sortBy.or(
+      z.enum([
+        "clicks",
+        "leads",
+        "conversions",
+        "sales",
+        "saleAmount",
+        "totalSales",
+      ]),
+    ),
+  })
+  // Relevance ordering only exists when the search provider produced candidates,
+  // and `email` and `tenantId` both keep the query on the database path. Without
+  // this, getPartners quietly orders those results by totalSaleAmount instead.
+  .refine(
+    ({ sortBy, search, email, tenantId }) =>
+      sortBy !== "relevance" ||
+      (Boolean(search?.trim()) && !email && !tenantId),
+    {
+      message:
+        "sortBy=relevance requires a non-empty search, and cannot be combined with email or tenantId.",
+      path: ["sortBy"],
+    },
+  )
+  .refine(
+    ({ sortBy, sortOrder }) => sortBy !== "relevance" || sortOrder !== "asc",
+    {
+      message: "sortBy=relevance does not support sortOrder=asc.",
+      path: ["sortOrder"],
+    },
+  );
+
+export const partnersExportQuerySchema = getPartnersQuerySchemaExtended
+  .omit({ page: true, pageSize: true, search: true })
+  .extend({
+    sortBy: getPartnersQuerySchema.shape.sortBy,
     columns: z
       .string()
       .default(exportPartnersColumnsDefault.join(","))
@@ -1052,7 +1094,7 @@ export const partnerPayoutSettingsSchema = z.object({
   taxId: z.string().max(100).trim().nullish(),
 });
 
-export const partnerCrossProgramSummarySchema = z.object({
+export const partnerNetworkActivitySummarySchema = z.object({
   totalPrograms: z.number(),
   activePrograms: z.number(),
   bannedPrograms: z.number(),
@@ -1069,4 +1111,31 @@ export const partnerSharedPlatformSchema = z.object({
       image: z.string().nullable(),
     }),
   ),
+});
+
+const partnerMergedAccountSchema = z.object({
+  id: z.string().describe("The partner's unique ID on Dub."),
+  tenantId: z
+    .string()
+    .nullable()
+    .describe("The partner's unique ID in your system"),
+  email: z.string().nullable().describe("The partner's email address."),
+});
+
+export const partnerMergedWebhookSchema = z.object({
+  sourcePartner: partnerMergedAccountSchema.describe(
+    "The source partner account that was merged away. Its enrollment in this program no longer exists; use `targetPartner.id` instead.",
+  ),
+  targetPartner: partnerMergedAccountSchema.describe(
+    "The target partner account that the source account was merged into.",
+  ),
+  targetAlreadyEnrolled: z
+    .boolean()
+    .describe(
+      [
+        "Whether the target partner account was already enrolled in this program before the merge.",
+        "If `true`, both partners were already enrolled in the program and the merge process will collapse the source account into the target account.",
+        "If `false`, only the source partner account was enrolled in the program, which means the partner's ID in your program will be updated to the target partner's ID.",
+      ].join("\n"),
+    ),
 });

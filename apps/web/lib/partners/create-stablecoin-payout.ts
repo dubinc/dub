@@ -19,6 +19,7 @@ import {
   MIN_FORCE_WITHDRAWAL_AMOUNT_CENTS,
   MIN_WITHDRAWAL_AMOUNT_CENTS,
   STABLECOIN_PAYOUT_FEE_RATE,
+  STABLECOIN_PAYOUT_FIXED_FEE_CENTS,
 } from "../constants/payouts";
 import { enqueueBatchJobs } from "../cron/enqueue-batch-jobs";
 import { createPayoutsIdempotencyKey } from "../payouts/create-payouts-idempotency-key";
@@ -26,6 +27,7 @@ import { markPayoutsAsProcessed } from "../payouts/mark-payouts-as-processed";
 import { createStripeOutboundPayment } from "../stripe/create-stripe-outbound-payment";
 import { fundFinancialAccount } from "../stripe/fund-financial-account";
 import { getStripeRecipientAccount } from "../stripe/get-stripe-recipient-account";
+import { getStripeRecipientPayoutMethod } from "../stripe/get-stripe-recipient-payout-method";
 
 interface CreateStablecoinPayoutParams {
   partnerId: string;
@@ -226,6 +228,32 @@ export const createStablecoinPayout = async ({
     }
   }
 
+  const stripePayoutMethod = await getStripeRecipientPayoutMethod(
+    partner.stripeRecipientId,
+  );
+
+  if (!stripePayoutMethod?.id) {
+    await prisma.partner.update({
+      where: {
+        id: partner.id,
+      },
+      data: {
+        payoutsEnabledAt: null,
+      },
+    });
+
+    await markPayoutsAsProcessed(currentInvoicePayouts);
+
+    const message = `Stripe recipient account for partner ${partner.email} does not have an active crypto wallet payout method.`;
+
+    if (forceWithdrawal) {
+      throw new Error(message);
+    } else {
+      console.warn(message);
+      return;
+    }
+  }
+
   const allPayoutsProgramNames = [
     ...new Set(allPayouts.map((p) => p.program.name)),
   ];
@@ -238,13 +266,20 @@ export const createStablecoinPayout = async ({
 
   if (amountToTransferToFA > 0) {
     await fundFinancialAccount({
-      amount: amountToTransferToFA,
+      // if there are no current invoice payouts (meaning partner is running a forceWithdrawal for previously processed payouts)
+      // we need to add the STABLECOIN_PAYOUT_FIXED_FEE_CENTS to the amount to transfer to the FA (to cover the Stablecoin payout fee)
+      amount:
+        amountToTransferToFA +
+        (currentInvoicePayouts.length === 0 && forceWithdrawal
+          ? STABLECOIN_PAYOUT_FIXED_FEE_CENTS
+          : 0),
       idempotencyKey,
     });
   }
 
   const outboundPayment = await createStripeOutboundPayment({
     stripeRecipientId: partner.stripeRecipientId,
+    payoutMethodId: stripePayoutMethod.id,
     amount: totalTransferableAmount,
     description: `Dub Partners payout (${allPayoutsProgramNames.join(", ")})`,
     idempotencyKey,

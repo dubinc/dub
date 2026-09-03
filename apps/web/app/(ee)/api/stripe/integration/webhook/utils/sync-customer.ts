@@ -3,6 +3,7 @@ import { getOrCreateCustomer } from "@/lib/api/customers/get-or-create-customer"
 import { includeTags } from "@/lib/api/links/include-tags";
 import { syncPartnerLinksStats } from "@/lib/api/partners/sync-partner-links-stats";
 import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
+import { queueGoogleAdsConversionUpload } from "@/lib/integrations/google-ads/upload-conversion";
 import { generateRandomName } from "@/lib/names";
 import { constructWebhookPartner } from "@/lib/partners/constuct-webhook-partner";
 import { sendPartnerPostback } from "@/lib/postback/send-partner-postback";
@@ -12,10 +13,11 @@ import { redis } from "@/lib/upstash";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { transformLeadEventData } from "@/lib/webhook/transform";
 import { nanoid, pick } from "@dub/utils";
-import { Prisma } from "@prisma/client";
+import { EventType, Prisma } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import type Stripe from "stripe";
 import { WebhookHandlerInput, WebhookHandlerResponse } from "../types";
+import { getDubCustomerExternalIdFromMetadata } from "./get-dub-customer-external-id-from-metadata";
 
 export async function syncCustomer({
   event,
@@ -28,9 +30,9 @@ export async function syncCustomer({
 >): Promise<WebhookHandlerResponse> {
   const stripeCustomer = event.data.object;
   const stripeAccountId = event.account as string;
-  const dubCustomerExternalId =
-    stripeCustomer.metadata?.dubCustomerExternalId ||
-    stripeCustomer.metadata?.dubCustomerId;
+  const dubCustomerExternalId = getDubCustomerExternalIdFromMetadata(
+    stripeCustomer.metadata,
+  );
   const clickId = stripeCustomer.metadata?.dubClickId;
 
   console.log(
@@ -266,18 +268,32 @@ export async function syncCustomer({
         ]);
       }
 
-      await sendWorkspaceWebhook({
-        trigger: "lead.created",
-        workspace,
-        data: transformLeadEventData({
-          ...clickData,
-          eventName,
-          link: linkUpdated,
-          customer,
-          partner: webhookPartner,
-          metadata: null,
+      await Promise.allSettled([
+        sendWorkspaceWebhook({
+          trigger: "lead.created",
+          workspace,
+          data: transformLeadEventData({
+            ...clickData,
+            eventName,
+            link: linkUpdated,
+            customer,
+            partner: webhookPartner,
+            metadata: null,
+          }),
         }),
-      });
+        queueGoogleAdsConversionUpload({
+          workspaceId: workspace.id,
+          eventType: EventType.lead,
+          eventId: leadData.event_id,
+          eventName: leadData.event_name,
+          conversionDateTime: new Date().toISOString(),
+          conversionCount: 1,
+          click: {
+            id: clickData.click_id,
+            url: clickData.url,
+          },
+        }),
+      ]);
     })(),
   );
 

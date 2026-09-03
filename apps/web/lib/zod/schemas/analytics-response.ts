@@ -204,6 +204,27 @@ export const analyticsResponse = {
   triggers: analyticsTriggersResponse,
   trigger: analyticsTriggersResponse, // backwards compatibility
 
+  event_names: z.object({
+    eventName: z
+      .string()
+      .describe("The name of the conversion event (lead or sale)"),
+    clicks: z
+      .number()
+      .describe("The number of clicks from this event name")
+      .default(0),
+    leads: z
+      .number()
+      .describe("The number of leads from this event name")
+      .default(0),
+    sales: z
+      .number()
+      .describe("The number of sales from this event name")
+      .default(0),
+    saleAmount: centsSchemaWithDefault.describe(
+      "The total amount of sales from this event name, in cents",
+    ),
+  }),
+
   referers: z.object({
     referer: z
       .string()

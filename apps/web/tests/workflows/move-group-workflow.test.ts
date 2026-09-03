@@ -4,16 +4,15 @@ import { randomValue } from "@dub/utils";
 import { PartnerGroup } from "@prisma/client";
 import { E2E_PARTNER } from "tests/utils/resource";
 import { describe, expect, onTestFinished, test } from "vitest";
-import { randomPartnerEmail } from "../utils/helpers";
+import { randomId, randomPartnerEmail } from "../utils/helpers";
 import { IntegrationHarness } from "../utils/integration";
 import { trackE2ELead } from "./utils/track-e2e-lead";
 import { verifyPartnerGroupMove } from "./utils/verify-partner-group-move";
 
-async function cleanupOrphanedGroup(
-  http: any,
-  slug: string,
-  allGroups: PartnerGroup[],
-) {
+async function cleanupOrphanedGroup(http: any, slug: string) {
+  const { data: allGroups } = await http.get<PartnerGroup[]>({
+    path: "/groups",
+  });
   const orphan = allGroups.find((g) => g.slug === slug);
   if (orphan) await http.delete({ path: `/groups/${orphan.id}` });
 }
@@ -22,13 +21,9 @@ describe.sequential("Workflow - MoveGroup", async () => {
   const h = new IntegrationHarness();
   const { http } = await h.init();
 
-  const { data: allGroupsForCleanup } = await http.get<PartnerGroup[]>({
-    path: "/groups",
-  });
-
   test("Workflow is created when move rules are configured", async () => {
-    const slug = "e2e-target-config";
-    await cleanupOrphanedGroup(http, slug, allGroupsForCleanup);
+    const slug = `e2e-target-config-${randomId(8)}`;
+    await cleanupOrphanedGroup(http, slug);
 
     const { status: targetStatus, data: targetGroup } =
       await http.post<PartnerGroup>({
@@ -46,16 +41,19 @@ describe.sequential("Workflow - MoveGroup", async () => {
       await http.delete({ path: `/groups/${targetGroup.id}` });
     });
 
+    // Unique attribute + range so this doesn't collide with leftover/concurrent
+    // totalLeads rules (e.g. "E2E Target Group - Not Met" uses 4–5).
+    const min = 10_000 + Math.floor(Math.random() * 1_000_000);
+    const moveRule = {
+      attribute: "totalCommissions" as const,
+      operator: "between" as const,
+      value: { min, max: min + 1 },
+    };
+
     const { status: patchStatus } = await http.patch({
       path: `/groups/${targetGroup.id}`,
       body: {
-        moveRules: [
-          {
-            attribute: "totalLeads",
-            operator: "between",
-            value: { min: 3, max: 5 },
-          },
-        ],
+        moveRules: [moveRule],
       },
     });
 
@@ -76,14 +74,14 @@ describe.sequential("Workflow - MoveGroup", async () => {
 
     const workflowConditions = workflow.triggerConditions as any[];
     expect(workflowConditions).toHaveLength(1);
-    expect(workflowConditions[0].attribute).toBe("totalLeads");
-    expect(workflowConditions[0].operator).toBe("between");
-    expect(workflowConditions[0].value).toStrictEqual({ min: 3, max: 5 });
+    expect(workflowConditions[0].attribute).toBe(moveRule.attribute);
+    expect(workflowConditions[0].operator).toBe(moveRule.operator);
+    expect(workflowConditions[0].value).toStrictEqual(moveRule.value);
   });
 
   test("Workflow is deleted when move rules are removed", async () => {
     const slug = "e2e-remove-rules";
-    await cleanupOrphanedGroup(http, slug, allGroupsForCleanup);
+    await cleanupOrphanedGroup(http, slug);
 
     const { status: groupStatus, data: group } = await http.post<PartnerGroup>({
       path: "/groups",
@@ -143,7 +141,7 @@ describe.sequential("Workflow - MoveGroup", async () => {
 
   test("Disabled workflow doesn't execute partner move", async () => {
     const slug = "e2e-target-disabled";
-    await cleanupOrphanedGroup(http, slug, allGroupsForCleanup);
+    await cleanupOrphanedGroup(http, slug);
 
     const { data: existingGroups } = await http.get<PartnerGroup[]>({
       path: "/groups",
@@ -224,7 +222,7 @@ describe.sequential("Workflow - MoveGroup", async () => {
 
   test("Workflow doesn't execute when conditions are not met", async () => {
     const slug = "e2e-target-not-met";
-    await cleanupOrphanedGroup(http, slug, allGroupsForCleanup);
+    await cleanupOrphanedGroup(http, slug);
 
     const { data: existingGroups } = await http.get<PartnerGroup[]>({
       path: "/groups",
@@ -295,7 +293,7 @@ describe.sequential("Workflow - MoveGroup", async () => {
     { timeout: 90000 },
     async () => {
       const slug = "e2e-target-exec";
-      await cleanupOrphanedGroup(http, slug, allGroupsForCleanup);
+      await cleanupOrphanedGroup(http, slug);
 
       const { data: existingGroups } = await http.get<PartnerGroup[]>({
         path: "/groups",
@@ -366,7 +364,7 @@ describe.sequential("Workflow - MoveGroup", async () => {
     { timeout: 90000 },
     async () => {
       const slug = "e2e-target-no-dup";
-      await cleanupOrphanedGroup(http, slug, allGroupsForCleanup);
+      await cleanupOrphanedGroup(http, slug);
 
       const { data: existingGroups } = await http.get<PartnerGroup[]>({
         path: "/groups",
@@ -439,7 +437,7 @@ describe.sequential("Workflow - MoveGroup", async () => {
 
   test("Multiple move rules can be configured (AND operator)", async () => {
     const slug = "e2e-multi-rules";
-    await cleanupOrphanedGroup(http, slug, allGroupsForCleanup);
+    await cleanupOrphanedGroup(http, slug);
 
     const { status: groupStatus, data: group } = await http.post<PartnerGroup>({
       path: "/groups",
@@ -493,7 +491,7 @@ describe.sequential("Workflow - MoveGroup", async () => {
 
   test("Metric + partnerGroup move rules create workflow with both conditions", async () => {
     const slug = "e2e-partner-group-config";
-    await cleanupOrphanedGroup(http, slug, allGroupsForCleanup);
+    await cleanupOrphanedGroup(http, slug);
 
     const { data: existingGroups } = await http.get<PartnerGroup[]>({
       path: "/groups",
@@ -559,7 +557,7 @@ describe.sequential("Workflow - MoveGroup", async () => {
     { timeout: 90000 },
     async () => {
       const slug = "e2e-partner-group-match";
-      await cleanupOrphanedGroup(http, slug, allGroupsForCleanup);
+      await cleanupOrphanedGroup(http, slug);
 
       const { data: existingGroups } = await http.get<PartnerGroup[]>({
         path: "/groups",
@@ -633,8 +631,8 @@ describe.sequential("Workflow - MoveGroup", async () => {
   test("Workflow doesn't execute when partnerGroup does not match source group", async () => {
     const slug = "e2e-partner-group-mismatch";
     const sourceSlug = "e2e-partner-group-mismatch-src";
-    await cleanupOrphanedGroup(http, slug, allGroupsForCleanup);
-    await cleanupOrphanedGroup(http, sourceSlug, allGroupsForCleanup);
+    await cleanupOrphanedGroup(http, slug);
+    await cleanupOrphanedGroup(http, sourceSlug);
 
     const { data: existingGroups } = await http.get<PartnerGroup[]>({
       path: "/groups",

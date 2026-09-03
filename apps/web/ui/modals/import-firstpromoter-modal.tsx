@@ -4,17 +4,17 @@ import { X } from "@/ui/shared/icons";
 import { Button, Logo, Modal, useMediaQuery, useRouterStuff } from "@dub/ui";
 import { ArrowRight } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import {
   Dispatch,
   SetStateAction,
   useCallback,
-  useEffect,
   useMemo,
   useState,
 } from "react";
 import { toast } from "sonner";
 import { MarkdownDescription } from "../shared/markdown-description";
+import { useImportModalParam } from "./use-import-modal-param";
 
 function ImportFirstPromoterModal({
   showImportFirstPromoterModal,
@@ -180,17 +180,7 @@ function CredentialsForm({ onClose }: { onClose: () => void }) {
 
 export function useImportFirstPromoterModal() {
   const [showImportFirstPromoterModal, setShowImportFirstPromoterModal] =
-    useState(false);
-  const searchParams = useSearchParams();
-
-  // Sync the modal state with the `?import=` query param here in the hook
-  // rather than in the modal itself, which remounts on every open/close
-  // and would re-open from a stale param mid-navigation
-  useEffect(() => {
-    setShowImportFirstPromoterModal(
-      searchParams?.get("import") === "firstpromoter",
-    );
-  }, [searchParams]);
+    useImportModalParam("firstpromoter");
 
   const ImportFirstPromoterModalCallback = useCallback(() => {
     return (

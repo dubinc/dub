@@ -10,7 +10,6 @@ import { getRewardSpendLimitWindow } from "@/lib/api/rewards/reward-spend-limit-
 import { calculateSaleEarnings } from "@/lib/api/sales/calculate-sale-earnings";
 import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
 import { logger } from "@/lib/axiom/server";
-import { getWorkflowConfig } from "@/lib/cron/qstash-workflow";
 import { constructWebhookPartner } from "@/lib/partners/constuct-webhook-partner";
 import { determinePartnerRewards } from "@/lib/partners/determine-partner-reward";
 import { getRewardAmount } from "@/lib/partners/get-reward-amount";
@@ -153,11 +152,6 @@ export const { POST } = serve<Input>(
       failResponse,
       failHeaders,
     }) => {
-      const { correlation } = getWorkflowConfig({
-        workflowType: "create-partner-commission",
-        body: context.requestPayload,
-      });
-
       logger.error("workflow.failed", {
         service: "qstash",
         event: "workflow.failed",
@@ -166,7 +160,6 @@ export const { POST } = serve<Input>(
         failStatus,
         failResponse,
         failHeaders,
-        correlation,
       });
 
       await logger.flush();
@@ -192,6 +185,7 @@ async function stepCreateCommission(
     createdAt,
     status,
     userId,
+    metadata,
     context,
     programEnrollment,
   } = input;
@@ -451,6 +445,7 @@ async function stepCreateCommission(
         status,
         description,
         createdAt,
+        metadata: metadata ?? Prisma.DbNull,
       },
     });
 
