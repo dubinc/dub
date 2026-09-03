@@ -110,6 +110,34 @@ test.describe("Shopify orders/paid", () => {
     ]).toContain(webhook.data);
   });
 
+  test("webhook with dubClickId in note_attributes", async () => {
+    const checkoutToken = nanoid(10);
+
+    const webhook = await postShopifyOrdersPaidWebhook({
+      checkoutToken,
+      note_attributes: [{ name: "dubClickId", value: clickId }],
+    });
+
+    expect(webhook.status).toEqual(200);
+    expect(webhook.data).toEqual(
+      `[Shopify] Click ID ${clickId} found. Order queued for processing.`,
+    );
+  });
+
+  test("webhook with unknown dubClickId waits for pixel", async () => {
+    const checkoutToken = nanoid(10);
+
+    const webhook = await postShopifyOrdersPaidWebhook({
+      checkoutToken,
+      note_attributes: [{ name: "dubClickId", value: nanoid(16) }],
+    });
+
+    expect(webhook.status).toEqual(200);
+    expect(webhook.data).toEqual(
+      "[Shopify] Waiting for pixel event to arrive...",
+    );
+  });
+
   test("orders/paid – existing customer", async ({ api }) => {
     const { customer } = await trackLead({ clickId });
     const created = await getCustomerByExternalId(api, customer.externalId);

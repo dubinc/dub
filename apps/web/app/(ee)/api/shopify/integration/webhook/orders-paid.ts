@@ -5,6 +5,7 @@ import {
 import { shopifyOrderSchema } from "@/lib/integrations/shopify/schema";
 import { processShopifyOrderJob } from "@/lib/jobs/handlers/process-shopify-order-job";
 import { prisma } from "@/lib/prisma";
+import { getClickEvent } from "@/lib/tinybird";
 import { WorkspaceProps } from "@/lib/types";
 
 export async function ordersPaid({
@@ -87,12 +88,28 @@ export async function ordersPaid({
   }
 
   // At this stage, we know the order has no customer or partner discount code
-  // so we need to wait for the pixel event to arrive as this could be a new customer coming via a link
+  // Prefer dubClickId from note_attributes when present; otherwise wait for the pixel
+  let clickId =
+    order.note_attributes.find(({ name }) => name === "dubClickId")?.value ||
+    undefined;
+
+  if (clickId) {
+    const clickEvent = await getClickEvent({ clickId });
+
+    if (!clickEvent) {
+      console.warn(
+        `Click event not found for the clickId ${clickId} from note_attributes`,
+      );
+      clickId = undefined;
+    }
+  }
+
   const checkout = await shopifyCheckoutCache.set({
     checkoutToken,
     fields: {
       order,
       workspaceId: workspace.id,
+      ...(clickId && { clickId }),
     },
   });
 
