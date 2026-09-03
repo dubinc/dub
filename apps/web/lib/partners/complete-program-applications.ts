@@ -103,6 +103,8 @@ export async function completeProgramApplications(userEmail: string) {
       clickRewardId: programApplication?.partnerGroup?.clickRewardId,
       leadRewardId: programApplication?.partnerGroup?.leadRewardId,
       saleRewardId: programApplication?.partnerGroup?.saleRewardId,
+      customRewardId: programApplication?.partnerGroup?.customRewardId,
+      referralRewardId: programApplication?.partnerGroup?.referralRewardId,
       discountId: programApplication?.partnerGroup?.discountId,
     }));
 

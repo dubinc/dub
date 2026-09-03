@@ -13,7 +13,6 @@ import { DirectorySyncProviders } from "@boxyhq/saml-jackson";
 import {
   Commission,
   CommissionStatus,
-  EventType,
   FolderUserRole,
   FraudEvent,
   FraudEventGroup,
@@ -572,11 +571,10 @@ export type DiscountCodeProps = z.infer<typeof DiscountCodeSchema>;
 
 export type ProgramProps = Omit<
   z.infer<typeof ProgramSchema>,
-  "referralFormData" | "applicationRequirements" | "primaryRewardEvent"
+  "referralFormData" | "applicationRequirements"
 > & {
   referralFormData?: Prisma.JsonValue | null;
   applicationRequirements?: Prisma.JsonValue | null;
-  primaryRewardEvent: EventType;
 };
 
 export type ProgramInviteEmailData = z.infer<

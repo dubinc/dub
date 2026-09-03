@@ -1,14 +1,13 @@
 import { constructRewardAmount } from "@/lib/api/sales/construct-reward-amount";
 import { dispatchWorkflows } from "@/lib/jobs/publish-workflows";
 import { prisma } from "@/lib/prisma";
-import { COMMISSION_ELIGIBLE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
 import {
   CUSTOM_REWARD_CADENCE_PRESETS,
   customRewardConfigSchema,
 } from "@/lib/zod/schemas/rewards";
 import { tz } from "@date-fns/tz";
 import { pluck } from "@dub/utils";
-import { CommissionType, EventType } from "@prisma/client";
+import { CommissionType, EventType, ProgramEnrollmentStatus } from "@prisma/client";
 import { createHash } from "crypto";
 import { differenceInMonths, format } from "date-fns";
 import { toUtcDateOnly } from "./custom-reward-utils";
@@ -131,9 +130,7 @@ export async function createCustomRewardCommissions({
   const enrollments = await prisma.programEnrollment.findMany({
     where: {
       customRewardId: rewardId,
-      status: {
-        in: COMMISSION_ELIGIBLE_ENROLLMENT_STATUSES,
-      },
+      status: ProgramEnrollmentStatus.approved,
       ...(startAfterPartnerId && {
         partnerId: {
           gt: startAfterPartnerId,
