@@ -1,5 +1,4 @@
 import { COMMON_CORS_HEADERS } from "@/lib/api/cors";
-import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import {
   shopifyCheckoutCache,
@@ -20,6 +19,10 @@ const inputSchema = z.object({
 
 // POST /api/shopify/pixel – Handle the Shopify Pixel events
 export const POST = async (req: Request) => {
+  const response = NextResponse.json("OK", {
+    headers: COMMON_CORS_HEADERS,
+  });
+
   try {
     const { clickId, checkoutToken, shopDomain } = inputSchema.parse(
       await parseRequestBody(req),
@@ -29,10 +32,6 @@ export const POST = async (req: Request) => {
       clickId,
       checkoutToken,
       shopDomain,
-    });
-
-    const response = NextResponse.json("OK", {
-      headers: COMMON_CORS_HEADERS,
     });
 
     if (!checkoutToken) {
@@ -77,7 +76,8 @@ export const POST = async (req: Request) => {
 
     return response;
   } catch (error) {
-    return handleAndReturnErrorResponse(error, COMMON_CORS_HEADERS);
+    console.error("Error processing Shopify pixel event", error);
+    return response;
   }
 };
 
