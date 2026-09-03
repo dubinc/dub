@@ -186,7 +186,7 @@ export function CustomRewardBuilder() {
               : Number(maxDuration)
           }
           onChange={(value) =>
-            setValue("maxDuration", value, {
+            setValue("maxDuration", value === Infinity ? null : value, {
               shouldDirty: true,
             })
           }

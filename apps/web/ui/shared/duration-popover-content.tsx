@@ -194,19 +194,14 @@ export function DurationPopoverContent({
           : []),
         ...presetItems,
         ...(!presetsOnly
-          ? hideLifetime
-            ? [
-                {
-                  text: "Indefinitely",
-                  value: "Infinity",
-                },
-              ]
-            : [
-                {
-                  text: `for the ${partnerReferralReward ? "referred partner's" : "customer's"} lifetime`,
-                  value: "Infinity",
-                },
-              ]
+          ? [
+              {
+                text: hideLifetime
+                  ? "Indefinitely"
+                  : `for the ${partnerReferralReward ? "referred partner's" : "customer's"} lifetime`,
+                value: "Infinity",
+              },
+            ]
           : []),
         { text: "custom", value: "custom", preventClose: true },
       ]}

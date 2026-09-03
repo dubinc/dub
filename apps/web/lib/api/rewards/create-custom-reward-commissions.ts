@@ -1,79 +1,20 @@
-import { constructRewardAmount } from "@/lib/api/sales/construct-reward-amount";
 import { dispatchWorkflows } from "@/lib/jobs/publish-workflows";
 import { prisma } from "@/lib/prisma";
-import {
-  CUSTOM_REWARD_CADENCE_PRESETS,
-  customRewardConfigSchema,
-} from "@/lib/zod/schemas/rewards";
-import { tz } from "@date-fns/tz";
+import { customRewardConfigSchema } from "@/lib/zod/schemas/rewards";
 import { pluck } from "@dub/utils";
-import { CommissionType, EventType, ProgramEnrollmentStatus } from "@prisma/client";
-import { createHash } from "crypto";
-import { differenceInMonths, format } from "date-fns";
-import { toUtcDateOnly } from "./custom-reward-utils";
+import {
+  CommissionType,
+  EventType,
+  ProgramEnrollmentStatus,
+} from "@prisma/client";
+import {
+  buildCommissionIdempotencyKey,
+  formatCommissionDescription,
+  hasRewardMaxDurationElapsed,
+  toUtcDateOnly,
+} from "./custom-reward-utils";
 
 const PAGE_SIZE = 100;
-
-export function formatCommissionDescription({
-  amountInCents,
-  frequency,
-  interval,
-  periodDate,
-}: {
-  amountInCents: number;
-  frequency: string;
-  interval: number;
-  periodDate: string;
-}) {
-  const preset = CUSTOM_REWARD_CADENCE_PRESETS.find(
-    (p) => p.frequency === frequency && p.interval === interval,
-  );
-  const cadenceLabel = preset?.label.toLowerCase() ?? `${frequency}ly`;
-  const periodLabel = format(toUtcDateOnly(periodDate), "MMM yyyy", {
-    in: tz("UTC"),
-  });
-  const amountLabel = constructRewardAmount({
-    type: "flat",
-    amountInCents,
-    amountInPercentage: null,
-  });
-
-  return `${amountLabel} ${cadenceLabel} · ${periodLabel}`;
-}
-
-export function buildCommissionIdempotencyKey({
-  rewardId,
-  partnerId,
-  periodDate,
-}: {
-  rewardId: string;
-  partnerId: string;
-  periodDate: string;
-}) {
-  return createHash("sha256")
-    .update(`custom_${rewardId}_${partnerId}_${periodDate}`)
-    .digest("hex");
-}
-
-export function hasRewardMaxDurationElapsed({
-  firstCommissionAt,
-  maxDuration,
-  periodDate,
-}: {
-  firstCommissionAt: Date;
-  maxDuration: number | null | undefined;
-  periodDate: Date | string;
-}): boolean {
-  // null / undefined = infinite
-  if (maxDuration == null) {
-    return false;
-  }
-
-  const period = toUtcDateOnly(periodDate);
-  const first = toUtcDateOnly(firstCommissionAt);
-
-  return differenceInMonths(period, first, { in: tz("UTC") }) >= maxDuration;
-}
 
 export async function createCustomRewardCommissions({
   rewardId,

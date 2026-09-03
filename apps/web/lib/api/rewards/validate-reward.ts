@@ -68,6 +68,13 @@ export function validateReward(
       });
     }
 
+    if (reward.spendLimitAmount != null || reward.spendLimitInterval != null) {
+      throw new DubApiError({
+        code: "bad_request",
+        message: "Spend limits are not allowed for custom rewards.",
+      });
+    }
+
     if (reward.maxDuration === 0) {
       throw new DubApiError({
         code: "bad_request",

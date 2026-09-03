@@ -4,7 +4,7 @@ import { defineJob } from "../index";
 
 const inputSchema = z.object({
   rewardId: z.string(),
-  periodDate: z.string(),
+  periodDate: z.iso.date(),
   startAfterPartnerId: z.string().optional(),
 });
 

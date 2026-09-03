@@ -1,10 +1,8 @@
 import {
   buildCommissionIdempotencyKey,
   formatCommissionDescription,
-  hasRewardMaxDurationElapsed,
-} from "@/lib/api/rewards/create-custom-reward-commissions";
-import {
   getUtcPeriodDate,
+  hasRewardMaxDurationElapsed,
   isCadenceDue,
   isCustomRewardStartDateInPast,
   isEventBasedReward,
@@ -139,6 +137,57 @@ describe("formatCommissionDescription", () => {
         periodDate: "2026-09-01",
       }),
     ).toBe("$10 monthly · Sep 2026");
+  });
+
+  test("uses the full UTC date for daily and weekly periods", () => {
+    expect(
+      formatCommissionDescription({
+        amountInCents: 1000,
+        frequency: "day",
+        interval: 1,
+        periodDate: "2026-04-15",
+      }),
+    ).toBe("$10 daily · Apr 15, 2026");
+
+    expect(
+      formatCommissionDescription({
+        amountInCents: 1000,
+        frequency: "week",
+        interval: 1,
+        periodDate: "2026-04-06",
+      }),
+    ).toBe("$10 weekly · Apr 6, 2026");
+  });
+
+  test("uses preset labels for biweekly and quarterly", () => {
+    expect(
+      formatCommissionDescription({
+        amountInCents: 2500,
+        frequency: "week",
+        interval: 2,
+        periodDate: "2026-04-06",
+      }),
+    ).toBe("$25 biweekly · Apr 6, 2026");
+
+    expect(
+      formatCommissionDescription({
+        amountInCents: 5000,
+        frequency: "month",
+        interval: 3,
+        periodDate: "2026-01-15",
+      }),
+    ).toBe("$50 quarterly · Jan 2026");
+  });
+
+  test("falls back to every N units for non-preset intervals", () => {
+    expect(
+      formatCommissionDescription({
+        amountInCents: 1000,
+        frequency: "day",
+        interval: 5,
+        periodDate: "2026-04-15",
+      }),
+    ).toBe("$10 every 5 days · Apr 15, 2026");
   });
 });
 
