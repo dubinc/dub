@@ -436,7 +436,7 @@ export async function processLink<T extends Record<string, any>>({
       }
     }
 
-    // Program validity checks
+    // only perform program validity checks if not bulk creation (we do that check separately in the route itself)
     if (programId && !skipProgramChecks) {
       if (
         workspace?.defaultProgramId &&

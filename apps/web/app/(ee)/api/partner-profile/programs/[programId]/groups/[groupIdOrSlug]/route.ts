@@ -10,7 +10,16 @@ export const GET = withPartnerProfile(async ({ params, partner }) => {
 
   const group = await prisma.partnerGroup.findUnique({
     where: {
-      id: groupIdOrSlug,
+      ...(groupIdOrSlug.startsWith("grp_")
+        ? {
+            id: groupIdOrSlug,
+          }
+        : {
+            programId_slug: {
+              programId,
+              slug: groupIdOrSlug,
+            },
+          }),
       programId,
       partners: {
         some: {
