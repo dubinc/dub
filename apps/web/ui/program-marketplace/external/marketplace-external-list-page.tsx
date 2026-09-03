@@ -57,7 +57,7 @@ export async function MarketplaceExternalListPage({
       title={
         categoryMeta ? (
           <>
-            {categoryMeta.label} partner
+            {categoryMeta.label} affiliate
             <br />
             programs
           </>

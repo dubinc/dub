@@ -1,6 +1,6 @@
 "use client";
 
-import { NavMobile, Nav as NavUI, Wordmark } from "@dub/ui";
+import { NavMobile, Nav as NavUI, Shop, Wordmark } from "@dub/ui";
 import Link from "next/link";
 
 const DUB_HOME_HREF = "https://dub.co/home";
@@ -17,9 +17,9 @@ function MarketplaceLogo() {
       <span className="text-lg font-light text-neutral-300">|</span>
       <Link
         href="/marketplace"
-        className="text-sm font-medium text-neutral-500 transition-opacity hover:opacity-80"
+        className="flex items-center gap-2 text-sm font-medium text-neutral-500 transition-opacity hover:opacity-80"
       >
-        Programs
+        <Shop className="size-3.5" /> Program Marketplace
       </Link>
     </div>
   );

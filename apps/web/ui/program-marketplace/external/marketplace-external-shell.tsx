@@ -40,9 +40,7 @@ export function MarketplaceExternalShell({
 
   const resolvedDescription =
     description ??
-    (variant === "home"
-      ? `Explore the variety of partner programs in the Dub Program Marketplace and start monetizing your traffic/audience today.`
-      : "Explore the Dub Partner marketplace and start earning.");
+    "Explore the variety of SaaS affiliate programs in the Dub Program Marketplace and start monetizing your traffic/audience today.";
 
   return (
     <div className="relative z-10 flex flex-col">

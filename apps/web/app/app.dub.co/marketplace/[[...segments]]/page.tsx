@@ -16,13 +16,14 @@ export async function generateMetadata(props: {
   const { segments = [] } = await props.params;
   const pathname = `/marketplace${segments.length > 0 ? `/${segments.join("/")}` : ""}`;
 
-  let title = `Best SaaS affiliate programs in ${new Date().getFullYear()}`;
+  const currentYear = new Date().getFullYear();
+
+  let title = `Best SaaS affiliate programs in ${currentYear}`;
   let description = `Browse and apply to the best SaaS affiliate programs on Dub's Partner Network.`;
   let image: string | undefined;
 
   if (segments.length === 1 && segments[0] === "all") {
-    title = "All Programs";
-    description = "Browse all partner programs on Dub.";
+    title = `Top SaaS affiliate programs in ${currentYear}`;
   } else if (
     segments.length === 1 &&
     segments[0] !== "all" &&
@@ -34,10 +35,8 @@ export async function generateMetadata(props: {
       title = program.name;
       description =
         program.description ||
-        `Join the ${program.name} affiliate program on Dub's Partner Network.`;
+        `Join the ${program.name} affiliate program on Dub's Program Marketplace.`;
       image = program.marketplaceHeaderImage || program.logo || undefined;
-    } else {
-      title = "Program Details";
     }
   } else if (segments.length === 2 && segments[0] === "c") {
     const category = Object.values(Category).find(
@@ -45,12 +44,13 @@ export async function generateMetadata(props: {
     );
 
     if (category) {
+      // categoryMeta should always return a value, but just in case
       const categoryMeta = PROGRAM_CATEGORIES_MAP[category];
       const label = categoryMeta?.label ?? category.replaceAll("_", " ");
-      title = `${label} Programs`;
+      title = `Best ${label.toLowerCase()} affiliate programs in ${currentYear}`;
       description =
         categoryMeta?.listPageDescription ??
-        `Partner programs in ${label.toLowerCase()}.`;
+        `Browse the best ${label.toLowerCase()} affiliate programs on Dub's Program Marketplace.`;
     }
   }
 
