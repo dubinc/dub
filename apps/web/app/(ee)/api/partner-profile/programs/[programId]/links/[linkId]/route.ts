@@ -125,6 +125,7 @@ export const PATCH = withPartnerProfile(
       },
       workspace: {
         id: program.workspaceId,
+        defaultProgramId: program.id,
         plan: "business",
         users: [{ role: "owner" }],
       },
