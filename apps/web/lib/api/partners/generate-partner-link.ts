@@ -117,6 +117,7 @@ export const generatePartnerLink = async ({
       workspace: {
         id: workspace.id,
         plan: workspace.plan,
+        defaultProgramId: program.id,
         users: [{ role: "owner" }], // TODO: apply folders RBAC to generatePartnerLink checks
       },
       userId,
