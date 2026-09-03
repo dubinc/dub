@@ -1,10 +1,11 @@
+import { withAxiom } from "@/lib/axiom/server";
 import { logAndRespond } from "app/(ee)/api/cron/utils";
 import crypto from "crypto";
 import { handleDecisionEvent } from "./handle-decision-event";
 import { handleSessionEvent } from "./handle-session-event";
 
 // POST /api/veriff/webhook
-export const POST = async (req: Request) => {
+export const POST = withAxiom(async (req: Request) => {
   const rawBody = await req.text();
 
   const signature = req.headers.get("x-hmac-signature");
@@ -62,4 +63,4 @@ export const POST = async (req: Request) => {
   } else {
     return await handleSessionEvent(body);
   }
-};
+});
