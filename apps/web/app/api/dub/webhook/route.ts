@@ -1,4 +1,5 @@
 import { webhookPayloadSchema } from "@/lib/webhook/schemas";
+import { timingSafeCompare } from "@/lib/webhook/timing-safe-compare";
 import crypto from "crypto";
 import { leadCreated } from "./lead-created";
 import { saleCreated } from "./sale-created";
@@ -19,7 +20,7 @@ export const POST = async (req: Request) => {
     .update(JSON.stringify(body))
     .digest("hex");
 
-  if (webhookSignature !== computedSignature) {
+  if (!timingSafeCompare(webhookSignature, computedSignature)) {
     return new Response("Invalid signature", { status: 400 });
   }
 

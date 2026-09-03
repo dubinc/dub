@@ -1,6 +1,7 @@
 import { captureWebhookLog } from "@/lib/api-logs/capture-webhook-log";
 import { isLocalDev } from "@/lib/api/environment";
 import { prisma } from "@/lib/prisma";
+import { timingSafeCompare } from "@/lib/webhook/timing-safe-compare";
 import { waitUntil } from "@vercel/functions";
 import { logAndRespond } from "app/(ee)/api/cron/utils";
 import crypto from "crypto";
@@ -41,24 +42,7 @@ export const POST = async (req: Request) => {
       .update(data, "utf8")
       .digest("base64");
 
-    const providedBuffer = Buffer.from(signature, "utf8");
-    const expectedBuffer = Buffer.from(generatedSignature, "utf8");
-
-    if (providedBuffer.length !== expectedBuffer.length) {
-      return logAndRespond(
-        "Shopify webhook signature verification failed. Skipping...",
-        {
-          status: 401,
-        },
-      );
-    }
-
-    const isSignatureValid = crypto.timingSafeEqual(
-      Uint8Array.from(providedBuffer),
-      Uint8Array.from(expectedBuffer),
-    );
-
-    if (!isSignatureValid) {
+    if (!timingSafeCompare(signature, generatedSignature)) {
       return logAndRespond(
         "Shopify webhook signature verification failed. Skipping...",
         {
