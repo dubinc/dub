@@ -1,10 +1,7 @@
 "use client";
 
 import { EligibilityConditionDB } from "@/lib/types";
-import {
-  ELIGIBILITY_ACCOUNT_ATTRIBUTES,
-  ELIGIBILITY_PROFILE_ATTRIBUTES,
-} from "@/lib/zod/schemas/programs";
+import { ELIGIBILITY_PROFILE_ATTRIBUTES } from "@/lib/zod/schemas/programs";
 import { CountryFlag } from "@/ui/shared/country-flag";
 import {
   InlineBadgePopover,
@@ -14,10 +11,7 @@ import { AnimatedSizeContainer, Button, Icon } from "@dub/ui";
 import { ArrowTurnRight2, CircleCheck, Users2, Xmark } from "@dub/ui/icons";
 import { cn, COUNTRIES } from "@dub/utils";
 import { Fragment } from "react";
-import {
-  ELIGIBILITY_ACCOUNT_ATTRIBUTE_META,
-  ELIGIBILITY_PROFILE_ATTRIBUTE_META,
-} from "./eligibility-attributes";
+import { ELIGIBILITY_PROFILE_ATTRIBUTE_META } from "./eligibility-attributes";
 
 type ConditionKey = EligibilityConditionDB["key"];
 
@@ -34,13 +28,11 @@ export type EligibilityCondition = {
 export const ELIGIBILITY_CONDITION_KEYS = [
   "country",
   "profile",
-  "account",
 ] as const satisfies readonly ConditionKey[];
 
 const CONDITION_KEY_LABELS: Record<ConditionKey, string> = {
   country: "country",
   profile: "profile",
-  account: "account",
   emailDomain: "email domain", // legacy — not offered in the UI
 };
 
@@ -58,7 +50,6 @@ const KEY_DEFAULTS: Record<
 > = {
   country: { operator: null },
   profile: { operator: "has" },
-  account: { operator: "is" },
 };
 
 function isValueValid(value: string[] | null): boolean {
@@ -93,15 +84,6 @@ function AttributeIcon({
 
 const PROFILE_ITEMS = ELIGIBILITY_PROFILE_ATTRIBUTES.map((attribute) => {
   const meta = ELIGIBILITY_PROFILE_ATTRIBUTE_META[attribute];
-  return {
-    text: meta.label,
-    value: attribute,
-    icon: <AttributeIcon {...meta} />,
-  };
-});
-
-const ACCOUNT_ITEMS = ELIGIBILITY_ACCOUNT_ATTRIBUTES.map((attribute) => {
-  const meta = ELIGIBILITY_ACCOUNT_ATTRIBUTE_META[attribute];
   return {
     text: meta.label,
     value: attribute,
@@ -308,7 +290,7 @@ function ConditionRow({
         )}
       </div>
 
-      <span className="flex min-w-0 flex-1 flex-wrap items-center gap-x-1 gap-y-1 text-sm font-medium leading-relaxed text-neutral-800">
+      <span className="flex min-h-7 min-w-0 flex-1 flex-wrap items-center gap-x-1 gap-y-1 text-sm font-medium leading-relaxed text-neutral-800">
         {isFirst ? "If partner" : "And if partner"}
         <InlineBadgePopover
           text={
@@ -370,15 +352,6 @@ function ConditionRow({
               onChange={handleValueChange}
             />
           </>
-        )}
-
-        {condition.key === "account" && (
-          <MultiValueBadge
-            value={condition.value}
-            items={ACCOUNT_ITEMS}
-            labels={ELIGIBILITY_ACCOUNT_ATTRIBUTE_META}
-            onChange={handleValueChange}
-          />
         )}
       </span>
 

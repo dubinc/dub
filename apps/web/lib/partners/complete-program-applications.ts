@@ -34,8 +34,6 @@ export async function completeProgramApplications(userEmail: string) {
             partner: {
               include: {
                 platforms: true,
-                preferredEarningStructures: true,
-                salesChannels: true,
                 programs: {
                   select: {
                     programId: true,

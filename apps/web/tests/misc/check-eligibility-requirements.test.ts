@@ -2,7 +2,6 @@ import {
   EligibilityContext,
   evaluateApplicationRequirements,
   getEligibilityContext,
-  isAccountAttributeMet,
   isCountryConditionMet,
   isProfileAttributeMet,
 } from "@/lib/partners/evaluate-application-requirements";
@@ -16,12 +15,9 @@ function evaluate(
 }
 
 const fullProfile = {
-  hasDescription: true,
   hasVerifiedWebsite: true,
   hasVerifiedSocialAccount: true,
-  hasPreferredEarningStructure: true,
-  hasSalesChannel: true,
-  hasMonthlyTraffic: true,
+  hasProgramBans: false,
 };
 
 describe("evaluateApplicationRequirements", () => {
@@ -258,7 +254,7 @@ describe("evaluateApplicationRequirements", () => {
 
     it("rejects an invalid operator for a profile condition", () => {
       const result = evaluate(
-        [{ key: "profile", operator: "is", value: ["description"] }],
+        [{ key: "profile", operator: "is", value: ["verified_website"] }],
         { profile: fullProfile },
       );
       expect(result.valid).toBe(false);
@@ -268,6 +264,15 @@ describe("evaluateApplicationRequirements", () => {
     it("rejects unknown profile attributes", () => {
       const result = evaluate(
         [{ key: "profile", operator: "has", value: ["not_a_real_attribute"] }],
+        { profile: fullProfile },
+      );
+      expect(result.valid).toBe(false);
+      expect(result.reason).toBe("invalidRequirements");
+    });
+
+    it("rejects the removed account condition key", () => {
+      const result = evaluate(
+        [{ key: "account", operator: "is", value: ["no_program_bans"] }],
         { profile: fullProfile },
       );
       expect(result.valid).toBe(false);
@@ -291,7 +296,7 @@ describe("evaluateApplicationRequirements", () => {
     const condition = {
       key: "profile" as const,
       operator: "has" as const,
-      value: ["description", "verified_website", "sales_channels"],
+      value: ["verified_website", "no_program_bans"],
     };
 
     it("returns valid when all selected attributes are met", () => {
@@ -308,9 +313,17 @@ describe("evaluateApplicationRequirements", () => {
       expect(result.reason).toBe("requirementsNotMet");
     });
 
+    it("returns invalid when banned from a program", () => {
+      const result = evaluate([condition], {
+        profile: { ...fullProfile, hasProgramBans: true },
+      });
+      expect(result.valid).toBe(false);
+      expect(result.reason).toBe("requirementsNotMet");
+    });
+
     it("ignores unmet attributes that are not selected", () => {
       const result = evaluate([condition], {
-        profile: { ...fullProfile, hasMonthlyTraffic: false },
+        profile: { ...fullProfile, hasVerifiedSocialAccount: false },
       });
       expect(result.valid).toBe(true);
       expect(result.reason).toBe("requirementsMet");
@@ -323,57 +336,35 @@ describe("evaluateApplicationRequirements", () => {
     });
   });
 
-  describe("account — is", () => {
-    const condition = {
-      key: "account" as const,
-      operator: "is" as const,
-      value: ["dub_network_approved", "no_program_bans"],
-    };
-
-    it("returns valid when approved and not banned", () => {
-      const result = evaluate([condition], {
-        account: { isDubNetworkApproved: true, hasProgramBans: false },
-      });
-      expect(result.valid).toBe(true);
-      expect(result.reason).toBe("requirementsMet");
-    });
-
-    it("returns invalid when not network approved", () => {
-      const result = evaluate([condition], {
-        account: { isDubNetworkApproved: false, hasProgramBans: false },
-      });
-      expect(result.valid).toBe(false);
-      expect(result.reason).toBe("requirementsNotMet");
-    });
-
-    it("returns invalid when banned from a program", () => {
-      const result = evaluate([condition], {
-        account: { isDubNetworkApproved: true, hasProgramBans: true },
-      });
-      expect(result.valid).toBe(false);
-      expect(result.reason).toBe("requirementsNotMet");
-    });
-
-    it("returns invalid when context has no account data", () => {
-      const result = evaluate([condition], {});
-      expect(result.valid).toBe(false);
-      expect(result.reason).toBe("requirementsNotMet");
-    });
-  });
-
   describe("per-attribute checks (used by the eligibility card)", () => {
     it("isProfileAttributeMet checks the selected attribute only", () => {
-      const profile = { ...fullProfile, hasSalesChannel: false };
-      expect(isProfileAttributeMet(profile, "sales_channels")).toBe(false);
-      expect(isProfileAttributeMet(profile, "description")).toBe(true);
-      expect(isProfileAttributeMet(undefined, "description")).toBe(false);
+      const profile = { ...fullProfile, hasVerifiedWebsite: false };
+      expect(isProfileAttributeMet(profile, "verified_website")).toBe(false);
+      expect(isProfileAttributeMet(profile, "verified_social_account")).toBe(
+        true,
+      );
+      expect(isProfileAttributeMet(undefined, "verified_website")).toBe(false);
     });
 
-    it("isAccountAttributeMet checks approval and bans independently", () => {
-      const account = { isDubNetworkApproved: true, hasProgramBans: true };
-      expect(isAccountAttributeMet(account, "dub_network_approved")).toBe(true);
-      expect(isAccountAttributeMet(account, "no_program_bans")).toBe(false);
-      expect(isAccountAttributeMet(undefined, "no_program_bans")).toBe(false);
+    it("isProfileAttributeMet treats unknown program bans as unmet", () => {
+      expect(
+        isProfileAttributeMet(
+          { ...fullProfile, hasProgramBans: false },
+          "no_program_bans",
+        ),
+      ).toBe(true);
+      expect(
+        isProfileAttributeMet(
+          { ...fullProfile, hasProgramBans: true },
+          "no_program_bans",
+        ),
+      ).toBe(false);
+      expect(
+        isProfileAttributeMet(
+          { ...fullProfile, hasProgramBans: null },
+          "no_program_bans",
+        ),
+      ).toBe(false);
     });
 
     it("isCountryConditionMet applies the operator", () => {
@@ -401,20 +392,15 @@ describe("evaluateApplicationRequirements", () => {
       expect(getEligibilityContext({ partner: null })).toEqual({});
     });
 
-    it("derives profile and account context from partner data", () => {
+    it("derives profile context from partner data", () => {
       const context = getEligibilityContext({
         partner: {
           country: "US",
           email: "jane@acme.com",
-          description: "Hello",
-          monthlyTraffic: "OneThousandToTenThousand",
-          networkStatus: "trusted",
           platforms: [
             { type: "website", verifiedAt: new Date() },
             { type: "youtube", verifiedAt: null },
           ],
-          preferredEarningStructures: ["one"],
-          salesChannels: [],
         },
         programEnrollmentStatuses: ["approved", "banned"],
       });
@@ -423,15 +409,8 @@ describe("evaluateApplicationRequirements", () => {
         country: "US",
         email: "jane@acme.com",
         profile: {
-          hasDescription: true,
           hasVerifiedWebsite: true,
           hasVerifiedSocialAccount: false,
-          hasPreferredEarningStructure: true,
-          hasSalesChannel: false,
-          hasMonthlyTraffic: true,
-        },
-        account: {
-          isDubNetworkApproved: true,
           hasProgramBans: true,
         },
       });
@@ -439,34 +418,29 @@ describe("evaluateApplicationRequirements", () => {
 
     it("treats an empty enrollment list as a known no-bans state", () => {
       const context = getEligibilityContext({
-        partner: { networkStatus: "submitted" },
+        partner: {},
         programEnrollmentStatuses: [],
       });
 
-      expect(context.account).toEqual({
-        isDubNetworkApproved: false,
-        hasProgramBans: false,
-      });
+      expect(context.profile?.hasProgramBans).toBe(false);
     });
 
-    it("marks the account unknown when enrollment statuses are missing", () => {
-      const context = getEligibilityContext({
-        partner: { networkStatus: "trusted" },
-      });
+    it("marks program bans unknown when enrollment statuses are missing", () => {
+      const context = getEligibilityContext({ partner: {} });
 
-      expect(context.account).toBeNull();
+      expect(context.profile?.hasProgramBans).toBeNull();
     });
 
-    it("fails closed on account requirements when enrollment statuses are missing", () => {
+    it("fails closed on the no-bans requirement when enrollment statuses are missing", () => {
       const condition = {
-        key: "account" as const,
-        operator: "is" as const,
+        key: "profile" as const,
+        operator: "has" as const,
         value: ["no_program_bans"],
       };
 
       const result = evaluate(
         [condition],
-        getEligibilityContext({ partner: { networkStatus: "trusted" } }),
+        getEligibilityContext({ partner: {} }),
       );
 
       expect(result.valid).toBe(false);

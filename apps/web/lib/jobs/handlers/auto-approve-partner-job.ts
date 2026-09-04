@@ -34,8 +34,6 @@ export const autoApprovePartnerJob = defineJob({
         partner: {
           include: {
             platforms: true,
-            preferredEarningStructures: true,
-            salesChannels: true,
             programs: {
               select: {
                 status: true,

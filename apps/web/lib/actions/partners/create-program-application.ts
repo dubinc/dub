@@ -36,8 +36,6 @@ import {
   Partner,
   PartnerGroup,
   PartnerPlatform,
-  PartnerPreferredEarningStructure,
-  PartnerSalesChannel,
   Program,
   ProgramEnrollment,
   Project,
@@ -261,8 +259,6 @@ async function createApplicationAndEnrollment({
   partner: Partner & {
     programs: ProgramEnrollment[];
     platforms: PartnerPlatform[];
-    preferredEarningStructures: PartnerPreferredEarningStructure[];
-    salesChannels: PartnerSalesChannel[];
   };
   group: PartnerGroup;
   data: z.infer<typeof createProgramApplicationSchema>;

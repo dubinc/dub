@@ -1,7 +1,6 @@
 import { EligibilityConditionDB } from "../types";
 import {
   applicationRequirementsSchema,
-  EligibilityAccountAttribute,
   EligibilityProfileAttribute,
 } from "../zod/schemas/programs";
 
@@ -9,25 +8,18 @@ interface Context {
   country?: string | null;
   email?: string | null;
   profile?: {
-    hasDescription: boolean;
     hasVerifiedWebsite: boolean;
     hasVerifiedSocialAccount: boolean;
-    hasPreferredEarningStructure: boolean;
-    hasSalesChannel: boolean;
-    hasMonthlyTraffic: boolean;
-  } | null;
-  account?: {
-    isDubNetworkApproved: boolean;
-    hasProgramBans: boolean;
+    // null while the partner's enrollment statuses are unknown (still loading
+    // or failed to load), so the attribute fails closed
+    hasProgramBans: boolean | null;
   } | null;
 }
 
 export type EligibilityContext = Context;
 
 // Builds the evaluation context from a partner (plus their program enrollment
-// statuses). Handles both the client-side PartnerProps shape (enum arrays for
-// preferredEarningStructures/salesChannels) and the server-side Prisma shape
-// (relation rows) — only array length is used for those fields.
+// statuses)
 export function getEligibilityContext({
   partner,
   programEnrollmentStatuses,
@@ -35,12 +27,7 @@ export function getEligibilityContext({
   partner?: {
     country?: string | null;
     email?: string | null;
-    description?: string | null;
-    monthlyTraffic?: string | null;
-    networkStatus?: string | null;
     platforms?: { type: string; verifiedAt: Date | string | null }[] | null;
-    preferredEarningStructures?: unknown[] | null;
-    salesChannels?: unknown[] | null;
   } | null;
   programEnrollmentStatuses?: string[] | null;
 }): Context {
@@ -54,29 +41,19 @@ export function getEligibilityContext({
     country: partner.country,
     email: partner.email,
     profile: {
-      hasDescription: !!partner.description,
       hasVerifiedWebsite: platforms.some(
         (p) => p.type === "website" && !!p.verifiedAt,
       ),
       hasVerifiedSocialAccount: platforms.some(
         (p) => p.type !== "website" && !!p.verifiedAt,
       ),
-      hasPreferredEarningStructure:
-        (partner.preferredEarningStructures?.length ?? 0) > 0,
-      hasSalesChannel: (partner.salesChannels?.length ?? 0) > 0,
-      hasMonthlyTraffic: !!partner.monthlyTraffic,
+      // Unknown enrollment statuses (still loading or failed to load) stay
+      // null rather than reading "no data" as "no bans"; an empty array is a
+      // known state and evaluates to no bans
+      hasProgramBans: programEnrollmentStatuses
+        ? programEnrollmentStatuses.includes("banned")
+        : null,
     },
-    // Unknown enrollment statuses (still loading or failed to load) leave the
-    // account null so its attributes fail closed, rather than reading "no
-    // data" as "no bans"; an empty array is a known state and evaluates
-    account: programEnrollmentStatuses
-      ? {
-          isDubNetworkApproved: ["approved", "trusted"].includes(
-            partner.networkStatus ?? "",
-          ),
-          hasProgramBans: programEnrollmentStatuses.includes("banned"),
-        }
-      : null,
   };
 }
 
@@ -90,28 +67,13 @@ export function isProfileAttributeMet(
   }
 
   const checks: Record<EligibilityProfileAttribute, boolean> = {
-    description: profile.hasDescription,
     verified_website: profile.hasVerifiedWebsite,
     verified_social_account: profile.hasVerifiedSocialAccount,
-    preferred_earning_structure: profile.hasPreferredEarningStructure,
-    sales_channels: profile.hasSalesChannel,
-    estimated_monthly_traffic: profile.hasMonthlyTraffic,
+    // unknown (null) counts as unmet
+    no_program_bans: profile.hasProgramBans === false,
   };
 
   return checks[attribute];
-}
-
-export function isAccountAttributeMet(
-  account: Context["account"],
-  attribute: EligibilityAccountAttribute,
-): boolean {
-  if (!account) {
-    return false;
-  }
-
-  return attribute === "dub_network_approved"
-    ? account.isDubNetworkApproved
-    : !account.hasProgramBans;
 }
 
 // Shared between enforcement and the eligibility card so the two can't drift.
@@ -247,17 +209,6 @@ function evaluateCondition({
         isProfileAttributeMet(
           context.profile,
           attribute as EligibilityProfileAttribute,
-        ),
-      );
-
-      break;
-    }
-
-    case "account": {
-      matches = condition.value.every((attribute) =>
-        isAccountAttributeMet(
-          context.account,
-          attribute as EligibilityAccountAttribute,
         ),
       );
 

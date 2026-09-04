@@ -3,7 +3,6 @@
 import {
   EligibilityContext,
   getEligibilityContext,
-  isAccountAttributeMet,
   isCountryConditionMet,
   isProfileAttributeMet,
 } from "@/lib/partners/evaluate-application-requirements";
@@ -11,19 +10,13 @@ import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import useProgramEnrollments from "@/lib/swr/use-program-enrollments";
 import { EligibilityConditionDB } from "@/lib/types";
-import {
-  EligibilityAccountAttribute,
-  EligibilityProfileAttribute,
-} from "@/lib/zod/schemas/programs";
+import { EligibilityProfileAttribute } from "@/lib/zod/schemas/programs";
 import { CountryFlag } from "@/ui/shared/country-flag";
 import { Icon } from "@dub/ui";
 import { Lock } from "@dub/ui/icons";
 import { cn, COUNTRIES } from "@dub/utils";
 import { ReactNode } from "react";
-import {
-  ELIGIBILITY_ACCOUNT_ATTRIBUTE_META,
-  ELIGIBILITY_PROFILE_ATTRIBUTE_META,
-} from "./eligibility-attributes";
+import { ELIGIBILITY_PROFILE_ATTRIBUTE_META } from "./eligibility-attributes";
 
 function EligibilityPill({
   icon: Icon,
@@ -46,8 +39,8 @@ function EligibilityPill({
   );
 }
 
-// Only renders what the partner is missing: met conditions (and met
-// account/profile attributes) are hidden
+// Only renders what the partner is missing: met conditions (and met profile
+// attributes) are hidden
 function conditionSection(
   condition: EligibilityConditionDB,
   context: EligibilityContext,
@@ -67,38 +60,6 @@ function conditionSection(
             {COUNTRIES[code] ?? code}
           </EligibilityPill>
         )),
-      };
-    }
-
-    case "account": {
-      const unmet = condition.value.filter(
-        (attribute) =>
-          !isAccountAttributeMet(
-            context.account,
-            attribute as EligibilityAccountAttribute,
-          ),
-      );
-
-      if (unmet.length === 0) return null;
-
-      return {
-        label: "Account must be",
-        pills: unmet.map((attribute) => {
-          const meta =
-            ELIGIBILITY_ACCOUNT_ATTRIBUTE_META[
-              attribute as EligibilityAccountAttribute
-            ];
-          if (!meta) return null;
-          return (
-            <EligibilityPill
-              key={attribute}
-              icon={meta.icon}
-              iconClassName={meta.iconClassName}
-            >
-              {meta.cardLabel}
-            </EligibilityPill>
-          );
-        }),
       };
     }
 
@@ -140,11 +101,7 @@ function conditionSection(
   }
 }
 
-const SECTION_ORDER: EligibilityConditionDB["key"][] = [
-  "country",
-  "account",
-  "profile",
-];
+const SECTION_ORDER: EligibilityConditionDB["key"][] = ["country", "profile"];
 
 export function ProgramEligibilityCard({
   programSlug,

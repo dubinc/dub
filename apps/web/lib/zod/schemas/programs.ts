@@ -26,33 +26,21 @@ import { centsSchemaWithDefault, parseDateSchema } from "./utils";
 export const ELIGIBILITY_PROFILE_ATTRIBUTES = [
   "verified_website",
   "verified_social_account",
-  "description",
-  "preferred_earning_structure",
-  "sales_channels",
-  "estimated_monthly_traffic",
-] as const;
-
-export const ELIGIBILITY_ACCOUNT_ATTRIBUTES = [
-  "dub_network_approved",
   "no_program_bans",
 ] as const;
 
 export type EligibilityProfileAttribute =
   (typeof ELIGIBILITY_PROFILE_ATTRIBUTES)[number];
 
-export type EligibilityAccountAttribute =
-  (typeof ELIGIBILITY_ACCOUNT_ATTRIBUTES)[number];
-
 const ELIGIBILITY_OPERATORS_BY_KEY: Record<string, readonly string[]> = {
   country: ["is", "is_not"],
   emailDomain: ["is", "is_not"],
   profile: ["has"],
-  account: ["is"],
 };
 
 export const eligibilityConditionSchema = z
   .object({
-    key: z.enum(["country", "emailDomain", "profile", "account"]),
+    key: z.enum(["country", "emailDomain", "profile"]),
     operator: z.enum(["is", "is_not", "has"]),
     value: z.array(z.string()).min(1),
   })
@@ -97,20 +85,6 @@ export const eligibilityConditionSchema = z
       ctx.addIssue({
         code: "custom",
         message: "Invalid profile requirement",
-      });
-    }
-
-    if (
-      data.key === "account" &&
-      !data.value.every((v) =>
-        ELIGIBILITY_ACCOUNT_ATTRIBUTES.includes(
-          v as EligibilityAccountAttribute,
-        ),
-      )
-    ) {
-      ctx.addIssue({
-        code: "custom",
-        message: "Invalid account requirement",
       });
     }
   });

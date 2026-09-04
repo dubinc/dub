@@ -41,12 +41,7 @@ export const autoRejectPartnerJob = defineJob({
             name: true,
             email: true,
             country: true,
-            description: true,
-            monthlyTraffic: true,
-            networkStatus: true,
             platforms: true,
-            preferredEarningStructures: true,
-            salesChannels: true,
             programs: {
               select: {
                 status: true,
