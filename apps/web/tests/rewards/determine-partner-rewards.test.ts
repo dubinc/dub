@@ -5,7 +5,7 @@ import { describe, expect, test, vi } from "vitest";
 
 vi.mock("server-only", () => ({}));
 
-const ADDON_PRODUCT_ID = "prod_R1uuEScGJsUARB";
+const ADDON_PRODUCT_ID = "prod_abc";
 
 function saleReward(overrides: Partial<Reward> = {}): Reward {
   return {
@@ -50,7 +50,7 @@ describe("determinePartnerRewards", () => {
               operator: "AND",
               conditions: [
                 {
-                  value: [ADDON_PRODUCT_ID, "prod_SzAJMZg7bsc5Cf"],
+                  value: [ADDON_PRODUCT_ID, "prod_xyz"],
                   entity: "sale",
                   operator: "in",
                   attribute: "productId",
