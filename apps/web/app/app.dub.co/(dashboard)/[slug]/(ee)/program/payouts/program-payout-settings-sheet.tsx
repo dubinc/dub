@@ -15,7 +15,7 @@ import { X } from "@/ui/shared/icons";
 import { Button, Sheet, Slider } from "@dub/ui";
 import NumberFlow from "@number-flow/react";
 import { useAction } from "next-safe-action/hooks";
-import { Dispatch, SetStateAction, useEffect, useState } from "react";
+import { Dispatch, SetStateAction, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import {
@@ -46,18 +46,12 @@ function ProgramPayoutSettingsSheetContent({
     handleSubmit,
     watch,
     setValue,
-    reset,
     formState: { isDirty, isValid, isSubmitting },
   } = useForm<FormData>({
     mode: "onBlur",
+    // Resets the form (and recomputes isDirty/isValid) once the program loads
+    values: program ? { minPayoutAmount: program.minPayoutAmount } : undefined,
   });
-
-  // Reset (rather than setValue) so isDirty/isValid are computed against the saved value
-  useEffect(() => {
-    if (program) {
-      reset({ minPayoutAmount: program.minPayoutAmount });
-    }
-  }, [program, reset]);
 
   // Holding period edits are staged until the form is saved
   const holdingPeriods = useProgramHoldingPeriods(groups);

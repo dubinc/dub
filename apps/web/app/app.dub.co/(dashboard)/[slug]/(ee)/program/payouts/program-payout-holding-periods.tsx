@@ -6,10 +6,10 @@ import { GroupProps } from "@/lib/types";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
 import { MarkdownDescription } from "@/ui/shared/markdown-description";
-import { StatusBadge, Switch, useResizeObserver } from "@dub/ui";
+import { StatusBadge, Switch } from "@dub/ui";
 import { ChevronDown } from "lucide-react";
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 
 export type HoldingPeriodGroup = Pick<
   GroupProps,
@@ -238,33 +238,41 @@ function HoldingPeriodsTable({
 }) {
   const { slug: workspaceSlug } = useWorkspace();
 
-  const scrollRef = useRef<HTMLDivElement>(null);
   const [fades, setFades] = useState({ top: 0, bottom: 0 });
 
-  const updateFades = useCallback(() => {
-    const el = scrollRef.current;
-    if (!el) return;
-
+  const updateFades = useCallback((el: HTMLElement) => {
     const maxScrollTop = el.scrollHeight - el.clientHeight;
+    const top = Math.min(el.scrollTop / FADE_SCROLL_DISTANCE, 1);
+    const bottom =
+      maxScrollTop <= 0
+        ? 0
+        : Math.min((maxScrollTop - el.scrollTop) / FADE_SCROLL_DISTANCE, 1);
 
-    setFades({
-      top: Math.min(el.scrollTop / FADE_SCROLL_DISTANCE, 1),
-      bottom:
-        maxScrollTop <= 0
-          ? 0
-          : Math.min((maxScrollTop - el.scrollTop) / FADE_SCROLL_DISTANCE, 1),
-    });
+    setFades((prev) =>
+      prev.top === top && prev.bottom === bottom ? prev : { top, bottom },
+    );
   }, []);
 
-  // Re-measure when the container resizes or the rows change
-  const resizeObserverEntry = useResizeObserver(scrollRef);
-  useEffect(updateFades, [updateFades, resizeObserverEntry, groups]);
+  // Callback ref (rather than an effect): measures once the container mounts and
+  // whenever it or its rows resize, e.g. when the skeleton is replaced by groups
+  const scrollRef = useCallback(
+    (el: HTMLDivElement | null) => {
+      if (!el) return;
+
+      const observer = new ResizeObserver(() => updateFades(el));
+      observer.observe(el);
+      if (el.firstElementChild) observer.observe(el.firstElementChild);
+
+      return () => observer.disconnect();
+    },
+    [updateFades],
+  );
 
   return (
     <div className="relative overflow-hidden rounded-lg border border-neutral-200 bg-white">
       <div
         ref={scrollRef}
-        onScroll={updateFades}
+        onScroll={(e) => updateFades(e.currentTarget)}
         className="scrollbar-hide max-h-[268px] overflow-y-auto [clip-path:inset(0)]"
       >
         <div className="divide-y divide-neutral-200">
