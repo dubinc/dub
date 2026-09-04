@@ -1,5 +1,4 @@
 import { COMMON_CORS_HEADERS } from "@/lib/api/cors";
-import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import {
   shopifyCheckoutCache,
@@ -10,66 +9,75 @@ import { ratelimit } from "@/lib/upstash";
 import { LOCALHOST_IP } from "@dub/utils";
 import { ipAddress, waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
+import * as z from "zod/v4";
+
+const inputSchema = z.object({
+  clickId: z.string().nullish(),
+  checkoutToken: z.string().nullish(),
+  shopDomain: z.string().nullish(),
+});
 
 // POST /api/shopify/pixel – Handle the Shopify Pixel events
 export const POST = async (req: Request) => {
-  try {
-    let { clickId, checkoutToken } = await parseRequestBody(req);
+  const response = NextResponse.json("OK", {
+    headers: COMMON_CORS_HEADERS,
+  });
 
-    if (!checkoutToken) {
-      throw new DubApiError({
-        code: "bad_request",
-        message: "checkoutToken is required.",
-      });
-    }
+  try {
+    const { clickId, checkoutToken, shopDomain } = inputSchema.parse(
+      await parseRequestBody(req),
+    );
 
     console.info("Shopify pixel event", {
       clickId,
       checkoutToken,
+      shopDomain,
     });
+
+    if (!checkoutToken) {
+      console.error("Missing checkoutToken. Skipping the request...");
+      return response;
+    }
+
+    if (!clickId) {
+      console.error("Missing clickId. Skipping the request...");
+      return response;
+    }
 
     // Rate limit the request
     const ip = process.env.VERCEL === "1" ? ipAddress(req) : LOCALHOST_IP;
     const { success } = await ratelimit().limit(`shopify-track-pixel:${ip}`);
 
     if (!success) {
-      throw new DubApiError({
-        code: "rate_limit_exceeded",
-        message: "Don't DDoS me pls 🥺",
-      });
+      console.error("Rate limit exceeded. Skipping the request...");
+      return response;
     }
 
-    // Validate the clickId if provided
-    if (clickId) {
-      const clickEvent = await getClickEvent({ clickId });
-
-      if (!clickEvent) {
-        console.warn(`Click event not found for the clickId ${clickId}`);
-        clickId = undefined;
-      }
+    // Get the click event
+    const clickEvent = await getClickEvent({ clickId });
+    if (!clickEvent) {
+      console.error("Click event not found. Skipping the request...");
+      return response;
     }
 
-    if (clickId) {
-      waitUntil(
-        (async () => {
-          const checkout = await shopifyCheckoutCache.set({
-            checkoutToken,
-            fields: { clickId },
-          });
+    waitUntil(
+      (async () => {
+        const checkout = await shopifyCheckoutCache.set({
+          checkoutToken,
+          fields: { clickId },
+        });
 
-          await tryDispatchShopifyOrderJob({
-            checkoutToken,
-            checkout,
-          });
-        })(),
-      );
-    }
+        await tryDispatchShopifyOrderJob({
+          checkoutToken,
+          checkout,
+        });
+      })(),
+    );
 
-    return NextResponse.json("OK", {
-      headers: COMMON_CORS_HEADERS,
-    });
+    return response;
   } catch (error) {
-    return handleAndReturnErrorResponse(error, COMMON_CORS_HEADERS);
+    console.error("Error processing Shopify pixel event", error);
+    return response;
   }
 };
 
