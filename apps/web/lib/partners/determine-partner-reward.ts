@@ -150,11 +150,13 @@ export const determinePartnerRewards = ({
       });
 
       if (reward) {
+        // product.amount is the Stripe line total (unit × quantity). Flat
+        // rewards are per sale/line, so do not multiply by line.quantity.
         rewards.push({
           reward,
           sale: {
             amount: product.amount,
-            quantity: product.quantity,
+            quantity: 1,
           },
         });
       }
