@@ -1,3 +1,4 @@
+import { withAxiom } from "@/lib/axiom/server";
 import { log } from "@dub/utils";
 import { payoutsItemFailed } from "./payouts-item-failed";
 import { payoutsItemSucceeded } from "./payouts-item-succeeded";
@@ -17,7 +18,7 @@ const relevantEvents = new Set([
 ]);
 
 // POST /api/paypal/webhook – Listen to Paypal webhook events
-export const POST = async (req: Request) => {
+export const POST = withAxiom(async (req: Request) => {
   const rawBody = await req.text();
   const headers = req.headers;
 
@@ -69,4 +70,4 @@ export const POST = async (req: Request) => {
   }
 
   return new Response("OK");
-};
+});

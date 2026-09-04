@@ -9,6 +9,7 @@ import {
   Icon,
   MarketingTarget,
   MoneyBill,
+  ShieldKeyhole,
   Sparkle3,
   User,
 } from "@dub/ui/icons";
@@ -25,84 +26,84 @@ export const PROGRAM_CATEGORIES: {
     label: "AI",
     icon: Sparkle3,
     listPageDescription:
-      "Browse partner programs for AI tools and machine learning platforms.",
+      "Browse the best SaaS affiliate programs for AI tools, agents, and chatbots.",
   },
   {
     id: Category.Development,
-    label: "Development",
+    label: "DevTools",
     icon: Code,
     listPageDescription:
-      "Browse partner programs for developer tools and software infrastructure.",
+      "Browse the best SaaS affiliate programs for developer tools, APIs, and no-code platforms.",
   },
   {
     id: Category.Design,
     label: "Design",
     icon: Brush,
     listPageDescription:
-      "Browse partner programs for design tools and creative software.",
+      "Browse the best SaaS affiliate programs for graphic design tools and creative software.",
   },
   {
     id: Category.Productivity,
     label: "Productivity",
     icon: CircleHalfDottedClock,
     listPageDescription:
-      "Browse partner programs for productivity software and modern work tools.",
+      "Browse the best SaaS affiliate programs for productivity apps, email tools, and collaboration software.",
   },
   {
     id: Category.Finance,
-    label: "Finance",
+    label: "FinTech",
     icon: MoneyBill,
     listPageDescription:
-      "Browse partner programs for finance software and fintech platforms.",
+      "Browse the best SaaS affiliate programs for trading, crypto, and finance apps.",
   },
   {
     id: Category.Marketing,
     label: "Marketing",
     icon: MarketingTarget,
     listPageDescription:
-      "Browse partner programs for marketing software and growth tools.",
+      "Browse the best SaaS affiliate programs for marketing software, email marketing, and SEO tools.",
   },
   {
     id: Category.Ecommerce,
     label: "Ecommerce",
     icon: CreditCard,
     listPageDescription:
-      "Browse partner programs for ecommerce platforms and online retail tools.",
+      "Browse the best SaaS affiliate programs for online stores, newsletters, and ecommerce platforms.",
   },
-  // {
-  //   id: Category.Security,
-  //   label: "Security",
-  //   icon: ShieldKeyhole,
-  //   listPageDescription:
-  //     "Browse partner programs for security software and privacy tools.",
-  // },
+  {
+    id: Category.Security,
+    label: "Security",
+    icon: ShieldKeyhole,
+    listPageDescription:
+      "Browse the best SaaS affiliate programs for cybersecurity software and privacy tools.",
+  },
   {
     id: Category.Education,
     label: "Education",
     icon: BookOpen,
     listPageDescription:
-      "Browse partner programs for education platforms and learning tools.",
+      "Browse the best SaaS affiliate programs for edtech, learning tools, and education software.",
   },
   {
     id: Category.Health,
-    label: "Health",
+    label: "Healthcare",
     icon: Heart,
     listPageDescription:
-      "Browse partner programs for health software and wellness tools.",
+      "Browse the best SaaS affiliate programs for healthtech, wellness apps, and health software.",
   },
   {
     id: Category.Consumer,
     label: "Consumer",
     icon: User,
     listPageDescription:
-      "Browse partner programs for consumer apps and lifestyle products.",
+      "Browse the best SaaS affiliate programs for consumer apps and lifestyle software.",
   },
   {
     id: Category.Support,
     label: "Support",
     icon: Headset,
     listPageDescription:
-      "Browse partner programs for customer support and help desk tools.",
+      "Browse the best SaaS affiliate programs for customer support software and agentic tools.",
   },
 ];
 
