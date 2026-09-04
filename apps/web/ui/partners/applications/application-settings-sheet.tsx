@@ -20,7 +20,7 @@ import { cn } from "@dub/utils";
 import { Category } from "@prisma/client";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
-import { Dispatch, SetStateAction, useState } from "react";
+import { Dispatch, SetStateAction, useMemo, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import {
@@ -41,6 +41,12 @@ type FormData = {
 
 type Section = "applications" | "marketplace";
 
+const EMPTY_FORM_VALUES: FormData = {
+  description: "",
+  categories: [],
+  eligibilityConditions: [],
+};
+
 function ApplicationSettingsSheetContent({
   setIsOpen,
 }: ApplicationSettingsSheetProps) {
@@ -52,24 +58,42 @@ function ApplicationSettingsSheetContent({
 
   const [activeSection, setActiveSection] = useState<Section>("applications");
 
+  // Memoized so the generated condition IDs stay stable: react-hook-form
+  // deep-compares `values` and would otherwise reset the form on every render
+  const formValues = useMemo<FormData | undefined>(
+    () =>
+      program
+        ? {
+            description: program.description ?? "",
+            categories: program.categories ?? [],
+            eligibilityConditions: (
+              (program.applicationRequirements as ApplicationRequirementsDB | null) ??
+              []
+            )
+              .filter((c) =>
+                (ELIGIBILITY_CONDITION_KEYS as readonly string[]).includes(
+                  c.key,
+                ),
+              )
+              .map((c) => ({ ...c, id: generateId() })),
+          }
+        : undefined,
+    [program],
+  );
+
   const {
     control,
     handleSubmit,
     register,
     formState: { errors, isSubmitting, isDirty },
   } = useForm<FormData>({
-    defaultValues: {
-      description: program?.description ?? "",
-      categories: program?.categories ?? [],
-      eligibilityConditions: (
-        (program?.applicationRequirements as ApplicationRequirementsDB | null) ??
-        []
-      )
-        .filter((c) =>
-          (ELIGIBILITY_CONDITION_KEYS as readonly string[]).includes(c.key),
-        )
-        .map((c) => ({ ...c, id: generateId() })),
-    },
+    // The trigger only opens the sheet once the program has loaded, so the
+    // saved values are normally available on mount. If the program (re)loads
+    // while the sheet is open, `values` refreshes the form without discarding
+    // unsaved edits.
+    defaultValues: formValues ?? EMPTY_FORM_VALUES,
+    values: formValues,
+    resetOptions: { keepDirtyValues: true },
   });
 
   const { handleKeyDown } = useEnterSubmit();

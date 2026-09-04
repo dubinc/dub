@@ -38,6 +38,7 @@ export function ApplicationsMenuPopover() {
         text={isMobile ? "Settings" : "Application settings"}
         onClick={() => setShowApplicationSettings(true)}
         variant="secondary"
+        disabled={!program}
       />
       <Popover
         openPopover={openPopover}
