@@ -1,6 +1,11 @@
-import { test as base, type APIRequestContext } from "@playwright/test";
+import {
+  test as base,
+  type APIRequest,
+  type APIRequestContext,
+} from "@playwright/test";
 import { readFileSync } from "fs";
 import path from "path";
+import { PLAYWRIGHT_API_BASE } from "./constants";
 
 const authFile = path.join(__dirname, "../.auth/api.json");
 
@@ -50,6 +55,29 @@ export function createApiClient(request: APIRequestContext): ApiClient {
     patch: <T>(url: string, data?: unknown) =>
       parse<T>(request.patch(url, { data })),
     delete: <T>(url: string) => parse<T>(request.delete(url)),
+  };
+}
+
+export async function createBearerApiClient({
+  playwright,
+  token,
+  baseURL = PLAYWRIGHT_API_BASE,
+}: {
+  playwright: { request: APIRequest };
+  token: string;
+  baseURL?: string;
+}) {
+  const context = await playwright.request.newContext({
+    baseURL,
+    extraHTTPHeaders: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+  });
+
+  return {
+    api: createApiClient(context),
+    dispose: () => context.dispose(),
   };
 }
 
