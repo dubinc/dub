@@ -15,10 +15,14 @@ import { X } from "@/ui/shared/icons";
 import { Button, Sheet, Slider } from "@dub/ui";
 import NumberFlow from "@number-flow/react";
 import { useAction } from "next-safe-action/hooks";
-import { Dispatch, SetStateAction, useEffect, useMemo, useState } from "react";
+import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { ProgramPayoutHoldingPeriods } from "./program-payout-holding-periods";
+import {
+  HoldingPeriodUpdate,
+  ProgramPayoutHoldingPeriods,
+  useProgramHoldingPeriods,
+} from "./program-payout-holding-periods";
 import { ProgramPayoutMethods } from "./program-payout-methods";
 import { ProgramPayoutModeSection } from "./program-payout-mode-section";
 
@@ -55,19 +59,8 @@ function ProgramPayoutSettingsSheetContent({
     }
   }, [program, reset]);
 
-  // Holding period changes are staged here (keyed by group ID) until the form is saved
-  const [holdingPeriodOverrides, setHoldingPeriodOverrides] = useState<
-    Record<string, number>
-  >({});
-
-  const changedGroups = useMemo(
-    () =>
-      (groups ?? []).filter((group) => {
-        const days = holdingPeriodOverrides[group.id];
-        return days !== undefined && days !== group.holdingPeriodDays;
-      }),
-    [groups, holdingPeriodOverrides],
-  );
+  // Holding period edits are staged until the form is saved
+  const holdingPeriods = useProgramHoldingPeriods(groups);
 
   const { executeAsync } = useAction(updateProgramAction);
 
@@ -97,12 +90,8 @@ function ProgramPayoutSettingsSheetContent({
     }
 
     requests.push(
-      ...changedGroups.map((group) =>
-        updateGroupHoldingPeriod({
-          workspaceId,
-          groupId: group.id,
-          holdingPeriodDays: holdingPeriodOverrides[group.id],
-        }),
+      ...holdingPeriods.pendingUpdates.map((update) =>
+        updateGroupHoldingPeriod({ workspaceId, ...update }),
       ),
     );
 
@@ -133,7 +122,7 @@ function ProgramPayoutSettingsSheetContent({
     ? getAllowedMinPayoutAmounts(workspaceId)
     : ALLOWED_MIN_PAYOUT_AMOUNTS;
 
-  const hasChanges = isDirty || changedGroups.length > 0;
+  const hasChanges = isDirty || holdingPeriods.pendingUpdates.length > 0;
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="flex h-full flex-col">
@@ -210,24 +199,8 @@ function ProgramPayoutSettingsSheetContent({
 
         {/* Payout holding period */}
         <ProgramPayoutHoldingPeriods
-          groups={groups}
           loading={groupsLoading}
-          getHoldingPeriodDays={(group) =>
-            holdingPeriodOverrides[group.id] ?? group.holdingPeriodDays
-          }
-          onHoldingPeriodDaysChange={(group, days) =>
-            setHoldingPeriodOverrides((prev) => {
-              const next = { ...prev };
-
-              if (days === group.holdingPeriodDays) {
-                delete next[group.id];
-              } else {
-                next[group.id] = days;
-              }
-
-              return next;
-            })
-          }
+          holdingPeriods={holdingPeriods}
         />
       </div>
 
@@ -258,17 +231,17 @@ async function updateGroupHoldingPeriod({
   workspaceId,
   groupId,
   holdingPeriodDays,
-}: {
-  workspaceId: string;
-  groupId: string;
-  holdingPeriodDays: number;
-}) {
+  applyToAllGroups,
+}: HoldingPeriodUpdate & { workspaceId: string }) {
   const response = await fetch(
     `/api/groups/${groupId}?workspaceId=${workspaceId}`,
     {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ holdingPeriodDays }),
+      body: JSON.stringify({
+        holdingPeriodDays,
+        ...(applyToAllGroups && { updateHoldingPeriodDaysForAllGroups: true }),
+      }),
     },
   );
 
