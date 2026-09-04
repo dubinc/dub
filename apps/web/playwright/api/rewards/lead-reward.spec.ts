@@ -262,7 +262,8 @@ async function expectLeadCommissionCount(
 
 test.describe("Lead rewards", () => {
   // Shared reward + enrollment; serial so modifiers can be updated between tests.
-  test.describe.configure({ mode: "serial" });
+  // No retries: a failed case leaves shared reward/partner state that would flake on retry.
+  test.describe.configure({ mode: "serial", retries: 0 });
 
   let rewardId: string | undefined;
   let ctx: LeadRewardCtx | undefined;

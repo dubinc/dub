@@ -81,3 +81,32 @@ export async function trackLead({
     data,
   };
 }
+
+export async function trackSale({
+  customerExternalId,
+  ...overrides
+}: {
+  customerExternalId: string;
+} & Record<string, unknown>) {
+  const invoiceId =
+    (overrides.invoiceId as string | undefined) ?? `INV_${nanoid()}`;
+  const amount = (overrides.amount as number | undefined) ?? 1000;
+
+  const { status, data } = await postAuthenticatedJson("/api/track/sale", {
+    customerExternalId,
+    amount,
+    currency: "usd",
+    paymentProcessor: "stripe",
+    eventName: "Purchase",
+    invoiceId,
+    ...overrides,
+  });
+
+  expect(status).toEqual(200);
+
+  return {
+    invoiceId,
+    amount,
+    data,
+  };
+}
