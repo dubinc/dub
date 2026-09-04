@@ -64,9 +64,7 @@ export function FeaturedPrograms({
             <FeaturedProgramsSkeletonItems />
           )}
         </CarouselContent>
-        <div className="mt-2">
-          <CarouselNavBar />
-        </div>
+        <FeaturedProgramsNavBar count={programs?.length ?? 6} />
       </Carousel>
     </div>
   );
@@ -75,11 +73,20 @@ export function FeaturedPrograms({
 export function FeaturedProgramsSkeleton() {
   return (
     <div>
-      <Carousel opts={{ loop: true }}>
+      <Carousel autoplay={{ delay: 5000 }} opts={{ loop: true }}>
         <CarouselContent className="items-stretch">
           <FeaturedProgramsSkeletonItems />
         </CarouselContent>
+        <FeaturedProgramsNavBar count={6} />
       </Carousel>
+    </div>
+  );
+}
+
+function FeaturedProgramsNavBar({ count }: { count: number }) {
+  return (
+    <div className="mt-2 min-h-2.5 sm:min-h-[18px]">
+      <CarouselNavBar count={count} />
     </div>
   );
 }

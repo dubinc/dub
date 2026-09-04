@@ -31,6 +31,7 @@ export function shopifyOrderPayload({
       },
     },
     discount_codes: [],
+    note_attributes: [],
     billing_address: {
       province: "California",
       country_code: "US",
