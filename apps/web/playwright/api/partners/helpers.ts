@@ -1,8 +1,12 @@
+import { createId } from "@/lib/api/create-id";
 import { conn } from "@/lib/planetscale";
 import { prisma } from "@/lib/prisma";
 import type { EnrolledPartnerProps } from "@/lib/types";
+import { DEFAULT_ADDITIONAL_PARTNER_LINKS } from "@/lib/zod/schemas/groups";
+import { nanoid } from "@dub/utils";
 import { randomName, randomPartnerEmail } from "../../utils";
 import type { ApiClient } from "../fixtures";
+import { TEST_WORKSPACE } from "../setup-test-workspace";
 
 export async function createPartner(
   api: ApiClient,
@@ -12,6 +16,33 @@ export async function createPartner(
     name: randomName(),
     email: randomPartnerEmail(),
     ...overrides,
+  });
+}
+
+export async function createGroupWithAdditionalLinks(programId: string) {
+  return prisma.partnerGroup.create({
+    data: {
+      id: createId({ prefix: "grp_" }),
+      programId,
+      slug: `pw-links-${nanoid(8).toLowerCase()}`,
+      name: randomName("links-group"),
+      maxPartnerLinks: DEFAULT_ADDITIONAL_PARTNER_LINKS,
+      additionalLinks: [
+        {
+          domain: "example.com",
+          path: "",
+          validationMode: "domain",
+        },
+      ],
+      partnerGroupDefaultLinks: {
+        create: {
+          id: createId({ prefix: "pgdl_" }),
+          programId,
+          domain: TEST_WORKSPACE.program.domain,
+          url: TEST_WORKSPACE.program.url,
+        },
+      },
+    },
   });
 }
 
