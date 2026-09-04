@@ -10,11 +10,7 @@ import {
 } from "@playwright/test";
 import { hashSync } from "bcryptjs";
 import { PLAYWRIGHT_API_BASE } from "../api/constants";
-import {
-  createApiClient,
-  loadApiAuth,
-  type ApiClient,
-} from "../api/fixtures";
+import { createApiClient, loadApiAuth } from "../api/fixtures";
 import {
   TEST_APPLICATION_FIELD_VALUES,
   TEST_APPLICATION_FORM,
@@ -160,17 +156,7 @@ test.describe("Marketplace application form", () => {
         page.getByRole("link", { name: "Back to marketplace" }),
       ).toBeVisible();
 
-      const { status, data } = await api.get<PartnerApplicationProps[]>(
-        "/api/partners/applications?pageSize=100",
-      );
-      expect(status).toEqual(200);
-      expect(
-        data.find(
-          (application) =>
-            application.partner.email === APPLY_PARTNER.email &&
-            application.partner.status === "pending",
-        ),
-      ).toMatchObject(expectedPendingApplication);
+      await expectPendingApplication(api, partner.id);
     } finally {
       await cleanupApplication({ partnerId: partner.id });
       await api.dispose();
@@ -209,17 +195,7 @@ test.describe("In-app program page application form", () => {
         page.getByRole("link", { name: "Back to programs" }),
       ).toBeVisible();
 
-      const { status, data } = await api.get<PartnerApplicationProps[]>(
-        "/api/partners/applications?pageSize=100",
-      );
-      expect(status).toEqual(200);
-      expect(
-        data.find(
-          (application) =>
-            application.partner.email === APPLY_PARTNER.email &&
-            application.partner.status === "pending",
-        ),
-      ).toMatchObject(expectedPendingApplication);
+      await expectPendingApplication(api, partner.id);
     } finally {
       await cleanupApplication({ partnerId: partner.id });
       await api.dispose();
@@ -263,6 +239,19 @@ async function loginAsApplyPartner(page: Page) {
   await page.waitForURL((url) =>
     /^\/(programs|onboarding|marketplace)/.test(new URL(url).pathname),
   );
+}
+
+async function expectPendingApplication(
+  api: Awaited<ReturnType<typeof createWorkspaceApi>>,
+  partnerId: string,
+) {
+  const { status, data } = await api.get<PartnerApplicationProps[]>(
+    "/api/partners/applications?pageSize=100",
+  );
+  expect(status).toEqual(200);
+  expect(
+    data.find((application) => application.partner.id === partnerId),
+  ).toMatchObject(expectedPendingApplication);
 }
 
 async function ensureApprovedApplyPartner() {
@@ -330,8 +319,7 @@ async function ensureApprovedApplyPartner() {
     data: {
       country: "US",
       image: `https://api.dicebear.com/9.x/micah/png?seed=${partner.id}`,
-      description:
-        "Playwright partner used for program application e2e tests.",
+      description: "Playwright partner used for program application e2e tests.",
       monthlyTraffic: "ZeroToOneThousand",
       networkStatus: "approved",
     },
@@ -372,9 +360,7 @@ async function ensureApprovedApplyPartner() {
       skipDuplicates: true,
     }),
     prisma.partnerSalesChannel.createMany({
-      data: [
-        { partnerId: partner.id, salesChannel: "Blogs" },
-      ],
+      data: [{ partnerId: partner.id, salesChannel: "Blogs" }],
       skipDuplicates: true,
     }),
   ]);
