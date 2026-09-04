@@ -17,14 +17,14 @@ import {
 const FEATURED_PROGRAMS_API_PATH = "/api/network/programs?featured=true";
 
 type FeaturedProgramsProps = {
-  showStatus?: boolean;
+  externalMarketplace?: boolean;
 } & (
   | { programs: NetworkProgramProps[]; apiPath?: never }
   | { apiPath?: string; programs?: never }
 );
 
 export function FeaturedPrograms({
-  showStatus = true,
+  externalMarketplace = false,
   ...props
 }: FeaturedProgramsProps) {
   const apiPath =
@@ -55,7 +55,7 @@ export function FeaturedPrograms({
               <CarouselItem key={program.id} className="basis-full">
                 <FeaturedProgramCard
                   program={program}
-                  showStatus={showStatus}
+                  externalMarketplace={externalMarketplace}
                   colorIndex={index}
                 />
               </CarouselItem>
@@ -64,9 +64,7 @@ export function FeaturedPrograms({
             <FeaturedProgramsSkeletonItems />
           )}
         </CarouselContent>
-        <div className="mt-2">
-          <CarouselNavBar />
-        </div>
+        <FeaturedProgramsNavBar count={programs?.length ?? 6} />
       </Carousel>
     </div>
   );
@@ -75,11 +73,20 @@ export function FeaturedPrograms({
 export function FeaturedProgramsSkeleton() {
   return (
     <div>
-      <Carousel opts={{ loop: true }}>
+      <Carousel autoplay={{ delay: 5000 }} opts={{ loop: true }}>
         <CarouselContent className="items-stretch">
           <FeaturedProgramsSkeletonItems />
         </CarouselContent>
+        <FeaturedProgramsNavBar count={6} />
       </Carousel>
+    </div>
+  );
+}
+
+function FeaturedProgramsNavBar({ count }: { count: number }) {
+  return (
+    <div className="mt-2 min-h-2.5 sm:min-h-[18px]">
+      <CarouselNavBar count={count} />
     </div>
   );
 }

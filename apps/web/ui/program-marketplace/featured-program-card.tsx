@@ -7,7 +7,6 @@ import { ProgramRewardsDisplay } from "@/ui/program-marketplace/program-rewards-
 import {
   getMarketplaceAllHref,
   getMarketplaceCategoryHref,
-  getMarketplaceProgramHref,
 } from "@/ui/program-marketplace/utils/urls";
 import { Tooltip } from "@dub/ui";
 import { ArrowUpRight, Globe } from "@dub/ui/icons";
@@ -40,11 +39,11 @@ export function getFeaturedCardBackground(index: number) {
 
 export function FeaturedProgramCard({
   program,
-  showStatus = true,
+  externalMarketplace = false,
   colorIndex = 0,
 }: {
   program: NetworkProgramProps;
-  showStatus?: boolean;
+  externalMarketplace?: boolean;
   colorIndex?: number;
 }) {
   const router = useRouter();
@@ -65,7 +64,7 @@ export function FeaturedProgramCard({
       />
 
       <Link
-        href={getMarketplaceProgramHref(program.slug)}
+        href={`/marketplace/${program.slug}`}
         className="absolute inset-0 z-10 rounded-2xl"
         aria-label={`View ${program.name}`}
       />
@@ -78,7 +77,9 @@ export function FeaturedProgramCard({
             className="size-12 rounded-full border-4 border-neutral-100 sm:border sm:border-black/5"
           />
 
-          {showStatus ? <ProgramStatusBadge program={program} /> : null}
+          {!externalMarketplace ? (
+            <ProgramStatusBadge program={program} />
+          ) : null}
         </div>
 
         <div className="flex flex-col pt-4 sm:mt-auto sm:pt-10">

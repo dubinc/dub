@@ -224,7 +224,10 @@ async function getPriorityAndMetadata(
             ? { "Program Support Email": program.supportEmail }
             : {}),
           "Program Holding Period Days": holdingPeriodDays.toString(),
-          "Program Min Payout Amount": program.minPayoutAmount.toString(),
+          "Program Min Payout Amount": currencyFormatter(
+            program.minPayoutAmount,
+            { trailingZeroDisplay: "stripIfInteger" },
+          ),
           "Partner Lifetime Payouts": currencyFormatter(partnerLifetimePayouts),
         });
       }

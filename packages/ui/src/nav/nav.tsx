@@ -6,6 +6,7 @@ import { motion } from "motion/react";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
 import {
+  ComponentType,
   PropsWithChildren,
   ReactNode,
   SVGProps,
@@ -15,7 +16,12 @@ import {
 } from "react";
 import useSWR from "swr";
 import { buttonVariants } from "../button";
-import { FEATURES_LIST, RESOURCES, SOLUTIONS } from "../content";
+import {
+  FEATURES_LIST,
+  RESOURCES,
+  SOLUTIONS,
+  type NavItemChildren,
+} from "../content";
 import { useScroll } from "../hooks";
 import { MaxWidthWrapper } from "../max-width-wrapper";
 import { NavWordmark } from "../nav-wordmark";
@@ -29,7 +35,16 @@ export const NavContext = createContext<{ theme: NavTheme }>({
   theme: "light",
 });
 
-export const navItems = [
+export type NavItem = {
+  name: string;
+  href?: string;
+  segments?: string[];
+  content?: ComponentType<{ domain: string }>;
+  childItems?: NavItemChildren;
+  mobileOnly?: boolean;
+};
+
+export const navItems: NavItem[] = [
   {
     name: "Product",
     content: ProductContent,
@@ -68,6 +83,7 @@ export const navItems = [
       "/blog",
       "/changelog",
       "/contact",
+      "/marketplace",
     ],
   },
   {
@@ -123,11 +139,13 @@ export function Nav({
   theme = "light",
   staticDomain,
   maxWidthWrapperClassName,
+  navItems: items = navItems,
   logo,
 }: {
   theme?: NavTheme;
   staticDomain?: string;
   maxWidthWrapperClassName?: string;
+  navItems?: NavItem[];
   logo?: ReactNode;
 }) {
   let { domain = "dub.co" } = useParams() as { domain: string };
@@ -212,9 +230,8 @@ export function Nav({
                 className="group/nav relative flex"
                 onMouseLeave={() => {
                   const list = navListRef.current;
-                  const openTrigger = list?.querySelector<HTMLElement>(
-                    "[data-state=open]",
-                  );
+                  const openTrigger =
+                    list?.querySelector<HTMLElement>("[data-state=open]");
                   // Keep the pill on the open trigger so it doesn't flicker into the dropdown
                   if (list && openTrigger) {
                     setHoverStyle(getHoverStyle(list, openTrigger));
@@ -228,7 +245,7 @@ export function Nav({
                   animate={hoverStyle}
                   transition={pillSpring}
                 />
-                {navItems
+                {items
                   .filter(({ mobileOnly }) => !mobileOnly)
                   .map(({ name, href, segments, content: Content }) => {
                     const isActive = (segments ?? []).some((segment) =>
@@ -280,7 +297,10 @@ export function Nav({
                   className={cn(
                     "relative flex origin-top justify-start overflow-hidden rounded-[20px] border border-neutral-200 bg-white shadow-md dark:border-white/[0.15] dark:bg-black",
                     "data-[state=closed]:animate-scale-out-content data-[state=open]:animate-scale-in-content",
-                    "h-[var(--radix-navigation-menu-viewport-height)] w-[var(--radix-navigation-menu-viewport-width)] transition-[width,height]",
+                    // +2px: Radix measures the content's border-box, but this element's
+                    // 1px borders eat into it (border-box sizing), clipping fixed-width
+                    // content by 2px on the right/bottom
+                    "h-[calc(var(--radix-navigation-menu-viewport-height)_+_2px)] w-[calc(var(--radix-navigation-menu-viewport-width)_+_2px)] transition-[width,height]",
                   )}
                 />
               </div>

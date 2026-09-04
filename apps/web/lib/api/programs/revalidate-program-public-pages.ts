@@ -33,3 +33,9 @@ export function revalidateProgramPublicPages(programId: string) {
     paths.forEach((path) => revalidatePath(path));
   });
 }
+
+export function revalidateExternalMarketplacePages() {
+  after(() => {
+    revalidatePath("/app.dub.co/marketplace", "layout");
+  });
+}

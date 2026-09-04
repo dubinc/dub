@@ -1,4 +1,5 @@
 import { DubApiError } from "@/lib/api/errors";
+import { timingSafeCompare } from "@/lib/webhook/timing-safe-compare";
 import crypto from "crypto";
 
 const INTERCOM_CLIENT_SECRET = process.env.INTERCOM_CLIENT_SECRET || "";
@@ -51,22 +52,7 @@ export async function verifyIntercomWebhookSignature(
     });
   }
 
-  const providedBuffer = Buffer.from(providedSignature, "utf8");
-  const expectedBuffer = Buffer.from(expectedSignature, "utf8");
-
-  if (providedBuffer.length !== expectedBuffer.length) {
-    throw new DubApiError({
-      code: "unauthorized",
-      message: "Invalid webhook signature.",
-    });
-  }
-
-  const isSignatureValid = crypto.timingSafeEqual(
-    Uint8Array.from(providedBuffer),
-    Uint8Array.from(expectedBuffer),
-  );
-
-  if (!isSignatureValid) {
+  if (!timingSafeCompare(providedSignature, expectedSignature)) {
     throw new DubApiError({
       code: "unauthorized",
       message: "Invalid webhook signature.",
