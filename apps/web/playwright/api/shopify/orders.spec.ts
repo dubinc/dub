@@ -1,6 +1,6 @@
 import { nanoid } from "@dub/utils";
 import { expect } from "@playwright/test";
-import { apiError, randomName } from "../../utils";
+import { randomName } from "../../utils";
 import { trackClick, trackLead } from "../conversions/helpers";
 import { test } from "../fixtures";
 import { createPartner, deletePartner } from "../partners/helpers";
@@ -12,13 +12,10 @@ import {
   postShopifyPixel,
 } from "./helpers";
 
-test("POST /shopify/pixel – missing checkoutToken", async ({ api }) => {
-  expect(await api.post("/api/shopify/pixel", { clickId: nanoid(16) })).toEqual(
-    apiError({
-      code: "bad_request",
-      message: "checkoutToken is required.",
-    }),
-  );
+test("POST /shopify/pixel – skips when checkoutToken is missing", async () => {
+  const pixel = await postShopifyPixel({ clickId: nanoid(16) });
+
+  expect(pixel).toEqual({ status: 200, data: "OK" });
 });
 
 test("POST /shopify/integration/webhook – unknown shop", async () => {
@@ -108,6 +105,34 @@ test.describe("Shopify orders/paid", () => {
       `[Shopify] Click ID ${clickId} found. Order queued for processing.`,
       "[Shopify] Waiting for pixel event to arrive...",
     ]).toContain(webhook.data);
+  });
+
+  test("webhook with dubClickId in note_attributes", async () => {
+    const checkoutToken = nanoid(10);
+
+    const webhook = await postShopifyOrdersPaidWebhook({
+      checkoutToken,
+      note_attributes: [{ name: "dubClickId", value: clickId }],
+    });
+
+    expect(webhook.status).toEqual(200);
+    expect(webhook.data).toEqual(
+      `[Shopify] Click ID ${clickId} found. Order queued for processing.`,
+    );
+  });
+
+  test("webhook with unknown dubClickId skips the order", async () => {
+    const checkoutToken = nanoid(10);
+
+    const webhook = await postShopifyOrdersPaidWebhook({
+      checkoutToken,
+      note_attributes: [{ name: "dubClickId", value: nanoid(16) }],
+    });
+
+    expect(webhook.status).toEqual(200);
+    expect(webhook.data).toEqual(
+      "[Shopify] Click event not found. Skipping the order...",
+    );
   });
 
   test("orders/paid – existing customer", async ({ api }) => {

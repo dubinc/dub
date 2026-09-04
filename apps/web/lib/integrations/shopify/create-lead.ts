@@ -45,6 +45,12 @@ export async function createShopifyLead({
     throw new ShopifyError("Click event not found. Skipping the order...");
   }
 
+  if (clickData.workspace_id !== workspaceId) {
+    throw new ShopifyError(
+      "Click event not found in the workspace. Skipping the order...",
+    );
+  }
+
   const { link_id: linkId, country, timestamp } = clickData;
 
   const partnerLink = await prisma.link.findUnique({

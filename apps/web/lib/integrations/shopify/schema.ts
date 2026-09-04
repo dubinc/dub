@@ -30,6 +30,14 @@ export const shopifyOrderSchema = z.object({
       country_code: z.string().nullish(),
     })
     .nullish(),
+  note_attributes: z
+    .array(
+      z.object({
+        name: z.string(), // dubClickId
+        value: z.string().nullish(),
+      }),
+    )
+    .default([]),
 });
 
 export const integrationCredentialsSchema = z.object({
