@@ -26,84 +26,84 @@ export const PROGRAM_CATEGORIES: {
     label: "AI",
     icon: Sparkle3,
     listPageDescription:
-      "Browse affiliate programs for AI tools and machine learning platforms.",
+      "Browse the best affiliate programs for AI tools, agents, and chatbots.",
   },
   {
     id: Category.Development,
     label: "DevTools",
     icon: Code,
     listPageDescription:
-      "Browse affiliate programs for developer tools and software infrastructure.",
+      "Browse the best affiliate programs for developer tools, APIs, and no-code platforms.",
   },
   {
     id: Category.Design,
     label: "Design",
     icon: Brush,
     listPageDescription:
-      "Browse affiliate programs for design tools and creative software.",
+      "Browse the best affiliate programs for graphic design tools and creative software.",
   },
   {
     id: Category.Productivity,
     label: "Productivity",
     icon: CircleHalfDottedClock,
     listPageDescription:
-      "Browse affiliate programs for productivity software and modern work tools.",
+      "Browse the best affiliate programs for productivity apps, email tools, and collaboration software.",
   },
   {
     id: Category.Finance,
     label: "FinTech",
     icon: MoneyBill,
     listPageDescription:
-      "Browse affiliate programs for finance software and fintech platforms.",
+      "Browse the best affiliate programs for trading, crypto, and finance apps.",
   },
   {
     id: Category.Marketing,
     label: "Marketing",
     icon: MarketingTarget,
     listPageDescription:
-      "Browse affiliate programs for marketing software and growth tools.",
+      "Browse the best affiliate programs for marketing software, email marketing, and SEO tools.",
   },
   {
     id: Category.Ecommerce,
     label: "Ecommerce",
     icon: CreditCard,
     listPageDescription:
-      "Browse affiliate programs for ecommerce platforms and online retail tools.",
+      "Browse the best affiliate programs for online stores, newsletters, and ecommerce platforms.",
   },
   {
     id: Category.Security,
     label: "Security",
     icon: ShieldKeyhole,
     listPageDescription:
-      "Browse affiliate programs for security software and privacy tools.",
+      "Browse the best affiliate programs for cybersecurity software and privacy tools.",
   },
   {
     id: Category.Education,
     label: "Education",
     icon: BookOpen,
     listPageDescription:
-      "Browse affiliate programs for education platforms and learning tools.",
+      "Browse the best affiliate programs for edtech, learning tools, and education software.",
   },
   {
     id: Category.Health,
     label: "Healthcare",
     icon: Heart,
     listPageDescription:
-      "Browse affiliate programs for healthcare software and wellness tools.",
+      "Browse the best affiliate programs for healthtech, wellness apps, and health software.",
   },
   {
     id: Category.Consumer,
     label: "Consumer",
     icon: User,
     listPageDescription:
-      "Browse affiliate programs for consumer apps and lifestyle products.",
+      "Browse the best affiliate programs for consumer apps and lifestyle software.",
   },
   {
     id: Category.Support,
     label: "Support",
     icon: Headset,
     listPageDescription:
-      "Browse affiliate programs for customer support and help desk tools.",
+      "Browse the best affiliate programs for customer support software and agentic tools.",
   },
 ];
 

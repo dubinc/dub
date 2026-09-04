@@ -14,8 +14,9 @@ import { parse } from "./utils/parse";
 import { WorkspacesMiddleware } from "./workspaces";
 
 const isPublicPath = (path: string) =>
+  ["/marketplace"].some((p) => path === p) ||
   [
-    "/marketplace",
+    "/marketplace/",
     "/share/",
     "/deeplink/",
     "/unsubscribe/",

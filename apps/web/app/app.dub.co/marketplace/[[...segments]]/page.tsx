@@ -1,7 +1,7 @@
 import { getNetworkProgram } from "@/lib/fetchers/get-network-program";
 import { PROGRAM_CATEGORIES_MAP } from "@/lib/network/program-categories";
 import { MarketplaceExternalRouter } from "@/ui/program-marketplace/external/marketplace-external-router";
-import { constructMetadata } from "@dub/utils";
+import { APP_DOMAIN, constructMetadata } from "@dub/utils";
 import { Category } from "@prisma/client";
 import { Metadata } from "next";
 
@@ -20,7 +20,7 @@ export async function generateMetadata(props: {
 
   let title = `Best SaaS affiliate programs in ${currentYear}`;
   let description = `Browse and apply to the best SaaS affiliate programs on Dub's Partner Network.`;
-  let image: string | undefined;
+  let image = "https://assets.dub.co/og/marketplace.jpg";
 
   if (segments.length === 1 && segments[0] === "all") {
     title = `Top SaaS affiliate programs in ${currentYear}`;
@@ -36,7 +36,9 @@ export async function generateMetadata(props: {
       description =
         program.description ||
         `Join the ${program.name} affiliate program on Dub's Program Marketplace.`;
-      image = program.marketplaceHeaderImage || program.logo || undefined;
+      image =
+        program.marketplaceHeaderImage ||
+        `${APP_DOMAIN}/api/og/program?slug=${program.slug}`;
     }
   } else if (segments.length === 2 && segments[0] === "c") {
     const category = Object.values(Category).find(
@@ -47,10 +49,11 @@ export async function generateMetadata(props: {
       // categoryMeta should always return a value, but just in case
       const categoryMeta = PROGRAM_CATEGORIES_MAP[category];
       const label = categoryMeta?.label ?? category.replaceAll("_", " ");
-      title = `Best ${label.toLowerCase()} affiliate programs in ${currentYear}`;
+      title = `Best ${label} Affiliate Programs in ${currentYear}`;
       description =
         categoryMeta?.listPageDescription ??
-        `Browse the best ${label.toLowerCase()} affiliate programs on Dub's Program Marketplace.`;
+        `Browse the best ${label} affiliate programs on Dub's Program Marketplace.`;
+      image = `${APP_DOMAIN}/api/og/program/categories?categorySlug=${category.toLowerCase()}`;
     }
   }
 
