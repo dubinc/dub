@@ -51,7 +51,7 @@ export async function trackClick({
     TRACK_CLICK_HEADERS,
   );
 
-  expect(status).toEqual(200);
+  expect(status, JSON.stringify(data)).toEqual(200);
   expect(data.clickId).toEqual(expect.any(String));
 
   return data as { clickId: string };
@@ -71,10 +71,11 @@ export async function trackLead({
     customerExternalId: customer.externalId,
     customerEmail: customer.email,
     customerName: customer.name,
+    mode: "wait",
     ...overrides,
   });
 
-  expect(status).toEqual(200);
+  expect(status, JSON.stringify(data)).toEqual(200);
 
   return {
     customer,
@@ -102,7 +103,7 @@ export async function trackSale({
     ...overrides,
   });
 
-  expect(status).toEqual(200);
+  expect(status, JSON.stringify(data)).toEqual(200);
 
   return {
     invoiceId,
