@@ -25,9 +25,6 @@ export type HoldingPeriodUpdate = {
 
 type AllGroupsState = { enabled: false } | { enabled: true; days: number };
 
-const HOLDING_PERIOD_DESCRIPTION =
-  "[Set how long to hold funds](https://dub.co/help/article/partner-payouts#payout-holding-period) before they are eligible for payout. 30 days is recommended.";
-
 // Scroll distance (px) over which the top/bottom fades go from hidden to fully visible
 const FADE_SCROLL_DISTANCE = 40;
 
@@ -174,7 +171,9 @@ export function ProgramPayoutHoldingPeriods({
           Payout holding period
         </h4>
         <MarkdownDescription className="text-sm font-medium text-neutral-500">
-          {HOLDING_PERIOD_DESCRIPTION}
+          [Set how long to hold
+          funds](https://dub.co/help/article/partner-payouts#payout-holding-period)
+          before they are eligible for payout.
         </MarkdownDescription>
       </div>
 
@@ -185,7 +184,7 @@ export function ProgramPayoutHoldingPeriods({
           disabled={loading}
         />
         <span className="text-sm font-medium text-neutral-900">
-          Use one holding period for all groups
+          Use the same holding period for all groups
         </span>
       </label>
 

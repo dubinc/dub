@@ -56,7 +56,7 @@ export function FeaturedProgramCard({
   const backgroundColor = accentColor ?? getFeaturedCardBackground(colorIndex);
 
   return (
-    <article className="relative flex h-full flex-col-reverse gap-4 overflow-hidden rounded-2xl p-2 sm:min-h-[340px] sm:flex-row">
+    <article className="relative flex h-full flex-col-reverse gap-4 overflow-hidden rounded-2xl border border-neutral-100 p-2 sm:min-h-[340px] sm:flex-row">
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0 z-0 transition-opacity duration-500 ease-out"
