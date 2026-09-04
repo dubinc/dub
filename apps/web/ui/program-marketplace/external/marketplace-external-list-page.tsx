@@ -46,7 +46,7 @@ export async function MarketplaceExternalListPage({
 
   const defaultGrid =
     initialPrograms.length > 0 ? (
-      <MarketplaceProgramGrid programs={initialPrograms} showStatus={false} />
+      <MarketplaceProgramGrid programs={initialPrograms} externalMarketplace />
     ) : (
       <MarketplaceProgramGridEmpty />
     );
@@ -57,9 +57,9 @@ export async function MarketplaceExternalListPage({
       title={
         categoryMeta ? (
           <>
-            {categoryMeta.label} affiliate
+            {categoryMeta.label} SaaS
             <br />
-            programs
+            affiliate programs
           </>
         ) : undefined
       }

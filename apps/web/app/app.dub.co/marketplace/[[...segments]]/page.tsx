@@ -49,7 +49,7 @@ export async function generateMetadata(props: {
       // categoryMeta should always return a value, but just in case
       const categoryMeta = PROGRAM_CATEGORIES_MAP[category];
       const label = categoryMeta?.label ?? category.replaceAll("_", " ");
-      title = `Best ${label} Affiliate Programs in ${currentYear}`;
+      title = `Best ${label} SaaS Affiliate Programs in ${currentYear}`;
       description =
         categoryMeta?.listPageDescription ??
         `Browse the best ${label} affiliate programs on Dub's Program Marketplace.`;

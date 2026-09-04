@@ -15,11 +15,11 @@ import { ProgramStatusBadge } from "./program-status-badge";
 
 export function MarketplaceProgramCard({
   program,
-  showStatus = true,
+  externalMarketplace = false,
   className,
 }: {
   program: NetworkProgramProps;
-  showStatus?: boolean;
+  externalMarketplace?: boolean;
   className?: string;
 }) {
   const router = useRouter();
@@ -39,7 +39,7 @@ export function MarketplaceProgramCard({
           className="size-12 shrink-0 rounded-full object-cover"
         />
 
-        {showStatus ? <ProgramStatusBadge program={program} /> : null}
+        {!externalMarketplace ? <ProgramStatusBadge program={program} /> : null}
       </div>
 
       <div className="mt-6 flex flex-col sm:mt-8">
@@ -66,50 +66,57 @@ export function MarketplaceProgramCard({
                   )
                 }
                 className="mt-2"
+                {...(externalMarketplace
+                  ? { descriptionClassName: "sm:max-w-[200px]" }
+                  : {})}
               />
             </div>
           )}
-          {Boolean(program.categories.length) && (
-            <div className="hidden min-w-0 sm:block">
-              <span className="text-content-muted block text-xs font-medium">
-                Category
-              </span>
-              <div className="mt-2 flex items-center gap-1.5">
-                {program.categories
-                  .slice(0, 1)
-                  ?.map((category) => (
-                    <ProgramCategory
-                      key={category}
-                      category={category}
-                      onClick={() =>
-                        router.push(getMarketplaceCategoryHref(category))
+          {Boolean(program.categories.length) &&
+            // hide categories for external marketplace (narrow max width)
+            !externalMarketplace && (
+              <div className="hidden min-w-0 sm:block">
+                <span className="text-content-muted block text-xs font-medium">
+                  Category
+                </span>
+                <div className="mt-2 flex items-center gap-1.5">
+                  {program.categories
+                    .slice(0, 1)
+                    ?.map((category) => (
+                      <ProgramCategory
+                        key={category}
+                        category={category}
+                        onClick={() =>
+                          router.push(getMarketplaceCategoryHref(category))
+                        }
+                      />
+                    ))}
+                  {program.categories.length > 1 && (
+                    <Tooltip
+                      content={
+                        <div className="flex flex-col gap-0.5 p-2">
+                          {program.categories.slice(1).map((category) => (
+                            <ProgramCategory
+                              key={category}
+                              category={category}
+                              onClick={() =>
+                                router.push(
+                                  getMarketplaceCategoryHref(category),
+                                )
+                              }
+                            />
+                          ))}
+                        </div>
                       }
-                    />
-                  ))}
-                {program.categories.length > 1 && (
-                  <Tooltip
-                    content={
-                      <div className="flex flex-col gap-0.5 p-2">
-                        {program.categories.slice(1).map((category) => (
-                          <ProgramCategory
-                            key={category}
-                            category={category}
-                            onClick={() =>
-                              router.push(getMarketplaceCategoryHref(category))
-                            }
-                          />
-                        ))}
+                    >
+                      <div className="text-content-subtle -ml-1.5 flex size-6 items-center justify-center rounded-md text-xs font-medium">
+                        +{program.categories.length - 1}
                       </div>
-                    }
-                  >
-                    <div className="text-content-subtle -ml-1.5 flex size-6 items-center justify-center rounded-md text-xs font-medium">
-                      +{program.categories.length - 1}
-                    </div>
-                  </Tooltip>
-                )}
+                    </Tooltip>
+                  )}
+                </div>
               </div>
-            </div>
-          )}
+            )}
         </div>
       </div>
     </Link>

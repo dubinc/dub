@@ -7,11 +7,11 @@ import {
 
 export function MarketplaceProgramGrid({
   programs,
-  showStatus = true,
+  externalMarketplace = false,
   className,
 }: {
   programs: NetworkProgramProps[];
-  showStatus?: boolean;
+  externalMarketplace?: boolean;
   className?: string;
 }) {
   return (
@@ -26,7 +26,7 @@ export function MarketplaceProgramGrid({
         <MarketplaceProgramCard
           key={program.id}
           program={program}
-          showStatus={showStatus}
+          externalMarketplace={externalMarketplace}
         />
       ))}
     </div>

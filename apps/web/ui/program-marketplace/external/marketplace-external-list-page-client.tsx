@@ -125,7 +125,7 @@ export function MarketplaceExternalListPageClient({
   ) : fetchedPrograms.length > 0 ? (
     <MarketplaceProgramGrid
       programs={fetchedPrograms}
-      showStatus={false}
+      externalMarketplace
       className={cn(isValidating && "opacity-50")}
     />
   ) : (
