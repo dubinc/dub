@@ -1,4 +1,5 @@
 import Toolbar from "@/ui/layout/toolbar/toolbar";
+import { Analytics as DubAnalytics } from "@dub/analytics/react";
 import { Grid, Wordmark } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { ReactNode } from "react";
@@ -11,8 +12,19 @@ export default function AuthMarketingLayout({
 }) {
   return (
     <>
+      <DubAnalytics
+        apiHost="/_proxy/dub"
+        cookieOptions={{
+          domain: process.env.VERCEL === "1" ? ".dub.co" : "localhost",
+        }}
+        domainsConfig={{
+          refer: "refer.dub.co",
+        }}
+        scriptProps={{
+          src: "/_proxy/dub/script.js",
+        }}
+      />
       <Toolbar />
-
       <div className="relative grid min-h-[100dvh] grid-cols-1 min-[900px]:grid-cols-[minmax(0,1fr)_440px] lg:grid-cols-[minmax(0,1fr)_595px]">
         {/* Left: Main auth content */}
         <div className="relative">
@@ -53,7 +65,7 @@ export default function AuthMarketingLayout({
             ))}
           </div>
 
-          <div className="relative flex min-h-[100dvh] min-h-screen w-full justify-center">
+          <div className="relative flex min-h-[100dvh] w-full justify-center">
             <a
               href="https://dub.co"
               target="_blank"

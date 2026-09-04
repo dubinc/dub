@@ -1,6 +1,7 @@
 import { getNetworkProgram } from "@/lib/fetchers/get-network-program";
 import { PROGRAM_CATEGORIES_MAP } from "@/lib/network/program-categories";
 import { MarketplaceExternalRouter } from "@/ui/program-marketplace/external/marketplace-external-router";
+import { Analytics as DubAnalytics } from "@dub/analytics/react";
 import { APP_DOMAIN, constructMetadata } from "@dub/utils";
 import { Category } from "@prisma/client";
 import { Metadata } from "next";
@@ -70,5 +71,19 @@ export default async function MarketplaceExternalPage(props: {
 }) {
   const { segments = [] } = await props.params;
 
-  return <MarketplaceExternalRouter segments={segments} />;
+  return (
+    <>
+      <DubAnalytics
+        apiHost="/_proxy/dub"
+        domainsConfig={{
+          refer: "refer.dub.co",
+          site: "site.dub.co",
+        }}
+        scriptProps={{
+          src: "/_proxy/dub/script.js",
+        }}
+      />
+      <MarketplaceExternalRouter segments={segments} />
+    </>
+  );
 }
