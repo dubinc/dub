@@ -30,7 +30,7 @@ export const GET = withCron(async () => {
   // The send phase relies on the queue being sequential
   await queue.upsert({ parallelism: 1 });
 
-  let page = 0;
+  let startingAfter: string | undefined;
   let programCount = 0;
 
   while (true) {
@@ -49,11 +49,16 @@ export const GET = withCron(async () => {
       select: {
         id: true,
       },
-      take: PROGRAM_BATCH_SIZE,
-      skip: page * PROGRAM_BATCH_SIZE,
+      ...(startingAfter && {
+        skip: 1,
+        cursor: {
+          id: startingAfter,
+        },
+      }),
       orderBy: {
         id: "asc",
       },
+      take: PROGRAM_BATCH_SIZE,
     });
 
     if (programs.length === 0) {
@@ -73,7 +78,7 @@ export const GET = withCron(async () => {
     );
 
     programCount += programs.length;
-    page++;
+    startingAfter = programs[programs.length - 1].id;
   }
 
   if (programCount === 0) {

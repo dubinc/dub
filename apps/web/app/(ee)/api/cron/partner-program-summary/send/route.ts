@@ -110,25 +110,48 @@ export const POST = withCron(async ({ rawBody }) => {
     ...new Set(partnerStats.flatMap((stats) => Object.keys(stats ?? {}))),
   ];
 
-  const programs =
+  // Programs may have been deactivated and partners may have lost their approval since the
+  // stats were staged (or since an earlier run for this month), so both are rechecked here
+  const [programs, approvedEnrollments] =
     programIds.length > 0
-      ? await prisma.program.findMany({
-          where: {
-            id: {
-              in: programIds,
+      ? await Promise.all([
+          prisma.program.findMany({
+            where: {
+              id: {
+                in: programIds,
+              },
+              deactivatedAt: null,
             },
-            deactivatedAt: null,
-          },
-          select: {
-            id: true,
-            name: true,
-            logo: true,
-            slug: true,
-          },
-        })
-      : [];
+            select: {
+              id: true,
+              name: true,
+              logo: true,
+              slug: true,
+            },
+          }),
+          prisma.programEnrollment.findMany({
+            where: {
+              partnerId: {
+                in: partners.map((partner) => partner.id),
+              },
+              programId: {
+                in: programIds,
+              },
+              status: "approved",
+            },
+            select: {
+              partnerId: true,
+              programId: true,
+            },
+          }),
+        ])
+      : [[], []];
 
   const programsMap = new Map(programs.map((p) => [p.id, p]));
+
+  const approvedPairs = new Set(
+    approvedEnrollments.map((e) => `${e.partnerId}:${e.programId}`),
+  );
 
   const emails = partners.flatMap((partner, index) => {
     const stats = partnerStats[index];
@@ -140,7 +163,12 @@ export const POST = withCron(async ({ rawBody }) => {
     const partnerPrograms = Object.entries(stats)
       .flatMap(([programId, programStats]) => {
         const program = programsMap.get(programId);
-        return program ? [{ ...program, ...programStats }] : [];
+
+        if (!program || !approvedPairs.has(`${partner.id}:${programId}`)) {
+          return [];
+        }
+
+        return [{ ...program, ...programStats }];
       })
       .sort(byCurrentMonthPerformance)
       .slice(0, MAX_PROGRAMS_PER_SUMMARY);
@@ -159,8 +187,8 @@ export const POST = withCron(async ({ rawBody }) => {
   });
 
   console.table(
-    emails.map(({ email, programs }) => ({
-      partner: email,
+    emails.map(({ partnerId, programs }) => ({
+      partner: partnerId,
       programs: programs.length,
       topProgram: programs[0].slug,
       topProgramEarnings: programs[0].currentMonth.earnings,
