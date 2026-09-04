@@ -100,7 +100,7 @@ export function ProgramRewardsDisplay({
             <span>{item.description}</span>
           </HoverCard.Content>
         </HoverCard.Portal>
-        <HoverCard.Trigger>
+        <HoverCard.Trigger asChild>
           <As
             {...(item.onClick && {
               type: "button",
