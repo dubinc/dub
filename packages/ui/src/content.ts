@@ -139,21 +139,18 @@ export const SOLUTIONS: NavItemChildren = [
   },
 ];
 
-// TODO: replace with the public program marketplace URL once it's live
-export const PROGRAM_MARKETPLACE_HREF = "/marketplace";
-
 export const RESOURCES = [
-  {
-    icon: withFillVariant(LifeRing),
-    title: "Help Center",
-    description: "Answers to your questions",
-    href: "/help",
-  },
   {
     icon: withFillVariant(Book2),
     title: "Docs",
     description: "Developer documentation",
     href: "/docs",
+  },
+  {
+    icon: withFillVariant(LifeRing),
+    title: "Help Center",
+    description: "Answers to your questions",
+    href: "/help",
   },
   {
     icon: withFillVariant(Users),
@@ -195,34 +192,8 @@ export const RESOURCES = [
     icon: withFillVariant(Shop),
     title: "Program Marketplace",
     description: "Browse our available partner programs",
-    href: PROGRAM_MARKETPLACE_HREF,
+    href: "/marketplace",
   },
-];
-
-/**
- * Programs whose logos are shown in the Program Marketplace section of the
- * Resources dropdown, by program slug (i.e. dub.co/{slug}, not the workspace).
- *
- * Logos are pulled from each program's own logo via /api/misc/program-logos –
- * slugs that don't resolve to a marketplace program are skipped.
- */
-export const PROGRAM_MARKETPLACE_SLUGS = [
-  "beehiiv",
-  "flow",
-  "granola",
-  "superhuman",
-  "polymarket",
-  "viktor",
-  "framer",
-  "flora",
-  "dub",
-  "superpower",
-  "chatbase",
-  "copper",
-  "anything",
-  "tradezella",
-  "buffer",
-  "coderabbit",
 ];
 
 export const COMPARE_PAGES = [

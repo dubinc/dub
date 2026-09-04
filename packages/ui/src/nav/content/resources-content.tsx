@@ -10,7 +10,7 @@ import {
 const COLUMNS = [
   {
     heading: "Help and Support",
-    titles: ["Help Center", "Docs", "Contact"],
+    titles: ["Docs", "Help Center", "Contact"],
   },
   {
     heading: "Company",

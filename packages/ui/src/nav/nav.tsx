@@ -26,7 +26,6 @@ import { useScroll } from "../hooks";
 import { MaxWidthWrapper } from "../max-width-wrapper";
 import { NavWordmark } from "../nav-wordmark";
 import { ProductContent } from "./content/product-content";
-import { usePreloadProgramMarketplaceLogos } from "./content/program-marketplace";
 import { ResourcesContent } from "./content/resources-content";
 import { SolutionsContent } from "./content/solutions-content";
 
@@ -170,9 +169,6 @@ export function Nav({
       dedupingInterval: 60000,
     },
   );
-
-  // warm the marketplace logos so the Resources dropdown opens without a stutter
-  usePreloadProgramMarketplaceLogos();
 
   const showHover = (item: HTMLElement) => {
     const list = navListRef.current;
