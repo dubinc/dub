@@ -1,15 +1,13 @@
 "use client";
 
-import { approveBountySubmissionAction } from "@/lib/actions/partners/approve-bounty-submission";
 import { calculateSocialMetricsRewardAmount } from "@/lib/bounty/rewards";
 import { resolveBountyDetails } from "@/lib/bounty/utils";
 import { mutatePrefix } from "@/lib/swr/mutate";
-import useWorkspace from "@/lib/swr/use-workspace";
+import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import { BountyProps, BountySubmissionProps } from "@/lib/types";
 import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import { Button, Modal } from "@dub/ui";
 import { currencyFormatter } from "@dub/utils";
-import { useAction } from "next-safe-action/hooks";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
@@ -30,24 +28,8 @@ function ConfirmApproveBountySubmissionModal({
   rewardAmount,
   onApproveSuccess,
 }: ConfirmApproveBountySubmissionModalProps) {
-  const { id: workspaceId } = useWorkspace();
-
-  const { executeAsync: approveBountySubmission, isPending } = useAction(
-    approveBountySubmissionAction,
-    {
-      onSuccess: async () => {
-        setShowModal(false);
-        toast.success("Bounty submission approved successfully!");
-        if (bounty?.id) {
-          await mutatePrefix(`/api/bounties/${bounty.id}/submissions`);
-        }
-        onApproveSuccess?.();
-      },
-      onError({ error }) {
-        toast.error(error.serverError);
-      },
-    },
-  );
+  const { makeRequest: approveBountySubmission, isSubmitting } =
+    useApiMutation();
 
   const commissionAmountCents = useMemo(() => {
     const bountyInfo = bounty ? resolveBountyDetails(bounty) : null;
@@ -64,12 +46,23 @@ function ConfirmApproveBountySubmissionModal({
   }, [bounty, submission, rewardAmount]);
 
   const handleApprove = async () => {
-    if (!workspaceId || !submission?.id) return;
-    await approveBountySubmission({
-      workspaceId,
-      submissionId: submission.id,
-      rewardAmount: rewardAmount != null ? rewardAmount * 100 : null,
-    });
+    if (!submission?.id || !submission.bountyId) return;
+
+    await approveBountySubmission(
+      `/api/bounties/${submission.bountyId}/submissions/${submission.id}/approve`,
+      {
+        method: "POST",
+        body: {
+          rewardAmount: rewardAmount != null ? rewardAmount * 100 : null,
+        },
+        onSuccess: async () => {
+          setShowModal(false);
+          toast.success("Bounty submission approved successfully!");
+          await mutatePrefix(`/api/bounties/${submission.bountyId}/submissions`);
+          onApproveSuccess?.();
+        },
+      },
+    );
   };
 
   return (
@@ -136,14 +129,14 @@ function ConfirmApproveBountySubmissionModal({
               text="Cancel"
               className="h-8 w-fit"
               onClick={() => setShowModal(false)}
-              disabled={isPending}
+              disabled={isSubmitting}
             />
             <Button
               type="button"
               variant="primary"
               text="Approve"
               className="h-8 w-fit"
-              loading={isPending}
+              loading={isSubmitting}
               onClick={handleApprove}
             />
           </div>
