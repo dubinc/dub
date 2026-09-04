@@ -1,27 +1,32 @@
 import { getAnalytics } from "@/lib/analytics/get-analytics";
-import { qstash } from "@/lib/cron";
 import { withCron } from "@/lib/cron/with-cron";
 import { prisma } from "@/lib/prisma";
-import { sendBatchEmail } from "@dub/email";
-import PartnerProgramSummary from "@dub/email/templates/partner-program-summary";
-import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
+import { redis } from "@/lib/upstash/redis";
+import { chunk } from "@dub/utils";
 import { Prisma } from "@prisma/client";
-import { endOfMonth, format, startOfMonth, subMonths } from "date-fns";
+import { endOfMonth } from "date-fns";
 import * as z from "zod/v4";
 import { logAndRespond } from "../../utils";
+import {
+  getPartnerProgramSummaryKeys,
+  getReportingPeriod,
+  monthHasNoActivity,
+  PARTNER_PROGRAM_SUMMARY_TTL_SECONDS,
+  PartnerProgramSummaryStats,
+  yearMonthSchema,
+} from "../utils";
 
 export const dynamic = "force-dynamic";
 
-const PARTNER_BATCH_SIZE = 100;
+// Number of partner IDs per enrollment lookup
+const ENROLLMENT_CHUNK_SIZE = 1000;
 
-const queue = qstash.queue({
-  queueName: "send-partner-summary",
-});
+// Number of partners written per Redis pipeline
+const REDIS_CHUNK_SIZE = 250;
 
 const schema = z.object({
   programId: z.string(),
-  startingAfter: z.string().nullish(),
-  batchNumber: z.number().nullish(),
+  yearMonth: yearMonthSchema,
 });
 
 interface AnalyticsResponse {
@@ -32,27 +37,14 @@ interface AnalyticsResponse {
   saleAmount: number;
 }
 
-type PartnerProgramSummaryMonthMetrics = {
-  earnings: number;
-  clicks: number;
-  leads: number;
-  sales: number;
-};
-
-function monthHasNoActivity(m: PartnerProgramSummaryMonthMetrics) {
-  return m.earnings === 0 && m.clicks === 0 && m.leads === 0 && m.sales === 0;
-}
-
-// This route processes partner program summary emails for a specific program.
-// Called by the main route after enqueuing jobs for each program.
+// This route computes the monthly stats of every eligible partner in a program
+// and stages them in Redis (keyed by partner) so that /send can build one email per partner.
+// Called by the main route once for each program.
 // POST /api/cron/partner-program-summary/process
 export const POST = withCron(async ({ rawBody }) => {
-  const result = schema.parse(JSON.parse(rawBody));
+  const { programId, yearMonth } = schema.parse(JSON.parse(rawBody));
 
-  let { programId, startingAfter, batchNumber } = result;
-
-  const previousMonth = startOfMonth(subMonths(new Date(), 2));
-  const currentMonth = startOfMonth(subMonths(new Date(), 1));
+  const { previousMonth, currentMonth } = getReportingPeriod(yearMonth);
 
   const program = await prisma.program.findUnique({
     where: {
@@ -60,11 +52,9 @@ export const POST = withCron(async ({ rawBody }) => {
     },
     select: {
       id: true,
-      name: true,
-      logo: true,
       slug: true,
-      supportEmail: true,
       workspaceId: true,
+      deactivatedAt: true,
     },
   });
 
@@ -72,14 +62,35 @@ export const POST = withCron(async ({ rawBody }) => {
     return logAndRespond(`Program ${programId} not found.`);
   }
 
-  console.info(`Sending program summary for ${program.slug}`, {
-    previousMonth,
-    currentMonth,
-  });
+  if (program.deactivatedAt) {
+    return logAndRespond(`Program ${program.slug} is deactivated. Skipping...`);
+  }
 
-  // Find the clicks, leads, sales analytics
-  const [previousMonthAnalytics, currentMonthAnalytics] = await Promise.all([
-    // 2 months ago
+  console.info(
+    `Computing partner program summaries for ${program.slug} (${yearMonth})`,
+    {
+      previousMonth,
+      currentMonth,
+    },
+  );
+
+  const commissionWhere: Prisma.CommissionWhereInput = {
+    programId: program.id,
+    earnings: {
+      gt: 0,
+    },
+    status: {
+      in: ["pending", "processed", "paid"],
+    },
+  };
+
+  const [
+    previousMonthAnalytics,
+    currentMonthAnalytics,
+    previousMonthEarnings,
+    currentMonthEarnings,
+  ] = await Promise.all([
+    // Clicks, leads and sales from Tinybird – 2 months ago
     getAnalytics({
       event: "composite",
       groupBy: "top_partners",
@@ -89,7 +100,7 @@ export const POST = withCron(async ({ rawBody }) => {
       end: endOfMonth(previousMonth),
     }),
 
-    // 1 month ago
+    // Clicks, leads and sales from Tinybird – 1 month ago
     getAnalytics({
       event: "composite",
       groupBy: "top_partners",
@@ -98,265 +109,159 @@ export const POST = withCron(async ({ rawBody }) => {
       start: currentMonth,
       end: endOfMonth(currentMonth),
     }),
-  ]);
 
-  const programEnrollments = await prisma.programEnrollment.findMany({
-    where: {
-      programId: program.id,
-      status: "approved",
-      totalLeads: {
-        gt: 0,
-      },
-      partner: {
-        users: {
-          some: {
-            notificationPreferences: {
-              monthlyProgramSummary: true,
-            },
-          },
+    // Earnings from MySQL – 2 months ago
+    prisma.commission.groupBy({
+      by: ["partnerId"],
+      where: {
+        ...commissionWhere,
+        createdAt: {
+          gte: previousMonth,
+          lte: endOfMonth(previousMonth),
         },
       },
-    },
-    select: {
-      id: true,
-      partner: {
-        select: {
-          id: true,
-          email: true,
-          createdAt: true,
-        },
-      },
-      links: {
-        select: {
-          clicks: true,
-          leads: true,
-          sales: true,
-        },
-      },
-    },
-    ...(startingAfter && {
-      skip: 1,
-      cursor: {
-        id: startingAfter,
+      _sum: {
+        earnings: true,
       },
     }),
-    orderBy: {
-      id: "desc",
-    },
-    take: PARTNER_BATCH_SIZE,
-  });
 
-  console.info(
-    `Found ${programEnrollments.length} active partners that have signed up for partners.dub.co and have links with at least 1 total lead.`,
-  );
-
-  if (programEnrollments.length === 0) {
-    return logAndRespond(
-      `No more active partners found for program ${program.id}.`,
-    );
-  }
-
-  // Find the earnings
-  const partners = programEnrollments.map(({ partner }) => partner);
-
-  const commissionWhere: Prisma.CommissionWhereInput = {
-    earnings: {
-      gt: 0,
-    },
-    programId: program.id,
-    partnerId: {
-      in: partners.map((partner) => partner.id),
-    },
-    status: {
-      in: ["pending", "processed", "paid"],
-    },
-  };
-
-  const [previousMonthEarnings, currentMonthEarnings, lifetimeEarnings] =
-    await Promise.all([
-      // Earnings 2 months ago (to compare with previous month)
-      prisma.commission.groupBy({
-        by: ["partnerId"],
-        where: {
-          ...commissionWhere,
-          createdAt: {
-            gte: previousMonth,
-            lte: endOfMonth(previousMonth),
-          },
+    // Earnings from MySQL – 1 month ago
+    prisma.commission.groupBy({
+      by: ["partnerId"],
+      where: {
+        ...commissionWhere,
+        createdAt: {
+          gte: currentMonth,
+          lte: endOfMonth(currentMonth),
         },
-        _sum: {
-          earnings: true,
-        },
-      }),
+      },
+      _sum: {
+        earnings: true,
+      },
+    }),
+  ]);
 
-      // Earnings 1 month ago,
-      prisma.commission.groupBy({
-        by: ["partnerId"],
-        where: {
-          ...commissionWhere,
-          createdAt: {
-            gte: currentMonth,
-            lte: endOfMonth(currentMonth),
-          },
-        },
-        _sum: {
-          earnings: true,
-        },
-      }),
-
-      // All-time earnings
-      prisma.commission.groupBy({
-        by: ["partnerId"],
-        where: {
-          ...commissionWhere,
-        },
-        _sum: {
-          earnings: true,
-        },
-      }),
-    ]);
-
-  const previousEarningsMap = new Map(
-    previousMonthEarnings.map((e) => [e.partnerId, e]),
-  );
-
-  const currentEarningsMap = new Map(
-    currentMonthEarnings.map((e) => [e.partnerId, e]),
-  );
-
-  const lifetimeEarningsMap = new Map(
-    lifetimeEarnings.map((e) => [e.partnerId, e]),
-  );
-
-  const previousAnalyticsMap: Map<string, AnalyticsResponse> = new Map(
+  const previousAnalyticsMap = new Map<string, AnalyticsResponse>(
     previousMonthAnalytics.map((a: AnalyticsResponse) => [a.partnerId, a]),
   );
 
-  const currentAnalyticsMap: Map<string, AnalyticsResponse> = new Map(
+  const currentAnalyticsMap = new Map<string, AnalyticsResponse>(
     currentMonthAnalytics.map((a: AnalyticsResponse) => [a.partnerId, a]),
   );
 
-  const summary = partners.map((partner) => {
-    // Get previous and current month analytics from Tinybird
-    const _previousMonthAnalytics = previousAnalyticsMap.get(partner.id);
-    const _currentMonthAnalytics = currentAnalyticsMap.get(partner.id);
-
-    // Get lifetime analytics from MySQL
-    const _lifetimeAnalytics = programEnrollments
-      .find((enrollment) => enrollment.partner.id === partner.id)
-      ?.links.reduce(
-        (acc, link) => ({
-          clicks: acc.clicks + link.clicks,
-          leads: acc.leads + link.leads,
-          sales: acc.sales + link.sales,
-        }),
-        { clicks: 0, leads: 0, sales: 0 },
-      );
-
-    // Get earnings data from MySQL
-    const _previousMonthEarnings = previousEarningsMap.get(partner.id);
-    const _currentMonthEarnings = currentEarningsMap.get(partner.id);
-    const _lifetimeEarnings = lifetimeEarningsMap.get(partner.id);
-
-    return {
-      partner,
-      previousMonth: {
-        earnings: _previousMonthEarnings?._sum.earnings ?? 0,
-        clicks: _previousMonthAnalytics?.clicks ?? 0,
-        leads: _previousMonthAnalytics?.leads ?? 0,
-        sales: _previousMonthAnalytics?.sales ?? 0,
-      },
-      currentMonth: {
-        earnings: _currentMonthEarnings?._sum.earnings ?? 0,
-        clicks: _currentMonthAnalytics?.clicks ?? 0,
-        leads: _currentMonthAnalytics?.leads ?? 0,
-        sales: _currentMonthAnalytics?.sales ?? 0,
-      },
-      lifetime: {
-        earnings: _lifetimeEarnings?._sum.earnings ?? 0,
-        clicks: _lifetimeAnalytics?.clicks ?? 0,
-        leads: _lifetimeAnalytics?.leads ?? 0,
-        sales: _lifetimeAnalytics?.sales ?? 0,
-      },
-    };
-  });
-
-  console.table(
-    summary.map((s) => ({
-      partner: s.partner.email,
-      program: program.name,
-      currentEarnings: s.currentMonth.earnings,
-      currentClicks: s.currentMonth.clicks,
-      currentLeads: s.currentMonth.leads,
-      currentSales: s.currentMonth.sales,
-      lifetimeEarnings: s.lifetime.earnings,
-      lifetimeClicks: s.lifetime.clicks,
-      lifetimeLeads: s.lifetime.leads,
-      lifetimeSales: s.lifetime.sales,
-    })),
+  const previousEarningsMap = new Map(
+    previousMonthEarnings.map((e) => [e.partnerId, e._sum.earnings ?? 0]),
   );
 
-  const reportingMonth = format(currentMonth, "MMM yyyy");
-  batchNumber = batchNumber || 1;
-
-  const summaryToSend = summary.filter(
-    (s) =>
-      !(
-        monthHasNoActivity(s.previousMonth) &&
-        monthHasNoActivity(s.currentMonth)
-      ),
+  const currentEarningsMap = new Map(
+    currentMonthEarnings.map((e) => [e.partnerId, e._sum.earnings ?? 0]),
   );
 
-  const skippedEmpty = summary.length - summaryToSend.length;
-  if (skippedEmpty > 0) {
-    console.info(
-      `Skipped ${skippedEmpty} partner program summary email(s) with no activity in both reporting months.`,
+  // Every partner that had some activity in the program during either month
+  const activePartnerIds = [
+    ...new Set([
+      ...previousAnalyticsMap.keys(),
+      ...currentAnalyticsMap.keys(),
+      ...previousEarningsMap.keys(),
+      ...currentEarningsMap.keys(),
+    ]),
+  ];
+
+  if (activePartnerIds.length === 0) {
+    return logAndRespond(
+      `No partner activity found for program ${program.slug} in ${yearMonth}. Skipping...`,
     );
   }
 
-  await sendBatchEmail(
-    summaryToSend.map(({ partner, ...rest }) => ({
-      variant: "notifications",
-      subject: `Your ${reportingMonth} performance report for ${program.name} program`,
-      to: partner.email!,
-      replyTo: program.supportEmail || "noreply",
-      react: PartnerProgramSummary({
-        program,
-        partner,
-        ...rest,
-        reportingPeriod: {
-          month: reportingMonth,
-          start: currentMonth.toISOString(),
-          end: endOfMonth(currentMonth).toISOString(),
+  // Only partners that are actively enrolled in the program and have at least 1 lead get a summary
+  const eligiblePartnerIds: string[] = [];
+
+  for (const partnerIdsChunk of chunk(
+    activePartnerIds,
+    ENROLLMENT_CHUNK_SIZE,
+  )) {
+    const programEnrollments = await prisma.programEnrollment.findMany({
+      where: {
+        programId: program.id,
+        status: "approved",
+        totalLeads: {
+          gt: 0,
         },
-      }),
-    })),
-    {
-      idempotencyKey: `partner-program-summary-${reportingMonth}-${program.id}-${batchNumber}`,
-    },
-  );
-
-  // Schedule the next batch if there are more partners to process
-  if (programEnrollments.length === PARTNER_BATCH_SIZE) {
-    startingAfter = programEnrollments[programEnrollments.length - 1].id;
-    batchNumber++;
-
-    const response = await queue.enqueueJSON({
-      url: `${APP_DOMAIN_WITH_NGROK}/api/cron/partner-program-summary/process`,
-      method: "POST",
-      body: {
-        ...result,
-        startingAfter,
-        batchNumber,
+        partnerId: {
+          in: partnerIdsChunk,
+        },
+      },
+      select: {
+        partnerId: true,
       },
     });
 
+    eligiblePartnerIds.push(...programEnrollments.map((e) => e.partnerId));
+  }
+
+  const summaries = eligiblePartnerIds
+    .map((partnerId) => {
+      const _previousMonthAnalytics = previousAnalyticsMap.get(partnerId);
+      const _currentMonthAnalytics = currentAnalyticsMap.get(partnerId);
+
+      const stats: PartnerProgramSummaryStats = {
+        previousMonth: {
+          earnings: previousEarningsMap.get(partnerId) ?? 0,
+          clicks: _previousMonthAnalytics?.clicks ?? 0,
+          leads: _previousMonthAnalytics?.leads ?? 0,
+          sales: _previousMonthAnalytics?.sales ?? 0,
+        },
+        currentMonth: {
+          earnings: currentEarningsMap.get(partnerId) ?? 0,
+          clicks: _currentMonthAnalytics?.clicks ?? 0,
+          leads: _currentMonthAnalytics?.leads ?? 0,
+          sales: _currentMonthAnalytics?.sales ?? 0,
+        },
+      };
+
+      return { partnerId, stats };
+    })
+    .filter(
+      ({ stats }) =>
+        !(
+          monthHasNoActivity(stats.previousMonth) &&
+          monthHasNoActivity(stats.currentMonth)
+        ),
+    );
+
+  console.info(
+    `Found ${summaries.length} active partners with at least 1 lead out of ${activePartnerIds.length} partners with activity in program ${program.slug}.`,
+  );
+
+  if (summaries.length === 0) {
     return logAndRespond(
-      `Enqueued partner program summary jobs for the next batch ${response.messageId}`,
+      `No eligible partners found for program ${program.slug} in ${yearMonth}. Skipping...`,
     );
   }
 
+  const keys = getPartnerProgramSummaryKeys(yearMonth);
+
+  for (const summariesChunk of chunk(summaries, REDIS_CHUNK_SIZE)) {
+    const pipeline = redis.pipeline();
+
+    for (const { partnerId, stats } of summariesChunk) {
+      const partnerKey = keys.partner(partnerId);
+
+      pipeline.hset(partnerKey, { [program.id]: stats });
+      pipeline.expire(partnerKey, PARTNER_PROGRAM_SUMMARY_TTL_SECONDS);
+    }
+
+    const [firstMember, ...otherMembers] = summariesChunk.map(
+      ({ partnerId }) => ({ score: 0, member: partnerId }),
+    );
+
+    pipeline.zadd(keys.partners, firstMember, ...otherMembers);
+    pipeline.expire(keys.partners, PARTNER_PROGRAM_SUMMARY_TTL_SECONDS);
+
+    await pipeline.exec();
+  }
+
   return logAndRespond(
-    `Finished processing all partners for program ${program.id}.`,
+    `Staged partner program summaries for ${summaries.length} partners in program ${program.slug} for ${yearMonth}.`,
   );
 });
