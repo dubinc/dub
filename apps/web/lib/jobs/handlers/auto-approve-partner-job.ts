@@ -4,6 +4,11 @@ import {
   evaluateApplicationRequirements,
   getEligibilityContext,
 } from "@/lib/partners/evaluate-application-requirements";
+import {
+  getScreeningApplicationData,
+  rejectScreenedEnrollment,
+  screenProgramApplication,
+} from "@/lib/partners/screen-program-application";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { prisma } from "@/lib/prisma";
 import { ProgramEnrollmentStatus } from "@prisma/client";
@@ -31,6 +36,7 @@ export const autoApprovePartnerJob = defineJob({
       },
       include: {
         partnerGroup: true,
+        application: true,
         partner: {
           include: {
             platforms: true,
@@ -78,7 +84,12 @@ export const autoApprovePartnerJob = defineJob({
       },
       select: {
         id: true,
+        name: true,
+        slug: true,
+        description: true,
+        supportEmail: true,
         applicationRequirements: true,
+        applicationScreeningPrompt: true,
         workspace: {
           select: {
             plan: true,
@@ -135,6 +146,54 @@ export const autoApprovePartnerJob = defineJob({
             `Partner ${partnerId} does not meet eligibility requirements.`,
           );
           return;
+      }
+    }
+
+    // Auto-approval never bypasses application screening. If screening is
+    // configured and this application has no verdict yet (e.g. screening
+    // failed open at submit time, or was enabled after the partner applied),
+    // screen it now and only continue on a pass.
+    if (program.applicationScreeningPrompt) {
+      const application = programEnrollment.application;
+
+      if (!application) {
+        console.warn(
+          `Partner ${partnerId} has no application to screen for program ${programId}, skipping auto-approval.`,
+        );
+        return;
+      }
+
+      if (!application.screenedAt) {
+        const screening = await screenProgramApplication({
+          program,
+          partner: programEnrollment.partner,
+          application,
+        });
+
+        if (!screening) {
+          console.warn(
+            `Application screening unavailable for partner ${partnerId} in program ${programId}, leaving pending for manual review.`,
+          );
+          return;
+        }
+
+        if (screening.decision === "reject") {
+          await rejectScreenedEnrollment({
+            programEnrollment,
+            program,
+            partner: programEnrollment.partner,
+          });
+
+          console.info(
+            `Partner ${partnerId} was rejected by application screening in program ${programId}.`,
+          );
+          return;
+        }
+
+        await prisma.programApplication.update({
+          where: { id: application.id },
+          data: getScreeningApplicationData(screening),
+        });
       }
     }
 

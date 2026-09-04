@@ -8,7 +8,7 @@ export interface FormDataKeyValue {
 }
 
 export const formatApplicationFormData = (
-  application: ProgramApplication,
+  application: Pick<ProgramApplication, "formData">,
 ): FormDataKeyValue[] => {
   const formData =
     application?.formData as ProgramApplicationFormDataWithValues;
@@ -60,7 +60,7 @@ export const formatApplicationFormData = (
 };
 
 export const formatWebsiteAndSocialsFields = (
-  application: ProgramApplication,
+  application: Pick<ProgramApplication, "formData">,
 ) => {
   const formData =
     application?.formData as ProgramApplicationFormDataWithValues;

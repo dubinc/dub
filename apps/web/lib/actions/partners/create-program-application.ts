@@ -21,6 +21,11 @@ import {
   formatApplicationFormData,
   formatWebsiteAndSocialsFields,
 } from "@/lib/partners/format-application-form-data";
+import {
+  getScreeningApplicationData,
+  notifyScreeningRejection,
+  screenProgramApplication,
+} from "@/lib/partners/screen-program-application";
 import { prisma } from "@/lib/prisma";
 import {
   ProgramApplicationFormData,
@@ -306,16 +311,43 @@ async function createApplicationAndEnrollment({
     );
   }
 
+  // Screen the application before it becomes a pending (visible) enrollment.
+  // Only eligible applications are screened; failures fail open to pending.
+  // Website and social handles are derived from the form data during screening.
+  const screening =
+    result.reason !== "requirementsNotMet"
+      ? await screenProgramApplication({
+          program,
+          partner,
+          application: {
+            name: sanitizedData.name,
+            email: sanitizedData.email,
+            country: partner.country ?? sanitizedData.country ?? null,
+            website: null,
+            youtube: null,
+            twitter: null,
+            linkedin: null,
+            instagram: null,
+            tiktok: null,
+            formData:
+              "formData" in sanitizedData ? sanitizedData.formData : null,
+          },
+        })
+      : null;
+
+  const screenedOut = screening?.decision === "reject";
+
   const applicationId = createId({ prefix: "pga_" });
   const enrollmentId = createId({ prefix: "pge_" });
 
   const [application, programEnrollment] = await prisma.$transaction([
     prisma.programApplication.create({
       data: {
-        ...sanitizeData(data, group),
+        ...sanitizedData,
         id: applicationId,
         programId: program.id,
         groupId: group.id,
+        ...(screening && getScreeningApplicationData(screening)),
       },
     }),
 
@@ -324,14 +356,22 @@ async function createApplicationAndEnrollment({
         id: enrollmentId,
         partnerId: partner.id,
         programId: program.id,
-        status: "pending",
         applicationId,
         groupId: group.id,
-        clickRewardId: group.clickRewardId,
-        leadRewardId: group.leadRewardId,
-        saleRewardId: group.saleRewardId,
-        referralRewardId: group.referralRewardId,
-        discountId: group.discountId,
+        ...(screenedOut
+          ? {
+              // Screened-out partners are rejected for good and cannot reapply
+              status: "rejected",
+              reapplicationTimeframe: "never",
+            }
+          : {
+              status: "pending",
+              clickRewardId: group.clickRewardId,
+              leadRewardId: group.leadRewardId,
+              saleRewardId: group.saleRewardId,
+              referralRewardId: group.referralRewardId,
+              discountId: group.discountId,
+            }),
       },
     }),
   ]);
@@ -346,25 +386,29 @@ async function createApplicationAndEnrollment({
       );
 
       await Promise.allSettled([
-        notifyPartnerApplication({
-          partner,
-          program,
-          group,
-          application,
-        }),
+        ...(screenedOut
+          ? [notifyScreeningRejection({ program, partner })]
+          : [
+              notifyPartnerApplication({
+                partner,
+                program,
+                group,
+                application,
+              }),
 
-        // Auto-approve the partner if the group has auto-approval enabled
-        group.autoApprovePartnersEnabledAt
-          ? autoApprovePartnerJob.dispatch(
-              {
-                programId: program.id,
-                partnerId: partner.id,
-              },
-              {
-                label: partner.id,
-              },
-            )
-          : Promise.resolve(null),
+              // Auto-approve the partner if the group has auto-approval enabled
+              group.autoApprovePartnersEnabledAt
+                ? autoApprovePartnerJob.dispatch(
+                    {
+                      programId: program.id,
+                      partnerId: partner.id,
+                    },
+                    {
+                      label: partner.id,
+                    },
+                  )
+                : Promise.resolve(null),
+            ]),
 
         // Send "partner.application_submitted" webhook
         sendWorkspaceWebhook({

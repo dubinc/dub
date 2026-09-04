@@ -148,6 +148,7 @@ export const ProgramSchema = z.object({
   termsUrl: z.string().nullish(),
   referralFormData: z.record(z.string(), z.any()).nullish(),
   applicationRequirements: applicationRequirementsSchema.nullish(),
+  applicationScreeningPrompt: z.string().nullish(),
   createdAt: z.date(),
   updatedAt: z.date(),
   startedAt: z.date().nullish(),

@@ -959,6 +959,7 @@ export const rejectPartnerSchema = z.object({
   partnerId: z.string().describe("The ID of the partner to reject."),
   rejectionReason: z
     .enum(ProgramApplicationRejectionReason)
+    .exclude(["applicationScreening"])
     .optional()
     .describe(
       "The reason for rejecting the partner application. This will be shared with the partner via email.",

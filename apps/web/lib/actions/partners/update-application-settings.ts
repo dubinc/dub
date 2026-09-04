@@ -13,13 +13,19 @@ const schema = z.object({
   description: z.string().optional(),
   categories: z.array(z.enum(Category)).optional(),
   eligibilityConditions: applicationRequirementsSchema.optional(),
+  applicationScreeningPrompt: z.string().trim().max(2000).nullish(),
 });
 
 export const updateApplicationSettingsAction = authActionClient
   .inputSchema(schema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace } = ctx;
-    const { description, categories, eligibilityConditions } = parsedInput;
+    const {
+      description,
+      categories,
+      eligibilityConditions,
+      applicationScreeningPrompt,
+    } = parsedInput;
 
     throwIfNoPermission({
       role: workspace.role,
@@ -42,6 +48,9 @@ export const updateApplicationSettingsAction = authActionClient
         }),
         ...(eligibilityConditions !== undefined && {
           applicationRequirements: eligibilityConditions,
+        }),
+        ...(applicationScreeningPrompt !== undefined && {
+          applicationScreeningPrompt: applicationScreeningPrompt || null,
         }),
       },
     });
