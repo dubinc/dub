@@ -1,6 +1,8 @@
 import { captureWebhookLog } from "@/lib/api-logs/capture-webhook-log";
 import { isLocalDev } from "@/lib/api/environment";
+import { withAxiom } from "@/lib/axiom/server";
 import { prisma } from "@/lib/prisma";
+import { timingSafeCompare } from "@/lib/webhook/timing-safe-compare";
 import { waitUntil } from "@vercel/functions";
 import { logAndRespond } from "app/(ee)/api/cron/utils";
 import crypto from "crypto";
@@ -21,7 +23,7 @@ const relevantTopics = new Set([
 ]);
 
 // POST /api/shopify/integration/webhook – Listen to Shopify webhook events
-export const POST = async (req: Request) => {
+export const POST = withAxiom(async (req: Request) => {
   const startTime = Date.now();
   const data = await req.text();
   const headers = req.headers;
@@ -41,7 +43,7 @@ export const POST = async (req: Request) => {
       .update(data, "utf8")
       .digest("base64");
 
-    if (generatedSignature !== signature) {
+    if (!timingSafeCompare(signature, generatedSignature)) {
       return logAndRespond(
         "Shopify webhook signature verification failed. Skipping...",
         {
@@ -150,4 +152,4 @@ export const POST = async (req: Request) => {
   }
 
   return new Response(response);
-};
+});

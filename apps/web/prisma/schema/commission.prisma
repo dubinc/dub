@@ -60,6 +60,7 @@ model Commission {
   @@index(payoutId)
   @@index(customerId)
   @@index(linkId)
+  @@index(type)
   @@index(status)
   @@index(rewardId)
   @@index(userId)

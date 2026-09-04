@@ -1,3 +1,4 @@
+import { withAxiom } from "@/lib/axiom/server";
 import { stripe } from "@/lib/stripe";
 import { log } from "@dub/utils";
 import Stripe from "stripe";
@@ -29,13 +30,15 @@ const relevantEvents = new Set([
 ]);
 
 // POST /api/stripe/webhook – listen to Stripe webhooks
-export const POST = async (req: Request) => {
+export const POST = withAxiom(async (req: Request) => {
   const buf = await req.text();
   const sig = req.headers.get("Stripe-Signature") as string;
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
   let event: Stripe.Event;
   try {
-    if (!sig || !webhookSecret) return;
+    if (!sig || !webhookSecret) {
+      return logAndRespond("Invalid request", { status: 400 });
+    }
     event = stripe.webhooks.constructEvent(buf, sig, webhookSecret);
   } catch (err: any) {
     console.log(`❌ Error message: ${err.message}`);
@@ -99,4 +102,4 @@ export const POST = async (req: Request) => {
   }
 
   return logAndRespond(`[${event.type}]: ${response}`);
-};
+});

@@ -17,14 +17,14 @@ import {
 const FEATURED_PROGRAMS_API_PATH = "/api/network/programs?featured=true";
 
 type FeaturedProgramsProps = {
-  showStatus?: boolean;
+  externalMarketplace?: boolean;
 } & (
   | { programs: NetworkProgramProps[]; apiPath?: never }
   | { apiPath?: string; programs?: never }
 );
 
 export function FeaturedPrograms({
-  showStatus = true,
+  externalMarketplace = false,
   ...props
 }: FeaturedProgramsProps) {
   const apiPath =
@@ -55,7 +55,7 @@ export function FeaturedPrograms({
               <CarouselItem key={program.id} className="basis-full">
                 <FeaturedProgramCard
                   program={program}
-                  showStatus={showStatus}
+                  externalMarketplace={externalMarketplace}
                   colorIndex={index}
                 />
               </CarouselItem>
