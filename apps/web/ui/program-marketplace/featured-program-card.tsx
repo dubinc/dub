@@ -39,11 +39,11 @@ export function getFeaturedCardBackground(index: number) {
 
 export function FeaturedProgramCard({
   program,
-  showStatus = true,
+  externalMarketplace = false,
   colorIndex = 0,
 }: {
   program: NetworkProgramProps;
-  showStatus?: boolean;
+  externalMarketplace?: boolean;
   colorIndex?: number;
 }) {
   const router = useRouter();
@@ -77,7 +77,9 @@ export function FeaturedProgramCard({
             className="size-12 rounded-full border-4 border-neutral-100 sm:border sm:border-black/5"
           />
 
-          {showStatus ? <ProgramStatusBadge program={program} /> : null}
+          {!externalMarketplace ? (
+            <ProgramStatusBadge program={program} />
+          ) : null}
         </div>
 
         <div className="flex flex-col pt-4 sm:mt-auto sm:pt-10">

@@ -14,7 +14,7 @@ type MarketplaceProgramRowProps = {
   title: string;
   viewAllHref: string;
   showViewAllCard?: boolean;
-  showStatus?: boolean;
+  externalMarketplace?: boolean;
   variant?: "default" | "home";
   programs?: NetworkProgramProps[];
   apiPath?: string;
@@ -55,7 +55,7 @@ export function MarketplaceProgramRow({
   title,
   viewAllHref,
   showViewAllCard = false,
-  showStatus = true,
+  externalMarketplace = false,
   programs,
 }: MarketplaceProgramRowProps) {
   const carouselItemClassName = "pl-0 basis-[310px] sm:basis-[419px]";
@@ -94,7 +94,7 @@ export function MarketplaceProgramRow({
                 >
                   <MarketplaceProgramCard
                     program={program}
-                    showStatus={showStatus}
+                    externalMarketplace={externalMarketplace}
                     className={cardClassName}
                   />
                 </CarouselItem>

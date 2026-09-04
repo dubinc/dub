@@ -14,7 +14,7 @@ export async function MarketplaceExternalHomePage() {
         <div className="-mx-4 -mt-8 px-2 sm:-mx-6 lg:-mx-8">
           <FeaturedPrograms
             programs={summary.featuredPrograms}
-            showStatus={false}
+            externalMarketplace
           />
         </div>
         <MarketplaceCategoriesSection />
@@ -24,7 +24,7 @@ export async function MarketplaceExternalHomePage() {
             title={row.title}
             viewAllHref={row.viewAllHref}
             showViewAllCard={row.showViewAllCard}
-            showStatus={false}
+            externalMarketplace
             programs={summary.categories[row.key] ?? summary[row.key]}
           />
         ))}
