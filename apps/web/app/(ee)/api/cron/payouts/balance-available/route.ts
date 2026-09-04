@@ -89,7 +89,7 @@ export const POST = withCron(async ({ rawBody }) => {
       }
 
       return logAndRespond(
-        `Partner ${partner.email} (${stripeAccount}) has no payoutable available balance (${currencyFormatter(availableBalance, { currency })}). Skipping...`,
+        `Partner ${partner.email} (${stripeAccount}) has no payable available balance (${currencyFormatter(availableBalance, { currency })}). Skipping...`,
       );
     }
 
