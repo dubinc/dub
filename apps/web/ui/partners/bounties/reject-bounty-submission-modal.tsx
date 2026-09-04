@@ -54,7 +54,7 @@ const RejectBountySubmissionModal = ({
       {
         method: "POST",
         body: {
-          rejectionReason: formData.rejectionReason,
+          rejectionReason: formData.rejectionReason || undefined,
           rejectionNote: formData.rejectionNote,
         },
         onSuccess: async () => {
