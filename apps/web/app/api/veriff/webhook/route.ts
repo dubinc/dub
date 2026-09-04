@@ -1,4 +1,5 @@
 import { withAxiom } from "@/lib/axiom/server";
+import { timingSafeCompare } from "@/lib/webhook/timing-safe-compare";
 import { logAndRespond } from "app/(ee)/api/cron/utils";
 import crypto from "crypto";
 import { handleDecisionEvent } from "./handle-decision-event";
@@ -18,17 +19,7 @@ export const POST = withAxiom(async (req: Request) => {
 
   const expectedApiKey = process.env.VERIFF_API_KEY;
 
-  if (!expectedApiKey || !authClient) {
-    return logAndRespond("Invalid auth client.", { status: 401 });
-  }
-
-  const authClientBuffer = Uint8Array.from(Buffer.from(authClient));
-  const expectedApiKeyBuffer = Uint8Array.from(Buffer.from(expectedApiKey));
-
-  if (
-    authClientBuffer.length !== expectedApiKeyBuffer.length ||
-    !crypto.timingSafeEqual(authClientBuffer, expectedApiKeyBuffer)
-  ) {
+  if (!expectedApiKey || !timingSafeCompare(authClient, expectedApiKey)) {
     return logAndRespond("Invalid auth client.", { status: 401 });
   }
 
@@ -43,16 +34,7 @@ export const POST = withAxiom(async (req: Request) => {
     .update(rawBody)
     .digest("hex");
 
-  const computedSignatureBuffer = Uint8Array.from(
-    Buffer.from(computedSignature),
-  );
-  const signatureBuffer = Uint8Array.from(Buffer.from(signature));
-
-  const isSignatureValid =
-    computedSignatureBuffer.length === signatureBuffer.length &&
-    crypto.timingSafeEqual(computedSignatureBuffer, signatureBuffer);
-
-  if (!isSignatureValid) {
+  if (!timingSafeCompare(signature, computedSignature)) {
     return logAndRespond("Invalid signature.", { status: 400 });
   }
 

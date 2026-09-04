@@ -6,6 +6,7 @@ import { motion } from "motion/react";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
 import {
+  ComponentType,
   PropsWithChildren,
   ReactNode,
   SVGProps,
@@ -15,7 +16,12 @@ import {
 } from "react";
 import useSWR from "swr";
 import { buttonVariants } from "../button";
-import { FEATURES_LIST, RESOURCES, SOLUTIONS } from "../content";
+import {
+  FEATURES_LIST,
+  RESOURCES,
+  SOLUTIONS,
+  type NavItemChildren,
+} from "../content";
 import { useScroll } from "../hooks";
 import { MaxWidthWrapper } from "../max-width-wrapper";
 import { NavWordmark } from "../nav-wordmark";
@@ -30,7 +36,16 @@ export const NavContext = createContext<{ theme: NavTheme }>({
   theme: "light",
 });
 
-export const navItems = [
+export type NavItem = {
+  name: string;
+  href?: string;
+  segments?: string[];
+  content?: ComponentType<{ domain: string }>;
+  childItems?: NavItemChildren;
+  mobileOnly?: boolean;
+};
+
+export const navItems: NavItem[] = [
   {
     name: "Product",
     content: ProductContent,
@@ -125,11 +140,13 @@ export function Nav({
   theme = "light",
   staticDomain,
   maxWidthWrapperClassName,
+  navItems: items = navItems,
   logo,
 }: {
   theme?: NavTheme;
   staticDomain?: string;
   maxWidthWrapperClassName?: string;
+  navItems?: NavItem[];
   logo?: ReactNode;
 }) {
   let { domain = "dub.co" } = useParams() as { domain: string };
@@ -232,7 +249,7 @@ export function Nav({
                   animate={hoverStyle}
                   transition={pillSpring}
                 />
-                {navItems
+                {items
                   .filter(({ mobileOnly }) => !mobileOnly)
                   .map(({ name, href, segments, content: Content }) => {
                     const isActive = (segments ?? []).some((segment) =>
