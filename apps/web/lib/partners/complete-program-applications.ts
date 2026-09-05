@@ -10,11 +10,20 @@ import { autoRejectPartnerJob } from "../jobs/handlers/auto-reject-partner-job";
 import { buildSocialPlatformLookup } from "../social-utils";
 import { sendWorkspaceWebhook } from "../webhook/publish";
 import { partnerApplicationWebhookSchema } from "../zod/schemas/program-application";
-import { evaluateApplicationRequirements } from "./evaluate-application-requirements";
+import {
+  evaluateApplicationRequirements,
+  getEligibilityContext,
+} from "./evaluate-application-requirements";
 import {
   formatApplicationFormData,
   formatWebsiteAndSocialsFields,
 } from "./format-application-form-data";
+import {
+  getScreeningApplicationData,
+  notifyScreeningRejection,
+  ScreeningResult,
+  screenProgramApplication,
+} from "./screen-program-application";
 
 /**
  * Completes any outstanding program applications for a user
@@ -31,6 +40,8 @@ export async function completeProgramApplications(userEmail: string) {
             partner: {
               include: {
                 platforms: true,
+                preferredEarningStructures: true,
+                salesChannels: true,
                 programs: {
                   select: {
                     programId: true,
@@ -90,21 +101,74 @@ export async function completeProgramApplications(userEmail: string) {
 
     const partner = user.partners[0].partner;
 
+    const eligibilityContext = getEligibilityContext({
+      partner,
+      programEnrollmentStatuses: partner.programs.map(({ status }) => status),
+    });
+
+    const validApplicationIds = new Set(
+      filteredProgramApplications
+        .filter(
+          ({ program }) =>
+            evaluateApplicationRequirements({
+              applicationRequirements: program.applicationRequirements,
+              context: eligibilityContext,
+            }).valid,
+        )
+        .map(({ id }) => id),
+    );
+
+    // Screen eligible applications before their enrollments exist, so a
+    // screened-out application never shows up as pending
+    const screeningResults = new Map<string, ScreeningResult>();
+
+    for (const programApplication of filteredProgramApplications) {
+      if (!validApplicationIds.has(programApplication.id)) {
+        continue;
+      }
+
+      const screening = await screenProgramApplication({
+        program: programApplication.program,
+        partner,
+        application: programApplication,
+      });
+
+      if (screening) {
+        screeningResults.set(programApplication.id, screening);
+      }
+    }
+
+    const isScreenedOut = (applicationId: string) =>
+      screeningResults.get(applicationId)?.decision === "reject";
+
     // Program enrollments to create. `id` is narrowed to required because the
     // search sync below reads it back, and Prisma leaves it optional here.
     const programEnrollments: (Prisma.ProgramEnrollmentCreateManyInput & {
       id: string;
-    })[] = filteredProgramApplications.map((programApplication) => ({
-      id: createId({ prefix: "pge_" }),
-      programId: programApplication.programId,
-      partnerId: user.partners[0].partnerId,
-      applicationId: programApplication.id,
-      groupId: programApplication?.partnerGroup?.id,
-      clickRewardId: programApplication?.partnerGroup?.clickRewardId,
-      leadRewardId: programApplication?.partnerGroup?.leadRewardId,
-      saleRewardId: programApplication?.partnerGroup?.saleRewardId,
-      discountId: programApplication?.partnerGroup?.discountId,
-    }));
+    })[] = filteredProgramApplications.map((programApplication) =>
+      isScreenedOut(programApplication.id)
+        ? {
+            id: createId({ prefix: "pge_" }),
+            programId: programApplication.programId,
+            partnerId: user.partners[0].partnerId,
+            applicationId: programApplication.id,
+            groupId: programApplication?.partnerGroup?.id,
+            // Screened-out partners are rejected for good and cannot reapply
+            status: "rejected",
+            reapplicationTimeframe: "never",
+          }
+        : {
+            id: createId({ prefix: "pge_" }),
+            programId: programApplication.programId,
+            partnerId: user.partners[0].partnerId,
+            applicationId: programApplication.id,
+            groupId: programApplication?.partnerGroup?.id,
+            clickRewardId: programApplication?.partnerGroup?.clickRewardId,
+            leadRewardId: programApplication?.partnerGroup?.leadRewardId,
+            saleRewardId: programApplication?.partnerGroup?.saleRewardId,
+            discountId: programApplication?.partnerGroup?.discountId,
+          },
+    );
 
     const enrollmentsByApplicationId = new Map(
       programEnrollments.map((enrollment) => [
@@ -117,6 +181,16 @@ export async function completeProgramApplications(userEmail: string) {
       data: programEnrollments,
       skipDuplicates: true,
     });
+
+    // Record the screening outcome (pass or reject) on each screened application
+    await Promise.allSettled(
+      [...screeningResults].map(([applicationId, screening]) =>
+        prisma.programApplication.update({
+          where: { id: applicationId },
+          data: getScreeningApplicationData(screening),
+        }),
+      ),
+    );
 
     // Fetch the programs' workspaces
     const workspaces = await prisma.project.findMany({
@@ -185,26 +259,23 @@ export async function completeProgramApplications(userEmail: string) {
         }),
       );
 
-      const { valid: validApplication } = evaluateApplicationRequirements({
-        applicationRequirements: program.applicationRequirements,
-        context: {
-          country: partner.country,
-          email: partner.email,
-        },
-      });
+      const validApplication = validApplicationIds.has(application.id);
+      const screenedOut = isScreenedOut(application.id);
 
       await Promise.allSettled([
         ...(validApplication
           ? [
-              notifyPartnerApplication({
-                partner,
-                program,
-                group,
-                application,
-              }),
+              screenedOut
+                ? notifyScreeningRejection({ program, partner })
+                : notifyPartnerApplication({
+                    partner,
+                    program,
+                    group,
+                    application,
+                  }),
 
               // Auto-approve the partner if the group has auto-approval enabled
-              group?.autoApprovePartnersEnabledAt
+              group?.autoApprovePartnersEnabledAt && !screenedOut
                 ? autoApprovePartnerJob.dispatch(
                     {
                       programId: program.id,
@@ -228,7 +299,7 @@ export async function completeProgramApplications(userEmail: string) {
                       ...partner,
                       ...programEnrollment,
                       id: partner.id,
-                      status: "pending",
+                      status: screenedOut ? "rejected" : "pending",
                       ...formatWebsiteAndSocialsFields(application),
                     },
                     applicationFormData,

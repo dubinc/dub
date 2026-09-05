@@ -13,11 +13,19 @@ import { qstash } from "@/lib/cron";
 import { autoApprovePartnerJob } from "@/lib/jobs/handlers/auto-approve-partner-job";
 import { autoRejectPartnerJob } from "@/lib/jobs/handlers/auto-reject-partner-job";
 import { getNetworkProfileChecklistProgress } from "@/lib/network/get-network-profile-checklist-progress";
-import { evaluateApplicationRequirements } from "@/lib/partners/evaluate-application-requirements";
+import {
+  evaluateApplicationRequirements,
+  getEligibilityContext,
+} from "@/lib/partners/evaluate-application-requirements";
 import {
   formatApplicationFormData,
   formatWebsiteAndSocialsFields,
 } from "@/lib/partners/format-application-form-data";
+import {
+  getScreeningApplicationData,
+  notifyScreeningRejection,
+  screenProgramApplication,
+} from "@/lib/partners/screen-program-application";
 import { prisma } from "@/lib/prisma";
 import {
   ProgramApplicationFormData,
@@ -32,6 +40,9 @@ import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import {
   Partner,
   PartnerGroup,
+  PartnerPlatform,
+  PartnerPreferredEarningStructure,
+  PartnerSalesChannel,
   Program,
   ProgramEnrollment,
   Project,
@@ -252,7 +263,12 @@ async function createApplicationAndEnrollment({
 }: {
   workspace: Pick<Project, "id" | "webhookEnabled">;
   program: Program;
-  partner: Partner & { programs: ProgramEnrollment[] };
+  partner: Partner & {
+    programs: ProgramEnrollment[];
+    platforms: PartnerPlatform[];
+    preferredEarningStructures: PartnerPreferredEarningStructure[];
+    salesChannels: PartnerSalesChannel[];
+  };
   group: PartnerGroup;
   data: z.infer<typeof createProgramApplicationSchema>;
   inAppApplication?: boolean;
@@ -267,9 +283,12 @@ async function createApplicationAndEnrollment({
   const result = evaluateApplicationRequirements({
     applicationRequirements: program.applicationRequirements,
     context: {
+      ...getEligibilityContext({
+        partner,
+        programEnrollmentStatuses: partner.programs.map(({ status }) => status),
+      }),
       // Always use the partner's country from their profile, if available
       country: partner.country ?? sanitizedData.country,
-      email: partner.email,
     },
   });
 
@@ -292,16 +311,43 @@ async function createApplicationAndEnrollment({
     );
   }
 
+  // Screen the application before it becomes a pending (visible) enrollment.
+  // Only eligible applications are screened; failures fail open to pending.
+  // Website and social handles are derived from the form data during screening.
+  const screening =
+    result.reason !== "requirementsNotMet"
+      ? await screenProgramApplication({
+          program,
+          partner,
+          application: {
+            name: sanitizedData.name,
+            email: sanitizedData.email,
+            country: partner.country ?? sanitizedData.country ?? null,
+            website: null,
+            youtube: null,
+            twitter: null,
+            linkedin: null,
+            instagram: null,
+            tiktok: null,
+            formData:
+              "formData" in sanitizedData ? sanitizedData.formData : null,
+          },
+        })
+      : null;
+
+  const screenedOut = screening?.decision === "reject";
+
   const applicationId = createId({ prefix: "pga_" });
   const enrollmentId = createId({ prefix: "pge_" });
 
   const [application, programEnrollment] = await prisma.$transaction([
     prisma.programApplication.create({
       data: {
-        ...sanitizeData(data, group),
+        ...sanitizedData,
         id: applicationId,
         programId: program.id,
         groupId: group.id,
+        ...(screening && getScreeningApplicationData(screening)),
       },
     }),
 
@@ -310,14 +356,22 @@ async function createApplicationAndEnrollment({
         id: enrollmentId,
         partnerId: partner.id,
         programId: program.id,
-        status: "pending",
         applicationId,
         groupId: group.id,
-        clickRewardId: group.clickRewardId,
-        leadRewardId: group.leadRewardId,
-        saleRewardId: group.saleRewardId,
-        referralRewardId: group.referralRewardId,
-        discountId: group.discountId,
+        ...(screenedOut
+          ? {
+              // Screened-out partners are rejected for good and cannot reapply
+              status: "rejected",
+              reapplicationTimeframe: "never",
+            }
+          : {
+              status: "pending",
+              clickRewardId: group.clickRewardId,
+              leadRewardId: group.leadRewardId,
+              saleRewardId: group.saleRewardId,
+              referralRewardId: group.referralRewardId,
+              discountId: group.discountId,
+            }),
       },
     }),
   ]);
@@ -332,25 +386,29 @@ async function createApplicationAndEnrollment({
       );
 
       await Promise.allSettled([
-        notifyPartnerApplication({
-          partner,
-          program,
-          group,
-          application,
-        }),
+        ...(screenedOut
+          ? [notifyScreeningRejection({ program, partner })]
+          : [
+              notifyPartnerApplication({
+                partner,
+                program,
+                group,
+                application,
+              }),
 
-        // Auto-approve the partner if the group has auto-approval enabled
-        group.autoApprovePartnersEnabledAt
-          ? autoApprovePartnerJob.dispatch(
-              {
-                programId: program.id,
-                partnerId: partner.id,
-              },
-              {
-                label: partner.id,
-              },
-            )
-          : Promise.resolve(null),
+              // Auto-approve the partner if the group has auto-approval enabled
+              group.autoApprovePartnersEnabledAt
+                ? autoApprovePartnerJob.dispatch(
+                    {
+                      programId: program.id,
+                      partnerId: partner.id,
+                    },
+                    {
+                      label: partner.id,
+                    },
+                  )
+                : Promise.resolve(null),
+            ]),
 
         // Send "partner.application_submitted" webhook
         sendWorkspaceWebhook({

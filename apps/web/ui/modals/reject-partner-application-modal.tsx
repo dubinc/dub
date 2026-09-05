@@ -140,8 +140,10 @@ export function RejectPartnerApplicationModal({
         ? { flagForFraud: true, flagForFraudReason: flagForFraudReason.trim() }
         : {}),
       ...(selectedReason && {
-        rejectionReason:
-          selectedReason.value as ProgramApplicationRejectionReason,
+        rejectionReason: selectedReason.value as Exclude<
+          ProgramApplicationRejectionReason,
+          "applicationScreening"
+        >,
       }),
       ...(rejectionNote ? { rejectionNote } : {}),
     });
