@@ -152,7 +152,7 @@ export const DELETE = withWorkspace(
       });
     }
 
-    const activeRestrictedTokens = await prisma.restrictedToken.count({
+    const activeRestrictedTokens = await prisma.restrictedToken.findMany({
       where: {
         projectId: workspace.id,
         userId,
@@ -160,13 +160,59 @@ export const DELETE = withWorkspace(
           not: null,
         },
       },
+      select: {
+        installationId: true,
+        installedIntegration: {
+          select: {
+            integration: {
+              select: {
+                name: true,
+              },
+            },
+          },
+        },
+      },
     });
 
-    if (activeRestrictedTokens) {
-      const tokenTense = pluralize("token", activeRestrictedTokens);
+    if (activeRestrictedTokens.length > 0) {
+      const apiKeyCount = activeRestrictedTokens.filter(
+        (token) => token.installationId === null,
+      ).length;
+
+      const integrationNames = [
+        ...new Set(
+          activeRestrictedTokens.flatMap((token) =>
+            token.installedIntegration?.integration.name
+              ? [token.installedIntegration.integration.name]
+              : [],
+          ),
+        ),
+      ];
+
+      const parts: string[] = [];
+
+      if (apiKeyCount > 0) {
+        parts.push(
+          `${apiKeyCount} active API ${pluralize("key", apiKeyCount)}`,
+        );
+      }
+
+      if (integrationNames.length > 0) {
+        parts.push(
+          `${integrationNames.length} active ${pluralize("integration", integrationNames.length)} (${integrationNames.join(", ")})`,
+        );
+      }
+
+      const action =
+        apiKeyCount > 0 && integrationNames.length > 0
+          ? "Please remove them first"
+          : apiKeyCount > 0
+            ? `Please remove the API ${pluralize("key", apiKeyCount)} first`
+            : `Please uninstall ${integrationNames.length === 1 ? "it" : "them"} first`;
+
       throw new DubApiError({
         code: "bad_request",
-        message: `This user has ${activeRestrictedTokens} active restricted ${tokenTense}. Please remove the ${tokenTense} first before removing the user from the workspace.`,
+        message: `This user has ${parts.join(" and ")}. ${action} before removing the user from the workspace.`,
       });
     }
 
