@@ -57,12 +57,15 @@ export interface UserInfoProps {
   };
 }
 
-const programItems = [
+const programHighlightItems = [
+  { id: "totalSaleAmount", label: "Revenue" },
+  { id: "totalCommissions", label: "Commissions" },
+] as const;
+
+const programDetailItems = [
   { id: "totalClicks", label: "Clicks" },
   { id: "totalLeads", label: "Leads" },
   { id: "totalConversions", label: "Conversions" },
-  { id: "totalSaleAmount", label: "Sales", isCurrency: true },
-  { id: "totalCommissions", label: "Commissions", isCurrency: true },
 ] as const;
 
 export default function UserInfo({ data }: { data: UserInfoProps }) {
@@ -213,30 +216,22 @@ function ProgramCard({
       </div>
 
       <div className="grid grid-cols-2 gap-px border-y border-neutral-100 bg-neutral-100">
-        {programItems.slice(0, 2).map((item) => (
+        {programHighlightItems.map((item) => (
           <StatTile
             key={item.id}
             label={item.label}
-            value={
-              "isCurrency" in item && item.isCurrency
-                ? currencyFormatter(program[item.id])
-                : nFormatter(program[item.id], { full: true })
-            }
+            value={currencyFormatter(program[item.id])}
           />
         ))}
       </div>
 
       <div className="py-1">
         <MetaRow label="ID" value={program.id} copyValue={program.id} mono />
-        {programItems.slice(2).map((item) => (
+        {programDetailItems.map((item) => (
           <MetaRow
             key={item.id}
             label={item.label}
-            value={
-              "isCurrency" in item && item.isCurrency
-                ? currencyFormatter(program[item.id])
-                : nFormatter(program[item.id], { full: true })
-            }
+            value={nFormatter(program[item.id], { full: true })}
           />
         ))}
       </div>
