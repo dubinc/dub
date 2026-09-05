@@ -3,7 +3,10 @@
 import { acceptProgramInviteAction } from "@/lib/actions/partners/accept-program-invite";
 import { submitNetworkProfileAction } from "@/lib/actions/partners/submit-network-profile";
 import { getNetworkProfileChecklistProgress } from "@/lib/network/get-network-profile-checklist-progress";
-import { evaluateApplicationRequirements } from "@/lib/partners/evaluate-application-requirements";
+import {
+  evaluateApplicationRequirements,
+  getEligibilityContext,
+} from "@/lib/partners/evaluate-application-requirements";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
@@ -54,11 +57,35 @@ function ApplyButton({ program }: { program: NetworkProgramProps }) {
       onSuccess: () => mutatePrefix("/api/network/programs"),
     });
 
-  const { partner, mutate } = usePartnerProfile();
+  const {
+    partner,
+    mutate,
+    loading: partnerLoading,
+    error: partnerError,
+  } = usePartnerProfile();
 
-  const { programEnrollment } = useProgramEnrollment({
-    programSlug: program.slug,
-  });
+  const {
+    programEnrollments,
+    isLoading: programEnrollmentsLoading,
+    error: programEnrollmentsError,
+  } = useProgramEnrollments();
+
+  const { programEnrollment, loading: programEnrollmentLoading } =
+    useProgramEnrollment({
+      programSlug: program.slug,
+    });
+
+  // Eligibility is unresolved until the partner profile and enrollment data
+  // have loaded successfully, so the apply action stays disabled until then.
+  // A failed fetch counts as unresolved — never as "no bans". The singular
+  // enrollment's error is deliberately excluded: a 404 there just means
+  // "not enrolled".
+  const eligibilityUnresolved =
+    partnerLoading ||
+    programEnrollmentLoading ||
+    programEnrollmentsLoading ||
+    !!partnerError ||
+    !!programEnrollmentsError;
 
   const { completedCount, totalCount, isComplete } =
     getNetworkProfileChecklistProgress({
@@ -90,14 +117,16 @@ function ApplyButton({ program }: { program: NetworkProgramProps }) {
 
   const { reason } = evaluateApplicationRequirements({
     applicationRequirements: program.applicationRequirements,
-    context: {
-      country: partner?.country,
-      email: partner?.email,
-    },
+    context: getEligibilityContext({
+      partner,
+      programEnrollmentStatuses: programEnrollments?.map(
+        ({ status }) => status,
+      ),
+    }),
   });
 
   const requirementsNotMet =
-    reason === "requirementsNotMet"
+    !eligibilityUnresolved && reason === "requirementsNotMet"
       ? "You do not meet the eligibility requirements for this program"
       : undefined;
 
@@ -170,7 +199,7 @@ function ApplyButton({ program }: { program: NetworkProgramProps }) {
     );
 
   useKeyboardShortcut("a", () => setIsApplicationSheetOpen(true), {
-    enabled: !disabledTooltip,
+    enabled: !disabledTooltip && !eligibilityUnresolved,
   });
 
   return (
@@ -181,6 +210,7 @@ function ApplyButton({ program }: { program: NetworkProgramProps }) {
         text="Apply"
         shortcut="A"
         onClick={() => setIsApplicationSheetOpen(true)}
+        disabled={!disabledTooltip && eligibilityUnresolved ? true : undefined}
         disabledTooltip={disabledTooltip}
         className="h-9 rounded-lg"
       />

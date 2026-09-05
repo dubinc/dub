@@ -13,7 +13,10 @@ import { qstash } from "@/lib/cron";
 import { autoApprovePartnerJob } from "@/lib/jobs/handlers/auto-approve-partner-job";
 import { autoRejectPartnerJob } from "@/lib/jobs/handlers/auto-reject-partner-job";
 import { getNetworkProfileChecklistProgress } from "@/lib/network/get-network-profile-checklist-progress";
-import { evaluateApplicationRequirements } from "@/lib/partners/evaluate-application-requirements";
+import {
+  evaluateApplicationRequirements,
+  getEligibilityContext,
+} from "@/lib/partners/evaluate-application-requirements";
 import {
   formatApplicationFormData,
   formatWebsiteAndSocialsFields,
@@ -32,6 +35,7 @@ import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import {
   Partner,
   PartnerGroup,
+  PartnerPlatform,
   Program,
   ProgramEnrollment,
   Project,
@@ -252,7 +256,10 @@ async function createApplicationAndEnrollment({
 }: {
   workspace: Pick<Project, "id" | "webhookEnabled">;
   program: Program;
-  partner: Partner & { programs: ProgramEnrollment[] };
+  partner: Partner & {
+    programs: ProgramEnrollment[];
+    platforms: PartnerPlatform[];
+  };
   group: PartnerGroup;
   data: z.infer<typeof createProgramApplicationSchema>;
   inAppApplication?: boolean;
@@ -267,9 +274,12 @@ async function createApplicationAndEnrollment({
   const result = evaluateApplicationRequirements({
     applicationRequirements: program.applicationRequirements,
     context: {
+      ...getEligibilityContext({
+        partner,
+        programEnrollmentStatuses: partner.programs.map(({ status }) => status),
+      }),
       // Always use the partner's country from their profile, if available
       country: partner.country ?? sanitizedData.country,
-      email: partner.email,
     },
   });
 

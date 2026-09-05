@@ -1,6 +1,9 @@
 "use client";
 
-import { evaluateApplicationRequirements } from "@/lib/partners/evaluate-application-requirements";
+import {
+  evaluateApplicationRequirements,
+  getEligibilityContext,
+} from "@/lib/partners/evaluate-application-requirements";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import useProgramEnrollments from "@/lib/swr/use-program-enrollments";
 import { NetworkProgramProps } from "@/lib/types";
@@ -32,24 +35,43 @@ export function ProgramStatusBadge({
 }: {
   program: Pick<NetworkProgramProps, "slug" | "applicationRequirements">;
 }) {
-  const { programEnrollments } = useProgramEnrollments();
-  const { partner } = usePartnerProfile();
+  const {
+    programEnrollments,
+    isLoading: programEnrollmentsLoading,
+    error: programEnrollmentsError,
+  } = useProgramEnrollments();
+  const {
+    partner,
+    loading: partnerLoading,
+    error: partnerError,
+  } = usePartnerProfile();
 
   const programEnrollmentStatus = programEnrollments?.find(
     (programEnrollment) => programEnrollment.program.slug === program.slug,
   )?.status;
 
+  // Eligibility is unresolved until both the partner profile and their
+  // enrollment statuses have loaded successfully; a failed request must not
+  // produce an eligibility claim in either direction
+  const eligibilityUnresolved =
+    partnerLoading ||
+    programEnrollmentsLoading ||
+    !!partnerError ||
+    !!programEnrollmentsError;
+
   const { reason } = evaluateApplicationRequirements({
     applicationRequirements: program.applicationRequirements,
-    context: {
-      country: partner?.country,
-      email: partner?.email,
-    },
+    context: getEligibilityContext({
+      partner,
+      programEnrollmentStatuses: programEnrollments?.map(
+        ({ status }) => status,
+      ),
+    }),
   });
 
   const statusBadge = programEnrollmentStatus
     ? ProgramNetworkStatusBadges[programEnrollmentStatus]
-    : reason === "requirementsNotMet"
+    : !eligibilityUnresolved && reason === "requirementsNotMet"
       ? notEligibleBadge
       : null;
 

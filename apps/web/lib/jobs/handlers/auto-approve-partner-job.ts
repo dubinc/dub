@@ -1,6 +1,9 @@
 import { getPartnerApplicationRisks } from "@/lib/api/fraud/get-partner-application-risks";
 import { approvePartner } from "@/lib/api/partners/applications/approve-partner";
-import { evaluateApplicationRequirements } from "@/lib/partners/evaluate-application-requirements";
+import {
+  evaluateApplicationRequirements,
+  getEligibilityContext,
+} from "@/lib/partners/evaluate-application-requirements";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { prisma } from "@/lib/prisma";
 import { ProgramEnrollmentStatus } from "@prisma/client";
@@ -31,6 +34,11 @@ export const autoApprovePartnerJob = defineJob({
         partner: {
           include: {
             platforms: true,
+            programs: {
+              select: {
+                status: true,
+              },
+            },
           },
         },
       },
@@ -104,10 +112,12 @@ export const autoApprovePartnerJob = defineJob({
 
     const result = evaluateApplicationRequirements({
       applicationRequirements: program.applicationRequirements,
-      context: {
-        country: programEnrollment.partner.country,
-        email: programEnrollment.partner.email,
-      },
+      context: getEligibilityContext({
+        partner: programEnrollment.partner,
+        programEnrollmentStatuses: programEnrollment.partner.programs.map(
+          ({ status }) => status,
+        ),
+      }),
     });
 
     if (!result.valid) {
