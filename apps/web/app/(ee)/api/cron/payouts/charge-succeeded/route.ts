@@ -1,5 +1,7 @@
 import { withCron } from "@/lib/cron/with-cron";
 import { prisma } from "@/lib/prisma";
+import { isProductionEnvironment } from "@/lib/sandbox/environment";
+import { mockPayoutCompletion } from "@/lib/sandbox/mock-payout-completion";
 import { log } from "@dub/utils";
 import { PartnerPayoutMethod } from "@prisma/client";
 import * as z from "zod/v4";
@@ -38,6 +40,16 @@ export const POST = withCron(async ({ rawBody }) => {
             },
           },
         },
+        program: {
+          select: {
+            workspace: {
+              select: {
+                id: true,
+                environment: true,
+              },
+            },
+          },
+        },
       },
     });
 
@@ -51,6 +63,18 @@ export const POST = withCron(async ({ rawBody }) => {
       );
     }
 
+    const workspace = invoice.program?.workspace;
+
+    if (!invoice.program || !workspace) {
+      return logAndRespond(
+        `Invoice ${invoiceId} has no program or workspace, skipping...`,
+      );
+    }
+
+    const isProductionWorkspace = isProductionEnvironment(
+      workspace.environment,
+    );
+
     // Set the method for each payout in the invoice to the corresponding partner's default payout method
     await prisma.$executeRaw`
       UPDATE Payout p
@@ -63,8 +87,8 @@ export const POST = withCron(async ({ rawBody }) => {
 
     let fundsAvailable = true;
 
-    // if invoice payment method is card, we need to check if the funds have settled yet
-    if (invoice.paymentMethod === "card") {
+    // for production workspaces, if invoice payment method is card, we need to check if the funds have settled yet
+    if (isProductionWorkspace && invoice.paymentMethod === "card") {
       const fundSettlementTiming = await getFundSettlementTiming(invoice);
       if (!fundSettlementTiming.fundsAvailable) {
         // set fundsAvailable to false so we don't queue any payouts that require funds to be available
@@ -98,6 +122,7 @@ export const POST = withCron(async ({ rawBody }) => {
     await Promise.allSettled([
       // Queue Stripe payouts (need to pass along fundsAvailable to handle stablecoin payouts)
       queueStripePayouts({
+        workspace,
         invoice,
         fundsAvailable,
       }),
@@ -106,9 +131,12 @@ export const POST = withCron(async ({ rawBody }) => {
       ...(fundsAvailable
         ? [
             sendPaypalPayouts({
+              workspace,
               invoice,
             }),
+
             queueTremendousPayouts({
+              workspace,
               invoice,
             }),
           ]
@@ -116,6 +144,16 @@ export const POST = withCron(async ({ rawBody }) => {
 
       // Queue external payouts (doesn't rely on fundsAvailable)
       queueExternalPayouts(invoice),
+
+      // For non-production workspaces, mock the payout completion
+      ...(!isProductionWorkspace
+        ? [
+            mockPayoutCompletion({
+              workspace,
+              invoice,
+            }),
+          ]
+        : []),
     ]);
 
     return logAndRespond(

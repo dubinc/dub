@@ -23,7 +23,7 @@ export async function customerSubscriptionCreated({
     };
   }
 
-  const stripeAccountId = event.account as string;
+  const stripeAccountId = workspace.stripeConnectId!;
   const stripeCustomerId = createdSubscription.customer as string;
 
   const installedIntegration = await prisma.installedIntegration.findFirst({

@@ -150,6 +150,7 @@ export const POST = withCron(async ({ rawBody }) => {
           webhookEnabled: true,
           stripeConnectId: true,
           shopifyStoreId: true,
+          environment: true,
         },
       });
 

@@ -19,7 +19,7 @@ export const POST = withWorkspace(
       });
     }
 
-    await reactivateProgram(program.id);
+    await reactivateProgram(workspace);
 
     return NextResponse.json({ id: program.id });
   },

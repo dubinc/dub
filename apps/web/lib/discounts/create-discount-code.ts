@@ -14,7 +14,11 @@ const MAX_ATTEMPTS = 3;
 interface CreateDiscountCodeArgs {
   workspace: Pick<
     Project,
-    "id" | "stripeConnectId" | "shopifyStoreId" | "webhookEnabled"
+    | "id"
+    | "environment"
+    | "stripeConnectId"
+    | "shopifyStoreId"
+    | "webhookEnabled"
   >;
   partner: Pick<Partner, "id" | "name">;
   link: Pick<Link, "id">;

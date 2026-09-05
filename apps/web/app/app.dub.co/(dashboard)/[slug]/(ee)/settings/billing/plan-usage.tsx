@@ -42,6 +42,7 @@ import {
   nFormatter,
 } from "@dub/utils";
 import NumberFlow from "@number-flow/react";
+import { WorkspaceEnvironment } from "@prisma/client";
 import Link from "next/link";
 import { CSSProperties, ReactNode, useMemo } from "react";
 import { toast } from "sonner";
@@ -78,6 +79,7 @@ export default function PlanUsage() {
     trialEndsAt,
     subscriptionCanceledAt,
     billingCycleEndsAt,
+    environment,
     mutate,
   } = useWorkspace();
 
@@ -85,6 +87,17 @@ export default function PlanUsage() {
     action: "billing.write",
     role,
   }).error;
+
+  const { error: managePlanStagingError } = clientAccessCheck({
+    action: "billing.write",
+    role,
+    environment,
+    restrictedEnvironments: [WorkspaceEnvironment.staging],
+    restrictedEnvironmentMessage:
+      "Plans can only be managed from your production workspace (your staging workspace inherits your production plan).",
+  });
+
+  const managePlanError = permissionsError || managePlanStagingError;
 
   const { StartPaidPlanModal, setShowStartPaidPlanModal } =
     useStartPaidPlanModal();
@@ -308,39 +321,54 @@ export default function PlanUsage() {
               ) : isWorkspaceBillingTrialActive(trialEndsAt) ? (
                 <DynamicTooltipWrapper
                   tooltipProps={
-                    permissionsError ? { content: permissionsError } : undefined
+                    managePlanError ? { content: managePlanError } : undefined
                   }
                 >
                   <Button
                     text="Start paid plan"
                     variant="primary"
                     className="h-9"
-                    disabled={Boolean(permissionsError)}
+                    disabled={Boolean(managePlanError)}
                     onClick={() => setShowStartPaidPlanModal(true)}
                   />
                 </DynamicTooltipWrapper>
               ) : showPendingCancellation ? (
                 <DynamicTooltipWrapper
                   tooltipProps={
-                    permissionsError ? { content: permissionsError } : undefined
+                    managePlanError ? { content: managePlanError } : undefined
                   }
                 >
                   <Button
                     text="Resume subscription"
                     variant="primary"
                     className="h-9"
-                    disabled={Boolean(permissionsError)}
+                    disabled={Boolean(managePlanError)}
                     onClick={() => setShowResubscribeModal(true)}
                   />
                 </DynamicTooltipWrapper>
               ) : (
-                <Link href={`/${slug}/settings/billing/upgrade`}>
-                  <Button
-                    text="Manage plan"
-                    variant="primary"
-                    className="h-9"
-                  />
-                </Link>
+                <DynamicTooltipWrapper
+                  tooltipProps={
+                    managePlanError ? { content: managePlanError } : undefined
+                  }
+                >
+                  {managePlanError ? (
+                    <Button
+                      text="Manage plan"
+                      variant="primary"
+                      className="h-9"
+                      disabled
+                    />
+                  ) : (
+                    <Link href={`/${slug}/settings/billing/upgrade`}>
+                      <Button
+                        text="Manage plan"
+                        variant="primary"
+                        className="h-9"
+                      />
+                    </Link>
+                  )}
+                </DynamicTooltipWrapper>
               ))}
 
             <Link

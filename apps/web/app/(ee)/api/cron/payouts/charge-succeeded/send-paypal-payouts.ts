@@ -2,16 +2,22 @@ import { enqueueBatchJobs } from "@/lib/cron/enqueue-batch-jobs";
 import { queueBatchEmail } from "@/lib/email/queue-batch-email";
 import { createPayPalBatchPayout } from "@/lib/paypal/create-batch-payout";
 import { prisma } from "@/lib/prisma";
+import { assertProductionWorkspace } from "@/lib/sandbox/workspace-guards";
 import PartnerPayoutProcessed from "@dub/email/templates/partner-payout-processed";
 import { APP_DOMAIN_WITH_NGROK, currencyFormatter } from "@dub/utils";
-import { Invoice } from "@prisma/client";
+import { Invoice, Project, WorkspaceEnvironment } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 
 export async function sendPaypalPayouts({
+  workspace,
   invoice,
 }: {
+  workspace: Pick<Project, "environment">;
   invoice: Pick<Invoice, "id" | "payoutMode">;
 }) {
+  // Extra safety check to make sure we're not processing payouts for a non-production workspace
+  assertProductionWorkspace(workspace);
+
   if (invoice.payoutMode === "external") {
     console.log(
       `Invoice ${invoice.id} is paid externally, skipping PayPal payouts...`,
@@ -31,6 +37,11 @@ export async function sendPaypalPayouts({
         },
         paypalEmail: {
           not: null,
+        },
+      },
+      program: {
+        workspace: {
+          environment: WorkspaceEnvironment.production,
         },
       },
     },

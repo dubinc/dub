@@ -35,3 +35,5 @@ export type CommissionStatus =
   | "fraud"
   | "canceled"
   | "hold";
+
+export type WorkspaceEnvironment = "production" | "staging" | "sandbox";

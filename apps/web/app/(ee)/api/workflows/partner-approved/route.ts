@@ -180,7 +180,7 @@ export const { POST } = serve<Input>(
         },
         select: {
           id: true,
-          plan: true,
+          environment: true,
           webhookEnabled: true,
           stripeConnectId: true,
           shopifyStoreId: true,

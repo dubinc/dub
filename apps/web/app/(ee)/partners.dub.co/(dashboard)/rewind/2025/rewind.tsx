@@ -5,7 +5,7 @@ import {
   ChevronRight,
   ReferredVia,
 } from "@dub/ui";
-import { cn } from "@dub/utils/src";
+import { cn } from "@dub/utils";
 import NumberFlow from "@number-flow/react";
 import { AnimatePresence, motion } from "motion/react";
 import { CSSProperties, useEffect, useMemo, useState } from "react";

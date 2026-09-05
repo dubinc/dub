@@ -1,11 +1,11 @@
 "use client";
 
+import { formatCommissionDescriptionTooltip } from "@/lib/commissions/format-commission-description-tooltip";
 import useCommissionsCount from "@/lib/swr/use-commissions-count";
 import useGroups from "@/lib/swr/use-groups";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { CommissionResponse } from "@/lib/types";
-import { formatCommissionDescriptionTooltip } from "@/lib/commissions/format-commission-description-tooltip";
 import { CustomerRowItem } from "@/ui/customers/customer-row-item";
 import { useBulkEditCommissionsModal } from "@/ui/partners/bulk-edit-commissions-modal";
 import { CommissionRowMenu } from "@/ui/partners/commission-row-menu";

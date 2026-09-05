@@ -13,8 +13,9 @@ import {
   Text,
 } from "@react-email/components";
 import { addBusinessDays } from "date-fns";
+import { EnvironmentBanner } from "../components/environment-banner";
 import { Footer } from "../components/footer";
-import { PartnerPayoutMethod } from "../types";
+import { PartnerPayoutMethod, WorkspaceEnvironment } from "../types";
 
 const PAYOUT_METHOD_LABELS: Record<PartnerPayoutMethod, string> = {
   connect: "Stripe Express",
@@ -26,6 +27,9 @@ const PAYOUT_METHOD_LABELS: Record<PartnerPayoutMethod, string> = {
 // Send this email when the payout is confirmed when payment is send using ACH
 export default function PartnerPayoutConfirmed({
   email = "panic@thedis.co",
+  workspace = {
+    environment: "production",
+  },
   program = {
     id: "prog_CYCu7IMAapjkRpTnr8F1azjN",
     name: "Acme",
@@ -43,6 +47,9 @@ export default function PartnerPayoutConfirmed({
   },
 }: {
   email: string;
+  workspace?: {
+    environment: WorkspaceEnvironment;
+  };
   program: {
     id: string;
     name: string;
@@ -99,6 +106,7 @@ export default function PartnerPayoutConfirmed({
       <Tailwind>
         <Body className="mx-auto my-auto bg-white font-sans">
           <Container className="mx-auto my-10 max-w-[600px] rounded border border-solid border-neutral-200 px-10 py-5">
+            <EnvironmentBanner environment={workspace.environment} />
             <Section className="mt-8">
               <Img
                 src={program.logo || "https://assets.dub.co/wordmark.png"}
