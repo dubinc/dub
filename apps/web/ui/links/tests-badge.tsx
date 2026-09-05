@@ -1,7 +1,7 @@
 "use client";
 
 import { Flask } from "@dub/ui/icons";
-import { cn } from "@dub/utils";
+import { cn, formatDateTime } from "@dub/utils";
 import * as HoverCard from "@radix-ui/react-hover-card";
 import { useLinkCardContext } from "./link-card";
 import { ResponseLink } from "./links-container";
@@ -20,9 +20,21 @@ export function TestsBadge({
           <HoverCard.Content
             side="bottom"
             sideOffset={8}
-            className="animate-slide-up-fade z-[99] items-center overflow-hidden rounded-xl border border-neutral-200 bg-white p-2 text-sm text-neutral-700 shadow-sm"
+            className="animate-slide-up-fade z-[99] items-center overflow-hidden rounded-xl border border-neutral-200 bg-white p-3 text-sm text-neutral-700 shadow-sm"
           >
-            A/B tests
+            <div className="flex flex-col gap-1 text-center">
+              <span className="font-semibold text-neutral-900">
+                A/B test is running
+              </span>
+              {link.testCompletedAt && (
+                <span>
+                  Scheduled completion date is{" "}
+                  <span className="font-semibold text-neutral-900">
+                    {formatDateTime(new Date(link.testCompletedAt))}
+                  </span>
+                </span>
+              )}
+            </div>
           </HoverCard.Content>
         </HoverCard.Portal>
         <HoverCard.Trigger>
