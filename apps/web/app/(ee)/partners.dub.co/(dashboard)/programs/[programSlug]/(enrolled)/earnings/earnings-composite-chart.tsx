@@ -58,7 +58,7 @@ export function EarningsCompositeChart() {
     start,
     end,
     interval = DUB_PARTNERS_ANALYTICS_INTERVAL,
-    groupBy = "linkId",
+    groupBy = "type",
   } = searchParamsObj as {
     start?: string;
     end?: string;
@@ -156,20 +156,20 @@ export function EarningsCompositeChart() {
               {
                 label: (
                   <div className="flex items-center gap-1.5 text-neutral-600">
-                    <Hyperlink className="size-4" />
-                    <span className="text-sm">Link</span>
-                  </div>
-                ),
-                value: "linkId",
-              },
-              {
-                label: (
-                  <div className="flex items-center gap-1.5 text-neutral-600">
                     <Sliders className="size-4" />
                     <span className="text-sm">Type</span>
                   </div>
                 ),
                 value: "type",
+              },
+              {
+                label: (
+                  <div className="flex items-center gap-1.5 text-neutral-600">
+                    <Hyperlink className="size-4" />
+                    <span className="text-sm">Link</span>
+                  </div>
+                ),
+                value: "linkId",
               },
             ]}
             selected={groupBy}

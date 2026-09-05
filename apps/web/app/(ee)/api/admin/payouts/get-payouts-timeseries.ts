@@ -1,6 +1,6 @@
 import { conn } from "@/lib/planetscale/connection";
 import { sqlGranularityMap } from "@/lib/planetscale/granularity";
-import { ACME_PROGRAM_ID } from "@dub/utils";
+import { ACME_PROGRAM_ID, DEMO_PROGRAM_ID } from "@dub/utils";
 import { InvoiceStatus } from "@prisma/client";
 import { format } from "date-fns";
 
@@ -47,8 +47,8 @@ export async function getPayoutsTimeseries({
     whereClauses.unshift("programId = ?");
     queryParams.unshift(programId);
   } else {
-    whereClauses.unshift("programId != ?");
-    queryParams.unshift(ACME_PROGRAM_ID);
+    whereClauses.unshift("programId NOT IN (?, ?)");
+    queryParams.unshift(ACME_PROGRAM_ID, DEMO_PROGRAM_ID);
   }
 
   if (status) {

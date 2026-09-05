@@ -39,6 +39,32 @@ const jobLoaders = {
     import("./handlers/sync-staging-workspace-job").then(
       (m) => m.syncStagingWorkspaceJob,
     ),
+
+  "sync-group-utm-job": () =>
+    import("./handlers/sync-group-utm-job").then((m) => m.syncGroupUtmJob),
+
+  "partner-search-sync-job": () =>
+    import("./handlers/partner-search-sync-job").then(
+      (m) => m.partnerSearchSyncJob,
+    ),
+
+  "process-shopify-order-job": () =>
+    import("./handlers/process-shopify-order-job").then(
+      (m) => m.processShopifyOrderJob,
+    ),
+
+  "welcome-user-job": () =>
+    import("./handlers/welcome-user-job").then((m) => m.welcomeUserJob),
+
+  "auto-approve-partner-job": () =>
+    import("./handlers/auto-approve-partner-job").then(
+      (m) => m.autoApprovePartnerJob,
+    ),
+
+  "auto-reject-partner-job": () =>
+    import("./handlers/auto-reject-partner-job").then(
+      (m) => m.autoRejectPartnerJob,
+    ),
 } as const satisfies Record<string, () => Promise<JobDefinition>>;
 
 const jobCache = new Map<string, JobDefinition>();

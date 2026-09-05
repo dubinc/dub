@@ -37,6 +37,7 @@ model Commission {
   userId             String? // user who created the manual commission
   sourceCommissionId String?
   sourcePartnerId    String?
+  metadata           Json?            @db.Json
   createdAt          DateTime         @default(now())
   updatedAt          DateTime         @updatedAt
 
@@ -59,6 +60,7 @@ model Commission {
   @@index(payoutId)
   @@index(customerId)
   @@index(linkId)
+  @@index(type)
   @@index(status)
   @@index(rewardId)
   @@index(userId)

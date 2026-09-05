@@ -10,7 +10,10 @@ import { useEmailDomains } from "@/lib/swr/use-email-domains";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { Campaign, UpdateCampaignFormData } from "@/lib/types";
-import { EMAIL_TEMPLATE_VARIABLES } from "@/lib/zod/schemas/campaigns";
+import {
+  EMAIL_TEMPLATE_VARIABLE_INFO,
+  EMAIL_TEMPLATE_VARIABLES,
+} from "@/lib/zod/schemas/campaigns";
 import { PageContentWithSidePanel } from "@/ui/layout/page-content/page-content-with-side-panel";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import {
@@ -690,6 +693,7 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
                     initialValue={field.value}
                     onChange={(editor) => field.onChange(editor.getJSON())}
                     variables={[...EMAIL_TEMPLATE_VARIABLES]}
+                    variableInfo={EMAIL_TEMPLATE_VARIABLE_INFO}
                     editable={!isLocked}
                     uploadImage={async (file) => {
                       try {

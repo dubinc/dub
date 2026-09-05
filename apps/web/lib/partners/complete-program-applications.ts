@@ -1,11 +1,12 @@
 import { prisma } from "@/lib/prisma";
-import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { PlatformType, Prisma } from "@prisma/client";
 import { createId } from "../api/create-id";
 import { detectAndRecordFraudApplication } from "../api/fraud/detect-record-fraud-application";
 import { notifyPartnerApplication } from "../api/partners/notify-partner-application";
+import { queuePartnerSearchSync } from "../api/partners/queue-partner-search-sync";
 import { markApplicationEventSubmitted } from "../application-events/update-application-event";
-import { qstash } from "../cron";
+import { autoApprovePartnerJob } from "../jobs/handlers/auto-approve-partner-job";
+import { autoRejectPartnerJob } from "../jobs/handlers/auto-reject-partner-job";
 import { buildSocialPlatformLookup } from "../social-utils";
 import { sendWorkspaceWebhook } from "../webhook/publish";
 import { partnerApplicationWebhookSchema } from "../zod/schemas/program-application";
@@ -89,19 +90,21 @@ export async function completeProgramApplications(userEmail: string) {
 
     const partner = user.partners[0].partner;
 
-    // Program enrollments to create
-    const programEnrollments: Prisma.ProgramEnrollmentCreateManyInput[] =
-      filteredProgramApplications.map((programApplication) => ({
-        id: createId({ prefix: "pge_" }),
-        programId: programApplication.programId,
-        partnerId: user.partners[0].partnerId,
-        applicationId: programApplication.id,
-        groupId: programApplication?.partnerGroup?.id,
-        clickRewardId: programApplication?.partnerGroup?.clickRewardId,
-        leadRewardId: programApplication?.partnerGroup?.leadRewardId,
-        saleRewardId: programApplication?.partnerGroup?.saleRewardId,
-        discountId: programApplication?.partnerGroup?.discountId,
-      }));
+    // Program enrollments to create. `id` is narrowed to required because the
+    // search sync below reads it back, and Prisma leaves it optional here.
+    const programEnrollments: (Prisma.ProgramEnrollmentCreateManyInput & {
+      id: string;
+    })[] = filteredProgramApplications.map((programApplication) => ({
+      id: createId({ prefix: "pge_" }),
+      programId: programApplication.programId,
+      partnerId: user.partners[0].partnerId,
+      applicationId: programApplication.id,
+      groupId: programApplication?.partnerGroup?.id,
+      clickRewardId: programApplication?.partnerGroup?.clickRewardId,
+      leadRewardId: programApplication?.partnerGroup?.leadRewardId,
+      saleRewardId: programApplication?.partnerGroup?.saleRewardId,
+      discountId: programApplication?.partnerGroup?.discountId,
+    }));
 
     const enrollmentsByApplicationId = new Map(
       programEnrollments.map((enrollment) => [
@@ -202,13 +205,15 @@ export async function completeProgramApplications(userEmail: string) {
 
               // Auto-approve the partner if the group has auto-approval enabled
               group?.autoApprovePartnersEnabledAt
-                ? qstash.publishJSON({
-                    url: `${APP_DOMAIN_WITH_NGROK}/api/cron/partners/auto-approve`,
-                    body: {
+                ? autoApprovePartnerJob.dispatch(
+                    {
                       programId: program.id,
                       partnerId: partner.id,
                     },
-                  })
+                    {
+                      label: partner.id,
+                    },
+                  )
                 : Promise.resolve(null),
 
               // Send "partner.application_submitted" webhook
@@ -231,14 +236,16 @@ export async function completeProgramApplications(userEmail: string) {
                 }),
             ]
           : [
-              qstash.publishJSON({
-                url: `${APP_DOMAIN_WITH_NGROK}/api/cron/partners/auto-reject`,
-                delay: 5 * 60, // 5 minutes
-                body: {
+              autoRejectPartnerJob.dispatch(
+                {
                   programId: program.id,
                   partnerId: partner.id,
                 },
-              }),
+                {
+                  delay: 5 * 60, // 5 minutes
+                  label: partner.id,
+                },
+              ),
             ]),
 
         // if the application has any website or social fields but the partner doesn't have the corresponding one (maybe they forgot to add during onboarding)
@@ -270,6 +277,11 @@ export async function completeProgramApplications(userEmail: string) {
         markApplicationEventSubmitted(programEnrollment),
       ),
     );
+
+    // Queue an index update because the applications completed into enrollments.
+    await queuePartnerSearchSync({
+      enrollmentIds: programEnrollments.map(({ id }) => id),
+    });
   } catch (error) {
     console.error("Failed to complete program applications", error);
   }

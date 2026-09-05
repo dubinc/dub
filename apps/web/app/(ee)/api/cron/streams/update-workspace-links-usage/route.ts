@@ -280,8 +280,7 @@ const processWorkspaceLinksUsageBatch = () =>
                 }),
                 log({
                   message: `*${workspace.slug}* has used ${percentage.toString()}% of its links limit for the month.`,
-                  type: workspace.plan === "free" ? "cron" : "alerts",
-                  mention: workspace.plan !== "free",
+                  type: "cron",
                 }),
               ]);
 

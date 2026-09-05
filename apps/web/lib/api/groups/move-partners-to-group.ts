@@ -14,6 +14,7 @@ import { getWorkspaceUsers } from "../get-workspace-users";
 import { includeProgramEnrollment } from "../links/include-program-enrollment";
 import { includeTags } from "../links/include-tags";
 import { notifyPartnerGroupChange } from "../partners/notify-partner-group-change";
+import { queuePartnerSearchSync } from "../partners/queue-partner-search-sync";
 
 interface MovePartnersToGroupParams {
   workspaceId: string;
@@ -94,6 +95,9 @@ export async function movePartnersToGroup({
   if (count === 0) {
     return 0;
   }
+
+  // Queue an index update because the enrollments moved group (filterable field)
+  waitUntil(queuePartnerSearchSync({ partnerIds, programId }));
 
   waitUntil(
     (async () => {

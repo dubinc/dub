@@ -3,6 +3,7 @@ import { isFirstConversion } from "@/lib/analytics/is-first-conversion";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { syncPartnerLinksStats } from "@/lib/api/partners/sync-partner-links-stats";
 import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
+import { queueGoogleAdsConversionUpload } from "@/lib/integrations/google-ads/upload-conversion";
 import { queuePartnerCommissionCreation } from "@/lib/partners/queue-partner-commission-creation";
 import { sendPartnerPostback } from "@/lib/postback/send-partner-postback";
 import { prisma } from "@/lib/prisma";
@@ -13,11 +14,13 @@ import { redis } from "@/lib/upstash";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { transformSaleEventData } from "@/lib/webhook/transform";
 import { nanoid } from "@dub/utils";
+import { EventType } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import type Stripe from "stripe";
 import { WebhookHandlerInput, WebhookHandlerResponse } from "./types";
 import { attributeViaPromotionCodeId } from "./utils/attribute-via-promotion-code-id";
 import { getConnectedCustomer } from "./utils/get-connected-customer";
+import { getDubCustomerExternalIdFromMetadata } from "./utils/get-dub-customer-external-id-from-metadata";
 
 // Handle event "invoice.paid"
 export async function invoicePaid({
@@ -57,9 +60,9 @@ export async function invoicePaid({
       mode,
     });
 
-    const dubCustomerExternalId =
-      connectedCustomer?.metadata.dubCustomerExternalId ||
-      connectedCustomer?.metadata.dubCustomerId;
+    const dubCustomerExternalId = getDubCustomerExternalIdFromMetadata(
+      connectedCustomer?.metadata,
+    );
 
     if (dubCustomerExternalId) {
       try {
@@ -310,9 +313,19 @@ export async function invoicePaid({
 
         if (!productId) return null;
 
+        // Credit grants sit on the line, not in line.amount — subtract so
+        // productId rewards commission on the portion actually charged.
+        const creditGrantAmount = (line.pretax_credit_amounts ?? []).reduce(
+          (sum, credit) =>
+            credit.type === "credit_balance_transaction"
+              ? sum + credit.amount
+              : sum,
+          0,
+        );
+
         return {
           id: productId,
-          amount: line.amount,
+          amount: Math.max(line.amount - creditGrantAmount, 0),
           quantity: line.quantity ?? 0,
         };
       })
@@ -393,6 +406,20 @@ export async function invoicePaid({
           partner: result?.webhookPartner,
           metadata: null,
         }),
+      }),
+
+      queueGoogleAdsConversionUpload({
+        workspaceId: workspace.id,
+        eventType: EventType.sale,
+        eventName: saleData.event_name,
+        conversionDateTime: new Date().toISOString(),
+        eventId: saleData.event_id,
+        conversionValue: saleData.amount,
+        currencyCode: saleData.currency,
+        click: {
+          id: saleData.click_id,
+          url: saleData.url,
+        },
       }),
 
       ...(link?.partnerId

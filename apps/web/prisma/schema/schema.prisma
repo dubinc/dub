@@ -56,9 +56,10 @@ model User {
   activityLogs            ActivityLog[]
   createdCommissions      Commission[]
 
-  @@index(sentMail)
-  @@index(source)
+  @@index(createdAt)
   @@index(defaultWorkspace)
+  @@index(source)
+  @@index(sentMail)
 }
 
 model Account {
