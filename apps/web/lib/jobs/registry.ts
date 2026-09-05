@@ -55,6 +55,11 @@ const jobLoaders = {
     import("./handlers/auto-reject-partner-job").then(
       (m) => m.autoRejectPartnerJob,
     ),
+
+  "create-custom-commission-job": () =>
+    import("./handlers/create-custom-commission-job").then(
+      (m) => m.createCustomCommissionJob,
+    ),
 } as const satisfies Record<string, () => Promise<JobDefinition>>;
 
 const jobCache = new Map<string, JobDefinition>();

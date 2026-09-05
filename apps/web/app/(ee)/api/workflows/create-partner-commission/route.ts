@@ -178,6 +178,7 @@ async function stepCreateCommission(
     customerId,
     eventId,
     invoiceId,
+    rewardId,
     amount,
     quantity,
     currency,
@@ -431,7 +432,7 @@ async function stepCreateCommission(
         id: createId({ prefix: "cm_" }),
         programId,
         partnerId,
-        rewardId: reward?.id,
+        rewardId: reward?.id ?? rewardId,
         customerId,
         linkId,
         eventId: eventId || null, // empty string should convert to null

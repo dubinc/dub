@@ -54,7 +54,7 @@ function buildRewardFormValuesFromDraft({
   draft: Omit<Partial<AIRewardDraft>, "modifiers"> & {
     modifiers?: Array<DraftModifier | null | undefined>;
   };
-  event: Exclude<EventType, "referral">;
+  event: Exclude<EventType, "referral" | "custom">;
   current: Record<string, unknown>;
   finalize?: boolean;
 }): Record<string, unknown> | null {
@@ -162,7 +162,7 @@ export function useAIRewardBuilder({
   getValues,
   reset,
 }: {
-  event: Exclude<EventType, "referral">;
+  event: Exclude<EventType, "referral" | "custom">;
   getValues: () => Record<string, unknown>;
   reset: (
     values: Record<string, unknown>,
@@ -413,7 +413,7 @@ export function AIRewardInput({
   event,
   builder,
 }: {
-  event: Exclude<EventType, "referral">;
+  event: Exclude<EventType, "referral" | "custom">;
   builder: AIRewardBuilderState;
 }) {
   const shouldReduceMotion = useReducedMotion();
@@ -956,7 +956,11 @@ function SkeletonPill({ className }: { className?: string }) {
   );
 }
 
-function ReviewSkeletons({ event }: { event: Exclude<EventType, "referral"> }) {
+function ReviewSkeletons({
+  event,
+}: {
+  event: Exclude<EventType, "referral" | "custom">;
+}) {
   return (
     <div className="border-border-subtle rounded-xl border bg-white text-sm shadow-sm">
       <div className="flex items-start gap-2.5 p-2.5">

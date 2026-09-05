@@ -97,6 +97,7 @@ export async function importPartners(payload: RewardfulImportPayload) {
               leadRewardId: group.leadRewardId,
               saleRewardId: group.saleRewardId,
               referralRewardId: group.referralRewardId,
+              customRewardId: group.customRewardId,
               discountId: group.discountId,
             },
             partnerGroupDefaultLinkId:
@@ -176,6 +177,7 @@ async function createPartnerAndLinks({
     leadRewardId: string | null;
     clickRewardId: string | null;
     referralRewardId: string | null;
+    customRewardId: string | null;
     discountId: string | null;
   };
   partnerGroupDefaultLinkId?: string | null;

@@ -68,6 +68,7 @@ export const GroupSchema = z.object({
   leadReward: RewardSchema.nullish(),
   saleReward: RewardSchema.nullish(),
   referralReward: RewardSchema.nullish(),
+  customReward: RewardSchema.nullish(),
   discount: DiscountSchema.nullish(),
   utmTemplate: UTMTemplateSchema.nullish(),
   additionalLinks: z.array(additionalPartnerLinkSchema).nullable(),

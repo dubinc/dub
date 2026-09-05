@@ -68,6 +68,7 @@ export const reactivatePartnerAction = authActionClient
           clickRewardId: partnerGroup.clickRewardId,
           leadRewardId: partnerGroup.leadRewardId,
           saleRewardId: partnerGroup.saleRewardId,
+          customRewardId: partnerGroup.customRewardId,
           discountId: partnerGroup.discountId,
         },
       }),

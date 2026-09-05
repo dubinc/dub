@@ -24,12 +24,14 @@ export const POST = withCron(async () => {
       leadPartnerGroup: true,
       salePartnerGroup: true,
       referralPartnerGroup: true,
+      customPartnerGroup: true,
       _count: {
         select: {
           clickEnrollments: true,
           leadEnrollments: true,
           saleEnrollments: true,
           referralEnrollments: true,
+          customEnrollments: true,
         },
       },
     },
@@ -49,10 +51,12 @@ export const POST = withCron(async () => {
       reward.leadPartnerGroup === null &&
       reward.salePartnerGroup === null &&
       reward.referralPartnerGroup === null &&
+      reward.customPartnerGroup === null &&
       reward._count.clickEnrollments === 0 &&
       reward._count.leadEnrollments === 0 &&
       reward._count.saleEnrollments === 0 &&
-      reward._count.referralEnrollments === 0
+      reward._count.referralEnrollments === 0 &&
+      reward._count.customEnrollments === 0
     );
   });
 

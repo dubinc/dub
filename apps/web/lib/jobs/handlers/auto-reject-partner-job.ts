@@ -90,6 +90,7 @@ export const autoRejectPartnerJob = defineJob({
           leadRewardId: null,
           saleRewardId: null,
           referralRewardId: null,
+          customRewardId: null,
           discountId: null,
         },
       });

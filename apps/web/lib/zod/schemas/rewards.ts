@@ -233,6 +233,11 @@ export const REWARD_CONDITIONS: Record<
   referral: {
     entities: [],
   },
+
+  // Custom cadence reward (no modifiers)
+  custom: {
+    entities: [],
+  },
 };
 
 const REWARD_CONDITION_ENTITIES = [
@@ -469,6 +474,58 @@ export const referralRewardConfigSchema = z
     }
   });
 
+export const CUSTOM_REWARD_FREQUENCIES = [
+  "day",
+  "week",
+  "month",
+  "year",
+] as const;
+
+export const customRewardConfigSchema = z.object({
+  frequency: z.enum(CUSTOM_REWARD_FREQUENCIES),
+  interval: z.number().int().positive(),
+  anchorDate: z.iso.date(),
+});
+
+export const CUSTOM_REWARD_CADENCE_PRESETS = [
+  {
+    value: "daily",
+    label: "Daily",
+    frequency: "day" as const,
+    interval: 1,
+  },
+  {
+    value: "weekly",
+    label: "Weekly",
+    frequency: "week" as const,
+    interval: 1,
+  },
+  {
+    value: "biweekly",
+    label: "Biweekly",
+    frequency: "week" as const,
+    interval: 2,
+  },
+  {
+    value: "monthly",
+    label: "Monthly",
+    frequency: "month" as const,
+    interval: 1,
+  },
+  {
+    value: "quarterly",
+    label: "Quarterly",
+    frequency: "month" as const,
+    interval: 3,
+  },
+  {
+    value: "yearly",
+    label: "Yearly",
+    frequency: "year" as const,
+    interval: 1,
+  },
+] as const;
+
 export const createOrUpdateRewardSchema = z.object({
   workspaceId: z.string(),
   event: z.enum(EventType),
@@ -477,7 +534,9 @@ export const createOrUpdateRewardSchema = z.object({
   amountInPercentage: PERCENTAGE_REWARD_AMOUNT_SCHEMA.optional(),
   maxDuration: maxDurationSchema,
   modifiers: rewardConditionsArraySchema.nullish(),
-  config: referralRewardConfigSchema.nullish(),
+  config: z
+    .union([referralRewardConfigSchema, customRewardConfigSchema])
+    .nullish(),
   description: z.string().max(REWARD_DESCRIPTION_MAX_LENGTH).nullish(),
   tooltipDescription: z
     .string()
@@ -517,6 +576,7 @@ export const REWARD_EVENT_COLUMN_MAPPING = Object.freeze({
   lead: "leadRewardId",
   sale: "saleRewardId",
   referral: "referralRewardId",
+  custom: "customRewardId",
 });
 
 export const CUSTOMER_SOURCES = ["tracked", "submitted", "trial"] as const;

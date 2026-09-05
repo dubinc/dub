@@ -439,6 +439,8 @@ export function PartnerInfoCards({
                   group.clickReward ||
                   group.leadReward ||
                   group.saleReward ||
+                  group.referralReward ||
+                  group.customReward ||
                   group.discount ? (
                     <ProgramRewardList
                       rewards={[
@@ -446,6 +448,7 @@ export function PartnerInfoCards({
                         group.leadReward,
                         group.saleReward,
                         group.referralReward,
+                        group.customReward,
                       ].filter((r): r is RewardProps => r !== null)}
                       discount={group.discount}
                       variant="plain"

@@ -29,6 +29,7 @@ interface MovePartnersToGroupParams {
     | "leadRewardId"
     | "saleRewardId"
     | "referralRewardId"
+    | "customRewardId"
     | "discountId"
   >;
   isGroupDeleted?: boolean;
@@ -87,6 +88,7 @@ export async function movePartnersToGroup({
       leadRewardId: group.leadRewardId,
       saleRewardId: group.saleRewardId,
       referralRewardId: group.referralRewardId,
+      customRewardId: group.customRewardId,
       discountId: group.discountId,
       ...(groupMoveDisabledAt !== undefined && { groupMoveDisabledAt }),
     },

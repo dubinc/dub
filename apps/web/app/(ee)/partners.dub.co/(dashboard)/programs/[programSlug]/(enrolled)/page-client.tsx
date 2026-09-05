@@ -652,7 +652,8 @@ function RewardList() {
     (reward) =>
       reward.event === "click" ||
       reward.event === "lead" ||
-      reward.event === "sale",
+      reward.event === "sale" ||
+      reward.event === "custom",
   );
 
   const referralRewards = eligibleRewards.filter(
