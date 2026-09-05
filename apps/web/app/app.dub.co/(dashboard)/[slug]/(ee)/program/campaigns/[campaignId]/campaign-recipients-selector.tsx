@@ -24,12 +24,20 @@ export function CampaignGroupsSelector({
 
   // The popover's list is cached under this same key, so groups picked there resolve
   // instantly instead of being re-fetched by id on every selection
-  const { groups: allGroups, loading: allGroupsLoading } = useGroups({
+  const {
+    groups: allGroups,
+    loading: allGroupsLoading,
+    error: allGroupsError,
+  } = useGroups({
     enabled: hasGroupFilter,
   });
 
   // Only fetch by id what the list doesn't include (groups beyond its first page)
-  const missingGroupIds = getMissingIds(selectedGroupIds, allGroups);
+  const missingGroupIds = getMissingIds(
+    selectedGroupIds,
+    allGroups,
+    Boolean(allGroupsError),
+  );
   const { groups: missingGroups, loading: missingGroupsLoading } = useGroups({
     query: { groupIds: missingGroupIds },
     enabled: missingGroupIds.length > 0,
@@ -97,11 +105,19 @@ export function CampaignTagsSelector({
   const [openPopover, setOpenPopover] = useState(false);
 
   // Same approach as the groups above: resolve from the popover's cached list first
-  const { partnerTags: allTags, isLoading: allTagsLoading } = usePartnerTags({
+  const {
+    partnerTags: allTags,
+    isLoading: allTagsLoading,
+    error: allTagsError,
+  } = usePartnerTags({
     enabled: hasTagFilter,
   });
 
-  const missingTagIds = getMissingIds(selectedPartnerTagIds, allTags);
+  const missingTagIds = getMissingIds(
+    selectedPartnerTagIds,
+    allTags,
+    Boolean(allTagsError),
+  );
   const { partnerTags: missingTags, isLoading: missingTagsLoading } =
     usePartnerTags({
       query: { ids: missingTagIds },
@@ -251,8 +267,12 @@ function PlusCountBadge({
 function getMissingIds(
   selectedIds: string[] | null,
   list: { id: string }[] | undefined,
+  listFailed: boolean,
 ) {
-  if (!selectedIds?.length || !list) return [];
+  if (!selectedIds?.length) return [];
+
+  // No list yet: wait for it, unless its request failed, then fetch everything by id
+  if (!list) return listFailed ? selectedIds : [];
 
   return selectedIds.filter((id) => !list.some((item) => item.id === id));
 }
