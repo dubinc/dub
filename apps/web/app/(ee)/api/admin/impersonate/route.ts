@@ -1,6 +1,9 @@
+import { getAnalytics } from "@/lib/analytics/get-analytics";
+import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
 import { normalizeDomainInput } from "@/lib/api/domains/normalize-domain-input";
 import { hashToken, withAdmin } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { getWorkspaceUsage } from "@/lib/tinybird/get-workspace-usage";
 import { emailSchema } from "@/lib/zod/schemas/auth";
 import {
   APP_DOMAIN,
@@ -23,10 +26,19 @@ const userSelect = {
           name: true,
           slug: true,
           plan: true,
-          usage: true,
-          linksUsage: true,
+          planPeriod: true,
+          trialEndsAt: true,
+          defaultProgramId: true,
+          partnersUsage: true,
           totalClicks: true,
           totalLinks: true,
+          programs: {
+            select: {
+              id: true,
+              slug: true,
+              url: true,
+            },
+          },
         },
       },
     },
@@ -172,13 +184,9 @@ export const POST = withAdmin(async ({ req }) => {
 
   const data = {
     email: response.email,
-    workspaces: response.projects.map(({ project }) => ({
-      ...project,
-      clicks: project.usage,
-      links: project.linksUsage,
-      totalClicks: project.totalClicks,
-      totalLinks: project.totalLinks,
-    })),
+    workspaces: await serializeWorkspaces(
+      response.projects.map(({ project }) => project),
+    ),
     programs:
       response.partners.length > 0
         ? response.partners[0].partner.programs.map(({ program, ...rest }) => ({
@@ -191,6 +199,126 @@ export const POST = withAdmin(async ({ req }) => {
 
   return NextResponse.json(data);
 });
+
+type ImpersonateProject = Prisma.UserGetPayload<{
+  select: typeof userSelect;
+}>["projects"][number]["project"];
+
+async function serializeWorkspaces(projects: ImpersonateProject[]) {
+  const useLast30DaysStats = projects.length <= 2;
+  const programIds = projects
+    .map((project) => project.defaultProgramId)
+    .filter((id): id is string => Boolean(id));
+
+  const { startDate } = getStartEndDates({ interval: "30d" });
+
+  const [statsByWorkspaceId, commissionsByProgramId] = await Promise.all([
+    useLast30DaysStats
+      ? getLast30DayWorkspaceStats(projects)
+      : Promise.resolve(new Map<string, { clicks: number; links: number }>()),
+    programIds.length > 0
+      ? prisma.commission
+          .groupBy({
+            by: ["programId"],
+            where: {
+              programId: {
+                in: programIds,
+              },
+              status: {
+                in: ["pending", "processed", "paid"],
+              },
+              createdAt: {
+                gte: startDate,
+              },
+            },
+            _sum: {
+              earnings: true,
+            },
+          })
+          .then(
+            (rows) =>
+              new Map(
+                rows.map((row) => [row.programId, row._sum.earnings ?? 0]),
+              ),
+          )
+      : Promise.resolve(new Map<string, number>()),
+  ]);
+
+  return projects.map((project) => {
+    const stats = statsByWorkspaceId.get(project.id);
+    const program = project.defaultProgramId
+      ? project.programs.find((item) => item.id === project.defaultProgramId) ??
+        project.programs[0]
+      : null;
+
+    return {
+      id: project.id,
+      name: project.name,
+      slug: project.slug,
+      plan: project.plan,
+      planPeriod: project.planPeriod,
+      trialEndsAt: project.trialEndsAt,
+      events: stats?.clicks ?? project.totalClicks,
+      links: stats?.links ?? project.totalLinks,
+      statsInterval: useLast30DaysStats ? ("30d" as const) : ("all" as const),
+      program: program
+        ? {
+            url: program.url ?? `${PARTNERS_DOMAIN}/${program.slug}`,
+            partners: project.partnersUsage,
+            commissions: commissionsByProgramId.get(program.id) ?? 0,
+          }
+        : null,
+    };
+  });
+}
+
+async function getLast30DayWorkspaceStats(projects: ImpersonateProject[]) {
+  const entries = await Promise.all(
+    projects.map(async (project) => {
+      try {
+        const [analytics, linksUsage] = await Promise.all([
+          getAnalytics({
+            workspaceId: project.id,
+            event: "clicks",
+            groupBy: "count",
+            interval: "30d",
+          }),
+          getWorkspaceUsage({
+            workspaceId: project.id,
+            resource: "links",
+            interval: "30d",
+          }),
+        ]);
+
+        const clicks =
+          analytics &&
+          typeof analytics === "object" &&
+          "clicks" in analytics &&
+          typeof analytics.clicks === "number"
+            ? analytics.clicks
+            : project.totalClicks;
+
+        const links = linksUsage.reduce(
+          (acc, curr) => acc + (curr.value ?? 0),
+          0,
+        );
+
+        return [project.id, { clicks, links }] as const;
+      } catch (error) {
+        console.error(
+          `Failed to fetch 30d stats for workspace ${project.slug}:`,
+          error,
+        );
+        return [
+          project.id,
+          { clicks: project.totalClicks, links: project.totalLinks },
+        ] as const;
+      }
+    }),
+  );
+
+  return new Map(entries);
+}
 
 async function findUser(identifier: ImpersonateIdentifier) {
   if (identifier.type === "email") {
