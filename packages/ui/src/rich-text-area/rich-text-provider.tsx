@@ -306,6 +306,10 @@ export const RichTextProvider = forwardRef<
           class: cn(
             "max-w-none focus:outline-none",
             "prose prose-sm prose-neutral",
+            // Tiptap wraps each list item's content in a <p>, which Typography treats as a
+            // "loose" list and gives paragraph spacing. Zero it so items sit 4px apart (the
+            // <li> margins), and match the bullet color to the ordered list counters.
+            "[&_li>p]:my-0 marker:prose-ul:text-neutral-500",
             PROSE_STYLES[style],
             "[&_.ProseMirror-selectednode]:outline [&_.ProseMirror-selectednode]:outline-2 [&_.ProseMirror-selectednode]:outline-blue-500 [&_.ProseMirror-selectednode]:outline-offset-2",
             "[&_.ProseMirror-selectednode:has(img)]:outline-none",

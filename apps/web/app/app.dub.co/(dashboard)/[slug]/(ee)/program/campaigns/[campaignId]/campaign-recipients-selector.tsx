@@ -20,14 +20,39 @@ export function CampaignGroupsSelector({
   setSelectedGroupIds: (groupIds: string[] | null) => void;
 }) {
   const hasGroupFilter = Boolean(selectedGroupIds?.length);
-  const { groups: selectedGroups, loading: groupsLoading } = useGroups({
-    query: { groupIds: selectedGroupIds ?? undefined },
-    enabled: hasGroupFilter,
-  });
   const [openPopover, setOpenPopover] = useState(false);
 
-  const isLoading = groupsLoading && hasGroupFilter;
-  const plusCount = Math.max(0, (selectedGroups?.length ?? 0) - MAX_DISPLAYED);
+  // The popover's list is cached under this same key, so groups picked there resolve
+  // instantly instead of being re-fetched by id on every selection
+  const {
+    groups: allGroups,
+    loading: allGroupsLoading,
+    error: allGroupsError,
+  } = useGroups({
+    enabled: hasGroupFilter,
+  });
+
+  // Only fetch by id what the list doesn't include (groups beyond its first page)
+  const missingGroupIds = getMissingIds(
+    selectedGroupIds,
+    allGroups,
+    Boolean(allGroupsError),
+  );
+  const { groups: missingGroups, loading: missingGroupsLoading } = useGroups({
+    query: { groupIds: missingGroupIds },
+    enabled: missingGroupIds.length > 0,
+  });
+
+  const selectedGroups = resolveSelected(
+    selectedGroupIds,
+    allGroups,
+    missingGroups,
+  );
+  const isLoading =
+    hasGroupFilter &&
+    selectedGroups.length === 0 &&
+    (allGroupsLoading || missingGroupsLoading);
+  const plusCount = Math.max(0, selectedGroups.length - MAX_DISPLAYED);
 
   return (
     <CampaignRecipientPopover
@@ -51,7 +76,7 @@ export function CampaignGroupsSelector({
         </RecipientChip>
       ) : (
         <div className="flex min-w-0 flex-1 items-center gap-2">
-          {selectedGroups?.slice(0, MAX_DISPLAYED).map((group) => (
+          {selectedGroups.slice(0, MAX_DISPLAYED).map((group) => (
             <RecipientChip key={group.id} openPopover={openPopover}>
               <GroupColorCircle group={group} />
               <span className="text-content-default min-w-0 truncate text-sm font-medium">
@@ -77,14 +102,38 @@ export function CampaignTagsSelector({
   setSelectedPartnerTagIds: (tagIds: string[] | null) => void;
 }) {
   const hasTagFilter = Boolean(selectedPartnerTagIds?.length);
-  const { partnerTags: selectedTags, isLoading: tagsLoading } = usePartnerTags({
-    query: { ids: selectedPartnerTagIds ?? undefined },
-    enabled: hasTagFilter,
-  });
   const [openPopover, setOpenPopover] = useState(false);
 
-  const isLoading = tagsLoading && hasTagFilter;
-  const plusCount = Math.max(0, (selectedTags?.length ?? 0) - MAX_DISPLAYED);
+  // Same approach as the groups above: resolve from the popover's cached list first
+  const {
+    partnerTags: allTags,
+    isLoading: allTagsLoading,
+    error: allTagsError,
+  } = usePartnerTags({
+    enabled: hasTagFilter,
+  });
+
+  const missingTagIds = getMissingIds(
+    selectedPartnerTagIds,
+    allTags,
+    Boolean(allTagsError),
+  );
+  const { partnerTags: missingTags, isLoading: missingTagsLoading } =
+    usePartnerTags({
+      query: { ids: missingTagIds },
+      enabled: missingTagIds.length > 0,
+    });
+
+  const selectedTags = resolveSelected(
+    selectedPartnerTagIds,
+    allTags,
+    missingTags,
+  );
+  const isLoading =
+    hasTagFilter &&
+    selectedTags.length === 0 &&
+    (allTagsLoading || missingTagsLoading);
+  const plusCount = Math.max(0, selectedTags.length - MAX_DISPLAYED);
 
   return (
     <CampaignRecipientPopover
@@ -108,7 +157,7 @@ export function CampaignTagsSelector({
         </RecipientChip>
       ) : (
         <div className="flex min-w-0 flex-1 items-center gap-2">
-          {selectedTags?.slice(0, MAX_DISPLAYED).map((tag) => (
+          {selectedTags.slice(0, MAX_DISPLAYED).map((tag) => (
             <RecipientChip key={tag.id} openPopover={openPopover}>
               <TagIcon className="size-3.5 shrink-0" />
               <span className="text-content-default min-w-0 truncate text-sm font-medium">
@@ -211,4 +260,42 @@ function PlusCountBadge({
       +{count}
     </span>
   );
+}
+
+// Selected ids that the loaded list doesn't contain. Derived from the list only, so the
+// fallback fetch's key stays stable once its own results arrive.
+function getMissingIds(
+  selectedIds: string[] | null,
+  list: { id: string }[] | undefined,
+  listFailed: boolean,
+) {
+  if (!selectedIds?.length) return [];
+
+  // No list yet: wait for it, unless its request failed, then fetch everything by id
+  if (!list) return listFailed ? selectedIds : [];
+
+  return selectedIds.filter((id) => !list.some((item) => item.id === id));
+}
+
+// Resolves the selected ids against each source in turn, keeping the sources' own order
+function resolveSelected<T extends { id: string }>(
+  selectedIds: string[] | null,
+  ...sources: (T[] | undefined)[]
+) {
+  if (!selectedIds?.length) return [];
+
+  const resolved: T[] = [];
+
+  for (const source of sources) {
+    for (const item of source ?? []) {
+      if (
+        selectedIds.includes(item.id) &&
+        !resolved.some((r) => r.id === item.id)
+      ) {
+        resolved.push(item);
+      }
+    }
+  }
+
+  return resolved;
 }

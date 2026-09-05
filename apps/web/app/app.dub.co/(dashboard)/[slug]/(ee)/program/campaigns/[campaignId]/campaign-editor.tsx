@@ -181,7 +181,7 @@ function CampaignFromField({
       <input
         type="text"
         placeholder={displayNamePlaceholder}
-        className="text-content-default placeholder:text-content-muted min-w-0 flex-1 border-0 bg-transparent p-0 focus:outline-none focus:ring-0 sm:text-sm"
+        className="text-content-default placeholder:text-content-muted min-w-0 flex-1 cursor-pointer border-0 bg-transparent p-0 focus:outline-none focus:ring-0 disabled:cursor-not-allowed sm:text-sm"
         disabled={disabled}
         value={displayName}
         onChange={(e) => {
@@ -216,7 +216,7 @@ function CampaignFromField({
           type="text"
           placeholder="address"
           style={{ width: Math.max(localPartWidth, 1) }}
-          className="text-content-default placeholder:text-content-muted m-0 max-w-[12rem] border-0 bg-transparent p-0 text-sm leading-none focus:outline-none focus:ring-0"
+          className="text-content-default placeholder:text-content-muted m-0 max-w-[12rem] cursor-pointer border-0 bg-transparent p-0 text-sm leading-none focus:outline-none focus:ring-0 disabled:cursor-not-allowed"
           disabled={disabled}
           value={localPart}
           onChange={(e) => {
@@ -417,6 +417,14 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
   const statusBadge = CAMPAIGN_STATUS_BADGES[campaign.status];
 
   const editorRef = useRef<{ setContent: (content: any) => void }>(null);
+  const subjectInputProps = register("subject");
+
+  // Whether the subject text is clipped by the input's edge (shows a fade when it is)
+  const [subjectOverflows, setSubjectOverflows] = useState(false);
+  const subjectResizeObserverRef = useRef<ResizeObserver | null>(null);
+  const measureSubjectOverflow = (input: HTMLInputElement) =>
+    setSubjectOverflows(input.scrollWidth > input.clientWidth);
+
   const previewInputProps = register("preview", {
     onBlur: (e) => {
       if (!e.target.value) setShowPreviewText(false);
@@ -588,7 +596,16 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
                         value={field.value}
                         onChange={field.onChange}
                         placeholder='E.g. "tomorrow at 5pm" or "in 2 hours"'
-                        className="hover:border-border-subtle mt-0 h-8 min-h-8 border-transparent shadow-none focus-within:border-black/75 focus-within:ring-black/75 hover:cursor-pointer hover:bg-neutral-100"
+                        className={cn(
+                          "hover:border-border-subtle mt-0 h-8 min-h-8 border-transparent shadow-none focus-within:border-black/75 focus-within:ring-black/75 hover:cursor-pointer hover:bg-neutral-100",
+                          // Like the text inputs: only colors animate, so the focus ring appears at once
+                          "transition-colors",
+                          // Keep the focused look (like the text inputs) even while hovered: the hover state
+                          // sticks while the native picker is open, since the page stops getting mouse events
+                          "hover:focus-within:border-black/75 hover:focus-within:bg-white",
+                          // Match the padding and cursor of the other inputs (the forms plugin gives inputs px-3 by default)
+                          "[&_button]:px-1.5 [&_input]:cursor-pointer [&_input]:px-1.5 [&_input]:py-0",
+                        )}
                       />
                     </DisabledInputWrapper>
                   )}
@@ -608,11 +625,40 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
                   placeholder="Enter a subject..."
                   className={cn(
                     inputClassName,
+                    "peer",
                     !isLocked && !showPreviewText && "pr-24",
                   )}
                   disabled={isLocked}
-                  {...register("subject")}
+                  {...subjectInputProps}
+                  ref={(input) => {
+                    subjectInputProps.ref(input);
+
+                    // Re-measure the overflow whenever the input is resized
+                    subjectResizeObserverRef.current?.disconnect();
+                    if (!input) return;
+                    subjectResizeObserverRef.current = new ResizeObserver(() =>
+                      measureSubjectOverflow(input),
+                    );
+                    subjectResizeObserverRef.current.observe(input);
+                  }}
+                  onChange={(e) => {
+                    subjectInputProps.onChange(e);
+                    measureSubjectOverflow(e.currentTarget);
+                  }}
                 />
+                {/* Fades out subject text that is clipped by the input's edge (hidden while editing).
+                    The gradient ends in currentColor so it can transition along with the input's hover background. */}
+                {subjectOverflows && (
+                  <div
+                    aria-hidden
+                    className={cn(
+                      "pointer-events-none absolute inset-y-0 w-12 bg-gradient-to-r from-transparent to-current text-white transition-[color,opacity] duration-150",
+                      "peer-hover:text-neutral-100 peer-focus:opacity-0",
+                      "group-hover/locked:text-neutral-100",
+                      !isLocked && !showPreviewText ? "right-24" : "right-1.5",
+                    )}
+                  />
+                )}
                 {!isLocked && (
                   <div className="absolute right-0 top-1/2 -translate-y-1/2">
                     <button
