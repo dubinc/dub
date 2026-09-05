@@ -1,111 +1,172 @@
+import { normalizeDomainInput } from "@/lib/api/domains/normalize-domain-input";
 import { hashToken, withAdmin } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { APP_DOMAIN, PARTNERS_DOMAIN } from "@dub/utils";
+import { emailSchema } from "@/lib/zod/schemas/auth";
+import {
+  APP_DOMAIN,
+  isAppHostname,
+  PARTNERS_DOMAIN,
+  validDomainRegex,
+  validSlugRegex,
+} from "@dub/utils";
+import { Prisma } from "@prisma/client";
 import { randomBytes } from "crypto";
 import { NextResponse } from "next/server";
 
-// POST /api/admin/impersonate
-export const POST = withAdmin(async ({ req }) => {
-  const { email, slug } = await req.json();
-
-  let userEmails: string[] = [];
-  if (email) {
-    userEmails.push(email);
-    const partner = await prisma.partner.findUnique({
-      where: {
-        email,
-      },
-      select: {
-        users: {
-          select: {
-            user: {
-              select: {
-                email: true,
-              },
-            },
-          },
-          take: 1,
-        },
-      },
-    });
-    if (partner?.users && partner.users.length > 0) {
-      userEmails.push(...partner.users.map((user) => user.user.email || ""));
-    }
-  }
-
-  const response = await prisma.user.findFirst({
-    where:
-      userEmails.length > 0
-        ? {
-            email: {
-              in: userEmails,
-            },
-          }
-        : {
-            projects: {
-              some: {
-                project: {
-                  slug,
-                },
-                role: "owner",
-              },
-            },
-          },
+const userSelect = {
+  email: true,
+  projects: {
     select: {
-      email: true,
-      projects: {
+      project: {
         select: {
-          project: {
-            select: {
-              id: true,
-              name: true,
-              slug: true,
-              plan: true,
-              usage: true,
-              linksUsage: true,
-              totalClicks: true,
-              totalLinks: true,
-            },
-          },
-        },
-        orderBy: {
-          project: {
-            totalClicks: "desc",
-          },
+          id: true,
+          name: true,
+          slug: true,
+          plan: true,
+          usage: true,
+          linksUsage: true,
+          totalClicks: true,
+          totalLinks: true,
         },
       },
-      partners: {
+    },
+    orderBy: {
+      project: {
+        totalClicks: "desc",
+      },
+    },
+  },
+  partners: {
+    select: {
+      partner: {
         select: {
-          partner: {
+          programs: {
             select: {
-              programs: {
+              program: {
                 select: {
-                  program: {
-                    select: {
-                      id: true,
-                      name: true,
-                      slug: true,
-                    },
-                  },
-                  status: true,
-                  totalClicks: true,
-                  totalLeads: true,
-                  totalConversions: true,
-                  totalSaleAmount: true,
-                  totalCommissions: true,
-                },
-                orderBy: {
-                  totalCommissions: "desc",
+                  id: true,
+                  name: true,
+                  slug: true,
                 },
               },
+              status: true,
+              totalClicks: true,
+              totalLeads: true,
+              totalConversions: true,
+              totalSaleAmount: true,
+              totalCommissions: true,
+            },
+            orderBy: {
+              totalCommissions: "desc",
             },
           },
         },
       },
     },
-  });
+  },
+} satisfies Prisma.UserSelect;
 
-  if (!response?.email) {
+const ownerSelect = {
+  users: {
+    where: {
+      role: "owner",
+      user: {
+        email: {
+          not: null,
+        },
+      },
+    },
+    orderBy: {
+      createdAt: "asc",
+    },
+    take: 1,
+    select: {
+      user: {
+        select: userSelect,
+      },
+    },
+  },
+} satisfies Prisma.ProjectSelect;
+
+type ImpersonateIdentifier =
+  | { type: "email"; email: string }
+  | { type: "slug"; slug: string }
+  | { type: "domain"; domain: string };
+
+function parseImpersonateQuery(
+  raw: unknown,
+): ImpersonateIdentifier | { error: string } {
+  if (typeof raw !== "string" || !raw.trim()) {
+    return { error: "Enter a user email, workspace slug, or domain" };
+  }
+
+  let query = raw.trim();
+  if (query.toLowerCase().startsWith("mailto:")) {
+    query = query.slice(7).trim();
+  }
+
+  if (query.includes("@")) {
+    const parsed = emailSchema.safeParse(query);
+    if (!parsed.success) {
+      return { error: "Invalid email" };
+    }
+    return { type: "email", email: parsed.data };
+  }
+
+  let hostname: string | undefined;
+  let pathname: string | undefined;
+  try {
+    const url = query.includes("://")
+      ? new URL(query)
+      : query.includes("/")
+        ? new URL(`https://${query}`)
+        : undefined;
+    if (url) {
+      hostname = url.hostname.toLowerCase();
+      pathname = url.pathname;
+    }
+  } catch {
+    // keep the raw query
+  }
+
+  if (hostname && isAppHostname(hostname)) {
+    const slug = pathname?.split("/").filter(Boolean)[0];
+    if (slug && validSlugRegex.test(slug)) {
+      return { type: "slug", slug: slug.toLowerCase() };
+    }
+  }
+
+  const domain = normalizeDomainInput(hostname ?? query);
+  if (validDomainRegex.test(domain)) {
+    return { type: "domain", domain };
+  }
+
+  const slug = query.toLowerCase();
+  if (validSlugRegex.test(slug)) {
+    return { type: "slug", slug };
+  }
+
+  return { error: "Enter a user email, workspace slug, or domain" };
+}
+
+// POST /api/admin/impersonate
+export const POST = withAdmin(async ({ req }) => {
+  const { query, email, slug, domain } = await req.json();
+  const parsed = parseImpersonateQuery(query ?? email ?? slug ?? domain);
+
+  if ("error" in parsed) {
+    return new Response(parsed.error, { status: 400 });
+  }
+
+  const result = await findUser(parsed);
+
+  if ("error" in result) {
+    return new Response(result.error, { status: 404 });
+  }
+
+  const { user: response } = result;
+
+  if (!response.email) {
     return new Response("User not found", { status: 404 });
   }
 
@@ -130,6 +191,93 @@ export const POST = withAdmin(async ({ req }) => {
 
   return NextResponse.json(data);
 });
+
+async function findUser(identifier: ImpersonateIdentifier) {
+  if (identifier.type === "email") {
+    const userEmails = [identifier.email];
+    const partner = await prisma.partner.findUnique({
+      where: {
+        email: identifier.email,
+      },
+      select: {
+        users: {
+          select: {
+            user: {
+              select: {
+                email: true,
+              },
+            },
+          },
+          take: 1,
+        },
+      },
+    });
+    if (partner?.users && partner.users.length > 0) {
+      userEmails.push(...partner.users.map((user) => user.user.email || ""));
+    }
+
+    const user = await prisma.user.findFirst({
+      where: {
+        email: {
+          in: userEmails,
+        },
+      },
+      select: userSelect,
+    });
+
+    if (!user?.email) {
+      return { error: "User not found" };
+    }
+
+    return { user };
+  }
+
+  if (identifier.type === "domain") {
+    const domainRecord = await prisma.domain.findUnique({
+      where: {
+        slug: identifier.domain,
+      },
+      select: {
+        project: {
+          select: ownerSelect,
+        },
+      },
+    });
+
+    if (!domainRecord) {
+      return { error: "Domain not found" };
+    }
+
+    if (!domainRecord.project) {
+      return { error: "Domain is not attached to a workspace" };
+    }
+
+    const user = domainRecord.project.users[0]?.user;
+    if (!user?.email) {
+      return { error: "Workspace owner not found" };
+    }
+
+    return { user };
+  }
+
+  const project = await prisma.project.findUnique({
+    where: {
+      slug: identifier.slug,
+    },
+    select: ownerSelect,
+  });
+
+  if (!project) {
+    return { error: "Workspace not found" };
+  }
+
+  const user = project.users[0]?.user;
+  if (!user?.email) {
+    return { error: "Workspace owner not found" };
+  }
+
+  return { user };
+}
 
 async function getImpersonateUrl(email: string) {
   const token = randomBytes(32).toString("hex");

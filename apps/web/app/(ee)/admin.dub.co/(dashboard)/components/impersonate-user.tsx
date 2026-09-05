@@ -18,7 +18,7 @@ export function ImpersonateUser() {
           await fetch("/api/admin/impersonate", {
             method: "POST",
             body: JSON.stringify({
-              email: formData.get("email"),
+              query: formData.get("query"),
             }),
           }).then(async (res) => {
             if (res.ok) {
@@ -89,9 +89,9 @@ const Form = () => {
   return (
     <div className="relative flex w-full rounded-md shadow-sm">
       <input
-        name="email"
-        id="email"
-        type="email"
+        name="query"
+        id="query"
+        type="text"
         required
         disabled={pending}
         autoComplete="off"
@@ -100,16 +100,14 @@ const Form = () => {
           pending && "bg-neutral-100",
         )}
         onPaste={(e: React.ClipboardEvent<HTMLInputElement>) => {
-          // remove mailto: on paste
           e.preventDefault();
-          const text = e.clipboardData.getData("text/plain");
-          if (text.startsWith("mailto:")) {
-            e.currentTarget.value = text.replace("mailto:", "");
-          } else {
-            e.currentTarget.value = text;
+          let text = e.clipboardData.getData("text/plain").trim();
+          if (text.toLowerCase().startsWith("mailto:")) {
+            text = text.slice(7);
           }
+          e.currentTarget.value = text;
         }}
-        placeholder="panic@thedis.co"
+        placeholder="panic@thedis.co, acme, or acme.com"
         aria-invalid="true"
       />
       {pending && (

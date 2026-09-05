@@ -2,7 +2,6 @@ import { BanLink } from "./components/ban-link";
 import { DeletePartnerAccount } from "./components/delete-partner-account";
 import { DisableRestoreWorkspace } from "./components/disable-restore-workspace";
 import { ImpersonateUser } from "./components/impersonate-user";
-import { ImpersonateWorkspace } from "./components/impersonate-workspace";
 import { ResetLoginAttempts } from "./components/reset-login-attempts";
 import { SlackSupportInvite } from "./components/slack-support-invite";
 
@@ -10,18 +9,12 @@ export default function AdminPage() {
   return (
     <div className="mx-auto flex w-full max-w-screen-sm flex-col divide-y divide-neutral-200 overflow-auto bg-white">
       <div className="flex flex-col space-y-4 px-5 py-10">
-        <h2 className="text-xl font-semibold">Impersonate User/Partner</h2>
+        <h2 className="text-xl font-semibold">Impersonate User</h2>
         <p className="text-sm text-neutral-500">
-          Get a login link for a user email (or partner email)
+          Get a login link by user/partner email, workspace slug, or domain.
+          Workspace and domain lookups impersonate the main owner.
         </p>
         <ImpersonateUser />
-      </div>
-      <div className="flex flex-col space-y-4 px-5 py-10">
-        <h2 className="text-xl font-semibold">Impersonate Workspace</h2>
-        <p className="text-sm text-neutral-500">
-          Get a login link for the owner of a workspace
-        </p>
-        <ImpersonateWorkspace />
       </div>
       <div className="flex flex-col space-y-4 px-5 py-10">
         <h2 className="text-xl font-semibold">Ban Link</h2>
