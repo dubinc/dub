@@ -22,7 +22,6 @@ import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
 import {
   Button,
   buttonVariants,
-  CopyText,
   Gift,
   Icon,
   LinkLogo,
@@ -808,12 +807,18 @@ function RewardListItem({
                 />
               </div>
 
-              <CopyText
-                value={link.copyValue}
-                className="min-w-0 truncate text-sm font-medium -tracking-wider text-neutral-600"
-              >
-                {link.displayText}
-              </CopyText>
+              <Tooltip content="Copy link" disabled={copyDisabled}>
+                <button
+                  type="button"
+                  disabled={copyDisabled}
+                  onClick={() => {
+                    copyToClipboard(link.copyValue);
+                  }}
+                  className="min-w-0 max-w-full cursor-pointer truncate text-sm font-medium -tracking-wider text-neutral-600 decoration-dotted underline-offset-2 hover:underline disabled:cursor-default"
+                >
+                  {link.displayText}
+                </button>
+              </Tooltip>
               {queryLinkHelpTextLink && (
                 <>
                   <span className="hidden text-sm text-neutral-500 sm:block">
