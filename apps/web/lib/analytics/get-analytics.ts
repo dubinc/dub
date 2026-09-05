@@ -45,23 +45,49 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
 
   const normalizedLinkId = ensureParsedFilter(linkId);
 
-  // get all-time clicks count if:
-  // 1. linkId is defined
-  // 2. type is count
-  // 3. interval is all
-  // 4. no custom start or end date is provided
-  // 5. no other dimensional filters are applied
+  const folderIdFilter = ensureParsedFilter(params.folderId);
+  const partnerIdFilter = ensureParsedFilter(params.partnerId);
+  const partnerTagIdFilter = ensureParsedFilter(params.partnerTagId);
+
+  const workspaceLinkDims = extractWorkspaceLinkFilters({
+    ...params,
+    partnerId: partnerIdFilter,
+    partnerTagId: partnerTagIdFilter,
+    linkId: normalizedLinkId,
+    folderId: folderIdFilter,
+  });
+
+  const hasIds = (ids: string[] | undefined) => (ids?.length ?? 0) > 0;
+  const workspaceScopeIsExclusiveLinkIdsIn =
+    !!normalizedLinkId &&
+    normalizedLinkId.sqlOperator === "IN" &&
+    normalizedLinkId.values.length > 0 &&
+    hasIds(workspaceLinkDims.linkId) &&
+    !hasIds(workspaceLinkDims.domain) &&
+    !hasIds(workspaceLinkDims.folderId) &&
+    !hasIds(workspaceLinkDims.tagId) &&
+    !hasIds(workspaceLinkDims.partnerId) &&
+    !hasIds(workspaceLinkDims.partnerTagId) &&
+    !hasIds(workspaceLinkDims.groupId) &&
+    !hasIds(workspaceLinkDims.tenantId);
+
+  // All‑time aggregates from PlanetScale Link rollups only when analytics scope
+  // is exactly SUM over those ids (no workspace_links dimensions). Folder, NOT IN,
+  // domain, tags, etc. → Tinybird with the pipes.
   if (
-    normalizedLinkId &&
+    workspaceScopeIsExclusiveLinkIdsIn &&
     groupBy === "count" &&
     interval === "all" &&
     !start &&
     !end &&
+    params.root === undefined &&
+    !params.programId &&
+    !params.customerId &&
     DIMENSIONAL_ANALYTICS_FILTERS.every(
       (filter) => !params[filter as keyof AnalyticsFilters],
     )
   ) {
-    const linkIdPlaceholders = normalizedLinkId.values.map(() => "?").join(",");
+    const placeholders = normalizedLinkId.values.map(() => "?").join(",");
     const aggregateColumns =
       event === "composite"
         ? `SUM(clicks) as clicks, SUM(leads) as leads, SUM(sales) as sales, SUM(saleAmount) as saleAmount`
@@ -70,7 +96,7 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
           : `SUM(${event}) as ${event}`;
 
     const response = await conn.execute(
-      `SELECT ${aggregateColumns} FROM Link WHERE id IN (${linkIdPlaceholders}) AND projectId = ?`,
+      `SELECT ${aggregateColumns} FROM Link WHERE id IN (${placeholders}) AND projectId = ?`,
       [...normalizedLinkId.values, workspaceId],
     );
 
@@ -132,10 +158,6 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
 
   const allFilters = [...metadataFilters, ...advancedFilters];
 
-  const folderIdFilter = ensureParsedFilter(params.folderId);
-  const partnerIdFilter = ensureParsedFilter(params.partnerId);
-  const partnerTagIdFilter = ensureParsedFilter(params.partnerTagId);
-
   let {
     domain: domainParam,
     domainOperator,
@@ -153,13 +175,7 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
     groupIdOperator,
     tenantId: tenantIdParam,
     tenantIdOperator,
-  } = extractWorkspaceLinkFilters({
-    ...params,
-    partnerId: partnerIdFilter,
-    partnerTagId: partnerTagIdFilter,
-    linkId: normalizedLinkId,
-    folderId: folderIdFilter,
-  });
+  } = workspaceLinkDims;
 
   const tinybirdParams: any = {
     workspaceId,
