@@ -1,6 +1,7 @@
 import { getQRAsCanvas, getQRAsSVGDataUri, getQRData } from "@/lib/qr";
 import { QRCodeDesign } from "@/lib/qr/types";
 import { QRLinkProps } from "@/lib/types";
+import { ColorPicker } from "@/ui/shared/color-picker";
 import { QRCode } from "@/ui/shared/qr-code";
 import {
   Button,
@@ -9,11 +10,10 @@ import {
   InfoTooltip,
   Popover,
   ShimmerDots,
-  Tooltip,
   useCopyToClipboard,
   useMediaQuery,
 } from "@dub/ui";
-import { Check, Check2, Copy, Download, Hyperlink, Photo } from "@dub/ui/icons";
+import { Check, Copy, Download, Hyperlink, Photo } from "@dub/ui/icons";
 import { API_DOMAIN, cn, linkConstructor } from "@dub/utils";
 import { AnimatePresence, motion } from "motion/react";
 import {
@@ -25,22 +25,9 @@ import {
   useRef,
   useState,
 } from "react";
-import { HexColorInput, HexColorPicker } from "react-colorful";
 import { toast } from "sonner";
-import { useDebouncedCallback } from "use-debounce";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
-
-export const DEFAULT_COLORS = [
-  "#000000",
-  "#C73E33",
-  "#DF6547",
-  "#F4B3D7",
-  "#F6CF54",
-  "#49A065",
-  "#2146B7",
-  "#AE49BF",
-];
 
 export const DEFAULT_QR_DESIGN: QRCodeDesign = {
   fgColor: "#000000",
@@ -80,17 +67,134 @@ export function QRCodeDesignFields({
   const id = useId();
   const { isMobile } = useMediaQuery();
 
-  const onColorChange = useDebouncedCallback(
-    (color: string) => setData((d) => ({ ...d, fgColor: color })),
-    500,
-  );
-
-  const onMarkerColorChange = useDebouncedCallback(
-    (color: string) => setData((d) => ({ ...d, markerColor: color })),
-    500,
-  );
-
   const previewKey = `${data.fgColor}-${data.hideLogo}-${data.dotStyle}-${data.markerCenterStyle}-${data.markerBorderStyle}-${data.markerColor ?? ""}`;
+
+  const dotStyleField = (
+    <div>
+      <div className="flex items-center gap-1">
+        <label className="text-sm font-semibold text-neutral-800">
+          Dot style
+        </label>
+      </div>
+      <SegmentedControl
+        activeIndex={
+          data.dotStyle === "rounded"
+            ? 1
+            : data.dotStyle === "extra-rounded"
+              ? 2
+              : 0
+        }
+        count={3}
+      >
+        <SegmentTab
+          active={!data.dotStyle || data.dotStyle === "square"}
+          onClick={() => setData((d) => ({ ...d, dotStyle: "square" }))}
+          ariaLabel="Square dots"
+        >
+          <SquareDotIcon />
+        </SegmentTab>
+        <SegmentTab
+          active={data.dotStyle === "rounded"}
+          onClick={() => setData((d) => ({ ...d, dotStyle: "rounded" }))}
+          ariaLabel="Rounded dots"
+        >
+          <RoundedDotIcon />
+        </SegmentTab>
+        <SegmentTab
+          active={data.dotStyle === "extra-rounded"}
+          onClick={() => setData((d) => ({ ...d, dotStyle: "extra-rounded" }))}
+          ariaLabel="Extra-rounded dots"
+        >
+          <ExtraRoundedDotIcon />
+        </SegmentTab>
+      </SegmentedControl>
+    </div>
+  );
+
+  const markerCenterField = (
+    <div>
+      <div className="flex items-center gap-1">
+        <label className="text-sm font-semibold text-neutral-800">
+          Marker center
+        </label>
+      </div>
+      <SegmentedControl
+        activeIndex={data.markerCenterStyle === "circle" ? 1 : 0}
+        count={2}
+      >
+        <SegmentTab
+          active={
+            !data.markerCenterStyle || data.markerCenterStyle === "square"
+          }
+          onClick={() =>
+            setData((d) => ({ ...d, markerCenterStyle: "square" }))
+          }
+          ariaLabel="Square marker center"
+        >
+          <MarkerCenterSquareIcon />
+        </SegmentTab>
+        <SegmentTab
+          active={data.markerCenterStyle === "circle"}
+          onClick={() =>
+            setData((d) => ({ ...d, markerCenterStyle: "circle" }))
+          }
+          ariaLabel="Circle marker center"
+        >
+          <MarkerCenterCircleIcon />
+        </SegmentTab>
+      </SegmentedControl>
+    </div>
+  );
+
+  const markerBorderField = (
+    <div>
+      <div className="flex items-center gap-1">
+        <label className="text-sm font-semibold text-neutral-800">
+          Marker border
+        </label>
+      </div>
+      <SegmentedControl
+        activeIndex={
+          data.markerBorderStyle === "rounded-square"
+            ? 1
+            : data.markerBorderStyle === "circle"
+              ? 2
+              : 0
+        }
+        count={3}
+      >
+        <SegmentTab
+          active={
+            !data.markerBorderStyle || data.markerBorderStyle === "square"
+          }
+          onClick={() =>
+            setData((d) => ({ ...d, markerBorderStyle: "square" }))
+          }
+          ariaLabel="Square marker border"
+        >
+          <MarkerBorderSquareIcon />
+        </SegmentTab>
+        <SegmentTab
+          active={data.markerBorderStyle === "rounded-square"}
+          onClick={() =>
+            setData((d) => ({ ...d, markerBorderStyle: "rounded-square" }))
+          }
+          ariaLabel="Rounded marker border"
+        >
+          <MarkerBorderRoundedIcon />
+        </SegmentTab>
+        <SegmentTab
+          active={data.markerBorderStyle === "circle"}
+          onClick={() =>
+            setData((d) => ({ ...d, markerBorderStyle: "circle" }))
+          }
+          ariaLabel="Circle marker border"
+        >
+          <MarkerBorderCircleIcon />
+        </SegmentTab>
+      </SegmentedControl>
+    </div>
+  );
 
   return (
     <>
@@ -153,168 +257,42 @@ export function QRCodeDesignFields({
         </div>
       </div>
 
-      {/* Logo slot + Dot style */}
-      <div className={cn(logoSection && "grid grid-cols-2 gap-4")}>
-        {logoSection}
-        <div>
-          <div className="flex items-center gap-1.5">
-            <label className="text-sm font-medium text-neutral-700">
-              Dot style
-            </label>
-          </div>
-          <SegmentedControl
-            activeIndex={
-              data.dotStyle === "rounded"
-                ? 1
-                : data.dotStyle === "extra-rounded"
-                  ? 2
-                  : 0
-            }
-            count={3}
-          >
-            <SegmentTab
-              active={!data.dotStyle || data.dotStyle === "square"}
-              onClick={() => setData((d) => ({ ...d, dotStyle: "square" }))}
-              ariaLabel="Square dots"
-            >
-              <SquareDotIcon />
-            </SegmentTab>
-            <SegmentTab
-              active={data.dotStyle === "rounded"}
-              onClick={() => setData((d) => ({ ...d, dotStyle: "rounded" }))}
-              ariaLabel="Rounded dots"
-            >
-              <RoundedDotIcon />
-            </SegmentTab>
-            <SegmentTab
-              active={data.dotStyle === "extra-rounded"}
-              onClick={() =>
-                setData((d) => ({ ...d, dotStyle: "extra-rounded" }))
-              }
-              ariaLabel="Extra-rounded dots"
-            >
-              <ExtraRoundedDotIcon />
-            </SegmentTab>
-          </SegmentedControl>
-        </div>
+      {/* Style fields: Logo slot + Marker center, Dot style + Marker border,
+          Dot Color + Marker Color (Dot style goes full-width when there's no logo) */}
+      <div className="grid grid-cols-2 gap-x-8 gap-y-4">
+        {logoSection ? (
+          <>
+            {logoSection}
+            {markerCenterField}
+            {dotStyleField}
+          </>
+        ) : (
+          <>
+            <div className="col-span-2">{dotStyleField}</div>
+            {markerCenterField}
+          </>
+        )}
+        {markerBorderField}
+
+        <ColorSection
+          id={`${id}-fg`}
+          label="Dot Color"
+          color={data.fgColor}
+          onChange={(color) =>
+            setData((d) => ({ ...d, fgColor: color ?? "#000000" }))
+          }
+        />
+
+        <ColorSection
+          id={`${id}-marker`}
+          label="Marker Color"
+          tooltip="Set a different color for the finder pattern markers. Defaults to the QR code color."
+          color={data.markerColor ?? data.fgColor}
+          onChange={(color) =>
+            setData((d) => ({ ...d, markerColor: color ?? undefined }))
+          }
+        />
       </div>
-
-      {/* Marker center + Marker border */}
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <div className="flex items-center gap-1.5">
-            <label className="text-sm font-medium text-neutral-700">
-              Marker center
-            </label>
-          </div>
-          <SegmentedControl
-            activeIndex={data.markerCenterStyle === "circle" ? 1 : 0}
-            count={2}
-          >
-            <SegmentTab
-              active={
-                !data.markerCenterStyle || data.markerCenterStyle === "square"
-              }
-              onClick={() =>
-                setData((d) => ({ ...d, markerCenterStyle: "square" }))
-              }
-              ariaLabel="Square marker center"
-            >
-              <MarkerCenterSquareIcon />
-            </SegmentTab>
-            <SegmentTab
-              active={data.markerCenterStyle === "circle"}
-              onClick={() =>
-                setData((d) => ({ ...d, markerCenterStyle: "circle" }))
-              }
-              ariaLabel="Circle marker center"
-            >
-              <MarkerCenterCircleIcon />
-            </SegmentTab>
-          </SegmentedControl>
-        </div>
-
-        <div>
-          <div className="flex items-center gap-1.5">
-            <label className="text-sm font-medium text-neutral-700">
-              Marker border
-            </label>
-          </div>
-          <SegmentedControl
-            activeIndex={
-              data.markerBorderStyle === "rounded-square"
-                ? 1
-                : data.markerBorderStyle === "circle"
-                  ? 2
-                  : 0
-            }
-            count={3}
-          >
-            <SegmentTab
-              active={
-                !data.markerBorderStyle || data.markerBorderStyle === "square"
-              }
-              onClick={() =>
-                setData((d) => ({ ...d, markerBorderStyle: "square" }))
-              }
-              ariaLabel="Square marker border"
-            >
-              <MarkerBorderSquareIcon />
-            </SegmentTab>
-            <SegmentTab
-              active={data.markerBorderStyle === "rounded-square"}
-              onClick={() =>
-                setData((d) => ({
-                  ...d,
-                  markerBorderStyle: "rounded-square",
-                }))
-              }
-              ariaLabel="Rounded marker border"
-            >
-              <MarkerBorderRoundedIcon />
-            </SegmentTab>
-            <SegmentTab
-              active={data.markerBorderStyle === "circle"}
-              onClick={() =>
-                setData((d) => ({ ...d, markerBorderStyle: "circle" }))
-              }
-              ariaLabel="Circle marker border"
-            >
-              <MarkerBorderCircleIcon />
-            </SegmentTab>
-          </SegmentedControl>
-        </div>
-      </div>
-
-      <ColorSection
-        id={`${id}-fg`}
-        label="Dot Color"
-        color={data.fgColor}
-        onChange={onColorChange}
-        onSwatchClick={(color) => setData((d) => ({ ...d, fgColor: color }))}
-      />
-
-      <ColorSection
-        id={`${id}-marker`}
-        label="Marker Color"
-        tooltip="Set a different color for the finder pattern markers. Defaults to the QR code color."
-        color={data.markerColor ?? data.fgColor}
-        onChange={onMarkerColorChange}
-        onSwatchClick={(color) =>
-          setData((d) => ({ ...d, markerColor: color }))
-        }
-        extraAction={
-          data.markerColor && data.markerColor !== data.fgColor ? (
-            <button
-              type="button"
-              onClick={() => setData((d) => ({ ...d, markerColor: undefined }))}
-              className="text-xs text-neutral-400 underline-offset-2 hover:text-neutral-600 hover:underline"
-            >
-              Match dot color
-            </button>
-          ) : undefined
-        }
-      />
 
       <div className="flex items-center justify-end gap-2">
         <Button
@@ -351,18 +329,18 @@ export function SegmentedControl({
   return (
     <div
       className={cn(
-        "relative mt-1 flex h-11 rounded-xl border border-neutral-200 bg-neutral-50 p-1",
+        "relative mt-2 flex h-10 rounded-lg bg-neutral-100 p-0.5",
         disabled && "opacity-50",
       )}
     >
       <div
-        className="pointer-events-none absolute inset-y-1 left-1 rounded-lg bg-white"
+        className="pointer-events-none absolute inset-y-0.5 left-0.5 rounded-md bg-white"
         style={{
-          width: `calc((100% - 8px) / ${count})`,
+          width: `calc((100% - 4px) / ${count})`,
           transform: `translateX(calc(${activeIndex} * 100%))`,
           transition: "transform 200ms cubic-bezier(0.23, 1, 0.32, 1)",
           boxShadow:
-            "0px 2px 6px 0px rgba(0,0,0,0.10), 0px 0px 2px 0px rgba(0,0,0,0.05)",
+            "0px 2px 3px 0px rgba(0,0,0,0.10), 0px 0px 1px 0px rgba(0,0,0,0.05)",
         }}
       />
       {children}
@@ -391,7 +369,7 @@ export function SegmentTab({
       aria-label={ariaLabel}
       aria-pressed={active}
       className={cn(
-        "relative flex flex-1 items-center justify-center rounded-lg text-neutral-700",
+        "relative flex flex-1 items-center justify-center rounded-md px-4 py-2 text-neutral-700",
         disabled && "cursor-not-allowed",
       )}
     >
@@ -402,80 +380,36 @@ export function SegmentTab({
 
 // ─── Color section ────────────────────────────────────────────────────────────
 
-export function ColorSection({
+function ColorSection({
   id,
   label,
   tooltip,
   color,
   onChange,
-  onSwatchClick,
-  extraAction,
 }: {
   id: string;
   label: string;
   tooltip?: string;
   color: string;
-  onChange: (color: string) => void;
-  onSwatchClick: (color: string) => void;
-  extraAction?: React.ReactNode;
+  onChange: (color: string | null) => void;
 }) {
   return (
-    <div>
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <span className="block text-sm font-medium text-neutral-700">
-            {label}
-          </span>
-          {tooltip && <InfoTooltip content={tooltip} />}
-        </div>
-        {extraAction}
+    <div className="flex h-10 items-center justify-between gap-2">
+      <div className="flex items-center gap-1">
+        <label htmlFor={id} className="text-sm font-semibold text-neutral-800">
+          {label}
+        </label>
+        {tooltip && <InfoTooltip content={tooltip} />}
       </div>
-      <div className="mt-2 flex gap-6">
-        <div className="relative flex h-9 w-32 shrink-0 rounded-md shadow-sm">
-          <Tooltip
-            content={
-              <div className="flex max-w-xs flex-col items-center space-y-3 p-5 text-center">
-                <HexColorPicker color={color} onChange={onChange} />
-              </div>
-            }
-          >
-            <div
-              className="h-full w-12 rounded-l-md border"
-              style={{ backgroundColor: color, borderColor: color }}
-            />
-          </Tooltip>
-          <HexColorInput
-            id={id}
-            name={id}
-            color={color}
-            onChange={onChange}
-            prefixed
-            style={{ borderColor: color }}
-            className="block w-full rounded-r-md border-2 border-l-0 pl-3 text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-black sm:text-sm"
-          />
-        </div>
-        <div className="mt-1 flex flex-wrap items-center gap-3">
-          {DEFAULT_COLORS.map((swatch) => {
-            const isSelected = color === swatch;
-            return (
-              <button
-                key={swatch}
-                type="button"
-                aria-pressed={isSelected}
-                onClick={() => onSwatchClick(swatch)}
-                className={cn(
-                  "flex size-7 items-center justify-center rounded-full transition-all",
-                  isSelected
-                    ? "ring-1 ring-black ring-offset-[3px]"
-                    : "ring-black/10 hover:ring-4",
-                )}
-                style={{ backgroundColor: swatch }}
-              >
-                {isSelected && <Check2 className="size-4 text-white" />}
-              </button>
-            );
-          })}
-        </div>
+      <div className="flex size-10 shrink-0 items-center justify-center rounded-[10px] bg-neutral-100">
+        <ColorPicker
+          id={id}
+          value={color}
+          onChange={onChange}
+          showDefault
+          side="top"
+          debounceMs={500}
+        />
       </div>
     </div>
   );
@@ -486,8 +420,8 @@ export function ColorSection({
 export function SquareDotIcon() {
   return (
     <svg
-      width="20"
-      height="20"
+      width="16"
+      height="16"
       viewBox="0 0 20 20"
       fill="currentColor"
       aria-hidden="true"
@@ -509,8 +443,8 @@ export function SquareDotIcon() {
 export function RoundedDotIcon() {
   return (
     <svg
-      width="20"
-      height="20"
+      width="16"
+      height="16"
       viewBox="0 0 20 20"
       fill="currentColor"
       aria-hidden="true"
@@ -532,8 +466,8 @@ export function RoundedDotIcon() {
 export function ExtraRoundedDotIcon() {
   return (
     <svg
-      width="20"
-      height="20"
+      width="16"
+      height="16"
       viewBox="0 0 20 20"
       fill="currentColor"
       aria-hidden="true"
@@ -550,8 +484,8 @@ export function ExtraRoundedDotIcon() {
 export function MarkerCenterSquareIcon() {
   return (
     <svg
-      width="20"
-      height="20"
+      width="16"
+      height="16"
       viewBox="0 0 20 20"
       fill="none"
       aria-hidden="true"
@@ -562,7 +496,7 @@ export function MarkerCenterSquareIcon() {
         width="17.5"
         height="17.5"
         stroke="currentColor"
-        strokeOpacity="0.35"
+        strokeOpacity="0.5"
         strokeWidth="2.5"
       />
       <rect x="5" y="5" width="10" height="10" fill="currentColor" />
@@ -573,8 +507,8 @@ export function MarkerCenterSquareIcon() {
 export function MarkerCenterCircleIcon() {
   return (
     <svg
-      width="20"
-      height="20"
+      width="16"
+      height="16"
       viewBox="0 0 20 20"
       fill="none"
       aria-hidden="true"
@@ -585,7 +519,7 @@ export function MarkerCenterCircleIcon() {
         width="17.5"
         height="17.5"
         stroke="currentColor"
-        strokeOpacity="0.35"
+        strokeOpacity="0.5"
         strokeWidth="2.5"
       />
       <path
@@ -599,8 +533,8 @@ export function MarkerCenterCircleIcon() {
 export function MarkerBorderSquareIcon() {
   return (
     <svg
-      width="20"
-      height="20"
+      width="16"
+      height="16"
       viewBox="0 0 20 20"
       fill="none"
       aria-hidden="true"
@@ -620,8 +554,8 @@ export function MarkerBorderSquareIcon() {
 export function MarkerBorderRoundedIcon() {
   return (
     <svg
-      width="20"
-      height="20"
+      width="16"
+      height="16"
       viewBox="0 0 20 20"
       fill="none"
       aria-hidden="true"
@@ -638,8 +572,8 @@ export function MarkerBorderRoundedIcon() {
 export function MarkerBorderCircleIcon() {
   return (
     <svg
-      width="20"
-      height="20"
+      width="16"
+      height="16"
       viewBox="0 0 20 20"
       fill="none"
       aria-hidden="true"
