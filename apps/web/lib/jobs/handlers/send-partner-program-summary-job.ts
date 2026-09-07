@@ -17,7 +17,7 @@ import * as z from "zod/v4";
 import { defineJob } from "../index";
 
 const MAX_PROGRAMS_PER_SUMMARY = 10;
-const ANALYTICS_CACHE_TTL_SECONDS = 60 * 60 * 1; // 1 hour
+const ANALYTICS_CACHE_TTL_SECONDS = 60 * 10; // 10 minutes
 const ANALYTICS_REQUEST_BATCH_SIZE = 10;
 
 // earnings from MySQL, clicks, leads, sales from Tinybird
