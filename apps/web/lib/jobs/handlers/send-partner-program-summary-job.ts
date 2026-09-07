@@ -259,6 +259,9 @@ export const sendPartnerProgramSummaryJob = defineJob({
     const enrollments = await prisma.programEnrollment.findMany({
       where: {
         partnerId,
+        program: {
+          deactivatedAt: null,
+        },
         status: ProgramEnrollmentStatus.approved,
         totalLeads: {
           gt: 0,
