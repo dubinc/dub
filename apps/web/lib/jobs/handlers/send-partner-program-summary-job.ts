@@ -89,6 +89,9 @@ async function getPartnersAnalytics({
   start: Date;
   end: Date;
 }): Promise<Record<string, PartnerAnalyticsMetrics>> {
+  // Plain get-then-fetch-then-set with no single-flight lock. Concurrent send
+  // jobs (queue flowControl.parallelism: 10) sharing a cold key can each miss
+  // and hit Tinybird once before the TTL fills — accepted for now.
   const cacheKey = `topPartnersAnalytics:${programId}:${yearMonth}:${period}`;
 
   const cached =
