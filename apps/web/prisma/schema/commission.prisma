@@ -17,8 +17,13 @@ enum CommissionType {
   custom
 }
 
+enum CommissionSource {
+  imported
+  manual
+}
+
 model Commission {
-  id                 String           @id
+  id                 String            @id
   programId          String
   partnerId          String
   rewardId           String?
@@ -26,20 +31,21 @@ model Commission {
   payoutId           String?
   invoiceId          String? // only for sales (idempotency key, each sale event is associated with a unique invoice)
   customerId         String? // only for leads and sales
-  eventId            String?          @unique // only for leads and sales
+  eventId            String?           @unique // only for leads and sales
   description        String?
   type               CommissionType
   amount             Int // only for sales (amount of the sale event)
   quantity           Int // only for clicks/leads (quantity of the event)
-  earnings           Int              @default(0) // amount earned by the partner
-  currency           String           @default("usd")
-  status             CommissionStatus @default(pending)
+  earnings           Int               @default(0) // amount earned by the partner
+  currency           String            @default("usd")
+  status             CommissionStatus  @default(pending)
   userId             String? // user who created the manual commission
+  source             CommissionSource? // null = live; imported / manual for non-live creates
   sourceCommissionId String?
   sourcePartnerId    String?
-  metadata           Json?            @db.Json
-  createdAt          DateTime         @default(now())
-  updatedAt          DateTime         @updatedAt
+  metadata           Json?             @db.Json
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
 
   program           Program           @relation(fields: [programId], references: [id])
   partner           Partner           @relation(fields: [partnerId], references: [id])

@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { chunk, nanoid } from "@dub/utils";
-import { Customer, Link, Program } from "@prisma/client";
+import { CommissionSource, Customer, Link, Program } from "@prisma/client";
 import { convertCurrencyWithFxRates } from "../analytics/convert-currency";
 import { isFirstConversion } from "../analytics/is-first-conversion";
 import { createId } from "../api/create-id";
@@ -295,6 +295,7 @@ async function createCommission({
         status: commission.approved ? "paid" : "pending",
         invoiceId: commission.id.toString(), // this is not the actual invoice ID, but we use this to deduplicate the sales
         createdAt: new Date(commission.created_at),
+        source: CommissionSource.imported,
       },
     }),
 

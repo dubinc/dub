@@ -17,6 +17,7 @@ import { leadEventSchemaTB } from "@/lib/zod/schemas/leads";
 import { saleEventSchemaTB } from "@/lib/zod/schemas/sales";
 import { COUNTRIES_TO_CONTINENTS, nanoid, R2_URL } from "@dub/utils";
 import {
+  CommissionSource,
   CommissionType,
   Customer,
   Link,
@@ -99,6 +100,7 @@ export async function createManualCommissions(args: CreateCommissionsArgs) {
       createdAt: date ?? new Date(),
       description,
       userId: user.id,
+      source: CommissionSource.manual,
       triggerAggregateDueCommissions: true,
     });
 
@@ -180,6 +182,7 @@ export async function createManualCommissions(args: CreateCommissionsArgs) {
       // we don't add the "Z" to the timestamp because it's already in UTC
       createdAt: new Date(leadEvent.timestamp),
       userId: user.id,
+      source: CommissionSource.manual,
       ...(metadata != null && { metadata }),
       context: {
         customer: {
@@ -194,6 +197,10 @@ export async function createManualCommissions(args: CreateCommissionsArgs) {
 
   // Sale commissions
   else if (type === CommissionType.sale) {
+    const source = args.importStripeInvoices
+      ? CommissionSource.imported
+      : CommissionSource.manual;
+
     commissionsToCreate.push(
       ...saleEvents.map((saleEvent) => ({
         event: CommissionType.sale,
@@ -212,6 +219,7 @@ export async function createManualCommissions(args: CreateCommissionsArgs) {
           status: "refunded" as const,
         }),
         userId: user.id,
+        source,
         ...(saleEvent.metadata != null && { metadata: saleEvent.metadata }),
         context: {
           customer: {
