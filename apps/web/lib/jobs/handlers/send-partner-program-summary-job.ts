@@ -2,12 +2,14 @@ import { getAnalytics } from "@/lib/analytics/get-analytics";
 import { prisma } from "@/lib/prisma";
 import { redis } from "@/lib/upstash";
 import { yearMonthSchema } from "@/lib/zod/schemas/misc";
+import { tz } from "@date-fns/tz";
 import { sendBatchEmail } from "@dub/email";
 import PartnerProgramSummary from "@dub/email/templates/partner-program-summary";
 import { chunk } from "@dub/utils";
 import {
   CommissionStatus,
   Prisma,
+  Program,
   ProgramEnrollmentStatus,
 } from "@prisma/client";
 import { endOfMonth, format, parse, subMonths } from "date-fns";
@@ -15,7 +17,7 @@ import * as z from "zod/v4";
 import { defineJob } from "../index";
 
 const MAX_PROGRAMS_PER_SUMMARY = 10;
-const ANALYTICS_CACHE_TTL_SECONDS = 60 * 60 * 24; // 24 hours
+const ANALYTICS_CACHE_TTL_SECONDS = 60 * 60 * 1; // 1 hour
 const ANALYTICS_REQUEST_BATCH_SIZE = 10;
 
 // earnings from MySQL, clicks, leads, sales from Tinybird
@@ -60,21 +62,32 @@ function byCurrentMonthPerformance(
 }
 
 export function getReportingPeriod(yearMonth: string) {
-  const currentMonth = parse(yearMonth, "yyyy-MM", new Date());
-  const previousMonth = subMonths(currentMonth, 1);
+  const utc = tz("UTC");
+  const currentMonthStart = parse(yearMonth, "yyyy-MM", new Date(), {
+    in: utc,
+  });
+  const previousMonthStart = subMonths(currentMonthStart, 1);
+  const currentMonthEnd = endOfMonth(currentMonthStart);
+  const previousMonthEnd = endOfMonth(previousMonthStart);
+
+  const currentMonth = new Date(currentMonthStart.getTime());
+  const previousMonth = new Date(previousMonthStart.getTime());
+  const end = new Date(currentMonthEnd.getTime());
 
   return {
     currentMonth,
     previousMonth,
-    month: format(currentMonth, "MMMM yyyy"),
+    previousMonthEnd: new Date(previousMonthEnd.getTime()),
+    currentMonthEnd: end,
+    month: format(currentMonthStart, "MMMM yyyy", { in: utc }),
     start: currentMonth.toISOString(),
-    end: endOfMonth(currentMonth).toISOString(),
+    end: end.toISOString(),
   };
 }
 
 // Fetches composite top_partners for a program/month window once, caches the
 // partnerId -> metrics map in Redis so other send jobs for the same program reuse it.
-async function getPartnersAnalytics({
+async function getTopPartnersAnalytics({
   workspaceId,
   programId,
   yearMonth,
@@ -95,7 +108,6 @@ async function getPartnersAnalytics({
     await redis.get<Record<string, PartnerAnalyticsMetrics>>(cacheKey);
 
   if (cached) {
-    console.info(`[getProgramTopPartnersAnalytics] Cache hit for ${cacheKey}`);
     return cached;
   }
 
@@ -127,6 +139,79 @@ async function getPartnersAnalytics({
   });
 
   return byPartnerId;
+}
+
+async function getPartnerAnalytics({
+  enrollments,
+  partnerId,
+  yearMonth,
+  previousMonth,
+  previousMonthEnd,
+  currentMonth,
+  currentMonthEnd,
+}: {
+  enrollments: {
+    program: Pick<Program, "id" | "name" | "logo" | "slug" | "workspaceId">;
+  }[];
+  partnerId: string;
+  yearMonth: string;
+} & Pick<
+  ReturnType<typeof getReportingPeriod>,
+  "previousMonth" | "previousMonthEnd" | "currentMonth" | "currentMonthEnd"
+>) {
+  const analyticsRequests = enrollments.flatMap(({ program }) => [
+    {
+      program,
+      period: "previous" as const,
+      start: previousMonth,
+      end: previousMonthEnd,
+    },
+    {
+      program,
+      period: "current" as const,
+      start: currentMonth,
+      end: currentMonthEnd,
+    },
+  ]);
+
+  const analyticsByKey = new Map<
+    string,
+    Record<string, PartnerAnalyticsMetrics>
+  >();
+
+  for (const batch of chunk(analyticsRequests, ANALYTICS_REQUEST_BATCH_SIZE)) {
+    const batchResults = await Promise.all(
+      batch.map(async ({ program, period, start, end }) => {
+        const byPartner = await getTopPartnersAnalytics({
+          workspaceId: program.workspaceId,
+          programId: program.id,
+          yearMonth,
+          period,
+          start,
+          end,
+        });
+
+        return {
+          key: `${program.id}:${period}`,
+          byPartner,
+        };
+      }),
+    );
+
+    for (const { key, byPartner } of batchResults) {
+      analyticsByKey.set(key, byPartner);
+    }
+  }
+
+  return enrollments.map(({ program }) => ({
+    program,
+    previousMonthAnalytics:
+      analyticsByKey.get(`${program.id}:previous`)?.[partnerId] ??
+      EMPTY_PARTNER_ANALYTICS,
+    currentMonthAnalytics:
+      analyticsByKey.get(`${program.id}:current`)?.[partnerId] ??
+      EMPTY_PARTNER_ANALYTICS,
+  }));
 }
 
 const inputSchema = z.object({
@@ -199,8 +284,15 @@ export const sendPartnerProgramSummaryJob = defineJob({
       return;
     }
 
-    const { previousMonth, currentMonth, month, start, end } =
-      getReportingPeriod(yearMonth);
+    const {
+      previousMonth,
+      previousMonthEnd,
+      currentMonth,
+      currentMonthEnd,
+      month,
+      start,
+      end,
+    } = getReportingPeriod(yearMonth);
 
     const programIds = enrollments.map((e) => e.program.id);
 
@@ -221,96 +313,51 @@ export const sendPartnerProgramSummaryJob = defineJob({
       },
     };
 
-    const [previousMonthEarnings, currentMonthEarnings] = await Promise.all([
-      prisma.commission.groupBy({
-        by: ["programId"],
-        where: {
-          ...commissionWhere,
-          createdAt: {
-            gte: previousMonth,
-            lte: endOfMonth(previousMonth),
+    const [previousMonthEarnings, currentMonthEarnings, analyticsByProgram] =
+      await Promise.all([
+        prisma.commission.groupBy({
+          by: ["programId"],
+          where: {
+            ...commissionWhere,
+            createdAt: {
+              gte: previousMonth,
+              lte: previousMonthEnd,
+            },
           },
-        },
-        _sum: {
-          earnings: true,
-        },
-      }),
-
-      prisma.commission.groupBy({
-        by: ["programId"],
-        where: {
-          ...commissionWhere,
-          createdAt: {
-            gte: currentMonth,
-            lte: endOfMonth(currentMonth),
+          _sum: {
+            earnings: true,
           },
-        },
-        _sum: {
-          earnings: true,
-        },
-      }),
-    ]);
-
-    const analyticsRequests = enrollments.flatMap(({ program }) => [
-      {
-        program,
-        period: "previous" as const,
-        start: previousMonth,
-        end: endOfMonth(previousMonth),
-      },
-      {
-        program,
-        period: "current" as const,
-        start: currentMonth,
-        end: endOfMonth(currentMonth),
-      },
-    ]);
-
-    const analyticsByKey = new Map<
-      string,
-      Record<string, PartnerAnalyticsMetrics>
-    >();
-
-    for (const batch of chunk(
-      analyticsRequests,
-      ANALYTICS_REQUEST_BATCH_SIZE,
-    )) {
-      const batchResults = await Promise.all(
-        batch.map(async ({ program, period, start, end }) => {
-          const byPartner = await getPartnersAnalytics({
-            workspaceId: program.workspaceId,
-            programId: program.id,
-            yearMonth,
-            period,
-            start,
-            end,
-          });
-
-          return {
-            key: `${program.id}:${period}`,
-            byPartner,
-          };
         }),
-      );
 
-      for (const { key, byPartner } of batchResults) {
-        analyticsByKey.set(key, byPartner);
-      }
-    }
+        prisma.commission.groupBy({
+          by: ["programId"],
+          where: {
+            ...commissionWhere,
+            createdAt: {
+              gte: currentMonth,
+              lte: currentMonthEnd,
+            },
+          },
+          _sum: {
+            earnings: true,
+          },
+        }),
 
-    const analyticsByProgram = enrollments.map(({ program }) => ({
-      program,
-      previousMonthAnalytics:
-        analyticsByKey.get(`${program.id}:previous`)?.[partnerId] ??
-        EMPTY_PARTNER_ANALYTICS,
-      currentMonthAnalytics:
-        analyticsByKey.get(`${program.id}:current`)?.[partnerId] ??
-        EMPTY_PARTNER_ANALYTICS,
-    }));
+        getPartnerAnalytics({
+          enrollments,
+          partnerId,
+          yearMonth,
+          previousMonth,
+          previousMonthEnd,
+          currentMonth,
+          currentMonthEnd,
+        }),
+      ]);
 
     const previousEarningsMap = new Map(
       previousMonthEarnings.map((e) => [e.programId, e._sum.earnings ?? 0]),
     );
+
     const currentEarningsMap = new Map(
       currentMonthEarnings.map((e) => [e.programId, e._sum.earnings ?? 0]),
     );
@@ -356,6 +403,16 @@ export const sendPartnerProgramSummaryJob = defineJob({
       );
       return;
     }
+
+    console.table(
+      programs.map((p) => {
+        return {
+          name: p.name,
+          current: JSON.stringify(p.currentMonth),
+          previous: JSON.stringify(p.previousMonth),
+        };
+      }),
+    );
 
     await sendBatchEmail(
       [

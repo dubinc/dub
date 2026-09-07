@@ -9,8 +9,7 @@ export const dynamic = "force-dynamic";
 // Scheduled to run at 1 PM UTC on the 1st day of every month to send the previous month's summary.
 // GET /api/cron/partner-program-summary
 export const GET = withCron(async () => {
-  const currentMonth = startOfMonth(subMonths(new Date(), 1));
-  const yearMonth = format(currentMonth, "yyyy-MM");
+  const yearMonth = format(startOfMonth(subMonths(new Date(), 1)), "yyyy-MM");
 
   await queuePartnerProgramSummaryJob.dispatch(
     {
