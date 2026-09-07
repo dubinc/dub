@@ -46,6 +46,10 @@ function isBulkError(item: BulkLink | BulkLinkError): item is BulkLinkError {
   return "error" in item;
 }
 
+function isBulkLink(item: BulkLink | BulkLinkError): item is BulkLink {
+  return !isBulkError(item);
+}
+
 test("POST /links/bulk – with valid programId and partnerId", async ({
   api,
   program,
@@ -63,7 +67,7 @@ test("POST /links/bulk – with valid programId and partnerId", async ({
     });
 
     const { status, data } = await createBulkLinks(api, [body]);
-    const created = data.filter((item) => !isBulkError(item));
+    const created = data.filter(isBulkLink);
     createdIds.push(...created.map((link) => link.id));
 
     expect(status).toEqual(200);
@@ -95,7 +99,7 @@ test("POST /links/bulk – rejects invalid programId", async ({ api }) => {
       invalidBody,
       validBody,
     ]);
-    const created = data.filter((item) => !isBulkError(item));
+    const created = data.filter(isBulkLink);
     const errors = data.filter(isBulkError);
     createdIds.push(...created.map((link) => link.id));
 
@@ -132,7 +136,7 @@ test("POST /links/bulk – rejects invalid partnerId", async ({
       invalidBody,
       validBody,
     ]);
-    const created = data.filter((item) => !isBulkError(item));
+    const created = data.filter(isBulkLink);
     const errors = data.filter(isBulkError);
     createdIds.push(...created.map((link) => link.id));
 
@@ -166,7 +170,7 @@ test("PATCH /links/bulk – with valid programId and partnerId", async ({
       bulkLinkBody(),
       bulkLinkBody(),
     ]);
-    const links = created.filter((item) => !isBulkError(item));
+    const links = created.filter(isBulkLink);
     createdIds.push(...links.map((link) => link.id));
 
     expect(links).toHaveLength(2);
@@ -204,7 +208,7 @@ test("PATCH /links/bulk – rejects invalid programId", async ({ api }) => {
 
   try {
     const { data: created } = await createBulkLinks(api, [bulkLinkBody()]);
-    const links = created.filter((item) => !isBulkError(item));
+    const links = created.filter(isBulkLink);
     createdIds.push(...links.map((link) => link.id));
 
     expect(
@@ -239,7 +243,7 @@ test("PATCH /links/bulk – rejects invalid partnerId", async ({
 
   try {
     const { data: created } = await createBulkLinks(api, [bulkLinkBody()]);
-    const links = created.filter((item) => !isBulkError(item));
+    const links = created.filter(isBulkLink);
     createdIds.push(...links.map((link) => link.id));
 
     expect(

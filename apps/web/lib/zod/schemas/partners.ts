@@ -843,7 +843,7 @@ export const createPartnerLinkSchema = partnerIdTenantIdSchema
   .extend({
     url: parseUrlSchema
       .describe(
-        "The URL to shorten (if not provided, the program's default URL will be used). Will throw an error if the domain doesn't match the program's default URL domain.",
+        "The URL to shorten (if not provided, the program's default URL will be used).",
       )
       .nullish(),
     key: z
@@ -862,9 +862,7 @@ export const createPartnerLinkSchema = partnerIdTenantIdSchema
   );
 
 export const upsertPartnerLinkSchema = createPartnerLinkSchema.extend({
-  url: parseUrlSchema.describe(
-    "The URL to upsert for. Will throw an error if the domain doesn't match the program's default URL domain.",
-  ),
+  url: parseUrlSchema.describe("The URL to upsert for."),
 });
 
 // For /api/partners/analytics

@@ -1,6 +1,5 @@
 import { DubApiError, ErrorCodes } from "@/lib/api/errors";
 import { createLink, processLink } from "@/lib/api/links";
-import { validatePartnerLinkUrl } from "@/lib/api/links/validate-partner-link-url";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
@@ -125,8 +124,6 @@ export const POST = withWorkspace(
         message: "This partner is not part of a partner group.",
       });
     }
-
-    validatePartnerLinkUrl({ group: partnerGroup, url });
 
     const linkUrl = url || partnerGroup.partnerGroupDefaultLinks[0].url;
 

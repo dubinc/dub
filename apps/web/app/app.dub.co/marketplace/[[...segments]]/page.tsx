@@ -33,7 +33,7 @@ export async function generateMetadata(props: {
     const program = await getNetworkProgram({ slug: segments[0] });
 
     if (program) {
-      title = program.name;
+      title = `${program.name} Affiliate Program`;
       description =
         program.description ||
         `Join the ${program.name} affiliate program on Dub's Program Marketplace.`;
