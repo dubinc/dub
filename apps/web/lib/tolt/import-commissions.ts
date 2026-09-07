@@ -337,7 +337,7 @@ async function createCommission({
         status: toDubStatus[commission.status],
         invoiceId: sale.transaction_id, // this is not the actual invoice ID, but we use this to deduplicate the sales
         createdAt: new Date(sale.created_at),
-        source: CommissionSource.imported,
+        source: CommissionSource.tolt,
       },
     }),
 

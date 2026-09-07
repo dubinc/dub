@@ -11,6 +11,7 @@ import {
 } from "@/lib/zod/schemas/bounties";
 import { sendEmail } from "@dub/email";
 import BountyApproved from "@dub/email/templates/bounty-approved";
+import { CommissionSource } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
 
@@ -143,6 +144,7 @@ export async function approveBountySubmission({
     amount: finalRewardAmount,
     quantity: 1,
     userId: user.id,
+    source: CommissionSource.user,
     description: `Commission for successfully completed "${bounty.name}" bounty.`,
     bountySubmissionId: submissionId,
   });

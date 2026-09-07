@@ -14,7 +14,7 @@ import { redis } from "@/lib/upstash";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { transformLeadEventData } from "@/lib/webhook/transform";
 import { COUNTRIES_TO_CONTINENTS, nanoid } from "@dub/utils";
-import { EventType, Project } from "@prisma/client";
+import { CommissionSource, EventType, Project } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import type Stripe from "stripe";
 import { getPromotionCode } from "./get-promotion-code";
@@ -211,6 +211,7 @@ export async function attributeViaPromotionCodeId({
           eventId: leadEvent.event_id,
           customerId: customer.id,
           quantity: 1,
+          source: CommissionSource.stripe,
           context: {
             customer: {
               country: customer.country,

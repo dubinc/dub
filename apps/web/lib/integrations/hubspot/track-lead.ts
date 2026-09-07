@@ -1,6 +1,7 @@
 import { trackLead } from "@/lib/api/conversions/track-lead";
 import { prisma } from "@/lib/prisma";
 import { TrackLeadResponse, WorkspaceProps } from "@/lib/types";
+import { CommissionSource } from "@prisma/client";
 import * as z from "zod/v4";
 import { HubSpotAuthToken, HubSpotContact } from "../types";
 import { HubSpotApi } from "./api";
@@ -50,6 +51,7 @@ export const trackHubSpotLeadEvent = async ({
       customerName,
       mode: "deferred",
       workspace,
+      commissionSource: CommissionSource.hubspot,
     });
 
     if (trackLeadResult) {
@@ -115,6 +117,7 @@ export const trackHubSpotLeadEvent = async ({
       customerEmail: contactInfo.properties.email,
       mode: "async",
       workspace,
+      commissionSource: CommissionSource.hubspot,
     });
 
     if (trackLeadResult) {
@@ -173,6 +176,7 @@ export const trackHubSpotLeadEvent = async ({
       customerEmail: properties.email,
       mode: "async",
       workspace,
+      commissionSource: CommissionSource.hubspot,
     });
 
     if (trackLeadResult) {

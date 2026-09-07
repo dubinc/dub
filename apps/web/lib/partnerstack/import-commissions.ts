@@ -222,7 +222,7 @@ export async function createCommissionFromPS({
         status: toDubStatus[commission.reward_status],
         invoiceId: commission.key,
         createdAt: new Date(commission.created_at),
-        source: CommissionSource.imported,
+        source: CommissionSource.partnerstack,
       },
     });
 
@@ -380,7 +380,7 @@ export async function createCommissionFromPS({
         status: toDubStatus[commission.reward_status],
         invoiceId: commission.key, // this is not the actual invoice ID, but we use this to deduplicate the sales
         createdAt: new Date(commission.created_at),
-        source: CommissionSource.imported,
+        source: CommissionSource.partnerstack,
       },
     }),
 

@@ -18,8 +18,17 @@ enum CommissionType {
 }
 
 enum CommissionSource {
-  imported
-  manual
+  api // track lead/sale API
+  user // manual creates with userId (dashboard /api/commissions, bounties)
+  stripe
+  shopify
+  hubspot
+  rewardful
+  partnerstack
+  firstpromoter
+  tolt
+  tapfiliate
+  lemonsqueezy
 }
 
 model Commission {
@@ -40,7 +49,7 @@ model Commission {
   currency           String            @default("usd")
   status             CommissionStatus  @default(pending)
   userId             String? // user who created the manual commission
-  source             CommissionSource? // null = live; imported / manual for non-live creates
+  source             CommissionSource?
   sourceCommissionId String?
   sourcePartnerId    String?
   metadata           Json?             @db.Json

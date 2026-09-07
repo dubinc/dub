@@ -14,7 +14,7 @@ import { redis } from "@/lib/upstash";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { transformSaleEventData } from "@/lib/webhook/transform";
 import { nanoid } from "@dub/utils";
-import { EventType } from "@prisma/client";
+import { CommissionSource, EventType } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import type Stripe from "stripe";
 import { WebhookHandlerInput, WebhookHandlerResponse } from "./types";
@@ -345,6 +345,7 @@ export async function invoicePaid({
       quantity: 1,
       invoiceId,
       currency: saleData.currency,
+      source: CommissionSource.stripe,
       context: {
         customer: {
           country: customer.country,

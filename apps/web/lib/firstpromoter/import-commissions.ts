@@ -348,7 +348,7 @@ async function createCommission({
         invoiceId: `${commission.id}`, // this is not the actual invoice ID, but we use this to deduplicate the sales
         createdAt: new Date(commission.created_at),
         description: commission.external_note || null,
-        source: CommissionSource.imported,
+        source: CommissionSource.firstpromoter,
       },
     }),
 

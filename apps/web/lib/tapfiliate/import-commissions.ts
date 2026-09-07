@@ -295,7 +295,7 @@ async function createCommission({
         status: commission.approved ? "paid" : "pending",
         invoiceId: commission.id.toString(), // this is not the actual invoice ID, but we use this to deduplicate the sales
         createdAt: new Date(commission.created_at),
-        source: CommissionSource.imported,
+        source: CommissionSource.tapfiliate,
       },
     }),
 

@@ -27,7 +27,7 @@ import {
   trackSaleResponseSchema,
 } from "@/lib/zod/schemas/sales";
 import { nanoid, R2_URL } from "@dub/utils";
-import { Customer, EventType } from "@prisma/client";
+import { CommissionSource, Customer, EventType } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
 import { createId } from "../create-id";
@@ -37,6 +37,7 @@ import { executeWorkflows } from "../workflows/execute-workflows";
 type TrackSaleParams = z.input<typeof trackSaleRequestSchema> & {
   workspace: Pick<WorkspaceProps, "id" | "stripeConnectId" | "webhookEnabled">;
   source?: CustomerSource; // default is "tracked"
+  commissionSource?: CommissionSource; // default is api
 };
 
 export const trackSale = async ({
@@ -54,6 +55,7 @@ export const trackSale = async ({
   metadata,
   workspace,
   source = "tracked",
+  commissionSource = CommissionSource.api,
 }: TrackSaleParams) => {
   let existingCustomer: Customer | null = null;
   let newCustomer: Customer | null = null;
@@ -347,6 +349,7 @@ export const trackSale = async ({
       leadEventData,
       customer,
       source,
+      commissionSource,
     }),
   ]);
 
@@ -471,6 +474,7 @@ const _trackSale = async ({
   leadEventData,
   customer,
   source,
+  commissionSource = CommissionSource.api,
 }: Omit<TrackSaleParams, "customerExternalId"> & {
   leadEventData: LeadEventTB | null;
   customer: Customer;
@@ -577,6 +581,7 @@ const _trackSale = async ({
           quantity: 1,
           invoiceId,
           currency,
+          source: commissionSource,
           ...(metadata != null && { metadata }),
           context: {
             customer: {

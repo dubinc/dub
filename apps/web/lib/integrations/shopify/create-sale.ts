@@ -11,6 +11,7 @@ import { redis } from "@/lib/upstash";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { transformSaleEventData } from "@/lib/webhook/transform";
 import { nanoid } from "@dub/utils";
+import { CommissionSource } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { shopifyCheckoutCache } from "./checkout-cache";
 import { ShopifyError } from "./error";
@@ -147,6 +148,7 @@ export async function createShopifySale({
       quantity: 1,
       invoiceId: saleData.invoice_id,
       currency: saleData.currency,
+      source: CommissionSource.shopify,
       context: {
         customer: {
           country: customer.country,

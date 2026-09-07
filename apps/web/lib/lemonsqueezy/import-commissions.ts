@@ -530,7 +530,7 @@ async function createCommission({
         status,
         invoiceId: saleEvent.invoiceId,
         createdAt,
-        source: CommissionSource.imported,
+        source: CommissionSource.lemonsqueezy,
       },
     }),
 
