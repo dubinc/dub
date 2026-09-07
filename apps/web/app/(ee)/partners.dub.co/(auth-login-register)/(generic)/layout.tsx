@@ -1,5 +1,6 @@
 import { getProgram } from "@/lib/fetchers/get-program";
 import { getProgramSlugs } from "@/lib/fetchers/get-program-slugs";
+import { isProductionEnvironment } from "@/lib/sandbox/environment";
 import { formatRewardDescription } from "@/ui/partners/format-reward-description";
 import { Grid } from "@dub/ui";
 import { cn, constructMetadata, PARTNERS_DOMAIN } from "@dub/utils";
@@ -32,6 +33,7 @@ export async function generateMetadata(props: {
       } by referring ${program.name} to your friends and followers.`,
       image: `${PARTNERS_DOMAIN}/api/og/program?slug=${program.slug}`,
       canonicalUrl: `${PARTNERS_DOMAIN}/${program.slug}`,
+      noIndex: !isProductionEnvironment(program.workspace.environment),
     });
   }
 

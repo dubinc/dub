@@ -3,6 +3,7 @@ import { assertRoleAllowedForPlan } from "@/lib/api/workspaces/assert-role-plan"
 import { onboardingStepCache } from "@/lib/api/workspaces/onboarding-step-cache";
 import { withSession } from "@/lib/auth";
 import { exceededLimitError } from "@/lib/exceeded-limit-error";
+import { syncStagingWorkspaceJob } from "@/lib/jobs/handlers/sync-staging-workspace-job";
 import { prisma } from "@/lib/prisma";
 import { PlanProps } from "@/lib/types";
 import { NextResponse } from "next/server";
@@ -159,6 +160,12 @@ export const POST = withSession(async ({ session, params }) => {
   await onboardingStepCache.set({
     userId: session.user.id,
     step: "completed",
+  });
+
+  await syncStagingWorkspaceJob.dispatch({
+    action: "add-member",
+    workspaceId: workspace.id,
+    userId: session.user.id,
   });
 
   return NextResponse.json({ message: "Invite accepted." });

@@ -16,14 +16,14 @@ import { DiscountProviderError } from "./discount-error";
 
 const MAX_ATTEMPTS = 3;
 
-async function requireInstalledIntegration(
-  workspace: Pick<Project, "id" | "stripeConnectId">,
-) {
+type Workspace = Pick<Project, "id" | "environment" | "stripeConnectId">;
+
+async function requireInstalledIntegration(workspace: Workspace) {
   if (!workspace.stripeConnectId) {
     throw new DiscountProviderError(
       "stripe",
       "INTEGRATION_NOT_AVAILABLE",
-      "STRIPE_CONNECTION_REQUIRED: Your workspace isn't connected to Stripe yet. Please install the Dub Stripe app in settings to create a discount.",
+      `STRIPE_CONNECTION_REQUIRED: Your workspace (${workspace.environment}) isn't connected to Stripe yet. Please install the Dub Stripe app in settings to create a discount.`,
     );
   }
 
@@ -38,7 +38,7 @@ async function requireInstalledIntegration(
     throw new DiscountProviderError(
       "stripe",
       "INTEGRATION_NOT_AVAILABLE",
-      "STRIPE_CONNECTION_REQUIRED: Your workspace isn't connected to Stripe yet. Please install the Dub Stripe app in settings to create a discount.",
+      `STRIPE_CONNECTION_REQUIRED: Your workspace (${workspace.environment}) isn't connected to Stripe yet. Please install the Dub Stripe app in settings to create a discount.`,
     );
   }
 
@@ -115,9 +115,12 @@ function createStripeDiscountProvider() {
     group,
     data,
   }: {
-    workspace: Project;
-    group: PartnerGroup;
-    data: z.infer<typeof createDiscountSchema>;
+    workspace: Workspace;
+    group: Pick<PartnerGroup, "name">;
+    data: Pick<
+      z.infer<typeof createDiscountSchema>,
+      "amount" | "type" | "maxDuration"
+    >;
   }) => {
     const { settings } = await requireInstalledIntegration(workspace);
 
@@ -155,7 +158,7 @@ function createStripeDiscountProvider() {
     code,
     shouldRetry = true,
   }: {
-    workspace: Pick<Project, "id" | "stripeConnectId">;
+    workspace: Workspace;
     discount: Pick<DiscountProps, "id" | "couponId" | "amount" | "type">;
     code: string;
     shouldRetry?: boolean; // we don't retry if the code is provided by the user
@@ -262,7 +265,7 @@ function createStripeDiscountProvider() {
     workspace,
     code,
   }: {
-    workspace: Pick<Project, "id" | "stripeConnectId">;
+    workspace: Workspace;
     code: string;
   }) => {
     const { settings } = await requireInstalledIntegration(workspace);
@@ -322,7 +325,7 @@ function createStripeDiscountProvider() {
   const assertDiscountIntegration = async ({
     workspace,
   }: {
-    workspace: Pick<Project, "id" | "stripeConnectId" | "shopifyStoreId">;
+    workspace: Workspace;
   }) => {
     await requireInstalledIntegration(workspace);
   };

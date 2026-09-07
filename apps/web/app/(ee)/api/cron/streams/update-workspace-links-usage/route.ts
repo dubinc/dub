@@ -4,6 +4,7 @@ import {
 } from "@/lib/cron/send-limit-alert";
 import { withCron } from "@/lib/cron/with-cron";
 import { prisma } from "@/lib/prisma";
+import { isProductionEnvironment } from "@/lib/sandbox/environment";
 import { WorkspaceProps } from "@/lib/types";
 import { RedisStreamEntry } from "@/lib/upstash/redis-streams/client";
 import {
@@ -135,6 +136,7 @@ const processWorkspaceLinksUsageBatch = () =>
                 linksUsage: true,
                 linksLimit: true,
                 plan: true,
+                environment: true,
               },
             });
 
@@ -179,7 +181,9 @@ const processWorkspaceLinksUsageBatch = () =>
             workspace: (typeof updatedWorkspaces)[number];
             percentage: number;
             emailType: LimitEmailType;
-          } => item.emailType !== null,
+          } =>
+            item.emailType !== null &&
+            isProductionEnvironment(item.workspace.environment),
         );
 
       const workspaceIds = workspacesAboveThreshold.map(

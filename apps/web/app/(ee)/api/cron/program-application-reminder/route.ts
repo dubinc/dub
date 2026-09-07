@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { sendEmail } from "@dub/email";
 import ProgramApplicationReminder from "@dub/email/templates/program-application-reminder";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils/src/constants";
+import { WorkspaceEnvironment } from "@prisma/client";
 
 // POST - /api/cron/program-application-reminder
 // Sends an email to a program application email if they haven't verified their account on Dub yet
@@ -21,6 +22,11 @@ export async function POST(req: Request) {
         // Only send reminders for applications that were created less than 3 days ago
         createdAt: {
           gt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
+        },
+        program: {
+          workspace: {
+            environment: WorkspaceEnvironment.production,
+          },
         },
       },
       include: {

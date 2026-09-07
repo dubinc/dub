@@ -4,7 +4,7 @@ import {
   getMarketplaceCategoryHref,
 } from "@/ui/program-marketplace/utils/urls";
 import { isAppHostname, PARTNERS_HOSTNAMES, SHORT_DOMAIN } from "@dub/utils";
-import { Category, Prisma } from "@prisma/client";
+import { Category, Prisma, WorkspaceEnvironment } from "@prisma/client";
 import { MetadataRoute } from "next";
 import { headers } from "next/headers";
 
@@ -20,6 +20,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   if (PARTNERS_HOSTNAMES.has(domain)) {
     const programs = await prisma.program.findMany({
       where: {
+        workspace: {
+          environment: WorkspaceEnvironment.production,
+        },
         groups: {
           some: {
             slug: "default",

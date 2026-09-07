@@ -29,7 +29,7 @@ export async function syncCustomer({
   "mode"
 >): Promise<WebhookHandlerResponse> {
   const stripeCustomer = event.data.object;
-  const stripeAccountId = event.account as string;
+  const stripeAccountId = workspace.stripeConnectId!;
   const dubCustomerExternalId = getDubCustomerExternalIdFromMetadata(
     stripeCustomer.metadata,
   );

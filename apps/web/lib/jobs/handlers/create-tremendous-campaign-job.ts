@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { assertProductionWorkspace } from "@/lib/sandbox/workspace-guards";
 import { createTremendousCampaign } from "@/lib/tremendous/create-tremendous-campaign";
 import * as z from "zod/v4";
 import { defineJob } from "../index";
@@ -25,6 +26,11 @@ export const createTremendousCampaignJob = defineJob({
         name: true,
         logo: true,
         tremendousCampaignId: true,
+        workspace: {
+          select: {
+            environment: true,
+          },
+        },
       },
     });
 
@@ -34,6 +40,8 @@ export const createTremendousCampaignJob = defineJob({
       );
       return;
     }
+
+    assertProductionWorkspace(program.workspace);
 
     if (program.tremendousCampaignId) {
       console.log(
