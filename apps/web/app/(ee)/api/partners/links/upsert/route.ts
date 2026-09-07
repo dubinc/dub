@@ -6,7 +6,6 @@ import {
   updateLink,
 } from "@/lib/api/links";
 import { includeTags } from "@/lib/api/links/include-tags";
-import { validatePartnerLinkUrl } from "@/lib/api/links/validate-partner-link-url";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
@@ -80,11 +79,6 @@ export const PUT = withWorkspace(
         message: "This partner is not part of a partner group.",
       });
     }
-
-    validatePartnerLinkUrl({
-      group: partnerGroup,
-      url,
-    });
 
     const link = await prisma.link.findFirst({
       where: {

@@ -51,7 +51,7 @@ export async function trackClick({
     TRACK_CLICK_HEADERS,
   );
 
-  expect(status).toEqual(200);
+  expect(status, JSON.stringify(data)).toEqual(200);
   expect(data.clickId).toEqual(expect.any(String));
 
   return data as { clickId: string };
@@ -71,13 +71,43 @@ export async function trackLead({
     customerExternalId: customer.externalId,
     customerEmail: customer.email,
     customerName: customer.name,
+    mode: "wait",
     ...overrides,
   });
 
-  expect(status).toEqual(200);
+  expect(status, JSON.stringify(data)).toEqual(200);
 
   return {
     customer,
+    data,
+  };
+}
+
+export async function trackSale({
+  customerExternalId,
+  ...overrides
+}: {
+  customerExternalId: string;
+} & Record<string, unknown>) {
+  const invoiceId =
+    (overrides.invoiceId as string | undefined) ?? `INV_${nanoid()}`;
+  const amount = (overrides.amount as number | undefined) ?? 1000;
+
+  const { status, data } = await postAuthenticatedJson("/api/track/sale", {
+    customerExternalId,
+    amount,
+    currency: "usd",
+    paymentProcessor: "stripe",
+    eventName: "Purchase",
+    invoiceId,
+    ...overrides,
+  });
+
+  expect(status, JSON.stringify(data)).toEqual(200);
+
+  return {
+    invoiceId,
+    amount,
     data,
   };
 }
