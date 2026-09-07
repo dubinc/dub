@@ -11,8 +11,9 @@ export default function AdminPage() {
       <div className="flex flex-col space-y-4 px-5 py-10">
         <h2 className="text-xl font-semibold">Impersonate User</h2>
         <p className="text-sm text-neutral-500">
-          Get a login link by user/partner email, workspace slug, or domain.
-          Workspace and domain lookups impersonate the main owner.
+          Get a login link by user/partner email, workspace slug, domain, or
+          Stripe customer ID. Workspace, domain, and Stripe lookups impersonate
+          the main owner.
         </p>
         <ImpersonateUser />
       </div>

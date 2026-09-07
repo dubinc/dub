@@ -105,9 +105,16 @@ const Form = () => {
           if (text.toLowerCase().startsWith("mailto:")) {
             text = text.slice(7);
           }
+          const stripeCustomerId = text.match(/cus_[a-zA-Z0-9]+/)?.[0];
+          if (
+            stripeCustomerId &&
+            (text.startsWith("cus_") || text.includes("stripe.com"))
+          ) {
+            text = stripeCustomerId;
+          }
           e.currentTarget.value = text;
         }}
-        placeholder="panic@thedis.co, acme, or acme.com"
+        placeholder="panic@thedis.co, acme, acme.com, or cus_"
         aria-invalid="true"
       />
       {pending && (
