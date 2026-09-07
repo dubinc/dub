@@ -414,7 +414,7 @@ export const sendPartnerProgramSummaryJob = defineJob({
       }),
     );
 
-    await sendBatchEmail(
+    const { error } = await sendBatchEmail(
       [
         {
           variant: "notifications",
@@ -436,6 +436,10 @@ export const sendPartnerProgramSummaryJob = defineJob({
         idempotencyKey: `partner-program-summary-${yearMonth}-${partnerId}`,
       },
     );
+
+    if (error) {
+      throw new Error(error.message);
+    }
 
     console.info(
       `[sendPartnerProgramSummaryJob] Sent summary for partner ${partnerId} (${yearMonth}) with ${programs.length} programs.`,
