@@ -2,22 +2,18 @@ import { getAnalytics } from "@/lib/analytics/get-analytics";
 import { prisma } from "@/lib/prisma";
 import { redis } from "@/lib/upstash";
 import { yearMonthSchema } from "@/lib/zod/schemas/misc";
+import { ACTIVE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
 import { tz } from "@date-fns/tz";
 import { sendBatchEmail } from "@dub/email";
 import PartnerProgramSummary from "@dub/email/templates/partner-program-summary";
 import { chunk } from "@dub/utils";
-import {
-  CommissionStatus,
-  Prisma,
-  Program,
-  ProgramEnrollmentStatus,
-} from "@prisma/client";
+import { CommissionStatus, Prisma, Program } from "@prisma/client";
 import { endOfMonth, format, parse, subMonths } from "date-fns";
 import * as z from "zod/v4";
 import { defineJob } from "../index";
 
 const MAX_PROGRAMS_PER_SUMMARY = 10;
-const ANALYTICS_CACHE_TTL_SECONDS = 60 * 10; // 10 minutes
+const ANALYTICS_CACHE_TTL_SECONDS = 60 * 60; // 1 hour
 const ANALYTICS_REQUEST_BATCH_SIZE = 10;
 
 // earnings from MySQL, clicks, leads, sales from Tinybird
@@ -220,8 +216,8 @@ const inputSchema = z.object({
 });
 
 // Builds the monthly program summary for a partner (all programs combined)
-// and sends one email. Skip if no email, monthlyProgramSummary disabled, or
-// no program activity in the reporting window.
+// and sends it to each partner user with monthlyProgramSummary enabled.
+// Skip if no users to notify or no program activity in the reporting window.
 export const sendPartnerProgramSummaryJob = defineJob({
   name: "send-partner-program-summary-job",
   schema: inputSchema,
@@ -233,25 +229,30 @@ export const sendPartnerProgramSummaryJob = defineJob({
         id: partnerId,
       },
       select: {
-        id: true,
-        email: true,
         users: {
           where: {
             notificationPreferences: {
               monthlyProgramSummary: true,
             },
           },
-          take: 1,
           select: {
-            id: true,
+            user: {
+              select: {
+                email: true,
+              },
+            },
           },
         },
       },
     });
 
-    if (!partner?.email || partner.users.length === 0) {
+    const partnerUsersToNotify = (partner?.users ?? [])
+      .map(({ user }) => user)
+      .filter((user): user is { email: string } => Boolean(user?.email));
+
+    if (partnerUsersToNotify.length === 0) {
       console.info(
-        `[sendPartnerProgramSummaryJob] Partner ${partnerId} missing email or monthly summary preference. Skipping...`,
+        `[sendPartnerProgramSummaryJob] No partner emails to notify for partner ${partnerId}. Skipping...`,
       );
       return;
     }
@@ -262,7 +263,9 @@ export const sendPartnerProgramSummaryJob = defineJob({
         program: {
           deactivatedAt: null,
         },
-        status: ProgramEnrollmentStatus.approved,
+        status: {
+          in: ACTIVE_ENROLLMENT_STATUSES,
+        },
         totalLeads: {
           gt: 0,
         },
@@ -418,23 +421,21 @@ export const sendPartnerProgramSummaryJob = defineJob({
     );
 
     const { error } = await sendBatchEmail(
-      [
-        {
-          variant: "notifications",
-          subject: `Your ${month} partner program summary`,
-          to: partner.email,
-          replyTo: "noreply",
-          react: PartnerProgramSummary({
-            email: partner.email,
-            programs,
-            reportingPeriod: {
-              month,
-              start,
-              end,
-            },
-          }),
-        },
-      ],
+      partnerUsersToNotify.map(({ email }) => ({
+        variant: "notifications",
+        subject: `Your ${month} partner program summary`,
+        to: email,
+        replyTo: "noreply",
+        react: PartnerProgramSummary({
+          email,
+          programs,
+          reportingPeriod: {
+            month,
+            start,
+            end,
+          },
+        }),
+      })),
       {
         idempotencyKey: `partner-program-summary-${yearMonth}-${partnerId}`,
       },
@@ -445,7 +446,7 @@ export const sendPartnerProgramSummaryJob = defineJob({
     }
 
     console.info(
-      `[sendPartnerProgramSummaryJob] Sent summary for partner ${partnerId} (${yearMonth}) with ${programs.length} programs.`,
+      `[sendPartnerProgramSummaryJob] Sent summary for partner ${partnerId} (${yearMonth}) to ${partnerUsersToNotify.length} users with ${programs.length} programs.`,
     );
   },
 });

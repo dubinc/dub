@@ -14,7 +14,7 @@ const inputSchema = z.object({
 });
 
 // Pages distinct eligible partnerIds by partnerId cursor, keeps partners with
-// email + monthlyProgramSummary enabled, and dispatches one
+// at least one user who has monthlyProgramSummary enabled, and dispatches one
 // send-partner-program-summary-job per partner. Self-continues with a partner
 // cursor.
 export const queuePartnerProgramSummaryJob = defineJob({
@@ -59,9 +59,6 @@ export const queuePartnerProgramSummaryJob = defineJob({
         where: {
           id: {
             in: rows.map((r) => r.partnerId),
-          },
-          email: {
-            not: null,
           },
           users: {
             some: {
