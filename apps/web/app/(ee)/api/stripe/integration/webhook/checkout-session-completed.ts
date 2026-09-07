@@ -499,6 +499,14 @@ export async function checkoutSessionCompleted({
       mode,
     });
 
+    const saleMetadata = checkoutSession.metadata ?? {};
+
+    const commissionMetadata = {
+      client_reference_id: checkoutSession.client_reference_id,
+      products,
+      metadata: saleMetadata,
+    };
+
     result = await queuePartnerCommissionCreation({
       event: "sale",
       programId: link.programId,
@@ -510,6 +518,7 @@ export async function checkoutSessionCompleted({
       quantity: 1,
       invoiceId,
       currency: saleData.currency,
+      metadata: commissionMetadata,
       context: {
         customer: {
           country: customer.country,
@@ -518,10 +527,7 @@ export async function checkoutSessionCompleted({
         sale: {
           products,
           amount: saleData.amount,
-          ...(checkoutSession.metadata &&
-          Object.keys(checkoutSession.metadata).length > 0
-            ? { metadata: checkoutSession.metadata }
-            : {}),
+          metadata: saleMetadata,
         },
       },
       clickEvent: {

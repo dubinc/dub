@@ -57,7 +57,7 @@ export const CommissionSchema = z.object({
     .record(z.string(), z.any())
     .nullable()
     .describe(
-      "User-provided metadata from the associated lead or sale event (`lead.metadata` / `sale.metadata`).",
+      "Metadata from the associated lead or sale event (`lead.metadata` / `sale.metadata`), or from Stripe webhook metadata on integration-attributed sales.",
     ),
   createdAt: z
     .date()
