@@ -83,7 +83,7 @@ export const queuePartnerProgramSummaryJob = defineJob({
             yearMonth,
           })),
           ({ partnerId }) => ({
-            deduplicationId: `send-program-summary-${partnerId}`,
+            deduplicationId: `send-program-summary-${yearMonth}-${partnerId}`,
             flowControl: {
               key: "send-program-summary",
               parallelism: 10,

@@ -4,6 +4,7 @@ import { redis } from "@/lib/upstash";
 import { yearMonthSchema } from "@/lib/zod/schemas/misc";
 import { sendBatchEmail } from "@dub/email";
 import PartnerProgramSummary from "@dub/email/templates/partner-program-summary";
+import { chunk } from "@dub/utils";
 import {
   CommissionStatus,
   Prisma,
@@ -15,6 +16,7 @@ import { defineJob } from "../index";
 
 const MAX_PROGRAMS_PER_SUMMARY = 10;
 const ANALYTICS_CACHE_TTL_SECONDS = 60 * 60 * 24; // 24 hours
+const ANALYTICS_REQUEST_BATCH_SIZE = 10;
 
 // earnings from MySQL, clicks, leads, sales from Tinybird
 type MonthMetrics = {
@@ -57,7 +59,7 @@ function byCurrentMonthPerformance(
   );
 }
 
-function getReportingPeriod(yearMonth: string) {
+export function getReportingPeriod(yearMonth: string) {
   const currentMonth = parse(yearMonth, "yyyy-MM", new Date());
   const previousMonth = subMonths(currentMonth, 1);
 
@@ -72,7 +74,7 @@ function getReportingPeriod(yearMonth: string) {
 
 // Fetches composite top_partners for a program/month window once, caches the
 // partnerId -> metrics map in Redis so other send jobs for the same program reuse it.
-async function getProgramTopPartnersAnalytics({
+async function getPartnersAnalytics({
   workspaceId,
   programId,
   yearMonth,
@@ -249,37 +251,62 @@ export const sendPartnerProgramSummaryJob = defineJob({
       }),
     ]);
 
-    const analyticsByProgram = await Promise.all(
-      enrollments.map(async ({ program }) => {
-        const [previousByPartner, currentByPartner] = await Promise.all([
-          getProgramTopPartnersAnalytics({
+    const analyticsRequests = enrollments.flatMap(({ program }) => [
+      {
+        program,
+        period: "previous" as const,
+        start: previousMonth,
+        end: endOfMonth(previousMonth),
+      },
+      {
+        program,
+        period: "current" as const,
+        start: currentMonth,
+        end: endOfMonth(currentMonth),
+      },
+    ]);
+
+    const analyticsByKey = new Map<
+      string,
+      Record<string, PartnerAnalyticsMetrics>
+    >();
+
+    for (const batch of chunk(
+      analyticsRequests,
+      ANALYTICS_REQUEST_BATCH_SIZE,
+    )) {
+      const batchResults = await Promise.all(
+        batch.map(async ({ program, period, start, end }) => {
+          const byPartner = await getPartnersAnalytics({
             workspaceId: program.workspaceId,
             programId: program.id,
             yearMonth,
-            period: "previous",
-            start: previousMonth,
-            end: endOfMonth(previousMonth),
-          }),
+            period,
+            start,
+            end,
+          });
 
-          getProgramTopPartnersAnalytics({
-            workspaceId: program.workspaceId,
-            programId: program.id,
-            yearMonth,
-            period: "current",
-            start: currentMonth,
-            end: endOfMonth(currentMonth),
-          }),
-        ]);
+          return {
+            key: `${program.id}:${period}`,
+            byPartner,
+          };
+        }),
+      );
 
-        return {
-          program,
-          previousMonthAnalytics:
-            previousByPartner[partnerId] ?? EMPTY_PARTNER_ANALYTICS,
-          currentMonthAnalytics:
-            currentByPartner[partnerId] ?? EMPTY_PARTNER_ANALYTICS,
-        };
-      }),
-    );
+      for (const { key, byPartner } of batchResults) {
+        analyticsByKey.set(key, byPartner);
+      }
+    }
+
+    const analyticsByProgram = enrollments.map(({ program }) => ({
+      program,
+      previousMonthAnalytics:
+        analyticsByKey.get(`${program.id}:previous`)?.[partnerId] ??
+        EMPTY_PARTNER_ANALYTICS,
+      currentMonthAnalytics:
+        analyticsByKey.get(`${program.id}:current`)?.[partnerId] ??
+        EMPTY_PARTNER_ANALYTICS,
+    }));
 
     const previousEarningsMap = new Map(
       previousMonthEarnings.map((e) => [e.programId, e._sum.earnings ?? 0]),
