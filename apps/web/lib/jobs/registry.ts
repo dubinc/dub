@@ -55,6 +55,16 @@ const jobLoaders = {
     import("./handlers/auto-reject-partner-job").then(
       (m) => m.autoRejectPartnerJob,
     ),
+
+  "queue-partner-program-summary-job": () =>
+    import("./handlers/queue-partner-program-summary-job").then(
+      (m) => m.queuePartnerProgramSummaryJob,
+    ),
+
+  "send-partner-program-summary-job": () =>
+    import("./handlers/send-partner-program-summary-job").then(
+      (m) => m.sendPartnerProgramSummaryJob,
+    ),
 } as const satisfies Record<string, () => Promise<JobDefinition>>;
 
 const jobCache = new Map<string, JobDefinition>();
