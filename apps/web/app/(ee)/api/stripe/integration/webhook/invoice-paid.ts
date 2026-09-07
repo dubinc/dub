@@ -336,7 +336,7 @@ export async function invoicePaid({
 
     const commissionMetadata = {
       products,
-      metadata: saleMetadata,
+      ...saleMetadata,
     };
 
     result = await queuePartnerCommissionCreation({

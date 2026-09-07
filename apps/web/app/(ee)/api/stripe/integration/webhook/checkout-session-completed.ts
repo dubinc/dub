@@ -504,7 +504,7 @@ export async function checkoutSessionCompleted({
     const commissionMetadata = {
       client_reference_id: checkoutSession.client_reference_id,
       products,
-      metadata: saleMetadata,
+      ...saleMetadata,
     };
 
     result = await queuePartnerCommissionCreation({
