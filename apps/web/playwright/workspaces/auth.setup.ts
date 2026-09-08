@@ -1,3 +1,4 @@
+import { testIds } from "@/lib/e2e/test-ids";
 import { nanoid } from "@dub/utils";
 import { expect, test } from "@playwright/test";
 import { extractOtp, waitForEmail } from "../mailhog";
@@ -15,18 +16,16 @@ test("sign up new user for workspace onboarding", async ({ page }) => {
 
   // Step 1: Enter email and reveal password field
   await page.locator('input[name="email"]').fill(email);
-  await page.getByRole("button", { name: "Sign Up" }).click();
+  await page.getByTestId(testIds.auth.signupSubmit).click();
 
   // Step 2: Enter password and submit
   const passwordInput = page.locator('input[name="password"]');
   await expect(passwordInput).toBeVisible();
   await passwordInput.fill(SIGNUP_PASSWORD);
-  await page.getByRole("button", { name: "Sign Up" }).click();
+  await page.getByTestId(testIds.auth.signupSubmit).click();
 
   // Step 3: Verify email via OTP from MailHog
-  await expect(
-    page.getByRole("heading", { name: "Verify your email address" }),
-  ).toBeVisible();
+  await expect(page.getByTestId(testIds.auth.verifyEmailHeading)).toBeVisible();
 
   const message = await waitForEmail(email);
   const otp = extractOtp(message);

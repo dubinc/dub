@@ -1,5 +1,6 @@
 "use client";
 
+import { testIds } from "@/lib/e2e/test-ids";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { Button, Modal, useRouterStuff } from "@dub/ui";
 import { getPlanDetails } from "@dub/utils";
@@ -83,7 +84,10 @@ function StartPaidPlanModal({
       className="max-w-md"
     >
       <div className="sm:py-4.5 border-b border-neutral-200 px-4 py-3 sm:px-6">
-        <h3 className="text-lg font-medium text-neutral-900">
+        <h3
+          className="text-lg font-medium text-neutral-900"
+          data-testid={testIds.billing.startPaidPlanHeading}
+        >
           Plan start confirmation
         </h3>
       </div>
@@ -110,7 +114,10 @@ function StartPaidPlanModal({
             </div>
           )}
         </div>
-        <p className="text-sm text-neutral-600">
+        <p
+          className="text-sm text-neutral-600"
+          data-testid={testIds.billing.startPaidPlanNotice}
+        >
           You&apos;ll be charged today and your trial will end.
         </p>
       </div>
@@ -130,6 +137,7 @@ function StartPaidPlanModal({
           loading={isSubmitting}
           disabled={isSubmitting}
           onClick={handleConfirm}
+          data-testid={testIds.billing.confirmStartPaidPlan}
         />
       </div>
     </Modal>

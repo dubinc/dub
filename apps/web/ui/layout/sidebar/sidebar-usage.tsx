@@ -1,6 +1,7 @@
 "use client";
 
 import { clientAccessCheck } from "@/lib/client-access-check";
+import { testIds } from "@/lib/e2e/test-ids";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { useRetryPaymentModal } from "@/ui/modals/retry-payment-modal";
 import { useStartPaidPlanModal } from "@/ui/modals/start-paid-plan-modal";
@@ -124,7 +125,10 @@ function UsageInner() {
         <div className="border-t border-neutral-300/80 p-3">
           {isTrial ? (
             <div className="flex items-center justify-between gap-2">
-              <span className="text-sm font-semibold text-neutral-900">
+              <span
+                className="text-sm font-semibold text-neutral-900"
+                data-testid={testIds.billing.freeTrial}
+              >
                 Free trial
               </span>
 
