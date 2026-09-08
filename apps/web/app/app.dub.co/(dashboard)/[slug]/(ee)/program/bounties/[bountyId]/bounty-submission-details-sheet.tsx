@@ -1,6 +1,7 @@
 "use client";
 
 import { BountySubmissionStatusBadges } from "@/lib/bounty/bounty-submission-status-badges";
+import { clientAccessCheck } from "@/lib/client-access-check";
 import { REJECT_BOUNTY_SUBMISSION_REASONS } from "@/lib/bounty/constants";
 import { calculateSocialMetricsRewardAmount } from "@/lib/bounty/rewards";
 import { resolveBountyDetails } from "@/lib/bounty/utils";
@@ -65,7 +66,13 @@ function BountySubmissionDetailsSheetContent({
   setIsOpen,
 }: BountySubmissionDetailsSheetProps) {
   const { bounty } = useBounty();
-  const { slug: workspaceSlug } = useWorkspace();
+  const { slug: workspaceSlug, role } = useWorkspace();
+
+  const permissionsError = clientAccessCheck({
+    action: "bounties.write",
+    role,
+    customPermissionDescription: "review bounty submissions",
+  }).error;
 
   const { setShowRejectModal, RejectBountySubmissionModal } =
     useRejectBountySubmissionModal(submission, onNext);
@@ -131,7 +138,7 @@ function BountySubmissionDetailsSheetContent({
         );
       }
     },
-    { sheet: true },
+    { sheet: true, enabled: !permissionsError },
   );
 
   useKeyboardShortcut(
@@ -141,7 +148,7 @@ function BountySubmissionDetailsSheetContent({
         setShowRejectModal(true);
       }
     },
-    { sheet: true },
+    { sheet: true, enabled: !permissionsError },
   );
 
   const isValidForm = useMemo(() => {
@@ -565,11 +572,13 @@ function BountySubmissionDetailsSheetContent({
                     text="Reject"
                     shortcut="R"
                     disabledTooltip={
-                      submission.status === "draft"
-                        ? "Bounty submission is in progress."
-                        : submission.status === "rejected"
-                          ? "Bounty submission already rejected."
-                          : undefined
+                      permissionsError
+                        ? permissionsError
+                        : submission.status === "draft"
+                          ? "Bounty submission is in progress."
+                          : submission.status === "rejected"
+                            ? "Bounty submission already rejected."
+                            : undefined
                     }
                     disabled={submission.status === "draft"}
                     onClick={() => setShowRejectModal(true)}
@@ -588,9 +597,11 @@ function BountySubmissionDetailsSheetContent({
                       )
                     }
                     disabledTooltip={
-                      submission.status === "draft"
-                        ? "Bounty submission is in progress."
-                        : undefined
+                      permissionsError
+                        ? permissionsError
+                        : submission.status === "draft"
+                          ? "Bounty submission is in progress."
+                          : undefined
                     }
                     disabled={!isValidForm || submission.status === "draft"}
                   />

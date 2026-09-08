@@ -1,5 +1,6 @@
 "use client";
 
+import { clientAccessCheck } from "@/lib/client-access-check";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -22,9 +23,15 @@ const campaignTypes = Object.values(CAMPAIGN_TYPE_BADGES).map(
 
 export function CreateCampaignButton() {
   const router = useRouter();
-  const { slug } = useWorkspace();
+  const { slug, role } = useWorkspace();
   const { makeRequest, isSubmitting } = useApiMutation<Campaign>();
   const [isOpen, setIsOpen] = useState(false);
+
+  const permissionsError = clientAccessCheck({
+    action: "campaigns.write",
+    role,
+    customPermissionDescription: "create campaigns",
+  }).error;
 
   const createDraftCampaign = async (type: "marketing" | "transactional") => {
     await makeRequest(`/api/campaigns`, {
@@ -40,12 +47,24 @@ export function CreateCampaignButton() {
   };
 
   useKeyboardShortcut("m", () => createDraftCampaign("marketing"), {
-    enabled: isOpen && !isSubmitting,
+    enabled: isOpen && !isSubmitting && !permissionsError,
   });
 
   useKeyboardShortcut("t", () => createDraftCampaign("transactional"), {
-    enabled: isOpen && !isSubmitting,
+    enabled: isOpen && !isSubmitting && !permissionsError,
   });
+
+  if (permissionsError) {
+    return (
+      <Button
+        type="button"
+        variant="primary"
+        className="h-9 w-fit rounded-lg px-3"
+        text="Create campaign"
+        disabledTooltip={permissionsError}
+      />
+    );
+  }
 
   return (
     <Popover
