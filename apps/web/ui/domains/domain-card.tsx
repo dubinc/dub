@@ -25,6 +25,7 @@ import {
 } from "@dub/ui";
 import {
   CircleHalfDottedClock,
+  ConnectedDots4,
   CursorRays,
   Flag2,
   Gear,
@@ -587,13 +588,13 @@ function DomainCardMenu({
                 )}
                 {canSetAsProgramDomain && (
                   <Button
-                    text="Set as Program Domain"
+                    text="Set as Program"
                     variant="outline"
                     onClick={() => {
                       setOpenPopover(false);
                       setShowChangeDomainModal(true);
                     }}
-                    icon={<Globe className="h-4 w-4" />}
+                    icon={<ConnectedDots4 className="h-4 w-4" />}
                     className="h-9 justify-start px-2 font-medium"
                   />
                 )}

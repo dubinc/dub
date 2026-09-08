@@ -8,6 +8,7 @@ import {
   useMemo,
   useState,
 } from "react";
+import { toast } from "sonner";
 
 type ChangeProgramDomainModalProps = {
   showChangeDomainModal: boolean;
@@ -42,6 +43,10 @@ function ChangeProgramDomainModalInner({
     try {
       await onConfirm();
       setShowChangeDomainModal(false);
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Something went wrong.",
+      );
     } finally {
       setConfirming(false);
     }
