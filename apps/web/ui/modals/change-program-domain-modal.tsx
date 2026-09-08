@@ -45,7 +45,9 @@ function ChangeProgramDomainModalInner({
       setShowChangeDomainModal(false);
     } catch (error) {
       toast.error(
-        error instanceof Error ? error.message : "Something went wrong.",
+        error instanceof Error
+          ? error.message
+          : "Failed to change the program domain. Please try again or contact support at dub.co/support",
       );
     } finally {
       setConfirming(false);
