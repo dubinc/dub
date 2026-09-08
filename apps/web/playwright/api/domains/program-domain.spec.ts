@@ -27,7 +27,10 @@ async function deleteDomain(api: ApiClient, slug: string | undefined) {
 }
 
 async function restoreProgramDomain(api: ApiClient) {
-  await api.post(`/api/domains/${TEST_WORKSPACE.program.domain}/program`);
+  const { status } = await api.post(
+    `/api/domains/${TEST_WORKSPACE.program.domain}/program`,
+  );
+  expect(status).toEqual(200);
 }
 
 test("POST /domains/{slug}/program", async ({ api, program }) => {
