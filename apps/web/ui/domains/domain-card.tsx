@@ -67,6 +67,7 @@ export default function DomainCard({ props }: { props: DomainProps }) {
   const isDubProvisioned = !!registeredDomain;
 
   const { id: workspaceId, slug } = useWorkspace();
+  const { program } = useProgram();
 
   const domainRef = useRef<HTMLDivElement>(null);
   const isVisible = useInViewport(domainRef, { defaultValue: true });
@@ -193,6 +194,7 @@ export default function DomainCard({ props }: { props: DomainProps }) {
               icon={tab === "active" ? Globe : Archive}
               url={props.link?.url}
               primary={primary}
+              program={program?.domain === domain}
             />
 
             {/* Clicks */}
@@ -588,7 +590,7 @@ function DomainCardMenu({
                 )}
                 {canSetAsProgramDomain && (
                   <Button
-                    text="Set as Program"
+                    text="Set Program Domain"
                     variant="outline"
                     onClick={() => {
                       setOpenPopover(false);

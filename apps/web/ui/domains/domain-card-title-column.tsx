@@ -1,4 +1,4 @@
-import { ArrowTurnRight2, Flag2, Globe } from "@dub/ui/icons";
+import { ArrowTurnRight2, ConnectedDots4, Flag2, Globe } from "@dub/ui/icons";
 import { cn, getPrettyUrl, punycode } from "@dub/utils";
 
 export function DomainCardTitleColumn({
@@ -7,6 +7,7 @@ export function DomainCardTitleColumn({
   url,
   description,
   primary = false,
+  program = false,
   defaultDomain = false,
 }: {
   domain: string;
@@ -14,6 +15,7 @@ export function DomainCardTitleColumn({
   url?: string | null;
   description?: string;
   primary?: boolean;
+  program?: boolean;
   defaultDomain?: boolean;
 }) {
   return (
@@ -45,12 +47,20 @@ export function DomainCardTitleColumn({
           >
             {punycode(domain)}
           </a>
-          {primary ? (
-            <span className="xs:px-3 xs:py-1 flex items-center gap-1 rounded-full bg-sky-400/[.15] px-1.5 py-0.5 text-xs font-medium text-sky-600">
-              <Flag2 className="hidden h-3 w-3 sm:block" />
-              Primary
-            </span>
-          ) : null}
+          <div className="flex items-center gap-1">
+            {primary ? (
+              <span className="xs:px-3 xs:py-1 flex items-center gap-1 rounded-full bg-sky-400/[.15] px-1.5 py-0.5 text-xs font-medium text-sky-600">
+                <Flag2 className="hidden h-3 w-3 sm:block" />
+                Primary
+              </span>
+            ) : null}
+            {program ? (
+              <span className="xs:px-3 xs:py-1 flex items-center gap-1 rounded-full bg-violet-400/[.15] px-1.5 py-0.5 text-xs font-medium text-violet-600">
+                <ConnectedDots4 className="hidden h-3 w-3 sm:block" />
+                Program
+              </span>
+            ) : null}
+          </div>
         </div>
         {(!defaultDomain || description) && (
           <div className="mt-1 flex items-center gap-1 text-xs">
