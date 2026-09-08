@@ -7,7 +7,7 @@ import { getDomainOrThrow } from "../domains/get-domain-or-throw";
 
 interface LinksQueryFilters
   extends Partial<z.infer<typeof getLinksQuerySchemaExtended>> {
-  userId: string;
+  sessionUserId: string;
   workspace: Pick<WorkspaceProps, "id" | "plan" | "foldersUsage" | "users">;
 }
 
@@ -21,6 +21,7 @@ export async function validateLinksQueryFilters({
   tenantId,
   folderId,
   userId,
+  sessionUserId,
   workspace,
 }: LinksQueryFilters) {
   let folderIds: string[] | undefined = undefined;
@@ -35,7 +36,7 @@ export async function validateLinksQueryFilters({
   if (folderId) {
     await verifyFolderAccess({
       workspace,
-      userId,
+      userId: sessionUserId,
       folderId,
       requiredPermission: "folders.read",
     });
@@ -43,15 +44,22 @@ export async function validateLinksQueryFilters({
 
   /* we only need to get the folder ids if we are:
       - not filtering by folder
-      - filtering by search, domain, tags, tenantId, or linkIds
+      - filtering by search, domain, tags, creator, tenantId, or linkIds
     */
   if (
     !folderId &&
-    (search || domain || tagId || tagIds || tagNames || tenantId || linkIds)
+    (search ||
+      domain ||
+      tagId ||
+      tagIds ||
+      tagNames ||
+      tenantId ||
+      linkIds ||
+      userId)
   ) {
     folderIds = await getFolderIdsToFilter({
       workspace,
-      userId,
+      userId: sessionUserId,
     });
   }
 
