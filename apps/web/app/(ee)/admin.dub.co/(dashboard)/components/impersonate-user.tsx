@@ -5,7 +5,7 @@ import { cn } from "@dub/utils";
 import { useState } from "react";
 import { useFormStatus } from "react-dom";
 import { toast } from "sonner";
-import UserInfo, { UserInfoProps } from "./user-info";
+import UserInfo, { UserInfoProps, UserInfoSkeleton } from "./user-info";
 
 export function ImpersonateUser() {
   const [data, setData] = useState<UserInfoProps | null>(null);
@@ -33,7 +33,7 @@ export function ImpersonateUser() {
       >
         <Form />
       </form>
-      {data && (
+      {data ? (
         <form
           action={async () => {
             const emailDomain = data.email.split("@")[1];
@@ -78,6 +78,8 @@ export function ImpersonateUser() {
             <BanButton />
           </div>
         </form>
+      ) : (
+        <UserInfoSkeleton />
       )}
     </div>
   );

@@ -13,6 +13,7 @@ import { ArrowUpRight2 } from "@dub/ui/icons";
 import {
   APP_DOMAIN,
   capitalize,
+  cn,
   currencyFormatter,
   formatDate,
   getPrettyUrl,
@@ -106,6 +107,52 @@ export default function UserInfo({ data }: { data: UserInfoProps }) {
           </div>
         </section>
       )}
+    </div>
+  );
+}
+
+export function UserInfoSkeleton() {
+  return (
+    <div className="grid gap-5">
+      <LoginLinkCopyButton text="Enter a value to show results" />
+      <LoginLinkCopyButton text="Enter a value to show results" />
+      <LoginLinkCopyButton text="Enter a value to show results" />
+
+      <section>
+        <h3 className="mb-2.5 text-sm font-semibold text-neutral-900">
+          Workspaces
+        </h3>
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <WorkspaceCardSkeleton />
+        </div>
+      </section>
+    </div>
+  );
+}
+
+function WorkspaceCardSkeleton() {
+  return (
+    <div className="flex min-w-0 flex-col overflow-hidden rounded-xl border border-neutral-200 bg-white">
+      <div className="flex items-start justify-between gap-2 px-3.5 py-3">
+        <div className="min-w-0">
+          <p className="font-semibold text-neutral-400">Workspace</p>
+          <p className="mt-0.5 truncate text-xs text-neutral-400">slug</p>
+        </div>
+        <Badge variant="gray">Plan</Badge>
+      </div>
+
+      <div className="grid grid-cols-2 gap-px border-y border-neutral-100 bg-neutral-100">
+        <StatTile label="Events" value="—" hint="Last 30 days" />
+        <StatTile label="Links" value="—" hint="Last 30 days" />
+      </div>
+
+      <MetaRow label="ID" value="—" />
+
+      <div className="space-y-0.5 border-t border-neutral-100 bg-neutral-50/80 py-1">
+        <MetaRow label="Program URL" value="—" />
+        <MetaRow label="Partners" value="—" />
+        <MetaRow label="Commissions (30d)" value="—" />
+      </div>
     </div>
   );
 }
@@ -302,22 +349,40 @@ function MetaRow({
   );
 }
 
-const LoginLinkCopyButton = ({ text, url }: { text: string; url: string }) => {
+const LoginLinkCopyButton = ({
+  text,
+  url,
+}: {
+  text: string;
+  url?: string;
+}) => {
   const [copied, copyToClipboard] = useCopyToClipboard();
+  const isPlaceholder = !url;
 
   return (
     <div className="flex w-full items-center space-x-2">
-      <div className="w-full rounded-lg border border-neutral-200 bg-neutral-50 px-3.5 py-2 text-sm text-neutral-900">
+      <div
+        className={cn(
+          "w-full rounded-lg border border-neutral-200 bg-neutral-50 px-3.5 py-2 text-sm",
+          isPlaceholder ? "text-neutral-400" : "text-neutral-900",
+        )}
+      >
         {text}
       </div>
       <button
         type="button"
+        disabled={isPlaceholder}
         onClick={() =>
-          toast.promise(copyToClipboard(url), {
+          toast.promise(copyToClipboard(url!), {
             success: "Copied to clipboard",
           })
         }
-        className="rounded-lg border border-neutral-200 p-2 text-neutral-500 transition-colors hover:bg-neutral-50 hover:text-neutral-800"
+        className={cn(
+          "rounded-lg border border-neutral-200 p-2 text-neutral-500 transition-colors",
+          isPlaceholder
+            ? "cursor-not-allowed opacity-50"
+            : "hover:bg-neutral-50 hover:text-neutral-800",
+        )}
       >
         {copied ? <Tick className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
       </button>

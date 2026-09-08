@@ -274,10 +274,12 @@ const processWorkspaceLinksUsageBatch = () =>
                   type: emailType,
                   slackWebhookUrl: slackWebhookByWorkspace.get(workspace.id),
                 }),
-                log({
-                  message: `*${workspace.slug}* has used ${percentage.toString()}% of its links limit for the month.`,
-                  type: "cron",
-                }),
+                workspace.plan !== "free" &&
+                  log({
+                    message: `*${workspace.slug}* has used ${percentage.toString()}% of its links limit for the month.`,
+                    type: "cron",
+                    mention: true,
+                  }),
               ]);
 
               return { skipped: false };
