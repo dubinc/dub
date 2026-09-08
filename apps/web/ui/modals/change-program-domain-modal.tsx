@@ -8,6 +8,7 @@ import {
   useMemo,
   useState,
 } from "react";
+import { toast } from "sonner";
 
 type ChangeProgramDomainModalProps = {
   showChangeDomainModal: boolean;
@@ -42,6 +43,12 @@ function ChangeProgramDomainModalInner({
     try {
       await onConfirm();
       setShowChangeDomainModal(false);
+    } catch (error) {
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Failed to change the program domain. Please try again or contact support at dub.co/support",
+      );
     } finally {
       setConfirming(false);
     }
