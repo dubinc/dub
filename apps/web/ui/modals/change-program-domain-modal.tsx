@@ -60,7 +60,7 @@ function ChangeProgramDomainModalInner({
     <>
       <div className="space-y-2 border-b border-neutral-200 p-4 sm:p-6">
         <h3 className="text-lg font-medium leading-none">
-          Switching to a different program domain
+          Changing your referral link domain
         </h3>
       </div>
 
