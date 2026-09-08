@@ -7,7 +7,7 @@ import {
   getPaginationQuerySchema,
 } from "./misc";
 import { PartnerSchema } from "./partners";
-import { centsSchema } from "./utils";
+import { centsSchema, parseDateSchema } from "./utils";
 
 export const CUSTOMERS_MAX_PAGE_SIZE = 100;
 
@@ -130,7 +130,15 @@ export const createCustomerBodySchema = z.object({
     ),
 });
 
-export const updateCustomerBodySchema = createCustomerBodySchema.partial();
+export const updateCustomerBodySchema = createCustomerBodySchema
+  .partial()
+  .extend({
+    subscriptionCanceledAt: parseDateSchema
+      .nullish()
+      .describe(
+        "The date the customer canceled their subscription. Set to a timestamp to mark the subscription as canceled, or `null` to clear it (e.g. if they resubscribe).",
+      ),
+  });
 
 // used in webhook responses + regular /customers endpoints (without expanded fields)
 export const CustomerSchema = z.object({
