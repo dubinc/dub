@@ -25,8 +25,7 @@ const inputSchema = z.object({
   userId: z.string(),
   sourceEmail: z.string(),
   targetEmail: z.string(),
-  // When true (e.g. e2e tests), clear the verification cache but skip the
-  // partner-account-merged notification emails. Defaults to sending emails.
+  // When true (e.g. e2e tests) skip the email notification
   skipEmailNotification: z.boolean().optional().default(false),
 });
 
@@ -45,8 +44,7 @@ const CACHE_KEY_PREFIX = "merge-partner-accounts";
  *    (Tinybird/cache) and total commissions.
  * 4. cleanup-source-account: delete the source partner's rewinds, source user,
  *    duplicate-account fraud events, and finally the source partner itself.
- * 5. send-merged-emails: clear the verification cache + notify both accounts
- *    (unless skipEmailNotification is true, e.g. e2e tests).
+ * 5. send-merged-emails: clear the verification cache + notify both accounts.
  */
 
 // POST /api/workflows/merge-partner-accounts
