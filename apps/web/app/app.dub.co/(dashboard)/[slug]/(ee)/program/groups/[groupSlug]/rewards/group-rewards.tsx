@@ -50,6 +50,7 @@ export function GroupRewards() {
       group?.leadReward,
       group?.saleReward,
       group?.referralReward,
+      group?.customReward,
     ].filter(Boolean) ?? [];
 
   const currentReward = rewardSheetState.rewardId
@@ -76,7 +77,7 @@ export function GroupRewards() {
       <div className="flex flex-col gap-6">
         {loading || !group ? (
           <>
-            {Array.from({ length: 4 }).map((_, index) => (
+            {Array.from({ length: 5 }).map((_, index) => (
               <RewardSkeleton key={index} />
             ))}
           </>
@@ -95,6 +96,12 @@ export function GroupRewards() {
             <RewardItem
               reward={group.referralReward}
               event="referral"
+              group={group}
+            />
+
+            <RewardItem
+              reward={group.customReward}
+              event="custom"
               group={group}
             />
           </>

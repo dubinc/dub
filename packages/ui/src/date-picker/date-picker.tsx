@@ -36,6 +36,7 @@ export function DatePicker({
   trigger: customTrigger,
   renderContent,
   disabled,
+  disabledDays,
   locale = enUS,
   placeholder = "Select date",
   hasError,
@@ -69,6 +70,7 @@ export function DatePicker({
       selected={selected}
       onSelect={onSelect}
       locale={locale}
+      disabled={disabledDays}
       {...props}
       defaultMonth={selected}
     />

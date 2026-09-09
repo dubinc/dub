@@ -163,6 +163,7 @@ export const ProgramEnrollmentSchema = z.object({
   leadRewardId: z.string().nullish(),
   saleRewardId: z.string().nullish(),
   referralRewardId: z.string().nullish(),
+  customRewardId: z.string().nullish(),
   discount: DiscountSchema.nullish(),
   discountId: z.string().nullish(),
   applicationId: z
