@@ -69,31 +69,38 @@ export async function syncPartnerSearchDocuments({
   };
 }
 
-interface FindPartnerSearchSyncEnrollmentIdsOptions {
+interface SyncPartnersOptions {
   partnerIds: string[];
   programId?: string;
   after?: string;
   take?: number;
+  searchProvider?: PartnerSearchProvider | null;
+}
+
+export interface SyncPartnersResult {
+  upserted: number;
+  lastEnrollmentId: string | null;
 }
 
 /**
- * One page of enrollment IDs for the given partners, for changes that fan out
+ * One page of documents for the given partners, for changes that fan out
  * beyond a single enrollment: a profile or platform edit touches every program
- * the partner is in.
+ * the partner is in. Paged because that fan-out is unbounded. `programId`
+ * narrows it to one enrollment per partner.
  *
- * Paged because that fan-out is unbounded. `programId` narrows it to one
- * enrollment per partner.
+ * Upserts only. The rows come from the database, so there is nothing to delete.
  */
-export async function findPartnerSearchSyncEnrollmentIds({
+export async function syncPartnerEnrollments({
   partnerIds,
   programId,
   after,
   take = PARTNER_SEARCH_SYNC_BATCH_SIZE,
-}: FindPartnerSearchSyncEnrollmentIdsOptions): Promise<string[]> {
+  searchProvider = getPartnerSearchProvider(),
+}: SyncPartnersOptions): Promise<SyncPartnersResult> {
   const ids = unique(partnerIds.filter(Boolean));
 
-  if (ids.length === 0) {
-    return [];
+  if (!searchProvider || ids.length === 0) {
+    return { upserted: 0, lastEnrollmentId: null };
   }
 
   const enrollments = await prisma.programEnrollment.findMany({
@@ -104,14 +111,21 @@ export async function findPartnerSearchSyncEnrollmentIds({
       ...(programId && { programId }),
       ...(after && { id: { gt: after } }),
     },
-    select: {
-      id: true,
-    },
+    select: partnerSearchDocumentSelect,
     orderBy: {
       id: "asc",
     },
     take,
   });
 
-  return enrollments.map(({ id }) => id);
+  if (enrollments.length > 0) {
+    await searchProvider.upsert(
+      enrollments.map(serializePartnerSearchDocument),
+    );
+  }
+
+  return {
+    upserted: enrollments.length,
+    lastEnrollmentId: enrollments.at(-1)?.id ?? null,
+  };
 }
