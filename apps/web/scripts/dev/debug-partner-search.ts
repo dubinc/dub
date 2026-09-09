@@ -146,15 +146,11 @@ const PLATFORM_TYPES = [
 ];
 
 /**
- * `searchText` is every searchable value lowercased and space-joined in a fixed
- * order: partner ID, tenant ID, name, email, company, description,
- * platform types, handles, then link keys. Three of those boundaries are
- * recoverable, since the partner ID is prefixed, the email is address-shaped,
- * and the platform types are a known enum, so the blob splits into identity /
- * profile / platforms-and-keys. A tenant ID has no recognizable shape, so it
- * stays inside `identity` ahead of the name. A document without platforms has
- * no recoverable boundary after the email, so everything past it stays together
- * as `profile`.
+ * `searchText` joins the searchable values in order: partner ID, tenant ID,
+ * name, email, company, description, platform types, handles, link keys. Only
+ * the partner ID prefix, the email shape, and the platform enum are
+ * recoverable, so the split into identity / profile / platforms-and-keys is a
+ * heuristic. The tenant ID has no shape and stays in identity.
  */
 function parseIndexedText(searchText: string) {
   const tokens = searchText.split(" ").filter(Boolean);
