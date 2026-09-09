@@ -144,7 +144,11 @@ export function DurationPopoverContent({
               }
               if (e.key === "Enter") {
                 e.preventDefault();
-                if (!presetsOnly && customDurationInput === "0") {
+                if (
+                  !presetsOnly &&
+                  minValue === 0 &&
+                  customDurationInput === "0"
+                ) {
                   onChange(0);
                   setCustomDurationInput("");
                   setShowCustomInput(false);
@@ -189,7 +193,7 @@ export function DurationPopoverContent({
         setCustomDurationInput("");
       }}
       items={[
-        ...(!presetsOnly && !partnerReferralReward
+        ...(!presetsOnly && !partnerReferralReward && minValue === 0
           ? [{ text: "one time", value: "0" }]
           : []),
         ...presetItems,

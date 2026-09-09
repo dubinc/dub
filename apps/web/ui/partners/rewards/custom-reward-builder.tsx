@@ -193,6 +193,7 @@ export function CustomRewardBuilder() {
           presetDurations={RECURRING_MAX_DURATIONS.filter(
             (v) => v !== 0 && v !== 1,
           )}
+          minValue={1}
           hideLifetime
         />
       </InlineBadgePopover>

@@ -111,7 +111,7 @@ const CADENCE_LABELS: Record<CustomRewardConfig["frequency"], string> = {
   year: "yearly",
 };
 
-function formatCadenceLabel({
+export function formatCadenceLabel({
   frequency,
   interval,
 }: Pick<CustomRewardConfig, "frequency" | "interval">) {

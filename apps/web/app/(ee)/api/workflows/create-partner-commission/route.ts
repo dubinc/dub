@@ -35,6 +35,7 @@ import {
   PartnerGroup,
   Prisma,
   ProgramEnrollment,
+  ProgramEnrollmentStatus,
   Reward,
 } from "@prisma/client";
 import { WorkflowRetryAfterError } from "@upstash/workflow";
@@ -424,6 +425,21 @@ async function stepCreateCommission(
     }
 
     earnings = cappedEarnings;
+  }
+
+  // Custom reward jobs are queued from a snapshot of eligible enrollments.
+  // Re-check at write time so we don't pay a partner who was banned, deactivated,
+  // or moved off this reward before the workflow ran.
+  const isIneligibleForCustomReward =
+    event === "custom" &&
+    (programEnrollment.status !== ProgramEnrollmentStatus.approved ||
+      programEnrollment.customRewardId !== rewardId);
+
+  if (isIneligibleForCustomReward) {
+    return logAndReturn({
+      commission: null,
+      outputLog: `Partner ${partnerId} is no longer eligible for custom reward ${rewardId} (status: ${programEnrollment.status}), skipping commission creation...`,
+    });
   }
 
   try {

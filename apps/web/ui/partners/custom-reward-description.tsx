@@ -1,9 +1,7 @@
+import { formatCadenceLabel } from "@/lib/api/rewards/custom-reward-utils";
 import { constructRewardAmount } from "@/lib/api/sales/construct-reward-amount";
 import { RewardProps } from "@/lib/types";
-import {
-  CUSTOM_REWARD_CADENCE_PRESETS,
-  customRewardConfigSchema,
-} from "@/lib/zod/schemas/rewards";
+import { customRewardConfigSchema } from "@/lib/zod/schemas/rewards";
 import { cn } from "@dub/utils";
 
 type CustomRewardDescriptionInput = Pick<
@@ -18,14 +16,12 @@ export function getCustomRewardDescriptionParts(
   const parsed = customRewardConfigSchema.safeParse(reward.config);
   const config = parsed.success ? parsed.data : undefined;
 
-  const preset = config
-    ? CUSTOM_REWARD_CADENCE_PRESETS.find(
-        (p) =>
-          p.frequency === config.frequency && p.interval === config.interval,
-      )
-    : undefined;
-
-  const cadenceLabel = preset?.label.toLowerCase() ?? "on a schedule";
+  const cadenceLabel = config
+    ? formatCadenceLabel({
+        frequency: config.frequency,
+        interval: config.interval,
+      })
+    : "on a schedule";
 
   const durationLabel =
     reward.maxDuration == null

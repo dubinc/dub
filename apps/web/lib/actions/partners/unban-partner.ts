@@ -74,6 +74,7 @@ export const unbanPartnerAction = authActionClient
           clickRewardId: partnerGroup.clickRewardId,
           leadRewardId: partnerGroup.leadRewardId,
           saleRewardId: partnerGroup.saleRewardId,
+          referralRewardId: partnerGroup.referralRewardId,
           customRewardId: partnerGroup.customRewardId,
           discountId: partnerGroup.discountId,
         },
