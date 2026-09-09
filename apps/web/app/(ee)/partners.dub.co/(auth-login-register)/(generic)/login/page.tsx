@@ -1,4 +1,5 @@
 import { SSO_LOGIN_PROGRAMS } from "@/lib/auth/sso-login-programs";
+import { testIds } from "@/lib/e2e/test-ids";
 import { getProgram } from "@/lib/fetchers/get-program";
 import { AuthAlternativeBanner } from "@/ui/auth/auth-alternative-banner";
 import LoginForm from "@/ui/auth/login/login-form";
@@ -70,7 +71,10 @@ export default async function LoginPage(props: {
     <div className="relative w-full">
       <AuthLayout showTerms="partners" className={cn(programSlug && "pt-20")}>
         <div className="w-full max-w-sm">
-          <h1 className="text-center text-xl font-semibold">
+          <h1
+            className="text-center text-xl font-semibold"
+            data-testid={testIds.auth.loginHeading}
+          >
             Log in to your Dub Partner account
           </h1>
           <div className="mt-8">

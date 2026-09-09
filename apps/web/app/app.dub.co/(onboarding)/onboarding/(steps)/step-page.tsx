@@ -10,6 +10,7 @@ export function StepPage({
   paidPlanRequired,
   badge,
   className,
+  headingTestId,
 }: PropsWithChildren<{
   title: ReactNode;
   description: ReactNode;
@@ -19,6 +20,7 @@ export function StepPage({
     label: string;
   };
   className?: string;
+  headingTestId?: string;
 }>) {
   const BadgeIcon = badge?.icon ?? Crown;
 
@@ -36,7 +38,12 @@ export function StepPage({
           {badge?.label ?? "Paid plan required"}
         </div>
       )}
-      <h1 className="text-center text-xl font-semibold">{title}</h1>
+      <h1
+        className="text-center text-xl font-semibold"
+        data-testid={headingTestId}
+      >
+        {title}
+      </h1>
       <div className="mt-2 text-balance text-center text-base text-neutral-500">
         {description}
       </div>

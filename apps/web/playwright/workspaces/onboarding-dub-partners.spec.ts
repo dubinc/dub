@@ -1,3 +1,4 @@
+import { testIds } from "@/lib/e2e/test-ids";
 import { nanoid } from "@dub/utils";
 import { expect, test, type Page } from "@playwright/test";
 import {
@@ -73,30 +74,30 @@ test.describe("Dub Partners onboarding", () => {
     // Welcome page
     await page.goto("/onboarding");
     await expect(
-      page.getByRole("heading", { name: "Welcome to Dub" }),
+      page.getByTestId(testIds.onboarding.stepWelcome),
     ).toBeVisible();
     await Promise.all([
       expect(page).toHaveURL(/\/onboarding\/workspace/, {
         timeout: STEP_NAV_TIMEOUT,
       }),
-      page.getByRole("button", { name: "Get started" }).click(),
+      page.getByTestId(testIds.onboarding.getStarted).click(),
     ]);
 
     // Workspace creation step
     await expect(
-      page.getByRole("heading", { name: "Create your workspace" }),
+      page.getByTestId(testIds.onboarding.stepWorkspace),
     ).toBeVisible();
 
     // Fill workspace name (slug auto-generates)
-    await page.locator('input[id="name"]').fill(workspaceName);
+    await page.getByTestId(testIds.onboarding.workspaceName).fill(workspaceName);
 
     // Read the auto-generated slug for later assertions
-    const slug = await page.locator('input[id="slug"]').inputValue();
+    const slug = await page
+      .getByTestId(testIds.onboarding.workspaceSlug)
+      .inputValue();
     expect(slug).toBeTruthy();
 
-    const productsHeading = page.getByRole("heading", {
-      name: "What do you want to do with Dub?",
-    });
+    const productsHeading = page.getByTestId(testIds.onboarding.stepProducts);
 
     // Navigation runs in onSuccess after POST + SWR mutate + session.update(); wait for API first (CI).
     const createWorkspacePost = page.waitForResponse(
@@ -105,7 +106,7 @@ test.describe("Dub Partners onboarding", () => {
         new URL(r.url()).pathname === "/api/workspaces",
       { timeout: STEP_NAV_TIMEOUT },
     );
-    await page.getByRole("button", { name: "Create workspace" }).click();
+    await page.getByTestId(testIds.onboarding.createWorkspace).click();
     const createWsRes = await createWorkspacePost;
     if (!createWsRes.ok()) {
       throw new Error(
@@ -122,42 +123,44 @@ test.describe("Dub Partners onboarding", () => {
       expect(page).toHaveURL(/\/onboarding\/domain/, {
         timeout: STEP_NAV_TIMEOUT,
       }),
-      page.getByRole("button", { name: "Continue with Dub Partners" }).click(),
+      page.getByTestId(testIds.onboarding.productCta("partners")).click(),
     ]);
 
     // Domain step — connect a custom domain
-    await expect(
-      page.getByRole("heading", { name: "Add a custom domain" }),
-    ).toBeVisible({ timeout: STEP_NAV_TIMEOUT });
+    await expect(page.getByTestId(testIds.onboarding.stepDomain)).toBeVisible({
+      timeout: STEP_NAV_TIMEOUT,
+    });
     await Promise.all([
       expect(page).toHaveURL(/\/onboarding\/domain\/custom/, {
         timeout: STEP_NAV_TIMEOUT,
       }),
-      page.getByRole("button", { name: "Connect domain" }).click(),
+      page.getByTestId(testIds.onboarding.connectDomain).click(),
     ]);
 
     await expect(
-      page.getByRole("heading", { name: "Connect a custom domain" }),
+      page.getByTestId(testIds.onboarding.stepDomainCustom),
     ).toBeVisible({ timeout: STEP_NAV_TIMEOUT });
 
-    await page.getByPlaceholder("go.acme.com").fill(customDomain);
-    await expect(page.getByText(/is ready to connect/i)).toBeVisible({
+    await page.getByTestId(testIds.onboarding.domainInput).fill(customDomain);
+    await expect(
+      page.getByTestId(testIds.onboarding.domainAvailable),
+    ).toBeVisible({
       timeout: 30_000,
     });
     await Promise.all([
       expect(page).toHaveURL(/\/onboarding\/program/, {
         timeout: STEP_NAV_TIMEOUT,
       }),
-      page.getByRole("button", { name: "Add domain" }).click(),
+      page.getByTestId(testIds.onboarding.addDomain).click(),
     ]);
 
     // Partner program step
     await expect(
-      page.getByRole("heading", { name: "Create your partner program" }),
+      page.getByTestId(testIds.onboarding.stepProgram),
     ).toBeVisible({ timeout: STEP_NAV_TIMEOUT });
 
     await page
-      .getByTestId("onboarding-program-company-name")
+      .getByTestId(testIds.onboarding.programCompanyName)
       .fill(`Test Program ${nanoid(4)}`);
 
     await installProgramLogoUploadMocks(page);
@@ -168,7 +171,7 @@ test.describe("Dub Partners onboarding", () => {
         new URL(r.url()).pathname.endsWith("/upload-url"),
       { timeout: STEP_NAV_TIMEOUT },
     );
-    await page.getByTestId("onboarding-program-logo").setInputFiles({
+    await page.getByTestId(testIds.onboarding.programLogo).setInputFiles({
       name: "logo.png",
       mimeType: "image/png",
       buffer: MINIMAL_PNG,
@@ -179,52 +182,52 @@ test.describe("Dub Partners onboarding", () => {
         `Logo upload-url failed: HTTP ${uploadUrlRes.status()} ${await uploadUrlRes.text()}`,
       );
     }
-    await expect(page.getByText("logo.png uploaded!")).toBeVisible({
+    await expect(
+      page.getByTestId(testIds.onboarding.programLogoUploaded),
+    ).toBeVisible({
       timeout: 30_000,
     });
 
     await page
-      .getByTestId("onboarding-program-destination-url")
+      .getByTestId(testIds.onboarding.programDestinationUrl)
       .fill("https://acme.com");
     await page
-      .getByTestId("onboarding-program-support-email")
+      .getByTestId(testIds.onboarding.programSupportEmail)
       .fill("support@acme.com");
     await Promise.all([
       expect(page).toHaveURL(/\/onboarding\/program\/reward/, {
         timeout: STEP_NAV_TIMEOUT,
       }),
-      page.getByTestId("onboarding-program-continue").click(),
+      page.getByTestId(testIds.onboarding.programContinue).click(),
     ]);
 
     // Default reward — keep Sale / recurring / percentage defaults, set 30%
-    await expect(
-      page.getByRole("heading", { name: "Create your default reward" }),
-    ).toBeVisible({ timeout: STEP_NAV_TIMEOUT });
-    const pctInput = page.getByTestId("onboarding-reward-amount");
+    await expect(page.getByTestId(testIds.onboarding.stepReward)).toBeVisible({
+      timeout: STEP_NAV_TIMEOUT,
+    });
+    const pctInput = page.getByTestId(testIds.onboarding.rewardAmount);
     await expect(pctInput).toBeVisible({ timeout: STEP_NAV_TIMEOUT });
     await pctInput.fill("30");
     await Promise.all([
       expect(page).toHaveURL(/\/onboarding\/plan/, {
         timeout: STEP_NAV_TIMEOUT,
       }),
-      page.getByTestId("onboarding-reward-continue").click(),
+      page.getByTestId(testIds.onboarding.rewardContinue).click(),
     ]);
 
     // Plan step — mocked checkout trial (no Stripe)
-    await expect(
-      page
-        .locator("h1")
-        .filter({ hasText: /Partners/i })
-        .filter({ hasText: /plan/i }),
-    ).toBeVisible({ timeout: STEP_NAV_TIMEOUT });
+    await expect(page.getByTestId(testIds.onboarding.stepPlan)).toBeVisible({
+      timeout: STEP_NAV_TIMEOUT,
+    });
 
     await installBillingCheckoutMocks(page, {
       slug,
       baseURL,
     });
 
-    // use testId instead (since plan-selector overrides UpgradePlanButton text)
-    const advancedPaidCta = page.getByTestId("onboarding-plan-cta-advanced");
+    const advancedPaidCta = page.getByTestId(
+      testIds.onboarding.planCta("advanced"),
+    );
     await expect(advancedPaidCta).toBeVisible({ timeout: STEP_NAV_TIMEOUT });
     await expect(advancedPaidCta).toBeEnabled({ timeout: STEP_NAV_TIMEOUT });
 
@@ -245,15 +248,13 @@ test.describe("Dub Partners onboarding", () => {
     });
 
     await expect(
-      page.getByRole("heading", {
-        name: `The ${workspaceName} workspace has been created`,
-      }),
+      page.getByTestId(testIds.onboarding.workspaceCreated),
+    ).toContainText(workspaceName, { timeout: STEP_NAV_TIMEOUT });
+    await expect(
+      page.getByTestId(testIds.onboarding.goToDashboard),
     ).toBeVisible({ timeout: STEP_NAV_TIMEOUT });
     await expect(
-      page.getByRole("button", { name: "Go to your dashboard" }),
-    ).toBeVisible({ timeout: STEP_NAV_TIMEOUT });
-    await expect(
-      page.getByRole("heading", { name: "Complete setup" }),
+      page.getByTestId(testIds.onboarding.completeSetup),
     ).toBeVisible({ timeout: STEP_NAV_TIMEOUT });
 
     await expect
