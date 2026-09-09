@@ -30,10 +30,10 @@ function enrollment(id: string, partnerId: string) {
     totalCommissions: BigInt(0),
     partner: {
       id: partnerId,
-      programPartnerTags: [],
       platforms: [],
     },
     links: [],
+    programPartnerTags: [],
   };
 }
 

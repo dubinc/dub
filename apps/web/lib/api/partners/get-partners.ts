@@ -69,15 +69,12 @@ export async function getPartners(
   const include = {
     partner: {
       include: {
-        programPartnerTags: {
-          where: {
-            programId,
-          },
-          include: {
-            partnerTag: true,
-          },
-        },
         platforms: true,
+      },
+    },
+    programPartnerTags: {
+      include: {
+        partnerTag: true,
       },
     },
     links: true,
@@ -110,11 +107,13 @@ export async function getPartners(
       .slice((page - 1) * pageSize, page * pageSize)
       .map(({ id }) => id);
 
+    // The IDs already passed every filter above. The program scope stays as a
+    // guard, the partner joins do not need to run again.
     const pageEnrollments =
       pageIds.length > 0
         ? await prisma.programEnrollment.findMany({
             where: {
-              ...candidateWhere,
+              programId,
               id: { in: pageIds },
             },
             include,
@@ -135,15 +134,19 @@ export async function getPartners(
   }
 
   return partners.map(
-    ({ partner, links, partnerGroup, ...programEnrollment }) => ({
+    ({
+      partner,
+      links,
+      partnerGroup,
+      programPartnerTags,
+      ...programEnrollment
+    }) => ({
       ...partner,
       ...programEnrollment,
       id: partner.id,
       createdAt: new Date(programEnrollment.createdAt),
       ...(includeGroup && { group: partnerGroup }),
-      tags: partner.programPartnerTags
-        .map(({ partnerTag }) => partnerTag)
-        .filter((t) => t.programId != null && t.programId === programId),
+      tags: programPartnerTags.map(({ partnerTag }) => partnerTag),
       links,
       netRevenue:
         toCentsNumber(programEnrollment.totalSaleAmount ?? 0) -
