@@ -9,3 +9,7 @@ To install the package, run:
 ```bash
 pnpm i @dub/embed-core
 ```
+
+## License
+
+[MIT](./LICENSE.md)

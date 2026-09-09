@@ -56,6 +56,16 @@ const jobLoaders = {
       (m) => m.autoRejectPartnerJob,
     ),
 
+  "queue-partner-program-summary-job": () =>
+    import("./handlers/queue-partner-program-summary-job").then(
+      (m) => m.queuePartnerProgramSummaryJob,
+    ),
+
+  "send-partner-program-summary-job": () =>
+    import("./handlers/send-partner-program-summary-job").then(
+      (m) => m.sendPartnerProgramSummaryJob,
+    ),
+
   "create-custom-commission-job": () =>
     import("./handlers/create-custom-commission-job").then(
       (m) => m.createCustomCommissionJob,

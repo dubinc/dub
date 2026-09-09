@@ -20,7 +20,13 @@ import { sendEmail } from "@dub/email";
 import ProgramInvite from "@dub/email/templates/program-invite";
 import ProgramWelcome from "@dub/email/templates/program-welcome";
 import TrialStartedEmail from "@dub/email/templates/trial/trial-started";
-import { getDomainWithoutWWW, isLegacyBusinessPlan, nanoid } from "@dub/utils";
+import {
+  capitalize,
+  getDomainWithoutWWW,
+  isLegacyBusinessPlan,
+  log,
+  nanoid,
+} from "@dub/utils";
 import { Program, Project, User } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { redirect } from "next/navigation";
@@ -303,6 +309,15 @@ export const createProgram = async ({
             metadata: program,
           },
         ],
+      }),
+
+      log({
+        message: `:tada: New program created: ${
+          program.url
+            ? `<${program.url}|*${program.name}*>`
+            : `*${program.name}*`
+        } (\`${program.slug}\`) → *${capitalize(workspace.plan)}* plan`,
+        type: "alerts",
       }),
     ]),
   );

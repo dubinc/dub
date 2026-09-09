@@ -35,42 +35,56 @@ export const GET = withWorkspace(
       });
     }
 
-    const [verificationResponse, domainResponse] = await Promise.all([
-      resend.domains.verify(emailDomain.resendDomainId),
-      resend.domains.get(emailDomain.resendDomainId),
-    ]);
+    const { data: domainData, error: domainError } = await resend.domains.get(
+      emailDomain.resendDomainId,
+    );
 
-    if (verificationResponse.error || domainResponse.error) {
+    if (domainError || !domainData) {
       throw new DubApiError({
         code: "internal_server_error",
         message:
-          verificationResponse.error?.message ||
-          domainResponse.error?.message ||
-          "Failed to verify email domain. Please try again later.",
+          domainError?.message ||
+          "Failed to retrieve email domain. Please try again later.",
       });
     }
 
-    if (emailDomain.status !== domainResponse.data.status) {
+    // Calling verify temporarily marks the domain as pending, so skip if already verified.
+    if (domainData.status !== "verified") {
+      const { error: verificationError } = await resend.domains.verify(
+        emailDomain.resendDomainId,
+      );
+
+      if (verificationError) {
+        throw new DubApiError({
+          code: "internal_server_error",
+          message:
+            verificationError.message ||
+            "Failed to verify email domain. Please try again later.",
+        });
+      }
+    }
+
+    if (emailDomain.status !== domainData.status) {
       await prisma.emailDomain.update({
         where: {
           id: emailDomain.id,
         },
         data: {
-          status: domainResponse.data.status,
+          status: domainData.status,
           lastChecked: new Date(),
         },
       });
     }
 
     let domainConnect: DomainConnectDiscovery | null = null;
-    if (domainResponse.data.status !== "verified") {
+    if (domainData.status !== "verified") {
       assertEnv("DOMAIN_CONNECT_PRIVATE_KEY");
       const apex = getApexDomain(`https://${emailDomain.slug}`);
       domainConnect = await discoverDomainConnect(apex);
     }
 
     return NextResponse.json({
-      ...domainResponse.data,
+      ...domainData,
       domainConnect,
     });
   },

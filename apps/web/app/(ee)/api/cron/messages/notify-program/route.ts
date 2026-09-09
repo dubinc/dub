@@ -165,7 +165,7 @@ export async function POST(req: Request) {
   } catch (error) {
     await log({
       message: `Error notifying program users of new messages: ${error.message}`,
-      type: "alerts",
+      type: "errors",
     });
 
     return handleAndReturnErrorResponse(error);

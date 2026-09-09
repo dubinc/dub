@@ -22,6 +22,10 @@ export const PERMISSION_ACTIONS = [
   "folders.write",
   "groups.write",
   "groups.read",
+  "partners.write",
+  "commissions.write",
+  "bounties.write",
+  "campaigns.write",
   "messages.read",
   "messages.write",
   "payouts.write",
@@ -148,6 +152,26 @@ export const ROLE_PERMISSIONS: {
   {
     action: "groups.write",
     description: "manage groups",
+    roles: ["owner", "member"],
+  },
+  {
+    action: "partners.write",
+    description: "manage partners",
+    roles: ["owner", "member"],
+  },
+  {
+    action: "commissions.write",
+    description: "manage commissions",
+    roles: ["owner", "member"],
+  },
+  {
+    action: "bounties.write",
+    description: "manage bounties",
+    roles: ["owner", "member"],
+  },
+  {
+    action: "campaigns.write",
+    description: "manage campaigns",
     roles: ["owner", "member"],
   },
   {
