@@ -35,7 +35,6 @@ import {
   PartnerGroup,
   Prisma,
   ProgramEnrollment,
-  ProgramEnrollmentStatus,
   Reward,
 } from "@prisma/client";
 import { WorkflowRetryAfterError } from "@upstash/workflow";
@@ -430,12 +429,15 @@ async function stepCreateCommission(
   // Custom reward jobs are queued from a snapshot of eligible enrollments.
   // Re-check at write time so we don't pay a partner who was banned, deactivated,
   // or moved off this reward before the workflow ran.
-  const isIneligibleForCustomReward =
-    event === "custom" &&
-    (programEnrollment.status !== ProgramEnrollmentStatus.approved ||
-      programEnrollment.customRewardId !== rewardId);
+  // Only jobs that pass rewardId (create-custom-commission) should be gated —
+  // manual commissions and bounty payouts also use event "custom" but have no rewardId.
+  const isCustomRewardCommission = event === "custom" && Boolean(rewardId);
+  const stillOnCustomReward = programEnrollment.customRewardId === rewardId;
 
-  if (isIneligibleForCustomReward) {
+  if (
+    isCustomRewardCommission &&
+    (programEnrollment.status !== "approved" || !stillOnCustomReward)
+  ) {
     return logAndReturn({
       commission: null,
       outputLog: `Partner ${partnerId} is no longer eligible for custom reward ${rewardId} (status: ${programEnrollment.status}), skipping commission creation...`,
