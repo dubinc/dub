@@ -679,7 +679,11 @@ function RewardList() {
   return (
     <div className="flex flex-col gap-2 rounded-xl bg-neutral-100 p-2">
       <RewardListItem
-        title={showReferralRewardCard ? "Customer referral rewards" : "Rewards"}
+        title={
+          standardRewards.length > 0 || !showReferralRewardCard
+            ? "Rewards"
+            : "Customer referral rewards"
+        }
         titleRight={<RewardsTermsList />}
         isDeactivated={isDeactivated}
         rewards={[

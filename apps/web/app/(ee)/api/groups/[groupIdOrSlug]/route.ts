@@ -330,6 +330,7 @@ export const DELETE = withWorkspace(
       group.leadRewardId,
       group.saleRewardId,
       group.referralRewardId,
+      group.customRewardId,
     ].filter(Boolean) as string[];
 
     if (groupRewardIds.length > 0) {
