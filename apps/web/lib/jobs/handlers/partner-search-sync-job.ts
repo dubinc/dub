@@ -1,8 +1,8 @@
 import {
   getPartnerSearchProvider,
   PARTNER_SEARCH_SYNC_BATCH_SIZE,
+  syncPartnerEnrollments,
   syncPartnerSearchDocuments,
-  syncPartnerSearchDocumentsForPartners,
 } from "@/lib/api/partners/search";
 import * as z from "zod/v4";
 import { defineJob } from "../index";
@@ -74,14 +74,13 @@ export const partnerSearchSyncJob = defineJob({
       return;
     }
 
-    const { upserted, lastEnrollmentId } =
-      await syncPartnerSearchDocumentsForPartners({
-        partnerIds: input.partnerIds,
-        programId: input.programId,
-        after: input.after,
-        take: PARTNER_SEARCH_SYNC_BATCH_SIZE,
-        searchProvider,
-      });
+    const { upserted, lastEnrollmentId } = await syncPartnerEnrollments({
+      partnerIds: input.partnerIds,
+      programId: input.programId,
+      after: input.after,
+      take: PARTNER_SEARCH_SYNC_BATCH_SIZE,
+      searchProvider,
+    });
 
     if (upserted === 0) {
       return;

@@ -7,15 +7,14 @@ const BATCH_SIZE = 3;
 const mocks = vi.hoisted(() => ({
   getPartnerSearchProvider: vi.fn(),
   syncPartnerSearchDocuments: vi.fn(),
-  syncPartnerSearchDocumentsForPartners: vi.fn(),
+  syncPartnerEnrollments: vi.fn(),
 }));
 
 vi.mock("@/lib/api/partners/search", () => ({
   PARTNER_SEARCH_SYNC_BATCH_SIZE: 3,
   getPartnerSearchProvider: mocks.getPartnerSearchProvider,
   syncPartnerSearchDocuments: mocks.syncPartnerSearchDocuments,
-  syncPartnerSearchDocumentsForPartners:
-    mocks.syncPartnerSearchDocumentsForPartners,
+  syncPartnerEnrollments: mocks.syncPartnerEnrollments,
 }));
 
 const searchProvider = { name: "turbopuffer" };
@@ -27,7 +26,7 @@ describe("partnerSearchSyncJob", () => {
     mocks.syncPartnerSearchDocuments
       .mockReset()
       .mockResolvedValue({ upserted: 0, deleted: 0 });
-    mocks.syncPartnerSearchDocumentsForPartners
+    mocks.syncPartnerEnrollments
       .mockReset()
       .mockResolvedValue({ upserted: 0, lastEnrollmentId: null });
   });
@@ -41,7 +40,7 @@ describe("partnerSearchSyncJob", () => {
     });
 
     expect(mocks.syncPartnerSearchDocuments).not.toHaveBeenCalled();
-    expect(mocks.syncPartnerSearchDocumentsForPartners).not.toHaveBeenCalled();
+    expect(mocks.syncPartnerEnrollments).not.toHaveBeenCalled();
   });
 
   it("syncs the enrollment ids it is given", async () => {
@@ -54,11 +53,11 @@ describe("partnerSearchSyncJob", () => {
       enrollmentIds: ["pge_1", "pge_2"],
       searchProvider,
     });
-    expect(mocks.syncPartnerSearchDocumentsForPartners).not.toHaveBeenCalled();
+    expect(mocks.syncPartnerEnrollments).not.toHaveBeenCalled();
   });
 
   it("syncs a partner fan-out in one read", async () => {
-    mocks.syncPartnerSearchDocumentsForPartners.mockResolvedValue({
+    mocks.syncPartnerEnrollments.mockResolvedValue({
       upserted: 2,
       lastEnrollmentId: "pge_2",
     });
@@ -68,7 +67,7 @@ describe("partnerSearchSyncJob", () => {
       partnerIds: ["pn_1"],
     });
 
-    expect(mocks.syncPartnerSearchDocumentsForPartners).toHaveBeenCalledWith({
+    expect(mocks.syncPartnerEnrollments).toHaveBeenCalledWith({
       partnerIds: ["pn_1"],
       programId: undefined,
       after: undefined,
@@ -83,7 +82,7 @@ describe("partnerSearchSyncJob", () => {
       .spyOn(partnerSearchSyncJob, "dispatch")
       .mockResolvedValue({ status: "published", messageId: "msg_1" });
 
-    mocks.syncPartnerSearchDocumentsForPartners.mockResolvedValue({
+    mocks.syncPartnerEnrollments.mockResolvedValue({
       upserted: BATCH_SIZE,
       lastEnrollmentId: "pge_3",
     });
@@ -110,7 +109,7 @@ describe("partnerSearchSyncJob", () => {
       .spyOn(partnerSearchSyncJob, "dispatch")
       .mockResolvedValue({ status: "published", messageId: "msg_1" });
 
-    mocks.syncPartnerSearchDocumentsForPartners.mockResolvedValue({
+    mocks.syncPartnerEnrollments.mockResolvedValue({
       upserted: 2,
       lastEnrollmentId: "pge_2",
     });
@@ -128,7 +127,7 @@ describe("partnerSearchSyncJob", () => {
       .spyOn(partnerSearchSyncJob, "dispatch")
       .mockResolvedValue({ status: "published", messageId: "msg_1" });
 
-    mocks.syncPartnerSearchDocumentsForPartners.mockResolvedValue({
+    mocks.syncPartnerEnrollments.mockResolvedValue({
       upserted: 0,
       lastEnrollmentId: null,
     });

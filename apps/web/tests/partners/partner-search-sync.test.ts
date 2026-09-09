@@ -1,7 +1,7 @@
 import {
   partnerSearchDocumentSelect,
+  syncPartnerEnrollments,
   syncPartnerSearchDocuments,
-  syncPartnerSearchDocumentsForPartners,
   type PartnerSearchDocumentSource,
   type PartnerSearchProvider,
 } from "@/lib/api/partners/search";
@@ -173,7 +173,7 @@ describe("syncPartnerSearchDocuments", () => {
   });
 });
 
-describe("syncPartnerSearchDocumentsForPartners", () => {
+describe("syncPartnerEnrollments", () => {
   beforeEach(() => {
     mocks.findMany.mockReset();
   });
@@ -185,7 +185,7 @@ describe("syncPartnerSearchDocumentsForPartners", () => {
       createSource("pge_2"),
     ]);
 
-    const result = await syncPartnerSearchDocumentsForPartners({
+    const result = await syncPartnerEnrollments({
       partnerIds: ["pn_1"],
       searchProvider,
     });
@@ -207,7 +207,7 @@ describe("syncPartnerSearchDocumentsForPartners", () => {
     const searchProvider = createProvider();
     mocks.findMany.mockResolvedValueOnce([createSource("pge_1")]);
 
-    await syncPartnerSearchDocumentsForPartners({
+    await syncPartnerEnrollments({
       partnerIds: ["pn_1"],
       programId: "prog_test",
       searchProvider,
@@ -223,7 +223,7 @@ describe("syncPartnerSearchDocumentsForPartners", () => {
     const searchProvider = createProvider();
     mocks.findMany.mockResolvedValueOnce([createSource("pge_3")]);
 
-    await syncPartnerSearchDocumentsForPartners({
+    await syncPartnerEnrollments({
       partnerIds: ["pn_1"],
       after: "pge_2",
       take: 2,
@@ -242,7 +242,7 @@ describe("syncPartnerSearchDocumentsForPartners", () => {
     const searchProvider = createProvider();
     mocks.findMany.mockResolvedValueOnce([]);
 
-    const result = await syncPartnerSearchDocumentsForPartners({
+    const result = await syncPartnerEnrollments({
       partnerIds: ["pn_1"],
       searchProvider,
     });
@@ -254,7 +254,7 @@ describe("syncPartnerSearchDocumentsForPartners", () => {
   it("does not query when there are no partners", async () => {
     const searchProvider = createProvider();
 
-    const result = await syncPartnerSearchDocumentsForPartners({
+    const result = await syncPartnerEnrollments({
       partnerIds: [],
       searchProvider,
     });

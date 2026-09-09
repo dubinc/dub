@@ -91,7 +91,7 @@ export interface SyncPartnersResult {
  * Upserts only. The rows come from the database, so there is nothing to
  * delete.
  */
-export async function syncPartnerSearchDocumentsForPartners({
+export async function syncPartnerEnrollments({
   partnerIds,
   programId,
   after,
