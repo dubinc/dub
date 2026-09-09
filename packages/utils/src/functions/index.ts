@@ -43,4 +43,5 @@ export * from "./time-ago";
 export * from "./to-cents-number";
 export * from "./trim";
 export * from "./truncate";
+export * from "./unique";
 export * from "./urls";
