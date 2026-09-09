@@ -1,5 +1,5 @@
-import { Prisma } from "@prisma/client";
 import { unique } from "@dub/utils";
+import { Prisma } from "@prisma/client";
 import { PartnerSearchDocument } from "./types";
 
 export const partnerSearchDocumentSelect = {
@@ -16,14 +16,6 @@ export const partnerSearchDocumentSelect = {
       companyName: true,
       description: true,
       country: true,
-      // Tags are per (program, partner) and this select cannot take a program,
-      // so the serializer narrows them to the enrollment's own program.
-      programPartnerTags: {
-        select: {
-          programId: true,
-          partnerTagId: true,
-        },
-      },
       platforms: {
         select: {
           type: true,
@@ -37,6 +29,11 @@ export const partnerSearchDocumentSelect = {
       key: true,
     },
   },
+  programPartnerTags: {
+    select: {
+      partnerTagId: true,
+    },
+  },
 } satisfies Prisma.ProgramEnrollmentSelect;
 
 export type PartnerSearchDocumentSource = Prisma.ProgramEnrollmentGetPayload<{
@@ -46,7 +43,7 @@ export type PartnerSearchDocumentSource = Prisma.ProgramEnrollmentGetPayload<{
 export function serializePartnerSearchDocument(
   enrollment: PartnerSearchDocumentSource,
 ): PartnerSearchDocument {
-  const { partner, links } = enrollment;
+  const { partner, links, programPartnerTags } = enrollment;
 
   return {
     id: enrollment.id,
@@ -66,9 +63,7 @@ export function serializePartnerSearchDocument(
     tenantId: enrollment.tenantId,
     groupId: enrollment.groupId,
     partnerTagIds: unique(
-      partner.programPartnerTags
-        .filter(({ programId }) => programId === enrollment.programId)
-        .map(({ partnerTagId }) => partnerTagId),
+      programPartnerTags.map(({ partnerTagId }) => partnerTagId),
     ),
   };
 }
