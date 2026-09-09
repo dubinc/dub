@@ -113,7 +113,8 @@ function parseImpersonateQuery(
 ): ImpersonateIdentifier | { error: string } {
   if (typeof raw !== "string" || !raw.trim()) {
     return {
-      error: "Enter a user email, workspace slug, domain, or Stripe customer ID",
+      error:
+        "Enter a user email, workspace slug, domain, or Stripe customer ID",
     };
   }
 

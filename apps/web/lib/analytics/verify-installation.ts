@@ -48,7 +48,11 @@ const decodeHtmlEntities = (value: string) =>
     .replace(/&amp;/gi, "&");
 
 const normalizeReferDomain = (value: string) =>
-  value.trim().toLowerCase().replace(/^https?:\/\//, "").replace(/\/$/, "");
+  value
+    .trim()
+    .toLowerCase()
+    .replace(/^https?:\/\//, "")
+    .replace(/\/$/, "");
 
 const getScriptAttr = (tag: string, name: string) => {
   const match = tag.match(ATTR_RE(name));

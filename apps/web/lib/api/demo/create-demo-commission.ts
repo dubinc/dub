@@ -7,8 +7,8 @@ import { generateRandomName } from "@/lib/names";
 import { queuePartnerCommissionCreation } from "@/lib/partners/queue-partner-commission-creation";
 import { EdgeLinkProps } from "@/lib/planetscale/types";
 import { prisma } from "@/lib/prisma";
-import { recordLeadWithTimestamp } from "@/lib/tinybird/record-lead";
 import { recordFakeClick } from "@/lib/tinybird/record-fake-click";
+import { recordLeadWithTimestamp } from "@/lib/tinybird/record-lead";
 import { recordSaleWithTimestamp } from "@/lib/tinybird/record-sale";
 import { leadEventSchemaTB } from "@/lib/zod/schemas/leads";
 import { saleEventSchemaTB } from "@/lib/zod/schemas/sales";
@@ -211,8 +211,7 @@ export async function createDemoCommission({
   ]);
 
   await queuePartnerCommissionCreation({
-    event:
-      type === "sale" ? CommissionType.sale : CommissionType.lead,
+    event: type === "sale" ? CommissionType.sale : CommissionType.lead,
     programId: DEMO_PROGRAM_ID,
     partnerId: link.partnerId,
     linkId: targetLink.id,

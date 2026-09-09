@@ -106,9 +106,9 @@ export function MergeAccountForm({
             <h3 className="font-semibold">This action can't be undone.</h3>
             <p>
               All data — including links, commissions, and payouts from{" "}
-              {sourceAccount.email} will be transferred to{" "}
-              {targetAccount.email}. Duplicate bounty submissions from{" "}
-              {sourceAccount.email} will also be deleted.
+              {sourceAccount.email} will be transferred to {targetAccount.email}
+              . Duplicate bounty submissions from {sourceAccount.email} will
+              also be deleted.
               <br />
               <br />
               After the merge, {sourceAccount.email} will be permanently

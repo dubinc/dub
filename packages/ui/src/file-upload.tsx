@@ -212,9 +212,7 @@ export function FileUpload({
     const acceptedTypes = acceptFileTypes[accept].types;
     const extension = file.name.split(".").pop()?.toLowerCase();
     const mimeType =
-      file.type ||
-      (extension ? imageExtensionMimeTypes[extension] : "") ||
-      "";
+      file.type || (extension ? imageExtensionMimeTypes[extension] : "") || "";
 
     if (acceptedTypes.length && !acceptedTypes.includes(mimeType)) {
       toast.error(

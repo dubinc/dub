@@ -58,7 +58,9 @@ function ConfirmApproveBountySubmissionModal({
         onSuccess: async () => {
           setShowModal(false);
           toast.success("Bounty submission approved successfully!");
-          await mutatePrefix(`/api/bounties/${submission.bountyId}/submissions`);
+          await mutatePrefix(
+            `/api/bounties/${submission.bountyId}/submissions`,
+          );
           onApproveSuccess?.();
         },
       },

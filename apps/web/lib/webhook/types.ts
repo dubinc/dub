@@ -1,7 +1,7 @@
 import * as z from "zod/v4";
 import { BountySchema } from "../zod/schemas/bounties";
-import { DiscountCodeWebhookSchema } from "../zod/schemas/discount";
 import { CommissionWebhookSchema } from "../zod/schemas/commissions";
+import { DiscountCodeWebhookSchema } from "../zod/schemas/discount";
 import { linkEventSchema } from "../zod/schemas/links";
 import {
   EnrolledPartnerSchema,

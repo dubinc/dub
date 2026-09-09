@@ -150,9 +150,7 @@ function TokenForm({
       }
     },
     onError: ({ error }) => {
-      toast.error(
-        error.serverError ?? "Failed to fetch Lemon Squeezy stores.",
-      );
+      toast.error(error.serverError ?? "Failed to fetch Lemon Squeezy stores.");
     },
   });
 

@@ -1,9 +1,9 @@
 import { prisma } from "@/lib/prisma";
 import { PartnerGroup, Program } from "@prisma/client";
 import { createId } from "../api/create-id";
-import { queuePartnerSearchSync } from "../api/partners/queue-partner-search-sync";
 import { createLink } from "../api/links";
 import { generatePartnerLink } from "../api/partners/generate-partner-link";
+import { queuePartnerSearchSync } from "../api/partners/queue-partner-search-sync";
 import { logImportError } from "../tinybird/log-import-error";
 import { WorkspaceProps } from "../types";
 import { DEFAULT_PARTNER_GROUP } from "../zod/schemas/groups";

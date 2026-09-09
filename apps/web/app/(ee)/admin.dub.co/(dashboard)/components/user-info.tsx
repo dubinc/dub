@@ -349,13 +349,7 @@ function MetaRow({
   );
 }
 
-const LoginLinkCopyButton = ({
-  text,
-  url,
-}: {
-  text: string;
-  url?: string;
-}) => {
+const LoginLinkCopyButton = ({ text, url }: { text: string; url?: string }) => {
   const [copied, copyToClipboard] = useCopyToClipboard();
   const isPlaceholder = !url;
 

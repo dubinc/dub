@@ -118,7 +118,8 @@ export function CustomerStats({
               target="_blank"
               className={cn(
                 "group relative flex min-w-0 flex-col gap-0.5 bg-white p-3",
-                href && "pr-8 transition-colors duration-150 hover:bg-neutral-50",
+                href &&
+                  "pr-8 transition-colors duration-150 hover:bg-neutral-50",
               )}
             >
               {href && (

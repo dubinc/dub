@@ -5,13 +5,7 @@ import {
   exportPartnerColumns,
   exportPartnersColumnsDefault,
 } from "@/lib/zod/schemas/partners";
-import {
-  Button,
-  Checkbox,
-  Modal,
-  Switch,
-  useRouterStuff,
-} from "@dub/ui";
+import { Button, Checkbox, Modal, Switch, useRouterStuff } from "@dub/ui";
 import { useSession } from "next-auth/react";
 import {
   Dispatch,
@@ -178,8 +172,8 @@ function ExportPartnersModal({
                     Apply current filters
                   </span>
                   <span className="text-xs text-neutral-500">
-                    Filter exported partners by your currently selected
-                    filters. The search field is not included.
+                    Filter exported partners by your currently selected filters.
+                    The search field is not included.
                   </span>
                 </div>
                 <Switch checked={field.value} fn={field.onChange} />

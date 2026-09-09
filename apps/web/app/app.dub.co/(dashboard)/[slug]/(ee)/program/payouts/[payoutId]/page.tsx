@@ -1,20 +1,18 @@
 "use client";
 
 import { clientAccessCheck } from "@/lib/client-access-check";
+import { formatCommissionDescriptionTooltip } from "@/lib/commissions/format-commission-description-tooltip";
 import { usePayout } from "@/lib/swr/use-payout";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { CommissionResponse, PayoutResponse } from "@/lib/types";
-import { formatCommissionDescriptionTooltip } from "@/lib/commissions/format-commission-description-tooltip";
 import { CustomerAvatar } from "@/ui/customers/customer-avatar";
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { ActivityEvent } from "@/ui/partners/activity-event";
 import { CommissionTypeIcon } from "@/ui/partners/comission-type-icon";
-import { CommissionRowMenu } from "@/ui/partners/commission-row-menu";
 import { CommissionDescriptionLabel } from "@/ui/partners/commission-description-label";
-import {
-  CommissionTypeBadge,
-} from "@/ui/partners/commission-type-badge";
+import { CommissionRowMenu } from "@/ui/partners/commission-row-menu";
+import { CommissionTypeBadge } from "@/ui/partners/commission-type-badge";
 import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
 import { ConditionalLink } from "@/ui/shared/conditional-link";

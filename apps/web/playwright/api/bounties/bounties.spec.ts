@@ -938,7 +938,8 @@ test("POST /bounties – submissionFrequency without maxSubmissions is rejected"
   ).toEqual(
     apiError({
       code: "bad_request",
-      message: "`maxSubmissions` is required when `submissionFrequency` is set.",
+      message:
+        "`maxSubmissions` is required when `submissionFrequency` is set.",
     }),
   );
 });
@@ -1047,7 +1048,8 @@ test("POST /bounties – relative with startsAt is rejected", async ({
   ).toEqual(
     apiError({
       code: "bad_request",
-      message: "`startsAt` is not supported when the `startMode` is `relative`.",
+      message:
+        "`startsAt` is not supported when the `startMode` is `relative`.",
     }),
   );
 });

@@ -70,12 +70,12 @@ describe("parseCommissionMetadataQuery", () => {
       logic: "AND",
       filters: [{ key: "name", op: "equals", value: "Smith and Jones" }],
     });
-    expect(parseCommissionMetadataQuery("metadata['label']=\"A or B\"")).toEqual(
-      {
-        logic: "AND",
-        filters: [{ key: "label", op: "equals", value: "A or B" }],
-      },
-    );
+    expect(
+      parseCommissionMetadataQuery("metadata['label']=\"A or B\""),
+    ).toEqual({
+      logic: "AND",
+      filters: [{ key: "label", op: "equals", value: "A or B" }],
+    });
   });
 
   it("parses AND/OR when a quoted value contains and/or", () => {

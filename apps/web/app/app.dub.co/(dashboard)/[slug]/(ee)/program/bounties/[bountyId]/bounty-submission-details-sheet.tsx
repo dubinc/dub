@@ -1,10 +1,10 @@
 "use client";
 
 import { BountySubmissionStatusBadges } from "@/lib/bounty/bounty-submission-status-badges";
-import { clientAccessCheck } from "@/lib/client-access-check";
 import { REJECT_BOUNTY_SUBMISSION_REASONS } from "@/lib/bounty/constants";
 import { calculateSocialMetricsRewardAmount } from "@/lib/bounty/rewards";
 import { resolveBountyDetails } from "@/lib/bounty/utils";
+import { clientAccessCheck } from "@/lib/client-access-check";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import useBounty from "@/lib/swr/use-bounty";

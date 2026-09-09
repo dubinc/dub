@@ -6,10 +6,7 @@ const apiError = (status: number) =>
   new APIError(status, {}, `status ${status}`, new Headers());
 
 const failingOnce = (error: unknown) =>
-  vi
-    .fn()
-    .mockRejectedValueOnce(error)
-    .mockResolvedValueOnce("ok");
+  vi.fn().mockRejectedValueOnce(error).mockResolvedValueOnce("ok");
 
 describe("withTransientRetry", () => {
   it.each([

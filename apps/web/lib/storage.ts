@@ -261,7 +261,11 @@ class StorageClient {
     const maxRedirects = 5;
     let currentUrl = url;
 
-    for (let redirectCount = 0; redirectCount <= maxRedirects; redirectCount++) {
+    for (
+      let redirectCount = 0;
+      redirectCount <= maxRedirects;
+      redirectCount++
+    ) {
       await this.assertSafeUrl(currentUrl);
 
       const response = await fetchWithTimeout(currentUrl, {

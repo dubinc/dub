@@ -91,18 +91,18 @@ test("POST /things", async ({ api }) => {
 
 ## Required conventions
 
-| Rule                                            | Detail                                                                                                        |
-| ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
-| Import `test` from `../fixtures`                | Provides `api`, `workspace`, and `program`                                                                    |
-| Serial only when tests share state              | API project is `fullyParallel: true`. Do not add `mode: "parallel"`. Use `test.describe.configure({ mode: "serial" })` only when tests in a file/describe share state (e.g. domains, seeded pagination) |
-| Cleanup in `finally`                            | Create → assert → always delete created rows                                                                  |
-| Unique names/ids                                | Use `randomName` / `randomCustomer` / `randomPartnerEmail` from `../../utils` — never fixed colliding names   |
-| Assert status + body                            | Prefer `toStrictEqual` / `toEqual` on full shapes; use `expect.any(String)` for ids/timestamps                |
-| Default shape once                              | Happy-path POST owns the full default resource (and nested) shape. Variant tests assert only what they change |
-| HTTP contract only                              | Assert status + JSON. Do not poll/sleep for `waitUntil`, R2, or other background jobs — CI has no `STORAGE_*` |
-| Error responses                                 | Match `{ error: { code, message, doc_url } }` exactly                                                         |
-| Typed generics                                  | `api.get<T>`, `api.post<T>`, etc.                                                                             |
-| Seeded fixtures                                 | `{ workspace }`, `{ program }` (`id`, `defaultGroupId`), `TEST_WORKSPACE` — not Vitest `E2E_*` constants      |
+| Rule                               | Detail                                                                                                                                                                                                  |
+| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Import `test` from `../fixtures`   | Provides `api`, `workspace`, and `program`                                                                                                                                                              |
+| Serial only when tests share state | API project is `fullyParallel: true`. Do not add `mode: "parallel"`. Use `test.describe.configure({ mode: "serial" })` only when tests in a file/describe share state (e.g. domains, seeded pagination) |
+| Cleanup in `finally`               | Create → assert → always delete created rows                                                                                                                                                            |
+| Unique names/ids                   | Use `randomName` / `randomCustomer` / `randomPartnerEmail` from `../../utils` — never fixed colliding names                                                                                             |
+| Assert status + body               | Prefer `toStrictEqual` / `toEqual` on full shapes; use `expect.any(String)` for ids/timestamps                                                                                                          |
+| Default shape once                 | Happy-path POST owns the full default resource (and nested) shape. Variant tests assert only what they change                                                                                           |
+| HTTP contract only                 | Assert status + JSON. Do not poll/sleep for `waitUntil`, R2, or other background jobs — CI has no `STORAGE_*`                                                                                           |
+| Error responses                    | Match `{ error: { code, message, doc_url } }` exactly                                                                                                                                                   |
+| Typed generics                     | `api.get<T>`, `api.post<T>`, etc.                                                                                                                                                                       |
+| Seeded fixtures                    | `{ workspace }`, `{ program }` (`id`, `defaultGroupId`), `TEST_WORKSPACE` — not Vitest `E2E_*` constants                                                                                                |
 
 ### Fixtures (`api` / `workspace` / `program`)
 

@@ -55,5 +55,4 @@ describe("serializePartnerSearchDocument", () => {
       partnerTagIds: ["ptag_a"],
     });
   });
-
 });

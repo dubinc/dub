@@ -1,7 +1,12 @@
 import { getLinkStructureOptions } from "@/lib/partners/get-link-structure-options";
 import { LinkLogo } from "@dub/ui";
 import { ArrowTurnRight2 } from "@dub/ui/icons";
-import { cn, getApexDomain, getPrettyUrl, safeDecodeURIComponent } from "@dub/utils";
+import {
+  cn,
+  getApexDomain,
+  getPrettyUrl,
+  safeDecodeURIComponent,
+} from "@dub/utils";
 import { PartnerLinkStructure } from "@prisma/client";
 import { useMemo } from "react";
 

@@ -12,7 +12,13 @@ import { CommissionStatusBadges } from "@/ui/partners/commission-status-badges";
 import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
 import { Filter, LoadingSpinner, ToggleGroup, useRouterStuff } from "@dub/ui";
 import { Areas, TimeSeriesChart, XAxis, YAxis } from "@dub/ui/charts";
-import { CircleDotted, Hyperlink, MoneyBill2, Sliders, User } from "@dub/ui/icons";
+import {
+  CircleDotted,
+  Hyperlink,
+  MoneyBill2,
+  Sliders,
+  User,
+} from "@dub/ui/icons";
 import {
   capitalize,
   cn,

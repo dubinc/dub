@@ -102,12 +102,12 @@ Do not call `job.execute` from app code. That is only for the process route (and
 
 ## Handle semantics
 
-| Outcome | What to do | HTTP from process route | QStash |
-| --- | --- | --- | --- |
-| Work done | `return` | 200 | stop |
-| Skip (not found, already done, env not configured) | `console.*` + `return` | 200 | stop |
-| Bad payload | throw `ZodError` (schema.parse) | 200 | stop (non-retryable) |
-| Transient failure | `throw` | 500 | retry |
+| Outcome                                            | What to do                      | HTTP from process route | QStash               |
+| -------------------------------------------------- | ------------------------------- | ----------------------- | -------------------- |
+| Work done                                          | `return`                        | 200                     | stop                 |
+| Skip (not found, already done, env not configured) | `console.*` + `return`          | 200                     | stop                 |
+| Bad payload                                        | throw `ZodError` (schema.parse) | 200                     | stop (non-retryable) |
+| Transient failure                                  | `throw`                         | 500                     | retry                |
 
 Unknown job names and invalid envelopes also return 2xx so QStash does not retry forever.
 
