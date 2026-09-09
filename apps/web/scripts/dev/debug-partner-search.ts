@@ -147,7 +147,7 @@ const PLATFORM_TYPES = [
 
 /**
  * `searchText` is every searchable value lowercased and space-joined in a fixed
- * order: partner ID, tenant ID when set, name, email, company, description,
+ * order: partner ID, tenant ID, name, email, company, description,
  * platform types, handles, then link keys. Three of those boundaries are
  * recoverable, since the partner ID is prefixed, the email is address-shaped,
  * and the platform types are a known enum, so the blob splits into identity /
