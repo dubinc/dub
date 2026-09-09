@@ -69,7 +69,7 @@ export async function syncPartnerSearchDocuments({
   };
 }
 
-interface SyncPartnerSearchDocumentsForPartnersOptions {
+interface SyncPartnersOptions {
   partnerIds: string[];
   programId?: string;
   after?: string;
@@ -77,7 +77,7 @@ interface SyncPartnerSearchDocumentsForPartnersOptions {
   searchProvider?: PartnerSearchProvider | null;
 }
 
-export interface PartnerSearchPartnerSyncResult {
+export interface SyncPartnersResult {
   upserted: number;
   lastEnrollmentId: string | null;
 }
@@ -97,7 +97,7 @@ export async function syncPartnerSearchDocumentsForPartners({
   after,
   take = PARTNER_SEARCH_SYNC_BATCH_SIZE,
   searchProvider = getPartnerSearchProvider(),
-}: SyncPartnerSearchDocumentsForPartnersOptions): Promise<PartnerSearchPartnerSyncResult> {
+}: SyncPartnersOptions): Promise<SyncPartnersResult> {
   const ids = unique(partnerIds.filter(Boolean));
 
   if (!searchProvider || ids.length === 0) {
