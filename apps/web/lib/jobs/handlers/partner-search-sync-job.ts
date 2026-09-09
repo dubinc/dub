@@ -1,8 +1,8 @@
 import {
-  findPartnerSearchSyncEnrollmentIds,
   getPartnerSearchProvider,
   PARTNER_SEARCH_SYNC_BATCH_SIZE,
   syncPartnerSearchDocuments,
+  syncPartnerSearchDocumentsForPartners,
 } from "@/lib/api/partners/search";
 import * as z from "zod/v4";
 import { defineJob } from "../index";
@@ -74,31 +74,28 @@ export const partnerSearchSyncJob = defineJob({
       return;
     }
 
-    const enrollmentIds = await findPartnerSearchSyncEnrollmentIds({
-      partnerIds: input.partnerIds,
-      programId: input.programId,
-      after: input.after,
-      take: PARTNER_SEARCH_SYNC_BATCH_SIZE,
-    });
+    const { upserted, lastEnrollmentId } =
+      await syncPartnerSearchDocumentsForPartners({
+        partnerIds: input.partnerIds,
+        programId: input.programId,
+        after: input.after,
+        take: PARTNER_SEARCH_SYNC_BATCH_SIZE,
+        searchProvider,
+      });
 
-    if (enrollmentIds.length === 0) {
+    if (upserted === 0) {
       return;
     }
 
-    const { upserted, deleted } = await syncPartnerSearchDocuments({
-      enrollmentIds,
-      searchProvider,
-    });
-
     console.log(
-      `[partnerSearchSyncJob] Synced ${upserted} and removed ${deleted} enrollment documents for ${input.partnerIds.length} partner(s).`,
+      `[partnerSearchSyncJob] Synced ${upserted} enrollment documents for ${input.partnerIds.length} partner(s).`,
     );
 
-    if (enrollmentIds.length === PARTNER_SEARCH_SYNC_BATCH_SIZE) {
+    if (upserted === PARTNER_SEARCH_SYNC_BATCH_SIZE && lastEnrollmentId) {
       await partnerSearchSyncJob.dispatch(
         {
           ...input,
-          after: enrollmentIds[enrollmentIds.length - 1],
+          after: lastEnrollmentId,
         },
         {
           delay: 1,
