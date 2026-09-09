@@ -3,7 +3,7 @@ import { conn } from "@/lib/planetscale";
 import { prisma } from "@/lib/prisma";
 import type { EnrolledPartnerProps } from "@/lib/types";
 import { DEFAULT_ADDITIONAL_PARTNER_LINKS } from "@/lib/zod/schemas/groups";
-import { nanoid } from "@dub/utils";
+import { nanoid, sleep } from "@dub/utils";
 import { randomName, randomPartnerEmail } from "../../utils";
 import type { ApiClient } from "../fixtures";
 import { TEST_WORKSPACE } from "../setup-test-workspace";
@@ -100,7 +100,7 @@ export async function deletePartnerData(partnerId: string) {
         throw error;
       }
 
-      await new Promise((resolve) => setTimeout(resolve, 250));
+      await sleep(250);
     }
   }
 }

@@ -41,6 +41,7 @@ import {
   isLegacyBusinessPlan,
   isWorkspaceBillingTrialActive,
   nFormatter,
+  sleep,
 } from "@dub/utils";
 import NumberFlow from "@number-flow/react";
 import Link from "next/link";
@@ -192,7 +193,7 @@ export default function PlanUsage() {
 
       if (res.ok) {
         // sleep for 2 seconds to make sure Stripe webhook was received, and then mutate
-        await new Promise((resolve) => setTimeout(resolve, 2000));
+        await sleep(2000);
         await mutate();
         toast.success("Your subscription will continue as normal.");
       } else {

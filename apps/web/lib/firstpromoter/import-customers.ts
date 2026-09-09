@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { chunk, nanoid } from "@dub/utils";
+import { chunk, nanoid, sleep } from "@dub/utils";
 import { Customer, Link, Project } from "@prisma/client";
 import { createId } from "../api/create-id";
 import { updateLinkStatsForImporter } from "../api/links/update-link-stats-for-importer";
@@ -160,7 +160,7 @@ export async function importCustomers(payload: FirstPromoterImportPayload) {
       }
     }
 
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+    await sleep(2000);
 
     currentPage++;
     processedBatches++;
