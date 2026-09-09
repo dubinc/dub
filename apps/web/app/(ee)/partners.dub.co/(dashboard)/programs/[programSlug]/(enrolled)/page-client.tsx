@@ -661,7 +661,7 @@ function RewardList() {
   );
 
   const discount = programEnrollment.discount ?? null;
-  const showReferralRewardCard = referralRewards.length > 0;
+  const hasPartnerReferralReward = referralRewards.length > 0;
 
   const defaultProgramLink = programEnrollment.links?.[0];
   const partnerLink = constructPartnerLink({
@@ -680,9 +680,7 @@ function RewardList() {
     <div className="flex flex-col gap-2 rounded-xl bg-neutral-100 p-2">
       <RewardListItem
         title={
-          standardRewards.length > 0 || !showReferralRewardCard
-            ? "Rewards"
-            : "Customer referral rewards"
+          hasPartnerReferralReward ? "Customer referral rewards" : "Rewards"
         }
         titleRight={<RewardsTermsList />}
         isDeactivated={isDeactivated}
@@ -729,7 +727,7 @@ function RewardList() {
         }
       />
 
-      {showReferralRewardCard && (
+      {hasPartnerReferralReward && (
         <RewardListItem
           title="Partner referral rewards"
           isDeactivated={isDeactivated}
