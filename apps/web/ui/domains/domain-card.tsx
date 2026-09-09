@@ -1,6 +1,8 @@
 import { clientAccessCheck } from "@/lib/client-access-check";
 import type { DomainConnectDiscovery } from "@/lib/domain-connect/types";
+import { mutatePrefix } from "@/lib/swr/mutate";
 import useDomains from "@/lib/swr/use-domains";
+import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import {
   DomainProps,
@@ -23,6 +25,7 @@ import {
 } from "@dub/ui";
 import {
   CircleHalfDottedClock,
+  ConnectedDots4,
   CursorRays,
   Flag2,
   Gear,
@@ -48,6 +51,7 @@ import { toast } from "sonner";
 import useSWR from "swr";
 import { useAddEditDomainModal } from "../modals/add-edit-domain-modal";
 import { useArchiveDomainModal } from "../modals/archive-domain-modal";
+import { useChangeProgramDomainModal } from "../modals/change-program-domain-modal";
 import { useDeleteDomainModal } from "../modals/delete-domain-modal";
 import { useDomainAutoRenewalModal } from "../modals/domain-auto-renewal-modal";
 import { useLinkBuilder } from "../modals/link-builder";
@@ -63,6 +67,7 @@ export default function DomainCard({ props }: { props: DomainProps }) {
   const isDubProvisioned = !!registeredDomain;
 
   const { id: workspaceId, slug } = useWorkspace();
+  const { program } = useProgram();
 
   const domainRef = useRef<HTMLDivElement>(null);
   const isVisible = useInViewport(domainRef, { defaultValue: true });
@@ -189,6 +194,7 @@ export default function DomainCard({ props }: { props: DomainProps }) {
               icon={tab === "active" ? Globe : Archive}
               url={props.link?.url}
               primary={primary}
+              program={program?.domain === domain}
             />
 
             {/* Clicks */}
@@ -358,7 +364,8 @@ function DomainCardMenu({
   autoRenew: boolean;
   openDomainRenewalModal: (enable: boolean) => void;
 }) {
-  const { role } = useWorkspace();
+  const { id: workspaceId, role, defaultProgramId } = useWorkspace();
+  const { program } = useProgram();
   const { isMobile } = useMediaQuery();
   const { activeWorkspaceDomains } = useDomains();
   const [openPopover, setOpenPopover] = useState(false);
@@ -366,6 +373,12 @@ function DomainCardMenu({
 
   const { primary, archived, slug: domain, registeredDomain } = props;
   const isDubProvisioned = !!registeredDomain;
+  const canSetAsProgramDomain = Boolean(
+    defaultProgramId &&
+      program?.domain &&
+      program.domain !== domain &&
+      !archived,
+  );
 
   const permissionsError = clientAccessCheck({
     action: "domains.write",
@@ -385,6 +398,27 @@ function DomainCardMenu({
   const { setShowPrimaryDomainModal, PrimaryDomainModal } =
     usePrimaryDomainModal({
       props,
+    });
+
+  const { setShowChangeDomainModal, ChangeDomainModal } =
+    useChangeProgramDomainModal({
+      newDomain: domain,
+      onConfirm: async () => {
+        const response = await fetch(
+          `/api/domains/${domain}/program?workspaceId=${workspaceId}`,
+          {
+            method: "POST",
+          },
+        );
+
+        if (!response.ok) {
+          const { error } = await response.json();
+          throw new Error(error.message);
+        }
+
+        await mutatePrefix(["/api/domains", "/api/programs", "/api/groups"]);
+        toast.success(`Successfully set ${domain} as the program domain.`);
+      },
     });
 
   const { setShowArchiveDomainModal, ArchiveDomainModal } =
@@ -422,6 +456,7 @@ function DomainCardMenu({
       <LinkQRModal />
       <AddEditDomainModal />
       <PrimaryDomainModal />
+      <ChangeDomainModal />
       <ArchiveDomainModal />
       <DeleteDomainModal />
       <TransferDomainModal />
@@ -550,6 +585,18 @@ function DomainCardMenu({
                       setShowPrimaryDomainModal(true);
                     }}
                     icon={<Flag2 className="h-4 w-4" />}
+                    className="h-9 justify-start px-2 font-medium"
+                  />
+                )}
+                {canSetAsProgramDomain && (
+                  <Button
+                    text="Set Program Domain"
+                    variant="outline"
+                    onClick={() => {
+                      setOpenPopover(false);
+                      setShowChangeDomainModal(true);
+                    }}
+                    icon={<ConnectedDots4 className="h-4 w-4" />}
                     className="h-9 justify-start px-2 font-medium"
                   />
                 )}
