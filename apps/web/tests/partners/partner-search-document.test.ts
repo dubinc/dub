@@ -9,6 +9,7 @@ const source: PartnerSearchDocumentSource = {
   programId: "prog_test",
   partnerId: "pn_test",
   status: "approved" as const,
+  tenantId: null,
   groupId: "grp_test",
   partner: {
     name: "Rafi Hasan",
@@ -16,11 +17,6 @@ const source: PartnerSearchDocumentSource = {
     companyName: "Dub Partners",
     description: "Developer tools educator",
     country: "US",
-    programPartnerTags: [
-      { programId: "prog_test", partnerTagId: "ptag_a" },
-      // A tag from a different program must not leak into this document.
-      { programId: "prog_other", partnerTagId: "ptag_other" },
-    ],
     platforms: [
       {
         type: "website",
@@ -33,6 +29,7 @@ const source: PartnerSearchDocumentSource = {
     ],
   },
   links: [{ key: "rafi" }, { key: "rafi-tools" }],
+  programPartnerTags: [{ partnerTagId: "ptag_a" }, { partnerTagId: "ptag_a" }],
 };
 
 describe("serializePartnerSearchDocument", () => {
@@ -49,11 +46,10 @@ describe("serializePartnerSearchDocument", () => {
       platformIdentifiers: ["https://rafi.dev", "@rafi-on-x"],
       linkKeys: ["rafi", "rafi-tools"],
       status: "approved",
+      tenantId: null,
       groupId: "grp_test",
       country: "US",
-      // The tag from prog_other is dropped: tags are per program.
       partnerTagIds: ["ptag_a"],
     });
   });
-
 });
