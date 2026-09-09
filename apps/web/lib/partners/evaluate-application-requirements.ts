@@ -1,9 +1,132 @@
 import { EligibilityConditionDB } from "../types";
-import { applicationRequirementsSchema } from "../zod/schemas/programs";
+import {
+  applicationRequirementsSchema,
+  EligibilityAccountAttribute,
+  EligibilityProfileAttribute,
+} from "../zod/schemas/programs";
 
 interface Context {
   country?: string | null;
   email?: string | null;
+  profile?: {
+    hasDescription: boolean;
+    hasVerifiedWebsite: boolean;
+    hasVerifiedSocialAccount: boolean;
+    hasPreferredEarningStructure: boolean;
+    hasSalesChannel: boolean;
+    hasMonthlyTraffic: boolean;
+  } | null;
+  account?: {
+    isDubNetworkApproved: boolean;
+    hasProgramBans: boolean;
+  } | null;
+}
+
+export type EligibilityContext = Context;
+
+// Builds the evaluation context from a partner (plus their program enrollment
+// statuses). Handles both the client-side PartnerProps shape (enum arrays for
+// preferredEarningStructures/salesChannels) and the server-side Prisma shape
+// (relation rows) — only array length is used for those fields.
+export function getEligibilityContext({
+  partner,
+  programEnrollmentStatuses,
+}: {
+  partner?: {
+    country?: string | null;
+    email?: string | null;
+    description?: string | null;
+    monthlyTraffic?: string | null;
+    networkStatus?: string | null;
+    platforms?: { type: string; verifiedAt: Date | string | null }[] | null;
+    preferredEarningStructures?: unknown[] | null;
+    salesChannels?: unknown[] | null;
+  } | null;
+  programEnrollmentStatuses?: string[] | null;
+}): Context {
+  if (!partner) {
+    return {};
+  }
+
+  const platforms = partner.platforms ?? [];
+
+  return {
+    country: partner.country,
+    email: partner.email,
+    profile: {
+      hasDescription: !!partner.description,
+      hasVerifiedWebsite: platforms.some(
+        (p) => p.type === "website" && !!p.verifiedAt,
+      ),
+      hasVerifiedSocialAccount: platforms.some(
+        (p) => p.type !== "website" && !!p.verifiedAt,
+      ),
+      hasPreferredEarningStructure:
+        (partner.preferredEarningStructures?.length ?? 0) > 0,
+      hasSalesChannel: (partner.salesChannels?.length ?? 0) > 0,
+      hasMonthlyTraffic: !!partner.monthlyTraffic,
+    },
+    // Unknown enrollment statuses (still loading or failed to load) leave the
+    // account null so its attributes fail closed, rather than reading "no
+    // data" as "no bans"; an empty array is a known state and evaluates
+    account: programEnrollmentStatuses
+      ? {
+          isDubNetworkApproved: ["approved", "trusted"].includes(
+            partner.networkStatus ?? "",
+          ),
+          hasProgramBans: programEnrollmentStatuses.includes("banned"),
+        }
+      : null,
+  };
+}
+
+// Missing context data fails closed (attribute counts as unmet)
+export function isProfileAttributeMet(
+  profile: Context["profile"],
+  attribute: EligibilityProfileAttribute,
+): boolean {
+  if (!profile) {
+    return false;
+  }
+
+  const checks: Record<EligibilityProfileAttribute, boolean> = {
+    description: profile.hasDescription,
+    verified_website: profile.hasVerifiedWebsite,
+    verified_social_account: profile.hasVerifiedSocialAccount,
+    preferred_earning_structure: profile.hasPreferredEarningStructure,
+    sales_channels: profile.hasSalesChannel,
+    estimated_monthly_traffic: profile.hasMonthlyTraffic,
+  };
+
+  return checks[attribute];
+}
+
+export function isAccountAttributeMet(
+  account: Context["account"],
+  attribute: EligibilityAccountAttribute,
+): boolean {
+  if (!account) {
+    return false;
+  }
+
+  return attribute === "dub_network_approved"
+    ? account.isDubNetworkApproved
+    : !account.hasProgramBans;
+}
+
+// Shared between enforcement and the eligibility card so the two can't drift.
+// A missing country fails closed for both operators.
+export function isCountryConditionMet(
+  country: Context["country"],
+  condition: Pick<EligibilityConditionDB, "operator" | "value">,
+): boolean {
+  if (!country) {
+    return false;
+  }
+
+  const matches = condition.value.includes(country);
+
+  return condition.operator === "is_not" ? !matches : matches;
 }
 
 interface Result {
@@ -89,7 +212,7 @@ export function evaluateApplicationRequirements({
   };
 }
 
-export function evaluateCondition({
+function evaluateCondition({
   condition,
   context,
 }: {
@@ -104,13 +227,7 @@ export function evaluateCondition({
 
   switch (condition.key) {
     case "country": {
-      if (!context.country) {
-        return false;
-      }
-
-      matches = condition.value.includes(context.country);
-
-      break;
+      return isCountryConditionMet(context.country, condition);
     }
 
     case "emailDomain": {
@@ -125,9 +242,31 @@ export function evaluateCondition({
       break;
     }
 
+    case "profile": {
+      matches = condition.value.every((attribute) =>
+        isProfileAttributeMet(
+          context.profile,
+          attribute as EligibilityProfileAttribute,
+        ),
+      );
+
+      break;
+    }
+
+    case "account": {
+      matches = condition.value.every((attribute) =>
+        isAccountAttributeMet(
+          context.account,
+          attribute as EligibilityAccountAttribute,
+        ),
+      );
+
+      break;
+    }
+
     default:
       return false;
   }
 
-  return condition.operator === "is" ? matches : !matches;
+  return condition.operator === "is_not" ? !matches : matches;
 }

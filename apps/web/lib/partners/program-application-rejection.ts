@@ -11,13 +11,18 @@ export const PROGRAM_APPLICATION_REJECTION_REASON_LABELS: Record<
   needsMoreDetail: "Application needs more detail",
   doesNotMeetRequirements: "Does not meet requirements",
   notTheRightFit: "Not the right fit",
+  applicationScreening: "Did not pass application screening",
   other: "Other",
 } as const;
 
 export type ProgramApplicationRejectionReasonKey =
   keyof typeof PROGRAM_APPLICATION_REJECTION_REASON_LABELS;
 
-/** Combobox / UI order (first option is the default suggestion). */
+/**
+ * Combobox / UI order (first option is the default suggestion).
+ * `applicationScreening` is intentionally absent: it is only ever set by
+ * automated screening and is never offered for manual rejection.
+ */
 export const PROGRAM_APPLICATION_REJECTION_REASON_ORDER = [
   "needsMoreDetail",
   "doesNotMeetRequirements",

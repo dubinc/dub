@@ -1,7 +1,10 @@
 import { resolveFraudGroups } from "@/lib/api/fraud/resolve-fraud-groups";
 import { queuePartnerSearchSync } from "@/lib/api/partners/queue-partner-search-sync";
 import { trackApplicationEvents } from "@/lib/application-events/update-application-event";
-import { evaluateApplicationRequirements } from "@/lib/partners/evaluate-application-requirements";
+import {
+  evaluateApplicationRequirements,
+  getEligibilityContext,
+} from "@/lib/partners/evaluate-application-requirements";
 import { prisma } from "@/lib/prisma";
 import { sendEmail } from "@dub/email";
 import PartnerApplicationRejected from "@dub/email/templates/partner-application-rejected";
@@ -38,6 +41,17 @@ export const autoRejectPartnerJob = defineJob({
             name: true,
             email: true,
             country: true,
+            description: true,
+            monthlyTraffic: true,
+            networkStatus: true,
+            platforms: true,
+            preferredEarningStructures: true,
+            salesChannels: true,
+            programs: {
+              select: {
+                status: true,
+              },
+            },
           },
         },
         program: {
@@ -65,10 +79,12 @@ export const autoRejectPartnerJob = defineJob({
     const result = evaluateApplicationRequirements({
       applicationRequirements:
         programEnrollment.program.applicationRequirements,
-      context: {
-        country: programEnrollment.partner.country,
-        email: programEnrollment.partner.email,
-      },
+      context: getEligibilityContext({
+        partner: programEnrollment.partner,
+        programEnrollmentStatuses: programEnrollment.partner.programs.map(
+          ({ status }) => status,
+        ),
+      }),
     });
 
     if (result.reason !== "requirementsNotMet") {

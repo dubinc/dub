@@ -2,6 +2,7 @@ enum ProgramApplicationRejectionReason {
   needsMoreDetail
   doesNotMeetRequirements
   notTheRightFit
+  applicationScreening // automatically rejected by AI application screening
   other
 }
 
@@ -22,6 +23,7 @@ model ProgramApplication {
   userId          String? // user who reviewed the application
   rejectionReason ProgramApplicationRejectionReason?
   rejectionNote   String?                            @db.Text
+  screenedAt      DateTime? // when AI application screening ran (pass or reject)
   reviewedAt      DateTime?
   createdAt       DateTime                           @default(now())
   updatedAt       DateTime                           @updatedAt

@@ -23,10 +23,37 @@ import { submittedLeadFormSchema } from "./submitted-lead-form";
 import { UserSchema } from "./users";
 import { centsSchemaWithDefault, parseDateSchema } from "./utils";
 
+export const ELIGIBILITY_PROFILE_ATTRIBUTES = [
+  "verified_website",
+  "verified_social_account",
+  "description",
+  "preferred_earning_structure",
+  "sales_channels",
+  "estimated_monthly_traffic",
+] as const;
+
+export const ELIGIBILITY_ACCOUNT_ATTRIBUTES = [
+  "dub_network_approved",
+  "no_program_bans",
+] as const;
+
+export type EligibilityProfileAttribute =
+  (typeof ELIGIBILITY_PROFILE_ATTRIBUTES)[number];
+
+export type EligibilityAccountAttribute =
+  (typeof ELIGIBILITY_ACCOUNT_ATTRIBUTES)[number];
+
+const ELIGIBILITY_OPERATORS_BY_KEY: Record<string, readonly string[]> = {
+  country: ["is", "is_not"],
+  emailDomain: ["is", "is_not"],
+  profile: ["has"],
+  account: ["is"],
+};
+
 export const eligibilityConditionSchema = z
   .object({
-    key: z.enum(["country", "emailDomain"]),
-    operator: z.enum(["is", "is_not"]),
+    key: z.enum(["country", "emailDomain", "profile", "account"]),
+    operator: z.enum(["is", "is_not", "has"]),
     value: z.array(z.string()).min(1),
   })
   .transform((data) => {
@@ -41,16 +68,61 @@ export const eligibilityConditionSchema = z
     }
     return data;
   })
-  .refine(
-    (data) =>
-      data.key !== "emailDomain" ||
-      data.value.every((v) => v.length > 1 && v !== "@"),
-    { message: "Email domain values must be valid domain patterns" },
-  );
+  .superRefine((data, ctx) => {
+    if (!ELIGIBILITY_OPERATORS_BY_KEY[data.key].includes(data.operator)) {
+      ctx.addIssue({
+        code: "custom",
+        message: `Invalid operator "${data.operator}" for ${data.key} condition`,
+      });
+    }
+
+    if (
+      data.key === "emailDomain" &&
+      !data.value.every((v) => v.length > 1 && v !== "@")
+    ) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Email domain values must be valid domain patterns",
+      });
+    }
+
+    if (
+      data.key === "profile" &&
+      !data.value.every((v) =>
+        ELIGIBILITY_PROFILE_ATTRIBUTES.includes(
+          v as EligibilityProfileAttribute,
+        ),
+      )
+    ) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Invalid profile requirement",
+      });
+    }
+
+    if (
+      data.key === "account" &&
+      !data.value.every((v) =>
+        ELIGIBILITY_ACCOUNT_ATTRIBUTES.includes(
+          v as EligibilityAccountAttribute,
+        ),
+      )
+    ) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Invalid account requirement",
+      });
+    }
+  });
 
 export const applicationRequirementsSchema = z
   .array(eligibilityConditionSchema)
-  .max(2);
+  .max(3)
+  .refine(
+    (conditions) =>
+      new Set(conditions.map((c) => c.key)).size === conditions.length,
+    { message: "Duplicate condition types are not allowed" },
+  );
 
 export const ProgramSchema = z.object({
   id: z.string(),
@@ -76,6 +148,7 @@ export const ProgramSchema = z.object({
   termsUrl: z.string().nullish(),
   referralFormData: z.record(z.string(), z.any()).nullish(),
   applicationRequirements: applicationRequirementsSchema.nullish(),
+  applicationScreeningPrompt: z.string().nullish(),
   createdAt: z.date(),
   updatedAt: z.date(),
   startedAt: z.date().nullish(),
