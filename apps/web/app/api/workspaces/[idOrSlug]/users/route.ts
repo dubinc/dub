@@ -49,6 +49,7 @@ export const GET = withWorkspace(
   },
   {
     requiredPermissions: ["workspaces.read"],
+    requiredRoles: ["owner", "member", "billing"],
   },
 );
 

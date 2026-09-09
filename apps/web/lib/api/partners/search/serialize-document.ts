@@ -6,6 +6,7 @@ export const partnerSearchDocumentSelect = {
   programId: true,
   partnerId: true,
   status: true,
+  tenantId: true,
   groupId: true,
   partner: {
     select: {
@@ -57,6 +58,7 @@ export function serializePartnerSearchDocument(
     name: partner.name,
     email: partner.email,
     companyName: partner.companyName,
+    country: partner.country,
     description: partner.description,
     platformTypes: unique(partner.platforms.map(({ type }) => type)),
     platformIdentifiers: unique(
@@ -64,8 +66,8 @@ export function serializePartnerSearchDocument(
     ),
     linkKeys: unique(links.map(({ key }) => key)),
     status: enrollment.status,
+    tenantId: enrollment.tenantId,
     groupId: enrollment.groupId,
-    country: partner.country,
     partnerTagIds: unique(
       partner.programPartnerTags
         .filter(({ programId }) => programId === enrollment.programId)
