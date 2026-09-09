@@ -3,6 +3,24 @@ import { resend } from "./resend";
 import { VARIANT_TO_FROM_MAP } from "./resend/constants";
 import { ResendBulkEmailOptions, ResendEmailOptions } from "./resend/types";
 
+// Resend 422s reserved test domains:
+// https://resend.com/docs/knowledge-base/what-email-addresses-to-use-for-testing
+const RESEND_BLOCKED_DOMAINS = [
+  "example.com",
+  "example.net",
+  "example.org",
+  "test.com",
+] as const;
+
+const isResendBlockedRecipient = (to: string) => {
+  const domain = to.toLowerCase().trim().split("@").at(1);
+  if (!domain) return false;
+
+  return RESEND_BLOCKED_DOMAINS.some(
+    (blocked) => domain === blocked || domain.endsWith(`.${blocked}`),
+  );
+};
+
 const resendEmailForOptions = (
   opts: ResendEmailOptions,
 ): CreateEmailOptions => {
@@ -68,6 +86,11 @@ export const sendEmailViaResend = async (opts: ResendEmailOptions) => {
     return;
   }
 
+  if (isResendBlockedRecipient(opts.to)) {
+    console.info(`Skipping email to reserved Resend domain: ${opts.to}`);
+    return;
+  }
+
   return await resend.emails.send(resendEmailForOptions(opts));
 };
 
@@ -93,11 +116,17 @@ export const sendBatchEmailViaResend = async (
     };
   }
 
-  // Filter out emails without to address
+  // Filter out emails without to address or reserved Resend domains
   // and format the emails for Resend
+  const skippedRecipients: string[] = [];
   const filteredBatch = emails.reduce(
     (acc, email) => {
       if (!email?.to) {
+        return acc;
+      }
+
+      if (isResendBlockedRecipient(email.to)) {
+        skippedRecipients.push(email.to);
         return acc;
       }
 
@@ -107,6 +136,13 @@ export const sendBatchEmailViaResend = async (
     },
     [] as ReturnType<typeof resendEmailForOptions>[],
   );
+
+  if (skippedRecipients.length > 0) {
+    console.info(
+      `Skipping ${skippedRecipients.length} email(s) to reserved Resend domains:`,
+      skippedRecipients,
+    );
+  }
 
   if (filteredBatch.length === 0) {
     return {
