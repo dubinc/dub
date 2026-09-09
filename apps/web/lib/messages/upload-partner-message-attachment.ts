@@ -7,7 +7,7 @@ import {
 } from "@/lib/messages/constants";
 import { sanitizeFileName } from "@/lib/messages/utils";
 import { prisma } from "@/lib/prisma";
-import { storage } from "@/lib/storage";
+import { createSignedUploadUrl } from "@/lib/storage/create-signed-upload-url";
 import { ratelimit } from "@/lib/upstash";
 import { RATELIMIT_POLICIES } from "@/lib/upstash/ratelimit-policies";
 import { nanoid } from "@dub/utils";
@@ -79,10 +79,9 @@ export const uploadPartnerMessageAttachmentAction = authPartnerActionClient
       throw new Error("You are not able to message this program.");
     }
 
-    const storageKey = `messages/${program.id}/${nanoid(10)}/${sanitizeFileName(fileName)}`;
-
-    const signedUrl = await storage.getSignedUploadUrl({
-      key: storageKey,
+    const { key, signedUrl } = await createSignedUploadUrl({
+      key: `messages/${program.id}/${nanoid(10)}/${sanitizeFileName(fileName)}`,
+      policy: "partnerMessageAttachments",
       bucket: "private",
       contentLength,
       contentType,
@@ -90,6 +89,6 @@ export const uploadPartnerMessageAttachmentAction = authPartnerActionClient
 
     return {
       signedUrl,
-      storageKey,
+      storageKey: key,
     };
   });

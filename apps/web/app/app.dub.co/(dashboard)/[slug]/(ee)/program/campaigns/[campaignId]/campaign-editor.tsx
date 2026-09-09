@@ -699,6 +699,8 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
                       try {
                         const result = await executeImageUpload({
                           workspaceId: workspaceId!,
+                          contentType: file.type,
+                          contentLength: file.size,
                         });
 
                         if (!result?.data) {

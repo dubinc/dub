@@ -1,0 +1,83 @@
+const RASTER_IMAGE_CONTENT_TYPES = [
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "image/gif",
+] as const;
+
+const PROGRAM_RESOURCE_LOGO_CONTENT_TYPES = [
+  "image/svg+xml",
+  "image/png",
+  "image/jpeg",
+  "image/webp",
+  "image/avif",
+] as const;
+
+const PROGRAM_RESOURCE_FILE_CONTENT_TYPES = [
+  ...PROGRAM_RESOURCE_LOGO_CONTENT_TYPES,
+  "application/pdf",
+  "text/plain",
+  "application/msword",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  "application/vnd.ms-excel",
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  "text/csv",
+  "application/zip",
+] as const;
+
+export const UPLOAD_POLICIES = {
+  integrationScreenshots: {
+    contentTypes: RASTER_IMAGE_CONTENT_TYPES,
+    maxBytes: 5 * 1024 * 1024,
+  },
+
+  programLogos: {
+    contentTypes: RASTER_IMAGE_CONTENT_TYPES,
+    maxBytes: 5 * 1024 * 1024,
+  },
+
+  programApplicationImages: {
+    contentTypes: RASTER_IMAGE_CONTENT_TYPES,
+    maxBytes: 5 * 1024 * 1024,
+  },
+
+  programCampaignImages: {
+    contentTypes: RASTER_IMAGE_CONTENT_TYPES,
+    maxBytes: 5 * 1024 * 1024,
+  },
+
+  programMessageAttachments: {
+    contentTypes: ["image/png", "image/jpeg", "image/webp", "application/pdf"],
+    maxBytes: 10 * 1024 * 1024,
+  },
+
+  partnerMessageAttachments: {
+    contentTypes: ["image/png", "image/jpeg", "image/webp"],
+    maxBytes: 10 * 1024 * 1024,
+  },
+
+  programResourceLogos: {
+    contentTypes: PROGRAM_RESOURCE_LOGO_CONTENT_TYPES,
+    maxBytes: 10 * 1024 * 1024,
+  },
+
+  programResourceFiles: {
+    contentTypes: PROGRAM_RESOURCE_FILE_CONTENT_TYPES,
+    maxBytes: 10 * 1024 * 1024,
+  },
+
+  bountySubmissionImages: {
+    contentTypes: [
+      "image/jpeg",
+      "image/png",
+      "image/webp",
+      "image/svg+xml",
+    ] as const,
+    maxBytes: 5 * 1024 * 1024,
+  },
+
+  // resumes: {
+  //   contentTypes: ["application/pdf"] as const,
+  //   maxBytes: 5 * 1024 * 1024,
+  // },
+} as const;

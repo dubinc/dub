@@ -2,15 +2,17 @@
 
 import { getIP } from "@/lib/api/utils/get-ip";
 import { prisma } from "@/lib/prisma";
-import { storage } from "@/lib/storage";
+import { createSignedUploadUrl } from "@/lib/storage/create-signed-upload-url";
+import { signedUploadInputSchema } from "@/lib/storage/schemas";
 import { ratelimit } from "@/lib/upstash";
 import { RATELIMIT_POLICIES } from "@/lib/upstash/ratelimit-policies";
-import { nanoid, R2_URL } from "@dub/utils";
+import { nanoid } from "@dub/utils";
 import * as z from "zod/v4";
 import { actionClient } from "../safe-action";
 
 const inputSchema = z.object({
   programSlug: z.string().trim().toLowerCase().min(1),
+  ...signedUploadInputSchema.shape,
 });
 
 const rateLimitPolicy = RATELIMIT_POLICIES.programImageUpload;
@@ -18,7 +20,7 @@ const rateLimitPolicy = RATELIMIT_POLICIES.programImageUpload;
 export const uploadProgramApplicationImageAction = actionClient
   .inputSchema(inputSchema)
   .action(async ({ parsedInput }) => {
-    const { programSlug } = parsedInput;
+    const { programSlug, contentType, contentLength } = parsedInput;
 
     const ipAddress = await getIP();
 
@@ -42,13 +44,15 @@ export const uploadProgramApplicationImageAction = actionClient
       },
     });
 
-    const key = `programs/${program.id}/applications/${nanoid(10)}`;
-    const signedUrl = await storage.getSignedUploadUrl({
-      key,
+    const { signedUrl, destinationUrl } = await createSignedUploadUrl({
+      key: `programs/${program.id}/applications/${nanoid(10)}`,
+      policy: "programApplicationImages",
+      contentType,
+      contentLength,
     });
 
     return {
       signedUrl,
-      destinationUrl: `${R2_URL}/${key}`,
+      destinationUrl,
     };
   });

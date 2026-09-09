@@ -73,8 +73,13 @@ export function Form() {
         `/api/workspaces/${workspaceId}/upload-url`,
         {
           method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
           body: JSON.stringify({
-            folder: "program-logos",
+            folder: "programLogos",
+            contentType: file.type,
+            contentLength: file.size,
           }),
         },
       );
