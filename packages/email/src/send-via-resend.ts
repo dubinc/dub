@@ -21,6 +21,17 @@ const isResendBlockedRecipient = (to: string) => {
   );
 };
 
+// Keep batch cardinality so callers can zip Resend IDs by index.
+// delivered+label@resend.dev is a Resend test sink (no real inbox).
+const rewriteBlockedRecipient = (to: string) => {
+  if (!isResendBlockedRecipient(to)) return to;
+
+  const username = to.toLowerCase().trim().split("@").at(0) || "unknown";
+  const rewritten = `delivered+${username}@resend.dev`;
+  console.info(`Rewriting reserved Resend recipient ${to} → ${rewritten}`);
+  return rewritten;
+};
+
 const resendEmailForOptions = (
   opts: ResendEmailOptions,
 ): CreateEmailOptions => {
@@ -45,7 +56,7 @@ const resendEmailForOptions = (
   // Build base options without rendered outputs (react/text)
   // CreateEmailOptions requires at least one of react or text
   const baseOptions = {
-    to: isPreviewEnv ? "delivered@resend.dev" : to,
+    to: isPreviewEnv ? "delivered@resend.dev" : rewriteBlockedRecipient(to),
     from: from || VARIANT_TO_FROM_MAP[variant],
     subject: `${subject}${isPreviewEnv && gitBranch ? ` [${gitBranch}]` : ""}`,
     bcc,
@@ -86,11 +97,6 @@ export const sendEmailViaResend = async (opts: ResendEmailOptions) => {
     return;
   }
 
-  if (isResendBlockedRecipient(opts.to)) {
-    console.info(`Skipping email to reserved Resend domain: ${opts.to}`);
-    return;
-  }
-
   return await resend.emails.send(resendEmailForOptions(opts));
 };
 
@@ -116,17 +122,11 @@ export const sendBatchEmailViaResend = async (
     };
   }
 
-  // Filter out emails without to address or reserved Resend domains
+  // Filter out emails without to address
   // and format the emails for Resend
-  const skippedRecipients: string[] = [];
   const filteredBatch = emails.reduce(
     (acc, email) => {
       if (!email?.to) {
-        return acc;
-      }
-
-      if (isResendBlockedRecipient(email.to)) {
-        skippedRecipients.push(email.to);
         return acc;
       }
 
@@ -136,13 +136,6 @@ export const sendBatchEmailViaResend = async (
     },
     [] as ReturnType<typeof resendEmailForOptions>[],
   );
-
-  if (skippedRecipients.length > 0) {
-    console.info(
-      `Skipping ${skippedRecipients.length} email(s) to reserved Resend domains:`,
-      skippedRecipients,
-    );
-  }
 
   if (filteredBatch.length === 0) {
     return {
