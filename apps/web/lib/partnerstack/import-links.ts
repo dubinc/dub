@@ -1,4 +1,6 @@
 import { prisma } from "@/lib/prisma";
+import { sleep } from "@dub/utils";
+
 import { createLink } from "../api/links";
 import { generatePartnerLink } from "../api/partners/generate-partner-link";
 import { logImportError } from "../tinybird/log-import-error";
@@ -107,7 +109,7 @@ export async function importLinks(payload: PartnerStackImportPayload) {
       );
     }
 
-    await new Promise((resolve) => setTimeout(resolve, 100));
+    await sleep(100);
   }
 
   await partnerStackImporter.queue({

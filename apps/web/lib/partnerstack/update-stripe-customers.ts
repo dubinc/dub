@@ -1,8 +1,10 @@
 import { prisma } from "@/lib/prisma";
 import { sendEmail } from "@dub/email";
 import ProgramImported from "@dub/email/templates/program-imported";
+import { sleep } from "@dub/utils";
 import { Customer, Project } from "@prisma/client";
 import Stripe from "stripe";
+
 import { stripeAppClient } from "../stripe";
 import { logImportError } from "../tinybird/log-import-error";
 import { MAX_BATCHES, partnerStackImporter } from "./importer";
@@ -89,7 +91,7 @@ export async function updateStripeCustomers(
       ),
     );
 
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+    await sleep(2000);
 
     processedBatches++;
     currentStartingAfter = customers[customers.length - 1].id;
