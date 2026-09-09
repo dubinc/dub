@@ -3,6 +3,7 @@
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { includeProgramEnrollment } from "@/lib/api/links/include-program-enrollment";
 import { includeTags } from "@/lib/api/links/include-tags";
+import { queuePartnerSearchSync } from "@/lib/api/partners/queue-partner-search-sync";
 import { throwIfExistingTenantEnrollmentExists } from "@/lib/api/partners/throw-if-existing-tenant-id-exists";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
@@ -95,6 +96,10 @@ export const updatePartnerEnrollmentAction = authActionClient
     waitUntil(
       Promise.allSettled([
         recordLink(programEnrollment.links),
+        // Queue an index update because the tenant ID changed
+        ...(tenantId !== existingTenantId
+          ? [queuePartnerSearchSync({ enrollmentIds: [programEnrollment.id] })]
+          : []),
         recordAuditLog({
           workspaceId: workspace.id,
           programId,
