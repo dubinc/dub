@@ -107,8 +107,6 @@ export async function getPartners(
       .slice((page - 1) * pageSize, page * pageSize)
       .map(({ id }) => id);
 
-    // The IDs already passed every filter above. The program scope stays as a
-    // guard, the partner joins do not need to run again.
     const pageEnrollments =
       pageIds.length > 0
         ? await prisma.programEnrollment.findMany({
