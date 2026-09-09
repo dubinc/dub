@@ -68,7 +68,6 @@ export const EmailSignIn = ({ next }: { next?: string }) => {
             if (!accountExists) {
               setClickedMethod(undefined);
               toast.error("No account found with that email address.", {
-                id: testIds.auth.loginNoAccount,
                 testId: testIds.auth.loginNoAccount,
               });
               return;
@@ -88,7 +87,6 @@ export const EmailSignIn = ({ next }: { next?: string }) => {
           if (!accountExists) {
             setClickedMethod(undefined);
             toast.error("No account found with that email address.", {
-              id: testIds.auth.loginNoAccount,
               testId: testIds.auth.loginNoAccount,
             });
             return;
@@ -110,7 +108,6 @@ export const EmailSignIn = ({ next }: { next?: string }) => {
           if (response.error) {
             if (response.error === "invalid-credentials") {
               toast.error(errorCodes[response.error], {
-                id: testIds.auth.loginInvalidCredentials,
                 testId: testIds.auth.loginInvalidCredentials,
               });
             } else if (errorCodes[response.error]) {

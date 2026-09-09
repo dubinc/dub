@@ -101,7 +101,6 @@ export function Form() {
 
       setValue("logo", destinationUrl, { shouldDirty: true });
       toast.success(`${file.name} uploaded!`, {
-        id: testIds.onboarding.programLogoUploaded,
         testId: testIds.onboarding.programLogoUploaded,
       });
     } catch (e) {
