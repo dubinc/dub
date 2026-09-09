@@ -20,9 +20,12 @@ enum CommissionType {
 enum CommissionSource {
   api // track lead/sale API
   user // manual creates with userId (dashboard /api/commissions, bounties)
+  submitted // submitted leads/sales
   stripe
   shopify
   hubspot
+  appsflyer
+  singular
   rewardful
   partnerstack
   firstpromoter
