@@ -73,8 +73,7 @@ export async function getPartners(
       },
     },
     programPartnerTags: {
-      // A deleted tag keeps its associations until the cleanup job removes
-      // them, and is recognizable only by its null programId
+      // Deleted tags have a null programId until background cleanup removes their associations.
       where: {
         partnerTag: {
           programId,
