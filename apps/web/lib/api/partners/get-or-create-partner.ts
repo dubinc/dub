@@ -54,17 +54,11 @@ export async function getOrCreatePartner({
         "[getOrCreatePartner] Unique constraint conflict (P2002), falling back to find",
       );
 
-      const partner = await prisma.partner.findUnique({
+      const partner = await prisma.partner.findUniqueOrThrow({
         where: {
           email,
         },
       });
-
-      // No email row means the conflict was on username (or another unique
-      // field), not a concurrent same-email create.
-      if (!partner) {
-        throw error;
-      }
 
       return {
         partner,
