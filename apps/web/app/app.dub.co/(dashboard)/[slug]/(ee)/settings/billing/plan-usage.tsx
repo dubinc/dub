@@ -1,6 +1,7 @@
 "use client";
 
 import { clientAccessCheck } from "@/lib/client-access-check";
+import { testIds } from "@/lib/e2e/test-ids";
 import { MEGA_WORKSPACE_LINKS_LIMIT } from "@/lib/constants/misc";
 import useGroupsCount from "@/lib/swr/use-groups-count";
 import { useLinkTagsCount } from "@/lib/swr/use-link-tags-count";
@@ -40,6 +41,7 @@ import {
   isLegacyBusinessPlan,
   isWorkspaceBillingTrialActive,
   nFormatter,
+  sleep,
 } from "@dub/utils";
 import NumberFlow from "@number-flow/react";
 import Link from "next/link";
@@ -191,7 +193,7 @@ export default function PlanUsage() {
 
       if (res.ok) {
         // sleep for 2 seconds to make sure Stripe webhook was received, and then mutate
-        await new Promise((resolve) => setTimeout(resolve, 2000));
+        await sleep(2000);
         await mutate();
         toast.success("Your subscription will continue as normal.");
       } else {
@@ -261,7 +263,10 @@ export default function PlanUsage() {
         ) : trialEndsAt != null &&
           isWorkspaceBillingTrialActive(trialEndsAt) ? (
           <div className="mx-1 mt-1 flex items-center justify-center rounded-lg bg-blue-50/50 px-3 py-2">
-            <p className="text-xs font-medium text-blue-600">
+            <p
+              className="text-xs font-medium text-blue-600"
+              data-testid={testIds.billing.trialBanner}
+            >
               Trial ends on{" "}
               <span className="font-semibold">
                 {new Date(trialEndsAt).toLocaleDateString("en-US", {
@@ -317,6 +322,7 @@ export default function PlanUsage() {
                     className="h-9"
                     disabled={Boolean(permissionsError)}
                     onClick={() => setShowStartPaidPlanModal(true)}
+                    data-testid={testIds.billing.startPaidPlan}
                   />
                 </DynamicTooltipWrapper>
               ) : showPendingCancellation ? (
@@ -358,6 +364,11 @@ export default function PlanUsage() {
                 }
                 variant="secondary"
                 className="h-9"
+                data-testid={
+                  isWorkspaceBillingTrialActive(trialEndsAt)
+                    ? testIds.billing.viewPlans
+                    : undefined
+                }
               />
             </Link>
 

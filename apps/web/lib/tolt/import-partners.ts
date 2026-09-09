@@ -1,5 +1,7 @@
 import { prisma } from "@/lib/prisma";
+import { sleep } from "@dub/utils";
 import { Partner, Program } from "@prisma/client";
+
 import { createId } from "../api/create-id";
 import { queuePartnerSearchSync } from "../api/partners/queue-partner-search-sync";
 import { logImportError } from "../tinybird/log-import-error";
@@ -113,7 +115,7 @@ export async function importPartners(payload: ToltImportPayload) {
       );
     }
 
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+    await sleep(2000);
 
     processedBatches++;
     startingAfter = affiliates[affiliates.length - 1].id;

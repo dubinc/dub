@@ -11,7 +11,7 @@ import {
   SquareXmark,
   StripeIcon,
 } from "@dub/ui";
-import { cn } from "@dub/utils";
+import { cn, sleep } from "@dub/utils";
 import { Command } from "cmdk";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -69,7 +69,7 @@ export default function SubscriptionMenu() {
       .then(async (res) => {
         if (res.ok) {
           // sleep for 2 seconds to make sure Stripe webhook was received, and then mutate
-          await new Promise((resolve) => setTimeout(resolve, 2000));
+          await sleep(2000);
           await mutate();
           toast.success(
             "Your subscription has been scheduled for cancellation at the end of the current period.",

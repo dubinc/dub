@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { COUNTRIES, COUNTRY_CODES } from "@dub/utils";
+import { COUNTRIES, COUNTRY_CODES, sleep } from "@dub/utils";
 import { PartnerGroup, Program } from "@prisma/client";
 import { createId } from "../api/create-id";
 import { queuePartnerSearchSync } from "../api/partners/queue-partner-search-sync";
@@ -77,7 +77,7 @@ export async function importPartners(payload: PartnerStackImportPayload) {
       programId,
     });
 
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+    await sleep(2000);
 
     processedBatches++;
     currentStartingAfter = partners[partners.length - 1].key;

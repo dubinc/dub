@@ -1,3 +1,4 @@
+import { testIds } from "@/lib/e2e/test-ids";
 import { NewBackground } from "@/ui/shared/new-background";
 import { Wordmark } from "@dub/ui";
 import { cn } from "@dub/utils/src";
@@ -16,7 +17,10 @@ export default function Welcome() {
             <Wordmark className="relative h-24 sm:h-36" />
             <Gradient className="opacity-50 mix-blend-hard-light" />
           </div>
-          <h1 className="animate-slide-up-fade mt-14 text-xl font-semibold text-neutral-900 [--offset:10px] [animation-delay:250ms] [animation-duration:1s] [animation-fill-mode:both]">
+          <h1
+            className="animate-slide-up-fade mt-14 text-xl font-semibold text-neutral-900 [--offset:10px] [animation-delay:250ms] [animation-duration:1s] [animation-fill-mode:both]"
+            data-testid={testIds.onboarding.stepWelcome}
+          >
             Welcome to Dub
           </h1>
           <p className="animate-slide-up-fade mt-2 text-balance text-base text-neutral-500 [--offset:10px] [animation-delay:500ms] [animation-duration:1s] [animation-fill-mode:both]">
@@ -24,7 +28,11 @@ export default function Welcome() {
             convert to revenue.
           </p>
           <div className="animate-slide-up-fade mt-8 w-full [--offset:10px] [animation-delay:750ms] [animation-duration:1s] [animation-fill-mode:both]">
-            <NextButton text="Get started" step="workspace" />
+            <NextButton
+              text="Get started"
+              step="workspace"
+              data-testid={testIds.onboarding.getStarted}
+            />
           </div>
         </div>
       </div>

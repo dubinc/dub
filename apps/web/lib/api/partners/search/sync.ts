@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { unique } from "@dub/utils";
 import { getPartnerSearchProvider } from "./provider";
 import {
   partnerSearchDocumentSelect,
@@ -22,10 +23,6 @@ interface SyncPartnerSearchDocumentsOptions {
   searchProvider?: PartnerSearchProvider | null;
 }
 
-function unique(values: string[]): string[] {
-  return Array.from(new Set(values.filter(Boolean)));
-}
-
 /**
  * Brings the index in line with the database for the given enrollments.
  *
@@ -38,7 +35,7 @@ export async function syncPartnerSearchDocuments({
   enrollmentIds,
   searchProvider = getPartnerSearchProvider(),
 }: SyncPartnerSearchDocumentsOptions): Promise<PartnerSearchSyncResult> {
-  const ids = unique(enrollmentIds);
+  const ids = unique(enrollmentIds.filter(Boolean));
 
   if (!searchProvider || ids.length === 0) {
     return { upserted: 0, deleted: 0 };
@@ -93,7 +90,7 @@ export async function findPartnerSearchSyncEnrollmentIds({
   after,
   take = PARTNER_SEARCH_SYNC_BATCH_SIZE,
 }: FindPartnerSearchSyncEnrollmentIdsOptions): Promise<string[]> {
-  const ids = unique(partnerIds);
+  const ids = unique(partnerIds.filter(Boolean));
 
   if (ids.length === 0) {
     return [];

@@ -1,5 +1,6 @@
 "use client";
 
+import { testIds } from "@/lib/e2e/test-ids";
 import { ProgramOnboardingFormWrapper } from "@/ui/partners/program-onboarding-form-wrapper";
 import { cn } from "@dub/utils";
 import { StepPage } from "../../step-page";
@@ -11,6 +12,7 @@ export default function ProgramReward() {
 
   return (
     <StepPage
+      headingTestId={testIds.onboarding.stepReward}
       title="Create your default reward"
       description={
         <>

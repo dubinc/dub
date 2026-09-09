@@ -1,4 +1,5 @@
 import { Prisma } from "@prisma/client";
+import { unique } from "@dub/utils";
 import { PartnerSearchDocument } from "./types";
 
 export const partnerSearchDocumentSelect = {
@@ -6,6 +7,7 @@ export const partnerSearchDocumentSelect = {
   programId: true,
   partnerId: true,
   status: true,
+  tenantId: true,
   groupId: true,
   partner: {
     select: {
@@ -41,10 +43,6 @@ export type PartnerSearchDocumentSource = Prisma.ProgramEnrollmentGetPayload<{
   select: typeof partnerSearchDocumentSelect;
 }>;
 
-function unique<T>(values: T[]): T[] {
-  return Array.from(new Set(values));
-}
-
 export function serializePartnerSearchDocument(
   enrollment: PartnerSearchDocumentSource,
 ): PartnerSearchDocument {
@@ -57,6 +55,7 @@ export function serializePartnerSearchDocument(
     name: partner.name,
     email: partner.email,
     companyName: partner.companyName,
+    country: partner.country,
     description: partner.description,
     platformTypes: unique(partner.platforms.map(({ type }) => type)),
     platformIdentifiers: unique(
@@ -64,8 +63,8 @@ export function serializePartnerSearchDocument(
     ),
     linkKeys: unique(links.map(({ key }) => key)),
     status: enrollment.status,
+    tenantId: enrollment.tenantId,
     groupId: enrollment.groupId,
-    country: partner.country,
     partnerTagIds: unique(
       partner.programPartnerTags
         .filter(({ programId }) => programId === enrollment.programId)

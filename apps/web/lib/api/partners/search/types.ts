@@ -43,11 +43,12 @@ export interface PartnerSearchDocument {
   programId: string;
   partnerId: string;
 
-  // Searchable partner profile fields
+  // Searchable partner profile fields (including tenant ID)
   name: string;
   email: string | null;
   companyName: string | null;
   description: string | null;
+  tenantId: string | null;
 
   // Searchable platform fields
   platformTypes: PlatformType[];

@@ -5,8 +5,10 @@ import type {
   LinkProps,
   RewardConditionsArray,
 } from "@/lib/types";
+import { sleep } from "@dub/utils";
 import { expect } from "@playwright/test";
 import { EventType, Prisma, RewardStructure } from "@prisma/client";
+
 import { deleteCommissionPartner } from "../commissions/helpers";
 import { trackClick, trackLead, trackSale } from "../conversions/helpers";
 import { test, type ApiClient } from "../fixtures";
@@ -224,7 +226,7 @@ async function expectNoSaleCommission(
   { invoiceId }: { invoiceId: string },
 ) {
   // Give the create-partner-commission workflow time to run (and skip).
-  await new Promise((resolve) => setTimeout(resolve, 5_000));
+  await sleep(5_000);
 
   const commission = await prisma.commission.findFirst({
     where: {
@@ -258,7 +260,7 @@ async function expectSaleCommissionCount(
   });
 
   // Give a follow-up create-partner-commission workflow time to run (or skip).
-  await new Promise((resolve) => setTimeout(resolve, 5_000));
+  await sleep(5_000);
 
   await expect
     .poll(async () => {
