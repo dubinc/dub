@@ -8,6 +8,7 @@ import {
 import { DiscountProps, RewardProps } from "@/lib/types";
 import { referralRewardConfigSchema } from "@/lib/zod/schemas/rewards";
 import { cn, currencyFormatter } from "@dub/utils";
+import { CustomRewardDescription } from "./custom-reward-description";
 import { ProgramRewardModifiersTooltip } from "./program-reward-modifiers-tooltip";
 import { ProgramRewardSpendLimit } from "./program-reward-spend-limit";
 
@@ -44,6 +45,12 @@ export function ProgramRewardDescription({
           {reward.description ||
             (reward.event === "referral" ? (
               <ReferralRewardDescription
+                reward={reward}
+                amountClassName={amountClassName}
+                periodClassName={periodClassName}
+              />
+            ) : reward.event === "custom" ? (
+              <CustomRewardDescription
                 reward={reward}
                 amountClassName={amountClassName}
                 periodClassName={periodClassName}

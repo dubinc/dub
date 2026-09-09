@@ -31,6 +31,7 @@ export const getGroupOrThrow = async ({
       leadReward: includeExpandedFields,
       saleReward: includeExpandedFields,
       referralReward: includeExpandedFields,
+      customReward: includeExpandedFields,
       discount: includeExpandedFields,
       utmTemplate: includeExpandedFields,
       partnerGroupDefaultLinks: includeExpandedFields,

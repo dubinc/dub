@@ -65,6 +65,11 @@ const jobLoaders = {
     import("./handlers/send-partner-program-summary-job").then(
       (m) => m.sendPartnerProgramSummaryJob,
     ),
+
+  "create-custom-commission-job": () =>
+    import("./handlers/create-custom-commission-job").then(
+      (m) => m.createCustomCommissionJob,
+    ),
 } as const satisfies Record<string, () => Promise<JobDefinition>>;
 
 const jobCache = new Map<string, JobDefinition>();
