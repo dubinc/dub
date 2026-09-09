@@ -14,6 +14,7 @@ type DurationPopoverContentProps = {
   presetDurations: number[];
   partnerReferralReward?: boolean;
   presetsOnly?: boolean;
+  hideLifetime?: boolean;
   unit?: "days" | "months";
   minValue?: number;
 };
@@ -24,6 +25,7 @@ export function DurationPopoverContent({
   presetDurations,
   partnerReferralReward,
   presetsOnly = false,
+  hideLifetime = false,
   unit = "months",
   minValue = 0,
 }: DurationPopoverContentProps) {
@@ -142,7 +144,11 @@ export function DurationPopoverContent({
               }
               if (e.key === "Enter") {
                 e.preventDefault();
-                if (!presetsOnly && customDurationInput === "0") {
+                if (
+                  !presetsOnly &&
+                  minValue === 0 &&
+                  customDurationInput === "0"
+                ) {
                   onChange(0);
                   setCustomDurationInput("");
                   setShowCustomInput(false);
@@ -187,14 +193,16 @@ export function DurationPopoverContent({
         setCustomDurationInput("");
       }}
       items={[
-        ...(!presetsOnly && !partnerReferralReward
+        ...(!presetsOnly && !partnerReferralReward && minValue === 0
           ? [{ text: "one time", value: "0" }]
           : []),
         ...presetItems,
         ...(!presetsOnly
           ? [
               {
-                text: `for the ${partnerReferralReward ? "referred partner's" : "customer's"} lifetime`,
+                text: hideLifetime
+                  ? "Indefinitely"
+                  : `for the ${partnerReferralReward ? "referred partner's" : "customer's"} lifetime`,
                 value: "Infinity",
               },
             ]

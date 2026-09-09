@@ -33,6 +33,7 @@ export async function importPartners(payload: LemonSqueezyImportPayload) {
           leadRewardId: true,
           saleRewardId: true,
           referralRewardId: true,
+          customRewardId: true,
           discountId: true,
         },
       },
@@ -192,6 +193,7 @@ async function createPartnerAndLinks({
     | "leadRewardId"
     | "saleRewardId"
     | "referralRewardId"
+    | "customRewardId"
   >;
   userId: string;
   importId: string;
@@ -239,6 +241,7 @@ async function createPartnerAndLinks({
       leadRewardId: group.leadRewardId,
       saleRewardId: group.saleRewardId,
       referralRewardId: group.referralRewardId,
+      customRewardId: group.customRewardId,
       discountId: group.discountId,
     },
     update: {

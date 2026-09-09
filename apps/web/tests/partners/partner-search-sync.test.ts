@@ -28,6 +28,7 @@ function createSource(
     programId: "prog_test",
     partnerId: `pn_${id}`,
     status: "approved" as const,
+    tenantId: null,
     groupId: null,
     partner: {
       name: "Rafi Hasan",
@@ -35,10 +36,10 @@ function createSource(
       companyName: "Dub Partners",
       description: "Developer tools educator",
       country: null,
-      programPartnerTags: [],
       platforms: [],
     },
     links: [],
+    programPartnerTags: [],
     ...overrides,
   };
 }
@@ -149,13 +150,9 @@ describe("syncPartnerSearchDocuments", () => {
           companyName: null,
           description: null,
           country: "US",
-          // Tags from another program must not leak into this document.
-          programPartnerTags: [
-            { programId: "prog_test", partnerTagId: "ptag_1" },
-            { programId: "prog_other", partnerTagId: "ptag_other" },
-          ],
           platforms: [{ type: "youtube" as const, identifier: "rafi" }],
         },
+        programPartnerTags: [{ partnerTagId: "ptag_1" }],
       }),
     ]);
 

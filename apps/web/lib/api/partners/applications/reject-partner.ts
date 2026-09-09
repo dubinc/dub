@@ -128,6 +128,7 @@ export async function rejectPartner({
         leadRewardId: null,
         saleRewardId: null,
         referralRewardId: null,
+        customRewardId: null,
         discountId: null,
       },
     });
