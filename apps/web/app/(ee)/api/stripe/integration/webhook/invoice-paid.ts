@@ -334,6 +334,11 @@ export async function invoicePaid({
           p !== null && p.quantity !== null,
       );
 
+    const commissionMetadata = {
+      products,
+      ...saleMetadata,
+    };
+
     result = await queuePartnerCommissionCreation({
       event: "sale",
       programId: link.programId,
@@ -345,6 +350,7 @@ export async function invoicePaid({
       quantity: 1,
       invoiceId,
       currency: saleData.currency,
+      metadata: commissionMetadata,
       context: {
         customer: {
           country: customer.country,
@@ -353,9 +359,7 @@ export async function invoicePaid({
         sale: {
           products,
           amount: saleData.amount,
-          ...(Object.keys(saleMetadata).length > 0
-            ? { metadata: saleMetadata }
-            : {}),
+          metadata: saleMetadata,
         },
       },
       clickEvent: {
