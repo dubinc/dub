@@ -192,8 +192,10 @@ describe("syncPartnerEnrollments", () => {
 
     expect(result).toEqual({ upserted: 2, lastEnrollmentId: "pge_2" });
     expect(mocks.findMany).toHaveBeenCalledTimes(1);
+    expect(mocks.findMany.mock.calls[0][0].where).toEqual({
+      partnerId: { in: ["pn_1"] },
+    });
     expect(mocks.findMany.mock.calls[0][0]).toMatchObject({
-      where: { partnerId: { in: ["pn_1"] } },
       select: partnerSearchDocumentSelect,
       orderBy: { id: "asc" },
     });

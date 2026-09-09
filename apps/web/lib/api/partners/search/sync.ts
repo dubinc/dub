@@ -88,8 +88,7 @@ export interface SyncPartnersResult {
  * the partner is in. Paged because that fan-out is unbounded. `programId`
  * narrows it to one enrollment per partner.
  *
- * Upserts only. The rows come from the database, so there is nothing to
- * delete.
+ * Upserts only. The rows come from the database, so there is nothing to delete.
  */
 export async function syncPartnerEnrollments({
   partnerIds,
