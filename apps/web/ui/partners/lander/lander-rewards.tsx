@@ -1,5 +1,6 @@
 "use client";
 
+import { isEventBasedReward } from "@/lib/api/rewards/custom-reward-utils";
 import { getRewardAmount } from "@/lib/partners/get-reward-amount";
 import {
   DiscountProps,
@@ -27,6 +28,10 @@ export function LanderRewards({
   className?: string;
 }) {
   const sortedFilteredRewards = rewards.filter((reward) => {
+    if (!isEventBasedReward(reward)) {
+      return false;
+    }
+
     const rawAmount =
       reward.type === "flat" ? reward.amountInCents : reward.amountInPercentage;
 

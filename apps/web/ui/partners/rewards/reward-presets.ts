@@ -8,7 +8,7 @@ export type RewardPreset = {
 };
 
 export const REWARD_PRESETS: Partial<
-  Record<Exclude<EventType, "referral">, RewardPreset[]>
+  Record<Exclude<EventType, "referral" | "custom">, RewardPreset[]>
 > = {
   sale: [
     {
