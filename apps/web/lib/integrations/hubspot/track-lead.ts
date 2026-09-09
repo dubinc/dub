@@ -99,6 +99,7 @@ export const trackHubSpotLeadEvent = async ({
       where: {
         projectId: workspace.id,
         OR: [
+          { email: contactInfo.properties.email },
           { externalId: contactInfo.id },
           { externalId: contactInfo.properties.email },
         ],

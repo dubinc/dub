@@ -1,6 +1,7 @@
 "use client";
 
 import { FRAUD_RULES_BY_TYPE } from "@/lib/api/fraud/constants";
+import { clientAccessCheck } from "@/lib/client-access-check";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { FraudGroupProps } from "@/lib/types";
@@ -63,7 +64,19 @@ function RiskReviewSheetContent({
   onNext,
 }: RiskReviewSheetProps) {
   const { partner, user } = fraudGroup;
-  const { slug, id: workspaceId } = useWorkspace();
+  const { slug, id: workspaceId, role } = useWorkspace();
+
+  const partnersPermissionsError = clientAccessCheck({
+    action: "partners.write",
+    role,
+    customPermissionDescription: "review risk events",
+  }).error;
+
+  const messagesPermissionsError = clientAccessCheck({
+    action: "messages.write",
+    role,
+    customPermissionDescription: "message partners",
+  }).error;
 
   const showCommissionsOnHold =
     fraudGroup.status === "pending" &&
@@ -128,6 +141,7 @@ function RiskReviewSheetContent({
   // Resolve/ban/reject shortcuts
   useKeyboardShortcut("r", () => setShowResolveFraudGroupModal(true), {
     sheet: true,
+    enabled: !partnersPermissionsError,
   });
 
   useKeyboardShortcut(
@@ -139,7 +153,7 @@ function RiskReviewSheetContent({
         setShowBanPartnerModal(true);
       }
     },
-    { sheet: true },
+    { sheet: true, enabled: !partnersPermissionsError },
   );
 
   const fraudRuleInfo = FRAUD_RULES_BY_TYPE[fraudGroup.type];
@@ -159,17 +173,27 @@ function RiskReviewSheetContent({
           </Sheet.Title>
 
           <div className="flex items-center gap-2">
-            <Link
-              href={`/${slug}/program/messages/${partner.id}`}
-              target="_blank"
-              className={cn(
-                buttonVariants({ variant: "secondary" }),
-                "flex h-9 items-center gap-2 whitespace-nowrap rounded-lg border px-3 text-sm font-medium",
-              )}
-            >
-              <Msgs className="size-4 shrink-0" />
-              <span className="hidden sm:inline">Message</span>
-            </Link>
+            {messagesPermissionsError ? (
+              <Button
+                variant="secondary"
+                text="Message"
+                icon={<Msgs className="size-4 shrink-0" />}
+                disabledTooltip={messagesPermissionsError}
+                className="h-9 w-fit px-3"
+              />
+            ) : (
+              <Link
+                href={`/${slug}/program/messages/${partner.id}`}
+                target="_blank"
+                className={cn(
+                  buttonVariants({ variant: "secondary" }),
+                  "flex h-9 items-center gap-2 whitespace-nowrap rounded-lg border px-3 text-sm font-medium",
+                )}
+              >
+                <Msgs className="size-4 shrink-0" />
+                <span className="hidden sm:inline">Message</span>
+              </Link>
+            )}
 
             <div className="flex items-center">
               <Button
@@ -355,6 +379,7 @@ function RiskReviewSheetContent({
                 shortcut="R"
                 onClick={() => setShowResolveFraudGroupModal(true)}
                 className="h-8 w-fit rounded-lg"
+                disabledTooltip={partnersPermissionsError || undefined}
               />
 
               {partner.status === "pending" ? (
@@ -365,6 +390,7 @@ function RiskReviewSheetContent({
                   variant="danger"
                   onClick={() => setShowRejectPartnerApplicationModal(true)}
                   className="h-8 w-fit rounded-lg"
+                  disabledTooltip={partnersPermissionsError || undefined}
                 />
               ) : (
                 <Button
@@ -374,6 +400,7 @@ function RiskReviewSheetContent({
                   variant="danger"
                   onClick={() => setShowBanPartnerModal(true)}
                   className="h-8 w-fit rounded-lg"
+                  disabledTooltip={partnersPermissionsError || undefined}
                 />
               )}
             </div>

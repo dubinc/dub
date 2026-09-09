@@ -5,7 +5,7 @@ import { cn } from "@dub/utils";
 import { useState } from "react";
 import { useFormStatus } from "react-dom";
 import { toast } from "sonner";
-import UserInfo, { UserInfoProps } from "./user-info";
+import UserInfo, { UserInfoProps, UserInfoSkeleton } from "./user-info";
 
 export function ImpersonateUser() {
   const [data, setData] = useState<UserInfoProps | null>(null);
@@ -33,7 +33,7 @@ export function ImpersonateUser() {
       >
         <Form />
       </form>
-      {data && (
+      {data ? (
         <form
           action={async () => {
             const emailDomain = data.email.split("@")[1];
@@ -78,6 +78,8 @@ export function ImpersonateUser() {
             <BanButton />
           </div>
         </form>
+      ) : (
+        <UserInfoSkeleton />
       )}
     </div>
   );
@@ -105,9 +107,16 @@ const Form = () => {
           if (text.toLowerCase().startsWith("mailto:")) {
             text = text.slice(7);
           }
+          const stripeCustomerId = text.match(/cus_[a-zA-Z0-9]+/)?.[0];
+          if (
+            stripeCustomerId &&
+            (text.startsWith("cus_") || text.includes("stripe.com"))
+          ) {
+            text = stripeCustomerId;
+          }
           e.currentTarget.value = text;
         }}
-        placeholder="panic@thedis.co, acme, or acme.com"
+        placeholder="panic@thedis.co, acme, acme.com, or cus_"
         aria-invalid="true"
       />
       {pending && (

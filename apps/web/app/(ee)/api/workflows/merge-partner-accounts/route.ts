@@ -25,6 +25,8 @@ const inputSchema = z.object({
   userId: z.string(),
   sourceEmail: z.string(),
   targetEmail: z.string(),
+  // When true (e.g. e2e tests) skip the email notification
+  skipEmailNotification: z.boolean().optional().default(false),
 });
 
 type Input = z.infer<typeof inputSchema>;
@@ -48,7 +50,8 @@ const CACHE_KEY_PREFIX = "merge-partner-accounts";
 // POST /api/workflows/merge-partner-accounts
 export const { POST } = serve<Input>(
   async (context) => {
-    const { userId, sourceEmail, targetEmail } = context.requestPayload;
+    const { userId, sourceEmail, targetEmail, skipEmailNotification } =
+      context.requestPayload;
 
     // Step 1: Resolve + validate accounts and build the merge plan
     const plan = await context.run("load-merge-plan", async () => {
@@ -155,6 +158,12 @@ export const { POST } = serve<Input>(
     // Step 5: Clear the verification cache and notify both accounts
     await context.run("send-merged-emails", async () => {
       await redis.del(`${CACHE_KEY_PREFIX}:${userId}`);
+
+      if (skipEmailNotification) {
+        return logAndReturn({
+          outputLog: `Partner account ${sourceEmail} merged into ${targetEmail}. Skipped email notification.`,
+        });
+      }
 
       const resendBatchEmailRes = await sendBatchEmail(
         [

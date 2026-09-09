@@ -1,5 +1,6 @@
 "use client";
 
+import { clientAccessCheck } from "@/lib/client-access-check";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import {
   SubmissionsCountByStatus,
@@ -28,7 +29,13 @@ export function BountyActionButton({
   buttonClassName,
 }: BountyActionButtonProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const { id: workspaceId } = useWorkspace();
+  const { id: workspaceId, role } = useWorkspace();
+
+  const permissionsError = clientAccessCheck({
+    action: "bounties.write",
+    role,
+    customPermissionDescription: "manage bounties",
+  }).error;
   const { setShowCreateBountySheet, BountySheet } = useBountySheet({ bounty });
 
   const { submissionsCount } = useBountySubmissionsCount<
@@ -81,6 +88,7 @@ export function BountyActionButton({
             className="h-9 w-fit rounded-lg"
             icon={<PenWriting className="size-4 shrink-0" />}
             onClick={() => setShowCreateBountySheet(true)}
+            disabledTooltip={permissionsError || undefined}
           />
 
           <Popover
@@ -98,9 +106,11 @@ export function BountyActionButton({
                       setShowDeleteModal(true);
                     }}
                     disabledTooltip={
-                      totalSubmissions > 0
-                        ? "Bounties with submissions cannot be deleted."
-                        : undefined
+                      permissionsError
+                        ? permissionsError
+                        : totalSubmissions > 0
+                          ? "Bounties with submissions cannot be deleted."
+                          : undefined
                     }
                   >
                     Delete bounty

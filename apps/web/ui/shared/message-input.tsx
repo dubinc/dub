@@ -1,3 +1,4 @@
+import { clientAccessCheck } from "@/lib/client-access-check";
 import {
   MAX_ATTACHMENTS_PER_MESSAGE,
   MAX_MESSAGE_LENGTH,
@@ -7,6 +8,7 @@ import {
   getAttachmentTypeLabel,
   isPreviewableImageType,
 } from "@/lib/messages/utils";
+import useWorkspace from "@/lib/swr/use-workspace";
 import {
   ArrowTurnLeft,
   Button,
@@ -75,6 +77,15 @@ export function MessageInput({
   allowedFileTypes?: readonly string[];
   maxAttachments?: number;
 }) {
+  const { id: workspaceId, role } = useWorkspace();
+  const permissionsError = workspaceId
+    ? clientAccessCheck({
+        action: "messages.write",
+        role,
+        customPermissionDescription: "send messages",
+      }).error
+    : false;
+
   const richTextRef = useRef<{ setContent: (content: any) => void }>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [typedMessage, setTypedMessage] = useState(defaultValue || "");
@@ -102,7 +113,12 @@ export function MessageInput({
   const isTooLong = typedMessage.trim().length >= MAX_MESSAGE_LENGTH;
 
   const isSendDisabled =
-    (!hasText && !hasCompletedAttachments) || isTooLong || hasUploading;
+    Boolean(permissionsError) ||
+    (!hasText && !hasCompletedAttachments) ||
+    isTooLong ||
+    hasUploading;
+
+  const canAddFiles = Boolean(onAddFiles) && !permissionsError;
 
   const sendMessage = () => {
     if (isSendDisabled) return;
@@ -181,11 +197,11 @@ export function MessageInput({
       )}
       onDragOver={(e) => {
         handleDragEvent(e);
-        if (onAddFiles) setDragActive(true);
+        if (canAddFiles) setDragActive(true);
       }}
       onDragEnter={(e) => {
         handleDragEvent(e);
-        if (onAddFiles) setDragActive(true);
+        if (canAddFiles) setDragActive(true);
       }}
       onDragLeave={(e) => {
         handleDragEvent(e);
@@ -194,13 +210,13 @@ export function MessageInput({
       onDrop={(e) => {
         handleDragEvent(e);
         setDragActive(false);
-        if (e.dataTransfer.files?.length) {
+        if (canAddFiles && e.dataTransfer.files?.length) {
           handleFiles(e.dataTransfer.files);
         }
       }}
     >
       {/* Drag overlay */}
-      {dragActive && onAddFiles && (
+      {dragActive && canAddFiles && (
         <div className="absolute inset-0 z-10 flex items-center justify-center rounded-xl border-2 border-dashed border-neutral-400 bg-neutral-50/90">
           <div className="text-center">
             <p className="text-sm font-medium text-neutral-600">
@@ -217,6 +233,7 @@ export function MessageInput({
         style="condensed"
         markdown
         autoFocus={autoFocus}
+        editable={!permissionsError}
         placeholder={placeholder}
         editorClassName="block max-h-[min(40dvh,15rem)] w-full resize-none border-none overflow-auto scrollbar-hide p-3 text-base sm:max-h-64 sm:text-sm md:max-h-80 lg:max-h-96"
         initialValue={defaultValue}
@@ -276,12 +293,13 @@ export function MessageInput({
 
         <div className="flex items-center justify-between gap-4 p-3">
           <MessageInputToolbar
+            disabled={Boolean(permissionsError)}
             emojiPickerOpen={emojiPickerOpen}
             setEmojiPickerOpen={setEmojiPickerOpen}
             stripColonOnEmojiPickRef={stripColonOnEmojiPickRef}
             cursorRect={cursorRect}
             onAttachClick={
-              onAddFiles ? () => fileInputRef.current?.click() : undefined
+              canAddFiles ? () => fileInputRef.current?.click() : undefined
             }
           />
           <div className="flex items-center justify-between gap-2">
@@ -331,11 +349,13 @@ export function MessageInput({
               }
               disabled={isSendDisabled}
               disabledTooltip={
-                isTooLong
-                  ? `Message must be less than ${nFormatter(MAX_MESSAGE_LENGTH)} characters`
-                  : hasUploading
-                    ? "Please wait for uploads to complete"
-                    : undefined
+                permissionsError
+                  ? permissionsError
+                  : isTooLong
+                    ? `Message must be less than ${nFormatter(MAX_MESSAGE_LENGTH)} characters`
+                    : hasUploading
+                      ? "Please wait for uploads to complete"
+                      : undefined
               }
               onClick={sendMessage}
               className="h-8 w-fit rounded-lg px-4"
@@ -551,12 +571,14 @@ function MessageInputEditorOverflowFades() {
 }
 
 function MessageInputToolbar({
+  disabled,
   emojiPickerOpen,
   setEmojiPickerOpen,
   stripColonOnEmojiPickRef,
   cursorRect,
   onAttachClick,
 }: {
+  disabled?: boolean;
   emojiPickerOpen: boolean;
   setEmojiPickerOpen: (open: boolean) => void;
   stripColonOnEmojiPickRef: { current: boolean };
@@ -572,6 +594,7 @@ function MessageInputToolbar({
 
   return (
     <RichTextToolbar
+      className={disabled ? "pointer-events-none opacity-50" : undefined}
       toolsStart={
         <EmojiPicker
           openPopover={emojiPickerOpen}
@@ -579,7 +602,7 @@ function MessageInputToolbar({
           onKeyboardDismissFocusEditor={() => editor?.commands.focus()}
           anchorRect={cursorRect}
           onSelect={(emoji) => {
-            if (!editor) return;
+            if (!editor || disabled) return;
             const stripColon = stripColonOnEmojiPickRef.current;
             stripColonOnEmojiPickRef.current = false;
 
@@ -600,7 +623,11 @@ function MessageInputToolbar({
             setTimeout(() => editor.commands.focus(), 0);
           }}
         >
-          <RichTextToolbarButton icon={FaceSmile} label="Emoji" />
+          <RichTextToolbarButton
+            icon={FaceSmile}
+            label="Emoji"
+            disabled={disabled}
+          />
         </EmojiPicker>
       }
       toolsEnd={
@@ -609,6 +636,7 @@ function MessageInputToolbar({
             icon={Paperclip}
             label="Attach file"
             onClick={onAttachClick}
+            disabled={disabled}
           />
         ) : undefined
       }

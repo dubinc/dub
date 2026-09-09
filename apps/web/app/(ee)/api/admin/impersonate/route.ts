@@ -103,13 +103,18 @@ const ownerSelect = {
 type ImpersonateIdentifier =
   | { type: "email"; email: string }
   | { type: "slug"; slug: string }
-  | { type: "domain"; domain: string };
+  | { type: "domain"; domain: string }
+  | { type: "stripeCustomerId"; stripeCustomerId: string };
+
+const STRIPE_CUSTOMER_ID_REGEX = /cus_[a-zA-Z0-9]+/;
 
 function parseImpersonateQuery(
   raw: unknown,
 ): ImpersonateIdentifier | { error: string } {
   if (typeof raw !== "string" || !raw.trim()) {
-    return { error: "Enter a user email, workspace slug, or domain" };
+    return {
+      error: "Enter a user email, workspace slug, domain, or Stripe customer ID",
+    };
   }
 
   let query = raw.trim();
@@ -123,6 +128,14 @@ function parseImpersonateQuery(
       return { error: "Invalid email" };
     }
     return { type: "email", email: parsed.data };
+  }
+
+  const stripeCustomerId = query.match(STRIPE_CUSTOMER_ID_REGEX)?.[0];
+  if (
+    stripeCustomerId &&
+    (query.startsWith("cus_") || query.includes("stripe.com"))
+  ) {
+    return { type: "stripeCustomerId", stripeCustomerId };
   }
 
   let hostname: string | undefined;
@@ -158,13 +171,17 @@ function parseImpersonateQuery(
     return { type: "slug", slug };
   }
 
-  return { error: "Enter a user email, workspace slug, or domain" };
+  return {
+    error: "Enter a user email, workspace slug, domain, or Stripe customer ID",
+  };
 }
 
 // POST /api/admin/impersonate
 export const POST = withAdmin(async ({ req }) => {
-  const { query, email, slug, domain } = await req.json();
-  const parsed = parseImpersonateQuery(query ?? email ?? slug ?? domain);
+  const { query, email, slug, domain, stripeCustomerId } = await req.json();
+  const parsed = parseImpersonateQuery(
+    query ?? email ?? slug ?? domain ?? stripeCustomerId,
+  );
 
   if ("error" in parsed) {
     return new Response(parsed.error, { status: 400 });
@@ -381,6 +398,45 @@ async function findUser(identifier: ImpersonateIdentifier) {
     }
 
     const user = domainRecord.project.users[0]?.user;
+    if (!user?.email) {
+      return { error: "Workspace owner not found" };
+    }
+
+    return { user };
+  }
+
+  if (identifier.type === "stripeCustomerId") {
+    const project = await prisma.project.findUnique({
+      where: {
+        stripeId: identifier.stripeCustomerId,
+      },
+      select: ownerSelect,
+    });
+
+    if (project) {
+      const user = project.users[0]?.user;
+      if (!user?.email) {
+        return { error: "Workspace owner not found" };
+      }
+      return { user };
+    }
+
+    const customer = await prisma.customer.findUnique({
+      where: {
+        stripeCustomerId: identifier.stripeCustomerId,
+      },
+      select: {
+        project: {
+          select: ownerSelect,
+        },
+      },
+    });
+
+    if (!customer?.project) {
+      return { error: "Workspace not found for this Stripe customer ID" };
+    }
+
+    const user = customer.project.users[0]?.user;
     if (!user?.email) {
       return { error: "Workspace owner not found" };
     }

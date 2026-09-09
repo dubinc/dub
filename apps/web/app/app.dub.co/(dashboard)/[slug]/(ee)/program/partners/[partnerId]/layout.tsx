@@ -2,6 +2,7 @@
 
 import { deleteProgramInviteAction } from "@/lib/actions/partners/delete-program-invite";
 import { resendProgramInviteAction } from "@/lib/actions/partners/resend-program-invite";
+import { clientAccessCheck } from "@/lib/client-access-check";
 import { getDeletePartnerDisabledTooltip } from "@/lib/partners/utils";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import usePartner from "@/lib/swr/use-partner";
@@ -171,8 +172,26 @@ function PartnerProfileButton({
 }
 
 function PageControls({ partner }: { partner: EnrolledPartnerProps }) {
-  const { slug: workspaceSlug, id: workspaceId } = useWorkspace();
+  const { slug: workspaceSlug, id: workspaceId, role } = useWorkspace();
   const router = useRouter();
+
+  const commissionPermissionsError = clientAccessCheck({
+    action: "commissions.write",
+    role,
+    customPermissionDescription: "create commissions",
+  }).error;
+
+  const clawbackPermissionsError = clientAccessCheck({
+    action: "commissions.write",
+    role,
+    customPermissionDescription: "create clawbacks",
+  }).error;
+
+  const messagesPermissionsError = clientAccessCheck({
+    action: "messages.write",
+    role,
+    customPermissionDescription: "message partners",
+  }).error;
 
   const { createCommissionSheet, setIsOpen: setCreateCommissionSheetOpen } =
     useCreateCommissionSheet({
@@ -182,15 +201,21 @@ function PageControls({ partner }: { partner: EnrolledPartnerProps }) {
   const canCreateCommission = COMMISSION_ELIGIBLE_ENROLLMENT_STATUSES.includes(
     partner.status,
   );
-  const createCommissionDisabledTooltip = canCreateCommission
-    ? undefined
-    : `You can't create a commission for a partner that is ${partner.status}.`;
+  const createCommissionDisabledTooltip =
+    commissionPermissionsError ||
+    (canCreateCommission
+      ? undefined
+      : `You can't create a commission for a partner that is ${partner.status}.`);
 
-  useKeyboardShortcut("c", () => {
-    if (canCreateCommission) {
-      setCreateCommissionSheetOpen(true);
-    }
-  });
+  useKeyboardShortcut(
+    "c",
+    () => {
+      if (canCreateCommission) {
+        setCreateCommissionSheetOpen(true);
+      }
+    },
+    { enabled: !commissionPermissionsError },
+  );
 
   const { createClawbackSheet, setIsOpen: setClawbackSheetOpen } =
     useCreateClawbackSheet({});
@@ -297,15 +322,25 @@ function PageControls({ partner }: { partner: EnrolledPartnerProps }) {
             className="hidden h-8 w-fit px-3 sm:h-9 md:flex"
           />
 
-          <Link href={`/${workspaceSlug}/program/messages/${partner.id}`}>
+          {messagesPermissionsError ? (
             <Button
               variant="secondary"
               text="Message"
               icon={<Msgs className="size-4 shrink-0" />}
-              onClick={() => setIsOpen(false)}
+              disabledTooltip={messagesPermissionsError}
               className="hidden h-8 w-fit px-3 sm:h-9 md:flex"
             />
-          </Link>
+          ) : (
+            <Link href={`/${workspaceSlug}/program/messages/${partner.id}`}>
+              <Button
+                variant="secondary"
+                text="Message"
+                icon={<Msgs className="size-4 shrink-0" />}
+                onClick={() => setIsOpen(false)}
+                className="hidden h-8 w-fit px-3 sm:h-9 md:flex"
+              />
+            </Link>
+          )}
         </>
       )}
 
@@ -343,16 +378,26 @@ function PageControls({ partner }: { partner: EnrolledPartnerProps }) {
             ) : (
               <>
                 <div className="grid gap-px p-2">
-                  <MenuItem
-                    as={Link}
-                    href={`/${workspaceSlug}/program/messages/${partner.id}`}
-                    target="_blank"
-                    icon={Msgs}
-                    onClick={() => setIsOpen(false)}
-                    className="md:hidden"
-                  >
-                    Message
-                  </MenuItem>
+                  {messagesPermissionsError ? (
+                    <MenuItem
+                      icon={Msgs}
+                      disabledTooltip={messagesPermissionsError}
+                      className="md:hidden"
+                    >
+                      Message
+                    </MenuItem>
+                  ) : (
+                    <MenuItem
+                      as={Link}
+                      href={`/${workspaceSlug}/program/messages/${partner.id}`}
+                      target="_blank"
+                      icon={Msgs}
+                      onClick={() => setIsOpen(false)}
+                      className="md:hidden"
+                    >
+                      Message
+                    </MenuItem>
+                  )}
                   <MenuItem
                     icon={InvoiceDollar}
                     onClick={() => {
@@ -370,6 +415,7 @@ function PageControls({ partner }: { partner: EnrolledPartnerProps }) {
                       setClawbackSheetOpen(true);
                       setIsOpen(false);
                     }}
+                    disabledTooltip={clawbackPermissionsError || undefined}
                   >
                     Create clawback
                   </MenuItem>

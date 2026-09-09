@@ -40,15 +40,26 @@ export const GET = withCron(async () => {
       },
       partner: {
         payoutsEnabledAt: null,
-        country: {
-          in: PAYOUT_SUPPORTED_COUNTRIES.map((c) => c.code),
-        },
-        OR: [
-          { connectPayoutsLastRemindedAt: null },
+        AND: [
           {
-            connectPayoutsLastRemindedAt: {
-              lte: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000), // Last notified was at least 3 days ago
-            },
+            OR: [
+              { country: null },
+              {
+                country: {
+                  in: PAYOUT_SUPPORTED_COUNTRIES.map((c) => c.code),
+                },
+              },
+            ],
+          },
+          {
+            OR: [
+              { connectPayoutsLastRemindedAt: null },
+              {
+                connectPayoutsLastRemindedAt: {
+                  lte: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
+                },
+              },
+            ],
           },
         ],
       },
