@@ -76,6 +76,29 @@ describe("getPartners search", () => {
     );
   });
 
+  it("hydrates only tags that still belong to the program", async () => {
+    // Deleting a tag nulls its programId first and removes the associations
+    // in a later job, so the relation must filter on the tag, not the link.
+    mocks.findMany.mockResolvedValue([enrollment("pge_1", "pn_1")]);
+
+    await getPartners(
+      {
+        programId: "prog_test",
+        page: 1,
+        pageSize: 25,
+        sortBy: "totalSaleAmount",
+        sortOrder: "desc",
+      },
+      { searchProvider: null },
+    );
+
+    const { include } = mocks.findMany.mock.calls.at(-1)![0];
+    expect(include.programPartnerTags).toEqual({
+      where: { partnerTag: { programId: "prog_test" } },
+      include: { partnerTag: true },
+    });
+  });
+
   it("keeps a tenant filter on the database search path", async () => {
     // tenantId predates the search provider, so `tenantId` + `search` still
     // resolves entirely in the database rather than inheriting the candidate
