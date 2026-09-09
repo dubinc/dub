@@ -1,4 +1,5 @@
 import { Prisma } from "@prisma/client";
+import { unique } from "@dub/utils";
 import { PartnerSearchDocument } from "./types";
 
 export const partnerSearchDocumentSelect = {
@@ -41,10 +42,6 @@ export const partnerSearchDocumentSelect = {
 export type PartnerSearchDocumentSource = Prisma.ProgramEnrollmentGetPayload<{
   select: typeof partnerSearchDocumentSelect;
 }>;
-
-function unique<T>(values: T[]): T[] {
-  return Array.from(new Set(values));
-}
 
 export function serializePartnerSearchDocument(
   enrollment: PartnerSearchDocumentSource,
