@@ -74,6 +74,8 @@ export async function importPartners(payload: ToltImportPayload) {
               saleRewardId: defaultGroup.saleRewardId,
               leadRewardId: defaultGroup.leadRewardId,
               clickRewardId: defaultGroup.clickRewardId,
+              customRewardId: defaultGroup.customRewardId,
+              referralRewardId: defaultGroup.referralRewardId,
               discountId: defaultGroup.discountId,
             },
           }),
@@ -139,6 +141,8 @@ async function createPartner({
     saleRewardId: string | null;
     leadRewardId: string | null;
     clickRewardId: string | null;
+    customRewardId: string | null;
+    referralRewardId: string | null;
     discountId: string | null;
   };
 }) {

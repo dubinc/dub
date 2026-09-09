@@ -16,6 +16,7 @@ import { RewardConditionsArray, RewardProps } from "@/lib/types";
 import { RECURRING_MAX_DURATIONS } from "@/lib/zod/schemas/misc";
 import {
   createOrUpdateRewardSchema,
+  customRewardConfigSchema,
   REWARD_CONDITION_ATTRIBUTES,
   REWARD_DESCRIPTION_MAX_LENGTH,
   REWARD_TOOLTIP_DESCRIPTION_MAX_LENGTH,
@@ -69,6 +70,7 @@ import {
   AIRewardPreviewFrame,
   useAIRewardBuilder,
 } from "./ai-reward-builder";
+import { CustomRewardBuilder } from "./custom-reward-builder";
 import { PartnerReferralRewardBuilder } from "./partner-referral-reward-builder";
 import { RewardIconSquare } from "./reward-icon-square";
 import { RewardPreviewCard } from "./reward-preview-card";
@@ -83,6 +85,7 @@ interface RewardSheetProps {
 
 // Special form schema to allow for empty condition fields when adding a new condition
 const formSchema = createOrUpdateRewardSchema.extend({
+  config: z.any().nullish(),
   modifiers: z
     .array(
       rewardConditionsSchema.extend({
@@ -137,7 +140,11 @@ function referralConfigToApi(
 export const getRewardPayload = ({ data }: { data: FormData }) => {
   let modifiers: RewardConditionsArray | null = null;
   const config =
-    data.event === "referral" ? referralConfigToApi(data.config) : null;
+    data.event === "referral"
+      ? referralConfigToApi(data.config)
+      : data.event === "custom"
+        ? customRewardConfigSchema.parse(data.config)
+        : null;
 
   if (data.modifiers?.length) {
     modifiers = rewardConditionsArraySchema.parse(
@@ -245,13 +252,18 @@ function RewardSheetContent({
       event,
       type:
         defaultValuesSource?.type ??
-        (event === "click" || event === "lead" ? "flat" : "percentage"),
+        (event === "click" || event === "lead" || event === "custom"
+          ? "flat"
+          : "percentage"),
       maxDuration: defaultValuesSource
         ? defaultValuesSource.maxDuration === null
           ? Infinity
           : defaultValuesSource.maxDuration
         : Infinity,
-      config: referralConfigFromApi(defaultValuesSource?.config),
+      config:
+        event === "custom"
+          ? defaultValuesSource?.config
+          : referralConfigFromApi(defaultValuesSource?.config),
       amountInCents:
         defaultValuesSource?.amountInCents != null
           ? defaultValuesSource.amountInCents / 100
@@ -341,7 +353,9 @@ function RewardSheetContent({
     canUseAdvancedRewardLogic,
   } = getPlanCapabilities(plan);
 
-  const aiEvent = selectedEvent === "referral" ? "sale" : selectedEvent;
+  const isAiRewardEvent =
+    selectedEvent !== "referral" && selectedEvent !== "custom";
+  const aiEvent = isAiRewardEvent ? selectedEvent : "sale";
   const aiBuilder = useAIRewardBuilder({
     event: aiEvent,
     getValues: () => getValues() as Record<string, unknown>,
@@ -513,10 +527,10 @@ function RewardSheetContent({
           </div>
 
           <div className="flex flex-1 flex-col overflow-y-auto p-6">
-            {selectedEvent !== "referral" && (
+            {isAiRewardEvent && (
               <AIRewardInput event={selectedEvent} builder={aiBuilder} />
             )}
-            {selectedEvent !== "referral" ? (
+            {isAiRewardEvent ? (
               <AIRewardPreviewFrame builder={aiBuilder}>
                 <RewardSheetCard
                   title={
@@ -809,7 +823,11 @@ function RewardSheetContent({
                     <div className="flex min-w-0 items-center justify-between">
                       <div className="flex min-w-0 items-center gap-2.5">
                         <RewardIconSquare icon={MoneyBills2} />
-                        <PartnerReferralRewardBuilder />
+                        {selectedEvent === "custom" ? (
+                          <CustomRewardBuilder />
+                        ) : (
+                          <PartnerReferralRewardBuilder />
+                        )}
                       </div>
                       <Tooltip
                         content={"Add a custom reward description"}
@@ -958,7 +976,7 @@ function RewardSheetContent({
                   isDeleting ||
                   isCreating ||
                   isUpdating ||
-                  (selectedEvent !== "referral" && aiBuilder.isReviewing)
+                  (isAiRewardEvent && aiBuilder.isReviewing)
                 }
                 disabledTooltip={
                   showReferralUpsell ? (
@@ -975,7 +993,7 @@ function RewardSheetContent({
                       href={`/${workspaceSlug}/upgrade?plan=advanced&showAdvancedUpsellModal=true`}
                       target="_blank"
                     />
-                  ) : selectedEvent !== "referral" && aiBuilder.isReviewing ? (
+                  ) : isAiRewardEvent && aiBuilder.isReviewing ? (
                     "Accept or discard the generated reward before saving."
                   ) : undefined
                 }

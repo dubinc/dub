@@ -179,6 +179,7 @@ import {
 } from "./zod/schemas/programs";
 import {
   CUSTOMER_SOURCES,
+  customRewardConfigSchema,
   rewardConditionsArraySchema,
   rewardConditionSchema,
   rewardConditionsSchema,
@@ -648,6 +649,8 @@ export type FolderSummary = Pick<
 >;
 
 export type RewardProps = z.infer<typeof RewardSchema>;
+
+export type CustomRewardConfig = z.infer<typeof customRewardConfigSchema>;
 
 export type CreatePartnerProps = z.infer<typeof createPartnerSchema>;
 
