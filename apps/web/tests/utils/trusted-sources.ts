@@ -1,5 +1,8 @@
 const TRUSTED_OIDC_HEADER = "x-vercel-trusted-oidc-idp-token";
 const EARLY_REFRESH_MS = 60_000;
+const OIDC_MINT_ATTEMPTS = 3;
+const OIDC_MINT_RETRY_DELAY_MS = 500;
+const RETRYABLE_OIDC_STATUS = new Set([408, 429, 500, 502, 503, 504]);
 
 type FetchFn = typeof fetch;
 
@@ -64,6 +67,30 @@ async function mintFromGitHubActionsRunner(
   const requestToken = process.env.ACTIONS_ID_TOKEN_REQUEST_TOKEN;
   if (!url || !requestToken) return null;
 
+  let lastError: unknown;
+  for (let attempt = 1; attempt <= OIDC_MINT_ATTEMPTS; attempt++) {
+    try {
+      return await mintOidcToken(fetchFn, url, requestToken);
+    } catch (error) {
+      lastError = error;
+      if (!isRetryableOidcMintError(error) || attempt === OIDC_MINT_ATTEMPTS) {
+        throw error;
+      }
+
+      await new Promise((resolve) =>
+        setTimeout(resolve, OIDC_MINT_RETRY_DELAY_MS * 2 ** (attempt - 1)),
+      );
+    }
+  }
+
+  throw lastError;
+}
+
+async function mintOidcToken(
+  fetchFn: FetchFn,
+  url: string,
+  requestToken: string,
+): Promise<{ token: string; expiresAtMs: number }> {
   const res = await fetchFn(url, {
     method: "GET",
     headers: {
@@ -73,20 +100,37 @@ async function mintFromGitHubActionsRunner(
   });
 
   if (!res.ok) {
-    throw new Error(
+    throw new OidcMintError(
       `Failed to mint GitHub Actions OIDC token: ${res.status} ${res.statusText}`,
+      RETRYABLE_OIDC_STATUS.has(res.status),
     );
   }
 
   const body = (await res.json()) as { value?: string };
   const token = body.value;
   if (!token) {
-    throw new Error(
+    throw new OidcMintError(
       "Failed to mint GitHub Actions OIDC token: empty/invalid response body",
+      false,
     );
   }
 
   return { token, expiresAtMs: readJwtExpMs(token) };
+}
+
+class OidcMintError extends Error {
+  constructor(
+    message: string,
+    readonly retryable: boolean,
+  ) {
+    super(message);
+  }
+}
+
+function isRetryableOidcMintError(error: unknown): boolean {
+  if (error instanceof OidcMintError) return error.retryable;
+  // Network / fetch failures (TypeError, aborted connections, etc.)
+  return true;
 }
 
 function readJwtExpMs(jwt: string): number {
