@@ -5,6 +5,7 @@ import {
   adminRecentProgramSchema,
   adminRecentProgramsQuerySchema,
 } from "@/lib/zod/schemas/admin";
+import { ACME_PROGRAM_ID, DEMO_PROGRAM_ID } from "@dub/utils";
 import { Prisma } from "@prisma/client";
 import { NextResponse } from "next/server";
 
@@ -14,8 +15,16 @@ export const GET = withAdmin(async ({ searchParams }) => {
     adminRecentProgramsQuerySchema.parse(searchParams);
 
   const where = {
+    id: {
+      notIn: [ACME_PROGRAM_ID, DEMO_PROGRAM_ID],
+    },
     deactivatedAt: null,
-  };
+    NOT: {
+      slug: {
+        endsWith: "-staging",
+      },
+    },
+  } satisfies Prisma.ProgramWhereInput;
 
   const { startDate, endDate } = getStartEndDates({ interval: "30d" });
 
