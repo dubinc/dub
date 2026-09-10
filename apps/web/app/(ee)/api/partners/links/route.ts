@@ -10,7 +10,7 @@ import {
   validateRewardIds,
 } from "@/lib/api/rewards/link-level-rewards";
 import { parseRequestBody } from "@/lib/api/utils";
-import { parseExpandFields } from "@/lib/api/utils/get-expandable-field";
+import { parseExpandFields } from "@/lib/expand/parse-expand-fields";
 import { applyGroupUtmToLink } from "@/lib/api/utm/apply-group-utm-to-link";
 import { withWorkspace } from "@/lib/auth";
 import { throwIfNoPartnerIdOrTenantId } from "@/lib/partners/throw-if-no-partnerid-tenantid";

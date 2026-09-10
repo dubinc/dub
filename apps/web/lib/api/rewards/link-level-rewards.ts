@@ -1,6 +1,6 @@
 import { DubApiError } from "@/lib/api/errors";
 import { serializeReward } from "@/lib/api/partners/serialize-reward";
-import { getExpandableField } from "@/lib/api/utils/get-expandable-field";
+import { getExpandableField } from "@/lib/expand/get-expandable-field";
 import { prisma } from "@/lib/prisma";
 import { EventType, LinkReward, Reward } from "@prisma/client";
 

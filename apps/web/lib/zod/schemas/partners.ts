@@ -1,5 +1,5 @@
 import { processKey } from "@/lib/api/links/utils";
-import { getExpandFieldSchema } from "@/lib/api/utils/get-expandable-field";
+import { getExpandFieldSchema } from "@/lib/expand/get-expandable-field";
 import { MAX_PARTNERS_INVITES_PER_REQUEST } from "@/lib/constants/program";
 import {
   IdentityVerificationStatus,
