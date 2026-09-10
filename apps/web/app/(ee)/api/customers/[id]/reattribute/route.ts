@@ -1,8 +1,11 @@
 import { createId } from "@/lib/api/create-id";
 import { getCustomerOrThrow } from "@/lib/api/customers/get-customer-or-throw";
 import {
+  CUSTOMER_EVENTS_LIMIT,
   computeConversionFlags,
+  customerEventsExceedLimit,
   getCustomerReattributeEvents,
+  isRetiredReattributeStub,
   recreateCustomerForReattribution,
   shouldRecreateCustomer,
 } from "@/lib/api/customers/reattribute-customer";
@@ -20,6 +23,7 @@ import {
   CustomerEnrichedSchema,
   reattributeCustomerBodySchema,
 } from "@/lib/zod/schemas/customers";
+import { INACTIVE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
 import { nanoid } from "@dub/utils";
 import { NextResponse } from "next/server";
 
@@ -46,6 +50,14 @@ export const POST = withWorkspace(
       },
     );
 
+    if (isRetiredReattributeStub(customer)) {
+      throw new DubApiError({
+        code: "bad_request",
+        message:
+          "This customer was already reattributed. Use the new customer ID.",
+      });
+    }
+
     if (customer.partnerId === partnerId && customer.linkId === linkId) {
       throw new DubApiError({
         code: "bad_request",
@@ -53,11 +65,18 @@ export const POST = withWorkspace(
       });
     }
 
-    await getProgramEnrollmentOrThrow({
+    const enrollment = await getProgramEnrollmentOrThrow({
       partnerId,
       programId,
       include: {},
     });
+
+    if (INACTIVE_ENROLLMENT_STATUSES.includes(enrollment.status)) {
+      throw new DubApiError({
+        code: "unprocessable_entity",
+        message: "This partner is not eligible to receive customers.",
+      });
+    }
 
     const link = await prisma.link.findUnique({
       where: {
@@ -87,10 +106,19 @@ export const POST = withWorkspace(
       }),
     ]);
 
+    if (customerEventsExceedLimit(events.length)) {
+      throw new DubApiError({
+        code: "unprocessable_entity",
+        message: `This customer has too many events to reattribute (limit ${CUSTOMER_EVENTS_LIMIT}).`,
+      });
+    }
+
     if (
       !shouldRecreateCustomer({
         eventCount: events.length,
         commissionCount,
+        clickId: customer.clickId,
+        sales: customer.sales,
       })
     ) {
       const updatedCustomer = await prisma.customer.update({
@@ -152,7 +180,7 @@ export const POST = withWorkspace(
         decrementConversions,
       },
       options: {
-        deduplicationId: customer.id,
+        deduplicationId: `${customer.id}:${newCustomerId}`,
         flowControl: {
           key: workspace.id,
           parallelism: 1,
@@ -178,5 +206,6 @@ export const POST = withWorkspace(
   {
     requiredPlan: ["business", "advanced", "enterprise"],
     requiredRoles: ["owner", "member"],
+    requiredPermissions: ["commissions.write"],
   },
 );

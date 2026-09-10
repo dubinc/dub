@@ -21,8 +21,30 @@ import { saleEventSchemaTB } from "@/lib/zod/schemas/sales";
 import { nanoid } from "@dub/utils";
 import { Customer, Link } from "@prisma/client";
 import * as z from "zod/v4";
+import {
+  CUSTOMER_EVENTS_LIMIT,
+  customerEventsExceedLimit,
+  selectEventsToReingest,
+  selectPaidReplacementEvents,
+  summarizeCustomerEvents,
+  type CustomerTBEvent,
+  type ReattributeEventPlan,
+} from "./reattribute-customer-utils";
 
-const CUSTOMER_EVENTS_LIMIT = 1000;
+export {
+  CUSTOMER_EVENTS_LIMIT,
+  customerEventsExceedLimit,
+  isRetiredReattributeStub,
+  selectEventsToReingest,
+  selectPaidReplacementEvents,
+  shouldRecreateCustomer,
+  summarizeCustomerEvents,
+} from "./reattribute-customer-utils";
+export type {
+  CustomerTBEvent,
+  ReattributeEventPlan,
+} from "./reattribute-customer-utils";
+
 const UNPAID_COMMISSION_STATUSES = ["pending", "hold", "processed"] as const;
 const STATS_LOCK_TTL_SECONDS = 60 * 60 * 24;
 
@@ -33,32 +55,6 @@ const leadEventSchemaTBWithTimestamp = leadEventSchemaTB.extend({
 const saleEventSchemaTBWithTimestamp = saleEventSchemaTB.extend({
   timestamp: z.string(),
 });
-
-type CustomerTBEvent = {
-  event: "click" | "lead" | "sale";
-  timestamp: string;
-  click_id?: string;
-  link_id?: string;
-  event_id?: string;
-  event_name?: string;
-  saleAmount?: number;
-  invoice_id?: string;
-  payment_processor?: string;
-  currency?: string;
-  [key: string]: unknown;
-};
-
-export type ReattributeEventPlan = {
-  hasClick: boolean;
-  hasLead: boolean;
-  leadCount: number;
-  saleCount: number;
-  saleAmount: number;
-  leadTimestamp: string | null;
-  saleTimestamp: string | null;
-  oldEventIds: string[];
-  alreadyReingested: boolean;
-};
 
 async function runOnce({ key, fn }: { key: string; fn: () => Promise<void> }) {
   const acquired = await redis.set(key, "1", {
@@ -98,36 +94,6 @@ export async function getCustomerReattributeEvents(customerId: string) {
   });
 
   return parseCustomerEvents(data ?? []);
-}
-
-export function summarizeCustomerEvents(
-  events: CustomerTBEvent[],
-): Omit<ReattributeEventPlan, "alreadyReingested"> {
-  const clickEvent = events.find((event) => event.event === "click");
-  const leadEvent = events.find((event) => event.event === "lead");
-  const saleEvents = events.filter((event) => event.event === "sale");
-
-  return {
-    hasClick: Boolean(clickEvent),
-    hasLead: Boolean(leadEvent),
-    leadCount: leadEvent ? 1 : 0,
-    saleCount: saleEvents.length,
-    saleAmount: saleEvents.reduce(
-      (sum, event) => sum + (event.saleAmount ?? 0),
-      0,
-    ),
-    leadTimestamp: leadEvent?.timestamp ?? null,
-    saleTimestamp:
-      saleEvents.length > 0
-        ? saleEvents.reduce((latest, event) =>
-            event.timestamp > latest.timestamp ? event : latest,
-          ).timestamp
-        : null,
-    oldEventIds: [
-      leadEvent?.event_id,
-      ...saleEvents.map((event) => event.event_id),
-    ].filter((eventId): eventId is string => typeof eventId === "string"),
-  };
 }
 
 export async function recreateCustomerForReattribution({
@@ -195,12 +161,17 @@ export async function loadReattributeEventPlan({
     getCustomerReattributeEvents(newCustomerId),
   ]);
 
-  const alreadyReingested = newEvents.length > 0;
-  const sourceEvents = alreadyReingested ? newEvents : oldEvents;
+  if (customerEventsExceedLimit(oldEvents.length)) {
+    throw new Error(
+      `Customer ${oldCustomerId} has too many events to reattribute (limit ${CUSTOMER_EVENTS_LIMIT}).`,
+    );
+  }
+
+  const sourceEvents = oldEvents.length > 0 ? oldEvents : newEvents;
 
   return {
     ...summarizeCustomerEvents(sourceEvents),
-    alreadyReingested,
+    alreadyReingested: newEvents.length > 0 && oldEvents.length === 0,
   };
 }
 
@@ -222,15 +193,30 @@ export async function reingestCustomerEvents({
     getCustomerReattributeEvents(newCustomerId),
   ]);
 
-  if (newEvents.length > 0) {
-    return { skipped: true, reason: "already-reingested" as const };
+  if (customerEventsExceedLimit(oldEvents.length)) {
+    throw new Error(
+      `Customer ${oldCustomerId} has too many events to reattribute (limit ${CUSTOMER_EVENTS_LIMIT}).`,
+    );
   }
 
-  const existingClickEvent = oldEvents.find((event) => event.event === "click");
-  const existingLeadEvent = oldEvents.find((event) => event.event === "lead");
-  const existingSaleEvents = oldEvents.filter(
-    (event) => event.event === "sale",
-  );
+  const { clickEvent, leadEvent, saleEvents } = selectEventsToReingest({
+    oldEvents,
+    newEvents,
+  });
+
+  if (!clickEvent && !leadEvent && saleEvents.length === 0) {
+    return {
+      skipped: true,
+      reason:
+        oldEvents.length > 0
+          ? ("already-reingested" as const)
+          : ("no-events" as const),
+    };
+  }
+
+  const sourceClickEvent =
+    oldEvents.find((event) => event.event === "click") ??
+    newEvents.find((event) => event.event === "click");
 
   const newClickAttributes = {
     click_id: newClickId,
@@ -238,7 +224,7 @@ export async function reingestCustomerEvents({
   };
 
   const clickEventData = recordClickZodSchema.parse({
-    ...existingClickEvent,
+    ...sourceClickEvent,
     ...newClickAttributes,
     workspace_id: workspaceId,
     domain: link.domain,
@@ -248,14 +234,14 @@ export async function reingestCustomerEvents({
 
   const eventsToRecord: Promise<unknown>[] = [];
 
-  if (existingClickEvent) {
+  if (clickEvent) {
     eventsToRecord.push(recordClickZod(clickEventData));
   }
 
-  if (existingLeadEvent) {
+  if (leadEvent) {
     const leadEventData = leadEventSchemaTBWithTimestamp.parse({
       ...clickEventData,
-      ...existingLeadEvent,
+      ...leadEvent,
       ...newClickAttributes,
       event_id: nanoid(16),
       link_id: link.id,
@@ -265,8 +251,8 @@ export async function reingestCustomerEvents({
     eventsToRecord.push(recordLeadWithTimestamp(leadEventData));
   }
 
-  if (existingSaleEvents.length > 0) {
-    const saleEventsData = existingSaleEvents.map((existingSaleEvent) =>
+  if (saleEvents.length > 0) {
+    const saleEventsData = saleEvents.map((existingSaleEvent) =>
       saleEventSchemaTBWithTimestamp.parse({
         ...clickEventData,
         ...existingSaleEvent,
@@ -279,10 +265,6 @@ export async function reingestCustomerEvents({
     );
 
     eventsToRecord.push(recordSaleWithTimestamp(saleEventsData));
-  }
-
-  if (eventsToRecord.length === 0) {
-    return { skipped: true, reason: "no-events" as const };
   }
 
   const results = await Promise.allSettled(eventsToRecord);
@@ -527,22 +509,6 @@ export async function createClawbackAndReplacementCommissions({
     return { skipped: true, reason: "no-old-partner" as const };
   }
 
-  const existingClawback = await prisma.commission.findFirst({
-    where: {
-      customerId: oldCustomerId,
-      partnerId: oldPartnerId,
-      programId,
-      type: "custom",
-      description: "tracking_error",
-      earnings: { lt: 0 },
-    },
-    select: { id: true },
-  });
-
-  if (existingClawback) {
-    return { skipped: true, reason: "already-clawed-back" as const };
-  }
-
   const paidCommissions = await prisma.commission.findMany({
     where: {
       customerId: oldCustomerId,
@@ -567,11 +533,18 @@ export async function createClawbackAndReplacementCommissions({
     return { skipped: true, reason: "no-paid-earnings" as const };
   }
 
-  const paidEventIds = paidCommissions
-    .map((commission) => commission.eventId)
-    .filter((eventId): eventId is string => Boolean(eventId));
+  const paidInvoiceIds = paidCommissions
+    .map((commission) => commission.invoiceId)
+    .filter((invoiceId): invoiceId is string => Boolean(invoiceId));
+  const hasPaidLead = paidCommissions.some(
+    (commission) => commission.type === "lead",
+  );
 
-  if (paidEventIds.length > 0 || paidCommissions.some((c) => c.invoiceId)) {
+  if (
+    paidCommissions.some(
+      (commission) => commission.eventId || commission.invoiceId,
+    )
+  ) {
     await prisma.commission.updateMany({
       where: {
         id: { in: paidCommissions.map((commission) => commission.id) },
@@ -583,38 +556,59 @@ export async function createClawbackAndReplacementCommissions({
     });
   }
 
-  await queuePartnerCommissionCreation({
-    event: "custom",
-    partnerId: oldPartnerId,
-    programId,
-    customerId: oldCustomerId,
-    amount: -paidEarnings,
-    quantity: 1,
-    description: "tracking_error",
-    skipWorkflow: true,
-  });
+  await runOnce({
+    key: `reattribute-customer:${oldCustomerId}:clawback`,
+    fn: async () => {
+      const existingClawback = await prisma.commission.findFirst({
+        where: {
+          customerId: oldCustomerId,
+          partnerId: oldPartnerId,
+          programId,
+          type: "custom",
+          description: "tracking_error",
+          earnings: { lt: 0 },
+        },
+        select: { id: true },
+      });
 
-  const existingReplacement = await prisma.commission.findFirst({
-    where: {
-      customerId: newCustomerId,
-      partnerId: newPartnerId,
-      type: { in: ["lead", "sale"] },
+      if (existingClawback) {
+        return;
+      }
+
+      await queuePartnerCommissionCreation({
+        event: "custom",
+        partnerId: oldPartnerId,
+        programId,
+        customerId: oldCustomerId,
+        amount: -paidEarnings,
+        quantity: 1,
+        description: "tracking_error",
+        skipWorkflow: true,
+      });
     },
-    select: { id: true },
   });
 
-  if (existingReplacement) {
-    await syncTotalCommissions({
-      partnerId: oldPartnerId,
-      programId,
-    });
+  const [newEvents, existingNewCommissions] = await Promise.all([
+    getCustomerReattributeEvents(newCustomerId),
+    prisma.commission.findMany({
+      where: {
+        customerId: newCustomerId,
+        partnerId: newPartnerId,
+        type: { in: ["lead", "sale"] },
+      },
+      select: {
+        type: true,
+        invoiceId: true,
+      },
+    }),
+  ]);
 
-    return { skipped: false, clawback: true, recreated: 0 };
-  }
-
-  const newEvents = await getCustomerReattributeEvents(newCustomerId);
-  const leadEvent = newEvents.find((event) => event.event === "lead");
-  const saleEvents = newEvents.filter((event) => event.event === "sale");
+  const { leadEvent, saleEvents } = selectPaidReplacementEvents({
+    paidInvoiceIds,
+    hasPaidLead,
+    newEvents,
+    existingNewCommissions,
+  });
 
   if (leadEvent?.event_id) {
     await queuePartnerCommissionCreation({
@@ -686,16 +680,6 @@ export async function deleteOldCustomerTinybirdEvents({
     customerId: oldCustomerId,
     clickId: oldClickId,
   });
-}
-
-export function shouldRecreateCustomer({
-  eventCount,
-  commissionCount,
-}: {
-  eventCount: number;
-  commissionCount: number;
-}) {
-  return eventCount > 0 || commissionCount > 0;
 }
 
 export function computeConversionFlags({
