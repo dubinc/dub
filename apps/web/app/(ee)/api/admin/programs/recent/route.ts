@@ -11,7 +11,7 @@ import { NextResponse } from "next/server";
 
 // GET /api/admin/programs/recent
 export const GET = withAdmin(async ({ searchParams }) => {
-  const { page = 1, pageSize } =
+  const { page = 1, pageSize, plan } =
     adminRecentProgramsQuerySchema.parse(searchParams);
 
   const where = {
@@ -24,6 +24,11 @@ export const GET = withAdmin(async ({ searchParams }) => {
         endsWith: "-staging",
       },
     },
+    ...(plan && {
+      workspace: {
+        plan,
+      },
+    }),
   } satisfies Prisma.ProgramWhereInput;
 
   const { startDate, endDate } = getStartEndDates({ interval: "30d" });

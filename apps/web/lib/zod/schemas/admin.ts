@@ -5,7 +5,7 @@ import {
   ProgramEnrollmentStatus,
 } from "@prisma/client";
 import * as z from "zod/v4";
-import { getPaginationQuerySchema } from "./misc";
+import { getPaginationQuerySchema, planSchema } from "./misc";
 import { partnerProfileChangeHistoryLogSchema } from "./partner-profile";
 import {
   EnrolledPartnerSchemaExtended,
@@ -87,9 +87,13 @@ export const adminNetworkPartnerSchema = EnrolledPartnerSchemaExtended.pick({
 
 export const ADMIN_RECENT_PROGRAMS_PAGE_SIZE = 100;
 
-export const adminRecentProgramsQuerySchema = z.object(
-  getPaginationQuerySchema({ pageSize: ADMIN_RECENT_PROGRAMS_PAGE_SIZE }),
-);
+export const adminRecentProgramsQuerySchema = z
+  .object({
+    plan: planSchema.optional(),
+  })
+  .extend(
+    getPaginationQuerySchema({ pageSize: ADMIN_RECENT_PROGRAMS_PAGE_SIZE }),
+  );
 
 export const adminRecentProgramSchema = z.object({
   id: z.string(),
