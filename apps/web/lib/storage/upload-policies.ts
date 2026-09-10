@@ -3,6 +3,7 @@ const RASTER_IMAGE_CONTENT_TYPES = [
   "image/png",
   "image/webp",
   "image/gif",
+  "image/avif",
 ] as const;
 
 const PROGRAM_RESOURCE_LOGO_CONTENT_TYPES = [
@@ -46,6 +47,11 @@ export const UPLOAD_POLICIES = {
     maxBytes: 5 * 1024 * 1024,
   },
 
+  programLanderImages: {
+    contentTypes: PROGRAM_RESOURCE_LOGO_CONTENT_TYPES,
+    maxBytes: 5 * 1024 * 1024,
+  },
+
   programMessageAttachments: {
     contentTypes: ["image/png", "image/jpeg", "image/webp", "application/pdf"],
     maxBytes: 10 * 1024 * 1024,
@@ -75,9 +81,4 @@ export const UPLOAD_POLICIES = {
     ] as const,
     maxBytes: 5 * 1024 * 1024,
   },
-
-  // resumes: {
-  //   contentTypes: ["application/pdf"] as const,
-  //   maxBytes: 5 * 1024 * 1024,
-  // },
 } as const;

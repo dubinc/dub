@@ -28,7 +28,7 @@ export const uploadLanderImageAction = authActionClient
 
     const { key, signedUrl, destinationUrl } = await createSignedUploadUrl({
       key: `programs/${programId}/lander/image_${nanoid(10)}`,
-      policy: "programLogos",
+      policy: "programLanderImages",
       contentType,
       contentLength,
     });

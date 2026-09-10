@@ -2,17 +2,17 @@ import { ratelimit } from "./ratelimit";
 
 type RatelimitWindow = Parameters<typeof ratelimit>[1] & string;
 
+export type RatelimitMessageContext = {
+  retryAfter: string;
+  attempts: number;
+  window: string;
+};
+
 export type RatelimitPolicy = {
   attempts: number;
   window: RatelimitWindow;
   keyPrefix: string;
-  message?:
-    | string
-    | ((ctx: {
-        retryAfter: string;
-        attempts: number;
-        window: string;
-      }) => string);
+  message?: string | ((ctx: RatelimitMessageContext) => string);
 };
 
 export const RATELIMIT_POLICIES = {
