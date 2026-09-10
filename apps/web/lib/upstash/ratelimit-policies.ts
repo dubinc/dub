@@ -109,4 +109,29 @@ export const RATELIMIT_POLICIES = {
     window: "1 h",
     keyPrefix: "rl:domains:forward-dns-instructions:target",
   },
+
+  oauthAppReviewSubmit: {
+    attempts: 1,
+    window: "1 m",
+    keyPrefix: "rl:oauth:app:review:submit",
+  },
+
+  verifyWorkspaceSetup: {
+    attempts: 5,
+    window: "1 m",
+    keyPrefix: "rl:workspace:setup:verify",
+  },
+
+  createProgramApplication: {
+    attempts: 3,
+    window: "1 m",
+    keyPrefix: "rl:program:application:create",
+  },
+
+  // Shared by start + verify so both count toward the same partner/platform budget
+  socialAccountVerification: {
+    attempts: 5,
+    window: "1 h",
+    keyPrefix: "rl:partner:social:verification",
+  },
 } as const satisfies Record<string, RatelimitPolicy>;
