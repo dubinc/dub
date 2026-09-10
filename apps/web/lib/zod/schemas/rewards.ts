@@ -422,7 +422,7 @@ export const rewardConditionsArraySchema = z
 
 const decimalToNumber = z
   .any()
-  .transform((val) => (val != null && val !== "" ? Number(val) : null))
+  .overwrite((val) => (val != null && val !== "" ? Number(val) : null))
   .nullable()
   .optional();
 

@@ -1,6 +1,6 @@
 import { processKey } from "@/lib/api/links/utils";
-import { getExpandFieldSchema } from "@/lib/expand/get-expandable-field";
 import { MAX_PARTNERS_INVITES_PER_REQUEST } from "@/lib/constants/program";
+import { getExpandFieldSchema } from "@/lib/expand/get-expandable-field";
 import {
   IdentityVerificationStatus,
   IndustryInterest,
@@ -1019,15 +1019,11 @@ export const bulkRejectPartnersSchema = z.object({
     .transform((v) => [...new Set(v)]),
 });
 
-export const retrievePartnerLinksSchema = partnerIdTenantIdSchema.and(
-  z
-    .object({
-      expand: getExpandFieldSchema(
-        "Include expanded fields on each link. Use expand[]=reward to return reward objects instead of IDs.",
-      ),
-    })
-    .partial(),
-);
+export const retrievePartnerLinksSchema = partnerIdTenantIdSchema.extend({
+  expand: getExpandFieldSchema(
+    "Include expanded fields on each link. Use expand[]=reward to return reward objects instead of IDs.",
+  ),
+});
 
 export const PARTNER_LINK_EXPAND_FIELDS = ["reward"] as const;
 
