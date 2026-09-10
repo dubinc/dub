@@ -21,7 +21,7 @@ enum RewardSpendLimitInterval {
 model Reward {
   id                 String                    @id
   programId          String?
-  groupId            String
+  groupId            String?
   description        String?
   tooltipDescription String?                   @db.Text
   event              EventType
