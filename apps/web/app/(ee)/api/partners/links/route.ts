@@ -4,15 +4,14 @@ import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-progr
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import {
   getExpandableRewardReferences,
-  getLinkRewardIds,
-  hasRewardIdsInput,
+  getRewardIds,
   LinkRewardIdsInput,
   validateRewardIds,
 } from "@/lib/api/rewards/link-level-rewards";
 import { parseRequestBody } from "@/lib/api/utils";
-import { parseExpandFields } from "@/lib/expand/parse-expand-fields";
 import { applyGroupUtmToLink } from "@/lib/api/utm/apply-group-utm-to-link";
 import { withWorkspace } from "@/lib/auth";
+import { parseExpandFields } from "@/lib/expand/parse-expand-fields";
 import { throwIfNoPartnerIdOrTenantId } from "@/lib/partners/throw-if-no-partnerid-tenantid";
 import { prisma } from "@/lib/prisma";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
@@ -199,29 +198,26 @@ export const POST = withWorkspace(
       partnerName: partner.partner.name,
     });
 
+    // Validate link level rewards
     const linkRewardInput: LinkRewardIdsInput = {
       clickRewardId,
       leadRewardId,
       saleRewardId,
     };
 
-    const hasLinkLevelReward = hasRewardIdsInput(linkRewardInput);
-
-    if (hasLinkLevelReward) {
-      await validateRewardIds({
-        programId,
-        ...linkRewardInput,
-      });
-    }
+    await validateRewardIds({
+      programId,
+      ...linkRewardInput,
+    });
 
     const partnerLink = await createLink({
       ...linkWithUtm,
-      linkReward: hasLinkLevelReward ? linkRewardInput : undefined,
+      linkReward: linkRewardInput,
     });
 
     const response = {
       ...partnerLink,
-      ...getLinkRewardIds(hasLinkLevelReward ? linkRewardInput : null),
+      ...getRewardIds(linkRewardInput),
     };
 
     waitUntil(

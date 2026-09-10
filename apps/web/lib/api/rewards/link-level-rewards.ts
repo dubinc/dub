@@ -29,7 +29,7 @@ export const hasRewardIdsInput = ({
   );
 };
 
-export const getLinkRewardIds = (
+export const getRewardIds = (
   linkReward: LinkRewardIdsInput | null | undefined,
 ) => ({
   clickReward: linkReward?.clickRewardId ?? null,

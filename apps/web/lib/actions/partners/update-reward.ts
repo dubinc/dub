@@ -100,39 +100,11 @@ export const updateRewardAction = authActionClient
               amountInPercentage: new Prisma.Decimal(amountInPercentage!),
             }),
       },
-      include: {
-        clickPartnerGroup: true,
-        leadPartnerGroup: true,
-        salePartnerGroup: true,
-        referralPartnerGroup: true,
-        customPartnerGroup: true,
-      },
     });
-
-    const {
-      clickPartnerGroup,
-      leadPartnerGroup,
-      salePartnerGroup,
-      referralPartnerGroup,
-      customPartnerGroup,
-      ...rewardMetadata
-    } = updatedReward;
-
-    // Determine the groupId from the partner group relation
-    const partnerGroup =
-      clickPartnerGroup ||
-      leadPartnerGroup ||
-      salePartnerGroup ||
-      referralPartnerGroup ||
-      customPartnerGroup;
-
-    if (!partnerGroup) {
-      throw new Error("Partner group not found.");
-    }
 
     await queueRewardProcessing({
       event: "reward-updated",
-      groupId: partnerGroup.id,
+      groupId: updatedReward.groupId,
       occurredAt: new Date().toISOString(),
       rewardSnapshot: {
         id: reward.id,
@@ -158,7 +130,7 @@ export const updateRewardAction = authActionClient
             {
               type: "reward",
               id: rewardId,
-              metadata: serializeReward(rewardMetadata),
+              metadata: serializeReward(updatedReward),
             },
           ],
         }),
@@ -167,9 +139,9 @@ export const updateRewardAction = authActionClient
           workspaceId: workspace.id,
           programId,
           userId: user.id,
-          resourceId: rewardMetadata.id,
+          resourceId: updatedReward.id,
           parentResourceType: "group",
-          parentResourceId: partnerGroup.id,
+          parentResourceId: updatedReward.groupId,
           old: reward,
           new: updatedReward,
           description: activityDescription,

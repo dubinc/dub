@@ -14,12 +14,13 @@ export const POST = withCron(async () => {
   const clickRewards = await prisma.reward.findMany({
     where: {
       event: EventType.click,
-      clickEnrollments: {
-        some: {},
-      },
       programId: {
         not: null,
       },
+      OR: [
+        { clickEnrollments: { some: {} } },
+        { clickLinkRewards: { some: {} } },
+      ],
     },
     select: {
       id: true,
