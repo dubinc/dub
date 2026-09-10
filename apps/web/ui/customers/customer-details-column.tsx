@@ -22,10 +22,11 @@ import {
   getPrettyUrl,
 } from "@dub/utils";
 import { Pencil } from "lucide-react";
-import { useParams } from "next/navigation";
+import { useParams, usePathname, useRouter } from "next/navigation";
 import { Fragment, HTMLProps, useMemo } from "react";
 import { DeviceIcon } from "../analytics/device-icon";
 import { useEditCustomerModal } from "../modals/edit-customer-modal";
+import { useReattributeCustomerModal } from "../modals/reattribute-customer-modal";
 import { ConditionalLink } from "../shared/conditional-link";
 import { CustomerAvatar } from "./customer-avatar";
 
@@ -42,8 +43,12 @@ export function CustomerDetailsColumn({
 }) {
   const { programSlug } = useParams<{ programSlug: string }>();
   const { product } = useCurrentProduct();
+  const pathname = usePathname();
+  const router = useRouter();
 
   const { EditCustomerModal, openEditCustomerModal } = useEditCustomerModal();
+  const { ReattributeCustomerModal, openReattributeCustomerModal } =
+    useReattributeCustomerModal();
 
   const basicFields = [
     customer?.email
@@ -130,9 +135,12 @@ export function CustomerDetailsColumn({
     })).filter(({ value }) => value);
   }, [click?.url]);
 
+  const showReferralCard = Boolean(workspaceSlug || link || !customer);
+
   return (
     <>
       <EditCustomerModal />
+      <ReattributeCustomerModal />
       <div className="grid grid-cols-1 gap-6 overflow-hidden whitespace-nowrap text-sm text-neutral-900">
         <div className="border-border-subtle flex flex-col divide-y divide-neutral-200 rounded-xl border bg-white">
           <div className="p-4">
@@ -317,11 +325,35 @@ export function CustomerDetailsColumn({
           </div>
         </div>
 
-        {(link || !customer) && (
+        {showReferralCard && (
           <div className="border-border-subtle rounded-lg border p-4">
-            <h2 className="text-content-emphasis mb-2.5 text-sm font-semibold">
-              Referral {partner ? "partner" : "link"}
-            </h2>
+            <div className="mb-2.5 flex items-center justify-between gap-2">
+              <h2 className="text-content-emphasis text-sm font-semibold">
+                Referral {partner || !link ? "partner" : "link"}
+              </h2>
+              {customer && workspaceSlug && (
+                <Button
+                  variant="secondary"
+                  icon={<Pencil className="size-3.5" />}
+                  text={partner ? "Edit" : "Assign"}
+                  className="h-7 w-fit rounded-lg px-2"
+                  onClick={() =>
+                    openReattributeCustomerModal(customer, {
+                      onSuccess: (updatedCustomer) => {
+                        if (
+                          updatedCustomer.id !== customer.id &&
+                          pathname.includes(customer.id)
+                        ) {
+                          router.push(
+                            pathname.replace(customer.id, updatedCustomer.id),
+                          );
+                        }
+                      },
+                    })
+                  }
+                />
+              )}
+            </div>
 
             {partner && (
               <div className="mb-4 flex items-center gap-2">
@@ -338,6 +370,12 @@ export function CustomerDetailsColumn({
                   {partner.name}
                 </ConditionalLink>
               </div>
+            )}
+
+            {!partner && customer && workspaceSlug && (
+              <p className="mb-4 text-xs text-neutral-500">
+                No partner assigned
+              </p>
             )}
 
             <div className="flex flex-col gap-2 text-xs">
@@ -361,7 +399,7 @@ export function CustomerDetailsColumn({
                     {getPrettyUrl(link.shortLink)}
                   </ConditionalLink>
                 </div>
-              ) : (
+              ) : customer && workspaceSlug ? null : (
                 <span>-</span>
               )}
             </div>
