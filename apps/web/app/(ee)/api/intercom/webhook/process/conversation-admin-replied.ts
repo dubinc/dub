@@ -9,13 +9,13 @@ import {
   IntercomCredentials,
   intercomCredentialsSchema,
 } from "@/lib/integrations/intercom/schema";
-import { PROGRAM_ALLOWED_ATTACHMENT_TYPES } from "@/lib/messages/constants";
 import {
   mapMessageAttachmentsForCreate,
   sanitizeFileName,
 } from "@/lib/messages/utils";
 import { prisma } from "@/lib/prisma";
 import { storage } from "@/lib/storage";
+import { UPLOAD_POLICIES } from "@/lib/storage/upload-policies";
 import {
   APP_DOMAIN_WITH_NGROK,
   fetchWithTimeout,
@@ -299,11 +299,10 @@ async function uploadIntercomAttachments({
         30000,
       );
 
-      if (
-        !PROGRAM_ALLOWED_ATTACHMENT_TYPES.includes(
-          attachment.content_type as (typeof PROGRAM_ALLOWED_ATTACHMENT_TYPES)[number],
-        )
-      ) {
+      const attachmentTypes = UPLOAD_POLICIES.programMessageAttachments
+        .contentTypes as readonly string[];
+
+      if (!attachmentTypes.includes(attachment.content_type)) {
         throw new Error(
           `Unsupported attachment type: ${attachment.content_type}`,
         );

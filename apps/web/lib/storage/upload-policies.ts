@@ -26,6 +26,25 @@ const PROGRAM_RESOURCE_FILE_CONTENT_TYPES = [
   "application/zip",
 ] as const;
 
+// Human-readable labels for MIME types used across upload policies.
+const MIME_TYPE_LABELS: Record<string, string> = {
+  "image/jpeg": "JPG",
+  "image/png": "PNG",
+  "image/webp": "WEBP",
+  "image/gif": "GIF",
+  "image/avif": "AVIF",
+  "image/svg+xml": "SVG",
+  "application/pdf": "PDF",
+  "text/plain": "TXT",
+  "application/msword": "DOC",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
+    "DOCX",
+  "application/vnd.ms-excel": "XLS",
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": "XLSX",
+  "text/csv": "CSV",
+  "application/zip": "ZIP",
+};
+
 export const UPLOAD_POLICIES = {
   integrationScreenshots: {
     contentTypes: RASTER_IMAGE_CONTENT_TYPES,
@@ -82,3 +101,11 @@ export const UPLOAD_POLICIES = {
     maxBytes: 5 * 1024 * 1024,
   },
 } as const;
+
+export function getMimeTypeLabel(mimeType: string): string {
+  return (
+    MIME_TYPE_LABELS[mimeType] ||
+    mimeType.split("/").pop()?.toUpperCase() ||
+    "FILE"
+  );
+}

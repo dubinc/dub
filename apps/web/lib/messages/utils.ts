@@ -1,8 +1,6 @@
 import { createId } from "@/lib/api/create-id";
-import {
-  ATTACHMENT_MIME_TYPE_LABELS,
-  PREVIEWABLE_IMAGE_TYPES,
-} from "./constants";
+import { getMimeTypeLabel } from "@/lib/storage/upload-policies";
+import { PREVIEWABLE_IMAGE_TYPES } from "./constants";
 
 export const messageAttachmentsOrderBy = { createdAt: "asc" } as const;
 
@@ -47,11 +45,7 @@ export function sanitizeFileName(name: string): string {
 }
 
 export function getAttachmentTypeLabel(mimeType: string): string {
-  return (
-    ATTACHMENT_MIME_TYPE_LABELS[mimeType] ||
-    mimeType.split("/").pop()?.toUpperCase() ||
-    "FILE"
-  );
+  return getMimeTypeLabel(mimeType);
 }
 
 export function isPreviewableImageType(mimeType: string): boolean {

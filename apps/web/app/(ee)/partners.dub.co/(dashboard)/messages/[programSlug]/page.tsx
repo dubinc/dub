@@ -1,12 +1,12 @@
 "use client";
 
 import { parseActionError } from "@/lib/actions/parse-action-errors";
-import { PARTNER_ALLOWED_ATTACHMENT_TYPES } from "@/lib/messages/constants";
 import { useProgramMessages } from "@/lib/messages/hooks/use-program-messages";
 import { markProgramMessagesReadAction } from "@/lib/messages/mark-program-messages-read";
 import { messageProgramAction } from "@/lib/messages/message-program";
 import { uploadPartnerMessageAttachmentAction } from "@/lib/messages/upload-partner-message-attachment";
 import { constructPartnerLink } from "@/lib/partners/construct-partner-link";
+import { UPLOAD_POLICIES } from "@/lib/storage/upload-policies";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import usePartnerAnalytics from "@/lib/swr/use-partner-analytics";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
@@ -177,8 +177,7 @@ export default function PartnerMessagesProgramPage() {
           const result = await uploadAttachment({
             programSlug,
             fileName: file.name,
-            contentType:
-              file.type as (typeof PARTNER_ALLOWED_ATTACHMENT_TYPES)[number],
+            contentType: file.type,
             contentLength: file.size,
           });
 
@@ -304,7 +303,9 @@ export default function PartnerMessagesProgramPage() {
               pendingAttachments={pendingAttachments}
               onAddFiles={handleAddFiles}
               onRemoveAttachment={handleRemoveAttachment}
-              allowedFileTypes={PARTNER_ALLOWED_ATTACHMENT_TYPES}
+              allowedFileTypes={
+                UPLOAD_POLICIES.partnerMessageAttachments.contentTypes
+              }
               {...(shouldShowExternalSupportEmptyState && messages?.length
                 ? {
                     footerSlot: (
