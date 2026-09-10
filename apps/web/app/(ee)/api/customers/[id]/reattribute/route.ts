@@ -1,13 +1,10 @@
+import { isFirstConversion } from "@/lib/analytics/is-first-conversion";
 import { createId } from "@/lib/api/create-id";
 import { getCustomerOrThrow } from "@/lib/api/customers/get-customer-or-throw";
 import {
   CUSTOMER_EVENTS_LIMIT,
-  computeConversionFlags,
-  customerEventsExceedLimit,
   getCustomerReattributeEvents,
-  isRetiredReattributeStub,
   recreateCustomerForReattribution,
-  shouldRecreateCustomer,
 } from "@/lib/api/customers/reattribute-customer";
 import { transformCustomer } from "@/lib/api/customers/transform-customer";
 import { DubApiError } from "@/lib/api/errors";
@@ -50,7 +47,12 @@ export const POST = withWorkspace(
       },
     );
 
-    if (isRetiredReattributeStub(customer)) {
+    if (
+      customer.externalId?.startsWith("dummy_") &&
+      customer.partnerId == null &&
+      customer.linkId == null &&
+      customer.programId == null
+    ) {
       throw new DubApiError({
         code: "bad_request",
         message:
@@ -106,7 +108,7 @@ export const POST = withWorkspace(
       }),
     ]);
 
-    if (customerEventsExceedLimit(events.length)) {
+    if (events.length >= CUSTOMER_EVENTS_LIMIT) {
       throw new DubApiError({
         code: "unprocessable_entity",
         message: `This customer has too many events to reattribute (limit ${CUSTOMER_EVENTS_LIMIT}).`,
@@ -114,12 +116,10 @@ export const POST = withWorkspace(
     }
 
     if (
-      !shouldRecreateCustomer({
-        eventCount: events.length,
-        commissionCount,
-        clickId: customer.clickId,
-        sales: customer.sales,
-      })
+      events.length === 0 &&
+      commissionCount === 0 &&
+      !customer.clickId &&
+      customer.sales === 0
     ) {
       const updatedCustomer = await prisma.customer.update({
         where: {
@@ -149,11 +149,9 @@ export const POST = withWorkspace(
 
     const newCustomerId = createId({ prefix: "cus_" });
     const newClickId = nanoid(16);
-    const { incrementConversions, decrementConversions } =
-      computeConversionFlags({
-        customer,
-        newLinkId: link.id,
-      });
+    const incrementConversions =
+      customer.sales > 0 && isFirstConversion({ customer, linkId: link.id });
+    const decrementConversions = customer.sales > 0 && Boolean(customer.linkId);
 
     await recreateCustomerForReattribution({
       customer,

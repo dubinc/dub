@@ -1,7 +1,6 @@
 import {
   createClawbackAndReplacementCommissions,
   decrementOldLinkStats,
-  deleteOldCustomerTinybirdEvents,
   incrementNewLinkStats,
   loadReattributeEventPlan,
   reingestCustomerEvents,
@@ -9,6 +8,7 @@ import {
 } from "@/lib/api/customers/reattribute-customer";
 import { logger } from "@/lib/axiom/server";
 import { prisma } from "@/lib/prisma";
+import { deleteTinybirdCustomerEvents } from "@/lib/tinybird/delete-events";
 import { reattributeCustomerWorkflowSchema } from "@/lib/zod/schemas/customers";
 import { WorkflowRetryAfterError } from "@upstash/workflow";
 import { serve } from "@upstash/workflow/nextjs";
@@ -126,9 +126,9 @@ export const { POST } = serve<Input>(
 
     await context.run("delete-old-events", async () => {
       try {
-        await deleteOldCustomerTinybirdEvents({
-          oldCustomerId: input.oldCustomerId,
-          oldClickId: input.oldClickId,
+        await deleteTinybirdCustomerEvents({
+          customerId: input.oldCustomerId,
+          clickId: input.oldClickId,
         });
 
         return logAndReturn({ deleted: true });

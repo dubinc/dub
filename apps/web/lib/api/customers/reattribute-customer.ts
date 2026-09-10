@@ -1,4 +1,3 @@
-import { isFirstConversion } from "@/lib/analytics/is-first-conversion";
 import { reconcilePayoutAmounts } from "@/lib/api/commissions/reconcile-payout-amounts";
 import { updateLinkStatsForImporter } from "@/lib/api/links/update-link-stats-for-importer";
 import { syncPartnerLinksStats } from "@/lib/api/partners/sync-partner-links-stats";
@@ -7,7 +6,6 @@ import { MUTABLE_PAYOUT_STATUSES } from "@/lib/constants/payouts";
 import { queuePartnerCommissionCreation } from "@/lib/partners/queue-partner-commission-creation";
 import { retallyPayoutsAmount } from "@/lib/payouts/retally-payouts-amount";
 import { prisma } from "@/lib/prisma";
-import { deleteTinybirdCustomerEvents } from "@/lib/tinybird/delete-events";
 import { getCustomerEventsTB } from "@/lib/tinybird/get-customer-events-tb";
 import {
   recordClickZod,
@@ -21,30 +19,8 @@ import { saleEventSchemaTB } from "@/lib/zod/schemas/sales";
 import { nanoid } from "@dub/utils";
 import { Customer, Link } from "@prisma/client";
 import * as z from "zod/v4";
-import {
-  CUSTOMER_EVENTS_LIMIT,
-  customerEventsExceedLimit,
-  selectEventsToReingest,
-  selectPaidReplacementEvents,
-  summarizeCustomerEvents,
-  type CustomerTBEvent,
-  type ReattributeEventPlan,
-} from "./reattribute-customer-utils";
 
-export {
-  CUSTOMER_EVENTS_LIMIT,
-  customerEventsExceedLimit,
-  isRetiredReattributeStub,
-  selectEventsToReingest,
-  selectPaidReplacementEvents,
-  shouldRecreateCustomer,
-  summarizeCustomerEvents,
-} from "./reattribute-customer-utils";
-export type {
-  CustomerTBEvent,
-  ReattributeEventPlan,
-} from "./reattribute-customer-utils";
-
+export const CUSTOMER_EVENTS_LIMIT = 1000;
 const UNPAID_COMMISSION_STATUSES = ["pending", "hold", "processed"] as const;
 const STATS_LOCK_TTL_SECONDS = 60 * 60 * 24;
 
@@ -55,6 +31,30 @@ const leadEventSchemaTBWithTimestamp = leadEventSchemaTB.extend({
 const saleEventSchemaTBWithTimestamp = saleEventSchemaTB.extend({
   timestamp: z.string(),
 });
+
+type CustomerTBEvent = {
+  event: "click" | "lead" | "sale";
+  timestamp: string;
+  click_id?: string;
+  link_id?: string;
+  event_id?: string;
+  event_name?: string;
+  saleAmount?: number;
+  invoice_id?: string;
+  payment_processor?: string;
+  currency?: string;
+  [key: string]: unknown;
+};
+
+type ReattributeEventPlan = {
+  hasClick: boolean;
+  hasLead: boolean;
+  leadCount: number;
+  saleCount: number;
+  saleAmount: number;
+  leadTimestamp: string | null;
+  saleTimestamp: string | null;
+};
 
 async function runOnce({ key, fn }: { key: string; fn: () => Promise<void> }) {
   const acquired = await redis.set(key, "1", {
@@ -75,8 +75,13 @@ async function runOnce({ key, fn }: { key: string; fn: () => Promise<void> }) {
   }
 }
 
-function parseCustomerEvents(data: unknown[]): CustomerTBEvent[] {
-  return data.filter(
+export async function getCustomerReattributeEvents(customerId: string) {
+  const { data } = await getCustomerEventsTB({
+    customerId,
+    limit: CUSTOMER_EVENTS_LIMIT,
+  });
+
+  return (data ?? []).filter(
     (event): event is CustomerTBEvent =>
       typeof event === "object" &&
       event !== null &&
@@ -85,15 +90,6 @@ function parseCustomerEvents(data: unknown[]): CustomerTBEvent[] {
         event.event === "lead" ||
         event.event === "sale"),
   );
-}
-
-export async function getCustomerReattributeEvents(customerId: string) {
-  const { data } = await getCustomerEventsTB({
-    customerId,
-    limit: CUSTOMER_EVENTS_LIMIT,
-  });
-
-  return parseCustomerEvents(data ?? []);
 }
 
 export async function recreateCustomerForReattribution({
@@ -161,17 +157,33 @@ export async function loadReattributeEventPlan({
     getCustomerReattributeEvents(newCustomerId),
   ]);
 
-  if (customerEventsExceedLimit(oldEvents.length)) {
+  if (oldEvents.length >= CUSTOMER_EVENTS_LIMIT) {
     throw new Error(
       `Customer ${oldCustomerId} has too many events to reattribute (limit ${CUSTOMER_EVENTS_LIMIT}).`,
     );
   }
 
   const sourceEvents = oldEvents.length > 0 ? oldEvents : newEvents;
+  const clickEvent = sourceEvents.find((event) => event.event === "click");
+  const leadEvent = sourceEvents.find((event) => event.event === "lead");
+  const saleEvents = sourceEvents.filter((event) => event.event === "sale");
 
   return {
-    ...summarizeCustomerEvents(sourceEvents),
-    alreadyReingested: newEvents.length > 0 && oldEvents.length === 0,
+    hasClick: Boolean(clickEvent),
+    hasLead: Boolean(leadEvent),
+    leadCount: leadEvent ? 1 : 0,
+    saleCount: saleEvents.length,
+    saleAmount: saleEvents.reduce(
+      (sum, event) => sum + (event.saleAmount ?? 0),
+      0,
+    ),
+    leadTimestamp: leadEvent?.timestamp ?? null,
+    saleTimestamp:
+      saleEvents.length > 0
+        ? saleEvents.reduce((latest, event) =>
+            event.timestamp > latest.timestamp ? event : latest,
+          ).timestamp
+        : null,
   };
 }
 
@@ -193,15 +205,41 @@ export async function reingestCustomerEvents({
     getCustomerReattributeEvents(newCustomerId),
   ]);
 
-  if (customerEventsExceedLimit(oldEvents.length)) {
+  if (oldEvents.length >= CUSTOMER_EVENTS_LIMIT) {
     throw new Error(
       `Customer ${oldCustomerId} has too many events to reattribute (limit ${CUSTOMER_EVENTS_LIMIT}).`,
     );
   }
 
-  const { clickEvent, leadEvent, saleEvents } = selectEventsToReingest({
-    oldEvents,
-    newEvents,
+  const newHasClick = newEvents.some((event) => event.event === "click");
+  const newHasLead = newEvents.some((event) => event.event === "lead");
+  const newSaleInvoiceIds = new Set(
+    newEvents
+      .filter((event) => event.event === "sale" && event.invoice_id)
+      .map((event) => event.invoice_id),
+  );
+  const newInvoicelessSaleTimestamps = new Set(
+    newEvents
+      .filter((event) => event.event === "sale" && !event.invoice_id)
+      .map((event) => event.timestamp),
+  );
+
+  const clickEvent = !newHasClick
+    ? oldEvents.find((event) => event.event === "click") ?? null
+    : null;
+  const leadEvent = !newHasLead
+    ? oldEvents.find((event) => event.event === "lead") ?? null
+    : null;
+  const saleEvents = oldEvents.filter((event) => {
+    if (event.event !== "sale") {
+      return false;
+    }
+
+    if (event.invoice_id) {
+      return !newSaleInvoiceIds.has(event.invoice_id);
+    }
+
+    return !newInvoicelessSaleTimestamps.has(event.timestamp);
   });
 
   if (!clickEvent && !leadEvent && saleEvents.length === 0) {
@@ -533,9 +571,11 @@ export async function createClawbackAndReplacementCommissions({
     return { skipped: true, reason: "no-paid-earnings" as const };
   }
 
-  const paidInvoiceIds = paidCommissions
-    .map((commission) => commission.invoiceId)
-    .filter((invoiceId): invoiceId is string => Boolean(invoiceId));
+  const paidInvoiceIds = new Set(
+    paidCommissions
+      .map((commission) => commission.invoiceId)
+      .filter((invoiceId): invoiceId is string => Boolean(invoiceId)),
+  );
   const hasPaidLead = paidCommissions.some(
     (commission) => commission.type === "lead",
   );
@@ -603,12 +643,26 @@ export async function createClawbackAndReplacementCommissions({
     }),
   ]);
 
-  const { leadEvent, saleEvents } = selectPaidReplacementEvents({
-    paidInvoiceIds,
-    hasPaidLead,
-    newEvents,
-    existingNewCommissions,
-  });
+  const hasExistingLead = existingNewCommissions.some(
+    (commission) => commission.type === "lead",
+  );
+  const existingInvoiceIds = new Set(
+    existingNewCommissions
+      .map((commission) => commission.invoiceId)
+      .filter((invoiceId): invoiceId is string => Boolean(invoiceId)),
+  );
+
+  const leadEvent =
+    hasPaidLead && !hasExistingLead
+      ? newEvents.find((event) => event.event === "lead") ?? null
+      : null;
+  const saleEvents = newEvents.filter(
+    (event) =>
+      event.event === "sale" &&
+      event.invoice_id &&
+      paidInvoiceIds.has(event.invoice_id) &&
+      !existingInvoiceIds.has(event.invoice_id),
+  );
 
   if (leadEvent?.event_id) {
     await queuePartnerCommissionCreation({
@@ -666,35 +720,5 @@ export async function createClawbackAndReplacementCommissions({
     skipped: false,
     clawback: true,
     recreated: (leadEvent ? 1 : 0) + saleEvents.length,
-  };
-}
-
-export async function deleteOldCustomerTinybirdEvents({
-  oldCustomerId,
-  oldClickId,
-}: {
-  oldCustomerId: string;
-  oldClickId: string | null;
-}) {
-  await deleteTinybirdCustomerEvents({
-    customerId: oldCustomerId,
-    clickId: oldClickId,
-  });
-}
-
-export function computeConversionFlags({
-  customer,
-  newLinkId,
-}: {
-  customer: Pick<Customer, "sales" | "linkId">;
-  newLinkId: string;
-}) {
-  const incrementConversions =
-    customer.sales > 0 && isFirstConversion({ customer, linkId: newLinkId });
-  const decrementConversions = customer.sales > 0 && Boolean(customer.linkId);
-
-  return {
-    incrementConversions,
-    decrementConversions,
   };
 }
