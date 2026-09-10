@@ -273,6 +273,7 @@ test.describe("Lead rewards", () => {
   test.beforeAll(async ({ api, program, workspace }) => {
     const reward = await createReward({
       programId: program.id,
+      groupId: program.defaultGroupId,
       event: EventType.lead,
       type: RewardStructure.flat,
       amountInCents: BASE_AMOUNT,

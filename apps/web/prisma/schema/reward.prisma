@@ -21,6 +21,7 @@ enum RewardSpendLimitInterval {
 model Reward {
   id                 String                    @id
   programId          String?
+  groupId            String
   description        String?
   tooltipDescription String?                   @db.Text
   event              EventType
@@ -53,6 +54,7 @@ model Reward {
 
   @@index([programId, event])
   @@index(event) // used in aggregate-clicks cron job
+  @@index(groupId)
 }
 
 model LinkReward {

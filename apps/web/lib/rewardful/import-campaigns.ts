@@ -141,6 +141,7 @@ export async function importCampaigns(payload: RewardfulImportPayload) {
         data: {
           id: createId({ prefix: "rw_" }),
           programId,
+          groupId: createdGroup.id,
           // connect the reward to the group
           salePartnerGroup: {
             connect: {

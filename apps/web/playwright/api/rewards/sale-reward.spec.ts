@@ -287,6 +287,7 @@ test.describe("Sale rewards", () => {
   test.beforeAll(async ({ api, program, workspace }) => {
     const reward = await createReward({
       programId: program.id,
+      groupId: program.defaultGroupId,
       event: EventType.sale,
       type: RewardStructure.flat,
       amountInCents: BASE_AMOUNT,
