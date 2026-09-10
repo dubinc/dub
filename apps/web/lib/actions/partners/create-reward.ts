@@ -90,6 +90,7 @@ export const createRewardAction = authActionClient
         data: {
           id: createId({ prefix: "rw_" }),
           programId,
+          groupId,
           event,
           type,
           maxDuration,
@@ -114,6 +115,7 @@ export const createRewardAction = authActionClient
       await tx.partnerGroup.update({
         where: {
           id: groupId,
+          [rewardIdColumn]: null,
         },
         data: {
           [rewardIdColumn]: reward.id,
