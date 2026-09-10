@@ -134,4 +134,34 @@ export const RATELIMIT_POLICIES = {
     window: "1 h",
     keyPrefix: "rl:partner:social:verification",
   },
+
+  partnerUsernameUpdate: {
+    attempts: 5,
+    window: "1 h",
+    keyPrefix: "rl:partner:profile:username-update",
+  },
+
+  domainTransfer: {
+    attempts: 5,
+    window: "1 h",
+    keyPrefix: "rl:domains:transfer",
+  },
+
+  analyticsExport: {
+    attempts: 1,
+    window: "30 s",
+    keyPrefix: "rl:analytics:export",
+  },
+
+  retryFailedPaypalPayout: {
+    attempts: 1,
+    window: "12 h",
+    keyPrefix: "rl:partner:paypal:retry-failed-payout",
+  },
+
+  identityVerificationStart: {
+    attempts: 1,
+    window: "1 h",
+    keyPrefix: "rl:partner:identity:verification:start",
+  },
 } as const satisfies Record<string, RatelimitPolicy>;
