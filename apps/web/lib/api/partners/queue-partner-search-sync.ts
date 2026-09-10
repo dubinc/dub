@@ -1,5 +1,5 @@
 import { partnerSearchSyncJob } from "@/lib/jobs/handlers/partner-search-sync-job";
-import { chunk } from "@dub/utils";
+import { chunk, unique } from "@dub/utils";
 import {
   getPartnerSearchProvider,
   PARTNER_SEARCH_SYNC_BATCH_SIZE,
@@ -34,10 +34,6 @@ interface QueuePartnerSearchSyncInput {
   delay?: number;
 }
 
-function unique(values: string[] | undefined): string[] {
-  return Array.from(new Set((values ?? []).filter(Boolean)));
-}
-
 /**
  * Queues an index sync for whatever the caller just changed.
  *
@@ -57,8 +53,8 @@ export async function queuePartnerSearchSync({
     return;
   }
 
-  const enrollments = unique(enrollmentIds);
-  const partners = unique(partnerIds);
+  const enrollments = unique(enrollmentIds?.filter(Boolean));
+  const partners = unique(partnerIds?.filter(Boolean));
 
   if (enrollments.length === 0 && partners.length === 0) {
     return;

@@ -11,6 +11,7 @@ export function getPartnerIdentityValues(
 ): string[] {
   return [
     document.partnerId,
+    document.tenantId,
     document.name,
     document.email,
     document.companyName,

@@ -58,6 +58,7 @@ export const getReferralsEmbedData = async (token: string) => {
       leadReward: true,
       saleReward: true,
       referralReward: true,
+      customReward: true,
       discount: true,
       programPartnerTags: {
         select: {
@@ -80,6 +81,7 @@ export const getReferralsEmbedData = async (token: string) => {
     leadReward,
     saleReward,
     referralReward,
+    customReward,
     partnerGroup: group,
   } = programEnrollment;
 
@@ -120,7 +122,7 @@ export const getReferralsEmbedData = async (token: string) => {
     },
     partnerPlatforms: partner.platforms,
     links: z.array(ReferralsEmbedLinkSchema).parse(links),
-    rewards: [clickReward, leadReward, saleReward, referralReward]
+    rewards: [clickReward, leadReward, saleReward, referralReward, customReward]
       .filter((r): r is Reward => r !== null)
       .map((r) => serializeReward(r)),
     discount,

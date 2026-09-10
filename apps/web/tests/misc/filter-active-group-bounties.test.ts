@@ -16,6 +16,7 @@ function makeCandidate(
     endsAt: Date | null;
     archivedAt: Date | null;
     groups: { groupId: string }[];
+    partnerTags: { partnerTagId: string }[];
   }> = {},
 ) {
   return {
@@ -26,6 +27,7 @@ function makeCandidate(
     endsAt: null,
     archivedAt: null,
     groups: [],
+    partnerTags: [],
     ...overrides,
   };
 }
@@ -150,5 +152,52 @@ describe("filterActiveGroupBounties", () => {
       now: NOW,
     });
     expect(result.map((b) => b.id)).toEqual(["bnty_4", "bnty_5"]);
+  });
+
+  it("excludes tag-scoped bounties with no groups", () => {
+    const bounty = makeCandidate({
+      partnerTags: [{ partnerTagId: "ptag_1" }],
+    });
+    const result = filterActiveGroupBounties([bounty], {
+      groupId: GROUP_ID,
+      now: NOW,
+    });
+    expect(result).toHaveLength(0);
+  });
+
+  it("excludes tag-scoped bounties even when groups match", () => {
+    const bounty = makeCandidate({
+      groups: [{ groupId: GROUP_ID }],
+      partnerTags: [{ partnerTagId: "ptag_1" }],
+    });
+    const result = filterActiveGroupBounties([bounty], {
+      groupId: GROUP_ID,
+      now: NOW,
+    });
+    expect(result).toHaveLength(0);
+  });
+
+  it("includes group-scoped bounties with empty partnerTags", () => {
+    const bounty = makeCandidate({
+      groups: [{ groupId: GROUP_ID }],
+      partnerTags: [],
+    });
+    const result = filterActiveGroupBounties([bounty], {
+      groupId: GROUP_ID,
+      now: NOW,
+    });
+    expect(result).toHaveLength(1);
+  });
+
+  it("includes global bounties with empty partnerTags", () => {
+    const bounty = makeCandidate({
+      groups: [],
+      partnerTags: [],
+    });
+    const result = filterActiveGroupBounties([bounty], {
+      groupId: GROUP_ID,
+      now: NOW,
+    });
+    expect(result).toHaveLength(1);
   });
 });

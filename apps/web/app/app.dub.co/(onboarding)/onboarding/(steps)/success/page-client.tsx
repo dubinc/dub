@@ -1,6 +1,7 @@
 "use client";
 
 import { DIRECT_DEBIT_PAYMENT_METHOD_TYPES } from "@/lib/constants/payouts";
+import { testIds } from "@/lib/e2e/test-ids";
 import { useSyncedLocalStorage } from "@/lib/hooks/use-synced-local-storage";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import useDomains from "@/lib/swr/use-domains";
@@ -111,7 +112,10 @@ export function SuccessPageClient({
             </div>
           </div>
         )}
-        <h1 className="text-pretty text-center text-xl font-semibold">
+        <h1
+          className="text-pretty text-center text-xl font-semibold"
+          data-testid={testIds.onboarding.workspaceCreated}
+        >
           The {workspace.name} workspace has been created
         </h1>
         <MarkdownDescription className="mt-2 text-pretty text-center text-base text-neutral-500">
@@ -125,6 +129,7 @@ export function SuccessPageClient({
             loading={isLoading || isSuccessful}
             text="Go to your dashboard"
             className="h-9 rounded-lg"
+            data-testid={testIds.onboarding.goToDashboard}
           />
         </div>
       </div>
@@ -135,7 +140,12 @@ export function SuccessPageClient({
           "animate-slide-up-fade motion-reduce:animate-fade-in [--offset:10px] [animation-delay:250ms] [animation-duration:0.5s] [animation-fill-mode:both]",
         )}
       >
-        <h3 className="text-content-emphasis font-semibold">Complete setup</h3>
+        <h3
+          className="text-content-emphasis font-semibold"
+          data-testid={testIds.onboarding.completeSetup}
+        >
+          Complete setup
+        </h3>
 
         <div className="divide-border-subtle border-border-subtle bg-bg-muted flex flex-col divide-y overflow-hidden rounded-lg border">
           {[

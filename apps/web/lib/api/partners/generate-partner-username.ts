@@ -2,6 +2,8 @@ import { prisma } from "@/lib/prisma";
 import { nanoid } from "@dub/utils";
 import slugify from "@sindresorhus/slugify";
 
+const MAX_RETRIES = 3;
+
 export async function generatePartnerUsername({
   email,
   name,
@@ -11,10 +13,9 @@ export async function generatePartnerUsername({
 }) {
   const slugifiedBase = name ? slugify(name) : slugify(email.split("@")[0]);
   let username = `${slugifiedBase}-${nanoid(4).toLowerCase()}`;
-  const maxRetries = 3;
   let retries = 0;
 
-  while (retries <= maxRetries) {
+  while (retries <= MAX_RETRIES) {
     const existingPartner = await prisma.partner.findUnique({
       where: {
         username,
@@ -28,7 +29,7 @@ export async function generatePartnerUsername({
       return username;
     }
 
-    if (retries === maxRetries) {
+    if (retries === MAX_RETRIES) {
       return null;
     }
 

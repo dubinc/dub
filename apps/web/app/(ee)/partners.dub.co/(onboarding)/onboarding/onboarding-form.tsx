@@ -1,6 +1,7 @@
 "use client";
 
 import { parseActionError } from "@/lib/actions/parse-action-errors";
+import { testIds } from "@/lib/e2e/test-ids";
 import { onboardPartnerAction } from "@/lib/actions/partners/onboard-partner";
 import { getValidInternalRedirectPath } from "@/lib/middleware/utils/is-valid-internal-redirect";
 import {
@@ -131,7 +132,10 @@ export function OnboardingForm({
       </label>
 
       <label>
-        <span className="text-sm font-medium text-neutral-800">
+        <span
+          className="text-sm font-medium text-neutral-800"
+          data-testid={testIds.partnerOnboarding.profileImage}
+        >
           Profile image
         </span>
         <div className="flex items-center gap-5">
@@ -164,7 +168,10 @@ export function OnboardingForm({
       </label>
 
       <label>
-        <span className="text-sm font-medium text-neutral-800">
+        <span
+          className="text-sm font-medium text-neutral-800"
+          data-testid={testIds.partnerOnboarding.aboutYou}
+        >
           About you
           <span className="font-normal text-neutral-500"> (optional)</span>
         </span>
@@ -192,7 +199,10 @@ export function OnboardingForm({
 
       <LayoutGroup>
         <div>
-          <span className="text-sm font-medium text-neutral-800">
+          <span
+            className="text-sm font-medium text-neutral-800"
+            data-testid={testIds.partnerOnboarding.profileType}
+          >
             Profile Type
           </span>
           <div className="mt-1.5">
@@ -272,6 +282,7 @@ export function OnboardingForm({
             text="Continue"
             className="mt-1.5"
             loading={isPending || isSubmitting || isSubmitSuccessful}
+            data-testid={testIds.partnerOnboarding.continue}
           />
         </motion.div>
       </LayoutGroup>

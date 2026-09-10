@@ -1,5 +1,6 @@
 "use client";
 
+import { testIds } from "@/lib/e2e/test-ids";
 import X from "@/ui/shared/icons/x";
 import { UpgradePlanButton } from "@/ui/workspaces/upgrade-plan-button";
 import {
@@ -171,7 +172,7 @@ export function PlanSelector({ product }: { product: OnboardingProduct }) {
                         plan={plan.name.toLowerCase()}
                         period={period}
                         className="h-10 rounded-lg shadow-sm"
-                        data-testid={`onboarding-plan-cta-${plan.name.toLowerCase()}`}
+                        data-testid={testIds.onboarding.planCta(plan.name)}
                       />
                     )}
                     <button

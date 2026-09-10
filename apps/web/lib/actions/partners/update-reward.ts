@@ -105,6 +105,7 @@ export const updateRewardAction = authActionClient
         leadPartnerGroup: true,
         salePartnerGroup: true,
         referralPartnerGroup: true,
+        customPartnerGroup: true,
       },
     });
 
@@ -113,6 +114,7 @@ export const updateRewardAction = authActionClient
       leadPartnerGroup,
       salePartnerGroup,
       referralPartnerGroup,
+      customPartnerGroup,
       ...rewardMetadata
     } = updatedReward;
 
@@ -121,7 +123,8 @@ export const updateRewardAction = authActionClient
       clickPartnerGroup ||
       leadPartnerGroup ||
       salePartnerGroup ||
-      referralPartnerGroup;
+      referralPartnerGroup ||
+      customPartnerGroup;
 
     if (!partnerGroup) {
       throw new Error("Partner group not found.");

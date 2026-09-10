@@ -9,6 +9,7 @@ const REWARD_ICONS: Record<RewardProps["event"], string> = {
   lead: "https://assets.dub.co/email-assets/icons/user-plus.png",
   sale: "https://assets.dub.co/email-assets/icons/invoice-dollar.png",
   referral: "https://assets.dub.co/email-assets/icons/nodes-4.png",
+  custom: "https://assets.dub.co/cms/icon-calendar-bounty.png",
 };
 
 interface NotifyPartnerRewardChangeParams {

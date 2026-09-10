@@ -1,6 +1,7 @@
 "use client";
 
 import { sendOtpAction } from "@/lib/actions/send-otp";
+import { testIds } from "@/lib/e2e/test-ids";
 import { signUpSchema } from "@/lib/zod/schemas/auth";
 import { PasswordRequirements } from "@/ui/shared/password-requirements";
 import { Button, Input, useCurrentSubdomain, useMediaQuery } from "@dub/ui";
@@ -107,6 +108,7 @@ export const SignUpEmail = () => {
           text={isPending ? "Submitting..." : "Sign Up"}
           disabled={isPending}
           loading={isPending}
+          data-testid={testIds.auth.signupSubmit}
         />
       </div>
     </form>

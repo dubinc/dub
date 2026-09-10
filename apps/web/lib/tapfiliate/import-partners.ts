@@ -27,6 +27,8 @@ export async function importPartners(payload: TapfiliateImportPayload) {
           clickRewardId: true,
           leadRewardId: true,
           saleRewardId: true,
+          referralRewardId: true,
+          customRewardId: true,
           discountId: true,
         },
       },
@@ -182,7 +184,13 @@ async function createPartnerAndLinks({
   affiliate: TapfiliatePartner;
   group: Pick<
     PartnerGroup,
-    "id" | "discountId" | "clickRewardId" | "leadRewardId" | "saleRewardId"
+    | "id"
+    | "discountId"
+    | "clickRewardId"
+    | "leadRewardId"
+    | "saleRewardId"
+    | "referralRewardId"
+    | "customRewardId"
   >;
   userId: string;
   importId: string;
@@ -234,6 +242,8 @@ async function createPartnerAndLinks({
       clickRewardId: group.clickRewardId,
       leadRewardId: group.leadRewardId,
       saleRewardId: group.saleRewardId,
+      referralRewardId: group.referralRewardId,
+      customRewardId: group.customRewardId,
       discountId: group.discountId,
     },
     update: {

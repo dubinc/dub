@@ -2,6 +2,7 @@
 
 import { parseActionError } from "@/lib/actions/parse-action-errors";
 import { onboardProgramAction } from "@/lib/actions/partners/onboard-program";
+import { testIds } from "@/lib/e2e/test-ids";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { ProgramData } from "@/lib/types";
 import { Button, FileUpload, Input, useMediaQuery } from "@dub/ui";
@@ -104,7 +105,9 @@ export function Form() {
       }
 
       setValue("logo", destinationUrl, { shouldDirty: true });
-      toast.success(`${file.name} uploaded!`);
+      toast.success(`${file.name} uploaded!`, {
+        testId: testIds.onboarding.programLogoUploaded,
+      });
     } catch (e) {
       toast.error("Failed to upload logo");
     } finally {
@@ -137,7 +140,7 @@ export function Form() {
           autoFocus={!isMobile}
           className="max-w-full"
           error={errors.name?.message}
-          data-testid="onboarding-program-company-name"
+          data-testid={testIds.onboarding.programCompanyName}
         />
 
         <p className="text-content-subtle text-xs">
@@ -168,7 +171,7 @@ export function Form() {
                 onChange={({ file }) => handleUpload(file)}
                 content={null}
                 maxFileSizeMB={2}
-                data-testid="onboarding-program-logo"
+                data-testid={testIds.onboarding.programLogo}
               />
             )}
           />
@@ -196,7 +199,7 @@ export function Form() {
               placeholder="https://"
               className="max-w-full"
               error={errors.url?.message}
-              data-testid="onboarding-program-destination-url"
+              data-testid={testIds.onboarding.programDestinationUrl}
             />
           )}
         />
@@ -224,7 +227,7 @@ export function Form() {
               type="email"
               className="max-w-full"
               error={errors.supportEmail?.message}
-              data-testid="onboarding-program-support-email"
+              data-testid={testIds.onboarding.programSupportEmail}
             />
           )}
         />
@@ -240,7 +243,7 @@ export function Form() {
         disabledTooltip={!isLoading ? disabledTooltip : undefined}
         text="Continue"
         className="w-full"
-        data-testid="onboarding-program-continue"
+        data-testid={testIds.onboarding.programContinue}
       />
     </form>
   );
