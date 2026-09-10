@@ -147,9 +147,10 @@ export async function updatePartnerCommission({
       },
     });
 
-    const reward = determinePartnerReward({
+    const reward = await determinePartnerReward({
       event: "sale",
       programEnrollment,
+      linkId: commission.linkId,
     });
 
     if (!reward) {
