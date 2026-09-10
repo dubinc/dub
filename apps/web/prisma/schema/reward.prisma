@@ -47,7 +47,29 @@ model Reward {
   referralPartnerGroup PartnerGroup?       @relation("ReferralReward")
   customPartnerGroup   PartnerGroup?       @relation("CustomReward")
   commissions          Commission[]
+  clickLinkRewards     LinkReward[]        @relation("ClickLinkRewards")
+  leadLinkRewards      LinkReward[]        @relation("LeadLinkRewards")
+  saleLinkRewards      LinkReward[]        @relation("SaleLinkRewards")
 
   @@index([programId, event])
   @@index(event) // used in aggregate-clicks cron job
+}
+
+model LinkReward {
+  id            String   @id @default(cuid())
+  linkId        String   @unique
+  clickRewardId String?
+  leadRewardId  String?
+  saleRewardId  String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  link        Link    @relation(fields: [linkId], references: [id], onDelete: Cascade)
+  clickReward Reward? @relation("ClickLinkRewards", fields: [clickRewardId], references: [id], onDelete: SetNull)
+  leadReward  Reward? @relation("LeadLinkRewards", fields: [leadRewardId], references: [id], onDelete: SetNull)
+  saleReward  Reward? @relation("SaleLinkRewards", fields: [saleRewardId], references: [id], onDelete: SetNull)
+
+  @@index(clickRewardId)
+  @@index(leadRewardId)
+  @@index(saleRewardId)
 }

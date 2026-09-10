@@ -633,3 +633,23 @@ export const rewardContextSchema = z.object({
     })
     .optional(),
 });
+
+const rewardReferenceSchema = z.union([z.string(), RewardSchema]).nullable();
+
+export const rewardReferencesSchema = z.object({
+  clickReward: rewardReferenceSchema
+    .default(null)
+    .describe(
+      "Reward ID by default. Returns the reward object when expand[]=reward.",
+    ),
+  leadReward: rewardReferenceSchema
+    .default(null)
+    .describe(
+      "Reward ID by default. Returns the reward object when expand[]=reward.",
+    ),
+  saleReward: rewardReferenceSchema
+    .default(null)
+    .describe(
+      "Reward ID by default. Returns the reward object when expand[]=reward.",
+    ),
+});
