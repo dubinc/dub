@@ -288,9 +288,24 @@ async function uploadIntercomAttachments({
   >[] = [];
 
   const externalAttachments: { name: string; url: string }[] = [];
+  const attachmentPolicy = UPLOAD_POLICIES.programMessageAttachments;
+  const attachmentTypes = attachmentPolicy.contentTypes as readonly string[];
+  const maxBytes = attachmentPolicy.maxBytes;
 
   for (const attachment of attachments) {
     try {
+      if (!attachmentTypes.includes(attachment.content_type)) {
+        throw new Error(
+          `Unsupported attachment type: ${attachment.content_type}`,
+        );
+      }
+
+      if (attachment.filesize > maxBytes) {
+        throw new Error(
+          `Attachment exceeds maximum size of ${maxBytes / 1024 / 1024}MB`,
+        );
+      }
+
       const response = await fetchWithTimeout(
         attachment.url,
         {
@@ -299,20 +314,17 @@ async function uploadIntercomAttachments({
         30000,
       );
 
-      const attachmentTypes = UPLOAD_POLICIES.programMessageAttachments
-        .contentTypes as readonly string[];
-
-      if (!attachmentTypes.includes(attachment.content_type)) {
-        throw new Error(
-          `Unsupported attachment type: ${attachment.content_type}`,
-        );
-      }
-
       if (!response.ok) {
         throw new Error(`Failed to fetch attachment: ${response.status}`);
       }
 
       const blob = await response.blob();
+
+      if (blob.size > maxBytes) {
+        throw new Error(
+          `Attachment exceeds maximum size of ${maxBytes / 1024 / 1024}MB`,
+        );
+      }
 
       const name = (attachment.name.trim() || "attachment").slice(0, 191);
       const storageKey = `messages/${programId}/${nanoid(10)}/${sanitizeFileName(name)}`;
@@ -329,7 +341,7 @@ async function uploadIntercomAttachments({
       storedAttachments.push({
         name: attachment.name?.trim() || "attachment",
         type: attachment.content_type,
-        size: attachment.filesize,
+        size: blob.size,
         storageKey,
       });
     } catch (error) {

@@ -7,10 +7,10 @@ const RASTER_IMAGE_CONTENT_TYPES = [
 ] as const;
 
 const PROGRAM_RESOURCE_LOGO_CONTENT_TYPES = [
-  "image/svg+xml",
   "image/png",
   "image/jpeg",
   "image/webp",
+  "image/svg+xml",
   "image/avif",
 ] as const;
 
