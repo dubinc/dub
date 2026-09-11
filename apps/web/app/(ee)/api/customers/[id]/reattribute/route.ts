@@ -190,6 +190,18 @@ export const POST = withWorkspace(
         newCustomerId,
       });
 
+      const failedJobIds = workflow.results
+        .filter((result) => result.status === "failed")
+        .map((result) => result.id);
+
+      if (failedJobIds.length > 0) {
+        await prisma.job.deleteMany({
+          where: {
+            id: { in: failedJobIds },
+          },
+        });
+      }
+
       throw new DubApiError({
         code: "internal_server_error",
         message:
