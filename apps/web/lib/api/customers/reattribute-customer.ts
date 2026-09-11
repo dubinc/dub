@@ -568,10 +568,24 @@ export async function transferUnpaidCommissions({
         return;
       }
 
+      const stillTransferable = {
+        OR: [
+          { payoutId: null },
+          {
+            payout: {
+              status: {
+                in: MUTABLE_PAYOUT_STATUSES,
+              },
+            },
+          },
+        ],
+      };
+
       if (transferablePendingOrHoldIds.length > 0) {
         await prisma.commission.updateMany({
           where: {
             id: { in: transferablePendingOrHoldIds },
+            ...stillTransferable,
           },
           data: {
             customerId: newCustomerId,
@@ -586,6 +600,7 @@ export async function transferUnpaidCommissions({
         await prisma.commission.updateMany({
           where: {
             id: { in: transferableProcessedIds },
+            ...stillTransferable,
           },
           data: {
             customerId: newCustomerId,
