@@ -204,6 +204,5 @@ export const POST = withWorkspace(
   {
     requiredPlan: ["business", "advanced", "enterprise"],
     requiredRoles: ["owner", "member"],
-    requiredPermissions: ["commissions.write"],
   },
 );
