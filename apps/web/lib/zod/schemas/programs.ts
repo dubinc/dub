@@ -13,7 +13,7 @@ import {
   ProgramPayoutMode,
 } from "@prisma/client";
 import * as z from "zod/v4";
-import { DiscountSchema } from "./discount";
+import { DiscountSchema, discountReferencesSchema } from "./discount";
 import { GroupSchema } from "./groups";
 import { LinkSchema } from "./links";
 import { programApplicationFormDataWithValuesSchema } from "./program-application-form";
@@ -121,7 +121,9 @@ export const ProgramPartnerLinkSchema = LinkSchema.pick({
   conversions: true,
   sales: true,
   saleAmount: true,
-}).extend(rewardReferencesSchema.shape);
+})
+  .extend(rewardReferencesSchema.shape)
+  .extend(discountReferencesSchema.shape);
 
 export const ProgramEnrollmentApplicationSchema = z.object({
   rejectionReason: z

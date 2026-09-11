@@ -23,6 +23,7 @@ import {
 } from "./commissions";
 import { customerActivityResponseSchema } from "./customer-activity";
 import { CustomerEnrichedSchema } from "./customers";
+import { discountReferencesSchema } from "./discount";
 import { LinkSchema } from "./links";
 import { getPaginationQuerySchema } from "./misc";
 import { payoutsQuerySchema } from "./payouts";
@@ -103,6 +104,7 @@ export const PartnerProfileLinkSchema = LinkSchema.pick({
   discountCode: z.string().nullable().default(null),
   discountCodeDisabledAt: z.coerce.date().nullable().default(null),
   ...rewardReferencesSchema.shape,
+  ...discountReferencesSchema.shape,
 });
 
 export const PartnerProfileCustomerSchema = CustomerEnrichedSchema.pick({

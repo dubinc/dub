@@ -6,6 +6,8 @@ import { useProgramPartnerLinks } from "@/lib/swr/use-program-partner-links";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps, GroupProps } from "@/lib/types";
 import { useAddPartnerLinkModal } from "@/ui/modals/add-partner-link-modal";
+import { useEditPartnerLinkDiscountModal } from "@/ui/modals/edit-partner-link-discount-modal";
+import { useEditPartnerLinkRewardModal } from "@/ui/modals/edit-partner-link-reward-modal";
 import { REWARD_EVENT_ICON } from "@/ui/partners/rewards/reward-event-icon";
 import { ThreeDots } from "@/ui/shared/icons";
 import {
@@ -172,6 +174,7 @@ export function ReferralLinks({ partner }: { partner: EnrolledPartnerProps }) {
             <PartnerLinkCard
               key={link.id}
               link={link}
+              partner={partner}
               group={group}
               slug={slug}
             />
@@ -189,11 +192,13 @@ export function ReferralLinks({ partner }: { partner: EnrolledPartnerProps }) {
 
 function PartnerLinkCard({
   link,
+  partner,
   group,
   slug,
 }: {
   link: PartnerLink;
-  group?: Pick<GroupProps, "linkStructure"> | null;
+  partner: Pick<EnrolledPartnerProps, "id" | "groupId">;
+  group?: GroupProps | null;
   slug?: string;
 }) {
   const partnerLink = constructPartnerLink({
@@ -202,79 +207,111 @@ function PartnerLinkCard({
   });
   const rewardEvents = getLinkRewardOverride(link);
 
+  const { EditPartnerLinkRewardModal, setShowEditPartnerLinkRewardModal } =
+    useEditPartnerLinkRewardModal({
+      link,
+      partner,
+      group,
+    });
+
+  const { EditPartnerLinkDiscountModal, setShowEditPartnerLinkDiscountModal } =
+    useEditPartnerLinkDiscountModal({
+      link,
+      partner,
+      group,
+    });
+
   return (
-    <CardList.Card
-      innerClassName="flex items-center justify-between gap-4 px-3 py-2.5"
-      hoverStateEnabled={false}
-    >
-      <div className="flex min-w-0 items-center gap-2">
-        <Link
-          href={`/${slug}/links/${link.domain}/${link.key}`}
-          target="_blank"
-          className="text-content-default cursor-alias truncate text-sm font-medium decoration-dotted hover:underline"
-        >
-          {getPrettyUrl(partnerLink)}
-        </Link>
-        {rewardEvents.length > 0 && (
-          <Tooltip
-            content={
-              <div className="whitespace-nowrap px-3 py-2 text-sm text-neutral-600">
-                {getLinkRewardOverrideTooltip(rewardEvents)}
-              </div>
-            }
+    <>
+      <CardList.Card
+        innerClassName="flex items-center justify-between gap-4 px-3 py-2.5"
+        hoverStateEnabled={false}
+      >
+        <div className="flex min-w-0 items-center gap-2">
+          <Link
+            href={`/${slug}/links/${link.domain}/${link.key}`}
+            target="_blank"
+            className="text-content-default cursor-alias truncate text-sm font-medium decoration-dotted hover:underline"
           >
-            <div className="flex h-5 shrink-0 items-center gap-1 rounded-md bg-neutral-100 px-1">
-              {rewardEvents.map((event) => {
-                const Icon = REWARD_EVENT_ICON[event];
-                return <Icon key={event} className="size-3 text-neutral-700" />;
-              })}
-            </div>
-          </Tooltip>
-        )}
-      </div>
+            {getPrettyUrl(partnerLink)}
+          </Link>
+          {rewardEvents.length > 0 && (
+            <Tooltip
+              content={
+                <div className="whitespace-nowrap px-3 py-2 text-sm text-neutral-600">
+                  {getLinkRewardOverrideTooltip(rewardEvents)}
+                </div>
+              }
+            >
+              <div className="flex h-5 shrink-0 items-center gap-1 rounded-md bg-neutral-100 px-1">
+                {rewardEvents.map((event) => {
+                  const Icon = REWARD_EVENT_ICON[event];
+                  return (
+                    <Icon key={event} className="size-3 text-neutral-700" />
+                  );
+                })}
+              </div>
+            </Tooltip>
+          )}
+        </div>
 
-      <div className="flex shrink-0 items-center gap-3">
-        {PARTNER_LINK_STATS.map(
-          ({ id, icon: Icon, event, getValue, iconClassName }) => {
-            const { count, formatted, tooltip } = getValue(link);
+        <div className="flex shrink-0 items-center gap-3">
+          {PARTNER_LINK_STATS.map(
+            ({ id, icon: Icon, event, getValue, iconClassName }) => {
+              const { count, formatted, tooltip } = getValue(link);
 
-            return (
-              <Tooltip
-                key={id}
-                content={
-                  <div className="whitespace-nowrap px-3 py-2 text-sm text-neutral-600">
-                    {tooltip}
-                  </div>
-                }
-              >
-                <Link
-                  href={`/${slug}/events?event=${event}&interval=all&domain=${link.domain}&key=${link.key}`}
-                  target="_blank"
-                  className="flex items-center gap-1.5"
+              return (
+                <Tooltip
+                  key={id}
+                  content={
+                    <div className="whitespace-nowrap px-3 py-2 text-sm text-neutral-600">
+                      {tooltip}
+                    </div>
+                  }
                 >
-                  <Icon
-                    data-active={count > 0}
-                    className={cn(
-                      "size-4 shrink-0 text-neutral-400",
-                      iconClassName,
-                    )}
-                  />
-                  <span className="text-xs font-medium text-neutral-700">
-                    {formatted}
-                  </span>
-                </Link>
-              </Tooltip>
-            );
-          },
-        )}
+                  <Link
+                    href={`/${slug}/events?event=${event}&interval=all&domain=${link.domain}&key=${link.key}`}
+                    target="_blank"
+                    className="flex items-center gap-1.5"
+                  >
+                    <Icon
+                      data-active={count > 0}
+                      className={cn(
+                        "size-4 shrink-0 text-neutral-400",
+                        iconClassName,
+                      )}
+                    />
+                    <span className="text-xs font-medium text-neutral-700">
+                      {formatted}
+                    </span>
+                  </Link>
+                </Tooltip>
+              );
+            },
+          )}
 
-        <PartnerLinkCardMenu partnerLink={partnerLink} />
-      </div>
-    </CardList.Card>
+          <PartnerLinkCardMenu
+            partnerLink={partnerLink}
+            onEditReward={() => setShowEditPartnerLinkRewardModal(true)}
+            onEditDiscount={() => setShowEditPartnerLinkDiscountModal(true)}
+          />
+        </div>
+      </CardList.Card>
+      <EditPartnerLinkRewardModal />
+      <EditPartnerLinkDiscountModal />
+    </>
   );
 }
 
-function PartnerLinkCardMenu({ partnerLink }: { partnerLink: string }) {
+function PartnerLinkCardMenu({
+  partnerLink,
+  onEditReward,
+  onEditDiscount,
+}: {
+  partnerLink: string;
+  onEditReward: () => void;
+  onEditDiscount: () => void;
+}) {
   const [openPopover, setOpenPopover] = useState(false);
   const [, copyToClipboard] = useCopyToClipboard();
 
@@ -301,14 +338,20 @@ function PartnerLinkCardMenu({ partnerLink }: { partnerLink: string }) {
             <MenuItem
               as={Command.Item}
               icon={Gift}
-              onSelect={() => setOpenPopover(false)}
+              onSelect={() => {
+                setOpenPopover(false);
+                onEditReward();
+              }}
             >
               Edit reward
             </MenuItem>
             <MenuItem
               as={Command.Item}
               icon={Discount}
-              onSelect={() => setOpenPopover(false)}
+              onSelect={() => {
+                setOpenPopover(false);
+                onEditDiscount();
+              }}
             >
               Edit discount
             </MenuItem>

@@ -23,6 +23,10 @@ export const partnerLink = {
   tenantId: E2E_PARTNER.tenantId,
   folderId: expect.any(String),
   qrCode: expect.any(String),
+  clickReward: null,
+  leadReward: null,
+  saleReward: null,
+  discount: null,
 };
 
 export const normalizedPartnerDateFields = z.object({

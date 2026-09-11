@@ -82,6 +82,8 @@ function DiscountSheetContent({
   const { group, mutateGroup } = useGroup();
   const { mutate: mutateProgram } = useProgram();
   const { id: workspaceId, defaultProgramId } = useWorkspace();
+  const { searchParams } = useRouterStuff();
+  const isDefault = searchParams.get("isDefault") !== "false";
 
   const isEdit = Boolean(discount?.id);
 
@@ -230,7 +232,7 @@ function DiscountSheetContent({
       amount: data.type === "flat" ? data.amount * 100 : data.amount || 0,
       maxDuration:
         Number(data.maxDuration) === Infinity ? null : data.maxDuration,
-      isDefault: true,
+      isDefault,
     });
   };
 
@@ -678,7 +680,7 @@ export function DiscountSheet({
     const nextOpen = typeof value === "function" ? value(isOpen) : value;
     rest.setIsOpen(value);
     if (!nextOpen) {
-      queryParams({ del: "discountId", scroll: false });
+      queryParams({ del: ["discountId", "isDefault"], scroll: false });
     }
   };
 

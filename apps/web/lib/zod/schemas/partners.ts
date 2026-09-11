@@ -882,6 +882,13 @@ export const upsertPartnerLinkSchema = createPartnerLinkSchema.extend({
   url: parseUrlSchema.describe("The URL to upsert for."),
 });
 
+export const updatePartnerLinkSchema = createPartnerLinkSchema.pick({
+  clickRewardId: true,
+  leadRewardId: true,
+  saleRewardId: true,
+  discountId: true,
+});
+
 // For /api/partners/analytics
 export const partnerAnalyticsQuerySchema = analyticsQuerySchema
   .pick({

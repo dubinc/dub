@@ -13,7 +13,7 @@ export type LinkRewardIdsInput = Partial<
 
 type LinkRewardWithOptionalRewards = Pick<
   LinkReward,
-  "clickRewardId" | "leadRewardId" | "saleRewardId"
+  "clickRewardId" | "leadRewardId" | "saleRewardId" | "discountId"
 > & {
   clickReward?: Reward | null;
   leadReward?: Reward | null;
@@ -40,6 +40,7 @@ export const getRewardIds = (
   clickReward: linkReward?.clickRewardId ?? null,
   leadReward: linkReward?.leadRewardId ?? null,
   saleReward: linkReward?.saleRewardId ?? null,
+  discount: linkReward?.discountId ?? null,
 });
 
 export const validateRewardIds = async ({
@@ -157,4 +158,5 @@ export const getExpandableRewardReferences = ({
     expand,
     serialize: serializeReward,
   }),
+  discount: linkReward?.discountId ?? null,
 });

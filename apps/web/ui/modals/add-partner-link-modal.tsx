@@ -1,27 +1,22 @@
 import { mutatePrefix } from "@/lib/swr/mutate";
-import useDiscounts from "@/lib/swr/use-discounts";
 import useGroup from "@/lib/swr/use-group";
 import useProgram from "@/lib/swr/use-program";
-import { useRewards } from "@/lib/swr/use-rewards";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { EnrolledPartnerProps, GroupProps, LinkProps } from "@/lib/types";
+import { EnrolledPartnerProps, LinkProps } from "@/lib/types";
 import { createPartnerLinkSchema } from "@/lib/zod/schemas/partners";
-import { REWARD_EVENT_COLUMN_MAPPING } from "@/lib/zod/schemas/rewards";
-import { formatDiscountDescription } from "@/ui/partners/format-discount-description";
-import { formatRewardDescription } from "@/ui/partners/format-reward-description";
+import { DiscountSelector } from "@/ui/partners/link-overrides/discount-selector";
+import { RewardSelector } from "@/ui/partners/link-overrides/reward-selector";
+import { useRewardAndDiscountOptions } from "@/ui/partners/link-overrides/use-reward-and-discount-options";
 import {
   AnimatedSizeContainer,
   ArrowTurnLeft,
   Button,
-  Combobox,
-  ComboboxOption,
   InfoTooltip,
   Modal,
   useCopyToClipboard,
   useLatestCallback,
   useMediaQuery,
 } from "@dub/ui";
-import { cn } from "@dub/utils";
 import { ChevronDown } from "lucide-react";
 import { motion } from "motion/react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -47,14 +42,6 @@ type FormData = Pick<
   | "saleRewardId"
   | "discountId"
 >;
-
-const OVERRIDE_COMBOBOX_BUTTON_PROPS = {
-  className: cn(
-    "w-full h-10 justify-start px-3",
-    "data-[state=open]:ring-1 data-[state=open]:ring-neutral-500 data-[state=open]:border-neutral-500",
-    "focus:ring-1 focus:ring-neutral-500 focus:border-neutral-500 transition-none",
-  ),
-};
 
 const AddPartnerLinkModal = ({
   showModal,
@@ -260,7 +247,7 @@ const AddPartnerLinkModal = ({
                       control={control}
                       name="saleRewardId"
                       render={({ field }) => (
-                        <RewardOrDiscountSelect
+                        <RewardSelector
                           label="Sale reward"
                           options={saleRewards}
                           selectedId={field.value}
@@ -273,7 +260,7 @@ const AddPartnerLinkModal = ({
                       control={control}
                       name="leadRewardId"
                       render={({ field }) => (
-                        <RewardOrDiscountSelect
+                        <RewardSelector
                           label="Lead reward"
                           options={leadRewards}
                           selectedId={field.value}
@@ -286,7 +273,7 @@ const AddPartnerLinkModal = ({
                       control={control}
                       name="clickRewardId"
                       render={({ field }) => (
-                        <RewardOrDiscountSelect
+                        <RewardSelector
                           label="Click reward"
                           options={clickRewards}
                           selectedId={field.value}
@@ -299,8 +286,7 @@ const AddPartnerLinkModal = ({
                       control={control}
                       name="discountId"
                       render={({ field }) => (
-                        <RewardOrDiscountSelect
-                          label="Discount"
+                        <DiscountSelector
                           options={discounts}
                           selectedId={field.value}
                           groupId={group?.discount?.id}
@@ -343,142 +329,6 @@ const AddPartnerLinkModal = ({
     </Modal>
   );
 };
-
-function GroupBadge() {
-  return (
-    <span className="rounded-md bg-neutral-200 px-1.5 py-0.5 text-xs font-semibold text-neutral-600">
-      Group
-    </span>
-  );
-}
-
-function RewardOrDiscountSelect({
-  label,
-  options,
-  selectedId,
-  groupId,
-  onChange,
-}: {
-  label: string;
-  options: ComboboxOption<{ isGroup?: boolean }>[];
-  selectedId: string | null | undefined;
-  groupId: string | null | undefined;
-  onChange: (id: string | null) => void;
-}) {
-  const displayedId = selectedId ?? groupId;
-  const selected =
-    options.find((option) => option.value === displayedId) ?? null;
-  const isGroup = Boolean(displayedId && displayedId === groupId);
-
-  return (
-    <div className="flex flex-col gap-2">
-      <label className="text-content-emphasis block text-sm font-medium">
-        {label}
-      </label>
-      <Combobox
-        selected={selected}
-        setSelected={(option) => {
-          if (!option) {
-            return;
-          }
-
-          onChange(option.value === groupId ? null : option.value);
-        }}
-        options={options}
-        caret
-        hideSearch
-        shouldFilter={false}
-        matchTriggerWidth
-        placeholder="None"
-        popoverProps={{
-          contentClassName: "w-[var(--radix-popover-trigger-width)]",
-        }}
-        buttonProps={OVERRIDE_COMBOBOX_BUTTON_PROPS}
-        labelProps={{
-          className:
-            "flex min-w-0 items-center justify-between gap-2 overflow-hidden",
-        }}
-        optionRight={(option) =>
-          option.meta?.isGroup ? <GroupBadge /> : undefined
-        }
-      >
-        {selected ? (
-          <>
-            <span className="min-w-0 truncate">{selected.label}</span>
-            {isGroup && <GroupBadge />}
-          </>
-        ) : null}
-      </Combobox>
-    </div>
-  );
-}
-
-function useRewardAndDiscountOptions({
-  group,
-}: {
-  group: GroupProps | undefined;
-}) {
-  const { rewards } = useRewards();
-  const { discounts } = useDiscounts();
-
-  return useMemo(() => {
-    const clickRewards: ComboboxOption<{ isGroup?: boolean }>[] = [];
-    const saleRewards: ComboboxOption<{ isGroup?: boolean }>[] = [];
-    const leadRewards: ComboboxOption<{ isGroup?: boolean }>[] = [];
-
-    const optionsByColumn = {
-      [REWARD_EVENT_COLUMN_MAPPING.click]: clickRewards,
-      [REWARD_EVENT_COLUMN_MAPPING.lead]: leadRewards,
-      [REWARD_EVENT_COLUMN_MAPPING.sale]: saleRewards,
-    };
-
-    const groupRewardIds = {
-      click: group?.clickReward?.id,
-      lead: group?.leadReward?.id,
-      sale: group?.saleReward?.id,
-    };
-
-    for (const reward of rewards ?? []) {
-      if (!["click", "lead", "sale"].includes(reward.event)) {
-        continue;
-      }
-
-      const rewardIdColumn = REWARD_EVENT_COLUMN_MAPPING[reward.event];
-      const groupRewardId = groupRewardIds[reward.event];
-
-      optionsByColumn[rewardIdColumn].push({
-        value: reward.id,
-        label: formatRewardDescription(reward),
-        first: reward.id === groupRewardId,
-        meta: { isGroup: reward.id === groupRewardId },
-      });
-    }
-
-    const groupDiscountId = group?.discount?.id;
-    const discountOptions: ComboboxOption<{ isGroup?: boolean }>[] = (
-      discounts ?? []
-    ).map((discount) => ({
-      value: discount.id,
-      label: formatDiscountDescription(discount),
-      first: discount.id === groupDiscountId,
-      meta: { isGroup: discount.id === groupDiscountId },
-    }));
-
-    return {
-      clickRewards,
-      saleRewards,
-      leadRewards,
-      discounts: discountOptions,
-    };
-  }, [
-    rewards,
-    discounts,
-    group?.clickReward?.id,
-    group?.leadReward?.id,
-    group?.saleReward?.id,
-    group?.discount?.id,
-  ]);
-}
 
 export function useAddPartnerLinkModal({
   onSuccess,
