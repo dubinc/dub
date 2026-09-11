@@ -98,7 +98,8 @@ async function verifyEmailDomain(domain: EmailDomain) {
   const subject =
     updatedDomain.status === "verified"
       ? "Your email domain has been verified"
-      : updatedDomain.status === "failed"
+      : updatedDomain.status === "failed" ||
+          updatedDomain.status === "partially_failed"
         ? "Your email domain verification has failed"
         : "Your email domain status has changed";
 
