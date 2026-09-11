@@ -123,7 +123,7 @@ export function BountyLogic({ className }: { className?: string }) {
         {attribute && (
           <>
             {" "}
-            is {AWARD_BOUNTY_OPERATORS.gte.label}{" "}
+            {AWARD_BOUNTY_OPERATORS.gte.label}{" "}
             <InlineBadgePopover
               text={
                 value
