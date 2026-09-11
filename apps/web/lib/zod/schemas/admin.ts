@@ -1,7 +1,6 @@
 import {
   FraudAlertStatus,
   PartnerNetworkStatus,
-  PlanPeriod,
   ProgramEnrollmentStatus,
 } from "@prisma/client";
 import * as z from "zod/v4";
@@ -103,8 +102,10 @@ export const adminRecentProgramSchema = z.object({
   url: z.string().nullable(),
   addedToMarketplaceAt: z.date().nullable(),
   createdAt: z.date(),
-  plan: z.string(),
-  planPeriod: z.enum(PlanPeriod).nullable(),
+  workspace: z.object({
+    plan: z.string(),
+    stripeId: z.string(),
+  }),
   partners: z.number(),
   commissions: z.number(),
 });

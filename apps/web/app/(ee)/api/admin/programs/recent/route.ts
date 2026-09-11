@@ -11,8 +11,11 @@ import { NextResponse } from "next/server";
 
 // GET /api/admin/programs/recent
 export const GET = withAdmin(async ({ searchParams }) => {
-  const { page = 1, pageSize, plan } =
-    adminRecentProgramsQuerySchema.parse(searchParams);
+  const {
+    page = 1,
+    pageSize,
+    plan,
+  } = adminRecentProgramsQuerySchema.parse(searchParams);
 
   const where = {
     id: {
@@ -49,12 +52,7 @@ export const GET = withAdmin(async ({ searchParams }) => {
         url: true,
         createdAt: true,
         addedToMarketplaceAt: true,
-        workspace: {
-          select: {
-            plan: true,
-            planPeriod: true,
-          },
-        },
+        workspace: true,
       },
     }),
     prisma.program.count({ where }),
@@ -102,10 +100,8 @@ export const GET = withAdmin(async ({ searchParams }) => {
 
   return NextResponse.json({
     programs: adminRecentProgramSchema.array().parse(
-      programs.map(({ workspace, ...program }) => ({
+      programs.map((program) => ({
         ...program,
-        plan: workspace.plan,
-        planPeriod: workspace.planPeriod,
         partners: partnersByProgramId.get(program.id) ?? 0,
         commissions: commissionsByProgramId.get(program.id) ?? 0,
       })),

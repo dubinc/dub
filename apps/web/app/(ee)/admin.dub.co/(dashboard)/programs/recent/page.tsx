@@ -186,10 +186,19 @@ function RecentProgramsPageClient() {
         id: "plan",
         header: "Plan",
         minSize: 140,
-        cell: ({ row }) => <PlanBadge plan={row.original.plan as PlanProps} />,
+        cell: ({ row }) => (
+          <a
+            href={`https://dashboard.stripe.com/customers/${row.original.workspace.stripeId}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:cursor-alias"
+          >
+            <PlanBadge plan={row.original.workspace.plan as PlanProps} />
+          </a>
+        ),
         meta: {
           filterParams: ({ row }) => ({
-            plan: row.original.plan,
+            plan: row.original.workspace.plan,
           }),
         },
       },
@@ -306,9 +315,16 @@ function ProgramCell({
         height={20}
         className="size-4 rounded-full"
       />
-      <span className="truncate text-sm font-medium">{program.name}</span>•
       <a
-        className="truncate text-sm font-medium text-neutral-500 transition-colors hover:text-neutral-800"
+        className="truncate text-sm font-medium decoration-dotted underline-offset-2 hover:cursor-alias hover:text-neutral-900 hover:underline"
+        href={`https://partners.dub.co/${program.slug}`}
+        target="_blank"
+      >
+        {program.name}
+      </a>
+      •
+      <a
+        className="truncate text-sm font-medium text-neutral-500 decoration-dotted underline-offset-2 transition-colors hover:cursor-alias hover:text-neutral-800 hover:underline"
         href={programUrl}
         target="_blank"
         rel="noopener noreferrer"
