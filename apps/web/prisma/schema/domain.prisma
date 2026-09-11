@@ -66,6 +66,9 @@ enum EmailDomainStatus {
   failed
   temporary_failure
   not_started
+  // Resend aggregate statuses when send/receive (or dual sending CNAMEs) diverge
+  partially_verified
+  partially_failed
 }
 
 model EmailDomain {
