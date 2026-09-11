@@ -9,6 +9,7 @@ type BountyEligibilityCandidate = {
   endsAt: Date | null;
   archivedAt: Date | null;
   groups: { groupId: string }[];
+  partnerTags: { partnerTagId: string }[];
 };
 
 export function filterActiveGroupBounties(
@@ -31,6 +32,10 @@ export function filterActiveGroupBounties(
     }
 
     if (bounty.endsAt && bounty.endsAt <= now) {
+      return false;
+    }
+
+    if (bounty.partnerTags.length > 0) {
       return false;
     }
 
@@ -64,6 +69,11 @@ export async function getGroupBountySummaries({
       groups: {
         select: {
           groupId: true,
+        },
+      },
+      partnerTags: {
+        select: {
+          partnerTagId: true,
         },
       },
     },

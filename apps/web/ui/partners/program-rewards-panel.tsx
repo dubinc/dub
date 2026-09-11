@@ -6,6 +6,7 @@ import { DiscountProps, RewardProps } from "@/lib/types";
 import { Gift, Tooltip } from "@dub/ui";
 import { HelpCircle } from "lucide-react";
 import { memo } from "react";
+import { CustomRewardDescription } from "./custom-reward-description";
 import { formatDiscountDescription } from "./format-discount-description";
 import { ProgramRewardModifiersTooltipContent } from "./program-reward-modifiers-tooltip";
 import { REWARD_EVENT_ICON } from "./rewards/reward-event-icon";
@@ -37,41 +38,48 @@ export const ProgramRewardsPanel = memo(
     const rewardItems = [
       ...sortedFilteredRewards.map((reward) => ({
         icon: REWARD_EVENT_ICON[reward.event],
-        label: reward.description || (
-          <>
-            {constructRewardAmount(reward)}{" "}
-            {reward.event === "sale" && reward.maxDuration === 0 ? (
-              <>for the first sale</>
-            ) : (
-              <>per {reward.event}</>
-            )}
-            {reward.maxDuration === null ? (
-              <>
-                {" "}
-                for the{" "}
-                <strong className="font-semibold">customer's lifetime</strong>
-              </>
-            ) : reward.maxDuration && reward.maxDuration > 1 ? (
-              <>
-                {" "}
-                for{" "}
-                <strong className="font-semibold">
-                  {reward.maxDuration % 12 === 0
-                    ? `${reward.maxDuration / 12} year${reward.maxDuration / 12 > 1 ? "s" : ""}`
-                    : `${reward.maxDuration} months`}
-                </strong>
-              </>
-            ) : null}
-            {!!reward.modifiers?.length && (
-              // whitespace-nowrap keeps the tooltip icon attached to the last
-              // word of the description so it never wraps on its own line
-              <span className="whitespace-nowrap">
-                {" "}
-                <CustomRewardModifiersTooltip reward={reward} />
-              </span>
-            )}
-          </>
-        ),
+        label:
+          reward.description ||
+          (reward.event === "custom" ? (
+            <CustomRewardDescription
+              reward={reward}
+              includeEarnPrefix={false}
+            />
+          ) : (
+            <>
+              {constructRewardAmount(reward)}{" "}
+              {reward.event === "sale" && reward.maxDuration === 0 ? (
+                <>for the first sale</>
+              ) : (
+                <>per {reward.event}</>
+              )}
+              {reward.maxDuration === null ? (
+                <>
+                  {" "}
+                  for the{" "}
+                  <strong className="font-semibold">customer's lifetime</strong>
+                </>
+              ) : reward.maxDuration && reward.maxDuration > 1 ? (
+                <>
+                  {" "}
+                  for{" "}
+                  <strong className="font-semibold">
+                    {reward.maxDuration % 12 === 0
+                      ? `${reward.maxDuration / 12} year${reward.maxDuration / 12 > 1 ? "s" : ""}`
+                      : `${reward.maxDuration} months`}
+                  </strong>
+                </>
+              ) : null}
+              {!!reward.modifiers?.length && (
+                // whitespace-nowrap keeps the tooltip icon attached to the last
+                // word of the description so it never wraps on its own line
+                <span className="whitespace-nowrap">
+                  {" "}
+                  <CustomRewardModifiersTooltip reward={reward} />
+                </span>
+              )}
+            </>
+          )),
       })),
       ...(discount
         ? [

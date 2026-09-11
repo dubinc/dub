@@ -1,5 +1,6 @@
 "use client";
 
+import { testIds } from "@/lib/e2e/test-ids";
 import { AddEditDomainForm } from "@/ui/domains/add-edit-domain-form";
 import { useSearchParams } from "next/navigation";
 import { useOnboardingProduct } from "../../../use-onboarding-product";
@@ -18,6 +19,8 @@ export function Form() {
       }}
       enableDomainConfig={false}
       initialDomain={`${workspaceSlug}.com`}
+      submitTestId={testIds.onboarding.addDomain}
+      domainInputTestId={testIds.onboarding.domainInput}
     />
   );
 }

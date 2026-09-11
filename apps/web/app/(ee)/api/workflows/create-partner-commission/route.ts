@@ -178,6 +178,7 @@ async function stepCreateCommission(
     customerId,
     eventId,
     invoiceId,
+    rewardId,
     amount,
     quantity,
     currency,
@@ -426,13 +427,31 @@ async function stepCreateCommission(
     earnings = cappedEarnings;
   }
 
+  // Custom reward jobs are queued from a snapshot of eligible enrollments.
+  // Re-check at write time so we don't pay a partner who was banned, deactivated,
+  // or moved off this reward before the workflow ran.
+  // Only jobs that pass rewardId (create-custom-commission) should be gated —
+  // manual commissions and bounty payouts also use event "custom" but have no rewardId.
+  const isCustomRewardCommission = event === "custom" && Boolean(rewardId);
+  const stillOnCustomReward = programEnrollment.customRewardId === rewardId;
+
+  if (
+    isCustomRewardCommission &&
+    (programEnrollment.status !== "approved" || !stillOnCustomReward)
+  ) {
+    return logAndReturn({
+      commission: null,
+      outputLog: `Partner ${partnerId} is no longer eligible for custom reward ${rewardId} (status: ${programEnrollment.status}), skipping commission creation...`,
+    });
+  }
+
   try {
     const commission = await prisma.commission.create({
       data: {
         id: createId({ prefix: "cm_" }),
         programId,
         partnerId,
-        rewardId: reward?.id,
+        rewardId: reward?.id ?? rewardId,
         customerId,
         linkId,
         eventId: eventId || null, // empty string should convert to null

@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { nanoid } from "@dub/utils";
+import { nanoid, sleep } from "@dub/utils";
 import {
   CommissionSource,
   CommissionStatus,
@@ -124,7 +124,7 @@ export async function importCommissions(payload: PartnerStackImportPayload) {
     processedBatches++;
   }
 
-  await new Promise((resolve) => setTimeout(resolve, 1000));
+  await sleep(1000);
 
   await partnerStackImporter.queue({
     ...payload,

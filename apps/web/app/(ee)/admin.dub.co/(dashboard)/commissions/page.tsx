@@ -43,6 +43,19 @@ function CommissionsPageClient() {
   const { queryParams, getQueryString, searchParamsObj } = useRouterStuff();
   const { interval, start, end, programId } = searchParamsObj;
 
+  const { data: { programs: allPrograms } = {} } = useSWR<AdminCommissionsData>(
+    `/api/admin/commissions${getQueryString(
+      {
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      },
+      { exclude: ["programId"] },
+    )}`,
+    fetcher,
+    {
+      keepPreviousData: true,
+    },
+  );
+
   const { data: { programs, timeseries } = {}, isLoading } =
     useSWR<AdminCommissionsData>(
       `/api/admin/commissions${getQueryString({
@@ -62,7 +75,7 @@ function CommissionsPageClient() {
         icon: GridIcon,
         label: "Program",
         options:
-          programs?.map((program) => ({
+          allPrograms?.map((program) => ({
             value: program.id,
             label: program.name,
             icon: (
@@ -72,6 +85,7 @@ function CommissionsPageClient() {
                 className="size-4 rounded-full"
               />
             ),
+            right: currencyFormatter(program.commissions),
           })) ?? null,
       },
     ],
@@ -279,7 +293,7 @@ function CommissionsPageClient() {
   });
 
   return (
-    <div className="mx-auto grid w-full max-w-screen-xl gap-5 p-3 lg:px-10">
+    <div className="mx-auto grid w-full max-w-screen-xl gap-3 p-3 lg:px-10">
       <div className="flex flex-col gap-3 md:flex-row md:items-center">
         <Filter.Select
           className="w-full md:w-fit"
@@ -294,15 +308,13 @@ function CommissionsPageClient() {
         />
       </div>
       {activeFilters.length > 0 && (
-        <div>
-          <Filter.List
-            filters={filters}
-            activeFilters={activeFilters}
-            onSelect={onSelect}
-            onRemove={onRemove}
-            onRemoveAll={onRemoveAll}
-          />
-        </div>
+        <Filter.List
+          filters={filters}
+          activeFilters={activeFilters}
+          onSelect={onSelect}
+          onRemove={onRemove}
+          onRemoveAll={onRemoveAll}
+        />
       )}
       <div className="flex flex-col divide-y divide-neutral-200 rounded-lg border border-neutral-200 bg-white">
         <div className="scrollbar-hide grid w-full grid-cols-2 divide-x overflow-y-hidden sm:grid-cols-3">

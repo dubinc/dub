@@ -2,6 +2,7 @@ import "dotenv-flow/config";
 
 import { prisma } from "@/lib/prisma";
 import { tb } from "@/lib/tinybird/client";
+import { sleep } from "@dub/utils";
 import { CommissionType, Prisma } from "@prisma/client";
 import * as z from "zod/v4";
 
@@ -37,10 +38,6 @@ const getEventsMetadata = tb.buildPipe({
     metadata: z.string(),
   }),
 });
-
-async function sleep(ms: number) {
-  await new Promise((resolve) => setTimeout(resolve, ms));
-}
 
 function isPlainObject(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === "object" && !Array.isArray(value);

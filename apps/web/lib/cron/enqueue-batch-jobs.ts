@@ -1,4 +1,4 @@
-import { log } from "@dub/utils";
+import { log, sleep } from "@dub/utils";
 import type { PublishBatchRequest } from "@upstash/qstash";
 import { qstash } from ".";
 
@@ -24,9 +24,7 @@ export async function enqueueBatchJobs(jobs: EnqueueBatchJobsProps[]) {
       return await qstash.batchJSON(jobs);
     } catch (error) {
       if (attempt < maxRetries) {
-        await new Promise((resolve) =>
-          setTimeout(resolve, 1000 * Math.pow(2, attempt)),
-        );
+        await sleep(1000 * Math.pow(2, attempt));
         continue;
       }
 
