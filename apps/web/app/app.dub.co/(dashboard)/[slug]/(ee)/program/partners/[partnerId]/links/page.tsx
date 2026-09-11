@@ -7,32 +7,52 @@ import useDiscountCodes from "@/lib/swr/use-discount-codes";
 import useGroup from "@/lib/swr/use-group";
 import usePartner from "@/lib/swr/use-partner";
 import useProgram from "@/lib/swr/use-program";
+import { useProgramPartnerLinks } from "@/lib/swr/use-program-partner-links";
 import useWorkspace from "@/lib/swr/use-workspace";
 import {
   DiscountCodeProps,
   EnrolledPartnerExtendedProps,
   EnrolledPartnerProps,
+  GroupProps,
 } from "@/lib/types";
 import { useAddDiscountCodeModal } from "@/ui/modals/add-discount-code-modal";
 import { useAddPartnerLinkModal } from "@/ui/modals/add-partner-link-modal";
 import { DeleteDiscountCodeModal } from "@/ui/modals/delete-discount-code-modal";
 import { DiscountCodeBadge } from "@/ui/partners/discounts/discount-code-badge";
 import { ButtonLink } from "@/ui/placeholders/button-link";
+import { ThreeDots } from "@/ui/shared/icons";
 import {
   Button,
+  CardList,
   CopyButton,
+  CursorRays,
+  InvoiceDollar,
   LoadingSpinner,
+  MenuItem,
+  Popover,
+  Receipt2,
   Table,
   Tag,
+  Tooltip,
   TooltipContent,
+  UserCheck,
+  useCopyToClipboard,
   useTable,
 } from "@dub/ui";
-import { Trash } from "@dub/ui/icons";
-import { cn, currencyFormatter, getPrettyUrl, nFormatter } from "@dub/utils";
+import { Copy, Discount, Gift, Trash } from "@dub/ui/icons";
+import {
+  cn,
+  currencyFormatter,
+  getPrettyUrl,
+  nFormatter,
+  pluralize,
+} from "@dub/utils";
 import { DiscountProvider } from "@prisma/client";
+import { Command } from "cmdk";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
+import { toast } from "sonner";
 
 export default function ProgramPartnerLinksPage() {
   const { partnerId } = useParams() as { partnerId: string };
@@ -57,11 +77,76 @@ export default function ProgramPartnerLinksPage() {
   );
 }
 
+type PartnerLink = NonNullable<EnrolledPartnerProps["links"]>[number];
+
+const formatStatCount = ({ count, unit }: { count: number; unit: string }) => ({
+  count,
+  formatted: nFormatter(count),
+  tooltip: `${nFormatter(count, { full: true })} ${pluralize(unit, count)}`,
+});
+
+const PARTNER_LINK_STATS = [
+  {
+    id: "clicks",
+    icon: CursorRays,
+    event: "clicks",
+    iconClassName: "data-[active=true]:text-blue-500",
+    getValue: (link: PartnerLink) =>
+      formatStatCount({
+        count: link.clicks,
+        unit: "click",
+      }),
+  },
+  {
+    id: "leads",
+    icon: UserCheck,
+    event: "leads",
+    iconClassName: "data-[active=true]:text-purple-500",
+    getValue: (link: PartnerLink) =>
+      formatStatCount({
+        count: link.leads,
+        unit: "lead",
+      }),
+  },
+  {
+    id: "conversions",
+    icon: Receipt2,
+    event: "sales",
+    iconClassName: "data-[active=true]:text-orange-500",
+    getValue: (link: PartnerLink) =>
+      formatStatCount({
+        count: link.conversions,
+        unit: "conversion",
+      }),
+  },
+  {
+    id: "revenue",
+    icon: InvoiceDollar,
+    event: "sales",
+    iconClassName: "data-[active=true]:text-teal-500",
+    getValue: (link: PartnerLink) => {
+      const count = link.saleAmount;
+      const formatted =
+        count > 0
+          ? currencyFormatter(count, {
+              trailingZeroDisplay: "stripIfInteger",
+            })
+          : nFormatter(count);
+
+      return {
+        count,
+        formatted,
+        tooltip: `${formatted} revenue`,
+      };
+    },
+  },
+] as const;
+
 const PartnerLinks = ({ partner }: { partner: EnrolledPartnerProps }) => {
   const { slug } = useWorkspace();
 
   const { group } = useGroup({
-    groupIdOrSlug: partner.groupId ?? undefined,
+    groupIdOrSlug: partner.groupId,
   });
 
   const { AddPartnerLinkModal, setShowAddPartnerLinkModal } =
@@ -69,105 +154,9 @@ const PartnerLinks = ({ partner }: { partner: EnrolledPartnerProps }) => {
       partner,
     });
 
-  const table = useTable({
-    data: partner.links || [],
-    columns: [
-      {
-        id: "shortLink",
-        header: "Link",
-        meta: {
-          disableTruncate: true,
-        },
-        cell: ({ row }) => {
-          const partnerLink = constructPartnerLink({
-            group: group ?? undefined,
-            link: row.original,
-          });
-          return (
-            <div className="flex items-center gap-3">
-              <Link
-                href={`/${slug}/links/${row.original.domain}/${row.original.key}`}
-                target="_blank"
-                className="cursor-alias font-medium text-black decoration-dotted hover:underline"
-              >
-                {getPrettyUrl(partnerLink)}
-              </Link>
-              <CopyButton value={partnerLink} className="p-0.5" />
-            </div>
-          );
-        },
-      },
-      {
-        header: "Clicks",
-        size: 1,
-        minSize: 1,
-        cell: ({ row }) => (
-          <Link
-            href={`/${slug}/events?event=clicks&interval=all&domain=${row.original.domain}&key=${row.original.key}`}
-            target="_blank"
-            className="block w-full cursor-alias decoration-dotted hover:underline"
-          >
-            {nFormatter(row.original.clicks)}
-          </Link>
-        ),
-      },
-      {
-        header: "Leads",
-        size: 1,
-        minSize: 1,
-        cell: ({ row }) => (
-          <Link
-            href={`/${slug}/events?event=leads&interval=all&domain=${row.original.domain}&key=${row.original.key}`}
-            target="_blank"
-            className="block w-full cursor-alias decoration-dotted hover:underline"
-          >
-            {nFormatter(row.original.leads)}
-          </Link>
-        ),
-      },
-      {
-        header: "Conversions",
-        size: 1,
-        minSize: 1,
-        cell: ({ row }) => (
-          <Link
-            href={`/${slug}/events?event=sales&interval=all&domain=${row.original.domain}&key=${row.original.key}`}
-            target="_blank"
-            className="block w-full cursor-alias decoration-dotted hover:underline"
-          >
-            {nFormatter(row.original.conversions)}
-          </Link>
-        ),
-      },
-      {
-        header: "Revenue",
-        accessorFn: (d) =>
-          currencyFormatter(d.saleAmount, {
-            trailingZeroDisplay: "stripIfInteger",
-          }),
-        size: 1,
-        minSize: 1,
-        cell: ({ row }) => (
-          <Link
-            href={`/${slug}/events?event=sales&interval=all&domain=${row.original.domain}&key=${row.original.key}`}
-            target="_blank"
-            className="block w-full cursor-alias decoration-dotted hover:underline"
-          >
-            {currencyFormatter(row.original.saleAmount, {
-              trailingZeroDisplay: "stripIfInteger",
-            })}
-          </Link>
-        ),
-      },
-    ],
-    resourceName: (p) => `link${p ? "s" : ""}`,
-    thClassName: (id) =>
-      cn(id === "total" && "[&>div]:justify-end", "border-l-0"),
-    tdClassName: (id) => cn(id === "total" && "text-right", "border-l-0"),
-    className: "[&_tr:last-child>td]:border-b-transparent",
-    containerClassName: "w-full max-w-full overflow-hidden",
-    scrollWrapperClassName: "min-h-[40px] max-w-full",
-  } as any);
+  const { links, loading, error } = useProgramPartnerLinks({
+    partnerId: partner.id,
+  });
 
   return (
     <>
@@ -182,11 +171,164 @@ const PartnerLinks = ({ partner }: { partner: EnrolledPartnerProps }) => {
           onClick={() => setShowAddPartnerLinkModal(true)}
         />
       </div>
-      <Table {...table} />
+      {loading ? (
+        <div className="flex justify-center py-8">
+          <LoadingSpinner />
+        </div>
+      ) : error ? (
+        <div className="text-content-subtle rounded-xl border border-neutral-200 py-8 text-center text-sm">
+          Failed to load partner links
+        </div>
+      ) : links && links.length > 0 ? (
+        <CardList variant="compact">
+          {links.map((link) => (
+            <PartnerLinkCard
+              key={link.id}
+              link={link}
+              group={group}
+              slug={slug}
+            />
+          ))}
+        </CardList>
+      ) : (
+        <div className="text-content-subtle rounded-xl border border-neutral-200 py-8 text-center text-sm">
+          No links created
+        </div>
+      )}
       <AddPartnerLinkModal />
     </>
   );
 };
+
+function PartnerLinkCard({
+  link,
+  group,
+  slug,
+}: {
+  link: PartnerLink;
+  group?: Pick<GroupProps, "linkStructure"> | null;
+  slug?: string;
+}) {
+  const partnerLink = constructPartnerLink({
+    group,
+    link,
+  });
+
+  return (
+    <CardList.Card
+      innerClassName="flex items-center justify-between gap-4 px-3 py-2.5"
+      hoverStateEnabled={false}
+    >
+      <div className="flex min-w-0 items-center gap-2">
+        <Link
+          href={`/${slug}/links/${link.domain}/${link.key}`}
+          target="_blank"
+          className="text-content-default cursor-alias truncate text-sm font-medium decoration-dotted hover:underline"
+        >
+          {getPrettyUrl(partnerLink)}
+        </Link>
+        {/* {rewardEvents.length > 0 && (
+          <div className="flex h-5 shrink-0 items-center gap-1 rounded-md bg-neutral-100 px-1">
+            {rewardEvents.map((event) => {
+              const Icon = REWARD_EVENT_ICON[event];
+              return <Icon key={event} className="size-3 text-neutral-700" />;
+            })}
+          </div>
+        )} */}
+      </div>
+
+      <div className="flex shrink-0 items-center gap-3">
+        {PARTNER_LINK_STATS.map(
+          ({ id, icon: Icon, event, getValue, iconClassName }) => {
+            const { count, formatted, tooltip } = getValue(link);
+
+            return (
+              <Tooltip
+                key={id}
+                content={
+                  <div className="whitespace-nowrap px-3 py-2 text-sm text-neutral-600">
+                    {tooltip}
+                  </div>
+                }
+              >
+                <Link
+                  href={`/${slug}/events?event=${event}&interval=all&domain=${link.domain}&key=${link.key}`}
+                  target="_blank"
+                  className="flex items-center gap-1.5"
+                >
+                  <Icon
+                    data-active={count > 0}
+                    className={cn(
+                      "size-4 shrink-0 text-neutral-400",
+                      iconClassName,
+                    )}
+                  />
+                  <span className="text-xs font-medium text-neutral-700">
+                    {formatted}
+                  </span>
+                </Link>
+              </Tooltip>
+            );
+          },
+        )}
+
+        <PartnerLinkCardMenu partnerLink={partnerLink} />
+      </div>
+    </CardList.Card>
+  );
+}
+
+function PartnerLinkCardMenu({ partnerLink }: { partnerLink: string }) {
+  const [openPopover, setOpenPopover] = useState(false);
+  const [, copyToClipboard] = useCopyToClipboard();
+
+  return (
+    <Popover
+      align="end"
+      openPopover={openPopover}
+      setOpenPopover={setOpenPopover}
+      content={
+        <Command tabIndex={0} loop className="focus:outline-none">
+          <Command.List className="flex w-screen flex-col gap-1 p-1.5 text-sm focus-visible:outline-none sm:w-auto sm:min-w-[150px]">
+            <MenuItem
+              as={Command.Item}
+              icon={Copy}
+              onSelect={() => {
+                toast.promise(copyToClipboard(partnerLink), {
+                  success: "Copied to clipboard",
+                });
+                setOpenPopover(false);
+              }}
+            >
+              Copy link
+            </MenuItem>
+            <MenuItem
+              as={Command.Item}
+              icon={Gift}
+              onSelect={() => setOpenPopover(false)}
+            >
+              Edit reward
+            </MenuItem>
+            <MenuItem
+              as={Command.Item}
+              icon={Discount}
+              onSelect={() => setOpenPopover(false)}
+            >
+              Edit discount
+            </MenuItem>
+          </Command.List>
+        </Command>
+      }
+    >
+      <Button
+        type="button"
+        variant="outline"
+        className="size-6 shrink-0 rounded-lg p-0"
+        icon={<ThreeDots className="size-3.5 shrink-0" />}
+      />
+    </Popover>
+  );
+}
 
 const PartnerReferralLink = ({
   partner,
@@ -322,6 +464,10 @@ const PartnerDiscountCodes = ({
     partnerId: partner.id || null,
   });
 
+  const { links } = useProgramPartnerLinks({
+    partnerId: partner.id || null,
+  });
+
   const { AddDiscountCodeModal, setShowAddDiscountCodeModal } =
     useAddDiscountCodeModal({
       partner,
@@ -344,7 +490,7 @@ const PartnerDiscountCodes = ({
         id: "shortLink",
         header: "Link",
         cell: ({ row }) => {
-          const link = partner.links?.find((l) => l.id === row.original.linkId);
+          const link = links?.find((l) => l.id === row.original.linkId);
           return link ? (
             <Link
               href={`/${slug}/links/${link.domain}/${link.key}`}
@@ -420,22 +566,16 @@ const PartnerDiscountCodes = ({
       );
     }
 
-    if (partner.links?.length === 0) {
+    if (links?.length === 0) {
       return "No links assigned to this partner group. Please add a link before you can create a discount code.";
     }
 
-    if (partner.links?.length === discountCodes?.length) {
+    if (links?.length === discountCodes?.length) {
       return "All links have a discount code assigned to them. Please add a new link before you can create a discount code.";
     }
 
     return undefined;
-  }, [
-    partner.discount,
-    partner.links,
-    discountCodes,
-    stripeConnectId,
-    shopifyStoreId,
-  ]);
+  }, [partner.discount, links, discountCodes, stripeConnectId, shopifyStoreId]);
 
   const groupDiscount = group?.discount ?? partner.discount;
 

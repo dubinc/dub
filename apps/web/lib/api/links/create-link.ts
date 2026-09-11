@@ -2,7 +2,7 @@ import { queuePartnerSearchSync } from "@/lib/api/partners/queue-partner-search-
 import {
   hasRewardIdsInput,
   LinkRewardIdsInput,
-} from "@/lib/api/rewards/link-level-rewards";
+} from "@/lib/api/rewards/link-rewards";
 import { qstash } from "@/lib/cron";
 import { getPartnerEnrollmentInfo } from "@/lib/planetscale/get-partner-enrollment-info";
 import { prisma } from "@/lib/prisma";
@@ -146,6 +146,7 @@ export async function createLink(link: CreateLinkOptions) {
               clickRewardId: linkReward.clickRewardId ?? null,
               leadRewardId: linkReward.leadRewardId ?? null,
               saleRewardId: linkReward.saleRewardId ?? null,
+              discountId: linkReward.discountId ?? null,
             },
           },
         }),

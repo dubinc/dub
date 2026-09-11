@@ -867,6 +867,10 @@ export const createPartnerLinkSchema = partnerIdTenantIdSchema
       .string()
       .nullish()
       .describe("The ID of a sale reward to assign to this link."),
+    discountId: z
+      .string()
+      .nullish()
+      .describe("The ID of a discount to assign to this link."),
   })
   .extend(
     createPartnerSchema.pick({

@@ -7,7 +7,7 @@ import {
   getRewardIds,
   LinkRewardIdsInput,
   validateRewardIds,
-} from "@/lib/api/rewards/link-level-rewards";
+} from "@/lib/api/rewards/link-rewards";
 import { parseRequestBody } from "@/lib/api/utils";
 import { applyGroupUtmToLink } from "@/lib/api/utm/apply-group-utm-to-link";
 import { withWorkspace } from "@/lib/auth";
@@ -111,6 +111,7 @@ export const POST = withWorkspace(
       clickRewardId,
       leadRewardId,
       saleRewardId,
+      discountId,
     } = createPartnerLinkSchema.parse(await parseRequestBody(req));
 
     const program = await getProgramOrThrow({
@@ -203,6 +204,7 @@ export const POST = withWorkspace(
       clickRewardId,
       leadRewardId,
       saleRewardId,
+      discountId,
     };
 
     await validateRewardIds({

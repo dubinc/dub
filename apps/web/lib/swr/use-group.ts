@@ -9,7 +9,7 @@ export default function useGroup<T = GroupProps>(
     groupIdOrSlug: groupIdOrSlugProp,
     query,
   }: {
-    groupIdOrSlug?: string;
+    groupIdOrSlug?: string | null;
     query?: Record<string, any>;
   } = {},
   swrOpts?: SWRConfiguration,

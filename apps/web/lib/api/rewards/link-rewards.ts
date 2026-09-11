@@ -5,7 +5,10 @@ import { prisma } from "@/lib/prisma";
 import { EventType, LinkReward, Reward } from "@prisma/client";
 
 export type LinkRewardIdsInput = Partial<
-  Pick<LinkReward, "clickRewardId" | "leadRewardId" | "saleRewardId">
+  Pick<
+    LinkReward,
+    "clickRewardId" | "leadRewardId" | "saleRewardId" | "discountId"
+  >
 >;
 
 type LinkRewardWithOptionalRewards = Pick<
@@ -21,11 +24,13 @@ export const hasRewardIdsInput = ({
   clickRewardId,
   leadRewardId,
   saleRewardId,
+  discountId,
 }: LinkRewardIdsInput) => {
   return (
     clickRewardId !== undefined ||
     leadRewardId !== undefined ||
-    saleRewardId !== undefined
+    saleRewardId !== undefined ||
+    discountId !== undefined
   );
 };
 
@@ -42,6 +47,7 @@ export const validateRewardIds = async ({
   clickRewardId,
   leadRewardId,
   saleRewardId,
+  discountId,
 }: {
   programId: string;
 } & LinkRewardIdsInput) => {
@@ -71,39 +77,56 @@ export const validateRewardIds = async ({
     });
   }
 
-  if (assignments.length === 0) {
-    return;
+  if (assignments.length > 0) {
+    const rewards = await prisma.reward.findMany({
+      where: {
+        id: {
+          in: assignments.map(({ id }) => id),
+        },
+        programId,
+      },
+      select: {
+        id: true,
+        event: true,
+      },
+    });
+
+    const rewardsById = new Map(rewards.map((reward) => [reward.id, reward]));
+
+    for (const assignment of assignments) {
+      const reward = rewardsById.get(assignment.id);
+
+      if (!reward) {
+        throw new DubApiError({
+          code: "not_found",
+          message: `Reward ${assignment.id} not found.`,
+        });
+      }
+
+      if (reward.event !== assignment.event) {
+        throw new DubApiError({
+          code: "unprocessable_entity",
+          message: `Reward ${assignment.id} is a ${reward.event} reward and cannot be assigned as a ${assignment.event} reward.`,
+        });
+      }
+    }
   }
 
-  const rewards = await prisma.reward.findMany({
-    where: {
-      id: {
-        in: assignments.map(({ id }) => id),
+  if (discountId) {
+    const discount = await prisma.discount.findFirst({
+      where: {
+        id: discountId,
+        programId,
       },
-      programId,
-    },
-    select: {
-      id: true,
-      event: true,
-    },
-  });
+      select: {
+        id: true,
+      },
+    });
 
-  const rewardsById = new Map(rewards.map((reward) => [reward.id, reward]));
-
-  for (const assignment of assignments) {
-    const reward = rewardsById.get(assignment.id);
-
-    if (!reward) {
+    if (!discount) {
       throw new DubApiError({
         code: "not_found",
-        message: `Reward ${assignment.id} not found.`,
-      });
-    }
-
-    if (reward.event !== assignment.event) {
-      throw new DubApiError({
-        code: "unprocessable_entity",
-        message: `Reward ${assignment.id} is a ${reward.event} reward and cannot be assigned as a ${assignment.event} reward.`,
+        message: `Discount ${discountId} not found.`,
       });
     }
   }

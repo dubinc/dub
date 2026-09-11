@@ -61,6 +61,22 @@ export const getUrlFromStringIfValid = (str: string) => {
   return null;
 };
 
+export function buildSearchParams(
+  params: Record<string, string | number | boolean | null | undefined>,
+) {
+  const searchParams = new URLSearchParams();
+
+  for (const [key, value] of Object.entries(params)) {
+    if (value == null || value === "") {
+      continue;
+    }
+
+    searchParams.set(key, String(value));
+  }
+
+  return searchParams.toString();
+}
+
 export const getSearchParams = (url: string) => {
   // Create a params object
   let params = {} as Record<string, string>;

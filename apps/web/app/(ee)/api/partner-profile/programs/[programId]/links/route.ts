@@ -2,11 +2,11 @@ import { DubApiError, ErrorCodes } from "@/lib/api/errors";
 import { createLink, processLink } from "@/lib/api/links";
 import { validatePartnerLinkUrl } from "@/lib/api/links/validate-partner-link-url";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
-import { getExpandableRewardReferences } from "@/lib/api/rewards/link-level-rewards";
+import { getExpandableRewardReferences } from "@/lib/api/rewards/link-rewards";
 import { parseRequestBody } from "@/lib/api/utils";
-import { parseExpandFields } from "@/lib/expand/parse-expand-fields";
 import { applyGroupUtmToLink } from "@/lib/api/utm/apply-group-utm-to-link";
 import { withPartnerProfile } from "@/lib/auth/partner";
+import { parseExpandFields } from "@/lib/expand/parse-expand-fields";
 import { prisma } from "@/lib/prisma";
 import { PartnerProfileLinkSchema } from "@/lib/zod/schemas/partner-profile";
 import {
