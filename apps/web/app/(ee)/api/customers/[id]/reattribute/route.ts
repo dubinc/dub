@@ -23,7 +23,7 @@ import {
   reattributeCustomerBodySchema,
 } from "@/lib/zod/schemas/customers";
 import { INACTIVE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
-import { nanoid } from "@dub/utils";
+import { ACME_WORKSPACE_ID, nanoid } from "@dub/utils";
 import { NextResponse } from "next/server";
 
 // POST /api/customers/:id/reattribute – Reattribute a customer to a different partner
@@ -107,10 +107,12 @@ export const POST = withWorkspace(
       });
     }
 
-    await assertRateLimit({
-      policy: RATELIMIT_POLICIES.reattributeCustomer,
-      identifier: workspace.id,
-    });
+    if (workspace.id !== ACME_WORKSPACE_ID) {
+      await assertRateLimit({
+        policy: RATELIMIT_POLICIES.reattributeCustomer,
+        identifier: workspace.id,
+      });
+    }
 
     if (
       events.length === 0 &&
