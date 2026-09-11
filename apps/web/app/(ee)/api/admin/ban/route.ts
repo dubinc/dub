@@ -1,4 +1,3 @@
-import { deleteWorkspaceAdmin } from "@/lib/api/workspaces/delete-workspace";
 import { withAdmin } from "@/lib/auth";
 import { updateConfig } from "@/lib/edge-config";
 import { extractEmailDomain } from "@/lib/email/extract-email-domain";
@@ -7,6 +6,7 @@ import { isStored, storage } from "@/lib/storage";
 import { R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
+import { deleteWorkspaceAdmin } from "./delete-workspace-admin";
 
 // POST /api/admin/ban
 export const POST = withAdmin(
