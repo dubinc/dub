@@ -180,7 +180,7 @@ const AddPartnerLinkModal = ({
                 <div className="flex items-center gap-2">
                   <label
                     htmlFor="key"
-                    className="block text-sm font-medium text-neutral-700"
+                    className="text-content-emphasis block text-sm font-medium"
                   >
                     Short link
                   </label>
@@ -217,7 +217,7 @@ const AddPartnerLinkModal = ({
               <div className="flex items-center gap-2">
                 <label
                   htmlFor="url"
-                  className="block text-sm font-medium text-neutral-700"
+                  className="text-content-emphasis block text-sm font-medium"
                 >
                   Destination URL
                 </label>
@@ -253,9 +253,9 @@ const AddPartnerLinkModal = ({
                 </motion.div>
               </button>
 
-              <AnimatedSizeContainer height className="flex flex-col">
+              <AnimatedSizeContainer height className="-mx-1">
                 {showOverrides && (
-                  <div className="flex flex-col gap-6 pt-4">
+                  <div className="flex flex-col gap-6 px-1 pt-4">
                     <Controller
                       control={control}
                       name="saleRewardId"
@@ -372,7 +372,7 @@ function RewardOrDiscountSelect({
 
   return (
     <div className="flex flex-col gap-2">
-      <label className="block text-sm font-medium text-neutral-700">
+      <label className="text-content-emphasis block text-sm font-medium">
         {label}
       </label>
       <Combobox
@@ -387,8 +387,12 @@ function RewardOrDiscountSelect({
         options={options}
         caret
         hideSearch
+        shouldFilter={false}
         matchTriggerWidth
         placeholder="None"
+        popoverProps={{
+          contentClassName: "w-[var(--radix-popover-trigger-width)]",
+        }}
         buttonProps={OVERRIDE_COMBOBOX_BUTTON_PROPS}
         labelProps={{
           className:
