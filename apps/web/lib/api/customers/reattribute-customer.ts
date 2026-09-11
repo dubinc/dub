@@ -4,7 +4,6 @@ import { syncPartnerLinksStats } from "@/lib/api/partners/sync-partner-links-sta
 import { syncTotalCommissions } from "@/lib/api/partners/sync-total-commissions";
 import { MUTABLE_PAYOUT_STATUSES } from "@/lib/constants/payouts";
 import { queuePartnerCommissionCreation } from "@/lib/partners/queue-partner-commission-creation";
-import { retallyPayoutsAmount } from "@/lib/payouts/retally-payouts-amount";
 import { prisma } from "@/lib/prisma";
 import { getCustomerEventsTB } from "@/lib/tinybird/get-customer-events-tb";
 import {
@@ -75,6 +74,27 @@ async function runOnce({ key, fn }: { key: string; fn: () => Promise<void> }) {
   }
 }
 
+export function isReattributedCustomerStub({
+  externalId,
+  partnerId,
+  linkId,
+  programId,
+}: {
+  externalId: string | null;
+  partnerId: string | null;
+  linkId: string | null;
+  programId: string | null;
+}) {
+  return (
+    (externalId?.startsWith("reattributed_") === true ||
+      externalId?.startsWith("dummy_") === true ||
+      externalId?.startsWith("retired_") === true) &&
+    partnerId == null &&
+    linkId == null &&
+    programId == null
+  );
+}
+
 export async function getCustomerReattributeEvents(customerId: string) {
   const { data } = await getCustomerEventsTB({
     customerId,
@@ -110,7 +130,7 @@ export async function recreateCustomerForReattribution({
       },
       data: {
         name: customer.name ? `${customer.name} (old)` : undefined,
-        externalId: `dummy_${nanoid(32)}`,
+        externalId: `reattributed_${nanoid(32)}`,
         stripeCustomerId: null,
         linkId: null,
         programId: null,
@@ -140,6 +160,37 @@ export async function recreateCustomerForReattribution({
         programId: link.programId,
         partnerId: link.partnerId,
         clickId: newClickId,
+      },
+    });
+  });
+}
+
+export async function rollbackCustomerRecreation({
+  customer,
+  newCustomerId,
+}: {
+  customer: Customer;
+  newCustomerId: string;
+}) {
+  return await prisma.$transaction(async (tx) => {
+    await tx.customer.delete({
+      where: {
+        id: newCustomerId,
+      },
+    });
+
+    return await tx.customer.update({
+      where: {
+        id: customer.id,
+      },
+      data: {
+        name: customer.name,
+        externalId: customer.externalId,
+        stripeCustomerId: customer.stripeCustomerId,
+        linkId: customer.linkId,
+        programId: customer.programId,
+        partnerId: customer.partnerId,
+        clickId: customer.clickId,
       },
     });
   });
@@ -456,95 +507,139 @@ export async function transferUnpaidCommissions({
   programId: string;
   oldPartnerId: string | null;
 }) {
-  const unpaidCommissions = await prisma.commission.findMany({
-    where: {
-      customerId: oldCustomerId,
-      status: { in: [...UNPAID_COMMISSION_STATUSES] },
-    },
-    select: {
-      id: true,
-      payoutId: true,
-      payout: {
+  let transferred = 0;
+
+  const didUpdate = await runOnce({
+    key: `reattribute-customer:${oldCustomerId}:transfer-unpaid`,
+    fn: async () => {
+      const unpaidCommissions = await prisma.commission.findMany({
+        where: {
+          customerId: oldCustomerId,
+          status: { in: [...UNPAID_COMMISSION_STATUSES] },
+        },
         select: {
           id: true,
           status: true,
+          payoutId: true,
+          payout: {
+            select: {
+              id: true,
+              status: true,
+            },
+          },
         },
-      },
-    },
-  });
+      });
 
-  if (unpaidCommissions.length === 0) {
-    return { transferred: 0 };
-  }
+      const transferablePendingOrHoldIds: string[] = [];
+      const transferableProcessedIds: string[] = [];
+      const mutablePayoutIds: string[] = [];
 
-  const payoutIds = unpaidCommissions
-    .map((commission) => commission.payoutId)
-    .filter((payoutId): payoutId is string => Boolean(payoutId));
+      for (const commission of unpaidCommissions) {
+        const isLocked =
+          Boolean(commission.payoutId) &&
+          commission.payout != null &&
+          !MUTABLE_PAYOUT_STATUSES.includes(commission.payout.status);
 
-  const mutablePayoutIds = unpaidCommissions
-    .filter(
-      (commission) =>
-        commission.payoutId &&
-        commission.payout &&
-        MUTABLE_PAYOUT_STATUSES.includes(commission.payout.status),
-    )
-    .map((commission) => commission.payoutId)
-    .filter((payoutId): payoutId is string => Boolean(payoutId));
+        if (isLocked) {
+          continue;
+        }
 
-  const processedPayoutIds = payoutIds.filter(
-    (payoutId) => !mutablePayoutIds.includes(payoutId),
-  );
+        if (
+          commission.payoutId &&
+          commission.payout &&
+          MUTABLE_PAYOUT_STATUSES.includes(commission.payout.status)
+        ) {
+          mutablePayoutIds.push(commission.payoutId);
+        }
 
-  await prisma.commission.updateMany({
-    where: {
-      id: { in: unpaidCommissions.map((commission) => commission.id) },
-    },
-    data: {
-      customerId: newCustomerId,
-      partnerId: newPartnerId,
-      linkId: newLinkId,
-      payoutId: null,
-    },
-  });
+        if (commission.status === "processed") {
+          transferableProcessedIds.push(commission.id);
+        } else {
+          transferablePendingOrHoldIds.push(commission.id);
+        }
+      }
 
-  await reconcilePayoutAmounts(mutablePayoutIds);
-  await retallyPayoutsAmount(processedPayoutIds);
+      const transferableIds = [
+        ...transferablePendingOrHoldIds,
+        ...transferableProcessedIds,
+      ];
 
-  await Promise.all([
-    syncTotalCommissions({
-      partnerId: newPartnerId,
-      programId,
-    }),
-    oldPartnerId
-      ? syncTotalCommissions({
-          partnerId: oldPartnerId,
+      if (transferableIds.length === 0) {
+        return;
+      }
+
+      if (transferablePendingOrHoldIds.length > 0) {
+        await prisma.commission.updateMany({
+          where: {
+            id: { in: transferablePendingOrHoldIds },
+          },
+          data: {
+            customerId: newCustomerId,
+            partnerId: newPartnerId,
+            linkId: newLinkId,
+            payoutId: null,
+          },
+        });
+      }
+
+      if (transferableProcessedIds.length > 0) {
+        await prisma.commission.updateMany({
+          where: {
+            id: { in: transferableProcessedIds },
+          },
+          data: {
+            customerId: newCustomerId,
+            partnerId: newPartnerId,
+            linkId: newLinkId,
+            payoutId: null,
+            status: "pending",
+          },
+        });
+      }
+
+      await reconcilePayoutAmounts([...new Set(mutablePayoutIds)]);
+
+      await Promise.all([
+        syncTotalCommissions({
+          partnerId: newPartnerId,
           programId,
-        })
-      : Promise.resolve(),
-  ]);
+        }),
+        oldPartnerId
+          ? syncTotalCommissions({
+              partnerId: oldPartnerId,
+              programId,
+            })
+          : Promise.resolve(),
+      ]);
 
-  return { transferred: unpaidCommissions.length };
+      transferred = transferableIds.length;
+    },
+  });
+
+  return { transferred: didUpdate ? transferred : 0 };
 }
 
-export async function createClawbackAndReplacementCommissions({
+export type ClawbackPlan =
+  | { skipped: true; reason: "no-old-partner" | "no-paid-earnings" }
+  | {
+      skipped: false;
+      paidCommissionIds: string[];
+      paidEarnings: number;
+      hasPaidLead: boolean;
+      paidInvoiceIds: string[];
+      paidInvoicelessCount: number;
+      shouldClearIdentifiers: boolean;
+    };
+
+export async function loadClawbackPlan({
   oldCustomerId,
-  newCustomerId,
   oldPartnerId,
-  newPartnerId,
-  newLinkId,
-  programId,
-  customerCountry,
 }: {
   oldCustomerId: string;
-  newCustomerId: string;
   oldPartnerId: string | null;
-  newPartnerId: string;
-  newLinkId: string;
-  programId: string;
-  customerCountry: string | null;
-}) {
+}): Promise<ClawbackPlan> {
   if (!oldPartnerId) {
-    return { skipped: true, reason: "no-old-partner" as const };
+    return { skipped: true, reason: "no-old-partner" };
   }
 
   const paidCommissions = await prisma.commission.findMany({
@@ -568,26 +663,53 @@ export async function createClawbackAndReplacementCommissions({
   );
 
   if (paidEarnings <= 0) {
-    return { skipped: true, reason: "no-paid-earnings" as const };
+    return { skipped: true, reason: "no-paid-earnings" };
   }
 
-  const paidInvoiceIds = new Set(
-    paidCommissions
-      .map((commission) => commission.invoiceId)
-      .filter((invoiceId): invoiceId is string => Boolean(invoiceId)),
-  );
-  const hasPaidLead = paidCommissions.some(
-    (commission) => commission.type === "lead",
-  );
-
-  if (
-    paidCommissions.some(
+  return {
+    skipped: false,
+    paidCommissionIds: paidCommissions.map((commission) => commission.id),
+    paidEarnings,
+    hasPaidLead: paidCommissions.some(
+      (commission) => commission.type === "lead",
+    ),
+    paidInvoiceIds: paidCommissions
+      .filter(
+        (commission) => commission.type === "sale" && commission.invoiceId,
+      )
+      .map((commission) => commission.invoiceId!),
+    paidInvoicelessCount: paidCommissions.filter(
+      (commission) => commission.type === "sale" && !commission.invoiceId,
+    ).length,
+    shouldClearIdentifiers: paidCommissions.some(
       (commission) => commission.eventId || commission.invoiceId,
-    )
-  ) {
+    ),
+  };
+}
+
+export async function applyClawbackAndReplacementCommissions({
+  oldCustomerId,
+  newCustomerId,
+  oldPartnerId,
+  newPartnerId,
+  newLinkId,
+  programId,
+  customerCountry,
+  plan,
+}: {
+  oldCustomerId: string;
+  newCustomerId: string;
+  oldPartnerId: string;
+  newPartnerId: string;
+  newLinkId: string;
+  programId: string;
+  customerCountry: string | null;
+  plan: Extract<ClawbackPlan, { skipped: false }>;
+}) {
+  if (plan.shouldClearIdentifiers && plan.paidCommissionIds.length > 0) {
     await prisma.commission.updateMany({
       where: {
-        id: { in: paidCommissions.map((commission) => commission.id) },
+        id: { in: plan.paidCommissionIds },
       },
       data: {
         eventId: null,
@@ -620,7 +742,7 @@ export async function createClawbackAndReplacementCommissions({
         partnerId: oldPartnerId,
         programId,
         customerId: oldCustomerId,
-        amount: -paidEarnings,
+        amount: -plan.paidEarnings,
         quantity: 1,
         description: "tracking_error",
         skipWorkflow: true,
@@ -646,23 +768,37 @@ export async function createClawbackAndReplacementCommissions({
   const hasExistingLead = existingNewCommissions.some(
     (commission) => commission.type === "lead",
   );
+
+  const leadEvent =
+    plan.hasPaidLead && !hasExistingLead
+      ? newEvents.find((event) => event.event === "lead") ?? null
+      : null;
+
+  const paidInvoiceIds = new Set(plan.paidInvoiceIds);
   const existingInvoiceIds = new Set(
     existingNewCommissions
       .map((commission) => commission.invoiceId)
       .filter((invoiceId): invoiceId is string => Boolean(invoiceId)),
   );
+  const existingInvoicelessCount = existingNewCommissions.filter(
+    (commission) => commission.type === "sale" && !commission.invoiceId,
+  ).length;
 
-  const leadEvent =
-    hasPaidLead && !hasExistingLead
-      ? newEvents.find((event) => event.event === "lead") ?? null
-      : null;
-  const saleEvents = newEvents.filter(
-    (event) =>
-      event.event === "sale" &&
-      event.invoice_id &&
-      paidInvoiceIds.has(event.invoice_id) &&
-      !existingInvoiceIds.has(event.invoice_id),
-  );
+  const saleEvents = [
+    ...newEvents.filter(
+      (event) =>
+        event.event === "sale" &&
+        event.invoice_id &&
+        paidInvoiceIds.has(event.invoice_id) &&
+        !existingInvoiceIds.has(event.invoice_id),
+    ),
+    ...newEvents
+      .filter((event) => event.event === "sale" && !event.invoice_id)
+      .slice(
+        0,
+        Math.max(0, plan.paidInvoicelessCount - existingInvoicelessCount),
+      ),
+  ];
 
   if (leadEvent?.event_id) {
     await queuePartnerCommissionCreation({

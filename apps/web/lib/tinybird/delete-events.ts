@@ -29,6 +29,7 @@ async function deleteDatasourceRows({
         "Content-Type": "application/x-www-form-urlencoded",
       },
       body: `delete_condition=${deleteCondition}`,
+      signal: AbortSignal.timeout(30_000),
     },
   );
 

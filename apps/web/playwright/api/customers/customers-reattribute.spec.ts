@@ -99,7 +99,7 @@ test("POST /customers/{id}/reattribute – retired stub", async ({ api }) => {
     await prisma.customer.update({
       where: { id: created.id },
       data: {
-        externalId: `dummy_${nanoid(32)}`,
+        externalId: `reattributed_${nanoid(32)}`,
         partnerId: null,
         linkId: null,
         programId: null,

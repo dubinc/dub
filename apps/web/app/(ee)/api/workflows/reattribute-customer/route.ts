@@ -1,7 +1,8 @@
 import {
-  createClawbackAndReplacementCommissions,
+  applyClawbackAndReplacementCommissions,
   decrementOldLinkStats,
   incrementNewLinkStats,
+  loadClawbackPlan,
   loadReattributeEventPlan,
   reingestCustomerEvents,
   transferUnpaidCommissions,
@@ -26,7 +27,7 @@ type Input = z.infer<typeof reattributeCustomerWorkflowSchema>;
  * 2. reingest-events: copy events onto the new customer + link
  * 3. increment-new-link-stats
  * 4. transfer-unpaid-commissions
- * 5. optional-clawback
+ * 5. load-clawback-plan + optional-clawback
  * 6. delete-old-events
  * 7. decrement-old-link-stats
  */
@@ -44,17 +45,17 @@ export const { POST } = serve<Input>(
     });
 
     await context.run("reingest-events", async () => {
-      try {
-        const link = await prisma.link.findUniqueOrThrow({
-          where: { id: input.newLinkId },
-          select: {
-            id: true,
-            domain: true,
-            key: true,
-            url: true,
-          },
-        });
+      const link = await prisma.link.findUniqueOrThrow({
+        where: { id: input.newLinkId },
+        select: {
+          id: true,
+          domain: true,
+          key: true,
+          url: true,
+        },
+      });
 
+      try {
         return logAndReturn(
           await reingestCustomerEvents({
             oldCustomerId: input.oldCustomerId,
@@ -65,6 +66,14 @@ export const { POST } = serve<Input>(
           }),
         );
       } catch (error) {
+        if (
+          error instanceof z.ZodError ||
+          (error instanceof Error &&
+            error.message.includes("too many events to reattribute"))
+        ) {
+          throw error;
+        }
+
         throw new WorkflowRetryAfterError(
           error instanceof Error ? error.message : "Failed to re-ingest events",
           "5s",
@@ -109,26 +118,38 @@ export const { POST } = serve<Input>(
         },
       );
 
-      await context.run("optional-clawback", async () => {
-        return logAndReturn(
-          await createClawbackAndReplacementCommissions({
-            oldCustomerId: input.oldCustomerId,
-            newCustomerId: input.newCustomerId,
-            oldPartnerId: input.oldPartnerId,
-            newPartnerId: input.newPartnerId,
-            newLinkId: input.newLinkId,
-            programId: input.programId,
-            customerCountry: newCustomer?.country ?? null,
-          }),
-        );
+      const clawbackPlan = await context.run("load-clawback-plan", async () => {
+        return await loadClawbackPlan({
+          oldCustomerId: input.oldCustomerId,
+          oldPartnerId: input.oldPartnerId,
+        });
       });
+
+      if (!clawbackPlan.skipped && input.oldPartnerId) {
+        const oldPartnerId = input.oldPartnerId;
+
+        await context.run("optional-clawback", async () => {
+          return logAndReturn(
+            await applyClawbackAndReplacementCommissions({
+              oldCustomerId: input.oldCustomerId,
+              newCustomerId: input.newCustomerId,
+              oldPartnerId,
+              newPartnerId: input.newPartnerId,
+              newLinkId: input.newLinkId,
+              programId: input.programId,
+              customerCountry: newCustomer?.country ?? null,
+              plan: clawbackPlan,
+            }),
+          );
+        });
+      }
     }
 
     await context.run("delete-old-events", async () => {
       try {
         await deleteTinybirdCustomerEvents({
           customerId: input.oldCustomerId,
-          clickId: input.oldClickId,
+          clickId: plan.hasClick ? input.oldClickId : null,
         });
 
         return logAndReturn({ deleted: true });

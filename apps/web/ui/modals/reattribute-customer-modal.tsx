@@ -65,7 +65,12 @@ function ReattributeCustomerModal({
     }
   }, [showModal, customer, reset]);
 
-  const { data: commissionsCount } = useSWR<CommissionsCount>(
+  const {
+    data: commissionsCount,
+    error: commissionsCountError,
+    mutate: retryCommissionsCount,
+    isValidating: isCommissionsCountValidating,
+  } = useSWR<CommissionsCount>(
     workspaceId && customer.id && showModal
       ? `/api/commissions/count?${new URLSearchParams({
           customerId: customer.id,
@@ -77,7 +82,7 @@ function ReattributeCustomerModal({
   );
 
   const paidEarnings = commissionsCount?.paid?.earnings ?? 0;
-  const showClawback = paidEarnings > 0;
+  const showClawback = !commissionsCountError && paidEarnings > 0;
   const isUnchanged =
     partnerId === (customer.partner?.id ?? null) &&
     linkId === (customer.link?.id ?? null);
@@ -157,6 +162,22 @@ function ReattributeCustomerModal({
           />
         </div>
 
+        {commissionsCountError && (
+          <div className="mt-5 flex items-center justify-between gap-3 rounded-lg border border-neutral-200 bg-neutral-50 p-3">
+            <p className="text-sm text-neutral-700">
+              Failed to load paid commissions. Retry before saving.
+            </p>
+            <Button
+              type="button"
+              variant="secondary"
+              text="Retry"
+              className="h-8 w-fit shrink-0"
+              loading={isCommissionsCountValidating}
+              onClick={() => retryCommissionsCount()}
+            />
+          </div>
+        )}
+
         {showClawback && (
           <label className="mt-5 flex items-start gap-2.5 rounded-lg border border-neutral-200 bg-neutral-50 p-3">
             <Checkbox
@@ -193,7 +214,13 @@ function ReattributeCustomerModal({
             text="Save"
             className="h-9 w-fit"
             loading={isSubmitting}
-            disabled={!isDirty || isUnchanged || !partnerId || !linkId}
+            disabled={
+              !isDirty ||
+              isUnchanged ||
+              !partnerId ||
+              !linkId ||
+              Boolean(commissionsCountError)
+            }
           />
         </div>
       </form>

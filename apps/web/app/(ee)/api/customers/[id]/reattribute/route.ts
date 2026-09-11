@@ -4,7 +4,9 @@ import { getCustomerOrThrow } from "@/lib/api/customers/get-customer-or-throw";
 import {
   CUSTOMER_EVENTS_LIMIT,
   getCustomerReattributeEvents,
+  isReattributedCustomerStub,
   recreateCustomerForReattribution,
+  rollbackCustomerRecreation,
 } from "@/lib/api/customers/reattribute-customer";
 import { transformCustomer } from "@/lib/api/customers/transform-customer";
 import { DubApiError } from "@/lib/api/errors";
@@ -32,11 +34,6 @@ export const POST = withWorkspace(
     const { partnerId, linkId, createClawback } =
       reattributeCustomerBodySchema.parse(await parseRequestBody(req));
 
-    await assertRateLimit({
-      policy: RATELIMIT_POLICIES.reattributeCustomer,
-      identifier: workspace.id,
-    });
-
     const customer = await getCustomerOrThrow(
       {
         id,
@@ -47,12 +44,7 @@ export const POST = withWorkspace(
       },
     );
 
-    if (
-      customer.externalId?.startsWith("dummy_") &&
-      customer.partnerId == null &&
-      customer.linkId == null &&
-      customer.programId == null
-    ) {
+    if (isReattributedCustomerStub(customer)) {
       throw new DubApiError({
         code: "bad_request",
         message:
@@ -115,6 +107,11 @@ export const POST = withWorkspace(
       });
     }
 
+    await assertRateLimit({
+      policy: RATELIMIT_POLICIES.reattributeCustomer,
+      identifier: workspace.id,
+    });
+
     if (
       events.length === 0 &&
       commissionCount === 0 &&
@@ -160,7 +157,7 @@ export const POST = withWorkspace(
       newClickId,
     });
 
-    await dispatchWorkflows({
+    const workflow = await dispatchWorkflows({
       name: "reattribute-customer-workflow",
       payload: {
         workspaceId: workspace.id,
@@ -186,6 +183,19 @@ export const POST = withWorkspace(
         label: customer.id,
       },
     });
+
+    if (workflow.failed > 0) {
+      await rollbackCustomerRecreation({
+        customer,
+        newCustomerId,
+      });
+
+      throw new DubApiError({
+        code: "internal_server_error",
+        message:
+          "Customer reattribution failed to start. Please try again in a moment.",
+      });
+    }
 
     const newCustomer = await getCustomerOrThrow(
       {
