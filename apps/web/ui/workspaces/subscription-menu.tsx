@@ -2,6 +2,7 @@
 
 import { clientAccessCheck } from "@/lib/client-access-check";
 import { wouldLosePartnerAccess } from "@/lib/plans/has-partner-access";
+import type { StripeCancellationFeedback } from "@/lib/stripe/cancellation-feedback";
 import useWorkspace from "@/lib/swr/use-workspace";
 import {
   Button,
@@ -16,7 +17,7 @@ import { Command } from "cmdk";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
-import { useConfirmModal } from "../modals/confirm-modal";
+import { useCancelSubscriptionModal } from "../modals/cancel-subscription-modal";
 import { usePlanChangeConfirmationModal } from "../modals/plan-change-confirmation-modal";
 import { ThreeDots } from "../shared/icons";
 
@@ -60,11 +61,19 @@ export default function SubscriptionMenu() {
       });
   };
 
-  const handleCancellation = async () => {
+  const handleCancellation = async ({
+    feedback,
+    comment,
+  }: {
+    feedback: StripeCancellationFeedback;
+    comment: string;
+  }) => {
     setIsOpen(false);
     setClicked(true);
     return fetch(`/api/workspaces/${workspaceId}/billing/cancel`, {
       method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ feedback, comment }),
     })
       .then(async (res) => {
         if (res.ok) {
@@ -77,6 +86,7 @@ export default function SubscriptionMenu() {
         } else {
           const { error } = await res.json();
           toast.error(error.message);
+          throw new Error(error.message);
         }
       })
       .finally(() => {
@@ -90,52 +100,29 @@ export default function SubscriptionMenu() {
     defaultProgramId &&
     wouldLosePartnerAccess({ currentPlan: plan, newPlan: null });
 
+  const { setShowCancelSubscriptionModal, CancelSubscriptionModal } =
+    useCancelSubscriptionModal({
+      billingCycleEndsAt,
+      onConfirm: handleCancellation,
+    });
+
   const { setShowPlanChangeConfirmationModal, PlanChangeConfirmationModal } =
     usePlanChangeConfirmationModal({
       newPlan: "free",
       newPeriod: "monthly",
       newTier: 1,
       onConfirm: async () => {
-        await handleCancellation();
         setShowPlanChangeConfirmationModal(false);
+        setShowCancelSubscriptionModal(true);
       },
     });
-  const { setShowConfirmModal, confirmModal } = useConfirmModal({
-    title: "Cancel subscription",
-    description: (
-      <p>
-        Your subscription will be scheduled for cancellation at the end of your
-        current billing period
-        {billingCycleEndsAt ? (
-          <span className="font-medium text-neutral-900">
-            {" "}
-            (
-            {new Date(billingCycleEndsAt).toLocaleDateString("en-US", {
-              month: "long",
-              day: "numeric",
-              year: "numeric",
-            })}
-            )
-          </span>
-        ) : (
-          ""
-        )}
-        . You will keep access until then.
-      </p>
-    ),
-    cancelText: "Not now",
-    confirmText: "Cancel subscription",
-    onConfirm: async () => {
-      await handleCancellation();
-    },
-  });
 
-  const handlehandleCancellation = () => {
+  const handleCancelSubscription = () => {
     setIsOpen(false);
     if (losesPartnerAccess) {
       setShowPlanChangeConfirmationModal(true);
     } else {
-      setShowConfirmModal(true);
+      setShowCancelSubscriptionModal(true);
     }
   };
 
@@ -146,7 +133,7 @@ export default function SubscriptionMenu() {
   return (
     <>
       <PlanChangeConfirmationModal />
-      {confirmModal}
+      <CancelSubscriptionModal />
       <Popover
         openPopover={isOpen}
         setOpenPopover={setIsOpen}
@@ -162,7 +149,7 @@ export default function SubscriptionMenu() {
               <MenuItem
                 icon={SquareXmark}
                 label="Cancel subscription"
-                onSelect={handlehandleCancellation}
+                onSelect={handleCancelSubscription}
                 disabledTooltip={
                   subscriptionCanceledAt
                     ? "Your subscription has already been scheduled for cancellation."
