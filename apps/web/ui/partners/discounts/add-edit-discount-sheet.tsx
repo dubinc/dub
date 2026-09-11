@@ -123,6 +123,7 @@ function DiscountSheetContent({
       couponTestId: defaultValuesSource.couponTestId,
       autoProvision: Boolean(defaultValuesSource.autoProvisionEnabledAt),
       provider: discountProvider,
+      isDefault: true,
     },
   });
 
@@ -229,6 +230,7 @@ function DiscountSheetContent({
       amount: data.type === "flat" ? data.amount * 100 : data.amount || 0,
       maxDuration:
         Number(data.maxDuration) === Infinity ? null : data.maxDuration,
+      isDefault: true,
     });
   };
 

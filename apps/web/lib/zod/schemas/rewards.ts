@@ -428,6 +428,7 @@ const decimalToNumber = z
 
 export const RewardSchema = z.object({
   id: z.string(),
+  groupId: z.string().nullable(),
   event: z.enum(EventType),
   description: z.string().nullish(),
   tooltipDescription: z.string().nullish(),
@@ -547,14 +548,16 @@ export const createOrUpdateRewardSchema = z.object({
   ...rewardActivityDescriptionSchema.shape,
 });
 
-export const createRewardSchema = createOrUpdateRewardSchema.superRefine(
-  (data) => {
+export const createRewardSchema = createOrUpdateRewardSchema
+  .extend({
+    isDefault: z.boolean().default(false),
+  })
+  .superRefine((data) => {
     if (isOneOffRewardEvent(data.event)) {
       data.type = "flat";
       data.maxDuration = 0;
     }
-  },
-);
+  });
 
 export const updateRewardSchema = createOrUpdateRewardSchema
   .omit({

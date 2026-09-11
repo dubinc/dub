@@ -1,26 +1,16 @@
-import { DubApiError } from "@/lib/api/errors";
+import { getRewardOrThrow } from "@/lib/api/partners/get-reward-or-throw";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { withWorkspace } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
-import { RewardSchema } from "@/lib/zod/schemas/rewards";
 import { NextResponse } from "next/server";
 
+// GET /api/rewards/[rewardId] - get a reward by id
 export const GET = withWorkspace(async ({ workspace, params }) => {
   const programId = getDefaultProgramIdOrThrow(workspace);
 
-  const reward = await prisma.reward.findUnique({
-    where: {
-      id: params.rewardId,
-      programId,
-    },
+  const reward = await getRewardOrThrow({
+    rewardId: params.rewardId,
+    programId,
   });
 
-  if (!reward) {
-    throw new DubApiError({
-      code: "not_found",
-      message: "Reward not found.",
-    });
-  }
-
-  return NextResponse.json(RewardSchema.parse(reward));
+  return NextResponse.json(reward);
 });

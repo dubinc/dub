@@ -472,6 +472,7 @@ function RewardSheetContent({
             ...payload!,
             groupId: group.id,
             activityDescription,
+            isDefault: true,
           });
         } else {
           await updateReward({

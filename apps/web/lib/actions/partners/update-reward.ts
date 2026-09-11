@@ -102,19 +102,21 @@ export const updateRewardAction = authActionClient
       },
     });
 
-    await queueRewardProcessing({
-      event: "reward-updated",
-      groupId: updatedReward.groupId,
-      occurredAt: new Date().toISOString(),
-      rewardSnapshot: {
-        id: reward.id,
-        event: reward.event,
-        description: formatRewardDescription(serializeReward(updatedReward), {
-          includeEarnPrefix: false,
-        }),
-        activityDescription,
-      },
-    });
+    if (updatedReward.groupId) {
+      await queueRewardProcessing({
+        event: "reward-updated",
+        groupId: updatedReward.groupId,
+        occurredAt: new Date().toISOString(),
+        rewardSnapshot: {
+          id: reward.id,
+          event: reward.event,
+          description: formatRewardDescription(serializeReward(updatedReward), {
+            includeEarnPrefix: false,
+          }),
+          activityDescription,
+        },
+      });
+    }
 
     revalidateProgramPublicPages(programId);
 
