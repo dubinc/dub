@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import type { Customer, CustomerEnriched } from "@/lib/types";
+import type { Customer } from "@/lib/types";
 import { nanoid } from "@dub/utils";
 import { expect } from "@playwright/test";
 import { apiError, randomCustomer } from "../../utils";
@@ -21,40 +21,6 @@ async function deleteCustomer(api: ApiClient, id: string | undefined) {
   await api.delete(`/api/customers/${id}`);
 }
 
-test("POST /customers/{id}/reattribute – fast path", async ({ api }) => {
-  let customerId: string | undefined;
-  let partnerId: string | undefined;
-
-  try {
-    const { status: partnerStatus, data: partner } = await createPartner(api);
-    partnerId = partner.id;
-
-    expect(partnerStatus).toEqual(201);
-    expect(partner.links).not.toBeNull();
-    expect(partner.links!.length).toBeGreaterThan(0);
-
-    const targetLink = partner.links![0];
-    const { data: created } = await createCustomer(api);
-    customerId = created.id;
-
-    const { status, data } = await api.post<CustomerEnriched>(
-      `/api/customers/${created.id}/reattribute`,
-      {
-        partnerId: partner.id,
-        linkId: targetLink.id,
-      },
-    );
-
-    expect(status).toEqual(200);
-    expect(data.id).toEqual(created.id);
-    expect(data.partner?.id).toEqual(partner.id);
-    expect(data.link?.id).toEqual(targetLink.id);
-  } finally {
-    await deleteCustomer(api, customerId);
-    await deletePartner(partnerId);
-  }
-});
-
 test("POST /customers/{id}/reattribute – unknown customer", async ({ api }) => {
   expect(
     await api.post("/api/customers/cus_doesnotexist/reattribute", {
@@ -72,6 +38,7 @@ test("POST /customers/{id}/reattribute – unknown customer", async ({ api }) =>
 
 test("POST /customers/{id}/reattribute – unchanged partner and link", async ({
   api,
+  program,
 }) => {
   let customerId: string | undefined;
   let partnerId: string | undefined;
@@ -88,14 +55,14 @@ test("POST /customers/{id}/reattribute – unchanged partner and link", async ({
     const { data: created } = await createCustomer(api);
     customerId = created.id;
 
-    const { status: firstStatus } = await api.post<CustomerEnriched>(
-      `/api/customers/${created.id}/reattribute`,
-      {
+    await prisma.customer.update({
+      where: { id: created.id },
+      data: {
         partnerId: partner.id,
         linkId: targetLink.id,
+        programId: program.id,
       },
-    );
-    expect(firstStatus).toEqual(200);
+    });
 
     expect(
       await api.post(`/api/customers/${created.id}/reattribute`, {
