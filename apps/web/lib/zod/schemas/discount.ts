@@ -38,6 +38,7 @@ export const createDiscountSchema = z.object({
   groupId: z.string(),
   autoProvision: z.boolean().optional(),
   provider: z.enum(DiscountProvider),
+  isDefault: z.boolean().default(false),
 });
 
 export const updateDiscountSchema = createDiscountSchema

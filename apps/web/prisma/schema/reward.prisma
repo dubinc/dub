@@ -63,6 +63,7 @@ model LinkReward {
   clickRewardId String?
   leadRewardId  String?
   saleRewardId  String?
+  discountId    String?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
@@ -74,4 +75,5 @@ model LinkReward {
   @@index(clickRewardId)
   @@index(leadRewardId)
   @@index(saleRewardId)
+  @@index(discountId)
 }

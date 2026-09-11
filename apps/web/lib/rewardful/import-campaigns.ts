@@ -209,6 +209,7 @@ export async function importCampaigns(payload: RewardfulImportPayload) {
         data: {
           id: createId({ prefix: "disc_" }),
           programId,
+          groupId: createdGroup.id,
           amount: dubDiscountAttrs?.amount ?? 0,
           type: dubDiscountAttrs?.type ?? "percentage",
           maxDuration: dubDiscountAttrs?.maxDuration ?? null,
