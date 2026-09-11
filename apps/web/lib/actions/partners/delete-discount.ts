@@ -54,24 +54,6 @@ export const deleteDiscountAction = authActionClient
         },
       });
 
-      await tx.programEnrollment.updateMany({
-        where: {
-          discountId: discount.id,
-        },
-        data: {
-          discountId: null,
-        },
-      });
-
-      await tx.discountCode.updateMany({
-        where: {
-          discountId: discount.id,
-        },
-        data: {
-          discountId: null,
-        },
-      });
-
       await tx.discount.delete({
         where: {
           id: discount.id,

@@ -23,6 +23,7 @@ model Discount {
   program            Program             @relation("ProgramDiscounts", fields: [programId], references: [id])
   partnerGroup       PartnerGroup?
   discountCodes      DiscountCode[]
+  linkDiscounts      LinkReward[]
 
   @@index(programId)
   @@index(groupId)

@@ -67,10 +67,11 @@ model LinkReward {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
-  link        Link    @relation(fields: [linkId], references: [id], onDelete: Cascade)
-  clickReward Reward? @relation("ClickLinkRewards", fields: [clickRewardId], references: [id], onDelete: SetNull)
-  leadReward  Reward? @relation("LeadLinkRewards", fields: [leadRewardId], references: [id], onDelete: SetNull)
-  saleReward  Reward? @relation("SaleLinkRewards", fields: [saleRewardId], references: [id], onDelete: SetNull)
+  link        Link      @relation(fields: [linkId], references: [id], onDelete: Cascade)
+  clickReward Reward?   @relation("ClickLinkRewards", fields: [clickRewardId], references: [id])
+  leadReward  Reward?   @relation("LeadLinkRewards", fields: [leadRewardId], references: [id])
+  saleReward  Reward?   @relation("SaleLinkRewards", fields: [saleRewardId], references: [id])
+  discount    Discount? @relation(fields: [discountId], references: [id])
 
   @@index(clickRewardId)
   @@index(leadRewardId)
