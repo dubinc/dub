@@ -2,7 +2,7 @@
 
 import { PageNavTabs } from "@/ui/layout/page-nav-tabs";
 import { AlertCircleFill } from "@/ui/shared/icons";
-import { GridIcon, UserCheck } from "@dub/ui";
+import { GridIcon, UserCheck, Webhook } from "@dub/ui";
 import { useMemo } from "react";
 
 export function PartnersNavTabs() {
@@ -22,6 +22,11 @@ export function PartnersNavTabs() {
         id: "fraud",
         label: "Fraud Alerts",
         icon: AlertCircleFill,
+      },
+      {
+        id: "postbacks",
+        label: "Postbacks",
+        icon: Webhook,
       },
     ],
     [],
