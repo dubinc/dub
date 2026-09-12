@@ -22,6 +22,7 @@ export const POST = withWorkspace(
     try {
       const { url } = await stripe.billingPortal.sessions.create({
         customer: workspace.stripeId,
+        configuration: "bpc_1UEvGVAlJJEpqkPVpP38ZUNj", // custom configuration for changing billing info only
         return_url: `${APP_DOMAIN}/${workspace.slug}/settings/billing`,
       });
       return NextResponse.json({ url });
