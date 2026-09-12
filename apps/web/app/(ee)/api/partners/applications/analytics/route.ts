@@ -7,7 +7,10 @@ import {
 import { withWorkspace } from "@/lib/auth";
 import { sqlGranularityMap } from "@/lib/planetscale/granularity";
 import { prisma } from "@/lib/prisma";
-import { ApplicationEventAnalyticsQuery } from "@/lib/types";
+import {
+  ApplicationEventAnalyticsQuery,
+  ApplicationEventStages,
+} from "@/lib/types";
 import { TZDate, tz } from "@date-fns/tz";
 import { parseFilterValue } from "@dub/utils";
 import { Prisma } from "@prisma/client";
@@ -34,6 +37,16 @@ const aggregations = {
   },
 } as const;
 
+const STAGE_SORT_COLUMN: Record<
+  ApplicationEventStages,
+  "visitedAt" | "startedAt" | "submittedAt" | "approvedAt"
+> = {
+  visited: "visitedAt",
+  started: "startedAt",
+  submitted: "submittedAt",
+  approved: "approvedAt",
+};
+
 // GET /api/partners/applications/analytics
 export const GET = withWorkspace(async ({ workspace, searchParams }) => {
   const programId = getDefaultProgramIdOrThrow(workspace);
@@ -42,6 +55,7 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
     applicationEventAnalyticsQuerySchema.parse(searchParams);
 
   const {
+    event,
     groupBy,
     partnerId,
     country,
@@ -139,6 +153,7 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
     return byPartnerId({
       where,
       programId,
+      event,
     });
   }
 
@@ -157,14 +172,29 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
 async function byPartnerId({
   where,
   programId,
+  event,
 }: {
   where: Prisma.ProgramApplicationEventWhereInput;
   programId: string;
+  event?: ApplicationEventStages;
 }) {
+  const sortColumn = STAGE_SORT_COLUMN[event ?? "visited"];
+
   const events = await prisma.programApplicationEvent.groupBy({
     by: ["referredByPartnerId"],
-    where,
+    where: {
+      ...where,
+      referredByPartnerId: where.referredByPartnerId ?? {
+        not: null,
+      },
+    },
     ...aggregations,
+    orderBy: {
+      _count: {
+        [sortColumn]: "desc",
+      },
+    },
+    take: 100,
   });
 
   const partnerIds = events
@@ -194,24 +224,23 @@ async function byPartnerId({
         })
       : [];
 
-  const eventCountByPartnerId = new Map(
-    events.map(({ referredByPartnerId, _count }) => [
-      referredByPartnerId,
-      _count,
-    ]),
+  const partnersById = new Map(
+    partners.map((partner) => [partner.id, partner]),
   );
 
-  const results = partners
-    .map((partner) => {
-      const partnerEvents = eventCountByPartnerId.get(partner.id);
+  const results = events
+    .map(({ referredByPartnerId, _count }) => {
+      const partner = referredByPartnerId
+        ? partnersById.get(referredByPartnerId)
+        : undefined;
 
-      if (!partnerEvents) {
+      if (!partner) {
         return null;
       }
 
       return {
         partner,
-        ...formatCounts(partnerEvents),
+        ...formatCounts(_count),
       };
     })
     .filter((r): r is NonNullable<typeof r> => r !== null);
