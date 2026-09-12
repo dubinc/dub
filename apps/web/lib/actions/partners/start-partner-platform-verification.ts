@@ -4,7 +4,10 @@ import {
   generateCodeChallengeHash,
   generateCodeVerifier,
 } from "@/lib/api/oauth/utils";
-import { PARTNER_PLATFORMS_PROVIDERS } from "@/lib/api/partner-profile/partner-platforms-providers";
+import {
+  getPartnerPlatformOAuthProvider,
+  PARTNER_PLATFORMS_PROVIDERS,
+} from "@/lib/api/partner-profile/partner-platforms-providers";
 import { upsertPartnerPlatform } from "@/lib/api/partner-profile/upsert-partner-platform";
 import { queuePartnerSearchSync } from "@/lib/api/partners/queue-partner-search-sync";
 import { generateOTP } from "@/lib/auth/utils";
@@ -31,7 +34,7 @@ import { authPartnerActionClient } from "../safe-action";
 
 const startPartnerPlatformVerificationSchema = z.object({
   platform: z.enum(PlatformType),
-  handle: z.string().min(1).max(50),
+  handle: z.string().min(1).max(200),
   source: z.enum(["onboarding", "settings"]).default("onboarding"),
 });
 
@@ -51,8 +54,8 @@ type VerificationParams = {
 /**
  * Starts the social platform verification process for a partner.
  * Supports three verification methods:
- * - OAuth: For platforms like Twitter and TikTok (returns OAuth URL)
- * - Verification Code: For platforms like YouTube, Instagram, and LinkedIn (returns code to display)
+ * - OAuth: For platforms like Twitter, TikTok, and LinkedIn when configured (returns OAuth URL)
+ * - Verification Code: For platforms like YouTube, Instagram, and LinkedIn without OAuth (returns code to display)
  * - TXT Record: For website verification (returns DNS TXT record)
  */
 export const startPartnerPlatformVerificationAction = authPartnerActionClient
@@ -85,8 +88,9 @@ export const startPartnerPlatformVerificationAction = authPartnerActionClient
         return startWebsiteVerification(params);
       }
 
-      // For OAuth based verification
-      const oauthProvider = PARTNER_PLATFORMS_PROVIDERS[platform];
+      // For OAuth based verification (requires client ID, so LinkedIn stays on the
+      // code flow until LINKEDIN_CLIENT_ID is set)
+      const oauthProvider = getPartnerPlatformOAuthProvider(platform);
       if (oauthProvider) {
         return startOAuthVerification(params);
       }
@@ -166,7 +170,7 @@ async function startWebsiteVerification({
   };
 }
 
-// Start OAuth verification for platforms Twitter, TikTok and LinkedIn
+// Start OAuth verification for platforms Twitter, TikTok, and LinkedIn
 async function startOAuthVerification({
   partner,
   platform,
