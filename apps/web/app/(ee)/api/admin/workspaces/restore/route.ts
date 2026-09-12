@@ -76,6 +76,15 @@ export const POST = withAdmin(
 
     console.log(`Reverted ${updatedMembers.count} viewers to member role`);
 
+    await prisma.project.update({
+      where: {
+        id: project.id,
+      },
+      data: {
+        disabledAt: null,
+      },
+    });
+
     return NextResponse.json({ success: true });
   },
   {
