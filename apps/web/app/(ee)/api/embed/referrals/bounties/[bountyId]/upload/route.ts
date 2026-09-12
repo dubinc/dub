@@ -2,13 +2,13 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { getBountySubmissionUploadUrl } from "@/lib/bounty/api/get-bounty-submission-upload-url";
 import { withReferralsEmbedToken } from "@/lib/embed/referrals/auth";
 import { prisma } from "@/lib/prisma";
+import { signedUploadInputSchema } from "@/lib/storage/schemas";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 
 const bodySchema = z.object({
   fileName: z.string().trim().min(1),
-  contentType: z.string().trim().min(1),
-  contentLength: z.number().int().positive(),
+  ...signedUploadInputSchema.shape,
 });
 
 // POST /api/embed/referrals/bounties/[bountyId]/upload – get a signed R2 upload URL for a bounty submission

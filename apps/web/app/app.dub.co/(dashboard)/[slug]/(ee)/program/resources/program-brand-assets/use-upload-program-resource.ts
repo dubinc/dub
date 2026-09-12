@@ -19,27 +19,29 @@ export function useUploadProgramResource(workspaceId: string) {
       resourceType: opts.resourceType,
       name: opts.name,
       extension: opts.extension,
-      fileSize: opts.file.size,
+      contentType: opts.file.type,
+      contentLength: opts.file.size,
     });
 
     if (!result?.data) throw new Error("Failed to get upload URL");
 
-    const { signedUrl, key, fileSize } = result.data;
-
-    const headers: Record<string, string> = {};
-    if (opts.resourceType === "logo" && opts.extension === "svg") {
-      headers["Content-Type"] = "image/svg+xml";
-    }
+    const { signedUrl, key } = result.data;
 
     const response = await fetch(signedUrl, {
       method: "PUT",
-      headers,
+      headers: {
+        "Content-Type": opts.file.type,
+        "Content-Length": opts.file.size.toString(),
+      },
       body: opts.file,
     });
 
     if (!response.ok) throw new Error(`Failed to upload ${opts.resourceType}`);
 
-    return { key, fileSize };
+    return {
+      key,
+      fileSize: opts.file.size,
+    };
   };
 
   return { upload };

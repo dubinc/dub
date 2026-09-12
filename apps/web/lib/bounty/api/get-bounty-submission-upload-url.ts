@@ -1,10 +1,12 @@
 import { DubApiError } from "@/lib/api/errors";
-import { storage } from "@/lib/storage";
+import { createSignedUploadUrl } from "@/lib/storage/create-signed-upload-url";
+import { signedUploadInputSchema } from "@/lib/storage/schemas";
 import { ratelimit } from "@/lib/upstash";
 import { submissionRequirementsSchema } from "@/lib/zod/schemas/bounties";
 import { ACTIVE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
-import { nanoid, R2_URL } from "@dub/utils";
+import { nanoid } from "@dub/utils";
 import { ProgramEnrollment, ProgramPartnerTag } from "@prisma/client";
+import * as z from "zod/v4";
 import {
   bountyEligibilityIncludes,
   canPartnerSubmitBounty,
@@ -14,11 +16,11 @@ import { getBountyOrThrow } from "./get-bounty-or-throw";
 const MAX_ATTEMPTS = 25;
 const CACHE_KEY_PREFIX = "bounty:submission:file:upload";
 
-type GetBountySubmissionUploadUrlParams = {
+type GetBountySubmissionUploadUrlParams = z.infer<
+  typeof signedUploadInputSchema
+> & {
   bountyId: string;
   fileName: string;
-  contentType: string;
-  contentLength: number;
   programEnrollment: Pick<
     ProgramEnrollment,
     "programId" | "partnerId" | "groupId" | "status" | "createdAt"
@@ -26,14 +28,6 @@ type GetBountySubmissionUploadUrlParams = {
     programPartnerTags: Pick<ProgramPartnerTag, "partnerTagId">[];
   };
 };
-
-const MAX_UPLOAD_SIZE_BYTES = 5 * 1024 * 1024;
-const ALLOWED_IMAGE_CONTENT_TYPES = new Set([
-  "image/jpeg",
-  "image/png",
-  "image/webp",
-  "image/svg+xml",
-]);
 
 export async function getBountySubmissionUploadUrl({
   bountyId,
@@ -55,24 +49,6 @@ export async function getBountySubmissionUploadUrl({
     throw new DubApiError({
       code: "unprocessable_entity",
       message: "File name is required.",
-    });
-  }
-
-  if (!ALLOWED_IMAGE_CONTENT_TYPES.has(contentType)) {
-    throw new DubApiError({
-      code: "unprocessable_entity",
-      message: "Unsupported file type. Please upload SVG, JPG, PNG, or WEBP.",
-    });
-  }
-
-  if (
-    !Number.isInteger(contentLength) ||
-    contentLength <= 0 ||
-    contentLength > MAX_UPLOAD_SIZE_BYTES
-  ) {
-    throw new DubApiError({
-      code: "unprocessable_entity",
-      message: "File size exceeds maximum of 5MB.",
     });
   }
 
@@ -138,18 +114,22 @@ export async function getBountySubmissionUploadUrl({
   }
 
   try {
-    const key = `programs/${programId}/bounties/${bountyId}/submissions/${partnerId}/${nanoid(7)}`;
-    const signedUrl = await storage.getSignedUploadUrl({
-      key,
-      contentLength,
+    const { signedUrl, destinationUrl } = await createSignedUploadUrl({
+      key: `programs/${programId}/bounties/${bountyId}/submissions/${partnerId}/${nanoid(10)}`,
+      policy: "bountySubmissionImages",
       contentType,
+      contentLength,
     });
 
     return {
       signedUrl,
-      destinationUrl: `${R2_URL}/${key}`,
+      destinationUrl,
     };
   } catch (e) {
+    if (e instanceof DubApiError) {
+      throw e;
+    }
+
     throw new DubApiError({
       code: "internal_server_error",
       message: "Failed to get signed URL for upload.",

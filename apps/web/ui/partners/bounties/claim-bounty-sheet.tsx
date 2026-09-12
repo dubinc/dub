@@ -11,6 +11,7 @@ import { getPeriodLabel } from "@/lib/bounty/periods";
 import { resolveBountyDetails } from "@/lib/bounty/utils";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
+import { UPLOAD_POLICIES } from "@/lib/storage/upload-policies";
 import { PartnerBountyProps } from "@/lib/types";
 import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import { X } from "@/ui/shared/icons";
@@ -213,7 +214,9 @@ function ImagesField({
         ))}
 
         <FileUpload
-          accept="images"
+          acceptedFileTypes={
+            UPLOAD_POLICIES.bountySubmissionImages.contentTypes
+          }
           className={cn(
             "border-border-subtle h-full w-auto rounded-md border",
             files.length > 0 ? "aspect-square" : "aspect-[unset] w-full",
@@ -225,7 +228,9 @@ function ImagesField({
           }
           onChange={async ({ file }) => await handleUpload(file)}
           disabled={files.length >= maxFiles}
-          maxFileSizeMB={5}
+          maxFileSizeMB={
+            UPLOAD_POLICIES.bountySubmissionImages.maxBytes / (1024 * 1024)
+          }
         />
       </div>
     </div>

@@ -1,11 +1,11 @@
 "use client";
 
 import { parseActionError } from "@/lib/actions/parse-action-errors";
-import { PROGRAM_ALLOWED_ATTACHMENT_TYPES } from "@/lib/messages/constants";
 import { usePartnerMessages } from "@/lib/messages/hooks/use-partner-messages";
 import { markPartnerMessagesReadAction } from "@/lib/messages/mark-partner-messages-read";
 import { messagePartnerAction } from "@/lib/messages/message-partner";
 import { uploadMessageAttachmentAction } from "@/lib/messages/upload-message-attachment";
+import { UPLOAD_POLICIES } from "@/lib/storage/upload-policies";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import usePartner from "@/lib/swr/use-partner";
 import useProgram from "@/lib/swr/use-program";
@@ -117,8 +117,7 @@ export function ProgramMessagesPartnerPageClient() {
           const result = await uploadAttachment({
             workspaceId: workspaceId!,
             fileName: file.name,
-            contentType:
-              file.type as (typeof PROGRAM_ALLOWED_ATTACHMENT_TYPES)[number],
+            contentType: file.type,
             contentLength: file.size,
           });
 
@@ -228,7 +227,9 @@ export function ProgramMessagesPartnerPageClient() {
             pendingAttachments={pendingAttachments}
             onAddFiles={handleAddFiles}
             onRemoveAttachment={handleRemoveAttachment}
-            allowedFileTypes={PROGRAM_ALLOWED_ATTACHMENT_TYPES}
+            allowedFileTypes={
+              UPLOAD_POLICIES.programMessageAttachments.contentTypes
+            }
             defaultValue={defaultMessage}
             onSendMessage={async (message, attachments) => {
               const createdAt = new Date();
