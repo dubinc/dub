@@ -11,6 +11,7 @@ import {
   ReactNode,
   SVGProps,
   createContext,
+  useEffect,
   useRef,
   useState,
 } from "react";
@@ -179,6 +180,35 @@ export function Nav({
   const hideHover = () => {
     setHoverStyle((style) => ({ ...style, opacity: 0 }));
   };
+
+  useEffect(() => {
+    const ascii = [
+      "  ______                         ___      __",
+      " /_  __/_  ___________     _____/ (_)____/ /_______",
+      "  / / / / / / ___/ __ \\   / ___/ / / ___/ //_/ ___/",
+      " / / / /_/ / /  / / / /  / /__/ / / /__/ ,< (__  )",
+      "/_/  \\__,_/_/  /_/ /_/   \\___/_/_/\\___/_/|_/____/",
+      "",
+      "    _       __",
+      "   (_)___  / /_____     ________ _   _____  ____  __  _____",
+      "  / / __ \\/ __/ __ \\   / ___/ _ \\ | / / _ \\/ __ \\/ / / / _ \\",
+      " / / / / / /_/ /_/ /  / /  /  __/ |/ /  __/ / / / /_/ /  __/",
+      "/_/_/ /_/\\__/\\____/  /_/   \\___/|___/\\___/_/ /_/\\__,_/\\___/",
+    ].join("\n");
+
+    const mono =
+      "font-family: Menlo, Monaco, Consolas, 'Courier New', monospace; white-space: pre;";
+    const panel = `${mono} background: #171210; color: #f5f5f3;`;
+
+    console.log(
+      `%c${ascii}\n\n%cWe're hiring:  %chttps://dub.co/careers%c\nChangelog:     %chttps://dub.co/changelog\n`,
+      `${panel} font-size: 11px; line-height: 1.2; padding: 16px 20px 8px;`,
+      `${panel} font-size: 12px; line-height: 1.5; padding: 0 20px;`,
+      `${panel} font-size: 12px; line-height: 1.5; color: #d5934d; font-weight: 600; text-decoration: underline; padding: 0;`,
+      `${panel} font-size: 12px; line-height: 1.5; padding: 0 20px 0 0;`,
+      `${panel} font-size: 12px; line-height: 1.5; color: #d5934d; font-weight: 600; text-decoration: underline; padding: 0 20px 16px 0;`,
+    );
+  }, []);
 
   return (
     <NavContext.Provider value={{ theme }}>
