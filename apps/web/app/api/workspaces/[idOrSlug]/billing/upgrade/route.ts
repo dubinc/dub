@@ -26,8 +26,11 @@ export const POST = withWorkspace(
       await req.json(),
     );
 
-    const lookupKey =
-      tier > 1 ? `${plan}${tier}_${period}` : `${plan}_${period}`;
+    let lookupKey = tier > 1 ? `${plan}${tier}_${period}` : `${plan}_${period}`;
+
+    if (workspace.disabledAt) {
+      lookupKey = "advanced_yearly";
+    }
 
     const prices = await stripe.prices.list({
       lookup_keys: [lookupKey],
