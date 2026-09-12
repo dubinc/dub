@@ -1,5 +1,5 @@
 import { ResourceColorsEnum } from "@/lib/types";
-import { RESOURCE_COLORS } from "@/ui/colors";
+import { TAG_COLORS } from "@/ui/colors";
 import { useMediaQuery } from "@dub/ui";
 import { cn, randomValue, truncate } from "@dub/utils";
 import { Tag } from "lucide-react";
@@ -50,5 +50,5 @@ export default function TagBadge({
 }
 
 export function randomBadgeColor() {
-  return randomValue(RESOURCE_COLORS);
+  return randomValue([...TAG_COLORS]);
 }

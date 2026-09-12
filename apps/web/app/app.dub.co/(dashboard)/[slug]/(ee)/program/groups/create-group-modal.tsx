@@ -3,7 +3,7 @@ import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { createGroupSchema } from "@/lib/zod/schemas/groups";
 import { RESOURCE_COLORS } from "@/ui/colors";
-import { GroupColorPicker } from "@/ui/partners/groups/group-color-picker";
+import { ColorPicker, RESOURCE_COLOR_SWATCHES } from "@/ui/shared/color-picker";
 import { Button, Modal } from "@dub/ui";
 import { cn } from "@dub/utils";
 import slugify from "@sindresorhus/slugify";
@@ -92,9 +92,13 @@ function CreateGroupModalContent({ setIsOpen }: CreateGroupModalProps) {
                     control={control}
                     name="color"
                     render={({ field }) => (
-                      <GroupColorPicker
-                        color={field.value}
+                      <ColorPicker
+                        value={field.value}
                         onChange={field.onChange}
+                        swatches={RESOURCE_COLOR_SWATCHES}
+                        showDefault
+                        variant="swatches"
+                        className="size-5"
                       />
                     )}
                   />

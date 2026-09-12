@@ -150,8 +150,8 @@ function LinkQRModalInner({
         onClose={() => setShowLinkQRModal(false)}
         logoSection={
           <div>
-            <div className="flex items-center gap-1.5">
-              <label className="text-sm font-medium text-neutral-700">
+            <div className="flex items-center gap-1">
+              <label className="text-sm font-semibold text-neutral-800">
                 Logo
               </label>
               <InfoTooltip content="Display your logo in the center of the QR code. [Learn more.](https://dub.co/help/article/custom-qr-codes)" />
@@ -166,7 +166,9 @@ function LinkQRModalInner({
                 onClick={() => setData((d) => ({ ...d, hideLogo: false }))}
                 disabled={!isPro}
               >
-                <span className="text-sm">Show</span>
+                <span className="text-sm font-medium text-neutral-800">
+                  Show
+                </span>
               </SegmentTab>
               <SegmentTab
                 active={!!(data.hideLogo && isPro)}
@@ -189,7 +191,9 @@ function LinkQRModalInner({
                     <Crown className="text-content-default mr-1 size-4" />
                   </Tooltip>
                 )}
-                <span className="text-sm">Hide</span>
+                <span className="text-sm font-medium text-neutral-800">
+                  Hide
+                </span>
               </SegmentTab>
             </SegmentedControl>
           </div>

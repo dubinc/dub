@@ -9,8 +9,8 @@ import {
   DEFAULT_PARTNER_GROUP,
   updateGroupSchema,
 } from "@/lib/zod/schemas/groups";
-import { GroupColorPicker } from "@/ui/partners/groups/group-color-picker";
 import { GroupSettingsRow } from "@/ui/partners/groups/group-settings-row";
+import { ColorPicker, RESOURCE_COLOR_SWATCHES } from "@/ui/shared/color-picker";
 import { Button, CopyButton } from "@dub/ui";
 import { cn } from "@dub/utils";
 import slugify from "@sindresorhus/slugify";
@@ -133,9 +133,13 @@ function GroupSettingsForm({
                   control={control}
                   name="color"
                   render={({ field }) => (
-                    <GroupColorPicker
-                      color={field.value}
+                    <ColorPicker
+                      value={field.value ?? null}
                       onChange={field.onChange}
+                      swatches={RESOURCE_COLOR_SWATCHES}
+                      showDefault
+                      variant="swatches"
+                      className="size-5"
                     />
                   )}
                 />

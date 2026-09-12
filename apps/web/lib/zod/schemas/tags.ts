@@ -1,4 +1,4 @@
-import { RESOURCE_COLORS } from "@/ui/colors";
+import { TAG_COLORS } from "@/ui/colors";
 import * as z from "zod/v4";
 import { booleanQuerySchema, getPaginationQuerySchema } from "./misc";
 
@@ -40,7 +40,7 @@ export const getTagsCountQuerySchema = getTagsQuerySchema.omit({
 });
 
 // TODO: Remove "pink" after confirming we don't have any pink tags in the database
-const tagColors = [...RESOURCE_COLORS, "pink"] as const;
+const tagColors = [...TAG_COLORS, "pink"] as const;
 
 export const tagColorSchema = z
   .enum(tagColors, {
@@ -59,7 +59,7 @@ export const createTagBodySchema = z
   .object({
     name: tagName,
     color: tagColorSchema.describe(
-      `The color of the tag. If not provided, a random color will be used from the list: ${RESOURCE_COLORS.join(", ")}.`,
+      `The color of the tag. If not provided, a random color will be used from the list: ${TAG_COLORS.join(", ")}.`,
     ),
     tag: tagName.meta({
       deprecated: true,
