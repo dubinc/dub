@@ -27,7 +27,7 @@ type WorkerFixtures = {
   program: { id: string; defaultGroupId: string };
 };
 
-function loadApiAuth() {
+export function loadApiAuth() {
   return JSON.parse(readFileSync(authFile, "utf-8")) as {
     token: string;
     workspaceId: string;
@@ -37,7 +37,7 @@ function loadApiAuth() {
   };
 }
 
-function createApiClient(request: APIRequestContext): ApiClient {
+export function createApiClient(request: APIRequestContext): ApiClient {
   async function parse<T>(
     responsePromise: ReturnType<APIRequestContext["fetch"]>,
   ): Promise<ApiResponse<T>> {

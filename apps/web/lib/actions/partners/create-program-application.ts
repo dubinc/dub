@@ -1,7 +1,7 @@
 "use server";
 
 import { createId } from "@/lib/api/create-id";
-import { isCI, isLocalDev } from "@/lib/api/environment";
+import { isCI, isLocalDev, shouldApplyRateLimit } from "@/lib/api/environment";
 import { detectAndRecordFraudApplication } from "@/lib/api/fraud/detect-record-fraud-application";
 import { notifyPartnerApplication } from "@/lib/api/partners/notify-partner-application";
 import { queuePartnerSearchSync } from "@/lib/api/partners/queue-partner-search-sync";
@@ -124,12 +124,14 @@ export const createProgramApplicationAction = actionClient
     const { programId, groupId, inAppApplication } = parsedInput;
 
     // Limit to 3 requests per minute per program per IP
-    const { success } = await ratelimit(3, "1 m").limit(
-      `create-program-application:${programId}:${await getIP()}`,
-    );
+    if (shouldApplyRateLimit) {
+      const { success } = await ratelimit(3, "1 m").limit(
+        `create-program-application:${programId}:${await getIP()}`,
+      );
 
-    if (!success) {
-      throw new Error("Too many requests. Please try again later.");
+      if (!success) {
+        throw new Error("Too many requests. Please try again later.");
+      }
     }
 
     const program = await prisma.program.findUniqueOrThrow({
