@@ -10,6 +10,7 @@ import { chargeSucceeded } from "./charge-succeeded";
 import { checkoutSessionCompleted } from "./checkout-session-completed";
 import { customerSubscriptionCreated } from "./customer-subscription-created";
 import { customerSubscriptionDeleted } from "./customer-subscription-deleted";
+import { customerSubscriptionTrialWillEnd } from "./customer-subscription-trial-will-end";
 import { customerSubscriptionUpdated } from "./customer-subscription-updated";
 import { invoicePaymentFailed } from "./invoice-payment-failed";
 import { paymentIntentRequiresAction } from "./payment-intent-requires-action";
@@ -23,6 +24,7 @@ const relevantEvents = new Set([
   "checkout.session.completed",
   "customer.subscription.created",
   "customer.subscription.updated",
+  "customer.subscription.trial_will_end",
   "customer.subscription.deleted",
   "invoice.payment_failed",
   "payment_intent.requires_action",
@@ -77,6 +79,9 @@ export const POST = withAxiom(async (req: Request) => {
         break;
       case "customer.subscription.updated":
         response = await customerSubscriptionUpdated(event);
+        break;
+      case "customer.subscription.trial_will_end":
+        response = await customerSubscriptionTrialWillEnd(event);
         break;
       case "customer.subscription.deleted":
         response = await customerSubscriptionDeleted(event);
