@@ -19,6 +19,9 @@ export const getQRCode: ZodOpenApiOperationObject = {
         "image/png": {
           schema: z.string(),
         },
+        "image/svg+xml": {
+          schema: z.string(),
+        },
       },
     },
     ...openApiErrorResponses,
