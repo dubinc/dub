@@ -9,7 +9,7 @@ import {
 } from "@/lib/api/customers/reattribute-customer";
 import { logger } from "@/lib/axiom/server";
 import { prisma } from "@/lib/prisma";
-import { deleteTinybirdCustomerEvents } from "@/lib/tinybird/delete-events";
+import { deleteTinybirdCustomerEvents } from "@/lib/tinybird/delete-customer-events";
 import { reattributeCustomerWorkflowSchema } from "@/lib/zod/schemas/customers";
 import { WorkflowRetryAfterError } from "@upstash/workflow";
 import { serve } from "@upstash/workflow/nextjs";
@@ -149,7 +149,6 @@ export const { POST } = serve<Input>(
       try {
         await deleteTinybirdCustomerEvents({
           customerId: input.oldCustomerId,
-          clickId: plan.hasClick ? input.oldClickId : null,
         });
 
         return logAndReturn({ deleted: true });
