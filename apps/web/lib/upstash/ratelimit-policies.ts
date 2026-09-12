@@ -109,4 +109,13 @@ export const RATELIMIT_POLICIES = {
     window: "1 h",
     keyPrefix: "rl:domains:forward-dns-instructions:target",
   },
+
+  // One reattribution per workspace per minute
+  reattributeCustomer: {
+    attempts: 1,
+    window: "1 m",
+    keyPrefix: "rl:customers:reattribute",
+    message: ({ retryAfter }) =>
+      `Customer reattribution is limited to once per minute because it updates analytics. Try again in ${retryAfter}.`,
+  },
 } as const satisfies Record<string, RatelimitPolicy>;

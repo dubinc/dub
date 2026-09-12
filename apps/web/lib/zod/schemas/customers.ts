@@ -140,6 +140,36 @@ export const updateCustomerBodySchema = createCustomerBodySchema
       ),
   });
 
+export const reattributeCustomerBodySchema = z.object({
+  partnerId: z.string().describe("The partner to attribute this customer to."),
+  linkId: z
+    .string()
+    .describe("The partner referral link to attribute this customer to."),
+  createClawback: z
+    .boolean()
+    .optional()
+    .default(false)
+    .describe(
+      "If the previous partner was already paid, create a clawback for those earnings and recreate commissions for the new partner.",
+    ),
+});
+
+export const reattributeCustomerWorkflowSchema = z.object({
+  workspaceId: z.string(),
+  programId: z.string(),
+  oldCustomerId: z.string(),
+  newCustomerId: z.string(),
+  oldLinkId: z.string().nullable(),
+  newLinkId: z.string(),
+  oldPartnerId: z.string().nullable(),
+  newPartnerId: z.string(),
+  oldClickId: z.string().nullable(),
+  newClickId: z.string(),
+  createClawback: z.boolean(),
+  incrementConversions: z.boolean(),
+  decrementConversions: z.boolean(),
+});
+
 // used in webhook responses + regular /customers endpoints (without expanded fields)
 export const CustomerSchema = z.object({
   id: z
