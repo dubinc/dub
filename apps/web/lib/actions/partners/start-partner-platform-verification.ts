@@ -15,7 +15,8 @@ import {
   SOCIAL_PLATFORM_CONFIGS,
 } from "@/lib/social-utils";
 import { PartnerProps } from "@/lib/types";
-import { ratelimit } from "@/lib/upstash/ratelimit";
+import { assertRateLimit } from "@/lib/upstash/assert-rate-limit";
+import { RATELIMIT_POLICIES } from "@/lib/upstash/ratelimit-policies";
 import { redis } from "@/lib/upstash/redis";
 import {
   getDomainWithoutWWW,
@@ -61,16 +62,10 @@ export const startPartnerPlatformVerificationAction = authPartnerActionClient
     const { partner } = ctx;
     const { platform, handle, source } = parsedInput;
 
-    // Rate limit check
-    const { success } = await ratelimit(5, "1 h").limit(
-      `social-verification:${partner.id}:${platform}`,
-    );
-
-    if (!success) {
-      throw new Error(
-        "Too many verification attempts. Please try again later.",
-      );
-    }
+    await assertRateLimit({
+      policy: RATELIMIT_POLICIES.socialAccountVerification,
+      identifier: [partner.id, platform],
+    });
 
     const params: VerificationParams = {
       partner,

@@ -14,7 +14,8 @@ import {
 } from "@/lib/partners/sync-partner-identity";
 import { prisma } from "@/lib/prisma";
 import { storage } from "@/lib/storage";
-import { ratelimit } from "@/lib/upstash";
+import { assertRateLimit } from "@/lib/upstash/assert-rate-limit";
+import { RATELIMIT_POLICIES } from "@/lib/upstash/ratelimit-policies";
 import { partnerProfileChangeHistoryLogSchema } from "@/lib/zod/schemas/partner-profile";
 import {
   MAX_PARTNER_DESCRIPTION_LENGTH,
@@ -112,17 +113,10 @@ export const updatePartnerProfileAction = authPartnerActionClient
     }
 
     if (username && username !== partner.username) {
-      const { success } = await ratelimit(5, "1 h").limit(
-        `partner-profile:username-update:${partner.id}`,
-      );
-
-      if (!success) {
-        throw new DubApiError({
-          code: "rate_limit_exceeded",
-          message:
-            "You've updated your username too many times. Please try again later.",
-        });
-      }
+      await assertRateLimit({
+        policy: RATELIMIT_POLICIES.partnerUsernameUpdate,
+        identifier: partner.id,
+      });
 
       if (!validSlugRegex.test(username) || RESERVED_SLUGS.includes(username)) {
         throw new Error("Invalid username");
