@@ -1,10 +1,9 @@
 import { getWorkspaceUsers } from "@/lib/api/get-workspace-users";
-import { qstash } from "@/lib/cron";
+import { invalidateLinksForDiscountsJob } from "@/lib/jobs/handlers/invalidate-links-for-discounts-job";
 import { prisma } from "@/lib/prisma";
 import { sendBatchEmail } from "@dub/email";
 import { VARIANT_TO_FROM_MAP } from "@dub/email/resend/constants";
 import DiscountDeleted from "@dub/email/templates/discount-deleted";
-import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import type Stripe from "stripe";
 import { WebhookHandlerInput, WebhookHandlerResponse } from "./types";
@@ -30,9 +29,6 @@ export async function couponDeleted({
     where: {
       programId: workspace.defaultProgramId,
       OR: [{ couponId: coupon.id }, { couponTestId: coupon.id }],
-    },
-    include: {
-      partnerGroup: true,
     },
   });
 
@@ -93,17 +89,13 @@ export async function couponDeleted({
         role: "owner",
       });
 
-      const groupIds = discounts
-        .map((d) => d.partnerGroup?.id)
-        .filter(Boolean) as string[];
-
       await Promise.allSettled([
-        ...groupIds.map((groupId) =>
-          qstash.publishJSON({
-            url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/invalidate-for-discounts`,
-            body: {
-              groupId,
-            },
+        invalidateLinksForDiscountsJob.dispatchBatch(
+          discountIds.map((discountId) => ({
+            discountId,
+          })),
+          ({ discountId }) => ({
+            label: discountId,
           }),
         ),
 

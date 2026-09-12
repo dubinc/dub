@@ -2,15 +2,23 @@ import { DubApiError, ErrorCodes } from "@/lib/api/errors";
 import { createLink, processLink } from "@/lib/api/links";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
+import {
+  getExpandableRewardReferences,
+  getRewardIds,
+  LinkRewardIdsInput,
+  validateRewardIds,
+} from "@/lib/api/rewards/link-rewards";
 import { parseRequestBody } from "@/lib/api/utils";
 import { applyGroupUtmToLink } from "@/lib/api/utm/apply-group-utm-to-link";
 import { withWorkspace } from "@/lib/auth";
+import { parseExpandFields } from "@/lib/expand/parse-expand-fields";
 import { throwIfNoPartnerIdOrTenantId } from "@/lib/partners/throw-if-no-partnerid-tenantid";
 import { prisma } from "@/lib/prisma";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { linkEventSchema } from "@/lib/zod/schemas/links";
 import {
   createPartnerLinkSchema,
+  PARTNER_LINK_EXPAND_FIELDS,
   retrievePartnerLinksSchema,
 } from "@/lib/zod/schemas/partners";
 import { ProgramPartnerLinkSchema } from "@/lib/zod/schemas/programs";
@@ -20,11 +28,18 @@ import * as z from "zod/v4";
 
 // GET /api/partners/links - get the partner links
 export const GET = withWorkspace(
-  async ({ workspace, searchParams }) => {
+  async ({ workspace, searchParams, req }) => {
     const programId = getDefaultProgramIdOrThrow(workspace);
 
     const { partnerId, tenantId } =
       retrievePartnerLinksSchema.parse(searchParams);
+
+    const expandFields = parseExpandFields({
+      url: req.url,
+      allowedFields: PARTNER_LINK_EXPAND_FIELDS,
+    });
+
+    const expandReward = expandFields.has("reward");
 
     throwIfNoPartnerIdOrTenantId({ partnerId, tenantId });
 
@@ -43,7 +58,19 @@ export const GET = withWorkspace(
             },
           },
       select: {
-        links: true,
+        links: {
+          include: {
+            linkReward: expandReward
+              ? {
+                  include: {
+                    clickReward: true,
+                    leadReward: true,
+                    saleReward: true,
+                  },
+                }
+              : true,
+          },
+        },
       },
     });
 
@@ -54,7 +81,13 @@ export const GET = withWorkspace(
       });
     }
 
-    const { links } = programEnrollment;
+    const links = programEnrollment.links.map((link) => ({
+      ...link,
+      ...getExpandableRewardReferences({
+        linkReward: link.linkReward,
+        expand: expandReward,
+      }),
+    }));
 
     return NextResponse.json(z.array(ProgramPartnerLinkSchema).parse(links));
   },
@@ -69,8 +102,17 @@ export const POST = withWorkspace(
   async ({ workspace, req, session }) => {
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    const { partnerId, tenantId, url, key, linkProps } =
-      createPartnerLinkSchema.parse(await parseRequestBody(req));
+    const {
+      partnerId,
+      tenantId,
+      url,
+      key,
+      linkProps,
+      clickRewardId,
+      leadRewardId,
+      saleRewardId,
+      discountId,
+    } = createPartnerLinkSchema.parse(await parseRequestBody(req));
 
     const program = await getProgramOrThrow({
       workspaceId: workspace.id,
@@ -157,7 +199,28 @@ export const POST = withWorkspace(
       partnerName: partner.partner.name,
     });
 
-    const partnerLink = await createLink(linkWithUtm);
+    // Validate link level rewards
+    const linkRewardInput: LinkRewardIdsInput = {
+      clickRewardId,
+      leadRewardId,
+      saleRewardId,
+      discountId,
+    };
+
+    await validateRewardIds({
+      programId,
+      ...linkRewardInput,
+    });
+
+    const partnerLink = await createLink({
+      ...linkWithUtm,
+      linkReward: linkRewardInput,
+    });
+
+    const response = {
+      ...partnerLink,
+      ...getRewardIds(linkRewardInput),
+    };
 
     waitUntil(
       sendWorkspaceWebhook({
@@ -167,7 +230,7 @@ export const POST = withWorkspace(
       }),
     );
 
-    return NextResponse.json(partnerLink, { status: 201 });
+    return NextResponse.json(response, { status: 201 });
   },
   {
     requiredPlan: ["business", "advanced", "enterprise"],

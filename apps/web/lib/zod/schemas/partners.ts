@@ -1,5 +1,6 @@
 import { processKey } from "@/lib/api/links/utils";
 import { MAX_PARTNERS_INVITES_PER_REQUEST } from "@/lib/constants/program";
+import { getExpandFieldSchema } from "@/lib/expand/get-expandable-field";
 import {
   IdentityVerificationStatus,
   IndustryInterest,
@@ -854,6 +855,22 @@ export const createPartnerLinkSchema = partnerIdTenantIdSchema
         "The short link slug. If not provided, a random 7-character slug will be generated.",
       ),
     comments: z.string().nullish().describe("The comments for the short link."),
+    clickRewardId: z
+      .string()
+      .nullish()
+      .describe("The ID of a click reward to assign to this link."),
+    leadRewardId: z
+      .string()
+      .nullish()
+      .describe("The ID of a lead reward to assign to this link."),
+    saleRewardId: z
+      .string()
+      .nullish()
+      .describe("The ID of a sale reward to assign to this link."),
+    discountId: z
+      .string()
+      .nullish()
+      .describe("The ID of a discount to assign to this link."),
   })
   .extend(
     createPartnerSchema.pick({
@@ -863,6 +880,13 @@ export const createPartnerLinkSchema = partnerIdTenantIdSchema
 
 export const upsertPartnerLinkSchema = createPartnerLinkSchema.extend({
   url: parseUrlSchema.describe("The URL to upsert for."),
+});
+
+export const updatePartnerLinkSchema = createPartnerLinkSchema.pick({
+  clickRewardId: true,
+  leadRewardId: true,
+  saleRewardId: true,
+  discountId: true,
 });
 
 // For /api/partners/analytics
@@ -1006,7 +1030,16 @@ export const bulkRejectPartnersSchema = z.object({
     .transform((v) => [...new Set(v)]),
 });
 
-export const retrievePartnerLinksSchema = partnerIdTenantIdSchema;
+export const retrievePartnerLinksSchema = partnerIdTenantIdSchema.extend({
+  expand: getExpandFieldSchema(
+    "Include expanded fields on each link. Use expand[]=reward to return reward objects instead of IDs.",
+  ),
+});
+
+export const PARTNER_LINK_EXPAND_FIELDS = ["reward"] as const;
+
+export type PartnerLinkExpandField =
+  (typeof PARTNER_LINK_EXPAND_FIELDS)[number];
 
 export const banPartnerSchema = z.object({
   workspaceId: z.string(),

@@ -38,6 +38,7 @@ export const createDiscountSchema = z.object({
   groupId: z.string(),
   autoProvision: z.boolean().optional(),
   provider: z.enum(DiscountProvider),
+  isDefault: z.boolean().default(false),
 });
 
 export const updateDiscountSchema = createDiscountSchema
@@ -141,4 +142,16 @@ export const DiscountCodeWebhookSchema = DiscountCodeSchema.omit({
     maxDuration: true,
     provider: true,
   }).nullable(),
+});
+
+const discountReferenceSchema = z
+  .union([z.string(), DiscountSchema])
+  .nullable();
+
+export const discountReferencesSchema = z.object({
+  discount: discountReferenceSchema
+    .default(null)
+    .describe(
+      "Discount ID by default. Returns the discount object when expand[]=discount.",
+    ),
 });

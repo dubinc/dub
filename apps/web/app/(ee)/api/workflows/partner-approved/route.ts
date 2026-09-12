@@ -1,6 +1,7 @@
 import { createPartnerDefaultLinks } from "@/lib/api/partners/create-partner-default-links";
 import { getGroupRewardsAndBounties } from "@/lib/api/partners/get-group-rewards-and-bounties";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
+import { getRewardIds } from "@/lib/api/rewards/link-rewards";
 import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
 import { logger } from "@/lib/axiom/server";
 import { triggerDraftBountySubmissionCreation } from "@/lib/bounty/api/trigger-draft-bounty-submissions";
@@ -162,7 +163,12 @@ export const { POST } = serve<Input>(
         })),
       });
 
-      allPartnerLinks.push(...partnerLinks);
+      allPartnerLinks.push(
+        ...partnerLinks.map((link) => ({
+          ...link,
+          ...getRewardIds(null),
+        })),
+      );
 
       return;
     });

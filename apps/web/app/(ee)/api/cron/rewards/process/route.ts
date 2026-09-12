@@ -50,8 +50,7 @@ export const POST = withCron(async ({ rawBody }) => {
     where: {
       id: groupId,
     },
-    select: {
-      id: true,
+    include: {
       program: {
         select: {
           id: true,
@@ -66,6 +65,16 @@ export const POST = withCron(async ({ rawBody }) => {
 
   if (!group) {
     return logAndRespond(`Group ${groupId} not found. Skipping...`);
+  }
+
+  // reward-created jobs assign this reward to all enrollments in the group.
+  // Skip if it's no longer the group's default for this event
+  if (event === "reward-created") {
+    if (rewardId !== group[REWARD_EVENT_COLUMN_MAPPING[reward.event]]) {
+      return logAndRespond(
+        `Reward ${rewardId} is not the default reward for the group ${groupId}. Skipping...`,
+      );
+    }
   }
 
   const isStaleVersion = await isStaleRewardVersion({

@@ -18,6 +18,7 @@ export async function getProgramEnrollmentOrThrow<
     ...include,
     links: include.links
       ? {
+          ...(typeof include.links === "object" ? include.links : {}),
           orderBy: {
             createdAt: "asc",
           },

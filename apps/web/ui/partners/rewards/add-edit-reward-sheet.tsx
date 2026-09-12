@@ -243,7 +243,8 @@ function RewardSheetContent({
 
   const formRef = useRef<HTMLFormElement>(null);
   const { mutate: mutateProgram } = useProgram();
-  const { queryParams } = useRouterStuff();
+  const { queryParams, searchParams } = useRouterStuff();
+  const isDefault = searchParams.get("isDefault") !== "false";
 
   const defaultValuesSource = reward || defaultRewardValues;
 
@@ -472,6 +473,7 @@ function RewardSheetContent({
             ...payload!,
             groupId: group.id,
             activityDescription,
+            isDefault,
           });
         } else {
           await updateReward({
@@ -1142,7 +1144,7 @@ export function RewardSheet({
     rest.setIsOpen(value);
 
     if (!nextOpen) {
-      queryParams({ del: "rewardId" });
+      queryParams({ del: ["rewardId", "isDefault"] });
     }
   };
 

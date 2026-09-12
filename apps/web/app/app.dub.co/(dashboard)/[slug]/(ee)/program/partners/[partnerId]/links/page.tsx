@@ -2,11 +2,11 @@
 
 import { usePartnerReferral } from "@/lib/partner-referrals/hooks/use-partner-referral";
 import { constructPartnerReferralLink } from "@/lib/partner-referrals/utils";
-import { constructPartnerLink } from "@/lib/partners/construct-partner-link";
 import useDiscountCodes from "@/lib/swr/use-discount-codes";
 import useGroup from "@/lib/swr/use-group";
 import usePartner from "@/lib/swr/use-partner";
 import useProgram from "@/lib/swr/use-program";
+import { useProgramPartnerLinks } from "@/lib/swr/use-program-partner-links";
 import useWorkspace from "@/lib/swr/use-workspace";
 import {
   DiscountCodeProps,
@@ -14,7 +14,6 @@ import {
   EnrolledPartnerProps,
 } from "@/lib/types";
 import { useAddDiscountCodeModal } from "@/ui/modals/add-discount-code-modal";
-import { useAddPartnerLinkModal } from "@/ui/modals/add-partner-link-modal";
 import { DeleteDiscountCodeModal } from "@/ui/modals/delete-discount-code-modal";
 import { DiscountCodeBadge } from "@/ui/partners/discounts/discount-code-badge";
 import { ButtonLink } from "@/ui/placeholders/button-link";
@@ -33,6 +32,7 @@ import { DiscountProvider } from "@prisma/client";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
+import { ReferralLinks } from "./referral-links";
 
 export default function ProgramPartnerLinksPage() {
   const { partnerId } = useParams() as { partnerId: string };
@@ -40,7 +40,7 @@ export default function ProgramPartnerLinksPage() {
 
   return partner ? (
     <div className="grid min-w-0 gap-4">
-      <PartnerLinks partner={partner} />
+      <ReferralLinks partner={partner} />
       <PartnerDiscountCodes partner={partner} />
       <PartnerReferralLink partner={partner} />
     </div>
@@ -56,137 +56,6 @@ export default function ProgramPartnerLinksPage() {
     </div>
   );
 }
-
-const PartnerLinks = ({ partner }: { partner: EnrolledPartnerProps }) => {
-  const { slug } = useWorkspace();
-
-  const { group } = useGroup({
-    groupIdOrSlug: partner.groupId ?? undefined,
-  });
-
-  const { AddPartnerLinkModal, setShowAddPartnerLinkModal } =
-    useAddPartnerLinkModal({
-      partner,
-    });
-
-  const table = useTable({
-    data: partner.links || [],
-    columns: [
-      {
-        id: "shortLink",
-        header: "Link",
-        meta: {
-          disableTruncate: true,
-        },
-        cell: ({ row }) => {
-          const partnerLink = constructPartnerLink({
-            group: group ?? undefined,
-            link: row.original,
-          });
-          return (
-            <div className="flex items-center gap-3">
-              <Link
-                href={`/${slug}/links/${row.original.domain}/${row.original.key}`}
-                target="_blank"
-                className="cursor-alias font-medium text-black decoration-dotted hover:underline"
-              >
-                {getPrettyUrl(partnerLink)}
-              </Link>
-              <CopyButton value={partnerLink} className="p-0.5" />
-            </div>
-          );
-        },
-      },
-      {
-        header: "Clicks",
-        size: 1,
-        minSize: 1,
-        cell: ({ row }) => (
-          <Link
-            href={`/${slug}/events?event=clicks&interval=all&domain=${row.original.domain}&key=${row.original.key}`}
-            target="_blank"
-            className="block w-full cursor-alias decoration-dotted hover:underline"
-          >
-            {nFormatter(row.original.clicks)}
-          </Link>
-        ),
-      },
-      {
-        header: "Leads",
-        size: 1,
-        minSize: 1,
-        cell: ({ row }) => (
-          <Link
-            href={`/${slug}/events?event=leads&interval=all&domain=${row.original.domain}&key=${row.original.key}`}
-            target="_blank"
-            className="block w-full cursor-alias decoration-dotted hover:underline"
-          >
-            {nFormatter(row.original.leads)}
-          </Link>
-        ),
-      },
-      {
-        header: "Conversions",
-        size: 1,
-        minSize: 1,
-        cell: ({ row }) => (
-          <Link
-            href={`/${slug}/events?event=sales&interval=all&domain=${row.original.domain}&key=${row.original.key}`}
-            target="_blank"
-            className="block w-full cursor-alias decoration-dotted hover:underline"
-          >
-            {nFormatter(row.original.conversions)}
-          </Link>
-        ),
-      },
-      {
-        header: "Revenue",
-        accessorFn: (d) =>
-          currencyFormatter(d.saleAmount, {
-            trailingZeroDisplay: "stripIfInteger",
-          }),
-        size: 1,
-        minSize: 1,
-        cell: ({ row }) => (
-          <Link
-            href={`/${slug}/events?event=sales&interval=all&domain=${row.original.domain}&key=${row.original.key}`}
-            target="_blank"
-            className="block w-full cursor-alias decoration-dotted hover:underline"
-          >
-            {currencyFormatter(row.original.saleAmount, {
-              trailingZeroDisplay: "stripIfInteger",
-            })}
-          </Link>
-        ),
-      },
-    ],
-    resourceName: (p) => `link${p ? "s" : ""}`,
-    thClassName: (id) =>
-      cn(id === "total" && "[&>div]:justify-end", "border-l-0"),
-    tdClassName: (id) => cn(id === "total" && "text-right", "border-l-0"),
-    className: "[&_tr:last-child>td]:border-b-transparent",
-    containerClassName: "w-full max-w-full overflow-hidden",
-    scrollWrapperClassName: "min-h-[40px] max-w-full",
-  } as any);
-
-  return (
-    <>
-      <div className="flex items-end justify-between gap-4">
-        <h2 className="text-content-emphasis text-lg font-semibold">
-          Referral links
-        </h2>
-        <Button
-          variant="secondary"
-          text="Create link"
-          className="h-8 w-fit rounded-lg px-3 py-2 font-medium"
-          onClick={() => setShowAddPartnerLinkModal(true)}
-        />
-      </div>
-      <Table {...table} />
-      <AddPartnerLinkModal />
-    </>
-  );
-};
 
 const PartnerReferralLink = ({
   partner,
@@ -322,6 +191,10 @@ const PartnerDiscountCodes = ({
     partnerId: partner.id || null,
   });
 
+  const { links } = useProgramPartnerLinks({
+    partnerId: partner.id || null,
+  });
+
   const { AddDiscountCodeModal, setShowAddDiscountCodeModal } =
     useAddDiscountCodeModal({
       partner,
@@ -344,7 +217,7 @@ const PartnerDiscountCodes = ({
         id: "shortLink",
         header: "Link",
         cell: ({ row }) => {
-          const link = partner.links?.find((l) => l.id === row.original.linkId);
+          const link = links?.find((l) => l.id === row.original.linkId);
           return link ? (
             <Link
               href={`/${slug}/links/${link.domain}/${link.key}`}
@@ -420,22 +293,16 @@ const PartnerDiscountCodes = ({
       );
     }
 
-    if (partner.links?.length === 0) {
+    if (links?.length === 0) {
       return "No links assigned to this partner group. Please add a link before you can create a discount code.";
     }
 
-    if (partner.links?.length === discountCodes?.length) {
+    if (links?.length === discountCodes?.length) {
       return "All links have a discount code assigned to them. Please add a new link before you can create a discount code.";
     }
 
     return undefined;
-  }, [
-    partner.discount,
-    partner.links,
-    discountCodes,
-    stripeConnectId,
-    shopifyStoreId,
-  ]);
+  }, [partner.discount, links, discountCodes, stripeConnectId, shopifyStoreId]);
 
   const groupDiscount = group?.discount ?? partner.discount;
 

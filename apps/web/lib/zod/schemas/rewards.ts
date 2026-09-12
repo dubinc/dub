@@ -422,12 +422,17 @@ export const rewardConditionsArraySchema = z
 
 const decimalToNumber = z
   .any()
-  .transform((val) => (val != null && val !== "" ? Number(val) : null))
+  .overwrite((val) => (val != null && val !== "" ? Number(val) : null))
   .nullable()
   .optional();
 
+export const getRewardsQuerySchema = z.object({
+  groupId: z.string().nullish(),
+});
+
 export const RewardSchema = z.object({
   id: z.string(),
+  groupId: z.string().nullable(),
   event: z.enum(EventType),
   description: z.string().nullish(),
   tooltipDescription: z.string().nullish(),
@@ -547,14 +552,16 @@ export const createOrUpdateRewardSchema = z.object({
   ...rewardActivityDescriptionSchema.shape,
 });
 
-export const createRewardSchema = createOrUpdateRewardSchema.superRefine(
-  (data) => {
+export const createRewardSchema = createOrUpdateRewardSchema
+  .extend({
+    isDefault: z.boolean().default(false),
+  })
+  .superRefine((data) => {
     if (isOneOffRewardEvent(data.event)) {
       data.type = "flat";
       data.maxDuration = 0;
     }
-  },
-);
+  });
 
 export const updateRewardSchema = createOrUpdateRewardSchema
   .omit({
@@ -632,4 +639,24 @@ export const rewardContextSchema = z.object({
       totalCommissions: centsSchema.nullish(),
     })
     .optional(),
+});
+
+const rewardReferenceSchema = z.union([z.string(), RewardSchema]).nullable();
+
+export const rewardReferencesSchema = z.object({
+  clickReward: rewardReferenceSchema
+    .default(null)
+    .describe(
+      "Reward ID by default. Returns the reward object when expand[]=reward.",
+    ),
+  leadReward: rewardReferenceSchema
+    .default(null)
+    .describe(
+      "Reward ID by default. Returns the reward object when expand[]=reward.",
+    ),
+  saleReward: rewardReferenceSchema
+    .default(null)
+    .describe(
+      "Reward ID by default. Returns the reward object when expand[]=reward.",
+    ),
 });

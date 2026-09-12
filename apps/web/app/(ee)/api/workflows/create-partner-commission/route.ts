@@ -268,12 +268,13 @@ async function stepCreateCommission(
       };
     }
 
-    const rewards = determinePartnerRewards({
+    const rewards = await determinePartnerRewards({
       event,
       programEnrollment,
       context,
       amount,
       quantity,
+      linkId: linkId ?? null,
     });
 
     if (rewards.length > 0) {

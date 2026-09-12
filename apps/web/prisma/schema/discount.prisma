@@ -7,6 +7,7 @@ enum DiscountProvider {
 model Discount {
   id                     String           @id
   programId              String
+  groupId                String?
   amount                 Int              @default(0)
   type                   RewardStructure  @default(percentage)
   maxDuration            Int? // in months (0 -> one-time purchase, 1, 3, 6, 12, 24 -> months, null -> lifetime)
@@ -22,8 +23,10 @@ model Discount {
   program            Program             @relation("ProgramDiscounts", fields: [programId], references: [id])
   partnerGroup       PartnerGroup?
   discountCodes      DiscountCode[]
+  linkDiscounts      LinkReward[]
 
   @@index(programId)
+  @@index(groupId)
 }
 
 model DiscountCode {

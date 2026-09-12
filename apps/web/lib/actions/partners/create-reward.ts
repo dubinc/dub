@@ -38,6 +38,7 @@ export const createRewardAction = authActionClient
       spendLimitAmount,
       spendLimitInterval,
       activityDescription,
+      isDefault,
     } = parsedInput;
 
     throwIfNoPermission({
@@ -77,10 +78,8 @@ export const createRewardAction = authActionClient
 
     const rewardIdColumn = REWARD_EVENT_COLUMN_MAPPING[event];
 
-    if (group[rewardIdColumn]) {
-      throw new Error(
-        `You can't create a ${event} reward for this group because it already has a ${event} reward.`,
-      );
+    if (isDefault && group[rewardIdColumn]) {
+      throw new Error(`This group already has a default ${event} reward.`);
     }
 
     validateReward(parsedInput);
@@ -90,6 +89,7 @@ export const createRewardAction = authActionClient
         data: {
           id: createId({ prefix: "rw_" }),
           programId,
+          groupId,
           event,
           type,
           maxDuration,
@@ -111,14 +111,22 @@ export const createRewardAction = authActionClient
         },
       });
 
-      await tx.partnerGroup.update({
-        where: {
-          id: groupId,
-        },
-        data: {
-          [rewardIdColumn]: reward.id,
-        },
-      });
+      if (isDefault) {
+        const { count } = await tx.partnerGroup.updateMany({
+          where: {
+            id: groupId,
+            [rewardIdColumn]: null,
+          },
+          data: {
+            [rewardIdColumn]: reward.id,
+          },
+        });
+
+        // This means that the group already has a default reward
+        if (count === 0) {
+          throw new Error(`This group already has a default ${event} reward.`);
+        }
+      }
 
       return reward;
     });

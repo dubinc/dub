@@ -47,7 +47,7 @@ model Commission {
   payout            Payout?           @relation(fields: [payoutId], references: [id])
   link              Link?             @relation(fields: [linkId], references: [id])
   customer          Customer?         @relation(fields: [customerId], references: [id])
-  reward            Reward?           @relation(fields: [rewardId], references: [id])
+  reward            Reward?           @relation(fields: [rewardId], references: [id], onDelete: SetNull)
   bountySubmission  BountySubmission?
   user              User?             @relation(fields: [userId], references: [id])
 

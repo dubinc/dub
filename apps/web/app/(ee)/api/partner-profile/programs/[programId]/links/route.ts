@@ -2,25 +2,47 @@ import { DubApiError, ErrorCodes } from "@/lib/api/errors";
 import { createLink, processLink } from "@/lib/api/links";
 import { validatePartnerLinkUrl } from "@/lib/api/links/validate-partner-link-url";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
+import { getExpandableRewardReferences } from "@/lib/api/rewards/link-rewards";
 import { parseRequestBody } from "@/lib/api/utils";
 import { applyGroupUtmToLink } from "@/lib/api/utm/apply-group-utm-to-link";
 import { withPartnerProfile } from "@/lib/auth/partner";
+import { parseExpandFields } from "@/lib/expand/parse-expand-fields";
 import { prisma } from "@/lib/prisma";
 import { PartnerProfileLinkSchema } from "@/lib/zod/schemas/partner-profile";
 import {
   createPartnerLinkSchema,
   INACTIVE_ENROLLMENT_STATUSES,
+  PARTNER_LINK_EXPAND_FIELDS,
 } from "@/lib/zod/schemas/partners";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 
 // GET /api/partner-profile/programs/[programId]/links - get a partner's links in a program
-export const GET = withPartnerProfile(async ({ partner, params }) => {
+export const GET = withPartnerProfile(async ({ partner, params, req }) => {
+  const expandFields = parseExpandFields({
+    url: req.url,
+    allowedFields: PARTNER_LINK_EXPAND_FIELDS,
+  });
+
+  const expandReward = expandFields.has("reward");
+
   const { links, discountCodes } = await getProgramEnrollmentOrThrow({
     partnerId: partner.id,
     programId: params.programId,
     include: {
-      links: true,
+      links: {
+        include: {
+          linkReward: expandReward
+            ? {
+                include: {
+                  clickReward: true,
+                  leadReward: true,
+                  saleReward: true,
+                },
+              }
+            : true,
+        },
+      },
       discountCodes: true,
     },
   });
@@ -35,6 +57,10 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
 
     return {
       ...link,
+      ...getExpandableRewardReferences({
+        linkReward: link.linkReward,
+        expand: expandReward,
+      }),
       discountCode: discountCode?.code,
       discountCodeDisabledAt: discountCode?.disabledAt ?? null,
     };

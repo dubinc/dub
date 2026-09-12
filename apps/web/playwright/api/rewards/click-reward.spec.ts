@@ -44,6 +44,7 @@ test.describe("Click reward resolution", () => {
   test.beforeAll(async ({ program }) => {
     const reward = await createReward({
       programId: program.id,
+      groupId: program.defaultGroupId,
       event: EventType.click,
       type: RewardStructure.flat,
       amountInCents: 20,

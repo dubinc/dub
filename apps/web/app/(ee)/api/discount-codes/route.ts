@@ -28,20 +28,20 @@ export const GET = withWorkspace(
       pageSize,
     } = getDiscountCodesQuerySchema.parse(searchParams);
 
-    if (discountId) {
-      await getDiscountOrThrow({
-        discountId,
-        programId,
-      });
-    }
+    await Promise.all([
+      discountId &&
+        getDiscountOrThrow({
+          discountId,
+          programId,
+        }),
 
-    if (partnerId) {
-      await getProgramEnrollmentOrThrow({
-        partnerId,
-        programId,
-        include: {},
-      });
-    }
+      partnerId &&
+        getProgramEnrollmentOrThrow({
+          partnerId,
+          programId,
+          include: {},
+        }),
+    ]);
 
     const discountCodes = await prisma.discountCode.findMany({
       where: {
@@ -70,6 +70,7 @@ export const POST = withWorkspace(
 
     const body = await parseRequestBody(req);
 
+    // Remove the code if it is an empty string
     if (typeof body.code === "string" && body.code.trim() === "") {
       delete body.code;
     }
