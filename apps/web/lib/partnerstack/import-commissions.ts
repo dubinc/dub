@@ -1,6 +1,12 @@
 import { prisma } from "@/lib/prisma";
 import { nanoid, sleep } from "@dub/utils";
-import { CommissionStatus, Customer, Link, Program } from "@prisma/client";
+import {
+  CommissionSource,
+  CommissionStatus,
+  Customer,
+  Link,
+  Program,
+} from "@prisma/client";
 import { convertCurrencyWithFxRates } from "../analytics/convert-currency";
 import { isFirstConversion } from "../analytics/is-first-conversion";
 import { createId } from "../api/create-id";
@@ -216,6 +222,7 @@ export async function createCommissionFromPS({
         status: toDubStatus[commission.reward_status],
         invoiceId: commission.key,
         createdAt: new Date(commission.created_at),
+        source: CommissionSource.partnerstack,
       },
     });
 
@@ -373,6 +380,7 @@ export async function createCommissionFromPS({
         status: toDubStatus[commission.reward_status],
         invoiceId: commission.key, // this is not the actual invoice ID, but we use this to deduplicate the sales
         createdAt: new Date(commission.created_at),
+        source: CommissionSource.partnerstack,
       },
     }),
 

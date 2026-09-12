@@ -1,5 +1,9 @@
 import { DATE_RANGE_INTERVAL_PRESETS } from "@/lib/analytics/constants";
-import { CommissionStatus, CommissionType } from "@prisma/client";
+import {
+  CommissionSource,
+  CommissionStatus,
+  CommissionType,
+} from "@prisma/client";
 import * as z from "zod/v4";
 import { createCustomerBodySchema, CustomerSchema } from "./customers";
 import { trackLeadRequestSchema } from "./leads";
@@ -494,6 +498,7 @@ export const createPartnerCommissionSchema = z.object({
   createdAt: z.coerce.date().optional(),
   status: commissionPatchStatusSchema.optional(), // used for create-manual-commission (import commission as refunded)
   userId: z.string().optional(),
+  source: z.enum(CommissionSource).optional(),
   metadata: z.record(z.string(), z.any()).nullish(),
   context: rewardContextSchema.optional(),
   skipWorkflow: z.boolean().default(false).optional(),

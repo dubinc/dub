@@ -4,7 +4,7 @@ import { trackSale } from "@/lib/api/conversions/track-sale";
 import { DubApiError } from "@/lib/api/errors";
 import { prisma } from "@/lib/prisma";
 import { SubmittedLeadWithCustomer } from "@/lib/types";
-import { Project } from "@prisma/client";
+import { CommissionSource, Project } from "@prisma/client";
 
 interface MarkSubmittedLeadClosedWonInput {
   workspace: Pick<Project, "id" | "stripeConnectId" | "webhookEnabled">;
@@ -36,6 +36,7 @@ export const markSubmittedLeadClosedWon = async ({
     metadata: null,
     workspace,
     source: "submitted",
+    commissionSource: CommissionSource.submitted,
   });
 
   if (stripeCustomerId) {

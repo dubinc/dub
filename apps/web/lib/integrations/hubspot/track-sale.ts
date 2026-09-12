@@ -1,6 +1,7 @@
 import { trackSale } from "@/lib/api/conversions/track-sale";
 import { prisma } from "@/lib/prisma";
 import { WorkspaceProps } from "@/lib/types";
+import { CommissionSource } from "@prisma/client";
 import * as z from "zod/v4";
 import { HubSpotAuthToken } from "../types";
 import { HubSpotApi } from "./api";
@@ -88,6 +89,7 @@ export const trackHubSpotSaleEvent = async ({
     invoiceId: dealId,
     workspace,
     metadata: {},
+    commissionSource: CommissionSource.hubspot,
   });
 
   return `Sale tracked for deal ${dealId}.`;

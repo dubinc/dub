@@ -186,6 +186,7 @@ async function stepCreateCommission(
     createdAt,
     status,
     userId,
+    source,
     metadata,
     context,
     programEnrollment,
@@ -456,6 +457,7 @@ async function stepCreateCommission(
         eventId: eventId || null, // empty string should convert to null
         invoiceId: invoiceId || null, // empty string should convert to null
         userId,
+        source,
         quantity,
         amount,
         type: event,

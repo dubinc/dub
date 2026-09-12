@@ -17,6 +17,7 @@ import { CreatePartnerCommissionProps } from "@/lib/types";
 import { leadEventSchemaTB } from "@/lib/zod/schemas/leads";
 import { saleEventSchemaTB } from "@/lib/zod/schemas/sales";
 import { nanoid } from "@dub/utils";
+import { CommissionSource } from "@prisma/client";
 import "dotenv-flow/config";
 import * as z from "zod/v4";
 
@@ -128,6 +129,7 @@ async function main() {
         eventId: leadEventData.event_id,
         quantity: 1,
         createdAt: new Date(leadEventData.timestamp + "Z"), // add the "Z" to the timestamp to make it UTC
+        source: CommissionSource.api,
         context: {
           customer: { country: customer.country },
         },
@@ -183,6 +185,7 @@ async function main() {
           currency: saleEventData.currency,
           invoiceId: saleEventData.invoice_id,
           createdAt: new Date(saleEventData.timestamp + "Z"), // add the "Z" to the timestamp to make it UTC
+          source: CommissionSource.api,
           user,
           context: {
             customer: {
