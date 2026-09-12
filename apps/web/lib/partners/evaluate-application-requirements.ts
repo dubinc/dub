@@ -1,9 +1,94 @@
 import { EligibilityConditionDB } from "../types";
-import { applicationRequirementsSchema } from "../zod/schemas/programs";
+import {
+  applicationRequirementsSchema,
+  EligibilityProfileAttribute,
+} from "../zod/schemas/programs";
 
 interface Context {
   country?: string | null;
   email?: string | null;
+  profile?: {
+    hasVerifiedWebsite: boolean;
+    hasVerifiedSocialAccount: boolean;
+    // null while the partner's enrollment statuses are unknown (still loading
+    // or failed to load), so the attribute fails closed
+    hasProgramBans: boolean | null;
+  } | null;
+}
+
+export type EligibilityContext = Context;
+
+// Builds the evaluation context from a partner (plus their program enrollment
+// statuses)
+export function getEligibilityContext({
+  partner,
+  programEnrollmentStatuses,
+}: {
+  partner?: {
+    country?: string | null;
+    email?: string | null;
+    platforms?: { type: string; verifiedAt: Date | string | null }[] | null;
+  } | null;
+  programEnrollmentStatuses?: string[] | null;
+}): Context {
+  if (!partner) {
+    return {};
+  }
+
+  const platforms = partner.platforms ?? [];
+
+  return {
+    country: partner.country,
+    email: partner.email,
+    profile: {
+      hasVerifiedWebsite: platforms.some(
+        (p) => p.type === "website" && !!p.verifiedAt,
+      ),
+      hasVerifiedSocialAccount: platforms.some(
+        (p) => p.type !== "website" && !!p.verifiedAt,
+      ),
+      // Unknown enrollment statuses (still loading or failed to load) stay
+      // null rather than reading "no data" as "no bans"; an empty array is a
+      // known state and evaluates to no bans
+      hasProgramBans: programEnrollmentStatuses
+        ? programEnrollmentStatuses.includes("banned")
+        : null,
+    },
+  };
+}
+
+// Missing context data fails closed (attribute counts as unmet)
+export function isProfileAttributeMet(
+  profile: Context["profile"],
+  attribute: EligibilityProfileAttribute,
+): boolean {
+  if (!profile) {
+    return false;
+  }
+
+  const checks: Record<EligibilityProfileAttribute, boolean> = {
+    verified_website: profile.hasVerifiedWebsite,
+    verified_social_account: profile.hasVerifiedSocialAccount,
+    // unknown (null) counts as unmet
+    no_program_bans: profile.hasProgramBans === false,
+  };
+
+  return checks[attribute];
+}
+
+// Shared between enforcement and the eligibility card so the two can't drift.
+// A missing country fails closed for both operators.
+export function isCountryConditionMet(
+  country: Context["country"],
+  condition: Pick<EligibilityConditionDB, "operator" | "value">,
+): boolean {
+  if (!country) {
+    return false;
+  }
+
+  const matches = condition.value.includes(country);
+
+  return condition.operator === "is_not" ? !matches : matches;
 }
 
 interface Result {
@@ -89,7 +174,7 @@ export function evaluateApplicationRequirements({
   };
 }
 
-export function evaluateCondition({
+function evaluateCondition({
   condition,
   context,
 }: {
@@ -104,13 +189,7 @@ export function evaluateCondition({
 
   switch (condition.key) {
     case "country": {
-      if (!context.country) {
-        return false;
-      }
-
-      matches = condition.value.includes(context.country);
-
-      break;
+      return isCountryConditionMet(context.country, condition);
     }
 
     case "emailDomain": {
@@ -125,9 +204,20 @@ export function evaluateCondition({
       break;
     }
 
+    case "profile": {
+      matches = condition.value.every((attribute) =>
+        isProfileAttributeMet(
+          context.profile,
+          attribute as EligibilityProfileAttribute,
+        ),
+      );
+
+      break;
+    }
+
     default:
       return false;
   }
 
-  return condition.operator === "is" ? matches : !matches;
+  return condition.operator === "is_not" ? !matches : matches;
 }
