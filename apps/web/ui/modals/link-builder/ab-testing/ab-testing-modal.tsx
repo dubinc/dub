@@ -23,6 +23,7 @@ import {
   cn,
   formatDateTime,
   getDateTimeLocal,
+  getUrlFromString,
   isValidUrl,
   parseDateTime,
 } from "@dub/utils";
@@ -345,6 +346,17 @@ function ABTestingEdit({
                               testVariants.length > 1 &&
                               testVariants.length <= MAX_TEST_COUNT
                             );
+                          },
+                          onBlur: (e) => {
+                            const url = getUrlFromString(e.target.value);
+                            if (url) {
+                              // remove trailing slash and set the https:// prefix
+                              setValue(
+                                `testVariants.${index}.url`,
+                                url.replace(/\/$/, ""),
+                                { shouldDirty: true, shouldValidate: true },
+                              );
+                            }
                           },
                         })}
                       />
