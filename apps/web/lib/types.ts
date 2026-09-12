@@ -516,6 +516,7 @@ export type PartnerSharedPlatformProps = z.infer<
 export type PartnerProps = z.infer<typeof PartnerSchema> & {
   role: PartnerRole;
   userId: string;
+  usersLimit: number;
   platforms: PartnerPlatformProps[];
   defaultPayoutMethod: PartnerPayoutMethod | null;
   tremendousEmail: string | null;
