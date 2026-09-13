@@ -83,9 +83,9 @@ const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({
     active: pathname.startsWith("/payouts"),
   },
   {
-    name: "Partner profile",
+    name: "Profile settings",
     description:
-      "Build a great partner profile and get noticed in our partner network.",
+      "Customize your profile, invite your team, and manage your notifications.",
     icon: SquareUserSparkle2,
     href: "/profile",
     active: pathname.startsWith("/profile"),

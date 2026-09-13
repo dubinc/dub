@@ -83,6 +83,7 @@ model Partner {
   invoiceSettings     Json?
   changeHistoryLog    Json?
   referredByPartnerId String?
+  usersLimit          Int @default(10)
 
   programs                   ProgramEnrollment[]
   users                      PartnerUser[]
