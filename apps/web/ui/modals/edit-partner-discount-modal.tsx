@@ -10,6 +10,7 @@ import useGroup from "@/lib/swr/use-group";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { DiscountProps, EnrolledPartnerProps, GroupProps } from "@/lib/types";
 import { DiscountSheet } from "@/ui/partners/discounts/add-edit-discount-sheet";
+import { formatDiscountDescription } from "@/ui/partners/format-discount-description";
 import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import { ProgramRewardDescription } from "@/ui/partners/program-reward-description";
 import { AdditionalRewardOptionList } from "@/ui/partners/rewards/additional-reward-option-list";
@@ -161,12 +162,18 @@ function EditPartnerDiscountModal({
 
   const options = useMemo(
     () =>
-      sortedDiscounts.map((discount) => ({
-        id: discount.id,
-        isGroup: discount.id === groupDiscountId,
-        partnersCount: discount.partnersCount,
-        label: <ProgramRewardDescription discount={discount} />,
-      })),
+      sortedDiscounts.map((discount) => {
+        const isGroup = discount.id === groupDiscountId;
+        const description = formatDiscountDescription(discount);
+
+        return {
+          id: discount.id,
+          isGroup,
+          partnersCount: discount.partnersCount,
+          searchValue: isGroup ? `${description} group` : description,
+          label: <ProgramRewardDescription discount={discount} />,
+        };
+      }),
     [sortedDiscounts, groupDiscountId],
   );
 
@@ -276,7 +283,7 @@ function EditPartnerDiscountModal({
                   />
                 ))}
               </div>
-            ) : options.length > 0 ? (
+            ) : (
               <AdditionalRewardOptionList
                 options={options}
                 selectedId={selectedId}
@@ -290,11 +297,16 @@ function EditPartnerDiscountModal({
                   }
                 }}
                 onDelete={handleDelete}
+                searchPlaceholder="Search discounts..."
+                emptyLabel={
+                  options.length === 0
+                    ? "No discounts available. Create one to get started."
+                    : "No discounts found"
+                }
+                createHref={createDiscountHref}
+                createLabel="Create discount"
+                showModal={showModal}
               />
-            ) : (
-              <p className="text-content-subtle px-2.5 text-sm">
-                No discounts available. Create one to get started.
-              </p>
             )}
           </div>
 

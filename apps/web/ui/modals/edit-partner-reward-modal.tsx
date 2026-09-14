@@ -12,6 +12,7 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps, GroupProps, RewardProps } from "@/lib/types";
 import { REWARD_EVENT_COLUMN_MAPPING } from "@/lib/zod/schemas/rewards";
 import { useConfirmRewardChangeModal } from "@/ui/modals/confirm-reward-change-modal";
+import { formatRewardDescription } from "@/ui/partners/format-reward-description";
 import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import { ProgramRewardDescription } from "@/ui/partners/program-reward-description";
 import { RewardSheet } from "@/ui/partners/rewards/add-edit-reward-sheet";
@@ -218,17 +219,23 @@ function EditPartnerRewardModal({
 
   const options = useMemo(
     () =>
-      eventRewards.map((reward) => ({
-        id: reward.id,
-        isGroup: reward.id === groupRewardId,
-        partnersCount: reward.partnersCount,
-        label: (
-          <ProgramRewardDescription
-            reward={reward}
-            amountClassName="font-normal"
-          />
-        ),
-      })),
+      eventRewards.map((reward) => {
+        const isGroup = reward.id === groupRewardId;
+        const description = formatRewardDescription(reward);
+
+        return {
+          id: reward.id,
+          isGroup,
+          partnersCount: reward.partnersCount,
+          searchValue: isGroup ? `${description} group` : description,
+          label: (
+            <ProgramRewardDescription
+              reward={reward}
+              amountClassName="font-normal"
+            />
+          ),
+        };
+      }),
     [eventRewards, groupRewardId],
   );
 
@@ -348,7 +355,7 @@ function EditPartnerRewardModal({
                   />
                 ))}
               </div>
-            ) : options.length > 0 ? (
+            ) : (
               <AdditionalRewardOptionList
                 options={options}
                 selectedId={selectedId}
@@ -360,11 +367,16 @@ function EditPartnerRewardModal({
                   }
                 }}
                 onDelete={handleDelete}
+                searchPlaceholder="Search rewards..."
+                emptyLabel={
+                  options.length === 0
+                    ? `No ${event} rewards available. Create one to get started.`
+                    : "No rewards found"
+                }
+                createHref={createRewardHref}
+                createLabel="Create reward"
+                showModal={showModal}
               />
-            ) : (
-              <p className="text-content-subtle px-2.5 text-sm">
-                No {event} rewards available. Create one to get started.
-              </p>
             )}
           </div>
 

@@ -3,23 +3,31 @@
 import { GroupBadge } from "@/ui/partners/rewards/group-badge";
 import { ThreeDots } from "@/ui/shared/icons";
 import {
+  AnimatedSizeContainer,
   Button,
   MenuItem,
   Popover,
   RadioGroup,
   RadioGroupItem,
   Users,
+  useMediaQuery,
+  useScrollProgress,
 } from "@dub/ui";
-import { Pen2, Trash } from "@dub/ui/icons";
+import { Pen2, Plus2, Trash } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
-import { ReactNode, useState } from "react";
+import { Command } from "cmdk";
+import { ReactNode, useEffect, useMemo, useRef, useState } from "react";
 
 export type AdditionalRewardOption = {
   id: string;
   label: ReactNode;
+  searchValue: string;
   isGroup?: boolean;
   partnersCount?: number | null;
 };
+
+const createItemClassName =
+  "group/button flex h-10 cursor-pointer items-center justify-start gap-2 rounded-lg px-2.5 data-[selected=true]:bg-black/[0.03]";
 
 export function AdditionalRewardOptionList({
   options,
@@ -27,29 +35,159 @@ export function AdditionalRewardOptionList({
   onSelect,
   onEdit,
   onDelete,
+  searchPlaceholder,
+  emptyLabel,
+  createHref,
+  createLabel,
+  showModal,
 }: {
   options: AdditionalRewardOption[];
   selectedId: string | null | undefined;
   onSelect: (id: string) => void;
   onEdit?: (id: string) => void;
   onDelete?: (id: string) => void;
+  searchPlaceholder: string;
+  emptyLabel: string;
+  createHref?: string;
+  createLabel?: string;
+  showModal?: boolean;
 }) {
+  const [search, setSearch] = useState("");
+  const { isMobile } = useMediaQuery();
+  const inputRef = useRef<HTMLInputElement>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const { scrollProgress, updateScrollProgress } = useScrollProgress(scrollRef);
+  const wasModalOpenRef = useRef(false);
+
+  useEffect(() => {
+    if (showModal === undefined) {
+      return;
+    }
+
+    if (showModal) {
+      if (!wasModalOpenRef.current) {
+        setSearch("");
+      }
+      wasModalOpenRef.current = true;
+    } else {
+      wasModalOpenRef.current = false;
+      setSearch("");
+    }
+  }, [showModal]);
+
+  useEffect(() => {
+    if (showModal === false) {
+      return;
+    }
+
+    inputRef.current &&
+      !isMobile &&
+      setTimeout(() => inputRef.current?.focus(), 10);
+  }, [isMobile, showModal]);
+
+  const normalizedSearch = search.trim().toLowerCase();
+
+  const filteredOptions = useMemo(() => {
+    if (!normalizedSearch) {
+      return options;
+    }
+
+    return options.filter((option) =>
+      option.searchValue.toLowerCase().includes(normalizedSearch),
+    );
+  }, [options, normalizedSearch]);
+
+  const showCreate =
+    Boolean(normalizedSearch) &&
+    filteredOptions.length === 0 &&
+    Boolean(createHref) &&
+    Boolean(createLabel);
+
   return (
-    <RadioGroup
-      value={selectedId ?? undefined}
-      onValueChange={onSelect}
-      className="flex flex-col gap-0"
+    <AnimatedSizeContainer
+      height
+      transition={{ ease: "easeOut", duration: 0.1 }}
+      className="pointer-events-auto -m-1 overflow-clip"
     >
-      {options.map((option) => (
-        <AdditionalRewardOptionRow
-          key={option.id}
-          option={option}
-          selected={option.id === selectedId}
-          onEdit={onEdit}
-          onDelete={onDelete}
+      <Command loop shouldFilter={false} className="p-1 pb-2">
+        <Command.Input
+          ref={inputRef}
+          placeholder={searchPlaceholder}
+          value={search}
+          onValueChange={setSearch}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+            }
+          }}
+          className="border-border-default placeholder:text-content-muted w-full rounded-lg border px-2.5 py-2 focus:border-neutral-500 focus:outline-none focus:ring-1 focus:ring-neutral-500 sm:text-sm"
         />
-      ))}
-    </RadioGroup>
+        <div className="relative">
+          <div
+            ref={scrollRef}
+            onScroll={updateScrollProgress}
+            className="scrollbar-hide max-h-[calc(100dvh-250px)] overflow-y-auto"
+          >
+            <Command.List className="mt-4">
+              <RadioGroup
+                value={
+                  filteredOptions.some((option) => option.id === selectedId)
+                    ? selectedId ?? undefined
+                    : undefined
+                }
+                onValueChange={onSelect}
+                className="flex flex-col gap-0"
+              >
+                {filteredOptions.map((option) => (
+                  <Command.Item
+                    key={option.id}
+                    value={`${option.searchValue} ${option.id}`}
+                    onSelect={() => onSelect(option.id)}
+                    className="outline-none"
+                  >
+                    <AdditionalRewardOptionRow
+                      option={option}
+                      selected={option.id === selectedId}
+                      onEdit={onEdit}
+                      onDelete={onDelete}
+                    />
+                  </Command.Item>
+                ))}
+              </RadioGroup>
+
+              {showCreate && (
+                <Command.Item
+                  className={createItemClassName}
+                  value={`create::${search}`}
+                  forceMount
+                  onSelect={() => {
+                    if (createHref) {
+                      window.open(createHref, "_blank", "noopener,noreferrer");
+                    }
+                  }}
+                >
+                  <Plus2 className="size-3.5 shrink-0" />
+                  <span className="min-w-0 truncate text-sm font-medium">
+                    {createLabel}
+                  </span>
+                </Command.Item>
+              )}
+
+              {filteredOptions.length === 0 && (
+                <div className="text-content-default flex select-none flex-col items-center justify-center gap-2 py-12">
+                  <span className="text-sm font-medium">{emptyLabel}</span>
+                </div>
+              )}
+            </Command.List>
+          </div>
+
+          <div
+            className="pointer-events-none absolute bottom-0 left-0 hidden h-16 w-full bg-gradient-to-t from-white sm:block"
+            style={{ opacity: 1 - Math.pow(scrollProgress, 2) }}
+          />
+        </div>
+      </Command>
+    </AnimatedSizeContainer>
   );
 }
 
