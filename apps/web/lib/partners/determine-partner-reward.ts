@@ -33,6 +33,35 @@ interface ProductReward {
   };
 }
 
+export const getRewardMaxDurationForContext = ({
+  reward,
+  context,
+}: {
+  reward: Pick<Reward, "maxDuration" | "modifiers">;
+  context?: RewardContext;
+}): number | null => {
+  if (!reward.modifiers || !context) {
+    return reward.maxDuration;
+  }
+
+  const modifiers = rewardConditionsArraySchema.safeParse(reward.modifiers);
+
+  if (!modifiers.success) {
+    return reward.maxDuration;
+  }
+
+  const matchedCondition = evaluateRewardConditions({
+    conditions: modifiers.data,
+    context,
+  });
+
+  if (matchedCondition && matchedCondition.maxDuration !== undefined) {
+    return matchedCondition.maxDuration;
+  }
+
+  return reward.maxDuration;
+};
+
 export const determinePartnerReward = ({
   event,
   programEnrollment,
