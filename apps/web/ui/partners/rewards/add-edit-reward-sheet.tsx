@@ -245,7 +245,8 @@ function RewardSheetContent({
   const formRef = useRef<HTMLFormElement>(null);
   const { mutate: mutateProgram } = useProgram();
   const { queryParams, searchParams } = useRouterStuff();
-  const isDefault = !getCreateRewardEventFromQuery(searchParams);
+  const isDefault =
+    getCreateRewardEventFromQuery(searchParams)?.isDefault ?? true;
 
   const defaultValuesSource = reward || defaultRewardValues;
 

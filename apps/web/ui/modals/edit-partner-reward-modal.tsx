@@ -206,7 +206,7 @@ function EditPartnerRewardModal({
 
   const createRewardHref =
     slug && group?.slug
-      ? `/${slug}/program/groups/${group.slug}/rewards?default=true&event=${event}`
+      ? `/${slug}/program/groups/${group.slug}/rewards?default=false&event=${event}`
       : undefined;
 
   const CreateIcon = REWARD_EVENT_ICON[event];

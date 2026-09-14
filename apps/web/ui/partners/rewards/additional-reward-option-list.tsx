@@ -134,8 +134,8 @@ function AdditionalRewardOptionRow({
               icon={<ThreeDots className="size-3.5" />}
               className="size-6 rounded-lg border-transparent p-0 hover:bg-black/5"
               onClick={(e) => {
-                e.preventDefault();
                 e.stopPropagation();
+                setOpenPopover(!openPopover);
               }}
             />
           </Popover>

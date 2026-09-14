@@ -84,7 +84,8 @@ function DiscountSheetContent({
   const { mutate: mutateProgram } = useProgram();
   const { id: workspaceId, defaultProgramId } = useWorkspace();
   const { searchParams } = useRouterStuff();
-  const isDefault = !getCreateRewardEventFromQuery(searchParams);
+  const isDefault =
+    getCreateRewardEventFromQuery(searchParams)?.isDefault ?? true;
 
   const isEdit = Boolean(discount?.id);
 

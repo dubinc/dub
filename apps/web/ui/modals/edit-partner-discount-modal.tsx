@@ -152,7 +152,7 @@ function EditPartnerDiscountModal({
 
   const createDiscountHref =
     slug && group?.slug
-      ? `/${slug}/program/groups/${group.slug}/discounts?default=true`
+      ? `/${slug}/program/groups/${group.slug}/discounts?default=false`
       : undefined;
 
   const options = useMemo(

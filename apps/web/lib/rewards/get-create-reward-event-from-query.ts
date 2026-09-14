@@ -2,8 +2,10 @@ import { EventType } from "@prisma/client";
 
 export function getCreateRewardEventFromQuery(
   searchParams: URLSearchParams,
-): { event: EventType } | null {
-  if (searchParams.get("default") !== "true") {
+): { event: EventType; isDefault: boolean } | null {
+  const defaultParam = searchParams.get("default");
+
+  if (defaultParam !== "true" && defaultParam !== "false") {
     return null;
   }
 
@@ -11,5 +13,6 @@ export function getCreateRewardEventFromQuery(
 
   return {
     event: event && event in EventType ? (event as EventType) : "sale",
+    isDefault: defaultParam === "true",
   };
 }
