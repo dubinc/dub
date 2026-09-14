@@ -1,5 +1,6 @@
 "use client";
 
+import { getCreateRewardEventFromQuery } from "@/lib/rewards/get-create-reward-event-from-query";
 import useGroup from "@/lib/swr/use-group";
 import type { DiscountProps, GroupProps } from "@/lib/types";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
@@ -29,9 +30,15 @@ export const GroupDiscounts = () => {
 
     if (discountId) {
       setDiscountSheetState({ open: true, discountId });
-    } else {
-      setDiscountSheetState({ open: false, discountId: null });
+      return;
     }
+
+    if (getCreateRewardEventFromQuery(searchParams)) {
+      setDiscountSheetState({ open: true, discountId: "new" });
+      return;
+    }
+
+    setDiscountSheetState({ open: false, discountId: null });
   }, [searchParams]);
 
   const currentDiscount =

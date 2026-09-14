@@ -91,7 +91,7 @@ function EditPartnerLinkRewardModal({
 
   const createRewardHref =
     slug && group?.slug
-      ? `/${slug}/program/groups/${group.slug}/rewards?isDefault=false`
+      ? `/${slug}/program/groups/${group.slug}/rewards?default=true`
       : undefined;
 
   const { clickRewards, saleRewards, leadRewards } =

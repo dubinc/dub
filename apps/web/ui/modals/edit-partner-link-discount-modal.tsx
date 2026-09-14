@@ -82,7 +82,7 @@ function EditPartnerLinkDiscountModal({
 
   const createDiscountHref =
     slug && group?.slug
-      ? `/${slug}/program/groups/${group.slug}/discounts?discountId=new&isDefault=false`
+      ? `/${slug}/program/groups/${group.slug}/discounts?default=true`
       : undefined;
 
   return (

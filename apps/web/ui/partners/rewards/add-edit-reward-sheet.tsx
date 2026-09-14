@@ -8,6 +8,7 @@ import { constructRewardAmount } from "@/lib/api/sales/construct-reward-amount";
 import { handleMoneyInputChange, handleMoneyKeyDown } from "@/lib/form-utils";
 import { ReferralRewardConfig } from "@/lib/partner-referrals/types";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
+import { getCreateRewardEventFromQuery } from "@/lib/rewards/get-create-reward-event-from-query";
 import useGroup from "@/lib/swr/use-group";
 import usePartnersCount from "@/lib/swr/use-partners-count";
 import useProgram from "@/lib/swr/use-program";
@@ -244,7 +245,7 @@ function RewardSheetContent({
   const formRef = useRef<HTMLFormElement>(null);
   const { mutate: mutateProgram } = useProgram();
   const { queryParams, searchParams } = useRouterStuff();
-  const isDefault = searchParams.get("isDefault") !== "false";
+  const isDefault = !getCreateRewardEventFromQuery(searchParams);
 
   const defaultValuesSource = reward || defaultRewardValues;
 
@@ -1144,7 +1145,7 @@ export function RewardSheet({
     rest.setIsOpen(value);
 
     if (!nextOpen) {
-      queryParams({ del: ["rewardId", "isDefault"] });
+      queryParams({ del: ["rewardId", "isDefault", "default", "event"] });
     }
   };
 

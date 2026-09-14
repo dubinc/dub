@@ -561,7 +561,17 @@ export const createRewardSchema = createOrUpdateRewardSchema
       data.type = "flat";
       data.maxDuration = 0;
     }
-  });
+  })
+  .refine(
+    (data) =>
+      data.isDefault ||
+      (["click", "lead", "sale"] as EventType[]).includes(data.event),
+    {
+      message:
+        "Non-default rewards can only be created for click, lead, and sale events.",
+      path: ["event"],
+    },
+  );
 
 export const updateRewardSchema = createOrUpdateRewardSchema
   .omit({

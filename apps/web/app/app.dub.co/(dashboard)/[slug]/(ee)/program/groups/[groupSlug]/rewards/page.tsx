@@ -1,6 +1,7 @@
 "use client";
 
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
+import { getCreateRewardEventFromQuery } from "@/lib/rewards/get-create-reward-event-from-query";
 import useGroup from "@/lib/swr/use-group";
 import useWorkspace from "@/lib/swr/use-workspace";
 import type { GroupProps, RewardProps } from "@/lib/types";
@@ -39,9 +40,20 @@ export default function GroupRewardsPage() {
 
     if (rewardId) {
       setRewardSheetState({ open: true, rewardId });
-    } else {
-      setRewardSheetState({ open: false, rewardId: null });
+      return;
     }
+
+    const createReward = getCreateRewardEventFromQuery(searchParams);
+
+    if (createReward) {
+      setRewardSheetState({
+        open: true,
+        rewardId: `new-${createReward.event}`,
+      });
+      return;
+    }
+
+    setRewardSheetState({ open: false, rewardId: null });
   }, [searchParams]);
 
   const rewards =

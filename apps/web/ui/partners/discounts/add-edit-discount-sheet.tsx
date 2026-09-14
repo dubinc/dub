@@ -5,6 +5,7 @@ import { deleteDiscountAction } from "@/lib/actions/partners/delete-discount";
 import { updateDiscountAction } from "@/lib/actions/partners/update-discount";
 import { constructDiscountAmount } from "@/lib/api/sales/construct-discount-amount";
 import { handleMoneyInputChange, handleMoneyKeyDown } from "@/lib/form-utils";
+import { getCreateRewardEventFromQuery } from "@/lib/rewards/get-create-reward-event-from-query";
 import useGroup from "@/lib/swr/use-group";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -83,7 +84,7 @@ function DiscountSheetContent({
   const { mutate: mutateProgram } = useProgram();
   const { id: workspaceId, defaultProgramId } = useWorkspace();
   const { searchParams } = useRouterStuff();
-  const isDefault = searchParams.get("isDefault") !== "false";
+  const isDefault = !getCreateRewardEventFromQuery(searchParams);
 
   const isEdit = Boolean(discount?.id);
 
@@ -680,7 +681,10 @@ export function DiscountSheet({
     const nextOpen = typeof value === "function" ? value(isOpen) : value;
     rest.setIsOpen(value);
     if (!nextOpen) {
-      queryParams({ del: ["discountId", "isDefault"], scroll: false });
+      queryParams({
+        del: ["discountId", "isDefault", "default"],
+        scroll: false,
+      });
     }
   };
 
