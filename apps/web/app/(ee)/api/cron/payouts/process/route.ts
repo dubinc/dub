@@ -83,7 +83,7 @@ export const POST = withCron(async ({ rawBody }) => {
       });
     }
 
-    await processPayouts({
+    const result = await processPayouts({
       program,
       workspace,
       invoice,
@@ -94,7 +94,9 @@ export const POST = withCron(async ({ rawBody }) => {
       excludedPayoutIds,
     });
 
-    return logAndRespond(`Processed payouts for program ${program.name}.`);
+    return logAndRespond(
+      result ?? `Processed payouts for program ${program.name}.`,
+    );
   } catch (error) {
     await log({
       message: `Error confirming payouts for program: ${error.message}`,

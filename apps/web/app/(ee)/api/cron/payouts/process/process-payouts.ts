@@ -65,7 +65,7 @@ export async function processPayouts({
   cutoffPeriod,
   selectedPayoutIds,
   excludedPayoutIds,
-}: ProcessPayoutsProps) {
+}: ProcessPayoutsProps): Promise<string | void> {
   const cutoffPeriodValue = CUTOFF_PERIOD.find(
     (c) => c.id === cutoffPeriod,
   )?.value;
@@ -218,33 +218,54 @@ export async function processPayouts({
     totalToCharge = convertedTotal;
   }
 
-  await stripe.paymentIntents.create(
-    {
-      amount: totalToCharge,
-      customer: workspace.stripeId!,
-      payment_method_types: [paymentMethod.type],
-      payment_method: paymentMethod.id,
-      ...(paymentMethod.type === "us_bank_account" && {
-        payment_method_options: {
-          us_bank_account: {
-            preferred_settlement_speed:
-              invoice.paymentMethod === "ach_fast" ? "fastest" : "standard",
+  try {
+    await stripe.paymentIntents.create(
+      {
+        amount: totalToCharge,
+        customer: workspace.stripeId!,
+        payment_method_types: [paymentMethod.type],
+        payment_method: paymentMethod.id,
+        ...(paymentMethod.type === "us_bank_account" && {
+          payment_method_options: {
+            us_bank_account: {
+              preferred_settlement_speed:
+                invoice.paymentMethod === "ach_fast" ? "fastest" : "standard",
+            },
           },
-        },
-      }),
-      currency,
-      confirmation_method: "automatic",
-      confirm: true,
-      transfer_group: invoice.id,
-      ...(paymentMethod.type === "card"
-        ? { statement_descriptor_suffix: "Dub Partners" }
-        : { statement_descriptor: "Dub Partners" }),
-      description: `Dub Partners payout invoice (${invoice.id})`,
-    },
-    {
-      idempotencyKey: `process-payout-invoice/${invoice.id}`,
-    },
-  );
+        }),
+        currency,
+        confirmation_method: "automatic",
+        confirm: true,
+        transfer_group: invoice.id,
+        ...(paymentMethod.type === "card"
+          ? { statement_descriptor_suffix: "Dub Partners" }
+          : { statement_descriptor: "Dub Partners" }),
+        description: `Dub Partners payout invoice (${invoice.id})`,
+      },
+      {
+        idempotencyKey: `process-payout-invoice/${invoice.id}`,
+      },
+    );
+  } catch (error) {
+    // Payment attempt failures (e.g. card declines) throw from confirm:true.
+    // Log and return instead of throwing so the cron doesn't 500 / retry —
+    // charge.failed will mark the invoice failed and reset payouts.
+    const errorMessage =
+      error instanceof Error ? error.message : String(error);
+
+    console.error(
+      `Failed to create payment intent for invoice ${invoice.id}:`,
+      error,
+    );
+
+    await log({
+      message: `Failed to create payment intent for the invoice ${invoice.id}. ${JSON.stringify(error, null, 2)}`,
+      type: "errors",
+      mention: true,
+    });
+
+    return `Payment failed for invoice ${invoice.id}: ${errorMessage}`;
+  }
 
   const { users } = await prisma.project.update({
     where: {
