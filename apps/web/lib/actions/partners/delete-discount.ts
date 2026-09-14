@@ -45,6 +45,9 @@ export const deleteDiscountAction = authActionClient
     });
 
     await prisma.$transaction(async (tx) => {
+      // Unassign the 1:1 group default. Other Discount relations
+      // (ProgramEnrollment, LinkReward, DiscountCode) are optional, so Prisma
+      // defaults to onDelete: SetNull (emulated; relationMode = "prisma").
       await tx.partnerGroup.updateMany({
         where: {
           discountId: discount.id,
