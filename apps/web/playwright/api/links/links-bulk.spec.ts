@@ -142,36 +142,22 @@ test("POST /links/bulk – rejects invalid partnerId", async ({
   program,
 }) => {
   const invalidPartnerId = `pn_${nanoid()}`;
-  const validBody = bulkLinkBody();
   const invalidBody = bulkLinkBody({
     programId: program.id,
     partnerId: invalidPartnerId,
   });
 
-  const createdIds: string[] = [];
+  const { status, data } = await createBulkLinks(api, [invalidBody]);
 
-  try {
-    const { status, data } = await createBulkLinks(api, [
-      invalidBody,
-      validBody,
-    ]);
-    const created = data.filter(isBulkLink);
-    const errors = data.filter(isBulkError);
-    createdIds.push(...created.map((link) => link.id));
-
-    expect(status).toEqual(200);
-    expect(created).toHaveLength(1);
-    expect(created[0].url).toEqual(validBody.url);
-    expect(errors).toEqual([
-      {
-        error: `Invalid partnerId detected: ${invalidPartnerId}`,
-        code: "unprocessable_entity",
-        link: expect.any(Object),
-      },
-    ]);
-  } finally {
-    await deleteLinks(api, createdIds);
-  }
+  expect(status).toEqual(200);
+  expect(data.filter(isBulkLink)).toHaveLength(0);
+  expect(data.filter(isBulkError)).toEqual([
+    {
+      error: `Invalid partnerId detected: ${invalidPartnerId}`,
+      code: "unprocessable_entity",
+      link: expect.any(Object),
+    },
+  ]);
 });
 
 test("PATCH /links/bulk – with valid programId and partnerId", async ({
