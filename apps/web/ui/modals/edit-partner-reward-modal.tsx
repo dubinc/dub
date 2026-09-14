@@ -19,7 +19,7 @@ import { REWARD_EVENT_ICON } from "@/ui/partners/rewards/reward-event-icon";
 import { Button, Modal } from "@dub/ui";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { mutate } from "swr";
 
@@ -124,7 +124,6 @@ function EditPartnerRewardModal({
   const { id: workspaceId, slug } = useWorkspace();
   const { rewards, loading: rewardsLoading } = useRewards({
     swrOpts: {
-      dedupingInterval: 2000,
       revalidateOnFocus: true,
     },
   });
@@ -172,7 +171,7 @@ function EditPartnerRewardModal({
         groupRewardId,
       }),
     );
-  }, [showModal, target, event, groupRewardId]);
+  }, [showModal, event, groupRewardId]);
 
   const { executeAsync: updateEnrollment, isPending: isUpdatingEnrollment } =
     useAction(updatePartnerEnrollmentAction, {
@@ -396,9 +395,17 @@ export function useEditPartnerRewardModal({
   group?: GroupProps | null;
 }) {
   const [showModal, setShowModal] = useState(false);
+  const propsRef = useRef({ event, target, group });
+  propsRef.current = { event, target, group };
 
   const EditPartnerRewardModalCallback = useCallback(() => {
-    if (!target) {
+    const {
+      event: currentEvent,
+      target: currentTarget,
+      group: currentGroup,
+    } = propsRef.current;
+
+    if (!currentTarget) {
       return null;
     }
 
@@ -406,12 +413,12 @@ export function useEditPartnerRewardModal({
       <EditPartnerRewardModal
         showModal={showModal}
         setShowModal={setShowModal}
-        event={event}
-        target={target}
-        group={group}
+        event={currentEvent}
+        target={currentTarget}
+        group={currentGroup}
       />
     );
-  }, [showModal, event, target, group]);
+  }, [showModal]);
 
   return useMemo(
     () => ({

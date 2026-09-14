@@ -6,7 +6,6 @@ import {
   GroupProps,
   RewardProps,
 } from "@/lib/types";
-import { groupBy } from "@dub/utils";
 import { useMemo } from "react";
 
 export type PartnerRewardItem = RewardProps & {
@@ -16,6 +15,33 @@ export type PartnerRewardItem = RewardProps & {
 export type PartnerDiscountItem = DiscountProps & {
   isOverride: boolean;
 };
+
+type RewardEvent = "click" | "lead" | "sale";
+
+const rewardConfig: {
+  event: RewardEvent;
+  partnerKey: keyof Pick<
+    EnrolledPartnerProps,
+    "clickRewardId" | "leadRewardId" | "saleRewardId"
+  >;
+  groupKey: "clickReward" | "leadReward" | "saleReward";
+}[] = [
+  {
+    event: "click",
+    partnerKey: "clickRewardId",
+    groupKey: "clickReward",
+  },
+  {
+    event: "lead",
+    partnerKey: "leadRewardId",
+    groupKey: "leadReward",
+  },
+  {
+    event: "sale",
+    partnerKey: "saleRewardId",
+    groupKey: "saleReward",
+  },
+];
 
 export function usePartnerRewards({
   partner,
@@ -42,50 +68,38 @@ export function usePartnerRewards({
     const rewards: PartnerRewardItem[] = [];
     let discount: PartnerDiscountItem | null = null;
 
-    if (!group || !groupRewards || !groupDiscounts) {
+    if (!group) {
       return {
         rewards,
         discount,
       };
     }
 
-    const rewardsById = groupBy(groupRewards, ({ id }) => id);
-    const discountsById = groupBy(groupDiscounts, ({ id }) => id);
+    const rewardsById = new Map(
+      (groupRewards ?? []).map((reward) => [reward.id, reward]),
+    );
 
-    if (partner?.clickRewardId) {
-      const isOverride = Boolean(
-        partner.clickRewardId !== group.clickReward?.id,
-      );
-      const reward = rewardsById[partner.clickRewardId]?.[0];
+    const discountsById = new Map(
+      (groupDiscounts ?? []).map((discount) => [discount.id, discount]),
+    );
 
-      if (reward) {
+    for (const { partnerKey, groupKey } of rewardConfig) {
+      const partnerRewardId = partner?.[partnerKey];
+      const groupReward = group[groupKey];
+
+      if (partnerRewardId) {
+        const reward = rewardsById.get(partnerRewardId);
+
+        if (reward) {
+          rewards.push({
+            ...reward,
+            isOverride: partnerRewardId !== groupReward?.id,
+          });
+        }
+      } else if (groupReward) {
         rewards.push({
-          ...reward,
-          isOverride,
-        });
-      }
-    }
-
-    if (partner?.leadRewardId) {
-      const isOverride = Boolean(partner.leadRewardId !== group.leadReward?.id);
-      const reward = rewardsById[partner.leadRewardId]?.[0];
-
-      if (reward) {
-        rewards.push({
-          ...reward,
-          isOverride,
-        });
-      }
-    }
-
-    if (partner?.saleRewardId) {
-      const isOverride = Boolean(partner.saleRewardId !== group.saleReward?.id);
-      const reward = rewardsById[partner.saleRewardId]?.[0];
-
-      if (reward) {
-        rewards.push({
-          ...reward,
-          isOverride,
+          ...groupReward,
+          isOverride: false,
         });
       }
     }
@@ -105,15 +119,19 @@ export function usePartnerRewards({
     }
 
     if (partner?.discountId) {
-      const isOverride = Boolean(partner.discountId !== group.discount?.id);
-      const effectiveDiscount = discountsById[partner.discountId]?.[0];
+      const resolvedDiscount = discountsById.get(partner.discountId);
 
-      if (effectiveDiscount) {
+      if (resolvedDiscount) {
         discount = {
-          ...effectiveDiscount,
-          isOverride,
+          ...resolvedDiscount,
+          isOverride: partner.discountId !== group.discount?.id,
         };
       }
+    } else if (group.discount) {
+      discount = {
+        ...group.discount,
+        isOverride: false,
+      };
     }
 
     return {

@@ -27,9 +27,8 @@ export function useRewards({
     workspaceId && defaultProgramId && `/api/rewards?${searchParams}`,
     fetcher,
     {
-      dedupingInterval: 60000,
-      keepPreviousData: true,
       ...swrOpts,
+      keepPreviousData: true,
     },
   );
 

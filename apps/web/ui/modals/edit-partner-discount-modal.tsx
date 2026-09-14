@@ -16,7 +16,7 @@ import { Button, Modal } from "@dub/ui";
 import { Discount } from "@dub/ui/icons";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { mutate } from "swr";
 
@@ -80,7 +80,6 @@ function EditPartnerDiscountModal({
     useApiMutation();
   const { discounts, loading: discountsLoading } = useDiscounts({
     swrOpts: {
-      dedupingInterval: 2000,
       revalidateOnFocus: true,
     },
   });
@@ -118,7 +117,7 @@ function EditPartnerDiscountModal({
         groupDiscountId,
       }),
     );
-  }, [showModal, target, groupDiscountId]);
+  }, [showModal, groupDiscountId]);
 
   const { executeAsync: updateEnrollment, isPending: isUpdatingEnrollment } =
     useAction(updatePartnerEnrollmentAction, {
@@ -325,9 +324,13 @@ export function useEditPartnerDiscountModal({
   group?: GroupProps | null;
 }) {
   const [showModal, setShowModal] = useState(false);
+  const propsRef = useRef({ target, group });
+  propsRef.current = { target, group };
 
   const EditPartnerDiscountModalCallback = useCallback(() => {
-    if (!target) {
+    const { target: currentTarget, group: currentGroup } = propsRef.current;
+
+    if (!currentTarget) {
       return null;
     }
 
@@ -335,11 +338,11 @@ export function useEditPartnerDiscountModal({
       <EditPartnerDiscountModal
         showModal={showModal}
         setShowModal={setShowModal}
-        target={target}
-        group={group}
+        target={currentTarget}
+        group={currentGroup}
       />
     );
-  }, [showModal, target, group]);
+  }, [showModal]);
 
   return useMemo(
     () => ({
