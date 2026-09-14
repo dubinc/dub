@@ -44,6 +44,9 @@ type PartnerLink = NonNullable<EnrolledPartnerProps["links"]>[number];
 type PartnerForOverrides = Pick<
   EnrolledPartnerProps,
   | "id"
+  | "name"
+  | "email"
+  | "image"
   | "groupId"
   | "clickRewardId"
   | "leadRewardId"

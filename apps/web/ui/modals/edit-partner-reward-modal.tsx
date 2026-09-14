@@ -12,6 +12,7 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps, GroupProps, RewardProps } from "@/lib/types";
 import { REWARD_EVENT_COLUMN_MAPPING } from "@/lib/zod/schemas/rewards";
 import { useConfirmRewardChangeModal } from "@/ui/modals/confirm-reward-change-modal";
+import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import { ProgramRewardDescription } from "@/ui/partners/program-reward-description";
 import { RewardSheet } from "@/ui/partners/rewards/add-edit-reward-sheet";
 import { AdditionalRewardOptionList } from "@/ui/partners/rewards/additional-reward-option-list";
@@ -25,22 +26,27 @@ import { mutate } from "swr";
 
 type PartnerLink = NonNullable<EnrolledPartnerProps["links"]>[number];
 type OverrideRewardEvent = "sale" | "lead" | "click";
+type PartnerRewardOverridePartner = Pick<
+  EnrolledPartnerProps,
+  | "id"
+  | "name"
+  | "email"
+  | "image"
+  | "groupId"
+  | "clickRewardId"
+  | "leadRewardId"
+  | "saleRewardId"
+>;
 
 export type PartnerRewardOverrideTarget =
   | {
       type: "partner";
-      partner: Pick<
-        EnrolledPartnerProps,
-        "id" | "groupId" | "clickRewardId" | "leadRewardId" | "saleRewardId"
-      >;
+      partner: PartnerRewardOverridePartner;
     }
   | {
       type: "link";
       link: PartnerLink;
-      partner: Pick<
-        EnrolledPartnerProps,
-        "id" | "groupId" | "clickRewardId" | "leadRewardId" | "saleRewardId"
-      >;
+      partner: PartnerRewardOverridePartner;
     };
 
 function getReferenceId(
@@ -362,22 +368,30 @@ function EditPartnerRewardModal({
             )}
           </div>
 
-          <div className="flex items-center justify-end gap-2 border-t border-neutral-200 p-4">
-            <Button
-              type="button"
-              variant="secondary"
-              text="Cancel"
-              className="h-8 w-fit px-3"
-              onClick={() => setShowModal(false)}
-              disabled={isSubmitting}
-            />
-            <Button
-              type="submit"
-              text="Save"
-              className="h-8 w-fit px-3"
-              loading={isSubmitting}
-              disabled={!selectedId || options.length === 0}
-            />
+          <div className="border-border-subtle flex items-center justify-between gap-4 border-t px-4 py-4">
+            <div className="flex min-w-0 items-center gap-2">
+              <PartnerAvatar partner={partner} className="size-6 shrink-0" />
+              <h4 className="min-w-0 truncate text-sm font-medium text-neutral-900">
+                {partner.name}
+              </h4>
+            </div>
+            <div className="flex shrink-0 items-center gap-2">
+              <Button
+                type="button"
+                variant="secondary"
+                text="Cancel"
+                className="h-8 w-fit px-3"
+                onClick={() => setShowModal(false)}
+                disabled={isSubmitting}
+              />
+              <Button
+                type="submit"
+                text="Save"
+                className="h-8 w-fit px-3"
+                loading={isSubmitting}
+                disabled={!selectedId || options.length === 0}
+              />
+            </div>
           </div>
         </form>
       </Modal>

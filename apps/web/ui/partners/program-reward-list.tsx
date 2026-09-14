@@ -166,10 +166,27 @@ const Item = ({
 }>) => {
   return (
     <li className="flex items-start gap-2">
-      <div className="relative shrink-0">
-        <Icon className={cn("size-4 translate-y-px", iconClassName)} />
+      <div className="relative shrink-0 py-px">
+        <Icon className={cn("block size-4", iconClassName)} />
         {isOverride && (
-          <span className="absolute -top-px right-0 size-1 rounded-full bg-blue-600" />
+          <span aria-hidden className="absolute right-0 top-0 size-1">
+            <svg
+              width="8"
+              height="8"
+              viewBox="0 0 8 8"
+              fill="none"
+              className="absolute inset-[-50%] overflow-visible"
+            >
+              <circle
+                cx="4"
+                cy="4"
+                r="3"
+                fill="#155DFC"
+                stroke="white"
+                strokeWidth="2"
+              />
+            </svg>
+          </span>
         )}
       </div>
       <div className="min-w-0 flex-1">{children}</div>

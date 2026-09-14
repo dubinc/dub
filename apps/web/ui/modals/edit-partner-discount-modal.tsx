@@ -10,6 +10,7 @@ import useGroup from "@/lib/swr/use-group";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { DiscountProps, EnrolledPartnerProps, GroupProps } from "@/lib/types";
 import { DiscountSheet } from "@/ui/partners/discounts/add-edit-discount-sheet";
+import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import { ProgramRewardDescription } from "@/ui/partners/program-reward-description";
 import { AdditionalRewardOptionList } from "@/ui/partners/rewards/additional-reward-option-list";
 import { Button, Modal } from "@dub/ui";
@@ -21,16 +22,20 @@ import { toast } from "sonner";
 import { mutate } from "swr";
 
 type PartnerLink = NonNullable<EnrolledPartnerProps["links"]>[number];
+type PartnerDiscountOverridePartner = Pick<
+  EnrolledPartnerProps,
+  "id" | "name" | "email" | "image" | "groupId" | "discountId"
+>;
 
 export type PartnerDiscountOverrideTarget =
   | {
       type: "partner";
-      partner: Pick<EnrolledPartnerProps, "id" | "groupId" | "discountId">;
+      partner: PartnerDiscountOverridePartner;
     }
   | {
       type: "link";
       link: PartnerLink;
-      partner: Pick<EnrolledPartnerProps, "id" | "groupId" | "discountId">;
+      partner: PartnerDiscountOverridePartner;
     };
 
 function getReferenceId(
@@ -293,22 +298,30 @@ function EditPartnerDiscountModal({
             )}
           </div>
 
-          <div className="flex items-center justify-end gap-2 border-t border-neutral-200 p-4">
-            <Button
-              type="button"
-              variant="secondary"
-              text="Cancel"
-              className="h-8 w-fit px-3"
-              onClick={() => setShowModal(false)}
-              disabled={isSubmitting}
-            />
-            <Button
-              type="submit"
-              text="Save"
-              className="h-8 w-fit px-3"
-              loading={isSubmitting}
-              disabled={!selectedId || options.length === 0}
-            />
+          <div className="border-border-subtle flex items-center justify-between gap-4 border-t px-4 py-4">
+            <div className="flex min-w-0 items-center gap-2">
+              <PartnerAvatar partner={partner} className="size-6 shrink-0" />
+              <h4 className="min-w-0 truncate text-sm font-medium text-neutral-900">
+                {partner.name}
+              </h4>
+            </div>
+            <div className="flex shrink-0 items-center gap-2">
+              <Button
+                type="button"
+                variant="secondary"
+                text="Cancel"
+                className="h-8 w-fit px-3"
+                onClick={() => setShowModal(false)}
+                disabled={isSubmitting}
+              />
+              <Button
+                type="submit"
+                text="Save"
+                className="h-8 w-fit px-3"
+                loading={isSubmitting}
+                disabled={!selectedId || options.length === 0}
+              />
+            </div>
           </div>
         </form>
       </Modal>
