@@ -7,4 +7,6 @@ export const EMAIL_DOMAIN_STATUS_TO_VARIANT: Record<EmailDomainStatus, string> =
     pending: "pending",
     temporary_failure: "warning",
     not_started: "neutral",
+    partially_verified: "pending",
+    partially_failed: "warning",
   } as const;
