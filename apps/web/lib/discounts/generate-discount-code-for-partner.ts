@@ -49,6 +49,16 @@ export async function generateDiscountCodeForPartner({
     },
     select: {
       id: true,
+      linkReward: {
+        include: {
+          discount: true,
+        },
+      },
+      programEnrollment: {
+        select: {
+          discount: true,
+        },
+      },
     },
   });
 
@@ -59,12 +69,23 @@ export async function generateDiscountCodeForPartner({
     return;
   }
 
+  const discount =
+    partnerDefaultLink.linkReward?.discount ??
+    partnerDefaultLink.programEnrollment?.discount;
+
+  if (!discount) {
+    console.log(
+      `No discount found for partner ${partner.id}, skipping discount code creation...`,
+    );
+    return;
+  }
+
   try {
     await createDiscountCode({
       workspace,
       partner,
       link: partnerDefaultLink,
-      discount: group.discount,
+      discount,
     });
   } catch (error) {
     console.error(

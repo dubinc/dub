@@ -26,6 +26,11 @@ export const POST = withCron(async ({ rawBody }) => {
       id: true,
       discountCode: true,
       partnerGroupDefaultLinkId: true,
+      linkReward: {
+        include: {
+          discount: true,
+        },
+      },
       programEnrollment: {
         select: {
           discount: true,
@@ -75,8 +80,10 @@ export const POST = withCron(async ({ rawBody }) => {
 
   const {
     project: workspace,
-    programEnrollment: { program, partner, discount },
+    programEnrollment: { program, partner, discount: partnerDiscount },
   } = link;
+
+  const discount = link.linkReward?.discount ?? partnerDiscount;
 
   if (!discount) {
     return logAndRespond(

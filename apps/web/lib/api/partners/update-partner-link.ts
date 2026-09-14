@@ -22,6 +22,11 @@ type UpdatePartnerLinkParams = {
   linkId: string;
 } & z.infer<typeof updatePartnerLinkSchema>;
 
+const omitGroupDefault = (
+  value: string | null,
+  groupDefaultId: string | null | undefined,
+) => (value && value === groupDefaultId ? null : value);
+
 export async function updatePartnerLink({
   workspace,
   programId,
@@ -55,7 +60,7 @@ export async function updatePartnerLink({
     });
   }
 
-  const [existingLinkReward, enrollment] = await Promise.all([
+  const [existingLinkReward, programEnrollment] = await Promise.all([
     prisma.linkReward.findUnique({
       where: {
         linkId: link.id,
@@ -77,51 +82,105 @@ export async function updatePartnerLink({
       },
       select: {
         groupId: true,
+        discountId: true,
+        partnerGroup: {
+          select: {
+            clickRewardId: true,
+            leadRewardId: true,
+            saleRewardId: true,
+            discountId: true,
+          },
+        },
       },
     }),
   ]);
 
-  if (!enrollment) {
+  if (!programEnrollment) {
     throw new DubApiError({
       code: "not_found",
       message: "Partner not found.",
     });
   }
 
+  const { partnerGroup } = programEnrollment;
+
+  // Group defaults are inherited; only persist real link-level overrides.
   const linkRewardInput = {
-    clickRewardId: getValue(
-      body.clickRewardId,
-      existingLinkReward?.clickRewardId ?? null,
+    clickRewardId: omitGroupDefault(
+      getValue(body.clickRewardId, existingLinkReward?.clickRewardId ?? null),
+      partnerGroup?.clickRewardId,
     ),
-    leadRewardId: getValue(
-      body.leadRewardId,
-      existingLinkReward?.leadRewardId ?? null,
+    leadRewardId: omitGroupDefault(
+      getValue(body.leadRewardId, existingLinkReward?.leadRewardId ?? null),
+      partnerGroup?.leadRewardId,
     ),
-    saleRewardId: getValue(
-      body.saleRewardId,
-      existingLinkReward?.saleRewardId ?? null,
+    saleRewardId: omitGroupDefault(
+      getValue(body.saleRewardId, existingLinkReward?.saleRewardId ?? null),
+      partnerGroup?.saleRewardId,
     ),
-    discountId: getValue(
-      body.discountId,
-      existingLinkReward?.discountId ?? null,
+    discountId: omitGroupDefault(
+      getValue(body.discountId, existingLinkReward?.discountId ?? null),
+      partnerGroup?.discountId,
     ),
   };
 
   await validateRewardIds({
     programId,
-    groupId: enrollment.groupId,
+    groupId: programEnrollment.groupId,
     ...linkRewardInput,
   });
 
-  const linkReward = await prisma.linkReward.upsert({
-    where: {
-      linkId: link.id,
-    },
-    create: {
-      linkId: link.id,
-      ...linkRewardInput,
-    },
-    update: linkRewardInput,
+  const hasLinkOverride =
+    linkRewardInput.clickRewardId ||
+    linkRewardInput.leadRewardId ||
+    linkRewardInput.saleRewardId ||
+    linkRewardInput.discountId;
+
+  const linkReward = await prisma.$transaction(async (tx) => {
+    let updatedLinkReward = existingLinkReward;
+
+    if (hasLinkOverride) {
+      updatedLinkReward = await tx.linkReward.upsert({
+        where: {
+          linkId: link.id,
+        },
+        create: {
+          linkId: link.id,
+          ...linkRewardInput,
+        },
+        update: {
+          ...linkRewardInput,
+        },
+      });
+    }
+    // Remove the link reward if no overrides are present.
+    else if (existingLinkReward) {
+      await tx.linkReward.delete({
+        where: {
+          linkId: link.id,
+        },
+      });
+      updatedLinkReward = null;
+    }
+
+    const discountIdChanged = body.discountId !== undefined;
+    const effectiveDiscountId =
+      linkRewardInput.discountId ?? programEnrollment.discountId;
+
+    // Keep the discount code's discountId in sync with the effective discount
+    // (link override, or enrollment discount when the override is cleared).
+    if (discountIdChanged) {
+      await tx.discountCode.updateMany({
+        where: {
+          linkId: link.id,
+        },
+        data: {
+          discountId: effectiveDiscountId,
+        },
+      });
+    }
+
+    return updatedLinkReward;
   });
 
   waitUntil(linkCache.expireMany([link]));

@@ -29,6 +29,7 @@ const customDiscount = {
 
 let customDiscountId: string | undefined;
 let partnerGroupId: string | undefined;
+const linkLevelDiscountIds: string[] = [];
 
 test.beforeAll(async ({ program }) => {
   const discount = await prisma.discount.create({
@@ -92,29 +93,69 @@ test.afterAll(async () => {
     });
   }
 
-  if (customDiscountId) {
+  const discountIdsToDelete = [
+    ...(customDiscountId ? [customDiscountId] : []),
+    ...linkLevelDiscountIds,
+  ];
+
+  if (discountIdsToDelete.length > 0) {
     await prisma.discountCode.deleteMany({
       where: {
-        discountId: customDiscountId,
+        discountId: {
+          in: discountIdsToDelete,
+        },
+      },
+    });
+
+    await prisma.linkReward.deleteMany({
+      where: {
+        discountId: {
+          in: discountIdsToDelete,
+        },
       },
     });
 
     await prisma.programEnrollment.updateMany({
       where: {
-        discountId: customDiscountId,
+        discountId: {
+          in: discountIdsToDelete,
+        },
       },
       data: {
         discountId: null,
       },
     });
 
-    await prisma.discount.delete({
+    await prisma.discount.deleteMany({
       where: {
-        id: customDiscountId,
+        id: {
+          in: discountIdsToDelete,
+        },
       },
     });
   }
 });
+
+async function createLinkLevelDiscount(programId: string) {
+  if (!partnerGroupId) {
+    throw new Error("Custom discount group was not seeded.");
+  }
+
+  const discount = await prisma.discount.create({
+    data: {
+      id: createId({ prefix: "disc_" }),
+      programId,
+      groupId: partnerGroupId,
+      amount: 25,
+      type: RewardStructure.percentage,
+      maxDuration: 3,
+      provider: DiscountProvider.custom,
+    },
+  });
+
+  linkLevelDiscountIds.push(discount.id);
+  return discount;
+}
 
 async function createPartner(
   api: ApiClient,
@@ -512,3 +553,139 @@ for (const idOrCode of ["dcode_does_not_exist", "CODE_DOES_NOT_EXIST"]) {
     });
   });
 }
+
+test("POST /discount-codes – uses link-level discount over enrollment", async ({
+  api,
+  program,
+}) => {
+  let partnerId: string | undefined;
+
+  try {
+    const { data: partner } = await createPartner(api);
+    partnerId = partner.id;
+    const linkId = partner.links?.[0]?.id;
+
+    if (!linkId) {
+      throw new Error("Partner was created without a default link.");
+    }
+
+    const linkDiscount = await createLinkLevelDiscount(program.id);
+
+    await prisma.linkReward.create({
+      data: {
+        linkId,
+        discountId: linkDiscount.id,
+      },
+    });
+
+    const { status, data } = await api.post<DiscountCode>(
+      "/api/discount-codes",
+      {
+        partnerId: partner.id,
+        linkId,
+        code: `PW${nanoid(8)}`,
+      },
+    );
+
+    expect(status).toEqual(200);
+    expect(data.discountId).toEqual(linkDiscount.id);
+    expect(data.discountId).not.toEqual(customDiscountId);
+  } finally {
+    await deletePartner(partnerId);
+  }
+});
+
+test("POST /discount-codes – link discount without enrollment discount", async ({
+  api,
+  program,
+}) => {
+  let partnerId: string | undefined;
+
+  try {
+    const { data: partner } = await createPartner(api);
+    partnerId = partner.id;
+    const linkId = partner.links?.[0]?.id;
+
+    if (!linkId) {
+      throw new Error("Partner was created without a default link.");
+    }
+
+    await prisma.programEnrollment.update({
+      where: {
+        partnerId_programId: {
+          partnerId: partner.id,
+          programId: program.id,
+        },
+      },
+      data: {
+        discountId: null,
+      },
+    });
+
+    const linkDiscount = await createLinkLevelDiscount(program.id);
+
+    await prisma.linkReward.create({
+      data: {
+        linkId,
+        discountId: linkDiscount.id,
+      },
+    });
+
+    const { status, data } = await api.post<DiscountCode>(
+      "/api/discount-codes",
+      {
+        partnerId: partner.id,
+        linkId,
+        code: `PW${nanoid(8)}`,
+      },
+    );
+
+    expect(status).toEqual(200);
+    expect(data.discountId).toEqual(linkDiscount.id);
+  } finally {
+    await deletePartner(partnerId);
+  }
+});
+
+test("POST /discount-codes – no enrollment or link discount", async ({
+  api,
+  program,
+}) => {
+  let partnerId: string | undefined;
+
+  try {
+    const { data: partner } = await createPartner(api);
+    partnerId = partner.id;
+    const linkId = partner.links?.[0]?.id;
+
+    await prisma.programEnrollment.update({
+      where: {
+        partnerId_programId: {
+          partnerId: partner.id,
+          programId: program.id,
+        },
+      },
+      data: {
+        discountId: null,
+      },
+    });
+
+    const { status, data } = await api.post("/api/discount-codes", {
+      partnerId: partner.id,
+      linkId,
+      code: `PW${nanoid(8)}`,
+    });
+
+    expect(status).toEqual(400);
+    expect(data).toEqual({
+      error: {
+        code: "bad_request",
+        message:
+          "No discount is assigned to this partner or link. Please add a discount before proceeding.",
+        doc_url: "https://dub.co/docs/api-reference/errors#bad-request",
+      },
+    });
+  } finally {
+    await deletePartner(partnerId);
+  }
+});
