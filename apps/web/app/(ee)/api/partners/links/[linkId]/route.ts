@@ -14,7 +14,7 @@ export const PATCH = withWorkspace(
     const body = updatePartnerLinkSchema.parse(await parseRequestBody(req));
 
     const response = await updatePartnerLink({
-      workspaceId: workspace.id,
+      workspace,
       programId,
       linkId,
       ...body,

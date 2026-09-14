@@ -6,7 +6,10 @@ import {
   hasRewardIdsInput,
   validateRewardIds,
 } from "@/lib/api/rewards/additional-rewards";
+import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { prisma } from "@/lib/prisma";
+import { PARTNER_AND_LINK_REWARDS_PLAN_ERROR } from "@/lib/rewards/constants";
+import { WorkspaceProps } from "@/lib/types";
 import { updatePartnerLinkSchema } from "@/lib/zod/schemas/partners";
 import { ProgramPartnerLinkSchema } from "@/lib/zod/schemas/programs";
 import { getValue } from "@dub/utils";
@@ -14,13 +17,13 @@ import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
 
 type UpdatePartnerLinkParams = {
-  workspaceId: string;
+  workspace: Pick<WorkspaceProps, "id" | "plan">;
   programId: string;
   linkId: string;
 } & z.infer<typeof updatePartnerLinkSchema>;
 
 export async function updatePartnerLink({
-  workspaceId,
+  workspace,
   programId,
   linkId,
   ...body
@@ -33,8 +36,15 @@ export async function updatePartnerLink({
     });
   }
 
+  if (!getPlanCapabilities(workspace.plan).canUseAdvancedRewardLogic) {
+    throw new DubApiError({
+      code: "forbidden",
+      message: PARTNER_AND_LINK_REWARDS_PLAN_ERROR,
+    });
+  }
+
   const link = await getLinkOrThrow({
-    workspaceId,
+    workspaceId: workspace.id,
     linkId,
   });
 

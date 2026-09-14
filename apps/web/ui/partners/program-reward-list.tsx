@@ -2,7 +2,7 @@
 
 import { getRewardAmount } from "@/lib/partners/get-reward-amount";
 import { DiscountProps, RewardProps } from "@/lib/types";
-import { Button, Gift, Icon } from "@dub/ui";
+import { Button, Gift, Icon, Tooltip } from "@dub/ui";
 import { cn } from "@dub/utils";
 import Link from "next/link";
 import { useParams } from "next/navigation";
@@ -13,6 +13,14 @@ import { REWARD_EVENT_ICON } from "./rewards/reward-event-icon";
 
 const EDITABLE_REWARD_EVENTS = new Set(["sale", "lead", "click"]);
 
+type RewardListItem = RewardProps & {
+  isOverride?: boolean;
+};
+
+type DiscountListItem = DiscountProps & {
+  isOverride?: boolean;
+};
+
 export function ProgramRewardList({
   rewards,
   discount,
@@ -22,15 +30,17 @@ export function ProgramRewardList({
   showModifiersTooltip = true,
   onEditReward,
   onEditDiscount,
+  editDisabledTooltip,
 }: {
-  rewards: RewardProps[];
-  discount?: DiscountProps | null;
+  rewards: RewardListItem[];
+  discount?: DiscountListItem | null;
   variant?: "default" | "plain";
   className?: string;
   iconClassName?: string;
   showModifiersTooltip?: boolean;
   onEditReward?: (reward: RewardProps) => void;
   onEditDiscount?: (discount: DiscountProps) => void;
+  editDisabledTooltip?: ReactNode;
 }) {
   const { programSlug } = useParams();
   const sortedFilteredRewards = rewards.filter((r) => getRewardAmount(r) >= 0);
@@ -73,15 +83,13 @@ export function ProgramRewardList({
             key={reward.id}
             icon={REWARD_EVENT_ICON[reward.event]}
             iconClassName={iconClassName}
+            isOverride={reward.isOverride}
             action={
               canEdit ? (
-                <button
-                  type="button"
-                  className="text-content-subtle hover:text-content-default shrink-0 text-xs font-medium"
+                <EditAction
+                  disabledTooltip={editDisabledTooltip}
                   onClick={() => onEditReward(reward)}
-                >
-                  Edit
-                </button>
+                />
               ) : undefined
             }
           >
@@ -97,15 +105,13 @@ export function ProgramRewardList({
         <Item
           icon={Gift}
           iconClassName={iconClassName}
+          isOverride={discount.isOverride}
           action={
             onEditDiscount ? (
-              <button
-                type="button"
-                className="text-content-subtle hover:text-content-default shrink-0 text-xs font-medium"
+              <EditAction
+                disabledTooltip={editDisabledTooltip}
                 onClick={() => onEditDiscount(discount)}
-              >
-                Edit
-              </button>
+              />
             ) : undefined
           }
         >
@@ -116,19 +122,56 @@ export function ProgramRewardList({
   );
 }
 
+function EditAction({
+  onClick,
+  disabledTooltip,
+}: {
+  onClick: () => void;
+  disabledTooltip?: ReactNode;
+}) {
+  const button = (
+    <button
+      type="button"
+      className={cn(
+        "text-content-subtle shrink-0 text-xs font-medium",
+        disabledTooltip
+          ? "cursor-not-allowed opacity-50"
+          : "hover:text-content-default",
+      )}
+      disabled={Boolean(disabledTooltip)}
+      onClick={disabledTooltip ? undefined : onClick}
+    >
+      Edit
+    </button>
+  );
+
+  if (!disabledTooltip) {
+    return button;
+  }
+
+  return <Tooltip content={disabledTooltip}>{button}</Tooltip>;
+}
+
 const Item = ({
   icon: Icon,
   children,
   iconClassName,
+  isOverride,
   action,
 }: PropsWithChildren<{
   icon: Icon;
   iconClassName?: string;
+  isOverride?: boolean;
   action?: ReactNode;
 }>) => {
   return (
     <li className="flex items-start gap-2">
-      <Icon className={cn("size-4 shrink-0 translate-y-px", iconClassName)} />
+      <div className="relative shrink-0">
+        <Icon className={cn("size-4 translate-y-px", iconClassName)} />
+        {isOverride && (
+          <span className="absolute -top-px right-0 size-1 rounded-full bg-blue-600" />
+        )}
+      </div>
       <div className="min-w-0 flex-1">{children}</div>
       {action}
     </li>

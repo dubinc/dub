@@ -1,9 +1,12 @@
+import { getPlanCapabilities } from "@/lib/plan-capabilities";
+import { PARTNER_AND_LINK_REWARDS_PLAN_ERROR } from "@/lib/rewards/constants";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useGroup from "@/lib/swr/use-group";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps, LinkProps } from "@/lib/types";
 import { createPartnerLinkSchema } from "@/lib/zod/schemas/partners";
+import { useAdvancedUpsellModal } from "@/ui/partners/advanced-upsell-modal";
 import { DiscountSelector } from "@/ui/partners/rewards/discount-selector";
 import { RewardSelector } from "@/ui/partners/rewards/reward-selector";
 import { useCustomRewardAndDiscountOptions } from "@/ui/partners/rewards/use-custom-reward-and-discount-options";
@@ -13,10 +16,13 @@ import {
   Button,
   InfoTooltip,
   Modal,
+  Tooltip,
+  TooltipContent,
   useCopyToClipboard,
   useLatestCallback,
   useMediaQuery,
 } from "@dub/ui";
+import { cn } from "@dub/utils";
 import { ChevronDown } from "lucide-react";
 import { motion } from "motion/react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -51,7 +57,10 @@ const AddPartnerLinkModal = ({
 }: AddPartnerLinkModalProps) => {
   const { program } = useProgram();
   const { isMobile } = useMediaQuery();
-  const { id: workspaceId } = useWorkspace();
+  const { id: workspaceId, plan } = useWorkspace();
+  const { canUseAdvancedRewardLogic } = getPlanCapabilities(plan);
+  const { advancedUpsellModal, setShowAdvancedUpsellModal } =
+    useAdvancedUpsellModal();
   const [, copyToClipboard] = useCopyToClipboard();
   const formRef = useRef<HTMLFormElement>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -148,6 +157,7 @@ const AddPartnerLinkModal = ({
       setShowModal={setShowModal}
       className="max-w-lg"
     >
+      {advancedUpsellModal}
       <form ref={formRef} onSubmit={handleSubmit(onSubmit)}>
         <div className="flex flex-col items-start justify-between gap-4 px-6 py-4">
           <div className="flex w-full items-center justify-between">
@@ -223,25 +233,47 @@ const AddPartnerLinkModal = ({
             </div>
 
             <div className="flex flex-col">
-              <button
-                type="button"
-                className="flex w-full items-center gap-2"
-                onClick={() => setShowOverrides(!showOverrides)}
+              <Tooltip
+                content={
+                  !canUseAdvancedRewardLogic ? (
+                    <TooltipContent
+                      title={PARTNER_AND_LINK_REWARDS_PLAN_ERROR}
+                      cta="Upgrade to Advanced"
+                      onClick={() => setShowAdvancedUpsellModal(true)}
+                    />
+                  ) : undefined
+                }
               >
-                <p className="text-sm text-neutral-600">
-                  {showOverrides ? "Hide" : "Show"} rewards and discount
-                  overrides
-                </p>
-                <motion.div
-                  animate={{ rotate: showOverrides ? 180 : 0 }}
-                  className="text-neutral-600"
+                <button
+                  type="button"
+                  disabled={!canUseAdvancedRewardLogic}
+                  className={cn(
+                    "flex w-full items-center gap-2",
+                    !canUseAdvancedRewardLogic &&
+                      "cursor-not-allowed opacity-50",
+                  )}
+                  onClick={() => {
+                    if (!canUseAdvancedRewardLogic) {
+                      return;
+                    }
+                    setShowOverrides(!showOverrides);
+                  }}
                 >
-                  <ChevronDown className="size-4" />
-                </motion.div>
-              </button>
+                  <p className="text-sm text-neutral-600">
+                    {showOverrides ? "Hide" : "Show"} rewards and discount
+                    overrides
+                  </p>
+                  <motion.div
+                    animate={{ rotate: showOverrides ? 180 : 0 }}
+                    className="text-neutral-600"
+                  >
+                    <ChevronDown className="size-4" />
+                  </motion.div>
+                </button>
+              </Tooltip>
 
               <AnimatedSizeContainer height className="-mx-1">
-                {showOverrides && (
+                {showOverrides && canUseAdvancedRewardLogic && (
                   <div className="flex flex-col gap-6 px-1 pt-4">
                     <Controller
                       control={control}
@@ -300,7 +332,6 @@ const AddPartnerLinkModal = ({
             </div>
           </div>
         </div>
-
         <div className="flex items-center justify-end gap-2 border-t border-neutral-200 bg-neutral-50 p-4">
           <Button
             type="button"

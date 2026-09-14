@@ -7,8 +7,13 @@ import { queuePartnerSearchSync } from "@/lib/api/partners/queue-partner-search-
 import { throwIfExistingTenantEnrollmentExists } from "@/lib/api/partners/throw-if-existing-tenant-id-exists";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
-import { validateRewardIds } from "@/lib/api/rewards/additional-rewards";
+import {
+  hasRewardIdsInput,
+  validateRewardIds,
+} from "@/lib/api/rewards/additional-rewards";
+import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { prisma } from "@/lib/prisma";
+import { PARTNER_AND_LINK_REWARDS_PLAN_ERROR } from "@/lib/rewards/constants";
 import { recordLink } from "@/lib/tinybird";
 import { Prisma } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
@@ -69,6 +74,20 @@ export const updatePartnerEnrollmentAction = authActionClient
     });
 
     const programId = getDefaultProgramIdOrThrow(workspace);
+
+    const hasRewardOverride = hasRewardIdsInput({
+      clickRewardId,
+      leadRewardId,
+      saleRewardId,
+      discountId,
+    });
+
+    if (
+      hasRewardOverride &&
+      !getPlanCapabilities(workspace.plan).canUseAdvancedRewardLogic
+    ) {
+      throw new Error(PARTNER_AND_LINK_REWARDS_PLAN_ERROR);
+    }
 
     const { partner, tenantId: existingTenantId } =
       await getProgramEnrollmentOrThrow({

@@ -5,6 +5,8 @@ import { deleteDiscountAction } from "@/lib/actions/partners/delete-discount";
 import { updateDiscountAction } from "@/lib/actions/partners/update-discount";
 import { constructDiscountAmount } from "@/lib/api/sales/construct-discount-amount";
 import { handleMoneyInputChange, handleMoneyKeyDown } from "@/lib/form-utils";
+import { getPlanCapabilities } from "@/lib/plan-capabilities";
+import { PARTNER_AND_LINK_REWARDS_PLAN_ERROR } from "@/lib/rewards/constants";
 import { getCreateRewardEventFromQuery } from "@/lib/rewards/get-create-reward-event-from-query";
 import useGroup from "@/lib/swr/use-group";
 import useProgram from "@/lib/swr/use-program";
@@ -26,6 +28,7 @@ import {
   Sheet,
   Switch,
   Tooltip,
+  TooltipContent,
   useRouterStuff,
 } from "@dub/ui";
 import { CircleCheck, StripeIcon, Tag } from "@dub/ui/icons";
@@ -82,10 +85,18 @@ function DiscountSheetContent({
 
   const { group, mutateGroup } = useGroup();
   const { mutate: mutateProgram } = useProgram();
-  const { id: workspaceId, defaultProgramId } = useWorkspace();
+  const {
+    id: workspaceId,
+    defaultProgramId,
+    slug: workspaceSlug,
+    plan,
+  } = useWorkspace();
   const { searchParams } = useRouterStuff();
   const isDefault =
     getCreateRewardEventFromQuery(searchParams)?.isDefault ?? true;
+  const { canUseAdvancedRewardLogic } = getPlanCapabilities(plan);
+  const showPartnerAndLinkUpsell =
+    !discount && !isDefault && !canUseAdvancedRewardLogic;
 
   const isEdit = Boolean(discount?.id);
 
@@ -222,7 +233,12 @@ function DiscountSheetContent({
   );
 
   const onSubmit = async (data: FormData) => {
-    if (!workspaceId || !defaultProgramId || !group) {
+    if (
+      !workspaceId ||
+      !defaultProgramId ||
+      !group ||
+      showPartnerAndLinkUpsell
+    ) {
       return;
     }
 
@@ -608,6 +624,16 @@ function DiscountSheetContent({
               className="w-fit"
               loading={isCreating || isUpdating}
               disabled={(!discount && amount == null) || isDeleting}
+              disabledTooltip={
+                showPartnerAndLinkUpsell ? (
+                  <TooltipContent
+                    title={PARTNER_AND_LINK_REWARDS_PLAN_ERROR}
+                    cta="Upgrade to Advanced"
+                    href={`/${workspaceSlug}/upgrade?plan=advanced&showAdvancedUpsellModal=true`}
+                    target="_blank"
+                  />
+                ) : undefined
+              }
             />
           </div>
         </div>

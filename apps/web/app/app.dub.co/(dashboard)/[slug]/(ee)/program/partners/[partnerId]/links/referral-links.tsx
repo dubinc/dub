@@ -1,6 +1,8 @@
 "use client";
 
 import { constructPartnerLink } from "@/lib/partners/construct-partner-link";
+import { getPlanCapabilities } from "@/lib/plan-capabilities";
+import { PARTNER_AND_LINK_REWARDS_PLAN_ERROR } from "@/lib/rewards/constants";
 import useGroup from "@/lib/swr/use-group";
 import { useProgramPartnerLinks } from "@/lib/swr/use-program-partner-links";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -8,6 +10,7 @@ import { EnrolledPartnerProps, GroupProps } from "@/lib/types";
 import { useAddPartnerLinkModal } from "@/ui/modals/add-partner-link-modal";
 import { useEditPartnerDiscountModal } from "@/ui/modals/edit-partner-discount-modal";
 import { useEditPartnerRewardModal } from "@/ui/modals/edit-partner-reward-modal";
+import { useAdvancedUpsellModal } from "@/ui/partners/advanced-upsell-modal";
 import { REWARD_EVENT_ICON } from "@/ui/partners/rewards/reward-event-icon";
 import { ThreeDots } from "@/ui/shared/icons";
 import {
@@ -20,6 +23,7 @@ import {
   Popover,
   Receipt2,
   Tooltip,
+  TooltipContent,
   UserCheck,
   useCopyToClipboard,
 } from "@dub/ui";
@@ -33,7 +37,7 @@ import {
 } from "@dub/utils";
 import { Command } from "cmdk";
 import Link from "next/link";
-import { useState } from "react";
+import { type ReactNode, useState } from "react";
 import { toast } from "sonner";
 
 type PartnerLink = NonNullable<EnrolledPartnerProps["links"]>[number];
@@ -210,6 +214,11 @@ function PartnerLinkCard({
   group?: GroupProps | null;
   slug?: string;
 }) {
+  const { plan } = useWorkspace();
+  const { canUseAdvancedRewardLogic } = getPlanCapabilities(plan);
+  const { advancedUpsellModal, setShowAdvancedUpsellModal } =
+    useAdvancedUpsellModal();
+
   const partnerLink = constructPartnerLink({
     group,
     link,
@@ -232,8 +241,17 @@ function PartnerLinkCard({
       group,
     });
 
+  const overrideDisabledTooltip = !canUseAdvancedRewardLogic ? (
+    <TooltipContent
+      title={PARTNER_AND_LINK_REWARDS_PLAN_ERROR}
+      cta="Upgrade to Advanced"
+      onClick={() => setShowAdvancedUpsellModal(true)}
+    />
+  ) : undefined;
+
   return (
     <>
+      {advancedUpsellModal}
       <CardList.Card
         innerClassName="flex items-center justify-between gap-4 px-3 py-2.5"
         hoverStateEnabled={false}
@@ -303,6 +321,7 @@ function PartnerLinkCard({
 
           <PartnerLinkCardMenu
             partnerLink={partnerLink}
+            overrideDisabledTooltip={overrideDisabledTooltip}
             onEditReward={(event) => {
               setRewardEvent(event);
               setShowEditPartnerRewardModal(true);
@@ -321,10 +340,12 @@ function PartnerLinkCardMenu({
   partnerLink,
   onEditReward,
   onEditDiscount,
+  overrideDisabledTooltip,
 }: {
   partnerLink: string;
   onEditReward: (event: "sale" | "lead" | "click") => void;
   onEditDiscount: () => void;
+  overrideDisabledTooltip?: ReactNode;
 }) {
   const [openPopover, setOpenPopover] = useState(false);
   const [, copyToClipboard] = useCopyToClipboard();
@@ -356,6 +377,7 @@ function PartnerLinkCardMenu({
                   key={event}
                   as={Command.Item}
                   icon={Icon}
+                  disabledTooltip={overrideDisabledTooltip}
                   onSelect={() => {
                     setOpenPopover(false);
                     onEditReward(event);
@@ -368,6 +390,7 @@ function PartnerLinkCardMenu({
             <MenuItem
               as={Command.Item}
               icon={Discount}
+              disabledTooltip={overrideDisabledTooltip}
               onSelect={() => {
                 setOpenPopover(false);
                 onEditDiscount();

@@ -5,6 +5,7 @@ import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import {
   getExpandableRewardReferences,
   getRewardIds,
+  hasRewardIdsInput,
   LinkRewardIdsInput,
   validateRewardIds,
 } from "@/lib/api/rewards/additional-rewards";
@@ -13,7 +14,9 @@ import { applyGroupUtmToLink } from "@/lib/api/utm/apply-group-utm-to-link";
 import { withWorkspace } from "@/lib/auth";
 import { parseExpandFields } from "@/lib/expand/parse-expand-fields";
 import { throwIfNoPartnerIdOrTenantId } from "@/lib/partners/throw-if-no-partnerid-tenantid";
+import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { prisma } from "@/lib/prisma";
+import { PARTNER_AND_LINK_REWARDS_PLAN_ERROR } from "@/lib/rewards/constants";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { linkEventSchema } from "@/lib/zod/schemas/links";
 import {
@@ -206,6 +209,16 @@ export const POST = withWorkspace(
       saleRewardId,
       discountId,
     };
+
+    if (
+      hasRewardIdsInput(linkRewardInput) &&
+      !getPlanCapabilities(workspace.plan).canUseAdvancedRewardLogic
+    ) {
+      throw new DubApiError({
+        code: "forbidden",
+        message: PARTNER_AND_LINK_REWARDS_PLAN_ERROR,
+      });
+    }
 
     await validateRewardIds({
       programId,

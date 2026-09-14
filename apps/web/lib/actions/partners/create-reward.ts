@@ -6,6 +6,7 @@ import { createId } from "@/lib/api/create-id";
 import { getGroupOrThrow } from "@/lib/api/groups/get-group-or-throw";
 import { serializeReward } from "@/lib/api/partners/serialize-reward";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
+import { PARTNER_AND_LINK_REWARDS_PLAN_ERROR } from "@/lib/rewards/constants";
 import { queueRewardProcessing } from "@/lib/api/rewards/queue-reward-processing";
 import { validateReward } from "@/lib/api/rewards/validate-reward";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
@@ -57,6 +58,10 @@ export const createRewardAction = authActionClient
       throw new Error(
         "Referral rewards are only available on the Advanced plan and above.",
       );
+    }
+
+    if (!isDefault && !canUseAdvancedRewardLogic) {
+      throw new Error(PARTNER_AND_LINK_REWARDS_PLAN_ERROR);
     }
 
     if (modifiers && !canUseAdvancedRewardLogic) {

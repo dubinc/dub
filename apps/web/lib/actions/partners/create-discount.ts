@@ -4,9 +4,11 @@ import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { createId } from "@/lib/api/create-id";
 import { getGroupOrThrow } from "@/lib/api/groups/get-group-or-throw";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
+import { PARTNER_AND_LINK_REWARDS_PLAN_ERROR } from "@/lib/rewards/constants";
 import { qstash } from "@/lib/cron";
 import { getDiscountProvider } from "@/lib/discounts/discount-provider";
 import { invalidateLinksForDiscountsJob } from "@/lib/jobs/handlers/invalidate-links-for-discounts-job";
+import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { prisma } from "@/lib/prisma";
 import { DubDiscountAttributes } from "@/lib/stripe/coupon-discount-converter";
 import { createDiscountSchema } from "@/lib/zod/schemas/discount";
@@ -36,6 +38,13 @@ export const createDiscountAction = authActionClient
       role: workspace.role,
       requiredRoles: ["owner", "member"],
     });
+
+    if (
+      !isDefault &&
+      !getPlanCapabilities(workspace.plan).canUseAdvancedRewardLogic
+    ) {
+      throw new Error(PARTNER_AND_LINK_REWARDS_PLAN_ERROR);
+    }
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 

@@ -8,6 +8,7 @@ import { constructRewardAmount } from "@/lib/api/sales/construct-reward-amount";
 import { handleMoneyInputChange, handleMoneyKeyDown } from "@/lib/form-utils";
 import { ReferralRewardConfig } from "@/lib/partner-referrals/types";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
+import { PARTNER_AND_LINK_REWARDS_PLAN_ERROR } from "@/lib/rewards/constants";
 import { getCreateRewardEventFromQuery } from "@/lib/rewards/get-create-reward-event-from-query";
 import useGroup from "@/lib/swr/use-group";
 import usePartnersCount from "@/lib/swr/use-partners-count";
@@ -433,6 +434,8 @@ function RewardSheetContent({
 
   const [showAdvancedUpsell, setShowAdvancedUpsell] = useState(false);
   const showReferralUpsell = event === "referral" && !canCreateReferralReward;
+  const showPartnerAndLinkUpsell =
+    !reward && !isDefault && !canUseAdvancedRewardLogic;
 
   useEffect(() => {
     if (modifiers?.length && !canUseAdvancedRewardLogic) {
@@ -448,6 +451,7 @@ function RewardSheetContent({
       !defaultProgramId ||
       showAdvancedUpsell ||
       showReferralUpsell ||
+      showPartnerAndLinkUpsell ||
       !group
     ) {
       return;
@@ -995,6 +999,13 @@ function RewardSheetContent({
                   showReferralUpsell ? (
                     <TooltipContent
                       title="Referral rewards are only available on the Advanced plan and above."
+                      cta="Upgrade to Advanced"
+                      href={`/${workspaceSlug}/upgrade?plan=advanced&showAdvancedUpsellModal=true`}
+                      target="_blank"
+                    />
+                  ) : showPartnerAndLinkUpsell ? (
+                    <TooltipContent
+                      title={PARTNER_AND_LINK_REWARDS_PLAN_ERROR}
                       cta="Upgrade to Advanced"
                       href={`/${workspaceSlug}/upgrade?plan=advanced&showAdvancedUpsellModal=true`}
                       target="_blank"

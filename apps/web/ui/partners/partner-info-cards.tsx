@@ -1,6 +1,7 @@
 import { useAttributeReferringPartnerModal } from "@/lib/partner-referrals/components/attribute-referring-partner-modal";
 import { usePartnerReferral } from "@/lib/partner-referrals/hooks/use-partner-referral";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
+import { PARTNER_AND_LINK_REWARDS_PLAN_ERROR } from "@/lib/rewards/constants";
 import useGroup from "@/lib/swr/use-group";
 import { usePartnerRewards } from "@/lib/swr/use-partner-rewards";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -15,6 +16,7 @@ import { INACTIVE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
 import { usePartnerEnrollmentHistorySheet } from "@/ui/activity-logs/partner-enrollment-history-sheet";
 import { useEditPartnerDiscountModal } from "@/ui/modals/edit-partner-discount-modal";
 import { useEditPartnerRewardModal } from "@/ui/modals/edit-partner-reward-modal";
+import { useAdvancedUpsellModal } from "@/ui/partners/advanced-upsell-modal";
 import {
   Button,
   CalendarIcon,
@@ -23,6 +25,7 @@ import {
   Heart,
   OfficeBuilding,
   TimestampTooltip,
+  TooltipContent,
   Trophy,
 } from "@dub/ui";
 import {
@@ -103,8 +106,14 @@ export function PartnerInfoCards({
 }: PartnerInfoCardsProps) {
   const { id: workspaceId, slug: workspaceSlug, plan } = useWorkspace();
 
-  const { canCreateReferralReward, canManageFraudEvents } =
-    getPlanCapabilities(plan);
+  const {
+    canCreateReferralReward,
+    canManageFraudEvents,
+    canUseAdvancedRewardLogic,
+  } = getPlanCapabilities(plan);
+
+  const { advancedUpsellModal, setShowAdvancedUpsellModal } =
+    useAdvancedUpsellModal();
 
   const isEnrolled = type === "enrolled" || type === undefined;
   const isNetwork = type === "network";
@@ -124,7 +133,7 @@ export function PartnerInfoCards({
           DEFAULT_PARTNER_GROUP.slug
         : undefined,
     },
-    { keepPreviousData: false },
+    { keepPreviousData: true },
   );
 
   const enrolledPartner =
@@ -462,6 +471,7 @@ export function PartnerInfoCards({
 
           {isEnrolled && partner?.status === "approved" && (
             <>
+              {advancedUpsellModal}
               <EditPartnerRewardModal />
               <EditPartnerDiscountModal />
               {/* Rewards */}
@@ -477,6 +487,15 @@ export function PartnerInfoCards({
                       variant="plain"
                       className="text-content-subtle gap-2 text-xs leading-4"
                       iconClassName="size-3.5"
+                      editDisabledTooltip={
+                        !canUseAdvancedRewardLogic ? (
+                          <TooltipContent
+                            title={PARTNER_AND_LINK_REWARDS_PLAN_ERROR}
+                            cta="Upgrade to Advanced"
+                            onClick={() => setShowAdvancedUpsellModal(true)}
+                          />
+                        ) : undefined
+                      }
                       onEditReward={(reward) => {
                         if (
                           reward.event === "sale" ||

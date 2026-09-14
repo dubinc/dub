@@ -334,6 +334,16 @@ export const getPricingPlanMainFeatures = (
             },
           },
           {
+            id: "partnerlinkrewards",
+            text: "Partner- and link-level rewards",
+            tooltip: {
+              title:
+                "Assign custom rewards and discounts to individual partners or referral links, beyond group defaults.",
+              cta: "Learn more ↗",
+              href: "https://dub.co/help/article/partner-rewards",
+            },
+          },
+          {
             id: "embeddedreferrals",
             text: "Embedded referral dashboard",
             tooltip: {

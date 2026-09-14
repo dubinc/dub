@@ -70,6 +70,7 @@ export const PLAN_FEATURE_ICONS = {
   payouts: MoneyBills2,
   basicrewards: Gift,
   flexiblerewards: Shuffle,
+  partnerlinkrewards: Gift,
   bounties: Trophy,
   ailandingpage: Sparkle3,
   customerinsights: UserFocus,
