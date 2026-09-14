@@ -81,7 +81,9 @@ const userSelect = {
 const ownerSelect = {
   users: {
     where: {
-      role: "owner",
+      role: {
+        in: ["owner", "billing"], // in cases of disabled workspaces, the billing user is the owner
+      },
       user: {
         email: {
           not: null,
@@ -113,7 +115,8 @@ function parseImpersonateQuery(
 ): ImpersonateIdentifier | { error: string } {
   if (typeof raw !== "string" || !raw.trim()) {
     return {
-      error: "Enter a user email, workspace slug, domain, or Stripe customer ID",
+      error:
+        "Enter a user email, workspace slug, domain, or Stripe customer ID",
     };
   }
 

@@ -64,6 +64,15 @@ export const POST = withAdmin(
 
     console.log(`Updated ${updatedMembers.count} members to viewer role`);
 
+    await prisma.project.update({
+      where: {
+        id: project.id,
+      },
+      data: {
+        disabledAt: new Date(),
+      },
+    });
+
     const owners = project.users.map(({ user }) => user.email);
 
     if (owners.length > 0) {
