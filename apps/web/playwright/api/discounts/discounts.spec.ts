@@ -204,6 +204,80 @@ test("GET /programs/{programId}/discounts – custom provider", async ({
   });
 });
 
+test("GET /discounts – includes groupId", async ({ api }) => {
+  const { status, data } =
+    await api.get<(DiscountProps & { groupId: string | null })[]>(
+      "/api/discounts",
+    );
+
+  expect(status).toEqual(200);
+
+  const discount = data.find((item) => item.id === customDiscountId);
+
+  expect(discount).toEqual({
+    id: customDiscountId,
+    ...expectedCustomDiscount,
+    groupId: null,
+  });
+});
+
+test("GET /discounts?groupId= – filters by group", async ({ api, program }) => {
+  let groupId: string | undefined;
+  let discountId: string | undefined;
+
+  try {
+    const group = await prisma.partnerGroup.create({
+      data: {
+        id: createId({ prefix: "grp_" }),
+        programId: program.id,
+        slug: `pw-disc-filter-${nanoid(8).toLowerCase()}`,
+        name: randomName("group"),
+        maxPartnerLinks: DEFAULT_ADDITIONAL_PARTNER_LINKS,
+      },
+    });
+    groupId = group.id;
+
+    const discount = await prisma.discount.create({
+      data: {
+        id: createId({ prefix: "disc_" }),
+        programId: program.id,
+        groupId,
+        ...customDiscount,
+      },
+    });
+    discountId = discount.id;
+
+    const { status, data } = await api.get<
+      (DiscountProps & { groupId: string | null })[]
+    >(`/api/discounts?groupId=${groupId}`);
+
+    expect(status).toEqual(200);
+    expect(data).toEqual([
+      {
+        id: discountId,
+        ...expectedCustomDiscount,
+        groupId,
+      },
+    ]);
+  } finally {
+    if (discountId) {
+      await prisma.discount.delete({
+        where: {
+          id: discountId,
+        },
+      });
+    }
+
+    if (groupId) {
+      await prisma.partnerGroup.delete({
+        where: {
+          id: groupId,
+        },
+      });
+    }
+  }
+});
+
 test("GET /groups/{id} – nested custom discount", async ({ api }) => {
   const { status, data } = await api.get<GroupProps>(
     `/api/groups/${partnerGroupId}`,

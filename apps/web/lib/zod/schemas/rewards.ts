@@ -432,7 +432,6 @@ export const getRewardsQuerySchema = z.object({
 
 export const RewardSchema = z.object({
   id: z.string(),
-  groupId: z.string().nullable(),
   event: z.enum(EventType),
   description: z.string().nullish(),
   tooltipDescription: z.string().nullish(),

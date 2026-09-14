@@ -1,33 +1,31 @@
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { getRewardsQuerySchema, RewardSchema } from "@/lib/zod/schemas/rewards";
+import {
+  DiscountSchema,
+  getDiscountsQuerySchema,
+} from "@/lib/zod/schemas/discount";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 
-// GET /api/rewards - get all rewards for a program
+// GET /api/discounts - get all discounts for a program
 export const GET = withWorkspace(async ({ workspace, searchParams }) => {
   const programId = getDefaultProgramIdOrThrow(workspace);
-  const { groupId } = getRewardsQuerySchema.parse(searchParams);
+  const { groupId } = getDiscountsQuerySchema.parse(searchParams);
 
-  const rewards = await prisma.reward.findMany({
+  const discounts = await prisma.discount.findMany({
     where: {
       programId,
       ...(groupId && { groupId }),
     },
-    orderBy: [
-      {
-        event: "desc",
-      },
-      {
-        createdAt: "desc",
-      },
-    ],
+    orderBy: {
+      createdAt: "desc",
+    },
   });
 
   return NextResponse.json(
     z
-      .array(RewardSchema.extend({ groupId: z.string().nullable() }))
-      .parse(rewards),
+      .array(DiscountSchema.extend({ groupId: z.string().nullable() }))
+      .parse(discounts),
   );
 });

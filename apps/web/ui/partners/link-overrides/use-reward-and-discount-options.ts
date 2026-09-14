@@ -1,4 +1,4 @@
-import useDiscounts from "@/lib/swr/use-discounts";
+import { useDiscounts } from "@/lib/swr/use-discounts";
 import { useRewards } from "@/lib/swr/use-rewards";
 import { GroupProps } from "@/lib/types";
 import { REWARD_EVENT_COLUMN_MAPPING } from "@/lib/zod/schemas/rewards";

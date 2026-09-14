@@ -155,3 +155,7 @@ export const discountReferencesSchema = z.object({
       "Discount ID by default. Returns the discount object when expand[]=discount.",
     ),
 });
+
+export const getDiscountsQuerySchema = z.object({
+  groupId: z.string().nullish(),
+});
