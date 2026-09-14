@@ -6,10 +6,12 @@ import { Button, Gift, Icon } from "@dub/ui";
 import { cn } from "@dub/utils";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { PropsWithChildren } from "react";
+import { PropsWithChildren, ReactNode } from "react";
 import { formatDiscountDescription } from "./format-discount-description";
 import { ProgramRewardDescription } from "./program-reward-description";
 import { REWARD_EVENT_ICON } from "./rewards/reward-event-icon";
+
+const EDITABLE_REWARD_EVENTS = new Set(["sale", "lead", "click"]);
 
 export function ProgramRewardList({
   rewards,
@@ -18,6 +20,8 @@ export function ProgramRewardList({
   className,
   iconClassName,
   showModifiersTooltip = true,
+  onEditReward,
+  onEditDiscount,
 }: {
   rewards: RewardProps[];
   discount?: DiscountProps | null;
@@ -25,6 +29,8 @@ export function ProgramRewardList({
   className?: string;
   iconClassName?: string;
   showModifiersTooltip?: boolean;
+  onEditReward?: (reward: RewardProps) => void;
+  onEditDiscount?: (discount: DiscountProps) => void;
 }) {
   const { programSlug } = useParams();
   const sortedFilteredRewards = rewards.filter((r) => getRewardAmount(r) >= 0);
@@ -58,21 +64,51 @@ export function ProgramRewardList({
         className,
       )}
     >
-      {sortedFilteredRewards.map((reward) => (
-        <Item
-          key={reward.id}
-          icon={REWARD_EVENT_ICON[reward.event]}
-          iconClassName={iconClassName}
-        >
-          <ProgramRewardDescription
-            reward={reward}
-            showModifiersTooltip={showModifiersTooltip}
-          />
-        </Item>
-      ))}
+      {sortedFilteredRewards.map((reward) => {
+        const canEdit =
+          onEditReward && EDITABLE_REWARD_EVENTS.has(reward.event);
+
+        return (
+          <Item
+            key={reward.id}
+            icon={REWARD_EVENT_ICON[reward.event]}
+            iconClassName={iconClassName}
+            action={
+              canEdit ? (
+                <button
+                  type="button"
+                  className="text-content-subtle hover:text-content-default shrink-0 text-xs font-medium"
+                  onClick={() => onEditReward(reward)}
+                >
+                  Edit
+                </button>
+              ) : undefined
+            }
+          >
+            <ProgramRewardDescription
+              reward={reward}
+              showModifiersTooltip={showModifiersTooltip}
+            />
+          </Item>
+        );
+      })}
 
       {discount && (
-        <Item icon={Gift} iconClassName={iconClassName}>
+        <Item
+          icon={Gift}
+          iconClassName={iconClassName}
+          action={
+            onEditDiscount ? (
+              <button
+                type="button"
+                className="text-content-subtle hover:text-content-default shrink-0 text-xs font-medium"
+                onClick={() => onEditDiscount(discount)}
+              >
+                Edit
+              </button>
+            ) : undefined
+          }
+        >
           {formatDiscountDescription(discount)}
         </Item>
       )}
@@ -84,11 +120,17 @@ const Item = ({
   icon: Icon,
   children,
   iconClassName,
-}: PropsWithChildren<{ icon: Icon; iconClassName?: string }>) => {
+  action,
+}: PropsWithChildren<{
+  icon: Icon;
+  iconClassName?: string;
+  action?: ReactNode;
+}>) => {
   return (
     <li className="flex items-start gap-2">
       <Icon className={cn("size-4 shrink-0 translate-y-px", iconClassName)} />
-      <div>{children}</div>
+      <div className="min-w-0 flex-1">{children}</div>
+      {action}
     </li>
   );
 };

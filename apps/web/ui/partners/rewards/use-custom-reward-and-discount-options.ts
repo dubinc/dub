@@ -4,11 +4,11 @@ import { GroupProps } from "@/lib/types";
 import { REWARD_EVENT_COLUMN_MAPPING } from "@/lib/zod/schemas/rewards";
 import { formatDiscountDescription } from "@/ui/partners/format-discount-description";
 import { formatRewardDescription } from "@/ui/partners/format-reward-description";
-import { DiscountSelectorOption } from "@/ui/partners/link-overrides/discount-selector";
-import { RewardSelectorOption } from "@/ui/partners/link-overrides/reward-selector";
+import { DiscountSelectorOption } from "@/ui/partners/rewards/discount-selector";
+import { RewardSelectorOption } from "@/ui/partners/rewards/reward-selector";
 import { useMemo } from "react";
 
-export function useRewardAndDiscountOptions({
+export function useCustomRewardAndDiscountOptions({
   group,
 }: {
   group: GroupProps | undefined;
@@ -45,7 +45,10 @@ export function useRewardAndDiscountOptions({
         value: reward.id,
         label: formatRewardDescription(reward),
         first: reward.id === groupRewardId,
-        meta: { isGroup: reward.id === groupRewardId },
+        meta: {
+          isGroup: reward.id === groupRewardId,
+          partnersCount: reward.partnersCount,
+        },
       });
     }
 
@@ -55,7 +58,10 @@ export function useRewardAndDiscountOptions({
         value: discount.id,
         label: formatDiscountDescription(discount),
         first: discount.id === groupDiscountId,
-        meta: { isGroup: discount.id === groupDiscountId },
+        meta: {
+          isGroup: discount.id === groupDiscountId,
+          partnersCount: discount.partnersCount,
+        },
       }),
     );
 

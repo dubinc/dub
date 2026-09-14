@@ -1,8 +1,11 @@
-import { GroupBadge } from "@/ui/partners/link-overrides/group-badge";
+import { GroupBadge } from "@/ui/partners/rewards/group-badge";
 import { Combobox, ComboboxOption } from "@dub/ui";
 import { cn } from "@dub/utils";
 
-export type RewardSelectorOption = ComboboxOption<{ isGroup?: boolean }>;
+export type RewardSelectorOption = ComboboxOption<{
+  isGroup?: boolean;
+  partnersCount?: number | null;
+}>;
 
 export function RewardSelector({
   label,

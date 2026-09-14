@@ -2,17 +2,19 @@ import { useAttributeReferringPartnerModal } from "@/lib/partner-referrals/compo
 import { usePartnerReferral } from "@/lib/partner-referrals/hooks/use-partner-referral";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import useGroup from "@/lib/swr/use-group";
+import { usePartnerRewards } from "@/lib/swr/use-partner-rewards";
 import useWorkspace from "@/lib/swr/use-workspace";
 import {
   AdminNetworkPartner,
   BountyListProps,
   EnrolledPartnerExtendedProps,
   NetworkPartnerProps,
-  RewardProps,
 } from "@/lib/types";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { INACTIVE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
 import { usePartnerEnrollmentHistorySheet } from "@/ui/activity-logs/partner-enrollment-history-sheet";
+import { useEditPartnerDiscountModal } from "@/ui/modals/edit-partner-discount-modal";
+import { useEditPartnerRewardModal } from "@/ui/modals/edit-partner-reward-modal";
 import {
   Button,
   CalendarIcon,
@@ -37,7 +39,7 @@ import {
 } from "@dub/utils";
 import { CircleMinus } from "lucide-react";
 import Link from "next/link";
-import { Fragment, ReactNode, createElement } from "react";
+import { Fragment, ReactNode, createElement, useState } from "react";
 import useSWR from "swr";
 import { PartnerApplicationRiskSummary } from "./fraud-risks/partner-application-risk-summary";
 import { PartnerNetworkActivitySummary } from "./fraud-risks/partner-network-activity-summary";
@@ -124,6 +126,36 @@ export function PartnerInfoCards({
     },
     { keepPreviousData: false },
   );
+
+  const enrolledPartner =
+    isEnrolled && partner ? (partner as EnrolledPartnerExtendedProps) : null;
+
+  const { rewards: displayedRewards, discount: displayedDiscount } =
+    usePartnerRewards({
+      partner: enrolledPartner,
+      group,
+    });
+
+  const [rewardEvent, setRewardEvent] = useState<"sale" | "lead" | "click">(
+    "sale",
+  );
+
+  const partnerRewardTarget = enrolledPartner
+    ? { type: "partner" as const, partner: enrolledPartner }
+    : null;
+
+  const { EditPartnerRewardModal, setShowEditPartnerRewardModal } =
+    useEditPartnerRewardModal({
+      event: rewardEvent,
+      target: partnerRewardTarget,
+      group,
+    });
+
+  const { EditPartnerDiscountModal, setShowEditPartnerDiscountModal } =
+    useEditPartnerDiscountModal({
+      target: partnerRewardTarget,
+      group,
+    });
 
   const { data: bounties, error: errorBounties } = useSWR<BountyListProps[]>(
     workspaceId && partner && isEnrolled
@@ -430,30 +462,34 @@ export function PartnerInfoCards({
 
           {isEnrolled && partner?.status === "approved" && (
             <>
+              <EditPartnerRewardModal />
+              <EditPartnerDiscountModal />
               {/* Rewards */}
               <div className="flex flex-col gap-2">
                 <h3 className="text-content-emphasis text-sm font-semibold">
                   Rewards
                 </h3>
                 {group ? (
-                  group.clickReward ||
-                  group.leadReward ||
-                  group.saleReward ||
-                  group.referralReward ||
-                  group.customReward ||
-                  group.discount ? (
+                  displayedRewards.length > 0 || displayedDiscount ? (
                     <ProgramRewardList
-                      rewards={[
-                        group.clickReward,
-                        group.leadReward,
-                        group.saleReward,
-                        group.referralReward,
-                        group.customReward,
-                      ].filter((r): r is RewardProps => r !== null)}
-                      discount={group.discount}
+                      rewards={displayedRewards}
+                      discount={displayedDiscount}
                       variant="plain"
                       className="text-content-subtle gap-2 text-xs leading-4"
                       iconClassName="size-3.5"
+                      onEditReward={(reward) => {
+                        if (
+                          reward.event === "sale" ||
+                          reward.event === "lead" ||
+                          reward.event === "click"
+                        ) {
+                          setRewardEvent(reward.event);
+                          setShowEditPartnerRewardModal(true);
+                        }
+                      }}
+                      onEditDiscount={() => {
+                        setShowEditPartnerDiscountModal(true);
+                      }}
                     />
                   ) : (
                     <span className="text-content-subtle text-xs">

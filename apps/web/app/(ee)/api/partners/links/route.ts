@@ -7,7 +7,7 @@ import {
   getRewardIds,
   LinkRewardIdsInput,
   validateRewardIds,
-} from "@/lib/api/rewards/link-rewards";
+} from "@/lib/api/rewards/additional-rewards";
 import { parseRequestBody } from "@/lib/api/utils";
 import { applyGroupUtmToLink } from "@/lib/api/utm/apply-group-utm-to-link";
 import { withWorkspace } from "@/lib/auth";

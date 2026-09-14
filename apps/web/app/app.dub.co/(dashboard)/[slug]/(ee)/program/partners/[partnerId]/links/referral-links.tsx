@@ -6,8 +6,8 @@ import { useProgramPartnerLinks } from "@/lib/swr/use-program-partner-links";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps, GroupProps } from "@/lib/types";
 import { useAddPartnerLinkModal } from "@/ui/modals/add-partner-link-modal";
-import { useEditPartnerLinkDiscountModal } from "@/ui/modals/edit-partner-link-discount-modal";
-import { useEditPartnerLinkRewardModal } from "@/ui/modals/edit-partner-link-reward-modal";
+import { useEditPartnerDiscountModal } from "@/ui/modals/edit-partner-discount-modal";
+import { useEditPartnerRewardModal } from "@/ui/modals/edit-partner-reward-modal";
 import { REWARD_EVENT_ICON } from "@/ui/partners/rewards/reward-event-icon";
 import { ThreeDots } from "@/ui/shared/icons";
 import {
@@ -23,7 +23,7 @@ import {
   UserCheck,
   useCopyToClipboard,
 } from "@dub/ui";
-import { Copy, Discount, Gift } from "@dub/ui/icons";
+import { Copy, Discount } from "@dub/ui/icons";
 import {
   cn,
   currencyFormatter,
@@ -37,6 +37,15 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 type PartnerLink = NonNullable<EnrolledPartnerProps["links"]>[number];
+type PartnerForOverrides = Pick<
+  EnrolledPartnerProps,
+  | "id"
+  | "groupId"
+  | "clickRewardId"
+  | "leadRewardId"
+  | "saleRewardId"
+  | "discountId"
+>;
 
 const LINK_REWARD_OVERRIDE_EVENTS = ["click", "lead", "sale"] as const;
 
@@ -197,7 +206,7 @@ function PartnerLinkCard({
   slug,
 }: {
   link: PartnerLink;
-  partner: Pick<EnrolledPartnerProps, "id" | "groupId">;
+  partner: PartnerForOverrides;
   group?: GroupProps | null;
   slug?: string;
 }) {
@@ -206,18 +215,20 @@ function PartnerLinkCard({
     link,
   });
   const rewardEvents = getLinkRewardOverride(link);
+  const [rewardEvent, setRewardEvent] = useState<"sale" | "lead" | "click">(
+    "sale",
+  );
 
-  const { EditPartnerLinkRewardModal, setShowEditPartnerLinkRewardModal } =
-    useEditPartnerLinkRewardModal({
-      link,
-      partner,
+  const { EditPartnerRewardModal, setShowEditPartnerRewardModal } =
+    useEditPartnerRewardModal({
+      event: rewardEvent,
+      target: { type: "link", link, partner },
       group,
     });
 
-  const { EditPartnerLinkDiscountModal, setShowEditPartnerLinkDiscountModal } =
-    useEditPartnerLinkDiscountModal({
-      link,
-      partner,
+  const { EditPartnerDiscountModal, setShowEditPartnerDiscountModal } =
+    useEditPartnerDiscountModal({
+      target: { type: "link", link, partner },
       group,
     });
 
@@ -292,13 +303,16 @@ function PartnerLinkCard({
 
           <PartnerLinkCardMenu
             partnerLink={partnerLink}
-            onEditReward={() => setShowEditPartnerLinkRewardModal(true)}
-            onEditDiscount={() => setShowEditPartnerLinkDiscountModal(true)}
+            onEditReward={(event) => {
+              setRewardEvent(event);
+              setShowEditPartnerRewardModal(true);
+            }}
+            onEditDiscount={() => setShowEditPartnerDiscountModal(true)}
           />
         </div>
       </CardList.Card>
-      <EditPartnerLinkRewardModal />
-      <EditPartnerLinkDiscountModal />
+      <EditPartnerRewardModal />
+      <EditPartnerDiscountModal />
     </>
   );
 }
@@ -309,7 +323,7 @@ function PartnerLinkCardMenu({
   onEditDiscount,
 }: {
   partnerLink: string;
-  onEditReward: () => void;
+  onEditReward: (event: "sale" | "lead" | "click") => void;
   onEditDiscount: () => void;
 }) {
   const [openPopover, setOpenPopover] = useState(false);
@@ -322,7 +336,7 @@ function PartnerLinkCardMenu({
       setOpenPopover={setOpenPopover}
       content={
         <Command tabIndex={0} loop className="focus:outline-none">
-          <Command.List className="flex w-screen flex-col gap-1 p-1.5 text-sm focus-visible:outline-none sm:w-auto sm:min-w-[150px]">
+          <Command.List className="flex w-screen flex-col gap-1 p-1.5 text-sm focus-visible:outline-none sm:w-auto sm:min-w-[180px]">
             <MenuItem
               as={Command.Item}
               icon={Copy}
@@ -335,16 +349,22 @@ function PartnerLinkCardMenu({
             >
               Copy link
             </MenuItem>
-            <MenuItem
-              as={Command.Item}
-              icon={Gift}
-              onSelect={() => {
-                setOpenPopover(false);
-                onEditReward();
-              }}
-            >
-              Edit reward
-            </MenuItem>
+            {(["sale", "lead", "click"] as const).map((event) => {
+              const Icon = REWARD_EVENT_ICON[event];
+              return (
+                <MenuItem
+                  key={event}
+                  as={Command.Item}
+                  icon={Icon}
+                  onSelect={() => {
+                    setOpenPopover(false);
+                    onEditReward(event);
+                  }}
+                >
+                  Edit {event} reward
+                </MenuItem>
+              );
+            })}
             <MenuItem
               as={Command.Item}
               icon={Discount}

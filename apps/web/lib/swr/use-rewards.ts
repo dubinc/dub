@@ -1,13 +1,21 @@
 import { buildSearchParams, fetcher } from "@dub/utils";
-import useSWR from "swr";
+import useSWR, { SWRConfiguration } from "swr";
 import * as z from "zod/v4";
 import { RewardProps } from "../types";
 import { getRewardsQuerySchema } from "../zod/schemas/rewards";
 import useWorkspace from "./use-workspace";
 
+export type RewardListItem = RewardProps & {
+  groupId?: string | null;
+  partnersCount?: number;
+};
+
 export function useRewards({
   groupId,
-}: z.infer<typeof getRewardsQuerySchema> = {}) {
+  swrOpts,
+}: z.infer<typeof getRewardsQuerySchema> & {
+  swrOpts?: SWRConfiguration;
+} = {}) {
   const { id: workspaceId, defaultProgramId } = useWorkspace();
 
   const searchParams = buildSearchParams({
@@ -15,12 +23,13 @@ export function useRewards({
     groupId,
   });
 
-  const { data: rewards, error } = useSWR<RewardProps[]>(
+  const { data: rewards, error } = useSWR<RewardListItem[]>(
     workspaceId && defaultProgramId && `/api/rewards?${searchParams}`,
     fetcher,
     {
       dedupingInterval: 60000,
       keepPreviousData: true,
+      ...swrOpts,
     },
   );
 

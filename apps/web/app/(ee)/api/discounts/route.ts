@@ -18,14 +18,30 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
       programId,
       ...(groupId && { groupId }),
     },
+    include: {
+      _count: {
+        select: {
+          programEnrollments: true,
+        },
+      },
+    },
     orderBy: {
       createdAt: "desc",
     },
   });
 
+  const discountsWithPartnersCount = discounts.map((discount) => {
+    const { _count, ...rest } = discount;
+
+    return {
+      ...rest,
+      partnersCount: _count.programEnrollments,
+    };
+  });
+
   return NextResponse.json(
     z
       .array(DiscountSchema.extend({ groupId: z.string().nullable() }))
-      .parse(discounts),
+      .parse(discountsWithPartnersCount),
   );
 });

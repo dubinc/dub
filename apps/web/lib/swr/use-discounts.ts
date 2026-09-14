@@ -1,5 +1,5 @@
 import { buildSearchParams, fetcher } from "@dub/utils";
-import useSWR from "swr";
+import useSWR, { SWRConfiguration } from "swr";
 import * as z from "zod/v4";
 import { DiscountProps } from "../types";
 import { getDiscountsQuerySchema } from "../zod/schemas/discount";
@@ -7,7 +7,10 @@ import useWorkspace from "./use-workspace";
 
 export function useDiscounts({
   groupId,
-}: z.infer<typeof getDiscountsQuerySchema> = {}) {
+  swrOpts,
+}: z.infer<typeof getDiscountsQuerySchema> & {
+  swrOpts?: SWRConfiguration;
+} = {}) {
   const { id: workspaceId, defaultProgramId } = useWorkspace();
 
   const searchParams = buildSearchParams({
@@ -21,6 +24,7 @@ export function useDiscounts({
     {
       dedupingInterval: 60000,
       keepPreviousData: true,
+      ...swrOpts,
     },
   );
 

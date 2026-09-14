@@ -4,9 +4,9 @@ import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps, LinkProps } from "@/lib/types";
 import { createPartnerLinkSchema } from "@/lib/zod/schemas/partners";
-import { DiscountSelector } from "@/ui/partners/link-overrides/discount-selector";
-import { RewardSelector } from "@/ui/partners/link-overrides/reward-selector";
-import { useRewardAndDiscountOptions } from "@/ui/partners/link-overrides/use-reward-and-discount-options";
+import { DiscountSelector } from "@/ui/partners/rewards/discount-selector";
+import { RewardSelector } from "@/ui/partners/rewards/reward-selector";
+import { useCustomRewardAndDiscountOptions } from "@/ui/partners/rewards/use-custom-reward-and-discount-options";
 import {
   AnimatedSizeContainer,
   ArrowTurnLeft,
@@ -60,7 +60,7 @@ const AddPartnerLinkModal = ({
 
   const { group } = useGroup({ groupIdOrSlug: partner.groupId });
   const { clickRewards, saleRewards, leadRewards, discounts } =
-    useRewardAndDiscountOptions({ group });
+    useCustomRewardAndDiscountOptions({ group });
 
   const { register, handleSubmit, watch, setValue, control } =
     useForm<FormData>({

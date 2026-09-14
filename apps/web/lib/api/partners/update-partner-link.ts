@@ -5,7 +5,7 @@ import {
   getRewardIds,
   hasRewardIdsInput,
   validateRewardIds,
-} from "@/lib/api/rewards/link-rewards";
+} from "@/lib/api/rewards/additional-rewards";
 import { prisma } from "@/lib/prisma";
 import { updatePartnerLinkSchema } from "@/lib/zod/schemas/partners";
 import { ProgramPartnerLinkSchema } from "@/lib/zod/schemas/programs";

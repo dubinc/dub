@@ -2,7 +2,7 @@ import { queuePartnerSearchSync } from "@/lib/api/partners/queue-partner-search-
 import {
   hasRewardIdsInput,
   LinkRewardIdsInput,
-} from "@/lib/api/rewards/link-rewards";
+} from "@/lib/api/rewards/additional-rewards";
 import { qstash } from "@/lib/cron";
 import { getPartnerEnrollmentInfo } from "@/lib/planetscale/get-partner-enrollment-info";
 import { prisma } from "@/lib/prisma";
