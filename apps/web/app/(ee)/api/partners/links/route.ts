@@ -4,6 +4,7 @@ import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-progr
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import {
   getExpandableRewardReferences,
+  getLinkRewardExpandInclude,
   getRewardIds,
   hasRewardIdsInput,
   LinkRewardIdsInput,
@@ -43,6 +44,7 @@ export const GET = withWorkspace(
     });
 
     const expandReward = expandFields.has("reward");
+    const expandDiscount = expandFields.has("discount");
 
     throwIfNoPartnerIdOrTenantId({ partnerId, tenantId });
 
@@ -63,15 +65,10 @@ export const GET = withWorkspace(
       select: {
         links: {
           include: {
-            linkReward: expandReward
-              ? {
-                  include: {
-                    clickReward: true,
-                    leadReward: true,
-                    saleReward: true,
-                  },
-                }
-              : true,
+            linkReward: getLinkRewardExpandInclude({
+              expandReward,
+              expandDiscount,
+            }),
           },
         },
       },
@@ -88,7 +85,8 @@ export const GET = withWorkspace(
       ...link,
       ...getExpandableRewardReferences({
         linkReward: link.linkReward,
-        expand: expandReward,
+        expandReward,
+        expandDiscount,
       }),
     }));
 
@@ -222,6 +220,7 @@ export const POST = withWorkspace(
 
     await validateRewardIds({
       programId,
+      groupId: partnerGroup.id,
       ...linkRewardInput,
     });
 

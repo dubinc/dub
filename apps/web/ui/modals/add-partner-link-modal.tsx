@@ -1,7 +1,6 @@
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { PARTNER_AND_LINK_REWARDS_PLAN_ERROR } from "@/lib/rewards/constants";
 import { mutatePrefix } from "@/lib/swr/mutate";
-import useGroup from "@/lib/swr/use-group";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps, LinkProps } from "@/lib/types";
@@ -67,9 +66,18 @@ const AddPartnerLinkModal = ({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [showOverrides, setShowOverrides] = useState(false);
 
-  const { group } = useGroup({ groupIdOrSlug: partner.groupId });
-  const { clickRewards, saleRewards, leadRewards, discounts } =
-    useCustomRewardAndDiscountOptions({ group });
+  const {
+    clickRewards,
+    saleRewards,
+    leadRewards,
+    discounts,
+    groupClickRewardId,
+    groupLeadRewardId,
+    groupSaleRewardId,
+    groupDiscountId,
+  } = useCustomRewardAndDiscountOptions({
+    partnerGroupId: partner.groupId,
+  });
 
   const { register, handleSubmit, watch, setValue, control } =
     useForm<FormData>({
@@ -282,8 +290,7 @@ const AddPartnerLinkModal = ({
                         <RewardSelector
                           label="Sale reward"
                           options={saleRewards}
-                          selectedId={field.value}
-                          groupId={group?.saleReward?.id}
+                          selectedId={field.value ?? groupSaleRewardId}
                           onChange={field.onChange}
                         />
                       )}
@@ -295,8 +302,7 @@ const AddPartnerLinkModal = ({
                         <RewardSelector
                           label="Lead reward"
                           options={leadRewards}
-                          selectedId={field.value}
-                          groupId={group?.leadReward?.id}
+                          selectedId={field.value ?? groupLeadRewardId}
                           onChange={field.onChange}
                         />
                       )}
@@ -308,8 +314,7 @@ const AddPartnerLinkModal = ({
                         <RewardSelector
                           label="Click reward"
                           options={clickRewards}
-                          selectedId={field.value}
-                          groupId={group?.clickReward?.id}
+                          selectedId={field.value ?? groupClickRewardId}
                           onChange={field.onChange}
                         />
                       )}
@@ -320,8 +325,7 @@ const AddPartnerLinkModal = ({
                       render={({ field }) => (
                         <DiscountSelector
                           options={discounts}
-                          selectedId={field.value}
-                          groupId={group?.discount?.id}
+                          selectedId={field.value ?? groupDiscountId}
                           onChange={field.onChange}
                         />
                       )}

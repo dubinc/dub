@@ -2,7 +2,13 @@ import { DubApiError } from "@/lib/api/errors";
 import { serializeReward } from "@/lib/api/partners/serialize-reward";
 import { getExpandableField } from "@/lib/expand/get-expandable-field";
 import { prisma } from "@/lib/prisma";
-import { EventType, LinkReward, Reward } from "@prisma/client";
+import {
+  Discount,
+  EventType,
+  LinkReward,
+  Prisma,
+  Reward,
+} from "@prisma/client";
 
 export type LinkRewardIdsInput = Partial<
   Pick<
@@ -18,6 +24,7 @@ type LinkRewardWithOptionalRewards = Pick<
   clickReward?: Reward | null;
   leadReward?: Reward | null;
   saleReward?: Reward | null;
+  discount?: Discount | null;
 };
 
 export const hasRewardIdsInput = ({
@@ -43,14 +50,26 @@ export const getRewardIds = (
   discount: linkReward?.discountId ?? null,
 });
 
+const belongsToGroup = ({
+  groupId,
+  entityGroupId,
+  defaultGroupId,
+}: {
+  groupId: string;
+  entityGroupId: string | null;
+  defaultGroupId?: string | null;
+}) => entityGroupId === groupId || defaultGroupId === groupId;
+
 export const validateRewardIds = async ({
   programId,
+  groupId,
   clickRewardId,
   leadRewardId,
   saleRewardId,
   discountId,
 }: {
   programId: string;
+  groupId: string | null | undefined;
 } & LinkRewardIdsInput) => {
   const assignments: {
     id: string;
@@ -78,6 +97,17 @@ export const validateRewardIds = async ({
     });
   }
 
+  if (assignments.length === 0 && !discountId) {
+    return;
+  }
+
+  if (!groupId) {
+    throw new DubApiError({
+      code: "unprocessable_entity",
+      message: "This partner is not part of a partner group.",
+    });
+  }
+
   if (assignments.length > 0) {
     const rewards = await prisma.reward.findMany({
       where: {
@@ -89,6 +119,22 @@ export const validateRewardIds = async ({
       select: {
         id: true,
         event: true,
+        groupId: true,
+        clickPartnerGroup: {
+          select: {
+            id: true,
+          },
+        },
+        leadPartnerGroup: {
+          select: {
+            id: true,
+          },
+        },
+        salePartnerGroup: {
+          select: {
+            id: true,
+          },
+        },
       },
     });
 
@@ -110,6 +156,22 @@ export const validateRewardIds = async ({
           message: `Reward ${assignment.id} is a ${reward.event} reward and cannot be assigned as a ${assignment.event} reward.`,
         });
       }
+
+      if (
+        !belongsToGroup({
+          groupId,
+          entityGroupId: reward.groupId,
+          defaultGroupId:
+            reward.clickPartnerGroup?.id ??
+            reward.leadPartnerGroup?.id ??
+            reward.salePartnerGroup?.id,
+        })
+      ) {
+        throw new DubApiError({
+          code: "unprocessable_entity",
+          message: `Reward ${assignment.id} does not belong to this partner's group.`,
+        });
+      }
     }
   }
 
@@ -121,6 +183,12 @@ export const validateRewardIds = async ({
       },
       select: {
         id: true,
+        groupId: true,
+        partnerGroup: {
+          select: {
+            id: true,
+          },
+        },
       },
     });
 
@@ -130,33 +198,77 @@ export const validateRewardIds = async ({
         message: `Discount ${discountId} not found.`,
       });
     }
+
+    if (
+      !belongsToGroup({
+        groupId,
+        entityGroupId: discount.groupId,
+        defaultGroupId: discount.partnerGroup?.id,
+      })
+    ) {
+      throw new DubApiError({
+        code: "unprocessable_entity",
+        message: `Discount ${discountId} does not belong to this partner's group.`,
+      });
+    }
   }
+};
+
+export const getLinkRewardExpandInclude = ({
+  expandReward,
+  expandDiscount,
+}: {
+  expandReward: boolean;
+  expandDiscount: boolean;
+}): true | { include: Prisma.LinkRewardInclude } => {
+  if (!expandReward && !expandDiscount) {
+    return true;
+  }
+
+  return {
+    include: {
+      ...(expandReward && {
+        clickReward: true,
+        leadReward: true,
+        saleReward: true,
+      }),
+      ...(expandDiscount && {
+        discount: true,
+      }),
+    },
+  };
 };
 
 export const getExpandableRewardReferences = ({
   linkReward,
-  expand,
+  expandReward,
+  expandDiscount,
 }: {
   linkReward: LinkRewardWithOptionalRewards | null | undefined;
-  expand: boolean;
+  expandReward: boolean;
+  expandDiscount: boolean;
 }) => ({
   clickReward: getExpandableField({
     id: linkReward?.clickRewardId,
     entity: linkReward?.clickReward,
-    expand,
+    expand: expandReward,
     serialize: serializeReward,
   }),
   leadReward: getExpandableField({
     id: linkReward?.leadRewardId,
     entity: linkReward?.leadReward,
-    expand,
+    expand: expandReward,
     serialize: serializeReward,
   }),
   saleReward: getExpandableField({
     id: linkReward?.saleRewardId,
     entity: linkReward?.saleReward,
-    expand,
+    expand: expandReward,
     serialize: serializeReward,
   }),
-  discount: linkReward?.discountId ?? null,
+  discount: getExpandableField({
+    id: linkReward?.discountId,
+    entity: linkReward?.discount,
+    expand: expandDiscount,
+  }),
 });

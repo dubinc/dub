@@ -55,17 +55,38 @@ export async function updatePartnerLink({
     });
   }
 
-  const existingLinkReward = await prisma.linkReward.findUnique({
-    where: {
-      linkId: link.id,
-    },
-    select: {
-      clickRewardId: true,
-      leadRewardId: true,
-      saleRewardId: true,
-      discountId: true,
-    },
-  });
+  const [existingLinkReward, enrollment] = await Promise.all([
+    prisma.linkReward.findUnique({
+      where: {
+        linkId: link.id,
+      },
+      select: {
+        clickRewardId: true,
+        leadRewardId: true,
+        saleRewardId: true,
+        discountId: true,
+      },
+    }),
+
+    prisma.programEnrollment.findUnique({
+      where: {
+        partnerId_programId: {
+          partnerId: link.partnerId,
+          programId,
+        },
+      },
+      select: {
+        groupId: true,
+      },
+    }),
+  ]);
+
+  if (!enrollment) {
+    throw new DubApiError({
+      code: "not_found",
+      message: "Partner not found.",
+    });
+  }
 
   const linkRewardInput = {
     clickRewardId: getValue(
@@ -88,6 +109,7 @@ export async function updatePartnerLink({
 
   await validateRewardIds({
     programId,
+    groupId: enrollment.groupId,
     ...linkRewardInput,
   });
 

@@ -81,19 +81,21 @@ function EditPartnerDiscountModal({
   target,
   group: groupProp,
 }: EditPartnerDiscountModalProps) {
+  const { partner } = target;
+
   const { id: workspaceId, slug } = useWorkspace();
+  const { group: fetchedGroup } = useGroup({ groupIdOrSlug: partner.groupId });
+
   const { makeRequest: updatePartnerLink, isSubmitting: isUpdatingLink } =
     useApiMutation();
+
   const { discounts, loading: discountsLoading } = useDiscounts({
+    groupId: partner.groupId,
     swrOpts: {
       revalidateOnFocus: true,
     },
   });
 
-  const partner = target.partner;
-  const { group: fetchedGroup } = useGroup({
-    groupIdOrSlug: partner.groupId,
-  });
   const group = groupProp ?? fetchedGroup;
   const groupDiscountId = group?.discount?.id;
 
@@ -103,9 +105,7 @@ function EditPartnerDiscountModal({
   );
 
   const sortedDiscounts = useMemo(() => {
-    const items = discounts ?? [];
-
-    return [...items].sort((a, b) => {
+    return [...(discounts ?? [])].sort((a, b) => {
       if (a.id === groupDiscountId) return -1;
       if (b.id === groupDiscountId) return 1;
       return 0;

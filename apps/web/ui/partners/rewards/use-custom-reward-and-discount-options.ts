@@ -1,6 +1,7 @@
 import { useDiscounts } from "@/lib/swr/use-discounts";
+import useGroup from "@/lib/swr/use-group";
 import { useRewards } from "@/lib/swr/use-rewards";
-import { GroupProps } from "@/lib/types";
+import { EnrolledPartnerProps } from "@/lib/types";
 import { REWARD_EVENT_COLUMN_MAPPING } from "@/lib/zod/schemas/rewards";
 import { formatDiscountDescription } from "@/ui/partners/format-discount-description";
 import { formatRewardDescription } from "@/ui/partners/format-reward-description";
@@ -9,12 +10,13 @@ import { RewardSelectorOption } from "@/ui/partners/rewards/reward-selector";
 import { useMemo } from "react";
 
 export function useCustomRewardAndDiscountOptions({
-  group,
+  partnerGroupId,
 }: {
-  group: GroupProps | undefined;
+  partnerGroupId: EnrolledPartnerProps["groupId"];
 }) {
-  const { rewards } = useRewards();
-  const { discounts } = useDiscounts();
+  const { group } = useGroup({ groupIdOrSlug: partnerGroupId });
+  const { rewards } = useRewards({ groupId: partnerGroupId });
+  const { discounts } = useDiscounts({ groupId: partnerGroupId });
 
   return useMemo(() => {
     const clickRewards: RewardSelectorOption[] = [];
@@ -38,10 +40,9 @@ export function useCustomRewardAndDiscountOptions({
         continue;
       }
 
-      const rewardIdColumn = REWARD_EVENT_COLUMN_MAPPING[reward.event];
       const groupRewardId = groupRewardIds[reward.event];
 
-      optionsByColumn[rewardIdColumn].push({
+      optionsByColumn[REWARD_EVENT_COLUMN_MAPPING[reward.event]].push({
         value: reward.id,
         label: formatRewardDescription(reward),
         first: reward.id === groupRewardId,
@@ -70,6 +71,10 @@ export function useCustomRewardAndDiscountOptions({
       saleRewards,
       leadRewards,
       discounts: discountOptions,
+      groupClickRewardId: groupRewardIds.click,
+      groupLeadRewardId: groupRewardIds.lead,
+      groupSaleRewardId: groupRewardIds.sale,
+      groupDiscountId,
     };
   }, [
     rewards,

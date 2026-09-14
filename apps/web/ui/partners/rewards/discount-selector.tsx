@@ -10,18 +10,14 @@ export type DiscountSelectorOption = ComboboxOption<{
 export function DiscountSelector({
   options,
   selectedId,
-  groupId,
   onChange,
 }: {
   options: DiscountSelectorOption[];
   selectedId: string | null | undefined;
-  groupId: string | null | undefined;
   onChange: (id: string | null) => void;
 }) {
-  const displayedId = selectedId ?? groupId;
   const selected =
-    options.find((option) => option.value === displayedId) ?? null;
-  const isGroup = Boolean(displayedId && displayedId === groupId);
+    options.find((option) => option.value === selectedId) ?? null;
 
   return (
     <div className="flex flex-col gap-2">
@@ -35,7 +31,7 @@ export function DiscountSelector({
             return;
           }
 
-          onChange(option.value === groupId ? null : option.value);
+          onChange(option.meta?.isGroup ? null : option.value);
         }}
         options={options}
         caret
@@ -64,7 +60,7 @@ export function DiscountSelector({
         {selected ? (
           <>
             <span className="min-w-0 truncate">{selected.label}</span>
-            {isGroup && <GroupBadge />}
+            {selected.meta?.isGroup && <GroupBadge />}
           </>
         ) : null}
       </Combobox>

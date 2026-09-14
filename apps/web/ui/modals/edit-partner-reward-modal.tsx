@@ -128,8 +128,12 @@ function EditPartnerRewardModal({
   target,
   group: groupProp,
 }: EditPartnerRewardModalProps) {
+  const { partner } = target;
+
   const { id: workspaceId, slug } = useWorkspace();
+
   const { rewards, loading: rewardsLoading } = useRewards({
+    groupId: partner.groupId,
     swrOpts: {
       revalidateOnFocus: true,
     },
@@ -141,7 +145,6 @@ function EditPartnerRewardModal({
   const { ConfirmRewardChangeModal, openConfirmRewardChangeModal } =
     useConfirmRewardChangeModal();
 
-  const partner = target.partner;
   const { group: fetchedGroup } = useGroup({
     groupIdOrSlug: partner.groupId,
   });
@@ -157,13 +160,13 @@ function EditPartnerRewardModal({
   const [editingReward, setEditingReward] = useState<RewardProps | null>(null);
 
   const eventRewards = useMemo(() => {
-    const filtered = (rewards ?? []).filter((reward) => reward.event === event);
-
-    return filtered.sort((a, b) => {
-      if (a.id === groupRewardId) return -1;
-      if (b.id === groupRewardId) return 1;
-      return 0;
-    });
+    return (rewards ?? [])
+      .filter((reward) => reward.event === event)
+      .sort((a, b) => {
+        if (a.id === groupRewardId) return -1;
+        if (b.id === groupRewardId) return 1;
+        return 0;
+      });
   }, [rewards, event, groupRewardId]);
 
   useEffect(() => {

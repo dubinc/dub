@@ -2,7 +2,10 @@ import { DubApiError, ErrorCodes } from "@/lib/api/errors";
 import { createLink, processLink } from "@/lib/api/links";
 import { validatePartnerLinkUrl } from "@/lib/api/links/validate-partner-link-url";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
-import { getExpandableRewardReferences } from "@/lib/api/rewards/additional-rewards";
+import {
+  getExpandableRewardReferences,
+  getLinkRewardExpandInclude,
+} from "@/lib/api/rewards/additional-rewards";
 import { parseRequestBody } from "@/lib/api/utils";
 import { applyGroupUtmToLink } from "@/lib/api/utm/apply-group-utm-to-link";
 import { withPartnerProfile } from "@/lib/auth/partner";
@@ -25,6 +28,7 @@ export const GET = withPartnerProfile(async ({ partner, params, req }) => {
   });
 
   const expandReward = expandFields.has("reward");
+  const expandDiscount = expandFields.has("discount");
 
   const { links, discountCodes } = await getProgramEnrollmentOrThrow({
     partnerId: partner.id,
@@ -32,15 +36,10 @@ export const GET = withPartnerProfile(async ({ partner, params, req }) => {
     include: {
       links: {
         include: {
-          linkReward: expandReward
-            ? {
-                include: {
-                  clickReward: true,
-                  leadReward: true,
-                  saleReward: true,
-                },
-              }
-            : true,
+          linkReward: getLinkRewardExpandInclude({
+            expandReward,
+            expandDiscount,
+          }),
         },
       },
       discountCodes: true,
@@ -59,7 +58,8 @@ export const GET = withPartnerProfile(async ({ partner, params, req }) => {
       ...link,
       ...getExpandableRewardReferences({
         linkReward: link.linkReward,
-        expand: expandReward,
+        expandReward,
+        expandDiscount,
       }),
       discountCode: discountCode?.code,
       discountCodeDisabledAt: discountCode?.disabledAt ?? null,

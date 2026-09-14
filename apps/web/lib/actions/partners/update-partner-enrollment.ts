@@ -89,14 +89,17 @@ export const updatePartnerEnrollmentAction = authActionClient
       throw new Error(PARTNER_AND_LINK_REWARDS_PLAN_ERROR);
     }
 
-    const { partner, tenantId: existingTenantId } =
-      await getProgramEnrollmentOrThrow({
-        partnerId,
-        programId,
-        include: {
-          partner: true,
-        },
-      });
+    const {
+      partner,
+      tenantId: existingTenantId,
+      groupId,
+    } = await getProgramEnrollmentOrThrow({
+      partnerId,
+      programId,
+      include: {
+        partner: true,
+      },
+    });
 
     const where = {
       programId,
@@ -112,6 +115,7 @@ export const updatePartnerEnrollmentAction = authActionClient
 
     await validateRewardIds({
       programId,
+      groupId,
       clickRewardId,
       leadRewardId,
       saleRewardId,

@@ -1032,11 +1032,11 @@ export const bulkRejectPartnersSchema = z.object({
 
 export const retrievePartnerLinksSchema = partnerIdTenantIdSchema.extend({
   expand: getExpandFieldSchema(
-    "Include expanded fields on each link. Use expand[]=reward to return reward objects instead of IDs.",
+    "Include expanded fields on each link. Use expand[]=reward or expand[]=discount to return objects instead of IDs.",
   ),
 });
 
-export const PARTNER_LINK_EXPAND_FIELDS = ["reward"] as const;
+export const PARTNER_LINK_EXPAND_FIELDS = ["reward", "discount"] as const;
 
 export type PartnerLinkExpandField =
   (typeof PARTNER_LINK_EXPAND_FIELDS)[number];
