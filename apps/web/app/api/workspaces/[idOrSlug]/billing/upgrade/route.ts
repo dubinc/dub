@@ -26,6 +26,11 @@ export const POST = withWorkspace(
       await req.json(),
     );
 
+    if (workspace.disabledAt) {
+      plan = "advanced";
+      period = "yearly";
+    }
+
     const lookupKey =
       tier > 1 ? `${plan}${tier}_${period}` : `${plan}_${period}`;
 

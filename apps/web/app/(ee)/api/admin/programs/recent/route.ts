@@ -27,11 +27,14 @@ export const GET = withAdmin(async ({ searchParams }) => {
         endsWith: "-staging",
       },
     },
-    ...(plan && {
-      workspace: {
-        plan,
+    workspace: {
+      stripeId: {
+        not: null,
       },
-    }),
+      ...(plan && {
+        plan,
+      }),
+    },
   } satisfies Prisma.ProgramWhereInput;
 
   const { startDate, endDate } = getStartEndDates({ interval: "30d" });

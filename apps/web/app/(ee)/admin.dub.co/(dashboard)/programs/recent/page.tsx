@@ -109,15 +109,9 @@ function RecentProgramsPageClient() {
   } = useSWR<{
     programs: AdminRecentProgram[];
     total: number;
-  }>(
-    `/api/admin/programs/recent${getQueryString({
-      pageSize: String(ADMIN_RECENT_PROGRAMS_PAGE_SIZE),
-    })}`,
-    fetcher,
-    {
-      keepPreviousData: true,
-    },
-  );
+  }>(`/api/admin/programs/recent${getQueryString()}`, fetcher, {
+    keepPreviousData: true,
+  });
 
   const { setShowConfirmModal, confirmModal } = useConfirmModal({
     title: "Add marketplace program",
