@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import DubStartupProgramAnnouncement from "@dub/email/templates/broadcasts/dub-startup-program-announcement";
+import DubProductUpdateSummer26 from "@dub/email/templates/broadcasts/dub-product-update-summer26";
 import { chunk } from "@dub/utils";
 import "dotenv-flow/config";
 import { queueBatchEmail } from "../lib/email/queue-batch-email";
@@ -12,11 +12,10 @@ async function main() {
         not: null,
       },
       plan: {
-        notIn: ["advanced", "enterprise"],
+        in: ["advanced", "enterprise"],
       },
     },
     include: {
-      programs: true,
       users: {
         where: {
           user: {
@@ -42,12 +41,12 @@ async function main() {
 
   console.log(`Found ${usersToNotify.length} users to notify`);
 
-  const res = await queueBatchEmail<typeof DubStartupProgramAnnouncement>(
+  const res = await queueBatchEmail<typeof DubProductUpdateSummer26>(
     usersToNotify.map((user) => ({
       to: user.email!,
       variant: "marketing",
-      subject: "Introducing the Dub Startup Program 🚀",
-      templateName: "DubStartupProgramAnnouncement",
+      subject: "Dub.co Product Update: Summer 2026",
+      templateName: "DubProductUpdateSummer26",
       templateProps: {
         email: user.email!,
         unsubscribeUrl: `https://app.dub.co/unsubscribe/${generateUnsubscribeToken(user.email!)}`,
