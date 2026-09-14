@@ -3,6 +3,7 @@
 import { trackRewardActivityLog } from "@/lib/api/activity-log/track-reward-activity-log";
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { getRewardOrThrow } from "@/lib/api/partners/get-reward-or-throw";
+import { serializeReward } from "@/lib/api/partners/serialize-reward";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { queueRewardProcessing } from "@/lib/api/rewards/queue-reward-processing";
 import { prisma } from "@/lib/prisma";
@@ -44,8 +45,7 @@ export const deleteRewardAction = authActionClient
     const rewardIdColumn = REWARD_EVENT_COLUMN_MAPPING[reward.event];
 
     await prisma.$transaction(async (tx) => {
-      await tx.partnerGroup.update({
-        // @ts-ignore
+      await tx.partnerGroup.updateMany({
         where: {
           [rewardIdColumn]: reward.id,
         },
@@ -73,7 +73,7 @@ export const deleteRewardAction = authActionClient
         rewardSnapshot: {
           id: reward.id,
           event: reward.event,
-          description: formatRewardDescription(reward, {
+          description: formatRewardDescription(serializeReward(reward), {
             includeEarnPrefix: false,
           }),
           activityDescription,

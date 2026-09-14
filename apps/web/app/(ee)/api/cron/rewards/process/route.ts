@@ -106,6 +106,7 @@ export const POST = withCron(async ({ rawBody }) => {
       break;
 
     case "reward-deleted":
+      where = { [rewardIdColumn]: reward.id };
       data = { [rewardIdColumn]: null };
       break;
   }
