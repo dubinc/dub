@@ -153,6 +153,9 @@ function DiscountSheetContent({
         toast.success("Discount created!");
         await mutateProgram();
         await mutateGroup();
+        await mutate(
+          (key) => typeof key === "string" && key.startsWith("/api/discounts"),
+        );
       },
       onError({ error }) {
         if (error.serverError) {
@@ -189,6 +192,9 @@ function DiscountSheetContent({
         toast.success("Discount updated!");
         await mutateProgram();
         await mutateGroup();
+        await mutate(
+          (key) => typeof key === "string" && key.startsWith("/api/discounts"),
+        );
       },
       onError({ error }) {
         toast.error(error.serverError);
@@ -204,6 +210,9 @@ function DiscountSheetContent({
         toast.success("Discount deleted!");
         await mutate(`/api/programs/${defaultProgramId}`);
         await mutateGroup();
+        await mutate(
+          (key) => typeof key === "string" && key.startsWith("/api/discounts"),
+        );
       },
       onError({ error }) {
         toast.error(error.serverError);

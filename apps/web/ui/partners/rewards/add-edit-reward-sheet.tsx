@@ -382,6 +382,9 @@ function RewardSheetContent({
         toast.success("Reward created!");
         await mutateProgram();
         await mutateGroup();
+        await mutate(
+          (key) => typeof key === "string" && key.startsWith("/api/rewards"),
+        );
       },
       onError({ error }) {
         toast.error(parseActionError(error, "Failed to create reward"));
@@ -398,6 +401,9 @@ function RewardSheetContent({
         toast.success("Reward updated!");
         await mutateProgram();
         await mutateGroup();
+        await mutate(
+          (key) => typeof key === "string" && key.startsWith("/api/rewards"),
+        );
       },
       onError({ error }) {
         toast.error(parseActionError(error, "Failed to update reward"));
@@ -414,6 +420,9 @@ function RewardSheetContent({
         toast.success("Reward deleted!");
         await mutate(`/api/programs/${defaultProgramId}`);
         await mutateGroup();
+        await mutate(
+          (key) => typeof key === "string" && key.startsWith("/api/rewards"),
+        );
       },
       onError({ error }) {
         toast.error(error.serverError);
