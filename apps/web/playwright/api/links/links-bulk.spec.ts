@@ -1,4 +1,4 @@
-import { nanoid } from "@dub/utils";
+import { nanoid, sleep } from "@dub/utils";
 import { expect } from "@playwright/test";
 import { apiError } from "../../utils";
 import { test, type ApiClient } from "../fixtures";
@@ -25,6 +25,7 @@ function bulkLinkBody(overrides: Record<string, unknown> = {}) {
   return {
     url: `https://example.com/${nanoid()}`,
     domain,
+    key: nanoid(12),
     ...overrides,
   };
 }
@@ -33,7 +34,25 @@ async function createBulkLinks(
   api: ApiClient,
   bodies: Record<string, unknown>[],
 ) {
-  return api.post<(BulkLink | BulkLinkError)[]>("/api/links/bulk", bodies);
+  let response: { status: number; data: unknown } | undefined;
+
+  for (let attempt = 0; attempt < 3; attempt++) {
+    response = await api.post<unknown>("/api/links/bulk", bodies);
+
+    if (response.status !== 429 && response.status < 500) {
+      break;
+    }
+
+    await sleep(1000 * (attempt + 1));
+  }
+
+  expect(response?.status, JSON.stringify(response?.data)).toEqual(200);
+  expect(
+    Array.isArray(response?.data),
+    `Expected bulk create to return an array, got: ${JSON.stringify(response?.data)}`,
+  ).toBe(true);
+
+  return response as { status: number; data: (BulkLink | BulkLinkError)[] };
 }
 
 async function deleteLinks(api: ApiClient, ids: (string | undefined)[]) {
