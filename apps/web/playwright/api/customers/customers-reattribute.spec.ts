@@ -36,7 +36,7 @@ test("POST /customers/{id}/reattribute – unknown customer", async ({ api }) =>
   );
 });
 
-test("POST /customers/{id}/reattribute – unchanged partner and link", async ({
+test("POST /customers/{id}/reattribute – unchanged partner", async ({
   api,
   program,
 }) => {
@@ -72,7 +72,7 @@ test("POST /customers/{id}/reattribute – unchanged partner and link", async ({
     ).toEqual(
       apiError({
         code: "bad_request",
-        message: "Customer is already attributed to this partner and link.",
+        message: `Customer "${created.id}" is already attributed to the partner "${partner.id}".`,
       }),
     );
   } finally {
@@ -114,8 +114,7 @@ test("POST /customers/{id}/reattribute – retired stub", async ({ api }) => {
     ).toEqual(
       apiError({
         code: "bad_request",
-        message:
-          "This customer was already reattributed. Use the new customer ID.",
+        message: `Customer "${created.id}" was already reattributed. Use the new customer ID instead.`,
       }),
     );
   } finally {

@@ -189,7 +189,7 @@ describe.sequential("Workflow - ReattributeCustomer", async () => {
   );
 
   test(
-    "Reattributing to the same partner and link is rejected",
+    "Reattributing to the same partner is rejected",
     { timeout: VITEST_TEST_TIMEOUT_MS },
     async () => {
       const partner = await createEnrolledPartner("noop");
@@ -218,7 +218,7 @@ describe.sequential("Workflow - ReattributeCustomer", async () => {
       expect(data).toMatchObject({
         error: {
           code: "bad_request",
-          message: "Customer is already attributed to this partner and link.",
+          message: `Customer "${customer.id}" is already attributed to the partner "${partner.id}".`,
         },
       });
     },
