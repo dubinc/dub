@@ -5,6 +5,7 @@ import usePartnerCustomersCount from "@/lib/swr/use-partner-customers-count";
 import { usePartnerSubmittedLeadsCount } from "@/lib/swr/use-partner-submitted-leads-count";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import { submittedLeadFormSchema } from "@/lib/zod/schemas/submitted-lead-form";
+import { PartnerCustomersMenuPopover } from "@/ui/customers/partner-customers-menu-popover";
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { SubmitLeadSheet } from "@/ui/submitted-leads/submit-lead-sheet";
@@ -94,6 +95,7 @@ export default function PartnerProgramCustomersLayout({
               }}
             />
           )}
+          <PartnerCustomersMenuPopover />
         </>
       }
     >
