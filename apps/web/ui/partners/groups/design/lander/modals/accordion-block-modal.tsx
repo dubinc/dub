@@ -1,6 +1,7 @@
 "use client";
 
 import { programLanderAccordionBlockSchema } from "@/lib/zod/schemas/program-lander";
+import { MaxCharactersCounter } from "@/ui/shared/max-characters-counter";
 import {
   Button,
   CircleWarning,
@@ -10,10 +11,13 @@ import {
 } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { Dispatch, SetStateAction, useId, useRef } from "react";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { v4 as uuid } from "uuid";
 import * as z from "zod/v4";
 import { EditList, ExpandableEditListItem } from "../../edit-list";
+import { LanderRichTextEditor } from "../lander-rich-text-editor";
+
+const ACCORDION_ITEM_CONTENT_MAX_LENGTH = 1000;
 
 type AccordionBlockData = z.infer<
   typeof programLanderAccordionBlockSchema
@@ -31,7 +35,7 @@ export function AccordionBlockModal(props: AccordionBlockModalProps) {
     <Modal
       showModal={props.showModal}
       setShowModal={props.setShowModal}
-      className=""
+      className="max-w-screen-lg"
     >
       <AccordionBlockModalInner {...props} />
     </Modal>
@@ -48,6 +52,7 @@ function AccordionBlockModalInner({
   const {
     handleSubmit,
     register,
+    control,
     watch,
     setValue,
     formState: { errors },
@@ -198,20 +203,41 @@ function AccordionBlockModalInner({
                         >
                           Content
                         </label>
-                        <div className="mt-2 rounded-md shadow-sm">
-                          <textarea
-                            id={`${id}-${field.id}-content`}
-                            rows={3}
-                            maxLength={1000}
-                            placeholder="Start typing"
-                            className={cn(
-                              "block max-h-32 min-h-16 w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
-                              fieldErrors?.content &&
-                                "border-red-600 focus:border-red-500 focus:ring-red-600",
+                        <div className="mt-2">
+                          <Controller
+                            control={control}
+                            name={`items.${index}.content`}
+                            rules={{
+                              validate: (value) => {
+                                const content = value?.trim() ?? "";
+                                if (!content) return "Content is required";
+                                if (
+                                  content.length >
+                                  ACCORDION_ITEM_CONTENT_MAX_LENGTH
+                                ) {
+                                  return `Content must be less than ${ACCORDION_ITEM_CONTENT_MAX_LENGTH} characters`;
+                                }
+                                return true;
+                              },
+                            }}
+                            render={({ field: contentField }) => (
+                              <LanderRichTextEditor
+                                key={field.id}
+                                value={contentField.value}
+                                onChange={contentField.onChange}
+                                placeholder="Start typing"
+                                error={Boolean(fieldErrors?.content)}
+                                editorClassName="max-h-32 min-h-16"
+                              />
                             )}
-                            {...register(`items.${index}.content`, {
-                              required: "Content is required",
-                            })}
+                          />
+                        </div>
+                        <div className="mt-1 text-left">
+                          <MaxCharactersCounter
+                            name={`items.${index}.content`}
+                            control={control}
+                            maxLength={ACCORDION_ITEM_CONTENT_MAX_LENGTH}
+                            spaced
                           />
                         </div>
                       </div>

@@ -1,17 +1,14 @@
 "use client";
 
 import { programLanderTextBlockSchema } from "@/lib/zod/schemas/program-lander";
-import {
-  Button,
-  MarkdownIcon,
-  Modal,
-  useEnterSubmit,
-  useMediaQuery,
-} from "@dub/ui";
-import { cn } from "@dub/utils";
+import { MaxCharactersCounter } from "@/ui/shared/max-characters-counter";
+import { Button, Modal, useMediaQuery } from "@dub/ui";
 import { Dispatch, SetStateAction, useId } from "react";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import * as z from "zod/v4";
+import { LanderRichTextEditor } from "../lander-rich-text-editor";
+
+const TEXT_BLOCK_CONTENT_MAX_LENGTH = 10000;
 
 type TextBlockData = z.infer<typeof programLanderTextBlockSchema>["data"];
 
@@ -24,7 +21,11 @@ type TextBlockModalProps = {
 
 export function TextBlockModal(props: TextBlockModalProps) {
   return (
-    <Modal showModal={props.showModal} setShowModal={props.setShowModal}>
+    <Modal
+      showModal={props.showModal}
+      setShowModal={props.setShowModal}
+      className="max-w-screen-lg"
+    >
       <TextBlockModalInner {...props} />
     </Modal>
   );
@@ -40,12 +41,11 @@ function TextBlockModalInner({
   const {
     handleSubmit,
     register,
+    control,
     formState: { errors },
   } = useForm<TextBlockData>({
     defaultValues,
   });
-
-  const { handleKeyDown } = useEnterSubmit();
 
   return (
     <>
@@ -91,30 +91,37 @@ function TextBlockModalInner({
             >
               Content
             </label>
-            <div className="mt-2 rounded-md shadow-sm">
-              <textarea
-                id={`${id}-content`}
-                rows={12}
-                maxLength={10000}
-                onKeyDown={handleKeyDown}
-                placeholder="Start typing..."
-                className={cn(
-                  "block max-h-64 min-h-16 w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
-                  errors.content &&
-                    "border-red-600 focus:border-red-500 focus:ring-red-600",
+            <div className="mt-2">
+              <Controller
+                control={control}
+                name="content"
+                rules={{
+                  validate: (value) => {
+                    const content = value?.trim() ?? "";
+                    if (!content) return "Content is required";
+                    if (content.length > TEXT_BLOCK_CONTENT_MAX_LENGTH) {
+                      return `Content must be less than ${TEXT_BLOCK_CONTENT_MAX_LENGTH} characters`;
+                    }
+                    return true;
+                  },
+                }}
+                render={({ field }) => (
+                  <LanderRichTextEditor
+                    value={field.value}
+                    onChange={field.onChange}
+                    error={Boolean(errors.content)}
+                  />
                 )}
-                {...register("content", { required: "Content is required" })}
               />
             </div>
-            <a
-              href="https://www.markdownguide.org/extended-syntax/#tables"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-content-subtle mt-1 flex items-center gap-1 text-xs"
-            >
-              <MarkdownIcon role="presentation" className="h-3 w-auto" />
-              <span className="sr-only">MarkdownIcon</span> supported
-            </a>
+            <div className="mt-1 text-left">
+              <MaxCharactersCounter
+                name="content"
+                control={control}
+                maxLength={TEXT_BLOCK_CONTENT_MAX_LENGTH}
+                spaced
+              />
+            </div>
           </div>
 
           <div className="flex items-center justify-end gap-2">

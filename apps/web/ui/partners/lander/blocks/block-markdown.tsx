@@ -22,6 +22,31 @@ export function BlockMarkdown({
     >
       <Markdown
         remarkPlugins={[remarkGfm]}
+        unwrapDisallowed
+        allowedElements={[
+          "p",
+          "br",
+          "strong",
+          "em",
+          "a",
+          "ul",
+          "ol",
+          "li",
+          "blockquote",
+          "code",
+          "table",
+          "thead",
+          "tbody",
+          "tr",
+          "th",
+          "td",
+          "h1",
+          "h2",
+          "h3",
+          "h4",
+          "h5",
+          "h6",
+        ]}
         components={{
           a: ({ node, ...props }) => (
             <a {...props} target="_blank" rel="noopener noreferrer" />
