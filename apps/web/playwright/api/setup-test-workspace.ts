@@ -15,6 +15,43 @@ loadEnv({
   silent: true,
 });
 
+export const TEST_APPLICATION_FORM = {
+  fields: [
+    {
+      id: "pw_website",
+      type: "short-text" as const,
+      label: "Website / Social media channel",
+      required: true,
+      data: {
+        placeholder: "https://example.com",
+      },
+    },
+    {
+      id: "pw_promote",
+      type: "long-text" as const,
+      label: "How do you plan to promote us?",
+      required: true,
+      data: {
+        placeholder: "",
+      },
+    },
+    {
+      id: "pw_comments",
+      type: "long-text" as const,
+      label: "Any additional questions or comments?",
+      required: false,
+      data: {
+        placeholder: "",
+      },
+    },
+  ],
+} as const;
+
+export const TEST_APPLICATION_FIELD_VALUES = {
+  website: "https://example.com/playwright",
+  promote: "I will promote via a newsletter and blog posts.",
+} as const;
+
 export const TEST_WORKSPACE = {
   user: {
     email: "playwright-api@dub-internal-test.com",
@@ -317,12 +354,14 @@ async function setupTestProgram({
       url: TEST_WORKSPACE.program.url,
       defaultFolderId: folder.id,
       defaultGroupId,
+      addedToMarketplaceAt: new Date(),
     },
     update: {
       name: TEST_WORKSPACE.workspace.name,
       domain: TEST_WORKSPACE.program.domain,
       url: TEST_WORKSPACE.program.url,
       defaultFolderId: folder.id,
+      addedToMarketplaceAt: new Date(),
     },
   });
 
@@ -361,12 +400,16 @@ async function setupTestProgram({
       maxPartnerLinks: DEFAULT_ADDITIONAL_PARTNER_LINKS,
       leadRewardId: TEST_COMMISSION_REWARDS.lead.id,
       saleRewardId: TEST_COMMISSION_REWARDS.sale.id,
+      applicationFormData: TEST_APPLICATION_FORM,
+      applicationFormPublishedAt: new Date(),
     },
     update: {
       name: DEFAULT_PARTNER_GROUP.name,
       maxPartnerLinks: DEFAULT_ADDITIONAL_PARTNER_LINKS,
       leadRewardId: TEST_COMMISSION_REWARDS.lead.id,
       saleRewardId: TEST_COMMISSION_REWARDS.sale.id,
+      applicationFormData: TEST_APPLICATION_FORM,
+      applicationFormPublishedAt: new Date(),
     },
   });
 
