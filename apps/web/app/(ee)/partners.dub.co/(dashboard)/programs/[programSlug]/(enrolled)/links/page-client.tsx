@@ -5,7 +5,7 @@ import {
   DUB_PARTNERS_ANALYTICS_INTERVAL,
 } from "@/lib/analytics/constants";
 import { IntervalOptions } from "@/lib/analytics/types";
-import usePartnerLinks from "@/lib/swr/use-partner-links";
+import { usePartnerLinks } from "@/lib/swr/use-partner-links";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import { usePartnerLinkModal } from "@/ui/modals/partner-link-modal";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";

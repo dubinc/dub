@@ -3,12 +3,21 @@ import { useSession } from "next-auth/react";
 import { useParams } from "next/navigation";
 import useSWR from "swr";
 import { PartnerProfileLinkProps } from "../types";
+import { PartnerLinkExpandField } from "../zod/schemas/partners";
 
-export default function usePartnerLinks(opts?: { programId?: string }) {
+export function usePartnerLinks(opts?: {
+  programId?: string;
+  expand?: PartnerLinkExpandField[];
+}) {
   const { data: session } = useSession();
   const partnerId = session?.user?.["defaultPartnerId"];
   const { programSlug } = useParams();
   const programIdToUse = opts?.programId ?? programSlug;
+
+  const expandQuery =
+    opts?.expand && opts.expand.length > 0
+      ? `?${opts.expand.map((field) => `expand[]=${field}`).join("&")}`
+      : "";
 
   const {
     data: links,
@@ -17,7 +26,7 @@ export default function usePartnerLinks(opts?: { programId?: string }) {
   } = useSWR<PartnerProfileLinkProps[]>(
     programIdToUse &&
       partnerId &&
-      `/api/partner-profile/programs/${programIdToUse}/links`,
+      `/api/partner-profile/programs/${programIdToUse}/links${expandQuery}`,
     fetcher,
     {
       keepPreviousData: true,
