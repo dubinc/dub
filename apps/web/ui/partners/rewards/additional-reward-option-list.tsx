@@ -37,7 +37,7 @@ export function AdditionalRewardOptionList({
   onDelete,
   searchPlaceholder,
   emptyLabel,
-  createHref,
+  onCreate,
   createLabel,
   showModal,
 }: {
@@ -48,7 +48,7 @@ export function AdditionalRewardOptionList({
   onDelete?: (id: string) => void;
   searchPlaceholder: string;
   emptyLabel: string;
-  createHref?: string;
+  onCreate?: () => void;
   createLabel?: string;
   showModal?: boolean;
 }) {
@@ -100,7 +100,7 @@ export function AdditionalRewardOptionList({
   const showCreate =
     Boolean(normalizedSearch) &&
     filteredOptions.length === 0 &&
-    Boolean(createHref) &&
+    Boolean(onCreate) &&
     Boolean(createLabel);
 
   return (
@@ -161,9 +161,7 @@ export function AdditionalRewardOptionList({
                   value={`create::${search}`}
                   forceMount
                   onSelect={() => {
-                    if (createHref) {
-                      window.open(createHref, "_blank", "noopener,noreferrer");
-                    }
+                    onCreate?.();
                   }}
                 >
                   <Plus2 className="size-3.5 shrink-0" />

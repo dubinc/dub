@@ -1,6 +1,5 @@
 "use client";
 
-import { getCreateRewardEventFromQuery } from "@/lib/rewards/get-create-reward-event-from-query";
 import { useDiscounts } from "@/lib/swr/use-discounts";
 import useGroup from "@/lib/swr/use-group";
 import type { DiscountProps, GroupProps } from "@/lib/types";
@@ -35,15 +34,9 @@ export const GroupDiscounts = () => {
 
     if (discountId) {
       setDiscountSheetState({ open: true, discountId });
-      return;
+    } else {
+      setDiscountSheetState({ open: false, discountId: null });
     }
-
-    if (getCreateRewardEventFromQuery(searchParams)) {
-      setDiscountSheetState({ open: true, discountId: "new" });
-      return;
-    }
-
-    setDiscountSheetState({ open: false, discountId: null });
   }, [searchParams]);
 
   const currentDiscount = getCurrentDiscount({

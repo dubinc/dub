@@ -7,7 +7,6 @@ import { constructDiscountAmount } from "@/lib/api/sales/construct-discount-amou
 import { handleMoneyInputChange, handleMoneyKeyDown } from "@/lib/form-utils";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { PARTNER_AND_LINK_REWARDS_PLAN_ERROR } from "@/lib/rewards/constants";
-import { getCreateRewardEventFromQuery } from "@/lib/rewards/get-create-reward-event-from-query";
 import useGroup from "@/lib/swr/use-group";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -55,6 +54,8 @@ interface DiscountSheetProps {
   setIsOpen: Dispatch<SetStateAction<boolean>>;
   discount?: DiscountProps;
   defaultDiscountValues?: DiscountProps;
+  groupIdOrSlug?: string | null;
+  isDefault?: boolean;
 }
 
 type FormData = z.infer<typeof createDiscountSchema>;
@@ -80,10 +81,12 @@ function DiscountSheetContent({
   setIsOpen,
   discount,
   defaultDiscountValues,
+  groupIdOrSlug,
+  isDefault = true,
 }: DiscountSheetProps) {
   const formRef = useRef<HTMLFormElement>(null);
 
-  const { group, mutateGroup } = useGroup();
+  const { group, mutateGroup } = useGroup({ groupIdOrSlug });
   const { mutate: mutateProgram } = useProgram();
   const {
     id: workspaceId,
@@ -91,9 +94,6 @@ function DiscountSheetContent({
     slug: workspaceSlug,
     plan,
   } = useWorkspace();
-  const { searchParams } = useRouterStuff();
-  const isDefault =
-    getCreateRewardEventFromQuery(searchParams)?.isDefault ?? true;
   const { canUseAdvancedRewardLogic } = getPlanCapabilities(plan);
   const showPartnerAndLinkUpsell =
     !discount && !isDefault && !canUseAdvancedRewardLogic;
@@ -138,7 +138,7 @@ function DiscountSheetContent({
       couponTestId: defaultValuesSource.couponTestId,
       autoProvision: Boolean(defaultValuesSource.autoProvisionEnabledAt),
       provider: discountProvider,
-      isDefault: true,
+      isDefault,
     },
   });
 
@@ -716,11 +716,8 @@ export function DiscountSheet({
   const setIsOpen: DiscountSheetProps["setIsOpen"] = (value) => {
     const nextOpen = typeof value === "function" ? value(isOpen) : value;
     rest.setIsOpen(value);
-    if (!nextOpen) {
-      queryParams({
-        del: ["discountId", "isDefault", "default"],
-        scroll: false,
-      });
+    if (!nextOpen && !nested) {
+      queryParams({ del: "discountId", scroll: false });
     }
   };
 

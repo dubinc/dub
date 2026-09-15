@@ -20,7 +20,6 @@ import { AdditionalRewardOptionList } from "@/ui/partners/rewards/additional-rew
 import { REWARD_EVENT_ICON } from "@/ui/partners/rewards/reward-event-icon";
 import { Button, Modal } from "@dub/ui";
 import { useAction } from "next-safe-action/hooks";
-import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { mutate } from "swr";
@@ -130,7 +129,7 @@ function EditPartnerRewardModal({
 }: EditPartnerRewardModalProps) {
   const { partner } = target;
 
-  const { id: workspaceId, slug } = useWorkspace();
+  const { id: workspaceId } = useWorkspace();
 
   const { rewards, loading: rewardsLoading } = useRewards({
     groupId: partner.groupId,
@@ -157,7 +156,9 @@ function EditPartnerRewardModal({
   });
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [editingReward, setEditingReward] = useState<RewardProps | null>(null);
+  const [rewardSheet, setRewardSheet] = useState<{
+    reward: RewardProps | null;
+  } | null>(null);
 
   const eventRewards = useMemo(() => {
     return (rewards ?? [])
@@ -171,6 +172,7 @@ function EditPartnerRewardModal({
 
   useEffect(() => {
     if (!showModal) {
+      setRewardSheet(null);
       return;
     }
 
@@ -213,12 +215,10 @@ function EditPartnerRewardModal({
 
   const isSubmitting = isUpdatingLink || isUpdatingEnrollment;
 
-  const createRewardHref =
-    slug && group?.slug
-      ? `/${slug}/program/groups/${group.slug}/rewards?default=false&event=${event}`
-      : undefined;
-
   const CreateIcon = REWARD_EVENT_ICON[event];
+  const openRewardSheet = (reward: RewardProps | null = null) => {
+    setRewardSheet({ reward });
+  };
 
   const options = useMemo(
     () =>
@@ -307,18 +307,21 @@ function EditPartnerRewardModal({
   return (
     <>
       {ConfirmRewardChangeModal}
-      {editingReward && (
+      {rewardSheet && (
         <RewardSheet
+          key={rewardSheet.reward?.id ?? "new"}
           nested
-          isOpen={Boolean(editingReward)}
+          isOpen
           setIsOpen={(open) => {
             const nextOpen = typeof open === "function" ? open(true) : open;
             if (!nextOpen) {
-              setEditingReward(null);
+              setRewardSheet(null);
             }
           }}
-          event={editingReward.event}
-          reward={editingReward}
+          event={rewardSheet.reward?.event ?? event}
+          reward={rewardSheet.reward ?? undefined}
+          isDefault={false}
+          groupIdOrSlug={partner.groupId}
         />
       )}
       <Modal
@@ -331,21 +334,14 @@ function EditPartnerRewardModal({
             <h3 className="text-lg font-semibold tracking-tight">
               Edit {event} reward
             </h3>
-            {createRewardHref && (
-              <Link
-                href={createRewardHref}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <Button
-                  type="button"
-                  variant="secondary"
-                  text="Create reward"
-                  icon={<CreateIcon className="size-4" />}
-                  className="h-8 w-fit px-3"
-                />
-              </Link>
-            )}
+            <Button
+              type="button"
+              variant="secondary"
+              text="Create reward"
+              icon={<CreateIcon className="size-4" />}
+              className="h-8 w-fit px-3"
+              onClick={() => openRewardSheet()}
+            />
           </div>
 
           <div className="min-h-[120px] px-4 py-4">
@@ -366,7 +362,7 @@ function EditPartnerRewardModal({
                 onEdit={(id) => {
                   const reward = eventRewards.find((item) => item.id === id);
                   if (reward) {
-                    setEditingReward(reward);
+                    openRewardSheet(reward);
                   }
                 }}
                 onDelete={handleDelete}
@@ -376,7 +372,7 @@ function EditPartnerRewardModal({
                     ? `No ${event} rewards available. Create one to get started.`
                     : "No rewards found"
                 }
-                createHref={createRewardHref}
+                onCreate={() => openRewardSheet()}
                 createLabel="Create reward"
                 showModal={showModal}
               />

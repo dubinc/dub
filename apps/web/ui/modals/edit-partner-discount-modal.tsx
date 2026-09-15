@@ -17,7 +17,6 @@ import { AdditionalRewardOptionList } from "@/ui/partners/rewards/additional-rew
 import { Button, Modal } from "@dub/ui";
 import { Discount } from "@dub/ui/icons";
 import { useAction } from "next-safe-action/hooks";
-import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { mutate } from "swr";
@@ -83,7 +82,7 @@ function EditPartnerDiscountModal({
 }: EditPartnerDiscountModalProps) {
   const { partner } = target;
 
-  const { id: workspaceId, slug } = useWorkspace();
+  const { id: workspaceId } = useWorkspace();
   const { group: fetchedGroup } = useGroup({ groupIdOrSlug: partner.groupId });
 
   const { makeRequest: updatePartnerLink, isSubmitting: isUpdatingLink } =
@@ -100,9 +99,9 @@ function EditPartnerDiscountModal({
   const groupDiscountId = group?.discount?.id;
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [editingDiscount, setEditingDiscount] = useState<DiscountProps | null>(
-    null,
-  );
+  const [discountSheet, setDiscountSheet] = useState<{
+    discount: DiscountProps | null;
+  } | null>(null);
 
   const sortedDiscounts = useMemo(() => {
     return [...(discounts ?? [])].sort((a, b) => {
@@ -114,6 +113,7 @@ function EditPartnerDiscountModal({
 
   useEffect(() => {
     if (!showModal) {
+      setDiscountSheet(null);
       return;
     }
 
@@ -155,10 +155,9 @@ function EditPartnerDiscountModal({
 
   const isSubmitting = isUpdatingLink || isUpdatingEnrollment || isDeleting;
 
-  const createDiscountHref =
-    slug && group?.slug
-      ? `/${slug}/program/groups/${group.slug}/discounts?default=false`
-      : undefined;
+  const openDiscountSheet = (discount: DiscountProps | null = null) => {
+    setDiscountSheet({ discount });
+  };
 
   const options = useMemo(
     () =>
@@ -233,17 +232,20 @@ function EditPartnerDiscountModal({
 
   return (
     <>
-      {editingDiscount && (
+      {discountSheet && (
         <DiscountSheet
+          key={discountSheet.discount?.id ?? "new"}
           nested
-          isOpen={Boolean(editingDiscount)}
+          isOpen
           setIsOpen={(open) => {
             const nextOpen = typeof open === "function" ? open(true) : open;
             if (!nextOpen) {
-              setEditingDiscount(null);
+              setDiscountSheet(null);
             }
           }}
-          discount={editingDiscount}
+          discount={discountSheet.discount ?? undefined}
+          isDefault={false}
+          groupIdOrSlug={partner.groupId}
         />
       )}
       <Modal
@@ -256,21 +258,14 @@ function EditPartnerDiscountModal({
             <h3 className="text-lg font-semibold tracking-tight">
               Edit discount
             </h3>
-            {createDiscountHref && (
-              <Link
-                href={createDiscountHref}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <Button
-                  type="button"
-                  variant="secondary"
-                  text="Create discount"
-                  icon={<Discount className="size-4" />}
-                  className="h-8 w-fit px-3"
-                />
-              </Link>
-            )}
+            <Button
+              type="button"
+              variant="secondary"
+              text="Create discount"
+              icon={<Discount className="size-4" />}
+              className="h-8 w-fit px-3"
+              onClick={() => openDiscountSheet()}
+            />
           </div>
 
           <div className="min-h-[120px] px-4 py-4">
@@ -293,7 +288,7 @@ function EditPartnerDiscountModal({
                     (item) => item.id === id,
                   );
                   if (discount) {
-                    setEditingDiscount(discount);
+                    openDiscountSheet(discount);
                   }
                 }}
                 onDelete={handleDelete}
@@ -303,7 +298,7 @@ function EditPartnerDiscountModal({
                     ? "No discounts available. Create one to get started."
                     : "No discounts found"
                 }
-                createHref={createDiscountHref}
+                onCreate={() => openDiscountSheet()}
                 createLabel="Create discount"
                 showModal={showModal}
               />

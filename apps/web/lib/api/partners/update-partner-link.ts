@@ -153,6 +153,7 @@ export async function updatePartnerLink({
         },
       });
     }
+
     // Remove the link reward if no overrides are present.
     else if (existingLinkReward) {
       await tx.linkReward.delete({
