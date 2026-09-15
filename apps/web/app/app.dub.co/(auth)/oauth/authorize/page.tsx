@@ -11,6 +11,7 @@ import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import * as z from "zod/v4";
 import { AuthorizeForm } from "./authorize-form";
+import { AuthorizeWorkspaceProvider } from "./authorize-workspace-context";
 import { ScopesRequested } from "./scopes-requested";
 
 export const metadata = constructMetadata({
@@ -99,14 +100,16 @@ export default async function Authorize(props: {
           </Callout>
         )}
       </div>
-      <div className="flex flex-col space-y-3 px-4 py-6 sm:px-10">
-        <ScopesRequested scopes={requestParams.scope} />
-      </div>
-      <div className="flex flex-col space-y-2 border-t border-neutral-200 px-4 py-6 sm:rounded-b-2xl sm:px-10">
-        <Suspense>
-          <AuthorizeForm {...requestParams} integration={integration} />
-        </Suspense>
-      </div>
+      <AuthorizeWorkspaceProvider>
+        <div className="flex flex-col space-y-3 px-4 py-6 sm:px-10">
+          <ScopesRequested scopes={requestParams.scope} />
+        </div>
+        <div className="flex flex-col space-y-2 border-t border-neutral-200 px-4 py-6 sm:rounded-b-2xl sm:px-10">
+          <Suspense>
+            <AuthorizeForm {...requestParams} integration={integration} />
+          </Suspense>
+        </div>
+      </AuthorizeWorkspaceProvider>
     </div>
   );
 }
