@@ -6,11 +6,11 @@ import { createId } from "@/lib/api/create-id";
 import { getGroupOrThrow } from "@/lib/api/groups/get-group-or-throw";
 import { serializeReward } from "@/lib/api/partners/serialize-reward";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
-import { PARTNER_AND_LINK_REWARDS_PLAN_ERROR } from "@/lib/rewards/constants";
 import { queueRewardProcessing } from "@/lib/api/rewards/queue-reward-processing";
 import { validateReward } from "@/lib/api/rewards/validate-reward";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { prisma } from "@/lib/prisma";
+import { PARTNER_AND_LINK_REWARDS_PLAN_ERROR } from "@/lib/rewards/constants";
 import {
   createRewardSchema,
   REWARD_EVENT_COLUMN_MAPPING,
@@ -136,19 +136,21 @@ export const createRewardAction = authActionClient
       return reward;
     });
 
-    await queueRewardProcessing({
-      event: "reward-created",
-      groupId,
-      occurredAt: new Date().toISOString(),
-      rewardSnapshot: {
-        id: reward.id,
-        event: reward.event,
-        description: formatRewardDescription(serializeReward(reward), {
-          includeEarnPrefix: false,
-        }),
-        activityDescription,
-      },
-    });
+    if (isDefault) {
+      await queueRewardProcessing({
+        event: "reward-created",
+        groupId,
+        occurredAt: new Date().toISOString(),
+        rewardSnapshot: {
+          id: reward.id,
+          event: reward.event,
+          description: formatRewardDescription(serializeReward(reward), {
+            includeEarnPrefix: false,
+          }),
+          activityDescription,
+        },
+      });
+    }
 
     waitUntil(
       Promise.allSettled([

@@ -7,8 +7,6 @@ import {
   Button,
   MenuItem,
   Popover,
-  RadioGroup,
-  RadioGroupItem,
   Users,
   useMediaQuery,
   useScrollProgress,
@@ -129,37 +127,34 @@ export function AdditionalRewardOptionList({
             className="scrollbar-hide max-h-[calc(100dvh-250px)] overflow-y-auto"
           >
             <Command.List className="mt-4">
-              <RadioGroup
-                value={
-                  filteredOptions.some((option) => option.id === selectedId)
-                    ? selectedId ?? undefined
-                    : undefined
-                }
-                onValueChange={onSelect}
-                className="flex flex-col gap-0"
-              >
-                {filteredOptions.map((option) => (
-                  <Command.Item
-                    key={option.id}
-                    value={`${option.searchValue} ${option.id}`}
-                    onSelect={() => onSelect(option.id)}
-                    className="outline-none"
-                  >
-                    <AdditionalRewardOptionRow
-                      option={option}
-                      selected={option.id === selectedId}
-                      onEdit={onEdit}
-                      onDelete={onDelete}
-                    />
-                  </Command.Item>
-                ))}
-              </RadioGroup>
+              {filteredOptions.map((option) => (
+                <Command.Item
+                  key={option.id}
+                  value={`${option.searchValue} ${option.id}`}
+                  onSelect={() => onSelect(option.id)}
+                  onMouseDown={(e) => {
+                    // Keep the search input focused when selecting with mouse
+                    e.preventDefault();
+                  }}
+                  className="cursor-pointer outline-none"
+                >
+                  <AdditionalRewardOptionRow
+                    option={option}
+                    selected={option.id === selectedId}
+                    onEdit={onEdit}
+                    onDelete={onDelete}
+                  />
+                </Command.Item>
+              ))}
 
               {showCreate && (
                 <Command.Item
                   className={createItemClassName}
                   value={`create::${search}`}
                   forceMount
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                  }}
                   onSelect={() => {
                     onCreate?.();
                   }}
@@ -210,14 +205,25 @@ function AdditionalRewardOptionRow({
         selected && "bg-transparent",
       )}
     >
-      <label className="flex min-w-0 flex-1 cursor-pointer items-center gap-3">
-        <RadioGroupItem value={option.id} className="size-3.5 shrink-0" />
+      <div className="flex min-w-0 flex-1 items-center gap-3">
+        <span
+          aria-hidden
+          className="border-primary text-primary flex size-3.5 shrink-0 items-center justify-center rounded-full border"
+        >
+          {selected && (
+            <span className="size-2.5 rounded-full bg-current" />
+          )}
+        </span>
         <div className="text-content-default min-w-0 flex-1 text-sm leading-5">
           {option.label}
         </div>
-      </label>
+      </div>
 
-      <div className="flex w-[92px] shrink-0 items-center justify-between">
+      <div
+        className="flex w-[92px] shrink-0 items-center justify-between"
+        onPointerDown={(e) => e.stopPropagation()}
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="flex items-center gap-1">
           <Users className="size-3.5 shrink-0 text-neutral-500" />
           {option.isGroup ? (

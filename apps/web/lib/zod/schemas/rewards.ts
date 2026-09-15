@@ -553,7 +553,12 @@ export const createOrUpdateRewardSchema = z.object({
 
 export const createRewardSchema = createOrUpdateRewardSchema
   .extend({
-    isDefault: z.boolean().default(false),
+    isDefault: z
+      .boolean()
+      .default(false)
+      .describe(
+        "If false, the reward is a custom reward which is not applied on group level.",
+      ),
   })
   .superRefine((data) => {
     if (isOneOffRewardEvent(data.event)) {

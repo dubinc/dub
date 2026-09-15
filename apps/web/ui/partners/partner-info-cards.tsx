@@ -286,6 +286,9 @@ export function PartnerInfoCards({
 
   return (
     <div className="flex flex-col gap-4">
+      {advancedUpsellModal}
+      <EditPartnerRewardModal />
+      <EditPartnerDiscountModal />
       <div className="overflow-hidden rounded-xl bg-red-100">
         {partner &&
           isEnrolled &&
@@ -471,9 +474,6 @@ export function PartnerInfoCards({
 
           {isEnrolled && partner?.status === "approved" && (
             <>
-              {advancedUpsellModal}
-              <EditPartnerRewardModal />
-              <EditPartnerDiscountModal />
               {/* Rewards */}
               <div className="flex flex-col gap-2">
                 <h3 className="text-content-emphasis text-sm font-semibold">
