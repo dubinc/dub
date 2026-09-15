@@ -1,5 +1,9 @@
 import { OAUTH_SCOPES } from "@/lib/api/oauth/constants";
-import { getGrantedScopesForRole } from "@/lib/api/tokens/scopes";
+import {
+  getDisplayedScopesForRole,
+  getGrantedScopesForRole,
+  getMissingScopesForRole,
+} from "@/lib/api/tokens/scopes";
 import { WorkspaceRole } from "@prisma/client";
 import { describe, expect, test } from "vitest";
 
@@ -80,5 +84,47 @@ describe("getGrantedScopesForRole", () => {
         role: "billing",
       }),
     ).toEqual([]);
+  });
+
+  test("member is granted domains.read and not domains.write when both are requested", () => {
+    const scopes = ["domains.read", "domains.write"];
+
+    expect(
+      getGrantedScopesForRole({
+        scopes,
+        role: "member",
+      }),
+    ).toEqual(["domains.read"]);
+
+    expect(
+      getMissingScopesForRole({
+        scopes,
+        role: "member",
+      }),
+    ).toEqual(["domains.write"]);
+
+    expect(
+      getDisplayedScopesForRole({
+        scopes,
+        role: "member",
+      }),
+    ).toEqual([
+      { scope: "domains.read", missing: false },
+      { scope: "domains.write", missing: true },
+    ]);
+  });
+
+  test("surfaces granted domains.read when domains.write is requested first", () => {
+    const scopes = ["domains.write", "domains.read"];
+
+    expect(
+      getDisplayedScopesForRole({
+        scopes,
+        role: "member",
+      }),
+    ).toEqual([
+      { scope: "domains.write", missing: true },
+      { scope: "domains.read", missing: false },
+    ]);
   });
 });

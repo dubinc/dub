@@ -100,7 +100,7 @@ export default async function Authorize(props: {
           </Callout>
         )}
       </div>
-      <AuthorizeWorkspaceProvider>
+      <AuthorizeWorkspaceProvider integration={integration}>
         <div className="flex flex-col space-y-3 px-4 py-6 sm:px-10">
           <ScopesRequested scopes={requestParams.scope} />
         </div>

@@ -1,19 +1,14 @@
 "use client";
 
 import { OAUTH_SCOPE_DESCRIPTIONS } from "@/lib/api/oauth/constants";
-import {
-  consolidateScopes,
-  getMissingScopesForRole,
-} from "@/lib/api/tokens/scopes";
-import useWorkspaces from "@/lib/swr/use-workspaces";
+import { getDisplayedScopesForRole } from "@/lib/api/tokens/scopes";
 import { Tooltip } from "@dub/ui";
-import { TriangleWarning } from "@dub/ui/icons";
+import { LoadingSpinner, TriangleWarning } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
 import { Check } from "lucide-react";
 import { useAuthorizeWorkspace } from "./authorize-workspace-context";
 
 export const ScopesRequested = ({ scopes }: { scopes: string[] }) => {
-  const { workspaces } = useWorkspaces();
   const { selectedWorkspace } = useAuthorizeWorkspace();
 
   // Add default scopes if not present
@@ -21,48 +16,28 @@ export const ScopesRequested = ({ scopes }: { scopes: string[] }) => {
     ? scopes
     : [...scopes, "user.read"];
 
-  const workspace = workspaces?.find(
-    (workspace) => workspace.slug === selectedWorkspace,
-  );
+  if (!selectedWorkspace) {
+    return <ScopesRequestedPlaceholder />;
+  }
 
-  const workspaceRole = workspace?.users[0]?.role;
-
-  const missingScopes = workspaceRole
-    ? getMissingScopesForRole({
-        scopes: requestedScopes,
-        role: workspaceRole,
-      })
-    : [];
-
-  const missingScopeSet = new Set(missingScopes);
-
-  const scopeWithDescriptions = consolidateScopes(requestedScopes).map(
-    (scope) => {
-      return {
-        scope,
-        description: OAUTH_SCOPE_DESCRIPTIONS[scope],
-        missing: missingScopeSet.has(scope),
-      };
-    },
-  );
-
-  scopeWithDescriptions.forEach((scope) => {
-    scope.description = scope.description.replace(
-      "Write",
-      "<strong className='font-medium'>Write</strong>",
-    );
-
-    scope.description = scope.description.replace(
-      "Read",
-      "<strong className='font-medium'>Read</strong>",
-    );
+  const displayedScopes = getDisplayedScopesForRole({
+    scopes: requestedScopes,
+    role: selectedWorkspace.users[0].role,
   });
 
   return (
     <>
       <span className="text-neutral-600">Grant permissions:</span>
       <ul className="text-md space-y-1">
-        {scopeWithDescriptions.map((scope) => {
+        {displayedScopes.map((scope) => {
+          const catalog = OAUTH_SCOPE_DESCRIPTIONS[scope.scope];
+          // Denied write rows: "Write access to …" (not "Read and Write …")
+          // so granted read can sit beside them without sounding like write still includes read.
+          const description =
+            scope.missing && catalog.startsWith("Read and Write")
+              ? catalog.replace("Read and Write", "Write")
+              : catalog;
+
           return (
             <li className="flex items-center gap-2" key={scope.scope}>
               {scope.missing ? (
@@ -70,15 +45,48 @@ export const ScopesRequested = ({ scopes }: { scopes: string[] }) => {
               ) : (
                 <Check className="size-4 shrink-0 text-green-500" />
               )}
-              <div
-                className={cn(scope.missing && "text-neutral-500")}
-                dangerouslySetInnerHTML={{ __html: scope.description }}
+              <ScopeDescription
+                description={description}
+                missing={scope.missing}
               />
             </li>
           );
         })}
       </ul>
     </>
+  );
+};
+
+const ScopesRequestedPlaceholder = () => {
+  return (
+    <>
+      <span className="text-neutral-600">Grant permissions:</span>
+      <div className="flex min-h-24 items-center justify-center">
+        <LoadingSpinner className="size-4" />
+      </div>
+    </>
+  );
+};
+
+const ScopeDescription = ({
+  description,
+  missing,
+}: {
+  description: string;
+  missing: boolean;
+}) => {
+  const parts = description.split(/(Read|Write)/g);
+
+  return (
+    <div className={cn(missing && "text-neutral-500")}>
+      {parts.map((part, index) =>
+        part === "Read" || part === "Write" ? (
+          <strong key={index}>{part}</strong>
+        ) : (
+          part
+        ),
+      )}
+    </div>
   );
 };
 
