@@ -41,7 +41,7 @@ export function News({ articles }: { articles: NewsArticle[] }) {
     <div
       className={cn(
         "group overflow-hidden border-t border-neutral-200 p-3 pt-6 transition-all duration-200",
-        cardCount > 0 ? "hover:pt-10" : "pt-3",
+        cardCount > 1 ? "hover:pt-10" : "pt-3",
       )}
       data-active={cardCount !== 0}
     >
@@ -274,14 +274,29 @@ function NewsCard({
         </div>
         <div className="relative mt-3 aspect-[16/9] w-full shrink-0 overflow-hidden rounded border border-neutral-200 bg-neutral-100">
           {image && (
-            <Image
-              src={image}
-              alt=""
-              fill
-              sizes="10vw"
-              className="rounded object-cover object-center"
-              draggable={false}
-            />
+            <Link
+              href={href || "https://dub.co"}
+              target="_blank"
+              className="absolute inset-0"
+              onClick={(e) => {
+                e.stopPropagation();
+                if (
+                  drag.current.maxDelta >
+                  (ref.current?.clientWidth ?? 0) / 10
+                ) {
+                  e.preventDefault();
+                }
+              }}
+            >
+              <Image
+                src={image}
+                alt=""
+                fill
+                sizes="10vw"
+                className="rounded object-cover object-center"
+                draggable={false}
+              />
+            </Link>
           )}
         </div>
         <div

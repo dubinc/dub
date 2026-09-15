@@ -11,7 +11,10 @@ import { calculateSaleEarnings } from "@/lib/api/sales/calculate-sale-earnings";
 import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
 import { logger } from "@/lib/axiom/server";
 import { constructWebhookPartner } from "@/lib/partners/constuct-webhook-partner";
-import { determinePartnerRewards } from "@/lib/partners/determine-partner-reward";
+import {
+  determinePartnerRewards,
+  getRewardMaxDurationForContext,
+} from "@/lib/partners/determine-partner-reward";
 import { getRewardAmount } from "@/lib/partners/get-reward-amount";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { sendPartnerPostback } from "@/lib/postback/send-partner-postback";
@@ -322,16 +325,24 @@ async function stepCreateCommission(
             select: {
               id: true,
               maxDuration: true,
+              modifiers: true,
             },
           });
 
+          const originalMaxDuration = originalReward
+            ? getRewardMaxDurationForContext({
+                reward: originalReward,
+                context,
+              })
+            : null;
+
           if (
-            typeof originalReward?.maxDuration === "number" &&
-            originalReward.maxDuration === 0
+            typeof originalMaxDuration === "number" &&
+            originalMaxDuration === 0
           ) {
             return logAndReturn({
               commission: null,
-              outputLog: `Partner ${partnerId} is only eligible for first-sale commissions based on the original reward ${originalReward.id}, skipping commission creation...`,
+              outputLog: `Partner ${partnerId} is only eligible for first-sale commissions based on the original reward ${originalReward?.id}, skipping commission creation...`,
             });
           }
         }
