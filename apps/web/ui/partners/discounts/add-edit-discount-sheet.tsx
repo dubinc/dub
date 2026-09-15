@@ -56,6 +56,7 @@ interface DiscountSheetProps {
   defaultDiscountValues?: DiscountProps;
   groupIdOrSlug?: string | null;
   isDefault?: boolean;
+  onCreated?: (id: string) => void;
 }
 
 type FormData = z.infer<typeof createDiscountSchema>;
@@ -83,6 +84,7 @@ function DiscountSheetContent({
   defaultDiscountValues,
   groupIdOrSlug,
   isDefault = true,
+  onCreated,
 }: DiscountSheetProps) {
   const formRef = useRef<HTMLFormElement>(null);
 
@@ -160,7 +162,10 @@ function DiscountSheetContent({
   const { executeAsync: createDiscount, isPending: isCreating } = useAction(
     createDiscountAction,
     {
-      onSuccess: async () => {
+      onSuccess: async ({ data }) => {
+        if (data?.id) {
+          onCreated?.(data.id);
+        }
         setIsOpen(false);
         toast.success("Discount created!");
         await mutateProgram();

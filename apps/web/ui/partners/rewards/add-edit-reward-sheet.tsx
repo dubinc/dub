@@ -84,6 +84,7 @@ interface RewardSheetProps {
   defaultRewardValues?: RewardProps;
   groupIdOrSlug?: string | null;
   isDefault?: boolean;
+  onCreated?: (id: string) => void;
 }
 
 // Special form schema to allow for empty condition fields when adding a new condition
@@ -217,6 +218,7 @@ function RewardSheetContent({
   defaultRewardValues,
   groupIdOrSlug,
   isDefault = true,
+  onCreated,
   hasPendingChangesRef,
 }: RewardSheetProps & {
   hasPendingChangesRef: MutableRefObject<boolean>;
@@ -248,7 +250,6 @@ function RewardSheetContent({
 
   const formRef = useRef<HTMLFormElement>(null);
   const { mutate: mutateProgram } = useProgram();
-  const { queryParams } = useRouterStuff();
 
   const defaultValuesSource = reward || defaultRewardValues;
 
@@ -379,8 +380,11 @@ function RewardSheetContent({
   const { executeAsync: createReward, isPending: isCreating } = useAction(
     createRewardAction,
     {
-      onSuccess: async () => {
+      onSuccess: async ({ data }) => {
         hasPendingChangesRef.current = false;
+        if (data?.id) {
+          onCreated?.(data.id);
+        }
         setIsOpen(false);
         toast.success("Reward created!");
         await mutateProgram();
@@ -400,7 +404,7 @@ function RewardSheetContent({
     {
       onSuccess: async () => {
         hasPendingChangesRef.current = false;
-        queryParams({ del: "rewardId" });
+        setIsOpen(false);
         toast.success("Reward updated!");
         await mutateProgram();
         await mutateGroup();

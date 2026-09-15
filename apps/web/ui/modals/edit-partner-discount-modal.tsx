@@ -102,6 +102,7 @@ function EditPartnerDiscountModal({
   const [discountSheet, setDiscountSheet] = useState<{
     discount: DiscountProps | null;
   } | null>(null);
+  const [isDiscountSheetOpen, setIsDiscountSheetOpen] = useState(false);
 
   const sortedDiscounts = useMemo(() => {
     return [...(discounts ?? [])].sort((a, b) => {
@@ -111,26 +112,29 @@ function EditPartnerDiscountModal({
     });
   }, [discounts, groupDiscountId]);
 
+  const resolvedSelectedId =
+    selectedId ??
+    getSelectedDiscountId({
+      target,
+      groupDiscountId,
+    });
+
   useEffect(() => {
-    if (!showModal) {
-      setDiscountSheet(null);
+    if (showModal) {
       return;
     }
 
-    setSelectedId(
-      getSelectedDiscountId({
-        target,
-        groupDiscountId,
-      }),
-    );
-  }, [showModal, groupDiscountId]);
+    setIsDiscountSheetOpen(false);
+    setDiscountSheet(null);
+    setSelectedId(null);
+  }, [showModal]);
 
   const { executeAsync: updateEnrollment, isPending: isUpdatingEnrollment } =
     useAction(updatePartnerEnrollmentAction, {
       onSuccess: async () => {
-        await mutatePrefix("/api/partners");
-        toast.success("Discount updated");
         setShowModal(false);
+        toast.success("Discount updated");
+        await mutatePrefix("/api/partners");
       },
       onError({ error }) {
         toast.error(parseActionError(error, "Failed to update discount"));
@@ -157,6 +161,7 @@ function EditPartnerDiscountModal({
 
   const openDiscountSheet = (discount: DiscountProps | null = null) => {
     setDiscountSheet({ discount });
+    setIsDiscountSheetOpen(true);
   };
 
   const options = useMemo(
@@ -179,11 +184,11 @@ function EditPartnerDiscountModal({
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!selectedId) {
+    if (!resolvedSelectedId) {
       return;
     }
 
-    const isGroupSelection = selectedId === groupDiscountId;
+    const isGroupSelection = resolvedSelectedId === groupDiscountId;
 
     if (target.type === "partner") {
       if (!workspaceId) {
@@ -193,7 +198,9 @@ function EditPartnerDiscountModal({
       await updateEnrollment({
         workspaceId,
         partnerId: partner.id,
-        discountId: isGroupSelection ? groupDiscountId ?? null : selectedId,
+        discountId: isGroupSelection
+          ? groupDiscountId ?? null
+          : resolvedSelectedId,
       });
       return;
     }
@@ -201,12 +208,12 @@ function EditPartnerDiscountModal({
     await updatePartnerLink(`/api/partners/links/${target.link.id}`, {
       method: "PATCH",
       body: {
-        discountId: isGroupSelection ? null : selectedId,
+        discountId: isGroupSelection ? null : resolvedSelectedId,
       },
       onSuccess: async () => {
-        await mutatePrefix("/api/partners/links");
-        toast.success("Discount updated");
         setShowModal(false);
+        toast.success("Discount updated");
+        await mutatePrefix("/api/partners/links");
       },
     });
   };
@@ -225,35 +232,31 @@ function EditPartnerDiscountModal({
       discountId,
     });
 
-    if (selectedId === discountId) {
+    if (resolvedSelectedId === discountId) {
       setSelectedId(groupDiscountId ?? null);
     }
   };
 
   return (
-    <>
+    <Modal
+      showModal={showModal}
+      setShowModal={setShowModal}
+      className="max-w-[540px]"
+      preventDefaultClose={isDiscountSheetOpen}
+    >
       {discountSheet && (
         <DiscountSheet
           key={discountSheet.discount?.id ?? "new"}
           nested
-          isOpen
-          setIsOpen={(open) => {
-            const nextOpen = typeof open === "function" ? open(true) : open;
-            if (!nextOpen) {
-              setDiscountSheet(null);
-            }
-          }}
+          isOpen={isDiscountSheetOpen}
+          setIsOpen={setIsDiscountSheetOpen}
           discount={discountSheet.discount ?? undefined}
           isDefault={false}
           groupIdOrSlug={partner.groupId}
+          onCreated={setSelectedId}
         />
       )}
-      <Modal
-        showModal={showModal}
-        setShowModal={setShowModal}
-        className="max-w-[540px]"
-      >
-        <form onSubmit={onSubmit}>
+      <form onSubmit={onSubmit}>
           <div className="flex w-full items-center justify-between gap-3 border-b border-neutral-200 px-6 py-4">
             <h3 className="text-lg font-semibold tracking-tight">
               Edit discount
@@ -281,7 +284,7 @@ function EditPartnerDiscountModal({
             ) : (
               <AdditionalRewardOptionList
                 options={options}
-                selectedId={selectedId}
+                selectedId={resolvedSelectedId}
                 onSelect={setSelectedId}
                 onEdit={(id) => {
                   const discount = sortedDiscounts.find(
@@ -326,13 +329,12 @@ function EditPartnerDiscountModal({
                 text="Save"
                 className="h-8 w-fit px-3"
                 loading={isSubmitting}
-                disabled={!selectedId || options.length === 0}
+                disabled={!resolvedSelectedId || options.length === 0}
               />
             </div>
           </div>
         </form>
-      </Modal>
-    </>
+    </Modal>
   );
 }
 
@@ -345,10 +347,15 @@ export function useEditPartnerDiscountModal({
 }) {
   const [showModal, setShowModal] = useState(false);
   const propsRef = useRef({ target, group });
+  const lastTargetRef = useRef(target);
   propsRef.current = { target, group };
+  if (target) {
+    lastTargetRef.current = target;
+  }
 
   const EditPartnerDiscountModalCallback = useCallback(() => {
-    const { target: currentTarget, group: currentGroup } = propsRef.current;
+    const { group: currentGroup } = propsRef.current;
+    const currentTarget = propsRef.current.target ?? lastTargetRef.current;
 
     if (!currentTarget) {
       return null;

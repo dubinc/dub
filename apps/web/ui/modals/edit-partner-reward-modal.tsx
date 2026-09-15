@@ -159,6 +159,7 @@ function EditPartnerRewardModal({
   const [rewardSheet, setRewardSheet] = useState<{
     reward: RewardProps | null;
   } | null>(null);
+  const [isRewardSheetOpen, setIsRewardSheetOpen] = useState(false);
 
   const eventRewards = useMemo(() => {
     return (rewards ?? [])
@@ -170,27 +171,30 @@ function EditPartnerRewardModal({
       });
   }, [rewards, event, groupRewardId]);
 
+  const resolvedSelectedId =
+    selectedId ??
+    getSelectedRewardId({
+      target,
+      event,
+      groupRewardId,
+    });
+
   useEffect(() => {
-    if (!showModal) {
-      setRewardSheet(null);
+    if (showModal) {
       return;
     }
 
-    setSelectedId(
-      getSelectedRewardId({
-        target,
-        event,
-        groupRewardId,
-      }),
-    );
-  }, [showModal, event, groupRewardId]);
+    setIsRewardSheetOpen(false);
+    setRewardSheet(null);
+    setSelectedId(null);
+  }, [showModal]);
 
   const { executeAsync: updateEnrollment, isPending: isUpdatingEnrollment } =
     useAction(updatePartnerEnrollmentAction, {
       onSuccess: async () => {
-        await mutatePrefix("/api/partners");
-        toast.success("Reward updated");
         setShowModal(false);
+        toast.success("Reward updated");
+        await mutatePrefix("/api/partners");
       },
       onError({ error }) {
         toast.error(parseActionError(error, "Failed to update reward"));
@@ -218,6 +222,7 @@ function EditPartnerRewardModal({
   const CreateIcon = REWARD_EVENT_ICON[event];
   const openRewardSheet = (reward: RewardProps | null = null) => {
     setRewardSheet({ reward });
+    setIsRewardSheetOpen(true);
   };
 
   const options = useMemo(
@@ -245,12 +250,12 @@ function EditPartnerRewardModal({
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!selectedId) {
+    if (!resolvedSelectedId) {
       return;
     }
 
     const rewardIdColumn = REWARD_EVENT_COLUMN_MAPPING[event];
-    const isGroupSelection = selectedId === groupRewardId;
+    const isGroupSelection = resolvedSelectedId === groupRewardId;
 
     if (target.type === "partner") {
       if (!workspaceId) {
@@ -260,7 +265,9 @@ function EditPartnerRewardModal({
       await updateEnrollment({
         workspaceId,
         partnerId: partner.id,
-        [rewardIdColumn]: isGroupSelection ? groupRewardId ?? null : selectedId,
+        [rewardIdColumn]: isGroupSelection
+          ? groupRewardId ?? null
+          : resolvedSelectedId,
       });
       return;
     }
@@ -268,12 +275,12 @@ function EditPartnerRewardModal({
     await updatePartnerLink(`/api/partners/links/${target.link.id}`, {
       method: "PATCH",
       body: {
-        [rewardIdColumn]: isGroupSelection ? null : selectedId,
+        [rewardIdColumn]: isGroupSelection ? null : resolvedSelectedId,
       },
       onSuccess: async () => {
-        await mutatePrefix("/api/partners/links");
-        toast.success("Reward updated");
         setShowModal(false);
+        toast.success("Reward updated");
+        await mutatePrefix("/api/partners/links");
       },
     });
   };
@@ -297,7 +304,7 @@ function EditPartnerRewardModal({
           activityDescription,
         });
 
-        if (selectedId === rewardId) {
+        if (resolvedSelectedId === rewardId) {
           setSelectedId(groupRewardId ?? null);
         }
       },
@@ -305,31 +312,27 @@ function EditPartnerRewardModal({
   };
 
   return (
-    <>
+    <Modal
+      showModal={showModal}
+      setShowModal={setShowModal}
+      className="max-w-[540px]"
+      preventDefaultClose={isRewardSheetOpen}
+    >
       {ConfirmRewardChangeModal}
       {rewardSheet && (
         <RewardSheet
           key={rewardSheet.reward?.id ?? "new"}
           nested
-          isOpen
-          setIsOpen={(open) => {
-            const nextOpen = typeof open === "function" ? open(true) : open;
-            if (!nextOpen) {
-              setRewardSheet(null);
-            }
-          }}
+          isOpen={isRewardSheetOpen}
+          setIsOpen={setIsRewardSheetOpen}
           event={rewardSheet.reward?.event ?? event}
           reward={rewardSheet.reward ?? undefined}
           isDefault={false}
           groupIdOrSlug={partner.groupId}
+          onCreated={setSelectedId}
         />
       )}
-      <Modal
-        showModal={showModal}
-        setShowModal={setShowModal}
-        className="max-w-[540px]"
-      >
-        <form onSubmit={onSubmit}>
+      <form onSubmit={onSubmit}>
           <div className="flex w-full items-center justify-between gap-3 border-b border-neutral-200 px-6 py-4">
             <h3 className="text-lg font-semibold tracking-tight">
               Edit {event} reward
@@ -357,7 +360,7 @@ function EditPartnerRewardModal({
             ) : (
               <AdditionalRewardOptionList
                 options={options}
-                selectedId={selectedId}
+                selectedId={resolvedSelectedId}
                 onSelect={setSelectedId}
                 onEdit={(id) => {
                   const reward = eventRewards.find((item) => item.id === id);
@@ -400,13 +403,12 @@ function EditPartnerRewardModal({
                 text="Save"
                 className="h-8 w-fit px-3"
                 loading={isSubmitting}
-                disabled={!selectedId || options.length === 0}
+                disabled={!resolvedSelectedId || options.length === 0}
               />
             </div>
           </div>
         </form>
-      </Modal>
-    </>
+    </Modal>
   );
 }
 
@@ -421,14 +423,15 @@ export function useEditPartnerRewardModal({
 }) {
   const [showModal, setShowModal] = useState(false);
   const propsRef = useRef({ event, target, group });
+  const lastTargetRef = useRef(target);
   propsRef.current = { event, target, group };
+  if (target) {
+    lastTargetRef.current = target;
+  }
 
   const EditPartnerRewardModalCallback = useCallback(() => {
-    const {
-      event: currentEvent,
-      target: currentTarget,
-      group: currentGroup,
-    } = propsRef.current;
+    const { event: currentEvent, group: currentGroup } = propsRef.current;
+    const currentTarget = propsRef.current.target ?? lastTargetRef.current;
 
     if (!currentTarget) {
       return null;

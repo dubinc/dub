@@ -183,4 +183,8 @@ export const createDiscountAction = authActionClient
           : []),
       ]),
     );
+
+    return {
+      id: discount.id,
+    };
   });

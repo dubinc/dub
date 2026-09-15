@@ -182,4 +182,8 @@ export const createRewardAction = authActionClient
         }),
       ]),
     );
+
+    return {
+      id: reward.id,
+    };
   });
