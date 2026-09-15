@@ -45,6 +45,7 @@ export function PartnerCustomersMenuPopover() {
           variant="secondary"
           className="h-8 w-auto px-1.5 sm:h-9"
           icon={<ThreeDots className="h-5 w-5 text-neutral-500" />}
+          aria-label="Customer export options"
         />
       </Popover>
     </>

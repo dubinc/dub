@@ -82,18 +82,25 @@ function ExportPartnerCustomersModal({
       return;
     }
 
+    const visibleIds = new Set<string>(visibleColumns.map((col) => col.id));
+    const columns = data.columns.filter((column) => visibleIds.has(column));
+
+    if (columns.length === 0) {
+      toast.error("Select at least one column.");
+      return;
+    }
+
     const lid = toast.loading("Exporting customers...");
 
     try {
-      const visibleIds = new Set<string>(visibleColumns.map((col) => col.id));
-      const columns = data.columns.filter((column) => visibleIds.has(column));
-
       const baseParams: Record<string, string> = {
-        ...(columns.length ? { columns: columns.join(",") } : {}),
+        columns: columns.join(","),
       };
 
       const queryString = data.useFilters
-        ? getQueryString(baseParams)
+        ? getQueryString(baseParams, {
+            include: ["search", "country", "linkId", "sortBy", "sortOrder"],
+          })
         : `?${new URLSearchParams(baseParams).toString()}`;
 
       const response = await fetch(

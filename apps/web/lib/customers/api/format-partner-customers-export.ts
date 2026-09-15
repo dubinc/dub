@@ -56,7 +56,7 @@ export function formatPartnerCustomersForExport(
         ? c.email
         : obfuscateCustomerEmail(c.email)
       : customerDataSharingEnabledAt
-        ? c.name || generateRandomName()
+        ? ""
         : generateRandomName();
 
     const full: Record<string, string | number> = {

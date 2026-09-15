@@ -49,6 +49,20 @@ describe("formatPartnerCustomersForExport", () => {
     });
   });
 
+  test("exports an empty email when sharing is on and email is missing", () => {
+    const [row] = formatPartnerCustomersForExport(
+      [{ ...partnerCustomer, email: null }],
+      ["id", "email", "name"],
+      { customerDataSharingEnabledAt: new Date("2026-01-01") },
+    );
+
+    expect(row).toEqual({
+      id: "cus_123",
+      email: "",
+      name: "Ada Lovelace",
+    });
+  });
+
   test("does not leak the customer name into email when sharing is off and email is missing", () => {
     const [row] = formatPartnerCustomersForExport(
       [{ ...partnerCustomer, email: null }],

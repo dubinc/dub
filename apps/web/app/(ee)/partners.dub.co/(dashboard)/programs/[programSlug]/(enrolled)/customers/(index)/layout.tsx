@@ -54,6 +54,8 @@ export default function PartnerProgramCustomersLayout({
     }
   }, [leadFormDataRaw]);
 
+  const isLeadsTab = pathname.endsWith("/customers/leads");
+
   const tabs = useMemo(() => {
     if (!isEnabled) {
       return [];
@@ -95,7 +97,7 @@ export default function PartnerProgramCustomersLayout({
               }}
             />
           )}
-          <PartnerCustomersMenuPopover />
+          {!isLeadsTab && <PartnerCustomersMenuPopover />}
         </>
       }
     >

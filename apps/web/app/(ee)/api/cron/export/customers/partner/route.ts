@@ -99,9 +99,7 @@ export const POST = withCron(async ({ rawBody }) => {
           },
         },
       },
-      orderBy: {
-        [sortBy]: sortOrder,
-      },
+      orderBy: [{ [sortBy]: sortOrder }, { id: "asc" }],
       skip: (page - 1) * PAGE_SIZE,
       take: PAGE_SIZE,
     });
