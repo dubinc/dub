@@ -3,7 +3,14 @@ import { Link } from "@prisma/client";
 import { randomId } from "tests/utils/helpers";
 import { afterAll, describe, expect, test } from "vitest";
 import { IntegrationHarness } from "../utils/integration";
-import { E2E_PARTNER, E2E_PARTNER_GROUP, E2E_PROGRAM } from "../utils/resource";
+import {
+  E2E_DISCOUNT,
+  E2E_LEAD_REWARD,
+  E2E_PARTNER,
+  E2E_PARTNER_GROUP,
+  E2E_PROGRAM,
+  E2E_SALE_REWARD,
+} from "../utils/resource";
 import { partnerLink } from "./resource";
 
 describe.sequential("PUT /partners/links/upsert", async () => {
@@ -16,15 +23,18 @@ describe.sequential("PUT /partners/links/upsert", async () => {
     await h.deleteLink(createdLink.id);
   });
 
-  const randomUrl = `${E2E_PARTNER_GROUP.url}/${nanoid()}`;
+  const body = {
+    partnerId: E2E_PARTNER.id,
+    url: `${E2E_PARTNER_GROUP.url}/${nanoid()}`,
+    leadRewardId: E2E_LEAD_REWARD.id,
+    saleRewardId: E2E_SALE_REWARD.id,
+    discountId: E2E_DISCOUNT.id,
+  };
 
   test("New link", async () => {
     const { data, status } = await http.put<Link>({
       path: "/partners/links/upsert",
-      body: {
-        partnerId: E2E_PARTNER.id,
-        url: randomUrl,
-      },
+      body,
     });
 
     createdLink = data;
@@ -32,7 +42,10 @@ describe.sequential("PUT /partners/links/upsert", async () => {
     expect(status).toEqual(200);
     expect(createdLink).toStrictEqual({
       ...partnerLink,
-      url: randomUrl,
+      url: body.url,
+      leadReward: body.leadRewardId,
+      saleReward: body.saleRewardId,
+      discount: body.discountId,
     });
   });
 
@@ -42,8 +55,7 @@ describe.sequential("PUT /partners/links/upsert", async () => {
     const { data: updatedLink, status } = await http.put<Link>({
       path: "/partners/links/upsert",
       body: {
-        partnerId: E2E_PARTNER.id,
-        url: randomUrl,
+        ...body,
         key,
       },
     });

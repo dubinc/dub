@@ -82,7 +82,6 @@ export async function updatePartnerLink({
       },
       select: {
         groupId: true,
-        discountId: true,
         partnerGroup: {
           select: {
             clickRewardId: true,
@@ -136,53 +135,21 @@ export async function updatePartnerLink({
     linkRewardInput.saleRewardId ||
     linkRewardInput.discountId;
 
-  const linkReward = await prisma.$transaction(async (tx) => {
-    let updatedLinkReward = existingLinkReward;
-
-    if (hasLinkOverride) {
-      updatedLinkReward = await tx.linkReward.upsert({
-        where: {
-          linkId: link.id,
-        },
-        create: {
-          linkId: link.id,
-          ...linkRewardInput,
-        },
-        update: {
-          ...linkRewardInput,
-        },
-      });
-    }
-
-    // Remove the link reward if no overrides are present.
-    else if (existingLinkReward) {
-      await tx.linkReward.delete({
-        where: {
-          linkId: link.id,
-        },
-      });
-      updatedLinkReward = null;
-    }
-
-    const discountIdChanged = body.discountId !== undefined;
-    const effectiveDiscountId =
-      linkRewardInput.discountId ?? programEnrollment.discountId;
-
-    // Keep the discount code's discountId in sync with the effective discount
-    // (link override, or enrollment discount when the override is cleared).
-    if (discountIdChanged) {
-      await tx.discountCode.updateMany({
-        where: {
-          linkId: link.id,
-        },
-        data: {
-          discountId: effectiveDiscountId,
-        },
-      });
-    }
-
-    return updatedLinkReward;
-  });
+  const linkReward =
+    hasLinkOverride || existingLinkReward
+      ? await prisma.linkReward.upsert({
+          where: {
+            linkId: link.id,
+          },
+          create: {
+            linkId: link.id,
+            ...linkRewardInput,
+          },
+          update: {
+            ...linkRewardInput,
+          },
+        })
+      : null;
 
   waitUntil(linkCache.expireMany([link]));
 

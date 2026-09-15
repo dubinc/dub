@@ -84,6 +84,12 @@ function getLinkRewardOverrideTooltip(
   return `This link has ${events.slice(0, -1).join(", ")}, and ${events.at(-1)} reward overrides`;
 }
 
+function hasLinkDiscountOverride(link: Pick<PartnerLink, "discount">) {
+  return Boolean(
+    typeof link.discount === "string" ? link.discount : link.discount?.id,
+  );
+}
+
 const formatStatCount = ({ count, unit }: { count: number; unit: string }) => ({
   count,
   formatted: nFormatter(count),
@@ -227,6 +233,7 @@ function PartnerLinkCard({
     link,
   });
   const rewardEvents = getLinkRewardOverride(link);
+  const hasDiscountOverride = hasLinkDiscountOverride(link);
   const [rewardEvent, setRewardEvent] = useState<"sale" | "lead" | "click">(
     "sale",
   );
@@ -282,6 +289,19 @@ function PartnerLinkCard({
                     <Icon key={event} className="size-3 text-neutral-700" />
                   );
                 })}
+              </div>
+            </Tooltip>
+          )}
+          {hasDiscountOverride && (
+            <Tooltip
+              content={
+                <div className="whitespace-nowrap px-3 py-2 text-sm text-neutral-600">
+                  This link has a discount override
+                </div>
+              }
+            >
+              <div className="flex h-5 shrink-0 items-center gap-1 rounded-md bg-neutral-100 px-1">
+                <Discount className="size-3 text-neutral-700" />
               </div>
             </Tooltip>
           )}

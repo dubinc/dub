@@ -689,3 +689,93 @@ test("POST /discount-codes – no enrollment or link discount", async ({
     await deletePartner(partnerId);
   }
 });
+
+type PartnerLink = {
+  id: string;
+  discount:
+    | string
+    | {
+        id: string;
+        provider: DiscountProvider;
+      }
+    | null;
+};
+
+test("PATCH /partners/links/:linkId does not retarget existing discount codes", async ({
+  api,
+  program,
+}) => {
+  let partnerId: string | undefined;
+
+  try {
+    const created = await createDiscountCode(api);
+    partnerId = created.partner.id;
+
+    const linkDiscount = await createLinkLevelDiscount(program.id);
+
+    const { status } = await api.patch<PartnerLink>(
+      `/api/partners/links/${created.linkId}`,
+      {
+        discountId: linkDiscount.id,
+      },
+    );
+
+    expect(status).toEqual(200);
+
+    const discountCode = await prisma.discountCode.findUnique({
+      where: {
+        id: created.data.id,
+      },
+    });
+
+    expect(discountCode?.discountId).toEqual(customDiscountId);
+    expect(discountCode?.discountId).not.toEqual(linkDiscount.id);
+  } finally {
+    await deletePartner(partnerId);
+  }
+});
+
+test("GET /partners/links expands link discount provider", async ({
+  api,
+  program,
+}) => {
+  let partnerId: string | undefined;
+
+  try {
+    const { data: partner } = await createPartner(api);
+    partnerId = partner.id;
+    const linkId = partner.links?.[0]?.id;
+
+    if (!linkId) {
+      throw new Error("Partner was created without a default link.");
+    }
+
+    const linkDiscount = await createLinkLevelDiscount(program.id);
+
+    const { status: patchStatus } = await api.patch<PartnerLink>(
+      `/api/partners/links/${linkId}`,
+      {
+        discountId: linkDiscount.id,
+      },
+    );
+
+    expect(patchStatus).toEqual(200);
+
+    const { status, data } = await api.get<PartnerLink[]>(
+      `/api/partners/links?partnerId=${partner.id}&expand[]=reward&expand[]=discount`,
+    );
+
+    expect(status).toEqual(200);
+
+    const link = data.find((item) => item.id === linkId);
+
+    expect(link?.discount).toEqual(
+      expect.objectContaining({
+        id: linkDiscount.id,
+        provider: DiscountProvider.custom,
+      }),
+    );
+  } finally {
+    await deletePartner(partnerId);
+  }
+});

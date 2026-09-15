@@ -39,7 +39,7 @@ import { toast } from "sonner";
 type PartnerLink = NonNullable<EnrolledPartnerProps["links"]>[number];
 
 function getDiscountReferenceId(
-  discount: PartnerLink["discount"] | DiscountProps | null | undefined,
+  discount: string | { id: string } | null | undefined,
 ): string | null {
   if (!discount) {
     return null;
@@ -113,7 +113,6 @@ export function PartnerDiscountCodes({
       partner,
     });
 
-  const groupDiscount = group?.discount ?? partner.discount;
   const usedLinkIds = useMemo(
     () => new Set(discountCodes?.map((code) => code.linkId) ?? []),
     [discountCodes],
@@ -194,7 +193,14 @@ export function PartnerDiscountCodes({
     slug,
   ]);
 
-  const discountCodeEmptyState = groupDiscount
+  const hasPartnerOrLinkDiscount = Boolean(
+    getDiscountReferenceId(partner.discount) ||
+      getDiscountReferenceId(group?.discount) ||
+      links?.some((link) => getDiscountReferenceId(link.discount)) ||
+      eligibleLinks.length > 0,
+  );
+
+  const discountCodeEmptyState = hasPartnerOrLinkDiscount
     ? {
         description:
           "Great for short-form content, podcasts and more. Works alongside link-based discounts.",
