@@ -101,6 +101,12 @@ describe("buildCommissionDescription", () => {
   test("formats multi-month and multi-year durations", () => {
     expect(
       buildCommissionDescription({
+        reward: saleReward({ maxDuration: 1 }),
+      }),
+    ).toBe("Earn 10% per sale for 1 month");
+
+    expect(
+      buildCommissionDescription({
         reward: saleReward({ maxDuration: 6 }),
       }),
     ).toBe("Earn 10% per sale for 6 months");

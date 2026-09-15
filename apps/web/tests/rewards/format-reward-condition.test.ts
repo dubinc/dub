@@ -82,6 +82,44 @@ describe("formatRewardConditionParts", () => {
       valueLabel: "$200.00",
     });
   });
+
+  test("formats a valid zero numeric value", () => {
+    expect(
+      formatRewardConditionParts({
+        event: "sale",
+        condition: {
+          entity: "partner",
+          attribute: "totalClicks",
+          operator: "equals_to",
+          value: 0,
+        },
+      }),
+    ).toEqual({
+      entityLabel: "Partner",
+      attributeLabel: "Total Clicks",
+      operatorLabel: "is",
+      valueLabel: "0",
+    });
+  });
+
+  test("formats a valid zero currency value", () => {
+    expect(
+      formatRewardConditionParts({
+        event: "sale",
+        condition: {
+          entity: "sale",
+          attribute: "amount",
+          operator: "greater_than_or_equal",
+          value: 0,
+        },
+      }),
+    ).toEqual({
+      entityLabel: "Sale",
+      attributeLabel: "Amount",
+      operatorLabel: "is greater than or equal to",
+      valueLabel: "$0.00",
+    });
+  });
 });
 
 describe("formatRewardConditionClause", () => {

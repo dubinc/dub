@@ -44,11 +44,11 @@ export function buildCommissionDescription({
   if (reward.event === "sale") {
     if (reward.maxDuration === null) {
       parts.push("for the customer's lifetime");
-    } else if (reward.maxDuration && reward.maxDuration > 1) {
+    } else if (reward.maxDuration && reward.maxDuration >= 1) {
       const durationText =
         reward.maxDuration % 12 === 0
           ? `${reward.maxDuration / 12} year${reward.maxDuration / 12 > 1 ? "s" : ""}`
-          : `${reward.maxDuration} months`;
+          : `${reward.maxDuration} month${reward.maxDuration > 1 ? "s" : ""}`;
       parts.push(`for ${durationText}`);
     }
   }

@@ -160,9 +160,8 @@ const RewardItem = ({
                 <span className="min-w-0">
                   {idx === 0 ? "If" : capitalize(operator)} {entityLabel}{" "}
                   {attributeLabel} {operatorLabel}
-                  {/* Match prior truthiness: hide value when condition.value is
-                      falsy (e.g. 0), same as `condition.value && …` before. */}
-                  {condition.value ? ` ${valueLabel}` : null}
+                  {/* Omit empty formatter output; still show valid zeros. */}
+                  {valueLabel ? ` ${valueLabel}` : null}
                 </span>
               </li>
             );
