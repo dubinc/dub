@@ -136,6 +136,9 @@ export async function recreateCustomerForReattribution({
         programId: null,
         partnerId: null,
         clickId: null,
+        saleAmount: 0,
+        firstSaleAt: null,
+        subscriptionCanceledAt: null,
       },
     });
 

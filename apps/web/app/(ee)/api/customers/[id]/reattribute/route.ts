@@ -54,15 +54,14 @@ export const POST = withWorkspace(
     if (isReattributedCustomerStub(customer)) {
       throw new DubApiError({
         code: "bad_request",
-        message:
-          "This customer was already reattributed. Use the new customer ID.",
+        message: `Customer "${customer.id}" was already reattributed. Use the new customer ID instead.`,
       });
     }
 
-    if (customer.partnerId === partnerId && customer.linkId === linkId) {
+    if (customer.partnerId === partnerId) {
       throw new DubApiError({
         code: "bad_request",
-        message: "Customer is already attributed to this partner and link.",
+        message: `Customer "${customer.id}" is already attributed to the partner "${partnerId}".`,
       });
     }
 
@@ -129,20 +128,19 @@ export const POST = withWorkspace(
           linkId: link.id,
           programId: link.programId,
         },
+        include: {
+          link: true,
+          programEnrollment: {
+            include: {
+              partner: true,
+              discount: true,
+            },
+          },
+        },
       });
 
-      const enrichedCustomer = await getCustomerOrThrow(
-        {
-          id: updatedCustomer.id,
-          workspaceId: workspace.id,
-        },
-        {
-          includeExpandedFields: true,
-        },
-      );
-
       return NextResponse.json(
-        CustomerEnrichedSchema.parse(transformCustomer(enrichedCustomer)),
+        CustomerEnrichedSchema.parse(transformCustomer(updatedCustomer)),
       );
     }
 
