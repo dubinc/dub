@@ -2,6 +2,7 @@
 
 import { constructPartnerLink } from "@/lib/partners/construct-partner-link";
 import useDiscountCodes from "@/lib/swr/use-discount-codes";
+import { useDiscounts } from "@/lib/swr/use-discounts";
 import useGroup from "@/lib/swr/use-group";
 import { useProgramPartnerLinks } from "@/lib/swr/use-program-partner-links";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -38,34 +39,25 @@ import { toast } from "sonner";
 
 type PartnerLink = NonNullable<EnrolledPartnerProps["links"]>[number];
 
-function getDiscountReferenceId(
-  discount: string | { id: string } | null | undefined,
-): string | null {
-  if (!discount) {
-    return null;
-  }
-
-  return typeof discount === "string" ? discount : discount.id;
-}
-
 function getEffectiveDiscountProvider({
   link,
+  discounts,
   partnerDiscount,
   groupDiscount,
 }: {
   link: PartnerLink;
+  discounts?: DiscountProps[] | null;
   partnerDiscount?: Pick<DiscountProps, "id" | "provider"> | null;
   groupDiscount?: Pick<DiscountProps, "id" | "provider"> | null;
 }): DiscountProvider | null {
-  if (link.discount) {
-    if (typeof link.discount === "object" && "provider" in link.discount) {
-      return link.discount.provider;
-    }
+  const linkDiscount = discounts?.find((d) => d.id === link.discount);
 
-    return partnerDiscount?.provider ?? groupDiscount?.provider ?? null;
-  }
-
-  return partnerDiscount?.provider ?? groupDiscount?.provider ?? null;
+  return (
+    linkDiscount?.provider ??
+    partnerDiscount?.provider ??
+    groupDiscount?.provider ??
+    null
+  );
 }
 
 function linkHasEffectiveDiscount({
@@ -77,11 +69,7 @@ function linkHasEffectiveDiscount({
   partnerDiscount?: Pick<DiscountProps, "id"> | null;
   groupDiscount?: Pick<DiscountProps, "id"> | null;
 }) {
-  return Boolean(
-    getDiscountReferenceId(link.discount) ||
-      partnerDiscount?.id ||
-      groupDiscount?.id,
-  );
+  return Boolean(link.discount || partnerDiscount?.id || groupDiscount?.id);
 }
 
 export function PartnerDiscountCodes({
@@ -106,6 +94,10 @@ export function PartnerDiscountCodes({
 
   const { links } = useProgramPartnerLinks({
     partnerId: partner.id || null,
+  });
+
+  const { discounts } = useDiscounts({
+    groupId: partner.groupId ?? undefined,
   });
 
   const { AddDiscountCodeModal, setShowAddDiscountCodeModal } =
@@ -152,6 +144,7 @@ export function PartnerDiscountCodes({
         .map((link) =>
           getEffectiveDiscountProvider({
             link,
+            discounts,
             partnerDiscount: partner.discount,
             groupDiscount: group?.discount,
           }),
@@ -186,6 +179,7 @@ export function PartnerDiscountCodes({
     links,
     eligibleLinks,
     discountCodes,
+    discounts,
     partner.discount,
     group?.discount,
     stripeConnectId,
@@ -194,9 +188,9 @@ export function PartnerDiscountCodes({
   ]);
 
   const hasPartnerOrLinkDiscount = Boolean(
-    getDiscountReferenceId(partner.discount) ||
-      getDiscountReferenceId(group?.discount) ||
-      links?.some((link) => getDiscountReferenceId(link.discount)) ||
+    partner.discount?.id ||
+      group?.discount?.id ||
+      links?.some((link) => link.discount) ||
       eligibleLinks.length > 0,
   );
 
@@ -318,7 +312,7 @@ function DiscountCodeCard({
   onDelete: () => void;
 }) {
   const partnerLink = link ? constructPartnerLink({ group, link }) : "";
-  const hasDiscountOverride = Boolean(getDiscountReferenceId(link?.discount));
+  const hasDiscountOverride = Boolean(link?.discount);
   const conversions = link?.conversions ?? 0;
 
   return (

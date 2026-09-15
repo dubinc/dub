@@ -4,6 +4,7 @@ import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { getDiscountOrThrow } from "@/lib/api/partners/get-discount-or-throw";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { deleteDiscountCodes } from "@/lib/discounts/delete-discount-code";
+import { getPartnerIdsUsingDiscount } from "@/lib/discounts/get-partner-ids-using-discount";
 import { invalidateLinksForDiscountsJob } from "@/lib/jobs/handlers/invalidate-links-for-discounts-job";
 import { prisma } from "@/lib/prisma";
 import { waitUntil } from "@vercel/functions";
@@ -44,6 +45,10 @@ export const deleteDiscountAction = authActionClient
       },
     });
 
+    const partnerIds = await getPartnerIdsUsingDiscount({
+      discountIds: [discount.id],
+    });
+
     await prisma.$transaction(async (tx) => {
       await tx.partnerGroup.updateMany({
         where: {
@@ -54,28 +59,35 @@ export const deleteDiscountAction = authActionClient
         },
       });
 
-      // Restore enrollments to the group level discount
-      if (discount.groupId) {
-        const partnerGroup = await tx.partnerGroup.findUnique({
-          where: {
-            id: discount.groupId,
-          },
-          select: {
-            discountId: true,
-          },
-        });
-
-        if (partnerGroup && partnerGroup.discountId) {
-          await tx.programEnrollment.updateMany({
+      // Restore enrollments to the group level discount, or clear them if none
+      const partnerGroup = discount.groupId
+        ? await tx.partnerGroup.findUnique({
             where: {
-              discountId: discount.id,
+              id: discount.groupId,
             },
-            data: {
-              discountId: partnerGroup.discountId,
+            select: {
+              discountId: true,
             },
-          });
-        }
-      }
+          })
+        : null;
+
+      await tx.programEnrollment.updateMany({
+        where: {
+          discountId: discount.id,
+        },
+        data: {
+          discountId: partnerGroup?.discountId ?? null,
+        },
+      });
+
+      await tx.linkReward.updateMany({
+        where: {
+          discountId: discount.id,
+        },
+        data: {
+          discountId: null,
+        },
+      });
 
       await tx.discount.delete({
         where: {
@@ -86,10 +98,20 @@ export const deleteDiscountAction = authActionClient
 
     waitUntil(
       Promise.allSettled([
-        invalidateLinksForDiscountsJob.dispatch(
-          { discountId },
-          { label: discountId },
-        ),
+        ...(partnerIds.length > 0
+          ? [
+              invalidateLinksForDiscountsJob.dispatch(
+                {
+                  type: "partners",
+                  partnerIds,
+                  programId,
+                },
+                {
+                  label: discountId,
+                },
+              ),
+            ]
+          : []),
 
         deleteDiscountCodes(discountCodes),
 

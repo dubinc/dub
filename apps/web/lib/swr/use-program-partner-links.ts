@@ -19,7 +19,7 @@ export function useProgramPartnerLinks(
     isValidating,
   } = useSWR<NonNullable<EnrolledPartnerProps["links"]>>(
     partnerId && workspaceId
-      ? `/api/partners/links?partnerId=${partnerId}&workspaceId=${workspaceId}&expand[]=reward&expand[]=discount`
+      ? `/api/partners/links?partnerId=${partnerId}&workspaceId=${workspaceId}`
       : null,
     fetcher,
     {

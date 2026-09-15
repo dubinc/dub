@@ -1,6 +1,7 @@
 "use server";
 
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
+import { linkCache } from "@/lib/api/links/cache";
 import { includeProgramEnrollment } from "@/lib/api/links/include-program-enrollment";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { queuePartnerSearchSync } from "@/lib/api/partners/queue-partner-search-sync";
@@ -167,6 +168,10 @@ export const updatePartnerEnrollmentAction = authActionClient
       Promise.allSettled([
         ...(tenantId !== undefined
           ? [recordLink(programEnrollment.links)]
+          : []),
+
+        ...(hasRewardOverride
+          ? [linkCache.expireMany(programEnrollment.links)]
           : []),
 
         // Queue an index update because the tenant ID changed

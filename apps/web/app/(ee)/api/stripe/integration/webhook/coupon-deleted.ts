@@ -1,4 +1,5 @@
 import { getWorkspaceUsers } from "@/lib/api/get-workspace-users";
+import { getPartnerIdsUsingDiscount } from "@/lib/discounts/get-partner-ids-using-discount";
 import { invalidateLinksForDiscountsJob } from "@/lib/jobs/handlers/invalidate-links-for-discounts-job";
 import { prisma } from "@/lib/prisma";
 import { sendBatchEmail } from "@dub/email";
@@ -20,7 +21,9 @@ export async function couponDeleted({
   const coupon = event.data.object;
   const stripeAccountId = event.account as string;
 
-  if (!workspace.defaultProgramId) {
+  const programId = workspace.defaultProgramId;
+
+  if (!programId) {
     return {
       response: `Workspace ${workspace.id} for stripe account ${stripeAccountId} has no programs.`,
     };
@@ -28,7 +31,7 @@ export async function couponDeleted({
 
   const discounts = await prisma.discount.findMany({
     where: {
-      programId: workspace.defaultProgramId,
+      programId,
       OR: [{ couponId: coupon.id }, { couponTestId: coupon.id }],
     },
   });
@@ -41,6 +44,7 @@ export async function couponDeleted({
 
   const discountIds = pluck(discounts, "id");
   const groupIds = pluck(discounts, "groupId").filter(Boolean) as string[];
+  const partnerIds = await getPartnerIdsUsingDiscount({ discountIds });
 
   await prisma.$transaction(async (tx) => {
     if (discountIds.length > 0) {
@@ -95,6 +99,17 @@ export async function couponDeleted({
         },
       });
 
+      await tx.linkReward.updateMany({
+        where: {
+          discountId: {
+            in: discountIds,
+          },
+        },
+        data: {
+          discountId: null,
+        },
+      });
+
       await tx.discount.deleteMany({
         where: {
           id: {
@@ -113,14 +128,20 @@ export async function couponDeleted({
       });
 
       await Promise.allSettled([
-        invalidateLinksForDiscountsJob.dispatchBatch(
-          discountIds.map((discountId) => ({
-            discountId,
-          })),
-          ({ discountId }) => ({
-            label: discountId,
-          }),
-        ),
+        ...(partnerIds.length > 0
+          ? [
+              invalidateLinksForDiscountsJob.dispatch(
+                {
+                  type: "partners",
+                  partnerIds,
+                  programId,
+                },
+                {
+                  label: coupon.id,
+                },
+              ),
+            ]
+          : []),
 
         sendBatchEmail(
           users.map((user) => ({

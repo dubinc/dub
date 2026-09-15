@@ -692,13 +692,7 @@ test("POST /discount-codes – no enrollment or link discount", async ({
 
 type PartnerLink = {
   id: string;
-  discount:
-    | string
-    | {
-        id: string;
-        provider: DiscountProvider;
-      }
-    | null;
+  discount: string | null;
 };
 
 test("PATCH /partners/links/:linkId does not retarget existing discount codes", async ({
@@ -735,7 +729,7 @@ test("PATCH /partners/links/:linkId does not retarget existing discount codes", 
   }
 });
 
-test("GET /partners/links expands link discount provider", async ({
+test("GET /partners/links returns link discount ID", async ({
   api,
   program,
 }) => {
@@ -762,19 +756,14 @@ test("GET /partners/links expands link discount provider", async ({
     expect(patchStatus).toEqual(200);
 
     const { status, data } = await api.get<PartnerLink[]>(
-      `/api/partners/links?partnerId=${partner.id}&expand[]=reward&expand[]=discount`,
+      `/api/partners/links?partnerId=${partner.id}`,
     );
 
     expect(status).toEqual(200);
 
     const link = data.find((item) => item.id === linkId);
 
-    expect(link?.discount).toEqual(
-      expect.objectContaining({
-        id: linkDiscount.id,
-        provider: DiscountProvider.custom,
-      }),
-    );
+    expect(link?.discount).toEqual(linkDiscount.id);
   } finally {
     await deletePartner(partnerId);
   }

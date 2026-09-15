@@ -38,16 +38,6 @@ export type PartnerDiscountOverrideTarget =
       partner: PartnerDiscountOverridePartner;
     };
 
-function getReferenceId(
-  value: string | { id: string } | null | undefined,
-): string | null {
-  if (!value) {
-    return null;
-  }
-
-  return typeof value === "string" ? value : value.id;
-}
-
 function getSelectedDiscountId({
   target,
   groupDiscountId,
@@ -60,10 +50,7 @@ function getSelectedDiscountId({
   }
 
   return (
-    getReferenceId(target.link.discount) ??
-    target.partner.discountId ??
-    groupDiscountId ??
-    null
+    target.link.discount ?? target.partner.discountId ?? groupDiscountId ?? null
   );
 }
 
@@ -257,83 +244,81 @@ function EditPartnerDiscountModal({
         />
       )}
       <form onSubmit={onSubmit}>
-          <div className="flex w-full items-center justify-between gap-3 border-b border-neutral-200 px-6 py-4">
-            <h3 className="text-lg font-semibold tracking-tight">
-              Edit discount
-            </h3>
+        <div className="flex w-full items-center justify-between gap-3 border-b border-neutral-200 px-6 py-4">
+          <h3 className="text-lg font-semibold tracking-tight">
+            Edit discount
+          </h3>
+          <Button
+            type="button"
+            variant="secondary"
+            text="Create discount"
+            icon={<Discount className="size-4" />}
+            className="h-8 w-fit px-3"
+            onClick={() => openDiscountSheet()}
+          />
+        </div>
+
+        <div className="min-h-[120px] px-4 py-4">
+          {discountsLoading ? (
+            <div className="flex flex-col gap-2">
+              {Array.from({ length: 3 }).map((_, index) => (
+                <div
+                  key={index}
+                  className="h-10 animate-pulse rounded-lg bg-neutral-100"
+                />
+              ))}
+            </div>
+          ) : (
+            <AdditionalRewardOptionList
+              options={options}
+              selectedId={resolvedSelectedId}
+              onSelect={setSelectedId}
+              onEdit={(id) => {
+                const discount = sortedDiscounts.find((item) => item.id === id);
+                if (discount) {
+                  openDiscountSheet(discount);
+                }
+              }}
+              onDelete={handleDelete}
+              searchPlaceholder="Search discounts..."
+              emptyLabel={
+                options.length === 0
+                  ? "No discounts available. Create one to get started."
+                  : "No discounts found"
+              }
+              onCreate={() => openDiscountSheet()}
+              createLabel="Create discount"
+              showModal={showModal}
+            />
+          )}
+        </div>
+
+        <div className="border-border-subtle flex items-center justify-between gap-4 border-t px-4 py-4">
+          <div className="flex min-w-0 items-center gap-2">
+            <PartnerAvatar partner={partner} className="size-6 shrink-0" />
+            <h4 className="min-w-0 truncate text-sm font-medium text-neutral-900">
+              {partner.name}
+            </h4>
+          </div>
+          <div className="flex shrink-0 items-center gap-2">
             <Button
               type="button"
               variant="secondary"
-              text="Create discount"
-              icon={<Discount className="size-4" />}
+              text="Cancel"
               className="h-8 w-fit px-3"
-              onClick={() => openDiscountSheet()}
+              onClick={() => setShowModal(false)}
+              disabled={isSubmitting}
+            />
+            <Button
+              type="submit"
+              text="Save"
+              className="h-8 w-fit px-3"
+              loading={isSubmitting}
+              disabled={!resolvedSelectedId || options.length === 0}
             />
           </div>
-
-          <div className="min-h-[120px] px-4 py-4">
-            {discountsLoading ? (
-              <div className="flex flex-col gap-2">
-                {Array.from({ length: 3 }).map((_, index) => (
-                  <div
-                    key={index}
-                    className="h-10 animate-pulse rounded-lg bg-neutral-100"
-                  />
-                ))}
-              </div>
-            ) : (
-              <AdditionalRewardOptionList
-                options={options}
-                selectedId={resolvedSelectedId}
-                onSelect={setSelectedId}
-                onEdit={(id) => {
-                  const discount = sortedDiscounts.find(
-                    (item) => item.id === id,
-                  );
-                  if (discount) {
-                    openDiscountSheet(discount);
-                  }
-                }}
-                onDelete={handleDelete}
-                searchPlaceholder="Search discounts..."
-                emptyLabel={
-                  options.length === 0
-                    ? "No discounts available. Create one to get started."
-                    : "No discounts found"
-                }
-                onCreate={() => openDiscountSheet()}
-                createLabel="Create discount"
-                showModal={showModal}
-              />
-            )}
-          </div>
-
-          <div className="border-border-subtle flex items-center justify-between gap-4 border-t px-4 py-4">
-            <div className="flex min-w-0 items-center gap-2">
-              <PartnerAvatar partner={partner} className="size-6 shrink-0" />
-              <h4 className="min-w-0 truncate text-sm font-medium text-neutral-900">
-                {partner.name}
-              </h4>
-            </div>
-            <div className="flex shrink-0 items-center gap-2">
-              <Button
-                type="button"
-                variant="secondary"
-                text="Cancel"
-                className="h-8 w-fit px-3"
-                onClick={() => setShowModal(false)}
-                disabled={isSubmitting}
-              />
-              <Button
-                type="submit"
-                text="Save"
-                className="h-8 w-fit px-3"
-                loading={isSubmitting}
-                disabled={!resolvedSelectedId || options.length === 0}
-              />
-            </div>
-          </div>
-        </form>
+        </div>
+      </form>
     </Modal>
   );
 }

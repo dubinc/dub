@@ -57,8 +57,13 @@ export const updateDiscountAction = authActionClient
         ...(shouldExpireCache
           ? [
               invalidateLinksForDiscountsJob.dispatch(
-                { discountId: discount.id },
-                { label: discount.id },
+                {
+                  type: "discount",
+                  discountId: discount.id,
+                },
+                {
+                  label: discount.id,
+                },
               ),
             ]
           : []),

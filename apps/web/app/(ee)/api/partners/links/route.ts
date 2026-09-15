@@ -3,8 +3,6 @@ import { createLink, processLink } from "@/lib/api/links";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import {
-  getExpandableRewardReferences,
-  getLinkRewardExpandInclude,
   getRewardIds,
   hasRewardIdsInput,
   LinkRewardIdsInput,
@@ -13,7 +11,6 @@ import {
 import { parseRequestBody } from "@/lib/api/utils";
 import { applyGroupUtmToLink } from "@/lib/api/utm/apply-group-utm-to-link";
 import { withWorkspace } from "@/lib/auth";
-import { parseExpandFields } from "@/lib/expand/parse-expand-fields";
 import { throwIfNoPartnerIdOrTenantId } from "@/lib/partners/throw-if-no-partnerid-tenantid";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { prisma } from "@/lib/prisma";
@@ -22,7 +19,6 @@ import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { linkEventSchema } from "@/lib/zod/schemas/links";
 import {
   createPartnerLinkSchema,
-  PARTNER_LINK_EXPAND_FIELDS,
   retrievePartnerLinksSchema,
 } from "@/lib/zod/schemas/partners";
 import { ProgramPartnerLinkSchema } from "@/lib/zod/schemas/programs";
@@ -32,19 +28,11 @@ import * as z from "zod/v4";
 
 // GET /api/partners/links - get the partner links
 export const GET = withWorkspace(
-  async ({ workspace, searchParams, req }) => {
+  async ({ workspace, searchParams }) => {
     const programId = getDefaultProgramIdOrThrow(workspace);
 
     const { partnerId, tenantId } =
       retrievePartnerLinksSchema.parse(searchParams);
-
-    const expandFields = parseExpandFields({
-      url: req.url,
-      allowedFields: PARTNER_LINK_EXPAND_FIELDS,
-    });
-
-    const expandReward = expandFields.has("reward");
-    const expandDiscount = expandFields.has("discount");
 
     throwIfNoPartnerIdOrTenantId({ partnerId, tenantId });
 
@@ -65,10 +53,7 @@ export const GET = withWorkspace(
       select: {
         links: {
           include: {
-            linkReward: getLinkRewardExpandInclude({
-              expandReward,
-              expandDiscount,
-            }),
+            linkReward: true,
           },
         },
       },
@@ -83,11 +68,7 @@ export const GET = withWorkspace(
 
     const links = programEnrollment.links.map((link) => ({
       ...link,
-      ...getExpandableRewardReferences({
-        linkReward: link.linkReward,
-        expandReward,
-        expandDiscount,
-      }),
+      ...getRewardIds(link.linkReward),
     }));
 
     return NextResponse.json(z.array(ProgramPartnerLinkSchema).parse(links));

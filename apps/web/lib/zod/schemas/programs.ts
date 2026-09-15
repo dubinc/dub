@@ -13,12 +13,12 @@ import {
   ProgramPayoutMode,
 } from "@prisma/client";
 import * as z from "zod/v4";
-import { DiscountSchema, discountReferencesSchema } from "./discount";
+import { DiscountSchema } from "./discount";
 import { GroupSchema } from "./groups";
 import { LinkSchema } from "./links";
 import { programApplicationFormDataWithValuesSchema } from "./program-application-form";
 import { programInviteEmailDataSchema } from "./program-invite-email";
-import { RewardSchema, rewardReferencesSchema } from "./rewards";
+import { RewardSchema } from "./rewards";
 import { submittedLeadFormSchema } from "./submitted-lead-form";
 import { UserSchema } from "./users";
 import { centsSchemaWithDefault, parseDateSchema } from "./utils";
@@ -121,9 +121,28 @@ export const ProgramPartnerLinkSchema = LinkSchema.pick({
   conversions: true,
   sales: true,
   saleAmount: true,
-})
-  .extend(rewardReferencesSchema.shape)
-  .extend(discountReferencesSchema.shape);
+}).extend({
+  clickReward: z
+    .string()
+    .nullable()
+    .default(null)
+    .describe("The click reward ID assigned to this link, if any."),
+  leadReward: z
+    .string()
+    .nullable()
+    .default(null)
+    .describe("The lead reward ID assigned to this link, if any."),
+  saleReward: z
+    .string()
+    .nullable()
+    .default(null)
+    .describe("The sale reward ID assigned to this link, if any."),
+  discount: z
+    .string()
+    .nullable()
+    .default(null)
+    .describe("The discount ID assigned to this link, if any."),
+});
 
 export const ProgramEnrollmentApplicationSchema = z.object({
   rejectionReason: z
