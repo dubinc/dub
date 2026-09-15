@@ -2,7 +2,7 @@ import { isFirstConversion } from "@/lib/analytics/is-first-conversion";
 import { createId } from "@/lib/api/create-id";
 import { getCustomerOrThrow } from "@/lib/api/customers/get-customer-or-throw";
 import {
-  CUSTOMER_EVENTS_LIMIT,
+  CUSTOMER_REATTRIBUTION_EVENTS_LIMIT,
   getCustomerReattributeEvents,
   isReattributedCustomerStub,
   recreateCustomerForReattribution,
@@ -33,6 +33,13 @@ export const POST = withWorkspace(
     const programId = getDefaultProgramIdOrThrow(workspace);
     const { partnerId, linkId, createClawback } =
       reattributeCustomerBodySchema.parse(await parseRequestBody(req));
+
+    if (workspace.id !== ACME_WORKSPACE_ID) {
+      await assertRateLimit({
+        policy: RATELIMIT_POLICIES.reattributeCustomer,
+        identifier: workspace.id,
+      });
+    }
 
     const customer = await getCustomerOrThrow(
       {
@@ -100,17 +107,10 @@ export const POST = withWorkspace(
       }),
     ]);
 
-    if (events.length >= CUSTOMER_EVENTS_LIMIT) {
+    if (events.length >= CUSTOMER_REATTRIBUTION_EVENTS_LIMIT) {
       throw new DubApiError({
         code: "unprocessable_entity",
-        message: `This customer has too many events to reattribute (limit ${CUSTOMER_EVENTS_LIMIT}).`,
-      });
-    }
-
-    if (workspace.id !== ACME_WORKSPACE_ID) {
-      await assertRateLimit({
-        policy: RATELIMIT_POLICIES.reattributeCustomer,
-        identifier: workspace.id,
+        message: `This customer has too many events to reattribute (limit ${CUSTOMER_REATTRIBUTION_EVENTS_LIMIT}).`,
       });
     }
 

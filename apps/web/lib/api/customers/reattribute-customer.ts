@@ -19,7 +19,7 @@ import { nanoid } from "@dub/utils";
 import { Customer, Link } from "@prisma/client";
 import * as z from "zod/v4";
 
-export const CUSTOMER_EVENTS_LIMIT = 1000;
+export const CUSTOMER_REATTRIBUTION_EVENTS_LIMIT = 500;
 const UNPAID_COMMISSION_STATUSES = ["pending", "hold", "processed"] as const;
 const STATS_LOCK_TTL_SECONDS = 60 * 60 * 24;
 
@@ -98,7 +98,7 @@ export function isReattributedCustomerStub({
 export async function getCustomerReattributeEvents(customerId: string) {
   const { data } = await getCustomerEventsTB({
     customerId,
-    limit: CUSTOMER_EVENTS_LIMIT,
+    limit: CUSTOMER_REATTRIBUTION_EVENTS_LIMIT,
   });
 
   return (data ?? []).filter(
@@ -208,9 +208,9 @@ export async function loadReattributeEventPlan({
     getCustomerReattributeEvents(newCustomerId),
   ]);
 
-  if (oldEvents.length >= CUSTOMER_EVENTS_LIMIT) {
+  if (oldEvents.length >= CUSTOMER_REATTRIBUTION_EVENTS_LIMIT) {
     throw new Error(
-      `Customer ${oldCustomerId} has too many events to reattribute (limit ${CUSTOMER_EVENTS_LIMIT}).`,
+      `Customer ${oldCustomerId} has too many events to reattribute (limit ${CUSTOMER_REATTRIBUTION_EVENTS_LIMIT}).`,
     );
   }
 
@@ -256,9 +256,9 @@ export async function reingestCustomerEvents({
     getCustomerReattributeEvents(newCustomerId),
   ]);
 
-  if (oldEvents.length >= CUSTOMER_EVENTS_LIMIT) {
+  if (oldEvents.length >= CUSTOMER_REATTRIBUTION_EVENTS_LIMIT) {
     throw new Error(
-      `Customer ${oldCustomerId} has too many events to reattribute (limit ${CUSTOMER_EVENTS_LIMIT}).`,
+      `Customer ${oldCustomerId} has too many events to reattribute (limit ${CUSTOMER_REATTRIBUTION_EVENTS_LIMIT}).`,
     );
   }
 
