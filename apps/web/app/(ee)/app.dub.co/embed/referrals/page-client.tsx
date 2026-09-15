@@ -2,7 +2,9 @@
 
 import { constructPartnerReferralLink } from "@/lib/partner-referrals/utils";
 import { constructPartnerLink } from "@/lib/partners/construct-partner-link";
+import { getRewardAmount } from "@/lib/partners/get-reward-amount";
 import { QueryLinkStructureHelpText } from "@/lib/partners/query-link-structure-help-text";
+import { resolvePartnerLinkRewards } from "@/lib/rewards/resolve-partner-link-rewards";
 import {
   DiscountProps,
   PartnerBountyProps,
@@ -14,10 +16,12 @@ import { ACTIVE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
 import { programEmbedSchema } from "@/lib/zod/schemas/program-embed";
 import { programResourcesSchema } from "@/lib/zod/schemas/program-resources";
 import { LinkIcon } from "@/ui/links/link-icon";
+import { formatDiscountDescription } from "@/ui/partners/format-discount-description";
+import { formatRewardDescription } from "@/ui/partners/format-reward-description";
 import { HeroBackground } from "@/ui/partners/hero-background";
 import { PartnerStatusBadges } from "@/ui/partners/partner-status-badges";
-import { ProgramRewardList } from "@/ui/partners/program-reward-list";
-import { ProgramRewardTerms } from "@/ui/partners/program-reward-terms";
+import { ProgramRewardModifiersTooltip } from "@/ui/partners/program-reward-modifiers-tooltip";
+import { REWARD_EVENT_ICON } from "@/ui/partners/rewards/reward-event-icon";
 import { ThreeDots } from "@/ui/shared/icons";
 import {
   Button,
@@ -25,6 +29,7 @@ import {
   Combobox,
   Copy,
   Directions,
+  Gift,
   Popover,
   StatusBadge,
   TabSelect,
@@ -34,7 +39,7 @@ import {
 } from "@dub/ui";
 import {
   cn,
-  getApexDomain,
+  currencyFormatter,
   getPrettyUrl,
   TREMENDOUS_SUPPORTED_COUNTRIES,
 } from "@dub/utils";
@@ -49,6 +54,7 @@ import { AnimatePresence } from "motion/react";
 import {
   createContext,
   CSSProperties,
+  Fragment,
   ReactNode,
   useContext,
   useEffect,
@@ -211,19 +217,6 @@ export function ReferralsEmbedPageClient({
     partner.defaultPayoutMethod === "tremendous" ||
     (!partner.defaultPayoutMethod && isTremendousCountrySupported);
 
-  const customerRewards = useMemo(
-    () => rewards.filter((reward) => reward.event !== "referral"),
-    [rewards],
-  );
-
-  const referralRewards = useMemo(
-    () => rewards.filter((reward) => reward.event === "referral"),
-    [rewards],
-  );
-
-  const showPartnerReferralSection =
-    referralRewards.length > 0 && Boolean(partner.username);
-
   const tabs = useMemo(
     () => [
       ...(showQuickstart ? ["Quickstart"] : []),
@@ -309,62 +302,11 @@ export function ReferralsEmbedPageClient({
           <div className="border-border-default relative flex flex-col overflow-hidden rounded-lg border p-4 md:p-6">
             <HeroBackground logo={group.logo} color={group.brandColor} embed />
 
-            <ReferralLinkDisplay
+            <EmbedRewardsSection
               termsHref={termsHref}
               onSelectTab={setSelectedTab}
-              hasPartnerReferralReward={showPartnerReferralSection}
+              hideEarningsTerms={Boolean(programEmbedData?.hideEarnings)}
             />
-
-            <div
-              className={cn(
-                "sm:max-w-[50%]",
-                !showPartnerReferralSection && "mt-12",
-              )}
-            >
-              {!showPartnerReferralSection && (
-                <div className="flex items-end justify-between">
-                  <span className="text-content-emphasis text-base font-semibold leading-none">
-                    Rewards
-                  </span>
-                  {termsHref && (
-                    <a
-                      href={termsHref}
-                      target="_blank"
-                      className="text-content-subtle text-xs font-medium leading-none underline-offset-2 hover:underline"
-                    >
-                      View terms ↗
-                    </a>
-                  )}
-                </div>
-              )}
-              <div
-                className={cn(
-                  "text-content-emphasis relative text-lg",
-                  showPartnerReferralSection ? "mt-2" : "mt-4",
-                )}
-              >
-                <ProgramRewardList
-                  rewards={customerRewards}
-                  discount={discount}
-                  className="rounded-lg"
-                />
-
-                <ProgramRewardTerms
-                  minPayoutAmount={
-                    programEmbedData?.hideEarnings ? 0 : program.minPayoutAmount
-                  }
-                  holdingPeriodDays={
-                    programEmbedData?.hideEarnings
-                      ? 0
-                      : group.holdingPeriodDays ?? 0
-                  }
-                />
-              </div>
-            </div>
-
-            {showPartnerReferralSection && (
-              <PartnerReferralLinkDisplay referralRewards={referralRewards} />
-            )}
 
             {!programEmbedData?.hidePoweredByBadge && (
               <div className="mt-4 flex justify-center md:absolute md:bottom-3 md:right-3 md:mt-0">
@@ -517,221 +459,368 @@ function ReferralsEmbedUnapproved({
   );
 }
 
-function ReferralLinkDisplay({
-  onSelectTab,
+function EmbedRewardsSection({
   termsHref,
-  hasPartnerReferralReward,
+  onSelectTab,
+  hideEarningsTerms,
 }: {
-  onSelectTab: (tab: string) => void;
   termsHref: string | undefined;
-  hasPartnerReferralReward: boolean;
+  onSelectTab: (tab: string) => void;
+  hideEarningsTerms: boolean;
 }) {
-  const { links, group } = useReferralsEmbedData();
-  const [copied, copyToClipboard] = useCopyToClipboard();
-
+  const { links, group, rewards, discount, partner, program } =
+    useReferralsEmbedData();
   const [selectedLinkId, setSelectedLinkId] = useState<string | null>(
     links[0]?.id ?? null,
   );
 
-  const selectedLink = useMemo(
-    () => links.find((l) => l.id === selectedLinkId) ?? links[0],
-    [links, selectedLinkId],
+  const selectedLink =
+    links.find((link) => link.id === selectedLinkId) ?? links[0] ?? null;
+
+  const referralRewards = rewards.filter(
+    (reward) => reward.event === "referral" && getRewardAmount(reward) >= 0,
   );
+  const hasPartnerReferralReward =
+    referralRewards.length > 0 && Boolean(partner.username);
+
+  const { rewards: customerRewards, discount: resolvedDiscount } =
+    resolvePartnerLinkRewards({
+      link: selectedLink,
+      enrollmentRewards: rewards,
+      enrollmentDiscount: discount,
+    });
 
   const partnerLink = selectedLink
     ? constructPartnerLink({ group, link: selectedLink })
-    : undefined;
-
-  const options = useMemo(
-    () =>
-      links.map((link) => ({
-        value: link.id,
-        label: getPrettyUrl(constructPartnerLink({ group, link })),
-        icon: (
-          <LinkIcon url={link.url} domain={link.domain} linkKey={link.key} />
-        ),
-        meta: {
-          destination: link.url ? getApexDomain(link.url) : null,
-        },
-      })),
-    [links, group],
-  );
-
-  const selectedOption =
-    options.find((option) => option.value === selectedLink?.id) ?? null;
-
-  let actionButton: React.ReactNode = null;
-
-  if (partnerLink) {
-    actionButton = (
-      <Button
-        icon={
-          <div className="relative size-4">
-            <div
-              className={cn(
-                "absolute inset-0 transition-[transform,opacity]",
-                copied && "translate-y-1 opacity-0",
-              )}
-            >
-              <Copy className="size-4" />
-            </div>
-            <div
-              className={cn(
-                "absolute inset-0 transition-[transform,opacity]",
-                !copied && "translate-y-1 opacity-0",
-              )}
-            >
-              <Check className="size-4" />
-            </div>
-          </div>
-        }
-        text={copied ? "Copied link" : "Copy link"}
-        className="h-10 w-fit shrink-0 rounded-lg"
-        onClick={() => copyToClipboard(partnerLink)}
-      />
-    );
-  } else if (links.length === 0) {
-    actionButton = (
-      <Button
-        text="Create a link"
-        onClick={() => onSelectTab("Links")}
-        className="h-10 w-fit shrink-0 rounded-lg"
-      />
-    );
-  }
-
-  return (
-    <>
-      <div className="flex items-center justify-between sm:max-w-[50%]">
-        <span className="text-content-emphasis text-base font-semibold">
-          {hasPartnerReferralReward
-            ? "Customer referral rewards"
-            : "Referral link"}
-        </span>
-        {hasPartnerReferralReward && termsHref && (
-          <a
-            href={termsHref}
-            target="_blank"
-            className="text-content-subtle text-xs font-medium leading-none underline-offset-2 hover:underline"
-          >
-            View terms ↗
-          </a>
-        )}
-      </div>
-
-      <div className="xs:flex-row xs:items-center relative mt-2 flex flex-col gap-2 sm:max-w-[50%]">
-        {links.length <= 1 ? (
-          <input
-            type="text"
-            readOnly
-            value={partnerLink ? getPrettyUrl(partnerLink) : "No referral link"}
-            className="border-border-default text-content-default focus:border-border-emphasis bg-bg-default h-10 min-w-0 grow rounded-lg border px-3 text-sm focus:outline-none focus:ring-0"
-          />
-        ) : (
-          <div className="min-w-0 grow">
-            <Combobox
-              selected={selectedOption}
-              setSelected={(option) => {
-                if (!option) return;
-
-                setSelectedLinkId(option.value);
-
-                const link = links.find((l) => l.id === option.value);
-
-                if (link) {
-                  copyToClipboard(constructPartnerLink({ group, link }));
-                }
-              }}
-              options={options}
-              forceDropdown
-              matchTriggerWidth
-              placeholder="No referral link"
-              inputClassName="text-sm h-10"
-              popoverProps={{
-                contentClassName: "rounded-lg border border-border-subtle p-1",
-              }}
-              trigger={
-                <button
-                  type="button"
-                  className="border-border-default text-content-default focus:border-border-emphasis bg-bg-default flex h-10 w-full min-w-0 items-center gap-2 rounded-lg border px-3 text-left text-sm outline-none focus:ring-0"
-                >
-                  <span className="min-w-0 shrink grow truncate">
-                    {partnerLink
-                      ? getPrettyUrl(partnerLink)
-                      : "No referral link"}
-                  </span>
-                  <ChevronDown className="text-content-muted size-4 shrink-0" />
-                </button>
-              }
-            />
-          </div>
-        )}
-        {actionButton}
-      </div>
-
-      {partnerLink && group.linkStructure === "query" && (
-        <QueryLinkStructureHelpText link={selectedLink} className="mt-1.5" />
-      )}
-    </>
-  );
-}
-
-function PartnerReferralLinkDisplay({
-  referralRewards,
-}: {
-  referralRewards: RewardProps[];
-}) {
-  const { partner, program } = useReferralsEmbedData();
-  const [copied, copyToClipboard] = useCopyToClipboard();
+    : "";
+  const hasPartnerLink = Boolean(partnerLink);
 
   const partnerReferralApplyLink = constructPartnerReferralLink({
     partner,
     program,
   });
 
-  return (
-    <div className="mt-8 sm:max-w-[50%]">
-      <span className="text-content-emphasis text-base font-semibold leading-none">
-        Partner referral rewards
-      </span>
+  const linkOptions =
+    links.length > 1
+      ? links.map((link) => {
+          const href = constructPartnerLink({ group, link });
 
-      <div className="xs:flex-row xs:items-center relative mt-2 flex flex-col gap-2">
+          return {
+            value: link.id,
+            label: href ? getPrettyUrl(href) : getPrettyUrl(link.shortLink),
+            icon: (
+              <LinkIcon
+                url={link.url}
+                domain={link.domain}
+                linkKey={link.key}
+              />
+            ),
+          };
+        })
+      : undefined;
+
+  const selectedOption =
+    linkOptions?.find((option) => option.value === selectedLink?.id) ?? null;
+
+  const customerRewardItems = [
+    ...customerRewards.map((reward) => ({
+      id: reward.id,
+      icon: REWARD_EVENT_ICON[reward.event],
+      text: (
+        <>
+          {formatRewardDescription(reward, { includeEarnPrefix: false })}
+          {(!!reward.modifiers?.length ||
+            Boolean(reward.tooltipDescription)) && (
+            <>
+              {" "}
+              <ProgramRewardModifiersTooltip reward={reward} />
+            </>
+          )}
+        </>
+      ),
+    })),
+    ...(resolvedDiscount
+      ? [
+          {
+            id: "discount",
+            icon: Gift,
+            text: formatDiscountDescription(resolvedDiscount),
+          },
+        ]
+      : []),
+  ];
+
+  const showPayoutTerms =
+    !hideEarningsTerms &&
+    (program.minPayoutAmount > 0 || (group.holdingPeriodDays ?? 0) > 0);
+
+  const customerRewardsList =
+    customerRewardItems.length > 0 ? (
+      <div className="border-border-subtle bg-bg-default space-y-4 rounded-lg border p-3">
+        {customerRewardItems.map((reward) => {
+          const RewardIcon = reward.icon;
+
+          return (
+            <div key={reward.id} className="flex items-center gap-2">
+              <RewardIcon className="text-content-default size-4 shrink-0" />
+              <div className="text-content-default min-w-0 text-sm font-medium leading-5 tracking-tight">
+                {reward.text}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    ) : null;
+
+  return (
+    <div className="relative z-10 flex flex-col gap-8 sm:max-w-[50%]">
+      <div className="flex flex-col gap-2">
+        <div className="flex items-center justify-between gap-3">
+          <h3 className="text-content-emphasis text-base font-semibold tracking-tight">
+            {hasPartnerReferralReward
+              ? "Customer referral links"
+              : "Referral link"}
+          </h3>
+          {termsHref && (
+            <a
+              href={termsHref}
+              target="_blank"
+              className="text-content-subtle shrink-0 text-xs font-medium leading-none underline-offset-2 hover:underline"
+            >
+              View terms ↗
+            </a>
+          )}
+        </div>
+
+        <EmbedLinkRow
+          displayText={
+            hasPartnerLink ? getPrettyUrl(partnerLink) : "No referral link"
+          }
+          copyValue={partnerLink}
+          showLinkSelector={Boolean(linkOptions)}
+          linkOptions={linkOptions}
+          selectedOption={selectedOption}
+          onSelectLink={(id) => {
+            setSelectedLinkId(id);
+            const link = links.find((item) => item.id === id);
+            if (!link) return undefined;
+            return constructPartnerLink({ group, link });
+          }}
+          onCreateLink={() => onSelectTab("Links")}
+        />
+
+        {hasPartnerLink && group.linkStructure === "query" && selectedLink && (
+          <QueryLinkStructureHelpText link={selectedLink} />
+        )}
+
+        {showPayoutTerms ? (
+          <div className="border-border-subtle bg-bg-muted overflow-hidden rounded-lg border">
+            {customerRewardsList}
+            <EmbedPayoutTerms
+              minPayoutAmount={program.minPayoutAmount}
+              holdingPeriodDays={group.holdingPeriodDays ?? 0}
+            />
+          </div>
+        ) : (
+          customerRewardsList
+        )}
+      </div>
+
+      {hasPartnerReferralReward && (
+        <div className="flex flex-col gap-2">
+          <h3 className="text-content-emphasis text-base font-semibold tracking-tight">
+            Partner referral rewards
+          </h3>
+
+          <EmbedLinkRow
+            displayText={getPrettyUrl(partnerReferralApplyLink)}
+            copyValue={partnerReferralApplyLink}
+          />
+
+          {referralRewards.length > 0 && (
+            <div className="border-border-subtle bg-bg-default space-y-4 rounded-lg border p-3">
+              {referralRewards.map((reward) => {
+                const RewardIcon = REWARD_EVENT_ICON.referral;
+
+                return (
+                  <div key={reward.id} className="flex items-start gap-2">
+                    <div className="flex items-center py-0.5">
+                      <RewardIcon className="text-content-default size-4 shrink-0" />
+                    </div>
+                    <div className="text-content-default min-w-0 text-sm font-medium leading-5 tracking-tight">
+                      {formatRewardDescription(reward)}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function EmbedPayoutTerms({
+  minPayoutAmount,
+  holdingPeriodDays,
+}: {
+  minPayoutAmount: number;
+  holdingPeriodDays: number;
+}) {
+  const items = [
+    ...(minPayoutAmount > 0
+      ? [
+          {
+            label: "Minimum payout",
+            value: currencyFormatter(minPayoutAmount, {
+              trailingZeroDisplay: "stripIfInteger",
+            }),
+            href: "https://dub.co/help/article/commissions-payouts#what-does-minimum-payout-amount-mean",
+          },
+        ]
+      : []),
+    ...(holdingPeriodDays > 0
+      ? [
+          {
+            label: "holding period",
+            value: `${holdingPeriodDays} day`,
+            href: "https://dub.co/help/article/commissions-payouts#what-does-holding-period-mean",
+          },
+        ]
+      : []),
+  ];
+
+  if (items.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className="text-content-subtle flex flex-wrap items-center gap-1.5 px-3 py-2 text-xs tracking-tight">
+      {items.map((item, index) => (
+        <Fragment key={item.label}>
+          {index > 0 && (
+            <span className="text-content-default font-semibold">•</span>
+          )}
+          <span className="inline-flex items-center gap-0.5">
+            <span className="text-content-default font-semibold">
+              {item.value}
+            </span>
+            <a
+              href={item.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-medium underline decoration-dotted underline-offset-2"
+            >
+              {item.label}
+            </a>
+          </span>
+        </Fragment>
+      ))}
+    </div>
+  );
+}
+
+function EmbedLinkRow({
+  displayText,
+  copyValue,
+  showLinkSelector,
+  linkOptions,
+  selectedOption,
+  onSelectLink,
+  onCreateLink,
+}: {
+  displayText: string;
+  copyValue: string;
+  showLinkSelector?: boolean;
+  linkOptions?: {
+    value: string;
+    label: string;
+    icon: ReactNode;
+  }[];
+  selectedOption?: {
+    value: string;
+    label: string;
+    icon: ReactNode;
+  } | null;
+  onSelectLink?: (id: string) => string | void | undefined;
+  onCreateLink?: () => void;
+}) {
+  const [copied, copyToClipboard] = useCopyToClipboard();
+  const hasLink = Boolean(copyValue);
+
+  return (
+    <div className="flex items-center gap-2">
+      {showLinkSelector ? (
+        <div className="min-w-0 grow">
+          <Combobox
+            selected={selectedOption ?? null}
+            setSelected={(option) => {
+              if (!option) return;
+              const valueToCopy = onSelectLink?.(option.value);
+              if (typeof valueToCopy === "string" && valueToCopy) {
+                copyToClipboard(valueToCopy);
+              }
+            }}
+            options={linkOptions}
+            forceDropdown
+            matchTriggerWidth
+            placeholder="No referral link"
+            inputClassName="text-sm h-9"
+            popoverProps={{
+              contentClassName: "rounded-lg border border-border-subtle p-1",
+            }}
+            trigger={
+              <button
+                type="button"
+                className="border-border-default text-content-default focus:border-border-emphasis bg-bg-default flex h-9 w-full min-w-0 items-center gap-2 rounded-lg border px-3 text-left text-sm outline-none focus:ring-0"
+              >
+                <span className="min-w-0 shrink grow truncate font-medium">
+                  {displayText}
+                </span>
+                <ChevronDown className="text-content-muted size-3 shrink-0" />
+              </button>
+            }
+          />
+        </div>
+      ) : (
         <input
           type="text"
           readOnly
-          value={getPrettyUrl(partnerReferralApplyLink)}
-          className="border-border-default text-content-default focus:border-border-emphasis bg-bg-default h-10 min-w-0 grow rounded-lg border px-3 text-sm focus:outline-none focus:ring-0"
+          value={displayText}
+          className="border-border-default text-content-default focus:border-border-emphasis bg-bg-default h-9 min-w-0 grow rounded-lg border px-3 text-sm font-medium focus:outline-none focus:ring-0"
         />
+      )}
+
+      {hasLink ? (
         <Button
           icon={
-            <div className="relative size-4">
-              <div
+            <span className="relative size-4">
+              <Copy
                 className={cn(
-                  "absolute inset-0 transition-[transform,opacity]",
+                  "absolute inset-0 size-4 transition-[transform,opacity]",
                   copied && "translate-y-1 opacity-0",
                 )}
-              >
-                <Copy className="size-4" />
-              </div>
-              <div
+              />
+              <Check
                 className={cn(
-                  "absolute inset-0 transition-[transform,opacity]",
+                  "absolute inset-0 size-4 transition-[transform,opacity]",
                   !copied && "translate-y-1 opacity-0",
                 )}
-              >
-                <Check className="size-4" />
-              </div>
-            </div>
+              />
+            </span>
           }
-          text={copied ? "Copied link" : "Copy link"}
-          className="h-10 w-fit shrink-0 rounded-lg"
-          onClick={() => copyToClipboard(partnerReferralApplyLink)}
+          text={copied ? "Copied" : "Copy"}
+          className="h-9 w-fit shrink-0 rounded-lg px-4"
+          onClick={() => copyToClipboard(copyValue)}
         />
-      </div>
-
-      <div className="text-content-emphasis relative mt-2 text-lg">
-        <ProgramRewardList rewards={referralRewards} className="rounded-lg" />
-      </div>
+      ) : onCreateLink ? (
+        <Button
+          text="Create a link"
+          onClick={onCreateLink}
+          className="h-9 w-fit shrink-0 rounded-lg px-4"
+        />
+      ) : null}
     </div>
   );
 }

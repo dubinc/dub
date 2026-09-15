@@ -218,6 +218,7 @@ test("GET /discounts – includes groupId", async ({ api }) => {
     id: customDiscountId,
     ...expectedCustomDiscount,
     groupId: null,
+    partnersCount: expect.any(Number),
   });
 });
 
@@ -257,6 +258,7 @@ test("GET /discounts?groupId= – filters by group", async ({ api, program }) =>
         id: discountId,
         ...expectedCustomDiscount,
         groupId,
+        partnersCount: expect.any(Number),
       },
     ]);
   } finally {

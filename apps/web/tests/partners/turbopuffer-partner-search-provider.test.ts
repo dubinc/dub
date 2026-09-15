@@ -18,6 +18,7 @@ const document: PartnerSearchDocument = {
   email: "partner@example.com",
   companyName: "Hasan Labs",
   description: "Affiliate marketer",
+  tenantId: null,
   platformTypes: ["youtube"],
   platformIdentifiers: ["@rafi"],
   linkKeys: ["rafi-link"],
