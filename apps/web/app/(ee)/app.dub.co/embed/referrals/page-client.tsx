@@ -13,6 +13,7 @@ import {
 import { ACTIVE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
 import { programEmbedSchema } from "@/lib/zod/schemas/program-embed";
 import { programResourcesSchema } from "@/lib/zod/schemas/program-resources";
+import { LinkIcon } from "@/ui/links/link-icon";
 import { HeroBackground } from "@/ui/partners/hero-background";
 import { PartnerStatusBadges } from "@/ui/partners/partner-status-badges";
 import { ProgramRewardList } from "@/ui/partners/program-reward-list";
@@ -31,7 +32,6 @@ import {
   useLocalStorage,
   Wordmark,
 } from "@dub/ui";
-import { ArrowTurnRight2 } from "@dub/ui/icons";
 import {
   cn,
   getApexDomain,
@@ -547,6 +547,9 @@ function ReferralLinkDisplay({
       links.map((link) => ({
         value: link.id,
         label: getPrettyUrl(constructPartnerLink({ group, link })),
+        icon: (
+          <LinkIcon url={link.url} domain={link.domain} linkKey={link.key} />
+        ),
         meta: {
           destination: link.url ? getApexDomain(link.url) : null,
         },
@@ -555,17 +558,7 @@ function ReferralLinkDisplay({
   );
 
   const selectedOption =
-    selectedLink && partnerLink
-      ? {
-          value: selectedLink.id,
-          label: getPrettyUrl(partnerLink),
-          meta: {
-            destination: selectedLink.url
-              ? getApexDomain(selectedLink.url)
-              : null,
-          },
-        }
-      : null;
+    options.find((option) => option.value === selectedLink?.id) ?? null;
 
   let actionButton: React.ReactNode = null;
 
@@ -654,14 +647,6 @@ function ReferralLinkDisplay({
               matchTriggerWidth
               placeholder="No referral link"
               inputClassName="text-sm h-10"
-              optionDescription={(option) => (
-                <span className="flex min-w-0 items-center gap-1">
-                  <ArrowTurnRight2 className="text-content-muted size-3 shrink-0" />
-                  <span className="text-content-subtle min-w-0 truncate text-xs">
-                    {option.meta.destination}
-                  </span>
-                </span>
-              )}
               popoverProps={{
                 contentClassName: "rounded-lg border border-border-subtle p-1",
               }}
