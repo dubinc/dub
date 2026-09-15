@@ -317,9 +317,6 @@ export const PARTNER_CUSTOMER_EXPORT_COLUMNS = [
   },
 ] as const;
 
-type PartnerCustomerExportColumnId =
-  (typeof PARTNER_CUSTOMER_EXPORT_COLUMNS)[number]["id"];
-
 export const PARTNER_CUSTOMER_EXPORT_DEFAULT_COLUMNS =
   PARTNER_CUSTOMER_EXPORT_COLUMNS.filter((column) => column.default).map(
     (column) => column.id,
@@ -343,12 +340,13 @@ export const partnerCustomersExportQuerySchema = getPartnerCustomersQuerySchema
       )
       .refine(
         (columns) => {
-          const validColumnIds = PARTNER_CUSTOMER_EXPORT_COLUMNS.map(
-            (col) => col.id,
+          const validColumnIds = new Set<string>(
+            PARTNER_CUSTOMER_EXPORT_COLUMNS.map((col) => col.id),
           );
 
-          return columns.every((column: PartnerCustomerExportColumnId) =>
-            validColumnIds.includes(column),
+          return (
+            columns.length > 0 &&
+            columns.every((column) => validColumnIds.has(column))
           );
         },
         {
