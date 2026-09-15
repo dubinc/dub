@@ -1,23 +1,5 @@
-import { RewardProps } from "@/lib/types";
-import { currencyFormatter } from "@dub/utils";
+import { getSpendLimitDescriptionParts } from "@/lib/rewards/reward-spend-limit";
 import { EventType, RewardSpendLimitInterval } from "@prisma/client";
-
-export function getSpendLimitDescriptionParts({
-  spendLimitAmount,
-  spendLimitInterval,
-}: Pick<RewardProps, "spendLimitAmount" | "spendLimitInterval">) {
-  if (spendLimitAmount == null || spendLimitInterval == null) {
-    return null;
-  }
-
-  return {
-    amount: currencyFormatter(spendLimitAmount, {
-      trailingZeroDisplay: "stripIfInteger",
-    }),
-    interval:
-      spendLimitInterval === "allTime" ? "" : `per ${spendLimitInterval}`,
-  };
-}
 
 export function ProgramRewardSpendLimit({
   event,
@@ -44,44 +26,4 @@ export function ProgramRewardSpendLimit({
   ]
     .filter(Boolean)
     .join(" ");
-}
-
-export function buildCommissionDescription({
-  earnings,
-  cappedEarnings,
-  reward,
-}: {
-  earnings: number;
-  cappedEarnings: number;
-  reward: Pick<
-    RewardProps,
-    | "event"
-    | "type"
-    | "amountInCents"
-    | "amountInPercentage"
-    | "spendLimitAmount"
-    | "spendLimitInterval"
-  >;
-}) {
-  if (earnings <= cappedEarnings) {
-    return null;
-  }
-
-  const limitParts = getSpendLimitDescriptionParts({
-    spendLimitAmount: reward.spendLimitAmount,
-    spendLimitInterval: reward.spendLimitInterval,
-  });
-
-  if (!limitParts) {
-    return null;
-  }
-
-  const amount =
-    reward.type === "percentage"
-      ? `${reward.amountInPercentage ?? 0}%`
-      : currencyFormatter(reward.amountInCents ?? 0, {
-          trailingZeroDisplay: "stripIfInteger",
-        });
-
-  return `Earn ${amount} per ${reward.event} up to ${limitParts.amount} ${limitParts.interval}`;
 }
