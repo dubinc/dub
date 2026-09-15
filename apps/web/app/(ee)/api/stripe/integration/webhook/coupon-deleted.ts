@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { sendBatchEmail } from "@dub/email";
 import { VARIANT_TO_FROM_MAP } from "@dub/email/resend/constants";
 import DiscountDeleted from "@dub/email/templates/discount-deleted";
+import { pluck } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import type Stripe from "stripe";
 import { WebhookHandlerInput, WebhookHandlerResponse } from "./types";
@@ -38,7 +39,8 @@ export async function couponDeleted({
     };
   }
 
-  const discountIds = discounts.map((d) => d.id);
+  const discountIds = pluck(discounts, "id");
+  const groupIds = pluck(discounts, "groupId").filter(Boolean) as string[];
 
   await prisma.$transaction(async (tx) => {
     if (discountIds.length > 0) {
@@ -53,16 +55,37 @@ export async function couponDeleted({
         },
       });
 
-      await tx.programEnrollment.updateMany({
+      const partnerGroups = await tx.partnerGroup.findMany({
         where: {
-          discountId: {
-            in: discountIds,
+          id: {
+            in: groupIds,
           },
         },
-        data: {
-          discountId: null,
+        select: {
+          id: true,
+          discountId: true,
         },
       });
+
+      const partnerGroupById = new Map(
+        partnerGroups.map((partnerGroup) => [partnerGroup.id, partnerGroup]),
+      );
+
+      // Restore enrollments to the group level discount, or clear them if none
+      for (const discount of discounts) {
+        const nextDiscountId = discount.groupId
+          ? partnerGroupById.get(discount.groupId)?.discountId ?? null
+          : null;
+
+        await tx.programEnrollment.updateMany({
+          where: {
+            discountId: discount.id,
+          },
+          data: {
+            discountId: nextDiscountId,
+          },
+        });
+      }
 
       await tx.discountCode.deleteMany({
         where: {
