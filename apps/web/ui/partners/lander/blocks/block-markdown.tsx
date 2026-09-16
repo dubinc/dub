@@ -2,6 +2,36 @@ import { cn } from "@dub/utils";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
+export const LANDER_MARKDOWN_ALLOWED_ELEMENTS = [
+  "p",
+  "br",
+  "strong",
+  "em",
+  "del",
+  "a",
+  "img",
+  "hr",
+  "ul",
+  "ol",
+  "li",
+  "input",
+  "blockquote",
+  "pre",
+  "code",
+  "table",
+  "thead",
+  "tbody",
+  "tr",
+  "th",
+  "td",
+  "h1",
+  "h2",
+  "h3",
+  "h4",
+  "h5",
+  "h6",
+];
+
 export function BlockMarkdown({
   className,
   children,
@@ -23,30 +53,7 @@ export function BlockMarkdown({
       <Markdown
         remarkPlugins={[remarkGfm]}
         unwrapDisallowed
-        allowedElements={[
-          "p",
-          "br",
-          "strong",
-          "em",
-          "a",
-          "ul",
-          "ol",
-          "li",
-          "blockquote",
-          "code",
-          "table",
-          "thead",
-          "tbody",
-          "tr",
-          "th",
-          "td",
-          "h1",
-          "h2",
-          "h3",
-          "h4",
-          "h5",
-          "h6",
-        ]}
+        allowedElements={LANDER_MARKDOWN_ALLOWED_ELEMENTS}
         components={{
           a: ({ node, ...props }) => (
             <a {...props} target="_blank" rel="noopener noreferrer" />

@@ -1,9 +1,8 @@
 "use client";
 
 import { programLanderTextBlockSchema } from "@/lib/zod/schemas/program-lander";
-import { MaxCharactersCounter } from "@/ui/shared/max-characters-counter";
 import { Button, Modal, useMediaQuery } from "@dub/ui";
-import { Dispatch, SetStateAction, useId } from "react";
+import { Dispatch, SetStateAction, useId, useRef } from "react";
 import { Controller, useForm } from "react-hook-form";
 import * as z from "zod/v4";
 import { LanderRichTextEditor } from "../lander-rich-text-editor";
@@ -46,6 +45,8 @@ function TextBlockModalInner({
   } = useForm<TextBlockData>({
     defaultValues,
   });
+
+  const contentLengthRef = useRef(0);
 
   return (
     <>
@@ -96,10 +97,10 @@ function TextBlockModalInner({
                 control={control}
                 name="content"
                 rules={{
-                  validate: (value) => {
-                    const content = value?.trim() ?? "";
-                    if (!content) return "Content is required";
-                    if (content.length > TEXT_BLOCK_CONTENT_MAX_LENGTH) {
+                  validate: () => {
+                    const length = contentLengthRef.current;
+                    if (!length) return "Content is required";
+                    if (length > TEXT_BLOCK_CONTENT_MAX_LENGTH) {
                       return `Content must be less than ${TEXT_BLOCK_CONTENT_MAX_LENGTH} characters`;
                     }
                     return true;
@@ -107,19 +108,16 @@ function TextBlockModalInner({
                 }}
                 render={({ field }) => (
                   <LanderRichTextEditor
+                    id={`${id}-content`}
                     value={field.value}
                     onChange={field.onChange}
                     error={Boolean(errors.content)}
+                    maxLength={TEXT_BLOCK_CONTENT_MAX_LENGTH}
+                    onTextLengthChange={(length) =>
+                      (contentLengthRef.current = length)
+                    }
                   />
                 )}
-              />
-            </div>
-            <div className="mt-1 text-left">
-              <MaxCharactersCounter
-                name="content"
-                control={control}
-                maxLength={TEXT_BLOCK_CONTENT_MAX_LENGTH}
-                spaced
               />
             </div>
           </div>

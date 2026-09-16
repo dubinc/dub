@@ -6,7 +6,7 @@ import Mention from "@tiptap/extension-mention";
 import { TableKit } from "@tiptap/extension-table";
 import { Placeholder } from "@tiptap/extensions";
 import { Markdown } from "@tiptap/markdown";
-import { Editor, useEditor } from "@tiptap/react";
+import { Editor, useEditor, useEditorState } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import {
   PropsWithChildren,
@@ -323,6 +323,7 @@ export const RichTextProvider = forwardRef<
           : []),
       ],
       editorProps: {
+        ...editorProps,
         attributes: {
           ...editorProps?.attributes,
           class: cn(
@@ -340,7 +341,6 @@ export const RichTextProvider = forwardRef<
             editorClassName,
           ),
         },
-        ...editorProps,
         handleClick: (view, pos, event) => {
           if (editorProps?.handleClick?.(view, pos, event)) return true;
 
@@ -413,4 +413,16 @@ export function useRichTextContext() {
     );
 
   return context;
+}
+
+export function useRichTextLength() {
+  const { editor } = useRichTextContext();
+
+  return (
+    useEditorState({
+      editor,
+      selector: ({ editor }) =>
+        editor?.getText({ blockSeparator: "" }).length ?? 0,
+    }) ?? 0
+  );
 }

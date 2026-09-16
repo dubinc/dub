@@ -1,7 +1,6 @@
 "use client";
 
 import { programLanderAccordionBlockSchema } from "@/lib/zod/schemas/program-lander";
-import { MaxCharactersCounter } from "@/ui/shared/max-characters-counter";
 import {
   Button,
   CircleWarning,
@@ -70,6 +69,8 @@ function AccordionBlockModalInner({
   });
 
   const fields = watch("items");
+
+  const contentLengthsRef = useRef<Record<string, number>>({});
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const { scrollProgress, updateScrollProgress } = useScrollProgress(scrollRef);
@@ -208,12 +209,12 @@ function AccordionBlockModalInner({
                             control={control}
                             name={`items.${index}.content`}
                             rules={{
-                              validate: (value) => {
-                                const content = value?.trim() ?? "";
-                                if (!content) return "Content is required";
+                              validate: () => {
+                                const length =
+                                  contentLengthsRef.current[field.id] ?? 0;
+                                if (!length) return "Content is required";
                                 if (
-                                  content.length >
-                                  ACCORDION_ITEM_CONTENT_MAX_LENGTH
+                                  length > ACCORDION_ITEM_CONTENT_MAX_LENGTH
                                 ) {
                                   return `Content must be less than ${ACCORDION_ITEM_CONTENT_MAX_LENGTH} characters`;
                                 }
@@ -223,21 +224,18 @@ function AccordionBlockModalInner({
                             render={({ field: contentField }) => (
                               <LanderRichTextEditor
                                 key={field.id}
+                                id={`${id}-${field.id}-content`}
                                 value={contentField.value}
                                 onChange={contentField.onChange}
                                 placeholder="Start typing"
                                 error={Boolean(fieldErrors?.content)}
                                 editorClassName="max-h-32 min-h-16"
+                                maxLength={ACCORDION_ITEM_CONTENT_MAX_LENGTH}
+                                onTextLengthChange={(length) => {
+                                  contentLengthsRef.current[field.id] = length;
+                                }}
                               />
                             )}
-                          />
-                        </div>
-                        <div className="mt-1 text-left">
-                          <MaxCharactersCounter
-                            name={`items.${index}.content`}
-                            control={control}
-                            maxLength={ACCORDION_ITEM_CONTENT_MAX_LENGTH}
-                            spaced
                           />
                         </div>
                       </div>
