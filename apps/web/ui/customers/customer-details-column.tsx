@@ -1,3 +1,4 @@
+import useWorkspace from "@/lib/swr/use-workspace";
 import { CustomerActivityResponse, CustomerEnriched } from "@/lib/types";
 import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import {
@@ -8,6 +9,7 @@ import {
   Globe,
   Hyperlink,
   MoneyBill2,
+  Shuffle,
   TimestampTooltip,
   Tooltip,
   useCurrentProduct,
@@ -22,10 +24,11 @@ import {
   getPrettyUrl,
 } from "@dub/utils";
 import { Pencil } from "lucide-react";
-import { useParams } from "next/navigation";
-import { Fragment, HTMLProps, useMemo } from "react";
+import { useParams, usePathname, useRouter } from "next/navigation";
+import { Fragment, HTMLProps, useCallback, useMemo } from "react";
 import { DeviceIcon } from "../analytics/device-icon";
 import { useEditCustomerModal } from "../modals/edit-customer-modal";
+import { useReattributeCustomerModal } from "../modals/reattribute-customer-modal";
 import { ConditionalLink } from "../shared/conditional-link";
 import { CustomerAvatar } from "./customer-avatar";
 
@@ -33,17 +36,35 @@ export function CustomerDetailsColumn({
   customer,
   customerActivity,
   isCustomerActivityLoading,
-  workspaceSlug,
 }: {
   customer?: CustomerEnriched;
   customerActivity?: CustomerActivityResponse;
   isCustomerActivityLoading: boolean;
-  workspaceSlug?: string;
 }) {
-  const { programSlug } = useParams<{ programSlug: string }>();
   const { product } = useCurrentProduct();
+  const { programSlug } = useParams<{ programSlug: string }>();
+  const { slug: workspaceSlug, defaultProgramId } = useWorkspace();
+  const pathname = usePathname();
+  const router = useRouter();
 
   const { EditCustomerModal, openEditCustomerModal } = useEditCustomerModal();
+  const { ReattributeCustomerModal, openReattributeCustomerModal } =
+    useReattributeCustomerModal();
+
+  const handleReattributeCustomer = useCallback(() => {
+    if (customer) {
+      openReattributeCustomerModal(customer, {
+        onSuccess: (updatedCustomer) => {
+          if (
+            updatedCustomer.id !== customer.id &&
+            pathname.includes(customer.id)
+          ) {
+            router.push(pathname.replace(customer.id, updatedCustomer.id));
+          }
+        },
+      });
+    }
+  }, [customer, openReattributeCustomerModal, pathname, router]);
 
   const basicFields = [
     customer?.email
@@ -133,6 +154,7 @@ export function CustomerDetailsColumn({
   return (
     <>
       <EditCustomerModal />
+      <ReattributeCustomerModal />
       <div className="grid grid-cols-1 gap-6 overflow-hidden whitespace-nowrap text-sm text-neutral-900">
         <div className="border-border-subtle flex flex-col divide-y divide-neutral-200 rounded-xl border bg-white">
           <div className="p-4">
@@ -317,56 +339,75 @@ export function CustomerDetailsColumn({
           </div>
         </div>
 
-        {(link || !customer) && (
-          <div className="border-border-subtle rounded-lg border p-4">
-            <h2 className="text-content-emphasis mb-2.5 text-sm font-semibold">
-              Referral {partner ? "partner" : "link"}
+        <div className="border-border-subtle rounded-lg border p-4">
+          <div className="flex flex-col gap-2">
+            <h2 className="text-content-emphasis text-sm font-semibold">
+              Referral link
             </h2>
-
-            {partner && (
-              <div className="mb-4 flex items-center gap-2">
-                <PartnerAvatar partner={partner} className="size-5" />
+            {!customer || isCustomerActivityLoading ? (
+              <div className="h-5 w-12 animate-pulse rounded-md bg-neutral-100" />
+            ) : link ? (
+              <div className="flex items-center gap-1.5 text-xs">
+                <Hyperlink className="size-3.5 shrink-0" />
                 <ConditionalLink
                   href={
                     workspaceSlug
-                      ? `/${workspaceSlug}/program/partners/${partner.id}`
-                      : undefined
+                      ? `/${workspaceSlug}/links/${link.domain}/${link.key}`
+                      : programSlug
+                        ? `/programs/${programSlug}/analytics?linkId=${link.id}`
+                        : undefined
                   }
                   target="_blank"
-                  className="min-w-0 overflow-hidden truncate text-xs font-semibold"
+                  className="min-w-0 overflow-hidden truncate"
                 >
-                  {partner.name}
+                  {getPrettyUrl(link.shortLink)}
                 </ConditionalLink>
               </div>
+            ) : (
+              <span>-</span>
             )}
+          </div>
 
-            <div className="flex flex-col gap-2 text-xs">
-              {partner && <DetailHeading>Referral link</DetailHeading>}
-              {!customer || isCustomerActivityLoading ? (
-                <div className="h-5 w-12 animate-pulse rounded-md bg-neutral-100" />
-              ) : link ? (
-                <div className="flex items-center gap-1.5">
-                  <Hyperlink className="size-3.5 shrink-0" />
-                  <ConditionalLink
-                    href={
-                      workspaceSlug
-                        ? `/${workspaceSlug}/links/${link.domain}/${link.key}`
-                        : programSlug
-                          ? `/programs/${programSlug}/analytics?linkId=${link.id}`
-                          : undefined
-                    }
-                    target="_blank"
-                    className="min-w-0 overflow-hidden truncate"
-                  >
-                    {getPrettyUrl(link.shortLink)}
-                  </ConditionalLink>
+          {customer && workspaceSlug && defaultProgramId && (
+            <div className="mt-4 flex flex-col gap-2">
+              <h2 className="text-content-emphasis text-sm font-semibold">
+                Referral partner
+              </h2>
+
+              {partner ? (
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <PartnerAvatar partner={partner} className="size-5" />
+                    <ConditionalLink
+                      href={`/${workspaceSlug}/program/partners/${partner.id}`}
+                      target="_blank"
+                      className="min-w-0 overflow-hidden truncate text-xs font-semibold"
+                    >
+                      {partner.name}
+                    </ConditionalLink>
+                  </div>
+                  <Button
+                    variant="secondary"
+                    icon={<Shuffle className="size-3.5" />}
+                    text="Change"
+                    className="h-7 w-fit rounded-lg px-2"
+                    onClick={handleReattributeCustomer}
+                  />
                 </div>
               ) : (
-                <span>-</span>
+                <div className="text-xs text-neutral-500">
+                  Not attributed to a partner.{" "}
+                  <button
+                    className="underline decoration-dotted underline-offset-2 hover:text-neutral-700"
+                    onClick={handleReattributeCustomer}
+                  >
+                    Attribute now.
+                  </button>
+                </div>
               )}
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </>
   );
