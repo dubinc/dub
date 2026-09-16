@@ -90,3 +90,60 @@ export function resolvePartnerLinkRewards({
     rewards,
   };
 }
+
+export function getPartnerLinkDisplayRewards({
+  clickReward,
+  leadReward,
+  saleReward,
+  discount,
+  enrollmentRewards = [],
+}: {
+  clickReward?: RewardProps | null;
+  leadReward?: RewardProps | null;
+  saleReward?: RewardProps | null;
+  discount?: DiscountProps | null;
+  enrollmentRewards?: RewardProps[];
+}) {
+  return {
+    rewards: [
+      pickDisplayReward(saleReward),
+      pickDisplayReward(leadReward),
+      pickDisplayReward(clickReward),
+      ...enrollmentRewards.filter(
+        (reward) => reward.event === "custom" && getRewardAmount(reward) >= 0,
+      ),
+    ].filter((reward): reward is RewardProps => reward != null),
+    discount: discount ?? null,
+  };
+}
+
+const PRIMARY_REWARD_EVENTS = ["sale", "lead", "click"] as const;
+
+export function getPartnerLinkPrimaryIncentive({
+  rewards,
+  discount,
+}: {
+  rewards: RewardProps[];
+  discount: DiscountProps | null;
+}): {
+  primaryReward: RewardProps | null;
+  primaryDiscount: DiscountProps | null;
+  additionalCount: number;
+} {
+  const primaryReward =
+    PRIMARY_REWARD_EVENTS.map((event) =>
+      rewards.find((reward) => reward.event === event),
+    ).find(Boolean) ??
+    rewards[0] ??
+    null;
+
+  const primaryDiscount = primaryReward ? null : discount;
+  const totalCount = rewards.length + (discount ? 1 : 0);
+  const additionalCount = Math.max(0, totalCount - 1);
+
+  return {
+    primaryReward: primaryReward ?? null,
+    primaryDiscount,
+    additionalCount,
+  };
+}

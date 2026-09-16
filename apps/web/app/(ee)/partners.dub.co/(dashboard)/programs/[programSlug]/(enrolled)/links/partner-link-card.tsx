@@ -43,6 +43,12 @@ import {
 } from "react";
 import { usePartnerLinksContext } from "./page-client";
 import { PartnerLinkControls } from "./partner-link-controls";
+import {
+  PartnerLinkRewardsPanel,
+  PartnerLinkRewardsSummary,
+  usePartnerLinkRewards,
+  usePartnerLinkRewardsState,
+} from "./partner-link-rewards";
 
 const CHARTS = [
   {
@@ -69,6 +75,9 @@ const CHARTS = [
 export function PartnerLinkCard({ link }: { link: PartnerProfileLinkProps }) {
   const { programEnrollment } = useProgramEnrollment();
   const { displayOption } = usePartnerLinksContext();
+  const { showRewards, toggleRewards } = usePartnerLinkRewardsState();
+  const { rewards, discount, primaryText, additionalCount, hasIncentives } =
+    usePartnerLinkRewards(link);
 
   const partnerLink = constructPartnerLink({
     group: programEnrollment?.group,
@@ -92,6 +101,7 @@ export function PartnerLinkCard({ link }: { link: PartnerProfileLinkProps }) {
 
   return (
     <CardList.Card
+      outerClassName="overflow-hidden"
       innerClassName={cn("px-0 py-0 group/card", isDeactivated && "opacity-80")}
     >
       <div className="p-4">
@@ -110,7 +120,7 @@ export function PartnerLinkCard({ link }: { link: PartnerProfileLinkProps }) {
             </div>
 
             <div className="flex min-w-0 flex-col">
-              <div className="flex flex-col">
+              <div className="flex flex-col gap-0.5">
                 <div className="flex items-center gap-1">
                   <a
                     href={isDeactivated ? undefined : partnerLink}
@@ -135,29 +145,46 @@ export function PartnerLinkCard({ link }: { link: PartnerProfileLinkProps }) {
                   {link.comments && <CommentsBadge comments={link.comments} />}
                 </div>
 
-                {/* The max width implementation here is a bit hacky, we should improve in the future */}
-                <div className="flex max-w-[100px] items-center gap-1 py-0 pl-1 pr-1.5 sm:w-fit sm:max-w-[400px]">
-                  <ArrowTurnRight2 className="h-3 w-3 shrink-0 text-neutral-400" />
-                  {programEnrollment?.group?.linkStructure === "query" ? (
+                {hasIncentives && primaryText ? (
+                  <PartnerLinkRewardsSummary
+                    primaryText={primaryText}
+                    additionalCount={additionalCount}
+                    showRewards={showRewards}
+                    onToggleRewards={toggleRewards}
+                  />
+                ) : (
+                  /* The max width implementation here is a bit hacky, we should improve in the future */
+                  <div className="flex max-w-[100px] items-center gap-1 py-0 pl-1 pr-1.5 sm:w-fit sm:max-w-[400px]">
+                    <ArrowTurnRight2 className="h-3 w-3 shrink-0 text-neutral-400" />
+                    {programEnrollment?.group?.linkStructure === "query" ? (
+                      <QueryLinkStructureHelpText
+                        link={link}
+                        className="mt-0.5"
+                      />
+                    ) : (
+                      <a
+                        href={isDeactivated ? undefined : link.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="cursor-alias truncate text-sm text-neutral-500 decoration-dotted transition-colors hover:text-neutral-700 hover:underline hover:underline-offset-2"
+                        title={getPrettyUrl(link.url)}
+                        onClick={
+                          isDeactivated ? (e) => e.preventDefault() : undefined
+                        }
+                      >
+                        {getPrettyUrl(link.url)}
+                      </a>
+                    )}
+                  </div>
+                )}
+
+                {hasIncentives &&
+                  programEnrollment?.group?.linkStructure === "query" && (
                     <QueryLinkStructureHelpText
                       link={link}
-                      className="mt-0.5"
+                      className="mt-0.5 pl-0.5"
                     />
-                  ) : (
-                    <a
-                      href={isDeactivated ? undefined : link.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="cursor-alias truncate text-sm text-neutral-500 decoration-dotted transition-colors hover:text-neutral-700 hover:underline hover:underline-offset-2"
-                      title={getPrettyUrl(link.url)}
-                      onClick={
-                        isDeactivated ? (e) => e.preventDefault() : undefined
-                      }
-                    >
-                      {getPrettyUrl(link.url)}
-                    </a>
                   )}
-                </div>
               </div>
             </div>
           </div>
@@ -188,6 +215,12 @@ export function PartnerLinkCard({ link }: { link: PartnerProfileLinkProps }) {
           </div>
         </div>
       </div>
+      <PartnerLinkRewardsPanel
+        rewards={rewards}
+        discount={discount}
+        showRewards={showRewards}
+        additionalCount={additionalCount}
+      />
       {displayOption === "full" && <StatsCharts link={link} />}
     </CardList.Card>
   );
