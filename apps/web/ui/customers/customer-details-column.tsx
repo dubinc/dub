@@ -389,7 +389,7 @@ export function CustomerDetailsColumn({
                   <Button
                     variant="secondary"
                     icon={<Shuffle className="size-3.5" />}
-                    text="Change"
+                    text="Switch"
                     className="h-7 w-fit rounded-lg px-2"
                     onClick={handleReattributeCustomer}
                   />
