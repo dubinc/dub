@@ -24,6 +24,6 @@ export const PATCH = withWorkspace(
   },
   {
     requiredPlan: ["business", "advanced", "enterprise"],
-    requiredRoles: ["owner", "member"],
+    requiredPermissions: ["links.write"],
   },
 );

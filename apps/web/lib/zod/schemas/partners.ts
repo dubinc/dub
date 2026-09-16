@@ -1031,11 +1031,6 @@ export const bulkRejectPartnersSchema = z.object({
 
 export const retrievePartnerLinksSchema = partnerIdTenantIdSchema;
 
-export const PARTNER_LINK_EXPAND_FIELDS = ["reward", "discount"] as const;
-
-export type PartnerLinkExpandField =
-  (typeof PARTNER_LINK_EXPAND_FIELDS)[number];
-
 export const banPartnerSchema = z.object({
   workspaceId: z.string(),
   partnerId: z.string(),

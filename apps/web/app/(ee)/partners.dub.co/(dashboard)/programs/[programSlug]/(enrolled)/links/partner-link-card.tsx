@@ -6,6 +6,7 @@ import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import { PartnerProfileLinkProps } from "@/lib/types";
 import { CommentsBadge } from "@/ui/links/comments-badge";
 import { DiscountCodeBadge } from "@/ui/partners/discounts/discount-code-badge";
+import { PartnerDiscountCodeTooltip } from "@/ui/partners/discounts/partner-discount-code-tooltip";
 import { PartnerStatusBadges } from "@/ui/partners/partner-status-badges";
 import {
   ArrowTurnRight2,
@@ -17,7 +18,6 @@ import {
   LinkLogo,
   LoadingSpinner,
   StatusBadge,
-  Tooltip,
   useInViewport,
   UserCheck,
   useRouterStuff,
@@ -179,9 +179,9 @@ export function PartnerLinkCard({ link }: { link: PartnerProfileLinkProps }) {
               (link.discountCodeDisabledAt ? (
                 discountCodeSection
               ) : (
-                <Tooltip content="This program supports discount code tracking. Copy the code to use it in podcasts, videos, etc. [Learn more](https://dub.co/help/article/dual-sided-incentives)">
+                <PartnerDiscountCodeTooltip discount={link.discount}>
                   {discountCodeSection}
-                </Tooltip>
+                </PartnerDiscountCodeTooltip>
               ))}
             {displayOption === "cards" && <StatsBadge link={link} />}
             <Controls link={link} />

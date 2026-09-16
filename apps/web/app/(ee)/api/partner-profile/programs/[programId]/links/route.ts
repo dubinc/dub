@@ -2,47 +2,51 @@ import { DubApiError, ErrorCodes } from "@/lib/api/errors";
 import { createLink, processLink } from "@/lib/api/links";
 import { validatePartnerLinkUrl } from "@/lib/api/links/validate-partner-link-url";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
-import {
-  getExpandableRewardReferences,
-  getLinkRewardExpandInclude,
-} from "@/lib/api/rewards/additional-rewards";
 import { parseRequestBody } from "@/lib/api/utils";
 import { applyGroupUtmToLink } from "@/lib/api/utm/apply-group-utm-to-link";
 import { withPartnerProfile } from "@/lib/auth/partner";
-import { parseExpandFields } from "@/lib/expand/parse-expand-fields";
 import { prisma } from "@/lib/prisma";
+import { getResolvedPartnerLinkRewards } from "@/lib/rewards/get-resolved-partner-link-reward-fields";
 import { PartnerProfileLinkSchema } from "@/lib/zod/schemas/partner-profile";
 import {
   createPartnerLinkSchema,
   INACTIVE_ENROLLMENT_STATUSES,
-  PARTNER_LINK_EXPAND_FIELDS,
 } from "@/lib/zod/schemas/partners";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 
 // GET /api/partner-profile/programs/[programId]/links - get a partner's links in a program
-export const GET = withPartnerProfile(async ({ partner, params, req }) => {
-  const expandFields = parseExpandFields({
-    url: req.url,
-    allowedFields: PARTNER_LINK_EXPAND_FIELDS,
-  });
-
-  const expandReward = expandFields.has("reward");
-  const expandDiscount = expandFields.has("discount");
-
-  const { links, discountCodes } = await getProgramEnrollmentOrThrow({
+export const GET = withPartnerProfile(async ({ partner, params }) => {
+  const {
+    links,
+    discountCodes,
+    clickReward,
+    leadReward,
+    saleReward,
+    customReward,
+    discount,
+  } = await getProgramEnrollmentOrThrow({
     partnerId: partner.id,
     programId: params.programId,
     include: {
+      discountCodes: true,
+      clickReward: true,
+      leadReward: true,
+      saleReward: true,
+      customReward: true,
+      discount: true,
       links: {
         include: {
-          linkReward: getLinkRewardExpandInclude({
-            expandReward,
-            expandDiscount,
-          }),
+          linkReward: {
+            include: {
+              clickReward: true,
+              leadReward: true,
+              saleReward: true,
+              discount: true,
+            },
+          },
         },
       },
-      discountCodes: true,
     },
   });
 
@@ -51,16 +55,19 @@ export const GET = withPartnerProfile(async ({ partner, params, req }) => {
     discountCodes?.map((discountCode) => [discountCode.linkId, discountCode]),
   );
 
+  const enrollmentRewards = [clickReward, leadReward, saleReward, customReward];
+
   const result = links.map((link) => {
     const discountCode = linksByDiscountCode.get(link.id);
+    const resolvedRewards = getResolvedPartnerLinkRewards({
+      linkReward: link.linkReward,
+      enrollmentRewards,
+      enrollmentDiscount: discount,
+    });
 
     return {
       ...link,
-      ...getExpandableRewardReferences({
-        linkReward: link.linkReward,
-        expandReward,
-        expandDiscount,
-      }),
+      ...resolvedRewards,
       discountCode: discountCode?.code,
       discountCodeDisabledAt: discountCode?.disabledAt ?? null,
     };

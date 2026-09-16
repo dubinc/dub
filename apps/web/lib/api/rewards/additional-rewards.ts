@@ -1,14 +1,6 @@
 import { DubApiError } from "@/lib/api/errors";
-import { serializeReward } from "@/lib/api/partners/serialize-reward";
-import { getExpandableField } from "@/lib/expand/get-expandable-field";
 import { prisma } from "@/lib/prisma";
-import {
-  Discount,
-  EventType,
-  LinkReward,
-  Prisma,
-  Reward,
-} from "@prisma/client";
+import { Discount, EventType, LinkReward, Reward } from "@prisma/client";
 
 export type LinkRewardIdsInput = Partial<
   Pick<
@@ -17,7 +9,7 @@ export type LinkRewardIdsInput = Partial<
   >
 >;
 
-type LinkRewardWithOptionalRewards = Pick<
+export type LinkRewardWithOptionalRewards = Pick<
   LinkReward,
   "clickRewardId" | "leadRewardId" | "saleRewardId" | "discountId"
 > & {
@@ -213,62 +205,3 @@ export const validateRewardIds = async ({
     }
   }
 };
-
-export const getLinkRewardExpandInclude = ({
-  expandReward,
-  expandDiscount,
-}: {
-  expandReward: boolean;
-  expandDiscount: boolean;
-}): true | { include: Prisma.LinkRewardInclude } => {
-  if (!expandReward && !expandDiscount) {
-    return true;
-  }
-
-  return {
-    include: {
-      ...(expandReward && {
-        clickReward: true,
-        leadReward: true,
-        saleReward: true,
-      }),
-      ...(expandDiscount && {
-        discount: true,
-      }),
-    },
-  };
-};
-
-export const getExpandableRewardReferences = ({
-  linkReward,
-  expandReward,
-  expandDiscount,
-}: {
-  linkReward: LinkRewardWithOptionalRewards | null | undefined;
-  expandReward: boolean;
-  expandDiscount: boolean;
-}) => ({
-  clickReward: getExpandableField({
-    id: linkReward?.clickRewardId,
-    entity: linkReward?.clickReward,
-    expand: expandReward,
-    serialize: serializeReward,
-  }),
-  leadReward: getExpandableField({
-    id: linkReward?.leadRewardId,
-    entity: linkReward?.leadReward,
-    expand: expandReward,
-    serialize: serializeReward,
-  }),
-  saleReward: getExpandableField({
-    id: linkReward?.saleRewardId,
-    entity: linkReward?.saleReward,
-    expand: expandReward,
-    serialize: serializeReward,
-  }),
-  discount: getExpandableField({
-    id: linkReward?.discountId,
-    entity: linkReward?.discount,
-    expand: expandDiscount,
-  }),
-});

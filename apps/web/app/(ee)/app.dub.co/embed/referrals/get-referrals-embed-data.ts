@@ -1,13 +1,10 @@
 import { serializeReward } from "@/lib/api/partners/serialize-reward";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
-import {
-  getExpandableRewardReferences,
-  getLinkRewardExpandInclude,
-} from "@/lib/api/rewards/additional-rewards";
 import { getBountiesForPartner } from "@/lib/bounty/api/get-bounties-for-partner";
 import { referralsEmbedToken } from "@/lib/embed/referrals/token-class";
 import { aggregatePartnerLinksStats } from "@/lib/partners/aggregate-partner-links-stats";
 import { prisma } from "@/lib/prisma";
+import { getResolvedPartnerLinkRewards } from "@/lib/rewards/get-resolved-partner-link-reward-fields";
 import { PartnerGroupAdditionalLink } from "@/lib/types";
 import { ReferralsEmbedLinkSchema } from "@/lib/zod/schemas/referrals-embed";
 import { Reward } from "@prisma/client";
@@ -58,10 +55,14 @@ export const getReferralsEmbedData = async (token: string) => {
       },
       links: {
         include: {
-          linkReward: getLinkRewardExpandInclude({
-            expandReward: true,
-            expandDiscount: true,
-          }),
+          linkReward: {
+            include: {
+              clickReward: true,
+              leadReward: true,
+              saleReward: true,
+              discount: true,
+            },
+          },
         },
       },
       partnerGroup: true,
@@ -135,10 +136,15 @@ export const getReferralsEmbedData = async (token: string) => {
     links: z.array(ReferralsEmbedLinkSchema).parse(
       links.map((link) => ({
         ...link,
-        ...getExpandableRewardReferences({
+        ...getResolvedPartnerLinkRewards({
           linkReward: link.linkReward,
-          expandReward: true,
-          expandDiscount: true,
+          enrollmentRewards: [
+            clickReward,
+            leadReward,
+            saleReward,
+            customReward,
+          ],
+          enrollmentDiscount: discount,
         }),
       })),
     ),

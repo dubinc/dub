@@ -8,15 +8,20 @@ import { constructPartnerReferralLink } from "@/lib/partner-referrals/utils";
 import { constructPartnerLink } from "@/lib/partners/construct-partner-link";
 import { getRewardAmount } from "@/lib/partners/get-reward-amount";
 import { QueryLinkStructureHelpText } from "@/lib/partners/query-link-structure-help-text";
-import { resolvePartnerLinkRewards } from "@/lib/rewards/resolve-partner-link-rewards";
 import usePartnerAnalytics from "@/lib/swr/use-partner-analytics";
 import { usePartnerEarningsTimeseries } from "@/lib/swr/use-partner-earnings-timeseries";
 import { usePartnerLinks } from "@/lib/swr/use-partner-links";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
-import { GroupProps, PartnerProfileLinkProps } from "@/lib/types";
+import {
+  DiscountProps,
+  GroupProps,
+  PartnerProfileLinkProps,
+  RewardProps,
+} from "@/lib/types";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { DiscountCodeBadge } from "@/ui/partners/discounts/discount-code-badge";
+import { PartnerDiscountCodeTooltip } from "@/ui/partners/discounts/partner-discount-code-tooltip";
 import { formatDiscountDescription } from "@/ui/partners/format-discount-description";
 import { formatRewardDescription } from "@/ui/partners/format-reward-description";
 import { PartnerStatusBadges } from "@/ui/partners/partner-status-badges";
@@ -668,18 +673,14 @@ function getRewardLinkOptions({
 function RewardList() {
   const { programEnrollment } = useProgramEnrollment();
   const { partner } = usePartnerProfile();
-  const { links: partnerLinks } = usePartnerLinks({
-    expand: ["reward", "discount"],
-  });
+  const { links: partnerLinks } = usePartnerLinks();
   const [selectedLinkId, setSelectedLinkId] = useState<string | null>(null);
 
   if (!programEnrollment) {
     return null;
   }
 
-  const links = (partnerLinks ??
-    programEnrollment.links ??
-    []) as PartnerProfileLinkProps[];
+  const links = partnerLinks ?? [];
 
   const selectedLink =
     links.find((link) => link.id === selectedLinkId) ?? links[0] ?? null;
@@ -688,12 +689,16 @@ function RewardList() {
   const referralRewards = enrollmentRewards.filter(
     (reward) => reward.event === "referral" && getRewardAmount(reward) >= 0,
   );
-
-  const { rewards: standardRewards, discount } = resolvePartnerLinkRewards({
-    link: selectedLink,
-    enrollmentRewards,
-    enrollmentDiscount: programEnrollment.discount,
-  });
+  const standardRewards = [
+    selectedLink?.clickReward,
+    selectedLink?.leadReward,
+    selectedLink?.saleReward,
+    ...enrollmentRewards.filter((reward) => reward.event === "custom"),
+  ].filter(
+    (reward): reward is RewardProps =>
+      reward != null && getRewardAmount(reward) >= 0,
+  );
+  const discount = selectedLink?.discount ?? null;
 
   const hasPartnerReferralReward = referralRewards.length > 0;
 
@@ -759,6 +764,7 @@ function RewardList() {
         linkOptions={linkOptions}
         selectedLinkId={selectedLink?.id}
         onSelectLink={setSelectedLinkId}
+        discount={discount}
         discountCode={selectedLink?.discountCode}
         discountCodeDisabledAt={selectedLink?.discountCodeDisabledAt}
         queryLinkHelpTextLink={
@@ -803,6 +809,7 @@ function RewardListItem({
   linkOptions,
   selectedLinkId,
   onSelectLink,
+  discount,
   discountCode,
   discountCodeDisabledAt,
   queryLinkHelpTextLink,
@@ -828,6 +835,10 @@ function RewardListItem({
   }[];
   selectedLinkId?: string;
   onSelectLink?: (id: string) => void;
+  discount?: Pick<
+    DiscountProps,
+    "amount" | "type" | "maxDuration" | "description"
+  > | null;
   discountCode?: string | null;
   discountCodeDisabledAt?: Date | string | null;
   queryLinkHelpTextLink?: {
@@ -908,7 +919,7 @@ function RewardListItem({
                   trigger={
                     <button
                       type="button"
-                      className="border-border-default text-content-default focus:border-border-emphasis bg-bg-default flex h-10 w-[241px] max-w-full min-w-0 items-center gap-2 rounded-lg border px-3 text-left text-sm outline-none focus:ring-0"
+                      className="border-border-default text-content-default focus:border-border-emphasis bg-bg-default flex h-10 w-[241px] min-w-0 max-w-full items-center gap-2 rounded-lg border px-3 text-left text-sm outline-none focus:ring-0"
                     >
                       <span className="min-w-0 shrink grow truncate">
                         {link.displayText}
@@ -952,9 +963,9 @@ function RewardListItem({
                 (discountCodeDisabledAt ? (
                   discountCodeSection
                 ) : (
-                  <Tooltip content="This program supports discount code tracking. Copy the code to use it in podcasts, videos, etc. [Learn more](https://dub.co/help/article/dual-sided-incentives)">
+                  <PartnerDiscountCodeTooltip discount={discount}>
                     {discountCodeSection}
-                  </Tooltip>
+                  </PartnerDiscountCodeTooltip>
                 ))}
               {isDeactivated ? (
                 <StatusBadge variant={PartnerStatusBadges.deactivated.variant}>
@@ -968,8 +979,7 @@ function RewardListItem({
                     copyToClipboard(link.copyValue);
                   }}
                   className={cn(
-                    "w-auto shrink-0 px-3 transition-opacity",
-                    showLinkSelector ? "h-10" : "h-8",
+                    "h-8 w-auto shrink-0 px-3 transition-opacity",
                     !copyDisabled && "hover:opacity-90",
                   )}
                   icon={

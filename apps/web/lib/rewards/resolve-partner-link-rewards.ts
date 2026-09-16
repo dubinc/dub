@@ -4,14 +4,12 @@ import { DiscountProps, RewardProps } from "@/lib/types";
 type RewardReference = string | RewardProps | null | undefined;
 type DiscountReference = string | DiscountProps | null | undefined;
 
-type LinkRewardReferences = {
+export type PartnerLinkRewardReferences = {
   clickReward?: RewardReference;
   leadReward?: RewardReference;
   saleReward?: RewardReference;
   discount?: DiscountReference;
 };
-
-const OVERRIDE_EVENTS = ["click", "lead", "sale"] as const;
 
 function resolveExpandedReward(value: RewardReference): RewardProps | null {
   if (!value || typeof value === "string") {
@@ -31,51 +29,64 @@ function resolveExpandedDiscount(
   return value;
 }
 
+function pickDisplayReward(reward: RewardProps | null | undefined) {
+  if (!reward || getRewardAmount(reward) < 0) {
+    return null;
+  }
+
+  return reward;
+}
+
 export function resolvePartnerLinkRewards({
   link,
   enrollmentRewards,
   enrollmentDiscount,
 }: {
-  link: LinkRewardReferences | null | undefined;
+  link: PartnerLinkRewardReferences | null | undefined;
   enrollmentRewards: RewardProps[];
   enrollmentDiscount: DiscountProps | null | undefined;
 }): {
-  rewards: RewardProps[];
+  clickReward: RewardProps | null;
+  leadReward: RewardProps | null;
+  saleReward: RewardProps | null;
   discount: DiscountProps | null;
+  rewards: RewardProps[];
 } {
   const rewardsByEvent = new Map(
     enrollmentRewards.map((reward) => [reward.event, reward]),
   );
 
-  const resolvedRewards: RewardProps[] = [];
+  const clickReward = pickDisplayReward(
+    resolveExpandedReward(link?.clickReward) ??
+      rewardsByEvent.get("click") ??
+      null,
+  );
+  const leadReward = pickDisplayReward(
+    resolveExpandedReward(link?.leadReward) ??
+      rewardsByEvent.get("lead") ??
+      null,
+  );
+  const saleReward = pickDisplayReward(
+    resolveExpandedReward(link?.saleReward) ??
+      rewardsByEvent.get("sale") ??
+      null,
+  );
 
-  for (const event of OVERRIDE_EVENTS) {
-    const linkReward = resolveExpandedReward(
-      {
-        click: link?.clickReward,
-        lead: link?.leadReward,
-        sale: link?.saleReward,
-      }[event],
-    );
-
-    const reward = linkReward ?? rewardsByEvent.get(event) ?? null;
-
-    if (reward && getRewardAmount(reward) >= 0) {
-      resolvedRewards.push(reward);
-    }
-  }
-
-  for (const reward of enrollmentRewards) {
-    if (reward.event === "custom" && getRewardAmount(reward) >= 0) {
-      resolvedRewards.push(reward);
-    }
-  }
-
-  const discount =
-    resolveExpandedDiscount(link?.discount) ?? enrollmentDiscount ?? null;
+  const rewards = [
+    clickReward,
+    leadReward,
+    saleReward,
+    ...enrollmentRewards.filter(
+      (reward) => reward.event === "custom" && getRewardAmount(reward) >= 0,
+    ),
+  ].filter((reward): reward is RewardProps => reward != null);
 
   return {
-    rewards: resolvedRewards,
-    discount,
+    clickReward,
+    leadReward,
+    saleReward,
+    discount:
+      resolveExpandedDiscount(link?.discount) ?? enrollmentDiscount ?? null,
+    rewards,
   };
 }

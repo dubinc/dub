@@ -4,7 +4,6 @@ import { constructPartnerReferralLink } from "@/lib/partner-referrals/utils";
 import { constructPartnerLink } from "@/lib/partners/construct-partner-link";
 import { getRewardAmount } from "@/lib/partners/get-reward-amount";
 import { QueryLinkStructureHelpText } from "@/lib/partners/query-link-structure-help-text";
-import { resolvePartnerLinkRewards } from "@/lib/rewards/resolve-partner-link-rewards";
 import {
   DiscountProps,
   PartnerBountyProps,
@@ -41,6 +40,7 @@ import {
   cn,
   currencyFormatter,
   getPrettyUrl,
+  pluralize,
   TREMENDOUS_SUPPORTED_COUNTRIES,
 } from "@dub/utils";
 import {
@@ -468,8 +468,7 @@ function EmbedRewardsSection({
   onSelectTab: (tab: string) => void;
   hideEarningsTerms: boolean;
 }) {
-  const { links, group, rewards, discount, partner, program } =
-    useReferralsEmbedData();
+  const { links, group, rewards, partner, program } = useReferralsEmbedData();
   const [selectedLinkId, setSelectedLinkId] = useState<string | null>(
     links[0]?.id ?? null,
   );
@@ -483,12 +482,16 @@ function EmbedRewardsSection({
   const hasPartnerReferralReward =
     referralRewards.length > 0 && Boolean(partner.username);
 
-  const { rewards: customerRewards, discount: resolvedDiscount } =
-    resolvePartnerLinkRewards({
-      link: selectedLink,
-      enrollmentRewards: rewards,
-      enrollmentDiscount: discount,
-    });
+  const customerRewards = [
+    selectedLink?.clickReward,
+    selectedLink?.leadReward,
+    selectedLink?.saleReward,
+    ...rewards.filter((reward) => reward.event === "custom"),
+  ].filter(
+    (reward): reward is RewardProps =>
+      reward != null && getRewardAmount(reward) >= 0,
+  );
+  const resolvedDiscount = selectedLink?.discount ?? null;
 
   const partnerLink = selectedLink
     ? constructPartnerLink({ group, link: selectedLink })
@@ -684,7 +687,7 @@ function EmbedPayoutTerms({
       ? [
           {
             label: "holding period",
-            value: `${holdingPeriodDays} day`,
+            value: `${holdingPeriodDays} ${pluralize("day", holdingPeriodDays)}`,
             href: "https://dub.co/help/article/commissions-payouts#what-does-holding-period-mean",
           },
         ]
