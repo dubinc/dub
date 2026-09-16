@@ -7,7 +7,7 @@ import { NextResponse } from "next/server";
 
 // PATCH /api/partners/links/[linkId]
 export const PATCH = withWorkspace(
-  async ({ workspace, req, params }) => {
+  async ({ workspace, req, params, session }) => {
     const programId = getDefaultProgramIdOrThrow(workspace);
     const { linkId } = params;
 
@@ -17,6 +17,7 @@ export const PATCH = withWorkspace(
       workspace,
       programId,
       linkId,
+      userId: session.user.id,
       ...body,
     });
 

@@ -11,15 +11,14 @@ export const PUT = withWorkspace(
     const programId = getDefaultProgramIdOrThrow(workspace);
     const body = upsertPartnerLinkSchema.parse(await parseRequestBody(req));
 
-    return NextResponse.json(
-      await upsertPartnerLink({
-        workspace,
-        programId,
-        userId: session.user.id,
-        ...body,
-      }),
-      { headers },
-    );
+    const response = await upsertPartnerLink({
+      workspace,
+      programId,
+      userId: session.user.id,
+      ...body,
+    });
+
+    return NextResponse.json(response, { headers });
   },
   {
     requiredPermissions: ["links.write"],

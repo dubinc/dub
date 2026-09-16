@@ -1,3 +1,4 @@
+import { trackLinkRewardOverrideLog } from "@/lib/api/activity-log/track-reward-overrides";
 import { DubApiError, ErrorCodes } from "@/lib/api/errors";
 import {
   createLink,
@@ -12,7 +13,7 @@ import {
   getRewardIds,
   hasRewardIdsInput,
   LinkRewardIdsInput,
-  validateRewardIds,
+  throwIfInvalidRewardIds,
 } from "@/lib/api/rewards/additional-rewards";
 import { applyGroupUtmToLink } from "@/lib/api/utm/apply-group-utm-to-link";
 import { throwIfNoPartnerIdOrTenantId } from "@/lib/partners/throw-if-no-partnerid-tenantid";
@@ -318,6 +319,7 @@ async function updateExistingPartnerLink({
       workspace,
       programId: program.id,
       linkId: existingLink.id,
+      userId,
       ...linkRewardInput,
     });
 
@@ -388,7 +390,7 @@ async function createNewPartnerLink({
     });
   }
 
-  await validateRewardIds({
+  await throwIfInvalidRewardIds({
     programId: program.id,
     groupId: partnerGroup.id,
     ...linkRewardInput,
@@ -400,11 +402,36 @@ async function createNewPartnerLink({
   });
 
   waitUntil(
-    sendWorkspaceWebhook({
-      trigger: "link.created",
-      workspace,
-      data: linkEventSchema.parse(partnerLink),
-    }),
+    Promise.allSettled([
+      sendWorkspaceWebhook({
+        trigger: "link.created",
+        workspace,
+        data: linkEventSchema.parse(partnerLink),
+      }),
+      ...(hasRewardIdsInput(linkRewardInput)
+        ? [
+            trackLinkRewardOverrideLog({
+              workspaceId: workspace.id,
+              programId: program.id,
+              partnerId: enrollment.partnerId,
+              userId,
+              previous: {
+                clickRewardId: null,
+                leadRewardId: null,
+                saleRewardId: null,
+                discountId: null,
+              },
+              next: {
+                clickRewardId: linkRewardInput.clickRewardId ?? null,
+                leadRewardId: linkRewardInput.leadRewardId ?? null,
+                saleRewardId: linkRewardInput.saleRewardId ?? null,
+                discountId: linkRewardInput.discountId ?? null,
+              },
+              link: partnerLink,
+            }),
+          ]
+        : []),
+    ]),
   );
 
   return {

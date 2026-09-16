@@ -1,5 +1,6 @@
 "use server";
 
+import { trackPartnerRewardOverrideLog } from "@/lib/api/activity-log/track-reward-overrides";
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { linkCache } from "@/lib/api/links/cache";
 import { includeProgramEnrollment } from "@/lib/api/links/include-program-enrollment";
@@ -10,7 +11,7 @@ import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-progr
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import {
   hasRewardIdsInput,
-  validateRewardIds,
+  throwIfInvalidRewardIds,
 } from "@/lib/api/rewards/additional-rewards";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { prisma } from "@/lib/prisma";
@@ -94,6 +95,10 @@ export const updatePartnerEnrollmentAction = authActionClient
       partner,
       tenantId: existingTenantId,
       groupId,
+      clickRewardId: existingClickRewardId,
+      leadRewardId: existingLeadRewardId,
+      saleRewardId: existingSaleRewardId,
+      discountId: existingDiscountId,
     } = await getProgramEnrollmentOrThrow({
       partnerId,
       programId,
@@ -114,7 +119,7 @@ export const updatePartnerEnrollmentAction = authActionClient
       });
     }
 
-    await validateRewardIds({
+    await throwIfInvalidRewardIds({
       programId,
       groupId,
       clickRewardId,
@@ -178,6 +183,25 @@ export const updatePartnerEnrollmentAction = authActionClient
         ...(tenantId !== undefined && tenantId !== existingTenantId
           ? [queuePartnerSearchSync({ enrollmentIds: [programEnrollment.id] })]
           : []),
+
+        trackPartnerRewardOverrideLog({
+          workspaceId: workspace.id,
+          programId,
+          partnerId,
+          userId: user.id,
+          previous: {
+            clickRewardId: existingClickRewardId,
+            leadRewardId: existingLeadRewardId,
+            saleRewardId: existingSaleRewardId,
+            discountId: existingDiscountId,
+          },
+          next: {
+            clickRewardId: programEnrollment.clickRewardId,
+            leadRewardId: programEnrollment.leadRewardId,
+            saleRewardId: programEnrollment.saleRewardId,
+            discountId: programEnrollment.discountId,
+          },
+        }),
 
         recordAuditLog({
           workspaceId: workspace.id,

@@ -1,3 +1,4 @@
+import { trackLinkRewardOverrideLog } from "@/lib/api/activity-log/track-reward-overrides";
 import { DubApiError, ErrorCodes } from "@/lib/api/errors";
 import { createLink, processLink } from "@/lib/api/links";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
@@ -6,7 +7,7 @@ import {
   getRewardIds,
   hasRewardIdsInput,
   LinkRewardIdsInput,
-  validateRewardIds,
+  throwIfInvalidRewardIds,
 } from "@/lib/api/rewards/additional-rewards";
 import { parseRequestBody } from "@/lib/api/utils";
 import { applyGroupUtmToLink } from "@/lib/api/utm/apply-group-utm-to-link";
@@ -189,8 +190,10 @@ export const POST = withWorkspace(
       discountId,
     };
 
+    const hasLinkLevelReward = hasRewardIdsInput(linkRewardInput);
+
     if (
-      hasRewardIdsInput(linkRewardInput) &&
+      hasLinkLevelReward &&
       !getPlanCapabilities(workspace.plan).canUseAdvancedRewardLogic
     ) {
       throw new DubApiError({
@@ -199,7 +202,7 @@ export const POST = withWorkspace(
       });
     }
 
-    await validateRewardIds({
+    await throwIfInvalidRewardIds({
       programId,
       groupId: partnerGroup.id,
       ...linkRewardInput,
@@ -216,11 +219,36 @@ export const POST = withWorkspace(
     };
 
     waitUntil(
-      sendWorkspaceWebhook({
-        trigger: "link.created",
-        workspace,
-        data: linkEventSchema.parse(partnerLink),
-      }),
+      Promise.allSettled([
+        sendWorkspaceWebhook({
+          trigger: "link.created",
+          workspace,
+          data: linkEventSchema.parse(partnerLink),
+        }),
+        ...(hasLinkLevelReward
+          ? [
+              trackLinkRewardOverrideLog({
+                workspaceId: workspace.id,
+                programId: program.id,
+                partnerId: partner.partnerId,
+                userId: session.user.id,
+                previous: {
+                  clickRewardId: null,
+                  leadRewardId: null,
+                  saleRewardId: null,
+                  discountId: null,
+                },
+                next: {
+                  clickRewardId: linkRewardInput.clickRewardId ?? null,
+                  leadRewardId: linkRewardInput.leadRewardId ?? null,
+                  saleRewardId: linkRewardInput.saleRewardId ?? null,
+                  discountId: linkRewardInput.discountId ?? null,
+                },
+                link: partnerLink,
+              }),
+            ]
+          : []),
+      ]),
     );
 
     return NextResponse.json(response, { status: 201 });

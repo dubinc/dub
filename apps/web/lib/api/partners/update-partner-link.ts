@@ -1,10 +1,11 @@
+import { trackLinkRewardOverrideLog } from "@/lib/api/activity-log/track-reward-overrides";
 import { DubApiError } from "@/lib/api/errors";
 import { linkCache } from "@/lib/api/links/cache";
 import { getLinkOrThrow } from "@/lib/api/links/get-link-or-throw";
 import {
   getRewardIds,
   hasRewardIdsInput,
-  validateRewardIds,
+  throwIfInvalidRewardIds,
 } from "@/lib/api/rewards/additional-rewards";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { prisma } from "@/lib/prisma";
@@ -20,6 +21,7 @@ type UpdatePartnerLinkParams = {
   workspace: Pick<WorkspaceProps, "id" | "plan">;
   programId: string;
   linkId: string;
+  userId: string;
 } & z.infer<typeof updatePartnerLinkSchema>;
 
 const omitGroupDefault = (
@@ -31,6 +33,7 @@ export async function updatePartnerLink({
   workspace,
   programId,
   linkId,
+  userId,
   ...body
 }: UpdatePartnerLinkParams) {
   if (!hasRewardIdsInput(body)) {
@@ -123,7 +126,7 @@ export async function updatePartnerLink({
     ),
   };
 
-  await validateRewardIds({
+  await throwIfInvalidRewardIds({
     programId,
     groupId: programEnrollment.groupId,
     ...linkRewardInput,
@@ -151,7 +154,30 @@ export async function updatePartnerLink({
         })
       : null;
 
-  waitUntil(linkCache.expireMany([link]));
+  waitUntil(
+    Promise.allSettled([
+      linkCache.expireMany([link]),
+      trackLinkRewardOverrideLog({
+        workspaceId: workspace.id,
+        programId,
+        partnerId: link.partnerId,
+        userId,
+        previous: {
+          clickRewardId: existingLinkReward?.clickRewardId ?? null,
+          leadRewardId: existingLinkReward?.leadRewardId ?? null,
+          saleRewardId: existingLinkReward?.saleRewardId ?? null,
+          discountId: existingLinkReward?.discountId ?? null,
+        },
+        next: {
+          clickRewardId: linkReward?.clickRewardId ?? null,
+          leadRewardId: linkReward?.leadRewardId ?? null,
+          saleRewardId: linkReward?.saleRewardId ?? null,
+          discountId: linkReward?.discountId ?? null,
+        },
+        link,
+      }),
+    ]),
+  );
 
   return ProgramPartnerLinkSchema.parse({
     ...link,

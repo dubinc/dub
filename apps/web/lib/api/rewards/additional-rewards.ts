@@ -2,17 +2,14 @@ import { DubApiError } from "@/lib/api/errors";
 import { prisma } from "@/lib/prisma";
 import { Discount, EventType, LinkReward, Reward } from "@prisma/client";
 
-export type LinkRewardIdsInput = Partial<
-  Pick<
-    LinkReward,
-    "clickRewardId" | "leadRewardId" | "saleRewardId" | "discountId"
-  >
->;
-
-export type LinkRewardWithOptionalRewards = Pick<
+export type LinkRewardIds = Pick<
   LinkReward,
   "clickRewardId" | "leadRewardId" | "saleRewardId" | "discountId"
-> & {
+>;
+
+export type LinkRewardIdsInput = Partial<LinkRewardIds>;
+
+export type LinkRewardWithOptionalRewards = LinkRewardIds & {
   clickReward?: Reward | null;
   leadReward?: Reward | null;
   saleReward?: Reward | null;
@@ -52,7 +49,7 @@ const belongsToGroup = ({
   defaultGroupId?: string | null;
 }) => entityGroupId === groupId || defaultGroupId === groupId;
 
-export const validateRewardIds = async ({
+export const throwIfInvalidRewardIds = async ({
   programId,
   groupId,
   clickRewardId,

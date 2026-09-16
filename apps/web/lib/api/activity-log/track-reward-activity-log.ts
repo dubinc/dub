@@ -5,6 +5,7 @@ import type { Reward } from "@prisma/client";
 import { getResourceDiff } from "./get-resource-diff";
 import type { TrackActivityLogInput } from "./track-activity-log";
 import { trackActivityLog } from "./track-activity-log";
+import { toRewardActivitySnapshot } from "./to-reward-activity-snapshot";
 
 interface TrackRewardActivityLogParams
   extends Omit<
@@ -13,22 +14,6 @@ interface TrackRewardActivityLogParams
   > {
   old: Reward | RewardProps | null;
   new: Reward | RewardProps | null;
-}
-
-function toRewardActivitySnapshot(reward: RewardProps) {
-  return {
-    event: reward.event,
-    type: reward.type,
-    amountInCents: reward.amountInCents ?? null,
-    amountInPercentage: reward.amountInPercentage ?? null,
-    maxDuration: reward.maxDuration ?? null,
-    description: reward.description ?? null,
-    tooltipDescription: reward.tooltipDescription ?? null,
-    modifiers: reward.modifiers ?? null,
-    config: reward.config ?? null,
-    spendLimitAmount: reward.spendLimitAmount ?? null,
-    spendLimitInterval: reward.spendLimitInterval ?? null,
-  };
 }
 
 function modifierEquals(a: RewardConditions, b: RewardConditions): boolean {
