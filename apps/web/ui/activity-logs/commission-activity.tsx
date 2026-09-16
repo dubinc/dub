@@ -194,7 +194,9 @@ export function CommissionActivity({
         <span className="text-sm text-neutral-500">by</span>
         <div className="flex h-6 items-center gap-2 rounded-lg bg-neutral-100 px-2 py-1">
           <UserAvatar user={log.user} className="size-4" />
-          <span className="text-[13px] text-neutral-700">{log.user.name}</span>
+          <span className="text-[13px] text-neutral-700">
+            {log.user.name || log.user.email || "Deleted user"}
+          </span>
         </div>
       </>
     ) : null;

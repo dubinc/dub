@@ -110,20 +110,27 @@ export const RATELIMIT_POLICIES = {
     keyPrefix: "rl:domains:forward-dns-instructions:target",
   },
 
+  // One reattribution per workspace per minute
+  reattributeCustomer: {
+    attempts: 1,
+    window: "1 m",
+    keyPrefix: "rl:customers:reattribute",
+    message: ({ retryAfter }) =>
+      `Customer reattribution is limited to once per minute because it updates analytics. Try again in ${retryAfter}.`,
+  },
+
   oauthAppReviewSubmit: {
     attempts: 1,
     window: "1 m",
     keyPrefix: "rl:oauth:app:review:submit",
-    message:
-      "Rate limit exceeded. Please try again later or contact support.",
+    message: "Rate limit exceeded. Please try again later or contact support.",
   },
 
   verifyWorkspaceSetup: {
     attempts: 5,
     window: "1 m",
     keyPrefix: "rl:workspace:setup:verify",
-    message:
-      "Too many verification attempts. Please try again in a minute.",
+    message: "Too many verification attempts. Please try again in a minute.",
   },
 
   createProgramApplication: {
