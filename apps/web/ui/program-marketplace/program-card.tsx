@@ -27,7 +27,7 @@ export function MarketplaceProgramCard({
     <Link
       href={`/marketplace/${program.slug}`}
       className={cn(
-        "border-border-subtle hover:drop-shadow-card-hover flex h-full flex-col rounded-xl border bg-white p-4 transition-[filter] sm:p-6",
+        "border-border-subtle hover:drop-shadow-card-hover flex h-full min-w-0 flex-col overflow-hidden rounded-xl border bg-white p-4 transition-[filter] sm:p-6",
         className,
       )}
     >
@@ -41,7 +41,7 @@ export function MarketplaceProgramCard({
         {!externalMarketplace ? <ProgramStatusBadge program={program} /> : null}
       </div>
 
-      <div className="mt-6 flex flex-col sm:mt-8">
+      <div className="mt-6 flex min-w-0 flex-col sm:mt-8">
         <h3 className="text-content-emphasis text-base font-semibold">
           {program.name}
         </h3>
@@ -52,7 +52,7 @@ export function MarketplaceProgramCard({
         </div>
 
         {rewards?.length ? (
-          <div className="mt-5 min-w-0">
+          <div className="mt-5 w-full min-w-0">
             <MarketplaceRewardsLabel
               count={rewards.length}
               className="text-content-muted text-xs font-medium"

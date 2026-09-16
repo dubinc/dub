@@ -86,7 +86,7 @@ export function ProgramRewardsDisplay({
     items[0];
 
   return (
-    <div className={cn("-ml-1 min-w-0", className)}>
+    <div className={cn("w-full min-w-0", className)}>
       <RewardExpandedItem
         item={featuredItem}
         isDarkImage={isDarkImage}
@@ -118,7 +118,7 @@ function RewardExpandedItem({
         },
       })}
       className={cn(
-        "flex min-w-0 items-center gap-1 pr-1",
+        "flex min-w-0 max-w-full items-center gap-1 overflow-hidden pr-1",
         item.onClick &&
           "hover:bg-bg-subtle active:bg-bg-emphasis rounded-md transition-colors",
       )}
@@ -133,7 +133,7 @@ function RewardExpandedItem({
       </div>
       <span
         className={cn(
-          "min-w-0 truncate text-sm font-normal leading-5 tracking-[-0.02em] text-black",
+          "min-w-0 max-w-full truncate text-sm font-normal leading-5 tracking-[-0.02em] text-black",
           isDarkImage && "text-content-inverted",
           descriptionClassName,
         )}
