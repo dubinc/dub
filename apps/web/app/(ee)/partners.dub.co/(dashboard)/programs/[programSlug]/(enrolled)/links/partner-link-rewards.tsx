@@ -67,11 +67,13 @@ export function usePartnerLinkRewardsState() {
 
 export function PartnerLinkRewardsSummary({
   primaryText,
+  primaryReward,
   additionalCount,
   showRewards,
   onToggleRewards,
 }: {
   primaryText: string;
+  primaryReward: ReturnType<typeof usePartnerLinkRewards>["primaryReward"];
   additionalCount: number;
   showRewards: boolean;
   onToggleRewards: () => void;
@@ -82,6 +84,7 @@ export function PartnerLinkRewardsSummary({
       <p className="truncate text-sm font-medium tracking-tight text-neutral-500">
         {primaryText}
       </p>
+      <ProgramRewardModifiersTooltip reward={primaryReward} />
       {additionalCount > 0 && (
         <Tooltip content="View rewards">
           <button

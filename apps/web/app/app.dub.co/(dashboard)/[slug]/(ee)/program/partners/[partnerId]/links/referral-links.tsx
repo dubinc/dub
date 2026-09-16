@@ -27,7 +27,7 @@ import {
   UserCheck,
   useCopyToClipboard,
 } from "@dub/ui";
-import { Copy, Discount } from "@dub/ui/icons";
+import { Copy, Discount, DiscountCode } from "@dub/ui/icons";
 import {
   cn,
   currencyFormatter,
@@ -299,7 +299,7 @@ function PartnerLinkCard({
               }
             >
               <div className="flex h-5 shrink-0 items-center gap-1 rounded-md bg-neutral-100 px-1">
-                <Discount className="size-3 text-neutral-700" />
+                <DiscountCode className="size-3 text-neutral-700" />
               </div>
             </Tooltip>
           )}

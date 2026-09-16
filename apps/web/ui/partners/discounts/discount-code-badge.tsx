@@ -1,4 +1,5 @@
-import { Tag, Tooltip, useCopyToClipboard } from "@dub/ui";
+import { Tooltip, useCopyToClipboard } from "@dub/ui";
+import { DiscountCode } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
 import { toast } from "sonner";
 
@@ -16,16 +17,15 @@ export function DiscountCodeBadge({
 
   const content = (
     <>
-      <Tag
+      <DiscountCode
         className={cn(
           "size-3",
           isDisabled ? "text-neutral-500" : "text-green-700",
         )}
-        strokeWidth={1.5}
       />
       <div
         className={cn(
-          "text-xs font-medium",
+          "text-xs font-semibold leading-4",
           isDisabled
             ? "text-neutral-500 line-through"
             : "text-green-700 decoration-dotted underline-offset-2 transition-colors group-hover/discountcode:underline",
@@ -39,7 +39,7 @@ export function DiscountCodeBadge({
   if (isDisabled) {
     return (
       <Tooltip content={disabledTooltip}>
-        <div className="flex w-fit cursor-help items-center gap-1 rounded-lg bg-neutral-100 px-2 py-1">
+        <div className="flex h-5 w-fit cursor-help items-center gap-1 rounded-lg bg-neutral-100 px-1.5 py-0.5">
           {content}
         </div>
       </Tooltip>
@@ -50,7 +50,7 @@ export function DiscountCodeBadge({
     <button
       type="button"
       className={cn(
-        "group/discountcode relative flex w-fit cursor-copy items-center gap-1 rounded-lg bg-green-200 px-2 py-1",
+        "group/discountcode relative flex h-5 w-fit cursor-copy items-center gap-1 rounded-lg bg-green-200 px-1.5 py-0.5",
         "transition-colors duration-150 hover:bg-green-300/80",
         copied && "cursor-default",
       )}

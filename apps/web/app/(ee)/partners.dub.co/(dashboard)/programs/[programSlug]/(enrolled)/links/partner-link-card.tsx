@@ -76,8 +76,14 @@ export function PartnerLinkCard({ link }: { link: PartnerProfileLinkProps }) {
   const { programEnrollment } = useProgramEnrollment();
   const { displayOption } = usePartnerLinksContext();
   const { showRewards, toggleRewards } = usePartnerLinkRewardsState();
-  const { rewards, discount, primaryText, additionalCount, hasIncentives } =
-    usePartnerLinkRewards(link);
+  const {
+    rewards,
+    discount,
+    primaryReward,
+    primaryText,
+    additionalCount,
+    hasIncentives,
+  } = usePartnerLinkRewards(link);
 
   const partnerLink = constructPartnerLink({
     group: programEnrollment?.group,
@@ -148,6 +154,7 @@ export function PartnerLinkCard({ link }: { link: PartnerProfileLinkProps }) {
                 {hasIncentives && primaryText ? (
                   <PartnerLinkRewardsSummary
                     primaryText={primaryText}
+                    primaryReward={primaryReward}
                     additionalCount={additionalCount}
                     showRewards={showRewards}
                     onToggleRewards={toggleRewards}

@@ -24,12 +24,11 @@ import {
   LoadingSpinner,
   MenuItem,
   Popover,
-  Tag,
   Tooltip,
   TooltipContent,
   useCopyToClipboard,
 } from "@dub/ui";
-import { Copy, Discount, Trash } from "@dub/ui/icons";
+import { Copy, DiscountCode, Trash } from "@dub/ui/icons";
 import { cn, getPrettyUrl, nFormatter, pluralize } from "@dub/utils";
 import { DiscountProvider } from "@prisma/client";
 import { Command } from "cmdk";
@@ -234,7 +233,7 @@ export function PartnerDiscountCodes({
       ) : !error && (!discountCodes || discountCodes.length === 0) ? (
         <div className="flex flex-col items-center justify-center gap-2 rounded-lg border border-neutral-200 bg-neutral-50 py-6">
           <div className="flex max-w-sm flex-col items-center gap-2 text-center">
-            <Tag className="mb-2 size-6 text-neutral-900" />
+            <DiscountCode className="mb-2 size-6 text-neutral-900" />
             <h3 className="text-content-emphasis text-sm font-semibold leading-5">
               No discount codes created
             </h3>
@@ -320,11 +319,13 @@ function DiscountCodeCard({
       innerClassName="flex items-center justify-between gap-4 px-3 py-2.5"
       hoverStateEnabled={false}
     >
-      <div className="flex min-w-0 items-center gap-3">
-        <DiscountCodeBadge
-          code={discountCode.code}
-          disabledAt={discountCode.disabledAt}
-        />
+      <div className="flex min-w-0 flex-1 items-center">
+        <div className="w-40 shrink-0">
+          <DiscountCodeBadge
+            code={discountCode.code}
+            disabledAt={discountCode.disabledAt}
+          />
+        </div>
 
         {link ? (
           <div className="flex min-w-0 items-center gap-2">
@@ -343,8 +344,8 @@ function DiscountCodeCard({
                   </div>
                 }
               >
-                <div className="flex h-5 shrink-0 items-center gap-1 rounded-md bg-neutral-100 px-1">
-                  <Discount className="size-3 text-neutral-700" />
+                <div className="flex h-5 shrink-0 items-center justify-center rounded-md bg-neutral-100 px-1">
+                  <DiscountCode className="size-3 text-neutral-700" />
                 </div>
               </Tooltip>
             )}
@@ -369,13 +370,12 @@ function DiscountCodeCard({
               target="_blank"
               className="flex items-center gap-1.5"
             >
-              <Tag
+              <DiscountCode
                 data-active={conversions > 0}
                 className={cn(
                   "size-4 shrink-0 text-neutral-400",
                   "data-[active=true]:text-green-600",
                 )}
-                strokeWidth={1.5}
               />
               <span className="text-xs font-medium text-neutral-700">
                 {nFormatter(conversions)}
