@@ -10,8 +10,8 @@ import { formatDiscountDescription } from "@/ui/partners/format-discount-descrip
 import { formatRewardDescription } from "@/ui/partners/format-reward-description";
 import { ProgramRewardModifiersTooltip } from "@/ui/partners/program-reward-modifiers-tooltip";
 import { REWARD_EVENT_ICON } from "@/ui/partners/rewards/reward-event-icon";
-import { Icon } from "@dub/ui";
-import { Discount, Gift } from "@dub/ui/icons";
+import { Icon, Tooltip } from "@dub/ui";
+import { DiscountCode, Gift } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
 import { motion } from "motion/react";
 import { type ReactNode, useMemo, useState } from "react";
@@ -83,17 +83,19 @@ export function PartnerLinkRewardsSummary({
         {primaryText}
       </p>
       {additionalCount > 0 && (
-        <button
-          type="button"
-          onClick={onToggleRewards}
-          aria-expanded={showRewards}
-          className={cn(
-            "inline-flex h-4 shrink-0 items-center justify-center rounded-md bg-blue-100 px-1.5 text-xs font-semibold leading-4 tracking-tight text-blue-700 transition-colors",
-            showRewards && "bg-blue-200",
-          )}
-        >
-          +{additionalCount}
-        </button>
+        <Tooltip content="View rewards">
+          <button
+            type="button"
+            onClick={onToggleRewards}
+            aria-expanded={showRewards}
+            className={cn(
+              "inline-flex h-4 shrink-0 items-center justify-center rounded-md bg-blue-100 px-1.5 text-xs font-semibold leading-4 tracking-tight text-blue-700 transition-colors",
+              showRewards && "bg-blue-200",
+            )}
+          >
+            +{additionalCount}
+          </button>
+        </Tooltip>
       )}
     </div>
   );
@@ -139,7 +141,7 @@ export function PartnerLinkRewardsPanel({
       ? [
           {
             id: "discount",
-            icon: Discount,
+            icon: DiscountCode,
             text: formatDiscountDescription(discount),
           },
         ]
@@ -153,7 +155,7 @@ export function PartnerLinkRewardsPanel({
       transition={{ duration: 0.2 }}
       className="overflow-hidden"
     >
-      <div className="border-t border-neutral-200 bg-neutral-100 p-2">
+      <div className="border-t border-neutral-200 px-4 py-2">
         <div className="flex flex-col gap-2 rounded-[10px] border border-neutral-200 bg-white p-3">
           {items.map((item) => {
             const ItemIcon = item.icon;

@@ -8,6 +8,7 @@ import { constructPartnerReferralLink } from "@/lib/partner-referrals/utils";
 import { constructPartnerLink } from "@/lib/partners/construct-partner-link";
 import { getRewardAmount } from "@/lib/partners/get-reward-amount";
 import { QueryLinkStructureHelpText } from "@/lib/partners/query-link-structure-help-text";
+import { getPartnerLinkDisplayRewards } from "@/lib/rewards/resolve-partner-link-rewards";
 import usePartnerAnalytics from "@/lib/swr/use-partner-analytics";
 import { usePartnerEarningsTimeseries } from "@/lib/swr/use-partner-earnings-timeseries";
 import { usePartnerLinks } from "@/lib/swr/use-partner-links";
@@ -17,7 +18,6 @@ import {
   DiscountProps,
   GroupProps,
   PartnerProfileLinkProps,
-  RewardProps,
 } from "@/lib/types";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { DiscountCodeBadge } from "@/ui/partners/discounts/discount-code-badge";
@@ -689,16 +689,13 @@ function RewardList() {
   const referralRewards = enrollmentRewards.filter(
     (reward) => reward.event === "referral" && getRewardAmount(reward) >= 0,
   );
-  const standardRewards = [
-    selectedLink?.clickReward,
-    selectedLink?.leadReward,
-    selectedLink?.saleReward,
-    ...enrollmentRewards.filter((reward) => reward.event === "custom"),
-  ].filter(
-    (reward): reward is RewardProps =>
-      reward != null && getRewardAmount(reward) >= 0,
-  );
-  const discount = selectedLink?.discount ?? null;
+  const { rewards: standardRewards, discount } = getPartnerLinkDisplayRewards({
+    clickReward: selectedLink?.clickReward,
+    leadReward: selectedLink?.leadReward,
+    saleReward: selectedLink?.saleReward,
+    discount: selectedLink?.discount,
+    enrollmentRewards,
+  });
 
   const hasPartnerReferralReward = referralRewards.length > 0;
 
