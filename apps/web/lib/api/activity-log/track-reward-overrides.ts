@@ -19,6 +19,7 @@ type RewardOverrideBaseInput = {
   userId: string;
   previous: LinkRewardIds;
   next: LinkRewardIds;
+  description?: string;
 };
 
 type LinkSnapshot = Pick<LinkProps, "id" | "domain" | "key">;
@@ -53,6 +54,7 @@ async function trackRewardOverrideLog({
   rewardAction,
   discountAction,
   link,
+  description,
 }: RewardOverrideBaseInput & {
   rewardAction: "partner.rewardChanged" | "link.rewardChanged";
   discountAction: "partner.discountChanged" | "link.discountChanged";
@@ -142,6 +144,7 @@ async function trackRewardOverrideLog({
     activityLogs.push({
       ...base,
       action: rewardAction,
+      description,
       changeSet: {
         ...(link
           ? {
@@ -168,6 +171,7 @@ async function trackRewardOverrideLog({
     activityLogs.push({
       ...base,
       action: discountAction,
+      description,
       changeSet: {
         ...(link
           ? {

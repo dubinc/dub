@@ -10,8 +10,8 @@ import { ReferralRewardConfig } from "@/lib/partner-referrals/types";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { PARTNER_AND_LINK_REWARDS_PLAN_ERROR } from "@/lib/rewards/constants";
 import useGroup from "@/lib/swr/use-group";
-import usePartnersCount from "@/lib/swr/use-partners-count";
 import useProgram from "@/lib/swr/use-program";
+import { useRewards } from "@/lib/swr/use-rewards";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { RewardConditionsArray, RewardProps } from "@/lib/types";
 import { RECURRING_MAX_DURATIONS } from "@/lib/zod/schemas/misc";
@@ -224,15 +224,17 @@ function RewardSheetContent({
   hasPendingChangesRef: MutableRefObject<boolean>;
 }) {
   const { group, mutateGroup } = useGroup({ groupIdOrSlug });
-  const { partnersCount, loading, isValidating } = usePartnersCount<
-    number | undefined
-  >({
+  const { rewards } = useRewards({
     groupId: group?.id,
-    status: "approved",
   });
-  const partnerCountForConfirm =
-    group?.id && !loading && !isValidating ? partnersCount : undefined;
-  const { openConfirmRewardChangeModal, ConfirmRewardChangeModal } =
+
+  const partnerCountForConfirm = reward
+    ? rewards?.find((item) => item.id === reward.id)?.partnersCount
+    : isDefault
+      ? undefined
+      : 0;
+
+  const { confirmRewardChange, ConfirmRewardChangeModal } =
     useConfirmRewardChangeModal();
 
   const {
@@ -462,7 +464,7 @@ function RewardSheetContent({
       return;
     }
 
-    let payload: ReturnType<typeof getRewardPayload> | null = null;
+    let payload: ReturnType<typeof getRewardPayload>;
 
     try {
       payload = {
@@ -481,23 +483,24 @@ function RewardSheetContent({
       return;
     }
 
-    openConfirmRewardChangeModal({
+    await confirmRewardChange({
       action: reward ? "updated" : "created",
-      event,
-      reward: payload!,
+      target: "group",
+      isDefault,
+      reward: payload,
       partnerCount: partnerCountForConfirm,
       isPending: isCreating || isUpdating,
       onConfirm: async (activityDescription) => {
         if (!reward) {
           await createReward({
-            ...payload!,
+            ...payload,
             groupId: group.id,
             activityDescription,
             isDefault,
           });
         } else {
           await updateReward({
-            ...payload!,
+            ...payload,
             rewardId: reward.id,
             activityDescription,
           });
@@ -506,14 +509,15 @@ function RewardSheetContent({
     });
   };
 
-  const onDelete = () => {
+  const onDelete = async () => {
     if (!workspaceId || !defaultProgramId || !reward) {
       return;
     }
 
-    openConfirmRewardChangeModal({
+    await confirmRewardChange({
       action: "deleted",
-      event: reward.event,
+      target: "group",
+      isDefault,
       reward,
       partnerCount: partnerCountForConfirm,
       isPending: isDeleting,
@@ -953,7 +957,7 @@ function RewardSheetContent({
             <VerticalLine />
             <RewardPreviewCard />
 
-            {group && (
+            {isDefault && group && (
               <>
                 <VerticalLine />
                 <RewardDiscountPartnersCard groupId={group.id} />

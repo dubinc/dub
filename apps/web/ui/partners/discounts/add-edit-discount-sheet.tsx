@@ -594,9 +594,12 @@ function DiscountSheetContent({
             </div>
           </div>
 
-          <VerticalLine />
-
-          {group && <RewardDiscountPartnersCard groupId={group.id} />}
+          {isDefault && group && (
+            <>
+              <VerticalLine />
+              <RewardDiscountPartnersCard groupId={group.id} />
+            </>
+          )}
         </div>
 
         <div className="flex items-center justify-between border-t border-neutral-200 p-5">

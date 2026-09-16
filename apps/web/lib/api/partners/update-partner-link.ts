@@ -2,6 +2,7 @@ import { trackLinkRewardOverrideLog } from "@/lib/api/activity-log/track-reward-
 import { DubApiError } from "@/lib/api/errors";
 import { linkCache } from "@/lib/api/links/cache";
 import { getLinkOrThrow } from "@/lib/api/links/get-link-or-throw";
+import { notifyPartnerRewardOverride } from "@/lib/api/partners/notify-partner-reward-change";
 import {
   getRewardIds,
   hasRewardIdsInput,
@@ -34,6 +35,7 @@ export async function updatePartnerLink({
   programId,
   linkId,
   userId,
+  activityDescription,
   ...body
 }: UpdatePartnerLinkParams) {
   if (!hasRewardIdsInput(body)) {
@@ -162,6 +164,7 @@ export async function updatePartnerLink({
         programId,
         partnerId: link.partnerId,
         userId,
+        description: activityDescription,
         previous: {
           clickRewardId: existingLinkReward?.clickRewardId ?? null,
           leadRewardId: existingLinkReward?.leadRewardId ?? null,
@@ -175,6 +178,27 @@ export async function updatePartnerLink({
           discountId: linkReward?.discountId ?? null,
         },
         link,
+      }),
+
+      notifyPartnerRewardOverride({
+        programId,
+        partnerId: link.partnerId,
+        previous: {
+          clickRewardId: existingLinkReward?.clickRewardId ?? null,
+          leadRewardId: existingLinkReward?.leadRewardId ?? null,
+          saleRewardId: existingLinkReward?.saleRewardId ?? null,
+        },
+        next: {
+          clickRewardId: linkReward?.clickRewardId ?? null,
+          leadRewardId: linkReward?.leadRewardId ?? null,
+          saleRewardId: linkReward?.saleRewardId ?? null,
+        },
+        groupRewardIds: {
+          clickRewardId: partnerGroup?.clickRewardId ?? null,
+          leadRewardId: partnerGroup?.leadRewardId ?? null,
+          saleRewardId: partnerGroup?.saleRewardId ?? null,
+        },
+        activityDescription,
       }),
     ]),
   );

@@ -6,7 +6,6 @@ import { updatePartnerEnrollmentAction } from "@/lib/actions/partners/update-par
 import { mutatePrefix } from "@/lib/swr/mutate";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import useGroup from "@/lib/swr/use-group";
-import usePartnersCount from "@/lib/swr/use-partners-count";
 import { useRewards } from "@/lib/swr/use-rewards";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps, GroupProps, RewardProps } from "@/lib/types";
@@ -131,7 +130,7 @@ function EditPartnerRewardModal({
   const { makeRequest: updatePartnerLink, isSubmitting: isUpdatingLink } =
     useApiMutation();
 
-  const { ConfirmRewardChangeModal, openConfirmRewardChangeModal } =
+  const { ConfirmRewardChangeModal, confirmRewardChange } =
     useConfirmRewardChangeModal();
 
   const { group: fetchedGroup } = useGroup({
@@ -139,11 +138,6 @@ function EditPartnerRewardModal({
   });
   const group = groupProp ?? fetchedGroup;
   const groupRewardId = getGroupRewardId(group, event);
-
-  const { partnersCount } = usePartnersCount<number | undefined>({
-    groupId: group?.id,
-    ignoreParams: true,
-  });
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [rewardSheet, setRewardSheet] = useState<{
@@ -237,13 +231,7 @@ function EditPartnerRewardModal({
     [eventRewards, groupRewardId],
   );
 
-  const onSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!resolvedSelectedId) {
-      return;
-    }
-
+  const persistOverride = async (activityDescription?: string) => {
     const rewardIdColumn = REWARD_EVENT_COLUMN_MAPPING[event];
     const isGroupSelection = resolvedSelectedId === groupRewardId;
 
@@ -258,6 +246,7 @@ function EditPartnerRewardModal({
         [rewardIdColumn]: isGroupSelection
           ? groupRewardId ?? null
           : resolvedSelectedId,
+        activityDescription,
       });
       return;
     }
@@ -266,6 +255,7 @@ function EditPartnerRewardModal({
       method: "PATCH",
       body: {
         [rewardIdColumn]: isGroupSelection ? null : resolvedSelectedId,
+        activityDescription,
       },
       onSuccess: async () => {
         setShowModal(false);
@@ -275,17 +265,53 @@ function EditPartnerRewardModal({
     });
   };
 
-  const handleDelete = (rewardId: string) => {
+  const onSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!resolvedSelectedId) {
+      return;
+    }
+
+    const selectedReward = eventRewards.find(
+      (item) => item.id === resolvedSelectedId,
+    );
+
+    if (!selectedReward) {
+      return;
+    }
+
+    const currentId = getSelectedRewardId({
+      target,
+      event,
+      groupRewardId,
+    });
+
+    if (resolvedSelectedId === currentId) {
+      setShowModal(false);
+      return;
+    }
+
+    await confirmRewardChange({
+      action: "updated",
+      target: target.type,
+      reward: selectedReward,
+      isPending: isSubmitting,
+      onConfirm: persistOverride,
+    });
+  };
+
+  const handleDelete = async (rewardId: string) => {
     const reward = eventRewards.find((item) => item.id === rewardId);
     if (!reward || !workspaceId) {
       return;
     }
 
-    openConfirmRewardChangeModal({
+    await confirmRewardChange({
       action: "deleted",
-      event: reward.event,
+      target: "group",
+      isDefault: reward.id === groupRewardId,
       reward,
-      partnerCount: partnersCount,
+      partnerCount: reward.partnersCount ?? 0,
       isPending: isDeleting,
       onConfirm: async (activityDescription) => {
         await deleteReward({

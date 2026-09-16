@@ -1,5 +1,10 @@
 "use client";
 
+import {
+  shouldNotifyRewardChange,
+  type RewardNotificationAction,
+  type RewardNotificationTarget,
+} from "@/lib/rewards/should-notify-reward-change";
 import { RewardProps } from "@/lib/types";
 import { REWARD_CHANGE_DESCRIPTION_MAX_LENGTH } from "@/lib/zod/schemas/rewards";
 import { ProgramRewardDescription } from "@/ui/partners/program-reward-description";
@@ -7,12 +12,11 @@ import { REWARD_EVENT_DESCRIPTIONS } from "@/ui/partners/rewards/reward-event-de
 import { MaxCharactersCounter } from "@/ui/shared/max-characters-counter";
 import { Button, Modal } from "@dub/ui";
 import { cn, pluralize } from "@dub/utils";
-import { EventType } from "@prisma/client";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { PartnerEmailNotificationTooltipHelper } from "../shared/partner-email-notification-tooltip-helper";
 
-export type RewardChangeAction = "created" | "updated" | "deleted";
+export type RewardChangeAction = RewardNotificationAction;
 
 const TITLES: Record<RewardChangeAction, string> = {
   created: "Create reward",
@@ -26,46 +30,103 @@ const CONFIRM_TEXT: Record<RewardChangeAction, string> = {
   deleted: "Delete reward",
 };
 
+const GROUP_CHANGE_COPY: Record<RewardChangeAction, string> = {
+  created: "added to",
+  updated: "updated for",
+  deleted: "removed from",
+};
+
 type ConfirmRewardChangeFormData = {
   activityDescription: string;
 };
 
-type ConfirmRewardChangeModalProps = {
-  showModal: boolean;
-  setShowModal: (show: boolean) => void;
+type RewardSnapshot = Pick<
+  RewardProps,
+  | "description"
+  | "event"
+  | "maxDuration"
+  | "modifiers"
+  | "tooltipDescription"
+  | "type"
+  | "amountInCents"
+  | "amountInPercentage"
+  | "config"
+  | "spendLimitAmount"
+  | "spendLimitInterval"
+>;
+
+type ConfirmRewardChangeOptions = {
   action: RewardChangeAction;
-  event: EventType;
-  reward: Pick<
-    RewardProps,
-    | "description"
-    | "event"
-    | "maxDuration"
-    | "modifiers"
-    | "tooltipDescription"
-    | "type"
-    | "amountInCents"
-    | "amountInPercentage"
-    | "config"
-    | "spendLimitAmount"
-    | "spendLimitInterval"
-  >;
+  target: RewardNotificationTarget;
+  isDefault?: boolean;
+  reward: RewardSnapshot;
   partnerCount?: number;
   onConfirm: (activityDescription?: string) => Promise<void>;
   isPending?: boolean;
 };
 
+type ConfirmRewardChangeModalProps = ConfirmRewardChangeOptions & {
+  showModal: boolean;
+  setShowModal: (show: boolean) => void;
+};
+
+function getDescription({
+  action,
+  target,
+  partnerCount,
+}: {
+  action: RewardChangeAction;
+  target: RewardNotificationTarget;
+  partnerCount?: number;
+}) {
+  if (target === "partner") {
+    return (
+      <>
+        The reward below will be updated for this partner, and they will be{" "}
+        <PartnerEmailNotificationTooltipHelper />.
+      </>
+    );
+  }
+
+  if (target === "link") {
+    return (
+      <>
+        The reward below will be updated for this link, and the partner will be{" "}
+        <PartnerEmailNotificationTooltipHelper />.
+      </>
+    );
+  }
+
+  return (
+    <>
+      The reward below will be {GROUP_CHANGE_COPY[action]} the group
+      {partnerCount && partnerCount > 0 ? (
+        <>
+          , and {partnerCount} {pluralize("partner", partnerCount)} will be{" "}
+          <PartnerEmailNotificationTooltipHelper />
+        </>
+      ) : (
+        ""
+      )}
+      .
+    </>
+  );
+}
+
 export function ConfirmRewardChangeModal({
   showModal,
   setShowModal,
   action,
-  event,
   reward,
   partnerCount,
+  target,
   onConfirm,
   isPending = false,
 }: ConfirmRewardChangeModalProps) {
   const [isLoading, setIsLoading] = useState(false);
-  const { icon: Icon, title } = REWARD_EVENT_DESCRIPTIONS[event];
+  const { icon: Icon, title } = REWARD_EVENT_DESCRIPTIONS[reward.event];
+  const messageLabel =
+    target === "group" ? "Message to partners" : "Message to partner";
 
   const {
     register,
@@ -84,12 +145,6 @@ export function ConfirmRewardChangeModal({
       reset({ activityDescription: "" });
     }
   }, [showModal, reset]);
-
-  const change = {
-    created: "added to",
-    updated: "updated for",
-    deleted: "removed from",
-  }[action];
 
   const onSubmit = handleSubmit(async ({ activityDescription }) => {
     setIsLoading(true);
@@ -114,16 +169,7 @@ export function ConfirmRewardChangeModal({
             {TITLES[action]}
           </h3>
           <p className="text-content-subtle mt-1 text-sm">
-            The reward below will be {change} the group
-            {partnerCount && partnerCount > 0 ? (
-              <>
-                , and {partnerCount} {pluralize("partner", partnerCount)} will
-                be <PartnerEmailNotificationTooltipHelper />
-              </>
-            ) : (
-              ""
-            )}
-            .
+            {getDescription({ action, target, partnerCount })}
           </p>
 
           <div className="mt-4 rounded-lg border border-neutral-200 bg-neutral-100 p-3">
@@ -146,7 +192,7 @@ export function ConfirmRewardChangeModal({
                 htmlFor="activityDescription"
                 className="text-content-emphasis text-sm font-medium"
               >
-                Message to partners
+                {messageLabel}
                 <span className="ml-1 font-normal text-neutral-500">
                   (optional)
                 </span>
@@ -204,37 +250,42 @@ export function ConfirmRewardChangeModal({
 }
 
 export function useConfirmRewardChangeModal() {
-  const [state, setState] = useState<{
-    action: RewardChangeAction;
-    event: EventType;
-    reward: ConfirmRewardChangeModalProps["reward"];
-    onConfirm: (activityDescription?: string) => Promise<void>;
-    isPending?: boolean;
-    partnerCount?: number;
-  } | null>(null);
+  const [state, setState] = useState<ConfirmRewardChangeOptions | null>(null);
+
+  const confirmRewardChange = useCallback(
+    async (options: ConfirmRewardChangeOptions) => {
+      const shouldNotify = shouldNotifyRewardChange({
+        action: options.action,
+        target: options.target,
+        isDefault: options.isDefault,
+        partnerCount: options.partnerCount,
+      });
+
+      if (!shouldNotify) {
+        if (options.action === "deleted") {
+          if (!window.confirm("Are you sure you want to delete this reward?")) {
+            return;
+          }
+        }
+
+        await options.onConfirm();
+        return;
+      }
+
+      setState(options);
+    },
+    [],
+  );
 
   return {
-    openConfirmRewardChangeModal: (options: {
-      action: RewardChangeAction;
-      event: EventType;
-      reward: ConfirmRewardChangeModalProps["reward"];
-      partnerCount?: number;
-      onConfirm: (activityDescription?: string) => Promise<void>;
-      isPending?: boolean;
-    }) => setState(options),
-    closeConfirmRewardChangeModal: () => setState(null),
+    confirmRewardChange,
     ConfirmRewardChangeModal: state ? (
       <ConfirmRewardChangeModal
         showModal
         setShowModal={(show) => {
           if (!show) setState(null);
         }}
-        action={state.action}
-        event={state.event}
-        reward={state.reward}
-        partnerCount={state.partnerCount}
-        onConfirm={state.onConfirm}
-        isPending={state.isPending}
+        {...state}
       />
     ) : null,
   };

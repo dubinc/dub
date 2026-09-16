@@ -5,6 +5,7 @@ import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { linkCache } from "@/lib/api/links/cache";
 import { includeProgramEnrollment } from "@/lib/api/links/include-program-enrollment";
 import { includeTags } from "@/lib/api/links/include-tags";
+import { notifyPartnerRewardOverride } from "@/lib/api/partners/notify-partner-reward-change";
 import { queuePartnerSearchSync } from "@/lib/api/partners/queue-partner-search-sync";
 import { throwIfExistingTenantEnrollmentExists } from "@/lib/api/partners/throw-if-existing-tenant-id-exists";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
@@ -17,6 +18,7 @@ import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { prisma } from "@/lib/prisma";
 import { PARTNER_AND_LINK_REWARDS_PLAN_ERROR } from "@/lib/rewards/constants";
 import { recordLink } from "@/lib/tinybird";
+import { rewardActivityDescriptionSchema } from "@/lib/zod/schemas/rewards";
 import { Prisma } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
@@ -36,6 +38,7 @@ const updatePartnerEnrollmentSchema = z
     saleRewardId: z.string().nullish(),
     discountId: z.string().nullish(),
   })
+  .extend(rewardActivityDescriptionSchema.shape)
   .refine(
     (data) =>
       [
@@ -68,6 +71,7 @@ export const updatePartnerEnrollmentAction = authActionClient
       leadRewardId,
       saleRewardId,
       discountId,
+      activityDescription,
     } = parsedInput;
 
     throwIfNoPermission({
@@ -189,6 +193,7 @@ export const updatePartnerEnrollmentAction = authActionClient
           programId,
           partnerId,
           userId: user.id,
+          description: activityDescription,
           previous: {
             clickRewardId: existingClickRewardId,
             leadRewardId: existingLeadRewardId,
@@ -201,6 +206,22 @@ export const updatePartnerEnrollmentAction = authActionClient
             saleRewardId: programEnrollment.saleRewardId,
             discountId: programEnrollment.discountId,
           },
+        }),
+
+        notifyPartnerRewardOverride({
+          programId,
+          partnerId,
+          previous: {
+            clickRewardId: existingClickRewardId,
+            leadRewardId: existingLeadRewardId,
+            saleRewardId: existingSaleRewardId,
+          },
+          next: {
+            clickRewardId: programEnrollment.clickRewardId,
+            leadRewardId: programEnrollment.leadRewardId,
+            saleRewardId: programEnrollment.saleRewardId,
+          },
+          activityDescription,
         }),
 
         recordAuditLog({

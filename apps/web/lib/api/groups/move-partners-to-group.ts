@@ -11,6 +11,7 @@ import {
   TrackActivityLogInput,
 } from "../activity-log/track-activity-log";
 import { getWorkspaceUsers } from "../get-workspace-users";
+import { linkCache } from "../links/cache";
 import { includeProgramEnrollment } from "../links/include-program-enrollment";
 import { includeTags } from "../links/include-tags";
 import { notifyPartnerGroupChange } from "../partners/notify-partner-group-change";
@@ -75,24 +76,37 @@ export async function movePartnersToGroup({
 
   partnerIds = programEnrollments.map(({ partnerId }) => partnerId);
 
-  const { count } = await prisma.programEnrollment.updateMany({
-    where: {
-      partnerId: {
-        in: partnerIds,
+  const [{ count }] = await prisma.$transaction([
+    prisma.programEnrollment.updateMany({
+      where: {
+        partnerId: {
+          in: partnerIds,
+        },
+        programId,
       },
-      programId,
-    },
-    data: {
-      groupId: group.id,
-      clickRewardId: group.clickRewardId,
-      leadRewardId: group.leadRewardId,
-      saleRewardId: group.saleRewardId,
-      referralRewardId: group.referralRewardId,
-      customRewardId: group.customRewardId,
-      discountId: group.discountId,
-      ...(groupMoveDisabledAt !== undefined && { groupMoveDisabledAt }),
-    },
-  });
+      data: {
+        groupId: group.id,
+        clickRewardId: group.clickRewardId,
+        leadRewardId: group.leadRewardId,
+        saleRewardId: group.saleRewardId,
+        referralRewardId: group.referralRewardId,
+        customRewardId: group.customRewardId,
+        discountId: group.discountId,
+        ...(groupMoveDisabledAt !== undefined && { groupMoveDisabledAt }),
+      },
+    }),
+
+    prisma.linkReward.deleteMany({
+      where: {
+        link: {
+          programId,
+          partnerId: {
+            in: partnerIds,
+          },
+        },
+      },
+    }),
+  ]);
 
   if (count === 0) {
     return 0;
@@ -194,6 +208,8 @@ export async function movePartnersToGroup({
         }),
 
         recordLink(partnerLinks),
+
+        linkCache.expireMany(partnerLinks),
 
         notifyPartnerGroupChange({
           programId,
