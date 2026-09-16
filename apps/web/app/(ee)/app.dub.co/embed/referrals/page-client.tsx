@@ -559,7 +559,7 @@ function EmbedRewardsSection({
 
   const customerRewardsList =
     customerRewardItems.length > 0 ? (
-      <div className="border-border-subtle bg-bg-default space-y-4 rounded-lg border p-3">
+      <div className="border-border-subtle bg-bg-default relative z-[1] space-y-4 rounded-lg border p-3">
         {customerRewardItems.map((reward) => {
           const RewardIcon = reward.icon;
 
@@ -616,16 +616,17 @@ function EmbedRewardsSection({
           <QueryLinkStructureHelpText link={selectedLink} />
         )}
 
-        {showPayoutTerms ? (
-          <div className="border-border-subtle bg-bg-muted overflow-hidden rounded-lg border">
+        {(customerRewardsList || showPayoutTerms) && (
+          <div>
             {customerRewardsList}
-            <EmbedPayoutTerms
-              minPayoutAmount={program.minPayoutAmount}
-              holdingPeriodDays={group.holdingPeriodDays ?? 0}
-            />
+            {showPayoutTerms && (
+              <EmbedPayoutTerms
+                minPayoutAmount={program.minPayoutAmount}
+                holdingPeriodDays={group.holdingPeriodDays ?? 0}
+                tucked={Boolean(customerRewardsList)}
+              />
+            )}
           </div>
-        ) : (
-          customerRewardsList
         )}
       </div>
 
@@ -667,9 +668,11 @@ function EmbedRewardsSection({
 function EmbedPayoutTerms({
   minPayoutAmount,
   holdingPeriodDays,
+  tucked = false,
 }: {
   minPayoutAmount: number;
   holdingPeriodDays: number;
+  tucked?: boolean;
 }) {
   const items = [
     ...(minPayoutAmount > 0
@@ -699,7 +702,14 @@ function EmbedPayoutTerms({
   }
 
   return (
-    <div className="text-content-subtle flex flex-wrap items-center gap-1.5 px-3 py-2 text-xs tracking-tight">
+    <div
+      className={cn(
+        "border-border-subtle bg-bg-muted text-content-subtle flex flex-wrap items-center gap-1.5 text-xs tracking-tight",
+        tucked
+          ? "-mt-2 rounded-b-lg rounded-t-none border border-t-0 p-1.5 pl-2.5 pt-3.5"
+          : "rounded-lg border px-3 py-2",
+      )}
+    >
       {items.map((item, index) => (
         <Fragment key={item.label}>
           {index > 0 && (

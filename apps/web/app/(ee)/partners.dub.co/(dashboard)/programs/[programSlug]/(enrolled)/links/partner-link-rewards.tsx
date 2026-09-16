@@ -89,8 +89,8 @@ export function PartnerLinkRewardsSummary({
             onClick={onToggleRewards}
             aria-expanded={showRewards}
             className={cn(
-              "inline-flex h-4 shrink-0 items-center justify-center rounded-md bg-blue-100 px-1.5 text-xs font-semibold leading-4 tracking-tight text-blue-700 transition-colors",
-              showRewards && "bg-blue-200",
+              "inline-flex h-4 shrink-0 items-center justify-center rounded-md bg-neutral-100 px-1.5 text-xs font-semibold leading-4 tracking-tight text-neutral-600 transition-colors",
+              showRewards && "bg-blue-100 text-blue-700",
             )}
           >
             +{additionalCount}
