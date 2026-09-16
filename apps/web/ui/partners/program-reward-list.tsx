@@ -138,7 +138,7 @@ function EditAction({
           ? "cursor-not-allowed opacity-50"
           : "hover:text-content-default",
       )}
-      disabled={Boolean(disabledTooltip)}
+      aria-disabled={Boolean(disabledTooltip) || undefined}
       onClick={disabledTooltip ? undefined : onClick}
     >
       Edit

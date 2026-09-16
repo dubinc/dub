@@ -28,6 +28,7 @@ export function DiscountSelector({
         selected={selected}
         setSelected={(option) => {
           if (!option) {
+            onChange(null);
             return;
           }
 

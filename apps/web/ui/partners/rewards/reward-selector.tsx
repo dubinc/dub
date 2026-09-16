@@ -30,6 +30,7 @@ export function RewardSelector({
         selected={selected}
         setSelected={(option) => {
           if (!option) {
+            onChange(null);
             return;
           }
 

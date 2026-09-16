@@ -164,6 +164,7 @@ export const POST = withCron(async ({ rawBody }) => {
     if (data) {
       const { count } = await prisma.programEnrollment.updateMany({
         where: {
+          ...where,
           id: {
             in: programEnrollments.map(({ id }) => id),
           },

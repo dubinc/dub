@@ -1,5 +1,6 @@
 import { createId } from "@/lib/api/create-id";
 import { hashToken } from "@/lib/auth/hash-token";
+import { tokenCache } from "@/lib/auth/token-cache";
 import { prisma } from "@/lib/prisma";
 import {
   DEFAULT_ADDITIONAL_PARTNER_LINKS,
@@ -209,6 +210,10 @@ export async function setupTestWorkspace() {
       scopes: "apis.all",
     },
   });
+
+  // Truncating the DB leaves a stale Redis token cache pointing at the old
+  // workspace id, which then 404s as "Workspace not found."
+  await tokenCache.delete({ hashedKey });
 
   const { programId, defaultGroupId } = await setupTestProgram({
     workspaceId: workspace.id,
