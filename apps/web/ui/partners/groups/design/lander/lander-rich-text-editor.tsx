@@ -19,7 +19,6 @@ export const LANDER_RICH_TEXT_FEATURES: RichTextFeature[] = [
   "lists",
   "tables",
   "quote",
-  "code",
 ];
 
 export function LanderRichTextEditor({
@@ -84,7 +83,9 @@ function TextLength({
   const onChangeRef = useRef(onChange);
   onChangeRef.current = onChange;
 
-  useEffect(() => onChangeRef.current?.(length), [length]);
+  useEffect(() => {
+    onChangeRef.current?.(length);
+  }, [length]);
 
   return maxLength === undefined ? null : (
     <div className="mt-1 text-left">

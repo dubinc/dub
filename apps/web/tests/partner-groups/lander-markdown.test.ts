@@ -18,7 +18,7 @@ const FEATURE_FOR_ELEMENT: Record<string, RichTextFeature | null> = {
   ol: "lists",
   li: "lists",
   blockquote: "quote",
-  code: "code",
+  code: null,
   table: "tables",
   thead: "tables",
   tbody: "tables",
@@ -51,7 +51,7 @@ describe("lander markdown", () => {
     expect(unmapped).toEqual([]);
   });
 
-  test.each(["img", "del", "hr", "pre", "input"])(
+  test.each(["img", "del", "hr", "pre", "code", "input"])(
     "keeps rendering %s",
     (element) => {
       expect(LANDER_MARKDOWN_ALLOWED_ELEMENTS).toContain(element);
