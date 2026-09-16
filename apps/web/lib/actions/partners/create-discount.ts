@@ -119,22 +119,22 @@ export const createDiscountAction = authActionClient
           throw new Error("This group already has a default discount.");
         }
 
-        await tx.programEnrollment.updateMany({
-          where: {
-            groupId,
-            discountId: null,
-          },
-          data: {
-            discountId: discount.id,
-          },
-        });
-
         await tx.discountCode.updateMany({
           where: {
             programEnrollment: {
               groupId,
               discountId: null,
             },
+          },
+          data: {
+            discountId: discount.id,
+          },
+        });
+
+        await tx.programEnrollment.updateMany({
+          where: {
+            groupId,
+            discountId: null,
           },
           data: {
             discountId: discount.id,

@@ -18,7 +18,6 @@ import { PARTNER_AND_LINK_REWARDS_PLAN_ERROR } from "@/lib/rewards/constants";
 import { WorkspaceProps } from "@/lib/types";
 import { updatePartnerLinkSchema } from "@/lib/zod/schemas/partners";
 import { ProgramPartnerLinkSchema } from "@/lib/zod/schemas/programs";
-import { getValue } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
 
@@ -116,24 +115,7 @@ export async function updatePartnerLink({
 
   // Group defaults are inherited; only persist real link-level overrides.
   const linkRewardInput = omitGroupDefaultRewardIds({
-    rewardIds: {
-      clickRewardId: getValue(
-        body.clickRewardId,
-        existingLinkReward?.clickRewardId ?? null,
-      ),
-      leadRewardId: getValue(
-        body.leadRewardId,
-        existingLinkReward?.leadRewardId ?? null,
-      ),
-      saleRewardId: getValue(
-        body.saleRewardId,
-        existingLinkReward?.saleRewardId ?? null,
-      ),
-      discountId: getValue(
-        body.discountId,
-        existingLinkReward?.discountId ?? null,
-      ),
-    },
+    rewardIds: body,
     groupDefaults: partnerGroup,
   });
 

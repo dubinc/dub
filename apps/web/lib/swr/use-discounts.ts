@@ -22,7 +22,6 @@ export function useDiscounts({
     workspaceId && defaultProgramId && `/api/discounts?${searchParams}`,
     fetcher,
     {
-      keepPreviousData: true,
       ...swrOpts,
     },
   );

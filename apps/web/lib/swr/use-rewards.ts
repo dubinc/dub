@@ -28,7 +28,6 @@ export function useRewards({
     fetcher,
     {
       ...swrOpts,
-      keepPreviousData: true,
     },
   );
 

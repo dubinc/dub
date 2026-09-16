@@ -59,22 +59,34 @@ export const omitGroupDefaultRewardIds = ({
   rewardIds: LinkRewardIdsInput;
   groupDefaults: Partial<LinkRewardIds> | null | undefined;
 }): LinkRewardIdsInput => ({
-  clickRewardId: omitGroupDefault({
-    value: rewardIds.clickRewardId,
-    groupDefaultId: groupDefaults?.clickRewardId,
-  }),
-  leadRewardId: omitGroupDefault({
-    value: rewardIds.leadRewardId,
-    groupDefaultId: groupDefaults?.leadRewardId,
-  }),
-  saleRewardId: omitGroupDefault({
-    value: rewardIds.saleRewardId,
-    groupDefaultId: groupDefaults?.saleRewardId,
-  }),
-  discountId: omitGroupDefault({
-    value: rewardIds.discountId,
-    groupDefaultId: groupDefaults?.discountId,
-  }),
+  clickRewardId:
+    rewardIds.clickRewardId === undefined
+      ? undefined
+      : omitGroupDefault({
+          value: rewardIds.clickRewardId,
+          groupDefaultId: groupDefaults?.clickRewardId,
+        }),
+  leadRewardId:
+    rewardIds.leadRewardId === undefined
+      ? undefined
+      : omitGroupDefault({
+          value: rewardIds.leadRewardId,
+          groupDefaultId: groupDefaults?.leadRewardId,
+        }),
+  saleRewardId:
+    rewardIds.saleRewardId === undefined
+      ? undefined
+      : omitGroupDefault({
+          value: rewardIds.saleRewardId,
+          groupDefaultId: groupDefaults?.saleRewardId,
+        }),
+  discountId:
+    rewardIds.discountId === undefined
+      ? undefined
+      : omitGroupDefault({
+          value: rewardIds.discountId,
+          groupDefaultId: groupDefaults?.discountId,
+        }),
 });
 
 export const getRewardIds = (
