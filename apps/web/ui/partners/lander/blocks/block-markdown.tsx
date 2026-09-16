@@ -1,36 +1,9 @@
+import { LANDER_MARKDOWN_ALLOWED_ELEMENTS } from "@/ui/partners/lander/lander-markdown";
 import { cn } from "@dub/utils";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
-export const LANDER_MARKDOWN_ALLOWED_ELEMENTS = [
-  "p",
-  "br",
-  "strong",
-  "em",
-  "del",
-  "a",
-  "img",
-  "hr",
-  "ul",
-  "ol",
-  "li",
-  "input",
-  "blockquote",
-  "pre",
-  "code",
-  "table",
-  "thead",
-  "tbody",
-  "tr",
-  "th",
-  "td",
-  "h1",
-  "h2",
-  "h3",
-  "h4",
-  "h5",
-  "h6",
-];
+export { LANDER_MARKDOWN_ALLOWED_ELEMENTS };
 
 export function BlockMarkdown({
   className,

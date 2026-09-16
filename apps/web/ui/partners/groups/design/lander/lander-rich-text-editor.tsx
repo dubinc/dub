@@ -1,25 +1,14 @@
 "use client";
 
+import { LANDER_RICH_TEXT_FEATURES } from "@/ui/partners/lander/lander-markdown";
 import {
   RichTextArea,
-  RichTextFeature,
   RichTextProvider,
   RichTextToolbar,
   useRichTextLength,
 } from "@dub/ui";
 import { cn, nFormatter } from "@dub/utils";
 import { useEffect, useRef } from "react";
-
-export const LANDER_RICH_TEXT_FEATURES: RichTextFeature[] = [
-  "headings",
-  "bold",
-  "italic",
-  "strike",
-  "links",
-  "lists",
-  "tables",
-  "quote",
-];
 
 export function LanderRichTextEditor({
   id,
@@ -42,7 +31,7 @@ export function LanderRichTextEditor({
 }) {
   return (
     <RichTextProvider
-      features={LANDER_RICH_TEXT_FEATURES}
+      features={[...LANDER_RICH_TEXT_FEATURES]}
       markdown
       style="relaxed"
       placeholder={placeholder}

@@ -1,9 +1,12 @@
-import { LANDER_RICH_TEXT_FEATURES } from "@/ui/partners/groups/design/lander/lander-rich-text-editor";
-import { LANDER_MARKDOWN_ALLOWED_ELEMENTS } from "@/ui/partners/lander/blocks/block-markdown";
-import type { RichTextFeature } from "@dub/ui";
+import {
+  LANDER_MARKDOWN_ALLOWED_ELEMENTS,
+  LANDER_RICH_TEXT_FEATURES,
+} from "@/ui/partners/lander/lander-markdown";
 import { describe, expect, test } from "vitest";
 
-const FEATURE_FOR_ELEMENT: Record<string, RichTextFeature | null> = {
+type LanderRichTextFeature = (typeof LANDER_RICH_TEXT_FEATURES)[number];
+
+const FEATURE_FOR_ELEMENT: Record<string, LanderRichTextFeature | null> = {
   h1: "headings",
   h2: "headings",
   h3: "headings",
@@ -37,7 +40,10 @@ describe("lander markdown", () => {
   test("every renderable element has a matching editor feature", () => {
     const missing = LANDER_MARKDOWN_ALLOWED_ELEMENTS.filter((element) => {
       const feature = FEATURE_FOR_ELEMENT[element];
-      return feature !== null && !LANDER_RICH_TEXT_FEATURES.includes(feature);
+      return (
+        feature !== null &&
+        !LANDER_RICH_TEXT_FEATURES.includes(feature as LanderRichTextFeature)
+      );
     });
 
     expect(missing).toEqual([]);
