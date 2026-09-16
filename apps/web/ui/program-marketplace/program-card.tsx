@@ -1,13 +1,11 @@
 "use client";
 
 import { NetworkProgramProps } from "@/lib/types";
-import { ProgramCategory } from "@/ui/program-marketplace/program-category";
-import { ProgramRewardsDisplay } from "@/ui/program-marketplace/program-rewards-display";
 import {
-  getMarketplaceAllHref,
-  getMarketplaceCategoryHref,
-} from "@/ui/program-marketplace/utils/urls";
-import { Tooltip } from "@dub/ui";
+  MarketplaceRewardsLabel,
+  ProgramRewardsDisplay,
+} from "@/ui/program-marketplace/program-rewards-display";
+import { getMarketplaceAllHref } from "@/ui/program-marketplace/utils/urls";
 import { OG_AVATAR_URL, cn } from "@dub/utils";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -23,6 +21,7 @@ export function MarketplaceProgramCard({
   className?: string;
 }) {
   const router = useRouter();
+  const rewards = program.rewards;
 
   return (
     <Link
@@ -52,72 +51,21 @@ export function MarketplaceProgramCard({
             `${program.name} is a program in the Dub Partner Network. Join the network to start partnering with them.`}
         </div>
 
-        <div className="mt-5 flex gap-4">
-          {Boolean(program.rewards?.length) && (
-            <div>
-              <span className="text-content-muted block text-xs font-medium">
-                Rewards
-              </span>
-              <ProgramRewardsDisplay
-                rewards={program.rewards}
-                onRewardClick={(reward) =>
-                  router.push(
-                    getMarketplaceAllHref({ rewardType: reward.event }),
-                  )
-                }
-                className="mt-2"
-                {...(externalMarketplace
-                  ? { descriptionClassName: "sm:max-w-[200px]" }
-                  : {})}
-              />
-            </div>
-          )}
-          {Boolean(program.categories.length) &&
-            // hide categories for external marketplace (narrow max width)
-            !externalMarketplace && (
-              <div className="hidden min-w-0 sm:block">
-                <span className="text-content-muted block text-xs font-medium">
-                  Category
-                </span>
-                <div className="mt-2 flex items-center gap-1.5">
-                  {program.categories
-                    .slice(0, 1)
-                    ?.map((category) => (
-                      <ProgramCategory
-                        key={category}
-                        category={category}
-                        onClick={() =>
-                          router.push(getMarketplaceCategoryHref(category))
-                        }
-                      />
-                    ))}
-                  {program.categories.length > 1 && (
-                    <Tooltip
-                      content={
-                        <div className="flex flex-col gap-0.5 p-2">
-                          {program.categories.slice(1).map((category) => (
-                            <ProgramCategory
-                              key={category}
-                              category={category}
-                              onClick={() =>
-                                router.push(
-                                  getMarketplaceCategoryHref(category),
-                                )
-                              }
-                            />
-                          ))}
-                        </div>
-                      }
-                    >
-                      <div className="text-content-subtle -ml-1.5 flex size-6 items-center justify-center rounded-md text-xs font-medium">
-                        +{program.categories.length - 1}
-                      </div>
-                    </Tooltip>
-                  )}
-                </div>
-              </div>
-            )}
-        </div>
+        {rewards?.length ? (
+          <div className="mt-5 min-w-0">
+            <MarketplaceRewardsLabel
+              count={rewards.length}
+              className="text-content-muted text-xs font-medium"
+            />
+            <ProgramRewardsDisplay
+              rewards={rewards}
+              onRewardClick={(reward) =>
+                router.push(getMarketplaceAllHref({ rewardType: reward.event }))
+              }
+              className="mt-2"
+            />
+          </div>
+        ) : null}
       </div>
     </Link>
   );
@@ -149,7 +97,7 @@ export function MarketplaceProgramCardSkeleton({
           <div className="h-4 w-3/4 animate-pulse rounded bg-neutral-200" />
         </div>
 
-        {/* Rewards/Category section - matches actual card structure */}
+        {/* Rewards section - matches actual card structure */}
         <div className="mt-4 flex gap-4">
           <div>
             <div className="h-3.5 w-12 animate-pulse rounded bg-neutral-200" />
