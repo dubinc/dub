@@ -16,6 +16,7 @@ export type LinkRewardWithOptionalRewards = LinkRewardIds & {
   discount?: Discount | null;
 };
 
+// True when any reward/discount field was sent, including explicit null clears.
 export const hasRewardIdsInput = ({
   clickRewardId,
   leadRewardId,
@@ -27,6 +28,18 @@ export const hasRewardIdsInput = ({
     leadRewardId !== undefined ||
     saleRewardId !== undefined ||
     discountId !== undefined
+  );
+};
+
+// True when any field assigns a non-null reward/discount id (not a clear).
+export const hasRewardAssignment = ({
+  clickRewardId,
+  leadRewardId,
+  saleRewardId,
+  discountId,
+}: LinkRewardIdsInput) => {
+  return [clickRewardId, leadRewardId, saleRewardId, discountId].some(
+    (id) => id !== undefined && id !== null,
   );
 };
 

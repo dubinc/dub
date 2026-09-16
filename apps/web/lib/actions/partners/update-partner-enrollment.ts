@@ -11,6 +11,7 @@ import { throwIfExistingTenantEnrollmentExists } from "@/lib/api/partners/throw-
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import {
+  hasRewardAssignment,
   hasRewardIdsInput,
   throwIfInvalidRewardIds,
 } from "@/lib/api/rewards/additional-rewards";
@@ -81,15 +82,15 @@ export const updatePartnerEnrollmentAction = authActionClient
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    const hasRewardOverride = hasRewardIdsInput({
+    const rewardIdsInput = {
       clickRewardId,
       leadRewardId,
       saleRewardId,
       discountId,
-    });
+    };
 
     if (
-      hasRewardOverride &&
+      hasRewardAssignment(rewardIdsInput) &&
       !getPlanCapabilities(workspace.plan).canUseAdvancedRewardLogic
     ) {
       throw new Error(PARTNER_AND_LINK_REWARDS_PLAN_ERROR);
@@ -179,7 +180,7 @@ export const updatePartnerEnrollmentAction = authActionClient
           ? [recordLink(programEnrollment.links)]
           : []),
 
-        ...(hasRewardOverride
+        ...(hasRewardIdsInput(rewardIdsInput)
           ? [linkCache.expireMany(programEnrollment.links)]
           : []),
 

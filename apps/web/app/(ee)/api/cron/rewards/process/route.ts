@@ -67,7 +67,8 @@ export const POST = withCron(async ({ rawBody }) => {
     return logAndRespond(`Group ${groupId} not found. Skipping...`);
   }
 
-  // reward-created jobs assign this reward to all enrollments in the group.
+  // reward-created jobs assign this reward only to enrollments that still
+  // inherit "no reward" for this event (custom enrollment overrides stay).
   // Skip if it's no longer the group's default for this event
   if (event === "reward-created") {
     if (rewardId !== group[REWARD_EVENT_COLUMN_MAPPING[reward.event]]) {
@@ -98,6 +99,7 @@ export const POST = withCron(async ({ rawBody }) => {
 
   switch (event) {
     case "reward-created":
+      where = { [rewardIdColumn]: null };
       data = { [rewardIdColumn]: reward.id };
       break;
 

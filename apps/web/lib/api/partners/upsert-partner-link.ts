@@ -11,8 +11,8 @@ import { updatePartnerLink } from "@/lib/api/partners/update-partner-link";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import {
   getRewardIds,
+  hasRewardAssignment,
   hasRewardIdsInput,
-  LinkRewardIdsInput,
   throwIfInvalidRewardIds,
 } from "@/lib/api/rewards/additional-rewards";
 import { applyGroupUtmToLink } from "@/lib/api/utm/apply-group-utm-to-link";
@@ -58,6 +58,11 @@ type ExistingPartnerLink = Prisma.LinkGetPayload<{
 
 type UpsertPartnerLinkBody = z.infer<typeof upsertPartnerLinkSchema>;
 
+type PartnerLinkRewardInput = Pick<
+  UpsertPartnerLinkBody,
+  "clickRewardId" | "leadRewardId" | "saleRewardId" | "discountId"
+>;
+
 type UpsertPartnerLinkWorkspace = Pick<
   WorkspaceProps,
   "id" | "plan" | "webhookEnabled" | "users"
@@ -80,7 +85,7 @@ type UpsertPartnerLinkBranchParams = {
   partnerGroup: NonNullable<UpsertPartnerEnrollment["partnerGroup"]>;
   userId: string;
   body: UpsertPartnerLinkBody;
-  linkRewardInput: LinkRewardIdsInput;
+  linkRewardInput: PartnerLinkRewardInput;
 };
 
 export async function upsertPartnerLink({
@@ -381,7 +386,7 @@ async function createNewPartnerLink({
   });
 
   if (
-    hasRewardIdsInput(linkRewardInput) &&
+    hasRewardAssignment(linkRewardInput) &&
     !getPlanCapabilities(workspace.plan).canUseAdvancedRewardLogic
   ) {
     throw new DubApiError({

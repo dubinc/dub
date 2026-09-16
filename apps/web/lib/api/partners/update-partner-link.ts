@@ -5,7 +5,9 @@ import { getLinkOrThrow } from "@/lib/api/links/get-link-or-throw";
 import { notifyPartnerRewardOverride } from "@/lib/api/partners/notify-partner-reward-change";
 import {
   getRewardIds,
+  hasRewardAssignment,
   hasRewardIdsInput,
+  LinkRewardIdsInput,
   throwIfInvalidRewardIds,
 } from "@/lib/api/rewards/additional-rewards";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
@@ -23,7 +25,10 @@ type UpdatePartnerLinkParams = {
   programId: string;
   linkId: string;
   userId: string;
-} & z.infer<typeof updatePartnerLinkSchema>;
+  activityDescription?: z.infer<
+    typeof updatePartnerLinkSchema
+  >["activityDescription"];
+} & LinkRewardIdsInput;
 
 const omitGroupDefault = (
   value: string | null,
@@ -46,7 +51,10 @@ export async function updatePartnerLink({
     });
   }
 
-  if (!getPlanCapabilities(workspace.plan).canUseAdvancedRewardLogic) {
+  if (
+    hasRewardAssignment(body) &&
+    !getPlanCapabilities(workspace.plan).canUseAdvancedRewardLogic
+  ) {
     throw new DubApiError({
       code: "forbidden",
       message: PARTNER_AND_LINK_REWARDS_PLAN_ERROR,

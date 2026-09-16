@@ -5,6 +5,7 @@ import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-progr
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import {
   getRewardIds,
+  hasRewardAssignment,
   hasRewardIdsInput,
   LinkRewardIdsInput,
   throwIfInvalidRewardIds,
@@ -193,7 +194,7 @@ export const POST = withWorkspace(
     const hasLinkLevelReward = hasRewardIdsInput(linkRewardInput);
 
     if (
-      hasLinkLevelReward &&
+      hasRewardAssignment(linkRewardInput) &&
       !getPlanCapabilities(workspace.plan).canUseAdvancedRewardLogic
     ) {
       throw new DubApiError({

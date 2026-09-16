@@ -24,14 +24,14 @@ export async function generateDiscountCodeForPartner({
     where: {
       id: partner.groupId,
     },
-    include: {
-      discount: true,
+    select: {
+      programId: true,
     },
   });
 
-  if (!group?.discount?.autoProvisionEnabledAt) {
+  if (!group) {
     console.log(
-      `Group ${partner.groupId} does not have auto provision enabled, skipping discount code creation...`,
+      `Group ${partner.groupId} not found, skipping discount code creation...`,
     );
     return;
   }
@@ -76,6 +76,13 @@ export async function generateDiscountCodeForPartner({
   if (!discount) {
     console.log(
       `No discount found for partner ${partner.id}, skipping discount code creation...`,
+    );
+    return;
+  }
+
+  if (!discount.autoProvisionEnabledAt) {
+    console.log(
+      `Discount ${discount.id} does not have auto provision enabled, skipping discount code creation...`,
     );
     return;
   }
