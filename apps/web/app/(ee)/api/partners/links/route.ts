@@ -6,8 +6,7 @@ import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import {
   getRewardIds,
   hasRewardAssignment,
-  hasRewardIdsInput,
-  LinkRewardIdsInput,
+  omitGroupDefaultRewardIds,
   throwIfInvalidRewardIds,
 } from "@/lib/api/rewards/additional-rewards";
 import { parseRequestBody } from "@/lib/api/utils";
@@ -184,17 +183,20 @@ export const POST = withWorkspace(
     });
 
     // Validate link level rewards
-    const linkRewardInput: LinkRewardIdsInput = {
-      clickRewardId,
-      leadRewardId,
-      saleRewardId,
-      discountId,
-    };
+    const linkRewardInput = omitGroupDefaultRewardIds({
+      rewardIds: {
+        clickRewardId,
+        leadRewardId,
+        saleRewardId,
+        discountId,
+      },
+      groupDefaults: partnerGroup,
+    });
 
-    const hasLinkLevelReward = hasRewardIdsInput(linkRewardInput);
+    const hasLinkLevelReward = hasRewardAssignment(linkRewardInput);
 
     if (
-      hasRewardAssignment(linkRewardInput) &&
+      hasLinkLevelReward &&
       !getPlanCapabilities(workspace.plan).canUseAdvancedRewardLogic
     ) {
       throw new DubApiError({
@@ -211,7 +213,7 @@ export const POST = withWorkspace(
 
     const partnerLink = await createLink({
       ...linkWithUtm,
-      linkReward: linkRewardInput,
+      ...(hasLinkLevelReward && { linkReward: linkRewardInput }),
     });
 
     const response = {

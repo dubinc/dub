@@ -1,6 +1,6 @@
 import { queuePartnerSearchSync } from "@/lib/api/partners/queue-partner-search-sync";
 import {
-  hasRewardIdsInput,
+  hasRewardAssignment,
   LinkRewardIdsInput,
 } from "@/lib/api/rewards/additional-rewards";
 import { qstash } from "@/lib/cron";
@@ -60,7 +60,7 @@ export async function createLink(link: CreateLinkOptions) {
     key,
   });
 
-  const hasLinkLevelReward = linkReward && hasRewardIdsInput(linkReward);
+  const hasLinkLevelReward = linkReward && hasRewardAssignment(linkReward);
 
   const response = await withPrismaRetry(() =>
     prisma.link.create({

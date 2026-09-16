@@ -8,6 +8,7 @@ import {
   hasRewardAssignment,
   hasRewardIdsInput,
   LinkRewardIdsInput,
+  omitGroupDefaultRewardIds,
   throwIfInvalidRewardIds,
 } from "@/lib/api/rewards/additional-rewards";
 import { remapDiscountCodes } from "@/lib/discounts/remap-discount-codes";
@@ -30,11 +31,6 @@ type UpdatePartnerLinkParams = {
     typeof updatePartnerLinkSchema
   >["activityDescription"];
 } & LinkRewardIdsInput;
-
-const omitGroupDefault = (
-  value: string | null,
-  groupDefaultId: string | null | undefined,
-) => (value && value === groupDefaultId ? null : value);
 
 export async function updatePartnerLink({
   workspace,
@@ -119,24 +115,27 @@ export async function updatePartnerLink({
   const { partnerGroup } = programEnrollment;
 
   // Group defaults are inherited; only persist real link-level overrides.
-  const linkRewardInput = {
-    clickRewardId: omitGroupDefault(
-      getValue(body.clickRewardId, existingLinkReward?.clickRewardId ?? null),
-      partnerGroup?.clickRewardId,
-    ),
-    leadRewardId: omitGroupDefault(
-      getValue(body.leadRewardId, existingLinkReward?.leadRewardId ?? null),
-      partnerGroup?.leadRewardId,
-    ),
-    saleRewardId: omitGroupDefault(
-      getValue(body.saleRewardId, existingLinkReward?.saleRewardId ?? null),
-      partnerGroup?.saleRewardId,
-    ),
-    discountId: omitGroupDefault(
-      getValue(body.discountId, existingLinkReward?.discountId ?? null),
-      partnerGroup?.discountId,
-    ),
-  };
+  const linkRewardInput = omitGroupDefaultRewardIds({
+    rewardIds: {
+      clickRewardId: getValue(
+        body.clickRewardId,
+        existingLinkReward?.clickRewardId ?? null,
+      ),
+      leadRewardId: getValue(
+        body.leadRewardId,
+        existingLinkReward?.leadRewardId ?? null,
+      ),
+      saleRewardId: getValue(
+        body.saleRewardId,
+        existingLinkReward?.saleRewardId ?? null,
+      ),
+      discountId: getValue(
+        body.discountId,
+        existingLinkReward?.discountId ?? null,
+      ),
+    },
+    groupDefaults: partnerGroup,
+  });
 
   await throwIfInvalidRewardIds({
     programId,

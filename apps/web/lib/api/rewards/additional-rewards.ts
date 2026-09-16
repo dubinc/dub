@@ -43,6 +43,40 @@ export const hasRewardAssignment = ({
   );
 };
 
+// Group defaults are inherited; only persist real link-level overrides.
+const omitGroupDefault = ({
+  value,
+  groupDefaultId,
+}: {
+  value: string | null | undefined;
+  groupDefaultId: string | null | undefined;
+}) => (value && value === groupDefaultId ? null : value);
+
+export const omitGroupDefaultRewardIds = ({
+  rewardIds,
+  groupDefaults,
+}: {
+  rewardIds: LinkRewardIdsInput;
+  groupDefaults: Partial<LinkRewardIds> | null | undefined;
+}): LinkRewardIdsInput => ({
+  clickRewardId: omitGroupDefault({
+    value: rewardIds.clickRewardId,
+    groupDefaultId: groupDefaults?.clickRewardId,
+  }),
+  leadRewardId: omitGroupDefault({
+    value: rewardIds.leadRewardId,
+    groupDefaultId: groupDefaults?.leadRewardId,
+  }),
+  saleRewardId: omitGroupDefault({
+    value: rewardIds.saleRewardId,
+    groupDefaultId: groupDefaults?.saleRewardId,
+  }),
+  discountId: omitGroupDefault({
+    value: rewardIds.discountId,
+    groupDefaultId: groupDefaults?.discountId,
+  }),
+});
+
 export const getRewardIds = (
   linkReward: LinkRewardIdsInput | null | undefined,
 ) => ({

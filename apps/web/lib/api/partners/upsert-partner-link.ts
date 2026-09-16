@@ -13,6 +13,7 @@ import {
   getRewardIds,
   hasRewardAssignment,
   hasRewardIdsInput,
+  omitGroupDefaultRewardIds,
   throwIfInvalidRewardIds,
 } from "@/lib/api/rewards/additional-rewards";
 import { applyGroupUtmToLink } from "@/lib/api/utm/apply-group-utm-to-link";
@@ -253,6 +254,16 @@ async function updateExistingPartnerLink({
 
   let response = transformLink(existingLinkWithoutReward);
 
+  const updatedPartnerLink = shouldUpdateRewards
+    ? await updatePartnerLink({
+        workspace,
+        programId: program.id,
+        linkId: existingLink.id,
+        userId,
+        ...linkRewardInput,
+      })
+    : null;
+
   if (!linkUnchanged) {
     // if domain and key are the same, we don't need to check if the key exists
     const skipKeyChecks =
@@ -319,15 +330,7 @@ async function updateExistingPartnerLink({
     }
   }
 
-  if (shouldUpdateRewards) {
-    const updatedPartnerLink = await updatePartnerLink({
-      workspace,
-      programId: program.id,
-      linkId: existingLink.id,
-      userId,
-      ...linkRewardInput,
-    });
-
+  if (updatedPartnerLink) {
     return {
       ...response,
       clickReward: updatedPartnerLink.clickReward,
@@ -385,8 +388,15 @@ async function createNewPartnerLink({
     partnerName: enrollment.partner.name,
   });
 
+  const persistedLinkRewardInput = omitGroupDefaultRewardIds({
+    rewardIds: linkRewardInput,
+    groupDefaults: partnerGroup,
+  });
+
+  const hasLinkLevelReward = hasRewardAssignment(persistedLinkRewardInput);
+
   if (
-    hasRewardAssignment(linkRewardInput) &&
+    hasLinkLevelReward &&
     !getPlanCapabilities(workspace.plan).canUseAdvancedRewardLogic
   ) {
     throw new DubApiError({
@@ -398,12 +408,12 @@ async function createNewPartnerLink({
   await throwIfInvalidRewardIds({
     programId: program.id,
     groupId: partnerGroup.id,
-    ...linkRewardInput,
+    ...persistedLinkRewardInput,
   });
 
   const partnerLink = await createLink({
     ...linkWithUtm,
-    linkReward: linkRewardInput,
+    ...(hasLinkLevelReward && { linkReward: persistedLinkRewardInput }),
   });
 
   waitUntil(
@@ -413,7 +423,8 @@ async function createNewPartnerLink({
         workspace,
         data: linkEventSchema.parse(partnerLink),
       }),
-      ...(hasRewardIdsInput(linkRewardInput)
+
+      ...(hasLinkLevelReward
         ? [
             trackLinkRewardOverrideLog({
               workspaceId: workspace.id,
@@ -427,10 +438,10 @@ async function createNewPartnerLink({
                 discountId: null,
               },
               next: {
-                clickRewardId: linkRewardInput.clickRewardId ?? null,
-                leadRewardId: linkRewardInput.leadRewardId ?? null,
-                saleRewardId: linkRewardInput.saleRewardId ?? null,
-                discountId: linkRewardInput.discountId ?? null,
+                clickRewardId: persistedLinkRewardInput.clickRewardId ?? null,
+                leadRewardId: persistedLinkRewardInput.leadRewardId ?? null,
+                saleRewardId: persistedLinkRewardInput.saleRewardId ?? null,
+                discountId: persistedLinkRewardInput.discountId ?? null,
               },
               link: partnerLink,
             }),
@@ -441,6 +452,6 @@ async function createNewPartnerLink({
 
   return {
     ...partnerLink,
-    ...getRewardIds(linkRewardInput),
+    ...getRewardIds(persistedLinkRewardInput),
   };
 }

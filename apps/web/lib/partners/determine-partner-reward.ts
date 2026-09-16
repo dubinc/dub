@@ -1,4 +1,4 @@
-import { prettyPrint, toCentsNumber } from "@dub/utils";
+import { toCentsNumber } from "@dub/utils";
 import { EventType, Link, Prisma, Reward } from "@prisma/client";
 import { serializeReward } from "../api/partners/serialize-reward";
 import { prisma } from "../prisma";
@@ -41,6 +41,11 @@ interface LinkRewards {
   saleReward?: Reward | null;
 }
 
+type DeterminePartnerRewardResult = {
+  reward: RewardProps;
+  matchedCondition: RewardConditions | null;
+};
+
 export const getRewardMaxDurationForContext = ({
   reward,
   context,
@@ -80,10 +85,7 @@ export const determinePartnerReward = async ({
   programEnrollment: ProgramEnrollmentWithReward;
   linkId: string | null; // ID of the link that triggered the event
   context?: RewardContext; // additional reward context (e.g. customer.country, sale.productId, etc.)
-}): Promise<{
-  reward: RewardProps;
-  matchedCondition: RewardConditions | null;
-} | null> => {
+}): Promise<DeterminePartnerRewardResult | null> => {
   const rewardEventColumn = REWARD_EVENT_COLUMN_MAPPING[event];
   const partnerReward: Reward = programEnrollment[rewardEventColumn];
   let linkRewards: LinkRewards | null = null;
@@ -188,17 +190,38 @@ export const determinePartnerRewards = async ({
 }): Promise<ProductReward[]> => {
   const rewards: ProductReward[] = [];
   const products = context?.sale?.products ?? [];
-  const modifiers = rewardConditionsArraySchema.safeParse(
-    programEnrollment.saleReward?.modifiers,
-  );
+  let hasProductIdModifier = false;
 
-  const hasProductIdModifier = modifiers.success
-    ? modifiers.data.some((m) =>
+  if (products.length > 0) {
+    let partnerReward = programEnrollment["saleReward"];
+
+    if (linkId) {
+      const linkRewards = await prisma.linkReward.findUnique({
+        where: {
+          linkId,
+        },
+        select: {
+          saleReward: true,
+        },
+      });
+
+      if (linkRewards?.saleReward) {
+        partnerReward = linkRewards.saleReward;
+      }
+    }
+
+    const modifiers = rewardConditionsArraySchema.safeParse(
+      partnerReward?.modifiers,
+    );
+
+    if (modifiers.success) {
+      hasProductIdModifier = modifiers.data.some((m) =>
         m.conditions.some(
           (c) => c.entity === "sale" && c.attribute === "productId",
         ),
-      )
-    : false;
+      );
+    }
+  }
 
   // If there are products and a productId modifier,
   // we need to calculate the reward for each product (for Stripe integration only)
@@ -250,8 +273,6 @@ export const determinePartnerRewards = async ({
       });
     }
   }
-
-  console.log("Reward context", prettyPrint(context));
 
   return rewards;
 };

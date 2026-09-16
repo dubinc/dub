@@ -189,3 +189,174 @@ test("PUT /partners/links/upsert – missing partnerId and tenantId", async ({
     }),
   );
 });
+
+test.describe("create partner links omit group-default reward IDs", () => {
+  test.describe.configure({ mode: "serial" });
+
+  let partnerId: string | undefined;
+  let groupId: string | undefined;
+  let discountId: string | undefined;
+  let clickRewardId: string | undefined;
+  let leadRewardId: string | undefined;
+  let saleRewardId: string | undefined;
+  let saleRewardId2: string | undefined;
+
+  test.beforeAll(async ({ api, program }) => {
+    const group = await createGroupWithAdditionalLinks(program.id);
+    groupId = group.id;
+
+    const groupReward = {
+      programId: program.id,
+      groupId: group.id,
+      type: RewardStructure.flat,
+    };
+
+    const [clickReward, leadReward, saleReward, saleReward2, discount] =
+      await Promise.all([
+        createReward({
+          ...groupReward,
+          event: EventType.click,
+          amountInCents: 25,
+        }),
+        createReward({
+          ...groupReward,
+          event: EventType.lead,
+          amountInCents: 150,
+        }),
+        createReward({
+          ...groupReward,
+          event: EventType.sale,
+          amountInCents: 500,
+        }),
+        createReward({
+          ...groupReward,
+          event: EventType.sale,
+          amountInCents: 900,
+        }),
+        prisma.discount.create({
+          data: {
+            id: createId({ prefix: "disc_" }),
+            programId: program.id,
+            groupId: group.id,
+            amount: 15,
+            type: RewardStructure.percentage,
+            maxDuration: 3,
+            provider: DiscountProvider.custom,
+          },
+        }),
+      ]);
+
+    clickRewardId = clickReward.id;
+    leadRewardId = leadReward.id;
+    saleRewardId = saleReward.id;
+    saleRewardId2 = saleReward2.id;
+    discountId = discount.id;
+
+    await prisma.partnerGroup.update({
+      where: { id: group.id },
+      data: {
+        clickRewardId: clickReward.id,
+        leadRewardId: leadReward.id,
+        saleRewardId: saleReward.id,
+        discountId: discount.id,
+      },
+    });
+
+    const { data: partner } = await createPartner(api, { groupId: group.id });
+    partnerId = partner.id;
+  });
+
+  test.afterAll(async () => {
+    await deletePartner(partnerId);
+    if (groupId) {
+      await prisma.partnerGroup.update({
+        where: { id: groupId },
+        data: {
+          clickRewardId: null,
+          leadRewardId: null,
+          saleRewardId: null,
+          discountId: null,
+        },
+      });
+    }
+    await Promise.all(
+      [clickRewardId, leadRewardId, saleRewardId, saleRewardId2].map(
+        deleteReward,
+      ),
+    );
+    if (discountId) {
+      await prisma.discount.delete({ where: { id: discountId } });
+    }
+    if (groupId) {
+      await prisma.partnerGroup.delete({ where: { id: groupId } });
+    }
+  });
+
+  test("POST /partners/links does not persist group-default IDs", async ({
+    api,
+  }) => {
+    const url = `https://example.com/${nanoid()}`;
+
+    const { status, data } = await api.post<PartnerLinkResponse>(
+      "/api/partners/links",
+      {
+        partnerId,
+        url,
+        clickRewardId,
+        leadRewardId,
+        saleRewardId,
+        discountId,
+      },
+    );
+
+    expect(status).toEqual(201);
+    expect(data).toMatchObject({
+      id: expect.any(String),
+      url,
+      clickReward: null,
+      leadReward: null,
+      saleReward: null,
+      discount: null,
+    });
+
+    const linkReward = await prisma.linkReward.findUnique({
+      where: { linkId: data.id },
+    });
+    expect(linkReward).toBeNull();
+  });
+
+  test("PUT /partners/links/upsert persists only non-default overrides", async ({
+    api,
+  }) => {
+    const url = `https://example.com/${nanoid()}`;
+
+    const { status, data } = await upsertPartnerLink(api, {
+      partnerId,
+      url,
+      clickRewardId,
+      leadRewardId,
+      saleRewardId: saleRewardId2,
+      discountId,
+    });
+
+    expect(status).toEqual(200);
+    expect(data).toMatchObject({
+      id: expect.any(String),
+      url,
+      clickReward: null,
+      leadReward: null,
+      saleReward: saleRewardId2,
+      discount: null,
+    });
+
+    const linkReward = await prisma.linkReward.findUnique({
+      where: { linkId: data.id },
+    });
+    expect(linkReward).toMatchObject({
+      clickRewardId: null,
+      leadRewardId: null,
+      saleRewardId: saleRewardId2,
+      discountId: null,
+    });
+  });
+});
