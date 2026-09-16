@@ -1,10 +1,8 @@
 import { withCron } from "@/lib/cron/with-cron";
 import { createDiscountCode } from "@/lib/discounts/create-discount-code";
-import { deleteDiscountCodes } from "@/lib/discounts/delete-discount-code";
 import { isDiscountProviderError } from "@/lib/discounts/discount-error";
-import { isDiscountEquivalent } from "@/lib/discounts/is-discount-equivalent";
+import { remapDiscountCodes } from "@/lib/discounts/remap-discount-codes";
 import { prisma } from "@/lib/prisma";
-import { DiscountCode } from "@prisma/client";
 import * as z from "zod/v4";
 import { logAndRespond } from "../../utils";
 
@@ -66,49 +64,10 @@ export const POST = withCron(async ({ rawBody }) => {
     ({ discountCodes }) => discountCodes,
   );
 
-  // Find the discount codes to update and remove
-  const discountCodesToUpdate: DiscountCode[] = [];
-  const discountCodesToRemove: typeof discountCodes = [];
-
-  for (const discountCode of discountCodes) {
-    const keepDiscountCode = isDiscountEquivalent(
-      group.discount,
-      discountCode.discount,
-    );
-
-    if (keepDiscountCode) {
-      discountCodesToUpdate.push(discountCode);
-    } else {
-      discountCodesToRemove.push(discountCode);
-    }
-  }
-
-  // Update the discount codes to use the new discount if they are equivalent
-  if (discountCodesToUpdate.length > 0) {
-    console.log(
-      `Found ${discountCodesToUpdate.length} discount codes equivalent to the new group's discount. Updating them.`,
-    );
-
-    await prisma.discountCode.updateMany({
-      where: {
-        id: {
-          in: discountCodesToUpdate.map(({ id }) => id),
-        },
-      },
-      data: {
-        discountId: group.discount?.id,
-      },
-    });
-  }
-
-  // Remove the previous discount codes
-  if (discountCodesToRemove.length > 0) {
-    console.log(
-      `Found ${discountCodesToRemove.length} discount codes not equivalent to the new group's discount. Deleting them.`,
-    );
-
-    await deleteDiscountCodes(discountCodesToRemove);
-  }
+  await remapDiscountCodes({
+    discountCodes,
+    newDiscount: group.discount,
+  });
 
   if (group.discount?.autoProvisionEnabledAt) {
     // Find the partner default links that don't have a discount code yet

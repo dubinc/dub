@@ -136,7 +136,10 @@ test.afterAll(async () => {
   }
 });
 
-async function createLinkLevelDiscount(programId: string) {
+async function createLinkLevelDiscount(
+  programId: string,
+  overrides: Partial<typeof customDiscount> = {},
+) {
   if (!partnerGroupId) {
     throw new Error("Custom discount group was not seeded.");
   }
@@ -150,6 +153,7 @@ async function createLinkLevelDiscount(programId: string) {
       type: RewardStructure.percentage,
       maxDuration: 3,
       provider: DiscountProvider.custom,
+      ...overrides,
     },
   });
 
@@ -695,7 +699,43 @@ type PartnerLink = {
   discount: string | null;
 };
 
-test("PATCH /partners/links/:linkId does not retarget existing discount codes", async ({
+test("PATCH /partners/links/:linkId retargets equivalent discount codes", async ({
+  api,
+  program,
+}) => {
+  let partnerId: string | undefined;
+
+  try {
+    const created = await createDiscountCode(api);
+    partnerId = created.partner.id;
+
+    const linkDiscount = await createLinkLevelDiscount(
+      program.id,
+      customDiscount,
+    );
+
+    const { status } = await api.patch<PartnerLink>(
+      `/api/partners/links/${created.linkId}`,
+      {
+        discountId: linkDiscount.id,
+      },
+    );
+
+    expect(status).toEqual(200);
+
+    const discountCode = await prisma.discountCode.findUnique({
+      where: {
+        id: created.data.id,
+      },
+    });
+
+    expect(discountCode?.discountId).toEqual(linkDiscount.id);
+  } finally {
+    await deletePartner(partnerId);
+  }
+});
+
+test("PATCH /partners/links/:linkId deletes discount codes when terms differ", async ({
   api,
   program,
 }) => {
@@ -722,8 +762,7 @@ test("PATCH /partners/links/:linkId does not retarget existing discount codes", 
       },
     });
 
-    expect(discountCode?.discountId).toEqual(customDiscountId);
-    expect(discountCode?.discountId).not.toEqual(linkDiscount.id);
+    expect(discountCode).toBeNull();
   } finally {
     await deletePartner(partnerId);
   }

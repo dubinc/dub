@@ -2,6 +2,7 @@
 
 import { trackRewardActivityLog } from "@/lib/api/activity-log/track-reward-activity-log";
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
+import { linkCache } from "@/lib/api/links/cache";
 import { getRewardOrThrow } from "@/lib/api/partners/get-reward-or-throw";
 import { serializeReward } from "@/lib/api/partners/serialize-reward";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
@@ -43,6 +44,30 @@ export const deleteRewardAction = authActionClient
     });
 
     const rewardIdColumn = REWARD_EVENT_COLUMN_MAPPING[reward.event];
+    const linkRewardIdColumn =
+      reward.event === "click" ||
+      reward.event === "lead" ||
+      reward.event === "sale"
+        ? REWARD_EVENT_COLUMN_MAPPING[reward.event]
+        : null;
+
+    const linksToExpire = linkRewardIdColumn
+      ? (
+          await prisma.linkReward.findMany({
+            where: {
+              [linkRewardIdColumn]: reward.id,
+            },
+            select: {
+              link: {
+                select: {
+                  domain: true,
+                  key: true,
+                },
+              },
+            },
+          })
+        ).map(({ link }) => link)
+      : [];
 
     await prisma.$transaction(async (tx) => {
       await tx.partnerGroup.updateMany({
@@ -53,6 +78,17 @@ export const deleteRewardAction = authActionClient
           [rewardIdColumn]: null,
         },
       });
+
+      if (linkRewardIdColumn) {
+        await tx.linkReward.updateMany({
+          where: {
+            [linkRewardIdColumn]: reward.id,
+          },
+          data: {
+            [linkRewardIdColumn]: null,
+          },
+        });
+      }
 
       // soft delete reward, we will hard delete it in the cron job
       await tx.reward.update({
@@ -83,6 +119,10 @@ export const deleteRewardAction = authActionClient
 
     waitUntil(
       Promise.allSettled([
+        ...(linksToExpire.length > 0
+          ? [linkCache.expireMany(linksToExpire)]
+          : []),
+
         recordAuditLog({
           workspaceId: workspace.id,
           programId,
@@ -104,7 +144,7 @@ export const deleteRewardAction = authActionClient
           userId: user.id,
           resourceId: reward.id,
           parentResourceType: "group",
-          parentResourceId: reward.id,
+          parentResourceId: reward.groupId,
           old: reward,
           new: null,
           description: activityDescription,

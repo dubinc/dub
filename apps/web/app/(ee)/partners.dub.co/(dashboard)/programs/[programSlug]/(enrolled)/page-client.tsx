@@ -14,11 +14,7 @@ import { usePartnerEarningsTimeseries } from "@/lib/swr/use-partner-earnings-tim
 import { usePartnerLinks } from "@/lib/swr/use-partner-links";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
-import {
-  DiscountProps,
-  GroupProps,
-  PartnerProfileLinkProps,
-} from "@/lib/types";
+import { GroupProps, PartnerProfileLinkProps } from "@/lib/types";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { DiscountCodeBadge } from "@/ui/partners/discounts/discount-code-badge";
 import { PartnerDiscountCodeTooltip } from "@/ui/partners/discounts/partner-discount-code-tooltip";
@@ -832,10 +828,7 @@ function RewardListItem({
   }[];
   selectedLinkId?: string;
   onSelectLink?: (id: string) => void;
-  discount?: Pick<
-    DiscountProps,
-    "amount" | "type" | "maxDuration" | "description"
-  > | null;
+  discount?: PartnerProfileLinkProps["discount"];
   discountCode?: string | null;
   discountCodeDisabledAt?: Date | string | null;
   queryLinkHelpTextLink?: {
