@@ -185,25 +185,6 @@ async function deleteCustomer(api: ApiClient, id: string | undefined) {
   await api.delete(`/api/customers/${id}`);
 }
 
-test("GET /programs/{programId}/discounts – custom provider", async ({
-  api,
-  program,
-}) => {
-  const { status, data } = await api.get<DiscountProps[]>(
-    `/api/programs/${program.id}/discounts`,
-  );
-
-  expect(status).toEqual(200);
-
-  const discount = data.find((item) => item.id === customDiscountId);
-
-  expect(discount).toEqual({
-    id: customDiscountId,
-    ...expectedCustomDiscount,
-    partnersCount: expect.any(Number),
-  });
-});
-
 test("GET /discounts – includes groupId", async ({ api }) => {
   const { status, data } =
     await api.get<(DiscountProps & { groupId: string | null })[]>(

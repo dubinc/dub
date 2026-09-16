@@ -88,20 +88,12 @@ export const determinePartnerReward = async ({
 }): Promise<DeterminePartnerRewardResult | null> => {
   const rewardEventColumn = REWARD_EVENT_COLUMN_MAPPING[event];
   const partnerReward: Reward = programEnrollment[rewardEventColumn];
-  let linkRewards: LinkRewards | null = null;
 
-  if (linkId) {
-    linkRewards = await prisma.linkReward.findUnique({
-      where: {
-        linkId,
-      },
-      select: {
-        clickReward: true,
-        leadReward: true,
-        saleReward: true,
-      },
-    });
-  }
+  const linkRewards = await getLinkRewards({
+    event,
+    linkId,
+    programEnrollment,
+  });
 
   // Final reward to use
   let eventReward = linkRewards?.[rewardEventColumn] ?? partnerReward;
@@ -195,19 +187,14 @@ export const determinePartnerRewards = async ({
   if (products.length > 0) {
     let partnerReward = programEnrollment["saleReward"];
 
-    if (linkId) {
-      const linkRewards = await prisma.linkReward.findUnique({
-        where: {
-          linkId,
-        },
-        select: {
-          saleReward: true,
-        },
-      });
+    const linkRewards = await getLinkRewards({
+      event,
+      linkId,
+      programEnrollment,
+    });
 
-      if (linkRewards?.saleReward) {
-        partnerReward = linkRewards.saleReward;
-      }
+    if (linkRewards?.saleReward) {
+      partnerReward = linkRewards.saleReward;
     }
 
     const modifiers = rewardConditionsArraySchema.safeParse(
@@ -275,4 +262,34 @@ export const determinePartnerRewards = async ({
   }
 
   return rewards;
+};
+
+const getLinkRewards = async ({
+  event,
+  linkId,
+  programEnrollment,
+}: {
+  event: EventType;
+  linkId: string | null;
+  programEnrollment: ProgramEnrollmentWithReward;
+}): Promise<LinkRewards | null> => {
+  if (!linkId) {
+    return null;
+  }
+
+  // Check if the link is part of the program enrollment
+  if (!programEnrollment.links?.some((link) => link.id === linkId)) {
+    return null;
+  }
+
+  const rewardEventColumn = REWARD_EVENT_COLUMN_MAPPING[event];
+
+  return prisma.linkReward.findUnique({
+    where: {
+      linkId,
+    },
+    select: {
+      [rewardEventColumn]: true,
+    },
+  });
 };

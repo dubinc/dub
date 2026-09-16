@@ -11,7 +11,7 @@ import { ProgramRewardDescription } from "@/ui/partners/program-reward-descripti
 import { REWARD_EVENT_DESCRIPTIONS } from "@/ui/partners/rewards/reward-event-descriptions";
 import { MaxCharactersCounter } from "@/ui/shared/max-characters-counter";
 import { Button, Modal } from "@dub/ui";
-import { cn, pluralize } from "@dub/utils";
+import { cn, nFormatter, pluralize } from "@dub/utils";
 import { useCallback, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { PartnerEmailNotificationTooltipHelper } from "../shared/partner-email-notification-tooltip-helper";
@@ -102,7 +102,8 @@ function getDescription({
       The reward below will be {GROUP_CHANGE_COPY[action]} the group
       {partnerCount && partnerCount > 0 ? (
         <>
-          , and {partnerCount} {pluralize("partner", partnerCount)} will be{" "}
+          , and {nFormatter(partnerCount, { full: true })}{" "}
+          {pluralize("partner", partnerCount)} will be{" "}
           <PartnerEmailNotificationTooltipHelper />
         </>
       ) : (

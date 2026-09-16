@@ -12,7 +12,7 @@ import {
   useScrollProgress,
 } from "@dub/ui";
 import { Pen2, Plus2, Trash } from "@dub/ui/icons";
-import { cn } from "@dub/utils";
+import { cn, nFormatter } from "@dub/utils";
 import { Command } from "cmdk";
 import { ReactNode, useEffect, useMemo, useRef, useState } from "react";
 
@@ -210,9 +210,7 @@ function AdditionalRewardOptionRow({
           aria-hidden
           className="border-primary text-primary flex size-3.5 shrink-0 items-center justify-center rounded-full border"
         >
-          {selected && (
-            <span className="size-2.5 rounded-full bg-current" />
-          )}
+          {selected && <span className="size-2.5 rounded-full bg-current" />}
         </span>
         <div className="text-content-default min-w-0 flex-1 text-sm leading-5">
           {option.label}
@@ -230,7 +228,7 @@ function AdditionalRewardOptionRow({
             <GroupBadge />
           ) : (
             <span className="text-content-default text-sm font-medium tabular-nums">
-              {option.partnersCount ?? 0}
+              {nFormatter(option.partnersCount ?? 0, { full: true })}
             </span>
           )}
         </div>
