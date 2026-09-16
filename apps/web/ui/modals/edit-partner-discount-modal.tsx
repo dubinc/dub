@@ -175,6 +175,16 @@ function EditPartnerDiscountModal({
       return;
     }
 
+    const currentId = getSelectedDiscountId({
+      target,
+      groupDiscountId,
+    });
+
+    if (resolvedSelectedId === currentId) {
+      setShowModal(false);
+      return;
+    }
+
     const isGroupSelection = resolvedSelectedId === groupDiscountId;
 
     if (target.type === "partner") {

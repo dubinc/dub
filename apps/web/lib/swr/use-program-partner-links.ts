@@ -22,10 +22,7 @@ export function useProgramPartnerLinks(
       ? `/api/partners/links?partnerId=${partnerId}&workspaceId=${workspaceId}`
       : null,
     fetcher,
-    {
-      keepPreviousData: true,
-      ...swrOptions,
-    },
+    swrOptions,
   );
 
   return {

@@ -1,6 +1,8 @@
 "use client";
 
 import { constructPartnerLink } from "@/lib/partners/construct-partner-link";
+import { getPlanCapabilities } from "@/lib/plan-capabilities";
+import { PARTNER_AND_LINK_REWARDS_PLAN_ERROR } from "@/lib/rewards/constants";
 import useDiscountCodes from "@/lib/swr/use-discount-codes";
 import { useDiscounts } from "@/lib/swr/use-discounts";
 import useGroup from "@/lib/swr/use-group";
@@ -15,6 +17,8 @@ import {
 } from "@/lib/types";
 import { useAddDiscountCodeModal } from "@/ui/modals/add-discount-code-modal";
 import { DeleteDiscountCodeModal } from "@/ui/modals/delete-discount-code-modal";
+import { useEditPartnerDiscountModal } from "@/ui/modals/edit-partner-discount-modal";
+import { useAdvancedUpsellModal } from "@/ui/partners/advanced-upsell-modal";
 import { DiscountCodeBadge } from "@/ui/partners/discounts/discount-code-badge";
 import { ButtonLink } from "@/ui/placeholders/button-link";
 import { ThreeDots } from "@/ui/shared/icons";
@@ -33,10 +37,14 @@ import { cn, getPrettyUrl, nFormatter, pluralize } from "@dub/utils";
 import { DiscountProvider } from "@prisma/client";
 import { Command } from "cmdk";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { type ReactNode, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 type PartnerLink = NonNullable<EnrolledPartnerProps["links"]>[number];
+type PartnerForDiscountOverride = Pick<
+  EnrolledPartnerProps,
+  "id" | "name" | "email" | "image" | "groupId" | "discountId"
+>;
 
 function getEffectiveDiscountProvider({
   link,
@@ -272,6 +280,7 @@ export function PartnerDiscountCodes({
                 key={discountCode.id}
                 discountCode={discountCode}
                 link={link}
+                partner={partner}
                 group={group}
                 slug={slug}
                 onDelete={() => {
@@ -300,97 +309,128 @@ export function PartnerDiscountCodes({
 function DiscountCodeCard({
   discountCode,
   link,
+  partner,
   group,
   slug,
   onDelete,
 }: {
   discountCode: DiscountCodeProps;
   link?: PartnerLink;
+  partner: PartnerForDiscountOverride;
   group?: GroupProps | null;
   slug?: string;
   onDelete: () => void;
 }) {
+  const { plan } = useWorkspace();
+  const { canUseAdvancedRewardLogic } = getPlanCapabilities(plan);
+  const { advancedUpsellModal, setShowAdvancedUpsellModal } =
+    useAdvancedUpsellModal();
+
   const partnerLink = link ? constructPartnerLink({ group, link }) : "";
   const hasDiscountOverride = Boolean(link?.discount);
   const conversions = link?.conversions ?? 0;
 
-  return (
-    <CardList.Card
-      innerClassName="flex items-center justify-between gap-4 px-3 py-2.5"
-      hoverStateEnabled={false}
-    >
-      <div className="flex min-w-0 flex-1 items-center">
-        <div className="w-40 shrink-0">
-          <DiscountCodeBadge
-            code={discountCode.code}
-            disabledAt={discountCode.disabledAt}
+  const { EditPartnerDiscountModal, setShowEditPartnerDiscountModal } =
+    useEditPartnerDiscountModal({
+      target: link ? { type: "link", link, partner } : null,
+      group,
+    });
+
+  const editDiscountDisabledTooltip = !link
+    ? "Link not found"
+    : !canUseAdvancedRewardLogic
+      ? (
+          <TooltipContent
+            title={PARTNER_AND_LINK_REWARDS_PLAN_ERROR}
+            cta="Upgrade to Advanced"
+            onClick={() => setShowAdvancedUpsellModal(true)}
           />
+        )
+      : undefined;
+
+  return (
+    <>
+      {advancedUpsellModal}
+      <CardList.Card
+        innerClassName="flex items-center justify-between gap-4 px-3 py-2.5"
+        hoverStateEnabled={false}
+      >
+        <div className="flex min-w-0 flex-1 items-center">
+          <div className="w-40 shrink-0">
+            <DiscountCodeBadge
+              code={discountCode.code}
+              disabledAt={discountCode.disabledAt}
+            />
+          </div>
+
+          {link ? (
+            <div className="flex min-w-0 items-center gap-2">
+              <Link
+                href={`/${slug}/links/${link.domain}/${link.key}`}
+                target="_blank"
+                className="text-content-default cursor-alias truncate text-sm font-medium decoration-dotted hover:underline"
+              >
+                {getPrettyUrl(partnerLink)}
+              </Link>
+              {hasDiscountOverride && (
+                <Tooltip
+                  content={
+                    <div className="whitespace-nowrap px-3 py-2 text-sm text-neutral-600">
+                      This link has a discount override
+                    </div>
+                  }
+                >
+                  <div className="flex h-5 shrink-0 items-center justify-center rounded-md bg-neutral-100 px-1">
+                    <DiscountCode className="size-3 text-neutral-700" />
+                  </div>
+                </Tooltip>
+              )}
+            </div>
+          ) : (
+            <span className="text-sm text-neutral-500">Link not found</span>
+          )}
         </div>
 
-        {link ? (
-          <div className="flex min-w-0 items-center gap-2">
-            <Link
-              href={`/${slug}/links/${link.domain}/${link.key}`}
-              target="_blank"
-              className="text-content-default cursor-alias truncate text-sm font-medium decoration-dotted hover:underline"
-            >
-              {getPrettyUrl(partnerLink)}
-            </Link>
-            {hasDiscountOverride && (
-              <Tooltip
-                content={
-                  <div className="whitespace-nowrap px-3 py-2 text-sm text-neutral-600">
-                    This link has a discount override
-                  </div>
-                }
-              >
-                <div className="flex h-5 shrink-0 items-center justify-center rounded-md bg-neutral-100 px-1">
-                  <DiscountCode className="size-3 text-neutral-700" />
+        <div className="flex shrink-0 items-center gap-3">
+          {link && (
+            <Tooltip
+              content={
+                <div className="whitespace-nowrap px-3 py-2 text-sm text-neutral-600">
+                  {nFormatter(conversions, { full: true })}{" "}
+                  {pluralize("conversion", conversions)}
                 </div>
-              </Tooltip>
-            )}
-          </div>
-        ) : (
-          <span className="text-sm text-neutral-500">Link not found</span>
-        )}
-      </div>
-
-      <div className="flex shrink-0 items-center gap-3">
-        {link && (
-          <Tooltip
-            content={
-              <div className="whitespace-nowrap px-3 py-2 text-sm text-neutral-600">
-                {nFormatter(conversions, { full: true })}{" "}
-                {pluralize("conversion", conversions)}
-              </div>
-            }
-          >
-            <Link
-              href={`/${slug}/events?event=sales&interval=all&domain=${link.domain}&key=${link.key}`}
-              target="_blank"
-              className="flex items-center gap-1.5"
+              }
             >
-              <DiscountCode
-                data-active={conversions > 0}
-                className={cn(
-                  "size-4 shrink-0 text-neutral-400",
-                  "data-[active=true]:text-green-600",
-                )}
-              />
-              <span className="text-xs font-medium text-neutral-700">
-                {nFormatter(conversions)}
-              </span>
-            </Link>
-          </Tooltip>
-        )}
+              <Link
+                href={`/${slug}/events?event=sales&interval=all&domain=${link.domain}&key=${link.key}`}
+                target="_blank"
+                className="flex items-center gap-1.5"
+              >
+                <DiscountCode
+                  data-active={conversions > 0}
+                  className={cn(
+                    "size-4 shrink-0 text-neutral-400",
+                    "data-[active=true]:text-green-600",
+                  )}
+                />
+                <span className="text-xs font-medium text-neutral-700">
+                  {nFormatter(conversions)}
+                </span>
+              </Link>
+            </Tooltip>
+          )}
 
-        <DiscountCodeCardMenu
-          code={discountCode.code}
-          partnerLink={partnerLink}
-          onDelete={onDelete}
-        />
-      </div>
-    </CardList.Card>
+          <DiscountCodeCardMenu
+            code={discountCode.code}
+            partnerLink={partnerLink}
+            onDelete={onDelete}
+            onEditDiscount={() => setShowEditPartnerDiscountModal(true)}
+            editDiscountDisabledTooltip={editDiscountDisabledTooltip}
+          />
+        </div>
+      </CardList.Card>
+      <EditPartnerDiscountModal />
+    </>
   );
 }
 
@@ -398,10 +438,14 @@ function DiscountCodeCardMenu({
   code,
   partnerLink,
   onDelete,
+  onEditDiscount,
+  editDiscountDisabledTooltip,
 }: {
   code: string;
   partnerLink: string;
   onDelete: () => void;
+  onEditDiscount: () => void;
+  editDiscountDisabledTooltip?: ReactNode;
 }) {
   const [openPopover, setOpenPopover] = useState(false);
   const [, copyToClipboard] = useCopyToClipboard();
@@ -414,6 +458,17 @@ function DiscountCodeCardMenu({
       content={
         <Command tabIndex={0} loop className="focus:outline-none">
           <Command.List className="flex w-screen flex-col gap-1 p-1.5 text-sm focus-visible:outline-none sm:w-auto sm:min-w-[180px]">
+            <MenuItem
+              as={Command.Item}
+              icon={DiscountCode}
+              disabledTooltip={editDiscountDisabledTooltip}
+              onSelect={() => {
+                setOpenPopover(false);
+                onEditDiscount();
+              }}
+            >
+              Edit discount
+            </MenuItem>
             <MenuItem
               as={Command.Item}
               icon={Copy}

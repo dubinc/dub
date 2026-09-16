@@ -37,7 +37,7 @@ import {
 } from "@dub/utils";
 import { Command } from "cmdk";
 import Link from "next/link";
-import { type ReactNode, useRef, useState } from "react";
+import { type ReactNode, useState } from "react";
 import { toast } from "sonner";
 
 type PartnerLink = NonNullable<EnrolledPartnerProps["links"]>[number];
@@ -162,11 +162,6 @@ export function ReferralLinks({ partner }: { partner: EnrolledPartnerProps }) {
   const { links, loading, error } = useProgramPartnerLinks({
     partnerId: partner.id,
   });
-  const previousLinksRef = useRef(links);
-  if (links) {
-    previousLinksRef.current = links;
-  }
-  const displayLinks = links ?? previousLinksRef.current;
 
   return (
     <>
@@ -181,17 +176,17 @@ export function ReferralLinks({ partner }: { partner: EnrolledPartnerProps }) {
           onClick={() => setShowAddPartnerLinkModal(true)}
         />
       </div>
-      {!displayLinks && loading ? (
+      {loading ? (
         <div className="flex justify-center py-8">
           <LoadingSpinner />
         </div>
-      ) : error && !displayLinks ? (
+      ) : error ? (
         <div className="text-content-subtle rounded-xl border border-neutral-200 py-8 text-center text-sm">
           Failed to load partner links
         </div>
-      ) : displayLinks && displayLinks.length > 0 ? (
+      ) : links && links.length > 0 ? (
         <CardList variant="compact">
-          {displayLinks.map((link) => (
+          {links.map((link) => (
             <PartnerLinkCard
               key={link.id}
               link={link}

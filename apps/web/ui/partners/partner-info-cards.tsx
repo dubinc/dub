@@ -133,7 +133,7 @@ export function PartnerInfoCards({
           DEFAULT_PARTNER_GROUP.slug
         : undefined,
     },
-    { keepPreviousData: true },
+    { keepPreviousData: false },
   );
 
   const enrolledPartner =

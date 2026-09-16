@@ -18,8 +18,8 @@ export default function useDiscountCodes({
       : null,
     fetcher,
     {
-      dedupingInterval: 60000,
-      keepPreviousData: true,
+      revalidateOnFocus: true,
+      dedupingInterval: 2000,
     },
   );
 
