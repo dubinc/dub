@@ -1,5 +1,6 @@
 import {
   toDiscountActivitySnapshot,
+  toLinkActivitySnapshot,
   toRewardActivitySnapshot,
 } from "@/lib/api/activity-log/to-reward-activity-snapshot";
 import {
@@ -20,7 +21,7 @@ type RewardOverrideBaseInput = {
   next: LinkRewardIds;
 };
 
-type LinkSnapshot = Pick<LinkProps, "id" | "domain" | "key" | "shortLink">;
+type LinkSnapshot = Pick<LinkProps, "id" | "domain" | "key">;
 
 export async function trackPartnerRewardOverrideLog(
   input: RewardOverrideBaseInput,
@@ -111,6 +112,11 @@ async function trackRewardOverrideLog({
     string,
     ReturnType<typeof toRewardActivitySnapshot>
   >();
+  const discountsById = new Map<
+    string,
+    ReturnType<typeof toDiscountActivitySnapshot>
+  >();
+
   for (const reward of rewards) {
     rewardsById.set(
       reward.id,
@@ -118,10 +124,6 @@ async function trackRewardOverrideLog({
     );
   }
 
-  const discountsById = new Map<
-    string,
-    ReturnType<typeof toDiscountActivitySnapshot>
-  >();
   for (const discount of discounts) {
     discountsById.set(discount.id, toDiscountActivitySnapshot(discount));
   }
@@ -143,7 +145,10 @@ async function trackRewardOverrideLog({
       changeSet: {
         ...(link
           ? {
-              link: { old: null, new: link },
+              link: {
+                old: null,
+                new: toLinkActivitySnapshot(link),
+              },
             }
           : null),
         ...Object.fromEntries(
@@ -166,7 +171,10 @@ async function trackRewardOverrideLog({
       changeSet: {
         ...(link
           ? {
-              link: { old: null, new: link },
+              link: {
+                old: null,
+                new: toLinkActivitySnapshot(link),
+              },
             }
           : null),
         discount: {
