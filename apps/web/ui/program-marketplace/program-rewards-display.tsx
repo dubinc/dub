@@ -4,6 +4,7 @@ import { formatRewardDescription } from "@/ui/partners/format-reward-description
 import { REWARD_EVENT_ICON } from "@/ui/partners/rewards/reward-event-icon";
 import { Gift, Icon } from "@dub/ui";
 import { cn } from "@dub/utils";
+import * as HoverCard from "@radix-ui/react-hover-card";
 
 type RewardItem = {
   id: string;
@@ -108,38 +109,52 @@ function RewardExpandedItem({
   const As = item.onClick ? "button" : "div";
 
   return (
-    <As
-      {...(item.onClick && {
-        type: "button",
-        onClick: (e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          item.onClick?.();
-        },
-      })}
-      className={cn(
-        "flex min-w-0 max-w-full items-center gap-1 overflow-hidden pr-1",
-        item.onClick &&
-          "hover:bg-bg-subtle active:bg-bg-emphasis rounded-md transition-colors",
-      )}
-    >
-      <div
-        className={cn(
-          "text-content-default flex size-6 shrink-0 items-center justify-center rounded-md",
-          isDarkImage && "text-content-inverted",
-        )}
-      >
-        <item.icon className="size-4" />
-      </div>
-      <span
-        className={cn(
-          "min-w-0 max-w-full truncate text-sm font-normal leading-5 tracking-[-0.02em] text-black",
-          isDarkImage && "text-content-inverted",
-          descriptionClassName,
-        )}
-      >
-        {item.description}
-      </span>
-    </As>
+    <HoverCard.Root openDelay={100}>
+      <HoverCard.Portal>
+        <HoverCard.Content
+          side="bottom"
+          sideOffset={8}
+          className="animate-slide-up-fade z-[99] flex max-w-xs items-center gap-2 overflow-hidden rounded-xl border border-neutral-200 bg-white p-2 text-xs text-neutral-700 shadow-sm"
+        >
+          <item.icon className="text-content-default size-4 shrink-0" />
+          <span>{item.description}</span>
+        </HoverCard.Content>
+      </HoverCard.Portal>
+      <HoverCard.Trigger asChild>
+        <As
+          {...(item.onClick && {
+            type: "button",
+            onClick: (e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              item.onClick?.();
+            },
+          })}
+          className={cn(
+            "flex min-w-0 max-w-full items-center gap-1 overflow-hidden pr-1",
+            item.onClick &&
+              "hover:bg-bg-subtle active:bg-bg-emphasis rounded-md transition-colors",
+          )}
+        >
+          <div
+            className={cn(
+              "text-content-default flex size-6 shrink-0 items-center justify-center rounded-md",
+              isDarkImage && "text-content-inverted",
+            )}
+          >
+            <item.icon className="size-4" />
+          </div>
+          <span
+            className={cn(
+              "min-w-0 max-w-full truncate text-sm font-normal leading-5 tracking-[-0.02em] text-black",
+              isDarkImage && "text-content-inverted",
+              descriptionClassName,
+            )}
+          >
+            {item.description}
+          </span>
+        </As>
+      </HoverCard.Trigger>
+    </HoverCard.Root>
   );
 }
