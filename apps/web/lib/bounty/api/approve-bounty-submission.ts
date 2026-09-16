@@ -143,7 +143,7 @@ export async function approveBountySubmission({
     amount: finalRewardAmount,
     quantity: 1,
     userId: user.id,
-    description: `Commission for successfully completed "${bounty.name}" bounty.`,
+    description: `Commission for successfully completing "${bounty.name}" bounty.`,
     bountySubmissionId: submissionId,
   });
 

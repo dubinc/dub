@@ -1,9 +1,39 @@
+import { buildCommissionDescription } from "@/lib/commissions/build-commission-description";
 import { prisma } from "@/lib/prisma";
-import type { CommissionResponse } from "@/lib/types";
+import type { CommissionResponse, RewardConditions } from "@/lib/types";
 import { expect } from "@playwright/test";
 import type { ApiClient } from "../fixtures";
 import { createPartner, deletePartner } from "../partners/helpers";
 import { TEST_COMMISSION_REWARDS } from "../setup-test-workspace";
+
+function expectedCommissionDescription({
+  type,
+  earnings,
+}: {
+  type: "custom" | "lead" | "sale";
+  earnings: number;
+}): string | null {
+  if (type === "custom") {
+    return null;
+  }
+
+  const reward = TEST_COMMISSION_REWARDS[type];
+
+  return buildCommissionDescription({
+    reward: {
+      event: reward.event,
+      type: reward.type,
+      amountInCents: earnings,
+      amountInPercentage: null,
+      maxDuration: "maxDuration" in reward ? reward.maxDuration : null,
+      spendLimitAmount: null,
+      spendLimitInterval: null,
+    },
+    matchedCondition: (reward.modifiers.find(
+      (modifier) => modifier.amountInCents === earnings,
+    ) ?? null) as RewardConditions | null,
+  });
+}
 
 export async function withCommissionPartner(
   api: ApiClient,
@@ -79,16 +109,13 @@ export async function expectCommissionCreated({
   expectedMetadata?: Record<string, unknown> | null;
   expectedLinkId?: string;
 }): Promise<string> {
-  const amount =
-    expectedAmount ?? (type === "lead" ? 0 : type === "sale" ? 1000 : 0);
+  const amount = expectedAmount ?? (type === "sale" ? 1000 : 0);
   const earnings =
     expectedEarnings ??
-    (type === "lead"
-      ? TEST_COMMISSION_REWARDS.lead.amountInCents
-      : type === "sale"
-        ? TEST_COMMISSION_REWARDS.sale.amountInCents
-        : 0);
+    (type === "custom" ? 0 : TEST_COMMISSION_REWARDS[type].amountInCents);
   const metadata = expectedMetadata === undefined ? null : expectedMetadata;
+  const expectedDescription =
+    description ?? expectedCommissionDescription({ type, earnings });
 
   let commissionId: string | undefined;
 
@@ -135,7 +162,7 @@ export async function expectCommissionCreated({
       amount,
       earnings,
       quantity: 1,
-      description: description ?? null,
+      description: expectedDescription,
       invoiceId: invoiceId ?? null,
       currency: "usd",
       createdAt: expectedCreatedAt

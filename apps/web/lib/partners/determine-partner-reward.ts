@@ -2,7 +2,7 @@ import { prettyPrint, toCentsNumber } from "@dub/utils";
 import { EventType, Link, Prisma, Reward } from "@prisma/client";
 import { serializeReward } from "../api/partners/serialize-reward";
 import { prisma } from "../prisma";
-import { RewardContext, RewardProps } from "../types";
+import { RewardConditions, RewardContext, RewardProps } from "../types";
 import {
   rewardConditionsArraySchema,
   RewardSchema,
@@ -28,6 +28,7 @@ interface ProgramEnrollmentWithReward {
 
 interface ProductReward {
   reward: RewardProps;
+  matchedCondition: RewardConditions | null;
   sale: {
     amount: number;
     quantity: number;
@@ -79,7 +80,10 @@ export const determinePartnerReward = async ({
   programEnrollment: ProgramEnrollmentWithReward;
   linkId: string | null; // ID of the link that triggered the event
   context?: RewardContext; // additional reward context (e.g. customer.country, sale.productId, etc.)
-}) => {
+}): Promise<{
+  reward: RewardProps;
+  matchedCondition: RewardConditions | null;
+} | null> => {
   const rewardEventColumn = REWARD_EVENT_COLUMN_MAPPING[event];
   const partnerReward: Reward = programEnrollment[rewardEventColumn];
   let linkRewards: LinkRewards | null = null;
@@ -117,6 +121,8 @@ export const determinePartnerReward = async ({
     },
   };
 
+  let matchedCondition: RewardConditions | null = null;
+
   if (eventReward.modifiers && context) {
     const modifiers = rewardConditionsArraySchema.safeParse(
       eventReward.modifiers,
@@ -124,7 +130,7 @@ export const determinePartnerReward = async ({
 
     // Parse the conditions before evaluating them
     if (modifiers.success) {
-      const matchedCondition = evaluateRewardConditions({
+      matchedCondition = evaluateRewardConditions({
         conditions: modifiers.data,
         context,
       });
@@ -157,7 +163,10 @@ export const determinePartnerReward = async ({
     return null;
   }
 
-  return RewardSchema.parse(eventReward);
+  return {
+    reward: RewardSchema.parse(eventReward),
+    matchedCondition,
+  };
 };
 
 // Resolves one or more rewards for a sale: when Stripe line items have a
@@ -195,7 +204,7 @@ export const determinePartnerRewards = async ({
   // we need to calculate the reward for each product (for Stripe integration only)
   if (products.length > 0 && hasProductIdModifier) {
     for (const product of products) {
-      const reward = await determinePartnerReward({
+      const result = await determinePartnerReward({
         event,
         programEnrollment,
         linkId,
@@ -209,11 +218,12 @@ export const determinePartnerRewards = async ({
         },
       });
 
-      if (reward) {
+      if (result) {
         // product.amount is the Stripe line total (unit × quantity). Flat
         // rewards are per sale/line, so do not multiply by line.quantity.
         rewards.push({
-          reward,
+          reward: result.reward,
+          matchedCondition: result.matchedCondition,
           sale: {
             amount: product.amount,
             quantity: 1,
@@ -222,16 +232,17 @@ export const determinePartnerRewards = async ({
       }
     }
   } else {
-    const reward = await determinePartnerReward({
+    const result = await determinePartnerReward({
       event,
       programEnrollment,
       linkId,
       ...(context ? { context } : {}),
     });
 
-    if (reward) {
+    if (result) {
       rewards.push({
-        reward,
+        reward: result.reward,
+        matchedCondition: result.matchedCondition,
         sale: {
           amount,
           quantity,
