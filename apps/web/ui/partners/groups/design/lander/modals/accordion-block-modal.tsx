@@ -35,7 +35,7 @@ export function AccordionBlockModal(props: AccordionBlockModalProps) {
     <Modal
       showModal={props.showModal}
       setShowModal={props.setShowModal}
-      className="max-w-screen-lg"
+      className="max-w-2xl"
     >
       <AccordionBlockModalInner {...props} />
     </Modal>
