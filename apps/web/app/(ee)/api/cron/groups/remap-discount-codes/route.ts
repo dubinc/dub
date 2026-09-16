@@ -1,7 +1,7 @@
 import { withCron } from "@/lib/cron/with-cron";
 import { createDiscountCode } from "@/lib/discounts/create-discount-code";
 import { isDiscountProviderError } from "@/lib/discounts/discount-error";
-import { remapDiscountCodes } from "@/lib/discounts/remap-discount-codes";
+import { remapDiscountCodesForPartnerJob } from "@/lib/jobs/handlers/remap-discount-codes-for-partner-job";
 import { prisma } from "@/lib/prisma";
 import * as z from "zod/v4";
 import { logAndRespond } from "../../utils";
@@ -60,14 +60,15 @@ export const POST = withCron(async ({ rawBody }) => {
     return logAndRespond("Group not found.");
   }
 
-  const discountCodes = programEnrollments.flatMap(
-    ({ discountCodes }) => discountCodes,
+  await remapDiscountCodesForPartnerJob.dispatchBatch(
+    partnerIds.map((partnerId) => ({
+      programId,
+      partnerId,
+    })),
+    ({ partnerId }) => ({
+      label: partnerId,
+    }),
   );
-
-  await remapDiscountCodes({
-    discountCodes,
-    newDiscount: group.discount,
-  });
 
   if (group.discount?.autoProvisionEnabledAt) {
     // Find the partner default links that don't have a discount code yet

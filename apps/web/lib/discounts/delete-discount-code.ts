@@ -11,7 +11,7 @@ type DiscountCodeWebhookDiscount = z.infer<
   typeof DiscountCodeWebhookSchema
 >["discount"];
 
-type DeleteDiscountCodesParams = Pick<
+export type DeleteDiscountCodesParams = Pick<
   DiscountCode,
   "id" | "code" | "programId" | "partnerId" | "linkId" | "disabledAt"
 > & {

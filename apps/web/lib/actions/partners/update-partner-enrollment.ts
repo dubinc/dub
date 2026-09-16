@@ -15,7 +15,7 @@ import {
   hasRewardIdsInput,
   throwIfInvalidRewardIds,
 } from "@/lib/api/rewards/additional-rewards";
-import { remapDiscountCodes } from "@/lib/discounts/remap-discount-codes";
+import { remapDiscountCodesForPartnerJob } from "@/lib/jobs/handlers/remap-discount-codes-for-partner-job";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { prisma } from "@/lib/prisma";
 import { PARTNER_AND_LINK_REWARDS_PLAN_ERROR } from "@/lib/rewards/constants";
@@ -177,28 +177,15 @@ export const updatePartnerEnrollmentAction = authActionClient
     });
 
     if (discountId !== undefined) {
-      const discountCodes = await prisma.discountCode.findMany({
-        where,
-        include: {
-          discount: true,
-          link: {
-            select: {
-              linkReward: {
-                select: {
-                  discountId: true,
-                },
-              },
-            },
-          },
+      await remapDiscountCodesForPartnerJob.dispatch(
+        {
+          programId,
+          partnerId,
         },
-      });
-
-      await remapDiscountCodes({
-        discountCodes: discountCodes.filter(
-          (discountCode) => !discountCode.link.linkReward?.discountId,
-        ),
-        newDiscount: programEnrollment.discount,
-      });
+        {
+          label: partnerId,
+        },
+      );
     }
 
     waitUntil(

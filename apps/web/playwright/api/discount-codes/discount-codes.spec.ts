@@ -1,5 +1,6 @@
 import { createId } from "@/lib/api/create-id";
 import { constructDiscountCode } from "@/lib/discounts/construct-discount-code";
+import { remapDiscountCodesForPartner } from "@/lib/discounts/remap-discount-codes-for-partner";
 import { prisma } from "@/lib/prisma";
 import { DiscountCodeSchema } from "@/lib/zod/schemas/discount";
 import { DEFAULT_ADDITIONAL_PARTNER_LINKS } from "@/lib/zod/schemas/groups";
@@ -723,6 +724,11 @@ test("PATCH /partners/links/:linkId retargets equivalent discount codes", async 
 
     expect(status).toEqual(200);
 
+    await remapDiscountCodesForPartner({
+      programId: program.id,
+      partnerId: created.partner.id,
+    });
+
     const discountCode = await prisma.discountCode.findUnique({
       where: {
         id: created.data.id,
@@ -755,6 +761,11 @@ test("PATCH /partners/links/:linkId deletes discount codes when terms differ", a
     );
 
     expect(status).toEqual(200);
+
+    await remapDiscountCodesForPartner({
+      programId: program.id,
+      partnerId: created.partner.id,
+    });
 
     const discountCode = await prisma.discountCode.findUnique({
       where: {

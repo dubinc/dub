@@ -2,24 +2,20 @@ import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { bulkCreateLinks } from "@/lib/api/links";
 import { generatePartnerLink } from "@/lib/api/partners/generate-partner-link";
 import { applyGroupUtmToLink } from "@/lib/api/utm/apply-group-utm-to-link";
-import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { loadAppsFlyerParameters } from "@/lib/integrations/appsflyer/apply-parameters";
 import { AppsFlyerSettings } from "@/lib/integrations/appsflyer/schema";
+import { remapDiscountCodesForPartnerJob } from "@/lib/jobs/handlers/remap-discount-codes-for-partner-job";
 import { syncGroupUtmJob } from "@/lib/jobs/handlers/sync-group-utm-job";
 import { isAppsFlyerTrackingUrl } from "@/lib/middleware/utils/is-appsflyer-tracking-url";
 import { prisma } from "@/lib/prisma";
 import { WorkspaceProps } from "@/lib/types";
 import { MAX_DEFAULT_LINKS_PER_GROUP } from "@/lib/zod/schemas/groups";
-import {
-  APP_DOMAIN_WITH_NGROK,
-  isFulfilled,
-  log,
-  prettyPrint,
-} from "@dub/utils";
+import { isFulfilled, log } from "@dub/utils";
 import * as z from "zod/v4";
 import { logAndRespond } from "../../utils";
 import { remapPartnerGroupDefaultLinks } from "./utils";
+
 export const dynamic = "force-dynamic";
 
 const schema = z.object({
@@ -264,18 +260,14 @@ export async function POST(req: Request) {
       partnerIds,
     });
 
-    const remapDiscountCodesJob = await qstash.publishJSON({
-      url: `${APP_DOMAIN_WITH_NGROK}/api/cron/groups/remap-discount-codes`,
-      body: {
+    await remapDiscountCodesForPartnerJob.dispatchBatch(
+      partnerIds.map((partnerId) => ({
         programId,
-        partnerIds,
-        groupId,
-        isGroupDeleted,
-      },
-    });
-
-    console.log(
-      `Scheduled remap-discount-codes job for group ${groupId}: ${prettyPrint(remapDiscountCodesJob)}`,
+        partnerId,
+      })),
+      ({ partnerId }) => ({
+        label: partnerId,
+      }),
     );
 
     return logAndRespond(`Finished creating default links for the partners.`);
