@@ -12,7 +12,7 @@ import {
   IOSAppStore,
   MobilePhone,
 } from "@dub/ui/icons";
-import { cn, getApexDomain } from "@dub/utils";
+import { cn, constructMetadata, getApexDomain } from "@dub/utils";
 import { headers } from "next/headers";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -29,6 +29,17 @@ interface AssetLink {
     namespace?: string;
     package_name?: string;
   };
+}
+
+export async function generateMetadata(props: {
+  params: Promise<{ domain: string; key?: string[] }>;
+}) {
+  const { domain, key } = await props.params;
+
+  return constructMetadata({
+    title: `${domain}${key ? `/${decodeURIComponent(key.join("/"))}` : ""}`,
+    noIndex: true,
+  });
 }
 
 export default async function DeepLinkPreviewPage(props: {

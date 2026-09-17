@@ -14,18 +14,9 @@ async function main() {
     const commissions = await prisma.commission.findMany({
       where: {
         source: null,
-        OR: [
-          {
-            userId: {
-              not: null,
-            },
-          },
-          {
-            bountySubmission: {
-              isNot: null,
-            },
-          },
-        ],
+        userId: {
+          not: null,
+        },
       },
       select: {
         id: true,

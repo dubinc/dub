@@ -11,6 +11,7 @@ import { SSOLoginButton } from "./sso-login-button";
 
 export const metadata = constructMetadata({
   fullTitle: "Login to partners.dub.co",
+  canonicalUrl: "https://partners.dub.co/login",
 });
 
 export default async function LoginPage(props: {
