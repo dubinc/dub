@@ -4,6 +4,7 @@ import { getBountiesForPartner } from "@/lib/bounty/api/get-bounties-for-partner
 import { referralsEmbedToken } from "@/lib/embed/referrals/token-class";
 import { aggregatePartnerLinksStats } from "@/lib/partners/aggregate-partner-links-stats";
 import { prisma } from "@/lib/prisma";
+import { getResolvedPartnerLinkRewards } from "@/lib/rewards/get-resolved-partner-link-reward-fields";
 import { PartnerGroupAdditionalLink } from "@/lib/types";
 import { ReferralsEmbedLinkSchema } from "@/lib/zod/schemas/referrals-embed";
 import { Reward } from "@prisma/client";
@@ -52,7 +53,18 @@ export const getReferralsEmbedData = async (token: string) => {
           resources: true,
         },
       },
-      links: true,
+      links: {
+        include: {
+          linkReward: {
+            include: {
+              clickReward: true,
+              leadReward: true,
+              saleReward: true,
+              discount: true,
+            },
+          },
+        },
+      },
       partnerGroup: true,
       clickReward: true,
       leadReward: true,
@@ -121,7 +133,21 @@ export const getReferralsEmbedData = async (token: string) => {
       defaultPayoutMethod: partner.defaultPayoutMethod,
     },
     partnerPlatforms: partner.platforms,
-    links: z.array(ReferralsEmbedLinkSchema).parse(links),
+    links: z.array(ReferralsEmbedLinkSchema).parse(
+      links.map((link) => ({
+        ...link,
+        ...getResolvedPartnerLinkRewards({
+          linkReward: link.linkReward,
+          enrollmentRewards: [
+            clickReward,
+            leadReward,
+            saleReward,
+            customReward,
+          ],
+          enrollmentDiscount: discount,
+        }),
+      })),
+    ),
     rewards: [clickReward, leadReward, saleReward, referralReward, customReward]
       .filter((r): r is Reward => r !== null)
       .map((r) => serializeReward(r)),

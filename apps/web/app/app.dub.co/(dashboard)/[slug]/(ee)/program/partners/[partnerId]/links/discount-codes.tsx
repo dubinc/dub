@@ -2,7 +2,7 @@
 
 import { constructPartnerLink } from "@/lib/partners/construct-partner-link";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
-import { PARTNER_LEVEL_REWARDS_PLAN_ERROR } from "@/lib/rewards/constants";
+import { PARTNER_AND_LINK_REWARDS_PLAN_ERROR } from "@/lib/rewards/constants";
 import useDiscountCodes from "@/lib/swr/use-discount-codes";
 import { useDiscounts } from "@/lib/swr/use-discounts";
 import useGroup from "@/lib/swr/use-group";
@@ -336,15 +336,17 @@ function DiscountCodeCard({
       group,
     });
 
-  const editDiscountDisabledTooltip = !link ? (
-    "Link not found"
-  ) : !canUseAdvancedRewardLogic ? (
-    <TooltipContent
-      title={PARTNER_LEVEL_REWARDS_PLAN_ERROR}
-      cta="Upgrade to Advanced"
-      onClick={() => setShowAdvancedUpsellModal(true)}
-    />
-  ) : undefined;
+  const editDiscountDisabledTooltip = !link
+    ? "Link not found"
+    : !canUseAdvancedRewardLogic
+      ? (
+          <TooltipContent
+            title={PARTNER_AND_LINK_REWARDS_PLAN_ERROR}
+            cta="Upgrade to Advanced"
+            onClick={() => setShowAdvancedUpsellModal(true)}
+          />
+        )
+      : undefined;
 
   return (
     <>

@@ -2,7 +2,7 @@
 
 import { constructPartnerLink } from "@/lib/partners/construct-partner-link";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
-import { PARTNER_LEVEL_REWARDS_PLAN_ERROR } from "@/lib/rewards/constants";
+import { PARTNER_AND_LINK_REWARDS_PLAN_ERROR } from "@/lib/rewards/constants";
 import useGroup from "@/lib/swr/use-group";
 import { useProgramPartnerLinks } from "@/lib/swr/use-program-partner-links";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -151,7 +151,7 @@ export function ReferralLinks({ partner }: { partner: EnrolledPartnerProps }) {
   const { slug } = useWorkspace();
 
   const { group } = useGroup({
-    groupIdOrSlug: partner.groupId ?? undefined,
+    groupIdOrSlug: partner.groupId,
   });
 
   const { AddPartnerLinkModal, setShowAddPartnerLinkModal } =
@@ -246,7 +246,7 @@ function PartnerLinkCard({
 
   const overrideDisabledTooltip = !canUseAdvancedRewardLogic ? (
     <TooltipContent
-      title={PARTNER_LEVEL_REWARDS_PLAN_ERROR}
+      title={PARTNER_AND_LINK_REWARDS_PLAN_ERROR}
       cta="Upgrade to Advanced"
       onClick={() => setShowAdvancedUpsellModal(true)}
     />

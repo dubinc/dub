@@ -6,6 +6,7 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { applyGroupUtmToLink } from "@/lib/api/utm/apply-group-utm-to-link";
 import { withPartnerProfile } from "@/lib/auth/partner";
 import { prisma } from "@/lib/prisma";
+import { getResolvedPartnerLinkRewards } from "@/lib/rewards/get-resolved-partner-link-reward-fields";
 import { PartnerProfileLinkSchema } from "@/lib/zod/schemas/partner-profile";
 import {
   createPartnerLinkSchema,
@@ -16,12 +17,36 @@ import * as z from "zod/v4";
 
 // GET /api/partner-profile/programs/[programId]/links - get a partner's links in a program
 export const GET = withPartnerProfile(async ({ partner, params }) => {
-  const { links, discountCodes } = await getProgramEnrollmentOrThrow({
+  const {
+    links,
+    discountCodes,
+    clickReward,
+    leadReward,
+    saleReward,
+    customReward,
+    discount,
+  } = await getProgramEnrollmentOrThrow({
     partnerId: partner.id,
     programId: params.programId,
     include: {
-      links: true,
       discountCodes: true,
+      clickReward: true,
+      leadReward: true,
+      saleReward: true,
+      customReward: true,
+      discount: true,
+      links: {
+        include: {
+          linkReward: {
+            include: {
+              clickReward: true,
+              leadReward: true,
+              saleReward: true,
+              discount: true,
+            },
+          },
+        },
+      },
     },
   });
 
@@ -30,11 +55,19 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
     discountCodes?.map((discountCode) => [discountCode.linkId, discountCode]),
   );
 
+  const enrollmentRewards = [clickReward, leadReward, saleReward, customReward];
+
   const result = links.map((link) => {
     const discountCode = linksByDiscountCode.get(link.id);
+    const resolvedRewards = getResolvedPartnerLinkRewards({
+      linkReward: link.linkReward,
+      enrollmentRewards,
+      enrollmentDiscount: discount,
+    });
 
     return {
       ...link,
+      ...resolvedRewards,
       discountCode: discountCode?.code,
       discountCodeDisabledAt: discountCode?.disabledAt ?? null,
     };

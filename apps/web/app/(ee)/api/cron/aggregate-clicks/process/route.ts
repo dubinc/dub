@@ -26,6 +26,8 @@ const inputSchema = z.object({
   startDate: z.coerce.date(),
   endDate: z.coerce.date(),
   startingAfter: z.string().optional(),
+  // inherited = enrollment click reward (no link override); overridden = LinkReward.clickRewardId
+  mode: z.enum(["inherited", "overridden"]).default("inherited"),
 });
 
 const BATCH_SIZE = 200;
@@ -39,7 +41,7 @@ type LinkEarnings = {
 // POST /api/cron/aggregate-clicks/process
 // Process a batch of links for a given click reward
 export const POST = withCron(async ({ rawBody }) => {
-  const { clickRewardId, startDate, endDate, startingAfter } =
+  const { clickRewardId, startDate, endDate, startingAfter, mode } =
     inputSchema.parse(JSON.parse(rawBody));
 
   const clickReward = await prisma.reward.findUnique({
@@ -67,18 +69,43 @@ export const POST = withCron(async ({ rawBody }) => {
 
   const links = await prisma.link.findMany({
     where: {
-      programEnrollment: {
-        status: {
-          in: COMMISSION_ELIGIBLE_ENROLLMENT_STATUSES,
-        },
-        clickRewardId,
-      },
+      ...(mode === "overridden"
+        ? {
+            linkReward: {
+              clickRewardId,
+            },
+            programEnrollment: {
+              status: {
+                in: COMMISSION_ELIGIBLE_ENROLLMENT_STATUSES,
+              },
+            },
+          }
+        : {
+            programEnrollment: {
+              status: {
+                in: COMMISSION_ELIGIBLE_ENROLLMENT_STATUSES,
+              },
+              clickRewardId,
+            },
+            NOT: {
+              linkReward: {
+                clickRewardId: {
+                  not: null,
+                },
+              },
+            },
+          }),
       clicks: {
         gt: 0,
       },
       lastClicked: {
         gte: startDate, // links that were clicked on after the start date
       },
+      ...(startingAfter && {
+        id: {
+          gt: startingAfter,
+        },
+      }),
     },
     select: {
       id: true,
@@ -86,12 +113,6 @@ export const POST = withCron(async ({ rawBody }) => {
       programId: true,
       partnerId: true,
     },
-    ...(startingAfter && {
-      skip: 1,
-      cursor: {
-        id: startingAfter,
-      },
-    }),
     orderBy: {
       id: "asc",
     },
@@ -99,6 +120,25 @@ export const POST = withCron(async ({ rawBody }) => {
   });
 
   if (links.length === 0) {
+    if (mode === "inherited") {
+      await enqueueBatchJobs([
+        {
+          queueName: "aggregate-clicks",
+          url: `${APP_DOMAIN_WITH_NGROK}/api/cron/aggregate-clicks/process`,
+          body: {
+            clickRewardId: clickReward.id,
+            startDate,
+            endDate,
+            mode: "overridden",
+          },
+        },
+      ]);
+
+      return logAndRespond(
+        `No inherited links for ${clickRewardId}. Enqueued overridden phase.`,
+      );
+    }
+
     return logAndRespond(
       `No more links found for ${clickRewardId}. Skipping...`,
     );
@@ -277,13 +317,33 @@ export const POST = withCron(async ({ rawBody }) => {
           clickRewardId: clickReward.id,
           startDate,
           endDate,
+          mode,
           startingAfter: nextStartingAfter,
         },
       },
     ]);
 
     return logAndRespond(
-      `Enqueued next batch for aggregate clicks cron (startingAfter: ${nextStartingAfter}).`,
+      `Enqueued next ${mode} batch for aggregate clicks cron (startingAfter: ${nextStartingAfter}).`,
+    );
+  }
+
+  if (mode === "inherited") {
+    await enqueueBatchJobs([
+      {
+        queueName: "aggregate-clicks",
+        url: `${APP_DOMAIN_WITH_NGROK}/api/cron/aggregate-clicks/process`,
+        body: {
+          clickRewardId: clickReward.id,
+          startDate,
+          endDate,
+          mode: "overridden",
+        },
+      },
+    ]);
+
+    return logAndRespond(
+      `Inherited phase complete for ${clickRewardId}. Enqueued overridden phase.`,
     );
   }
 

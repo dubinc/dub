@@ -162,7 +162,9 @@ export const { POST } = serve<Input>(
         })),
       });
 
-      allPartnerLinks.push(...partnerLinks);
+      allPartnerLinks.push(
+        ...ProgramPartnerLinkSchema.array().parse(partnerLinks),
+      );
 
       return;
     });
