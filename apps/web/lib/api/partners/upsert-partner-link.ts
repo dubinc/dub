@@ -11,11 +11,13 @@ import { updatePartnerLink } from "@/lib/api/partners/update-partner-link";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import {
   getRewardIds,
+  omitGroupDefaultRewardIds,
+} from "@/lib/api/rewards/additional-rewards";
+import {
   hasRewardAssignment,
   hasRewardIdsInput,
-  omitGroupDefaultRewardIds,
-  throwIfInvalidRewardIds,
-} from "@/lib/api/rewards/additional-rewards";
+} from "@/lib/api/rewards/reward-overrides";
+import { throwIfInvalidRewards } from "@/lib/api/rewards/throw-if-invalid-rewards";
 import { applyGroupUtmToLink } from "@/lib/api/utm/apply-group-utm-to-link";
 import { throwIfNoPartnerIdOrTenantId } from "@/lib/partners/throw-if-no-partnerid-tenantid";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
@@ -405,7 +407,7 @@ async function createNewPartnerLink({
     });
   }
 
-  await throwIfInvalidRewardIds({
+  await throwIfInvalidRewards({
     programId: program.id,
     groupId: partnerGroup.id,
     ...persistedLinkRewardInput,

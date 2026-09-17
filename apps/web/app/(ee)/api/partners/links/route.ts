@@ -15,7 +15,7 @@ import { withWorkspace } from "@/lib/auth";
 import { throwIfNoPartnerIdOrTenantId } from "@/lib/partners/throw-if-no-partnerid-tenantid";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { prisma } from "@/lib/prisma";
-import { PARTNER_AND_LINK_REWARDS_PLAN_ERROR } from "@/lib/rewards/constants";
+import { PARTNER_LEVEL_REWARDS_PLAN_ERROR } from "@/lib/rewards/constants";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { linkEventSchema } from "@/lib/zod/schemas/links";
 import {
@@ -201,7 +201,7 @@ export const POST = withWorkspace(
     ) {
       throw new DubApiError({
         code: "forbidden",
-        message: PARTNER_AND_LINK_REWARDS_PLAN_ERROR,
+        message: PARTNER_LEVEL_REWARDS_PLAN_ERROR,
       });
     }
 

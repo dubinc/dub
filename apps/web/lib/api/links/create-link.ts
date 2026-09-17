@@ -1,8 +1,6 @@
 import { queuePartnerSearchSync } from "@/lib/api/partners/queue-partner-search-sync";
-import {
-  hasRewardAssignment,
-  LinkRewardIdsInput,
-} from "@/lib/api/rewards/additional-rewards";
+import { LinkRewardIdsInput } from "@/lib/api/rewards/additional-rewards";
+import { hasRewardAssignment } from "@/lib/api/rewards/reward-overrides";
 import { qstash } from "@/lib/cron";
 import { getPartnerEnrollmentInfo } from "@/lib/planetscale/get-partner-enrollment-info";
 import { prisma } from "@/lib/prisma";

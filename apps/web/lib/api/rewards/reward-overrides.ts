@@ -1,9 +1,9 @@
-export type EnrollmentRewardIds = {
-  clickRewardId: string | null;
-  leadRewardId: string | null;
-  saleRewardId: string | null;
-  discountId: string | null;
-};
+import { ProgramEnrollment } from "@prisma/client";
+
+export type EnrollmentRewardIds = Pick<
+  ProgramEnrollment,
+  "clickRewardId" | "leadRewardId" | "saleRewardId" | "discountId"
+>;
 
 export type EnrollmentRewardIdsInput = Partial<EnrollmentRewardIds>;
 

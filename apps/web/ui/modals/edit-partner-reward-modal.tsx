@@ -4,6 +4,7 @@ import { parseActionError } from "@/lib/actions/parse-action-errors";
 import { deleteRewardAction } from "@/lib/actions/partners/delete-reward";
 import { updatePartnerEnrollmentAction } from "@/lib/actions/partners/update-partner-enrollment";
 import { mutatePrefix } from "@/lib/swr/mutate";
+import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import useGroup from "@/lib/swr/use-group";
 import { useRewards } from "@/lib/swr/use-rewards";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -21,6 +22,7 @@ import { useAction } from "next-safe-action/hooks";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 
+type PartnerLink = NonNullable<EnrolledPartnerProps["links"]>[number];
 type OverrideRewardEvent = "sale" | "lead" | "click";
 
 type PartnerRewardOverridePartner = Pick<
@@ -35,10 +37,16 @@ type PartnerRewardOverridePartner = Pick<
   | "saleRewardId"
 >;
 
-export type PartnerRewardOverrideTarget = {
-  type: "partner";
-  partner: PartnerRewardOverridePartner;
-};
+export type PartnerRewardOverrideTarget =
+  | {
+      type: "partner";
+      partner: PartnerRewardOverridePartner;
+    }
+  | {
+      type: "link";
+      link: PartnerLink;
+      partner: PartnerRewardOverridePartner;
+    };
 
 function getGroupRewardId(
   group: GroupProps | null | undefined,
@@ -62,16 +70,35 @@ function getPartnerRewardId(
   }[event];
 }
 
+function getLinkRewardId(link: PartnerLink, event: OverrideRewardEvent) {
+  return (
+    {
+      sale: link.saleReward,
+      lead: link.leadReward,
+      click: link.clickReward,
+    }[event] ?? null
+  );
+}
+
 function getSelectedRewardId({
-  partner,
+  target,
   event,
   groupRewardId,
 }: {
-  partner: PartnerRewardOverridePartner;
+  target: PartnerRewardOverrideTarget;
   event: OverrideRewardEvent;
   groupRewardId: string | null | undefined;
 }) {
-  return getPartnerRewardId(partner, event) ?? groupRewardId ?? null;
+  if (target.type === "partner") {
+    return getPartnerRewardId(target.partner, event) ?? groupRewardId ?? null;
+  }
+
+  return (
+    getLinkRewardId(target.link, event) ??
+    getPartnerRewardId(target.partner, event) ??
+    groupRewardId ??
+    null
+  );
 }
 
 interface EditPartnerRewardModalProps {
@@ -79,6 +106,7 @@ interface EditPartnerRewardModalProps {
   setShowModal: (showModal: boolean) => void;
   event: OverrideRewardEvent;
   target: PartnerRewardOverrideTarget;
+  group?: GroupProps | null;
 }
 
 function EditPartnerRewardModal({
@@ -86,6 +114,7 @@ function EditPartnerRewardModal({
   setShowModal,
   event,
   target,
+  group: groupProp,
 }: EditPartnerRewardModalProps) {
   const { partner } = target;
 
@@ -104,11 +133,15 @@ function EditPartnerRewardModal({
       revalidateOnFocus: true,
     },
   );
-  const { group } = useGroup({
+  const { group: fetchedGroup } = useGroup({
     groupIdOrSlug: partner.groupId ?? undefined,
   });
+  const group = groupProp ?? fetchedGroup;
   const { ConfirmRewardChangeModal, confirmRewardChange } =
     useConfirmRewardChangeModal();
+
+  const { makeRequest: updatePartnerLink, isSubmitting: isUpdatingLink } =
+    useApiMutation();
 
   const { executeAsync: updateEnrollment, isPending: isUpdatingEnrollment } =
     useAction(updatePartnerEnrollmentAction, {
@@ -149,12 +182,13 @@ function EditPartnerRewardModal({
   }, [rewards, event, groupRewardId]);
 
   const currentId = getSelectedRewardId({
-    partner,
+    target,
     event,
     groupRewardId,
   });
   const resolvedSelectedId = selectedId ?? currentId;
   const hasChanges = resolvedSelectedId !== currentId;
+  const isSubmitting = isUpdatingLink || isUpdatingEnrollment;
 
   const options = useMemo(
     () =>
@@ -195,20 +229,36 @@ function EditPartnerRewardModal({
 
   const persistOverride = useCallback(
     async (activityDescription?: string) => {
-      if (!workspaceId) {
-        return;
-      }
-
       const rewardIdColumn = REWARD_EVENT_COLUMN_MAPPING[event];
       const isGroupSelection = resolvedSelectedId === groupRewardId;
 
-      await updateEnrollment({
-        workspaceId,
-        partnerId: partner.id,
-        [rewardIdColumn]: isGroupSelection
-          ? groupRewardId ?? null
-          : resolvedSelectedId,
-        activityDescription,
+      if (target.type === "partner") {
+        if (!workspaceId) {
+          return;
+        }
+
+        await updateEnrollment({
+          workspaceId,
+          partnerId: partner.id,
+          [rewardIdColumn]: isGroupSelection
+            ? groupRewardId ?? null
+            : resolvedSelectedId,
+          activityDescription,
+        });
+        return;
+      }
+
+      await updatePartnerLink(`/api/partners/links/${target.link.id}`, {
+        method: "PATCH",
+        body: {
+          [rewardIdColumn]: isGroupSelection ? null : resolvedSelectedId,
+          activityDescription,
+        },
+        onSuccess: async () => {
+          setShowModal(false);
+          toast.success("Reward updated");
+          await mutatePrefix(["/api/partners", "/api/partners/links"]);
+        },
       });
     },
     [
@@ -217,7 +267,10 @@ function EditPartnerRewardModal({
       resolvedSelectedId,
       groupRewardId,
       updateEnrollment,
+      updatePartnerLink,
+      target,
       partner.id,
+      setShowModal,
     ],
   );
 
@@ -244,9 +297,9 @@ function EditPartnerRewardModal({
 
       await confirmRewardChange({
         action: "updated",
-        target: "partner",
+        target: target.type,
         reward: selectedReward,
-        isPending: isUpdatingEnrollment,
+        isPending: isSubmitting,
         onConfirm: persistOverride,
       });
     },
@@ -256,7 +309,8 @@ function EditPartnerRewardModal({
       eventRewards,
       setShowModal,
       confirmRewardChange,
-      isUpdatingEnrollment,
+      target.type,
+      isSubmitting,
       persistOverride,
     ],
   );
@@ -384,13 +438,13 @@ function EditPartnerRewardModal({
               text="Cancel"
               className="h-8 w-fit px-3"
               onClick={() => setShowModal(false)}
-              disabled={isUpdatingEnrollment}
+              disabled={isSubmitting}
             />
             <Button
               type="submit"
               text="Save"
               className="h-8 w-fit px-3"
-              loading={isUpdatingEnrollment}
+              loading={isSubmitting}
               disabled={
                 !resolvedSelectedId || options.length === 0 || !hasChanges
               }
@@ -405,20 +459,22 @@ function EditPartnerRewardModal({
 export function useEditPartnerRewardModal({
   event,
   target,
+  group,
 }: {
   event: OverrideRewardEvent;
   target: PartnerRewardOverrideTarget | null;
+  group?: GroupProps | null;
 }) {
   const [showModal, setShowModal] = useState(false);
-  const propsRef = useRef({ event, target });
+  const propsRef = useRef({ event, target, group });
   const lastTargetRef = useRef(target);
-  propsRef.current = { event, target };
+  propsRef.current = { event, target, group };
   if (target) {
     lastTargetRef.current = target;
   }
 
   const EditPartnerRewardModalCallback = useCallback(() => {
-    const { event: currentEvent } = propsRef.current;
+    const { event: currentEvent, group: currentGroup } = propsRef.current;
     const currentTarget = propsRef.current.target ?? lastTargetRef.current;
 
     if (!currentTarget) {
@@ -431,6 +487,7 @@ export function useEditPartnerRewardModal({
         setShowModal={setShowModal}
         event={currentEvent}
         target={currentTarget}
+        group={currentGroup}
       />
     );
   }, [showModal]);
