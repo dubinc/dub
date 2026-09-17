@@ -38,7 +38,7 @@ export function useDiscounts(
 
   return {
     discounts,
-    loading: !discounts && !error,
+    loading: Boolean(canFetch) && !discounts && !error,
     error,
   };
 }

@@ -1,3 +1,4 @@
+import { resolvePartnerAssignedItem } from "@/lib/rewards/resolve-partner-assigned-item";
 import { useDiscounts } from "@/lib/swr/use-discounts";
 import { useRewards } from "@/lib/swr/use-rewards";
 import {
@@ -58,13 +59,15 @@ export function usePartnerRewards({
     | undefined;
   group: GroupProps | null | undefined;
 }) {
-  const { rewards: groupRewards } = useRewards({
+  const { rewards: groupRewards, loading: rewardsLoading } = useRewards({
     groupId: group?.id,
   });
 
-  const { discounts: groupDiscounts } = useDiscounts({
-    groupId: group?.id,
-  });
+  const { discounts: groupDiscounts, loading: discountsLoading } = useDiscounts(
+    {
+      groupId: group?.id,
+    },
+  );
 
   return useMemo(() => {
     const rewards: PartnerRewardItem[] = [];
@@ -77,31 +80,26 @@ export function usePartnerRewards({
       };
     }
 
-    const rewardsById = new Map(
+    const rewardsById = new Map<string, RewardProps>(
       (groupRewards ?? []).map((reward) => [reward.id, reward]),
     );
 
-    const discountsById = new Map(
+    const discountsById = new Map<string, DiscountProps>(
       (groupDiscounts ?? []).map((discount) => [discount.id, discount]),
     );
 
     for (const { partnerKey, groupKey } of rewardConfig) {
-      const partnerRewardId = partner?.[partnerKey];
-      const groupReward = group[groupKey];
+      const resolved = resolvePartnerAssignedItem({
+        assignedId: partner?.[partnerKey],
+        groupDefault: group[groupKey],
+        itemsById: rewardsById,
+        loading: rewardsLoading,
+      });
 
-      if (partnerRewardId) {
-        const reward = rewardsById.get(partnerRewardId);
-
-        if (reward) {
-          rewards.push({
-            ...reward,
-            isOverride: partnerRewardId !== groupReward?.id,
-          });
-        }
-      } else if (groupReward) {
+      if (resolved) {
         rewards.push({
-          ...groupReward,
-          isOverride: false,
+          ...resolved.item,
+          isOverride: resolved.isOverride,
         });
       }
     }
@@ -120,19 +118,17 @@ export function usePartnerRewards({
       });
     }
 
-    if (partner?.discountId) {
-      const resolvedDiscount = discountsById.get(partner.discountId);
+    const resolvedDiscount = resolvePartnerAssignedItem({
+      assignedId: partner?.discountId,
+      groupDefault: group.discount,
+      itemsById: discountsById,
+      loading: discountsLoading,
+    });
 
-      if (resolvedDiscount) {
-        discount = {
-          ...resolvedDiscount,
-          isOverride: partner.discountId !== group.discount?.id,
-        };
-      }
-    } else if (group.discount) {
+    if (resolvedDiscount) {
       discount = {
-        ...group.discount,
-        isOverride: false,
+        ...resolvedDiscount.item,
+        isOverride: resolvedDiscount.isOverride,
       };
     }
 
@@ -140,5 +136,12 @@ export function usePartnerRewards({
       rewards,
       discount,
     };
-  }, [group, partner, groupRewards, groupDiscounts]);
+  }, [
+    group,
+    partner,
+    groupRewards,
+    groupDiscounts,
+    rewardsLoading,
+    discountsLoading,
+  ]);
 }

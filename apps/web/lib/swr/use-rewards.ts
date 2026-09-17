@@ -38,7 +38,7 @@ export function useRewards(
 
   return {
     rewards,
-    loading: !rewards && !error,
+    loading: Boolean(canFetch) && !rewards && !error,
     error,
   };
 }
