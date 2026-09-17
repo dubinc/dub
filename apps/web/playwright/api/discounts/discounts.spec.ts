@@ -52,14 +52,6 @@ let customDiscountId: string | undefined;
 let partnerGroupId: string | undefined;
 
 test.beforeAll(async ({ program }) => {
-  const discount = await prisma.discount.create({
-    data: {
-      id: createId({ prefix: "disc_" }),
-      programId: program.id,
-      ...customDiscount,
-    },
-  });
-
   const group = await prisma.partnerGroup.create({
     data: {
       id: createId({ prefix: "grp_" }),
@@ -67,6 +59,23 @@ test.beforeAll(async ({ program }) => {
       slug: `pw-disc-${nanoid(8).toLowerCase()}`,
       name: "Playwright Custom Discounts",
       maxPartnerLinks: DEFAULT_ADDITIONAL_PARTNER_LINKS,
+    },
+  });
+
+  const discount = await prisma.discount.create({
+    data: {
+      id: createId({ prefix: "disc_" }),
+      programId: program.id,
+      groupId: group.id,
+      ...customDiscount,
+    },
+  });
+
+  await prisma.partnerGroup.update({
+    where: {
+      id: group.id,
+    },
+    data: {
       discountId: discount.id,
     },
   });
@@ -199,13 +208,13 @@ test("GET /api/discounts – lists discounts with partnersCount", async ({
 
   expect(discount).toEqual({
     id: customDiscountId,
-    groupId: null,
+    groupId: partnerGroupId,
     ...expectedCustomDiscount,
     partnersCount: expect.any(Number),
   });
 });
 
-test("GET /api/discounts?groupId= – includes group default without groupId column", async ({
+test("GET /api/discounts?groupId= – includes group default", async ({
   api,
 }) => {
   const { status, data } = await api.get<
@@ -213,7 +222,14 @@ test("GET /api/discounts?groupId= – includes group default without groupId col
   >(`/api/discounts?groupId=${partnerGroupId}`);
 
   expect(status).toEqual(200);
-  expect(data.some((item) => item.id === customDiscountId)).toBe(true);
+  expect(data).toEqual([
+    {
+      id: customDiscountId,
+      groupId: partnerGroupId,
+      ...expectedCustomDiscount,
+      partnersCount: expect.any(Number),
+    },
+  ]);
 });
 
 test("GET /groups/{id} – nested custom discount", async ({ api }) => {

@@ -31,14 +31,6 @@ let customDiscountId: string | undefined;
 let partnerGroupId: string | undefined;
 
 test.beforeAll(async ({ program }) => {
-  const discount = await prisma.discount.create({
-    data: {
-      id: createId({ prefix: "disc_" }),
-      programId: program.id,
-      ...customDiscount,
-    },
-  });
-
   const group = await prisma.partnerGroup.create({
     data: {
       id: createId({ prefix: "grp_" }),
@@ -46,6 +38,23 @@ test.beforeAll(async ({ program }) => {
       slug: `pw-dcode-${nanoid(8).toLowerCase()}`,
       name: "Playwright Discount Codes",
       maxPartnerLinks: DEFAULT_ADDITIONAL_PARTNER_LINKS,
+    },
+  });
+
+  const discount = await prisma.discount.create({
+    data: {
+      id: createId({ prefix: "disc_" }),
+      programId: program.id,
+      groupId: group.id,
+      ...customDiscount,
+    },
+  });
+
+  await prisma.partnerGroup.update({
+    where: {
+      id: group.id,
+    },
+    data: {
       discountId: discount.id,
     },
   });

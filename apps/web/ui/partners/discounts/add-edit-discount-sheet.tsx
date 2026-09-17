@@ -99,8 +99,18 @@ function DiscountSheetContent({
     plan,
   } = useWorkspace();
   const { canUseAdvancedRewardLogic } = getPlanCapabilities(plan);
+
+  // Infer when omitted (create via useDiscountSheet defaults true). Group pages
+  // pass isDefault from whether the discount is the group's default.
+  const effectiveIsDefault =
+    isDefault === false
+      ? false
+      : discount && group
+        ? discount.id === group.discount?.id
+        : isDefault;
+
   const showPartnerAndLinkUpsell =
-    !discount && !isDefault && !canUseAdvancedRewardLogic;
+    !discount && !effectiveIsDefault && !canUseAdvancedRewardLogic;
 
   const isEdit = Boolean(discount?.id);
 
@@ -142,7 +152,7 @@ function DiscountSheetContent({
       couponTestId: defaultValuesSource.couponTestId,
       autoProvision: Boolean(defaultValuesSource.autoProvisionEnabledAt),
       provider: discountProvider,
-      isDefault,
+      isDefault: effectiveIsDefault,
     },
   });
 
@@ -266,7 +276,7 @@ function DiscountSheetContent({
       amount: data.type === "flat" ? data.amount * 100 : data.amount || 0,
       maxDuration:
         Number(data.maxDuration) === Infinity ? null : data.maxDuration,
-      isDefault,
+      isDefault: effectiveIsDefault,
     });
   };
 
@@ -596,10 +606,13 @@ function DiscountSheetContent({
             </div>
           </div>
 
-          {isDefault && group && (
+          {group && (effectiveIsDefault || Boolean(discount)) && (
             <>
               <VerticalLine />
-              <RewardDiscountPartnersCard groupId={group.id} />
+              <RewardDiscountPartnersCard
+                groupId={group.id}
+                discountId={discount?.id}
+              />
             </>
           )}
         </div>

@@ -34,7 +34,7 @@ function shouldNotifyRewardChange({
     return false;
   }
 
-  return partnerCount === undefined || partnerCount > 0;
+  return partnerCount == null || partnerCount > 0;
 }
 
 const TITLES: Record<RewardChangeAction, string> = {
@@ -197,45 +197,47 @@ export function ConfirmRewardChangeModal({
             </div>
           </div>
 
-          <div className="mt-4">
-            <div className="flex items-center justify-between">
-              <label
-                htmlFor="activityDescription"
-                className="text-content-emphasis text-sm font-medium"
-              >
-                {messageLabel}
-                <span className="ml-1 font-normal text-neutral-500">
-                  (optional)
-                </span>
-              </label>
-              <MaxCharactersCounter
-                name="activityDescription"
+          {(partnerCount == null || partnerCount > 0) && (
+            <div className="mt-4">
+              <div className="flex items-center justify-between">
+                <label
+                  htmlFor="activityDescription"
+                  className="text-content-emphasis text-sm font-medium"
+                >
+                  {messageLabel}
+                  <span className="ml-1 font-normal text-neutral-500">
+                    (optional)
+                  </span>
+                </label>
+                <MaxCharactersCounter
+                  name="activityDescription"
+                  maxLength={REWARD_CHANGE_DESCRIPTION_MAX_LENGTH}
+                  control={control}
+                />
+              </div>
+              <textarea
+                id="activityDescription"
+                rows={3}
                 maxLength={REWARD_CHANGE_DESCRIPTION_MAX_LENGTH}
-                control={control}
+                placeholder="Add context about this change..."
+                className={cn(
+                  "mt-2 block w-full rounded-md border-neutral-300 text-sm text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500",
+                  errors.activityDescription && "border-red-600",
+                )}
+                {...register("activityDescription", {
+                  maxLength: {
+                    value: REWARD_CHANGE_DESCRIPTION_MAX_LENGTH,
+                    message: `Must be ${REWARD_CHANGE_DESCRIPTION_MAX_LENGTH} characters or fewer`,
+                  },
+                })}
               />
-            </div>
-            <textarea
-              id="activityDescription"
-              rows={3}
-              maxLength={REWARD_CHANGE_DESCRIPTION_MAX_LENGTH}
-              placeholder="Add context about this change..."
-              className={cn(
-                "mt-2 block w-full rounded-md border-neutral-300 text-sm text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500",
-                errors.activityDescription && "border-red-600",
+              {errors.activityDescription && (
+                <p className="mt-1 text-xs text-red-600">
+                  {errors.activityDescription.message}
+                </p>
               )}
-              {...register("activityDescription", {
-                maxLength: {
-                  value: REWARD_CHANGE_DESCRIPTION_MAX_LENGTH,
-                  message: `Must be ${REWARD_CHANGE_DESCRIPTION_MAX_LENGTH} characters or fewer`,
-                },
-              })}
-            />
-            {errors.activityDescription && (
-              <p className="mt-1 text-xs text-red-600">
-                {errors.activityDescription.message}
-              </p>
-            )}
-          </div>
+            </div>
+          )}
         </div>
 
         <div className="border-border-subtle flex items-center justify-end gap-2 border-t px-5 py-4">
@@ -265,22 +267,20 @@ export function useConfirmRewardChangeModal() {
 
   const confirmRewardChange = useCallback(
     async (options: ConfirmRewardChangeOptions) => {
-      const shouldNotify = shouldNotifyRewardChange({
-        action: options.action,
-        target: options.target,
-        isDefault: options.isDefault,
-        partnerCount: options.partnerCount,
-      });
+      // Destructive deletes always use the modal, even when no partners are
+      // assigned (partnerCount === 0 would otherwise skip notification copy).
+      if (options.action !== "deleted") {
+        const shouldNotify = shouldNotifyRewardChange({
+          action: options.action,
+          target: options.target,
+          isDefault: options.isDefault,
+          partnerCount: options.partnerCount,
+        });
 
-      if (!shouldNotify) {
-        if (options.action === "deleted") {
-          if (!window.confirm("Are you sure you want to delete this reward?")) {
-            return;
-          }
+        if (!shouldNotify) {
+          await options.onConfirm();
+          return;
         }
-
-        await options.onConfirm();
-        return;
       }
 
       setState(options);

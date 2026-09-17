@@ -11,12 +11,26 @@ import { useParams } from "next/navigation";
 import { useState } from "react";
 import { RewardIconSquare } from "../rewards/reward-icon-square";
 
-export function RewardDiscountPartnersCard({ groupId }: { groupId: string }) {
+export function RewardDiscountPartnersCard({
+  groupId,
+  rewardId,
+  discountId,
+}: {
+  groupId: string;
+  rewardId?: string;
+  discountId?: string;
+}) {
   const [isExpanded, setIsExpanded] = useState<boolean>(false);
+
+  const assignmentFilter = {
+    ...(rewardId && { rewardId }),
+    ...(discountId && { discountId }),
+  };
 
   const { partnersCount } = usePartnersCount<number | undefined>({
     groupId,
     status: "approved",
+    ...assignmentFilter,
   });
 
   const { partners } = usePartners({
@@ -24,6 +38,7 @@ export function RewardDiscountPartnersCard({ groupId }: { groupId: string }) {
       groupId,
       status: "approved",
       pageSize: 10,
+      ...assignmentFilter,
     },
   });
 
@@ -81,6 +96,8 @@ export function RewardDiscountPartnersCard({ groupId }: { groupId: string }) {
             partners={partners}
             partnersCount={partnersCount || 0}
             groupId={groupId}
+            rewardId={rewardId}
+            discountId={discountId}
           />
         </div>
       </motion.div>
@@ -92,10 +109,14 @@ function PartnersCompactTable({
   partners,
   partnersCount,
   groupId,
+  rewardId,
+  discountId,
 }: {
   partners?: EnrolledPartnerProps[];
   partnersCount: number;
   groupId: string;
+  rewardId?: string;
+  discountId?: string;
 }) {
   const { slug } = useParams<{ slug: string }>();
 
@@ -135,6 +156,16 @@ function PartnersCompactTable({
     rowCount: partners?.length || 0,
   });
 
+  const viewAllParams = new URLSearchParams({ groupId });
+
+  if (rewardId) {
+    viewAllParams.set("rewardId", rewardId);
+  }
+
+  if (discountId) {
+    viewAllParams.set("discountId", discountId);
+  }
+
   return (
     <div className="relative">
       {partners?.length ? (
@@ -148,7 +179,7 @@ function PartnersCompactTable({
           {partnersCount > 10 && (
             <div className="mt-2 flex justify-end">
               <Link
-                href={`/${slug}/program/partners?groupId=${groupId}`}
+                href={`/${slug}/program/partners?${viewAllParams.toString()}`}
                 target="_blank"
               >
                 <Button

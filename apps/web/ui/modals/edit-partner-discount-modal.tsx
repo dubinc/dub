@@ -94,7 +94,7 @@ function EditPartnerDiscountModal({
       onSuccess: async () => {
         setShowModal(false);
         toast.success("Discount updated");
-        await mutatePrefix("/api/partners");
+        await mutatePrefix(["/api/partners", "/api/discounts"]);
       },
       onError({ error }) {
         toast.error(parseActionError(error, "Failed to update discount"));

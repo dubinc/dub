@@ -237,6 +237,8 @@ export function buildProgramEnrollmentWhereForList(
     email,
     partnerTagId,
     referredByPartnerId,
+    rewardId,
+    discountId,
     partnerTagIdOperator = "IN",
     groupIdOperator = "IN",
     countryOperator = "IN",
@@ -301,6 +303,16 @@ export function buildProgramEnrollmentWhereForList(
         referredByPartnerId,
       },
     }),
+    ...(rewardId && {
+      OR: [
+        { clickRewardId: rewardId },
+        { leadRewardId: rewardId },
+        { saleRewardId: rewardId },
+        { referralRewardId: rewardId },
+        { customRewardId: rewardId },
+      ],
+    }),
+    ...(discountId && { discountId }),
     ...metricWhere,
   };
 }

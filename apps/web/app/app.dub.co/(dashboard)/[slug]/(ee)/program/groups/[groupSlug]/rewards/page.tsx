@@ -77,6 +77,10 @@ export default function GroupRewardsPage() {
           setIsOpen={(open) =>
             setRewardSheetState((s) => ({ ...s, open }) as any)
           }
+          isDefault={
+            Boolean(isNewReward) ||
+            rewards.some((reward) => reward?.id === currentReward?.id)
+          }
         />
       )}
 
@@ -127,11 +131,13 @@ const RewardSheetWrapper = ({
   event,
   isOpen,
   setIsOpen,
+  isDefault,
 }: {
   reward?: RewardProps | null;
   event?: EventType;
   isOpen: boolean;
   setIsOpen: (open: boolean) => void;
+  isDefault: boolean;
 }) => {
   return (
     <RewardSheet
@@ -139,6 +145,7 @@ const RewardSheetWrapper = ({
       setIsOpen={setIsOpen}
       event={event || reward?.event || "sale"}
       reward={reward || undefined}
+      isDefault={isDefault}
     />
   );
 };

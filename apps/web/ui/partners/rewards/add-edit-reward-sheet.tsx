@@ -230,9 +230,24 @@ function RewardSheetContent({
     groupId: group?.id,
   });
 
+  // Infer when omitted (create via useRewardSheet defaults true). Group pages
+  // pass isDefault from whether the reward is the group's default for that event.
+  const effectiveIsDefault =
+    isDefault === false
+      ? false
+      : reward && group
+        ? [
+            group.clickReward?.id,
+            group.leadReward?.id,
+            group.saleReward?.id,
+            group.referralReward?.id,
+            group.customReward?.id,
+          ].includes(reward.id)
+        : isDefault;
+
   const partnerCountForConfirm = reward
-    ? rewards?.find((item) => item.id === reward.id)?.partnersCount
-    : isDefault
+    ? rewards?.find((item) => item.id === reward.id)?.partnersCount ?? undefined
+    : effectiveIsDefault
       ? undefined
       : 0;
 
@@ -444,7 +459,7 @@ function RewardSheetContent({
   const [showAdvancedUpsell, setShowAdvancedUpsell] = useState(false);
   const showReferralUpsell = event === "referral" && !canCreateReferralReward;
   const showPartnerAndLinkUpsell =
-    !reward && !isDefault && !canUseAdvancedRewardLogic;
+    !reward && !effectiveIsDefault && !canUseAdvancedRewardLogic;
 
   useEffect(() => {
     if (modifiers?.length && !canUseAdvancedRewardLogic) {
@@ -488,7 +503,7 @@ function RewardSheetContent({
     await confirmRewardChange({
       action: reward ? "updated" : "created",
       target: "group",
-      isDefault,
+      isDefault: effectiveIsDefault,
       reward: payload,
       partnerCount: partnerCountForConfirm,
       isPending: isCreating || isUpdating,
@@ -498,7 +513,7 @@ function RewardSheetContent({
             ...payload,
             groupId: group.id,
             activityDescription,
-            isDefault,
+            isDefault: effectiveIsDefault,
           });
         } else {
           await updateReward({
@@ -519,7 +534,7 @@ function RewardSheetContent({
     await confirmRewardChange({
       action: "deleted",
       target: "group",
-      isDefault,
+      isDefault: effectiveIsDefault,
       reward,
       partnerCount: partnerCountForConfirm,
       isPending: isDeleting,
@@ -959,10 +974,13 @@ function RewardSheetContent({
             <VerticalLine />
             <RewardPreviewCard />
 
-            {isDefault && group && (
+            {group && (effectiveIsDefault || Boolean(reward)) && (
               <>
                 <VerticalLine />
-                <RewardDiscountPartnersCard groupId={group.id} />
+                <RewardDiscountPartnersCard
+                  groupId={group.id}
+                  rewardId={reward?.id}
+                />
               </>
             )}
           </div>

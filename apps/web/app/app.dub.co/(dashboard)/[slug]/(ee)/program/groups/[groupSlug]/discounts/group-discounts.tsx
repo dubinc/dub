@@ -54,6 +54,9 @@ export const GroupDiscounts = () => {
             setDiscountSheetState((s) => ({ ...s, open }) as typeof s)
           }
           {...(currentDiscount && { discount: currentDiscount })}
+          isDefault={
+            isNewDiscount || currentDiscount?.id === group?.discount?.id
+          }
         />
       )}
 

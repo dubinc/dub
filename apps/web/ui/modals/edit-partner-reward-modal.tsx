@@ -114,7 +114,7 @@ function EditPartnerRewardModal({
       onSuccess: async () => {
         setShowModal(false);
         toast.success("Reward updated");
-        await mutatePrefix("/api/partners");
+        await mutatePrefix(["/api/partners", "/api/rewards"]);
       },
       onError({ error }) {
         toast.error(parseActionError(error, "Failed to update reward"));
@@ -275,7 +275,7 @@ function EditPartnerRewardModal({
         target: "group",
         isDefault: reward.id === groupRewardId,
         reward,
-        partnerCount: reward.partnersCount ?? 0,
+        partnerCount: reward.partnersCount ?? undefined,
         isPending: isDeleting,
         onConfirm: async (activityDescription) => {
           await deleteReward({
