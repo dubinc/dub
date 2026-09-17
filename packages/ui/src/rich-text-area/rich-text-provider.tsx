@@ -23,6 +23,7 @@ import {
 import { configureCampaignEditorImage } from "./campaign-editor-image";
 import { RichTextLinkHoverTooltip } from "./link-hover-tooltip";
 import { RichTextLinkModal } from "./link-modal";
+import { TableHoverControls } from "./table-hover-controls";
 import { RichTextVariableInfo, suggestions } from "./variables";
 
 export const PROSE_STYLES = {
@@ -206,7 +207,7 @@ export const RichTextProvider = forwardRef<
                 table: {
                   resizable: false,
                   HTMLAttributes: {
-                    class: "w-full border-collapse",
+                    class: "w-full border-separate border-spacing-0",
                   },
                 },
               }),
@@ -334,7 +335,7 @@ export const RichTextProvider = forwardRef<
             // <li> margins), and match the bullet color to the ordered list counters.
             "[&_li>p]:my-0 marker:prose-ul:text-neutral-500",
             features.includes("tables") &&
-              "[&_table]:my-3 [&_th]:border [&_td]:border [&_th]:border-neutral-200 [&_td]:border-neutral-200 [&_th]:bg-neutral-50 [&_th]:px-2 [&_td]:px-2 [&_th]:py-1.5 [&_td]:py-1.5 [&_th]:text-left",
+              "[&_table]:my-3 [&_table]:overflow-hidden [&_table]:rounded-xl [&_table]:border [&_table]:border-neutral-200 [&_th]:border-b [&_th]:border-r [&_td]:border-b [&_td]:border-r [&_th]:border-neutral-200 [&_td]:border-neutral-200 [&_th]:bg-neutral-50 [&_th]:px-4 [&_td]:px-4 [&_th]:py-3 [&_td]:py-3 [&_th]:align-top [&_td]:align-top [&_th]:text-left [&_th]:font-semibold [&_th]:text-neutral-900 [&_td]:text-neutral-600 [&_th:last-child]:border-r-0 [&_td:last-child]:border-r-0 [&_tr:last-child>*]:border-b-0 [&_th>p]:my-0 [&_td>p]:my-0",
             PROSE_STYLES[style],
             "[&_.ProseMirror-selectednode]:outline [&_.ProseMirror-selectednode]:outline-2 [&_.ProseMirror-selectednode]:outline-blue-500 [&_.ProseMirror-selectednode]:outline-offset-2",
             "[&_.ProseMirror-selectednode:has(img)]:outline-none",
@@ -398,6 +399,10 @@ export const RichTextProvider = forwardRef<
             <RichTextLinkModal />
             <RichTextLinkHoverTooltip />
           </>
+        )}
+
+        {features.includes("tables") && (editable ?? true) && (
+          <TableHoverControls />
         )}
       </RichTextContext.Provider>
     );
