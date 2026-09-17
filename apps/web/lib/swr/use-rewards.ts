@@ -10,12 +10,11 @@ export type RewardListItem = RewardProps & {
   partnersCount?: number;
 };
 
-export function useRewards({
-  groupId,
-  swrOpts,
-}: z.infer<typeof getRewardsQuerySchema> & {
-  swrOpts?: SWRConfiguration;
-} = {}) {
+export function useRewards(
+  opts: z.infer<typeof getRewardsQuerySchema> = {},
+  swrOpts: SWRConfiguration = {},
+) {
+  const { groupId } = opts;
   const { id: workspaceId, defaultProgramId } = useWorkspace();
 
   const searchParams = new URLSearchParams({
@@ -23,12 +22,16 @@ export function useRewards({
     ...(groupId && { groupId }),
   });
 
+  const requiresGroup = "groupId" in opts;
+  const canFetch =
+    workspaceId && defaultProgramId && (!requiresGroup || groupId);
+
   const { data: rewards, error } = useSWR<RewardListItem[]>(
-    workspaceId && defaultProgramId && `/api/rewards?${searchParams}`,
+    canFetch ? `/api/rewards?${searchParams}` : null,
     fetcher,
     {
       dedupingInterval: 60000,
-      keepPreviousData: true,
+      keepPreviousData: !groupId,
       ...swrOpts,
     },
   );

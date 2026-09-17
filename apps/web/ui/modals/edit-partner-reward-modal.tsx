@@ -96,12 +96,14 @@ function EditPartnerRewardModal({
   const [isRewardSheetOpen, setIsRewardSheetOpen] = useState(false);
 
   const { id: workspaceId } = useWorkspace();
-  const { rewards, loading: rewardsLoading } = useRewards({
-    groupId: partner.groupId,
-    swrOpts: {
+  const { rewards, loading: rewardsLoading } = useRewards(
+    {
+      groupId: partner.groupId,
+    },
+    {
       revalidateOnFocus: true,
     },
-  });
+  );
   const { group } = useGroup({
     groupIdOrSlug: partner.groupId ?? undefined,
   });
