@@ -100,7 +100,13 @@ function DiscountSheetContent({
     defaultProgramId,
     slug: workspaceSlug,
     plan,
-  } = useWorkspace();
+  } = useWorkspace({
+    // lower dedupingInterval + revalidateOnFocus in case user upgrades their plan in another tab
+    swrOpts: {
+      dedupingInterval: 2000,
+      revalidateOnFocus: true,
+    },
+  });
   const { canUseAdvancedRewardLogic } = getPlanCapabilities(plan);
 
   // Infer when omitted (create via useDiscountSheet defaults true). Group pages
