@@ -111,6 +111,14 @@ export const POST = withCron(async ({ rawBody }) => {
 
   switch (event) {
     case "reward-created":
+      // Assign only inheritors: no reward yet, or still pointing at a
+      // soft-deleted default (programId null).
+      where = {
+        OR: [
+          { [rewardIdColumn]: null },
+          { [rewardRelation]: { is: { programId: null } } },
+        ],
+      };
       data = { [rewardIdColumn]: reward.id };
       break;
 
