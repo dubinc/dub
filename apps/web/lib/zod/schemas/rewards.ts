@@ -426,6 +426,10 @@ const decimalToNumber = z
   .nullable()
   .optional();
 
+export const getRewardsQuerySchema = z.object({
+  groupId: z.string().nullish(),
+});
+
 export const RewardSchema = z.object({
   id: z.string(),
   event: z.enum(EventType),
@@ -547,14 +551,26 @@ export const createOrUpdateRewardSchema = z.object({
   ...rewardActivityDescriptionSchema.shape,
 });
 
-export const createRewardSchema = createOrUpdateRewardSchema.superRefine(
-  (data) => {
+export const createRewardSchema = createOrUpdateRewardSchema
+  .extend({
+    isDefault: z.boolean().default(true),
+  })
+  .superRefine((data) => {
     if (isOneOffRewardEvent(data.event)) {
       data.type = "flat";
       data.maxDuration = 0;
     }
-  },
-);
+  })
+  .refine(
+    (data) =>
+      data.isDefault ||
+      (["click", "lead", "sale"] as EventType[]).includes(data.event),
+    {
+      message:
+        "Non-default rewards can only be created for click, lead, and sale events.",
+      path: ["event"],
+    },
+  );
 
 export const updateRewardSchema = createOrUpdateRewardSchema
   .omit({
@@ -577,6 +593,14 @@ export const REWARD_EVENT_COLUMN_MAPPING = Object.freeze({
   sale: "saleRewardId",
   referral: "referralRewardId",
   custom: "customRewardId",
+});
+
+export const REWARD_EVENT_RELATION_MAPPING = Object.freeze({
+  click: "clickReward",
+  lead: "leadReward",
+  sale: "saleReward",
+  referral: "referralReward",
+  custom: "customReward",
 });
 
 export const CUSTOMER_SOURCES = ["tracked", "submitted", "trial"] as const;

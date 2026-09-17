@@ -38,6 +38,11 @@ export const createDiscountSchema = z.object({
   groupId: z.string(),
   autoProvision: z.boolean().optional(),
   provider: z.enum(DiscountProvider),
+  isDefault: z.boolean().default(true),
+});
+
+export const getDiscountsQuerySchema = z.object({
+  groupId: z.string().nullish(),
 });
 
 export const updateDiscountSchema = createDiscountSchema

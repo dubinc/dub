@@ -1,26 +1,29 @@
+import { listDiscounts } from "@/lib/api/discounts/list-discounts";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
-import { listRewards } from "@/lib/api/rewards/list-rewards";
 import { withWorkspace } from "@/lib/auth";
-import { getRewardsQuerySchema, RewardSchema } from "@/lib/zod/schemas/rewards";
+import {
+  DiscountSchema,
+  getDiscountsQuerySchema,
+} from "@/lib/zod/schemas/discount";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 
 const responseSchema = z.array(
-  RewardSchema.extend({
+  DiscountSchema.extend({
     groupId: z.string().nullable(),
     partnersCount: z.number(),
   }),
 );
 
-// GET /api/rewards - get all rewards for a program
+// GET /api/discounts - get all discounts for a program
 export const GET = withWorkspace(async ({ workspace, searchParams }) => {
   const programId = getDefaultProgramIdOrThrow(workspace);
-  const { groupId } = getRewardsQuerySchema.parse(searchParams);
+  const { groupId } = getDiscountsQuerySchema.parse(searchParams);
 
-  const rewards = await listRewards({
+  const discounts = await listDiscounts({
     programId,
     groupId,
   });
 
-  return NextResponse.json(responseSchema.parse(rewards));
+  return NextResponse.json(responseSchema.parse(discounts));
 });

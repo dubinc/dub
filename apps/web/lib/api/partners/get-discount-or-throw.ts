@@ -1,5 +1,4 @@
 import { prisma } from "@/lib/prisma";
-import { DiscountSchema } from "@/lib/zod/schemas/discount";
 import { DubApiError } from "../errors";
 
 export async function getDiscountOrThrow({
@@ -29,5 +28,5 @@ export async function getDiscountOrThrow({
     });
   }
 
-  return DiscountSchema.parse(discount);
+  return discount;
 }

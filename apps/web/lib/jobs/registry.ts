@@ -70,6 +70,16 @@ const jobLoaders = {
     import("./handlers/create-custom-commission-job").then(
       (m) => m.createCustomCommissionJob,
     ),
+
+  "invalidate-links-for-discounts-job": () =>
+    import("./handlers/invalidate-links-for-discounts-job").then(
+      (m) => m.invalidateLinksForDiscountsJob,
+    ),
+
+  "remap-discount-codes-for-partner-job": () =>
+    import("./handlers/remap-discount-codes-for-partner-job").then(
+      (m) => m.remapDiscountCodesForPartnerJob,
+    ),
 } as const satisfies Record<string, () => Promise<JobDefinition>>;
 
 const jobCache = new Map<string, JobDefinition>();
