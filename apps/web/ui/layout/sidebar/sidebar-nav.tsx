@@ -262,8 +262,7 @@ function SidebarAreasPanel<T extends Record<any, any>>({
         height
         className="flex flex-shrink-0 flex-col gap-2 rounded-b-xl"
       >
-        {bottomContent}
-        {newsContent}
+        {bottomContent ? bottomContent : newsContent}
       </AnimatedSizeContainer>
     </div>
   );

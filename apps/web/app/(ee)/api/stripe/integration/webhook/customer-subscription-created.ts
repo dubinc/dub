@@ -2,7 +2,7 @@ import { trackLead } from "@/lib/api/conversions/track-lead";
 import { stripeIntegrationSettingsSchema } from "@/lib/integrations/stripe/schema";
 import { prisma } from "@/lib/prisma";
 import { pick, STRIPE_INTEGRATION_ID } from "@dub/utils";
-import { Customer } from "@prisma/client";
+import { CommissionSource, Customer } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import type Stripe from "stripe";
 import { WebhookHandlerInput, WebhookHandlerResponse } from "./types";
@@ -128,6 +128,7 @@ export async function customerSubscriptionCreated({
     eventQuantity,
     workspace: pick(workspace, ["id", "stripeConnectId", "webhookEnabled"]),
     source: "trial",
+    commissionSource: CommissionSource.stripe,
   });
 
   return {
