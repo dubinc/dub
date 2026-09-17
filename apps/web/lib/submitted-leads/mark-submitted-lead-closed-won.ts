@@ -11,6 +11,7 @@ interface MarkSubmittedLeadClosedWonInput {
   lead: SubmittedLeadWithCustomer;
   saleAmount: number;
   stripeCustomerId: string | null;
+  userId: string; // user who marked the lead as closed won
 }
 
 // Mark a submitted lead as closed won
@@ -19,6 +20,7 @@ export const markSubmittedLeadClosedWon = async ({
   lead,
   saleAmount,
   stripeCustomerId,
+  userId,
 }: MarkSubmittedLeadClosedWonInput) => {
   if (!lead.customer) {
     throw new DubApiError({
@@ -36,7 +38,8 @@ export const markSubmittedLeadClosedWon = async ({
     metadata: null,
     workspace,
     source: "submitted",
-    commissionSource: CommissionSource.submitted,
+    commissionSource: CommissionSource.user,
+    userId,
   });
 
   if (stripeCustomerId) {

@@ -38,6 +38,7 @@ type TrackSaleParams = z.input<typeof trackSaleRequestSchema> & {
   workspace: Pick<WorkspaceProps, "id" | "stripeConnectId" | "webhookEnabled">;
   source?: CustomerSource; // default is "tracked"
   commissionSource?: CommissionSource; // default is api
+  userId?: string; // only passed if CommissionSource.user
 };
 
 export const trackSale = async ({
@@ -56,6 +57,7 @@ export const trackSale = async ({
   workspace,
   source = "tracked",
   commissionSource = CommissionSource.api,
+  userId,
 }: TrackSaleParams) => {
   let existingCustomer: Customer | null = null;
   let newCustomer: Customer | null = null;
@@ -350,6 +352,7 @@ export const trackSale = async ({
       customer,
       source,
       commissionSource,
+      userId,
     }),
   ]);
 
@@ -475,6 +478,7 @@ const _trackSale = async ({
   customer,
   source,
   commissionSource = CommissionSource.api,
+  userId,
 }: Omit<TrackSaleParams, "customerExternalId"> & {
   leadEventData: LeadEventTB | null;
   customer: Customer;
@@ -582,6 +586,7 @@ const _trackSale = async ({
           invoiceId,
           currency,
           source: commissionSource,
+          userId,
           ...(metadata != null && { metadata }),
           context: {
             customer: {

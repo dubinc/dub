@@ -101,6 +101,7 @@ export const updateSubmittedLeadStatusAction = authActionClient
                   workspace,
                   lead: updatedLead,
                   externalId: parsedInput.externalId ?? null,
+                  userId: user.id,
                 }),
               ]
             : []),
@@ -112,6 +113,7 @@ export const updateSubmittedLeadStatusAction = authActionClient
                   lead: updatedLead as SubmittedLeadWithCustomer,
                   saleAmount: parsedInput.saleAmount,
                   stripeCustomerId: parsedInput.stripeCustomerId ?? null,
+                  userId: user.id,
                 }),
               ]
             : []),

@@ -28,6 +28,7 @@ type TrackLeadParams = z.input<typeof trackLeadRequestSchema> & {
   workspace: Pick<WorkspaceProps, "id" | "stripeConnectId" | "webhookEnabled">;
   source?: CustomerSource; // default is "tracked"
   commissionSource?: CommissionSource; // default is api
+  userId?: string; // only passed if CommissionSource.user
 };
 
 export const trackLead = async ({
@@ -43,6 +44,7 @@ export const trackLead = async ({
   workspace,
   source = "tracked",
   commissionSource = CommissionSource.api,
+  userId,
 }: TrackLeadParams) => {
   // try to find the customer to use if it exists
   let customer = await prisma.customer.findUnique({
@@ -303,6 +305,7 @@ export const trackLead = async ({
               customerId: customer.id,
               quantity: eventQuantity ?? 1,
               source: commissionSource,
+              userId,
               ...(metadata != null && { metadata }),
               context: {
                 customer: {
