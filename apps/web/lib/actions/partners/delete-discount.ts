@@ -3,10 +3,10 @@
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { getDiscountOrThrow } from "@/lib/api/partners/get-discount-or-throw";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
-import { qstash } from "@/lib/cron";
 import { deleteDiscountCodes } from "@/lib/discounts/delete-discount-code";
+import { invalidateLinksForDiscountsJob } from "@/lib/jobs/handlers/invalidate-links-for-discounts-job";
 import { prisma } from "@/lib/prisma";
-import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
+import { pluck } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
 import { authActionClient } from "../safe-action";
@@ -45,8 +45,28 @@ export const deleteDiscountAction = authActionClient
       },
     });
 
-    const group = await prisma.$transaction(async (tx) => {
-      const group = await tx.partnerGroup.update({
+    const enrollments = await prisma.programEnrollment.findMany({
+      where: {
+        discountId: discount.id,
+      },
+      select: {
+        partnerId: true,
+      },
+    });
+
+    await prisma.$transaction(async (tx) => {
+      const partnerGroup = discount.groupId
+        ? await tx.partnerGroup.findUnique({
+            where: {
+              id: discount.groupId,
+            },
+            select: {
+              discountId: true,
+            },
+          })
+        : null;
+
+      await tx.partnerGroup.updateMany({
         where: {
           discountId: discount.id,
         },
@@ -55,21 +75,13 @@ export const deleteDiscountAction = authActionClient
         },
       });
 
+      // Restore enrollments to the group level discount, or clear them if none
       await tx.programEnrollment.updateMany({
         where: {
           discountId: discount.id,
         },
         data: {
-          discountId: null,
-        },
-      });
-
-      await tx.discountCode.updateMany({
-        where: {
-          discountId: discount.id,
-        },
-        data: {
-          discountId: null,
+          discountId: partnerGroup?.discountId ?? null,
         },
       });
 
@@ -78,18 +90,26 @@ export const deleteDiscountAction = authActionClient
           id: discount.id,
         },
       });
-
-      return group;
     });
+
+    const partnerIds = pluck(enrollments, "partnerId");
 
     waitUntil(
       Promise.allSettled([
-        qstash.publishJSON({
-          url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/invalidate-for-discounts`,
-          body: {
-            groupId: group.id,
-          },
-        }),
+        ...(partnerIds.length > 0
+          ? [
+              invalidateLinksForDiscountsJob.dispatch(
+                {
+                  type: "partners",
+                  partnerIds,
+                  programId,
+                },
+                {
+                  label: discountId,
+                },
+              ),
+            ]
+          : []),
 
         deleteDiscountCodes(discountCodes),
 

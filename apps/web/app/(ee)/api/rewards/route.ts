@@ -1,16 +1,11 @@
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
-import { listRewards } from "@/lib/api/rewards/list-rewards";
+import {
+  getRewardsQuerySchema,
+  listRewards,
+  listRewardsResponseSchema,
+} from "@/lib/api/rewards/list-rewards";
 import { withWorkspace } from "@/lib/auth";
-import { getRewardsQuerySchema, RewardSchema } from "@/lib/zod/schemas/rewards";
 import { NextResponse } from "next/server";
-import * as z from "zod/v4";
-
-const responseSchema = z.array(
-  RewardSchema.extend({
-    groupId: z.string().nullable(),
-    partnersCount: z.number(),
-  }),
-);
 
 // GET /api/rewards - get all rewards for a program
 export const GET = withWorkspace(async ({ workspace, searchParams }) => {
@@ -22,5 +17,5 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
     groupId,
   });
 
-  return NextResponse.json(responseSchema.parse(rewards));
+  return NextResponse.json(listRewardsResponseSchema.parse(rewards));
 });

@@ -1,9 +1,22 @@
 import { prisma } from "@/lib/prisma";
+import { DiscountSchema } from "@/lib/zod/schemas/discount";
 import { Prisma, type Discount } from "@prisma/client";
+import * as z from "zod/v4";
 
 type DiscountRow = Discount & {
   partnersCount: bigint | number;
 };
+
+export const getDiscountsQuerySchema = z.object({
+  groupId: z.string().nullish(),
+});
+
+export const listDiscountsResponseSchema = z.array(
+  DiscountSchema.extend({
+    groupId: z.string().nullable(),
+    partnersCount: z.number(),
+  }),
+);
 
 // Lists program discounts (optionally filtered by group) with a partnersCount.
 export async function listDiscounts({

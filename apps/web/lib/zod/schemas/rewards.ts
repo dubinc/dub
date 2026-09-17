@@ -426,10 +426,6 @@ const decimalToNumber = z
   .nullable()
   .optional();
 
-export const getRewardsQuerySchema = z.object({
-  groupId: z.string().nullish(),
-});
-
 export const RewardSchema = z.object({
   id: z.string(),
   event: z.enum(EventType),

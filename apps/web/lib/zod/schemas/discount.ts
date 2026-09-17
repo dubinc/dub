@@ -41,10 +41,6 @@ export const createDiscountSchema = z.object({
   isDefault: z.boolean().default(true),
 });
 
-export const getDiscountsQuerySchema = z.object({
-  groupId: z.string().nullish(),
-});
-
 export const updateDiscountSchema = createDiscountSchema
   .pick({
     workspaceId: true,

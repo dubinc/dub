@@ -1,5 +1,18 @@
 import { prisma } from "@/lib/prisma";
+import { RewardSchema } from "@/lib/zod/schemas/rewards";
 import { Prisma, type Reward } from "@prisma/client";
+import * as z from "zod/v4";
+
+export const getRewardsQuerySchema = z.object({
+  groupId: z.string().nullish(),
+});
+
+export const listRewardsResponseSchema = z.array(
+  RewardSchema.extend({
+    groupId: z.string().nullable(),
+    partnersCount: z.number(),
+  }),
+);
 
 type RewardRow = Reward & {
   partnersCount: bigint | number;
