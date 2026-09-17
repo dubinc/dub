@@ -25,7 +25,7 @@ import {
   useState,
 } from "react";
 
-const DEBOUNCE_MS = 600;
+const DEBOUNCE_MS = 200;
 const reviewCache = new Map<string, TooltipSuggestion[]>();
 
 type RewardTooltipConsistencyValue = {

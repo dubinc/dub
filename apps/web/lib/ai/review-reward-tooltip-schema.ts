@@ -43,7 +43,9 @@ const tooltipSuggestionSchema = z.object({
     .string()
     .min(1)
     .max(200)
-    .describe("One short sentence explaining the contradiction."),
+    .describe(
+      "One short sentence for a non-technical user. Quote the tooltip phrase and the conflicting condition wording. Never use raw operator IDs.",
+    ),
   suggested: tooltipSuggestionPatchSchema.describe(
     "Operator and/or value to write back. Never change entity or attribute.",
   ),
