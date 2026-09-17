@@ -10,7 +10,10 @@ import { queuePartnerSearchSync } from "@/lib/api/partners/queue-partner-search-
 import { throwIfExistingTenantEnrollmentExists } from "@/lib/api/partners/throw-if-existing-tenant-id-exists";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
-import { hasRewardAssignment } from "@/lib/api/rewards/reward-overrides";
+import {
+  hasRewardAssignment,
+  hasRewardIdsInput,
+} from "@/lib/api/rewards/reward-overrides";
 import { throwIfInvalidRewards } from "@/lib/api/rewards/throw-if-invalid-rewards";
 import { remapDiscountCodesForPartnerJob } from "@/lib/jobs/handlers/remap-discount-codes-for-partner-job";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
@@ -203,7 +206,7 @@ export const updatePartnerEnrollmentAction = authActionClient
           ? [recordLink(programEnrollment.links)]
           : []),
 
-        ...(hasRewardAssignment(rewardIds)
+        ...(hasRewardIdsInput(rewardIds)
           ? [linkCache.expireMany(programEnrollment.links)]
           : []),
 

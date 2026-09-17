@@ -10,12 +10,11 @@ export type DiscountListItem = DiscountProps & {
   partnersCount?: number;
 };
 
-export function useDiscounts({
-  groupId,
-  swrOpts,
-}: z.infer<typeof getDiscountsQuerySchema> & {
-  swrOpts?: SWRConfiguration;
-} = {}) {
+export function useDiscounts(
+  opts: z.infer<typeof getDiscountsQuerySchema> = {},
+  swrOpts: SWRConfiguration = {},
+) {
+  const { groupId } = opts;
   const { id: workspaceId, defaultProgramId } = useWorkspace();
 
   const searchParams = new URLSearchParams({
@@ -23,11 +22,16 @@ export function useDiscounts({
     ...(groupId && { groupId }),
   });
 
+  const requiresGroup = "groupId" in opts;
+  const canFetch =
+    workspaceId && defaultProgramId && (!requiresGroup || groupId);
+
   const { data: discounts, error } = useSWR<DiscountListItem[]>(
-    workspaceId && defaultProgramId && `/api/discounts?${searchParams}`,
+    canFetch ? `/api/discounts?${searchParams}` : null,
     fetcher,
     {
       dedupingInterval: 60000,
+      keepPreviousData: !groupId,
       ...swrOpts,
     },
   );

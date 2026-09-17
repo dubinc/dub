@@ -81,12 +81,14 @@ function EditPartnerDiscountModal({
   const { group } = useGroup({
     groupIdOrSlug: partner.groupId ?? undefined,
   });
-  const { discounts, loading: discountsLoading } = useDiscounts({
-    groupId: partner.groupId,
-    swrOpts: {
+  const { discounts, loading: discountsLoading } = useDiscounts(
+    {
+      groupId: partner.groupId,
+    },
+    {
       revalidateOnFocus: true,
     },
-  });
+  );
 
   const { executeAsync: updateEnrollment, isPending: isUpdatingEnrollment } =
     useAction(updatePartnerEnrollmentAction, {
