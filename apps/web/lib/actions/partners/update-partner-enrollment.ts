@@ -146,7 +146,7 @@ export const updatePartnerEnrollmentAction = authActionClient
         });
       }
 
-      return await tx.programEnrollment.update({
+      const enrollment = await tx.programEnrollment.update({
         where: {
           partnerId_programId: where,
         },
@@ -160,6 +160,29 @@ export const updatePartnerEnrollmentAction = authActionClient
           },
         },
       });
+
+      await trackPartnerRewardOverrideLog({
+        workspaceId: workspace.id,
+        programId,
+        partnerId,
+        userId: user.id,
+        description: activityDescription,
+        previous: {
+          clickRewardId: existingClickRewardId,
+          leadRewardId: existingLeadRewardId,
+          saleRewardId: existingSaleRewardId,
+          discountId: existingDiscountId,
+        },
+        next: {
+          clickRewardId: enrollment.clickRewardId,
+          leadRewardId: enrollment.leadRewardId,
+          saleRewardId: enrollment.saleRewardId,
+          discountId: enrollment.discountId,
+        },
+        tx,
+      });
+
+      return enrollment;
     });
 
     if (discountId !== undefined) {
@@ -188,26 +211,6 @@ export const updatePartnerEnrollmentAction = authActionClient
         ...(tenantId !== undefined && tenantId !== existingTenantId
           ? [queuePartnerSearchSync({ enrollmentIds: [programEnrollment.id] })]
           : []),
-
-        trackPartnerRewardOverrideLog({
-          workspaceId: workspace.id,
-          programId,
-          partnerId,
-          userId: user.id,
-          description: activityDescription,
-          previous: {
-            clickRewardId: existingClickRewardId,
-            leadRewardId: existingLeadRewardId,
-            saleRewardId: existingSaleRewardId,
-            discountId: existingDiscountId,
-          },
-          next: {
-            clickRewardId: programEnrollment.clickRewardId,
-            leadRewardId: programEnrollment.leadRewardId,
-            saleRewardId: programEnrollment.saleRewardId,
-            discountId: programEnrollment.discountId,
-          },
-        }),
 
         notifyPartnerRewardOverride({
           programId,

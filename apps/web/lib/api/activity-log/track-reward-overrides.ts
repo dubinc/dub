@@ -2,13 +2,10 @@ import {
   toDiscountActivitySnapshot,
   toRewardActivitySnapshot,
 } from "@/lib/api/activity-log/to-reward-activity-snapshot";
-import {
-  trackActivityLog,
-  type TrackActivityLogInput,
-} from "@/lib/api/activity-log/track-activity-log";
+import type { TrackActivityLogInput } from "@/lib/api/activity-log/track-activity-log";
 import { serializeReward } from "@/lib/api/partners/serialize-reward";
 import type { EnrollmentRewardIds } from "@/lib/api/rewards/reward-overrides";
-import { prisma } from "@/lib/prisma";
+import { Prisma } from "@prisma/client";
 
 type RewardOverrideBaseInput = {
   workspaceId: string;
@@ -18,6 +15,7 @@ type RewardOverrideBaseInput = {
   previous: EnrollmentRewardIds;
   next: EnrollmentRewardIds;
   description?: string;
+  tx: Prisma.TransactionClient;
 };
 
 export async function trackPartnerRewardOverrideLog(
@@ -31,6 +29,7 @@ export async function trackPartnerRewardOverrideLog(
     previous,
     next,
     description,
+    tx,
   } = input;
 
   const rewardFields = [
@@ -55,6 +54,7 @@ export async function trackPartnerRewardOverrideLog(
       ),
     ),
   ];
+
   const discountIds = [
     ...new Set(
       [previous.discountId, next.discountId].filter((id): id is string =>
@@ -65,13 +65,22 @@ export async function trackPartnerRewardOverrideLog(
 
   const [rewards, discounts] = await Promise.all([
     rewardIds.length > 0
-      ? prisma.reward.findMany({
-          where: { id: { in: rewardIds } },
+      ? tx.reward.findMany({
+          where: {
+            id: {
+              in: rewardIds,
+            },
+          },
         })
       : [],
+
     discountChanged && discountIds.length > 0
-      ? prisma.discount.findMany({
-          where: { id: { in: discountIds } },
+      ? tx.discount.findMany({
+          where: {
+            id: {
+              in: discountIds,
+            },
+          },
           select: {
             id: true,
             amount: true,
@@ -87,6 +96,7 @@ export async function trackPartnerRewardOverrideLog(
     string,
     ReturnType<typeof toRewardActivitySnapshot>
   >();
+
   const discountsById = new Map<
     string,
     ReturnType<typeof toDiscountActivitySnapshot>
@@ -150,5 +160,10 @@ export async function trackPartnerRewardOverrideLog(
     });
   }
 
-  await trackActivityLog(activityLogs);
+  await tx.activityLog.createMany({
+    data: activityLogs.map((activityLog) => ({
+      ...activityLog,
+      changeSet: activityLog.changeSet as Prisma.InputJsonValue,
+    })),
+  });
 }
