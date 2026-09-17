@@ -23,6 +23,7 @@ import {
 import { configureCampaignEditorImage } from "./campaign-editor-image";
 import { RichTextLinkHoverTooltip } from "./link-hover-tooltip";
 import { RichTextLinkModal } from "./link-modal";
+import { TableHoverControls } from "./table-hover-controls";
 import { RichTextVariableInfo, suggestions } from "./variables";
 
 export const PROSE_STYLES = {
@@ -398,6 +399,10 @@ export const RichTextProvider = forwardRef<
             <RichTextLinkModal />
             <RichTextLinkHoverTooltip />
           </>
+        )}
+
+        {features.includes("tables") && (editable ?? true) && (
+          <TableHoverControls />
         )}
       </RichTextContext.Provider>
     );
