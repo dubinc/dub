@@ -30,6 +30,7 @@ export function RewardDiscountPartnersCard({
   const { partnersCount } = usePartnersCount<number | undefined>({
     groupId,
     status: "approved",
+    ignoreParams: true,
     ...assignmentFilter,
   });
 
