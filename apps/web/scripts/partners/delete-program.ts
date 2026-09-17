@@ -105,7 +105,7 @@ async function main() {
       id: program.workspaceId,
     },
     data: {
-      programId: null,
+      defaultProgramId: null,
     },
   });
 }
