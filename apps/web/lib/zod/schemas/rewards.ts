@@ -437,6 +437,7 @@ export const RewardSchema = z.object({
   maxDuration: z.number().nullish(),
   modifiers: z.any().nullish(), // TODO: Fix this
   config: z.any().nullish(),
+  partnersCount: z.number().nullish(),
   updatedAt: z.coerce.date(),
   ...rewardSpendLimitSchema.shape,
 });
