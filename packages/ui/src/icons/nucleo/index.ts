@@ -78,6 +78,7 @@ export * from "./desktop";
 export * from "./diamond-turn-right";
 export * from "./directions";
 export * from "./discount";
+export * from "./discount-code";
 export * from "./dots";
 export * from "./download";
 export * from "./duplicate";
