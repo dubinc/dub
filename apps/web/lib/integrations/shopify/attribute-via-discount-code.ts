@@ -13,7 +13,7 @@ import { WorkspaceProps } from "@/lib/types";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { transformLeadEventData } from "@/lib/webhook/transform";
 import { COUNTRIES_TO_CONTINENTS, nanoid } from "@dub/utils";
-import { EventType, Link } from "@prisma/client";
+import { CommissionSource, EventType, Link } from "@prisma/client";
 import { ShopifyOrder } from "./schema";
 
 export async function attributeViaDiscountCode({
@@ -104,6 +104,7 @@ export async function attributeViaDiscountCode({
       eventId: leadEvent.event_id,
       customerId: customer.id,
       quantity: 1,
+      source: CommissionSource.shopify,
       context: {
         customer: {
           country: customer.country,
