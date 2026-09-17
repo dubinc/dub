@@ -1,4 +1,4 @@
-import { remapDiscountCodes } from "@/lib/discounts/remap-discount-codes-for-partner";
+import { remapDiscountCodes } from "@/lib/discounts/remap-discount-codes";
 import * as z from "zod/v4";
 import { defineJob } from "../index";
 
