@@ -10,8 +10,6 @@ import { useRichTextContext } from "./rich-text-provider";
 const CONTROL_ATTR = "data-table-controls";
 const EDGE_PX = 10;
 
-type MenuKind = "row" | "col";
-
 type HoverZone =
   | {
       kind: "add-row";
@@ -34,13 +32,9 @@ type HoverZone =
     };
 
 type MenuState = {
-  kind: MenuKind;
+  kind: "row" | "col";
   cellPos: number;
-  top: number;
-  left: number;
 };
-
-const CONTROL_HALF = 10;
 
 export function TableHoverControls() {
   const { editor, editable } = useRichTextContext();
@@ -105,8 +99,10 @@ export function TableHoverControls() {
   }
 
   const tableRect = zone.table.getBoundingClientRect();
-  const clipRect = (editor.view.dom as HTMLElement).getBoundingClientRect();
-  const visible = intersectRect(tableRect, clipRect);
+  const visible = intersectRect(
+    tableRect,
+    (editor.view.dom as HTMLElement).getBoundingClientRect(),
+  );
 
   const runOnCell = (cellPos: number, command: () => void) => {
     editor.chain().focus().setTextSelection(cellPos).run();
@@ -119,27 +115,32 @@ export function TableHoverControls() {
   const lastColCell =
     zone.table.rows[0]?.cells[zone.table.rows[0].cells.length - 1];
 
-  const addRowPos =
-    visible &&
-    clampPoint(
-      visible.left + visible.width / 2,
-      tableRect.bottom,
-      visible.left,
-      visible.right,
-      clipRect.top,
-      clipRect.bottom,
-    );
+  const addRowPos = visible && {
+    x: visible.left + visible.width / 2,
+    y: tableRect.bottom,
+  };
 
-  const addColPos =
-    visible &&
-    clampPoint(
-      tableRect.right,
-      visible.top + visible.height / 2,
-      clipRect.left,
-      clipRect.right,
-      visible.top,
-      visible.bottom,
-    );
+  const addColPos = visible && {
+    x: tableRect.right,
+    y: visible.top + visible.height / 2,
+  };
+
+  let menuPos: { top: number; left: number } | null = null;
+  if (menu && zone.kind === "row") {
+    const rowRect = zone.row.getBoundingClientRect();
+    menuPos = {
+      top: rowRect.top + rowRect.height / 2,
+      left: tableRect.left - 16,
+    };
+  } else if (menu && zone.kind === "col") {
+    const colRect = getColumnRect(zone.table, zone.cell.cellIndex);
+    if (colRect) {
+      menuPos = {
+        top: tableRect.top - 16,
+        left: colRect.left + colRect.width / 2,
+      };
+    }
+  }
 
   return createPortal(
     <div className="pointer-events-none fixed inset-0 z-[99]">
@@ -192,13 +193,13 @@ export function TableHoverControls() {
         />
       )}
 
-      {menu && (zone.kind === "row" || zone.kind === "col") && (
+      {menu && menuPos && (
         <div
           data-table-controls=""
           className="pointer-events-auto absolute min-w-36 rounded-lg border border-neutral-200 bg-white p-1 shadow-md"
           style={{
-            top: menu.top,
-            left: menu.left,
+            top: menuPos.top,
+            left: menuPos.left,
             transform:
               menu.kind === "row"
                 ? "translate(-100%, -50%)"
@@ -322,16 +323,7 @@ function RowHandle({
       active={menu?.kind === "row"}
       onClick={() => {
         const cellPos = posAtCell(editor, zone.cell);
-        setMenu(
-          menu?.kind === "row"
-            ? null
-            : {
-                kind: "row",
-                cellPos,
-                top: rowRect.top + rowRect.height / 2,
-                left: tableRect.left - 16,
-              },
-        );
+        setMenu(menu?.kind === "row" ? null : { kind: "row", cellPos });
       }}
     >
       <GripDotsVertical className="size-3.5" />
@@ -365,16 +357,7 @@ function ColumnHandle({
       active={menu?.kind === "col"}
       onClick={() => {
         const cellPos = posAtCell(editor, zone.cell);
-        setMenu(
-          menu?.kind === "col"
-            ? null
-            : {
-                kind: "col",
-                cellPos,
-                top: tableRect.top - 16,
-                left: colRect.left + colRect.width / 2,
-              },
-        );
+        setMenu(menu?.kind === "col" ? null : { kind: "col", cellPos });
       }}
     >
       <GripDotsVertical className="size-3.5 rotate-90" />
@@ -502,39 +485,28 @@ function getHoverZone(
     }
 
     if (leftVisible && alongY && distLeft <= EDGE_PX && distLeft < distRight) {
-      const row = rowAtY(table, y);
+      const row =
+        [...table.rows].find((candidate) => {
+          const rowRect = candidate.getBoundingClientRect();
+          return y >= rowRect.top && y <= rowRect.bottom;
+        }) ?? null;
       const cell = row?.cells[0];
       if (row && cell) return { kind: "row", table, row, cell };
     }
 
     if (topVisible && alongX && distTop <= EDGE_PX && distTop < distBottom) {
       const header = table.rows[0];
-      const cell = cellAtX(header, x);
+      const cell = header
+        ? [...header.cells].find((candidate) => {
+            const cellRect = candidate.getBoundingClientRect();
+            return x >= cellRect.left && x <= cellRect.right;
+          }) ?? null
+        : null;
       if (cell) return { kind: "col", table, cell };
     }
   }
 
   return null;
-}
-
-function rowAtY(table: HTMLTableElement, y: number) {
-  return (
-    [...table.rows].find((row) => {
-      const rect = row.getBoundingClientRect();
-      return y >= rect.top && y <= rect.bottom;
-    }) ?? null
-  );
-}
-
-function cellAtX(row: HTMLTableRowElement | undefined, x: number) {
-  if (!row) return null;
-
-  return (
-    [...row.cells].find((cell) => {
-      const rect = cell.getBoundingClientRect();
-      return x >= rect.left && x <= rect.right;
-    }) ?? null
-  );
 }
 
 function posAtCell(editor: Editor, cell: HTMLTableCellElement) {
@@ -550,34 +522,6 @@ function intersectRect(a: DOMRect, b: DOMRect) {
   if (left >= right || top >= bottom) return null;
 
   return new DOMRect(left, top, right - left, bottom - top);
-}
-
-function clamp(value: number, min: number, max: number) {
-  return Math.min(max, Math.max(min, value));
-}
-
-function clampPoint(
-  x: number,
-  y: number,
-  minX: number,
-  maxX: number,
-  minY: number,
-  maxY: number,
-) {
-  if (minX > maxX || minY > maxY) return null;
-
-  return {
-    x: clamp(
-      x,
-      Math.min(minX + CONTROL_HALF, maxX),
-      Math.max(maxX - CONTROL_HALF, minX),
-    ),
-    y: clamp(
-      y,
-      Math.min(minY + CONTROL_HALF, maxY),
-      Math.max(maxY - CONTROL_HALF, minY),
-    ),
-  };
 }
 
 function getColumnRect(table: HTMLTableElement, columnIndex: number) {
