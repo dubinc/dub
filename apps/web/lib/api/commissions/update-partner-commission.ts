@@ -147,10 +147,13 @@ export async function updatePartnerCommission({
       },
     });
 
-    const reward = determinePartnerReward({
-      event: "sale",
-      programEnrollment,
-    })?.reward;
+    const reward = (
+      await determinePartnerReward({
+        event: "sale",
+        programEnrollment,
+        linkId: commission.linkId,
+      })
+    )?.reward;
 
     if (!reward) {
       throw new DubApiError({
