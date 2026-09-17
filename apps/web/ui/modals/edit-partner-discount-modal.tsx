@@ -1,0 +1,373 @@
+"use client";
+
+import { parseActionError } from "@/lib/actions/parse-action-errors";
+import { deleteDiscountAction } from "@/lib/actions/partners/delete-discount";
+import { updatePartnerEnrollmentAction } from "@/lib/actions/partners/update-partner-enrollment";
+import { mutatePrefix } from "@/lib/swr/mutate";
+import { useDiscounts } from "@/lib/swr/use-discounts";
+import useGroup from "@/lib/swr/use-group";
+import useWorkspace from "@/lib/swr/use-workspace";
+import { DiscountProps, EnrolledPartnerProps } from "@/lib/types";
+import { DiscountSheet } from "@/ui/partners/discounts/add-edit-discount-sheet";
+import { formatDiscountDescription } from "@/ui/partners/format-discount-description";
+import { PartnerAvatar } from "@/ui/partners/partner-avatar";
+import { ProgramRewardDescription } from "@/ui/partners/program-reward-description";
+import { AdditionalRewardOptionList } from "@/ui/partners/rewards/additional-reward-option-list";
+import { Button, Modal } from "@dub/ui";
+import { Discount } from "@dub/ui/icons";
+import { useAction } from "next-safe-action/hooks";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { toast } from "sonner";
+import { mutate } from "swr";
+
+type PartnerDiscountOverridePartner = Pick<
+  EnrolledPartnerProps,
+  "id" | "name" | "email" | "image" | "groupId" | "discountId"
+>;
+
+export type PartnerDiscountOverrideTarget = {
+  type: "partner";
+  partner: PartnerDiscountOverridePartner;
+};
+
+/** What the partner currently inherits or overrides. */
+function getEffectiveDiscountId({
+  partnerOverrideDiscountId,
+  groupDefaultDiscountId,
+}: {
+  partnerOverrideDiscountId: string | null | undefined;
+  groupDefaultDiscountId: string | null | undefined;
+}) {
+  return partnerOverrideDiscountId ?? groupDefaultDiscountId ?? null;
+}
+
+/**
+ * Selecting the group default means no partner-specific override.
+ * Preserve current persist behavior: write the group default id (not a different id).
+ */
+function getDiscountIdToPersist({
+  selectedDiscountId,
+  groupDefaultDiscountId,
+}: {
+  selectedDiscountId: string;
+  groupDefaultDiscountId: string | null | undefined;
+}) {
+  return selectedDiscountId === groupDefaultDiscountId
+    ? groupDefaultDiscountId ?? null
+    : selectedDiscountId;
+}
+
+interface EditPartnerDiscountModalProps {
+  showModal: boolean;
+  setShowModal: (showModal: boolean) => void;
+  target: PartnerDiscountOverrideTarget;
+}
+
+function EditPartnerDiscountModal({
+  showModal,
+  setShowModal,
+  target,
+}: EditPartnerDiscountModalProps) {
+  const { partner } = target;
+
+  const [selectedDiscountId, setSelectedDiscountId] = useState<string | null>(
+    null,
+  );
+  const [hasInitializedSelection, setHasInitializedSelection] = useState(false);
+  const [activeSheet, setActiveSheet] = useState<{
+    discount: DiscountProps | null;
+  } | null>(null);
+
+  const { id: workspaceId } = useWorkspace();
+  const { group } = useGroup({
+    groupIdOrSlug: partner.groupId ?? undefined,
+  });
+  const { discounts, loading: discountsLoading } = useDiscounts({
+    groupId: partner.groupId,
+    swrOpts: {
+      revalidateOnFocus: true,
+    },
+  });
+
+  const { executeAsync: updateEnrollment, isPending: isUpdatingEnrollment } =
+    useAction(updatePartnerEnrollmentAction, {
+      onSuccess: async () => {
+        setShowModal(false);
+        toast.success("Discount updated");
+        await mutatePrefix("/api/partners");
+      },
+      onError({ error }) {
+        toast.error(parseActionError(error, "Failed to update discount"));
+      },
+    });
+
+  const { executeAsync: deleteDiscount, isPending: isDeleting } = useAction(
+    deleteDiscountAction,
+    {
+      onSuccess: async () => {
+        toast.success("Discount deleted!");
+        await mutate(
+          (key) => typeof key === "string" && key.startsWith("/api/discounts"),
+        );
+        await mutatePrefix("/api/partners");
+      },
+      onError({ error }) {
+        toast.error(error.serverError ?? "Failed to delete discount");
+      },
+    },
+  );
+
+  const partnerOverrideDiscountId = partner.discountId;
+  const groupDefaultDiscountId = group?.discount?.id;
+  const effectiveDiscountId = getEffectiveDiscountId({
+    partnerOverrideDiscountId,
+    groupDefaultDiscountId,
+  });
+  const isSubmitting = isUpdatingEnrollment || isDeleting;
+
+  const sortedDiscounts = useMemo(() => {
+    return [...(discounts ?? [])].sort((a, b) => {
+      if (a.id === groupDefaultDiscountId) return -1;
+      if (b.id === groupDefaultDiscountId) return 1;
+      return 0;
+    });
+  }, [discounts, groupDefaultDiscountId]);
+
+  const options = useMemo(
+    () =>
+      sortedDiscounts.map((discount) => {
+        const isGroup = discount.id === groupDefaultDiscountId;
+        const description = formatDiscountDescription(discount);
+
+        return {
+          id: discount.id,
+          isGroup,
+          partnersCount: discount.partnersCount,
+          searchValue: isGroup ? `${description} group` : description,
+          label: <ProgramRewardDescription discount={discount} />,
+        };
+      }),
+    [sortedDiscounts, groupDefaultDiscountId],
+  );
+
+  useEffect(() => {
+    if (!showModal) {
+      setSelectedDiscountId(null);
+      setHasInitializedSelection(false);
+      setActiveSheet(null);
+      return;
+    }
+
+    if (hasInitializedSelection) {
+      return;
+    }
+
+    if (effectiveDiscountId || !discountsLoading) {
+      setSelectedDiscountId(effectiveDiscountId);
+      setHasInitializedSelection(true);
+    }
+  }, [
+    showModal,
+    hasInitializedSelection,
+    effectiveDiscountId,
+    discountsLoading,
+  ]);
+
+  const openDiscountSheet = useCallback(
+    (discount: DiscountProps | null = null) => {
+      setActiveSheet({ discount });
+    },
+    [],
+  );
+
+  const onSubmit = useCallback(
+    async (e: React.FormEvent) => {
+      e.preventDefault();
+
+      if (!selectedDiscountId || !workspaceId) {
+        return;
+      }
+
+      if (selectedDiscountId === effectiveDiscountId) {
+        setShowModal(false);
+        return;
+      }
+
+      await updateEnrollment({
+        workspaceId,
+        partnerId: partner.id,
+        discountId: getDiscountIdToPersist({
+          selectedDiscountId,
+          groupDefaultDiscountId,
+        }),
+      });
+    },
+    [
+      selectedDiscountId,
+      workspaceId,
+      effectiveDiscountId,
+      setShowModal,
+      updateEnrollment,
+      partner.id,
+      groupDefaultDiscountId,
+    ],
+  );
+
+  const handleDelete = useCallback(
+    async (discountId: string) => {
+      if (!workspaceId) {
+        return;
+      }
+
+      if (!confirm("Are you sure you want to delete this discount?")) {
+        return;
+      }
+
+      await deleteDiscount({
+        workspaceId,
+        discountId,
+      });
+
+      if (selectedDiscountId === discountId) {
+        setSelectedDiscountId(groupDefaultDiscountId ?? null);
+      }
+    },
+    [workspaceId, deleteDiscount, selectedDiscountId, groupDefaultDiscountId],
+  );
+
+  return (
+    <Modal
+      showModal={showModal}
+      setShowModal={setShowModal}
+      className="max-w-[540px]"
+      preventDefaultClose={activeSheet != null}
+    >
+      {activeSheet && (
+        <DiscountSheet
+          key={activeSheet.discount?.id ?? "new"}
+          nested
+          isOpen
+          setIsOpen={(value) => {
+            const nextOpen = typeof value === "function" ? value(true) : value;
+            if (!nextOpen) {
+              setActiveSheet(null);
+            }
+          }}
+          discount={activeSheet.discount ?? undefined}
+          isDefault={false}
+          groupIdOrSlug={partner.groupId}
+          onCreated={setSelectedDiscountId}
+        />
+      )}
+      <form onSubmit={onSubmit}>
+        <div className="flex w-full items-center justify-between gap-3 border-b border-neutral-200 px-6 py-4">
+          <h3 className="text-lg font-semibold tracking-tight">
+            Edit discount
+          </h3>
+          <Button
+            type="button"
+            variant="secondary"
+            text="Create discount"
+            icon={<Discount className="size-4" />}
+            className="h-8 w-fit px-3"
+            onClick={() => openDiscountSheet()}
+          />
+        </div>
+
+        <div className="min-h-[120px] px-4 py-4">
+          {discountsLoading ? (
+            <div className="flex flex-col gap-2">
+              {Array.from({ length: 3 }).map((_, index) => (
+                <div
+                  key={index}
+                  className="h-10 animate-pulse rounded-lg bg-neutral-100"
+                />
+              ))}
+            </div>
+          ) : (
+            <AdditionalRewardOptionList
+              options={options}
+              selectedId={selectedDiscountId}
+              onSelect={setSelectedDiscountId}
+              onEdit={(id) => {
+                const discount = sortedDiscounts.find((item) => item.id === id);
+                if (discount) {
+                  openDiscountSheet(discount);
+                }
+              }}
+              onDelete={handleDelete}
+              searchPlaceholder="Search discounts..."
+              emptyLabel={
+                options.length === 0
+                  ? "No discounts available. Create one to get started."
+                  : "No discounts found"
+              }
+              onCreate={() => openDiscountSheet()}
+              createLabel="Create discount"
+              showModal={showModal}
+            />
+          )}
+        </div>
+
+        <div className="border-border-subtle flex items-center justify-between gap-4 border-t px-4 py-4">
+          <div className="flex min-w-0 items-center gap-2">
+            <PartnerAvatar partner={partner} className="size-6 shrink-0" />
+            <h4 className="min-w-0 truncate text-sm font-medium text-neutral-900">
+              {partner.name}
+            </h4>
+          </div>
+          <div className="flex shrink-0 items-center gap-2">
+            <Button
+              type="button"
+              variant="secondary"
+              text="Cancel"
+              className="h-8 w-fit px-3"
+              onClick={() => setShowModal(false)}
+              disabled={isSubmitting}
+            />
+            <Button
+              type="submit"
+              text="Save"
+              className="h-8 w-fit px-3"
+              loading={isSubmitting}
+              disabled={!selectedDiscountId || options.length === 0}
+            />
+          </div>
+        </div>
+      </form>
+    </Modal>
+  );
+}
+
+export function useEditPartnerDiscountModal({
+  target,
+}: {
+  target: PartnerDiscountOverrideTarget | null;
+}) {
+  const [showModal, setShowModal] = useState(false);
+  const lastTargetRef = useRef(target);
+  if (target) {
+    lastTargetRef.current = target;
+  }
+
+  const EditPartnerDiscountModalCallback = useCallback(() => {
+    const activeTarget = target ?? lastTargetRef.current;
+
+    if (!activeTarget) {
+      return null;
+    }
+
+    return (
+      <EditPartnerDiscountModal
+        showModal={showModal}
+        setShowModal={setShowModal}
+        target={activeTarget}
+      />
+    );
+  }, [showModal, target]);
+
+  return {
+    setShowEditPartnerDiscountModal: setShowModal,
+    EditPartnerDiscountModal: EditPartnerDiscountModalCallback,
+  };
+}

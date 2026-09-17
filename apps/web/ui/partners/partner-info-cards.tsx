@@ -157,13 +157,11 @@ export function PartnerInfoCards({
     useEditPartnerRewardModal({
       event: rewardEvent,
       target: partnerRewardTarget,
-      group,
     });
 
   const { EditPartnerDiscountModal, setShowEditPartnerDiscountModal } =
     useEditPartnerDiscountModal({
       target: partnerRewardTarget,
-      group,
     });
 
   const { data: bounties, error: errorBounties } = useSWR<BountyListProps[]>(
