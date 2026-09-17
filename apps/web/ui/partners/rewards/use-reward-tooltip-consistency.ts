@@ -11,8 +11,11 @@ import type {
 } from "@/lib/ai/review-reward-tooltip-schema";
 import {
   getRewardConditionAttribute,
+  getTooltipSuggestionPages,
   isRewardConditionComplete,
   stripRewardTooltipMarkdown,
+  type TooltipSuggestionField,
+  type TooltipSuggestionPage,
 } from "@/lib/rewards/validate-tooltip-suggestion";
 import { EventType } from "@prisma/client";
 import {
@@ -23,19 +26,45 @@ import {
   useMemo,
   useRef,
   useState,
+  type MutableRefObject,
 } from "react";
 
 const DEBOUNCE_MS = 200;
+const HIDE_MS = 300;
 const reviewCache = new Map<string, TooltipSuggestion[]>();
+
+export function tooltipSuggestionPageKey({
+  modifierIndex,
+  conditionIndex,
+  field,
+}: {
+  modifierIndex: number;
+  conditionIndex: number;
+  field: TooltipSuggestionField;
+}) {
+  return `${modifierIndex}:${conditionIndex}:${field}`;
+}
 
 type RewardTooltipConsistencyValue = {
   suggestions: TooltipSuggestion[];
+  pages: TooltipSuggestionPage[];
   activeIndex: number;
-  setActiveIndex: (index: number) => void;
+  open: boolean;
+  activeAnchorRef: MutableRefObject<HTMLElement | null>;
+  registerBadge: (key: string, element: HTMLElement | null) => void;
+  showPage: (index: number) => void;
+  scheduleHide: () => void;
+  cancelHide: () => void;
+  hide: () => void;
   getSuggestion: (
     modifierIndex: number,
     conditionIndex: number,
   ) => TooltipSuggestion | undefined;
+  getPageIndex: (
+    modifierIndex: number,
+    conditionIndex: number,
+    field: TooltipSuggestionField,
+  ) => number;
   accept: (suggestion: TooltipSuggestion) => void;
   acceptAll: () => void;
   dismiss: (suggestion: TooltipSuggestion) => void;
@@ -74,8 +103,12 @@ export function useRewardTooltipConsistency({
 }): RewardTooltipConsistencyValue {
   const [suggestions, setSuggestions] = useState<TooltipSuggestion[]>([]);
   const [activeIndex, setActiveIndex] = useState(0);
+  const [open, setOpen] = useState(false);
   const [dismissedKeys, setDismissedKeys] = useState<string[]>([]);
   const requestIdRef = useRef(0);
+  const closeTimerRef = useRef<number | undefined>(undefined);
+  const badgeRefs = useRef(new Map<string, HTMLElement>());
+  const activeAnchorRef = useRef<HTMLElement | null>(null);
 
   const tooltip = stripRewardTooltipMarkdown(tooltipDescription ?? "");
   const serializedModifiers = useMemo(
@@ -165,11 +198,80 @@ export function useRewardTooltipConsistency({
     });
   }, [dismissedKeys, serializedModifiers, suggestions]);
 
+  const pages = useMemo(
+    () =>
+      serializedModifiers
+        ? getTooltipSuggestionPages({
+            suggestions: visibleSuggestions,
+            modifiers: serializedModifiers,
+          })
+        : [],
+    [serializedModifiers, visibleSuggestions],
+  );
   useEffect(() => {
-    if (activeIndex >= visibleSuggestions.length) {
+    if (activeIndex >= pages.length) {
       setActiveIndex(0);
     }
-  }, [activeIndex, visibleSuggestions.length]);
+
+    if (!pages.length && open) {
+      setOpen(false);
+    }
+  }, [activeIndex, open, pages.length]);
+
+  const cancelHide = useCallback(() => {
+    if (closeTimerRef.current) {
+      window.clearTimeout(closeTimerRef.current);
+      closeTimerRef.current = undefined;
+    }
+  }, []);
+
+  const registerBadge = useCallback(
+    (key: string, element: HTMLElement | null) => {
+      if (element) {
+        badgeRefs.current.set(key, element);
+      } else {
+        badgeRefs.current.delete(key);
+      }
+    },
+    [],
+  );
+
+  const showPage = useCallback(
+    (index: number) => {
+      cancelHide();
+
+      const page = pages[index];
+      if (page) {
+        const element = badgeRefs.current.get(
+          tooltipSuggestionPageKey({
+            modifierIndex: page.suggestion.modifierIndex,
+            conditionIndex: page.suggestion.conditionIndex,
+            field: page.field,
+          }),
+        );
+
+        if (element) {
+          activeAnchorRef.current = element;
+        }
+      }
+
+      setActiveIndex(index);
+      setOpen(true);
+    },
+    [cancelHide, pages],
+  );
+
+  const scheduleHide = useCallback(() => {
+    cancelHide();
+    closeTimerRef.current = window.setTimeout(() => {
+      setOpen(false);
+    }, HIDE_MS);
+  }, [cancelHide]);
+
+  const hide = useCallback(() => {
+    cancelHide();
+    setOpen(false);
+  }, [cancelHide]);
 
   const getSuggestion = useCallback(
     (modifierIndex: number, conditionIndex: number) =>
@@ -179,6 +281,21 @@ export function useRewardTooltipConsistency({
           suggestion.conditionIndex === conditionIndex,
       ),
     [visibleSuggestions],
+  );
+
+  const getPageIndex = useCallback(
+    (
+      modifierIndex: number,
+      conditionIndex: number,
+      field: TooltipSuggestionField,
+    ) =>
+      pages.findIndex(
+        (page) =>
+          page.field === field &&
+          page.suggestion.modifierIndex === modifierIndex &&
+          page.suggestion.conditionIndex === conditionIndex,
+      ),
+    [pages],
   );
 
   const dismiss = useCallback(
@@ -221,24 +338,47 @@ export function useRewardTooltipConsistency({
     (suggestion: TooltipSuggestion) => {
       onApply?.(suggestion);
       dismiss(suggestion);
+      hide();
     },
-    [dismiss, onApply],
+    [dismiss, hide, onApply],
   );
 
   const acceptAll = useCallback(() => {
     visibleSuggestions.forEach((suggestion) => onApply?.(suggestion));
     dismissAll();
-  }, [dismissAll, onApply, visibleSuggestions]);
+    hide();
+  }, [dismissAll, hide, onApply, visibleSuggestions]);
+
+  const dismissAndHide = useCallback(
+    (suggestion: TooltipSuggestion) => {
+      dismiss(suggestion);
+      hide();
+    },
+    [dismiss, hide],
+  );
+
+  const dismissAllAndHide = useCallback(() => {
+    dismissAll();
+    hide();
+  }, [dismissAll, hide]);
 
   return {
     suggestions: visibleSuggestions,
+    pages,
     activeIndex,
-    setActiveIndex,
+    open,
+    activeAnchorRef,
+    registerBadge,
+    showPage,
+    scheduleHide,
+    cancelHide,
+    hide,
     getSuggestion,
+    getPageIndex,
     accept,
     acceptAll,
-    dismiss,
-    dismissAll,
+    dismiss: dismissAndHide,
+    dismissAll: dismissAllAndHide,
   };
 }
 

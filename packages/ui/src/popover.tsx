@@ -2,7 +2,12 @@
 
 import { cn } from "@dub/utils";
 import * as PopoverPrimitive from "@radix-ui/react-popover";
-import { PropsWithChildren, ReactNode, WheelEventHandler } from "react";
+import {
+  PropsWithChildren,
+  ReactNode,
+  RefObject,
+  WheelEventHandler,
+} from "react";
 import { createPortal } from "react-dom";
 import { Drawer } from "vaul";
 import { useMediaQuery } from "./hooks";
@@ -24,6 +29,7 @@ export type PopoverProps = PropsWithChildren<{
   onWheel?: WheelEventHandler;
   sideOffset?: number;
   anchor?: ReactNode;
+  virtualAnchorRef?: RefObject<HTMLElement | null>;
 }>;
 
 export function Popover({
@@ -44,6 +50,7 @@ export function Popover({
   onWheel,
   sideOffset = 8,
   anchor,
+  virtualAnchorRef,
 }: PopoverProps) {
   const { isMobile } = useMediaQuery();
 
@@ -89,6 +96,15 @@ export function Popover({
           <PopoverPrimitive.Anchor asChild>{anchor}</PopoverPrimitive.Anchor>,
           document.body,
         )}
+      {virtualAnchorRef && (
+        <PopoverPrimitive.Anchor
+          virtualRef={
+            virtualAnchorRef as unknown as RefObject<{
+              getBoundingClientRect(): DOMRect;
+            }>
+          }
+        />
+      )}
       <PopoverPrimitive.Trigger className="sm:inline-flex" asChild>
         {children}
       </PopoverPrimitive.Trigger>

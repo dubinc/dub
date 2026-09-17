@@ -5,136 +5,162 @@ import { formatRewardConditionParts } from "@/lib/rewards/format-reward-conditio
 import {
   applyTooltipSuggestion,
   getRewardConditionAttribute,
-  suggestionTouchesField,
+  type TooltipSuggestionField,
 } from "@/lib/rewards/validate-tooltip-suggestion";
 import { RewardCondition } from "@/lib/types";
 import { Button, InvoiceDollar, Popover, useMediaQuery } from "@dub/ui";
 import { Sparkle3 } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
-import { useRef, useState, type ReactNode } from "react";
+import { type ReactNode } from "react";
 import { useWatch } from "react-hook-form";
 import { useAddEditRewardForm } from "./add-edit-reward-sheet";
-import { useRewardTooltipConsistencyContext } from "./use-reward-tooltip-consistency";
+import {
+  tooltipSuggestionPageKey,
+  useRewardTooltipConsistencyContext,
+} from "./use-reward-tooltip-consistency";
 
-export function SuggestedFixBadge({
-  text,
-  modifierIndex,
-  conditionIndex,
-}: {
-  text: string;
-  modifierIndex: number;
-  conditionIndex: number;
-}) {
+const POPOVER_CONTENT_CLASS_NAME =
+  "w-[min(411px,calc(100vw-2rem))] overflow-hidden rounded-xl border-neutral-200 bg-white p-0 drop-shadow-none shadow-[0px_4px_6px_-2px_#0000000D,0px_10px_15px_-3px_#0000001A]";
+
+export function SuggestedFixPopoverHost() {
   const consistency = useRewardTooltipConsistencyContext();
-  const { isMobile } = useMediaQuery();
-  const [open, setOpen] = useState(false);
-  const closeTimer = useRef<number | undefined>(undefined);
 
   if (!consistency) return null;
 
   const {
-    suggestions,
+    pages,
     activeIndex,
-    setActiveIndex,
+    open,
+    activeAnchorRef,
+    showPage,
+    scheduleHide,
+    cancelHide,
+    hide,
     accept,
     acceptAll,
     dismiss,
     dismissAll,
   } = consistency;
 
-  const thisIndex = suggestions.findIndex(
-    (suggestion) =>
-      suggestion.modifierIndex === modifierIndex &&
-      suggestion.conditionIndex === conditionIndex,
+  const activePage = pages[activeIndex];
+  const isMultiple = pages.length > 1;
+
+  return (
+    <Popover
+      openPopover={open && !!activePage}
+      setOpenPopover={(next) => {
+        if (!next) hide();
+      }}
+      align="start"
+      sideOffset={8}
+      virtualAnchorRef={activeAnchorRef}
+      onOpenAutoFocus={(event) => event.preventDefault()}
+      popoverContentClassName={POPOVER_CONTENT_CLASS_NAME}
+      content={
+        activePage ? (
+          <div onMouseEnter={cancelHide} onMouseLeave={scheduleHide}>
+            <SuggestedFixContent
+              suggestion={activePage.suggestion}
+              field={activePage.field}
+              index={activeIndex}
+              total={pages.length}
+              onNext={() => showPage((activeIndex + 1) % pages.length)}
+              onDiscard={() => {
+                if (isMultiple) {
+                  dismissAll();
+                } else {
+                  dismiss(activePage.suggestion);
+                }
+              }}
+              onAccept={() => {
+                if (isMultiple) {
+                  acceptAll();
+                } else {
+                  accept(activePage.suggestion);
+                }
+              }}
+            />
+          </div>
+        ) : (
+          <div />
+        )
+      }
+    >
+      <span
+        aria-hidden
+        className="pointer-events-none absolute left-0 top-0 h-0 w-0 overflow-hidden opacity-0"
+      />
+    </Popover>
+  );
+}
+
+export function SuggestedFixBadge({
+  text,
+  field,
+  modifierIndex,
+  conditionIndex,
+}: {
+  text: string;
+  field: TooltipSuggestionField;
+  modifierIndex: number;
+  conditionIndex: number;
+}) {
+  const consistency = useRewardTooltipConsistencyContext();
+  const { isMobile } = useMediaQuery();
+
+  if (!consistency) return null;
+
+  const thisIndex = consistency.getPageIndex(
+    modifierIndex,
+    conditionIndex,
+    field,
   );
 
   if (thisIndex === -1) return null;
 
-  const clearClose = () => {
-    if (closeTimer.current) window.clearTimeout(closeTimer.current);
-  };
-
-  const scheduleClose = () => {
-    if (isMobile) return;
-    clearClose();
-    closeTimer.current = window.setTimeout(() => setOpen(false), 150);
-  };
-
-  const active = suggestions[activeIndex] ?? suggestions[thisIndex];
-  const isMultiple = suggestions.length > 1;
+  const isOpen = consistency.open && consistency.activeIndex === thisIndex;
 
   return (
-    <Popover
-      openPopover={open}
-      setOpenPopover={setOpen}
-      align="start"
-      sideOffset={8}
-      onOpenAutoFocus={(event) => event.preventDefault()}
-      popoverContentClassName="w-[min(411px,calc(100vw-2rem))] overflow-hidden rounded-xl border-neutral-200 bg-white p-0 drop-shadow-none shadow-[0px_4px_6px_-2px_#0000000D,0px_10px_15px_-3px_#0000001A]"
-      content={
-        <div
-          onMouseEnter={() => {
-            if (!isMobile) {
-              clearClose();
-              setOpen(true);
-            }
-          }}
-          onMouseLeave={scheduleClose}
-        >
-          <SuggestedFixContent
-            suggestion={active}
-            index={Math.max(activeIndex, 0)}
-            total={suggestions.length}
-            onNext={() =>
-              setActiveIndex((activeIndex + 1) % suggestions.length)
-            }
-            onDiscard={() => {
-              if (isMultiple) {
-                dismissAll();
-              } else {
-                dismiss(active);
-              }
-              setOpen(false);
-            }}
-            onAccept={() => {
-              if (isMultiple) {
-                acceptAll();
-              } else {
-                accept(active);
-              }
-              setOpen(false);
-            }}
-          />
-        </div>
+    <button
+      type="button"
+      ref={(element) =>
+        consistency.registerBadge(
+          tooltipSuggestionPageKey({ modifierIndex, conditionIndex, field }),
+          element,
+        )
       }
+      onMouseEnter={() => {
+        if (!isMobile) consistency.showPage(thisIndex);
+      }}
+      onMouseLeave={() => {
+        if (!isMobile) consistency.scheduleHide();
+      }}
+      onClick={() => {
+        if (!isMobile) return;
+
+        if (isOpen) {
+          consistency.hide();
+          return;
+        }
+
+        consistency.showPage(thisIndex);
+      }}
+      className="inline-block rounded bg-[#FFFBEB] px-1.5 text-left text-sm font-semibold text-[#973C00] transition-colors"
     >
-      <button
-        type="button"
-        onMouseEnter={() => {
-          if (!isMobile) {
-            clearClose();
-            setActiveIndex(thisIndex);
-            setOpen(true);
-          }
-        }}
-        onMouseLeave={scheduleClose}
-        onClick={() => {
-          if (isMobile) {
-            setOpen((current) => !current);
-            setActiveIndex(thisIndex);
-          }
-        }}
-        className="inline-flex items-center gap-1 rounded bg-[#FFFBEB] px-1.5 text-left align-middle text-sm font-semibold leading-[inherit] text-[#973C00] transition-colors"
-      >
-        <Sparkle3 variant="fill" className="size-3 shrink-0 text-[#E17100]" />
+      <span>
+        <Sparkle3
+          variant="fill"
+          className="mr-1 inline-block size-3 align-middle text-[#E17100]"
+        />
         {text}
-      </button>
-    </Popover>
+      </span>
+    </button>
   );
 }
 
 function SuggestedFixContent({
   suggestion,
+  field,
   index,
   total,
   onNext,
@@ -142,6 +168,7 @@ function SuggestedFixContent({
   onAccept,
 }: {
   suggestion: TooltipSuggestion;
+  field: TooltipSuggestionField;
   index: number;
   total: number;
   onNext: () => void;
@@ -163,7 +190,12 @@ function SuggestedFixContent({
     return null;
   }
 
-  const patched = applyTooltipSuggestion(current, suggestion.suggested);
+  const patched = applyTooltipSuggestion(
+    current,
+    field === "operator"
+      ? { operator: suggestion.suggested.operator }
+      : { value: suggestion.suggested.value },
+  );
   const entity = patched.entity ?? current.entity;
   const attribute = patched.attribute ?? current.attribute;
   const operator = patched.operator ?? current.operator;
@@ -199,7 +231,7 @@ function SuggestedFixContent({
           Suggested fix
         </div>
         {isMultiple && (
-          <span className="text-xs text-neutral-500">
+          <span className="flex h-4 w-fit items-center justify-center rounded-md bg-[#EDEDED] px-1 text-[12px] font-semibold leading-4 tracking-[-0.02em] text-[#404040]">
             {index + 1} of {total}
           </span>
         )}
@@ -213,24 +245,10 @@ function SuggestedFixContent({
           <p className="min-w-0 text-sm font-medium leading-relaxed text-neutral-800">
             If <PreviewChip>{entityLabel}</PreviewChip>{" "}
             <PreviewChip>{attributeLabel}</PreviewChip>{" "}
-            <PreviewChip
-              changed={suggestionTouchesField({
-                field: "operator",
-                current,
-                suggested: suggestion.suggested,
-              })}
-            >
+            <PreviewChip changed={field === "operator"}>
               {operatorLabel}
             </PreviewChip>{" "}
-            <PreviewChip
-              changed={suggestionTouchesField({
-                field: "value",
-                current,
-                suggested: suggestion.suggested,
-              })}
-            >
-              {valueLabel}
-            </PreviewChip>
+            <PreviewChip changed={field === "value"}>{valueLabel}</PreviewChip>
           </p>
         </div>
 

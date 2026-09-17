@@ -5,6 +5,7 @@ import type {
 import {
   applyTooltipSuggestion,
   filterValidatedTooltipSuggestions,
+  getTooltipSuggestionPages,
   isRewardConditionComplete,
   suggestionTouchesField,
 } from "@/lib/rewards/validate-tooltip-suggestion";
@@ -223,6 +224,31 @@ describe("applyTooltipSuggestion", () => {
       operator: "greater_than_or_equal",
       value: 20,
     });
+  });
+});
+
+describe("getTooltipSuggestionPages", () => {
+  test("splits one suggestion that changes operator and value into two pages", () => {
+    const pages = getTooltipSuggestionPages({
+      modifiers: saleAmountModifiers,
+      suggestions: [
+        {
+          ...minTwentySuggestion,
+          suggested: { operator: "greater_than_or_equal", value: 25 },
+        },
+      ],
+    });
+
+    expect(pages.map((page) => page.field)).toEqual(["operator", "value"]);
+  });
+
+  test("keeps one page when only the operator changes", () => {
+    expect(
+      getTooltipSuggestionPages({
+        modifiers: saleAmountModifiers,
+        suggestions: [minTwentySuggestion],
+      }),
+    ).toHaveLength(1);
   });
 });
 

@@ -78,12 +78,62 @@ export function applyTooltipSuggestion<
   };
 }
 
+export type TooltipSuggestionField = "operator" | "value";
+
+export type TooltipSuggestionPage = {
+  suggestion: TooltipSuggestion;
+  field: TooltipSuggestionField;
+};
+
+export function getTooltipSuggestionPages({
+  suggestions,
+  modifiers,
+}: {
+  suggestions: TooltipSuggestion[];
+  modifiers: Array<{
+    conditions: Array<{ operator?: ConditionOperator; value?: unknown }>;
+  }>;
+}): TooltipSuggestionPage[] {
+  const pages: TooltipSuggestionPage[] = [];
+
+  for (const suggestion of suggestions) {
+    const current =
+      modifiers[suggestion.modifierIndex]?.conditions[
+        suggestion.conditionIndex
+      ];
+
+    if (!current) continue;
+
+    if (
+      suggestionTouchesField({
+        field: "operator",
+        current,
+        suggested: suggestion.suggested,
+      })
+    ) {
+      pages.push({ suggestion, field: "operator" });
+    }
+
+    if (
+      suggestionTouchesField({
+        field: "value",
+        current,
+        suggested: suggestion.suggested,
+      })
+    ) {
+      pages.push({ suggestion, field: "value" });
+    }
+  }
+
+  return pages;
+}
+
 export function suggestionTouchesField({
   field,
   current,
   suggested,
 }: {
-  field: "operator" | "value";
+  field: TooltipSuggestionField;
   current: { operator?: ConditionOperator; value?: unknown };
   suggested: TooltipSuggestionPatch;
 }): boolean {

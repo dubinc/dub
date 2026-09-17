@@ -65,7 +65,10 @@ import {
 } from "../../shared/inline-badge-popover";
 import { useAddEditRewardForm } from "./add-edit-reward-sheet";
 import { RewardIconSquare } from "./reward-icon-square";
-import { SuggestedFixBadge } from "./suggested-fix-popover";
+import {
+  SuggestedFixBadge,
+  SuggestedFixPopoverHost,
+} from "./suggested-fix-popover";
 import {
   RewardTooltipConsistencyContext,
   useRewardTooltipConsistency,
@@ -127,6 +130,7 @@ export function RewardsLogic({
 
   return (
     <RewardTooltipConsistencyContext.Provider value={consistency}>
+      <SuggestedFixPopoverHost />
       <div
         className={cn(
           "flex flex-col gap-2",
@@ -648,6 +652,7 @@ function ConditionLogic({
                 ) : highlightOperator && condition.operator ? (
                   <SuggestedFixBadge
                     text={CONDITION_OPERATOR_LABELS[condition.operator]}
+                    field="operator"
                     modifierIndex={modifierIndex}
                     conditionIndex={conditionIndex}
                   />
@@ -741,6 +746,7 @@ function ConditionLogic({
                               : undefined,
                           ) ?? "Value"
                         }
+                        field="value"
                         modifierIndex={modifierIndex}
                         conditionIndex={conditionIndex}
                       />
