@@ -2,7 +2,13 @@ import { prisma } from "@/lib/prisma";
 import { sendEmail } from "@dub/email";
 import ProgramImported from "@dub/email/templates/program-imported";
 import { nanoid } from "@dub/utils";
-import { CommissionStatus, Customer, Link, Program } from "@prisma/client";
+import {
+  CommissionSource,
+  CommissionStatus,
+  Customer,
+  Link,
+  Program,
+} from "@prisma/client";
 import { convertCurrencyWithFxRates } from "../analytics/convert-currency";
 import { isFirstConversion } from "../analytics/is-first-conversion";
 import { createId } from "../api/create-id";
@@ -342,6 +348,7 @@ async function createCommission({
         invoiceId: `${commission.id}`, // this is not the actual invoice ID, but we use this to deduplicate the sales
         createdAt: new Date(commission.created_at),
         description: commission.external_note || null,
+        source: CommissionSource.firstpromoter,
       },
     }),
 

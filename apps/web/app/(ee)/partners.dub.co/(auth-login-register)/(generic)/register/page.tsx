@@ -7,6 +7,7 @@ import RegisterPageClient from "./page-client";
 
 export const metadata = constructMetadata({
   fullTitle: "Create your partners.dub.co account",
+  canonicalUrl: "https://partners.dub.co/register",
 });
 
 export default async function RegisterPage(props: {
