@@ -287,6 +287,24 @@ export function buildProgramEnrollmentWhereForList(
     groupIdNotIn,
   );
 
+  const and: Prisma.ProgramEnrollmentWhereInput[] = [];
+
+  if (rewardId) {
+    and.push({
+      OR: [
+        { clickRewardId: rewardId },
+        { leadRewardId: rewardId },
+        { saleRewardId: rewardId },
+        { referralRewardId: rewardId },
+        { customRewardId: rewardId },
+      ],
+    });
+  }
+
+  if (Array.isArray(metricWhere.AND)) {
+    and.push(...metricWhere.AND);
+  }
+
   return {
     tenantId,
     programId,
@@ -303,16 +321,7 @@ export function buildProgramEnrollmentWhereForList(
         referredByPartnerId,
       },
     }),
-    ...(rewardId && {
-      OR: [
-        { clickRewardId: rewardId },
-        { leadRewardId: rewardId },
-        { saleRewardId: rewardId },
-        { referralRewardId: rewardId },
-        { customRewardId: rewardId },
-      ],
-    }),
     ...(discountId && { discountId }),
-    ...metricWhere,
+    ...(and.length ? { AND: and } : {}),
   };
 }

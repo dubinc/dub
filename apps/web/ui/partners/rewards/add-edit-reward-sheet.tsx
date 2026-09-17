@@ -219,8 +219,10 @@ function RewardSheetContent({
   groupIdOrSlug,
   isDefault = true,
   onCreated,
+  nested,
   hasPendingChangesRef,
 }: RewardSheetProps & {
+  nested?: boolean;
   hasPendingChangesRef: MutableRefObject<boolean>;
 }) {
   const { group, mutateGroup } = useGroup({
@@ -987,7 +989,7 @@ function RewardSheetContent({
 
           <div className="flex items-center justify-between border-t border-neutral-200 p-5">
             <div>
-              {reward && (
+              {reward && !(nested && effectiveIsDefault) && (
                 <Button
                   type="button"
                   variant="outline"
@@ -1228,6 +1230,7 @@ export function RewardSheet({
     >
       <RewardSheetContent
         {...rest}
+        nested={nested}
         setIsOpen={setIsOpen}
         hasPendingChangesRef={hasPendingChangesRef}
       />

@@ -85,7 +85,10 @@ function DiscountSheetContent({
   groupIdOrSlug,
   isDefault = true,
   onCreated,
-}: DiscountSheetProps) {
+  nested,
+}: DiscountSheetProps & {
+  nested?: boolean;
+}) {
   const formRef = useRef<HTMLFormElement>(null);
 
   const { group, mutateGroup } = useGroup({
@@ -619,7 +622,7 @@ function DiscountSheetContent({
 
         <div className="flex items-center justify-between border-t border-neutral-200 p-5">
           <div>
-            {discount && (
+            {discount && !(nested && effectiveIsDefault) && (
               <Button
                 type="button"
                 variant="outline"
@@ -746,7 +749,7 @@ export function DiscountSheet({
 
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen} nested={nested}>
-      <DiscountSheetContent {...rest} setIsOpen={setIsOpen} />
+      <DiscountSheetContent {...rest} nested={nested} setIsOpen={setIsOpen} />
     </Sheet>
   );
 }

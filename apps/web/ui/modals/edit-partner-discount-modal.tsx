@@ -18,7 +18,6 @@ import { Discount } from "@dub/ui/icons";
 import { useAction } from "next-safe-action/hooks";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
-import { mutate } from "swr";
 
 type PartnerDiscountOverridePartner = Pick<
   EnrolledPartnerProps,
@@ -106,10 +105,7 @@ function EditPartnerDiscountModal({
     {
       onSuccess: async () => {
         toast.success("Discount deleted!");
-        await mutate(
-          (key) => typeof key === "string" && key.startsWith("/api/discounts"),
-        );
-        await mutatePrefix("/api/partners");
+        await mutatePrefix(["/api/discounts", "/api/partners", "/api/groups"]);
       },
       onError({ error }) {
         toast.error(error.serverError ?? "Failed to delete discount");
@@ -215,7 +211,7 @@ function EditPartnerDiscountModal({
 
   const handleDelete = useCallback(
     async (discountId: string) => {
-      if (!workspaceId) {
+      if (!workspaceId || discountId === groupDefaultDiscountId) {
         return;
       }
 
@@ -254,7 +250,7 @@ function EditPartnerDiscountModal({
             }
           }}
           discount={activeSheet.discount ?? undefined}
-          isDefault={false}
+          isDefault={activeSheet.discount ? undefined : false}
           groupIdOrSlug={partner.groupId}
           onCreated={setSelectedDiscountId}
         />
@@ -295,7 +291,7 @@ function EditPartnerDiscountModal({
                   openDiscountSheet(discount);
                 }
               }}
-              onDelete={handleDelete}
+              onDelete={group ? handleDelete : undefined}
               searchPlaceholder="Search discounts..."
               emptyLabel={
                 options.length === 0

@@ -20,7 +20,6 @@ import { Button, Modal } from "@dub/ui";
 import { useAction } from "next-safe-action/hooks";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
-import { mutate } from "swr";
 
 type OverrideRewardEvent = "sale" | "lead" | "click";
 
@@ -126,10 +125,7 @@ function EditPartnerRewardModal({
     {
       onSuccess: async () => {
         toast.success("Reward deleted!");
-        await mutate(
-          (key) => typeof key === "string" && key.startsWith("/api/rewards"),
-        );
-        await mutatePrefix("/api/partners");
+        await mutatePrefix(["/api/rewards", "/api/partners", "/api/groups"]);
       },
       onError({ error }) {
         toast.error(error.serverError ?? "Failed to delete reward");
@@ -266,14 +262,14 @@ function EditPartnerRewardModal({
   const handleDelete = useCallback(
     async (rewardId: string) => {
       const reward = eventRewards.find((item) => item.id === rewardId);
-      if (!reward || !workspaceId) {
+      if (!reward || !workspaceId || reward.id === groupRewardId) {
         return;
       }
 
       await confirmRewardChange({
         action: "deleted",
         target: "group",
-        isDefault: reward.id === groupRewardId,
+        isDefault: false,
         reward,
         partnerCount: reward.partnersCount ?? undefined,
         isPending: isDeleting,
@@ -317,7 +313,7 @@ function EditPartnerRewardModal({
           setIsOpen={setIsRewardSheetOpen}
           event={rewardSheet.reward?.event ?? event}
           reward={rewardSheet.reward ?? undefined}
-          isDefault={false}
+          isDefault={rewardSheet.reward ? undefined : false}
           groupIdOrSlug={partner.groupId}
           onCreated={setSelectedId}
         />
@@ -358,7 +354,7 @@ function EditPartnerRewardModal({
                   openRewardSheet(reward);
                 }
               }}
-              onDelete={handleDelete}
+              onDelete={group ? handleDelete : undefined}
               searchPlaceholder="Search rewards..."
               emptyLabel={
                 options.length === 0

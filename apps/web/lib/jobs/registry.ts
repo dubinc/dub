@@ -80,6 +80,9 @@ const jobLoaders = {
     import("./handlers/remap-discount-codes-for-partner-job").then(
       (m) => m.remapDiscountCodesForPartnerJob,
     ),
+
+  "delete-discount-job": () =>
+    import("./handlers/delete-discount-job").then((m) => m.deleteDiscountJob),
 } as const satisfies Record<string, () => Promise<JobDefinition>>;
 
 const jobCache = new Map<string, JobDefinition>();

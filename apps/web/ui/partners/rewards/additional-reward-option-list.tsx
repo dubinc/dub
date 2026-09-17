@@ -196,7 +196,8 @@ function AdditionalRewardOptionRow({
   onDelete?: (id: string) => void;
 }) {
   const [openPopover, setOpenPopover] = useState(false);
-  const showActions = Boolean(onEdit || onDelete);
+  const canDelete = Boolean(onDelete) && !option.isGroup;
+  const showActions = Boolean(onEdit || canDelete);
 
   return (
     <div
@@ -252,13 +253,13 @@ function AdditionalRewardOptionRow({
                     Edit
                   </MenuItem>
                 )}
-                {onDelete && (
+                {canDelete && (
                   <MenuItem
                     variant="danger"
                     onClick={(e) => {
                       e.stopPropagation();
                       setOpenPopover(false);
-                      onDelete(option.id);
+                      onDelete?.(option.id);
                     }}
                     icon={<Trash className="size-4" />}
                   >

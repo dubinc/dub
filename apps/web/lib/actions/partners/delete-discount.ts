@@ -4,6 +4,7 @@ import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { getDiscountOrThrow } from "@/lib/api/partners/get-discount-or-throw";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { deleteDiscountCodes } from "@/lib/discounts/delete-discount-code";
+import { deleteDiscountJob } from "@/lib/jobs/handlers/delete-discount-job";
 import { invalidateLinksForDiscountsJob } from "@/lib/jobs/handlers/invalidate-links-for-discounts-job";
 import { prisma } from "@/lib/prisma";
 import { pluck } from "@dub/utils";
@@ -35,28 +36,18 @@ export const deleteDiscountAction = authActionClient
       discountId,
     });
 
-    // Cache discount codes to delete them later
-    const discountCodes = await prisma.discountCode.findMany({
-      where: {
-        discountId: discount.id,
-      },
-      include: {
-        discount: true,
-      },
-    });
+    const [enrollments, partnerGroup] = await Promise.all([
+      prisma.programEnrollment.findMany({
+        where: {
+          discountId: discount.id,
+        },
+        select: {
+          partnerId: true,
+        },
+      }),
 
-    const enrollments = await prisma.programEnrollment.findMany({
-      where: {
-        discountId: discount.id,
-      },
-      select: {
-        partnerId: true,
-      },
-    });
-
-    await prisma.$transaction(async (tx) => {
-      const partnerGroup = discount.groupId
-        ? await tx.partnerGroup.findUnique({
+      discount.groupId
+        ? prisma.partnerGroup.findUnique({
             where: {
               id: discount.groupId,
             },
@@ -64,8 +55,31 @@ export const deleteDiscountAction = authActionClient
               discountId: true,
             },
           })
+        : null,
+    ]);
+
+    const partnerIds = pluck(enrollments, "partnerId");
+
+    // If the partner group has a discountId and it is not the same as the discount being deleted,
+    // restore to that discountId; otherwise, set to null
+    const restoredDiscountId =
+      partnerGroup?.discountId !== discount.id
+        ? partnerGroup?.discountId
         : null;
 
+    const discountCodes =
+      restoredDiscountId == null
+        ? await prisma.discountCode.findMany({
+            where: {
+              discountId: discount.id,
+            },
+            include: {
+              discount: true,
+            },
+          })
+        : null;
+
+    await prisma.$transaction(async (tx) => {
       await tx.partnerGroup.updateMany({
         where: {
           discountId: discount.id,
@@ -81,18 +95,35 @@ export const deleteDiscountAction = authActionClient
           discountId: discount.id,
         },
         data: {
-          discountId: partnerGroup?.discountId ?? null,
+          discountId: restoredDiscountId,
         },
       });
 
-      await tx.discount.delete({
-        where: {
-          id: discount.id,
-        },
-      });
+      if (restoredDiscountId == null) {
+        await tx.discount.delete({
+          where: {
+            id: discount.id,
+          },
+        });
+      }
     });
 
-    const partnerIds = pluck(enrollments, "partnerId");
+    if (restoredDiscountId != null) {
+      await deleteDiscountJob.dispatch(
+        {
+          programId,
+          discountId: discount.id,
+          partnerIds,
+        },
+        {
+          label: discount.id,
+          flowControl: {
+            key: `delete-discount-${discount.id}`,
+            parallelism: 1,
+          },
+        },
+      );
+    }
 
     waitUntil(
       Promise.allSettled([
@@ -111,7 +142,7 @@ export const deleteDiscountAction = authActionClient
             ]
           : []),
 
-        deleteDiscountCodes(discountCodes),
+        ...(discountCodes != null ? [deleteDiscountCodes(discountCodes)] : []),
 
         recordAuditLog({
           workspaceId: workspace.id,
