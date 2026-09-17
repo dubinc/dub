@@ -35,8 +35,9 @@ export default function DubProductUpdateSummer26({
         `}</style>
       </Head>
       <Preview>
-        Social metrics bounties, stablecoin payouts, advanced filters, staggered
-        rewards, group move rules, Stripe free trials, and bulk partner invites.
+        Bounties/email campaigns improvements, custom metadata rewards,
+        retainer-style custom rewards, improved yearly pricing, and other
+        updates.
       </Preview>
       <Tailwind>
         <Body className="mx-auto my-auto bg-white font-sans">

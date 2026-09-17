@@ -4,12 +4,12 @@ import {
   PARTNER_REFERRAL_PERCENTAGE_TRIGGERS,
   PartnerReferralPercentageTrigger,
 } from "@/lib/partner-referrals/constants";
+import { getSpendLimitDescriptionParts } from "@/lib/rewards/reward-spend-limit";
 import { RewardProps } from "@/lib/types";
 import { referralRewardConfigSchema } from "@/lib/zod/schemas/rewards";
 import { currencyFormatter } from "@dub/utils";
 import { RewardSpendLimitInterval } from "@prisma/client";
 import { formatCustomRewardDescription } from "./custom-reward-description";
-import { getSpendLimitDescriptionParts } from "./program-reward-spend-limit";
 
 export function formatRewardDescription(
   reward: Pick<

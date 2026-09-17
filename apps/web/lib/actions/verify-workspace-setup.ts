@@ -6,7 +6,8 @@ import {
   type VerifyInstallationResult,
 } from "@/lib/analytics/verify-installation";
 import { prisma } from "@/lib/prisma";
-import { ratelimit } from "@/lib/upstash";
+import { assertRateLimit } from "@/lib/upstash/assert-rate-limit";
+import { RATELIMIT_POLICIES } from "@/lib/upstash/ratelimit-policies";
 import FirecrawlApp from "@mendable/firecrawl-js";
 import * as z from "zod/v4";
 import { authActionClient } from "./safe-action";
@@ -28,15 +29,10 @@ export const verifyWorkspaceSetup = authActionClient
       requiredPermissions: ["workspaces.write"],
     });
 
-    const { success } = await ratelimit(5, "1 m").limit(
-      `verify-workspace-setup:${workspace.id}`,
-    );
-
-    if (!success) {
-      throw new Error(
-        "Too many verification attempts. Please try again in a minute.",
-      );
-    }
+    await assertRateLimit({
+      policy: RATELIMIT_POLICIES.verifyWorkspaceSetup,
+      identifier: workspace.id,
+    });
 
     const hostnames = (workspace.allowedHostnames as string[]) || [];
 

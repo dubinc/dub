@@ -4,7 +4,8 @@ import { DubApiError } from "@/lib/api/errors";
 import { withWorkspace } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
 import { prisma } from "@/lib/prisma";
-import { ratelimit } from "@/lib/upstash";
+import { assertRateLimit } from "@/lib/upstash/assert-rate-limit";
+import { RATELIMIT_POLICIES } from "@/lib/upstash/ratelimit-policies";
 import { transferDomainBodySchema } from "@/lib/zod/schemas/domains";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { NextResponse } from "next/server";
@@ -35,16 +36,10 @@ export const POST = withWorkspace(
     }
 
     // Allow up to 5 domain transfer per workspace per hour
-    const { success } = await ratelimit(5, "1 h").limit(
-      `domain-transfer:${workspace.id}`,
-    );
-
-    if (!success) {
-      throw new DubApiError({
-        code: "rate_limit_exceeded",
-        message: "Too many requests. Please try again later.",
-      });
-    }
+    await assertRateLimit({
+      policy: RATELIMIT_POLICIES.domainTransfer,
+      identifier: workspace.id,
+    });
 
     const newWorkspace = await prisma.project.findUnique({
       where: { id: newWorkspaceId },

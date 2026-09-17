@@ -31,7 +31,12 @@ export const GET = withCron(async () => {
         in: ["pending", "processing", "processed", "failed"],
       },
       programId: {
-        notIn: [ACME_PROGRAM_ID, DEMO_PROGRAM_ID],
+        notIn: [
+          ACME_PROGRAM_ID,
+          DEMO_PROGRAM_ID,
+          // programs that are in the migration process
+          "prog_1M1ER7V1BBBPVS67HCFMR955T",
+        ],
       },
       partner: {
         payoutsEnabledAt: null,
