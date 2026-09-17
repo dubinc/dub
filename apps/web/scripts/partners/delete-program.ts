@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { R2_URL } from "@dub/utils";
 import "dotenv-flow/config";
-import { workspaceProductCache } from "../../lib/api/workspaces/workspace-product-cache";
+import { bulkDeleteLinks } from "../../lib/api/links";
 import { storage } from "../../lib/storage";
 
 async function main() {
@@ -9,94 +9,88 @@ async function main() {
     where: {
       id: "prog_xxx",
     },
-    include: {
-      workspace: true,
+  });
+
+  const deletedCommissions = await prisma.commission.deleteMany({
+    where: {
+      programId: program.id,
+    },
+  });
+  console.log("Deleted commissions", deletedCommissions);
+
+  const deletedPayouts = await prisma.payout.deleteMany({
+    where: {
+      programId: program.id,
+    },
+  });
+  console.log("Deleted payouts", deletedPayouts);
+
+  const deletedRewards = await prisma.reward.deleteMany({
+    where: {
+      programId: program.id,
+    },
+  });
+  console.log("Deleted rewards", deletedRewards);
+
+  const deletedDiscounts = await prisma.discount.deleteMany({
+    where: {
+      programId: program.id,
     },
   });
 
-  await prisma.$transaction(
-    async (tx) => {
-      const deletedCommissions = await tx.commission.deleteMany({
-        where: {
-          programId: program.id,
-        },
-      });
-      console.log("Deleted commissions", deletedCommissions);
+  console.log("Deleted discounts", deletedDiscounts);
 
-      const deletedPayouts = await tx.payout.deleteMany({
-        where: {
-          programId: program.id,
-        },
-      });
-      console.log("Deleted payouts", deletedPayouts);
-
-      const deletedRewards = await tx.reward.deleteMany({
-        where: {
-          programId: program.id,
-        },
-      });
-      console.log("Deleted rewards", deletedRewards);
-
-      const deletedDiscounts = await tx.discount.deleteMany({
-        where: {
-          programId: program.id,
-        },
-      });
-
-      console.log("Deleted discounts", deletedDiscounts);
-
-      const deletedPartnerGroups = await tx.partnerGroup.deleteMany({
-        where: {
-          programId: program.id,
-        },
-      });
-      console.log("Deleted partner groups", deletedPartnerGroups);
-
-      const deletedProgramEnrollments = await tx.programEnrollment.deleteMany({
-        where: {
-          programId: program.id,
-        },
-      });
-      console.log("Deleted program enrollments", deletedProgramEnrollments);
-
-      const deletedFolder = await tx.folder.delete({
-        where: {
-          id: program.defaultFolderId,
-        },
-      });
-      console.log("Deleted folder", deletedFolder);
-
-      const updatedLinks = await tx.link.updateMany({
-        where: {
-          programId: program.id,
-        },
-        data: {
-          programId: null,
-        },
-      });
-      console.log("Updated links", updatedLinks);
-
-      const updatedProject = await tx.project.update({
-        where: {
-          id: program.workspaceId,
-        },
-        data: {
-          defaultProduct: "links",
-          defaultProgramId: null,
-        },
-      });
-      console.log("Updated project", updatedProject);
+  const links = await prisma.link.findMany({
+    where: {
+      programId: program.id,
     },
-    {
-      maxWait: 10000, // default: 2000
-      timeout: 20000, // default: 5000
-    },
-  );
-
-  await workspaceProductCache.set({
-    slug: program.workspace.slug,
-    product: "links",
   });
+  await bulkDeleteLinks(links);
+
+  while (true) {
+    const customers = await prisma.customer.findMany({
+      where: {
+        programId: program.id,
+      },
+      take: 250,
+    });
+    if (customers.length === 0) break;
+    const deletedCustomers = await prisma.customer.deleteMany({
+      where: {
+        id: {
+          in: customers.map((customer) => customer.id),
+        },
+      },
+    });
+    console.log("Deleted customers", deletedCustomers);
+  }
+
+  const deletedPartnerGroups = await prisma.partnerGroup.deleteMany({
+    where: {
+      programId: program.id,
+    },
+  });
+  console.log("Deleted partner groups", deletedPartnerGroups);
+
+  while (true) {
+    const programEnrollments = await prisma.programEnrollment.findMany({
+      where: {
+        programId: program.id,
+      },
+      take: 250,
+    });
+    if (programEnrollments.length === 0) break;
+    const deletedProgramEnrollments = await prisma.programEnrollment.deleteMany(
+      {
+        where: {
+          id: {
+            in: programEnrollments.map((enrollment) => enrollment.id),
+          },
+        },
+      },
+    );
+    console.log("Deleted program enrollments", deletedProgramEnrollments);
+  }
 
   if (program.logo) {
     const deletedLogo = await storage.delete({
