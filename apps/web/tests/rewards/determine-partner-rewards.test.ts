@@ -22,6 +22,7 @@ function saleReward(overrides: Partial<Reward> = {}): Reward {
     config: null,
     spendLimitAmount: null,
     spendLimitInterval: null,
+    groupId: null,
     createdAt: new Date("2026-01-01"),
     updatedAt: new Date("2026-01-01"),
     ...overrides,

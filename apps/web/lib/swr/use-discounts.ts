@@ -9,7 +9,7 @@ export default function useDiscounts() {
   const { data: discounts, error } = useSWR<DiscountProps[]>(
     workspaceId &&
       defaultProgramId &&
-      `/api/programs/${defaultProgramId}/discounts?workspaceId=${workspaceId}`,
+      `/api/discounts?workspaceId=${workspaceId}`,
     fetcher,
     {
       dedupingInterval: 60000,

@@ -10,6 +10,7 @@ import { queueRewardProcessing } from "@/lib/api/rewards/queue-reward-processing
 import { validateReward } from "@/lib/api/rewards/validate-reward";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { prisma } from "@/lib/prisma";
+import { PARTNER_LEVEL_REWARDS_PLAN_ERROR } from "@/lib/rewards/constants";
 import {
   createRewardSchema,
   REWARD_EVENT_COLUMN_MAPPING,
@@ -38,6 +39,7 @@ export const createRewardAction = authActionClient
       spendLimitAmount,
       spendLimitInterval,
       activityDescription,
+      isDefault,
     } = parsedInput;
 
     throwIfNoPermission({
@@ -56,6 +58,10 @@ export const createRewardAction = authActionClient
       throw new Error(
         "Referral rewards are only available on the Advanced plan and above.",
       );
+    }
+
+    if (!isDefault && !canUseAdvancedRewardLogic) {
+      throw new Error(PARTNER_LEVEL_REWARDS_PLAN_ERROR);
     }
 
     if (modifiers && !canUseAdvancedRewardLogic) {
@@ -77,10 +83,8 @@ export const createRewardAction = authActionClient
 
     const rewardIdColumn = REWARD_EVENT_COLUMN_MAPPING[event];
 
-    if (group[rewardIdColumn]) {
-      throw new Error(
-        `You can't create a ${event} reward for this group because it already has a ${event} reward.`,
-      );
+    if (isDefault && group[rewardIdColumn]) {
+      throw new Error(`This group already has a default ${event} reward.`);
     }
 
     validateReward(parsedInput);
@@ -90,6 +94,7 @@ export const createRewardAction = authActionClient
         data: {
           id: createId({ prefix: "rw_" }),
           programId,
+          groupId,
           event,
           type,
           maxDuration,
@@ -111,31 +116,41 @@ export const createRewardAction = authActionClient
         },
       });
 
-      await tx.partnerGroup.update({
-        where: {
-          id: groupId,
-        },
-        data: {
-          [rewardIdColumn]: reward.id,
-        },
-      });
+      if (isDefault) {
+        const { count } = await tx.partnerGroup.updateMany({
+          where: {
+            id: groupId,
+            [rewardIdColumn]: null,
+          },
+          data: {
+            [rewardIdColumn]: reward.id,
+          },
+        });
+
+        // This means that the group already has a default reward
+        if (count === 0) {
+          throw new Error(`This group already has a default ${event} reward.`);
+        }
+      }
 
       return reward;
     });
 
-    await queueRewardProcessing({
-      event: "reward-created",
-      groupId,
-      occurredAt: new Date().toISOString(),
-      rewardSnapshot: {
-        id: reward.id,
-        event: reward.event,
-        description: formatRewardDescription(serializeReward(reward), {
-          includeEarnPrefix: false,
-        }),
-        activityDescription,
-      },
-    });
+    if (isDefault) {
+      await queueRewardProcessing({
+        event: "reward-created",
+        groupId,
+        occurredAt: new Date().toISOString(),
+        rewardSnapshot: {
+          id: reward.id,
+          event: reward.event,
+          description: formatRewardDescription(serializeReward(reward), {
+            includeEarnPrefix: false,
+          }),
+          activityDescription,
+        },
+      });
+    }
 
     waitUntil(
       Promise.allSettled([
@@ -167,4 +182,8 @@ export const createRewardAction = authActionClient
         }),
       ]),
     );
+
+    return {
+      id: reward.id,
+    };
   });

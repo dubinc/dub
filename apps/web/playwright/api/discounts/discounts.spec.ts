@@ -185,13 +185,13 @@ async function deleteCustomer(api: ApiClient, id: string | undefined) {
   await api.delete(`/api/customers/${id}`);
 }
 
-test("GET /programs/{programId}/discounts – custom provider", async ({
+test("GET /api/discounts – lists discounts with partnersCount", async ({
   api,
-  program,
 }) => {
-  const { status, data } = await api.get<DiscountProps[]>(
-    `/api/programs/${program.id}/discounts`,
-  );
+  const { status, data } =
+    await api.get<
+      (DiscountProps & { groupId: string | null; partnersCount: number })[]
+    >("/api/discounts");
 
   expect(status).toEqual(200);
 
@@ -199,9 +199,21 @@ test("GET /programs/{programId}/discounts – custom provider", async ({
 
   expect(discount).toEqual({
     id: customDiscountId,
+    groupId: null,
     ...expectedCustomDiscount,
     partnersCount: expect.any(Number),
   });
+});
+
+test("GET /api/discounts?groupId= – includes group default without groupId column", async ({
+  api,
+}) => {
+  const { status, data } = await api.get<
+    (DiscountProps & { groupId: string | null; partnersCount: number })[]
+  >(`/api/discounts?groupId=${partnerGroupId}`);
+
+  expect(status).toEqual(200);
+  expect(data.some((item) => item.id === customDiscountId)).toBe(true);
 });
 
 test("GET /groups/{id} – nested custom discount", async ({ api }) => {
