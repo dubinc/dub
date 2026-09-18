@@ -155,15 +155,25 @@ async function calculateEarningsByLink({
 
     // Skip soft deleted click rewards
     if (clickReward?.programId === null || clickReward?.groupId === null) {
+      console.log(
+        `Click reward ${clickReward.id} for link ${link.id} is soft deleted (programId=${clickReward.programId}, groupId=${clickReward.groupId}). Skipping...`,
+      );
       continue;
     }
 
     if (!clickReward) {
-      console.log(`No click reward for link ${link.id}.`);
+      console.log(`No click reward for link ${link.id}. Skipping...`);
       continue;
     }
 
     const linkClicksByCountry = clicksByLinkId.get(link.id) || [];
+
+    if (linkClicksByCountry.length === 0) {
+      console.log(
+        `No clicks in aggregation window for link ${link.id}. Skipping...`,
+      );
+      continue;
+    }
 
     // Calculate earnings per country for each link
     for (const { country, clicks } of linkClicksByCountry) {
@@ -250,11 +260,15 @@ async function createClickCommissions({
   programEnrollment: Pick<ProgramEnrollment, "programId" | "partnerId">;
   linkEarningsMap: Map<string, LinkEarnings>;
 }) {
+  const { programId, partnerId } = programEnrollment;
+
   if (linkEarningsMap.size === 0) {
+    console.log(
+      `No link earnings to commission for partner ${partnerId} in program ${programId}. Skipping...`,
+    );
     return;
   }
 
-  const { programId, partnerId } = programEnrollment;
   const aggregationDate = startDate.toISOString().split("T")[0];
   const usedSpendLimitByReward = new Map<string, number>();
   const historicalEarningsByReward = new Map<string, number>();
@@ -283,6 +297,9 @@ async function createClickCommissions({
   // Create commissions for each link
   for (const [linkId, { clicks, earnings, reward }] of linkEarningsMap) {
     if (clicks === 0 || earnings === 0) {
+      console.log(
+        `No click earnings for link ${linkId} (clicks=${clicks}, earnings=${earnings}). Skipping...`,
+      );
       continue;
     }
 
@@ -299,7 +316,9 @@ async function createClickCommissions({
       cappedEarnings = Math.max(0, Math.min(earnings, remainingSpendLimit));
 
       if (cappedEarnings === 0) {
-        console.log(`Reached spend limit for partner ${partnerId}.`);
+        console.log(
+          `Reached spend limit for partner ${partnerId} on link ${linkId} (reward ${reward.id}). Skipping...`,
+        );
         continue;
       }
 
@@ -331,6 +350,9 @@ async function createClickCommissions({
   }
 
   if (commissionsToCreate.length === 0) {
+    console.log(
+      `No click commissions to create for partner ${partnerId} in program ${programId}. Skipping...`,
+    );
     return;
   }
 

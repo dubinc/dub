@@ -47,6 +47,10 @@ export const POST = withCron(async () => {
       ({ partnerId }, index) => ({
         label: partnerId,
         deduplicationId: `aggregate-clicks-${programEnrollments[index].id}`,
+        flowControl: {
+          key: "aggregate-clicks",
+          parallelism: 10,
+        },
       }),
     );
 
