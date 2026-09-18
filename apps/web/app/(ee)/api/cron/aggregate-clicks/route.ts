@@ -37,7 +37,7 @@ export const POST = withCron(async () => {
       break;
     }
 
-    await aggregateClicksJob.dispatchBatch(
+    const { published } = await aggregateClicksJob.dispatchBatch(
       programEnrollments.map(({ programId, partnerId }) => ({
         partnerId,
         programId,
@@ -54,7 +54,7 @@ export const POST = withCron(async () => {
       }),
     );
 
-    enqueued += programEnrollments.length;
+    enqueued += published;
 
     if (programEnrollments.length < BATCH_SIZE) {
       break;
