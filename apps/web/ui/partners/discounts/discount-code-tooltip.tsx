@@ -10,22 +10,20 @@ type DiscountTooltipDiscount = Pick<
   "amount" | "type" | "maxDuration" | "description"
 >;
 
-export function PartnerDiscountCodeTooltip({
+export function DiscountCodeTooltip({
   discount,
   children,
 }: PropsWithChildren<{
   discount?: DiscountTooltipDiscount | null;
 }>) {
   return (
-    <Tooltip
-      content={<PartnerDiscountCodeTooltipContent discount={discount} />}
-    >
+    <Tooltip content={<DiscountCodeTooltipContent discount={discount} />}>
       {children}
     </Tooltip>
   );
 }
 
-function PartnerDiscountCodeTooltipContent({
+function DiscountCodeTooltipContent({
   discount,
 }: {
   discount?: DiscountTooltipDiscount | null;

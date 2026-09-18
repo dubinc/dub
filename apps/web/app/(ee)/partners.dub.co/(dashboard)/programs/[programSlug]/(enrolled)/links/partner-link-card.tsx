@@ -6,7 +6,7 @@ import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import { PartnerProfileLinkProps } from "@/lib/types";
 import { CommentsBadge } from "@/ui/links/comments-badge";
 import { DiscountCodeBadge } from "@/ui/partners/discounts/discount-code-badge";
-import { PartnerDiscountCodeTooltip } from "@/ui/partners/discounts/partner-discount-code-tooltip";
+import { DiscountCodeTooltip } from "@/ui/partners/discounts/discount-code-tooltip";
 import { PartnerStatusBadges } from "@/ui/partners/partner-status-badges";
 import {
   ArrowTurnRight2,
@@ -213,9 +213,9 @@ export function PartnerLinkCard({ link }: { link: PartnerProfileLinkProps }) {
               (link.discountCodeDisabledAt ? (
                 discountCodeSection
               ) : (
-                <PartnerDiscountCodeTooltip discount={link.discount}>
+                <DiscountCodeTooltip discount={link.discount}>
                   {discountCodeSection}
-                </PartnerDiscountCodeTooltip>
+                </DiscountCodeTooltip>
               ))}
             {displayOption === "cards" && <StatsBadge link={link} />}
             <Controls link={link} />
