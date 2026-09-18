@@ -84,6 +84,11 @@ export const POST = withWorkspace(
         links: {
           select: {
             id: true,
+            linkReward: {
+              select: {
+                discount: true,
+              },
+            },
           },
         },
         discountCodes: {
@@ -101,7 +106,7 @@ export const POST = withWorkspace(
       },
     });
 
-    const { links, discount } = programEnrollment;
+    const { links, discount: enrollmentDiscount } = programEnrollment;
 
     const link = links.find((link) => link.id === linkId);
 
@@ -112,11 +117,14 @@ export const POST = withWorkspace(
       });
     }
 
+    // Prefer the link discount if it exists, otherwise use the enrollment discount
+    const discount = link.linkReward?.discount ?? enrollmentDiscount;
+
     if (!discount) {
       throw new DubApiError({
         code: "bad_request",
         message:
-          "No discount is assigned to this partner group. Please add a discount before proceeding.",
+          "No discount is assigned to this partner or link. Please add a discount before proceeding.",
       });
     }
 
