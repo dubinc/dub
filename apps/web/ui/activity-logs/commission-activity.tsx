@@ -61,6 +61,31 @@ function parseChangeSet(log: ActivityLog) {
   };
 }
 
+function getCommissionNote({
+  description,
+  reward,
+  createdAt,
+}: Pick<CommissionDetail, "description" | "reward" | "createdAt">) {
+  let text = description;
+
+  if (!text && reward) {
+    const amount =
+      reward.type === "percentage"
+        ? `${reward.amountInPercentage ?? 0}%`
+        : currencyFormatter(reward.amountInCents ?? 0, {
+            trailingZeroDisplay: "stripIfInteger",
+          });
+
+    text = `Earn ${amount} per ${reward.event}`;
+  }
+
+  if (!text) {
+    return undefined;
+  }
+
+  return <CommentCardDisplay timestamp={createdAt} text={text} />;
+}
+
 export function CommissionActivity({
   commission,
   slug,
@@ -103,6 +128,7 @@ export function CommissionActivity({
           key: "created",
           icon: CommissionStatusBadges[commission.status].icon,
           timestamp: commission.createdAt,
+          note: getCommissionNote(commission),
           children: (
             <>
               <span className="text-sm text-neutral-700">
@@ -121,32 +147,7 @@ export function CommissionActivity({
           key: "created",
           icon: CommissionStatusBadges["pending"].icon,
           timestamp: commission.createdAt,
-          note: (() => {
-            const text =
-              commission.description ||
-              (commission.reward
-                ? `Earn ${
-                    commission.reward.type === "percentage"
-                      ? `${commission.reward.amountInPercentage ?? 0}%`
-                      : currencyFormatter(
-                          commission.reward.amountInCents ?? 0,
-                          {
-                            trailingZeroDisplay: "stripIfInteger",
-                          },
-                        )
-                  } per ${commission.reward.event}`
-                : null);
-
-            if (!text) return undefined;
-
-            return (
-              <CommentCardDisplay
-                timestamp={commission.createdAt}
-                text={text}
-              />
-            );
-          })(),
-
+          note: getCommissionNote(commission),
           children: (
             <>
               <span className="text-sm text-neutral-700">Commission</span>
@@ -193,7 +194,9 @@ export function CommissionActivity({
         <span className="text-sm text-neutral-500">by</span>
         <div className="flex h-6 items-center gap-2 rounded-lg bg-neutral-100 px-2 py-1">
           <UserAvatar user={log.user} className="size-4" />
-          <span className="text-[13px] text-neutral-700">{log.user.name}</span>
+          <span className="text-[13px] text-neutral-700">
+            {log.user.name || log.user.email || "Deleted user"}
+          </span>
         </div>
       </>
     ) : null;

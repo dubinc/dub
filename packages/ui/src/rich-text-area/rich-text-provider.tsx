@@ -3,9 +3,10 @@ import FileHandler from "@tiptap/extension-file-handler";
 import Image from "@tiptap/extension-image";
 import Link from "@tiptap/extension-link";
 import Mention from "@tiptap/extension-mention";
+import { TableKit } from "@tiptap/extension-table";
 import { Placeholder } from "@tiptap/extensions";
 import { Markdown } from "@tiptap/markdown";
-import { Editor, useEditor } from "@tiptap/react";
+import { Editor, useEditor, useEditorState } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import {
   PropsWithChildren,
@@ -22,6 +23,7 @@ import {
 import { configureCampaignEditorImage } from "./campaign-editor-image";
 import { RichTextLinkHoverTooltip } from "./link-hover-tooltip";
 import { RichTextLinkModal } from "./link-modal";
+import { TableHoverControls } from "./table-hover-controls";
 import { RichTextVariableInfo, suggestions } from "./variables";
 
 export const PROSE_STYLES = {
@@ -31,7 +33,7 @@ export const PROSE_STYLES = {
   relaxed: "",
 } as const;
 
-const FEATURES = [
+const CORE_FEATURES = [
   "images",
   "variables",
   "links",
@@ -41,7 +43,15 @@ const FEATURES = [
   "strike",
 ] as const;
 
-export const DEFAULT_RICH_TEXT_FEATURES = FEATURES;
+const FEATURES = [
+  ...CORE_FEATURES,
+  "lists",
+  "tables",
+  "quote",
+  "code",
+] as const;
+
+export const DEFAULT_RICH_TEXT_FEATURES = CORE_FEATURES;
 
 const OPTIONAL_FEATURES = ["imageControls"] as const;
 
@@ -101,7 +111,7 @@ export const RichTextProvider = forwardRef<
   (
     {
       children,
-      features = FEATURES as any,
+      features = DEFAULT_RICH_TEXT_FEATURES as any,
       markdown = false,
       style = "default",
       placeholder = "Start typing...",
@@ -190,6 +200,19 @@ export const RichTextProvider = forwardRef<
           strike: features.includes("strike") ? undefined : false,
           link: false,
         }),
+
+        ...(features.includes("tables")
+          ? [
+              TableKit.configure({
+                table: {
+                  resizable: false,
+                  HTMLAttributes: {
+                    class: "w-full border-separate border-spacing-0",
+                  },
+                },
+              }),
+            ]
+          : []),
 
         ...(features.includes("links")
           ? [
@@ -301,6 +324,7 @@ export const RichTextProvider = forwardRef<
           : []),
       ],
       editorProps: {
+        ...editorProps,
         attributes: {
           ...editorProps?.attributes,
           class: cn(
@@ -310,13 +334,14 @@ export const RichTextProvider = forwardRef<
             // "loose" list and gives paragraph spacing. Zero it so items sit 4px apart (the
             // <li> margins), and match the bullet color to the ordered list counters.
             "[&_li>p]:my-0 marker:prose-ul:text-neutral-500",
+            features.includes("tables") &&
+              "[&_table]:my-3 [&_table]:overflow-hidden [&_table]:rounded-xl [&_table]:border [&_table]:border-neutral-200 [&_th]:border-b [&_th]:border-r [&_td]:border-b [&_td]:border-r [&_th]:border-neutral-200 [&_td]:border-neutral-200 [&_th]:bg-neutral-50 [&_th]:px-4 [&_td]:px-4 [&_th]:py-3 [&_td]:py-3 [&_th]:align-top [&_td]:align-top [&_th]:text-left [&_th]:font-semibold [&_th]:text-neutral-900 [&_td]:text-neutral-600 [&_th:last-child]:border-r-0 [&_td:last-child]:border-r-0 [&_tr:last-child>*]:border-b-0 [&_th>p]:my-0 [&_td>p]:my-0",
             PROSE_STYLES[style],
             "[&_.ProseMirror-selectednode]:outline [&_.ProseMirror-selectednode]:outline-2 [&_.ProseMirror-selectednode]:outline-blue-500 [&_.ProseMirror-selectednode]:outline-offset-2",
             "[&_.ProseMirror-selectednode:has(img)]:outline-none",
             editorClassName,
           ),
         },
-        ...editorProps,
         handleClick: (view, pos, event) => {
           if (editorProps?.handleClick?.(view, pos, event)) return true;
 
@@ -375,6 +400,10 @@ export const RichTextProvider = forwardRef<
             <RichTextLinkHoverTooltip />
           </>
         )}
+
+        {features.includes("tables") && (editable ?? true) && (
+          <TableHoverControls />
+        )}
       </RichTextContext.Provider>
     );
   },
@@ -389,4 +418,16 @@ export function useRichTextContext() {
     );
 
   return context;
+}
+
+export function useRichTextLength() {
+  const { editor } = useRichTextContext();
+
+  return (
+    useEditorState({
+      editor,
+      selector: ({ editor }) =>
+        editor?.getText({ blockSeparator: "" }).length ?? 0,
+    }) ?? 0
+  );
 }

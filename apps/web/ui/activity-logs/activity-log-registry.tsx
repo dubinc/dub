@@ -3,6 +3,7 @@ import {
   CircleDotted,
   CircleInfo,
   FileSend,
+  Gift,
   MoneyBill2,
   Pen2,
   UserArrowRight,
@@ -11,6 +12,10 @@ import {
 import { CircleMinus, CirclePlusIcon } from "lucide-react";
 import { ComponentType, ReactNode } from "react";
 import { PartnerGroupChangedRenderer } from "./action-renderers/partner-group-changed-renderer";
+import {
+  PartnerDiscountChangedRenderer,
+  PartnerRewardChangedRenderer,
+} from "./action-renderers/partner-reward-changed-renderer";
 import { PartnerStatusChangedRenderer } from "./action-renderers/partner-status-changed-renderer";
 import { RewardActivityRenderer } from "./action-renderers/reward-activity-renderer";
 import { SubmittedLeadCreatedRenderer } from "./action-renderers/submitted-lead-created-renderer";
@@ -39,6 +44,8 @@ const ACTIVITY_LOG_ICONS: Partial<
   Record<ActivityLogAction, ComponentType<{ className?: string }>>
 > = {
   "partner.groupChanged": UserArrowRight,
+  "partner.rewardChanged": MoneyBill2,
+  "partner.discountChanged": Gift,
   ...Object.fromEntries(
     PARTNER_STATUS_ACTIONS.map((action) => [action, CircleDotted]),
   ),
@@ -66,6 +73,14 @@ const ACTIVITY_LOG_REGISTRY: Array<{
   {
     action: "partner.groupChanged",
     renderer: PartnerGroupChangedRenderer,
+  },
+  {
+    action: "partner.rewardChanged",
+    renderer: PartnerRewardChangedRenderer,
+  },
+  {
+    action: "partner.discountChanged",
+    renderer: PartnerDiscountChangedRenderer,
   },
   ...PARTNER_STATUS_ACTIONS.map((action) => ({
     action,

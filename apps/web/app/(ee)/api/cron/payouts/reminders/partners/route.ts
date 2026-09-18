@@ -35,7 +35,7 @@ export const GET = withCron(async () => {
           ACME_PROGRAM_ID,
           DEMO_PROGRAM_ID,
           // programs that are in the migration process
-          "prog_1KPAZMF49X9A1WEWRBM55KZY7",
+          "prog_1M1ER7V1BBBPVS67HCFMR955T",
         ],
       },
       partner: {

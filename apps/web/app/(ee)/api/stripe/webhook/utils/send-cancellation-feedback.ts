@@ -1,19 +1,10 @@
 import { isBlacklistedEmail } from "@/lib/edge-config";
 import { prisma } from "@/lib/prisma";
+import { STRIPE_CANCELLATION_FEEDBACK_EMAIL_COPY } from "@/lib/stripe/cancellation-feedback";
 import { sendEmail } from "@dub/email";
 import Stripe from "stripe";
 
 export const CANCELLATION_FEEDBACK_EMAIL_TYPE = "cancellationFeedbackEmail";
-
-const cancellationReasonMap = {
-  customer_service: "you had a bad experience with our customer service",
-  low_quality: "the product didn't meet your expectations",
-  missing_features: "you were expecting more features",
-  switched_service: "you switched to a different service",
-  too_complex: "the product was too complex",
-  too_expensive: "the product was too expensive",
-  unused: "you didn't use the product",
-};
 
 export async function sendCancellationFeedback({
   workspace,
@@ -59,7 +50,10 @@ export async function sendCancellationFeedback({
     },
   });
 
-  const reasonText = reason ? cancellationReasonMap[reason] : "";
+  const reasonText =
+    reason && reason in STRIPE_CANCELLATION_FEEDBACK_EMAIL_COPY
+      ? STRIPE_CANCELLATION_FEEDBACK_EMAIL_COPY[reason]
+      : "";
 
   return await Promise.all(
     owners.map(

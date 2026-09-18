@@ -19,7 +19,9 @@ export type EmailDomainStatus =
   | "verified"
   | "failed"
   | "temporary_failure"
-  | "not_started";
+  | "not_started"
+  | "partially_verified"
+  | "partially_failed";
 
 export default function EmailDomainStatusChanged({
   email = "panic@thedis.co",
@@ -35,8 +37,14 @@ export default function EmailDomainStatusChanged({
   newStatus: EmailDomainStatus;
 }) {
   const isVerified = newStatus === "verified";
-  const isFailed = newStatus === "failed" || newStatus === "temporary_failure";
-  const isPending = newStatus === "pending" || newStatus === "not_started";
+  const isFailed =
+    newStatus === "failed" ||
+    newStatus === "temporary_failure" ||
+    newStatus === "partially_failed";
+  const isPending =
+    newStatus === "pending" ||
+    newStatus === "not_started" ||
+    newStatus === "partially_verified";
 
   const heading = isVerified
     ? "Your email domain has been successfully verified"

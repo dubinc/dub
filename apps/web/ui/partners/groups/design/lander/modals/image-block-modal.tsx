@@ -33,7 +33,7 @@ function ImageBlockModalInner({
 }: ImageBlockModalProps) {
   const id = useId();
 
-  const { id: workspaceId, defaultProgramId } = useWorkspace();
+  const { id: workspaceId } = useWorkspace();
 
   const {
     handleSubmit,

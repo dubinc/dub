@@ -10,13 +10,17 @@ import { getRewardSpendLimitWindow } from "@/lib/api/rewards/reward-spend-limit-
 import { calculateSaleEarnings } from "@/lib/api/sales/calculate-sale-earnings";
 import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
 import { logger } from "@/lib/axiom/server";
+import { buildCommissionDescription } from "@/lib/commissions/build-commission-description";
 import { constructWebhookPartner } from "@/lib/partners/constuct-webhook-partner";
-import { determinePartnerRewards } from "@/lib/partners/determine-partner-reward";
+import {
+  determinePartnerRewards,
+  getRewardMaxDurationForContext,
+} from "@/lib/partners/determine-partner-reward";
 import { getRewardAmount } from "@/lib/partners/get-reward-amount";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { sendPartnerPostback } from "@/lib/postback/send-partner-postback";
 import { prisma } from "@/lib/prisma";
-import { RewardProps } from "@/lib/types";
+import { RewardConditions, RewardProps } from "@/lib/types";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import {
   CommissionWebhookSchema,
@@ -24,7 +28,6 @@ import {
 } from "@/lib/zod/schemas/commissions";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { COMMISSION_ELIGIBLE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
-import { buildCommissionDescription } from "@/ui/partners/program-reward-spend-limit";
 import { currencyFormatter, log, pick, toCentsNumber } from "@dub/utils";
 import {
   Commission,
@@ -186,6 +189,7 @@ async function stepCreateCommission(
     createdAt,
     status,
     userId,
+    source,
     metadata,
     context,
     programEnrollment,
@@ -216,6 +220,7 @@ async function stepCreateCommission(
 
   let earnings = 0;
   let reward: RewardProps | null = null;
+  let matchedCondition: RewardConditions | null = null;
   let firstCommission: Pick<
     Commission,
     "rewardId" | "status" | "createdAt"
@@ -278,6 +283,7 @@ async function stepCreateCommission(
 
     if (rewards.length > 0) {
       reward = rewards[0].reward;
+      matchedCondition = rewards[0].matchedCondition;
     }
 
     // if there is no reward, skip commission creation
@@ -322,16 +328,24 @@ async function stepCreateCommission(
             select: {
               id: true,
               maxDuration: true,
+              modifiers: true,
             },
           });
 
+          const originalMaxDuration = originalReward
+            ? getRewardMaxDurationForContext({
+                reward: originalReward,
+                context,
+              })
+            : null;
+
           if (
-            typeof originalReward?.maxDuration === "number" &&
-            originalReward.maxDuration === 0
+            typeof originalMaxDuration === "number" &&
+            originalMaxDuration === 0
           ) {
             return logAndReturn({
               commission: null,
-              outputLog: `Partner ${partnerId} is only eligible for first-sale commissions based on the original reward ${originalReward.id}, skipping commission creation...`,
+              outputLog: `Partner ${partnerId} is only eligible for first-sale commissions based on the original reward ${originalReward?.id}, skipping commission creation...`,
             });
           }
         }
@@ -391,6 +405,8 @@ async function stepCreateCommission(
     });
   }
 
+  let cappedEarnings = earnings;
+
   if (
     customerId &&
     event !== "custom" &&
@@ -398,7 +414,7 @@ async function stepCreateCommission(
     reward.spendLimitAmount &&
     reward.spendLimitInterval
   ) {
-    const cappedEarnings = await clampEarningsToSpendLimit({
+    cappedEarnings = await clampEarningsToSpendLimit({
       reward,
       earnings,
       programId,
@@ -414,16 +430,6 @@ async function stepCreateCommission(
         outputLog: `Partner ${partnerId} has reached spend limit (${currencyFormatter(reward.spendLimitAmount)} ${reward.spendLimitInterval === "allTime" ? "" : `per ${reward.spendLimitInterval}`}) for ${event} event, skipping commission creation...`,
       });
     }
-
-    if (!description) {
-      description = buildCommissionDescription({
-        earnings,
-        cappedEarnings,
-        reward,
-      });
-    }
-
-    earnings = cappedEarnings;
   }
 
   // Custom reward jobs are queued from a snapshot of eligible enrollments.
@@ -444,6 +450,20 @@ async function stepCreateCommission(
     });
   }
 
+  // Snapshot the applied reward (and matched condition) so the activity log
+  // does not fall back to the live reward after later edits.
+  // Known limitation: when determinePartnerRewards splits Stripe products into
+  // multiple line rewards and we sum earnings, we only describe rewards[0]'s
+  // rate/condition — not every product line.
+  if (!description && reward && event !== "custom") {
+    description = buildCommissionDescription({
+      reward,
+      matchedCondition,
+      earnings,
+      cappedEarnings,
+    });
+  }
+
   try {
     const commission = await prisma.commission.create({
       data: {
@@ -456,11 +476,12 @@ async function stepCreateCommission(
         eventId: eventId || null, // empty string should convert to null
         invoiceId: invoiceId || null, // empty string should convert to null
         userId,
+        source,
         quantity,
         amount,
         type: event,
         currency,
-        earnings,
+        earnings: cappedEarnings,
         status,
         description,
         createdAt,

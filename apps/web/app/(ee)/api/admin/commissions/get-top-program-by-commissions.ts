@@ -26,6 +26,13 @@ export async function getTopProgramsByCommissions({
       programId: programId || {
         notIn: [ACME_PROGRAM_ID, DEMO_PROGRAM_ID],
       },
+      NOT: {
+        program: {
+          slug: {
+            endsWith: "-staging",
+          },
+        },
+      },
     },
     orderBy: {
       _sum: {
@@ -39,11 +46,6 @@ export async function getTopProgramsByCommissions({
     where: {
       id: {
         in: programCommissions.map(({ programId }) => programId),
-      },
-      NOT: {
-        slug: {
-          endsWith: "-staging",
-        },
       },
     },
     include: {

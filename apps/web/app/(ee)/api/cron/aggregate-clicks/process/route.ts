@@ -2,13 +2,13 @@ import { createId } from "@/lib/api/create-id";
 import { serializeReward } from "@/lib/api/partners/serialize-reward";
 import { syncTotalCommissions } from "@/lib/api/partners/sync-total-commissions";
 import { getRewardSpendLimitWindow } from "@/lib/api/rewards/reward-spend-limit-window";
+import { buildCommissionDescription } from "@/lib/commissions/build-commission-description";
 import { enqueueBatchJobs } from "@/lib/cron/enqueue-batch-jobs";
 import { withCron } from "@/lib/cron/with-cron";
 import { getRewardAmount } from "@/lib/partners/get-reward-amount";
 import { prisma } from "@/lib/prisma";
 import { getTopLinksByCountries } from "@/lib/tinybird/get-top-links-by-countries";
 import { COMMISSION_ELIGIBLE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
-import { buildCommissionDescription } from "@/ui/partners/program-reward-spend-limit";
 import {
   APP_DOMAIN_WITH_NGROK,
   currencyFormatter,
@@ -194,7 +194,7 @@ export const POST = withCron(async ({ rawBody }) => {
         return null;
       }
 
-      let description: string | null = null;
+      let cappedEarnings = earnings;
 
       // Cap earnings to spend limit
       if (clickReward.spendLimitAmount && clickReward.spendLimitInterval) {
@@ -205,10 +205,7 @@ export const POST = withCron(async ({ rawBody }) => {
         const remainingSpendLimit =
           clickReward.spendLimitAmount - historicalEarnings - usedThisBatch;
 
-        const cappedEarnings = Math.max(
-          0,
-          Math.min(earnings, remainingSpendLimit),
-        );
+        cappedEarnings = Math.max(0, Math.min(earnings, remainingSpendLimit));
 
         if (cappedEarnings === 0) {
           console.log(`Reached spend limit for partner ${partnerId}.`);
@@ -216,15 +213,15 @@ export const POST = withCron(async ({ rawBody }) => {
         }
 
         usedSpendLimitByPartner.set(partnerId, usedThisBatch + cappedEarnings);
-
-        description = buildCommissionDescription({
-          earnings,
-          cappedEarnings,
-          reward: serializeReward(clickReward),
-        });
-
-        earnings = cappedEarnings;
       }
+
+      // Persist the base click reward description (no per-country clause —
+      // one commission can mix countries/rates).
+      const description = buildCommissionDescription({
+        reward: serializeReward(clickReward),
+        earnings,
+        cappedEarnings,
+      });
 
       return {
         id: createId({ prefix: "cm_" }),
@@ -235,7 +232,7 @@ export const POST = withCron(async ({ rawBody }) => {
         quantity: clicks,
         type: CommissionType.click,
         amount: 0,
-        earnings,
+        earnings: cappedEarnings,
         description,
         createdAt: endDate,
         invoiceId: `${linkId}-${aggregationDate}`, // used as a idempotency key

@@ -22,6 +22,7 @@ function saleReward(overrides: Partial<Reward> = {}): Reward {
     config: null,
     spendLimitAmount: null,
     spendLimitInterval: null,
+    groupId: null,
     createdAt: new Date("2026-01-01"),
     updatedAt: new Date("2026-01-01"),
     ...overrides,
@@ -97,6 +98,11 @@ describe("determinePartnerRewards", () => {
     expect(rewards[0].sale).toEqual({ amount: 20000, quantity: 1 });
     expect(rewards[0].reward.type).toBe("flat");
     expect(rewards[0].reward.amountInCents).toBe(6000);
+    expect(rewards[0].matchedCondition).toMatchObject({
+      type: "flat",
+      amountInCents: 6000,
+      maxDuration: 0,
+    });
     expect(
       calculateSaleEarnings({
         reward: rewards[0].reward,
@@ -179,5 +185,6 @@ describe("determinePartnerRewards", () => {
 
     expect(rewards).toHaveLength(1);
     expect(rewards[0].sale).toEqual({ amount: 20000, quantity: 1 });
+    expect(rewards[0].matchedCondition).toBeNull();
   });
 });

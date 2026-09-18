@@ -29,6 +29,7 @@ const workflowPathMap = {
   "merge-partner-accounts-workflow": "/api/workflows/merge-partner-accounts",
   "create-partner-commission-workflow":
     "/api/workflows/create-partner-commission",
+  "reattribute-customer-workflow": "/api/workflows/reattribute-customer",
 } as const;
 
 for (const name of Object.keys(workflowPathMap)) {

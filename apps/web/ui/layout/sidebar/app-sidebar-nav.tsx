@@ -66,6 +66,7 @@ import { LinesY } from "./icons/lines-y";
 import { User } from "./icons/user";
 import { SidebarNav, SidebarNavAreas, SidebarNavGroups } from "./sidebar-nav";
 import { SidebarUsage } from "./sidebar-usage";
+import { SpecialNewsContent } from "./special-news-content";
 import { useProgramApplicationsCount } from "./use-program-applications-count";
 import { WorkspaceDropdown } from "./workspace-dropdown";
 
@@ -674,12 +675,22 @@ export function AppSidebarNav({
       switcher={<WorkspaceDropdown />}
       toolContent={toolContent}
       bottomContent={
-        <>
-          <div className="px-3 pb-2">{AppBottomContent}</div>
-          {freePlanOrTrial && <SidebarUsage />}
-        </>
+        AppBottomContent || freePlanOrTrial ? (
+          <>
+            <div className="px-3 pb-2">{AppBottomContent}</div>
+            {freePlanOrTrial && <SidebarUsage />}
+          </>
+        ) : undefined
       }
-      newsContent={!freePlanOrTrial && currentArea === "links" && newsContent}
+      newsContent={
+        currentArea === "program" &&
+        defaultProgramId &&
+        !["enterprise", "advanced"].includes(plan ?? "") ? (
+          <SpecialNewsContent />
+        ) : !freePlanOrTrial && currentArea === "links" ? (
+          newsContent
+        ) : undefined
+      }
     />
   );
 }

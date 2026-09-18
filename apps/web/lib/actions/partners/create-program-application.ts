@@ -23,7 +23,8 @@ import {
   ProgramApplicationFormData,
   ProgramApplicationFormDataWithValues,
 } from "@/lib/types";
-import { ratelimit } from "@/lib/upstash";
+import { assertRateLimit } from "@/lib/upstash/assert-rate-limit";
+import { RATELIMIT_POLICIES } from "@/lib/upstash/ratelimit-policies";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { partnerApplicationWebhookSchema } from "@/lib/zod/schemas/program-application";
 import { programApplicationFormWebsiteAndSocialsFieldWithValueSchema } from "@/lib/zod/schemas/program-application-form";
@@ -124,13 +125,10 @@ export const createProgramApplicationAction = actionClient
     const { programId, groupId, inAppApplication } = parsedInput;
 
     // Limit to 3 requests per minute per program per IP
-    const { success } = await ratelimit(3, "1 m").limit(
-      `create-program-application:${programId}:${await getIP()}`,
-    );
-
-    if (!success) {
-      throw new Error("Too many requests. Please try again later.");
-    }
+    await assertRateLimit({
+      policy: RATELIMIT_POLICIES.createProgramApplication,
+      identifier: [programId, await getIP()],
+    });
 
     const program = await prisma.program.findUniqueOrThrow({
       where: {
