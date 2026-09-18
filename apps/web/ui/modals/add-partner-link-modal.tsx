@@ -92,20 +92,20 @@ const AddPartnerLinkModal = ({
     });
 
   const key = watch("key");
+  const prevShowModal = useRef(showModal);
 
   useEffect(() => {
-    if (!showModal) {
-      return;
+    if (showModal && !prevShowModal.current) {
+      setValue("key", "");
+      setValue("url", program?.url || "");
+      setValue("clickRewardId", null);
+      setValue("leadRewardId", null);
+      setValue("saleRewardId", null);
+      setValue("discountId", null);
+      setShowOverrides(false);
+      setErrorMessage(null);
     }
-
-    setValue("key", "");
-    setValue("url", program?.url || "");
-    setValue("clickRewardId", null);
-    setValue("leadRewardId", null);
-    setValue("saleRewardId", null);
-    setValue("discountId", null);
-    setShowOverrides(false);
-    setErrorMessage(null);
+    prevShowModal.current = showModal;
   }, [showModal, program?.url, setValue]);
 
   const onSubmit = async (formData: FormData) => {

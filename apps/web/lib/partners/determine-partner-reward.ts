@@ -184,17 +184,14 @@ export const determinePartnerRewards = async ({
   let hasProductIdModifier = false;
 
   if (products.length > 0) {
-    let partnerReward = programEnrollment["saleReward"];
-
     const linkRewards = await getLinkRewards({
       event,
       linkId,
       programEnrollment,
     });
 
-    if (linkRewards?.saleReward) {
-      partnerReward = linkRewards.saleReward;
-    }
+    const partnerReward =
+      linkRewards?.saleReward ?? programEnrollment["saleReward"];
 
     const modifiers = rewardConditionsArraySchema.safeParse(
       partnerReward?.modifiers,

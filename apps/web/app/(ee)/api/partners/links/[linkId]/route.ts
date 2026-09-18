@@ -3,6 +3,7 @@ import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-progr
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { updatePartnerLinkSchema } from "@/lib/zod/schemas/partners";
+import { ProgramPartnerLinkSchemaInternal } from "@/lib/zod/schemas/programs";
 import { NextResponse } from "next/server";
 
 // PATCH /api/partners/links/[linkId]
@@ -21,7 +22,7 @@ export const PATCH = withWorkspace(
       ...body,
     });
 
-    return NextResponse.json(response);
+    return NextResponse.json(ProgramPartnerLinkSchemaInternal.parse(response));
   },
   {
     requiredPlan: ["business", "advanced", "enterprise"],

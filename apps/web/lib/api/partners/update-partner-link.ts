@@ -8,7 +8,6 @@ import {
   hasRewardIdsInput,
   omitGroupDefaultRewardIds,
   RewardOverrideIdsInput,
-  toPartnerLinkRewardIdFields,
 } from "@/lib/api/rewards/reward-overrides";
 import { throwIfInvalidRewards } from "@/lib/api/rewards/throw-if-invalid-rewards";
 import { remapDiscountCodesForPartnerJob } from "@/lib/jobs/handlers/remap-discount-codes-for-partner-job";
@@ -17,7 +16,6 @@ import { prisma } from "@/lib/prisma";
 import { PARTNER_LEVEL_REWARDS_PLAN_ERROR } from "@/lib/rewards/constants";
 import { WorkspaceProps } from "@/lib/types";
 import { updatePartnerLinkSchema } from "@/lib/zod/schemas/partners";
-import { ProgramPartnerLinkSchemaInternal } from "@/lib/zod/schemas/programs";
 import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
 
@@ -200,8 +198,5 @@ export async function updatePartnerLink({
     ]),
   );
 
-  return ProgramPartnerLinkSchemaInternal.parse({
-    ...link,
-    ...toPartnerLinkRewardIdFields(linkReward),
-  });
+  return link;
 }
