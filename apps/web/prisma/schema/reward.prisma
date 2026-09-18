@@ -37,6 +37,7 @@ model Reward {
   updatedAt          DateTime                  @updatedAt
 
   program              Program?            @relation(fields: [programId], references: [id])
+  partnerGroup         PartnerGroup?       @relation("GroupRewards", fields: [groupId], references: [id], onDelete: NoAction, onUpdate: NoAction) // Owning group
   clickEnrollments     ProgramEnrollment[] @relation("ClickRewardEnrollments")
   leadEnrollments      ProgramEnrollment[] @relation("LeadRewardEnrollments")
   saleEnrollments      ProgramEnrollment[] @relation("SaleRewardEnrollments")

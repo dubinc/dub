@@ -41,6 +41,7 @@ model PartnerGroup {
   customReward             Reward?                   @relation("CustomReward", fields: [customRewardId], references: [id])
   discount                 Discount?                 @relation("PartnerGroupDefaultDiscount", fields: [discountId], references: [id])
   discounts                Discount[]                @relation("GroupDiscounts")
+  rewards                  Reward[]                  @relation("GroupRewards")
   partners                 ProgramEnrollment[]
   applications             ProgramApplication[]
   bounties                 BountyGroup[]
