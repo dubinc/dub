@@ -44,48 +44,50 @@ export const deleteRewardAction = authActionClient
 
     const rewardIdColumn = REWARD_EVENT_COLUMN_MAPPING[reward.event];
 
-    const { partnerGroup, deletedReward } = await prisma.$transaction(
-      async (tx) => {
-        const partnerGroup = await tx.partnerGroup.update({
-          // @ts-ignore
+    const group = reward.groupId
+      ? await prisma.partnerGroup.findUnique({
           where: {
-            [rewardIdColumn]: reward.id,
+            id: reward.groupId,
           },
-          data: {
-            [rewardIdColumn]: null,
-          },
-        });
+        })
+      : null;
 
-        // soft delete reward, we will hard delete it in the cron job
-        const deletedReward = await tx.reward.update({
-          where: {
-            id: reward.id,
-          },
-          data: {
-            programId: null,
-          },
-        });
+    await prisma.$transaction(async (tx) => {
+      await tx.partnerGroup.updateMany({
+        where: {
+          [rewardIdColumn]: reward.id,
+        },
+        data: {
+          [rewardIdColumn]: null,
+        },
+      });
 
-        return {
-          partnerGroup,
-          deletedReward,
-        };
-      },
-    );
-
-    await queueRewardProcessing({
-      event: "reward-deleted",
-      groupId: partnerGroup.id,
-      occurredAt: new Date().toISOString(),
-      rewardSnapshot: {
-        id: deletedReward.id,
-        event: deletedReward.event,
-        description: formatRewardDescription(serializeReward(deletedReward), {
-          includeEarnPrefix: false,
-        }),
-        activityDescription,
-      },
+      // soft delete reward, we will hard delete it in the cron job
+      await tx.reward.update({
+        where: {
+          id: reward.id,
+        },
+        data: {
+          programId: null,
+        },
+      });
     });
+
+    if (group) {
+      await queueRewardProcessing({
+        event: "reward-deleted",
+        groupId: group.id,
+        occurredAt: new Date().toISOString(),
+        rewardSnapshot: {
+          id: reward.id,
+          event: reward.event,
+          description: formatRewardDescription(serializeReward(reward), {
+            includeEarnPrefix: false,
+          }),
+          activityDescription,
+        },
+      });
+    }
 
     waitUntil(
       Promise.allSettled([
@@ -99,7 +101,7 @@ export const deleteRewardAction = authActionClient
             {
               type: "reward",
               id: rewardId,
-              metadata: reward,
+              metadata: serializeReward(reward),
             },
           ],
         }),
@@ -110,7 +112,7 @@ export const deleteRewardAction = authActionClient
           userId: user.id,
           resourceId: reward.id,
           parentResourceType: "group",
-          parentResourceId: partnerGroup.id,
+          parentResourceId: group?.id ?? reward.groupId,
           old: reward,
           new: null,
           description: activityDescription,

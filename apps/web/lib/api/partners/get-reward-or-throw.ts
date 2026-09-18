@@ -1,5 +1,4 @@
 import { prisma } from "@/lib/prisma";
-import { RewardSchema } from "@/lib/zod/schemas/rewards";
 import { DubApiError } from "../errors";
 
 export async function getRewardOrThrow({
@@ -29,5 +28,5 @@ export async function getRewardOrThrow({
     });
   }
 
-  return RewardSchema.parse(reward);
+  return reward;
 }

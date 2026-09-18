@@ -337,9 +337,13 @@ async function setupTestProgram({
           create: {
             id,
             programId: program.id,
+            groupId: program.defaultGroupId,
             ...data,
           },
-          update: data,
+          update: {
+            ...data,
+            groupId: program.defaultGroupId,
+          },
         });
       },
     ),

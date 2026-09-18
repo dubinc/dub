@@ -218,6 +218,8 @@ export const getPartnersQuerySchemaExtended = getPartnersQuerySchema.extend({
   country: z.union([z.string(), z.array(z.string())]).optional(),
   referredByPartnerId: z.string().optional(),
   includePartnerPlatforms: booleanQuerySchema.optional(),
+  rewardId: z.string().optional(),
+  discountId: z.string().optional(),
   // metric range query fields (TODO: Add to public API once we finalize the syntax)
   totalClicksMin: z.coerce
     .number()

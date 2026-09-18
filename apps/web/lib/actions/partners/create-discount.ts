@@ -6,7 +6,10 @@ import { getGroupOrThrow } from "@/lib/api/groups/get-group-or-throw";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { qstash } from "@/lib/cron";
 import { getDiscountProvider } from "@/lib/discounts/discount-provider";
+import { invalidateLinksForDiscountsJob } from "@/lib/jobs/handlers/invalidate-links-for-discounts-job";
+import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { prisma } from "@/lib/prisma";
+import { PARTNER_LEVEL_REWARDS_PLAN_ERROR } from "@/lib/rewards/constants";
 import { DubDiscountAttributes } from "@/lib/stripe/coupon-discount-converter";
 import { createDiscountSchema } from "@/lib/zod/schemas/discount";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
@@ -28,12 +31,20 @@ export const createDiscountAction = authActionClient
       couponTestId,
       groupId,
       autoProvision,
+      isDefault,
     } = parsedInput;
 
     throwIfNoPermission({
       role: workspace.role,
       requiredRoles: ["owner", "member"],
     });
+
+    if (
+      !isDefault &&
+      !getPlanCapabilities(workspace.plan).canUseAdvancedRewardLogic
+    ) {
+      throw new Error(PARTNER_LEVEL_REWARDS_PLAN_ERROR);
+    }
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
@@ -42,10 +53,8 @@ export const createDiscountAction = authActionClient
       programId,
     });
 
-    if (group.discountId) {
-      throw new Error(
-        `You can't create a discount for this group because it already has a discount.`,
-      );
+    if (isDefault && group.discountId) {
+      throw new Error("This group already has a default discount.");
     }
 
     const discountProvider = getDiscountProvider(provider);
@@ -78,6 +87,7 @@ export const createDiscountAction = authActionClient
         data: {
           id: createId({ prefix: "disc_" }),
           programId,
+          groupId,
           amount,
           type,
           maxDuration,
@@ -92,46 +102,64 @@ export const createDiscountAction = authActionClient
         },
       });
 
-      await tx.partnerGroup.update({
-        where: {
-          id: groupId,
-        },
-        data: {
-          discountId: discount.id,
-        },
-      });
-
-      await tx.programEnrollment.updateMany({
-        where: {
-          groupId,
-        },
-        data: {
-          discountId: discount.id,
-        },
-      });
-
-      await tx.discountCode.updateMany({
-        where: {
-          programEnrollment: {
-            groupId,
+      // Assign to the group if it is the default discount
+      if (isDefault) {
+        const { count } = await tx.partnerGroup.updateMany({
+          where: {
+            id: groupId,
+            discountId: null,
           },
-        },
-        data: {
-          discountId: discount.id,
-        },
-      });
+          data: {
+            discountId: discount.id,
+          },
+        });
+
+        // This means that the group already has a default discount
+        if (count === 0) {
+          throw new Error("This group already has a default discount.");
+        }
+
+        await tx.discountCode.updateMany({
+          where: {
+            programEnrollment: {
+              groupId,
+              discountId: null,
+            },
+          },
+          data: {
+            discountId: discount.id,
+          },
+        });
+
+        await tx.programEnrollment.updateMany({
+          where: {
+            groupId,
+            discountId: null,
+          },
+          data: {
+            discountId: discount.id,
+          },
+        });
+      }
 
       return discount;
     });
 
     waitUntil(
       Promise.allSettled([
-        qstash.publishJSON({
-          url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/invalidate-for-discounts`,
-          body: {
-            groupId,
-          },
-        }),
+        ...(isDefault
+          ? [
+              invalidateLinksForDiscountsJob.dispatch(
+                {
+                  type: "discount",
+                  discountId: discount.id,
+                },
+                {
+                  label: discount.id,
+                },
+              ),
+            ]
+          : []),
 
         recordAuditLog({
           workspaceId: workspace.id,
@@ -160,4 +188,8 @@ export const createDiscountAction = authActionClient
           : []),
       ]),
     );
+
+    return {
+      id: discount.id,
+    };
   });
