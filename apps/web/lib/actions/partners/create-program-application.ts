@@ -10,9 +10,9 @@ import { markApplicationEventSubmitted } from "@/lib/application-events/update-a
 import { getApplicationEventCookieName } from "@/lib/application-events/utils";
 import { getSession } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
-import { autoApprovePartnerJob } from "@/lib/jobs/handlers/auto-approve-partner-job";
 import { autoRejectPartnerJob } from "@/lib/jobs/handlers/auto-reject-partner-job";
 import { getNetworkProfileChecklistProgress } from "@/lib/network/get-network-profile-checklist-progress";
+import { dispatchPartnerApplicationReview } from "@/lib/partners/dispatch-partner-application-review";
 import { evaluateApplicationRequirements } from "@/lib/partners/evaluate-application-requirements";
 import {
   formatApplicationFormData,
@@ -338,18 +338,12 @@ async function createApplicationAndEnrollment({
           application,
         }),
 
-        // Auto-approve the partner if the group has auto-approval enabled
-        group.autoApprovePartnersEnabledAt
-          ? autoApprovePartnerJob.dispatch(
-              {
-                programId: program.id,
-                partnerId: partner.id,
-              },
-              {
-                label: partner.id,
-              },
-            )
-          : Promise.resolve(null),
+        dispatchPartnerApplicationReview({
+          programId: program.id,
+          partnerId: partner.id,
+          autoApprovePartnersEnabledAt: group.autoApprovePartnersEnabledAt,
+          applicationScreeningCriteria: program.applicationScreeningCriteria,
+        }),
 
         // Send "partner.application_submitted" webhook
         sendWorkspaceWebhook({
