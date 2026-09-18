@@ -57,6 +57,7 @@ type RewardSeed = Pick<
   Reward,
   | "id"
   | "programId"
+  | "groupId"
   | "event"
   | "type"
   | "amountInCents"
@@ -296,6 +297,7 @@ const createRewards = async (data: SeedData) => {
     data: rewards.map((reward) => ({
       id: reward.id,
       programId: program.id,
+      groupId: reward.groupId ?? null,
       event: reward.event,
       type: reward.type,
       amountInCents: reward.amountInCents,
