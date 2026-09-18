@@ -1,10 +1,11 @@
 import { prisma } from "@/lib/prisma";
+import { Partner } from "@prisma/client";
 
-export async function getPartnerIdsUsingDiscount({
+export async function getPartnersByDiscountIds({
   discountIds,
 }: {
   discountIds: string[];
-}) {
+}): Promise<Pick<Partner, "id">[]> {
   if (discountIds.length === 0) {
     return [];
   }
@@ -44,5 +45,5 @@ export async function getPartnerIdsUsingDiscount({
         linkReward.link.partnerId ? [linkReward.link.partnerId] : [],
       ),
     ]),
-  ];
+  ].map((id) => ({ id }));
 }

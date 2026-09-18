@@ -39,7 +39,8 @@ model PartnerGroup {
   saleReward               Reward?                   @relation("SaleReward", fields: [saleRewardId], references: [id])
   referralReward           Reward?                   @relation("ReferralReward", fields: [referralRewardId], references: [id])
   customReward             Reward?                   @relation("CustomReward", fields: [customRewardId], references: [id])
-  discount                 Discount?                 @relation(fields: [discountId], references: [id])
+  discount                 Discount?                 @relation("PartnerGroupDefaultDiscount", fields: [discountId], references: [id])
+  discounts                Discount[]                @relation("GroupDiscounts")
   partners                 ProgramEnrollment[]
   applications             ProgramApplication[]
   bounties                 BountyGroup[]

@@ -1,10 +1,11 @@
+import { enqueueBatchJobs } from "@/lib/cron/enqueue-batch-jobs";
 import { prisma } from "@/lib/prisma";
-import { ProgramEnrollment } from "@prisma/client";
-import { createDiscountCode } from "./create-discount-code";
+import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
+import { Discount, ProgramEnrollment } from "@prisma/client";
 import { deleteDiscountCodes } from "./delete-discount-code";
-import { isDiscountProviderError } from "./discount-error";
 import { isDiscountEquivalent } from "./is-discount-equivalent";
 
+// Remap discount codes for a partner in a program
 export async function remapDiscountCodes({
   programId,
   partnerId,
@@ -19,12 +20,6 @@ export async function remapDiscountCodes({
     select: {
       id: true,
       discount: true,
-      partner: {
-        select: {
-          id: true,
-          name: true,
-        },
-      },
     },
   });
 
@@ -43,14 +38,34 @@ export async function remapDiscountCodes({
     },
     include: {
       discount: true,
+      link: {
+        select: {
+          id: true,
+          linkReward: {
+            select: {
+              discount: true,
+            },
+          },
+        },
+      },
     },
   });
 
-  const newDiscount = programEnrollment.discount;
-  const discountCodesToDelete: typeof discountCodes = [];
+  if (discountCodes.length === 0) {
+    console.log(
+      `No discount codes found for partner ${partnerId} and program ${programId}. Skipping...`,
+    );
+  }
+
+  const enrollmentDiscount = programEnrollment.discount;
+  const discountCodesToDelete: (typeof discountCodes)[number][] = [];
 
   for (const discountCode of discountCodes) {
     const existingDiscount = discountCode.discount;
+    const linkDiscount = discountCode.link?.linkReward?.discount;
+
+    // Prefer the link discount if it exists, otherwise use the enrollment discount
+    const newDiscount = linkDiscount ?? enrollmentDiscount;
 
     // No discount exists for this discount code, delete it
     if (!newDiscount) {
@@ -86,7 +101,22 @@ export async function remapDiscountCodes({
     await deleteDiscountCodes(discountCodesToDelete);
   }
 
-  if (!newDiscount?.autoProvisionEnabledAt) {
+  await enqueueMissingDiscountCodes({
+    programId,
+    partnerId,
+    enrollmentDiscount,
+  });
+}
+
+// Find default links that do not have a discount code assigned to them and enqueue a job to create one
+async function enqueueMissingDiscountCodes({
+  programId,
+  partnerId,
+  enrollmentDiscount,
+}: Pick<ProgramEnrollment, "programId" | "partnerId"> & {
+  enrollmentDiscount: Pick<Discount, "autoProvisionEnabledAt"> | null;
+}) {
+  if (!enrollmentDiscount?.autoProvisionEnabledAt) {
     return;
   }
 
@@ -110,45 +140,14 @@ export async function remapDiscountCodes({
     return;
   }
 
-  const workspace = await prisma.project.findUniqueOrThrow({
-    where: {
-      defaultProgramId: programId,
-    },
-    select: {
-      id: true,
-      webhookEnabled: true,
-      stripeConnectId: true,
-      shopifyStoreId: true,
-    },
-  });
-
-  for (const link of links) {
-    try {
-      await createDiscountCode({
-        workspace,
-        partner: programEnrollment.partner,
-        link,
-        discount: newDiscount,
-      });
-    } catch (error) {
-      if (isDiscountProviderError(error)) {
-        if (
-          error.providerCode === "INTEGRATION_NOT_AVAILABLE" ||
-          error.providerCode === "AUTH_EXPIRED" ||
-          error.providerCode === "PERMISSIONS_REQUIRED" ||
-          error.providerCode === "COUPON_NOT_FOUND"
-        ) {
-          console.warn(
-            `${error.message} Skipping remaining discount code creation for remap.`,
-          );
-          break;
-        }
-      }
-
-      console.error(
-        `Failed to create discount code for link ${link.id}:`,
-        error,
-      );
-    }
-  }
+  await enqueueBatchJobs(
+    links.map((link) => ({
+      queueName: "create-discount-code",
+      url: `${APP_DOMAIN_WITH_NGROK}/api/cron/discount-codes/create`,
+      deduplicationId: link.id,
+      body: {
+        linkId: link.id,
+      },
+    })),
+  );
 }
