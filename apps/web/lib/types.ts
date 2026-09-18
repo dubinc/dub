@@ -278,7 +278,8 @@ export type PlanProps = (typeof plans)[number];
 
 export type BetaFeatures =
   | "analyticsSettingsSiteVisitTracking"
-  | "noProrationUpgrade";
+  | "noProrationUpgrade"
+  | "rewardSpendLimit";
 
 export type PartnerBetaFeatures = "postbacks";
 
