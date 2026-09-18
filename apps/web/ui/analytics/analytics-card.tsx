@@ -72,7 +72,8 @@ export function AnalyticsCard<T extends string>({
       <Modal
         showModal={showModal}
         setShowModal={setShowModal}
-        className="max-w-lg px-0"
+        className="px-0 sm:max-w-lg"
+        expandable
       >
         <div className="flex items-center justify-between border-b border-neutral-200 px-6 py-4">
           <h1 className="text-lg font-semibold">{selectedTab?.label}</h1>

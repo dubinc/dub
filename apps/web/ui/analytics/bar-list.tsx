@@ -251,9 +251,10 @@ export function BarList({
           />
         </div>
         <div className="relative">
-          <div className="h-[50vh] overflow-auto pb-4 md:h-[40vh]">{bars}</div>
+          {/* On mobile the expandable drawer scrolls the list itself */}
+          <div className="pb-4 sm:h-[40vh] sm:overflow-auto">{bars}</div>
           {hasModalSelection && onApplyFilterValues && (
-            <div className="pointer-events-none absolute bottom-0 left-0 right-0 flex h-[130px] items-end justify-center bg-gradient-to-t from-white from-40% to-white/0 pb-4">
+            <div className="pointer-events-none sticky bottom-0 left-0 right-0 -mt-[130px] flex h-[130px] items-end justify-center bg-gradient-to-t from-white from-40% to-white/0 pb-4 sm:absolute sm:mt-0">
               <div className="pointer-events-auto flex items-center gap-2">
                 <Button
                   text="Filter"
