@@ -163,7 +163,7 @@ const AddPartnerLinkModal = ({
     <Modal
       showModal={showModal}
       setShowModal={setShowModal}
-      className="max-w-lg"
+      className="max-w-lg overflow-visible"
     >
       {advancedUpsellModal}
       <form ref={formRef} onSubmit={handleSubmit(onSubmit)}>
@@ -280,7 +280,7 @@ const AddPartnerLinkModal = ({
                 </button>
               </Tooltip>
 
-              <AnimatedSizeContainer height className="-mx-1">
+              <AnimatedSizeContainer height className="-mx-1 overflow-visible">
                 {showOverrides && canUseAdvancedRewardLogic && (
                   <div className="flex flex-col gap-6 px-1 pt-4">
                     <Controller
