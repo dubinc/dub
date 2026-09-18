@@ -19,7 +19,6 @@ export function SortOrder({
       xmlns="http://www.w3.org/2000/svg"
     >
       <motion.path
-        className={cn(!order && "opacity-40")}
         animate={{ d: order === "asc" ? downPath : upPath }}
         stroke="currentColor"
         strokeWidth="1.5"
@@ -27,7 +26,7 @@ export function SortOrder({
         strokeLinejoin="round"
       />
       <motion.path
-        className="opacity-40"
+        className={cn(order && "opacity-40")}
         animate={{ d: order === "asc" ? upPath : downPath }}
         stroke="currentColor"
         strokeWidth="1.5"
