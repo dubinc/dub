@@ -1,6 +1,8 @@
 import { queuePartnerSearchSync } from "@/lib/api/partners/queue-partner-search-sync";
-import { LinkRewardIdsInput } from "@/lib/api/rewards/additional-rewards";
-import { hasRewardAssignment } from "@/lib/api/rewards/reward-overrides";
+import {
+  hasRewardAssignment,
+  RewardOverrideIdsInput,
+} from "@/lib/api/rewards/reward-overrides";
 import { qstash } from "@/lib/cron";
 import { getPartnerEnrollmentInfo } from "@/lib/planetscale/get-partner-enrollment-info";
 import { prisma } from "@/lib/prisma";
@@ -27,7 +29,7 @@ import { includeTags } from "./include-tags";
 import { transformLink } from "./utils";
 
 type CreateLinkOptions = ProcessedLinkProps & {
-  linkReward?: LinkRewardIdsInput;
+  linkReward?: RewardOverrideIdsInput;
 };
 
 export async function createLink(link: CreateLinkOptions) {

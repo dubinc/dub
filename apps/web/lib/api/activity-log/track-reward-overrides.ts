@@ -8,8 +8,10 @@ import {
   type TrackActivityLogInput,
 } from "@/lib/api/activity-log/track-activity-log";
 import { serializeReward } from "@/lib/api/partners/serialize-reward";
-import type { LinkRewardIds } from "@/lib/api/rewards/additional-rewards";
-import type { EnrollmentRewardIds } from "@/lib/api/rewards/reward-overrides";
+import type {
+  EnrollmentRewardIds,
+  RewardOverrideIds,
+} from "@/lib/api/rewards/reward-overrides";
 import { prisma } from "@/lib/prisma";
 import type { LinkProps } from "@/lib/types";
 import { Prisma } from "@prisma/client";
@@ -184,8 +186,8 @@ export async function trackLinkRewardOverrideLog(input: {
   programId: string;
   partnerId: string;
   userId: string;
-  previous: LinkRewardIds;
-  next: LinkRewardIds;
+  previous: RewardOverrideIds;
+  next: RewardOverrideIds;
   description?: string;
   link: LinkSnapshot;
 }) {

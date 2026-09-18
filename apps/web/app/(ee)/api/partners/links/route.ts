@@ -4,10 +4,10 @@ import { createLink, processLink } from "@/lib/api/links";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import {
-  getRewardIds,
+  hasRewardAssignment,
   omitGroupDefaultRewardIds,
-} from "@/lib/api/rewards/additional-rewards";
-import { hasRewardAssignment } from "@/lib/api/rewards/reward-overrides";
+  toPartnerLinkRewardIdFields,
+} from "@/lib/api/rewards/reward-overrides";
 import { throwIfInvalidRewards } from "@/lib/api/rewards/throw-if-invalid-rewards";
 import { parseRequestBody } from "@/lib/api/utils";
 import { applyGroupUtmToLink } from "@/lib/api/utm/apply-group-utm-to-link";
@@ -69,7 +69,7 @@ export const GET = withWorkspace(
 
     const links = programEnrollment.links.map((link) => ({
       ...link,
-      ...getRewardIds(link.linkReward),
+      ...toPartnerLinkRewardIdFields(link.linkReward),
     }));
 
     return NextResponse.json(
@@ -255,7 +255,7 @@ export const POST = withWorkspace(
     return NextResponse.json(
       {
         ...partnerLink,
-        ...getRewardIds(linkRewardInput),
+        ...toPartnerLinkRewardIdFields(linkRewardInput),
       },
       {
         status: 201,

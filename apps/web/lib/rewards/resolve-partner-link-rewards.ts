@@ -37,6 +37,12 @@ function pickDisplayReward(reward: RewardProps | null | undefined) {
   return reward;
 }
 
+function getDisplayCustomRewards(enrollmentRewards: RewardProps[]) {
+  return enrollmentRewards.filter(
+    (reward) => reward.event === "custom" && getRewardAmount(reward) >= 0,
+  );
+}
+
 export function resolvePartnerLinkRewards({
   link,
   enrollmentRewards,
@@ -76,9 +82,7 @@ export function resolvePartnerLinkRewards({
     clickReward,
     leadReward,
     saleReward,
-    ...enrollmentRewards.filter(
-      (reward) => reward.event === "custom" && getRewardAmount(reward) >= 0,
-    ),
+    ...getDisplayCustomRewards(enrollmentRewards),
   ].filter((reward): reward is RewardProps => reward != null);
 
   return {
@@ -109,9 +113,7 @@ export function getPartnerLinkDisplayRewards({
       pickDisplayReward(saleReward),
       pickDisplayReward(leadReward),
       pickDisplayReward(clickReward),
-      ...enrollmentRewards.filter(
-        (reward) => reward.event === "custom" && getRewardAmount(reward) >= 0,
-      ),
+      ...getDisplayCustomRewards(enrollmentRewards),
     ].filter((reward): reward is RewardProps => reward != null),
     discount: discount ?? null,
   };

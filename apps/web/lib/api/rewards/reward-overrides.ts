@@ -1,35 +1,75 @@
 import { ProgramEnrollment } from "@prisma/client";
 
-export type EnrollmentRewardIds = Pick<
+export type RewardOverrideIds = Pick<
   ProgramEnrollment,
   "clickRewardId" | "leadRewardId" | "saleRewardId" | "discountId"
 >;
 
-export type EnrollmentRewardIdsInput = Partial<EnrollmentRewardIds>;
+export type RewardOverrideIdsInput = Partial<RewardOverrideIds>;
+export type EnrollmentRewardIds = RewardOverrideIds;
+export type EnrollmentRewardIdsInput = RewardOverrideIdsInput;
+export type LinkRewardIds = RewardOverrideIds;
+export type LinkRewardIdsInput = RewardOverrideIdsInput;
+
+export const REWARD_OVERRIDE_ID_KEYS = [
+  "clickRewardId",
+  "leadRewardId",
+  "saleRewardId",
+  "discountId",
+] as const;
+
+// Group defaults are inherited; only persist real link-level overrides.
+const omitGroupDefault = ({
+  value,
+  groupDefaultId,
+}: {
+  value: string | null | undefined;
+  groupDefaultId: string | null | undefined;
+}) => (value && value === groupDefaultId ? null : value);
+
+export const omitGroupDefaultRewardIds = ({
+  rewardIds,
+  groupDefaults,
+}: {
+  rewardIds: RewardOverrideIdsInput;
+  groupDefaults: Partial<RewardOverrideIds> | null | undefined;
+}): RewardOverrideIdsInput => {
+  const result: RewardOverrideIdsInput = {};
+
+  for (const key of REWARD_OVERRIDE_ID_KEYS) {
+    const value = rewardIds[key];
+    if (value === undefined) {
+      continue;
+    }
+
+    result[key] = omitGroupDefault({
+      value,
+      groupDefaultId: groupDefaults?.[key],
+    });
+  }
+
+  return result;
+};
+
+// Maps *RewardId / discountId fields to ProgramPartnerLinkSchemaInternal names.
+export const toPartnerLinkRewardIdFields = (
+  linkReward: RewardOverrideIdsInput | null | undefined,
+) => ({
+  clickReward: linkReward?.clickRewardId ?? null,
+  leadReward: linkReward?.leadRewardId ?? null,
+  saleReward: linkReward?.saleRewardId ?? null,
+  discount: linkReward?.discountId ?? null,
+});
 
 // True when any reward/discount field was sent, including explicit null clears.
-export const hasRewardIdsInput = ({
-  clickRewardId,
-  leadRewardId,
-  saleRewardId,
-  discountId,
-}: EnrollmentRewardIdsInput) => {
-  return (
-    clickRewardId !== undefined ||
-    leadRewardId !== undefined ||
-    saleRewardId !== undefined ||
-    discountId !== undefined
-  );
+export const hasRewardIdsInput = (rewardIds: RewardOverrideIdsInput) => {
+  return REWARD_OVERRIDE_ID_KEYS.some((key) => rewardIds[key] !== undefined);
 };
 
 // True when any field assigns a non-null reward/discount id (not a clear).
-export const hasRewardAssignment = ({
-  clickRewardId,
-  leadRewardId,
-  saleRewardId,
-  discountId,
-}: EnrollmentRewardIdsInput) => {
-  return [clickRewardId, leadRewardId, saleRewardId, discountId].some(
-    (id) => id !== undefined && id !== null,
-  );
+export const hasRewardAssignment = (rewardIds: RewardOverrideIdsInput) => {
+  return REWARD_OVERRIDE_ID_KEYS.some((key) => {
+    const id = rewardIds[key];
+    return id !== undefined && id !== null;
+  });
 };

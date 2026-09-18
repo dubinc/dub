@@ -6,7 +6,7 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { applyGroupUtmToLink } from "@/lib/api/utm/apply-group-utm-to-link";
 import { withPartnerProfile } from "@/lib/auth/partner";
 import { prisma } from "@/lib/prisma";
-import { getResolvedPartnerLinkRewards } from "@/lib/rewards/get-resolved-partner-link-reward-fields";
+import { getResolvedPartnerLinkRewards } from "@/lib/rewards/get-resolved-partner-link-rewards";
 import { PartnerProfileLinkSchema } from "@/lib/zod/schemas/partner-profile";
 import {
   createPartnerLinkSchema,

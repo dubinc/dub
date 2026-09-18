@@ -4,13 +4,11 @@ import { linkCache } from "@/lib/api/links/cache";
 import { getLinkOrThrow } from "@/lib/api/links/get-link-or-throw";
 import { notifyPartnerRewardOverride } from "@/lib/api/partners/notify-partner-reward-change";
 import {
-  getRewardIds,
-  LinkRewardIdsInput,
-  omitGroupDefaultRewardIds,
-} from "@/lib/api/rewards/additional-rewards";
-import {
   hasRewardAssignment,
   hasRewardIdsInput,
+  omitGroupDefaultRewardIds,
+  RewardOverrideIdsInput,
+  toPartnerLinkRewardIdFields,
 } from "@/lib/api/rewards/reward-overrides";
 import { throwIfInvalidRewards } from "@/lib/api/rewards/throw-if-invalid-rewards";
 import { remapDiscountCodesForPartnerJob } from "@/lib/jobs/handlers/remap-discount-codes-for-partner-job";
@@ -31,7 +29,7 @@ type UpdatePartnerLinkParams = {
   activityDescription?: z.infer<
     typeof updatePartnerLinkSchema
   >["activityDescription"];
-} & LinkRewardIdsInput;
+} & RewardOverrideIdsInput;
 
 export async function updatePartnerLink({
   workspace,
@@ -127,14 +125,8 @@ export async function updatePartnerLink({
     ...linkRewardInput,
   });
 
-  const hasLinkOverride =
-    linkRewardInput.clickRewardId ||
-    linkRewardInput.leadRewardId ||
-    linkRewardInput.saleRewardId ||
-    linkRewardInput.discountId;
-
   const linkReward =
-    hasLinkOverride || existingLinkReward
+    hasRewardAssignment(linkRewardInput) || existingLinkReward
       ? await prisma.linkReward.upsert({
           where: {
             linkId: link.id,
@@ -210,6 +202,6 @@ export async function updatePartnerLink({
 
   return ProgramPartnerLinkSchemaInternal.parse({
     ...link,
-    ...getRewardIds(linkReward),
+    ...toPartnerLinkRewardIdFields(linkReward),
   });
 }

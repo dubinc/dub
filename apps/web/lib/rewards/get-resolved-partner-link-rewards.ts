@@ -1,10 +1,17 @@
 import "server-only";
 
 import { serializeReward } from "@/lib/api/partners/serialize-reward";
-import { LinkRewardWithOptionalRewards } from "@/lib/api/rewards/additional-rewards";
+import { RewardOverrideIds } from "@/lib/api/rewards/reward-overrides";
 import { resolvePartnerLinkRewards } from "@/lib/rewards/resolve-partner-link-rewards";
 import { DiscountProps } from "@/lib/types";
 import { Discount, Reward } from "@prisma/client";
+
+export type LinkRewardWithOptionalRewards = RewardOverrideIds & {
+  clickReward?: Reward | null;
+  leadReward?: Reward | null;
+  saleReward?: Reward | null;
+  discount?: Discount | null;
+};
 
 export function getResolvedPartnerLinkRewards({
   linkReward,
