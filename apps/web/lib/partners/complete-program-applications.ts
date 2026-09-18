@@ -5,11 +5,11 @@ import { detectAndRecordFraudApplication } from "../api/fraud/detect-record-frau
 import { notifyPartnerApplication } from "../api/partners/notify-partner-application";
 import { queuePartnerSearchSync } from "../api/partners/queue-partner-search-sync";
 import { markApplicationEventSubmitted } from "../application-events/update-application-event";
-import { autoApprovePartnerJob } from "../jobs/handlers/auto-approve-partner-job";
 import { autoRejectPartnerJob } from "../jobs/handlers/auto-reject-partner-job";
 import { buildSocialPlatformLookup } from "../social-utils";
 import { sendWorkspaceWebhook } from "../webhook/publish";
 import { partnerApplicationWebhookSchema } from "../zod/schemas/program-application";
+import { dispatchPartnerApplicationReview } from "./dispatch-partner-application-review";
 import { evaluateApplicationRequirements } from "./evaluate-application-requirements";
 import {
   formatApplicationFormData,
@@ -205,18 +205,14 @@ export async function completeProgramApplications(userEmail: string) {
                 application,
               }),
 
-              // Auto-approve the partner if the group has auto-approval enabled
-              group?.autoApprovePartnersEnabledAt
-                ? autoApprovePartnerJob.dispatch(
-                    {
-                      programId: program.id,
-                      partnerId: partner.id,
-                    },
-                    {
-                      label: partner.id,
-                    },
-                  )
-                : Promise.resolve(null),
+              dispatchPartnerApplicationReview({
+                programId: program.id,
+                partnerId: partner.id,
+                autoApprovePartnersEnabledAt:
+                  group?.autoApprovePartnersEnabledAt,
+                applicationScreeningCriteria:
+                  program.applicationScreeningCriteria,
+              }),
 
               // Send "partner.application_submitted" webhook
               workspacesByProgramId.has(program.id) &&
