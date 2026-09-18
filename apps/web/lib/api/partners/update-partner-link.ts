@@ -8,6 +8,7 @@ import {
   hasRewardIdsInput,
   omitGroupDefaultRewardIds,
   RewardOverrideIdsInput,
+  toPartnerLinkRewardIdFields,
 } from "@/lib/api/rewards/reward-overrides";
 import { throwIfInvalidRewards } from "@/lib/api/rewards/throw-if-invalid-rewards";
 import { remapDiscountCodesForPartnerJob } from "@/lib/jobs/handlers/remap-discount-codes-for-partner-job";
@@ -198,5 +199,8 @@ export async function updatePartnerLink({
     ]),
   );
 
-  return link;
+  return {
+    ...link,
+    ...toPartnerLinkRewardIdFields(linkReward),
+  };
 }

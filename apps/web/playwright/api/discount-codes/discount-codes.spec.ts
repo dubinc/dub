@@ -94,6 +94,24 @@ test.afterAll(async () => {
       },
     });
 
+    await prisma.partnerGroup.update({
+      where: {
+        id: partnerGroupId,
+      },
+      data: {
+        discountId: null,
+      },
+    });
+
+    await prisma.discount.updateMany({
+      where: {
+        groupId: partnerGroupId,
+      },
+      data: {
+        groupId: null,
+      },
+    });
+
     await prisma.partnerGroup.delete({
       where: {
         id: partnerGroupId,
@@ -324,14 +342,22 @@ test("POST /discount-codes – uses link-level discount over enrollment discount
     expect(status).toEqual(200);
     expect(data.discountId).toEqual(linkDiscount.id);
   } finally {
-    await deletePartner(partnerId);
+    try {
+      await deletePartner(partnerId);
+    } finally {
+      if (linkDiscountId) {
+        await prisma.linkReward.deleteMany({
+          where: {
+            discountId: linkDiscountId,
+          },
+        });
 
-    if (linkDiscountId) {
-      await prisma.discount.delete({
-        where: {
-          id: linkDiscountId,
-        },
-      });
+        await prisma.discount.deleteMany({
+          where: {
+            id: linkDiscountId,
+          },
+        });
+      }
     }
   }
 });
@@ -393,14 +419,22 @@ test("POST /discount-codes – uses link-level discount when enrollment has none
     expect(status).toEqual(200);
     expect(data.discountId).toEqual(linkDiscount.id);
   } finally {
-    await deletePartner(partnerId);
+    try {
+      await deletePartner(partnerId);
+    } finally {
+      if (linkDiscountId) {
+        await prisma.linkReward.deleteMany({
+          where: {
+            discountId: linkDiscountId,
+          },
+        });
 
-    if (linkDiscountId) {
-      await prisma.discount.delete({
-        where: {
-          id: linkDiscountId,
-        },
-      });
+        await prisma.discount.deleteMany({
+          where: {
+            id: linkDiscountId,
+          },
+        });
+      }
     }
   }
 });
