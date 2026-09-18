@@ -1,8 +1,6 @@
-import { handleAndReturnErrorResponse } from "@/lib/api/errors";
-import { linkCache } from "@/lib/api/links/cache";
-import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
+import { withCron } from "@/lib/cron/with-cron";
+import { invalidateLinksForDiscountsJob } from "@/lib/jobs/handlers/invalidate-links-for-discounts-job";
 import { prisma } from "@/lib/prisma";
-import { chunk } from "@dub/utils";
 import * as z from "zod/v4";
 import { logAndRespond } from "../../utils";
 
@@ -18,72 +16,49 @@ const schema = z.object({
     ),
 });
 
-// This route is used to invalidate the partnerlink cache when a discount is created/updated/deleted.
+// Shim for in-flight QStash messages published to the old cron URL.
+// New callers should dispatch invalidateLinksForDiscountsJob.
 // POST /api/cron/links/invalidate-for-discounts
-export async function POST(req: Request) {
-  try {
-    const rawBody = await req.text();
-    await verifyQstashSignature({ req, rawBody });
+export const POST = withCron(async ({ rawBody }) => {
+  const { groupId, partnerIds } = schema.parse(JSON.parse(rawBody));
 
-    const { groupId, partnerIds } = schema.parse(JSON.parse(rawBody));
+  const group = await prisma.partnerGroup.findUnique({
+    where: {
+      id: groupId,
+    },
+    select: {
+      programId: true,
+    },
+  });
 
-    // Find the group
-    const group = await prisma.partnerGroup.findUnique({
-      where: {
-        id: groupId,
-      },
+  if (!group) {
+    return logAndRespond(`Group ${groupId} not found.`, {
+      logLevel: "error",
     });
-
-    if (!group) {
-      return logAndRespond(`Group ${groupId} not found.`, {
-        logLevel: "error",
-      });
-    }
-
-    // Find all the links of the partners in the group
-    const programEnrollments = await prisma.programEnrollment.findMany({
-      where: {
-        groupId,
-        ...(partnerIds && {
-          partnerId: {
-            in: partnerIds,
-          },
-        }),
-      },
-      select: {
-        links: {
-          select: {
-            domain: true,
-            key: true,
-          },
-        },
-      },
-    });
-
-    if (programEnrollments.length === 0) {
-      return logAndRespond(
-        `No program enrollments found for group ${groupId}.`,
-      );
-    }
-
-    const links = programEnrollments.flatMap((enrollment) => enrollment.links);
-
-    if (links.length === 0) {
-      return logAndRespond(
-        `No links found for partners in the group ${groupId}.`,
-      );
-    }
-
-    const linkChunks = chunk(links, 100);
-
-    // Expire the cache for the links
-    for (const linkChunk of linkChunks) {
-      const toExpire = linkChunk.map(({ domain, key }) => ({ domain, key }));
-      await linkCache.expireMany(toExpire);
-    }
-
-    return logAndRespond(`Expired cache for ${links.length} links.`);
-  } catch (error) {
-    return handleAndReturnErrorResponse(error);
   }
-}
+
+  const resolvedPartnerIds =
+    partnerIds ??
+    (
+      await prisma.programEnrollment.findMany({
+        where: {
+          groupId,
+        },
+        select: {
+          partnerId: true,
+        },
+      })
+    ).map(({ partnerId }) => partnerId);
+
+  if (resolvedPartnerIds.length === 0) {
+    return logAndRespond(`No program enrollments found for group ${groupId}.`);
+  }
+
+  await invalidateLinksForDiscountsJob.dispatch({
+    type: "partners",
+    programId: group.programId,
+    partnerIds: resolvedPartnerIds,
+  });
+
+  return logAndRespond(`Expired cache for partners in group ${groupId}.`);
+});

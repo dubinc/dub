@@ -16,6 +16,8 @@ export const activityLogActionSchema = z.enum([
   "partner_application.approved", // TODO: change to partnerApplication.approved
   "partner_application.rejected", // TODO: change to partnerApplication.rejected
   "partner.groupChanged",
+  "partner.rewardChanged",
+  "partner.discountChanged",
   "partner.banned",
   "partner.unbanned",
   "partner.deactivated",

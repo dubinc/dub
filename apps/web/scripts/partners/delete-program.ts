@@ -99,6 +99,15 @@ async function main() {
 
     console.log("Deleted logo", deletedLogo);
   }
+
+  await prisma.project.update({
+    where: {
+      id: program.workspaceId,
+    },
+    data: {
+      defaultProgramId: null,
+    },
+  });
 }
 
 main();

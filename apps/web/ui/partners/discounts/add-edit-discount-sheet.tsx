@@ -5,6 +5,8 @@ import { deleteDiscountAction } from "@/lib/actions/partners/delete-discount";
 import { updateDiscountAction } from "@/lib/actions/partners/update-discount";
 import { constructDiscountAmount } from "@/lib/api/sales/construct-discount-amount";
 import { handleMoneyInputChange, handleMoneyKeyDown } from "@/lib/form-utils";
+import { getPlanCapabilities } from "@/lib/plan-capabilities";
+import { PARTNER_LEVEL_REWARDS_PLAN_ERROR } from "@/lib/rewards/constants";
 import useGroup from "@/lib/swr/use-group";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -25,6 +27,7 @@ import {
   Sheet,
   Switch,
   Tooltip,
+  TooltipContent,
   useRouterStuff,
 } from "@dub/ui";
 import { CircleCheck, StripeIcon, Tag } from "@dub/ui/icons";
@@ -51,6 +54,9 @@ interface DiscountSheetProps {
   setIsOpen: Dispatch<SetStateAction<boolean>>;
   discount?: DiscountProps;
   defaultDiscountValues?: DiscountProps;
+  groupIdOrSlug?: string | null;
+  isDefault?: boolean;
+  onCreated?: (id: string) => void;
 }
 
 type FormData = z.infer<typeof createDiscountSchema>;
@@ -76,12 +82,44 @@ function DiscountSheetContent({
   setIsOpen,
   discount,
   defaultDiscountValues,
-}: DiscountSheetProps) {
+  groupIdOrSlug,
+  isDefault = true,
+  onCreated,
+  nested,
+}: DiscountSheetProps & {
+  nested?: boolean;
+}) {
   const formRef = useRef<HTMLFormElement>(null);
 
-  const { group, mutateGroup } = useGroup();
+  const { group, mutateGroup } = useGroup({
+    groupIdOrSlug: groupIdOrSlug ?? undefined,
+  });
   const { mutate: mutateProgram } = useProgram();
-  const { id: workspaceId, defaultProgramId } = useWorkspace();
+  const {
+    id: workspaceId,
+    defaultProgramId,
+    slug: workspaceSlug,
+    plan,
+  } = useWorkspace({
+    // lower dedupingInterval + revalidateOnFocus in case user upgrades their plan in another tab
+    swrOpts: {
+      dedupingInterval: 2000,
+      revalidateOnFocus: true,
+    },
+  });
+  const { canUseAdvancedRewardLogic } = getPlanCapabilities(plan);
+
+  // Infer when omitted (create via useDiscountSheet defaults true). Group pages
+  // pass isDefault from whether the discount is the group's default.
+  const effectiveIsDefault =
+    isDefault === false
+      ? false
+      : discount && group
+        ? discount.id === group.discount?.id
+        : isDefault;
+
+  const showPartnerAndLinkUpsell =
+    !discount && !effectiveIsDefault && !canUseAdvancedRewardLogic;
 
   const isEdit = Boolean(discount?.id);
 
@@ -123,6 +161,7 @@ function DiscountSheetContent({
       couponTestId: defaultValuesSource.couponTestId,
       autoProvision: Boolean(defaultValuesSource.autoProvisionEnabledAt),
       provider: discountProvider,
+      isDefault: effectiveIsDefault,
     },
   });
 
@@ -144,11 +183,17 @@ function DiscountSheetContent({
   const { executeAsync: createDiscount, isPending: isCreating } = useAction(
     createDiscountAction,
     {
-      onSuccess: async () => {
+      onSuccess: async ({ data }) => {
+        if (data?.id) {
+          onCreated?.(data.id);
+        }
         setIsOpen(false);
         toast.success("Discount created!");
         await mutateProgram();
         await mutateGroup();
+        await mutate(
+          (key) => typeof key === "string" && key.startsWith("/api/discounts"),
+        );
       },
       onError({ error }) {
         if (error.serverError) {
@@ -185,6 +230,9 @@ function DiscountSheetContent({
         toast.success("Discount updated!");
         await mutateProgram();
         await mutateGroup();
+        await mutate(
+          (key) => typeof key === "string" && key.startsWith("/api/discounts"),
+        );
       },
       onError({ error }) {
         toast.error(error.serverError);
@@ -200,6 +248,9 @@ function DiscountSheetContent({
         toast.success("Discount deleted!");
         await mutate(`/api/programs/${defaultProgramId}`);
         await mutateGroup();
+        await mutate(
+          (key) => typeof key === "string" && key.startsWith("/api/discounts"),
+        );
       },
       onError({ error }) {
         toast.error(error.serverError);
@@ -208,7 +259,12 @@ function DiscountSheetContent({
   );
 
   const onSubmit = async (data: FormData) => {
-    if (!workspaceId || !defaultProgramId || !group) {
+    if (
+      !workspaceId ||
+      !defaultProgramId ||
+      !group ||
+      showPartnerAndLinkUpsell
+    ) {
       return;
     }
 
@@ -229,6 +285,7 @@ function DiscountSheetContent({
       amount: data.type === "flat" ? data.amount * 100 : data.amount || 0,
       maxDuration:
         Number(data.maxDuration) === Infinity ? null : data.maxDuration,
+      isDefault: effectiveIsDefault,
     });
   };
 
@@ -558,14 +615,20 @@ function DiscountSheetContent({
             </div>
           </div>
 
-          <VerticalLine />
-
-          {group && <RewardDiscountPartnersCard groupId={group.id} />}
+          {group && (effectiveIsDefault || Boolean(discount)) && (
+            <>
+              <VerticalLine />
+              <RewardDiscountPartnersCard
+                groupId={group.id}
+                discountId={discount?.id}
+              />
+            </>
+          )}
         </div>
 
         <div className="flex items-center justify-between border-t border-neutral-200 p-5">
           <div>
-            {discount && (
+            {discount && !(nested && effectiveIsDefault) && (
               <Button
                 type="button"
                 variant="outline"
@@ -593,6 +656,16 @@ function DiscountSheetContent({
               className="w-fit"
               loading={isCreating || isUpdating}
               disabled={(!discount && amount == null) || isDeleting}
+              disabledTooltip={
+                showPartnerAndLinkUpsell ? (
+                  <TooltipContent
+                    title={PARTNER_LEVEL_REWARDS_PLAN_ERROR}
+                    cta="Upgrade to Advanced"
+                    href={`/${workspaceSlug}/upgrade?plan=advanced&showAdvancedUpsellModal=true`}
+                    target="_blank"
+                  />
+                ) : undefined
+              }
             />
           </div>
         </div>
@@ -675,14 +748,14 @@ export function DiscountSheet({
   const setIsOpen: DiscountSheetProps["setIsOpen"] = (value) => {
     const nextOpen = typeof value === "function" ? value(isOpen) : value;
     rest.setIsOpen(value);
-    if (!nextOpen) {
+    if (!nextOpen && !nested) {
       queryParams({ del: "discountId", scroll: false });
     }
   };
 
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen} nested={nested}>
-      <DiscountSheetContent {...rest} setIsOpen={setIsOpen} />
+      <DiscountSheetContent {...rest} nested={nested} setIsOpen={setIsOpen} />
     </Sheet>
   );
 }

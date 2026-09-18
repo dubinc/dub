@@ -10,7 +10,10 @@ import {
   ACTIVE_ENROLLMENT_STATUSES,
   INACTIVE_ENROLLMENT_STATUSES,
 } from "@/lib/zod/schemas/partners";
-import { REWARD_EVENT_COLUMN_MAPPING } from "@/lib/zod/schemas/rewards";
+import {
+  REWARD_EVENT_COLUMN_MAPPING,
+  REWARD_EVENT_RELATION_MAPPING,
+} from "@/lib/zod/schemas/rewards";
 import { Prisma } from "@prisma/client";
 import { logAndRespond } from "../../utils";
 
@@ -52,6 +55,11 @@ export const POST = withCron(async ({ rawBody }) => {
     },
     select: {
       id: true,
+      clickRewardId: true,
+      leadRewardId: true,
+      saleRewardId: true,
+      referralRewardId: true,
+      customRewardId: true,
       program: {
         select: {
           id: true,
@@ -68,19 +76,33 @@ export const POST = withCron(async ({ rawBody }) => {
     return logAndRespond(`Group ${groupId} not found. Skipping...`);
   }
 
+  const rewardIdColumn = REWARD_EVENT_COLUMN_MAPPING[reward.event];
+  const rewardRelation = REWARD_EVENT_RELATION_MAPPING[reward.event];
+
+  // reward-created jobs assign this reward only to enrollments that still
+  // inherit "no reward" or a soft-deleted reward (custom overrides stay).
+  // Skip if it's no longer the group's default for this event
+  if (event === "reward-created") {
+    if (rewardId !== group[rewardIdColumn]) {
+      return logAndRespond(
+        `Reward ${rewardId} is not the default reward for the group ${groupId}. Skipping...`,
+      );
+    }
+  }
+
   const isStaleVersion = await isStaleRewardVersion({
     version,
     groupId,
     event: rewardSnapshot.event,
   });
 
-  if (isStaleVersion) {
+  // Always unassign on reward-deleted even if a newer group-default create
+  // made this version stale — otherwise inheritors stay on the soft-deleted id.
+  if (event !== "reward-deleted" && isStaleVersion) {
     return logAndRespond(
       "Reward changed while processing. Skipping stale reward evaluation.",
     );
   }
-
-  const rewardIdColumn = REWARD_EVENT_COLUMN_MAPPING[reward.event];
 
   let startingAfter = startAfterProgramEnrollmentId;
   let where: Prisma.ProgramEnrollmentWhereInput | undefined = undefined;
@@ -89,6 +111,14 @@ export const POST = withCron(async ({ rawBody }) => {
 
   switch (event) {
     case "reward-created":
+      // Assign only inheritors: no reward yet, or still pointing at a
+      // soft-deleted default (programId null).
+      where = {
+        OR: [
+          { [rewardIdColumn]: null },
+          { [rewardRelation]: { is: { programId: null } } },
+        ],
+      };
       data = { [rewardIdColumn]: reward.id };
       break;
 
@@ -97,7 +127,8 @@ export const POST = withCron(async ({ rawBody }) => {
       break;
 
     case "reward-deleted":
-      data = { [rewardIdColumn]: null };
+      where = { [rewardIdColumn]: reward.id };
+      data = { [rewardIdColumn]: group[rewardIdColumn] ?? null };
       break;
   }
 
@@ -152,6 +183,7 @@ export const POST = withCron(async ({ rawBody }) => {
     if (data) {
       const { count } = await prisma.programEnrollment.updateMany({
         where: {
+          ...where,
           id: {
             in: programEnrollments.map(({ id }) => id),
           },
@@ -164,7 +196,7 @@ export const POST = withCron(async ({ rawBody }) => {
       shouldNotify = count > 0;
     }
 
-    if (shouldNotify) {
+    if (shouldNotify && !isStaleVersion) {
       const users = programEnrollments
         .filter(({ status }) => ACTIVE_ENROLLMENT_STATUSES.includes(status))
         .flatMap(({ partner }) => partner.users.map(({ user }) => user));
