@@ -28,6 +28,7 @@ import { createLinkBodySchema } from "./links";
 import { booleanQuerySchema, getPaginationQuerySchema } from "./misc";
 import { PartnerTagSchema } from "./partner-tags";
 import { ProgramEnrollmentSchema } from "./programs";
+import { rewardActivityDescriptionSchema } from "./rewards";
 import { centsSchema, centsSchemaWithDefault, parseUrlSchema } from "./utils";
 
 export const PARTNERS_MAX_PAGE_SIZE = 100;
@@ -866,6 +867,24 @@ export const createPartnerLinkSchema = partnerIdTenantIdSchema
 export const upsertPartnerLinkSchema = createPartnerLinkSchema.extend({
   url: parseUrlSchema.describe("The URL to upsert for."),
 });
+
+// Internal-only fields used by the Dub UI.
+// These fields are not exposed through the public API.
+export const createPartnerLinkSchemaInternal = createPartnerLinkSchema.extend({
+  clickRewardId: z.string().nullish(),
+  leadRewardId: z.string().nullish(),
+  saleRewardId: z.string().nullish(),
+  discountId: z.string().nullish(),
+});
+
+export const updatePartnerLinkSchema = createPartnerLinkSchemaInternal
+  .pick({
+    clickRewardId: true,
+    leadRewardId: true,
+    saleRewardId: true,
+    discountId: true,
+  })
+  .extend(rewardActivityDescriptionSchema.shape);
 
 // For /api/partners/analytics
 export const partnerAnalyticsQuerySchema = analyticsQuerySchema

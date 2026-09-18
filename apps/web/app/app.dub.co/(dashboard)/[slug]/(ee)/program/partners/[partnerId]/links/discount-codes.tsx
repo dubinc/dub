@@ -6,7 +6,10 @@ import { PARTNER_LEVEL_REWARDS_PLAN_ERROR } from "@/lib/rewards/constants";
 import useDiscountCodes from "@/lib/swr/use-discount-codes";
 import { useDiscounts } from "@/lib/swr/use-discounts";
 import useGroup from "@/lib/swr/use-group";
-import { useProgramPartnerLinks } from "@/lib/swr/use-program-partner-links";
+import {
+  ProgramPartnerLinkExtended,
+  useProgramPartnerLinks,
+} from "@/lib/swr/use-program-partner-links";
 import useWorkspace from "@/lib/swr/use-workspace";
 import {
   DiscountCodeProps,
@@ -40,7 +43,7 @@ import Link from "next/link";
 import { type ReactNode, useMemo, useState } from "react";
 import { toast } from "sonner";
 
-type PartnerLink = NonNullable<EnrolledPartnerProps["links"]>[number];
+type PartnerLink = ProgramPartnerLinkExtended;
 type PartnerForDiscountOverride = Pick<
   EnrolledPartnerProps,
   "id" | "name" | "email" | "image" | "groupId" | "discountId"

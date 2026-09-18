@@ -19,10 +19,10 @@ import { PARTNER_LEVEL_REWARDS_PLAN_ERROR } from "@/lib/rewards/constants";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { linkEventSchema } from "@/lib/zod/schemas/links";
 import {
-  createPartnerLinkSchema,
+  createPartnerLinkSchemaInternal,
   retrievePartnerLinksSchema,
 } from "@/lib/zod/schemas/partners";
-import { ProgramPartnerLinkSchema } from "@/lib/zod/schemas/programs";
+import { ProgramPartnerLinkSchemaInternal } from "@/lib/zod/schemas/programs";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
@@ -72,7 +72,9 @@ export const GET = withWorkspace(
       ...getRewardIds(link.linkReward),
     }));
 
-    return NextResponse.json(z.array(ProgramPartnerLinkSchema).parse(links));
+    return NextResponse.json(
+      z.array(ProgramPartnerLinkSchemaInternal).parse(links),
+    );
   },
   {
     requiredPlan: ["business", "advanced", "enterprise"],
@@ -95,7 +97,7 @@ export const POST = withWorkspace(
       leadRewardId,
       saleRewardId,
       discountId,
-    } = createPartnerLinkSchema.parse(await parseRequestBody(req));
+    } = createPartnerLinkSchemaInternal.parse(await parseRequestBody(req));
 
     const program = await getProgramOrThrow({
       workspaceId: workspace.id,
@@ -216,11 +218,6 @@ export const POST = withWorkspace(
       ...(hasLinkLevelReward && { linkReward: linkRewardInput }),
     });
 
-    const response = {
-      ...partnerLink,
-      ...getRewardIds(linkRewardInput),
-    };
-
     waitUntil(
       Promise.allSettled([
         sendWorkspaceWebhook({
@@ -255,7 +252,15 @@ export const POST = withWorkspace(
       ]),
     );
 
-    return NextResponse.json(response, { status: 201 });
+    return NextResponse.json(
+      {
+        ...partnerLink,
+        ...getRewardIds(linkRewardInput),
+      },
+      {
+        status: 201,
+      },
+    );
   },
   {
     requiredPlan: ["business", "advanced", "enterprise"],

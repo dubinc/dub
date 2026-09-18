@@ -4,7 +4,7 @@ import { mutatePrefix } from "@/lib/swr/mutate";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps, LinkProps } from "@/lib/types";
-import { createPartnerLinkSchema } from "@/lib/zod/schemas/partners";
+import { createPartnerLinkSchemaInternal } from "@/lib/zod/schemas/partners";
 import { useAdvancedUpsellModal } from "@/ui/partners/advanced-upsell-modal";
 import { DiscountSelector } from "@/ui/partners/rewards/discount-selector";
 import { RewardSelector } from "@/ui/partners/rewards/reward-selector";
@@ -39,7 +39,7 @@ interface AddPartnerLinkModalProps {
 }
 
 type FormData = Pick<
-  z.infer<typeof createPartnerLinkSchema>,
+  z.infer<typeof createPartnerLinkSchemaInternal>,
   | "key"
   | "url"
   | "clickRewardId"

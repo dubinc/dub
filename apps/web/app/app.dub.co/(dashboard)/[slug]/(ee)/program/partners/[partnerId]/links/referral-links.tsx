@@ -4,7 +4,10 @@ import { constructPartnerLink } from "@/lib/partners/construct-partner-link";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { PARTNER_LEVEL_REWARDS_PLAN_ERROR } from "@/lib/rewards/constants";
 import useGroup from "@/lib/swr/use-group";
-import { useProgramPartnerLinks } from "@/lib/swr/use-program-partner-links";
+import {
+  ProgramPartnerLinkExtended,
+  useProgramPartnerLinks,
+} from "@/lib/swr/use-program-partner-links";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps, GroupProps } from "@/lib/types";
 import { useAddPartnerLinkModal } from "@/ui/modals/add-partner-link-modal";
@@ -40,7 +43,7 @@ import Link from "next/link";
 import { type ReactNode, useState } from "react";
 import { toast } from "sonner";
 
-type PartnerLink = NonNullable<EnrolledPartnerProps["links"]>[number];
+type PartnerLink = ProgramPartnerLinkExtended;
 type PartnerForOverrides = Pick<
   EnrolledPartnerProps,
   | "id"
@@ -151,7 +154,7 @@ export function ReferralLinks({ partner }: { partner: EnrolledPartnerProps }) {
   const { slug } = useWorkspace();
 
   const { group } = useGroup({
-    groupIdOrSlug: partner.groupId,
+    groupIdOrSlug: partner.groupId ?? undefined,
   });
 
   const { AddPartnerLinkModal, setShowAddPartnerLinkModal } =

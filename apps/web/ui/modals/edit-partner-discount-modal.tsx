@@ -7,12 +7,9 @@ import { mutatePrefix } from "@/lib/swr/mutate";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import { useDiscounts } from "@/lib/swr/use-discounts";
 import useGroup from "@/lib/swr/use-group";
+import { ProgramPartnerLinkExtended } from "@/lib/swr/use-program-partner-links";
 import useWorkspace from "@/lib/swr/use-workspace";
-import {
-  DiscountProps,
-  EnrolledPartnerProps,
-  GroupProps,
-} from "@/lib/types";
+import { DiscountProps, EnrolledPartnerProps, GroupProps } from "@/lib/types";
 import { DiscountSheet } from "@/ui/partners/discounts/add-edit-discount-sheet";
 import { formatDiscountDescription } from "@/ui/partners/format-discount-description";
 import { PartnerAvatar } from "@/ui/partners/partner-avatar";
@@ -24,7 +21,7 @@ import { useAction } from "next-safe-action/hooks";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 
-type PartnerLink = NonNullable<EnrolledPartnerProps["links"]>[number];
+type PartnerLink = ProgramPartnerLinkExtended;
 type PartnerDiscountOverridePartner = Pick<
   EnrolledPartnerProps,
   "id" | "name" | "email" | "image" | "groupId" | "discountId"

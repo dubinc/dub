@@ -19,7 +19,7 @@ import { prisma } from "@/lib/prisma";
 import { PARTNER_LEVEL_REWARDS_PLAN_ERROR } from "@/lib/rewards/constants";
 import { WorkspaceProps } from "@/lib/types";
 import { updatePartnerLinkSchema } from "@/lib/zod/schemas/partners";
-import { ProgramPartnerLinkSchema } from "@/lib/zod/schemas/programs";
+import { ProgramPartnerLinkSchemaInternal } from "@/lib/zod/schemas/programs";
 import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
 
@@ -208,7 +208,7 @@ export async function updatePartnerLink({
     ]),
   );
 
-  return ProgramPartnerLinkSchema.parse({
+  return ProgramPartnerLinkSchemaInternal.parse({
     ...link,
     ...getRewardIds(linkReward),
   });

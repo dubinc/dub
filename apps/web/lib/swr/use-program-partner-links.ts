@@ -1,11 +1,16 @@
+import { ProgramPartnerLinkSchemaInternal } from "@/lib/zod/schemas/programs";
 import { fetcher } from "@dub/utils";
 import useSWR, { SWRConfiguration } from "swr";
-import { EnrolledPartnerProps } from "../types";
+import * as z from "zod/v4";
 import useWorkspace from "./use-workspace";
 
 type UseProgramPartnerLinksProps = {
   partnerId: string | null;
 };
+
+export type ProgramPartnerLinkExtended = z.infer<
+  typeof ProgramPartnerLinkSchemaInternal
+>;
 
 export function useProgramPartnerLinks(
   { partnerId }: UseProgramPartnerLinksProps,
@@ -17,7 +22,7 @@ export function useProgramPartnerLinks(
     data: links,
     error,
     isValidating,
-  } = useSWR<NonNullable<EnrolledPartnerProps["links"]>>(
+  } = useSWR<ProgramPartnerLinkExtended[]>(
     partnerId && workspaceId
       ? `/api/partners/links?partnerId=${partnerId}&workspaceId=${workspaceId}`
       : null,

@@ -8,6 +8,7 @@ import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import useGroup from "@/lib/swr/use-group";
 import { useRewards } from "@/lib/swr/use-rewards";
 import useWorkspace from "@/lib/swr/use-workspace";
+import { ProgramPartnerLinkExtended } from "@/lib/swr/use-program-partner-links";
 import { EnrolledPartnerProps, GroupProps, RewardProps } from "@/lib/types";
 import { REWARD_EVENT_COLUMN_MAPPING } from "@/lib/zod/schemas/rewards";
 import { useConfirmRewardChangeModal } from "@/ui/modals/confirm-reward-change-modal";
@@ -22,7 +23,7 @@ import { useAction } from "next-safe-action/hooks";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 
-type PartnerLink = NonNullable<EnrolledPartnerProps["links"]>[number];
+type PartnerLink = ProgramPartnerLinkExtended;
 type OverrideRewardEvent = "sale" | "lead" | "click";
 
 type PartnerRewardOverridePartner = Pick<
