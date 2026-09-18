@@ -1,6 +1,4 @@
 import { withCron } from "@/lib/cron/with-cron";
-import { createDiscountCode } from "@/lib/discounts/create-discount-code";
-import { isDiscountProviderError } from "@/lib/discounts/discount-error";
 import { remapDiscountCodesForPartnerJob } from "@/lib/jobs/handlers/remap-discount-codes-for-partner-job";
 import { prisma } from "@/lib/prisma";
 import * as z from "zod/v4";
@@ -47,19 +45,20 @@ export const POST = withCron(async ({ rawBody }) => {
     return logAndRespond("No program enrollments found.");
   }
 
-  const group = await prisma.partnerGroup.findUnique({
+  const partnerGroup = await prisma.partnerGroup.findUnique({
     where: {
       id: groupId,
     },
-    include: {
-      discount: true,
+    select: {
+      id: true,
     },
   });
 
-  if (!group) {
+  if (!partnerGroup) {
     return logAndRespond("Group not found.");
   }
 
+  // Remap existing codes and enqueue missing default-link codes per partner.
   await remapDiscountCodesForPartnerJob.dispatchBatch(
     partnerIds.map((partnerId) => ({
       programId,
@@ -69,78 +68,6 @@ export const POST = withCron(async ({ rawBody }) => {
       label: partnerId,
     }),
   );
-
-  if (group.discount?.autoProvisionEnabledAt) {
-    // Find the partner default links that don't have a discount code yet
-    const links = await prisma.link.findMany({
-      where: {
-        partnerId: {
-          in: partnerIds,
-        },
-        programId,
-        partnerGroupDefaultLinkId: {
-          not: null,
-        },
-        discountCode: {
-          is: null,
-        },
-      },
-      select: {
-        id: true,
-        programEnrollment: {
-          select: {
-            partner: {
-              select: {
-                id: true,
-                name: true,
-              },
-            },
-          },
-        },
-      },
-    });
-
-    if (links.length > 0) {
-      const workspace = await prisma.project.findUniqueOrThrow({
-        where: {
-          defaultProgramId: programId,
-        },
-        select: {
-          id: true,
-          webhookEnabled: true,
-          stripeConnectId: true,
-          shopifyStoreId: true,
-        },
-      });
-
-      // Create discount code for the partner default links
-      for (const link of links) {
-        try {
-          await createDiscountCode({
-            workspace,
-            partner: link.programEnrollment!.partner,
-            link,
-            discount: group.discount,
-          });
-        } catch (error) {
-          if (isDiscountProviderError(error)) {
-            if (
-              error.providerCode === "INTEGRATION_NOT_AVAILABLE" ||
-              error.providerCode === "AUTH_EXPIRED" ||
-              error.providerCode === "PERMISSIONS_REQUIRED" ||
-              error.providerCode === "COUPON_NOT_FOUND"
-            ) {
-              console.warn(
-                `${error.message} Skipping remaining discount code creation for remap.`,
-              );
-              break;
-            }
-          }
-          throw error;
-        }
-      }
-    }
-  }
 
   // if the group is deleted, need to check if there are any remaining discount codes, if not, delete the discount
   if (isGroupDeleted && oldDiscount) {

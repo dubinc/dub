@@ -252,15 +252,9 @@ export const POST = withWorkspace(
       ]),
     );
 
-    return NextResponse.json(
-      {
-        ...partnerLink,
-        ...toPartnerLinkRewardIdFields(linkRewardInput),
-      },
-      {
-        status: 201,
-      },
-    );
+    return NextResponse.json(partnerLink, {
+      status: 201,
+    });
   },
   {
     requiredPlan: ["business", "advanced", "enterprise"],

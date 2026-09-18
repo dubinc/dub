@@ -62,10 +62,9 @@ export async function remapDiscountCodes({
 
   for (const discountCode of discountCodes) {
     const existingDiscount = discountCode.discount;
-    const linkDiscount = discountCode.link?.linkReward?.discount;
-
     // Prefer the link discount if it exists, otherwise use the enrollment discount
-    const newDiscount = linkDiscount ?? enrollmentDiscount;
+    const newDiscount =
+      discountCode.link?.linkReward?.discount ?? enrollmentDiscount;
 
     // No discount exists for this discount code, delete it
     if (!newDiscount) {
@@ -116,10 +115,6 @@ async function enqueueMissingDiscountCodes({
 }: Pick<ProgramEnrollment, "programId" | "partnerId"> & {
   enrollmentDiscount: Pick<Discount, "autoProvisionEnabledAt"> | null;
 }) {
-  if (!enrollmentDiscount?.autoProvisionEnabledAt) {
-    return;
-  }
-
   const links = await prisma.link.findMany({
     where: {
       partnerId,
@@ -133,15 +128,29 @@ async function enqueueMissingDiscountCodes({
     },
     select: {
       id: true,
+      linkReward: {
+        select: {
+          discount: {
+            select: {
+              autoProvisionEnabledAt: true,
+            },
+          },
+        },
+      },
     },
   });
 
-  if (links.length === 0) {
+  const linksToProvision = links.filter((link) => {
+    const discount = link.linkReward?.discount ?? enrollmentDiscount;
+    return Boolean(discount?.autoProvisionEnabledAt);
+  });
+
+  if (linksToProvision.length === 0) {
     return;
   }
 
   await enqueueBatchJobs(
-    links.map((link) => ({
+    linksToProvision.map((link) => ({
       queueName: "create-discount-code",
       url: `${APP_DOMAIN_WITH_NGROK}/api/cron/discount-codes/create`,
       deduplicationId: link.id,

@@ -1,12 +1,10 @@
 import "server-only";
 
 import { serializeReward } from "@/lib/api/partners/serialize-reward";
-import { RewardOverrideIds } from "@/lib/api/rewards/reward-overrides";
-import { resolvePartnerLinkRewards } from "@/lib/rewards/resolve-partner-link-rewards";
 import { DiscountProps } from "@/lib/types";
 import { Discount, Reward } from "@prisma/client";
 
-export type LinkRewardWithOptionalRewards = RewardOverrideIds & {
+export type LinkRewardWithOptionalRewards = {
   clickReward?: Reward | null;
   leadReward?: Reward | null;
   saleReward?: Reward | null;
@@ -22,25 +20,20 @@ export function getResolvedPartnerLinkRewards({
   enrollmentRewards: Array<Reward | null | undefined>;
   enrollmentDiscount: Discount | DiscountProps | null | undefined;
 }) {
-  const { clickReward, leadReward, saleReward, discount } =
-    resolvePartnerLinkRewards({
-      link: {
-        clickReward: serializeNullableReward(linkReward?.clickReward),
-        leadReward: serializeNullableReward(linkReward?.leadReward),
-        saleReward: serializeNullableReward(linkReward?.saleReward),
-        discount: linkReward?.discount ?? null,
-      },
-      enrollmentRewards: enrollmentRewards.flatMap((reward) =>
-        reward ? [serializeReward(reward)] : [],
-      ),
-      enrollmentDiscount: enrollmentDiscount ?? null,
-    });
-
   return {
-    clickReward,
-    leadReward,
-    saleReward,
-    discount,
+    clickReward: serializeNullableReward(
+      linkReward?.clickReward ??
+        enrollmentRewards.find((reward) => reward?.event === "click"),
+    ),
+    leadReward: serializeNullableReward(
+      linkReward?.leadReward ??
+        enrollmentRewards.find((reward) => reward?.event === "lead"),
+    ),
+    saleReward: serializeNullableReward(
+      linkReward?.saleReward ??
+        enrollmentRewards.find((reward) => reward?.event === "sale"),
+    ),
+    discount: linkReward?.discount ?? enrollmentDiscount ?? null,
   };
 }
 
