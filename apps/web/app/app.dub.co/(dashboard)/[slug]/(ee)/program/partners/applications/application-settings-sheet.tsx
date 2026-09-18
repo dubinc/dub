@@ -26,7 +26,7 @@ import { cn } from "@dub/utils";
 import { Category } from "@prisma/client";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
-import { Dispatch, SetStateAction, useEffect, useState } from "react";
+import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import {
@@ -65,6 +65,8 @@ function ApplicationSettingsSheetContent({
     "applications" | "marketplace"
   >("applications");
 
+  const hiddenEligibilityConditions = useRef<ApplicationRequirementsDB>([]);
+
   const {
     control,
     handleSubmit,
@@ -86,13 +88,18 @@ function ApplicationSettingsSheetContent({
       return;
     }
 
+    const requirements =
+      (program.applicationRequirements as ApplicationRequirementsDB | null) ??
+      [];
+
+    hiddenEligibilityConditions.current = requirements.filter(
+      (c) => c.key !== "country",
+    );
+
     reset({
       description: program.description ?? "",
       categories: program.categories ?? [],
-      eligibilityConditions: (
-        (program.applicationRequirements as ApplicationRequirementsDB | null) ??
-        []
-      )
+      eligibilityConditions: requirements
         .filter((c) => c.key === "country")
         .map((c) => ({ ...c, key: "country" as const, id: generateId() })),
       applicationScreeningCriteria: program.applicationScreeningCriteria ?? "",
@@ -114,13 +121,16 @@ function ApplicationSettingsSheetContent({
         workspaceId,
         description: data.description,
         categories: data.categories,
-        eligibilityConditions: data.eligibilityConditions
-          .filter((c) => c.key && c.operator && c.value && c.value.length > 0)
-          .map(({ id: _id, key, operator, value }) => ({
-            key: key!,
-            operator: operator!,
-            value: value!,
-          })),
+        eligibilityConditions: [
+          ...data.eligibilityConditions
+            .filter((c) => c.key && c.operator && c.value && c.value.length > 0)
+            .map(({ id: _id, key, operator, value }) => ({
+              key: key!,
+              operator: operator!,
+              value: value!,
+            })),
+          ...hiddenEligibilityConditions.current,
+        ],
         applicationScreeningCriteria: data.applicationScreeningCriteria,
         aiAutoApproveEnabled: data.aiAutoApproveEnabled,
       }).then((result) => {

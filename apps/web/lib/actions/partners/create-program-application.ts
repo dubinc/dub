@@ -338,12 +338,18 @@ async function createApplicationAndEnrollment({
           application,
         }),
 
-        dispatchPartnerApplicationReview({
-          programId: program.id,
-          partnerId: partner.id,
-          autoApprovePartnersEnabledAt: group.autoApprovePartnersEnabledAt,
-          applicationScreeningCriteria: program.applicationScreeningCriteria,
-        }),
+        ...(result.reason === "requirementsNotMet"
+          ? []
+          : [
+              dispatchPartnerApplicationReview({
+                programId: program.id,
+                partnerId: partner.id,
+                autoApprovePartnersEnabledAt:
+                  group.autoApprovePartnersEnabledAt,
+                applicationScreeningCriteria:
+                  program.applicationScreeningCriteria,
+              }),
+            ]),
 
         // Send "partner.application_submitted" webhook
         sendWorkspaceWebhook({
