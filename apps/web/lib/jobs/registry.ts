@@ -83,6 +83,9 @@ const jobLoaders = {
 
   "delete-discount-job": () =>
     import("./handlers/delete-discount-job").then((m) => m.deleteDiscountJob),
+
+  "aggregate-clicks-job": () =>
+    import("./handlers/aggregate-clicks-job").then((m) => m.aggregateClicksJob),
 } as const satisfies Record<string, () => Promise<JobDefinition>>;
 
 const jobCache = new Map<string, JobDefinition>();
