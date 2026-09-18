@@ -1029,6 +1029,12 @@ export const bulkRejectPartnersSchema = z.object({
 
 export const retrievePartnerLinksSchema = partnerIdTenantIdSchema;
 
+// Only Dub UI uses the following query parameters
+export const retrievePartnerLinksSchemaInternal =
+  retrievePartnerLinksSchema.extend({
+    includeRewards: booleanQuerySchema.default(false),
+  });
+
 export const banPartnerSchema = z.object({
   workspaceId: z.string(),
   partnerId: z.string(),

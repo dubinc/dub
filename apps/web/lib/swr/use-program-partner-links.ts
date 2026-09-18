@@ -24,7 +24,7 @@ export function useProgramPartnerLinks(
     isValidating,
   } = useSWR<ProgramPartnerLinkExtended[]>(
     partnerId && workspaceId
-      ? `/api/partners/links?partnerId=${partnerId}&workspaceId=${workspaceId}`
+      ? `/api/partners/links?partnerId=${partnerId}&workspaceId=${workspaceId}&includeRewards=true`
       : null,
     fetcher,
     swrOptions,

@@ -20,9 +20,12 @@ import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { linkEventSchema } from "@/lib/zod/schemas/links";
 import {
   createPartnerLinkSchemaInternal,
-  retrievePartnerLinksSchema,
+  retrievePartnerLinksSchemaInternal,
 } from "@/lib/zod/schemas/partners";
-import { ProgramPartnerLinkSchemaInternal } from "@/lib/zod/schemas/programs";
+import {
+  ProgramPartnerLinkSchema,
+  ProgramPartnerLinkSchemaInternal,
+} from "@/lib/zod/schemas/programs";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
@@ -32,8 +35,8 @@ export const GET = withWorkspace(
   async ({ workspace, searchParams }) => {
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    const { partnerId, tenantId } =
-      retrievePartnerLinksSchema.parse(searchParams);
+    const { partnerId, tenantId, includeRewards } =
+      retrievePartnerLinksSchemaInternal.parse(searchParams);
 
     throwIfNoPartnerIdOrTenantId({ partnerId, tenantId });
 
@@ -54,7 +57,7 @@ export const GET = withWorkspace(
       select: {
         links: {
           include: {
-            linkReward: true,
+            linkReward: includeRewards,
           },
         },
       },
@@ -67,14 +70,19 @@ export const GET = withWorkspace(
       });
     }
 
-    const links = programEnrollment.links.map((link) => ({
-      ...link,
-      ...toPartnerLinkRewardIdFields(link.linkReward),
-    }));
+    // Not exposing the reward ids to the public API for now
+    const links = includeRewards
+      ? programEnrollment.links.map((link) => ({
+          ...link,
+          ...toPartnerLinkRewardIdFields(link.linkReward),
+        }))
+      : programEnrollment.links;
 
-    return NextResponse.json(
-      z.array(ProgramPartnerLinkSchemaInternal).parse(links),
-    );
+    const responseSchema = includeRewards
+      ? ProgramPartnerLinkSchemaInternal
+      : ProgramPartnerLinkSchema;
+
+    return NextResponse.json(z.array(responseSchema).parse(links));
   },
   {
     requiredPlan: ["business", "advanced", "enterprise"],

@@ -238,6 +238,7 @@ export function Combobox({
       setOpenPopover={setIsOpen}
       align="start"
       side={side}
+      collisionPadding={8}
       forceDropdown={forceDropdown}
       onWheel={(e) => {
         // Allows scrolling to work when the popover's in a modal
