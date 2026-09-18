@@ -1,5 +1,5 @@
 import { cn } from "@dub/utils";
-import Link from "next/link";
+import { CustomerCarousel } from "./customer-carousel";
 import { CustomerLogos } from "./customer-logos";
 
 export function SidePanel() {
@@ -26,36 +26,9 @@ export function SidePanel() {
         </div>
       ))}
 
-      {/* Testimonial section - vertically centered */}
+      {/* Customer carousel - vertically centered */}
       <div className="relative flex grow items-center justify-center p-8 lg:p-14">
-        <div className="flex flex-col gap-6">
-          <div className="relative overflow-hidden rounded-xl border border-neutral-900/10">
-            <img
-              src="https://assets.dub.co/cms/framer-thumbnail.jpg"
-              alt="Framer team"
-              className="aspect-[16/12] w-full object-cover"
-            />
-            <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-neutral-900 to-transparent opacity-30" />
-            <img
-              src="https://assets.dub.co/companies/framer.svg"
-              alt="Framer"
-              className="absolute left-6 top-6 h-8 w-auto brightness-0 invert"
-            />
-          </div>
-
-          <p className="text-content-default max-w-[370px] text-pretty text-xl font-medium">
-            Learn how Framer manages $900K+ in monthly affiliate payouts with
-            Dub
-          </p>
-
-          <Link
-            href="https://dub.co/customers/framer"
-            target="_blank"
-            className="text-content-emphasis flex h-8 w-fit items-center rounded-lg bg-black/5 px-3 text-sm font-medium transition-[transform,background-color] duration-75 hover:bg-black/10 active:scale-[0.98]"
-          >
-            Read more
-          </Link>
-        </div>
+        <CustomerCarousel />
       </div>
 
       <CustomerLogos />
