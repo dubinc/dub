@@ -21,9 +21,9 @@ import { SearchBoxPersisted } from "@/ui/shared/search-box";
 import {
   AnimatedSizeContainer,
   Button,
-  ChartLine,
   EditColumnsButton,
   Filter,
+  LinesY,
   MenuItem,
   Popover,
   Table,
@@ -480,7 +480,7 @@ export function ProgramPartnersApplicationsPageClient() {
                 <Button
                   variant="secondary"
                   className="w-fit"
-                  icon={<ChartLine className="h-4 w-4 text-neutral-600" />}
+                  icon={<LinesY className="h-4 w-4 text-neutral-600" />}
                   text={isMobile ? undefined : "View Analytics"}
                 />
               </Link>
