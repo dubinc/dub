@@ -4,32 +4,35 @@ import { cn } from "@dub/utils";
 
 const CUSTOMER_LOGOS: { name: string; src: string; className?: string }[] = [
   {
-    name: "Framer",
-    src: "https://assets.dub.co/companies/framer.svg",
-    className: "h-6",
-  },
-  {
-    name: "Granola",
-    src: "https://assets.dub.co/companies/granola.svg",
+    name: "beehiiv",
+    src: "https://assets.dub.co/companies/beehiiv.svg",
     className: "h-5",
   },
-  { name: "Buffer", src: "https://assets.dub.co/companies/buffer.svg" },
   {
-    name: "Copper",
-    src: "https://assets.dub.co/companies/copper.svg",
+    name: "Wispr Flow",
+    src: "https://assets.dub.co/companies/wisprflow.svg",
     className: "h-4",
   },
+  { name: "Granola", src: "https://assets.dub.co/companies/granola.svg" },
   {
-    name: "Perplexity",
-    src: "https://assets.dub.co/companies/perplexity.svg",
+    name: "Superhuman",
+    src: "https://assets.dub.co/companies/superhuman.svg",
     className: "h-5",
   },
-  { name: "Wispr Flow", src: "https://assets.dub.co/companies/flow.svg" },
+  {
+    name: "Polymarket",
+    src: "https://assets.dub.co/companies/polymarket.svg",
+  },
+  {
+    name: "Viktor",
+    src: "https://assets.dub.co/companies/viktor.svg",
+    className: "h-4",
+  },
 ];
 
 export function CustomerLogos() {
   return (
-    <div className="relative z-10 mx-auto flex max-w-md flex-wrap items-center justify-center gap-x-14 gap-y-8 px-8 pb-12 pt-6 lg:px-10">
+    <div className="relative z-10 mx-auto grid max-w-md grid-cols-3 place-items-center gap-x-12 gap-y-8 px-12 pb-12 pt-6 lg:px-8">
       {CUSTOMER_LOGOS.map((logo, index) => (
         <img
           key={logo.name}
