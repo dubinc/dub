@@ -37,7 +37,7 @@ export * from "./chart-line";
 export * from "./chat-task";
 export * from "./check";
 export * from "./check2";
-export { CheckboxIcon } from "./checkbox";
+export * from "./checkbox";
 export * from "./chevron-left";
 export * from "./chevron-right";
 export * from "./chevron-up";

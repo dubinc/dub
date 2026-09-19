@@ -19,18 +19,20 @@ import { ThreeDots } from "@/ui/shared/icons";
 import {
   Button,
   CardList,
+  Copy,
   CursorRays,
+  Discount,
+  DiscountCode,
   InvoiceDollar,
   LoadingSpinner,
   MenuItem,
   Popover,
-  Receipt2,
+  Shuffle,
   Tooltip,
   TooltipContent,
   UserCheck,
   useCopyToClipboard,
 } from "@dub/ui";
-import { Copy, Discount, DiscountCode } from "@dub/ui/icons";
 import {
   cn,
   currencyFormatter,
@@ -118,7 +120,7 @@ const PARTNER_LINK_STATS = [
   },
   {
     id: "conversions",
-    icon: Receipt2,
+    icon: Shuffle,
     event: "sales",
     iconClassName: "data-[active=true]:text-orange-500",
     getValue: (link: PartnerLink) =>
@@ -132,21 +134,11 @@ const PARTNER_LINK_STATS = [
     icon: InvoiceDollar,
     event: "sales",
     iconClassName: "data-[active=true]:text-teal-500",
-    getValue: (link: PartnerLink) => {
-      const count = link.saleAmount;
-      const formatted =
-        count > 0
-          ? currencyFormatter(count, {
-              trailingZeroDisplay: "stripIfInteger",
-            })
-          : nFormatter(count);
-
-      return {
-        count,
-        formatted,
-        tooltip: `${formatted} revenue`,
-      };
-    },
+    getValue: (link: PartnerLink) => ({
+      count: link.saleAmount,
+      formatted: `$${nFormatter(link.saleAmount / 100)}`,
+      tooltip: `${currencyFormatter(link.saleAmount, { trailingZeroDisplay: "stripIfInteger" })} revenue`,
+    }),
   },
 ] as const;
 

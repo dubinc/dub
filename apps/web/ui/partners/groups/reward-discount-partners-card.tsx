@@ -155,6 +155,10 @@ function PartnersCompactTable({
       cn("border-l-0", columnId !== "menu" && "max-w-0 truncate"),
     resourceName: (p: boolean) => `partner${p ? "s" : ""}`,
     rowCount: partners?.length || 0,
+    onRowClick: (row) =>
+      window.open(`/${slug}/program/partners/${row.original.id}`, "_blank"),
+    onRowAuxClick: (row) =>
+      window.open(`/${slug}/program/partners/${row.original.id}`, "_blank"),
   });
 
   const viewAllParams = new URLSearchParams({ groupId });
