@@ -9,6 +9,17 @@ import { linkCache } from "./cache";
 import { includeProgramEnrollment } from "./include-program-enrollment";
 import { includeTags } from "./include-tags";
 
+// Analytics groups by base URL with a trailing slash (e.g. "https://dub.co/"),
+// while test variants store the URL without one
+const normalizeUrl = (url: string) => url.replace(/\/$/, "");
+
+type VariantStats = {
+  url: string;
+  clicks: number;
+  leads: number;
+  sales: number;
+};
+
 export async function completeABTests(link: Link) {
   if (!link.testVariants || !link.testCompletedAt || !link.projectId) {
     return;
@@ -16,8 +27,14 @@ export async function completeABTests(link: Link) {
 
   const testVariants = ABTestVariantsSchema.parse(link.testVariants);
 
-  const analytics: { url: string; leads: number }[] = await getAnalytics({
-    event: "leads",
+  const analytics: {
+    url: string;
+    clicks: number;
+    leads: number;
+    sales: number;
+    saleAmount: number;
+  }[] = await getAnalytics({
+    event: "composite",
     groupBy: "top_base_urls",
     linkId: link.id,
     workspaceId: link.projectId,
@@ -25,34 +42,52 @@ export async function completeABTests(link: Link) {
     end: link.testCompletedAt,
   });
 
-  const max = Math.max(
-    ...testVariants.map(
-      (test) => analytics.find(({ url }) => url === test.url)?.leads || 0,
-    ),
-  );
+  const stats: VariantStats[] = testVariants.map((test) => {
+    const variantAnalytics = analytics.find(
+      ({ url }) => normalizeUrl(url) === normalizeUrl(test.url),
+    );
 
-  // There are no leads generated for any test variant, do nothing
-  if (max === 0) {
+    return {
+      url: test.url,
+      clicks: variantAnalytics?.clicks ?? 0,
+      leads: variantAnalytics?.leads ?? 0,
+      sales: variantAnalytics?.sales ?? 0,
+    };
+  });
+
+  // No data recorded for any variant, do nothing
+  if (stats.every(({ clicks, leads, sales }) => !clicks && !leads && !sales)) {
     console.log(
       `AB Test completed but all results are zero for ${link.id}, doing nothing.`,
     );
     return;
   }
 
-  const winners = testVariants.filter(
-    (test) =>
-      (analytics.find(({ url }) => url === test.url)?.leads || 0) === max,
-  );
+  // If any conversions were recorded, pick by conversions, then conversion
+  // rate, then clicks. Otherwise pick by leads, then lead rate, then clicks.
+  const criteria: ((stats: VariantStats) => number)[] = stats.some(
+    ({ sales }) => sales > 0,
+  )
+    ? [
+        ({ sales }) => sales,
+        ({ sales, clicks }) => (clicks > 0 ? sales / clicks : 0),
+        ({ clicks }) => clicks,
+      ]
+    : [
+        ({ leads }) => leads,
+        ({ leads, clicks }) => (clicks > 0 ? leads / clicks : 0),
+        ({ clicks }) => clicks,
+      ];
 
-  // this should NEVER happen, but just in case
-  if (winners.length === 0) {
-    console.log(
-      `AB Test completed but failed to find winners based on max leads for link ${link.id}, doing nothing.`,
-    );
-    return;
+  let candidates = stats;
+  for (const criterion of criteria) {
+    const max = Math.max(...candidates.map(criterion));
+    candidates = candidates.filter((stats) => criterion(stats) === max);
+    if (candidates.length === 1) break;
   }
 
-  const winner = winners[Math.floor(Math.random() * winners.length)];
+  // Fully tied on all criteria – pick randomly among the tied variants
+  const winner = candidates[Math.floor(Math.random() * candidates.length)];
 
   if (winner.url === link.url) {
     return;
