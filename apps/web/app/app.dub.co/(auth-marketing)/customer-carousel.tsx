@@ -31,7 +31,7 @@ const CUSTOMERS: {
     name: "Wispr Flow",
     slug: "wisprflow",
     logo: "https://assets.dub.co/companies/wisprflow.svg",
-    image: "https://assets.dub.co/cms/wisprflow-cover2.jpg",
+    image: "https://assets.dub.co/cms/wisprflow-cover.jpg",
     headline: "Learn how Wispr Flow reached millions more users with Dub",
     color: "#024F46",
   },
