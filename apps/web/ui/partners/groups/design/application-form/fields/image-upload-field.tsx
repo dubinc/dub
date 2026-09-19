@@ -47,7 +47,11 @@ function ImageUploadFieldContent({
   controllerField: { value: any; onChange: (value: any) => void };
   maxImages: number;
   error: boolean;
-  uploadFile: (params: { programSlug: string }) => Promise<any>;
+  uploadFile: (params: {
+    programSlug: string;
+    contentType: string;
+    contentLength: number;
+  }) => Promise<any>;
   onStatusChange?: (loading: boolean) => void;
 }) {
   const currentValue = controllerField.value || [];
@@ -173,6 +177,8 @@ function ImageUploadFieldContent({
     try {
       const result = await uploadFile({
         programSlug,
+        contentType: file.type,
+        contentLength: file.size,
       });
 
       if (!result?.data) {

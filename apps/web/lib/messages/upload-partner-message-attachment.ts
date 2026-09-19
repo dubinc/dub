@@ -1,13 +1,10 @@
 "use server";
 
-import {
-  MAX_ATTACHMENT_NAME_LENGTH,
-  MAX_ATTACHMENT_SIZE_BYTES,
-  PARTNER_ALLOWED_ATTACHMENT_TYPES,
-} from "@/lib/messages/constants";
+import { MAX_ATTACHMENT_NAME_LENGTH } from "@/lib/messages/constants";
 import { sanitizeFileName } from "@/lib/messages/utils";
 import { prisma } from "@/lib/prisma";
-import { storage } from "@/lib/storage";
+import { createSignedUploadUrl } from "@/lib/storage/create-signed-upload-url";
+import { signedUploadInputSchema } from "@/lib/storage/schemas";
 import { ratelimit } from "@/lib/upstash";
 import { RATELIMIT_POLICIES } from "@/lib/upstash/ratelimit-policies";
 import { nanoid } from "@dub/utils";
@@ -18,8 +15,7 @@ import { COMMISSION_ELIGIBLE_ENROLLMENT_STATUSES } from "../zod/schemas/partners
 const schema = z.object({
   programSlug: z.string(),
   fileName: z.string().trim().min(1).max(MAX_ATTACHMENT_NAME_LENGTH),
-  contentType: z.enum(PARTNER_ALLOWED_ATTACHMENT_TYPES),
-  contentLength: z.number().int().positive().max(MAX_ATTACHMENT_SIZE_BYTES),
+  ...signedUploadInputSchema.shape,
 });
 
 const rateLimitPolicy = RATELIMIT_POLICIES.messageAttachmentUpload;
@@ -79,10 +75,9 @@ export const uploadPartnerMessageAttachmentAction = authPartnerActionClient
       throw new Error("You are not able to message this program.");
     }
 
-    const storageKey = `messages/${program.id}/${nanoid(10)}/${sanitizeFileName(fileName)}`;
-
-    const signedUrl = await storage.getSignedUploadUrl({
-      key: storageKey,
+    const { key, signedUrl } = await createSignedUploadUrl({
+      key: `messages/${program.id}/${nanoid(10)}/${sanitizeFileName(fileName)}`,
+      policy: "partnerMessageAttachments",
       bucket: "private",
       contentLength,
       contentType,
@@ -90,6 +85,6 @@ export const uploadPartnerMessageAttachmentAction = authPartnerActionClient
 
     return {
       signedUrl,
-      storageKey,
+      storageKey: key,
     };
   });

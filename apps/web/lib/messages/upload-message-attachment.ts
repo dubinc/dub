@@ -1,13 +1,10 @@
 "use server";
 
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
-import {
-  MAX_ATTACHMENT_NAME_LENGTH,
-  MAX_ATTACHMENT_SIZE_BYTES,
-  PROGRAM_ALLOWED_ATTACHMENT_TYPES,
-} from "@/lib/messages/constants";
+import { MAX_ATTACHMENT_NAME_LENGTH } from "@/lib/messages/constants";
 import { sanitizeFileName } from "@/lib/messages/utils";
-import { storage } from "@/lib/storage";
+import { createSignedUploadUrl } from "@/lib/storage/create-signed-upload-url";
+import { signedUploadInputSchema } from "@/lib/storage/schemas";
 import { ratelimit } from "@/lib/upstash";
 import { RATELIMIT_POLICIES } from "@/lib/upstash/ratelimit-policies";
 import { nanoid } from "@dub/utils";
@@ -18,8 +15,7 @@ import { throwIfNoPermission } from "../actions/throw-if-no-permission";
 const schema = z.object({
   workspaceId: z.string(),
   fileName: z.string().trim().min(1).max(MAX_ATTACHMENT_NAME_LENGTH),
-  contentType: z.enum(PROGRAM_ALLOWED_ATTACHMENT_TYPES),
-  contentLength: z.number().int().positive().max(MAX_ATTACHMENT_SIZE_BYTES),
+  ...signedUploadInputSchema.shape,
 });
 
 const rateLimitPolicy = RATELIMIT_POLICIES.messageAttachmentUpload;
@@ -46,10 +42,9 @@ export const uploadMessageAttachmentAction = authActionClient
       throw new Error("Too many file uploads. Please try again later.");
     }
 
-    const storageKey = `messages/${programId}/${nanoid(10)}/${sanitizeFileName(fileName)}`;
-
-    const signedUrl = await storage.getSignedUploadUrl({
-      key: storageKey,
+    const { key, signedUrl } = await createSignedUploadUrl({
+      key: `messages/${programId}/${nanoid(10)}/${sanitizeFileName(fileName)}`,
+      policy: "programMessageAttachments",
       bucket: "private",
       contentLength,
       contentType,
@@ -57,6 +52,6 @@ export const uploadMessageAttachmentAction = authActionClient
 
     return {
       signedUrl,
-      storageKey,
+      storageKey: key,
     };
   });

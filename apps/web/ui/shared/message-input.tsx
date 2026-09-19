@@ -4,10 +4,8 @@ import {
   MAX_MESSAGE_LENGTH,
 } from "@/lib/messages/constants";
 import { messageAttachmentInputSchema } from "@/lib/messages/schemas";
-import {
-  getAttachmentTypeLabel,
-  isPreviewableImageType,
-} from "@/lib/messages/utils";
+import { isPreviewableImageType } from "@/lib/messages/utils";
+import { getMimeTypeLabel } from "@/lib/storage/upload-policies";
 import useWorkspace from "@/lib/swr/use-workspace";
 import {
   ArrowTurnLeft,
@@ -390,7 +388,7 @@ function getUnsupportedFileTypeMessage(allowedFileTypes: readonly string[]) {
   }
 
   const allowedLabels = formatList(
-    allowedFileTypes.map((type) => getAttachmentTypeLabel(type)),
+    allowedFileTypes.map((type) => getMimeTypeLabel(type)),
   );
 
   return `File type not supported. Upload a ${allowedLabels}.`;
@@ -465,7 +463,7 @@ function AttachmentChip({
         )}
       >
         <File className="size-3 shrink-0" />
-        <span>{getAttachmentTypeLabel(attachment.type)}</span>
+        <span>{getMimeTypeLabel(attachment.type)}</span>
       </div>
 
       <div className="flex min-w-0 max-w-[120px] flex-col">

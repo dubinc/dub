@@ -67,8 +67,13 @@ export default function AddEditIntegrationForm({
 
     const response = await fetch(`/api/workspaces/${workspaceId}/upload-url`, {
       method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
       body: JSON.stringify({
-        folder: "integration-screenshots",
+        folder: "integrationScreenshots",
+        contentType: file.type,
+        contentLength: file.size,
       }),
     });
 
@@ -77,7 +82,7 @@ export default function AddEditIntegrationForm({
       return;
     }
 
-    const { signedUrl, key } = await response.json();
+    const { key, signedUrl } = await response.json();
 
     const uploadResponse = await fetch(signedUrl, {
       method: "PUT",

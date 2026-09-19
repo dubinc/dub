@@ -6,6 +6,7 @@ import {
   BOUNTY_MAX_SUBMISSION_URLS,
 } from "@/lib/bounty/constants";
 import { resolveBountyDetails } from "@/lib/bounty/utils";
+import { UPLOAD_POLICIES } from "@/lib/storage/upload-policies";
 import { PartnerBountyProps, PartnerPlatformProps } from "@/lib/types";
 import { evaluateSocialContentRequirements } from "@/ui/partners/bounties/evaluate-social-content-requirements";
 import { X } from "@/ui/shared/icons";
@@ -186,7 +187,9 @@ export function EmbedImagesField({
         ))}
 
         <FileUpload
-          accept="images"
+          acceptedFileTypes={
+            UPLOAD_POLICIES.bountySubmissionImages.contentTypes
+          }
           className={cn(
             "border-border-subtle h-full w-auto rounded-md border",
             files.length > 0 ? "aspect-square" : "aspect-[unset] w-full",
@@ -198,7 +201,9 @@ export function EmbedImagesField({
           }
           onChange={async ({ file }) => await handleUpload(file)}
           disabled={files.length >= maxFiles}
-          maxFileSizeMB={5}
+          maxFileSizeMB={
+            UPLOAD_POLICIES.bountySubmissionImages.maxBytes / (1024 * 1024)
+          }
         />
       </div>
     </div>
