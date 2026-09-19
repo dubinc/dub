@@ -2,6 +2,10 @@
 
 import { constructRewardAmount } from "@/lib/api/sales/construct-reward-amount";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
+import {
+  applyTooltipSuggestion,
+  suggestionTouchesField,
+} from "@/lib/rewards/validate-tooltip-suggestion";
 import { SUBMITTED_LEADS_ENABLED_PROGRAM_IDS } from "@/lib/submitted-leads/constants";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -61,6 +65,15 @@ import {
 } from "../../shared/inline-badge-popover";
 import { useAddEditRewardForm } from "./add-edit-reward-sheet";
 import { RewardIconSquare } from "./reward-icon-square";
+import {
+  SuggestedFixBadge,
+  SuggestedFixPopoverHost,
+} from "./suggested-fix-popover";
+import {
+  RewardTooltipConsistencyContext,
+  useRewardTooltipConsistency,
+  useRewardTooltipConsistencyContext,
+} from "./use-reward-tooltip-consistency";
 
 export const REWARD_TYPES = [
   {
@@ -78,9 +91,33 @@ export function RewardsLogic({
 }: {
   isDefaultReward: boolean;
 }) {
-  const { plan } = useWorkspace();
+  const { plan, id: workspaceId } = useWorkspace();
 
-  const { control, getValues } = useAddEditRewardForm();
+  const { control, getValues, setValue } = useAddEditRewardForm();
+  const [event, tooltipDescription, modifiers] = useWatch({
+    control,
+    name: ["event", "tooltipDescription", "modifiers"],
+  });
+
+  const consistency = useRewardTooltipConsistency({
+    workspaceId,
+    event,
+    tooltipDescription,
+    modifiers,
+    onApply: (suggestion) => {
+      const conditionKey =
+        `modifiers.${suggestion.modifierIndex}.conditions.${suggestion.conditionIndex}` as const;
+      const current = getValues(conditionKey);
+
+      if (!current) return;
+
+      setValue(
+        conditionKey,
+        applyTooltipSuggestion(current, suggestion.suggested),
+        { shouldDirty: true },
+      );
+    },
+  });
 
   const {
     fields: modifierFields,
@@ -92,57 +129,63 @@ export function RewardsLogic({
   });
 
   return (
-    <div
-      className={cn("flex flex-col gap-2", !!modifierFields.length && "-mt-2")}
-    >
-      {modifierFields.map((field, index) => (
-        <ConditionalGroup
-          key={field.id}
-          index={index}
-          groupCount={modifierFields.length}
-          onRemove={() => removeModifier(index)}
-        />
-      ))}
-      <Button
-        className="h-8 rounded-lg"
-        icon={<ArrowTurnRight2 className="size-4" />}
-        text={
-          <div className="flex items-center gap-2">
-            <span>Add condition</span>
-            {!getPlanCapabilities(plan).canUseAdvancedRewardLogic && (
-              <div
-                className={cn(
-                  "rounded-sm px-1.5 py-1 text-[0.625rem] uppercase leading-none",
-                  isDefaultReward
-                    ? "bg-violet-500/50 text-violet-200"
-                    : "bg-violet-50 text-violet-600",
-                )}
-              >
-                Upgrade required
-              </div>
-            )}
-          </div>
-        }
-        onClick={() => {
-          const type = getValues("type");
+    <RewardTooltipConsistencyContext.Provider value={consistency}>
+      <SuggestedFixPopoverHost />
+      <div
+        className={cn(
+          "flex flex-col gap-2",
+          !!modifierFields.length && "-mt-2",
+        )}
+      >
+        {modifierFields.map((field, index) => (
+          <ConditionalGroup
+            key={field.id}
+            index={index}
+            groupCount={modifierFields.length}
+            onRemove={() => removeModifier(index)}
+          />
+        ))}
+        <Button
+          className="h-8 rounded-lg"
+          icon={<ArrowTurnRight2 className="size-4" />}
+          text={
+            <div className="flex items-center gap-2">
+              <span>Add condition</span>
+              {!getPlanCapabilities(plan).canUseAdvancedRewardLogic && (
+                <div
+                  className={cn(
+                    "rounded-sm px-1.5 py-1 text-[0.625rem] uppercase leading-none",
+                    isDefaultReward
+                      ? "bg-violet-500/50 text-violet-200"
+                      : "bg-violet-50 text-violet-600",
+                  )}
+                >
+                  Upgrade required
+                </div>
+              )}
+            </div>
+          }
+          onClick={() => {
+            const type = getValues("type");
 
-          appendModifier({
-            id: uuid(),
-            operator: "AND",
-            conditions: [{}],
-            amountInCents:
-              type === "flat" ? getValues("amountInCents") || 0 : undefined,
-            amountInPercentage:
-              type === "percentage"
-                ? getValues("amountInPercentage") || 0
-                : undefined,
-            type,
-            maxDuration: getValues("maxDuration"),
-          });
-        }}
-        variant={isDefaultReward ? "primary" : "secondary"}
-      />
-    </div>
+            appendModifier({
+              id: uuid(),
+              operator: "AND",
+              conditions: [{}],
+              amountInCents:
+                type === "flat" ? getValues("amountInCents") || 0 : undefined,
+              amountInPercentage:
+                type === "percentage"
+                  ? getValues("amountInPercentage") || 0
+                  : undefined,
+              type,
+              maxDuration: getValues("maxDuration"),
+            });
+          }}
+          variant={isDefaultReward ? "primary" : "secondary"}
+        />
+      </div>
+    </RewardTooltipConsistencyContext.Provider>
   );
 }
 
@@ -385,6 +428,26 @@ function ConditionLogic({
     control,
     name: ["event", conditionKey, `${modifierKey}.operator`],
   });
+  const suggestion = useRewardTooltipConsistencyContext()?.getSuggestion(
+    modifierIndex,
+    conditionIndex,
+  );
+  const highlightOperator = Boolean(
+    suggestion &&
+      suggestionTouchesField({
+        field: "operator",
+        current: condition ?? {},
+        suggested: suggestion.suggested,
+      }),
+  );
+  const highlightValue = Boolean(
+    suggestion &&
+      suggestionTouchesField({
+        field: "value",
+        current: condition ?? {},
+        suggested: suggestion.suggested,
+      }),
+  );
 
   const [displayProductLabel, setDisplayProductLabel] = useState(false);
 
@@ -586,6 +649,13 @@ function ConditionLogic({
                 )}
                 {isCustomerSourceCondition || isSaleTypeCondition ? (
                   <span className="text-content-emphasis font-medium">is </span>
+                ) : highlightOperator && condition.operator ? (
+                  <SuggestedFixBadge
+                    text={CONDITION_OPERATOR_LABELS[condition.operator]}
+                    field="operator"
+                    modifierIndex={modifierIndex}
+                    conditionIndex={conditionIndex}
+                  />
                 ) : (
                   <InlineBadgePopover
                     text={
@@ -665,7 +735,22 @@ function ConditionLogic({
                 )}{" "}
                 {condition.operator && (
                   <>
-                    {attributeType === "date" && !isMetadataCondition ? (
+                    {highlightValue ? (
+                      <SuggestedFixBadge
+                        text={
+                          formatValue(
+                            condition.value,
+                            attribute,
+                            isMetadataCondition
+                              ? condition.operator
+                              : undefined,
+                          ) ?? "Value"
+                        }
+                        field="value"
+                        modifierIndex={modifierIndex}
+                        conditionIndex={conditionIndex}
+                      />
+                    ) : attributeType === "date" && !isMetadataCondition ? (
                       <DatePicker
                         value={
                           condition.value

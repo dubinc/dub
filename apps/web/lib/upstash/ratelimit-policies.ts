@@ -96,6 +96,12 @@ export const RATELIMIT_POLICIES = {
     keyPrefix: "rl:ai:reward:generate",
   },
 
+  aiRewardTooltipReview: {
+    attempts: 20,
+    window: "1 m",
+    keyPrefix: "rl:ai:reward:tooltip-review",
+  },
+
   // Keyed on workspace + user so one actor cannot exhaust the workspace quota
   forwardDnsInstructions: {
     attempts: 10,
