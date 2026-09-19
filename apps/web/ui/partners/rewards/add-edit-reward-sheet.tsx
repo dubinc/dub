@@ -43,9 +43,9 @@ import { motion } from "motion/react";
 import { useAction } from "next-safe-action/hooks";
 import {
   Dispatch,
-  MutableRefObject,
   PropsWithChildren,
   ReactNode,
+  RefObject,
   SetStateAction,
   useContext,
   useEffect,
@@ -223,7 +223,7 @@ function RewardSheetContent({
   hasPendingChangesRef,
 }: RewardSheetProps & {
   nested?: boolean;
-  hasPendingChangesRef: MutableRefObject<boolean>;
+  hasPendingChangesRef: RefObject<boolean>;
 }) {
   const { group, mutateGroup } = useGroup({
     groupIdOrSlug: groupIdOrSlug ?? undefined,
@@ -261,6 +261,7 @@ function RewardSheetContent({
     slug: workspaceSlug,
     defaultProgramId,
     plan,
+    flags,
   } = useWorkspace({
     // lower dedupingInterval + revalidateOnFocus in case user upgrades their plan in another tab
     swrOpts: {
@@ -374,11 +375,8 @@ function RewardSheetContent({
 
   // Compute amount based on type
   const amount = type === "flat" ? amountInCents : amountInPercentage;
-  const {
-    canCreateReferralReward,
-    canSetRewardSpendLimit,
-    canUseAdvancedRewardLogic,
-  } = getPlanCapabilities(plan);
+  const { canCreateReferralReward, canUseAdvancedRewardLogic } =
+    getPlanCapabilities(plan);
 
   const isAiRewardEvent =
     selectedEvent !== "referral" && selectedEvent !== "custom";
@@ -392,9 +390,9 @@ function RewardSheetContent({
   hasPendingChangesRef.current = isDirty || aiBuilder.isReviewing;
 
   const spendLimitEnabled =
-    canSetRewardSpendLimit && spendLimitInterval != null;
+    flags?.rewardSpendLimit && spendLimitInterval != null;
   const hasIncompleteMainSpendLimit =
-    canSetRewardSpendLimit &&
+    flags?.rewardSpendLimit &&
     spendLimitInterval != null &&
     (spendLimitAmount == null || isNaN(spendLimitAmount));
 
@@ -657,7 +655,7 @@ function RewardSheetContent({
                             {modifiers?.length ? (
                               <> for all other {selectedEvent}s</>
                             ) : null}
-                            {canSetRewardSpendLimit ? (
+                            {flags?.rewardSpendLimit ? (
                               <>
                                 {", "}with{" "}
                                 <InlineBadgePopover

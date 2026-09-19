@@ -1,10 +1,13 @@
 import { ProgressiveBlur } from "@dub/ui";
 import { cn } from "@dub/utils";
 
-const LOGO_COUNT = 13;
+// Number of logos in the sprite sheet
+const LOGO_COUNT = 23;
+// Logos shown per row (a random subset of the sprite)
+const VISIBLE_PER_ROW = 12;
 const ROW_COUNT = 4;
 
-// Randomly shuffle the logos in each row
+// Randomly shuffle the logos and pick a subset for each row
 const ROWS = [...Array(ROW_COUNT)].map(() => {
   const cols = [...Array(LOGO_COUNT)].map((_, col) => col);
 
@@ -21,7 +24,7 @@ const ROWS = [...Array(ROW_COUNT)].map(() => {
     ];
   }
 
-  return cols;
+  return cols.slice(0, VISIBLE_PER_ROW);
 });
 
 const BLUR_STEPS = 5;
@@ -77,7 +80,7 @@ export function ProgramLogos() {
                             className="size-[4.5rem] rounded-full"
                             style={{
                               backgroundImage:
-                                "url(https://assets.dub.co/misc/partner-auth-logos.png)",
+                                "url(https://assets.dub.co/cms/partner-auth-logo-grid.png)",
                               backgroundSize: `${LOGO_COUNT * 100}%`,
                               backgroundPositionX:
                                 (LOGO_COUNT - (logoIndex % LOGO_COUNT)) * 100 +

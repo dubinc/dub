@@ -206,7 +206,12 @@ export const getMarketplaceProgramsSummary = cache(async () => {
     .map(formatNetworkProgram);
 
   const mostPopular = selectRow(programs, byMarketplaceRanking);
-  const newPrograms = selectRow(programs, byRecency);
+  const newPrograms = selectPrograms(
+    programs,
+    new Set(),
+    MARKETPLACE_HOME_ROW_PAGE_SIZE,
+    byRecency,
+  ).map(formatNetworkProgram);
   const categoryRows = selectCategoryRows(programMeta, usedIds);
 
   const categories = Object.fromEntries(
