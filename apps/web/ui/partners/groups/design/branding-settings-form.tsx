@@ -2,7 +2,7 @@
 
 import { updateGroupBrandingAction } from "@/lib/actions/partners/update-group-branding";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { ProgramColorPicker } from "@/ui/partners/program-color-picker";
+import { ColorPicker } from "@/ui/shared/color-picker";
 import { Button, FileUpload, InfoTooltip } from "@dub/ui";
 import { Plus } from "@dub/ui/icons";
 import { cn } from "@dub/utils/src";
@@ -145,10 +145,14 @@ export function BrandingSettingsForm() {
                 control={control}
                 name="brandColor"
                 render={({ field }) => (
-                  <ProgramColorPicker
-                    color={field.value}
+                  <ColorPicker
+                    value={field.value}
                     onChange={field.onChange}
+                    showDefault
+                    side="right"
+                    align="end"
                     id={id}
+                    className="size-7"
                   />
                 )}
               />
