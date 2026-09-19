@@ -1,14 +1,14 @@
-// check if a link can be displayed in an iframe
-export const isIframeable = async ({
-  url,
+// Determine whether a fetched page can be displayed in an iframe by the
+// requesting domain, given the response's CSP / X-Frame-Options headers.
+// The caller is responsible for fetching the URL (use an SSRF-safe fetcher).
+export const isIframeable = ({
+  headers,
   requestDomain,
 }: {
-  url: string;
+  headers: Headers;
   requestDomain: string;
 }) => {
-  const res = await fetch(url);
-
-  const cspHeader = res.headers.get("content-security-policy");
+  const cspHeader = headers.get("content-security-policy");
   if (cspHeader) {
     const frameAncestorsMatch = cspHeader.match(
       /frame-ancestors\s+([\s\S]+?)(?=;|$)/i,
@@ -24,7 +24,13 @@ export const isIframeable = async ({
     }
   }
 
-  const xFrameOptions = res.headers.get("X-Frame-Options");
+  // X-Frame-Options values are tokens per RFC 7034 but some servers send
+  // them lowercased, padded, or duplicated. Normalize before comparing.
+  const xFrameOptions = headers
+    .get("x-frame-options")
+    ?.split(",")[0]
+    ?.trim()
+    .toUpperCase();
   if (xFrameOptions === "DENY" || xFrameOptions === "SAMEORIGIN") {
     return false;
   }
