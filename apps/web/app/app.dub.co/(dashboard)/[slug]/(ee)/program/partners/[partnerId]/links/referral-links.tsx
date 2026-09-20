@@ -15,6 +15,7 @@ import { useEditPartnerDiscountModal } from "@/ui/modals/edit-partner-discount-m
 import { useEditPartnerRewardModal } from "@/ui/modals/edit-partner-reward-modal";
 import { useAdvancedUpsellModal } from "@/ui/partners/advanced-upsell-modal";
 import { REWARD_EVENT_ICON } from "@/ui/partners/rewards/reward-event-icon";
+import { RewardOverrideIcon } from "@/ui/partners/rewards/reward-override-icon";
 import { ThreeDots } from "@/ui/shared/icons";
 import {
   Button,
@@ -106,7 +107,10 @@ function OverrideIndicator({
           disabledTooltip ? "cursor-not-allowed" : "cursor-pointer",
         )}
       >
-        {children}
+        <span className="relative flex">
+          {children}
+          <RewardOverrideIcon />
+        </span>
       </button>
     </Tooltip>
   );

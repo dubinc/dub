@@ -91,7 +91,6 @@ export const determinePartnerReward = async ({
   const linkRewards = await getLinkRewards({
     event,
     linkId,
-    programEnrollment,
   });
 
   let partnerReward =
@@ -187,7 +186,6 @@ export const determinePartnerRewards = async ({
     const linkRewards = await getLinkRewards({
       event,
       linkId,
-      programEnrollment,
     });
 
     const partnerReward =
@@ -263,18 +261,11 @@ export const determinePartnerRewards = async ({
 const getLinkRewards = async ({
   event,
   linkId,
-  programEnrollment,
 }: {
   event: EventType;
   linkId: string | null;
-  programEnrollment: ProgramEnrollmentWithReward;
 }): Promise<LinkRewards | null> => {
   if (!linkId) {
-    return null;
-  }
-
-  // Check if the link is part of the program enrollment
-  if (!programEnrollment.links?.some((link) => link.id === linkId)) {
     return null;
   }
 
