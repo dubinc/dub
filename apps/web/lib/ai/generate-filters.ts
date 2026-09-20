@@ -87,6 +87,11 @@ export async function generateFilters(prompt: string) {
             `If "${phrase.replaceAll('"', "'")}" is an analytics filter value, which filter is it for?`,
         }),
       },
+      providerOptions: {
+        gateway: {
+          zeroDataRetention: true,
+        },
+      },
     });
 
     const filters: Record<string, string> = {};
