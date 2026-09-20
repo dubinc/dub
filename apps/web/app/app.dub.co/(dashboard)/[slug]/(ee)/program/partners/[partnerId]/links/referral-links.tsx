@@ -19,7 +19,7 @@ import { ThreeDots } from "@/ui/shared/icons";
 import {
   Button,
   CardList,
-  Copy,
+  CopyButton,
   CursorRays,
   Discount,
   DiscountCode,
@@ -43,7 +43,6 @@ import {
 import { Command } from "cmdk";
 import Link from "next/link";
 import { type ReactNode, useState } from "react";
-import { toast } from "sonner";
 
 type PartnerLink = ProgramPartnerLinkExtended;
 type PartnerForOverrides = Pick<
@@ -75,18 +74,61 @@ function getLinkRewardOverride(
   });
 }
 
-function getLinkRewardOverrideTooltip(
-  events: ReturnType<typeof getLinkRewardOverride>,
-) {
-  if (events.length === 1) {
-    return `This link has a ${events[0]} reward override`;
-  }
+function OverrideIndicator({
+  tooltip,
+  disabledTooltip,
+  ariaLabel,
+  onClick,
+  children,
+}: {
+  tooltip: string;
+  disabledTooltip?: ReactNode;
+  ariaLabel: string;
+  onClick: () => void;
+  children: ReactNode;
+}) {
+  return (
+    <Tooltip
+      content={
+        disabledTooltip ?? (
+          <div className="whitespace-nowrap px-3 py-2 text-sm text-neutral-600">
+            {tooltip}
+          </div>
+        )
+      }
+    >
+      <button
+        type="button"
+        aria-label={ariaLabel}
+        onClick={disabledTooltip ? undefined : onClick}
+        className={cn(
+          "flex h-5 items-center",
+          disabledTooltip ? "cursor-not-allowed" : "cursor-pointer",
+        )}
+      >
+        {children}
+      </button>
+    </Tooltip>
+  );
+}
 
-  if (events.length === 2) {
-    return `This link has ${events[0]} and ${events[1]} reward overrides`;
-  }
-
-  return `This link has ${events.slice(0, -1).join(", ")}, and ${events.at(-1)} reward overrides`;
+function OverrideIndicatorGroup({
+  disabled,
+  children,
+}: {
+  disabled?: boolean;
+  children: ReactNode;
+}) {
+  return (
+    <div
+      className={cn(
+        "flex h-5 shrink-0 items-center gap-1 rounded-md bg-neutral-100 px-1 transition-colors",
+        !disabled && "hover:bg-neutral-200",
+      )}
+    >
+      {children}
+    </div>
+  );
 }
 
 const formatStatCount = ({ count, unit }: { count: number; unit: string }) => ({
@@ -255,43 +297,52 @@ function PartnerLinkCard({
         hoverStateEnabled={false}
       >
         <div className="flex min-w-0 items-center gap-2">
-          <Link
-            href={`/${slug}/links/${link.domain}/${link.key}`}
-            target="_blank"
-            className="text-content-default cursor-alias truncate text-sm font-medium decoration-dotted hover:underline"
-          >
-            {getPrettyUrl(partnerLink)}
-          </Link>
-          {rewardEvents.length > 0 && (
-            <Tooltip
-              content={
-                <div className="whitespace-nowrap px-3 py-2 text-sm text-neutral-600">
-                  {getLinkRewardOverrideTooltip(rewardEvents)}
-                </div>
-              }
+          <div className="flex min-w-0 items-center gap-1">
+            <Link
+              href={`/${slug}/links/${link.domain}/${link.key}`}
+              target="_blank"
+              className="text-content-default cursor-alias truncate text-sm font-medium decoration-dotted hover:underline"
             >
-              <div className="flex h-5 shrink-0 items-center gap-1 rounded-md bg-neutral-100 px-1">
-                {rewardEvents.map((event) => {
-                  const Icon = REWARD_EVENT_ICON[event];
-                  return (
-                    <Icon key={event} className="size-3 text-neutral-700" />
-                  );
-                })}
-              </div>
-            </Tooltip>
+              {getPrettyUrl(partnerLink)}
+            </Link>
+            <CopyButton
+              value={partnerLink}
+              variant="neutral"
+              className="shrink-0 p-1"
+            />
+          </div>
+          {rewardEvents.length > 0 && (
+            <OverrideIndicatorGroup disabled={Boolean(overrideDisabledTooltip)}>
+              {rewardEvents.map((event) => {
+                const Icon = REWARD_EVENT_ICON[event];
+                return (
+                  <OverrideIndicator
+                    key={event}
+                    tooltip={`This link has a ${event} reward override`}
+                    disabledTooltip={overrideDisabledTooltip}
+                    ariaLabel={`Edit ${event} reward`}
+                    onClick={() => {
+                      setRewardEvent(event);
+                      setShowEditPartnerRewardModal(true);
+                    }}
+                  >
+                    <Icon className="size-3 text-neutral-700" />
+                  </OverrideIndicator>
+                );
+              })}
+            </OverrideIndicatorGroup>
           )}
           {link.discount && (
-            <Tooltip
-              content={
-                <div className="whitespace-nowrap px-3 py-2 text-sm text-neutral-600">
-                  This link has a discount override
-                </div>
-              }
-            >
-              <div className="flex h-5 shrink-0 items-center gap-1 rounded-md bg-neutral-100 px-1">
+            <OverrideIndicatorGroup disabled={Boolean(overrideDisabledTooltip)}>
+              <OverrideIndicator
+                tooltip="This link has a discount override"
+                disabledTooltip={overrideDisabledTooltip}
+                ariaLabel="Edit discount"
+                onClick={() => setShowEditPartnerDiscountModal(true)}
+              >
                 <DiscountCode className="size-3 text-neutral-700" />
-              </div>
-            </Tooltip>
+              </OverrideIndicator>
+            </OverrideIndicatorGroup>
           )}
         </div>
 
@@ -369,18 +420,6 @@ function PartnerLinkCardMenu({
       content={
         <Command tabIndex={0} loop className="focus:outline-none">
           <Command.List className="flex w-screen flex-col gap-1 p-1.5 text-sm focus-visible:outline-none sm:w-auto sm:min-w-[180px]">
-            <MenuItem
-              as={Command.Item}
-              icon={Copy}
-              onSelect={() => {
-                toast.promise(copyToClipboard(partnerLink), {
-                  success: "Copied to clipboard",
-                });
-                setOpenPopover(false);
-              }}
-            >
-              Copy link
-            </MenuItem>
             {(["sale", "lead", "click"] as const).map((event) => {
               const Icon = REWARD_EVENT_ICON[event];
               return (

@@ -3,6 +3,7 @@
 import { parseActionError } from "@/lib/actions/parse-action-errors";
 import { deleteDiscountAction } from "@/lib/actions/partners/delete-discount";
 import { updatePartnerEnrollmentAction } from "@/lib/actions/partners/update-partner-enrollment";
+import { constructPartnerLink } from "@/lib/partners/construct-partner-link";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import { useDiscounts } from "@/lib/swr/use-discounts";
@@ -15,9 +16,11 @@ import { formatDiscountDescription } from "@/ui/partners/format-discount-descrip
 import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import { ProgramRewardDescription } from "@/ui/partners/program-reward-description";
 import { AdditionalRewardOptionList } from "@/ui/partners/rewards/additional-reward-option-list";
-import { Button, Modal } from "@dub/ui";
+import { ArrowTurnRight2, Button, Modal } from "@dub/ui";
 import { Discount } from "@dub/ui/icons";
+import { cn, getPrettyUrl } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
+import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 
@@ -97,7 +100,7 @@ function EditPartnerDiscountModal({
     discount: DiscountProps | null;
   } | null>(null);
 
-  const { id: workspaceId } = useWorkspace();
+  const { id: workspaceId, slug } = useWorkspace();
   const { group: fetchedGroup } = useGroup({
     groupIdOrSlug: partner.groupId ?? undefined,
   });
@@ -140,6 +143,10 @@ function EditPartnerDiscountModal({
   );
 
   const groupDefaultDiscountId = group?.discount?.id;
+  const targetLinkUrl =
+    target.type === "link"
+      ? getPrettyUrl(constructPartnerLink({ group, link: target.link }))
+      : null;
   const effectiveDiscountId = getEffectiveDiscountId({
     target,
     groupDefaultDiscountId,
@@ -356,9 +363,29 @@ function EditPartnerDiscountModal({
         <div className="border-border-subtle flex items-center justify-between gap-4 border-t px-4 py-4">
           <div className="flex min-w-0 items-center gap-2">
             <PartnerAvatar partner={partner} className="size-6 shrink-0" />
-            <h4 className="min-w-0 truncate text-sm font-medium text-neutral-900">
-              {partner.name}
-            </h4>
+            <div className="min-w-0 leading-tight">
+              <Link
+                href={`/${slug}/program/partners/${partner.id}`}
+                target="_blank"
+                className={cn(
+                  "block cursor-alias truncate text-xs font-medium text-neutral-900 decoration-dotted hover:underline",
+                  !targetLinkUrl && "text-sm",
+                )}
+              >
+                {partner.name}
+              </Link>
+              {targetLinkUrl && (
+                <Link
+                  href={`/${slug}/links/${targetLinkUrl}`}
+                  target="_blank"
+                  className="flex cursor-alias items-center gap-1 truncate text-[11px] text-neutral-500 decoration-dotted hover:underline"
+                  title={targetLinkUrl}
+                >
+                  <ArrowTurnRight2 className="size-3" />
+                  {targetLinkUrl}
+                </Link>
+              )}
+            </div>
           </div>
           <div className="flex shrink-0 items-center gap-2">
             <Button

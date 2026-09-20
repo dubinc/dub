@@ -3,12 +3,13 @@
 import { parseActionError } from "@/lib/actions/parse-action-errors";
 import { deleteRewardAction } from "@/lib/actions/partners/delete-reward";
 import { updatePartnerEnrollmentAction } from "@/lib/actions/partners/update-partner-enrollment";
+import { constructPartnerLink } from "@/lib/partners/construct-partner-link";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import useGroup from "@/lib/swr/use-group";
+import { ProgramPartnerLinkExtended } from "@/lib/swr/use-program-partner-links";
 import { useRewards } from "@/lib/swr/use-rewards";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { ProgramPartnerLinkExtended } from "@/lib/swr/use-program-partner-links";
 import { EnrolledPartnerProps, GroupProps, RewardProps } from "@/lib/types";
 import { REWARD_EVENT_COLUMN_MAPPING } from "@/lib/zod/schemas/rewards";
 import { useConfirmRewardChangeModal } from "@/ui/modals/confirm-reward-change-modal";
@@ -18,8 +19,10 @@ import { ProgramRewardDescription } from "@/ui/partners/program-reward-descripti
 import { RewardSheet } from "@/ui/partners/rewards/add-edit-reward-sheet";
 import { AdditionalRewardOptionList } from "@/ui/partners/rewards/additional-reward-option-list";
 import { REWARD_EVENT_ICON } from "@/ui/partners/rewards/reward-event-icon";
-import { Button, Modal } from "@dub/ui";
+import { ArrowTurnRight2, Button, Modal } from "@dub/ui";
+import { cn, getPrettyUrl } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
+import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 
@@ -125,7 +128,7 @@ function EditPartnerRewardModal({
   } | null>(null);
   const [isRewardSheetOpen, setIsRewardSheetOpen] = useState(false);
 
-  const { id: workspaceId } = useWorkspace();
+  const { id: workspaceId, slug } = useWorkspace();
   const { rewards, loading: rewardsLoading } = useRewards(
     {
       groupId: partner.groupId,
@@ -171,6 +174,10 @@ function EditPartnerRewardModal({
 
   const groupRewardId = getGroupRewardId(group, event);
   const CreateIcon = REWARD_EVENT_ICON[event];
+  const targetLinkUrl =
+    target.type === "link"
+      ? getPrettyUrl(constructPartnerLink({ group, link: target.link }))
+      : null;
 
   const eventRewards = useMemo(() => {
     return (rewards ?? [])
@@ -428,9 +435,29 @@ function EditPartnerRewardModal({
         <div className="border-border-subtle flex items-center justify-between gap-4 border-t px-4 py-4">
           <div className="flex min-w-0 items-center gap-2">
             <PartnerAvatar partner={partner} className="size-6 shrink-0" />
-            <h4 className="min-w-0 truncate text-sm font-medium text-neutral-900">
-              {partner.name}
-            </h4>
+            <div className="min-w-0 leading-tight">
+              <Link
+                href={`/${slug}/program/partners/${partner.id}`}
+                target="_blank"
+                className={cn(
+                  "block cursor-alias truncate text-xs font-medium text-neutral-900 decoration-dotted hover:underline",
+                  !targetLinkUrl && "text-sm",
+                )}
+              >
+                {partner.name}
+              </Link>
+              {targetLinkUrl && (
+                <Link
+                  href={`/${slug}/links/${targetLinkUrl}`}
+                  target="_blank"
+                  className="flex cursor-alias items-center gap-1 truncate text-[11px] text-neutral-500 decoration-dotted hover:underline"
+                  title={targetLinkUrl}
+                >
+                  <ArrowTurnRight2 className="size-3" />
+                  {targetLinkUrl}
+                </Link>
+              )}
+            </div>
           </div>
           <div className="flex shrink-0 items-center gap-2">
             <Button
