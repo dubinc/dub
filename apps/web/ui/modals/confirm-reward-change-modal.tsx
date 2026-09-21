@@ -12,7 +12,7 @@ import { useForm } from "react-hook-form";
 import { PartnerEmailNotificationTooltipHelper } from "../shared/partner-email-notification-tooltip-helper";
 
 export type RewardChangeAction = "created" | "updated" | "deleted";
-type RewardNotificationTarget = "group" | "partner";
+type RewardNotificationTarget = "group" | "partner" | "link";
 
 function shouldNotifyRewardChange({
   action,
@@ -25,7 +25,7 @@ function shouldNotifyRewardChange({
   isDefault?: boolean;
   partnerCount?: number;
 }): boolean {
-  if (target === "partner") {
+  if (target === "partner" || target === "link") {
     return true;
   }
 
@@ -102,6 +102,15 @@ function getDescription({
     return (
       <>
         The reward below will be updated for this partner, and they will be{" "}
+        <PartnerEmailNotificationTooltipHelper />.
+      </>
+    );
+  }
+
+  if (target === "link") {
+    return (
+      <>
+        The reward below will be updated for this link, and the partner will be{" "}
         <PartnerEmailNotificationTooltipHelper />.
       </>
     );

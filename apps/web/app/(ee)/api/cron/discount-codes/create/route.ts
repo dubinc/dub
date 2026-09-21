@@ -26,6 +26,11 @@ export const POST = withCron(async ({ rawBody }) => {
       id: true,
       discountCode: true,
       partnerGroupDefaultLinkId: true,
+      linkReward: {
+        select: {
+          discount: true,
+        },
+      },
       programEnrollment: {
         select: {
           discount: true,
@@ -75,12 +80,20 @@ export const POST = withCron(async ({ rawBody }) => {
 
   const {
     project: workspace,
-    programEnrollment: { program, partner, discount },
+    programEnrollment: { program, partner },
   } = link;
+
+  const discount = link.linkReward?.discount ?? link.programEnrollment.discount;
 
   if (!discount) {
     return logAndRespond(
       `Partner ${partner.id} does not have a discount with program ${program.id}. Skipping...`,
+    );
+  }
+
+  if (!discount.autoProvisionEnabledAt) {
+    return logAndRespond(
+      `Discount ${discount.id} does not have auto-provision enabled. Skipping...`,
     );
   }
 

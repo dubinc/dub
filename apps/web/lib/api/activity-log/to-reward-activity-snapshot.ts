@@ -1,4 +1,14 @@
-import type { DiscountProps, RewardProps } from "@/lib/types";
+import type { DiscountProps, LinkProps, RewardProps } from "@/lib/types";
+
+export function toLinkActivitySnapshot(
+  link: Pick<LinkProps, "id" | "domain" | "key">,
+) {
+  return {
+    id: link.id,
+    domain: link.domain,
+    key: link.key,
+  };
+}
 
 export function toRewardActivitySnapshot(
   reward: Pick<

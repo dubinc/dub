@@ -39,6 +39,7 @@ export const GET = withWorkspace(
         name: true,
         partialKey: true,
         scopes: true,
+        expires: true,
         lastUsed: true,
         createdAt: true,
         updatedAt: true,
@@ -90,7 +91,7 @@ export const POST = withWorkspace(
       });
     }
 
-    if (!validateScopesForRole(scopes || [], role)) {
+    if (!validateScopesForRole(scopes, role)) {
       throw new DubApiError({
         code: "unprocessable_entity",
         message: "Some of the given scopes are not available for your role.",
@@ -150,10 +151,7 @@ export const POST = withWorkspace(
             partialKey,
             userId: isMachine ? machineUser?.id! : session.user.id,
             projectId: workspace.id,
-            scopes:
-              scopes && scopes.length > 0
-                ? [...new Set(scopes)].join(" ")
-                : null,
+            scopes: [...new Set(scopes)].join(" "),
           },
         });
       },
@@ -172,8 +170,8 @@ export const POST = withWorkspace(
           email: session.user.email,
           token: {
             name,
-            type: scopesToName(scopes || []).name,
-            permissions: scopesToName(scopes || []).description,
+            type: scopesToName(scopes).name,
+            permissions: scopesToName(scopes).description,
           },
           workspace: {
             name: workspace.name,
