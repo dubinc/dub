@@ -70,8 +70,17 @@ export function ProgramPartnersRejectedApplicationsPageClient() {
   const sortBy = searchParams.get("sortBy") || "createdAt";
   const sortOrder = searchParams.get("sortOrder") === "asc" ? "asc" : "desc";
 
-  const { filters, activeFilters, onSelect, onRemove, onRemoveAll } =
-    usePartnerFilters({ sortBy, sortOrder, status: "rejected" }, ["country"]);
+  const {
+    filters,
+    activeFilters,
+    onSelect,
+    onRemove,
+    onRemoveFilter,
+    onRemoveAll,
+    onToggleOperator,
+    setSelectedFilter,
+    setSearch,
+  } = usePartnerFilters({ sortBy, sortOrder, status: "rejected" }, ["country"]);
 
   const { partnersCount, error: countError } = usePartnersCount<number>({
     status: "rejected",
@@ -397,6 +406,9 @@ export function ProgramPartnersRejectedApplicationsPageClient() {
             activeFilters={activeFilters}
             onSelect={onSelect}
             onRemove={onRemove}
+            onRemoveFilter={onRemoveFilter}
+            onSearchChange={setSearch}
+            onSelectedFilterChange={setSelectedFilter}
           />
           <SearchBoxPersisted
             placeholder="Search by name, email, or company"
@@ -412,7 +424,9 @@ export function ProgramPartnersRejectedApplicationsPageClient() {
                   activeFilters={activeFilters}
                   onSelect={onSelect}
                   onRemove={onRemove}
+                  onRemoveFilter={onRemoveFilter}
                   onRemoveAll={onRemoveAll}
+                  onToggleOperator={onToggleOperator}
                 />
               </div>
             )}
