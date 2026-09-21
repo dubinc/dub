@@ -33,6 +33,7 @@ export const tokenSchema = z.object({
     .string()
     .nullable()
     .transform((val) => val?.split(" ") ?? []),
+  expires: z.date().nullable(),
   lastUsed: z.date().nullable(),
   createdAt: z.date(),
   updatedAt: z.date(),

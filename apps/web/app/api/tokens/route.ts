@@ -39,6 +39,7 @@ export const GET = withWorkspace(
         name: true,
         partialKey: true,
         scopes: true,
+        expires: true,
         lastUsed: true,
         createdAt: true,
         updatedAt: true,
