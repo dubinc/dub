@@ -44,6 +44,10 @@ export const POST = withCron(async ({ rawBody }) => {
     return logAndRespond(`Discount ${discountId} not found. Skipping...`);
   }
 
+  if (!discount.programId) {
+    return logAndRespond(`Discount ${discountId} is soft-deleted. Skipping...`);
+  }
+
   if (!discount.autoProvisionEnabledAt) {
     return logAndRespond(
       `Discount ${discountId} does not have auto-provision enabled. Skipping...`,
@@ -51,6 +55,10 @@ export const POST = withCron(async ({ rawBody }) => {
   }
 
   const { program } = discount;
+
+  if (!program) {
+    return logAndRespond(`Discount ${discountId} has no program. Skipping...`);
+  }
 
   const discountProvider = getDiscountProvider(discount.provider);
 

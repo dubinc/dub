@@ -1,11 +1,10 @@
 import { enqueueBatchJobs } from "@/lib/cron/enqueue-batch-jobs";
+import { remapDiscountCodeJob } from "@/lib/jobs/handlers/remap-discount-code-job";
 import { prisma } from "@/lib/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { Discount, ProgramEnrollment } from "@prisma/client";
-import { deleteDiscountCodes } from "./delete-discount-code";
-import { isDiscountEquivalent } from "./is-discount-equivalent";
 
-// Remap discount codes for a partner in a program
+// Read discount codes for a partner in a program and fan out per-code remap jobs
 export async function remapDiscountCodes({
   programId,
   partnerId,
@@ -24,7 +23,7 @@ export async function remapDiscountCodes({
   });
 
   if (!programEnrollment) {
-    console.log(
+    console.info(
       `Program enrollment not found for partner ${partnerId} and program ${programId}. Skipping...`,
     );
     return;
@@ -36,74 +35,31 @@ export async function remapDiscountCodes({
       partnerId,
       disabledAt: null,
     },
-    include: {
-      discount: true,
-      link: {
-        select: {
-          id: true,
-          linkReward: {
-            select: {
-              discount: true,
-            },
-          },
-        },
-      },
+    select: {
+      id: true,
     },
   });
 
   if (discountCodes.length === 0) {
-    console.log(
-      `No discount codes found for partner ${partnerId} and program ${programId}. Skipping...`,
+    console.info(
+      `No discount codes found for partner ${partnerId} and program ${programId}. Skipping remap jobs...`,
     );
-  }
-
-  const enrollmentDiscount = programEnrollment.discount;
-  const discountCodesToDelete: (typeof discountCodes)[number][] = [];
-
-  for (const discountCode of discountCodes) {
-    const existingDiscount = discountCode.discount;
-    // Prefer the link discount if it exists, otherwise use the enrollment discount
-    const newDiscount =
-      discountCode.link?.linkReward?.discount ?? enrollmentDiscount;
-
-    // No discount exists for this discount code, delete it
-    if (!newDiscount) {
-      discountCodesToDelete.push(discountCode);
-      continue;
-    }
-
-    // The discount is already the correct one, skip
-    if (existingDiscount?.id === newDiscount.id) {
-      continue;
-    }
-
-    const isEquivalent = isDiscountEquivalent(newDiscount, existingDiscount);
-
-    // The discounts are equivalent, update the discount code to use the new discount
-    if (isEquivalent) {
-      await prisma.discountCode.updateMany({
-        where: {
-          id: discountCode.id,
-        },
-        data: {
-          discountId: newDiscount.id,
-        },
-      });
-      continue;
-    }
-
-    // The discounts are different, delete the discount code
-    discountCodesToDelete.push(discountCode);
-  }
-
-  if (discountCodesToDelete.length > 0) {
-    await deleteDiscountCodes(discountCodesToDelete);
+  } else {
+    await remapDiscountCodeJob.dispatchBatch(
+      discountCodes.map(({ id }) => ({
+        discountCodeId: id,
+      })),
+      ({ discountCodeId }) => ({
+        label: discountCodeId,
+        deduplicationId: `remap-discount-code-${discountCodeId}`,
+      }),
+    );
   }
 
   await enqueueMissingDiscountCodes({
     programId,
     partnerId,
-    enrollmentDiscount,
+    enrollmentDiscount: programEnrollment.discount,
   });
 }
 

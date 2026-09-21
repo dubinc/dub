@@ -76,13 +76,10 @@ const jobLoaders = {
       (m) => m.invalidateLinksForDiscountsJob,
     ),
 
-  "remap-discount-codes-for-partner-job": () =>
-    import("./handlers/remap-discount-codes-for-partner-job").then(
-      (m) => m.remapDiscountCodesForPartnerJob,
+  "remap-discount-code-job": () =>
+    import("./handlers/remap-discount-code-job").then(
+      (m) => m.remapDiscountCodeJob,
     ),
-
-  "delete-discount-job": () =>
-    import("./handlers/delete-discount-job").then((m) => m.deleteDiscountJob),
 
   "aggregate-clicks-job": () =>
     import("./handlers/aggregate-clicks-job").then((m) => m.aggregateClicksJob),
