@@ -407,8 +407,11 @@ export const withWorkspace = (
         permissions = getPermissionsByRole(workspace.users[0].role);
 
         // Find the subset of permissions that the user has access to based on the token scopes
-        if (isRestrictedToken && token?.scopes) {
-          const tokenScopes = (token.scopes.split(" ") as Scope[]) || [];
+        // Empty/null scopes must fail closed (no permissions) — never inherit full role perms
+        if (isRestrictedToken) {
+          const tokenScopes = (token?.scopes?.split(" ").filter(Boolean) ??
+            []) as Scope[];
+
           permissions = mapScopesToPermissions(tokenScopes).filter((p) =>
             permissions.includes(p),
           );

@@ -130,8 +130,19 @@ function AddEditTokenModal({
   };
 
   const { name, scopes } = data;
-  const buttonDisabled =
-    (!name || token?.name === name) && token?.scopes === scopes;
+  const selectedScopes = Object.values(scopes).filter(Boolean);
+
+  let disabledReason: string | null = null;
+
+  if (selectedScopes.length === 0) {
+    disabledReason = "Select at least one permission.";
+  } else if (!name) {
+    disabledReason = "Enter a name.";
+  } else if (token?.name === name && token?.scopes === scopes) {
+    disabledReason = "No changes have been made.";
+  }
+
+  const buttonDisabled = disabledReason !== null;
 
   const scopesByResources = transformScopesForUI(
     getScopesByResourceForRole(role),
@@ -314,6 +325,7 @@ function AddEditTokenModal({
           <Button
             text={token ? "Save changes" : "Create API key"}
             disabled={buttonDisabled}
+            disabledTooltip={disabledReason}
             loading={saving}
           />
         </form>
