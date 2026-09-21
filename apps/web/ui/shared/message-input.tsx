@@ -36,6 +36,10 @@ import { toast } from "sonner";
 import * as z from "zod/v4";
 import { ATTACHMENT_MIME_TYPE_COLOR } from "../messages/message-attachments";
 import { EmojiPicker } from "../shared/emoji-picker";
+import {
+  InlineEmojiAutocomplete,
+  type InlineEmojiAutocompleteHandle,
+} from "../shared/inline-emoji-menu";
 
 export type PendingAttachment = Omit<
   z.infer<typeof messageAttachmentInputSchema>,
@@ -88,22 +92,10 @@ export function MessageInput({
 
   const richTextRef = useRef<{ setContent: (content: any) => void }>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const emojiAutocompleteRef = useRef<InlineEmojiAutocompleteHandle>(null);
   const [typedMessage, setTypedMessage] = useState(defaultValue || "");
-  const [emojiPickerOpen, setEmojiPickerOpenState] = useState(false);
+  const [emojiPickerOpen, setEmojiPickerOpen] = useState(false);
   const [dragActive, setDragActive] = useState(false);
-  const [cursorRect, setCursorRect] = useState<{
-    top: number;
-    bottom: number;
-    left: number;
-    right: number;
-  } | null>(null);
-  const stripColonOnEmojiPickRef = useRef(false);
-
-  const setEmojiPickerOpen = useCallback((open: boolean) => {
-    stripColonOnEmojiPickRef.current = false;
-    if (!open) setCursorRect(null);
-    setEmojiPickerOpenState(open);
-  }, []);
 
   const hasCompletedAttachments = attachments.some(
     (a) => !a.uploading && a.storageKey,
@@ -240,35 +232,14 @@ export function MessageInput({
         onChange={(editor) => setTypedMessage((editor as any).getMarkdown())}
         editorProps={{
           handleDOMEvents: {
-            keydown: (view, e) => {
+            keydown: (_view, e) => {
               if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
                 e.preventDefault();
                 e.stopPropagation();
                 sendMessage();
                 return false;
               }
-              if (e.key === ":" && !e.metaKey && !e.ctrlKey && !e.altKey) {
-                const { $from } = view.state.selection;
-                const afterHardBreak =
-                  $from.nodeBefore?.type.name === "hardBreak";
-                const atBlockStart = $from.parentOffset === 0;
-                const afterWhitespace =
-                  $from.parentOffset > 0 &&
-                  /\s/.test(
-                    $from.parent.textBetween(
-                      $from.parentOffset - 1,
-                      $from.parentOffset,
-                    ),
-                  );
-                if (atBlockStart || afterWhitespace || afterHardBreak) {
-                  const coords = view.coordsAtPos(view.state.selection.from);
-                  setCursorRect(coords);
-                  setTimeout(() => {
-                    stripColonOnEmojiPickRef.current = true;
-                    setEmojiPickerOpenState(true);
-                  }, 0);
-                }
-              }
+              if (emojiAutocompleteRef.current?.onKeyDown(e)) return true;
             },
           },
         }}
@@ -276,6 +247,10 @@ export function MessageInput({
         <div className="relative">
           <RichTextArea />
           <MessageInputEditorOverflowFades />
+          <InlineEmojiAutocomplete
+            ref={emojiAutocompleteRef}
+            suspended={emojiPickerOpen}
+          />
         </div>
 
         {/* Attachment preview strip */}
@@ -296,8 +271,6 @@ export function MessageInput({
             disabled={Boolean(permissionsError)}
             emojiPickerOpen={emojiPickerOpen}
             setEmojiPickerOpen={setEmojiPickerOpen}
-            stripColonOnEmojiPickRef={stripColonOnEmojiPickRef}
-            cursorRect={cursorRect}
             onAttachClick={
               canAddFiles ? () => fileInputRef.current?.click() : undefined
             }
@@ -574,20 +547,11 @@ function MessageInputToolbar({
   disabled,
   emojiPickerOpen,
   setEmojiPickerOpen,
-  stripColonOnEmojiPickRef,
-  cursorRect,
   onAttachClick,
 }: {
   disabled?: boolean;
   emojiPickerOpen: boolean;
   setEmojiPickerOpen: (open: boolean) => void;
-  stripColonOnEmojiPickRef: { current: boolean };
-  cursorRect: {
-    top: number;
-    bottom: number;
-    left: number;
-    right: number;
-  } | null;
   onAttachClick?: () => void;
 }) {
   const { editor } = useRichTextContext();
@@ -600,26 +564,9 @@ function MessageInputToolbar({
           openPopover={emojiPickerOpen}
           setOpenPopover={setEmojiPickerOpen}
           onKeyboardDismissFocusEditor={() => editor?.commands.focus()}
-          anchorRect={cursorRect}
           onSelect={(emoji) => {
             if (!editor || disabled) return;
-            const stripColon = stripColonOnEmojiPickRef.current;
-            stripColonOnEmojiPickRef.current = false;
-
-            const { from } = editor.state.selection;
-            if (
-              stripColon &&
-              from > 0 &&
-              editor.state.doc.textBetween(from - 1, from) === ":"
-            ) {
-              editor
-                .chain()
-                .deleteRange({ from: from - 1, to: from })
-                .insertContent(emoji)
-                .run();
-            } else {
-              editor.chain().insertContent(emoji).run();
-            }
+            editor.chain().insertContent(emoji).run();
             setTimeout(() => editor.commands.focus(), 0);
           }}
         >
