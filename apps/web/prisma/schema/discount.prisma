@@ -19,10 +19,12 @@ model Discount {
   createdAt              DateTime         @default(now())
   updatedAt              DateTime         @updatedAt
 
-  programEnrollments ProgramEnrollment[]
-  program            Program             @relation("ProgramDiscounts", fields: [programId], references: [id])
-  partnerGroup       PartnerGroup?
-  discountCodes      DiscountCode[]
+  programEnrollments     ProgramEnrollment[]
+  program                Program             @relation("ProgramDiscounts", fields: [programId], references: [id])
+  partnerGroup           PartnerGroup?       @relation("GroupDiscounts", fields: [groupId], references: [id], onDelete: NoAction, onUpdate: NoAction) // Owning group
+  defaultForPartnerGroup PartnerGroup?       @relation("PartnerGroupDefaultDiscount") // Group that uses this as its default
+  discountCodes          DiscountCode[]
+  linkDiscounts          LinkReward[]
 
   @@index(programId)
   @@index(groupId)

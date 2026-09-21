@@ -23,9 +23,11 @@ import {
 } from "./commissions";
 import { customerActivityResponseSchema } from "./customer-activity";
 import { CustomerEnrichedSchema } from "./customers";
+import { DiscountSchema } from "./discount";
 import { LinkSchema } from "./links";
 import { getPaginationQuerySchema } from "./misc";
 import { payoutsQuerySchema } from "./payouts";
+import { RewardSchema } from "./rewards";
 import { submittedLeadFormDataSchema } from "./submitted-lead-form";
 import { centsSchema } from "./utils";
 
@@ -99,6 +101,10 @@ export const PartnerProfileLinkSchema = LinkSchema.pick({
 }).extend({
   createdAt: z.string().or(z.date()),
   partnerGroupDefaultLinkId: z.string().nullish(),
+  clickReward: RewardSchema.nullable().default(null),
+  leadReward: RewardSchema.nullable().default(null),
+  saleReward: RewardSchema.nullable().default(null),
+  discount: DiscountSchema.nullable().default(null),
   discountCode: z.string().nullable().default(null),
   discountCodeDisabledAt: z.coerce.date().nullable().default(null),
 });

@@ -580,6 +580,7 @@ export function Table<T>({
                                 header.column.id === "select"
                                   ? "flex size-full items-center justify-center"
                                   : "flex items-center gap-2",
+                                isSortableColumn && "group/sort",
                               )}
                               {...(isSortableColumn && {
                                 type: "button",
@@ -616,13 +617,21 @@ export function Table<T>({
                                       </HeaderWithTooltip>
                                     );
                                   })()}
-                              {isSortableColumn &&
-                                sortBy === header.column.id && (
-                                  <SortOrder
-                                    className="h-3 w-3 shrink-0"
-                                    order={sortOrder || "desc"}
-                                  />
-                                )}
+                              {isSortableColumn && (
+                                <SortOrder
+                                  className={cn(
+                                    "h-3 w-3 shrink-0",
+                                    sortBy === header.column.id
+                                      ? "text-neutral-950"
+                                      : "text-neutral-300 group-hover/sort:text-neutral-400",
+                                  )}
+                                  order={
+                                    sortBy === header.column.id
+                                      ? sortOrder || "desc"
+                                      : null
+                                  }
+                                />
+                              )}
                             </ButtonOrDiv>
                           </div>
                           {enableColumnResizing &&

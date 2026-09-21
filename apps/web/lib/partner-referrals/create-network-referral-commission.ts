@@ -167,10 +167,13 @@ export const createNetworkReferralCommission = async ({
     console.error(`No customer found for partner ${partner.id}.`);
   }
 
-  const reward = determinePartnerReward({
+  const partnerReward = await determinePartnerReward({
     event: "sale",
     programEnrollment,
-  })?.reward;
+    linkId: null,
+  });
+
+  const reward = partnerReward?.reward;
 
   if (!reward) {
     console.log(

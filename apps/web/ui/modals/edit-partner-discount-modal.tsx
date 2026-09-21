@@ -3,41 +3,62 @@
 import { parseActionError } from "@/lib/actions/parse-action-errors";
 import { deleteDiscountAction } from "@/lib/actions/partners/delete-discount";
 import { updatePartnerEnrollmentAction } from "@/lib/actions/partners/update-partner-enrollment";
+import { constructPartnerLink } from "@/lib/partners/construct-partner-link";
 import { mutatePrefix } from "@/lib/swr/mutate";
+import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import { useDiscounts } from "@/lib/swr/use-discounts";
 import useGroup from "@/lib/swr/use-group";
+import { ProgramPartnerLinkExtended } from "@/lib/swr/use-program-partner-links";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { DiscountProps, EnrolledPartnerProps } from "@/lib/types";
+import { DiscountProps, EnrolledPartnerProps, GroupProps } from "@/lib/types";
 import { DiscountSheet } from "@/ui/partners/discounts/add-edit-discount-sheet";
 import { formatDiscountDescription } from "@/ui/partners/format-discount-description";
 import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import { ProgramRewardDescription } from "@/ui/partners/program-reward-description";
 import { AdditionalRewardOptionList } from "@/ui/partners/rewards/additional-reward-option-list";
-import { Button, Modal } from "@dub/ui";
+import { ArrowTurnRight2, Button, Modal } from "@dub/ui";
 import { Discount } from "@dub/ui/icons";
+import { cn, getPrettyUrl } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
+import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 
+type PartnerLink = ProgramPartnerLinkExtended;
 type PartnerDiscountOverridePartner = Pick<
   EnrolledPartnerProps,
   "id" | "name" | "email" | "image" | "groupId" | "discountId"
 >;
 
-export type PartnerDiscountOverrideTarget = {
-  type: "partner";
-  partner: PartnerDiscountOverridePartner;
-};
+export type PartnerDiscountOverrideTarget =
+  | {
+      type: "partner";
+      partner: PartnerDiscountOverridePartner;
+    }
+  | {
+      type: "link";
+      link: PartnerLink;
+      partner: PartnerDiscountOverridePartner;
+    };
 
-/** What the partner currently inherits or overrides. */
+/** What the target currently inherits or overrides. */
 function getEffectiveDiscountId({
-  partnerOverrideDiscountId,
+  target,
   groupDefaultDiscountId,
 }: {
-  partnerOverrideDiscountId: string | null | undefined;
+  target: PartnerDiscountOverrideTarget;
   groupDefaultDiscountId: string | null | undefined;
 }) {
-  return partnerOverrideDiscountId ?? groupDefaultDiscountId ?? null;
+  if (target.type === "partner") {
+    return target.partner.discountId ?? groupDefaultDiscountId ?? null;
+  }
+
+  return (
+    target.link.discount ??
+    target.partner.discountId ??
+    groupDefaultDiscountId ??
+    null
+  );
 }
 
 /**
@@ -60,12 +81,14 @@ interface EditPartnerDiscountModalProps {
   showModal: boolean;
   setShowModal: (showModal: boolean) => void;
   target: PartnerDiscountOverrideTarget;
+  group?: GroupProps | null;
 }
 
 function EditPartnerDiscountModal({
   showModal,
   setShowModal,
   target,
+  group: groupProp,
 }: EditPartnerDiscountModalProps) {
   const { partner } = target;
 
@@ -77,10 +100,11 @@ function EditPartnerDiscountModal({
     discount: DiscountProps | null;
   } | null>(null);
 
-  const { id: workspaceId } = useWorkspace();
-  const { group } = useGroup({
+  const { id: workspaceId, slug } = useWorkspace();
+  const { group: fetchedGroup } = useGroup({
     groupIdOrSlug: partner.groupId ?? undefined,
   });
+  const group = groupProp ?? fetchedGroup;
   const { discounts, loading: discountsLoading } = useDiscounts(
     {
       groupId: partner.groupId,
@@ -89,6 +113,9 @@ function EditPartnerDiscountModal({
       revalidateOnFocus: true,
     },
   );
+
+  const { makeRequest: updatePartnerLink, isSubmitting: isUpdatingLink } =
+    useApiMutation();
 
   const { executeAsync: updateEnrollment, isPending: isUpdatingEnrollment } =
     useAction(updatePartnerEnrollmentAction, {
@@ -115,13 +142,12 @@ function EditPartnerDiscountModal({
     },
   );
 
-  const partnerOverrideDiscountId = partner.discountId;
   const groupDefaultDiscountId = group?.discount?.id;
   const effectiveDiscountId = getEffectiveDiscountId({
-    partnerOverrideDiscountId,
+    target,
     groupDefaultDiscountId,
   });
-  const isSubmitting = isUpdatingEnrollment || isDeleting;
+  const isSubmitting = isUpdatingLink || isUpdatingEnrollment || isDeleting;
 
   const sortedDiscounts = useMemo(() => {
     return [...(discounts ?? [])].sort((a, b) => {
@@ -182,7 +208,7 @@ function EditPartnerDiscountModal({
     async (e: React.FormEvent) => {
       e.preventDefault();
 
-      if (!selectedDiscountId || !workspaceId) {
+      if (!selectedDiscountId) {
         return;
       }
 
@@ -191,13 +217,34 @@ function EditPartnerDiscountModal({
         return;
       }
 
-      await updateEnrollment({
-        workspaceId,
-        partnerId: partner.id,
-        discountId: getDiscountIdToPersist({
-          selectedDiscountId,
-          groupDefaultDiscountId,
-        }),
+      const isGroupSelection = selectedDiscountId === groupDefaultDiscountId;
+
+      if (target.type === "partner") {
+        if (!workspaceId) {
+          return;
+        }
+
+        await updateEnrollment({
+          workspaceId,
+          partnerId: partner.id,
+          discountId: getDiscountIdToPersist({
+            selectedDiscountId,
+            groupDefaultDiscountId,
+          }),
+        });
+        return;
+      }
+
+      await updatePartnerLink(`/api/partners/links/${target.link.id}`, {
+        method: "PATCH",
+        body: {
+          discountId: isGroupSelection ? null : selectedDiscountId,
+        },
+        onSuccess: async () => {
+          setShowModal(false);
+          toast.success("Discount updated");
+          await mutatePrefix(["/api/partners", "/api/partners/links"]);
+        },
       });
     },
     [
@@ -206,6 +253,8 @@ function EditPartnerDiscountModal({
       effectiveDiscountId,
       setShowModal,
       updateEnrollment,
+      updatePartnerLink,
+      target,
       partner.id,
       groupDefaultDiscountId,
     ],
@@ -310,9 +359,30 @@ function EditPartnerDiscountModal({
         <div className="border-border-subtle flex items-center justify-between gap-4 border-t px-4 py-4">
           <div className="flex min-w-0 items-center gap-2">
             <PartnerAvatar partner={partner} className="size-6 shrink-0" />
-            <h4 className="min-w-0 truncate text-sm font-medium text-neutral-900">
-              {partner.name}
-            </h4>
+            <div className="min-w-0 leading-tight">
+              <Link
+                href={`/${slug}/program/partners/${partner.id}`}
+                target="_blank"
+                className={cn(
+                  "block cursor-alias truncate text-xs font-medium text-neutral-900 decoration-dotted hover:underline",
+                  target.type !== "link" && "text-sm",
+                )}
+              >
+                {partner.name}
+              </Link>
+              {target.type === "link" && (
+                <Link
+                  href={`/${slug}/links/${getPrettyUrl(target.link.shortLink)}`}
+                  target="_blank"
+                  className="flex cursor-alias items-center gap-1 truncate text-[11px] text-neutral-500 decoration-dotted hover:underline"
+                >
+                  <ArrowTurnRight2 className="size-3" />
+                  {getPrettyUrl(
+                    constructPartnerLink({ group, link: target.link }),
+                  )}
+                </Link>
+              )}
+            </div>
           </div>
           <div className="flex shrink-0 items-center gap-2">
             <Button
@@ -339,19 +409,24 @@ function EditPartnerDiscountModal({
 
 export function useEditPartnerDiscountModal({
   target,
+  group,
 }: {
   target: PartnerDiscountOverrideTarget | null;
+  group?: GroupProps | null;
 }) {
   const [showModal, setShowModal] = useState(false);
+  const propsRef = useRef({ target, group });
   const lastTargetRef = useRef(target);
+  propsRef.current = { target, group };
   if (target) {
     lastTargetRef.current = target;
   }
 
   const EditPartnerDiscountModalCallback = useCallback(() => {
-    const activeTarget = target ?? lastTargetRef.current;
+    const { group: currentGroup } = propsRef.current;
+    const currentTarget = propsRef.current.target ?? lastTargetRef.current;
 
-    if (!activeTarget) {
+    if (!currentTarget) {
       return null;
     }
 
@@ -359,10 +434,11 @@ export function useEditPartnerDiscountModal({
       <EditPartnerDiscountModal
         showModal={showModal}
         setShowModal={setShowModal}
-        target={activeTarget}
+        target={currentTarget}
+        group={currentGroup}
       />
     );
-  }, [showModal, target]);
+  }, [showModal]);
 
   return {
     setShowEditPartnerDiscountModal: setShowModal,

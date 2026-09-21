@@ -1,19 +1,31 @@
+import { trackLinkRewardOverrideLog } from "@/lib/api/activity-log/track-reward-overrides";
 import { DubApiError, ErrorCodes } from "@/lib/api/errors";
 import { createLink, processLink } from "@/lib/api/links";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
+import {
+  hasRewardAssignment,
+  omitGroupDefaultRewardIds,
+  toPartnerLinkRewardIdFields,
+} from "@/lib/api/rewards/reward-overrides";
+import { throwIfInvalidRewards } from "@/lib/api/rewards/throw-if-invalid-rewards";
 import { parseRequestBody } from "@/lib/api/utils";
 import { applyGroupUtmToLink } from "@/lib/api/utm/apply-group-utm-to-link";
 import { withWorkspace } from "@/lib/auth";
 import { throwIfNoPartnerIdOrTenantId } from "@/lib/partners/throw-if-no-partnerid-tenantid";
+import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { prisma } from "@/lib/prisma";
+import { PARTNER_LEVEL_REWARDS_PLAN_ERROR } from "@/lib/rewards/constants";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { linkEventSchema } from "@/lib/zod/schemas/links";
 import {
-  createPartnerLinkSchema,
-  retrievePartnerLinksSchema,
+  createPartnerLinkSchemaInternal,
+  retrievePartnerLinksSchemaInternal,
 } from "@/lib/zod/schemas/partners";
-import { ProgramPartnerLinkSchema } from "@/lib/zod/schemas/programs";
+import {
+  ProgramPartnerLinkSchema,
+  ProgramPartnerLinkSchemaInternal,
+} from "@/lib/zod/schemas/programs";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
@@ -23,8 +35,8 @@ export const GET = withWorkspace(
   async ({ workspace, searchParams }) => {
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    const { partnerId, tenantId } =
-      retrievePartnerLinksSchema.parse(searchParams);
+    const { partnerId, tenantId, includeRewards } =
+      retrievePartnerLinksSchemaInternal.parse(searchParams);
 
     throwIfNoPartnerIdOrTenantId({ partnerId, tenantId });
 
@@ -43,7 +55,11 @@ export const GET = withWorkspace(
             },
           },
       select: {
-        links: true,
+        links: {
+          include: {
+            linkReward: includeRewards,
+          },
+        },
       },
     });
 
@@ -54,9 +70,19 @@ export const GET = withWorkspace(
       });
     }
 
-    const { links } = programEnrollment;
+    // Not exposing the reward ids to the public API for now
+    const links = includeRewards
+      ? programEnrollment.links.map((link) => ({
+          ...link,
+          ...toPartnerLinkRewardIdFields(link.linkReward),
+        }))
+      : programEnrollment.links;
 
-    return NextResponse.json(z.array(ProgramPartnerLinkSchema).parse(links));
+    const responseSchema = includeRewards
+      ? ProgramPartnerLinkSchemaInternal
+      : ProgramPartnerLinkSchema;
+
+    return NextResponse.json(z.array(responseSchema).parse(links));
   },
   {
     requiredPlan: ["business", "advanced", "enterprise"],
@@ -69,8 +95,17 @@ export const POST = withWorkspace(
   async ({ workspace, req, session }) => {
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    const { partnerId, tenantId, url, key, linkProps } =
-      createPartnerLinkSchema.parse(await parseRequestBody(req));
+    const {
+      partnerId,
+      tenantId,
+      url,
+      key,
+      linkProps,
+      clickRewardId,
+      leadRewardId,
+      saleRewardId,
+      discountId,
+    } = createPartnerLinkSchemaInternal.parse(await parseRequestBody(req));
 
     const program = await getProgramOrThrow({
       workspaceId: workspace.id,
@@ -157,17 +192,77 @@ export const POST = withWorkspace(
       partnerName: partner.partner.name,
     });
 
-    const partnerLink = await createLink(linkWithUtm);
+    // Validate link-level rewards
+    const linkRewardInput = omitGroupDefaultRewardIds({
+      rewardIds: {
+        clickRewardId,
+        leadRewardId,
+        saleRewardId,
+        discountId,
+      },
+      groupDefaults: partnerGroup,
+    });
+
+    const hasLinkLevelReward = hasRewardAssignment(linkRewardInput);
+
+    if (
+      hasLinkLevelReward &&
+      !getPlanCapabilities(workspace.plan).canUseAdvancedRewardLogic
+    ) {
+      throw new DubApiError({
+        code: "forbidden",
+        message: PARTNER_LEVEL_REWARDS_PLAN_ERROR,
+      });
+    }
+
+    await throwIfInvalidRewards({
+      programId,
+      groupId: partnerGroup.id,
+      ...linkRewardInput,
+    });
+
+    const partnerLink = await createLink({
+      ...linkWithUtm,
+      ...(hasLinkLevelReward && { linkReward: linkRewardInput }),
+    });
 
     waitUntil(
-      sendWorkspaceWebhook({
-        trigger: "link.created",
-        workspace,
-        data: linkEventSchema.parse(partnerLink),
-      }),
+      Promise.allSettled([
+        sendWorkspaceWebhook({
+          trigger: "link.created",
+          workspace,
+          data: linkEventSchema.parse(partnerLink),
+        }),
+
+        ...(hasLinkLevelReward
+          ? [
+              trackLinkRewardOverrideLog({
+                workspaceId: workspace.id,
+                programId: program.id,
+                partnerId: partner.partnerId,
+                userId: session.user.id,
+                previous: {
+                  clickRewardId: null,
+                  leadRewardId: null,
+                  saleRewardId: null,
+                  discountId: null,
+                },
+                next: {
+                  clickRewardId: linkRewardInput.clickRewardId ?? null,
+                  leadRewardId: linkRewardInput.leadRewardId ?? null,
+                  saleRewardId: linkRewardInput.saleRewardId ?? null,
+                  discountId: linkRewardInput.discountId ?? null,
+                },
+                link: partnerLink,
+              }),
+            ]
+          : []),
+      ]),
     );
 
-    return NextResponse.json(partnerLink, { status: 201 });
+    return NextResponse.json(partnerLink, {
+      status: 201,
+    });
   },
   {
     requiredPlan: ["business", "advanced", "enterprise"],
