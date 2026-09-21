@@ -37,20 +37,19 @@ export const deleteRewardAction = authActionClient
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    const reward = await getRewardOrThrow({
+    const { partnerGroup, ...reward } = await getRewardOrThrow({
       rewardId,
       programId,
+      include: {
+        partnerGroup: {
+          select: {
+            id: true,
+          },
+        },
+      },
     });
 
     const rewardIdColumn = REWARD_EVENT_COLUMN_MAPPING[reward.event];
-
-    const group = reward.groupId
-      ? await prisma.partnerGroup.findUnique({
-          where: {
-            id: reward.groupId,
-          },
-        })
-      : null;
 
     await prisma.$transaction(async (tx) => {
       await tx.partnerGroup.updateMany({
@@ -73,10 +72,10 @@ export const deleteRewardAction = authActionClient
       });
     });
 
-    if (group) {
+    if (partnerGroup) {
       await queueRewardProcessing({
         event: "reward-deleted",
-        groupId: group.id,
+        groupId: partnerGroup.id,
         occurredAt: new Date().toISOString(),
         rewardSnapshot: {
           id: reward.id,
@@ -112,7 +111,7 @@ export const deleteRewardAction = authActionClient
           userId: user.id,
           resourceId: reward.id,
           parentResourceType: "group",
-          parentResourceId: group?.id ?? reward.groupId,
+          parentResourceId: partnerGroup?.id,
           old: reward,
           new: null,
           description: activityDescription,

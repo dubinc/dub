@@ -1,6 +1,12 @@
-import { ActivityLog, DiscountProps, RewardProps } from "@/lib/types";
+import {
+  ActivityLog,
+  DiscountProps,
+  LinkProps,
+  RewardProps,
+} from "@/lib/types";
 import { formatDiscountDescription } from "@/ui/partners/format-discount-description";
 import { ProgramRewardDescription } from "@/ui/partners/program-reward-description";
+import { linkConstructor } from "@dub/utils";
 import { Fragment, ReactNode } from "react";
 import { ActivityValueChip, UserChip } from "../activity-entry-chips";
 
@@ -72,6 +78,43 @@ function isDiscountSnapshot(value: unknown): value is DiscountSnapshot {
   );
 }
 
+function isLinkSnapshot(
+  value: unknown,
+): value is Pick<LinkProps, "id" | "domain" | "key"> {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    "domain" in value &&
+    "key" in value &&
+    typeof (value as Pick<LinkProps, "domain">).domain === "string" &&
+    typeof (value as Pick<LinkProps, "key">).key === "string"
+  );
+}
+
+function OnLink({ log }: { log: ActivityLog }) {
+  const diff = log.changeSet?.link as
+    | FieldDiff<Pick<LinkProps, "id" | "domain" | "key">>
+    | undefined;
+  const link = diff?.new ?? diff?.old;
+
+  if (!isLinkSnapshot(link)) {
+    return null;
+  }
+
+  return (
+    <>
+      <Label>on</Label>
+      <ActivityValueChip>
+        {linkConstructor({
+          domain: link.domain,
+          key: link.key,
+          pretty: true,
+        })}
+      </ActivityValueChip>
+    </>
+  );
+}
+
 function RewardValueChip({ value }: { value: unknown }) {
   return (
     <ActivityValueChip>
@@ -128,7 +171,13 @@ export function PartnerRewardChangedRenderer({ log }: { log: ActivityLog }) {
   });
 
   if (changes.length === 0) {
-    return <span>Reward updated</span>;
+    return (
+      <>
+        <span>Reward updated</span>
+        <OnLink log={log} />
+        <ByUser user={log.user} />
+      </>
+    );
   }
 
   return (
@@ -142,6 +191,7 @@ export function PartnerRewardChangedRenderer({ log }: { log: ActivityLog }) {
           {change.value ? <RewardValueChip value={change.value} /> : null}
         </Fragment>
       ))}
+      <OnLink log={log} />
       <ByUser user={log.user} />
     </>
   );
@@ -153,7 +203,13 @@ export function PartnerDiscountChangedRenderer({ log }: { log: ActivityLog }) {
     | undefined;
 
   if (!discountChange) {
-    return <span>Discount updated</span>;
+    return (
+      <>
+        <span>Discount updated</span>
+        <OnLink log={log} />
+        <ByUser user={log.user} />
+      </>
+    );
   }
 
   const verb = getChangeVerb(discountChange.old, discountChange.new);
@@ -164,6 +220,7 @@ export function PartnerDiscountChangedRenderer({ log }: { log: ActivityLog }) {
       {verb !== "removed" ? (
         <DiscountValueChip value={discountChange.new} />
       ) : null}
+      <OnLink log={log} />
       <ByUser user={log.user} />
     </>
   );

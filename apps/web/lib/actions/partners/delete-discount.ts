@@ -4,10 +4,10 @@ import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { getDiscountOrThrow } from "@/lib/api/partners/get-discount-or-throw";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { deleteDiscountCodes } from "@/lib/discounts/delete-discount-code";
+import { getPartnersByDiscountIds } from "@/lib/discounts/get-partners-by-discount-ids";
 import { deleteDiscountJob } from "@/lib/jobs/handlers/delete-discount-job";
 import { invalidateLinksForDiscountsJob } from "@/lib/jobs/handlers/invalidate-links-for-discounts-job";
 import { prisma } from "@/lib/prisma";
-import { pluck } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
 import { authActionClient } from "../safe-action";
@@ -31,43 +31,34 @@ export const deleteDiscountAction = authActionClient
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    const discount = await getDiscountOrThrow({
-      programId,
-      discountId,
-    });
-
-    const [enrollments, partnerGroup] = await Promise.all([
-      prisma.programEnrollment.findMany({
-        where: {
-          discountId: discount.id,
-        },
-        select: {
-          partnerId: true,
-        },
-      }),
-
-      discount.groupId
-        ? prisma.partnerGroup.findUnique({
-            where: {
-              id: discount.groupId,
-            },
+    const [discount, partners] = await Promise.all([
+      getDiscountOrThrow({
+        programId,
+        discountId,
+        include: {
+          partnerGroup: {
             select: {
               discountId: true,
             },
-          })
-        : null,
+          },
+        },
+      }),
+
+      getPartnersByDiscountIds({
+        discountIds: [discountId],
+      }),
     ]);
 
-    const partnerIds = pluck(enrollments, "partnerId");
+    const partnerIds = partners.map((partner) => partner.id);
 
     // If the partner group has a discountId and it is not the same as the discount being deleted,
     // restore to that discountId; otherwise, set to null
+    const groupDiscountId = discount.partnerGroup?.discountId;
     const restoredDiscountId =
-      partnerGroup?.discountId !== discount.id
-        ? partnerGroup?.discountId
-        : null;
+      groupDiscountId !== discount.id ? groupDiscountId : null;
 
-    const discountCodes =
+    // No override, so we need to remove all discount codes for this discount
+    const discountCodesToRemove =
       restoredDiscountId == null
         ? await prisma.discountCode.findMany({
             where: {
@@ -99,6 +90,18 @@ export const deleteDiscountAction = authActionClient
         },
       });
 
+      // Clear link-level discount overrides that pointed at this discount
+      await tx.linkReward.updateMany({
+        where: {
+          discountId: discount.id,
+        },
+        data: {
+          discountId: null,
+        },
+      });
+
+      // Nothing to remap onto: delete now. If partners fall back to a group default,
+      // keep this row until deleteDiscountJob remaps codes (equivalence needs both discounts).
       if (restoredDiscountId == null) {
         await tx.discount.delete({
           where: {
@@ -127,7 +130,7 @@ export const deleteDiscountAction = authActionClient
 
     waitUntil(
       Promise.allSettled([
-        ...(partnerIds.length > 0
+        ...(partners.length > 0
           ? [
               invalidateLinksForDiscountsJob.dispatch(
                 {
@@ -142,7 +145,9 @@ export const deleteDiscountAction = authActionClient
             ]
           : []),
 
-        ...(discountCodes != null ? [deleteDiscountCodes(discountCodes)] : []),
+        ...(discountCodesToRemove != null
+          ? [deleteDiscountCodes(discountCodesToRemove)]
+          : []),
 
         recordAuditLog({
           workspaceId: workspace.id,

@@ -84,7 +84,7 @@ const commissionInclude: Prisma.CommissionInclude = {
 export const { POST } = serve<Input>(
   async (context) => {
     const input = context.requestPayload;
-    const { event, partnerId, programId, bountySubmissionId } = input;
+    const { event, partnerId, programId, linkId, bountySubmissionId } = input;
 
     const programEnrollment = await getProgramEnrollmentOrThrow({
       partnerId,
@@ -97,6 +97,15 @@ export const { POST } = serve<Input>(
         ...(event === "sale" && { saleReward: true }),
       },
     });
+
+    if (linkId) {
+      const link = programEnrollment.links.find((link) => link.id === linkId);
+      if (!link) {
+        return logAndReturn({
+          outputLog: `Link "${linkId}" does not belong to partner "${partnerId}" and program "${programId}", skipping commission creation...`,
+        });
+      }
+    }
 
     // Step 1: Create commission
     const { commission, isFirstCommission } = await context.run(
@@ -273,12 +282,13 @@ async function stepCreateCommission(
       };
     }
 
-    const rewards = determinePartnerRewards({
+    const rewards = await determinePartnerRewards({
       event,
       programEnrollment,
       context,
       amount,
       quantity,
+      linkId: linkId ?? null,
     });
 
     if (rewards.length > 0) {

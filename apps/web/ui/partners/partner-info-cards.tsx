@@ -36,6 +36,7 @@ import {
 } from "@dub/ui/icons";
 import {
   COUNTRIES,
+  cn,
   fetcher,
   formatDate,
   formatDateTimeSmart,
@@ -66,6 +67,8 @@ import {
   UpdatePartnerTagsModal,
   useUpdatePartnerTagsModal,
 } from "./update-partner-tags-modal";
+
+const MAX_VISIBLE_BOUNTIES = 3;
 
 type PartnerInfoCardsProps = {
   showFraudIndicator?: boolean;
@@ -518,47 +521,78 @@ export function PartnerInfoCards({
                 )}
               </div>
               {/* Eligible bounties */}
-              <div className="flex flex-col gap-2">
-                <h3 className="text-content-emphasis text-sm font-semibold">
-                  Eligible Bounties
-                </h3>
-                {bounties ? (
-                  bounties.length ? (
-                    <div className="flex flex-col gap-2">
-                      {bounties.map((bounty) => {
-                        const Icon =
-                          bounty.type === "performance" ? Trophy : Heart;
-                        return (
-                          <Link
-                            key={bounty.id}
-                            target="_blank"
-                            href={`/${workspaceSlug}/program/bounties/${bounty.id}`}
-                            className="text-content-subtle flex cursor-alias items-center gap-2 decoration-dotted underline-offset-2 hover:underline"
-                          >
-                            <Icon className="size-3.5 shrink-0" />
-                            <span className="text-xs font-medium">
-                              {bounty.name}
-                            </span>
-                          </Link>
-                        );
-                      })}
-                    </div>
-                  ) : (
-                    <p className="text-content-subtle text-xs">
-                      No eligible bounties
-                    </p>
-                  )
-                ) : errorBounties ? (
-                  <p className="text-content-subtle text-xs">
-                    Failed to load bounties
-                  </p>
-                ) : (
-                  <div className="h-4 w-24 animate-pulse rounded bg-neutral-200" />
-                )}
-              </div>
+              <EligibleBounties
+                bounties={bounties}
+                errorBounties={errorBounties}
+                workspaceSlug={workspaceSlug}
+              />
             </>
           )}
         </div>
+      )}
+    </div>
+  );
+}
+
+function EligibleBounties({
+  bounties,
+  errorBounties,
+  workspaceSlug,
+}: {
+  bounties: BountyListProps[] | undefined;
+  errorBounties: unknown;
+  workspaceSlug: string | undefined;
+}) {
+  const [showAllBounties, setShowAllBounties] = useState(false);
+  const shouldCollapseBounties = (bounties?.length ?? 0) > MAX_VISIBLE_BOUNTIES;
+
+  return (
+    <div className="flex flex-col gap-2">
+      <h3 className="text-content-emphasis text-sm font-semibold">
+        Eligible Bounties
+      </h3>
+      {bounties ? (
+        bounties.length ? (
+          <div>
+            <div className="flex flex-col gap-2">
+              {(shouldCollapseBounties && !showAllBounties
+                ? bounties.slice(0, MAX_VISIBLE_BOUNTIES)
+                : bounties
+              ).map((bounty) => {
+                const Icon = bounty.type === "performance" ? Trophy : Heart;
+                return (
+                  <Link
+                    key={bounty.id}
+                    target="_blank"
+                    href={`/${workspaceSlug}/program/bounties/${bounty.id}`}
+                    className="text-content-subtle flex cursor-alias items-center gap-2 decoration-dotted underline-offset-2 hover:underline"
+                  >
+                    <Icon className="size-3.5 shrink-0" />
+                    <span className="text-xs font-medium">{bounty.name}</span>
+                  </Link>
+                );
+              })}
+            </div>
+            {shouldCollapseBounties && (
+              <button
+                type="button"
+                className={cn(
+                  "mt-3 flex h-6 w-fit items-center justify-center rounded-md px-1.5 text-xs font-medium tracking-[-0.02em] text-neutral-900 transition-colors",
+                  "bg-neutral-200/50 hover:bg-neutral-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-300",
+                )}
+                onClick={() => setShowAllBounties((current) => !current)}
+              >
+                {showAllBounties ? "View less bounties" : "View all bounties"}
+              </button>
+            )}
+          </div>
+        ) : (
+          <p className="text-content-subtle text-xs">No eligible bounties</p>
+        )
+      ) : errorBounties ? (
+        <p className="text-content-subtle text-xs">Failed to load bounties</p>
+      ) : (
+        <div className="h-4 w-24 animate-pulse rounded bg-neutral-200" />
       )}
     </div>
   );

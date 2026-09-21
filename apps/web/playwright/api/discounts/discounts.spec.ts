@@ -115,6 +115,24 @@ test.afterAll(async () => {
       },
     });
 
+    await prisma.partnerGroup.update({
+      where: {
+        id: partnerGroupId,
+      },
+      data: {
+        discountId: null,
+      },
+    });
+
+    await prisma.discount.updateMany({
+      where: {
+        groupId: partnerGroupId,
+      },
+      data: {
+        groupId: null,
+      },
+    });
+
     await prisma.partnerGroup.delete({
       where: {
         id: partnerGroupId,

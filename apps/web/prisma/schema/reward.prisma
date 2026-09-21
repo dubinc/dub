@@ -37,6 +37,7 @@ model Reward {
   updatedAt          DateTime                  @updatedAt
 
   program              Program?            @relation(fields: [programId], references: [id])
+  partnerGroup         PartnerGroup?       @relation("GroupRewards", fields: [groupId], references: [id], onDelete: NoAction, onUpdate: NoAction) // Owning group
   clickEnrollments     ProgramEnrollment[] @relation("ClickRewardEnrollments")
   leadEnrollments      ProgramEnrollment[] @relation("LeadRewardEnrollments")
   saleEnrollments      ProgramEnrollment[] @relation("SaleRewardEnrollments")
@@ -48,8 +49,33 @@ model Reward {
   referralPartnerGroup PartnerGroup?       @relation("ReferralReward")
   customPartnerGroup   PartnerGroup?       @relation("CustomReward")
   commissions          Commission[]
+  clickLinkRewards     LinkReward[]        @relation("ClickLinkRewards")
+  leadLinkRewards      LinkReward[]        @relation("LeadLinkRewards")
+  saleLinkRewards      LinkReward[]        @relation("SaleLinkRewards")
 
   @@index([programId, event])
   @@index(event) // used in aggregate-clicks cron job
   @@index(groupId)
+}
+
+model LinkReward {
+  id            String   @id @default(cuid())
+  linkId        String   @unique
+  clickRewardId String?
+  leadRewardId  String?
+  saleRewardId  String?
+  discountId    String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  link        Link      @relation(fields: [linkId], references: [id], onDelete: Cascade)
+  clickReward Reward?   @relation("ClickLinkRewards", fields: [clickRewardId], references: [id])
+  leadReward  Reward?   @relation("LeadLinkRewards", fields: [leadRewardId], references: [id])
+  saleReward  Reward?   @relation("SaleLinkRewards", fields: [saleRewardId], references: [id])
+  discount    Discount? @relation(fields: [discountId], references: [id])
+
+  @@index(clickRewardId)
+  @@index(leadRewardId)
+  @@index(saleRewardId)
+  @@index(discountId)
 }

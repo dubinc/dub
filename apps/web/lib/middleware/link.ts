@@ -131,6 +131,7 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
         const { partner, discount } = await getPartnerEnrollmentInfo({
           programId: linkData.programId,
           partnerId: linkData.partnerId,
+          linkId: linkData.id,
         });
 
         // we'll use this data on /track/click
