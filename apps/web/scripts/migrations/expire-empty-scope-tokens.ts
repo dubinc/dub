@@ -9,9 +9,9 @@ async function main() {
 
   const tokens = await prisma.restrictedToken.findMany({
     where: {
+      // Tokens with no scopes that have either never been used, or not used in the last 30 days
       AND: [
         { OR: [{ scopes: null }, { scopes: "" }] },
-        { OR: [{ expires: null }, { expires: { gt: now } }] },
         {
           OR: [
             { lastUsed: null },
