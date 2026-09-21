@@ -1,3 +1,4 @@
+import { PRISMA_UPDATEMANY_LIMIT } from "@/lib/cron";
 import { withCron } from "@/lib/cron/with-cron";
 import { prisma } from "@/lib/prisma";
 import { subMinutes } from "date-fns";
@@ -5,17 +6,38 @@ import { logAndRespond } from "../../utils";
 
 export const dynamic = "force-dynamic";
 
-// The rewards/process cron normally hard-deletes once enrollments are cleared, but a newer
-// reward change for the same group + event type can bump the version and skip stale jobs
-// (e.g. delete then create), leaving the old row behind. This job is a safety net for those orphans.
+const STALE_AFTER_MINUTES = 30;
+
+// Safety net for leftover rows after request-path updates:
+// - Rewards: rewards/process normally hard-deletes once enrollments are cleared,
+//   but a newer reward change can skip stale jobs (e.g. delete then create).
+// - LinkReward: update-partner-link nulls override IDs instead of deleting the row.
+//   Discount deletes SetNull LinkReward.discountId the same way.
 
 // POST /api/cron/cleanup/orphaned-rewards
 export const POST = withCron(async () => {
+  const cutoff = subMinutes(new Date(), STALE_AFTER_MINUTES);
+
+  const [deletedRewardsCount, deletedLinkRewardsCount] = await Promise.all([
+    deleteOrphanedRewards(cutoff),
+    deleteEmptyLinkRewards(),
+  ]);
+
+  if (deletedRewardsCount === 0 && deletedLinkRewardsCount === 0) {
+    return logAndRespond("No orphaned rewards or empty link rewards found.");
+  }
+
+  return logAndRespond(
+    `Finished cleanup (${deletedRewardsCount} rewards, ${deletedLinkRewardsCount} empty link rewards deleted).`,
+  );
+});
+
+async function deleteOrphanedRewards(cutoff: Date) {
   const rewards = await prisma.reward.findMany({
     where: {
       programId: null,
       updatedAt: {
-        lt: subMinutes(new Date(), 30), // only look for rewards older than 30 minutes ago
+        lt: cutoff,
       },
     },
     select: {
@@ -42,7 +64,7 @@ export const POST = withCron(async () => {
   });
 
   if (rewards.length === 0) {
-    return logAndRespond("No orphaned rewards found.");
+    return 0;
   }
 
   const rewardsToDelete = rewards.filter((reward) => {
@@ -65,7 +87,7 @@ export const POST = withCron(async () => {
   );
 
   if (rewardsToDelete.length === 0) {
-    return logAndRespond("No rewards to delete, skipping...");
+    return 0;
   }
 
   const deletedRewards = await prisma.reward.deleteMany({
@@ -76,7 +98,29 @@ export const POST = withCron(async () => {
     },
   });
 
-  return logAndRespond(
-    `Finished deleting orphaned rewards (${deletedRewards.count} rewards deleted).`,
-  );
-});
+  return deletedRewards.count;
+}
+
+async function deleteEmptyLinkRewards() {
+  let deletedCount = 0;
+
+  while (true) {
+    const { count } = await prisma.linkReward.deleteMany({
+      where: {
+        clickRewardId: null,
+        leadRewardId: null,
+        saleRewardId: null,
+        discountId: null,
+      },
+      limit: PRISMA_UPDATEMANY_LIMIT,
+    });
+
+    if (count === 0) {
+      break;
+    }
+
+    deletedCount += count;
+  }
+
+  return deletedCount;
+}

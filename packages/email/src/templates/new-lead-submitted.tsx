@@ -58,7 +58,7 @@ export default function NewLeadSubmitted({
     image: string | null;
   };
 }) {
-  const leadUrl = `https://app.dub.co/${workspace.slug}/program/customers/leads?leadId=${lead.id}`;
+  const leadUrl = `https://app.dub.co/${workspace.slug}/program/leads?leadId=${lead.id}`;
 
   return (
     <Html>

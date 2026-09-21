@@ -28,6 +28,7 @@ export type PopoverProps = PropsWithChildren<{
   onEscapeKeyDown?: (event: KeyboardEvent) => void;
   onWheel?: WheelEventHandler;
   sideOffset?: number;
+  collisionPadding?: PopoverPrimitive.PopoverContentProps["collisionPadding"];
   anchor?: ReactNode;
   virtualAnchorRef?: RefObject<HTMLElement | null>;
 }>;
@@ -49,6 +50,7 @@ export function Popover({
   onEscapeKeyDown,
   onWheel,
   sideOffset = 8,
+  collisionPadding,
   anchor,
   virtualAnchorRef,
 }: PopoverProps) {
@@ -119,6 +121,7 @@ export function Popover({
           )}
           sticky={sticky}
           collisionBoundary={collisionBoundary}
+          collisionPadding={collisionPadding}
           onOpenAutoFocus={onOpenAutoFocus}
           onCloseAutoFocus={onCloseAutoFocus}
           onEscapeKeyDown={onEscapeKeyDown}

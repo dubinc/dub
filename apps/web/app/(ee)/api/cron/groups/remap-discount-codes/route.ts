@@ -1,10 +1,6 @@
 import { withCron } from "@/lib/cron/with-cron";
-import { createDiscountCode } from "@/lib/discounts/create-discount-code";
-import { deleteDiscountCodes } from "@/lib/discounts/delete-discount-code";
-import { isDiscountProviderError } from "@/lib/discounts/discount-error";
-import { isDiscountEquivalent } from "@/lib/discounts/is-discount-equivalent";
+import { remapDiscountCodesForPartnerJob } from "@/lib/jobs/handlers/remap-discount-codes-for-partner-job";
 import { prisma } from "@/lib/prisma";
-import { DiscountCode } from "@prisma/client";
 import * as z from "zod/v4";
 import { logAndRespond } from "../../utils";
 
@@ -49,138 +45,29 @@ export const POST = withCron(async ({ rawBody }) => {
     return logAndRespond("No program enrollments found.");
   }
 
-  const group = await prisma.partnerGroup.findUnique({
+  const partnerGroup = await prisma.partnerGroup.findUnique({
     where: {
       id: groupId,
     },
-    include: {
-      discount: true,
+    select: {
+      id: true,
     },
   });
 
-  if (!group) {
+  if (!partnerGroup) {
     return logAndRespond("Group not found.");
   }
 
-  const discountCodes = programEnrollments.flatMap(
-    ({ discountCodes }) => discountCodes,
+  // Remap existing codes and enqueue missing default-link codes per partner.
+  await remapDiscountCodesForPartnerJob.dispatchBatch(
+    partnerIds.map((partnerId) => ({
+      programId,
+      partnerId,
+    })),
+    ({ partnerId }) => ({
+      label: partnerId,
+    }),
   );
-
-  // Find the discount codes to update and remove
-  const discountCodesToUpdate: DiscountCode[] = [];
-  const discountCodesToRemove: typeof discountCodes = [];
-
-  for (const discountCode of discountCodes) {
-    const keepDiscountCode = isDiscountEquivalent(
-      group.discount,
-      discountCode.discount,
-    );
-
-    if (keepDiscountCode) {
-      discountCodesToUpdate.push(discountCode);
-    } else {
-      discountCodesToRemove.push(discountCode);
-    }
-  }
-
-  // Update the discount codes to use the new discount if they are equivalent
-  if (discountCodesToUpdate.length > 0) {
-    console.log(
-      `Found ${discountCodesToUpdate.length} discount codes equivalent to the new group's discount. Updating them.`,
-    );
-
-    await prisma.discountCode.updateMany({
-      where: {
-        id: {
-          in: discountCodesToUpdate.map(({ id }) => id),
-        },
-      },
-      data: {
-        discountId: group.discount?.id,
-      },
-    });
-  }
-
-  // Remove the previous discount codes
-  if (discountCodesToRemove.length > 0) {
-    console.log(
-      `Found ${discountCodesToRemove.length} discount codes not equivalent to the new group's discount. Deleting them.`,
-    );
-
-    await deleteDiscountCodes(discountCodesToRemove);
-  }
-
-  if (group.discount?.autoProvisionEnabledAt) {
-    // Find the partner default links that don't have a discount code yet
-    const links = await prisma.link.findMany({
-      where: {
-        partnerId: {
-          in: partnerIds,
-        },
-        programId,
-        partnerGroupDefaultLinkId: {
-          not: null,
-        },
-        discountCode: {
-          is: null,
-        },
-      },
-      select: {
-        id: true,
-        programEnrollment: {
-          select: {
-            partner: {
-              select: {
-                id: true,
-                name: true,
-              },
-            },
-          },
-        },
-      },
-    });
-
-    if (links.length > 0) {
-      const workspace = await prisma.project.findUniqueOrThrow({
-        where: {
-          defaultProgramId: programId,
-        },
-        select: {
-          id: true,
-          webhookEnabled: true,
-          stripeConnectId: true,
-          shopifyStoreId: true,
-        },
-      });
-
-      // Create discount code for the partner default links
-      for (const link of links) {
-        try {
-          await createDiscountCode({
-            workspace,
-            partner: link.programEnrollment!.partner,
-            link,
-            discount: group.discount,
-          });
-        } catch (error) {
-          if (isDiscountProviderError(error)) {
-            if (
-              error.providerCode === "INTEGRATION_NOT_AVAILABLE" ||
-              error.providerCode === "AUTH_EXPIRED" ||
-              error.providerCode === "PERMISSIONS_REQUIRED" ||
-              error.providerCode === "COUPON_NOT_FOUND"
-            ) {
-              console.warn(
-                `${error.message} Skipping remaining discount code creation for remap.`,
-              );
-              break;
-            }
-          }
-          throw error;
-        }
-      }
-    }
-  }
 
   // if the group is deleted, need to check if there are any remaining discount codes, if not, delete the discount
   if (isGroupDeleted && oldDiscount) {

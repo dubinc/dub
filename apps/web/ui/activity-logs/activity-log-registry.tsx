@@ -46,6 +46,8 @@ const ACTIVITY_LOG_ICONS: Partial<
   "partner.groupChanged": UserArrowRight,
   "partner.rewardChanged": MoneyBill2,
   "partner.discountChanged": Gift,
+  "link.rewardChanged": MoneyBill2,
+  "link.discountChanged": Gift,
   ...Object.fromEntries(
     PARTNER_STATUS_ACTIONS.map((action) => [action, CircleDotted]),
   ),
@@ -80,6 +82,14 @@ const ACTIVITY_LOG_REGISTRY: Array<{
   },
   {
     action: "partner.discountChanged",
+    renderer: PartnerDiscountChangedRenderer,
+  },
+  {
+    action: "link.rewardChanged",
+    renderer: PartnerRewardChangedRenderer,
+  },
+  {
+    action: "link.discountChanged",
     renderer: PartnerDiscountChangedRenderer,
   },
   ...PARTNER_STATUS_ACTIONS.map((action) => ({

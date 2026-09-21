@@ -42,9 +42,11 @@ function parsePartnerTagIds(value: QueryResult["partnerTagIds"]): string[] {
 export const getPartnerEnrollmentInfo = async ({
   partnerId,
   programId,
+  linkId,
 }: {
   partnerId: string | null;
   programId: string | null;
+  linkId: string;
 }) => {
   if (!partnerId || !programId) {
     return {
@@ -70,7 +72,8 @@ export const getPartnerEnrollmentInfo = async ({
     FROM
       ProgramEnrollment
       LEFT JOIN Partner ON Partner.id = ProgramEnrollment.partnerId
-      LEFT JOIN Discount ON Discount.id = ProgramEnrollment.discountId
+      LEFT JOIN LinkReward ON LinkReward.linkId = ?
+      LEFT JOIN Discount ON Discount.id = COALESCE(LinkReward.discountId, ProgramEnrollment.discountId)
       LEFT JOIN (
         SELECT
           programId,
@@ -91,7 +94,7 @@ export const getPartnerEnrollmentInfo = async ({
     WHERE
       ProgramEnrollment.partnerId = ?
       AND ProgramEnrollment.programId = ?`,
-    [programId, partnerId, partnerId, programId],
+    [linkId, programId, partnerId, partnerId, programId],
   );
 
   const result =

@@ -29,7 +29,7 @@ export function RichTextToolbar({
   toolsEnd?: ReactNode;
   className?: string;
 }) {
-  const { editor, features, handleImageUpload, isUploading } =
+  const { editor, features, handleImageUpload, isUploading, imageAccept } =
     useRichTextContext();
 
   const editorState = useEditorState({
@@ -171,6 +171,7 @@ export function RichTextToolbar({
           <input
             ref={inputImageRef}
             type="file"
+            accept={imageAccept}
             className="hidden"
             onChange={(e) => {
               const file = e.target.files?.[0];

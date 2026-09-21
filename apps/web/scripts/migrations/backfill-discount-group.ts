@@ -20,7 +20,7 @@ async function main() {
       },
       select: {
         id: true,
-        partnerGroup: {
+        defaultForPartnerGroup: {
           select: {
             id: true,
           },
@@ -40,7 +40,7 @@ async function main() {
 
     await Promise.all(
       discounts.map((discount) => {
-        const groupId = discount.partnerGroup?.id;
+        const groupId = discount.defaultForPartnerGroup?.id;
 
         if (!groupId) {
           console.log(`No group found for discount ${discount.id}`);

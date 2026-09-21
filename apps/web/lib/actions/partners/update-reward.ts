@@ -8,6 +8,7 @@ import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-progr
 import { revalidateProgramPublicPages } from "@/lib/api/programs/revalidate-program-public-pages";
 import { queueRewardProcessing } from "@/lib/api/rewards/queue-reward-processing";
 import { validateReward } from "@/lib/api/rewards/validate-reward";
+import { getFeatureFlags } from "@/lib/edge-config";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { prisma } from "@/lib/prisma";
 import { updateRewardSchema } from "@/lib/zod/schemas/rewards";
@@ -48,11 +49,8 @@ export const updateRewardAction = authActionClient
       programId,
     });
 
-    const {
-      canUseAdvancedRewardLogic,
-      canSetRewardSpendLimit,
-      canCreateReferralReward,
-    } = getPlanCapabilities(workspace.plan);
+    const { canUseAdvancedRewardLogic, canCreateReferralReward } =
+      getPlanCapabilities(workspace.plan);
 
     if (reward.event === "referral" && !canCreateReferralReward) {
       throw new Error(
@@ -66,10 +64,14 @@ export const updateRewardAction = authActionClient
       );
     }
 
-    if ((spendLimitAmount || spendLimitInterval) && !canSetRewardSpendLimit) {
-      throw new Error(
-        "Spend limits are only available on the Enterprise plan.",
-      );
+    if (spendLimitAmount || spendLimitInterval) {
+      const flags = await getFeatureFlags({
+        workspaceId: workspace.id,
+      });
+
+      if (!flags?.rewardSpendLimit) {
+        throw new Error("Spend limits are not enabled on your workspace.");
+      }
     }
 
     validateReward({

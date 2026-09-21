@@ -214,8 +214,8 @@ export async function importCampaigns(payload: RewardfulImportPayload) {
           type: dubDiscountAttrs?.type ?? "percentage",
           maxDuration: dubDiscountAttrs?.maxDuration ?? null,
           couponId: campaign.stripe_coupon_id,
-          // connect the discount to the group
-          partnerGroup: {
+          // connect the discount as the group's default
+          defaultForPartnerGroup: {
             connect: {
               id: createdGroup.id,
             },
