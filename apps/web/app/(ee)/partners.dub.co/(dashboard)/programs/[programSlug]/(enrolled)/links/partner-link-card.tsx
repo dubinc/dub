@@ -93,8 +93,8 @@ export function PartnerLinkCard({ link }: { link: PartnerProfileLinkProps }) {
   const isDeactivated = programEnrollment?.status === "deactivated";
 
   const discountCodeSection = link.discountCode ? (
-    <div className="hidden items-center gap-1.5 rounded-xl border border-neutral-200 py-1 pl-2 pr-1 sm:flex">
-      <span className="text-sm leading-none text-neutral-500">
+    <div className="hidden h-8 items-center gap-1.5 rounded-lg border border-neutral-200 pl-2 pr-1.5 sm:flex">
+      <span className="text-xs font-medium leading-none tracking-tight text-neutral-500">
         Discount code
       </span>
       <DiscountCodeBadge
@@ -110,7 +110,7 @@ export function PartnerLinkCard({ link }: { link: PartnerProfileLinkProps }) {
       outerClassName="overflow-hidden"
       innerClassName={cn("px-0 py-0 group/card", isDeactivated && "opacity-80")}
     >
-      <div className="p-4">
+      <div className="p-4 sm:px-[18px] sm:pr-5">
         <div className="flex items-center justify-between gap-4">
           <div className="flex min-w-0 items-center gap-3">
             <div className="relative hidden shrink-0 items-center justify-center sm:flex">
@@ -136,7 +136,7 @@ export function PartnerLinkCard({ link }: { link: PartnerProfileLinkProps }) {
                       "truncate text-sm font-semibold leading-6 transition-colors",
                       isDeactivated
                         ? "cursor-default text-neutral-400"
-                        : "text-neutral-700 hover:text-black",
+                        : "text-neutral-900 hover:text-black",
                     )}
                     onClick={
                       isDeactivated ? (e) => e.preventDefault() : undefined
@@ -222,13 +222,13 @@ export function PartnerLinkCard({ link }: { link: PartnerProfileLinkProps }) {
           </div>
         </div>
       </div>
+      {displayOption === "full" && <StatsCharts link={link} />}
       <PartnerLinkRewardsPanel
         rewards={rewards}
         discount={discount}
         showRewards={showRewards}
         additionalCount={additionalCount}
       />
-      {displayOption === "full" && <StatsCharts link={link} />}
     </CardList.Card>
   );
 }
@@ -239,7 +239,7 @@ const StatsBadge = memo(({ link }: { link: PartnerProfileLinkProps }) => {
   return (
     <As
       href={`/programs/${programEnrollment?.program.slug}/analytics?linkId=${link.id}`}
-      className="flex items-center gap-0.5 rounded-md border border-neutral-200 bg-neutral-50 p-0.5 text-sm text-neutral-600"
+      className="flex h-[30px] items-center gap-[3px] rounded-md border border-neutral-200 bg-white px-1 text-xs font-medium text-neutral-900"
     >
       {[
         {
@@ -266,7 +266,7 @@ const StatsBadge = memo(({ link }: { link: PartnerProfileLinkProps }) => {
         <div
           key={tab}
           className={cn(
-            "flex items-center gap-1 whitespace-nowrap rounded-md px-1 py-px transition-colors",
+            "flex items-center gap-1.5 whitespace-nowrap rounded px-[5px] py-[3px] transition-colors",
             className,
           )}
         >
@@ -341,7 +341,10 @@ const StatsCharts = memo(({ link }: { link: PartnerProfileLinkProps }) => {
   }, [timeseries]);
 
   return (
-    <div ref={ref} className="grid grid-cols-1 gap-4 p-4 pt-0 sm:grid-cols-3">
+    <div
+      ref={ref}
+      className="grid grid-cols-1 gap-4 p-4 pt-0 sm:grid-cols-3 sm:gap-5 sm:px-[18px] sm:pb-5"
+    >
       {CHARTS.map((chart) => (
         <Link
           key={chart.key}
@@ -351,7 +354,7 @@ const StatsCharts = memo(({ link }: { link: PartnerProfileLinkProps }) => {
               event: chart.key === "saleAmount" ? "sales" : chart.key,
             },
           )}`}
-          className="group/chart relative isolate rounded-lg border border-neutral-200 px-2 py-1.5 lg:px-3"
+          className="group/chart relative isolate flex flex-col gap-4 rounded-lg border border-neutral-200 p-4 lg:p-5"
         >
           <div className="absolute right-2 top-2 overflow-hidden">
             <div className="translate-x-full transition-transform duration-200 group-hover/chart:translate-x-0">
@@ -362,7 +365,7 @@ const StatsCharts = memo(({ link }: { link: PartnerProfileLinkProps }) => {
               />
             </div>
           </div>
-          <div className="flex flex-col gap-1 pl-2 pt-3 lg:pl-1.5">
+          <div className="flex flex-col gap-1">
             <div className="flex items-center gap-1.5">
               <chart.icon
                 className={cn("h-4 w-4 shrink-0", chart.colorClassName)}

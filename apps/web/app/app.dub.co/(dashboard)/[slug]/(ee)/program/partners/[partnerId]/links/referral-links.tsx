@@ -90,6 +90,7 @@ function OverrideIndicator({
 }) {
   return (
     <Tooltip
+      disableHoverableContent
       content={
         disabledTooltip ?? (
           <div className="whitespace-nowrap px-3 py-2 text-sm text-neutral-600">
@@ -109,7 +110,7 @@ function OverrideIndicator({
       >
         <span className="relative flex">
           {children}
-          <RewardOverrideIcon />
+          <RewardOverrideIcon ringClassName="stroke-neutral-100 group-hover/override:stroke-neutral-200" />
         </span>
       </button>
     </Tooltip>
@@ -126,7 +127,7 @@ function OverrideIndicatorGroup({
   return (
     <div
       className={cn(
-        "flex h-5 shrink-0 items-center gap-1 rounded-md bg-neutral-100 px-1 transition-colors",
+        "group/override flex h-5 shrink-0 items-center gap-1 rounded-md bg-neutral-100 px-1 transition-colors",
         !disabled && "hover:bg-neutral-200",
       )}
     >
