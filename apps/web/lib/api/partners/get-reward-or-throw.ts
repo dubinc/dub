@@ -1,17 +1,21 @@
 import { prisma } from "@/lib/prisma";
+import { Prisma } from "@prisma/client";
 import { DubApiError } from "../errors";
 
-export async function getRewardOrThrow({
+export async function getRewardOrThrow<T extends Prisma.RewardInclude = {}>({
   rewardId,
   programId,
+  include,
 }: {
   rewardId: string;
   programId: string;
-}) {
+  include?: T;
+}): Promise<Prisma.RewardGetPayload<{ include: T }>> {
   const reward = await prisma.reward.findUnique({
     where: {
       id: rewardId,
     },
+    include,
   });
 
   if (!reward) {
@@ -28,5 +32,5 @@ export async function getRewardOrThrow({
     });
   }
 
-  return reward;
+  return reward as Prisma.RewardGetPayload<{ include: T }>;
 }

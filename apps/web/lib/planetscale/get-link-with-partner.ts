@@ -52,7 +52,8 @@ export const getLinkWithPartner = async ({
        FROM Link
        LEFT JOIN ProgramEnrollment ON ProgramEnrollment.programId = Link.programId AND ProgramEnrollment.partnerId = Link.partnerId
        LEFT JOIN Partner ON Partner.id = ProgramEnrollment.partnerId
-       LEFT JOIN Discount PartnerDiscount ON ProgramEnrollment.discountId = PartnerDiscount.id
+       LEFT JOIN LinkReward ON LinkReward.linkId = Link.id
+       LEFT JOIN Discount PartnerDiscount ON PartnerDiscount.id = COALESCE(LinkReward.discountId, ProgramEnrollment.discountId)
        LEFT JOIN Program ON Program.id = Link.programId
        WHERE Link.domain = ? AND Link.key = ?`,
       [domain, keyToQuery],

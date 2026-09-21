@@ -5,7 +5,7 @@ import * as z from "zod/v4";
 import { defineJob } from "../index";
 
 const inputSchema = z.discriminatedUnion("type", [
-  // Discount is still assigned to enrollments.
+  // Discount is still assigned to enrollments or link overrides.
   z.object({
     type: z.literal("discount"),
     discountId: z.string(),
@@ -47,11 +47,22 @@ async function findLinksToInvalidate(input: InvalidateLinksForDiscountsInput) {
   if (input.type === "discount") {
     return prisma.link.findMany({
       where: {
-        programEnrollment: {
-          is: {
-            discountId: input.discountId,
+        OR: [
+          {
+            programEnrollment: {
+              is: {
+                discountId: input.discountId,
+              },
+            },
           },
-        },
+          {
+            linkReward: {
+              is: {
+                discountId: input.discountId,
+              },
+            },
+          },
+        ],
       },
       select: {
         domain: true,

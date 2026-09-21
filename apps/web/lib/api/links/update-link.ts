@@ -180,6 +180,7 @@ export async function updateLink({
       const { partner, discount } = await getPartnerEnrollmentInfo({
         programId: response.programId,
         partnerId: response.partnerId,
+        linkId: response.id,
       });
 
       await Promise.allSettled([

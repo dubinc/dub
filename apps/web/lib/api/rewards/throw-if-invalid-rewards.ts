@@ -137,7 +137,7 @@ export async function throwIfInvalidRewards({
       select: {
         id: true,
         groupId: true,
-        partnerGroup: {
+        defaultForPartnerGroup: {
           select: {
             id: true,
           },
@@ -156,7 +156,7 @@ export async function throwIfInvalidRewards({
       !belongsToGroup({
         groupId,
         entityGroupId: discount.groupId,
-        defaultGroupId: discount.partnerGroup?.id,
+        defaultGroupId: discount.defaultForPartnerGroup?.id,
       })
     ) {
       throw new DubApiError({
