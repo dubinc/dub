@@ -3,6 +3,7 @@
 import { addEditIntegration } from "@/lib/actions/add-edit-integration";
 import { normalizeWorkspaceId } from "@/lib/api/workspaces/workspace-id";
 import { clientAccessCheck } from "@/lib/client-access-check";
+import { UPLOAD_POLICIES } from "@/lib/storage/upload-policies";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { NewOrExistingIntegration } from "@/lib/types";
 import {
@@ -15,7 +16,7 @@ import {
   RichTextToolbar,
   useEnterSubmit,
 } from "@dub/ui";
-import { cn } from "@dub/utils";
+import { cn, toErrorMessage } from "@dub/utils";
 import slugify from "@sindresorhus/slugify";
 import { Paperclip, Trash2 } from "lucide-react";
 import { Reorder } from "motion/react";
@@ -23,6 +24,9 @@ import { useAction } from "next-safe-action/hooks";
 import { useEffect, useRef, useState } from "react";
 import TextareaAutosize from "react-textarea-autosize";
 import { toast } from "sonner";
+
+const { contentTypes, maxBytes } = UPLOAD_POLICIES.integrationScreenshots;
+const maxFileSizeMB = maxBytes / (1024 * 1024);
 
 export default function AddEditIntegrationForm({
   integration,
@@ -88,7 +92,8 @@ export default function AddEditIntegrationForm({
       );
 
       if (!response.ok) {
-        toast.error("Failed to get signed URL for screenshot upload.");
+        const { error } = await response.json();
+        toast.error(toErrorMessage(error));
         removePendingScreenshot();
         return;
       }
@@ -118,8 +123,8 @@ export default function AddEditIntegrationForm({
             : screenshot,
         ),
       );
-    } catch {
-      toast.error("Failed to upload screenshot.");
+    } catch (e) {
+      toast.error(toErrorMessage(e));
       removePendingScreenshot();
     }
   };
@@ -159,7 +164,7 @@ export default function AddEditIntegrationForm({
       >
         <div>
           <FileUpload
-            accept="images"
+            acceptedFileTypes={contentTypes}
             className="h-24 w-24 rounded-full border border-neutral-300"
             iconClassName="w-5 h-5"
             variant="plain"
@@ -170,7 +175,7 @@ export default function AddEditIntegrationForm({
             }
             onChange={({ src }) => setData({ ...data, logo: src })}
             content={null}
-            maxFileSizeMB={2}
+            maxFileSizeMB={maxFileSizeMB}
             disabled={!canManageApp}
           />
         </div>
@@ -278,7 +283,7 @@ export default function AddEditIntegrationForm({
             >
               <div
                 className={cn(
-                  "border-border-subtle overflow-hidden rounded-md border border-neutral-300 shadow-sm focus-within:border-neutral-500 focus-within:ring-1 focus-within:ring-neutral-500",
+                  "border-border-subtle overflow-hidden rounded-md border shadow-sm focus-within:border-neutral-500 focus-within:ring-1 focus-within:ring-neutral-500",
                   !canManageApp && "cursor-not-allowed bg-neutral-50",
                 )}
               >
@@ -336,14 +341,14 @@ export default function AddEditIntegrationForm({
           </Reorder.Group>
 
           <FileUpload
-            accept="images"
+            acceptedFileTypes={contentTypes}
             className="mt-2 aspect-[5/1] w-full rounded-md border border-dashed border-neutral-300"
             iconClassName="w-5 h-5"
             variant="plain"
             onChange={async ({ file }) => await handleUpload(file)}
             content="Drag and drop or click to upload screenshots"
             disabled={!canManageApp || screenshots.length >= 4}
-            maxFileSizeMB={2}
+            maxFileSizeMB={maxFileSizeMB}
           />
         </div>
 

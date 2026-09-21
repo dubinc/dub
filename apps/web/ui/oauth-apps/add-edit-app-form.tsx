@@ -1,6 +1,7 @@
 "use client";
 
 import { clientAccessCheck } from "@/lib/client-access-check";
+import { UPLOAD_POLICIES } from "@/lib/storage/upload-policies";
 import useWorkspace from "@/lib/swr/use-workspace";
 import {
   NewOAuthApp,
@@ -19,7 +20,7 @@ import {
   Switch,
   useEnterSubmit,
 } from "@dub/ui";
-import { cn, nanoid } from "@dub/utils";
+import { cn, nanoid, toErrorMessage } from "@dub/utils";
 import slugify from "@sindresorhus/slugify";
 import { Paperclip, Trash2 } from "lucide-react";
 import { Reorder } from "motion/react";
@@ -28,6 +29,9 @@ import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import TextareaAutosize from "react-textarea-autosize";
 import { toast } from "sonner";
 import { mutate } from "swr";
+
+const { contentTypes, maxBytes } = UPLOAD_POLICIES.integrationScreenshots;
+const maxFileSizeMB = maxBytes / (1024 * 1024);
 
 const defaultValues: NewOAuthApp = {
   name: "",
@@ -189,7 +193,8 @@ export default function AddOAuthAppForm({
       );
 
       if (!response.ok) {
-        toast.error("Failed to get signed URL for screenshot upload.");
+        const { error } = await response.json();
+        toast.error(toErrorMessage(error));
         removePendingScreenshot();
         return;
       }
@@ -219,8 +224,8 @@ export default function AddOAuthAppForm({
             : screenshot,
         ),
       );
-    } catch {
-      toast.error("Failed to upload screenshot.");
+    } catch (e) {
+      toast.error(toErrorMessage(e));
       removePendingScreenshot();
     }
   };
@@ -253,7 +258,7 @@ export default function AddOAuthAppForm({
       >
         <div>
           <FileUpload
-            accept="images"
+            acceptedFileTypes={contentTypes}
             className="h-24 w-24 rounded-full border border-neutral-300"
             iconClassName="w-5 h-5"
             variant="plain"
@@ -264,7 +269,7 @@ export default function AddOAuthAppForm({
             }
             onChange={({ src }) => setData({ ...data, logo: src })}
             content={null}
-            maxFileSizeMB={2}
+            maxFileSizeMB={maxFileSizeMB}
             disabled={!canManageApp}
           />
         </div>
@@ -430,14 +435,14 @@ export default function AddOAuthAppForm({
           </Reorder.Group>
 
           <FileUpload
-            accept="images"
+            acceptedFileTypes={contentTypes}
             className="mt-2 aspect-[5/1] w-full rounded-md border border-dashed border-neutral-300"
             iconClassName="w-5 h-5"
             variant="plain"
             onChange={async ({ file }) => await handleUpload(file)}
             content="Drag and drop or click to upload screenshots"
             disabled={!canManageApp || screenshots.length >= 4}
-            maxFileSizeMB={2}
+            maxFileSizeMB={maxFileSizeMB}
           />
         </div>
 

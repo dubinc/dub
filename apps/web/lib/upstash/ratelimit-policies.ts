@@ -95,6 +95,14 @@ export const RATELIMIT_POLICIES = {
       "You've reached the maximum number of attempts to upload a file for this bounty.",
   },
 
+  // Keyed on workspace + user so one member cannot exhaust the workspace upload budget
+  workspaceFileUpload: {
+    attempts: 20,
+    window: "1 h",
+    keyPrefix: "rl:workspace:file:upload",
+    message: "Too many file uploads. Please try again later.",
+  },
+
   partnerProfileInvite: {
     attempts: 5,
     window: "1 h",
