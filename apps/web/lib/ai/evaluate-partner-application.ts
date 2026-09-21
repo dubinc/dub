@@ -4,14 +4,13 @@ import {
 } from "@/lib/partners/format-application-form-data";
 import { programLanderSchema } from "@/lib/zod/schemas/program-lander";
 import { ProgramApplication } from "@prisma/client";
-import * as z from "zod/v4";
+import { experimental_evaluate as evaluate, type JSONValue } from "ai";
 
 export const JEV_MATCH_THRESHOLD = 0.85;
 
 const MAX_TEXT_LENGTH = 500;
 const JEV_EVALUATE_TIMEOUT_MS = 2_000;
 const JEV_MODEL_ID = "typesafe-ai/jev";
-const JEV_EVALUATE_URL = "https://ai-gateway.vercel.sh/v4/ai/evaluation-model";
 
 export type EvaluatePartnerApplicationInput = {
   program: {
@@ -46,22 +45,6 @@ export type JevEvaluation = {
     outputTokens?: number;
   };
 };
-
-const jevEvaluateResponseSchema = z.object({
-  answers: z.record(
-    z.string(),
-    z.object({
-      type: z.literal("boolean"),
-      probability: z.number().finite(),
-    }),
-  ),
-  usage: z
-    .object({
-      inputTokens: z.number().optional(),
-      outputTokens: z.number().optional(),
-    })
-    .optional(),
-});
 
 export function isConfidentMatch(probability: number | null | undefined) {
   return (
@@ -213,74 +196,48 @@ async function evaluateBooleanQuestion({
   };
   tag: string;
 }): Promise<JevEvaluation> {
-  const apiKey = process.env.AI_GATEWAY_API_KEY;
-
-  if (!apiKey) {
+  if (!process.env.AI_GATEWAY_API_KEY) {
     return { status: "skipped" };
   }
 
-  const abortController = new AbortController();
-  const timeout = setTimeout(
-    () => abortController.abort(),
-    JEV_EVALUATE_TIMEOUT_MS,
-  );
-
   try {
-    const response = await fetch(JEV_EVALUATE_URL, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-        "ai-gateway-protocol-version": "0.0.1",
-        "ai-gateway-auth-method": "api-key",
-        "ai-evaluation-model-specification-version": "4",
-        "ai-model-id": JEV_MODEL_ID,
+    const result = await evaluate({
+      model: JEV_MODEL_ID,
+      state: state as { [key: string]: JSONValue | undefined },
+      questions: {
+        [questionKey]: {
+          type: "boolean",
+          instructions,
+          criteria,
+        },
       },
-      body: JSON.stringify({
-        state,
-        questions: {
-          [questionKey]: {
-            type: "boolean",
-            instructions,
-            criteria,
-          },
+      maxRetries: 0,
+      abortSignal: AbortSignal.timeout(JEV_EVALUATE_TIMEOUT_MS),
+      providerOptions: {
+        gateway: {
+          zeroDataRetention: true,
+          disallowPromptTraining: true,
+          tags: [tag],
         },
-        providerOptions: {
-          gateway: {
-            zeroDataRetention: true,
-            disallowPromptTraining: true,
-            tags: [tag],
-          },
-        },
-      }),
-      signal: abortController.signal,
+      },
     });
 
-    if (!response.ok) {
-      throw new Error(`Jev evaluate failed with status ${response.status}.`);
-    }
+    const answer = result.answers[questionKey];
 
-    const parsed = jevEvaluateResponseSchema.safeParse(await response.json());
-    const answer = parsed.success
-      ? parsed.data.answers[questionKey]
-      : undefined;
-
-    if (!parsed.success || !answer) {
+    if (!answer || answer.type !== "boolean") {
       throw new Error("Jev evaluate returned an invalid response.");
     }
 
     return {
       status: isConfidentMatch(answer.probability) ? "matched" : "unmatched",
       probability: answer.probability,
-      usage: parsed.data.usage,
+      usage: result.usage,
     };
   } catch (error) {
     return {
       status: "failed",
       error: error instanceof Error ? error.message : String(error),
     };
-  } finally {
-    clearTimeout(timeout);
   }
 }
 
