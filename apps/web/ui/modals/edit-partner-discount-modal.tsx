@@ -143,10 +143,6 @@ function EditPartnerDiscountModal({
   );
 
   const groupDefaultDiscountId = group?.discount?.id;
-  const targetLinkUrl =
-    target.type === "link"
-      ? getPrettyUrl(constructPartnerLink({ group, link: target.link }))
-      : null;
   const effectiveDiscountId = getEffectiveDiscountId({
     target,
     groupDefaultDiscountId,
@@ -369,20 +365,21 @@ function EditPartnerDiscountModal({
                 target="_blank"
                 className={cn(
                   "block cursor-alias truncate text-xs font-medium text-neutral-900 decoration-dotted hover:underline",
-                  !targetLinkUrl && "text-sm",
+                  target.type !== "link" && "text-sm",
                 )}
               >
                 {partner.name}
               </Link>
-              {targetLinkUrl && (
+              {target.type === "link" && (
                 <Link
-                  href={`/${slug}/links/${targetLinkUrl}`}
+                  href={`/${slug}/links/${getPrettyUrl(target.link.shortLink)}`}
                   target="_blank"
                   className="flex cursor-alias items-center gap-1 truncate text-[11px] text-neutral-500 decoration-dotted hover:underline"
-                  title={targetLinkUrl}
                 >
                   <ArrowTurnRight2 className="size-3" />
-                  {targetLinkUrl}
+                  {getPrettyUrl(
+                    constructPartnerLink({ group, link: target.link }),
+                  )}
                 </Link>
               )}
             </div>

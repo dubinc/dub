@@ -254,7 +254,6 @@ const AddPartnerLinkModal = ({
               >
                 <button
                   type="button"
-                  disabled={!canUseAdvancedRewardLogic}
                   className={cn(
                     "flex w-full items-center gap-2",
                     !canUseAdvancedRewardLogic &&

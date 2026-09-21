@@ -21,6 +21,7 @@ export function useProgramPartnerLinks(
   const {
     data: links,
     error,
+    isLoading,
     isValidating,
   } = useSWR<ProgramPartnerLinkExtended[]>(
     partnerId && workspaceId
@@ -32,7 +33,7 @@ export function useProgramPartnerLinks(
 
   return {
     links,
-    loading: !links && !error,
+    loading: isLoading,
     error,
     isValidating,
   };
