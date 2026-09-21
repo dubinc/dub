@@ -1,16 +1,23 @@
 "use client";
 
+import { SUBMITTED_LEADS_ENABLED_PROGRAM_IDS } from "@/lib/submitted-leads/constants";
 import { usePartnerSubmittedLeads } from "@/lib/swr/use-partner-submitted-leads";
 import { usePartnerSubmittedLeadsCount } from "@/lib/swr/use-partner-submitted-leads-count";
+import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import { PartnerProfileSubmittedLeadsCountByStatus } from "@/lib/types";
 import { PartnerProfileSubmittedLead } from "@/lib/zod/schemas/partner-profile";
+import { submittedLeadFormSchema } from "@/lib/zod/schemas/submitted-lead-form";
+import { PageContent } from "@/ui/layout/page-content";
+import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
 import { PartnerProfileSubmittedLeadSheet } from "@/ui/submitted-leads/partner-profile-submitted-lead-sheet";
 import { PartnerProfileSubmittedLeadsEmptyState } from "@/ui/submitted-leads/partner-profile-submitted-leads-empty-state";
+import { SubmitLeadSheet } from "@/ui/submitted-leads/submit-lead-sheet";
 import { SubmittedLeadStatusBadges } from "@/ui/submitted-leads/submitted-lead-status-badges";
 import { getCompanyLogoUrl } from "@/ui/submitted-leads/submitted-lead-utils";
 import {
   AnimatedSizeContainer,
+  Button,
   Filter,
   StatusBadge,
   Table,
@@ -25,10 +32,13 @@ import { cn, formatDate, nFormatter, OG_AVATAR_URL } from "@dub/utils";
 import { SubmittedLeadStatus } from "@prisma/client";
 import { Row } from "@tanstack/react-table";
 import { useEffect, useMemo, useState } from "react";
+import * as z from "zod/v4";
 
 export default function PartnerProgramSubmittedLeadsPage() {
-  const { queryParams, searchParams } = useRouterStuff();
+  const { queryParams, searchParams, searchParamsObj } = useRouterStuff();
   const { pagination, setPagination } = usePagination();
+  const { programEnrollment } = useProgramEnrollment();
+  const [showLeadSheet, setShowLeadSheet] = useState(false);
 
   const leadIdFromUrl = searchParams.get("leadId");
 
@@ -40,9 +50,28 @@ export default function PartnerProgramSubmittedLeadsPage() {
     open: !!leadIdFromUrl,
   });
 
-  const { searchParamsObj } = useRouterStuff();
   const status = searchParamsObj.status as SubmittedLeadStatus | undefined;
   const search = searchParamsObj.search as string | undefined;
+
+  const leadFormDataRaw = programEnrollment?.program?.referralFormData;
+  const programId = programEnrollment?.programId;
+
+  const isEnabled = programId
+    ? SUBMITTED_LEADS_ENABLED_PROGRAM_IDS.includes(programId)
+    : false;
+
+  const leadFormData = useMemo(() => {
+    if (!leadFormDataRaw) {
+      return null;
+    }
+    try {
+      return submittedLeadFormSchema.parse(leadFormDataRaw) as z.infer<
+        typeof submittedLeadFormSchema
+      >;
+    } catch {
+      return null;
+    }
+  }, [leadFormDataRaw]);
 
   const { data: countByStatus } = usePartnerSubmittedLeadsCount<
     PartnerProfileSubmittedLeadsCountByStatus[] | undefined
@@ -277,77 +306,105 @@ export default function PartnerProgramSubmittedLeadsPage() {
   }, [searchParams, detailsSheetState.leadId]);
 
   return (
-    <div className="flex flex-col gap-3">
-      {detailsSheetState.leadId && currentLead && (
-        <PartnerProfileSubmittedLeadSheet
-          isOpen={detailsSheetState.open}
-          setIsOpen={(open) =>
-            setDetailsSheetState((s) => ({ ...s, open }) as any)
-          }
-          lead={currentLead}
-          onPrevious={
-            previousLeadId
-              ? () => {
-                  queryParams({
-                    set: { leadId: previousLeadId },
-                  });
-                  setDetailsSheetState({
-                    leadId: previousLeadId,
-                    open: true,
-                  });
-                }
-              : undefined
-          }
-          onNext={
-            nextLeadId
-              ? () => {
-                  queryParams({
-                    set: { leadId: nextLeadId },
-                  });
-                  setDetailsSheetState({
-                    leadId: nextLeadId,
-                    open: true,
-                  });
-                }
-              : undefined
-          }
+    <PageContent
+      title="Submitted Leads"
+      controls={
+        isEnabled ? (
+          <Button
+            text="Submit lead"
+            className="h-9 w-fit rounded-lg"
+            disabled={!leadFormData}
+            disabledTooltip={
+              leadFormData ? undefined : "Submitted leads are not offered."
+            }
+            onClick={() => {
+              setShowLeadSheet(true);
+            }}
+          />
+        ) : undefined
+      }
+    >
+      {isEnabled && leadFormData && programEnrollment?.programId && (
+        <SubmitLeadSheet
+          isOpen={showLeadSheet}
+          setIsOpen={setShowLeadSheet}
+          programId={programEnrollment.programId}
+          leadFormData={leadFormData}
         />
       )}
-      <div>
-        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-          <Filter.Select
-            className="w-full md:w-fit"
-            filters={filters}
-            activeFilters={activeFilters}
-            onSelect={onSelect}
-            onRemove={onRemove}
+
+      <PageWidthWrapper className="flex flex-col gap-3 pb-10">
+        {detailsSheetState.leadId && currentLead && (
+          <PartnerProfileSubmittedLeadSheet
+            isOpen={detailsSheetState.open}
+            setIsOpen={(open) =>
+              setDetailsSheetState((s) => ({ ...s, open }) as any)
+            }
+            lead={currentLead}
+            onPrevious={
+              previousLeadId
+                ? () => {
+                    queryParams({
+                      set: { leadId: previousLeadId },
+                    });
+                    setDetailsSheetState({
+                      leadId: previousLeadId,
+                      open: true,
+                    });
+                  }
+                : undefined
+            }
+            onNext={
+              nextLeadId
+                ? () => {
+                    queryParams({
+                      set: { leadId: nextLeadId },
+                    });
+                    setDetailsSheetState({
+                      leadId: nextLeadId,
+                      open: true,
+                    });
+                  }
+                : undefined
+            }
           />
-          <SearchBoxPersisted
-            placeholder="Search by email or name"
-            inputClassName="md:w-[16rem]"
-          />
-        </div>
-        <AnimatedSizeContainer height>
-          <div>
-            {activeFilters.length > 0 && (
-              <div className="pt-3">
-                <Filter.List
-                  filters={filters}
-                  activeFilters={activeFilters}
-                  onSelect={onSelect}
-                  onRemove={onRemove}
-                  onRemoveAll={onRemoveAll}
-                />
-              </div>
-            )}
+        )}
+        <div>
+          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+            <Filter.Select
+              className="w-full md:w-fit"
+              filters={filters}
+              activeFilters={activeFilters}
+              onSelect={onSelect}
+              onRemove={onRemove}
+            />
+            <SearchBoxPersisted
+              placeholder="Search by email or name"
+              inputClassName="md:w-[16rem]"
+            />
           </div>
-        </AnimatedSizeContainer>
-      </div>
-      {leads && leads.length !== 0 ? (
-        <Table {...tableProps} table={table} />
-      ) : !isLoading ? (
-        <PartnerProfileSubmittedLeadsEmptyState />
-      ) : null}
-    </div>
+          <AnimatedSizeContainer height>
+            <div>
+              {activeFilters.length > 0 && (
+                <div className="pt-3">
+                  <Filter.List
+                    filters={filters}
+                    activeFilters={activeFilters}
+                    onSelect={onSelect}
+                    onRemove={onRemove}
+                    onRemoveAll={onRemoveAll}
+                  />
+                </div>
+              )}
+            </div>
+          </AnimatedSizeContainer>
+        </div>
+        {leads && leads.length !== 0 ? (
+          <Table {...tableProps} table={table} />
+        ) : !isLoading ? (
+          <PartnerProfileSubmittedLeadsEmptyState />
+        ) : null}
+      </PageWidthWrapper>
+    </PageContent>
   );
 }
