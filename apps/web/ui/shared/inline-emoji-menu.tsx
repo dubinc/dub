@@ -14,6 +14,7 @@ import { gemoji } from "gemoji";
 import {
   forwardRef,
   useEffect,
+  useId,
   useImperativeHandle,
   useLayoutEffect,
   useMemo,
@@ -112,6 +113,7 @@ export const InlineEmojiAutocomplete = forwardRef<
   { suspended?: boolean }
 >(function InlineEmojiAutocomplete({ suspended = false }, ref) {
   const { editor } = useRichTextContext();
+  const listboxId = useId();
   const [token, setToken] = useState<EmojiToken | null>(null);
   const [dismissed, setDismissed] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
@@ -128,6 +130,7 @@ export const InlineEmojiAutocomplete = forwardRef<
   const activeIndexClamped = results.length
     ? Math.min(activeIndex, results.length - 1)
     : 0;
+  const activeOptionId = `${listboxId}-option-${activeIndexClamped}`;
 
   const { refs, floatingStyles, update } = useFloating({
     open,
@@ -226,6 +229,23 @@ export const InlineEmojiAutocomplete = forwardRef<
       ?.scrollIntoView({ block: "nearest" });
   }, [open, activeIndexClamped, query]);
 
+  useEffect(() => {
+    if (!open || !editor) return;
+
+    const dom = editor.view.dom;
+    dom.setAttribute("aria-controls", listboxId);
+    dom.setAttribute("aria-expanded", "true");
+    dom.setAttribute("aria-autocomplete", "list");
+    dom.setAttribute("aria-activedescendant", activeOptionId);
+
+    return () => {
+      dom.removeAttribute("aria-controls");
+      dom.removeAttribute("aria-expanded");
+      dom.removeAttribute("aria-autocomplete");
+      dom.removeAttribute("aria-activedescendant");
+    };
+  }, [open, editor, listboxId, activeOptionId]);
+
   const selectIndex = (index: number) => {
     const next = results[index];
     if (!next || !editor || !token) return;
@@ -295,6 +315,7 @@ export const InlineEmojiAutocomplete = forwardRef<
           menuRef.current = node;
           refs.setFloating(node);
         }}
+        id={listboxId}
         style={floatingStyles}
         role="listbox"
         aria-label="Emoji suggestions"
@@ -307,6 +328,7 @@ export const InlineEmojiAutocomplete = forwardRef<
           return (
             <button
               key={item.shortcode}
+              id={`${listboxId}-option-${index}`}
               type="button"
               role="option"
               aria-selected={selected}
