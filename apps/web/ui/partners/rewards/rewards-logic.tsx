@@ -2,10 +2,7 @@
 
 import { constructRewardAmount } from "@/lib/api/sales/construct-reward-amount";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
-import {
-  applyTooltipSuggestion,
-  suggestionTouchesField,
-} from "@/lib/rewards/validate-tooltip-suggestion";
+import { suggestionTouchesField } from "@/lib/rewards/validate-tooltip-suggestion";
 import { SUBMITTED_LEADS_ENABLED_PROGRAM_IDS } from "@/lib/submitted-leads/constants";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -69,11 +66,7 @@ import {
   SuggestedFixBadge,
   SuggestedFixPopoverHost,
 } from "./suggested-fix-popover";
-import {
-  RewardTooltipConsistencyContext,
-  useRewardTooltipConsistency,
-  useRewardTooltipConsistencyContext,
-} from "./use-reward-tooltip-consistency";
+import { useRewardTooltipConsistencyContext } from "./use-reward-tooltip-consistency";
 
 export const REWARD_TYPES = [
   {
@@ -91,33 +84,9 @@ export function RewardsLogic({
 }: {
   isDefaultReward: boolean;
 }) {
-  const { plan, id: workspaceId } = useWorkspace();
+  const { plan } = useWorkspace();
 
   const { control, getValues, setValue } = useAddEditRewardForm();
-  const [event, tooltipDescription, modifiers] = useWatch({
-    control,
-    name: ["event", "tooltipDescription", "modifiers"],
-  });
-
-  const consistency = useRewardTooltipConsistency({
-    workspaceId,
-    event,
-    tooltipDescription,
-    modifiers,
-    onApply: (suggestion) => {
-      const conditionKey =
-        `modifiers.${suggestion.modifierIndex}.conditions.${suggestion.conditionIndex}` as const;
-      const current = getValues(conditionKey);
-
-      if (!current) return;
-
-      setValue(
-        conditionKey,
-        applyTooltipSuggestion(current, suggestion.suggested),
-        { shouldDirty: true },
-      );
-    },
-  });
 
   const {
     fields: modifierFields,
@@ -129,7 +98,7 @@ export function RewardsLogic({
   });
 
   return (
-    <RewardTooltipConsistencyContext.Provider value={consistency}>
+    <>
       <SuggestedFixPopoverHost />
       <div
         className={cn(
@@ -185,7 +154,7 @@ export function RewardsLogic({
           variant={isDefaultReward ? "primary" : "secondary"}
         />
       </div>
-    </RewardTooltipConsistencyContext.Provider>
+    </>
   );
 }
 

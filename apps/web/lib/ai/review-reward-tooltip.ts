@@ -11,60 +11,113 @@ import { assertRateLimit } from "@/lib/upstash/assert-rate-limit";
 import { RATELIMIT_POLICIES } from "@/lib/upstash/ratelimit-policies";
 import { CONDITION_OPERATOR_LABELS } from "@/lib/zod/schemas/rewards";
 import { anthropic } from "@ai-sdk/anthropic";
-import { generateText, Output } from "ai";
+import { experimental_evaluate as evaluate, generateText, Output } from "ai";
 import { throwIfNoPermission } from "../actions/throw-if-no-permission";
 import {
   reviewRewardTooltipInputSchema,
   reviewRewardTooltipOutputSchema,
+  TOOLTIP_SUGGESTION_CONFIDENCE_FLOOR,
   type ReviewRewardTooltipModifier,
   type TooltipSuggestion,
 } from "./review-reward-tooltip-schema";
+
+export async function screenRewardTooltipContradiction(
+  input: unknown,
+): Promise<{ flagged: boolean | null }> {
+  try {
+    const authorized = await authorizeRewardTooltipReview(input);
+    if (!authorized) {
+      return { flagged: false };
+    }
+
+    const tooltip = stripRewardTooltipMarkdown(authorized.data.tooltip);
+    if (!tooltip) {
+      return { flagged: false };
+    }
+
+    await assertRateLimit({
+      policy: RATELIMIT_POLICIES.aiRewardTooltipScreen,
+      identifier: [authorized.userId, authorized.workspaceId],
+    });
+
+    const { event, modifiers } = authorized.data;
+    const result = await evaluate({
+      model: "typesafe-ai/jev",
+      state: {
+        event,
+        tooltip,
+        conditions: serializeConditions(modifiers),
+      },
+      questions: {
+        contradicts: {
+          type: "boolean",
+          instructions:
+            "Would a partner who only read the tooltip be surprised by an existing condition?",
+          criteria: {
+            true: {
+              meaning:
+                "Yes only when an existing condition clearly contradicts the tooltip. One strong mismatch is enough. Use a low probability when unsure.",
+              matches_any: [
+                "The tooltip says minimum, at least, or that a threshold qualifies, but the condition uses a strict greater-than or less-than that excludes that boundary.",
+                "The tooltip says more than, over, or above, but the condition includes the boundary.",
+                "The tooltip names a different operator or threshold than an existing condition, clearly enough that a partner would expect a different eligibility rule.",
+              ],
+            },
+            false: {
+              meaning:
+                "No when the tooltip and the existing conditions agree, or when the reading is ambiguous.",
+              even_if: [
+                "The tooltip is shorter than the config or omits extra filters such as country, product, or metadata.",
+                "The wording is informal and does not clearly specify a different operator or threshold.",
+                "The tooltip never mentions a condition that still exists in the config.",
+              ],
+            },
+          },
+        },
+      },
+      providerOptions: {
+        gateway: {
+          zeroDataRetention: true,
+        },
+      },
+    });
+
+    const answer = result.answers.contradicts;
+    if (answer?.type !== "boolean") {
+      return { flagged: null };
+    }
+
+    return {
+      flagged:
+        Number.isFinite(answer.probability) &&
+        answer.probability > TOOLTIP_SUGGESTION_CONFIDENCE_FLOOR,
+    };
+  } catch (error) {
+    console.error("[screenRewardTooltipContradiction]", error);
+    return { flagged: null };
+  }
+}
 
 export async function reviewRewardTooltipConsistency(
   input: unknown,
 ): Promise<{ suggestions: TooltipSuggestion[] }> {
   try {
-    const parsedInput = reviewRewardTooltipInputSchema.safeParse(input);
-    if (!parsedInput.success) {
+    const authorized = await authorizeRewardTooltipReview(input);
+    if (!authorized) {
       return { suggestions: [] };
     }
-
-    const session = await getSession();
-    if (!session?.user.id) {
-      return { suggestions: [] };
-    }
-
-    const workspaceId = normalizeWorkspaceId(parsedInput.data.workspaceId);
-    const workspace = await prisma.project.findUnique({
-      where: { id: workspaceId },
-      include: {
-        users: {
-          where: { userId: session.user.id },
-          select: { role: true },
-        },
-      },
-    });
-
-    if (!workspace?.users?.length) {
-      return { suggestions: [] };
-    }
-
-    throwIfNoPermission({
-      role: workspace.users[0].role,
-      requiredRoles: ["owner", "member"],
-    });
 
     await assertRateLimit({
       policy: RATELIMIT_POLICIES.aiRewardTooltipReview,
-      identifier: [session.user.id, workspaceId],
+      identifier: [authorized.userId, authorized.workspaceId],
     });
 
-    const tooltip = stripRewardTooltipMarkdown(parsedInput.data.tooltip);
+    const tooltip = stripRewardTooltipMarkdown(authorized.data.tooltip);
     if (!tooltip) {
       return { suggestions: [] };
     }
 
-    const { event, modifiers } = parsedInput.data;
+    const { event, modifiers } = authorized.data;
 
     const { output } = await generateText({
       model: anthropic("claude-haiku-4-5"),
@@ -93,6 +146,44 @@ export async function reviewRewardTooltipConsistency(
     console.error("[reviewRewardTooltipConsistency]", error);
     return { suggestions: [] };
   }
+}
+
+async function authorizeRewardTooltipReview(input: unknown) {
+  const parsedInput = reviewRewardTooltipInputSchema.safeParse(input);
+  if (!parsedInput.success) {
+    return null;
+  }
+
+  const session = await getSession();
+  if (!session?.user.id) {
+    return null;
+  }
+
+  const workspaceId = normalizeWorkspaceId(parsedInput.data.workspaceId);
+  const workspace = await prisma.project.findUnique({
+    where: { id: workspaceId },
+    include: {
+      users: {
+        where: { userId: session.user.id },
+        select: { role: true },
+      },
+    },
+  });
+
+  if (!workspace?.users?.length) {
+    return null;
+  }
+
+  throwIfNoPermission({
+    role: workspace.users[0].role,
+    requiredRoles: ["owner", "member"],
+  });
+
+  return {
+    userId: session.user.id,
+    workspaceId,
+    data: parsedInput.data,
+  };
 }
 
 function buildSystemPrompt(event: string) {
@@ -125,14 +216,8 @@ Not contradictions:
 - Informal wording that does not clearly specify a different operator or threshold.`;
 }
 
-function buildUserPrompt({
-  tooltip,
-  modifiers,
-}: {
-  tooltip: string;
-  modifiers: ReviewRewardTooltipModifier[];
-}) {
-  const serialized = modifiers
+function serializeConditions(modifiers: ReviewRewardTooltipModifier[]) {
+  return modifiers
     .map((modifier, modifierIndex) => {
       const conditions = modifier.conditions
         .map((condition, conditionIndex) => {
@@ -152,14 +237,22 @@ function buildUserPrompt({
       return `Group ${modifierIndex} (${modifier.operator}):\n${conditions}`;
     })
     .join("\n");
+}
 
+function buildUserPrompt({
+  tooltip,
+  modifiers,
+}: {
+  tooltip: string;
+  modifiers: ReviewRewardTooltipModifier[];
+}) {
   return `Tooltip:
 """
 ${tooltip}
 """
 
 Conditions:
-${serialized}
+${serializeConditions(modifiers)}
 
 Write the reason for a non-technical user. Use the operator labels in parentheses, not the raw operator keys.`;
 }

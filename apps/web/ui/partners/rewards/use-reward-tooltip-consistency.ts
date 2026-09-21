@@ -4,7 +4,10 @@ import {
   AI_REWARD_EVENTS,
   type AIRewardEvent,
 } from "@/lib/ai/ai-reward-schema";
-import { reviewRewardTooltipConsistency } from "@/lib/ai/review-reward-tooltip";
+import {
+  reviewRewardTooltipConsistency,
+  screenRewardTooltipContradiction,
+} from "@/lib/ai/review-reward-tooltip";
 import type {
   ReviewRewardTooltipModifier,
   TooltipSuggestion,
@@ -31,7 +34,13 @@ import {
 
 const DEBOUNCE_MS = 200;
 const HIDE_MS = 300;
-const reviewCache = new Map<string, TooltipSuggestion[]>();
+
+type TooltipReviewStatus = "idle" | "reviewing";
+
+const reviewCache = new Map<
+  string,
+  { flagged: boolean; suggestions: TooltipSuggestion[] }
+>();
 
 export function tooltipSuggestionPageKey({
   modifierIndex,
@@ -46,6 +55,7 @@ export function tooltipSuggestionPageKey({
 }
 
 type RewardTooltipConsistencyValue = {
+  status: TooltipReviewStatus;
   suggestions: TooltipSuggestion[];
   pages: TooltipSuggestionPage[];
   activeIndex: number;
@@ -102,6 +112,7 @@ export function useRewardTooltipConsistency({
   onApply?: (suggestion: TooltipSuggestion) => void;
 }): RewardTooltipConsistencyValue {
   const [suggestions, setSuggestions] = useState<TooltipSuggestion[]>([]);
+  const [status, setStatus] = useState<TooltipReviewStatus>("idle");
   const [activeIndex, setActiveIndex] = useState(0);
   const [open, setOpen] = useState(false);
   const [dismissedKeys, setDismissedKeys] = useState<string[]>([]);
@@ -138,20 +149,58 @@ export function useRewardTooltipConsistency({
 
     if (!cacheKey || !workspaceId || !isAiRewardEvent(event)) {
       setSuggestions([]);
+      setStatus("idle");
       setActiveIndex(0);
       return;
     }
 
     const cached = reviewCache.get(cacheKey);
     if (cached) {
-      setSuggestions(cached);
+      setSuggestions(cached.suggestions);
+      setStatus("idle");
       setActiveIndex(0);
       return;
     }
 
     setSuggestions([]);
+    setStatus("idle");
     setActiveIndex(0);
     const timeout = window.setTimeout(async () => {
+      let flagged: boolean | null = null;
+
+      try {
+        const screen = await screenRewardTooltipContradiction({
+          workspaceId,
+          event,
+          tooltip,
+          modifiers: serializedModifiers,
+        });
+
+        if (requestId !== requestIdRef.current) {
+          return;
+        }
+
+        flagged = screen.flagged;
+      } catch {
+        if (requestId !== requestIdRef.current) {
+          return;
+        }
+
+        flagged = null;
+      }
+
+      if (flagged === false) {
+        reviewCache.set(cacheKey, { flagged: false, suggestions: [] });
+        setSuggestions([]);
+        setStatus("idle");
+        setActiveIndex(0);
+        return;
+      }
+
+      if (flagged === true) {
+        setStatus("reviewing");
+      }
+
       try {
         const result = await reviewRewardTooltipConsistency({
           workspaceId,
@@ -165,8 +214,9 @@ export function useRewardTooltipConsistency({
         }
 
         const next = result.suggestions ?? [];
-        reviewCache.set(cacheKey, next);
+        reviewCache.set(cacheKey, { flagged: true, suggestions: next });
         setSuggestions(next);
+        setStatus("idle");
         setActiveIndex(0);
       } catch {
         if (requestId !== requestIdRef.current) {
@@ -174,6 +224,7 @@ export function useRewardTooltipConsistency({
         }
 
         setSuggestions([]);
+        setStatus("idle");
         setActiveIndex(0);
       }
     }, DEBOUNCE_MS);
@@ -363,6 +414,7 @@ export function useRewardTooltipConsistency({
   }, [dismissAll, hide]);
 
   return {
+    status,
     suggestions: visibleSuggestions,
     pages,
     activeIndex,
