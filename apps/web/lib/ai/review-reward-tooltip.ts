@@ -34,17 +34,11 @@ export async function screenRewardTooltipContradiction(
   try {
     const authorized = await authorizeRewardTooltipReview(input);
     if (!authorized) {
-      console.log("[screenRewardTooltipContradiction] skipped", {
-        reason: "unauthorized",
-      });
       return { flagged: false };
     }
 
     const tooltip = stripRewardTooltipMarkdown(authorized.data.tooltip);
     if (!tooltip) {
-      console.log("[screenRewardTooltipContradiction] skipped", {
-        reason: "empty tooltip",
-      });
       return { flagged: false };
     }
 
@@ -158,7 +152,10 @@ export async function reviewRewardTooltipConsistency(input: unknown): Promise<{
         schema: reviewRewardTooltipOutputSchema,
       }),
       system: buildSystemPrompt(event),
-      prompt: buildUserPrompt(reward),
+      prompt: `Partner copy and the reward it must match:
+${JSON.stringify(reward, null, 2)}
+
+Use modifierIndex and conditionIndex from conditionGroups when a condition should change. Write the reason for a non-technical user.`,
       temperature: 0,
       maxOutputTokens: 900,
     });
@@ -359,8 +356,6 @@ function filterPayoutFixes({
       continue;
     }
 
-    const nextAmount =
-      typeof fix.amount === "number" ? fix.amount : current.amount;
     const nextDuration =
       fix.maxDuration === undefined ? current.maxDuration : fix.maxDuration;
     const amountChanges =
@@ -425,11 +420,4 @@ function formatConditionValue(
   }
 
   return String(value);
-}
-
-function buildUserPrompt(reward: ReturnType<typeof describeReward>) {
-  return `Partner copy and the reward it must match:
-${JSON.stringify(reward, null, 2)}
-
-Use modifierIndex and conditionIndex from conditionGroups when a condition should change. Write the reason for a non-technical user.`;
 }

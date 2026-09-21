@@ -37,7 +37,6 @@ import {
 const DEBOUNCE_MS = 200;
 const HIDE_MS = 300;
 const REVIEW_CACHE_VERSION = 2;
-const PAYOUT_MISMATCH_NOTE = "This copy doesn't match the reward payout.";
 
 type TooltipReviewStatus = "idle" | "reviewing";
 
@@ -189,12 +188,6 @@ export function useRewardTooltipConsistency({
     const reward = serializedRewardRef.current;
 
     if (!cacheKey || !workspaceId || !isAiRewardEvent(event) || !reward) {
-      console.log("[reward-tooltip-review] skipped", {
-        workspaceId: workspaceId ?? null,
-        event,
-        tooltip: tooltip || null,
-        hasCompleteConditions: !!reward,
-      });
       setSuggestions([]);
       setPayoutFixes([]);
       setNote(null);
@@ -211,7 +204,6 @@ export function useRewardTooltipConsistency({
         payoutFixes: cached.payoutFixes,
         note: cached.note,
       });
-      console.log("[reward-tooltip-review] cache hit", cached);
       setSuggestions(cached.suggestions);
       setPayoutFixes(cached.payoutFixes);
       setNote(cachedNote);
@@ -243,13 +235,11 @@ export function useRewardTooltipConsistency({
         }
 
         flagged = screen.flagged;
-        console.log("[reward-tooltip-review] jev", screen);
-      } catch (error) {
+      } catch {
         if (requestId !== requestIdRef.current) {
           return;
         }
 
-        console.log("[reward-tooltip-review] jev failed", error);
         flagged = null;
       }
 
@@ -295,11 +285,6 @@ export function useRewardTooltipConsistency({
           payoutFixes: nextPayoutFixes,
           note: result.note,
         });
-        console.log("[reward-tooltip-review] haiku", {
-          suggestions: next,
-          payoutFixes: nextPayoutFixes,
-          note: nextNote,
-        });
         reviewCache.set(cacheKey, {
           v: REVIEW_CACHE_VERSION,
           flagged: true,
@@ -343,7 +328,7 @@ export function useRewardTooltipConsistency({
     return () => {
       window.clearTimeout(timeout);
     };
-  }, [REVIEW_CACHE_VERSION, cacheKey, event, tooltip, workspaceId]);
+  }, [cacheKey, event, tooltip, workspaceId]);
 
   const visibleSuggestions = useMemo(() => {
     if (!serializedModifiers?.length) return [];
@@ -589,7 +574,7 @@ function noteForFlaggedReward({
 
   const trimmed = note?.trim();
   if (trimmed) return trimmed;
-  if (flagged === true) return PAYOUT_MISMATCH_NOTE;
+  if (flagged === true) return "This copy doesn't match the reward payout.";
 
   return null;
 }
@@ -641,8 +626,10 @@ function serializeRewardForReview({
   basePayout: RewardPayout;
   modifiers: ReviewRewardTooltipModifier[];
 } | null {
-  const basePayout = toBasePayout(baseReward);
-  if (!isAiRewardEvent(event) || !basePayout || !modifiers?.length) return null;
+  if (baseReward?.type !== "flat" && baseReward?.type !== "percentage") {
+    return null;
+  }
+  if (!isAiRewardEvent(event) || !modifiers?.length) return null;
   if (
     !modifiers.every(
       (modifier) =>
@@ -655,91 +642,65 @@ function serializeRewardForReview({
     return null;
   }
 
+  const basePayout: RewardPayout = {
+    type: baseReward.type,
+    amount: baseReward.amount ?? null,
+    maxDuration: normalizeDuration(baseReward.maxDuration),
+  };
   const shownAs = stripRewardTooltipMarkdown(description ?? "");
 
   return {
     description: shownAs || null,
     basePayout,
-    modifiers: modifiers.map((modifier) => ({
-      operator: modifier?.operator ?? "AND",
-      payout: resolveModifierPayout(modifier, basePayout),
-      conditions: (modifier?.conditions ?? []).map((condition) => {
-        const attribute = getRewardConditionAttribute({
-          event,
-          entity: condition?.entity,
-          attribute: condition?.attribute,
-        });
+    modifiers: modifiers.map((modifier) => {
+      const type =
+        modifier?.type === "flat" || modifier?.type === "percentage"
+          ? modifier.type
+          : basePayout.type;
+      const amount =
+        type === "percentage"
+          ? modifier?.amountInPercentage ?? basePayout.amount
+          : modifier?.amountInCents ?? basePayout.amount;
 
-        let value = condition?.value;
-        if (
-          attribute &&
-          ["number", "currency", "date"].includes(attribute.type) &&
-          !Array.isArray(value)
-        ) {
-          value = Number(value);
-        }
+      return {
+        operator: modifier?.operator ?? "AND",
+        payout: {
+          type,
+          amount: amount ?? null,
+          maxDuration:
+            modifier?.maxDuration === undefined
+              ? basePayout.maxDuration
+              : normalizeDuration(modifier.maxDuration),
+        },
+        conditions: (modifier?.conditions ?? []).map((condition) => {
+          const attribute = getRewardConditionAttribute({
+            event,
+            entity: condition?.entity,
+            attribute: condition?.attribute,
+          });
 
-        return {
-          entity: condition!.entity!,
-          attribute: condition!.attribute!,
-          operator: condition!
-            .operator as ReviewRewardTooltipModifier["conditions"][number]["operator"],
-          value:
-            value as ReviewRewardTooltipModifier["conditions"][number]["value"],
-          label: condition?.label,
-          metadataField: condition?.metadataField,
-        };
-      }),
-    })),
-  };
-}
+          let value = condition?.value;
+          if (
+            attribute &&
+            ["number", "currency", "date"].includes(attribute.type) &&
+            !Array.isArray(value)
+          ) {
+            value = Number(value);
+          }
 
-function toBasePayout(
-  baseReward?: {
-    type?: string | null;
-    amount?: number | null;
-    maxDuration?: number | null;
-  } | null,
-): RewardPayout | null {
-  if (baseReward?.type !== "flat" && baseReward?.type !== "percentage") {
-    return null;
-  }
-
-  return {
-    type: baseReward.type,
-    amount: baseReward.amount ?? null,
-    maxDuration: normalizeDuration(baseReward.maxDuration),
-  };
-}
-
-function resolveModifierPayout(
-  modifier:
-    | {
-        type?: string | null;
-        amountInCents?: number | null;
-        amountInPercentage?: number | null;
-        maxDuration?: number | null;
-      }
-    | null
-    | undefined,
-  basePayout: RewardPayout,
-): RewardPayout {
-  const type =
-    modifier?.type === "flat" || modifier?.type === "percentage"
-      ? modifier.type
-      : basePayout.type;
-  const amount =
-    type === "percentage"
-      ? modifier?.amountInPercentage ?? basePayout.amount
-      : modifier?.amountInCents ?? basePayout.amount;
-
-  return {
-    type,
-    amount: amount ?? null,
-    maxDuration:
-      modifier?.maxDuration === undefined
-        ? basePayout.maxDuration
-        : normalizeDuration(modifier.maxDuration),
+          return {
+            entity: condition!.entity!,
+            attribute: condition!.attribute!,
+            operator: condition!
+              .operator as ReviewRewardTooltipModifier["conditions"][number]["operator"],
+            value:
+              value as ReviewRewardTooltipModifier["conditions"][number]["value"],
+            label: condition?.label,
+            metadataField: condition?.metadataField,
+          };
+        }),
+      };
+    }),
   };
 }
 

@@ -322,6 +322,18 @@ function PayoutFixPreview({ fixes }: { fixes: PayoutFix[] }) {
             typeof fix.amount === "number" ? fix.amount : currentAmount;
           const nextDuration =
             fix.maxDuration === undefined ? currentDuration : fix.maxDuration;
+          const amountLabel =
+            nextAmount == null || Number.isNaN(nextAmount)
+              ? "amount"
+              : payoutType === "percentage"
+                ? `${nextAmount}%`
+                : `$${nextAmount}`;
+          const durationLabel =
+            nextDuration == null || !Number.isFinite(nextDuration)
+              ? "for the customer's lifetime"
+              : nextDuration === 0
+                ? "one time"
+                : `for ${nextDuration} month${nextDuration === 1 ? "" : "s"}`;
 
           return (
             <p
@@ -330,11 +342,11 @@ function PayoutFixPreview({ fixes }: { fixes: PayoutFix[] }) {
             >
               {group ? "Then pay a" : "Pay a"}{" "}
               <PreviewChip changed={typeof fix.amount === "number"}>
-                {formatPayoutAmount(payoutType, nextAmount)}
+                {amountLabel}
               </PreviewChip>{" "}
               per {event}{" "}
               <PreviewChip changed={fix.maxDuration !== undefined}>
-                {formatPayoutDuration(nextDuration)}
+                {durationLabel}
               </PreviewChip>
             </p>
           );
@@ -343,24 +355,6 @@ function PayoutFixPreview({ fixes }: { fixes: PayoutFix[] }) {
       {reason && <SuggestedFixReason reason={reason} />}
     </>
   );
-}
-
-function formatPayoutAmount(
-  type: "flat" | "percentage",
-  amount: number | null | undefined,
-) {
-  if (amount == null || Number.isNaN(amount)) return "amount";
-  return type === "percentage" ? `${amount}%` : `$${amount}`;
-}
-
-function formatPayoutDuration(maxDuration: number | null | undefined) {
-  if (maxDuration == null || !Number.isFinite(maxDuration)) {
-    return "for the customer's lifetime";
-  }
-
-  if (maxDuration === 0) return "one time";
-
-  return `for ${maxDuration} month${maxDuration === 1 ? "" : "s"}`;
 }
 
 function SuggestedFixContent({
