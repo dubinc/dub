@@ -61,22 +61,6 @@ function getEffectiveDiscountId({
   );
 }
 
-/**
- * Selecting the group default means no partner-specific override.
- * Preserve current persist behavior: write the group default id (not a different id).
- */
-function getDiscountIdToPersist({
-  selectedDiscountId,
-  groupDefaultDiscountId,
-}: {
-  selectedDiscountId: string;
-  groupDefaultDiscountId: string | null | undefined;
-}) {
-  return selectedDiscountId === groupDefaultDiscountId
-    ? groupDefaultDiscountId ?? null
-    : selectedDiscountId;
-}
-
 interface EditPartnerDiscountModalProps {
   showModal: boolean;
   setShowModal: (showModal: boolean) => void;
@@ -217,8 +201,6 @@ function EditPartnerDiscountModal({
         return;
       }
 
-      const isGroupSelection = selectedDiscountId === groupDefaultDiscountId;
-
       if (target.type === "partner") {
         if (!workspaceId) {
           return;
@@ -227,10 +209,7 @@ function EditPartnerDiscountModal({
         await updateEnrollment({
           workspaceId,
           partnerId: partner.id,
-          discountId: getDiscountIdToPersist({
-            selectedDiscountId,
-            groupDefaultDiscountId,
-          }),
+          discountId: selectedDiscountId,
         });
         return;
       }
@@ -238,7 +217,7 @@ function EditPartnerDiscountModal({
       await updatePartnerLink(`/api/partners/links/${target.link.id}`, {
         method: "PATCH",
         body: {
-          discountId: isGroupSelection ? null : selectedDiscountId,
+          discountId: selectedDiscountId,
         },
         onSuccess: async () => {
           setShowModal(false);
@@ -256,7 +235,6 @@ function EditPartnerDiscountModal({
       updatePartnerLink,
       target,
       partner.id,
-      groupDefaultDiscountId,
     ],
   );
 

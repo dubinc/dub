@@ -234,7 +234,6 @@ function EditPartnerRewardModal({
   const persistOverride = useCallback(
     async (activityDescription?: string) => {
       const rewardIdColumn = REWARD_EVENT_COLUMN_MAPPING[event];
-      const isGroupSelection = resolvedSelectedId === groupRewardId;
 
       if (target.type === "partner") {
         if (!workspaceId) {
@@ -244,9 +243,7 @@ function EditPartnerRewardModal({
         await updateEnrollment({
           workspaceId,
           partnerId: partner.id,
-          [rewardIdColumn]: isGroupSelection
-            ? groupRewardId ?? null
-            : resolvedSelectedId,
+          [rewardIdColumn]: resolvedSelectedId,
           activityDescription,
         });
         return;
@@ -255,7 +252,7 @@ function EditPartnerRewardModal({
       await updatePartnerLink(`/api/partners/links/${target.link.id}`, {
         method: "PATCH",
         body: {
-          [rewardIdColumn]: isGroupSelection ? null : resolvedSelectedId,
+          [rewardIdColumn]: resolvedSelectedId,
           activityDescription,
         },
         onSuccess: async () => {
@@ -269,7 +266,6 @@ function EditPartnerRewardModal({
       workspaceId,
       event,
       resolvedSelectedId,
-      groupRewardId,
       updateEnrollment,
       updatePartnerLink,
       target,
