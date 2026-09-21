@@ -1,20 +1,24 @@
 "use server";
 
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
-import { storage } from "@/lib/storage";
-import { nanoid, R2_URL } from "@dub/utils";
+import { createSignedUploadUrl } from "@/lib/storage/create-signed-upload-url";
+import { signedUploadInputSchema } from "@/lib/storage/schemas";
+import { validateSignedUpload } from "@/lib/storage/validate-signed-upload";
+import { nanoid } from "@dub/utils";
 import * as z from "zod/v4";
 import { authActionClient } from "../safe-action";
 import { throwIfNoPermission } from "../throw-if-no-permission";
 
-const schema = z.object({
+const inputSchema = z.object({
   workspaceId: z.string(),
+  ...signedUploadInputSchema.shape,
 });
 
 export const uploadLanderImageAction = authActionClient
-  .inputSchema(schema)
-  .action(async ({ ctx }) => {
+  .inputSchema(inputSchema)
+  .action(async ({ ctx, parsedInput }) => {
     const { workspace } = ctx;
+    const { contentType, contentLength } = parsedInput;
 
     throwIfNoPermission({
       role: workspace.role,
@@ -23,19 +27,21 @@ export const uploadLanderImageAction = authActionClient
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    try {
-      const key = `programs/${programId}/lander/image_${nanoid(7)}`;
+    validateSignedUpload({
+      contentLength,
+      contentType,
+      policy: "programLanderImages",
+    });
 
-      const signedUrl = await storage.getSignedUploadUrl({
-        key,
-      });
+    const { key, signedUrl, destinationUrl } = await createSignedUploadUrl({
+      key: `programs/${programId}/lander/image_${nanoid(10)}`,
+      contentType,
+      contentLength,
+    });
 
-      return {
-        key,
-        signedUrl,
-        destinationUrl: `${R2_URL}/${key}`,
-      };
-    } catch (e) {
-      throw new Error("Failed to get signed URL for upload.");
-    }
+    return {
+      key,
+      signedUrl,
+      destinationUrl,
+    };
   });

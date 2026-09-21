@@ -1,8 +1,8 @@
 import {
-  MAX_ATTACHMENT_SIZE_BYTES,
   MAX_ATTACHMENTS_PER_MESSAGE,
   MAX_MESSAGE_LENGTH,
 } from "@/lib/messages/constants";
+import { UPLOAD_POLICIES } from "@/lib/storage/upload-policies";
 import { MessageType } from "@prisma/client";
 import * as z from "zod/v4";
 import { PartnerSchema } from "../zod/schemas/partners";
@@ -22,12 +22,27 @@ export const MessageAttachmentSchema = z.object({
   createdAt: z.date(),
 });
 
-export const messageAttachmentInputSchema = z.object({
-  storageKey: z.string().min(1),
-  name: z.string().min(1).max(255),
-  size: z.number().int().positive().max(MAX_ATTACHMENT_SIZE_BYTES),
-  type: z.string().min(1),
-});
+const createMessageAttachmentInputSchema = (maxBytes: number) =>
+  z.object({
+    storageKey: z.string().min(1),
+    name: z.string().min(1).max(255),
+    size: z.number().int().positive().max(maxBytes),
+    type: z.string().min(1),
+  });
+
+export const programMessageAttachmentInputSchema =
+  createMessageAttachmentInputSchema(
+    UPLOAD_POLICIES.programMessageAttachments.maxBytes,
+  );
+
+export const partnerMessageAttachmentInputSchema =
+  createMessageAttachmentInputSchema(
+    UPLOAD_POLICIES.partnerMessageAttachments.maxBytes,
+  );
+
+export type MessageAttachmentInput = z.infer<
+  typeof programMessageAttachmentInputSchema
+>;
 
 export const MessageSchema = z.object({
   id: z.string(),
@@ -81,7 +96,7 @@ export const messagePartnerSchema = z.object({
   partnerId: z.string(),
   text: messageTextSchema,
   attachments: z
-    .array(messageAttachmentInputSchema)
+    .array(programMessageAttachmentInputSchema)
     .max(MAX_ATTACHMENTS_PER_MESSAGE)
     .default([]),
 });
@@ -110,7 +125,7 @@ export const messageProgramSchema = z.object({
   programSlug: z.string(),
   text: messageTextSchema,
   attachments: z
-    .array(messageAttachmentInputSchema)
+    .array(partnerMessageAttachmentInputSchema)
     .max(MAX_ATTACHMENTS_PER_MESSAGE)
     .default([]),
 });

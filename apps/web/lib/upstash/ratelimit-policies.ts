@@ -2,17 +2,17 @@ import { ratelimit } from "./ratelimit";
 
 type RatelimitWindow = Parameters<typeof ratelimit>[1] & string;
 
+export type RatelimitMessageContext = {
+  retryAfter: string;
+  attempts: number;
+  window: string;
+};
+
 export type RatelimitPolicy = {
   attempts: number;
   window: RatelimitWindow;
   keyPrefix: string;
-  message?:
-    | string
-    | ((ctx: {
-        retryAfter: string;
-        attempts: number;
-        window: string;
-      }) => string);
+  message?: string | ((ctx: RatelimitMessageContext) => string);
 };
 
 export const RATELIMIT_POLICIES = {
@@ -76,12 +76,31 @@ export const RATELIMIT_POLICIES = {
     attempts: 10,
     window: "24 h",
     keyPrefix: "rl:program:application:image:upload",
+    message:
+      "You've reached the maximum number of attempts to upload images for this application. Please try again later.",
   },
 
   messageAttachmentUpload: {
     attempts: 20,
     window: "1 h",
     keyPrefix: "rl:message:attachment:upload",
+    message: "Too many file uploads. Please try again later.",
+  },
+
+  bountySubmissionUpload: {
+    attempts: 25,
+    window: "24 h",
+    keyPrefix: "bounty:submission:file:upload",
+    message:
+      "You've reached the maximum number of attempts to upload a file for this bounty.",
+  },
+
+  // Keyed on workspace + user so one member cannot exhaust the workspace upload budget
+  workspaceFileUpload: {
+    attempts: 20,
+    window: "1 h",
+    keyPrefix: "rl:workspace:file:upload",
+    message: "Too many file uploads. Please try again later.",
   },
 
   partnerProfileInvite: {

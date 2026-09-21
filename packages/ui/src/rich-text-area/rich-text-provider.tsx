@@ -67,6 +67,7 @@ type RichTextProviderProps = PropsWithChildren<{
   style?: keyof typeof PROSE_STYLES;
   onChange?: (editor: Editor) => void;
   uploadImage?: (file: File) => Promise<string | null>;
+  imageAccept?: string;
   variables?: string[];
   variableInfo?: Record<string, RichTextVariableInfo>;
   editable?: boolean;
@@ -86,7 +87,7 @@ export type RichTextLinkModalState = {
 export const RichTextContext = createContext<
   | (Pick<
       RichTextProviderProps,
-      "features" | "markdown" | "variables" | "editable"
+      "features" | "markdown" | "variables" | "editable" | "imageAccept"
     > & {
       editor: Editor | null;
       isUploading: boolean;
@@ -116,6 +117,7 @@ export const RichTextProvider = forwardRef<
       style = "default",
       placeholder = "Start typing...",
       uploadImage,
+      imageAccept,
       editable,
       autoFocus,
       variables,
@@ -384,6 +386,7 @@ export const RichTextProvider = forwardRef<
           markdown,
           editable,
           variables,
+          imageAccept,
           editor,
           isUploading,
           handleImageUpload,
