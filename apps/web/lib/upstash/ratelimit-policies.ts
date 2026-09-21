@@ -76,12 +76,23 @@ export const RATELIMIT_POLICIES = {
     attempts: 10,
     window: "24 h",
     keyPrefix: "rl:program:application:image:upload",
+    message:
+      "You've reached the maximum number of attempts to upload images for this application. Please try again later.",
   },
 
   messageAttachmentUpload: {
     attempts: 20,
     window: "1 h",
     keyPrefix: "rl:message:attachment:upload",
+    message: "Too many file uploads. Please try again later.",
+  },
+
+  bountySubmissionUpload: {
+    attempts: 25,
+    window: "24 h",
+    keyPrefix: "bounty:submission:file:upload",
+    message:
+      "You've reached the maximum number of attempts to upload a file for this bounty.",
   },
 
   partnerProfileInvite: {

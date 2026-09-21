@@ -3,6 +3,7 @@
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { createSignedUploadUrl } from "@/lib/storage/create-signed-upload-url";
 import { signedUploadInputSchema } from "@/lib/storage/schemas";
+import { validateSignedUpload } from "@/lib/storage/validate-signed-upload";
 import { nanoid } from "@dub/utils";
 import * as z from "zod/v4";
 import { authActionClient } from "../safe-action";
@@ -26,9 +27,14 @@ export const uploadCampaignImageAction = authActionClient
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
+    validateSignedUpload({
+      contentLength,
+      contentType,
+      policy: "programCampaignImages",
+    });
+
     const { key, signedUrl, destinationUrl } = await createSignedUploadUrl({
       key: `programs/${programId}/emails/image_${nanoid(10)}`,
-      policy: "programCampaignImages",
       contentType,
       contentLength,
     });

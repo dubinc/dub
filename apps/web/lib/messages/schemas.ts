@@ -22,16 +22,27 @@ export const MessageAttachmentSchema = z.object({
   createdAt: z.date(),
 });
 
-export const messageAttachmentInputSchema = z.object({
-  storageKey: z.string().min(1),
-  name: z.string().min(1).max(255),
-  size: z
-    .number()
-    .int()
-    .positive()
-    .max(UPLOAD_POLICIES.programMessageAttachments.maxBytes),
-  type: z.string().min(1),
-});
+const createMessageAttachmentInputSchema = (maxBytes: number) =>
+  z.object({
+    storageKey: z.string().min(1),
+    name: z.string().min(1).max(255),
+    size: z.number().int().positive().max(maxBytes),
+    type: z.string().min(1),
+  });
+
+export const programMessageAttachmentInputSchema =
+  createMessageAttachmentInputSchema(
+    UPLOAD_POLICIES.programMessageAttachments.maxBytes,
+  );
+
+export const partnerMessageAttachmentInputSchema =
+  createMessageAttachmentInputSchema(
+    UPLOAD_POLICIES.partnerMessageAttachments.maxBytes,
+  );
+
+export type MessageAttachmentInput = z.infer<
+  typeof programMessageAttachmentInputSchema
+>;
 
 export const MessageSchema = z.object({
   id: z.string(),
@@ -85,7 +96,7 @@ export const messagePartnerSchema = z.object({
   partnerId: z.string(),
   text: messageTextSchema,
   attachments: z
-    .array(messageAttachmentInputSchema)
+    .array(programMessageAttachmentInputSchema)
     .max(MAX_ATTACHMENTS_PER_MESSAGE)
     .default([]),
 });
@@ -114,7 +125,7 @@ export const messageProgramSchema = z.object({
   programSlug: z.string(),
   text: messageTextSchema,
   attachments: z
-    .array(messageAttachmentInputSchema)
+    .array(partnerMessageAttachmentInputSchema)
     .max(MAX_ATTACHMENTS_PER_MESSAGE)
     .default([]),
 });

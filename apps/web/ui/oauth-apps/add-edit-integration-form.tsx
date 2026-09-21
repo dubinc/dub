@@ -65,48 +65,63 @@ export default function AddEditIntegrationForm({
   const handleUpload = async (file: File) => {
     setScreenshots((prev) => [...prev, { file, uploading: true }]);
 
-    const response = await fetch(`/api/workspaces/${workspaceId}/upload-url`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        folder: "integrationScreenshots",
-        contentType: file.type,
-        contentLength: file.size,
-      }),
-    });
+    const removePendingScreenshot = () => {
+      setScreenshots((prev) =>
+        prev.filter((screenshot) => screenshot.file !== file),
+      );
+    };
 
-    if (!response.ok) {
-      toast.error("Failed to get signed URL for screenshot upload.");
-      return;
+    try {
+      const response = await fetch(
+        `/api/workspaces/${workspaceId}/upload-url`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            folder: "integrationScreenshots",
+            contentType: file.type,
+            contentLength: file.size,
+          }),
+        },
+      );
+
+      if (!response.ok) {
+        toast.error("Failed to get signed URL for screenshot upload.");
+        removePendingScreenshot();
+        return;
+      }
+
+      const { key, signedUrl } = await response.json();
+
+      const uploadResponse = await fetch(signedUrl, {
+        method: "PUT",
+        body: file,
+        headers: {
+          "Content-Type": file.type,
+          "Content-Length": file.size.toString(),
+        },
+      });
+
+      if (!uploadResponse.ok) {
+        toast.error("Failed to upload screenshot.");
+        removePendingScreenshot();
+        return;
+      }
+
+      toast.success(`${file.name} uploaded!`);
+      setScreenshots((prev) =>
+        prev.map((screenshot) =>
+          screenshot.file === file
+            ? { ...screenshot, uploading: false, key }
+            : screenshot,
+        ),
+      );
+    } catch {
+      toast.error("Failed to upload screenshot.");
+      removePendingScreenshot();
     }
-
-    const { key, signedUrl } = await response.json();
-
-    const uploadResponse = await fetch(signedUrl, {
-      method: "PUT",
-      body: file,
-      headers: {
-        "Content-Type": file.type,
-        "Content-Length": file.size.toString(),
-      },
-    });
-
-    if (!uploadResponse.ok) {
-      const result = await uploadResponse.json();
-      toast.error(result.error.message || "Failed to upload screenshot.");
-      return;
-    }
-
-    toast.success(`${file.name} uploaded!`);
-    setScreenshots((prev) =>
-      prev.map((screenshot) =>
-        screenshot.file === file
-          ? { ...screenshot, uploading: false, key }
-          : screenshot,
-      ),
-    );
   };
 
   const { name, slug, description, readme, developer, website, logo } = data;

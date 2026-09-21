@@ -1,6 +1,7 @@
 import { withWorkspace } from "@/lib/auth";
 import { createSignedUploadUrl } from "@/lib/storage/create-signed-upload-url";
 import { signedUploadInputSchema } from "@/lib/storage/schemas";
+import { validateSignedUpload } from "@/lib/storage/validate-signed-upload";
 import { nanoid } from "@dub/utils";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
@@ -23,9 +24,14 @@ export const POST = withWorkspace(
         ? `integration-screenshots/${nanoid(10)}`
         : `program-logos/${nanoid(10)}`;
 
+    validateSignedUpload({
+      contentLength,
+      contentType,
+      policy,
+    });
+
     const { signedUrl, destinationUrl } = await createSignedUploadUrl({
       key,
-      policy,
       contentType,
       contentLength,
     });

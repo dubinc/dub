@@ -4,7 +4,8 @@ import { getIP } from "@/lib/api/utils/get-ip";
 import { prisma } from "@/lib/prisma";
 import { createSignedUploadUrl } from "@/lib/storage/create-signed-upload-url";
 import { signedUploadInputSchema } from "@/lib/storage/schemas";
-import { ratelimit } from "@/lib/upstash";
+import { validateSignedUpload } from "@/lib/storage/validate-signed-upload";
+import { assertRateLimit } from "@/lib/upstash/assert-rate-limit";
 import { RATELIMIT_POLICIES } from "@/lib/upstash/ratelimit-policies";
 import { nanoid } from "@dub/utils";
 import * as z from "zod/v4";
@@ -15,25 +16,21 @@ const inputSchema = z.object({
   ...signedUploadInputSchema.shape,
 });
 
-const rateLimitPolicy = RATELIMIT_POLICIES.programImageUpload;
-
 export const uploadProgramApplicationImageAction = actionClient
   .inputSchema(inputSchema)
   .action(async ({ parsedInput }) => {
     const { programSlug, contentType, contentLength } = parsedInput;
 
-    const ipAddress = await getIP();
+    validateSignedUpload({
+      contentLength,
+      contentType,
+      policy: "programApplicationImages",
+    });
 
-    const { success } = await ratelimit(
-      rateLimitPolicy.attempts,
-      rateLimitPolicy.window,
-    ).limit(`${rateLimitPolicy.keyPrefix}:${ipAddress}`);
-
-    if (!success) {
-      throw new Error(
-        "You've reached the maximum number of attempts to upload images for this application. Please try again later.",
-      );
-    }
+    await assertRateLimit({
+      policy: RATELIMIT_POLICIES.programImageUpload,
+      identifier: await getIP(),
+    });
 
     const program = await prisma.program.findUniqueOrThrow({
       where: {
@@ -46,7 +43,6 @@ export const uploadProgramApplicationImageAction = actionClient
 
     const { signedUrl, destinationUrl } = await createSignedUploadUrl({
       key: `programs/${program.id}/applications/${nanoid(10)}`,
-      policy: "programApplicationImages",
       contentType,
       contentLength,
     });

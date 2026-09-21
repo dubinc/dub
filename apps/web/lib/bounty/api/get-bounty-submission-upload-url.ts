@@ -1,7 +1,9 @@
 import { DubApiError } from "@/lib/api/errors";
 import { createSignedUploadUrl } from "@/lib/storage/create-signed-upload-url";
 import { signedUploadInputSchema } from "@/lib/storage/schemas";
-import { ratelimit } from "@/lib/upstash";
+import { validateSignedUpload } from "@/lib/storage/validate-signed-upload";
+import { assertRateLimit } from "@/lib/upstash/assert-rate-limit";
+import { RATELIMIT_POLICIES } from "@/lib/upstash/ratelimit-policies";
 import { submissionRequirementsSchema } from "@/lib/zod/schemas/bounties";
 import { ACTIVE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
 import { nanoid } from "@dub/utils";
@@ -12,9 +14,6 @@ import {
   canPartnerSubmitBounty,
 } from "./bounty-availability";
 import { getBountyOrThrow } from "./get-bounty-or-throw";
-
-const MAX_ATTEMPTS = 25;
-const CACHE_KEY_PREFIX = "bounty:submission:file:upload";
 
 type GetBountySubmissionUploadUrlParams = z.infer<
   typeof signedUploadInputSchema
@@ -52,17 +51,16 @@ export async function getBountySubmissionUploadUrl({
     });
   }
 
-  const { success } = await ratelimit(MAX_ATTEMPTS, "24 h").limit(
-    `${CACHE_KEY_PREFIX}:${bountyId}:${partnerId}`,
-  );
+  validateSignedUpload({
+    contentLength,
+    contentType,
+    policy: "bountySubmissionImages",
+  });
 
-  if (!success) {
-    throw new DubApiError({
-      code: "rate_limit_exceeded",
-      message:
-        "You've reached the maximum number of attempts to upload a file for this bounty.",
-    });
-  }
+  await assertRateLimit({
+    policy: RATELIMIT_POLICIES.bountySubmissionUpload,
+    identifier: [bountyId, partnerId],
+  });
 
   const bounty = await getBountyOrThrow({
     bountyId,
@@ -116,7 +114,6 @@ export async function getBountySubmissionUploadUrl({
   try {
     const { signedUrl, destinationUrl } = await createSignedUploadUrl({
       key: `programs/${programId}/bounties/${bountyId}/submissions/${partnerId}/${nanoid(10)}`,
-      policy: "bountySubmissionImages",
       contentType,
       contentLength,
     });

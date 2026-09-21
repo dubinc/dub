@@ -4,6 +4,7 @@ import { createId } from "@/lib/api/create-id";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { createSignedUploadUrl } from "@/lib/storage/create-signed-upload-url";
 import { signedUploadInputSchema } from "@/lib/storage/schemas";
+import { validateSignedUpload } from "@/lib/storage/validate-signed-upload";
 import { nanoid } from "@dub/utils";
 import slugify from "@sindresorhus/slugify";
 import * as z from "zod/v4";
@@ -41,12 +42,19 @@ export const getProgramResourceUploadUrlAction = authActionClient
       : null;
     const key = `programs/${programId}/${resourceType}s/${slugify(name || resourceType)}-${nanoid(4)}${sanitizedExtension ? `.${sanitizedExtension}` : ""}`;
 
+    const uploadPolicy =
+      resourceType === "logo"
+        ? ("programResourceLogos" as const)
+        : ("programResourceFiles" as const);
+
+    validateSignedUpload({
+      contentLength,
+      contentType,
+      policy: uploadPolicy,
+    });
+
     const { signedUrl, destinationUrl } = await createSignedUploadUrl({
       key,
-      policy:
-        resourceType === "logo"
-          ? "programResourceLogos"
-          : "programResourceFiles",
       contentType,
       contentLength,
     });

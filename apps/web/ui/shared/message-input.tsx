@@ -3,7 +3,7 @@ import {
   MAX_ATTACHMENTS_PER_MESSAGE,
   MAX_MESSAGE_LENGTH,
 } from "@/lib/messages/constants";
-import { messageAttachmentInputSchema } from "@/lib/messages/schemas";
+import { type MessageAttachmentInput } from "@/lib/messages/schemas";
 import { isPreviewableImageType } from "@/lib/messages/utils";
 import { getMimeTypeLabel } from "@/lib/storage/upload-policies";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -31,14 +31,10 @@ import {
   type RefObject,
 } from "react";
 import { toast } from "sonner";
-import * as z from "zod/v4";
 import { ATTACHMENT_MIME_TYPE_COLOR } from "../messages/message-attachments";
 import { EmojiPicker } from "../shared/emoji-picker";
 
-export type PendingAttachment = Omit<
-  z.infer<typeof messageAttachmentInputSchema>,
-  "storageKey"
-> & {
+export type PendingAttachment = Omit<MessageAttachmentInput, "storageKey"> & {
   id: string;
   file: File;
   storageKey?: string;
@@ -61,7 +57,7 @@ export function MessageInput({
 }: {
   onSendMessage: (
     message: string,
-    attachments: z.infer<typeof messageAttachmentInputSchema>[],
+    attachments: MessageAttachmentInput[],
   ) => void | false;
   defaultValue?: string;
   onCancel?: () => void;
