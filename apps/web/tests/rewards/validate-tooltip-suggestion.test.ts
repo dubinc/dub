@@ -14,6 +14,7 @@ import { describe, expect, test } from "vitest";
 const saleAmountModifiers: ReviewRewardTooltipModifier[] = [
   {
     operator: "AND",
+    payout: { type: "flat", amount: 10, maxDuration: 0 },
     conditions: [
       {
         entity: "sale",
@@ -171,6 +172,7 @@ describe("filterValidatedTooltipSuggestions", () => {
         modifiers: [
           {
             operator: "AND",
+            payout: { type: "flat", amount: 10, maxDuration: 0 },
             conditions: [
               {
                 entity: "customer",

@@ -1,6 +1,9 @@
 "use client";
 
-import type { TooltipSuggestion } from "@/lib/ai/review-reward-tooltip-schema";
+import type {
+  PayoutFix,
+  TooltipSuggestion,
+} from "@/lib/ai/review-reward-tooltip-schema";
 import { formatRewardConditionParts } from "@/lib/rewards/format-reward-condition";
 import {
   applyTooltipSuggestion,
@@ -11,7 +14,7 @@ import { RewardCondition } from "@/lib/types";
 import { Button, InvoiceDollar, Popover, useMediaQuery } from "@dub/ui";
 import { Sparkle3 } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
-import { type ReactNode } from "react";
+import { type ReactNode, useRef, useState } from "react";
 import { useWatch } from "react-hook-form";
 import { useAddEditRewardForm } from "./add-edit-reward-sheet";
 import {
@@ -21,6 +24,9 @@ import {
 
 const POPOVER_CONTENT_CLASS_NAME =
   "w-[min(411px,calc(100vw-2rem))] overflow-hidden rounded-xl border-neutral-200 bg-white p-0 drop-shadow-none shadow-[0px_4px_6px_-2px_#0000000D,0px_10px_15px_-3px_#0000001A]";
+
+const SUGGESTED_FIX_BADGE_CLASS_NAME =
+  "inline-flex max-w-full items-center gap-1 rounded bg-[#FFFBEB] px-1.5 text-left text-sm font-semibold leading-5 text-[#973C00] transition-colors";
 
 export function SuggestedFixPopoverHost() {
   const consistency = useRewardTooltipConsistencyContext();
@@ -145,17 +151,216 @@ export function SuggestedFixBadge({
 
         consistency.showPage(thisIndex);
       }}
-      className="inline-block rounded bg-[#FFFBEB] px-1.5 text-left text-sm font-semibold text-[#973C00] transition-colors"
+      className={SUGGESTED_FIX_BADGE_CLASS_NAME}
     >
-      <span>
-        <Sparkle3
-          variant="fill"
-          className="mr-1 inline-block size-3 align-middle text-[#E17100]"
-        />
-        {text}
-      </span>
+      <Sparkle3 variant="fill" className="size-3 shrink-0 text-[#E17100]" />
+      <span className="min-w-0 truncate">{text}</span>
     </button>
   );
+}
+
+export function ReviewingSuggestedFixBadge({ text }: { text: string }) {
+  const consistency = useRewardTooltipConsistencyContext();
+  const { isMobile } = useMediaQuery();
+  const closeTimerRef = useRef<number | undefined>(undefined);
+  const [open, setOpen] = useState(false);
+
+  const reviewing = consistency?.status === "reviewing";
+  const payoutFixes = reviewing ? [] : consistency?.payoutFixes ?? [];
+  const note = reviewing || payoutFixes.length ? null : consistency?.note;
+
+  if (!consistency || (!reviewing && !note && !payoutFixes.length)) return null;
+
+  const cancelHide = () => {
+    if (closeTimerRef.current) {
+      window.clearTimeout(closeTimerRef.current);
+      closeTimerRef.current = undefined;
+    }
+  };
+
+  const scheduleHide = () => {
+    cancelHide();
+    closeTimerRef.current = window.setTimeout(() => {
+      setOpen(false);
+    }, 300);
+  };
+
+  return (
+    <Popover
+      openPopover={open}
+      setOpenPopover={setOpen}
+      align="start"
+      sideOffset={8}
+      onOpenAutoFocus={(event) => event.preventDefault()}
+      popoverContentClassName={POPOVER_CONTENT_CLASS_NAME}
+      content={
+        <div onMouseEnter={cancelHide} onMouseLeave={scheduleHide}>
+          <div className="flex items-center gap-1.5 border-b border-neutral-200 p-3 text-sm font-medium text-neutral-900">
+            <Sparkle3 variant="fill" className="size-3.5" />
+            Suggested fix
+          </div>
+          {reviewing ? (
+            <div className="flex flex-col gap-3 p-3">
+              <div className="h-16 animate-pulse rounded-[10px] bg-neutral-100" />
+              <div className="h-3 w-4/5 animate-pulse rounded bg-neutral-200" />
+              <div className="h-3 w-2/3 animate-pulse rounded bg-neutral-200" />
+            </div>
+          ) : (
+            <>
+              <div className="flex flex-col gap-3 p-3">
+                {payoutFixes.length ? (
+                  <PayoutFixPreview fixes={payoutFixes} />
+                ) : (
+                  <p className="text-sm leading-relaxed text-neutral-600">
+                    {note}
+                  </p>
+                )}
+              </div>
+              <div className="flex items-center justify-end gap-2 border-t border-neutral-200 px-3 py-2">
+                <Button
+                  type="button"
+                  variant="secondary"
+                  text="Discard"
+                  className="h-7 w-fit rounded-lg px-3 py-2"
+                  onClick={() => {
+                    consistency.dismissNote();
+                    setOpen(false);
+                  }}
+                />
+                {payoutFixes.length > 0 && (
+                  <Button
+                    type="button"
+                    variant="primary"
+                    text={
+                      payoutFixes.length > 1
+                        ? "Accept all changes"
+                        : "Accept change"
+                    }
+                    className="h-7 w-fit rounded-lg px-3 py-2"
+                    onClick={() => {
+                      consistency.acceptPayouts();
+                      setOpen(false);
+                    }}
+                  />
+                )}
+              </div>
+            </>
+          )}
+        </div>
+      }
+    >
+      <button
+        type="button"
+        onMouseEnter={() => {
+          if (isMobile) return;
+          cancelHide();
+          setOpen(true);
+        }}
+        onMouseLeave={() => {
+          if (!isMobile) scheduleHide();
+        }}
+        onClick={() => {
+          if (!isMobile) return;
+          setOpen((current) => !current);
+        }}
+        className={SUGGESTED_FIX_BADGE_CLASS_NAME}
+      >
+        <Sparkle3 variant="fill" className="size-3 shrink-0 text-[#E17100]" />
+        <span className="min-w-0 truncate">{text}</span>
+      </button>
+    </Popover>
+  );
+}
+
+function PayoutFixPreview({ fixes }: { fixes: PayoutFix[] }) {
+  const { control } = useAddEditRewardForm();
+  const [
+    event,
+    type,
+    amountInCents,
+    amountInPercentage,
+    maxDuration,
+    modifiers,
+  ] = useWatch({
+    control,
+    name: [
+      "event",
+      "type",
+      "amountInCents",
+      "amountInPercentage",
+      "maxDuration",
+      "modifiers",
+    ],
+  });
+  const reason = fixes[0]?.reason;
+
+  return (
+    <>
+      <div className="flex min-h-16 w-full flex-col gap-2 rounded-[10px] border border-neutral-200 bg-white p-2.5 shadow-[0px_2px_4px_0px_#00000008]">
+        {fixes.map((fix) => {
+          const group =
+            fix.scope === "group" && typeof fix.modifierIndex === "number";
+          const modifier = group ? modifiers?.[fix.modifierIndex!] : null;
+          const payoutType =
+            (group ? modifier?.type || type : type) === "percentage"
+              ? "percentage"
+              : "flat";
+          const currentAmount =
+            payoutType === "percentage"
+              ? group
+                ? modifier?.amountInPercentage
+                : amountInPercentage
+              : group
+                ? modifier?.amountInCents
+                : amountInCents;
+          const currentDuration = group
+            ? modifier?.maxDuration === undefined
+              ? maxDuration
+              : modifier?.maxDuration
+            : maxDuration;
+          const nextAmount =
+            typeof fix.amount === "number" ? fix.amount : currentAmount;
+          const nextDuration =
+            fix.maxDuration === undefined ? currentDuration : fix.maxDuration;
+
+          return (
+            <p
+              key={group ? `group-${fix.modifierIndex}` : "default"}
+              className="min-w-0 text-sm font-medium leading-relaxed text-neutral-800"
+            >
+              {group ? "Then pay a" : "Pay a"}{" "}
+              <PreviewChip changed={typeof fix.amount === "number"}>
+                {formatPayoutAmount(payoutType, nextAmount)}
+              </PreviewChip>{" "}
+              per {event}{" "}
+              <PreviewChip changed={fix.maxDuration !== undefined}>
+                {formatPayoutDuration(nextDuration)}
+              </PreviewChip>
+            </p>
+          );
+        })}
+      </div>
+      {reason && <SuggestedFixReason reason={reason} />}
+    </>
+  );
+}
+
+function formatPayoutAmount(
+  type: "flat" | "percentage",
+  amount: number | null | undefined,
+) {
+  if (amount == null || Number.isNaN(amount)) return "amount";
+  return type === "percentage" ? `${amount}%` : `$${amount}`;
+}
+
+function formatPayoutDuration(maxDuration: number | null | undefined) {
+  if (maxDuration == null || !Number.isFinite(maxDuration)) {
+    return "for the customer's lifetime";
+  }
+
+  if (maxDuration === 0) return "one time";
+
+  return `for ${maxDuration} month${maxDuration === 1 ? "" : "s"}`;
 }
 
 function SuggestedFixContent({

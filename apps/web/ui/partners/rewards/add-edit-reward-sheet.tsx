@@ -31,7 +31,6 @@ import { X } from "@/ui/shared/icons";
 import {
   Button,
   Gift,
-  LoadingSpinner,
   MoneyBills2,
   Pen2,
   Sheet,
@@ -78,6 +77,7 @@ import { PartnerReferralRewardBuilder } from "./partner-referral-reward-builder"
 import { RewardIconSquare } from "./reward-icon-square";
 import { RewardPreviewCard } from "./reward-preview-card";
 import { REWARD_TYPES, RewardsLogic } from "./rewards-logic";
+import { ReviewingSuggestedFixBadge } from "./suggested-fix-popover";
 import {
   RewardTooltipConsistencyContext,
   useRewardTooltipConsistency,
@@ -388,6 +388,12 @@ function RewardSheetContent({
     workspaceId,
     event: selectedEvent,
     tooltipDescription,
+    description,
+    baseReward: {
+      type,
+      amount,
+      maxDuration,
+    },
     modifiers,
     onApply: (suggestion) => {
       const conditionKey =
@@ -401,6 +407,53 @@ function RewardSheetContent({
         applyTooltipSuggestion(current, suggestion.suggested),
         { shouldDirty: true },
       );
+    },
+    onApplyPayout: (fixes) => {
+      for (const fix of fixes) {
+        if (fix.scope === "default") {
+          if (typeof fix.amount === "number") {
+            setValue(
+              type === "percentage" ? "amountInPercentage" : "amountInCents",
+              fix.amount,
+              { shouldDirty: true },
+            );
+          }
+
+          if (fix.maxDuration !== undefined) {
+            setValue(
+              "maxDuration",
+              fix.maxDuration === null ? Infinity : fix.maxDuration,
+              { shouldDirty: true },
+            );
+          }
+
+          continue;
+        }
+
+        if (typeof fix.modifierIndex !== "number") continue;
+
+        const modifierKey = `modifiers.${fix.modifierIndex}` as const;
+        const modifier = getValues(modifierKey);
+        const payoutType = modifier?.type || type;
+
+        if (typeof fix.amount === "number") {
+          setValue(
+            payoutType === "percentage"
+              ? `${modifierKey}.amountInPercentage`
+              : `${modifierKey}.amountInCents`,
+            fix.amount,
+            { shouldDirty: true },
+          );
+        }
+
+        if (fix.maxDuration !== undefined) {
+          setValue(
+            `${modifierKey}.maxDuration`,
+            fix.maxDuration === null ? Infinity : fix.maxDuration,
+            { shouldDirty: true },
+          );
+        }
+      }
     },
   });
 
@@ -845,30 +898,36 @@ function RewardSheetContent({
                                   />
                                 </InlineBadgePopover>{" "}
                                 with the tooltip{" "}
-                                <InlineBadgePopover
-                                  text={tooltipDescription || "Reward tooltip"}
-                                  showOptional={!tooltipDescription}
-                                  buttonClassName="min-w-0 max-w-full"
-                                  contentClassName="truncate"
-                                >
-                                  <InlineBadgePopoverRichTextArea
-                                    value={tooltipDescription ?? ""}
-                                    onChange={(value) =>
-                                      setValue("tooltipDescription", value, {
-                                        shouldDirty: true,
-                                      })
-                                    }
-                                    className="sm:w-80"
-                                    maxLength={
-                                      REWARD_TOOLTIP_DESCRIPTION_MAX_LENGTH
+                                {consistency.status === "reviewing" ||
+                                consistency.note ||
+                                (consistency.payoutFixes?.length ?? 0) > 0 ? (
+                                  <ReviewingSuggestedFixBadge
+                                    text={
+                                      tooltipDescription || "Reward tooltip"
                                     }
                                   />
-                                </InlineBadgePopover>
-                                {consistency.status === "reviewing" && (
-                                  <span className="ml-1.5 inline-flex items-center gap-1 align-middle text-xs font-medium text-neutral-500">
-                                    <LoadingSpinner className="size-3" />
-                                    Reviewing
-                                  </span>
+                                ) : (
+                                  <InlineBadgePopover
+                                    text={
+                                      tooltipDescription || "Reward tooltip"
+                                    }
+                                    showOptional={!tooltipDescription}
+                                    buttonClassName="min-w-0 max-w-full"
+                                    contentClassName="truncate"
+                                  >
+                                    <InlineBadgePopoverRichTextArea
+                                      value={tooltipDescription ?? ""}
+                                      onChange={(value) =>
+                                        setValue("tooltipDescription", value, {
+                                          shouldDirty: true,
+                                        })
+                                      }
+                                      className="sm:w-80"
+                                      maxLength={
+                                        REWARD_TOOLTIP_DESCRIPTION_MAX_LENGTH
+                                      }
+                                    />
+                                  </InlineBadgePopover>
                                 )}
                               </span>
                               <Button
