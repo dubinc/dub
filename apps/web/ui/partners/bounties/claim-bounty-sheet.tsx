@@ -1,5 +1,6 @@
 "use client";
 
+import { parseActionError } from "@/lib/actions/parse-action-errors";
 import { createBountySubmissionAction } from "@/lib/actions/partners/create-bounty-submission";
 import { uploadBountySubmissionFileAction } from "@/lib/actions/partners/upload-bounty-submission-file";
 import {
@@ -9,9 +10,9 @@ import {
 } from "@/lib/bounty/constants";
 import { getPeriodLabel } from "@/lib/bounty/periods";
 import { resolveBountyDetails } from "@/lib/bounty/utils";
+import { UPLOAD_POLICIES } from "@/lib/storage/upload-policies";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
-import { UPLOAD_POLICIES } from "@/lib/storage/upload-policies";
 import { PartnerBountyProps } from "@/lib/types";
 import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import { X } from "@/ui/shared/icons";
@@ -23,7 +24,7 @@ import {
   Sheet,
   Trash,
 } from "@dub/ui";
-import { cn } from "@dub/utils";
+import { cn, toErrorMessage } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
@@ -102,7 +103,9 @@ function ImagesField({
       });
 
       if (!result?.data) {
-        toast.error("Failed to get signed upload URL.");
+        toast.error(
+          parseActionError(result ?? {}, "Failed to get signed upload URL."),
+        );
         setFiles((prev) => {
           const updated = prev.filter((f) => f.id !== newFile.id);
           onUploadingChange(updated.some((f) => f.uploading));
@@ -153,10 +156,8 @@ function ImagesField({
         syncToForm(updated);
         return updated;
       });
-    } catch {
-      toast.error(
-        "An unexpected error occurred while uploading. Please try again.",
-      );
+    } catch (e) {
+      toast.error(toErrorMessage(e));
       setFiles((prev) => {
         const updated = prev.filter((f) => f.id !== newFile.id);
         onUploadingChange(updated.some((f) => f.uploading));
@@ -223,9 +224,7 @@ function ImagesField({
           )}
           iconClassName="size-5 shrink-0"
           variant="plain"
-          content={
-            files.length > 0 ? null : "SVG, JPG, PNG or WEBP\nMax size 5MB"
-          }
+          content={files.length > 0 ? null : "JPG, PNG or WEBP\nMax size 5MB"}
           onChange={async ({ file }) => await handleUpload(file)}
           disabled={files.length >= maxFiles}
           maxFileSizeMB={

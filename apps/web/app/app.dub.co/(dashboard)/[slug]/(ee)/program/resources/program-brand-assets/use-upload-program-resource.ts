@@ -1,5 +1,6 @@
 "use client";
 
+import { parseActionError } from "@/lib/actions/parse-action-errors";
 import { getProgramResourceUploadUrlAction } from "@/lib/actions/partners/program-resources/get-program-resource-upload-url";
 import { useAction } from "next-safe-action/hooks";
 
@@ -23,7 +24,11 @@ export function useUploadProgramResource(workspaceId: string) {
       contentLength: opts.file.size,
     });
 
-    if (!result?.data) throw new Error("Failed to get upload URL");
+    if (!result?.data) {
+      throw new Error(
+        parseActionError(result ?? {}, "Failed to get upload URL"),
+      );
+    }
 
     const { signedUrl, key } = result.data;
 

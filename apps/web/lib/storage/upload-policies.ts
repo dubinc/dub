@@ -92,12 +92,7 @@ export const UPLOAD_POLICIES = {
   },
 
   bountySubmissionImages: {
-    contentTypes: [
-      "image/jpeg",
-      "image/png",
-      "image/webp",
-      "image/svg+xml",
-    ] as const,
+    contentTypes: ["image/jpeg", "image/png", "image/webp"] as const,
     maxBytes: 5 * 1024 * 1024,
   },
 } as const;

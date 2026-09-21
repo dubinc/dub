@@ -28,7 +28,7 @@ describe("createSignedUploadUrl", () => {
   it("returns a signed URL and destination URL", async () => {
     const result = await createSignedUploadUrl({
       key,
-      contentType: "image/svg+xml",
+      contentType: "image/png",
       contentLength: 1024,
     });
 
@@ -40,7 +40,7 @@ describe("createSignedUploadUrl", () => {
     expect(getSignedUploadUrlMock).toHaveBeenCalledWith({
       key,
       bucket: "public",
-      contentType: "image/svg+xml",
+      contentType: "image/png",
       contentLength: 1024,
     });
   });
@@ -97,10 +97,25 @@ describe("validateSignedUpload", () => {
     expect(
       validateSignedUpload({
         policy: "programLanderImages",
-        contentType: "image/svg+xml",
+        contentType: "image/png",
         contentLength: 1024,
       }),
     ).toEqual(UPLOAD_POLICIES.programLanderImages);
+  });
+
+  it("rejects image/svg+xml for bounty submission images", () => {
+    expect(() =>
+      validateSignedUpload({
+        policy: "bountySubmissionImages",
+        contentType: "image/svg+xml",
+        contentLength: 1024,
+      }),
+    ).toThrow(
+      expect.objectContaining({
+        code: "unprocessable_entity",
+        message: expect.stringContaining("Invalid content type"),
+      } satisfies Partial<DubApiError>),
+    );
   });
 
   it("rejects content types not allowed by the policy", () => {

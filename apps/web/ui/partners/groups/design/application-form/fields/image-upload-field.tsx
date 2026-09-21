@@ -182,7 +182,12 @@ function ImageUploadFieldContent({
       });
 
       if (!result?.data) {
-        toast.error("Failed to upload image. Please try again.");
+        toast.error(
+          parseActionError(
+            result ?? {},
+            "Failed to upload image. Please try again.",
+          ),
+        );
         setFiles((prev) => prev.filter((f) => f.id !== newFile.id));
         return;
       }
