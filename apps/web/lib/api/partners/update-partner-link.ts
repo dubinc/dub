@@ -91,6 +91,7 @@ export async function updatePartnerLink({
       select: {
         groupId: true,
         discountId: true,
+        groupMoveDisabledAt: true,
         partnerGroup: {
           select: {
             clickRewardId: true,
@@ -135,6 +136,23 @@ export async function updatePartnerLink({
           },
         })
       : null;
+
+  if (
+    hasRewardAssignment(linkRewardInput) &&
+    !programEnrollment.groupMoveDisabledAt
+  ) {
+    await prisma.programEnrollment.update({
+      where: {
+        partnerId_programId: {
+          partnerId: link.partnerId,
+          programId,
+        },
+      },
+      data: {
+        groupMoveDisabledAt: new Date(),
+      },
+    });
+  }
 
   if (body.discountId !== undefined) {
     await remapDiscountCodesForPartnerJob.dispatch(

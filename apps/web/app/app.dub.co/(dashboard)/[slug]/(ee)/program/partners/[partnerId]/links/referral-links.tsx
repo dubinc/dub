@@ -22,7 +22,6 @@ import {
   CardList,
   CopyButton,
   CursorRays,
-  Discount,
   DiscountCode,
   InvoiceDollar,
   LoadingSpinner,
@@ -32,7 +31,6 @@ import {
   Tooltip,
   TooltipContent,
   UserCheck,
-  useCopyToClipboard,
 } from "@dub/ui";
 import {
   cn,
@@ -61,17 +59,40 @@ type PartnerForOverrides = Pick<
 
 const LINK_REWARD_OVERRIDE_EVENTS = ["click", "lead", "sale"] as const;
 
+function hasLinkRewardOverride({
+  linkAssignedId,
+  partnerAssignedId,
+}: {
+  linkAssignedId: string | null | undefined;
+  partnerAssignedId: string | null | undefined;
+}) {
+  return Boolean(linkAssignedId) && linkAssignedId !== partnerAssignedId;
+}
+
 function getLinkRewardOverride(
   link: Pick<PartnerLink, "clickReward" | "leadReward" | "saleReward">,
+  partner: Pick<
+    PartnerForOverrides,
+    "clickRewardId" | "leadRewardId" | "saleRewardId"
+  >,
 ) {
   return LINK_REWARD_OVERRIDE_EVENTS.filter((event) => {
-    const reward = {
+    const linkAssignedId = {
       click: link.clickReward,
       lead: link.leadReward,
       sale: link.saleReward,
     }[event];
 
-    return Boolean(reward);
+    const partnerAssignedId = {
+      click: partner.clickRewardId,
+      lead: partner.leadRewardId,
+      sale: partner.saleRewardId,
+    }[event];
+
+    return hasLinkRewardOverride({
+      linkAssignedId,
+      partnerAssignedId,
+    });
   });
 }
 
@@ -268,7 +289,14 @@ function PartnerLinkCard({
     group,
     link,
   });
-  const rewardEvents = getLinkRewardOverride(link);
+
+  const rewardEvents = getLinkRewardOverride(link, partner);
+
+  const hasDiscountOverride = hasLinkRewardOverride({
+    linkAssignedId: link.discount,
+    partnerAssignedId: partner.discountId,
+  });
+
   const [rewardEvent, setRewardEvent] = useState<"sale" | "lead" | "click">(
     "sale",
   );
@@ -337,7 +365,7 @@ function PartnerLinkCard({
               })}
             </OverrideIndicatorGroup>
           )}
-          {link.discount && (
+          {hasDiscountOverride && (
             <OverrideIndicatorGroup disabled={Boolean(overrideDisabledTooltip)}>
               <OverrideIndicator
                 tooltip="This link has a discount override"
@@ -387,7 +415,6 @@ function PartnerLinkCard({
           )}
 
           <PartnerLinkCardMenu
-            partnerLink={partnerLink}
             overrideDisabledTooltip={overrideDisabledTooltip}
             onEditReward={(event) => {
               setRewardEvent(event);
@@ -404,18 +431,15 @@ function PartnerLinkCard({
 }
 
 function PartnerLinkCardMenu({
-  partnerLink,
   onEditReward,
   onEditDiscount,
   overrideDisabledTooltip,
 }: {
-  partnerLink: string;
   onEditReward: (event: "sale" | "lead" | "click") => void;
   onEditDiscount: () => void;
   overrideDisabledTooltip?: ReactNode;
 }) {
   const [openPopover, setOpenPopover] = useState(false);
-  const [, copyToClipboard] = useCopyToClipboard();
 
   return (
     <Popover
@@ -444,7 +468,7 @@ function PartnerLinkCardMenu({
             })}
             <MenuItem
               as={Command.Item}
-              icon={Discount}
+              icon={DiscountCode}
               disabledTooltip={overrideDisabledTooltip}
               onSelect={() => {
                 setOpenPopover(false);

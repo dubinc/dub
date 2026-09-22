@@ -2,7 +2,7 @@ import { DiscountProps, RewardProps } from "@/lib/types";
 import { formatDiscountDescription } from "@/ui/partners/format-discount-description";
 import { formatRewardDescription } from "@/ui/partners/format-reward-description";
 import { REWARD_EVENT_ICON } from "@/ui/partners/rewards/reward-event-icon";
-import { Gift, Icon } from "@dub/ui";
+import { DiscountCode, Icon } from "@dub/ui";
 import { cn } from "@dub/utils";
 import * as HoverCard from "@radix-ui/react-hover-card";
 
@@ -72,7 +72,7 @@ export function ProgramRewardsDisplay({
     items.push({
       id: "discount",
       event: "discount",
-      icon: Gift,
+      icon: DiscountCode,
       description: formatDiscountDescription(discount),
       onClick: onDiscountClick ? () => onDiscountClick(discount) : undefined,
     });

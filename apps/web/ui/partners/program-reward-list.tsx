@@ -2,7 +2,7 @@
 
 import { getRewardAmount } from "@/lib/partners/get-reward-amount";
 import { DiscountProps, RewardProps } from "@/lib/types";
-import { Button, Gift, Icon, Tooltip } from "@dub/ui";
+import { Button, DiscountCode, Icon, Tooltip } from "@dub/ui";
 import { cn } from "@dub/utils";
 import Link from "next/link";
 import { useParams } from "next/navigation";
@@ -108,7 +108,7 @@ export function ProgramRewardList({
 
       {discount && (
         <Item
-          icon={Gift}
+          icon={DiscountCode}
           iconClassName={iconClassName}
           overrideTooltip={
             discount.isOverride
