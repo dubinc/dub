@@ -18,7 +18,12 @@ import {
   useRouterStuff,
 } from "@dub/ui";
 import { ChartTooltipSync } from "@dub/ui/charts";
-import { CursorRays, GridIcon, GridLayoutRows, Hyperlink } from "@dub/ui/icons";
+import {
+  CursorRays,
+  GridLayoutRows,
+  Hyperlink,
+  TableRows2,
+} from "@dub/ui/icons";
 import { createContext, useContext, useEffect, useState } from "react";
 import { PartnerLinkCard } from "./partner-link-card";
 
@@ -100,25 +105,19 @@ export function PartnerProgramLinksPageClient() {
         <div className="flex items-center gap-3">
           {!!showDetailedAnalytics && (
             <ToggleGroup
-              className="h-10 rounded-lg px-1"
-              optionClassName="px-2 rounded-md"
-              indicatorClassName="border-0 ring-1 ring-inset ring-neutral-200"
+              className="bg-bg-muted h-10 gap-0 rounded-lg p-0"
+              optionClassName="h-full rounded-md px-2.5 py-0"
+              // Selected pill bleeds 1px outward so its border sits on top of
+              // the track's border instead of doubling up beside it
+              indicatorClassName="bg-bg-default -left-px -top-px h-[calc(100%+2px)] w-[calc(100%+2px)]"
               options={[
                 {
                   value: "full",
-                  label: (
-                    <div className="p-1">
-                      <GridIcon className="size-4" />
-                    </div>
-                  ),
+                  label: <GridLayoutRows className="size-4" />,
                 },
                 {
                   value: "cards",
-                  label: (
-                    <div className="p-1">
-                      <GridLayoutRows className="size-4" />
-                    </div>
-                  ),
+                  label: <TableRows2 className="size-4" />,
                 },
               ]}
               selected={displayOption}

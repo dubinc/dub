@@ -788,6 +788,7 @@ function EmbedLinkRow({
                 type="button"
                 className="border-border-default text-content-default focus:border-border-emphasis bg-bg-default flex h-9 w-full min-w-0 items-center gap-2 rounded-lg border px-3 text-left text-sm outline-none focus:ring-0"
               >
+                {selectedOption?.icon}
                 <span className="min-w-0 shrink grow truncate font-medium">
                   {displayText}
                 </span>
