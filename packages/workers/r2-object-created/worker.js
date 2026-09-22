@@ -3,7 +3,7 @@
  * Thin Cloudflare Worker: queue push → forward each R2 notification to Next.js.
  * Magic-byte validation + quarantine live in Next.js, not here.
  *
- * - Variable DUB_WEBHOOK_URL  e.g. https://app.dub.co/api/cloudflare/r2-object-created
+ * - Variable DUB_WEBHOOK_URL  e.g. https://app.dub.co/api/cloudflare/webhook/r2-object-created
  * - Secret CLOUDFLARE_WORKER_WEBHOOK_SECRET  (same value as Next.js env)
  */
 
