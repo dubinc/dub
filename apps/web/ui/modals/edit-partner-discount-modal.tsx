@@ -29,9 +29,7 @@ type PartnerLink = ProgramPartnerLinkExtended;
 type PartnerDiscountOverridePartner = Pick<
   EnrolledPartnerProps,
   "id" | "name" | "email" | "image" | "groupId" | "discountId"
-> & {
-  groupMoveDisabledAt?: Date | string | null;
-};
+>;
 
 export type PartnerDiscountOverrideTarget =
   | {
@@ -116,11 +114,6 @@ function EditPartnerDiscountModal({
       },
     });
 
-  const {
-    executeAsync: updateEnrollmentSettings,
-    isPending: isUpdatingEnrollmentSettings,
-  } = useAction(updatePartnerEnrollmentAction);
-
   const { executeAsync: deleteDiscount, isPending: isDeleting } = useAction(
     deleteDiscountAction,
     {
@@ -139,13 +132,7 @@ function EditPartnerDiscountModal({
     target,
     groupDefaultDiscountId,
   });
-  const hasChanges =
-    hasInitializedSelection && selectedDiscountId !== effectiveDiscountId;
-  const isSubmitting =
-    isUpdatingLink ||
-    isUpdatingEnrollment ||
-    isUpdatingEnrollmentSettings ||
-    isDeleting;
+  const isSubmitting = isUpdatingLink || isUpdatingEnrollment || isDeleting;
 
   const sortedDiscounts = useMemo(() => {
     return [...(discounts ?? [])].sort((a, b) => {
@@ -215,10 +202,6 @@ function EditPartnerDiscountModal({
         return;
       }
 
-      const groupMoveDisabledAt = partner.groupMoveDisabledAt
-        ? undefined
-        : new Date();
-
       if (target.type === "partner") {
         if (!workspaceId) {
           return;
@@ -228,22 +211,8 @@ function EditPartnerDiscountModal({
           workspaceId,
           partnerId: partner.id,
           discountId: selectedDiscountId,
-          ...(groupMoveDisabledAt && { groupMoveDisabledAt }),
         });
         return;
-      }
-
-      if (groupMoveDisabledAt && workspaceId) {
-        const result = await updateEnrollmentSettings({
-          workspaceId,
-          partnerId: partner.id,
-          groupMoveDisabledAt,
-        });
-
-        if (result?.serverError || result?.validationErrors) {
-          toast.error(parseActionError(result, "Failed to update discount"));
-          return;
-        }
       }
 
       await updatePartnerLink(`/api/partners/links/${target.link.id}`, {
@@ -264,11 +233,9 @@ function EditPartnerDiscountModal({
       effectiveDiscountId,
       setShowModal,
       updateEnrollment,
-      updateEnrollmentSettings,
       updatePartnerLink,
       target,
       partner.id,
-      partner.groupMoveDisabledAt,
     ],
   );
 

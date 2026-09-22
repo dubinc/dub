@@ -22,7 +22,6 @@ import {
   CardList,
   CopyButton,
   CursorRays,
-  Discount,
   DiscountCode,
   InvoiceDollar,
   LoadingSpinner,
@@ -32,7 +31,6 @@ import {
   Tooltip,
   TooltipContent,
   UserCheck,
-  useCopyToClipboard,
 } from "@dub/ui";
 import {
   cn,
@@ -417,7 +415,6 @@ function PartnerLinkCard({
           )}
 
           <PartnerLinkCardMenu
-            partnerLink={partnerLink}
             overrideDisabledTooltip={overrideDisabledTooltip}
             onEditReward={(event) => {
               setRewardEvent(event);
@@ -434,18 +431,15 @@ function PartnerLinkCard({
 }
 
 function PartnerLinkCardMenu({
-  partnerLink,
   onEditReward,
   onEditDiscount,
   overrideDisabledTooltip,
 }: {
-  partnerLink: string;
   onEditReward: (event: "sale" | "lead" | "click") => void;
   onEditDiscount: () => void;
   overrideDisabledTooltip?: ReactNode;
 }) {
   const [openPopover, setOpenPopover] = useState(false);
-  const [, copyToClipboard] = useCopyToClipboard();
 
   return (
     <Popover
@@ -474,7 +468,7 @@ function PartnerLinkCardMenu({
             })}
             <MenuItem
               as={Command.Item}
-              icon={Discount}
+              icon={DiscountCode}
               disabledTooltip={overrideDisabledTooltip}
               onSelect={() => {
                 setOpenPopover(false);

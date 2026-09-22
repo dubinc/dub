@@ -40,9 +40,7 @@ type PartnerRewardOverridePartner = Pick<
   | "clickRewardId"
   | "leadRewardId"
   | "saleRewardId"
-> & {
-  groupMoveDisabledAt?: Date | string | null;
-};
+>;
 
 export type PartnerRewardOverrideTarget =
   | {
@@ -162,11 +160,6 @@ function EditPartnerRewardModal({
       },
     });
 
-  const {
-    executeAsync: updateEnrollmentSettings,
-    isPending: isUpdatingEnrollmentSettings,
-  } = useAction(updatePartnerEnrollmentAction);
-
   const { executeAsync: deleteReward, isPending: isDeleting } = useAction(
     deleteRewardAction,
     {
@@ -200,8 +193,7 @@ function EditPartnerRewardModal({
   });
   const resolvedSelectedId = selectedId ?? currentId;
   const hasChanges = resolvedSelectedId !== currentId;
-  const isSubmitting =
-    isUpdatingLink || isUpdatingEnrollment || isUpdatingEnrollmentSettings;
+  const isSubmitting = isUpdatingLink || isUpdatingEnrollment;
 
   const options = useMemo(
     () =>
@@ -243,9 +235,6 @@ function EditPartnerRewardModal({
   const persistOverride = useCallback(
     async (activityDescription?: string) => {
       const rewardIdColumn = REWARD_EVENT_COLUMN_MAPPING[event];
-      const groupMoveDisabledAt = partner.groupMoveDisabledAt
-        ? undefined
-        : new Date();
 
       if (target.type === "partner") {
         if (!workspaceId) {
@@ -256,23 +245,9 @@ function EditPartnerRewardModal({
           workspaceId,
           partnerId: partner.id,
           [rewardIdColumn]: resolvedSelectedId,
-          ...(groupMoveDisabledAt && { groupMoveDisabledAt }),
           activityDescription,
         });
         return;
-      }
-
-      if (groupMoveDisabledAt && workspaceId) {
-        const result = await updateEnrollmentSettings({
-          workspaceId,
-          partnerId: partner.id,
-          groupMoveDisabledAt,
-        });
-
-        if (result?.serverError || result?.validationErrors) {
-          toast.error(parseActionError(result, "Failed to update reward"));
-          return;
-        }
       }
 
       await updatePartnerLink(`/api/partners/links/${target.link.id}`, {
@@ -293,11 +268,9 @@ function EditPartnerRewardModal({
       event,
       resolvedSelectedId,
       updateEnrollment,
-      updateEnrollmentSettings,
       updatePartnerLink,
       target,
       partner.id,
-      partner.groupMoveDisabledAt,
       setShowModal,
     ],
   );
