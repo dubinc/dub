@@ -25,9 +25,32 @@ const ZIP_FAMILY_CONTENT_TYPES = [
   "application/x-zip-compressed",
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
   "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+] as const;
+
+// Legacy .doc / .xls share OLE Compound File magic (not ZIP/OOXML)
+const OLE_FAMILY_CONTENT_TYPES = [
   "application/msword",
   "application/vnd.ms-excel",
 ] as const;
+
+const TEXT_CONTENT_TYPES = ["text/plain", "text/csv"] as const;
+
+// Unambiguous magic when R2 omits Content-Type (exclude SVG/ZIP/OLE — need declared type)
+const SAFE_MAGIC_ONLY_CONTENT_TYPES = [
+  "image/jpeg",
+  "image/png",
+  "image/gif",
+  "image/webp",
+  "image/avif",
+  "application/pdf",
+] as const;
+
+function isMissingOrGenericContentType(
+  contentType: string | null | undefined,
+): boolean {
+  const normalized = normalizeContentType(contentType);
+  return !normalized || normalized === "application/octet-stream";
+}
 
 export function isUserUploadKey(key: string): boolean {
   if (key.startsWith("quarantine/")) {
@@ -166,6 +189,15 @@ export function detectMimeFromMagicBytes(bytes: Uint8Array): string | null {
     return "application/pdf";
   }
 
+  // OLE Compound File (legacy .doc / .xls)
+  if (
+    startsWithBytes(bytes, [
+      0xd0, 0xcf, 0x11, 0xe0, 0xa1, 0xb1, 0x1a, 0xe1,
+    ])
+  ) {
+    return "application/x-ole-storage";
+  }
+
   // ZIP / OOXML
   if (startsWithBytes(bytes, [0x50, 0x4b, 0x03, 0x04])) {
     return "application/zip";
@@ -201,7 +233,20 @@ export function mimeMatchesContentType({
   contentType: string | null | undefined;
 }): boolean {
   const declared = normalizeContentType(contentType);
-  if (!declared || !detectedMime) {
+  if (!declared) {
+    return false;
+  }
+
+  // TXT/CSV have no reliable magic; allow when declared and body is not sniffed
+  // as something else (e.g. HTML would set detectedMime and fail below).
+  if (
+    (TEXT_CONTENT_TYPES as readonly string[]).includes(declared) &&
+    !detectedMime
+  ) {
+    return true;
+  }
+
+  if (!detectedMime) {
     return false;
   }
 
@@ -213,6 +258,14 @@ export function mimeMatchesContentType({
   if (
     detectedMime === "application/zip" &&
     (ZIP_FAMILY_CONTENT_TYPES as readonly string[]).includes(declared)
+  ) {
+    return true;
+  }
+
+  // Legacy Office binaries share OLE Compound File magic
+  if (
+    detectedMime === "application/x-ole-storage" &&
+    (OLE_FAMILY_CONTENT_TYPES as readonly string[]).includes(declared)
   ) {
     return true;
   }
@@ -268,6 +321,18 @@ export function decideQuarantine({
     return {
       action: "allow",
       reason: "magic_bytes_match",
+    };
+  }
+
+  // R2 sometimes omits Content-Type or stores octet-stream; trust unambiguous magic
+  if (
+    isMissingOrGenericContentType(normalized) &&
+    detectedMime &&
+    (SAFE_MAGIC_ONLY_CONTENT_TYPES as readonly string[]).includes(detectedMime)
+  ) {
+    return {
+      action: "allow",
+      reason: "safe_magic_missing_content_type",
     };
   }
 
