@@ -12,7 +12,7 @@ const CREATE_ACTIONS = new Set([
 export const r2ObjectCreatedNotificationSchema = z
   .object({
     account: z.string().optional(),
-    action: z.string().optional(),
+    action: z.string(),
     bucket: z.string().optional(),
     object: z
       .object({
