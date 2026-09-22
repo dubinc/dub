@@ -10,7 +10,10 @@ interface imageOptions {
   headers?: Record<string, string>;
 }
 
-type BucketType = "public" | "private";
+type BucketType = "public" | "private" | "quarantine";
+
+// R2 bucket for magic-byte mismatch quarantine (not env — create this bucket in Cloudflare)
+export const STORAGE_QUARANTINE_BUCKET = "quarantine";
 
 class StorageClient {
   private client: AwsClient;
@@ -49,7 +52,9 @@ class StorageClient {
     }
 
     const headers = {
-      "Content-Length": uploadBody.size.toString(),
+      "Content-Length": String(
+        uploadBody instanceof Blob ? uploadBody.size : uploadBody.byteLength,
+      ),
       ...opts?.headers,
     };
 
@@ -102,6 +107,121 @@ class StorageClient {
       console.error("storage.delete failed", error);
       throw new Error("Failed to delete file. Please try again later.");
     }
+  }
+
+  // Fetch object metadata (Content-Type, size, eTag) without downloading the body
+  async head({ key, bucket = "public" }: { key: string; bucket?: BucketType }) {
+    const response = await this.client.fetch(
+      `${process.env.STORAGE_ENDPOINT}/${this._getBucketName(bucket)}/${key}`,
+      {
+        method: "HEAD",
+      },
+    );
+
+    if (response.status === 404) {
+      return null;
+    }
+
+    if (!response.ok) {
+      throw new Error(
+        `storage.head failed (${response.status}): ${response.statusText}`,
+      );
+    }
+
+    const contentLengthHeader = response.headers.get("content-length");
+
+    return {
+      contentType: response.headers.get("content-type"),
+      contentLength: contentLengthHeader
+        ? Number.parseInt(contentLengthHeader, 10)
+        : null,
+      eTag: response.headers.get("etag"),
+    };
+  }
+
+  // Read the first N bytes of an object (for magic-byte sniffing)
+  async getBytes({
+    key,
+    bucket = "public",
+    length = 4100,
+  }: {
+    key: string;
+    bucket?: BucketType;
+    length?: number;
+  }) {
+    const response = await this.client.fetch(
+      `${process.env.STORAGE_ENDPOINT}/${this._getBucketName(bucket)}/${key}`,
+      {
+        method: "GET",
+        headers: {
+          Range: `bytes=0-${Math.max(length - 1, 0)}`,
+        },
+      },
+    );
+
+    if (response.status === 404) {
+      return null;
+    }
+
+    if (!response.ok && response.status !== 206) {
+      throw new Error(
+        `storage.getBytes failed (${response.status}): ${response.statusText}`,
+      );
+    }
+
+    return new Uint8Array(await response.arrayBuffer());
+  }
+
+  // Copy within or across public/private buckets (R2 CopyObject)
+  async copy({
+    source,
+    destination,
+  }: {
+    source: { key: string; bucket?: BucketType };
+    destination: { key: string; bucket?: BucketType };
+  }) {
+    const sourceBucketName = this._getBucketName(source.bucket ?? "public");
+    const destinationBucketName = this._getBucketName(
+      destination.bucket ?? "private",
+    );
+    const copySource = `/${sourceBucketName}/${source.key
+      .split("/")
+      .map(encodeURIComponent)
+      .join("/")}`;
+
+    const response = await this.client.fetch(
+      `${process.env.STORAGE_ENDPOINT}/${destinationBucketName}/${destination.key}`,
+      {
+        method: "PUT",
+        headers: {
+          "x-amz-copy-source": copySource,
+        },
+      },
+    );
+
+    if (!response.ok) {
+      const text = await response.text();
+      throw new Error(
+        `storage.copy failed (${response.status}): ${text || response.statusText}`,
+      );
+    }
+  }
+
+  // Move a public object to the quarantine bucket (same key), then delete the public original.
+  async quarantine({ key }: { key: string }) {
+    await this.copy({
+      source: { key, bucket: "public" },
+      destination: { key, bucket: "quarantine" },
+    });
+
+    await this.delete({
+      key,
+      bucket: "public",
+    });
+
+    return {
+      quarantineKey: key,
+    };
   }
 
   async getSignedUrl({
@@ -261,7 +381,11 @@ class StorageClient {
     const maxRedirects = 5;
     let currentUrl = url;
 
-    for (let redirectCount = 0; redirectCount <= maxRedirects; redirectCount++) {
+    for (
+      let redirectCount = 0;
+      redirectCount <= maxRedirects;
+      redirectCount++
+    ) {
       await this.assertSafeUrl(currentUrl);
 
       const response = await fetchWithTimeout(currentUrl, {
@@ -334,6 +458,10 @@ class StorageClient {
       }
 
       return bucketName;
+    }
+
+    if (bucket === "quarantine") {
+      return STORAGE_QUARANTINE_BUCKET;
     }
 
     throw new Error(`Invalid bucket type: ${bucket}`);

@@ -108,7 +108,7 @@ export async function processR2ObjectCreated(
     };
   }
 
-  const { quarantineKey } = await storage.quarantineToPrivate({ key });
+  const { quarantineKey } = await storage.quarantine({ key });
 
   logger.warn("storage.r2_magic_bytes_mismatch", {
     key,
