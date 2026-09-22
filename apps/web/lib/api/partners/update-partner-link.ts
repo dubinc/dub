@@ -6,7 +6,7 @@ import { notifyPartnerRewardOverride } from "@/lib/api/partners/notify-partner-r
 import {
   hasRewardAssignment,
   hasRewardIdsInput,
-  omitGroupDefaultRewardIds,
+  pickDefinedRewardIds,
   RewardOverrideIdsInput,
   toPartnerLinkRewardIdFields,
 } from "@/lib/api/rewards/reward-overrides";
@@ -112,11 +112,7 @@ export async function updatePartnerLink({
 
   const { partnerGroup } = programEnrollment;
 
-  // Group defaults are inherited; only persist real link-level overrides.
-  const linkRewardInput = omitGroupDefaultRewardIds({
-    rewardIds: body,
-    groupDefaults: partnerGroup,
-  });
+  const linkRewardInput = pickDefinedRewardIds(body);
 
   await throwIfInvalidRewards({
     programId,

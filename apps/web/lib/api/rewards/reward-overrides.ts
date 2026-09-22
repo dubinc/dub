@@ -18,22 +18,11 @@ export const REWARD_OVERRIDE_ID_KEYS = [
   "discountId",
 ] as const;
 
-// Group defaults are inherited; only persist real link-level overrides.
-const omitGroupDefault = ({
-  value,
-  groupDefaultId,
-}: {
-  value: string | null | undefined;
-  groupDefaultId: string | null | undefined;
-}) => (value && value === groupDefaultId ? null : value);
-
-export const omitGroupDefaultRewardIds = ({
-  rewardIds,
-  groupDefaults,
-}: {
-  rewardIds: RewardOverrideIdsInput;
-  groupDefaults: Partial<RewardOverrideIds> | null | undefined;
-}): RewardOverrideIdsInput => {
+// Keep explicit ids, including the group default. Link-level null means inherit
+// from the partner, so a selected group default must be stored as that id.
+export const pickDefinedRewardIds = (
+  rewardIds: RewardOverrideIdsInput,
+): RewardOverrideIdsInput => {
   const result: RewardOverrideIdsInput = {};
 
   for (const key of REWARD_OVERRIDE_ID_KEYS) {
@@ -42,10 +31,7 @@ export const omitGroupDefaultRewardIds = ({
       continue;
     }
 
-    result[key] = omitGroupDefault({
-      value,
-      groupDefaultId: groupDefaults?.[key],
-    });
+    result[key] = value;
   }
 
   return result;

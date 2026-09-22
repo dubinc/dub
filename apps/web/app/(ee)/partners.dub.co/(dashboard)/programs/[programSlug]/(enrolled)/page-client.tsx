@@ -667,7 +667,7 @@ function getRewardLinkOptions({
 }
 
 const LINK_SELECTOR_BOX_CLASSNAME =
-  "h-10 w-[241px] min-w-0 max-w-full rounded-lg border border-border-default bg-bg-default";
+  "h-10 w-[241px] min-w-0 max-w-full rounded-lg border border-border-subtle bg-bg-default";
 
 function RewardList() {
   const { programEnrollment } = useProgramEnrollment();
@@ -948,6 +948,13 @@ function RewardListItem({
                           "text-content-default focus:border-border-emphasis flex items-center gap-2 px-3 text-left text-sm outline-none focus:ring-0",
                         )}
                       >
+                        {link.apexDomain && (
+                          <LinkLogo
+                            apexDomain={link.apexDomain}
+                            className="size-4 shrink-0 sm:size-4"
+                            imageProps={{ width: 16, height: 16 }}
+                          />
+                        )}
                         <span className="min-w-0 shrink grow truncate">
                           {link.displayText}
                         </span>

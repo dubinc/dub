@@ -1,8 +1,9 @@
+import { parseActionError } from "@/lib/actions/parse-action-errors";
 import { uploadLanderImageAction } from "@/lib/actions/partners/upload-lander-image";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { programLanderImageBlockSchema } from "@/lib/zod/schemas/program-lander";
 import { Button, FileUpload, Modal } from "@dub/ui";
-import { cn } from "@dub/utils";
+import { cn, toErrorMessage } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import { Dispatch, SetStateAction, useId, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
@@ -56,9 +57,15 @@ function ImageBlockModalInner({
     try {
       const result = await executeAsync({
         workspaceId: workspaceId!,
+        contentType: file.type,
+        contentLength: file.size,
       });
 
-      if (!result?.data) throw new Error("Failed to get signed upload URL");
+      if (!result?.data) {
+        throw new Error(
+          parseActionError(result ?? {}, "Failed to get signed upload URL"),
+        );
+      }
 
       const { signedUrl, destinationUrl } = result.data;
 
@@ -75,7 +82,7 @@ function ImageBlockModalInner({
 
       setValue("url", destinationUrl, { shouldDirty: true });
     } catch (e) {
-      toast.error("Failed to upload image");
+      toast.error(toErrorMessage(e));
       console.error("Failed to upload image", e);
     } finally {
       setIsUploading(false);
@@ -141,7 +148,7 @@ function ImageBlockModalInner({
                   readFile
                   loading={isUploading}
                   onChange={({ file }) => handleUpload(file)}
-                  content="SVG, JPG, PNG, or WEBP, max size of 5MB"
+                  content="SVG, JPG, PNG, WEBP, or AVIF, max size of 5MB"
                   maxFileSizeMB={5}
                 />
               )}

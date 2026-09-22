@@ -5,7 +5,7 @@ import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-progr
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import {
   hasRewardAssignment,
-  omitGroupDefaultRewardIds,
+  pickDefinedRewardIds,
   toPartnerLinkRewardIdFields,
 } from "@/lib/api/rewards/reward-overrides";
 import { throwIfInvalidRewards } from "@/lib/api/rewards/throw-if-invalid-rewards";
@@ -192,15 +192,13 @@ export const POST = withWorkspace(
       partnerName: partner.partner.name,
     });
 
-    // Validate link-level rewards
-    const linkRewardInput = omitGroupDefaultRewardIds({
-      rewardIds: {
-        clickRewardId,
-        leadRewardId,
-        saleRewardId,
-        discountId,
-      },
-      groupDefaults: partnerGroup,
+    // Validate link-level rewards. Persist the selected ids as-is, including
+    // the group default — link-level null inherits the partner override.
+    const linkRewardInput = pickDefinedRewardIds({
+      clickRewardId,
+      leadRewardId,
+      saleRewardId,
+      discountId,
     });
 
     const hasLinkLevelReward = hasRewardAssignment(linkRewardInput);

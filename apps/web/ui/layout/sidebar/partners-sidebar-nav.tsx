@@ -1,6 +1,7 @@
 "use client";
 
 import { useProgramMessagesCount } from "@/lib/messages/hooks/use-program-messages-count";
+import { SUBMITTED_LEADS_ENABLED_PROGRAM_IDS } from "@/lib/submitted-leads/constants";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { usePartnerProgramBounties } from "@/lib/swr/use-partner-program-bounties";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
@@ -25,6 +26,7 @@ import {
   SquareUserSparkle2,
   Trophy,
   UserCheck,
+  UserPlus,
   Users2,
   Webhook,
 } from "@dub/ui/icons";
@@ -58,6 +60,7 @@ type SidebarNavData = {
   showDetailedAnalytics?: boolean;
   postbacksEnabled?: boolean;
   hasReferralReward?: boolean;
+  submittedLeadsEnabled?: boolean;
   newsContent?: ReactNode;
 };
 
@@ -202,6 +205,7 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
     programBountiesCount,
     showDetailedAnalytics,
     hasReferralReward,
+    submittedLeadsEnabled,
   }) => ({
     title: <PartnerProgramDropdown />,
     content: [
@@ -274,6 +278,16 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
                 : programBountiesCount || undefined,
             locked: isUnapproved,
           },
+          ...(submittedLeadsEnabled
+            ? [
+                {
+                  name: "Submitted Leads",
+                  icon: UserPlus as Icon,
+                  href: `/programs/${programSlug}/leads` as `/${string}`,
+                  locked: isUnapproved,
+                },
+              ]
+            : []),
           ...(hasReferralReward
             ? [
                 {
@@ -424,6 +438,11 @@ export function PartnersSidebarNav({
         showDetailedAnalytics,
         postbacksEnabled: partner?.featureFlags?.postbacks,
         hasReferralReward: !!programEnrollment?.referralRewardId,
+        submittedLeadsEnabled: programEnrollment?.programId
+          ? SUBMITTED_LEADS_ENABLED_PROGRAM_IDS.includes(
+              programEnrollment.programId,
+            )
+          : false,
         newsContent,
       }}
       toolContent={composedToolContent}

@@ -84,7 +84,11 @@ export function ProgramRewardList({
             key={reward.id}
             icon={REWARD_EVENT_ICON[reward.event]}
             iconClassName={iconClassName}
-            isOverride={reward.isOverride}
+            overrideTooltip={
+              reward.isOverride
+                ? `This partner has a ${reward.event} reward override`
+                : undefined
+            }
             action={
               canEdit ? (
                 <EditAction
@@ -106,7 +110,11 @@ export function ProgramRewardList({
         <Item
           icon={Gift}
           iconClassName={iconClassName}
-          isOverride={discount.isOverride}
+          overrideTooltip={
+            discount.isOverride
+              ? "This partner has a discount override"
+              : undefined
+          }
           action={
             onEditDiscount ? (
               <EditAction
@@ -157,20 +165,37 @@ const Item = ({
   icon: Icon,
   children,
   iconClassName,
-  isOverride,
+  overrideTooltip,
   action,
 }: PropsWithChildren<{
   icon: Icon;
   iconClassName?: string;
-  isOverride?: boolean;
+  overrideTooltip?: string;
   action?: ReactNode;
 }>) => {
+  const icon = (
+    <div className="relative shrink-0 py-px">
+      <Icon className={cn("block size-4", iconClassName)} />
+      {overrideTooltip && <RewardOverrideIcon />}
+    </div>
+  );
+
   return (
     <li className="flex items-start gap-2">
-      <div className="relative shrink-0 py-px">
-        <Icon className={cn("block size-4", iconClassName)} />
-        {isOverride && <RewardOverrideIcon />}
-      </div>
+      {overrideTooltip ? (
+        <Tooltip
+          disableHoverableContent
+          content={
+            <div className="whitespace-nowrap px-3 py-2 text-sm text-neutral-600">
+              {overrideTooltip}
+            </div>
+          }
+        >
+          {icon}
+        </Tooltip>
+      ) : (
+        icon
+      )}
       <div className="min-w-0 flex-1">{children}</div>
       {action}
     </li>

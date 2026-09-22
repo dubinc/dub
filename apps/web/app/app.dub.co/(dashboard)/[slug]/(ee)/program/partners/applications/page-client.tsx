@@ -81,11 +81,20 @@ export function ProgramPartnersApplicationsPageClient() {
     (key) => !["sortBy", "sortOrder", "page"].includes(key),
   );
 
-  const { filters, activeFilters, onSelect, onRemove, onRemoveAll } =
-    usePartnerFilters({ sortBy, sortOrder, status: "pending" }, [
-      "groupId",
-      "country",
-    ]);
+  const {
+    filters,
+    activeFilters,
+    onSelect,
+    onRemove,
+    onRemoveFilter,
+    onRemoveAll,
+    onToggleOperator,
+    setSelectedFilter,
+    setSearch,
+  } = usePartnerFilters({ sortBy, sortOrder, status: "pending" }, [
+    "groupId",
+    "country",
+  ]);
 
   const { partnersCount, error: countError } = usePartnersCount<number>({
     status: "pending",
@@ -462,6 +471,9 @@ export function ProgramPartnersApplicationsPageClient() {
             activeFilters={activeFilters}
             onSelect={onSelect}
             onRemove={onRemove}
+            onRemoveFilter={onRemoveFilter}
+            onSearchChange={setSearch}
+            onSelectedFilterChange={setSelectedFilter}
           />
           <div className="flex w-full grow items-center gap-2 md:w-auto">
             <div className="min-w-0 flex-1">
@@ -496,7 +508,9 @@ export function ProgramPartnersApplicationsPageClient() {
                   activeFilters={activeFilters}
                   onSelect={onSelect}
                   onRemove={onRemove}
+                  onRemoveFilter={onRemoveFilter}
                   onRemoveAll={onRemoveAll}
+                  onToggleOperator={onToggleOperator}
                 />
               </div>
             )}
