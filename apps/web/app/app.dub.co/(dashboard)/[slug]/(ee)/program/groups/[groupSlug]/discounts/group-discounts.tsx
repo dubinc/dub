@@ -10,9 +10,8 @@ import {
 } from "@/ui/partners/discounts/add-edit-discount-sheet";
 import { CustomItemsAccordion } from "@/ui/partners/groups/custom-rewards-accordion";
 import { ProgramRewardDescription } from "@/ui/partners/program-reward-description";
-import { Button, useRouterStuff } from "@dub/ui";
+import { Button, DiscountCode, useRouterStuff } from "@dub/ui";
 import { cn, isClickOnInteractiveChild } from "@dub/utils";
-import { BadgePercent } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -104,7 +103,7 @@ const DiscountItem = ({
         }}
       >
         <div className="flex size-10 items-center justify-center rounded-full border border-neutral-200 bg-white">
-          <BadgePercent className="size-4 text-neutral-600" />
+          <DiscountCode className="size-4 text-neutral-600" />
         </div>
         <div className="flex flex-1 flex-col justify-between gap-y-4 md:flex-row md:items-center">
           <div className="flex items-center gap-2">

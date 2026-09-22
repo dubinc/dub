@@ -29,7 +29,6 @@ import {
   buttonVariants,
   Combobox,
   CopyText,
-  Gift,
   Icon,
   LinkLogo,
   StatusBadge,
@@ -48,6 +47,7 @@ import {
   Check,
   Copy,
   CursorRays,
+  DiscountCode,
   InvoiceDollar,
   LoadingSpinner,
   ReferredVia,
@@ -759,7 +759,7 @@ function RewardList() {
             ? [
                 {
                   id: "discount",
-                  icon: Gift,
+                  icon: DiscountCode,
                   text: formatDiscountDescription(discount),
                 },
               ]

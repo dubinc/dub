@@ -13,11 +13,12 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { DiscountProps, EnrolledPartnerProps, GroupProps } from "@/lib/types";
 import { DiscountSheet } from "@/ui/partners/discounts/add-edit-discount-sheet";
 import { formatDiscountDescription } from "@/ui/partners/format-discount-description";
+import { KeepPartnerInGroupNotice } from "@/ui/partners/keep-partner-in-group-notice";
 import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import { ProgramRewardDescription } from "@/ui/partners/program-reward-description";
 import { AdditionalRewardOptionList } from "@/ui/partners/rewards/additional-reward-option-list";
 import { ArrowTurnRight2, Button, Modal } from "@dub/ui";
-import { Discount } from "@dub/ui/icons";
+import { DiscountCode } from "@dub/ui/icons";
 import { cn, getPrettyUrl } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
@@ -28,7 +29,9 @@ type PartnerLink = ProgramPartnerLinkExtended;
 type PartnerDiscountOverridePartner = Pick<
   EnrolledPartnerProps,
   "id" | "name" | "email" | "image" | "groupId" | "discountId"
->;
+> & {
+  groupMoveDisabledAt?: Date | string | null;
+};
 
 export type PartnerDiscountOverrideTarget =
   | {
@@ -113,6 +116,11 @@ function EditPartnerDiscountModal({
       },
     });
 
+  const {
+    executeAsync: updateEnrollmentSettings,
+    isPending: isUpdatingEnrollmentSettings,
+  } = useAction(updatePartnerEnrollmentAction);
+
   const { executeAsync: deleteDiscount, isPending: isDeleting } = useAction(
     deleteDiscountAction,
     {
@@ -131,7 +139,13 @@ function EditPartnerDiscountModal({
     target,
     groupDefaultDiscountId,
   });
-  const isSubmitting = isUpdatingLink || isUpdatingEnrollment || isDeleting;
+  const hasChanges =
+    hasInitializedSelection && selectedDiscountId !== effectiveDiscountId;
+  const isSubmitting =
+    isUpdatingLink ||
+    isUpdatingEnrollment ||
+    isUpdatingEnrollmentSettings ||
+    isDeleting;
 
   const sortedDiscounts = useMemo(() => {
     return [...(discounts ?? [])].sort((a, b) => {
@@ -201,6 +215,10 @@ function EditPartnerDiscountModal({
         return;
       }
 
+      const groupMoveDisabledAt = partner.groupMoveDisabledAt
+        ? undefined
+        : new Date();
+
       if (target.type === "partner") {
         if (!workspaceId) {
           return;
@@ -210,8 +228,22 @@ function EditPartnerDiscountModal({
           workspaceId,
           partnerId: partner.id,
           discountId: selectedDiscountId,
+          ...(groupMoveDisabledAt && { groupMoveDisabledAt }),
         });
         return;
+      }
+
+      if (groupMoveDisabledAt && workspaceId) {
+        const result = await updateEnrollmentSettings({
+          workspaceId,
+          partnerId: partner.id,
+          groupMoveDisabledAt,
+        });
+
+        if (result?.serverError || result?.validationErrors) {
+          toast.error(parseActionError(result, "Failed to update discount"));
+          return;
+        }
       }
 
       await updatePartnerLink(`/api/partners/links/${target.link.id}`, {
@@ -232,9 +264,11 @@ function EditPartnerDiscountModal({
       effectiveDiscountId,
       setShowModal,
       updateEnrollment,
+      updateEnrollmentSettings,
       updatePartnerLink,
       target,
       partner.id,
+      partner.groupMoveDisabledAt,
     ],
   );
 
@@ -293,7 +327,7 @@ function EditPartnerDiscountModal({
             type="button"
             variant="secondary"
             text="Create discount"
-            icon={<Discount className="size-4" />}
+            icon={<DiscountCode className="size-4" />}
             className="h-8 w-fit px-3"
             onClick={() => openDiscountSheet()}
           />
@@ -338,16 +372,19 @@ function EditPartnerDiscountModal({
           <div className="flex min-w-0 items-center gap-2">
             <PartnerAvatar partner={partner} className="size-6 shrink-0" />
             <div className="min-w-0 leading-tight">
-              <Link
-                href={`/${slug}/program/partners/${partner.id}`}
-                target="_blank"
-                className={cn(
-                  "block cursor-alias truncate text-xs font-medium text-neutral-900 decoration-dotted hover:underline",
-                  target.type !== "link" && "text-sm",
-                )}
-              >
-                {partner.name}
-              </Link>
+              <div className="flex min-w-0 items-center gap-2">
+                <Link
+                  href={`/${slug}/program/partners/${partner.id}`}
+                  target="_blank"
+                  className={cn(
+                    "min-w-0 cursor-alias truncate text-xs font-medium text-neutral-900 decoration-dotted hover:underline",
+                    target.type !== "link" && "text-sm",
+                  )}
+                >
+                  {partner.name}
+                </Link>
+                <KeepPartnerInGroupNotice offerType="discount" />
+              </div>
               {target.type === "link" && (
                 <Link
                   href={`/${slug}/links/${getPrettyUrl(target.link.shortLink)}`}
