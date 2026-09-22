@@ -9,11 +9,19 @@ import {
 } from "../modals/add-customer-modal";
 import { CustomerAvatar } from "./customer-avatar";
 
+function parseCustomerIdSearch(search: string) {
+  const match = search.trim().match(/^cus_([0-9A-HJKMNP-TV-Z]{25,26})$/i);
+  if (!match) return null;
+
+  return `cus_${match[1].toUpperCase()}`;
+}
+
 type CustomerSelectorProps = {
   selectedCustomerId: string | null;
   setSelectedCustomerId: (customerId: string) => void;
   disabled?: boolean;
   variant?: "default" | "header";
+  searchByCustomerId?: boolean;
 } & Partial<ComboboxProps<false, any>>;
 
 export function CustomerSelector({
@@ -21,14 +29,21 @@ export function CustomerSelector({
   setSelectedCustomerId,
   disabled,
   variant = "default",
+  searchByCustomerId = false,
   ...rest
 }: CustomerSelectorProps) {
   const [search, setSearch] = useState("");
   const [debouncedSearch] = useDebounce(search, 500);
   const [openPopover, setOpenPopover] = useState(false);
 
+  const customerIdSearch = searchByCustomerId
+    ? parseCustomerIdSearch(debouncedSearch)
+    : null;
+
   const { customers, loading } = useCustomers({
-    query: { search: debouncedSearch },
+    query: customerIdSearch
+      ? { customerIds: [customerIdSearch] }
+      : { search: debouncedSearch },
   });
 
   const { customers: selectedCustomers, loading: selectedCustomersLoading } =
@@ -109,22 +124,23 @@ export function CustomerSelector({
             : "Search or create customer..."
         }
         onSearchChange={setSearch}
-        {...(variant !== "header" && {
-          createLabel: (search: string) =>
-            `Create ${search ? `"${search}"` : "new customer"}`,
-          onCreate: async (search: string | undefined) => {
-            const trimmed = search?.trim() ?? "";
-            setInitialData(
-              trimmed
-                ? trimmed.includes("@")
-                  ? { email: trimmed }
-                  : { name: trimmed }
-                : undefined,
-            );
-            setShowAddCustomerModal(true);
-            return true;
-          },
-        })}
+        {...(variant !== "header" &&
+          !(searchByCustomerId && parseCustomerIdSearch(search)) && {
+            createLabel: (search: string) =>
+              `Create ${search ? `"${search}"` : "new customer"}`,
+            onCreate: async (search: string | undefined) => {
+              const trimmed = search?.trim() ?? "";
+              setInitialData(
+                trimmed
+                  ? trimmed.includes("@")
+                    ? { email: trimmed }
+                    : { name: trimmed }
+                  : undefined,
+              );
+              setShowAddCustomerModal(true);
+              return true;
+            },
+          })}
         shouldFilter={false}
         matchTriggerWidth
         open={openPopover}

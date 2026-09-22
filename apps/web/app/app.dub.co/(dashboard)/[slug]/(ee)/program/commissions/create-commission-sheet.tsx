@@ -626,6 +626,7 @@ function CreateCommissionSheetContent({
                           setSelectedCustomerId={(id) => {
                             setValue("customerId", id, { shouldDirty: true });
                           }}
+                          searchByCustomerId
                         />
                       </div>
                     </div>
