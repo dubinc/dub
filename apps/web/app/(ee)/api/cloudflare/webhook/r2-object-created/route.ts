@@ -6,6 +6,7 @@ import {
 } from "@/lib/storage/process-r2-object-created";
 import { timingSafeCompare } from "@/lib/webhook/timing-safe-compare";
 import { toErrorMessage } from "@dub/utils";
+import { logAndRespond } from "app/(ee)/api/cron/utils";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 
@@ -45,7 +46,7 @@ export async function POST(req: Request) {
 
     const result = await processR2ObjectCreated(notification);
 
-    return NextResponse.json(result);
+    return logAndRespond(result);
   } catch (error) {
     logger.error("storage.r2_validate_failed", {
       ...toErrorFields(error),
