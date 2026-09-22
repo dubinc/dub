@@ -14,7 +14,7 @@ const schema = signedUploadInputSchema.extend({
 
 // POST /api/workspaces/[idOrSlug]/upload-url – get a signed URL to upload a file to a workspace
 export const POST = withWorkspace(
-  async ({ req, workspace, session, permissions, token }) => {
+  async ({ req, workspace, session }) => {
     const {
       folder: policy,
       contentType,
@@ -51,6 +51,5 @@ export const POST = withWorkspace(
   },
   {
     requiredRoles: ["owner", "member"],
-    requiredPermissions: ["workspaces.write"],
   },
 );
