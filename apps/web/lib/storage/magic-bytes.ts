@@ -53,10 +53,6 @@ function isMissingOrGenericContentType(
 }
 
 export function isUserUploadKey(key: string): boolean {
-  if (key.startsWith("quarantine/")) {
-    return false;
-  }
-
   return USER_UPLOAD_KEY_PREFIXES.some((prefix) => key.startsWith(prefix));
 }
 
@@ -191,9 +187,7 @@ export function detectMimeFromMagicBytes(bytes: Uint8Array): string | null {
 
   // OLE Compound File (legacy .doc / .xls)
   if (
-    startsWithBytes(bytes, [
-      0xd0, 0xcf, 0x11, 0xe0, 0xa1, 0xb1, 0x1a, 0xe1,
-    ])
+    startsWithBytes(bytes, [0xd0, 0xcf, 0x11, 0xe0, 0xa1, 0xb1, 0x1a, 0xe1])
   ) {
     return "application/x-ole-storage";
   }

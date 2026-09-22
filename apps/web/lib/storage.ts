@@ -10,10 +10,7 @@ interface imageOptions {
   headers?: Record<string, string>;
 }
 
-type BucketType = "public" | "private" | "quarantine";
-
-// R2 bucket for magic-byte mismatch quarantine
-export const STORAGE_QUARANTINE_BUCKET = "quarantine";
+type BucketType = "public" | "private";
 
 class StorageClient {
   private client: AwsClient;
@@ -170,58 +167,6 @@ class StorageClient {
     }
 
     return new Uint8Array(await response.arrayBuffer());
-  }
-
-  // Copy within or across public/private buckets (R2 CopyObject)
-  async copy({
-    source,
-    destination,
-  }: {
-    source: { key: string; bucket?: BucketType };
-    destination: { key: string; bucket?: BucketType };
-  }) {
-    const sourceBucketName = this._getBucketName(source.bucket ?? "public");
-    const destinationBucketName = this._getBucketName(
-      destination.bucket ?? "private",
-    );
-    const copySource = `/${sourceBucketName}/${source.key
-      .split("/")
-      .map(encodeURIComponent)
-      .join("/")}`;
-
-    const response = await this.client.fetch(
-      `${process.env.STORAGE_ENDPOINT}/${destinationBucketName}/${destination.key}`,
-      {
-        method: "PUT",
-        headers: {
-          "x-amz-copy-source": copySource,
-        },
-      },
-    );
-
-    if (!response.ok) {
-      const text = await response.text();
-      throw new Error(
-        `storage.copy failed (${response.status}): ${text || response.statusText}`,
-      );
-    }
-  }
-
-  // Move a public object to the quarantine bucket (same key), then delete the public original.
-  async quarantine({ key }: { key: string }) {
-    await this.copy({
-      source: { key, bucket: "public" },
-      destination: { key, bucket: "quarantine" },
-    });
-
-    await this.delete({
-      key,
-      bucket: "public",
-    });
-
-    return {
-      quarantineKey: key,
-    };
   }
 
   async getSignedUrl({
@@ -458,10 +403,6 @@ class StorageClient {
       }
 
       return bucketName;
-    }
-
-    if (bucket === "quarantine") {
-      return STORAGE_QUARANTINE_BUCKET;
     }
 
     throw new Error(`Invalid bucket type: ${bucket}`);

@@ -33,15 +33,14 @@ type ProcessR2ObjectCreatedResult =
   | { status: "skipped"; reason: string; key?: string }
   | { status: "allowed"; reason: string; key: string }
   | {
-      status: "quarantined";
+      status: "removed";
       reason: string;
       key: string;
-      quarantineKey: string;
       contentType: string | null;
       detectedMime: string | null;
     };
 
-// Validate magic bytes for an R2 object-create notification; quarantine on mismatch
+// Validate magic bytes for an R2 object-create notification; delete on mismatch
 export async function processR2ObjectCreated(
   notification: R2ObjectCreatedNotification,
 ): Promise<ProcessR2ObjectCreatedResult> {
@@ -108,11 +107,13 @@ export async function processR2ObjectCreated(
     };
   }
 
-  const { quarantineKey } = await storage.quarantine({ key });
+  await storage.delete({
+    key,
+    bucket: "public",
+  });
 
   logger.warn("storage.r2_magic_bytes_mismatch", {
     key,
-    quarantineKey,
     contentType: decision.contentType,
     detectedMime: decision.detectedMime,
     reason: decision.reason,
@@ -124,10 +125,9 @@ export async function processR2ObjectCreated(
   await logger.flush();
 
   return {
-    status: "quarantined",
+    status: "removed",
     reason: decision.reason,
     key,
-    quarantineKey,
     contentType: decision.contentType,
     detectedMime: decision.detectedMime,
   };
