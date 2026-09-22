@@ -24,7 +24,7 @@ function verifyWorkerSecret(req: Request) {
   return timingSafeCompare(token, webhookSecret);
 }
 
-// POST /api/webhooks/r2-object-created
+// POST /api/cloudflare/r2-object-created
 // Called by the Cloudflare queue consumer Worker (thin forwarder).
 export async function POST(req: Request) {
   try {

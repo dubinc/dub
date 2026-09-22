@@ -12,7 +12,7 @@ interface imageOptions {
 
 type BucketType = "public" | "private" | "quarantine";
 
-// R2 bucket for magic-byte mismatch quarantine (not env — create this bucket in Cloudflare)
+// R2 bucket for magic-byte mismatch quarantine
 export const STORAGE_QUARANTINE_BUCKET = "quarantine";
 
 class StorageClient {

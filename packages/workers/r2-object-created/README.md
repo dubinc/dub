@@ -13,7 +13,7 @@ Cloudflare Queue **push** consumer that forwards each R2 `object-create` notific
 | Type              | Name                               | Value                                              |
 | ----------------- | ---------------------------------- | -------------------------------------------------- |
 | Queues (consumer) | —                                  | `r2-object-created` or `-dev`                      |
-| Variable          | `DUB_WEBHOOK_URL`                  | `https://<host>/api/webhooks/r2-object-created`    |
+| Variable          | `DUB_WEBHOOK_URL`                  | `https://<host>/api/cloudflare/r2-object-created`  |
 | Secret            | `CLOUDFLARE_WORKER_WEBHOOK_SECRET` | Same as Next.js `CLOUDFLARE_WORKER_WEBHOOK_SECRET` |
 
 No R2 or Axiom bindings on the Worker — Next.js uses `STORAGE_*` and Axiom already.
@@ -29,6 +29,6 @@ Mismatched uploads are copied (same key) into the R2 bucket named by `STORAGE_QU
 ## Flow
 
 ```text
-R2 object-create → Queue → Worker → POST /api/webhooks/r2-object-created
+R2 object-create → Queue → Worker → POST /api/cloudflare/r2-object-created
   → magic-byte check → copy same key to `quarantine` bucket → delete public → Axiom
 ```
