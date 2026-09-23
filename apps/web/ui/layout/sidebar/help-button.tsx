@@ -15,8 +15,13 @@ export function HelpButton({
     <a
       href="https://dub.co/contact/support"
       target="_blank"
+      aria-label="Help"
       onPointerEnter={() => setHovered(true)}
       onPointerLeave={() => setHovered(false)}
+      onFocus={(e) =>
+        e.currentTarget.matches(":focus-visible") && setHovered(true)
+      }
+      onBlur={() => setHovered(false)}
       className={cn(
         "shrink-0 items-center justify-center rounded-lg",
         variant === "secondary"

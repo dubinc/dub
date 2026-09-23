@@ -411,8 +411,13 @@ export function PartnersSidebarNav({
     <div className="flex flex-col items-center gap-3">
       <Link
         href="/referrals"
+        aria-label="Referrals"
         onPointerEnter={() => setReferralsHovered(true)}
         onPointerLeave={() => setReferralsHovered(false)}
+        onFocus={(e) =>
+          e.currentTarget.matches(":focus-visible") && setReferralsHovered(true)
+        }
+        onBlur={() => setReferralsHovered(false)}
         className={cn(
           "text-content-default flex size-11 shrink-0 items-center justify-center rounded-lg",
           referralsActive ? "bg-white" : "hover:bg-bg-inverted/5",

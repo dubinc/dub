@@ -22,8 +22,13 @@ export function ReferButton({
       <Link
         ref={affiliatePopupEnabled ? setLinkRef : undefined}
         href="/account/settings/referrals"
+        aria-label="Referrals"
         onPointerEnter={() => setHovered(true)}
         onPointerLeave={() => setHovered(false)}
+        onFocus={(e) =>
+          e.currentTarget.matches(":focus-visible") && setHovered(true)
+        }
+        onBlur={() => setHovered(false)}
         className={cn(
           "animate-fade-in hover:bg-bg-inverted/5 active:bg-bg-inverted/10 flex size-11 shrink-0 items-center justify-center rounded-lg transition-colors duration-150",
           "outline-none focus-visible:ring-2 focus-visible:ring-black/50",

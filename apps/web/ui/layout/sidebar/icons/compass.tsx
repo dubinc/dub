@@ -47,6 +47,7 @@ export function Compass({
 
   return (
     <svg
+      aria-hidden="true"
       height="18"
       width="18"
       viewBox="0 0 18 18"

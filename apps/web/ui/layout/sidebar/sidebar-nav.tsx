@@ -349,8 +349,13 @@ function NavGroupItem({
           <Link
             ref={Popup ? setElement : undefined}
             href={href}
+            aria-label={name}
             onPointerEnter={() => setHovered(true)}
             onPointerLeave={() => setHovered(false)}
+            onFocus={(e) =>
+              e.currentTarget.matches(":focus-visible") && setHovered(true)
+            }
+            onBlur={() => setHovered(false)}
             onClick={onClick}
             className={cn(
               "relative flex size-11 items-center justify-center rounded-lg transition-colors duration-150",
