@@ -1,7 +1,6 @@
-import { PRISMA_UPDATEMANY_LIMIT } from "@/lib/cron";
 import { withCron } from "@/lib/cron/with-cron";
 import { deleteOrphanedDiscounts } from "@/lib/discounts/delete-orphaned-discounts";
-import { prisma } from "@/lib/prisma";
+import { deleteEmptyLinkRewards } from "@/lib/rewards/delete-empty-link-rewards";
 import { deleteOrphanedRewards } from "@/lib/rewards/delete-orphaned-rewards";
 import { subMinutes } from "date-fns";
 import { logAndRespond } from "../../utils";
@@ -43,27 +42,3 @@ export const POST = withCron(async () => {
     `Finished cleanup (${deletedRewardsCount} rewards, ${deletedDiscountsCount} discounts, ${deletedLinkRewardsCount} empty link rewards deleted).`,
   );
 });
-
-async function deleteEmptyLinkRewards() {
-  let deletedCount = 0;
-
-  while (true) {
-    const { count } = await prisma.linkReward.deleteMany({
-      where: {
-        clickRewardId: null,
-        leadRewardId: null,
-        saleRewardId: null,
-        discountId: null,
-      },
-      limit: PRISMA_UPDATEMANY_LIMIT,
-    });
-
-    if (count === 0) {
-      break;
-    }
-
-    deletedCount += count;
-  }
-
-  return deletedCount;
-}

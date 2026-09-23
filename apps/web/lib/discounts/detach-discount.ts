@@ -104,6 +104,7 @@ export async function detachDiscountFromProgramEnrollments({
 
 // Detach discount from link rewards
 export async function detachDiscountFromLinkRewards({
+  programId,
   discountId,
 }: DetachDiscountParams) {
   let startAfterId: string | null = null;
@@ -122,6 +123,11 @@ export async function detachDiscountFromLinkRewards({
       where,
       select: {
         id: true,
+        link: {
+          select: {
+            partnerId: true,
+          },
+        },
       },
       orderBy: {
         id: "asc",
@@ -144,6 +150,22 @@ export async function detachDiscountFromLinkRewards({
         discountId: null,
       },
     });
+
+    const partnerIds = [
+      ...new Set(
+        linkRewards
+          .map(({ link }) => link.partnerId)
+          .filter((id): id is string => Boolean(id)),
+      ),
+    ];
+
+    if (partnerIds.length > 0) {
+      await invalidateLinksForDiscountsJob.dispatch({
+        type: "partners",
+        programId,
+        partnerIds,
+      });
+    }
 
     startAfterId = linkRewards[linkRewards.length - 1].id;
 

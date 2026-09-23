@@ -94,7 +94,7 @@ export const processPartnerGroupChangeJob = defineJob({
           partnerIds: pluck(activeProgramEnrollments, "partnerId"),
           userId: workspaceUserId,
         },
-        deduplicationId: idempotencyKey,
+        deduplicationId: `remap-default-links-${idempotencyKey}`,
       }),
 
       triggerDraftBountySubmissionCreation({
@@ -110,7 +110,7 @@ export const processPartnerGroupChangeJob = defineJob({
       programId,
       groupId,
       partnerIds: movedPartnerIds,
-      idempotencyKey,
+      idempotencyKey: `notify-partners-${idempotencyKey}`,
     });
   },
 });

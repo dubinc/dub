@@ -11,6 +11,10 @@ export async function deleteOrphanedDiscounts(cutoff: Date) {
       updatedAt: {
         lt: cutoff,
       },
+      programEnrollments: { none: {} },
+      defaultForPartnerGroup: { is: null },
+      linkDiscounts: { none: {} },
+      discountCodes: { none: {} },
     },
     select: {
       id: true,
@@ -25,71 +29,10 @@ export async function deleteOrphanedDiscounts(cutoff: Date) {
     return 0;
   }
 
-  const discountIds = pluck(discounts, "id");
-
-  const [enrollments, groups, linkRewards, discountCodes] = await Promise.all([
-    prisma.programEnrollment.groupBy({
-      by: ["discountId"],
-      where: {
-        discountId: {
-          in: discountIds,
-        },
-      },
-    }),
-
-    prisma.partnerGroup.groupBy({
-      by: ["discountId"],
-      where: {
-        discountId: {
-          in: discountIds,
-        },
-      },
-    }),
-
-    prisma.linkReward.groupBy({
-      by: ["discountId"],
-      where: {
-        discountId: {
-          in: discountIds,
-        },
-      },
-    }),
-
-    prisma.discountCode.groupBy({
-      by: ["discountId"],
-      where: {
-        discountId: {
-          in: discountIds,
-        },
-      },
-    }),
-  ]);
-
-  const referencedDiscountIds = new Set<string>();
-
-  for (const row of [
-    ...enrollments,
-    ...groups,
-    ...linkRewards,
-    ...discountCodes,
-  ]) {
-    if (row.discountId) {
-      referencedDiscountIds.add(row.discountId);
-    }
-  }
-
-  const discountIdsToHardDelete = discountIds.filter(
-    (id) => !referencedDiscountIds.has(id),
-  );
-
-  if (discountIdsToHardDelete.length === 0) {
-    return 0;
-  }
-
   const { count } = await prisma.discount.deleteMany({
     where: {
       id: {
-        in: discountIdsToHardDelete,
+        in: pluck(discounts, "id"),
       },
     },
   });

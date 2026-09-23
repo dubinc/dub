@@ -41,10 +41,26 @@ export async function attachDiscount({
 
   const groupId = discount.defaultForPartnerGroup.id;
 
+  // Inheritors only: no discount yet, or still on a soft-deleted discount
+  // owned by this group. Live partner-level overrides stay put.
+  const inheritingEnrollmentWhere = {
+    OR: [
+      { discountId: null },
+      {
+        discount: {
+          is: {
+            programId: null,
+            groupId,
+          },
+        },
+      },
+    ],
+  };
+
   const enrollments = await prisma.programEnrollment.findMany({
     where: {
       groupId,
-      discountId: null,
+      ...inheritingEnrollmentWhere,
     },
     select: {
       id: true,
@@ -88,7 +104,7 @@ export async function attachDiscount({
             in: enrollmentIds,
           },
           groupId,
-          discountId: null,
+          ...inheritingEnrollmentWhere,
           partnerGroup: {
             discountId: discount.id,
           },
