@@ -1,10 +1,9 @@
 import { logger } from "@/lib/axiom/server";
 import {
-  deleteDiscount,
+  detachDiscountFromLinkRewards,
+  detachDiscountFromProgramEnrollments,
   dispatchRemapDiscountCodes,
-  removeDiscountFromLinkRewards,
-  removeDiscountFromProgramEnrollments,
-} from "@/lib/discounts/delete-discount-cleanup";
+} from "@/lib/discounts/detach-discount";
 import { prisma } from "@/lib/prisma";
 import { serve } from "@upstash/workflow/nextjs";
 import * as z from "zod/v4";
@@ -18,16 +17,16 @@ const inputSchema = z.object({
 type Input = z.infer<typeof inputSchema>;
 
 /**
- * Discount Deletion Cleanup Workflow
+ * Detach Discount Workflow
  *
  * Soft-deleted discounts (programId cleared) are cleaned up as:
  *
- * 1. remove-discount-from-enrollments + remove-discount-from-link-rewards (parallel)
+ * 1. detach-discount-from-enrollments + detach-discount-from-link-rewards (parallel)
  * 2. remap-discount-codes
  * 3. delete-discount
  */
 
-// POST /api/workflows/discount-deletion-cleanup
+// POST /api/workflows/detach-discount
 export const { POST } = serve<Input>(
   async (context) => {
     const input = inputSchema.parse(context.requestPayload);
@@ -60,7 +59,7 @@ export const { POST } = serve<Input>(
 
       return logAndReturn({
         proceed: true,
-        outputLog: `Proceeding with discount deletion cleanup for ${discountId}`,
+        outputLog: `Proceeding with detach discount for ${discountId}`,
       });
     });
 
@@ -70,25 +69,25 @@ export const { POST } = serve<Input>(
 
     // Run these in parallel
     await Promise.all([
-      context.run("remove-discount-from-enrollments", async () => {
-        await removeDiscountFromProgramEnrollments({
+      context.run("detach-discount-from-enrollments", async () => {
+        await detachDiscountFromProgramEnrollments({
           programId,
           discountId,
         });
 
         return logAndReturn({
-          outputLog: `Removed discount ${discountId} from program enrollments`,
+          outputLog: `Detached discount ${discountId} from program enrollments`,
         });
       }),
 
-      context.run("remove-discount-from-link-rewards", async () => {
-        await removeDiscountFromLinkRewards({
+      context.run("detach-discount-from-link-rewards", async () => {
+        await detachDiscountFromLinkRewards({
           programId,
           discountId,
         });
 
         return logAndReturn({
-          outputLog: `Removed discount ${discountId} from link rewards`,
+          outputLog: `Detached discount ${discountId} from link rewards`,
         });
       }),
     ]);
@@ -107,9 +106,10 @@ export const { POST } = serve<Input>(
 
     // This should run after the discount codes are remapped
     await context.run("delete-discount", async () => {
-      await deleteDiscount({
-        programId,
-        discountId,
+      await prisma.discount.deleteMany({
+        where: {
+          id: discountId,
+        },
       });
 
       return logAndReturn({
@@ -127,7 +127,7 @@ export const { POST } = serve<Input>(
       logger.error("workflow.failed", {
         service: "qstash",
         event: "workflow.failed",
-        workflowType: "discount-deletion-cleanup",
+        workflowType: "detach-discount",
         workflowRunId: context.workflowRunId,
         discountId: context.requestPayload?.discountId,
         programId: context.requestPayload?.programId,

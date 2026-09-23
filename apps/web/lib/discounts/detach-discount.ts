@@ -4,22 +4,18 @@ import { Prisma } from "@prisma/client";
 import { invalidateLinksForDiscountsJob } from "../jobs/handlers/invalidate-links-for-discounts-job";
 import { remapDiscountCodeJob } from "../jobs/handlers/remap-discount-code-job";
 
-// TODO:
-// Track activity log (enrollment and link level)
-// Send email to the partners (not now)
-
-type DeleteDiscountCleanupParams = {
+type DetachDiscountParams = {
   programId: string;
   discountId: string;
 };
 
 const BATCH_SIZE = 500;
 
-// Remove discount from program enrollments
-export async function removeDiscountFromProgramEnrollments({
+// Detach discount from program enrollments
+export async function detachDiscountFromProgramEnrollments({
   programId,
   discountId,
-}: DeleteDiscountCleanupParams) {
+}: DetachDiscountParams) {
   let startAfterId: string | null = null;
 
   const discount = await prisma.discount.findUnique({
@@ -101,10 +97,10 @@ export async function removeDiscountFromProgramEnrollments({
   }
 }
 
-// Remove discount from link rewards
-export async function removeDiscountFromLinkRewards({
+// Detach discount from link rewards
+export async function detachDiscountFromLinkRewards({
   discountId,
-}: DeleteDiscountCleanupParams) {
+}: DetachDiscountParams) {
   let startAfterId: string | null = null;
 
   while (true) {
@@ -155,7 +151,7 @@ export async function removeDiscountFromLinkRewards({
 // Dispatch per-code remap jobs for codes still pointing at this discount
 export async function dispatchRemapDiscountCodes({
   discountId,
-}: DeleteDiscountCleanupParams) {
+}: DetachDiscountParams) {
   let startAfterId: string | null = null;
 
   while (true) {
@@ -196,12 +192,4 @@ export async function dispatchRemapDiscountCodes({
       break;
     }
   }
-}
-
-// Dispatch discount code deletion
-export async function deleteDiscount({
-  programId,
-  discountId,
-}: DeleteDiscountCleanupParams) {
-  //
 }

@@ -30,8 +30,7 @@ const workflowPathMap = {
   "create-partner-commission-workflow":
     "/api/workflows/create-partner-commission",
   "reattribute-customer-workflow": "/api/workflows/reattribute-customer",
-  "discount-deletion-cleanup-workflow":
-    "/api/workflows/discount-deletion-cleanup",
+  "detach-discount-workflow": "/api/workflows/detach-discount",
 } as const;
 
 for (const name of Object.keys(workflowPathMap)) {

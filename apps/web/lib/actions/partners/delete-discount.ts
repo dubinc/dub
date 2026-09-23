@@ -3,7 +3,8 @@
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { getDiscountOrThrow } from "@/lib/api/partners/get-discount-or-throw";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
-import { softDeleteDiscount } from "@/lib/discounts/soft-delete-discount";
+import { dispatchWorkflows } from "@/lib/jobs/publish-workflows";
+import { prisma } from "@/lib/prisma";
 import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
 import { authActionClient } from "../safe-action";
@@ -32,9 +33,36 @@ export const deleteDiscountAction = authActionClient
       discountId,
     });
 
-    await softDeleteDiscount({
-      discountId,
-      programId,
+    await prisma.$transaction(async (tx) => {
+      await tx.partnerGroup.updateMany({
+        where: {
+          discountId,
+        },
+        data: {
+          discountId: null,
+        },
+      });
+
+      await tx.discount.update({
+        where: {
+          id: discountId,
+        },
+        data: {
+          programId: null,
+        },
+      });
+    });
+
+    await dispatchWorkflows({
+      name: "detach-discount-workflow",
+      payload: {
+        programId,
+        discountId,
+      },
+      options: {
+        label: discountId,
+        deduplicationId: `detach-discount-${discountId}`,
+      },
     });
 
     waitUntil(

@@ -121,7 +121,7 @@ export const createDiscountAction = authActionClient
     });
 
     if (isDefault) {
-      attachDiscountJob.dispatch(
+      await attachDiscountJob.dispatch(
         { discountId: discount.id },
         { label: discount.id },
       );
