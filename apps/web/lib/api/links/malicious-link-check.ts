@@ -1,4 +1,5 @@
-import { isBlacklistedDomain, updateConfig } from "@/lib/edge-config";
+import { isBlacklistedDomain } from "@/lib/edge-config/is-blacklisted-domain";
+import { updateConfig } from "@/lib/edge-config/update";
 import { getDomainWithoutWWW } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { experimental_evaluate as evaluate } from "ai";
@@ -10,9 +11,15 @@ export async function maliciousLinkCheck(url: string) {
     return false;
   }
 
-  const domainBlacklisted = await isBlacklistedDomain(domain);
-  if (domainBlacklisted) {
+  const domainStatus = await isBlacklistedDomain(domain);
+
+  if (domainStatus === "blacklisted") {
     return true;
+  }
+
+  // skip remaining checks for trusted domains
+  if (domainStatus === "whitelisted") {
+    return false;
   }
 
   // run jev check

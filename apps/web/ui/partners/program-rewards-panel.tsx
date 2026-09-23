@@ -3,7 +3,7 @@
 import { constructRewardAmount } from "@/lib/api/sales/construct-reward-amount";
 import { getRewardAmount } from "@/lib/partners/get-reward-amount";
 import { DiscountProps, RewardProps } from "@/lib/types";
-import { Gift, Tooltip } from "@dub/ui";
+import { DiscountCode, Tooltip } from "@dub/ui";
 import { HelpCircle } from "lucide-react";
 import { memo } from "react";
 import { CustomRewardDescription } from "./custom-reward-description";
@@ -84,7 +84,7 @@ export const ProgramRewardsPanel = memo(
       ...(discount
         ? [
             {
-              icon: Gift,
+              icon: DiscountCode,
               label: formatDiscountDescription(discount),
             },
           ]

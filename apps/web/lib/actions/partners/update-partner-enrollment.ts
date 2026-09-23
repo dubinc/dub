@@ -92,6 +92,7 @@ export const updatePartnerEnrollmentAction = authActionClient
       partner,
       tenantId: existingTenantId,
       groupId,
+      groupMoveDisabledAt: existingGroupMoveDisabledAt,
       clickRewardId: existingClickRewardId,
       leadRewardId: existingLeadRewardId,
       saleRewardId: existingSaleRewardId,
@@ -137,6 +138,10 @@ export const updatePartnerEnrollmentAction = authActionClient
       ...(leadRewardId !== undefined && { leadRewardId }),
       ...(saleRewardId !== undefined && { saleRewardId }),
       ...(discountId !== undefined && { discountId }),
+      ...(hasRewardAssignment(rewardIds) &&
+        !existingGroupMoveDisabledAt && {
+          groupMoveDisabledAt: new Date(),
+        }),
     };
 
     const programEnrollment = await prisma.$transaction(async (tx) => {

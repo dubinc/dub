@@ -93,6 +93,11 @@ export async function getCustomers(filters: GetCustomersInput) {
                 shortLink: true,
                 url: true,
                 programId: true,
+                linkReward: {
+                  select: {
+                    discount: true,
+                  },
+                },
               },
             },
             programEnrollment: {

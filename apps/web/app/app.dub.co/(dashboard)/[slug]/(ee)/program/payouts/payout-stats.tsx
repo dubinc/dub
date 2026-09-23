@@ -3,20 +3,29 @@
 import { clientAccessCheck } from "@/lib/client-access-check";
 import { usePayoutsCount } from "@/lib/swr/use-payouts-count";
 import useWorkspace from "@/lib/swr/use-workspace";
+import { useTrialLimitActivateModal } from "@/ui/modals/trial-limit-activate-modal";
 import { ConfirmPayoutsSheet } from "@/ui/partners/confirm-payouts-sheet";
 import {
   Button,
   buttonVariants,
   Tooltip,
+  TooltipContent,
   useKeyboardShortcut,
   useRouterStuff,
 } from "@dub/ui";
-import { cn, currencyFormatter } from "@dub/utils";
+import {
+  cn,
+  currencyFormatter,
+  isWorkspaceBillingTrialActive,
+} from "@dub/utils";
 import { PayoutStatus } from "@prisma/client";
 import Link from "next/link";
 
 export function PayoutStats() {
-  const { slug, role } = useWorkspace();
+  const { slug, role, exceededPayouts, trialEndsAt } = useWorkspace();
+  const { openTrialLimitModal, TrialLimitActivateModal } =
+    useTrialLimitActivateModal();
+  const trialActive = isWorkspaceBillingTrialActive(trialEndsAt);
 
   const permissionsError = clientAccessCheck({
     action: "payouts.write",
@@ -63,7 +72,7 @@ export function PayoutStats() {
   const totalPaid = completedPayoutsAmount + processingPayoutsAmount;
 
   useKeyboardShortcut("c", () => {
-    if (!permissionsError) {
+    if (!permissionsError && !exceededPayouts) {
       queryParams({
         set: {
           confirmPayouts: "true",
@@ -74,6 +83,7 @@ export function PayoutStats() {
 
   return (
     <>
+      <TrialLimitActivateModal />
       <ConfirmPayoutsSheet />
       <div className="grid grid-cols-1 divide-neutral-200 rounded-lg border border-neutral-200 bg-neutral-50 max-sm:divide-y sm:grid-cols-2 sm:divide-x">
         <div className="flex flex-col p-4">
@@ -95,9 +105,19 @@ export function PayoutStats() {
               }}
               disabled={eligiblePayoutsLoading || confirmButtonDisabled}
               disabledTooltip={
-                confirmButtonDisabled
-                  ? "You have no pending payouts that match the minimum payout requirement for partners that have payouts enabled."
-                  : permissionsError || undefined
+                exceededPayouts ? (
+                  <TooltipContent
+                    title="You have exceeded your payouts limit. You need to upgrade to send more payouts."
+                    cta={trialActive ? "Start paid plan" : "Upgrade plan"}
+                    {...(trialActive
+                      ? { onClick: () => openTrialLimitModal("payouts") }
+                      : { href: `/${slug}/upgrade` })}
+                  />
+                ) : confirmButtonDisabled ? (
+                  "You have no pending payouts that match the minimum payout requirement for partners that have payouts enabled."
+                ) : (
+                  permissionsError || undefined
+                )
               }
             />
           </div>

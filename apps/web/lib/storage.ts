@@ -49,7 +49,9 @@ class StorageClient {
     }
 
     const headers = {
-      "Content-Length": uploadBody.size.toString(),
+      "Content-Length": String(
+        uploadBody instanceof Blob ? uploadBody.size : uploadBody.byteLength,
+      ),
       ...opts?.headers,
     };
 
@@ -102,6 +104,69 @@ class StorageClient {
       console.error("storage.delete failed", error);
       throw new Error("Failed to delete file. Please try again later.");
     }
+  }
+
+  // Fetch object metadata (Content-Type, size, eTag) without downloading the body
+  async head({ key, bucket = "public" }: { key: string; bucket?: BucketType }) {
+    const response = await this.client.fetch(
+      `${process.env.STORAGE_ENDPOINT}/${this._getBucketName(bucket)}/${key}`,
+      {
+        method: "HEAD",
+      },
+    );
+
+    if (response.status === 404) {
+      return null;
+    }
+
+    if (!response.ok) {
+      throw new Error(
+        `storage.head failed (${response.status}): ${response.statusText}`,
+      );
+    }
+
+    const contentLengthHeader = response.headers.get("content-length");
+
+    return {
+      contentType: response.headers.get("content-type"),
+      contentLength: contentLengthHeader
+        ? Number.parseInt(contentLengthHeader, 10)
+        : null,
+      eTag: response.headers.get("etag"),
+    };
+  }
+
+  // Read the first N bytes of an object (for magic-byte sniffing)
+  async getBytes({
+    key,
+    bucket = "public",
+    length = 4100,
+  }: {
+    key: string;
+    bucket?: BucketType;
+    length?: number;
+  }) {
+    const response = await this.client.fetch(
+      `${process.env.STORAGE_ENDPOINT}/${this._getBucketName(bucket)}/${key}`,
+      {
+        method: "GET",
+        headers: {
+          Range: `bytes=0-${Math.max(length - 1, 0)}`,
+        },
+      },
+    );
+
+    if (response.status === 404) {
+      return null;
+    }
+
+    if (!response.ok && response.status !== 206) {
+      throw new Error(
+        `storage.getBytes failed (${response.status}): ${response.statusText}`,
+      );
+    }
+
+    return new Uint8Array(await response.arrayBuffer());
   }
 
   async getSignedUrl({
@@ -261,7 +326,11 @@ class StorageClient {
     const maxRedirects = 5;
     let currentUrl = url;
 
-    for (let redirectCount = 0; redirectCount <= maxRedirects; redirectCount++) {
+    for (
+      let redirectCount = 0;
+      redirectCount <= maxRedirects;
+      redirectCount++
+    ) {
       await this.assertSafeUrl(currentUrl);
 
       const response = await fetchWithTimeout(currentUrl, {

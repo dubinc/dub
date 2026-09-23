@@ -28,7 +28,7 @@ import {
   Combobox,
   Copy,
   Directions,
-  Gift,
+  DiscountCode,
   Popover,
   StatusBadge,
   TabSelect,
@@ -546,7 +546,7 @@ function EmbedRewardsSection({
       ? [
           {
             id: "discount",
-            icon: Gift,
+            icon: DiscountCode,
             text: formatDiscountDescription(resolvedDiscount),
           },
         ]
