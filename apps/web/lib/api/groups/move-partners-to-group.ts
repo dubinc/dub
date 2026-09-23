@@ -69,9 +69,7 @@ export async function movePartnersToGroup({
         in: partnerIds,
       },
       programId,
-      groupId: {
-        not: group.id,
-      },
+      OR: [{ groupId: { not: group.id } }, { groupId: null }],
     };
 
     const programEnrollmentsBefore = await tx.programEnrollment.findMany({

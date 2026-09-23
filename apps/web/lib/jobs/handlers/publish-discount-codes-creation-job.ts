@@ -43,7 +43,7 @@ export const publishDiscountCodesCreationJob = defineJob({
       return;
     }
 
-    if (!discount.programId || !discount.groupId) {
+    if (!discount.programId) {
       console.info(`Discount ${discountId} is soft-deleted. Skipping...`);
       return;
     }

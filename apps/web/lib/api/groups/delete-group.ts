@@ -58,6 +58,7 @@ export async function deletePartnerGroup(
       },
       data: {
         programId: null,
+        groupId: null,
       },
     });
 
