@@ -2,8 +2,8 @@ import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { bulkCreateLinks } from "@/lib/api/links";
 import { generatePartnerLink } from "@/lib/api/partners/generate-partner-link";
 import { applyGroupUtmToLink } from "@/lib/api/utm/apply-group-utm-to-link";
-import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
+import { syncPartnerDiscountCodes } from "@/lib/discounts/sync-discount-codes";
 import { loadAppsFlyerParameters } from "@/lib/integrations/appsflyer/apply-parameters";
 import { AppsFlyerSettings } from "@/lib/integrations/appsflyer/schema";
 import { syncGroupUtmJob } from "@/lib/jobs/handlers/sync-group-utm-job";
@@ -11,12 +11,7 @@ import { isAppsFlyerTrackingUrl } from "@/lib/middleware/utils/is-appsflyer-trac
 import { prisma } from "@/lib/prisma";
 import { WorkspaceProps } from "@/lib/types";
 import { MAX_DEFAULT_LINKS_PER_GROUP } from "@/lib/zod/schemas/groups";
-import {
-  APP_DOMAIN_WITH_NGROK,
-  isFulfilled,
-  log,
-  prettyPrint,
-} from "@dub/utils";
+import { isFulfilled, log } from "@dub/utils";
 import * as z from "zod/v4";
 import { logAndRespond } from "../../utils";
 import { remapPartnerGroupDefaultLinks } from "./utils";
@@ -258,17 +253,13 @@ export async function POST(req: Request) {
       partnerIds,
     });
 
-    const remapDiscountCodesJob = await qstash.publishJSON({
-      url: `${APP_DOMAIN_WITH_NGROK}/api/cron/groups/remap-discount-codes`,
-      body: {
-        programId,
-        partnerIds,
-        groupId,
-      },
-    });
-
-    console.log(
-      `Scheduled remap-discount-codes job for group ${groupId}: ${prettyPrint(remapDiscountCodesJob)}`,
+    await Promise.all(
+      partnerIds.map((partnerId) =>
+        syncPartnerDiscountCodes({
+          programId,
+          partnerId,
+        }),
+      ),
     );
 
     return logAndRespond(`Finished creating default links for the partners.`);
