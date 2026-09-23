@@ -25,12 +25,6 @@ export const processPartnerGroupChangeJob = defineJob({
   name: "process-partner-group-change-job",
   schema: inputSchema,
   async handle({ programId, groupId, movedPartnerIds, userId }) {
-    // Queue an index update because the enrollments moved group (filterable field)
-    await queuePartnerSearchSync({
-      partnerIds: movedPartnerIds,
-      programId,
-    });
-
     const [partnerLinks, programEnrollments] = await Promise.all([
       prisma.link.findMany({
         where: {
@@ -79,6 +73,12 @@ export const processPartnerGroupChangeJob = defineJob({
     );
 
     await Promise.all([
+      // Queue an index update because the enrollments moved group (filterable field)
+      queuePartnerSearchSync({
+        partnerIds: movedPartnerIds,
+        programId,
+      }),
+
       qstash.publishJSON({
         url: `${APP_DOMAIN_WITH_NGROK}/api/cron/groups/remap-default-links`,
         body: {

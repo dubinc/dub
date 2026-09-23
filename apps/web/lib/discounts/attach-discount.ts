@@ -1,7 +1,8 @@
-import { PRISMA_UPDATEMANY_LIMIT, qstash } from "@/lib/cron";
+import { PRISMA_UPDATEMANY_LIMIT } from "@/lib/cron";
 import { prisma } from "@/lib/prisma";
-import { APP_DOMAIN_WITH_NGROK, pluck } from "@dub/utils";
+import { pluck } from "@dub/utils";
 import { invalidateLinksForDiscountsJob } from "../jobs/handlers/invalidate-links-for-discounts-job";
+import { publishDiscountCodesCreationJob } from "../jobs/handlers/publish-discount-codes-creation-job";
 
 // Attach a group-level discount to one batch of enrollments in the group.
 // Returns whether more enrollments remain to attach.
@@ -87,12 +88,10 @@ export async function attachDiscount({
 
     ...(discount.autoProvisionEnabledAt
       ? [
-          qstash.publishJSON({
-            url: `${APP_DOMAIN_WITH_NGROK}/api/cron/discount-codes/create/queue-batches`,
-            body: {
-              discountId: discount.id,
-            },
-          }),
+          publishDiscountCodesCreationJob.dispatch(
+            { discountId: discount.id },
+            { label: discount.id },
+          ),
         ]
       : []),
   ]);

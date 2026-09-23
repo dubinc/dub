@@ -10,12 +10,11 @@ const inputSchema = z.object({
   programId: z.string(),
   groupId: z.string(),
   partnerIds: z.array(z.string()),
-  isGroupDeleted: z.boolean().optional(),
 });
 
 // POST /api/cron/groups/remap-discount-codes
 export const POST = withCron(async ({ rawBody }) => {
-  const { programId, partnerIds, groupId, isGroupDeleted } = inputSchema.parse(
+  const { programId, partnerIds, groupId } = inputSchema.parse(
     JSON.parse(rawBody),
   );
 
@@ -70,7 +69,7 @@ export const POST = withCron(async ({ rawBody }) => {
   );
 
   // if the group is deleted, need to check if there are any remaining discount codes, if not, delete the discount
-  if (isGroupDeleted && oldDiscount) {
+  if (oldDiscount) {
     const remainingDiscountCodes = await prisma.discountCode.count({
       where: {
         discountId: oldDiscount.id,

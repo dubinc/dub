@@ -27,7 +27,6 @@ const schema = z.object({
   groupId: z.string(),
   partnerIds: z.array(z.string()),
   userId: z.string().nullish(),
-  isGroupDeleted: z.boolean().optional(),
 });
 
 /**
@@ -50,8 +49,9 @@ export async function POST(req: Request) {
     const rawBody = await req.text();
     await verifyQstashSignature({ req, rawBody });
 
-    const { programId, groupId, partnerIds, userId, isGroupDeleted } =
-      schema.parse(JSON.parse(rawBody));
+    const { programId, groupId, partnerIds, userId } = schema.parse(
+      JSON.parse(rawBody),
+    );
 
     if (partnerIds.length === 0) {
       return logAndRespond(
@@ -90,17 +90,11 @@ export async function POST(req: Request) {
           partner: true,
           partnerGroup: true,
           links: {
-            // if this was invoked from the DELETE /groups/[groupId] route, the partnerGroupDefaultLinkId will be null
-            // due to Prisma cascade SetNull on delete – therefore we should take all links and remap them instead.
-            ...(isGroupDeleted
-              ? {}
-              : {
-                  where: {
-                    partnerGroupDefaultLinkId: {
-                      not: null,
-                    },
-                  },
-                }),
+            where: {
+              partnerGroupDefaultLinkId: {
+                not: null,
+              },
+            },
             orderBy: {
               createdAt: "asc",
             },
@@ -270,7 +264,6 @@ export async function POST(req: Request) {
         programId,
         partnerIds,
         groupId,
-        isGroupDeleted,
       },
     });
 

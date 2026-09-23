@@ -1,11 +1,5 @@
-import { CRON_BATCH_SIZE, qstash } from "@/lib/cron";
-import { enqueueBatchJobs } from "@/lib/cron/enqueue-batch-jobs";
 import { withCron } from "@/lib/cron/with-cron";
-import { isNonRecoverableDiscountError } from "@/lib/discounts/discount-error";
-import { getDiscountProvider } from "@/lib/discounts/discount-provider";
-import { prisma } from "@/lib/prisma";
-import { ACTIVE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
-import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
+import { publishDiscountCodesCreationJob } from "@/lib/jobs/handlers/publish-discount-codes-creation-job";
 import * as z from "zod/v4";
 import { logAndRespond } from "../../../utils";
 
@@ -17,136 +11,11 @@ const inputSchema = z.object({
 });
 
 // POST /api/cron/discount-codes/create/queue-batches
+// Drain shim for in-flight QStash messages; new work uses publish-discount-codes-creation-job
 export const POST = withCron(async ({ rawBody }) => {
-  const { discountId, startingAfter } = inputSchema.parse(JSON.parse(rawBody));
-
-  const discount = await prisma.discount.findUnique({
-    where: {
-      id: discountId,
-    },
-    include: {
-      program: {
-        select: {
-          id: true,
-          workspace: {
-            select: {
-              id: true,
-              stripeConnectId: true,
-              shopifyStoreId: true,
-            },
-          },
-        },
-      },
-    },
-  });
-
-  if (!discount) {
-    return logAndRespond(`Discount ${discountId} not found. Skipping...`);
-  }
-
-  if (!discount.programId) {
-    return logAndRespond(`Discount ${discountId} is soft-deleted. Skipping...`);
-  }
-
-  if (!discount.autoProvisionEnabledAt) {
-    return logAndRespond(
-      `Discount ${discountId} does not have auto-provision enabled. Skipping...`,
-    );
-  }
-
-  const { program } = discount;
-
-  if (!program) {
-    return logAndRespond(`Discount ${discountId} has no program. Skipping...`);
-  }
-
-  const discountProvider = getDiscountProvider(discount.provider);
-
-  try {
-    await discountProvider.assertDiscountIntegration({
-      workspace: program.workspace,
-    });
-  } catch (error) {
-    if (isNonRecoverableDiscountError(error)) {
-      return logAndRespond(error.message, { logLevel: "warn" });
-    }
-
-    throw error;
-  }
-
-  const programEnrollments = await prisma.programEnrollment.findMany({
-    where: {
-      programId: program.id,
-      discountId: discount.id,
-      status: {
-        in: ACTIVE_ENROLLMENT_STATUSES,
-      },
-    },
-    select: {
-      id: true,
-      partnerId: true,
-      discountId: true,
-      links: {
-        select: {
-          id: true,
-        },
-        where: {
-          discountCode: null,
-          partnerGroupDefaultLinkId: {
-            not: null,
-          },
-        },
-      },
-    },
-    ...(startingAfter && {
-      skip: 1,
-      cursor: {
-        id: startingAfter,
-      },
-    }),
-    orderBy: {
-      id: "asc",
-    },
-    take: CRON_BATCH_SIZE,
-  });
-
-  if (programEnrollments.length === 0) {
-    return logAndRespond(
-      `No more program enrollments found for discount ${discountId}.`,
-    );
-  }
-
-  const links = programEnrollments.flatMap(({ links }) => links);
-
-  if (links.length > 0) {
-    await enqueueBatchJobs(
-      links.map((link) => ({
-        queueName: "create-discount-code",
-        url: `${APP_DOMAIN_WITH_NGROK}/api/cron/discount-codes/create`,
-        deduplicationId: `${discountId}-${link.id}`,
-        body: {
-          linkId: link.id,
-        },
-      })),
-    );
-  }
-
-  if (programEnrollments.length === CRON_BATCH_SIZE) {
-    const startingAfter = programEnrollments[programEnrollments.length - 1].id;
-
-    await qstash.publishJSON({
-      url: `${APP_DOMAIN_WITH_NGROK}/api/cron/discount-codes/create/queue-batches`,
-      method: "POST",
-      body: {
-        discountId,
-        startingAfter,
-      },
-    });
-
-    return logAndRespond(
-      `Queued next batch for discount ${discountId} (startingAfter: ${startingAfter}).`,
-    );
-  }
-
-  return logAndRespond(`Finished queuing jobs for discount ${discountId}.`);
+  const payload = inputSchema.parse(JSON.parse(rawBody));
+  await publishDiscountCodesCreationJob.execute(payload);
+  return logAndRespond(
+    `Executed publish-discount-codes-creation-job for ${payload.discountId}.`,
+  );
 });
