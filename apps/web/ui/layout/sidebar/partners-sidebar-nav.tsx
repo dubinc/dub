@@ -16,14 +16,9 @@ import {
   ColorPalette2,
   Gauge6,
   Gear2,
-  Gift,
-  GridIcon,
-  MoneyBills2,
-  Msgs,
   Nodes4,
   ShieldCheck,
   Shop,
-  SquareUserSparkle2,
   Trophy,
   UserCheck,
   UserPlus,
@@ -33,10 +28,15 @@ import {
 import { cn } from "@dub/utils";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
-import { ReactNode, useMemo } from "react";
+import { ReactNode, useMemo, useState } from "react";
 import { CursorRays } from "./icons/cursor-rays";
+import { Gift } from "./icons/gift";
+import { GridIcon } from "./icons/grid";
 import { Hyperlink } from "./icons/hyperlink";
 import { LinesY } from "./icons/lines-y";
+import { MoneyBills2 } from "./icons/money-bills2";
+import { Msgs } from "./icons/msgs";
+import { SquareUserSparkle2 } from "./icons/square-user-sparkle2";
 import { User } from "./icons/user";
 import { PartnerProgramDropdown } from "./partner-program-dropdown";
 import { PayoutStats } from "./payout-stats";
@@ -405,17 +405,20 @@ export function PartnersSidebarNav({
 
   const referralsActive =
     pathname === "/referrals" || pathname.startsWith("/referrals/");
+  const [referralsHovered, setReferralsHovered] = useState(false);
 
   const composedToolContent = (
     <div className="flex flex-col items-center gap-3">
       <Link
         href="/referrals"
+        onPointerEnter={() => setReferralsHovered(true)}
+        onPointerLeave={() => setReferralsHovered(false)}
         className={cn(
           "text-content-default flex size-11 shrink-0 items-center justify-center rounded-lg",
           referralsActive ? "bg-white" : "hover:bg-bg-inverted/5",
         )}
       >
-        <Gift className="size-5" />
+        <Gift className="size-5" data-hovered={referralsHovered} />
       </Link>
       {toolContent}
     </div>
