@@ -18,6 +18,7 @@ import {
   LinkLogo,
   LoadingSpinner,
   StatusBadge,
+  Tooltip,
   useInViewport,
   UserCheck,
   useRouterStuff,
@@ -91,6 +92,8 @@ export function PartnerLinkCard({ link }: { link: PartnerProfileLinkProps }) {
   });
 
   const isDeactivated = programEnrollment?.status === "deactivated";
+  const isQueryLinkStructure =
+    programEnrollment?.group?.linkStructure === "query";
 
   const discountCodeSection = link.discountCode ? (
     <div className="hidden h-8 items-center gap-1.5 rounded-lg border border-neutral-200 pl-2 pr-1.5 sm:flex">
@@ -128,22 +131,35 @@ export function PartnerLinkCard({ link }: { link: PartnerProfileLinkProps }) {
             <div className="flex min-w-0 flex-col">
               <div className="flex flex-col gap-0.5">
                 <div className="flex items-center gap-1">
-                  <a
-                    href={isDeactivated ? undefined : partnerLink}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className={cn(
-                      "truncate text-sm font-semibold leading-6 transition-colors",
-                      isDeactivated
-                        ? "cursor-default text-neutral-400"
-                        : "text-neutral-900 hover:text-black",
-                    )}
-                    onClick={
-                      isDeactivated ? (e) => e.preventDefault() : undefined
+                  <Tooltip
+                    content={
+                      <QueryLinkStructureHelpText
+                        link={link}
+                        className="px-3 py-2 first-letter:uppercase"
+                      />
                     }
+                    disabled={!isQueryLinkStructure || isDeactivated}
                   >
-                    {getPrettyUrl(partnerLink)}
-                  </a>
+                    <a
+                      href={isDeactivated ? undefined : partnerLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={cn(
+                        "truncate text-sm font-semibold leading-6 transition-colors",
+                        isDeactivated
+                          ? "cursor-default text-neutral-400"
+                          : "text-neutral-900 hover:text-black",
+                        isQueryLinkStructure &&
+                          !isDeactivated &&
+                          "cursor-copy underline decoration-dotted underline-offset-2",
+                      )}
+                      onClick={
+                        isDeactivated ? (e) => e.preventDefault() : undefined
+                      }
+                    >
+                      {getPrettyUrl(partnerLink)}
+                    </a>
+                  </Tooltip>
                   {!isDeactivated && (
                     <CopyButton value={partnerLink} variant="neutral" />
                   )}
@@ -163,35 +179,20 @@ export function PartnerLinkCard({ link }: { link: PartnerProfileLinkProps }) {
                   /* The max width implementation here is a bit hacky, we should improve in the future */
                   <div className="flex max-w-[100px] items-center gap-1 py-0 pl-1 pr-1.5 sm:w-fit sm:max-w-[400px]">
                     <ArrowTurnRight2 className="h-3 w-3 shrink-0 text-neutral-400" />
-                    {programEnrollment?.group?.linkStructure === "query" ? (
-                      <QueryLinkStructureHelpText
-                        link={link}
-                        className="mt-0.5"
-                      />
-                    ) : (
-                      <a
-                        href={isDeactivated ? undefined : link.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="cursor-alias truncate text-sm text-neutral-500 decoration-dotted transition-colors hover:text-neutral-700 hover:underline hover:underline-offset-2"
-                        title={getPrettyUrl(link.url)}
-                        onClick={
-                          isDeactivated ? (e) => e.preventDefault() : undefined
-                        }
-                      >
-                        {getPrettyUrl(link.url)}
-                      </a>
-                    )}
+                    <a
+                      href={isDeactivated ? undefined : link.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="cursor-alias truncate text-sm text-neutral-500 decoration-dotted transition-colors hover:text-neutral-700 hover:underline hover:underline-offset-2"
+                      title={getPrettyUrl(link.url)}
+                      onClick={
+                        isDeactivated ? (e) => e.preventDefault() : undefined
+                      }
+                    >
+                      {getPrettyUrl(link.url)}
+                    </a>
                   </div>
                 )}
-
-                {hasIncentives &&
-                  programEnrollment?.group?.linkStructure === "query" && (
-                    <QueryLinkStructureHelpText
-                      link={link}
-                      className="mt-0.5 pl-0.5"
-                    />
-                  )}
               </div>
             </div>
           </div>
