@@ -2,7 +2,7 @@ import { triggerDraftBountySubmissionCreation } from "@/lib/bounty/api/trigger-d
 import { qstash } from "@/lib/cron";
 import { prisma } from "@/lib/prisma";
 import { recordLink } from "@/lib/tinybird";
-import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
+import { APP_DOMAIN_WITH_NGROK, pluck } from "@dub/utils";
 import { PartnerGroup, WorkspaceRole } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { buildProgramEnrollmentChangeSet } from "../activity-log/build-program-enrollment-change-set";
@@ -10,6 +10,7 @@ import {
   trackActivityLog,
   TrackActivityLogInput,
 } from "../activity-log/track-activity-log";
+import { DubApiError } from "../errors";
 import { getWorkspaceUsers } from "../get-workspace-users";
 import { includeProgramEnrollment } from "../links/include-program-enrollment";
 import { includeTags } from "../links/include-tags";
@@ -32,7 +33,6 @@ interface MovePartnersToGroupParams {
     | "customRewardId"
     | "discountId"
   >;
-  isGroupDeleted?: boolean;
   groupMoveDisabledAt?: Date | null;
 }
 
@@ -42,11 +42,15 @@ export async function movePartnersToGroup({
   partnerIds,
   userId,
   group,
-  isGroupDeleted = false,
   groupMoveDisabledAt,
 }: MovePartnersToGroupParams): Promise<number> {
+  partnerIds = [...new Set(partnerIds)];
+
   if (partnerIds.length === 0) {
-    return 0;
+    throw new DubApiError({
+      code: "bad_request",
+      message: "At least one partner ID is required.",
+    });
   }
 
   const programEnrollments = await prisma.programEnrollment.findMany({
@@ -73,7 +77,7 @@ export async function movePartnersToGroup({
     return 0;
   }
 
-  partnerIds = programEnrollments.map(({ partnerId }) => partnerId);
+  partnerIds = pluck(programEnrollments, "partnerId");
 
   const { count } = await prisma.programEnrollment.updateMany({
     where: {
@@ -81,6 +85,9 @@ export async function movePartnersToGroup({
         in: partnerIds,
       },
       programId,
+      groupId: {
+        not: group.id,
+      },
     },
     data: {
       groupId: group.id,
@@ -99,7 +106,12 @@ export async function movePartnersToGroup({
   }
 
   // Queue an index update because the enrollments moved group (filterable field)
-  waitUntil(queuePartnerSearchSync({ partnerIds, programId }));
+  waitUntil(
+    queuePartnerSearchSync({
+      partnerIds,
+      programId,
+    }),
+  );
 
   waitUntil(
     (async () => {
@@ -184,7 +196,6 @@ export async function movePartnersToGroup({
               .filter(({ status }) => status !== "pending")
               .map(({ partnerId }) => partnerId),
             userId: workspaceUserId,
-            isGroupDeleted,
           },
         }),
 

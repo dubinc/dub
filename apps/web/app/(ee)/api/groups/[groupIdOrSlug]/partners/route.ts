@@ -1,4 +1,3 @@
-import { DubApiError } from "@/lib/api/errors";
 import { getGroupOrThrow } from "@/lib/api/groups/get-group-or-throw";
 import { movePartnersToGroup } from "@/lib/api/groups/move-partners-to-group";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
@@ -23,18 +22,9 @@ export const POST = withWorkspace(
       includeExpandedFields: true,
     });
 
-    let { partnerIds, groupMoveDisabledAt } = addPartnersToGroupSchema.parse(
+    const { partnerIds, groupMoveDisabledAt } = addPartnersToGroupSchema.parse(
       await parseRequestBody(req),
     );
-
-    partnerIds = [...new Set(partnerIds)];
-
-    if (partnerIds.length === 0) {
-      throw new DubApiError({
-        code: "bad_request",
-        message: "At least one partner ID is required.",
-      });
-    }
 
     const count = await movePartnersToGroup({
       workspaceId: workspace.id,

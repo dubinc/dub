@@ -23,9 +23,10 @@ export async function detachDiscountFromProgramEnrollments({
       id: discountId,
     },
     select: {
-      defaultForPartnerGroup: {
+      id: true,
+      partnerGroup: {
         select: {
-          id: true,
+          discountId: true,
         },
       },
     },
@@ -36,7 +37,11 @@ export async function detachDiscountFromProgramEnrollments({
     return;
   }
 
-  const groupDiscountId = discount.defaultForPartnerGroup?.id ?? null;
+  // Restore enrollments to the owning group's current default, or clear them
+  // if this discount was the group default
+  const groupDiscountId = discount.partnerGroup?.discountId ?? null;
+  const restoredDiscountId =
+    groupDiscountId !== discount.id ? groupDiscountId : null;
 
   while (true) {
     const where: Prisma.ProgramEnrollmentWhereInput = {
@@ -74,7 +79,7 @@ export async function detachDiscountFromProgramEnrollments({
         discountId,
       },
       data: {
-        discountId: groupDiscountId,
+        discountId: restoredDiscountId,
       },
     });
 

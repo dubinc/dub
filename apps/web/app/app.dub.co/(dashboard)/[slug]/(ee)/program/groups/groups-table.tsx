@@ -89,16 +89,17 @@ export function GroupsTable() {
     error: countError,
   } = useGroupsCount();
 
-  const { partnersCount: partnersCountByGroup } = usePartnersCount<
-    | {
-        groupId: string;
-        _count: number;
-      }[]
-    | undefined
-  >({
-    groupBy: "groupId",
-    ignoreParams: true,
-  });
+  const { partnersCount: partnersCountByGroup, loading: partnersCountLoading } =
+    usePartnersCount<
+      | {
+          groupId: string;
+          _count: number;
+        }[]
+      | undefined
+    >({
+      groupBy: "groupId",
+      ignoreParams: true,
+    });
 
   const partnersCountByGroupId = useMemo(() => {
     const map = new Map<string, number>();
@@ -190,6 +191,7 @@ export function GroupsTable() {
             row={row}
             currentDefaultGroup={currentDefaultGroup}
             partnersCount={partnersCountByGroupId.get(row.original.id) ?? 0}
+            partnersCountLoading={partnersCountLoading}
           />
         ),
       },
@@ -273,10 +275,12 @@ function RowMenuButton({
   row,
   currentDefaultGroup,
   partnersCount,
+  partnersCountLoading,
 }: {
   row: Row<GroupExtendedProps>;
   currentDefaultGroup: GroupExtendedProps | undefined;
   partnersCount: number;
+  partnersCountLoading: boolean;
 }) {
   const router = useRouter();
   const { slug } = useParams();
@@ -297,14 +301,13 @@ function RowMenuButton({
     role,
   });
 
-  const partnersTooltip =
-    partnersCount > 0
-      ? "Move all partners to another group before deleting."
-      : undefined;
-
   const deleteGroupDisabledReason = permissionsError
     ? String(permissionsError)
-    : partnersTooltip;
+    : partnersCountLoading
+      ? true
+      : partnersCount > 0
+        ? "Move all partners to another group before deleting."
+        : undefined;
 
   return (
     <>
@@ -434,7 +437,9 @@ function MenuItem({
   return (
     <DynamicTooltipWrapper
       tooltipProps={
-        disabledTooltip ? { content: disabledTooltip, side: "left" } : undefined
+        typeof disabledTooltip === "string"
+          ? { content: disabledTooltip, side: "left" }
+          : undefined
       }
     >
       <div>

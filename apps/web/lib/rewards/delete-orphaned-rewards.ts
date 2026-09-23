@@ -18,7 +18,7 @@ export async function deleteOrphanedRewards(cutoff: Date) {
       },
     },
     orderBy: {
-      updatedAt: "asc",
+      updatedAt: "desc",
     },
     take: 50,
   });

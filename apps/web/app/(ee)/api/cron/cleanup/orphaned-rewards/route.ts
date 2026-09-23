@@ -9,9 +9,9 @@ export const dynamic = "force-dynamic";
 
 const STALE_AFTER_MINUTES = 30;
 
-// Safety net for leftover rows after request-path updates:
-// - Rewards: rewards/process normally hard-deletes once enrollments are cleared,
-//   but a newer reward change can skip stale jobs (e.g. delete then create).
+// Hard-deletes leftover rows after request-path soft-deletes / unassigns:
+// - Rewards: rewards/process clears enrollments on delete; this cron hard-deletes
+//   once nothing still references the soft-deleted reward (programId null).
 // - LinkReward: update-partner-link nulls override IDs instead of deleting the row.
 //   Discount deletes SetNull LinkReward.discountId the same way.
 

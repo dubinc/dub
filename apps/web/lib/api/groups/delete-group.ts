@@ -1,3 +1,4 @@
+import { dispatchWorkflows } from "@/lib/jobs/publish-workflows";
 import { prisma } from "@/lib/prisma";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { PartnerGroup } from "@prisma/client";
@@ -47,6 +48,15 @@ export async function deletePartnerGroup(
     });
   }
 
+  const discounts = await prisma.discount.findMany({
+    where: {
+      groupId: group.id,
+    },
+    select: {
+      id: true,
+    },
+  });
+
   await prisma.$transaction([
     // Soft delete rewards
     prisma.reward.updateMany({
@@ -59,10 +69,13 @@ export async function deletePartnerGroup(
       },
     }),
 
-    // Delete discounts
-    prisma.discount.deleteMany({
+    // Soft delete discounts (detach workflow hard-deletes after remapping)
+    prisma.discount.updateMany({
       where: {
         groupId: group.id,
+      },
+      data: {
+        programId: null,
       },
     }),
 
@@ -86,9 +99,32 @@ export async function deletePartnerGroup(
   ]);
 
   waitUntil(
-    removeGroupIdFromMoveRules({
-      programId: group.programId,
-      groupId: group.id,
-    }),
+    Promise.allSettled([
+      removeGroupIdFromMoveRules({
+        programId: group.programId,
+        groupId: group.id,
+      }),
+
+      // An empty group (no enrollments with this `groupId`)
+      // can still own discount rows referenced by codes/enrollments/LinkReward
+      // for partners who already moved if remaps are in-flight
+      ...(discounts.length > 0
+        ? [
+            dispatchWorkflows(
+              discounts.map((discount) => ({
+                name: "detach-discount-workflow" as const,
+                payload: {
+                  programId: group.programId,
+                  discountId: discount.id,
+                },
+                options: {
+                  label: discount.id,
+                  deduplicationId: `detach-discount-${discount.id}`,
+                },
+              })),
+            ),
+          ]
+        : []),
+    ]),
   );
 }
