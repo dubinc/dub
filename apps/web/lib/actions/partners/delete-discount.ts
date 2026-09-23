@@ -34,6 +34,7 @@ export const deleteDiscountAction = authActionClient
     });
 
     await prisma.$transaction(async (tx) => {
+      // Using updateMany otherwise this would fail if the discount is not a group-level discount
       await tx.partnerGroup.updateMany({
         where: {
           discountId,
