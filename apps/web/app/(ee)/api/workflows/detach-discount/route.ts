@@ -2,7 +2,7 @@ import { logger } from "@/lib/axiom/server";
 import {
   detachDiscountFromLinkRewards,
   detachDiscountFromProgramEnrollments,
-  syncDiscountCodes,
+  dispatchRemapDiscountCodes,
 } from "@/lib/discounts/detach-discount";
 import { prisma } from "@/lib/prisma";
 import { serve } from "@upstash/workflow/nextjs";
@@ -22,9 +22,9 @@ type Input = z.infer<typeof inputSchema>;
  * Soft-deleted discounts (programId cleared) are cleaned up as:
  *
  * 1. detach-discount-from-enrollments + detach-discount-from-link-rewards (parallel)
- * 2. sync-discount-codes
+ * 2. remap-discount-codes
  *
- * Hard-delete is deferred to /api/cron/cleanup/orphaned-rewards once syncs
+ * Hard-delete is deferred to /api/cron/cleanup/orphaned-rewards once remaps
  * finish and nothing still references the soft-deleted discount.
  */
 
@@ -95,14 +95,14 @@ export const { POST } = serve<Input>(
     ]);
 
     // This should run after the enrollments and link rewards are updated
-    await context.run("sync-discount-codes", async () => {
-      await syncDiscountCodes({
+    await context.run("remap-discount-codes", async () => {
+      await dispatchRemapDiscountCodes({
         programId,
         discountId,
       });
 
       return logAndReturn({
-        outputLog: `Synced discount codes for discount ${discountId}`,
+        outputLog: `Dispatched remap jobs for discount codes on ${discountId}`,
       });
     });
   },

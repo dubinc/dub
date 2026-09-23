@@ -196,7 +196,7 @@ export const updatePartnerEnrollmentAction = authActionClient
     if (discountId !== undefined) {
       await syncDiscountCodes({
         programId,
-        partnerId,
+        partnerIds: [partnerId],
       });
     }
 

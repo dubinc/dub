@@ -154,7 +154,9 @@ export async function detachDiscountFromLinkRewards({
 }
 
 // Dispatch per-code remap jobs for codes still pointing at this discount
-export async function syncDiscountCodes({ discountId }: DetachDiscountParams) {
+export async function dispatchRemapDiscountCodes({
+  discountId,
+}: DetachDiscountParams) {
   let startAfterId: string | null = null;
 
   while (true) {

@@ -157,7 +157,7 @@ export async function updatePartnerLink({
   if (body.discountId !== undefined) {
     await syncDiscountCodes({
       programId,
-      partnerId: link.partnerId,
+      partnerIds: [link.partnerId],
     });
   }
 

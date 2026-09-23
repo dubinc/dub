@@ -1,47 +1,55 @@
 import { enqueueBatchJobs } from "@/lib/cron/enqueue-batch-jobs";
 import { remapDiscountCodeJob } from "@/lib/jobs/handlers/remap-discount-code-job";
 import { prisma } from "@/lib/prisma";
-import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
-import { Discount, ProgramEnrollment } from "@prisma/client";
+import { APP_DOMAIN_WITH_NGROK, pluck } from "@dub/utils";
+import { Discount } from "@prisma/client";
 import { ACTIVE_ENROLLMENT_STATUSES } from "../zod/schemas/partners";
 
-// Read discount codes for a partner in a program and fan out per-code remap jobs
+// Remap existing codes and enqueue missing default-link codes for partners in a program
 export async function syncDiscountCodes({
   programId,
-  partnerId,
-}: Pick<ProgramEnrollment, "programId" | "partnerId">) {
-  const programEnrollment = await prisma.programEnrollment.findUnique({
+  partnerIds,
+}: {
+  programId: string;
+  partnerIds: string[];
+}) {
+  partnerIds = [...new Set(partnerIds)];
+
+  if (partnerIds.length === 0) {
+    return;
+  }
+
+  const programEnrollments = await prisma.programEnrollment.findMany({
     where: {
-      partnerId_programId: {
-        partnerId,
-        programId,
+      programId,
+      partnerId: {
+        in: partnerIds,
+      },
+      status: {
+        in: ACTIVE_ENROLLMENT_STATUSES,
       },
     },
     select: {
-      id: true,
-      status: true,
+      partnerId: true,
       discount: true,
     },
   });
 
-  if (!programEnrollment) {
+  if (programEnrollments.length === 0) {
     console.info(
-      `Program enrollment not found for partner ${partnerId} and program ${programId}. Skipping...`,
+      `No active program enrollments found for program ${programId}. Skipping discount code sync...`,
     );
     return;
   }
 
-  if (!ACTIVE_ENROLLMENT_STATUSES.includes(programEnrollment.status)) {
-    console.info(
-      `Program enrollment is not active for partner ${partnerId} and program ${programId}. Skipping...`,
-    );
-    return;
-  }
+  const activePartnerIds = pluck(programEnrollments, "partnerId");
 
   const discountCodes = await prisma.discountCode.findMany({
     where: {
       programId,
-      partnerId,
+      partnerId: {
+        in: activePartnerIds,
+      },
       disabledAt: null,
     },
     select: {
@@ -51,38 +59,49 @@ export async function syncDiscountCodes({
 
   if (discountCodes.length === 0) {
     console.info(
-      `No discount codes found for partner ${partnerId} and program ${programId}. Skipping remap jobs...`,
+      `No discount codes found for ${activePartnerIds.length} partners in program ${programId}. Skipping remap jobs...`,
     );
   } else {
     await remapDiscountCodeJob.dispatchBatch(
       discountCodes.map(({ id }) => ({
         discountCodeId: id,
       })),
-      ({ discountCodeId }) => ({
-        label: discountCodeId,
-        deduplicationId: `remap-discount-code-${discountCodeId}`,
-      }),
     );
   }
 
   await enqueueMissingDiscountCodes({
     programId,
-    partnerId,
-    enrollmentDiscount: programEnrollment.discount,
+    enrollments: programEnrollments,
   });
 }
 
 // Find default links that do not have a discount code assigned to them and enqueue a job to create one
 async function enqueueMissingDiscountCodes({
   programId,
-  partnerId,
-  enrollmentDiscount,
-}: Pick<ProgramEnrollment, "programId" | "partnerId"> & {
-  enrollmentDiscount: Pick<Discount, "autoProvisionEnabledAt"> | null;
+  enrollments,
+}: {
+  programId: string;
+  enrollments: {
+    partnerId: string;
+    discount: Pick<Discount, "autoProvisionEnabledAt"> | null;
+  }[];
 }) {
+  if (enrollments.length === 0) {
+    return;
+  }
+
+  const enrollmentDiscountByPartnerId = new Map(
+    enrollments.map((enrollment) => [
+      enrollment.partnerId,
+      enrollment.discount,
+    ]),
+  );
+
   const links = await prisma.link.findMany({
     where: {
-      partnerId,
+      partnerId: {
+        in: pluck(enrollments, "partnerId"),
+      },
       programId,
       partnerGroupDefaultLinkId: {
         not: null,
@@ -93,6 +112,7 @@ async function enqueueMissingDiscountCodes({
     },
     select: {
       id: true,
+      partnerId: true,
       linkReward: {
         select: {
           discount: {
@@ -106,7 +126,16 @@ async function enqueueMissingDiscountCodes({
   });
 
   const linksToProvision = links.filter((link) => {
-    const discount = link.linkReward?.discount ?? enrollmentDiscount;
+    if (!link.partnerId) {
+      return false;
+    }
+
+    const enrollmentDiscount = enrollmentDiscountByPartnerId.get(
+      link.partnerId,
+    );
+
+    const discount = link.linkReward?.discount ?? enrollmentDiscount ?? null;
+
     return Boolean(discount?.autoProvisionEnabledAt);
   });
 

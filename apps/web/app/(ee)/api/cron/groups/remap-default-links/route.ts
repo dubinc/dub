@@ -253,14 +253,10 @@ export async function POST(req: Request) {
       partnerIds,
     });
 
-    await Promise.all(
-      partnerIds.map((partnerId) =>
-        syncDiscountCodes({
-          programId,
-          partnerId,
-        }),
-      ),
-    );
+    await syncDiscountCodes({
+      programId,
+      partnerIds,
+    });
 
     return logAndRespond(`Finished creating default links for the partners.`);
   } catch (error) {
