@@ -30,7 +30,15 @@ export const getCustomerOrThrow = async (
     ...(includeExpandedFields
       ? {
           include: {
-            link: true,
+            link: {
+              include: {
+                linkReward: {
+                  select: {
+                    discount: true,
+                  },
+                },
+              },
+            },
             programEnrollment: {
               include: {
                 partner: true,
