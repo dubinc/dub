@@ -6,6 +6,7 @@ import { VARIANT_TO_FROM_MAP } from "@dub/email/resend/constants";
 import DiscountDeleted from "@dub/email/templates/discount-deleted";
 import { pluck } from "@dub/utils";
 import { DiscountProvider } from "@prisma/client";
+import { waitUntil } from "@vercel/functions";
 import type Stripe from "stripe";
 import { WebhookHandlerInput, WebhookHandlerResponse } from "./types";
 
@@ -82,23 +83,27 @@ export async function couponDeleted({
     })),
   );
 
-  const { users } = await getWorkspaceUsers({
-    workspaceId: workspace.id,
-    role: "owner",
-  });
+  waitUntil(
+    (async () => {
+      const { users } = await getWorkspaceUsers({
+        workspaceId: workspace.id,
+        role: "owner",
+      });
 
-  await sendBatchEmail(
-    users.map((user) => ({
-      from: VARIANT_TO_FROM_MAP.notifications,
-      to: user.email,
-      subject: "Your discount has been deleted",
-      react: DiscountDeleted({
-        email: user.email,
-        coupon: {
-          id: coupon.id,
-        },
-      }),
-    })),
+      await sendBatchEmail(
+        users.map((user) => ({
+          from: VARIANT_TO_FROM_MAP.notifications,
+          to: user.email,
+          subject: "Your discount has been deleted",
+          react: DiscountDeleted({
+            email: user.email,
+            coupon: {
+              id: coupon.id,
+            },
+          }),
+        })),
+      );
+    })(),
   );
 
   return {
