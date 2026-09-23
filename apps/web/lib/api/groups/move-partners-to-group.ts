@@ -1,21 +1,10 @@
-import { triggerDraftBountySubmissionCreation } from "@/lib/bounty/api/trigger-draft-bounty-submissions";
-import { qstash } from "@/lib/cron";
+import { processPartnerGroupChangeJob } from "@/lib/jobs/handlers/process-partner-group-change-job";
 import { prisma } from "@/lib/prisma";
-import { recordLink } from "@/lib/tinybird";
-import { APP_DOMAIN_WITH_NGROK, pluck } from "@dub/utils";
-import { PartnerGroup, WorkspaceRole } from "@prisma/client";
-import { waitUntil } from "@vercel/functions";
+import { pluck } from "@dub/utils";
+import { PartnerGroup, Prisma } from "@prisma/client";
 import { buildProgramEnrollmentChangeSet } from "../activity-log/build-program-enrollment-change-set";
-import {
-  trackActivityLog,
-  TrackActivityLogInput,
-} from "../activity-log/track-activity-log";
+import { trackActivityLogsTx } from "../activity-log/track-activity-log";
 import { DubApiError } from "../errors";
-import { getWorkspaceUsers } from "../get-workspace-users";
-import { includeProgramEnrollment } from "../links/include-program-enrollment";
-import { includeTags } from "../links/include-tags";
-import { notifyPartnerGroupChange } from "../partners/notify-partner-group-change";
-import { queuePartnerSearchSync } from "../partners/queue-partner-search-sync";
 
 interface MovePartnersToGroupParams {
   workspaceId: string;
@@ -53,34 +42,8 @@ export async function movePartnersToGroup({
     });
   }
 
-  const programEnrollments = await prisma.programEnrollment.findMany({
-    where: {
-      partnerId: {
-        in: partnerIds,
-      },
-      programId,
-    },
-    select: {
-      id: true,
-      partnerId: true,
-      status: true,
-      partnerGroup: {
-        select: {
-          id: true,
-          name: true,
-        },
-      },
-    },
-  });
-
-  if (programEnrollments.length === 0) {
-    return 0;
-  }
-
-  partnerIds = pluck(programEnrollments, "partnerId");
-
-  const { count } = await prisma.programEnrollment.updateMany({
-    where: {
+  const result = await prisma.$transaction(async (tx) => {
+    const where: Prisma.ProgramEnrollmentWhereInput = {
       partnerId: {
         in: partnerIds,
       },
@@ -88,133 +51,112 @@ export async function movePartnersToGroup({
       groupId: {
         not: group.id,
       },
-    },
-    data: {
-      groupId: group.id,
-      clickRewardId: group.clickRewardId,
-      leadRewardId: group.leadRewardId,
-      saleRewardId: group.saleRewardId,
-      referralRewardId: group.referralRewardId,
-      customRewardId: group.customRewardId,
-      discountId: group.discountId,
-      ...(groupMoveDisabledAt !== undefined && { groupMoveDisabledAt }),
-    },
+    };
+
+    const programEnrollmentsBefore = await tx.programEnrollment.findMany({
+      where,
+      select: {
+        id: true,
+        partnerId: true,
+        partnerGroup: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+    });
+
+    if (programEnrollmentsBefore.length === 0) {
+      return null;
+    }
+
+    const { count } = await tx.programEnrollment.updateMany({
+      where,
+      data: {
+        groupId: group.id,
+        clickRewardId: group.clickRewardId,
+        leadRewardId: group.leadRewardId,
+        saleRewardId: group.saleRewardId,
+        referralRewardId: group.referralRewardId,
+        customRewardId: group.customRewardId,
+        discountId: group.discountId,
+        ...(groupMoveDisabledAt !== undefined && { groupMoveDisabledAt }),
+      },
+    });
+
+    if (count === 0) {
+      return null;
+    }
+
+    const programEnrollmentsAfter = await tx.programEnrollment.findMany({
+      where: {
+        id: {
+          in: pluck(programEnrollmentsBefore, "id"),
+        },
+      },
+      select: {
+        id: true,
+        partnerId: true,
+        partnerGroup: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+    });
+
+    // Track the activity logs for the program enrollments that were moved to the group
+    const enrollmentsBeforeById = new Map(
+      programEnrollmentsBefore.map((enrollment) => [enrollment.id, enrollment]),
+    );
+
+    const logs = programEnrollmentsAfter.map((newEnrollment) => {
+      const oldEnrollment = enrollmentsBeforeById.get(newEnrollment.id);
+
+      return {
+        workspaceId,
+        programId,
+        resourceType: "partner" as const,
+        resourceId: newEnrollment.partnerId,
+        userId,
+        action: "partner.groupChanged" as const,
+        changeSet: buildProgramEnrollmentChangeSet({
+          oldEnrollment,
+          newEnrollment,
+        }),
+      };
+    });
+
+    await trackActivityLogsTx({
+      tx,
+      logs,
+    });
+
+    return {
+      count,
+      programEnrollmentsAfter,
+    };
   });
 
-  if (count === 0) {
+  if (!result) {
     return 0;
   }
 
-  // Queue an index update because the enrollments moved group (filterable field)
-  waitUntil(
-    queuePartnerSearchSync({
-      partnerIds,
+  const { count, programEnrollmentsAfter } = result;
+  const movedPartnerIds = pluck(programEnrollmentsAfter, "partnerId");
+
+  await processPartnerGroupChangeJob.dispatch(
+    {
       programId,
-    }),
-  );
-
-  waitUntil(
-    (async () => {
-      const partnerLinks = await prisma.link.findMany({
-        where: {
-          programId,
-          partnerId: {
-            in: partnerIds,
-          },
-        },
-        include: {
-          ...includeTags,
-          ...includeProgramEnrollment,
-        },
-      });
-
-      const updatedProgramEnrollments = await prisma.programEnrollment.findMany(
-        {
-          where: {
-            partnerId: {
-              in: partnerIds,
-            },
-            programId,
-          },
-          select: {
-            id: true,
-            partnerId: true,
-            partnerGroup: {
-              select: {
-                id: true,
-                name: true,
-              },
-            },
-          },
-        },
-      );
-
-      // Build activity log inputs
-      const activityLogInputs: TrackActivityLogInput[] =
-        updatedProgramEnrollments.map((updatedEnrollment) => {
-          const oldEnrollment = programEnrollments.find(
-            (e) => e.id === updatedEnrollment.id,
-          );
-
-          return {
-            workspaceId,
-            programId,
-            resourceType: "partner",
-            resourceId: updatedEnrollment.partnerId,
-            userId,
-            action: "partner.groupChanged",
-            changeSet: buildProgramEnrollmentChangeSet({
-              oldEnrollment,
-              newEnrollment: updatedEnrollment,
-            }),
-          };
-        });
-
-      // If the userId is not provided, get the workspace user id from the workspace users
-      // userId will be null for workflow-initiated actions
-      let workspaceUserId = userId;
-
-      if (!workspaceUserId) {
-        const { users } = await getWorkspaceUsers({
-          programId,
-          role: WorkspaceRole.owner,
-        });
-
-        if (users.length > 0) {
-          workspaceUserId = users[0].id;
-        }
-      }
-
-      await Promise.allSettled([
-        qstash.publishJSON({
-          url: `${APP_DOMAIN_WITH_NGROK}/api/cron/groups/remap-default-links`,
-          body: {
-            programId,
-            groupId: group.id,
-            // skip remap-default-links / remap-discount-codes for pending applications (no links yet)
-            partnerIds: programEnrollments
-              .filter(({ status }) => status !== "pending")
-              .map(({ partnerId }) => partnerId),
-            userId: workspaceUserId,
-          },
-        }),
-
-        triggerDraftBountySubmissionCreation({
-          programId,
-          partnerIds,
-        }),
-
-        recordLink(partnerLinks),
-
-        notifyPartnerGroupChange({
-          programId,
-          groupId: group.id,
-          partnerIds,
-        }),
-
-        trackActivityLog(activityLogInputs),
-      ]);
-    })(),
+      groupId: group.id,
+      movedPartnerIds,
+      userId,
+    },
+    {
+      label: group.id,
+    },
   );
 
   return count;

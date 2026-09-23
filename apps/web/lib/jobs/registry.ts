@@ -86,6 +86,11 @@ const jobLoaders = {
 
   "aggregate-clicks-job": () =>
     import("./handlers/aggregate-clicks-job").then((m) => m.aggregateClicksJob),
+
+  "process-partner-group-change-job": () =>
+    import("./handlers/process-partner-group-change-job").then(
+      (m) => m.processPartnerGroupChangeJob,
+    ),
 } as const satisfies Record<string, () => Promise<JobDefinition>>;
 
 const jobCache = new Map<string, JobDefinition>();
