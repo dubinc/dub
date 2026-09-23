@@ -11,7 +11,8 @@ const inputSchema = z.object({
 });
 
 // POST /api/cron/discount-codes/create/queue-batches
-// Drain shim for in-flight QStash messages; new work uses publish-discount-codes-creation-job
+// Drain shim for in-flight QStash messages; new work uses publish-discount-codes-creation-job.
+// TODO: Remove this route after in-flight QStash messages to this URL have drained.
 export const POST = withCron(async ({ rawBody }) => {
   const payload = inputSchema.parse(JSON.parse(rawBody));
   await publishDiscountCodesCreationJob.execute(payload);
