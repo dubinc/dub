@@ -17,6 +17,7 @@ const inputSchema = z.object({
   groupId: z.string(),
   movedPartnerIds: z.array(z.string()).min(1),
   userId: z.string().nullable(),
+  idempotencyKey: z.string(),
 });
 
 // Side effects after partners are moved to a group: search sync, remap default
@@ -24,7 +25,13 @@ const inputSchema = z.object({
 export const processPartnerGroupChangeJob = defineJob({
   name: "process-partner-group-change-job",
   schema: inputSchema,
-  async handle({ programId, groupId, movedPartnerIds, userId }) {
+  async handle({
+    programId,
+    groupId,
+    movedPartnerIds,
+    userId,
+    idempotencyKey,
+  }) {
     const [partnerLinks, programEnrollments] = await Promise.all([
       prisma.link.findMany({
         where: {
@@ -87,11 +94,13 @@ export const processPartnerGroupChangeJob = defineJob({
           partnerIds: pluck(activeProgramEnrollments, "partnerId"),
           userId: workspaceUserId,
         },
+        deduplicationId: idempotencyKey,
       }),
 
       triggerDraftBountySubmissionCreation({
         programId,
         partnerIds: movedPartnerIds,
+        idempotencyKey,
       }),
 
       recordLink(partnerLinks),
@@ -101,6 +110,7 @@ export const processPartnerGroupChangeJob = defineJob({
       programId,
       groupId,
       partnerIds: movedPartnerIds,
+      idempotencyKey,
     });
   },
 });

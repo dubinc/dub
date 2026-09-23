@@ -1,6 +1,6 @@
 import { processPartnerGroupChangeJob } from "@/lib/jobs/handlers/process-partner-group-change-job";
 import { prisma } from "@/lib/prisma";
-import { pluck } from "@dub/utils";
+import { nanoid, pluck } from "@dub/utils";
 import { PartnerGroup, Prisma } from "@prisma/client";
 import { buildProgramEnrollmentChangeSet } from "../activity-log/build-program-enrollment-change-set";
 import { trackActivityLogsTx } from "../activity-log/track-activity-log";
@@ -190,6 +190,7 @@ export async function movePartnersToGroup({
       groupId: group.id,
       movedPartnerIds,
       userId,
+      idempotencyKey: nanoid(10),
     },
     {
       label: group.id,
