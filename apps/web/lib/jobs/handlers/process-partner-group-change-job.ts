@@ -60,6 +60,15 @@ export const processPartnerGroupChangeJob = defineJob({
       }),
     ]);
 
+    // Remove LinkRewards for discount/reward
+    await prisma.linkReward.deleteMany({
+      where: {
+        linkId: {
+          in: pluck(partnerLinks, "id"),
+        },
+      },
+    });
+
     // If the userId is not provided, get the workspace user id from the workspace users
     // userId will be null for workflow-initiated actions
     let workspaceUserId = userId;
