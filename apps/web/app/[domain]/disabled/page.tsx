@@ -10,21 +10,22 @@ import { cn, constructMetadata } from "@dub/utils";
 export const revalidate = false; // cache indefinitely
 
 export const metadata = constructMetadata({
-  title: "Banned Link",
-  description: "This link has been banned for violating our terms of service.",
+  title: "Disabled Link",
+  description:
+    "This link has been disabled. Please contact the owner of this link to get a new one.",
   noIndex: true,
 });
 
 const UTM_PARAMS = {
-  utm_source: "Banned Link",
-  utm_medium: "Banned Link Page",
+  utm_source: "Disabled Link",
+  utm_medium: "Disabled Link Page",
 };
 
 export function generateStaticParams() {
   return [];
 }
 
-export default function BannedLinkPage() {
+export default function DisabledLinkPage() {
   return (
     <div>
       <Hero>
@@ -38,7 +39,7 @@ export default function BannedLinkPage() {
               "animate-slide-up-fade motion-reduce:animate-fade-in [--offset:20px] [animation-duration:1s] [animation-fill-mode:both]",
             )}
           >
-            Banned link
+            Disabled link
           </h1>
           <p
             className={cn(
@@ -46,7 +47,8 @@ export default function BannedLinkPage() {
               "animate-slide-up-fade motion-reduce:animate-fade-in [--offset:10px] [animation-delay:200ms] [animation-duration:1s] [animation-fill-mode:both]",
             )}
           >
-            This link has been banned for violating our terms of service.
+            This link has been disabled. Please contact the owner of this link
+            to get a new one.
           </p>
         </div>
 
