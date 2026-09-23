@@ -51,45 +51,40 @@ export const updateDiscountAction = authActionClient
       revalidateProgramPublicPages(programId);
     }
 
+    await Promise.all([
+      ...(shouldExpireCache
+        ? [
+            invalidateLinksForDiscountsJob.dispatch(
+              { type: "discount", discountId: discount.id },
+              { label: discount.id },
+            ),
+          ]
+        : []),
+
+      ...(updatedDiscount.autoProvisionEnabledAt
+        ? [
+            publishDiscountCodesCreationJob.dispatch(
+              { discountId: discount.id },
+              { label: discount.id },
+            ),
+          ]
+        : []),
+    ]);
+
     waitUntil(
-      Promise.allSettled([
-        ...(shouldExpireCache
-          ? [
-              invalidateLinksForDiscountsJob.dispatch(
-                {
-                  type: "discount",
-                  discountId: discount.id,
-                },
-                {
-                  label: discount.id,
-                },
-              ),
-            ]
-          : []),
-
-        ...(updatedDiscount.autoProvisionEnabledAt
-          ? [
-              publishDiscountCodesCreationJob.dispatch(
-                { discountId: discount.id },
-                { label: discount.id },
-              ),
-            ]
-          : []),
-
-        recordAuditLog({
-          workspaceId: workspace.id,
-          programId,
-          action: "discount.updated",
-          description: `Discount ${discount.id} updated`,
-          actor: user,
-          targets: [
-            {
-              type: "discount",
-              id: discount.id,
-              metadata: updatedDiscount,
-            },
-          ],
-        }),
-      ]),
+      recordAuditLog({
+        workspaceId: workspace.id,
+        programId,
+        action: "discount.updated",
+        description: `Discount ${discount.id} updated`,
+        actor: user,
+        targets: [
+          {
+            type: "discount",
+            id: discount.id,
+            metadata: updatedDiscount,
+          },
+        ],
+      }),
     );
   });

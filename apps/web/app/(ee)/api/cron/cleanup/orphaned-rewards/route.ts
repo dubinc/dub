@@ -1,5 +1,6 @@
 import { PRISMA_UPDATEMANY_LIMIT } from "@/lib/cron";
 import { withCron } from "@/lib/cron/with-cron";
+import { deleteOrphanedDiscounts } from "@/lib/discounts/delete-orphaned-discounts";
 import { prisma } from "@/lib/prisma";
 import { deleteOrphanedRewards } from "@/lib/rewards/delete-orphaned-rewards";
 import { subMinutes } from "date-fns";
@@ -12,6 +13,8 @@ const STALE_AFTER_MINUTES = 30;
 // Hard-deletes leftover rows after request-path soft-deletes / unassigns:
 // - Rewards: rewards/process clears enrollments on delete; this cron hard-deletes
 //   once nothing still references the soft-deleted reward (programId null).
+// - Discounts: detach-discount remaps codes first; this cron hard-deletes once
+//   nothing still references the soft-deleted discount (programId null).
 // - LinkReward: update-partner-link nulls override IDs instead of deleting the row.
 //   Discount deletes SetNull LinkReward.discountId the same way.
 
@@ -19,17 +22,25 @@ const STALE_AFTER_MINUTES = 30;
 export const POST = withCron(async () => {
   const cutoff = subMinutes(new Date(), STALE_AFTER_MINUTES);
 
-  const [deletedRewardsCount, deletedLinkRewardsCount] = await Promise.all([
-    deleteOrphanedRewards(cutoff),
-    deleteEmptyLinkRewards(),
-  ]);
+  const [deletedRewardsCount, deletedDiscountsCount, deletedLinkRewardsCount] =
+    await Promise.all([
+      deleteOrphanedRewards(cutoff),
+      deleteOrphanedDiscounts(cutoff),
+      deleteEmptyLinkRewards(),
+    ]);
 
-  if (deletedRewardsCount === 0 && deletedLinkRewardsCount === 0) {
-    return logAndRespond("No orphaned rewards or empty link rewards found.");
+  if (
+    deletedRewardsCount === 0 &&
+    deletedDiscountsCount === 0 &&
+    deletedLinkRewardsCount === 0
+  ) {
+    return logAndRespond(
+      "No orphaned rewards, discounts, or empty link rewards found.",
+    );
   }
 
   return logAndRespond(
-    `Finished cleanup (${deletedRewardsCount} rewards, ${deletedLinkRewardsCount} empty link rewards deleted).`,
+    `Finished cleanup (${deletedRewardsCount} rewards, ${deletedDiscountsCount} discounts, ${deletedLinkRewardsCount} empty link rewards deleted).`,
   );
 });
 

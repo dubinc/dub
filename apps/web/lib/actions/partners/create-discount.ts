@@ -120,6 +120,8 @@ export const createDiscountAction = authActionClient
       return discount;
     });
 
+    // No need to attach the discount to the group if it is not the default
+    // because the default discount is attached to the group when the discount is created
     if (isDefault) {
       await attachDiscountJob.dispatch(
         { discountId: discount.id },

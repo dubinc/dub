@@ -128,6 +128,13 @@ export const POST = withWorkspace(
       });
     }
 
+    if (!discount.programId) {
+      throw new DubApiError({
+        code: "not_found",
+        message: `Discount ${discount.id} not found.`,
+      });
+    }
+
     // A link can have only one discount code
     const duplicateByLink = programEnrollment.discountCodes.find(
       (discountCode) => discountCode.linkId === linkId,

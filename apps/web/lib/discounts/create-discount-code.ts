@@ -134,6 +134,13 @@ async function createDiscountCodeRecord({
   canRetry: boolean;
   discountProvider: ReturnType<typeof getDiscountProvider>;
 }): Promise<CreateDiscountCodeRecordResult> {
+  if (!discount.programId) {
+    throw new DubApiError({
+      code: "not_found",
+      message: `Discount ${discount.id} not found.`,
+    });
+  }
+
   try {
     const discountCode = await prisma.discountCode.create({
       data: {

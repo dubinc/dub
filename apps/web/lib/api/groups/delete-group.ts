@@ -69,7 +69,7 @@ export async function deletePartnerGroup(
       },
     }),
 
-    // Soft delete discounts (detach workflow hard-deletes after remapping)
+    // Soft delete discounts (orphaned-rewards cron hard-deletes after remapping)
     prisma.discount.updateMany({
       where: {
         groupId: group.id,

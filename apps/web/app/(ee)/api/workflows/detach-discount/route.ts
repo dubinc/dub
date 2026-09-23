@@ -2,7 +2,7 @@ import { logger } from "@/lib/axiom/server";
 import {
   detachDiscountFromLinkRewards,
   detachDiscountFromProgramEnrollments,
-  dispatchRemapDiscountCodes,
+  syncDiscountCodes,
 } from "@/lib/discounts/detach-discount";
 import { prisma } from "@/lib/prisma";
 import { serve } from "@upstash/workflow/nextjs";
@@ -22,8 +22,10 @@ type Input = z.infer<typeof inputSchema>;
  * Soft-deleted discounts (programId cleared) are cleaned up as:
  *
  * 1. detach-discount-from-enrollments + detach-discount-from-link-rewards (parallel)
- * 2. remap-discount-codes
- * 3. delete-discount
+ * 2. sync-discount-codes
+ *
+ * Hard-delete is deferred to /api/cron/cleanup/orphaned-rewards once syncs
+ * finish and nothing still references the soft-deleted discount.
  */
 
 // POST /api/workflows/detach-discount
@@ -93,27 +95,14 @@ export const { POST } = serve<Input>(
     ]);
 
     // This should run after the enrollments and link rewards are updated
-    await context.run("remap-discount-codes", async () => {
-      await dispatchRemapDiscountCodes({
+    await context.run("sync-discount-codes", async () => {
+      await syncDiscountCodes({
         programId,
         discountId,
       });
 
       return logAndReturn({
-        outputLog: `Remapped discount codes for discount ${discountId}`,
-      });
-    });
-
-    // This should run after the discount codes are remapped
-    await context.run("delete-discount", async () => {
-      await prisma.discount.deleteMany({
-        where: {
-          id: discountId,
-        },
-      });
-
-      return logAndReturn({
-        outputLog: `Deleted discount ${discountId}`,
+        outputLog: `Synced discount codes for discount ${discountId}`,
       });
     });
   },

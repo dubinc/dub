@@ -69,6 +69,20 @@ export async function attachDiscount({
       },
     });
 
+    await prisma.discountCode.updateMany({
+      where: {
+        discountId: null,
+        programEnrollment: {
+          id: {
+            in: pluck(enrollments, "id"),
+          },
+        },
+      },
+      data: {
+        discountId: discount.id,
+      },
+    });
+
     console.info(
       `Attached discount ${discount.id} to ${count} enrollments in group ${groupId}.`,
     );

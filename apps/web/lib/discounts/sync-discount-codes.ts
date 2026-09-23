@@ -3,9 +3,10 @@ import { remapDiscountCodeJob } from "@/lib/jobs/handlers/remap-discount-code-jo
 import { prisma } from "@/lib/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { Discount, ProgramEnrollment } from "@prisma/client";
+import { ACTIVE_ENROLLMENT_STATUSES } from "../zod/schemas/partners";
 
 // Read discount codes for a partner in a program and fan out per-code remap jobs
-export async function remapDiscountCodes({
+export async function syncPartnerDiscountCodes({
   programId,
   partnerId,
 }: Pick<ProgramEnrollment, "programId" | "partnerId">) {
@@ -18,6 +19,7 @@ export async function remapDiscountCodes({
     },
     select: {
       id: true,
+      status: true,
       discount: true,
     },
   });
@@ -25,6 +27,13 @@ export async function remapDiscountCodes({
   if (!programEnrollment) {
     console.info(
       `Program enrollment not found for partner ${partnerId} and program ${programId}. Skipping...`,
+    );
+    return;
+  }
+
+  if (!ACTIVE_ENROLLMENT_STATUSES.includes(programEnrollment.status)) {
+    console.info(
+      `Program enrollment is not active for partner ${partnerId} and program ${programId}. Skipping...`,
     );
     return;
   }
