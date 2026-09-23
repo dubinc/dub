@@ -136,6 +136,17 @@ module.exports = withPlausibleProxy({
   async redirects() {
     return [
       {
+        source: "/api/:path*",
+        missing: [
+          {
+            type: "host",
+            value: ".*(\\.dub\\.co|localhost)",
+          },
+        ],
+        destination: "/",
+        permanent: false,
+      },
+      {
         source: "/",
         has: [
           {
