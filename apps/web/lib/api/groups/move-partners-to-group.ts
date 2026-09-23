@@ -43,6 +43,27 @@ export async function movePartnersToGroup({
   }
 
   const result = await prisma.$transaction(async (tx) => {
+    // Partners already in this group are not moved. Still persist the lock
+    // when the caller only wants to set or clear groupMoveDisabledAt.
+    let alreadyInGroupCount = 0;
+
+    if (groupMoveDisabledAt !== undefined) {
+      const updated = await tx.programEnrollment.updateMany({
+        where: {
+          partnerId: {
+            in: partnerIds,
+          },
+          programId,
+          groupId: group.id,
+        },
+        data: {
+          groupMoveDisabledAt,
+        },
+      });
+
+      alreadyInGroupCount = updated.count;
+    }
+
     const where: Prisma.ProgramEnrollmentWhereInput = {
       partnerId: {
         in: partnerIds,
@@ -68,7 +89,14 @@ export async function movePartnersToGroup({
     });
 
     if (programEnrollmentsBefore.length === 0) {
-      return null;
+      if (alreadyInGroupCount === 0) {
+        return null;
+      }
+
+      return {
+        count: alreadyInGroupCount,
+        programEnrollmentsAfter: [],
+      };
     }
 
     const { count } = await tx.programEnrollment.updateMany({
@@ -86,7 +114,14 @@ export async function movePartnersToGroup({
     });
 
     if (count === 0) {
-      return null;
+      if (alreadyInGroupCount === 0) {
+        return null;
+      }
+
+      return {
+        count: alreadyInGroupCount,
+        programEnrollmentsAfter: [],
+      };
     }
 
     const programEnrollmentsAfter = await tx.programEnrollment.findMany({
@@ -135,7 +170,7 @@ export async function movePartnersToGroup({
     });
 
     return {
-      count,
+      count: count + alreadyInGroupCount,
       programEnrollmentsAfter,
     };
   });
@@ -146,6 +181,10 @@ export async function movePartnersToGroup({
 
   const { count, programEnrollmentsAfter } = result;
   const movedPartnerIds = pluck(programEnrollmentsAfter, "partnerId");
+
+  if (movedPartnerIds.length === 0) {
+    return count;
+  }
 
   await processPartnerGroupChangeJob.dispatch(
     {
