@@ -140,7 +140,7 @@ module.exports = withPlausibleProxy({
         missing: [
           {
             type: "host",
-            value: ".*(\\.dub\\.co|localhost)",
+            value: "(.+\\.)?dub\\.co|.*localhost",
           },
         ],
         destination: "/",
@@ -167,42 +167,6 @@ module.exports = withPlausibleProxy({
           },
         ],
         destination: "https://app.dub.co/:path*",
-        permanent: true,
-        statusCode: 301,
-      },
-      {
-        source: "/",
-        has: [
-          {
-            type: "host",
-            value: "staging.dub.sh",
-          },
-        ],
-        destination: "https://dub.co",
-        permanent: true,
-        statusCode: 301,
-      },
-      {
-        source: "/",
-        has: [
-          {
-            type: "host",
-            value: "preview.dub.sh",
-          },
-        ],
-        destination: "https://preview.dub.co",
-        permanent: true,
-        statusCode: 301,
-      },
-      {
-        source: "/",
-        has: [
-          {
-            type: "host",
-            value: "admin.dub.sh",
-          },
-        ],
-        destination: "https://admin.dub.co",
         permanent: true,
         statusCode: 301,
       },
