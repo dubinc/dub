@@ -1,8 +1,7 @@
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { DubApiError } from "@/lib/api/errors";
+import { deletePartnerGroup } from "@/lib/api/groups/delete-partner-group";
 import { getGroupOrThrow } from "@/lib/api/groups/get-group-or-throw";
-import { movePartnersToGroup } from "@/lib/api/groups/move-partners-to-group";
-import { removeGroupIdFromMoveRules } from "@/lib/api/groups/remove-group-id-from-move-rules";
 import { upsertGroupMoveRules } from "@/lib/api/groups/upsert-group-move-rules";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
@@ -263,31 +262,20 @@ export const DELETE = withWorkspace(
     const programId = getDefaultProgramIdOrThrow(workspace);
     const { groupIdOrSlug } = params;
 
-    const [group, defaultGroup] = await Promise.all([
-      prisma.partnerGroup.findUniqueOrThrow({
-        where: {
-          ...(groupIdOrSlug.startsWith("grp_")
-            ? {
-                id: groupIdOrSlug,
-              }
-            : {
-                programId_slug: {
-                  programId,
-                  slug: groupIdOrSlug,
-                },
-              }),
-        },
-      }),
-
-      prisma.partnerGroup.findUniqueOrThrow({
-        where: {
-          programId_slug: {
-            programId,
-            slug: DEFAULT_PARTNER_GROUP.slug,
-          },
-        },
-      }),
-    ]);
+    const group = await prisma.partnerGroup.findUniqueOrThrow({
+      where: {
+        ...(groupIdOrSlug.startsWith("grp_")
+          ? {
+              id: groupIdOrSlug,
+            }
+          : {
+              programId_slug: {
+                programId,
+                slug: groupIdOrSlug,
+              },
+            }),
+      },
+    });
 
     if (group.programId !== programId) {
       throw new DubApiError({
@@ -296,121 +284,28 @@ export const DELETE = withWorkspace(
       });
     }
 
-    if (group.slug === DEFAULT_PARTNER_GROUP.slug) {
-      throw new DubApiError({
-        code: "forbidden",
-        message: "You cannot delete the default group of your program.",
-      });
-    }
+    await deletePartnerGroup(group);
 
-    while (true) {
-      const programEnrollments = await prisma.programEnrollment.findMany({
-        where: {
-          groupId: group.id,
-        },
-        take: 100,
-      });
-      if (programEnrollments.length === 0) {
-        break;
-      }
-      const count = await movePartnersToGroup({
+    waitUntil(
+      recordAuditLog({
         workspaceId: workspace.id,
         programId,
-        partnerIds: programEnrollments.map(({ partnerId }) => partnerId),
-        userId: session.user.id,
-        group: defaultGroup,
-        isGroupDeleted: true,
-      });
-      console.log(`Moved ${count} partners to the default group`);
-    }
-
-    let shouldDeleteGroupRewards = false;
-
-    const groupRewardIds = [
-      group.clickRewardId,
-      group.leadRewardId,
-      group.saleRewardId,
-      group.referralRewardId,
-      group.customRewardId,
-    ].filter(Boolean) as string[];
-
-    if (groupRewardIds.length > 0) {
-      const groupRewardCommissions = await prisma.commission.count({
-        where: {
-          programId,
-          rewardId: {
-            in: groupRewardIds,
+        action: "group.deleted",
+        description: `Group ${group.name} (${group.id}) deleted`,
+        actor: session.user,
+        targets: [
+          {
+            type: "group",
+            id: group.id,
+            metadata: group,
           },
-        },
-        take: 100,
-      });
-      if (groupRewardCommissions === 0) {
-        shouldDeleteGroupRewards = true;
-      }
-    }
+        ],
+      }),
+    );
 
-    const deletedGroup = await prisma.$transaction(async (tx) => {
-      // 1. Delete the group's rewards (if no commissions are associated with the rewards)
-      if (shouldDeleteGroupRewards) {
-        await tx.reward.deleteMany({
-          where: {
-            id: {
-              in: groupRewardIds,
-            },
-          },
-        });
-      }
-
-      // Note: we can't delete this group's discount yet because it is needed
-      // for `remap-discount-codes` that runs in movePartnersToGroup
-      // but we will delete the Discount in `remap-discount-codes` once there are no remaining discount codes.
-
-      // 2. Delete the group move workflow
-      if (group.workflowId) {
-        await tx.workflow.delete({
-          where: {
-            id: group.workflowId,
-          },
-        });
-      }
-
-      // 3. Delete the group
-      await tx.partnerGroup.delete({
-        where: {
-          id: group.id,
-        },
-      });
-
-      return true;
+    return NextResponse.json({
+      id: group.id,
     });
-
-    if (deletedGroup) {
-      waitUntil(
-        Promise.allSettled([
-          recordAuditLog({
-            workspaceId: workspace.id,
-            programId,
-            action: "group.deleted",
-            description: `Group ${group.name} (${group.id}) deleted`,
-            actor: session.user,
-            targets: [
-              {
-                type: "group",
-                id: group.id,
-                metadata: group,
-              },
-            ],
-          }),
-
-          removeGroupIdFromMoveRules({
-            programId,
-            groupId: group.id,
-          }),
-        ]),
-      );
-    }
-
-    return NextResponse.json({ id: group.id });
   },
   {
     requiredPermissions: ["groups.write"],

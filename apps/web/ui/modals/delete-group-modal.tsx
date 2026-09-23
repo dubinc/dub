@@ -7,7 +7,6 @@ import { Users } from "lucide-react";
 import { FormEvent, useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { GroupColorCircle } from "../partners/groups/group-color-circle";
-import { PartnerEmailNotificationTooltipHelper } from "../shared/partner-email-notification-tooltip-helper";
 
 interface DeleteGroupModalProps {
   group: Pick<GroupExtendedProps, "id" | "name" | "color" | "totalPartners">;
@@ -33,6 +32,7 @@ const DeleteGroupModal = ({
       onSuccess: async () => {
         setShowModal(false);
         await mutatePrefix("/api/groups");
+        await mutatePrefix("/api/partners/count");
         toast.success("Group deleted successfully!");
         onDelete?.();
       },
@@ -71,25 +71,6 @@ const DeleteGroupModal = ({
               <ul className="mt-0.5 list-outside list-disc space-y-px pl-4">
                 <li>Rewards created for this group will be deleted.</li>
                 <li>Discount created for this group will be deleted.</li>
-
-                {group.totalPartners && group.totalPartners > 0 ? (
-                  <>
-                    <li>
-                      Partners in this group will be moved to your{" "}
-                      <strong>Default</strong> group.
-                    </li>
-                    <li>
-                      Partners in this group will have their rewards and
-                      discount updated to the <strong>Default</strong> group
-                      settings.
-                    </li>
-                    <li>
-                      Partners in this group will be{" "}
-                      <PartnerEmailNotificationTooltipHelper /> about the
-                      change.
-                    </li>
-                  </>
-                ) : null}
               </ul>
 
               <p className="mt-4">
