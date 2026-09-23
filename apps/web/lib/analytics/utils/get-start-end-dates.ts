@@ -20,7 +20,7 @@ export const getStartEndDates = ({
 
   let startDate: TZDate;
   let endDate: TZDate;
-  let granularity: "minute" | "hour" | "day" | "month" = "day";
+  let granularity: "hour" | "day" | "month" = "day";
 
   if (start || (interval === "all" && dataAvailableFrom)) {
     startDate = startOfDay(
@@ -34,7 +34,7 @@ export const getStartEndDates = ({
 
     if (daysDifference <= 2) {
       granularity = "hour";
-    } else if (daysDifference > 180) {
+    } else if (daysDifference > 90) {
       granularity = "month";
     }
 
