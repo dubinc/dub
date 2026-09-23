@@ -4,6 +4,8 @@ import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-progr
 import { createSignedUploadUrl } from "@/lib/storage/create-signed-upload-url";
 import { signedUploadInputSchema } from "@/lib/storage/schemas";
 import { validateSignedUpload } from "@/lib/storage/validate-signed-upload";
+import { assertRateLimit } from "@/lib/upstash/assert-rate-limit";
+import { RATELIMIT_POLICIES } from "@/lib/upstash/ratelimit-policies";
 import { nanoid } from "@dub/utils";
 import * as z from "zod/v4";
 import { authActionClient } from "../safe-action";
@@ -17,7 +19,7 @@ const inputSchema = z.object({
 export const uploadLanderImageAction = authActionClient
   .inputSchema(inputSchema)
   .action(async ({ ctx, parsedInput }) => {
-    const { workspace } = ctx;
+    const { workspace, user } = ctx;
     const { contentType, contentLength } = parsedInput;
 
     throwIfNoPermission({
@@ -31,6 +33,11 @@ export const uploadLanderImageAction = authActionClient
       contentLength,
       contentType,
       policy: "programLanderImages",
+    });
+
+    await assertRateLimit({
+      policy: RATELIMIT_POLICIES.workspaceFileUpload,
+      identifier: [workspace.id, user.id],
     });
 
     const { key, signedUrl, destinationUrl } = await createSignedUploadUrl({
