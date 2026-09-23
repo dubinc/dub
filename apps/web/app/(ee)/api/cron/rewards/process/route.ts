@@ -225,24 +225,6 @@ export const POST = withCron(async ({ rawBody }) => {
     );
   }
 
-  // No more program enrollments found, hard delete the reward
-  if (event === "reward-deleted") {
-    try {
-      await prisma.reward.delete({
-        where: {
-          id: reward.id,
-        },
-      });
-    } catch (error) {
-      // Treat already-deleted reward as success so retries can resend the notification
-      if (!(error.code === "P2025")) {
-        throw new Error(
-          `Failed to hard delete reward ${reward.id}: ${error instanceof Error ? error.message : String(error)}`,
-        );
-      }
-    }
-  }
-
   return logAndRespond(
     `Finished processing reward ${rewardId} for the group ${groupId}.`,
   );
