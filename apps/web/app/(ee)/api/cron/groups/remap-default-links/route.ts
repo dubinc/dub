@@ -3,7 +3,7 @@ import { bulkCreateLinks } from "@/lib/api/links";
 import { generatePartnerLink } from "@/lib/api/partners/generate-partner-link";
 import { applyGroupUtmToLink } from "@/lib/api/utm/apply-group-utm-to-link";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
-import { syncPartnerDiscountCodes } from "@/lib/discounts/sync-discount-codes";
+import { syncDiscountCodes } from "@/lib/discounts/sync-discount-codes";
 import { loadAppsFlyerParameters } from "@/lib/integrations/appsflyer/apply-parameters";
 import { AppsFlyerSettings } from "@/lib/integrations/appsflyer/schema";
 import { syncGroupUtmJob } from "@/lib/jobs/handlers/sync-group-utm-job";
@@ -255,7 +255,7 @@ export async function POST(req: Request) {
 
     await Promise.all(
       partnerIds.map((partnerId) =>
-        syncPartnerDiscountCodes({
+        syncDiscountCodes({
           programId,
           partnerId,
         }),

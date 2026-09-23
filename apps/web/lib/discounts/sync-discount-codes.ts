@@ -6,7 +6,7 @@ import { Discount, ProgramEnrollment } from "@prisma/client";
 import { ACTIVE_ENROLLMENT_STATUSES } from "../zod/schemas/partners";
 
 // Read discount codes for a partner in a program and fan out per-code remap jobs
-export async function syncPartnerDiscountCodes({
+export async function syncDiscountCodes({
   programId,
   partnerId,
 }: Pick<ProgramEnrollment, "programId" | "partnerId">) {

@@ -11,7 +11,7 @@ import {
   toPartnerLinkRewardIdFields,
 } from "@/lib/api/rewards/reward-overrides";
 import { throwIfInvalidRewards } from "@/lib/api/rewards/throw-if-invalid-rewards";
-import { syncPartnerDiscountCodes } from "@/lib/discounts/sync-discount-codes";
+import { syncDiscountCodes } from "@/lib/discounts/sync-discount-codes";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { prisma } from "@/lib/prisma";
 import { PARTNER_LEVEL_REWARDS_PLAN_ERROR } from "@/lib/rewards/constants";
@@ -155,7 +155,7 @@ export async function updatePartnerLink({
   }
 
   if (body.discountId !== undefined) {
-    await syncPartnerDiscountCodes({
+    await syncDiscountCodes({
       programId,
       partnerId: link.partnerId,
     });
