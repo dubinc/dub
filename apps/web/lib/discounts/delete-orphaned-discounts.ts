@@ -28,47 +28,39 @@ export async function deleteOrphanedDiscounts(cutoff: Date) {
   const discountIds = pluck(discounts, "id");
 
   const [enrollments, groups, linkRewards, discountCodes] = await Promise.all([
-    prisma.programEnrollment.findMany({
+    prisma.programEnrollment.groupBy({
+      by: ["discountId"],
       where: {
         discountId: {
           in: discountIds,
         },
-      },
-      select: {
-        discountId: true,
       },
     }),
 
-    prisma.partnerGroup.findMany({
+    prisma.partnerGroup.groupBy({
+      by: ["discountId"],
       where: {
         discountId: {
           in: discountIds,
         },
-      },
-      select: {
-        discountId: true,
       },
     }),
 
-    prisma.linkReward.findMany({
+    prisma.linkReward.groupBy({
+      by: ["discountId"],
       where: {
         discountId: {
           in: discountIds,
         },
-      },
-      select: {
-        discountId: true,
       },
     }),
 
-    prisma.discountCode.findMany({
+    prisma.discountCode.groupBy({
+      by: ["discountId"],
       where: {
         discountId: {
           in: discountIds,
         },
-      },
-      select: {
-        discountId: true,
       },
     }),
   ]);

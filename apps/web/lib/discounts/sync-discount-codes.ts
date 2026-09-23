@@ -3,7 +3,6 @@ import { remapDiscountCodeJob } from "@/lib/jobs/handlers/remap-discount-code-jo
 import { prisma } from "@/lib/prisma";
 import { APP_DOMAIN_WITH_NGROK, pluck } from "@dub/utils";
 import { Discount } from "@prisma/client";
-import { ACTIVE_ENROLLMENT_STATUSES } from "../zod/schemas/partners";
 
 // Remap existing codes and enqueue missing default-link codes for partners in a program
 export async function syncDiscountCodes({
@@ -25,9 +24,6 @@ export async function syncDiscountCodes({
       partnerId: {
         in: partnerIds,
       },
-      status: {
-        in: ACTIVE_ENROLLMENT_STATUSES,
-      },
     },
     select: {
       partnerId: true,
@@ -37,18 +33,18 @@ export async function syncDiscountCodes({
 
   if (programEnrollments.length === 0) {
     console.info(
-      `No active program enrollments found for program ${programId}. Skipping discount code sync...`,
+      `No program enrollments found for program ${programId}. Skipping discount code sync...`,
     );
     return;
   }
 
-  const activePartnerIds = pluck(programEnrollments, "partnerId");
+  const enrolledPartnerIds = pluck(programEnrollments, "partnerId");
 
   const discountCodes = await prisma.discountCode.findMany({
     where: {
       programId,
       partnerId: {
-        in: activePartnerIds,
+        in: enrolledPartnerIds,
       },
       disabledAt: null,
     },
@@ -59,7 +55,7 @@ export async function syncDiscountCodes({
 
   if (discountCodes.length === 0) {
     console.info(
-      `No discount codes found for ${activePartnerIds.length} partners in program ${programId}. Skipping remap jobs...`,
+      `No discount codes found for ${enrolledPartnerIds.length} partners in program ${programId}. Skipping remap jobs...`,
     );
   } else {
     await remapDiscountCodeJob.dispatchBatch(

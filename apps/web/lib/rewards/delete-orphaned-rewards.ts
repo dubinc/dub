@@ -43,49 +43,41 @@ export async function deleteOrphanedRewards(cutoff: Date) {
       LINK_REWARD_EVENT_COLUMNS.has(rewardIdColumn);
 
     const [enrollments, groups, linkRewards, commissions] = await Promise.all([
-      prisma.programEnrollment.findMany({
+      prisma.programEnrollment.groupBy({
+        by: [rewardIdColumn],
         where: {
           [rewardIdColumn]: {
             in: rewardIds,
           },
-        },
-        select: {
-          [rewardIdColumn]: true,
         },
       }),
 
-      prisma.partnerGroup.findMany({
+      prisma.partnerGroup.groupBy({
+        by: [rewardIdColumn],
         where: {
           [rewardIdColumn]: {
             in: rewardIds,
           },
-        },
-        select: {
-          [rewardIdColumn]: true,
         },
       }),
 
       canReferenceLinkReward
-        ? prisma.linkReward.findMany({
+        ? prisma.linkReward.groupBy({
+            by: [rewardIdColumn],
             where: {
               [rewardIdColumn]: {
                 in: rewardIds,
               },
             },
-            select: {
-              [rewardIdColumn]: true,
-            },
           })
         : Promise.resolve([]),
 
-      prisma.commission.findMany({
+      prisma.commission.groupBy({
+        by: ["rewardId"],
         where: {
           rewardId: {
             in: rewardIds,
           },
-        },
-        select: {
-          rewardId: true,
         },
       }),
     ]);

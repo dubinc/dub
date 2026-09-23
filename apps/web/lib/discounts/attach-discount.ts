@@ -56,32 +56,36 @@ export async function attachDiscount({
   });
 
   if (enrollments.length > 0) {
-    const { count } = await prisma.programEnrollment.updateMany({
-      where: {
-        id: {
-          in: pluck(enrollments, "id"),
-        },
-        groupId,
-        discountId: null,
-      },
-      data: {
-        discountId: discount.id,
-      },
-    });
+    const enrollmentIds = pluck(enrollments, "id");
 
-    await prisma.discountCode.updateMany({
-      where: {
-        discountId: null,
-        programEnrollment: {
+    const [{ count }] = await prisma.$transaction([
+      prisma.programEnrollment.updateMany({
+        where: {
           id: {
-            in: pluck(enrollments, "id"),
+            in: enrollmentIds,
+          },
+          groupId,
+          discountId: null,
+        },
+        data: {
+          discountId: discount.id,
+        },
+      }),
+
+      prisma.discountCode.updateMany({
+        where: {
+          discountId: null,
+          programEnrollment: {
+            id: {
+              in: enrollmentIds,
+            },
           },
         },
-      },
-      data: {
-        discountId: discount.id,
-      },
-    });
+        data: {
+          discountId: discount.id,
+        },
+      }),
+    ]);
 
     console.info(
       `Attached discount ${discount.id} to ${count} enrollments in group ${groupId}.`,

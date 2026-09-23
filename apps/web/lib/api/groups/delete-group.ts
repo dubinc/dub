@@ -30,24 +30,6 @@ export async function deletePartnerGroup(
     });
   }
 
-  const enrollment = await prisma.programEnrollment.findFirst({
-    where: {
-      groupId: group.id,
-    },
-    select: {
-      id: true,
-    },
-    take: 1,
-  });
-
-  if (enrollment) {
-    throw new DubApiError({
-      code: "bad_request",
-      message:
-        "You cannot delete a group that still has partners. Move them to another group first.",
-    });
-  }
-
   const discounts = await prisma.discount.findMany({
     where: {
       groupId: group.id,
@@ -57,9 +39,9 @@ export async function deletePartnerGroup(
     },
   });
 
-  await prisma.$transaction([
+  await prisma.$transaction(async (tx) => {
     // Soft delete rewards
-    prisma.reward.updateMany({
+    await tx.reward.updateMany({
       where: {
         groupId: group.id,
       },
@@ -67,64 +49,69 @@ export async function deletePartnerGroup(
         programId: null,
         groupId: null,
       },
-    }),
+    });
 
     // Soft delete discounts (orphaned-rewards cron hard-deletes after remapping)
-    prisma.discount.updateMany({
+    await tx.discount.updateMany({
       where: {
         groupId: group.id,
       },
       data: {
         programId: null,
       },
-    }),
+    });
 
     // Delete group move workflow
-    ...(group.workflowId
-      ? [
-          prisma.workflow.delete({
-            where: {
-              id: group.workflowId,
-            },
-          }),
-        ]
-      : []),
+    if (group.workflowId) {
+      await tx.workflow.delete({
+        where: {
+          id: group.workflowId,
+        },
+      });
+    }
 
-    // Delete the group
-    prisma.partnerGroup.delete({
+    // Only delete when no enrollments still reference this group
+    const { count } = await tx.partnerGroup.deleteMany({
       where: {
         id: group.id,
+        partners: {
+          none: {},
+        },
       },
-    }),
-  ]);
+    });
+
+    if (count === 0) {
+      throw new DubApiError({
+        code: "bad_request",
+        message:
+          "You cannot delete a group that still has partners. Move them to another group first.",
+      });
+    }
+  });
+
+  // An empty group (no enrollments with this `groupId`)
+  // can still own discount rows referenced by codes/enrollments/LinkReward
+  // for partners who already moved if remaps are in-flight
+  if (discounts.length > 0) {
+    await dispatchWorkflows(
+      discounts.map((discount) => ({
+        name: "detach-discount-workflow" as const,
+        payload: {
+          programId: group.programId,
+          discountId: discount.id,
+        },
+        options: {
+          label: discount.id,
+          deduplicationId: `detach-discount-${discount.id}`,
+        },
+      })),
+    );
+  }
 
   waitUntil(
-    Promise.allSettled([
-      removeGroupIdFromMoveRules({
-        programId: group.programId,
-        groupId: group.id,
-      }),
-
-      // An empty group (no enrollments with this `groupId`)
-      // can still own discount rows referenced by codes/enrollments/LinkReward
-      // for partners who already moved if remaps are in-flight
-      ...(discounts.length > 0
-        ? [
-            dispatchWorkflows(
-              discounts.map((discount) => ({
-                name: "detach-discount-workflow" as const,
-                payload: {
-                  programId: group.programId,
-                  discountId: discount.id,
-                },
-                options: {
-                  label: discount.id,
-                  deduplicationId: `detach-discount-${discount.id}`,
-                },
-              })),
-            ),
-          ]
-        : []),
-    ]),
+    removeGroupIdFromMoveRules({
+      programId: group.programId,
+      groupId: group.id,
+    }),
   );
 }

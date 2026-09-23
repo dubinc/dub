@@ -95,12 +95,12 @@ export const processPartnerGroupChangeJob = defineJob({
       }),
 
       recordLink(partnerLinks),
-
-      notifyPartnerGroupChange({
-        programId,
-        groupId,
-        partnerIds: movedPartnerIds,
-      }),
     ]);
+
+    await notifyPartnerGroupChange({
+      programId,
+      groupId,
+      partnerIds: movedPartnerIds,
+    });
   },
 });
