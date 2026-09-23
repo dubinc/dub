@@ -58,34 +58,72 @@ export async function attachDiscount({
   if (enrollments.length > 0) {
     const enrollmentIds = pluck(enrollments, "id");
 
-    const [{ count }] = await prisma.$transaction([
-      prisma.programEnrollment.updateMany({
+    // Re-check liveness inside the transaction so a concurrent soft-delete
+    // (clears PartnerGroup.discountId / Discount.programId) cannot stamp this id
+    const count = await prisma.$transaction(async (tx) => {
+      const stillValid = await tx.discount.findFirst({
+        where: {
+          id: discount.id,
+          programId: {
+            not: null,
+          },
+          defaultForPartnerGroup: {
+            is: {
+              id: groupId,
+            },
+          },
+        },
+        select: {
+          id: true,
+        },
+      });
+
+      if (!stillValid) {
+        return null;
+      }
+
+      const { count } = await tx.programEnrollment.updateMany({
         where: {
           id: {
             in: enrollmentIds,
           },
           groupId,
           discountId: null,
+          partnerGroup: {
+            discountId: discount.id,
+          },
         },
         data: {
           discountId: discount.id,
         },
-      }),
+      });
 
-      prisma.discountCode.updateMany({
+      // Only stamp codes for enrollments that still point at this discount
+      // (skips partners who received a partner-level override mid-batch)
+      await tx.discountCode.updateMany({
         where: {
           discountId: null,
           programEnrollment: {
             id: {
               in: enrollmentIds,
             },
+            discountId: discount.id,
           },
         },
         data: {
           discountId: discount.id,
         },
-      }),
-    ]);
+      });
+
+      return count;
+    });
+
+    if (count === null) {
+      console.info(
+        `Discount ${discount.id} is no longer the group default. Skipping...`,
+      );
+      return null;
+    }
 
     console.info(
       `Attached discount ${discount.id} to ${count} enrollments in group ${groupId}.`,
@@ -96,6 +134,31 @@ export async function attachDiscount({
     return {
       hasMore: true,
     };
+  }
+
+  // Final liveness check before side effects (invalidate / auto-provision)
+  const stillValid = await prisma.discount.findFirst({
+    where: {
+      id: discount.id,
+      programId: {
+        not: null,
+      },
+      defaultForPartnerGroup: {
+        is: {
+          id: groupId,
+        },
+      },
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  if (!stillValid) {
+    console.info(
+      `Discount ${discount.id} is no longer the group default. Skipping...`,
+    );
+    return null;
   }
 
   await Promise.all([

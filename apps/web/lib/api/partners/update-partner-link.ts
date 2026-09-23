@@ -164,6 +164,7 @@ export async function updatePartnerLink({
   waitUntil(
     Promise.allSettled([
       linkCache.expireMany([link]),
+
       trackLinkRewardOverrideLog({
         workspaceId: workspace.id,
         programId,

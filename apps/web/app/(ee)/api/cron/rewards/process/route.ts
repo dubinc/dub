@@ -135,9 +135,13 @@ export const POST = withCron(async ({ rawBody }) => {
   const programEnrollments = await prisma.programEnrollment.findMany({
     where: {
       groupId: group.id,
-      status: {
-        notIn: INACTIVE_ENROLLMENT_STATUSES,
-      },
+      // reward-deleted must also clear banned/deactivated/rejected enrollments.
+      // Those FKs block orphan hard-delete. Notifications stay active-only below.
+      ...(event !== "reward-deleted" && {
+        status: {
+          notIn: INACTIVE_ENROLLMENT_STATUSES,
+        },
+      }),
       ...(startAfterProgramEnrollmentId && {
         id: {
           gt: startAfterProgramEnrollmentId,

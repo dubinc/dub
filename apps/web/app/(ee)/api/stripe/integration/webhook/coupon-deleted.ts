@@ -1,13 +1,11 @@
 import { getWorkspaceUsers } from "@/lib/api/get-workspace-users";
-import { getPartnersByDiscountIds } from "@/lib/discounts/get-partners-by-discount-ids";
-import { invalidateLinksForDiscountsJob } from "@/lib/jobs/handlers/invalidate-links-for-discounts-job";
+import { dispatchWorkflows } from "@/lib/jobs/publish-workflows";
 import { prisma } from "@/lib/prisma";
 import { sendBatchEmail } from "@dub/email";
 import { VARIANT_TO_FROM_MAP } from "@dub/email/resend/constants";
 import DiscountDeleted from "@dub/email/templates/discount-deleted";
 import { pluck } from "@dub/utils";
 import { DiscountProvider } from "@prisma/client";
-import { waitUntil } from "@vercel/functions";
 import type Stripe from "stripe";
 import { WebhookHandlerInput, WebhookHandlerResponse } from "./types";
 
@@ -44,8 +42,6 @@ export async function couponDeleted({
   }
 
   const discountIds = pluck(discounts, "id");
-  const partners = await getPartnersByDiscountIds({ discountIds });
-  const partnerIds = pluck(partners, "id");
 
   await prisma.$transaction(async (tx) => {
     await tx.partnerGroup.updateMany({
@@ -59,72 +55,50 @@ export async function couponDeleted({
       },
     });
 
-    await tx.programEnrollment.updateMany({
-      where: {
-        discountId: {
-          in: discountIds,
-        },
-      },
-      data: {
-        discountId: null,
-      },
-    });
-
-    await tx.discountCode.deleteMany({
-      where: {
-        discountId: {
-          in: discountIds,
-        },
-      },
-    });
-
-    await tx.discount.deleteMany({
+    // Soft delete the discounts
+    await tx.discount.updateMany({
       where: {
         id: {
           in: discountIds,
         },
       },
+      data: {
+        programId: null,
+      },
     });
   });
 
-  waitUntil(
-    (async () => {
-      const { users } = await getWorkspaceUsers({
-        workspaceId: workspace.id,
-        role: "owner",
-      });
+  await dispatchWorkflows(
+    discountIds.map((discountId) => ({
+      name: "detach-discount-workflow" as const,
+      payload: {
+        programId,
+        discountId,
+      },
+      options: {
+        label: discountId,
+        deduplicationId: `detach-discount-${discountId}`,
+      },
+    })),
+  );
 
-      await Promise.allSettled([
-        ...(partnerIds.length > 0
-          ? [
-              invalidateLinksForDiscountsJob.dispatch(
-                {
-                  type: "partners",
-                  programId,
-                  partnerIds,
-                },
-                {
-                  label: coupon.id,
-                },
-              ),
-            ]
-          : []),
+  const { users } = await getWorkspaceUsers({
+    workspaceId: workspace.id,
+    role: "owner",
+  });
 
-        sendBatchEmail(
-          users.map((user) => ({
-            from: VARIANT_TO_FROM_MAP.notifications,
-            to: user.email,
-            subject: "Your discount has been deleted",
-            react: DiscountDeleted({
-              email: user.email,
-              coupon: {
-                id: coupon.id,
-              },
-            }),
-          })),
-        ),
-      ]);
-    })(),
+  await sendBatchEmail(
+    users.map((user) => ({
+      from: VARIANT_TO_FROM_MAP.notifications,
+      to: user.email,
+      subject: "Your discount has been deleted",
+      react: DiscountDeleted({
+        email: user.email,
+        coupon: {
+          id: coupon.id,
+        },
+      }),
+    })),
   );
 
   return {
