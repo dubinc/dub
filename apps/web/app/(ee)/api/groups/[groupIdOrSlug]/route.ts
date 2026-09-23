@@ -1,6 +1,6 @@
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { DubApiError } from "@/lib/api/errors";
-import { deletePartnerGroup } from "@/lib/api/groups/delete-partner-group";
+import { deletePartnerGroup } from "@/lib/api/groups/delete-group";
 import { getGroupOrThrow } from "@/lib/api/groups/get-group-or-throw";
 import { upsertGroupMoveRules } from "@/lib/api/groups/upsert-group-move-rules";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";

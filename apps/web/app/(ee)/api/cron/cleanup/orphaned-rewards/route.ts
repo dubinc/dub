@@ -1,6 +1,7 @@
 import { PRISMA_UPDATEMANY_LIMIT } from "@/lib/cron";
 import { withCron } from "@/lib/cron/with-cron";
 import { prisma } from "@/lib/prisma";
+import { deleteOrphanedRewards } from "@/lib/rewards/delete-orphaned-rewards";
 import { subMinutes } from "date-fns";
 import { logAndRespond } from "../../utils";
 
@@ -31,75 +32,6 @@ export const POST = withCron(async () => {
     `Finished cleanup (${deletedRewardsCount} rewards, ${deletedLinkRewardsCount} empty link rewards deleted).`,
   );
 });
-
-async function deleteOrphanedRewards(cutoff: Date) {
-  const rewards = await prisma.reward.findMany({
-    where: {
-      programId: null,
-      updatedAt: {
-        lt: cutoff,
-      },
-    },
-    select: {
-      id: true,
-      clickPartnerGroup: true,
-      leadPartnerGroup: true,
-      salePartnerGroup: true,
-      referralPartnerGroup: true,
-      customPartnerGroup: true,
-      _count: {
-        select: {
-          clickEnrollments: true,
-          leadEnrollments: true,
-          saleEnrollments: true,
-          referralEnrollments: true,
-          customEnrollments: true,
-        },
-      },
-    },
-    orderBy: {
-      updatedAt: "asc",
-    },
-    take: 100,
-  });
-
-  if (rewards.length === 0) {
-    return 0;
-  }
-
-  const rewardsToDelete = rewards.filter((reward) => {
-    return (
-      reward.clickPartnerGroup === null &&
-      reward.leadPartnerGroup === null &&
-      reward.salePartnerGroup === null &&
-      reward.referralPartnerGroup === null &&
-      reward.customPartnerGroup === null &&
-      reward._count.clickEnrollments === 0 &&
-      reward._count.leadEnrollments === 0 &&
-      reward._count.saleEnrollments === 0 &&
-      reward._count.referralEnrollments === 0 &&
-      reward._count.customEnrollments === 0
-    );
-  });
-
-  console.log(
-    `Found ${rewardsToDelete.length} rewards to delete out of ${rewards.length} rewards (some of them are referenced by partner groups or program enrollments).`,
-  );
-
-  if (rewardsToDelete.length === 0) {
-    return 0;
-  }
-
-  const deletedRewards = await prisma.reward.deleteMany({
-    where: {
-      id: {
-        in: rewardsToDelete.map((reward) => reward.id),
-      },
-    },
-  });
-
-  return deletedRewards.count;
-}
 
 async function deleteEmptyLinkRewards() {
   let deletedCount = 0;
