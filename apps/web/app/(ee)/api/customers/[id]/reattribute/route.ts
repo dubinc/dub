@@ -129,7 +129,15 @@ export const POST = withWorkspace(
           programId: link.programId,
         },
         include: {
-          link: true,
+          link: {
+            include: {
+              linkReward: {
+                select: {
+                  discount: true,
+                },
+              },
+            },
+          },
           programEnrollment: {
             include: {
               partner: true,
