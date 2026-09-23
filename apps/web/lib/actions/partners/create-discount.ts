@@ -4,15 +4,13 @@ import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { createId } from "@/lib/api/create-id";
 import { getGroupOrThrow } from "@/lib/api/groups/get-group-or-throw";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
-import { qstash } from "@/lib/cron";
 import { getDiscountProvider } from "@/lib/discounts/discount-provider";
-import { invalidateLinksForDiscountsJob } from "@/lib/jobs/handlers/invalidate-links-for-discounts-job";
+import { attachDiscountJob } from "@/lib/jobs/handlers/attach-discount-job";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { prisma } from "@/lib/prisma";
 import { PARTNER_LEVEL_REWARDS_PLAN_ERROR } from "@/lib/rewards/constants";
 import { DubDiscountAttributes } from "@/lib/stripe/coupon-discount-converter";
 import { createDiscountSchema } from "@/lib/zod/schemas/discount";
-import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { DiscountProvider } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
@@ -81,7 +79,7 @@ export const createDiscountAction = authActionClient
       });
     }
 
-    // Create the discount and update the group and program enrollment
+    // Create the discount and assign it to the group when it is the default
     const discount = await prisma.$transaction(async (tx) => {
       const discount = await tx.discount.create({
         data: {
@@ -102,7 +100,6 @@ export const createDiscountAction = authActionClient
         },
       });
 
-      // Assign to the group if it is the default discount
       if (isDefault) {
         const { count } = await tx.partnerGroup.updateMany({
           where: {
@@ -118,75 +115,33 @@ export const createDiscountAction = authActionClient
         if (count === 0) {
           throw new Error("This group already has a default discount.");
         }
-
-        await tx.discountCode.updateMany({
-          where: {
-            programEnrollment: {
-              groupId,
-              discountId: null,
-            },
-          },
-          data: {
-            discountId: discount.id,
-          },
-        });
-
-        await tx.programEnrollment.updateMany({
-          where: {
-            groupId,
-            discountId: null,
-          },
-          data: {
-            discountId: discount.id,
-          },
-        });
       }
 
       return discount;
     });
 
+    if (isDefault) {
+      attachDiscountJob.dispatch(
+        { discountId: discount.id },
+        { label: discount.id },
+      );
+    }
+
     waitUntil(
-      Promise.allSettled([
-        ...(isDefault
-          ? [
-              invalidateLinksForDiscountsJob.dispatch(
-                {
-                  type: "discount",
-                  discountId: discount.id,
-                },
-                {
-                  label: discount.id,
-                },
-              ),
-            ]
-          : []),
-
-        recordAuditLog({
-          workspaceId: workspace.id,
-          programId,
-          action: "discount.created",
-          description: `Discount ${discount.id} created`,
-          actor: user,
-          targets: [
-            {
-              type: "discount",
-              id: discount.id,
-              metadata: discount,
-            },
-          ],
-        }),
-
-        ...(discount.autoProvisionEnabledAt
-          ? [
-              qstash.publishJSON({
-                url: `${APP_DOMAIN_WITH_NGROK}/api/cron/discount-codes/create/queue-batches`,
-                body: {
-                  discountId: discount.id,
-                },
-              }),
-            ]
-          : []),
-      ]),
+      recordAuditLog({
+        workspaceId: workspace.id,
+        programId,
+        action: "discount.created",
+        description: `Discount ${discount.id} created`,
+        actor: user,
+        targets: [
+          {
+            type: "discount",
+            id: discount.id,
+            metadata: discount,
+          },
+        ],
+      }),
     );
 
     return {

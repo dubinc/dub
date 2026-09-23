@@ -81,6 +81,9 @@ const jobLoaders = {
       (m) => m.remapDiscountCodeJob,
     ),
 
+  "attach-discount-job": () =>
+    import("./handlers/attach-discount-job").then((m) => m.attachDiscountJob),
+
   "aggregate-clicks-job": () =>
     import("./handlers/aggregate-clicks-job").then((m) => m.aggregateClicksJob),
 } as const satisfies Record<string, () => Promise<JobDefinition>>;
