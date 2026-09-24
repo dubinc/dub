@@ -1,8 +1,9 @@
-import { prisma, sanitizeFullTextSearch } from "@/lib/prisma";
+import { prisma } from "@/lib/prisma";
 import { getCustomersQuerySchemaExtended } from "@/lib/zod/schemas/customers";
 import * as z from "zod/v4";
 import { DubApiError } from "../../api/errors";
 import { buildPaginationQuery } from "../../api/pagination";
+import { buildCustomerSearchWhere } from "./customer-count-where";
 
 type GetCustomersInput = z.infer<typeof getCustomersQuerySchemaExtended> & {
   workspaceId: string;
@@ -62,18 +63,7 @@ export async function getCustomers(filters: GetCustomersInput) {
         partnerId,
       }),
       projectId: workspaceId,
-      ...(email
-        ? { email }
-        : externalId
-          ? { externalId }
-          : search
-            ? search.includes("@")
-              ? { email: search }
-              : {
-                  email: { search: sanitizeFullTextSearch(search) },
-                  name: { search: sanitizeFullTextSearch(search) },
-                }
-            : {}),
+      ...buildCustomerSearchWhere({ email, externalId, search }),
       ...(country && {
         country,
       }),

@@ -511,7 +511,7 @@ function CustomersFilters({
           onSelectedFilterChange={setSelectedFilter}
         />
         <SearchBoxPersisted
-          placeholder="Search by email or name"
+          placeholder="Search by email, name, or ID"
           inputClassName="md:w-[16rem]"
         />
       </div>
