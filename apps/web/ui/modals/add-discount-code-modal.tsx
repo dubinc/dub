@@ -31,8 +31,7 @@ const sanitizeDiscountCode = (code: string) =>
   code
     .trim()
     .replace(/\s+/g, "-")
-    .replace(/[^a-zA-Z0-9\-_]/g, "")
-    .replace(/-{2,}/g, "-");
+    .replace(/[^a-zA-Z0-9\-_]/g, "");
 
 interface AddDiscountCodeModalProps {
   showModal: boolean;
