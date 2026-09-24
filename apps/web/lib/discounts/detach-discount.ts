@@ -85,7 +85,7 @@ export async function detachDiscountFromProgramEnrollments({
 
     await invalidateLinksForDiscountsJob.dispatch(
       {
-        type: "partners",
+        by: "partners",
         programId,
         partnerIds: pluck(enrollments, "partnerId"),
       },
@@ -161,7 +161,7 @@ export async function detachDiscountFromLinkRewards({
 
     if (partnerIds.length > 0) {
       await invalidateLinksForDiscountsJob.dispatch({
-        type: "partners",
+        by: "partners",
         programId,
         partnerIds,
       });

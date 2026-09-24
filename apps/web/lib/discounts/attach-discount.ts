@@ -179,7 +179,11 @@ export async function attachDiscount({
 
   await Promise.all([
     invalidateLinksForDiscountsJob.dispatch(
-      { type: "discount", discountId: discount.id },
+      {
+        by: "discount",
+        programId: discount.programId,
+        discountId: discount.id,
+      },
       { label: discount.id },
     ),
 
