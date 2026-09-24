@@ -70,6 +70,7 @@ describe("createSignedUploadUrl", () => {
     "programResourceLogos",
     "programResourceFiles",
     "bountySubmissionImages",
+    "resumes",
   ] as const satisfies ReadonlyArray<keyof typeof UPLOAD_POLICIES>)(
     "pins Content-Type and Content-Length into the signer for %s",
     async (policy) => {
@@ -200,6 +201,7 @@ describe("validateSignedUpload", () => {
       "programResourceLogos",
       "programResourceFiles",
       "bountySubmissionImages",
+      "resumes",
     ] as const satisfies ReadonlyArray<keyof typeof UPLOAD_POLICIES>;
 
     const xssContentTypes = [
