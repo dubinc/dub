@@ -23,11 +23,7 @@ const getSaleEventsMetadata = tb.buildPipe({
   }),
 });
 
-// TODO:
-// Find all migrated program ids from TB
-// Verify identifyImportSource is working correctly different sources
-
-const migratedProgramIds = [""];
+const migratedWorkspaceIds = [];
 
 function isPlainObject(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === "object" && !Array.isArray(value);
@@ -148,8 +144,12 @@ async function main() {
           not: null,
         },
         source: null,
-        programId: {
-          in: migratedProgramIds,
+        program: {
+          workspace: {
+            id: {
+              in: migratedWorkspaceIds,
+            },
+          },
         },
         ...(startingAfter && {
           id: {
