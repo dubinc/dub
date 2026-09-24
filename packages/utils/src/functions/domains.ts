@@ -88,7 +88,7 @@ export const isDubDomain = (domain: string) => {
 
 export const isGoogleClickTrackerDomain = (domain: string) => {
   // accepts both the full domain and the subdomain
-  return ["dub.sh", "dub.link"].some(
+  return ["dub.sh", "dub.link", "imx.gg"].some(
     (d) => d === domain || domain.endsWith(`.${d}`),
   );
 };
