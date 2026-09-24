@@ -125,7 +125,6 @@ export const publishDiscountCodesCreationJob = defineJob({
 
     await enqueueBatchJobs(
       partnerLinks.map((link) => ({
-        queueName: "create-discount-code",
         url: `${APP_DOMAIN_WITH_NGROK}/api/cron/discount-codes/create`,
         deduplicationId: `${discountId}-${link.id}`,
         flowControl: {

@@ -24,6 +24,11 @@ interface MovePartnersToGroupParams {
     | "discountId"
   >;
   groupMoveDisabledAt?: Date | null;
+  // Partner page moves one partner and refetches as soon as this request
+  // returns. Defaults to true for single-partner moves so the refetch sees
+  // cleared link overrides. Workflows / bulk moves leave this to
+  // processPartnerGroupChangeJob.
+  clearLinkRewardsSync?: boolean;
 }
 
 export async function movePartnersToGroup({
@@ -33,8 +38,12 @@ export async function movePartnersToGroup({
   userId,
   group,
   groupMoveDisabledAt,
+  clearLinkRewardsSync,
 }: MovePartnersToGroupParams): Promise<number> {
   partnerIds = [...new Set(partnerIds)];
+
+  const shouldClearLinkRewardsSync =
+    clearLinkRewardsSync ?? partnerIds.length === 1;
 
   if (partnerIds.length === 0) {
     throw new DubApiError({
@@ -168,11 +177,7 @@ export async function movePartnersToGroup({
       logs,
     });
 
-    // The partner page moves one partner and refetches as soon as this request
-    // returns. Clear link-level reward and discount overrides here so that
-    // refetch sees the updated state. Bulk moves leave this to
-    // processPartnerGroupChangeJob.
-    if (partnerIds.length === 1) {
+    if (shouldClearLinkRewardsSync) {
       const partnerLinks = await tx.link.findMany({
         where: {
           programId,

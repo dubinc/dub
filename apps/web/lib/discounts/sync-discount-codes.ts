@@ -141,7 +141,6 @@ export async function enqueueMissingDiscountCodes({
 
   await enqueueBatchJobs(
     linksToProvision.map((link) => ({
-      queueName: "create-discount-code",
       url: `${APP_DOMAIN_WITH_NGROK}/api/cron/discount-codes/create`,
       flowControl: {
         key: "create-discount-code",
