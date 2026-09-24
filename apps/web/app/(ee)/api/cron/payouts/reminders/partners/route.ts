@@ -10,7 +10,9 @@ export const dynamic = "force-dynamic";
 // Further batches are dispatched by sendConnectPayoutRemindersJob.
 // GET /api/cron/payouts/reminders/partners
 export const GET = withCron(async () => {
-  await sendConnectPayoutRemindersJob.dispatch({});
+  await sendConnectPayoutRemindersJob.dispatch({
+    batchNumber: 1,
+  });
 
   return logAndRespond("Enqueued connect payout reminders job.");
 });
