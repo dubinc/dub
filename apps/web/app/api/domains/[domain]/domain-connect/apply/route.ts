@@ -112,13 +112,20 @@ export const POST = withWorkspace(
       (x: { type: string }) => x.type === "TXT",
     );
     if (txtVerification) {
-      const txtHostFqdn: string = txtVerification.domain?.toLowerCase() ?? "";
+      const txtHostFqdn = (txtVerification.domain ?? "")
+        .toLowerCase()
+        .replace(/\.$/, "");
       const apexSuffix = `.${apex}`;
-      const txtHost = txtHostFqdn.endsWith(apexSuffix)
-        ? txtHostFqdn.slice(0, -apexSuffix.length)
-        : txtHostFqdn === apex
-          ? "@"
-          : txtHostFqdn;
+      // Domain Connect qualifies a relative host under `host`. A trailing dot
+      // keeps the verification TXT at the apex Vercel checks.
+      let txtHost = txtHostFqdn;
+      if (queryParams.host && txtHostFqdn) {
+        txtHost = `${txtHostFqdn}.`;
+      } else if (txtHostFqdn.endsWith(apexSuffix)) {
+        txtHost = txtHostFqdn.slice(0, -apexSuffix.length);
+      } else if (txtHostFqdn === apex) {
+        txtHost = "@";
+      }
       const txtValue = txtVerification.value?.trim();
 
       if (txtHost && txtValue) {
