@@ -7,11 +7,12 @@ import { ACME_PROGRAM_ID, DEMO_PROGRAM_ID, pluck } from "@dub/utils";
 import {
   Partner,
   PayoutStatus,
+  Prisma,
   Program,
   ProgramPayoutMode,
 } from "@prisma/client";
 
-const BATCH_SIZE = 1000;
+const BATCH_SIZE = 100;
 
 const EXCLUDED_PROGRAM_IDS = [
   ACME_PROGRAM_ID,
@@ -29,84 +30,113 @@ type PartnerPayoutReminder = {
   })[];
 };
 
+function payoutReminderWhere({
+  afterPartnerId,
+  partnerIds,
+}: {
+  afterPartnerId?: string;
+  partnerIds?: string[];
+} = {}): Prisma.PayoutWhereInput {
+  return {
+    status: {
+      in: [
+        PayoutStatus.pending,
+        PayoutStatus.processing,
+        PayoutStatus.processed,
+        PayoutStatus.failed,
+      ],
+    },
+    programId: {
+      notIn: EXCLUDED_PROGRAM_IDS,
+    },
+    ...(afterPartnerId && {
+      partnerId: {
+        gt: afterPartnerId,
+      },
+    }),
+    ...(partnerIds && {
+      partnerId: {
+        in: partnerIds,
+      },
+    }),
+    partner: {
+      payoutsEnabledAt: null,
+      AND: [
+        {
+          OR: [
+            { country: null },
+            {
+              country: {
+                in: PAYOUT_SUPPORTED_COUNTRIES.map((c) => c.code),
+              },
+            },
+          ],
+        },
+        {
+          OR: [
+            { connectPayoutsLastRemindedAt: null },
+            {
+              connectPayoutsLastRemindedAt: {
+                lte: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
+              },
+            },
+          ],
+        },
+      ],
+    },
+    amount: {
+      gte: MIN_PAYOUT_AMOUNT_FOR_REMINDERS,
+    },
+    programEnrollment: {
+      // Internal programs always pay through Dub, so those partners still need
+      // to connect payout details even if a tenantId is set.
+      // External and hybrid programs pay outside Dub once tenantId is set, so
+      // skip those. Without a tenantId they are still included.
+      OR: [
+        {
+          program: {
+            payoutMode: ProgramPayoutMode.internal,
+          },
+        },
+        {
+          tenantId: null,
+        },
+      ],
+    },
+  };
+}
+
 // This route is used to send reminders to partners who have pending payouts
 // but haven't configured payouts yet.
-export async function sendPayoutReminder() {
-  // Get unsent payouts grouped by partner and program, ordered by amount desc
-  const unsentPayouts = await prisma.payout.groupBy({
-    by: ["partnerId", "programId"],
-    where: {
-      status: {
-        in: [
-          PayoutStatus.pending,
-          PayoutStatus.processing,
-          PayoutStatus.processed,
-          PayoutStatus.failed,
-        ],
-      },
-      programId: {
-        notIn: EXCLUDED_PROGRAM_IDS,
-      },
-      partner: {
-        payoutsEnabledAt: null,
-        AND: [
-          {
-            OR: [
-              { country: null },
-              {
-                country: {
-                  in: PAYOUT_SUPPORTED_COUNTRIES.map((c) => c.code),
-                },
-              },
-            ],
-          },
-          {
-            OR: [
-              { connectPayoutsLastRemindedAt: null },
-              {
-                connectPayoutsLastRemindedAt: {
-                  lte: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
-                },
-              },
-            ],
-          },
-        ],
-      },
-      amount: {
-        gte: MIN_PAYOUT_AMOUNT_FOR_REMINDERS,
-      },
-      programEnrollment: {
-        // Internal programs always pay through Dub, so those partners still need
-        // to connect payout details even if a tenantId is set.
-        // External and hybrid programs pay outside Dub once tenantId is set, so
-        // skip those. Without a tenantId they are still included.
-        OR: [
-          {
-            program: {
-              payoutMode: ProgramPayoutMode.internal,
-            },
-          },
-          {
-            tenantId: null,
-          },
-        ],
-      },
-    },
-    _sum: {
-      amount: true,
-    },
+// Returns the last partner id when another batch should run.
+export async function sendPayoutReminder({
+  afterPartnerId,
+}: {
+  afterPartnerId?: string;
+} = {}) {
+  const partners = await prisma.payout.groupBy({
+    by: ["partnerId"],
+    where: payoutReminderWhere({ afterPartnerId }),
     orderBy: {
-      _sum: {
-        amount: "desc",
-      },
+      partnerId: "asc",
     },
     take: BATCH_SIZE,
   });
 
-  if (!unsentPayouts.length) {
+  if (!partners.length) {
     console.log("No partners need reminders.");
-    return false;
+    return;
   }
+
+  const partnerIds = pluck(partners, "partnerId");
+
+  const unsentPayouts = await prisma.payout.groupBy({
+    by: ["partnerId", "programId"],
+    where: payoutReminderWhere({ partnerIds }),
+    _sum: {
+      amount: true,
+    },
+  });
 
   const [partnerData, programData] = await Promise.all([
     prisma.partner.findMany({
@@ -211,7 +241,10 @@ export async function sendPayoutReminder() {
     },
   });
 
-  const hasMore = unsentPayouts.length === BATCH_SIZE;
+  if (partners.length < BATCH_SIZE) {
+    console.log("No more partners to remind.");
+    return;
+  }
 
-  return hasMore;
+  return partnerIds[partnerIds.length - 1];
 }

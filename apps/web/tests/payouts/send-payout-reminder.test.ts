@@ -5,7 +5,7 @@ import { ACME_PROGRAM_ID, DEMO_PROGRAM_ID } from "@dub/utils";
 import { PayoutStatus, ProgramPayoutMode } from "@prisma/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-const BATCH_SIZE = 1000;
+const BATCH_SIZE = 500;
 const MIGRATION_PROGRAM_ID = "prog_1M1EYH84K0ZGRA70CEGB4VC72";
 const NOW = new Date("2026-09-24T09:00:00.000Z");
 
@@ -234,8 +234,10 @@ describe("sendPayoutReminder", () => {
     vi.useRealTimers();
   });
 
-  it("returns false without emailing when no payouts match", async () => {
-    await expect(sendPayoutReminder()).resolves.toBe(false);
+  it("returns without emailing when no payouts match", async () => {
+    await expect(sendPayoutReminder()).resolves.toBeUndefined();
+
+    expect(mocks.groupBy).toHaveBeenCalledOnce();
 
     expect(mocks.partnerFindMany).not.toHaveBeenCalled();
     expect(mocks.queueBatchEmail).not.toHaveBeenCalled();
@@ -411,23 +413,25 @@ describe("sendPayoutReminder", () => {
   );
 
   it("sends one reminder per partner and records when they were reminded", async () => {
-    mocks.groupBy.mockResolvedValue([
-      payoutGroup({
-        partnerId: "pn_1",
-        programId: "prog_a",
-        amount: 2500,
-      }),
-      payoutGroup({
-        partnerId: "pn_1",
-        programId: "prog_b",
-        amount: 1500,
-      }),
-      payoutGroup({
-        partnerId: "pn_2",
-        programId: "prog_a",
-        amount: 1000,
-      }),
-    ]);
+    mocks.groupBy
+      .mockResolvedValueOnce([{ partnerId: "pn_1" }, { partnerId: "pn_2" }])
+      .mockResolvedValueOnce([
+        payoutGroup({
+          partnerId: "pn_1",
+          programId: "prog_a",
+          amount: 2500,
+        }),
+        payoutGroup({
+          partnerId: "pn_1",
+          programId: "prog_b",
+          amount: 1500,
+        }),
+        payoutGroup({
+          partnerId: "pn_2",
+          programId: "prog_a",
+          amount: 1000,
+        }),
+      ]);
     mocks.partnerFindMany.mockResolvedValue([
       partner({ id: "pn_1", email: "one@example.com" }),
       partner({ id: "pn_2", email: "two@example.com" }),
@@ -437,8 +441,25 @@ describe("sendPayoutReminder", () => {
       program({ id: "prog_b" }),
     ]);
 
-    await expect(sendPayoutReminder()).resolves.toBe(false);
+    await expect(sendPayoutReminder()).resolves.toBeUndefined();
 
+    expect(mocks.groupBy).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({
+        by: ["partnerId"],
+        orderBy: { partnerId: "asc" },
+        take: BATCH_SIZE,
+      }),
+    );
+    expect(mocks.groupBy).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({
+        by: ["partnerId", "programId"],
+        where: expect.objectContaining({
+          partnerId: { in: ["pn_1", "pn_2"] },
+        }),
+      }),
+    );
     expect(mocks.partnerFindMany).toHaveBeenCalledWith({
       where: {
         id: {
@@ -534,30 +555,36 @@ describe("sendPayoutReminder", () => {
   });
 
   it("skips partners with no email and partners excluded by notification preferences", async () => {
-    mocks.groupBy.mockResolvedValue([
-      payoutGroup({
-        partnerId: "pn_no_email",
-        programId: "prog_a",
-        amount: 2000,
-      }),
-      payoutGroup({
-        partnerId: "pn_opted_out",
-        programId: "prog_a",
-        amount: 2000,
-      }),
-      payoutGroup({
-        partnerId: "pn_ok",
-        programId: "prog_a",
-        amount: 2000,
-      }),
-    ]);
+    mocks.groupBy
+      .mockResolvedValueOnce([
+        { partnerId: "pn_no_email" },
+        { partnerId: "pn_opted_out" },
+        { partnerId: "pn_ok" },
+      ])
+      .mockResolvedValueOnce([
+        payoutGroup({
+          partnerId: "pn_no_email",
+          programId: "prog_a",
+          amount: 2000,
+        }),
+        payoutGroup({
+          partnerId: "pn_opted_out",
+          programId: "prog_a",
+          amount: 2000,
+        }),
+        payoutGroup({
+          partnerId: "pn_ok",
+          programId: "prog_a",
+          amount: 2000,
+        }),
+      ]);
     mocks.partnerFindMany.mockResolvedValue([
       partner({ id: "pn_no_email", email: null }),
       partner({ id: "pn_ok", email: "ok@example.com" }),
     ]);
     mocks.programFindMany.mockResolvedValue([program({ id: "prog_a" })]);
 
-    await expect(sendPayoutReminder()).resolves.toBe(false);
+    await expect(sendPayoutReminder()).resolves.toBeUndefined();
 
     expect(mocks.queueBatchEmail).toHaveBeenCalledWith([
       expect.objectContaining({
@@ -576,21 +603,38 @@ describe("sendPayoutReminder", () => {
     });
   });
 
-  it("returns true when the batch is full so another run can be scheduled", async () => {
-    mocks.groupBy.mockResolvedValue(
-      Array.from({ length: BATCH_SIZE }, (_, index) =>
-        payoutGroup({
-          partnerId: `pn_${index}`,
-          programId: "prog_a",
-          amount: 1000,
-        }),
-      ),
-    );
+  it("returns the last partner id when the batch is full", async () => {
+    const partnerIds = Array.from({ length: BATCH_SIZE }, (_, index) => ({
+      partnerId: `pn_${index}`,
+    }));
+
+    mocks.groupBy.mockResolvedValueOnce(partnerIds).mockResolvedValueOnce([
+      payoutGroup({
+        partnerId: "pn_0",
+        programId: "prog_a",
+        amount: 1000,
+      }),
+    ]);
     mocks.partnerFindMany.mockResolvedValue([
       partner({ id: "pn_0", email: "zero@example.com" }),
     ]);
     mocks.programFindMany.mockResolvedValue([program({ id: "prog_a" })]);
 
-    await expect(sendPayoutReminder()).resolves.toBe(true);
+    await expect(sendPayoutReminder()).resolves.toBe("pn_499");
+  });
+
+  it("continues after the partner id from the previous batch", async () => {
+    await sendPayoutReminder({ afterPartnerId: "pn_10" });
+
+    expect(mocks.groupBy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        by: ["partnerId"],
+        where: expect.objectContaining({
+          partnerId: {
+            gt: "pn_10",
+          },
+        }),
+      }),
+    );
   });
 });
