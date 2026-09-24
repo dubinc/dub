@@ -128,6 +128,10 @@ export const publishDiscountCodesCreationJob = defineJob({
         queueName: "create-discount-code",
         url: `${APP_DOMAIN_WITH_NGROK}/api/cron/discount-codes/create`,
         deduplicationId: `${discountId}-${link.id}`,
+        flowControl: {
+          key: "create-discount-code",
+          parallelism: 10,
+        },
         body: {
           linkId: link.id,
         },
