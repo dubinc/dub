@@ -29,7 +29,6 @@ import {
   buttonVariants,
   Combobox,
   CopyText,
-  Gift,
   Icon,
   LinkLogo,
   StatusBadge,
@@ -48,6 +47,7 @@ import {
   Check,
   Copy,
   CursorRays,
+  DiscountCode,
   InvoiceDollar,
   LoadingSpinner,
   ReferredVia,
@@ -620,26 +620,36 @@ function RewardsTermsList() {
     return null;
   }
 
+  // Every item ends with a separator; the list is shifted right by one
+  // separator width and clipped, so the separator ending each line (including
+  // the last item's) is hidden when the items wrap
   return (
-    <div className="flex flex-wrap items-center gap-x-1.5 text-xs">
-      {items.map((item, idx) => (
-        <span key={item.label} className="inline-flex items-center gap-1.5">
-          <span>
-            <span className="font-semibold text-neutral-600">{item.value}</span>{" "}
-            <a
-              href={item.href}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="font-medium text-neutral-500 underline decoration-dotted underline-offset-2"
+    <div className="min-w-0 overflow-x-clip">
+      <div className="-mr-4 flex flex-wrap items-center justify-end text-xs">
+        {items.map((item) => (
+          <span key={item.label} className="inline-flex items-center">
+            <span>
+              <span className="font-semibold text-neutral-600">
+                {item.value}
+              </span>{" "}
+              <a
+                href={item.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-medium text-neutral-500 underline decoration-dotted underline-offset-2"
+              >
+                {item.label}
+              </a>
+            </span>
+            <span
+              aria-hidden="true"
+              className="w-4 text-center font-semibold text-neutral-600"
             >
-              {item.label}
-            </a>
+              •
+            </span>
           </span>
-          {idx < items.length - 1 && (
-            <span className="font-semibold text-neutral-600">•</span>
-          )}
-        </span>
-      ))}
+        ))}
+      </div>
     </div>
   );
 }
@@ -667,7 +677,7 @@ function getRewardLinkOptions({
 }
 
 const LINK_SELECTOR_BOX_CLASSNAME =
-  "h-10 w-[241px] min-w-0 max-w-full rounded-lg border border-border-subtle bg-bg-default";
+  "h-9 min-w-0 max-w-full rounded-lg pl-1.5 pr-2.5";
 
 function RewardList() {
   const { programEnrollment } = useProgramEnrollment();
@@ -759,7 +769,7 @@ function RewardList() {
             ? [
                 {
                   id: "discount",
-                  icon: Gift,
+                  icon: DiscountCode,
                   text: formatDiscountDescription(discount),
                 },
               ]
@@ -859,9 +869,18 @@ function RewardListItem({
   isDeactivated?: boolean;
 }) {
   const { programSlug } = useParams<{ programSlug: string }>();
-  const [copied, copyToClipboard] = useCopyToClipboard();
+  const [copied, copyToClipboard] = useCopyToClipboard(1500);
   const copyDisabled =
     isDeactivated || !link.copyValue || link.copyValue.length === 0;
+  const [isLinkSelectorOpen, setIsLinkSelectorOpen] = useState(false);
+
+  const queryLinkHelpText = queryLinkHelpTextLink ? (
+    <QueryLinkStructureHelpText
+      link={queryLinkHelpTextLink}
+      className="px-3 py-2 first-letter:uppercase"
+    />
+  ) : null;
+
   const showLinkSelector =
     Boolean(linkSelectorLoading) ||
     Boolean(linkOptions && linkOptions.length > 1);
@@ -882,7 +901,7 @@ function RewardListItem({
     comboboxOptions?.find((option) => option.value === selectedLinkId) ?? null;
 
   const discountCodeSection = discountCode ? (
-    <div className="hidden items-center gap-1.5 rounded-lg border border-neutral-200 py-1 pl-2 pr-1.5 sm:flex">
+    <div className="hidden h-8 items-center gap-1.5 rounded-lg border border-neutral-200 pl-2 pr-1.5 sm:flex">
       <span className="text-sm font-medium leading-5 tracking-tight text-neutral-500">
         Discount code
       </span>
@@ -894,6 +913,39 @@ function RewardListItem({
     </div>
   ) : null;
 
+  const copyButton = isDeactivated ? null : (
+    <Button
+      variant="outline"
+      disabled={copyDisabled}
+      onClick={() => {
+        copyToClipboard(link.copyValue);
+      }}
+      aria-label={copied ? "Copied" : "Copy link"}
+      className={cn(
+        "-my-0.5 size-9 shrink-0 p-0",
+        copyDisabled
+          ? "border-transparent bg-transparent"
+          : "hover:bg-neutral-200/60",
+      )}
+      icon={
+        <span className="relative size-4">
+          <Copy
+            className={cn(
+              "absolute inset-0 size-4 transition-[transform,opacity]",
+              copied && "translate-y-1 opacity-0",
+            )}
+          />
+          <Check
+            className={cn(
+              "absolute inset-0 m-auto size-3.5 transition-[transform,opacity]",
+              !copied && "translate-y-1 opacity-0",
+            )}
+          />
+        </span>
+      }
+    />
+  );
+
   return (
     <div
       className={cn(
@@ -901,7 +953,7 @@ function RewardListItem({
         isDeactivated && "opacity-80",
       )}
     >
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-3">
         <h3 className="text-base font-semibold tracking-tight text-neutral-800">
           {title}
         </h3>
@@ -912,14 +964,14 @@ function RewardListItem({
         <div className="bg-neutral-50 px-3 py-2.5">
           <div className="flex items-center justify-between gap-2">
             {showLinkSelector ? (
-              <div className="w-[241px] shrink-0">
+              <div className="-my-0.5 -ml-1.5 flex min-w-0 items-center gap-1">
                 {linkSelectorLoading ? (
                   <div
                     role="status"
                     aria-label="Loading links"
                     className={cn(
                       LINK_SELECTOR_BOX_CLASSNAME,
-                      "flex items-center justify-center",
+                      "flex items-center",
                     )}
                   >
                     <LoadingSpinner className="size-4" />
@@ -932,40 +984,56 @@ function RewardListItem({
                       onSelectLink?.(option.value);
                     }}
                     options={comboboxOptions}
+                    open={isLinkSelectorOpen}
+                    onOpenChange={setIsLinkSelectorOpen}
                     forceDropdown
                     matchTriggerWidth
                     placeholder="No link yet"
                     inputClassName="text-sm h-10"
                     popoverProps={{
                       contentClassName:
-                        "w-[241px] rounded-lg border border-border-subtle p-1",
+                        "sm:w-auto min-w-[var(--radix-popover-trigger-width)] max-w-[min(400px,calc(100vw-16px))] rounded-lg border border-border-subtle p-1",
                     }}
                     trigger={
                       <button
                         type="button"
                         className={cn(
                           LINK_SELECTOR_BOX_CLASSNAME,
-                          "text-content-default focus:border-border-emphasis flex items-center gap-2 px-3 text-left text-sm outline-none focus:ring-0",
+                          "text-content-default flex w-fit items-center gap-2.5 text-left text-sm outline-none transition-colors hover:bg-neutral-200/60 focus-visible:bg-neutral-200/60 data-[state=open]:bg-neutral-200/60",
                         )}
                       >
                         {link.apexDomain && (
-                          <LinkLogo
-                            apexDomain={link.apexDomain}
-                            className="size-4 shrink-0 sm:size-4"
-                            imageProps={{ width: 16, height: 16 }}
-                          />
+                          <div className="shrink-0 rounded-full border border-neutral-200 bg-white p-1">
+                            <LinkLogo
+                              apexDomain={link.apexDomain}
+                              className="size-4.5 sm:size-4.5 shrink-0 rounded-full"
+                              imageProps={{ width: 18, height: 18 }}
+                            />
+                          </div>
                         )}
-                        <span className="min-w-0 shrink grow truncate">
-                          {link.displayText}
-                        </span>
+                        <Tooltip
+                          content={queryLinkHelpText}
+                          disabled={!queryLinkHelpText || isLinkSelectorOpen}
+                        >
+                          <span
+                            className={cn(
+                              "min-w-0 truncate",
+                              queryLinkHelpText &&
+                                "underline decoration-dotted underline-offset-2",
+                            )}
+                          >
+                            {link.displayText}
+                          </span>
+                        </Tooltip>
                         <ChevronDown className="text-content-muted size-4 shrink-0" />
                       </button>
                     }
                   />
                 )}
+                {copyButton}
               </div>
             ) : (
-              <div className="flex min-w-0 flex-1 items-center gap-2.5">
+              <div className="flex min-w-0 items-center gap-2.5">
                 <div className="shrink-0 rounded-full border border-neutral-200 bg-white p-1">
                   <LinkLogo
                     apexDomain={link.apexDomain}
@@ -973,23 +1041,21 @@ function RewardListItem({
                     imageProps={{ width: 18, height: 18 }}
                   />
                 </div>
-                <CopyText
-                  value={link.copyValue}
-                  className="min-w-0 truncate text-sm font-medium -tracking-wider text-neutral-600"
+                <Tooltip
+                  content={queryLinkHelpText}
+                  disabled={!queryLinkHelpText}
                 >
-                  {link.displayText}
-                </CopyText>
-                {queryLinkHelpTextLink && (
-                  <>
-                    <span className="hidden text-sm text-neutral-500 sm:block">
-                      →
-                    </span>
-                    <QueryLinkStructureHelpText
-                      link={queryLinkHelpTextLink}
-                      className="hidden sm:block"
-                    />
-                  </>
-                )}
+                  <CopyText
+                    value={link.copyValue}
+                    className={cn(
+                      "text-content-default min-w-0 truncate text-sm",
+                      queryLinkHelpText && "underline",
+                    )}
+                  >
+                    {link.displayText}
+                  </CopyText>
+                </Tooltip>
+                {copyButton}
               </div>
             )}
 
@@ -1002,48 +1068,13 @@ function RewardListItem({
                     {discountCodeSection}
                   </DiscountCodeTooltip>
                 ))}
-              {isDeactivated ? (
+              {isDeactivated && (
                 <StatusBadge variant={PartnerStatusBadges.deactivated.variant}>
                   {PartnerStatusBadges.deactivated.label}
                 </StatusBadge>
-              ) : (
-                <Button
-                  variant="primary"
-                  disabled={copyDisabled}
-                  onClick={() => {
-                    copyToClipboard(link.copyValue);
-                  }}
-                  className={cn(
-                    "h-8 w-auto shrink-0 px-3 transition-opacity",
-                    !copyDisabled && "hover:opacity-90",
-                  )}
-                  icon={
-                    <span className="relative size-4">
-                      <Copy
-                        className={cn(
-                          "absolute inset-0 size-4 transition-[transform,opacity]",
-                          copied && "translate-y-1 opacity-0",
-                        )}
-                      />
-                      <Check
-                        className={cn(
-                          "absolute inset-0 size-4 transition-[transform,opacity]",
-                          !copied && "translate-y-1 opacity-0",
-                        )}
-                      />
-                    </span>
-                  }
-                  text={copied ? "Copied" : "Copy"}
-                />
               )}
             </div>
           </div>
-          {showLinkSelector && queryLinkHelpTextLink && (
-            <QueryLinkStructureHelpText
-              link={queryLinkHelpTextLink}
-              className="mt-1.5 hidden sm:block"
-            />
-          )}
         </div>
 
         {rewards.length > 0 ? (

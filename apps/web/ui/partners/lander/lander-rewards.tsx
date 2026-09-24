@@ -7,7 +7,7 @@ import {
   GroupBountySummaryProps,
   RewardProps,
 } from "@/lib/types";
-import { Gift, Heart, Icon, Trophy } from "@dub/ui";
+import { DiscountCode, Heart, Icon, Trophy } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { PropsWithChildren, useState } from "react";
 import { formatDiscountDescription } from "../format-discount-description";
@@ -72,7 +72,9 @@ export function LanderRewards({
             ))}
 
             {discount && (
-              <Item icon={Gift}>{formatDiscountDescription(discount)}</Item>
+              <Item icon={DiscountCode}>
+                {formatDiscountDescription(discount)}
+              </Item>
             )}
           </ul>
         </div>

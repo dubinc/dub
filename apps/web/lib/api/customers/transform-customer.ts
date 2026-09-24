@@ -8,7 +8,13 @@ import {
 } from "@prisma/client";
 
 export interface CustomerWithLink extends Customer {
-  link?: Link | null;
+  link?:
+    | (Link & {
+        linkReward?: {
+          discount?: Discount | null;
+        } | null;
+      })
+    | null;
   programEnrollment?:
     | (ProgramEnrollment & {
         partner: Partner;
@@ -20,13 +26,17 @@ export interface CustomerWithLink extends Customer {
 export const transformCustomer = (customer: CustomerWithLink) => {
   const programEnrollment = customer.programEnrollment;
 
+  // Prefer the link discount if it exists, otherwise use the enrollment discount
+  const discount =
+    customer.link?.linkReward?.discount ?? programEnrollment?.discount;
+
   return {
     ...customer,
     name: customer.name || customer.email || generateRandomName(),
     link: customer.link || undefined,
     programId: programEnrollment?.programId || undefined,
     partner: programEnrollment?.partner || undefined,
-    discount: programEnrollment?.discount || undefined,
+    discount: discount || undefined,
   };
 };
 
