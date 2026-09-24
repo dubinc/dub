@@ -202,4 +202,11 @@ export const RATELIMIT_POLICIES = {
     keyPrefix: "rl:partner:identity:verification:start",
     message: "Too many verification attempts. Please try again later.",
   },
+
+  resumeUpload: {
+    attempts: 5,
+    window: "1 h",
+    keyPrefix: "rl:resume:upload",
+    message: "Too many resume uploads. Please try again later.",
+  },
 } as const satisfies Record<string, RatelimitPolicy>;
