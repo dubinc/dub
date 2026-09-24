@@ -1,4 +1,5 @@
 import { getWorkspaceUsers } from "@/lib/api/get-workspace-users";
+import { linkCache } from "@/lib/api/links/cache";
 import { includeProgramEnrollment } from "@/lib/api/links/include-program-enrollment";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { notifyPartnerGroupChange } from "@/lib/api/partners/notify-partner-group-change";
@@ -68,6 +69,10 @@ export const processPartnerGroupChangeJob = defineJob({
         },
       },
     });
+
+    // Edge lookups use COALESCE(LinkReward.discountId, enrollment.discountId).
+    // Expire Redis so clicks don't keep serving the pre-move link override.
+    await linkCache.expireMany(partnerLinks);
 
     // If the userId is not provided, get the workspace user id from the workspace users
     // userId will be null for workflow-initiated actions

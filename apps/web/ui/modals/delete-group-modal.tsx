@@ -8,8 +8,15 @@ import { FormEvent, useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { GroupColorCircle } from "../partners/groups/group-color-circle";
 
+type DeleteGroupModalGroup = Pick<
+  GroupExtendedProps,
+  "id" | "name" | "color"
+> & {
+  partnersCount: number;
+};
+
 interface DeleteGroupModalProps {
-  group: Pick<GroupExtendedProps, "id" | "name" | "color" | "totalPartners">;
+  group: DeleteGroupModalGroup;
   showModal: boolean;
   setShowModal: (showModal: boolean) => void;
   onDelete?: () => void;
@@ -59,8 +66,8 @@ const DeleteGroupModal = ({
               <div className="flex items-center gap-2">
                 <Users className="size-4" />
                 <span className="text-content-default text-sm font-medium">
-                  {group.totalPartners}{" "}
-                  {pluralize("partner", group.totalPartners)}
+                  {group.partnersCount}{" "}
+                  {pluralize("partner", group.partnersCount)}
                 </span>
               </div>
             </div>
@@ -131,7 +138,7 @@ const DeleteGroupModal = ({
 };
 
 export function useDeleteGroupModal(
-  group: Pick<GroupExtendedProps, "id" | "name" | "color" | "totalPartners">,
+  group: DeleteGroupModalGroup,
   onDelete?: () => void,
 ) {
   const [showDeleteGroupModal, setShowDeleteGroupModal] = useState(false);

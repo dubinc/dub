@@ -62,6 +62,17 @@ export async function deletePartnerGroup(
       },
     });
 
+    // Soft delete default links so Link.partnerGroupDefaultLinkId stays set
+    // for in-flight remap after partners were moved out of this group
+    await tx.partnerGroupDefaultLink.updateMany({
+      where: {
+        groupId: group.id,
+      },
+      data: {
+        groupId: null,
+      },
+    });
+
     // Delete group move workflow
     if (group.workflowId) {
       await tx.workflow.delete({

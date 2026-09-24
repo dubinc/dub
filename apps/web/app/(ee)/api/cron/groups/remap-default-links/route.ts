@@ -33,9 +33,9 @@ const schema = z.object({
     2. for the ones that don't match, set partnerGroupDefaultLinkId to null (linksToRemoveMapping)
     3. for the new group's default links that don't exist in the old group, create them (linksToCreate)
 
-    This runs when:
-    1. partners are moved to a group
-    2. a group is deleted and partners need to be moved to the default group
+    This runs when partners are moved to a group. If the emptied source group is
+    deleted before remap finishes, its default links are soft-deleted (groupId
+    null) so partnerGroupDefaultLinkId stays set until this job remaps them.
  */
 
 // POST /api/cron/groups/remap-default-links

@@ -89,17 +89,20 @@ export function GroupsTable() {
     error: countError,
   } = useGroupsCount();
 
-  const { partnersCount: partnersCountByGroup, loading: partnersCountLoading } =
-    usePartnersCount<
-      | {
-          groupId: string;
-          _count: number;
-        }[]
-      | undefined
-    >({
-      groupBy: "groupId",
-      ignoreParams: true,
-    });
+  const {
+    partnersCount: partnersCountByGroup,
+    loading: partnersCountLoading,
+    error: partnersCountError,
+  } = usePartnersCount<
+    | {
+        groupId: string;
+        _count: number;
+      }[]
+    | undefined
+  >({
+    groupBy: "groupId",
+    ignoreParams: true,
+  });
 
   const partnersCountByGroupId = useMemo(() => {
     const map = new Map<string, number>();
@@ -110,6 +113,11 @@ export function GroupsTable() {
     });
     return map;
   }, [partnersCountByGroup]);
+
+  const partnersCountReady =
+    !partnersCountLoading &&
+    !partnersCountError &&
+    partnersCountByGroup != null;
 
   const isFiltered = Object.keys(searchParamsObj).some(
     (key) => !["sortBy", "sortOrder", "page"].includes(key),
@@ -190,8 +198,11 @@ export function GroupsTable() {
           <RowMenuButton
             row={row}
             currentDefaultGroup={currentDefaultGroup}
-            partnersCount={partnersCountByGroupId.get(row.original.id) ?? 0}
-            partnersCountLoading={partnersCountLoading}
+            partnersCount={
+              partnersCountReady
+                ? partnersCountByGroupId.get(row.original.id) ?? 0
+                : undefined
+            }
           />
         ),
       },
@@ -275,21 +286,22 @@ function RowMenuButton({
   row,
   currentDefaultGroup,
   partnersCount,
-  partnersCountLoading,
 }: {
   row: Row<GroupExtendedProps>;
   currentDefaultGroup: GroupExtendedProps | undefined;
-  partnersCount: number;
-  partnersCountLoading: boolean;
+  partnersCount: number | undefined;
 }) {
   const router = useRouter();
   const { slug } = useParams();
   const [isOpen, setIsOpen] = useState(false);
   const { role } = useWorkspace();
 
-  const { DeleteGroupModal, setShowDeleteGroupModal } = useDeleteGroupModal(
-    row.original,
-  );
+  const { DeleteGroupModal, setShowDeleteGroupModal } = useDeleteGroupModal({
+    id: row.original.id,
+    name: row.original.name,
+    color: row.original.color,
+    partnersCount: partnersCount ?? 0,
+  });
 
   const { openConfirmSetDefaultGroupModal, ConfirmSetDefaultGroupModal } =
     useConfirmSetDefaultGroupModal();
@@ -303,7 +315,7 @@ function RowMenuButton({
 
   const deleteGroupDisabledReason = permissionsError
     ? String(permissionsError)
-    : partnersCountLoading
+    : partnersCount === undefined
       ? true
       : partnersCount > 0
         ? "Move all partners to another group before deleting."

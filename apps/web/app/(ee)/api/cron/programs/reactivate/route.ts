@@ -101,7 +101,6 @@ export const POST = withCron(async ({ rawBody }) => {
       })),
       ({ discountId }) => ({
         label: discountId,
-        deduplicationId: `reactivate-discount-${discountId}`,
       }),
     );
 

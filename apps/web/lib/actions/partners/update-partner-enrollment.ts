@@ -193,17 +193,15 @@ export const updatePartnerEnrollmentAction = authActionClient
       return enrollment;
     });
 
+    if (discountId !== undefined) {
+      await syncDiscountCodes({
+        programId,
+        partnerIds: [partnerId],
+      });
+    }
+
     waitUntil(
       Promise.allSettled([
-        ...(discountId !== undefined
-          ? [
-              syncDiscountCodes({
-                programId,
-                partnerIds: [partnerId],
-              }),
-            ]
-          : []),
-
         ...(tenantId !== undefined
           ? [recordLink(programEnrollment.links)]
           : []),

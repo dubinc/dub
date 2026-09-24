@@ -2,6 +2,7 @@ import { processPartnerGroupChangeJob } from "@/lib/jobs/handlers/process-partne
 import { prisma } from "@/lib/prisma";
 import { nanoid, pluck } from "@dub/utils";
 import { PartnerGroup, Prisma } from "@prisma/client";
+import { waitUntil } from "@vercel/functions";
 import { buildProgramEnrollmentChangeSet } from "../activity-log/build-program-enrollment-change-set";
 import { trackActivityLogsTx } from "../activity-log/track-activity-log";
 import { DubApiError } from "../errors";
@@ -167,6 +168,34 @@ export async function movePartnersToGroup({
       logs,
     });
 
+    // The partner page moves one partner and refetches as soon as this request
+    // returns. Clear link-level reward and discount overrides here so that
+    // refetch sees the updated state. Bulk moves leave this to
+    // processPartnerGroupChangeJob.
+    if (partnerIds.length === 1) {
+      const partnerLinks = await tx.link.findMany({
+        where: {
+          programId,
+          partnerId: {
+            in: pluck(programEnrollmentsAfter, "partnerId"),
+          },
+        },
+        select: {
+          id: true,
+        },
+      });
+
+      if (partnerLinks.length > 0) {
+        await tx.linkReward.deleteMany({
+          where: {
+            linkId: {
+              in: pluck(partnerLinks, "id"),
+            },
+          },
+        });
+      }
+    }
+
     return {
       count: count + alreadyInGroupCount,
       programEnrollmentsAfter,
@@ -184,17 +213,14 @@ export async function movePartnersToGroup({
     return count;
   }
 
-  await processPartnerGroupChangeJob.dispatch(
-    {
+  waitUntil(
+    processPartnerGroupChangeJob.dispatch({
       programId,
       groupId: group.id,
       movedPartnerIds,
       userId,
       idempotencyKey: nanoid(10),
-    },
-    {
-      label: group.id,
-    },
+    }),
   );
 
   return count;
