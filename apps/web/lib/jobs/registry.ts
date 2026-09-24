@@ -66,6 +66,11 @@ const jobLoaders = {
       (m) => m.sendPartnerProgramSummaryJob,
     ),
 
+  "send-connect-payout-reminders-job": () =>
+    import("./handlers/send-connect-payout-reminders-job").then(
+      (m) => m.sendConnectPayoutRemindersJob,
+    ),
+
   "create-custom-commission-job": () =>
     import("./handlers/create-custom-commission-job").then(
       (m) => m.createCustomCommissionJob,
