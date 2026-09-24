@@ -128,6 +128,12 @@ export const getDiscountCodesQuerySchema = z
       .string()
       .optional()
       .describe("Filter discount codes by discount ID."),
+    code: z
+      .string()
+      .optional()
+      .describe(
+        "Filter discount codes by the alphanumeric code (e.g. `PARTNER10OFF`).",
+      ),
   })
   .extend(getPaginationQuerySchema({ pageSize: 100 }));
 
