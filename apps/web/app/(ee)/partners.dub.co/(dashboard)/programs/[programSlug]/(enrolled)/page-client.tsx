@@ -677,7 +677,7 @@ function getRewardLinkOptions({
 }
 
 const LINK_SELECTOR_BOX_CLASSNAME =
-  "h-10 min-w-0 max-w-full rounded-lg pl-1.5 pr-2.5";
+  "h-9 min-w-0 max-w-full rounded-lg pl-1.5 pr-2.5";
 
 function RewardList() {
   const { programEnrollment } = useProgramEnrollment();
@@ -869,7 +869,7 @@ function RewardListItem({
   isDeactivated?: boolean;
 }) {
   const { programSlug } = useParams<{ programSlug: string }>();
-  const [copied, copyToClipboard] = useCopyToClipboard();
+  const [copied, copyToClipboard] = useCopyToClipboard(1500);
   const copyDisabled =
     isDeactivated || !link.copyValue || link.copyValue.length === 0;
   const [isLinkSelectorOpen, setIsLinkSelectorOpen] = useState(false);
@@ -913,6 +913,39 @@ function RewardListItem({
     </div>
   ) : null;
 
+  const copyButton = isDeactivated ? null : (
+    <Button
+      variant="outline"
+      disabled={copyDisabled}
+      onClick={() => {
+        copyToClipboard(link.copyValue);
+      }}
+      aria-label={copied ? "Copied" : "Copy link"}
+      className={cn(
+        "-my-0.5 size-9 shrink-0 p-0",
+        copyDisabled
+          ? "border-transparent bg-transparent"
+          : "hover:bg-neutral-200/60",
+      )}
+      icon={
+        <span className="relative size-4">
+          <Copy
+            className={cn(
+              "absolute inset-0 size-4 transition-[transform,opacity]",
+              copied && "translate-y-1 opacity-0",
+            )}
+          />
+          <Check
+            className={cn(
+              "absolute inset-0 m-auto size-3.5 transition-[transform,opacity]",
+              !copied && "translate-y-1 opacity-0",
+            )}
+          />
+        </span>
+      }
+    />
+  );
+
   return (
     <div
       className={cn(
@@ -931,7 +964,7 @@ function RewardListItem({
         <div className="bg-neutral-50 px-3 py-2.5">
           <div className="flex items-center justify-between gap-2">
             {showLinkSelector ? (
-              <div className="-my-1 -ml-1.5 min-w-0">
+              <div className="-my-0.5 -ml-1.5 flex min-w-0 items-center gap-1">
                 {linkSelectorLoading ? (
                   <div
                     role="status"
@@ -997,9 +1030,10 @@ function RewardListItem({
                     }
                   />
                 )}
+                {copyButton}
               </div>
             ) : (
-              <div className="flex min-w-0 flex-1 items-center gap-2.5">
+              <div className="flex min-w-0 items-center gap-2.5">
                 <div className="shrink-0 rounded-full border border-neutral-200 bg-white p-1">
                   <LinkLogo
                     apexDomain={link.apexDomain}
@@ -1021,6 +1055,7 @@ function RewardListItem({
                     {link.displayText}
                   </CopyText>
                 </Tooltip>
+                {copyButton}
               </div>
             )}
 
@@ -1033,39 +1068,10 @@ function RewardListItem({
                     {discountCodeSection}
                   </DiscountCodeTooltip>
                 ))}
-              {isDeactivated ? (
+              {isDeactivated && (
                 <StatusBadge variant={PartnerStatusBadges.deactivated.variant}>
                   {PartnerStatusBadges.deactivated.label}
                 </StatusBadge>
-              ) : (
-                <Button
-                  variant="primary"
-                  disabled={copyDisabled}
-                  onClick={() => {
-                    copyToClipboard(link.copyValue);
-                  }}
-                  className={cn(
-                    "h-8 w-auto shrink-0 px-3 transition-opacity",
-                    !copyDisabled && "hover:opacity-90",
-                  )}
-                  icon={
-                    <span className="relative size-4">
-                      <Copy
-                        className={cn(
-                          "absolute inset-0 size-4 transition-[transform,opacity]",
-                          copied && "translate-y-1 opacity-0",
-                        )}
-                      />
-                      <Check
-                        className={cn(
-                          "absolute inset-0 size-4 transition-[transform,opacity]",
-                          !copied && "translate-y-1 opacity-0",
-                        )}
-                      />
-                    </span>
-                  }
-                  text={copied ? "Copied" : "Copy"}
-                />
               )}
             </div>
           </div>
