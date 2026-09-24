@@ -28,20 +28,20 @@ export const POST = withCron(async () => {
   const [
     deletedRewardsCount,
     deletedDiscountsCount,
-    deletedLinkRewardsCount,
     deletedDefaultLinksCount,
+    deletedLinkRewardsCount,
   ] = await Promise.all([
     deleteOrphanedRewards(cutoff),
     deleteOrphanedDiscounts(cutoff),
-    deleteEmptyLinkRewards(),
     deleteOrphanedDefaultLinks(cutoff),
+    deleteEmptyLinkRewards(),
   ]);
 
   console.log({
     deletedRewardsCount,
     deletedDiscountsCount,
-    deletedLinkRewardsCount,
     deletedDefaultLinksCount,
+    deletedLinkRewardsCount,
   });
 
   return logAndRespond("OK");

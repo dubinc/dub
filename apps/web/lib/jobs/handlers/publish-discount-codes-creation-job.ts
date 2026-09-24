@@ -13,7 +13,7 @@ const inputSchema = z.object({
   startingAfter: z.string().optional(),
 });
 
-// Page enrollments for a discount and enqueue per-link create-discount-code jobs
+// Page default links for a discount and enqueue per-link create-discount-code jobs
 export const publishDiscountCodesCreationJob = defineJob({
   name: "publish-discount-codes-creation-job",
   schema: inputSchema,
@@ -77,29 +77,34 @@ export const publishDiscountCodesCreationJob = defineJob({
       throw error;
     }
 
-    const programEnrollments = await prisma.programEnrollment.findMany({
+    // Get default links for the program
+    const partnerLinks = await prisma.link.findMany({
       where: {
         programId: program.id,
-        discountId: discount.id,
-        status: {
-          in: ACTIVE_ENROLLMENT_STATUSES,
+        discountCode: null,
+        partnerGroupDefaultLinkId: {
+          not: null,
         },
+        programEnrollment: {
+          status: {
+            in: ACTIVE_ENROLLMENT_STATUSES,
+          },
+        },
+        OR: [
+          {
+            linkReward: {
+              discountId,
+            },
+          },
+          {
+            programEnrollment: {
+              discountId,
+            },
+          },
+        ],
       },
       select: {
         id: true,
-        partnerId: true,
-        discountId: true,
-        links: {
-          select: {
-            id: true,
-          },
-          where: {
-            discountCode: null,
-            partnerGroupDefaultLinkId: {
-              not: null,
-            },
-          },
-        },
       },
       ...(startingAfter && {
         skip: 1,
@@ -113,31 +118,24 @@ export const publishDiscountCodesCreationJob = defineJob({
       take: CRON_BATCH_SIZE,
     });
 
-    if (programEnrollments.length === 0) {
-      console.info(
-        `No more program enrollments found for discount ${discountId}.`,
-      );
+    if (partnerLinks.length === 0) {
+      console.info(`No more links found for discount ${discountId}.`);
       return;
     }
 
-    const links = programEnrollments.flatMap(({ links }) => links);
+    await enqueueBatchJobs(
+      partnerLinks.map((link) => ({
+        queueName: "create-discount-code",
+        url: `${APP_DOMAIN_WITH_NGROK}/api/cron/discount-codes/create`,
+        deduplicationId: `${discountId}-${link.id}`,
+        body: {
+          linkId: link.id,
+        },
+      })),
+    );
 
-    if (links.length > 0) {
-      await enqueueBatchJobs(
-        links.map((link) => ({
-          queueName: "create-discount-code",
-          url: `${APP_DOMAIN_WITH_NGROK}/api/cron/discount-codes/create`,
-          deduplicationId: `${discountId}-${link.id}`,
-          body: {
-            linkId: link.id,
-          },
-        })),
-      );
-    }
-
-    if (programEnrollments.length === CRON_BATCH_SIZE) {
-      const startingAfter =
-        programEnrollments[programEnrollments.length - 1].id;
+    if (partnerLinks.length === CRON_BATCH_SIZE) {
+      const startingAfter = partnerLinks[partnerLinks.length - 1].id;
 
       await publishDiscountCodesCreationJob.dispatch(
         { discountId, startingAfter },
