@@ -512,7 +512,7 @@ function CustomersFilters({
         />
         <SearchBoxPersisted
           placeholder="Search by email, name, or ID"
-          inputClassName="md:w-[16rem]"
+          inputClassName="md:w-[18rem]"
         />
       </div>
       <AnimatedSizeContainer height>
