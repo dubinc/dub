@@ -1,4 +1,5 @@
 import { getWorkspaceUsers } from "@/lib/api/get-workspace-users";
+import { invalidateLinksForDiscountsJob } from "@/lib/jobs/handlers/invalidate-links-for-discounts-job";
 import { dispatchWorkflows } from "@/lib/jobs/publish-workflows";
 import { prisma } from "@/lib/prisma";
 import { sendBatchEmail } from "@dub/email";
@@ -80,6 +81,18 @@ export async function couponDeleted({
         label: discountId,
       },
     })),
+  );
+
+  // Expire cached links before async detach — edge ignores soft-deleted rows,
+  // but Redis may still serve the pre-delete discount.
+  await Promise.all(
+    discountIds.map((discountId) =>
+      invalidateLinksForDiscountsJob.dispatch({
+        by: "discount",
+        programId,
+        discountId,
+      }),
+    ),
   );
 
   waitUntil(

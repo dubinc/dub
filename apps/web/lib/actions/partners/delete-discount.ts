@@ -3,6 +3,7 @@
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { getDiscountOrThrow } from "@/lib/api/partners/get-discount-or-throw";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
+import { invalidateLinksForDiscountsJob } from "@/lib/jobs/handlers/invalidate-links-for-discounts-job";
 import { dispatchWorkflows } from "@/lib/jobs/publish-workflows";
 import { prisma } from "@/lib/prisma";
 import { waitUntil } from "@vercel/functions";
@@ -66,19 +67,29 @@ export const deleteDiscountAction = authActionClient
     });
 
     waitUntil(
-      recordAuditLog({
-        workspaceId: workspace.id,
-        programId,
-        action: "discount.deleted",
-        description: `Discount ${discountId} deleted`,
-        actor: user,
-        targets: [
-          {
-            type: "discount",
-            id: discountId,
-            metadata: discount,
-          },
-        ],
-      }),
+      Promise.allSettled([
+        recordAuditLog({
+          workspaceId: workspace.id,
+          programId,
+          action: "discount.deleted",
+          description: `Discount ${discountId} deleted`,
+          actor: user,
+          targets: [
+            {
+              type: "discount",
+              id: discountId,
+              metadata: discount,
+            },
+          ],
+        }),
+
+        // Expire cached links immediately — edge ignores soft-deleted rows, but
+        // Redis may still serve the pre-delete discount until detach finishes.
+        invalidateLinksForDiscountsJob.dispatch({
+          by: "discount",
+          programId,
+          discountId,
+        }),
+      ]),
     );
   });

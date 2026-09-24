@@ -1,3 +1,4 @@
+import { invalidateLinksForDiscountsJob } from "@/lib/jobs/handlers/invalidate-links-for-discounts-job";
 import { dispatchWorkflows } from "@/lib/jobs/publish-workflows";
 import { prisma } from "@/lib/prisma";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
@@ -105,6 +106,16 @@ export async function deletePartnerGroup(
   // can still own discount rows referenced by codes/enrollments/LinkReward
   // for partners who already moved if remaps are in-flight
   if (discounts.length > 0) {
+    await Promise.all(
+      discounts.map(({ id: discountId }) =>
+        invalidateLinksForDiscountsJob.dispatch({
+          by: "discount",
+          programId: group.programId,
+          discountId,
+        }),
+      ),
+    );
+
     await dispatchWorkflows(
       discounts.map((discount) => ({
         name: "detach-discount-workflow" as const,
