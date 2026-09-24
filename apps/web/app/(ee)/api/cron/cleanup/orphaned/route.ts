@@ -1,3 +1,4 @@
+import { deleteOrphanedDefaultLinks } from "@/lib/api/groups/delete-orphaned-default-links";
 import { withCron } from "@/lib/cron/with-cron";
 import { deleteOrphanedDiscounts } from "@/lib/discounts/delete-orphaned-discounts";
 import { deleteEmptyLinkRewards } from "@/lib/rewards/delete-empty-link-rewards";
@@ -7,7 +8,7 @@ import { logAndRespond } from "../../utils";
 
 export const dynamic = "force-dynamic";
 
-const STALE_AFTER_MINUTES = 30;
+const STALE_AFTER_MINUTES = 60; // 1 hour
 
 // Hard-deletes leftover rows after request-path soft-deletes / unassigns:
 // - Rewards: rewards/process clears enrollments on delete; this cron hard-deletes
@@ -16,29 +17,32 @@ const STALE_AFTER_MINUTES = 30;
 //   nothing still references the soft-deleted discount (programId null).
 // - LinkReward: update-partner-link nulls override IDs instead of deleting the row.
 //   Discount deletes SetNull LinkReward.discountId the same way.
+// - PartnerGroupDefaultLink: group delete soft-deletes (groupId null) so in-flight
+//   remap keeps partnerGroupDefaultLinkId; this cron hard-deletes once no links
+//   still reference the row.
 
-// POST /api/cron/cleanup/orphaned-rewards
+// POST /api/cron/cleanup/orphaned
 export const POST = withCron(async () => {
   const cutoff = subMinutes(new Date(), STALE_AFTER_MINUTES);
 
-  const [deletedRewardsCount, deletedDiscountsCount, deletedLinkRewardsCount] =
-    await Promise.all([
-      deleteOrphanedRewards(cutoff),
-      deleteOrphanedDiscounts(cutoff),
-      deleteEmptyLinkRewards(),
-    ]);
+  const [
+    deletedRewardsCount,
+    deletedDiscountsCount,
+    deletedLinkRewardsCount,
+    deletedDefaultLinksCount,
+  ] = await Promise.all([
+    deleteOrphanedRewards(cutoff),
+    deleteOrphanedDiscounts(cutoff),
+    deleteEmptyLinkRewards(),
+    deleteOrphanedDefaultLinks(cutoff),
+  ]);
 
-  if (
-    deletedRewardsCount === 0 &&
-    deletedDiscountsCount === 0 &&
-    deletedLinkRewardsCount === 0
-  ) {
-    return logAndRespond(
-      "No orphaned rewards, discounts, or empty link rewards found.",
-    );
-  }
+  console.log({
+    deletedRewardsCount,
+    deletedDiscountsCount,
+    deletedLinkRewardsCount,
+    deletedDefaultLinksCount,
+  });
 
-  return logAndRespond(
-    `Finished cleanup (${deletedRewardsCount} rewards, ${deletedDiscountsCount} discounts, ${deletedLinkRewardsCount} empty link rewards deleted).`,
-  );
+  return logAndRespond("OK");
 });

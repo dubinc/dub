@@ -51,7 +51,7 @@ export async function deletePartnerGroup(
       },
     });
 
-    // Soft delete discounts (orphaned-rewards cron hard-deletes after remapping)
+    // Soft delete discounts (orphaned cleanup cron hard-deletes after remapping)
     await tx.discount.updateMany({
       where: {
         groupId: group.id,

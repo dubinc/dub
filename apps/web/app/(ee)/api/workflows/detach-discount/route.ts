@@ -24,7 +24,7 @@ type Input = z.infer<typeof inputSchema>;
  * 1. detach-discount-from-enrollments + detach-discount-from-link-rewards (parallel)
  * 2. remap-discount-codes
  *
- * Hard-delete is deferred to /api/cron/cleanup/orphaned-rewards once remaps
+ * Hard-delete is deferred to /api/cron/cleanup/orphaned once remaps
  * finish and nothing still references the soft-deleted discount.
  */
 
