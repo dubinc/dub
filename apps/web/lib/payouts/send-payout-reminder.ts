@@ -1,3 +1,4 @@
+import { getUtcPeriodDate } from "@/lib/api/rewards/custom-reward-utils";
 import { MIN_PAYOUT_AMOUNT_FOR_REMINDERS } from "@/lib/constants/misc";
 import { PAYOUT_SUPPORTED_COUNTRIES } from "@/lib/constants/payouts-supported-countries";
 import { queueBatchEmail } from "@/lib/email/queue-batch-email";
@@ -12,7 +13,7 @@ import {
   ProgramPayoutMode,
 } from "@prisma/client";
 
-const BATCH_SIZE = 100;
+const BATCH_SIZE = 500;
 
 const EXCLUDED_PROGRAM_IDS = [
   ACME_PROGRAM_ID,
@@ -111,8 +112,10 @@ function payoutReminderWhere({
 // Returns the last partner id when another batch should run.
 export async function sendPayoutReminder({
   afterPartnerId,
+  batchNumber = 1,
 }: {
   afterPartnerId?: string;
+  batchNumber?: number;
 } = {}) {
   const partners = await prisma.payout.groupBy({
     by: ["partnerId"],
@@ -216,6 +219,7 @@ export async function sendPayoutReminder({
 
   const partnerPrograms = Array.from(partnerProgramMap.values());
   const connectPayoutsLastRemindedAt = new Date();
+  const idempotencyKey = `payout-reminders-${getUtcPeriodDate()}-${batchNumber}`;
 
   await queueBatchEmail<typeof ConnectPayoutReminder>(
     partnerPrograms.map(({ partner, programs }) => ({
@@ -228,6 +232,9 @@ export async function sendPayoutReminder({
         programs,
       },
     })),
+    {
+      idempotencyKey,
+    },
   );
 
   await prisma.partner.updateMany({

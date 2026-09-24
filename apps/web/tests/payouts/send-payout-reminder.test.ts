@@ -500,48 +500,53 @@ describe("sendPayoutReminder", () => {
         logo: true,
       },
     });
-    expect(mocks.queueBatchEmail).toHaveBeenCalledWith([
-      {
-        variant: "notifications",
-        to: "one@example.com",
-        subject: "Connect your payout details on Dub Partners",
-        templateName: "ConnectPayoutReminder",
-        templateProps: {
-          email: "one@example.com",
-          programs: [
-            {
-              id: "prog_a",
-              name: "Program prog_a",
-              logo: "https://example.com/prog_a.png",
-              amount: 2500,
-            },
-            {
-              id: "prog_b",
-              name: "Program prog_b",
-              logo: "https://example.com/prog_b.png",
-              amount: 1500,
-            },
-          ],
+    expect(mocks.queueBatchEmail).toHaveBeenCalledWith(
+      [
+        {
+          variant: "notifications",
+          to: "one@example.com",
+          subject: "Connect your payout details on Dub Partners",
+          templateName: "ConnectPayoutReminder",
+          templateProps: {
+            email: "one@example.com",
+            programs: [
+              {
+                id: "prog_a",
+                name: "Program prog_a",
+                logo: "https://example.com/prog_a.png",
+                amount: 2500,
+              },
+              {
+                id: "prog_b",
+                name: "Program prog_b",
+                logo: "https://example.com/prog_b.png",
+                amount: 1500,
+              },
+            ],
+          },
         },
-      },
-      {
-        variant: "notifications",
-        to: "two@example.com",
-        subject: "Connect your payout details on Dub Partners",
-        templateName: "ConnectPayoutReminder",
-        templateProps: {
-          email: "two@example.com",
-          programs: [
-            {
-              id: "prog_a",
-              name: "Program prog_a",
-              logo: "https://example.com/prog_a.png",
-              amount: 1000,
-            },
-          ],
+        {
+          variant: "notifications",
+          to: "two@example.com",
+          subject: "Connect your payout details on Dub Partners",
+          templateName: "ConnectPayoutReminder",
+          templateProps: {
+            email: "two@example.com",
+            programs: [
+              {
+                id: "prog_a",
+                name: "Program prog_a",
+                logo: "https://example.com/prog_a.png",
+                amount: 1000,
+              },
+            ],
+          },
         },
+      ],
+      {
+        idempotencyKey: "payout-reminders-2026-09-24-1",
       },
-    ]);
+    );
     expect(mocks.partnerUpdateMany).toHaveBeenCalledWith({
       where: {
         id: {
@@ -586,11 +591,16 @@ describe("sendPayoutReminder", () => {
 
     await expect(sendPayoutReminder()).resolves.toBeUndefined();
 
-    expect(mocks.queueBatchEmail).toHaveBeenCalledWith([
-      expect.objectContaining({
-        to: "ok@example.com",
-      }),
-    ]);
+    expect(mocks.queueBatchEmail).toHaveBeenCalledWith(
+      [
+        expect.objectContaining({
+          to: "ok@example.com",
+        }),
+      ],
+      {
+        idempotencyKey: "payout-reminders-2026-09-24-1",
+      },
+    );
     expect(mocks.partnerUpdateMany).toHaveBeenCalledWith({
       where: {
         id: {
@@ -624,7 +634,21 @@ describe("sendPayoutReminder", () => {
   });
 
   it("continues after the partner id from the previous batch", async () => {
-    await sendPayoutReminder({ afterPartnerId: "pn_10" });
+    mocks.groupBy
+      .mockResolvedValueOnce([{ partnerId: "pn_11" }])
+      .mockResolvedValueOnce([
+        payoutGroup({
+          partnerId: "pn_11",
+          programId: "prog_a",
+          amount: 1000,
+        }),
+      ]);
+    mocks.partnerFindMany.mockResolvedValue([
+      partner({ id: "pn_11", email: "eleven@example.com" }),
+    ]);
+    mocks.programFindMany.mockResolvedValue([program({ id: "prog_a" })]);
+
+    await sendPayoutReminder({ afterPartnerId: "pn_10", batchNumber: 2 });
 
     expect(mocks.groupBy).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -636,5 +660,8 @@ describe("sendPayoutReminder", () => {
         }),
       }),
     );
+    expect(mocks.queueBatchEmail).toHaveBeenCalledWith(expect.any(Array), {
+      idempotencyKey: "payout-reminders-2026-09-24-2",
+    });
   });
 });

@@ -4,6 +4,7 @@ import { defineJob } from "../index";
 
 const inputSchema = z.object({
   afterPartnerId: z.string().optional(),
+  batchNumber: z.number().int().positive().default(1),
 });
 
 // Sends ConnectPayoutReminder emails to partners with pending payouts
@@ -11,12 +12,16 @@ const inputSchema = z.object({
 export const sendConnectPayoutRemindersJob = defineJob({
   name: "send-connect-payout-reminders-job",
   schema: inputSchema,
-  async handle({ afterPartnerId }) {
-    const nextAfterPartnerId = await sendPayoutReminder({ afterPartnerId });
+  async handle({ afterPartnerId, batchNumber }) {
+    const nextAfterPartnerId = await sendPayoutReminder({
+      afterPartnerId,
+      batchNumber,
+    });
 
     if (nextAfterPartnerId) {
       await sendConnectPayoutRemindersJob.dispatch({
         afterPartnerId: nextAfterPartnerId,
+        batchNumber: batchNumber + 1,
       });
     }
   },
