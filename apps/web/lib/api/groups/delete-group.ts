@@ -114,7 +114,6 @@ export async function deletePartnerGroup(
         },
         options: {
           label: discount.id,
-          deduplicationId: `detach-discount-${discount.id}`,
         },
       })),
     );

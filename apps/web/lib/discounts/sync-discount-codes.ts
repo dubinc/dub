@@ -72,7 +72,7 @@ export async function syncDiscountCodes({
 }
 
 // Find default links that do not have a discount code assigned to them and enqueue a job to create one
-async function enqueueMissingDiscountCodes({
+export async function enqueueMissingDiscountCodes({
   programId,
   enrollments,
 }: {

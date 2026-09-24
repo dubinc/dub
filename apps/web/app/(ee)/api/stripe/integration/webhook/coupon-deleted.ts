@@ -78,7 +78,6 @@ export async function couponDeleted({
       },
       options: {
         label: discountId,
-        deduplicationId: `detach-discount-${discountId}`,
       },
     })),
   );

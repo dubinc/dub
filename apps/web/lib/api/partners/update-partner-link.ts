@@ -154,17 +154,15 @@ export async function updatePartnerLink({
     });
   }
 
+  if (body.discountId !== undefined) {
+    await syncDiscountCodes({
+      programId,
+      partnerIds: [link.partnerId],
+    });
+  }
+
   waitUntil(
     Promise.allSettled([
-      ...(body.discountId !== undefined
-        ? [
-            syncDiscountCodes({
-              programId,
-              partnerIds: [link.partnerId],
-            }),
-          ]
-        : []),
-
       linkCache.expireMany([link]),
 
       trackLinkRewardOverrideLog({

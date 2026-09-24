@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { deleteDiscountCodes } from "./delete-discount-code";
 import { isDiscountEquivalent } from "./is-discount-equivalent";
+import { enqueueMissingDiscountCodes } from "./sync-discount-codes";
 
 // Remap a single discount code to the partner's current enrollment/link discount
 export async function remapDiscountCode({
@@ -92,6 +93,17 @@ export async function remapDiscountCode({
     return;
   }
 
-  // The discounts are different, delete the discount code
+  // The discounts are different, delete the discount code then provision a new
+  // one on default links when the destination discount has auto-provision on.
   await deleteDiscountCodes([discountCode]);
+
+  await enqueueMissingDiscountCodes({
+    programId: discountCode.programId,
+    enrollments: [
+      {
+        partnerId: discountCode.partnerId,
+        discount: programEnrollment.discount,
+      },
+    ],
+  });
 }

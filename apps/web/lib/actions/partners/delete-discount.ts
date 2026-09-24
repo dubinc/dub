@@ -62,7 +62,6 @@ export const deleteDiscountAction = authActionClient
       },
       options: {
         label: discountId,
-        deduplicationId: `detach-discount-${discountId}`,
       },
     });
 
