@@ -2,9 +2,13 @@
 
 import { submitNetworkProfileAction } from "@/lib/actions/partners/submit-network-profile";
 import { getNetworkProfileChecklistProgress } from "@/lib/network/get-network-profile-checklist-progress";
-import { evaluateApplicationRequirements } from "@/lib/partners/evaluate-application-requirements";
+import {
+  evaluateApplicationRequirements,
+  getEligibilityContext,
+} from "@/lib/partners/evaluate-application-requirements";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
+import useProgramEnrollments from "@/lib/swr/use-program-enrollments";
 import {
   DiscountProps,
   GroupBountySummaryProps,
@@ -47,7 +51,12 @@ export function ProgramSidebar({
   applicationRewards: RewardProps[];
   applicationDiscount: DiscountProps | null;
 }) {
-  const { partner, mutate } = usePartnerProfile();
+  const {
+    partner,
+    mutate,
+    loading: partnerLoading,
+    error: partnerError,
+  } = usePartnerProfile();
 
   const { completedCount, totalCount, isComplete } =
     getNetworkProfileChecklistProgress({
@@ -76,29 +85,50 @@ export function ProgramSidebar({
       await mutate();
     },
   });
-  const { programEnrollment } = useProgramEnrollment({
-    programSlug: program.slug,
-    swrOpts: {
-      keepPreviousData: true,
-      shouldRetryOnError: (err) => err.status !== 404,
-      revalidateOnFocus: false,
-    },
-  });
+  const { programEnrollment, loading: programEnrollmentLoading } =
+    useProgramEnrollment({
+      programSlug: program.slug,
+      swrOpts: {
+        keepPreviousData: true,
+        shouldRetryOnError: (err) => err.status !== 404,
+        revalidateOnFocus: false,
+      },
+    });
 
   const applicationRequirements = program.applicationRequirements
     ? applicationRequirementsSchema.parse(program.applicationRequirements)
     : null;
 
+  const {
+    programEnrollments,
+    isLoading: programEnrollmentsLoading,
+    error: programEnrollmentsError,
+  } = useProgramEnrollments();
+
+  // Eligibility is unresolved until the partner profile and enrollment data
+  // have loaded successfully, so the apply action stays disabled until then.
+  // A failed fetch counts as unresolved — never as "no bans". The singular
+  // enrollment's error is deliberately excluded: a 404 there just means
+  // "not enrolled".
+  const eligibilityUnresolved =
+    partnerLoading ||
+    programEnrollmentLoading ||
+    programEnrollmentsLoading ||
+    !!partnerError ||
+    !!programEnrollmentsError;
+
   const { reason } = evaluateApplicationRequirements({
     applicationRequirements,
-    context: {
-      country: partner?.country,
-      email: partner?.email,
-    },
+    context: getEligibilityContext({
+      partner,
+      programEnrollmentStatuses: programEnrollments?.map(
+        ({ status }) => status,
+      ),
+    }),
   });
 
   const requirementsNotMet =
-    reason === "requirementsNotMet"
+    !eligibilityUnresolved && reason === "requirementsNotMet"
       ? "You do not meet the eligibility requirements for this program"
       : undefined;
 
@@ -274,7 +304,8 @@ export function ProgramSidebar({
         text={buttonText}
         icon={justApplied ? <CircleCheck className="size-4" /> : undefined}
         disabled={
-          !applyDisabledTooltip && (!!programEnrollment || justApplied)
+          !applyDisabledTooltip &&
+          (!!programEnrollment || justApplied || eligibilityUnresolved)
             ? true
             : undefined
         }

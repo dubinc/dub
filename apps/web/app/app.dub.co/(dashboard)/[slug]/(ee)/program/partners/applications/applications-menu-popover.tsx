@@ -2,8 +2,8 @@
 
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { useApplicationSettingsModal } from "@/ui/modals/application-settings-modal";
 import { useExportApplicationsModal } from "@/ui/modals/export-applications-modal";
+import { useApplicationSettingsSheet } from "@/ui/partners/applications/application-settings-sheet";
 import { ThreeDots } from "@/ui/shared/icons";
 import {
   Button,
@@ -25,19 +25,20 @@ export function ApplicationsMenuPopover() {
   const { setShowExportApplicationsModal, ExportApplicationsModal } =
     useExportApplicationsModal();
 
-  const { setShowApplicationSettingsModal, ApplicationSettingsModal } =
-    useApplicationSettingsModal();
+  const { applicationSettingsSheet, setIsOpen: setShowApplicationSettings } =
+    useApplicationSettingsSheet();
 
   const { isMobile } = useMediaQuery();
 
   return (
     <>
-      <ApplicationSettingsModal />
+      {applicationSettingsSheet}
       <ExportApplicationsModal />
       <Button
         text={isMobile ? "Settings" : "Application settings"}
-        onClick={() => setShowApplicationSettingsModal(true)}
+        onClick={() => setShowApplicationSettings(true)}
         variant="secondary"
+        disabled={!program}
       />
       <Popover
         openPopover={openPopover}
