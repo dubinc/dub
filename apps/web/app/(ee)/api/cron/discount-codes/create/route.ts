@@ -1,123 +1,13 @@
-import { DubApiError } from "@/lib/api/errors";
 import { withCron } from "@/lib/cron/with-cron";
-import { createDiscountCode } from "@/lib/discounts/create-discount-code";
-import { isNonRecoverableDiscountError } from "@/lib/discounts/discount-error";
-import { prisma } from "@/lib/prisma";
-import * as z from "zod/v4";
+import { createDiscountCodeForLinkJob } from "@/lib/jobs/handlers/create-discount-code-for-link-job";
 import { logAndRespond } from "../../utils";
 
 export const dynamic = "force-dynamic";
 
-const inputSchema = z.object({
-  linkId: z
-    .string()
-    .describe("The ID of the link to create a discount code for."),
-});
-
 // POST /api/cron/discount-codes/create
+// Drain shim for in-flight QStash messages; new work uses create-discount-code-for-link-job.
+// TODO: Remove this route after in-flight QStash messages to this URL have drained.
 export const POST = withCron(async ({ rawBody }) => {
-  const { linkId } = inputSchema.parse(JSON.parse(rawBody));
-
-  const link = await prisma.link.findUnique({
-    where: {
-      id: linkId,
-    },
-    select: {
-      id: true,
-      discountCode: true,
-      partnerGroupDefaultLinkId: true,
-      linkReward: {
-        select: {
-          discount: true,
-        },
-      },
-      programEnrollment: {
-        select: {
-          discount: true,
-          partner: {
-            select: {
-              id: true,
-              name: true,
-            },
-          },
-          program: {
-            select: {
-              id: true,
-            },
-          },
-        },
-      },
-      project: {
-        select: {
-          id: true,
-          webhookEnabled: true,
-          stripeConnectId: true,
-          shopifyStoreId: true,
-        },
-      },
-    },
-  });
-
-  if (!link || !link.project) {
-    return logAndRespond(`Link ${linkId} not found. Skipping...`);
-  }
-
-  if (link.discountCode) {
-    return logAndRespond(
-      `Link ${linkId} already has a discount code. Skipping...`,
-    );
-  }
-
-  if (link.partnerGroupDefaultLinkId === null) {
-    return logAndRespond(`Link ${linkId} is not a default link. Skipping...`);
-  }
-
-  if (!link.programEnrollment) {
-    return logAndRespond(
-      `Link ${linkId} is not associated with a program enrollment. Skipping...`,
-    );
-  }
-
-  const {
-    project: workspace,
-    programEnrollment: { program, partner },
-  } = link;
-
-  const discount = link.linkReward?.discount ?? link.programEnrollment.discount;
-
-  if (!discount) {
-    return logAndRespond(
-      `Partner ${partner.id} does not have a discount with program ${program.id}. Skipping...`,
-    );
-  }
-
-  if (!discount.autoProvisionEnabledAt) {
-    return logAndRespond(
-      `Discount ${discount.id} does not have auto-provision enabled. Skipping...`,
-    );
-  }
-
-  try {
-    await createDiscountCode({
-      workspace,
-      partner,
-      link,
-      discount,
-    });
-  } catch (error) {
-    if (isNonRecoverableDiscountError(error)) {
-      return logAndRespond(error.message, { logLevel: "warn" });
-    }
-
-    if (
-      error instanceof DubApiError &&
-      (error.code === "conflict" || error.code === "bad_request")
-    ) {
-      return logAndRespond(error.message, { logLevel: "warn" });
-    }
-
-    throw error;
-  }
-
-  return logAndRespond(`Discount code created for link ${linkId}.`);
+  await createDiscountCodeForLinkJob.execute(JSON.parse(rawBody));
+  return logAndRespond("Successfully processed discount code creation.");
 });

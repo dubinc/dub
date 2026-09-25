@@ -6,6 +6,7 @@ import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enro
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { createDiscountCode } from "@/lib/discounts/create-discount-code";
+import { isDiscountDeleted } from "@/lib/discounts/is-discount-deleted";
 import { prisma } from "@/lib/prisma";
 import {
   createDiscountCodeSchema,
@@ -130,7 +131,7 @@ export const POST = withWorkspace(
       });
     }
 
-    if (!discount.programId) {
+    if (isDiscountDeleted(discount)) {
       throw new DubApiError({
         code: "not_found",
         message: `Discount ${discount.id} not found.`,
@@ -154,7 +155,7 @@ export const POST = withWorkspace(
       const duplicateByCode = await prisma.discountCode.findUnique({
         where: {
           programId_code: {
-            programId: discount.programId,
+            programId: discount.programId!,
             code,
           },
         },
