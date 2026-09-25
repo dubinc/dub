@@ -1,4 +1,3 @@
-import { DubApiError } from "@/lib/api/errors";
 import { queueBatchEmail } from "@/lib/email/queue-batch-email";
 import type PartnerGroupChanged from "@dub/email/templates/partner-group-changed";
 import { getGroupRewardsAndBounties } from "./get-group-rewards-and-bounties";
@@ -22,34 +21,23 @@ export async function notifyPartnerGroupChange({
     return;
   }
 
-  let groupRewards: Awaited<ReturnType<typeof getGroupRewardsAndBounties>>;
-
-  try {
-    groupRewards = await getGroupRewardsAndBounties({
+  const [
+    {
+      rewards,
+      bounties,
+      group: { program },
+    },
+    partnerUsers,
+  ] = await Promise.all([
+    getGroupRewardsAndBounties({
       programId,
       groupId,
-    });
-  } catch (error) {
-    if (
-      error instanceof DubApiError &&
-      (error.code === "not_found" || error.code === "forbidden")
-    ) {
-      console.info(`Group ${groupId} not found. Skipping...`);
-      return;
-    }
+    }),
 
-    throw error;
-  }
-
-  const {
-    rewards,
-    bounties,
-    group: { program },
-  } = groupRewards;
-
-  const partnerUsers = await getPartnerUsers({
-    partnerIds,
-  });
+    getPartnerUsers({
+      partnerIds,
+    }),
+  ]);
 
   await queueBatchEmail<typeof PartnerGroupChanged>(
     partnerUsers.map(({ partner, user }) => ({
