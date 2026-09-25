@@ -12,6 +12,11 @@ const UPDATE_CHUNK_SIZE = 50;
 const THROTTLE_MS = 1000;
 const LAST_CURSOR_ID: string | null = null;
 
+// Shopify and Stripe workspaces
+const workspaceIds = [
+  //
+];
+
 const getSaleEventsMetadata = tb.buildPipe({
   pipe: "internal_get_events_metadata",
   parameters: z.object({
@@ -23,13 +28,11 @@ const getSaleEventsMetadata = tb.buildPipe({
   }),
 });
 
-const migratedWorkspaceIds = [];
-
 function isPlainObject(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === "object" && !Array.isArray(value);
 }
 
-function identifyImportSource(raw: string): CommissionSource | null {
+function identifySaleSource(raw: string): CommissionSource | null {
   let parsed: unknown;
 
   try {
@@ -43,40 +46,38 @@ function identifyImportSource(raw: string): CommissionSource | null {
   }
 
   if (
-    "due_at" in parsed &&
-    "campaign" in parsed &&
-    isPlainObject(parsed.sale) &&
-    "stripe_charge_id" in parsed.sale
+    isPlainObject(parsed.invoice) &&
+    parsed.invoice.object === "invoice" &&
+    "lines" in parsed.invoice &&
+    "amount_due" in parsed.invoice &&
+    "customer" in parsed.invoice &&
+    "hosted_invoice_url" in parsed.invoice
   ) {
-    return CommissionSource.rewardful;
+    return CommissionSource.stripe;
   }
 
   if (
-    "transaction_id" in parsed &&
-    "charge_id" in parsed &&
-    "partner" in parsed
+    isPlainObject(parsed.checkoutSession) &&
+    parsed.checkoutSession.object === "checkout.session" &&
+    "mode" in parsed.checkoutSession &&
+    "payment_status" in parsed.checkoutSession &&
+    "amount_total" in parsed.checkoutSession &&
+    "success_url" in parsed.checkoutSession
   ) {
-    return CommissionSource.tolt;
-  }
-
-  if ("reward_status" in parsed && "partnership" in parsed && "key" in parsed) {
-    return CommissionSource.partnerstack;
-  }
-
-  if (
-    "conversion_sub_amount" in parsed &&
-    "approved" in parsed &&
-    "currency" in parsed
-  ) {
-    return CommissionSource.tapfiliate;
+    return CommissionSource.stripe;
   }
 
   if (
-    "store_id" in parsed &&
-    "subtotal" in parsed &&
-    ("first_order_item" in parsed || "billing_reason" in parsed)
+    "checkout_token" in parsed &&
+    "confirmation_number" in parsed &&
+    "discount_codes" in parsed &&
+    "note_attributes" in parsed &&
+    isPlainObject(parsed.current_subtotal_price_set) &&
+    isPlainObject(parsed.current_subtotal_price_set.shop_money) &&
+    "amount" in parsed.current_subtotal_price_set.shop_money &&
+    "currency_code" in parsed.current_subtotal_price_set.shop_money
   ) {
-    return CommissionSource.lemonsqueezy;
+    return CommissionSource.shopify;
   }
 
   return null;
@@ -147,7 +148,7 @@ async function main() {
         program: {
           workspace: {
             id: {
-              in: migratedWorkspaceIds,
+              in: workspaceIds,
             },
           },
         },
@@ -198,7 +199,7 @@ async function main() {
         continue;
       }
 
-      const source = identifyImportSource(raw);
+      const source = identifySaleSource(raw);
 
       if (!source) {
         batchSkipped++;
