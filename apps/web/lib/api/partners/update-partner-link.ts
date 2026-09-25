@@ -11,7 +11,7 @@ import {
   toPartnerLinkRewardIdFields,
 } from "@/lib/api/rewards/reward-overrides";
 import { throwIfInvalidRewards } from "@/lib/api/rewards/throw-if-invalid-rewards";
-import { remapDiscountCodesForPartnerJob } from "@/lib/jobs/handlers/remap-discount-codes-for-partner-job";
+import { syncDiscountCodes } from "@/lib/discounts/sync-discount-codes";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { prisma } from "@/lib/prisma";
 import { PARTNER_LEVEL_REWARDS_PLAN_ERROR } from "@/lib/rewards/constants";
@@ -155,20 +155,16 @@ export async function updatePartnerLink({
   }
 
   if (body.discountId !== undefined) {
-    await remapDiscountCodesForPartnerJob.dispatch(
-      {
-        programId,
-        partnerId: link.partnerId,
-      },
-      {
-        label: link.partnerId,
-      },
-    );
+    await syncDiscountCodes({
+      programId,
+      partnerIds: [link.partnerId],
+    });
   }
 
   waitUntil(
     Promise.allSettled([
       linkCache.expireMany([link]),
+
       trackLinkRewardOverrideLog({
         workspaceId: workspace.id,
         programId,

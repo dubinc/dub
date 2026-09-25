@@ -209,4 +209,77 @@ export const RATELIMIT_POLICIES = {
     keyPrefix: "rl:resume:upload",
     message: "Too many resume uploads. Please try again later.",
   },
+
+  // Keyed on partner + program so one partner cannot exhaust another's budget
+  partnerAnalyticsExport: {
+    attempts: 1,
+    window: "30 s",
+    keyPrefix: "rl:analytics:export:partner",
+    message:
+      "Analytics export is limited to once every 30 seconds. Please try again shortly.",
+  },
+
+  createToken: {
+    attempts: 1,
+    window: "5 s",
+    keyPrefix: "rl:tokens:create",
+  },
+
+  submitLead: {
+    attempts: 10,
+    window: "1 m",
+    keyPrefix: "rl:submitted-lead",
+    message: "Too many leads submitted. Please try again later.",
+  },
+
+  trackApplication: {
+    attempts: 10,
+    window: "10 s",
+    keyPrefix: "rl:track:application",
+  },
+
+  workspaceInvite: {
+    attempts: 1,
+    window: "1 s",
+    keyPrefix: "rl:workspace:invites",
+    message:
+      "You've reached the rate limit for inviting teammates. Please try again later after few seconds.",
+  },
+
+  slackSupportInviteWorkspace: {
+    attempts: 5,
+    window: "1 d",
+    keyPrefix: "rl:slack-support-invite:workspace",
+    message:
+      "This workspace has reached the daily limit for Slack invite requests. Please try again tomorrow.",
+  },
+
+  // Keyed on workspace + user so one member cannot exhaust the workspace budget
+  slackSupportInviteUser: {
+    attempts: 10,
+    window: "1 h",
+    keyPrefix: "rl:slack-support-invite",
+    message:
+      "You've requested too many Slack invites recently. Please try again later.",
+  },
+
+  sitemapImport: {
+    attempts: 5,
+    window: "1 m",
+    keyPrefix: "rl:sitemap-import",
+    message:
+      "Sitemap import was requested too recently. Please wait a minute and try again.",
+  },
+
+  tremendousSendOtp: {
+    attempts: 10,
+    window: "24 h",
+    keyPrefix: "rl:tremendous:send-otp",
+  },
+
+  tremendousVerifyOtp: {
+    attempts: 10,
+    window: "24 h",
+    keyPrefix: "rl:tremendous:verify-otp",
+  },
 } as const satisfies Record<string, RatelimitPolicy>;
