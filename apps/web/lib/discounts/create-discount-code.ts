@@ -29,6 +29,13 @@ export async function createDiscountCode({
   discount,
   code,
 }: CreateDiscountCodeArgs) {
+  if (!discount.programId) {
+    throw new DubApiError({
+      code: "not_found",
+      message: `Discount ${discount.id} not found.`,
+    });
+  }
+
   const finalCode =
     code ||
     constructDiscountCode({
@@ -139,7 +146,7 @@ async function createDiscountCodeRecord({
       data: {
         id: createId({ prefix: "dcode_" }),
         code,
-        programId: discount.programId,
+        programId: discount.programId!,
         partnerId: partner.id,
         linkId: link.id,
         discountId: discount.id,
