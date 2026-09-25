@@ -24,6 +24,7 @@ export const GET = withWorkspace(
     const {
       partnerId,
       discountId,
+      code,
       page = 1,
       pageSize,
     } = getDiscountCodesQuerySchema.parse(searchParams);
@@ -48,6 +49,7 @@ export const GET = withWorkspace(
         programId,
         ...(partnerId && { partnerId }),
         ...(discountId && { discountId }),
+        ...(code && { code }),
       },
       orderBy: {
         createdAt: "desc",
