@@ -95,6 +95,11 @@ export const UPLOAD_POLICIES = {
     contentTypes: ["image/jpeg", "image/png", "image/webp"] as const,
     maxBytes: 5 * 1024 * 1024,
   },
+
+  resumes: {
+    contentTypes: ["application/pdf"] as const,
+    maxBytes: 5 * 1024 * 1024,
+  },
 } as const;
 
 export function getMimeTypeLabel(mimeType: string): string {

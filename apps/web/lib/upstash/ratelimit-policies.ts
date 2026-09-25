@@ -203,6 +203,13 @@ export const RATELIMIT_POLICIES = {
     message: "Too many verification attempts. Please try again later.",
   },
 
+  resumeUpload: {
+    attempts: 5,
+    window: "1 h",
+    keyPrefix: "rl:resume:upload",
+    message: "Too many resume uploads. Please try again later.",
+  },
+
   // Keyed on partner + program so one partner cannot exhaust another's budget
   partnerAnalyticsExport: {
     attempts: 1,
