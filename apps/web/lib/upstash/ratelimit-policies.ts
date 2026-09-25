@@ -317,14 +317,6 @@ export const RATELIMIT_POLICIES = {
       "You've reached the maximum number of attempts for the past 24 hours. Please wait and try again later.",
   },
 
-  // Unauthenticated IP requests (metatags, qr, providers, etc.)
-  anonymousIpRequest: {
-    attempts: 10,
-    window: "10 s",
-    keyPrefix: "rl:anonymous",
-    message: "Don't DDoS me pls 🥺",
-  },
-
   domainSearchAvailability: {
     attempts: 1,
     window: "5 s",
