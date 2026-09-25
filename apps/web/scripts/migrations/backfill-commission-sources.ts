@@ -2,7 +2,11 @@ import "dotenv-flow/config";
 
 import { prisma } from "@/lib/prisma";
 import { tb } from "@/lib/tinybird/client";
-import { chunk, sleep } from "@dub/utils";
+import { chunk, pluck, sleep } from "@dub/utils";
+import {
+  SHOPIFY_INTEGRATION_ID,
+  STRIPE_INTEGRATION_ID,
+} from "@dub/utils/src/constants/integrations";
 import { CommissionSource, CommissionType } from "@prisma/client";
 import * as z from "zod/v4";
 
@@ -11,11 +15,6 @@ const FETCH_BATCH_SIZE = 100;
 const UPDATE_CHUNK_SIZE = 50;
 const THROTTLE_MS = 1000;
 const LAST_CURSOR_ID: string | null = null;
-
-// Shopify and Stripe workspaces
-const workspaceIds = [
-  //
-];
 
 const getSaleEventsMetadata = tb.buildPipe({
   pipe: "internal_get_events_metadata",
@@ -123,6 +122,24 @@ async function updateCommissionSources(
 }
 
 async function main() {
+  const installedIntegrations = await prisma.installedIntegration.findMany({
+    where: {
+      integrationId: {
+        in: [SHOPIFY_INTEGRATION_ID, STRIPE_INTEGRATION_ID],
+      },
+      project: {
+        defaultProgramId: {
+          not: null,
+        },
+      },
+    },
+    select: {
+      projectId: true,
+    },
+  });
+
+  const workspaceIds = pluck(installedIntegrations, "projectId");
+
   console.log(
     `DRY_RUN=${DRY_RUN} FETCH_BATCH_SIZE=${FETCH_BATCH_SIZE} UPDATE_CHUNK_SIZE=${UPDATE_CHUNK_SIZE}`,
   );
