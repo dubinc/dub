@@ -8,7 +8,8 @@ import {
   MEGA_WORKSPACE_LINKS_LIMIT,
   SORTABLE_LINKS_LIMIT,
 } from "@/lib/constants/misc";
-import { ratelimit } from "@/lib/upstash";
+import { assertRateLimit } from "@/lib/upstash/assert-rate-limit";
+import { RATELIMIT_POLICIES } from "@/lib/upstash/ratelimit-policies";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import {
   createLinkBodySchemaAsync,
@@ -64,15 +65,10 @@ export const POST = withWorkspace(
 
     if (!session) {
       const ip = req.headers.get("x-forwarded-for") || LOCALHOST_IP;
-      const { success } = await ratelimit(10, "1 d").limit(ip);
-
-      if (!success) {
-        throw new DubApiError({
-          code: "rate_limit_exceeded",
-          message:
-            "Rate limited – you can only create up to 10 links per day without an account.",
-        });
-      }
+      await assertRateLimit({
+        policy: RATELIMIT_POLICIES.anonymousLinkCreate,
+        identifier: ip,
+      });
     }
 
     const { link, error, code } = await processLink({

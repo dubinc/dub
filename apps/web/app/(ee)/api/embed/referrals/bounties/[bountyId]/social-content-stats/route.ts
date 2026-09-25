@@ -8,7 +8,8 @@ import { getBountyOrThrow } from "@/lib/bounty/api/get-bounty-or-throw";
 import { resolveBountyDetails } from "@/lib/bounty/utils";
 import { withReferralsEmbedToken } from "@/lib/embed/referrals/auth";
 import { prisma } from "@/lib/prisma";
-import { ratelimit } from "@/lib/upstash";
+import { assertRateLimit } from "@/lib/upstash/assert-rate-limit";
+import { RATELIMIT_POLICIES } from "@/lib/upstash/ratelimit-policies";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 
@@ -22,16 +23,10 @@ export const GET = withReferralsEmbedToken(
     const { bountyId } = params;
     const { url } = searchParamsSchema.parse(searchParams);
 
-    const { success } = await ratelimit(10, "1 h").limit(
-      `partner-profile:social-content-stats:${programEnrollment.partnerId}`,
-    );
-
-    if (!success) {
-      throw new DubApiError({
-        code: "rate_limit_exceeded",
-        message: "You've been rate limited. Please try again later.",
-      });
-    }
+    await assertRateLimit({
+      policy: RATELIMIT_POLICIES.socialContentStats,
+      identifier: programEnrollment.partnerId,
+    });
 
     const bounty = await getBountyOrThrow({
       bountyId,

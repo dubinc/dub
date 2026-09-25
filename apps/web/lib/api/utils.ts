@@ -1,7 +1,8 @@
 import { ipAddress } from "@vercel/functions";
 import { getToken } from "next-auth/jwt";
 import { NextRequest } from "next/server";
-import { ratelimit } from "../upstash";
+import { assertRateLimit } from "../upstash/assert-rate-limit";
+import { RATELIMIT_POLICIES } from "../upstash/ratelimit-policies";
 import { DubApiError } from "./errors";
 
 // TODO move into `lib/api/utils/**` as individual files
@@ -30,14 +31,9 @@ export const ratelimitOrThrow = async (
   });
   if (!session?.email) {
     const ip = ipAddress(req);
-    const { success } = await ratelimit().limit(
-      `${identifier || "ratelimit"}:${ip}`,
-    );
-    if (!success) {
-      throw new DubApiError({
-        code: "rate_limit_exceeded",
-        message: "Don't DDoS me pls 🥺",
-      });
-    }
+    await assertRateLimit({
+      policy: RATELIMIT_POLICIES.anonymousIpRequest,
+      identifier: [identifier || "ratelimit", ip ?? ""],
+    });
   }
 };
