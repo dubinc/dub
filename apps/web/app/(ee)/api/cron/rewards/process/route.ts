@@ -135,9 +135,13 @@ export const POST = withCron(async ({ rawBody }) => {
   const programEnrollments = await prisma.programEnrollment.findMany({
     where: {
       groupId: group.id,
-      status: {
-        notIn: INACTIVE_ENROLLMENT_STATUSES,
-      },
+      // reward-deleted must also clear banned/deactivated/rejected enrollments.
+      // Those FKs block orphan hard-delete. Notifications stay active-only below.
+      ...(event !== "reward-deleted" && {
+        status: {
+          notIn: INACTIVE_ENROLLMENT_STATUSES,
+        },
+      }),
       ...(startAfterProgramEnrollmentId && {
         id: {
           gt: startAfterProgramEnrollmentId,
@@ -223,24 +227,6 @@ export const POST = withCron(async ({ rawBody }) => {
     return logAndRespond(
       `Enqueued next batch (${batchNumber + 1}) for reward ${rewardId} for the group ${groupId}.`,
     );
-  }
-
-  // No more program enrollments found, hard delete the reward
-  if (event === "reward-deleted") {
-    try {
-      await prisma.reward.delete({
-        where: {
-          id: reward.id,
-        },
-      });
-    } catch (error) {
-      // Treat already-deleted reward as success so retries can resend the notification
-      if (!(error.code === "P2025")) {
-        throw new Error(
-          `Failed to hard delete reward ${reward.id}: ${error instanceof Error ? error.message : String(error)}`,
-        );
-      }
-    }
   }
 
   return logAndRespond(
