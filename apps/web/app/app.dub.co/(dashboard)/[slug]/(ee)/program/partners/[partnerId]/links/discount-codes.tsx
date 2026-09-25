@@ -59,14 +59,11 @@ function getEffectiveDiscountProvider({
   partnerDiscount?: Pick<DiscountProps, "id" | "provider"> | null;
   groupDiscount?: Pick<DiscountProps, "id" | "provider"> | null;
 }): DiscountProvider | null {
-  const linkDiscount = discounts?.find((d) => d.id === link.discount);
+  if (link.discount) {
+    return discounts?.find((d) => d.id === link.discount)?.provider ?? null;
+  }
 
-  return (
-    linkDiscount?.provider ??
-    partnerDiscount?.provider ??
-    groupDiscount?.provider ??
-    null
-  );
+  return partnerDiscount?.provider ?? groupDiscount?.provider ?? null;
 }
 
 function linkHasEffectiveDiscount({

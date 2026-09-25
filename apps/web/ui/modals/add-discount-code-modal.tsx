@@ -90,6 +90,10 @@ const AddDiscountCodeModal = ({
   }, [partnerLinks, debouncedSearch]);
 
   const onSubmit = async (formData: FormData) => {
+    if (!provider) {
+      return;
+    }
+
     await makeRequest("/api/discount-codes", {
       method: "POST",
       body: {
@@ -259,7 +263,7 @@ const AddDiscountCodeModal = ({
             }
             className="h-8 w-fit pl-2.5 pr-1.5"
             loading={isSubmitting}
-            disabled={!linkId || (codeWillChange && !codeToCreate)}
+            disabled={!linkId || !provider || (codeWillChange && !codeToCreate)}
           />
         </div>
       </form>
