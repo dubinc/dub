@@ -14,10 +14,7 @@ export async function hardDeleteDiscountCode({
     where: {
       id: discountCodeId,
     },
-    select: {
-      id: true,
-      code: true,
-      deletedAt: true,
+    include: {
       discount: true,
       program: {
         select: {
@@ -58,6 +55,10 @@ export async function hardDeleteDiscountCode({
         workspace,
         code: discountCode.code,
       });
+
+      console.log(
+        `Disabled discount code ${discountCode.code} on ${discount.provider}`,
+      );
     } catch (error) {
       if (isNonRecoverableDiscountError(error)) {
         console.log(`Skipping ${discountCode.code}: ${error.message}`);
@@ -72,5 +73,11 @@ export async function hardDeleteDiscountCode({
     workspace,
     trigger: "discount_code.deleted",
     data: DiscountCodeWebhookSchema.parse(discountCode),
+  });
+
+  await prisma.discountCode.deleteMany({
+    where: {
+      id: discountCodeId,
+    },
   });
 }

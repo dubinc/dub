@@ -107,7 +107,7 @@ export const POST = withCron(async ({ rawBody }) => {
   console.info(`Disabled ${linksUpdated.count} links.`);
   console.info(`Rejected ${bountySubmissions.count} bounty submissions.`);
   console.info(`Canceled ${payouts.count} payouts.`);
-  console.info(`Disabled ${discountCodesDisabled.count} discount codes.`);
+  console.info(`Disabled ${discountCodesDisabled} discount codes.`);
 
   // Mark the commissions as canceled
   await cancelCommissions({

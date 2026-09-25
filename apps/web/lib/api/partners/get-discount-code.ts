@@ -1,39 +1,29 @@
-import { isDiscountCodeDeleted } from "@/lib/discounts/is-discount-code-deleted";
+import { isDiscountCodeSoftDeleted } from "@/lib/discounts/is-discount-code-soft-deleted";
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@prisma/client";
 
+type GetDiscountCodeArgs<T extends Prisma.DiscountCodeInclude = {}> = {
+  where: Prisma.DiscountCodeWhereInput;
+  include?: T;
+};
+
+// Returns a live (not soft-deleted) discount code matching `where`, or null.
 export async function getDiscountCode<
   T extends Prisma.DiscountCodeInclude = {},
 >({
-  idOrCode,
-  programId,
+  where,
   include,
-}: {
-  idOrCode: string;
-  programId: string;
-  include?: T;
-}): Promise<Prisma.DiscountCodeGetPayload<{ include: T }> | null> {
-  const discountCode = idOrCode.startsWith("dcode_")
-    ? await prisma.discountCode.findUnique({
-        where: {
-          id: idOrCode,
-        },
-        include,
-      })
-    : await prisma.discountCode.findFirst({
-        where: {
-          programId,
-          code: idOrCode,
-          deletedAt: null,
-        },
-        include,
-      });
+}: GetDiscountCodeArgs<T>): Promise<Prisma.DiscountCodeGetPayload<{
+  include: T;
+}> | null> {
+  const discountCode = await prisma.discountCode.findFirst({
+    where: {
+      ...where,
+    },
+    include,
+  });
 
-  if (
-    !discountCode ||
-    isDiscountCodeDeleted(discountCode) ||
-    discountCode.programId !== programId
-  ) {
+  if (!discountCode || isDiscountCodeSoftDeleted(discountCode)) {
     return null;
   }
 

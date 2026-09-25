@@ -1,5 +1,6 @@
 import { createId } from "@/lib/api/create-id";
 import { DubApiError } from "@/lib/api/errors";
+import { getDiscountCode } from "@/lib/api/partners/get-discount-code";
 import { prisma } from "@/lib/prisma";
 import { nanoid } from "@dub/utils";
 import { Discount, Link, Partner, Prisma, Project } from "@prisma/client";
@@ -8,6 +9,7 @@ import { sendWorkspaceWebhook } from "../webhook/publish";
 import { DiscountCodeWebhookSchema } from "../zod/schemas/discount";
 import { constructDiscountCode } from "./construct-discount-code";
 import { getDiscountProvider } from "./discount-provider";
+import { isDiscountCodeSoftDeleted } from "./is-discount-code-soft-deleted";
 import { isDiscountDeleted } from "./is-discount-deleted";
 
 const MAX_ATTEMPTS = 3;
@@ -52,12 +54,16 @@ export async function createDiscountCode({
       discountCode: {
         select: {
           code: true,
+          deletedAt: true,
         },
       },
     },
   });
 
-  if (linkWithCode?.discountCode) {
+  if (
+    linkWithCode?.discountCode &&
+    !isDiscountCodeSoftDeleted(linkWithCode.discountCode)
+  ) {
     throw new DubApiError({
       code: "bad_request",
       message: `This link already has a discount code (${linkWithCode.discountCode.code}) assigned.`,
@@ -105,13 +111,11 @@ export async function createDiscountCode({
   }
 
   waitUntil(
-    (async () => {
-      await sendWorkspaceWebhook({
-        workspace,
-        trigger: "discount_code.created",
-        data: DiscountCodeWebhookSchema.parse(discountCode),
-      });
-    })(),
+    sendWorkspaceWebhook({
+      workspace,
+      trigger: "discount_code.created",
+      data: DiscountCodeWebhookSchema.parse(discountCode),
+    }),
   );
 
   return discountCode;
@@ -172,12 +176,9 @@ async function createDiscountCodeRecord({
         code,
       });
 
-      const existingForLink = await prisma.discountCode.findUnique({
+      const existingForLink = await getDiscountCode({
         where: {
           linkId: link.id,
-        },
-        select: {
-          code: true,
         },
       });
 

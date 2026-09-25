@@ -72,8 +72,10 @@ export async function attributeViaPromotionCodeId({
   console.log(`Promotion code found: ${promotionCode.code}`);
 
   const discountCode = await getDiscountCode({
-    idOrCode: promotionCode.code,
-    programId: workspace.defaultProgramId,
+    where: {
+      programId: workspace.defaultProgramId,
+      code: promotionCode.code,
+    },
     include: {
       link: true,
     },

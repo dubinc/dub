@@ -27,8 +27,10 @@ export async function promotionCodeUpdated({
   }
 
   const discountCode = await getDiscountCode({
-    idOrCode: promotionCode.code,
-    programId: workspace.defaultProgramId,
+    where: {
+      programId: workspace.defaultProgramId,
+      code: promotionCode.code,
+    },
   });
 
   if (!discountCode) {

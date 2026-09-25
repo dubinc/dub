@@ -1,3 +1,4 @@
+import { hardDeleteDiscountCode } from "@/lib/discounts/delete-discount-code";
 import * as z from "zod/v4";
 import { defineJob } from "../index";
 
@@ -15,8 +16,8 @@ export const deleteDiscountCodeJob = defineJob({
     },
   },
   async handle({ discountCodeId }) {
-    console.info(
-      `delete-discount-code-job is not implemented yet (${discountCodeId}).`,
-    );
+    await hardDeleteDiscountCode({
+      discountCodeId,
+    });
   },
 });
