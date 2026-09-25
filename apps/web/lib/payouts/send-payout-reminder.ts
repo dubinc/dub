@@ -89,10 +89,11 @@ function payoutReminderWhere({
       gte: MIN_PAYOUT_AMOUNT_FOR_REMINDERS,
     },
     programEnrollment: {
-      // Internal programs always pay through Dub, so those partners still need
-      // to connect payout details even if a tenantId is set.
-      // External and hybrid programs pay outside Dub once tenantId is set, so
-      // skip those. Without a tenantId they are still included.
+      // - Internal programs always pay through Dub, so those partners still need
+      //   to connect payout details even if a tenantId is set.
+      // - Hybrid programs pay outside Dub once tenantId is set, so skip those.
+      //   Without a tenantId they are still included.
+      // - External programs will always pay outside Dub, so skip those.
       OR: [
         {
           program: {
@@ -100,6 +101,9 @@ function payoutReminderWhere({
           },
         },
         {
+          program: {
+            payoutMode: ProgramPayoutMode.hybrid,
+          },
           tenantId: null,
         },
       ],
