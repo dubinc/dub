@@ -36,18 +36,19 @@ model DiscountCode {
   programId  String
   discountId String?
   partnerId  String
-  linkId     String    @unique
+  linkId     String?   @unique
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
   disabledAt DateTime?
+  deletedAt  DateTime?
 
   program           Program            @relation(fields: [programId], references: [id], onDelete: Cascade)
-  discount          Discount?          @relation(fields: [discountId], references: [id], onDelete: SetNull)
+  discount          Discount?          @relation(fields: [discountId], references: [id])
   partner           Partner            @relation(fields: [partnerId], references: [id])
-  link              Link               @relation(fields: [linkId], references: [id])
-  programEnrollment ProgramEnrollment? @relation(fields: [programId, partnerId], references: [programId, partnerId], onDelete: Cascade)
+  link              Link?              @relation(fields: [linkId], references: [id], onDelete: Restrict)
+  programEnrollment ProgramEnrollment? @relation(fields: [programId, partnerId], references: [programId, partnerId], onDelete: Restrict)
 
-  @@unique([programId, code])
+  @@unique([programId, code, deletedAt])
   @@index([programId, partnerId])
   @@index(discountId)
   @@index(partnerId)

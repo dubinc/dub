@@ -1,7 +1,8 @@
 import { prisma } from "@/lib/prisma";
-import { deleteDiscountCodes } from "./delete-discount-code";
+import { isDiscountCodeDeleted } from "./is-discount-code-deleted";
 import { isDiscountDeleted } from "./is-discount-deleted";
 import { isDiscountEquivalent } from "./is-discount-equivalent";
+import { softDeleteDiscountCodes } from "./soft-delete-discount-codes";
 import { enqueueMissingDiscountCodes } from "./sync-discount-codes";
 
 // Remap a single discount code to the partner's current enrollment/link discount
@@ -32,6 +33,13 @@ export async function remapDiscountCode({
   if (!discountCode) {
     console.info(
       `Discount code ${discountCodeId} not found. Skipping remap...`,
+    );
+    return;
+  }
+
+  if (isDiscountCodeDeleted(discountCode)) {
+    console.info(
+      `Discount code ${discountCodeId} is deleted. Skipping remap...`,
     );
     return;
   }
@@ -70,7 +78,11 @@ export async function remapDiscountCode({
 
   // No live discount for this code.
   if (!newDiscount || isDiscountDeleted(newDiscount)) {
-    await deleteDiscountCodes([discountCode]);
+    await softDeleteDiscountCodes({
+      where: {
+        id: discountCode.id,
+      },
+    });
     return;
   }
 
@@ -96,7 +108,11 @@ export async function remapDiscountCode({
 
   // The discounts are different, delete the discount code then provision a new
   // one on default links when the destination discount has auto-provision on.
-  await deleteDiscountCodes([discountCode]);
+  await softDeleteDiscountCodes({
+    where: {
+      id: discountCode.id,
+    },
+  });
 
   await enqueueMissingDiscountCodes({
     programId: discountCode.programId,

@@ -99,6 +99,10 @@
     {
       "path": "/api/cron/rewards/queue-custom-commissions",
       "schedule": "0 0 * * *"
+    },
+    {
+      "path": "/api/cron/discount-codes/queue-deletes",
+      "schedule": "0 * * * *"
     }
   ],
   "functions": {
