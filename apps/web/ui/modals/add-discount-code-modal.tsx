@@ -10,6 +10,7 @@ import {
   Modal,
   useCopyToClipboard,
 } from "@dub/ui";
+import { CircleWarning, TriangleWarning } from "@dub/ui/icons";
 import { cn, getPrettyUrl } from "@dub/utils";
 import { Tag } from "lucide-react";
 import { useCallback, useMemo, useRef, useState } from "react";
@@ -23,6 +24,14 @@ import { X } from "../shared/icons";
 import { UpgradeRequiredToast } from "../shared/upgrade-required-toast";
 
 type FormData = z.infer<typeof createDiscountCodeSchema>;
+
+// Mirrors the createDiscountCodeSchema format: spaces become dashes,
+// anything other than letters, numbers, dashes, and underscores is dropped
+const sanitizeDiscountCode = (code: string) =>
+  code
+    .trim()
+    .replace(/\s+/g, "-")
+    .replace(/[^a-zA-Z0-9\-_]/g, "");
 
 interface AddDiscountCodeModalProps {
   showModal: boolean;
@@ -50,7 +59,10 @@ const AddDiscountCodeModal = ({
     },
   });
 
-  const [linkId] = watch(["linkId"]);
+  const [linkId, code] = watch(["linkId", "code"]);
+
+  const sanitizedCode = sanitizeDiscountCode(code ?? "");
+  const codeWillChange = !!code && sanitizedCode !== code.trim();
 
   // Get partner links for the dropdown
   const partnerLinks = partner.links || [];
@@ -79,6 +91,7 @@ const AddDiscountCodeModal = ({
       method: "POST",
       body: {
         ...formData,
+        code: sanitizeDiscountCode(formData.code ?? ""),
         partnerId: partner.id,
       },
       onSuccess: async (data) => {
@@ -206,6 +219,23 @@ const AddDiscountCodeModal = ({
                   placeholder={partner.name.split(" ")[0].toUpperCase()}
                 />
               </div>
+              {codeWillChange &&
+                (sanitizedCode ? (
+                  <p className="flex items-center gap-1.5 text-xs text-neutral-500">
+                    <TriangleWarning className="size-3.5 shrink-0 text-amber-500" />
+                    <span className="min-w-0">
+                      Will be created as{" "}
+                      <code className="break-all rounded-md bg-neutral-100 px-1.5 py-0.5 font-mono text-neutral-800">
+                        {sanitizedCode}
+                      </code>
+                    </span>
+                  </p>
+                ) : (
+                  <p className="flex items-center gap-1.5 text-xs text-red-600">
+                    <CircleWarning className="size-3.5 shrink-0" />
+                    Use letters, numbers, dashes, or underscores
+                  </p>
+                ))}
               <p className="text-xs text-neutral-500">
                 Discount codes cannot be edited after creation
               </p>
@@ -226,7 +256,7 @@ const AddDiscountCodeModal = ({
             }
             className="h-8 w-fit pl-2.5 pr-1.5"
             loading={isSubmitting}
-            disabled={!linkId}
+            disabled={!linkId || (codeWillChange && !sanitizedCode)}
           />
         </div>
       </form>

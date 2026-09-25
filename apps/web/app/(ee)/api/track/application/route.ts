@@ -17,7 +17,8 @@ import {
   recordClickZod,
   recordClickZodSchema,
 } from "@/lib/tinybird/record-click-zod";
-import { ratelimit } from "@/lib/upstash";
+import { assertRateLimit } from "@/lib/upstash/assert-rate-limit";
+import { RATELIMIT_POLICIES } from "@/lib/upstash/ratelimit-policies";
 import { publishLinkClickEvent } from "@/lib/upstash/redis-streams/link-click-events";
 import { MARKETPLACE_RESERVED_SLUGS } from "@/ui/program-marketplace/utils/urls";
 import {
@@ -48,16 +49,10 @@ export const POST = withAxiom(async (req) => {
     }
 
     const ip = await getIP();
-    const { success } = await ratelimit(10, "10 s").limit(
-      `track-application:${ip}`,
-    );
-
-    if (!success) {
-      throw new DubApiError({
-        code: "rate_limit_exceeded",
-        message: "Too many requests. Please try again later.",
-      });
-    }
+    await assertRateLimit({
+      policy: RATELIMIT_POLICIES.trackApplication,
+      identifier: ip,
+    });
 
     const { eventName, url, referrer } = trackApplicationEventSchema.parse(
       await parseRequestBody(req),

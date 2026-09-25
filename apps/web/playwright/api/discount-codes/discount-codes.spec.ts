@@ -590,6 +590,24 @@ test("GET /discount-codes – by discountId", async ({ api }) => {
   }
 });
 
+test("GET /discount-codes – by code", async ({ api }) => {
+  let partnerId: string | undefined;
+
+  try {
+    const created = await createDiscountCode(api);
+    partnerId = created.partner.id;
+
+    const { status, data } = await api.get<DiscountCode[]>(
+      `/api/discount-codes?code=${encodeURIComponent(created.data.code)}`,
+    );
+
+    expect(status).toEqual(200);
+    expect(data).toEqual([created.data]);
+  } finally {
+    await deletePartner(partnerId);
+  }
+});
+
 test("GET /discount-codes – pagination", async ({ api }) => {
   let partnerIdA: string | undefined;
   let partnerIdB: string | undefined;
