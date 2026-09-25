@@ -199,10 +199,10 @@ function matchesReminderFilters(
 
 function matchesProgramEnrollmentFilter(
   filter: {
-    OR: Array<
-      | { program: { payoutMode: ProgramPayoutMode } }
-      | { tenantId: string | null }
-    >;
+    OR: Array<{
+      program?: { payoutMode: ProgramPayoutMode };
+      tenantId?: string | null;
+    }>;
   },
   enrollment: {
     payoutMode: ProgramPayoutMode;
@@ -210,11 +210,18 @@ function matchesProgramEnrollmentFilter(
   },
 ) {
   return filter.OR.some((clause) => {
-    if ("program" in clause) {
-      return clause.program.payoutMode === enrollment.payoutMode;
+    if (
+      clause.program &&
+      clause.program.payoutMode !== enrollment.payoutMode
+    ) {
+      return false;
     }
 
-    return clause.tenantId === enrollment.tenantId;
+    if ("tenantId" in clause && clause.tenantId !== enrollment.tenantId) {
+      return false;
+    }
+
+    return true;
   });
 }
 
@@ -384,7 +391,7 @@ describe("sendPayoutReminder", () => {
     {
       payoutMode: ProgramPayoutMode.external,
       tenantId: null,
-      included: true,
+      included: false,
     },
     {
       payoutMode: ProgramPayoutMode.hybrid,
