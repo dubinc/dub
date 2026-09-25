@@ -20,6 +20,7 @@ import {
   MenuItem,
   Popover,
   ToggleGroup,
+  Tooltip,
   useLocalStorage,
   useRouterStuff,
 } from "@dub/ui";
@@ -409,9 +410,11 @@ function Drafts({
   draft: DraftData | null;
   setDraft: (draft: DraftData | null) => void;
 }) {
+  const { group } = useBrandingContext();
   const {
     setValue,
     getValues,
+    reset,
     formState: { isDirty },
   } = useBrandingFormContext();
 
@@ -454,8 +457,41 @@ function Drafts({
     return () => clearInterval(interval);
   }, [isDirty]);
 
+  const discardDraft = () => {
+    reset({
+      logo: group.logo ?? null,
+      wordmark: group.wordmark ?? null,
+      brandColor: group.brandColor ?? null,
+      applicationFormData:
+        group.applicationFormData ?? defaultApplicationFormData(group.program),
+      landerData: group.landerData ?? { blocks: [] },
+    });
+    setDraft(null);
+  };
+
   return isDirty ? (
-    <span className="text-content-muted text-sm">Unsaved draft</span>
+    <Tooltip
+      content={({ setOpen }) => (
+        <div className="w-screen p-2 sm:w-48">
+          <MenuItem
+            variant="danger"
+            onClick={() => {
+              discardDraft();
+              setOpen(false);
+            }}
+          >
+            Discard draft
+          </MenuItem>
+        </div>
+      )}
+    >
+      <button
+        type="button"
+        className="text-content-muted hover:text-content-emphasis cursor-help text-sm underline decoration-dotted underline-offset-2 transition-colors"
+      >
+        Unsaved draft
+      </button>
+    </Tooltip>
   ) : null;
 }
 
