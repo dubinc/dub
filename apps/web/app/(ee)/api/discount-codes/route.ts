@@ -24,6 +24,7 @@ export const GET = withWorkspace(
     const {
       partnerId,
       discountId,
+      code,
       page = 1,
       pageSize,
     } = getDiscountCodesQuerySchema.parse(searchParams);
@@ -48,6 +49,7 @@ export const GET = withWorkspace(
         programId,
         ...(partnerId && { partnerId }),
         ...(discountId && { discountId }),
+        ...(code && { code }),
       },
       orderBy: {
         createdAt: "desc",
@@ -125,6 +127,13 @@ export const POST = withWorkspace(
         code: "bad_request",
         message:
           "No discount is assigned to this partner or link. Please add a discount before proceeding.",
+      });
+    }
+
+    if (!discount.programId) {
+      throw new DubApiError({
+        code: "not_found",
+        message: `Discount ${discount.id} not found.`,
       });
     }
 

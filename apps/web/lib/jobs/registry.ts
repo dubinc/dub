@@ -66,6 +66,11 @@ const jobLoaders = {
       (m) => m.sendPartnerProgramSummaryJob,
     ),
 
+  "send-connect-payout-reminders-job": () =>
+    import("./handlers/send-connect-payout-reminders-job").then(
+      (m) => m.sendConnectPayoutRemindersJob,
+    ),
+
   "create-custom-commission-job": () =>
     import("./handlers/create-custom-commission-job").then(
       (m) => m.createCustomCommissionJob,
@@ -76,16 +81,26 @@ const jobLoaders = {
       (m) => m.invalidateLinksForDiscountsJob,
     ),
 
-  "remap-discount-codes-for-partner-job": () =>
-    import("./handlers/remap-discount-codes-for-partner-job").then(
-      (m) => m.remapDiscountCodesForPartnerJob,
+  "remap-discount-code-job": () =>
+    import("./handlers/remap-discount-code-job").then(
+      (m) => m.remapDiscountCodeJob,
     ),
 
-  "delete-discount-job": () =>
-    import("./handlers/delete-discount-job").then((m) => m.deleteDiscountJob),
+  "attach-discount-job": () =>
+    import("./handlers/attach-discount-job").then((m) => m.attachDiscountJob),
+
+  "publish-discount-codes-creation-job": () =>
+    import("./handlers/publish-discount-codes-creation-job").then(
+      (m) => m.publishDiscountCodesCreationJob,
+    ),
 
   "aggregate-clicks-job": () =>
     import("./handlers/aggregate-clicks-job").then((m) => m.aggregateClicksJob),
+
+  "process-partner-group-change-job": () =>
+    import("./handlers/process-partner-group-change-job").then(
+      (m) => m.processPartnerGroupChangeJob,
+    ),
 } as const satisfies Record<string, () => Promise<JobDefinition>>;
 
 const jobCache = new Map<string, JobDefinition>();

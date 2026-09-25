@@ -127,6 +127,7 @@ export const executeMoveGroupWorkflow = async ({
       partnerIds: [partnerId],
       userId: null,
       group: newGroup,
+      clearLinkRewardsSync: false,
     });
   } finally {
     await redis.del(lockKey);

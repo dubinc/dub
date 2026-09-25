@@ -31,6 +31,7 @@ enum CommissionSource {
   tolt
   tapfiliate
   lemonsqueezy
+  affiliatewp
 }
 
 model Commission {
@@ -43,7 +44,7 @@ model Commission {
   invoiceId          String? // only for sales (idempotency key, each sale event is associated with a unique invoice)
   customerId         String? // only for leads and sales
   eventId            String?           @unique // only for leads and sales
-  description        String?
+  description        String?           @db.Text
   type               CommissionType
   amount             Int // only for sales (amount of the sale event)
   quantity           Int // only for clicks/leads (quantity of the event)
@@ -81,4 +82,5 @@ model Commission {
   @@index(status)
   @@index(rewardId)
   @@index(userId)
+  @@index([status, payoutId, source]) // temp index for migration script
 }

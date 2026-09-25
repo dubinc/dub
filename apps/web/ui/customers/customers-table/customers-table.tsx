@@ -511,8 +511,8 @@ function CustomersFilters({
           onSelectedFilterChange={setSelectedFilter}
         />
         <SearchBoxPersisted
-          placeholder="Search by email or name"
-          inputClassName="md:w-[16rem]"
+          placeholder="Search by email, name, or ID"
+          inputClassName="md:w-[18rem]"
         />
       </div>
       <AnimatedSizeContainer height>
