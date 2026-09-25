@@ -89,6 +89,11 @@ const jobLoaders = {
   "attach-discount-job": () =>
     import("./handlers/attach-discount-job").then((m) => m.attachDiscountJob),
 
+  "create-discount-code-for-link-job": () =>
+    import("./handlers/create-discount-code-for-link-job").then(
+      (m) => m.createDiscountCodeForLinkJob,
+    ),
+
   "publish-discount-codes-creation-job": () =>
     import("./handlers/publish-discount-codes-creation-job").then(
       (m) => m.publishDiscountCodesCreationJob,
