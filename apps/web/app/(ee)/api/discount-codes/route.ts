@@ -12,8 +12,10 @@ import {
   createDiscountCodeSchema,
   DiscountCodeSchema,
   getDiscountCodesQuerySchema,
+  restrictedDiscountCodeSchema,
 } from "@/lib/zod/schemas/discount";
 import { APP_DOMAIN } from "@dub/utils";
+import { DiscountProvider } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
@@ -136,6 +138,14 @@ export const POST = withWorkspace(
         code: "not_found",
         message: `Discount ${discount.id} not found.`,
       });
+    }
+
+    if (
+      code &&
+      (discount.provider === DiscountProvider.stripe ||
+        discount.provider === DiscountProvider.shopify)
+    ) {
+      restrictedDiscountCodeSchema.parse({ code });
     }
 
     // A link can have only one discount code

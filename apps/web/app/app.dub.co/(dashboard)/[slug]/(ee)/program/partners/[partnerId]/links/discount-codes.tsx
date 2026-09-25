@@ -40,7 +40,7 @@ import { cn, getPrettyUrl, nFormatter, pluralize } from "@dub/utils";
 import { DiscountProvider } from "@prisma/client";
 import { Command } from "cmdk";
 import Link from "next/link";
-import { type ReactNode, useMemo, useState } from "react";
+import { type ReactNode, useCallback, useMemo, useState } from "react";
 
 type PartnerLink = ProgramPartnerLinkExtended;
 type PartnerForDiscountOverride = Pick<
@@ -109,9 +109,25 @@ export function PartnerDiscountCodes({
     groupId: partner.groupId ?? undefined,
   });
 
+  const getDiscountProvider = useCallback(
+    (linkId: string) => {
+      const link = links?.find((item) => item.id === linkId);
+      if (!link) return null;
+
+      return getEffectiveDiscountProvider({
+        link,
+        discounts,
+        partnerDiscount: partner.discount,
+        groupDiscount: group?.discount,
+      });
+    },
+    [links, discounts, partner.discount, group?.discount],
+  );
+
   const { AddDiscountCodeModal, setShowAddDiscountCodeModal } =
     useAddDiscountCodeModal({
       partner,
+      getDiscountProvider,
     });
 
   const usedLinkIds = useMemo(
