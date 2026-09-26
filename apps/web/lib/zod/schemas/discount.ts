@@ -79,6 +79,7 @@ export const DiscountCodeSchema = z
       .describe("The ID of the partner this discount code is assigned to."),
     linkId: z
       .string()
+      .nullable()
       .describe(
         "The ID of the partner's referral link this discount code is associated with.",
       ),

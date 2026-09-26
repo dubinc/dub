@@ -3,7 +3,7 @@ import { includeTags } from "@/lib/api/links/include-tags";
 import { syncTotalCommissions } from "@/lib/api/partners/sync-total-commissions";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { withCron } from "@/lib/cron/with-cron";
-import { deleteDiscountCodes } from "@/lib/discounts/delete-discount-code";
+import { disableDiscountCodes } from "@/lib/discounts/disable-discount-codes";
 import { prisma } from "@/lib/prisma";
 import { recordLink } from "@/lib/tinybird";
 import { BAN_PARTNER_REASONS } from "@/lib/zod/schemas/partners";
@@ -24,7 +24,7 @@ export const POST = withCron(async ({ rawBody }) => {
 
   console.info(`Banning partner ${partnerId} from program ${programId}...`);
 
-  const { partner, links, program, discountCodes, ...programEnrollment } =
+  const { partner, links, program, ...programEnrollment } =
     await getProgramEnrollmentOrThrow({
       partnerId,
       programId,
@@ -36,11 +36,6 @@ export const POST = withCron(async ({ rawBody }) => {
         program: {
           select: {
             workspaceId: true,
-          },
-        },
-        discountCodes: {
-          include: {
-            discount: true,
           },
         },
       },
@@ -57,10 +52,9 @@ export const POST = withCron(async ({ rawBody }) => {
     partnerId,
   };
 
-  const [linksUpdated, bountySubmissions, discountCodesDeleted, payouts] =
-    await prisma.$transaction([
-      // Disable links
-      prisma.link.updateMany({
+  const [linksUpdated, bountySubmissions, payouts, discountCodesDisabled] =
+    await prisma.$transaction(async (tx) => {
+      const linksUpdated = await tx.link.updateMany({
         where: {
           ...commonWhere,
         },
@@ -68,10 +62,9 @@ export const POST = withCron(async ({ rawBody }) => {
           disabledAt: new Date(),
           expiresAt: new Date(),
         },
-      }),
+      });
 
-      // Reject bounty submissions
-      prisma.bountySubmission.updateMany({
+      const bountySubmissions = await tx.bountySubmission.updateMany({
         where: {
           ...commonWhere,
           status: {
@@ -84,20 +77,9 @@ export const POST = withCron(async ({ rawBody }) => {
           rejectionNote:
             "Rejected automatically because the partner was banned.",
         },
-      }),
+      });
 
-      // Remove discount codes
-      prisma.discountCode.updateMany({
-        where: {
-          ...commonWhere,
-        },
-        data: {
-          discountId: null,
-        },
-      }),
-
-      // Cancel payouts
-      prisma.payout.updateMany({
+      const payouts = await tx.payout.updateMany({
         where: {
           ...commonWhere,
           status: "pending",
@@ -105,13 +87,27 @@ export const POST = withCron(async ({ rawBody }) => {
         data: {
           status: "canceled",
         },
-      }),
-    ]);
+      });
+
+      const discountCodesDisabled = await disableDiscountCodes({
+        where: {
+          ...commonWhere,
+        },
+        tx,
+      });
+
+      return [
+        linksUpdated,
+        bountySubmissions,
+        payouts,
+        discountCodesDisabled,
+      ] as const;
+    });
 
   console.info(`Disabled ${linksUpdated.count} links.`);
   console.info(`Rejected ${bountySubmissions.count} bounty submissions.`);
-  console.info(`Removed ${discountCodesDeleted.count} discount codes.`);
   console.info(`Canceled ${payouts.count} payouts.`);
+  console.info(`Disabled ${discountCodesDisabled} discount codes.`);
 
   // Mark the commissions as canceled
   await cancelCommissions({
@@ -132,9 +128,6 @@ export const POST = withCron(async ({ rawBody }) => {
 
     // Delete links from Tinybird links metadata
     recordLink(links, { deleted: true }),
-
-    // Queue discount code deletions
-    deleteDiscountCodes(discountCodes, { isSoftDelete: true }),
   ]);
 
   // Send email

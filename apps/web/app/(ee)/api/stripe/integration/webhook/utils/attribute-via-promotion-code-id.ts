@@ -1,12 +1,12 @@
 import { createId } from "@/lib/api/create-id";
 import { getOrCreateCustomer } from "@/lib/api/customers/get-or-create-customer";
+import { getDiscountCode } from "@/lib/api/partners/get-discount-code";
 import { syncPartnerLinksStats } from "@/lib/api/partners/sync-partner-links-stats";
 import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
 import { queueGoogleAdsConversionUpload } from "@/lib/integrations/google-ads/upload-conversion";
 import { generateRandomName } from "@/lib/names";
 import { queuePartnerCommissionCreation } from "@/lib/partners/queue-partner-commission-creation";
 import { sendPartnerPostback } from "@/lib/postback/send-partner-postback";
-import { prisma } from "@/lib/prisma";
 import { getLeadEvent, recordLead } from "@/lib/tinybird";
 import { recordFakeClick } from "@/lib/tinybird/record-fake-click";
 import { LeadEventTB, StripeMode } from "@/lib/types";
@@ -71,12 +71,10 @@ export async function attributeViaPromotionCodeId({
 
   console.log(`Promotion code found: ${promotionCode.code}`);
 
-  const discountCode = await prisma.discountCode.findUnique({
+  const discountCode = await getDiscountCode({
     where: {
-      programId_code: {
-        programId: workspace.defaultProgramId,
-        code: promotionCode.code,
-      },
+      programId: workspace.defaultProgramId,
+      code: promotionCode.code,
     },
     include: {
       link: true,
@@ -98,6 +96,14 @@ export async function attributeViaPromotionCodeId({
   }
 
   const link = discountCode.link;
+
+  if (!link) {
+    console.log(
+      `Discount code "${discountCode.code}" has no link, skipping...`,
+    );
+    return null;
+  }
+
   const linkId = link.id;
   const customerAddress = customerDetails.address;
   const customerCountry = customerAddress?.country?.toUpperCase();

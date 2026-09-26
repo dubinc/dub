@@ -1,5 +1,6 @@
 import { convertCurrency } from "@/lib/analytics/convert-currency";
 import { isFirstConversion } from "@/lib/analytics/is-first-conversion";
+import { getDiscountCode } from "@/lib/api/partners/get-discount-code";
 import { Session } from "@/lib/auth";
 import { generateRandomName } from "@/lib/names";
 import { queuePartnerCommissionCreation } from "@/lib/partners/queue-partner-commission-creation";
@@ -291,13 +292,10 @@ async function resolveLinkAndCustomer(args: ResolveLinkAndCustomerArgs) {
   let resolvedLinkId = linkId ?? null;
 
   if (discountCode) {
-    const found = await prisma.discountCode.findUnique({
-      where: {
-        programId_code: {
-          programId,
-          code: discountCode,
-        },
-      },
+    const found = await getDiscountCode({
+      where: discountCode.startsWith("dcode_")
+        ? { id: discountCode, programId }
+        : { programId, code: discountCode },
     });
 
     if (!found) {

@@ -1,5 +1,5 @@
 import { queuePartnerSearchSyncForLinks } from "@/lib/api/partners/queue-partner-search-sync";
-import { deleteDiscountCodes } from "@/lib/discounts/delete-discount-code";
+import { softDeleteDiscountCodes } from "@/lib/discounts/soft-delete-discount-codes";
 import { prisma } from "@/lib/prisma";
 import { storage } from "@/lib/storage";
 import { recordLink } from "@/lib/tinybird";
@@ -12,7 +12,7 @@ const DELETE_LINKS_BATCH_SIZE = 100;
 
 /**
  * Canonical bulk link deletion:
- * 1. Delete related DiscountCodes (and enqueue provider cleanup)
+ * 1. Soft-delete related DiscountCodes (clear linkId for Restrict)
  * 2. Delete Link rows + decrement totalLinks (transaction)
  * 3. Run side effects (Redis / Tinybird / R2)
  *
@@ -79,23 +79,18 @@ export async function bulkDeleteLinks(
 
 async function deleteLinksBatch(links: ExpandedLink[]): Promise<number> {
   const linkIds = links.map((link) => link.id);
-
-  const discountCodes = await prisma.discountCode.findMany({
-    where: {
-      linkId: {
-        in: linkIds,
-      },
-    },
-    include: {
-      discount: true,
-    },
-  });
-
-  await deleteDiscountCodes(discountCodes);
-
   const workspaceId = links[0].projectId;
 
   const { count: deletedCount } = await prisma.$transaction(async (tx) => {
+    await softDeleteDiscountCodes({
+      where: {
+        linkId: {
+          in: linkIds,
+        },
+      },
+      tx,
+    });
+
     const result = await tx.link.deleteMany({
       where: {
         id: {

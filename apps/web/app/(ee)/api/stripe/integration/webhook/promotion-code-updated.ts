@@ -1,4 +1,5 @@
-import { prisma } from "@/lib/prisma";
+import { getDiscountCode } from "@/lib/api/partners/get-discount-code";
+import { softDeleteDiscountCodes } from "@/lib/discounts/soft-delete-discount-codes";
 import type Stripe from "stripe";
 import { WebhookHandlerInput, WebhookHandlerResponse } from "./types";
 
@@ -25,13 +26,10 @@ export async function promotionCodeUpdated({
     };
   }
 
-  // If the promotion code is not active, we need to remove them from Dub
-  const discountCode = await prisma.discountCode.findUnique({
+  const discountCode = await getDiscountCode({
     where: {
-      programId_code: {
-        programId: workspace.defaultProgramId,
-        code: promotionCode.code,
-      },
+      programId: workspace.defaultProgramId,
+      code: promotionCode.code,
     },
   });
 
@@ -41,7 +39,7 @@ export async function promotionCodeUpdated({
     };
   }
 
-  await prisma.discountCode.delete({
+  await softDeleteDiscountCodes({
     where: {
       id: discountCode.id,
     },

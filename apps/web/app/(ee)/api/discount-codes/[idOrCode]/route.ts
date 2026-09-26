@@ -1,9 +1,9 @@
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { DubApiError } from "@/lib/api/errors";
+import { getDiscountCode } from "@/lib/api/partners/get-discount-code";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { withWorkspace } from "@/lib/auth";
-import { deleteDiscountCodes } from "@/lib/discounts/delete-discount-code";
-import { prisma } from "@/lib/prisma";
+import { softDeleteDiscountCodes } from "@/lib/discounts/soft-delete-discount-codes";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
@@ -13,57 +13,46 @@ export const DELETE = withWorkspace(
     const { idOrCode } = params;
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    const discountCode = await prisma.discountCode.findUnique({
+    const discountCode = await getDiscountCode({
       where: idOrCode.startsWith("dcode_")
-        ? { id: idOrCode }
-        : { programId_code: { programId, code: idOrCode } },
+        ? { id: idOrCode, programId }
+        : { programId, code: idOrCode },
       include: {
         discount: true,
       },
     });
 
-    if (!discountCode || !discountCode.discount) {
+    if (!discountCode) {
       throw new DubApiError({
         code: "not_found",
         message: `Discount code (${idOrCode}) not found.`,
       });
     }
 
-    if (discountCode.programId !== programId) {
-      throw new DubApiError({
-        code: "not_found",
-        message: `Discount code (${idOrCode}) not found.`,
-      });
-    }
-
-    await prisma.discountCode.update({
+    await softDeleteDiscountCodes({
       where: {
         id: discountCode.id,
-      },
-      data: {
-        discountId: null,
       },
     });
 
     waitUntil(
-      Promise.allSettled([
-        recordAuditLog({
-          workspaceId: workspace.id,
-          programId,
-          action: "discount_code.deleted",
-          description: `Discount code (${discountCode.code}) deleted`,
-          actor: session.user,
-          targets: [
-            {
-              type: "discount_code",
-              id: discountCode.id,
-              metadata: discountCode,
+      recordAuditLog({
+        workspaceId: workspace.id,
+        programId,
+        action: "discount_code.deleted",
+        description: `Discount code (${discountCode.code}) deleted`,
+        actor: session.user,
+        targets: [
+          {
+            type: "discount_code",
+            id: discountCode.id,
+            metadata: {
+              ...discountCode,
+              linkId: discountCode.linkId ?? "",
             },
-          ],
-        }),
-
-        deleteDiscountCodes([discountCode]),
-      ]),
+          },
+        ],
+      }),
     );
 
     return NextResponse.json({ id: discountCode.id });
