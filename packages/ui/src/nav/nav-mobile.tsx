@@ -15,6 +15,7 @@ import {
   DubLinksIcon,
   DubPartnersIcon,
 } from "../icons";
+import { NavWordmark } from "../nav-wordmark";
 import { navItems, type NavItem, type NavTheme } from "./nav";
 
 const specialIcons: Record<string, ReactNode> = {
@@ -105,6 +106,21 @@ export function NavMobile({
           <Menu className="h-5 w-5 text-neutral-600 dark:text-white/70" />
         )}
       </button>
+      {/* The nav below covers the logo in the main nav, so we render it again here */}
+      {open && (
+        <Link
+          href={createHref("/home", domain, {
+            utm_source: "Custom Domain",
+            utm_medium: "Navbar",
+            utm_campaign: domain,
+            utm_content: "Logo",
+          })}
+          onClick={() => setOpen(false)}
+          className="fixed left-3 top-0 z-30 flex h-14 items-center pr-2"
+        >
+          <NavWordmark />
+        </Link>
+      )}
       <nav
         className={cn(
           "fixed inset-0 z-20 hidden max-h-screen w-full overflow-y-auto bg-white px-5 py-16 lg:hidden dark:bg-black dark:text-white/70",
