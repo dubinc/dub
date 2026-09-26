@@ -6,3 +6,9 @@ export function isDiscountCodeSoftDeleted(
 ): boolean {
   return discountCode.deletedAt != null;
 }
+
+export function isDiscountCodeDisabled(
+  discountCode: Pick<DiscountCode, "disabledAt">,
+): boolean {
+  return discountCode.disabledAt != null;
+}

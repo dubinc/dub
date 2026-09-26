@@ -1,7 +1,7 @@
 import { CRON_BATCH_SIZE } from "@/lib/cron";
 import { isNonRecoverableDiscountError } from "@/lib/discounts/discount-error";
 import { getDiscountProvider } from "@/lib/discounts/discount-provider";
-import { isDiscountDeleted } from "@/lib/discounts/is-discount-deleted";
+import { isDiscountDeleted } from "@/lib/discounts/discount-status";
 import { prisma } from "@/lib/prisma";
 import { ACTIVE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
 import * as z from "zod/v4";

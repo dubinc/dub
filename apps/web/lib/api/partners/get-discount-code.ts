@@ -1,4 +1,4 @@
-import { isDiscountCodeSoftDeleted } from "@/lib/discounts/is-discount-code-soft-deleted";
+import { isDiscountCodeSoftDeleted } from "@/lib/discounts/discount-code-status";
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@prisma/client";
 

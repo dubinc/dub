@@ -8,9 +8,9 @@ import { waitUntil } from "@vercel/functions";
 import { sendWorkspaceWebhook } from "../webhook/publish";
 import { DiscountCodeWebhookSchema } from "../zod/schemas/discount";
 import { constructDiscountCode } from "./construct-discount-code";
+import { isDiscountCodeSoftDeleted } from "./discount-code-status";
 import { getDiscountProvider } from "./discount-provider";
-import { isDiscountCodeSoftDeleted } from "./is-discount-code-soft-deleted";
-import { isDiscountDeleted } from "./is-discount-deleted";
+import { isDiscountDeleted } from "./discount-status";
 
 const MAX_ATTEMPTS = 3;
 

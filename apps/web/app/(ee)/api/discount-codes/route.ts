@@ -7,7 +7,7 @@ import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enro
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { createDiscountCode } from "@/lib/discounts/create-discount-code";
-import { isDiscountDeleted } from "@/lib/discounts/is-discount-deleted";
+import { isDiscountDeleted } from "@/lib/discounts/discount-status";
 import { prisma } from "@/lib/prisma";
 import {
   createDiscountCodeSchema,

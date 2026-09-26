@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
-import { isDiscountCodeSoftDeleted } from "./is-discount-code-soft-deleted";
-import { isDiscountDeleted } from "./is-discount-deleted";
+import { isDiscountCodeSoftDeleted } from "./discount-code-status";
+import { isDiscountDeleted } from "./discount-status";
 import { isDiscountEquivalent } from "./is-discount-equivalent";
 import { softDeleteDiscountCodes } from "./soft-delete-discount-codes";
 import { enqueueMissingDiscountCodes } from "./sync-discount-codes";

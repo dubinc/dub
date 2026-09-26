@@ -12,7 +12,7 @@ export async function disableDiscountCodes({
   where,
   tx = prisma,
 }: DisableDiscountCodesArgs) {
-  const { count } = await tx.discountCode.updateMany({
+  return await tx.discountCode.updateMany({
     where: {
       ...where,
       deletedAt: null,
@@ -22,8 +22,4 @@ export async function disableDiscountCodes({
       disabledAt: new Date(),
     },
   });
-
-  console.log(`Disabled ${count} discount codes.`);
-
-  return count;
 }

@@ -1,11 +1,14 @@
 import { prisma } from "@/lib/prisma";
 import { sendWorkspaceWebhook } from "../webhook/publish";
 import { DiscountCodeWebhookSchema } from "../zod/schemas/discount";
+import {
+  isDiscountCodeDisabled,
+  isDiscountCodeSoftDeleted,
+} from "./discount-code-status";
 import { isNonRecoverableDiscountError } from "./discount-error";
 import { getDiscountProvider } from "./discount-provider";
-import { isDiscountCodeDeleted } from "./is-discount-code-deleted";
 
-export async function hardDeleteDiscountCode({
+export async function deleteDiscountCode({
   discountCodeId,
 }: {
   discountCodeId: string;
@@ -36,8 +39,14 @@ export async function hardDeleteDiscountCode({
     return;
   }
 
-  if (!isDiscountCodeDeleted(discountCode)) {
-    console.log(`Discount code ${discountCodeId} is not deleted. Skipping...`);
+  // The discount code should be either soft-deleted or disabled.
+  if (
+    !isDiscountCodeSoftDeleted(discountCode) &&
+    !isDiscountCodeDisabled(discountCode)
+  ) {
+    console.log(
+      `Discount code ${discountCodeId} is not soft-deleted or disabled. Skipping...`,
+    );
     return;
   }
 
@@ -75,9 +84,13 @@ export async function hardDeleteDiscountCode({
     data: DiscountCodeWebhookSchema.parse(discountCode),
   });
 
-  await prisma.discountCode.deleteMany({
-    where: {
-      id: discountCodeId,
-    },
-  });
+  // Delete the discount code if it is soft-deleted.
+  // Don't delete the disabled discount codes from database
+  if (isDiscountCodeSoftDeleted(discountCode)) {
+    await prisma.discountCode.delete({
+      where: {
+        id: discountCodeId,
+      },
+    });
+  }
 }

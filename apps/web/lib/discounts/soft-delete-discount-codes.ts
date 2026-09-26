@@ -11,7 +11,7 @@ export async function softDeleteDiscountCodes({
   where,
   tx = prisma,
 }: SoftDeleteDiscountCodesArgs) {
-  const { count } = await tx.discountCode.updateMany({
+  return await tx.discountCode.updateMany({
     where: {
       ...where,
       deletedAt: null,
@@ -21,8 +21,4 @@ export async function softDeleteDiscountCodes({
       linkId: null,
     },
   });
-
-  console.log(`Soft-deleted ${count} discount codes.`);
-
-  return count;
 }
