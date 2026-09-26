@@ -105,26 +105,30 @@ export const POST = withWorkspace(
       queryParams.groupId = "apex";
     } else {
       queryParams.groupId = "subdomain";
-      queryParams.host = (subdomain ?? "www").toLowerCase();
+      queryParams.cnameHost = (subdomain ?? "www").toLowerCase();
     }
 
     const txtVerification = domainJson.verification?.find(
       (x: { type: string }) => x.type === "TXT",
     );
     if (txtVerification) {
-      const txtHostFqdn: string = txtVerification.domain?.toLowerCase() ?? "";
-      const apexSuffix = `.${apex}`;
-      const txtHost = txtHostFqdn.endsWith(apexSuffix)
-        ? txtHostFqdn.slice(0, -apexSuffix.length)
-        : txtHostFqdn === apex
-          ? "@"
-          : txtHostFqdn;
-      const txtValue = txtVerification.value?.trim();
-
-      if (txtHost && txtValue) {
+      const txtValue = txtVerification.value?.trim() ?? "";
+      if (txtValue && !isApex) {
         queryParams.groupId = queryParams.groupId + ",verification";
-        queryParams.txtHost = txtHost;
         queryParams.txtValue = txtValue;
+      } else if (txtValue) {
+        const txtHostFqdn: string = txtVerification.domain?.toLowerCase() ?? "";
+        const apexSuffix = `.${apex}`;
+        const txtHost = txtHostFqdn.endsWith(apexSuffix)
+          ? txtHostFqdn.slice(0, -apexSuffix.length)
+          : txtHostFqdn === apex
+            ? "@"
+            : txtHostFqdn;
+        if (txtHost) {
+          queryParams.groupId = queryParams.groupId + ",verification";
+          queryParams.txtHost = txtHost;
+          queryParams.txtValue = txtValue;
+        }
       }
     }
 
