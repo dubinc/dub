@@ -22403,7 +22403,7 @@ snapshots:
 
   eventsource@3.0.7:
     dependencies:
-      eventsource-parser: 3.0.6
+      eventsource-parser: 3.1.1
     optional: true
 
   execa@5.1.1:
