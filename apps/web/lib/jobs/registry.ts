@@ -56,6 +56,11 @@ const jobLoaders = {
       (m) => m.autoRejectPartnerJob,
     ),
 
+  "screen-partner-application-job": () =>
+    import("./handlers/screen-partner-application-job").then(
+      (m) => m.screenPartnerApplicationJob,
+    ),
+
   "queue-partner-program-summary-job": () =>
     import("./handlers/queue-partner-program-summary-job").then(
       (m) => m.queuePartnerProgramSummaryJob,

@@ -1,10 +1,6 @@
-import { resolveFraudGroups } from "@/lib/api/fraud/resolve-fraud-groups";
-import { queuePartnerSearchSync } from "@/lib/api/partners/queue-partner-search-sync";
-import { trackApplicationEvents } from "@/lib/application-events/update-application-event";
+import { rejectPendingEnrollment } from "@/lib/api/partners/applications/reject-pending-enrollment";
 import { evaluateApplicationRequirements } from "@/lib/partners/evaluate-application-requirements";
 import { prisma } from "@/lib/prisma";
-import { sendEmail } from "@dub/email";
-import PartnerApplicationRejected from "@dub/email/templates/partner-application-rejected";
 import {
   ProgramApplicationRejectionReason,
   ProgramEnrollmentStatus,
@@ -34,18 +30,12 @@ export const autoRejectPartnerJob = defineJob({
       include: {
         partner: {
           select: {
-            id: true,
-            name: true,
-            email: true,
             country: true,
+            email: true,
           },
         },
         program: {
           select: {
-            id: true,
-            name: true,
-            slug: true,
-            supportEmail: true,
             applicationRequirements: true,
           },
         },
@@ -78,95 +68,19 @@ export const autoRejectPartnerJob = defineJob({
       return;
     }
 
-    const { skipped } = await prisma.$transaction(async (tx) => {
-      const { count } = await tx.programEnrollment.updateMany({
-        where: {
-          id: programEnrollment.id,
-          status: ProgramEnrollmentStatus.pending,
-        },
-        data: {
-          status: ProgramEnrollmentStatus.rejected,
-          clickRewardId: null,
-          leadRewardId: null,
-          saleRewardId: null,
-          referralRewardId: null,
-          customRewardId: null,
-          discountId: null,
-        },
-      });
-
-      if (count === 0) {
-        return {
-          skipped: true,
-        };
-      }
-
-      if (programEnrollment.applicationId) {
-        await tx.programApplication.update({
-          where: {
-            id: programEnrollment.applicationId,
-          },
-          data: {
-            reviewedAt: new Date(),
-            rejectionReason:
-              ProgramApplicationRejectionReason.doesNotMeetRequirements,
-            rejectionNote: null,
-          },
-        });
-      }
-
-      return {
-        skipped: false,
-      };
+    const rejected = await rejectPendingEnrollment({
+      programId,
+      partnerId,
+      rejectionReason:
+        ProgramApplicationRejectionReason.doesNotMeetRequirements,
     });
 
-    if (skipped) {
+    if (!rejected) {
       console.warn(
         `Partner ${partnerId} is no longer pending in program ${programId}.`,
       );
       return;
     }
-
-    const { partner, program } = programEnrollment;
-
-    await Promise.allSettled([
-      resolveFraudGroups({
-        where: {
-          programId,
-          partnerId,
-        },
-        resolutionReason:
-          "Resolved automatically because the partner application was automatically rejected.",
-      }),
-
-      trackApplicationEvents({
-        event: "rejected",
-        programId,
-        partnerIds: [partnerId],
-      }),
-
-      // Queue an index update because the enrollment status moved to rejected.
-      queuePartnerSearchSync({ enrollmentIds: [programEnrollment.id] }),
-
-      partner.email &&
-        sendEmail({
-          to: partner.email,
-          subject: `Your application to ${program.name} was not approved`,
-          variant: "notifications",
-          replyTo: program.supportEmail || "noreply",
-          react: PartnerApplicationRejected({
-            partner: {
-              name: partner.name ?? "there",
-              email: partner.email,
-            },
-            program: {
-              name: program.name,
-              slug: program.slug,
-              supportEmail: program.supportEmail ?? undefined,
-            },
-          }),
-        }),
-    ]);
 
     console.info(
       `Successfully auto-rejected partner ${partnerId} in program ${programId}.`,
