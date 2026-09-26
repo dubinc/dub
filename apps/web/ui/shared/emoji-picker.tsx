@@ -1,12 +1,100 @@
+import type { EmojiMatch } from "@/lib/ai/search-emojis";
 import { Button, Popover } from "@dub/ui";
 import { FaceSmile } from "@dub/ui/icons";
 import { EmojiPicker as EmojiPickerBase } from "frimousse";
 import {
   PropsWithChildren,
+  useEffect,
   useRef,
   useState,
   type KeyboardEvent as ReactKeyboardEvent,
 } from "react";
+import {
+  DUB_EMOJI_MATCHES,
+  normalizeEmojiQuery,
+  useSemanticEmojiSearch,
+} from "./use-semantic-emoji-search";
+
+const EMOJI_COLUMNS = 9;
+
+function EmojiMatchGrid({
+  matches,
+  onSelect,
+}: {
+  matches: EmojiMatch[];
+  onSelect: (emoji: string) => void;
+}) {
+  const rows = Array.from(
+    { length: Math.ceil(matches.length / EMOJI_COLUMNS) },
+    (_, index) =>
+      matches.slice(index * EMOJI_COLUMNS, (index + 1) * EMOJI_COLUMNS),
+  );
+
+  return (
+    <div className="w-full select-none pb-1.5">
+      {rows.map((row, rowIndex) => (
+        <div key={rowIndex} className="flex w-full px-1.5">
+          {row.map((match) => (
+            <button
+              key={`${match.label}-${match.emoji}`}
+              type="button"
+              aria-label={match.label}
+              className="flex aspect-square w-[10%] shrink-0 items-center justify-center rounded-md text-xl transition-transform duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] active:scale-[0.97] data-[active]:bg-neutral-100 sm:aspect-auto sm:size-7 sm:text-lg [@media(hover:hover)_and_(pointer:fine)]:hover:bg-neutral-100"
+              style={{ fontFamily: "var(--frimousse-emoji-font)" }}
+              onClick={() => onSelect(match.emoji)}
+            >
+              {match.emoji}
+            </button>
+          ))}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function EmojiSkeleton() {
+  return (
+    <div className="w-full pt-1.5" aria-hidden>
+      {Array.from({ length: 8 }, (_, row) => (
+        <div key={row} className="flex w-full px-1.5">
+          {Array.from({ length: EMOJI_COLUMNS }, (_, column) => (
+            <div
+              key={column}
+              className="flex aspect-square w-[10%] shrink-0 items-center justify-center rounded-md sm:aspect-auto sm:size-7"
+            >
+              <span className="size-5 animate-pulse rounded-md bg-neutral-200/80 motion-reduce:animate-none" />
+            </div>
+          ))}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function EmojiSearchFallback({
+  search,
+  onSelect,
+}: {
+  search: string;
+  onSelect: (emoji: string) => void;
+}) {
+  const query = normalizeEmojiQuery(search);
+  const semantic = useSemanticEmojiSearch(query, query.length >= 2);
+
+  if (semantic.status === "loading") {
+    return <EmojiSkeleton />;
+  }
+
+  if (semantic.status !== "ready") {
+    return (
+      <div className="absolute inset-0 flex items-center justify-center text-sm text-neutral-400">
+        No emoji found.
+      </div>
+    );
+  }
+
+  return <EmojiMatchGrid matches={semantic.matches} onSelect={onSelect} />;
+}
 
 type EmojiPickerProps = PropsWithChildren<{
   onSelect: (emoji: string) => void;
@@ -35,6 +123,16 @@ export function EmojiPicker({
   const openPopover = isControlled ? controlledOpen : internalOpen;
   const setOpenPopover = isControlled ? controlledSetOpen : setInternalOpen;
   const keyboardDismissRef = useRef(false);
+  const [search, setSearch] = useState("");
+  const showDubEasterEgg = normalizeEmojiQuery(search) === "dub";
+  const selectEmoji = (emoji: string) => {
+    onSelect(emoji);
+    setOpenPopover(false);
+  };
+
+  useEffect(() => {
+    if (!openPopover) setSearch("");
+  }, [openPopover]);
 
   const anchorEl = anchorRect ? (
     <div
@@ -82,23 +180,32 @@ export function EmojiPicker({
       }}
       content={
         <div
-          className="isolate flex h-[300px] w-full flex-col sm:w-fit"
-          onKeyDownCapture={handleBackspaceClose}
+          className="isolate flex h-[300px] w-full flex-col sm:w-[17.25rem]"
+          onKeyDownCapture={(event) => {
+            handleBackspaceClose(event);
+            if (!showDubEasterEgg) return;
+            if (event.key === "Enter" || event.key.startsWith("Arrow")) {
+              event.preventDefault();
+              event.stopPropagation();
+            }
+          }}
         >
           <EmojiPickerBase.Root
             className="flex min-h-0 w-full flex-1 flex-col"
-            onEmojiSelect={({ emoji }) => {
-              onSelect(emoji);
-              setOpenPopover(false);
-            }}
+            onEmojiSelect={({ emoji }) => selectEmoji(emoji)}
           >
-            <EmojiPickerBase.Search className="border-border-default focus:border-border-default z-10 w-full border-0 border-b bg-white px-3 py-2.5 text-base outline-none placeholder:text-neutral-400 focus:ring-0 sm:rounded-t-lg sm:text-sm" />
+            <EmojiPickerBase.Search
+              onChange={(event) => setSearch(event.target.value)}
+              className="border-border-default focus:border-border-default z-10 w-full border-0 border-b bg-white px-3 py-2.5 text-base outline-none placeholder:text-neutral-400 focus:ring-0 sm:rounded-t-lg sm:text-sm"
+            />
             <EmojiPickerBase.Viewport className="outline-hidden relative w-full flex-1">
-              <EmojiPickerBase.Loading className="absolute inset-0 flex items-center justify-center text-sm text-neutral-400">
-                Loading…
+              <EmojiPickerBase.Loading className="absolute inset-0 overflow-hidden">
+                <EmojiSkeleton />
               </EmojiPickerBase.Loading>
-              <EmojiPickerBase.Empty className="absolute inset-0 flex items-center justify-center text-sm text-neutral-400">
-                No emoji found.
+              <EmojiPickerBase.Empty className="absolute inset-0 block overflow-y-auto">
+                {({ search }) => (
+                  <EmojiSearchFallback search={search} onSelect={selectEmoji} />
+                )}
               </EmojiPickerBase.Empty>
               <EmojiPickerBase.List
                 className="w-full select-none pb-1.5"
@@ -118,7 +225,7 @@ export function EmojiPicker({
                   ),
                   Emoji: ({ emoji, ...props }) => (
                     <button
-                      className="flex aspect-square w-[10%] shrink-0 items-center justify-center rounded-md text-xl data-[active]:bg-neutral-100 sm:aspect-auto sm:size-7 sm:w-auto sm:text-lg"
+                      className="flex aspect-square w-[10%] shrink-0 items-center justify-center rounded-md text-xl data-[active]:bg-neutral-100 sm:aspect-auto sm:size-7 sm:text-lg"
                       {...props}
                     >
                       {emoji.emoji}
@@ -126,6 +233,14 @@ export function EmojiPicker({
                   ),
                 }}
               />
+              {showDubEasterEgg && (
+                <div className="absolute inset-0 z-10 overflow-y-auto bg-white">
+                  <EmojiMatchGrid
+                    matches={DUB_EMOJI_MATCHES}
+                    onSelect={selectEmoji}
+                  />
+                </div>
+              )}
             </EmojiPickerBase.Viewport>
           </EmojiPickerBase.Root>
         </div>

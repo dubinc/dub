@@ -282,4 +282,10 @@ export const RATELIMIT_POLICIES = {
     window: "24 h",
     keyPrefix: "rl:tremendous:verify-otp",
   },
+
+  emojiSearch: {
+    attempts: 30,
+    window: "10 s",
+    keyPrefix: "rl:ai:emoji-search",
+  },
 } as const satisfies Record<string, RatelimitPolicy>;
