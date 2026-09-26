@@ -3,7 +3,8 @@
 import { sendEmail } from "@dub/email";
 import ReferralInvite from "@dub/email/templates/referral-invite";
 import * as z from "zod/v4";
-import { ratelimit } from "../upstash";
+import { assertRateLimit } from "../upstash/assert-rate-limit";
+import { RATELIMIT_POLICIES } from "../upstash/ratelimit-policies";
 import { emailSchema } from "../zod/schemas/auth";
 import { authActionClient } from "./safe-action";
 
@@ -19,18 +20,15 @@ export const sendInviteReferralEmail = authActionClient
     const { workspace } = ctx;
     const { email } = parsedInput;
 
-    // Allow 5 emails / workspace / minute
-    const { success: successWorkspace } = await ratelimit(5, "1 m").limit(
-      `invite-referral-email:${workspace.id}`,
-    );
+    await assertRateLimit({
+      policy: RATELIMIT_POLICIES.inviteReferralEmailWorkspace,
+      identifier: workspace.id,
+    });
 
-    // Allow 2 emails to a specific address / 2 hours (not one / hour to allow one quick retry)
-    const { success: successEmail } = await ratelimit(2, "2 h").limit(
-      `invite-referral-email:${email}`,
-    );
-
-    if (!successWorkspace || !successEmail)
-      throw new Error("Failed to send: rate limit exceeded");
+    await assertRateLimit({
+      policy: RATELIMIT_POLICIES.inviteReferralEmailTarget,
+      identifier: email,
+    });
 
     try {
       return await sendEmail({
