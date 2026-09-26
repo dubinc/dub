@@ -3,7 +3,10 @@ import {
   MAX_TEST_COUNT,
   MIN_TEST_PERCENTAGE,
 } from "@/lib/zod/schemas/links";
-import { LinkFormData } from "@/ui/links/link-builder/link-builder-provider";
+import {
+  LinkFormData,
+  useLinkBuilderContext,
+} from "@/ui/links/link-builder/link-builder-provider";
 import { useLinkBuilderKeyboardShortcut } from "@/ui/links/link-builder/use-link-builder-keyboard-shortcut";
 import { useAvailableDomains } from "@/ui/links/use-available-domains";
 import { useEndABTestingModal } from "@/ui/modals/link-builder/ab-testing/end-ab-testing-modal";
@@ -22,6 +25,7 @@ import {
   cn,
   formatDateTime,
   getDateTimeLocal,
+  getUrlFromString,
   isValidUrl,
   parseDateTime,
 } from "@dub/utils";
@@ -54,6 +58,8 @@ function ABTestingModal({
 }) {
   const id = useId();
   const inputRef = useRef<HTMLInputElement>(null);
+
+  const { props: savedLink } = useLinkBuilderContext();
 
   const {
     watch: watchParent,
@@ -97,6 +103,13 @@ function ABTestingModal({
   const testVariants = watch("testVariants") || [];
   const testCompletedAt = watch("testCompletedAt");
   const [idParent, testVariantsParent] = watchParent(["id", "testVariants"]);
+
+  // Restrict completion date from -1 days to 6 weeks
+  const completionDateOutOfRange = Boolean(
+    testCompletedAt &&
+      (differenceInDays(testCompletedAt, new Date()) > 6 * 7 ||
+        differenceInDays(testCompletedAt, new Date()) < -1),
+  );
 
   const addTestUrl = () => {
     if (!testVariants.length || testVariants.length >= MAX_TEST_COUNT) return;
@@ -303,6 +316,17 @@ function ABTestingModal({
                               testVariants.length <= MAX_TEST_COUNT
                             );
                           },
+                          onBlur: (e) => {
+                            const url = getUrlFromString(e.target.value);
+                            if (url) {
+                              // remove trailing slash and set the https:// prefix
+                              setValue(
+                                `testVariants.${index}.url`,
+                                url.replace(/\/$/, ""),
+                                { shouldDirty: true, shouldValidate: true },
+                              );
+                            }
+                          },
                         })}
                       />
                       {index > 0 && (
@@ -417,10 +441,17 @@ function ABTestingModal({
               className="w-[40px] border-none bg-transparent text-neutral-500 focus:outline-none focus:ring-0 sm:text-sm"
             />
           </div>
-          <p className="mt-1 text-xs text-neutral-500">6 weeks maximum</p>
+          <p
+            className={cn(
+              "mt-1 text-xs text-neutral-500",
+              completionDateOutOfRange && "text-red-600",
+            )}
+          >
+            6 weeks maximum
+          </p>
         </div>
 
-        {testVariantsParent && (
+        {Boolean(savedLink?.testVariants) && (
           <Callout variant="warn" size={2} className="mt-6">
             Changing the original A/B test settings will impact your future
             analytics and event tracking.
@@ -469,16 +500,7 @@ function ABTestingModal({
                   : "Start testing"
               }
               className="h-9 w-fit"
-              disabled={
-                !isDirty ||
-                !isValid ||
-                Boolean(
-                  testCompletedAt &&
-                    // Restrict competion date from -1 days to 6 weeks
-                    (differenceInDays(testCompletedAt, new Date()) > 6 * 7 ||
-                      differenceInDays(testCompletedAt, new Date()) < -1),
-                )
-              }
+              disabled={!isDirty || !isValid || completionDateOutOfRange}
             />
           </div>
         </div>
@@ -636,11 +658,17 @@ function TrafficSplitSlider({
             style={{ width: `${test.percentage}%` }}
           >
             {i > 0 && <div className="w-1.5" />}
-            <div className="flex h-full grow items-center justify-center gap-2 rounded-md border border-neutral-300 text-xs">
+            <div className="flex h-full grow items-center justify-center rounded-md border border-neutral-300 text-xs">
               <span className="text-xs font-semibold text-neutral-900">
                 {i + 1}
               </span>
-              <span className="@[64px]:block hidden font-medium text-neutral-600">
+              <span
+                className={cn(
+                  "overflow-hidden font-medium text-neutral-600",
+                  "max-w-0 opacity-0 transition-[max-width,opacity,margin-left] duration-200 ease-out",
+                  "@[64px]:ml-2 @[64px]:max-w-12 @[64px]:opacity-100",
+                )}
+              >
                 {test.percentage}%
               </span>
             </div>
