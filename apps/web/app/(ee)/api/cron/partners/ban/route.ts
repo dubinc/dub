@@ -90,10 +90,10 @@ export const POST = withCron(async ({ rawBody }) => {
       });
 
       const discountCodesDisabled = await disableDiscountCodes({
+        tx,
         where: {
           ...commonWhere,
         },
-        tx,
       });
 
       return [

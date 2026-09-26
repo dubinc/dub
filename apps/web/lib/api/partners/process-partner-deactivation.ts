@@ -1,5 +1,6 @@
 import { Session } from "@/lib/auth";
 import { PRISMA_UPDATEMANY_LIMIT, qstash } from "@/lib/cron";
+import { disableDiscountCodes } from "@/lib/discounts/disable-discount-codes";
 import { prisma } from "@/lib/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { Partner, ProgramEnrollmentStatus } from "@prisma/client";
@@ -68,21 +69,45 @@ export async function processPartnerDeactivation({
     });
 
   while (true) {
-    const { count } = await prisma.link.updateMany({
-      where: {
-        programId,
-        partnerId: {
-          in: partnerIds,
-        },
-        expiresAt: null,
+    const { linksCount, discountCodesCount } = await prisma.$transaction(
+      async (tx) => {
+        const { count: linksCount } = await tx.link.updateMany({
+          where: {
+            programId,
+            partnerId: {
+              in: partnerIds,
+            },
+            expiresAt: null,
+          },
+          data: {
+            expiresAt: new Date(),
+          },
+          limit: PRISMA_UPDATEMANY_LIMIT,
+        });
+
+        const { count: discountCodesCount } = await disableDiscountCodes({
+          tx,
+          where: {
+            programId,
+            partnerId: {
+              in: partnerIds,
+            },
+          },
+        });
+
+        return {
+          linksCount,
+          discountCodesCount,
+        };
       },
-      data: {
-        expiresAt: new Date(),
-      },
-      limit: PRISMA_UPDATEMANY_LIMIT,
-    });
-    console.log(`Expired ${count} links`);
-    if (count < PRISMA_UPDATEMANY_LIMIT) break;
+    );
+
+    if (
+      linksCount < PRISMA_UPDATEMANY_LIMIT &&
+      discountCodesCount < PRISMA_UPDATEMANY_LIMIT
+    ) {
+      break;
+    }
   }
 
   console.log(

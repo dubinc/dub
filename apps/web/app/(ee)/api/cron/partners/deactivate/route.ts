@@ -1,6 +1,5 @@
 import { linkCache } from "@/lib/api/links/cache";
 import { withCron } from "@/lib/cron/with-cron";
-import { disableDiscountCodes } from "@/lib/discounts/disable-discount-codes";
 import { prisma } from "@/lib/prisma";
 import { sendBatchEmail } from "@dub/email";
 import PartnerDeactivated from "@dub/email/templates/partner-deactivated";
@@ -43,17 +42,6 @@ export const POST = withCron(async ({ rawBody }) => {
   // Expire all links in cache
   const links = programEnrollments.flatMap(({ links }) => links);
   await linkCache.expireMany(links);
-  console.log("[bulkDeactivatePartners] Expired links in cache.");
-
-  // Disable the discount codes
-  await disableDiscountCodes({
-    where: {
-      programId,
-      partnerId: {
-        in: partnerIds,
-      },
-    },
-  });
 
   // Find the program
   const program = await prisma.program.findUniqueOrThrow({
