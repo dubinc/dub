@@ -39,6 +39,7 @@ export function useApplicationsAnalytics<
       exclude: [
         "pageTab",
         "applicationEvent",
+        "event",
         "view",
         "sortBy",
         "sortOrder",
@@ -84,6 +85,7 @@ export function useApplicationsAnalyticsCount(
       exclude: [
         "pageTab",
         "applicationEvent",
+        "event",
         "view",
         "sortBy",
         "sortOrder",
