@@ -476,6 +476,13 @@ function Drafts({
           <MenuItem
             variant="danger"
             onClick={() => {
+              if (
+                !window.confirm(
+                  "Are you sure you want to discard this draft?",
+                )
+              )
+                return;
+
               discardDraft();
               setOpen(false);
             }}
