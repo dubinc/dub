@@ -52,8 +52,8 @@ export const POST = withCron(async ({ rawBody }) => {
     partnerId,
   };
 
-  const [linksUpdated, bountySubmissions, payouts, discountCodesDisabled] =
-    await prisma.$transaction(async (tx) => {
+  const [linksUpdated, bountySubmissions, payouts] = await prisma.$transaction(
+    async (tx) => {
       const linksUpdated = await tx.link.updateMany({
         where: {
           ...commonWhere,
@@ -89,31 +89,26 @@ export const POST = withCron(async ({ rawBody }) => {
         },
       });
 
-      const discountCodesDisabled = await disableDiscountCodes({
-        tx,
-        where: {
-          ...commonWhere,
-        },
-      });
-
-      return [
-        linksUpdated,
-        bountySubmissions,
-        payouts,
-        discountCodesDisabled,
-      ] as const;
-    });
+      return [linksUpdated, bountySubmissions, payouts] as const;
+    },
+  );
 
   console.info(`Disabled ${linksUpdated.count} links.`);
   console.info(`Rejected ${bountySubmissions.count} bounty submissions.`);
   console.info(`Canceled ${payouts.count} payouts.`);
-  console.info(`Disabled ${discountCodesDisabled} discount codes.`);
 
   // Mark the commissions as canceled
   await cancelCommissions({
     workspaceId: program.workspaceId,
     programId,
     partnerId,
+  });
+
+  // Disable discount codes
+  await disableDiscountCodes({
+    where: {
+      ...commonWhere,
+    },
   });
 
   await Promise.all([

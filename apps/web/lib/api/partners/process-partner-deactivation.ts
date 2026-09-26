@@ -69,46 +69,35 @@ export async function processPartnerDeactivation({
     });
 
   while (true) {
-    const { linksCount, discountCodesCount } = await prisma.$transaction(
-      async (tx) => {
-        const { count: linksCount } = await tx.link.updateMany({
-          where: {
-            programId,
-            partnerId: {
-              in: partnerIds,
-            },
-            expiresAt: null,
-          },
-          data: {
-            expiresAt: new Date(),
-          },
-          limit: PRISMA_UPDATEMANY_LIMIT,
-        });
-
-        const { count: discountCodesCount } = await disableDiscountCodes({
-          tx,
-          where: {
-            programId,
-            partnerId: {
-              in: partnerIds,
-            },
-          },
-        });
-
-        return {
-          linksCount,
-          discountCodesCount,
-        };
+    const { count } = await prisma.link.updateMany({
+      where: {
+        programId,
+        partnerId: {
+          in: partnerIds,
+        },
+        expiresAt: null,
       },
-    );
+      data: {
+        expiresAt: new Date(),
+      },
+      limit: PRISMA_UPDATEMANY_LIMIT,
+    });
 
-    if (
-      linksCount < PRISMA_UPDATEMANY_LIMIT &&
-      discountCodesCount < PRISMA_UPDATEMANY_LIMIT
-    ) {
+    console.log(`Expired ${count} links`);
+
+    if (count < PRISMA_UPDATEMANY_LIMIT) {
       break;
     }
   }
+
+  await disableDiscountCodes({
+    where: {
+      programId,
+      partnerId: {
+        in: partnerIds,
+      },
+    },
+  });
 
   console.log(
     `[processPartnerDeactivation] Deactivated ${deactivatedPartners} partners in program ${programId}.`,

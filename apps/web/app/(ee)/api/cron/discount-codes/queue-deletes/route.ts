@@ -11,19 +11,9 @@ const BATCH_SIZE = 500;
 export const GET = withCron(async () => {
   const discountCodes = await prisma.discountCode.findMany({
     where: {
-      // Pick soft-deleted or disabled discount codes.
-      OR: [
-        {
-          deletedAt: {
-            not: null,
-          },
-        },
-        {
-          disabledAt: {
-            not: null,
-          },
-        },
-      ],
+      deletedAt: {
+        not: null,
+      },
     },
     select: {
       id: true,
