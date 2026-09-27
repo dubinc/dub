@@ -7,7 +7,7 @@ type DisableDiscountCodesArgs = {
   where: Prisma.DiscountCodeWhereInput;
 };
 
-const BATCH_SIZE = 500;
+const BATCH_SIZE = 1;
 
 // Disable live discount codes matching `where` (sets disabledAt).
 // Used when partners are banned or deactivated — the code string stays reserved.
@@ -17,8 +17,8 @@ export async function disableDiscountCodes({
   let disabledCount = 0;
 
   while (true) {
-    const discountCodes = await prisma.$transaction(async (tx) => {
-      const discountCodes = await tx.discountCode.findMany({
+    const claimedIds = await prisma.$transaction(async (tx) => {
+      const candidates = await tx.discountCode.findMany({
         where: {
           ...where,
           disabledAt: null,
@@ -26,33 +26,55 @@ export async function disableDiscountCodes({
         select: {
           id: true,
         },
+        orderBy: {
+          id: "asc",
+        },
         take: BATCH_SIZE,
       });
 
-      if (discountCodes.length === 0) {
+      if (candidates.length === 0) {
+        return null;
+      }
+
+      const locked = await tx.$queryRaw<{ id: string }[]>`
+        SELECT id
+        FROM DiscountCode
+        WHERE id IN (${Prisma.join(pluck(candidates, "id"))}) AND disabledAt IS NULL
+        ORDER BY id
+        FOR UPDATE
+      `;
+
+      if (locked.length === 0) {
         return [];
       }
+
+      const ids = pluck(locked, "id");
 
       await tx.discountCode.updateMany({
         where: {
           id: {
-            in: pluck(discountCodes, "id"),
+            in: ids,
           },
+          disabledAt: null,
         },
         data: {
           disabledAt: new Date(),
         },
       });
 
-      return discountCodes;
+      return ids;
     });
 
-    if (discountCodes.length === 0) {
+    if (claimedIds === null) {
       break;
     }
 
+    if (claimedIds.length === 0) {
+      continue;
+    }
+
     await deleteDiscountCodeJob.dispatchBatch(
-      discountCodes.map(({ id }) => ({
+      claimedIds.map((id) => ({
         discountCodeId: id,
       })),
       ({ discountCodeId }) => ({
@@ -60,12 +82,10 @@ export async function disableDiscountCodes({
       }),
     );
 
-    disabledCount += discountCodes.length;
-
-    if (discountCodes.length < BATCH_SIZE) {
-      break;
-    }
+    disabledCount += claimedIds.length;
   }
+
+  console.log(`Disabled ${disabledCount} discount codes.`);
 
   return disabledCount;
 }
