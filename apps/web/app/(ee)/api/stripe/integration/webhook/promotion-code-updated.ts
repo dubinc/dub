@@ -1,4 +1,5 @@
 import { getDiscountCode } from "@/lib/api/partners/get-discount-code";
+import { isDiscountCodeDisabled } from "@/lib/discounts/discount-code-status";
 import { softDeleteDiscountCodes } from "@/lib/discounts/soft-delete-discount-codes";
 import type Stripe from "stripe";
 import { WebhookHandlerInput, WebhookHandlerResponse } from "./types";
@@ -36,6 +37,12 @@ export async function promotionCodeUpdated({
   if (!discountCode) {
     return {
       response: `Discount code not found for Stripe promotion code ${promotionCode.id}.`,
+    };
+  }
+
+  if (isDiscountCodeDisabled(discountCode)) {
+    return {
+      response: `Discount code ${discountCode.id} is disabled, skipping soft-delete.`,
     };
   }
 

@@ -1,5 +1,8 @@
 import { prisma } from "@/lib/prisma";
-import { isDiscountCodeSoftDeleted } from "./discount-code-status";
+import {
+  isDiscountCodeDisabled,
+  isDiscountCodeSoftDeleted,
+} from "./discount-code-status";
 import { isDiscountDeleted } from "./discount-status";
 import { isDiscountEquivalent } from "./is-discount-equivalent";
 import { softDeleteDiscountCodes } from "./soft-delete-discount-codes";
@@ -44,7 +47,7 @@ export async function remapDiscountCode({
     return;
   }
 
-  if (discountCode.disabledAt) {
+  if (isDiscountCodeDisabled(discountCode)) {
     console.info(
       `Discount code ${discountCodeId} is disabled. Skipping remap...`,
     );

@@ -7,7 +7,8 @@ type GetDiscountCodeArgs<T extends Prisma.DiscountCodeInclude = {}> = {
   include?: T;
 };
 
-// Returns a live (not soft-deleted) discount code matching `where`, or null.
+// Returns a discount code matching `where`, or null.
+// Soft-deleted codes are excluded. Disabled codes are returned for the caller to handle.
 export async function getDiscountCode<
   T extends Prisma.DiscountCodeInclude = {},
 >({

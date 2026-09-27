@@ -1,6 +1,7 @@
 import { createId } from "@/lib/api/create-id";
 import { getOrCreateCustomer } from "@/lib/api/customers/get-or-create-customer";
 import { getDiscountCode } from "@/lib/api/partners/get-discount-code";
+import { isDiscountCodeDisabled } from "@/lib/discounts/discount-code-status";
 import { syncPartnerLinksStats } from "@/lib/api/partners/sync-partner-links-stats";
 import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
 import { queueGoogleAdsConversionUpload } from "@/lib/integrations/google-ads/upload-conversion";
@@ -88,7 +89,7 @@ export async function attributeViaPromotionCodeId({
     return null;
   }
 
-  if (discountCode.disabledAt) {
+  if (isDiscountCodeDisabled(discountCode)) {
     console.log(
       `Discount code "${discountCode.code}" is disabled, skipping...`,
     );
