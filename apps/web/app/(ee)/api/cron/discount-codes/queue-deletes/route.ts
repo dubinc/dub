@@ -33,7 +33,6 @@ export const GET = withCron(async () => {
       discountCodeId: id,
     })),
     ({ discountCodeId }) => ({
-      label: discountCodeId,
       deduplicationId: `delete-discount-code-${discountCodeId}`,
     }),
   );

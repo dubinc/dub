@@ -17,9 +17,6 @@ export const DELETE = withWorkspace(
       where: idOrCode.startsWith("dcode_")
         ? { id: idOrCode, programId }
         : { programId, code: idOrCode },
-      include: {
-        discount: true,
-      },
     });
 
     if (!discountCode) {
