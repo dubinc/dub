@@ -74,6 +74,8 @@ export async function processShopifyOrder({
     const programDiscountCodes = await prisma.discountCode.findMany({
       where: {
         programId: workspace.defaultProgramId,
+        deletedAt: null,
+        disabledAt: null,
         code: {
           in: discountCodes.map(({ code }) => code),
         },
@@ -90,7 +92,7 @@ export async function processShopifyOrder({
       const { leadEvent: leadData } = await attributeViaDiscountCode({
         order,
         workspace,
-        link: programDiscountCodes[0].link,
+        link: programDiscountCodes[0].link!,
       });
 
       const { saleData } = await createShopifySale({
