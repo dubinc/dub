@@ -184,7 +184,13 @@ export function EmojiPicker({
           onKeyDownCapture={(event) => {
             handleBackspaceClose(event);
             if (!showDubEasterEgg) return;
-            if (event.key === "Enter" || event.key.startsWith("Arrow")) {
+            if (event.key === "Enter") {
+              event.preventDefault();
+              event.stopPropagation();
+              selectEmoji(DUB_EMOJI_MATCHES[0].emoji);
+              return;
+            }
+            if (event.key.startsWith("Arrow")) {
               event.preventDefault();
               event.stopPropagation();
             }
