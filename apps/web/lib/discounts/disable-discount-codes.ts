@@ -14,10 +14,10 @@ const BATCH_SIZE = 500;
 export async function disableDiscountCodes({
   where,
 }: DisableDiscountCodesArgs) {
-  let disabledCount = 0;
+  const claimedIds: string[] = [];
 
   while (true) {
-    const claimedIds = await prisma.$transaction(async (tx) => {
+    const batchIds = await prisma.$transaction(async (tx) => {
       const candidates = await tx.discountCode.findMany({
         where: {
           ...where,
@@ -65,14 +65,18 @@ export async function disableDiscountCodes({
       return ids;
     });
 
-    if (claimedIds === null) {
+    if (batchIds === null) {
       break;
     }
 
-    if (claimedIds.length === 0) {
+    if (batchIds.length === 0) {
       continue;
     }
 
+    claimedIds.push(...batchIds);
+  }
+
+  if (claimedIds.length > 0) {
     await deleteDiscountCodeJob.dispatchBatch(
       claimedIds.map((id) => ({
         discountCodeId: id,
@@ -81,11 +85,9 @@ export async function disableDiscountCodes({
         deduplicationId: `delete-discount-code-${discountCodeId}`,
       }),
     );
-
-    disabledCount += claimedIds.length;
   }
 
-  console.log(`Disabled ${disabledCount} discount codes.`);
+  console.log(`Disabled ${claimedIds.length} discount codes.`);
 
-  return disabledCount;
+  return claimedIds.length;
 }
