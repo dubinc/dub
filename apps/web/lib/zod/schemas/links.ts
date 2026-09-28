@@ -332,13 +332,15 @@ export const createLinkBodySchema = z.object({
     ),
   externalId: z
     .string()
-    .min(1)
     .max(255)
-    // remove `ext_` prefix if user passes it
-    .transform((v) => (v?.startsWith("ext_") ? v.slice(4) : v))
+    // remove `ext_` prefix if user passes it; empty string clears the field
+    .transform((v) => {
+      const stripped = v?.startsWith("ext_") ? v.slice(4) : v;
+      return stripped === "" ? null : stripped;
+    })
     .nullish()
     .describe(
-      "The ID of the link in your database. If set, it can be used to identify the link in future API requests (must be prefixed with 'ext_' when passed as a query parameter). This key is unique across your workspace.",
+      "The ID of the link in your database. If set, it can be used to identify the link in future API requests (must be prefixed with 'ext_' when passed as a query parameter). This key is unique across your workspace. Pass `null` or an empty string to remove it.",
     )
     .meta({ example: "123456" }),
   tenantId: z
