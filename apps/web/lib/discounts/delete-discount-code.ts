@@ -88,7 +88,7 @@ export async function deleteDiscountCode({
   // Delete the discount code if it is soft-deleted.
   // Don't delete the disabled discount codes from database
   if (isDiscountCodeSoftDeleted(discountCode)) {
-    await prisma.discountCode.delete({
+    await prisma.discountCode.deleteMany({
       where: {
         id: discountCodeId,
       },
