@@ -184,7 +184,10 @@ export function EmojiPicker({
           onKeyDownCapture={(event) => {
             handleBackspaceClose(event);
             if (!showDubEasterEgg) return;
-            if (event.key === "Enter") {
+            if (
+              event.key === "Enter" &&
+              event.target instanceof HTMLInputElement
+            ) {
               event.preventDefault();
               event.stopPropagation();
               selectEmoji(DUB_EMOJI_MATCHES[0].emoji);

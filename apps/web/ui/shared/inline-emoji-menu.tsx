@@ -261,7 +261,9 @@ export const InlineEmojiAutocomplete = forwardRef<
     dom.setAttribute("aria-controls", listboxId);
     dom.setAttribute("aria-expanded", "true");
     dom.setAttribute("aria-autocomplete", "list");
-    dom.setAttribute("aria-activedescendant", activeOptionId);
+    if (suggestions.length > 0) {
+      dom.setAttribute("aria-activedescendant", activeOptionId);
+    }
 
     return () => {
       dom.removeAttribute("aria-controls");
@@ -269,7 +271,7 @@ export const InlineEmojiAutocomplete = forwardRef<
       dom.removeAttribute("aria-autocomplete");
       dom.removeAttribute("aria-activedescendant");
     };
-  }, [open, editor, listboxId, activeOptionId]);
+  }, [open, editor, listboxId, activeOptionId, suggestions.length]);
 
   const selectIndex = (index: number) => {
     const next = suggestions[index];
@@ -359,17 +361,25 @@ export const InlineEmojiAutocomplete = forwardRef<
         className="border-border-subtle bg-bg-default z-[60] flex max-h-52 w-max min-w-40 max-w-[min(18rem,calc(100vw-16px))] flex-col overflow-y-auto rounded-lg border p-1 shadow-sm"
       >
         {loading ? (
-          <div aria-hidden className="flex flex-col">
-            {Array.from({ length: 5 }, (_, index) => (
-              <div key={index} className="flex items-center gap-2 px-2 py-1.5">
-                <span className="size-5 shrink-0 animate-pulse rounded-md bg-neutral-200/80 motion-reduce:animate-none" />
-                <span
-                  className="h-3.5 max-w-40 animate-pulse rounded-md bg-neutral-200/80 motion-reduce:animate-none"
-                  style={{ width: `${56 + (index % 3) * 28}px` }}
-                />
-              </div>
-            ))}
-          </div>
+          <>
+            <div role="status" aria-live="polite" className="sr-only">
+              Loading emojis
+            </div>
+            <div aria-hidden className="flex flex-col">
+              {Array.from({ length: 5 }, (_, index) => (
+                <div
+                  key={index}
+                  className="flex items-center gap-2 px-2 py-1.5"
+                >
+                  <span className="size-5 shrink-0 animate-pulse rounded-md bg-neutral-200/80 motion-reduce:animate-none" />
+                  <span
+                    className="h-3.5 max-w-40 animate-pulse rounded-md bg-neutral-200/80 motion-reduce:animate-none"
+                    style={{ width: `${56 + (index % 3) * 28}px` }}
+                  />
+                </div>
+              ))}
+            </div>
+          </>
         ) : (
           suggestions.map((item, index) => {
             const selected = index === activeIndexClamped;
