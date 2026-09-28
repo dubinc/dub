@@ -249,6 +249,7 @@ function ApplicationSettingsSheetContent({
 
               <textarea
                 {...register("applicationScreeningCriteria")}
+                maxLength={2000}
                 rows={4}
                 placeholder="Partners that offer SEO, backlinking, paid advertising, or affiliate marketing services."
                 onKeyDown={handleKeyDown}

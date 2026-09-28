@@ -91,7 +91,7 @@ export async function evaluateApplicationScreening({
   return await evaluateBooleanQuestion({
     state: {
       ...state,
-      screeningCriteria: truncate(screeningCriteria, 1000),
+      screeningCriteria: truncate(screeningCriteria, 2000),
     },
     questionKey: "matchesScreeningCriteria",
     instructions:
