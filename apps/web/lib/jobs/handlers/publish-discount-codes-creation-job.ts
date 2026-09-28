@@ -1,19 +1,19 @@
 import { CRON_BATCH_SIZE } from "@/lib/cron";
-import { enqueueBatchJobs } from "@/lib/cron/enqueue-batch-jobs";
 import { isNonRecoverableDiscountError } from "@/lib/discounts/discount-error";
 import { getDiscountProvider } from "@/lib/discounts/discount-provider";
+import { isDiscountDeleted } from "@/lib/discounts/is-discount-deleted";
 import { prisma } from "@/lib/prisma";
 import { ACTIVE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
-import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import * as z from "zod/v4";
 import { defineJob } from "../index";
+import { createDiscountCodeForLinkJob } from "./create-discount-code-for-link-job";
 
 const inputSchema = z.object({
   discountId: z.string(),
   startingAfter: z.string().optional(),
 });
 
-// Page default links for a discount and enqueue per-link create-discount-code jobs
+// Page default links for a discount and enqueue per-link create-discount-code-for-link jobs
 export const publishDiscountCodesCreationJob = defineJob({
   name: "publish-discount-codes-creation-job",
   schema: inputSchema,
@@ -43,7 +43,7 @@ export const publishDiscountCodesCreationJob = defineJob({
       return;
     }
 
-    if (!discount.programId) {
+    if (isDiscountDeleted(discount)) {
       console.info(`Discount ${discountId} is soft-deleted. Skipping...`);
       return;
     }
@@ -123,17 +123,9 @@ export const publishDiscountCodesCreationJob = defineJob({
       return;
     }
 
-    await enqueueBatchJobs(
+    await createDiscountCodeForLinkJob.dispatchBatch(
       partnerLinks.map((link) => ({
-        url: `${APP_DOMAIN_WITH_NGROK}/api/cron/discount-codes/create`,
-        deduplicationId: `${discountId}-${link.id}`,
-        flowControl: {
-          key: "create-discount-code",
-          parallelism: 10,
-        },
-        body: {
-          linkId: link.id,
-        },
+        linkId: link.id,
       })),
     );
 

@@ -1,4 +1,5 @@
 import { PRISMA_UPDATEMANY_LIMIT } from "@/lib/cron";
+import { isDiscountDeleted } from "@/lib/discounts/is-discount-deleted";
 import { prisma } from "@/lib/prisma";
 import { pluck } from "@dub/utils";
 import { invalidateLinksForDiscountsJob } from "../jobs/handlers/invalidate-links-for-discounts-job";
@@ -32,7 +33,12 @@ export async function attachDiscount({
     return null;
   }
 
-  if (!discount.programId || !discount.defaultForPartnerGroup) {
+  if (isDiscountDeleted(discount)) {
+    console.info(`Discount ${discountId} is soft-deleted. Skipping...`);
+    return null;
+  }
+
+  if (!discount.defaultForPartnerGroup) {
     console.info(
       `Discount ${discountId} is not a group-level discount. Skipping...`,
     );
@@ -181,7 +187,7 @@ export async function attachDiscount({
     invalidateLinksForDiscountsJob.dispatch(
       {
         by: "discount",
-        programId: discount.programId,
+        programId: discount.programId!,
         discountId: discount.id,
       },
       { label: discount.id },

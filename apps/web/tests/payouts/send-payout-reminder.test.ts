@@ -6,7 +6,6 @@ import { PayoutStatus, ProgramPayoutMode } from "@prisma/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const BATCH_SIZE = 500;
-const MIGRATION_PROGRAM_ID = "prog_1M1EYH84K0ZGRA70CEGB4VC72";
 const NOW = new Date("2026-09-24T09:00:00.000Z");
 
 const mocks = vi.hoisted(() => ({
@@ -210,10 +209,7 @@ function matchesProgramEnrollmentFilter(
   },
 ) {
   return filter.OR.some((clause) => {
-    if (
-      clause.program &&
-      clause.program.payoutMode !== enrollment.payoutMode
-    ) {
+    if (clause.program && clause.program.payoutMode !== enrollment.payoutMode) {
       return false;
     }
 
@@ -295,11 +291,6 @@ describe("sendPayoutReminder", () => {
     {
       label: "demo program",
       patch: { programId: DEMO_PROGRAM_ID },
-      included: false,
-    },
-    {
-      label: "migration program",
-      patch: { programId: MIGRATION_PROGRAM_ID },
       included: false,
     },
     {
