@@ -50,6 +50,7 @@ model DiscountCode {
 
   @@unique([programId, code, isDeleted])
   @@index([programId, partnerId])
+  @@index([isDeleted, updatedAt]) // Cleanup cron
   @@index(discountId)
   @@index(partnerId)
 }

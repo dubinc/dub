@@ -294,9 +294,10 @@ async function resolveLinkAndCustomer(args: ResolveLinkAndCustomerArgs) {
 
   if (discountCode) {
     const discountCodeFound = await getDiscountCode({
-      where: discountCode.startsWith("dcode_")
-        ? { id: discountCode, programId }
-        : { programId, code: discountCode },
+      where: {
+        programId,
+        code: discountCode,
+      },
     });
 
     if (!discountCodeFound) {
