@@ -18,7 +18,7 @@ export const GET = withCron(async () => {
     },
     take: BATCH_SIZE,
     orderBy: {
-      updatedAt: "desc",
+      updatedAt: "asc",
     },
   });
 

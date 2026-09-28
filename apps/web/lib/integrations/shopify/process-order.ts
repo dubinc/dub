@@ -76,6 +76,9 @@ export async function processShopifyOrder({
         programId: workspace.defaultProgramId,
         isDeleted: false,
         disabledAt: null,
+        linkId: {
+          not: null,
+        },
         code: {
           in: discountCodes.map(({ code }) => code),
         },
