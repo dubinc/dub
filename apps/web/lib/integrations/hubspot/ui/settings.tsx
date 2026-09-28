@@ -33,6 +33,10 @@ export const HubSpotSettings = ({
     hubSpotSettings.leadLifecycleStageId,
   );
 
+  const [leadDealStageId, setLeadDealStageId] = useState(
+    hubSpotSettings.leadDealStageId,
+  );
+
   const [closedWonDealStageId, setClosedWonDealStageId] = useState(
     hubSpotSettings.closedWonDealStageId,
   );
@@ -57,6 +61,7 @@ export const HubSpotSettings = ({
       workspaceId,
       leadTriggerEvent,
       leadLifecycleStageId,
+      leadDealStageId,
       closedWonDealStageId,
     });
   };
@@ -93,6 +98,11 @@ export const HubSpotSettings = ({
                   label: "Lifecycle Stage Reached",
                   description: "Track leads at specific lifecycle stages",
                 },
+                {
+                  key: "dealStageReached",
+                  label: "Deal Stage Reached",
+                  description: "Track leads when deals reach a specific stage",
+                },
               ]}
               value={leadTriggerEvent ?? undefined}
               onChange={(value) => {
@@ -101,11 +111,15 @@ export const HubSpotSettings = ({
 
                 setLeadTriggerEvent(newValue);
 
-                if (newValue === "dealCreated") {
+                if (newValue !== "lifecycleStageReached") {
                   setLeadLifecycleStageId(null);
                 }
+
+                if (newValue !== "dealStageReached") {
+                  setLeadDealStageId(null);
+                }
               }}
-              gridCols="2"
+              gridCols="3"
             />
           </div>
 
@@ -127,7 +141,33 @@ export const HubSpotSettings = ({
                   autoComplete="off"
                   name="leadLifecycleStageId"
                   value={leadLifecycleStageId ?? ""}
-                  onChange={(e) => setLeadLifecycleStageId(e.target.value)}
+                  onChange={(e) =>
+                    setLeadLifecycleStageId(e.target.value.trim())
+                  }
+                />
+              </div>
+            </div>
+          )}
+
+          {leadTriggerEvent === "dealStageReached" && (
+            <div>
+              <label className="mb-2 block text-sm font-semibold text-neutral-700">
+                Lead Deal Stage ID
+              </label>
+              <p className="mb-3 text-sm leading-normal text-neutral-600">
+                Enter the HubSpot deal stage ID that represents a qualified
+                lead. This will be used to track lead when deals reach this
+                stage.
+              </p>
+              <div className="relative rounded-md shadow-sm">
+                <input
+                  className="w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+                  placeholder="appointmentscheduled"
+                  type="text"
+                  autoComplete="off"
+                  name="leadDealStageId"
+                  value={leadDealStageId ?? ""}
+                  onChange={(e) => setLeadDealStageId(e.target.value.trim())}
                 />
               </div>
             </div>
@@ -150,7 +190,7 @@ export const HubSpotSettings = ({
                 autoComplete="off"
                 name="closedWonDealStageId"
                 value={closedWonDealStageId ?? ""}
-                onChange={(e) => setClosedWonDealStageId(e.target.value)}
+                onChange={(e) => setClosedWonDealStageId(e.target.value.trim())}
               />
             </div>
           </div>

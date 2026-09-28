@@ -22,8 +22,13 @@ export const trackHubSpotLeadEvent = async ({
     token: authToken.access_token,
   });
 
-  const { objectId, objectTypeId, subscriptionType } =
-    hubSpotLeadEventSchema.parse(payload);
+  const {
+    objectId,
+    objectTypeId,
+    subscriptionType,
+    propertyName,
+    propertyValue,
+  } = hubSpotLeadEventSchema.parse(payload);
 
   // A new contact is created (deferred lead tracking)
   if (objectTypeId === "0-1" && subscriptionType === "object.creation") {
@@ -72,64 +77,39 @@ export const trackHubSpotLeadEvent = async ({
     subscriptionType === "object.creation" &&
     settings.leadTriggerEvent === "dealCreated"
   ) {
-    const deal = await hubSpotApi.getDeal(objectId);
-
-    if (!deal) {
-      return `No deal found for deal ${objectId}.`;
-    }
-
-    const { properties, associations } = deal;
-
-    // Find the contact associated with the deal
-    const contact = associations?.contacts?.results?.[0];
-
-    if (!contact) {
-      return `No contact found for deal ${objectId}.`;
-    }
-
-    // HubSpot doesn't return the contact properties in the deal associations,
-    // so we need to get it separately
-    const contactInfo = await hubSpotApi.getContact(contact.id);
-
-    if (!contactInfo) {
-      return `No contact info found for contact ${contact.id}.`;
-    }
-
-    const customer = await prisma.customer.findFirst({
-      where: {
-        projectId: workspace.id,
-        OR: [
-          { email: contactInfo.properties.email },
-          { externalId: contactInfo.id },
-          { externalId: contactInfo.properties.email },
-        ],
-      },
-    });
-
-    if (!customer) {
-      return `No customer found for contact ID ${contactInfo.id} or email ${contactInfo.properties.email}.`;
-    }
-
-    const trackLeadResult = await trackLead({
-      clickId: "",
-      eventName: `Deal ${properties.dealstage}`,
-      customerExternalId: customer.externalId!,
-      customerName: `${contactInfo.properties.firstname} ${contactInfo.properties.lastname}`,
-      customerEmail: contactInfo.properties.email,
-      mode: "async",
+    return trackFinalLead({
+      dealId: objectId,
       workspace,
-      commissionSource: CommissionSource.hubspot,
+      hubSpotApi,
     });
+  }
 
-    if (trackLeadResult) {
-      await updateHubSpotContact({
-        contact: contactInfo,
-        trackLeadResult,
-        hubSpotApi,
-      });
+  // Track the final lead event
+  // Case 3: A deal reaches the configured lead deal stage
+  if (
+    objectTypeId === "0-3" &&
+    subscriptionType === "object.propertyChange" &&
+    settings.leadTriggerEvent === "dealStageReached"
+  ) {
+    if (!settings.leadDealStageId) {
+      return `leadDealStageId is not set.`;
     }
 
-    return `Lead tracked for deal ${objectId}.`;
+    if (propertyName !== "dealstage") {
+      return `Unknown propertyName ${propertyName}. Expected dealstage.`;
+    }
+
+    if (
+      propertyValue?.toLowerCase() !== settings.leadDealStageId.toLowerCase()
+    ) {
+      return `Unknown propertyValue ${propertyValue}. Expected ${settings.leadDealStageId}.`;
+    }
+
+    return trackFinalLead({
+      dealId: objectId,
+      workspace,
+      hubSpotApi,
+    });
   }
 
   // Track the final lead event
@@ -192,6 +172,76 @@ export const trackHubSpotLeadEvent = async ({
   }
 
   return `Unknown event: objectTypeId "${objectTypeId}" and subscriptionType "${subscriptionType}".`;
+};
+
+// Track the final lead for the first contact associated with a deal
+const trackFinalLead = async ({
+  dealId,
+  workspace,
+  hubSpotApi,
+}: {
+  dealId: number;
+  workspace: Pick<WorkspaceProps, "id" | "stripeConnectId" | "webhookEnabled">;
+  hubSpotApi: HubSpotApi;
+}) => {
+  const deal = await hubSpotApi.getDeal(dealId);
+
+  if (!deal) {
+    return `No deal found for deal ${dealId}.`;
+  }
+
+  const { properties, associations } = deal;
+
+  // Find the contact associated with the deal
+  const contact = associations?.contacts?.results?.[0];
+
+  if (!contact) {
+    return `No contact found for deal ${dealId}.`;
+  }
+
+  // HubSpot doesn't return the contact properties in the deal associations,
+  // so we need to get it separately
+  const contactInfo = await hubSpotApi.getContact(contact.id);
+
+  if (!contactInfo) {
+    return `No contact info found for contact ${contact.id}.`;
+  }
+
+  const customer = await prisma.customer.findFirst({
+    where: {
+      projectId: workspace.id,
+      OR: [
+        { email: contactInfo.properties.email },
+        { externalId: contactInfo.id },
+        { externalId: contactInfo.properties.email },
+      ],
+    },
+  });
+
+  if (!customer) {
+    return `No customer found for contact ID ${contactInfo.id} or email ${contactInfo.properties.email}.`;
+  }
+
+  const trackLeadResult = await trackLead({
+    clickId: "",
+    eventName: `Deal ${properties.dealstage}`,
+    customerExternalId: customer.externalId!,
+    customerName: `${contactInfo.properties.firstname} ${contactInfo.properties.lastname}`,
+    customerEmail: contactInfo.properties.email,
+    mode: "async",
+    workspace,
+    commissionSource: CommissionSource.hubspot,
+  });
+
+  if (trackLeadResult) {
+    await updateHubSpotContact({
+      contact: contactInfo,
+      trackLeadResult,
+      hubSpotApi,
+    });
+  }
+
+  return `Lead tracked for deal ${dealId}.`;
 };
 
 // Update the HubSpot contact with `dub_link` and `dub_partner_email`
