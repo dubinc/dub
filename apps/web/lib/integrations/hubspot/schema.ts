@@ -63,16 +63,18 @@ export const hubSpotDealSchema = z.object({
     amount: z.string().nullable(),
     dealstage: z.string(),
   }),
-  associations: z.object({
-    contacts: z.object({
-      results: z.array(
-        z.object({
-          id: z.string(),
-          type: z.string(),
-        }),
-      ),
-    }),
-  }),
+  associations: z
+    .object({
+      contacts: z.object({
+        results: z.array(
+          z.object({
+            id: z.string(),
+            type: z.string(),
+          }),
+        ),
+      }),
+    })
+    .optional(),
 });
 
 // Webhooks
