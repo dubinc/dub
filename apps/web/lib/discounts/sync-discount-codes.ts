@@ -46,6 +46,11 @@ export async function syncDiscountCodes({
 
   const enrolledPartnerIds = pluck(programEnrollments, "partnerId");
 
+  await enqueueMissingDiscountCodes({
+    programId,
+    enrollments: programEnrollments,
+  });
+
   const discountCodes = await prisma.discountCode.findMany({
     where: {
       programId,
@@ -71,11 +76,6 @@ export async function syncDiscountCodes({
       })),
     );
   }
-
-  await enqueueMissingDiscountCodes({
-    programId,
-    enrollments: programEnrollments,
-  });
 }
 
 // Find default links that do not have a discount code assigned to them and enqueue a job to create one
@@ -155,5 +155,8 @@ export async function enqueueMissingDiscountCodes({
     linksToProvision.map((link) => ({
       linkId: link.id,
     })),
+    ({ linkId }) => ({
+      deduplicationId: `create-discount-code-${linkId}`,
+    }),
   );
 }

@@ -127,6 +127,9 @@ export const publishDiscountCodesCreationJob = defineJob({
       partnerLinks.map((link) => ({
         linkId: link.id,
       })),
+      ({ linkId }) => ({
+        deduplicationId: `create-discount-code-${linkId}`,
+      }),
     );
 
     if (partnerLinks.length === CRON_BATCH_SIZE) {
