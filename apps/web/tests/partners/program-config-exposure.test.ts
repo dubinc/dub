@@ -1,9 +1,12 @@
+import { omitInternalProgramFields } from "@/lib/fetchers/get-program";
 import {
   ProgramEnrollmentSchema,
   ProgramSchema,
   ProgramSchemaWithInviteEmailData,
 } from "@/lib/zod/schemas/programs";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+
+vi.mock("server-only", () => ({}));
 
 const programRow = {
   id: "prog_1",
@@ -50,6 +53,29 @@ describe("program config exposure", () => {
 
     expect(parsed).not.toHaveProperty("applicationScreeningCriteria");
     expect(parsed).not.toHaveProperty("aiAutoApproveEnabledAt");
+  });
+
+  it("is stripped from the public program loader", () => {
+    const publicProgram = omitInternalProgramFields(programRow);
+
+    expect(publicProgram).not.toHaveProperty("applicationScreeningCriteria");
+    expect(publicProgram).not.toHaveProperty("aiAutoApproveEnabledAt");
+    expect(publicProgram).toEqual({
+      id: programRow.id,
+      name: programRow.name,
+      slug: programRow.slug,
+      logo: programRow.logo,
+      domain: programRow.domain,
+      url: programRow.url,
+      description: programRow.description,
+      primaryRewardEvent: programRow.primaryRewardEvent,
+      minPayoutAmount: programRow.minPayoutAmount,
+      payoutMode: programRow.payoutMode,
+      defaultFolderId: programRow.defaultFolderId,
+      defaultGroupId: programRow.defaultGroupId,
+      createdAt: programRow.createdAt,
+      updatedAt: programRow.updatedAt,
+    });
   });
 
   it("is kept on the workspace-scoped program payload", () => {
