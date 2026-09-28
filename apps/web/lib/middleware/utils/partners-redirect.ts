@@ -49,6 +49,7 @@ const PARTNERS_PROGRAM_REDIRECTS = {
   "ggms-labs-ltd-ai": "mira",
   missioncontrolhq: "squad-so",
   nozomio: "folk",
+  base: "coinbasewallet",
 };
 
 export const partnersProgramRedirects = (path: string) => {

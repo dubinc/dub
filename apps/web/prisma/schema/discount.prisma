@@ -6,7 +6,7 @@ enum DiscountProvider {
 
 model Discount {
   id                     String           @id
-  programId              String
+  programId              String?
   groupId                String?
   amount                 Int              @default(0)
   type                   RewardStructure  @default(percentage)
@@ -20,7 +20,7 @@ model Discount {
   updatedAt              DateTime         @updatedAt
 
   programEnrollments     ProgramEnrollment[]
-  program                Program             @relation("ProgramDiscounts", fields: [programId], references: [id])
+  program                Program?            @relation("ProgramDiscounts", fields: [programId], references: [id])
   partnerGroup           PartnerGroup?       @relation("GroupDiscounts", fields: [groupId], references: [id], onDelete: NoAction, onUpdate: NoAction) // Owning group
   defaultForPartnerGroup PartnerGroup?       @relation("PartnerGroupDefaultDiscount") // Group that uses this as its default
   discountCodes          DiscountCode[]

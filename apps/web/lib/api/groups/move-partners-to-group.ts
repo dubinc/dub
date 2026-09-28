@@ -1,20 +1,11 @@
-import { triggerDraftBountySubmissionCreation } from "@/lib/bounty/api/trigger-draft-bounty-submissions";
-import { qstash } from "@/lib/cron";
+import { processPartnerGroupChangeJob } from "@/lib/jobs/handlers/process-partner-group-change-job";
 import { prisma } from "@/lib/prisma";
-import { recordLink } from "@/lib/tinybird";
-import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
-import { PartnerGroup, WorkspaceRole } from "@prisma/client";
+import { nanoid, pluck } from "@dub/utils";
+import { PartnerGroup, Prisma } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { buildProgramEnrollmentChangeSet } from "../activity-log/build-program-enrollment-change-set";
-import {
-  trackActivityLog,
-  TrackActivityLogInput,
-} from "../activity-log/track-activity-log";
-import { getWorkspaceUsers } from "../get-workspace-users";
-import { includeProgramEnrollment } from "../links/include-program-enrollment";
-import { includeTags } from "../links/include-tags";
-import { notifyPartnerGroupChange } from "../partners/notify-partner-group-change";
-import { queuePartnerSearchSync } from "../partners/queue-partner-search-sync";
+import { trackActivityLogsTx } from "../activity-log/track-activity-log";
+import { DubApiError } from "../errors";
 
 interface MovePartnersToGroupParams {
   workspaceId: string;
@@ -32,8 +23,12 @@ interface MovePartnersToGroupParams {
     | "customRewardId"
     | "discountId"
   >;
-  isGroupDeleted?: boolean;
   groupMoveDisabledAt?: Date | null;
+  // Partner page moves one partner and refetches as soon as this request
+  // returns. Defaults to true for single-partner moves so the refetch sees
+  // cleared link overrides. Workflows / bulk moves leave this to
+  // processPartnerGroupChangeJob.
+  clearLinkRewardsSync?: boolean;
 }
 
 export async function movePartnersToGroup({
@@ -42,168 +37,195 @@ export async function movePartnersToGroup({
   partnerIds,
   userId,
   group,
-  isGroupDeleted = false,
   groupMoveDisabledAt,
+  clearLinkRewardsSync,
 }: MovePartnersToGroupParams): Promise<number> {
+  partnerIds = [...new Set(partnerIds)];
+
+  const shouldClearLinkRewardsSync =
+    clearLinkRewardsSync ?? partnerIds.length === 1;
+
   if (partnerIds.length === 0) {
-    return 0;
+    throw new DubApiError({
+      code: "bad_request",
+      message: "At least one partner ID is required.",
+    });
   }
 
-  const programEnrollments = await prisma.programEnrollment.findMany({
-    where: {
-      partnerId: {
-        in: partnerIds,
-      },
-      programId,
-    },
-    select: {
-      id: true,
-      partnerId: true,
-      status: true,
-      partnerGroup: {
-        select: {
-          id: true,
-          name: true,
-        },
-      },
-    },
-  });
+  const result = await prisma.$transaction(async (tx) => {
+    // Partners already in this group are not moved. Still persist the lock
+    // when the caller only wants to set or clear groupMoveDisabledAt.
+    let alreadyInGroupCount = 0;
 
-  if (programEnrollments.length === 0) {
-    return 0;
-  }
-
-  partnerIds = programEnrollments.map(({ partnerId }) => partnerId);
-
-  const { count } = await prisma.programEnrollment.updateMany({
-    where: {
-      partnerId: {
-        in: partnerIds,
-      },
-      programId,
-    },
-    data: {
-      groupId: group.id,
-      clickRewardId: group.clickRewardId,
-      leadRewardId: group.leadRewardId,
-      saleRewardId: group.saleRewardId,
-      referralRewardId: group.referralRewardId,
-      customRewardId: group.customRewardId,
-      discountId: group.discountId,
-      ...(groupMoveDisabledAt !== undefined && { groupMoveDisabledAt }),
-    },
-  });
-
-  if (count === 0) {
-    return 0;
-  }
-
-  // Queue an index update because the enrollments moved group (filterable field)
-  waitUntil(queuePartnerSearchSync({ partnerIds, programId }));
-
-  waitUntil(
-    (async () => {
-      const partnerLinks = await prisma.link.findMany({
+    if (groupMoveDisabledAt !== undefined) {
+      const updated = await tx.programEnrollment.updateMany({
         where: {
-          programId,
           partnerId: {
             in: partnerIds,
           },
+          programId,
+          groupId: group.id,
         },
-        include: {
-          ...includeTags,
-          ...includeProgramEnrollment,
+        data: {
+          groupMoveDisabledAt,
         },
       });
 
-      const updatedProgramEnrollments = await prisma.programEnrollment.findMany(
-        {
-          where: {
-            partnerId: {
-              in: partnerIds,
-            },
-            programId,
-          },
+      alreadyInGroupCount = updated.count;
+    }
+
+    const where: Prisma.ProgramEnrollmentWhereInput = {
+      partnerId: {
+        in: partnerIds,
+      },
+      programId,
+      OR: [{ groupId: { not: group.id } }, { groupId: null }],
+    };
+
+    const programEnrollmentsBefore = await tx.programEnrollment.findMany({
+      where,
+      select: {
+        id: true,
+        partnerId: true,
+        partnerGroup: {
           select: {
             id: true,
-            partnerId: true,
-            partnerGroup: {
-              select: {
-                id: true,
-                name: true,
-              },
-            },
+            name: true,
           },
         },
-      );
+      },
+    });
 
-      // Build activity log inputs
-      const activityLogInputs: TrackActivityLogInput[] =
-        updatedProgramEnrollments.map((updatedEnrollment) => {
-          const oldEnrollment = programEnrollments.find(
-            (e) => e.id === updatedEnrollment.id,
-          );
-
-          return {
-            workspaceId,
-            programId,
-            resourceType: "partner",
-            resourceId: updatedEnrollment.partnerId,
-            userId,
-            action: "partner.groupChanged",
-            changeSet: buildProgramEnrollmentChangeSet({
-              oldEnrollment,
-              newEnrollment: updatedEnrollment,
-            }),
-          };
-        });
-
-      // If the userId is not provided, get the workspace user id from the workspace users
-      // userId will be null for workflow-initiated actions
-      let workspaceUserId = userId;
-
-      if (!workspaceUserId) {
-        const { users } = await getWorkspaceUsers({
-          programId,
-          role: WorkspaceRole.owner,
-        });
-
-        if (users.length > 0) {
-          workspaceUserId = users[0].id;
-        }
+    if (programEnrollmentsBefore.length === 0) {
+      if (alreadyInGroupCount === 0) {
+        return null;
       }
 
-      await Promise.allSettled([
-        qstash.publishJSON({
-          url: `${APP_DOMAIN_WITH_NGROK}/api/cron/groups/remap-default-links`,
-          body: {
-            programId,
-            groupId: group.id,
-            // skip remap-default-links / remap-discount-codes for pending applications (no links yet)
-            partnerIds: programEnrollments
-              .filter(({ status }) => status !== "pending")
-              .map(({ partnerId }) => partnerId),
-            userId: workspaceUserId,
-            isGroupDeleted,
+      return {
+        count: alreadyInGroupCount,
+        programEnrollmentsAfter: [],
+      };
+    }
+
+    const { count } = await tx.programEnrollment.updateMany({
+      where,
+      data: {
+        groupId: group.id,
+        clickRewardId: group.clickRewardId,
+        leadRewardId: group.leadRewardId,
+        saleRewardId: group.saleRewardId,
+        referralRewardId: group.referralRewardId,
+        customRewardId: group.customRewardId,
+        discountId: group.discountId,
+        ...(groupMoveDisabledAt !== undefined && { groupMoveDisabledAt }),
+      },
+    });
+
+    if (count === 0) {
+      if (alreadyInGroupCount === 0) {
+        return null;
+      }
+
+      return {
+        count: alreadyInGroupCount,
+        programEnrollmentsAfter: [],
+      };
+    }
+
+    const programEnrollmentsAfter = await tx.programEnrollment.findMany({
+      where: {
+        id: {
+          in: pluck(programEnrollmentsBefore, "id"),
+        },
+      },
+      select: {
+        id: true,
+        partnerId: true,
+        partnerGroup: {
+          select: {
+            id: true,
+            name: true,
           },
-        }),
+        },
+      },
+    });
 
-        triggerDraftBountySubmissionCreation({
+    // Track the activity logs for the program enrollments that were moved to the group
+    const enrollmentsBeforeById = new Map(
+      programEnrollmentsBefore.map((enrollment) => [enrollment.id, enrollment]),
+    );
+
+    const logs = programEnrollmentsAfter.map((newEnrollment) => {
+      const oldEnrollment = enrollmentsBeforeById.get(newEnrollment.id);
+
+      return {
+        workspaceId,
+        programId,
+        resourceType: "partner" as const,
+        resourceId: newEnrollment.partnerId,
+        userId,
+        action: "partner.groupChanged" as const,
+        changeSet: buildProgramEnrollmentChangeSet({
+          oldEnrollment,
+          newEnrollment,
+        }),
+      };
+    });
+
+    await trackActivityLogsTx({
+      tx,
+      logs,
+    });
+
+    if (shouldClearLinkRewardsSync) {
+      const partnerLinks = await tx.link.findMany({
+        where: {
           programId,
-          partnerIds,
-        }),
+          partnerId: {
+            in: pluck(programEnrollmentsAfter, "partnerId"),
+          },
+        },
+        select: {
+          id: true,
+        },
+      });
 
-        recordLink(partnerLinks),
+      if (partnerLinks.length > 0) {
+        await tx.linkReward.deleteMany({
+          where: {
+            linkId: {
+              in: pluck(partnerLinks, "id"),
+            },
+          },
+        });
+      }
+    }
 
-        notifyPartnerGroupChange({
-          programId,
-          groupId: group.id,
-          partnerIds,
-        }),
+    return {
+      count: count + alreadyInGroupCount,
+      programEnrollmentsAfter,
+    };
+  });
 
-        trackActivityLog(activityLogInputs),
-      ]);
-    })(),
+  if (!result) {
+    return 0;
+  }
+
+  const { count, programEnrollmentsAfter } = result;
+  const movedPartnerIds = pluck(programEnrollmentsAfter, "partnerId");
+
+  if (movedPartnerIds.length === 0) {
+    return count;
+  }
+
+  waitUntil(
+    processPartnerGroupChangeJob.dispatch({
+      programId,
+      groupId: group.id,
+      movedPartnerIds,
+      userId,
+      idempotencyKey: nanoid(10),
+    }),
   );
 
   return count;

@@ -35,13 +35,12 @@ import {
   TooltipContent,
   useCopyToClipboard,
 } from "@dub/ui";
-import { Copy, DiscountCode, Trash } from "@dub/ui/icons";
+import { DiscountCode, Trash } from "@dub/ui/icons";
 import { cn, getPrettyUrl, nFormatter, pluralize } from "@dub/utils";
 import { DiscountProvider } from "@prisma/client";
 import { Command } from "cmdk";
 import Link from "next/link";
-import { type ReactNode, useMemo, useState } from "react";
-import { toast } from "sonner";
+import { type ReactNode, useCallback, useMemo, useState } from "react";
 
 type PartnerLink = ProgramPartnerLinkExtended;
 type PartnerForDiscountOverride = Pick<
@@ -60,14 +59,11 @@ function getEffectiveDiscountProvider({
   partnerDiscount?: Pick<DiscountProps, "id" | "provider"> | null;
   groupDiscount?: Pick<DiscountProps, "id" | "provider"> | null;
 }): DiscountProvider | null {
-  const linkDiscount = discounts?.find((d) => d.id === link.discount);
+  if (link.discount) {
+    return discounts?.find((d) => d.id === link.discount)?.provider ?? null;
+  }
 
-  return (
-    linkDiscount?.provider ??
-    partnerDiscount?.provider ??
-    groupDiscount?.provider ??
-    null
-  );
+  return partnerDiscount?.provider ?? groupDiscount?.provider ?? null;
 }
 
 function linkHasEffectiveDiscount({
@@ -110,9 +106,25 @@ export function PartnerDiscountCodes({
     groupId: partner.groupId ?? undefined,
   });
 
+  const getDiscountProvider = useCallback(
+    (linkId: string) => {
+      const link = links?.find((item) => item.id === linkId);
+      if (!link) return null;
+
+      return getEffectiveDiscountProvider({
+        link,
+        discounts,
+        partnerDiscount: partner.discount,
+        groupDiscount: group?.discount,
+      });
+    },
+    [links, discounts, partner.discount, group?.discount],
+  );
+
   const { AddDiscountCodeModal, setShowAddDiscountCodeModal } =
     useAddDiscountCodeModal({
       partner,
+      getDiscountProvider,
     });
 
   const usedLinkIds = useMemo(
@@ -339,17 +351,15 @@ function DiscountCodeCard({
       group,
     });
 
-  const editDiscountDisabledTooltip = !link
-    ? "Link not found"
-    : !canUseAdvancedRewardLogic
-      ? (
-          <TooltipContent
-            title={PARTNER_LEVEL_REWARDS_PLAN_ERROR}
-            cta="Upgrade to Advanced"
-            onClick={() => setShowAdvancedUpsellModal(true)}
-          />
-        )
-      : undefined;
+  const editDiscountDisabledTooltip = !link ? (
+    "Link not found"
+  ) : !canUseAdvancedRewardLogic ? (
+    <TooltipContent
+      title={PARTNER_LEVEL_REWARDS_PLAN_ERROR}
+      cta="Upgrade to Advanced"
+      onClick={() => setShowAdvancedUpsellModal(true)}
+    />
+  ) : undefined;
 
   return (
     <>
@@ -358,7 +368,7 @@ function DiscountCodeCard({
         innerClassName="flex items-center justify-between gap-4 px-3 py-2.5"
         hoverStateEnabled={false}
       >
-        <div className="flex min-w-0 flex-1 items-center">
+        <div className="flex min-w-0 flex-1 items-center gap-3">
           <div className="w-40 shrink-0">
             <DiscountCodeBadge
               code={discountCode.code}
@@ -471,31 +481,6 @@ function DiscountCodeCardMenu({
               }}
             >
               Edit discount
-            </MenuItem>
-            <MenuItem
-              as={Command.Item}
-              icon={Copy}
-              onSelect={() => {
-                toast.promise(copyToClipboard(code), {
-                  success: "Copied discount code to clipboard",
-                });
-                setOpenPopover(false);
-              }}
-            >
-              Copy discount code
-            </MenuItem>
-            <MenuItem
-              as={Command.Item}
-              icon={Copy}
-              disabled={!partnerLink}
-              onSelect={() => {
-                toast.promise(copyToClipboard(partnerLink), {
-                  success: "Copied to clipboard",
-                });
-                setOpenPopover(false);
-              }}
-            >
-              Copy link
             </MenuItem>
             <MenuItem
               as={Command.Item}

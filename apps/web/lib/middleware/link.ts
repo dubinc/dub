@@ -268,10 +268,11 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
 
   // handle disabled links
   if (disabledAt) {
-    return NextResponse.rewrite(new URL(`/${domain}/notfound`, req.url), {
+    return NextResponse.rewrite(new URL(`/${domain}/disabled`, req.url), {
       headers: {
         ...DUB_HEADERS,
         ...STATIC_PAGES_CACHE_HEADERS,
+        "X-Robots-Tag": "googlebot: noindex",
       },
     });
   }

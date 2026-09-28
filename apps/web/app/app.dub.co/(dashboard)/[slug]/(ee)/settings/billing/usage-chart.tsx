@@ -1,3 +1,4 @@
+import { formatDateTooltip } from "@/lib/analytics/format-date-tooltip";
 import useDomains from "@/lib/swr/use-domains";
 import useFolders from "@/lib/swr/use-folders";
 import { useUsageTimeseries } from "@/lib/swr/use-usage-timeseries";
@@ -16,7 +17,7 @@ import {
 } from "@dub/ui";
 import { Bars, TimeSeriesChart, XAxis, YAxis } from "@dub/ui/charts";
 import { CursorRays, Folder, Globe2, Hyperlink } from "@dub/ui/icons";
-import { cn, formatDate, GOOGLE_FAVICON_URL, nFormatter } from "@dub/utils";
+import { cn, GOOGLE_FAVICON_URL, nFormatter } from "@dub/utils";
 import NumberFlow, { NumberFlowGroup } from "@number-flow/react";
 import {
   ComponentProps,
@@ -398,7 +399,7 @@ export function UsageChart() {
                   <>
                     <div className="flex items-center justify-between gap-4 px-4 py-3 text-xs">
                       <span className="text-content-emphasis font-semibold">
-                        {formatDate(d.date, { month: "short" })}
+                        {formatDateTooltip(d.date, { interval, start, end })}
                       </span>
                       <span className="text-content-default font-medium">
                         {nFormatter(d.values.usage, { full: true })}
@@ -440,7 +441,12 @@ export function UsageChart() {
                 );
               }}
             >
-              <XAxis highlightLast={false} />
+              <XAxis
+                highlightLast={false}
+                tickFormat={(date) =>
+                  formatDateTooltip(date, { interval, start, end })
+                }
+              />
               <YAxis showGridLines tickFormat={nFormatter} />
               <Bars />
             </TimeSeriesChart>

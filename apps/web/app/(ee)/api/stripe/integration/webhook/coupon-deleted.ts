@@ -1,6 +1,6 @@
 import { getWorkspaceUsers } from "@/lib/api/get-workspace-users";
-import { getPartnersByDiscountIds } from "@/lib/discounts/get-partners-by-discount-ids";
 import { invalidateLinksForDiscountsJob } from "@/lib/jobs/handlers/invalidate-links-for-discounts-job";
+import { dispatchWorkflows } from "@/lib/jobs/publish-workflows";
 import { prisma } from "@/lib/prisma";
 import { sendBatchEmail } from "@dub/email";
 import { VARIANT_TO_FROM_MAP } from "@dub/email/resend/constants";
@@ -44,8 +44,6 @@ export async function couponDeleted({
   }
 
   const discountIds = pluck(discounts, "id");
-  const partners = await getPartnersByDiscountIds({ discountIds });
-  const partnerIds = pluck(partners, "id");
 
   await prisma.$transaction(async (tx) => {
     await tx.partnerGroup.updateMany({
@@ -59,33 +57,43 @@ export async function couponDeleted({
       },
     });
 
-    await tx.programEnrollment.updateMany({
-      where: {
-        discountId: {
-          in: discountIds,
-        },
-      },
-      data: {
-        discountId: null,
-      },
-    });
-
-    await tx.discountCode.deleteMany({
-      where: {
-        discountId: {
-          in: discountIds,
-        },
-      },
-    });
-
-    await tx.discount.deleteMany({
+    // Soft delete the discounts
+    await tx.discount.updateMany({
       where: {
         id: {
           in: discountIds,
         },
       },
+      data: {
+        programId: null,
+      },
     });
   });
+
+  await dispatchWorkflows(
+    discountIds.map((discountId) => ({
+      name: "detach-discount-workflow" as const,
+      payload: {
+        programId,
+        discountId,
+      },
+      options: {
+        label: discountId,
+      },
+    })),
+  );
+
+  // Expire cached links before async detach — edge ignores soft-deleted rows,
+  // but Redis may still serve the pre-delete discount.
+  await Promise.all(
+    discountIds.map((discountId) =>
+      invalidateLinksForDiscountsJob.dispatch({
+        by: "discount",
+        programId,
+        discountId,
+      }),
+    ),
+  );
 
   waitUntil(
     (async () => {
@@ -94,36 +102,19 @@ export async function couponDeleted({
         role: "owner",
       });
 
-      await Promise.allSettled([
-        ...(partnerIds.length > 0
-          ? [
-              invalidateLinksForDiscountsJob.dispatch(
-                {
-                  type: "partners",
-                  programId,
-                  partnerIds,
-                },
-                {
-                  label: coupon.id,
-                },
-              ),
-            ]
-          : []),
-
-        sendBatchEmail(
-          users.map((user) => ({
-            from: VARIANT_TO_FROM_MAP.notifications,
-            to: user.email,
-            subject: "Your discount has been deleted",
-            react: DiscountDeleted({
-              email: user.email,
-              coupon: {
-                id: coupon.id,
-              },
-            }),
-          })),
-        ),
-      ]);
+      await sendBatchEmail(
+        users.map((user) => ({
+          from: VARIANT_TO_FROM_MAP.notifications,
+          to: user.email,
+          subject: "Your discount has been deleted",
+          react: DiscountDeleted({
+            email: user.email,
+            coupon: {
+              id: coupon.id,
+            },
+          }),
+        })),
+      );
     })(),
   );
 

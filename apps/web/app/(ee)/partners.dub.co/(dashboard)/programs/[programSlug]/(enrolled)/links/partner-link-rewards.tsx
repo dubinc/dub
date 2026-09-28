@@ -158,7 +158,7 @@ export function PartnerLinkRewardsPanel({
       transition={{ duration: 0.2 }}
       className="overflow-hidden"
     >
-      <div className="border-t border-neutral-200 px-4 py-2">
+      <div className="border-t border-neutral-200 bg-neutral-100 p-2">
         <div className="flex flex-col gap-2 rounded-[10px] border border-neutral-200 bg-white p-3">
           {items.map((item) => {
             const ItemIcon = item.icon;
