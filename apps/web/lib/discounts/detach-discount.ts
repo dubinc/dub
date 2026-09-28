@@ -185,6 +185,7 @@ export async function dispatchRemapDiscountCodes({
     const where: Prisma.DiscountCodeWhereInput = {
       discountId,
       disabledAt: null,
+      isDeleted: false,
       ...(startAfterId && {
         id: {
           gt: startAfterId,
