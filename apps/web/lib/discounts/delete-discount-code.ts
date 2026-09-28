@@ -69,12 +69,13 @@ export async function deleteDiscountCode({
         `Disabled discount code ${discountCode.code} on ${discount.provider}`,
       );
     } catch (error) {
-      if (isNonRecoverableDiscountError(error)) {
-        console.log(`Skipping ${discountCode.code}: ${error.message}`);
-        return;
+      if (!isNonRecoverableDiscountError(error)) {
+        throw error;
       }
 
-      throw error;
+      console.log(
+        `Could not disable discount code ${discountCode.code} on ${discount.provider}: ${error.message}. Continuing with local cleanup.`,
+      );
     }
   }
 

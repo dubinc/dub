@@ -7,7 +7,7 @@ type DisableDiscountCodesArgs = {
   where: Prisma.DiscountCodeWhereInput;
 };
 
-const BATCH_SIZE = 1;
+const BATCH_SIZE = 500;
 
 // Disable live discount codes matching `where` (sets disabledAt).
 // Used when partners are banned or deactivated — the code string stays reserved.

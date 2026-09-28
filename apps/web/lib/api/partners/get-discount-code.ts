@@ -1,4 +1,3 @@
-import { isDiscountCodeSoftDeleted } from "@/lib/discounts/discount-code-status";
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@prisma/client";
 
@@ -20,11 +19,12 @@ export async function getDiscountCode<
   const discountCode = await prisma.discountCode.findFirst({
     where: {
       ...where,
+      deletedAt: null,
     },
     include,
   });
 
-  if (!discountCode || isDiscountCodeSoftDeleted(discountCode)) {
+  if (!discountCode) {
     return null;
   }
 
