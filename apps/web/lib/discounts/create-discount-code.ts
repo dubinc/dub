@@ -54,7 +54,7 @@ export async function createDiscountCode({
       discountCode: {
         select: {
           code: true,
-          deletedAt: true,
+          isDeleted: true,
         },
       },
     },

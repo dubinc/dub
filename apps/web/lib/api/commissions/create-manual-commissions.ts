@@ -320,6 +320,13 @@ async function resolveLinkAndCustomer(args: ResolveLinkAndCustomerArgs) {
       });
     }
 
+    if (!discountCodeFound.linkId) {
+      throw new DubApiError({
+        code: "bad_request",
+        message: `Discount code ${discountCode} has no link.`,
+      });
+    }
+
     resolvedLinkId = discountCodeFound.linkId;
   }
 

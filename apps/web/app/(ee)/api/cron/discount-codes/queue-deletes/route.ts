@@ -11,16 +11,14 @@ const BATCH_SIZE = 500;
 export const GET = withCron(async () => {
   const discountCodes = await prisma.discountCode.findMany({
     where: {
-      deletedAt: {
-        not: null,
-      },
+      isDeleted: true,
     },
     select: {
       id: true,
     },
     take: BATCH_SIZE,
     orderBy: {
-      deletedAt: "desc",
+      updatedAt: "desc",
     },
   });
 

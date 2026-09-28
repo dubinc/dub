@@ -53,7 +53,7 @@ export async function syncDiscountCodes({
         in: enrolledPartnerIds,
       },
       disabledAt: null,
-      deletedAt: null,
+      isDeleted: false,
     },
     select: {
       id: true,

@@ -1,10 +1,10 @@
 import { DiscountCode } from "@prisma/client";
 
-// Soft-deleted discount codes keep their row with deletedAt set.
+// Soft-deleted discount codes keep their row with isDeleted set.
 export function isDiscountCodeSoftDeleted(
-  discountCode: Pick<DiscountCode, "deletedAt">,
+  discountCode: Pick<DiscountCode, "isDeleted">,
 ): boolean {
-  return discountCode.deletedAt != null;
+  return discountCode.isDeleted;
 }
 
 export function isDiscountCodeDisabled(

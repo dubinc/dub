@@ -19,7 +19,7 @@ export async function getDiscountCode<
   const discountCode = await prisma.discountCode.findFirst({
     where: {
       ...where,
-      deletedAt: null,
+      isDeleted: false,
     },
     include,
   });

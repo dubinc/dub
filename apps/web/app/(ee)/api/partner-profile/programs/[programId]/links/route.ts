@@ -31,7 +31,7 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
     include: {
       discountCodes: {
         where: {
-          deletedAt: null,
+          isDeleted: false,
           disabledAt: null,
         },
       },

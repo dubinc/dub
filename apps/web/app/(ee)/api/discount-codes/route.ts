@@ -51,7 +51,7 @@ export const GET = withWorkspace(
     const discountCodes = await prisma.discountCode.findMany({
       where: {
         programId,
-        deletedAt: null,
+        isDeleted: false,
         ...(partnerId && { partnerId }),
         ...(discountId && { discountId }),
         ...(code && { code }),
@@ -100,7 +100,7 @@ export const POST = withWorkspace(
         },
         discountCodes: {
           where: {
-            deletedAt: null,
+            isDeleted: false,
           },
           select: {
             code: true,

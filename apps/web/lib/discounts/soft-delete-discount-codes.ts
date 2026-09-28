@@ -6,7 +6,8 @@ type SoftDeleteDiscountCodesArgs = {
   tx?: Prisma.TransactionClient | typeof prisma;
 };
 
-// Soft-delete live discount codes matching `where`: set deletedAt and clear linkId.
+// Soft-delete live discount codes matching `where`: set isDeleted and clear linkId.
+// isDeleted stays non-null so MySQL can enforce one live code per program.
 export async function softDeleteDiscountCodes({
   where,
   tx = prisma,
@@ -14,10 +15,10 @@ export async function softDeleteDiscountCodes({
   return await tx.discountCode.updateMany({
     where: {
       ...where,
-      deletedAt: null,
+      isDeleted: false,
     },
     data: {
-      deletedAt: new Date(),
+      isDeleted: true,
       linkId: null,
     },
   });

@@ -40,7 +40,7 @@ model DiscountCode {
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
   disabledAt DateTime?
-  deletedAt  DateTime?
+  isDeleted  Boolean   @default(false) // Non-null unique-key flag; false while live, true after soft-delete
 
   program           Program            @relation(fields: [programId], references: [id], onDelete: Cascade)
   discount          Discount?          @relation(fields: [discountId], references: [id])
@@ -48,7 +48,7 @@ model DiscountCode {
   link              Link?              @relation(fields: [linkId], references: [id], onDelete: Restrict)
   programEnrollment ProgramEnrollment? @relation(fields: [programId, partnerId], references: [programId, partnerId], onDelete: Restrict)
 
-  @@unique([programId, code, deletedAt])
+  @@unique([programId, code, isDeleted])
   @@index([programId, partnerId])
   @@index(discountId)
   @@index(partnerId)
