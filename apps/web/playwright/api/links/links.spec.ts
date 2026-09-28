@@ -1,5 +1,5 @@
-import { expect } from "@playwright/test";
 import { nanoid } from "@dub/utils";
+import { expect } from "@playwright/test";
 import { test, type ApiClient } from "../fixtures";
 import { TEST_WORKSPACE } from "../setup-test-workspace";
 
