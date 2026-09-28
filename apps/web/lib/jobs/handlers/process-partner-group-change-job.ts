@@ -1,4 +1,6 @@
+import { DubApiError } from "@/lib/api/errors";
 import { getWorkspaceUsers } from "@/lib/api/get-workspace-users";
+import { getGroupOrThrow } from "@/lib/api/groups/get-group-or-throw";
 import { linkCache } from "@/lib/api/links/cache";
 import { includeProgramEnrollment } from "@/lib/api/links/include-program-enrollment";
 import { includeTags } from "@/lib/api/links/include-tags";
@@ -33,6 +35,20 @@ export const processPartnerGroupChangeJob = defineJob({
     userId,
     idempotencyKey,
   }) {
+    // Make sure the group exists
+    try {
+      await getGroupOrThrow({
+        programId,
+        groupId,
+      });
+    } catch (error) {
+      if (error instanceof DubApiError) {
+        return;
+      }
+
+      throw error;
+    }
+
     const [partnerLinks, programEnrollments] = await Promise.all([
       prisma.link.findMany({
         where: {

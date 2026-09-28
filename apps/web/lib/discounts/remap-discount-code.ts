@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { deleteDiscountCodes } from "./delete-discount-code";
+import { isDiscountDeleted } from "./is-discount-deleted";
 import { isDiscountEquivalent } from "./is-discount-equivalent";
 import { enqueueMissingDiscountCodes } from "./sync-discount-codes";
 
@@ -67,8 +68,8 @@ export async function remapDiscountCode({
   const newDiscount =
     discountCode.link?.linkReward?.discount ?? programEnrollment.discount;
 
-  // No discount exists for this discount code, delete it
-  if (!newDiscount) {
+  // No live discount for this code.
+  if (!newDiscount || isDiscountDeleted(newDiscount)) {
     await deleteDiscountCodes([discountCode]);
     return;
   }

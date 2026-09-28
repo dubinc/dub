@@ -1,7 +1,7 @@
-import { enqueueBatchJobs } from "@/lib/cron/enqueue-batch-jobs";
+import { createDiscountCodeForLinkJob } from "@/lib/jobs/handlers/create-discount-code-for-link-job";
 import { remapDiscountCodeJob } from "@/lib/jobs/handlers/remap-discount-code-job";
 import { prisma } from "@/lib/prisma";
-import { APP_DOMAIN_WITH_NGROK, pluck } from "@dub/utils";
+import { pluck } from "@dub/utils";
 import { Discount } from "@prisma/client";
 
 // Remap existing codes and enqueue missing default-link codes for partners in a program
@@ -139,16 +139,9 @@ export async function enqueueMissingDiscountCodes({
     return;
   }
 
-  await enqueueBatchJobs(
+  await createDiscountCodeForLinkJob.dispatchBatch(
     linksToProvision.map((link) => ({
-      url: `${APP_DOMAIN_WITH_NGROK}/api/cron/discount-codes/create`,
-      flowControl: {
-        key: "create-discount-code",
-        parallelism: 10,
-      },
-      body: {
-        linkId: link.id,
-      },
+      linkId: link.id,
     })),
   );
 }

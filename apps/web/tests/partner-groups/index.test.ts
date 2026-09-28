@@ -14,7 +14,6 @@ import { randomValue } from "@dub/utils";
 import slugify from "@sindresorhus/slugify";
 import { describe, expect, test } from "vitest";
 import { IntegrationHarness } from "../utils/integration";
-import { E2E_PARTNER } from "../utils/resource";
 
 const expectedGroup: Partial<GroupProps> = {
   id: expect.any(String),
@@ -294,38 +293,6 @@ describe.sequential("/groups/**", async () => {
       netRevenue: 0,
       moveRules: null,
     });
-  });
-
-  test("DELETE /groups/[groupId] - cannot delete group with partners", async () => {
-    const { status: moveStatus } = await http.post<{ count: number }>({
-      path: `/groups/${group.id}/partners`,
-      body: {
-        partnerIds: [E2E_PARTNER.id],
-      },
-    });
-
-    expect(moveStatus).toEqual(200);
-
-    const { status, data } = await http.delete<{
-      error: { code: string; message: string };
-    }>({
-      path: `/groups/${group.id}`,
-    });
-
-    expect(status).toEqual(400);
-    expect(data.error.code).toEqual("bad_request");
-    expect(data.error.message).toContain(
-      "You cannot delete a group that still has partners",
-    );
-
-    const { status: moveBackStatus } = await http.post<{ count: number }>({
-      path: `/groups/${DEFAULT_PARTNER_GROUP.slug}/partners`,
-      body: {
-        partnerIds: [E2E_PARTNER.id],
-      },
-    });
-
-    expect(moveBackStatus).toEqual(200);
   });
 
   test("DELETE /groups/[groupId] - delete group", async () => {

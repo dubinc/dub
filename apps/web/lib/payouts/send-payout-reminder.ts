@@ -19,7 +19,7 @@ const EXCLUDED_PROGRAM_IDS = [
   ACME_PROGRAM_ID,
   DEMO_PROGRAM_ID,
   // programs that are in the migration process
-  "prog_1M1EYH84K0ZGRA70CEGB4VC72",
+  "prog_xxx",
 ];
 
 type PartnerPayoutReminder = {

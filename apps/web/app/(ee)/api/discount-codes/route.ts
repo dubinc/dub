@@ -6,13 +6,16 @@ import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enro
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { createDiscountCode } from "@/lib/discounts/create-discount-code";
+import { isDiscountDeleted } from "@/lib/discounts/is-discount-deleted";
 import { prisma } from "@/lib/prisma";
 import {
   createDiscountCodeSchema,
   DiscountCodeSchema,
   getDiscountCodesQuerySchema,
+  restrictedDiscountCodeSchema,
 } from "@/lib/zod/schemas/discount";
 import { APP_DOMAIN } from "@dub/utils";
+import { DiscountProvider } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
@@ -130,11 +133,19 @@ export const POST = withWorkspace(
       });
     }
 
-    if (!discount.programId) {
+    if (isDiscountDeleted(discount)) {
       throw new DubApiError({
         code: "not_found",
         message: `Discount ${discount.id} not found.`,
       });
+    }
+
+    if (
+      code &&
+      (discount.provider === DiscountProvider.stripe ||
+        discount.provider === DiscountProvider.shopify)
+    ) {
+      restrictedDiscountCodeSchema.parse({ code });
     }
 
     // A link can have only one discount code
@@ -154,7 +165,7 @@ export const POST = withWorkspace(
       const duplicateByCode = await prisma.discountCode.findUnique({
         where: {
           programId_code: {
-            programId: discount.programId,
+            programId: discount.programId!,
             code,
           },
         },
