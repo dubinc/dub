@@ -286,6 +286,95 @@ describe.sequential("PATCH /links/{linkId} - UTM parameters", async () => {
 });
 
 describe.sequential(
+  "PATCH /links/{linkId} - clear externalId and tenantId",
+  async () => {
+    const h = new IntegrationHarness();
+    const { http } = await h.init();
+
+    let link: Link;
+
+    beforeAll(async () => {
+      const { data } = await http.post<Link>({
+        path: "/links",
+        body: {
+          url,
+          domain,
+          externalId: randomId(),
+          tenantId: randomId(),
+        },
+      });
+      link = data;
+    });
+
+    afterAll(async () => {
+      await h.deleteLink(link.id);
+    });
+
+    test("clear externalId with empty string", async () => {
+      const { status, data: updated } = await http.patch<Link>({
+        path: `/links/${link.id}`,
+        body: { externalId: "" },
+      });
+
+      expect(status).toEqual(200);
+      expect(updated.externalId).toEqual(null);
+
+      const { data: fetched } = await http.get<Link>({
+        path: `/links/${link.id}`,
+      });
+
+      expect(fetched.externalId).toEqual(null);
+    });
+
+    test("clear externalId with null", async () => {
+      await http.patch<Link>({
+        path: `/links/${link.id}`,
+        body: { externalId: randomId() },
+      });
+
+      const { status, data: updated } = await http.patch<Link>({
+        path: `/links/${link.id}`,
+        body: { externalId: null },
+      });
+
+      expect(status).toEqual(200);
+      expect(updated.externalId).toEqual(null);
+    });
+
+    test("clear tenantId with empty string", async () => {
+      const { status, data: updated } = await http.patch<Link>({
+        path: `/links/${link.id}`,
+        body: { tenantId: "" },
+      });
+
+      expect(status).toEqual(200);
+      expect(updated.tenantId).toEqual(null);
+
+      const { data: fetched } = await http.get<Link>({
+        path: `/links/${link.id}`,
+      });
+
+      expect(fetched.tenantId).toEqual(null);
+    });
+
+    test("clear tenantId with null", async () => {
+      await http.patch<Link>({
+        path: `/links/${link.id}`,
+        body: { tenantId: randomId() },
+      });
+
+      const { status, data: updated } = await http.patch<Link>({
+        path: `/links/${link.id}`,
+        body: { tenantId: null },
+      });
+
+      expect(status).toEqual(200);
+      expect(updated.tenantId).toEqual(null);
+    });
+  },
+);
+
+describe.sequential(
   "PUT /links/{linkId} (backwards compatibility)",
   async () => {
     const h = new IntegrationHarness();

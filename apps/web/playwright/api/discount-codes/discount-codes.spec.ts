@@ -498,41 +498,50 @@ test("POST /discount-codes – duplicate code", async ({ api }) => {
   }
 });
 
-const invalidCodeCases = [
-  {
-    name: "POST /discount-codes – invalid characters",
-    code: "NOT VALID!",
-    message:
-      "invalid_format: code: Code can only contain letters, numbers, dashes, and underscores.",
-  },
-  {
-    name: "POST /discount-codes – too long",
-    code: "A".repeat(101),
-    message: "too_big: code: Code must be 100 characters or fewer.",
-  },
-];
+test("POST /discount-codes – custom provider allows special characters", async ({
+  api,
+}) => {
+  let partnerId: string | undefined;
 
-for (const { name, code, message } of invalidCodeCases) {
-  test(name, async ({ api }) => {
-    expect(
-      await api.post("/api/discount-codes", {
-        partnerId: "pn_x",
-        linkId: "link_x",
-        code,
-      }),
-    ).toEqual({
-      status: 422,
-      data: {
-        error: {
-          code: "unprocessable_entity",
-          message,
-          doc_url:
-            "https://dub.co/docs/api-reference/errors#unprocessable-entity",
-        },
-      },
+  try {
+    const { status, data, partner, body } = await createDiscountCode(api, {
+      code: `NOT VALID!@10.${nanoid(6)}`,
     });
+    partnerId = partner.id;
+
+    expect(status).toEqual(200);
+    expect(data).toEqual({
+      id: expect.any(String),
+      code: body.code,
+      discountId: customDiscountId,
+      partnerId: partner.id,
+      linkId: body.linkId,
+      disabledAt: null,
+    });
+  } finally {
+    await deletePartner(partnerId);
+  }
+});
+
+test("POST /discount-codes – too long", async ({ api }) => {
+  expect(
+    await api.post("/api/discount-codes", {
+      partnerId: "pn_x",
+      linkId: "link_x",
+      code: "A".repeat(101),
+    }),
+  ).toEqual({
+    status: 422,
+    data: {
+      error: {
+        code: "unprocessable_entity",
+        message: "too_big: code: Code must be 100 characters or fewer.",
+        doc_url:
+          "https://dub.co/docs/api-reference/errors#unprocessable-entity",
+      },
+    },
   });
-}
+});
 
 test("POST /discount-codes – missing partnerId", async ({ api }) => {
   expect(

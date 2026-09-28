@@ -40,7 +40,7 @@ import { cn, getPrettyUrl, nFormatter, pluralize } from "@dub/utils";
 import { DiscountProvider } from "@prisma/client";
 import { Command } from "cmdk";
 import Link from "next/link";
-import { type ReactNode, useMemo, useState } from "react";
+import { type ReactNode, useCallback, useMemo, useState } from "react";
 
 type PartnerLink = ProgramPartnerLinkExtended;
 type PartnerForDiscountOverride = Pick<
@@ -59,14 +59,11 @@ function getEffectiveDiscountProvider({
   partnerDiscount?: Pick<DiscountProps, "id" | "provider"> | null;
   groupDiscount?: Pick<DiscountProps, "id" | "provider"> | null;
 }): DiscountProvider | null {
-  const linkDiscount = discounts?.find((d) => d.id === link.discount);
+  if (link.discount) {
+    return discounts?.find((d) => d.id === link.discount)?.provider ?? null;
+  }
 
-  return (
-    linkDiscount?.provider ??
-    partnerDiscount?.provider ??
-    groupDiscount?.provider ??
-    null
-  );
+  return partnerDiscount?.provider ?? groupDiscount?.provider ?? null;
 }
 
 function linkHasEffectiveDiscount({
@@ -109,9 +106,25 @@ export function PartnerDiscountCodes({
     groupId: partner.groupId ?? undefined,
   });
 
+  const getDiscountProvider = useCallback(
+    (linkId: string) => {
+      const link = links?.find((item) => item.id === linkId);
+      if (!link) return null;
+
+      return getEffectiveDiscountProvider({
+        link,
+        discounts,
+        partnerDiscount: partner.discount,
+        groupDiscount: group?.discount,
+      });
+    },
+    [links, discounts, partner.discount, group?.discount],
+  );
+
   const { AddDiscountCodeModal, setShowAddDiscountCodeModal } =
     useAddDiscountCodeModal({
       partner,
+      getDiscountProvider,
     });
 
   const usedLinkIds = useMemo(
