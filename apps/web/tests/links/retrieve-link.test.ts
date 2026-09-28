@@ -2,7 +2,7 @@ import { normalizeWorkspaceId } from "@/lib/api/workspaces/workspace-id";
 import { Link } from "@prisma/client";
 import { expectedLink } from "tests/utils/schema";
 import { afterAll, describe, expect, test } from "vitest";
-import { randomId } from "../utils/helpers";
+import { randomId, randomKey } from "../utils/helpers";
 import { IntegrationHarness } from "../utils/integration";
 import { E2E_LINK } from "../utils/resource";
 
@@ -14,7 +14,7 @@ describe.concurrent("GET /links/{linkId}", async () => {
   const workspaceId = workspace.id;
   const projectId = normalizeWorkspaceId(workspaceId);
   const externalId = randomId();
-  const key = randomId();
+  const key = randomKey();
 
   const { data: newLink } = await http.post<Link>({
     path: "/links",
@@ -65,7 +65,7 @@ describe.sequential("GET /links/info", async () => {
   const workspaceId = workspace.id;
   const projectId = normalizeWorkspaceId(workspaceId);
   const externalId = randomId();
-  const key = randomId();
+  const key = randomKey();
 
   afterAll(async () => {
     await h.deleteLink(newLink.id);
