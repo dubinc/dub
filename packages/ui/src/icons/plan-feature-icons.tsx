@@ -22,6 +22,7 @@ import {
   Plug2,
   Receipt2,
   ShieldKeyhole,
+  Shop,
   Shuffle,
   Sparkle3,
   SquareLayoutGrid5,
@@ -77,4 +78,5 @@ export const PLAN_FEATURE_ICONS = {
   partnergroups: Users6,
   partnerreferrals: Nodes4,
   embeddedreferrals: SquareLayoutGrid5,
+  marketplace: Shop,
 };

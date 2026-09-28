@@ -1,7 +1,7 @@
 "use client";
 
 import { DiscountProps } from "@/lib/types";
-import { Gift, Tooltip } from "@dub/ui";
+import { DiscountCode, Tooltip } from "@dub/ui";
 import { PropsWithChildren } from "react";
 import { formatDiscountDescription } from "../format-discount-description";
 
@@ -35,7 +35,7 @@ function DiscountCodeTooltipContent({
       {description && (
         <div className="p-1">
           <div className="flex flex-col gap-2 rounded-md border border-neutral-200 bg-neutral-100 p-2">
-            <Gift className="size-3.5 shrink-0 text-neutral-800" />
+            <DiscountCode className="size-3.5 shrink-0 text-neutral-800" />
             <p className="text-xs font-semibold leading-4 tracking-tight text-neutral-700">
               {description}
             </p>

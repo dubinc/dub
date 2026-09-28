@@ -239,7 +239,7 @@ export const E2E_PARTNER = {
 
 export const E2E_PARTNER_GROUP = {
   id: "grp_1K2E25381GVMG7HHM057TB92F",
-  url: "https://acme.dub.sh/",
+  url: "https://acme.dub.sh",
 };
 
 export const E2E_PARTNERS = [

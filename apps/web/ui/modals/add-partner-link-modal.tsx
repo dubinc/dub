@@ -335,7 +335,7 @@ const AddPartnerLinkModal = ({
             </div>
           </div>
         </div>
-        <div className="flex items-center justify-end gap-2 border-t border-neutral-200 bg-neutral-50 p-4">
+        <div className="flex items-center justify-end gap-2 border-t border-neutral-200 bg-neutral-50 p-4 sm:rounded-b-2xl">
           <Button
             type="button"
             variant="secondary"

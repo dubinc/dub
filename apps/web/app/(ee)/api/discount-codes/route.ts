@@ -6,13 +6,16 @@ import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enro
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { createDiscountCode } from "@/lib/discounts/create-discount-code";
+import { isDiscountDeleted } from "@/lib/discounts/is-discount-deleted";
 import { prisma } from "@/lib/prisma";
 import {
   createDiscountCodeSchema,
   DiscountCodeSchema,
   getDiscountCodesQuerySchema,
+  restrictedDiscountCodeSchema,
 } from "@/lib/zod/schemas/discount";
 import { APP_DOMAIN } from "@dub/utils";
+import { DiscountProvider } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
@@ -24,6 +27,7 @@ export const GET = withWorkspace(
     const {
       partnerId,
       discountId,
+      code,
       page = 1,
       pageSize,
     } = getDiscountCodesQuerySchema.parse(searchParams);
@@ -48,6 +52,7 @@ export const GET = withWorkspace(
         programId,
         ...(partnerId && { partnerId }),
         ...(discountId && { discountId }),
+        ...(code && { code }),
       },
       orderBy: {
         createdAt: "desc",
@@ -128,6 +133,21 @@ export const POST = withWorkspace(
       });
     }
 
+    if (isDiscountDeleted(discount)) {
+      throw new DubApiError({
+        code: "not_found",
+        message: `Discount ${discount.id} not found.`,
+      });
+    }
+
+    if (
+      code &&
+      (discount.provider === DiscountProvider.stripe ||
+        discount.provider === DiscountProvider.shopify)
+    ) {
+      restrictedDiscountCodeSchema.parse({ code });
+    }
+
     // A link can have only one discount code
     const duplicateByLink = programEnrollment.discountCodes.find(
       (discountCode) => discountCode.linkId === linkId,
@@ -145,7 +165,7 @@ export const POST = withWorkspace(
       const duplicateByCode = await prisma.discountCode.findUnique({
         where: {
           programId_code: {
-            programId: discount.programId,
+            programId: discount.programId!,
             code,
           },
         },

@@ -14,6 +14,7 @@ import { EnrolledPartnerProps, GroupProps, RewardProps } from "@/lib/types";
 import { REWARD_EVENT_COLUMN_MAPPING } from "@/lib/zod/schemas/rewards";
 import { useConfirmRewardChangeModal } from "@/ui/modals/confirm-reward-change-modal";
 import { formatRewardDescription } from "@/ui/partners/format-reward-description";
+import { KeepPartnerInGroupNotice } from "@/ui/partners/keep-partner-in-group-notice";
 import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import { ProgramRewardDescription } from "@/ui/partners/program-reward-description";
 import { RewardSheet } from "@/ui/partners/rewards/add-edit-reward-sheet";
@@ -428,16 +429,19 @@ function EditPartnerRewardModal({
           <div className="flex min-w-0 items-center gap-2">
             <PartnerAvatar partner={partner} className="size-6 shrink-0" />
             <div className="min-w-0 leading-tight">
-              <Link
-                href={`/${slug}/program/partners/${partner.id}`}
-                target="_blank"
-                className={cn(
-                  "block cursor-alias truncate text-xs font-medium text-neutral-900 decoration-dotted hover:underline",
-                  target.type !== "link" && "text-sm",
-                )}
-              >
-                {partner.name}
-              </Link>
+              <div className="flex min-w-0 items-center gap-2">
+                <Link
+                  href={`/${slug}/program/partners/${partner.id}`}
+                  target="_blank"
+                  className={cn(
+                    "min-w-0 cursor-alias truncate text-xs font-medium text-neutral-900 decoration-dotted hover:underline",
+                    target.type !== "link" && "text-sm",
+                  )}
+                >
+                  {partner.name}
+                </Link>
+                <KeepPartnerInGroupNotice offerType="reward" />
+              </div>
               {target.type === "link" && (
                 <Link
                   href={`/${slug}/links/${getPrettyUrl(target.link.shortLink)}`}

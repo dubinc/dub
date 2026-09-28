@@ -1,4 +1,5 @@
-import { isBlacklistedDomain, updateConfig } from "@/lib/edge-config";
+import { isBlacklistedDomain } from "@/lib/edge-config/is-blacklisted-domain";
+import { updateConfig } from "@/lib/edge-config/update";
 import { getDomainWithoutWWW } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { experimental_evaluate as evaluate } from "ai";
@@ -10,9 +11,15 @@ export async function maliciousLinkCheck(url: string) {
     return false;
   }
 
-  const domainBlacklisted = await isBlacklistedDomain(domain);
-  if (domainBlacklisted) {
+  const domainStatus = await isBlacklistedDomain(domain);
+
+  if (domainStatus === "blacklisted") {
     return true;
+  }
+
+  // skip remaining checks for trusted domains
+  if (domainStatus === "whitelisted") {
+    return false;
   }
 
   // run jev check
@@ -34,8 +41,7 @@ export async function maliciousLinkCheck(url: string) {
                 "Those same lures on throwaway hosting (Vercel, Netlify, Weebly, Blogspot, Surge, Firebase, serveo, Cloudflare, DuckDNS, Azure blobs, Heroku, tiiny.site, IPFS, AWS lambda URLs, Google Sites, Microsoft Forms).",
                 "Another URL shortener, cloaking/redirector, or QR-code hop (nested shortening).",
                 "Adult, porn, cam, or dating-spam sites.",
-                "Online gambling, betting, slots, or pirate IPTV/streaming.",
-                "Malware, fake downloads/updates, scareware, or crypto drainers.",
+                "Malware, fake downloads/updates, scareware, crypto drainers, or pirate IPTV/streaming.",
                 "Gibberish, keyboard-smash, punycode/IDN homograph, raw-IP, or random smashed-dictionary domains used for cloaking (yhujykujujk.xyz, concealmentbroad.com).",
               ],
             },

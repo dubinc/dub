@@ -74,6 +74,7 @@ export const getPartnerEnrollmentInfo = async ({
       LEFT JOIN Partner ON Partner.id = ProgramEnrollment.partnerId
       LEFT JOIN LinkReward ON LinkReward.linkId = ?
       LEFT JOIN Discount ON Discount.id = COALESCE(LinkReward.discountId, ProgramEnrollment.discountId)
+        AND Discount.programId IS NOT NULL
       LEFT JOIN (
         SELECT
           programId,

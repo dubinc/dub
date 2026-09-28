@@ -214,4 +214,132 @@ export const RATELIMIT_POLICIES = {
     keyPrefix: "rl:partner:identity:verification:start",
     message: "Too many verification attempts. Please try again later.",
   },
+
+  resumeUpload: {
+    attempts: 5,
+    window: "1 h",
+    keyPrefix: "rl:resume:upload",
+    message: "Too many resume uploads. Please try again later.",
+  },
+
+  // Keyed on partner + program so one partner cannot exhaust another's budget
+  partnerAnalyticsExport: {
+    attempts: 1,
+    window: "30 s",
+    keyPrefix: "rl:analytics:export:partner",
+    message:
+      "Analytics export is limited to once every 30 seconds. Please try again shortly.",
+  },
+
+  createToken: {
+    attempts: 1,
+    window: "5 s",
+    keyPrefix: "rl:tokens:create",
+  },
+
+  submitLead: {
+    attempts: 10,
+    window: "1 m",
+    keyPrefix: "rl:submitted-lead",
+    message: "Too many leads submitted. Please try again later.",
+  },
+
+  trackApplication: {
+    attempts: 10,
+    window: "10 s",
+    keyPrefix: "rl:track:application",
+  },
+
+  workspaceInvite: {
+    attempts: 1,
+    window: "1 s",
+    keyPrefix: "rl:workspace:invites",
+    message:
+      "You've reached the rate limit for inviting teammates. Please try again later after few seconds.",
+  },
+
+  slackSupportInviteWorkspace: {
+    attempts: 5,
+    window: "1 d",
+    keyPrefix: "rl:slack-support-invite:workspace",
+    message:
+      "This workspace has reached the daily limit for Slack invite requests. Please try again tomorrow.",
+  },
+
+  // Keyed on workspace + user so one member cannot exhaust the workspace budget
+  slackSupportInviteUser: {
+    attempts: 10,
+    window: "1 h",
+    keyPrefix: "rl:slack-support-invite",
+    message:
+      "You've requested too many Slack invites recently. Please try again later.",
+  },
+
+  sitemapImport: {
+    attempts: 5,
+    window: "1 m",
+    keyPrefix: "rl:sitemap-import",
+    message:
+      "Sitemap import was requested too recently. Please wait a minute and try again.",
+  },
+
+  tremendousSendOtp: {
+    attempts: 10,
+    window: "24 h",
+    keyPrefix: "rl:tremendous:send-otp",
+  },
+
+  tremendousVerifyOtp: {
+    attempts: 10,
+    window: "24 h",
+    keyPrefix: "rl:tremendous:verify-otp",
+  },
+
+  // Anonymous (unauthenticated) link creation by IP
+  anonymousLinkCreate: {
+    attempts: 10,
+    window: "1 d",
+    keyPrefix: "rl:links:create:anonymous",
+    message:
+      "Rate limited – you can only create up to 10 links per day without an account.",
+  },
+
+  // Shared by partner-profile + embed referrals social content stats
+  socialContentStats: {
+    attempts: 10,
+    window: "1 h",
+    keyPrefix: "rl:partner-profile:social-content-stats",
+    message: "You've been rate limited. Please try again later.",
+  },
+
+  inviteReferralEmailWorkspace: {
+    attempts: 5,
+    window: "1 m",
+    keyPrefix: "rl:invite-referral-email:workspace",
+    message: "Failed to send: rate limit exceeded",
+  },
+
+  // Keyed on the recipient so many workspaces can't spam the same address
+  inviteReferralEmailTarget: {
+    attempts: 2,
+    window: "2 h",
+    keyPrefix: "rl:invite-referral-email:target",
+    message: "Failed to send: rate limit exceeded",
+  },
+
+  // Keyed on step + user so each merge step has its own 24h budget
+  mergePartnerAccounts: {
+    attempts: 3,
+    window: "24 h",
+    keyPrefix: "rl:merge-partner-accounts",
+    message:
+      "You've reached the maximum number of attempts for the past 24 hours. Please wait and try again later.",
+  },
+
+  domainSearchAvailability: {
+    attempts: 1,
+    window: "5 s",
+    keyPrefix: "rl:domains:search-availability",
+    message: "Don't DDoS me pls 🥺",
+  },
 } as const satisfies Record<string, RatelimitPolicy>;

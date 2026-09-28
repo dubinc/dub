@@ -5,7 +5,8 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { hashToken, withWorkspace } from "@/lib/auth";
 import { generateRandomName } from "@/lib/names";
 import { prisma } from "@/lib/prisma";
-import { ratelimit } from "@/lib/upstash";
+import { assertRateLimit } from "@/lib/upstash/assert-rate-limit";
+import { RATELIMIT_POLICIES } from "@/lib/upstash/ratelimit-policies";
 import { createTokenSchema, tokenSchema } from "@/lib/zod/schemas/token";
 import { sendEmail } from "@dub/email";
 import APIKeyCreated from "@dub/email/templates/api-key-created";
@@ -66,16 +67,10 @@ export const GET = withWorkspace(
 // POST /api/tokens – create a new token for a workspace
 export const POST = withWorkspace(
   async ({ req, session, workspace }) => {
-    const { success } = await ratelimit(1, "5 s").limit(
-      `create-tokens:${workspace.id}`,
-    );
-
-    if (!success) {
-      throw new DubApiError({
-        code: "rate_limit_exceeded",
-        message: "Too many requests. Please try again later.",
-      });
-    }
+    await assertRateLimit({
+      policy: RATELIMIT_POLICIES.createToken,
+      identifier: workspace.id,
+    });
 
     const { name, isMachine, scopes } = createTokenSchema.parse(
       await parseRequestBody(req),

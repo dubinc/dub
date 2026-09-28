@@ -55,6 +55,32 @@ export const DEFAULT_RICH_TEXT_FEATURES = CORE_FEATURES;
 
 const OPTIONAL_FEATURES = ["imageControls"] as const;
 
+const PASTE_IMAGE_MIME_TYPES = new Set([
+  "image/png",
+  "image/jpeg",
+  "image/gif",
+  "image/webp",
+]);
+
+function clipboardImageFiles(data: DataTransfer) {
+  const files = Array.from(data.files).filter((file) =>
+    PASTE_IMAGE_MIME_TYPES.has(file.type),
+  );
+  if (files.length > 0) return files;
+
+  for (const item of Array.from(data.items)) {
+    if (item.kind !== "file" || !PASTE_IMAGE_MIME_TYPES.has(item.type)) {
+      continue;
+    }
+    const file = item.getAsFile();
+    if (file) files.push(file);
+  }
+
+  return files;
+}
+
+const pastedImageFiles = new WeakMap<ClipboardEvent, File[]>();
+
 export type RichTextFeature =
   | (typeof FEATURES)[number]
   | (typeof OPTIONAL_FEATURES)[number];
@@ -255,25 +281,10 @@ export const RichTextProvider = forwardRef<
                     }),
                   ]),
               FileHandler.configure({
-                allowedMimeTypes: [
-                  "image/png",
-                  "image/jpeg",
-                  "image/gif",
-                  "image/webp",
-                ],
+                allowedMimeTypes: [...PASTE_IMAGE_MIME_TYPES],
                 onDrop: (currentEditor, files, pos) => {
                   files.forEach((file) =>
                     handleImageUpload(file, currentEditor, pos),
-                  );
-                },
-                onPaste: (currentEditor, files, htmlContent) => {
-                  if (htmlContent) return false;
-                  files.forEach((file) =>
-                    handleImageUpload(
-                      file,
-                      currentEditor,
-                      currentEditor.state.selection.anchor,
-                    ),
                   );
                 },
               }),
@@ -343,6 +354,63 @@ export const RichTextProvider = forwardRef<
             "[&_.ProseMirror-selectednode:has(img)]:outline-none",
             editorClassName,
           ),
+        },
+        handleDOMEvents: {
+          ...editorProps?.handleDOMEvents,
+          paste: (view, event) => {
+            if (editorProps?.handleDOMEvents?.paste?.(view, event)) {
+              return true;
+            }
+
+            const data = event.clipboardData;
+            if (
+              !view.editable ||
+              !features.includes("images") ||
+              !handleImageUpload ||
+              !data
+            ) {
+              return false;
+            }
+
+            const files = clipboardImageFiles(data);
+            if (files.length > 0) pastedImageFiles.set(event, files);
+            return false;
+          },
+        },
+        handlePaste: (view, event, slice) => {
+          if (editorProps?.handlePaste?.(view, event, slice)) return true;
+
+          const currentEditor = editorRef.current;
+          const files = pastedImageFiles.get(event);
+          if (
+            !view.editable ||
+            !features.includes("images") ||
+            !handleImageUpload ||
+            !currentEditor ||
+            !files?.length
+          ) {
+            return false;
+          }
+
+          const html = event.clipboardData?.getData("text/html") ?? "";
+          const pastedText = (
+            html.trim()
+              ? new DOMParser().parseFromString(html, "text/html").body
+                  .textContent
+              : event.clipboardData?.getData("text/plain")
+          )
+            ?.replace(/\u00a0/g, " ")
+            .trim();
+          if (pastedText) return false;
+
+          files.forEach((file) =>
+            handleImageUpload(
+              file,
+              currentEditor,
+              currentEditor.state.selection.anchor,
+            ),
+          );
+          return true;
         },
         handleClick: (view, pos, event) => {
           if (editorProps?.handleClick?.(view, pos, event)) return true;

@@ -82,18 +82,18 @@ export function EmojiPicker({
       }}
       content={
         <div
-          className="isolate flex h-[300px] w-fit flex-col"
+          className="isolate flex h-[300px] w-full flex-col sm:w-fit"
           onKeyDownCapture={handleBackspaceClose}
         >
           <EmojiPickerBase.Root
-            className="flex min-h-0 flex-1 flex-col"
+            className="flex min-h-0 w-full flex-1 flex-col"
             onEmojiSelect={({ emoji }) => {
               onSelect(emoji);
               setOpenPopover(false);
             }}
           >
-            <EmojiPickerBase.Search className="border-border-default focus:border-border-default z-10 rounded-t-lg border-0 border-b bg-white px-3 py-2.5 text-base outline-none placeholder:text-neutral-400 focus:ring-0 sm:text-sm" />
-            <EmojiPickerBase.Viewport className="outline-hidden relative flex-1">
+            <EmojiPickerBase.Search className="border-border-default focus:border-border-default z-10 w-full border-0 border-b bg-white px-3 py-2.5 text-base outline-none placeholder:text-neutral-400 focus:ring-0 sm:rounded-t-lg sm:text-sm" />
+            <EmojiPickerBase.Viewport className="outline-hidden relative w-full flex-1">
               <EmojiPickerBase.Loading className="absolute inset-0 flex items-center justify-center text-sm text-neutral-400">
                 Loading…
               </EmojiPickerBase.Loading>
@@ -101,24 +101,24 @@ export function EmojiPicker({
                 No emoji found.
               </EmojiPickerBase.Empty>
               <EmojiPickerBase.List
-                className="select-none pb-1.5"
+                className="w-full select-none pb-1.5"
                 components={{
                   CategoryHeader: ({ category, ...props }) => (
                     <div
-                      className="text-content-subtle bg-white px-3 pb-1.5 pt-3 text-xs font-medium"
+                      className="text-content-subtle w-full bg-white px-3 pb-1.5 pt-3 text-xs font-medium"
                       {...props}
                     >
                       {category.label}
                     </div>
                   ),
                   Row: ({ children, ...props }) => (
-                    <div className="scroll-my-1.5 px-1.5" {...props}>
+                    <div className="w-full scroll-my-1.5 px-1.5" {...props}>
                       {children}
                     </div>
                   ),
                   Emoji: ({ emoji, ...props }) => (
                     <button
-                      className="flex size-7 items-center justify-center rounded-md text-lg data-[active]:bg-neutral-100"
+                      className="flex aspect-square w-[10%] shrink-0 items-center justify-center rounded-md text-xl data-[active]:bg-neutral-100 sm:aspect-auto sm:size-7 sm:w-auto sm:text-lg"
                       {...props}
                     >
                       {emoji.emoji}

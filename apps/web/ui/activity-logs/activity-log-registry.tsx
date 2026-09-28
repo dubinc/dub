@@ -2,8 +2,8 @@ import { ActivityLog, ActivityLogAction } from "@/lib/types";
 import {
   CircleDotted,
   CircleInfo,
+  DiscountCode,
   FileSend,
-  Gift,
   MoneyBill2,
   Pen2,
   UserArrowRight,
@@ -45,9 +45,9 @@ const ACTIVITY_LOG_ICONS: Partial<
 > = {
   "partner.groupChanged": UserArrowRight,
   "partner.rewardChanged": MoneyBill2,
-  "partner.discountChanged": Gift,
+  "partner.discountChanged": DiscountCode,
   "link.rewardChanged": MoneyBill2,
-  "link.discountChanged": Gift,
+  "link.discountChanged": DiscountCode,
   ...Object.fromEntries(
     PARTNER_STATUS_ACTIONS.map((action) => [action, CircleDotted]),
   ),

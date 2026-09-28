@@ -114,54 +114,53 @@ function ItemsAccordion<T extends AccordionRow>({
   onSelect: (item: T) => void;
 }) {
   return (
-    <AnimatedSizeContainer
-      height
-      className={cn(items.length > 0 && "relative z-10 -mt-px")}
-    >
-      {items.length > 0 ? (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.2, ease: "easeOut" }}
-          className="px-2"
-        >
-          <Accordion
-            type="single"
-            collapsible
-            className="rounded-b-lg border border-neutral-200 bg-white p-1"
+    <div className={cn("px-2", items.length > 0 && "relative z-10 -mt-px")}>
+      <AnimatedSizeContainer
+        height
+        className={cn(
+          items.length > 0 && "rounded-b-lg border border-neutral-200 bg-white",
+        )}
+      >
+        {items.length > 0 ? (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.2, ease: "easeOut" }}
           >
-            <AccordionItem value="items" className="border-none py-0">
-              <AccordionTrigger
-                onClick={(e) => e.stopPropagation()}
-                className="h-7 py-0 pl-1.5 pr-2 text-xs font-medium tracking-tight text-neutral-600 hover:no-underline sm:text-xs [&>svg]:size-2.5 [&>svg]:text-neutral-600"
-              >
-                <span className="flex items-center gap-2">
-                  <Users className="size-3.5" />
-                  {label}
-                </span>
-              </AccordionTrigger>
-              <AccordionContent className="pb-0 pt-0 text-xs text-neutral-600 sm:text-xs">
-                <div className="flex flex-col">
-                  {items.map((item) => (
-                    <button
-                      key={item.id}
-                      type="button"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        onSelect(item);
-                      }}
-                      className="w-full rounded-md px-1.5 py-1.5 text-left text-xs text-neutral-600 hover:bg-neutral-50"
-                    >
-                      {renderItem(item)}
-                    </button>
-                  ))}
-                </div>
-              </AccordionContent>
-            </AccordionItem>
-          </Accordion>
-        </motion.div>
-      ) : null}
-    </AnimatedSizeContainer>
+            <Accordion type="single" collapsible className="p-1">
+              <AccordionItem value="items" className="border-none py-0">
+                <AccordionTrigger
+                  onClick={(e) => e.stopPropagation()}
+                  className="h-7 py-0 pl-1.5 pr-2 text-xs font-medium tracking-tight text-neutral-600 hover:no-underline sm:text-xs [&>svg]:size-2.5 [&>svg]:text-neutral-600"
+                >
+                  <span className="flex items-center gap-2">
+                    <Users className="size-3.5" />
+                    {label}
+                  </span>
+                </AccordionTrigger>
+                <AccordionContent className="pb-0 pt-0 text-xs text-neutral-600 sm:text-xs">
+                  <div className="flex flex-col">
+                    {items.map((item) => (
+                      <button
+                        key={item.id}
+                        type="button"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          onSelect(item);
+                        }}
+                        className="w-full rounded-md px-1.5 py-1.5 text-left text-xs text-neutral-600 hover:bg-neutral-50"
+                      >
+                        {renderItem(item)}
+                      </button>
+                    ))}
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
+          </motion.div>
+        ) : null}
+      </AnimatedSizeContainer>
+    </div>
   );
 }

@@ -13,9 +13,6 @@ const inputSchema = z.object({
 export const aggregateClicksJob = defineJob({
   name: "aggregate-clicks-job",
   schema: inputSchema,
-  defaults: {
-    queue: "aggregate-clicks",
-  },
   async handle({ programId, partnerId, startDate, endDate }) {
     await processClickAggregation({
       programId,

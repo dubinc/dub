@@ -1,6 +1,7 @@
 import { getDomainSearchAvailability } from "@/lib/api/domains/get-domain-search-availability";
 import { withWorkspace } from "@/lib/auth";
-import { ratelimit } from "@/lib/upstash";
+import { assertRateLimit } from "@/lib/upstash/assert-rate-limit";
+import { RATELIMIT_POLICIES } from "@/lib/upstash/ratelimit-policies";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 
@@ -19,14 +20,10 @@ export const GET = withWorkspace(
   async ({ searchParams }) => {
     const { domain } = schema.parse(searchParams);
 
-    // max 1 requests per 5s
-    const { success } = await ratelimit(1, "5 s").limit(
-      `domain-search:${domain}`,
-    );
-
-    if (!success) {
-      return new Response("Don't DDoS me pls 🥺", { status: 429 });
-    }
+    await assertRateLimit({
+      policy: RATELIMIT_POLICIES.domainSearchAvailability,
+      identifier: domain,
+    });
 
     const response = await getDomainSearchAvailability(domain);
 
