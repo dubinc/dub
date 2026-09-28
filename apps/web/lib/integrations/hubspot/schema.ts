@@ -29,6 +29,12 @@ export const hubSpotSettingsSchema = z.object({
     .describe(
       "The ID of the contact lifecycle stage that represents a lead. Applicable only if leadTrackingTrigger is 'lifecycleStageReached'.",
     ),
+  leadDealStageId: z
+    .string()
+    .nullish()
+    .describe(
+      "The ID of the deal stage that represents a lead. Applicable only if leadTriggerEvent is 'dealStageReached'.",
+    ),
   closedWonDealStageId: z
     .string()
     .nullish()
@@ -80,6 +86,8 @@ export const hubSpotLeadEventSchema = z.object({
   objectId: z.number(),
   subscriptionType: z.enum(["object.propertyChange", "object.creation"]),
   objectTypeId: z.enum(HUBSPOT_OBJECT_TYPE_IDS),
+  propertyName: z.string().optional(),
+  propertyValue: z.string().optional(),
 });
 
 export const hubSpotSaleEventSchema = z.object({
