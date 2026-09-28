@@ -81,6 +81,66 @@ describe.sequential("POST /links", async () => {
     expect(LinkSchema.strict().parse(link)).toBeTruthy();
   });
 
+  test("clear externalId with empty string", async ({ onTestFinished }) => {
+    const externalId = randomId();
+
+    const { data: link } = await http.post<Link>({
+      path: "/links",
+      body: {
+        url,
+        domain,
+        externalId,
+      },
+    });
+
+    onTestFinished(async () => {
+      await h.deleteLink(link.id);
+    });
+
+    expect(link.externalId).toEqual(externalId);
+
+    const { status, data: updated } = await http.patch<Link>({
+      path: `/links/${link.id}`,
+      body: { externalId: "" },
+    });
+
+    expect(status).toEqual(200);
+    expect(updated.externalId).toEqual(null);
+
+    const { data: fetched } = await http.get<Link>({
+      path: `/links/${link.id}`,
+    });
+
+    expect(fetched.externalId).toEqual(null);
+  });
+
+  test("clear externalId with null", async ({ onTestFinished }) => {
+    const externalId = randomId();
+
+    const { data: link } = await http.post<Link>({
+      path: "/links",
+      body: {
+        url,
+        domain,
+        externalId,
+      },
+    });
+
+    onTestFinished(async () => {
+      await h.deleteLink(link.id);
+    });
+
+    expect(link.externalId).toEqual(externalId);
+
+    const { status, data: updated } = await http.patch<Link>({
+      path: `/links/${link.id}`,
+      body: { externalId: null },
+    });
+
+    expect(status).toEqual(200);
+    expect(updated.externalId).toEqual(null);
+  });
+
   test("user defined key", async ({ onTestFinished }) => {
     const key = randomId();
 

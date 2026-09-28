@@ -179,43 +179,6 @@ describe.sequential("PATCH /links/{linkId}", async () => {
 
     expect(linkUpdated.url).toEqual("https://github.com/dubinc");
   });
-
-  test("remove externalId with empty string", async () => {
-    const { status, data: updatedLink } = await http.patch<Link>({
-      path: `/links/${link.id}`,
-      body: {
-        externalId: "",
-      },
-    });
-
-    expect(status).toEqual(200);
-    expect(updatedLink.externalId).toEqual(null);
-
-    const { data: fetchedLink } = await http.get<Link>({
-      path: `/links/${link.id}`,
-    });
-
-    expect(fetchedLink.externalId).toEqual(null);
-  });
-
-  test("remove externalId with null", async () => {
-    // Re-set an externalId first so we can clear it again
-    const newExternalId = randomId();
-    await http.patch<Link>({
-      path: `/links/${link.id}`,
-      body: { externalId: newExternalId },
-    });
-
-    const { status, data: updatedLink } = await http.patch<Link>({
-      path: `/links/${link.id}`,
-      body: {
-        externalId: null,
-      },
-    });
-
-    expect(status).toEqual(200);
-    expect(updatedLink.externalId).toEqual(null);
-  });
 });
 
 describe.sequential("PATCH /links/{linkId} - UTM parameters", async () => {
