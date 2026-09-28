@@ -88,7 +88,7 @@ export const trackHubSpotSaleEvent = async ({
     paymentProcessor: "custom",
     invoiceId: dealId,
     workspace,
-    metadata: {},
+    metadata: null,
     commissionSource: CommissionSource.hubspot,
   });
 
