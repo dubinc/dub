@@ -25,18 +25,21 @@ export const hubSpotSettingsSchema = z.object({
     ),
   leadLifecycleStageId: z
     .string()
+    .trim()
     .nullish()
     .describe(
       "The ID of the contact lifecycle stage that represents a lead. Applicable only if leadTrackingTrigger is 'lifecycleStageReached'.",
     ),
   leadDealStageId: z
     .string()
+    .trim()
     .nullish()
     .describe(
       "The ID of the deal stage that represents a lead. Applicable only if leadTriggerEvent is 'dealStageReached'.",
     ),
   closedWonDealStageId: z
     .string()
+    .trim()
     .nullish()
     .default("closedwon")
     .describe("The ID of the deal stage that represents a closed won deal."),

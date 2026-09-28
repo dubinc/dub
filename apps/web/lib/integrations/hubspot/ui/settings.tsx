@@ -141,7 +141,9 @@ export const HubSpotSettings = ({
                   autoComplete="off"
                   name="leadLifecycleStageId"
                   value={leadLifecycleStageId ?? ""}
-                  onChange={(e) => setLeadLifecycleStageId(e.target.value)}
+                  onChange={(e) =>
+                    setLeadLifecycleStageId(e.target.value.trim())
+                  }
                 />
               </div>
             </div>
@@ -165,7 +167,7 @@ export const HubSpotSettings = ({
                   autoComplete="off"
                   name="leadDealStageId"
                   value={leadDealStageId ?? ""}
-                  onChange={(e) => setLeadDealStageId(e.target.value)}
+                  onChange={(e) => setLeadDealStageId(e.target.value.trim())}
                 />
               </div>
             </div>
@@ -188,7 +190,7 @@ export const HubSpotSettings = ({
                 autoComplete="off"
                 name="closedWonDealStageId"
                 value={closedWonDealStageId ?? ""}
-                onChange={(e) => setClosedWonDealStageId(e.target.value)}
+                onChange={(e) => setClosedWonDealStageId(e.target.value.trim())}
               />
             </div>
           </div>

@@ -195,6 +195,18 @@ describe("getHubSpotEventAction", () => {
         ).toBe("trackSale");
       });
 
+      it("matches the closed won stage when the saved id has surrounding whitespace", () => {
+        const parsed = settings({ closedWonDealStageId: "  closedwon  " });
+
+        expect(parsed.closedWonDealStageId).toBe("closedwon");
+        expect(
+          getHubSpotEventAction({
+            event: dealStageChanged("closedwon"),
+            settings: parsed,
+          }),
+        ).toBe("trackSale");
+      });
+
       it("uses a custom closed won stage ID instead of the default", () => {
         const custom = settings({ closedWonDealStageId: "12345" });
 
@@ -271,6 +283,36 @@ describe("getHubSpotEventAction", () => {
             }),
           }),
         ).toBe("trackLead");
+      });
+
+      it("matches the lead deal stage when the saved id has surrounding whitespace", () => {
+        const parsed = settings({
+          leadTriggerEvent: "dealStageReached",
+          leadDealStageId: "  appointmentscheduled  ",
+        });
+
+        expect(parsed.leadDealStageId).toBe("appointmentscheduled");
+        expect(
+          getHubSpotEventAction({
+            event: dealStageChanged("appointmentscheduled"),
+            settings: parsed,
+          }),
+        ).toBe("trackLead");
+      });
+
+      it("does not treat a whitespace-only lead deal stage id as configured", () => {
+        const parsed = settings({
+          leadTriggerEvent: "dealStageReached",
+          leadDealStageId: "   ",
+        });
+
+        expect(parsed.leadDealStageId).toBe("");
+        expect(
+          getHubSpotEventAction({
+            event: dealStageChanged("appointmentscheduled"),
+            settings: parsed,
+          }),
+        ).toBe("skip");
       });
 
       it("skips when the deal moves to a different stage", () => {
