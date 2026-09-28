@@ -2,7 +2,7 @@ import "dotenv-flow/config";
 
 import { prisma } from "@/lib/prisma";
 import { tb } from "@/lib/tinybird/client";
-import { chunk, pluck, sleep } from "@dub/utils";
+import { chunk } from "@dub/utils";
 import {
   SHOPIFY_INTEGRATION_ID,
   STRIPE_INTEGRATION_ID,
@@ -11,10 +11,9 @@ import { CommissionSource, CommissionType } from "@prisma/client";
 import * as z from "zod/v4";
 
 const DRY_RUN = true;
-const FETCH_BATCH_SIZE = 100;
-const UPDATE_CHUNK_SIZE = 50;
-const THROTTLE_MS = 1000;
-const LAST_CURSOR_ID: string | null = null;
+const FETCH_BATCH_SIZE = 500;
+const UPDATE_CHUNK_SIZE = 250;
+const LAST_CURSOR_ID: string | null = "cm_ZzYr0OsGcdIodWrlnzOzp8b2";
 
 const getSaleEventsMetadata = tb.buildPipe({
   pipe: "internal_get_events_metadata",
@@ -134,11 +133,14 @@ async function main() {
       },
     },
     select: {
-      projectId: true,
+      project: {
+        select: {
+          id: true,
+          defaultProgramId: true,
+        },
+      },
     },
   });
-
-  const workspaceIds = pluck(installedIntegrations, "projectId");
 
   console.log(
     `DRY_RUN=${DRY_RUN} FETCH_BATCH_SIZE=${FETCH_BATCH_SIZE} UPDATE_CHUNK_SIZE=${UPDATE_CHUNK_SIZE}`,
@@ -154,6 +156,10 @@ async function main() {
   let totalUpdated = 0;
   let totalSkipped = 0;
 
+  const programIds = installedIntegrations.flatMap((integration) => [
+    integration.project.defaultProgramId,
+  ]) as string[];
+
   while (true) {
     const commissions = await prisma.commission.findMany({
       where: {
@@ -162,12 +168,8 @@ async function main() {
           not: null,
         },
         source: null,
-        program: {
-          workspace: {
-            id: {
-              in: workspaceIds,
-            },
-          },
+        programId: {
+          in: programIds,
         },
         ...(startingAfter && {
           id: {
@@ -248,8 +250,6 @@ async function main() {
     if (commissions.length < FETCH_BATCH_SIZE) {
       break;
     }
-
-    await sleep(THROTTLE_MS);
   }
 
   console.log(
