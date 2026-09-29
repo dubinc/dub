@@ -8,12 +8,14 @@ import { partnerProfileProgramsQuerySchema } from "../zod/schemas/partner-profil
 export default function useProgramEnrollments(
   query: z.infer<typeof partnerProfileProgramsQuerySchema> = {},
 ) {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const partnerId = session?.user?.["defaultPartnerId"];
 
-  const { data: programEnrollments, isLoading } = useSWR<
-    ProgramEnrollmentProps[]
-  >(
+  const {
+    data: programEnrollments,
+    error,
+    isLoading,
+  } = useSWR<ProgramEnrollmentProps[]>(
     partnerId &&
       `/api/partner-profile/programs?${new URLSearchParams(
         Object.fromEntries(
@@ -28,6 +30,10 @@ export default function useProgramEnrollments(
 
   return {
     programEnrollments,
-    isLoading,
+    error,
+    // Matches useProgramEnrollment: the SWR key is disabled until the session
+    // resolves, so isLoading alone would read false while enrollments are
+    // still unknown
+    isLoading: status === "loading" || isLoading,
   };
 }

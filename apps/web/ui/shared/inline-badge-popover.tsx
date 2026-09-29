@@ -113,11 +113,15 @@ export function InlineBadgePopoverMenu<T extends any>({
   onSelect,
   selectedValue,
   search,
+  alignTop,
+  sortSelectedFirst = true,
 }: {
   items: InlineBadgePopoverMenuItem<T>[];
   onSelect?: (value: T) => void;
   selectedValue?: T | T[];
   search?: boolean;
+  alignTop?: boolean;
+  sortSelectedFirst?: boolean;
 }) {
   const { setIsOpen, isOpen } = useContext(InlineBadgePopoverContext);
 
@@ -138,21 +142,23 @@ export function InlineBadgePopoverMenu<T extends any>({
 
   const sortedItems = useMemo(
     () =>
-      items.toSorted((a, b) => {
-        const aSelected = isMultiSelect
-          ? selectedValue?.includes(a.value)
-          : selectedValue === a.value;
-        const bSelected = isMultiSelect
-          ? selectedValue?.includes(b.value)
-          : selectedValue === b.value;
+      sortSelectedFirst
+        ? items.toSorted((a, b) => {
+            const aSelected = isMultiSelect
+              ? selectedValue?.includes(a.value)
+              : selectedValue === a.value;
+            const bSelected = isMultiSelect
+              ? selectedValue?.includes(b.value)
+              : selectedValue === b.value;
 
-        // First sort by whether the items are selected
-        if (aSelected !== bSelected) return aSelected ? -1 : 1;
+            // First sort by whether the items are selected
+            if (aSelected !== bSelected) return aSelected ? -1 : 1;
 
-        // Then sort as per the original order of the items
-        return items.indexOf(a) - items.indexOf(b);
-      }),
-    [items, isMultiSelect, selectedValue],
+            // Then sort as per the original order of the items
+            return items.indexOf(a) - items.indexOf(b);
+          })
+        : items,
+    [items, isMultiSelect, selectedValue, sortSelectedFirst],
   );
 
   const [displayedItems, setDisplayedItems] =
@@ -221,7 +227,11 @@ export function InlineBadgePopoverMenu<T extends any>({
                   }}
                   className={cn(
                     "flex cursor-pointer justify-between rounded-md px-1.5 py-1 transition-colors duration-150 data-[selected=true]:bg-neutral-100",
-                    description ? "items-start gap-2 py-1.5" : "items-center",
+                    description
+                      ? "items-start gap-2 py-1.5"
+                      : alignTop
+                        ? "items-start"
+                        : "items-center",
                     disabled &&
                       "cursor-not-allowed opacity-50 data-[selected=true]:bg-transparent",
                   )}
@@ -229,7 +239,7 @@ export function InlineBadgePopoverMenu<T extends any>({
                   <div
                     className={cn(
                       "flex min-w-0 gap-2",
-                      description ? "items-start" : "items-center",
+                      description || alignTop ? "items-start" : "items-center",
                     )}
                   >
                     {icon}
@@ -254,7 +264,7 @@ export function InlineBadgePopoverMenu<T extends any>({
                     <Check2
                       className={cn(
                         "text-content-emphasis size-3.5 shrink-0",
-                        description && "mt-0.5",
+                        (description || alignTop) && "mt-0.5",
                       )}
                     />
                   )}
