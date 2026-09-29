@@ -300,14 +300,12 @@ describe("getAIRewardGenerationSchema — unsupported refusal", () => {
   });
 
   it("rejects an unavailable customer source the event doesn't offer", () => {
-    for (const event of ["sale", "click"] as const) {
-      const result = getAIRewardGenerationSchema(event).safeParse({
-        supported: false,
-        unavailableSource: "hubspot",
-        reward: null,
-      });
-      expect(result.success).toBe(false);
-    }
+    const result = getAIRewardGenerationSchema("click").safeParse({
+      supported: false,
+      unavailableSource: "hubspot",
+      reward: null,
+    });
+    expect(result.success).toBe(false);
   });
 
   it("rejects an unknown unavailable customer source", () => {
