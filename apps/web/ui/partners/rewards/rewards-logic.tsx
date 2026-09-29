@@ -2,7 +2,8 @@
 
 import { constructRewardAmount } from "@/lib/api/sales/construct-reward-amount";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
-import { SUBMITTED_LEADS_ENABLED_PROGRAM_IDS } from "@/lib/submitted-leads/constants";
+import { getCustomerSourceAvailability } from "@/lib/rewards/get-customer-source-availability";
+import useIntegrations from "@/lib/swr/use-integrations";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { RECURRING_MAX_DURATIONS } from "@/lib/zod/schemas/misc";
@@ -31,6 +32,7 @@ import {
   InvoiceDollar,
   MoneyBills2,
   Popover,
+  TooltipContent,
   User,
   Users,
 } from "@dub/ui";
@@ -376,7 +378,9 @@ function ConditionLogic({
   conditionIndex: number;
   onRemove?: () => void;
 }) {
+  const { slug: workspaceSlug } = useWorkspace();
   const { program } = useProgram();
+  const { integrations } = useIntegrations();
   const modifierKey = `modifiers.${modifierIndex}` as const;
   const conditionKey = `${modifierKey}.conditions.${conditionIndex}` as const;
 
@@ -714,6 +718,7 @@ function ConditionLogic({
                                     isNaN(Number(condition.value))
                                   : !condition.value
                         }
+                        align="center"
                         buttonClassName={cn(
                           condition.attribute === "productId" &&
                             "rounded-r-none",
@@ -764,29 +769,55 @@ function ConditionLogic({
                           // Select option selector
                           <InlineBadgePopoverMenu
                             search={attribute.options.length > 4}
+                            className={
+                              isCustomerSourceCondition ? "max-w-80" : undefined
+                            }
                             selectedValue={getConditionMenuSelectedValue(
                               condition.value,
                               isArrayValue,
                             )}
-                            items={attribute.options
-                              .filter(({ id }) => {
-                                if (
-                                  isCustomerSourceCondition &&
-                                  id === "submitted"
-                                ) {
-                                  return (
-                                    program &&
-                                    SUBMITTED_LEADS_ENABLED_PROGRAM_IDS.includes(
-                                      program.id,
-                                    )
-                                  );
-                                }
-                                return true;
-                              })
-                              .map(({ id, label }) => ({
-                                text: label,
-                                value: id,
-                              }))}
+                            items={attribute.options.flatMap(
+                              ({ id, label, description, icon }) => {
+                                const { hidden, missingIntegration } =
+                                  isCustomerSourceCondition
+                                    ? getCustomerSourceAvailability({
+                                        source: id,
+                                        programId: program?.id,
+                                        installedIntegrationIds:
+                                          integrations?.map(({ id }) => id),
+                                      })
+                                    : {
+                                        hidden: false,
+                                        missingIntegration: undefined,
+                                      };
+
+                                if (hidden) return [];
+
+                                return {
+                                  text: label,
+                                  value: id,
+                                  description,
+                                  disabledTooltip: missingIntegration && (
+                                    <TooltipContent
+                                      title={`This option requires the ${missingIntegration.name} integration.`}
+                                      cta={`Install ${missingIntegration.name} integration`}
+                                      href={`/${workspaceSlug}/settings/integrations/${missingIntegration.slug}`}
+                                      target="_blank"
+                                    />
+                                  ),
+                                  icon: icon ? (
+                                    <img
+                                      src={icon}
+                                      alt=""
+                                      className={cn(
+                                        "size-4 shrink-0 rounded-full",
+                                        description && "mt-0.5",
+                                      )}
+                                    />
+                                  ) : undefined,
+                                };
+                              },
+                            )}
                             onSelect={(value) => {
                               setValue(conditionKey, {
                                 ...condition,
