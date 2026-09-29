@@ -166,6 +166,7 @@ export function RiskEventsTable() {
                 id: partner.id,
                 name: partner.name || "Unknown",
                 image: partner.image,
+                networkStatus: partner.networkStatus,
               }}
               showFraudIndicator={false}
             />

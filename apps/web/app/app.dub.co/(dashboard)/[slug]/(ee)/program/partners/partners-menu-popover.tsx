@@ -46,7 +46,7 @@ export function PartnersMenuPopover() {
                 Import Partners
               </p>
 
-              {PROGRAM_IMPORT_SOURCES.map((source) => (
+              {Object.values(PROGRAM_IMPORT_SOURCES).map((source) => (
                 <ImportOption
                   key={source.id}
                   onClick={() => {
