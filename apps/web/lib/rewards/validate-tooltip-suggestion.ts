@@ -15,6 +15,7 @@ import {
   STRING_CONDITION_OPERATORS,
   type RewardConditionEntityAttribute,
 } from "@/lib/zod/schemas/rewards";
+import { COUNTRIES } from "@dub/utils";
 import { EventType } from "@prisma/client";
 
 type ConditionOperator = (typeof CONDITION_OPERATORS)[number];
@@ -306,16 +307,27 @@ function isValueValidForOperator({
     return false;
   }
 
+  const attributeEntry = getRewardConditionAttribute({
+    event,
+    entity,
+    attribute,
+  });
+  const allowedValues =
+    attributeEntry?.options?.map(({ id }) => id) ??
+    (attributeEntry?.id === "country" ? Object.keys(COUNTRIES) : undefined);
+  const isAllowedValue = (item: unknown) =>
+    typeof item === "string" &&
+    (!allowedValues || allowedValues.includes(item));
+
   if (operator === "in" || operator === "not_in") {
-    return Array.isArray(value);
+    return Array.isArray(value) && value.every(isAllowedValue);
   }
 
   if (Array.isArray(value)) {
     return false;
   }
 
-  const attributeType =
-    getRewardConditionAttribute({ event, entity, attribute })?.type ?? "string";
+  const attributeType = attributeEntry?.type ?? "string";
 
   const numeric =
     attributeType === "number" ||
@@ -328,7 +340,7 @@ function isValueValidForOperator({
     return typeof value === "number" && !Number.isNaN(value);
   }
 
-  return typeof value === "string";
+  return isAllowedValue(value);
 }
 
 function valuesEqual(left: unknown, right: unknown): boolean {

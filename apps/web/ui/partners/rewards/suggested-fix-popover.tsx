@@ -46,6 +46,8 @@ export function SuggestedFixPopoverHost() {
     acceptAll,
     dismiss,
     dismissAll,
+    popoverContentRef,
+    handlePopoverCloseAutoFocus,
   } = consistency;
 
   const activePage = pages[activeIndex];
@@ -61,10 +63,15 @@ export function SuggestedFixPopoverHost() {
       sideOffset={8}
       virtualAnchorRef={activeAnchorRef}
       onOpenAutoFocus={(event) => event.preventDefault()}
+      onCloseAutoFocus={handlePopoverCloseAutoFocus}
       popoverContentClassName={POPOVER_CONTENT_CLASS_NAME}
       content={
         activePage ? (
-          <div onMouseEnter={cancelHide} onMouseLeave={scheduleHide}>
+          <div
+            ref={popoverContentRef}
+            onMouseEnter={cancelHide}
+            onMouseLeave={scheduleHide}
+          >
             <SuggestedFixContent
               suggestion={activePage.suggestion}
               field={activePage.field}
@@ -141,16 +148,21 @@ export function SuggestedFixBadge({
       onMouseLeave={() => {
         if (!isMobile) consistency.scheduleHide();
       }}
-      onClick={() => {
-        if (!isMobile) return;
+      onClick={(event) => {
+        const fromKeyboard = event.detail === 0;
 
-        if (isOpen) {
+        if (!isMobile && !fromKeyboard) return;
+
+        if (isOpen && !fromKeyboard) {
           consistency.hide();
           return;
         }
 
         consistency.showPage(thisIndex);
+        if (fromKeyboard) consistency.focusPopoverContent();
       }}
+      aria-haspopup="dialog"
+      aria-expanded={isOpen}
       className={SUGGESTED_FIX_BADGE_CLASS_NAME}
     >
       <Sparkle3 variant="fill" className="size-3 shrink-0 text-[#E17100]" />

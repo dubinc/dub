@@ -145,7 +145,7 @@ export const reviewRewardTooltipInputSchema = z.object({
   tooltip: z.string().min(1).max(4000),
   description: z.string().nullish(),
   basePayout: rewardPayoutSchema,
-  modifiers: z.array(reviewRewardTooltipModifierSchema).min(1),
+  modifiers: z.array(reviewRewardTooltipModifierSchema),
 });
 
 export type TooltipSuggestion = z.infer<typeof tooltipSuggestionSchema>;

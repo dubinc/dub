@@ -70,7 +70,10 @@ type RewardTooltipConsistencyValue = {
   open: boolean;
   activeAnchorRef: MutableRefObject<HTMLElement | null>;
   registerBadge: (key: string, element: HTMLElement | null) => void;
+  popoverContentRef: MutableRefObject<HTMLDivElement | null>;
   showPage: (index: number) => void;
+  focusPopoverContent: () => void;
+  handlePopoverCloseAutoFocus: (event: Event) => void;
   scheduleHide: () => void;
   cancelHide: () => void;
   hide: () => void;
@@ -148,6 +151,8 @@ export function useRewardTooltipConsistency({
   const closeTimerRef = useRef<number | undefined>(undefined);
   const badgeRefs = useRef(new Map<string, HTMLElement>());
   const activeAnchorRef = useRef<HTMLElement | null>(null);
+  const popoverContentRef = useRef<HTMLDivElement | null>(null);
+  const returnFocusOnCloseRef = useRef(false);
 
   const tooltip = stripRewardTooltipMarkdown(tooltipDescription ?? "");
   const serializedReward = useMemo(
@@ -198,15 +203,9 @@ export function useRewardTooltipConsistency({
 
     const cached = reviewCache.get(cacheKey);
     if (cached?.v === REVIEW_CACHE_VERSION) {
-      const cachedNote = noteForFlaggedReward({
-        flagged: cached.flagged,
-        suggestions: cached.suggestions,
-        payoutFixes: cached.payoutFixes,
-        note: cached.note,
-      });
       setSuggestions(cached.suggestions);
       setPayoutFixes(cached.payoutFixes);
-      setNote(cachedNote);
+      setNote(cached.note);
       setStatus("idle");
       setActiveIndex(0);
       return;
@@ -287,7 +286,7 @@ export function useRewardTooltipConsistency({
         });
         reviewCache.set(cacheKey, {
           v: REVIEW_CACHE_VERSION,
-          flagged: true,
+          flagged: flagged === true,
           suggestions: next,
           payoutFixes: nextPayoutFixes,
           note: nextNote,
@@ -311,7 +310,7 @@ export function useRewardTooltipConsistency({
         if (nextNote) {
           reviewCache.set(cacheKey, {
             v: REVIEW_CACHE_VERSION,
-            flagged: true,
+            flagged: flagged === true,
             suggestions: [],
             payoutFixes: [],
             note: nextNote,
@@ -408,9 +407,29 @@ export function useRewardTooltipConsistency({
     [cancelHide, pages],
   );
 
+  const focusPopoverContent = useCallback(() => {
+    returnFocusOnCloseRef.current = true;
+    window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(() => {
+        popoverContentRef.current
+          ?.querySelector<HTMLElement>("button")
+          ?.focus();
+      });
+    });
+  }, []);
+
+  const handlePopoverCloseAutoFocus = useCallback((event: Event) => {
+    if (!returnFocusOnCloseRef.current) return;
+
+    event.preventDefault();
+    returnFocusOnCloseRef.current = false;
+    activeAnchorRef.current?.focus();
+  }, []);
+
   const scheduleHide = useCallback(() => {
     cancelHide();
     closeTimerRef.current = window.setTimeout(() => {
+      if (popoverContentRef.current?.contains(document.activeElement)) return;
       setOpen(false);
     }, HIDE_MS);
   }, [cancelHide]);
@@ -538,7 +557,10 @@ export function useRewardTooltipConsistency({
     open,
     activeAnchorRef,
     registerBadge,
+    popoverContentRef,
     showPage,
+    focusPopoverContent,
+    handlePopoverCloseAutoFocus,
     scheduleHide,
     cancelHide,
     hide,
@@ -629,9 +651,10 @@ function serializeRewardForReview({
   if (baseReward?.type !== "flat" && baseReward?.type !== "percentage") {
     return null;
   }
-  if (!isAiRewardEvent(event) || !modifiers?.length) return null;
+  if (!isAiRewardEvent(event)) return null;
+  const reviewModifiers = modifiers ?? [];
   if (
-    !modifiers.every(
+    !reviewModifiers.every(
       (modifier) =>
         !!modifier?.conditions?.length &&
         modifier.conditions.every((condition) =>
@@ -652,15 +675,17 @@ function serializeRewardForReview({
   return {
     description: shownAs || null,
     basePayout,
-    modifiers: modifiers.map((modifier) => {
+    modifiers: reviewModifiers.map((modifier) => {
       const type =
         modifier?.type === "flat" || modifier?.type === "percentage"
           ? modifier.type
           : basePayout.type;
       const amount =
         type === "percentage"
-          ? modifier?.amountInPercentage ?? basePayout.amount
-          : modifier?.amountInCents ?? basePayout.amount;
+          ? modifier?.amountInPercentage ??
+            (basePayout.type === "percentage" ? basePayout.amount : null)
+          : modifier?.amountInCents ??
+            (basePayout.type === "flat" ? basePayout.amount : null);
 
       return {
         operator: modifier?.operator ?? "AND",

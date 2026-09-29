@@ -92,23 +92,12 @@ export async function screenRewardTooltipContradiction(
 
     const answer = result.answers.contradicts;
     if (answer?.type !== "boolean") {
-      console.log("[screenRewardTooltipContradiction] jev result", {
-        reward,
-        answer,
-        flagged: null,
-      });
       return { flagged: null };
     }
 
     const flagged =
       Number.isFinite(answer.probability) &&
       answer.probability > TOOLTIP_SUGGESTION_CONFIDENCE_FLOOR;
-
-    console.log("[screenRewardTooltipContradiction] jev result", {
-      reward,
-      probability: answer.probability,
-      flagged,
-    });
 
     return { flagged };
   } catch (error) {
