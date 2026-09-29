@@ -33,9 +33,10 @@ const inputSchema = z.object({
 
 function buildSystemPrompt(
   event: (typeof AI_REWARD_EVENTS)[number],
-  unavailableSources: (ReturnType<typeof getCustomerSourceAvailability> & {
+  unavailableSources: {
     id: string;
-  })[],
+    missingIntegration?: { name: string };
+  }[],
 ) {
   const entities = REWARD_CONDITIONS[event].entities.map((entity) => {
     const attrs = entity.attributes
