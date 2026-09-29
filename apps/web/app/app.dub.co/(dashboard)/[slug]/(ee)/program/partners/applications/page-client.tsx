@@ -1,11 +1,11 @@
 "use client";
 
+import { useProgramApplications } from "@/lib/program-applications/hooks/use-program-applications";
+import { useProgramApplicationsCount } from "@/lib/program-applications/hooks/use-program-applications-count";
 import { buildSocialPlatformLookup } from "@/lib/social-utils";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useGroups from "@/lib/swr/use-groups";
 import usePartner from "@/lib/swr/use-partner";
-import { useProgramApplications } from "@/lib/swr/use-program-applications";
-import { useProgramApplicationsCount } from "@/lib/swr/use-program-applications-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { PartnerApplicationProps } from "@/lib/types";
 import { useApprovePartnerApplicationModal } from "@/ui/modals/approve-partner-application-modal";
@@ -40,7 +40,7 @@ import { Row } from "@tanstack/react-table";
 import { Command } from "cmdk";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { usePartnerFilters } from "../use-partner-filters";
+import { useProgramApplicationsFilters } from "@/lib/program-applications/hooks/use-program-applications-filters";
 
 type ApplicationPlatform = NonNullable<
   PartnerApplicationProps["partner"]["platforms"]
@@ -102,10 +102,10 @@ export function ProgramPartnersApplicationsPageClient() {
     onToggleOperator,
     setSelectedFilter,
     setSearch,
-  } = usePartnerFilters({ sortBy, sortOrder, status: "pending" }, [
-    "groupId",
-    "country",
-  ]);
+  } = useProgramApplicationsFilters({
+    status: "pending",
+    enabledFilters: ["groupId", "country"],
+  });
 
   const { applicationsCount, error: countError } =
     useProgramApplicationsCount<number>({

@@ -1,12 +1,12 @@
 "use client";
 
 import { approvePartnerApplicationAction } from "@/lib/actions/partners/approve-partner-application";
+import { useProgramApplications } from "@/lib/program-applications/hooks/use-program-applications";
+import { useProgramApplicationsCount } from "@/lib/program-applications/hooks/use-program-applications-count";
 import { buildSocialPlatformLookup } from "@/lib/social-utils";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useGroups from "@/lib/swr/use-groups";
 import usePartner from "@/lib/swr/use-partner";
-import { useProgramApplications } from "@/lib/swr/use-program-applications";
-import { useProgramApplicationsCount } from "@/lib/swr/use-program-applications-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { PartnerApplicationProps } from "@/lib/types";
 import { useConfirmModal } from "@/ui/modals/confirm-modal";
@@ -37,7 +37,7 @@ import { Command } from "cmdk";
 import { useAction } from "next-safe-action/hooks";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { usePartnerFilters } from "../../use-partner-filters";
+import { useProgramApplicationsFilters } from "@/lib/program-applications/hooks/use-program-applications-filters";
 
 type ApplicationPlatform = NonNullable<
   PartnerApplicationProps["partner"]["platforms"]
@@ -90,7 +90,10 @@ export function ProgramPartnersRejectedApplicationsPageClient() {
     onToggleOperator,
     setSelectedFilter,
     setSearch,
-  } = usePartnerFilters({ sortBy, sortOrder, status: "rejected" }, ["country"]);
+  } = useProgramApplicationsFilters({
+    status: "rejected",
+    enabledFilters: ["country"],
+  });
 
   const { applicationsCount, error: countError } =
     useProgramApplicationsCount<number>({

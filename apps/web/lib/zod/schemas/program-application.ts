@@ -80,8 +80,12 @@ export const getPartnerApplicationsQuerySchema = getPartnersQuerySchema
   });
 
 export const getProgramApplicationsCountQuerySchema =
-  getPartnerApplicationsQuerySchema.omit({
-    sortOrder: true,
-    page: true,
-    pageSize: true,
-  });
+  getPartnerApplicationsQuerySchema
+    .omit({
+      sortOrder: true,
+      page: true,
+      pageSize: true,
+    })
+    .extend({
+      groupBy: z.enum(["country", "groupId"]).optional(),
+    });

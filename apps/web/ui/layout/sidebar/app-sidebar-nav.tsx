@@ -3,6 +3,7 @@
 import { clientAccessCheck } from "@/lib/client-access-check";
 import { usePartnerMessagesCount } from "@/lib/messages/hooks/use-partner-messages-count";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
+import { useProgramApplicationsCount } from "@/lib/program-applications/hooks/use-program-applications-count";
 import { SUBMITTED_LEADS_ENABLED_PROGRAM_IDS } from "@/lib/submitted-leads/constants";
 import {
   SubmissionsCountByStatus,
@@ -11,7 +12,6 @@ import {
 import { useFraudGroupCount } from "@/lib/swr/use-fraud-groups-count";
 import { usePayoutsCount } from "@/lib/swr/use-payouts-count";
 import useProgram from "@/lib/swr/use-program";
-import { useProgramApplicationsCount } from "@/lib/swr/use-program-applications-count";
 import { useProgramSubmittedLeadsCount } from "@/lib/swr/use-program-submitted-leads-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { useKeyboardShortcut, useRouterStuff } from "@dub/ui";

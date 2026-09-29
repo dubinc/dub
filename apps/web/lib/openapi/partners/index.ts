@@ -4,8 +4,8 @@ import { banPartner } from "./ban-partner";
 import { createPartner } from "./create-partner";
 import { createPartnerLink } from "./create-partner-link";
 import { deactivatePartner } from "./deactivate-partner";
+import { listPartnerApplications } from "./list-partner-applications";
 import { listPartners } from "./list-partners";
-import { listProgramApplications } from "./list-program-applications";
 import { rejectPartner } from "./reject-partner";
 import { retrievePartnerAnalytics } from "./retrieve-analytics";
 import { retrievePartnerLinks } from "./retrieve-partner-links";
@@ -17,7 +17,7 @@ export const partnersPaths: ZodOpenApiPathsObject = {
     get: listPartners,
   },
   "/program-applications": {
-    get: listProgramApplications,
+    get: listPartnerApplications,
   },
   "/partners/links": {
     post: createPartnerLink,

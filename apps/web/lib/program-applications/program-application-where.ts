@@ -17,8 +17,9 @@ function applicationFieldFilter(
     : { in: parsed.values };
 }
 
-type ProgramApplicationWhereParams = z.infer<
-  typeof getProgramApplicationsCountQuerySchema
+type ProgramApplicationWhereParams = Omit<
+  z.infer<typeof getProgramApplicationsCountQuerySchema>,
+  "groupBy"
 > & {
   programId: string;
 };

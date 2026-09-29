@@ -2,14 +2,15 @@ import { useRouterStuff } from "@dub/ui";
 import { fetcher } from "@dub/utils";
 import useSWR from "swr";
 import * as z from "zod/v4";
-import { getProgramApplicationsCountQuerySchema } from "../zod/schemas/program-application";
-import useWorkspace from "./use-workspace";
+import useWorkspace from "../../swr/use-workspace";
+import { PartnerApplicationProps } from "../../types";
+import { getPartnerApplicationsQuerySchema } from "../../zod/schemas/program-application";
 
-export function useProgramApplicationsCount<T>({
+export function useProgramApplications({
   ignoreParams,
   enabled,
   ...params
-}: z.input<typeof getProgramApplicationsCountQuerySchema> & {
+}: z.input<typeof getPartnerApplicationsQuerySchema> & {
   ignoreParams?: boolean;
   enabled?: boolean;
 } = {}) {
@@ -25,27 +26,28 @@ export function useProgramApplicationsCount<T>({
   const queryString = ignoreParams
     ? `?${new URLSearchParams(definedParams as Record<string, string>).toString()}`
     : getQueryString(definedParams, {
-        exclude: ["partnerId", "sortBy", "sortOrder", "page"],
+        exclude: ["partnerId", "sortBy"],
       });
 
   const {
-    data: applicationsCount,
+    data: applications,
     error,
     isValidating,
-  } = useSWR<number>(
+  } = useSWR<PartnerApplicationProps[]>(
     enabled !== false && defaultProgramId
-      ? `/api/program-applications/count${queryString}`
+      ? `/api/program-applications${queryString}`
       : null,
     fetcher,
     {
       keepPreviousData: true,
+      revalidateOnFocus: false,
     },
   );
 
   return {
-    applicationsCount: applicationsCount as T,
+    applications,
     error,
-    loading: enabled !== false && !error && applicationsCount === undefined,
     isValidating,
+    loading: enabled !== false && !error && applications === undefined,
   };
 }
