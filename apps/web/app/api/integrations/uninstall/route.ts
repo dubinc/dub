@@ -39,21 +39,20 @@ export const DELETE = withWorkspace(
       });
     }
 
-    const { integrationId, webhooks } =
-      await prisma.installedIntegration.delete({
-        where: {
-          id: installationId,
-        },
-        select: {
-          integrationId: true,
-          webhooks: {
-            select: {
-              id: true,
-              triggers: true,
-            },
+    const { integrationId } = await prisma.installedIntegration.delete({
+      where: {
+        id: installationId,
+      },
+      select: {
+        integrationId: true,
+        webhooks: {
+          select: {
+            id: true,
+            triggers: true,
           },
         },
-      });
+      },
+    });
 
     waitUntil(
       Promise.all([
