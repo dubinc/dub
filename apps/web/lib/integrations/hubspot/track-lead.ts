@@ -56,6 +56,7 @@ export const trackHubSpotLeadEvent = async ({
       customerName,
       mode: "deferred",
       workspace,
+      source: "hubspot",
       commissionSource: CommissionSource.hubspot,
     });
 
@@ -157,6 +158,7 @@ export const trackHubSpotLeadEvent = async ({
       customerEmail: properties.email,
       mode: "async",
       workspace,
+      source: "hubspot",
       commissionSource: CommissionSource.hubspot,
     });
 
@@ -230,6 +232,7 @@ const trackFinalLead = async ({
     customerEmail: contactInfo.properties.email,
     mode: "async",
     workspace,
+    source: "hubspot",
     commissionSource: CommissionSource.hubspot,
   });
 
