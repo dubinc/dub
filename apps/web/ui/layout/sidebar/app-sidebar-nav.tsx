@@ -11,6 +11,7 @@ import {
 import { useFraudGroupCount } from "@/lib/swr/use-fraud-groups-count";
 import { usePayoutsCount } from "@/lib/swr/use-payouts-count";
 import useProgram from "@/lib/swr/use-program";
+import { useProgramApplicationsCount } from "@/lib/swr/use-program-applications-count";
 import { useProgramSubmittedLeadsCount } from "@/lib/swr/use-program-submitted-leads-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { useKeyboardShortcut, useRouterStuff } from "@dub/ui";
@@ -67,7 +68,6 @@ import { User } from "./icons/user";
 import { SidebarNav, SidebarNavAreas, SidebarNavGroups } from "./sidebar-nav";
 import { SidebarUsage } from "./sidebar-usage";
 import { SpecialNewsContent } from "./special-news-content";
-import { useProgramApplicationsCount } from "./use-program-applications-count";
 import { WorkspaceDropdown } from "./workspace-dropdown";
 
 type SidebarNavData = {
@@ -598,9 +598,13 @@ export function AppSidebarNav({
     enabled: Boolean(currentArea === "program" && defaultProgramId),
   });
 
-  const applicationsCount = useProgramApplicationsCount({
-    enabled: Boolean(currentArea === "program" && defaultProgramId),
-  });
+  const { applicationsCount } = useProgramApplicationsCount<number | undefined>(
+    {
+      status: "pending",
+      ignoreParams: true,
+      enabled: Boolean(currentArea === "program" && defaultProgramId),
+    },
+  );
 
   const { submissionsCount } = useBountySubmissionsCount<
     SubmissionsCountByStatus[]

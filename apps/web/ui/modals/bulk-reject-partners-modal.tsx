@@ -1,7 +1,7 @@
 import { bulkRejectPartnerApplicationsAction } from "@/lib/actions/partners/bulk-reject-partner-applications";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { EnrolledPartnerProps } from "@/lib/types";
+import { PartnerProps } from "@/lib/types";
 import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import { Button, Modal } from "@dub/ui";
 import { cn, pluralize } from "@dub/utils";
@@ -23,7 +23,7 @@ function BulkRejectPartnersModal({
 }: {
   showBulkRejectPartnersModal: boolean;
   setShowBulkRejectPartnersModal: Dispatch<SetStateAction<boolean>>;
-  partners: EnrolledPartnerProps[];
+  partners: Pick<PartnerProps, "id" | "name" | "email" | "image">[];
 }) {
   const { id: workspaceId } = useWorkspace();
 
@@ -32,7 +32,7 @@ function BulkRejectPartnersModal({
     {
       onSuccess: async () => {
         setShowBulkRejectPartnersModal(false);
-        await mutatePrefix(["/api/partners", "/api/partners/count"]);
+        await mutatePrefix(["/api/partners", "/api/partners/count", "/api/program-applications"]);
         toast.success(`${pluralize("Partner", partners.length)} rejected.`);
       },
       onError({ error }) {
@@ -126,7 +126,7 @@ function BulkRejectPartnersModal({
 export function useBulkRejectPartnersModal({
   partners,
 }: {
-  partners: EnrolledPartnerProps[];
+  partners: Pick<PartnerProps, "id" | "name" | "email" | "image">[];
 }) {
   const [showBulkRejectPartnersModal, setShowBulkRejectPartnersModal] =
     useState(false);

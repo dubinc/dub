@@ -5,9 +5,10 @@ import { buildSocialPlatformLookup } from "@/lib/social-utils";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useGroups from "@/lib/swr/use-groups";
 import usePartner from "@/lib/swr/use-partner";
-import usePartnersCount from "@/lib/swr/use-partners-count";
+import { useProgramApplications } from "@/lib/swr/use-program-applications";
+import { useProgramApplicationsCount } from "@/lib/swr/use-program-applications-count";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { EnrolledPartnerProps, PartnerPlatformProps } from "@/lib/types";
+import { PartnerApplicationProps } from "@/lib/types";
 import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
 import { PartnerApplicationSheet } from "@/ui/partners/partner-application-sheet";
@@ -30,15 +31,25 @@ import {
   useTable,
 } from "@dub/ui";
 import { Check, Dots, LoadingSpinner, Users } from "@dub/ui/icons";
-import { COUNTRIES, fetcher, formatDate } from "@dub/utils";
-import { PlatformType } from "@prisma/client";
+import { COUNTRIES, formatDate } from "@dub/utils";
 import { Row } from "@tanstack/react-table";
 import { Command } from "cmdk";
 import { useAction } from "next-safe-action/hooks";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import useSWR from "swr";
 import { usePartnerFilters } from "../../use-partner-filters";
+
+type ApplicationPlatform = NonNullable<
+  PartnerApplicationProps["partner"]["platforms"]
+>[number];
+
+type ApplicationRow = PartnerApplicationProps["partner"] & {
+  createdAt: PartnerApplicationProps["createdAt"];
+  applicationId: string;
+  platformsByType: ReturnType<
+    typeof buildSocialPlatformLookup<ApplicationPlatform>
+  >;
+};
 
 const applicationsColumns = {
   all: [
@@ -64,8 +75,7 @@ const applicationsColumns = {
 
 export function ProgramPartnersRejectedApplicationsPageClient() {
   const { id: workspaceId } = useWorkspace();
-  const { queryParams, searchParams, searchParamsObj, getQueryString } =
-    useRouterStuff();
+  const { queryParams, searchParams, searchParamsObj } = useRouterStuff();
 
   const sortBy = searchParams.get("sortBy") || "createdAt";
   const sortOrder = searchParams.get("sortOrder") === "asc" ? "asc" : "desc";
@@ -82,48 +92,29 @@ export function ProgramPartnersRejectedApplicationsPageClient() {
     setSearch,
   } = usePartnerFilters({ sortBy, sortOrder, status: "rejected" }, ["country"]);
 
-  const { partnersCount, error: countError } = usePartnersCount<number>({
+  const { applicationsCount, error: countError } =
+    useProgramApplicationsCount<number>({
+      status: "rejected",
+    });
+
+  const { applications, error, isValidating } = useProgramApplications({
     status: "rejected",
   });
 
-  const {
-    data: partners,
-    error,
-    isValidating,
-  } = useSWR<EnrolledPartnerProps[]>(
-    `/api/partners${getQueryString(
-      {
-        workspaceId,
-        status: "rejected",
-        sortBy,
-        sortOrder,
-        includePartnerPlatformPropss: true,
-      },
-      { exclude: ["partnerId"] },
-    )}`,
-    fetcher,
-    {
-      keepPreviousData: true,
-      revalidateOnFocus: false,
-    },
+  const partners = useMemo(
+    () =>
+      applications?.map((application) => ({
+        ...application.partner,
+        createdAt: application.createdAt,
+        applicationId: application.id,
+        platformsByType: buildSocialPlatformLookup(
+          application.partner.platforms ?? [],
+        ),
+      })),
+    [applications],
   );
 
   const { groups } = useGroups();
-
-  // Create a separate map for platform lookups by partner ID
-  const platformsMapByPartnerId = useMemo(() => {
-    const map = new Map<
-      string,
-      Record<PlatformType, PartnerPlatformProps | null>
-    >();
-
-    partners?.forEach((partner) => {
-      if (partner.platforms) {
-        map.set(partner.id, buildSocialPlatformLookup(partner.platforms));
-      }
-    });
-    return map;
-  }, [partners]);
 
   const [detailsSheetState, setDetailsSheetState] = useState<
     | { open: false; partnerId: string | null }
@@ -141,7 +132,6 @@ export function ProgramPartnersRejectedApplicationsPageClient() {
 
   const { currentPartner, isLoading: isCurrentPartnerLoading } =
     useCurrentPartner({
-      partners,
       partnerId: detailsSheetState.partnerId,
     });
 
@@ -223,91 +213,67 @@ export function ProgramPartnersRejectedApplicationsPageClient() {
         id: "website",
         header: "Website",
         minSize: 150,
-        cell: ({ row }: { row: Row<EnrolledPartnerProps> }) => {
-          const platformsMap = platformsMapByPartnerId.get(row.original.id);
-
-          return (
-            <PartnerSocialColumn
-              platform={platformsMap?.website}
-              platformName="website"
-            />
-          );
-        },
+        cell: ({ row }: { row: Row<ApplicationRow> }) => (
+          <PartnerSocialColumn
+            platform={row.original.platformsByType.website}
+            platformName="website"
+          />
+        ),
       },
       {
         id: "youtube",
         header: "YouTube",
         minSize: 150,
-        cell: ({ row }: { row: Row<EnrolledPartnerProps> }) => {
-          const platformsMap = platformsMapByPartnerId.get(row.original.id);
-
-          return (
-            <PartnerSocialColumn
-              platform={platformsMap?.youtube}
-              platformName="youtube"
-            />
-          );
-        },
+        cell: ({ row }: { row: Row<ApplicationRow> }) => (
+          <PartnerSocialColumn
+            platform={row.original.platformsByType.youtube}
+            platformName="youtube"
+          />
+        ),
       },
       {
         id: "twitter",
         header: "X/Twitter",
         minSize: 150,
-        cell: ({ row }: { row: Row<EnrolledPartnerProps> }) => {
-          const platformsMap = platformsMapByPartnerId.get(row.original.id);
-
-          return (
-            <PartnerSocialColumn
-              platform={platformsMap?.twitter}
-              platformName="twitter"
-            />
-          );
-        },
+        cell: ({ row }: { row: Row<ApplicationRow> }) => (
+          <PartnerSocialColumn
+            platform={row.original.platformsByType.twitter}
+            platformName="twitter"
+          />
+        ),
       },
       {
         id: "linkedin",
         header: "LinkedIn",
         minSize: 150,
-        cell: ({ row }: { row: Row<EnrolledPartnerProps> }) => {
-          const platformsMap = platformsMapByPartnerId.get(row.original.id);
-
-          return (
-            <PartnerSocialColumn
-              platform={platformsMap?.linkedin}
-              platformName="linkedin"
-            />
-          );
-        },
+        cell: ({ row }: { row: Row<ApplicationRow> }) => (
+          <PartnerSocialColumn
+            platform={row.original.platformsByType.linkedin}
+            platformName="linkedin"
+          />
+        ),
       },
       {
         id: "instagram",
         header: "Instagram",
         minSize: 150,
-        cell: ({ row }: { row: Row<EnrolledPartnerProps> }) => {
-          const platformsMap = platformsMapByPartnerId.get(row.original.id);
-
-          return (
-            <PartnerSocialColumn
-              platform={platformsMap?.instagram}
-              platformName="instagram"
-            />
-          );
-        },
+        cell: ({ row }: { row: Row<ApplicationRow> }) => (
+          <PartnerSocialColumn
+            platform={row.original.platformsByType.instagram}
+            platformName="instagram"
+          />
+        ),
       },
       {
         id: "tiktok",
         header: "TikTok",
         minSize: 150,
-        cell: ({ row }: { row: Row<EnrolledPartnerProps> }) => {
-          const platformsMap = platformsMapByPartnerId.get(row.original.id);
-
-          return (
-            <PartnerSocialColumn
-              platform={platformsMap?.tiktok}
-              platformName="tiktok"
-            />
-          );
-        },
+        cell: ({ row }: { row: Row<ApplicationRow> }) => (
+          <PartnerSocialColumn
+            platform={row.original.platformsByType.tiktok}
+            platformName="tiktok"
+          />
+        ),
       },
 
       // Menu
@@ -320,10 +286,10 @@ export function ProgramPartnersRejectedApplicationsPageClient() {
         ),
       },
     ],
-    [workspaceId, groups, platformsMapByPartnerId],
+    [workspaceId, groups],
   );
 
-  const { table, ...tableProps } = useTable<EnrolledPartnerProps>({
+  const { table, ...tableProps } = useTable<ApplicationRow>({
     data: partners || [],
     columns,
     columnPinning: { right: ["menu"] },
@@ -352,7 +318,7 @@ export function ProgramPartnersRejectedApplicationsPageClient() {
     thClassName: "border-l-0",
     tdClassName: "border-l-0",
     resourceName: (p) => `application${p ? "s" : ""}`,
-    rowCount: partnersCount || 0,
+    rowCount: applicationsCount || 0,
     loading: isValidating || isCurrentPartnerLoading,
     error: error || countError ? "Failed to load applications" : undefined,
   });
@@ -455,7 +421,7 @@ function PartnerRowMenuButton({
   row,
   workspaceId,
 }: {
-  row: Row<EnrolledPartnerProps>;
+  row: Row<ApplicationRow>;
   workspaceId: string;
 }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -467,7 +433,11 @@ function PartnerRowMenuButton({
       },
       onSuccess: () => {
         toast.success("Partner application approved");
-        mutatePrefix(["/api/partners", "/api/partners/count"]);
+        mutatePrefix([
+          "/api/partners",
+          "/api/partners/count",
+          "/api/program-applications",
+        ]);
       },
     });
 
@@ -527,30 +497,14 @@ function PartnerRowMenuButton({
   );
 }
 
-/** Gets the current partner from the loaded partners array if available, or a separate fetch if not */
-function useCurrentPartner({
-  partners,
-  partnerId,
-}: {
-  partners?: EnrolledPartnerProps[];
-  partnerId: string | null;
-}) {
-  let currentPartner = partnerId
-    ? partners?.find(({ id }) => id === partnerId)
-    : null;
-
-  const { partner: fetchedPartner, loading: isLoading } = usePartner(
-    {
-      partnerId: partners && partnerId && !currentPartner ? partnerId : null,
-    },
-    {
-      keepPreviousData: true,
-    },
+function useCurrentPartner({ partnerId }: { partnerId: string | null }) {
+  const { partner, loading: isLoading } = usePartner(
+    { partnerId },
+    { keepPreviousData: true },
   );
 
-  if (!currentPartner && fetchedPartner?.id === partnerId) {
-    currentPartner = fetchedPartner;
-  }
-
-  return { currentPartner, isLoading };
+  return {
+    currentPartner: partner?.id === partnerId ? partner : null,
+    isLoading: Boolean(partnerId) && isLoading,
+  };
 }

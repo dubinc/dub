@@ -232,7 +232,7 @@ function PartnerApproval({
     groupId,
     onConfirm: async () => {
       onNext ? onNext() : setIsOpen(false);
-      await mutatePrefix("/api/partners");
+      await mutatePrefix(["/api/partners", "/api/program-applications"]);
     },
     confirmShortcutOptions: { sheet: true, modal: true },
   });
@@ -283,7 +283,7 @@ function PartnerRejectButton({
     partner,
     onConfirm: async () => {
       onNext ? onNext() : setIsOpen(false);
-      await mutatePrefix("/api/partners");
+      await mutatePrefix(["/api/partners", "/api/program-applications"]);
     },
     confirmShortcutOptions: { sheet: true, modal: true },
   });
