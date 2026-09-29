@@ -160,15 +160,26 @@ export function InlineBadgePopoverMenu<T extends any>({
     [items, isMultiSelect, selectedValue],
   );
 
-  const [displayedItems, setDisplayedItems] =
-    useState<InlineBadgePopoverMenuItem<T>[]>(sortedItems);
+  // Only the order is frozen while open, so item props (e.g. disabled) stay up to date
+  const [displayedOrder, setDisplayedOrder] = useState<T[]>(() =>
+    sortedItems.map(({ value }) => value),
+  );
 
   const hasDescriptions = items.some((item) => item.description);
 
-  // Update the displayed items to sorted when closed
+  // Update the displayed order to sorted when closed
   useEffect(() => {
-    if (!isOpen) setDisplayedItems(sortedItems);
+    if (!isOpen) setDisplayedOrder(sortedItems.map(({ value }) => value));
   }, [isOpen, sortedItems]);
+
+  const displayedItems = useMemo(() => {
+    const orderIndex = new Map(displayedOrder.map((value, i) => [value, i]));
+    return sortedItems.toSorted(
+      (a, b) =>
+        (orderIndex.get(a.value) ?? displayedOrder.length) -
+        (orderIndex.get(b.value) ?? displayedOrder.length),
+    );
+  }, [sortedItems, displayedOrder]);
 
   return (
     <Command ref={commandRef} loop tabIndex={-1} className="focus:outline-none">

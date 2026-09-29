@@ -380,7 +380,12 @@ function ConditionLogic({
 }) {
   const { slug: workspaceSlug } = useWorkspace();
   const { program } = useProgram();
-  const { integrations } = useIntegrations();
+  const { integrations } = useIntegrations({
+    swrOpts: {
+      dedupingInterval: 2000,
+      revalidateOnFocus: true,
+    },
+  });
   const modifierKey = `modifiers.${modifierIndex}` as const;
   const conditionKey = `${modifierKey}.conditions.${conditionIndex}` as const;
 
