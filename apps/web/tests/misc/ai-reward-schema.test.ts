@@ -292,6 +292,13 @@ describe("getAIRewardGenerationSchema — unsupported refusal", () => {
     expect(result.success).toBe(true);
   });
 
+  it("does not send an empty enum for click rewards", () => {
+    const json = JSON.stringify(
+      getAIRewardGenerationSchema("click").toJSONSchema(),
+    );
+    expect(json).not.toContain('"enum":[]');
+  });
+
   it("rejects an unavailable customer source the event doesn't offer", () => {
     for (const event of ["sale", "click"] as const) {
       const result = getAIRewardGenerationSchema(event).safeParse({

@@ -223,6 +223,8 @@ export function getAICustomerSourceIds(event: AIRewardEvent) {
  * validate the reward with getAIRewardSchema after the stream completes.
  */
 export function getAIRewardGenerationSchema(event: AIRewardEvent) {
+  const customerSourceIds = getAICustomerSourceIds(event);
+
   return z
     .object({
       supported: z
@@ -236,8 +238,10 @@ export function getAIRewardGenerationSchema(event: AIRewardEvent) {
         .describe(
           "When supported is false: brief explanation of what is not supported. When supported is true: null or omit.",
         ),
-      unavailableSource: z
-        .enum(getAICustomerSourceIds(event))
+      unavailableSource: (customerSourceIds.length
+        ? z.enum(customerSourceIds)
+        : z.null()
+      )
         .nullish()
         .describe(
           "When supported is false because the request needs a customer source listed under 'Unavailable customer sources': that option id. Otherwise null or omit.",
