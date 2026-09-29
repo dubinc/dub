@@ -1,3 +1,5 @@
+import { isExactPartnerIdQuery } from "@/lib/api/partners/program-enrollment-query";
+import { sanitizeFullTextSearch } from "@/lib/prisma";
 import { getProgramApplicationsCountQuerySchema } from "@/lib/zod/schemas/program-application";
 import { parseFilterValue } from "@dub/utils";
 import { Prisma, ProgramEnrollmentStatus } from "@prisma/client";
@@ -24,6 +26,47 @@ type ProgramApplicationWhereParams = Omit<
   programId: string;
 };
 
+function applicationStatusWhere(
+  status: ProgramApplicationWhereParams["status"],
+): Prisma.ProgramApplicationWhereInput {
+  return {
+    rejectionReason:
+      status === ProgramEnrollmentStatus.rejected ? { not: null } : null,
+  };
+}
+
+function buildSearchWhere(query: string): Prisma.ProgramApplicationWhereInput {
+  if (isExactPartnerIdQuery(query)) {
+    return {
+      enrollment: {
+        partner: {
+          id: query,
+        },
+      },
+    };
+  }
+
+  const fullTextQuery = sanitizeFullTextSearch(query);
+
+  return {
+    OR: [
+      { name: { contains: query } },
+      { email: { contains: query } },
+      ...(fullTextQuery
+        ? [
+            {
+              enrollment: {
+                partner: {
+                  companyName: { search: fullTextQuery },
+                },
+              },
+            },
+          ]
+        : []),
+    ],
+  };
+}
+
 export function buildProgramApplicationWhere({
   programId,
   groupId,
@@ -37,13 +80,9 @@ export function buildProgramApplicationWhere({
 
   return {
     programId,
-    enrollment: {
-      status,
-    },
+    ...applicationStatusWhere(status),
     ...(groupIdFilter && { groupId: groupIdFilter }),
     ...(countryFilter && { country: countryFilter }),
-    ...(query && {
-      OR: [{ name: { contains: query } }, { email: { contains: query } }],
-    }),
+    ...(query ? buildSearchWhere(query) : {}),
   };
 }

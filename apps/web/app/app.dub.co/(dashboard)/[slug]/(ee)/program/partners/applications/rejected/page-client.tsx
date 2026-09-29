@@ -3,6 +3,7 @@
 import { approvePartnerApplicationAction } from "@/lib/actions/partners/approve-partner-application";
 import { useProgramApplications } from "@/lib/program-applications/hooks/use-program-applications";
 import { useProgramApplicationsCount } from "@/lib/program-applications/hooks/use-program-applications-count";
+import { useProgramApplicationsFilters } from "@/lib/program-applications/hooks/use-program-applications-filters";
 import { buildSocialPlatformLookup } from "@/lib/social-utils";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useGroups from "@/lib/swr/use-groups";
@@ -37,7 +38,6 @@ import { Command } from "cmdk";
 import { useAction } from "next-safe-action/hooks";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { useProgramApplicationsFilters } from "@/lib/program-applications/hooks/use-program-applications-filters";
 
 type ApplicationPlatform = NonNullable<
   PartnerApplicationProps["partner"]["platforms"]
@@ -135,6 +135,7 @@ export function ProgramPartnersRejectedApplicationsPageClient() {
 
   const { currentPartner, isLoading: isCurrentPartnerLoading } =
     useCurrentPartner({
+      partners,
       partnerId: detailsSheetState.partnerId,
     });
 
@@ -500,14 +501,26 @@ function PartnerRowMenuButton({
   );
 }
 
-function useCurrentPartner({ partnerId }: { partnerId: string | null }) {
-  const { partner, loading: isLoading } = usePartner(
+function useCurrentPartner({
+  partners,
+  partnerId,
+}: {
+  partners?: ApplicationRow[];
+  partnerId: string | null;
+}) {
+  const listedPartner = partnerId
+    ? partners?.find(({ id }) => id === partnerId) ?? null
+    : null;
+
+  const { partner: fetchedPartner, loading: isLoading } = usePartner(
     { partnerId },
     { keepPreviousData: true },
   );
 
   return {
-    currentPartner: partner?.id === partnerId ? partner : null,
-    isLoading: Boolean(partnerId) && isLoading,
+    currentPartner:
+      (fetchedPartner?.id === partnerId ? fetchedPartner : null) ??
+      listedPartner,
+    isLoading: Boolean(partnerId) && !listedPartner && isLoading,
   };
 }

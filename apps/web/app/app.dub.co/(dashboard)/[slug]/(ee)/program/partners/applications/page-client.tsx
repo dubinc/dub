@@ -143,6 +143,7 @@ export function ProgramPartnersApplicationsPageClient() {
 
   const { currentPartner, isLoading: isCurrentPartnerLoading } =
     useCurrentPartner({
+      partners,
       partnerId: detailsSheetState.partnerId,
     });
 
@@ -587,14 +588,26 @@ function RowMenuButton({
 }
 
 /** Gets the current partner from the loaded partners array if available, or a separate fetch if not */
-function useCurrentPartner({ partnerId }: { partnerId: string | null }) {
-  const { partner, loading: isLoading } = usePartner(
+function useCurrentPartner({
+  partners,
+  partnerId,
+}: {
+  partners?: ApplicationRow[];
+  partnerId: string | null;
+}) {
+  const listedPartner = partnerId
+    ? (partners?.find(({ id }) => id === partnerId) ?? null)
+    : null;
+
+  const { partner: fetchedPartner, loading: isLoading } = usePartner(
     { partnerId },
     { keepPreviousData: true },
   );
 
   return {
-    currentPartner: partner?.id === partnerId ? partner : null,
-    isLoading: Boolean(partnerId) && isLoading,
+    currentPartner:
+      (fetchedPartner?.id === partnerId ? fetchedPartner : null) ??
+      listedPartner,
+    isLoading: Boolean(partnerId) && !listedPartner && isLoading,
   };
 }

@@ -64,15 +64,20 @@ export const getPartnerApplicationsQuerySchema = getPartnersQuerySchema
   .pick({
     country: true,
     groupId: true,
-    search: true,
     sortOrder: true,
   })
   .extend({
+    search: z
+      .string()
+      .optional()
+      .describe(
+        "Filter applications by name, email, or company name. Partial matches are supported. An exact partner ID is also matched.",
+      ),
     status: z
       .enum(ProgramApplicationStatuses)
       .default(ProgramEnrollmentStatus.pending)
       .describe(
-        "Filter applications by enrollment status. One of `pending` or `rejected`. Defaults to `pending`.",
+        "Filter applications by status. One of `pending` or `rejected`. Defaults to `pending`.",
       ),
     ...getPaginationQuerySchema({
       pageSize: PARTNERS_MAX_PAGE_SIZE,

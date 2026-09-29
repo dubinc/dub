@@ -1,6 +1,10 @@
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { EnrolledPartnerProps } from "@/lib/types";
+import {
+  EnrolledPartnerExtendedProps,
+  EnrolledPartnerProps,
+  PartnerApplicationProps,
+} from "@/lib/types";
 import { useApprovePartnerApplicationModal } from "@/ui/modals/approve-partner-application-modal";
 import { useRejectPartnerApplicationModal } from "@/ui/modals/reject-partner-application-modal";
 import { X } from "@/ui/shared/icons";
@@ -21,19 +25,25 @@ import { PartnerComments } from "./partner-comments";
 import { PartnerInfoCards } from "./partner-info-cards";
 import { PartnerSheetTabs } from "./partner-sheet-tabs";
 
+type ListedApplicationPartner = PartnerApplicationProps["partner"] & {
+  createdAt: Date;
+  applicationId: string;
+};
+
 type PartnerApplicationSheetProps = {
-  partner: EnrolledPartnerProps;
+  partner: EnrolledPartnerProps | ListedApplicationPartner;
   onNext?: () => void;
   onPrevious?: () => void;
   setIsOpen: Dispatch<SetStateAction<boolean>>;
 };
 
 function PartnerApplicationSheetContent({
-  partner,
+  partner: sheetPartner,
   onPrevious,
   onNext,
   setIsOpen,
 }: PartnerApplicationSheetProps) {
+  const partner = sheetPartner as EnrolledPartnerExtendedProps;
   const { slug: workspaceSlug } = useWorkspace();
   const [currentTabId, setCurrentTabId] = useState<string>("about");
 
