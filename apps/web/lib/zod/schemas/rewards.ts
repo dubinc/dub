@@ -187,10 +187,23 @@ export const REWARD_CONDITIONS: Record<
               {
                 id: "tracked",
                 label: "tracked sale",
+                description:
+                  "Sales tracked via [Dub's API](https://dub.co/docs/api-reference/track/sale) or [Stripe integration](https://dub.co/docs/integrations/stripe)",
+                icon: DUB_LOGO_SQUARE,
               },
               {
                 id: "submitted",
                 label: "closed won deal",
+                description:
+                  "Closed won deals from [partner-submitted leads](https://dub.co/help/article/submitted-leads)",
+                icon: DUB_LOGO_SQUARE,
+              },
+              {
+                id: "hubspot",
+                label: "HubSpot closed won deal",
+                description:
+                  "Closed won deals via the [HubSpot integration](https://dub.co/docs/integrations/hubspot#when-a-deal-is-closed-sale-event)",
+                icon: WEBHOOK_REQUEST_ACTORS_BY_PATH["/hubspot/webhook"].image,
               },
             ],
           },
