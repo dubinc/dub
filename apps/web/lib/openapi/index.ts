@@ -15,6 +15,7 @@ import { embedTokensPaths } from "./embed-tokens";
 import { eventsPath } from "./events";
 import { foldersPaths } from "./folders";
 import { linksPaths } from "./links";
+import { partnerTagsPaths } from "./partner-tags";
 import { partnersPaths } from "./partners";
 import { payoutsPaths } from "./payouts";
 import { qrCodePaths } from "./qr";
@@ -55,6 +56,7 @@ export const document = createDocument({
     ...trackPaths,
     ...customersPaths,
     ...partnersPaths,
+    ...partnerTagsPaths,
     ...discountCodesPaths,
     ...commissionsPaths,
     ...payoutsPaths,

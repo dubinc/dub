@@ -8,6 +8,7 @@ export const RESOURCE_KEYS = [
   "tokens",
   "webhooks",
   "groups",
+  "partnerTags",
 ] as const;
 
 export type ResourceKey = (typeof RESOURCE_KEYS)[number];
@@ -41,5 +42,10 @@ export const RESOURCES: {
     name: "Folders",
     key: "folders",
     description: "Create, read, update, and delete folders",
+  },
+  {
+    name: "Partner Tags",
+    key: "partnerTags",
+    description: "Create, read, update, and delete partner tags",
   },
 ];
