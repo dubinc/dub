@@ -6,6 +6,7 @@ import {
   getAIRewardSchema,
 } from "@/lib/ai/ai-reward-schema";
 import { generateReward } from "@/lib/ai/generate-reward";
+import { CUSTOMER_SOURCE_REQUIRED_INTEGRATIONS } from "@/lib/rewards/get-customer-source-availability";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { REWARD_CONDITION_ATTRIBUTES } from "@/lib/zod/schemas/rewards";
 import { CustomToast } from "@/ui/shared/custom-toast";
@@ -315,10 +316,16 @@ export function useAIRewardBuilder({
 
       if (lastPartial.supported === false) {
         discard({ keepPrompt: true });
+
+        const missingIntegration = lastPartial.unavailableSource
+          ? CUSTOMER_SOURCE_REQUIRED_INTEGRATIONS[lastPartial.unavailableSource]
+          : undefined;
+
         toast.custom(() => (
           <CustomToast variant="error">
-            This reward setup isn't supported yet. [Reach out to
-            support](https://dub.co/support) if you need help configuring this.
+            {missingIntegration
+              ? `This reward setup requires the ${missingIntegration.name} integration. [Install ${missingIntegration.name}](/${workspaceSlug}/settings/integrations/${missingIntegration.slug}) to use it.`
+              : "This reward setup isn't supported yet. [Reach out to support](https://dub.co/support) if you need help configuring this."}
           </CustomToast>
         ));
         void mutateWorkspace();

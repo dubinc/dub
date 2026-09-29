@@ -1,5 +1,6 @@
 import {
   CONDITION_OPERATORS,
+  CUSTOMER_SOURCES,
   isOneOffRewardEvent,
   REWARD_CONDITIONS,
 } from "@/lib/zod/schemas/rewards";
@@ -224,6 +225,12 @@ export function getAIRewardGenerationSchema(event: AIRewardEvent) {
         .nullish()
         .describe(
           "When supported is false: brief explanation of what is not supported. When supported is true: null or omit.",
+        ),
+      unavailableSource: z
+        .enum(CUSTOMER_SOURCES)
+        .nullish()
+        .describe(
+          "When supported is false because the request needs a customer source listed under 'Unavailable option values': that option id. Otherwise null or omit.",
         ),
       reward: buildEventRewardObjectSchema(event)
         .nullish()

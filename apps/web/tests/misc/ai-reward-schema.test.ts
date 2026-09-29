@@ -282,6 +282,25 @@ describe("getAIRewardGenerationSchema — unsupported refusal", () => {
     expect(result.success).toBe(true);
   });
 
+  it("accepts supported=false with an unavailable customer source", () => {
+    const result = schema.safeParse({
+      supported: false,
+      reason: "HubSpot must be installed first.",
+      unavailableSource: "hubspot",
+      reward: null,
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects an unknown unavailable customer source", () => {
+    const result = schema.safeParse({
+      supported: false,
+      unavailableSource: "salesforce",
+      reward: null,
+    });
+    expect(result.success).toBe(false);
+  });
+
   it("defers app validation to getAIRewardSchema (not generation envelope)", () => {
     const clickSchema = getAIRewardGenerationSchema("click");
     const result = clickSchema.safeParse({
