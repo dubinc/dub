@@ -472,7 +472,7 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
   // User settings
   userSettings: ({ slug }) => ({
     title: "Settings",
-    backHref: `/${slug}`,
+    backHref: slug ? `/${slug}` : undefined,
     hideSwitcherIcons: true,
     content: [
       {

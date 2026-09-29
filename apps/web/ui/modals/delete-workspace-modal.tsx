@@ -1,4 +1,5 @@
 import useWorkspace from "@/lib/swr/use-workspace";
+import { WorkspaceProps } from "@/lib/types";
 import { BlurImage, Button, Logo, Modal, useMediaQuery } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { useSession } from "next-auth/react";
@@ -44,8 +45,15 @@ function DeleteWorkspaceModal({
         },
       }).then(async (res) => {
         if (res.ok) {
-          await Promise.all([mutate("/api/workspaces"), update()]);
-          router.push("/");
+          const [workspaces] = await Promise.all([
+            mutate<WorkspaceProps[]>("/api/workspaces"),
+            update(),
+          ]);
+          router.push(
+            workspaces && workspaces.length === 0
+              ? "/account/settings?workspaceDeleted=1"
+              : "/",
+          );
           resolve(null);
         } else {
           setDeleting(false);

@@ -2,18 +2,20 @@
 
 import { mutatePrefix } from "@/lib/swr/mutate";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
+import useWorkspaces from "@/lib/swr/use-workspaces";
 import DeleteAccountSection from "@/ui/account/delete-account";
 import UpdateDefaultWorkspace from "@/ui/account/update-default-workspace";
 import UpdateSubscription from "@/ui/account/update-subscription";
 import UploadAvatar from "@/ui/account/upload-avatar";
 import UserId from "@/ui/account/user-id";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
+import { useDeleteAccountModal } from "@/ui/modals/delete-account-modal";
 import {
   IdentitySyncField,
   IdentitySyncSnapshot,
   useIdentitySyncConfirmModal,
 } from "@/ui/modals/identity-sync-confirm-modal";
-import { Form, useCurrentSubdomain } from "@dub/ui";
+import { Button, Form, useCurrentSubdomain, useRouterStuff } from "@dub/ui";
 import { useSession } from "next-auth/react";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
@@ -64,7 +66,15 @@ function getAccountSyncCandidates({
 export function SettingsPageClient() {
   const { data: session, update, status } = useSession();
   const { subdomain } = useCurrentSubdomain();
+  const { searchParams } = useRouterStuff();
+  const { workspaces } = useWorkspaces();
+  const { setShowDeleteAccountModal, DeleteAccountModal } =
+    useDeleteAccountModal();
   const isPartnerDomain = subdomain === "partners";
+  const showWorkspaceDeletedCallout =
+    subdomain === "app" &&
+    searchParams.get("workspaceDeleted") === "1" &&
+    workspaces?.length === 0;
   const { partner } = usePartnerProfile();
   const pendingPatchRef = useRef<PendingUserPatch | null>(null);
   const [syncModalContent, setSyncModalContent] = useState<{
@@ -204,7 +214,26 @@ export function SettingsPageClient() {
   return (
     <>
       {isPartnerDomain && confirmModal}
+      <DeleteAccountModal />
       <PageWidthWrapper className="mb-8 grid gap-8">
+        {showWorkspaceDeletedCallout && (
+          <div
+            role="status"
+            className="rounded-[10px] border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-900"
+          >
+            <p className="font-semibold">Your workspace was deleted</p>
+            <p className="mt-1">
+              That was your last workspace. Delete your account to remove your
+              personal information from Dub.
+            </p>
+            <Button
+              text="Delete Account"
+              variant="danger"
+              className="mt-3 h-8 w-fit px-3"
+              onClick={() => setShowDeleteAccountModal(true)}
+            />
+          </div>
+        )}
         <Form
           title="Your Name"
           description="This is your display name on Dub."
@@ -269,7 +298,9 @@ export function SettingsPageClient() {
         />
         <UserId />
         {subdomain === "app" && <UpdateDefaultWorkspace />}
-        <DeleteAccountSection />
+        <DeleteAccountSection
+          onDelete={() => setShowDeleteAccountModal(true)}
+        />
       </PageWidthWrapper>
     </>
   );

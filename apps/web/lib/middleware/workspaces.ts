@@ -65,6 +65,6 @@ export async function WorkspacesMiddleware(req: NextRequest, user: UserProps) {
     );
   }
 
-  // No default workspace or invite found, redirect to workspace onboarding
-  return NextResponse.redirect(new URL("/onboarding/workspace", req.url));
+  // No default workspace or invite found, redirect to account settings
+  return NextResponse.redirect(new URL("/account/settings", req.url));
 }

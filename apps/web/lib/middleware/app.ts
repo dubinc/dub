@@ -85,6 +85,8 @@ export async function AppMiddleware(req: NextRequest) {
         return NextResponse.redirect(
           new URL(`/onboarding/${step}?workspace=${defaultWorkspace}`, req.url),
         );
+      } else if (step !== "workspace") {
+        return NextResponse.redirect(new URL("/account/settings", req.url));
       } else {
         return NextResponse.redirect(new URL("/onboarding", req.url));
       }
