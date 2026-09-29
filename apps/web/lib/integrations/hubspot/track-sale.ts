@@ -90,7 +90,7 @@ export const trackHubSpotSaleEvent = async ({
     invoiceId: dealId,
     workspace,
     metadata: {
-      [HUBSPOT_STAGE_METADATA_KEY]: properties.dealstage,
+      [HUBSPOT_STAGE_METADATA_KEY]: propertyValue,
     },
     commissionSource: CommissionSource.hubspot,
   });

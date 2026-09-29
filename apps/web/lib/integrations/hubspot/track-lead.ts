@@ -110,6 +110,7 @@ export const trackHubSpotLeadEvent = async ({
       dealId: objectId,
       workspace,
       hubSpotApi,
+      stageId: propertyValue,
     });
   }
 
@@ -183,10 +184,12 @@ const trackFinalLead = async ({
   dealId,
   workspace,
   hubSpotApi,
+  stageId,
 }: {
   dealId: number;
   workspace: Pick<WorkspaceProps, "id" | "stripeConnectId" | "webhookEnabled">;
   hubSpotApi: HubSpotApi;
+  stageId?: string;
 }) => {
   const deal = await hubSpotApi.getDeal(dealId);
 
@@ -234,7 +237,7 @@ const trackFinalLead = async ({
     customerEmail: contactInfo.properties.email,
     mode: "async",
     metadata: {
-      [HUBSPOT_STAGE_METADATA_KEY]: properties.dealstage,
+      [HUBSPOT_STAGE_METADATA_KEY]: stageId ?? properties.dealstage,
     },
     workspace,
     commissionSource: CommissionSource.hubspot,
