@@ -5,6 +5,7 @@ import { CommissionSource } from "@prisma/client";
 import * as z from "zod/v4";
 import { HubSpotAuthToken, HubSpotContact } from "../types";
 import { HubSpotApi } from "./api";
+import { HUBSPOT_STAGE_METADATA_KEY } from "./constants";
 import { hubSpotLeadEventSchema, hubSpotSettingsSchema } from "./schema";
 
 export const trackHubSpotLeadEvent = async ({
@@ -156,6 +157,9 @@ export const trackHubSpotLeadEvent = async ({
       customerName: `${properties.firstname} ${properties.lastname}`,
       customerEmail: properties.email,
       mode: "async",
+      metadata: {
+        [HUBSPOT_STAGE_METADATA_KEY]: properties.lifecyclestage,
+      },
       workspace,
       commissionSource: CommissionSource.hubspot,
     });
@@ -229,6 +233,9 @@ const trackFinalLead = async ({
     customerName: `${contactInfo.properties.firstname} ${contactInfo.properties.lastname}`,
     customerEmail: contactInfo.properties.email,
     mode: "async",
+    metadata: {
+      [HUBSPOT_STAGE_METADATA_KEY]: properties.dealstage,
+    },
     workspace,
     commissionSource: CommissionSource.hubspot,
   });

@@ -5,6 +5,7 @@ import { CommissionSource } from "@prisma/client";
 import * as z from "zod/v4";
 import { HubSpotAuthToken } from "../types";
 import { HubSpotApi } from "./api";
+import { HUBSPOT_STAGE_METADATA_KEY } from "./constants";
 import { hubSpotSaleEventSchema, hubSpotSettingsSchema } from "./schema";
 
 export const trackHubSpotSaleEvent = async ({
@@ -88,7 +89,9 @@ export const trackHubSpotSaleEvent = async ({
     paymentProcessor: "custom",
     invoiceId: dealId,
     workspace,
-    metadata: null,
+    metadata: {
+      [HUBSPOT_STAGE_METADATA_KEY]: properties.dealstage,
+    },
     commissionSource: CommissionSource.hubspot,
   });
 

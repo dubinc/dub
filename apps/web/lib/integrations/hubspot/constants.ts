@@ -38,3 +38,5 @@ export const HUBSPOT_DUB_CONTACT_PROPERTIES = [
     groupName: "contactinformation",
   },
 ];
+
+export const HUBSPOT_STAGE_METADATA_KEY = "stageId";
