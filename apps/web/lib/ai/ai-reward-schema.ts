@@ -207,6 +207,16 @@ export function getAIRewardSchema(event: AIRewardEvent) {
   });
 }
 
+export function getAICustomerSourceIds(event: AIRewardEvent) {
+  const optionIds =
+    REWARD_CONDITIONS[event].entities
+      .find(({ id }) => id === "customer")
+      ?.attributes.find(({ id }) => id === "source")
+      ?.options?.map(({ id }) => id) ?? [];
+
+  return CUSTOMER_SOURCES.filter((source) => optionIds.includes(source));
+}
+
 /**
  * Model structured-output envelope. Keep this free of app-level refinements so
  * Output.object can stream/parse JSON even when the model picks a bad attribute;
@@ -227,10 +237,10 @@ export function getAIRewardGenerationSchema(event: AIRewardEvent) {
           "When supported is false: brief explanation of what is not supported. When supported is true: null or omit.",
         ),
       unavailableSource: z
-        .enum(CUSTOMER_SOURCES)
+        .enum(getAICustomerSourceIds(event))
         .nullish()
         .describe(
-          "When supported is false because the request needs a customer source listed under 'Unavailable option values': that option id. Otherwise null or omit.",
+          "When supported is false because the request needs a customer source listed under 'Unavailable customer sources': that option id. Otherwise null or omit.",
         ),
       reward: buildEventRewardObjectSchema(event)
         .nullish()

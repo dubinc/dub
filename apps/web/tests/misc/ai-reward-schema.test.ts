@@ -283,7 +283,7 @@ describe("getAIRewardGenerationSchema — unsupported refusal", () => {
   });
 
   it("accepts supported=false with an unavailable customer source", () => {
-    const result = schema.safeParse({
+    const result = getAIRewardGenerationSchema("lead").safeParse({
       supported: false,
       reason: "HubSpot must be installed first.",
       unavailableSource: "hubspot",
@@ -292,8 +292,19 @@ describe("getAIRewardGenerationSchema — unsupported refusal", () => {
     expect(result.success).toBe(true);
   });
 
+  it("rejects an unavailable customer source the event doesn't offer", () => {
+    for (const event of ["sale", "click"] as const) {
+      const result = getAIRewardGenerationSchema(event).safeParse({
+        supported: false,
+        unavailableSource: "hubspot",
+        reward: null,
+      });
+      expect(result.success).toBe(false);
+    }
+  });
+
   it("rejects an unknown unavailable customer source", () => {
-    const result = schema.safeParse({
+    const result = getAIRewardGenerationSchema("lead").safeParse({
       supported: false,
       unavailableSource: "salesforce",
       reward: null,

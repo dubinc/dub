@@ -20,6 +20,7 @@ import { throwIfNoPermission } from "../actions/throw-if-no-permission";
 import {
   AI_REWARD_EVENTS,
   AIRewardGenerationOutput,
+  getAICustomerSourceIds,
   getAIRewardGenerationSchema,
   getAIRewardSchema,
 } from "./ai-reward-schema";
@@ -32,27 +33,10 @@ const inputSchema = z.object({
 
 function buildSystemPrompt(
   event: (typeof AI_REWARD_EVENTS)[number],
-  {
-    programId,
-    installedIntegrationIds,
-  }: { programId?: string | null; installedIntegrationIds: string[] },
+  unavailableSources: (ReturnType<typeof getCustomerSourceAvailability> & {
+    id: string;
+  })[],
 ) {
-  // Customer sources this workspace can't use (same rules as the manual builder)
-  const unavailableSources = (
-    REWARD_CONDITIONS[event].entities
-      .find(({ id }) => id === "customer")
-      ?.attributes.find(({ id }) => id === "source")?.options ?? []
-  )
-    .map(({ id }) => ({
-      id,
-      ...getCustomerSourceAvailability({
-        source: id,
-        programId: programId ?? undefined,
-        installedIntegrationIds,
-      }),
-    }))
-    .filter(({ hidden, missingIntegration }) => hidden || missingIntegration);
-
   const entities = REWARD_CONDITIONS[event].entities.map((entity) => {
     const attrs = entity.attributes
       .map((attr) => {
@@ -188,16 +172,26 @@ export async function generateReward(input: z.infer<typeof inputSchema>) {
     };
 
     try {
-      const generationSchema = getAIRewardGenerationSchema(event);
-      const result = streamText({
-        model: anthropic("claude-sonnet-4-6"),
-        output: Output.object({ schema: generationSchema }),
-        system: buildSystemPrompt(event, {
-          programId: workspace.defaultProgramId,
+      const customerSources = getAICustomerSourceIds(event).map((id) => ({
+        id,
+        ...getCustomerSourceAvailability({
+          source: id,
+          programId: workspace.defaultProgramId ?? undefined,
           installedIntegrationIds: workspace.installedIntegrations.map(
             ({ integrationId }) => integrationId,
           ),
         }),
+      }));
+
+      const unavailableSources = customerSources.filter(
+        ({ hidden, missingIntegration }) => hidden || missingIntegration,
+      );
+
+      const generationSchema = getAIRewardGenerationSchema(event);
+      const result = streamText({
+        model: anthropic("claude-sonnet-4-6"),
+        output: Output.object({ schema: generationSchema }),
+        system: buildSystemPrompt(event, unavailableSources),
         prompt,
         temperature: 0.3,
         maxOutputTokens: 2000,
@@ -270,6 +264,33 @@ export async function generateReward(input: z.infer<typeof inputSchema>) {
             supported: false,
             reason:
               "Could not map this request to supported reward conditions.",
+            reward: null,
+          };
+          stream.update(unsupported);
+          stream.done();
+          return;
+        }
+
+        const invalidSource = rewardParsed.data.modifiers
+          ?.flatMap(({ conditions }) => conditions)
+          .filter(
+            ({ entity, attribute }) =>
+              entity === "customer" && attribute === "source",
+          )
+          .flatMap(({ value }) => [value].flat().map(String))
+          .find((value) => {
+            const source = customerSources.find(({ id }) => id === value);
+            return !source || source.hidden || !!source.missingIntegration;
+          });
+
+        if (invalidSource) {
+          const unsupported: AIRewardGenerationOutput = {
+            supported: false,
+            reason: "This customer source isn't available for this workspace.",
+            unavailableSource: unavailableSources.find(
+              ({ id, missingIntegration }) =>
+                id === invalidSource && missingIntegration,
+            )?.id,
             reward: null,
           };
           stream.update(unsupported);
