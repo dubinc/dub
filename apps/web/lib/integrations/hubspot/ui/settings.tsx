@@ -89,14 +89,14 @@ export const HubSpotSettings = ({
             <CardSelector
               options={[
                 {
-                  key: "dealCreated",
-                  label: "New Deal Created",
-                  description: "Track leads when deals are created",
-                },
-                {
                   key: "lifecycleStageReached",
                   label: "Lifecycle Stage Reached",
                   description: "Track leads at specific lifecycle stages",
+                },
+                {
+                  key: "dealCreated",
+                  label: "New Deal Created",
+                  description: "Track leads when deals are created",
                 },
                 {
                   key: "dealStageReached",
