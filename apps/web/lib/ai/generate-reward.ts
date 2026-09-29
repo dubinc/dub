@@ -300,6 +300,17 @@ export async function generateReward(input: z.infer<typeof inputSchema>) {
         }
       }
 
+      if (
+        !parsed.data.supported &&
+        parsed.data.unavailableSource &&
+        !unavailableSources.some(
+          ({ id, missingIntegration }) =>
+            id === parsed.data.unavailableSource && missingIntegration,
+        )
+      ) {
+        stream.update({ ...parsed.data, unavailableSource: null });
+      }
+
       stream.done();
     } catch (error) {
       await fail(error);
