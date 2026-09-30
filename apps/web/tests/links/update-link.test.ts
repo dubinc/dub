@@ -1,7 +1,7 @@
 import { normalizeWorkspaceId } from "@/lib/api/workspaces/workspace-id";
 import { Link } from "@prisma/client";
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
-import { randomId } from "../utils/helpers";
+import { randomId, randomKey } from "../utils/helpers";
 import { IntegrationHarness } from "../utils/integration";
 import { E2E_LINK } from "../utils/resource";
 import { expectedLink } from "../utils/schema";
@@ -25,7 +25,7 @@ describe.sequential("PATCH /links/{linkId}", async () => {
   });
 
   const toUpdate: Partial<Link> = {
-    key: randomId(),
+    key: randomKey(),
     url: "https://github.com/dubinc/dub",
     title: "Dub Inc",
     description: "Open-source link management infrastructure.",
@@ -393,7 +393,7 @@ describe.sequential(
     });
 
     const toUpdate: Partial<Link> = {
-      key: randomId(),
+      key: randomKey(),
       url: "https://github.com/dubinc/dub",
       title: "Dub Inc",
       description: "Open-source link management infrastructure.",

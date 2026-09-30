@@ -6,44 +6,44 @@ export const MAX_PARTNERS_INVITES_PER_REQUEST = 50;
 export const MAX_PROGRAM_CATEGORIES = 3;
 export const PROGRAM_SIMILARITY_SCORE_THRESHOLD = 0.3;
 
-export const PROGRAM_IMPORT_SOURCES = [
-  {
+export const PROGRAM_IMPORT_SOURCES = {
+  rewardful: {
     id: "rewardful",
     value: "Rewardful",
     image: "https://assets.dub.co/misc/icons/rewardful.svg",
     helpUrl: "https://dub.co/help/article/migrating-from-rewardful",
   },
-  {
+  tolt: {
     id: "tolt",
     value: "Tolt",
     image: "https://assets.dub.co/misc/icons/tolt.svg",
     helpUrl: "https://dub.co/help/article/migrating-from-tolt",
   },
-  {
+  partnerstack: {
     id: "partnerstack",
     value: "PartnerStack",
     image: "https://assets.dub.co/misc/icons/partnerstack.svg",
     helpUrl: "https://dub.co/help/article/migrating-from-partnerstack",
   },
-  {
+  firstpromoter: {
     id: "firstpromoter",
     value: "FirstPromoter",
     image: "https://assets.dub.co/misc/icons/firstpromoter.svg",
     helpUrl: "https://dub.co/help/article/migrating-from-firstpromoter",
   },
-  {
+  tapfiliate: {
     id: "tapfiliate",
     value: "Tapfiliate",
     image: "https://assets.dub.co/misc/icons/tapfiliate.svg",
     helpUrl: "https://dub.co/help/article/migrating-from-tapfiliate",
   },
-  {
+  lemonsqueezy: {
     id: "lemonsqueezy",
     value: "Lemon Squeezy",
     image: "https://assets.dub.co/misc/icons/lemonsqueezy.svg",
     helpUrl: "https://dub.co/help/article/migrating-from-lemonsqueezy",
   },
-] as const;
+};
 
 export const PROGRAM_APPLICATION_IMAGE_MAX_FILE_SIZE_MB = 5;
 

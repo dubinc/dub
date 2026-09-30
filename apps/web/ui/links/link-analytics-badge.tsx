@@ -145,7 +145,7 @@ export function LinkAnalyticsBadge({
         }
       >
         <Link
-          href={`/${slug}/links/analytics?linkId=${link.id}`}
+          href={`/${slug}/links/analytics?linkId=${link.id}&interval=all`}
           className={cn(
             "block overflow-hidden rounded-md border border-neutral-200 bg-neutral-50 p-0.5 text-sm text-neutral-600 transition-colors",
             variant === "loose" ? "hover:bg-neutral-100" : "hover:bg-white",
