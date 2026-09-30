@@ -10,6 +10,7 @@ import { createId } from "../api/create-id";
 import { bulkCreateLinks } from "../api/links";
 import { upsertPartnerPlatform } from "../api/partner-profile/upsert-partner-platform";
 import { queuePartnerSearchSync } from "../api/partners/queue-partner-search-sync";
+import { approveLinkedApplication } from "../program-applications/approve-linked-application";
 import { DEFAULT_PARTNER_GROUP } from "../zod/schemas/groups";
 import { FirstPromoterApi } from "./api";
 import { firstPromoterImporter, MAX_BATCHES } from "./importer";
@@ -205,6 +206,11 @@ async function createPartnerAndLinks({
     include: {
       links: true,
     },
+  });
+
+  await approveLinkedApplication({
+    applicationId: programEnrollment.applicationId,
+    userId,
   });
 
   if (!program.domain || !program.url) {

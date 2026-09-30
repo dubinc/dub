@@ -8,6 +8,7 @@ import { logger } from "@/lib/axiom/server";
 import { PRISMA_UPDATEMANY_LIMIT } from "@/lib/cron";
 import { conn } from "@/lib/planetscale";
 import { prisma } from "@/lib/prisma";
+import { approveLinkedApplication } from "@/lib/program-applications/approve-linked-application";
 import { storage } from "@/lib/storage";
 import { recordLink } from "@/lib/tinybird";
 import { redis } from "@/lib/upstash";
@@ -580,7 +581,14 @@ async function mergeSingleEnrollment({
               programId,
             },
           },
-          data: { status: "approved" },
+          data: {
+            status: "approved",
+          },
+        });
+
+        await approveLinkedApplication({
+          applicationId: targetEnrollment.applicationId,
+          tx,
         });
       }
 
