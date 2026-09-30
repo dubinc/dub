@@ -456,6 +456,7 @@ function PartnerRowMenuButton({
       await approvePartner({
         workspaceId: workspaceId!,
         partnerId: row.original.id,
+        applicationId: row.original.applicationId,
       });
     },
   });

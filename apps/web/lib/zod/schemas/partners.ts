@@ -956,6 +956,12 @@ export const approvePartnerSchema = z.object({
     .describe(
       "The ID of the group to assign the partner to. If not provided, the partner will be assigned to the group they applied to, or the program's default group if no application group is set.",
     ),
+  applicationId: z
+    .string()
+    .nullish()
+    .describe(
+      "The ID of the application to approve. Only used for group applications from partners who are already enrolled; defaults to their pending application.",
+    ),
 });
 
 export const bulkApprovePartnersSchema = z.object({
@@ -976,6 +982,12 @@ export const MAX_FRAUD_REASON_LENGTH = 2000;
 
 export const rejectPartnerSchema = z.object({
   partnerId: z.string().describe("The ID of the partner to reject."),
+  applicationId: z
+    .string()
+    .nullish()
+    .describe(
+      "The ID of the application to reject. Only used for group applications from partners who are already enrolled; defaults to their pending application.",
+    ),
   rejectionReason: z
     .enum(ProgramApplicationRejectionReason)
     .optional()

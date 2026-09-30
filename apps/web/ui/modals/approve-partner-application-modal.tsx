@@ -15,10 +15,17 @@ import {
 import { toast } from "sonner";
 import { useTrialLimitActivateModal } from "./trial-limit-activate-modal";
 
+type ApplicationPartner = Pick<
+  PartnerProps,
+  "id" | "name" | "email" | "image"
+> & {
+  applicationId?: string | null;
+};
+
 interface ApprovePartnerApplicationModalProps {
   showApprovePartnerApplicationModal: boolean;
   setShowApprovePartnerApplicationModal: Dispatch<SetStateAction<boolean>>;
-  partner: Pick<PartnerProps, "id" | "name" | "email" | "image">;
+  partner: ApplicationPartner;
   groupId?: string | null;
   onConfirm?: () => void | Promise<void>;
   confirmShortcutOptions?: {
@@ -73,6 +80,7 @@ export function ApprovePartnerApplicationModal({
       workspaceId,
       partnerId: partner.id,
       groupId: groupId ?? undefined,
+      applicationId: partner.applicationId ?? undefined,
     });
   }, [workspaceId, partner, groupId, approvePartnerApplication]);
 
@@ -146,7 +154,7 @@ export function useApprovePartnerApplicationModal({
   onConfirm,
   confirmShortcutOptions,
 }: {
-  partner: Pick<PartnerProps, "id" | "name" | "email" | "image">;
+  partner: ApplicationPartner;
   groupId?: string | null;
   onConfirm?: () => void | Promise<void>;
   confirmShortcutOptions?: {

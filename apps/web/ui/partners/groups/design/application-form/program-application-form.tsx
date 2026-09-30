@@ -4,6 +4,7 @@ import {
   createProgramApplicationAction,
   PartnerData,
 } from "@/lib/actions/partners/create-program-application";
+import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import {
   GroupWithFormDataProps,
   ProgramApplicationFormDataWithValues,
@@ -14,6 +15,7 @@ import { Button, useLocalStorage, useMediaQuery } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { useSession } from "next-auth/react";
 import { useAction } from "next-safe-action/hooks";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
@@ -43,6 +45,14 @@ export function ProgramApplicationForm({
   const { data: session } = useSession();
   const trackApplyStart = useTrackApplyStart({
     preview,
+  });
+
+  const { programEnrollment } = useProgramEnrollment({
+    enabled: !preview,
+    programSlug: program.slug,
+    swrOpts: {
+      shouldRetryOnError: false,
+    },
   });
 
   const form = useForm<FormData>({
@@ -129,6 +139,25 @@ export function ProgramApplicationForm({
 
   const isLoading =
     isSubmitting || isSubmitSuccessful || isPending || hasAnyLoadingStatus;
+
+  if (
+    programEnrollment?.status === "approved" &&
+    programEnrollment.groupId === group.id
+  ) {
+    return (
+      <div className="flex flex-col items-center gap-4 rounded-lg border border-neutral-200 bg-neutral-50 p-6 text-center">
+        <p className="text-content-default text-sm">
+          You&apos;re already in this group.
+        </p>
+        <Link
+          href={`/programs/${program.slug}`}
+          className="text-sm font-medium text-[var(--brand)] underline underline-offset-2 hover:opacity-80"
+        >
+          Go to program dashboard
+        </Link>
+      </div>
+    );
+  }
 
   return (
     <FormProvider {...form}>

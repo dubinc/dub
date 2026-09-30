@@ -9,6 +9,7 @@ export const POST = withWorkspace(
   async ({ workspace, req, session }) => {
     const {
       partnerId,
+      applicationId,
       rejectionReason,
       rejectionNote,
       reapplicationTimeframe,
@@ -19,6 +20,7 @@ export const POST = withWorkspace(
     await rejectPartner({
       workspace,
       partnerId,
+      applicationId,
       rejectionReason,
       rejectionNote,
       reapplicationTimeframe,

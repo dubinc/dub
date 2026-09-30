@@ -2,6 +2,7 @@ import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { queuePartnerSearchSync } from "@/lib/api/partners/queue-partner-search-sync";
 import { PRISMA_UPDATEMANY_LIMIT } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
+import { STANDARD_REAPPLICATION_DAYS } from "@/lib/partners/program-application-rejection";
 import { prisma } from "@/lib/prisma";
 import { log } from "@dub/utils";
 import { subDays } from "date-fns";
@@ -29,7 +30,7 @@ export async function POST(req: Request) {
           where: {
             status: "rejected",
             updatedAt: {
-              lt: subDays(new Date(), 30),
+              lt: subDays(new Date(), STANDARD_REAPPLICATION_DAYS),
             },
             reapplicationTimeframe: "standard",
             // only delete if there are no commissions
