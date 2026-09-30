@@ -21,6 +21,9 @@ export const PartnerApplicationSchema = z.object({
     image: true,
     description: true,
     country: true,
+    networkStatus: true,
+    defaultPayoutMethod: true,
+    payoutsEnabledAt: true,
   })
     .extend(
       ProgramEnrollmentSchema.pick({

@@ -2,7 +2,11 @@ import { isExactPartnerIdQuery } from "@/lib/api/partners/program-enrollment-que
 import { sanitizeFullTextSearch } from "@/lib/prisma";
 import { getProgramApplicationsCountQuerySchema } from "@/lib/zod/schemas/program-application";
 import { parseFilterValue } from "@dub/utils";
-import { Prisma, ProgramEnrollmentStatus } from "@prisma/client";
+import {
+  Prisma,
+  ProgramApplicationStatus,
+  ProgramEnrollmentStatus,
+} from "@prisma/client";
 import * as z from "zod/v4";
 
 function applicationFieldFilter(
@@ -26,23 +30,10 @@ type ProgramApplicationWhereParams = Omit<
   programId: string;
 };
 
-function applicationStatusWhere(
-  status: ProgramApplicationWhereParams["status"],
-): Prisma.ProgramApplicationWhereInput {
-  return {
-    rejectionReason:
-      status === ProgramEnrollmentStatus.rejected ? { not: null } : null,
-  };
-}
-
 function buildSearchWhere(query: string): Prisma.ProgramApplicationWhereInput {
   if (isExactPartnerIdQuery(query)) {
     return {
-      enrollment: {
-        partner: {
-          id: query,
-        },
-      },
+      partnerId: query,
     };
   }
 
@@ -55,10 +46,12 @@ function buildSearchWhere(query: string): Prisma.ProgramApplicationWhereInput {
       ...(fullTextQuery
         ? [
             {
-              enrollment: {
-                partner: {
-                  companyName: { search: fullTextQuery },
-                },
+              partner: {
+                OR: [
+                  { email: { search: fullTextQuery } },
+                  { name: { search: fullTextQuery } },
+                  { companyName: { search: fullTextQuery } },
+                ],
               },
             },
           ]
@@ -78,9 +71,17 @@ export function buildProgramApplicationWhere({
   const groupIdFilter = applicationFieldFilter(groupId);
   const countryFilter = applicationFieldFilter(country);
 
+  // The query schema accepts enrollment statuses (pending | rejected), so map
+  // them onto the application's own status. Approved applications are never listed.
+  const applicationStatus =
+    status === ProgramEnrollmentStatus.rejected
+      ? ProgramApplicationStatus.rejected
+      : ProgramApplicationStatus.pending;
+
   return {
     programId,
-    ...applicationStatusWhere(status),
+    status: applicationStatus,
+    partnerId: { not: null },
     ...(groupIdFilter && { groupId: groupIdFilter }),
     ...(countryFilter && { country: countryFilter }),
     ...(query ? buildSearchWhere(query) : {}),

@@ -6,10 +6,10 @@ import {
 import { ZodOpenApiOperationObject } from "zod-openapi";
 import * as z from "zod/v4";
 
-export const listPartnerApplications: ZodOpenApiOperationObject = {
+export const listProgramApplications: ZodOpenApiOperationObject = {
   operationId: "listPartnerApplications",
   "x-speakeasy-name-override": "list",
-  summary: "List all pending partner applications",
+  summary: "List all pending program applications",
   description:
     "Retrieve a paginated list of pending applications for your partner program.",
   requestParams: {
@@ -17,7 +17,7 @@ export const listPartnerApplications: ZodOpenApiOperationObject = {
   },
   responses: {
     "200": {
-      description: "The list of pending partner applications.",
+      description: "The list of pending program applications.",
       content: {
         "application/json": {
           schema: z.array(PartnerApplicationSchema),

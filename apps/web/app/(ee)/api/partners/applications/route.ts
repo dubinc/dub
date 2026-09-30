@@ -11,6 +11,7 @@ import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 
 // GET /api/partners/applications - get all pending applications for a program
+// @deprecated Use GET /api/program-applications instead. Kept for existing API/SDK clients.
 export const GET = withWorkspace(
   async ({ workspace, searchParams }) => {
     const {

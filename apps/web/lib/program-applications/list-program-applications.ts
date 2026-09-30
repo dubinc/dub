@@ -2,7 +2,7 @@ import { formatApplicationFormData } from "@/lib/partners/format-application-for
 import { prisma } from "@/lib/prisma";
 import { buildSocialPlatformLookup } from "@/lib/social-utils";
 import { getPartnerApplicationsQuerySchema } from "@/lib/zod/schemas/program-application";
-import { ProgramEnrollmentStatus } from "@prisma/client";
+import { Prisma, ProgramEnrollmentStatus } from "@prisma/client";
 import * as z from "zod/v4";
 import { buildProgramApplicationWhere } from "./program-application-where";
 
@@ -11,6 +11,23 @@ type ListProgramApplicationsParams = z.infer<
 > & {
   programId: string;
 };
+
+const programApplicationInclude = {
+  partner: {
+    include: {
+      platforms: true,
+    },
+  },
+  enrollment: {
+    select: {
+      status: true,
+    },
+  },
+} satisfies Prisma.ProgramApplicationInclude;
+
+type ProgramApplicationWithEnrollment = Prisma.ProgramApplicationGetPayload<{
+  include: typeof programApplicationInclude;
+}>;
 
 export async function listProgramApplications({
   programId,
@@ -32,17 +49,7 @@ export async function listProgramApplications({
 
   const applications = await prisma.programApplication.findMany({
     where,
-    include: {
-      enrollment: {
-        include: {
-          partner: {
-            include: {
-              platforms: true,
-            },
-          },
-        },
-      },
-    },
+    include: programApplicationInclude,
     orderBy: {
       createdAt: sortOrder,
     },
@@ -50,74 +57,74 @@ export async function listProgramApplications({
     skip: (page - 1) * pageSize,
   });
 
-  return applications.flatMap((application) => {
-    const enrollment = application.enrollment;
+  return applications.flatMap(
+    (application) => transformApplication(application) ?? [],
+  );
+}
 
-    if (!enrollment) {
+function transformApplication(application: ProgramApplicationWithEnrollment) {
+  const partner = application.partner;
+
+  if (!partner) {
+    return null;
+  }
+
+  const applicationFormData = formatApplicationFormData(application).map(
+    ({ title, value }) => ({
+      label: title,
+      value: value !== "" ? value : null,
+    }),
+  );
+
+  const platformsByType = buildSocialPlatformLookup(partner.platforms);
+
+  const platforms = (
+    [
+      "website",
+      "youtube",
+      "twitter",
+      "linkedin",
+      "instagram",
+      "tiktok",
+    ] as const
+  ).flatMap((type) => {
+    const platform = platformsByType[type];
+    const identifier = application[type] ?? platform?.identifier;
+
+    if (!identifier) {
       return [];
     }
 
-    const applicationFormData = formatApplicationFormData(application).map(
-      ({ title, value }) => ({
-        label: title,
-        value: value !== "" ? value : null,
-      }),
-    );
-
-    const platformsByType = buildSocialPlatformLookup(
-      enrollment.partner.platforms,
-    );
-
-    const platforms = (
-      [
-        "website",
-        "youtube",
-        "twitter",
-        "linkedin",
-        "instagram",
-        "tiktok",
-      ] as const
-    ).flatMap((type) => {
-      const platform = platformsByType[type];
-      const identifier = application[type] ?? platform?.identifier;
-
-      if (!identifier) {
-        return [];
-      }
-
-      return [
-        {
-          type,
-          identifier,
-          verifiedAt:
-            platform?.identifier === identifier
-              ? platform.verifiedAt ?? null
-              : null,
-        },
-      ];
-    });
-
     return [
       {
-        id: application.id,
-        createdAt: application.createdAt,
-        applicationFormData,
-        partner: {
-          ...enrollment.partner,
-          name: application.name,
-          email: application.email,
-          country: application.country,
-          groupId: application.groupId,
-          status: enrollment.status,
-          website: application.website,
-          youtube: application.youtube,
-          twitter: application.twitter,
-          linkedin: application.linkedin,
-          instagram: application.instagram,
-          tiktok: application.tiktok,
-          platforms,
-        },
+        type,
+        identifier,
+        verifiedAt:
+          platform?.identifier === identifier
+            ? platform.verifiedAt ?? null
+            : null,
       },
     ];
   });
+
+  return {
+    id: application.id,
+    createdAt: application.createdAt,
+    applicationFormData,
+    partner: {
+      ...partner,
+      name: application.name,
+      email: application.email,
+      country: application.country,
+      groupId: application.groupId,
+      status: application.status,
+      website: application.website,
+      youtube: application.youtube,
+      twitter: application.twitter,
+      linkedin: application.linkedin,
+      instagram: application.instagram,
+      tiktok: application.tiktok,
+      platforms,
+    },
+  };
 }
