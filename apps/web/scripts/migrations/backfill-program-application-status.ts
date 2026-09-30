@@ -1,6 +1,8 @@
-import { getApplicationStatusFromEnrollment } from "@/lib/partners/get-application-status-from-enrollment";
 import { prisma } from "@/lib/prisma";
-import { ProgramApplicationStatus } from "@prisma/client";
+import {
+  ProgramApplicationStatus,
+  ProgramEnrollmentStatus,
+} from "@prisma/client";
 import "dotenv-flow/config";
 
 const DRY_RUN = true;
@@ -18,6 +20,20 @@ type ReviewLogAction = keyof typeof REVIEW_LOG_ACTIONS;
 
 function isReviewLogAction(action: string): action is ReviewLogAction {
   return action in REVIEW_LOG_ACTIONS;
+}
+
+function getApplicationStatusFromEnrollment(
+  enrollmentStatus: ProgramEnrollmentStatus,
+): ProgramApplicationStatus {
+  if (enrollmentStatus === ProgramEnrollmentStatus.pending) {
+    return ProgramApplicationStatus.pending;
+  }
+
+  if (enrollmentStatus === ProgramEnrollmentStatus.rejected) {
+    return ProgramApplicationStatus.rejected;
+  }
+
+  return ProgramApplicationStatus.approved;
 }
 
 // Returns the decision of the review log closest to reviewedAt, within the match window
