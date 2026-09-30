@@ -14,8 +14,6 @@ import {
 import { Category, Prisma } from "@prisma/client";
 import { cache } from "react";
 
-const HOME_CATEGORY_SET = new Set<Category>(MARKETPLACE_HOME_CATEGORIES);
-
 const programInclude = {
   groups: {
     where: {
@@ -39,7 +37,6 @@ type ProgramRecord = Prisma.ProgramGetPayload<{
 type ProgramMeta = {
   program: ProgramRecord;
   categories: Category[];
-  primary: Category | null;
 };
 
 function formatNetworkProgram(program: ProgramRecord) {
@@ -58,20 +55,18 @@ function formatNetworkProgram(program: ProgramRecord) {
   });
 }
 
-function getPrimaryCategory(categories: Category[]) {
-  return [...categories].sort((a, b) => {
-    const labelA = PROGRAM_CATEGORIES_MAP[a]?.label ?? a;
-    const labelB = PROGRAM_CATEGORIES_MAP[b]?.label ?? b;
-    return labelA.localeCompare(labelB);
-  })[0];
+function byCategoryLabel(a: Category, b: Category) {
+  const labelA = PROGRAM_CATEGORIES_MAP[a]?.label ?? a;
+  const labelB = PROGRAM_CATEGORIES_MAP[b]?.label ?? b;
+  return labelA.localeCompare(labelB);
 }
 
 function toProgramMeta(program: ProgramRecord): ProgramMeta {
-  const categories = program.categories.map(({ category }) => category);
   return {
     program,
-    categories,
-    primary: categories.length > 0 ? getPrimaryCategory(categories) : null,
+    categories: program.categories
+      .map(({ category }) => category)
+      .sort(byCategoryLabel),
   };
 }
 
@@ -117,59 +112,31 @@ function selectPrograms(
 }
 
 function selectCategoryRows(programMeta: ProgramMeta[], usedIds: Set<string>) {
-  const rows = new Map<Category, ProgramRecord[]>();
-
-  for (const category of MARKETPLACE_HOME_CATEGORIES) {
-    rows.set(
-      category,
-      selectPrograms(
-        programMeta
-          .filter((meta) => meta.primary === category)
-          .map((meta) => meta.program),
-        usedIds,
-        MARKETPLACE_HOME_ROW_PAGE_SIZE,
-        byMarketplaceRanking,
-      ),
-    );
-  }
-
-  const missedPrimary = new Set(
-    programMeta
-      .filter(
-        (meta) =>
-          meta.primary &&
-          HOME_CATEGORY_SET.has(meta.primary) &&
-          !usedIds.has(meta.program.id),
-      )
-      .map((meta) => meta.program.id),
+  const rows = new Map<Category, ProgramRecord[]>(
+    MARKETPLACE_HOME_CATEGORIES.map((category) => [category, []]),
   );
 
-  for (const category of MARKETPLACE_HOME_CATEGORIES) {
-    const current = rows.get(category)!;
-    const remaining = MARKETPLACE_HOME_ROW_PAGE_SIZE - current.length;
+  // Best-ranked programs claim a slot first. A program uses its first category
+  // when that row still has room, then falls through to later categories.
+  const ranked = [...programMeta].sort((a, b) =>
+    byMarketplaceRanking(a.program, b.program),
+  );
 
-    if (remaining === 0) {
+  for (const { program, categories } of ranked) {
+    if (usedIds.has(program.id)) {
       continue;
     }
 
-    const additional = selectPrograms(
-      programMeta
-        .filter(
-          (meta) =>
-            missedPrimary.has(meta.program.id) &&
-            meta.categories.includes(category) &&
-            meta.primary !== category,
-        )
-        .map((meta) => meta.program),
-      usedIds,
-      remaining,
-      byMarketplaceRanking,
-    );
+    for (const category of categories) {
+      const row = rows.get(category);
 
-    rows.set(category, [...current, ...additional]);
+      if (!row || row.length >= MARKETPLACE_HOME_ROW_PAGE_SIZE) {
+        continue;
+      }
 
-    for (const program of additional) {
-      missedPrimary.delete(program.id);
+      row.push(program);
+      usedIds.add(program.id);
+      break;
     }
   }
 
