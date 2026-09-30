@@ -222,6 +222,11 @@ async function backfillRejectedFromRejectionFields() {
   while (true) {
     const applications = await prisma.programApplication.findMany({
       where: {
+        ...(cursor && {
+          id: {
+            gt: cursor,
+          },
+        }),
         enrollment: null,
         status: ProgramApplicationStatus.pending,
         OR: [
@@ -247,12 +252,6 @@ async function backfillRejectedFromRejectionFields() {
         id: "asc",
       },
       take: BATCH_SIZE,
-      ...(cursor && {
-        skip: 1,
-        cursor: {
-          id: cursor,
-        },
-      }),
     });
 
     if (applications.length === 0) {
@@ -340,6 +339,11 @@ async function backfillPartnerIdsByEmail() {
   while (true) {
     const applications = await prisma.programApplication.findMany({
       where: {
+        ...(cursor && {
+          id: {
+            gt: cursor,
+          },
+        }),
         enrollment: null,
         partnerId: null,
       },
@@ -351,12 +355,6 @@ async function backfillPartnerIdsByEmail() {
         id: "asc",
       },
       take: BATCH_SIZE,
-      ...(cursor && {
-        skip: 1,
-        cursor: {
-          id: cursor,
-        },
-      }),
     });
 
     if (applications.length === 0) {
@@ -424,6 +422,11 @@ async function backfillFromActivityLogs() {
   while (true) {
     const applications = await prisma.programApplication.findMany({
       where: {
+        ...(cursor && {
+          id: {
+            gt: cursor,
+          },
+        }),
         enrollment: null,
         status: ProgramApplicationStatus.pending,
         reviewedAt: {
@@ -441,12 +444,6 @@ async function backfillFromActivityLogs() {
         id: "asc",
       },
       take: BATCH_SIZE,
-      ...(cursor && {
-        skip: 1,
-        cursor: {
-          id: cursor,
-        },
-      }),
     });
 
     if (applications.length === 0) {
@@ -602,6 +599,11 @@ async function backfillFromAuditLogs() {
   while (true) {
     const applications = await prisma.programApplication.findMany({
       where: {
+        ...(cursor && {
+          id: {
+            gt: cursor,
+          },
+        }),
         enrollment: null,
         status: ProgramApplicationStatus.pending,
         reviewedAt: {
@@ -620,12 +622,6 @@ async function backfillFromAuditLogs() {
         id: "asc",
       },
       take: BATCH_SIZE,
-      ...(cursor && {
-        skip: 1,
-        cursor: {
-          id: cursor,
-        },
-      }),
     });
 
     if (applications.length === 0) {
