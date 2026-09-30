@@ -104,29 +104,41 @@ export const POST = withWorkspace(
 
     // links-subdomain v1 scopes all records under `host`, so its TXT lands at
     // `_vercel.<subdomain>`. v2 takes `cnameHost` and writes the TXT at the apex.
-    // Providers deploy template versions independently.
-    let subdomainTemplateVersion = 1;
-    if (!isApex && discovery.urlAPI) {
-      try {
-        const res = await fetch(
-          `${discovery.urlAPI}/v2/domainTemplates/providers/${DOMAIN_CONNECT_PROVIDER_ID}/services/${serviceId}`,
-          {
-            headers: { accept: "application/json" },
-            redirect: "manual",
-            signal: AbortSignal.timeout(3000),
-          },
-        );
-        if (res.ok) {
-          const { version } = (await res.json()) as { version?: unknown };
-          if (typeof version === "number") subdomainTemplateVersion = version;
-        }
-      } catch {}
-    }
+    // Providers deploy template versions independently, so only sign once the
+    // provider confirms which version it serves.
+    let subdomainTemplateV2 = false;
+    if (subdomain) {
+      let version: number | undefined;
+      if (discovery.urlAPI) {
+        try {
+          const res = await fetch(
+            `${discovery.urlAPI}/v2/domainTemplates/providers/${DOMAIN_CONNECT_PROVIDER_ID}/services/${serviceId}`,
+            {
+              headers: { accept: "application/json" },
+              redirect: "manual",
+              signal: AbortSignal.timeout(3000),
+            },
+          );
+          if (res.ok) {
+            const json = (await res.json()) as { version?: unknown };
+            if (typeof json.version === "number") version = json.version;
+          }
+        } catch {}
+      }
 
-    if (subdomain && subdomainTemplateVersion >= 2) {
-      queryParams.cnameHost = subdomain;
-    } else if (subdomain) {
-      queryParams.host = subdomain;
+      if (!version) {
+        throw new DubApiError({
+          code: "internal_server_error",
+          message: "Couldn't reach your DNS provider. Please try again.",
+        });
+      }
+
+      subdomainTemplateV2 = version >= 2;
+      if (subdomainTemplateV2) {
+        queryParams.cnameHost = subdomain;
+      } else {
+        queryParams.host = subdomain;
+      }
     }
 
     const txtVerification = domainJson.verification?.find(
@@ -148,7 +160,7 @@ export const POST = withWorkspace(
       }
     } else if (
       txtValue &&
-      subdomainTemplateVersion >= 2 &&
+      subdomainTemplateV2 &&
       txtVerification.domain?.toLowerCase().replace(/\.$/, "") ===
         `_vercel.${apex}`
     ) {
