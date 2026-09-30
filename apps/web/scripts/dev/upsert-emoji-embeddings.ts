@@ -1,5 +1,5 @@
-import { toEmojiMatches } from "@/lib/ai/search-emojis";
 import "dotenv-flow/config";
+import { toEmojiMatches } from "../../lib/ai/search-emojis";
 import { emojiVectorIndex } from "../../lib/upstash/vector";
 
 const EMOJIBASE_DATA_URL =

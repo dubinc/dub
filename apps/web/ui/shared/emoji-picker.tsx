@@ -1,6 +1,7 @@
 import type { EmojiMatch } from "@/lib/ai/search-emojis";
 import { Button, Popover } from "@dub/ui";
 import { FaceSmile } from "@dub/ui/icons";
+import { cn } from "@dub/utils";
 import { EmojiPicker as EmojiPickerBase } from "frimousse";
 import {
   PropsWithChildren,
@@ -16,6 +17,18 @@ import {
 } from "./use-semantic-emoji-search";
 
 const EMOJI_COLUMNS = 9;
+
+const LOADING_MESSAGES = [
+  "Discombobulating...",
+  "Percolating...",
+  "Conjuring...",
+  "Reticulating...",
+  "Vibing...",
+  "Finagling...",
+  "Noodling...",
+  "Simmering...",
+  "Baking...",
+];
 
 function EmojiMatchGrid({
   matches,
@@ -52,9 +65,9 @@ function EmojiMatchGrid({
   );
 }
 
-function EmojiSkeleton() {
+function EmojiSkeleton({ className }: { className?: string }) {
   return (
-    <div className="w-full pt-1.5" aria-hidden>
+    <div className={cn("w-full pt-1.5", className)} aria-hidden>
       {Array.from({ length: 8 }, (_, row) => (
         <div key={row} className="flex w-full px-1.5">
           {Array.from({ length: EMOJI_COLUMNS }, (_, column) => (
@@ -80,9 +93,17 @@ function EmojiSearchFallback({
 }) {
   const query = normalizeEmojiQuery(search);
   const semantic = useSemanticEmojiSearch(query, query.length >= 2);
+  const [loadingMessage] = useState(
+    () => LOADING_MESSAGES[Math.floor(Math.random() * LOADING_MESSAGES.length)],
+  );
 
   if (semantic.status === "loading") {
-    return <EmojiSkeleton />;
+    return (
+      <>
+        <EmojiSearchHeader>{loadingMessage}</EmojiSearchHeader>
+        <EmojiSkeleton className="pt-0" />
+      </>
+    );
   }
 
   if (semantic.status !== "ready") {
@@ -93,7 +114,20 @@ function EmojiSearchFallback({
     );
   }
 
-  return <EmojiMatchGrid matches={semantic.matches} onSelect={onSelect} />;
+  return (
+    <>
+      <EmojiSearchHeader>Did you mean...</EmojiSearchHeader>
+      <EmojiMatchGrid matches={semantic.matches} onSelect={onSelect} />
+    </>
+  );
+}
+
+function EmojiSearchHeader({ children }: PropsWithChildren) {
+  return (
+    <div className="text-content-subtle w-full bg-white px-3 pb-1.5 pt-3 text-xs font-medium">
+      {children}
+    </div>
+  );
 }
 
 type EmojiPickerProps = PropsWithChildren<{
@@ -165,7 +199,7 @@ export function EmojiPicker({
       setOpenPopover={setOpenPopover}
       side="top"
       align="start"
-      sideOffset={anchorRect ? 6 : 38}
+      sideOffset={anchorRect ? 6 : 8}
       anchor={anchorEl}
       onEscapeKeyDown={() => {
         keyboardDismissRef.current = true;
