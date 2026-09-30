@@ -1,72 +1,44 @@
 import { getApplicationStatusFromEnrollment } from "@/lib/partners/get-application-status-from-enrollment";
 import { prisma } from "@/lib/prisma";
-import {
-  ProgramApplication,
-  ProgramApplicationStatus,
-  ProgramEnrollment,
-} from "@prisma/client";
+import { ProgramApplicationStatus } from "@prisma/client";
 import "dotenv-flow/config";
 
 const DRY_RUN = true;
 const BATCH_SIZE = 500;
 
-// ProgramApplication.reviewedAt was introduced on this date (#3664) without a backfill
-const REVIEWED_AT_INTRODUCED_AT = new Date("2026-03-30");
+// Max gap between an application's reviewedAt and the activity log written by the same review
+const REVIEW_LOG_MATCH_WINDOW_MS = 10 * 60 * 1000;
 
-function getApplicationStatus({
-  application,
-  enrollment,
-  matchedPartnerId,
-}: {
-  application: Pick<ProgramApplication, "reviewedAt">;
-  enrollment: Pick<ProgramEnrollment, "status"> | null;
-  matchedPartnerId: string | null;
-}): ProgramApplicationStatus {
-  if (!enrollment) {
-    if (application.reviewedAt) {
-      return ProgramApplicationStatus.rejected;
-    }
+const REVIEW_LOG_ACTIONS = {
+  "partner_application.approved": ProgramApplicationStatus.approved,
+  "partner_application.rejected": ProgramApplicationStatus.rejected,
+} as const;
 
-    // A partner signed up with this email, so the application was converted into an
-    // enrollment that has since been removed (e.g. by the rejected-applications cleanup cron)
-    return matchedPartnerId
-      ? ProgramApplicationStatus.rejected
-      : ProgramApplicationStatus.pending;
-  }
+// Pass 1: applications linked to an enrollment take their status and partnerId from it
+async function backfillFromEnrollments() {
+  console.log("Pass 1: applications with an enrollment");
 
-  return getApplicationStatusFromEnrollment(enrollment.status);
-}
-
-async function main() {
-  console.log(`DRY_RUN=${DRY_RUN} BATCH_SIZE=${BATCH_SIZE}`);
-
-  const totals: Record<
-    | ProgramApplicationStatus
-    | "partnerIds"
-    | "inferredRejected"
-    | "inferredRejectedSinceReviewedAt",
-    number
-  > = {
+  const totals = {
+    scanned: 0,
     pending: 0,
     approved: 0,
     rejected: 0,
     partnerIds: 0,
-    inferredRejected: 0,
-    inferredRejectedSinceReviewedAt: 0,
   };
 
-  let totalScanned = 0;
   let cursor: string | undefined;
 
   while (true) {
     const applications = await prisma.programApplication.findMany({
+      where: {
+        enrollment: {
+          isNot: null,
+        },
+      },
       select: {
         id: true,
-        email: true,
         partnerId: true,
         status: true,
-        reviewedAt: true,
-        createdAt: true,
         enrollment: {
           select: {
             partnerId: true,
@@ -90,84 +62,8 @@ async function main() {
       break;
     }
 
-    totalScanned += applications.length;
+    totals.scanned += applications.length;
     cursor = applications[applications.length - 1].id;
-
-    const unreviewedEmails = [
-      ...new Set(
-        applications
-          .filter(({ enrollment, reviewedAt }) => !enrollment && !reviewedAt)
-          .map(({ email }) => email.toLowerCase()),
-      ),
-    ];
-
-    const users =
-      unreviewedEmails.length > 0
-        ? await prisma.user.findMany({
-            where: {
-              email: {
-                in: unreviewedEmails,
-              },
-              partners: {
-                some: {},
-              },
-            },
-            select: {
-              email: true,
-              partners: {
-                select: {
-                  partnerId: true,
-                },
-                take: 1,
-              },
-            },
-          })
-        : [];
-
-    const partnerIdByEmail = new Map(
-      users
-        .filter((user) => user.email && user.partners.length > 0)
-        .map((user) => [user.email!.toLowerCase(), user.partners[0].partnerId]),
-    );
-
-    const changes = applications.map((application) => {
-      const matchedPartnerId = application.enrollment
-        ? null
-        : partnerIdByEmail.get(application.email.toLowerCase()) ?? null;
-
-      const status = getApplicationStatus({
-        application,
-        enrollment: application.enrollment,
-        matchedPartnerId,
-      });
-
-      const partnerId =
-        application.enrollment?.partnerId ?? matchedPartnerId ?? null;
-
-      const updateStatus =
-        application.status === ProgramApplicationStatus.pending &&
-        status !== ProgramApplicationStatus.pending;
-
-      return {
-        id: application.id,
-        enrollmentStatus: application.enrollment?.status ?? null,
-        reviewedAt: application.reviewedAt,
-        createdAt: application.createdAt,
-        currentStatus: application.status,
-        status,
-        updateStatus,
-        inferredRejected: Boolean(
-          updateStatus && !application.reviewedAt && matchedPartnerId,
-        ),
-        currentPartnerId: application.partnerId,
-        partnerId,
-        updatePartnerId: Boolean(
-          partnerId && application.partnerId !== partnerId,
-        ),
-      };
-    });
-
-    console.table(changes.slice(0, 20));
 
     const idsByStatus: Record<ProgramApplicationStatus, string[]> = {
       pending: [],
@@ -175,86 +71,491 @@ async function main() {
       rejected: [],
     };
 
-    for (const change of changes) {
-      if (change.updateStatus) {
-        idsByStatus[change.status].push(change.id);
-      }
-    }
+    const partnerIdUpdates: { id: string; partnerId: string }[] = [];
 
-    const partnerIdUpdates = changes.filter((change) => change.updatePartnerId);
+    for (const application of applications) {
+      const { enrollment } = application;
 
-    const inferredRejected = changes.filter(
-      (change) => change.inferredRejected,
-    );
-
-    if (inferredRejected.length > 0) {
-      console.log(
-        `Inferred ${inferredRejected.length} rejected applications from matching partner emails`,
-      );
-      console.table(inferredRejected.slice(0, 20));
-    }
-
-    totals.inferredRejected += inferredRejected.length;
-    totals.inferredRejectedSinceReviewedAt += inferredRejected.filter(
-      (change) => change.createdAt >= REVIEWED_AT_INTRODUCED_AT,
-    ).length;
-
-    if (DRY_RUN) {
-      for (const status of Object.values(ProgramApplicationStatus)) {
-        totals[status] += idsByStatus[status].length;
+      if (!enrollment) {
+        continue;
       }
 
-      totals.partnerIds += partnerIdUpdates.length;
-    } else {
-      for (const status of Object.values(ProgramApplicationStatus)) {
-        const ids = idsByStatus[status];
+      const status = getApplicationStatusFromEnrollment(enrollment.status);
 
-        if (ids.length === 0) {
-          continue;
-        }
+      // If status mismatch, update the status
+      if (
+        application.status === ProgramApplicationStatus.pending &&
+        status !== ProgramApplicationStatus.pending
+      ) {
+        idsByStatus[status].push(application.id);
+      }
 
-        const { count } = await prisma.programApplication.updateMany({
-          where: {
-            id: {
-              in: ids,
-            },
-            status: ProgramApplicationStatus.pending,
-          },
-          data: {
-            status,
-          },
+      // If partnerId is missing, set it from the enrollment
+      if (!application.partnerId) {
+        partnerIdUpdates.push({
+          id: application.id,
+          partnerId: enrollment.partnerId,
         });
+      }
+    }
 
-        totals[status] += count;
+    for (const status of Object.values(ProgramApplicationStatus)) {
+      const ids = idsByStatus[status];
+
+      if (ids.length === 0) {
+        continue;
       }
 
-      if (partnerIdUpdates.length > 0) {
+      if (DRY_RUN) {
+        totals[status] += ids.length;
+        continue;
+      }
+
+      const { count } = await prisma.programApplication.updateMany({
+        where: {
+          id: {
+            in: ids,
+          },
+          status: ProgramApplicationStatus.pending,
+        },
+        data: {
+          status,
+        },
+      });
+
+      totals[status] += count;
+    }
+
+    if (partnerIdUpdates.length > 0) {
+      if (!DRY_RUN) {
         await prisma.$transaction(
-          partnerIdUpdates.map((change) =>
+          partnerIdUpdates.map(({ id, partnerId }) =>
             prisma.programApplication.update({
               where: {
-                id: change.id,
+                id,
               },
               data: {
-                partnerId: change.partnerId,
+                partnerId,
               },
             }),
           ),
         );
-
-        totals.partnerIds += partnerIdUpdates.length;
       }
+
+      totals.partnerIds += partnerIdUpdates.length;
     }
 
     console.log(
-      `${DRY_RUN ? "Would process" : "Processed"} ${applications.length} applications up to ${cursor} (scanned=${totalScanned})`,
+      `${DRY_RUN ? "Would process" : "Processed"} ${applications.length} applications up to ${cursor}`,
     );
   }
 
-  console.log(
-    `Finished. scanned=${totalScanned} ${DRY_RUN ? "would-update" : "updated"}:`,
-  );
   console.table(totals);
+}
+
+// Pass 2: applications without an enrollment that carry a rejection reason or note were rejected
+async function backfillRejectedFromRejectionFields() {
+  console.log(
+    "Pass 2: applications without an enrollment and a rejection reason or note",
+  );
+
+  const totals = {
+    scanned: 0,
+    rejected: 0,
+  };
+
+  let cursor: string | undefined;
+
+  while (true) {
+    const applications = await prisma.programApplication.findMany({
+      where: {
+        enrollment: null,
+        status: ProgramApplicationStatus.pending,
+        OR: [
+          {
+            rejectionReason: {
+              not: null,
+            },
+          },
+          {
+            rejectionNote: {
+              not: null,
+            },
+          },
+        ],
+      },
+      select: {
+        id: true,
+        rejectionReason: true,
+        rejectionNote: true,
+        reviewedAt: true,
+      },
+      orderBy: {
+        id: "asc",
+      },
+      take: BATCH_SIZE,
+      ...(cursor && {
+        skip: 1,
+        cursor: {
+          id: cursor,
+        },
+      }),
+    });
+
+    if (applications.length === 0) {
+      break;
+    }
+
+    totals.scanned += applications.length;
+    cursor = applications[applications.length - 1].id;
+
+    console.table(applications.slice(0, 20));
+
+    if (DRY_RUN) {
+      totals.rejected += applications.length;
+    } else {
+      const { count } = await prisma.programApplication.updateMany({
+        where: {
+          id: {
+            in: applications.map(({ id }) => id),
+          },
+          status: ProgramApplicationStatus.pending,
+        },
+        data: {
+          status: ProgramApplicationStatus.rejected,
+        },
+      });
+
+      totals.rejected += count;
+    }
+
+    console.log(
+      `${DRY_RUN ? "Would process" : "Processed"} ${applications.length} applications up to ${cursor}`,
+    );
+  }
+
+  console.table(totals);
+}
+
+// Match on the registered user's email (verified at login), not Partner.email,
+// which importers and the partners API can set on partners nobody has claimed
+async function getPartnerIdsByEmail(emails: string[]) {
+  const uniqueEmails = [...new Set(emails.map((email) => email.toLowerCase()))];
+
+  if (uniqueEmails.length === 0) {
+    return new Map<string, string>();
+  }
+
+  const users = await prisma.user.findMany({
+    where: {
+      email: {
+        in: uniqueEmails,
+      },
+      partners: {
+        some: {},
+      },
+    },
+    select: {
+      email: true,
+      partners: {
+        select: {
+          partnerId: true,
+        },
+        take: 1,
+      },
+    },
+  });
+
+  return new Map(
+    users
+      .filter((user) => user.email && user.partners.length > 0)
+      .map((user) => [user.email!.toLowerCase(), user.partners[0].partnerId]),
+  );
+}
+
+// Pass 3: applications without an enrollment get their partnerId from a registered partner with the same email
+async function backfillPartnerIdsByEmail() {
+  console.log("Pass 3: partnerId for applications without an enrollment");
+
+  const totals = {
+    scanned: 0,
+    partnerIds: 0,
+  };
+
+  let cursor: string | undefined;
+
+  while (true) {
+    const applications = await prisma.programApplication.findMany({
+      where: {
+        enrollment: null,
+        partnerId: null,
+      },
+      select: {
+        id: true,
+        email: true,
+      },
+      orderBy: {
+        id: "asc",
+      },
+      take: BATCH_SIZE,
+      ...(cursor && {
+        skip: 1,
+        cursor: {
+          id: cursor,
+        },
+      }),
+    });
+
+    if (applications.length === 0) {
+      break;
+    }
+
+    totals.scanned += applications.length;
+    cursor = applications[applications.length - 1].id;
+
+    const partnerIdByEmail = await getPartnerIdsByEmail(
+      applications.map(({ email }) => email),
+    );
+
+    const partnerIdUpdates = applications.flatMap(({ id, email }) => {
+      const partnerId = partnerIdByEmail.get(email.toLowerCase());
+      return partnerId ? [{ id, email, partnerId }] : [];
+    });
+
+    if (partnerIdUpdates.length > 0) {
+      console.table(partnerIdUpdates.slice(0, 20));
+
+      if (!DRY_RUN) {
+        await prisma.$transaction(
+          partnerIdUpdates.map(({ id, partnerId }) =>
+            prisma.programApplication.update({
+              where: {
+                id,
+              },
+              data: {
+                partnerId,
+              },
+            }),
+          ),
+        );
+      }
+
+      totals.partnerIds += partnerIdUpdates.length;
+    }
+
+    console.log(
+      `${DRY_RUN ? "Would process" : "Processed"} ${applications.length} applications up to ${cursor}`,
+    );
+  }
+
+  console.table(totals);
+}
+
+// Pass 4: reviewed applications without an enrollment take the decision from the activity log
+// written by the same review (matched by programId, partnerId, and closest to reviewedAt)
+async function backfillFromActivityLogs() {
+  console.log(
+    "Pass 4: reviewed applications without an enrollment, from the activity log",
+  );
+
+  const totals = {
+    scanned: 0,
+    approved: 0,
+    rejected: 0,
+    noPartnerId: 0,
+    noMatchingLog: 0,
+  };
+
+  let cursor: string | undefined;
+
+  while (true) {
+    const applications = await prisma.programApplication.findMany({
+      where: {
+        enrollment: null,
+        status: ProgramApplicationStatus.pending,
+        reviewedAt: {
+          not: null,
+        },
+      },
+      select: {
+        id: true,
+        programId: true,
+        partnerId: true,
+        email: true,
+        reviewedAt: true,
+      },
+      orderBy: {
+        id: "asc",
+      },
+      take: BATCH_SIZE,
+      ...(cursor && {
+        skip: 1,
+        cursor: {
+          id: cursor,
+        },
+      }),
+    });
+
+    if (applications.length === 0) {
+      break;
+    }
+
+    totals.scanned += applications.length;
+    cursor = applications[applications.length - 1].id;
+
+    const partnerIdByEmail = await getPartnerIdsByEmail(
+      applications
+        .filter(({ partnerId }) => !partnerId)
+        .map(({ email }) => email),
+    );
+
+    const candidates = applications.flatMap((application) => {
+      const partnerId =
+        application.partnerId ??
+        partnerIdByEmail.get(application.email.toLowerCase());
+
+      if (!partnerId || !application.reviewedAt) {
+        totals.noPartnerId++;
+        return [];
+      }
+
+      return [
+        {
+          ...application,
+          partnerId,
+          reviewedAt: application.reviewedAt,
+        },
+      ];
+    });
+
+    const logs =
+      candidates.length > 0
+        ? await prisma.activityLog.findMany({
+            where: {
+              resourceType: "partner",
+              resourceId: {
+                in: [...new Set(candidates.map(({ partnerId }) => partnerId))],
+              },
+              programId: {
+                in: [...new Set(candidates.map(({ programId }) => programId))],
+              },
+              action: {
+                in: Object.keys(REVIEW_LOG_ACTIONS),
+              },
+            },
+            select: {
+              programId: true,
+              resourceId: true,
+              action: true,
+              createdAt: true,
+            },
+          })
+        : [];
+
+    const logsByKey = new Map<string, typeof logs>();
+
+    for (const log of logs) {
+      const key = `${log.programId}:${log.resourceId}`;
+      logsByKey.set(key, [...(logsByKey.get(key) ?? []), log]);
+    }
+
+    const idsByStatus: Record<ProgramApplicationStatus, string[]> = {
+      pending: [],
+      approved: [],
+      rejected: [],
+    };
+
+    const unmatched: typeof candidates = [];
+
+    for (const candidate of candidates) {
+      const reviewedAt = candidate.reviewedAt.getTime();
+
+      let closest: { action: string; gap: number } | null = null;
+
+      for (const log of logsByKey.get(
+        `${candidate.programId}:${candidate.partnerId}`,
+      ) ?? []) {
+        const gap = Math.abs(log.createdAt.getTime() - reviewedAt);
+
+        if (
+          gap <= REVIEW_LOG_MATCH_WINDOW_MS &&
+          (!closest || gap < closest.gap)
+        ) {
+          closest = {
+            action: log.action,
+            gap,
+          };
+        }
+      }
+
+      if (!closest) {
+        unmatched.push(candidate);
+        continue;
+      }
+
+      const status =
+        REVIEW_LOG_ACTIONS[closest.action as keyof typeof REVIEW_LOG_ACTIONS];
+
+      idsByStatus[status].push(candidate.id);
+    }
+
+    totals.noMatchingLog += unmatched.length;
+
+    if (unmatched.length > 0) {
+      console.log(
+        `${unmatched.length} reviewed applications have no matching activity log`,
+      );
+      console.table(unmatched.slice(0, 20));
+    }
+
+    for (const status of [
+      ProgramApplicationStatus.approved,
+      ProgramApplicationStatus.rejected,
+    ]) {
+      const ids = idsByStatus[status];
+
+      if (ids.length === 0) {
+        continue;
+      }
+
+      if (DRY_RUN) {
+        totals[status] += ids.length;
+        continue;
+      }
+
+      const { count } = await prisma.programApplication.updateMany({
+        where: {
+          id: {
+            in: ids,
+          },
+          status: ProgramApplicationStatus.pending,
+        },
+        data: {
+          status,
+        },
+      });
+
+      totals[status] += count;
+    }
+
+    console.log(
+      `${DRY_RUN ? "Would process" : "Processed"} ${applications.length} applications up to ${cursor}`,
+    );
+  }
+
+  console.table(totals);
+}
+
+async function main() {
+  console.log(`DRY_RUN=${DRY_RUN} BATCH_SIZE=${BATCH_SIZE}`);
+
+  // In order:
+  await backfillFromEnrollments();
+  await backfillRejectedFromRejectionFields();
+  await backfillPartnerIdsByEmail();
+  await backfillFromActivityLogs();
+
+  console.log("Finished.");
 }
 
 main();
