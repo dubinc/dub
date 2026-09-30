@@ -438,6 +438,10 @@ async function resolveLinkAndCustomer(args: ResolveLinkAndCustomerArgs) {
  * - P2002: the update sets a `stripeCustomerId` already used by another customer.
  * - P2025: the create hit one of the other unique keys, so the fallback lookup
  *   by `(projectId, externalId)` found nothing.
+ *
+ * P2034 (write conflict / deadlock) is retried: MySQL can deadlock concurrent
+ * inserts that collide on the same unique index, and the retry then resolves
+ * to one of the cases above.
  */
 async function createOrUpdateCustomer({
   workspace,
@@ -454,56 +458,77 @@ async function createOrUpdateCustomer({
   const { id, name, email, avatar, externalId, stripeCustomerId, country } =
     customer;
 
-  try {
-    const { customer: resolvedCustomer, created } = await getOrCreateCustomer({
-      where: {
-        projectId_externalId: {
-          projectId: workspace.id,
-          externalId,
+  // Retry on MySQL deadlocks (P2034) from concurrent inserts on the same unique key
+  const maxAttempts = 3;
+
+  for (let attempt = 1; ; attempt++) {
+    try {
+      const { customer: resolvedCustomer, created } = await getOrCreateCustomer(
+        {
+          where: {
+            projectId_externalId: {
+              projectId: workspace.id,
+              externalId,
+            },
+          },
+          create: {
+            id,
+            name,
+            email,
+            avatar,
+            externalId,
+            stripeCustomerId,
+            linkId,
+            country,
+            projectId: workspace.id,
+            projectConnectId: workspace.stripeConnectId,
+          },
         },
-      },
-      create: {
-        id,
-        name,
-        email,
-        avatar,
-        externalId,
-        stripeCustomerId,
-        linkId,
-        country,
-        projectId: workspace.id,
-        projectConnectId: workspace.stripeConnectId,
-      },
-    });
+      );
 
-    if (created) {
-      return resolvedCustomer;
-    }
+      if (created) {
+        return resolvedCustomer;
+      }
 
-    return await prisma.customer.update({
-      where: {
-        id: resolvedCustomer.id,
-      },
-      data: {
-        name,
-        email,
-        avatar,
-        country,
-        stripeCustomerId,
-      },
-    });
-  } catch (error) {
-    if (
-      error instanceof Prisma.PrismaClientKnownRequestError &&
-      (error.code === "P2002" || error.code === "P2025")
-    ) {
-      throw new DubApiError({
-        code: "conflict",
-        message: `A customer with external ID ${externalId} or Stripe customer ID ${stripeCustomerId} already exists.`,
+      return await prisma.customer.update({
+        where: {
+          id: resolvedCustomer.id,
+        },
+        data: {
+          name,
+          email,
+          avatar,
+          country,
+          stripeCustomerId,
+        },
       });
-    }
+    } catch (error) {
+      if (!(error instanceof Prisma.PrismaClientKnownRequestError)) {
+        throw error;
+      }
 
-    throw error;
+      if (error.code === "P2034" && attempt < maxAttempts) {
+        continue;
+      }
+
+      if (error.code === "P2002") {
+        throw new DubApiError({
+          code: "conflict",
+          message: `The Stripe customer ID ${stripeCustomerId} is already linked to a different customer than external ID ${externalId}.`,
+        });
+      }
+
+      if (error.code === "P2025") {
+        throw new DubApiError({
+          code: "conflict",
+          message: stripeCustomerId
+            ? `The Stripe customer ID ${stripeCustomerId} is already linked to a customer with a different external ID.`
+            : `A customer with external ID ${externalId} already exists for this Stripe account.`,
+        });
+      }
+
+      throw error;
+    }
   }
 }
 
