@@ -2,26 +2,24 @@
 
 import useWorkspaces from "@/lib/swr/use-workspaces";
 import { WorkspaceProps } from "@/lib/types";
-import { NavButton } from "@/ui/layout/page-content/nav-button";
 import { useAddWorkspaceModal } from "@/ui/modals/add-workspace-modal";
 import { useDeleteAccountModal } from "@/ui/modals/delete-account-modal";
 import PlanBadge from "@/ui/workspaces/plan-badge";
 import { BlurImage, Button, Grid, StatusBadge, useMediaQuery } from "@dub/ui";
 import { ChevronRight, Magnifier, OfficeBuilding, Plus } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
+import { SignedInHint } from "app/app.dub.co/(onboarding)/signed-in-hint";
+import { Command, useCommandState } from "cmdk";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ComponentType, SVGProps, useMemo, useRef, useState } from "react";
+import { ComponentType, SVGProps, useState } from "react";
 
 export default function WorkspacesPage() {
   const { workspaces, error } = useWorkspaces();
 
   return (
-    <div className="relative min-h-full">
-      <div className="absolute left-3 top-3 lg:hidden">
-        <NavButton />
-      </div>
-      <div className="mx-auto flex w-full max-w-[480px] flex-col px-4 pb-16 pt-20 sm:pt-28">
+    <div className="flex min-h-[100dvh] w-full flex-col">
+      <div className="mx-auto flex w-full max-w-[480px] flex-1 flex-col px-4 pb-16 pt-20 sm:pt-28">
         {error ? (
           <PageHeader
             icon={OfficeBuilding}
@@ -35,6 +33,9 @@ export default function WorkspacesPage() {
         ) : (
           <NoWorkspaces />
         )}
+      </div>
+      <div className="w-full md:hidden">
+        <SignedInHint />
       </div>
     </div>
   );
@@ -72,31 +73,8 @@ function WorkspaceList({ workspaces }: { workspaces: WorkspaceProps[] }) {
   const { AddWorkspaceModal, setShowAddWorkspaceModal } =
     useAddWorkspaceModal();
 
-  const [search, setSearch] = useState("");
-  const [activeIndex, setActiveIndex] = useState(0);
-  const listRef = useRef<HTMLDivElement>(null);
-
-  const filteredWorkspaces = useMemo(() => {
-    const query = search.trim().toLowerCase();
-    if (!query) return workspaces;
-
-    return workspaces.filter(
-      ({ name, slug }) =>
-        name.toLowerCase().includes(query) ||
-        slug.toLowerCase().includes(query),
-    );
-  }, [workspaces, search]);
-
-  const moveActiveIndex = (delta: number) => {
-    const count = filteredWorkspaces.length;
-    if (!count) return;
-
-    const nextIndex = (activeIndex + delta + count) % count;
-    setActiveIndex(nextIndex);
-    listRef.current
-      ?.querySelector(`[data-index="${nextIndex}"]`)
-      ?.scrollIntoView({ block: "nearest" });
-  };
+  // Must start as "" (not undefined) – cmdk only calls onValueChange in controlled mode
+  const [selectedSlug, setSelectedSlug] = useState("");
 
   return (
     <div className="animate-slide-up-fade">
@@ -107,64 +85,55 @@ function WorkspaceList({ workspaces }: { workspaces: WorkspaceProps[] }) {
         description="Choose a workspace to continue"
       />
 
-      <div className="relative mt-8">
-        <Magnifier className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-neutral-400" />
-        <input
-          type="text"
-          aria-label="Search workspaces"
-          placeholder="Find workspace..."
-          autoFocus={!isMobile}
-          autoComplete="off"
-          spellCheck={false}
-          value={search}
-          onChange={(e) => {
-            setSearch(e.target.value);
-            setActiveIndex(0);
-          }}
-          onKeyDown={(e) => {
-            if (e.key === "ArrowDown") {
-              e.preventDefault();
-              moveActiveIndex(1);
-            } else if (e.key === "ArrowUp") {
-              e.preventDefault();
-              moveActiveIndex(-1);
-            } else if (e.key === "Enter") {
-              const workspace = filteredWorkspaces[activeIndex];
-              if (workspace) {
-                e.preventDefault();
-                router.push(`/${workspace.slug}`);
-              }
-            }
-          }}
-          className={cn(
-            "block h-11 w-full rounded-xl border border-neutral-200 bg-white pl-10 pr-3.5 text-sm text-neutral-900 shadow-[0_1px_2px_0_rgb(0_0_0/0.04)] transition-[border-color,box-shadow] duration-150",
-            "placeholder:text-neutral-400 focus:border-neutral-400 focus:outline-none focus:ring-4 focus:ring-neutral-200/60",
-          )}
-        />
-      </div>
+      <Command
+        loop
+        value={selectedSlug}
+        onValueChange={setSelectedSlug}
+        filter={(value, search, keywords) => {
+          const query = search.trim().toLowerCase();
+          return [value, ...(keywords ?? [])].some((v) =>
+            v.toLowerCase().includes(query),
+          )
+            ? 1
+            : 0;
+        }}
+        // Handled here instead of Command.Item's onSelect, which also fires on click and would
+        // navigate twice (and break cmd/middle-click to open in a new tab)
+        onKeyDown={(e) => {
+          if (e.key === "Enter" && !e.nativeEvent.isComposing && selectedSlug) {
+            e.preventDefault();
+            router.push(`/${selectedSlug}`);
+          }
+        }}
+        className="outline-none"
+      >
+        <div className="relative mt-8">
+          <Magnifier className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-neutral-400" />
+          <Command.Input
+            aria-label="Search workspaces"
+            placeholder="Find workspace..."
+            autoFocus={!isMobile}
+            autoComplete="off"
+            spellCheck={false}
+            className={cn(
+              "block h-11 w-full rounded-xl border border-neutral-200 bg-white pl-10 pr-3.5 text-base text-neutral-900 shadow-[0_1px_2px_0_rgb(0_0_0/0.04)] transition-[border-color,box-shadow] duration-150 sm:text-sm",
+              "placeholder:text-neutral-400 focus:border-neutral-400 focus:outline-none focus:ring-4 focus:ring-neutral-200/60",
+            )}
+          />
+        </div>
 
-      <div ref={listRef} className="mt-3 flex flex-col gap-0.5">
-        {filteredWorkspaces.length > 0 ? (
-          filteredWorkspaces.map((workspace, index) => (
+        {/* Items must be direct children of the list (cmdk reorders them when filtering), so the layout goes on its inner sizer */}
+        <Command.List className="mt-3 outline-none [&_[cmdk-list-sizer]]:flex [&_[cmdk-list-sizer]]:flex-col [&_[cmdk-list-sizer]]:gap-0.5">
+          {workspaces.map((workspace) => (
             <WorkspaceRow
               key={workspace.id}
               workspace={workspace}
-              index={index}
-              active={index === activeIndex}
-              onHover={() => setActiveIndex(index)}
+              onFocus={() => setSelectedSlug(workspace.slug)}
             />
-          ))
-        ) : (
-          <div className="flex flex-col items-center px-4 py-10 text-center">
-            <p className="text-sm font-medium text-neutral-900">
-              No workspaces found
-            </p>
-            <p className="mt-1 max-w-full truncate text-sm text-neutral-500">
-              No workspaces match &ldquo;{search.trim()}&rdquo;
-            </p>
-          </div>
-        )}
-      </div>
+          ))}
+          <NoResults />
+        </Command.List>
+      </Command>
 
       <div className="mt-2 border-t border-neutral-200 pt-2">
         <button
@@ -187,51 +156,63 @@ function WorkspaceList({ workspaces }: { workspaces: WorkspaceProps[] }) {
 }
 
 function WorkspaceRow({
-  workspace: { id, name, slug, logo, plan, partnersLimit, disabledAt },
-  index,
-  active,
-  onHover,
+  workspace: { id, name, slug, logo, plan, disabledAt },
+  onFocus,
 }: {
   workspace: WorkspaceProps;
-  index: number;
-  active: boolean;
-  onHover: () => void;
+  onFocus: () => void;
 }) {
   return (
-    <Link
-      href={`/${slug}`}
-      data-index={index}
-      data-active={active}
-      // pointermove (rather than pointerenter) so keyboard-driven scrolling doesn't steal the highlight
-      onPointerMove={onHover}
-      onFocus={onHover}
-      className={cn(
-        "group flex items-center gap-3 rounded-lg px-3 py-2.5 transition-colors duration-75",
-        "active:!bg-neutral-200/60 data-[active=true]:bg-neutral-100",
-        "outline-none focus-visible:ring-2 focus-visible:ring-black/50",
-      )}
-    >
-      <BlurImage
-        src={logo || `https://avatar.vercel.sh/${id}`}
-        width={24}
-        height={24}
-        alt={name}
-        className="size-6 shrink-0 overflow-hidden rounded-full"
-        draggable={false}
-      />
-      <span className="min-w-0 flex-1 truncate text-sm font-medium text-neutral-900">
-        {name}
-      </span>
-      <div className="flex shrink-0 items-center gap-1.5">
-        {disabledAt && (
-          <StatusBadge variant="neutral" size="sm" icon={null}>
-            Disabled
-          </StatusBadge>
+    <Command.Item asChild value={slug} keywords={[name]}>
+      <Link
+        href={`/${slug}`}
+        onFocus={onFocus}
+        className={cn(
+          "group flex items-center gap-3 rounded-lg px-3 py-2.5 transition-colors duration-75",
+          "active:!bg-neutral-200/60 data-[selected=true]:bg-neutral-100",
+          "outline-none focus-visible:ring-2 focus-visible:ring-black/50",
         )}
-        <PlanBadge plan={plan} />
-      </div>
-      <ChevronRight className="size-3 shrink-0 -translate-x-1 text-neutral-400 opacity-0 transition-[opacity,transform] duration-150 group-data-[active=true]:translate-x-0 group-data-[active=true]:opacity-100" />
-    </Link>
+      >
+        <BlurImage
+          src={logo || `https://avatar.vercel.sh/${id}`}
+          width={24}
+          height={24}
+          alt={name}
+          className="size-6 shrink-0 overflow-hidden rounded-full"
+          draggable={false}
+        />
+        <span className="min-w-0 flex-1 truncate text-sm font-medium text-neutral-900">
+          {name}
+        </span>
+        <div className="flex shrink-0 items-center gap-1.5">
+          {disabledAt && (
+            <StatusBadge variant="neutral" size="sm" icon={null}>
+              Disabled
+            </StatusBadge>
+          )}
+          <PlanBadge plan={plan} />
+        </div>
+        <ChevronRight className="size-3 shrink-0 -translate-x-1 text-neutral-400 opacity-0 transition-[opacity,transform] duration-150 group-data-[selected=true]:translate-x-0 group-data-[selected=true]:opacity-100" />
+      </Link>
+    </Command.Item>
+  );
+}
+
+function NoResults() {
+  const search = useCommandState((state) => state.search.trim());
+  const isEmpty = useCommandState((state) => state.filtered.count === 0);
+
+  if (!search || !isEmpty) return null;
+
+  return (
+    <div className="flex flex-col items-center px-4 py-10 text-center">
+      <p className="text-sm font-medium text-neutral-900">
+        No workspaces found
+      </p>
+      <p className="mt-1 max-w-full truncate text-sm text-neutral-500">
+        No workspaces match &ldquo;{search}&rdquo;
+      </p>
+    </div>
   );
 }
 
