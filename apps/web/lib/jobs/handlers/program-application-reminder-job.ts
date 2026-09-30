@@ -1,4 +1,3 @@
-import { getApplicationStatusFromEnrollment } from "@/lib/partners/get-application-status-from-enrollment";
 import { prisma } from "@/lib/prisma";
 import { sendEmail } from "@dub/email";
 import ProgramApplicationReminder from "@dub/email/templates/program-application-reminder";
@@ -64,45 +63,12 @@ export const programApplicationReminderJob = defineJob({
       },
       select: {
         id: true,
-        partnerId: true,
-        status: true,
       },
     });
 
     if (programEnrollment) {
-      const linked = await prisma.$transaction(async (tx) => {
-        // Only link if the enrollment has no application yet, otherwise the linked one is orphaned
-        const { count } = await tx.programEnrollment.updateMany({
-          where: {
-            id: programEnrollment.id,
-            applicationId: null,
-          },
-          data: {
-            applicationId: application.id,
-          },
-        });
-
-        await tx.programApplication.update({
-          where: {
-            id: application.id,
-          },
-          data: {
-            partnerId: programEnrollment.partnerId,
-            ...(count > 0 && {
-              status: getApplicationStatusFromEnrollment(
-                programEnrollment.status,
-              ),
-            }),
-          },
-        });
-
-        return count > 0;
-      });
-
       console.info(
-        linked
-          ? `Partner with email ${application.email} has already been enrolled in program ${application.program.name}. Updated applicationId to ${application.id} and skipping...`
-          : `Partner with email ${application.email} has already been enrolled in program ${application.program.name} with another application. Set partnerId on application ${application.id} and skipping...`,
+        `Partner with email ${application.email} is already enrolled in program ${application.program.name}. Skipping reminder...`,
       );
       return;
     }
