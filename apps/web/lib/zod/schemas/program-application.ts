@@ -22,9 +22,6 @@ export const PartnerApplicationSchema = z.object({
     image: true,
     description: true,
     country: true,
-    networkStatus: true,
-    defaultPayoutMethod: true,
-    payoutsEnabledAt: true,
   })
     .extend(
       ProgramEnrollmentSchema.pick({
@@ -32,7 +29,35 @@ export const PartnerApplicationSchema = z.object({
         status: true,
       }).shape,
     )
-    .extend(OldPartnerPlatformsFields.shape)
+    .extend(OldPartnerPlatformsFields.shape),
+  applicationFormData: z
+    .array(
+      z.object({
+        label: z.string(),
+        value: z.string().nullable(),
+      }),
+    )
+    .nullable(),
+});
+
+// Used by GET /api/program-applications. Omits the legacy flat social fields; use `partner.platforms` instead.
+export const ProgramApplicationSchema = PartnerApplicationSchema.extend({
+  partner: PartnerApplicationSchema.shape.partner
+    .omit({
+      website: true,
+      youtube: true,
+      twitter: true,
+      linkedin: true,
+      instagram: true,
+      tiktok: true,
+    })
+    .extend(
+      EnrolledPartnerSchema.pick({
+        networkStatus: true,
+        defaultPayoutMethod: true,
+        payoutsEnabledAt: true,
+      }).shape,
+    )
     .extend({
       platforms: z
         .array(
@@ -47,26 +72,6 @@ export const PartnerApplicationSchema = z.object({
           "The partner's website and social profiles, including when each was verified.",
         ),
     }),
-  applicationFormData: z
-    .array(
-      z.object({
-        label: z.string(),
-        value: z.string().nullable(),
-      }),
-    )
-    .nullable(),
-});
-
-// Used by GET /api/program-applications. Omits the legacy flat social fields; use `partner.platforms` instead.
-export const ProgramApplicationSchema = PartnerApplicationSchema.extend({
-  partner: PartnerApplicationSchema.shape.partner.omit({
-    website: true,
-    youtube: true,
-    twitter: true,
-    linkedin: true,
-    instagram: true,
-    tiktok: true,
-  }),
 });
 
 export const partnerApplicationWebhookSchema = PartnerApplicationSchema;
