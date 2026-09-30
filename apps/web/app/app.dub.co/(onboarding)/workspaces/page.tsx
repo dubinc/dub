@@ -5,12 +5,10 @@ import { WorkspaceProps } from "@/lib/types";
 import { NavButton } from "@/ui/layout/page-content/nav-button";
 import { useAddWorkspaceModal } from "@/ui/modals/add-workspace-modal";
 import { useDeleteAccountModal } from "@/ui/modals/delete-account-modal";
-import { UserAvatar } from "@/ui/users/user-avatar";
 import PlanBadge from "@/ui/workspaces/plan-badge";
 import { BlurImage, Button, Grid, StatusBadge, useMediaQuery } from "@dub/ui";
 import { ChevronRight, Magnifier, OfficeBuilding, Plus } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
-import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ComponentType, SVGProps, useMemo, useRef, useState } from "react";
@@ -263,7 +261,6 @@ function WorkspaceListSkeleton() {
 }
 
 function NoWorkspaces() {
-  const { data: session } = useSession();
   const { AddWorkspaceModal, setShowAddWorkspaceModal } =
     useAddWorkspaceModal();
   const { setShowDeleteAccountModal, DeleteAccountModal } =
@@ -286,30 +283,17 @@ function NoWorkspaces() {
         className="mt-8 h-11 rounded-xl text-sm"
       />
 
-      <div className="mt-10 flex items-center gap-3 border-t border-neutral-200 pt-6">
-        <UserAvatar user={session?.user} className="size-8" />
-        <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-medium text-neutral-900">
-            {session?.user?.name || session?.user?.email}
-          </p>
-          {session?.user?.name && (
-            <p className="truncate text-xs text-neutral-500">
-              {session.user.email}
-            </p>
-          )}
-        </div>
-        <button
-          type="button"
-          onClick={() => setShowDeleteAccountModal(true)}
-          className={cn(
-            "shrink-0 rounded-lg px-2.5 py-1.5 text-xs font-medium text-neutral-500 transition-colors duration-75",
-            "hover:bg-red-50 hover:text-red-600 active:bg-red-100",
-            "outline-none focus-visible:ring-2 focus-visible:ring-red-500/50",
-          )}
-        >
-          Delete account
-        </button>
-      </div>
+      <button
+        type="button"
+        onClick={() => setShowDeleteAccountModal(true)}
+        className={cn(
+          "mx-auto mt-3 block rounded-lg px-2.5 py-1.5 text-xs font-medium text-neutral-400 transition-colors duration-75",
+          "hover:bg-red-50 hover:text-red-600 active:bg-red-100",
+          "outline-none focus-visible:ring-2 focus-visible:ring-red-500/50",
+        )}
+      >
+        Delete account
+      </button>
     </div>
   );
 }
