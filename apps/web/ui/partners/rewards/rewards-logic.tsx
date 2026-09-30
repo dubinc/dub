@@ -3,7 +3,10 @@
 import { constructRewardAmount } from "@/lib/api/sales/construct-reward-amount";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { getCustomerSourceAvailability } from "@/lib/rewards/get-customer-source-availability";
-import { suggestionTouchesField } from "@/lib/rewards/validate-tooltip-suggestion";
+import {
+  isRewardConditionComplete,
+  suggestionTouchesField,
+} from "@/lib/rewards/validate-tooltip-suggestion";
 import useIntegrations from "@/lib/swr/use-integrations";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -66,6 +69,7 @@ import { useAddEditRewardForm } from "./add-edit-reward-sheet";
 import { RewardIconSquare } from "./reward-icon-square";
 import {
   SuggestedFixBadge,
+  SuggestedFixNoticeBadge,
   SuggestedFixPopoverHost,
 } from "./suggested-fix-popover";
 import { useRewardTooltipConsistencyContext } from "./use-reward-tooltip-consistency";
@@ -1067,6 +1071,58 @@ function OperatorDropdown({ modifierIndex }: { modifierIndex: number }) {
   );
 }
 
+function payoutMatchesBase({
+  event,
+  type,
+  amountInCents,
+  amountInPercentage,
+  maxDuration,
+  parentType,
+  parentAmountInCents,
+  parentAmountInPercentage,
+  parentMaxDuration,
+}: {
+  event?: string | null;
+  type?: string | null;
+  amountInCents?: number | null;
+  amountInPercentage?: number | null;
+  maxDuration?: number | null;
+  parentType?: string | null;
+  parentAmountInCents?: number | null;
+  parentAmountInPercentage?: number | null;
+  parentMaxDuration?: number | null;
+}) {
+  const displayType =
+    type === "flat" || type === "percentage" ? type : parentType;
+
+  if (displayType !== "flat" && displayType !== "percentage") return false;
+  if (displayType !== parentType) return false;
+
+  const amount =
+    displayType === "percentage" ? amountInPercentage : amountInCents;
+  const parentAmount =
+    parentType === "percentage"
+      ? parentAmountInPercentage
+      : parentAmountInCents;
+
+  if (typeof amount !== "number" || !Number.isFinite(amount)) return false;
+  if (typeof parentAmount !== "number" || !Number.isFinite(parentAmount)) {
+    return false;
+  }
+  if (amount !== parentAmount) return false;
+  if (event !== "sale") return true;
+
+  const duration = maxDuration !== undefined ? maxDuration : parentMaxDuration;
+  const currentDuration =
+    duration == null || !Number.isFinite(duration) ? null : duration;
+  const baseDuration =
+    parentMaxDuration == null || !Number.isFinite(parentMaxDuration)
+      ? null
+      : parentMaxDuration;
+
+  return currentDuration === baseDuration;
+}
+
 function ResultTerms({ modifierIndex }: { modifierIndex: number }) {
   const modifierKey = `modifiers.${modifierIndex}` as const;
 
@@ -1078,7 +1134,10 @@ function ResultTerms({ modifierIndex }: { modifierIndex: number }) {
     maxDuration,
     event,
     parentType,
+    parentAmountInCents,
+    parentAmountInPercentage,
     parentMaxDuration,
+    conditions,
   ] = useWatch({
     control,
     name: [
@@ -1088,9 +1147,15 @@ function ResultTerms({ modifierIndex }: { modifierIndex: number }) {
       `${modifierKey}.maxDuration`,
       "event",
       "type",
+      "amountInCents",
+      "amountInPercentage",
       "maxDuration",
+      `${modifierKey}.conditions`,
     ],
   });
+  const [dismissedRedundantPayout, setDismissedRedundantPayout] =
+    useState(false);
+  const [flagPayout, setFlagPayout] = useState(false);
 
   // Use parent values as fallbacks if modifier doesn't have type or maxDuration
   const displayType = type || parentType;
@@ -1098,6 +1163,66 @@ function ResultTerms({ modifierIndex }: { modifierIndex: number }) {
     maxDuration !== undefined ? maxDuration : parentMaxDuration;
 
   const amount = displayType === "flat" ? amountInCents : amountInPercentage;
+  const redundantPayout = payoutMatchesBase({
+    event,
+    type,
+    amountInCents,
+    amountInPercentage,
+    maxDuration,
+    parentType,
+    parentAmountInCents,
+    parentAmountInPercentage,
+    parentMaxDuration,
+  });
+  const conditionsComplete =
+    !!event &&
+    !!conditions?.length &&
+    conditions.every((condition) =>
+      isRewardConditionComplete({ event, condition }),
+    );
+  const flagKey =
+    redundantPayout && conditionsComplete && !dismissedRedundantPayout
+      ? JSON.stringify({
+          amountInCents,
+          amountInPercentage,
+          type,
+          maxDuration,
+          parentAmountInCents,
+          parentAmountInPercentage,
+          parentType,
+          parentMaxDuration,
+          conditions,
+        })
+      : null;
+
+  useEffect(() => {
+    if (!redundantPayout) setDismissedRedundantPayout(false);
+  }, [redundantPayout]);
+
+  useEffect(() => {
+    setFlagPayout(false);
+
+    if (!flagKey) return;
+
+    const timeout = window.setTimeout(() => setFlagPayout(true), 5000);
+
+    return () => window.clearTimeout(timeout);
+  }, [flagKey]);
+  const amountLabel =
+    amount != null && !isNaN(amount)
+      ? constructRewardAmount({
+          type: displayType,
+          amountInCents: displayType === "flat" ? amount * 100 : undefined,
+          amountInPercentage: displayType === "percentage" ? amount : undefined,
+          maxDuration: displayMaxDuration,
+        })
+      : "amount";
+  const durationLabel =
+    displayMaxDuration === 0
+      ? "one time"
+      : displayMaxDuration === Infinity
+        ? "for the customer's lifetime"
+        : `for ${displayMaxDuration} ${pluralize("month", Number(displayMaxDuration))}`;
 
   return (
     <span className="leading-relaxed">
@@ -1119,36 +1244,25 @@ function ResultTerms({ modifierIndex }: { modifierIndex: number }) {
           {displayType === "percentage" && "of "}
         </>
       )}
-      <InlineBadgePopover
-        text={
-          amount != null && !isNaN(amount)
-            ? constructRewardAmount({
-                type: displayType,
-                amountInCents:
-                  displayType === "flat" ? amount * 100 : undefined,
-                amountInPercentage:
-                  displayType === "percentage" ? amount : undefined,
-                maxDuration: displayMaxDuration,
-              })
-            : "amount"
-        }
-        invalid={amount == null || isNaN(amount)}
-      >
-        <ResultAmountInput modifierKey={modifierKey} />
-      </InlineBadgePopover>{" "}
+      {flagPayout ? (
+        <SuggestedFixNoticeBadge
+          text={amountLabel}
+          message="This pays the same as the default reward, so it doesn't change what partners earn."
+          onDiscard={() => setDismissedRedundantPayout(true)}
+        />
+      ) : (
+        <InlineBadgePopover
+          text={amountLabel}
+          invalid={amount == null || isNaN(amount)}
+        >
+          <ResultAmountInput modifierKey={modifierKey} />
+        </InlineBadgePopover>
+      )}{" "}
       per {event}
       {event === "sale" && (
         <>
           {" "}
-          <InlineBadgePopover
-            text={
-              displayMaxDuration === 0
-                ? "one time"
-                : displayMaxDuration === Infinity
-                  ? "for the customer's lifetime"
-                  : `for ${displayMaxDuration} ${pluralize("month", Number(displayMaxDuration))}`
-            }
-          >
+          <InlineBadgePopover text={durationLabel}>
             <DurationPopoverContent
               value={displayMaxDuration ?? undefined}
               onChange={(value) =>

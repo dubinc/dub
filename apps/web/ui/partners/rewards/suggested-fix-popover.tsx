@@ -284,6 +284,115 @@ export function ReviewingSuggestedFixBadge({ text }: { text: string }) {
   );
 }
 
+export function SuggestedFixNoticeBadge({
+  text,
+  message,
+  onDiscard,
+}: {
+  text: string;
+  message: string;
+  onDiscard: () => void;
+}) {
+  const { isMobile } = useMediaQuery();
+  const closeTimerRef = useRef<number | undefined>(undefined);
+  const contentRef = useRef<HTMLDivElement>(null);
+  const [open, setOpen] = useState(false);
+
+  const cancelHide = () => {
+    if (closeTimerRef.current) {
+      window.clearTimeout(closeTimerRef.current);
+      closeTimerRef.current = undefined;
+    }
+  };
+
+  const scheduleHide = () => {
+    cancelHide();
+    closeTimerRef.current = window.setTimeout(() => {
+      if (contentRef.current?.contains(document.activeElement)) return;
+      setOpen(false);
+    }, 300);
+  };
+
+  return (
+    <Popover
+      openPopover={open}
+      setOpenPopover={setOpen}
+      align="start"
+      sideOffset={8}
+      onOpenAutoFocus={(event) => event.preventDefault()}
+      popoverContentClassName={POPOVER_CONTENT_CLASS_NAME}
+      content={
+        <div
+          ref={contentRef}
+          onMouseEnter={cancelHide}
+          onMouseLeave={scheduleHide}
+        >
+          <div className="flex items-center gap-1.5 border-b border-neutral-200 p-3 text-sm font-medium text-neutral-900">
+            <Sparkle3 variant="fill" className="size-3.5" />
+            Suggested fix
+          </div>
+          <div className="p-3">
+            <p className="text-sm leading-relaxed text-neutral-600">
+              {message}
+            </p>
+          </div>
+          <div className="flex items-center justify-end gap-2 border-t border-neutral-200 px-3 py-2">
+            <Button
+              type="button"
+              variant="secondary"
+              text="Discard"
+              className="h-7 w-fit rounded-lg px-3 py-2"
+              onClick={() => {
+                onDiscard();
+                setOpen(false);
+              }}
+            />
+          </div>
+        </div>
+      }
+    >
+      <button
+        type="button"
+        onMouseEnter={() => {
+          if (isMobile) return;
+          cancelHide();
+          setOpen(true);
+        }}
+        onMouseLeave={() => {
+          if (!isMobile) scheduleHide();
+        }}
+        onClick={(event) => {
+          const fromKeyboard = event.detail === 0;
+
+          if (!isMobile && !fromKeyboard) return;
+
+          if (open && !fromKeyboard) {
+            setOpen(false);
+            return;
+          }
+
+          setOpen(true);
+          if (fromKeyboard) {
+            window.requestAnimationFrame(() => {
+              window.requestAnimationFrame(() => {
+                contentRef.current
+                  ?.querySelector<HTMLElement>("button")
+                  ?.focus();
+              });
+            });
+          }
+        }}
+        aria-haspopup="dialog"
+        aria-expanded={open}
+        className={SUGGESTED_FIX_BADGE_CLASS_NAME}
+      >
+        <Sparkle3 variant="fill" className="size-3 shrink-0 text-[#E17100]" />
+        <span className="min-w-0 truncate">{text}</span>
+      </button>
+    </Popover>
+  );
+}
+
 function PayoutFixPreview({ fixes }: { fixes: PayoutFix[] }) {
   const { control } = useAddEditRewardForm();
   const [
