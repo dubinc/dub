@@ -9,7 +9,6 @@ import { prisma } from "@/lib/prisma";
 import { bulkRejectPartnersSchema } from "@/lib/zod/schemas/partners";
 import { sendBatchEmail } from "@dub/email";
 import PartnerApplicationRejected from "@dub/email/templates/partner-application-rejected";
-import { pluck } from "@dub/utils";
 import {
   ProgramApplicationStatus,
   ProgramEnrollmentStatus,
@@ -51,39 +50,43 @@ export const bulkRejectPartnerApplicationsAction = authActionClient
       return;
     }
 
-    const applicationIds = programEnrollments
-      .map(({ applicationId }) => applicationId)
-      .filter((id): id is string => Boolean(id));
-
     const reviewedAt = new Date();
 
-    await prisma.$transaction(async (tx) => {
-      await tx.programEnrollment.updateMany({
-        where: {
-          id: {
-            in: programEnrollments.map(({ id }) => id),
+    const rejectedEnrollmentIds = await prisma.$transaction(async (tx) => {
+      const transitionedIds = new Set<string>();
+
+      for (const { id } of programEnrollments) {
+        const { count } = await tx.programEnrollment.updateMany({
+          where: {
+            id,
+            status: ProgramEnrollmentStatus.pending,
           },
-          status: ProgramEnrollmentStatus.pending,
-        },
-        data: {
-          status: ProgramEnrollmentStatus.rejected,
-          clickRewardId: null,
-          leadRewardId: null,
-          saleRewardId: null,
-          referralRewardId: null,
-          customRewardId: null,
-          discountId: null,
-        },
-      });
+          data: {
+            status: ProgramEnrollmentStatus.rejected,
+            clickRewardId: null,
+            leadRewardId: null,
+            saleRewardId: null,
+            referralRewardId: null,
+            customRewardId: null,
+            discountId: null,
+          },
+        });
+
+        if (count > 0) {
+          transitionedIds.add(id);
+        }
+      }
+
+      const applicationIds = programEnrollments
+        .filter(({ id }) => transitionedIds.has(id))
+        .map(({ applicationId }) => applicationId)
+        .filter((id): id is string => Boolean(id));
 
       if (applicationIds.length > 0) {
         await tx.programApplication.updateMany({
           where: {
             id: {
               in: applicationIds,
-            },
-            enrollment: {
-              status: ProgramEnrollmentStatus.rejected,
             },
           },
           data: {
@@ -95,23 +98,11 @@ export const bulkRejectPartnerApplicationsAction = authActionClient
           },
         });
       }
+
+      return transitionedIds;
     });
 
     // Find the rejected enrollments
-    const updatedEnrollments = await prisma.programEnrollment.findMany({
-      where: {
-        id: {
-          in: pluck(programEnrollments, "id"),
-        },
-        status: ProgramEnrollmentStatus.rejected,
-      },
-      select: {
-        id: true,
-      },
-    });
-
-    const rejectedEnrollmentIds = new Set(pluck(updatedEnrollments, "id"));
-
     const rejectedEnrollments = programEnrollments.filter(({ id }) =>
       rejectedEnrollmentIds.has(id),
     );
