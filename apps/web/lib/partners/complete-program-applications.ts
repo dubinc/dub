@@ -24,7 +24,9 @@ import {
 export async function completeProgramApplications(userEmail: string) {
   try {
     const user = await prisma.user.findUniqueOrThrow({
-      where: { email: userEmail },
+      where: {
+        email: userEmail,
+      },
       select: {
         partners: {
           select: {
@@ -75,6 +77,8 @@ export async function completeProgramApplications(userEmail: string) {
       return;
     }
 
+    const partner = user.partners[0].partner;
+
     // if there are duplicate program applications
     // pick the latest one for each programId
     // note: programApplications is already sorted by createdAt desc
@@ -89,8 +93,6 @@ export async function completeProgramApplications(userEmail: string) {
       },
     );
 
-    const partner = user.partners[0].partner;
-
     // Program enrollments to create. `id` is narrowed to required because the
     // search sync below reads it back, and Prisma leaves it optional here.
     const programEnrollments: (Prisma.ProgramEnrollmentCreateManyInput & {
@@ -98,7 +100,7 @@ export async function completeProgramApplications(userEmail: string) {
     })[] = filteredProgramApplications.map((programApplication) => ({
       id: createId({ prefix: "pge_" }),
       programId: programApplication.programId,
-      partnerId: user.partners[0].partnerId,
+      partnerId: partner.id,
       applicationId: programApplication.id,
       groupId: programApplication?.partnerGroup?.id,
       clickRewardId: programApplication?.partnerGroup?.clickRewardId,
@@ -132,7 +134,7 @@ export async function completeProgramApplications(userEmail: string) {
           },
         },
         data: {
-          partnerId: user.partners[0].partnerId,
+          partnerId: partner.id,
         },
       }),
     ]);

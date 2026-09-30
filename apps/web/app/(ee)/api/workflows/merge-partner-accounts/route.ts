@@ -144,6 +144,17 @@ export const { POST } = serve<Input>(
       });
       logs.push(fraudLog);
 
+      const movedApplications = await prisma.programApplication.updateMany({
+        where: {
+          partnerId: sourcePartnerId,
+        },
+        data: {
+          partnerId: targetPartnerId,
+        },
+      });
+
+      logs.push(`Moved ${movedApplications.count} program applications`);
+
       // Delete the source partner account (must be last)
       const { outputLog: partnerLog } = await deleteSourcePartner({
         sourcePartnerId,
@@ -584,6 +595,16 @@ async function mergeSingleEnrollment({
         where: { id: sourceEnrollment.id, partnerId: sourcePartnerId },
       });
 
+      await tx.programApplication.updateMany({
+        where: {
+          programId,
+          partnerId: sourcePartnerId,
+        },
+        data: {
+          partnerId: targetPartnerId,
+        },
+      });
+
       const tenantIdToCopy =
         targetEnrollment.tenantId ?? sourceEnrollment.tenantId;
 
@@ -627,6 +648,16 @@ async function mergeSingleEnrollment({
         outputLog: `Enrollment ${sourceEnrollment.id} no longer owned by ${sourcePartnerId}, skipping transfer`,
       });
     }
+
+    await prisma.programApplication.updateMany({
+      where: {
+        programId,
+        partnerId: sourcePartnerId,
+      },
+      data: {
+        partnerId: targetPartnerId,
+      },
+    });
 
     action = "transfer";
   }
