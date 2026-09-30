@@ -18,14 +18,9 @@ const programApplicationInclude = {
       platforms: true,
     },
   },
-  enrollment: {
-    select: {
-      status: true,
-    },
-  },
 } satisfies Prisma.ProgramApplicationInclude;
 
-type ProgramApplicationWithEnrollment = Prisma.ProgramApplicationGetPayload<{
+type ProgramApplicationWithPartner = Prisma.ProgramApplicationGetPayload<{
   include: typeof programApplicationInclude;
 }>;
 
@@ -62,7 +57,7 @@ export async function listProgramApplications({
   );
 }
 
-function transformApplication(application: ProgramApplicationWithEnrollment) {
+function transformApplication(application: ProgramApplicationWithPartner) {
   const partner = application.partner;
 
   if (!partner) {
@@ -118,12 +113,6 @@ function transformApplication(application: ProgramApplicationWithEnrollment) {
       country: application.country,
       groupId: application.groupId,
       status: application.status,
-      website: application.website,
-      youtube: application.youtube,
-      twitter: application.twitter,
-      linkedin: application.linkedin,
-      instagram: application.instagram,
-      tiktok: application.tiktok,
       platforms,
     },
   };

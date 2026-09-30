@@ -3,7 +3,7 @@ import { withWorkspace } from "@/lib/auth";
 import { listProgramApplications } from "@/lib/program-applications/list-program-applications";
 import {
   getPartnerApplicationsQuerySchema,
-  PartnerApplicationSchema,
+  ProgramApplicationSchema,
 } from "@/lib/zod/schemas/program-application";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
@@ -27,7 +27,7 @@ export const GET = withWorkspace(
       pageSize,
     });
 
-    const response = z.array(PartnerApplicationSchema).parse(applications);
+    const response = z.array(ProgramApplicationSchema).parse(applications);
 
     return NextResponse.json(response);
   },

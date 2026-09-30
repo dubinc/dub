@@ -3,7 +3,7 @@ import { fetcher } from "@dub/utils";
 import useSWR from "swr";
 import * as z from "zod/v4";
 import useWorkspace from "../../swr/use-workspace";
-import { PartnerApplicationProps } from "../../types";
+import { ProgramApplicationProps } from "../../types";
 import { getPartnerApplicationsQuerySchema } from "../../zod/schemas/program-application";
 
 export function useProgramApplications({
@@ -33,7 +33,7 @@ export function useProgramApplications({
     data: applications,
     error,
     isValidating,
-  } = useSWR<PartnerApplicationProps[]>(
+  } = useSWR<ProgramApplicationProps[]>(
     enabled !== false && defaultProgramId
       ? `/api/program-applications${queryString}`
       : null,

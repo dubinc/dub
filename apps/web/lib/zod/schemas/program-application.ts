@@ -10,6 +10,7 @@ import {
 } from "./partners";
 import { ProgramEnrollmentSchema } from "./programs";
 
+// @deprecated Use ProgramApplicationSchema instead. Kept for GET /api/partners/applications and webhook payloads for backward compatibility.
 export const PartnerApplicationSchema = z.object({
   id: z.string(),
   createdAt: z.coerce.date(),
@@ -54,6 +55,18 @@ export const PartnerApplicationSchema = z.object({
       }),
     )
     .nullable(),
+});
+
+// Used by GET /api/program-applications. Omits the legacy flat social fields; use `partner.platforms` instead.
+export const ProgramApplicationSchema = PartnerApplicationSchema.extend({
+  partner: PartnerApplicationSchema.shape.partner.omit({
+    website: true,
+    youtube: true,
+    twitter: true,
+    linkedin: true,
+    instagram: true,
+    tiktok: true,
+  }),
 });
 
 export const partnerApplicationWebhookSchema = PartnerApplicationSchema;

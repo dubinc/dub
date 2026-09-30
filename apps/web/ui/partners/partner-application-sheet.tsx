@@ -3,7 +3,7 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import {
   EnrolledPartnerExtendedProps,
   EnrolledPartnerProps,
-  PartnerApplicationProps,
+  ProgramApplicationProps,
 } from "@/lib/types";
 import { useApprovePartnerApplicationModal } from "@/ui/modals/approve-partner-application-modal";
 import { useRejectPartnerApplicationModal } from "@/ui/modals/reject-partner-application-modal";
@@ -28,7 +28,7 @@ import { PartnerComments } from "./partner-comments";
 import { PartnerInfoCards } from "./partner-info-cards";
 import { PartnerSheetTabs } from "./partner-sheet-tabs";
 
-type ListedApplicationPartner = PartnerApplicationProps["partner"] & {
+type ListedApplicationPartner = ProgramApplicationProps["partner"] & {
   createdAt: Date;
   applicationId: string;
 };

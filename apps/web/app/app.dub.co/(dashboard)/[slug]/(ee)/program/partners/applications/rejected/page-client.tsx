@@ -9,7 +9,7 @@ import { mutatePrefix } from "@/lib/swr/mutate";
 import useGroups from "@/lib/swr/use-groups";
 import usePartner from "@/lib/swr/use-partner";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { PartnerApplicationProps } from "@/lib/types";
+import { ProgramApplicationProps } from "@/lib/types";
 import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
 import { PartnerApplicationSheet } from "@/ui/partners/partner-application-sheet";
@@ -40,11 +40,11 @@ import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 type ApplicationPlatform = NonNullable<
-  PartnerApplicationProps["partner"]["platforms"]
+  ProgramApplicationProps["partner"]["platforms"]
 >[number];
 
-type ApplicationRow = PartnerApplicationProps["partner"] & {
-  createdAt: PartnerApplicationProps["createdAt"];
+type ApplicationRow = ProgramApplicationProps["partner"] & {
+  createdAt: ProgramApplicationProps["createdAt"];
   applicationId: string;
   platformsByType: ReturnType<
     typeof buildSocialPlatformLookup<ApplicationPlatform>
@@ -517,10 +517,19 @@ function useCurrentPartner({
     { keepPreviousData: true },
   );
 
+  const matchingFetchedPartner =
+    fetchedPartner?.id === partnerId ? fetchedPartner : null;
+
+  const currentPartner = useMemo(
+    () =>
+      listedPartner
+        ? { ...matchingFetchedPartner, ...listedPartner }
+        : matchingFetchedPartner,
+    [listedPartner, matchingFetchedPartner],
+  );
+
   return {
-    currentPartner:
-      (fetchedPartner?.id === partnerId ? fetchedPartner : null) ??
-      listedPartner,
+    currentPartner,
     isLoading: Boolean(partnerId) && !listedPartner && isLoading,
   };
 }
