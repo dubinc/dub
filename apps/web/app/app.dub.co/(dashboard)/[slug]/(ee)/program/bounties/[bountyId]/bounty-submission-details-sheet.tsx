@@ -318,9 +318,12 @@ function BountySubmissionDetailsSheetContent({
                       {
                         label: "Reward",
                         value: (() => {
-                          if (submission.commission?.earnings != null) {
+                          if (submission.commissions.length > 0) {
                             return currencyFormatter(
-                              submission.commission.earnings,
+                              submission.commissions.reduce(
+                                (total, { earnings }) => total + earnings,
+                                0,
+                              ),
                             );
                           }
                           const estimatedEarnings =
@@ -536,9 +539,10 @@ function BountySubmissionDetailsSheetContent({
 
         <div className="sticky bottom-0 z-10 border-t border-neutral-200 bg-white">
           <div className="flex items-center justify-between gap-2 p-5">
-            {submission.status === "approved" && submission.commission?.id ? (
+            {submission.status === "approved" &&
+            submission.commissions.length > 0 ? (
               <Link
-                href={`/${workspaceSlug}/program/commissions/${submission.commission.id}`}
+                href={`/${workspaceSlug}/program/commissions/${submission.commissions[0].id}`}
                 target="_blank"
                 className="w-full"
               >

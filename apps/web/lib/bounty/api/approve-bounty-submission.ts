@@ -107,35 +107,49 @@ export async function approveBountySubmission({
     });
   }
 
-  const approvedSubmission = await prisma.bountySubmission.update({
-    where: {
-      id: submissionId,
-    },
-    data: {
-      status: "approved",
-      reviewedAt: new Date(),
-      userId: user.id,
-      rejectionNote: null,
-      rejectionReason: null,
-    },
-    include: {
-      partner: {
-        select: {
-          id: true,
-          email: true,
+  const approvedSubmission = await prisma.bountySubmission
+    .update({
+      where: {
+        id: submissionId,
+        status: {
+          not: "approved",
         },
       },
-      program: {
-        select: {
-          workspaceId: true,
-          id: true,
-          name: true,
-          slug: true,
-          supportEmail: true,
+      data: {
+        status: "approved",
+        reviewedAt: new Date(),
+        userId: user.id,
+        rejectionNote: null,
+        rejectionReason: null,
+      },
+      include: {
+        partner: {
+          select: {
+            id: true,
+            email: true,
+          },
+        },
+        program: {
+          select: {
+            workspaceId: true,
+            id: true,
+            name: true,
+            slug: true,
+            supportEmail: true,
+          },
         },
       },
-    },
-  });
+    })
+    .catch((error) => {
+      if (error.code === "P2025") {
+        throw new DubApiError({
+          code: "bad_request",
+          message: "This bounty submission has already been approved.",
+        });
+      }
+
+      throw error;
+    });
 
   await queuePartnerCommissionCreation({
     event: "custom",

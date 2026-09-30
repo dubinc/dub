@@ -159,14 +159,16 @@ export const partnerNotificationTypes = z.enum([
 ]);
 
 export const partnerBountySubmissionSchema = BountySubmissionSchema.extend({
-  commission: PartnerEarningsSchema.pick({
-    id: true,
-    earnings: true,
-    status: true,
-    createdAt: true,
-  })
-    .nullable()
-    .default(null),
+  commissions: z
+    .array(
+      PartnerEarningsSchema.pick({
+        id: true,
+        earnings: true,
+        status: true,
+        createdAt: true,
+      }),
+    )
+    .default([]),
 });
 
 export const PartnerBountySchema = BountySchema.omit({

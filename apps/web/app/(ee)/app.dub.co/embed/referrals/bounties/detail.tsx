@@ -54,12 +54,12 @@ export function EmbedBountyDetail({
 }) {
   const [bounty, setBounty] = useState<PartnerBountyProps>(initialBounty);
 
-  const hasRewards = bounty.submissions.some((s) => s.commission != null);
+  const hasRewards = bounty.submissions.some((s) => s.commissions.length > 0);
 
   const handleSubmissionSuccess = (newSubmission: PartnerBountySubmission) => {
     const normalized: PartnerBountySubmission = {
       ...newSubmission,
-      commission: newSubmission.commission ?? null,
+      commissions: newSubmission.commissions ?? [],
     };
     setBounty((prev) => {
       const existing = prev.submissions.find(

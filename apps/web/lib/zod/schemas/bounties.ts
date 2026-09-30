@@ -344,13 +344,17 @@ export const BountySubmissionExtendedSchema = BountySubmissionSchema.extend({
     bannedAt: true,
     bannedReason: true,
   }),
-  commission: CommissionSchema.pick({
-    id: true,
-    amount: true,
-    earnings: true,
-    status: true,
-    createdAt: true,
-  }).nullable(),
+  commissions: z
+    .array(
+      CommissionSchema.pick({
+        id: true,
+        amount: true,
+        earnings: true,
+        status: true,
+        createdAt: true,
+      }),
+    )
+    .default([]),
   user: UserSchema.pick({
     id: true,
     name: true,
