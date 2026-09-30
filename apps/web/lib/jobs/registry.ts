@@ -106,6 +106,11 @@ const jobLoaders = {
     import("./handlers/process-partner-group-change-job").then(
       (m) => m.processPartnerGroupChangeJob,
     ),
+
+  "program-application-reminder-job": () =>
+    import("./handlers/program-application-reminder-job").then(
+      (m) => m.programApplicationReminderJob,
+    ),
 } as const satisfies Record<string, () => Promise<JobDefinition>>;
 
 const jobCache = new Map<string, JobDefinition>();
