@@ -8,6 +8,7 @@ import { FraudGroupProps } from "@/lib/types";
 import { useBanPartnerModal } from "@/ui/modals/ban-partner-modal";
 import { useRejectPartnerApplicationModal } from "@/ui/modals/reject-partner-application-modal";
 import { PartnerAvatar } from "@/ui/partners/partner-avatar";
+import { TrustedPartnerBadge } from "@/ui/partners/trusted-partner-badge";
 import { X } from "@/ui/shared/icons";
 import { UserAvatar } from "@/ui/users/user-avatar";
 import {
@@ -238,7 +239,12 @@ function RiskReviewSheetContent({
                   Partner details
                 </h2>
                 <div className="flex min-w-0 items-center gap-3">
-                  <PartnerAvatar partner={partner} className="size-10" />
+                  <div className="relative w-fit shrink-0">
+                    <PartnerAvatar partner={partner} className="size-10" />
+                    {partner.networkStatus === "trusted" && (
+                      <TrustedPartnerBadge size="large" />
+                    )}
+                  </div>
                   <div className="flex min-w-0 flex-col">
                     <span className="text-content-emphasis truncate text-sm font-semibold">
                       {partner.name}

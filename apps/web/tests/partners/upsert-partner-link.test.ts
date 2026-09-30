@@ -1,6 +1,6 @@
 import { nanoid } from "@dub/utils";
 import { Link } from "@prisma/client";
-import { randomId } from "tests/utils/helpers";
+import { randomKey } from "tests/utils/helpers";
 import { afterAll, describe, expect, test } from "vitest";
 import { IntegrationHarness } from "../utils/integration";
 import { E2E_PARTNER, E2E_PARTNER_GROUP, E2E_PROGRAM } from "../utils/resource";
@@ -37,7 +37,7 @@ describe.sequential("PUT /partners/links/upsert", async () => {
   });
 
   test("Existing link", async () => {
-    const key = randomId();
+    const key = randomKey();
 
     const { data: updatedLink, status } = await http.put<Link>({
       path: "/partners/links/upsert",

@@ -210,7 +210,7 @@ export default function WorkspaceMembersPage() {
                     `Invited ${timeAgo(user.createdAt)}`
                   ) : user.isMachine ? (
                     <>
-                      Machine user for API authentication.{" "}
+                      Machine user for API integration.{" "}
                       <a
                         href="https://dub.co/docs/api-reference/authentication#machine-users"
                         target="_blank"
