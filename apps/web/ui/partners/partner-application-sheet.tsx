@@ -3,6 +3,7 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps } from "@/lib/types";
 import { useApprovePartnerApplicationModal } from "@/ui/modals/approve-partner-application-modal";
 import { useRejectPartnerApplicationModal } from "@/ui/modals/reject-partner-application-modal";
+import { useTrialLimitActivateModal } from "@/ui/modals/trial-limit-activate-modal";
 import { X } from "@/ui/shared/icons";
 import {
   Button,
@@ -10,9 +11,11 @@ import {
   ChevronRight,
   Msgs,
   Sheet,
+  TooltipContent,
   useKeyboardShortcut,
   useRouterStuff,
 } from "@dub/ui";
+import { isWorkspaceBillingTrialActive } from "@dub/utils";
 import Link from "next/link";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { PartnerAbout } from "./partner-about";
@@ -224,6 +227,11 @@ function PartnerApproval({
   setIsOpen: Dispatch<SetStateAction<boolean>>;
   onNext?: () => void;
 }) {
+  const { slug, exceededPartners, trialEndsAt } = useWorkspace();
+  const { openTrialLimitModal, TrialLimitActivateModal } =
+    useTrialLimitActivateModal();
+  const trialActive = isWorkspaceBillingTrialActive(trialEndsAt);
+
   const {
     ApprovePartnerApplicationModal,
     setShowApprovePartnerApplicationModal,
@@ -239,10 +247,12 @@ function PartnerApproval({
 
   useKeyboardShortcut("a", () => setShowApprovePartnerApplicationModal(true), {
     sheet: true,
+    enabled: !exceededPartners,
   });
 
   return (
     <>
+      <TrialLimitActivateModal />
       {ApprovePartnerApplicationModal}
       <div className="flex justify-end gap-2">
         {partner.status !== "rejected" && (
@@ -261,6 +271,17 @@ function PartnerApproval({
           shortcut="A"
           onClick={() => setShowApprovePartnerApplicationModal(true)}
           className="w-fit shrink-0"
+          disabledTooltip={
+            exceededPartners ? (
+              <TooltipContent
+                title="Your have exceeded your partners limit. You need to upgrade to approve more partners."
+                cta={trialActive ? "Start paid plan" : "Upgrade plan"}
+                {...(trialActive
+                  ? { onClick: () => openTrialLimitModal("partnerEnrollments") }
+                  : { href: `/${slug}/upgrade` })}
+              />
+            ) : undefined
+          }
         />
       </div>
     </>

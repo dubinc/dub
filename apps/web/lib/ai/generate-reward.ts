@@ -7,6 +7,7 @@ import {
 import { normalizeWorkspaceId } from "@/lib/api/workspaces/workspace-id";
 import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { getCustomerSourceAvailability } from "@/lib/rewards/get-customer-source-availability";
 import { PlanProps } from "@/lib/types";
 import { assertRateLimit } from "@/lib/upstash/assert-rate-limit";
 import { RATELIMIT_POLICIES } from "@/lib/upstash/ratelimit-policies";
@@ -19,6 +20,7 @@ import { throwIfNoPermission } from "../actions/throw-if-no-permission";
 import {
   AI_REWARD_EVENTS,
   AIRewardGenerationOutput,
+  getAICustomerSourceIds,
   getAIRewardGenerationSchema,
   getAIRewardSchema,
 } from "./ai-reward-schema";
@@ -29,18 +31,39 @@ const inputSchema = z.object({
   prompt: z.string().min(1).max(2000),
 });
 
-function buildSystemPrompt(event: (typeof AI_REWARD_EVENTS)[number]) {
+function buildSystemPrompt(
+  event: (typeof AI_REWARD_EVENTS)[number],
+  unavailableSources: {
+    id: string;
+    missingIntegration?: { name: string };
+  }[],
+) {
   const entities = REWARD_CONDITIONS[event].entities.map((entity) => {
     const attrs = entity.attributes
       .map((attr) => {
         const options = attr.options
-          ? ` options=[${attr.options.map((o) => `${o.id}`).join(", ")}]`
+          ? ` options=[${attr.options
+              .filter(
+                ({ id }) =>
+                  attr.id !== "source" ||
+                  !unavailableSources.some((source) => source.id === id),
+              )
+              .map(({ id, description }) =>
+                description
+                  ? `${id}: ${description.replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")}`
+                  : id,
+              )
+              .join("; ")}]`
           : "";
         return `    - ${attr.id} (${attr.type}${options})`;
       })
       .join("\n");
     return `  - ${entity.id}:\n${attrs}`;
   });
+
+  const integrationSources = unavailableSources.filter(
+    ({ missingIntegration }) => missingIntegration,
+  );
 
   return `You are a partner reward structure assistant for Dub. Convert the user's natural-language reward idea into a structured reward configuration.
 
@@ -61,11 +84,25 @@ Unsupported requests (important):
 - Set supported=false when the request cannot be expressed accurately with the allowed attributes. Set reward to null and explain briefly in reason.
 - Do NOT approximate, stretch meanings, or substitute a "close enough" attribute.
 - Examples of unsupported: billing interval / plan cadence (yearly vs monthly plans), plan names or tiers not identified via productId or an explicitly named metadata field, or any condition on a field not listed below.
+- For enum attributes, options are listed as "id: description". Use only the id as the condition value, and pick the option whose description matches the user's intent.
 - customer.subscriptionDurationMonths is how long the customer has already been subscribed — it is NOT whether their plan is billed yearly or monthly.
 - When supported=true, provide a complete reward object. When supported=false, reward must be null.
 
 Allowed entities and attributes for ${event}:
-${entities.join("\n")}`;
+${entities.join("\n")}${
+    integrationSources.length
+      ? `
+
+Unavailable customer sources (do NOT use these):
+${integrationSources
+  .map(
+    ({ id, missingIntegration }) =>
+      `- ${id}: requires the ${missingIntegration?.name} integration, which is not installed`,
+  )
+  .join("\n")}
+If the user asks for one of these, set supported=false, set unavailableSource to its id, and explain in reason that the integration must be installed first.`
+      : ""
+  }`;
 }
 
 export async function generateReward(input: z.infer<typeof inputSchema>) {
@@ -89,6 +126,9 @@ export async function generateReward(input: z.infer<typeof inputSchema>) {
       users: {
         where: { userId: session.user.id },
         select: { role: true },
+      },
+      installedIntegrations: {
+        select: { integrationId: true },
       },
     },
   });
@@ -133,11 +173,26 @@ export async function generateReward(input: z.infer<typeof inputSchema>) {
     };
 
     try {
+      const customerSources = getAICustomerSourceIds(event).map((id) => ({
+        id,
+        ...getCustomerSourceAvailability({
+          source: id,
+          programId: workspace.defaultProgramId ?? undefined,
+          installedIntegrationIds: workspace.installedIntegrations.map(
+            ({ integrationId }) => integrationId,
+          ),
+        }),
+      }));
+
+      const unavailableSources = customerSources.filter(
+        ({ hidden, missingIntegration }) => hidden || missingIntegration,
+      );
+
       const generationSchema = getAIRewardGenerationSchema(event);
       const result = streamText({
         model: anthropic("claude-sonnet-4-6"),
         output: Output.object({ schema: generationSchema }),
-        system: buildSystemPrompt(event),
+        system: buildSystemPrompt(event, unavailableSources),
         prompt,
         temperature: 0.3,
         maxOutputTokens: 2000,
@@ -216,6 +271,44 @@ export async function generateReward(input: z.infer<typeof inputSchema>) {
           stream.done();
           return;
         }
+
+        const invalidSource = rewardParsed.data.modifiers
+          ?.flatMap(({ conditions }) => conditions)
+          .filter(
+            ({ entity, attribute }) =>
+              entity === "customer" && attribute === "source",
+          )
+          .flatMap(({ value }) => [value].flat().map(String))
+          .find((value) => {
+            const source = customerSources.find(({ id }) => id === value);
+            return !source || source.hidden || !!source.missingIntegration;
+          });
+
+        if (invalidSource) {
+          const unsupported: AIRewardGenerationOutput = {
+            supported: false,
+            reason: "This customer source isn't available for this workspace.",
+            unavailableSource: unavailableSources.find(
+              ({ id, missingIntegration }) =>
+                id === invalidSource && missingIntegration,
+            )?.id,
+            reward: null,
+          };
+          stream.update(unsupported);
+          stream.done();
+          return;
+        }
+      }
+
+      if (
+        !parsed.data.supported &&
+        parsed.data.unavailableSource &&
+        !unavailableSources.some(
+          ({ id, missingIntegration }) =>
+            id === parsed.data.unavailableSource && missingIntegration,
+        )
+      ) {
+        stream.update({ ...parsed.data, unavailableSource: null });
       }
 
       stream.done();

@@ -94,6 +94,10 @@ export const CommissionEnrichedSchema = CommissionSchema.extend({
 // Schema for the commission detail page (GET /api/commissions/:commissionId)
 // TODO: Simplify this for OpenAPI and limit extra fields to in-app only – similar to getLinkInfoQuerySchemaExtended logic
 export const CommissionDetailSchema = CommissionEnrichedSchema.extend({
+  source: z
+    .enum(CommissionSource)
+    .nullable()
+    .describe("Where the commission originated."),
   user: UserSchema.nullish().describe("The user who created the commission."),
   reward: RewardSchema.pick({
     event: true,

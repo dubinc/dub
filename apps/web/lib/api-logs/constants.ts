@@ -4,6 +4,7 @@ import {
   HUBSPOT_INTEGRATION_ID,
   INTERCOM_INTEGRATION_ID,
   SHOPIFY_INTEGRATION_ID,
+  SINGULAR_INTEGRATION_ID,
   STRIPE_INTEGRATION_ID,
 } from "@dub/utils";
 
@@ -223,6 +224,12 @@ export const WEBHOOK_REQUEST_ACTORS_BY_PATH = {
     name: "Intercom",
     image:
       "https://dubassets.com/integrations/int_1KV6R1E61E0044C0VFQKV2Q6K_PfbSFTk",
+  },
+  "/singular/webhook": {
+    id: SINGULAR_INTEGRATION_ID,
+    name: "Singular",
+    image:
+      "https://dubassets.com/integrations/int_1K0F60E21R1F43ZBNES3RG81P_JjFaAI8",
   },
 } as const;
 
