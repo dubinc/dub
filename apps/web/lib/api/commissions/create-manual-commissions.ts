@@ -426,6 +426,14 @@ async function resolveLinkAndCustomer(args: ResolveLinkAndCustomerArgs) {
     if (created) {
       targetCustomer = existingOrNewCustomer;
     } else {
+      if (existingOrNewCustomer.projectId !== workspace.id) {
+        throw new DubApiError({
+          code: "conflict",
+          message:
+            "A customer with this stripeCustomerId already exists in another workspace.",
+        });
+      }
+
       try {
         targetCustomer = await prisma.customer.update({
           where: {
