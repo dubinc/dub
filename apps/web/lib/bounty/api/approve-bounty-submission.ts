@@ -11,7 +11,7 @@ import {
 } from "@/lib/zod/schemas/bounties";
 import { sendEmail } from "@dub/email";
 import BountyApproved from "@dub/email/templates/bounty-approved";
-import { CommissionSource } from "@prisma/client";
+import { BountySubmissionStatus, CommissionSource } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
 
@@ -112,7 +112,10 @@ export async function approveBountySubmission({
       where: {
         id: submissionId,
         status: {
-          not: "approved",
+          notIn: [
+            BountySubmissionStatus.approved,
+            BountySubmissionStatus.draft,
+          ],
         },
       },
       data: {
@@ -144,7 +147,8 @@ export async function approveBountySubmission({
       if (error.code === "P2025") {
         throw new DubApiError({
           code: "bad_request",
-          message: "This bounty submission has already been approved.",
+          message:
+            "This bounty submission is no longer awaiting review and cannot be approved.",
         });
       }
 
