@@ -1,7 +1,10 @@
 import { formatDateTooltip } from "@/lib/analytics/format-date-tooltip";
 import useDomains from "@/lib/swr/use-domains";
 import useFolders from "@/lib/swr/use-folders";
-import { useUsageTimeseries } from "@/lib/swr/use-usage-timeseries";
+import {
+  UsageResource,
+  useUsageTimeseries,
+} from "@/lib/swr/use-usage-timeseries";
 import { BarList } from "@/ui/analytics/bar-list";
 import { FolderIcon } from "@/ui/folders/folder-icon";
 import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
@@ -16,8 +19,19 @@ import {
   useRouterStuff,
 } from "@dub/ui";
 import { Bars, TimeSeriesChart, XAxis, YAxis } from "@dub/ui/charts";
-import { CursorRays, Folder, Globe2, Hyperlink } from "@dub/ui/icons";
-import { cn, GOOGLE_FAVICON_URL, nFormatter } from "@dub/utils";
+import {
+  CursorRays,
+  Folder,
+  Globe2,
+  Hyperlink,
+  MoneyBills2,
+} from "@dub/ui/icons";
+import {
+  cn,
+  currencyFormatter,
+  GOOGLE_FAVICON_URL,
+  nFormatter,
+} from "@dub/utils";
 import NumberFlow, { NumberFlowGroup } from "@number-flow/react";
 import {
   ComponentProps,
@@ -42,11 +56,15 @@ const BAR_COLORS = [
   "text-pink-500",
 ];
 
-const RESOURCES = ["links", "events"] as const;
 const resourceEmptyStates: Record<
-  (typeof RESOURCES)[number],
+  UsageResource,
   ComponentProps<typeof EmptyState>
 > = {
+  payouts: {
+    icon: MoneyBills2,
+    title: "Payouts Sent",
+    description: "No payouts have been sent in the selected date range.",
+  },
   links: {
     icon: Hyperlink,
     title: "Links Created",
@@ -72,6 +90,25 @@ export function UsageChart() {
     interval,
     groupBy,
   } = useUsageTimeseries();
+
+  const isPayouts = activeResource === "payouts";
+
+  const formatValue = useCallback(
+    (value: number) =>
+      isPayouts
+        ? currencyFormatter(value, { trailingZeroDisplay: "stripIfInteger" })
+        : nFormatter(value, { full: true }),
+    [isPayouts],
+  );
+
+  // Payouts are always bucketed by month
+  const formatDate = useCallback(
+    (date: Date) =>
+      isPayouts
+        ? date.toLocaleDateString("en-US", { month: "short", year: "numeric" })
+        : formatDateTooltip(date, { interval, start, end }),
+    [isPayouts, interval, start, end],
+  );
 
   // Get filter values from URL params
   const folderId = searchParamsObj.folderId;
@@ -319,33 +356,37 @@ export function UsageChart() {
       <div className="flex flex-col gap-3">
         <div className="flex flex-col gap-2 px-4 md:flex-row md:items-center md:justify-between md:px-0">
           <div className="flex w-full flex-col gap-2 md:w-fit md:flex-row md:items-center">
-            <Filter.Select
-              className="h-9 w-full md:w-fit"
-              filters={filters}
-              activeFilters={activeFilters}
-              onSelect={onSelect}
-              onRemove={onRemove}
-            />
+            {!isPayouts && (
+              <Filter.Select
+                className="h-9 w-full md:w-fit"
+                filters={filters}
+                activeFilters={activeFilters}
+                onSelect={onSelect}
+                onRemove={onRemove}
+              />
+            )}
             <SimpleDateRangePicker
               presets={["7d", "30d", "90d", "1y", "mtd", "qtd", "ytd"]}
               values={{ start, end, interval }}
               className="h-9 w-full md:w-fit"
             />
           </div>
-          <ToggleGroup
-            options={[
-              { value: "domain", label: "Domain" },
-              { value: "folderId", label: "Folder" },
-            ]}
-            selected={groupBy}
-            selectAction={(id) => queryParams({ set: { groupBy: id } })}
-            className="w-full rounded-lg border-transparent bg-neutral-100 p-0.5 md:w-fit"
-            optionClassName="flex-1 justify-center text-xs text-neutral-800 data-[selected=true]:text-neutral-800 px-3 sm:px-5 py-2 leading-none"
-            indicatorClassName="bg-white border-neutral-200 rounded-md"
-          />
+          {!isPayouts && (
+            <ToggleGroup
+              options={[
+                { value: "domain", label: "Domain" },
+                { value: "folderId", label: "Folder" },
+              ]}
+              selected={groupBy}
+              selectAction={(id) => queryParams({ set: { groupBy: id } })}
+              className="w-full rounded-lg border-transparent bg-neutral-100 p-0.5 md:w-fit"
+              optionClassName="flex-1 justify-center text-xs text-neutral-800 data-[selected=true]:text-neutral-800 px-3 sm:px-5 py-2 leading-none"
+              indicatorClassName="bg-white border-neutral-200 rounded-md"
+            />
+          )}
         </div>
         <AnimatedSizeContainer height>
-          {activeFilters.length > 0 && (
+          {!isPayouts && activeFilters.length > 0 && (
             <Filter.List
               filters={filters}
               activeFilters={activeFilters}
@@ -378,7 +419,7 @@ export function UsageChart() {
                   id: "usage",
                   valueAccessor: (d) => d.values.usage,
                   colorClassName: "text-violet-500",
-                  isActive: false,
+                  isActive: isPayouts,
                 },
                 ...(usage?.[0]?.groups?.map((group) => ({
                   id: group.id,
@@ -399,10 +440,10 @@ export function UsageChart() {
                   <>
                     <div className="flex items-center justify-between gap-4 px-4 py-3 text-xs">
                       <span className="text-content-emphasis font-semibold">
-                        {formatDateTooltip(d.date, { interval, start, end })}
+                        {formatDate(d.date)}
                       </span>
                       <span className="text-content-default font-medium">
-                        {nFormatter(d.values.usage, { full: true })}
+                        {formatValue(d.values.usage)}
                       </span>
                     </div>
                     {Boolean(topGroups?.length) && (
@@ -441,13 +482,13 @@ export function UsageChart() {
                 );
               }}
             >
-              <XAxis
-                highlightLast={false}
-                tickFormat={(date) =>
-                  formatDateTooltip(date, { interval, start, end })
+              <XAxis highlightLast={false} tickFormat={formatDate} />
+              <YAxis
+                showGridLines
+                tickFormat={(value) =>
+                  isPayouts ? `$${nFormatter(value / 100)}` : nFormatter(value)
                 }
               />
-              <YAxis showGridLines tickFormat={nFormatter} />
               <Bars />
             </TimeSeriesChart>
           )
@@ -520,7 +561,7 @@ export function UsageChart() {
                   );
                 })}
               </>
-            ) : loading ? (
+            ) : loading && !isPayouts ? (
               [...Array(3)].map((_, idx) => (
                 <div
                   key={idx}
