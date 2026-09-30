@@ -146,6 +146,7 @@ test.describe("partner applications", () => {
         data: {
           id: applicationId,
           programId,
+          partnerId,
           groupId: row.groupId,
           name: row.name,
           email: row.email,

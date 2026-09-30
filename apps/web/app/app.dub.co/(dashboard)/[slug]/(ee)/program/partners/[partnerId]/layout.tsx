@@ -11,7 +11,10 @@ import {
   EnrolledPartnerExtendedProps,
   EnrolledPartnerProps,
 } from "@/lib/types";
-import { COMMISSION_ELIGIBLE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
+import {
+  ACTIVE_ENROLLMENT_STATUSES,
+  COMMISSION_ELIGIBLE_ENROLLMENT_STATUSES,
+} from "@/lib/zod/schemas/partners";
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { useArchivePartnerModal } from "@/ui/modals/archive-partner-modal";
@@ -441,7 +444,7 @@ function PageControls({ partner }: { partner: EnrolledPartnerProps }) {
                 </div>
                 <div className="border-t border-neutral-200" />
                 <div className="grid gap-px p-2">
-                  {!["banned", "deactivated"].includes(partner.status) && (
+                  {ACTIVE_ENROLLMENT_STATUSES.includes(partner.status) && (
                     <MenuItem
                       icon={BoxArchive}
                       onClick={() => {
