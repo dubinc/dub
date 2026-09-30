@@ -22,12 +22,14 @@ import {
   Customer,
   Link,
   Partner,
+  Prisma,
   Project,
 } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
 import { createId } from "../create-id";
 import { getCustomerStripeInvoices } from "../customers/get-customer-stripe-invoices";
+import { getOrCreateCustomer } from "../customers/get-or-create-customer";
 import { DubApiError } from "../errors";
 import { updateLinkStatsForImporter } from "../links/update-link-stats-for-importer";
 import { syncPartnerLinksStats } from "../partners/sync-partner-links-stats";
@@ -377,31 +379,17 @@ async function resolveLinkAndCustomer(args: ResolveLinkAndCustomerArgs) {
         ? `${R2_URL}/customers/${customerId}/avatar_${nanoid(7)}`
         : avatar;
 
-    targetCustomer = await prisma.customer.upsert({
-      where: {
-        projectId_externalId: {
-          projectId: workspace.id,
-          externalId,
-        },
-      },
-      create: {
+    targetCustomer = await createOrUpdateCustomer({
+      workspace,
+      linkId: targetLink.id,
+      customer: {
         id: customerId,
         name: finalCustomerName,
         email,
         avatar: finalCustomerAvatar,
         externalId,
         stripeCustomerId,
-        linkId: targetLink.id,
         country,
-        projectId: workspace.id,
-        projectConnectId: workspace.stripeConnectId,
-      },
-      update: {
-        name: finalCustomerName,
-        email,
-        avatar: finalCustomerAvatar,
-        country,
-        stripeCustomerId,
       },
     });
 
@@ -434,6 +422,114 @@ async function resolveLinkAndCustomer(args: ResolveLinkAndCustomerArgs) {
       }),
     }),
   };
+}
+
+/**
+ * Creates the customer by `(projectId, externalId)`, or updates it if it already exists.
+ *
+ * We avoid `prisma.customer.upsert()` here because `Customer` has two other
+ * unique keys besides `(projectId, externalId)`: `stripeCustomerId` (global) and
+ * `(projectConnectId, externalId)`. Upsert only handles conflicts on its `where`
+ * key, so a clash on either of the others throws an opaque
+ * "Unique constraint failed on the (not available)" error from MySQL.
+ *
+ * `getOrCreateCustomer` handles concurrent creates of the same customer. The
+ * remaining Prisma errors are mapped to a 409 conflict:
+ * - P2002: the update sets a `stripeCustomerId` already used by another customer.
+ * - P2025: the create hit one of the other unique keys, so the fallback lookup
+ *   by `(projectId, externalId)` found nothing.
+ *
+ * P2034 (write conflict / deadlock) is retried: MySQL can deadlock concurrent
+ * inserts that collide on the same unique index, and the retry then resolves
+ * to one of the cases above.
+ */
+async function createOrUpdateCustomer({
+  workspace,
+  linkId,
+  customer,
+}: {
+  workspace: Pick<Project, "id" | "stripeConnectId">;
+  linkId: string;
+  customer: Pick<
+    Prisma.CustomerUncheckedCreateInput,
+    "id" | "name" | "email" | "avatar" | "stripeCustomerId" | "country"
+  > & { externalId: string };
+}) {
+  const { id, name, email, avatar, externalId, stripeCustomerId, country } =
+    customer;
+
+  // Retry on MySQL deadlocks (P2034) from concurrent inserts on the same unique key
+  const maxAttempts = 3;
+
+  for (let attempt = 1; ; attempt++) {
+    try {
+      const { customer: resolvedCustomer, created } = await getOrCreateCustomer(
+        {
+          where: {
+            projectId_externalId: {
+              projectId: workspace.id,
+              externalId,
+            },
+          },
+          create: {
+            id,
+            name,
+            email,
+            avatar,
+            externalId,
+            stripeCustomerId,
+            linkId,
+            country,
+            projectId: workspace.id,
+            projectConnectId: workspace.stripeConnectId,
+          },
+        },
+      );
+
+      if (created) {
+        return resolvedCustomer;
+      }
+
+      return await prisma.customer.update({
+        where: {
+          id: resolvedCustomer.id,
+        },
+        data: {
+          name,
+          email,
+          avatar,
+          country,
+          stripeCustomerId,
+        },
+      });
+    } catch (error) {
+      if (!(error instanceof Prisma.PrismaClientKnownRequestError)) {
+        throw error;
+      }
+
+      if (error.code === "P2034" && attempt < maxAttempts) {
+        continue;
+      }
+
+      if (error.code === "P2002") {
+        throw new DubApiError({
+          code: "conflict",
+          message: `The Stripe customer ID ${stripeCustomerId} is already linked to a different customer than external ID ${externalId}.`,
+        });
+      }
+
+      if (error.code === "P2025") {
+        throw new DubApiError({
+          code: "conflict",
+          message: stripeCustomerId
+            ? `The Stripe customer ID ${stripeCustomerId} is already linked to a customer with a different external ID.`
+            : `A customer with external ID ${externalId} already exists for this Stripe account.`,
+        });
+      }
+
+      throw error;
+    }
+  }
 }
 
 async function recordEvents(args: RecordEventsArgs) {
