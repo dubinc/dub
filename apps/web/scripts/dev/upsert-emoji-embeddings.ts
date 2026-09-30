@@ -1,6 +1,6 @@
 import { toEmojiMatches } from "@/lib/ai/search-emojis";
-import { getEmojiVectorIndex } from "@/lib/upstash/vector";
 import "dotenv-flow/config";
+import { emojiVectorIndex } from "../../lib/upstash/vector";
 
 const EMOJIBASE_DATA_URL =
   "https://cdn.jsdelivr.net/npm/emojibase-data@16.0.3/en/data.json";
@@ -77,14 +77,14 @@ async function main() {
 
   for (let index = 0; index < records.length; index += UPSERT_BATCH_SIZE) {
     const batch = records.slice(index, index + UPSERT_BATCH_SIZE);
-    await getEmojiVectorIndex().upsert(batch);
+    await emojiVectorIndex.upsert(batch);
     console.log(
       `Upserted ${Math.min(index + batch.length, records.length)}/${records.length}`,
     );
   }
 
   const query = "jurassic park";
-  const hits = await getEmojiVectorIndex().query({
+  const hits = await emojiVectorIndex.query({
     data: query,
     topK: 18,
     includeMetadata: true,

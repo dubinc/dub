@@ -1,4 +1,4 @@
-import { getEmojiVectorIndex } from "@/lib/upstash/vector";
+import { emojiVectorIndex } from "@/lib/upstash/vector";
 
 const MATCH_LIMIT = 18;
 const MATCH_SCORE_FLOOR = 0.45;
@@ -42,7 +42,7 @@ export async function searchEmojis(query: string): Promise<EmojiMatch[]> {
     return [];
   }
 
-  const hits = await getEmojiVectorIndex().query({
+  const hits = await emojiVectorIndex.query({
     data: normalized,
     topK: MATCH_LIMIT,
     includeMetadata: true,
