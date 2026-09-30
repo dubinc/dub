@@ -1,9 +1,6 @@
 "use client";
 
-import {
-  AI_REWARD_EVENTS,
-  type AIRewardEvent,
-} from "@/lib/ai/ai-reward-schema";
+import { AI_REWARD_EVENTS } from "@/lib/ai/ai-reward-schema";
 import {
   reviewRewardTooltipConsistency,
   screenRewardTooltipContradiction,
@@ -20,7 +17,6 @@ import {
   isRewardConditionComplete,
   stripRewardTooltipMarkdown,
   type TooltipSuggestionField,
-  type TooltipSuggestionPage,
 } from "@/lib/rewards/validate-tooltip-suggestion";
 import { EventType } from "@prisma/client";
 import {
@@ -31,21 +27,21 @@ import {
   useMemo,
   useRef,
   useState,
-  type MutableRefObject,
 } from "react";
 
-const DEBOUNCE_MS = 200;
+const DEBOUNCE_MS = 700;
 const HIDE_MS = 300;
-const REVIEW_CACHE_VERSION = 2;
-
-type TooltipReviewStatus = "idle" | "reviewing";
 
 type ReviewCacheEntry = {
-  v: typeof REVIEW_CACHE_VERSION;
-  flagged: boolean;
   suggestions: TooltipSuggestion[];
   payoutFixes: PayoutFix[];
   note: string | null;
+};
+
+const EMPTY_REVIEW: ReviewCacheEntry = {
+  suggestions: [],
+  payoutFixes: [],
+  note: null,
 };
 
 const reviewCache = new Map<string, ReviewCacheEntry>();
@@ -62,42 +58,9 @@ export function tooltipSuggestionPageKey({
   return `${modifierIndex}:${conditionIndex}:${field}`;
 }
 
-type RewardTooltipConsistencyValue = {
-  status: TooltipReviewStatus;
-  suggestions: TooltipSuggestion[];
-  pages: TooltipSuggestionPage[];
-  activeIndex: number;
-  open: boolean;
-  activeAnchorRef: MutableRefObject<HTMLElement | null>;
-  registerBadge: (key: string, element: HTMLElement | null) => void;
-  popoverContentRef: MutableRefObject<HTMLDivElement | null>;
-  showPage: (index: number) => void;
-  focusPopoverContent: () => void;
-  handlePopoverCloseAutoFocus: (event: Event) => void;
-  scheduleHide: () => void;
-  cancelHide: () => void;
-  hide: () => void;
-  getSuggestion: (
-    modifierIndex: number,
-    conditionIndex: number,
-  ) => TooltipSuggestion | undefined;
-  getPageIndex: (
-    modifierIndex: number,
-    conditionIndex: number,
-    field: TooltipSuggestionField,
-  ) => number;
-  accept: (suggestion: TooltipSuggestion) => void;
-  acceptAll: () => void;
-  dismiss: (suggestion: TooltipSuggestion) => void;
-  dismissAll: () => void;
-  note: string | null;
-  payoutFixes: PayoutFix[];
-  acceptPayouts: () => void;
-  dismissNote: () => void;
-};
-
-export const RewardTooltipConsistencyContext =
-  createContext<RewardTooltipConsistencyValue | null>(null);
+export const RewardTooltipConsistencyContext = createContext<ReturnType<
+  typeof useRewardTooltipConsistency
+> | null>(null);
 
 export function useRewardTooltipConsistencyContext() {
   return useContext(RewardTooltipConsistencyContext);
@@ -139,11 +102,11 @@ export function useRewardTooltipConsistency({
   } | null> | null;
   onApply?: (suggestion: TooltipSuggestion) => void;
   onApplyPayout?: (fixes: PayoutFix[]) => void;
-}): RewardTooltipConsistencyValue {
+}) {
   const [suggestions, setSuggestions] = useState<TooltipSuggestion[]>([]);
   const [payoutFixes, setPayoutFixes] = useState<PayoutFix[]>([]);
   const [note, setNote] = useState<string | null>(null);
-  const [status, setStatus] = useState<TooltipReviewStatus>("idle");
+  const [reviewing, setReviewing] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
   const [open, setOpen] = useState(false);
   const [dismissedKeys, setDismissedKeys] = useState<string[]>([]);
@@ -155,173 +118,72 @@ export function useRewardTooltipConsistency({
   const returnFocusOnCloseRef = useRef(false);
 
   const tooltip = stripRewardTooltipMarkdown(tooltipDescription ?? "");
-  const serializedReward = useMemo(
-    () =>
-      serializeRewardForReview({
-        event,
-        description,
-        baseReward,
-        modifiers,
-      }),
-    [baseReward, description, event, modifiers],
-  );
+  const serializedReward = serializeRewardForReview({
+    event,
+    description,
+    baseReward,
+    modifiers,
+  });
   const serializedModifiers = serializedReward?.modifiers ?? null;
-
-  const cacheKey = useMemo(() => {
-    if (
-      !workspaceId ||
-      !isAiRewardEvent(event) ||
-      !tooltip ||
-      !serializedReward
-    ) {
-      return null;
-    }
-
-    return JSON.stringify({
-      event,
-      tooltip,
-      reward: serializedReward,
-    });
-  }, [event, serializedReward, tooltip, workspaceId]);
+  const cacheKey =
+    workspaceId && tooltip && serializedReward
+      ? JSON.stringify({ event, tooltip, reward: serializedReward })
+      : null;
 
   const serializedRewardRef = useRef(serializedReward);
   serializedRewardRef.current = serializedReward;
 
   useEffect(() => {
     const requestId = ++requestIdRef.current;
-
     const reward = serializedRewardRef.current;
 
-    if (!cacheKey || !workspaceId || !isAiRewardEvent(event) || !reward) {
-      setSuggestions([]);
-      setPayoutFixes([]);
-      setNote(null);
-      setStatus("idle");
+    const show = (entry: ReviewCacheEntry) => {
+      setSuggestions(entry.suggestions);
+      setPayoutFixes(entry.payoutFixes);
+      setNote(entry.note);
+      setReviewing(false);
       setActiveIndex(0);
-      return;
-    }
+    };
 
-    const cached = reviewCache.get(cacheKey);
-    if (cached?.v === REVIEW_CACHE_VERSION) {
-      setSuggestions(cached.suggestions);
-      setPayoutFixes(cached.payoutFixes);
-      setNote(cached.note);
-      setStatus("idle");
-      setActiveIndex(0);
-      return;
-    }
+    const cached = cacheKey ? reviewCache.get(cacheKey) : undefined;
+    show(cached ?? EMPTY_REVIEW);
 
-    setSuggestions([]);
-    setPayoutFixes([]);
-    setNote(null);
-    setStatus("idle");
-    setActiveIndex(0);
+    if (!cacheKey || !reward || cached) return;
+
+    const input = { workspaceId, event, tooltip, ...reward };
     const timeout = window.setTimeout(async () => {
-      let flagged: boolean | null = null;
+      const { flagged } = await screenRewardTooltipContradiction(input).catch(
+        () => ({ flagged: null }),
+      );
 
-      try {
-        const screen = await screenRewardTooltipContradiction({
-          workspaceId,
-          event,
-          tooltip,
-          description: reward.description,
-          basePayout: reward.basePayout,
-          modifiers: reward.modifiers,
-        });
+      if (requestId !== requestIdRef.current || flagged === null) return;
 
-        if (requestId !== requestIdRef.current) {
-          return;
-        }
-
-        flagged = screen.flagged;
-      } catch {
-        if (requestId !== requestIdRef.current) {
-          return;
-        }
-
-        flagged = null;
-      }
-
-      if (flagged === false) {
-        reviewCache.set(cacheKey, {
-          v: REVIEW_CACHE_VERSION,
-          flagged: false,
-          suggestions: [],
-          payoutFixes: [],
-          note: null,
-        });
-        setSuggestions([]);
-        setPayoutFixes([]);
-        setNote(null);
-        setStatus("idle");
-        setActiveIndex(0);
+      if (!flagged) {
+        reviewCache.set(cacheKey, EMPTY_REVIEW);
         return;
       }
 
-      if (flagged === true) {
-        setStatus("reviewing");
-      }
+      setReviewing(true);
 
-      try {
-        const result = await reviewRewardTooltipConsistency({
-          workspaceId,
-          event,
-          tooltip,
-          description: reward.description,
-          basePayout: reward.basePayout,
-          modifiers: reward.modifiers,
-        });
+      const result = await reviewRewardTooltipConsistency(input).catch(
+        () => null,
+      );
 
-        if (requestId !== requestIdRef.current) {
-          return;
-        }
+      if (requestId !== requestIdRef.current) return;
 
-        const next = result.suggestions ?? [];
-        const nextPayoutFixes = result.payoutFixes ?? [];
-        const nextNote = noteForFlaggedReward({
-          flagged,
-          suggestions: next,
-          payoutFixes: nextPayoutFixes,
-          note: result.note,
-        });
-        reviewCache.set(cacheKey, {
-          v: REVIEW_CACHE_VERSION,
-          flagged: flagged === true,
-          suggestions: next,
-          payoutFixes: nextPayoutFixes,
-          note: nextNote,
-        });
-        setSuggestions(next);
-        setPayoutFixes(nextPayoutFixes);
-        setNote(nextNote);
-        setStatus("idle");
-        setActiveIndex(0);
-      } catch {
-        if (requestId !== requestIdRef.current) {
-          return;
-        }
+      const suggestions = result?.suggestions ?? [];
+      const payoutFixes = result?.payoutFixes ?? [];
+      const entry = {
+        suggestions,
+        payoutFixes,
+        note:
+          suggestions.length || payoutFixes.length
+            ? null
+            : result?.note || "This copy doesn't match the reward payout.",
+      };
 
-        const nextNote = noteForFlaggedReward({
-          flagged,
-          suggestions: [],
-          payoutFixes: [],
-          note: null,
-        });
-        if (nextNote) {
-          reviewCache.set(cacheKey, {
-            v: REVIEW_CACHE_VERSION,
-            flagged: flagged === true,
-            suggestions: [],
-            payoutFixes: [],
-            note: nextNote,
-          });
-        }
-        setSuggestions([]);
-        setPayoutFixes([]);
-        setNote(nextNote);
-        setStatus("idle");
-        setActiveIndex(0);
-      }
+      reviewCache.set(cacheKey, entry);
+      show(entry);
     }, DEBOUNCE_MS);
 
     return () => {
@@ -475,12 +337,31 @@ export function useRewardTooltipConsistency({
 
       const key = dismissalKey(suggestion, current);
       setDismissedKeys((keys) => (keys.includes(key) ? keys : [...keys, key]));
+
+      const cached = cacheKey ? reviewCache.get(cacheKey) : undefined;
+      if (cacheKey && cached) {
+        reviewCache.set(cacheKey, {
+          ...cached,
+          suggestions: cached.suggestions.filter(
+            (entry) =>
+              entry.modifierIndex !== suggestion.modifierIndex ||
+              entry.conditionIndex !== suggestion.conditionIndex,
+          ),
+        });
+      }
+
+      hide();
     },
-    [serializedModifiers],
+    [cacheKey, hide, serializedModifiers],
   );
 
   const dismissAll = useCallback(() => {
     if (!serializedModifiers) return;
+
+    const cached = cacheKey ? reviewCache.get(cacheKey) : undefined;
+    if (cacheKey && cached) {
+      reviewCache.set(cacheKey, { ...cached, suggestions: [] });
+    }
 
     setDismissedKeys((keys) => {
       const next = new Set(keys);
@@ -498,35 +379,22 @@ export function useRewardTooltipConsistency({
 
       return [...next];
     });
-  }, [serializedModifiers, suggestions]);
+
+    hide();
+  }, [cacheKey, hide, serializedModifiers, suggestions]);
 
   const accept = useCallback(
     (suggestion: TooltipSuggestion) => {
       onApply?.(suggestion);
       dismiss(suggestion);
-      hide();
     },
-    [dismiss, hide, onApply],
+    [dismiss, onApply],
   );
 
   const acceptAll = useCallback(() => {
     visibleSuggestions.forEach((suggestion) => onApply?.(suggestion));
     dismissAll();
-    hide();
-  }, [dismissAll, hide, onApply, visibleSuggestions]);
-
-  const dismissAndHide = useCallback(
-    (suggestion: TooltipSuggestion) => {
-      dismiss(suggestion);
-      hide();
-    },
-    [dismiss, hide],
-  );
-
-  const dismissAllAndHide = useCallback(() => {
-    dismissAll();
-    hide();
-  }, [dismissAll, hide]);
+  }, [dismissAll, onApply, visibleSuggestions]);
 
   const dismissNote = useCallback(() => {
     setNote(null);
@@ -550,8 +418,7 @@ export function useRewardTooltipConsistency({
   }, [dismissNote, onApplyPayout, payoutFixes]);
 
   return {
-    status,
-    suggestions: visibleSuggestions,
+    reviewing,
     pages,
     activeIndex,
     open,
@@ -568,37 +435,13 @@ export function useRewardTooltipConsistency({
     getPageIndex,
     accept,
     acceptAll,
-    dismiss: dismissAndHide,
-    dismissAll: dismissAllAndHide,
+    dismiss,
+    dismissAll,
     note,
     payoutFixes,
     acceptPayouts,
     dismissNote,
   };
-}
-
-function isAiRewardEvent(event: EventType): event is AIRewardEvent {
-  return (AI_REWARD_EVENTS as readonly string[]).includes(event);
-}
-
-function noteForFlaggedReward({
-  flagged,
-  suggestions,
-  payoutFixes,
-  note,
-}: {
-  flagged: boolean | null;
-  suggestions: TooltipSuggestion[];
-  payoutFixes: PayoutFix[];
-  note?: string | null;
-}) {
-  if (suggestions.length || payoutFixes.length) return null;
-
-  const trimmed = note?.trim();
-  if (trimmed) return trimmed;
-  if (flagged === true) return "This copy doesn't match the reward payout.";
-
-  return null;
 }
 
 function dismissalKey(
@@ -651,7 +494,7 @@ function serializeRewardForReview({
   if (baseReward?.type !== "flat" && baseReward?.type !== "percentage") {
     return null;
   }
-  if (!isAiRewardEvent(event)) return null;
+  if (!(AI_REWARD_EVENTS as readonly string[]).includes(event)) return null;
   const reviewModifiers = modifiers ?? [];
   if (
     !reviewModifiers.every(

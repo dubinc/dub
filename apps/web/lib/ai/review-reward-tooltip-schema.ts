@@ -1,5 +1,8 @@
 import { AI_REWARD_EVENTS } from "@/lib/ai/ai-reward-schema";
-import { CONDITION_OPERATORS } from "@/lib/zod/schemas/rewards";
+import {
+  CONDITION_OPERATORS,
+  REWARD_DESCRIPTION_MAX_LENGTH,
+} from "@/lib/zod/schemas/rewards";
 import * as z from "zod/v4";
 
 export const TOOLTIP_SUGGESTION_CONFIDENCE_FLOOR = 0.5;
@@ -119,12 +122,17 @@ export const reviewRewardTooltipOutputSchema = z.object({
 });
 
 const reviewRewardTooltipConditionSchema = z.object({
-  entity: z.string(),
-  attribute: z.string(),
+  entity: z.string().max(100),
+  attribute: z.string().max(100),
   operator: z.enum(CONDITION_OPERATORS),
-  value: tooltipSuggestionValueSchema,
-  label: z.string().nullish(),
-  metadataField: z.string().optional(),
+  value: z.union([
+    z.string().max(500),
+    z.number(),
+    z.array(z.string().max(500)).max(300),
+    z.array(z.number()).max(300),
+  ]),
+  label: z.string().max(200).nullish(),
+  metadataField: z.string().max(100).optional(),
 });
 
 const rewardPayoutSchema = z.object({
@@ -135,7 +143,7 @@ const rewardPayoutSchema = z.object({
 
 const reviewRewardTooltipModifierSchema = z.object({
   operator: z.enum(["AND", "OR"]).default("AND"),
-  conditions: z.array(reviewRewardTooltipConditionSchema).min(1),
+  conditions: z.array(reviewRewardTooltipConditionSchema).min(1).max(20),
   payout: rewardPayoutSchema,
 });
 
@@ -143,9 +151,9 @@ export const reviewRewardTooltipInputSchema = z.object({
   workspaceId: z.string(),
   event: z.enum(AI_REWARD_EVENTS),
   tooltip: z.string().min(1).max(4000),
-  description: z.string().nullish(),
+  description: z.string().max(REWARD_DESCRIPTION_MAX_LENGTH).nullish(),
   basePayout: rewardPayoutSchema,
-  modifiers: z.array(reviewRewardTooltipModifierSchema),
+  modifiers: z.array(reviewRewardTooltipModifierSchema).max(20),
 });
 
 export type TooltipSuggestion = z.infer<typeof tooltipSuggestionSchema>;

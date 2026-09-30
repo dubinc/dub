@@ -1,6 +1,8 @@
 import {
   TOOLTIP_SUGGESTION_CONFIDENCE_FLOOR,
+  type PayoutFix,
   type ReviewRewardTooltipModifier,
+  type RewardPayout,
   type TooltipSuggestion,
   type TooltipSuggestionPatch,
 } from "@/lib/ai/review-reward-tooltip-schema";
@@ -81,7 +83,7 @@ export function applyTooltipSuggestion<
 
 export type TooltipSuggestionField = "operator" | "value";
 
-export type TooltipSuggestionPage = {
+type TooltipSuggestionPage = {
   suggestion: TooltipSuggestion;
   field: TooltipSuggestionField;
 };
@@ -177,6 +179,66 @@ export function filterValidatedTooltipSuggestions({
   return [...byCondition.values()];
 }
 
+export function filterPayoutFixes({
+  basePayout,
+  modifiers,
+  fixes,
+}: {
+  basePayout: RewardPayout;
+  modifiers: ReviewRewardTooltipModifier[];
+  fixes: PayoutFix[];
+}): PayoutFix[] {
+  const byTarget = new Map<string, PayoutFix>();
+
+  for (const fix of fixes) {
+    if (
+      typeof fix.confidence !== "number" ||
+      fix.confidence < TOOLTIP_SUGGESTION_CONFIDENCE_FLOOR ||
+      !fix.reason?.trim()
+    ) {
+      continue;
+    }
+
+    const current =
+      fix.scope === "default"
+        ? basePayout
+        : modifiers[fix.modifierIndex ?? -1]?.payout;
+
+    if (!current) continue;
+    if (fix.scope === "group" && typeof fix.modifierIndex !== "number") {
+      continue;
+    }
+
+    // Amounts are in dollars; these mirror the save schema limits.
+    const maxAmount = current.type === "percentage" ? 100 : 999_999.99;
+    if (typeof fix.amount === "number" && fix.amount > maxAmount) continue;
+
+    const nextDuration =
+      fix.maxDuration === undefined ? current.maxDuration : fix.maxDuration;
+    const amountChanges =
+      typeof fix.amount === "number" && fix.amount !== current.amount;
+    const durationChanges =
+      fix.maxDuration !== undefined && nextDuration !== current.maxDuration;
+
+    if (!amountChanges && !durationChanges) continue;
+
+    const key =
+      fix.scope === "default" ? "default" : `group:${fix.modifierIndex}`;
+    const existing = byTarget.get(key);
+
+    if (!existing || fix.confidence > existing.confidence) {
+      byTarget.set(key, {
+        ...fix,
+        reason: fix.reason.trim(),
+        amount: amountChanges ? fix.amount : null,
+        maxDuration: durationChanges ? nextDuration : undefined,
+      });
+    }
+  }
+
+  return [...byTarget.values()];
+}
+
 function isValidTooltipSuggestion({
   event,
   modifiers,
@@ -213,11 +275,18 @@ function isValidTooltipSuggestion({
   }
 
   const nextOperator = suggestion.suggested.operator ?? current.operator;
-  const allowedOperators = getAllowedOperators({
-    event,
-    entity: current.entity,
-    attribute: current.attribute,
-  });
+  const isFixedOperator =
+    (current.entity === "customer" && current.attribute === "source") ||
+    (current.entity === "sale" && current.attribute === "type");
+  const allowedOperators: ConditionOperator[] = isFixedOperator
+    ? ["equals_to"]
+    : getConditionOperators(
+        getRewardConditionAttribute({
+          event,
+          entity: current.entity,
+          attribute: current.attribute,
+        })?.type ?? "string",
+      );
 
   if (!allowedOperators.includes(nextOperator)) {
     return false;
@@ -245,42 +314,16 @@ function isValidTooltipSuggestion({
   );
 }
 
-function getAllowedOperators({
-  event,
-  entity,
-  attribute,
-}: {
-  event: EventType;
-  entity?: string;
-  attribute?: string;
-}): ConditionOperator[] {
-  if (
-    (entity === "customer" && attribute === "source") ||
-    (entity === "sale" && attribute === "type")
-  ) {
-    return ["equals_to"];
-  }
-
-  const attributeType =
-    getRewardConditionAttribute({ event, entity, attribute })?.type ?? "string";
-
-  if (attributeType === "metadata") {
-    return [...METADATA_CONDITION_OPERATORS];
-  }
-
+export function getConditionOperators(
+  attributeType: string,
+): ConditionOperator[] {
+  if (attributeType === "metadata") return METADATA_CONDITION_OPERATORS;
   if (attributeType === "number" || attributeType === "currency") {
-    return [...NUMBER_CONDITION_OPERATORS];
+    return NUMBER_CONDITION_OPERATORS;
   }
-
-  if (attributeType === "enum") {
-    return [...ENUM_CONDITION_OPERATORS];
-  }
-
-  if (attributeType === "date") {
-    return [...DATE_CONDITION_OPERATORS];
-  }
-
-  return [...STRING_CONDITION_OPERATORS];
+  if (attributeType === "enum") return ENUM_CONDITION_OPERATORS;
+  if (attributeType === "date") return DATE_CONDITION_OPERATORS;
+  return STRING_CONDITION_OPERATORS;
 }
 
 function isConditionValueFilled(value: unknown): boolean {

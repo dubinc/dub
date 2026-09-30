@@ -173,114 +173,66 @@ export function SuggestedFixBadge({
 
 export function ReviewingSuggestedFixBadge({ text }: { text: string }) {
   const consistency = useRewardTooltipConsistencyContext();
-  const { isMobile } = useMediaQuery();
-  const closeTimerRef = useRef<number | undefined>(undefined);
-  const [open, setOpen] = useState(false);
 
-  const reviewing = consistency?.status === "reviewing";
-  const payoutFixes = reviewing ? [] : consistency?.payoutFixes ?? [];
-  const note = reviewing || payoutFixes.length ? null : consistency?.note;
+  if (!consistency) return null;
 
-  if (!consistency || (!reviewing && !note && !payoutFixes.length)) return null;
+  const { reviewing, payoutFixes, note, dismissNote, acceptPayouts } =
+    consistency;
 
-  const cancelHide = () => {
-    if (closeTimerRef.current) {
-      window.clearTimeout(closeTimerRef.current);
-      closeTimerRef.current = undefined;
-    }
-  };
-
-  const scheduleHide = () => {
-    cancelHide();
-    closeTimerRef.current = window.setTimeout(() => {
-      setOpen(false);
-    }, 300);
-  };
+  if (!reviewing && !note && !payoutFixes.length) return null;
 
   return (
-    <Popover
-      openPopover={open}
-      setOpenPopover={setOpen}
-      align="start"
-      sideOffset={8}
-      onOpenAutoFocus={(event) => event.preventDefault()}
-      popoverContentClassName={POPOVER_CONTENT_CLASS_NAME}
-      content={
-        <div onMouseEnter={cancelHide} onMouseLeave={scheduleHide}>
-          <div className="flex items-center gap-1.5 border-b border-neutral-200 p-3 text-sm font-medium text-neutral-900">
-            <Sparkle3 variant="fill" className="size-3.5" />
-            Suggested fix
+    <HoverFixPopover text={text}>
+      {(close) =>
+        reviewing ? (
+          <div className="flex flex-col gap-3 p-3">
+            <div className="h-16 animate-pulse rounded-[10px] bg-neutral-100" />
+            <div className="h-3 w-4/5 animate-pulse rounded bg-neutral-200" />
+            <div className="h-3 w-2/3 animate-pulse rounded bg-neutral-200" />
           </div>
-          {reviewing ? (
+        ) : (
+          <>
             <div className="flex flex-col gap-3 p-3">
-              <div className="h-16 animate-pulse rounded-[10px] bg-neutral-100" />
-              <div className="h-3 w-4/5 animate-pulse rounded bg-neutral-200" />
-              <div className="h-3 w-2/3 animate-pulse rounded bg-neutral-200" />
+              {payoutFixes.length ? (
+                <PayoutFixPreview fixes={payoutFixes} />
+              ) : (
+                <p className="text-sm leading-relaxed text-neutral-600">
+                  {note}
+                </p>
+              )}
             </div>
-          ) : (
-            <>
-              <div className="flex flex-col gap-3 p-3">
-                {payoutFixes.length ? (
-                  <PayoutFixPreview fixes={payoutFixes} />
-                ) : (
-                  <p className="text-sm leading-relaxed text-neutral-600">
-                    {note}
-                  </p>
-                )}
-              </div>
-              <div className="flex items-center justify-end gap-2 border-t border-neutral-200 px-3 py-2">
+            <div className="flex items-center justify-end gap-2 border-t border-neutral-200 px-3 py-2">
+              <Button
+                type="button"
+                variant="secondary"
+                text="Discard"
+                className="h-7 w-fit rounded-lg px-3 py-2"
+                onClick={() => {
+                  dismissNote();
+                  close();
+                }}
+              />
+              {payoutFixes.length > 0 && (
                 <Button
                   type="button"
-                  variant="secondary"
-                  text="Discard"
+                  variant="primary"
+                  text={
+                    payoutFixes.length > 1
+                      ? "Accept all changes"
+                      : "Accept change"
+                  }
                   className="h-7 w-fit rounded-lg px-3 py-2"
                   onClick={() => {
-                    consistency.dismissNote();
-                    setOpen(false);
+                    acceptPayouts();
+                    close();
                   }}
                 />
-                {payoutFixes.length > 0 && (
-                  <Button
-                    type="button"
-                    variant="primary"
-                    text={
-                      payoutFixes.length > 1
-                        ? "Accept all changes"
-                        : "Accept change"
-                    }
-                    className="h-7 w-fit rounded-lg px-3 py-2"
-                    onClick={() => {
-                      consistency.acceptPayouts();
-                      setOpen(false);
-                    }}
-                  />
-                )}
-              </div>
-            </>
-          )}
-        </div>
+              )}
+            </div>
+          </>
+        )
       }
-    >
-      <button
-        type="button"
-        onMouseEnter={() => {
-          if (isMobile) return;
-          cancelHide();
-          setOpen(true);
-        }}
-        onMouseLeave={() => {
-          if (!isMobile) scheduleHide();
-        }}
-        onClick={() => {
-          if (!isMobile) return;
-          setOpen((current) => !current);
-        }}
-        className={SUGGESTED_FIX_BADGE_CLASS_NAME}
-      >
-        <Sparkle3 variant="fill" className="size-3 shrink-0 text-[#E17100]" />
-        <span className="min-w-0 truncate">{text}</span>
-      </button>
-    </Popover>
+    </HoverFixPopover>
   );
 }
 
@@ -292,6 +244,40 @@ export function SuggestedFixNoticeBadge({
   text: string;
   message: string;
   onDiscard: () => void;
+}) {
+  return (
+    <HoverFixPopover text={text}>
+      {(close) => (
+        <>
+          <div className="p-3">
+            <p className="text-sm leading-relaxed text-neutral-600">
+              {message}
+            </p>
+          </div>
+          <div className="flex items-center justify-end gap-2 border-t border-neutral-200 px-3 py-2">
+            <Button
+              type="button"
+              variant="secondary"
+              text="Discard"
+              className="h-7 w-fit rounded-lg px-3 py-2"
+              onClick={() => {
+                onDiscard();
+                close();
+              }}
+            />
+          </div>
+        </>
+      )}
+    </HoverFixPopover>
+  );
+}
+
+function HoverFixPopover({
+  text,
+  children,
+}: {
+  text: string;
+  children: (close: () => void) => ReactNode;
 }) {
   const { isMobile } = useMediaQuery();
   const closeTimerRef = useRef<number | undefined>(undefined);
@@ -331,23 +317,7 @@ export function SuggestedFixNoticeBadge({
             <Sparkle3 variant="fill" className="size-3.5" />
             Suggested fix
           </div>
-          <div className="p-3">
-            <p className="text-sm leading-relaxed text-neutral-600">
-              {message}
-            </p>
-          </div>
-          <div className="flex items-center justify-end gap-2 border-t border-neutral-200 px-3 py-2">
-            <Button
-              type="button"
-              variant="secondary"
-              text="Discard"
-              className="h-7 w-fit rounded-lg px-3 py-2"
-              onClick={() => {
-                onDiscard();
-                setOpen(false);
-              }}
-            />
-          </div>
+          {children(() => setOpen(false))}
         </div>
       }
     >

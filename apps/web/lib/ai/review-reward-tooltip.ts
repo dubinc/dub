@@ -4,6 +4,7 @@ import { normalizeWorkspaceId } from "@/lib/api/workspaces/workspace-id";
 import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import {
+  filterPayoutFixes,
   filterValidatedTooltipSuggestions,
   getRewardConditionAttribute,
   stripRewardTooltipMarkdown,
@@ -15,6 +16,7 @@ import {
   REWARD_CONDITIONS,
 } from "@/lib/zod/schemas/rewards";
 import { anthropic } from "@ai-sdk/anthropic";
+import { formatDateTime } from "@dub/utils";
 import { type EventType } from "@prisma/client";
 import { experimental_evaluate as evaluate, generateText, Output } from "ai";
 import { throwIfNoPermission } from "../actions/throw-if-no-permission";
@@ -210,6 +212,10 @@ async function authorizeRewardTooltipReview(input: unknown) {
     requiredRoles: ["owner", "member"],
   });
 
+  if (workspace.aiUsage >= workspace.aiLimit) {
+    return null;
+  }
+
   return {
     userId: session.user.id,
     workspaceId,
@@ -315,62 +321,6 @@ function formatPayout(payout: RewardPayout) {
   return `${amount}, ${duration}`;
 }
 
-function filterPayoutFixes({
-  basePayout,
-  modifiers,
-  fixes,
-}: {
-  basePayout: RewardPayout;
-  modifiers: ReviewRewardTooltipModifier[];
-  fixes: PayoutFix[];
-}): PayoutFix[] {
-  const byTarget = new Map<string, PayoutFix>();
-
-  for (const fix of fixes) {
-    if (
-      typeof fix.confidence !== "number" ||
-      fix.confidence < TOOLTIP_SUGGESTION_CONFIDENCE_FLOOR ||
-      !fix.reason?.trim()
-    ) {
-      continue;
-    }
-
-    const current =
-      fix.scope === "default"
-        ? basePayout
-        : modifiers[fix.modifierIndex ?? -1]?.payout;
-
-    if (!current) continue;
-    if (fix.scope === "group" && typeof fix.modifierIndex !== "number") {
-      continue;
-    }
-
-    const nextDuration =
-      fix.maxDuration === undefined ? current.maxDuration : fix.maxDuration;
-    const amountChanges =
-      typeof fix.amount === "number" && fix.amount !== current.amount;
-    const durationChanges =
-      fix.maxDuration !== undefined && nextDuration !== current.maxDuration;
-
-    if (!amountChanges && !durationChanges) continue;
-
-    const key =
-      fix.scope === "default" ? "default" : `group:${fix.modifierIndex}`;
-    const existing = byTarget.get(key);
-
-    if (!existing || fix.confidence > existing.confidence) {
-      byTarget.set(key, {
-        ...fix,
-        reason: fix.reason.trim(),
-        amount: amountChanges ? fix.amount : null,
-        maxDuration: durationChanges ? nextDuration : undefined,
-      });
-    }
-  }
-
-  return [...byTarget.values()];
-}
-
 function formatCondition(
   event: EventType,
   condition: ReviewRewardTooltipModifier["conditions"][number],
@@ -406,6 +356,13 @@ function formatConditionValue(
     Number.isFinite(value)
   ) {
     return `$${value}`;
+  }
+
+  if (type === "date" && typeof value === "number" && Number.isFinite(value)) {
+    return formatDateTime(new Date(value), {
+      timeZone: "UTC",
+      timeZoneName: "short",
+    });
   }
 
   return String(value);

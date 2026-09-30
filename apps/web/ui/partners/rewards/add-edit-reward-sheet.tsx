@@ -898,37 +898,26 @@ function RewardSheetContent({
                                   />
                                 </InlineBadgePopover>{" "}
                                 with the tooltip{" "}
-                                {consistency.status === "reviewing" ||
-                                consistency.note ||
-                                (consistency.payoutFixes?.length ?? 0) > 0 ? (
-                                  <ReviewingSuggestedFixBadge
-                                    text={
-                                      tooltipDescription || "Reward tooltip"
+                                <InlineBadgePopover
+                                  text={tooltipDescription || "Reward tooltip"}
+                                  showOptional={!tooltipDescription}
+                                  buttonClassName="min-w-0 max-w-full"
+                                  contentClassName="truncate"
+                                >
+                                  <InlineBadgePopoverRichTextArea
+                                    value={tooltipDescription ?? ""}
+                                    onChange={(value) =>
+                                      setValue("tooltipDescription", value, {
+                                        shouldDirty: true,
+                                      })
+                                    }
+                                    className="sm:w-80"
+                                    maxLength={
+                                      REWARD_TOOLTIP_DESCRIPTION_MAX_LENGTH
                                     }
                                   />
-                                ) : (
-                                  <InlineBadgePopover
-                                    text={
-                                      tooltipDescription || "Reward tooltip"
-                                    }
-                                    showOptional={!tooltipDescription}
-                                    buttonClassName="min-w-0 max-w-full"
-                                    contentClassName="truncate"
-                                  >
-                                    <InlineBadgePopoverRichTextArea
-                                      value={tooltipDescription ?? ""}
-                                      onChange={(value) =>
-                                        setValue("tooltipDescription", value, {
-                                          shouldDirty: true,
-                                        })
-                                      }
-                                      className="sm:w-80"
-                                      maxLength={
-                                        REWARD_TOOLTIP_DESCRIPTION_MAX_LENGTH
-                                      }
-                                    />
-                                  </InlineBadgePopover>
-                                )}
+                                </InlineBadgePopover>{" "}
+                                <ReviewingSuggestedFixBadge text="Suggested fix" />
                               </span>
                               <Button
                                 variant="outline"

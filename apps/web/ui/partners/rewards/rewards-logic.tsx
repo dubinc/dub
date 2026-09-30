@@ -4,6 +4,7 @@ import { constructRewardAmount } from "@/lib/api/sales/construct-reward-amount";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { getCustomerSourceAvailability } from "@/lib/rewards/get-customer-source-availability";
 import {
+  getConditionOperators,
   isRewardConditionComplete,
   suggestionTouchesField,
 } from "@/lib/rewards/validate-tooltip-suggestion";
@@ -14,15 +15,11 @@ import { RECURRING_MAX_DURATIONS } from "@/lib/zod/schemas/misc";
 import {
   CONDITION_OPERATOR_LABELS,
   CONDITION_OPERATORS,
-  DATE_CONDITION_OPERATORS,
-  ENUM_CONDITION_OPERATORS,
   METADATA_CONDITION_OPERATORS,
   METADATA_NUMBER_CONDITION_OPERATORS,
   METADATA_TEXT_CONDITION_OPERATORS,
-  NUMBER_CONDITION_OPERATORS,
   REWARD_CONDITIONS,
   RewardConditionEntityAttribute,
-  STRING_CONDITION_OPERATORS,
 } from "@/lib/zod/schemas/rewards";
 import { CountryFlag } from "@/ui/shared/country-flag";
 import { DurationPopoverContent } from "@/ui/shared/duration-popover-content";
@@ -476,16 +473,7 @@ function ConditionLogic({
   const isSaleTypeCondition =
     condition?.entity === "sale" && condition?.attribute === "type";
 
-  const availableConditionOperators: (typeof CONDITION_OPERATORS)[number][] =
-    attributeType === "metadata"
-      ? METADATA_CONDITION_OPERATORS
-      : ["number", "currency"].includes(attributeType)
-        ? NUMBER_CONDITION_OPERATORS
-        : attributeType === "enum"
-          ? ENUM_CONDITION_OPERATORS
-          : attributeType === "date"
-            ? DATE_CONDITION_OPERATORS
-            : STRING_CONDITION_OPERATORS;
+  const availableConditionOperators = getConditionOperators(attributeType);
 
   useEffect(() => {
     if (

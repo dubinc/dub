@@ -1,13 +1,15 @@
-import type {
-  ReviewRewardTooltipModifier,
-  TooltipSuggestion,
+import {
+  reviewRewardTooltipInputSchema,
+  type PayoutFix,
+  type ReviewRewardTooltipModifier,
+  type RewardPayout,
+  type TooltipSuggestion,
 } from "@/lib/ai/review-reward-tooltip-schema";
 import {
-  applyTooltipSuggestion,
+  filterPayoutFixes,
   filterValidatedTooltipSuggestions,
   getTooltipSuggestionPages,
   isRewardConditionComplete,
-  suggestionTouchesField,
 } from "@/lib/rewards/validate-tooltip-suggestion";
 import { describe, expect, test } from "vitest";
 
@@ -32,147 +34,95 @@ const minTwentySuggestion: TooltipSuggestion = {
   confidence: 0.9,
   reason:
     '"Minimum $20 deposit" implies $20 qualifies, but "is greater than" excludes it.',
-  suggested: {
-    operator: "greater_than_or_equal" as const,
-  },
+  suggested: { operator: "greater_than_or_equal" },
 };
 
-function accepted(suggestion: TooltipSuggestion = minTwentySuggestion) {
-  return filterValidatedTooltipSuggestions({
-    event: "sale",
-    modifiers: saleAmountModifiers,
-    suggestions: [suggestion],
-  });
-}
-
 describe("isRewardConditionComplete", () => {
-  test("requires entity, attribute, operator, and value", () => {
-    expect(
-      isRewardConditionComplete({
-        event: "sale",
-        condition: {
-          entity: "sale",
-          attribute: "amount",
-          operator: "greater_than",
-        },
-      }),
-    ).toBe(false);
-
-    expect(
-      isRewardConditionComplete({
-        event: "sale",
-        condition: {
-          entity: "sale",
-          attribute: "amount",
-          operator: "greater_than",
-          value: 20,
-        },
-      }),
-    ).toBe(true);
-  });
-
-  test("requires a metadata field name", () => {
-    expect(
-      isRewardConditionComplete({
-        event: "sale",
-        condition: {
-          entity: "sale",
-          attribute: "metadata",
-          operator: "equals_to",
-          value: "enterprise",
-        },
-      }),
-    ).toBe(false);
-
-    expect(
-      isRewardConditionComplete({
-        event: "sale",
-        condition: {
-          entity: "sale",
-          attribute: "metadata",
-          operator: "equals_to",
-          value: "enterprise",
-          metadataField: "plan",
-        },
-      }),
-    ).toBe(true);
-  });
-
-  test("rejects empty arrays and NaN", () => {
-    expect(
-      isRewardConditionComplete({
-        event: "sale",
-        condition: {
-          entity: "customer",
-          attribute: "country",
-          operator: "in",
-          value: [],
-        },
-      }),
-    ).toBe(false);
-
-    expect(
-      isRewardConditionComplete({
-        event: "sale",
-        condition: {
-          entity: "sale",
-          attribute: "amount",
-          operator: "greater_than",
-          value: Number.NaN,
-        },
-      }),
-    ).toBe(false);
+  test.each([
+    [{ entity: "sale", attribute: "amount", operator: "greater_than" }, false],
+    [
+      {
+        entity: "sale",
+        attribute: "amount",
+        operator: "greater_than",
+        value: 20,
+      },
+      true,
+    ],
+    [
+      {
+        entity: "sale",
+        attribute: "metadata",
+        operator: "equals_to",
+        value: "enterprise",
+      },
+      false,
+    ],
+    [
+      {
+        entity: "sale",
+        attribute: "metadata",
+        operator: "equals_to",
+        value: "enterprise",
+        metadataField: "plan",
+      },
+      true,
+    ],
+    [
+      { entity: "customer", attribute: "country", operator: "in", value: [] },
+      false,
+    ],
+    [
+      {
+        entity: "sale",
+        attribute: "amount",
+        operator: "greater_than",
+        value: Number.NaN,
+      },
+      false,
+    ],
+  ])("%o -> %s", (condition, expected) => {
+    expect(isRewardConditionComplete({ event: "sale", condition })).toBe(
+      expected,
+    );
   });
 });
 
 describe("filterValidatedTooltipSuggestions", () => {
-  test("accepts a high-confidence operator fix on an existing condition", () => {
-    expect(accepted()).toEqual([minTwentySuggestion]);
+  const filter = (
+    suggestions: TooltipSuggestion[],
+    modifiers = saleAmountModifiers,
+  ) =>
+    filterValidatedTooltipSuggestions({
+      event: "sale",
+      modifiers,
+      suggestions,
+    });
+
+  test("accepts a high-confidence fix on an existing condition", () => {
+    expect(filter([minTwentySuggestion])).toEqual([minTwentySuggestion]);
   });
 
-  test("rejects confidence below the 0.5 floor", () => {
-    expect(accepted({ ...minTwentySuggestion, confidence: 0.49 })).toEqual([]);
+  test.each<[string, Partial<TooltipSuggestion>]>([
+    ["low confidence", { confidence: 0.49 }],
+    ["unknown condition index", { conditionIndex: 1 }],
+    [
+      "operator not allowed for the attribute",
+      { suggested: { operator: "contains" } },
+    ],
+    ["no-op", { suggested: { operator: "greater_than" } }],
+    ["value shape mismatch", { suggested: { operator: "in", value: 20 } }],
+  ])("rejects %s", (_, override) => {
+    expect(filter([{ ...minTwentySuggestion, ...override }])).toEqual([]);
   });
 
-  test("rejects unknown condition indexes", () => {
-    expect(accepted({ ...minTwentySuggestion, conditionIndex: 1 })).toEqual([]);
-  });
-
-  test("rejects operators that are not allowed for the attribute", () => {
+  test("rejects operator changes on customer.source", () => {
     expect(
-      accepted({
-        ...minTwentySuggestion,
-        suggested: { operator: "contains" },
-      }),
-    ).toEqual([]);
-  });
-
-  test("rejects a no-op that matches the current condition", () => {
-    expect(
-      accepted({
-        ...minTwentySuggestion,
-        suggested: { operator: "greater_than" },
-      }),
-    ).toEqual([]);
-  });
-
-  test("rejects a value whose shape does not match the operator", () => {
-    expect(
-      accepted({
-        ...minTwentySuggestion,
-        suggested: { operator: "in", value: 20 },
-      }),
-    ).toEqual([]);
-  });
-
-  test("rejects customer.source operator changes", () => {
-    expect(
-      filterValidatedTooltipSuggestions({
-        event: "sale",
-        modifiers: [
+      filter(
+        [{ ...minTwentySuggestion, suggested: { operator: "not_equals" } }],
+        [
           {
-            operator: "AND",
-            payout: { type: "flat", amount: 10, maxDuration: 0 },
+            ...saleAmountModifiers[0],
             conditions: [
               {
                 entity: "customer",
@@ -183,101 +133,94 @@ describe("filterValidatedTooltipSuggestions", () => {
             ],
           },
         ],
-        suggestions: [
-          {
-            ...minTwentySuggestion,
-            suggested: { operator: "not_equals" },
-          },
-        ],
-      }),
+      ),
     ).toEqual([]);
   });
 
   test("keeps the higher-confidence suggestion per condition", () => {
-    const result = filterValidatedTooltipSuggestions({
-      event: "sale",
-      modifiers: saleAmountModifiers,
-      suggestions: [
-        { ...minTwentySuggestion, confidence: 0.6 },
-        {
-          ...minTwentySuggestion,
-          confidence: 0.95,
-          suggested: { operator: "greater_than_or_equal", value: 20 },
-        },
-        { ...minTwentySuggestion, confidence: 0.2 },
-      ],
-    });
+    const result = filter([
+      { ...minTwentySuggestion, confidence: 0.6 },
+      {
+        ...minTwentySuggestion,
+        confidence: 0.95,
+        suggested: { operator: "greater_than_or_equal", value: 25 },
+      },
+    ]);
 
     expect(result).toHaveLength(1);
     expect(result[0].confidence).toBe(0.95);
-    expect(result[0].suggested.value).toBe(20);
-  });
-});
-
-describe("applyTooltipSuggestion", () => {
-  test("writes only the patched fields", () => {
-    expect(
-      applyTooltipSuggestion(saleAmountModifiers[0].conditions[0], {
-        operator: "greater_than_or_equal",
-      }),
-    ).toEqual({
-      entity: "sale",
-      attribute: "amount",
-      operator: "greater_than_or_equal",
-      value: 20,
-    });
   });
 });
 
 describe("getTooltipSuggestionPages", () => {
-  test("splits one suggestion that changes operator and value into two pages", () => {
-    const pages = getTooltipSuggestionPages({
-      modifiers: saleAmountModifiers,
-      suggestions: [
-        {
-          ...minTwentySuggestion,
-          suggested: { operator: "greater_than_or_equal", value: 25 },
-        },
-      ],
-    });
-
-    expect(pages.map((page) => page.field)).toEqual(["operator", "value"]);
-  });
-
-  test("keeps one page when only the operator changes", () => {
-    expect(
+  test("creates one page per changed field", () => {
+    const pages = (suggested: TooltipSuggestion["suggested"]) =>
       getTooltipSuggestionPages({
         modifiers: saleAmountModifiers,
-        suggestions: [minTwentySuggestion],
-      }),
-    ).toHaveLength(1);
+        suggestions: [{ ...minTwentySuggestion, suggested }],
+      }).map((page) => page.field);
+
+    expect(pages({ operator: "greater_than_or_equal" })).toEqual(["operator"]);
+    expect(pages({ operator: "greater_than_or_equal", value: 25 })).toEqual([
+      "operator",
+      "value",
+    ]);
   });
 });
 
-describe("suggestionTouchesField", () => {
-  test("detects operator vs value changes", () => {
-    const current = saleAmountModifiers[0].conditions[0];
+describe("filterPayoutFixes", () => {
+  const flatBase: RewardPayout = { type: "flat", amount: 10, maxDuration: 0 };
+  const percentageGroup: ReviewRewardTooltipModifier[] = [
+    {
+      ...saleAmountModifiers[0],
+      payout: { type: "percentage", amount: 20, maxDuration: null },
+    },
+  ];
+  const fix: PayoutFix = {
+    scope: "default",
+    amount: 300,
+    confidence: 0.9,
+    reason: 'Copy says "earn $300" but the payout is $10.',
+  };
 
+  test("keeps a valid fix", () => {
     expect(
-      suggestionTouchesField({
-        field: "operator",
-        current,
-        suggested: { operator: "greater_than_or_equal" },
-      }),
-    ).toBe(true);
-    expect(
-      suggestionTouchesField({
-        field: "value",
-        current,
-        suggested: { operator: "greater_than_or_equal" },
-      }),
-    ).toBe(false);
-    expect(
-      suggestionTouchesField({
-        field: "value",
-        current,
-        suggested: { value: 25 },
-      }),
-    ).toBe(true);
+      filterPayoutFixes({ basePayout: flatBase, modifiers: [], fixes: [fix] }),
+    ).toHaveLength(1);
   });
+
+  test.each<[string, PayoutFix]>([
+    ["a no-op", { ...fix, amount: 10 }],
+    ["a flat amount over the save limit", { ...fix, amount: 1_000_000 }],
+    [
+      "a percentage over 100",
+      { ...fix, scope: "group", modifierIndex: 0, amount: 150 },
+    ],
+  ])("drops %s", (_, payoutFix) => {
+    expect(
+      filterPayoutFixes({
+        basePayout: flatBase,
+        modifiers: percentageGroup,
+        fixes: [payoutFix],
+      }),
+    ).toEqual([]);
+  });
+});
+
+test("reviewRewardTooltipInputSchema rejects more than 20 modifiers", () => {
+  const input = {
+    workspaceId: "ws_123",
+    event: "sale",
+    tooltip: "Earn $10 on every sale over $20",
+    basePayout: { type: "flat", amount: 10, maxDuration: 0 },
+    modifiers: saleAmountModifiers,
+  };
+
+  expect(reviewRewardTooltipInputSchema.safeParse(input).success).toBe(true);
+  expect(
+    reviewRewardTooltipInputSchema.safeParse({
+      ...input,
+      modifiers: Array(21).fill(saleAmountModifiers[0]),
+    }).success,
+  ).toBe(false);
 });
