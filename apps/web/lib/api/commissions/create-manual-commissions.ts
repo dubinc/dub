@@ -22,12 +22,14 @@ import {
   Customer,
   Link,
   Partner,
+  Prisma,
   Project,
 } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
 import { createId } from "../create-id";
 import { getCustomerStripeInvoices } from "../customers/get-customer-stripe-invoices";
+import { getOrCreateCustomer } from "../customers/get-or-create-customer";
 import { DubApiError } from "../errors";
 import { updateLinkStatsForImporter } from "../links/update-link-stats-for-importer";
 import { syncPartnerLinksStats } from "../partners/sync-partner-links-stats";
@@ -377,33 +379,81 @@ async function resolveLinkAndCustomer(args: ResolveLinkAndCustomerArgs) {
         ? `${R2_URL}/customers/${customerId}/avatar_${nanoid(7)}`
         : avatar;
 
-    targetCustomer = await prisma.customer.upsert({
-      where: {
-        projectId_externalId: {
-          projectId: workspace.id,
-          externalId,
+    // Prefer getOrCreateCustomer over prisma.customer.upsert(): MySQL upserts can
+    // still throw P2002 under concurrency, and inserts may collide on a different
+    // unique key (stripeCustomerId / projectConnectId+externalId) than the upsert
+    // where clause. Include those keys in the find so P2002 fallbacks resolve.
+    const { customer: existingOrNewCustomer, created } =
+      await getOrCreateCustomer({
+        findMode: "first",
+        where: {
+          OR: [
+            {
+              projectId: workspace.id,
+              externalId,
+            },
+            ...(workspace.stripeConnectId
+              ? [
+                  {
+                    projectConnectId: workspace.stripeConnectId,
+                    externalId,
+                  },
+                ]
+              : []),
+            ...(stripeCustomerId
+              ? [
+                  {
+                    stripeCustomerId,
+                  },
+                ]
+              : []),
+          ],
         },
-      },
-      create: {
-        id: customerId,
-        name: finalCustomerName,
-        email,
-        avatar: finalCustomerAvatar,
-        externalId,
-        stripeCustomerId,
-        linkId: targetLink.id,
-        country,
-        projectId: workspace.id,
-        projectConnectId: workspace.stripeConnectId,
-      },
-      update: {
-        name: finalCustomerName,
-        email,
-        avatar: finalCustomerAvatar,
-        country,
-        stripeCustomerId,
-      },
-    });
+        create: {
+          id: customerId,
+          name: finalCustomerName,
+          email,
+          avatar: finalCustomerAvatar,
+          externalId,
+          stripeCustomerId,
+          linkId: targetLink.id,
+          country,
+          projectId: workspace.id,
+          projectConnectId: workspace.stripeConnectId,
+        },
+      });
+
+    if (created) {
+      targetCustomer = existingOrNewCustomer;
+    } else {
+      try {
+        targetCustomer = await prisma.customer.update({
+          where: {
+            id: existingOrNewCustomer.id,
+          },
+          data: {
+            name: finalCustomerName,
+            email,
+            avatar: finalCustomerAvatar,
+            country,
+            stripeCustomerId,
+          },
+        });
+      } catch (error) {
+        if (
+          error instanceof Prisma.PrismaClientKnownRequestError &&
+          error.code === "P2002"
+        ) {
+          throw new DubApiError({
+            code: "conflict",
+            message:
+              "A customer with this externalId or stripeCustomerId already exists.",
+          });
+        }
+
+        throw error;
+      }
+    }
 
     if (avatar && !isStored(avatar) && finalCustomerAvatar) {
       await storage.upload({

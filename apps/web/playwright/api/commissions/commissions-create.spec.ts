@@ -281,6 +281,103 @@ test.describe("Lead commissions", () => {
     });
   });
 
+  test("reuses an existing customer by externalId", async ({
+    api,
+    program,
+    workspace,
+  }) => {
+    const customer = customerBody();
+
+    await prisma.customer.create({
+      data: {
+        id: createId({ prefix: "cus_" }),
+        name: customer.name,
+        email: customer.email,
+        externalId: customer.externalId,
+        country: customer.country,
+        projectId: workspace.id,
+      },
+    });
+
+    await withCommissionPartner(api, program, async (partnerId) => {
+      expect(
+        await api.post("/api/commissions", {
+          type: "lead",
+          partnerId,
+          customer: {
+            ...customer,
+            name: "Updated from commission",
+          },
+        }),
+      ).toEqual(expectedQueuedResponse);
+
+      await expectCommissionCreated({
+        api,
+        partnerId,
+        programId: program.id,
+        type: "lead",
+      });
+
+      const customers = await prisma.customer.findMany({
+        where: {
+          projectId: workspace.id,
+          externalId: customer.externalId,
+        },
+      });
+
+      expect(customers).toHaveLength(1);
+      expect(customers[0].name).toEqual("Updated from commission");
+    });
+  });
+
+  test("reuses an existing customer by stripeCustomerId", async ({
+    api,
+    program,
+    workspace,
+  }) => {
+    const customer = customerBody();
+    const stripeCustomerId = `cus_stripe_${nanoid(10)}`;
+
+    const existing = await prisma.customer.create({
+      data: {
+        id: createId({ prefix: "cus_" }),
+        name: customer.name,
+        email: customer.email,
+        externalId: `other_${customer.externalId}`,
+        stripeCustomerId,
+        country: customer.country,
+        projectId: workspace.id,
+      },
+    });
+
+    await withCommissionPartner(api, program, async (partnerId) => {
+      expect(
+        await api.post("/api/commissions", {
+          type: "lead",
+          partnerId,
+          customer: {
+            ...customer,
+            stripeCustomerId,
+          },
+        }),
+      ).toEqual(expectedQueuedResponse);
+
+      const commissionId = await expectCommissionCreated({
+        api,
+        partnerId,
+        programId: program.id,
+        type: "lead",
+      });
+
+      const commission = await prisma.commission.findUniqueOrThrow({
+        where: { id: commissionId },
+        select: { customerId: true },
+      });
+
+      expect(commission.customerId).toEqual(existing.id);
+    });
+  });
+
   test.describe("validates", () => {
     test("rejects oversized metadata", async ({ api }) => {
       expect(
