@@ -4,7 +4,7 @@ import { HUBSPOT_INTEGRATION_ID, STRIPE_INTEGRATION_ID } from "@dub/utils";
 
 type RequiredIntegration = { id: string; slug: string; name: string };
 
-const CUSTOMER_SOURCE_REQUIRED_INTEGRATIONS: Partial<
+export const CUSTOMER_SOURCE_REQUIRED_INTEGRATIONS: Partial<
   Record<CustomerSource, RequiredIntegration>
 > = {
   trial: { id: STRIPE_INTEGRATION_ID, slug: "stripe", name: "Stripe" },
