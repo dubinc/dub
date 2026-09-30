@@ -5,7 +5,6 @@ import { WorkspaceProps } from "@/lib/types";
 import { NavButton } from "@/ui/layout/page-content/nav-button";
 import { useAddWorkspaceModal } from "@/ui/modals/add-workspace-modal";
 import { useDeleteAccountModal } from "@/ui/modals/delete-account-modal";
-import { ModalContext } from "@/ui/modals/modal-provider";
 import { UserAvatar } from "@/ui/users/user-avatar";
 import PlanBadge from "@/ui/workspaces/plan-badge";
 import { BlurImage, Button, Grid, StatusBadge, useMediaQuery } from "@dub/ui";
@@ -14,14 +13,7 @@ import { cn } from "@dub/utils";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import {
-  ComponentType,
-  SVGProps,
-  useContext,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { ComponentType, SVGProps, useMemo, useRef, useState } from "react";
 
 export default function WorkspacesPage() {
   const { workspaces, error } = useWorkspaces();
@@ -79,7 +71,8 @@ function PageHeader({
 function WorkspaceList({ workspaces }: { workspaces: WorkspaceProps[] }) {
   const router = useRouter();
   const { isMobile } = useMediaQuery();
-  const { setShowAddWorkspaceModal } = useContext(ModalContext);
+  const { AddWorkspaceModal, setShowAddWorkspaceModal } =
+    useAddWorkspaceModal();
 
   const [search, setSearch] = useState("");
   const [activeIndex, setActiveIndex] = useState(0);
@@ -109,6 +102,7 @@ function WorkspaceList({ workspaces }: { workspaces: WorkspaceProps[] }) {
 
   return (
     <div className="animate-slide-up-fade">
+      <AddWorkspaceModal />
       <PageHeader
         icon={OfficeBuilding}
         title="Your workspaces"
