@@ -7,6 +7,7 @@ import { sendEmail } from "@dub/email";
 import PartnerApplicationRejected from "@dub/email/templates/partner-application-rejected";
 import {
   ProgramApplicationRejectionReason,
+  ProgramApplicationStatus,
   ProgramEnrollmentStatus,
 } from "@prisma/client";
 import * as z from "zod/v4";
@@ -107,6 +108,7 @@ export const autoRejectPartnerJob = defineJob({
             id: programEnrollment.applicationId,
           },
           data: {
+            status: ProgramApplicationStatus.rejected,
             reviewedAt: new Date(),
             rejectionReason:
               ProgramApplicationRejectionReason.doesNotMeetRequirements,

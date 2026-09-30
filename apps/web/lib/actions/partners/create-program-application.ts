@@ -299,6 +299,7 @@ async function createApplicationAndEnrollment({
         ...sanitizeData(data, group),
         id: applicationId,
         programId: program.id,
+        partnerId: partner.id,
         groupId: group.id,
       },
     }),

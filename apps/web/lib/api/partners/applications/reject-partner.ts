@@ -5,7 +5,10 @@ import { WorkspaceProps } from "@/lib/types";
 import { rejectPartnerSchema } from "@/lib/zod/schemas/partners";
 import { sendEmail } from "@dub/email";
 import PartnerApplicationRejected from "@dub/email/templates/partner-application-rejected";
-import { ProgramEnrollmentStatus } from "@prisma/client";
+import {
+  ProgramApplicationStatus,
+  ProgramEnrollmentStatus,
+} from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
 import { trackActivityLog } from "../../activity-log/track-activity-log";
@@ -87,6 +90,7 @@ export async function rejectPartner({
           id: programEnrollment.applicationId,
         },
         data: {
+          status: ProgramApplicationStatus.rejected,
           reviewedAt: new Date(),
           rejectionReason,
           rejectionNote,

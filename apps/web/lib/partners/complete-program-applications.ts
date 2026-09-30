@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { pluck } from "@dub/utils";
 import { PlatformType, Prisma } from "@prisma/client";
 import { createId } from "../api/create-id";
 import { detectAndRecordFraudApplication } from "../api/fraud/detect-record-fraud-application";
@@ -115,10 +116,26 @@ export async function completeProgramApplications(userEmail: string) {
       ]),
     );
 
-    await prisma.programEnrollment.createMany({
-      data: programEnrollments,
-      skipDuplicates: true,
-    });
+    await prisma.$transaction([
+      prisma.programEnrollment.createMany({
+        data: programEnrollments,
+        skipDuplicates: true,
+      }),
+
+      prisma.programApplication.updateMany({
+        where: {
+          id: {
+            in: pluck(filteredProgramApplications, "id"),
+          },
+          enrollment: {
+            isNot: null,
+          },
+        },
+        data: {
+          partnerId: user.partners[0].partnerId,
+        },
+      }),
+    ]);
 
     // Fetch the programs' workspaces
     const workspaces = await prisma.project.findMany({
