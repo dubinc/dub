@@ -9,6 +9,7 @@ import {
   DEFAULT_DC_SERVICE_APEX,
   DEFAULT_DC_SERVICE_SUBDOMAIN,
   DOMAIN_CONNECT_KEY_HOST,
+  DOMAIN_CONNECT_PROVIDER_ID,
 } from "@/lib/domain-connect/constants";
 import { discoverDomainConnect } from "@/lib/domain-connect/discover";
 import { buildSignedApplyUrl } from "@/lib/domain-connect/sign-apply-url";
@@ -97,39 +98,62 @@ export const POST = withWorkspace(
 
     const queryParams: Record<string, string> = {
       domain: apex,
-      groupId: "subdomain",
+      groupId: isApex ? "apex" : "subdomain",
       redirect_uri: redirectUri,
     };
 
-    if (isApex) {
-      queryParams.groupId = "apex";
-    } else {
-      queryParams.groupId = "subdomain";
-      queryParams.cnameHost = (subdomain ?? "www").toLowerCase();
+    // links-subdomain v1 scopes all records under `host`, so its TXT lands at
+    // `_vercel.<subdomain>`. v2 takes `cnameHost` and writes the TXT at the apex.
+    // Providers deploy template versions independently.
+    let subdomainTemplateVersion = 1;
+    if (!isApex && discovery.urlAPI) {
+      try {
+        const res = await fetch(
+          `${discovery.urlAPI}/v2/domainTemplates/providers/${DOMAIN_CONNECT_PROVIDER_ID}/services/${serviceId}`,
+          {
+            headers: { accept: "application/json" },
+            redirect: "manual",
+            signal: AbortSignal.timeout(3000),
+          },
+        );
+        if (res.ok) {
+          const { version } = (await res.json()) as { version?: unknown };
+          if (typeof version === "number") subdomainTemplateVersion = version;
+        }
+      } catch {}
+    }
+
+    if (subdomain && subdomainTemplateVersion >= 2) {
+      queryParams.cnameHost = subdomain;
+    } else if (subdomain) {
+      queryParams.host = subdomain;
     }
 
     const txtVerification = domainJson.verification?.find(
       (x: { type: string }) => x.type === "TXT",
     );
-    if (txtVerification) {
-      const txtValue = txtVerification.value?.trim() ?? "";
-      if (txtValue && !isApex) {
+    const txtValue = txtVerification?.value?.trim();
+    if (txtValue && isApex) {
+      const txtHostFqdn: string = txtVerification.domain?.toLowerCase() ?? "";
+      const apexSuffix = `.${apex}`;
+      const txtHost = txtHostFqdn.endsWith(apexSuffix)
+        ? txtHostFqdn.slice(0, -apexSuffix.length)
+        : txtHostFqdn === apex
+          ? "@"
+          : txtHostFqdn;
+      if (txtHost) {
         queryParams.groupId = queryParams.groupId + ",verification";
+        queryParams.txtHost = txtHost;
         queryParams.txtValue = txtValue;
-      } else if (txtValue) {
-        const txtHostFqdn: string = txtVerification.domain?.toLowerCase() ?? "";
-        const apexSuffix = `.${apex}`;
-        const txtHost = txtHostFqdn.endsWith(apexSuffix)
-          ? txtHostFqdn.slice(0, -apexSuffix.length)
-          : txtHostFqdn === apex
-            ? "@"
-            : txtHostFqdn;
-        if (txtHost) {
-          queryParams.groupId = queryParams.groupId + ",verification";
-          queryParams.txtHost = txtHost;
-          queryParams.txtValue = txtValue;
-        }
       }
+    } else if (
+      txtValue &&
+      subdomainTemplateVersion >= 2 &&
+      txtVerification.domain?.toLowerCase().replace(/\.$/, "") ===
+        `_vercel.${apex}`
+    ) {
+      queryParams.groupId = queryParams.groupId + ",verification";
+      queryParams.txtValue = txtValue;
     }
 
     const applyUrl = buildSignedApplyUrl({
