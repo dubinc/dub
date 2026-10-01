@@ -1,8 +1,8 @@
+import { attributeReferringPartner } from "@/lib/api/partners/attribute-referring-partner";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
-import { attributeReferringPartner } from "@/lib/partner-referrals/attribute-referring-partner";
 import {
   attributeReferringPartnerBodySchema,
   partnerReferralSchema,
