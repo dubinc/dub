@@ -26,33 +26,13 @@ describe("findPartnerSearchCandidates", () => {
     vi.spyOn(console, "error").mockImplementation(() => {});
   });
 
-  it("sends a complete email to the database path, without calling the provider", async () => {
-    // The database matches the address exactly, so an address that matches no
-    // partner returns no rows instead of fuzzy matches from the provider.
+  it("returns the provider's candidates", async () => {
     const provider = createProvider();
 
     await expect(
-      findPartnerSearchCandidates(provider, query("steven@dub.co")),
-    ).resolves.toBeNull();
-
-    expect(provider.searchCandidates).not.toHaveBeenCalled();
+      findPartnerSearchCandidates(provider, query("steven")),
+    ).resolves.toEqual({ hits: [{ id: "pge_1" }] });
   });
-
-  it.each([
-    ["half-typed", "steven@"],
-    ["domain only", "@dub.co"],
-    ["no dot in the domain", "steven@dub"],
-    ["a name", "steven tey"],
-  ])(
-    "does not treat %s as an address, so the provider is queried",
-    async (_label, search) => {
-      const provider = createProvider();
-
-      await findPartnerSearchCandidates(provider, query(search));
-
-      expect(provider.searchCandidates).toHaveBeenCalledOnce();
-    },
-  );
 
   it("degrades to the database search path when the provider throws", async () => {
     const provider = createProvider(

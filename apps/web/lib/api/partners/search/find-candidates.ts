@@ -1,4 +1,3 @@
-import { isExactEmailQuery } from "@/lib/api/partners/program-enrollment-query";
 import type {
   PartnerSearchCandidateQuery,
   PartnerSearchProvider,
@@ -14,19 +13,14 @@ interface FindPartnerSearchCandidatesOptions {
 }
 
 /**
- * Returns ranked candidates from the search provider, or null to use the
- * database search path instead. We will use the database when the provider
- * fails, or when the query is a complete email address to match exactly.
+ * Returns ranked candidates from the search provider. We will use the
+ * database search path instead, and return null, when the provider fails.
  */
 export async function findPartnerSearchCandidates(
   searchProvider: PartnerSearchProvider,
   query: PartnerSearchCandidateQuery,
   { throwOnError = false }: FindPartnerSearchCandidatesOptions = {},
 ): Promise<PartnerSearchResult | null> {
-  if (isExactEmailQuery(query.query)) {
-    return null;
-  }
-
   try {
     return await searchProvider.searchCandidates(query);
   } catch (error) {
