@@ -1,7 +1,10 @@
 import { trackApplicationEvents } from "@/lib/application-events/update-application-event";
 import { dispatchWorkflows } from "@/lib/jobs/publish-workflows";
 import { prisma } from "@/lib/prisma";
-import { ProgramEnrollmentStatus } from "@prisma/client";
+import {
+  ProgramApplicationStatus,
+  ProgramEnrollmentStatus,
+} from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
 import { throwIfPartnersLimitExceeded } from "../../../partners/throw-if-partners-limit-exceeded";
@@ -111,6 +114,7 @@ export async function approvePartner({
           id: programEnrollment.applicationId,
         },
         data: {
+          status: ProgramApplicationStatus.approved,
           reviewedAt: now,
           rejectionReason: null,
           rejectionNote: null,

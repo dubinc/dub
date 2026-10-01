@@ -9,6 +9,10 @@ import { dispatchWorkflows } from "@/lib/jobs/publish-workflows";
 import { throwIfPartnersLimitExceeded } from "@/lib/partners/throw-if-partners-limit-exceeded";
 import { prisma } from "@/lib/prisma";
 import { bulkApprovePartnersSchema } from "@/lib/zod/schemas/partners";
+import {
+  ProgramApplicationStatus,
+  ProgramEnrollmentStatus,
+} from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
 import { throwIfNoPermission } from "../throw-if-no-permission";
@@ -88,8 +92,12 @@ export const bulkApprovePartnersAction = authActionClient
             id: {
               in: applicationIds,
             },
+            enrollment: {
+              status: ProgramEnrollmentStatus.approved,
+            },
           },
           data: {
+            status: ProgramApplicationStatus.approved,
             reviewedAt: now,
             rejectionReason: null,
             rejectionNote: null,
@@ -120,6 +128,7 @@ export const bulkApprovePartnersAction = authActionClient
             id: {
               in: programEnrollments.map(({ id }) => id),
             },
+            status: ProgramEnrollmentStatus.approved,
           },
           include: {
             partner: true,

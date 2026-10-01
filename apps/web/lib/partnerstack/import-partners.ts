@@ -3,6 +3,7 @@ import { COUNTRIES, COUNTRY_CODES, sleep } from "@dub/utils";
 import { PartnerGroup, Program } from "@prisma/client";
 import { createId } from "../api/create-id";
 import { queuePartnerSearchSync } from "../api/partners/queue-partner-search-sync";
+import { approveLinkedApplication } from "../program-applications/approve-linked-application";
 import { logImportError } from "../tinybird/log-import-error";
 import { redis } from "../upstash";
 import { DEFAULT_PARTNER_GROUP } from "../zod/schemas/groups";
@@ -179,7 +180,7 @@ async function createPartner({
     },
   });
 
-  await prisma.programEnrollment.upsert({
+  const { applicationId } = await prisma.programEnrollment.upsert({
     where: {
       partnerId_programId: {
         partnerId,
@@ -202,6 +203,13 @@ async function createPartner({
     update: {
       status: "approved",
     },
+    select: {
+      applicationId: true,
+    },
+  });
+
+  await approveLinkedApplication({
+    applicationId,
   });
 
   // PS doesn't return the partner email address in the customers response
