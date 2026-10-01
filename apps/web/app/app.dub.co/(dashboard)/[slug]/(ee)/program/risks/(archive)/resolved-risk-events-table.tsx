@@ -227,6 +227,7 @@ export function ResolvedRiskEventsTable({ status }: { status: StatusTab }) {
         },
       });
     },
+    containerClassName: "border-none",
     thClassName: "border-l-0",
     tdClassName: "border-l-0",
     resourceName: (plural) => `${status} risk event${plural ? "s" : ""}`,
