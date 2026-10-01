@@ -65,8 +65,8 @@ export function buildPartnerSearchCandidateQuery({
   // Exact email and tenant lookups remain database-only. The search provider
   // is responsible only for finding relevance-ranked free-text candidates.
   //
-  // A complete email address or a pasted partner ID in the search joins them.
-  // The database matches both exactly, so a miss returns no partners.
+  // A complete email address or a pasted partner ID in the search also stays
+  // on the database path, which matches it exactly.
   if (
     !query ||
     email ||
