@@ -4,6 +4,7 @@ import { Program } from "@prisma/client";
 import { createId } from "../api/create-id";
 import { bulkCreateLinks } from "../api/links";
 import { queuePartnerSearchSync } from "../api/partners/queue-partner-search-sync";
+import { approveLinkedApplication } from "../program-applications/approve-linked-application";
 import { logImportError } from "../tinybird/log-import-error";
 import { redis } from "../upstash";
 import { RewardfulApi } from "./api";
@@ -214,6 +215,11 @@ async function createPartnerAndLinks({
     include: {
       links: true,
     },
+  });
+
+  await approveLinkedApplication({
+    applicationId: programEnrollment.applicationId,
+    userId,
   });
 
   if (!program.domain || !program.url) {
