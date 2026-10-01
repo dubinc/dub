@@ -517,6 +517,7 @@ export const createPartnerCommissionSchema = z.object({
     .object({
       url: z.string().nullable(),
       referer: z.string().nullable(),
+      clickId: z.string().nullish(),
     })
     .optional(),
   triggerAggregateDueCommissions: z

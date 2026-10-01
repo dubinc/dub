@@ -614,7 +614,10 @@ async function stepRunSideEffects(
         ...(typeof isFirstConversion === "boolean" && { isFirstConversion }),
       },
       link: { id: linkId },
-      click: pick(clickEvent, ["url", "referer"]),
+      click: {
+        ...pick(clickEvent, ["url", "referer"]),
+        clickId: clickEvent.clickId || commission.customer?.clickId || null,
+      },
       event: { id: eventId },
     });
 

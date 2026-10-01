@@ -27,6 +27,7 @@ export const fraudEventContext = z.object({
     url: z.string().nullable(),
     referer: z.string().nullable(),
     referer_url: z.string().nullable().optional(),
+    clickId: z.string().nullish(),
   }),
   event: z.object({
     id: z.string(),

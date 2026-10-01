@@ -11,6 +11,7 @@ enum FraudRuleType {
   paidTrafficDetected
   partnerCrossProgramBan // Network-level ban from other programs
   partnerDuplicateAccount // Duplicate identity with other partners
+  customerSharedClickId // Same click ID attributed to more than one customer
 }
 
 model FraudRule {

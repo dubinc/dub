@@ -246,6 +246,7 @@ export const updateFraudRuleSettingsSchema = z.object({
   // Toggle-only rules (no additional config beyond enabled/disabled)
   customerEmailMatch: toggleOnlyFraudRuleSchema,
   customerEmailSuspiciousDomain: toggleOnlyFraudRuleSchema,
+  customerSharedClickId: toggleOnlyFraudRuleSchema,
   partnerCrossProgramBan: toggleOnlyFraudRuleSchema,
   partnerDuplicateAccount: toggleOnlyFraudRuleSchema,
 });
@@ -299,6 +300,16 @@ export const fraudEventSchemas = {
 
   customerEmailSuspiciousDomain: baseFraudEventSchema.extend({
     customer: fraudEventCustomerSchema.nullable(),
+  }),
+
+  customerSharedClickId: baseFraudEventSchema.extend({
+    customer: fraudEventCustomerSchema.nullable(),
+    metadata: z
+      .object({
+        clickId: z.string(),
+        matchedCustomerId: z.string(),
+      })
+      .nullable(),
   }),
 
   partnerCrossProgramBan: baseFraudEventSchema.extend({

@@ -540,6 +540,7 @@ export async function checkoutSessionCompleted({
       clickEvent: {
         url: saleData.url,
         referer: saleData.referer,
+        clickId: saleData.click_id,
       },
       isFirstConversion: firstConversionFlag,
     });
