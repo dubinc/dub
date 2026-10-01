@@ -40,9 +40,8 @@ export async function bulkUpdateLinks(
 
   const imageUrlNonce = nanoid(7);
 
-  const { utm_source, utm_medium, utm_campaign, utm_term, utm_content } = url
-    ? getParamsFromURL(url)
-    : {};
+  const { utm_source, utm_medium, utm_campaign, utm_term, utm_content } =
+    getParamsFromURL(url || "");
 
   // The bulk payload omits link key but not `partnerId`, so an
   // update can move links between partners. The former owners are unrecoverable
