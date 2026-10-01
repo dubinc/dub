@@ -1,9 +1,12 @@
 "use client";
 
 import {
-  getSocialMetricsRewardTiers,
-  SocialMetricsRewardTier,
-} from "@/lib/bounty/rewards";
+  getSocialMetricsMilestoneStatus,
+  getVisibleSocialMetricsMilestones,
+  SocialMetricsMilestoneRow,
+  SocialMetricsMilestoneStatus,
+  SubmissionMilestoneInput,
+} from "@/lib/bounty/social-metrics-milestones";
 import { resolveBountyDetails } from "@/lib/bounty/utils";
 import { BountySubmissionProps, PartnerBountyProps } from "@/lib/types";
 import { StatusBadge, Table, useTable } from "@dub/ui";
@@ -11,7 +14,7 @@ import { capitalize, currencyFormatter } from "@dub/utils";
 import { ColumnDef } from "@tanstack/react-table";
 import { useMemo } from "react";
 
-const displayStatusMap = {
+const milestoneStatusBadges = {
   approved: {
     label: "Approved",
     variant: "success",
@@ -24,70 +27,36 @@ const displayStatusMap = {
     label: "In progress",
     variant: "pending",
   },
-  draft: {
-    label: "Draft",
-    variant: "pending",
-  },
   rejected: {
     label: "Rejected",
     variant: "error",
   },
-};
-
-interface SubmissionForRewards {
-  socialMetricCount: number | null;
-  commissions: { earnings: number }[];
-  status: BountySubmissionProps["status"];
-}
-
-function getDisplayStatus(
-  tier: SocialMetricsRewardTier,
-  submission: SubmissionForRewards,
-) {
-  if (tier.status === "unmet") {
-    return "inProgress";
-  }
-
-  if (submission.status === "approved" && submission.commissions.length > 0) {
-    return "approved";
-  }
-
-  if (submission.status === "draft") {
-    return "draft";
-  }
-
-  if (submission.status === "rejected") {
-    return "rejected";
-  }
-
-  return "pending";
-}
+} as const satisfies Record<
+  SocialMetricsMilestoneStatus,
+  { label: string; variant: string }
+>;
 
 export function BountySocialMetricsRewardsTable({
   bounty,
   submission,
   titleText = "Rewards",
 }: {
-  bounty: Pick<
-    PartnerBountyProps,
-    "id" | "submissionRequirements" | "rewardAmount"
-  >;
-  submission: SubmissionForRewards;
+  bounty: Pick<PartnerBountyProps, "submissionRequirements" | "rewardAmount">;
+  submission: SubmissionMilestoneInput & Pick<BountySubmissionProps, "status">;
   titleText?: string;
 }) {
-  const tiers = getSocialMetricsRewardTiers({
+  const milestones = getVisibleSocialMetricsMilestones({
     bounty,
     submission,
   });
 
-  const bountyInfo = resolveBountyDetails(bounty);
-  const metricLabel = bountyInfo?.socialMetrics?.metric ?? "Count";
+  const metric = resolveBountyDetails(bounty)?.socialMetrics?.metric ?? "";
 
-  const columns = useMemo<ColumnDef<SocialMetricsRewardTier>[]>(
+  const columns = useMemo<ColumnDef<SocialMetricsMilestoneRow>[]>(
     () => [
       {
         id: "threshold",
-        header: capitalize(metricLabel)!,
+        header: capitalize(metric)!,
         minSize: 100,
         size: 120,
         cell: ({ row: { original } }) => (
@@ -112,30 +81,35 @@ export function BountySocialMetricsRewardsTable({
         minSize: 120,
         size: 140,
         cell: ({ row: { original } }) => {
-          const status =
-            displayStatusMap[getDisplayStatus(original, submission)];
+          const badge =
+            milestoneStatusBadges[
+              getSocialMetricsMilestoneStatus({
+                milestone: original,
+                submission,
+              })
+            ];
 
           return (
-            <StatusBadge variant={status.variant}>{status.label}</StatusBadge>
+            <StatusBadge variant={badge.variant}>{badge.label}</StatusBadge>
           );
         },
       },
     ],
-    [metricLabel, submission],
+    [metric, submission],
   );
 
   const table = useTable({
-    data: tiers,
+    data: milestones,
     columns,
     getRowId: (row) => String(row.threshold),
-    resourceName: () => "reward tier",
-    scrollWrapperClassName: "min-h-0",
-    thClassName: "border-l-0",
+    resourceName: () => "milestone",
+    scrollWrapperClassName: "min-h-0 max-h-[300px] overflow-y-auto",
+    thClassName: "sticky top-0 z-10 border-l-0 bg-white",
     tdClassName: "border-l-0",
     className: "[&_tbody_tr:last-child_td]:border-b-0",
   });
 
-  if (tiers.length === 0) {
+  if (milestones.length === 0) {
     return null;
   }
 

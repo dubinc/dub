@@ -166,6 +166,8 @@ export const partnerBountySubmissionSchema = BountySubmissionSchema.extend({
         earnings: true,
         status: true,
         createdAt: true,
+      }).extend({
+        description: z.string().nullish(),
       }),
     )
     .default([]),

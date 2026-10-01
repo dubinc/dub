@@ -1,6 +1,7 @@
 import { getEffectiveBountyPeriod } from "@/lib/bounty/api/bounty-availability";
 import { getSocialMetricsUpdates } from "@/lib/bounty/api/get-social-metrics-updates";
 import { isBountyEnded } from "@/lib/bounty/bounty-period";
+import { hasReachedSocialMetricsEarningCap } from "@/lib/bounty/social-metrics-milestones";
 import { resolveBountyDetails } from "@/lib/bounty/utils";
 import { qstash } from "@/lib/cron";
 import { withCron } from "@/lib/cron/with-cron";
@@ -110,6 +111,10 @@ export const POST = withCron(async ({ rawBody }) => {
 
   const activeSubmissions = submissions.filter((submission) => {
     if (!submission.programEnrollment) {
+      return false;
+    }
+
+    if (hasReachedSocialMetricsEarningCap({ bounty, submission })) {
       return false;
     }
 

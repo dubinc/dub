@@ -63,6 +63,7 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
               id: true,
               earnings: true,
               status: true,
+              description: true,
               createdAt: true,
             },
             orderBy: {
