@@ -2,12 +2,6 @@ import type { PartnerSearchProvider } from "@/lib/api/partners/search";
 import { findPartnerSearchCandidates } from "@/lib/api/partners/search";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const mocks = vi.hoisted(() => ({ findUnique: vi.fn() }));
-
-vi.mock("@/lib/prisma", () => ({
-  prisma: { partner: { findUnique: mocks.findUnique } },
-}));
-
 function createProvider(
   searchCandidates = vi.fn().mockResolvedValue({ hits: [{ id: "pge_1" }] }),
 ) {
@@ -29,36 +23,19 @@ const query = (search: string) => ({
 
 describe("findPartnerSearchCandidates", () => {
   beforeEach(() => {
-    mocks.findUnique.mockReset();
     vi.spyOn(console, "error").mockImplementation(() => {});
   });
 
-  it("answers a known email from the database, without calling the provider", async () => {
-    mocks.findUnique.mockResolvedValue({ id: "pn_1" });
+  it("sends a complete email to the database path, without calling the provider", async () => {
+    // The database matches the address exactly, so an address that matches no
+    // partner returns no rows instead of fuzzy matches from the provider.
     const provider = createProvider();
 
     await expect(
       findPartnerSearchCandidates(provider, query("steven@dub.co")),
     ).resolves.toBeNull();
 
-    expect(mocks.findUnique).toHaveBeenCalledWith({
-      where: { email: "steven@dub.co" },
-      select: { id: true },
-    });
     expect(provider.searchCandidates).not.toHaveBeenCalled();
-  });
-
-  it("falls back to the provider when no partner has that address", async () => {
-    // `steven@dub.co` on the way to `steven@dub.com` is a complete address that
-    // matches nothing, and n-grams still find the longer one.
-    mocks.findUnique.mockResolvedValue(null);
-    const provider = createProvider();
-
-    await expect(
-      findPartnerSearchCandidates(provider, query("steven@dub.co")),
-    ).resolves.toEqual({ hits: [{ id: "pge_1" }] });
-
-    expect(provider.searchCandidates).toHaveBeenCalledOnce();
   });
 
   it.each([
@@ -67,13 +44,12 @@ describe("findPartnerSearchCandidates", () => {
     ["no dot in the domain", "steven@dub"],
     ["a name", "steven tey"],
   ])(
-    "does not treat %s as an address, so the database is not queried",
+    "does not treat %s as an address, so the provider is queried",
     async (_label, search) => {
       const provider = createProvider();
 
       await findPartnerSearchCandidates(provider, query(search));
 
-      expect(mocks.findUnique).not.toHaveBeenCalled();
       expect(provider.searchCandidates).toHaveBeenCalledOnce();
     },
   );
