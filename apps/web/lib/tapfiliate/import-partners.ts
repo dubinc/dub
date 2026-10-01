@@ -5,6 +5,7 @@ import { createId } from "../api/create-id";
 import { createLink } from "../api/links";
 import { generatePartnerLink } from "../api/partners/generate-partner-link";
 import { queuePartnerSearchSync } from "../api/partners/queue-partner-search-sync";
+import { approveLinkedApplication } from "../program-applications/approve-linked-application";
 import { logImportError } from "../tinybird/log-import-error";
 import { WorkspaceProps } from "../types";
 import { DEFAULT_PARTNER_GROUP } from "../zod/schemas/groups";
@@ -226,7 +227,7 @@ async function createPartnerAndLinks({
     update: {},
   });
 
-  const { links } = await prisma.programEnrollment.upsert({
+  const { links, applicationId } = await prisma.programEnrollment.upsert({
     where: {
       partnerId_programId: {
         partnerId: partner.id,
@@ -250,12 +251,18 @@ async function createPartnerAndLinks({
       status: "approved",
     },
     select: {
+      applicationId: true,
       links: {
         select: {
           key: true,
         },
       },
     },
+  });
+
+  await approveLinkedApplication({
+    applicationId,
+    userId,
   });
 
   if (links.length > 0 && links.some((link) => link.key === affiliate.id)) {
