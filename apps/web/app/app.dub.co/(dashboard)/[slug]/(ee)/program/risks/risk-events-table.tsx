@@ -44,6 +44,7 @@ import { Row } from "@tanstack/react-table";
 import { Command } from "cmdk";
 import { addDays, differenceInDays } from "date-fns";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { RiskCenterMenu } from "./risk-center-menu";
 import { useFraudGroupFilters } from "./use-fraud-group-filters";
 
 export function RiskEventsTable() {
@@ -469,6 +470,9 @@ function PendingFraudFilters() {
           onSearchChange={setSearch}
           onSelectedFilterChange={setSelectedFilter}
         />
+        <div className="flex justify-end">
+          <RiskCenterMenu />
+        </div>
       </div>
       <AnimatedSizeContainer height>
         <div>
