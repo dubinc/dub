@@ -285,8 +285,12 @@ test("PATCH /links/bulk – ignores non-UTM URL query params", async ({
   api,
 }) => {
   const createdIds: string[] = [];
-  const destinationUrl =
-    "https://example.com/landing?follow=%40737agxqn&lp=UeueIg&liff_id=xx-1ftVOtwe&utm_source=landing&utm_medium=social";
+  // Real-world tracking params that are not Link columns (must not be
+  // spread into the Prisma update payload).
+  const gclid = nanoid(16);
+  const fbclid = nanoid(20);
+  const mcCid = nanoid(10);
+  const destinationUrl = `https://shop.example.com/products/shoes?gclid=${gclid}&fbclid=${fbclid}&mc_cid=${mcCid}&utm_source=newsletter&utm_medium=email&utm_campaign=spring`;
 
   try {
     const { data: created } = await createBulkLinks(api, [bulkLinkBody()]);
@@ -307,15 +311,15 @@ test("PATCH /links/bulk – ignores non-UTM URL query params", async ({
     expect(data[0]).toMatchObject({
       id: links[0].id,
       url: destinationUrl,
-      utm_source: "landing",
-      utm_medium: "social",
-      utm_campaign: null,
+      utm_source: "newsletter",
+      utm_medium: "email",
+      utm_campaign: "spring",
       utm_term: null,
       utm_content: null,
     });
-    expect(data[0]).not.toHaveProperty("follow");
-    expect(data[0]).not.toHaveProperty("lp");
-    expect(data[0]).not.toHaveProperty("liff_id");
+    expect(data[0]).not.toHaveProperty("gclid");
+    expect(data[0]).not.toHaveProperty("fbclid");
+    expect(data[0]).not.toHaveProperty("mc_cid");
   } finally {
     await deleteLinks(api, createdIds);
   }
