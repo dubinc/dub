@@ -6,7 +6,7 @@ import {
 import "dotenv-flow/config";
 
 const DRY_RUN = true;
-const BATCH_SIZE = 500;
+const BATCH_SIZE = 100;
 
 // Max gap between an application's reviewedAt and the activity log written by the same review
 const REVIEW_LOG_MATCH_WINDOW_MS = 10 * 60 * 1000;
@@ -175,7 +175,7 @@ async function backfillFromEnrollments() {
 
     if (partnerIdUpdates.length > 0) {
       if (!DRY_RUN) {
-        await prisma.$transaction(
+        await Promise.all(
           partnerIdUpdates.map(({ id, partnerId }) =>
             prisma.programApplication.update({
               where: {
@@ -371,7 +371,7 @@ async function backfillPartnerIdsByEmail() {
       console.table(partnerIdUpdates.slice(0, 20));
 
       if (!DRY_RUN) {
-        await prisma.$transaction(
+        await Promise.all(
           partnerIdUpdates.map(({ id, partnerId }) =>
             prisma.programApplication.update({
               where: {
