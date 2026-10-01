@@ -11,6 +11,11 @@ type BulkLink = {
   domain: string;
   programId: string | null;
   partnerId: string | null;
+  utm_source: string | null;
+  utm_medium: string | null;
+  utm_campaign: string | null;
+  utm_term: string | null;
+  utm_content: string | null;
 };
 
 type BulkLinkError = {
@@ -271,6 +276,46 @@ test("PATCH /links/bulk – rejects invalid partnerId", async ({
     );
     expect(unchanged.partnerId).toBeNull();
     expect(unchanged.programId).toBeNull();
+  } finally {
+    await deleteLinks(api, createdIds);
+  }
+});
+
+test("PATCH /links/bulk – ignores non-UTM URL query params", async ({
+  api,
+}) => {
+  const createdIds: string[] = [];
+  const destinationUrl =
+    "https://example.com/landing?follow=%40737agxqn&lp=UeueIg&liff_id=xx-1ftVOtwe&utm_source=landing&utm_medium=social";
+
+  try {
+    const { data: created } = await createBulkLinks(api, [bulkLinkBody()]);
+    const links = created.filter(isBulkLink);
+    createdIds.push(...links.map((link) => link.id));
+
+    expect(links).toHaveLength(1);
+
+    const { status, data } = await api.patch<BulkLink[]>("/api/links/bulk", {
+      linkIds: links.map((link) => link.id),
+      data: {
+        url: destinationUrl,
+      },
+    });
+
+    expect(status).toEqual(200);
+    expect(data).toHaveLength(1);
+    expect(data[0]).toMatchObject({
+      id: links[0].id,
+      url: destinationUrl,
+      utm_source: "landing",
+      utm_medium: "social",
+      utm_campaign: null,
+      utm_term: null,
+      utm_content: null,
+    });
+    expect(data[0]).not.toHaveProperty("follow");
+    expect(data[0]).not.toHaveProperty("lp");
+    expect(data[0]).not.toHaveProperty("liff_id");
   } finally {
     await deleteLinks(api, createdIds);
   }
