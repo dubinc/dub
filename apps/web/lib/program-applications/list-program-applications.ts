@@ -2,7 +2,7 @@ import { formatApplicationFormData } from "@/lib/partners/format-application-for
 import { prisma } from "@/lib/prisma";
 import { buildSocialPlatformLookup } from "@/lib/social-utils";
 import { getPartnerApplicationsQuerySchema } from "@/lib/zod/schemas/program-application";
-import { Prisma, ProgramEnrollmentStatus } from "@prisma/client";
+import { Prisma, ProgramApplicationStatus } from "@prisma/client";
 import * as z from "zod/v4";
 import { buildProgramApplicationWhere } from "./program-application-where";
 
@@ -28,7 +28,7 @@ export async function listProgramApplications({
   programId,
   groupId,
   country,
-  status = ProgramEnrollmentStatus.pending,
+  status = ProgramApplicationStatus.pending,
   search,
   sortOrder = "desc",
   page = 1,

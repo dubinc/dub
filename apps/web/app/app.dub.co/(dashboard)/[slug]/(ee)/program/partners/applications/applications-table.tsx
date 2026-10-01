@@ -3,26 +3,26 @@
 import { approvePartnerApplicationAction } from "@/lib/actions/partners/approve-partner-application";
 import { useProgramApplications } from "@/lib/program-applications/hooks/use-program-applications";
 import { useProgramApplicationsCount } from "@/lib/program-applications/hooks/use-program-applications-count";
-import { useProgramApplicationsFilters } from "@/lib/program-applications/hooks/use-program-applications-filters";
 import { buildSocialPlatformLookup } from "@/lib/social-utils";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useGroups from "@/lib/swr/use-groups";
 import usePartner from "@/lib/swr/use-partner";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { ProgramApplicationProps } from "@/lib/types";
+import { useApprovePartnerApplicationModal } from "@/ui/modals/approve-partner-application-modal";
+import { useBulkApprovePartnersModal } from "@/ui/modals/bulk-approve-partners-modal";
+import { useBulkRejectPartnersModal } from "@/ui/modals/bulk-reject-partners-modal";
 import { useConfirmModal } from "@/ui/modals/confirm-modal";
+import { useRejectPartnerApplicationModal } from "@/ui/modals/reject-partner-application-modal";
 import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
 import { PartnerApplicationSheet } from "@/ui/partners/partner-application-sheet";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { PartnerSocialColumn } from "@/ui/partners/partner-social-column";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { CountryFlag } from "@/ui/shared/country-flag";
-import { SearchBoxPersisted } from "@/ui/shared/search-box";
 import {
-  AnimatedSizeContainer,
   Button,
   EditColumnsButton,
-  Filter,
   MenuItem,
   Popover,
   Table,
@@ -31,8 +31,16 @@ import {
   useRouterStuff,
   useTable,
 } from "@dub/ui";
-import { Check, Dots, LoadingSpinner, Users } from "@dub/ui/icons";
+import {
+  Check,
+  Dots,
+  LoadingSpinner,
+  UserCheck,
+  Users,
+  UserXmark,
+} from "@dub/ui/icons";
 import { COUNTRIES, formatDate } from "@dub/utils";
+import { ProgramApplicationStatus } from "@prisma/client";
 import { Row } from "@tanstack/react-table";
 import { Command } from "cmdk";
 import { useAction } from "next-safe-action/hooks";
@@ -55,6 +63,8 @@ const applicationsColumns = {
   all: [
     "partner",
     "createdAt",
+    "source",
+    "group",
     "location",
     "website",
     "youtube",
@@ -66,6 +76,7 @@ const applicationsColumns = {
   defaultVisible: [
     "partner",
     "createdAt",
+    "source",
     "location",
     "website",
     "youtube",
@@ -73,35 +84,34 @@ const applicationsColumns = {
   ],
 };
 
-export function ProgramPartnersRejectedApplicationsPageClient() {
+const EMPTY_STATE_TITLES: Record<ProgramApplicationStatus, string> = {
+  pending: "No applications found",
+  approved: "No approved applications found",
+  rejected: "No rejected applications found",
+};
+
+export function ApplicationsTable({
+  status,
+}: {
+  status: ProgramApplicationStatus;
+}) {
   const { id: workspaceId } = useWorkspace();
   const { queryParams, searchParams, searchParamsObj } = useRouterStuff();
 
   const sortBy = searchParams.get("sortBy") || "createdAt";
   const sortOrder = searchParams.get("sortOrder") === "asc" ? "asc" : "desc";
 
-  const {
-    filters,
-    activeFilters,
-    onSelect,
-    onRemove,
-    onRemoveFilter,
-    onRemoveAll,
-    onToggleOperator,
-    setSelectedFilter,
-    setSearch,
-  } = useProgramApplicationsFilters({
-    status: "rejected",
-    enabledFilters: ["country"],
-  });
+  const isFiltered = Object.keys(searchParamsObj).some(
+    (key) => !["sortBy", "sortOrder", "page"].includes(key),
+  );
 
   const { applicationsCount, error: countError } =
     useProgramApplicationsCount<number>({
-      status: "rejected",
+      status,
     });
 
   const { applications, error, isValidating } = useProgramApplications({
-    status: "rejected",
+    status,
   });
 
   const partners = useMemo(
@@ -124,10 +134,6 @@ export function ProgramPartnersRejectedApplicationsPageClient() {
     | { open: true; partnerId: string }
   >({ open: false, partnerId: null });
 
-  const isFiltered = Object.keys(searchParamsObj).some(
-    (key) => !["sortBy", "sortOrder", "page"].includes(key),
-  );
-
   useEffect(() => {
     const partnerId = searchParams.get("partnerId");
     if (partnerId) setDetailsSheetState({ open: true, partnerId });
@@ -139,8 +145,27 @@ export function ProgramPartnersRejectedApplicationsPageClient() {
       partnerId: detailsSheetState.partnerId,
     });
 
+  // State for pending bulk actions
+  const [pendingApprovePartners, setPendingApprovePartners] = useState<
+    ApplicationRow[]
+  >([]);
+
+  const [pendingRejectPartners, setPendingRejectPartners] = useState<
+    ApplicationRow[]
+  >([]);
+
+  const { setShowBulkApprovePartnersModal, BulkApprovePartnersModal } =
+    useBulkApprovePartnersModal({
+      partners: pendingApprovePartners,
+    });
+
+  const { setShowBulkRejectPartnersModal, BulkRejectPartnersModal } =
+    useBulkRejectPartnersModal({
+      partners: pendingRejectPartners,
+    });
+
   const { columnVisibility, setColumnVisibility } = useColumnVisibility(
-    "applications-table-columns",
+    "applications-table-columns-v2",
     applicationsColumns,
   );
 
@@ -158,7 +183,7 @@ export function ProgramPartnersRejectedApplicationsPageClient() {
             <PartnerRowItem
               partner={row.original}
               showPermalink={false}
-              showFraudIndicator={false}
+              showFraudIndicator={status === ProgramApplicationStatus.pending}
             />
           );
         },
@@ -171,7 +196,6 @@ export function ProgramPartnersRejectedApplicationsPageClient() {
       {
         id: "group",
         header: "Group",
-        enableHiding: false,
         minSize: 150,
         cell: ({ row }) => {
           if (!groups || !row.original.groupId) {
@@ -285,12 +309,15 @@ export function ProgramPartnersRejectedApplicationsPageClient() {
         id: "menu",
         enableHiding: false,
         header: ({ table }) => <EditColumnsButton table={table} />,
-        cell: ({ row }) => (
-          <PartnerRowMenuButton row={row} workspaceId={workspaceId!} />
-        ),
+        cell: ({ row }) =>
+          status === ProgramApplicationStatus.pending ? (
+            <PendingRowMenuButton row={row} />
+          ) : status === ProgramApplicationStatus.rejected ? (
+            <RejectedRowMenuButton row={row} workspaceId={workspaceId!} />
+          ) : null,
       },
     ],
-    [workspaceId, groups],
+    [workspaceId, groups, status],
   );
 
   const { table, ...tableProps } = useTable<ApplicationRow>({
@@ -319,6 +346,42 @@ export function ProgramPartnersRejectedApplicationsPageClient() {
         },
         del: "page",
       }),
+
+    ...(status === ProgramApplicationStatus.pending && {
+      getRowId: (row: ApplicationRow) => row.id,
+      selectionControls: (table) => (
+        <>
+          <Button
+            variant="primary"
+            text="Approve"
+            className="h-7 w-fit rounded-lg px-2.5"
+            onClick={() => {
+              const partners = table
+                .getSelectedRowModel()
+                .rows.map((row) => row.original);
+
+              setPendingApprovePartners(partners);
+              setShowBulkApprovePartnersModal(true);
+            }}
+          />
+          <Button
+            variant="secondary"
+            text="Reject"
+            className="h-7 w-fit rounded-lg px-2.5"
+            onClick={() => {
+              const selectedPartners = table
+                .getSelectedRowModel()
+                .rows.map((row) => row.original);
+
+              setPendingRejectPartners(selectedPartners);
+              setShowBulkRejectPartnersModal(true);
+            }}
+          />
+        </>
+      ),
+    }),
+
+    containerClassName: "border-none",
     thClassName: "border-l-0",
     tdClassName: "border-l-0",
     resourceName: (p) => `application${p ? "s" : ""}`,
@@ -342,7 +405,7 @@ export function ProgramPartnersRejectedApplicationsPageClient() {
   }, [partners, detailsSheetState.partnerId]);
 
   return (
-    <div className="flex flex-col gap-6">
+    <>
       {detailsSheetState.partnerId && currentPartner && (
         <PartnerApplicationSheet
           isOpen={detailsSheetState.open}
@@ -368,47 +431,16 @@ export function ProgramPartnersRejectedApplicationsPageClient() {
           }
         />
       )}
-      <div>
-        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-          <Filter.Select
-            className="w-full md:w-fit"
-            filters={filters}
-            activeFilters={activeFilters}
-            onSelect={onSelect}
-            onRemove={onRemove}
-            onRemoveFilter={onRemoveFilter}
-            onSearchChange={setSearch}
-            onSelectedFilterChange={setSelectedFilter}
-          />
-          <SearchBoxPersisted
-            placeholder="Search by name, email, or company"
-            inputClassName="md:w-80"
-          />
-        </div>
-        <AnimatedSizeContainer height>
-          <div>
-            {activeFilters.length > 0 && (
-              <div className="pt-3">
-                <Filter.List
-                  filters={filters}
-                  activeFilters={activeFilters}
-                  onSelect={onSelect}
-                  onRemove={onRemove}
-                  onRemoveFilter={onRemoveFilter}
-                  onRemoveAll={onRemoveAll}
-                  onToggleOperator={onToggleOperator}
-                />
-              </div>
-            )}
-          </div>
-        </AnimatedSizeContainer>
-      </div>
+      <BulkApprovePartnersModal />
+      <BulkRejectPartnersModal />
+
       {partners?.length !== 0 ? (
         <Table {...tableProps} table={table} />
       ) : (
         <AnimatedEmptyState
-          title="No rejected applications found"
-          description={`No rejected applications found${isFiltered ? " for the selected filters" : " for this program"}.`}
+          className="border-none"
+          title={EMPTY_STATE_TITLES[status]}
+          description={`${EMPTY_STATE_TITLES[status]}${isFiltered ? " for the selected filters" : " for this program"}.`}
           cardContent={() => (
             <>
               <Users className="size-4 text-neutral-700" />
@@ -417,11 +449,90 @@ export function ProgramPartnersRejectedApplicationsPageClient() {
           )}
         />
       )}
-    </div>
+    </>
   );
 }
 
-function PartnerRowMenuButton({
+function PendingRowMenuButton({ row }: { row: Row<ApplicationRow> }) {
+  const [isOpen, setIsOpen] = useState(false);
+
+  const {
+    ApprovePartnerApplicationModal,
+    setShowApprovePartnerApplicationModal,
+  } = useApprovePartnerApplicationModal({
+    partner: row.original,
+    groupId: row.original.groupId,
+    onConfirm: async () => {
+      await mutatePrefix([
+        "/api/partners",
+        "/api/partners/count",
+        "/api/program-applications",
+      ]);
+    },
+  });
+
+  const {
+    RejectPartnerApplicationModal,
+    setShowRejectPartnerApplicationModal,
+  } = useRejectPartnerApplicationModal({
+    partner: row.original,
+    onConfirm: async () => {
+      await mutatePrefix([
+        "/api/partners",
+        "/api/partners/count",
+        "/api/program-applications",
+      ]);
+    },
+  });
+
+  return (
+    <>
+      {ApprovePartnerApplicationModal}
+      {RejectPartnerApplicationModal}
+      <Popover
+        openPopover={isOpen}
+        setOpenPopover={setIsOpen}
+        content={
+          <Command tabIndex={0} loop className="focus:outline-none">
+            <Command.List className="flex w-screen flex-col gap-1 p-1.5 text-sm focus-visible:outline-none sm:w-auto sm:min-w-[200px]">
+              <MenuItem
+                as={Command.Item}
+                icon={UserCheck}
+                onSelect={() => {
+                  setIsOpen(false);
+                  setShowApprovePartnerApplicationModal(true);
+                }}
+              >
+                Approve application
+              </MenuItem>
+              <MenuItem
+                as={Command.Item}
+                icon={UserXmark}
+                variant="danger"
+                onSelect={() => {
+                  setIsOpen(false);
+                  setShowRejectPartnerApplicationModal(true);
+                }}
+              >
+                Reject application
+              </MenuItem>
+            </Command.List>
+          </Command>
+        }
+        align="end"
+      >
+        <Button
+          type="button"
+          className="size-8 shrink-0 whitespace-nowrap rounded-lg p-0"
+          variant="outline"
+          icon={<Dots className="size-4 shrink-0" />}
+        />
+      </Popover>
+    </>
+  );
+}
+
+function RejectedRowMenuButton({
   row,
   workspaceId,
 }: {
@@ -501,6 +612,7 @@ function PartnerRowMenuButton({
   );
 }
 
+/** Gets the current partner from the loaded partners array if available, or a separate fetch if not */
 function useCurrentPartner({
   partners,
   partnerId,

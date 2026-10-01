@@ -1,4 +1,4 @@
-import { ProgramEnrollmentStatus } from "@prisma/client";
+import { ProgramApplicationStatus } from "@prisma/client";
 import * as z from "zod/v4";
 import { getPaginationQuerySchema } from "./misc";
 import {
@@ -76,11 +76,6 @@ export const ProgramApplicationSchema = PartnerApplicationSchema.extend({
 
 export const partnerApplicationWebhookSchema = PartnerApplicationSchema;
 
-const ProgramApplicationStatuses = [
-  ProgramEnrollmentStatus.pending,
-  ProgramEnrollmentStatus.rejected,
-];
-
 export const getPartnerApplicationsQuerySchema = getPartnersQuerySchema
   .pick({
     country: true,
@@ -95,10 +90,10 @@ export const getPartnerApplicationsQuerySchema = getPartnersQuerySchema
         "Filter applications by name, email, or company name. Partial matches are supported. An exact partner ID is also matched.",
       ),
     status: z
-      .enum(ProgramApplicationStatuses)
-      .default(ProgramEnrollmentStatus.pending)
+      .enum(ProgramApplicationStatus)
+      .default(ProgramApplicationStatus.pending)
       .describe(
-        "Filter applications by status. One of `pending` or `rejected`. Defaults to `pending`.",
+        "Filter applications by status. One of `pending`, `approved`, or `rejected`. Defaults to `pending`.",
       ),
     ...getPaginationQuerySchema({
       pageSize: PARTNERS_MAX_PAGE_SIZE,

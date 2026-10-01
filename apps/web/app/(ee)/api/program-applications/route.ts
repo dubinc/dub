@@ -8,7 +8,7 @@ import {
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 
-// GET /api/program-applications - get all pending applications for a program
+// GET /api/program-applications - get all applications for a program, filtered by status
 export const GET = withWorkspace(
   async ({ workspace, searchParams }) => {
     const { country, groupId, status, search, sortOrder, page, pageSize } =
