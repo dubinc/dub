@@ -95,7 +95,7 @@ export function FraudCustomerSharedClickIdTable() {
 
           return (
             <span
-              className="truncate font-mono text-sm text-neutral-600"
+              className="block truncate font-mono text-sm text-neutral-600"
               title={clickId}
             >
               {clickId}
@@ -118,7 +118,7 @@ export function FraudCustomerSharedClickIdTable() {
               href={`/${workspaceSlug}/program/customers/${matchedCustomerId}`}
               target="_blank"
               onClick={(event) => event.stopPropagation()}
-              className="truncate font-mono text-sm text-neutral-600 underline decoration-dotted underline-offset-2"
+              className="block truncate font-mono text-sm text-neutral-600 underline decoration-dotted underline-offset-2"
               title={matchedCustomerId}
             >
               {matchedCustomerId}

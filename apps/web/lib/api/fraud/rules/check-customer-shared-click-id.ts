@@ -29,6 +29,9 @@ export const checkCustomerSharedClickId = defineFraudRule({
           not: customer.id,
         },
       },
+      orderBy: {
+        createdAt: "asc",
+      },
       select: {
         id: true,
       },

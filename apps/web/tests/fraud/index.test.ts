@@ -269,7 +269,10 @@ describe.concurrent("/fraud/**", async () => {
 
     const clickResponse = await http.post<{ clickId: string }>({
       path: "/track/click",
-      headers: { ...E2E_TRACK_CLICK_HEADERS },
+      headers: {
+        ...E2E_TRACK_CLICK_HEADERS,
+        "User-Agent": `${E2E_TRACK_CLICK_HEADERS["User-Agent"]} ${Date.now()}${Math.floor(Math.random() * 1e6)}`,
+      },
       body: { domain: clickLink.domain, key: clickLink.key },
     });
 
