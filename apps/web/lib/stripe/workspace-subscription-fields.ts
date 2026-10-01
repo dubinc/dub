@@ -48,7 +48,7 @@ export function getSubscriptionBillingFields(
   return {
     billingCycleStart:
       currentPeriodStart != null
-        ? new Date(Number(currentPeriodStart) * 1000).getDay() // get day number from unix timestamp
+        ? new Date(Number(currentPeriodStart) * 1000).getUTCDate() // get UTC day of month from unix timestamp
         : undefined,
     billingCycleEndsAt:
       currentPeriodEnd != null
