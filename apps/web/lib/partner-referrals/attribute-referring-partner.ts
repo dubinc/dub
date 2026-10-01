@@ -25,145 +25,164 @@ export const attributeReferringPartnerAction = authActionClient
       requiredRoles: ["owner", "member"],
     });
 
-    const programId = getDefaultProgramIdOrThrow(workspace);
-
-    if (referredByPartnerId === partnerId) {
-      throw new DubApiError({
-        code: "bad_request",
-        message:
-          "A partner cannot be attributed to themselves as a referring partner.",
-      });
-    }
-
-    const [programEnrollment, referringProgramEnrollment] = await Promise.all([
-      getProgramEnrollmentOrThrow({
-        partnerId,
-        programId,
-        include: {
-          applicationEvent: {
-            select: {
-              referredByPartnerId: true,
-            },
-          },
-          application: {
-            select: {
-              createdAt: true,
-            },
-          },
-        },
-      }),
-
-      // Check the referring partner is enrolled in the program
-      getProgramEnrollmentOrThrow({
-        partnerId: referredByPartnerId,
-        programId,
-        include: {
-          applicationEvent: {
-            select: {
-              referredByPartnerId: true,
-            },
-          },
-          partner: {
-            select: {
-              country: true,
-            },
-          },
-          referralReward: true,
-        },
-      }),
-    ]);
-
-    if (referringProgramEnrollment.status !== "approved") {
-      throw new DubApiError({
-        code: "bad_request",
-        message: "The referring partner is not enrolled in the program.",
-      });
-    }
-
-    if (programEnrollment.applicationEvent?.referredByPartnerId) {
-      throw new DubApiError({
-        code: "bad_request",
-        message:
-          "This partner has already been attributed to another referring partner.",
-      });
-    }
-
-    await throwIfReferralLoop({
-      programId,
+    await attributeReferringPartner({
+      workspace,
       partnerId,
-      initialReferrerId:
-        referringProgramEnrollment.applicationEvent?.referredByPartnerId,
+      referredByPartnerId,
+      createCommissionsForPastEvents,
     });
+  });
 
-    // Attribute the referring partner to the application
-    const baseDate =
-      programEnrollment.application?.createdAt ?? programEnrollment.createdAt;
+export async function attributeReferringPartner({
+  workspace,
+  partnerId,
+  referredByPartnerId,
+  createCommissionsForPastEvents,
+}: {
+  workspace: { defaultProgramId?: string | null };
+  partnerId: string;
+  referredByPartnerId: string;
+  createCommissionsForPastEvents: boolean;
+}) {
+  const programId = getDefaultProgramIdOrThrow(workspace);
 
-    try {
-      await prisma.programApplicationEvent.upsert({
-        where: {
-          programId_partnerId: {
-            programId,
-            partnerId,
+  if (referredByPartnerId === partnerId) {
+    throw new DubApiError({
+      code: "bad_request",
+      message:
+        "A partner cannot be attributed to themselves as a referring partner.",
+    });
+  }
+
+  const [programEnrollment, referringProgramEnrollment] = await Promise.all([
+    getProgramEnrollmentOrThrow({
+      partnerId,
+      programId,
+      include: {
+        applicationEvent: {
+          select: {
+            referredByPartnerId: true,
           },
-          referredByPartnerId: null,
         },
-        update: {
-          referredByPartnerId,
+        application: {
+          select: {
+            createdAt: true,
+          },
         },
-        create: {
-          id: createId({ prefix: "pga_evt_" }),
+      },
+    }),
+
+    // Check the referring partner is enrolled in the program
+    getProgramEnrollmentOrThrow({
+      partnerId: referredByPartnerId,
+      programId,
+      include: {
+        applicationEvent: {
+          select: {
+            referredByPartnerId: true,
+          },
+        },
+        partner: {
+          select: {
+            country: true,
+          },
+        },
+        referralReward: true,
+      },
+    }),
+  ]);
+
+  if (referringProgramEnrollment.status !== "approved") {
+    throw new DubApiError({
+      code: "bad_request",
+      message: "The referring partner is not enrolled in the program.",
+    });
+  }
+
+  if (programEnrollment.applicationEvent?.referredByPartnerId) {
+    throw new DubApiError({
+      code: "bad_request",
+      message:
+        "This partner has already been attributed to another referring partner.",
+    });
+  }
+
+  await throwIfReferralLoop({
+    programId,
+    partnerId,
+    initialReferrerId:
+      referringProgramEnrollment.applicationEvent?.referredByPartnerId,
+  });
+
+  // Attribute the referring partner to the application
+  const baseDate =
+    programEnrollment.application?.createdAt ?? programEnrollment.createdAt;
+
+  try {
+    await prisma.programApplicationEvent.upsert({
+      where: {
+        programId_partnerId: {
+          programId,
+          partnerId,
+        },
+        referredByPartnerId: null,
+      },
+      update: {
+        referredByPartnerId,
+      },
+      create: {
+        id: createId({ prefix: "pga_evt_" }),
+        programId,
+        partnerId,
+        referredByPartnerId,
+        referralSource: "manual",
+        country: referringProgramEnrollment.partner.country,
+        visitedAt: subMinutes(baseDate, 30),
+        startedAt: subMinutes(baseDate, 5),
+        submittedAt: subMinutes(baseDate, 1),
+        approvedAt: programEnrollment.createdAt,
+      },
+    });
+  } catch (error) {
+    if (error.code === "P2002") {
+      throw new DubApiError({
+        code: "conflict",
+        message: "This partner already has a referring partner.",
+      });
+    }
+
+    throw error;
+  }
+
+  if (
+    createCommissionsForPastEvents &&
+    referringProgramEnrollment.referralReward
+  ) {
+    try {
+      await qstash.publishJSON({
+        url: `${APP_DOMAIN_WITH_NGROK}/api/cron/commissions/referrals/backfill`,
+        body: {
           programId,
           partnerId,
           referredByPartnerId,
-          referralSource: "manual",
-          country: referringProgramEnrollment.partner.country,
-          visitedAt: subMinutes(baseDate, 30),
-          startedAt: subMinutes(baseDate, 5),
-          submittedAt: subMinutes(baseDate, 1),
-          approvedAt: programEnrollment.createdAt,
         },
       });
     } catch (error) {
-      if (error.code === "P2002") {
-        throw new DubApiError({
-          code: "conflict",
-          message: "This partner already has a referring partner.",
-        });
-      }
+      logger.error("publishJSON.failed", {
+        service: "qstash",
+        event: "publishJSON.failed",
+        url: `/api/cron/commissions/referrals/backfill`,
+        error: toErrorFields(error),
+        correlation: {
+          programId,
+          partnerId,
+        },
+      });
 
-      throw error;
+      await logger.flush();
     }
-
-    if (
-      createCommissionsForPastEvents &&
-      referringProgramEnrollment.referralReward
-    ) {
-      try {
-        await qstash.publishJSON({
-          url: `${APP_DOMAIN_WITH_NGROK}/api/cron/commissions/referrals/backfill`,
-          body: {
-            programId,
-            partnerId,
-            referredByPartnerId,
-          },
-        });
-      } catch (error) {
-        logger.error("publishJSON.failed", {
-          service: "qstash",
-          event: "publishJSON.failed",
-          url: `/api/cron/commissions/referrals/backfill`,
-          error: toErrorFields(error),
-          correlation: {
-            programId,
-            partnerId,
-          },
-        });
-
-        await logger.flush();
-      }
-    }
-  });
+  }
+}
 
 async function throwIfReferralLoop({
   programId,
