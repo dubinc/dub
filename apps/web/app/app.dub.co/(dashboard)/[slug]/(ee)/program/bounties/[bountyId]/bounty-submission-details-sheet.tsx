@@ -165,11 +165,15 @@ function BountySubmissionDetailsSheetContent({
     return true;
   }, [bounty, rewardAmount]);
 
-  const { isSocialMetricsBounty, pendingMilestones, hasReachedEarningCap } =
-    useSocialMetricsMilestones({
-      bounty,
-      submission,
-    });
+  const {
+    isSocialMetricsBounty,
+    hasMultipleMilestones,
+    pendingMilestones,
+    hasReachedEarningCap,
+  } = useSocialMetricsMilestones({
+    bounty,
+    submission,
+  });
 
   const canApprove =
     submission?.status !== "draft" &&
@@ -585,7 +589,7 @@ function BountySubmissionDetailsSheetContent({
                   <Button
                     type="button"
                     variant="danger"
-                    text={isSocialMetricsBounty ? "Reject all" : "Reject"}
+                    text={hasMultipleMilestones ? "Reject all" : "Reject"}
                     shortcut="R"
                     disabledTooltip={
                       permissionsError
@@ -604,7 +608,7 @@ function BountySubmissionDetailsSheetContent({
                     type="button"
                     variant="primary"
                     text={
-                      !isSocialMetricsBounty
+                      !hasMultipleMilestones
                         ? "Approve"
                         : pendingMilestones.length > 0
                           ? `Approve ${pendingMilestones.length} ${pluralize("milestone", pendingMilestones.length)}`

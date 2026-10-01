@@ -1,6 +1,7 @@
 import {
   getPendingSocialMetricsMilestones,
   getSocialMetricsEarningCap,
+  getSocialMetricsMilestones,
   hasReachedSocialMetricsEarningCap,
   SubmissionMilestoneInput,
 } from "@/lib/bounty/social-metrics-milestones";
@@ -30,6 +31,9 @@ export function useSocialMetricsMilestones({
     0,
   );
 
+  const hasMultipleMilestones =
+    isSocialMetricsBounty && getSocialMetricsMilestones(bounty).length > 1;
+
   const earningCap = getSocialMetricsEarningCap(bounty);
   const lastPendingMilestone = pendingMilestones[pendingMilestones.length - 1];
 
@@ -46,6 +50,7 @@ export function useSocialMetricsMilestones({
   return {
     metric,
     isSocialMetricsBounty,
+    hasMultipleMilestones,
     pendingMilestones,
     pendingRewardAmount,
     completesEarningCap,
