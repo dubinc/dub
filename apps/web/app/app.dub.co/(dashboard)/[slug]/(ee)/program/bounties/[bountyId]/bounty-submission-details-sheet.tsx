@@ -43,6 +43,7 @@ import {
   pluralize,
   timeAgo,
 } from "@dub/utils";
+import { CommissionStatus } from "@prisma/client";
 import Linkify from "linkify-react";
 import Link from "next/link";
 import {
@@ -53,6 +54,13 @@ import {
   useState,
 } from "react";
 import { toast } from "sonner";
+
+const PAYABLE_COMMISSION_STATUSES: CommissionStatus[] = [
+  "pending",
+  "processed",
+  "paid",
+  "hold",
+];
 
 type BountySubmissionDetailsSheetProps = {
   submission: BountySubmissionProps;
@@ -201,6 +209,17 @@ function BountySubmissionDetailsSheetContent({
       : 100;
   const socialMetricComplete = socialMetricPercent >= 100;
 
+  const viewCommissionsLink =
+    submission.commissions.length > 0 ? (
+      <Link
+        href={`/${workspaceSlug}/program/commissions?bountySubmissionId=${submission.id}&interval=all`}
+        target="_blank"
+        className="w-full"
+      >
+        <Button variant="secondary" text="View commissions" />
+      </Link>
+    ) : null;
+
   return (
     <div className="flex h-full flex-col">
       <div className="sticky top-0 z-10 border-b border-neutral-200 bg-white">
@@ -337,7 +356,10 @@ function BountySubmissionDetailsSheetContent({
                           if (submission.commissions.length > 0) {
                             return currencyFormatter(
                               submission.commissions.reduce(
-                                (total, { earnings }) => total + earnings,
+                                (total, { earnings, status }) =>
+                                  PAYABLE_COMMISSION_STATUSES.includes(status)
+                                    ? total + earnings
+                                    : total,
                                 0,
                               ),
                             );
@@ -554,17 +576,11 @@ function BountySubmissionDetailsSheetContent({
 
         <div className="sticky bottom-0 z-10 border-t border-neutral-200 bg-white">
           <div className="flex items-center justify-between gap-2 p-5">
-            {submission.status === "approved" &&
-            submission.commissions.length > 0 ? (
-              <Link
-                href={`/${workspaceSlug}/program/commissions/${submission.commissions[0].id}`}
-                target="_blank"
-                className="w-full"
-              >
-                <Button variant="secondary" text="View commission" />
-              </Link>
+            {submission.status === "approved" && viewCommissionsLink ? (
+              viewCommissionsLink
             ) : (
               <div className="flex w-full flex-col gap-4">
+                {viewCommissionsLink}
                 {!bounty?.rewardAmount && (
                   <div>
                     <label className="text-sm font-medium text-neutral-800">

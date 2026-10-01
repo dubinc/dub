@@ -50,6 +50,11 @@ async function main() {
         socialMetricCount: {
           not: null,
         },
+        ...(cursor && {
+          id: {
+            gt: cursor,
+          },
+        }),
       },
       select: {
         id: true,
@@ -64,12 +69,6 @@ async function main() {
         id: "asc",
       },
       take: BATCH_SIZE,
-      ...(cursor && {
-        skip: 1,
-        cursor: {
-          id: cursor,
-        },
-      }),
     });
 
     if (submissions.length === 0) {
