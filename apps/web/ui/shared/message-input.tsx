@@ -55,6 +55,7 @@ export function MessageInput({
   sendButtonText = "Send",
   className,
   inputClassName,
+  toolbarClassName,
   actions,
   attachments = [],
   onAddFiles,
@@ -73,6 +74,7 @@ export function MessageInput({
   sendButtonText?: string;
   className?: string;
   inputClassName?: string;
+  toolbarClassName?: string;
   actions?: ReactNode;
   attachments?: PendingAttachment[];
   onAddFiles?: (files: File[]) => void;
@@ -275,7 +277,12 @@ export function MessageInput({
           </div>
         )}
 
-        <div className="flex items-center justify-between gap-4 p-3">
+        <div
+          className={cn(
+            "flex items-center justify-between gap-4 p-3",
+            toolbarClassName,
+          )}
+        >
           <MessageInputToolbar
             disabled={Boolean(permissionsError)}
             emojiPickerOpen={emojiPickerOpen}
