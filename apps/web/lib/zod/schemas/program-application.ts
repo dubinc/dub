@@ -5,11 +5,12 @@ import {
   EnrolledPartnerSchema,
   getPartnersQuerySchema,
   OldPartnerPlatformsFields,
+  partnerPlatformSchema,
   PARTNERS_MAX_PAGE_SIZE,
 } from "./partners";
 import { ProgramEnrollmentSchema } from "./programs";
 
-// Response for GET /api/partners/applications, GET /api/program-applications, and webhook payloads.
+// @deprecated Use ProgramApplicationSchema instead. Kept for GET /api/partners/applications and webhook payloads for backward compatibility.
 export const PartnerApplicationSchema = z.object({
   id: z.string(),
   createdAt: z.coerce.date(),
@@ -39,7 +40,31 @@ export const PartnerApplicationSchema = z.object({
     .nullable(),
 });
 
-export const ProgramApplicationSchema = PartnerApplicationSchema;
+// Used by GET /api/program-applications. Additive over PartnerApplicationSchema; the flat social fields are kept for backward compatibility.
+export const ProgramApplicationSchema = PartnerApplicationSchema.extend({
+  partner: PartnerApplicationSchema.shape.partner
+    .extend(
+      EnrolledPartnerSchema.pick({
+        networkStatus: true,
+        defaultPayoutMethod: true,
+        payoutsEnabledAt: true,
+      }).shape,
+    )
+    .extend({
+      platforms: z
+        .array(
+          partnerPlatformSchema.pick({
+            type: true,
+            identifier: true,
+            verifiedAt: true,
+          }),
+        )
+        .nullish()
+        .describe(
+          "The partner's website and social profiles, including when each was verified.",
+        ),
+    }),
+});
 
 export const partnerApplicationWebhookSchema = PartnerApplicationSchema;
 

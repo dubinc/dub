@@ -1,6 +1,9 @@
 import { formatApplicationFormData } from "@/lib/partners/format-application-form-data";
 import { prisma } from "@/lib/prisma";
-import { polyfillSocialMediaFields } from "@/lib/social-utils";
+import {
+  buildSocialPlatformLookup,
+  polyfillSocialMediaFields,
+} from "@/lib/social-utils";
 import { getProgramApplicationsQuerySchema } from "@/lib/zod/schemas/program-application";
 import { Prisma, ProgramApplicationStatus } from "@prisma/client";
 import * as z from "zod/v4";
@@ -71,15 +74,50 @@ function transformApplication(application: ProgramApplicationWithPartner) {
     }),
   );
 
+  const platformsByType = buildSocialPlatformLookup(partner.platforms);
+
+  const platforms = (
+    [
+      "website",
+      "youtube",
+      "twitter",
+      "linkedin",
+      "instagram",
+      "tiktok",
+    ] as const
+  ).flatMap((type) => {
+    const platform = platformsByType[type];
+    const identifier = application[type] ?? platform?.identifier;
+
+    if (!identifier) {
+      return [];
+    }
+
+    return [
+      {
+        type,
+        identifier,
+        verifiedAt:
+          platform?.identifier === identifier
+            ? platform.verifiedAt ?? null
+            : null,
+      },
+    ];
+  });
+
   return {
     id: application.id,
     createdAt: application.createdAt,
     applicationFormData,
     partner: {
       ...partner,
-      ...polyfillSocialMediaFields(partner.platforms),
+      name: application.name,
+      email: application.email,
+      country: application.country,
       groupId: application.groupId,
       status: application.status,
+      ...polyfillSocialMediaFields(platforms),
+      platforms,
     },
   };
 }

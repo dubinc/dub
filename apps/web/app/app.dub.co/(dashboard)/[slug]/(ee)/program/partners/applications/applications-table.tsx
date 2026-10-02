@@ -47,19 +47,16 @@ import { useAction } from "next-safe-action/hooks";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
-const SOCIAL_PLATFORM_FIELDS = [
-  "website",
-  "youtube",
-  "twitter",
-  "linkedin",
-  "instagram",
-  "tiktok",
-] as const;
+type ApplicationPlatform = NonNullable<
+  ProgramApplicationProps["partner"]["platforms"]
+>[number];
 
 type ApplicationRow = ProgramApplicationProps["partner"] & {
   createdAt: ProgramApplicationProps["createdAt"];
   applicationId: string;
-  platformsByType: ReturnType<typeof buildSocialPlatformLookup>;
+  platformsByType: ReturnType<
+    typeof buildSocialPlatformLookup<ApplicationPlatform>
+  >;
 };
 
 const applicationsColumns = {
@@ -124,15 +121,7 @@ export function ApplicationsTable({
         createdAt: application.createdAt,
         applicationId: application.id,
         platformsByType: buildSocialPlatformLookup(
-          SOCIAL_PLATFORM_FIELDS.flatMap((type) => {
-            const identifier = application.partner[type];
-
-            if (!identifier) {
-              return [];
-            }
-
-            return [{ type, identifier, verifiedAt: null }];
-          }),
+          application.partner.platforms ?? [],
         ),
       })),
     [applications],

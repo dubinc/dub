@@ -160,6 +160,8 @@ test.describe("program applications", () => {
       approvedUs,
     ] = seeded;
 
+    // Application-level socials take precedence over the partner's platforms;
+    // verifiedAt is only kept when both identifiers match.
     await prisma.programApplication.update({
       where: { id: pendingUsWithPlatforms.id },
       data: {
@@ -259,6 +261,9 @@ test.describe("program applications", () => {
         image: null,
         description: null,
         country: "GB",
+        networkStatus: "draft",
+        defaultPayoutMethod: null,
+        payoutsEnabledAt: null,
         groupId: extraGroup.id,
         status: "pending",
         website: null,
@@ -267,11 +272,12 @@ test.describe("program applications", () => {
         linkedin: null,
         instagram: null,
         tiktok: null,
+        platforms: [],
       },
     });
   });
 
-  test("GET /program-applications – social fields and applicationFormData", async ({
+  test("GET /program-applications – platforms and applicationFormData", async ({
     api,
   }) => {
     const { status, data } = await listApplications(api, {
@@ -284,10 +290,27 @@ test.describe("program applications", () => {
       { label: "How will you promote us?", value: "Newsletter" },
       { label: "Anything else?", value: null },
     ]);
+    expect(data[0].partner.platforms).toStrictEqual([
+      {
+        type: "website",
+        identifier: VERIFIED_WEBSITE,
+        verifiedAt: VERIFIED_AT.toISOString(),
+      },
+      {
+        type: "youtube",
+        identifier: "partner_channel",
+        verifiedAt: null,
+      },
+      {
+        type: "twitter",
+        identifier: "application_handle",
+        verifiedAt: null,
+      },
+    ]);
     expect(data[0].partner).toMatchObject({
       website: VERIFIED_WEBSITE,
       youtube: "partner_channel",
-      twitter: "partner_handle",
+      twitter: "application_handle",
       linkedin: null,
       instagram: null,
       tiktok: null,
