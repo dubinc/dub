@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { Prisma } from "@prisma/client";
 
 export async function updateCustomerWithStripeCustomerId({
   workspaceId,
@@ -31,7 +32,17 @@ export async function updateCustomerWithStripeCustomerId({
     });
   } catch (error) {
     // Skip if customer not found (not an error, just a case where the customer doesn't exist on Dub yet)
-    console.log("Failed to update customer with StripeCustomerId:", error);
-    return null;
+    // or if another customer already has this stripeCustomerId.
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      (error.code === "P2025" || error.code === "P2002")
+    ) {
+      console.log("Failed to update customer with StripeCustomerId:", error);
+      return null;
+    }
+
+    // Throw other errors (e.g. a database timeout) so that Stripe retries the event.
+    // Otherwise the caller falls back to promo code attribution and can create a duplicate customer.
+    throw error;
   }
 }
