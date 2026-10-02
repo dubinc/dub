@@ -82,5 +82,4 @@ model Commission {
   @@index(status)
   @@index(rewardId)
   @@index(userId)
-  @@index([status, payoutId, source]) // temp index for migration script
 }
