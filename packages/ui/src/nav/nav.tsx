@@ -135,13 +135,15 @@ const pillSpring = {
   opacity: { duration: 0 },
 };
 
-// Resolve logged-out (401) and failed requests to null instead of throwing, so
-// SWR keeps cached data and background revalidation never resets `isLoading`
-// (which would unmount the CTA buttons until the request settles)
-const sessionFetcher = (url: string) =>
-  fetch(url)
-    .then((res) => (res.ok ? res.json() : null))
-    .catch(() => null);
+// dub.co's session route returns 401 when logged out — cache that as "no session"
+// so revalidation never resets `isLoading` (which unmounts the CTA buttons).
+// Other failures throw, so SWR keeps whatever session it already has.
+const sessionFetcher = async (url: string) => {
+  const res = await fetch(url);
+  if (res.status === 401) return null;
+  if (!res.ok) throw new Error("Failed to fetch session");
+  return res.json();
+};
 
 export function Nav({
   theme = "light",
