@@ -80,9 +80,6 @@ export async function invoicePaid({
         });
       } catch (error) {
         console.log(error);
-        return {
-          response: `Customer with dubCustomerExternalId ${dubCustomerExternalId} not found, skipping...`,
-        };
       }
     }
   }
