@@ -30,7 +30,9 @@ import { toast } from "sonner";
 import { KeyedMutator } from "swr";
 import { v4 as uuid } from "uuid";
 
-type CommentWithDelivery = SubmittedLeadCommentProps & { delivered?: false };
+export type CommentWithDelivery = SubmittedLeadCommentProps & {
+  delivered?: false;
+};
 
 const VISIBILITY_OPTIONS = [
   { partnerVisible: false, label: "Workspace only" },
@@ -196,13 +198,16 @@ function VisibilitySelector({
   );
 }
 
-function CommentCard({
+// Pass `program` to render the card for the partner who submitted the lead
+export function CommentCard({
   comment,
   mutate,
+  program,
   className,
 }: {
   comment?: CommentWithDelivery;
   mutate?: KeyedMutator<CommentWithDelivery[]>;
+  program?: { id: string; name: string; logo: string | null };
   className?: string;
 }) {
   const { user } = useUser();
@@ -228,10 +233,16 @@ function CommentCard({
     },
   );
 
+  const isPartnerView = Boolean(program);
   const isFromPartner = Boolean(comment?.partnerId);
-  const isPartnerVisible = Boolean(comment?.partnerVisible) && !isFromPartner;
+  const isPartnerVisible =
+    !isPartnerView && Boolean(comment?.partnerVisible) && !isFromPartner;
   const canEdit =
-    comment && !isEditing && !isFromPartner && comment.userId === user?.id;
+    comment &&
+    !isPartnerView &&
+    !isEditing &&
+    !isFromPartner &&
+    comment.userId === user?.id;
 
   return (
     <div
@@ -257,7 +268,17 @@ function CommentCard({
               <span className="text-content-emphasis truncate text-xs font-semibold">
                 {comment.user.name}
               </span>
-              {isFromPartner && (
+              {program && !isFromPartner && (
+                <span className="bg-bg-subtle text-content-default flex items-center gap-1 rounded-md px-1.5 py-0.5 text-xs font-medium">
+                  <img
+                    src={program.logo || `${OG_AVATAR_URL}${program.id}`}
+                    alt={`${program.name} logo`}
+                    className="size-3 shrink-0 rounded-full"
+                  />
+                  {program.name}
+                </span>
+              )}
+              {!isPartnerView && isFromPartner && (
                 <span className="bg-bg-subtle text-content-default rounded-md px-1.5 py-0.5 text-xs font-medium">
                   Partner
                 </span>
