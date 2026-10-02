@@ -1,6 +1,6 @@
 "use client";
 
-import { APP_DOMAIN, cn, createHref, fetcher } from "@dub/utils";
+import { APP_DOMAIN, cn, createHref } from "@dub/utils";
 import * as NavigationMenuPrimitive from "@radix-ui/react-navigation-menu";
 import { motion } from "motion/react";
 import Link from "next/link";
@@ -135,6 +135,14 @@ const pillSpring = {
   opacity: { duration: 0 },
 };
 
+// Resolve logged-out (401) and failed requests to null instead of throwing, so
+// SWR keeps cached data and background revalidation never resets `isLoading`
+// (which would unmount the CTA buttons until the request settles)
+const sessionFetcher = (url: string) =>
+  fetch(url)
+    .then((res) => (res.ok ? res.json() : null))
+    .catch(() => null);
+
 export function Nav({
   theme = "light",
   staticDomain,
@@ -164,7 +172,7 @@ export function Nav({
   const pathname = usePathname();
   const { data: session, isLoading } = useSWR(
     domain.endsWith("dub.co") && "/api/auth/session",
-    fetcher,
+    sessionFetcher,
     {
       dedupingInterval: 60000,
     },
