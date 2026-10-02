@@ -6,7 +6,7 @@ import { queuePartnerSearchSync } from "@/lib/api/partners/queue-partner-search-
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { trackApplicationEvents } from "@/lib/application-events/update-application-event";
 import { prisma } from "@/lib/prisma";
-import { bulkRejectPartnersSchema } from "@/lib/zod/schemas/partners";
+import { bulkRejectProgramApplicationsSchema } from "@/lib/zod/schemas/program-application";
 import { sendBatchEmail } from "@dub/email";
 import ProgramApplicationRejected from "@dub/email/templates/program-application-rejected";
 import {
@@ -19,7 +19,7 @@ import { throwIfNoPermission } from "../throw-if-no-permission";
 
 // Reject a list of pending partners
 export const bulkRejectProgramApplicationsAction = authActionClient
-  .inputSchema(bulkRejectPartnersSchema)
+  .inputSchema(bulkRejectProgramApplicationsSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
     const { partnerIds } = parsedInput;
