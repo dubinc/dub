@@ -65,7 +65,6 @@ export async function POST(req: Request) {
           orderBy: {
             createdAt: "desc",
           },
-          take: 50,
           include: {
             user: true,
           },
