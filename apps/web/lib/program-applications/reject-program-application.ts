@@ -1,3 +1,8 @@
+import { trackActivityLog } from "@/lib/api/activity-log/track-activity-log";
+import { DubApiError } from "@/lib/api/errors";
+import { resolveFraudGroups } from "@/lib/api/fraud/resolve-fraud-groups";
+import { queuePartnerSearchSync } from "@/lib/api/partners/queue-partner-search-sync";
+import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { trackApplicationEvents } from "@/lib/application-events/update-application-event";
 import { getProgramApplicationRejectionReasonLabel } from "@/lib/partners/program-application-rejection";
 import { prisma } from "@/lib/prisma";
@@ -11,18 +16,15 @@ import {
 } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
-import { trackActivityLog } from "../../activity-log/track-activity-log";
-import { DubApiError } from "../../errors";
-import { resolveFraudGroups } from "../../fraud/resolve-fraud-groups";
-import { getDefaultProgramIdOrThrow } from "../../programs/get-default-program-id-or-throw";
-import { queuePartnerSearchSync } from "../queue-partner-search-sync";
 
-type RejectPartnerInput = z.infer<typeof rejectProgramApplicationSchema> & {
+type RejectProgramApplicationInput = z.infer<
+  typeof rejectProgramApplicationSchema
+> & {
   userId: string;
   workspace: Pick<WorkspaceProps, "id" | "defaultProgramId">;
 };
 
-export async function rejectPartner({
+export async function rejectProgramApplication({
   workspace,
   partnerId,
   rejectionReason,
@@ -31,7 +33,7 @@ export async function rejectPartner({
   flagForFraud,
   flagForFraudReason,
   userId,
-}: RejectPartnerInput) {
+}: RejectProgramApplicationInput) {
   const programId = getDefaultProgramIdOrThrow(workspace);
 
   if (flagForFraud && reapplicationTimeframe === "instant") {

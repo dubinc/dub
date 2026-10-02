@@ -1,6 +1,6 @@
-import { rejectPartner } from "@/lib/api/partners/applications/reject-partner";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
+import { rejectProgramApplication } from "@/lib/program-applications/reject-program-application";
 import { rejectProgramApplicationSchema } from "@/lib/zod/schemas/program-application";
 import { NextResponse } from "next/server";
 
@@ -16,7 +16,7 @@ export const POST = withWorkspace(
       flagForFraudReason,
     } = rejectProgramApplicationSchema.parse(await parseRequestBody(req));
 
-    await rejectPartner({
+    await rejectProgramApplication({
       workspace,
       partnerId,
       rejectionReason,

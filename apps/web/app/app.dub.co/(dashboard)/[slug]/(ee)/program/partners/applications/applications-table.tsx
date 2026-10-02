@@ -1,23 +1,19 @@
 "use client";
 
-import { approveProgramApplicationAction } from "@/lib/actions/partners/approve-program-application";
 import { useProgramApplications } from "@/lib/program-applications/hooks/use-program-applications";
 import { useProgramApplicationsCount } from "@/lib/program-applications/hooks/use-program-applications-count";
 import { buildSocialPlatformLookup } from "@/lib/social-utils";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useGroups from "@/lib/swr/use-groups";
 import usePartner from "@/lib/swr/use-partner";
-import useWorkspace from "@/lib/swr/use-workspace";
 import { ProgramApplicationProps } from "@/lib/types";
-import { useApproveProgramApplicationModal } from "@/ui/modals/approve-program-application-modal";
-import { useBulkApprovePartnersModal } from "@/ui/modals/bulk-approve-partners-modal";
-import { useBulkRejectPartnersModal } from "@/ui/modals/bulk-reject-partners-modal";
-import { useConfirmModal } from "@/ui/modals/confirm-modal";
+import { useBulkApproveProgramApplicationsModal } from "@/ui/modals/bulk-approve-program-applications-modal";
+import { useBulkRejectProgramApplicationsModal } from "@/ui/modals/bulk-reject-program-applications-modal";
 import { useRejectProgramApplicationModal } from "@/ui/modals/reject-program-application-modal";
 import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
-import { ProgramApplicationSheet } from "@/ui/partners/partner-application-sheet";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { PartnerSocialColumn } from "@/ui/partners/partner-social-column";
+import { ProgramApplicationReviewSheet } from "@/ui/partners/program-application-review-sheet";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { CountryFlag } from "@/ui/shared/country-flag";
 import {
@@ -31,21 +27,12 @@ import {
   useRouterStuff,
   useTable,
 } from "@dub/ui";
-import {
-  Check,
-  Dots,
-  LoadingSpinner,
-  UserCheck,
-  Users,
-  UserXmark,
-} from "@dub/ui/icons";
+import { Check, Dots, UserCheck, Users, UserXmark } from "@dub/ui/icons";
 import { COUNTRIES, formatDate } from "@dub/utils";
 import { ProgramApplicationStatus } from "@prisma/client";
 import { Row } from "@tanstack/react-table";
 import { Command } from "cmdk";
-import { useAction } from "next-safe-action/hooks";
 import { useEffect, useMemo, useState } from "react";
-import { toast } from "sonner";
 
 type ApplicationPlatform = NonNullable<
   ProgramApplicationProps["partner"]["platforms"]
@@ -95,7 +82,6 @@ export function ApplicationsTable({
 }: {
   status: ProgramApplicationStatus;
 }) {
-  const { id: workspaceId } = useWorkspace();
   const { queryParams, searchParams, searchParamsObj } = useRouterStuff();
 
   const sortBy = searchParams.get("sortBy") || "createdAt";
@@ -154,15 +140,19 @@ export function ApplicationsTable({
     ApplicationRow[]
   >([]);
 
-  const { setShowBulkApprovePartnersModal, BulkApprovePartnersModal } =
-    useBulkApprovePartnersModal({
-      partners: pendingApprovePartners,
-    });
+  const {
+    setShowBulkApproveProgramApplicationsModal,
+    BulkApproveProgramApplicationsModal,
+  } = useBulkApproveProgramApplicationsModal({
+    partners: pendingApprovePartners,
+  });
 
-  const { setShowBulkRejectPartnersModal, BulkRejectPartnersModal } =
-    useBulkRejectPartnersModal({
-      partners: pendingRejectPartners,
-    });
+  const {
+    setShowBulkRejectProgramApplicationsModal,
+    BulkRejectProgramApplicationsModal,
+  } = useBulkRejectProgramApplicationsModal({
+    partners: pendingRejectPartners,
+  });
 
   const { columnVisibility, setColumnVisibility } = useColumnVisibility(
     "applications-table-columns-v2",
@@ -313,11 +303,11 @@ export function ApplicationsTable({
           status === ProgramApplicationStatus.pending ? (
             <PendingRowMenuButton row={row} />
           ) : status === ProgramApplicationStatus.rejected ? (
-            <RejectedRowMenuButton row={row} workspaceId={workspaceId!} />
+            <RejectedRowMenuButton row={row} />
           ) : null,
       },
     ],
-    [workspaceId, groups, status],
+    [groups, status],
   );
 
   const { table, ...tableProps } = useTable<ApplicationRow>({
@@ -347,7 +337,7 @@ export function ApplicationsTable({
         del: "page",
       }),
 
-    ...(status === ProgramApplicationStatus.pending && {
+    ...(status !== ProgramApplicationStatus.approved && {
       getRowId: (row: ApplicationRow) => row.id,
       selectionControls: (table) => (
         <>
@@ -361,22 +351,24 @@ export function ApplicationsTable({
                 .rows.map((row) => row.original);
 
               setPendingApprovePartners(partners);
-              setShowBulkApprovePartnersModal(true);
+              setShowBulkApproveProgramApplicationsModal(true);
             }}
           />
-          <Button
-            variant="secondary"
-            text="Reject"
-            className="h-7 w-fit rounded-lg px-2.5"
-            onClick={() => {
-              const selectedPartners = table
-                .getSelectedRowModel()
-                .rows.map((row) => row.original);
+          {status === ProgramApplicationStatus.pending && (
+            <Button
+              variant="secondary"
+              text="Reject"
+              className="h-7 w-fit rounded-lg px-2.5"
+              onClick={() => {
+                const selectedPartners = table
+                  .getSelectedRowModel()
+                  .rows.map((row) => row.original);
 
-              setPendingRejectPartners(selectedPartners);
-              setShowBulkRejectPartnersModal(true);
-            }}
-          />
+                setPendingRejectPartners(selectedPartners);
+                setShowBulkRejectProgramApplicationsModal(true);
+              }}
+            />
+          )}
         </>
       ),
     }),
@@ -407,7 +399,7 @@ export function ApplicationsTable({
   return (
     <>
       {detailsSheetState.partnerId && currentPartner && (
-        <ProgramApplicationSheet
+        <ProgramApplicationReviewSheet
           isOpen={detailsSheetState.open}
           setIsOpen={(open) =>
             setDetailsSheetState((s) => ({ ...s, open }) as any)
@@ -431,8 +423,8 @@ export function ApplicationsTable({
           }
         />
       )}
-      <BulkApprovePartnersModal />
-      <BulkRejectPartnersModal />
+      {BulkApproveProgramApplicationsModal}
+      <BulkRejectProgramApplicationsModal />
 
       {partners?.length !== 0 ? (
         <Table {...tableProps} table={table} />
@@ -456,19 +448,14 @@ export function ApplicationsTable({
 function PendingRowMenuButton({ row }: { row: Row<ApplicationRow> }) {
   const [isOpen, setIsOpen] = useState(false);
 
+  const partners = useMemo(() => [row.original], [row.original]);
+
   const {
-    ApproveProgramApplicationModal,
-    setShowApproveProgramApplicationModal,
-  } = useApproveProgramApplicationModal({
-    partner: row.original,
+    BulkApproveProgramApplicationsModal,
+    setShowBulkApproveProgramApplicationsModal,
+  } = useBulkApproveProgramApplicationsModal({
+    partners,
     groupId: row.original.groupId,
-    onConfirm: async () => {
-      await mutatePrefix([
-        "/api/partners",
-        "/api/partners/count",
-        "/api/program-applications",
-      ]);
-    },
   });
 
   const {
@@ -487,7 +474,7 @@ function PendingRowMenuButton({ row }: { row: Row<ApplicationRow> }) {
 
   return (
     <>
-      {ApproveProgramApplicationModal}
+      {BulkApproveProgramApplicationsModal}
       {RejectProgramApplicationModal}
       <Popover
         openPopover={isOpen}
@@ -500,7 +487,7 @@ function PendingRowMenuButton({ row }: { row: Row<ApplicationRow> }) {
                 icon={UserCheck}
                 onSelect={() => {
                   setIsOpen(false);
-                  setShowApproveProgramApplicationModal(true);
+                  setShowBulkApproveProgramApplicationsModal(true);
                 }}
               >
                 Approve application
@@ -532,48 +519,22 @@ function PendingRowMenuButton({ row }: { row: Row<ApplicationRow> }) {
   );
 }
 
-function RejectedRowMenuButton({
-  row,
-  workspaceId,
-}: {
-  row: Row<ApplicationRow>;
-  workspaceId: string;
-}) {
+function RejectedRowMenuButton({ row }: { row: Row<ApplicationRow> }) {
   const [isOpen, setIsOpen] = useState(false);
 
-  const { executeAsync: approvePartner, isPending: isApprovingPartner } =
-    useAction(approveProgramApplicationAction, {
-      onError: ({ error }) => {
-        toast.error(error.serverError);
-      },
-      onSuccess: () => {
-        toast.success("Partner application approved");
-        mutatePrefix([
-          "/api/partners",
-          "/api/partners/count",
-          "/api/program-applications",
-        ]);
-      },
-    });
+  const partners = useMemo(() => [row.original], [row.original]);
 
   const {
-    setShowConfirmModal: setShowApproveModal,
-    confirmModal: approveModal,
-  } = useConfirmModal({
-    title: "Approve Application",
-    description: "Are you sure you want to approve this application?",
-    confirmText: "Approve",
-    onConfirm: async () => {
-      await approvePartner({
-        workspaceId: workspaceId!,
-        partnerId: row.original.id,
-      });
-    },
+    BulkApproveProgramApplicationsModal,
+    setShowBulkApproveProgramApplicationsModal,
+  } = useBulkApproveProgramApplicationsModal({
+    partners,
+    groupId: row.original.groupId,
   });
 
   return (
     <>
-      {approveModal}
+      {BulkApproveProgramApplicationsModal}
       <Popover
         openPopover={isOpen}
         setOpenPopover={setIsOpen}
@@ -585,7 +546,7 @@ function RejectedRowMenuButton({
                 icon={Check}
                 onSelect={() => {
                   setIsOpen(false);
-                  setShowApproveModal(true);
+                  setShowBulkApproveProgramApplicationsModal(true);
                 }}
               >
                 Approve partner
@@ -599,13 +560,7 @@ function RejectedRowMenuButton({
           type="button"
           className="size-8 shrink-0 whitespace-nowrap rounded-lg p-0"
           variant="outline"
-          icon={
-            isApprovingPartner ? (
-              <LoadingSpinner className="size-4 shrink-0" />
-            ) : (
-              <Dots className="size-4 shrink-0" />
-            )
-          }
+          icon={<Dots className="size-4 shrink-0" />}
         />
       </Popover>
     </>
