@@ -435,10 +435,15 @@ function PayoutFixPreview({ fixes }: { fixes: PayoutFix[] }) {
               <PreviewChip changed={typeof fix.amount === "number"}>
                 {amountLabel}
               </PreviewChip>{" "}
-              per {event}{" "}
-              <PreviewChip changed={fix.maxDuration !== undefined}>
-                {durationLabel}
-              </PreviewChip>
+              per {event}
+              {event === "sale" && (
+                <>
+                  {" "}
+                  <PreviewChip changed={fix.maxDuration !== undefined}>
+                    {durationLabel}
+                  </PreviewChip>
+                </>
+              )}
             </p>
           );
         })}

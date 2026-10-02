@@ -10,6 +10,7 @@ import {
   CONDITION_OPERATORS,
   DATE_CONDITION_OPERATORS,
   ENUM_CONDITION_OPERATORS,
+  isOneOffRewardEvent,
   METADATA_CONDITION_OPERATORS,
   METADATA_NUMBER_CONDITION_OPERATORS,
   NUMBER_CONDITION_OPERATORS,
@@ -180,10 +181,12 @@ export function filterValidatedTooltipSuggestions({
 }
 
 export function filterPayoutFixes({
+  event,
   basePayout,
   modifiers,
   fixes,
 }: {
+  event?: EventType;
   basePayout: RewardPayout;
   modifiers: ReviewRewardTooltipModifier[];
   fixes: PayoutFix[];
@@ -213,12 +216,14 @@ export function filterPayoutFixes({
     const maxAmount = current.type === "percentage" ? 100 : 999_999.99;
     if (typeof fix.amount === "number" && fix.amount > maxAmount) continue;
 
+    const fixDuration =
+      event && isOneOffRewardEvent(event) ? undefined : fix.maxDuration;
     const nextDuration =
-      fix.maxDuration === undefined ? current.maxDuration : fix.maxDuration;
+      fixDuration === undefined ? current.maxDuration : fixDuration;
     const amountChanges =
       typeof fix.amount === "number" && fix.amount !== current.amount;
     const durationChanges =
-      fix.maxDuration !== undefined && nextDuration !== current.maxDuration;
+      fixDuration !== undefined && nextDuration !== current.maxDuration;
 
     if (!amountChanges && !durationChanges) continue;
 

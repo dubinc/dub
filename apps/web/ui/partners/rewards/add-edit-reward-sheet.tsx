@@ -419,7 +419,7 @@ function RewardSheetContent({
             );
           }
 
-          if (fix.maxDuration !== undefined) {
+          if (selectedEvent === "sale" && fix.maxDuration !== undefined) {
             setValue(
               "maxDuration",
               fix.maxDuration === null ? Infinity : fix.maxDuration,
@@ -446,7 +446,7 @@ function RewardSheetContent({
           );
         }
 
-        if (fix.maxDuration !== undefined) {
+        if (selectedEvent === "sale" && fix.maxDuration !== undefined) {
           setValue(
             `${modifierKey}.maxDuration`,
             fix.maxDuration === null ? Infinity : fix.maxDuration,

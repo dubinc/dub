@@ -189,6 +189,17 @@ describe("filterPayoutFixes", () => {
     ).toHaveLength(1);
   });
 
+  test("drops a duration-only fix for a click reward", () => {
+    expect(
+      filterPayoutFixes({
+        event: "click",
+        basePayout: flatBase,
+        modifiers: [],
+        fixes: [{ ...fix, amount: undefined, maxDuration: 3 }],
+      }),
+    ).toEqual([]);
+  });
+
   test.each<[string, PayoutFix]>([
     ["a no-op", { ...fix, amount: 10 }],
     ["a flat amount over the save limit", { ...fix, amount: 1_000_000 }],

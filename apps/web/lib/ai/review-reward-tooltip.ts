@@ -13,6 +13,7 @@ import { assertRateLimit } from "@/lib/upstash/assert-rate-limit";
 import { RATELIMIT_POLICIES } from "@/lib/upstash/ratelimit-policies";
 import {
   CONDITION_OPERATOR_LABELS,
+  isOneOffRewardEvent,
   REWARD_CONDITIONS,
 } from "@/lib/zod/schemas/rewards";
 import { anthropic } from "@ai-sdk/anthropic";
@@ -35,6 +36,9 @@ export async function screenRewardTooltipContradiction(
 ): Promise<{ flagged: boolean | null }> {
   try {
     const authorized = await authorizeRewardTooltipReview(input);
+    if (authorized === "ai_usage_exceeded") {
+      return { flagged: null };
+    }
     if (!authorized) {
       return { flagged: false };
     }
@@ -117,7 +121,7 @@ export async function reviewRewardTooltipConsistency(input: unknown): Promise<{
 
   try {
     const authorized = await authorizeRewardTooltipReview(input);
-    if (!authorized) {
+    if (!authorized || authorized === "ai_usage_exceeded") {
       return empty;
     }
 
@@ -162,6 +166,7 @@ Use modifierIndex and conditionIndex from conditionGroups when a condition shoul
       suggestions: parsedOutput.data.suggestions,
     });
     const payoutFixes = filterPayoutFixes({
+      event,
       basePayout,
       modifiers,
       fixes: parsedOutput.data.payoutFixes,
@@ -213,7 +218,7 @@ async function authorizeRewardTooltipReview(input: unknown) {
   });
 
   if (workspace.aiUsage >= workspace.aiLimit) {
-    return null;
+    return "ai_usage_exceeded";
   }
 
   return {
@@ -224,11 +229,13 @@ async function authorizeRewardTooltipReview(input: unknown) {
 }
 
 function buildSystemPrompt(event: string) {
+  const oneOff = event === "click" || event === "lead";
+
   return `You review whether partner-facing reward copy contradicts the structured reward.
 
 Event type: ${event}
 
-The reward has partner copy (shown-as text and tooltip), a default payout, and condition groups. Each group pays its own amount and duration when its conditions match. The default payout applies when no group matches. Amounts are dollars for flat payouts and percents for percentage payouts. Duration is "one time", "for N months", or "for the customer's lifetime".
+The reward has partner copy (shown-as text and tooltip), a default payout, and condition groups. Each group pays its own amount${oneOff ? "" : " and duration"} when its conditions match. The default payout applies when no group matches. Amounts are dollars for flat payouts and percents for percentage payouts. ${oneOff ? "Click and lead rewards have no duration. Do not return maxDuration. Ignore duration phrases in the copy." : `Duration is "one time", "for N months", or "for the customer's lifetime".`}
 
 Rules:
 - Compare meaning, not wording.
@@ -236,10 +243,9 @@ Rules:
 - Do not flag extra conditions the copy never mentioned.
 - Do not invent new condition rows. Do not change entity or attribute.
 - A suggestion may change operator and/or value only.
-- When the copy states an amount or duration that a payout does not match, return a payoutFix for each payout that disagrees. Set amount and/or maxDuration to what the copy says. Omit a field that already matches.
+- When the copy states an amount${oneOff ? "" : " or duration"} that a payout does not match, return a payoutFix for each payout that disagrees. Set amount${oneOff ? "" : " and/or maxDuration"} to what the copy says. Omit a field that already matches.
 - "no money", "$0", "free", or "earn nothing" means amount 0.
-- "no month", "one time", or "not monthly" means maxDuration 0.
-- "every month" or "monthly" means maxDuration 1. "every N months" means maxDuration N. "lifetime" means maxDuration null.
+${oneOff ? "" : `- "no month", "one time", or "not monthly" means maxDuration 0.\n- "every month" or "monthly" means maxDuration 1. "every N months" means maxDuration N. "lifetime" means maxDuration null.`}
 - If you return a condition suggestion or a payoutFix, set note to null.
 - Use note only when the copy disagrees and you cannot name the replacement amount, duration, operator, or threshold.
 - If you are not sure, return suggestions: [], payoutFixes: [], and note: null. Never guess.
@@ -257,9 +263,13 @@ Condition contradictions:
 - Copy says "more than $20" / "over $20" but the condition is "is greater than or equal to" $20.
 
 Payout fixes, not a note:
-- Copy says "earn no money" and "no month", but the default payout is $10 one time and a condition group pays $30 one time. Return two payoutFixes with amount 0. Omit maxDuration because it is already one time.
+${
+  oneOff
+    ? `- Copy says "earn $300" but the payout is a flat $10. Return amount 300.`
+    : `- Copy says "earn no money" and "no month", but the default payout is $10 one time and a condition group pays $30 one time. Return two payoutFixes with amount 0. Omit maxDuration because it is already one time.
 - Copy says "every 3 months" but the payout duration is "one time". Return maxDuration 3 and omit amount if it already matches.
-- Copy says "earn $300" but the payout is a flat $10. Return amount 300 and omit maxDuration if it already matches.
+- Copy says "earn $300" but the payout is a flat $10. Return amount 300 and omit maxDuration if it already matches.`
+}
 
 Not contradictions:
 - Copy is shorter than the config or omits extra filters (country, product, metadata).
@@ -288,7 +298,7 @@ function describeReward({
       tooltip,
     },
     defaultPayout: {
-      pays: formatPayout(basePayout),
+      pays: formatPayout(basePayout, event),
       appliesWhen: "no condition group matches",
     },
     conditionGroups: modifiers.map((modifier, modifierIndex) => ({
@@ -301,16 +311,19 @@ function describeReward({
         conditionIndex,
         rule: formatCondition(event, condition),
       })),
-      thenPays: formatPayout(modifier.payout),
+      thenPays: formatPayout(modifier.payout, event),
     })),
   };
 }
 
-function formatPayout(payout: RewardPayout) {
+function formatPayout(payout: RewardPayout, event: EventType) {
   const amount =
     payout.type === "percentage"
       ? `${payout.amount ?? 0}% of the sale`
       : `$${payout.amount ?? 0} flat`;
+
+  if (isOneOffRewardEvent(event)) return amount;
+
   const duration =
     payout.maxDuration == null
       ? "for the customer's lifetime"
