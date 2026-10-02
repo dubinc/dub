@@ -1,17 +1,14 @@
 "use client";
 
-import { approveProgramApplicationAction } from "@/lib/actions/partners/approve-program-application";
 import { useProgramApplications } from "@/lib/program-applications/hooks/use-program-applications";
 import { useProgramApplicationsCount } from "@/lib/program-applications/hooks/use-program-applications-count";
 import { buildSocialPlatformLookup } from "@/lib/social-utils";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useGroups from "@/lib/swr/use-groups";
 import usePartner from "@/lib/swr/use-partner";
-import useWorkspace from "@/lib/swr/use-workspace";
 import { ProgramApplicationProps } from "@/lib/types";
 import { useBulkApproveProgramApplicationsModal } from "@/ui/modals/bulk-approve-program-applications-modal";
 import { useBulkRejectProgramApplicationsModal } from "@/ui/modals/bulk-reject-program-applications-modal";
-import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import { useRejectProgramApplicationModal } from "@/ui/modals/reject-program-application-modal";
 import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
@@ -30,21 +27,12 @@ import {
   useRouterStuff,
   useTable,
 } from "@dub/ui";
-import {
-  Check,
-  Dots,
-  LoadingSpinner,
-  UserCheck,
-  Users,
-  UserXmark,
-} from "@dub/ui/icons";
+import { Check, Dots, UserCheck, Users, UserXmark } from "@dub/ui/icons";
 import { COUNTRIES, formatDate } from "@dub/utils";
 import { ProgramApplicationStatus } from "@prisma/client";
 import { Row } from "@tanstack/react-table";
 import { Command } from "cmdk";
-import { useAction } from "next-safe-action/hooks";
 import { useEffect, useMemo, useState } from "react";
-import { toast } from "sonner";
 
 type ApplicationPlatform = NonNullable<
   ProgramApplicationProps["partner"]["platforms"]
@@ -94,7 +82,6 @@ export function ApplicationsTable({
 }: {
   status: ProgramApplicationStatus;
 }) {
-  const { id: workspaceId } = useWorkspace();
   const { queryParams, searchParams, searchParamsObj } = useRouterStuff();
 
   const sortBy = searchParams.get("sortBy") || "createdAt";
@@ -316,11 +303,11 @@ export function ApplicationsTable({
           status === ProgramApplicationStatus.pending ? (
             <PendingRowMenuButton row={row} />
           ) : status === ProgramApplicationStatus.rejected ? (
-            <RejectedRowMenuButton row={row} workspaceId={workspaceId!} />
+            <RejectedRowMenuButton row={row} />
           ) : null,
       },
     ],
-    [workspaceId, groups, status],
+    [groups, status],
   );
 
   const { table, ...tableProps } = useTable<ApplicationRow>({
@@ -350,7 +337,7 @@ export function ApplicationsTable({
         del: "page",
       }),
 
-    ...(status === ProgramApplicationStatus.pending && {
+    ...(status !== ProgramApplicationStatus.approved && {
       getRowId: (row: ApplicationRow) => row.id,
       selectionControls: (table) => (
         <>
@@ -367,19 +354,21 @@ export function ApplicationsTable({
               setShowBulkApproveProgramApplicationsModal(true);
             }}
           />
-          <Button
-            variant="secondary"
-            text="Reject"
-            className="h-7 w-fit rounded-lg px-2.5"
-            onClick={() => {
-              const selectedPartners = table
-                .getSelectedRowModel()
-                .rows.map((row) => row.original);
+          {status === ProgramApplicationStatus.pending && (
+            <Button
+              variant="secondary"
+              text="Reject"
+              className="h-7 w-fit rounded-lg px-2.5"
+              onClick={() => {
+                const selectedPartners = table
+                  .getSelectedRowModel()
+                  .rows.map((row) => row.original);
 
-              setPendingRejectPartners(selectedPartners);
-              setShowBulkRejectProgramApplicationsModal(true);
-            }}
-          />
+                setPendingRejectPartners(selectedPartners);
+                setShowBulkRejectProgramApplicationsModal(true);
+              }}
+            />
+          )}
         </>
       ),
     }),
@@ -530,48 +519,22 @@ function PendingRowMenuButton({ row }: { row: Row<ApplicationRow> }) {
   );
 }
 
-function RejectedRowMenuButton({
-  row,
-  workspaceId,
-}: {
-  row: Row<ApplicationRow>;
-  workspaceId: string;
-}) {
+function RejectedRowMenuButton({ row }: { row: Row<ApplicationRow> }) {
   const [isOpen, setIsOpen] = useState(false);
 
-  const { executeAsync: approvePartner, isPending: isApprovingPartner } =
-    useAction(approveProgramApplicationAction, {
-      onError: ({ error }) => {
-        toast.error(error.serverError);
-      },
-      onSuccess: () => {
-        toast.success("Program application approved");
-        mutatePrefix([
-          "/api/partners",
-          "/api/partners/count",
-          "/api/program-applications",
-        ]);
-      },
-    });
+  const partners = useMemo(() => [row.original], [row.original]);
 
   const {
-    setShowConfirmModal: setShowApproveModal,
-    confirmModal: approveModal,
-  } = useConfirmModal({
-    title: "Approve Application",
-    description: "Are you sure you want to approve this application?",
-    confirmText: "Approve",
-    onConfirm: async () => {
-      await approvePartner({
-        workspaceId: workspaceId!,
-        partnerId: row.original.id,
-      });
-    },
+    BulkApproveProgramApplicationsModal,
+    setShowBulkApproveProgramApplicationsModal,
+  } = useBulkApproveProgramApplicationsModal({
+    partners,
+    groupId: row.original.groupId,
   });
 
   return (
     <>
-      {approveModal}
+      {BulkApproveProgramApplicationsModal}
       <Popover
         openPopover={isOpen}
         setOpenPopover={setIsOpen}
@@ -583,7 +546,7 @@ function RejectedRowMenuButton({
                 icon={Check}
                 onSelect={() => {
                   setIsOpen(false);
-                  setShowApproveModal(true);
+                  setShowBulkApproveProgramApplicationsModal(true);
                 }}
               >
                 Approve partner
@@ -597,13 +560,7 @@ function RejectedRowMenuButton({
           type="button"
           className="size-8 shrink-0 whitespace-nowrap rounded-lg p-0"
           variant="outline"
-          icon={
-            isApprovingPartner ? (
-              <LoadingSpinner className="size-4 shrink-0" />
-            ) : (
-              <Dots className="size-4 shrink-0" />
-            )
-          }
+          icon={<Dots className="size-4 shrink-0" />}
         />
       </Popover>
     </>
