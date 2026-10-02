@@ -61,14 +61,18 @@ export const deleteRewardAction = authActionClient
         },
       });
 
-      await tx.linkReward.updateMany({
-        where: {
-          [rewardIdColumn]: reward.id,
-        },
-        data: {
-          [rewardIdColumn]: null,
-        },
-      });
+      // Referral and custom rewards live on the group and enrollment, not on LinkReward.
+      const linkLevelRewardEvents = new Set(["click", "lead", "sale"]);
+      if (linkLevelRewardEvents.has(reward.event)) {
+        await tx.linkReward.updateMany({
+          where: {
+            [rewardIdColumn]: reward.id,
+          },
+          data: {
+            [rewardIdColumn]: null,
+          },
+        });
+      }
 
       // soft delete reward, we will hard delete it in the cron job
       await tx.reward.update({
