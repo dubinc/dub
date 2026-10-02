@@ -61,6 +61,7 @@ export function PayoutMethodDropdown() {
 
   const handleAction = useCallback(
     (type: PartnerPayoutMethod, isManage: boolean) => {
+      setOpenPopover(false);
       connect(type, { isManage });
     },
     [connect],
