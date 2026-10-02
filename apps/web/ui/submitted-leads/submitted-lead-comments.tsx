@@ -216,6 +216,9 @@ export function CommentCard({
   const [isEditing, setIsEditing] = useState(false);
   const [openPopover, setOpenPopover] = useState(false);
 
+  // Keeps the edited text so the editor can open again with it if the update fails
+  const [editDraft, setEditDraft] = useState<string | null>(null);
+
   const { executeAsync: updateComment, isExecuting: isUpdating } = useAction(
     updateSubmittedLeadCommentAction,
   );
@@ -315,6 +318,7 @@ export function CommentCard({
                   disabled={comment.delivered === false}
                   onClick={() => {
                     setOpenPopover(false);
+                    setEditDraft(null);
                     setIsEditing(true);
                   }}
                   icon={<PenWriting className="size-4" />}
@@ -375,11 +379,12 @@ export function CommentCard({
             <div className="p-0.5">
               {isEditing ? (
                 <MessageInput
-                  defaultValue={comment.text}
+                  defaultValue={editDraft ?? comment.text}
                   onCancel={() => setIsEditing(false)}
                   onSendMessage={(text) => {
                     if (!user) return false;
 
+                    setEditDraft(text);
                     setIsEditing(false);
 
                     mutate?.(
@@ -413,6 +418,7 @@ export function CommentCard({
                     ).catch((e) => {
                       console.log("Failed to update comment", e);
                       toast.error("Failed to update comment");
+                      setIsEditing(true);
                     });
                   }}
                   autoFocus
