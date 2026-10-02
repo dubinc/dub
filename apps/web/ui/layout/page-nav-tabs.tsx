@@ -17,6 +17,7 @@ export type PageNavTabsTab = {
   label: string;
   icon: Icon;
   badge?: string | number;
+  // Set when the tab is not at `${basePath}/${id}`
   href?: string;
 };
 

@@ -233,7 +233,7 @@ function PlanChangeConfirmationModal({
         <Button
           variant="primary"
           className="h-8 w-fit px-3"
-          text="Continue"
+          text="Confirm change"
           loading={isSubmitting}
           disabled={isSubmitting}
           onClick={async () => {

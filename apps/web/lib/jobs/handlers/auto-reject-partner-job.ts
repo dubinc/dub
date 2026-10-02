@@ -4,7 +4,7 @@ import { trackApplicationEvents } from "@/lib/application-events/update-applicat
 import { evaluateApplicationRequirements } from "@/lib/partners/evaluate-application-requirements";
 import { prisma } from "@/lib/prisma";
 import { sendEmail } from "@dub/email";
-import PartnerApplicationRejected from "@dub/email/templates/partner-application-rejected";
+import ProgramApplicationRejected from "@dub/email/templates/program-application-rejected";
 import {
   ProgramApplicationRejectionReason,
   ProgramApplicationStatus,
@@ -156,7 +156,7 @@ export const autoRejectPartnerJob = defineJob({
           subject: `Your application to ${program.name} was not approved`,
           variant: "notifications",
           replyTo: program.supportEmail || "noreply",
-          react: PartnerApplicationRejected({
+          react: ProgramApplicationRejected({
             partner: {
               name: partner.name ?? "there",
               email: partner.email,

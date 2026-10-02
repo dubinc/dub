@@ -26,7 +26,7 @@ export type SaleEventWebhookPayload = z.infer<typeof saleWebhookEventSchema>;
 
 export type PartnerEventWebhookPayload = z.infer<typeof EnrolledPartnerSchema>;
 
-export type PartnerApplicationWebhookPayload = z.infer<
+export type ProgramApplicationWebhookPayload = z.infer<
   typeof partnerApplicationWebhookSchema
 >;
 
@@ -54,7 +54,7 @@ export type WebhookEventPayload =
   | LeadEventWebhookPayload
   | SaleEventWebhookPayload
   | PartnerEventWebhookPayload
-  | PartnerApplicationWebhookPayload
+  | ProgramApplicationWebhookPayload
   | PartnerMergedWebhookPayload
   | CommissionEventWebhookPayload
   | BountyEventWebhookPayload

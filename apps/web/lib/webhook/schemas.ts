@@ -154,8 +154,8 @@ export const webhookEventSchema = z
       .meta({
         description:
           "Triggered when a partner submits an application to join a program.",
-        id: "PartnerApplicationSubmittedEvent",
-        outputId: "PartnerApplicationSubmittedEvent",
+        id: "ProgramApplicationSubmittedEvent",
+        outputId: "ProgramApplicationSubmittedEvent",
       }),
 
     z
