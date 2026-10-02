@@ -36,7 +36,7 @@ const displayStatusMap = {
 
 interface SubmissionForRewards {
   socialMetricCount: number | null;
-  commission: { earnings: number } | null;
+  commissions: { earnings: number }[];
   status: BountySubmissionProps["status"];
 }
 
@@ -48,11 +48,7 @@ function getDisplayStatus(
     return "inProgress";
   }
 
-  if (
-    submission.status === "approved" &&
-    submission.commission != null &&
-    submission.commission.earnings != null
-  ) {
+  if (submission.status === "approved" && submission.commissions.length > 0) {
     return "approved";
   }
 

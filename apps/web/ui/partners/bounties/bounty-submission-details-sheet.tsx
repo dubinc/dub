@@ -308,10 +308,8 @@ export function SubmissionRewardTable({
 }: {
   submission: PartnerBountySubmission;
 }) {
-  const rewards = submission.commission ? [submission.commission] : [];
-
   const { table, ...tableProps } = useTable({
-    data: rewards,
+    data: submission.commissions,
     columns: [
       {
         id: "amount",
@@ -356,7 +354,7 @@ export function SubmissionRewardTable({
     tdClassName: "border-l-transparent",
   });
 
-  if (rewards.length === 0) {
+  if (submission.commissions.length === 0) {
     return null;
   }
 

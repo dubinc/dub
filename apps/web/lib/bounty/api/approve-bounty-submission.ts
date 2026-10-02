@@ -11,7 +11,7 @@ import {
 } from "@/lib/zod/schemas/bounties";
 import { sendEmail } from "@dub/email";
 import BountyApproved from "@dub/email/templates/bounty-approved";
-import { CommissionSource } from "@prisma/client";
+import { BountySubmissionStatus, CommissionSource } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
 
@@ -107,35 +107,53 @@ export async function approveBountySubmission({
     });
   }
 
-  const approvedSubmission = await prisma.bountySubmission.update({
-    where: {
-      id: submissionId,
-    },
-    data: {
-      status: "approved",
-      reviewedAt: new Date(),
-      userId: user.id,
-      rejectionNote: null,
-      rejectionReason: null,
-    },
-    include: {
-      partner: {
-        select: {
-          id: true,
-          email: true,
+  const approvedSubmission = await prisma.bountySubmission
+    .update({
+      where: {
+        id: submissionId,
+        status: {
+          notIn: [
+            BountySubmissionStatus.approved,
+            BountySubmissionStatus.draft,
+          ],
         },
       },
-      program: {
-        select: {
-          workspaceId: true,
-          id: true,
-          name: true,
-          slug: true,
-          supportEmail: true,
+      data: {
+        status: "approved",
+        reviewedAt: new Date(),
+        userId: user.id,
+        rejectionNote: null,
+        rejectionReason: null,
+      },
+      include: {
+        partner: {
+          select: {
+            id: true,
+            email: true,
+          },
+        },
+        program: {
+          select: {
+            workspaceId: true,
+            id: true,
+            name: true,
+            slug: true,
+            supportEmail: true,
+          },
         },
       },
-    },
-  });
+    })
+    .catch((error) => {
+      if (error.code === "P2025") {
+        throw new DubApiError({
+          code: "bad_request",
+          message:
+            "This bounty submission is no longer awaiting review and cannot be approved.",
+        });
+      }
+
+      throw error;
+    });
 
   await queuePartnerCommissionCreation({
     event: "custom",
