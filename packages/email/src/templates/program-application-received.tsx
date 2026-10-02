@@ -14,7 +14,7 @@ import {
 } from "@react-email/components";
 import { Footer } from "../components/footer";
 
-export default function PartnerApplicationReceived({
+export default function ProgramApplicationReceived({
   email = "panic@thedis.co",
   partner = {
     id: "pn_1JPBEGP7EXF76CXT1W99VERW5",

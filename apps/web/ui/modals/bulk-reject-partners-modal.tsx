@@ -1,4 +1,4 @@
-import { bulkRejectPartnerApplicationsAction } from "@/lib/actions/partners/bulk-reject-partner-applications";
+import { bulkRejectProgramApplicationsAction } from "@/lib/actions/partners/bulk-reject-program-applications";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { PartnerProps } from "@/lib/types";
@@ -28,7 +28,7 @@ function BulkRejectPartnersModal({
   const { id: workspaceId } = useWorkspace();
 
   const { executeAsync, isPending } = useAction(
-    bulkRejectPartnerApplicationsAction,
+    bulkRejectProgramApplicationsAction,
     {
       onSuccess: async () => {
         setShowBulkRejectPartnersModal(false);

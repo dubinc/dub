@@ -5,8 +5,8 @@ import {
   EnrolledPartnerProps,
   ProgramApplicationProps,
 } from "@/lib/types";
-import { useApprovePartnerApplicationModal } from "@/ui/modals/approve-partner-application-modal";
-import { useRejectPartnerApplicationModal } from "@/ui/modals/reject-partner-application-modal";
+import { useApproveProgramApplicationModal } from "@/ui/modals/approve-program-application-modal";
+import { useRejectProgramApplicationModal } from "@/ui/modals/reject-program-application-modal";
 import { useTrialLimitActivateModal } from "@/ui/modals/trial-limit-activate-modal";
 import { X } from "@/ui/shared/icons";
 import {
@@ -23,7 +23,7 @@ import { isWorkspaceBillingTrialActive } from "@dub/utils";
 import Link from "next/link";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { PartnerAbout } from "./partner-about";
-import { PartnerApplicationDetails } from "./partner-application-details";
+import { ProgramApplicationDetails } from "./program-application-details";
 import { PartnerComments } from "./partner-comments";
 import { PartnerInfoCards } from "./partner-info-cards";
 import { PartnerSheetTabs } from "./partner-sheet-tabs";
@@ -33,19 +33,19 @@ type ListedApplicationPartner = ProgramApplicationProps["partner"] & {
   applicationId: string;
 };
 
-type PartnerApplicationSheetProps = {
+type ProgramApplicationSheetProps = {
   partner: EnrolledPartnerProps | ListedApplicationPartner;
   onNext?: () => void;
   onPrevious?: () => void;
   setIsOpen: Dispatch<SetStateAction<boolean>>;
 };
 
-function PartnerApplicationSheetContent({
+function ProgramApplicationSheetContent({
   partner: sheetPartner,
   onPrevious,
   onNext,
   setIsOpen,
-}: PartnerApplicationSheetProps) {
+}: ProgramApplicationSheetProps) {
   const partner = sheetPartner as EnrolledPartnerExtendedProps;
   const { slug: workspaceSlug } = useWorkspace();
   const [currentTabId, setCurrentTabId] = useState<string>("about");
@@ -148,10 +148,10 @@ function PartnerApplicationSheetContent({
             />
             <div className="border-border-subtle -mx-px -mb-px rounded-xl border bg-white p-4">
               {currentTabId === "about" && (
-                <PartnerApplicationAbout partner={partner} />
+                <ProgramApplicationAbout partner={partner} />
               )}
               {currentTabId === "comments" && (
-                <PartnerApplicationComments partnerId={partner.id} />
+                <ProgramApplicationComments partnerId={partner.id} />
               )}
             </div>
           </div>
@@ -175,14 +175,14 @@ function PartnerApplicationSheetContent({
   );
 }
 
-function PartnerApplicationAbout({
+function ProgramApplicationAbout({
   partner,
 }: {
   partner: EnrolledPartnerProps;
 }) {
   return (
     <div className="grid grid-cols-1 gap-5 text-sm text-neutral-600">
-      <PartnerApplicationDetails
+      <ProgramApplicationDetails
         partnerId={partner.id}
         preferredApplicationId={partner.applicationId ?? null}
       />
@@ -192,7 +192,7 @@ function PartnerApplicationAbout({
   );
 }
 
-function PartnerApplicationComments({ partnerId }: { partnerId: string }) {
+function ProgramApplicationComments({ partnerId }: { partnerId: string }) {
   return (
     <div>
       <h3 className="text-content-emphasis text-lg font-semibold">Comments</h3>
@@ -201,11 +201,11 @@ function PartnerApplicationComments({ partnerId }: { partnerId: string }) {
   );
 }
 
-export function PartnerApplicationSheet({
+export function ProgramApplicationSheet({
   isOpen,
   nested,
   ...rest
-}: PartnerApplicationSheetProps & {
+}: ProgramApplicationSheetProps & {
   isOpen: boolean;
   nested?: boolean;
 }) {
@@ -221,7 +221,7 @@ export function PartnerApplicationSheet({
         className: "md:w-[max(min(calc(100vw-334px),1170px),540px)]",
       }}
     >
-      <PartnerApplicationSheetContent {...rest} />
+      <ProgramApplicationSheetContent {...rest} />
     </Sheet>
   );
 }
@@ -243,9 +243,9 @@ function PartnerApproval({
   const trialActive = isWorkspaceBillingTrialActive(trialEndsAt);
 
   const {
-    ApprovePartnerApplicationModal,
-    setShowApprovePartnerApplicationModal,
-  } = useApprovePartnerApplicationModal({
+    ApproveProgramApplicationModal,
+    setShowApproveProgramApplicationModal,
+  } = useApproveProgramApplicationModal({
     partner,
     groupId,
     onConfirm: async () => {
@@ -255,7 +255,7 @@ function PartnerApproval({
     confirmShortcutOptions: { sheet: true, modal: true },
   });
 
-  useKeyboardShortcut("a", () => setShowApprovePartnerApplicationModal(true), {
+  useKeyboardShortcut("a", () => setShowApproveProgramApplicationModal(true), {
     sheet: true,
     enabled: !exceededPartners,
   });
@@ -263,7 +263,7 @@ function PartnerApproval({
   return (
     <>
       <TrialLimitActivateModal />
-      {ApprovePartnerApplicationModal}
+      {ApproveProgramApplicationModal}
       <div className="flex justify-end gap-2">
         {partner.status !== "rejected" && (
           <div className="flex-shrink-0">
@@ -279,7 +279,7 @@ function PartnerApproval({
           variant="primary"
           text="Approve"
           shortcut="A"
-          onClick={() => setShowApprovePartnerApplicationModal(true)}
+          onClick={() => setShowApproveProgramApplicationModal(true)}
           className="w-fit shrink-0"
           disabledTooltip={
             exceededPartners ? (
@@ -308,9 +308,9 @@ function PartnerRejectButton({
   onNext?: () => void;
 }) {
   const {
-    RejectPartnerApplicationModal,
-    setShowRejectPartnerApplicationModal,
-  } = useRejectPartnerApplicationModal({
+    RejectProgramApplicationModal,
+    setShowRejectProgramApplicationModal,
+  } = useRejectProgramApplicationModal({
     partner,
     onConfirm: async () => {
       onNext ? onNext() : setIsOpen(false);
@@ -319,20 +319,20 @@ function PartnerRejectButton({
     confirmShortcutOptions: { sheet: true, modal: true },
   });
 
-  useKeyboardShortcut("r", () => setShowRejectPartnerApplicationModal(true), {
+  useKeyboardShortcut("r", () => setShowRejectProgramApplicationModal(true), {
     sheet: true,
   });
 
   return (
     <>
-      {RejectPartnerApplicationModal}
+      {RejectProgramApplicationModal}
       <Button
         type="button"
         variant="secondary"
         text="Reject"
         shortcut="R"
         onClick={() => {
-          setShowRejectPartnerApplicationModal(true);
+          setShowRejectProgramApplicationModal(true);
         }}
         className="px-4"
       />

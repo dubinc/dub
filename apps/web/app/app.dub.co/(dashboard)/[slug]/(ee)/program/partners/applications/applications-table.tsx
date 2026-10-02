@@ -1,6 +1,6 @@
 "use client";
 
-import { approvePartnerApplicationAction } from "@/lib/actions/partners/approve-partner-application";
+import { approveProgramApplicationAction } from "@/lib/actions/partners/approve-program-application";
 import { useProgramApplications } from "@/lib/program-applications/hooks/use-program-applications";
 import { useProgramApplicationsCount } from "@/lib/program-applications/hooks/use-program-applications-count";
 import { buildSocialPlatformLookup } from "@/lib/social-utils";
@@ -9,13 +9,13 @@ import useGroups from "@/lib/swr/use-groups";
 import usePartner from "@/lib/swr/use-partner";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { ProgramApplicationProps } from "@/lib/types";
-import { useApprovePartnerApplicationModal } from "@/ui/modals/approve-partner-application-modal";
+import { useApproveProgramApplicationModal } from "@/ui/modals/approve-program-application-modal";
 import { useBulkApprovePartnersModal } from "@/ui/modals/bulk-approve-partners-modal";
 import { useBulkRejectPartnersModal } from "@/ui/modals/bulk-reject-partners-modal";
 import { useConfirmModal } from "@/ui/modals/confirm-modal";
-import { useRejectPartnerApplicationModal } from "@/ui/modals/reject-partner-application-modal";
+import { useRejectProgramApplicationModal } from "@/ui/modals/reject-program-application-modal";
 import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
-import { PartnerApplicationSheet } from "@/ui/partners/partner-application-sheet";
+import { ProgramApplicationSheet } from "@/ui/partners/partner-application-sheet";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { PartnerSocialColumn } from "@/ui/partners/partner-social-column";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
@@ -407,7 +407,7 @@ export function ApplicationsTable({
   return (
     <>
       {detailsSheetState.partnerId && currentPartner && (
-        <PartnerApplicationSheet
+        <ProgramApplicationSheet
           isOpen={detailsSheetState.open}
           setIsOpen={(open) =>
             setDetailsSheetState((s) => ({ ...s, open }) as any)
@@ -457,9 +457,9 @@ function PendingRowMenuButton({ row }: { row: Row<ApplicationRow> }) {
   const [isOpen, setIsOpen] = useState(false);
 
   const {
-    ApprovePartnerApplicationModal,
-    setShowApprovePartnerApplicationModal,
-  } = useApprovePartnerApplicationModal({
+    ApproveProgramApplicationModal,
+    setShowApproveProgramApplicationModal,
+  } = useApproveProgramApplicationModal({
     partner: row.original,
     groupId: row.original.groupId,
     onConfirm: async () => {
@@ -472,9 +472,9 @@ function PendingRowMenuButton({ row }: { row: Row<ApplicationRow> }) {
   });
 
   const {
-    RejectPartnerApplicationModal,
-    setShowRejectPartnerApplicationModal,
-  } = useRejectPartnerApplicationModal({
+    RejectProgramApplicationModal,
+    setShowRejectProgramApplicationModal,
+  } = useRejectProgramApplicationModal({
     partner: row.original,
     onConfirm: async () => {
       await mutatePrefix([
@@ -487,8 +487,8 @@ function PendingRowMenuButton({ row }: { row: Row<ApplicationRow> }) {
 
   return (
     <>
-      {ApprovePartnerApplicationModal}
-      {RejectPartnerApplicationModal}
+      {ApproveProgramApplicationModal}
+      {RejectProgramApplicationModal}
       <Popover
         openPopover={isOpen}
         setOpenPopover={setIsOpen}
@@ -500,7 +500,7 @@ function PendingRowMenuButton({ row }: { row: Row<ApplicationRow> }) {
                 icon={UserCheck}
                 onSelect={() => {
                   setIsOpen(false);
-                  setShowApprovePartnerApplicationModal(true);
+                  setShowApproveProgramApplicationModal(true);
                 }}
               >
                 Approve application
@@ -511,7 +511,7 @@ function PendingRowMenuButton({ row }: { row: Row<ApplicationRow> }) {
                 variant="danger"
                 onSelect={() => {
                   setIsOpen(false);
-                  setShowRejectPartnerApplicationModal(true);
+                  setShowRejectProgramApplicationModal(true);
                 }}
               >
                 Reject application
@@ -542,7 +542,7 @@ function RejectedRowMenuButton({
   const [isOpen, setIsOpen] = useState(false);
 
   const { executeAsync: approvePartner, isPending: isApprovingPartner } =
-    useAction(approvePartnerApplicationAction, {
+    useAction(approveProgramApplicationAction, {
       onError: ({ error }) => {
         toast.error(error.serverError);
       },

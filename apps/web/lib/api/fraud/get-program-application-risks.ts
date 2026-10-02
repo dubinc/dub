@@ -8,7 +8,7 @@ import { checkPartnerEmailMasked } from "./rules/check-partner-email-masked";
 import { checkPartnerNoSocialLinks } from "./rules/check-partner-no-social-links";
 import { checkPartnerNoVerifiedSocialLinks } from "./rules/check-partner-no-verified-social-links";
 
-export async function getPartnerApplicationRisks({
+export async function getProgramApplicationRisks({
   program,
   partner,
 }: {

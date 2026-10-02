@@ -16,7 +16,7 @@ import { Footer } from "../components/footer";
 
 type ReapplicationTimeframe = "instant" | "standard" | "never";
 
-export default function PartnerApplicationRejected({
+export default function ProgramApplicationRejected({
   partner = {
     name: "John",
     email: "panic@thedis.co",

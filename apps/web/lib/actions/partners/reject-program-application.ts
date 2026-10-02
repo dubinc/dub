@@ -11,7 +11,7 @@ const inputSchema = rejectPartnerSchema.extend({
 });
 
 // Reject a pending partner application
-export const rejectPartnerApplicationAction = authActionClient
+export const rejectProgramApplicationAction = authActionClient
   .inputSchema(inputSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;

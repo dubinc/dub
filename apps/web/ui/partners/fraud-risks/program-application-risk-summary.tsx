@@ -2,36 +2,36 @@
 
 import { FRAUD_SEVERITY_CONFIG } from "@/lib/api/fraud/constants";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
-import { usePartnerApplicationRisks } from "@/lib/swr/use-partner-application-risks";
+import { useProgramApplicationRisks } from "@/lib/swr/use-program-application-risks";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { FraudSeverity } from "@/lib/types";
 import { Button, Flag } from "@dub/ui";
 import { cn } from "@dub/utils";
 import Link from "next/link";
 import { useAdvancedUpsellModal } from "../advanced-upsell-modal";
-import { PartnerApplicationFraudSeverityIndicator } from "./partner-application-fraud-severity-indicator";
-import { usePartnerApplicationRiskSummaryModal } from "./partner-application-risk-summary-modal";
+import { ProgramApplicationFraudSeverityIndicator } from "./program-application-fraud-severity-indicator";
+import { useProgramApplicationRiskSummaryModal } from "./program-application-risk-summary-modal";
 
-interface PartnerApplicationRiskSummaryProps {
+interface ProgramApplicationRiskSummaryProps {
   partner: {
     id: string;
   };
 }
 
 // Displays the risk analysis for a partner application
-export function PartnerApplicationRiskSummary({
+export function ProgramApplicationRiskSummary({
   partner,
-}: PartnerApplicationRiskSummaryProps) {
+}: ProgramApplicationRiskSummaryProps) {
   const { plan } = useWorkspace();
 
   const { triggeredFraudRules, severity, isLoading } =
-    usePartnerApplicationRisks({
+    useProgramApplicationRisks({
       filters: { partnerId: partner?.id },
       enabled: !!partner?.id,
     });
 
-  const { setShowModal, PartnerApplicationRiskSummaryModal } =
-    usePartnerApplicationRiskSummaryModal({
+  const { setShowModal, ProgramApplicationRiskSummaryModal } =
+    useProgramApplicationRiskSummaryModal({
       triggeredRules: triggeredFraudRules,
       severity,
     });
@@ -43,7 +43,7 @@ export function PartnerApplicationRiskSummary({
   }
 
   if (!canManageFraudEvents) {
-    return <PartnerApplicationRiskSummaryUpsell />;
+    return <ProgramApplicationRiskSummaryUpsell />;
   }
 
   return (
@@ -63,7 +63,7 @@ export function PartnerApplicationRiskSummary({
           />
         </div>
 
-        <PartnerApplicationFraudSeverityIndicator severity={severity} />
+        <ProgramApplicationFraudSeverityIndicator severity={severity} />
 
         <ul className="space-y-2">
           {triggeredFraudRules.map((rule) => {
@@ -86,7 +86,7 @@ export function PartnerApplicationRiskSummary({
         </ul>
       </div>
 
-      <PartnerApplicationRiskSummaryModal />
+      <ProgramApplicationRiskSummaryModal />
     </>
   );
 }
@@ -109,7 +109,7 @@ const APPLICATION_RISK_CONFIG = {
   },
 };
 
-export function PartnerApplicationRiskSummaryUpsell() {
+export function ProgramApplicationRiskSummaryUpsell() {
   const { advancedUpsellModal, setShowAdvancedUpsellModal } =
     useAdvancedUpsellModal();
 
@@ -133,7 +133,7 @@ export function PartnerApplicationRiskSummaryUpsell() {
             Risk analysis
           </h3>
 
-          <PartnerApplicationFraudSeverityIndicator severity={severity} />
+          <ProgramApplicationFraudSeverityIndicator severity={severity} />
 
           <ul className="space-y-2">
             {dummyRisks.map((risk) => (

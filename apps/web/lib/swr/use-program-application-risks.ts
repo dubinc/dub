@@ -10,7 +10,7 @@ type FraudRisksResponse = {
   riskSeverity: FraudSeverity | null;
 };
 
-export function usePartnerApplicationRisks({
+export function useProgramApplicationRisks({
   filters,
   enabled = true,
 }: {

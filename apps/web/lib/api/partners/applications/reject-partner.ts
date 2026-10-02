@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { WorkspaceProps } from "@/lib/types";
 import { rejectPartnerSchema } from "@/lib/zod/schemas/partners";
 import { sendEmail } from "@dub/email";
-import PartnerApplicationRejected from "@dub/email/templates/partner-application-rejected";
+import ProgramApplicationRejected from "@dub/email/templates/program-application-rejected";
 import {
   ProgramApplicationStatus,
   ProgramEnrollmentStatus,
@@ -193,7 +193,7 @@ export async function rejectPartner({
           subject: `Your application to ${program.name} was not approved`,
           variant: "notifications",
           replyTo: program.supportEmail || "noreply",
-          react: PartnerApplicationRejected({
+          react: ProgramApplicationRejected({
             partner: {
               name: partner.name ?? "there",
               email: partner.email,

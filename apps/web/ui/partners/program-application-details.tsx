@@ -17,7 +17,7 @@ type ApplicationHistoryResponse = {
   }[];
 };
 
-function PartnerApplicationReviewOutcome({
+function ProgramApplicationReviewOutcome({
   application,
 }: {
   application: ProgramApplication;
@@ -62,7 +62,7 @@ function PartnerApplicationReviewOutcome({
   );
 }
 
-function PartnerApplicationReviewFooter({
+function ProgramApplicationReviewFooter({
   reviewedAt,
 }: {
   reviewedAt: Date | string | null | undefined;
@@ -81,7 +81,7 @@ function PartnerApplicationReviewFooter({
   );
 }
 
-export function PartnerApplicationDetails({
+export function ProgramApplicationDetails({
   partnerId,
   preferredApplicationId,
 }: {
@@ -183,7 +183,7 @@ export function PartnerApplicationDetails({
             Application
           </h3>
         </div>
-        <PartnerApplicationDetailsSkeleton />
+        <ProgramApplicationDetailsSkeleton />
       </div>
     );
   }
@@ -212,7 +212,7 @@ export function PartnerApplicationDetails({
         <h3 className="text-content-emphasis text-lg font-semibold">
           Application
         </h3>
-        <PartnerApplicationDetailsSkeleton />
+        <ProgramApplicationDetailsSkeleton />
       </div>
     );
   }
@@ -253,7 +253,7 @@ export function PartnerApplicationDetails({
       </div>
 
       {applicationLoading || !application ? (
-        <PartnerApplicationDetailsSkeleton />
+        <ProgramApplicationDetailsSkeleton />
       ) : (
         <>
           <div className="grid grid-cols-1 gap-5">
@@ -291,9 +291,9 @@ export function PartnerApplicationDetails({
               </div>
             ))}
           </div>
-          <PartnerApplicationReviewOutcome application={application} />
+          <ProgramApplicationReviewOutcome application={application} />
           {historyItems.length > 1 ? (
-            <PartnerApplicationReviewFooter
+            <ProgramApplicationReviewFooter
               reviewedAt={application.reviewedAt}
             />
           ) : null}
@@ -336,7 +336,7 @@ function ApplicationFormImageGrid({
   );
 }
 
-function PartnerApplicationDetailsSkeleton() {
+function ProgramApplicationDetailsSkeleton() {
   return (
     <div className="grid grid-cols-1 gap-5">
       {[...Array(3)].map((_, idx) => (

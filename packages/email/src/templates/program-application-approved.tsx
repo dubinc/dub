@@ -17,7 +17,7 @@ import {
 } from "@react-email/components";
 import { Footer } from "../components/footer";
 
-export default function PartnerApplicationApproved({
+export default function ProgramApplicationApproved({
   program = {
     name: "Acme",
     logo: DUB_WORDMARK,

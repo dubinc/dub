@@ -8,7 +8,7 @@ import { trackApplicationEvents } from "@/lib/application-events/update-applicat
 import { prisma } from "@/lib/prisma";
 import { bulkRejectPartnersSchema } from "@/lib/zod/schemas/partners";
 import { sendBatchEmail } from "@dub/email";
-import PartnerApplicationRejected from "@dub/email/templates/partner-application-rejected";
+import ProgramApplicationRejected from "@dub/email/templates/program-application-rejected";
 import {
   ProgramApplicationStatus,
   ProgramEnrollmentStatus,
@@ -18,7 +18,7 @@ import { authActionClient } from "../safe-action";
 import { throwIfNoPermission } from "../throw-if-no-permission";
 
 // Reject a list of pending partners
-export const bulkRejectPartnerApplicationsAction = authActionClient
+export const bulkRejectProgramApplicationsAction = authActionClient
   .inputSchema(bulkRejectPartnersSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
@@ -178,7 +178,7 @@ export const bulkRejectPartnerApplicationsAction = authActionClient
               subject: `Your application to ${program.name} was not approved`,
               variant: "notifications",
               replyTo: program.supportEmail || "noreply",
-              react: PartnerApplicationRejected({
+              react: ProgramApplicationRejected({
                 partner: {
                   name: partner.name ?? "there",
                   email: partner.email!,

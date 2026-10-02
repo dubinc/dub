@@ -2,7 +2,7 @@ import { formatApplicationFormData } from "@/lib/partners/format-application-for
 import { prisma } from "@/lib/prisma";
 import { sendBatchEmail } from "@dub/email";
 import { ResendBulkEmailOptions } from "@dub/email/resend/types";
-import PartnerApplicationReceived from "@dub/email/templates/partner-application-received";
+import ProgramApplicationReceived from "@dub/email/templates/program-application-received";
 import { chunk } from "@dub/utils";
 import {
   Partner,
@@ -11,7 +11,7 @@ import {
   ProgramApplication,
 } from "@prisma/client";
 
-export async function notifyPartnerApplication({
+export async function notifyProgramApplication({
   partner,
   program,
   group,
@@ -54,7 +54,7 @@ export async function notifyPartnerApplication({
       subject: `New partner application for ${program.name}`,
       variant: "notifications",
       to: user.email!,
-      react: PartnerApplicationReceived({
+      react: ProgramApplicationReceived({
         email: user.email!,
         partner: {
           id: partner.id,

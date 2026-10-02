@@ -12,22 +12,22 @@ import {
   useMemo,
   useState,
 } from "react";
-import { PartnerApplicationFraudSeverityIndicator } from "./partner-application-fraud-severity-indicator";
+import { ProgramApplicationFraudSeverityIndicator } from "./program-application-fraud-severity-indicator";
 import { RiskDisclaimerBanner } from "./risk-disclaimer-banner";
 
-interface PartnerApplicationRiskSummaryModalProps {
+interface ProgramApplicationRiskSummaryModalProps {
   showModal: boolean;
   setShowModal: Dispatch<SetStateAction<boolean>>;
   triggeredRules: FraudRuleInfo[];
   severity: FraudSeverity | null | undefined;
 }
 
-function PartnerApplicationRiskSummaryModal({
+function ProgramApplicationRiskSummaryModal({
   showModal,
   setShowModal,
   triggeredRules,
   severity,
-}: PartnerApplicationRiskSummaryModalProps) {
+}: ProgramApplicationRiskSummaryModalProps) {
   return (
     <Modal
       showModal={showModal}
@@ -52,7 +52,7 @@ function PartnerApplicationRiskSummaryModal({
           <RiskDisclaimerBanner className="gap-2 px-3 py-2" />
         )}
 
-        <PartnerApplicationFraudSeverityIndicator severity={severity} />
+        <ProgramApplicationFraudSeverityIndicator severity={severity} />
 
         <ul className="space-y-4">
           {triggeredRules.map((rule) => {
@@ -83,7 +83,7 @@ function PartnerApplicationRiskSummaryModal({
   );
 }
 
-export function usePartnerApplicationRiskSummaryModal({
+export function useProgramApplicationRiskSummaryModal({
   triggeredRules,
   severity,
 }: {
@@ -92,9 +92,9 @@ export function usePartnerApplicationRiskSummaryModal({
 }) {
   const [showModal, setShowModal] = useState(false);
 
-  const PartnerApplicationRiskSummaryModalCallback = useCallback(() => {
+  const ProgramApplicationRiskSummaryModalCallback = useCallback(() => {
     return (
-      <PartnerApplicationRiskSummaryModal
+      <ProgramApplicationRiskSummaryModal
         showModal={showModal}
         setShowModal={setShowModal}
         triggeredRules={triggeredRules}
@@ -106,9 +106,9 @@ export function usePartnerApplicationRiskSummaryModal({
   return useMemo(
     () => ({
       setShowModal,
-      PartnerApplicationRiskSummaryModal:
-        PartnerApplicationRiskSummaryModalCallback,
+      ProgramApplicationRiskSummaryModal:
+        ProgramApplicationRiskSummaryModalCallback,
     }),
-    [setShowModal, PartnerApplicationRiskSummaryModalCallback],
+    [setShowModal, ProgramApplicationRiskSummaryModalCallback],
   );
 }

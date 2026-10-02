@@ -1,4 +1,4 @@
-import { approvePartnerApplicationAction } from "@/lib/actions/partners/approve-partner-application";
+import { approveProgramApplicationAction } from "@/lib/actions/partners/approve-program-application";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { PartnerProps } from "@/lib/types";
 import { PartnerAvatar } from "@/ui/partners/partner-avatar";
@@ -15,9 +15,9 @@ import {
 import { toast } from "sonner";
 import { useTrialLimitActivateModal } from "./trial-limit-activate-modal";
 
-interface ApprovePartnerApplicationModalProps {
-  showApprovePartnerApplicationModal: boolean;
-  setShowApprovePartnerApplicationModal: Dispatch<SetStateAction<boolean>>;
+interface ApproveProgramApplicationModalProps {
+  showApproveProgramApplicationModal: boolean;
+  setShowApproveProgramApplicationModal: Dispatch<SetStateAction<boolean>>;
   partner: Pick<PartnerProps, "id" | "name" | "email" | "image">;
   groupId?: string | null;
   onConfirm?: () => void | Promise<void>;
@@ -27,14 +27,14 @@ interface ApprovePartnerApplicationModalProps {
   };
 }
 
-export function ApprovePartnerApplicationModal({
-  showApprovePartnerApplicationModal,
-  setShowApprovePartnerApplicationModal,
+export function ApproveProgramApplicationModal({
+  showApproveProgramApplicationModal,
+  setShowApproveProgramApplicationModal,
   partner,
   groupId,
   onConfirm,
   confirmShortcutOptions,
-}: ApprovePartnerApplicationModalProps) {
+}: ApproveProgramApplicationModalProps) {
   const { id: workspaceId, trialEndsAt } = useWorkspace();
 
   const { openTrialLimitModal, TrialLimitActivateModal } =
@@ -42,14 +42,14 @@ export function ApprovePartnerApplicationModal({
 
   const trialActive = isWorkspaceBillingTrialActive(trialEndsAt);
 
-  const { executeAsync: approvePartnerApplication, isPending } = useAction(
-    approvePartnerApplicationAction,
+  const { executeAsync: approveProgramApplication, isPending } = useAction(
+    approveProgramApplicationAction,
     {
       onSuccess: async () => {
         toast.success(
           `Partner ${partner.email} has been approved to your program.`,
         );
-        setShowApprovePartnerApplicationModal(false);
+        setShowApproveProgramApplicationModal(false);
         await onConfirm?.();
       },
       onError: ({ error }) => {
@@ -69,27 +69,27 @@ export function ApprovePartnerApplicationModal({
   const handleConfirm = useCallback(async () => {
     if (!workspaceId || !partner) return;
 
-    await approvePartnerApplication({
+    await approveProgramApplication({
       workspaceId,
       partnerId: partner.id,
       groupId: groupId ?? undefined,
     });
-  }, [workspaceId, partner, groupId, approvePartnerApplication]);
+  }, [workspaceId, partner, groupId, approveProgramApplication]);
 
   const handleClose = useCallback(() => {
-    setShowApprovePartnerApplicationModal(false);
-  }, [setShowApprovePartnerApplicationModal]);
+    setShowApproveProgramApplicationModal(false);
+  }, [setShowApproveProgramApplicationModal]);
 
   useKeyboardShortcut("a", handleConfirm, {
-    enabled: showApprovePartnerApplicationModal,
+    enabled: showApproveProgramApplicationModal,
     ...(confirmShortcutOptions || { modal: true }),
   });
 
   return (
     <>
       <Modal
-        showModal={showApprovePartnerApplicationModal}
-        setShowModal={setShowApprovePartnerApplicationModal}
+        showModal={showApproveProgramApplicationModal}
+        setShowModal={setShowApproveProgramApplicationModal}
         onClose={handleClose}
       >
         <div className="border-b border-neutral-200 p-4 sm:p-6">
@@ -140,7 +140,7 @@ export function ApprovePartnerApplicationModal({
   );
 }
 
-export function useApprovePartnerApplicationModal({
+export function useApproveProgramApplicationModal({
   partner,
   groupId,
   onConfirm,
@@ -155,16 +155,16 @@ export function useApprovePartnerApplicationModal({
   };
 }) {
   const [
-    showApprovePartnerApplicationModal,
-    setShowApprovePartnerApplicationModal,
+    showApproveProgramApplicationModal,
+    setShowApproveProgramApplicationModal,
   ] = useState(false);
 
-  const ApprovePartnerApplicationModalCallback = useMemo(() => {
+  const ApproveProgramApplicationModalCallback = useMemo(() => {
     return (
-      <ApprovePartnerApplicationModal
-        showApprovePartnerApplicationModal={showApprovePartnerApplicationModal}
-        setShowApprovePartnerApplicationModal={
-          setShowApprovePartnerApplicationModal
+      <ApproveProgramApplicationModal
+        showApproveProgramApplicationModal={showApproveProgramApplicationModal}
+        setShowApproveProgramApplicationModal={
+          setShowApproveProgramApplicationModal
         }
         partner={partner}
         groupId={groupId}
@@ -173,7 +173,7 @@ export function useApprovePartnerApplicationModal({
       />
     );
   }, [
-    showApprovePartnerApplicationModal,
+    showApproveProgramApplicationModal,
     partner,
     groupId,
     onConfirm,
@@ -182,12 +182,12 @@ export function useApprovePartnerApplicationModal({
 
   return useMemo(
     () => ({
-      setShowApprovePartnerApplicationModal,
-      ApprovePartnerApplicationModal: ApprovePartnerApplicationModalCallback,
+      setShowApproveProgramApplicationModal,
+      ApproveProgramApplicationModal: ApproveProgramApplicationModalCallback,
     }),
     [
-      setShowApprovePartnerApplicationModal,
-      ApprovePartnerApplicationModalCallback,
+      setShowApproveProgramApplicationModal,
+      ApproveProgramApplicationModalCallback,
     ],
   );
 }

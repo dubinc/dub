@@ -12,7 +12,7 @@ import { FraudGroupProps } from "@/lib/types";
 import { useBanPartnerModal } from "@/ui/modals/ban-partner-modal";
 import { useBulkBanPartnersModal } from "@/ui/modals/bulk-ban-partners-modal";
 import { useBulkResolveFraudGroupsModal } from "@/ui/modals/bulk-resolve-fraud-groups-modal";
-import { useRejectPartnerApplicationModal } from "@/ui/modals/reject-partner-application-modal";
+import { useRejectProgramApplicationModal } from "@/ui/modals/reject-program-application-modal";
 import { RiskDisclaimerBanner } from "@/ui/partners/fraud-risks/risk-disclaimer-banner";
 import { RiskReviewSheet } from "@/ui/partners/fraud-risks/risk-review-sheet";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
@@ -507,9 +507,9 @@ function RowMenuButton({ row }: { row: Row<FraudGroupProps> }) {
   });
 
   const {
-    RejectPartnerApplicationModal,
-    setShowRejectPartnerApplicationModal,
-  } = useRejectPartnerApplicationModal({
+    RejectProgramApplicationModal,
+    setShowRejectProgramApplicationModal,
+  } = useRejectProgramApplicationModal({
     partner,
     onConfirm: async () => {
       await mutatePrefix("/api/fraud/groups");
@@ -523,7 +523,7 @@ function RowMenuButton({ row }: { row: Row<FraudGroupProps> }) {
   return (
     <>
       <BanPartnerModal />
-      {RejectPartnerApplicationModal}
+      {RejectProgramApplicationModal}
       <Popover
         openPopover={isOpen}
         setOpenPopover={setIsOpen}
@@ -537,7 +537,7 @@ function RowMenuButton({ row }: { row: Row<FraudGroupProps> }) {
                     label="Reject application"
                     variant="danger"
                     onSelect={() => {
-                      setShowRejectPartnerApplicationModal(true);
+                      setShowRejectProgramApplicationModal(true);
                       setIsOpen(false);
                     }}
                   />

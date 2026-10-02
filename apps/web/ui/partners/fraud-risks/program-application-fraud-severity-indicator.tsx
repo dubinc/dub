@@ -4,7 +4,7 @@ import { FRAUD_SEVERITY_CONFIG } from "@/lib/api/fraud/constants";
 import { FraudSeverity } from "@/lib/types";
 import { cn } from "@dub/utils";
 
-export function PartnerApplicationFraudSeverityIndicator({
+export function ProgramApplicationFraudSeverityIndicator({
   severity,
   className,
 }: {

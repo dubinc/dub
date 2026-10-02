@@ -6,7 +6,7 @@ import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
 import { authPartnerActionClient } from "../safe-action";
 
-export const withdrawPartnerApplicationAction = authPartnerActionClient
+export const withdrawProgramApplicationAction = authPartnerActionClient
   .inputSchema(
     z.object({
       programId: z.string(),

@@ -45,10 +45,10 @@ import { CircleMinus } from "lucide-react";
 import Link from "next/link";
 import { Fragment, ReactNode, createElement, useState } from "react";
 import useSWR from "swr";
-import { PartnerApplicationRiskSummary } from "./fraud-risks/partner-application-risk-summary";
+import { ProgramApplicationRiskSummary } from "./fraud-risks/program-application-risk-summary";
 import { PartnerNetworkActivitySummary } from "./fraud-risks/partner-network-activity-summary";
 import {
-  PartnerApplicationRiskBanner,
+  ProgramApplicationRiskBanner,
   PartnerRiskBanner,
 } from "./fraud-risks/partner-risk-banner";
 import { PartnerRiskIndicator } from "./fraud-risks/partner-risk-indicator";
@@ -294,7 +294,7 @@ export function PartnerInfoCards({
         {partner &&
           isEnrolled &&
           (partner.status === "pending" ? (
-            <PartnerApplicationRiskBanner partner={partner} />
+            <ProgramApplicationRiskBanner partner={partner} />
           ) : (
             <PartnerRiskBanner partner={partner} />
           ))}
@@ -418,7 +418,7 @@ export function PartnerInfoCards({
           {isEnrolled && partner && <TagsList partner={partner} />}
 
           {partner && isEnrolled && showApplicationRiskAnalysis && (
-            <PartnerApplicationRiskSummary partner={partner} />
+            <ProgramApplicationRiskSummary partner={partner} />
           )}
           {partner &&
             isEnrolled &&

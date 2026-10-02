@@ -1,4 +1,4 @@
-import { rejectPartnerApplicationAction } from "@/lib/actions/partners/reject-partner-application";
+import { rejectProgramApplicationAction } from "@/lib/actions/partners/reject-program-application";
 import {
   getProgramApplicationRejectionReasonLabel,
   PROGRAM_APPLICATION_REJECTION_REASON_ORDER,
@@ -57,9 +57,9 @@ const REAPPLICATION_TIMEFRAME_DESCRIPTIONS: Record<
   never: "The partner can never reapply for the program.",
 };
 
-interface RejectPartnerApplicationModalProps {
-  showRejectPartnerApplicationModal: boolean;
-  setShowRejectPartnerApplicationModal: Dispatch<SetStateAction<boolean>>;
+interface RejectProgramApplicationModalProps {
+  showRejectProgramApplicationModal: boolean;
+  setShowRejectProgramApplicationModal: Dispatch<SetStateAction<boolean>>;
   partner: Pick<PartnerProps, "id" | "name" | "email" | "image">;
   onConfirm?: () => void | Promise<void>;
   confirmShortcutOptions?: {
@@ -68,13 +68,13 @@ interface RejectPartnerApplicationModalProps {
   };
 }
 
-export function RejectPartnerApplicationModal({
-  showRejectPartnerApplicationModal,
-  setShowRejectPartnerApplicationModal,
+export function RejectProgramApplicationModal({
+  showRejectProgramApplicationModal,
+  setShowRejectProgramApplicationModal,
   partner,
   onConfirm,
   confirmShortcutOptions,
-}: RejectPartnerApplicationModalProps) {
+}: RejectProgramApplicationModalProps) {
   const { id: workspaceId } = useWorkspace();
   const reapplicationTimeframeOutcomeRef = useRef<
     "instant" | "standard" | "never"
@@ -93,17 +93,17 @@ export function RejectPartnerApplicationModal({
   const fraudReasonCounterId = useId();
 
   useEffect(() => {
-    if (!showRejectPartnerApplicationModal) {
+    if (!showRejectProgramApplicationModal) {
       setSelectedReason(null);
       setRejectionNote("");
       setReapplicationTimeframe("standard");
       setFlagForFraud(false);
       setFlagForFraudReason("");
     }
-  }, [showRejectPartnerApplicationModal]);
+  }, [showRejectProgramApplicationModal]);
 
-  const { executeAsync: rejectPartnerApplication, isPending } = useAction(
-    rejectPartnerApplicationAction,
+  const { executeAsync: rejectProgramApplication, isPending } = useAction(
+    rejectProgramApplicationAction,
     {
       onSuccess: async () => {
         toast.success(
@@ -113,7 +113,7 @@ export function RejectPartnerApplicationModal({
               ? `Partner ${partner.email} has been rejected and cannot reapply.`
               : `Partner ${partner.email} has been rejected from your program.`,
         );
-        setShowRejectPartnerApplicationModal(false);
+        setShowRejectProgramApplicationModal(false);
         await onConfirm?.();
       },
       onError: ({ error }) => {
@@ -132,7 +132,7 @@ export function RejectPartnerApplicationModal({
 
     reapplicationTimeframeOutcomeRef.current = reapplicationTimeframe;
 
-    await rejectPartnerApplication({
+    await rejectProgramApplication({
       workspaceId,
       partnerId: partner.id,
       reapplicationTimeframe,
@@ -148,7 +148,7 @@ export function RejectPartnerApplicationModal({
   }, [
     workspaceId,
     partner,
-    rejectPartnerApplication,
+    rejectProgramApplication,
     selectedReason,
     rejectionNote,
     reapplicationTimeframe,
@@ -157,18 +157,18 @@ export function RejectPartnerApplicationModal({
   ]);
 
   const handleClose = useCallback(() => {
-    setShowRejectPartnerApplicationModal(false);
-  }, [setShowRejectPartnerApplicationModal]);
+    setShowRejectProgramApplicationModal(false);
+  }, [setShowRejectProgramApplicationModal]);
 
   useKeyboardShortcut("r", handleConfirm, {
-    enabled: showRejectPartnerApplicationModal,
+    enabled: showRejectProgramApplicationModal,
     ...(confirmShortcutOptions || { modal: true }),
   });
 
   return (
     <Modal
-      showModal={showRejectPartnerApplicationModal}
-      setShowModal={setShowRejectPartnerApplicationModal}
+      showModal={showRejectProgramApplicationModal}
+      setShowModal={setShowRejectProgramApplicationModal}
       onClose={handleClose}
     >
       <div className="border-b border-neutral-200 p-4 sm:p-6">
@@ -371,7 +371,7 @@ export function RejectPartnerApplicationModal({
   );
 }
 
-export function useRejectPartnerApplicationModal({
+export function useRejectProgramApplicationModal({
   partner,
   onConfirm,
   confirmShortcutOptions,
@@ -384,16 +384,16 @@ export function useRejectPartnerApplicationModal({
   };
 }) {
   const [
-    showRejectPartnerApplicationModal,
-    setShowRejectPartnerApplicationModal,
+    showRejectProgramApplicationModal,
+    setShowRejectProgramApplicationModal,
   ] = useState(false);
 
-  const RejectPartnerApplicationModalCallback = useMemo(() => {
+  const RejectProgramApplicationModalCallback = useMemo(() => {
     return (
-      <RejectPartnerApplicationModal
-        showRejectPartnerApplicationModal={showRejectPartnerApplicationModal}
-        setShowRejectPartnerApplicationModal={
-          setShowRejectPartnerApplicationModal
+      <RejectProgramApplicationModal
+        showRejectProgramApplicationModal={showRejectProgramApplicationModal}
+        setShowRejectProgramApplicationModal={
+          setShowRejectProgramApplicationModal
         }
         partner={partner}
         onConfirm={onConfirm}
@@ -401,7 +401,7 @@ export function useRejectPartnerApplicationModal({
       />
     );
   }, [
-    showRejectPartnerApplicationModal,
+    showRejectProgramApplicationModal,
     partner,
     onConfirm,
     confirmShortcutOptions,
@@ -409,12 +409,12 @@ export function useRejectPartnerApplicationModal({
 
   return useMemo(
     () => ({
-      setShowRejectPartnerApplicationModal,
-      RejectPartnerApplicationModal: RejectPartnerApplicationModalCallback,
+      setShowRejectProgramApplicationModal,
+      RejectProgramApplicationModal: RejectProgramApplicationModalCallback,
     }),
     [
-      setShowRejectPartnerApplicationModal,
-      RejectPartnerApplicationModalCallback,
+      setShowRejectProgramApplicationModal,
+      RejectProgramApplicationModalCallback,
     ],
   );
 }
