@@ -57,6 +57,7 @@ export async function screenRewardTooltipContradiction(
       ...authorized.data,
       tooltip,
     });
+    const oneOff = isOneOffRewardEvent(authorized.data.event);
     const result = await evaluate({
       model: "typesafe-ai/jev",
       state: reward,
@@ -70,7 +71,11 @@ export async function screenRewardTooltipContradiction(
               meaning:
                 "Yes when the partner copy states an amount, a duration, or an eligibility rule that the payout or a condition does not match. One strong mismatch is enough. Use a low probability when unsure.",
               matches_any: [
-                "The copy says every month, every N months, monthly, recurring, lifetime, or one time, and that is not the payout duration.",
+                ...(oneOff
+                  ? []
+                  : [
+                      "The copy says every month, every N months, monthly, recurring, lifetime, or one time, and that is not the payout duration.",
+                    ]),
                 "The copy states a dollar or percent amount that is not what the default payout or the matching condition group pays.",
                 "The copy says minimum, at least, or that a threshold qualifies, but the condition uses a strict greater-than or less-than that excludes that boundary.",
                 "The copy says more than, over, or above, but the condition includes the boundary.",
@@ -84,6 +89,11 @@ export async function screenRewardTooltipContradiction(
                 "The copy is shorter than the config or omits extra filters such as country, product, or metadata.",
                 "The copy never mentions a condition that still exists, and it also does not state a conflicting amount or duration.",
                 "The wording is informal and does not clearly name a different amount, duration, operator, or threshold.",
+                ...(oneOff
+                  ? [
+                      "The copy uses a duration phrase such as one time, monthly, or lifetime. Click and lead rewards have no duration.",
+                    ]
+                  : []),
               ],
             },
           },
