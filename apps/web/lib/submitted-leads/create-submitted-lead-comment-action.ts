@@ -3,10 +3,12 @@
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { prisma } from "@/lib/prisma";
 import { getSubmittedLeadOrThrow } from "@/lib/submitted-leads/get-submitted-lead-or-throw";
+import { enqueueSubmittedLeadCommentNotification } from "@/lib/submitted-leads/submitted-lead-comment-notifications";
 import {
   SubmittedLeadCommentSchema,
   createSubmittedLeadCommentSchema,
 } from "@/lib/zod/schemas/submitted-leads";
+import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../actions/safe-action";
 import { throwIfNoPermission } from "../actions/throw-if-no-permission";
 
@@ -40,6 +42,16 @@ export const createSubmittedLeadCommentAction = authActionClient
         user: true,
       },
     });
+
+    if (partnerVisible) {
+      waitUntil(
+        enqueueSubmittedLeadCommentNotification({
+          recipient: "partner",
+          leadId: lead.id,
+          commentId: comment.id,
+        }),
+      );
+    }
 
     return {
       comment: SubmittedLeadCommentSchema.parse(comment),
