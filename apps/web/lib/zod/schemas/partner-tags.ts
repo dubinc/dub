@@ -1,5 +1,9 @@
 import * as z from "zod/v4";
-import { getPaginationQuerySchema } from "./misc";
+import {
+  getCursorPaginatedResponseSchema,
+  getCursorPaginationQuerySchema,
+  getPaginationQuerySchema,
+} from "./misc";
 
 export const PARTNER_TAGS_MAX_PAGE_SIZE = 100;
 
@@ -32,10 +36,30 @@ export const getPartnerTagsCountQuerySchema = getPartnerTagsQuerySchema.omit({
   pageSize: true,
 });
 
+export const listPartnerTagsQuerySchema = getPartnerTagsQuerySchema
+  .pick({
+    search: true,
+    ids: true,
+    pageSize: true,
+  })
+  .extend({
+    sortOrder: z
+      .enum(["asc", "desc"])
+      .optional()
+      .default("desc")
+      .describe("The order to sort the partner tags by."),
+    ...getCursorPaginationQuerySchema({
+      example: "ptag_1KAP4CDPBSVMMBMH9XX3YZZ0Z",
+    }),
+  });
+
 export const PartnerTagSchema = z.object({
-  id: z.string(),
-  name: z.string(),
+  id: z.string().describe("The ID of the partner tag."),
+  name: z.string().describe("The name of the partner tag."),
 });
+
+export const listPartnerTagsResponseSchema =
+  getCursorPaginatedResponseSchema(PartnerTagSchema);
 
 export const updatePartnerTagsSchema = z.object({
   workspaceId: z.string(),
@@ -45,8 +69,12 @@ export const updatePartnerTagsSchema = z.object({
 });
 
 export const createPartnerTagSchema = z.object({
-  workspaceId: z.string(),
-  name: z.string().trim().min(1).max(100),
+  name: z
+    .string()
+    .trim()
+    .min(1)
+    .max(100)
+    .describe("The name of the partner tag."),
 });
 
 export const updatePartnerTagSchema = createPartnerTagSchema.extend({

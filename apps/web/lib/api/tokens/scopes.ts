@@ -18,6 +18,8 @@ export const SCOPES = [
   "webhooks.write",
   "groups.read",
   "groups.write",
+  "partnerTags.read",
+  "partnerTags.write",
   "apis.all", // All API scopes
   "apis.read", // All read scopes
 ] as const;
@@ -136,6 +138,20 @@ export const RESOURCE_SCOPES: {
     permissions: ["webhooks.write", "webhooks.read"],
     type: "write",
     resource: "webhooks",
+  },
+  {
+    scope: "partnerTags.read",
+    roles: ["owner", "member", "viewer", "billing"],
+    permissions: ["partnerTags.read"],
+    type: "read",
+    resource: "partnerTags",
+  },
+  {
+    scope: "partnerTags.write",
+    roles: ["owner", "member"],
+    permissions: ["partnerTags.write", "partnerTags.read"],
+    type: "write",
+    resource: "partnerTags",
   },
   {
     scope: "apis.read",
