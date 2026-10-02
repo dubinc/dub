@@ -7,7 +7,7 @@ import { ZodOpenApiOperationObject } from "zod-openapi";
 import * as z from "zod/v4";
 
 export const listProgramApplications: ZodOpenApiOperationObject = {
-  operationId: "listPartnerApplications",
+  operationId: "listProgramApplications",
   "x-speakeasy-name-override": "list",
   summary: "List all program applications",
   description:
@@ -26,6 +26,6 @@ export const listProgramApplications: ZodOpenApiOperationObject = {
     },
     ...openApiErrorResponses,
   },
-  tags: ["Partner Applications"],
+  tags: ["Program Applications"],
   security: [{ token: [] }],
 };
