@@ -1,5 +1,8 @@
+import { evaluatePartnerApplication } from "@/lib/ai/evaluate-partner-application";
 import { getPartnerApplicationRisks } from "@/lib/api/fraud/get-partner-application-risks";
 import { approvePartner } from "@/lib/api/partners/applications/approve-partner";
+import { screenPartnerApplication } from "@/lib/api/partners/applications/screen-partner-application";
+import { logger } from "@/lib/axiom/server";
 import { evaluateApplicationRequirements } from "@/lib/partners/evaluate-application-requirements";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { prisma } from "@/lib/prisma";
@@ -28,6 +31,7 @@ export const autoApprovePartnerJob = defineJob({
       },
       include: {
         partnerGroup: true,
+        application: true,
         partner: {
           include: {
             platforms: true,
@@ -60,15 +64,17 @@ export const autoApprovePartnerJob = defineJob({
       return;
     }
 
-    // Check if the workspace plan has fraud event management capabilities
-    // If enabled, we'll evaluate risk signals before auto-approving
     const program = await prisma.program.findUniqueOrThrow({
       where: {
         id: programId,
       },
       select: {
         id: true,
+        name: true,
+        description: true,
         applicationRequirements: true,
+        applicationScreeningCriteria: true,
+        aiAutoApproveEnabledAt: true,
         workspace: {
           select: {
             plan: true,
@@ -131,6 +137,56 @@ export const autoApprovePartnerJob = defineJob({
     if (!owner) {
       console.warn(`Owner not found for program ${programId}.`);
       return;
+    }
+
+    const screeningCriteria = program.applicationScreeningCriteria?.trim();
+
+    if (screeningCriteria) {
+      const matchedScreeningCriteria = await screenPartnerApplication({
+        programId,
+        partnerId,
+        program: {
+          name: program.name,
+          description: program.description,
+        },
+        partner: programEnrollment.partner,
+        application: programEnrollment.application,
+        landerData: group.landerData,
+        screeningCriteria,
+      });
+
+      if (matchedScreeningCriteria) {
+        return;
+      }
+    }
+
+    if (program.aiAutoApproveEnabledAt) {
+      const evaluation = await evaluatePartnerApplication({
+        program: {
+          name: program.name,
+          description: program.description,
+        },
+        partner: programEnrollment.partner,
+        application: programEnrollment.application,
+        landerData: group.landerData,
+      });
+
+      logger.info("jev.partner.auto-approve", {
+        programId,
+        partnerId,
+        status: evaluation.status,
+        probability: evaluation.probability,
+        error: evaluation.error,
+        usage: evaluation.usage,
+      });
+      await logger.flush();
+
+      if (evaluation.status === "matched") {
+        console.warn(
+          `Partner ${partnerId} held from auto-approve (Jev poorFit=${evaluation.probability}).`,
+        );
+        return;
+      }
     }
 
     await approvePartner({

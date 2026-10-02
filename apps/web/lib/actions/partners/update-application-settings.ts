@@ -13,13 +13,21 @@ const schema = z.object({
   description: z.string().optional(),
   categories: z.array(z.enum(Category)).optional(),
   eligibilityConditions: applicationRequirementsSchema.optional(),
+  applicationScreeningCriteria: z.string().max(2000).optional(),
+  aiAutoApproveEnabled: z.boolean().optional(),
 });
 
 export const updateApplicationSettingsAction = authActionClient
   .inputSchema(schema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace } = ctx;
-    const { description, categories, eligibilityConditions } = parsedInput;
+    const {
+      description,
+      categories,
+      eligibilityConditions,
+      applicationScreeningCriteria,
+      aiAutoApproveEnabled,
+    } = parsedInput;
 
     throwIfNoPermission({
       role: workspace.role,
@@ -42,6 +50,13 @@ export const updateApplicationSettingsAction = authActionClient
         }),
         ...(eligibilityConditions !== undefined && {
           applicationRequirements: eligibilityConditions,
+        }),
+        ...(applicationScreeningCriteria !== undefined && {
+          applicationScreeningCriteria:
+            applicationScreeningCriteria.trim() || null,
+        }),
+        ...(aiAutoApproveEnabled !== undefined && {
+          aiAutoApproveEnabledAt: aiAutoApproveEnabled ? new Date() : null,
         }),
       },
     });
