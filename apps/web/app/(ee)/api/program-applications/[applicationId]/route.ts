@@ -4,7 +4,7 @@ import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
-// GET /api/partners/applications/[applicationId] – get a partner application
+// GET /api/program-applications/[applicationId] – get a partner application
 export const GET = withWorkspace(async ({ workspace, params }) => {
   const programId = getDefaultProgramIdOrThrow(workspace);
 

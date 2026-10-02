@@ -1,9 +1,9 @@
 import { openApiErrorResponses } from "@/lib/openapi/responses";
-import { rejectPartnerSchema } from "@/lib/zod/schemas/partners";
+import { rejectProgramApplicationSchema } from "@/lib/zod/schemas/program-application";
 import { ZodOpenApiOperationObject } from "zod-openapi";
 import * as z from "zod/v4";
 
-export const rejectPartner: ZodOpenApiOperationObject = {
+export const rejectProgramApplication: ZodOpenApiOperationObject = {
   operationId: "rejectProgramApplication",
   "x-speakeasy-name-override": "reject",
   summary: "Reject a partner application",
@@ -13,7 +13,7 @@ export const rejectPartner: ZodOpenApiOperationObject = {
     required: true,
     content: {
       "application/json": {
-        schema: rejectPartnerSchema,
+        schema: rejectProgramApplicationSchema,
       },
     },
   },
@@ -30,6 +30,6 @@ export const rejectPartner: ZodOpenApiOperationObject = {
     },
     ...openApiErrorResponses,
   },
-  tags: ["Partner Applications"],
+  tags: ["Program Applications"],
   security: [{ token: [] }],
 };

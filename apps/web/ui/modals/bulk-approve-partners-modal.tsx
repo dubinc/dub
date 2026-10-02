@@ -1,4 +1,4 @@
-import { bulkApprovePartnersAction } from "@/lib/actions/partners/bulk-approve-partners";
+import { bulkApproveProgramApplicationsAction } from "@/lib/actions/partners/bulk-approve-program-applications";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -37,31 +37,34 @@ function BulkApprovePartnersModal({
     program?.defaultGroupId ?? null,
   );
 
-  const { executeAsync, isPending } = useAction(bulkApprovePartnersAction, {
-    onSuccess: async () => {
-      setShowBulkApprovePartnersModal(false);
-      await mutatePrefix(["/api/partners", "/api/program-applications"]);
-      toast.success(`${pluralize("Partner", partners.length)} approved.`);
+  const { executeAsync, isPending } = useAction(
+    bulkApproveProgramApplicationsAction,
+    {
+      onSuccess: async () => {
+        setShowBulkApprovePartnersModal(false);
+        await mutatePrefix(["/api/partners", "/api/program-applications"]);
+        toast.success(`${pluralize("Partner", partners.length)} approved.`);
+      },
+      onError({ error }) {
+        const serverMsg = String(error.serverError ?? "").trim();
+        if (
+          trialActive &&
+          (serverMsg.includes("free trial") ||
+            serverMsg.includes("enrolled partners"))
+        ) {
+          openTrialLimitModal("partnerEnrollments");
+          return;
+        }
+        const message =
+          serverMsg ||
+          ("message" in error &&
+          typeof (error as { message?: unknown }).message === "string"
+            ? String((error as { message: string }).message).trim()
+            : "");
+        toast.error(message || "An error occurred");
+      },
     },
-    onError({ error }) {
-      const serverMsg = String(error.serverError ?? "").trim();
-      if (
-        trialActive &&
-        (serverMsg.includes("free trial") ||
-          serverMsg.includes("enrolled partners"))
-      ) {
-        openTrialLimitModal("partnerEnrollments");
-        return;
-      }
-      const message =
-        serverMsg ||
-        ("message" in error &&
-        typeof (error as { message?: unknown }).message === "string"
-          ? String((error as { message: string }).message).trim()
-          : "");
-      toast.error(message || "An error occurred");
-    },
-  });
+  );
 
   const handleBulkApprove = async () => {
     const partnerIds = partners.map((p) => p.id);

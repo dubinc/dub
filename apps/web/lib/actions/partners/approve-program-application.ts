@@ -2,12 +2,12 @@
 
 import { approvePartner } from "@/lib/api/partners/applications/approve-partner";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
-import { approvePartnerSchema } from "@/lib/zod/schemas/partners";
+import { approveProgramApplicationSchema } from "@/lib/zod/schemas/program-application";
 import * as z from "zod/v4";
 import { authActionClient } from "../safe-action";
 import { throwIfNoPermission } from "../throw-if-no-permission";
 
-const inputSchema = approvePartnerSchema.extend({
+const inputSchema = approveProgramApplicationSchema.extend({
   workspaceId: z.string(),
 });
 

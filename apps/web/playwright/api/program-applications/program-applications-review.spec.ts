@@ -6,12 +6,7 @@ import {
   ProgramApplicationRejectionReason,
   ProgramEnrollmentStatus,
 } from "@prisma/client";
-import {
-  apiError,
-  expectNoOverlap,
-  randomName,
-  randomPartnerEmail,
-} from "../../utils";
+import { apiError, randomName, randomPartnerEmail } from "../../utils";
 import { test } from "../fixtures";
 import { createGroup, deleteGroup } from "../groups/helpers";
 import { deletePartner } from "../partners/helpers";
@@ -76,7 +71,7 @@ async function expectApplicationState(
   expect(enrollment.application?.reviewedAt).toEqual(expect.any(Date));
 }
 
-test.describe("partner applications", () => {
+test.describe("program application reviews", () => {
   test.describe.configure({
     mode: "serial",
   });
@@ -197,118 +192,34 @@ test.describe("partner applications", () => {
     await deleteGroup(api, extraGroup?.id);
   });
 
-  test("GET /partners/applications", async ({ api }) => {
-    const { status, data } = await api.get<PartnerApplicationProps[]>(
-      `/api/partners/applications?${new URLSearchParams({
-        pageSize: "100",
-      })}`,
-    );
-
-    expect(status).toEqual(200);
-
-    const byId = new Map(
-      data.map((application) => [application.id, application]),
-    );
-
-    for (const expected of applications) {
-      const application = byId.get(expected.applicationId);
-      expect(application).toBeDefined();
-      expectApplication(application!, expected);
-    }
-  });
-
-  test("GET /partners/applications – filters by country", async ({ api }) => {
-    const expected = applications.filter(
-      (application) =>
-        application.groupId === extraGroup.id && application.country === "US",
-    );
-
-    const { status, data } = await api.get<PartnerApplicationProps[]>(
-      `/api/partners/applications?${new URLSearchParams({
-        pageSize: "100",
-        country: "US",
-        groupId: extraGroup.id,
-      })}`,
-    );
-
-    expect(status).toEqual(200);
-    expect(data.map((application) => application.id).sort()).toEqual(
-      expected.map((application) => application.applicationId).sort(),
-    );
-
-    for (const expectedApplication of expected) {
-      const application = data.find(
-        (item) => item.id === expectedApplication.applicationId,
-      );
-
-      expect(application).toBeDefined();
-      expectApplication(application!, expectedApplication);
-    }
-  });
-
-  test("GET /partners/applications – filters by groupId", async ({ api }) => {
+  test("GET /partners/applications – legacy alias of GET /program-applications", async ({
+    api,
+  }) => {
     const expected = applications.filter(
       (application) => application.groupId === extraGroup.id,
     );
 
     const { status, data } = await api.get<PartnerApplicationProps[]>(
       `/api/partners/applications?${new URLSearchParams({
-        pageSize: "100",
         groupId: extraGroup.id,
       })}`,
     );
 
     expect(status).toEqual(200);
-    expect(data.map((application) => application.id).sort()).toEqual(
-      expected.map((application) => application.applicationId).sort(),
+    expect(data.map((application) => application.id)).toEqual(
+      expected.map((application) => application.applicationId),
     );
 
-    for (const expectedApplication of expected) {
-      const application = data.find(
-        (item) => item.id === expectedApplication.applicationId,
-      );
-
-      expect(application).toBeDefined();
-      expectApplication(application!, expectedApplication);
+    for (const [i, application] of data.entries()) {
+      expectApplication(application, expected[i]!);
     }
   });
 
-  test("GET /partners/applications – respects pageSize", async ({ api }) => {
-    const expected = applications.filter(
-      (application) => application.groupId === extraGroup.id,
-    );
-
-    const page1 = await api.get<PartnerApplicationProps[]>(
-      `/api/partners/applications?${new URLSearchParams({
-        groupId: extraGroup.id,
-        page: "1",
-        pageSize: "1",
-      })}`,
-    );
-    const page2 = await api.get<PartnerApplicationProps[]>(
-      `/api/partners/applications?${new URLSearchParams({
-        groupId: extraGroup.id,
-        page: "2",
-        pageSize: "1",
-      })}`,
-    );
-
-    expect(page1.status).toEqual(200);
-    expect(page2.status).toEqual(200);
-    expect(page1.data).toHaveLength(1);
-    expect(page2.data).toHaveLength(1);
-    expect(page1.data[0]?.id).toBe(expected[0]?.applicationId);
-    expect(page2.data[0]?.id).toBe(expected[1]?.applicationId);
-    expectNoOverlap(page1.data, page2.data);
-    expectApplication(page1.data[0]!, expected[0]!);
-    expectApplication(page2.data[0]!, expected[1]!);
-  });
-
-  test("POST /partners/applications/approve", async ({ api }) => {
+  test("POST /program-applications/approve", async ({ api }) => {
     const application = applications[0]!;
 
     const { status, data } = await api.post<{ partnerId: string }>(
-      "/api/partners/applications/approve",
+      "/api/program-applications/approve",
       {
         partnerId: application.partnerId,
         groupId: application.groupId,
@@ -323,11 +234,11 @@ test.describe("partner applications", () => {
     });
   });
 
-  test("POST /partners/applications/reject", async ({ api }) => {
+  test("POST /program-applications/reject", async ({ api }) => {
     const application = applications[1]!;
 
     const { status, data } = await api.post<{ partnerId: string }>(
-      "/api/partners/applications/reject",
+      "/api/program-applications/reject",
       {
         partnerId: application.partnerId,
         rejectionReason: "other",
@@ -344,12 +255,12 @@ test.describe("partner applications", () => {
     });
   });
 
-  test("POST /partners/applications/approve – already approved", async ({
+  test("POST /program-applications/approve – already approved", async ({
     api,
   }) => {
     const application = applications[0]!;
 
-    const response = await api.post("/api/partners/applications/approve", {
+    const response = await api.post("/api/program-applications/approve", {
       partnerId: application.partnerId,
       groupId: application.groupId,
     });
@@ -368,12 +279,12 @@ test.describe("partner applications", () => {
     });
   });
 
-  test("POST /partners/applications/reject – already rejected", async ({
+  test("POST /program-applications/reject – already rejected", async ({
     api,
   }) => {
     const application = applications[1]!;
 
-    const response = await api.post("/api/partners/applications/reject", {
+    const response = await api.post("/api/program-applications/reject", {
       partnerId: application.partnerId,
       rejectionReason: "other",
       rejectionNote: REJECTION_NOTE,
@@ -394,13 +305,13 @@ test.describe("partner applications", () => {
     });
   });
 
-  test("POST /partners/applications/approve – rejected partner", async ({
+  test("POST /program-applications/approve – rejected partner", async ({
     api,
   }) => {
     const application = applications[1]!;
 
     const { status, data } = await api.post<{ partnerId: string }>(
-      "/api/partners/applications/approve",
+      "/api/program-applications/approve",
       {
         partnerId: application.partnerId,
         groupId: application.groupId,
@@ -415,12 +326,12 @@ test.describe("partner applications", () => {
     });
   });
 
-  test("POST /partners/applications/reject – approved partner", async ({
+  test("POST /program-applications/reject – approved partner", async ({
     api,
   }) => {
     const application = applications[0]!;
 
-    const response = await api.post("/api/partners/applications/reject", {
+    const response = await api.post("/api/program-applications/reject", {
       partnerId: application.partnerId,
       rejectionReason: "other",
       rejectionNote: REJECTION_NOTE,
@@ -438,6 +349,50 @@ test.describe("partner applications", () => {
     await expectApplicationState(application, {
       enrollmentStatus: "approved",
       rejectionReason: null,
+    });
+  });
+
+  test("POST /partners/applications/approve – legacy alias of POST /program-applications/approve", async ({
+    api,
+  }) => {
+    const application = applications[2]!;
+
+    const { status, data } = await api.post<{ partnerId: string }>(
+      "/api/partners/applications/approve",
+      {
+        partnerId: application.partnerId,
+        groupId: application.groupId,
+      },
+    );
+
+    expect(status).toEqual(200);
+    expect(data).toStrictEqual({ partnerId: application.partnerId });
+    await expectApplicationState(application, {
+      enrollmentStatus: "approved",
+      rejectionReason: null,
+    });
+  });
+
+  test("POST /partners/applications/reject – legacy alias of POST /program-applications/reject", async ({
+    api,
+  }) => {
+    const application = applications[3]!;
+
+    const { status, data } = await api.post<{ partnerId: string }>(
+      "/api/partners/applications/reject",
+      {
+        partnerId: application.partnerId,
+        rejectionReason: "other",
+        rejectionNote: REJECTION_NOTE,
+        reapplicationTimeframe: "standard",
+      },
+    );
+
+    expect(status).toEqual(200);
+    expect(data).toStrictEqual({ partnerId: application.partnerId });
+    await expectApplicationState(application, {
+      enrollmentStatus: "rejected",
+      rejectionReason: "other",
     });
   });
 });

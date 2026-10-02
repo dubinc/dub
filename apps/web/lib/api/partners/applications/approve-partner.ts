@@ -8,13 +8,13 @@ import {
 import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
 import { throwIfPartnersLimitExceeded } from "../../../partners/throw-if-partners-limit-exceeded";
-import { approvePartnerSchema } from "../../../zod/schemas/partners";
+import { approveProgramApplicationSchema } from "../../../zod/schemas/program-application";
 import { trackActivityLog } from "../../activity-log/track-activity-log";
 import { DubApiError } from "../../errors";
 import { getGroupOrThrow } from "../../groups/get-group-or-throw";
 import { queuePartnerSearchSync } from "../queue-partner-search-sync";
 
-type ApprovePartnerInput = z.infer<typeof approvePartnerSchema> & {
+type ApprovePartnerInput = z.infer<typeof approveProgramApplicationSchema> & {
   programId: string;
   userId: string;
 };

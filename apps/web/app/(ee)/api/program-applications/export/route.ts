@@ -20,7 +20,7 @@ const applicationsExportQuerySchema = z.object({
     .transform((v) => v?.split(",")),
 });
 
-// GET /api/programs/[programId]/applications/export – export applications to CSV
+// GET /api/program-applications/export – export applications to CSV
 export const GET = withWorkspace(
   async ({ searchParams, workspace }) => {
     const programId = getDefaultProgramIdOrThrow(workspace);

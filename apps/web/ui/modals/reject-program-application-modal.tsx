@@ -5,10 +5,8 @@ import {
 } from "@/lib/partners/program-application-rejection";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { PartnerProps } from "@/lib/types";
-import {
-  MAX_FRAUD_REASON_LENGTH,
-  PROGRAM_APPLICATION_REJECTION_NOTE_MAX_LENGTH,
-} from "@/lib/zod/schemas/partners";
+import { MAX_FRAUD_REASON_LENGTH } from "@/lib/zod/schemas/partners";
+import { PROGRAM_APPLICATION_REJECTION_NOTE_MAX_LENGTH } from "@/lib/zod/schemas/program-application";
 import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import {
   Button,

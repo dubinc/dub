@@ -1,12 +1,12 @@
 "use server";
 
 import { rejectPartner } from "@/lib/api/partners/applications/reject-partner";
-import { rejectPartnerSchema } from "@/lib/zod/schemas/partners";
+import { rejectProgramApplicationSchema } from "@/lib/zod/schemas/program-application";
 import * as z from "zod/v4";
 import { authActionClient } from "../safe-action";
 import { throwIfNoPermission } from "../throw-if-no-permission";
 
-const inputSchema = rejectPartnerSchema.extend({
+const inputSchema = rejectProgramApplicationSchema.extend({
   workspaceId: z.string(),
 });
 

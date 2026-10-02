@@ -98,7 +98,7 @@ export function ProgramApplicationDetails({
   const { data: historyData, isLoading: historyLoading } =
     useSWR<ApplicationHistoryResponse>(
       program && workspaceId && partnerId
-        ? `/api/partners/applications/history?partnerId=${encodeURIComponent(partnerId)}&workspaceId=${workspaceId}`
+        ? `/api/program-applications/history?partnerId=${encodeURIComponent(partnerId)}&workspaceId=${workspaceId}`
         : null,
       fetcher,
     );
@@ -139,7 +139,7 @@ export function ProgramApplicationDetails({
     program &&
     workspaceId &&
     resolvedApplicationId &&
-    `/api/partners/applications/${resolvedApplicationId}?workspaceId=${workspaceId}`;
+    `/api/program-applications/${resolvedApplicationId}?workspaceId=${workspaceId}`;
 
   const { data: application, isLoading: applicationLoading } =
     useSWR<ProgramApplication>(applicationKey, fetcher);

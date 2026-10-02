@@ -8,7 +8,7 @@ import { trackApplicationEvents } from "@/lib/application-events/update-applicat
 import { dispatchWorkflows } from "@/lib/jobs/publish-workflows";
 import { throwIfPartnersLimitExceeded } from "@/lib/partners/throw-if-partners-limit-exceeded";
 import { prisma } from "@/lib/prisma";
-import { bulkApprovePartnersSchema } from "@/lib/zod/schemas/partners";
+import { bulkApproveProgramApplicationsSchema } from "@/lib/zod/schemas/program-application";
 import {
   ProgramApplicationStatus,
   ProgramEnrollmentStatus,
@@ -17,9 +17,9 @@ import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
 import { throwIfNoPermission } from "../throw-if-no-permission";
 
-// Approve partners applications in bulk
-export const bulkApprovePartnersAction = authActionClient
-  .inputSchema(bulkApprovePartnersSchema)
+// Approve program applications in bulk
+export const bulkApproveProgramApplicationsAction = authActionClient
+  .inputSchema(bulkApproveProgramApplicationsSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
     const { partnerIds, groupId } = parsedInput;
