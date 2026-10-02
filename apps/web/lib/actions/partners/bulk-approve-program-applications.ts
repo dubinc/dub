@@ -124,6 +124,10 @@ export const bulkApproveProgramApplicationsAction = authActionClient
       }
     });
 
+    const previousEnrollmentStatuses = new Map(
+      programEnrollments.map(({ id, status }) => [id, status]),
+    );
+
     waitUntil(
       (async () => {
         // Refetch the updated program enrollments with the partner
@@ -141,7 +145,7 @@ export const bulkApproveProgramApplicationsAction = authActionClient
 
         await Promise.allSettled([
           trackActivityLog(
-            updatedEnrollments.map(({ partnerId }) => ({
+            updatedEnrollments.map(({ id, partnerId }) => ({
               workspaceId: workspace.id,
               programId: program.id,
               resourceType: "partner",
@@ -150,7 +154,7 @@ export const bulkApproveProgramApplicationsAction = authActionClient
               action: "partner_application.approved",
               changeSet: {
                 status: {
-                  old: "pending",
+                  old: previousEnrollmentStatuses.get(id)!,
                   new: "approved",
                 },
               },

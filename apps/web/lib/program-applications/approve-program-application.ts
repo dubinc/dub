@@ -151,7 +151,7 @@ export async function approveProgramApplication({
         action: "partner_application.approved",
         changeSet: {
           status: {
-            old: ProgramEnrollmentStatus.pending,
+            old: programEnrollment.status,
             new: ProgramEnrollmentStatus.approved,
           },
         },
