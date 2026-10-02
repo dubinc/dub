@@ -6,10 +6,16 @@ const mocks = vi.hoisted(() => ({
   findLead: vi.fn(),
   findComments: vi.fn(),
   enrollment: vi.fn(),
+  workspaceOptions: undefined as unknown,
 }));
 
 // Test the route's access rules. The middleware supplies authentication.
-vi.mock("@/lib/auth", () => ({ withWorkspace: (handler: unknown) => handler }));
+vi.mock("@/lib/auth", () => ({
+  withWorkspace: (handler: unknown, options: unknown) => {
+    mocks.workspaceOptions = options;
+    return handler;
+  },
+}));
 vi.mock("@/lib/auth/partner", () => ({
   withPartnerProfile: (handler: unknown) => handler,
 }));
@@ -116,6 +122,12 @@ describe("submitted lead comment access", () => {
     await expect(readPartnerComments(context)).rejects.toThrow("Not enrolled");
     expect(mocks.findLead).not.toHaveBeenCalled();
     expect(mocks.findComments).not.toHaveBeenCalled();
+  });
+
+  it("requires the messages.read permission on the workspace route", () => {
+    expect(mocks.workspaceOptions).toMatchObject({
+      requiredPermissions: ["messages.read"],
+    });
   });
 
   it("returns private and visible comments to the owning workspace", async () => {

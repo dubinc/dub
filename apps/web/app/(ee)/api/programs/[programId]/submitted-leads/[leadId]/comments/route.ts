@@ -33,6 +33,7 @@ export const GET = withWorkspace(
     );
   },
   {
+    requiredPermissions: ["messages.read"],
     requiredPlan: ["business", "advanced", "enterprise"],
   },
 );
