@@ -62,7 +62,7 @@ export function AccountTypeSelector() {
                 />
               ) : (
                 <a
-                  href={PARTNERS_DOMAIN}
+                  href={`${PARTNERS_DOMAIN}/onboarding`}
                   className={cn(
                     buttonVariants({ variant: "primary" }),
                     "flex h-9 items-center justify-center whitespace-nowrap rounded-lg border px-4 text-sm",
