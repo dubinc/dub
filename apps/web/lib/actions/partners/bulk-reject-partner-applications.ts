@@ -9,7 +9,10 @@ import { prisma } from "@/lib/prisma";
 import { bulkRejectPartnersSchema } from "@/lib/zod/schemas/partners";
 import { sendBatchEmail } from "@dub/email";
 import PartnerApplicationRejected from "@dub/email/templates/partner-application-rejected";
-import { ProgramEnrollmentStatus } from "@prisma/client";
+import {
+  ProgramApplicationStatus,
+  ProgramEnrollmentStatus,
+} from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
 import { throwIfNoPermission } from "../throw-if-no-permission";
@@ -47,29 +50,37 @@ export const bulkRejectPartnerApplicationsAction = authActionClient
       return;
     }
 
-    const applicationIds = programEnrollments
-      .map(({ applicationId }) => applicationId)
-      .filter((id): id is string => Boolean(id));
-
     const reviewedAt = new Date();
 
-    await prisma.$transaction(async (tx) => {
-      await tx.programEnrollment.updateMany({
-        where: {
-          id: {
-            in: programEnrollments.map(({ id }) => id),
+    const rejectedEnrollmentIds = await prisma.$transaction(async (tx) => {
+      const transitionedIds = new Set<string>();
+
+      for (const { id } of programEnrollments) {
+        const { count } = await tx.programEnrollment.updateMany({
+          where: {
+            id,
+            status: ProgramEnrollmentStatus.pending,
           },
-        },
-        data: {
-          status: ProgramEnrollmentStatus.rejected,
-          clickRewardId: null,
-          leadRewardId: null,
-          saleRewardId: null,
-          referralRewardId: null,
-          customRewardId: null,
-          discountId: null,
-        },
-      });
+          data: {
+            status: ProgramEnrollmentStatus.rejected,
+            clickRewardId: null,
+            leadRewardId: null,
+            saleRewardId: null,
+            referralRewardId: null,
+            customRewardId: null,
+            discountId: null,
+          },
+        });
+
+        if (count > 0) {
+          transitionedIds.add(id);
+        }
+      }
+
+      const applicationIds = programEnrollments
+        .filter(({ id }) => transitionedIds.has(id))
+        .map(({ applicationId }) => applicationId)
+        .filter((id): id is string => Boolean(id));
 
       if (applicationIds.length > 0) {
         await tx.programApplication.updateMany({
@@ -79,6 +90,7 @@ export const bulkRejectPartnerApplicationsAction = authActionClient
             },
           },
           data: {
+            status: ProgramApplicationStatus.rejected,
             reviewedAt,
             rejectionReason: null,
             rejectionNote: null,
@@ -86,18 +98,29 @@ export const bulkRejectPartnerApplicationsAction = authActionClient
           },
         });
       }
+
+      return transitionedIds;
     });
+
+    // Find the rejected enrollments
+    const rejectedEnrollments = programEnrollments.filter(({ id }) =>
+      rejectedEnrollmentIds.has(id),
+    );
+
+    if (rejectedEnrollments.length === 0) {
+      return;
+    }
 
     waitUntil(
       (async () => {
         await Promise.allSettled([
           // Queue an index update because the enrollment statuses moved to rejected
           queuePartnerSearchSync({
-            enrollmentIds: programEnrollments.map(({ id }) => id),
+            enrollmentIds: rejectedEnrollments.map(({ id }) => id),
           }),
 
           trackActivityLog(
-            programEnrollments.map(({ partner }) => ({
+            rejectedEnrollments.map(({ partner }) => ({
               workspaceId: workspace.id,
               programId,
               resourceType: "partner",
@@ -117,7 +140,7 @@ export const bulkRejectPartnerApplicationsAction = authActionClient
             where: {
               programEnrollment: {
                 id: {
-                  in: programEnrollments.map(({ id }) => id),
+                  in: rejectedEnrollments.map(({ id }) => id),
                 },
               },
             },
@@ -129,7 +152,7 @@ export const bulkRejectPartnerApplicationsAction = authActionClient
           trackApplicationEvents({
             event: "rejected",
             programId,
-            partnerIds: programEnrollments.map(({ partner }) => partner.id),
+            partnerIds: rejectedEnrollments.map(({ partner }) => partner.id),
           }),
         ]);
 
@@ -144,7 +167,7 @@ export const bulkRejectPartnerApplicationsAction = authActionClient
           },
         });
 
-        const partnersWithEmail = programEnrollments
+        const partnersWithEmail = rejectedEnrollments
           .filter(({ partner }) => partner.email)
           .map(({ partner }) => partner);
 

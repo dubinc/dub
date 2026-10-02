@@ -4,6 +4,7 @@ import { Partner, Program } from "@prisma/client";
 
 import { createId } from "../api/create-id";
 import { queuePartnerSearchSync } from "../api/partners/queue-partner-search-sync";
+import { approveLinkedApplication } from "../program-applications/approve-linked-application";
 import { logImportError } from "../tinybird/log-import-error";
 import { DEFAULT_PARTNER_GROUP } from "../zod/schemas/groups";
 import { ToltApi } from "./api";
@@ -162,7 +163,7 @@ async function createPartner({
     },
   });
 
-  await prisma.programEnrollment.upsert({
+  const { applicationId } = await prisma.programEnrollment.upsert({
     where: {
       partnerId_programId: {
         partnerId: partner.id,
@@ -179,6 +180,13 @@ async function createPartner({
     update: {
       status: "approved",
     },
+    select: {
+      applicationId: true,
+    },
+  });
+
+  await approveLinkedApplication({
+    applicationId,
   });
 
   return partner;

@@ -4,6 +4,7 @@ import { sendEmail } from "@dub/email";
 import PartnerApplicationRejected from "@dub/email/templates/partner-application-rejected";
 import {
   ProgramApplicationRejectionReason,
+  ProgramApplicationStatus,
   ProgramEnrollmentStatus,
 } from "@prisma/client";
 import { resolveFraudGroups } from "../../fraud/resolve-fraud-groups";
@@ -81,6 +82,7 @@ export async function rejectPendingEnrollment({
           id: programEnrollment.applicationId,
         },
         data: {
+          status: ProgramApplicationStatus.rejected,
           reviewedAt: new Date(),
           rejectionReason,
           rejectionNote: null,

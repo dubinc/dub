@@ -9,8 +9,8 @@ import { getIP } from "@/lib/api/utils/get-ip";
 import { markApplicationEventSubmitted } from "@/lib/application-events/update-application-event";
 import { getApplicationEventCookieName } from "@/lib/application-events/utils";
 import { getSession } from "@/lib/auth";
-import { qstash } from "@/lib/cron";
 import { autoRejectPartnerJob } from "@/lib/jobs/handlers/auto-reject-partner-job";
+import { programApplicationReminderJob } from "@/lib/jobs/handlers/program-application-reminder-job";
 import { getNetworkProfileChecklistProgress } from "@/lib/network/get-network-profile-checklist-progress";
 import { dispatchPartnerApplicationReview } from "@/lib/partners/dispatch-partner-application-review";
 import { evaluateApplicationRequirements } from "@/lib/partners/evaluate-application-requirements";
@@ -29,7 +29,6 @@ import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { partnerApplicationWebhookSchema } from "@/lib/zod/schemas/program-application";
 import { programApplicationFormWebsiteAndSocialsFieldWithValueSchema } from "@/lib/zod/schemas/program-application-form";
 import { createProgramApplicationSchema } from "@/lib/zod/schemas/programs";
-import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import {
   Partner,
   PartnerGroup,
@@ -229,13 +228,14 @@ export const createProgramApplicationAction = actionClient
       group,
     });
 
-    await qstash.publishJSON({
-      url: `${APP_DOMAIN_WITH_NGROK}/api/cron/program-application-reminder`,
-      delay: 15 * 60, // 15 minutes
-      body: {
+    await programApplicationReminderJob.dispatch(
+      {
         applicationId: application.programApplicationId,
       },
-    });
+      {
+        delay: 15 * 60, // 15 minutes
+      },
+    );
 
     return application;
   });
@@ -299,6 +299,7 @@ async function createApplicationAndEnrollment({
         ...sanitizeData(data, group),
         id: applicationId,
         programId: program.id,
+        partnerId: partner.id,
         groupId: group.id,
       },
     }),

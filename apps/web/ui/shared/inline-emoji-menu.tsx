@@ -21,6 +21,11 @@ import {
   useRef,
   useState,
 } from "react";
+import {
+  DUB_EMOJI_MATCHES,
+  normalizeEmojiQuery,
+  useSemanticEmojiSearch,
+} from "./use-semantic-emoji-search";
 
 type EmojiShortcode = {
   emoji: string;
@@ -121,14 +126,34 @@ export const InlineEmojiAutocomplete = forwardRef<
   const menuRef = useRef<HTMLDivElement | null>(null);
 
   const query = token?.query ?? "";
-  const results = useMemo(
-    () =>
-      token && !dismissed && !suspended ? searchEmojiShortcodes(query) : [],
-    [token, dismissed, suspended, query],
+  const normalizedQuery = normalizeEmojiQuery(query);
+  const menuActive = Boolean(token && !dismissed && !suspended);
+  const showDub = menuActive && normalizedQuery === "dub";
+  const localResults = useMemo(
+    () => (menuActive && !showDub ? searchEmojiShortcodes(query) : []),
+    [menuActive, showDub, query],
   );
-  const open = results.length > 0;
-  const activeIndexClamped = results.length
-    ? Math.min(activeIndex, results.length - 1)
+  const semantic = useSemanticEmojiSearch(
+    query,
+    menuActive && !showDub && localResults.length === 0,
+  );
+  const suggestions = showDub
+    ? DUB_EMOJI_MATCHES
+    : localResults.length > 0
+      ? localResults.map((item) => ({
+          emoji: item.emoji,
+          label: item.shortcode,
+        }))
+      : semantic.matches;
+  const loading =
+    menuActive &&
+    !showDub &&
+    localResults.length === 0 &&
+    semantic.status === "loading";
+  const open =
+    showDub || localResults.length > 0 || loading || suggestions.length > 0;
+  const activeIndexClamped = suggestions.length
+    ? Math.min(activeIndex, suggestions.length - 1)
     : 0;
   const activeOptionId = `${listboxId}-option-${activeIndexClamped}`;
 
@@ -236,7 +261,9 @@ export const InlineEmojiAutocomplete = forwardRef<
     dom.setAttribute("aria-controls", listboxId);
     dom.setAttribute("aria-expanded", "true");
     dom.setAttribute("aria-autocomplete", "list");
-    dom.setAttribute("aria-activedescendant", activeOptionId);
+    if (suggestions.length > 0) {
+      dom.setAttribute("aria-activedescendant", activeOptionId);
+    }
 
     return () => {
       dom.removeAttribute("aria-controls");
@@ -244,10 +271,10 @@ export const InlineEmojiAutocomplete = forwardRef<
       dom.removeAttribute("aria-autocomplete");
       dom.removeAttribute("aria-activedescendant");
     };
-  }, [open, editor, listboxId, activeOptionId]);
+  }, [open, editor, listboxId, activeOptionId, suggestions.length]);
 
   const selectIndex = (index: number) => {
-    const next = results[index];
+    const next = suggestions[index];
     if (!next || !editor || !token) return;
 
     editor
@@ -264,9 +291,19 @@ export const InlineEmojiAutocomplete = forwardRef<
       onKeyDown: (event) => {
         if (!open || event.isComposing) return false;
 
+        if (suggestions.length === 0) {
+          if (event.key === "Escape") {
+            event.preventDefault();
+            setDismissed(true);
+            return true;
+          }
+
+          return false;
+        }
+
         if (event.key === "ArrowDown") {
           event.preventDefault();
-          const next = (activeIndexRef.current + 1) % results.length;
+          const next = (activeIndexRef.current + 1) % suggestions.length;
           activeIndexRef.current = next;
           setActiveIndex(next);
           return true;
@@ -275,7 +312,8 @@ export const InlineEmojiAutocomplete = forwardRef<
         if (event.key === "ArrowUp") {
           event.preventDefault();
           const next =
-            (activeIndexRef.current - 1 + results.length) % results.length;
+            (activeIndexRef.current - 1 + suggestions.length) %
+            suggestions.length;
           activeIndexRef.current = next;
           setActiveIndex(next);
           return true;
@@ -288,7 +326,7 @@ export const InlineEmojiAutocomplete = forwardRef<
           event.preventDefault();
           const index = Math.min(
             activeIndexRef.current,
-            Math.max(results.length - 1, 0),
+            Math.max(suggestions.length - 1, 0),
           );
           selectIndex(index);
           return true;
@@ -303,7 +341,7 @@ export const InlineEmojiAutocomplete = forwardRef<
         return false;
       },
     }),
-    [open, results, editor, token],
+    [open, suggestions, editor, token],
   );
 
   if (!open) return null;
@@ -322,37 +360,59 @@ export const InlineEmojiAutocomplete = forwardRef<
         onMouseDown={(event) => event.preventDefault()}
         className="border-border-subtle bg-bg-default z-[60] flex max-h-52 w-max min-w-40 max-w-[min(18rem,calc(100vw-16px))] flex-col overflow-y-auto rounded-lg border p-1 shadow-sm"
       >
-        {results.map((item, index) => {
-          const selected = index === activeIndexClamped;
+        {loading ? (
+          <>
+            <div role="status" aria-live="polite" className="sr-only">
+              Loading emojis
+            </div>
+            <div aria-hidden className="flex flex-col">
+              {Array.from({ length: 5 }, (_, index) => (
+                <div
+                  key={index}
+                  className="flex items-center gap-2 px-2 py-1.5"
+                >
+                  <span className="size-5 shrink-0 animate-pulse rounded-md bg-neutral-200/80 motion-reduce:animate-none" />
+                  <span
+                    className="h-3.5 max-w-40 animate-pulse rounded-md bg-neutral-200/80 motion-reduce:animate-none"
+                    style={{ width: `${56 + (index % 3) * 28}px` }}
+                  />
+                </div>
+              ))}
+            </div>
+          </>
+        ) : (
+          suggestions.map((item, index) => {
+            const selected = index === activeIndexClamped;
 
-          return (
-            <button
-              key={item.shortcode}
-              id={`${listboxId}-option-${index}`}
-              type="button"
-              role="option"
-              aria-selected={selected}
-              data-index={index}
-              data-selected={selected}
-              onPointerEnter={() => {
-                activeIndexRef.current = index;
-                setActiveIndex(index);
-              }}
-              onClick={() => selectIndex(index)}
-              className={cn(
-                "flex w-full cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm",
-                "data-[selected=true]:bg-bg-subtle",
-              )}
-            >
-              <span className="w-5 shrink-0 text-center text-base leading-none">
-                {item.emoji}
-              </span>
-              <span className="text-content-subtle truncate">
-                {item.shortcode}
-              </span>
-            </button>
-          );
-        })}
+            return (
+              <button
+                key={`${item.label}-${item.emoji}`}
+                id={`${listboxId}-option-${index}`}
+                type="button"
+                role="option"
+                aria-selected={selected}
+                data-index={index}
+                data-selected={selected}
+                onPointerEnter={() => {
+                  activeIndexRef.current = index;
+                  setActiveIndex(index);
+                }}
+                onClick={() => selectIndex(index)}
+                className={cn(
+                  "flex w-full cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm",
+                  "data-[selected=true]:bg-bg-subtle",
+                )}
+              >
+                <span className="w-5 shrink-0 text-center text-base leading-none">
+                  {item.emoji}
+                </span>
+                <span className="text-content-subtle truncate">
+                  {item.label}
+                </span>
+              </button>
+            );
+          })
+        )}
       </div>
     </FloatingPortal>
   );

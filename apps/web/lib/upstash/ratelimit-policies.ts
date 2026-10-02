@@ -330,4 +330,11 @@ export const RATELIMIT_POLICIES = {
     keyPrefix: "rl:domains:search-availability",
     message: "Don't DDoS me pls 🥺",
   },
+
+  emojiSearch: {
+    attempts: 30,
+    window: "10 s",
+    keyPrefix: "rl:ai:emoji-search",
+    message: "You've been rate limited. Please try again later.",
+  },
 } as const satisfies Record<string, RatelimitPolicy>;
