@@ -106,6 +106,7 @@ const adminUpdatePartnerSchema = z.object({
   country: z.enum(Object.keys(COUNTRIES) as [string, ...string[]]),
 });
 
+// PATCH /api/admin/partners/[partnerId] – update the partner country
 export const PATCH = withAdmin(async ({ params, req }) => {
   const { partnerId } = params;
   const { country } = adminUpdatePartnerSchema.parse(await req.json());
