@@ -97,9 +97,9 @@ export function ApplicationsShell({ children }: { children: ReactNode }) {
         </AnimatedSizeContainer>
       </div>
 
-      <div className="border-border-subtle overflow-hidden rounded-xl border bg-neutral-100">
+      <div className="border-border-subtle overflow-clip rounded-xl border bg-neutral-100">
         <ApplicationsNav />
-        <div className="border-border-subtle -mx-px -mb-px overflow-hidden rounded-xl border bg-white">
+        <div className="border-border-subtle -mx-px -mb-px overflow-clip rounded-xl border bg-white">
           {children}
         </div>
       </div>

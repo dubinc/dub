@@ -1,13 +1,13 @@
 import { formatApplicationFormData } from "@/lib/partners/format-application-form-data";
 import { prisma } from "@/lib/prisma";
 import { buildSocialPlatformLookup } from "@/lib/social-utils";
-import { getPartnerApplicationsQuerySchema } from "@/lib/zod/schemas/program-application";
+import { getProgramApplicationsQuerySchema } from "@/lib/zod/schemas/program-application";
 import { Prisma, ProgramApplicationStatus } from "@prisma/client";
 import * as z from "zod/v4";
 import { buildProgramApplicationWhere } from "./program-application-where";
 
 type ListProgramApplicationsParams = z.infer<
-  typeof getPartnerApplicationsQuerySchema
+  typeof getProgramApplicationsQuerySchema
 > & {
   programId: string;
 };

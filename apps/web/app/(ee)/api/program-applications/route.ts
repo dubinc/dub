@@ -2,7 +2,7 @@ import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-progr
 import { withWorkspace } from "@/lib/auth";
 import { listProgramApplications } from "@/lib/program-applications/list-program-applications";
 import {
-  getPartnerApplicationsQuerySchema,
+  getProgramApplicationsQuerySchema,
   ProgramApplicationSchema,
 } from "@/lib/zod/schemas/program-application";
 import { NextResponse } from "next/server";
@@ -12,7 +12,7 @@ import * as z from "zod/v4";
 export const GET = withWorkspace(
   async ({ workspace, searchParams }) => {
     const { country, groupId, status, search, sortOrder, page, pageSize } =
-      getPartnerApplicationsQuerySchema.parse(searchParams);
+      getProgramApplicationsQuerySchema.parse(searchParams);
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 

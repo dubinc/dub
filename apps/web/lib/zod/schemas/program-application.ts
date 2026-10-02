@@ -76,7 +76,7 @@ export const ProgramApplicationSchema = PartnerApplicationSchema.extend({
 
 export const partnerApplicationWebhookSchema = PartnerApplicationSchema;
 
-export const getPartnerApplicationsQuerySchema = getPartnersQuerySchema
+export const getProgramApplicationsQuerySchema = getPartnersQuerySchema
   .pick({
     country: true,
     groupId: true,
@@ -101,7 +101,7 @@ export const getPartnerApplicationsQuerySchema = getPartnersQuerySchema
   });
 
 export const getProgramApplicationsCountQuerySchema =
-  getPartnerApplicationsQuerySchema
+  getProgramApplicationsQuerySchema
     .omit({
       sortOrder: true,
       page: true,

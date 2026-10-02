@@ -1,6 +1,6 @@
 import { openApiErrorResponses } from "@/lib/openapi/responses";
 import {
-  getPartnerApplicationsQuerySchema,
+  getProgramApplicationsQuerySchema,
   ProgramApplicationSchema,
 } from "@/lib/zod/schemas/program-application";
 import { ZodOpenApiOperationObject } from "zod-openapi";
@@ -13,7 +13,7 @@ export const listProgramApplications: ZodOpenApiOperationObject = {
   description:
     "Retrieve a paginated list of applications for your partner program. Filter by `status` to list pending, approved, or rejected applications.",
   requestParams: {
-    query: getPartnerApplicationsQuerySchema,
+    query: getProgramApplicationsQuerySchema,
   },
   responses: {
     "200": {
