@@ -84,5 +84,4 @@ model Commission {
   @@index(rewardId)
   @@index(userId)
   @@index(bountySubmissionId)
-  @@index([status, payoutId, source]) // temp index for migration script
 }

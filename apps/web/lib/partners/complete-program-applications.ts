@@ -3,7 +3,7 @@ import { pluck } from "@dub/utils";
 import { PlatformType, Prisma } from "@prisma/client";
 import { createId } from "../api/create-id";
 import { detectAndRecordFraudApplication } from "../api/fraud/detect-record-fraud-application";
-import { notifyPartnerApplication } from "../api/partners/notify-partner-application";
+import { notifyProgramApplication } from "../api/partners/notify-program-application";
 import { queuePartnerSearchSync } from "../api/partners/queue-partner-search-sync";
 import { markApplicationEventSubmitted } from "../application-events/update-application-event";
 import { autoApprovePartnerJob } from "../jobs/handlers/auto-approve-partner-job";
@@ -217,7 +217,7 @@ export async function completeProgramApplications(userEmail: string) {
       await Promise.allSettled([
         ...(validApplication
           ? [
-              notifyPartnerApplication({
+              notifyProgramApplication({
                 partner,
                 program,
                 group,

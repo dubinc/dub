@@ -1,4 +1,4 @@
-import { withdrawPartnerApplicationAction } from "@/lib/actions/partners/withdraw-partner-application";
+import { withdrawProgramApplicationAction } from "@/lib/actions/partners/withdraw-program-application";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import { ProgramEnrollmentProps } from "@/lib/types";
 import { PageContent } from "@/ui/layout/page-content";
@@ -58,7 +58,7 @@ export function UnapprovedProgramPage({
     confirmText: "Withdraw application",
     onConfirm: async () => {
       try {
-        await withdrawPartnerApplicationAction({
+        await withdrawProgramApplicationAction({
           programId: programEnrollment.programId,
         });
         mutatePrefix("/api/partner-profile/programs");

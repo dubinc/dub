@@ -45,13 +45,13 @@ import { CircleMinus } from "lucide-react";
 import Link from "next/link";
 import { Fragment, ReactNode, createElement, useState } from "react";
 import useSWR from "swr";
-import { PartnerApplicationRiskSummary } from "./fraud-risks/partner-application-risk-summary";
 import { PartnerNetworkActivitySummary } from "./fraud-risks/partner-network-activity-summary";
 import {
-  PartnerApplicationRiskBanner,
   PartnerRiskBanner,
+  ProgramApplicationRiskBanner,
 } from "./fraud-risks/partner-risk-banner";
 import { PartnerRiskIndicator } from "./fraud-risks/partner-risk-indicator";
+import { ProgramApplicationRiskSummary } from "./fraud-risks/program-application-risk-summary";
 import { PartnerAvatar } from "./partner-avatar";
 import { PartnerInfoGroup } from "./partner-info-group";
 import { PartnerNetworkStatusBadge } from "./partner-network/partner-network-status-badge";
@@ -71,6 +71,7 @@ import {
 const MAX_VISIBLE_BOUNTIES = 3;
 
 type PartnerInfoCardsProps = {
+  hideChangeGroupButton?: boolean;
   showFraudIndicator?: boolean;
   showApplicationRiskAnalysis?: boolean;
   controls?: ReactNode;
@@ -104,6 +105,7 @@ export function PartnerInfoCards({
   hideStatuses = [],
   selectedGroupId,
   setSelectedGroupId,
+  hideChangeGroupButton = false,
   showFraudIndicator = true,
   showApplicationRiskAnalysis = false,
 }: PartnerInfoCardsProps) {
@@ -294,7 +296,7 @@ export function PartnerInfoCards({
         {partner &&
           isEnrolled &&
           (partner.status === "pending" ? (
-            <PartnerApplicationRiskBanner partner={partner} />
+            <ProgramApplicationRiskBanner partner={partner} />
           ) : (
             <PartnerRiskBanner partner={partner} />
           ))}
@@ -418,7 +420,7 @@ export function PartnerInfoCards({
           {isEnrolled && partner && <TagsList partner={partner} />}
 
           {partner && isEnrolled && showApplicationRiskAnalysis && (
-            <PartnerApplicationRiskSummary partner={partner} />
+            <ProgramApplicationRiskSummary partner={partner} />
           )}
           {partner &&
             isEnrolled &&
@@ -461,8 +463,9 @@ export function PartnerInfoCards({
                 partner={partner}
                 changeButtonText="Change"
                 hideChangeButton={
-                  "status" in partner &&
-                  INACTIVE_ENROLLMENT_STATUSES.includes(partner.status)
+                  hideChangeGroupButton ||
+                  ("status" in partner &&
+                    INACTIVE_ENROLLMENT_STATUSES.includes(partner.status))
                 }
                 className="rounded-lg bg-white shadow-sm"
                 selectedGroupId={selectedGroupId}

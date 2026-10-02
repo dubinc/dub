@@ -3,6 +3,7 @@
 import { clientAccessCheck } from "@/lib/client-access-check";
 import { usePartnerMessagesCount } from "@/lib/messages/hooks/use-partner-messages-count";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
+import { useProgramApplicationsCount } from "@/lib/program-applications/hooks/use-program-applications-count";
 import { SUBMITTED_LEADS_ENABLED_PROGRAM_IDS } from "@/lib/submitted-leads/constants";
 import {
   SubmissionsCountByStatus,
@@ -67,7 +68,6 @@ import { User } from "./icons/user";
 import { SidebarNav, SidebarNavAreas, SidebarNavGroups } from "./sidebar-nav";
 import { SidebarUsage } from "./sidebar-usage";
 import { SpecialNewsContent } from "./special-news-content";
-import { useProgramApplicationsCount } from "./use-program-applications-count";
 import { WorkspaceDropdown } from "./workspace-dropdown";
 
 type SidebarNavData = {
@@ -598,9 +598,13 @@ export function AppSidebarNav({
     enabled: Boolean(currentArea === "program" && defaultProgramId),
   });
 
-  const applicationsCount = useProgramApplicationsCount({
-    enabled: Boolean(currentArea === "program" && defaultProgramId),
-  });
+  const { applicationsCount } = useProgramApplicationsCount<number | undefined>(
+    {
+      status: "pending",
+      ignoreParams: true,
+      enabled: Boolean(currentArea === "program" && defaultProgramId),
+    },
+  );
 
   const { submissionsCount } = useBountySubmissionsCount<
     SubmissionsCountByStatus[]
