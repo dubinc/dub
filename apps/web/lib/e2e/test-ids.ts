@@ -9,6 +9,7 @@ export const testIds = {
   },
   onboarding: {
     getStarted: "onboarding-get-started",
+    continueAsPartner: "onboarding-continue-as-partner",
     createWorkspace: "onboarding-create-workspace",
     workspaceName: "onboarding-workspace-name",
     workspaceSlug: "onboarding-workspace-slug",
