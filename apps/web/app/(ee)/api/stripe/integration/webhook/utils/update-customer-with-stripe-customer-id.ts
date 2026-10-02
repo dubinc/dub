@@ -1,26 +1,27 @@
 import { prisma } from "@/lib/prisma";
 
 export async function updateCustomerWithStripeCustomerId({
-  stripeAccountId,
+  workspaceId,
   dubCustomerExternalId,
   stripeCustomerId,
 }: {
-  stripeAccountId?: string | null;
+  workspaceId: string;
   dubCustomerExternalId: string;
   stripeCustomerId?: string | null;
 }) {
-  // if stripeCustomerId or stripeAccountId is not provided, return null
-  // (same logic as in getConnectedCustomer)
-  if (!stripeCustomerId || !stripeAccountId) {
+  // if stripeCustomerId is not provided, return null
+  if (!stripeCustomerId) {
     return null;
   }
 
   try {
     // Update customer with stripeCustomerId if exists – for future events
+    // Match on projectId, not projectConnectId. projectConnectId is null for
+    // customers that were created before the workspace connected Stripe.
     return await prisma.customer.update({
       where: {
-        projectConnectId_externalId: {
-          projectConnectId: stripeAccountId,
+        projectId_externalId: {
+          projectId: workspaceId,
           externalId: dubCustomerExternalId,
         },
       },

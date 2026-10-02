@@ -196,7 +196,7 @@ export async function checkoutSessionCompleted({
   */
     if (dubCustomerExternalId) {
       customer = await updateCustomerWithStripeCustomerId({
-        stripeAccountId,
+        workspaceId: workspace.id,
         dubCustomerExternalId,
         stripeCustomerId,
       });
@@ -263,7 +263,7 @@ export async function checkoutSessionCompleted({
         if (connectedCustomerDubCustomerExternalId) {
           dubCustomerExternalId = connectedCustomerDubCustomerExternalId;
           customer = await updateCustomerWithStripeCustomerId({
-            stripeAccountId,
+            workspaceId: workspace.id,
             dubCustomerExternalId,
             stripeCustomerId,
           });
