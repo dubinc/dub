@@ -23,6 +23,7 @@ import { cn, formatFileSize, nFormatter } from "@dub/utils";
 import { File, Paperclip, X } from "lucide-react";
 import {
   DragEvent,
+  ReactNode,
   useCallback,
   useEffect,
   useMemo,
@@ -53,6 +54,8 @@ export function MessageInput({
   placeholder = "Type a message...",
   sendButtonText = "Send",
   className,
+  inputClassName,
+  actions,
   attachments = [],
   onAddFiles,
   onRemoveAttachment,
@@ -69,6 +72,8 @@ export function MessageInput({
   placeholder?: string;
   sendButtonText?: string;
   className?: string;
+  inputClassName?: string;
+  actions?: ReactNode;
   attachments?: PendingAttachment[];
   onAddFiles?: (files: File[]) => void;
   onRemoveAttachment?: (id: string) => void;
@@ -248,7 +253,7 @@ export function MessageInput({
           },
         }}
       >
-        <div className="relative">
+        <div className={cn("relative", inputClassName)}>
           <RichTextArea />
           <MessageInputEditorOverflowFades />
           <InlineEmojiAutocomplete
@@ -280,6 +285,7 @@ export function MessageInput({
             }
           />
           <div className="flex items-center justify-between gap-2">
+            {actions}
             {onCancel && (
               <Button
                 variant="secondary"
