@@ -1,7 +1,7 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { prisma } from "@/lib/prisma";
-import { getSubmittedLeadCommentNotificationBatch } from "@/lib/submitted-leads/submitted-lead-comment-notifications";
+import { getSubmittedLeadCommentsToNotify } from "@/lib/submitted-leads/submitted-lead-comment-notifications";
 import { getCompanyLogoUrl } from "@/ui/submitted-leads/submitted-lead-utils";
 import { sendBatchEmail } from "@dub/email";
 import NewSubmittedLeadCommentsFromPartner from "@dub/email/templates/new-submitted-lead-comments-from-partner";
@@ -15,6 +15,7 @@ export const dynamic = "force-dynamic";
 const schema = z.object({
   leadId: z.string(),
   lastCommentId: z.string(),
+  lastCommentCreatedAt: z.coerce.date(),
 });
 
 // POST /api/cron/submitted-leads/comments/notify-program
@@ -28,7 +29,9 @@ export async function POST(req: Request) {
       rawBody,
     });
 
-    const { leadId, lastCommentId } = schema.parse(JSON.parse(rawBody));
+    const { leadId, lastCommentId, lastCommentCreatedAt } = schema.parse(
+      JSON.parse(rawBody),
+    );
 
     const lead = await prisma.submittedLead.findUniqueOrThrow({
       where: {
@@ -59,6 +62,7 @@ export async function POST(req: Request) {
             partnerId: {
               not: null, // written by the partner
             },
+            notifiedAt: null,
             createdAt: {
               gt: subDays(new Date(), 3),
             },
@@ -74,14 +78,19 @@ export async function POST(req: Request) {
       },
     });
 
-    if (lead.comments.length === 0)
+    const comments = getSubmittedLeadCommentsToNotify({
+      unsentComments: lead.comments,
+      lastCommentCreatedAt,
+    });
+
+    if (!comments)
       return logAndRespond(
-        `No comments from the partner found on lead ${leadId}. Skipping...`,
+        `There is an unsent comment newer than ${lastCommentId}. Skipping...`,
       );
 
-    if (lead.comments[0].id !== lastCommentId)
+    if (comments.length === 0)
       return logAndRespond(
-        `There is a more recent comment than ${lastCommentId}. Skipping...`,
+        `No unsent comments found on lead ${leadId}. Skipping...`,
       );
 
     const { workspace } = lead.program;
@@ -92,56 +101,66 @@ export async function POST(req: Request) {
       email: string;
     }[];
 
-    if (usersToNotify.length === 0)
-      return logAndRespond(
-        `No workspace emails to notify for lead ${leadId}. Skipping...`,
-      );
-
-    const comments = getSubmittedLeadCommentNotificationBatch(lead.comments);
     const { partner } = lead;
 
-    const { error } = await sendBatchEmail(
-      usersToNotify.map(({ email }) => ({
-        subject: `${comments.length} submitted lead ${comments.length === 1 ? "comment" : "comments"} from ${partner.name}`,
-        variant: "notifications",
-        to: email,
-        react: NewSubmittedLeadCommentsFromPartner({
-          workspace: {
-            slug: workspace.slug,
-          },
-          partner: {
-            id: partner.id,
-            name: partner.name,
-          },
-          lead: {
-            id: lead.id,
-            name: lead.name,
-            email: lead.email,
-            image: getCompanyLogoUrl(lead.email),
-          },
-          comments: comments.map((comment) => ({
-            text: comment.text,
-            createdAt: comment.createdAt,
-            user: {
-              name: comment.user.name || partner.name,
-              image: comment.user.image || partner.image,
+    if (usersToNotify.length > 0) {
+      const { error } = await sendBatchEmail(
+        usersToNotify.map(({ email }) => ({
+          subject: `${comments.length} submitted lead ${comments.length === 1 ? "comment" : "comments"} from ${partner.name}`,
+          variant: "notifications",
+          to: email,
+          react: NewSubmittedLeadCommentsFromPartner({
+            workspace: {
+              slug: workspace.slug,
             },
-          })),
-          email,
-        }),
-      })),
-      {
-        idempotencyKey: `submitted-lead-comments-program/${lastCommentId}`,
-      },
-    );
-
-    if (error)
-      throw new Error(
-        `Error sending comment emails for lead ${leadId}: ${error.message}`,
+            partner: {
+              id: partner.id,
+              name: partner.name,
+            },
+            lead: {
+              id: lead.id,
+              name: lead.name,
+              email: lead.email,
+              image: getCompanyLogoUrl(lead.email),
+            },
+            comments: comments.map((comment) => ({
+              text: comment.text,
+              createdAt: comment.createdAt,
+              user: {
+                name: comment.user.name || partner.name,
+                image: comment.user.image || partner.image,
+              },
+            })),
+            email,
+          }),
+        })),
+        {
+          idempotencyKey: `submitted-lead-comments-program/${lastCommentId}`,
+        },
       );
 
+      if (error)
+        throw new Error(
+          `Error sending comment emails for lead ${leadId}: ${error.message}`,
+        );
+    }
+
+    await prisma.submittedLeadComment.updateMany({
+      where: {
+        id: {
+          in: comments.map(({ id }) => id),
+        },
+        notifiedAt: null,
+      },
+      data: {
+        notifiedAt: new Date(),
+      },
+    });
+
     return logAndRespond(
-      `Emails sent for comments from partner ${partner.id} on lead ${leadId}.`,
+      usersToNotify.length > 0
+        ? `Emails sent for comments from partner ${partner.id} on lead ${leadId}.`
+        : `No workspace emails to notify for lead ${leadId}. Marked the comments as handled.`,
     );
   } catch (error) {
     await log({

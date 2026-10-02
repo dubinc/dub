@@ -1,7 +1,7 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { prisma } from "@/lib/prisma";
-import { getSubmittedLeadCommentNotificationBatch } from "@/lib/submitted-leads/submitted-lead-comment-notifications";
+import { getSubmittedLeadCommentsToNotify } from "@/lib/submitted-leads/submitted-lead-comment-notifications";
 import { getCompanyLogoUrl } from "@/ui/submitted-leads/submitted-lead-utils";
 import { sendBatchEmail } from "@dub/email";
 import NewSubmittedLeadCommentsFromProgram from "@dub/email/templates/new-submitted-lead-comments-from-program";
@@ -15,6 +15,7 @@ export const dynamic = "force-dynamic";
 const schema = z.object({
   leadId: z.string(),
   lastCommentId: z.string(),
+  lastCommentCreatedAt: z.coerce.date(),
 });
 
 // POST /api/cron/submitted-leads/comments/notify-partner
@@ -28,7 +29,9 @@ export async function POST(req: Request) {
       rawBody,
     });
 
-    const { leadId, lastCommentId } = schema.parse(JSON.parse(rawBody));
+    const { leadId, lastCommentId, lastCommentCreatedAt } = schema.parse(
+      JSON.parse(rawBody),
+    );
 
     const lead = await prisma.submittedLead.findUniqueOrThrow({
       where: {
@@ -54,6 +57,7 @@ export async function POST(req: Request) {
           where: {
             partnerId: null, // not written by the partner
             partnerVisible: true,
+            notifiedAt: null,
             createdAt: {
               gt: subDays(new Date(), 3),
             },
@@ -69,74 +73,89 @@ export async function POST(req: Request) {
       },
     });
 
-    if (lead.comments.length === 0)
+    const comments = getSubmittedLeadCommentsToNotify({
+      unsentComments: lead.comments,
+      lastCommentCreatedAt,
+    });
+
+    if (!comments)
       return logAndRespond(
-        `No comments found for the partner on lead ${leadId}. Skipping...`,
+        `There is an unsent comment newer than ${lastCommentId}. Skipping...`,
       );
 
-    if (lead.comments[0].id !== lastCommentId)
+    if (comments.length === 0)
       return logAndRespond(
-        `There is a more recent comment than ${lastCommentId}. Skipping...`,
+        `No unsent comments found on lead ${leadId}. Skipping...`,
       );
 
     const partnerUsersToNotify = lead.partner.users
       .map(({ user }) => user)
       .filter(({ email }) => Boolean(email)) as { email: string }[];
 
-    if (partnerUsersToNotify.length === 0)
-      return logAndRespond(
-        `No partner emails to notify for partner ${lead.partnerId}. Skipping...`,
-      );
-
-    const comments = getSubmittedLeadCommentNotificationBatch(lead.comments);
     const { program } = lead;
 
-    const { error } = await sendBatchEmail(
-      partnerUsersToNotify.map(({ email }) => ({
-        subject: `${program.name} sent ${comments.length === 1 ? "a comment" : `${comments.length} comments`} for your submitted lead`,
-        variant: "notifications",
-        to: email,
-        replyTo: program.supportEmail || "noreply",
-        react: NewSubmittedLeadCommentsFromProgram({
-          program: {
-            name: program.name,
-            slug: program.slug,
-            logo: program.logo,
-          },
-          lead: {
-            id: lead.id,
-            name: lead.name,
-            email: lead.email,
-            image: getCompanyLogoUrl(lead.email),
-          },
-          comments: comments.map((comment) => ({
-            text: comment.text,
-            createdAt: comment.createdAt,
-            user: comment.user.name
-              ? {
-                  name: comment.user.name,
-                  image: comment.user.image,
-                }
-              : {
-                  name: program.name,
-                  image: program.logo,
-                },
-          })),
-          email,
-        }),
-      })),
-      {
-        idempotencyKey: `submitted-lead-comments-partner/${lastCommentId}`,
-      },
-    );
-
-    if (error)
-      throw new Error(
-        `Error sending comment emails to partner ${lead.partnerId}: ${error.message}`,
+    if (partnerUsersToNotify.length > 0) {
+      const { error } = await sendBatchEmail(
+        partnerUsersToNotify.map(({ email }) => ({
+          subject: `${program.name} sent ${comments.length === 1 ? "a comment" : `${comments.length} comments`} for your submitted lead`,
+          variant: "notifications",
+          to: email,
+          replyTo: program.supportEmail || "noreply",
+          react: NewSubmittedLeadCommentsFromProgram({
+            program: {
+              name: program.name,
+              slug: program.slug,
+              logo: program.logo,
+            },
+            lead: {
+              id: lead.id,
+              name: lead.name,
+              email: lead.email,
+              image: getCompanyLogoUrl(lead.email),
+            },
+            comments: comments.map((comment) => ({
+              text: comment.text,
+              createdAt: comment.createdAt,
+              user: comment.user.name
+                ? {
+                    name: comment.user.name,
+                    image: comment.user.image,
+                  }
+                : {
+                    name: program.name,
+                    image: program.logo,
+                  },
+            })),
+            email,
+          }),
+        })),
+        {
+          idempotencyKey: `submitted-lead-comments-partner/${lastCommentId}`,
+        },
       );
 
+      if (error)
+        throw new Error(
+          `Error sending comment emails to partner ${lead.partnerId}: ${error.message}`,
+        );
+    }
+
+    await prisma.submittedLeadComment.updateMany({
+      where: {
+        id: {
+          in: comments.map(({ id }) => id),
+        },
+        notifiedAt: null,
+      },
+      data: {
+        notifiedAt: new Date(),
+      },
+    });
+
     return logAndRespond(
-      `Emails sent for comments on lead ${leadId} to partner ${lead.partnerId}.`,
+      partnerUsersToNotify.length > 0
+        ? `Emails sent for comments on lead ${leadId} to partner ${lead.partnerId}.`
+        : `No partner emails to notify for partner ${lead.partnerId}. Marked the comments as handled.`,
     );
   } catch (error) {
     await log({

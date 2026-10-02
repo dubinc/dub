@@ -58,7 +58,7 @@ export const createPartnerSubmittedLeadCommentAction = authPartnerActionClient
       enqueueSubmittedLeadCommentNotification({
         recipient: "program",
         leadId: lead.id,
-        commentId: comment.id,
+        comment,
       }),
     );
 
