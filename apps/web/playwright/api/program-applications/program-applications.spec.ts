@@ -160,8 +160,6 @@ test.describe("program applications", () => {
       approvedUs,
     ] = seeded;
 
-    // Application-level socials take precedence over the partner's platforms;
-    // verifiedAt is only kept when both identifiers match.
     await prisma.programApplication.update({
       where: { id: pendingUsWithPlatforms.id },
       data: {
@@ -249,7 +247,6 @@ test.describe("program applications", () => {
       pendingUs.id,
     ]);
 
-    // Legacy flat social fields (website, twitter, ...) must not be returned.
     expect(data.find(({ id }) => id === pendingGb.id)).toStrictEqual({
       id: pendingGb.id,
       createdAt: pendingGb.createdAt.toISOString(),
@@ -262,17 +259,19 @@ test.describe("program applications", () => {
         image: null,
         description: null,
         country: "GB",
-        networkStatus: "draft",
-        defaultPayoutMethod: null,
-        payoutsEnabledAt: null,
         groupId: extraGroup.id,
         status: "pending",
-        platforms: [],
+        website: null,
+        youtube: null,
+        twitter: null,
+        linkedin: null,
+        instagram: null,
+        tiktok: null,
       },
     });
   });
 
-  test("GET /program-applications – platforms and applicationFormData", async ({
+  test("GET /program-applications – social fields and applicationFormData", async ({
     api,
   }) => {
     const { status, data } = await listApplications(api, {
@@ -285,23 +284,14 @@ test.describe("program applications", () => {
       { label: "How will you promote us?", value: "Newsletter" },
       { label: "Anything else?", value: null },
     ]);
-    expect(data[0].partner.platforms).toStrictEqual([
-      {
-        type: "website",
-        identifier: VERIFIED_WEBSITE,
-        verifiedAt: VERIFIED_AT.toISOString(),
-      },
-      {
-        type: "youtube",
-        identifier: "partner_channel",
-        verifiedAt: null,
-      },
-      {
-        type: "twitter",
-        identifier: "application_handle",
-        verifiedAt: null,
-      },
-    ]);
+    expect(data[0].partner).toMatchObject({
+      website: VERIFIED_WEBSITE,
+      youtube: "partner_channel",
+      twitter: "partner_handle",
+      linkedin: null,
+      instagram: null,
+      tiktok: null,
+    });
   });
 
   test("GET /program-applications – status=rejected", async ({ api }) => {
