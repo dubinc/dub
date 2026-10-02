@@ -22,7 +22,7 @@ function BankAccountRequirementsModal({
     return [
       `1. Bank account must be in your local currency.${partner?.country ? ` Since you're based in [${COUNTRIES[partner.country]}](https://partners.dub.co/profile), you need to connect a **${COUNTRY_CURRENCY_CODES[partner.country]} bank account** to receive payouts.` : ""}`,
       "2. Please enter accurate bank account details (no typos or missing numbers).",
-      `3. For Stripe's **"Website"** requirement – provide your personal website, or a social media profile if you don't have one.`,
+      `3. For Stripe's **"Website"** requirement, provide your personal website, or a social media profile if you don't have one – _**not**_ the program's website.`,
     ];
   }, [partner?.country]);
 
