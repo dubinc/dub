@@ -127,6 +127,15 @@ export const bulkApproveProgramApplicationsSchema = z.object({
     .transform((v) => [...new Set(v)]),
 });
 
+export const bulkRejectProgramApplicationsSchema = z.object({
+  workspaceId: z.string(),
+  partnerIds: z
+    .array(z.string())
+    .max(100)
+    .min(1)
+    .transform((v) => [...new Set(v)]),
+});
+
 // Max length for optional `rejectionNote` on `ProgramApplication`
 export const PROGRAM_APPLICATION_REJECTION_NOTE_MAX_LENGTH = 500;
 

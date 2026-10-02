@@ -1,30 +1,32 @@
+import { trackActivityLog } from "@/lib/api/activity-log/track-activity-log";
+import { DubApiError } from "@/lib/api/errors";
+import { getGroupOrThrow } from "@/lib/api/groups/get-group-or-throw";
+import { queuePartnerSearchSync } from "@/lib/api/partners/queue-partner-search-sync";
 import { trackApplicationEvents } from "@/lib/application-events/update-application-event";
 import { dispatchWorkflows } from "@/lib/jobs/publish-workflows";
+import { throwIfPartnersLimitExceeded } from "@/lib/partners/throw-if-partners-limit-exceeded";
 import { prisma } from "@/lib/prisma";
+import { approveProgramApplicationSchema } from "@/lib/zod/schemas/program-application";
 import {
   ProgramApplicationStatus,
   ProgramEnrollmentStatus,
 } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
-import { throwIfPartnersLimitExceeded } from "../../../partners/throw-if-partners-limit-exceeded";
-import { approveProgramApplicationSchema } from "../../../zod/schemas/program-application";
-import { trackActivityLog } from "../../activity-log/track-activity-log";
-import { DubApiError } from "../../errors";
-import { getGroupOrThrow } from "../../groups/get-group-or-throw";
-import { queuePartnerSearchSync } from "../queue-partner-search-sync";
 
-type ApprovePartnerInput = z.infer<typeof approveProgramApplicationSchema> & {
+type ApproveProgramApplicationInput = z.infer<
+  typeof approveProgramApplicationSchema
+> & {
   programId: string;
   userId: string;
 };
 
-export async function approvePartner({
+export async function approveProgramApplication({
   programId,
   partnerId,
   groupId,
   userId,
-}: ApprovePartnerInput) {
+}: ApproveProgramApplicationInput) {
   const programEnrollment = await prisma.programEnrollment.findUnique({
     where: {
       partnerId_programId: {

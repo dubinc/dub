@@ -16,13 +16,13 @@ import {
 import { toast } from "sonner";
 import { PartnerEmailNotificationTooltipHelper } from "../shared/partner-email-notification-tooltip-helper";
 
-function BulkRejectPartnersModal({
-  showBulkRejectPartnersModal,
-  setShowBulkRejectPartnersModal,
+function BulkRejectProgramApplicationsModal({
+  showBulkRejectProgramApplicationsModal,
+  setShowBulkRejectProgramApplicationsModal,
   partners,
 }: {
-  showBulkRejectPartnersModal: boolean;
-  setShowBulkRejectPartnersModal: Dispatch<SetStateAction<boolean>>;
+  showBulkRejectProgramApplicationsModal: boolean;
+  setShowBulkRejectProgramApplicationsModal: Dispatch<SetStateAction<boolean>>;
   partners: Pick<PartnerProps, "id" | "name" | "email" | "image">[];
 }) {
   const { id: workspaceId } = useWorkspace();
@@ -31,8 +31,12 @@ function BulkRejectPartnersModal({
     bulkRejectProgramApplicationsAction,
     {
       onSuccess: async () => {
-        setShowBulkRejectPartnersModal(false);
-        await mutatePrefix(["/api/partners", "/api/partners/count", "/api/program-applications"]);
+        setShowBulkRejectProgramApplicationsModal(false);
+        await mutatePrefix([
+          "/api/partners",
+          "/api/partners/count",
+          "/api/program-applications",
+        ]);
         toast.success(`${pluralize("Partner", partners.length)} rejected.`);
       },
       onError({ error }) {
@@ -55,13 +59,13 @@ function BulkRejectPartnersModal({
   };
 
   const handleClose = useCallback(() => {
-    setShowBulkRejectPartnersModal(false);
-  }, [setShowBulkRejectPartnersModal]);
+    setShowBulkRejectProgramApplicationsModal(false);
+  }, [setShowBulkRejectProgramApplicationsModal]);
 
   return (
     <Modal
-      showModal={showBulkRejectPartnersModal}
-      setShowModal={setShowBulkRejectPartnersModal}
+      showModal={showBulkRejectProgramApplicationsModal}
+      setShowModal={setShowBulkRejectProgramApplicationsModal}
       onClose={handleClose}
     >
       <div className="space-y-1 border-b border-neutral-200 p-4 sm:p-6">
@@ -123,29 +127,43 @@ function BulkRejectPartnersModal({
   );
 }
 
-export function useBulkRejectPartnersModal({
+export function useBulkRejectProgramApplicationsModal({
   partners,
 }: {
   partners: Pick<PartnerProps, "id" | "name" | "email" | "image">[];
 }) {
-  const [showBulkRejectPartnersModal, setShowBulkRejectPartnersModal] =
-    useState(false);
+  const [
+    showBulkRejectProgramApplicationsModal,
+    setShowBulkRejectProgramApplicationsModal,
+  ] = useState(false);
 
-  const BulkRejectPartnersModalCallback = useCallback(() => {
+  const BulkRejectProgramApplicationsModalCallback = useCallback(() => {
     return (
-      <BulkRejectPartnersModal
-        showBulkRejectPartnersModal={showBulkRejectPartnersModal}
-        setShowBulkRejectPartnersModal={setShowBulkRejectPartnersModal}
+      <BulkRejectProgramApplicationsModal
+        showBulkRejectProgramApplicationsModal={
+          showBulkRejectProgramApplicationsModal
+        }
+        setShowBulkRejectProgramApplicationsModal={
+          setShowBulkRejectProgramApplicationsModal
+        }
         partners={partners}
       />
     );
-  }, [showBulkRejectPartnersModal, setShowBulkRejectPartnersModal, partners]);
+  }, [
+    showBulkRejectProgramApplicationsModal,
+    setShowBulkRejectProgramApplicationsModal,
+    partners,
+  ]);
 
   return useMemo(
     () => ({
-      setShowBulkRejectPartnersModal,
-      BulkRejectPartnersModal: BulkRejectPartnersModalCallback,
+      setShowBulkRejectProgramApplicationsModal,
+      BulkRejectProgramApplicationsModal:
+        BulkRejectProgramApplicationsModalCallback,
     }),
-    [setShowBulkRejectPartnersModal, BulkRejectPartnersModalCallback],
+    [
+      setShowBulkRejectProgramApplicationsModal,
+      BulkRejectProgramApplicationsModalCallback,
+    ],
   );
 }

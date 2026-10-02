@@ -949,16 +949,6 @@ export const bulkInvitePartnersSchema = z.object({
 
 // Max length for optional `flagForFraudReason` on `FraudAlert`
 export const MAX_FRAUD_REASON_LENGTH = 2000;
-
-export const bulkRejectPartnersSchema = z.object({
-  workspaceId: z.string(),
-  partnerIds: z
-    .array(z.string())
-    .max(100)
-    .min(1)
-    .transform((v) => [...new Set(v)]),
-});
-
 export const retrievePartnerLinksSchema = partnerIdTenantIdSchema;
 
 // Only Dub UI uses the following query parameters

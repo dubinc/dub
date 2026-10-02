@@ -39,7 +39,9 @@ export const bulkApproveProgramApplicationsAction = authActionClient
         include: {
           partners: {
             where: {
-              status: "pending",
+              status: {
+                in: ["pending", "rejected"],
+              },
               partnerId: {
                 in: partnerIds,
               },
@@ -62,7 +64,9 @@ export const bulkApproveProgramApplicationsAction = authActionClient
             id: {
               in: programEnrollments.map(({ id }) => id),
             },
-            status: "pending",
+            status: {
+              in: ["pending", "rejected"],
+            },
           },
           data: {
             status: "approved",

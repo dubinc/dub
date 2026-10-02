@@ -1,6 +1,6 @@
 "use server";
 
-import { rejectPartner } from "@/lib/api/partners/applications/reject-partner";
+import { rejectProgramApplication } from "@/lib/program-applications/reject-program-application";
 import { rejectProgramApplicationSchema } from "@/lib/zod/schemas/program-application";
 import * as z from "zod/v4";
 import { authActionClient } from "../safe-action";
@@ -29,7 +29,7 @@ export const rejectProgramApplicationAction = authActionClient
       requiredRoles: ["owner", "member"],
     });
 
-    await rejectPartner({
+    await rejectProgramApplication({
       workspace,
       partnerId,
       rejectionReason,

@@ -1,7 +1,7 @@
 "use server";
 
-import { approvePartner } from "@/lib/api/partners/applications/approve-partner";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
+import { approveProgramApplication } from "@/lib/program-applications/approve-program-application";
 import { approveProgramApplicationSchema } from "@/lib/zod/schemas/program-application";
 import * as z from "zod/v4";
 import { authActionClient } from "../safe-action";
@@ -24,7 +24,7 @@ export const approveProgramApplicationAction = authActionClient
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    await approvePartner({
+    await approveProgramApplication({
       programId,
       partnerId,
       userId: user.id,

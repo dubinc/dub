@@ -9,15 +9,14 @@ import useGroups from "@/lib/swr/use-groups";
 import usePartner from "@/lib/swr/use-partner";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { ProgramApplicationProps } from "@/lib/types";
-import { useApproveProgramApplicationModal } from "@/ui/modals/approve-program-application-modal";
-import { useBulkApprovePartnersModal } from "@/ui/modals/bulk-approve-partners-modal";
-import { useBulkRejectPartnersModal } from "@/ui/modals/bulk-reject-partners-modal";
+import { useBulkApproveProgramApplicationsModal } from "@/ui/modals/bulk-approve-program-applications-modal";
+import { useBulkRejectProgramApplicationsModal } from "@/ui/modals/bulk-reject-program-applications-modal";
 import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import { useRejectProgramApplicationModal } from "@/ui/modals/reject-program-application-modal";
 import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
-import { ProgramApplicationSheet } from "@/ui/partners/partner-application-sheet";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { PartnerSocialColumn } from "@/ui/partners/partner-social-column";
+import { ProgramApplicationReviewSheet } from "@/ui/partners/program-application-review-sheet";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { CountryFlag } from "@/ui/shared/country-flag";
 import {
@@ -154,15 +153,19 @@ export function ApplicationsTable({
     ApplicationRow[]
   >([]);
 
-  const { setShowBulkApprovePartnersModal, BulkApprovePartnersModal } =
-    useBulkApprovePartnersModal({
-      partners: pendingApprovePartners,
-    });
+  const {
+    setShowBulkApproveProgramApplicationsModal,
+    BulkApproveProgramApplicationsModal,
+  } = useBulkApproveProgramApplicationsModal({
+    partners: pendingApprovePartners,
+  });
 
-  const { setShowBulkRejectPartnersModal, BulkRejectPartnersModal } =
-    useBulkRejectPartnersModal({
-      partners: pendingRejectPartners,
-    });
+  const {
+    setShowBulkRejectProgramApplicationsModal,
+    BulkRejectProgramApplicationsModal,
+  } = useBulkRejectProgramApplicationsModal({
+    partners: pendingRejectPartners,
+  });
 
   const { columnVisibility, setColumnVisibility } = useColumnVisibility(
     "applications-table-columns-v2",
@@ -361,7 +364,7 @@ export function ApplicationsTable({
                 .rows.map((row) => row.original);
 
               setPendingApprovePartners(partners);
-              setShowBulkApprovePartnersModal(true);
+              setShowBulkApproveProgramApplicationsModal(true);
             }}
           />
           <Button
@@ -374,7 +377,7 @@ export function ApplicationsTable({
                 .rows.map((row) => row.original);
 
               setPendingRejectPartners(selectedPartners);
-              setShowBulkRejectPartnersModal(true);
+              setShowBulkRejectProgramApplicationsModal(true);
             }}
           />
         </>
@@ -407,7 +410,7 @@ export function ApplicationsTable({
   return (
     <>
       {detailsSheetState.partnerId && currentPartner && (
-        <ProgramApplicationSheet
+        <ProgramApplicationReviewSheet
           isOpen={detailsSheetState.open}
           setIsOpen={(open) =>
             setDetailsSheetState((s) => ({ ...s, open }) as any)
@@ -431,8 +434,8 @@ export function ApplicationsTable({
           }
         />
       )}
-      <BulkApprovePartnersModal />
-      <BulkRejectPartnersModal />
+      {BulkApproveProgramApplicationsModal}
+      <BulkRejectProgramApplicationsModal />
 
       {partners?.length !== 0 ? (
         <Table {...tableProps} table={table} />
@@ -456,19 +459,14 @@ export function ApplicationsTable({
 function PendingRowMenuButton({ row }: { row: Row<ApplicationRow> }) {
   const [isOpen, setIsOpen] = useState(false);
 
+  const partners = useMemo(() => [row.original], [row.original]);
+
   const {
-    ApproveProgramApplicationModal,
-    setShowApproveProgramApplicationModal,
-  } = useApproveProgramApplicationModal({
-    partner: row.original,
+    BulkApproveProgramApplicationsModal,
+    setShowBulkApproveProgramApplicationsModal,
+  } = useBulkApproveProgramApplicationsModal({
+    partners,
     groupId: row.original.groupId,
-    onConfirm: async () => {
-      await mutatePrefix([
-        "/api/partners",
-        "/api/partners/count",
-        "/api/program-applications",
-      ]);
-    },
   });
 
   const {
@@ -487,7 +485,7 @@ function PendingRowMenuButton({ row }: { row: Row<ApplicationRow> }) {
 
   return (
     <>
-      {ApproveProgramApplicationModal}
+      {BulkApproveProgramApplicationsModal}
       {RejectProgramApplicationModal}
       <Popover
         openPopover={isOpen}
@@ -500,7 +498,7 @@ function PendingRowMenuButton({ row }: { row: Row<ApplicationRow> }) {
                 icon={UserCheck}
                 onSelect={() => {
                   setIsOpen(false);
-                  setShowApproveProgramApplicationModal(true);
+                  setShowBulkApproveProgramApplicationsModal(true);
                 }}
               >
                 Approve application
@@ -547,7 +545,7 @@ function RejectedRowMenuButton({
         toast.error(error.serverError);
       },
       onSuccess: () => {
-        toast.success("Partner application approved");
+        toast.success("Program application approved");
         mutatePrefix([
           "/api/partners",
           "/api/partners/count",

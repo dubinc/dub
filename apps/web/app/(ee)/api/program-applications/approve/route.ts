@@ -1,7 +1,7 @@
-import { approvePartner } from "@/lib/api/partners/applications/approve-partner";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
+import { approveProgramApplication } from "@/lib/program-applications/approve-program-application";
 import { approveProgramApplicationSchema } from "@/lib/zod/schemas/program-application";
 import { NextResponse } from "next/server";
 
@@ -14,7 +14,7 @@ export const POST = withWorkspace(
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    await approvePartner({
+    await approveProgramApplication({
       programId,
       partnerId,
       groupId,
