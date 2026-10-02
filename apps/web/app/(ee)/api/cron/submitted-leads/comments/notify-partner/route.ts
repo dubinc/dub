@@ -125,6 +125,9 @@ export async function POST(req: Request) {
           email,
         }),
       })),
+      {
+        idempotencyKey: `submitted-lead-comments-partner/${lastCommentId}`,
+      },
     );
 
     if (error)

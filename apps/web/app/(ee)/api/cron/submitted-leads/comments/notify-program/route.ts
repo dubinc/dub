@@ -130,6 +130,9 @@ export async function POST(req: Request) {
           email,
         }),
       })),
+      {
+        idempotencyKey: `submitted-lead-comments-program/${lastCommentId}`,
+      },
     );
 
     if (error)
