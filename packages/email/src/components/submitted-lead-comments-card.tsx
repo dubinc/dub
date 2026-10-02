@@ -81,6 +81,7 @@ export function SubmittedLeadCommentsCard({
                 {comment.createdAt.toLocaleTimeString("en-US", {
                   hour: "numeric",
                   minute: "numeric",
+                  timeZoneName: "short",
                 })}
               </span>
             </Text>
