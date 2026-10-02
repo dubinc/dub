@@ -9,7 +9,12 @@ import { MessageInput } from "@/ui/shared/message-input";
 import { useAction } from "next-safe-action/hooks";
 import { toast } from "sonner";
 import { v4 as uuid } from "uuid";
-import { CommentCard, CommentWithDelivery } from "./submitted-lead-comments";
+import {
+  COMMENT_INPUT_CLASSNAME,
+  COMMENT_TOOLBAR_CLASSNAME,
+  CommentCard,
+  CommentWithDelivery,
+} from "./submitted-lead-comments";
 
 export function PartnerSubmittedLeadComments({ leadId }: { leadId: string }) {
   const { user } = useUser();
@@ -81,6 +86,8 @@ export function PartnerSubmittedLeadComments({ leadId }: { leadId: string }) {
         }}
         placeholder="Leave a comment for this program"
         sendButtonText="Post"
+        inputClassName={COMMENT_INPUT_CLASSNAME}
+        toolbarClassName={COMMENT_TOOLBAR_CLASSNAME}
       />
 
       {comments && program ? (

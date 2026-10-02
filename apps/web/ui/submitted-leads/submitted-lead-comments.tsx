@@ -34,6 +34,11 @@ export type CommentWithDelivery = SubmittedLeadCommentProps & {
   delivered?: false;
 };
 
+// Sizes from the Figma design for the comment input
+export const COMMENT_INPUT_CLASSNAME =
+  "mx-1 mt-1 rounded-[10px] border border-transparent transition-colors [&>[aria-hidden]]:rounded-[9px] [&_.ProseMirror]:min-h-16";
+export const COMMENT_TOOLBAR_CLASSNAME = "p-2";
+
 const VISIBILITY_OPTIONS = [
   { partnerVisible: false, label: "Workspace only" },
   { partnerVisible: true, label: "Workspace and partner" },
@@ -114,11 +119,11 @@ export function SubmittedLeadComments({ leadId }: { leadId: string }) {
         }
         sendButtonText="Post"
         inputClassName={cn(
-          "m-1 rounded-lg border transition-colors",
-          partnerVisible
-            ? "border-orange-200 bg-orange-50"
-            : "border-transparent",
+          COMMENT_INPUT_CLASSNAME,
+          partnerVisible &&
+            "border-orange-200 bg-orange-50 [&>[aria-hidden]]:from-orange-50 [&_.is-empty]:before:text-amber-950/50",
         )}
+        toolbarClassName={COMMENT_TOOLBAR_CLASSNAME}
         actions={
           <VisibilitySelector
             partnerVisible={partnerVisible}
@@ -190,9 +195,9 @@ function VisibilitySelector({
         onClick={() => setOpenPopover(!openPopover)}
         className="text-content-emphasis hover:bg-bg-muted data-[state=open]:bg-bg-muted flex h-8 items-center gap-2 rounded-lg px-2.5 text-sm font-medium transition-colors"
       >
-        <Eye className="size-4 shrink-0" />
+        <Eye className="size-3.5 shrink-0" />
         <span className="whitespace-nowrap">{selected.label}</span>
-        <ChevronDown className="text-content-subtle size-3.5 shrink-0" />
+        <ChevronDown className="text-content-subtle size-2.5 shrink-0" />
       </button>
     </Popover>
   );
