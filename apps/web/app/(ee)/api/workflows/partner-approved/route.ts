@@ -13,7 +13,7 @@ import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { EnrolledPartnerSchema } from "@/lib/zod/schemas/partners";
 import { ProgramPartnerLinkSchema } from "@/lib/zod/schemas/programs";
 import { sendBatchEmail } from "@dub/email";
-import PartnerApplicationApproved from "@dub/email/templates/partner-application-approved";
+import ProgramApplicationApproved from "@dub/email/templates/program-application-approved";
 import { NETWORK_PROGRAM_ID } from "@dub/utils";
 import { serve } from "@upstash/workflow/nextjs";
 import * as z from "zod/v4";
@@ -248,7 +248,7 @@ export const { POST } = serve<Input>(
           to: user.email!,
           subject: `Your application to ${program.name} has been approved!`,
           replyTo: program.supportEmail || "noreply",
-          react: PartnerApplicationApproved({
+          react: ProgramApplicationApproved({
             program: {
               name: program.name,
               logo: program.logo,

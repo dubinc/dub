@@ -652,7 +652,7 @@ async function unsetPartnerIdForUnclaimedApplications() {
   let cursor: string | undefined;
 
   while (true) {
-    const applications = await prisma.programApplication.findMany({
+    const unclaimedApplications = await prisma.programApplication.findMany({
       where: {
         status: ProgramApplicationStatus.pending,
         enrollment: null,
@@ -675,20 +675,12 @@ async function unsetPartnerIdForUnclaimedApplications() {
       take: BATCH_SIZE,
     });
 
-    if (applications.length === 0) {
+    if (unclaimedApplications.length === 0) {
       break;
     }
 
-    totals.scanned += applications.length;
-    cursor = applications[applications.length - 1].id;
-
-    const unclaimedApplications = applications.filter(
-      ({ partnerId }) => !partnerId,
-    );
-
-    if (unclaimedApplications.length > 0) {
-      console.table(unclaimedApplications.slice(0, 20));
-    }
+    totals.scanned += unclaimedApplications.length;
+    cursor = unclaimedApplications[unclaimedApplications.length - 1].id;
 
     if (DRY_RUN) {
       totals.unclaimed += unclaimedApplications.length;
@@ -708,7 +700,7 @@ async function unsetPartnerIdForUnclaimedApplications() {
     }
 
     console.log(
-      `${DRY_RUN ? "Would process" : "Processed"} ${applications.length} applications up to ${cursor}`,
+      `${DRY_RUN ? "Would process" : "Processed"} ${unclaimedApplications.length} applications up to ${cursor}`,
     );
   }
 

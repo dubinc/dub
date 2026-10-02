@@ -2,9 +2,9 @@ import { trackApplicationEvents } from "@/lib/application-events/update-applicat
 import { getProgramApplicationRejectionReasonLabel } from "@/lib/partners/program-application-rejection";
 import { prisma } from "@/lib/prisma";
 import { WorkspaceProps } from "@/lib/types";
-import { rejectPartnerSchema } from "@/lib/zod/schemas/partners";
+import { rejectProgramApplicationSchema } from "@/lib/zod/schemas/program-application";
 import { sendEmail } from "@dub/email";
-import PartnerApplicationRejected from "@dub/email/templates/partner-application-rejected";
+import ProgramApplicationRejected from "@dub/email/templates/program-application-rejected";
 import {
   ProgramApplicationStatus,
   ProgramEnrollmentStatus,
@@ -17,7 +17,7 @@ import { resolveFraudGroups } from "../../fraud/resolve-fraud-groups";
 import { getDefaultProgramIdOrThrow } from "../../programs/get-default-program-id-or-throw";
 import { queuePartnerSearchSync } from "../queue-partner-search-sync";
 
-type RejectPartnerInput = z.infer<typeof rejectPartnerSchema> & {
+type RejectPartnerInput = z.infer<typeof rejectProgramApplicationSchema> & {
   userId: string;
   workspace: Pick<WorkspaceProps, "id" | "defaultProgramId">;
 };
@@ -193,7 +193,7 @@ export async function rejectPartner({
           subject: `Your application to ${program.name} was not approved`,
           variant: "notifications",
           replyTo: program.supportEmail || "noreply",
-          react: PartnerApplicationRejected({
+          react: ProgramApplicationRejected({
             partner: {
               name: partner.name ?? "there",
               email: partner.email,

@@ -1,4 +1,4 @@
-import { getPartnerApplicationRisks } from "@/lib/api/fraud/get-partner-application-risks";
+import { getProgramApplicationRisks } from "@/lib/api/fraud/get-program-application-risks";
 import { approvePartner } from "@/lib/api/partners/applications/approve-partner";
 import { evaluateApplicationRequirements } from "@/lib/partners/evaluate-application-requirements";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
@@ -91,7 +91,7 @@ export const autoApprovePartnerJob = defineJob({
     );
 
     if (canManageFraudEvents) {
-      const { riskSeverity } = await getPartnerApplicationRisks({
+      const { riskSeverity } = await getProgramApplicationRisks({
         program,
         partner: programEnrollment.partner,
       });

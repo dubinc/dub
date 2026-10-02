@@ -12,7 +12,7 @@ import {
   CommissionEventWebhookPayload,
   DiscountCodeEventWebhookPayload,
   LeadEventWebhookPayload,
-  PartnerApplicationWebhookPayload,
+  ProgramApplicationWebhookPayload,
   PartnerEventWebhookPayload,
   PartnerMergedWebhookPayload,
   PayoutEventWebhookPayload,
@@ -311,7 +311,7 @@ const partnerEnrolledTemplate = ({
 const partnerApplicationSubmittedTemplate = ({
   data,
 }: {
-  data: PartnerApplicationWebhookPayload;
+  data: ProgramApplicationWebhookPayload;
 }) => {
   const { partner } = data;
   const hrefToApplicationPage = `${APP_DOMAIN}/program/partners/applications?partnerId=${partner.id}`;
