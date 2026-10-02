@@ -13,9 +13,9 @@ const accountTypes = [
     icon: Shop,
     title: "For brands",
     description:
-      "Brands and agencies managing partner programs. Track performance, and pay partners in one place.",
+      "Brands managing partner programs and short links. Generate links, track performance, and payouts in one place.",
     sprite: "https://assets.dub.co/cms/onboarding-brands.png",
-    socialProof: "Brand programs on Dub",
+    socialProof: "Brands growing with Dub",
   },
   {
     type: "partner",
