@@ -10,6 +10,7 @@ import { useAction } from "next-safe-action/hooks";
 import { toast } from "sonner";
 import { v4 as uuid } from "uuid";
 import {
+  COMMENT_CONTAINER_CLASSNAME,
   COMMENT_INPUT_CLASSNAME,
   COMMENT_TOOLBAR_CLASSNAME,
   CommentCard,
@@ -86,6 +87,7 @@ export function PartnerSubmittedLeadComments({ leadId }: { leadId: string }) {
         }}
         placeholder="Leave a comment for this program"
         sendButtonText="Post"
+        className={COMMENT_CONTAINER_CLASSNAME}
         inputClassName={COMMENT_INPUT_CLASSNAME}
         toolbarClassName={COMMENT_TOOLBAR_CLASSNAME}
       />

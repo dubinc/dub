@@ -39,6 +39,10 @@ export const COMMENT_INPUT_CLASSNAME =
   "mx-1 mt-1 rounded-[10px] border border-transparent transition-colors [&>[aria-hidden]]:rounded-[9px] [&_.ProseMirror]:min-h-16";
 export const COMMENT_TOOLBAR_CLASSNAME = "p-2";
 
+// Comment inputs do not show the focus ring that message inputs use
+export const COMMENT_CONTAINER_CLASSNAME =
+  "focus-within:border-border-subtle focus-within:ring-0";
+
 const VISIBILITY_OPTIONS = [
   { partnerVisible: false, label: "Workspace only" },
   { partnerVisible: true, label: "Workspace and partner" },
@@ -118,6 +122,7 @@ export function SubmittedLeadComments({ leadId }: { leadId: string }) {
             : "Leave a comment for your workspace"
         }
         sendButtonText="Post"
+        className={COMMENT_CONTAINER_CLASSNAME}
         inputClassName={cn(
           COMMENT_INPUT_CLASSNAME,
           partnerVisible &&
@@ -427,7 +432,10 @@ export function CommentCard({
                     });
                   }}
                   autoFocus
-                  className="animate-fade-in bg-white"
+                  className={cn(
+                    "animate-fade-in bg-white",
+                    COMMENT_CONTAINER_CLASSNAME,
+                  )}
                   placeholder="Edit comment"
                   sendButtonText="Save"
                 />
