@@ -21,6 +21,7 @@ import { WebhookHandlerInput, WebhookHandlerResponse } from "./types";
 import { attributeViaPromotionCodeId } from "./utils/attribute-via-promotion-code-id";
 import { getConnectedCustomer } from "./utils/get-connected-customer";
 import { getDubCustomerExternalIdFromMetadata } from "./utils/get-dub-customer-external-id-from-metadata";
+import { updateCustomerWithStripeCustomerId } from "./utils/update-customer-with-stripe-customer-id";
 
 // Handle event "invoice.paid"
 export async function invoicePaid({
@@ -65,25 +66,11 @@ export async function invoicePaid({
     );
 
     if (dubCustomerExternalId) {
-      try {
-        // Update customer with stripeCustomerId if exists – for future events
-        customer = await prisma.customer.update({
-          where: {
-            projectConnectId_externalId: {
-              projectConnectId: stripeAccountId,
-              externalId: dubCustomerExternalId,
-            },
-          },
-          data: {
-            stripeCustomerId,
-          },
-        });
-      } catch (error) {
-        console.log(error);
-        return {
-          response: `Customer with dubCustomerExternalId ${dubCustomerExternalId} not found, skipping...`,
-        };
-      }
+      customer = await updateCustomerWithStripeCustomerId({
+        workspaceId: workspace.id,
+        dubCustomerExternalId,
+        stripeCustomerId,
+      });
     }
   }
 

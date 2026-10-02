@@ -157,7 +157,10 @@ import {
   payoutsCountQuerySchema,
   payoutsQuerySchema,
 } from "./zod/schemas/payouts";
-import { PartnerApplicationSchema } from "./zod/schemas/program-application";
+import {
+  PartnerApplicationSchema,
+  ProgramApplicationSchema,
+} from "./zod/schemas/program-application";
 import {
   programApplicationFormDataWithValuesSchema,
   programApplicationFormFieldWithValuesSchema,
@@ -547,6 +550,8 @@ export type EnrolledPartnerProps = z.infer<typeof EnrolledPartnerSchema> & {
 };
 
 export type PartnerApplicationProps = z.infer<typeof PartnerApplicationSchema>;
+
+export type ProgramApplicationProps = z.infer<typeof ProgramApplicationSchema>;
 
 export type NetworkPartnerProps = z.infer<typeof NetworkPartnerSchema>;
 

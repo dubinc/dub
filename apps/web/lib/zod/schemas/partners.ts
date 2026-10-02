@@ -10,7 +10,6 @@ import {
   PartnerProfileType,
   PlatformType,
   PreferredEarningStructure,
-  ProgramApplicationRejectionReason,
   ProgramEnrollmentStatus,
   SalesChannel,
 } from "@prisma/client";
@@ -948,85 +947,8 @@ export const bulkInvitePartnersSchema = z.object({
     .max(MAX_PARTNERS_INVITES_PER_REQUEST),
 });
 
-export const approvePartnerSchema = z.object({
-  partnerId: z.string().describe("The ID of the partner to approve."),
-  groupId: z
-    .string()
-    .nullish()
-    .describe(
-      "The ID of the group to assign the partner to. If not provided, the partner will be assigned to the group they applied to, or the program's default group if no application group is set.",
-    ),
-});
-
-export const bulkApprovePartnersSchema = z.object({
-  workspaceId: z.string(),
-  groupId: z.string().nullish().default(null),
-  partnerIds: z
-    .array(z.string())
-    .max(100)
-    .min(1)
-    .transform((v) => [...new Set(v)]),
-});
-
-// Max length for optional `rejectionNote` on `ProgramApplication`
-export const PROGRAM_APPLICATION_REJECTION_NOTE_MAX_LENGTH = 500;
-
 // Max length for optional `flagForFraudReason` on `FraudAlert`
 export const MAX_FRAUD_REASON_LENGTH = 2000;
-
-export const rejectPartnerSchema = z.object({
-  partnerId: z.string().describe("The ID of the partner to reject."),
-  rejectionReason: z
-    .enum(ProgramApplicationRejectionReason)
-    .optional()
-    .describe(
-      "The reason for rejecting the partner application. This will be shared with the partner via email.",
-    ),
-  rejectionNote: z
-    .string()
-    .max(PROGRAM_APPLICATION_REJECTION_NOTE_MAX_LENGTH)
-    .optional()
-    .transform((s) => {
-      const t = s?.trim();
-      return t === "" ? undefined : t;
-    })
-    .describe(
-      "Additional details about the rejection. This will be shared with the partner via email.",
-    ),
-  reapplicationTimeframe: z
-    .enum(["instant", "standard", "never"])
-    .default("standard")
-    .describe(
-      "The mode for reapplying for the program. `instant`: The partner can reapply immediately. `standard`: The partner can reapply after 30 days. `never`: The partner can never reapply for the program. Defaults to `standard` if undefined.",
-    ),
-  flagForFraud: z
-    .boolean()
-    .optional()
-    .describe(
-      "Whether to flag the partner for fraud review by the Dub team. Cannot be combined with `reapplicationTimeframe: instant`.",
-    ),
-  flagForFraudReason: z
-    .string()
-    .max(MAX_FRAUD_REASON_LENGTH)
-    .optional()
-    .transform((s) => {
-      const t = s?.trim();
-      return t === "" ? undefined : t;
-    })
-    .describe(
-      "The reason for flagging the partner for fraud. Required when flagForFraud is true.",
-    ),
-});
-
-export const bulkRejectPartnersSchema = z.object({
-  workspaceId: z.string(),
-  partnerIds: z
-    .array(z.string())
-    .max(100)
-    .min(1)
-    .transform((v) => [...new Set(v)]),
-});
-
 export const retrievePartnerLinksSchema = partnerIdTenantIdSchema;
 
 // Only Dub UI uses the following query parameters

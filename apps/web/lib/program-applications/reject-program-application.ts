@@ -1,0 +1,216 @@
+import { trackActivityLog } from "@/lib/api/activity-log/track-activity-log";
+import { DubApiError } from "@/lib/api/errors";
+import { resolveFraudGroups } from "@/lib/api/fraud/resolve-fraud-groups";
+import { queuePartnerSearchSync } from "@/lib/api/partners/queue-partner-search-sync";
+import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
+import { trackApplicationEvents } from "@/lib/application-events/update-application-event";
+import { getProgramApplicationRejectionReasonLabel } from "@/lib/partners/program-application-rejection";
+import { prisma } from "@/lib/prisma";
+import { WorkspaceProps } from "@/lib/types";
+import { rejectProgramApplicationSchema } from "@/lib/zod/schemas/program-application";
+import { sendEmail } from "@dub/email";
+import ProgramApplicationRejected from "@dub/email/templates/program-application-rejected";
+import {
+  ProgramApplicationStatus,
+  ProgramEnrollmentStatus,
+} from "@prisma/client";
+import { waitUntil } from "@vercel/functions";
+import * as z from "zod/v4";
+
+type RejectProgramApplicationInput = z.infer<
+  typeof rejectProgramApplicationSchema
+> & {
+  userId: string;
+  workspace: Pick<WorkspaceProps, "id" | "defaultProgramId">;
+};
+
+export async function rejectProgramApplication({
+  workspace,
+  partnerId,
+  rejectionReason,
+  rejectionNote,
+  reapplicationTimeframe,
+  flagForFraud,
+  flagForFraudReason,
+  userId,
+}: RejectProgramApplicationInput) {
+  const programId = getDefaultProgramIdOrThrow(workspace);
+
+  if (flagForFraud && reapplicationTimeframe === "instant") {
+    throw new DubApiError({
+      code: "bad_request",
+      message:
+        "Cannot flag for fraud when allowing the partner to reapply immediately.",
+    });
+  }
+
+  if (flagForFraud && (!flagForFraudReason || !flagForFraudReason.trim())) {
+    throw new DubApiError({
+      code: "bad_request",
+      message: "Fraud reason is required when flagging for fraud.",
+    });
+  }
+
+  const programEnrollment = await prisma.programEnrollment.findUnique({
+    where: {
+      partnerId_programId: {
+        partnerId,
+        programId,
+      },
+    },
+    include: {
+      partner: true,
+      program: {
+        select: {
+          name: true,
+          slug: true,
+          supportEmail: true,
+        },
+      },
+    },
+  });
+
+  if (!programEnrollment) {
+    throw new DubApiError({
+      code: "not_found",
+      message: "Program enrollment not found.",
+    });
+  }
+
+  if (programEnrollment.status !== "pending") {
+    throw new DubApiError({
+      code: "bad_request",
+      message:
+        "This enrollment cannot be rejected because it is no longer pending.",
+    });
+  }
+
+  await prisma.$transaction(async (tx) => {
+    if (programEnrollment.applicationId) {
+      await tx.programApplication.update({
+        where: {
+          id: programEnrollment.applicationId,
+        },
+        data: {
+          status: ProgramApplicationStatus.rejected,
+          reviewedAt: new Date(),
+          rejectionReason,
+          rejectionNote,
+          userId,
+        },
+      });
+    }
+
+    // If the partner can immediately re-apply, delete the enrollment
+    if (reapplicationTimeframe === "instant") {
+      const { count } = await tx.programEnrollment.deleteMany({
+        where: {
+          id: programEnrollment.id,
+          status: "pending",
+        },
+      });
+
+      if (count !== 1) {
+        throw new DubApiError({
+          code: "bad_request",
+          message:
+            "This enrollment cannot be deleted because it is no longer pending.",
+        });
+      }
+
+      return;
+    }
+
+    // Reject the enrollment and persist the reapplication timeframe
+    await tx.programEnrollment.update({
+      where: {
+        id: programEnrollment.id,
+        status: "pending",
+      },
+      data: {
+        status: ProgramEnrollmentStatus.rejected,
+        reapplicationTimeframe,
+        clickRewardId: null,
+        leadRewardId: null,
+        saleRewardId: null,
+        referralRewardId: null,
+        customRewardId: null,
+        discountId: null,
+      },
+    });
+
+    if (flagForFraud && flagForFraudReason) {
+      await tx.fraudAlert.create({
+        data: {
+          partnerId,
+          programId,
+          reason: flagForFraudReason,
+        },
+      });
+    }
+  });
+
+  const { partner, program } = programEnrollment;
+
+  waitUntil(
+    Promise.allSettled([
+      // Queue an index update because the enrollment was either rejected or deleted.
+      // The job reads the ID back, so this does not need to know which.
+      queuePartnerSearchSync({ enrollmentIds: [programEnrollment.id] }),
+
+      trackActivityLog({
+        workspaceId: workspace.id,
+        programId,
+        resourceType: "partner",
+        resourceId: partnerId,
+        userId,
+        action: "partner_application.rejected",
+        changeSet: {
+          status: {
+            old: ProgramEnrollmentStatus.pending,
+            new: ProgramEnrollmentStatus.rejected,
+          },
+        },
+      }),
+
+      trackApplicationEvents({
+        event: "rejected",
+        programId,
+        partnerIds: [partnerId],
+      }),
+
+      resolveFraudGroups({
+        where: {
+          programId,
+          partnerId,
+        },
+        userId,
+        resolutionReason:
+          "Resolved automatically because the partner application was rejected.",
+      }),
+
+      partner.email &&
+        sendEmail({
+          to: partner.email,
+          subject: `Your application to ${program.name} was not approved`,
+          variant: "notifications",
+          replyTo: program.supportEmail || "noreply",
+          react: ProgramApplicationRejected({
+            partner: {
+              name: partner.name ?? "there",
+              email: partner.email,
+            },
+            program: {
+              name: program.name,
+              slug: program.slug,
+              supportEmail: program.supportEmail,
+            },
+            additionalNotes: rejectionNote,
+            rejectionReason:
+              getProgramApplicationRejectionReasonLabel(rejectionReason),
+            reapplicationTimeframe,
+          }),
+        }),
+    ]),
+  );
+}
