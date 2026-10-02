@@ -1,5 +1,6 @@
 import { ZodOpenApiPathsObject } from "zod-openapi";
 import { approvePartner } from "./approve-partner";
+import { attributeReferral } from "./attribute-referral";
 import { banPartner } from "./ban-partner";
 import { createPartner } from "./create-partner";
 import { createPartnerLink } from "./create-partner-link";
@@ -34,6 +35,9 @@ export const partnersPaths: ZodOpenApiPathsObject = {
   },
   "/partners/applications/reject": {
     post: rejectPartner,
+  },
+  "/partners/{partnerId}/referral": {
+    post: attributeReferral,
   },
   "/partners/ban": {
     post: banPartner,
