@@ -12,16 +12,18 @@ import { getPromotionCode } from "../../app/(ee)/api/stripe/integration/webhook/
 // Backfills partner sales that the Stripe webhooks skipped before #4609.
 // When the connected customer had a dubCustomerExternalId that matched no Dub customer,
 // the webhooks returned early and never checked the partner discount code.
+// Only subscriptions created on or after START_DATE that used a valid (not disabled) Dub discount code.
 // Run this after #4609 is deployed. Set DRY_RUN to false to create the commissions.
 
 const WORKSPACE_ID = "ws_xxx";
 const USER_ID = "user_xxx"; // saved as the user who created the commissions
-const START_DATE = new Date("2026-06-01T00:00:00.000Z"); // invoice.paid started to attribute discount codes (#3970)
+const START_DATE = new Date("2026-05-01T00:00:00.000Z"); // after the workspace moved to Dub
 const STRIPE_MODE: StripeMode = "live";
 const DRY_RUN = true;
 
 type Candidate = {
   discountCode: DiscountCode;
+  subscriptionId: string;
   firstInvoiceCreated: number;
 };
 
@@ -108,7 +110,9 @@ async function main() {
   console.table(results);
 }
 
-// Find the first paid invoice with a Dub discount code for each Stripe customer
+// Find the first paid subscription invoice with a valid Dub discount code for each Stripe customer.
+// We check the invoices, not the subscriptions, because a repeating discount
+// (e.g. "20% off for 3 months") is removed from the subscription when it ends.
 async function findCandidates({
   stripe,
   stripeConnectId,
@@ -120,13 +124,14 @@ async function findCandidates({
 }) {
   const codesByPromotionCodeId = new Map<string, string | null>();
   const discountCodesByCode = new Map<string, DiscountCode | null>();
+  const createdBySubscriptionId = new Map<string, number>();
   const candidates = new Map<string, Candidate>();
 
   for await (const invoice of stripe.invoices.list(
     {
       status: "paid",
       created: {
-        gte: Math.floor(START_DATE.getTime() / 1000),
+        gte: toUnix(START_DATE),
       },
       limit: 100,
       expand: ["data.discounts", "data.lines.data.discounts"],
@@ -140,9 +145,13 @@ async function findCandidates({
         ? invoice.customer
         : invoice.customer?.id;
 
+    const subscription = invoice.parent?.subscription_details?.subscription;
+    const subscriptionId =
+      typeof subscription === "string" ? subscription : subscription?.id;
+
     const promotionCodeId = getPromotionCodeId(invoice);
 
-    if (!stripeCustomerId || !promotionCodeId) {
+    if (!stripeCustomerId || !subscriptionId || !promotionCodeId) {
       continue;
     }
 
@@ -177,7 +186,23 @@ async function findCandidates({
 
     const discountCode = discountCodesByCode.get(code);
 
-    if (!discountCode) {
+    if (!discountCode || discountCode.disabledAt) {
+      continue;
+    }
+
+    if (!createdBySubscriptionId.has(subscriptionId)) {
+      const { created } = await stripe.subscriptions.retrieve(
+        subscriptionId,
+        {},
+        {
+          stripeAccount: stripeConnectId,
+        },
+      );
+
+      createdBySubscriptionId.set(subscriptionId, created);
+    }
+
+    if (createdBySubscriptionId.get(subscriptionId)! < toUnix(START_DATE)) {
       continue;
     }
 
@@ -186,12 +211,17 @@ async function findCandidates({
     if (!candidate || invoice.created < candidate.firstInvoiceCreated) {
       candidates.set(stripeCustomerId, {
         discountCode,
+        subscriptionId,
         firstInvoiceCreated: invoice.created,
       });
     }
   }
 
   return candidates;
+}
+
+function toUnix(date: Date) {
+  return Math.floor(date.getTime() / 1000);
 }
 
 function getPromotionCodeId(invoice: Stripe.Invoice) {
@@ -220,6 +250,7 @@ async function backfillCustomer({
   user,
   stripeCustomerId,
   discountCode,
+  subscriptionId,
   firstInvoiceCreated,
 }: Candidate & {
   stripe: Stripe;
@@ -236,11 +267,12 @@ async function backfillCustomer({
     status: "skipped",
   };
 
-  // After the first attribution, the webhook records every later invoice of the customer.
-  // So we import the first discounted invoice and every paid invoice after it.
+  // After the first attribution, the webhook records every later invoice, also after the discount ends.
+  // So we import the first discounted invoice of the subscription and every paid invoice after it.
   const { data: invoices } = await stripe.invoices.list(
     {
       customer: stripeCustomerId,
+      subscription: subscriptionId,
       status: "paid",
       limit: 100,
     },
@@ -335,10 +367,6 @@ async function backfillCustomer({
       status: "review",
       reason: `Customer ${customerWithExternalId.id} has this externalId but no stripeCustomerId`,
     };
-  }
-
-  if (discountCode.disabledAt) {
-    return { ...result, status: "review", reason: "Discount code is disabled" };
   }
 
   if (DRY_RUN) {
