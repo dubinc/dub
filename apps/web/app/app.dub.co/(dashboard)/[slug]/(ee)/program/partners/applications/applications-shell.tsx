@@ -6,8 +6,8 @@ import { SearchBoxPersisted } from "@/ui/shared/search-box";
 import {
   AnimatedSizeContainer,
   Button,
-  ChartLine,
   Filter,
+  LinesY,
   useMediaQuery,
   useRouterStuff,
 } from "@dub/ui";
@@ -70,7 +70,7 @@ export function ApplicationsShell({ children }: { children: ReactNode }) {
                 <Button
                   variant="secondary"
                   className="w-fit"
-                  icon={<ChartLine className="h-4 w-4 text-neutral-600" />}
+                  icon={<LinesY className="h-4 w-4 text-neutral-600" />}
                   text={isMobile ? undefined : "View Analytics"}
                 />
               </Link>
