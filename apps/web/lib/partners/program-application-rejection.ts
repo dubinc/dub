@@ -14,6 +14,8 @@ export const PROGRAM_APPLICATION_REJECTION_REASON_LABELS: Record<
   other: "Other",
 } as const;
 
+export const STANDARD_REAPPLICATION_DAYS = 30;
+
 export type ProgramApplicationRejectionReasonKey =
   keyof typeof PROGRAM_APPLICATION_REJECTION_REASON_LABELS;
 
