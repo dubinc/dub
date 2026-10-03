@@ -3,6 +3,7 @@ import { bulkDeleteLinks } from "@/lib/api/links/bulk-delete-links";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { queuePartnerSearchSync } from "@/lib/api/partners/queue-partner-search-sync";
 import { withCron } from "@/lib/cron/with-cron";
+import { softDeleteDiscountCodes } from "@/lib/discounts/soft-delete-discount-codes";
 import { aggregatePartnerLinksStats } from "@/lib/partners/aggregate-partner-links-stats";
 import { canDeletePartner } from "@/lib/partners/utils";
 import { prisma } from "@/lib/prisma";
@@ -97,6 +98,11 @@ export const POST = withCron(async ({ rawBody }) => {
     fraudEventGroups,
     messages,
     discoveredPartners,
+    fraudAlerts,
+    bountySubmissions,
+    applicationEvents,
+    partnerTags,
+    customers,
   ] = await Promise.all([
     prisma.submittedLead.deleteMany({
       where: programEnrollmentWhere,
@@ -117,6 +123,34 @@ export const POST = withCron(async ({ rawBody }) => {
     prisma.discoveredPartner.deleteMany({
       where: programEnrollmentWhere,
     }),
+
+    prisma.fraudAlert.deleteMany({
+      where: programEnrollmentWhere,
+    }),
+
+    prisma.bountySubmission.deleteMany({
+      where: programEnrollmentWhere,
+    }),
+
+    prisma.programApplicationEvent.deleteMany({
+      where: programEnrollmentWhere,
+    }),
+
+    prisma.programPartnerTag.deleteMany({
+      where: programEnrollmentWhere,
+    }),
+
+    prisma.customer.updateMany({
+      where: programEnrollmentWhere,
+      data: {
+        programId: null,
+        partnerId: null,
+      },
+    }),
+
+    softDeleteDiscountCodes({
+      where: programEnrollmentWhere,
+    }),
   ]);
 
   console.log(`Delete ${submittedLeads.count} submitted leads.`);
@@ -126,6 +160,11 @@ export const POST = withCron(async ({ rawBody }) => {
   console.log(
     `Delete ${discoveredPartners.count} discovered partners records.`,
   );
+  console.log(`Delete ${fraudAlerts.count} fraud alerts.`);
+  console.log(`Delete ${bountySubmissions.count} bounty submissions.`);
+  console.log(`Delete ${applicationEvents.count} application events.`);
+  console.log(`Delete ${partnerTags.count} program partner tags.`);
+  console.log(`Detached ${customers.count} customers.`);
 
   if (links.length > 0) {
     await bulkDeleteLinks(
@@ -139,14 +178,12 @@ export const POST = withCron(async ({ rawBody }) => {
     );
   }
 
-  await prisma.$transaction([
-    prisma.programEnrollment.delete({
-      where: {
-        id: enrollment.id,
-      },
-    }),
+  // Raw delete skips Prisma's emulated referential actions,
+  // so every other related row must be deleted or detached explicitly above/here.
+  await prisma.$transaction(async (tx) => {
+    await tx.$executeRaw`DELETE FROM ProgramEnrollment WHERE id = ${enrollment.id}`;
 
-    prisma.project.update({
+    await tx.project.update({
       where: {
         id: workspaceId,
       },
@@ -155,8 +192,8 @@ export const POST = withCron(async ({ rawBody }) => {
           decrement: 1,
         },
       },
-    }),
-  ]);
+    });
+  });
 
   // Queue an index update because the enrollment was deleted.
   await queuePartnerSearchSync({ enrollmentIds: [enrollment.id] });

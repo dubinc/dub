@@ -94,6 +94,11 @@ const jobLoaders = {
       (m) => m.createDiscountCodeForLinkJob,
     ),
 
+  "delete-discount-code-job": () =>
+    import("./handlers/delete-discount-code-job").then(
+      (m) => m.deleteDiscountCodeJob,
+    ),
+
   "publish-discount-codes-creation-job": () =>
     import("./handlers/publish-discount-codes-creation-job").then(
       (m) => m.publishDiscountCodesCreationJob,

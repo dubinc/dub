@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { prisma } from "@/lib/prisma";
 import "dotenv-flow/config";
 import { bulkCreateLinks } from "../../../lib/api/links/bulk-create-links";

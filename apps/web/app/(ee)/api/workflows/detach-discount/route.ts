@@ -4,6 +4,7 @@ import {
   detachDiscountFromProgramEnrollments,
   dispatchRemapDiscountCodes,
 } from "@/lib/discounts/detach-discount";
+import { softDeleteDiscountCodes } from "@/lib/discounts/soft-delete-discount-codes";
 import { prisma } from "@/lib/prisma";
 import { serve } from "@upstash/workflow/nextjs";
 import * as z from "zod/v4";
@@ -22,7 +23,7 @@ type Input = z.infer<typeof inputSchema>;
  * Soft-deleted discounts (programId cleared) are cleaned up as:
  *
  * 1. detach-discount-from-enrollments + detach-discount-from-link-rewards (parallel)
- * 2. remap-discount-codes
+ * 2. remap-discount-codes (live codes remap; disabled codes on the deleted discount are soft-deleted)
  *
  * Hard-delete is deferred to /api/cron/cleanup/orphaned once remaps
  * finish and nothing still references the soft-deleted discount.
@@ -101,8 +102,18 @@ export const { POST } = serve<Input>(
         discountId,
       });
 
+      // Soft delete the disabled codes on the deleted discount
+      const { count: disabledCodesDeleted } = await softDeleteDiscountCodes({
+        where: {
+          discountId,
+          disabledAt: {
+            not: null,
+          },
+        },
+      });
+
       return logAndReturn({
-        outputLog: `Dispatched remap jobs for discount codes on ${discountId}`,
+        outputLog: `Dispatched remap jobs for discount codes on ${discountId} and soft-deleted ${disabledCodesDeleted} disabled discount codes`,
       });
     });
   },

@@ -1,5 +1,5 @@
 import { queuePartnerSearchSync } from "@/lib/api/partners/queue-partner-search-sync";
-import { deleteDiscountCodes } from "@/lib/discounts/delete-discount-code";
+import { softDeleteDiscountCodes } from "@/lib/discounts/soft-delete-discount-codes";
 import { prisma } from "@/lib/prisma";
 import { storage } from "@/lib/storage";
 import { recordLink } from "@/lib/tinybird";
@@ -18,22 +18,22 @@ export async function deleteLink(linkId: string) {
     include: {
       ...includeTags,
       ...includeProgramEnrollment,
-      discountCode: {
-        include: {
-          discount: true,
-        },
-      },
     },
   });
 
-  if (link.discountCode) {
-    await deleteDiscountCodes([link.discountCode]);
-  }
+  await prisma.$transaction(async (tx) => {
+    await softDeleteDiscountCodes({
+      where: {
+        linkId,
+      },
+      tx,
+    });
 
-  await prisma.link.delete({
-    where: {
-      id: linkId,
-    },
+    await tx.link.delete({
+      where: {
+        id: linkId,
+      },
+    });
   });
 
   waitUntil(

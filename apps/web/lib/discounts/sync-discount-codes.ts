@@ -3,6 +3,7 @@ import { remapDiscountCodeJob } from "@/lib/jobs/handlers/remap-discount-code-jo
 import { prisma } from "@/lib/prisma";
 import { pluck } from "@dub/utils";
 import { Discount } from "@prisma/client";
+import { isDiscountDeleted } from "./discount-status";
 
 // Remap existing codes and enqueue missing default-link codes for partners in a program
 export async function syncDiscountCodes({
@@ -27,7 +28,12 @@ export async function syncDiscountCodes({
     },
     select: {
       partnerId: true,
-      discount: true,
+      discount: {
+        select: {
+          programId: true,
+          autoProvisionEnabledAt: true,
+        },
+      },
     },
   });
 
@@ -40,6 +46,11 @@ export async function syncDiscountCodes({
 
   const enrolledPartnerIds = pluck(programEnrollments, "partnerId");
 
+  await enqueueMissingDiscountCodes({
+    programId,
+    enrollments: programEnrollments,
+  });
+
   const discountCodes = await prisma.discountCode.findMany({
     where: {
       programId,
@@ -47,6 +58,7 @@ export async function syncDiscountCodes({
         in: enrolledPartnerIds,
       },
       disabledAt: null,
+      isDeleted: false,
     },
     select: {
       id: true,
@@ -64,11 +76,6 @@ export async function syncDiscountCodes({
       })),
     );
   }
-
-  await enqueueMissingDiscountCodes({
-    programId,
-    enrollments: programEnrollments,
-  });
 }
 
 // Find default links that do not have a discount code assigned to them and enqueue a job to create one
@@ -79,7 +86,7 @@ export async function enqueueMissingDiscountCodes({
   programId: string;
   enrollments: {
     partnerId: string;
-    discount: Pick<Discount, "autoProvisionEnabledAt"> | null;
+    discount: Pick<Discount, "programId" | "autoProvisionEnabledAt"> | null;
   }[];
 }) {
   if (enrollments.length === 0) {
@@ -113,6 +120,7 @@ export async function enqueueMissingDiscountCodes({
         select: {
           discount: {
             select: {
+              programId: true,
               autoProvisionEnabledAt: true,
             },
           },
@@ -132,7 +140,11 @@ export async function enqueueMissingDiscountCodes({
 
     const discount = link.linkReward?.discount ?? enrollmentDiscount ?? null;
 
-    return Boolean(discount?.autoProvisionEnabledAt);
+    if (!discount || isDiscountDeleted(discount)) {
+      return false;
+    }
+
+    return Boolean(discount.autoProvisionEnabledAt);
   });
 
   if (linksToProvision.length === 0) {
@@ -143,5 +155,8 @@ export async function enqueueMissingDiscountCodes({
     linksToProvision.map((link) => ({
       linkId: link.id,
     })),
+    ({ linkId }) => ({
+      deduplicationId: `create-discount-code-${linkId}`,
+    }),
   );
 }
