@@ -69,6 +69,7 @@ test.describe("program applications", () => {
   let pendingDefaultGroup: SeededApplication;
   let rejectedUs: SeededApplication;
   let rejectedGb: SeededApplication;
+  let approvedUs: SeededApplication;
 
   test.beforeAll(async ({ api, program }) => {
     defaultGroupId = program.defaultGroupId;
@@ -86,8 +87,8 @@ test.describe("program applications", () => {
       { country: "US", groupId: defaultGroupId, status: "pending" },
       { country: "US", groupId: extraGroup.id, status: "rejected" },
       { country: "GB", groupId: extraGroup.id, status: "rejected" },
-      // Never listed: approved, orphaned (no partner), and another program's.
       { country: "US", groupId: extraGroup.id, status: "approved" },
+      // Never listed: orphaned (no partner), and another program's.
       {
         country: "US",
         groupId: extraGroup.id,
@@ -156,6 +157,7 @@ test.describe("program applications", () => {
       pendingDefaultGroup,
       rejectedUs,
       rejectedGb,
+      approvedUs,
     ] = seeded;
 
     // Application-level socials take precedence over the partner's platforms;
@@ -247,7 +249,6 @@ test.describe("program applications", () => {
       pendingUs.id,
     ]);
 
-    // Legacy flat social fields (website, twitter, ...) must not be returned.
     expect(data.find(({ id }) => id === pendingGb.id)).toStrictEqual({
       id: pendingGb.id,
       createdAt: pendingGb.createdAt.toISOString(),
@@ -265,6 +266,12 @@ test.describe("program applications", () => {
         payoutsEnabledAt: null,
         groupId: extraGroup.id,
         status: "pending",
+        website: null,
+        youtube: null,
+        twitter: null,
+        linkedin: null,
+        instagram: null,
+        tiktok: null,
         platforms: [],
       },
     });
@@ -300,6 +307,14 @@ test.describe("program applications", () => {
         verifiedAt: null,
       },
     ]);
+    expect(data[0].partner).toMatchObject({
+      website: VERIFIED_WEBSITE,
+      youtube: "partner_channel",
+      twitter: "application_handle",
+      linkedin: null,
+      instagram: null,
+      tiktok: null,
+    });
   });
 
   test("GET /program-applications – status=rejected", async ({ api }) => {
@@ -315,13 +330,35 @@ test.describe("program applications", () => {
     );
   });
 
-  test("GET /program-applications – excludes approved, orphaned, and other programs' applications", async ({
+  test("GET /program-applications – status=approved", async ({ api }) => {
+    const { status, data } = await listApplications(api, {
+      groupId: extraGroup.id,
+      status: "approved",
+    });
+    const excludedByCountry = await listApplications(api, {
+      groupId: extraGroup.id,
+      country: "GB",
+      status: "approved",
+    });
+
+    expect(status).toEqual(200);
+    expect(ids(data)).toEqual([approvedUs.id]);
+    expect(data[0].partner.status).toEqual("approved");
+
+    expect(excludedByCountry).toEqual({ status: 200, data: [] });
+  });
+
+  test("GET /program-applications – each status only lists its own applications, excluding orphaned and other programs' applications", async ({
     api,
   }) => {
     const pending = await listApplications(api, { search: batch });
     const rejected = await listApplications(api, {
       search: batch,
       status: "rejected",
+    });
+    const approved = await listApplications(api, {
+      search: batch,
+      status: "approved",
     });
 
     expect(pending.status).toEqual(200);
@@ -334,6 +371,9 @@ test.describe("program applications", () => {
 
     expect(rejected.status).toEqual(200);
     expect(ids(rejected.data)).toEqual([rejectedUs.id, rejectedGb.id]);
+
+    expect(approved.status).toEqual(200);
+    expect(ids(approved.data)).toEqual([approvedUs.id]);
   });
 
   test("GET /program-applications – filters by country", async ({ api }) => {
@@ -445,6 +485,21 @@ test.describe("program applications", () => {
     expect(
       await countApplications(api, {
         groupId: extraGroup.id,
+        status: "approved",
+      }),
+    ).toEqual({ status: 200, data: 1 });
+
+    expect(
+      await countApplications(api, {
+        groupId: extraGroup.id,
+        country: "GB",
+        status: "approved",
+      }),
+    ).toEqual({ status: 200, data: 0 });
+
+    expect(
+      await countApplications(api, {
+        groupId: extraGroup.id,
         country: "US",
       }),
     ).toEqual({ status: 200, data: 2 });
@@ -454,6 +509,10 @@ test.describe("program applications", () => {
       status: 200,
       data: 4,
     });
+
+    expect(
+      await countApplications(api, { search: batch, status: "approved" }),
+    ).toEqual({ status: 200, data: 1 });
   });
 
   test("GET /program-applications/count – groupBy=country ignores the country filter", async ({
@@ -491,10 +550,10 @@ test.describe("program applications", () => {
 
 const listErrorCases: ErrorCase[] = [
   {
-    name: "GET /program-applications – rejects status=approved",
-    params: { status: "approved" },
+    name: "GET /program-applications – rejects status=invited",
+    params: { status: "invited" },
     message:
-      'invalid_value: status: Invalid option: expected one of "pending"|"rejected"',
+      'invalid_value: status: Invalid option: expected one of "pending"|"approved"|"rejected"',
   },
   {
     name: "GET /program-applications – rejects pageSize above max",
@@ -524,10 +583,10 @@ for (const { name, params, message } of listErrorCases) {
 
 const countErrorCases: ErrorCase[] = [
   {
-    name: "GET /program-applications/count – rejects status=approved",
-    params: { status: "approved" },
+    name: "GET /program-applications/count – rejects status=invited",
+    params: { status: "invited" },
     message:
-      'invalid_value: status: Invalid option: expected one of "pending"|"rejected"',
+      'invalid_value: status: Invalid option: expected one of "pending"|"approved"|"rejected"',
   },
   {
     name: "GET /program-applications/count – rejects invalid groupBy",

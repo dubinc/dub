@@ -443,6 +443,8 @@ export function Table<T>({
   className,
   containerClassName,
   scrollWrapperClassName,
+  scrollWrapperRef,
+  onScroll,
   emptyWrapperClassName,
   thClassName,
   tdClassName,
@@ -467,7 +469,6 @@ export function Table<T>({
       columnsAfterSelect.add(visibleColumns[i].id);
     }
   }
-  const scrollWrapperRef = useRef<HTMLDivElement>(null);
   const utilityColumnWidths = new Map(
     visibleColumns.map((column) => [column.id, column.getSize()]),
   );
@@ -495,6 +496,7 @@ export function Table<T>({
           )}
           <div
             ref={scrollWrapperRef}
+            onScroll={onScroll}
             className={cn(
               "relative min-h-[400px] overflow-x-auto rounded-[inherit]",
               scrollWrapperClassName,

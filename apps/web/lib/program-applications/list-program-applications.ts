@@ -1,13 +1,16 @@
 import { formatApplicationFormData } from "@/lib/partners/format-application-form-data";
 import { prisma } from "@/lib/prisma";
-import { buildSocialPlatformLookup } from "@/lib/social-utils";
-import { getPartnerApplicationsQuerySchema } from "@/lib/zod/schemas/program-application";
-import { Prisma, ProgramEnrollmentStatus } from "@prisma/client";
+import {
+  buildSocialPlatformLookup,
+  polyfillSocialMediaFields,
+} from "@/lib/social-utils";
+import { getProgramApplicationsQuerySchema } from "@/lib/zod/schemas/program-application";
+import { Prisma, ProgramApplicationStatus } from "@prisma/client";
 import * as z from "zod/v4";
 import { buildProgramApplicationWhere } from "./program-application-where";
 
 type ListProgramApplicationsParams = z.infer<
-  typeof getPartnerApplicationsQuerySchema
+  typeof getProgramApplicationsQuerySchema
 > & {
   programId: string;
 };
@@ -28,7 +31,7 @@ export async function listProgramApplications({
   programId,
   groupId,
   country,
-  status = ProgramEnrollmentStatus.pending,
+  status = ProgramApplicationStatus.pending,
   search,
   sortOrder = "desc",
   page = 1,
@@ -113,6 +116,7 @@ function transformApplication(application: ProgramApplicationWithPartner) {
       country: application.country,
       groupId: application.groupId,
       status: application.status,
+      ...polyfillSocialMediaFields(platforms),
       platforms,
     },
   };

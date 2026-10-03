@@ -2,11 +2,7 @@ import { isExactPartnerIdQuery } from "@/lib/api/partners/program-enrollment-que
 import { sanitizeFullTextSearch } from "@/lib/prisma";
 import { getProgramApplicationsCountQuerySchema } from "@/lib/zod/schemas/program-application";
 import { parseFilterValue } from "@dub/utils";
-import {
-  Prisma,
-  ProgramApplicationStatus,
-  ProgramEnrollmentStatus,
-} from "@prisma/client";
+import { Prisma, ProgramApplicationStatus } from "@prisma/client";
 import * as z from "zod/v4";
 
 function applicationFieldFilter(
@@ -64,23 +60,16 @@ export function buildProgramApplicationWhere({
   programId,
   groupId,
   country,
-  status = ProgramEnrollmentStatus.pending,
+  status = ProgramApplicationStatus.pending,
   search,
 }: ProgramApplicationWhereParams): Prisma.ProgramApplicationWhereInput {
   const query = search?.trim();
   const groupIdFilter = applicationFieldFilter(groupId);
   const countryFilter = applicationFieldFilter(country);
 
-  // The query schema accepts enrollment statuses (pending | rejected), so map
-  // them onto the application's own status. Approved applications are never listed.
-  const applicationStatus =
-    status === ProgramEnrollmentStatus.rejected
-      ? ProgramApplicationStatus.rejected
-      : ProgramApplicationStatus.pending;
-
   return {
     programId,
-    status: applicationStatus,
+    status,
     partnerId: { not: null },
     ...(groupIdFilter && { groupId: groupIdFilter }),
     ...(countryFilter && { country: countryFilter }),

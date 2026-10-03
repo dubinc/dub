@@ -24,6 +24,10 @@ export const ROUTE_PATTERNS = [
   "/track/open",
   ...PUBLISHABLE_KEY_REQUEST_PATHS,
 
+  // Program applications
+  "/program-applications/approve",
+  "/program-applications/reject",
+
   // Partners
   "/partners/links/upsert",
   "/partners/links/:linkId",

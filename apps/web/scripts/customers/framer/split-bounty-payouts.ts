@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 import { createId } from "@/lib/api/create-id";
 import { prisma } from "@/lib/prisma";
 import "dotenv-flow/config";

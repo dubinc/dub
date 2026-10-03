@@ -4,13 +4,13 @@ import useSWR from "swr";
 import * as z from "zod/v4";
 import useWorkspace from "../../swr/use-workspace";
 import { ProgramApplicationProps } from "../../types";
-import { getPartnerApplicationsQuerySchema } from "../../zod/schemas/program-application";
+import { getProgramApplicationsQuerySchema } from "../../zod/schemas/program-application";
 
 export function useProgramApplications({
   ignoreParams,
   enabled,
   ...params
-}: z.input<typeof getPartnerApplicationsQuerySchema> & {
+}: z.input<typeof getProgramApplicationsQuerySchema> & {
   ignoreParams?: boolean;
   enabled?: boolean;
 } = {}) {

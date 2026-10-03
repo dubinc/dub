@@ -6,7 +6,7 @@ import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { FraudGroupProps } from "@/lib/types";
 import { useBanPartnerModal } from "@/ui/modals/ban-partner-modal";
-import { useRejectPartnerApplicationModal } from "@/ui/modals/reject-partner-application-modal";
+import { useRejectProgramApplicationModal } from "@/ui/modals/reject-program-application-modal";
 import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import { TrustedPartnerBadge } from "@/ui/partners/trusted-partner-badge";
 import { X } from "@/ui/shared/icons";
@@ -125,9 +125,9 @@ function RiskReviewSheetContent({
   });
 
   const {
-    RejectPartnerApplicationModal,
-    setShowRejectPartnerApplicationModal,
-  } = useRejectPartnerApplicationModal({
+    RejectProgramApplicationModal,
+    setShowRejectProgramApplicationModal,
+  } = useRejectProgramApplicationModal({
     partner,
     onConfirm: async () => {
       onNext?.();
@@ -149,7 +149,7 @@ function RiskReviewSheetContent({
     "b",
     () => {
       if (partner.status === "pending") {
-        setShowRejectPartnerApplicationModal(true);
+        setShowRejectProgramApplicationModal(true);
       } else {
         setShowBanPartnerModal(true);
       }
@@ -162,7 +162,7 @@ function RiskReviewSheetContent({
   return (
     <div className="relative h-full">
       {ResolveFraudGroupModal}
-      {RejectPartnerApplicationModal}
+      {RejectProgramApplicationModal}
       <BanPartnerModal />
       {MarkAllAsFraudModal}
       <div
@@ -394,7 +394,7 @@ function RiskReviewSheetContent({
                   text="Reject application"
                   shortcut="B"
                   variant="danger"
-                  onClick={() => setShowRejectPartnerApplicationModal(true)}
+                  onClick={() => setShowRejectProgramApplicationModal(true)}
                   className="h-8 w-fit rounded-lg"
                   disabledTooltip={partnersPermissionsError || undefined}
                 />
