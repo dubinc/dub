@@ -7,7 +7,6 @@ import { usePartnerTags } from "@/lib/swr/use-partner-tags";
 import { CustomerAvatar } from "@/ui/customers/customer-avatar";
 import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import { CountryFlag } from "@/ui/shared/country-flag";
-import { readStreamableValue } from "@ai-sdk/rsc";
 import {
   BlurImage,
   Filter,
@@ -948,22 +947,18 @@ export function useAnalyticsFilters({
 
       if (key === "ai") {
         setStreaming(true);
-        const prompt = value.replace("Ask AI ", "");
-        const { object } = await generateFilters(prompt);
-        for await (const partialObject of readStreamableValue(object)) {
-          if (partialObject) {
+        try {
+          const prompt = value.replace("Ask AI ", "");
+          const filters = await generateFilters(prompt);
+          if (Object.keys(filters).length > 0) {
             queryParams({
-              set: Object.fromEntries(
-                Object.entries(partialObject).map(([key, value]) => [
-                  key,
-                  // Convert Dates to ISO strings
-                  value instanceof Date ? value.toISOString() : String(value),
-                ]),
-              ),
+              set: filters,
+              del: "page",
             });
           }
+        } finally {
+          setStreaming(false);
         }
-        setStreaming(false);
       } else {
         const currentParam = searchParamsObj[key];
         const filterDef = filters.find((f) => f.key === key);
