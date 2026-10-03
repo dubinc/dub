@@ -37,7 +37,6 @@ export const reopenBountySubmissionAction = authActionClient
           program: true,
           bounty: true,
           partner: true,
-          commission: true,
         },
       });
 
@@ -63,24 +62,19 @@ export const reopenBountySubmissionAction = authActionClient
     });
 
     waitUntil(
-      Promise.allSettled([
-        recordAuditLog({
-          workspaceId: workspace.id,
-          programId: program.id,
-          action: "bounty_submission.reopened",
-          description: `Bounty submission reopened for ${partner.id}`,
-          actor: user,
-          targets: [
-            {
-              type: "bounty_submission",
-              id: submissionId,
-              metadata: BountySubmissionSchema.parse(bountySubmission),
-            },
-          ],
-        }),
-
-        // Email notification can be added later if needed
-        Promise.resolve(),
-      ]),
+      recordAuditLog({
+        workspaceId: workspace.id,
+        programId: program.id,
+        action: "bounty_submission.reopened",
+        description: `Bounty submission reopened for ${partner.id}`,
+        actor: user,
+        targets: [
+          {
+            type: "bounty_submission",
+            id: submissionId,
+            metadata: BountySubmissionSchema.parse(bountySubmission),
+          },
+        ],
+      }),
     );
   });

@@ -58,12 +58,16 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
           partnerId: partner.id,
         },
         include: {
-          commission: {
+          commissions: {
             select: {
               id: true,
               earnings: true,
               status: true,
+              description: true,
               createdAt: true,
+            },
+            orderBy: {
+              createdAt: "asc",
             },
           },
         },
