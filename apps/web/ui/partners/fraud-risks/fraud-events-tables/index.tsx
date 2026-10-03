@@ -1,6 +1,7 @@
 import { FraudGroupProps } from "@/lib/types";
 import { FraudRuleType } from "@prisma/client";
 import React from "react";
+import { FraudCustomerSharedClickIdTable } from "./fraud-customer-shared-click-id-table";
 import { FraudMatchingCustomerEmailTable } from "./fraud-matching-customer-email-table";
 import { FraudNetworkLevelBanTable } from "./fraud-network-level-ban-table";
 import { FraudPaidTrafficDetectedTable } from "./fraud-paid-traffic-detected-table";
@@ -11,6 +12,7 @@ const FRAUD_EVENTS_TABLES: Partial<Record<FraudRuleType, React.ComponentType>> =
   {
     customerEmailMatch: () => <FraudMatchingCustomerEmailTable showMatchType />,
     customerEmailSuspiciousDomain: () => <FraudMatchingCustomerEmailTable />,
+    customerSharedClickId: FraudCustomerSharedClickIdTable,
     referralSourceBanned: FraudReferralSourceBannedTable,
     paidTrafficDetected: FraudPaidTrafficDetectedTable,
     partnerCrossProgramBan: FraudNetworkLevelBanTable,

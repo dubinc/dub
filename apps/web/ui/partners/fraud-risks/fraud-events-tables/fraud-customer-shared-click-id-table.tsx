@@ -1,0 +1,170 @@
+"use client";
+
+import { useFraudEventsPaginated } from "@/lib/swr/use-fraud-events-paginated";
+import useWorkspace from "@/lib/swr/use-workspace";
+import { fraudEventSchemas } from "@/lib/zod/schemas/fraud";
+import { CustomerRowItem } from "@/ui/customers/customer-row-item";
+import { Button, Table, TimestampTooltip, useTable } from "@dub/ui";
+import { formatDateTimeSmart } from "@dub/utils";
+import Link from "next/link";
+import * as z from "zod/v4";
+
+type EventDataProps = z.infer<
+  (typeof fraudEventSchemas)["customerSharedClickId"]
+>;
+
+function getRowHref(row: EventDataProps, workspaceSlug?: string) {
+  if (!row.customer || !workspaceSlug) return null;
+
+  return `/${workspaceSlug}/events?event=leads&interval=all&customerId=${row.customer.id}`;
+}
+
+export function FraudCustomerSharedClickIdTable() {
+  const { slug: workspaceSlug } = useWorkspace();
+
+  const {
+    fraudEvents,
+    loading,
+    error,
+    pagination,
+    setPagination,
+    fraudEventsCount,
+  } = useFraudEventsPaginated<EventDataProps>();
+
+  const table = useTable({
+    data: fraudEvents || [],
+    pagination,
+    onPaginationChange: setPagination,
+    rowCount: fraudEventsCount ?? 0,
+    columns: [
+      {
+        id: "date",
+        header: "Date",
+        minSize: 140,
+        size: 160,
+        cell: ({ row }) => (
+          <TimestampTooltip
+            timestamp={row.original.createdAt}
+            side="right"
+            rows={["local", "utc", "unix"]}
+            delayDuration={150}
+          >
+            <p>{formatDateTimeSmart(row.original.createdAt)}</p>
+          </TimestampTooltip>
+        ),
+      },
+      {
+        id: "customer",
+        header: "Customer",
+        minSize: 180,
+        size: 220,
+        cell: ({ row }) =>
+          row.original.customer ? (
+            <CustomerRowItem
+              customer={row.original.customer}
+              href={
+                workspaceSlug
+                  ? `/${workspaceSlug}/program/customers/${row.original.customer.id}`
+                  : undefined
+              }
+            />
+          ) : (
+            "-"
+          ),
+      },
+      {
+        id: "email",
+        header: "Email",
+        minSize: 180,
+        size: 220,
+        cell: ({ row }) => (
+          <span className="text-sm text-neutral-600">
+            {row.original.customer?.email || "-"}
+          </span>
+        ),
+      },
+      {
+        id: "clickId",
+        header: "Click ID",
+        minSize: 160,
+        size: 180,
+        cell: ({ row }) => {
+          const clickId = row.original.metadata?.clickId;
+
+          if (!clickId) return "-";
+
+          return (
+            <span
+              className="block truncate font-mono text-sm text-neutral-600"
+              title={clickId}
+            >
+              {clickId}
+            </span>
+          );
+        },
+      },
+      {
+        id: "matchedCustomer",
+        header: "Other customer",
+        minSize: 160,
+        size: 180,
+        cell: ({ row }) => {
+          const matchedCustomerId = row.original.metadata?.matchedCustomerId;
+
+          if (!matchedCustomerId || !workspaceSlug) return "-";
+
+          return (
+            <Link
+              href={`/${workspaceSlug}/program/customers/${matchedCustomerId}`}
+              target="_blank"
+              onClick={(event) => event.stopPropagation()}
+              className="block truncate font-mono text-sm text-neutral-600 underline decoration-dotted underline-offset-2"
+              title={matchedCustomerId}
+            >
+              {matchedCustomerId}
+            </Link>
+          );
+        },
+      },
+      {
+        id: "view",
+        header: "",
+        enableHiding: false,
+        minSize: 100,
+        size: 100,
+        maxSize: 100,
+        cell: ({ row }) => {
+          const href = getRowHref(row.original, workspaceSlug);
+          if (!href) return null;
+
+          return (
+            <Link href={href} target="_blank">
+              <Button
+                variant="secondary"
+                text="View"
+                className="h-7 w-fit rounded-lg px-2.5 py-2"
+              />
+            </Link>
+          );
+        },
+      },
+    ],
+    onRowClick: (row) => {
+      const url = getRowHref(row.original, workspaceSlug);
+      if (url) window.open(url, "_blank");
+    },
+    onRowAuxClick: (row) => {
+      const url = getRowHref(row.original, workspaceSlug);
+      if (url) window.open(url, "_blank");
+    },
+    resourceName: (p) => `event${p ? "s" : ""}`,
+    thClassName: "border-l-0",
+    tdClassName: "border-l-0",
+    className: "[&_tr:last-child>td]:border-b-transparent",
+    scrollWrapperClassName: "min-h-[40px]",
+    loading,
+    error,
+  });
+
+  return <Table {...table} />;
+}

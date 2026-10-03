@@ -79,6 +79,7 @@ function getIdentityFieldsForFraudEvent({
   switch (type) {
     case "customerEmailMatch":
     case "customerEmailSuspiciousDomain":
+    case "customerSharedClickId":
     case "referralSourceBanned":
     case "paidTrafficDetected":
       if (!customerId) {
