@@ -8,6 +8,7 @@ import { LinkAnalyticsBadge } from "@/ui/links/link-analytics-badge";
 import { LinkBuilderDestinationUrlInput } from "@/ui/links/link-builder/controls/link-builder-destination-url-input";
 import { LinkBuilderFolderSelector } from "@/ui/links/link-builder/controls/link-builder-folder-selector";
 import { LinkBuilderShortLinkInput } from "@/ui/links/link-builder/controls/link-builder-short-link-input";
+import { VideoTimestampInput } from "@/ui/links/link-builder/controls/video-timestamp-input";
 import { LinkCommentsInput } from "@/ui/links/link-builder/controls/link-comments-input";
 import { ConversionTrackingToggle } from "@/ui/links/link-builder/conversion-tracking-toggle";
 import {
@@ -220,6 +221,8 @@ function LinkBuilder({ link }: { link: ExpandedLinkProps }) {
         <div className="relative flex min-h-full flex-col px-4 md:px-6">
           <div className="relative mx-auto flex w-full max-w-xl flex-col gap-7 pb-4 pt-10 lg:pb-10">
             <LinkBuilderDestinationUrlInput />
+
+            <VideoTimestampInput />
 
             <LinkBuilderShortLinkInput />
 
