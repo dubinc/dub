@@ -9,10 +9,10 @@ import {
 } from "@/lib/bounty/social-metrics-milestones";
 import { resolveBountyDetails } from "@/lib/bounty/utils";
 import { BountySubmissionProps, PartnerBountyProps } from "@/lib/types";
-import { StatusBadge, Table, useTable } from "@dub/ui";
+import { StatusBadge, Table, useScrollProgress, useTable } from "@dub/ui";
 import { capitalize, currencyFormatter } from "@dub/utils";
 import { ColumnDef } from "@tanstack/react-table";
-import { useMemo } from "react";
+import { useMemo, useRef } from "react";
 
 const milestoneStatusBadges = {
   approved: {
@@ -98,6 +98,9 @@ export function BountySocialMetricsRewardsTable({
     [metric, submission],
   );
 
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const { scrollProgress, updateScrollProgress } = useScrollProgress(scrollRef);
+
   const table = useTable({
     data: milestones,
     columns,
@@ -118,8 +121,16 @@ export function BountySocialMetricsRewardsTable({
       <h2 className="text-content-emphasis text-base font-semibold">
         {titleText}
       </h2>
-      <div className="mt-3">
-        <Table {...table} />
+      <div className="relative mt-3">
+        <Table
+          {...table}
+          scrollWrapperRef={scrollRef}
+          onScroll={updateScrollProgress}
+        />
+        <div
+          className="pointer-events-none absolute inset-x-px bottom-px z-10 h-16 rounded-b-[11px] bg-gradient-to-t from-white to-transparent"
+          style={{ opacity: 1 - Math.pow(scrollProgress, 2) }}
+        />
       </div>
     </div>
   );
