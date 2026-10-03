@@ -196,6 +196,7 @@ import {
 import { fraudEventContext } from "./zod/schemas/schemas";
 import { submittedLeadFormDataSchema } from "./zod/schemas/submitted-lead-form";
 import {
+  SubmittedLeadCommentSchema,
   submittedLeadSchema,
   updateSubmittedLeadStatusSchema,
 } from "./zod/schemas/submitted-leads";
@@ -817,6 +818,10 @@ export type CreateFraudEventInput = Pick<
   };
 
 export type SubmittedLeadProps = z.infer<typeof submittedLeadSchema>;
+
+export type SubmittedLeadCommentProps = z.infer<
+  typeof SubmittedLeadCommentSchema
+>;
 
 export type SubmittedLeadFormDataField = z.infer<
   typeof submittedLeadFormDataSchema
