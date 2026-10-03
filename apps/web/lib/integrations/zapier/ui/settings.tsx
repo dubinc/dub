@@ -20,6 +20,7 @@ export const ZapierSettings = (props: InstalledIntegrationInfoProps) => {
             "sale.created",
             "partner.application_submitted",
             "partner.enrolled",
+            "partner.merged",
           ]}
         />
       )}

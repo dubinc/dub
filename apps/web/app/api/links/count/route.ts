@@ -13,7 +13,7 @@ export const GET = withWorkspace(
     let { folderIds } = await validateLinksQueryFilters({
       ...filters,
       workspace,
-      userId: session.user.id,
+      sessionUserId: session.user.id,
     });
 
     if (

@@ -8,7 +8,7 @@ import {
 } from "@/lib/zod/schemas/partners";
 import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import { MaxCharactersCounter } from "@/ui/shared/max-characters-counter";
-import { Button, InfoTooltip, Modal, Switch } from "@dub/ui";
+import { Button, InfoTooltip, Modal, Switch, useLatestCallback } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { motion } from "motion/react";
 import { useAction } from "next-safe-action/hooks";
@@ -254,16 +254,18 @@ export function useBanPartnerModal({
 }) {
   const [showBanPartnerModal, setShowBanPartnerModal] = useState(false);
 
+  const onConfirmCallback = useLatestCallback(onConfirm);
+
   const BanPartnerModalCallback = useCallback(() => {
     return (
       <BanPartnerModal
         showBanPartnerModal={showBanPartnerModal}
         setShowBanPartnerModal={setShowBanPartnerModal}
         partner={partner}
-        onConfirm={onConfirm}
+        onConfirm={onConfirmCallback}
       />
     );
-  }, [showBanPartnerModal, setShowBanPartnerModal, partner, onConfirm]);
+  }, [showBanPartnerModal, setShowBanPartnerModal, onConfirmCallback]);
 
   return useMemo(
     () => ({

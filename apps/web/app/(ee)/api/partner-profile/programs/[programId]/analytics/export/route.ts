@@ -15,7 +15,8 @@ import {
   LARGE_PROGRAM_MIN_TOTAL_COMMISSIONS_CENTS,
   MAX_PARTNER_LINKS_FOR_LOCAL_FILTERING,
 } from "@/lib/constants/partner-profile";
-import { ratelimit } from "@/lib/upstash";
+import { assertRateLimit } from "@/lib/upstash/assert-rate-limit";
+import { RATELIMIT_POLICIES } from "@/lib/upstash/ratelimit-policies";
 import { partnerProfileAnalyticsQuerySchema } from "@/lib/zod/schemas/partner-profile";
 import { parseFilterValue, toCentsNumber } from "@dub/utils";
 
@@ -24,17 +25,10 @@ export const maxDuration = 300;
 // GET /api/partner-profile/programs/[programId]/analytics/export – get export data for partner profile analytics
 export const GET = withPartnerProfile(
   async ({ partner, params, searchParams }) => {
-    const { success } = await ratelimit(1, "30 s").limit(
-      `analyticsExport:partner:${partner.id}:${params.programId}`,
-    );
-
-    if (!success) {
-      throw new DubApiError({
-        code: "rate_limit_exceeded",
-        message:
-          "Analytics export is limited to once every 30 seconds. Please try again shortly.",
-      });
-    }
+    await assertRateLimit({
+      policy: RATELIMIT_POLICIES.partnerAnalyticsExport,
+      identifier: [partner.id, params.programId],
+    });
 
     const { program, links, totalCommissions } =
       await getProgramEnrollmentOrThrow({

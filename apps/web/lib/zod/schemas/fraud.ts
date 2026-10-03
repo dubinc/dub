@@ -27,6 +27,7 @@ export const fraudGroupSchema = z.object({
     email: true,
     image: true,
     status: true,
+    networkStatus: true,
   }),
   user: UserSchema.nullable(),
 });

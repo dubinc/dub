@@ -1,4 +1,4 @@
-import { currencyFormatter, prettyPrint } from "@dub/utils";
+import { currencyFormatter, prettyPrint, sleep } from "@dub/utils";
 import { stripe } from "./index";
 import { STRIPE_API_VERSION, stripeV2Fetch } from "./stripe-v2-client";
 
@@ -56,7 +56,7 @@ export async function fundFinancialAccount({
   );
 
   // small delay to make sure the funds are fully available in the financial account
-  await new Promise((resolve) => setTimeout(resolve, 5000));
+  await sleep(5000);
 
   return data;
 }

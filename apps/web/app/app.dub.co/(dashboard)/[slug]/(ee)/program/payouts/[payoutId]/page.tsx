@@ -1,20 +1,18 @@
 "use client";
 
 import { clientAccessCheck } from "@/lib/client-access-check";
+import { formatCommissionDescriptionTooltip } from "@/lib/commissions/format-commission-description-tooltip";
 import { usePayout } from "@/lib/swr/use-payout";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { CommissionResponse, PayoutResponse } from "@/lib/types";
-import { CLAWBACK_REASONS_MAP } from "@/lib/zod/schemas/commissions";
 import { CustomerAvatar } from "@/ui/customers/customer-avatar";
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { ActivityEvent } from "@/ui/partners/activity-event";
 import { CommissionTypeIcon } from "@/ui/partners/comission-type-icon";
+import { CommissionDescriptionLabel } from "@/ui/partners/commission-description-label";
 import { CommissionRowMenu } from "@/ui/partners/commission-row-menu";
-import {
-  CommissionTypeBadge,
-  getCommissionTypeLabel,
-} from "@/ui/partners/commission-type-badge";
+import { CommissionTypeBadge } from "@/ui/partners/commission-type-badge";
 import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
 import { ConditionalLink } from "@/ui/shared/conditional-link";
@@ -167,6 +165,7 @@ function PayoutDetailsContent({
       Partner: (
         <ConditionalLink
           href={`/${slug}/program/partners/${payout.partner.id}`}
+          target="_blank"
           className="flex min-w-0 items-center gap-1.5 text-neutral-500"
         >
           <PartnerAvatar
@@ -325,11 +324,11 @@ function PayoutDetailsContent({
                   {row.original.customer.email || row.original.customer.name}
                 </Link>
               ) : (
-                <span className="max-w-xs truncate text-sm text-neutral-700">
-                  {row.original.type === "custom" && row.original.description
-                    ? row.original.description
-                    : getCommissionTypeLabel(row.original)}
-                </span>
+                <CommissionDescriptionLabel
+                  commission={row.original}
+                  context={{ variant: "program", workspaceSlug: slug }}
+                  className="max-w-xs truncate text-sm text-neutral-700"
+                />
               )}
               <span className="text-xs text-neutral-500">
                 {formatDateTime(row.original.createdAt)}
@@ -359,12 +358,13 @@ function PayoutDetailsContent({
           const earnings = currencyFormatter(commission.earnings);
 
           if (commission.description) {
-            const reason =
-              CLAWBACK_REASONS_MAP[commission.description]?.description ??
-              commission.description;
-
             return (
-              <Tooltip content={reason}>
+              <Tooltip
+                content={formatCommissionDescriptionTooltip(
+                  commission.description,
+                  { variant: "program", workspaceSlug: slug },
+                )}
+              >
                 <span
                   className={cn(
                     "cursor-help truncate underline decoration-dotted underline-offset-2",

@@ -14,7 +14,7 @@ import {
 import { fetcher } from "@dub/utils";
 import { ArrowRight, ServerOff } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import {
   Dispatch,
   SetStateAction,
@@ -25,6 +25,7 @@ import {
 } from "react";
 import { toast } from "sonner";
 import useSWRImmutable from "swr/immutable";
+import { useImportModalParam } from "./use-import-modal-param";
 
 function ImportBitlyModal({
   showImportBitlyModal,
@@ -34,7 +35,6 @@ function ImportBitlyModal({
   setShowImportBitlyModal: Dispatch<SetStateAction<boolean>>;
 }) {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const { folderId } = useCurrentFolderId();
   const { id: workspaceId } = useWorkspace();
   const [importing, setImporting] = useState(false);
@@ -81,13 +81,10 @@ function ImportBitlyModal({
   const [selectedGroupTags, setSelectedGroupTags] = useState<string[]>([]);
 
   useEffect(() => {
-    if (searchParams?.get("import") === "bitly") {
+    if (showImportBitlyModal && groups !== undefined) {
       mutate();
-      setShowImportBitlyModal(true);
-    } else {
-      setShowImportBitlyModal(false);
     }
-  }, [searchParams]);
+  }, [showImportBitlyModal]);
 
   const isSelected = (domain: string) => {
     return selectedDomains.find((d) => d.domain === domain) ? true : false;
@@ -291,7 +288,8 @@ function ImportBitlyModal({
 }
 
 export function useImportBitlyModal() {
-  const [showImportBitlyModal, setShowImportBitlyModal] = useState(false);
+  const [showImportBitlyModal, setShowImportBitlyModal] =
+    useImportModalParam("bitly");
 
   const ImportBitlyModalCallback = useCallback(() => {
     return (

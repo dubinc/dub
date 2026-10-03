@@ -27,14 +27,15 @@ const getLogLevelFromStatusCode = (statusCode: number) => {
 };
 
 export const logger = new Logger({
-  transports: isAxiomEnabled
-    ? [
-        new AxiomJSTransport({
-          axiom: axiomClient,
-          dataset: process.env.AXIOM_DATASET!,
-        }),
-      ]
-    : [new ConsoleTransport()],
+  transports:
+    isAxiomEnabled && axiomClient
+      ? [
+          new AxiomJSTransport({
+            axiom: axiomClient,
+            dataset: process.env.AXIOM_DATASET!,
+          }),
+        ]
+      : [new ConsoleTransport()],
   formatters: nextJsFormatters,
 });
 

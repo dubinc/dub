@@ -1,8 +1,10 @@
 import { prisma } from "@/lib/prisma";
 import { sendEmail } from "@dub/email";
 import ProgramImported from "@dub/email/templates/program-imported";
+import { sleep } from "@dub/utils";
 import { Customer, Project } from "@prisma/client";
 import Stripe from "stripe";
+
 import { stripeAppClient } from "../stripe";
 import { logImportError } from "../tinybird/log-import-error";
 import { MAX_BATCHES, partnerStackImporter } from "./importer";
@@ -37,68 +39,70 @@ export async function updateStripeCustomers(
     },
   });
 
-  if (!workspace.stripeConnectId) {
-    console.error(
-      `Workspace ${workspace.id} has no stripeConnectId. Skipping...`,
-    );
-    return;
-  }
+  if (workspace.stripeConnectId) {
+    let hasMore = true;
+    let processedBatches = 0;
+    let currentStartingAfter = startingAfter;
 
-  let hasMore = true;
-  let processedBatches = 0;
-  let currentStartingAfter = startingAfter;
-
-  while (hasMore && processedBatches < MAX_BATCHES) {
-    const customers = await prisma.customer.findMany({
-      where: {
-        projectId: workspace.id,
-        stripeCustomerId: null,
-      },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-      },
-      orderBy: {
-        id: "asc",
-      },
-      take: CUSTOMERS_PER_BATCH,
-      skip: currentStartingAfter ? 1 : 0,
-      ...(currentStartingAfter && {
-        cursor: {
-          id: currentStartingAfter,
+    while (hasMore && processedBatches < MAX_BATCHES) {
+      const customers = await prisma.customer.findMany({
+        where: {
+          projectId: workspace.id,
+          stripeCustomerId: null,
+          email: {
+            not: null,
+          },
         },
-      }),
-    });
+        select: {
+          id: true,
+          name: true,
+          email: true,
+        },
+        orderBy: {
+          id: "asc",
+        },
+        take: CUSTOMERS_PER_BATCH,
+        skip: currentStartingAfter ? 1 : 0,
+        ...(currentStartingAfter && {
+          cursor: {
+            id: currentStartingAfter,
+          },
+        }),
+      });
 
-    if (customers.length === 0) {
-      hasMore = false;
-      break;
+      if (customers.length === 0) {
+        hasMore = false;
+        break;
+      }
+
+      await Promise.allSettled(
+        customers.map((customer) =>
+          searchStripeAndUpdateCustomer({
+            workspace,
+            customer,
+            importId,
+          }),
+        ),
+      );
+
+      await sleep(2000);
+
+      processedBatches++;
+      currentStartingAfter = customers[customers.length - 1].id;
     }
 
-    await Promise.allSettled(
-      customers.map((customer) =>
-        searchStripeAndUpdateCustomer({
-          workspace,
-          customer,
-          importId,
-        }),
-      ),
+    if (hasMore) {
+      await partnerStackImporter.queue({
+        ...payload,
+        startingAfter: currentStartingAfter,
+        action: "update-stripe-customers",
+      });
+      return;
+    }
+  } else {
+    console.error(
+      `Workspace ${workspace.id} has no stripeConnectId. Skipping Stripe customer matching.`,
     );
-
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-
-    processedBatches++;
-    currentStartingAfter = customers[customers.length - 1].id;
-  }
-
-  if (hasMore) {
-    await partnerStackImporter.queue({
-      ...payload,
-      startingAfter: currentStartingAfter,
-      action: "update-stripe-customers",
-    });
-    return;
   }
 
   const workspaceUser = await prisma.projectUsers.findUniqueOrThrow({
@@ -147,6 +151,10 @@ async function searchStripeAndUpdateCustomer({
     entity: "customer",
     entity_id: customer.id,
   } as const;
+
+  if (!customer.email) {
+    return null;
+  }
 
   try {
     const stripeCustomers = await stripe.customers.search(

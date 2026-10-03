@@ -406,7 +406,7 @@ export function Form() {
             <div className="flex items-center justify-between gap-3">
               <label className="text-sm font-medium text-neutral-800">
                 {type === "percentage" ? "Percentage" : "Amount"} per{" "}
-                {defaultRewardType}
+                {defaultRewardType} <span className="text-red-800">*</span>
               </label>
               <RewardQualityFieldIndicator
                 event={defaultRewardType as EventType}

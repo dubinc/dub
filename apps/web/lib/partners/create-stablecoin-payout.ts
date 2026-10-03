@@ -8,15 +8,18 @@ import {
   chunk,
   currencyFormatter,
   log,
+  pluralize,
   prettyPrint,
 } from "@dub/utils";
 import { PartnerPayoutMethod, Prisma } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
+import { PARTNER_IDS_TO_LOG_PAYOUTS_FOR } from "../constants/misc";
 import {
   BELOW_MIN_WITHDRAWAL_FEE_CENTS,
   MIN_FORCE_WITHDRAWAL_AMOUNT_CENTS,
   MIN_WITHDRAWAL_AMOUNT_CENTS,
   STABLECOIN_PAYOUT_FEE_RATE,
+  STABLECOIN_PAYOUT_FIXED_FEE_CENTS,
 } from "../constants/payouts";
 import { enqueueBatchJobs } from "../cron/enqueue-batch-jobs";
 import { createPayoutsIdempotencyKey } from "../payouts/create-payouts-idempotency-key";
@@ -24,6 +27,7 @@ import { markPayoutsAsProcessed } from "../payouts/mark-payouts-as-processed";
 import { createStripeOutboundPayment } from "../stripe/create-stripe-outbound-payment";
 import { fundFinancialAccount } from "../stripe/fund-financial-account";
 import { getStripeRecipientAccount } from "../stripe/get-stripe-recipient-account";
+import { getStripeRecipientPayoutMethod } from "../stripe/get-stripe-recipient-payout-method";
 
 interface CreateStablecoinPayoutParams {
   partnerId: string;
@@ -130,17 +134,14 @@ export const createStablecoinPayout = async ({
     0,
   );
 
-  if (totalTransferableAmount < MIN_FORCE_WITHDRAWAL_AMOUNT_CENTS) {
-    const message = `Total transferable amount (${currencyFormatter(totalTransferableAmount)}) is less than the minimum amount required for withdrawal (${currencyFormatter(MIN_FORCE_WITHDRAWAL_AMOUNT_CENTS)}).`;
-
-    // For force-withdrawal action, throw so the error surfaces back to partners.
-    // Otherwise (e.g. cron-driven payouts) just log and skip silently.
-    if (forceWithdrawal) {
-      throw new Error(message);
-    } else {
-      console.warn(message);
-      return;
-    }
+  // For force-withdrawals, if amount is less than the minimum force withdrawal amount, throw an error
+  if (
+    forceWithdrawal &&
+    totalTransferableAmount < MIN_FORCE_WITHDRAWAL_AMOUNT_CENTS
+  ) {
+    throw new Error(
+      `Total transferable amount (${currencyFormatter(totalTransferableAmount)}) is less than the minimum amount required for withdrawal (${currencyFormatter(MIN_FORCE_WITHDRAWAL_AMOUNT_CENTS)}).`,
+    );
   }
 
   let withdrawalFee = 0;
@@ -154,9 +155,16 @@ export const createStablecoinPayout = async ({
     } else {
       await markPayoutsAsProcessed(currentInvoicePayouts);
 
-      console.log(
-        `Total processed payouts (${currencyFormatter(totalTransferableAmount)}) for partner ${partner.id} are below ${currencyFormatter(MIN_WITHDRAWAL_AMOUNT_CENTS)}, skipping...`,
-      );
+      const message = `Total processed payouts (${currencyFormatter(totalTransferableAmount)}) for partner ${partner.id} are below ${currencyFormatter(MIN_WITHDRAWAL_AMOUNT_CENTS)}, skipping...`;
+      console.log(message);
+
+      if (PARTNER_IDS_TO_LOG_PAYOUTS_FOR.includes(partner.id)) {
+        await log({
+          message,
+          type: "alerts",
+          mention: true,
+        });
+      }
 
       return;
     }
@@ -210,9 +218,40 @@ export const createStablecoinPayout = async ({
 
     await markPayoutsAsProcessed(currentInvoicePayouts);
 
-    throw new Error(
-      `Stripe recipient account for partner ${partner.email} does not have crypto wallet capabilities.`,
-    );
+    const message = `Stripe recipient account for partner ${partner.email} does not have crypto wallet capabilities.`;
+
+    if (forceWithdrawal) {
+      throw new Error(message);
+    } else {
+      console.warn(message);
+      return;
+    }
+  }
+
+  const stripePayoutMethod = await getStripeRecipientPayoutMethod(
+    partner.stripeRecipientId,
+  );
+
+  if (!stripePayoutMethod?.id) {
+    await prisma.partner.update({
+      where: {
+        id: partner.id,
+      },
+      data: {
+        payoutsEnabledAt: null,
+      },
+    });
+
+    await markPayoutsAsProcessed(currentInvoicePayouts);
+
+    const message = `Stripe recipient account for partner ${partner.email} does not have an active crypto wallet payout method.`;
+
+    if (forceWithdrawal) {
+      throw new Error(message);
+    } else {
+      console.warn(message);
+      return;
+    }
   }
 
   const allPayoutsProgramNames = [
@@ -227,13 +266,20 @@ export const createStablecoinPayout = async ({
 
   if (amountToTransferToFA > 0) {
     await fundFinancialAccount({
-      amount: amountToTransferToFA,
+      // if there are no current invoice payouts (meaning partner is running a forceWithdrawal for previously processed payouts)
+      // we need to add the STABLECOIN_PAYOUT_FIXED_FEE_CENTS to the amount to transfer to the FA (to cover the Stablecoin payout fee)
+      amount:
+        amountToTransferToFA +
+        (currentInvoicePayouts.length === 0 && forceWithdrawal
+          ? STABLECOIN_PAYOUT_FIXED_FEE_CENTS
+          : 0),
       idempotencyKey,
     });
   }
 
   const outboundPayment = await createStripeOutboundPayment({
     stripeRecipientId: partner.stripeRecipientId,
+    payoutMethodId: stripePayoutMethod.id,
     amount: totalTransferableAmount,
     description: `Dub Partners payout (${allPayoutsProgramNames.join(", ")})`,
     idempotencyKey,
@@ -244,6 +290,23 @@ export const createStablecoinPayout = async ({
       `Failed to create outbound payment for partner ${partner.email}.`,
     );
     return;
+  }
+
+  const message = `Transfer of ${currencyFormatter(totalTransferableAmount)} (${outboundPayment.id}) created for partner ${partner.id} for ${pluralize(
+    "payout",
+    allPayouts.length,
+  )} ${allPayouts.map((p) => p.id).join(", ")}`;
+
+  console.log(message);
+
+  if (PARTNER_IDS_TO_LOG_PAYOUTS_FOR.includes(partner.id)) {
+    waitUntil(
+      log({
+        message,
+        type: "alerts",
+        mention: true,
+      }),
+    );
   }
 
   const payoutIds = allPayouts.map((p) => p.id);

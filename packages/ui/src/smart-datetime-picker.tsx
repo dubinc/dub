@@ -5,6 +5,7 @@ import {
   parseDateTime,
 } from "@dub/utils";
 import { useEffect, useId, useRef } from "react";
+import { CalendarIcon } from "./icons";
 
 interface SmartDateTimePickerProps {
   value: Date | null | undefined;
@@ -27,6 +28,23 @@ export function SmartDateTimePicker({
 }: SmartDateTimePickerProps) {
   const id = useId();
   const inputRef = useRef<HTMLInputElement>(null);
+  const nativeInputRef = useRef<HTMLInputElement>(null);
+
+  // Opens the browser's own date/time popover for the (visually hidden) native input
+  const openNativePicker = () => {
+    const input = nativeInputRef.current;
+    if (!input) return;
+
+    // Safari only dismisses the picker when its input loses focus, so the input
+    // has to be focused first or the picker can't be closed
+    input.focus();
+
+    try {
+      input.showPicker();
+    } catch {
+      // Browsers without showPicker support: the focused input still takes keyboard entry
+    }
+  };
 
   // Hacky fix to focus the input automatically, not sure why autoFocus doesn't work here
   useEffect(() => {
@@ -80,22 +98,36 @@ export function SmartDateTimePicker({
               }
             }
           }}
-          className="flex-1 border-none bg-transparent text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-0 sm:text-sm"
+          className="min-w-0 flex-1 border-none bg-transparent text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-0 sm:text-sm"
         />
-        <input
-          type="datetime-local"
-          id={`${id}-datetime-local`}
-          required={required}
-          value={value ? getDateTimeLocal(value) : ""}
-          onChange={(e) => {
-            const date = new Date(e.target.value);
-            onChange(date);
-            if (inputRef.current) {
-              inputRef.current.value = formatDateTime(date);
-            }
-          }}
-          className="w-[40px] border-none bg-transparent text-neutral-500 focus:outline-none focus:ring-0 sm:text-sm"
-        />
+        <div className="relative shrink-0 self-stretch">
+          <button
+            type="button"
+            onClick={openNativePicker}
+            aria-label="Open date picker"
+            className="flex h-full items-center px-3 text-neutral-500 transition-colors hover:text-neutral-700 focus:outline-none"
+          >
+            <CalendarIcon className="size-4 flex-none" aria-hidden />
+          </button>
+          {/* Kept in the layout (but invisible) so the native popover anchors to the icon */}
+          <input
+            ref={nativeInputRef}
+            type="datetime-local"
+            id={`${id}-datetime-local`}
+            required={required}
+            tabIndex={-1}
+            aria-label="Date and time"
+            value={value ? getDateTimeLocal(value) : ""}
+            onChange={(e) => {
+              const date = new Date(e.target.value);
+              onChange(date);
+              if (inputRef.current) {
+                inputRef.current.value = formatDateTime(date);
+              }
+            }}
+            className="pointer-events-none absolute inset-0 size-full opacity-0"
+          />
+        </div>
       </div>
     </div>
   );

@@ -84,6 +84,8 @@ const getOtherInvoices = async ({
       status: true,
       paymentMethod: true,
       failedReason: true,
+      refundedAmount: true,
+      refundReason: true,
     },
     orderBy: {
       createdAt: "desc",

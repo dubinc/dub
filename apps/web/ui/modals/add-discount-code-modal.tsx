@@ -10,7 +10,9 @@ import {
   Modal,
   useCopyToClipboard,
 } from "@dub/ui";
+import { CircleWarning, TriangleWarning } from "@dub/ui/icons";
 import { cn, getPrettyUrl } from "@dub/utils";
+import { DiscountProvider } from "@prisma/client";
 import { Tag } from "lucide-react";
 import { useCallback, useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -19,7 +21,7 @@ import { useDebounce } from "use-debounce";
 import * as z from "zod/v4";
 import { ERROR_MAP } from "../partners/constants";
 import { CustomToast } from "../shared/custom-toast";
-import { AlertCircleFill, X } from "../shared/icons";
+import { X } from "../shared/icons";
 import { UpgradeRequiredToast } from "../shared/upgrade-required-toast";
 
 type FormData = z.infer<typeof createDiscountCodeSchema>;
@@ -28,12 +30,14 @@ interface AddDiscountCodeModalProps {
   showModal: boolean;
   setShowModal: (showModal: boolean) => void;
   partner: EnrolledPartnerProps;
+  getDiscountProvider: (linkId: string) => DiscountProvider | null;
 }
 
 const AddDiscountCodeModal = ({
   showModal,
   setShowModal,
   partner,
+  getDiscountProvider,
 }: AddDiscountCodeModalProps) => {
   const [search, setSearch] = useState("");
   const [isOpen, setIsOpen] = useState(false);
@@ -50,7 +54,18 @@ const AddDiscountCodeModal = ({
     },
   });
 
-  const [linkId] = watch(["linkId"]);
+  const [linkId, code] = watch(["linkId", "code"]);
+
+  const provider = linkId ? getDiscountProvider(linkId) : null;
+  const restrictsCodeFormat =
+    provider === DiscountProvider.stripe ||
+    provider === DiscountProvider.shopify;
+  const trimmedCode = (code ?? "").trim();
+  // Stripe and Shopify only allow letters, numbers, dashes, and underscores.
+  const codeToCreate = restrictsCodeFormat
+    ? trimmedCode.replace(/\s+/g, "-").replace(/[^a-zA-Z0-9\-_]/g, "")
+    : trimmedCode;
+  const codeWillChange = restrictsCodeFormat && codeToCreate !== trimmedCode;
 
   // Get partner links for the dropdown
   const partnerLinks = partner.links || [];
@@ -75,10 +90,15 @@ const AddDiscountCodeModal = ({
   }, [partnerLinks, debouncedSearch]);
 
   const onSubmit = async (formData: FormData) => {
+    if (!provider) {
+      return;
+    }
+
     await makeRequest("/api/discount-codes", {
       method: "POST",
       body: {
         ...formData,
+        code: codeToCreate,
         partnerId: partner.id,
       },
       onSuccess: async (data) => {
@@ -107,7 +127,7 @@ const AddDiscountCodeModal = ({
           return;
         } else if (error.includes("already in use")) {
           toast.custom(() => (
-            <CustomToast icon={AlertCircleFill}>{error}</CustomToast>
+            <CustomToast variant="error">{error}</CustomToast>
           ));
         } else {
           toast.error(error);
@@ -206,6 +226,23 @@ const AddDiscountCodeModal = ({
                   placeholder={partner.name.split(" ")[0].toUpperCase()}
                 />
               </div>
+              {codeWillChange &&
+                (codeToCreate ? (
+                  <p className="flex items-center gap-1.5 text-xs text-neutral-500">
+                    <TriangleWarning className="size-3.5 shrink-0 text-amber-500" />
+                    <span className="min-w-0">
+                      Will be created as{" "}
+                      <code className="break-all rounded-md bg-neutral-100 px-1.5 py-0.5 font-mono text-neutral-800">
+                        {codeToCreate}
+                      </code>
+                    </span>
+                  </p>
+                ) : (
+                  <p className="flex items-center gap-1.5 text-xs text-red-600">
+                    <CircleWarning className="size-3.5 shrink-0" />
+                    Use letters, numbers, dashes, or underscores
+                  </p>
+                ))}
               <p className="text-xs text-neutral-500">
                 Discount codes cannot be edited after creation
               </p>
@@ -226,7 +263,7 @@ const AddDiscountCodeModal = ({
             }
             className="h-8 w-fit pl-2.5 pr-1.5"
             loading={isSubmitting}
-            disabled={!linkId}
+            disabled={!linkId || !provider || (codeWillChange && !codeToCreate)}
           />
         </div>
       </form>
@@ -236,8 +273,10 @@ const AddDiscountCodeModal = ({
 
 export function useAddDiscountCodeModal({
   partner,
+  getDiscountProvider,
 }: {
   partner: EnrolledPartnerProps;
+  getDiscountProvider: (linkId: string) => DiscountProvider | null;
 }) {
   const [showAddDiscountCodeModal, setShowAddDiscountCodeModal] =
     useState(false);
@@ -248,9 +287,15 @@ export function useAddDiscountCodeModal({
         showModal={showAddDiscountCodeModal}
         setShowModal={setShowAddDiscountCodeModal}
         partner={partner}
+        getDiscountProvider={getDiscountProvider}
       />
     );
-  }, [showAddDiscountCodeModal, setShowAddDiscountCodeModal, partner]);
+  }, [
+    showAddDiscountCodeModal,
+    setShowAddDiscountCodeModal,
+    partner,
+    getDiscountProvider,
+  ]);
 
   return useMemo(
     () => ({

@@ -1,6 +1,7 @@
 "use client";
 
 import { clientAccessCheck } from "@/lib/client-access-check";
+import { testIds } from "@/lib/e2e/test-ids";
 import { isEligibleForTrial } from "@/lib/stripe/is-eligible-for-trial";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { PageContent } from "@/ui/layout/page-content";
@@ -20,6 +21,7 @@ import {
   Plug2,
   ToggleGroup,
   useMediaQuery,
+  useRouterStuff,
   Users2,
 } from "@dub/ui";
 import {
@@ -39,7 +41,6 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { motion } from "motion/react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 import { CSSProperties, useEffect, useMemo, useState } from "react";
 import { AdjustUsageRow } from "./adjust-usage-row";
 
@@ -57,7 +58,7 @@ const COMPARE_FEATURE_ICONS: Record<
 };
 
 export default function WorkspaceBillingUpgradePage() {
-  const searchParams = useSearchParams();
+  const { searchParams, queryParams } = useRouterStuff();
   const { data: session } = useSession();
   const workspace = useWorkspace();
   const {
@@ -79,14 +80,14 @@ export default function WorkspaceBillingUpgradePage() {
 
   const [mobilePlanIndex, setMobilePlanIndex] = useState(0);
 
-  const planPeriod = searchParams.get("planPeriod") ?? "";
-  const [period, setPeriod] = useState<"monthly" | "yearly">(
-    ["monthly", "yearly"].includes(planPeriod)
-      ? (planPeriod as "monthly" | "yearly")
-      : currentPlanPeriod === "yearly"
-        ? "yearly"
-        : "monthly",
-  );
+  const planPeriodParam = searchParams.get("planPeriod") ?? "";
+  const period: "monthly" | "yearly" = ["monthly", "yearly"].includes(
+    planPeriodParam,
+  )
+    ? (planPeriodParam as "monthly" | "yearly")
+    : currentPlanPeriod === "yearly"
+      ? "yearly"
+      : "monthly";
 
   const { advancedUpsellModal, setShowAdvancedUpsellModal } =
     useAdvancedUpsellModal();
@@ -109,6 +110,8 @@ export default function WorkspaceBillingUpgradePage() {
     });
   }, [linksUsage, eventsUsage]);
 
+  const planQueryParam = searchParams.get("plan");
+
   const hideProPlan = Boolean(defaultProgramId && currentPlan !== "pro");
 
   const plans: { plan: PlanDetails; planTier: number }[] = useMemo(
@@ -127,6 +130,40 @@ export default function WorkspaceBillingUpgradePage() {
         }),
     [recommendedPlan, hideProPlan],
   );
+
+  const resolvedRequestedPlan = useMemo(() => {
+    if (!planQueryParam) return null;
+
+    return (
+      plans.find(
+        ({ plan }) => plan.name.toLowerCase() === planQueryParam.toLowerCase(),
+      ) ?? null
+    );
+  }, [planQueryParam, plans]);
+
+  const highlightedPlan = useMemo(() => {
+    if (resolvedRequestedPlan) return resolvedRequestedPlan;
+    if (!planQueryParam) return recommendedPlan;
+    return null;
+  }, [resolvedRequestedPlan, planQueryParam, recommendedPlan]);
+
+  const highlightedPlanIndex = useMemo(() => {
+    if (!highlightedPlan) return null;
+
+    const index = plans.findIndex(
+      ({ plan, planTier }) =>
+        plan.name === highlightedPlan.plan.name &&
+        planTier === highlightedPlan.planTier,
+    );
+
+    return index >= 0 ? index : null;
+  }, [plans, highlightedPlan]);
+
+  useEffect(() => {
+    if (highlightedPlanIndex !== null) {
+      setMobilePlanIndex(highlightedPlanIndex);
+    }
+  }, [highlightedPlanIndex]);
 
   useEffect(() => {
     if (mobilePlanIndex >= plans.length) {
@@ -147,7 +184,7 @@ export default function WorkspaceBillingUpgradePage() {
             Billing
           </Link>
           <ChevronRight className="text-content-muted size-2.5 shrink-0 [&_*]:stroke-2" />
-          <h1>Plans</h1>
+          <h1 data-testid={testIds.billing.plansHeading}>Plans</h1>
         </div>
       }
       controls={
@@ -166,7 +203,12 @@ export default function WorkspaceBillingUpgradePage() {
               },
             ]}
             selected={period}
-            selectAction={(option) => setPeriod(option as "monthly" | "yearly")}
+            selectAction={(option) => {
+              queryParams({
+                set: { planPeriod: option },
+                replace: true,
+              });
+            }}
             className="rounded-lg border-neutral-300 bg-neutral-100 p-0.5"
             optionClassName="text-xs normal-case text-neutral-800 data-[selected=true]:text-neutral-800 px-3 h-8 leading-none"
             indicatorClassName="bg-white border-neutral-200 rounded-md"
@@ -193,6 +235,12 @@ export default function WorkspaceBillingUpgradePage() {
               }
             >
               {plans.map(({ plan, planTier }, idx) => {
+                const isRecommended = Boolean(
+                  highlightedPlan &&
+                    plan.name === highlightedPlan.plan.name &&
+                    planTier === highlightedPlan.planTier,
+                );
+
                 // disable upgrade button if user has a Stripe ID and is on the current plan
                 // (trialing subscriptions still use Checkout in some edge cases; portal handles plan changes)
                 // edge case:
@@ -225,9 +273,10 @@ export default function WorkspaceBillingUpgradePage() {
                   <div
                     key={plan.name}
                     className={cn(
-                      "relative top-0 flex h-full flex-col gap-6 bg-white p-5 lg:p-3 xl:p-5",
+                      "relative top-0 flex h-full flex-col gap-6 bg-white p-5 transition-[background-color,box-shadow] lg:p-3 xl:p-5",
                       "max-lg:rounded-xl max-lg:border max-lg:border-neutral-200",
-
+                      isRecommended &&
+                        "lg:z-10 lg:bg-blue-50 lg:shadow-sm lg:ring-2 lg:ring-blue-500",
                       idx !== mobilePlanIndex && "max-lg:opacity-0",
                     )}
                   >
@@ -236,15 +285,11 @@ export default function WorkspaceBillingUpgradePage() {
                         <h3 className="py-1 text-base font-semibold leading-none text-neutral-800">
                           {plan.name}
                         </h3>
-                        {recommendedPlan &&
-                          !isDowngrade &&
-                          plan.name === recommendedPlan.plan.name &&
-                          planTier === recommendedPlan.planTier &&
-                          !isCurrentPlan && (
-                            <div className="animate-fade-in flex h-6 min-w-0 items-center rounded-lg border border-blue-100 bg-blue-50 px-1.5 text-xs font-medium text-blue-600">
-                              <span className="truncate">Recommended</span>
-                            </div>
-                          )}
+                        {isRecommended && !isDowngrade && !isCurrentPlan && (
+                          <div className="animate-fade-in flex h-6 min-w-0 items-center rounded-lg border border-blue-100 bg-blue-50 px-1.5 text-xs font-medium text-blue-600">
+                            <span className="truncate">Recommended</span>
+                          </div>
+                        )}
                       </div>
                       <div className="relative mt-0.5 flex items-center gap-1">
                         {plan.name === "Enterprise" ? (
@@ -296,6 +341,7 @@ export default function WorkspaceBillingUpgradePage() {
                       ) : (
                         <UpgradePlanButton
                           plan={plan.name.toLowerCase()}
+                          data-testid={testIds.billing.planCta(plan.name)}
                           tier={planTier > 1 ? planTier : undefined}
                           period={period}
                           disabled={
@@ -368,6 +414,7 @@ export default function WorkspaceBillingUpgradePage() {
               mobilePlanIndex={mobilePlanIndex}
               plans={plans}
               planPeriod={period}
+              recommendedPlan={highlightedPlan}
             />
           ))}
         </div>
@@ -432,10 +479,12 @@ function BillingCompareSection({
   mobilePlanIndex,
   plans,
   planPeriod,
+  recommendedPlan,
 }: (typeof PRICING_PLAN_COMPARE_FEATURES)[number] & {
   mobilePlanIndex: number;
   plans: { plan: PlanDetails; planTier: number }[];
   planPeriod: "monthly" | "yearly";
+  recommendedPlan: ReturnType<typeof getSuggestedPlan> | null;
 }) {
   const [isExpanded, setIsExpanded] = useState(true);
   const { defaultProgramId } = useWorkspace();
@@ -517,8 +566,13 @@ function BillingCompareSection({
 
               return (
                 <tr key={idx} className="contents bg-white">
-                  {plans.map(({ plan }) => {
+                  {plans.map(({ plan, planTier }) => {
                     const id = plan.name.toLowerCase();
+                    const isRecommended = Boolean(
+                      recommendedPlan &&
+                        plan.name === recommendedPlan.plan.name &&
+                        planTier === recommendedPlan.planTier,
+                    );
                     const isChecked =
                       typeof check === "boolean"
                         ? check
@@ -529,8 +583,9 @@ function BillingCompareSection({
                       <td
                         key={id}
                         className={cn(
-                          "flex items-center gap-2 border-b border-neutral-200 bg-white px-5 py-4",
+                          "flex items-center gap-2 border-b border-neutral-200 bg-white px-5 py-4 transition-colors",
                           !isChecked && "text-neutral-300",
+                          isRecommended && recommendedPlan && "lg:bg-blue-50",
                         )}
                       >
                         {isChecked ? (

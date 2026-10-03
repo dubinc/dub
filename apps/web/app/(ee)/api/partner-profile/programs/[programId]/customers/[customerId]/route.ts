@@ -5,6 +5,7 @@ import { obfuscateCustomerEmail } from "@/lib/api/partner-profile/obfuscate-cust
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { withPartnerProfile } from "@/lib/auth/partner";
 import {
+  CUSTOMER_LTV_EXCLUDED_PROGRAM_IDS,
   LARGE_PROGRAM_IDS,
   LARGE_PROGRAM_MIN_TOTAL_COMMISSIONS_CENTS,
 } from "@/lib/constants/partner-profile";
@@ -66,41 +67,58 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
     });
   }
 
+  const partnerLinkIds = links.map((link) => link.id);
+
   const events = await getCustomerEvents({
     customerId: customer.id,
-    linkIds: links.map((link) => link.id),
+    linkIds: partnerLinkIds,
     includeMetadata: false,
   });
 
-  if (events.length === 0) {
+  // if there are events between the partner-customer, use the last event's link id
+  // else, check if the customer.linkId actually belongs to the partner
+  // if it does, use it, otherwise, throw an error
+  const attributedPartnerLinkId =
+    events.length > 0
+      ? events[events.length - 1].link_id
+      : customer.linkId && partnerLinkIds.includes(customer.linkId)
+        ? customer.linkId
+        : null;
+
+  if (!attributedPartnerLinkId) {
     throw new DubApiError({
       code: "not_found",
       message: "Customer is not attributed to any links by this partner.",
     });
   }
 
-  // get the first partner link that this customer interacted with
-  const firstLinkId = events[events.length - 1].link_id;
-  const link = links.find((link) => link.id === firstLinkId);
+  // get the partner link that this customer interacted with
+  const link = links.find((link) => link.id === attributedPartnerLinkId);
 
   return NextResponse.json(
     PartnerProfileCustomerSchema.extend({
       ...(customerDataSharingEnabledAt && { name: z.string().nullish() }),
-    }).parse({
-      ...transformCustomer({
-        ...customer,
-        firstSaleAt: customer.commissions[0]?.createdAt ?? null,
-        email: customer.email
-          ? customerDataSharingEnabledAt
-            ? customer.email
-            : obfuscateCustomerEmail(customer.email)
-          : customer.name || generateRandomName(),
+    })
+      .omit({
+        ...(CUSTOMER_LTV_EXCLUDED_PROGRAM_IDS.includes(program.id) && {
+          saleAmount: true,
+        }),
+      })
+      .parse({
+        ...transformCustomer({
+          ...customer,
+          firstSaleAt: customer.commissions[0]?.createdAt ?? null,
+          email: customer.email
+            ? customerDataSharingEnabledAt
+              ? customer.email
+              : obfuscateCustomerEmail(customer.email)
+            : customer.name || generateRandomName(),
+        }),
+        activity: {
+          ...customer,
+          events,
+          link,
+        },
       }),
-      activity: {
-        ...customer,
-        events,
-        link,
-      },
-    }),
   );
 });

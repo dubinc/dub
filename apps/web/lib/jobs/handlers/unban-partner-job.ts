@@ -85,7 +85,10 @@ export const unbanPartnerJob = defineJob({
           status: BountySubmissionStatus.rejected,
         },
         data: {
-          status: BountySubmissionStatus.submitted,
+          status: BountySubmissionStatus.draft,
+          rejectionNote: null,
+          rejectionReason: null,
+          reviewedAt: null,
         },
       }),
     ]);
@@ -109,7 +112,7 @@ export const unbanPartnerJob = defineJob({
       ]);
     }
 
-    // Clean up any pending cross-program ban alerts that originated from this program.
+    // Clean up any pending network-level ban alerts that originated from this program.
     await prisma.$transaction([
       prisma.fraudEvent.deleteMany({
         where: {

@@ -1,3 +1,4 @@
+import { queuePartnerSearchSync } from "@/lib/api/partners/queue-partner-search-sync";
 import { withAdmin } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
 import { prisma } from "@/lib/prisma";
@@ -105,6 +106,7 @@ const adminUpdatePartnerSchema = z.object({
   country: z.enum(Object.keys(COUNTRIES) as [string, ...string[]]),
 });
 
+// PATCH /api/admin/partners/[partnerId] – update the partner country
 export const PATCH = withAdmin(async ({ params, req }) => {
   const { partnerId } = params;
   const { country } = adminUpdatePartnerSchema.parse(await req.json());
@@ -158,6 +160,9 @@ export const PATCH = withAdmin(async ({ params, req }) => {
       cryptoWalletAddress: null,
     },
   });
+
+  // Queue an index update because an admin corrected the partner country (filterable field)
+  waitUntil(queuePartnerSearchSync({ partnerIds: [partner.id] }));
 
   // if there was an existing veriff session, trigger a country change verification
   if (partner.identityVerifiedAt) {

@@ -147,7 +147,7 @@ function RevenuePageClient() {
 
   return (
     <div className="mx-auto flex w-full max-w-screen-xl flex-col space-y-6 p-6">
-      <SimpleDateRangePicker defaultInterval="30d" className="w-fit" />
+      <SimpleDateRangePicker defaultInterval="1y" className="w-fit" />
       <div className="flex flex-col divide-y divide-neutral-200 rounded-lg border border-neutral-200 bg-white">
         <div className="grid w-full grid-cols-1 divide-x sm:grid-cols-3">
           {revenueTabs.map(({ id, label, colorClassName, labelTooltip }) => (

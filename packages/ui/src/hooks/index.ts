@@ -10,6 +10,7 @@ export * from "./use-in-viewport";
 export * from "./use-input-focused";
 export * from "./use-intersection-observer";
 export * from "./use-keyboard-shortcut";
+export * from "./use-latest-callback";
 export * from "./use-local-storage";
 export * from "./use-media-query";
 export * from "./use-optimistic-update";

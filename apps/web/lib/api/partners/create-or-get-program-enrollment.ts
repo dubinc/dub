@@ -15,6 +15,7 @@ export async function createOrGetProgramEnrollment({
   leadRewardId,
   saleRewardId,
   referralRewardId,
+  customRewardId,
   discountId,
   enrolledAt,
 }: Pick<
@@ -28,6 +29,7 @@ export async function createOrGetProgramEnrollment({
   | "leadRewardId"
   | "saleRewardId"
   | "referralRewardId"
+  | "customRewardId"
   | "discountId"
 > & {
   enrolledAt?: Date;
@@ -45,6 +47,7 @@ export async function createOrGetProgramEnrollment({
         leadRewardId,
         saleRewardId,
         referralRewardId,
+        customRewardId,
         discountId,
         ...(enrolledAt && {
           createdAt: enrolledAt,

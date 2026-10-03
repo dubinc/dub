@@ -44,6 +44,7 @@ function TimeSeriesChartInner<T extends Datum>({
   tooltipClassName = "",
   defaultTooltipIndex = null,
   onHoverDateChange,
+  onXValueClick,
   margin: marginProp = {
     top: 12,
     right: 5,
@@ -223,6 +224,17 @@ function TimeSeriesChartInner<T extends Datum>({
               onTouchMove={handleTooltip}
               onMouseMove={handleTooltip}
               onMouseLeave={hideTooltip}
+              onClick={() => {
+                if (tooltipData) {
+                  onXValueClick?.(tooltipData);
+                }
+              }}
+              onTouchEnd={() => {
+                if (tooltipData) {
+                  onXValueClick?.(tooltipData);
+                }
+              }}
+              className={onXValueClick ? "cursor-pointer" : undefined}
               fill="transparent"
             />
           </Group>
@@ -233,11 +245,17 @@ function TimeSeriesChartInner<T extends Datum>({
           {tooltipData && (
             <TooltipWrapper
               key={tooltipData.date.toString()}
-              left={(tooltipLeft ?? 0) + margin.left}
+              // Anchor bars at their center so the offset is symmetric when
+              // the tooltip flips to the left near the right edge
+              left={
+                (tooltipLeft ?? 0) +
+                margin.left +
+                ("bandwidth" in xScale ? xScale.bandwidth() / 2 : 0)
+              }
               top={(tooltipTop ?? 0) + margin.top}
               offsetLeft={
                 "bandwidth" in xScale
-                  ? xScale.bandwidth() * (1 + xScale.padding())
+                  ? xScale.bandwidth() * (0.5 + xScale.padding())
                   : 8
               }
               offsetTop={12}

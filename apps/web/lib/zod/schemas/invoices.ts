@@ -19,4 +19,6 @@ export const InvoiceSchema = z.object({
   description: z.string().default("Dub payout"),
   pdfUrl: z.string().nullable(),
   failedReason: z.string().nullish().default(null),
+  refundedAmount: z.number().default(0),
+  refundReason: z.string().nullish().default(null),
 });

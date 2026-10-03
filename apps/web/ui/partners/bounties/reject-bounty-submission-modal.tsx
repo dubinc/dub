@@ -1,18 +1,15 @@
-import { rejectBountySubmissionAction } from "@/lib/actions/partners/reject-bounty-submission";
 import {
   BOUNTY_MAX_SUBMISSION_REJECTION_NOTE_LENGTH,
   REJECT_BOUNTY_SUBMISSION_REASONS,
 } from "@/lib/bounty/constants";
 import { mutatePrefix } from "@/lib/swr/mutate";
-import useBounty from "@/lib/swr/use-bounty";
-import useWorkspace from "@/lib/swr/use-workspace";
+import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import { BountySubmissionProps } from "@/lib/types";
 import { rejectBountySubmissionBodySchema } from "@/lib/zod/schemas/bounties";
 import { MaxCharactersCounter } from "@/ui/shared/max-characters-counter";
 import { Button, Modal, useKeyboardShortcut } from "@dub/ui";
 import { cn } from "@dub/utils";
-import { useAction } from "next-safe-action/hooks";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import * as z from "zod/v4";
@@ -30,12 +27,11 @@ const RejectBountySubmissionModal = ({
   setShowModal,
   onReject,
 }: RejectBountySubmissionModalProps) => {
-  const { bounty } = useBounty();
-  const workspace = useWorkspace();
+  const { makeRequest: rejectBountySubmission, isSubmitting } =
+    useApiMutation();
 
   const {
     register,
-    watch,
     getValues,
     control,
     formState: { errors },
@@ -46,35 +42,39 @@ const RejectBountySubmissionModal = ({
     },
   });
 
-  const { executeAsync: rejectBountySubmission, isPending } = useAction(
-    rejectBountySubmissionAction,
-    {
-      onSuccess: () => {
-        toast.success("Bounty submission rejected successfully!");
-        setShowModal(false);
-        onReject ? onReject() : null;
-        mutatePrefix(`/api/bounties/${bounty?.id}/submissions`);
-      },
-      onError({ error }) {
-        toast.error(error.serverError);
-      },
-    },
-  );
-
   const handleReject = useCallback(async () => {
-    if (!workspace.id || !submission?.id) {
+    if (!submission?.id || !submission.bountyId) {
       return;
     }
 
     const formData = getValues();
 
-    await rejectBountySubmission({
-      ...formData,
-      rejectionReason: formData.rejectionReason,
-      workspaceId: workspace.id,
-      submissionId: submission.id,
-    });
-  }, [workspace.id, submission?.id, getValues, rejectBountySubmission]);
+    await rejectBountySubmission(
+      `/api/bounties/${submission.bountyId}/submissions/${submission.id}/reject`,
+      {
+        method: "POST",
+        body: {
+          rejectionReason: formData.rejectionReason || undefined,
+          rejectionNote: formData.rejectionNote,
+        },
+        onSuccess: async () => {
+          toast.success("Bounty submission rejected successfully!");
+          setShowModal(false);
+          onReject?.();
+          await mutatePrefix(
+            `/api/bounties/${submission.bountyId}/submissions`,
+          );
+        },
+      },
+    );
+  }, [
+    submission?.id,
+    submission.bountyId,
+    getValues,
+    rejectBountySubmission,
+    setShowModal,
+    onReject,
+  ]);
 
   // Handle keyboard shortcut for Reject button
   useKeyboardShortcut("r", handleReject, {
@@ -105,7 +105,7 @@ const RejectBountySubmissionModal = ({
               <select
                 id="rejectionReason"
                 {...register("rejectionReason")}
-                disabled={isPending}
+                disabled={isSubmitting}
                 className={cn(
                   "block w-full rounded-md border-neutral-300 text-neutral-900 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
                   errors.rejectionReason &&
@@ -174,7 +174,7 @@ const RejectBountySubmissionModal = ({
             text="Cancel"
             className="h-9 w-fit"
             onClick={() => setShowModal(false)}
-            disabled={isPending}
+            disabled={isSubmitting}
           />
           <Button
             type="button"
@@ -182,7 +182,7 @@ const RejectBountySubmissionModal = ({
             variant="danger"
             shortcut="R"
             className="h-9 w-fit"
-            loading={isPending}
+            loading={isSubmitting}
             onClick={handleReject}
           />
         </div>
@@ -197,22 +197,16 @@ export function useRejectBountySubmissionModal(
 ) {
   const [showRejectModal, setShowRejectModal] = useState(false);
 
-  const RejectBountySubmissionModalCallback = useCallback(() => {
-    return (
+  return {
+    setShowRejectModal,
+    RejectBountySubmissionModal: showRejectModal ? (
       <RejectBountySubmissionModal
+        key={submission.id}
         showModal={showRejectModal}
         setShowModal={setShowRejectModal}
         submission={submission}
         onReject={onReject}
       />
-    );
-  }, [showRejectModal, setShowRejectModal, onReject, submission]);
-
-  return useMemo(
-    () => ({
-      setShowRejectModal,
-      RejectBountySubmissionModal: RejectBountySubmissionModalCallback,
-    }),
-    [setShowRejectModal, RejectBountySubmissionModalCallback],
-  );
+    ) : null,
+  };
 }

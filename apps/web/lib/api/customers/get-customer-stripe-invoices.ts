@@ -4,6 +4,7 @@ import { stripeAppClient } from "@/lib/stripe";
 import { StripeCustomerInvoiceSchema } from "@/lib/zod/schemas/customers";
 import { STRIPE_INTEGRATION_ID } from "@dub/utils";
 import Stripe from "stripe";
+import { DubApiError } from "../errors";
 
 type ExpandedStripeInvoice = Stripe.Invoice & {
   id: string;
@@ -48,20 +49,45 @@ export async function getCustomerStripeInvoices({
     installedStripeIntegration.settings || {},
   );
 
+  if (!stripeCustomerId.startsWith("cus_")) {
+    throw new DubApiError({
+      code: "bad_request",
+      message: `Customer has an invalid Stripe customer ID (${stripeCustomerId}). Stripe customer IDs start with "cus_".`,
+    });
+  }
+
   const stripe = stripeAppClient({
     mode: stripeIntegrationSettings.stripeMode,
   });
-  const { data } = await stripe.invoices.list(
-    {
-      customer: stripeCustomerId,
-      status: "paid",
-      limit: 100,
-      expand: ["data.payments.data.payment"],
-    },
-    {
-      stripeAccount: stripeConnectId,
-    },
-  );
+
+  let data: Stripe.Invoice[];
+  try {
+    const res = await stripe.invoices.list(
+      {
+        customer: stripeCustomerId,
+        status: "paid",
+        limit: 100,
+        expand: ["data.payments.data.payment"],
+      },
+      {
+        stripeAccount: stripeConnectId,
+      },
+    );
+    data = res.data;
+  } catch (error) {
+    if (
+      error instanceof Stripe.errors.StripeError &&
+      error.code === "resource_missing"
+    ) {
+      throw new DubApiError({
+        code: "bad_request",
+        message: `Stripe customer "${stripeCustomerId}" was not found on the connected Stripe account. Update the customer's Stripe customer ID and try again.`,
+      });
+    }
+
+    throw error;
+  }
+
   const invoices = data.filter(
     (invoice) => invoice.id,
   ) as ExpandedStripeInvoice[];

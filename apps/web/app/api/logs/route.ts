@@ -8,7 +8,7 @@ import { NextResponse } from "next/server";
 // GET /api/logs
 export const GET = withWorkspace(
   async ({ workspace, searchParams }) => {
-    const { start, end, interval, ...filters } =
+    const { start, end, interval, timezone, exactRange, ...filters } =
       getApiLogsQuerySchema.parse(searchParams);
 
     const { startDate, endDate } = getApiLogsDateRange({
@@ -16,6 +16,8 @@ export const GET = withWorkspace(
       start,
       end,
       interval,
+      timezone,
+      exactRange: Boolean(exactRange),
     });
 
     const logs = await getApiLogs({

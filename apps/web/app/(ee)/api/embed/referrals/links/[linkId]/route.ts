@@ -2,6 +2,7 @@ import { DubApiError, ErrorCodes } from "@/lib/api/errors";
 import { processLink, updateLink } from "@/lib/api/links";
 import { validatePartnerLinkUrl } from "@/lib/api/links/validate-partner-link-url";
 import { parseRequestBody } from "@/lib/api/utils";
+import { applyGroupUtmToLink } from "@/lib/api/utm/apply-group-utm-to-link";
 import { withReferralsEmbedToken } from "@/lib/embed/referrals/auth";
 import { prisma } from "@/lib/prisma";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
@@ -61,6 +62,25 @@ export const PATCH = withReferralsEmbedToken(
 
     validatePartnerLinkUrl({ group, url });
 
+    const [groupUtmTemplate, partner] = await Promise.all([
+      group.utmTemplateId
+        ? prisma.utmTemplate.findUnique({
+            where: {
+              id: group.utmTemplateId,
+            },
+          })
+        : null,
+
+      prisma.partner.findUnique({
+        where: {
+          id: programEnrollment.partnerId,
+        },
+        select: {
+          name: true,
+        },
+      }),
+    ]);
+
     // if domain and key are the same, we don't need to check if the key exists
     const skipKeyChecks = link.key.toLowerCase() === key?.toLowerCase();
 
@@ -94,13 +114,21 @@ export const PATCH = withReferralsEmbedToken(
       });
     }
 
+    const linkWithUtm = applyGroupUtmToLink({
+      link: processedLink,
+      utmTemplate: groupUtmTemplate,
+      partnerName: partner?.name,
+    });
+
     const partnerLink = await updateLink({
       oldLink: {
         domain: link.domain,
         key: link.key,
         image: link.image,
+        programId: link.programId,
+        partnerId: link.partnerId,
       },
-      updatedLink: processedLink,
+      updatedLink: linkWithUtm,
     });
 
     waitUntil(
@@ -114,6 +142,7 @@ export const PATCH = withReferralsEmbedToken(
             webhookEnabled: true,
           },
         });
+
         if (workspace) {
           await sendWorkspaceWebhook({
             trigger: "link.updated",

@@ -43,6 +43,7 @@ export function useApiLogsCount({
     {
       workspaceId,
       ...(groupBy && { groupBy }),
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
     },
     {
       include: [
@@ -55,6 +56,7 @@ export function useApiLogsCount({
         "start",
         "end",
         "interval",
+        "exactRange",
       ],
     },
   );

@@ -1,11 +1,11 @@
 "use client";
 
+import { formatCommissionDescriptionTooltip } from "@/lib/commissions/format-commission-description-tooltip";
 import useCommissionsCount from "@/lib/swr/use-commissions-count";
 import useGroups from "@/lib/swr/use-groups";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { CommissionResponse } from "@/lib/types";
-import { CLAWBACK_REASONS_MAP } from "@/lib/zod/schemas/commissions";
 import { CustomerRowItem } from "@/ui/customers/customer-row-item";
 import { useBulkEditCommissionsModal } from "@/ui/partners/bulk-edit-commissions-modal";
 import { CommissionRowMenu } from "@/ui/partners/commission-row-menu";
@@ -32,7 +32,7 @@ import {
   useRouterStuff,
   useTable,
 } from "@dub/ui";
-import { MoneyBill2, Pen2 } from "@dub/ui/icons";
+import { MoneyBill2, Pen2, Trophy } from "@dub/ui/icons";
 import {
   cn,
   currencyFormatter,
@@ -237,12 +237,13 @@ export function CommissionsTable() {
             const earnings = currencyFormatter(commission.earnings);
 
             if (commission.description) {
-              const reason =
-                CLAWBACK_REASONS_MAP[commission.description]?.description ??
-                commission.description;
-
               return (
-                <Tooltip content={reason}>
+                <Tooltip
+                  content={formatCommissionDescriptionTooltip(
+                    commission.description,
+                    { variant: "program", workspaceSlug: slug! },
+                  )}
+                >
                   <span
                     className={cn(
                       "cursor-help truncate underline decoration-dotted underline-offset-2",
@@ -489,6 +490,12 @@ function CommissionsFilters() {
                     key: "payoutId",
                     icon: MoneyBill2,
                     label: "Payout",
+                    options: [],
+                  },
+                  {
+                    key: "bountySubmissionId",
+                    icon: Trophy,
+                    label: "Bounty submission",
                     options: [],
                   },
                 ]}

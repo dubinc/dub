@@ -1,7 +1,9 @@
 import { prisma } from "@/lib/prisma";
-import { COUNTRIES, COUNTRY_CODES } from "@dub/utils";
+import { COUNTRIES, COUNTRY_CODES, sleep } from "@dub/utils";
 import { PartnerGroup, Program } from "@prisma/client";
 import { createId } from "../api/create-id";
+import { queuePartnerSearchSync } from "../api/partners/queue-partner-search-sync";
+import { approveLinkedApplication } from "../program-applications/approve-linked-application";
 import { logImportError } from "../tinybird/log-import-error";
 import { redis } from "../upstash";
 import { DEFAULT_PARTNER_GROUP } from "../zod/schemas/groups";
@@ -56,7 +58,7 @@ export async function importPartners(payload: PartnerStackImportPayload) {
       break;
     }
 
-    await Promise.allSettled(
+    const results = await Promise.allSettled(
       partners.map((partner) =>
         createPartner({
           program,
@@ -67,7 +69,16 @@ export async function importPartners(payload: PartnerStackImportPayload) {
       ),
     );
 
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+    // Queue an index update because the imported partners were enrolled. Queued
+    // per page rather than per partner.
+    await queuePartnerSearchSync({
+      partnerIds: results.flatMap((result) =>
+        result.status === "fulfilled" && result.value ? [result.value] : [],
+      ),
+      programId,
+    });
+
+    await sleep(2000);
 
     processedBatches++;
     currentStartingAfter = partners[partners.length - 1].key;
@@ -169,7 +180,7 @@ async function createPartner({
     },
   });
 
-  await prisma.programEnrollment.upsert({
+  const { applicationId } = await prisma.programEnrollment.upsert({
     where: {
       partnerId_programId: {
         partnerId,
@@ -186,17 +197,33 @@ async function createPartner({
       leadRewardId: group.leadRewardId,
       saleRewardId: group.saleRewardId,
       referralRewardId: group.referralRewardId,
+      customRewardId: group.customRewardId,
       discountId: group.discountId,
     },
     update: {
       status: "approved",
     },
+    select: {
+      applicationId: true,
+    },
+  });
+
+  await approveLinkedApplication({
+    applicationId,
   });
 
   // PS doesn't return the partner email address in the customers response
   // so we need to keep a map of partner_key (PS) -> partner_id (Dub)
   // and use it to identify the partner in the customers response
-  await redis.hset(`${PARTNER_IDS_KEY_PREFIX}:${program.id}`, {
-    [partner.key]: partnerId,
-  });
+  try {
+    await redis.hset(`${PARTNER_IDS_KEY_PREFIX}:${program.id}`, {
+      [partner.key]: partnerId,
+    });
+  } catch (error) {
+    // The enrollment is already committed, so its ID must still reach the
+    // page-level search sync even when the mapping write fails.
+    console.error("Failed to map imported partner key", error, partner.key);
+  }
+
+  return partnerId;
 }

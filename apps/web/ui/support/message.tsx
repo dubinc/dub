@@ -1,19 +1,21 @@
 "use client";
 
 import { cn } from "@dub/utils";
-import { PropsWithChildren } from "react";
+import { PropsWithChildren, ReactNode } from "react";
 
 export function SupportMessage({
   avatar,
   content,
   animate = false,
   children,
+  media,
   isUser = false,
 }: PropsWithChildren<{
   avatar?: string;
   content?: string;
   animate?: boolean;
   isUser?: boolean;
+  media?: ReactNode;
 }>) {
   return (
     <div
@@ -35,9 +37,10 @@ export function SupportMessage({
       <div
         className={cn(
           "max-w-[85%] grow py-1",
-          isUser && "flex flex-col items-end",
+          isUser && "flex flex-col items-end gap-1.5",
         )}
       >
+        {media}
         {content && (
           <p
             className={cn(

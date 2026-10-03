@@ -1,16 +1,14 @@
 "use client";
 
-import { approveBountySubmissionAction } from "@/lib/actions/partners/approve-bounty-submission";
-import { calculateSocialMetricsRewardAmount } from "@/lib/bounty/rewards";
-import { resolveBountyDetails } from "@/lib/bounty/utils";
+import { groupSocialMetricsMilestones } from "@/lib/bounty/social-metrics-milestones";
 import { mutatePrefix } from "@/lib/swr/mutate";
-import useWorkspace from "@/lib/swr/use-workspace";
+import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import { BountyProps, BountySubmissionProps } from "@/lib/types";
+import { useSocialMetricsMilestones } from "@/ui/partners/bounties/use-social-metrics-milestones";
 import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import { Button, Modal } from "@dub/ui";
-import { currencyFormatter } from "@dub/utils";
-import { useAction } from "next-safe-action/hooks";
-import { useMemo, useState } from "react";
+import { currencyFormatter, nFormatter, pluralize } from "@dub/utils";
+import { useState } from "react";
 import { toast } from "sonner";
 
 type ConfirmApproveBountySubmissionModalProps = {
@@ -30,53 +28,57 @@ function ConfirmApproveBountySubmissionModal({
   rewardAmount,
   onApproveSuccess,
 }: ConfirmApproveBountySubmissionModalProps) {
-  const { id: workspaceId } = useWorkspace();
+  const { makeRequest: approveBountySubmission, isSubmitting } =
+    useApiMutation();
 
-  const { executeAsync: approveBountySubmission, isPending } = useAction(
-    approveBountySubmissionAction,
-    {
-      onSuccess: async () => {
-        setShowModal(false);
-        toast.success("Bounty submission approved successfully!");
-        if (bounty?.id) {
-          await mutatePrefix(`/api/bounties/${bounty.id}/submissions`);
-        }
-        onApproveSuccess?.();
-      },
-      onError({ error }) {
-        toast.error(error.serverError);
-      },
-    },
-  );
+  const {
+    metric,
+    pendingMilestones,
+    pendingRewardAmount,
+    completesEarningCap,
+  } = useSocialMetricsMilestones({ bounty, submission });
 
-  const commissionAmountCents = useMemo(() => {
-    const bountyInfo = bounty ? resolveBountyDetails(bounty) : null;
-    if (bountyInfo?.hasSocialMetrics && bounty) {
-      return calculateSocialMetricsRewardAmount({ bounty, submission });
-    }
-    if (bounty?.rewardAmount != null) {
-      return bounty.rewardAmount;
-    }
-    if (rewardAmount != null) {
-      return rewardAmount * 100;
-    }
-    return null;
-  }, [bounty, submission, rewardAmount]);
+  let commissionAmountCents: number | null = null;
+
+  if (metric) {
+    commissionAmountCents = pendingRewardAmount;
+  } else if (bounty?.rewardAmount != null) {
+    commissionAmountCents = bounty.rewardAmount;
+  } else if (rewardAmount != null) {
+    commissionAmountCents = rewardAmount * 100;
+  }
 
   const handleApprove = async () => {
-    if (!workspaceId || !submission?.id) return;
-    await approveBountySubmission({
-      workspaceId,
-      submissionId: submission.id,
-      rewardAmount: rewardAmount != null ? rewardAmount * 100 : null,
-    });
+    if (!submission?.id || !submission.bountyId) return;
+
+    await approveBountySubmission(
+      `/api/bounties/${submission.bountyId}/submissions/${submission.id}/approve`,
+      {
+        method: "POST",
+        body: {
+          rewardAmount: rewardAmount != null ? rewardAmount * 100 : null,
+        },
+        onSuccess: async () => {
+          setShowModal(false);
+          toast.success(
+            metric && !completesEarningCap
+              ? "Bounty milestones approved successfully!"
+              : "Bounty submission approved successfully!",
+          );
+          await mutatePrefix(
+            `/api/bounties/${submission.bountyId}/submissions`,
+          );
+          onApproveSuccess?.();
+        },
+      },
+    );
   };
 
   return (
     <Modal showModal={showModal} setShowModal={setShowModal}>
       <div className="space-y-2 border-b border-neutral-200 px-4 py-4 sm:px-6">
         <h3 className="text-content-emphasis text-lg font-medium">
-          Approve bounty submission
+          {metric ? "Approve bounty milestones" : "Approve bounty submission"}
         </h3>
         <p className="text-content-subtle text-sm">
           This will create a{" "}
@@ -88,8 +90,18 @@ function ConfirmApproveBountySubmissionModal({
           commission for{" "}
           <span className="font-semibold text-neutral-900">
             {submission.partner.name}
-          </span>
-          and notify them by email.
+          </span>{" "}
+          {metric ? (
+            <>
+              across {pendingMilestones.length}{" "}
+              {pluralize("milestone", pendingMilestones.length)}.{" "}
+              {completesEarningCap
+                ? "The partner has reached the maximum reward, so the submission will be marked as approved and they'll be notified by email."
+                : "The submission will stay pending so the partner can keep earning future milestones."}
+            </>
+          ) : (
+            "and notify them by email."
+          )}
         </p>
       </div>
 
@@ -126,6 +138,37 @@ function ConfirmApproveBountySubmissionModal({
               </div>
             </div>
           </div>
+
+          {metric && pendingMilestones.length > 0 && (
+            <div className="divide-y divide-neutral-200 rounded-lg border border-neutral-200">
+              {groupSocialMetricsMilestones(pendingMilestones).map((group) => (
+                <div
+                  key={group.threshold}
+                  className="flex items-center justify-between gap-4 px-4 py-2.5 text-sm"
+                >
+                  <div className="flex min-w-0 flex-col">
+                    <span className="text-content-default">
+                      {nFormatter(group.fromThreshold, { full: true })} to{" "}
+                      {nFormatter(group.threshold, { full: true })} {metric}
+                    </span>
+                    {group.count > 1 && (
+                      <span className="text-content-subtle text-xs">
+                        {group.count} milestones ×{" "}
+                        {currencyFormatter(group.rewardAmount, {
+                          trailingZeroDisplay: "stripIfInteger",
+                        })}
+                      </span>
+                    )}
+                  </div>
+                  <span className="text-content-emphasis shrink-0 font-medium">
+                    {currencyFormatter(group.totalRewardAmount, {
+                      trailingZeroDisplay: "stripIfInteger",
+                    })}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         <div className="flex items-center justify-end border-t border-neutral-200 px-4 py-4 sm:px-6">
@@ -136,14 +179,14 @@ function ConfirmApproveBountySubmissionModal({
               text="Cancel"
               className="h-8 w-fit"
               onClick={() => setShowModal(false)}
-              disabled={isPending}
+              disabled={isSubmitting}
             />
             <Button
               type="button"
               variant="primary"
               text="Approve"
               className="h-8 w-fit"
-              loading={isPending}
+              loading={isSubmitting}
               onClick={handleApprove}
             />
           </div>

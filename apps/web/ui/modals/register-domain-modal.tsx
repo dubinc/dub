@@ -1,4 +1,4 @@
-import { Modal, useRouterStuff } from "@dub/ui";
+import { Modal, useLatestCallback, useRouterStuff } from "@dub/ui";
 import { useCallback, useMemo, useState } from "react";
 import { RegisterDomainForm } from "../domains/register-domain-form";
 
@@ -46,17 +46,26 @@ const RegisterDomain = ({
 export function useRegisterDomainModal(
   props: Omit<RegisterDomainProps, "showModal" | "setShowModal"> = {},
 ) {
+  const { onSuccess, setRegisteredParam } = props;
   const [showRegisterDomainModal, setShowRegisterDomainModal] = useState(false);
+
+  const onSuccessCallback = useLatestCallback(onSuccess);
 
   const RegisterDomainModal = useCallback(() => {
     return (
       <RegisterDomain
         showModal={showRegisterDomainModal}
         setShowModal={setShowRegisterDomainModal}
-        {...props}
+        onSuccess={onSuccessCallback}
+        setRegisteredParam={setRegisteredParam}
       />
     );
-  }, [showRegisterDomainModal, setShowRegisterDomainModal, props]);
+  }, [
+    showRegisterDomainModal,
+    setShowRegisterDomainModal,
+    onSuccessCallback,
+    setRegisteredParam,
+  ]);
 
   return useMemo(
     () => ({ setShowRegisterDomainModal, RegisterDomainModal }),

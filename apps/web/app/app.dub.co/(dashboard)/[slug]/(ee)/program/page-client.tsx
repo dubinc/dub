@@ -3,9 +3,13 @@
 import { DUB_PARTNERS_ANALYTICS_INTERVAL } from "@/lib/analytics/constants";
 import { AnalyticsResponseOptions } from "@/lib/analytics/types";
 import { editQueryString } from "@/lib/analytics/utils";
+import { getPlanCapabilities } from "@/lib/plan-capabilities";
+import { mutatePrefix } from "@/lib/swr/mutate";
+import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { AnalyticsContext } from "@/ui/analytics/analytics-provider";
 import { useAnalyticsConnectedStatus } from "@/ui/analytics/use-analytics-connected-status";
+import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import { CommissionsBlock } from "@/ui/partners/overview/blocks/commissions-block";
 import { ConversionBlock } from "@/ui/partners/overview/blocks/conversion-block";
 import { CountriesBlock } from "@/ui/partners/overview/blocks/countries-block";
@@ -15,10 +19,12 @@ import { SaleTypeBlock } from "@/ui/partners/overview/blocks/sale-type-block";
 import { TrafficSourcesBlock } from "@/ui/partners/overview/blocks/traffic-sources-block";
 import { ProgramOverviewCard } from "@/ui/partners/overview/program-overview-card";
 import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
-import { Plug2, buttonVariants, useRouterStuff } from "@dub/ui";
+import { Button, Plug2, buttonVariants, useRouterStuff } from "@dub/ui";
+import { TriangleWarning } from "@dub/ui/icons";
 import { cn, fetcher } from "@dub/utils";
 import Link from "next/link";
 import { ReactNode, useMemo } from "react";
+import { toast } from "sonner";
 import useSWR from "swr";
 import { OverviewChart } from "./overview-chart";
 import { OverviewLinks } from "./overview-links";
@@ -35,7 +41,15 @@ const BLOCKS = [
 ];
 
 export default function ProgramOverviewPageClient() {
-  const { defaultProgramId, id: workspaceId, exceededEvents } = useWorkspace();
+  const {
+    defaultProgramId,
+    id: workspaceId,
+    exceededEvents,
+    slug,
+    plan,
+  } = useWorkspace();
+  const { program, mutate: mutateProgram } = useProgram();
+  const { canManageProgram } = getPlanCapabilities(plan);
 
   const { searchParamsObj } = useRouterStuff();
 
@@ -69,8 +83,75 @@ export default function ProgramOverviewPageClient() {
     },
   );
 
+  const { setShowConfirmModal, confirmModal } = useConfirmModal({
+    title: "Reactivate program",
+    description:
+      "This will reactivate your program and all partner links. Partners will be able to promote your program and earn commissions again.",
+    confirmText: "Reactivate",
+    onConfirm: async () => {
+      if (!program?.id || !workspaceId) {
+        return;
+      }
+
+      await toast.promise(
+        (async () => {
+          const response = await fetch(
+            `/api/programs/${program.id}/reactivate?workspaceId=${workspaceId}`,
+            {
+              method: "POST",
+            },
+          );
+
+          if (!response.ok) {
+            const { error } = await response.json();
+            throw new Error(error.message);
+          }
+
+          await Promise.all([mutateProgram(), mutatePrefix("/api/partners")]);
+        })(),
+        {
+          loading: "Reactivating program...",
+          success: "Program reactivated successfully!",
+          error: (error) => error.message,
+        },
+      );
+    },
+  });
+
   return (
     <div className="@container flex flex-col gap-4">
+      {confirmModal}
+      {program?.deactivatedAt && (
+        <div className="flex flex-col gap-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-2.5 sm:flex-row sm:items-center">
+          <div className="flex flex-1 items-start gap-3">
+            <TriangleWarning className="mt-0.5 size-4 shrink-0 text-amber-600" />
+            <p className="flex-1 text-sm text-amber-900">
+              Your partner program is deactivated. Partners can no longer
+              promote your program or earn commissions.
+              {!canManageProgram && (
+                <>
+                  {" "}
+                  <Link
+                    href={`/${slug}/settings/billing/upgrade`}
+                    className="font-medium underline underline-offset-2 transition-colors hover:text-neutral-800"
+                  >
+                    Upgrade your plan
+                  </Link>{" "}
+                  to reactivate it.
+                </>
+              )}
+            </p>
+          </div>
+          {canManageProgram ? (
+            <Button
+              text="Reactivate program"
+              variant="secondary"
+              className="h-8 w-fit shrink-0 bg-white px-3"
+              onClick={() => setShowConfirmModal(true)}
+            />
+          ) : null}
+        </div>
+      )}
       <SimpleDateRangePicker align="start" className="w-fit" />
       <AnalyticsContext.Provider
         value={{

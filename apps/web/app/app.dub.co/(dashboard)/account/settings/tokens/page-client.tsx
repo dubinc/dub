@@ -2,8 +2,9 @@
 
 import { TokenProps } from "@/lib/types";
 import { useDeleteTokenModal } from "@/ui/modals/delete-token-modal";
+import { Callout } from "@/ui/shared/callout";
 import { TokenAvatar } from "@/ui/token-avatar";
-import { IconMenu, LoadingSpinner, Popover, TriangleWarning } from "@dub/ui";
+import { IconMenu, LoadingSpinner, Popover } from "@dub/ui";
 import { fetcher, timeAgo } from "@dub/utils";
 import { FolderOpen, MoreVertical, Trash } from "lucide-react";
 import { useState } from "react";
@@ -17,29 +18,26 @@ export default function TokensPageClient() {
 
   return (
     <>
-      <div className="flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-2.5">
-        <TriangleWarning className="mt-0.5 size-4 shrink-0 text-amber-600" />
-        <p className="flex-1 text-sm text-amber-900">
-          User API Keys have been replaced by Workspace API Keys. We recommend
-          creating a new{" "}
-          <a
-            href="https://dub.co/docs/api-reference/tokens"
-            target="_blank"
-            className="font-medium underline underline-offset-2 transition-colors hover:text-neutral-800"
-          >
-            Workspace API Key
-          </a>{" "}
-          for more granular control over your resources such as Links, Tags,
-          Domains, Analytics, etc.{" "}
-          <a
-            href="https://dub.co/blog/workspace-api-keys"
-            target="_blank"
-            className="font-medium underline underline-offset-2 transition-colors hover:text-neutral-800"
-          >
-            Read the announcement.
-          </a>
-        </p>
-      </div>
+      <Callout variant="warn" size={2}>
+        User API Keys have been replaced by Workspace API Keys. We recommend
+        creating a new{" "}
+        <a
+          href="https://dub.co/docs/api-reference/tokens"
+          target="_blank"
+          className="font-medium underline underline-offset-2 transition-colors hover:text-neutral-800"
+        >
+          Workspace API Key
+        </a>{" "}
+        for more granular control over your resources such as Links, Tags,
+        Domains, Analytics, etc.{" "}
+        <a
+          href="https://dub.co/blog/workspace-api-keys"
+          target="_blank"
+          className="font-medium underline underline-offset-2 transition-colors hover:text-neutral-800"
+        >
+          Read the announcement.
+        </a>
+      </Callout>
 
       <div className="mt-6 rounded-lg border border-neutral-200 bg-white">
         {isLoading || !tokens ? (

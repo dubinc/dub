@@ -197,7 +197,7 @@ export function useAttributeReferringPartnerModal({
         partner={partner}
       />
     );
-  }, [showModal, setShowModal, partner]);
+  }, [showModal, setShowModal]);
 
   return useMemo(
     () => ({

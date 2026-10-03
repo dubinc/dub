@@ -156,7 +156,7 @@ export function useUnbanPartnerModal({
         partner={partner}
       />
     );
-  }, [showUnbanPartnerModal, setShowUnbanPartnerModal, partner]);
+  }, [showUnbanPartnerModal, setShowUnbanPartnerModal]);
 
   return useMemo(
     () => ({

@@ -10,10 +10,10 @@ import { CustomerSalesTable } from "@/ui/customers/customer-sales-table";
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { ProgramRewardList } from "@/ui/partners/program-reward-list";
-import { ChevronRight, MoneyBill2, Tooltip, User } from "@dub/ui";
+import { Callout } from "@/ui/shared/callout";
+import { Button, ChevronRight, MoneyBill2, Tooltip, User } from "@dub/ui";
 import { cn, fetcher, formatDate } from "@dub/utils";
 import { addMonths, isBefore } from "date-fns";
-import { AlertCircle } from "lucide-react";
 import Link from "next/link";
 import { redirect, useParams } from "next/navigation";
 import { memo, useMemo } from "react";
@@ -118,14 +118,11 @@ export function ProgramCustomerPageClient() {
                 </div>
                 {rewardPeriodEndDate &&
                   isBefore(rewardPeriodEndDate, new Date()) && (
-                    <div className="flex items-center gap-2 rounded-lg border border-amber-100 bg-amber-50 px-3 py-2">
-                      <AlertCircle className="size-4 shrink-0 text-amber-600" />
-                      <p className="text-sm text-amber-900">
-                        The earning period for this customer has ended as of{" "}
-                        {formatDate(rewardPeriodEndDate)}. No future conversions
-                        will be rewarded.
-                      </p>
-                    </div>
+                    <Callout variant="warn" size={2}>
+                      The earning period for this customer has ended as of{" "}
+                      {formatDate(rewardPeriodEndDate)}. No future conversions
+                      will be rewarded.
+                    </Callout>
                   )}
 
                 <div className="border-border-subtle overflow-hidden rounded-lg border">
@@ -139,6 +136,15 @@ export function ProgramCustomerPageClient() {
                 <h2 className="py-3 text-lg font-semibold text-neutral-900">
                   Activity
                 </h2>
+                <Link
+                  href={`/programs/${programSlug}/events?interval=all&event=sales&customerId=${customerId}`}
+                >
+                  <Button
+                    variant="secondary"
+                    text="View all"
+                    className="h-7 px-2"
+                  />
+                </Link>
               </div>
               <CustomerActivityList
                 activity={customer?.activity}

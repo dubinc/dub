@@ -4,7 +4,7 @@ import usePartnerEarningsCount from "@/lib/swr/use-partner-earnings-count";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import { PartnerEarningsResponse } from "@/lib/types";
-import { CLAWBACK_REASONS_MAP } from "@/lib/zod/schemas/commissions";
+import { formatCommissionDescriptionTooltip } from "@/lib/commissions/format-commission-description-tooltip";
 import { CustomerRowItem } from "@/ui/customers/customer-row-item";
 import { CommissionStatusBadges } from "@/ui/partners/commission-status-badges";
 import { CommissionTypeBadge } from "@/ui/partners/commission-type-badge";
@@ -223,12 +223,13 @@ export function EarningsTablePartner({ limit }: { limit?: number }) {
           const earnings = currencyFormatter(commission.earnings);
 
           if (commission.description) {
-            const reason =
-              CLAWBACK_REASONS_MAP[commission.description]?.description ??
-              commission.description;
-
             return (
-              <Tooltip content={reason}>
+              <Tooltip
+                content={formatCommissionDescriptionTooltip(
+                  commission.description,
+                  { variant: "partner" },
+                )}
+              >
                 <span
                   className={cn(
                     "cursor-help truncate underline decoration-dotted underline-offset-2",

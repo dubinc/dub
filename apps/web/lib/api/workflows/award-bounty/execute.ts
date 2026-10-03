@@ -1,5 +1,10 @@
 import { evaluateWorkflowConditions } from "@/lib/api/workflows/evaluate-workflow-conditions";
 import { WorkflowContext } from "@/lib/api/workflows/types";
+import {
+  bountyEligibilityIncludes,
+  getEffectiveBountyPeriod,
+  isPartnerEligibleForBounty,
+} from "@/lib/bounty/api/bounty-availability";
 import { prisma } from "@/lib/prisma";
 import { WORKFLOW_ACTION_TYPES } from "@/lib/zod/schemas/workflows";
 import { sendBatchEmail, sendEmail } from "@dub/email";
@@ -31,15 +36,29 @@ export const executeAwardBountyWorkflow = async ({
   workflow: Workflow;
   context: WorkflowContext;
 }) => {
-  const { condition, action } = parseWorkflowConfig(workflow);
+  const { conditions, action } = parseWorkflowConfig(workflow);
+
+  // Award bounty workflows require exactly one condition
+  if (conditions.length !== 1) {
+    return;
+  }
+
+  const condition = conditions[0];
 
   if (action.type !== WORKFLOW_ACTION_TYPES.AwardBounty) {
     return;
   }
 
   const { bountyId } = action.data;
-  const { identity, metrics } = context;
-  const { partnerId, groupId, customerId, customerFirstSaleAt } = identity;
+  const { identity, metrics, programEnrollment } = context;
+  const { customerId, customerFirstSaleAt } = identity;
+
+  if (!programEnrollment) {
+    console.error("Program enrollment not set in the context.");
+    return;
+  }
+
+  const { partnerId, groupId } = programEnrollment;
 
   if (!groupId) {
     console.error("Partner groupId not set in the context.");
@@ -52,9 +71,21 @@ export const executeAwardBountyWorkflow = async ({
       id: bountyId,
     },
     include: {
-      program: true,
-      groups: true,
+      ...bountyEligibilityIncludes,
+      program: {
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+          supportEmail: true,
+          defaultGroupId: true,
+        },
+      },
       submissions: {
+        select: {
+          id: true,
+          status: true,
+        },
         where: {
           partnerId,
         },
@@ -78,30 +109,19 @@ export const executeAwardBountyWorkflow = async ({
     return;
   }
 
-  const now = new Date();
+  const { submissions, program } = bounty;
 
-  // Check if bounty is active
-  if (
-    (bounty.startsAt && bounty.startsAt > now) ||
-    (bounty.endsAt && bounty.endsAt < now) ||
-    bounty.archivedAt
-  ) {
-    console.log(`Bounty ${bounty.id} is no longer active.`);
+  const isEligible = isPartnerEligibleForBounty({
+    program,
+    bounty,
+    programEnrollment,
+  });
+
+  if (!isEligible) {
+    console.log(
+      `Partner ${partnerId} is not eligible for bounty ${bounty.id}.`,
+    );
     return;
-  }
-
-  const { groups, submissions } = bounty;
-
-  // If the bounty is part of a group, check if the partner is in the group
-  if (groups.length > 0) {
-    const groupIds = groups.map(({ groupId }) => groupId);
-
-    if (!groupIds.includes(groupId)) {
-      console.log(
-        `Partner ${partnerId} is not eligible for bounty ${bounty.id} because they are not in any of the assigned groups. Partner's groupId: ${groupId}. Assigned groupIds: ${groupIds.join(", ")}.`,
-      );
-      return;
-    }
   }
 
   if (submissions.length > 0) {
@@ -119,10 +139,15 @@ export const executeAwardBountyWorkflow = async ({
     }
   }
 
+  const { startsAt } = getEffectiveBountyPeriod({
+    programEnrollment,
+    bounty,
+  });
+
   if (
     bounty.performanceScope === "new" &&
     customerFirstSaleAt &&
-    customerFirstSaleAt < bounty.startsAt
+    customerFirstSaleAt < startsAt
   ) {
     console.log(
       `Bounty ${bounty.id} is for net-new revenue only and partner ${partnerId} referred customer ${customerId} before the bounty started, skipping...`,
@@ -172,7 +197,7 @@ export const executeAwardBountyWorkflow = async ({
   // Check if the bounty submission meet the reward criteria
   const shouldExecute = evaluateWorkflowConditions({
     conditions: [condition],
-    attributes: {
+    context: {
       [condition.attribute]: Number(bountySubmission.performanceCount ?? 0),
     },
   });

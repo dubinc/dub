@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { chunk, nanoid } from "@dub/utils";
+import { chunk, nanoid, sleep } from "@dub/utils";
 import { Customer, Link, Project } from "@prisma/client";
 import { createId } from "../api/create-id";
 import { updateLinkStatsForImporter } from "../api/links/update-link-stats-for-importer";
@@ -169,7 +169,7 @@ export async function importCustomers(payload: PartnerStackImportPayload) {
       }
     }
 
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+    await sleep(2000);
 
     processedBatches++;
     currentStartingAfter = customers[customers.length - 1].key;
@@ -212,32 +212,35 @@ async function createCustomer({
     import_id: importId,
     source: "partnerstack",
     entity: "customer",
-    entity_id: customer.customer_key || customer.email,
+    entity_id: customer.customer_key || customer.email || customer.key,
   } as const;
 
   if (links.length === 0) {
     await logImportError({
       ...commonImportLogInputs,
       code: "LINK_NOT_FOUND",
-      message: `Link not found for customer ${customer.customer_key}.`,
+      message: `Link not found for customer ${commonImportLogInputs.entity_id}.`,
     });
 
     return;
   }
 
-  if (!customer.email) {
+  const externalId = customer.customer_key || customer.email;
+
+  if (!externalId) {
     await logImportError({
       ...commonImportLogInputs,
       code: "CUSTOMER_EMAIL_NOT_FOUND",
-      message: `Email not found for customer ${customer.customer_key}.`,
+      message: `No external ID or email found for customer ${customer.key}.`,
     });
 
     return;
   }
 
-  // Find the customer by email address
   const customerFound = existingCustomers.find(
-    (c) => c.email === customer.email || c.externalId === customer.customer_key,
+    (c) =>
+      (customer.email != null && c.email === customer.email) ||
+      (customer.customer_key != null && c.externalId === customer.customer_key),
   );
 
   if (customerFound) {
@@ -281,9 +284,9 @@ async function createCustomer({
       data: {
         id: customerId,
         name:
-          // if name is null/undefined or starts with cus_, use email as name
+          // if name is null/undefined or starts with cus_, use email or external ID
           !customer.name || customer.name.startsWith("cus_")
-            ? customer.email
+            ? customer.email || customer.customer_key
             : customer.name,
         email: customer.email,
         projectId: workspace.id,
@@ -295,7 +298,10 @@ async function createCustomer({
         country: clickEvent.country,
         clickedAt: new Date(customer.created_at),
         createdAt: new Date(customer.created_at),
-        externalId: customer.customer_key || customer.email,
+        externalId,
+        ...(customer.provider_key?.startsWith("cus_") && {
+          stripeCustomerId: customer.provider_key,
+        }),
       },
     });
 

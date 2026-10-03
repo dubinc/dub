@@ -1,7 +1,7 @@
 import { sendTestWebhookEvent } from "@/lib/actions/send-test-webhook";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { WebhookProps } from "@/lib/types";
-import { WEBHOOK_TRIGGER_DESCRIPTIONS } from "@/lib/webhook/constants";
+import { WEBHOOK_TRIGGERS } from "@/lib/webhook/constants";
 import type { WebhookTrigger } from "@/lib/webhook/types";
 import { Button, Combobox, ComboboxOption, Modal } from "@dub/ui";
 import { useAction } from "next-safe-action/hooks";
@@ -38,13 +38,6 @@ function SendTestWebhookModal({
     },
   });
 
-  const triggers = Object.entries(WEBHOOK_TRIGGER_DESCRIPTIONS).map(
-    ([key, value]) => ({
-      value: key,
-      label: value,
-    }),
-  );
-
   return (
     <Modal
       showModal={showSendTestWebhookModal}
@@ -77,12 +70,17 @@ function SendTestWebhookModal({
 
           <div className="mt-4">
             <Combobox
-              options={triggers}
+              options={WEBHOOK_TRIGGERS.map((trigger) => ({
+                value: trigger,
+                label: trigger,
+              }))}
               selected={selectedTrigger}
               setSelected={setSelectedTrigger}
               placeholder="Select a webhook event"
               matchTriggerWidth
               caret
+              labelProps={{ className: "font-mono text-sm text-neutral-800" }}
+              optionClassName="font-mono"
             />
           </div>
         </div>

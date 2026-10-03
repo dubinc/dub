@@ -73,6 +73,7 @@ export function Modal({
               "fixed bottom-0 left-0 right-0 z-50 flex flex-col",
               "rounded-t-[10px] border-t border-neutral-200 bg-white",
               className,
+              "max-w-none",
             )}
           >
             <div className="scrollbar-hide flex-1 overflow-y-auto rounded-t-[10px] bg-inherit">

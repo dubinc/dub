@@ -1,5 +1,5 @@
 import { tb } from "@/lib/tinybird";
-import { log } from "@dub/utils";
+import { log, sleep } from "@dub/utils";
 import * as z from "zod/v4";
 import { createId } from "../api/create-id";
 import { RequestType } from "../types";
@@ -73,10 +73,12 @@ export const recordApiLog = async ({
       return await recordApiLogTB(apiLog);
     } catch (error) {
       if (attempt < maxRetries) {
-        await new Promise((resolve) =>
-          setTimeout(resolve, 100 * Math.pow(2, attempt)),
-        );
+        await sleep(100 * Math.pow(2, attempt));
         continue;
+      }
+
+      if (process.env.CI) {
+        return;
       }
 
       console.error("Failed to record API log", error, JSON.stringify(apiLog));

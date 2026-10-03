@@ -15,7 +15,6 @@ import {
   usePartnerPlatformsForm,
 } from "@/ui/partners/partner-platforms-form";
 import { CustomToast } from "@/ui/shared/custom-toast";
-import { AlertCircleFill } from "@/ui/shared/icons";
 import {
   Button,
   DynamicTooltipWrapper,
@@ -253,7 +252,7 @@ function BasicInfoForm({
 
       if (error.serverError?.includes("merge your partner accounts")) {
         toast.custom(() => (
-          <CustomToast icon={AlertCircleFill}>
+          <CustomToast variant="error">
             Email already in use. Do you want to [merge your partner
             accounts](https://d.to/merge-partners) instead?
           </CustomToast>

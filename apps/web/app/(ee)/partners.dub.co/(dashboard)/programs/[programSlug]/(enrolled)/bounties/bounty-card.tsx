@@ -39,7 +39,11 @@ export function PartnerBountyCard({
     <As
       href={href ?? "#"}
       onClick={onClick}
-      className="border-border-subtle hover:border-border-default bg-bg-default group relative flex w-full cursor-pointer flex-col overflow-hidden rounded-xl border text-left transition-all hover:shadow-lg"
+      className={cn(
+        "border-border-subtle bg-bg-default group relative flex w-full flex-col overflow-hidden rounded-xl border text-left",
+        (href || onClick) &&
+          "hover:border-border-default cursor-pointer transition-all hover:shadow-lg",
+      )}
     >
       <div className="p-3 pb-0">
         <div className="bg-bg-subtle relative flex h-[124px] items-center justify-center rounded-lg">
@@ -80,7 +84,8 @@ export function PartnerBountyCard({
         </div>
       )}
 
-      {showRewards && bounty.submissions.some((s) => s.commission != null) && (
+      {showRewards &&
+        bounty.submissions.some((s) => s.commissions.length > 0) && (
         <div className="@3xl/page:block border-border-subtle hidden border-t p-4">
           <BountyRewardsTable
             bounty={bounty}
@@ -101,9 +106,7 @@ export function BountyRewardsTable({
   programSlug?: string;
   className?: string;
 }) {
-  const rewards = bounty.submissions
-    .filter((s) => s.commission != null)
-    .map((s) => s.commission!);
+  const rewards = bounty.submissions.flatMap((s) => s.commissions);
 
   const { table, ...tableProps } = useTable({
     data: rewards,

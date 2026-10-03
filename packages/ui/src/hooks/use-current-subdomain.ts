@@ -1,4 +1,4 @@
-import { ADMIN_HOSTNAMES, APP_HOSTNAMES, PARTNERS_HOSTNAMES } from "@dub/utils";
+import { ADMIN_HOSTNAMES, PARTNERS_HOSTNAMES } from "@dub/utils";
 import { useEffect, useState } from "react";
 
 export function useCurrentSubdomain() {
@@ -7,12 +7,12 @@ export function useCurrentSubdomain() {
   >(null);
   useEffect(() => {
     const hostname = window.location.hostname;
-    if (APP_HOSTNAMES.has(hostname)) {
-      setSubdomain("app");
-    } else if (PARTNERS_HOSTNAMES.has(hostname)) {
+    if (PARTNERS_HOSTNAMES.has(hostname)) {
       setSubdomain("partners");
     } else if (ADMIN_HOSTNAMES.has(hostname)) {
       setSubdomain("admin");
+    } else {
+      setSubdomain("app");
     }
   }, []);
 

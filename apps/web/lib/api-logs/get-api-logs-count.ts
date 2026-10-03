@@ -9,7 +9,7 @@ import {
 
 type GetApiLogsCountParams = Omit<
   z.infer<typeof getApiLogsCountQuerySchema>,
-  "start" | "end"
+  "start" | "end" | "timezone" | "exactRange"
 > & {
   workspaceId: string;
   start: string;

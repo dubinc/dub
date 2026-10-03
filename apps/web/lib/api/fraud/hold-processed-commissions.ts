@@ -12,7 +12,7 @@ import {
 import { syncTotalCommissions } from "../partners/sync-total-commissions";
 
 // Bulk-hold processed commissions for partner-program pairs flagged by partner-level fraud
-// (duplicate identity, duplicate payout method, cross-program ban).
+// (duplicate identity, duplicate payout method, network-level ban).
 export async function holdProcessedCommissions(
   programEnrollments: Pick<ProgramEnrollment, "programId" | "partnerId">[],
 ) {

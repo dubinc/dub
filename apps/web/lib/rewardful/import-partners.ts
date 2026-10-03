@@ -3,6 +3,8 @@ import { nanoid } from "@dub/utils";
 import { Program } from "@prisma/client";
 import { createId } from "../api/create-id";
 import { bulkCreateLinks } from "../api/links";
+import { queuePartnerSearchSync } from "../api/partners/queue-partner-search-sync";
+import { approveLinkedApplication } from "../program-applications/approve-linked-application";
 import { logImportError } from "../tinybird/log-import-error";
 import { redis } from "../upstash";
 import { RewardfulApi } from "./api";
@@ -96,6 +98,7 @@ export async function importPartners(payload: RewardfulImportPayload) {
               leadRewardId: group.leadRewardId,
               saleRewardId: group.saleRewardId,
               referralRewardId: group.referralRewardId,
+              customRewardId: group.customRewardId,
               discountId: group.discountId,
             },
             partnerGroupDefaultLinkId:
@@ -124,6 +127,13 @@ export async function importPartners(payload: RewardfulImportPayload) {
             ]),
           ),
         );
+
+        // Queue an index update because the imported partners were enrolled.
+        // Queued per page rather than per partner.
+        await queuePartnerSearchSync({
+          partnerIds: filteredPartners.map((p) => p.dubPartnerId),
+          programId: program.id,
+        });
       }
     }
 
@@ -168,6 +178,7 @@ async function createPartnerAndLinks({
     leadRewardId: string | null;
     clickRewardId: string | null;
     referralRewardId: string | null;
+    customRewardId: string | null;
     discountId: string | null;
   };
   partnerGroupDefaultLinkId?: string | null;
@@ -204,6 +215,11 @@ async function createPartnerAndLinks({
     include: {
       links: true,
     },
+  });
+
+  await approveLinkedApplication({
+    applicationId: programEnrollment.applicationId,
+    userId,
   });
 
   if (!program.domain || !program.url) {

@@ -1,6 +1,12 @@
 import { prisma } from "@/lib/prisma";
-import { nanoid } from "@dub/utils";
-import { CommissionStatus, Customer, Link, Program } from "@prisma/client";
+import { nanoid, sleep } from "@dub/utils";
+import {
+  CommissionSource,
+  CommissionStatus,
+  Customer,
+  Link,
+  Program,
+} from "@prisma/client";
 import { convertCurrencyWithFxRates } from "../analytics/convert-currency";
 import { isFirstConversion } from "../analytics/is-first-conversion";
 import { createId } from "../api/create-id";
@@ -118,7 +124,7 @@ export async function importCommissions(payload: PartnerStackImportPayload) {
     processedBatches++;
   }
 
-  await new Promise((resolve) => setTimeout(resolve, 1000));
+  await sleep(1000);
 
   await partnerStackImporter.queue({
     ...payload,
@@ -216,6 +222,7 @@ export async function createCommissionFromPS({
         status: toDubStatus[commission.reward_status],
         invoiceId: commission.key,
         createdAt: new Date(commission.created_at),
+        source: CommissionSource.partnerstack,
       },
     });
 
@@ -250,8 +257,10 @@ export async function createCommissionFromPS({
 
   const customer = customersData.find(
     ({ email, externalId }) =>
-      email === commission.customer?.email ||
-      externalId === commission.customer?.external_key,
+      (commission.customer?.email != null &&
+        email === commission.customer.email) ||
+      (commission.customer?.external_key != null &&
+        externalId === commission.customer.external_key),
   );
 
   if (!customer) {
@@ -371,6 +380,7 @@ export async function createCommissionFromPS({
         status: toDubStatus[commission.reward_status],
         invoiceId: commission.key, // this is not the actual invoice ID, but we use this to deduplicate the sales
         createdAt: new Date(commission.created_at),
+        source: CommissionSource.partnerstack,
       },
     }),
 

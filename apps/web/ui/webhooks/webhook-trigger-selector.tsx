@@ -162,10 +162,10 @@ export function WebhookTriggerSelector({
   };
 
   return (
-    <div className="flex flex-col gap-2">
+    <div className="flex flex-col gap-3">
       {availableTriggers.map((trigger) => (
         <div key={trigger}>
-          <div className="group flex gap-2">
+          <div className="group flex items-start gap-2">
             <Checkbox
               value={trigger}
               id={trigger}
@@ -175,9 +175,17 @@ export function WebhookTriggerSelector({
             />
             <label
               htmlFor={trigger}
-              className="flex select-none items-center gap-2 text-sm text-neutral-600 group-hover:text-neutral-800"
+              className={cn(
+                "flex min-w-0 select-none flex-col",
+                disabled ? "cursor-not-allowed" : "cursor-pointer",
+              )}
             >
-              {WEBHOOK_TRIGGER_DESCRIPTIONS[trigger]}
+              <span className="font-mono text-sm font-medium leading-5 text-neutral-800 group-hover:text-neutral-900">
+                {trigger}
+              </span>
+              <span className="text-[11px] leading-snug text-neutral-500">
+                {WEBHOOK_TRIGGER_DESCRIPTIONS[trigger]}
+              </span>
             </label>
           </div>
 

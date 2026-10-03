@@ -10,7 +10,8 @@ import {
 } from "@/lib/submitted-leads/constants";
 import { notifyPartnerLeadSubmitted } from "@/lib/submitted-leads/notify-partner-lead-submitted";
 import { SubmittedLeadFormDataField } from "@/lib/types";
-import { ratelimit } from "@/lib/upstash";
+import { assertRateLimit } from "@/lib/upstash/assert-rate-limit";
+import { RATELIMIT_POLICIES } from "@/lib/upstash/ratelimit-policies";
 import {
   formFieldSchema,
   submittedLeadFormSchema,
@@ -75,16 +76,10 @@ export const submitLeadAction = authPartnerActionClient
       });
     }
 
-    const { success } = await ratelimit(10, "1 m").limit(
-      `rl:submitted-lead:${partner.id}`,
-    );
-
-    if (!success) {
-      throw new DubApiError({
-        code: "rate_limit_exceeded",
-        message: "Too many leads submitted. Please try again later.",
-      });
-    }
+    await assertRateLimit({
+      policy: RATELIMIT_POLICIES.submitLead,
+      identifier: partner.id,
+    });
 
     const programEnrollment = await prisma.programEnrollment.findUnique({
       where: {

@@ -1,5 +1,6 @@
 import { createId } from "@/lib/api/create-id";
 import { addDomainToVercel } from "@/lib/api/domains/add-domain-vercel";
+import { parseDomainJsonConfig } from "@/lib/api/domains/parse-domain-json-config";
 import { transformDomain } from "@/lib/api/domains/transform-domain";
 import { validateDomain } from "@/lib/api/domains/utils";
 import { DubApiError } from "@/lib/api/errors";
@@ -135,6 +136,21 @@ export const POST = withWorkspace(
       }
     }
 
+    const parsedAssetLinks = parseDomainJsonConfig({
+      value: assetLinks,
+      field: "assetLinks",
+    });
+
+    const parsedAppleAppSiteAssociation = parseDomainJsonConfig({
+      value: appleAppSiteAssociation,
+      field: "appleAppSiteAssociation",
+    });
+
+    const parsedDeepviewData = parseDomainJsonConfig({
+      value: deepviewData,
+      field: "deepviewData",
+    });
+
     const validDomain = await validateDomain(slug);
 
     if (validDomain.error && validDomain.code) {
@@ -224,12 +240,14 @@ export const POST = withWorkspace(
             expiredUrl,
             notFoundUrl,
             ...(logoUploaded && { logo: logoUploaded.url }),
-            ...(assetLinks && { assetLinks: JSON.parse(assetLinks) }),
-            ...(appleAppSiteAssociation && {
-              appleAppSiteAssociation: JSON.parse(appleAppSiteAssociation),
+            ...(parsedAssetLinks !== undefined && {
+              assetLinks: parsedAssetLinks,
             }),
-            ...(deepviewData && {
-              deepviewData: JSON.parse(deepviewData),
+            ...(parsedAppleAppSiteAssociation !== undefined && {
+              appleAppSiteAssociation: parsedAppleAppSiteAssociation,
+            }),
+            ...(parsedDeepviewData !== undefined && {
+              deepviewData: parsedDeepviewData,
             }),
           },
         });
