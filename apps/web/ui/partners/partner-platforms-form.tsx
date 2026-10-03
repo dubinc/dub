@@ -20,13 +20,21 @@ import {
   LinkedIn,
   TikTok,
   Twitter,
+  useRouterStuff,
   YouTube,
 } from "@dub/ui";
 import { getPrettyUrl, nFormatter } from "@dub/utils";
 import { cn } from "@dub/utils/src/functions";
 import { PlatformType } from "@prisma/client";
 import { useAction } from "next-safe-action/hooks";
-import { forwardRef, ReactNode, useCallback, useMemo, useState } from "react";
+import {
+  forwardRef,
+  ReactNode,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import {
   FormProvider,
   useForm,
@@ -112,6 +120,30 @@ export const PartnerPlatformsForm = forwardRef<
     const defaultForm = usePartnerPlatformsForm({ partner });
     const form = formProp ?? defaultForm;
     const { partner: currentPartner } = usePartnerProfile();
+    const { searchParams, queryParams } = useRouterStuff();
+
+    useEffect(() => {
+      const result = searchParams.get("social_verification");
+
+      if (!result) {
+        return;
+      }
+
+      if (result === "success") {
+        toast.success("Social account verified successfully!");
+        mutate("/api/partner-profile");
+      } else if (searchParams.get("reason") === "private") {
+        toast.error(
+          "This LinkedIn profile is private or not publicly visible. Set it to visible to anyone, then try again.",
+        );
+      } else {
+        toast.error(
+          "We couldn't verify that account. Make sure you signed in with the same LinkedIn profile as the URL you entered.",
+        );
+      }
+
+      queryParams({ del: ["social_verification", "reason"] });
+    }, [searchParams, queryParams]);
 
     const disabled = currentPartner
       ? !hasPermission(currentPartner.role, "partner_profile.update")
