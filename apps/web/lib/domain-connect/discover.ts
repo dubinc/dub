@@ -8,6 +8,7 @@ import type {
 type DomainConnectSettings = {
   providerId?: string;
   urlSyncUX?: string;
+  urlAPI?: string;
 };
 
 function providerKindFromId(
@@ -26,6 +27,13 @@ const ALLOWED_SETTINGS_HOST_SUFFIXES = [
   ".vercel.com",
   ".cloudflare.com",
 ];
+
+function isAllowedSettingsHost(host: string): boolean {
+  return ALLOWED_SETTINGS_HOST_SUFFIXES.some((suffix) => {
+    const hostnameSuffix = suffix.replace(/^\./, "");
+    return host === hostnameSuffix || host.endsWith(`.${hostnameSuffix}`);
+  });
+}
 
 function settingsBaseFromTxtRecords(records: string[][]): string | null {
   const candidates = records
@@ -59,10 +67,7 @@ function settingsBaseFromTxtRecords(records: string[][]): string | null {
       ) {
         return false;
       }
-      return ALLOWED_SETTINGS_HOST_SUFFIXES.some((suffix) => {
-        const hostnameSuffix = suffix.replace(/^\./, "");
-        return host === hostnameSuffix || host.endsWith(`.${hostnameSuffix}`);
-      });
+      return isAllowedSettingsHost(host);
     });
 
   return candidates[0] ?? null;
@@ -124,7 +129,18 @@ export async function discoverDomainConnect(
   const providerKind = providerKindFromId(dnsProviderId);
   if (!providerKind) return null;
 
-  return { providerKind, dnsProviderId, urlSyncUX };
+  let urlAPI: string | undefined;
+  try {
+    const parsedAPI = new URL(json.urlAPI ?? "");
+    if (
+      parsedAPI.protocol === "https:" &&
+      isAllowedSettingsHost(parsedAPI.hostname)
+    ) {
+      urlAPI = `${parsedAPI.origin}${parsedAPI.pathname}`.replace(/\/$/, "");
+    }
+  } catch {}
+
+  return { providerKind, dnsProviderId, urlSyncUX, urlAPI };
 }
 
 /**
