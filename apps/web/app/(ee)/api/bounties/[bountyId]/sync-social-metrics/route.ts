@@ -67,6 +67,13 @@ export const POST = withWorkspace(
         : undefined,
     });
 
+    if (isBountyEnded(bounty.endsAt)) {
+      throw new DubApiError({
+        code: "bad_request",
+        message: "Social metrics can't be synced after the bounty ends.",
+      });
+    }
+
     const bountyInfo = resolveBountyDetails(bounty);
 
     if (!bountyInfo?.socialMetrics) {

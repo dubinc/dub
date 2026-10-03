@@ -1,4 +1,7 @@
-import { getEffectiveBountyPeriod } from "@/lib/bounty/api/bounty-availability";
+import {
+  bountyEligibilityIncludes,
+  isPartnerEligibleForBounty,
+} from "@/lib/bounty/api/bounty-availability";
 import { getSocialMetricsUpdates } from "@/lib/bounty/api/get-social-metrics-updates";
 import { isBountyEnded } from "@/lib/bounty/bounty-period";
 import { hasReachedSocialMetricsEarningCap } from "@/lib/bounty/social-metrics-milestones";
@@ -34,11 +37,13 @@ export const POST = withCron(async ({ rawBody }) => {
       id: bountyId,
     },
     include: {
+      ...bountyEligibilityIncludes,
       program: {
         select: {
           name: true,
           slug: true,
           supportEmail: true,
+          defaultGroupId: true,
         },
       },
     },
@@ -46,6 +51,10 @@ export const POST = withCron(async ({ rawBody }) => {
 
   if (!bounty) {
     return logAndRespond(`Bounty ${bountyId} not found. Skipping...`);
+  }
+
+  if (isBountyEnded(bounty.endsAt)) {
+    return logAndRespond(`Bounty ${bountyId} has ended. Skipping...`);
   }
 
   const bountyInfo = resolveBountyDetails(bounty);
@@ -88,6 +97,13 @@ export const POST = withCron(async ({ rawBody }) => {
       programEnrollment: {
         select: {
           createdAt: true,
+          groupId: true,
+          status: true,
+          programPartnerTags: {
+            select: {
+              partnerTagId: true,
+            },
+          },
         },
       },
     },
@@ -118,12 +134,11 @@ export const POST = withCron(async ({ rawBody }) => {
       return false;
     }
 
-    const { endsAt } = getEffectiveBountyPeriod({
-      programEnrollment: submission.programEnrollment,
+    return isPartnerEligibleForBounty({
+      program: bounty.program,
       bounty,
+      programEnrollment: submission.programEnrollment,
     });
-
-    return !isBountyEnded(endsAt);
   });
 
   let syncedCount = 0;
