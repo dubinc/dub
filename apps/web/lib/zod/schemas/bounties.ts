@@ -307,6 +307,10 @@ export const BountySubmissionSchema = z.object({
     description:
       "The date and time the submission's social metrics were last synced",
   }),
+  approvedSocialMetricThreshold: z.number().int().nullable().optional().meta({
+    description:
+      "The highest social metric milestone that has been approved and paid out for this submission",
+  }),
   createdAt: z
     .date()
     .meta({ description: "The date and time the submission was created" }),

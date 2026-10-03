@@ -53,6 +53,7 @@ export const PartnerEarningsSchema = CommissionSchema.omit({
 export const getPartnerEarningsQuerySchema = getCommissionsQuerySchema
   .omit({
     partnerId: true,
+    bountySubmissionId: true,
     sortBy: true,
     query: true,
   })
@@ -70,6 +71,7 @@ export const getPartnerEarningsQuerySchema = getCommissionsQuerySchema
 export const getPartnerEarningsCountQuerySchema = getCommissionsCountQuerySchema
   .omit({
     partnerId: true,
+    bountySubmissionId: true,
     query: true,
   })
   .extend({
@@ -166,6 +168,8 @@ export const partnerBountySubmissionSchema = BountySubmissionSchema.extend({
         earnings: true,
         status: true,
         createdAt: true,
+      }).extend({
+        description: z.string().nullish(),
       }),
     )
     .default([]),

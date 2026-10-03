@@ -158,6 +158,12 @@ export const getCommissionsQuerySchema = z
       .string()
       .optional()
       .describe("Filter the list of commissions by the associated payout."),
+    bountySubmissionId: z
+      .string()
+      .optional()
+      .describe(
+        "Filter the list of commissions by the associated bounty submission.",
+      ),
     partnerId: z
       .string()
       .optional()
