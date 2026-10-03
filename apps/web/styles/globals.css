@@ -100,3 +100,11 @@ input[type="number"]::-webkit-outer-spin-button {
 [data-sonner-toast] {
   border-radius: 10px !important;
 }
+
+/* Sonner close button — pin explicit values so it's visible on both light and dark toasts */
+[data-sonner-toast] [data-close-button] {
+  opacity: 1 !important;
+  background: white !important;
+  color: #374151 !important;
+  border-color: #e5e7eb !important;
+}
