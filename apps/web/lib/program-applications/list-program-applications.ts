@@ -111,9 +111,6 @@ function transformApplication(application: ProgramApplicationWithPartner) {
     applicationFormData,
     partner: {
       ...partner,
-      name: application.name,
-      email: application.email,
-      country: partner.country,
       groupId: application.groupId,
       status: application.status,
       ...polyfillSocialMediaFields(platforms),
