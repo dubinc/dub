@@ -113,7 +113,7 @@ function transformApplication(application: ProgramApplicationWithPartner) {
       ...partner,
       name: application.name,
       email: application.email,
-      country: application.country,
+      country: partner.country,
       groupId: application.groupId,
       status: application.status,
       ...polyfillSocialMediaFields(platforms),
