@@ -1,4 +1,5 @@
 import { bulkDeleteLinks } from "@/lib/api/links";
+import { revalidateProgramPublicPages } from "@/lib/api/programs/revalidate-program-public-pages";
 import { conn } from "@/lib/planetscale";
 import { prisma } from "@/lib/prisma";
 import { storage } from "@/lib/storage";
@@ -77,6 +78,8 @@ export async function deleteProgramAdmin(programId: string) {
     },
   });
   console.log("Deleted partner groups", deletedPartnerGroups);
+
+  revalidateProgramPublicPages(program.id);
 
   let deletedProgramEnrollments = 0;
   while (true) {
