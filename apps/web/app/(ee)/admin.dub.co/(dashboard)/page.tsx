@@ -1,4 +1,5 @@
 import { DeletePartnerAccount } from "./components/delete-partner-account";
+import { DeleteProgram } from "./components/delete-program";
 import { ImpersonateUser } from "./components/impersonate-user";
 import { ResetLoginAttempts } from "./components/reset-login-attempts";
 import { SlackSupportInvite } from "./components/slack-support-invite";
@@ -28,6 +29,15 @@ export default function AdminPage() {
           Dub, their partner account won't be deleted.
         </p>
         <DeletePartnerAccount />
+      </div>
+      <div className="flex flex-col space-y-4 px-5 py-10">
+        <h2 className="text-xl font-semibold">Delete Program</h2>
+        <p className="text-sm text-neutral-500">
+          Permanently delete a program by ID or slug, along with all of its
+          commissions, payouts, rewards, discounts, links, customers, partner
+          groups, and enrollments.
+        </p>
+        <DeleteProgram />
       </div>
       <div className="flex flex-col space-y-4 px-5 py-10">
         <h2 className="text-xl font-semibold">Reset Login Attempts</h2>
