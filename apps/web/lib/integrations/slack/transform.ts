@@ -12,10 +12,10 @@ import {
   CommissionEventWebhookPayload,
   DiscountCodeEventWebhookPayload,
   LeadEventWebhookPayload,
-  ProgramApplicationWebhookPayload,
   PartnerEventWebhookPayload,
   PartnerMergedWebhookPayload,
   PayoutEventWebhookPayload,
+  ProgramApplicationWebhookPayload,
   SaleEventWebhookPayload,
 } from "../../webhook/types";
 
@@ -308,7 +308,7 @@ const partnerEnrolledTemplate = ({
   };
 };
 
-const partnerApplicationSubmittedTemplate = ({
+const programApplicationSubmittedTemplate = ({
   data,
 }: {
   data: ProgramApplicationWebhookPayload;
@@ -708,7 +708,8 @@ const slackTemplates: Record<WebhookTrigger, any> = {
   "sale.created": saleCreatedTemplate,
   "partner.enrolled": partnerEnrolledTemplate,
   "partner.merged": partnerMergedTemplate,
-  "partner.application_submitted": partnerApplicationSubmittedTemplate,
+  "partner.application_submitted": programApplicationSubmittedTemplate,
+  "program_application.created": programApplicationSubmittedTemplate,
   "commission.created": commissionCreatedTemplate,
   "bounty.created": bountyTemplates,
   "bounty.updated": bountyTemplates,

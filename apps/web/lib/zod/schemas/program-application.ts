@@ -70,7 +70,7 @@ export const ProgramApplicationSchema = PartnerApplicationSchema.extend({
     }),
 });
 
-export const partnerApplicationWebhookSchema = PartnerApplicationSchema;
+export const programApplicationWebhookSchema = PartnerApplicationSchema;
 
 export const getProgramApplicationsQuerySchema = getPartnersQuerySchema
   .pick({

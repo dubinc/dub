@@ -10,7 +10,7 @@ import { autoApprovePartnerJob } from "../jobs/handlers/auto-approve-partner-job
 import { autoRejectPartnerJob } from "../jobs/handlers/auto-reject-partner-job";
 import { buildSocialPlatformLookup } from "../social-utils";
 import { sendWorkspaceWebhook } from "../webhook/publish";
-import { partnerApplicationWebhookSchema } from "../zod/schemas/program-application";
+import { programApplicationWebhookSchema } from "../zod/schemas/program-application";
 import { evaluateApplicationRequirements } from "./evaluate-application-requirements";
 import {
   formatApplicationFormData,
@@ -214,6 +214,19 @@ export async function completeProgramApplications(userEmail: string) {
         },
       });
 
+      const webhookPayload = programApplicationWebhookSchema.parse({
+        id: application.id,
+        createdAt: application.createdAt,
+        applicationFormData,
+        partner: {
+          ...partner,
+          ...programEnrollment,
+          id: partner.id,
+          status: "pending",
+          ...formatWebsiteAndSocialsFields(application),
+        },
+      });
+
       await Promise.allSettled([
         ...(validApplication
           ? [
@@ -237,23 +250,20 @@ export async function completeProgramApplications(userEmail: string) {
                   )
                 : Promise.resolve(null),
 
-              // Send "partner.application_submitted" webhook
+              // Send "partner.application_submitted" webhook (deprecated)
               workspacesByProgramId.has(program.id) &&
                 sendWorkspaceWebhook({
                   workspace: workspacesByProgramId.get(program.id)!,
                   trigger: "partner.application_submitted",
-                  data: partnerApplicationWebhookSchema.parse({
-                    id: application.id,
-                    createdAt: application.createdAt,
-                    partner: {
-                      ...partner,
-                      ...programEnrollment,
-                      id: partner.id,
-                      status: "pending",
-                      ...formatWebsiteAndSocialsFields(application),
-                    },
-                    applicationFormData,
-                  }),
+                  data: webhookPayload,
+                }),
+
+              // Send "program_application.created" webhook
+              workspacesByProgramId.has(program.id) &&
+                sendWorkspaceWebhook({
+                  workspace: workspacesByProgramId.get(program.id)!,
+                  trigger: "program_application.created",
+                  data: webhookPayload,
                 }),
             ]
           : [

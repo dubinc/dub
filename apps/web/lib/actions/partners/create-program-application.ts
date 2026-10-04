@@ -26,7 +26,7 @@ import {
 import { assertRateLimit } from "@/lib/upstash/assert-rate-limit";
 import { RATELIMIT_POLICIES } from "@/lib/upstash/ratelimit-policies";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
-import { partnerApplicationWebhookSchema } from "@/lib/zod/schemas/program-application";
+import { programApplicationWebhookSchema } from "@/lib/zod/schemas/program-application";
 import { programApplicationFormWebsiteAndSocialsFieldWithValueSchema } from "@/lib/zod/schemas/program-application-form";
 import { createProgramApplicationSchema } from "@/lib/zod/schemas/programs";
 import {
@@ -331,6 +331,18 @@ async function createApplicationAndEnrollment({
         }),
       );
 
+      const webhookPayload = programApplicationWebhookSchema.parse({
+        id: application.id,
+        createdAt: application.createdAt,
+        applicationFormData,
+        partner: {
+          ...partner,
+          ...programEnrollment,
+          id: partner.id,
+          ...formatWebsiteAndSocialsFields(application),
+        },
+      });
+
       await Promise.allSettled([
         notifyProgramApplication({
           partner,
@@ -352,21 +364,18 @@ async function createApplicationAndEnrollment({
             )
           : Promise.resolve(null),
 
-        // Send "partner.application_submitted" webhook
+        // Send "partner.application_submitted" webhook (deprecated)
         sendWorkspaceWebhook({
           workspace,
           trigger: "partner.application_submitted",
-          data: partnerApplicationWebhookSchema.parse({
-            id: application.id,
-            createdAt: application.createdAt,
-            partner: {
-              ...partner,
-              ...programEnrollment,
-              id: partner.id,
-              ...formatWebsiteAndSocialsFields(application),
-            },
-            applicationFormData,
-          }),
+          data: webhookPayload,
+        }),
+
+        // Send "program_application.created" webhook
+        sendWorkspaceWebhook({
+          workspace,
+          trigger: "program_application.created",
+          data: webhookPayload,
         }),
 
         // Detect and record fraud events for the partner when they apply to a program

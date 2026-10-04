@@ -18,7 +18,7 @@ import {
   partnerMergedWebhookSchema,
 } from "@/lib/zod/schemas/partners";
 import { payoutWebhookEventSchema } from "@/lib/zod/schemas/payouts";
-import { partnerApplicationWebhookSchema } from "@/lib/zod/schemas/program-application";
+import { programApplicationWebhookSchema } from "@/lib/zod/schemas/program-application";
 import { describe, expect, test } from "vitest";
 import * as z from "zod/v4";
 
@@ -97,7 +97,8 @@ const eventSchemas: Record<WebhookTrigger, z.ZodSchema> = {
   "link.clicked": clickWebhookEventSchema,
   "lead.created": leadWebhookEventSchemaExtended,
   "sale.created": saleWebhookEventSchemaExtended,
-  "partner.application_submitted": partnerApplicationWebhookSchema,
+  "partner.application_submitted": programApplicationWebhookSchema,
+  "program_application.created": programApplicationWebhookSchema,
   "partner.enrolled": enrolledPartnerSchemaExtended,
   "partner.merged": partnerMergedWebhookSchema,
   "commission.created": commissionWebhookEventSchemaExtended,
