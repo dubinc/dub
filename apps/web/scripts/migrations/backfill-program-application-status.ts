@@ -79,8 +79,14 @@ async function backfillFromEnrollments() {
     const applications = await prisma.programApplication.findMany({
       where: {
         enrollment: {
-          isNot: null,
+          createdAt: {
+            gte: new Date("2026-10-01 00:00:00"),
+          },
         },
+        partnerId: {
+          not: null,
+        },
+        status: ProgramApplicationStatus.pending,
       },
       select: {
         id: true,
@@ -145,6 +151,8 @@ async function backfillFromEnrollments() {
         });
       }
     }
+
+    console.log(idsByStatus);
 
     for (const status of Object.values(ProgramApplicationStatus)) {
       const ids = idsByStatus[status];
@@ -711,7 +719,7 @@ async function main() {
   console.log(`DRY_RUN=${DRY_RUN} BATCH_SIZE=${BATCH_SIZE}`);
 
   // In order:
-  // await backfillFromEnrollments();
+  await backfillFromEnrollments();
   // await backfillRejectedFromRejectionFields();
   // await backfillPartnerIdsByEmail();
   // await backfillFromActivityLogs();
