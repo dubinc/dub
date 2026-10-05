@@ -2,6 +2,7 @@ import { getProgram } from "@/lib/fetchers/get-program";
 import { getProgramSlugs } from "@/lib/fetchers/get-program-slugs";
 import { isProductionEnvironment } from "@/lib/sandbox/environment";
 import { formatRewardDescription } from "@/ui/partners/format-reward-description";
+import { AuroraGradient } from "@/ui/shared/aurora-gradient";
 import { Grid } from "@dub/ui";
 import { cn, constructMetadata, PARTNERS_DOMAIN } from "@dub/utils";
 import { redirect } from "next/navigation";
@@ -64,7 +65,7 @@ export default async function PartnerAuthLayout(props: {
     redirect("/register");
   }
   return (
-    <div className="relative grid min-h-[100dvh] min-h-screen grid-cols-1 min-[900px]:grid-cols-[440px_minmax(0,1fr)] lg:grid-cols-[595px_minmax(0,1fr)]">
+    <div className="relative grid min-h-[100dvh] grid-cols-1 min-[900px]:grid-cols-[440px_minmax(0,1fr)] lg:grid-cols-[595px_minmax(0,1fr)]">
       <PartnerBanner program={program} />
       <SidePanel program={program} />
 
@@ -84,26 +85,7 @@ export default async function PartnerAuthLayout(props: {
             />
           </div>
 
-          {/* Gradient */}
-          {[...Array(2)].map((_, idx) => (
-            <div
-              key={idx}
-              className={cn(
-                "absolute left-1/2 top-6 size-[80px] -translate-x-1/2 -translate-y-1/2 scale-x-[1.6]",
-                idx === 0 ? "mix-blend-overlay" : "opacity-10",
-              )}
-            >
-              {[...Array(idx === 0 ? 2 : 1)].map((_, idx) => (
-                <div
-                  key={idx}
-                  className={cn(
-                    "absolute -inset-16 mix-blend-overlay blur-[50px] saturate-[2]",
-                    "bg-[conic-gradient(from_90deg,#F00_5deg,#EAB308_63deg,#5CFF80_115deg,#1E00FF_170deg,#855AFC_220deg,#3A8BFD_286deg,#F00_360deg)]",
-                  )}
-                />
-              ))}
-            </div>
-          ))}
+          <AuroraGradient />
         </div>
         <div className="relative flex min-h-[100dvh] min-h-screen w-full justify-center">
           <Logo className="min-[900px]:hidden" />

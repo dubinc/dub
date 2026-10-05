@@ -1,5 +1,9 @@
 import { DATE_RANGE_INTERVAL_PRESETS } from "@/lib/analytics/constants";
-import { CommissionStatus, CommissionType } from "@prisma/client";
+import {
+  CommissionSource,
+  CommissionStatus,
+  CommissionType,
+} from "@prisma/client";
 import * as z from "zod/v4";
 import { createCustomerBodySchema, CustomerSchema } from "./customers";
 import { trackLeadRequestSchema } from "./leads";
@@ -57,7 +61,7 @@ export const CommissionSchema = z.object({
     .record(z.string(), z.any())
     .nullable()
     .describe(
-      "User-provided metadata from the associated lead or sale event (`lead.metadata` / `sale.metadata`).",
+      "Metadata from the associated lead or sale event (`lead.metadata` / `sale.metadata`), or from Stripe webhook metadata.",
     ),
   createdAt: z
     .date()
@@ -90,6 +94,10 @@ export const CommissionEnrichedSchema = CommissionSchema.extend({
 // Schema for the commission detail page (GET /api/commissions/:commissionId)
 // TODO: Simplify this for OpenAPI and limit extra fields to in-app only – similar to getLinkInfoQuerySchemaExtended logic
 export const CommissionDetailSchema = CommissionEnrichedSchema.extend({
+  source: z
+    .enum(CommissionSource)
+    .nullable()
+    .describe("Where the commission originated."),
   user: UserSchema.nullish().describe("The user who created the commission."),
   reward: RewardSchema.pick({
     event: true,
@@ -150,6 +158,12 @@ export const getCommissionsQuerySchema = z
       .string()
       .optional()
       .describe("Filter the list of commissions by the associated payout."),
+    bountySubmissionId: z
+      .string()
+      .optional()
+      .describe(
+        "Filter the list of commissions by the associated bounty submission.",
+      ),
     partnerId: z
       .string()
       .optional()
@@ -486,6 +500,7 @@ export const createPartnerCommissionSchema = z.object({
   customerId: z.string().optional(),
   eventId: z.string().optional(),
   invoiceId: z.string().nullish(),
+  rewardId: z.string().optional(),
   amount: z.number().default(0).optional(),
   quantity: z.number().default(1),
   currency: z.string().optional(),
@@ -493,6 +508,7 @@ export const createPartnerCommissionSchema = z.object({
   createdAt: z.coerce.date().optional(),
   status: commissionPatchStatusSchema.optional(), // used for create-manual-commission (import commission as refunded)
   userId: z.string().optional(),
+  source: z.enum(CommissionSource).optional(),
   metadata: z.record(z.string(), z.any()).nullish(),
   context: rewardContextSchema.optional(),
   skipWorkflow: z.boolean().default(false).optional(),

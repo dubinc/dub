@@ -17,6 +17,7 @@ type ApiResponse<T> = {
 export type ApiClient = {
   get: <T>(url: string) => Promise<ApiResponse<T>>;
   post: <T>(url: string, data?: unknown) => Promise<ApiResponse<T>>;
+  put: <T>(url: string, data?: unknown) => Promise<ApiResponse<T>>;
   patch: <T>(url: string, data?: unknown) => Promise<ApiResponse<T>>;
   delete: <T>(url: string) => Promise<ApiResponse<T>>;
 };
@@ -52,6 +53,8 @@ function createApiClient(request: APIRequestContext): ApiClient {
     get: <T>(url: string) => parse<T>(request.get(url)),
     post: <T>(url: string, data?: unknown) =>
       parse<T>(request.post(url, { data })),
+    put: <T>(url: string, data?: unknown) =>
+      parse<T>(request.put(url, { data })),
     patch: <T>(url: string, data?: unknown) =>
       parse<T>(request.patch(url, { data })),
     delete: <T>(url: string) => parse<T>(request.delete(url)),

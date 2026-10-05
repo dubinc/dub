@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import type { EnrolledPartnerProps, GroupProps } from "@/lib/types";
-import { nanoid } from "@dub/utils";
+import { nanoid, sleep } from "@dub/utils";
 import { expect } from "@playwright/test";
 import type { Workflow } from "@prisma/client";
 import { randomName } from "../../utils";
@@ -178,7 +178,7 @@ export async function expectPartnerStaysInGroup({
   expectedGroupId: string;
 }) {
   // Give executeWorkflows (waitUntil after /track/lead) time to run (and skip).
-  await new Promise((resolve) => setTimeout(resolve, 5_000));
+  await sleep(5_000);
 
   const enrollment = await getEnrollment({ partnerId, programId });
   expect(enrollment.groupId).toBe(expectedGroupId);

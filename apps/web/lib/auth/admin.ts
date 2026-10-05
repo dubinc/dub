@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { DUB_WORKSPACE_ID, getSearchParams } from "@dub/utils";
 import { WorkspaceRole } from "@prisma/client";
+import { canAccessAdminApiPath } from "./admin-access-guard";
 import { getSession, type Session } from "./utils";
 
 // Internal use only (for admin portal)
@@ -62,6 +63,17 @@ export const withAdmin =
         `Unauthorized: Missing required admin role(s): ${requiredRoles.join(", ")}.`,
         { status: 403 },
       );
+    }
+
+    if (
+      !canAccessAdminApiPath({
+        userId: session.user.id,
+        pathname: new URL(req.url).pathname,
+      })
+    ) {
+      return new Response("Unauthorized: You don't have access to this page.", {
+        status: 403,
+      });
     }
 
     const searchParams = getSearchParams(req.url);

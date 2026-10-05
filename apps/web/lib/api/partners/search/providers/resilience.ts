@@ -1,3 +1,4 @@
+import { sleep } from "@dub/utils";
 import {
   APIConnectionError,
   APIConnectionTimeoutError,
@@ -61,9 +62,7 @@ export async function withTransientRetry<T>(
         throw error;
       }
 
-      await new Promise((resolve) =>
-        setTimeout(resolve, 50 * attempt + Math.random() * 25),
-      );
+      await sleep(50 * attempt + Math.random() * 25);
     }
   }
 

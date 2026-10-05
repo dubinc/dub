@@ -4,6 +4,7 @@ import { createId } from "../api/create-id";
 import { queuePartnerSearchSync } from "../api/partners/queue-partner-search-sync";
 import { createLink } from "../api/links";
 import { generatePartnerLink } from "../api/partners/generate-partner-link";
+import { approveLinkedApplication } from "../program-applications/approve-linked-application";
 import { logImportError } from "../tinybird/log-import-error";
 import { WorkspaceProps } from "../types";
 import { DEFAULT_PARTNER_GROUP } from "../zod/schemas/groups";
@@ -33,6 +34,7 @@ export async function importPartners(payload: LemonSqueezyImportPayload) {
           leadRewardId: true,
           saleRewardId: true,
           referralRewardId: true,
+          customRewardId: true,
           discountId: true,
         },
       },
@@ -192,6 +194,7 @@ async function createPartnerAndLinks({
     | "leadRewardId"
     | "saleRewardId"
     | "referralRewardId"
+    | "customRewardId"
   >;
   userId: string;
   importId: string;
@@ -222,7 +225,7 @@ async function createPartnerAndLinks({
     update: {},
   });
 
-  const { links } = await prisma.programEnrollment.upsert({
+  const { links, applicationId } = await prisma.programEnrollment.upsert({
     where: {
       partnerId_programId: {
         partnerId: partner.id,
@@ -239,18 +242,25 @@ async function createPartnerAndLinks({
       leadRewardId: group.leadRewardId,
       saleRewardId: group.saleRewardId,
       referralRewardId: group.referralRewardId,
+      customRewardId: group.customRewardId,
       discountId: group.discountId,
     },
     update: {
       status: "approved",
     },
     select: {
+      applicationId: true,
       links: {
         select: {
           key: true,
         },
       },
     },
+  });
+
+  await approveLinkedApplication({
+    applicationId,
+    userId,
   });
 
   if (links.length > 0 && links.some((link) => link.key === affiliate.id)) {

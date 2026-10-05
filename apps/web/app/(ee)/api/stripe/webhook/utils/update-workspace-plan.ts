@@ -61,17 +61,19 @@ export async function updateWorkspacePlan({
   priceId: string;
   subscription: Stripe.Subscription;
 }) {
-  const cancellationFields = getSubscriptionBillingFields(subscription);
+  const subscriptionBillingFields = getSubscriptionBillingFields(subscription);
   const planPeriod = getPlanPeriodFromStripeSubscription(subscription);
   const trialEndsAt = getSubscriptionTrialEndsAt(subscription);
   const isPaidPlanActivated =
     workspace.trialEndsAt !== null && trialEndsAt === null;
 
   const datetimeFieldsUpdated =
+    workspace.billingCycleStart !==
+      subscriptionBillingFields.billingCycleStart ||
     workspace.billingCycleEndsAt?.getTime() !==
-      cancellationFields.billingCycleEndsAt?.getTime() ||
+      subscriptionBillingFields.billingCycleEndsAt?.getTime() ||
     workspace.subscriptionCanceledAt?.getTime() !==
-      cancellationFields.subscriptionCanceledAt?.getTime() ||
+      subscriptionBillingFields.subscriptionCanceledAt?.getTime() ||
     (trialEndsAt !== undefined &&
       workspace.trialEndsAt?.getTime() !== trialEndsAt?.getTime());
 
@@ -89,7 +91,7 @@ export async function updateWorkspacePlan({
         id: workspace.id,
       },
       data: {
-        ...cancellationFields,
+        ...subscriptionBillingFields,
         planPeriod,
       },
     });
@@ -150,7 +152,7 @@ export async function updateWorkspacePlan({
             ? { paymentFailedAt: null }
             : {}),
           ...(trialEndsAt !== undefined && { trialEndsAt }),
-          ...cancellationFields,
+          ...subscriptionBillingFields,
           ...(planPeriod !== undefined && { planPeriod }),
           ...(recomputedUsage && {
             usage: recomputedUsage.usage,
@@ -371,7 +373,7 @@ export async function updateWorkspacePlan({
         id: workspace.id,
       },
       data: {
-        ...cancellationFields,
+        ...subscriptionBillingFields,
         ...(trialEndsAt !== undefined && { trialEndsAt }),
       },
     });

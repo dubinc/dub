@@ -2,21 +2,26 @@
 
 import { useCopyDiscountToLiveModal } from "@/lib/sandbox/components/copy-discount-to-live-modal";
 import { isStagingEnvironment } from "@/lib/sandbox/environment";
+import { useDiscounts } from "@/lib/swr/use-discounts";
 import useGroup from "@/lib/swr/use-group";
 import useWorkspace from "@/lib/swr/use-workspace";
 import type { DiscountProps, GroupProps } from "@/lib/types";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
-import { useDiscountSheet } from "@/ui/partners/discounts/add-edit-discount-sheet";
+import {
+  DiscountSheet,
+  useDiscountSheet,
+} from "@/ui/partners/discounts/add-edit-discount-sheet";
+import { CustomItemsAccordion } from "@/ui/partners/groups/custom-rewards-accordion";
 import { ProgramRewardDescription } from "@/ui/partners/program-reward-description";
-import { Button, useRouterStuff } from "@dub/ui";
+import { Button, DiscountCode, useRouterStuff } from "@dub/ui";
 import { cn, isClickOnInteractiveChild } from "@dub/utils";
-import { BadgePercent } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
 export const GroupDiscounts = () => {
   const { group, loading } = useGroup();
+  const { discounts } = useDiscounts({ groupId: group?.id });
   const { searchParams } = useRouterStuff();
 
   const [discountSheetState, setDiscountSheetState] = useState<
@@ -34,30 +39,33 @@ export const GroupDiscounts = () => {
     }
   }, [searchParams]);
 
-  const currentDiscount =
-    discountSheetState.discountId &&
-    group?.discount?.id === discountSheetState.discountId
-      ? group.discount
-      : undefined;
-  const isNewDiscount = discountSheetState.discountId === "new";
-  const { DiscountSheet, setIsOpen: setDiscountSheetOpen } = useDiscountSheet({
-    ...(currentDiscount && { discount: currentDiscount }),
+  const currentDiscount = getCurrentDiscount({
+    discountId: discountSheetState.discountId,
+    groupDiscount: group?.discount,
+    discounts,
   });
 
-  useEffect(() => {
-    setDiscountSheetOpen(discountSheetState.open);
-  }, [discountSheetState.open, setDiscountSheetOpen]);
+  const isNewDiscount = discountSheetState.discountId === "new";
 
   return (
     <div>
-      {discountSheetState.discountId &&
-        (currentDiscount || isNewDiscount) &&
-        DiscountSheet}
+      {discountSheetState.discountId && (currentDiscount || isNewDiscount) && (
+        <DiscountSheet
+          isOpen={discountSheetState.open}
+          setIsOpen={(open) =>
+            setDiscountSheetState((s) => ({ ...s, open }) as typeof s)
+          }
+          {...(currentDiscount && { discount: currentDiscount })}
+          isDefault={
+            isNewDiscount || currentDiscount?.id === group?.discount?.id
+          }
+        />
+      )}
 
       {loading || !group ? (
         <DiscountSkeleton />
       ) : (
-        <DiscountItem discount={group?.discount} group={group} />
+        <DiscountItem discount={group.discount} group={group} />
       )}
     </div>
   );
@@ -79,7 +87,7 @@ const DiscountItem = ({
   const As = discount ? Link : "div";
 
   return (
-    <>
+    <div>
       {discount && isStagingEnvironment(environment) && (
         <CopyDiscountToLiveModal />
       )}
@@ -89,7 +97,7 @@ const DiscountItem = ({
             ? `/${slug}/program/groups/${group.slug}/discounts?discountId=${discount.id}`
             : ""
         }
-        scroll={false}
+        {...(discount ? { scroll: false } : {})}
         className={cn(
           "flex cursor-pointer flex-col gap-4 rounded-lg p-6 transition-all md:flex-row md:items-center",
           discount && "border border-neutral-200 hover:border-neutral-300",
@@ -106,7 +114,7 @@ const DiscountItem = ({
         }}
       >
         <div className="flex size-10 items-center justify-center rounded-full border border-neutral-200 bg-white">
-          <BadgePercent className="size-4 text-neutral-600" />
+          <DiscountCode className="size-4 text-neutral-600" />
         </div>
         <div className="flex flex-1 flex-col justify-between gap-y-4 md:flex-row md:items-center">
           <div className="flex items-center gap-2">
@@ -156,7 +164,8 @@ const DiscountItem = ({
           </div>
         </div>
       </As>
-    </>
+      <CustomItemsAccordion group={group} />
+    </div>
   );
 };
 
@@ -197,3 +206,23 @@ const DiscountSkeleton = () => {
     </div>
   );
 };
+
+function getCurrentDiscount({
+  discountId,
+  groupDiscount,
+  discounts,
+}: {
+  discountId: string | null;
+  groupDiscount: GroupProps["discount"];
+  discounts: DiscountProps[] | undefined;
+}): DiscountProps | undefined {
+  if (!discountId) {
+    return undefined;
+  }
+
+  if (groupDiscount?.id === discountId) {
+    return groupDiscount;
+  }
+
+  return discounts?.find((discount) => discount.id === discountId);
+}

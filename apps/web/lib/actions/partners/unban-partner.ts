@@ -7,6 +7,7 @@ import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-progr
 import { unbanPartnerJob } from "@/lib/jobs/handlers/unban-partner-job";
 import { prisma } from "@/lib/prisma";
 import { banPartnerSchema } from "@/lib/zod/schemas/partners";
+import { ProgramApplicationStatus } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
 import { throwIfNoPermission } from "../throw-if-no-permission";
@@ -74,9 +75,31 @@ export const unbanPartnerAction = authActionClient
           clickRewardId: partnerGroup.clickRewardId,
           leadRewardId: partnerGroup.leadRewardId,
           saleRewardId: partnerGroup.saleRewardId,
+          referralRewardId: partnerGroup.referralRewardId,
+          customRewardId: partnerGroup.customRewardId,
           discountId: partnerGroup.discountId,
         },
       }),
+
+      ...(programEnrollment.applicationId
+        ? [
+            prisma.programApplication.updateMany({
+              where: {
+                id: programEnrollment.applicationId,
+                status: {
+                  not: ProgramApplicationStatus.approved,
+                },
+              },
+              data: {
+                status: ProgramApplicationStatus.approved,
+                reviewedAt: new Date(),
+                rejectionReason: null,
+                rejectionNote: null,
+                userId: user.id,
+              },
+            }),
+          ]
+        : []),
     ]);
 
     await unbanPartnerJob.dispatch(

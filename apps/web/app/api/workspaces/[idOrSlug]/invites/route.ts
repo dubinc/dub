@@ -5,7 +5,9 @@ import { withWorkspace } from "@/lib/auth";
 import { exceededLimitError } from "@/lib/exceeded-limit-error";
 import { prisma } from "@/lib/prisma";
 import { assertNotStagingWorkspace } from "@/lib/sandbox/workspace-guards";
-import { ratelimit, redis } from "@/lib/upstash";
+import { redis } from "@/lib/upstash";
+import { assertRateLimit } from "@/lib/upstash/assert-rate-limit";
+import { RATELIMIT_POLICIES } from "@/lib/upstash/ratelimit-policies";
 import { inviteTeammatesSchema } from "@/lib/zod/schemas/invites";
 import {
   getWorkspaceUsersQuerySchema,
@@ -43,6 +45,7 @@ export const GET = withWorkspace(
   },
   {
     requiredPermissions: ["workspaces.read"],
+    requiredRoles: ["owner", "member", "billing"],
   },
 );
 
@@ -60,17 +63,10 @@ export const POST = withWorkspace(
       });
     }
 
-    const { success } = await ratelimit(1, "1 s").limit(
-      `workspace-invites:${workspace.id}`,
-    );
-
-    if (!success) {
-      throw new DubApiError({
-        code: "rate_limit_exceeded",
-        message:
-          "You've reached the rate limit for inviting teammates. Please try again later after few seconds.",
-      });
-    }
+    await assertRateLimit({
+      policy: RATELIMIT_POLICIES.workspaceInvite,
+      identifier: workspace.id,
+    });
 
     if (teammates.length > 10) {
       throw new DubApiError({

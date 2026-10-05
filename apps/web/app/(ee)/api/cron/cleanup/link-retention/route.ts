@@ -3,7 +3,7 @@ import { bulkDeleteLinks } from "@/lib/api/links/bulk-delete-links";
 import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { prisma } from "@/lib/prisma";
-import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
+import { APP_DOMAIN_WITH_NGROK, sleep } from "@dub/utils";
 import { Domain } from "@prisma/client";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
@@ -106,7 +106,7 @@ async function deleteOldLinks(
     ++processedBatches;
 
     // sleep for 250ms
-    await new Promise((resolve) => setTimeout(resolve, 250));
+    await sleep(250);
   }
 
   // Only schedule another run if we hit the batch limit AND we found a full batch

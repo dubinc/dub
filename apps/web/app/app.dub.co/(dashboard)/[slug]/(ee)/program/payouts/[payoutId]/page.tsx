@@ -165,6 +165,7 @@ function PayoutDetailsContent({
       Partner: (
         <ConditionalLink
           href={`/${slug}/program/partners/${payout.partner.id}`}
+          target="_blank"
           className="flex min-w-0 items-center gap-1.5 text-neutral-500"
         >
           <PartnerAvatar

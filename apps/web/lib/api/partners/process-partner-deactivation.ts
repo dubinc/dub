@@ -62,6 +62,7 @@ export async function processPartnerDeactivation({
         leadRewardId: null,
         saleRewardId: null,
         referralRewardId: null,
+        customRewardId: null,
         discountId: null,
       },
     });

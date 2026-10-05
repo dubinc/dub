@@ -1,5 +1,422 @@
-import { GroupRewards } from "./group-rewards";
+"use client";
+
+import { getPlanCapabilities } from "@/lib/plan-capabilities";
+import { useCopyRewardToLiveModal } from "@/lib/sandbox/components/copy-reward-to-live-modal";
+import { isStagingEnvironment } from "@/lib/sandbox/environment";
+import useGroup from "@/lib/swr/use-group";
+import { useRewards } from "@/lib/swr/use-rewards";
+import useWorkspace from "@/lib/swr/use-workspace";
+import type { GroupProps, RewardProps } from "@/lib/types";
+import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
+import { useRewardHistorySheet } from "@/ui/activity-logs/reward-history-sheet";
+import { useAdvancedUpsellModal } from "@/ui/partners/advanced-upsell-modal";
+import { CustomItemsAccordion } from "@/ui/partners/groups/custom-rewards-accordion";
+import { ProgramRewardDescription } from "@/ui/partners/program-reward-description";
+import {
+  RewardSheet,
+  useRewardSheet,
+} from "@/ui/partners/rewards/add-edit-reward-sheet";
+import { REWARD_EVENT_DESCRIPTIONS } from "@/ui/partners/rewards/reward-event-descriptions";
+import { REWARD_EVENT_ICON } from "@/ui/partners/rewards/reward-event-icon";
+import {
+  Button,
+  TimestampTooltip,
+  TooltipContent,
+  useRouterStuff,
+} from "@dub/ui";
+import { cn, formatDate, isClickOnInteractiveChild } from "@dub/utils";
+import { EventType } from "@prisma/client";
+import Link from "next/link";
+import { useParams } from "next/navigation";
+import { useEffect, useState } from "react";
 
 export default function GroupRewardsPage() {
-  return <GroupRewards />;
+  const { group, loading } = useGroup();
+  const { rewards: groupRewards } = useRewards({ groupId: group?.id });
+  const { searchParams } = useRouterStuff();
+
+  const [rewardSheetState, setRewardSheetState] = useState<
+    { open: false; rewardId: string | null } | { open: true; rewardId: string }
+  >({ open: false, rewardId: null });
+
+  useEffect(() => {
+    const rewardId = searchParams.get("rewardId");
+
+    if (rewardId) {
+      setRewardSheetState({ open: true, rewardId });
+    } else {
+      setRewardSheetState({ open: false, rewardId: null });
+    }
+  }, [searchParams]);
+
+  const rewards =
+    [
+      group?.clickReward,
+      group?.leadReward,
+      group?.saleReward,
+      group?.referralReward,
+      group?.customReward,
+    ].filter(Boolean) ?? [];
+
+  const currentReward = getCurrentReward({
+    rewardId: rewardSheetState.rewardId,
+    defaultRewards: rewards,
+    rewards: groupRewards,
+  });
+
+  const isNewReward = rewardSheetState.rewardId?.startsWith("new-");
+  const newRewardEvent = isNewReward
+    ? (rewardSheetState.rewardId?.replace("new-", "") as EventType)
+    : undefined;
+
+  return (
+    <div>
+      {rewardSheetState.rewardId && (currentReward || isNewReward) && (
+        <RewardSheetWrapper
+          reward={currentReward}
+          event={newRewardEvent}
+          isOpen={rewardSheetState.open}
+          setIsOpen={(open) =>
+            setRewardSheetState((s) => ({ ...s, open }) as any)
+          }
+          isDefault={
+            Boolean(isNewReward) ||
+            rewards.some((reward) => reward?.id === currentReward?.id)
+          }
+        />
+      )}
+
+      <div className="flex flex-col gap-6">
+        {loading || !group ? (
+          <>
+            {Array.from({ length: 5 }).map((_, index) => (
+              <RewardSkeleton key={index} />
+            ))}
+          </>
+        ) : (
+          <>
+            <RewardItem reward={group.saleReward} event="sale" group={group} />
+            <RewardItem reward={group.leadReward} event="lead" group={group} />
+            <RewardItem
+              reward={group.clickReward}
+              event="click"
+              group={group}
+            />
+
+            <div className="flex items-center gap-3">
+              <h3 className="text-sm font-medium text-neutral-800">
+                Additional rewards
+              </h3>
+              <hr className="min-w-0 flex-1 border-neutral-200" />
+            </div>
+
+            <RewardItem
+              reward={group.referralReward}
+              event="referral"
+              group={group}
+            />
+
+            <RewardItem
+              reward={group.customReward}
+              event="custom"
+              group={group}
+            />
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+const RewardSheetWrapper = ({
+  reward,
+  event,
+  isOpen,
+  setIsOpen,
+  isDefault,
+}: {
+  reward?: RewardProps | null;
+  event?: EventType;
+  isOpen: boolean;
+  setIsOpen: (open: boolean) => void;
+  isDefault: boolean;
+}) => {
+  return (
+    <RewardSheet
+      isOpen={isOpen}
+      setIsOpen={setIsOpen}
+      event={event || reward?.event || "sale"}
+      reward={reward || undefined}
+      isDefault={isDefault}
+    />
+  );
+};
+
+const RewardItem = ({
+  reward,
+  event,
+  group,
+}: {
+  reward?: RewardProps | null;
+  event: EventType;
+  group: GroupProps;
+}) => {
+  const { slug } = useParams();
+  const { plan, environment } = useWorkspace();
+  const { queryParams } = useRouterStuff();
+  const { openCopyRewardToLiveModal, CopyRewardToLiveModal } =
+    useCopyRewardToLiveModal();
+  const { advancedUpsellModal, setShowAdvancedUpsellModal } =
+    useAdvancedUpsellModal();
+
+  const { canCreateReferralReward } = getPlanCapabilities(plan);
+
+  const { RewardSheet, setIsOpen } = useRewardSheet({
+    event,
+    reward: reward || undefined,
+  });
+
+  const {
+    loading: activityLogsLoading,
+    hasActivityLogs,
+    finalActivityLogDate,
+    rewardHistorySheet,
+    setIsOpen: setHistoryOpen,
+  } = useRewardHistorySheet({
+    reward: reward ?? null,
+  });
+
+  const Icon = REWARD_EVENT_ICON[event];
+  const As = reward ? Link : "div";
+
+  const lastUpdatedDate = finalActivityLogDate ?? reward?.updatedAt;
+
+  return (
+    <>
+      {advancedUpsellModal}
+      {RewardSheet}
+      {rewardHistorySheet}
+      {reward && isStagingEnvironment(environment) && <CopyRewardToLiveModal />}
+      <div>
+        <As
+          href={
+            reward
+              ? `/${slug}/program/groups/${group.slug}/rewards?rewardId=${reward.id}`
+              : "#"
+          }
+          {...(reward ? { scroll: false } : {})}
+          className={cn(
+            "flex cursor-pointer flex-col gap-4 rounded-lg p-6 transition-all md:flex-row md:items-center",
+            reward && "border border-neutral-200 hover:border-neutral-300",
+            !reward && "bg-neutral-50 hover:bg-neutral-100",
+          )}
+          onClick={(e) => {
+            e.preventDefault();
+            if (isClickOnInteractiveChild(e)) return;
+            queryParams({
+              set: {
+                rewardId: reward?.id ?? `new-${event}`,
+              },
+            });
+          }}
+        >
+          <div className="flex size-10 shrink-0 items-center justify-center rounded-full border border-neutral-200 bg-white">
+            <Icon className="size-4 text-neutral-600" />
+          </div>
+          <div className="flex flex-1 flex-col justify-between gap-y-4 md:flex-row md:items-center">
+            <div className="flex w-full items-center gap-2">
+              {reward ? (
+                <div className="flex min-w-0 flex-1 flex-col gap-1">
+                  <div className="text-sm font-normal">
+                    <ProgramRewardDescription
+                      reward={reward}
+                      amountClassName="text-blue-600"
+                    />
+                  </div>
+
+                  <div className="flex items-center gap-1 text-xs font-medium text-neutral-500">
+                    <span>Last updated </span>
+                    {!lastUpdatedDate ? (
+                      <div className="h-3 w-16 animate-pulse rounded bg-neutral-100" />
+                    ) : (
+                      <TimestampTooltip
+                        timestamp={lastUpdatedDate}
+                        side="left"
+                        rows={["local", "utc", "unix"]}
+                      >
+                        <span>
+                          {formatDate(lastUpdatedDate, {
+                            month: "short",
+                            day: "numeric",
+                            year: "numeric",
+                          })}
+                        </span>
+                      </TimestampTooltip>
+                    )}
+
+                    {activityLogsLoading ? (
+                      <div className="ml-1 h-3 w-20 animate-pulse rounded bg-neutral-100" />
+                    ) : hasActivityLogs ? (
+                      <>
+                        <span
+                          className="ml-1 size-1 shrink-0 rounded-full bg-neutral-400"
+                          aria-hidden
+                        />
+                        <Button
+                          variant="outline"
+                          text="View history"
+                          className="h-4 w-fit px-1 py-0.5 text-xs font-medium text-neutral-500"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            setHistoryOpen(true);
+                          }}
+                        />
+                      </>
+                    ) : null}
+                  </div>
+                </div>
+              ) : (
+                <div className="flex flex-col">
+                  <span className="text-sm font-medium text-neutral-900">
+                    {REWARD_EVENT_DESCRIPTIONS[event].title}
+                  </span>
+                  <span className="text-sm font-normal text-neutral-500">
+                    {REWARD_EVENT_DESCRIPTIONS[event].description}.{" "}
+                    <Link
+                      href={REWARD_EVENT_DESCRIPTIONS[event].learnMoreHref}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="underline decoration-neutral-400 decoration-dotted underline-offset-2 hover:text-neutral-600"
+                    >
+                      Learn more ↗
+                    </Link>
+                  </span>
+                </div>
+              )}
+            </div>
+
+            {reward ? (
+              <div className="flex items-center gap-2">
+                {isStagingEnvironment(environment) && (
+                  <Button
+                    text="Copy to live"
+                    variant="secondary"
+                    className="h-9 w-fit rounded-lg"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      openCopyRewardToLiveModal(reward);
+                    }}
+                  />
+                )}
+
+                <Button
+                  text="Edit"
+                  variant="secondary"
+                  className="h-9 w-fit rounded-lg"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    queryParams({
+                      set: {
+                        rewardId: reward.id,
+                      },
+                    });
+                  }}
+                />
+              </div>
+            ) : (
+              <div className="flex flex-col-reverse items-center gap-2 md:flex-row">
+                {group.slug !== DEFAULT_PARTNER_GROUP.slug &&
+                  (event !== "referral" || canCreateReferralReward) && (
+                    <CopyDefaultRewardButton event={event} />
+                  )}
+                <Button
+                  text="Create"
+                  variant="primary"
+                  className="h-9 w-full rounded-lg md:w-fit"
+                  disabledTooltip={
+                    event === "referral" && !canCreateReferralReward ? (
+                      <TooltipContent
+                        title="Referral rewards are only available on the Advanced plan and above."
+                        cta="Upgrade to Advanced"
+                        onClick={() => setShowAdvancedUpsellModal(true)}
+                      />
+                    ) : undefined
+                  }
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setIsOpen(true);
+                  }}
+                />
+              </div>
+            )}
+          </div>
+        </As>
+        <CustomItemsAccordion group={group} event={event} />
+      </div>
+    </>
+  );
+};
+
+const CopyDefaultRewardButton = ({ event }: { event: EventType }) => {
+  const { group: defaultGroup } = useGroup({
+    groupIdOrSlug: DEFAULT_PARTNER_GROUP.slug,
+  });
+
+  const defaultReward = defaultGroup?.[`${event}Reward`];
+
+  const { RewardSheet, setIsOpen } = useRewardSheet({
+    event,
+    defaultRewardValues: defaultReward ?? undefined,
+  });
+
+  return defaultReward ? (
+    <>
+      {RewardSheet}
+      <Button
+        text="Duplicate default group"
+        variant="secondary"
+        className="animate-fade-in h-9 w-full rounded-lg md:w-fit"
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          setIsOpen(true);
+        }}
+      />
+    </>
+  ) : null;
+};
+
+const RewardSkeleton = () => {
+  return (
+    <div className="flex items-center gap-4 rounded-lg bg-neutral-50 p-6">
+      <div className="flex size-10 animate-pulse items-center justify-center rounded-full border border-neutral-200 bg-neutral-100" />
+      <div className="flex flex-1 items-center justify-between">
+        <div className="h-4 w-64 animate-pulse rounded bg-neutral-100" />
+        <div className="h-6 w-24 animate-pulse rounded-full bg-neutral-100" />
+      </div>
+    </div>
+  );
+};
+
+function getCurrentReward({
+  rewardId,
+  defaultRewards,
+  rewards,
+}: {
+  rewardId: string | null;
+  defaultRewards: (RewardProps | null | undefined)[];
+  rewards: RewardProps[] | undefined;
+}): RewardProps | undefined {
+  if (!rewardId) {
+    return undefined;
+  }
+
+  return (
+    defaultRewards.find((reward) => reward?.id === rewardId) ??
+    rewards?.find((reward) => reward.id === rewardId)
+  );
 }

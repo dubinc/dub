@@ -86,6 +86,7 @@ model Project {
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
   usageLastChecked DateTime  @default(now())
+  disabledAt       DateTime?
 
   users                 ProjectUsers[]
   invites               ProjectInvite[]

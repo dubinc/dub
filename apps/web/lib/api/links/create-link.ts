@@ -1,4 +1,8 @@
 import { queuePartnerSearchSync } from "@/lib/api/partners/queue-partner-search-sync";
+import {
+  hasRewardAssignment,
+  RewardOverrideIdsInput,
+} from "@/lib/api/rewards/reward-overrides";
 import { qstash } from "@/lib/cron";
 import { getPartnerEnrollmentInfo } from "@/lib/planetscale/get-partner-enrollment-info";
 import { prisma } from "@/lib/prisma";
@@ -8,8 +12,8 @@ import { ProcessedLinkProps } from "@/lib/types";
 import { publishWorkspaceLinksUsageEvent } from "@/lib/upstash/redis-streams/workspace-links-usage";
 import {
   APP_DOMAIN_WITH_NGROK,
-  R2_URL,
   getParamsFromURL,
+  R2_URL,
   truncate,
 } from "@dub/utils";
 import { linkConstructorSimple } from "@dub/utils/src/functions/link-constructor";
@@ -24,7 +28,11 @@ import { encodeKeyIfCaseSensitive } from "./case-sensitivity";
 import { includeTags } from "./include-tags";
 import { transformLink } from "./utils";
 
-export async function createLink(link: ProcessedLinkProps) {
+type CreateLinkOptions = ProcessedLinkProps & {
+  linkReward?: RewardOverrideIdsInput;
+};
+
+export async function createLink(link: CreateLinkOptions) {
   let {
     key,
     url,
@@ -45,12 +53,14 @@ export async function createLink(link: ProcessedLinkProps) {
   const { utm_source, utm_medium, utm_campaign, utm_term, utm_content } =
     getParamsFromURL(url);
 
-  const { tagId, tagIds, tagNames, webhookIds, ...rest } = link;
+  const { tagId, tagIds, tagNames, webhookIds, linkReward, ...rest } = link;
 
   key = encodeKeyIfCaseSensitive({
     domain: link.domain,
     key,
   });
+
+  const hasLinkLevelReward = linkReward && hasRewardAssignment(linkReward);
 
   const response = await withPrismaRetry(() =>
     prisma.link.create({
@@ -128,6 +138,18 @@ export async function createLink(link: ProcessedLinkProps) {
             },
           },
         }),
+
+        // Link level rewards
+        ...(hasLinkLevelReward && {
+          linkReward: {
+            create: {
+              clickRewardId: linkReward.clickRewardId ?? null,
+              leadRewardId: linkReward.leadRewardId ?? null,
+              saleRewardId: linkReward.saleRewardId ?? null,
+              discountId: linkReward.discountId ?? null,
+            },
+          },
+        }),
       },
       include: {
         ...includeTags,
@@ -144,6 +166,7 @@ export async function createLink(link: ProcessedLinkProps) {
       const { partner, discount } = await getPartnerEnrollmentInfo({
         programId: response.programId,
         partnerId: response.partnerId,
+        linkId: response.id,
       });
 
       await Promise.allSettled([

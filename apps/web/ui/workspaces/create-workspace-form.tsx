@@ -1,5 +1,6 @@
 "use client";
 
+import { testIds } from "@/lib/e2e/test-ids";
 import { isGenericEmail } from "@/lib/email/is-generic-email";
 import { AlertCircleFill } from "@/ui/shared/icons";
 import { Button, buttonVariants, FileUpload, useMediaQuery } from "@dub/ui";
@@ -115,6 +116,7 @@ export function CreateWorkspaceForm({
         <div className="mt-2 flex rounded-md shadow-sm">
           <input
             id="name"
+            data-testid={testIds.onboarding.workspaceName}
             type="text"
             autoFocus={!isMobile}
             autoComplete="off"
@@ -143,6 +145,7 @@ export function CreateWorkspaceForm({
           </span>
           <input
             id="slug"
+            data-testid={testIds.onboarding.workspaceSlug}
             type="text"
             required
             autoComplete="off"
@@ -245,6 +248,7 @@ export function CreateWorkspaceForm({
       <Button
         loading={isSubmitting || isSubmitSuccessful}
         text="Create workspace"
+        data-testid={testIds.onboarding.createWorkspace}
       />
     </form>
   );

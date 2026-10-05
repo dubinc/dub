@@ -4,7 +4,7 @@ import { setRenewOption } from "@/lib/dynadot/set-renew-option";
 import { prisma } from "@/lib/prisma";
 import { sendBatchEmail } from "@dub/email";
 import DomainRenewed from "@dub/email/templates/domain-renewed";
-import { chunk, log, pluralize } from "@dub/utils";
+import { chunk, log, pluralize, sleep } from "@dub/utils";
 import { RegisteredDomain } from "@prisma/client";
 import { addDays, startOfDay } from "date-fns";
 import * as z from "zod/v4";
@@ -128,7 +128,7 @@ export const POST = withCron(async ({ rawBody }) => {
       });
     }
 
-    await new Promise((resolve) => setTimeout(resolve, 500));
+    await sleep(500);
   }
 
   for (const updateChunk of chunk(succeeded, BATCH_SIZE)) {

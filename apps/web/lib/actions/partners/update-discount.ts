@@ -4,10 +4,10 @@ import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { getDiscountOrThrow } from "@/lib/api/partners/get-discount-or-throw";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { revalidateProgramPublicPages } from "@/lib/api/programs/revalidate-program-public-pages";
-import { qstash } from "@/lib/cron";
+import { invalidateLinksForDiscountsJob } from "@/lib/jobs/handlers/invalidate-links-for-discounts-job";
+import { publishDiscountCodesCreationJob } from "@/lib/jobs/handlers/publish-discount-codes-creation-job";
 import { prisma } from "@/lib/prisma";
 import { updateDiscountSchema } from "@/lib/zod/schemas/discount";
-import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
 import { throwIfNoPermission } from "../throw-if-no-permission";
@@ -30,7 +30,7 @@ export const updateDiscountAction = authActionClient
       discountId,
     });
 
-    const { partnerGroup, ...updatedDiscount } = await prisma.discount.update({
+    const updatedDiscount = await prisma.discount.update({
       where: {
         id: discountId,
       },
@@ -42,9 +42,6 @@ export const updateDiscountAction = authActionClient
             : null,
         }),
       },
-      include: {
-        partnerGroup: true,
-      },
     });
 
     const shouldExpireCache =
@@ -54,46 +51,44 @@ export const updateDiscountAction = authActionClient
       revalidateProgramPublicPages(programId);
     }
 
-    waitUntil(
-      (async () => {
-        await Promise.allSettled([
-          ...(shouldExpireCache
-            ? [
-                qstash.publishJSON({
-                  url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/invalidate-for-discounts`,
-                  body: {
-                    groupId: partnerGroup?.id,
-                  },
-                }),
-              ]
-            : []),
-
-          ...(updatedDiscount.autoProvisionEnabledAt
-            ? [
-                qstash.publishJSON({
-                  url: `${APP_DOMAIN_WITH_NGROK}/api/cron/discount-codes/create/queue-batches`,
-                  body: {
-                    discountId: discount.id,
-                  },
-                }),
-              ]
-            : []),
-
-          recordAuditLog({
-            workspaceId: workspace.id,
-            programId,
-            action: "discount.updated",
-            description: `Discount ${discount.id} updated`,
-            actor: user,
-            targets: [
+    await Promise.all([
+      ...(shouldExpireCache
+        ? [
+            invalidateLinksForDiscountsJob.dispatch(
               {
-                type: "discount",
-                id: discount.id,
-                metadata: updatedDiscount,
+                by: "discount",
+                programId,
+                discountId: discount.id,
               },
-            ],
-          }),
-        ]);
-      })(),
+              { label: discount.id },
+            ),
+          ]
+        : []),
+
+      ...(updatedDiscount.autoProvisionEnabledAt
+        ? [
+            publishDiscountCodesCreationJob.dispatch(
+              { discountId: discount.id },
+              { label: discount.id },
+            ),
+          ]
+        : []),
+    ]);
+
+    waitUntil(
+      recordAuditLog({
+        workspaceId: workspace.id,
+        programId,
+        action: "discount.updated",
+        description: `Discount ${discount.id} updated`,
+        actor: user,
+        targets: [
+          {
+            type: "discount",
+            id: discount.id,
+            metadata: updatedDiscount,
+          },
+        ],
+      }),
     );
   });

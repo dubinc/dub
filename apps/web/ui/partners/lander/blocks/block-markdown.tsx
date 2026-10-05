@@ -1,6 +1,9 @@
+import { LANDER_MARKDOWN_ALLOWED_ELEMENTS } from "@/ui/partners/lander/lander-markdown";
 import { cn } from "@dub/utils";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+
+export { LANDER_MARKDOWN_ALLOWED_ELEMENTS };
 
 export function BlockMarkdown({
   className,
@@ -22,6 +25,8 @@ export function BlockMarkdown({
     >
       <Markdown
         remarkPlugins={[remarkGfm]}
+        unwrapDisallowed
+        allowedElements={LANDER_MARKDOWN_ALLOWED_ELEMENTS}
         components={{
           a: ({ node, ...props }) => (
             <a {...props} target="_blank" rel="noopener noreferrer" />

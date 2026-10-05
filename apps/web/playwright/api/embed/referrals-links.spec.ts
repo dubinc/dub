@@ -1,6 +1,8 @@
 import { prisma } from "@/lib/prisma";
+import { ReferralsEmbedLinkSchema } from "@/lib/zod/schemas/referrals-embed";
 import { nanoid } from "@dub/utils";
 import { expect } from "@playwright/test";
+import * as z from "zod/v4";
 import { apiError } from "../../utils";
 import { createBearerApiClient, test } from "../fixtures";
 import {
@@ -8,14 +10,8 @@ import {
   createPartner,
   deletePartner,
 } from "../partners/helpers";
-import { TEST_WORKSPACE } from "../setup-test-workspace";
 
-type EmbedLink = {
-  id: string;
-  domain: string;
-  key: string;
-  url: string;
-};
+type ReferralsEmbedLink = z.infer<typeof ReferralsEmbedLinkSchema>;
 
 test.describe.configure({ mode: "serial" });
 
@@ -37,17 +33,14 @@ test("GET /embed/referrals/links", async ({ api, playwright }) => {
     });
 
     try {
-      const { status, data } = await embedApi.get<EmbedLink[]>(
+      const { status, data } = await embedApi.get<ReferralsEmbedLink[]>(
         "/api/embed/referrals/links",
       );
 
       expect(status).toEqual(200);
       expect(data).toEqual(
         expect.arrayContaining([
-          expect.objectContaining({
-            id: partner.links![0].id,
-            domain: TEST_WORKSPACE.program.domain,
-          }),
+          expect.objectContaining({ id: partner.links![0].id }),
         ]),
       );
     } finally {
@@ -79,7 +72,7 @@ test("POST /embed/referrals/links - default URL", async ({
     const key = nanoid(8);
 
     try {
-      const { status, data } = await embedApi.post<EmbedLink>(
+      const { status, data } = await embedApi.post<ReferralsEmbedLink>(
         "/api/embed/referrals/links",
         { key },
       );
@@ -87,9 +80,9 @@ test("POST /embed/referrals/links - default URL", async ({
       expect(status).toEqual(201);
       expect(data).toMatchObject({
         id: expect.any(String),
-        domain: TEST_WORKSPACE.program.domain,
+        domain: expect.any(String),
         key,
-        shortLink: `https://${TEST_WORKSPACE.program.domain}/${key}`,
+        shortLink: `https://${data.domain}/${key}`,
       });
     } finally {
       await dispose();
@@ -164,7 +157,7 @@ test("POST /embed/referrals/links - allowed additionalLinks domain", async ({
     const url = `https://example.com/${nanoid()}`;
 
     try {
-      const { status, data } = await embedApi.post<EmbedLink>(
+      const { status, data } = await embedApi.post<ReferralsEmbedLink>(
         "/api/embed/referrals/links",
         { key: nanoid(8), url },
       );

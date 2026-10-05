@@ -1,8 +1,9 @@
 import { prisma } from "@/lib/prisma";
+import { pluck } from "@dub/utils";
 import { PlatformType, Prisma } from "@prisma/client";
 import { createId } from "../api/create-id";
 import { detectAndRecordFraudApplication } from "../api/fraud/detect-record-fraud-application";
-import { notifyPartnerApplication } from "../api/partners/notify-partner-application";
+import { notifyProgramApplication } from "../api/partners/notify-program-application";
 import { queuePartnerSearchSync } from "../api/partners/queue-partner-search-sync";
 import { markApplicationEventSubmitted } from "../application-events/update-application-event";
 import { autoApprovePartnerJob } from "../jobs/handlers/auto-approve-partner-job";
@@ -23,7 +24,9 @@ import {
 export async function completeProgramApplications(userEmail: string) {
   try {
     const user = await prisma.user.findUniqueOrThrow({
-      where: { email: userEmail },
+      where: {
+        email: userEmail,
+      },
       select: {
         partners: {
           select: {
@@ -74,6 +77,8 @@ export async function completeProgramApplications(userEmail: string) {
       return;
     }
 
+    const partner = user.partners[0].partner;
+
     // if there are duplicate program applications
     // pick the latest one for each programId
     // note: programApplications is already sorted by createdAt desc
@@ -88,8 +93,6 @@ export async function completeProgramApplications(userEmail: string) {
       },
     );
 
-    const partner = user.partners[0].partner;
-
     // Program enrollments to create. `id` is narrowed to required because the
     // search sync below reads it back, and Prisma leaves it optional here.
     const programEnrollments: (Prisma.ProgramEnrollmentCreateManyInput & {
@@ -97,12 +100,14 @@ export async function completeProgramApplications(userEmail: string) {
     })[] = filteredProgramApplications.map((programApplication) => ({
       id: createId({ prefix: "pge_" }),
       programId: programApplication.programId,
-      partnerId: user.partners[0].partnerId,
+      partnerId: partner.id,
       applicationId: programApplication.id,
       groupId: programApplication?.partnerGroup?.id,
       clickRewardId: programApplication?.partnerGroup?.clickRewardId,
       leadRewardId: programApplication?.partnerGroup?.leadRewardId,
       saleRewardId: programApplication?.partnerGroup?.saleRewardId,
+      customRewardId: programApplication?.partnerGroup?.customRewardId,
+      referralRewardId: programApplication?.partnerGroup?.referralRewardId,
       discountId: programApplication?.partnerGroup?.discountId,
     }));
 
@@ -113,10 +118,26 @@ export async function completeProgramApplications(userEmail: string) {
       ]),
     );
 
-    await prisma.programEnrollment.createMany({
-      data: programEnrollments,
-      skipDuplicates: true,
-    });
+    await prisma.$transaction([
+      prisma.programEnrollment.createMany({
+        data: programEnrollments,
+        skipDuplicates: true,
+      }),
+
+      prisma.programApplication.updateMany({
+        where: {
+          id: {
+            in: pluck(filteredProgramApplications, "id"),
+          },
+          enrollment: {
+            isNot: null,
+          },
+        },
+        data: {
+          partnerId: partner.id,
+        },
+      }),
+    ]);
 
     // Fetch the programs' workspaces
     const workspaces = await prisma.project.findMany({
@@ -196,7 +217,7 @@ export async function completeProgramApplications(userEmail: string) {
       await Promise.allSettled([
         ...(validApplication
           ? [
-              notifyPartnerApplication({
+              notifyProgramApplication({
                 partner,
                 program,
                 group,

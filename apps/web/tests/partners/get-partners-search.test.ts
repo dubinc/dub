@@ -30,10 +30,10 @@ function enrollment(id: string, partnerId: string) {
     totalCommissions: BigInt(0),
     partner: {
       id: partnerId,
-      programPartnerTags: [],
       platforms: [],
     },
     links: [],
+    programPartnerTags: [],
   };
 }
 
@@ -74,6 +74,29 @@ describe("getPartners search", () => {
     expect(searchProvider.searchCandidates).toHaveBeenCalledWith(
       expect.objectContaining({ query: "partner" }),
     );
+  });
+
+  it("hydrates only tags that still belong to the program", async () => {
+    // Deleting a tag nulls its programId first and removes the associations
+    // in a later job, so the relation must filter on the tag, not the link.
+    mocks.findMany.mockResolvedValue([enrollment("pge_1", "pn_1")]);
+
+    await getPartners(
+      {
+        programId: "prog_test",
+        page: 1,
+        pageSize: 25,
+        sortBy: "totalSaleAmount",
+        sortOrder: "desc",
+      },
+      { searchProvider: null },
+    );
+
+    const { include } = mocks.findMany.mock.calls.at(-1)![0];
+    expect(include.programPartnerTags).toEqual({
+      where: { partnerTag: { programId: "prog_test" } },
+      include: { partnerTag: true },
+    });
   });
 
   it("keeps a tenant filter on the database search path", async () => {

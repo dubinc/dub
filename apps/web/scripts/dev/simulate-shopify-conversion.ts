@@ -1,6 +1,6 @@
 import "dotenv-flow/config";
 
-import { nanoid } from "@dub/utils";
+import { nanoid, sleep } from "@dub/utils";
 import { createHmac } from "crypto";
 
 async function main() {
@@ -15,7 +15,7 @@ async function main() {
     checkoutToken,
   });
 
-  await new Promise((resolve) => setTimeout(resolve, 4000));
+  await sleep(4000);
 
   await trackOrderPaid({
     checkoutToken,

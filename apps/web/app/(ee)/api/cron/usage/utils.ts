@@ -17,6 +17,7 @@ import {
   getAdjustedBillingCycleStart,
   log,
 } from "@dub/utils";
+import { waitUntil } from "@vercel/functions";
 import { getMonth, getYear } from "date-fns";
 
 const limit = 100;
@@ -241,15 +242,6 @@ export const updateUsage = async () => {
         const emails = users.map((user) => user.user.email) as string[];
         const slackWebhookUrl = slackWebhookByWorkspace.get(workspace.id);
 
-        await log({
-          message: `*${slug}* is over their *${capitalize(
-            plan,
-          )} Plan* usage limit. Usage: ${usage}, Limit: ${usageLimit}, Email: ${emails.join(
-            ", ",
-          )}`,
-          type: "cron",
-          mention: plan !== "free",
-        });
         const firstUsageLimitEmail = sentEmails.find(
           (email) => email.type === "firstUsageLimitEmail",
         );
@@ -280,6 +272,18 @@ export const updateUsage = async () => {
             }
           }
         }
+
+        waitUntil(
+          log({
+            message: `*${slug}* is over their *${capitalize(
+              plan,
+            )} Plan* usage limit. Usage: ${usage}, Limit: ${usageLimit}, Email: ${emails.join(
+              ", ",
+            )}`,
+            type: "cron",
+            mention: plan !== "free",
+          }),
+        );
       }),
     );
   }

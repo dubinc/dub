@@ -19,9 +19,9 @@ import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
 import {
   AnimatedSizeContainer,
   Button,
-  ChartLine,
   EditColumnsButton,
   Filter,
+  LinesY,
   StatusBadge,
   Table,
   TimestampTooltip,
@@ -32,7 +32,7 @@ import {
   useRouterStuff,
   useTable,
 } from "@dub/ui";
-import { MoneyBill2, Pen2 } from "@dub/ui/icons";
+import { MoneyBill2, Pen2, Trophy } from "@dub/ui/icons";
 import {
   cn,
   currencyFormatter,
@@ -472,7 +472,7 @@ function CommissionsFilters() {
               <Button
                 variant="secondary"
                 className="w-fit"
-                icon={<ChartLine className="h-4 w-4 text-neutral-600" />}
+                icon={<LinesY className="h-4 w-4 text-neutral-600" />}
                 text={isMobile ? undefined : "View Analytics"}
               />
             </Link>
@@ -490,6 +490,12 @@ function CommissionsFilters() {
                     key: "payoutId",
                     icon: MoneyBill2,
                     label: "Payout",
+                    options: [],
+                  },
+                  {
+                    key: "bountySubmissionId",
+                    icon: Trophy,
+                    label: "Bounty submission",
                     options: [],
                   },
                 ]}

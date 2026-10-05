@@ -1,8 +1,9 @@
 import { prisma } from "@/lib/prisma";
-import { COUNTRIES, COUNTRY_CODES } from "@dub/utils";
+import { COUNTRIES, COUNTRY_CODES, sleep } from "@dub/utils";
 import { PartnerGroup, Program } from "@prisma/client";
 import { createId } from "../api/create-id";
 import { queuePartnerSearchSync } from "../api/partners/queue-partner-search-sync";
+import { approveLinkedApplication } from "../program-applications/approve-linked-application";
 import { logImportError } from "../tinybird/log-import-error";
 import { redis } from "../upstash";
 import { DEFAULT_PARTNER_GROUP } from "../zod/schemas/groups";
@@ -77,7 +78,7 @@ export async function importPartners(payload: PartnerStackImportPayload) {
       programId,
     });
 
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+    await sleep(2000);
 
     processedBatches++;
     currentStartingAfter = partners[partners.length - 1].key;
@@ -179,7 +180,7 @@ async function createPartner({
     },
   });
 
-  await prisma.programEnrollment.upsert({
+  const { applicationId } = await prisma.programEnrollment.upsert({
     where: {
       partnerId_programId: {
         partnerId,
@@ -196,11 +197,19 @@ async function createPartner({
       leadRewardId: group.leadRewardId,
       saleRewardId: group.saleRewardId,
       referralRewardId: group.referralRewardId,
+      customRewardId: group.customRewardId,
       discountId: group.discountId,
     },
     update: {
       status: "approved",
     },
+    select: {
+      applicationId: true,
+    },
+  });
+
+  await approveLinkedApplication({
+    applicationId,
   });
 
   // PS doesn't return the partner email address in the customers response

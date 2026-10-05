@@ -131,6 +131,7 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
         const { partner, discount } = await getPartnerEnrollmentInfo({
           programId: linkData.programId,
           partnerId: linkData.partnerId,
+          linkId: linkData.id,
         });
 
         // we'll use this data on /track/click
@@ -267,10 +268,11 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
 
   // handle disabled links
   if (disabledAt) {
-    return NextResponse.rewrite(new URL(`/${domain}/notfound`, req.url), {
+    return NextResponse.rewrite(new URL(`/${domain}/disabled`, req.url), {
       headers: {
         ...DUB_HEADERS,
         ...STATIC_PAGES_CACHE_HEADERS,
+        "X-Robots-Tag": "googlebot: noindex",
       },
     });
   }

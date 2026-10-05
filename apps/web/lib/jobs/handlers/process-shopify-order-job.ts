@@ -46,12 +46,6 @@ export const processShopifyOrderJob = defineJob({
         clickId,
       });
 
-      // Keep this for a while to help us debug issues with the job.
-      logger.info("shopify.order.processed", {
-        ...result,
-        workspaceId: workspace.id,
-      });
-
       await logger.flush();
 
       await captureWebhookLog({
@@ -66,11 +60,6 @@ export const processShopifyOrderJob = defineJob({
         statusCode: 400,
         duration: Date.now() - startTime,
         responseBody: serializeError(error),
-      });
-
-      logger.error("shopify.order.failed", {
-        error: serializeError(error),
-        workspaceId: workspace.id,
       });
 
       await logger.flush();

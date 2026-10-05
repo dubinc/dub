@@ -6,10 +6,11 @@ import useWorkspace from "./use-workspace";
 export default function useWorkspaceUsers({
   invites,
 }: { invites?: boolean } = {}) {
-  const { id } = useWorkspace();
+  const { id, role } = useWorkspace();
 
   const { data: users, error } = useSWR<WorkspaceUserProps[]>(
     id &&
+      role !== "viewer" &&
       (invites
         ? `/api/workspaces/${id}/invites`
         : `/api/workspaces/${id}/users`),

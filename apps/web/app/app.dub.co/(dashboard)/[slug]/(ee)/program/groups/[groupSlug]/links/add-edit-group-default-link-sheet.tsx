@@ -9,6 +9,7 @@ import useProgram from "@/lib/swr/use-program";
 import { PartnerGroupDefaultLink } from "@/lib/types";
 import { createOrUpdateDefaultLinkSchema } from "@/lib/zod/schemas/groups";
 import { DomainSelector } from "@/ui/domains/domain-selector";
+import { useChangeProgramDomainModal } from "@/ui/modals/change-program-domain-modal";
 import { RewardIconSquare } from "@/ui/partners/rewards/reward-icon-square";
 import { X } from "@/ui/shared/icons";
 import { Button, Input, Sheet } from "@dub/ui";
@@ -24,7 +25,6 @@ import {
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import * as z from "zod/v4";
-import { useChangeProgramDomainModal } from "./change-program-domain-modal";
 import { PartnerLinkPreview } from "./partner-link-preview";
 
 interface DefaultPartnerLinkSheetProps {

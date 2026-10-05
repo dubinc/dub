@@ -120,6 +120,35 @@ test("PATCH /customers/{id}", async ({ api }) => {
   }
 });
 
+test("PATCH /customers/{id} - subscriptionCanceledAt", async ({ api }) => {
+  let customerId: string | undefined;
+
+  try {
+    const { data: created } = await createCustomer(api);
+    customerId = created.id;
+
+    const canceledAt = "2026-09-08T18:00:00.000Z";
+
+    const { status, data } = await api.patch<Customer>(
+      `/api/customers/${customerId}`,
+      { subscriptionCanceledAt: canceledAt },
+    );
+
+    expect(status).toEqual(200);
+    expect(data.subscriptionCanceledAt).toEqual(canceledAt);
+
+    const { status: clearStatus, data: cleared } = await api.patch<Customer>(
+      `/api/customers/${customerId}`,
+      { subscriptionCanceledAt: null },
+    );
+
+    expect(clearStatus).toEqual(200);
+    expect(cleared.subscriptionCanceledAt).toBeNull();
+  } finally {
+    await deleteCustomer(api, customerId);
+  }
+});
+
 test("GET /customers – by externalId with includeExpandedFields", async ({
   api,
 }) => {

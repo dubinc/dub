@@ -96,12 +96,17 @@ export const POST = withCron(async ({ rawBody }) => {
 
     return logAndRespond(`Processed payouts for program ${program.name}.`);
   } catch (error) {
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
+
     await log({
-      message: `Error confirming payouts for program: ${error.message}`,
+      message: `Error confirming payouts for program: ${errorMessage}`,
       type: "errors",
       mention: true,
     });
 
-    throw error;
+    return logAndRespond(
+      `Error processing payouts for program: ${errorMessage}`,
+    );
   }
 });

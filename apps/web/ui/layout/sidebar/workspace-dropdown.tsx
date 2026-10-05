@@ -7,7 +7,7 @@ import useWorkspaces from "@/lib/swr/use-workspaces";
 import { PlanProps, WorkspaceProps } from "@/lib/types";
 import { ModalContext } from "@/ui/modals/modal-provider";
 import { getUserAvatarUrl } from "@/ui/users/user-avatar";
-import { BlurImage, Popover, ScrollContainer } from "@dub/ui";
+import { BlurImage, Popover, ScrollContainer, StatusBadge } from "@dub/ui";
 import { Check2, Gear, Plus, UserPlus } from "@dub/ui/icons";
 import { cn, isLegacyBusinessPlan, pluralize } from "@dub/utils";
 import { useSession } from "next-auth/react";
@@ -62,6 +62,7 @@ export function WorkspaceDropdown() {
     slug: string;
     image: string;
     plan: PlanProps;
+    disabledAt?: Date | string | null;
   };
 
   const [openPopover, setOpenPopover] = useState(false);
@@ -124,6 +125,7 @@ function WorkspaceList({
     slug?: string; // undefined if the user is on the personal account
     image: string;
     plan: PlanProps;
+    disabledAt?: Date | string | null;
   };
   workspaces: WorkspaceProps[];
   setOpenPopover: (open: boolean) => void;
@@ -174,8 +176,20 @@ function WorkspaceList({
             draggable={false}
           />
           <div className="min-w-0">
-            <div className="truncate text-base font-medium leading-5 text-neutral-900 sm:text-sm">
-              {selected.name}
+            <div className="flex min-w-0 items-center gap-1.5">
+              <div className="min-w-0 truncate text-base font-medium leading-5 text-neutral-900 sm:text-sm">
+                {selected.name}
+              </div>
+              {selected.disabledAt && (
+                <StatusBadge
+                  variant="neutral"
+                  size="sm"
+                  icon={null}
+                  className="shrink-0"
+                >
+                  Disabled
+                </StatusBadge>
+              )}
             </div>
             {selected.slug && (
               <div
@@ -234,13 +248,13 @@ function WorkspaceList({
               .filter(
                 (workspace) => !isStagingEnvironment(workspace.environment),
               )
-              .map(({ id, name, slug, logo }) => {
+              .map(({ id, name, slug, logo, disabledAt }) => {
                 const isActive = activeSlug === slug;
                 return (
                   <Link
                     key={slug}
                     className={cn(
-                      "relative flex w-full items-center gap-x-2 rounded-md px-2 py-2 transition-all duration-75",
+                      "flex w-full items-center gap-x-2 rounded-md px-2 py-2 transition-all duration-75",
                       "hover:bg-neutral-200/50 active:bg-neutral-200/80",
                       "outline-none focus-visible:ring-2 focus-visible:ring-black/50",
                       isActive && "bg-neutral-200/50",
@@ -257,13 +271,24 @@ function WorkspaceList({
                       className="size-5 shrink-0 overflow-hidden rounded-full"
                       draggable={false}
                     />
-                    <span className="block truncate text-base leading-5 text-neutral-900 sm:max-w-[140px] sm:text-sm">
+                    <span className="min-w-0 flex-1 truncate text-base leading-5 text-neutral-900 sm:text-sm">
                       {name}
                     </span>
-                    {activeSlug === slug ? (
-                      <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-black">
-                        <Check2 className="size-4" aria-hidden="true" />
-                      </span>
+                    {disabledAt && (
+                      <StatusBadge
+                        variant="neutral"
+                        size="sm"
+                        icon={null}
+                        className="shrink-0"
+                      >
+                        Disabled
+                      </StatusBadge>
+                    )}
+                    {isActive ? (
+                      <Check2
+                        className="size-4 shrink-0 text-black"
+                        aria-hidden="true"
+                      />
                     ) : null}
                   </Link>
                 );

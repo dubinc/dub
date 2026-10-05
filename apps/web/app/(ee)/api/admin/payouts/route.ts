@@ -51,7 +51,13 @@ export const GET = withAdmin(async ({ searchParams }) => {
             },
             {
               program: {
-                isNot: null,
+                is: {
+                  NOT: {
+                    slug: {
+                      endsWith: "-staging",
+                    },
+                  },
+                },
               },
             },
           ],
