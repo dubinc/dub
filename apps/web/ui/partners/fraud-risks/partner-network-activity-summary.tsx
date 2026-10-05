@@ -20,7 +20,7 @@ type PartnerNetworkActivitySummaryState =
 function usePartnerNetworkActivitySummary(
   partnerId: string,
 ): PartnerNetworkActivitySummaryState {
-  const { id: workspaceId } = useWorkspace();
+  const { id: workspaceId, error: workspaceError } = useWorkspace();
 
   const { data, error, isLoading } = useSWR<
     NetworkActivitySummary,
@@ -45,7 +45,7 @@ function usePartnerNetworkActivitySummary(
     };
   }
 
-  if (error) {
+  if (error || (workspaceError && !workspaceId)) {
     return {
       status: "error",
     };
