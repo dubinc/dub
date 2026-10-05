@@ -23,7 +23,7 @@ function usePartnerNetworkActivitySummary(
   const { id: workspaceId, error: workspaceError } = useWorkspace();
 
   const { data, error, isLoading } = useSWR<
-    NetworkActivitySummary,
+    NetworkActivitySummary | null,
     Error & { status: number }
   >(
     workspaceId &&
@@ -36,9 +36,9 @@ function usePartnerNetworkActivitySummary(
     },
   );
 
-  const isUnrelatedPartner = error?.status === 404;
+  const isUnrelatedPartner = !error && data === null;
 
-  // A partner with neither an application nor an enrollment in the program 404s. Missing data here is an empty result, not a request still loading.
+  // A partner with neither an application nor an enrollment in the program returns null. Missing data here is an empty result, not a request still loading.
   if (!partnerId || isUnrelatedPartner) {
     return {
       status: "empty",

@@ -8,7 +8,10 @@ import { queuePartnerSearchSync } from "../api/partners/queue-partner-search-syn
 import { markApplicationEventSubmitted } from "../application-events/update-application-event";
 import { autoApprovePartnerJob } from "../jobs/handlers/auto-approve-partner-job";
 import { autoRejectPartnerJob } from "../jobs/handlers/auto-reject-partner-job";
-import { buildSocialPlatformLookup } from "../social-utils";
+import {
+  buildSocialPlatformLookup,
+  polyfillSocialMediaFields,
+} from "../social-utils";
 import { sendWorkspaceWebhook } from "../webhook/publish";
 import {
   partnerApplicationWebhookSchema,
@@ -226,7 +229,6 @@ export async function completeProgramApplications(userEmail: string) {
           ...programEnrollment,
           id: partner.id,
           status: "pending",
-          ...formatWebsiteAndSocialsFields(application),
         },
       };
 
@@ -258,7 +260,13 @@ export async function completeProgramApplications(userEmail: string) {
                 sendWorkspaceWebhook({
                   workspace: workspacesByProgramId.get(program.id)!,
                   trigger: "partner.application_submitted",
-                  data: partnerApplicationWebhookSchema.parse(webhookData),
+                  data: partnerApplicationWebhookSchema.parse({
+                    ...webhookData,
+                    partner: {
+                      ...webhookData.partner,
+                      ...formatWebsiteAndSocialsFields(application),
+                    },
+                  }),
                 }),
 
               // Send "program_application.created" webhook
@@ -266,7 +274,13 @@ export async function completeProgramApplications(userEmail: string) {
                 sendWorkspaceWebhook({
                   workspace: workspacesByProgramId.get(program.id)!,
                   trigger: "program_application.created",
-                  data: programApplicationWebhookSchema.parse(webhookData),
+                  data: programApplicationWebhookSchema.parse({
+                    ...webhookData,
+                    partner: {
+                      ...webhookData.partner,
+                      ...polyfillSocialMediaFields(partner.platforms),
+                    },
+                  }),
                 }),
             ]
           : [
