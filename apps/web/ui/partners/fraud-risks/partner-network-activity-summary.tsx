@@ -11,28 +11,82 @@ type NetworkActivitySummary = z.infer<
   typeof partnerNetworkActivitySummarySchema
 >;
 
+type PartnerNetworkActivitySummaryState =
+  | { status: "empty" }
+  | { status: "error" }
+  | { status: "loading" }
+  | { status: "ready"; data: NetworkActivitySummary };
+
+function usePartnerNetworkActivitySummary(
+  partnerId: string,
+): PartnerNetworkActivitySummaryState {
+  const { id: workspaceId } = useWorkspace();
+
+  const { data, error, isLoading } = useSWR<
+    NetworkActivitySummary,
+    Error & { status: number }
+  >(
+    workspaceId &&
+      partnerId &&
+      `/api/partners/${partnerId}/network-activity?workspaceId=${workspaceId}`,
+    fetcher,
+    {
+      revalidateOnMount: true,
+      shouldRetryOnError: (fetchError) => fetchError.status !== 404,
+    },
+  );
+
+  const isRemovedEnrollment = error?.status === 404;
+
+  // A removed enrollment 404s. Missing data here is an empty result, not a request still loading.
+  if (!partnerId || isRemovedEnrollment) {
+    return {
+      status: "empty",
+    };
+  }
+
+  if (error) {
+    return {
+      status: "error",
+    };
+  }
+
+  if (!data || isLoading) {
+    return {
+      status: "loading",
+    };
+  }
+
+  return {
+    status: "ready",
+    data,
+  };
+}
+
 export function PartnerNetworkActivitySummary({
   partnerId,
 }: {
   partnerId: string;
 }) {
-  const { id: workspaceId } = useWorkspace();
+  const summary = usePartnerNetworkActivitySummary(partnerId);
 
-  const { data, isLoading } = useSWR<NetworkActivitySummary>(
-    workspaceId
-      ? `/api/partners/${partnerId}/network-activity?workspaceId=${workspaceId}`
-      : null,
-    fetcher,
-    {
-      revalidateOnMount: true,
-    },
-  );
+  if (summary.status === "empty") {
+    return <p className="text-content-subtle text-xs">No network activity</p>;
+  }
 
-  if (!data || isLoading) {
+  if (summary.status === "error") {
+    return (
+      <p className="text-content-subtle text-xs">
+        Failed to load network activity
+      </p>
+    );
+  }
+
+  if (summary.status === "loading") {
     return <LoadingSkeleton />;
   }
 
-  const { totalPrograms, activePrograms, bannedPrograms } = data;
+  const { totalPrograms, activePrograms, bannedPrograms } = summary.data;
 
   return (
     <div className="flex w-full items-center gap-3">
