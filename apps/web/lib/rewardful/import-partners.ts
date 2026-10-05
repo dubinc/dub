@@ -4,6 +4,7 @@ import { Program } from "@prisma/client";
 import { createId } from "../api/create-id";
 import { bulkCreateLinks } from "../api/links";
 import { queuePartnerSearchSync } from "../api/partners/queue-partner-search-sync";
+import { upsertImportedProgramEnrollment } from "../api/partners/upsert-imported-program-enrollment";
 import { approveLinkedApplication } from "../program-applications/approve-linked-application";
 import { logImportError } from "../tinybird/log-import-error";
 import { redis } from "../upstash";
@@ -195,39 +196,35 @@ async function createPartnerAndLinks({
     update: {},
   });
 
-  const programEnrollment = await prisma.programEnrollment.upsert({
-    where: {
-      partnerId_programId: {
-        partnerId: partner.id,
-        programId: program.id,
-      },
-    },
-    create: {
-      id: createId({ prefix: "pge_" }),
-      programId: program.id,
+  const { enrollment: programEnrollment, preservedBan } =
+    await upsertImportedProgramEnrollment({
       partnerId: partner.id,
-      status: "approved",
-      ...defaultGroupAttributes,
-    },
-    update: {
-      status: "approved",
-    },
-    include: {
-      links: true,
-    },
-  });
+      programId: program.id,
+      create: {
+        id: createId({ prefix: "pge_" }),
+        programId: program.id,
+        partnerId: partner.id,
+        status: "approved",
+        ...defaultGroupAttributes,
+      },
+      include: {
+        links: true,
+      },
+    });
 
-  await approveLinkedApplication({
-    applicationId: programEnrollment.applicationId,
-    userId,
-  });
+  if (!preservedBan) {
+    await approveLinkedApplication({
+      applicationId: programEnrollment.applicationId,
+      userId,
+    });
+  }
 
   if (!program.domain || !program.url) {
     console.error("Program domain or url not found", program.id);
     return;
   }
 
-  if (programEnrollment.links.length === 0) {
+  if (!preservedBan && programEnrollment.links.length === 0) {
     await bulkCreateLinks({
       links: affiliate.links.map((link, idx) => ({
         domain: program.domain!,
