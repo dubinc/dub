@@ -19,6 +19,7 @@ import {
   formatWebsiteAndSocialsFields,
 } from "@/lib/partners/format-application-form-data";
 import { prisma } from "@/lib/prisma";
+import { polyfillSocialMediaFields } from "@/lib/social-utils";
 import {
   ProgramApplicationFormData,
   ProgramApplicationFormDataWithValues,
@@ -346,7 +347,6 @@ async function createApplicationAndEnrollment({
           ...partner,
           ...programEnrollment,
           id: partner.id,
-          ...formatWebsiteAndSocialsFields(application),
         },
       };
 
@@ -375,14 +375,26 @@ async function createApplicationAndEnrollment({
         sendWorkspaceWebhook({
           workspace,
           trigger: "partner.application_submitted",
-          data: partnerApplicationWebhookSchema.parse(webhookData),
+          data: partnerApplicationWebhookSchema.parse({
+            ...webhookData,
+            partner: {
+              ...webhookData.partner,
+              ...formatWebsiteAndSocialsFields(application),
+            },
+          }),
         }),
 
         // Send "program_application.created" webhook
         sendWorkspaceWebhook({
           workspace,
           trigger: "program_application.created",
-          data: programApplicationWebhookSchema.parse(webhookData),
+          data: programApplicationWebhookSchema.parse({
+            ...webhookData,
+            partner: {
+              ...webhookData.partner,
+              ...polyfillSocialMediaFields(partner.platforms),
+            },
+          }),
         }),
 
         // Detect and record fraud events for the partner when they apply to a program
