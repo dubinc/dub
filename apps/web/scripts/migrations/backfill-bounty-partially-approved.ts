@@ -1,14 +1,25 @@
+import { getEffectiveBountyPeriod } from "@/lib/bounty/api/bounty-availability";
+import { isBountyEnded } from "@/lib/bounty/bounty-period";
 import { getPendingSocialMetricsMilestones } from "@/lib/bounty/social-metrics-milestones";
 import { prisma } from "@/lib/prisma";
-import { BountySubmissionStatus } from "@prisma/client";
+import { BountySubmission, BountySubmissionStatus } from "@prisma/client";
 import "dotenv-flow/config";
+
+type SubmissionStatusUpdate = Pick<
+  BountySubmission,
+  "id" | "socialMetricCount" | "approvedSocialMetricThreshold"
+> & {
+  from: BountySubmissionStatus;
+  to: Extract<BountySubmissionStatus, "partiallyApproved" | "approved">;
+};
 
 const DRY_RUN = true;
 const BATCH_SIZE = 500;
 
-// Moves partially approved social metrics submissions from submitted to partiallyApproved
-// Submissions that already reached a new milestone stay submitted so they remain in the review queue
-// Safe to re-run: only submitted submissions with an approved threshold are updated
+// Closes partially approved social metrics submissions that are stuck in the review queue
+// On ended bounties, sets approved so no more milestones are paid
+// On active bounties, moves submitted to partiallyApproved when no milestone is pending
+// Safe to re-run: only submitted or partiallyApproved submissions with an approved threshold are updated
 async function main() {
   console.log(`DRY_RUN=${DRY_RUN} BATCH_SIZE=${BATCH_SIZE}`);
 
@@ -19,7 +30,12 @@ async function main() {
   while (true) {
     const submissions = await prisma.bountySubmission.findMany({
       where: {
-        status: BountySubmissionStatus.submitted,
+        status: {
+          in: [
+            BountySubmissionStatus.submitted,
+            BountySubmissionStatus.partiallyApproved,
+          ],
+        },
         approvedSocialMetricThreshold: {
           not: null,
         },
@@ -31,12 +47,22 @@ async function main() {
       },
       select: {
         id: true,
+        status: true,
         socialMetricCount: true,
         approvedSocialMetricThreshold: true,
+        programEnrollment: {
+          select: {
+            createdAt: true,
+          },
+        },
         bounty: {
           select: {
             rewardAmount: true,
             submissionRequirements: true,
+            startsAt: true,
+            endsAt: true,
+            endsAfterDays: true,
+            startMode: true,
           },
         },
       },
@@ -50,37 +76,56 @@ async function main() {
       break;
     }
 
-    const toUpdate = submissions.filter(
-      (submission) =>
-        getPendingSocialMetricsMilestones({
-          bounty: submission.bounty,
-          submission,
-        }).length === 0,
-    );
+    const updates: SubmissionStatusUpdate[] = [];
 
-    let updated = toUpdate.length;
+    for (const submission of submissions) {
+      const { bounty, programEnrollment } = submission;
+
+      const { endsAt } = programEnrollment
+        ? getEffectiveBountyPeriod({ programEnrollment, bounty })
+        : bounty;
+
+      const update = {
+        id: submission.id,
+        socialMetricCount: submission.socialMetricCount,
+        approvedSocialMetricThreshold: submission.approvedSocialMetricThreshold,
+        from: submission.status,
+      };
+
+      if (isBountyEnded(endsAt)) {
+        updates.push({ ...update, to: BountySubmissionStatus.approved });
+        continue;
+      }
+
+      const hasPendingMilestones =
+        getPendingSocialMetricsMilestones({ bounty, submission }).length > 0;
+
+      if (
+        submission.status === BountySubmissionStatus.submitted &&
+        !hasPendingMilestones
+      ) {
+        updates.push({
+          ...update,
+          to: BountySubmissionStatus.partiallyApproved,
+        });
+      }
+    }
+
+    let updated = updates.length;
 
     if (DRY_RUN) {
-      console.table(
-        toUpdate.map(
-          ({ id, socialMetricCount, approvedSocialMetricThreshold }) => ({
-            id,
-            socialMetricCount,
-            approvedSocialMetricThreshold,
-          }),
-        ),
-      );
-    } else if (toUpdate.length > 0) {
+      console.table(updates);
+    } else if (updates.length > 0) {
       const results = await Promise.all(
-        toUpdate.map(({ id, approvedSocialMetricThreshold }) =>
+        updates.map(({ id, approvedSocialMetricThreshold, from, to }) =>
           prisma.bountySubmission.updateMany({
             where: {
               id,
-              status: BountySubmissionStatus.submitted,
+              status: from,
               approvedSocialMetricThreshold,
             },
             data: {
-              status: BountySubmissionStatus.partiallyApproved,
+              status: to,
             },
           }),
         ),
@@ -99,7 +144,7 @@ async function main() {
   }
 
   console.log(
-    `Done. Processed ${totalProcessed} submissions, ${DRY_RUN ? "would set" : "set"} partiallyApproved on ${totalUpdated}.`,
+    `Done. Processed ${totalProcessed} submissions, ${DRY_RUN ? "would update" : "updated"} ${totalUpdated}.`,
   );
 }
 
