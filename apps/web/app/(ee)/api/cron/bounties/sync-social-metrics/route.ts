@@ -1,3 +1,4 @@
+import { getEffectiveBountyPeriod } from "@/lib/bounty/api/bounty-availability";
 import { getSocialMetricsUpdates } from "@/lib/bounty/api/get-social-metrics-updates";
 import { isBountyEnded } from "@/lib/bounty/bounty-period";
 import { hasReachedSocialMetricsEarningCap } from "@/lib/bounty/social-metrics-milestones";
@@ -47,6 +48,10 @@ export const POST = withCron(async ({ rawBody }) => {
     return logAndRespond(`Bounty ${bountyId} not found. Skipping...`);
   }
 
+  if (bounty.archivedAt) {
+    return logAndRespond(`Bounty ${bountyId} is archived. Skipping...`);
+  }
+
   if (isBountyEnded(bounty.endsAt)) {
     return logAndRespond(`Bounty ${bountyId} has ended. Skipping...`);
   }
@@ -91,6 +96,7 @@ export const POST = withCron(async ({ rawBody }) => {
       programEnrollment: {
         select: {
           partnerId: true,
+          createdAt: true,
         },
       },
     },
@@ -114,6 +120,15 @@ export const POST = withCron(async ({ rawBody }) => {
 
   const activeSubmissions = submissions.filter((submission) => {
     if (!submission.programEnrollment) {
+      return false;
+    }
+
+    const { endsAt } = getEffectiveBountyPeriod({
+      programEnrollment: submission.programEnrollment,
+      bounty,
+    });
+
+    if (isBountyEnded(endsAt)) {
       return false;
     }
 
