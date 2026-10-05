@@ -1,5 +1,6 @@
 import { getPendingSocialMetricsMilestones } from "@/lib/bounty/social-metrics-milestones";
 import { prisma } from "@/lib/prisma";
+import { BountySubmissionStatus } from "@prisma/client";
 import "dotenv-flow/config";
 
 const DRY_RUN = true;
@@ -18,7 +19,7 @@ async function main() {
   while (true) {
     const submissions = await prisma.bountySubmission.findMany({
       where: {
-        status: "submitted",
+        status: BountySubmissionStatus.submitted,
         approvedSocialMetricThreshold: {
           not: null,
         },
@@ -75,11 +76,11 @@ async function main() {
           prisma.bountySubmission.updateMany({
             where: {
               id,
-              status: "submitted",
+              status: BountySubmissionStatus.submitted,
               approvedSocialMetricThreshold,
             },
             data: {
-              status: "partiallyApproved",
+              status: BountySubmissionStatus.partiallyApproved,
             },
           }),
         ),

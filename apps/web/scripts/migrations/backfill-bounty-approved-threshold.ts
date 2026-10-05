@@ -153,13 +153,13 @@ async function main() {
         approvedSocialMetricThreshold: milestones[paidIndex].threshold,
         status:
           paidIndex === milestones.length - 1
-            ? "approved"
-            : "partiallyApproved",
+            ? BountySubmissionStatus.approved
+            : BountySubmissionStatus.partiallyApproved,
       });
     }
 
     const reopened = updates.filter(
-      ({ status }) => status === "partiallyApproved",
+      ({ status }) => status === BountySubmissionStatus.partiallyApproved,
     ).length;
 
     let updated = updates.length;
