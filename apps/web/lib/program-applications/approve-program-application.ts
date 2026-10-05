@@ -1,4 +1,5 @@
 import { trackActivityLog } from "@/lib/api/activity-log/track-activity-log";
+import { createId } from "@/lib/api/create-id";
 import { DubApiError } from "@/lib/api/errors";
 import { getGroupOrThrow } from "@/lib/api/groups/get-group-or-throw";
 import { queuePartnerSearchSync } from "@/lib/api/partners/queue-partner-search-sync";
@@ -9,6 +10,7 @@ import { prisma } from "@/lib/prisma";
 import { approveProgramApplicationSchema } from "@/lib/zod/schemas/program-application";
 import {
   ProgramApplicationStatus,
+  ProgramEnrollment,
   ProgramEnrollmentStatus,
 } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
@@ -24,17 +26,24 @@ type ApproveProgramApplicationInput = z.infer<
 export async function approveProgramApplication({
   programId,
   partnerId,
+  applicationId,
   groupId,
   userId,
 }: ApproveProgramApplicationInput) {
-  const programEnrollment = await prisma.programEnrollment.findUnique({
+  const programApplication = await prisma.programApplication.findFirst({
     where: {
-      partnerId_programId: {
-        partnerId,
-        programId,
+      ...(applicationId && { id: applicationId }),
+      programId,
+      partnerId,
+      status: {
+        in: [
+          ProgramApplicationStatus.pending,
+          ProgramApplicationStatus.rejected,
+        ],
       },
     },
     select: {
+      id: true,
       groupId: true,
       status: true,
       program: {
@@ -51,26 +60,22 @@ export async function approveProgramApplication({
         },
       },
     },
+    orderBy: {
+      createdAt: "desc",
+    },
   });
 
-  if (!programEnrollment) {
+  if (!programApplication) {
     throw new DubApiError({
       code: "not_found",
-      message: "Program enrollment not found.",
+      message: "No pending or rejected application found.",
     });
   }
 
-  if (!["pending", "rejected"].includes(programEnrollment.status)) {
-    throw new DubApiError({
-      code: "bad_request",
-      message: `This enrollment cannot be approved because it is already ${programEnrollment.status}.`,
-    });
-  }
-
-  const { program } = programEnrollment;
+  const { program } = programApplication;
 
   const finalGroupId =
-    groupId || programEnrollment.groupId || program.defaultGroupId;
+    groupId || programApplication?.groupId || program.defaultGroupId;
 
   if (!finalGroupId) {
     throw new DubApiError({
@@ -90,30 +95,41 @@ export async function approveProgramApplication({
   await prisma.$transaction(async (tx) => {
     throwIfPartnersLimitExceeded(program.workspace);
 
-    const programEnrollment = await tx.programEnrollment.update({
+    const programEnrollment: Partial<ProgramEnrollment> = {
+      status: ProgramEnrollmentStatus.approved,
+      createdAt: now,
+      ...(programApplication && { applicationId: programApplication.id }),
+      groupId: group.id,
+      clickRewardId: group.clickRewardId,
+      leadRewardId: group.leadRewardId,
+      saleRewardId: group.saleRewardId,
+      referralRewardId: group.referralRewardId,
+      customRewardId: group.customRewardId,
+      discountId: group.discountId,
+    };
+
+    await tx.programEnrollment.upsert({
       where: {
         partnerId_programId: {
           partnerId,
           programId,
         },
       },
-      data: {
-        status: "approved",
-        createdAt: now,
-        groupId: group.id,
-        clickRewardId: group.clickRewardId,
-        leadRewardId: group.leadRewardId,
-        saleRewardId: group.saleRewardId,
-        referralRewardId: group.referralRewardId,
-        customRewardId: group.customRewardId,
-        discountId: group.discountId,
+      create: {
+        id: createId({ prefix: "pge_" }),
+        partnerId,
+        programId,
+        ...programEnrollment,
+      },
+      update: {
+        ...programEnrollment,
       },
     });
 
-    if (programEnrollment.applicationId) {
+    if (programApplication) {
       await tx.programApplication.update({
         where: {
-          id: programEnrollment.applicationId,
+          id: programApplication.id,
         },
         data: {
           status: ProgramApplicationStatus.approved,
@@ -151,8 +167,8 @@ export async function approveProgramApplication({
         action: "partner_application.approved",
         changeSet: {
           status: {
-            old: programEnrollment.status,
-            new: ProgramEnrollmentStatus.approved,
+            old: programApplication.status,
+            new: ProgramApplicationStatus.approved,
           },
         },
       }),

@@ -39,6 +39,7 @@ import {
   PartnerPlatform,
   Program,
   ProgramEnrollment,
+  ProgramEnrollmentStatus,
   Project,
 } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
@@ -263,9 +264,20 @@ async function createApplicationAndEnrollment({
   data: z.infer<typeof createProgramApplicationSchema>;
   inAppApplication?: boolean;
 }) {
-  // Check if ProgramEnrollment already exists
-  if (partner.programs.some((p) => p.programId === program.id)) {
-    throw new Error("You have already applied to this program.");
+  const existingEnrollment = partner.programs.find(
+    (p) => p.programId === program.id,
+  );
+
+  if (existingEnrollment) {
+    if (existingEnrollment.status === ProgramEnrollmentStatus.pending) {
+      throw new Error(
+        "You have an existing application for this program. Please wait for it to be reviewed.",
+      );
+    }
+
+    if (existingEnrollment.groupId === group.id) {
+      throw new Error("You're already in this group.");
+    }
   }
 
   const sanitizedData = sanitizeData(data, group);
@@ -312,12 +324,18 @@ async function createApplicationAndEnrollment({
       },
     }),
 
-    prisma.programEnrollment.create({
-      data: {
+    prisma.programEnrollment.upsert({
+      where: {
+        partnerId_programId: {
+          partnerId: partner.id,
+          programId: program.id,
+        },
+      },
+      create: {
         id: enrollmentId,
         partnerId: partner.id,
         programId: program.id,
-        status: "pending",
+        status: ProgramEnrollmentStatus.pending,
         applicationId,
         groupId: group.id,
         clickRewardId: group.clickRewardId,
@@ -326,6 +344,9 @@ async function createApplicationAndEnrollment({
         referralRewardId: group.referralRewardId,
         customRewardId: group.customRewardId,
         discountId: group.discountId,
+      },
+      update: {
+        // don't update the enrollment if it already exists
       },
     }),
   ]);
