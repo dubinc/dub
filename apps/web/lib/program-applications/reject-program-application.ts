@@ -2,11 +2,9 @@ import { trackActivityLog } from "@/lib/api/activity-log/track-activity-log";
 import { DubApiError } from "@/lib/api/errors";
 import { resolveFraudGroups } from "@/lib/api/fraud/resolve-fraud-groups";
 import { queuePartnerSearchSync } from "@/lib/api/partners/queue-partner-search-sync";
-import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { trackApplicationEvents } from "@/lib/application-events/update-application-event";
 import { prisma } from "@/lib/prisma";
 import { getProgramApplicationRejectionReasonLabel } from "@/lib/program-applications/program-application-rejection";
-import { WorkspaceProps } from "@/lib/types";
 import { rejectProgramApplicationSchema } from "@/lib/zod/schemas/program-application";
 import { sendEmail } from "@dub/email";
 import ProgramApplicationRejected from "@dub/email/templates/program-application-rejected";
@@ -20,8 +18,9 @@ import * as z from "zod/v4";
 type RejectProgramApplicationInput = z.infer<
   typeof rejectProgramApplicationSchema
 > & {
-  userId: string;
-  workspace: Pick<WorkspaceProps, "id" | "defaultProgramId">;
+  programId: string;
+  applicationId?: string;
+  userId?: string;
 };
 
 const REJECTABLE_ENROLLMENT_STATUSES: ProgramEnrollmentStatus[] = [
@@ -30,7 +29,8 @@ const REJECTABLE_ENROLLMENT_STATUSES: ProgramEnrollmentStatus[] = [
 ];
 
 export async function rejectProgramApplication({
-  workspace,
+  programId,
+  applicationId,
   partnerId,
   rejectionReason,
   rejectionNote,
@@ -39,8 +39,6 @@ export async function rejectProgramApplication({
   flagForFraudReason,
   userId,
 }: RejectProgramApplicationInput) {
-  const programId = getDefaultProgramIdOrThrow(workspace);
-
   if (flagForFraud && reapplicationTimeframe === "instant") {
     throw new DubApiError({
       code: "bad_request",
@@ -59,6 +57,7 @@ export async function rejectProgramApplication({
   const [programApplication, existingEnrollment] = await Promise.all([
     prisma.programApplication.findFirst({
       where: {
+        ...(applicationId && { id: applicationId }),
         programId,
         partnerId,
         status: ProgramApplicationStatus.pending,
@@ -76,6 +75,11 @@ export async function rejectProgramApplication({
             name: true,
             slug: true,
             supportEmail: true,
+            workspace: {
+              select: {
+                id: true,
+              },
+            },
           },
         },
       },
@@ -215,7 +219,7 @@ export async function rejectProgramApplication({
         queuePartnerSearchSync({ enrollmentIds: [enrollmentToReject.id] }),
 
       trackActivityLog({
-        workspaceId: workspace.id,
+        workspaceId: program.workspace.id,
         programId,
         resourceType: "partner",
         resourceId: partnerId,

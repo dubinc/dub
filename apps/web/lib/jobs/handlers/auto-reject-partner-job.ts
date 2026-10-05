@@ -1,21 +1,14 @@
-import { resolveFraudGroups } from "@/lib/api/fraud/resolve-fraud-groups";
-import { queuePartnerSearchSync } from "@/lib/api/partners/queue-partner-search-sync";
-import { trackApplicationEvents } from "@/lib/application-events/update-application-event";
+import { DubApiError } from "@/lib/api/errors";
 import { evaluateApplicationRequirements } from "@/lib/partners/evaluate-application-requirements";
 import { prisma } from "@/lib/prisma";
-import { sendEmail } from "@dub/email";
-import ProgramApplicationRejected from "@dub/email/templates/program-application-rejected";
-import {
-  ProgramApplicationRejectionReason,
-  ProgramApplicationStatus,
-  ProgramEnrollmentStatus,
-} from "@prisma/client";
+import { rejectProgramApplication } from "@/lib/program-applications/reject-program-application";
 import * as z from "zod/v4";
 import { defineJob } from "../index";
 
 const inputSchema = z.object({
   programId: z.string(),
   partnerId: z.string(),
+  applicationId: z.string().optional(),
 });
 
 // This job is used to auto-reject a partner enrollment (e.g. when eligibility requirements are not met)
@@ -23,7 +16,7 @@ export const autoRejectPartnerJob = defineJob({
   name: "auto-reject-partner-job",
   schema: inputSchema,
   async handle(input) {
-    const { programId, partnerId } = input;
+    const { programId, partnerId, applicationId } = input;
 
     const programEnrollment = await prisma.programEnrollment.findUnique({
       where: {
@@ -32,21 +25,16 @@ export const autoRejectPartnerJob = defineJob({
           programId,
         },
       },
-      include: {
+      select: {
+        status: true,
         partner: {
           select: {
-            id: true,
-            name: true,
             email: true,
             country: true,
           },
         },
         program: {
           select: {
-            id: true,
-            name: true,
-            slug: true,
-            supportEmail: true,
             applicationRequirements: true,
           },
         },
@@ -58,17 +46,13 @@ export const autoRejectPartnerJob = defineJob({
       return;
     }
 
-    if (programEnrollment.status !== ProgramEnrollmentStatus.pending) {
-      console.warn(`${partnerId} is in ${programEnrollment.status} status.`);
-      return;
-    }
+    const { program, partner } = programEnrollment;
 
     const result = evaluateApplicationRequirements({
-      applicationRequirements:
-        programEnrollment.program.applicationRequirements,
+      applicationRequirements: program.applicationRequirements,
       context: {
-        country: programEnrollment.partner.country,
-        email: programEnrollment.partner.email,
+        country: partner.country,
+        email: partner.email,
       },
     });
 
@@ -79,96 +63,26 @@ export const autoRejectPartnerJob = defineJob({
       return;
     }
 
-    const { skipped } = await prisma.$transaction(async (tx) => {
-      const { count } = await tx.programEnrollment.updateMany({
-        where: {
-          id: programEnrollment.id,
-          status: ProgramEnrollmentStatus.pending,
-        },
-        data: {
-          status: ProgramEnrollmentStatus.rejected,
-          clickRewardId: null,
-          leadRewardId: null,
-          saleRewardId: null,
-          referralRewardId: null,
-          customRewardId: null,
-          discountId: null,
-        },
-      });
-
-      if (count === 0) {
-        return {
-          skipped: true,
-        };
-      }
-
-      if (programEnrollment.applicationId) {
-        await tx.programApplication.update({
-          where: {
-            id: programEnrollment.applicationId,
-          },
-          data: {
-            status: ProgramApplicationStatus.rejected,
-            reviewedAt: new Date(),
-            rejectionReason:
-              ProgramApplicationRejectionReason.doesNotMeetRequirements,
-            rejectionNote: null,
-          },
-        });
-      }
-
-      return {
-        skipped: false,
-      };
-    });
-
-    if (skipped) {
-      console.warn(
-        `Partner ${partnerId} is no longer pending in program ${programId}.`,
-      );
-      return;
-    }
-
-    const { partner, program } = programEnrollment;
-
-    await Promise.allSettled([
-      resolveFraudGroups({
-        where: {
-          programId,
-          partnerId,
-        },
-        resolutionReason:
-          "Resolved automatically because the partner application was automatically rejected.",
-      }),
-
-      trackApplicationEvents({
-        event: "rejected",
+    try {
+      await rejectProgramApplication({
         programId,
-        partnerIds: [partnerId],
-      }),
+        partnerId,
+        applicationId,
+        rejectionReason: "doesNotMeetRequirements",
+        rejectionNote: undefined,
+        reapplicationTimeframe: "standard",
+        flagForFraudReason: undefined,
+      });
+    } catch (error) {
+      if (error instanceof DubApiError && error.code === "not_found") {
+        console.warn(
+          `No pending application found for partner ${partnerId} in program ${programId}.`,
+        );
+        return;
+      }
 
-      // Queue an index update because the enrollment status moved to rejected.
-      queuePartnerSearchSync({ enrollmentIds: [programEnrollment.id] }),
-
-      partner.email &&
-        sendEmail({
-          to: partner.email,
-          subject: `Your application to ${program.name} was not approved`,
-          variant: "notifications",
-          replyTo: program.supportEmail || "noreply",
-          react: ProgramApplicationRejected({
-            partner: {
-              name: partner.name ?? "there",
-              email: partner.email,
-            },
-            program: {
-              name: program.name,
-              slug: program.slug,
-              supportEmail: program.supportEmail ?? undefined,
-            },
-          }),
-        }),
-    ]);
+      throw error;
+    }
 
     console.info(
       `Successfully auto-rejected partner ${partnerId} in program ${programId}.`,

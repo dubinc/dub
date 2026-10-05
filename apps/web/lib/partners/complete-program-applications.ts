@@ -264,6 +264,7 @@ export async function completeProgramApplications(userEmail: string) {
                 {
                   programId: program.id,
                   partnerId: partner.id,
+                  applicationId: application.id,
                 },
                 {
                   delay: 5 * 60, // 5 minutes
