@@ -13,7 +13,8 @@ type SubmissionStatusUpdate = Pick<
   to: Extract<BountySubmissionStatus, "partiallyApproved" | "approved">;
 };
 
-const DRY_RUN = true;
+// Dry run by default. Pass --dry-run=false to write the changes.
+const DRY_RUN = !process.argv.slice(2).includes("--dry-run=false");
 const BATCH_SIZE = 500;
 
 // Closes partially approved social metrics submissions that are stuck in the review queue
