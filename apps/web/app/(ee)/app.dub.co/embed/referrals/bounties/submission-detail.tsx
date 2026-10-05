@@ -1,6 +1,6 @@
 "use client";
 
-import { BountySubmissionStatusBadges } from "@/lib/bounty/bounty-submission-status-badges";
+import { getPartnerSubmissionStatusBadge } from "@/lib/bounty/bounty-submission-status-badges";
 import { REJECT_BOUNTY_SUBMISSION_REASONS } from "@/lib/bounty/constants";
 import { getPeriodLabel } from "@/lib/bounty/periods";
 import { resolveBountyDetails } from "@/lib/bounty/utils";
@@ -193,7 +193,7 @@ function SubmissionRightColumn({
   submission: PartnerBountySubmission;
 }) {
   const bountyInfo = resolveBountyDetails(bounty);
-  const statusBadge = BountySubmissionStatusBadges[submission.status];
+  const statusBadge = getPartnerSubmissionStatusBadge(submission.status);
   const submittedDate = submission.completedAt ?? submission.createdAt;
 
   const textValue = (text: string) => (
@@ -211,9 +211,7 @@ function SubmissionRightColumn({
           icon={statusBadge.icon}
           className="w-fit rounded-lg py-1"
         >
-          {submission.status === "submitted"
-            ? "Pending review"
-            : statusBadge.label}
+          {statusBadge.label}
         </StatusBadge>
       ),
     });

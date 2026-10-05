@@ -1,6 +1,6 @@
 "use client";
 
-import { BountySubmissionStatusBadges } from "@/lib/bounty/bounty-submission-status-badges";
+import { getPartnerSubmissionStatusBadge } from "@/lib/bounty/bounty-submission-status-badges";
 import {
   type SubmissionPeriod,
   getSubmissionPeriods,
@@ -47,11 +47,7 @@ export function EmbedBountySubmissionsTable({
                   original: SubmissionPeriod<PartnerBountySubmission>;
                 };
               }) => {
-                const config = BountySubmissionStatusBadges[original.status];
-                const label =
-                  original.status === "submitted"
-                    ? "Pending review"
-                    : config?.label;
+                const config = getPartnerSubmissionStatusBadge(original.status);
                 return (
                   <div className="flex items-center gap-3">
                     <span className="text-content-subtle min-w-[52px] text-sm font-medium leading-5 tracking-[-0.28px]">
@@ -63,7 +59,7 @@ export function EmbedBountySubmissionsTable({
                           variant={config.variant}
                           icon={config.icon}
                         >
-                          {label}
+                          {config.label}
                         </StatusBadge>
                       </span>
                     )}
@@ -79,13 +75,11 @@ export function EmbedBountySubmissionsTable({
         minSize: 120,
         size: 160,
         cell: ({ row: { original } }) => {
-          const config = BountySubmissionStatusBadges[original.status];
+          const config = getPartnerSubmissionStatusBadge(original.status);
           if (!config) return null;
-          const label =
-            original.status === "submitted" ? "Pending review" : config.label;
           return (
             <StatusBadge variant={config.variant} icon={config.icon}>
-              {label}
+              {config.label}
             </StatusBadge>
           );
         },
