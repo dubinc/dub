@@ -32,6 +32,7 @@ export const POST = withAdmin(
                 slug: true,
                 logo: true,
                 stripeId: true,
+                defaultProgramId: true,
               },
             },
           },

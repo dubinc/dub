@@ -129,16 +129,16 @@ export const { POST } = serve<Input>(
     });
 
     // Step 3 (optional): Link the created commission to the bounty submission
+    // TODO: Remove once in-flight workflows from before the bountySubmissionId migration have drained (new commissions are linked in stepCreateCommission)
     if (commission && bountySubmissionId) {
       await context.run("set-bounty-commission", async () => {
-        const { count } = await prisma.bountySubmission.updateMany({
+        const { count } = await prisma.commission.updateMany({
           where: {
-            id: bountySubmissionId,
-            status: "approved",
-            commissionId: null,
+            id: commission.id,
+            bountySubmissionId: null,
           },
           data: {
-            commissionId: commission.id,
+            bountySubmissionId,
           },
         });
 
@@ -148,7 +148,7 @@ export const { POST } = serve<Input>(
           });
         } else {
           return logAndReturn({
-            outputLog: `Bounty submission ${bountySubmissionId} not found or already linked to a commission, skipping...`,
+            outputLog: `Commission ${commission.id} already linked to a bounty submission, skipping...`,
           });
         }
       });
@@ -202,6 +202,7 @@ async function stepCreateCommission(
     metadata,
     context,
     programEnrollment,
+    bountySubmissionId,
   } = input;
 
   if (typeof amount !== "number") {
@@ -495,6 +496,7 @@ async function stepCreateCommission(
         status,
         description,
         createdAt,
+        bountySubmissionId,
         metadata: metadata ?? Prisma.DbNull,
       },
     });

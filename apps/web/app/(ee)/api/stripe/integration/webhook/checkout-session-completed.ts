@@ -184,7 +184,7 @@ export async function checkoutSessionCompleted({
           - we update the customer with the stripe customerId
           - we then find the lead event using the customer's unique ID on Dub
           - the lead event will then be passed to the remaining logic to record a sale
-      - if not present:
+      - if not present, or if the customer is not found on Dub:
           - we check if a promotion code was used in the checkout
           - if a promotion code is present, we try to attribute via the promotion code:
             - confirm the promotion code exists in Stripe
@@ -196,7 +196,7 @@ export async function checkoutSessionCompleted({
   */
     if (dubCustomerExternalId) {
       customer = await updateCustomerWithStripeCustomerId({
-        stripeAccountId,
+        workspaceId: workspace.id,
         dubCustomerExternalId,
         stripeCustomerId,
       });
@@ -263,38 +263,42 @@ export async function checkoutSessionCompleted({
         if (connectedCustomerDubCustomerExternalId) {
           dubCustomerExternalId = connectedCustomerDubCustomerExternalId;
           customer = await updateCustomerWithStripeCustomerId({
-            stripeAccountId,
+            workspaceId: workspace.id,
             dubCustomerExternalId,
             stripeCustomerId,
           });
-          if (!customer) {
+        }
+
+        // if customer is still not found, try to attribute via the promotion code
+        if (!customer) {
+          if (promotionCodeId) {
+            const promoCodeResponse = await attributeViaPromotionCodeId({
+              promotionCodeId,
+              workspace,
+              mode,
+              customerDetails: {
+                name: checkoutSession.customer_details?.name,
+                email: checkoutSession.customer_details?.email,
+                address: checkoutSession.customer_details?.address,
+                stripeCustomerId,
+              },
+            });
+            if (promoCodeResponse) {
+              ({ linkId, customer, clickEvent, leadEvent } = promoCodeResponse);
+            } else {
+              return {
+                response: `Failed to attribute via promotion code ${promotionCodeId}, skipping...`,
+              };
+            }
+          } else if (connectedCustomerDubCustomerExternalId) {
             return {
-              response: `dubCustomerExternalId was found on the connected customer ${stripeCustomerId} but customer with dubCustomerExternalId ${dubCustomerExternalId} not found on Dub, skipping...`,
+              response: `dubCustomerExternalId was found on the connected customer ${stripeCustomerId} but customer with dubCustomerExternalId ${dubCustomerExternalId} not found on Dub, and promotion code is not provided, skipping...`,
             };
-          }
-        } else if (promotionCodeId) {
-          const promoCodeResponse = await attributeViaPromotionCodeId({
-            promotionCodeId,
-            workspace,
-            mode,
-            customerDetails: {
-              name: checkoutSession.customer_details?.name,
-              email: checkoutSession.customer_details?.email,
-              address: checkoutSession.customer_details?.address,
-              stripeCustomerId,
-            },
-          });
-          if (promoCodeResponse) {
-            ({ linkId, customer, clickEvent, leadEvent } = promoCodeResponse);
           } else {
             return {
-              response: `Failed to attribute via promotion code ${promotionCodeId}, skipping...`,
+              response: `dubCustomerExternalId not found in Stripe checkout session metadata (nor is it available on the connected customer ${stripeCustomerId}), client_reference_id is not a dub_id, and promotion code is not provided, skipping...`,
             };
           }
-        } else {
-          return {
-            response: `dubCustomerExternalId not found in Stripe checkout session metadata (nor is it available on the connected customer ${stripeCustomerId}), client_reference_id is not a dub_id, and promotion code is not provided, skipping...`,
-          };
         }
       }
     }

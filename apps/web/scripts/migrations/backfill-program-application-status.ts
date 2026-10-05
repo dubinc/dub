@@ -641,6 +641,72 @@ async function backfillRejectedWithoutEnrollment() {
   console.table(totals);
 }
 
+async function unsetPartnerIdForUnclaimedApplications() {
+  console.log("Unsetting partnerId for unclaimed applications");
+
+  const totals = {
+    scanned: 0,
+    unclaimed: 0,
+  };
+
+  let cursor: string | undefined;
+
+  while (true) {
+    const unclaimedApplications = await prisma.programApplication.findMany({
+      where: {
+        status: ProgramApplicationStatus.pending,
+        enrollment: null,
+        partnerId: {
+          not: null,
+        },
+        ...(cursor && {
+          id: {
+            gt: cursor,
+          },
+        }),
+      },
+      select: {
+        id: true,
+        partnerId: true,
+      },
+      orderBy: {
+        id: "asc",
+      },
+      take: BATCH_SIZE,
+    });
+
+    if (unclaimedApplications.length === 0) {
+      break;
+    }
+
+    totals.scanned += unclaimedApplications.length;
+    cursor = unclaimedApplications[unclaimedApplications.length - 1].id;
+
+    if (DRY_RUN) {
+      totals.unclaimed += unclaimedApplications.length;
+    } else {
+      const { count } = await prisma.programApplication.updateMany({
+        where: {
+          id: {
+            in: unclaimedApplications.map(({ id }) => id),
+          },
+        },
+        data: {
+          partnerId: null,
+        },
+      });
+
+      totals.unclaimed += count;
+    }
+
+    console.log(
+      `${DRY_RUN ? "Would process" : "Processed"} ${unclaimedApplications.length} applications up to ${cursor}`,
+    );
+  }
+
+  console.table(totals);
+}
+
 async function main() {
   console.log(`DRY_RUN=${DRY_RUN} BATCH_SIZE=${BATCH_SIZE}`);
 
@@ -650,7 +716,7 @@ async function main() {
   // await backfillPartnerIdsByEmail();
   // await backfillFromActivityLogs();
   // await backfillRejectedWithoutEnrollment();
-
+  // await unsetPartnerIdForUnclaimedApplications();
   console.log("Finished.");
 }
 

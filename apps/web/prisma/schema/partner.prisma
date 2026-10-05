@@ -97,6 +97,7 @@ model Partner {
   messages                   Message[]
   sentMessages               Message[]                          @relation("SenderPartner")
   comments                   PartnerComment[]
+  submittedLeadComments      SubmittedLeadComment[]
   discountCodes              DiscountCode[]
   notificationEmails         NotificationEmail[]
   monthlyTraffic             MonthlyTraffic?

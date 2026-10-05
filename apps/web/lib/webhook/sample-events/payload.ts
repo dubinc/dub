@@ -9,7 +9,7 @@ import linkClicked from "./link-clicked.json";
 import linkCreated from "./link-created.json";
 import linkDeleted from "./link-deleted.json";
 import linkUpdated from "./link-updated.json";
-import partnerApplicationSubmitted from "./partner-application-submitted.json";
+import partnerApplicationSubmitted from "./program-application-submitted.json";
 import partnerEnrolled from "./partner-enrolled.json";
 import partnerMerged from "./partner-merged.json";
 import payoutConfirmed from "./payout-confirmed.json";

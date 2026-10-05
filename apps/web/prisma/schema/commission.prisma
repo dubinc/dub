@@ -55,6 +55,7 @@ model Commission {
   source             CommissionSource?
   sourceCommissionId String?
   sourcePartnerId    String?
+  bountySubmissionId String?
   metadata           Json?             @db.Json
   createdAt          DateTime          @default(now())
   updatedAt          DateTime          @updatedAt
@@ -66,7 +67,7 @@ model Commission {
   link              Link?             @relation(fields: [linkId], references: [id])
   customer          Customer?         @relation(fields: [customerId], references: [id])
   reward            Reward?           @relation(fields: [rewardId], references: [id])
-  bountySubmission  BountySubmission?
+  bountySubmission  BountySubmission? @relation(fields: [bountySubmissionId], references: [id], onDelete: SetNull)
   user              User?             @relation(fields: [userId], references: [id])
 
   @@unique([invoiceId, programId])
@@ -82,5 +83,5 @@ model Commission {
   @@index(status)
   @@index(rewardId)
   @@index(userId)
-  @@index([status, payoutId, source]) // temp index for migration script
+  @@index(bountySubmissionId)
 }
