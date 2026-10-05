@@ -1,9 +1,9 @@
-import { linkCache } from "@/lib/api/links/cache";
-import { queuePartnerSearchSync } from "@/lib/api/partners/queue-partner-search-sync";
 import { prisma } from "@/lib/prisma";
 import { chunk } from "@dub/utils";
 import { Prisma, ProgramEnrollmentStatus } from "@prisma/client";
 import "dotenv-flow/config";
+import { linkCache } from "../../lib/api/links/cache";
+import { queuePartnerSearchSync } from "../../lib/api/partners/queue-partner-search-sync";
 
 // A re-import set these enrollments back to approved and left bannedAt in
 // place. A real unban clears bannedAt. Deactivated enrollments are left as-is.
@@ -40,29 +40,6 @@ async function main() {
 
   for (const batch of chunk(enrollments, BATCH_SIZE)) {
     const ids = batch.map((enrollment) => enrollment.id);
-
-    const { count } = await prisma.programEnrollment.updateMany({
-      where: {
-        id: {
-          in: ids,
-        },
-        bannedAt: {
-          not: null,
-        },
-        status: ProgramEnrollmentStatus.approved,
-      },
-      data: {
-        status: ProgramEnrollmentStatus.banned,
-        clickRewardId: null,
-        leadRewardId: null,
-        saleRewardId: null,
-        referralRewardId: null,
-        customRewardId: null,
-        discountId: null,
-      },
-    });
-
-    restored += count;
 
     const partnerIdsByProgramId = new Map<string, string[]>();
 
@@ -108,6 +85,29 @@ async function main() {
       await linkCache.expireMany(links);
       console.log(`Disabled ${links.length} links in program ${programId}.`);
     }
+
+    const { count } = await prisma.programEnrollment.updateMany({
+      where: {
+        id: {
+          in: ids,
+        },
+        bannedAt: {
+          not: null,
+        },
+        status: ProgramEnrollmentStatus.approved,
+      },
+      data: {
+        status: ProgramEnrollmentStatus.banned,
+        clickRewardId: null,
+        leadRewardId: null,
+        saleRewardId: null,
+        referralRewardId: null,
+        customRewardId: null,
+        discountId: null,
+      },
+    });
+
+    restored += count;
 
     await queuePartnerSearchSync({
       enrollmentIds: ids,

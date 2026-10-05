@@ -48,7 +48,13 @@ export async function upsertImportedProgramEnrollment<
   }
 
   const enrollment = await prisma.programEnrollment.upsert({
-    where,
+    where: {
+      ...where,
+      // to account for race conditions
+      status: {
+        not: "banned",
+      },
+    },
     create,
     update: {
       status: "approved",
