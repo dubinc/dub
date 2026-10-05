@@ -2,13 +2,12 @@ import { convertToCSV } from "@/lib/analytics/utils/convert-to-csv";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { withWorkspace } from "@/lib/auth";
 import { listProgramApplications } from "@/lib/program-applications/list-program-applications";
-import { exportApplicationColumns } from "@/lib/zod/schemas/partners";
+import {
+  exportApplicationColumns,
+  MAX_APPLICATIONS_TO_EXPORT,
+} from "@/lib/zod/schemas/partners";
 import { exportApplicationsQuerySchema } from "@/lib/zod/schemas/program-application";
 import * as z from "zod/v4";
-
-// Limitation: exports are capped at this many applications; any beyond it are silently dropped.
-// TODO: In a follow-up PR, process larger exports in the background and email the CSV (like /api/partners/export).
-const MAX_APPLICATIONS_TO_EXPORT = 2000;
 
 const columnIdToLabel = exportApplicationColumns.reduce((acc, column) => {
   acc[column.id] = column.label;
@@ -30,13 +29,18 @@ export const GET = withWorkspace(
       country,
       sortOrder,
       page: 1,
-      pageSize: MAX_APPLICATIONS_TO_EXPORT,
+      // Fetch one extra row to tell the client when the export was cut off.
+      pageSize: MAX_APPLICATIONS_TO_EXPORT + 1,
     });
 
-    const applications = programApplications.map(({ partner, createdAt }) => ({
-      ...partner,
-      createdAt,
-    }));
+    const isTruncated = programApplications.length > MAX_APPLICATIONS_TO_EXPORT;
+
+    const applications = programApplications
+      .slice(0, MAX_APPLICATIONS_TO_EXPORT)
+      .map(({ partner, createdAt }) => ({
+        ...partner,
+        createdAt,
+      }));
 
     const columnOrderMap = exportApplicationColumns.reduce(
       (acc, column, index) => {
@@ -75,6 +79,7 @@ export const GET = withWorkspace(
       headers: {
         "Content-Type": "text/csv",
         "Content-Disposition": "attachment",
+        ...(isTruncated && { "X-Export-Truncated": "true" }),
       },
     });
   },

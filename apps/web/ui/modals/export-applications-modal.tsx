@@ -3,8 +3,10 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import {
   exportApplicationColumns,
   exportApplicationsColumnsDefault,
+  MAX_APPLICATIONS_TO_EXPORT,
 } from "@/lib/zod/schemas/partners";
 import { Button, Checkbox, Modal, Switch, useRouterStuff } from "@dub/ui";
+import { nFormatter } from "@dub/utils";
 import { ProgramApplicationStatus } from "@prisma/client";
 import {
   Dispatch,
@@ -92,7 +94,13 @@ function ExportApplicationsModal({
       a.download = `Dub Applications Export - ${new Date().toISOString()}.csv`;
       a.click();
 
-      toast.success("Exported successfully");
+      if (response.headers.get("X-Export-Truncated") === "true") {
+        toast.warning(
+          `Only the first ${nFormatter(MAX_APPLICATIONS_TO_EXPORT, { full: true })} applications were exported. Use filters to narrow the export.`,
+        );
+      } else {
+        toast.success("Exported successfully");
+      }
       setShowExportApplicationsModal(false);
     } catch (error) {
       toast.error(error);
