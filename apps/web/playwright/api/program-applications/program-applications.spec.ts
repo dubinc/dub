@@ -297,13 +297,13 @@ test.describe("program applications", () => {
         verifiedAt: VERIFIED_AT.toISOString(),
       },
       {
-        type: "youtube",
-        identifier: "partner_channel",
-        verifiedAt: null,
-      },
-      {
         type: "twitter",
         identifier: "application_handle",
+        verifiedAt: VERIFIED_AT.toISOString(),
+      },
+      {
+        type: "youtube",
+        identifier: "partner_channel",
         verifiedAt: null,
       },
     ]);
