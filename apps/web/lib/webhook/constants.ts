@@ -47,6 +47,16 @@ export const LEGACY_WEBHOOK_TRIGGER_REPLACEMENTS = [
   current: WebhookTrigger;
 }[];
 
+export const DEPRECATED_WEBHOOK_TRIGGERS = new Map<
+  WebhookTrigger,
+  WebhookTrigger
+>(
+  LEGACY_WEBHOOK_TRIGGER_REPLACEMENTS.map(({ legacy, current }) => [
+    legacy,
+    current,
+  ]),
+);
+
 export const WEBHOOK_TRIGGER_DESCRIPTIONS: Record<WebhookTrigger, string> = {
   "link.created": "Occurs whenever a link is created",
   "link.updated": "Occurs whenever a link is updated",

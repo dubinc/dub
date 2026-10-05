@@ -28,8 +28,9 @@ export const identifyWebhookReceiver = (url: string): WebhookReceiver => {
  *
  * `subscribedTriggers` is the saved webhook's events:
  * - `null` (creating a new webhook): show the current event, hide the legacy one.
- * - array (editing): show the legacy event if the webhook is already subscribed
- *   to it, otherwise show the current event.
+ * - array (editing): show both events if the webhook is already subscribed to
+ *   the legacy one (so it can migrate in a single edit), otherwise show only
+ *   the current event.
  * - `undefined` (saved webhook still loading): hide both until it's known.
  *
  * Hidden events that are already subscribed stay in the webhook's saved
@@ -47,7 +48,7 @@ export function getVisibleWebhookTriggers(
 
       const showLegacy = subscribedTriggers?.includes(legacy) ?? false;
 
-      return [showLegacy ? current : legacy];
+      return showLegacy ? [] : [legacy];
     }),
   );
 

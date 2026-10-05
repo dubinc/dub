@@ -70,7 +70,18 @@ export const ProgramApplicationSchema = PartnerApplicationSchema.extend({
     }),
 });
 
-export const programApplicationWebhookSchema = PartnerApplicationSchema;
+// @deprecated Use programApplicationWebhookSchema instead. Kept for backward compatibility.
+export const partnerApplicationWebhookSchema = PartnerApplicationSchema;
+export const programApplicationWebhookSchema = ProgramApplicationSchema.extend({
+  partner: ProgramApplicationSchema.shape.partner.omit({
+    website: true,
+    youtube: true,
+    twitter: true,
+    linkedin: true,
+    instagram: true,
+    tiktok: true,
+  }),
+});
 
 export const getProgramApplicationsQuerySchema = getPartnersQuerySchema
   .pick({

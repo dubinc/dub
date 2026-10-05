@@ -14,21 +14,35 @@ export const GET = withWorkspace(
     const { partnerId } = params;
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    const programApplication = await prisma.programApplication.findFirst({
-      where: {
-        programId,
-        partnerId,
-      },
-      select: {
-        id: true,
-      },
-    });
+    const [programApplication, programEnrollment] = await Promise.all([
+      prisma.programApplication.findFirst({
+        where: {
+          programId,
+          partnerId,
+        },
+        select: {
+          id: true,
+        },
+      }),
 
-    // Prevent fetching the network activity summary if the partner has not applied to the program
-    if (!programApplication) {
+      prisma.programEnrollment.findUnique({
+        where: {
+          partnerId_programId: {
+            partnerId,
+            programId,
+          },
+        },
+        select: {
+          id: true,
+        },
+      }),
+    ]);
+
+    // Prevent fetching the network activity summary if the partner has neither applied to nor enrolled in the program
+    if (!programApplication && !programEnrollment) {
       throw new DubApiError({
         code: "not_found",
-        message: `Partner ${partnerId} has not applied to program.`,
+        message: `Partner ${partnerId} has not applied to or enrolled in program.`,
       });
     }
 

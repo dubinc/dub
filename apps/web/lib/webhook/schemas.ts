@@ -9,7 +9,10 @@ import {
   partnerMergedWebhookSchema,
   WebhookPartnerSchema,
 } from "../zod/schemas/partners";
-import { programApplicationWebhookSchema } from "../zod/schemas/program-application";
+import {
+  partnerApplicationWebhookSchema,
+  programApplicationWebhookSchema,
+} from "../zod/schemas/program-application";
 import { WEBHOOK_TRIGGERS } from "./constants";
 
 const webhookSaleSchema = z.object({
@@ -149,7 +152,7 @@ export const webhookEventSchema = z
         id: z.string(),
         event: z.literal("partner.application_submitted"),
         createdAt: z.string(),
-        data: programApplicationWebhookSchema,
+        data: partnerApplicationWebhookSchema,
       })
       .meta({
         description:

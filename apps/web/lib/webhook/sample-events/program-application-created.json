@@ -10,7 +10,22 @@
     "description": "I'm a content creator who works with brands to grow their business.",
     "country": "US",
     "groupId": "grp_1K9BZE1K2RWYAWB2K1YN5TY7F",
-    "status": "pending"
+    "status": "pending",
+    "networkStatus": "approved",
+    "defaultPayoutMethod": "connect",
+    "payoutsEnabledAt": "2025-10-01T09:12:45.000Z",
+    "platforms": [
+      {
+        "type": "website",
+        "identifier": "https://example.com",
+        "verifiedAt": "2025-10-02T14:03:11.000Z"
+      },
+      {
+        "type": "twitter",
+        "identifier": "matthewhayden",
+        "verifiedAt": null
+      }
+    ]
   },
   "applicationFormData": [
     {

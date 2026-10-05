@@ -36,10 +36,10 @@ function usePartnerNetworkActivitySummary(
     },
   );
 
-  const isMissingApplication = error?.status === 404;
+  const isUnrelatedPartner = error?.status === 404;
 
-  // A partner without an application to the program 404s. Missing data here is an empty result, not a request still loading.
-  if (!partnerId || isMissingApplication) {
+  // A partner with neither an application nor an enrollment in the program 404s. Missing data here is an empty result, not a request still loading.
+  if (!partnerId || isUnrelatedPartner) {
     return {
       status: "empty",
     };

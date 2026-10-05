@@ -10,7 +10,10 @@ import { autoApprovePartnerJob } from "../jobs/handlers/auto-approve-partner-job
 import { autoRejectPartnerJob } from "../jobs/handlers/auto-reject-partner-job";
 import { buildSocialPlatformLookup } from "../social-utils";
 import { sendWorkspaceWebhook } from "../webhook/publish";
-import { programApplicationWebhookSchema } from "../zod/schemas/program-application";
+import {
+  partnerApplicationWebhookSchema,
+  programApplicationWebhookSchema,
+} from "../zod/schemas/program-application";
 import { evaluateApplicationRequirements } from "./evaluate-application-requirements";
 import {
   formatApplicationFormData,
@@ -214,7 +217,7 @@ export async function completeProgramApplications(userEmail: string) {
         },
       });
 
-      const webhookPayload = programApplicationWebhookSchema.parse({
+      const webhookData = {
         id: application.id,
         createdAt: application.createdAt,
         applicationFormData,
@@ -225,7 +228,7 @@ export async function completeProgramApplications(userEmail: string) {
           status: "pending",
           ...formatWebsiteAndSocialsFields(application),
         },
-      });
+      };
 
       await Promise.allSettled([
         ...(validApplication
@@ -255,7 +258,7 @@ export async function completeProgramApplications(userEmail: string) {
                 sendWorkspaceWebhook({
                   workspace: workspacesByProgramId.get(program.id)!,
                   trigger: "partner.application_submitted",
-                  data: webhookPayload,
+                  data: partnerApplicationWebhookSchema.parse(webhookData),
                 }),
 
               // Send "program_application.created" webhook
@@ -263,7 +266,7 @@ export async function completeProgramApplications(userEmail: string) {
                 sendWorkspaceWebhook({
                   workspace: workspacesByProgramId.get(program.id)!,
                   trigger: "program_application.created",
-                  data: webhookPayload,
+                  data: programApplicationWebhookSchema.parse(webhookData),
                 }),
             ]
           : [
