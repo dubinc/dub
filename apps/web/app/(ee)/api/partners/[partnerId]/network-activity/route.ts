@@ -1,5 +1,5 @@
+import { DubApiError } from "@/lib/api/errors";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
-import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import {
@@ -14,11 +14,23 @@ export const GET = withWorkspace(
     const { partnerId } = params;
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    await getProgramEnrollmentOrThrow({
-      partnerId,
-      programId,
-      include: {},
+    const programApplication = await prisma.programApplication.findFirst({
+      where: {
+        programId,
+        partnerId,
+      },
+      select: {
+        id: true,
+      },
     });
+
+    // Prevent fetching the network activity summary if the partner has not applied to the program
+    if (!programApplication) {
+      throw new DubApiError({
+        code: "not_found",
+        message: `Partner ${partnerId} has not applied to program.`,
+      });
+    }
 
     const programEnrollments = await prisma.programEnrollment.groupBy({
       by: ["status"],
