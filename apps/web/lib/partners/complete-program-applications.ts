@@ -6,8 +6,8 @@ import { detectAndRecordFraudApplication } from "../api/fraud/detect-record-frau
 import { notifyProgramApplication } from "../api/partners/notify-program-application";
 import { queuePartnerSearchSync } from "../api/partners/queue-partner-search-sync";
 import { markApplicationEventSubmitted } from "../application-events/update-application-event";
-import { autoApprovePartnerJob } from "../jobs/handlers/auto-approve-partner-job";
-import { autoRejectPartnerJob } from "../jobs/handlers/auto-reject-partner-job";
+import { autoApproveProgramApplicationJob } from "../jobs/handlers/auto-approve-program-application-job";
+import { autoRejectProgramApplicationJob } from "../jobs/handlers/auto-reject-program-application-job";
 import { sendWorkspaceWebhook } from "../webhook/publish";
 import {
   partnerApplicationWebhookSchema,
@@ -218,10 +218,8 @@ export async function completeProgramApplications(userEmail: string) {
 
               // Auto-approve the partner if the group has auto-approval enabled
               group?.autoApprovePartnersEnabledAt
-                ? autoApprovePartnerJob.dispatch(
+                ? autoApproveProgramApplicationJob.dispatch(
                     {
-                      programId: program.id,
-                      partnerId: partner.id,
                       applicationId: application.id,
                     },
                     {
@@ -260,10 +258,8 @@ export async function completeProgramApplications(userEmail: string) {
                 }),
             ]
           : [
-              autoRejectPartnerJob.dispatch(
+              autoRejectProgramApplicationJob.dispatch(
                 {
-                  programId: program.id,
-                  partnerId: partner.id,
                   applicationId: application.id,
                 },
                 {

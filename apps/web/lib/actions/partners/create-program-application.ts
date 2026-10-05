@@ -9,8 +9,8 @@ import { getIP } from "@/lib/api/utils/get-ip";
 import { markApplicationEventSubmitted } from "@/lib/application-events/update-application-event";
 import { getApplicationEventCookieName } from "@/lib/application-events/utils";
 import { getSession } from "@/lib/auth";
-import { autoApprovePartnerJob } from "@/lib/jobs/handlers/auto-approve-partner-job";
-import { autoRejectPartnerJob } from "@/lib/jobs/handlers/auto-reject-partner-job";
+import { autoApproveProgramApplicationJob } from "@/lib/jobs/handlers/auto-approve-program-application-job";
+import { autoRejectProgramApplicationJob } from "@/lib/jobs/handlers/auto-reject-program-application-job";
 import { programApplicationReminderJob } from "@/lib/jobs/handlers/program-application-reminder-job";
 import { getNetworkProfileChecklistProgress } from "@/lib/network/get-network-profile-checklist-progress";
 import { backfillPartnerPlatforms } from "@/lib/partners/backfill-partner-platforms";
@@ -291,22 +291,9 @@ async function createApplicationAndEnrollment({
     },
   });
 
-  if (result.reason === "requirementsNotMet") {
-    if (inAppApplication) {
-      throw new Error(
-        "Unfortunately, you do not meet the eligibility requirements for this program.",
-      );
-    }
-
-    await autoRejectPartnerJob.dispatch(
-      {
-        programId: program.id,
-        partnerId: partner.id,
-      },
-      {
-        delay: 30 * 60, // 30 minutes
-        label: partner.id,
-      },
+  if (result.reason === "requirementsNotMet" && inAppApplication) {
+    throw new Error(
+      "Unfortunately, you do not meet the eligibility requirements for this program.",
     );
   }
 
@@ -351,6 +338,18 @@ async function createApplicationAndEnrollment({
     }),
   ]);
 
+  if (result.reason === "requirementsNotMet") {
+    await autoRejectProgramApplicationJob.dispatch(
+      {
+        applicationId: programApplication.id,
+      },
+      {
+        delay: 30 * 60, // 30 minutes
+        label: partner.id,
+      },
+    );
+  }
+
   waitUntil(
     (async () => {
       const applicationFormData = formatApplicationFormData(
@@ -387,10 +386,8 @@ async function createApplicationAndEnrollment({
 
         // Auto-approve the partner if the group has auto-approval enabled
         group.autoApprovePartnersEnabledAt
-          ? autoApprovePartnerJob.dispatch(
+          ? autoApproveProgramApplicationJob.dispatch(
               {
-                programId: program.id,
-                partnerId: partner.id,
                 applicationId: programApplication.id,
               },
               {
