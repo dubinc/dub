@@ -245,7 +245,11 @@ async function createPartnerAndLinks({
       discountId: group.discountId,
     },
     include: {
-      links: true,
+      links: {
+        select: {
+          key: true,
+        },
+      },
     },
   });
 
