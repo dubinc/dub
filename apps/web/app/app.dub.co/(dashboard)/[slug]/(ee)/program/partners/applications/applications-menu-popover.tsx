@@ -1,38 +1,20 @@
 "use client";
 
 import useProgram from "@/lib/swr/use-program";
-import useWorkspace from "@/lib/swr/use-workspace";
 import { useExportApplicationsModal } from "@/ui/modals/export-applications-modal";
 import { ThreeDots } from "@/ui/shared/icons";
-import {
-  Button,
-  Download,
-  IconMenu,
-  Popover,
-  useMediaQuery,
-  UserXmark,
-} from "@dub/ui";
-import Link from "next/link";
+import { Button, Download, IconMenu, Popover, useMediaQuery } from "@dub/ui";
 import { useState } from "react";
 import { useApplicationSettingsSheet } from "./application-settings-sheet";
 
-export function ApplicationsMenuPopover() {
-  const { slug: workspaceSlug } = useWorkspace();
-  const { program } = useProgram();
-
-  const [openPopover, setOpenPopover] = useState(false);
-
-  const { setShowExportApplicationsModal, ExportApplicationsModal } =
-    useExportApplicationsModal();
+export function ApplicationSettingsButton() {
+  const { isMobile } = useMediaQuery();
 
   const { applicationSettingsSheet, setIsOpen } = useApplicationSettingsSheet();
-
-  const { isMobile } = useMediaQuery();
 
   return (
     <>
       {applicationSettingsSheet}
-      <ExportApplicationsModal />
       <Button
         type="button"
         text={isMobile ? "Settings" : "Application settings"}
@@ -40,27 +22,25 @@ export function ApplicationsMenuPopover() {
         variant="secondary"
         className="h-9 px-3"
       />
+    </>
+  );
+}
+
+export function ApplicationsMenuPopover() {
+  const { program } = useProgram();
+  const [openPopover, setOpenPopover] = useState(false);
+
+  const { setShowExportApplicationsModal, ExportApplicationsModal } =
+    useExportApplicationsModal();
+
+  return (
+    <>
+      <ExportApplicationsModal />
       <Popover
         openPopover={openPopover}
         setOpenPopover={setOpenPopover}
         content={
-          <div className="w-full md:w-60">
-            <div className="grid gap-px p-2">
-              <Link
-                href={`/${workspaceSlug}/program/partners/applications/rejected`}
-                onClick={() => setOpenPopover(false)}
-              >
-                <button className="w-full rounded-md p-2 hover:bg-neutral-100 active:bg-neutral-200">
-                  <IconMenu
-                    text="View rejected applications"
-                    icon={<UserXmark className="size-4" />}
-                  />
-                </button>
-              </Link>
-            </div>
-
-            <div className="border-t border-neutral-200" />
-
+          <div className="w-full md:w-52">
             <div className="grid gap-px p-2">
               <p className="mb-1.5 mt-1 flex items-center gap-2 px-1 text-xs font-medium text-neutral-500">
                 Export Applications
@@ -86,7 +66,7 @@ export function ApplicationsMenuPopover() {
           type="button"
           onClick={() => setOpenPopover(!openPopover)}
           variant="secondary"
-          className="h-8 w-auto whitespace-nowrap px-1.5 sm:h-9"
+          className="h-10 w-auto whitespace-nowrap px-1.5"
           disabled={!program}
           icon={<ThreeDots className="h-5 w-5 text-neutral-500" />}
         />

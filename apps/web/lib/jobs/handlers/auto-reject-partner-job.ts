@@ -1,6 +1,6 @@
-import { rejectPendingEnrollment } from "@/lib/api/partners/applications/reject-pending-enrollment";
 import { evaluateApplicationRequirements } from "@/lib/partners/evaluate-application-requirements";
 import { prisma } from "@/lib/prisma";
+import { rejectPendingEnrollment } from "@/lib/program-applications/reject-pending-enrollment";
 import {
   ProgramApplicationRejectionReason,
   ProgramEnrollmentStatus,

@@ -99,7 +99,6 @@ export async function rejectBountySubmission({
       userId: user.id,
       rejectionReason,
       rejectionNote,
-      commissionId: null,
     },
     include: {
       partner: {

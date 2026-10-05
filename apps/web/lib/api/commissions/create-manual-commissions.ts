@@ -42,6 +42,9 @@ type CreateCommissionsArgs = z.infer<
   workspace: Pick<Project, "id" | "slug" | "stripeConnectId">;
   programId: string;
   user: Session["user"];
+  // Only import these Stripe invoices when `importStripeInvoices` is true.
+  // Not part of the API schema. Scripts use it to skip invoices that should not be attributed.
+  stripeInvoiceIds?: string[];
 };
 
 type ResolveLinkAndCustomerArgs = CreateCommissionsArgs & {
@@ -559,6 +562,14 @@ async function recordEvents(args: RecordEventsArgs) {
     stripeCustomerInvoices = stripeCustomerInvoices.filter(
       (invoice) => !invoice.dubCommissionId,
     );
+
+    if (args.stripeInvoiceIds) {
+      const stripeInvoiceIds = new Set(args.stripeInvoiceIds);
+
+      stripeCustomerInvoices = stripeCustomerInvoices.filter((invoice) =>
+        stripeInvoiceIds.has(invoice.id),
+      );
+    }
 
     if (stripeCustomerInvoices.length === 0) {
       throw new DubApiError({

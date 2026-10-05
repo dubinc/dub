@@ -1,11 +1,11 @@
 import { evaluatePartnerApplication } from "@/lib/ai/evaluate-partner-application";
-import { getPartnerApplicationRisks } from "@/lib/api/fraud/get-partner-application-risks";
-import { approvePartner } from "@/lib/api/partners/applications/approve-partner";
-import { screenPartnerApplication } from "@/lib/api/partners/applications/screen-partner-application";
+import { getProgramApplicationRisks } from "@/lib/api/fraud/get-program-application-risks";
 import { logger } from "@/lib/axiom/server";
 import { evaluateApplicationRequirements } from "@/lib/partners/evaluate-application-requirements";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { prisma } from "@/lib/prisma";
+import { approveProgramApplication } from "@/lib/program-applications/approve-program-application";
+import { screenPartnerApplication } from "@/lib/program-applications/screen-partner-application";
 import { ProgramEnrollmentStatus } from "@prisma/client";
 import * as z from "zod/v4";
 import { defineJob } from "../index";
@@ -97,7 +97,7 @@ export const autoApprovePartnerJob = defineJob({
     );
 
     if (canManageFraudEvents) {
-      const { riskSeverity } = await getPartnerApplicationRisks({
+      const { riskSeverity } = await getProgramApplicationRisks({
         program,
         partner: programEnrollment.partner,
       });
@@ -189,7 +189,7 @@ export const autoApprovePartnerJob = defineJob({
       }
     }
 
-    await approvePartner({
+    await approveProgramApplication({
       programId,
       partnerId,
       userId: owner.userId,

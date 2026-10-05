@@ -1,4 +1,4 @@
-import { screenPartnerApplication } from "@/lib/api/partners/applications/screen-partner-application";
+import { screenPartnerApplication } from "@/lib/program-applications/screen-partner-application";
 import { prisma } from "@/lib/prisma";
 import { ProgramEnrollmentStatus } from "@prisma/client";
 import * as z from "zod/v4";
