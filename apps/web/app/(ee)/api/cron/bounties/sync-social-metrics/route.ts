@@ -5,7 +5,7 @@ import {
 import { getSocialMetricsUpdates } from "@/lib/bounty/api/get-social-metrics-updates";
 import { isBountyEnded } from "@/lib/bounty/bounty-period";
 import {
-  getPendingSocialMetricsMilestones,
+  getHighestReachedSocialMetricsThreshold,
   hasReachedSocialMetricsEarningCap,
 } from "@/lib/bounty/social-metrics-milestones";
 import { resolveBountyDetails } from "@/lib/bounty/utils";
@@ -91,7 +91,6 @@ export const POST = withCron(async ({ rawBody }) => {
       id: true,
       urls: true,
       socialMetricCount: true,
-      approvedSocialMetricThreshold: true,
       status: true,
       partner: {
         select: {
@@ -175,17 +174,10 @@ export const POST = withCron(async ({ rawBody }) => {
       const shouldTransitionToSubmitted =
         submission.status === "draft" && hasMetCriteria;
 
-      // A partially approved submission goes back to review when it reaches a new milestone
-      const hasReachedNewMilestone =
-        submission.status === BountySubmissionStatus.partiallyApproved &&
-        getPendingSocialMetricsMilestones({
-          bounty,
-          submission: {
-            socialMetricCount,
-            approvedSocialMetricThreshold:
-              submission.approvedSocialMetricThreshold,
-          },
-        }).length > 0;
+      const highestReachedThreshold = getHighestReachedSocialMetricsThreshold({
+        bounty,
+        socialMetricCount,
+      });
 
       const updateData: Prisma.BountySubmissionUpdateInput = {
         socialMetricCount,
@@ -214,15 +206,17 @@ export const POST = withCron(async ({ rawBody }) => {
 
       syncedCount++;
 
-      // Skips the change if a review approved more milestones after we read the submission
-      if (hasReachedNewMilestone) {
+      // A partially approved submission goes back to review when it reaches a new milestone
+      // The where clause uses the current status and threshold, not the ones we read, so a concurrent approval is taken into account
+      if (highestReachedThreshold != null) {
         updates.push(
           prisma.bountySubmission.updateMany({
             where: {
               id,
               status: BountySubmissionStatus.partiallyApproved,
-              approvedSocialMetricThreshold:
-                submission.approvedSocialMetricThreshold,
+              approvedSocialMetricThreshold: {
+                lt: highestReachedThreshold,
+              },
             },
             data: {
               status: BountySubmissionStatus.submitted,
