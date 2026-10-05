@@ -201,7 +201,7 @@ test.describe("program applications", () => {
         {
           partnerId: pendingUsWithPlatforms.partnerId!,
           type: "twitter",
-          identifier: "partner_handle",
+          identifier: "application_handle",
           verifiedAt: VERIFIED_AT,
         },
         {
