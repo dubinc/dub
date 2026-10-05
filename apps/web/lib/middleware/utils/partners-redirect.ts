@@ -50,6 +50,7 @@ const PARTNERS_PROGRAM_REDIRECTS = {
   missioncontrolhq: "squad-so",
   nozomio: "folk",
   base: "coinbasewallet",
+  oddshub: "outlier-as",
 };
 
 export const partnersProgramRedirects = (path: string) => {

@@ -19,6 +19,22 @@ function applicationFieldFilter(
     : { in: parsed.values };
 }
 
+function buildCountryWhere(
+  country?: string,
+): Prisma.ProgramApplicationWhereInput | undefined {
+  const countryFilter = applicationFieldFilter(country);
+
+  if (!countryFilter) {
+    return undefined;
+  }
+
+  return {
+    partner: {
+      country: countryFilter,
+    },
+  };
+}
+
 type ProgramApplicationWhereParams = Omit<
   z.infer<typeof getProgramApplicationsCountQuerySchema>,
   "groupBy"
@@ -65,14 +81,14 @@ export function buildProgramApplicationWhere({
 }: ProgramApplicationWhereParams): Prisma.ProgramApplicationWhereInput {
   const query = search?.trim();
   const groupIdFilter = applicationFieldFilter(groupId);
-  const countryFilter = applicationFieldFilter(country);
+  const countryWhere = buildCountryWhere(country);
 
   return {
     programId,
     status,
     partnerId: { not: null },
     ...(groupIdFilter && { groupId: groupIdFilter }),
-    ...(countryFilter && { country: countryFilter }),
+    ...countryWhere,
     ...(query ? buildSearchWhere(query) : {}),
   };
 }
