@@ -115,19 +115,25 @@ export async function importPartners(payload: RewardfulImportPayload) {
       );
 
       if (filteredPartners.length > 0) {
-        await redis.hset(
-          `rewardful:affiliates:${program.id}`,
-          Object.fromEntries(
-            filteredPartners.map((p) => [
-              p.rewardfulAffiliateId,
-              {
-                partnerId: p.dubPartnerId,
-                groupId: p.dubPartnerGroupId,
-                discountId: p.dubDiscountId,
-              },
-            ]),
-          ),
-        );
+        // Coupon import reads this map to create partner links. A preserved
+        // ban must not gain those links, but still needs a search update.
+        const partnersToMap = filteredPartners.filter((p) => !p.preservedBan);
+
+        if (partnersToMap.length > 0) {
+          await redis.hset(
+            `rewardful:affiliates:${program.id}`,
+            Object.fromEntries(
+              partnersToMap.map((p) => [
+                p.rewardfulAffiliateId,
+                {
+                  partnerId: p.dubPartnerId,
+                  groupId: p.dubPartnerGroupId,
+                  discountId: p.dubDiscountId,
+                },
+              ]),
+            ),
+          );
+        }
 
         // Queue an index update because the imported partners were enrolled.
         // Queued per page rather than per partner.
@@ -250,5 +256,6 @@ async function createPartnerAndLinks({
     dubPartnerId: partner.id,
     dubPartnerGroupId: programEnrollment.groupId,
     dubDiscountId: programEnrollment.discountId,
+    preservedBan,
   };
 }
