@@ -2,7 +2,7 @@ import { rejectProgramApplicationAction } from "@/lib/actions/partners/reject-pr
 import {
   getProgramApplicationRejectionReasonLabel,
   PROGRAM_APPLICATION_REJECTION_REASON_ORDER,
-} from "@/lib/partners/program-application-rejection";
+} from "@/lib/program-applications/program-application-rejection";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { PartnerProps } from "@/lib/types";
 import { MAX_FRAUD_REASON_LENGTH } from "@/lib/zod/schemas/partners";

@@ -4,7 +4,7 @@ import { ProgramApplicationRejectionReason } from "@prisma/client";
  * Labels for `ProgramApplicationRejectionReason` (Prisma enum values as keys).
  * Kept prisma-free so client components can import safely.
  */
-export const PROGRAM_APPLICATION_REJECTION_REASON_LABELS: Record<
+const PROGRAM_APPLICATION_REJECTION_REASON_LABELS: Record<
   ProgramApplicationRejectionReason,
   string
 > = {
@@ -14,9 +14,7 @@ export const PROGRAM_APPLICATION_REJECTION_REASON_LABELS: Record<
   other: "Other",
 } as const;
 
-export const STANDARD_REAPPLICATION_DAYS = 30;
-
-export type ProgramApplicationRejectionReasonKey =
+type ProgramApplicationRejectionReasonKey =
   keyof typeof PROGRAM_APPLICATION_REJECTION_REASON_LABELS;
 
 /** Combobox / UI order (first option is the default suggestion). */
@@ -36,3 +34,5 @@ export function getProgramApplicationRejectionReasonLabel(
 
   return PROGRAM_APPLICATION_REJECTION_REASON_LABELS[reason] ?? null;
 }
+
+export const STANDARD_REAPPLICATION_DAYS = 30;

@@ -4,7 +4,7 @@ import { resolveFraudGroups } from "@/lib/api/fraud/resolve-fraud-groups";
 import { queuePartnerSearchSync } from "@/lib/api/partners/queue-partner-search-sync";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { trackApplicationEvents } from "@/lib/application-events/update-application-event";
-import { getProgramApplicationRejectionReasonLabel } from "@/lib/partners/program-application-rejection";
+import { getProgramApplicationRejectionReasonLabel } from "@/lib/program-applications/program-application-rejection";
 import { prisma } from "@/lib/prisma";
 import { WorkspaceProps } from "@/lib/types";
 import { rejectProgramApplicationSchema } from "@/lib/zod/schemas/program-application";
