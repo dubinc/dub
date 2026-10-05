@@ -157,7 +157,10 @@ import {
   payoutsCountQuerySchema,
   payoutsQuerySchema,
 } from "./zod/schemas/payouts";
-import { PartnerApplicationSchema } from "./zod/schemas/program-application";
+import {
+  PartnerApplicationSchema,
+  ProgramApplicationSchema,
+} from "./zod/schemas/program-application";
 import {
   programApplicationFormDataWithValuesSchema,
   programApplicationFormFieldWithValuesSchema,
@@ -193,6 +196,7 @@ import {
 import { fraudEventContext } from "./zod/schemas/schemas";
 import { submittedLeadFormDataSchema } from "./zod/schemas/submitted-lead-form";
 import {
+  SubmittedLeadCommentSchema,
   submittedLeadSchema,
   updateSubmittedLeadStatusSchema,
 } from "./zod/schemas/submitted-leads";
@@ -547,6 +551,8 @@ export type EnrolledPartnerProps = z.infer<typeof EnrolledPartnerSchema> & {
 
 export type PartnerApplicationProps = z.infer<typeof PartnerApplicationSchema>;
 
+export type ProgramApplicationProps = z.infer<typeof ProgramApplicationSchema>;
+
 export type NetworkPartnerProps = z.infer<typeof NetworkPartnerSchema>;
 
 export type AdminNetworkPartner = z.infer<typeof adminNetworkPartnerSchema>;
@@ -812,6 +818,10 @@ export type CreateFraudEventInput = Pick<
   };
 
 export type SubmittedLeadProps = z.infer<typeof submittedLeadSchema>;
+
+export type SubmittedLeadCommentProps = z.infer<
+  typeof SubmittedLeadCommentSchema
+>;
 
 export type SubmittedLeadFormDataField = z.infer<
   typeof submittedLeadFormDataSchema

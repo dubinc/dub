@@ -16,3 +16,23 @@ model PartnerComment {
   @@index(createdAt)
   @@index(userId)
 }
+
+model SubmittedLeadComment {
+  id             String    @id @default(cuid())
+  leadId         String
+  userId         String
+  partnerId      String? // Populated only if the author is a partner
+  text           String    @db.Text
+  partnerVisible Boolean   @default(false)
+  notifiedAt     DateTime? // Set when a notification job has handled this comment
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  lead    SubmittedLead @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  user    User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  partner Partner?      @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+
+  @@index([leadId, createdAt])
+  @@index(userId)
+  @@index(partnerId)
+}

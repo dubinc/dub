@@ -1,13 +1,10 @@
 import { ZodOpenApiPathsObject } from "zod-openapi";
-import { approvePartner } from "./approve-partner";
 import { attributeReferral } from "./attribute-referral";
 import { banPartner } from "./ban-partner";
 import { createPartner } from "./create-partner";
 import { createPartnerLink } from "./create-partner-link";
 import { deactivatePartner } from "./deactivate-partner";
-import { listPartnerApplications } from "./list-partner-applications";
 import { listPartners } from "./list-partners";
-import { rejectPartner } from "./reject-partner";
 import { retrievePartnerAnalytics } from "./retrieve-analytics";
 import { retrievePartnerLinks } from "./retrieve-partner-links";
 import { upsertPartnerLink } from "./upsert-partner-link";
@@ -16,9 +13,6 @@ export const partnersPaths: ZodOpenApiPathsObject = {
   "/partners": {
     post: createPartner,
     get: listPartners,
-  },
-  "/partners/applications": {
-    get: listPartnerApplications,
   },
   "/partners/links": {
     post: createPartnerLink,
@@ -29,12 +23,6 @@ export const partnersPaths: ZodOpenApiPathsObject = {
   },
   "/partners/analytics": {
     get: retrievePartnerAnalytics,
-  },
-  "/partners/applications/approve": {
-    post: approvePartner,
-  },
-  "/partners/applications/reject": {
-    post: rejectPartner,
   },
   "/partners/{partnerId}/referral": {
     post: attributeReferral,

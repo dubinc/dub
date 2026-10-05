@@ -6,6 +6,7 @@ import { getEffectiveBountyPeriod } from "@/lib/bounty/api/bounty-availability";
 import { getBountyOrThrow } from "@/lib/bounty/api/get-bounty-or-throw";
 import { getSocialMetricsUpdates } from "@/lib/bounty/api/get-social-metrics-updates";
 import { isBountyEnded, isBountyStarted } from "@/lib/bounty/bounty-period";
+import { hasReachedSocialMetricsEarningCap } from "@/lib/bounty/social-metrics-milestones";
 import { resolveBountyDetails } from "@/lib/bounty/utils";
 import { qstash } from "@/lib/cron";
 import { prisma } from "@/lib/prisma";
@@ -53,6 +54,7 @@ export const POST = withWorkspace(
                 id: true,
                 urls: true,
                 status: true,
+                socialMetricCount: true,
                 partner: true,
                 programEnrollment: {
                   select: {
@@ -64,6 +66,13 @@ export const POST = withWorkspace(
           }
         : undefined,
     });
+
+    if (isBountyEnded(bounty.endsAt)) {
+      throw new DubApiError({
+        code: "bad_request",
+        message: "Social metrics can't be synced after the bounty ends.",
+      });
+    }
 
     const bountyInfo = resolveBountyDetails(bounty);
 
@@ -104,10 +113,18 @@ export const POST = withWorkspace(
       });
     }
 
-    if (submission.status === "approved") {
+    if (submission.status === "approved" || submission.status === "rejected") {
       throw new DubApiError({
         code: "bad_request",
-        message: "Social metrics can't be synced for an approved submission.",
+        message: `Social metrics can't be synced for ${submission.status === "approved" ? "an approved" : "a rejected"} submission.`,
+      });
+    }
+
+    if (hasReachedSocialMetricsEarningCap({ bounty, submission })) {
+      throw new DubApiError({
+        code: "bad_request",
+        message:
+          "This submission has already reached the maximum reward for this bounty.",
       });
     }
 

@@ -46,7 +46,11 @@ export const GET = withWorkspace(
       },
       include: {
         user: true,
-        commission: true,
+        commissions: {
+          orderBy: {
+            createdAt: "asc",
+          },
+        },
         partner: true,
         programEnrollment: true,
       },
@@ -58,7 +62,7 @@ export const GET = withWorkspace(
     });
 
     const bountySubmissions = submissions.map(
-      ({ partner, programEnrollment, commission, user, ...submissionData }) =>
+      ({ partner, programEnrollment, commissions, user, ...submissionData }) =>
         BountySubmissionExtendedSchema.parse({
           ...submissionData,
           partner: {
@@ -67,7 +71,7 @@ export const GET = withWorkspace(
             id: partner.id,
             status: programEnrollment?.status ?? null,
           },
-          commission,
+          commissions,
           user,
         }),
     );
