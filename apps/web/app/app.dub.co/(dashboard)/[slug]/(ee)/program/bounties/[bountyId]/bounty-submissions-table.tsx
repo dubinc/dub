@@ -39,6 +39,7 @@ import {
   nFormatter,
   timeAgo,
 } from "@dub/utils";
+import { BountySubmissionStatus } from "@prisma/client";
 import { Row } from "@tanstack/react-table";
 import Link from "next/link";
 import { useParams } from "next/navigation";
@@ -356,7 +357,7 @@ export function BountySubmissionsTable() {
                     user={row.original.user!}
                     date={row.original.reviewedAt}
                     label={
-                      row.original.status === "rejected"
+                      row.original.status === BountySubmissionStatus.rejected
                         ? "Rejected at"
                         : "Approved at"
                     }
@@ -430,9 +431,14 @@ export function BountySubmissionsTable() {
           ?.count || 0
       : submissionsCount
           ?.filter((s) =>
-            ["draft", "submitted", "partiallyApproved", "approved"].includes(
-              s.status,
-            ),
+            (
+              [
+                BountySubmissionStatus.draft,
+                BountySubmissionStatus.submitted,
+                BountySubmissionStatus.partiallyApproved,
+                BountySubmissionStatus.approved,
+              ] as BountySubmissionStatus[]
+            ).includes(s.status),
           )
           .reduce((acc, curr) => acc + curr.count, 0) || 0,
     loading: isLoading || isBountyLoading,
