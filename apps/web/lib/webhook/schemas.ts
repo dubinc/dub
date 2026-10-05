@@ -156,7 +156,8 @@ export const webhookEventSchema = z
       })
       .meta({
         description:
-          "Triggered when a partner submits an application to join a program.",
+          "Deprecated: Use `program_application.created` instead. Triggered when a partner submits an application to join a program.",
+        deprecated: true,
         id: "ProgramApplicationSubmittedEvent",
         outputId: "ProgramApplicationSubmittedEvent",
       }),
