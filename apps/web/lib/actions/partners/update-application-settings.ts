@@ -36,6 +36,18 @@ export const updateApplicationSettingsAction = authActionClient
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
+    const aiAutoApproveEnabledAt =
+      aiAutoApproveEnabled === false
+        ? null
+        : aiAutoApproveEnabled === true
+          ? (
+              await prisma.program.findUnique({
+                where: { id: programId },
+                select: { aiAutoApproveEnabledAt: true },
+              })
+            )?.aiAutoApproveEnabledAt ?? new Date()
+          : undefined;
+
     const program = await prisma.program.update({
       where: {
         id: programId,
@@ -55,8 +67,8 @@ export const updateApplicationSettingsAction = authActionClient
           applicationScreeningCriteria:
             applicationScreeningCriteria.trim() || null,
         }),
-        ...(aiAutoApproveEnabled !== undefined && {
-          aiAutoApproveEnabledAt: aiAutoApproveEnabled ? new Date() : null,
+        ...(aiAutoApproveEnabledAt !== undefined && {
+          aiAutoApproveEnabledAt,
         }),
       },
     });

@@ -67,9 +67,9 @@ export async function evaluatePartnerApplication(
     state,
     questionKey: "poorFit",
     instructions:
-      "Is this application spam, empty, or clearly irrelevant to this program?",
+      "Is this application spam or clearly irrelevant to this program?",
     criteria: {
-      true: "Spam, empty, or clearly irrelevant to the program",
+      true: "Spam or clearly irrelevant to the program",
       false: "Plausible fit, or not enough signal to reject",
     },
     tag: "jev-partner-auto-approve",
