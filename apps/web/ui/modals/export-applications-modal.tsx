@@ -4,7 +4,8 @@ import {
   exportApplicationColumns,
   exportApplicationsColumnsDefault,
 } from "@/lib/zod/schemas/partners";
-import { Button, Checkbox, Modal, useRouterStuff } from "@dub/ui";
+import { Button, Checkbox, Modal, Switch, useRouterStuff } from "@dub/ui";
+import { ProgramApplicationStatus } from "@prisma/client";
 import {
   Dispatch,
   SetStateAction,
@@ -18,12 +19,15 @@ import { toast } from "sonner";
 
 interface FormData {
   columns: string[];
+  useFilters: boolean;
 }
 
 function ExportApplicationsModal({
+  status,
   showExportApplicationsModal,
   setShowExportApplicationsModal,
 }: {
+  status: ProgramApplicationStatus;
   showExportApplicationsModal: boolean;
   setShowExportApplicationsModal: Dispatch<SetStateAction<boolean>>;
 }) {
@@ -39,6 +43,7 @@ function ExportApplicationsModal({
   } = useForm<FormData>({
     defaultValues: {
       columns: exportApplicationsColumnsDefault,
+      useFilters: true,
     },
   });
 
@@ -50,13 +55,22 @@ function ExportApplicationsModal({
     const lid = toast.loading("Exporting applications...");
 
     try {
+      const params = {
+        workspaceId,
+        status,
+        ...(data.columns.length
+          ? { columns: data.columns.join(",") }
+          : undefined),
+      };
+
+      const searchParams = data.useFilters
+        ? getQueryString(params, {
+            exclude: ["search", "partnerId", "sortBy", "page"],
+          })
+        : "?" + new URLSearchParams(params);
+
       const response = await fetch(
-        `/api/program-applications/export?${new URLSearchParams({
-          workspaceId: workspaceId,
-          ...(data.columns.length
-            ? { columns: data.columns.join(",") }
-            : undefined),
-        })}`,
+        `/api/program-applications/export${searchParams}`,
         {
           method: "GET",
           headers: {
@@ -139,6 +153,27 @@ function ExportApplicationsModal({
           </div>
         </div>
 
+        <div className="border-t border-neutral-200 bg-neutral-50 px-4 py-4 sm:px-6">
+          <Controller
+            name="useFilters"
+            control={control}
+            render={({ field }) => (
+              <div className="flex items-start justify-between gap-2">
+                <div className="flex select-none flex-col gap-1">
+                  <span className="text-sm font-medium text-neutral-600 group-hover:text-neutral-800">
+                    Apply current filters
+                  </span>
+                  <span className="text-xs text-neutral-500">
+                    Filter exported applications by your currently selected
+                    filters. The search field is not included.
+                  </span>
+                </div>
+                <Switch checked={field.value} fn={field.onChange} />
+              </div>
+            )}
+          />
+        </div>
+
         <div className="flex items-center justify-end gap-2 border-t border-neutral-200 bg-neutral-50 px-4 py-5 sm:px-6">
           <Button
             onClick={() => setShowExportApplicationsModal(false)}
@@ -159,18 +194,23 @@ function ExportApplicationsModal({
   );
 }
 
-export function useExportApplicationsModal() {
+export function useExportApplicationsModal({
+  status,
+}: {
+  status: ProgramApplicationStatus;
+}) {
   const [showExportApplicationsModal, setShowExportApplicationsModal] =
     useState(false);
 
   const ExportApplicationsModalCallback = useCallback(() => {
     return (
       <ExportApplicationsModal
+        status={status}
         showExportApplicationsModal={showExportApplicationsModal}
         setShowExportApplicationsModal={setShowExportApplicationsModal}
       />
     );
-  }, [showExportApplicationsModal, setShowExportApplicationsModal]);
+  }, [status, showExportApplicationsModal, setShowExportApplicationsModal]);
 
   return useMemo(
     () => ({

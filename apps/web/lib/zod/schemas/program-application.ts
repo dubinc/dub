@@ -6,6 +6,7 @@ import * as z from "zod/v4";
 import { getPaginationQuerySchema } from "./misc";
 import {
   EnrolledPartnerSchema,
+  exportApplicationsColumnsDefault,
   getPartnersQuerySchema,
   MAX_FRAUD_REASON_LENGTH,
   OldPartnerPlatformsFields,
@@ -108,6 +109,20 @@ export const getProgramApplicationsCountQuerySchema =
     .extend({
       groupBy: z.enum(["country", "groupId"]).optional(),
     });
+
+export const exportApplicationsQuerySchema = getProgramApplicationsQuerySchema
+  .pick({
+    status: true,
+    groupId: true,
+    country: true,
+    sortOrder: true,
+  })
+  .extend({
+    columns: z
+      .string()
+      .default(exportApplicationsColumnsDefault.join(","))
+      .transform((v) => v?.split(",")),
+  });
 
 export const approveProgramApplicationSchema = z.object({
   partnerId: z.string().describe("The ID of the partner to approve."),
