@@ -177,7 +177,7 @@ export const POST = withCron(async ({ rawBody }) => {
 
       // A partially approved submission goes back to review when it reaches a new milestone
       const hasReachedNewMilestone =
-        submission.status === "partiallyApproved" &&
+        submission.status === BountySubmissionStatus.partiallyApproved &&
         getPendingSocialMetricsMilestones({
           bounty,
           submission: {
@@ -220,12 +220,12 @@ export const POST = withCron(async ({ rawBody }) => {
           prisma.bountySubmission.updateMany({
             where: {
               id,
-              status: "partiallyApproved",
+              status: BountySubmissionStatus.partiallyApproved,
               approvedSocialMetricThreshold:
                 submission.approvedSocialMetricThreshold,
             },
             data: {
-              status: "submitted",
+              status: BountySubmissionStatus.submitted,
             },
           }),
         );

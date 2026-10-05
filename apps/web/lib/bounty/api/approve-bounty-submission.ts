@@ -248,7 +248,9 @@ async function approveSocialMetricsMilestones({
       },
       data: {
         approvedSocialMetricThreshold: approvedThreshold,
-        status: completesEarningCap ? "approved" : "partiallyApproved",
+        status: completesEarningCap
+          ? BountySubmissionStatus.approved
+          : BountySubmissionStatus.partiallyApproved,
         reviewedAt: new Date(),
         userId: user.id,
         rejectionNote: null,

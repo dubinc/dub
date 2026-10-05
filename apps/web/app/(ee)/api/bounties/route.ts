@@ -31,7 +31,11 @@ import {
 } from "@/lib/zod/schemas/bounties";
 import { WORKFLOW_ACTION_TYPES } from "@/lib/zod/schemas/workflows";
 import { APP_DOMAIN_WITH_NGROK, pluck } from "@dub/utils";
-import { BountyStartMode, Workflow } from "@prisma/client";
+import {
+  BountyStartMode,
+  BountySubmissionStatus,
+  Workflow,
+} from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
@@ -89,7 +93,11 @@ export const GET = withWorkspace(
             where: {
               programId,
               status: {
-                in: ["submitted", "partiallyApproved", "approved"],
+                in: [
+                  BountySubmissionStatus.submitted,
+                  BountySubmissionStatus.partiallyApproved,
+                  BountySubmissionStatus.approved,
+                ],
               },
             },
             _count: {

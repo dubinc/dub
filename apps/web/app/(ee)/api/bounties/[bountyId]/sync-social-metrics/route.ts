@@ -16,7 +16,7 @@ import { prisma } from "@/lib/prisma";
 import { sendEmail } from "@dub/email";
 import BountyCompleted from "@dub/email/templates/bounty-completed";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
-import { Prisma } from "@prisma/client";
+import { BountySubmissionStatus, Prisma } from "@prisma/client";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 
@@ -187,7 +187,7 @@ export const POST = withWorkspace(
 
       // A partially approved submission goes back to review when it reaches a new milestone
       const hasReachedNewMilestone =
-        submission.status === "partiallyApproved" &&
+        submission.status === BountySubmissionStatus.partiallyApproved &&
         getPendingSocialMetricsMilestones({
           bounty,
           submission: {
@@ -213,12 +213,12 @@ export const POST = withWorkspace(
               prisma.bountySubmission.updateMany({
                 where: {
                   id: submissionId,
-                  status: "partiallyApproved",
+                  status: BountySubmissionStatus.partiallyApproved,
                   approvedSocialMetricThreshold:
                     submission.approvedSocialMetricThreshold,
                 },
                 data: {
-                  status: "submitted",
+                  status: BountySubmissionStatus.submitted,
                 },
               }),
             ]
