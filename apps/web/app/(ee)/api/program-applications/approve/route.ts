@@ -8,8 +8,9 @@ import { NextResponse } from "next/server";
 // POST /api/program-applications/approve – Approve a pending partner
 export const POST = withWorkspace(
   async ({ workspace, req, session }) => {
-    const { partnerId, groupId, applicationId } =
-      approveProgramApplicationSchema.parse(await parseRequestBody(req));
+    const { partnerId, groupId } = approveProgramApplicationSchema.parse(
+      await parseRequestBody(req),
+    );
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
@@ -17,7 +18,6 @@ export const POST = withWorkspace(
       programId,
       partnerId,
       groupId,
-      applicationId,
       userId: session.user.id,
     });
 

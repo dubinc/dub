@@ -55,17 +55,10 @@ const REAPPLICATION_TIMEFRAME_DESCRIPTIONS: Record<
   never: "The partner can never reapply for the program.",
 };
 
-type ApplicationPartner = Pick<
-  PartnerProps,
-  "id" | "name" | "email" | "image"
-> & {
-  applicationId?: string | null;
-};
-
 interface RejectProgramApplicationModalProps {
   showRejectProgramApplicationModal: boolean;
   setShowRejectProgramApplicationModal: Dispatch<SetStateAction<boolean>>;
-  partner: ApplicationPartner;
+  partner: Pick<PartnerProps, "id" | "name" | "email" | "image">;
   onConfirm?: () => void | Promise<void>;
   confirmShortcutOptions?: {
     modal?: boolean;
@@ -140,7 +133,6 @@ export function RejectProgramApplicationModal({
     await rejectProgramApplication({
       workspaceId,
       partnerId: partner.id,
-      applicationId: partner.applicationId ?? undefined,
       reapplicationTimeframe,
       ...(flagForFraud
         ? { flagForFraud: true, flagForFraudReason: flagForFraudReason.trim() }
@@ -382,7 +374,7 @@ export function useRejectProgramApplicationModal({
   onConfirm,
   confirmShortcutOptions,
 }: {
-  partner: ApplicationPartner;
+  partner: Pick<PartnerProps, "id" | "name" | "email" | "image">;
   onConfirm?: () => void | Promise<void>;
   confirmShortcutOptions?: {
     modal?: boolean;

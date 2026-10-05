@@ -115,12 +115,6 @@ export const approveProgramApplicationSchema = z.object({
     .describe(
       "The ID of the group to assign the partner to. If not provided, the partner will be assigned to the group they applied to, or the program's default group if no application group is set.",
     ),
-  applicationId: z
-    .string()
-    .nullish()
-    .describe(
-      "The ID of the application to approve. Only used for group applications from partners who are already enrolled; defaults to their pending application.",
-    ),
 });
 
 export const bulkApproveProgramApplicationsSchema = z.object({
@@ -147,12 +141,6 @@ export const PROGRAM_APPLICATION_REJECTION_NOTE_MAX_LENGTH = 500;
 
 export const rejectProgramApplicationSchema = z.object({
   partnerId: z.string().describe("The ID of the partner to reject."),
-  applicationId: z
-    .string()
-    .nullish()
-    .describe(
-      "The ID of the application to reject. Only used for group applications from partners who are already enrolled; defaults to their pending application.",
-    ),
   rejectionReason: z
     .enum(ProgramApplicationRejectionReason)
     .optional()

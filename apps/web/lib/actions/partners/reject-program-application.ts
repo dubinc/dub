@@ -17,7 +17,6 @@ export const rejectProgramApplicationAction = authActionClient
     const { workspace, user } = ctx;
     const {
       partnerId,
-      applicationId,
       rejectionReason,
       rejectionNote,
       reapplicationTimeframe,
@@ -33,7 +32,6 @@ export const rejectProgramApplicationAction = authActionClient
     await rejectProgramApplication({
       workspace,
       partnerId,
-      applicationId,
       rejectionReason,
       rejectionNote,
       reapplicationTimeframe,
