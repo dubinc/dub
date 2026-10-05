@@ -2,6 +2,7 @@ import { trackActivityLog } from "@/lib/api/activity-log/track-activity-log";
 import { createId } from "@/lib/api/create-id";
 import { DubApiError } from "@/lib/api/errors";
 import { getGroupOrThrow } from "@/lib/api/groups/get-group-or-throw";
+import { movePartnersToGroup } from "@/lib/api/groups/move-partners-to-group";
 import { queuePartnerSearchSync } from "@/lib/api/partners/queue-partner-search-sync";
 import { trackApplicationEvents } from "@/lib/application-events/update-application-event";
 import { dispatchWorkflows } from "@/lib/jobs/publish-workflows";
@@ -30,40 +31,54 @@ export async function approveProgramApplication({
   groupId,
   userId,
 }: ApproveProgramApplicationInput) {
-  const programApplication = await prisma.programApplication.findFirst({
-    where: {
-      ...(applicationId && { id: applicationId }),
-      programId,
-      partnerId,
-      status: {
-        in: [
-          ProgramApplicationStatus.pending,
-          ProgramApplicationStatus.rejected,
-        ],
+  const [programApplication, existingEnrollment] = await Promise.all([
+    prisma.programApplication.findFirst({
+      where: {
+        ...(applicationId && { id: applicationId }),
+        programId,
+        partnerId,
+        status: {
+          in: [
+            ProgramApplicationStatus.pending,
+            ProgramApplicationStatus.rejected,
+          ],
+        },
       },
-    },
-    select: {
-      id: true,
-      groupId: true,
-      status: true,
-      program: {
-        select: {
-          defaultGroupId: true,
-          workspace: {
-            select: {
-              id: true,
-              trialEndsAt: true,
-              partnersUsage: true,
-              partnersLimit: true,
+      select: {
+        id: true,
+        groupId: true,
+        status: true,
+        program: {
+          select: {
+            defaultGroupId: true,
+            workspace: {
+              select: {
+                id: true,
+                trialEndsAt: true,
+                partnersUsage: true,
+                partnersLimit: true,
+              },
             },
           },
         },
       },
-    },
-    orderBy: {
-      createdAt: "desc",
-    },
-  });
+      orderBy: {
+        createdAt: "desc",
+      },
+    }),
+
+    prisma.programEnrollment.findUnique({
+      where: {
+        partnerId_programId: {
+          partnerId,
+          programId,
+        },
+      },
+      select: {
+        status: true,
+      },
+    }),
+  ]);
 
   if (!programApplication) {
     throw new DubApiError({
@@ -92,39 +107,44 @@ export async function approveProgramApplication({
 
   const now = new Date();
 
+  const isNewEnrollment =
+    existingEnrollment?.status !== ProgramEnrollmentStatus.approved;
+
   await prisma.$transaction(async (tx) => {
-    throwIfPartnersLimitExceeded(program.workspace);
+    if (isNewEnrollment) {
+      throwIfPartnersLimitExceeded(program.workspace);
 
-    const programEnrollment: Partial<ProgramEnrollment> = {
-      status: ProgramEnrollmentStatus.approved,
-      createdAt: now,
-      ...(programApplication && { applicationId: programApplication.id }),
-      groupId: group.id,
-      clickRewardId: group.clickRewardId,
-      leadRewardId: group.leadRewardId,
-      saleRewardId: group.saleRewardId,
-      referralRewardId: group.referralRewardId,
-      customRewardId: group.customRewardId,
-      discountId: group.discountId,
-    };
+      const programEnrollment: Partial<ProgramEnrollment> = {
+        status: ProgramEnrollmentStatus.approved,
+        createdAt: now,
+        ...(programApplication && { applicationId: programApplication.id }),
+        groupId: group.id,
+        clickRewardId: group.clickRewardId,
+        leadRewardId: group.leadRewardId,
+        saleRewardId: group.saleRewardId,
+        referralRewardId: group.referralRewardId,
+        customRewardId: group.customRewardId,
+        discountId: group.discountId,
+      };
 
-    await tx.programEnrollment.upsert({
-      where: {
-        partnerId_programId: {
+      await tx.programEnrollment.upsert({
+        where: {
+          partnerId_programId: {
+            partnerId,
+            programId,
+          },
+        },
+        create: {
+          id: createId({ prefix: "pge_" }),
           partnerId,
           programId,
+          ...programEnrollment,
         },
-      },
-      create: {
-        id: createId({ prefix: "pge_" }),
-        partnerId,
-        programId,
-        ...programEnrollment,
-      },
-      update: {
-        ...programEnrollment,
-      },
-    });
+        update: {
+          ...programEnrollment,
+        },
+      });
+    }
 
     if (programApplication) {
       await tx.programApplication.update({
@@ -141,17 +161,31 @@ export async function approveProgramApplication({
       });
     }
 
-    await tx.project.update({
-      where: {
-        id: program.workspace.id,
-      },
-      data: {
-        partnersUsage: {
-          increment: 1,
+    if (isNewEnrollment) {
+      await tx.project.update({
+        where: {
+          id: program.workspace.id,
         },
-      },
-    });
+        data: {
+          partnersUsage: {
+            increment: 1,
+          },
+        },
+      });
+    }
   });
+
+  // Approved partners are applying to join another group, so their enrollment
+  // is moved instead of re-approved
+  if (!isNewEnrollment) {
+    await movePartnersToGroup({
+      workspaceId: program.workspace.id,
+      programId,
+      partnerIds: [partnerId],
+      userId,
+      group,
+    });
+  }
 
   waitUntil(
     Promise.allSettled([
@@ -179,17 +213,18 @@ export async function approveProgramApplication({
         partnerIds: [partnerId],
       }),
 
-      dispatchWorkflows({
-        name: "partner-approved-workflow",
-        payload: {
-          programId,
-          partnerId,
-          userId,
-        },
-        options: {
-          label: partnerId,
-        },
-      }),
+      isNewEnrollment &&
+        dispatchWorkflows({
+          name: "partner-approved-workflow",
+          payload: {
+            programId,
+            partnerId,
+            userId,
+          },
+          options: {
+            label: partnerId,
+          },
+        }),
     ]),
   );
 }

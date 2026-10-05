@@ -111,6 +111,12 @@ export const getProgramApplicationsCountQuerySchema =
 
 export const approveProgramApplicationSchema = z.object({
   partnerId: z.string().describe("The ID of the partner to approve."),
+  applicationId: z
+    .string()
+    .optional()
+    .describe(
+      "The ID of the application to approve. If not provided, the partner's most recent pending or rejected application is used.",
+    ),
   groupId: z
     .string()
     .nullish()

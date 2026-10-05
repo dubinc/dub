@@ -4,8 +4,8 @@ import { resolveFraudGroups } from "@/lib/api/fraud/resolve-fraud-groups";
 import { queuePartnerSearchSync } from "@/lib/api/partners/queue-partner-search-sync";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { trackApplicationEvents } from "@/lib/application-events/update-application-event";
-import { getProgramApplicationRejectionReasonLabel } from "@/lib/program-applications/program-application-rejection";
 import { prisma } from "@/lib/prisma";
+import { getProgramApplicationRejectionReasonLabel } from "@/lib/program-applications/program-application-rejection";
 import { WorkspaceProps } from "@/lib/types";
 import { rejectProgramApplicationSchema } from "@/lib/zod/schemas/program-application";
 import { sendEmail } from "@dub/email";
@@ -23,6 +23,11 @@ type RejectProgramApplicationInput = z.infer<
   userId: string;
   workspace: Pick<WorkspaceProps, "id" | "defaultProgramId">;
 };
+
+const REJECTABLE_ENROLLMENT_STATUSES: ProgramEnrollmentStatus[] = [
+  ProgramEnrollmentStatus.pending,
+  ProgramEnrollmentStatus.rejected,
+];
 
 export async function rejectProgramApplication({
   workspace,
@@ -51,93 +56,143 @@ export async function rejectProgramApplication({
     });
   }
 
-  const programEnrollment = await prisma.programEnrollment.findUnique({
-    where: {
-      partnerId_programId: {
-        partnerId,
+  const [programApplication, existingEnrollment] = await Promise.all([
+    prisma.programApplication.findFirst({
+      where: {
         programId,
+        partnerId,
+        status: ProgramApplicationStatus.pending,
       },
-    },
-    include: {
-      partner: true,
-      program: {
-        select: {
-          name: true,
-          slug: true,
-          supportEmail: true,
+      select: {
+        id: true,
+        partner: {
+          select: {
+            name: true,
+            email: true,
+          },
+        },
+        program: {
+          select: {
+            name: true,
+            slug: true,
+            supportEmail: true,
+          },
         },
       },
-    },
-  });
+      orderBy: {
+        createdAt: "desc",
+      },
+    }),
 
-  if (!programEnrollment) {
+    prisma.programEnrollment.findUnique({
+      where: {
+        partnerId_programId: {
+          partnerId,
+          programId,
+        },
+      },
+      select: {
+        id: true,
+        status: true,
+      },
+    }),
+  ]);
+
+  if (!programApplication) {
     throw new DubApiError({
       code: "not_found",
-      message: "Program enrollment not found.",
+      message: "No pending application found.",
     });
   }
 
-  if (programEnrollment.status !== "pending") {
+  // Approved partners are applying to join another group, so only the
+  // application is rejected and their enrollment is left untouched
+  const isApplyingToAdditionalGroup =
+    existingEnrollment?.status === ProgramEnrollmentStatus.approved;
+
+  const enrollmentToReject = isApplyingToAdditionalGroup
+    ? null
+    : existingEnrollment;
+
+  if (
+    enrollmentToReject &&
+    !REJECTABLE_ENROLLMENT_STATUSES.includes(enrollmentToReject.status)
+  ) {
+    throw new DubApiError({
+      code: "bad_request",
+      message: `This application cannot be rejected because the partner is ${enrollmentToReject.status}.`,
+    });
+  }
+
+  if (isApplyingToAdditionalGroup && flagForFraud) {
     throw new DubApiError({
       code: "bad_request",
       message:
-        "This enrollment cannot be rejected because it is no longer pending.",
+        "Cannot flag for fraud when rejecting an application to join another group.",
     });
   }
 
   await prisma.$transaction(async (tx) => {
-    if (programEnrollment.applicationId) {
-      await tx.programApplication.update({
-        where: {
-          id: programEnrollment.applicationId,
-        },
-        data: {
-          status: ProgramApplicationStatus.rejected,
-          reviewedAt: new Date(),
-          rejectionReason,
-          rejectionNote,
-          userId,
-        },
-      });
-    }
+    await tx.programApplication.update({
+      where: {
+        id: programApplication.id,
+      },
+      data: {
+        status: ProgramApplicationStatus.rejected,
+        reviewedAt: new Date(),
+        rejectionReason,
+        rejectionNote,
+        userId,
+      },
+    });
 
-    // If the partner can immediately re-apply, delete the enrollment
-    if (reapplicationTimeframe === "instant") {
-      const { count } = await tx.programEnrollment.deleteMany({
-        where: {
-          id: programEnrollment.id,
-          status: "pending",
-        },
-      });
-
-      if (count !== 1) {
-        throw new DubApiError({
-          code: "bad_request",
-          message:
-            "This enrollment cannot be deleted because it is no longer pending.",
-        });
-      }
-
+    if (isApplyingToAdditionalGroup) {
       return;
     }
 
-    // Reject the enrollment and persist the reapplication timeframe
-    await tx.programEnrollment.update({
-      where: {
-        id: programEnrollment.id,
-        status: "pending",
-      },
-      data: {
-        status: ProgramEnrollmentStatus.rejected,
-        reapplicationTimeframe,
-        clickRewardId: null,
-        leadRewardId: null,
-        saleRewardId: null,
-        referralRewardId: null,
-        customRewardId: null,
-        discountId: null,
-      },
-    });
+    if (enrollmentToReject) {
+      // If the partner can immediately re-apply, delete the enrollment
+      if (reapplicationTimeframe === "instant") {
+        const { count } = await tx.programEnrollment.deleteMany({
+          where: {
+            id: enrollmentToReject.id,
+            status: {
+              in: REJECTABLE_ENROLLMENT_STATUSES,
+            },
+          },
+        });
+
+        if (count !== 1) {
+          throw new DubApiError({
+            code: "bad_request",
+            message:
+              "This enrollment cannot be deleted because it is no longer pending.",
+          });
+        }
+
+        return;
+      }
+
+      // Reject the enrollment and persist the reapplication timeframe
+      await tx.programEnrollment.update({
+        where: {
+          id: enrollmentToReject.id,
+          status: {
+            in: REJECTABLE_ENROLLMENT_STATUSES,
+          },
+        },
+        data: {
+          status: ProgramEnrollmentStatus.rejected,
+          reapplicationTimeframe,
+          clickRewardId: null,
+          leadRewardId: null,
+          saleRewardId: null,
+          referralRewardId: null,
+          customRewardId: null,
+          discountId: null,
+        },
+      });
+    }
 
     if (flagForFraud && flagForFraudReason) {
       await tx.fraudAlert.create({
@@ -150,13 +205,14 @@ export async function rejectProgramApplication({
     }
   });
 
-  const { partner, program } = programEnrollment;
+  const { partner, program } = programApplication;
 
   waitUntil(
     Promise.allSettled([
       // Queue an index update because the enrollment was either rejected or deleted.
       // The job reads the ID back, so this does not need to know which.
-      queuePartnerSearchSync({ enrollmentIds: [programEnrollment.id] }),
+      enrollmentToReject &&
+        queuePartnerSearchSync({ enrollmentIds: [enrollmentToReject.id] }),
 
       trackActivityLog({
         workspaceId: workspace.id,
@@ -167,32 +223,36 @@ export async function rejectProgramApplication({
         action: "partner_application.rejected",
         changeSet: {
           status: {
-            old: ProgramEnrollmentStatus.pending,
-            new: ProgramEnrollmentStatus.rejected,
+            old: ProgramApplicationStatus.pending,
+            new: ProgramApplicationStatus.rejected,
           },
         },
       }),
 
-      trackApplicationEvents({
-        event: "rejected",
-        programId,
-        partnerIds: [partnerId],
-      }),
-
-      resolveFraudGroups({
-        where: {
+      !isApplyingToAdditionalGroup &&
+        trackApplicationEvents({
+          event: "rejected",
           programId,
-          partnerId,
-        },
-        userId,
-        resolutionReason:
-          "Resolved automatically because the partner application was rejected.",
-      }),
+          partnerIds: [partnerId],
+        }),
 
-      partner.email &&
+      !isApplyingToAdditionalGroup &&
+        resolveFraudGroups({
+          where: {
+            programId,
+            partnerId,
+          },
+          userId,
+          resolutionReason:
+            "Resolved automatically because the partner application was rejected.",
+        }),
+
+      partner?.email &&
         sendEmail({
           to: partner.email,
-          subject: `Your application to ${program.name} was not approved`,
+          subject: isApplyingToAdditionalGroup
+            ? `Your application to join a new group in ${program.name} was not approved`
+            : `Your application to ${program.name} was not approved`,
           variant: "notifications",
           replyTo: program.supportEmail || "noreply",
           react: ProgramApplicationRejected({
@@ -205,6 +265,7 @@ export async function rejectProgramApplication({
               slug: program.slug,
               supportEmail: program.supportEmail,
             },
+            isApplyingToAdditionalGroup,
             additionalNotes: rejectionNote,
             rejectionReason:
               getProgramApplicationRejectionReasonLabel(rejectionReason),
