@@ -89,7 +89,7 @@ export const GET = withWorkspace(
             where: {
               programId,
               status: {
-                in: ["submitted", "approved"],
+                in: ["submitted", "partiallyApproved", "approved"],
               },
             },
             _count: {

@@ -33,7 +33,7 @@ export const GET = withWorkspace(
       where: {
         bountyId,
         status: status ?? {
-          in: ["draft", "submitted", "approved"],
+          in: ["draft", "submitted", "partiallyApproved", "approved"],
         },
         ...(groupId && {
           programEnrollment: {

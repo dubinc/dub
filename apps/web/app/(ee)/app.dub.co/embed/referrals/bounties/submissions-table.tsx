@@ -113,7 +113,11 @@ export function EmbedBountySubmissionsTable({
             } else {
               buttonText = "Continue";
             }
-          } else if (["submitted", "approved", "rejected"].includes(status)) {
+          } else if (
+            ["submitted", "partiallyApproved", "approved", "rejected"].includes(
+              status,
+            )
+          ) {
             buttonText = "View";
           }
 

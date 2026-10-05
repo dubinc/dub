@@ -6,7 +6,10 @@ import { getEffectiveBountyPeriod } from "@/lib/bounty/api/bounty-availability";
 import { getBountyOrThrow } from "@/lib/bounty/api/get-bounty-or-throw";
 import { getSocialMetricsUpdates } from "@/lib/bounty/api/get-social-metrics-updates";
 import { isBountyEnded, isBountyStarted } from "@/lib/bounty/bounty-period";
-import { hasReachedSocialMetricsEarningCap } from "@/lib/bounty/social-metrics-milestones";
+import {
+  getPendingSocialMetricsMilestones,
+  hasReachedSocialMetricsEarningCap,
+} from "@/lib/bounty/social-metrics-milestones";
 import { resolveBountyDetails } from "@/lib/bounty/utils";
 import { qstash } from "@/lib/cron";
 import { prisma } from "@/lib/prisma";
@@ -55,6 +58,7 @@ export const POST = withWorkspace(
                 urls: true,
                 status: true,
                 socialMetricCount: true,
+                approvedSocialMetricThreshold: true,
                 partner: true,
                 programEnrollment: {
                   select: {
@@ -181,14 +185,45 @@ export const POST = withWorkspace(
         updateData.completedAt = new Date();
       }
 
-      await prisma.bountySubmission.update({
-        where: {
-          id: submissionId,
-        },
-        data: {
-          ...updateData,
-        },
-      });
+      // A partially approved submission goes back to review when it reaches a new milestone
+      const hasReachedNewMilestone =
+        submission.status === "partiallyApproved" &&
+        getPendingSocialMetricsMilestones({
+          bounty,
+          submission: {
+            socialMetricCount,
+            approvedSocialMetricThreshold:
+              submission.approvedSocialMetricThreshold,
+          },
+        }).length > 0;
+
+      await prisma.$transaction([
+        prisma.bountySubmission.update({
+          where: {
+            id: submissionId,
+          },
+          data: {
+            ...updateData,
+          },
+        }),
+
+        // Skips the change if a review approved more milestones after we read the submission
+        ...(hasReachedNewMilestone
+          ? [
+              prisma.bountySubmission.updateMany({
+                where: {
+                  id: submissionId,
+                  status: "partiallyApproved",
+                  approvedSocialMetricThreshold:
+                    submission.approvedSocialMetricThreshold,
+                },
+                data: {
+                  status: "submitted",
+                },
+              }),
+            ]
+          : []),
+      ]);
 
       const { partner } = submission;
 

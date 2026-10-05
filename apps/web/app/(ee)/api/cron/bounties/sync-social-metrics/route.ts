@@ -4,7 +4,10 @@ import {
 } from "@/lib/bounty/api/bounty-availability";
 import { getSocialMetricsUpdates } from "@/lib/bounty/api/get-social-metrics-updates";
 import { isBountyEnded } from "@/lib/bounty/bounty-period";
-import { hasReachedSocialMetricsEarningCap } from "@/lib/bounty/social-metrics-milestones";
+import {
+  getPendingSocialMetricsMilestones,
+  hasReachedSocialMetricsEarningCap,
+} from "@/lib/bounty/social-metrics-milestones";
 import { resolveBountyDetails } from "@/lib/bounty/utils";
 import { qstash } from "@/lib/cron";
 import { withCron } from "@/lib/cron/with-cron";
@@ -88,6 +91,7 @@ export const POST = withCron(async ({ rawBody }) => {
       id: true,
       urls: true,
       socialMetricCount: true,
+      approvedSocialMetricThreshold: true,
       status: true,
       partner: {
         select: {
@@ -171,6 +175,18 @@ export const POST = withCron(async ({ rawBody }) => {
       const shouldTransitionToSubmitted =
         submission.status === "draft" && hasMetCriteria;
 
+      // A partially approved submission goes back to review when it reaches a new milestone
+      const hasReachedNewMilestone =
+        submission.status === "partiallyApproved" &&
+        getPendingSocialMetricsMilestones({
+          bounty,
+          submission: {
+            socialMetricCount,
+            approvedSocialMetricThreshold:
+              submission.approvedSocialMetricThreshold,
+          },
+        }).length > 0;
+
       const updateData: Prisma.BountySubmissionUpdateInput = {
         socialMetricCount,
         socialMetricsLastSyncedAt,
@@ -195,10 +211,28 @@ export const POST = withCron(async ({ rawBody }) => {
           data: updateData,
         }),
       );
+
+      syncedCount++;
+
+      // Skips the change if a review approved more milestones after we read the submission
+      if (hasReachedNewMilestone) {
+        updates.push(
+          prisma.bountySubmission.updateMany({
+            where: {
+              id,
+              status: "partiallyApproved",
+              approvedSocialMetricThreshold:
+                submission.approvedSocialMetricThreshold,
+            },
+            data: {
+              status: "submitted",
+            },
+          }),
+        );
+      }
     }
 
     await prisma.$transaction(updates);
-    syncedCount = updates.length;
 
     if (notifications.length > 0) {
       await sendBatchEmail(

@@ -356,9 +356,9 @@ export function BountySubmissionsTable() {
                     user={row.original.user!}
                     date={row.original.reviewedAt}
                     label={
-                      row.original.status === "approved"
-                        ? "Approved at"
-                        : "Rejected at"
+                      row.original.status === "rejected"
+                        ? "Rejected at"
+                        : "Approved at"
                     }
                   />
                 ) : (
@@ -423,13 +423,17 @@ export function BountySubmissionsTable() {
     thClassName: "border-l-0",
     tdClassName: "border-l-0",
     resourceName: (p) => `submission${p ? "s" : ""}`,
-    // if status is not set, we count draft, submitted and approved submissions
+    // if status is not set, we count draft, submitted, partially approved and approved submissions
     // else, we count the submissions for the status
     rowCount: searchParams.get("status")
       ? submissionsCount?.find((s) => s.status === searchParams.get("status"))
           ?.count || 0
       : submissionsCount
-          ?.filter((s) => ["draft", "submitted", "approved"].includes(s.status))
+          ?.filter((s) =>
+            ["draft", "submitted", "partiallyApproved", "approved"].includes(
+              s.status,
+            ),
+          )
           .reduce((acc, curr) => acc + curr.count, 0) || 0,
     loading: isLoading || isBountyLoading,
     error: error ? "Failed to load bounty submissions" : undefined,
