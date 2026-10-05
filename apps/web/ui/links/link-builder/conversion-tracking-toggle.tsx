@@ -26,10 +26,13 @@ export const ConversionTrackingToggle = memo(() => {
     name: ["trackConversion", "testVariants"],
   });
 
+  // Allow turning conversion tracking off even if the plan no longer supports it
+  const isPlanLocked = !conversionsEnabled && !trackConversion;
+
   useLinkBuilderKeyboardShortcut(
     "c",
     () => setValue("trackConversion", !trackConversion, { shouldDirty: true }),
-    { enabled: conversionsEnabled },
+    { enabled: !isPlanLocked },
   );
 
   return (
@@ -59,23 +62,23 @@ export const ConversionTrackingToggle = memo(() => {
         disabledTooltip={
           trackConversion && testVariants ? (
             <TooltipContent title="Conversion tracking must be enabled to use A/B testing." />
-          ) : conversionsEnabled ? undefined : (
+          ) : isPlanLocked ? (
             <TooltipContent
               title="Conversion tracking is only available on Business plans and above."
               cta="Upgrade to Business"
               href={slug ? `/${slug}/upgrade` : "https://dub.co/pricing"}
               target="_blank"
             />
-          )
+          ) : undefined
         }
         thumbIcon={
           trackConversion && testVariants ? (
             <span className="flex size-full items-center justify-center">
               <FlaskSmall className="size-2 text-blue-500" />
             </span>
-          ) : conversionsEnabled ? undefined : (
+          ) : isPlanLocked ? (
             <CrownSmall className="size-full text-neutral-500" />
-          )
+          ) : undefined
         }
       />
     </label>
