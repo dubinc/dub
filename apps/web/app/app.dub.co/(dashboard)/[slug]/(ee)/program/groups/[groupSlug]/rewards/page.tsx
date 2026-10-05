@@ -211,8 +211,8 @@ const RewardItem = ({
             !reward && "bg-neutral-50 hover:bg-neutral-100",
           )}
           onClick={(e) => {
-            e.preventDefault();
             if (isClickOnInteractiveChild(e)) return;
+            e.preventDefault();
             queryParams({
               set: {
                 rewardId: reward?.id ?? `new-${event}`,
