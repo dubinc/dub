@@ -48,6 +48,12 @@ export const reopenBountySubmissionAction = authActionClient
       throw new Error("Bounty submission has already been approved.");
     }
 
+    if (bountySubmission.status === "partiallyApproved") {
+      throw new Error(
+        "Bounty submission has approved milestones and cannot be reopened.",
+      );
+    }
+
     await prisma.bountySubmission.update({
       where: {
         id: submissionId,
