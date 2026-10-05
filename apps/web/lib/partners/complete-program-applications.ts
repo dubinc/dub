@@ -56,6 +56,8 @@ export async function completeProgramApplications(userEmail: string) {
     const programApplications = await prisma.programApplication.findMany({
       where: {
         email: userEmail,
+        // Rejected applications stay after enrollment cleanup and must not be re-enrolled
+        status: "pending",
         enrollment: null,
         // Exclude any applications for programs the user is already enrolled in
         programId: {

@@ -22,6 +22,16 @@ const schema = z.object({
   startingAfter: z.string().optional(),
 });
 
+// Skip pending enrollments whose application was already reviewed.
+// Enrollments with no application row are still included.
+const reviewablePendingEnrollment = {
+  status: "pending" as const,
+  OR: [
+    { applicationId: null },
+    { application: { status: "pending" as const } },
+  ],
+};
+
 // GET/POST /api/cron/pending-applications-summary
 // This route sends a daily summary of pending partner applications to program owners
 // Runs daily at 9:00 AM UTC
@@ -35,9 +45,7 @@ export const GET = withCron(async ({ rawBody }) => {
     where: {
       deactivatedAt: null,
       partners: {
-        some: {
-          status: "pending",
-        },
+        some: reviewablePendingEnrollment,
       },
     },
     include: {
@@ -94,6 +102,15 @@ export const GET = withCron(async ({ rawBody }) => {
       FROM ProgramEnrollment
       WHERE programId IN (${Prisma.join(programIds)})
         AND status = 'pending'
+        AND (
+          applicationId IS NULL
+          OR EXISTS (
+            SELECT 1
+            FROM ProgramApplication pa
+            WHERE pa.id = ProgramEnrollment.applicationId
+              AND pa.status = 'pending'
+          )
+        )
     ) ranked
     INNER JOIN ProgramEnrollment pe ON pe.id = ranked.id
     INNER JOIN Partner p ON p.id = pe.partnerId
@@ -132,7 +149,7 @@ export const GET = withCron(async ({ rawBody }) => {
       programId: {
         in: programIds,
       },
-      status: "pending",
+      ...reviewablePendingEnrollment,
     },
     _count: true,
   });
