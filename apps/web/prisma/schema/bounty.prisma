@@ -11,9 +11,9 @@ enum BountyPerformanceScope {
 enum BountySubmissionStatus {
   draft
   submitted
-  partiallyApproved
   approved
   rejected
+  partiallyApproved // appended last so the MySQL ENUM change is metadata only
 }
 
 enum BountySubmissionRejectionReason {
