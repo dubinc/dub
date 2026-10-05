@@ -222,6 +222,7 @@ export async function completeProgramApplications(userEmail: string) {
                     {
                       programId: program.id,
                       partnerId: partner.id,
+                      applicationId: application.id,
                     },
                     {
                       label: partner.id,

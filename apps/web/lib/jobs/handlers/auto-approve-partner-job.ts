@@ -3,60 +3,108 @@ import { evaluateApplicationRequirements } from "@/lib/partners/evaluate-applica
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { prisma } from "@/lib/prisma";
 import { approveProgramApplication } from "@/lib/program-applications/approve-program-application";
-import { ProgramEnrollmentStatus } from "@prisma/client";
+import { ProgramApplicationStatus } from "@prisma/client";
 import * as z from "zod/v4";
 import { defineJob } from "../index";
 
 const inputSchema = z.object({
   programId: z.string(),
   partnerId: z.string(),
+  applicationId: z.string().optional(),
 });
+
+// TODO:
+// Rename this job to auto-approve-program-application-job
 
 // This job is used to auto-approve a partner enrolled in a program
 export const autoApprovePartnerJob = defineJob({
   name: "auto-approve-partner-job",
   schema: inputSchema,
   async handle(input) {
-    const { programId, partnerId } = input;
+    const { programId, partnerId, applicationId } = input;
 
-    const programEnrollment = await prisma.programEnrollment.findUnique({
-      where: {
-        partnerId_programId: {
-          partnerId,
+    const [programApplication, programEnrollment] = await Promise.all([
+      prisma.programApplication.findFirst({
+        where: {
+          ...(applicationId && { id: applicationId }),
           programId,
+          partnerId,
+          status: ProgramApplicationStatus.pending,
         },
-      },
-      include: {
-        partnerGroup: true,
-        partner: {
-          include: {
-            platforms: true,
+        include: {
+          partnerGroup: true,
+          partner: {
+            include: {
+              platforms: true,
+            },
           },
         },
-      },
-    });
+        orderBy: {
+          createdAt: "desc",
+        },
+      }),
+
+      prisma.programEnrollment.findUnique({
+        where: {
+          partnerId_programId: {
+            partnerId,
+            programId,
+          },
+        },
+        select: {
+          status: true,
+          groupId: true,
+        },
+      }),
+    ]);
+
+    if (!programApplication) {
+      console.warn(
+        `No pending application found for partner ${partnerId} in program ${programId}.`,
+      );
+      return;
+    }
+
+    if (programApplication.status !== ProgramApplicationStatus.pending) {
+      console.warn(`Application ${programApplication.id} is not pending.`);
+      return;
+    }
 
     if (!programEnrollment) {
       console.warn(`Partner ${partnerId} not found in program ${programId}.`);
       return;
     }
 
-    const group = programEnrollment.partnerGroup;
+    const isApplyingToAdditionalGroup =
+      programApplication.groupId !== programEnrollment.groupId;
 
-    if (!group) {
+    if (isApplyingToAdditionalGroup) {
       console.warn(
-        `Group not found for partner ${partnerId} in program ${programId}.`,
+        `Partner ${partnerId} is applying to a different group than the one they are already in.`,
       );
       return;
     }
 
-    if (!group.autoApprovePartnersEnabledAt) {
-      console.warn(`Group ${group.id} does not have auto-approval enabled.`);
+    const { partnerGroup, partner } = programApplication;
+
+    if (!partnerGroup) {
+      console.warn(
+        `Partner group not found for partner ${partnerId} in program ${programId}.`,
+      );
       return;
     }
 
-    if (programEnrollment.status !== ProgramEnrollmentStatus.pending) {
-      console.warn(`${partnerId} is in ${programEnrollment.status} status.`);
+    if (!partnerGroup.autoApprovePartnersEnabledAt) {
+      console.warn(
+        `Partner group ${partnerGroup.id} does not have auto-approval enabled.`,
+      );
+      return;
+    }
+
+    if (!partner) {
+      console.warn(
+        `Partner not found for application ${programApplication.id}.`,
+      );
       return;
     }
 
@@ -93,7 +141,7 @@ export const autoApprovePartnerJob = defineJob({
     if (canManageFraudEvents) {
       const { riskSeverity } = await getProgramApplicationRisks({
         program,
-        partner: programEnrollment.partner,
+        partner,
       });
 
       if (riskSeverity === "high") {
@@ -105,8 +153,8 @@ export const autoApprovePartnerJob = defineJob({
     const result = evaluateApplicationRequirements({
       applicationRequirements: program.applicationRequirements,
       context: {
-        country: programEnrollment.partner.country,
-        email: programEnrollment.partner.email,
+        country: partner.country,
+        email: partner.email,
       },
     });
 
@@ -138,6 +186,7 @@ export const autoApprovePartnerJob = defineJob({
       partnerId,
       userId: owner.userId,
       groupId: programEnrollment.groupId,
+      applicationId: programApplication.id,
     });
 
     console.info(

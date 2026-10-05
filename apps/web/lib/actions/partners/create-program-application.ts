@@ -313,7 +313,7 @@ async function createApplicationAndEnrollment({
   const applicationId = createId({ prefix: "pga_" });
   const enrollmentId = createId({ prefix: "pge_" });
 
-  const [application, programEnrollment] = await prisma.$transaction([
+  const [programApplication, programEnrollment] = await prisma.$transaction([
     prisma.programApplication.create({
       data: {
         ...sanitizeData(data, group),
@@ -353,16 +353,16 @@ async function createApplicationAndEnrollment({
 
   waitUntil(
     (async () => {
-      const applicationFormData = formatApplicationFormData(application).map(
-        ({ title, value }) => ({
-          label: title,
-          value: value !== "" ? value : null,
-        }),
-      );
+      const applicationFormData = formatApplicationFormData(
+        programApplication,
+      ).map(({ title, value }) => ({
+        label: title,
+        value: value !== "" ? value : null,
+      }));
 
       const webhookData = {
-        id: application.id,
-        createdAt: application.createdAt,
+        id: programApplication.id,
+        createdAt: programApplication.createdAt,
         applicationFormData,
         partner: {
           ...partner,
@@ -374,7 +374,7 @@ async function createApplicationAndEnrollment({
       const { platforms, socialFields } = await backfillPartnerPlatforms({
         partnerId: partner.id,
         platforms: partner.platforms,
-        application,
+        application: programApplication,
       });
 
       await Promise.allSettled([
@@ -382,7 +382,7 @@ async function createApplicationAndEnrollment({
           partner,
           program,
           group,
-          application,
+          application: programApplication,
         }),
 
         // Auto-approve the partner if the group has auto-approval enabled
@@ -391,6 +391,7 @@ async function createApplicationAndEnrollment({
               {
                 programId: program.id,
                 partnerId: partner.id,
+                applicationId: programApplication.id,
               },
               {
                 label: partner.id,
@@ -406,7 +407,7 @@ async function createApplicationAndEnrollment({
             ...webhookData,
             partner: {
               ...webhookData.partner,
-              ...formatWebsiteAndSocialsFields(application),
+              ...formatWebsiteAndSocialsFields(programApplication),
             },
           }),
         }),
