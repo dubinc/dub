@@ -6,7 +6,6 @@ import {
   CircleXmark,
   Lock,
 } from "@dub/ui/icons";
-import { BountySubmissionStatus } from "@prisma/client";
 
 export const BountySubmissionStatusBadges = {
   notSubmitted: {
@@ -52,20 +51,3 @@ export const BountySubmissionStatusBadges = {
     iconClassName: "text-red-600",
   },
 } as const;
-
-// Partners see partially approved submissions the same as submitted ones, as "Pending review"
-export function getPartnerSubmissionStatusBadge(
-  status: keyof typeof BountySubmissionStatusBadges,
-) {
-  if (
-    status === BountySubmissionStatus.submitted ||
-    status === BountySubmissionStatus.partiallyApproved
-  ) {
-    return {
-      ...BountySubmissionStatusBadges.submitted,
-      label: "Pending review",
-    };
-  }
-
-  return BountySubmissionStatusBadges[status];
-}
