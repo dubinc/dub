@@ -118,17 +118,26 @@ async function main() {
       console.table(updates);
     } else if (updates.length > 0) {
       const results = await Promise.all(
-        updates.map(({ id, approvedSocialMetricThreshold, from, to }) =>
-          prisma.bountySubmission.updateMany({
-            where: {
-              id,
-              status: from,
-              approvedSocialMetricThreshold,
-            },
-            data: {
-              status: to,
-            },
-          }),
+        updates.map(
+          ({
+            id,
+            socialMetricCount,
+            approvedSocialMetricThreshold,
+            from,
+            to,
+          }) =>
+            prisma.bountySubmission.updateMany({
+              where: {
+                id,
+                status: from,
+                approvedSocialMetricThreshold,
+                // Skips the row if a sync changed the count after we read it
+                socialMetricCount,
+              },
+              data: {
+                status: to,
+              },
+            }),
         ),
       );
 
