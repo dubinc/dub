@@ -160,7 +160,7 @@ function ExportApplicationsModal({
             render={({ field }) => (
               <div className="flex items-start justify-between gap-2">
                 <div className="flex select-none flex-col gap-1">
-                  <span className="text-sm font-medium text-neutral-600 group-hover:text-neutral-800">
+                  <span className="text-sm font-medium text-neutral-600">
                     Apply current filters
                   </span>
                   <span className="text-xs text-neutral-500">
