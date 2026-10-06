@@ -107,7 +107,6 @@ export const updateProgramSchema = z.object({
     .max(500)
     .nullish(),
   messagingEnabledAt: z.coerce.date().nullish(),
-  referralFormData: submittedLeadFormSchema.nullish(),
 });
 
 export const ProgramPartnerLinkSchema = LinkSchema.pick({
