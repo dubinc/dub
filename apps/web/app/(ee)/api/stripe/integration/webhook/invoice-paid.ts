@@ -278,6 +278,7 @@ export async function invoicePaid({
           increment: invoiceSaleAmount,
         },
         firstSaleAt: customer.firstSaleAt ? undefined : new Date(),
+        subscriptionCanceledAt: null,
       },
     }),
   ]);
