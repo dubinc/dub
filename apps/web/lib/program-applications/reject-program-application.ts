@@ -277,4 +277,8 @@ export async function rejectProgramApplication({
         }),
     ]),
   );
+
+  return {
+    isApplyingToAdditionalGroup,
+  };
 }

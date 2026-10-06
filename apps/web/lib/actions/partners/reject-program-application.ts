@@ -32,7 +32,7 @@ export const rejectProgramApplicationAction = authActionClient
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    await rejectProgramApplication({
+    return await rejectProgramApplication({
       programId,
       partnerId,
       rejectionReason,

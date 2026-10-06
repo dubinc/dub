@@ -103,13 +103,16 @@ export function RejectProgramApplicationModal({
   const { executeAsync: rejectProgramApplication, isPending } = useAction(
     rejectProgramApplicationAction,
     {
-      onSuccess: async () => {
+      onSuccess: async ({ data }) => {
         toast.success(
-          reapplicationTimeframeOutcomeRef.current === "instant"
-            ? `Application rejected — ${partner.email} can reapply immediately.`
-            : reapplicationTimeframeOutcomeRef.current === "never"
-              ? `Partner ${partner.email} has been rejected and cannot reapply.`
-              : `Partner ${partner.email} has been rejected from your program.`,
+          // Approved partners keep their enrollment when a group application is rejected
+          data?.isApplyingToAdditionalGroup
+            ? `Group application rejected. ${partner.email} stays in their current group.`
+            : reapplicationTimeframeOutcomeRef.current === "instant"
+              ? `Application rejected — ${partner.email} can reapply immediately.`
+              : reapplicationTimeframeOutcomeRef.current === "never"
+                ? `Partner ${partner.email} has been rejected and cannot reapply.`
+                : `Partner ${partner.email} has been rejected from your program.`,
         );
         setShowRejectProgramApplicationModal(false);
         await onConfirm?.();
