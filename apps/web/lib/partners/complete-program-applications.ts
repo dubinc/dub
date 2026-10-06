@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { pluck } from "@dub/utils";
-import { PlatformType, Prisma } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 import { createId } from "../api/create-id";
 import { detectAndRecordFraudApplication } from "../api/fraud/detect-record-fraud-application";
 import { notifyProgramApplication } from "../api/partners/notify-program-application";
@@ -8,15 +8,12 @@ import { queuePartnerSearchSync } from "../api/partners/queue-partner-search-syn
 import { markApplicationEventSubmitted } from "../application-events/update-application-event";
 import { autoApprovePartnerJob } from "../jobs/handlers/auto-approve-partner-job";
 import { autoRejectPartnerJob } from "../jobs/handlers/auto-reject-partner-job";
-import {
-  buildSocialPlatformLookup,
-  polyfillSocialMediaFields,
-} from "../social-utils";
 import { sendWorkspaceWebhook } from "../webhook/publish";
 import {
   partnerApplicationWebhookSchema,
   programApplicationWebhookSchema,
 } from "../zod/schemas/program-application";
+import { backfillPartnerPlatforms } from "./backfill-partner-platforms";
 import { evaluateApplicationRequirements } from "./evaluate-application-requirements";
 import {
   formatApplicationFormData,
@@ -164,6 +161,8 @@ export async function completeProgramApplications(userEmail: string) {
       workspaces.map((ws) => [ws.defaultProgramId, ws]),
     );
 
+    let savedPlatforms = partner.platforms;
+
     for (const programApplication of filteredProgramApplications) {
       const application = programApplication;
       const program = programApplication.program;
@@ -172,38 +171,13 @@ export async function completeProgramApplications(userEmail: string) {
         programApplication.id,
       );
 
-      const socialPlatforms = buildSocialPlatformLookup(partner.platforms);
+      const { platforms, socialFields } = await backfillPartnerPlatforms({
+        partnerId: partner.id,
+        platforms: savedPlatforms,
+        application,
+      });
 
-      const missingSocialFields = {
-        website:
-          application.website && !socialPlatforms.website?.identifier
-            ? application.website
-            : undefined,
-        youtube:
-          application.youtube && !socialPlatforms.youtube?.identifier
-            ? application.youtube
-            : undefined,
-        twitter:
-          application.twitter && !socialPlatforms.twitter?.identifier
-            ? application.twitter
-            : undefined,
-        linkedin:
-          application.linkedin && !socialPlatforms.linkedin?.identifier
-            ? application.linkedin
-            : undefined,
-        instagram:
-          application.instagram && !socialPlatforms.instagram?.identifier
-            ? application.instagram
-            : undefined,
-        tiktok:
-          application.tiktok && !socialPlatforms.tiktok?.identifier
-            ? application.tiktok
-            : undefined,
-      };
-
-      const hasMissingSocialFields = Object.values(missingSocialFields).some(
-        (field) => field !== undefined,
-      );
+      savedPlatforms = platforms;
 
       const applicationFormData = formatApplicationFormData(application).map(
         ({ title, value }) => ({
@@ -278,7 +252,8 @@ export async function completeProgramApplications(userEmail: string) {
                     ...webhookData,
                     partner: {
                       ...webhookData.partner,
-                      ...polyfillSocialMediaFields(partner.platforms),
+                      platforms,
+                      ...socialFields,
                     },
                   }),
                 }),
@@ -295,20 +270,6 @@ export async function completeProgramApplications(userEmail: string) {
                 },
               ),
             ]),
-
-        // if the application has any website or social fields but the partner doesn't have the corresponding one (maybe they forgot to add during onboarding)
-        // update the partner to use the website they applied with
-        hasMissingSocialFields &&
-          prisma.partnerPlatform.createMany({
-            data: Object.entries(missingSocialFields)
-              .filter(([, identifier]) => identifier !== undefined)
-              .map(([platform, identifier]) => ({
-                partnerId: partner.id,
-                type: platform as PlatformType,
-                identifier: identifier as string,
-              })),
-            skipDuplicates: true,
-          }),
 
         // Detect and record fraud events for the partner when they apply to a program
         detectAndRecordFraudApplication({

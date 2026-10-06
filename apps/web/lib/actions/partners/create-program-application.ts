@@ -13,13 +13,13 @@ import { autoApprovePartnerJob } from "@/lib/jobs/handlers/auto-approve-partner-
 import { autoRejectPartnerJob } from "@/lib/jobs/handlers/auto-reject-partner-job";
 import { programApplicationReminderJob } from "@/lib/jobs/handlers/program-application-reminder-job";
 import { getNetworkProfileChecklistProgress } from "@/lib/network/get-network-profile-checklist-progress";
+import { backfillPartnerPlatforms } from "@/lib/partners/backfill-partner-platforms";
 import { evaluateApplicationRequirements } from "@/lib/partners/evaluate-application-requirements";
 import {
   formatApplicationFormData,
   formatWebsiteAndSocialsFields,
 } from "@/lib/partners/format-application-form-data";
 import { prisma } from "@/lib/prisma";
-import { polyfillSocialMediaFields } from "@/lib/social-utils";
 import {
   ProgramApplicationFormData,
   ProgramApplicationFormDataWithValues,
@@ -350,6 +350,12 @@ async function createApplicationAndEnrollment({
         },
       };
 
+      const { platforms, socialFields } = await backfillPartnerPlatforms({
+        partnerId: partner.id,
+        platforms: partner.platforms,
+        application,
+      });
+
       await Promise.allSettled([
         notifyProgramApplication({
           partner,
@@ -392,7 +398,8 @@ async function createApplicationAndEnrollment({
             ...webhookData,
             partner: {
               ...webhookData.partner,
-              ...polyfillSocialMediaFields(partner.platforms),
+              platforms,
+              ...socialFields,
             },
           }),
         }),

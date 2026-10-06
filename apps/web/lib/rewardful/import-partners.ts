@@ -4,6 +4,7 @@ import { Program } from "@prisma/client";
 import { createId } from "../api/create-id";
 import { bulkCreateLinks } from "../api/links";
 import { queuePartnerSearchSync } from "../api/partners/queue-partner-search-sync";
+import { upsertImportedProgramEnrollment } from "../api/partners/upsert-imported-program-enrollment";
 import { approveLinkedApplication } from "../program-applications/approve-linked-application";
 import { logImportError } from "../tinybird/log-import-error";
 import { redis } from "../upstash";
@@ -114,19 +115,25 @@ export async function importPartners(payload: RewardfulImportPayload) {
       );
 
       if (filteredPartners.length > 0) {
-        await redis.hset(
-          `rewardful:affiliates:${program.id}`,
-          Object.fromEntries(
-            filteredPartners.map((p) => [
-              p.rewardfulAffiliateId,
-              {
-                partnerId: p.dubPartnerId,
-                groupId: p.dubPartnerGroupId,
-                discountId: p.dubDiscountId,
-              },
-            ]),
-          ),
-        );
+        // Coupon import reads this map to create partner links. A preserved
+        // ban must not gain those links, but still needs a search update.
+        const partnersToMap = filteredPartners.filter((p) => !p.preservedBan);
+
+        if (partnersToMap.length > 0) {
+          await redis.hset(
+            `rewardful:affiliates:${program.id}`,
+            Object.fromEntries(
+              partnersToMap.map((p) => [
+                p.rewardfulAffiliateId,
+                {
+                  partnerId: p.dubPartnerId,
+                  groupId: p.dubPartnerGroupId,
+                  discountId: p.dubDiscountId,
+                },
+              ]),
+            ),
+          );
+        }
 
         // Queue an index update because the imported partners were enrolled.
         // Queued per page rather than per partner.
@@ -195,39 +202,35 @@ async function createPartnerAndLinks({
     update: {},
   });
 
-  const programEnrollment = await prisma.programEnrollment.upsert({
-    where: {
-      partnerId_programId: {
-        partnerId: partner.id,
-        programId: program.id,
-      },
-    },
-    create: {
-      id: createId({ prefix: "pge_" }),
-      programId: program.id,
+  const { enrollment: programEnrollment, preservedBan } =
+    await upsertImportedProgramEnrollment({
       partnerId: partner.id,
-      status: "approved",
-      ...defaultGroupAttributes,
-    },
-    update: {
-      status: "approved",
-    },
-    include: {
-      links: true,
-    },
-  });
+      programId: program.id,
+      create: {
+        id: createId({ prefix: "pge_" }),
+        programId: program.id,
+        partnerId: partner.id,
+        status: "approved",
+        ...defaultGroupAttributes,
+      },
+      include: {
+        links: true,
+      },
+    });
 
-  await approveLinkedApplication({
-    applicationId: programEnrollment.applicationId,
-    userId,
-  });
+  if (!preservedBan) {
+    await approveLinkedApplication({
+      applicationId: programEnrollment.applicationId,
+      userId,
+    });
+  }
 
   if (!program.domain || !program.url) {
     console.error("Program domain or url not found", program.id);
     return;
   }
 
-  if (programEnrollment.links.length === 0) {
+  if (!preservedBan && programEnrollment.links.length === 0) {
     await bulkCreateLinks({
       links: affiliate.links.map((link, idx) => ({
         domain: program.domain!,
@@ -253,5 +256,6 @@ async function createPartnerAndLinks({
     dubPartnerId: partner.id,
     dubPartnerGroupId: programEnrollment.groupId,
     dubDiscountId: programEnrollment.discountId,
+    preservedBan,
   };
 }

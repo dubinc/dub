@@ -110,7 +110,7 @@
     "motion": "^12.23.22",
     "nanoid": "^5.0.1",
     "next": "15.5.8",
-    "next-auth": "4.24.11",
+    "next-auth": "4.24.15",
     "next-plausible": "^4.0.0",
     "next-safe-action": "^8.0.11",
     "node-html-parser": "^6.1.4",
