@@ -156,8 +156,7 @@ export function useTable<T extends any>(
               size: SELECT_COLUMN_WIDTH,
               maxSize: SELECT_COLUMN_WIDTH,
               header: ({ table }: { table: TableType<T> }) => (
-                <button
-                  type="button"
+                <div
                   className="flex size-full items-center justify-center"
                   onClick={(e) => {
                     e.stopPropagation();
@@ -175,10 +174,10 @@ export function useTable<T extends any>(
                           : false
                     }
                   />
-                </button>
+                </div>
               ),
               cell: ({ row, table }: { row: Row<T>; table: TableType<T> }) => {
-                const onSelectRow = (e: MouseEvent<HTMLButtonElement>) => {
+                const onSelectRow = (e: MouseEvent<HTMLElement>) => {
                   e.stopPropagation();
                   const currentId = getRowId?.(row.original);
                   const rows = table.getRowModel().rows;
@@ -243,11 +242,12 @@ export function useTable<T extends any>(
                 const canSelect = row.getCanSelect();
 
                 return (
-                  <button
-                    type="button"
-                    className="flex size-full items-center justify-center disabled:cursor-not-allowed"
-                    onClick={onSelectRow}
-                    disabled={!canSelect}
+                  <div
+                    className={cn(
+                      "flex size-full items-center justify-center",
+                      !canSelect && "cursor-not-allowed",
+                    )}
+                    onClick={canSelect ? onSelectRow : undefined}
                     title="Select"
                   >
                     <Checkbox
@@ -255,7 +255,7 @@ export function useTable<T extends any>(
                       checked={row.getIsSelected()}
                       disabled={!canSelect}
                     />
-                  </button>
+                  </div>
                 );
               },
             },

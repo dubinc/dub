@@ -40,8 +40,7 @@ export function SelectionToolbar<T>({
     >
       <div className="flex h-11 items-center py-2.5 pr-2">
         <div className="relative flex h-full w-12 shrink-0 items-center justify-center">
-          <button
-            type="button"
+          <div
             className="absolute inset-0 flex items-center justify-center"
             onClick={(e) => {
               e.stopPropagation();
@@ -59,7 +58,7 @@ export function SelectionToolbar<T>({
                     : false
               }
             />
-          </button>
+          </div>
         </div>
         <div className="flex min-w-0 items-center gap-2.5 pl-1">
           <span
