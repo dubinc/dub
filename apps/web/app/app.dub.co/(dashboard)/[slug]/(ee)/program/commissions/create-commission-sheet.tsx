@@ -27,7 +27,9 @@ import {
   Sheet,
   SmartDateTimePicker,
   Switch,
+  Table,
   ToggleGroup,
+  useTable,
 } from "@dub/ui";
 import { cn, currencyFormatter, formatDate } from "@dub/utils";
 import { CommissionType } from "@prisma/client";
@@ -84,6 +86,118 @@ async function fetcherStripeInvoices(url: string): Promise<{
     throw new Error(body?.error?.message ?? "Failed to load invoices");
   }
   return { invoices: Array.isArray(body) ? body : [] };
+}
+
+function StripeInvoicesToImportTable({
+  invoices,
+  selectedInvoiceIds,
+  onSelectionChange,
+  slug,
+  partnerId,
+  customerId,
+}: {
+  invoices: StripeInvoiceFromApi[];
+  selectedInvoiceIds: string[];
+  onSelectionChange: (invoiceIds: string[]) => void;
+  slug?: string;
+  partnerId?: string;
+  customerId?: string | null;
+}) {
+  const selectedRows = useMemo(
+    () =>
+      Object.fromEntries(
+        selectedInvoiceIds.map((invoiceId) => [invoiceId, true]),
+      ),
+    [selectedInvoiceIds],
+  );
+
+  const { table, ...tableProps } = useTable<StripeInvoiceFromApi>({
+    data: invoices,
+    columns: [
+      {
+        id: "invoice",
+        header: "Invoice",
+        cell: ({ row }) => (
+          <div className="min-w-0">
+            <a
+              href={`https://dashboard.stripe.com/invoices/${row.original.id}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={cn(
+                "cursor-alias font-mono text-sm font-medium decoration-dotted underline-offset-2 hover:underline",
+                row.original.dubCommissionId
+                  ? "text-neutral-500"
+                  : "text-neutral-800",
+              )}
+            >
+              {row.original.id}
+            </a>
+            {(row.original.refunded || row.original.dubCommissionId) && (
+              <p className="mt-0.5 flex flex-wrap items-center gap-1.5">
+                {row.original.refunded ? (
+                  <span className="rounded-md bg-neutral-200/80 px-1.5 py-0.5 text-xs text-neutral-500">
+                    Refunded
+                  </span>
+                ) : null}
+                {row.original.dubCommissionId ? (
+                  <a
+                    href={`/${slug}/program/commissions?partnerId=${partnerId}&customerId=${customerId}`}
+                    target="_blank"
+                    className="rounded bg-neutral-200/80 px-1.5 py-0.5 text-xs text-neutral-500 hover:bg-neutral-200 hover:text-neutral-900"
+                  >
+                    Already imported
+                  </a>
+                ) : null}
+              </p>
+            )}
+          </div>
+        ),
+      },
+      {
+        id: "date",
+        header: "Date",
+        cell: ({ row }) => formatDate(row.original.createdAt),
+      },
+      {
+        id: "amount",
+        header: "Amount",
+        cell: ({ row }) => (
+          <span
+            className={cn(
+              "font-medium",
+              row.original.dubCommissionId
+                ? "text-neutral-500"
+                : "text-neutral-700",
+            )}
+          >
+            {currencyFormatter(row.original.amount)}
+          </span>
+        ),
+      },
+    ],
+    getRowId: (invoice) => invoice.id,
+    enableRowSelection: (row) => !row.original.dubCommissionId,
+    selectedRows,
+    onRowSelectionChange: (rows) =>
+      onSelectionChange(rows.map((row) => row.original.id)),
+    onRowClick: (row) => {
+      if (row.getCanSelect()) {
+        row.toggleSelected();
+      }
+    },
+    rowProps: (row) => ({
+      className: cn(row.original.dubCommissionId && "opacity-60"),
+    }),
+    resourceName: (plural) => `invoice${plural ? "s" : ""}`,
+    thClassName: (id) =>
+      cn("border-l-0", id === "amount" && "[&>div]:justify-end"),
+    tdClassName: (id) => cn("border-l-0", id === "amount" && "text-right"),
+    className: "[&_tr:last-child>td]:border-b-transparent",
+    containerClassName: "border-border-default",
+    scrollWrapperClassName: "min-h-0 max-h-96",
+  });
+
+  return <Table {...tableProps} table={table} />;
 }
 
 function CreateCommissionSheetContent({
@@ -206,6 +320,21 @@ function CreateCommissionSheetContent({
   const unimportedStripeInvoices = stripeInvoices.filter(
     (inv) => !inv.dubCommissionId,
   );
+  const unimportedStripeInvoiceIdsKey = unimportedStripeInvoices
+    .map((invoice) => invoice.id)
+    .join(",");
+  const unimportedStripeInvoiceIds = useMemo(
+    () => unimportedStripeInvoiceIdsKey.split(",").filter(Boolean),
+    [unimportedStripeInvoiceIdsKey],
+  );
+  const [selectedStripeInvoiceIds, setSelectedStripeInvoiceIds] = useState<
+    string[]
+  >([]);
+  const [selectionInvoiceIdsKey, setSelectionInvoiceIdsKey] = useState("");
+  const selectedInvoiceIdsToImport =
+    selectionInvoiceIdsKey === unimportedStripeInvoiceIdsKey
+      ? selectedStripeInvoiceIds
+      : unimportedStripeInvoiceIds;
   const noStripeCustomerId = stripeInvoicesData?.noStripeCustomerId ?? false;
   const noStripeCustomerMessage = stripeInvoicesData?.message;
 
@@ -277,9 +406,9 @@ function CreateCommissionSheetContent({
         partnerId,
         customerId: data.customerId,
         linkId: data.linkId,
-        importStripeInvoices,
         ...(importStripeInvoices
           ? {
+              stripeInvoicesToImport: selectedInvoiceIdsToImport,
               saleAmount: null,
               saleEventDate: null,
               invoiceId: null,
@@ -337,6 +466,10 @@ function CreateCommissionSheetContent({
         if (unimportedStripeInvoices.length === 0) {
           return "No unimported Stripe invoices found for this customer.";
         }
+
+        if (selectedInvoiceIdsToImport.length === 0) {
+          return "You need to select at least one invoice to import.";
+        }
       } else {
         if (!saleAmount) {
           return "You need to enter a sale amount for the commission.";
@@ -355,6 +488,7 @@ function CreateCommissionSheetContent({
     importStripeInvoices,
     noStripeCustomerId,
     unimportedStripeInvoices.length,
+    selectedInvoiceIdsToImport.length,
     isStripeInvoicesLoading,
   ]);
 
@@ -699,67 +833,20 @@ function CreateCommissionSheetContent({
                               </p>
                             </div>
                           ) : (
-                            <div className="overflow-hidden rounded-lg border border-neutral-200 bg-white shadow-sm">
-                              <div className="border-b border-neutral-100 bg-neutral-50/80 px-3 py-2">
-                                <p className="text-xs font-medium text-neutral-500">
-                                  Paid invoices ({stripeInvoices.length})
-                                </p>
-                              </div>
-                              <div className="max-h-96 overflow-y-auto p-1.5">
-                                {stripeInvoices.map((inv) => (
-                                  <div
-                                    key={inv.id}
-                                    className={cn(
-                                      "flex items-center justify-between gap-3 rounded-md px-3 py-2.5",
-                                      inv.dubCommissionId &&
-                                        "bg-neutral-50/80 opacity-75",
-                                    )}
-                                  >
-                                    <div className="min-w-0 flex-1">
-                                      <a
-                                        href={`https://dashboard.stripe.com/invoices/${inv.id}`}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className={cn(
-                                          "cursor-alias font-mono text-sm font-medium decoration-dotted underline-offset-2 hover:underline",
-                                          inv.dubCommissionId
-                                            ? "text-neutral-500"
-                                            : "text-neutral-800",
-                                        )}
-                                      >
-                                        {inv.id}
-                                      </a>
-                                      <p className="mt-0.5 flex flex-wrap items-center gap-x-2 text-xs text-neutral-500">
-                                        {formatDate(inv.createdAt)}
-                                        {inv.refunded ? (
-                                          <span className="rounded-md bg-neutral-200/80 px-1.5 py-0.5 text-xs text-neutral-500">
-                                            Refunded
-                                          </span>
-                                        ) : inv.dubCommissionId ? (
-                                          <a
-                                            href={`/${slug}/program/commissions?partnerId=${partnerId}&customerId=${customerId}`}
-                                            target="_blank"
-                                            className="rounded bg-neutral-200/80 px-1.5 py-0.5 text-neutral-500 hover:bg-neutral-200 hover:text-neutral-900"
-                                          >
-                                            Already imported
-                                          </a>
-                                        ) : null}
-                                      </p>
-                                    </div>
-                                    <span
-                                      className={cn(
-                                        "shrink-0 text-sm font-medium",
-                                        inv.dubCommissionId
-                                          ? "text-neutral-500"
-                                          : "text-neutral-700",
-                                      )}
-                                    >
-                                      {currencyFormatter(inv.amount)}
-                                    </span>
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
+                            <StripeInvoicesToImportTable
+                              key={`${customerId}:${unimportedStripeInvoiceIdsKey}`}
+                              invoices={stripeInvoices}
+                              selectedInvoiceIds={selectedInvoiceIdsToImport}
+                              onSelectionChange={(invoiceIds) => {
+                                setSelectionInvoiceIdsKey(
+                                  unimportedStripeInvoiceIdsKey,
+                                );
+                                setSelectedStripeInvoiceIds(invoiceIds);
+                              }}
+                              slug={slug}
+                              partnerId={partnerId}
+                              customerId={customerId}
+                            />
                           )}
                         </div>
                       )}
@@ -1064,7 +1151,7 @@ function CreateCommissionSheetContent({
           <Button
             type="submit"
             variant="primary"
-            text={`Create commission${unimportedStripeInvoices.length > 0 ? "s" : ""}`}
+            text={`Create commission${importStripeInvoices && selectedInvoiceIdsToImport.length !== 1 ? "s" : ""}`}
             className="w-fit"
             loading={isSubmitting}
             disabledTooltip={submitDisabledMessage}

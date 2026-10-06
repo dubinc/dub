@@ -72,6 +72,7 @@ export function useTable<T extends any>(
     pagination,
     onPaginationChange,
     getRowId,
+    enableRowSelection,
     enableColumnResizing = false,
     columnResizeMode = "onChange",
   } = props;
@@ -212,6 +213,7 @@ export function useTable<T extends any>(
                     const end = Math.max(lastSelectedIndex, currentIndex);
                     const rangeIds = rows
                       .slice(start, end + 1)
+                      .filter((row) => row.getCanSelect())
                       .map((row) => getRowId?.(row.original))
                       .filter((id): id is string => id !== undefined);
 
@@ -238,16 +240,20 @@ export function useTable<T extends any>(
                   }
                 };
 
+                const canSelect = row.getCanSelect();
+
                 return (
                   <button
                     type="button"
-                    className="flex size-full items-center justify-center"
+                    className="flex size-full items-center justify-center disabled:cursor-not-allowed"
                     onClick={onSelectRow}
+                    disabled={!canSelect}
                     title="Select"
                   >
                     <Checkbox
                       className="border-border-default pointer-events-none size-4 rounded data-[state=checked]:bg-black data-[state=indeterminate]:bg-black"
                       checked={row.getIsSelected()}
+                      disabled={!canSelect}
                     />
                   </button>
                 );
@@ -285,6 +291,7 @@ export function useTable<T extends any>(
     autoResetPageIndex: false,
     manualSorting: true,
     getRowId,
+    enableRowSelection,
     enableColumnResizing,
     columnResizeMode,
   });
