@@ -84,10 +84,14 @@ export default async function SuccessPage(props: {
         where: {
           id: applicationId,
         },
+        select: {
+          partnerId: true,
+          email: true,
+        },
       })
     : null;
 
-  const hasPartnerProfile = !!enrollmentId;
+  const hasPartnerProfile = !!enrollmentId || !!application?.partnerId;
 
   return (
     <div

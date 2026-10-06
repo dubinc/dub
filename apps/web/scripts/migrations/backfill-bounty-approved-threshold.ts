@@ -10,7 +10,7 @@ import "dotenv-flow/config";
 
 type SubmissionThresholdUpdate = Pick<BountySubmission, "id"> & {
   approvedSocialMetricThreshold: number;
-  status: Extract<BountySubmissionStatus, "submitted" | "approved">;
+  status: Extract<BountySubmissionStatus, "partiallyApproved" | "approved">;
 };
 
 type SkippedSubmission = Pick<BountySubmission, "id"> &
@@ -30,7 +30,7 @@ const PAID_COMMISSION_STATUSES: CommissionStatus[] = [
 
 // Backfill BountySubmission.approvedSocialMetricThreshold for social metrics submissions approved before the column existed
 // The threshold is derived from the commission earnings (the stored socialMetricCount can be past what was actually paid)
-// If the paid threshold is below the earning cap, sets status back to submitted so the remaining milestones can be approved
+// If the paid threshold is below the earning cap, sets status to partiallyApproved so the sync can reopen it at the next milestone
 // Safe to re-run: only approved submissions with a null threshold are updated
 // Run backfill-bounty-submission-commissions.ts first: commissions are looked up by Commission.bountySubmissionId only
 async function main() {
@@ -151,12 +151,15 @@ async function main() {
       updates.push({
         id,
         approvedSocialMetricThreshold: milestones[paidIndex].threshold,
-        status: paidIndex === milestones.length - 1 ? "approved" : "submitted",
+        status:
+          paidIndex === milestones.length - 1
+            ? BountySubmissionStatus.approved
+            : BountySubmissionStatus.partiallyApproved,
       });
     }
 
     const reopened = updates.filter(
-      ({ status }) => status === "submitted",
+      ({ status }) => status === BountySubmissionStatus.partiallyApproved,
     ).length;
 
     let updated = updates.length;

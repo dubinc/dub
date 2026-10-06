@@ -25,7 +25,7 @@ export function useProgramApplicationsCount<T>({
   const queryString = ignoreParams
     ? `?${new URLSearchParams(definedParams as Record<string, string>).toString()}`
     : getQueryString(definedParams, {
-        exclude: ["partnerId", "sortBy", "sortOrder", "page"],
+        exclude: ["partnerId", "applicationId", "sortBy", "sortOrder", "page"],
       });
 
   const {

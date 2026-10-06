@@ -6,6 +6,17 @@ import { programLanderSchema } from "@/lib/zod/schemas/program-lander";
 import { ProgramApplication } from "@prisma/client";
 import { experimental_evaluate as evaluate, type JSONValue } from "ai";
 
+type ApplicationEvaluationFields = Pick<
+  ProgramApplication,
+  | "formData"
+  | "website"
+  | "youtube"
+  | "twitter"
+  | "linkedin"
+  | "instagram"
+  | "tiktok"
+>;
+
 export const JEV_MATCH_THRESHOLD = 0.85;
 
 const MAX_TEXT_LENGTH = 500;
@@ -28,7 +39,7 @@ export type EvaluatePartnerApplicationInput = {
       verifiedAt: Date | null;
     }[];
   };
-  application: ProgramApplication | null;
+  application: ApplicationEvaluationFields | null;
   landerData: unknown;
 };
 

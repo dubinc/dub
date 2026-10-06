@@ -466,13 +466,35 @@ const createPartners = async (data: SeedData) => {
     `Created ${notificationPreferencesCount} partner notification preferences`,
   );
 
+  const applications = partners.map((partner) => ({
+    id: createId({ prefix: "pga_" }),
+    programId: program.id,
+    partnerId: partner.id,
+    groupId: program.defaultGroupId,
+    name: partner.name,
+    email: partner.email ?? `${partner.id}@dub-internal-test.com`,
+    country: partner.country,
+    formData: { fields: [] },
+    status: "pending" as const,
+    createdAt: new Date(partner.createdAt),
+  }));
+
+  const { count: applicationCount } =
+    await prisma.programApplication.createMany({
+      data: applications,
+    });
+
+  console.log(`Created ${applicationCount} program applications`);
+
   // Create program enrollments
   const { count: enrollmentCount } = await prisma.programEnrollment.createMany({
-    data: partners.map((partner) => ({
+    data: partners.map((partner, index) => ({
       id: createId({ prefix: "pge_" }),
       partnerId: partner.id,
       programId: program.id,
       groupId: program.defaultGroupId,
+      applicationId: applications[index].id,
+      status: "pending" as const,
     })),
   });
 

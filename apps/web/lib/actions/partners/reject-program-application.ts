@@ -1,5 +1,6 @@
 "use server";
 
+import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { rejectProgramApplication } from "@/lib/program-applications/reject-program-application";
 import { rejectProgramApplicationSchema } from "@/lib/zod/schemas/program-application";
 import * as z from "zod/v4";
@@ -29,8 +30,10 @@ export const rejectProgramApplicationAction = authActionClient
       requiredRoles: ["owner", "member"],
     });
 
-    await rejectProgramApplication({
-      workspace,
+    const programId = getDefaultProgramIdOrThrow(workspace);
+
+    return await rejectProgramApplication({
+      programId,
       partnerId,
       rejectionReason,
       rejectionNote,

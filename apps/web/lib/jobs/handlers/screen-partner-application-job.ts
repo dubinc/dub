@@ -1,6 +1,6 @@
 import { screenPartnerApplication } from "@/lib/program-applications/screen-partner-application";
 import { prisma } from "@/lib/prisma";
-import { ProgramEnrollmentStatus } from "@prisma/client";
+import { ProgramApplicationStatus } from "@prisma/client";
 import * as z from "zod/v4";
 import { defineJob } from "../index";
 
@@ -10,23 +10,24 @@ const inputSchema = z.object({
 });
 
 // This job screens a pending application against the program's written criteria.
-// Groups with auto-approval enabled are screened inside auto-approve-partner-job instead.
+// Groups with auto-approval enabled are screened inside auto-approve-program-application-job instead.
 export const screenPartnerApplicationJob = defineJob({
   name: "screen-partner-application-job",
   schema: inputSchema,
   async handle(input) {
     const { programId, partnerId } = input;
 
-    const programEnrollment = await prisma.programEnrollment.findUnique({
+    const programApplication = await prisma.programApplication.findFirst({
       where: {
-        partnerId_programId: {
-          partnerId,
-          programId,
-        },
+        programId,
+        partnerId,
+        status: ProgramApplicationStatus.pending,
+      },
+      orderBy: {
+        createdAt: "desc",
       },
       include: {
         partnerGroup: true,
-        application: true,
         partner: {
           include: {
             platforms: true,
@@ -42,17 +43,14 @@ export const screenPartnerApplicationJob = defineJob({
       },
     });
 
-    if (!programEnrollment) {
-      console.warn(`Partner ${partnerId} not found in program ${programId}.`);
+    if (!programApplication?.partner) {
+      console.warn(
+        `No pending application found for partner ${partnerId} in program ${programId}.`,
+      );
       return;
     }
 
-    if (programEnrollment.status !== ProgramEnrollmentStatus.pending) {
-      console.warn(`${partnerId} is in ${programEnrollment.status} status.`);
-      return;
-    }
-
-    const { program } = programEnrollment;
+    const { program } = programApplication;
     const screeningCriteria = program.applicationScreeningCriteria?.trim();
 
     if (!screeningCriteria) {
@@ -65,13 +63,14 @@ export const screenPartnerApplicationJob = defineJob({
     await screenPartnerApplication({
       programId,
       partnerId,
+      applicationId: programApplication.id,
       program: {
         name: program.name,
         description: program.description,
       },
-      partner: programEnrollment.partner,
-      application: programEnrollment.application,
-      landerData: programEnrollment.partnerGroup?.landerData,
+      partner: programApplication.partner,
+      application: programApplication,
+      landerData: programApplication.partnerGroup?.landerData,
       screeningCriteria,
     });
   },

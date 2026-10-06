@@ -4,6 +4,7 @@ import useProgram from "@/lib/swr/use-program";
 import { useExportApplicationsModal } from "@/ui/modals/export-applications-modal";
 import { ThreeDots } from "@/ui/shared/icons";
 import { Button, Download, IconMenu, Popover, useMediaQuery } from "@dub/ui";
+import { ProgramApplicationStatus } from "@prisma/client";
 import { useState } from "react";
 import { useApplicationSettingsSheet } from "./application-settings-sheet";
 
@@ -26,12 +27,16 @@ export function ApplicationSettingsButton() {
   );
 }
 
-export function ApplicationsMenuPopover() {
+export function ApplicationsMenuPopover({
+  status,
+}: {
+  status: ProgramApplicationStatus;
+}) {
   const { program } = useProgram();
   const [openPopover, setOpenPopover] = useState(false);
 
   const { setShowExportApplicationsModal, ExportApplicationsModal } =
-    useExportApplicationsModal();
+    useExportApplicationsModal({ status });
 
   return (
     <>

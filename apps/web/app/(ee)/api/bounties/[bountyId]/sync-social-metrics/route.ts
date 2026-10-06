@@ -6,14 +6,17 @@ import { getEffectiveBountyPeriod } from "@/lib/bounty/api/bounty-availability";
 import { getBountyOrThrow } from "@/lib/bounty/api/get-bounty-or-throw";
 import { getSocialMetricsUpdates } from "@/lib/bounty/api/get-social-metrics-updates";
 import { isBountyEnded, isBountyStarted } from "@/lib/bounty/bounty-period";
-import { hasReachedSocialMetricsEarningCap } from "@/lib/bounty/social-metrics-milestones";
+import {
+  getHighestReachedSocialMetricsThreshold,
+  hasReachedSocialMetricsEarningCap,
+} from "@/lib/bounty/social-metrics-milestones";
 import { resolveBountyDetails } from "@/lib/bounty/utils";
 import { qstash } from "@/lib/cron";
 import { prisma } from "@/lib/prisma";
 import { sendEmail } from "@dub/email";
 import BountyCompleted from "@dub/email/templates/bounty-completed";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
-import { Prisma } from "@prisma/client";
+import { BountySubmissionStatus, Prisma } from "@prisma/client";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 
@@ -181,14 +184,40 @@ export const POST = withWorkspace(
         updateData.completedAt = new Date();
       }
 
-      await prisma.bountySubmission.update({
-        where: {
-          id: submissionId,
-        },
-        data: {
-          ...updateData,
-        },
+      const highestReachedThreshold = getHighestReachedSocialMetricsThreshold({
+        bounty,
+        socialMetricCount,
       });
+
+      await prisma.$transaction([
+        prisma.bountySubmission.update({
+          where: {
+            id: submissionId,
+          },
+          data: {
+            ...updateData,
+          },
+        }),
+
+        // A partially approved submission goes back to review when it reaches a new milestone
+        // The where clause uses the current status and threshold, not the ones we read, so a concurrent approval is taken into account
+        ...(highestReachedThreshold != null
+          ? [
+              prisma.bountySubmission.updateMany({
+                where: {
+                  id: submissionId,
+                  status: BountySubmissionStatus.partiallyApproved,
+                  approvedSocialMetricThreshold: {
+                    lt: highestReachedThreshold,
+                  },
+                },
+                data: {
+                  status: BountySubmissionStatus.submitted,
+                },
+              }),
+            ]
+          : []),
+      ]);
 
       const { partner } = submission;
 

@@ -46,11 +46,13 @@ const jobLoaders = {
   "welcome-user-job": () =>
     import("./handlers/welcome-user-job").then((m) => m.welcomeUserJob),
 
+  // Deprecated: only kept to drain in-flight messages
   "auto-approve-partner-job": () =>
     import("./handlers/auto-approve-partner-job").then(
       (m) => m.autoApprovePartnerJob,
     ),
 
+  // Deprecated: only kept to drain in-flight messages
   "auto-reject-partner-job": () =>
     import("./handlers/auto-reject-partner-job").then(
       (m) => m.autoRejectPartnerJob,
@@ -59,6 +61,16 @@ const jobLoaders = {
   "screen-partner-application-job": () =>
     import("./handlers/screen-partner-application-job").then(
       (m) => m.screenPartnerApplicationJob,
+    ),
+
+  "auto-approve-program-application-job": () =>
+    import("./handlers/auto-approve-program-application-job").then(
+      (m) => m.autoApproveProgramApplicationJob,
+    ),
+
+  "auto-reject-program-application-job": () =>
+    import("./handlers/auto-reject-program-application-job").then(
+      (m) => m.autoRejectProgramApplicationJob,
     ),
 
   "queue-partner-program-summary-job": () =>

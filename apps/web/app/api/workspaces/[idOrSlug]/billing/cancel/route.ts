@@ -31,12 +31,15 @@ export const POST = withWorkspace(
         limit: 10,
       });
       const subscription = data.find(
-        (s) => s.status === "active" || s.status === "trialing",
+        (s) =>
+          s.status === "active" ||
+          s.status === "trialing" ||
+          s.status === "past_due",
       );
       if (!subscription) {
         throw new DubApiError({
           code: "not_found",
-          message: "No active or trialing subscription found.",
+          message: "No valid subscription to cancel.",
         });
       }
 

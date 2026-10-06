@@ -1,19 +1,16 @@
-import { evaluateApplicationRequirements } from "@/lib/partners/evaluate-application-requirements";
 import { prisma } from "@/lib/prisma";
-import { rejectPendingEnrollment } from "@/lib/program-applications/reject-pending-enrollment";
-import {
-  ProgramApplicationRejectionReason,
-  ProgramEnrollmentStatus,
-} from "@prisma/client";
 import * as z from "zod/v4";
 import { defineJob } from "../index";
+import { autoRejectProgramApplicationJob } from "./auto-reject-program-application-job";
 
 const inputSchema = z.object({
   programId: z.string(),
   partnerId: z.string(),
 });
 
-// This job is used to auto-reject a partner enrollment (e.g. when eligibility requirements are not met)
+// Deprecated: superseded by auto-reject-program-application-job, which is keyed by
+// application instead of enrollment. Kept only to drain in-flight QStash messages –
+// safe to delete once the queue has caught up.
 export const autoRejectPartnerJob = defineJob({
   name: "auto-reject-partner-job",
   schema: inputSchema,
@@ -27,63 +24,25 @@ export const autoRejectPartnerJob = defineJob({
           programId,
         },
       },
-      include: {
-        partner: {
-          select: {
-            country: true,
-            email: true,
-          },
-        },
-        program: {
-          select: {
-            applicationRequirements: true,
-          },
-        },
+      select: {
+        applicationId: true,
       },
     });
 
-    if (!programEnrollment) {
-      console.warn(`Partner ${partnerId} not found in program ${programId}.`);
-      return;
-    }
-
-    if (programEnrollment.status !== ProgramEnrollmentStatus.pending) {
-      console.warn(`${partnerId} is in ${programEnrollment.status} status.`);
-      return;
-    }
-
-    const result = evaluateApplicationRequirements({
-      applicationRequirements:
-        programEnrollment.program.applicationRequirements,
-      context: {
-        country: programEnrollment.partner.country,
-        email: programEnrollment.partner.email,
-      },
-    });
-
-    if (result.reason !== "requirementsNotMet") {
+    if (!programEnrollment?.applicationId) {
       console.warn(
-        `Partner ${partnerId} now meets requirements for program ${programId} (reason: ${result.reason}).`,
+        `No application found for partner ${partnerId} in program ${programId}.`,
       );
       return;
     }
 
-    const rejected = await rejectPendingEnrollment({
-      programId,
-      partnerId,
-      rejectionReason:
-        ProgramApplicationRejectionReason.doesNotMeetRequirements,
-    });
-
-    if (!rejected) {
-      console.warn(
-        `Partner ${partnerId} is no longer pending in program ${programId}.`,
-      );
-      return;
-    }
-
-    console.info(
-      `Successfully auto-rejected partner ${partnerId} in program ${programId}.`,
+    await autoRejectProgramApplicationJob.dispatch(
+      {
+        applicationId: programEnrollment.applicationId,
+      },
+      {
+        label: partnerId,
+      },
     );
   },
 });

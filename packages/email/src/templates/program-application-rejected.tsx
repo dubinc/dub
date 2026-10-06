@@ -1,4 +1,8 @@
-import { DUB_WORDMARK, PARTNERS_DOMAIN } from "@dub/utils";
+import {
+  DUB_WORDMARK,
+  PARTNERS_DOMAIN,
+  STANDARD_REAPPLICATION_DAYS,
+} from "@dub/utils";
 import {
   Body,
   Container,
@@ -77,7 +81,7 @@ export default function ProgramApplicationRejected({
               {reapplicationTimeframe === "instant"
                 ? " You can submit a new application whenever you're ready."
                 : reapplicationTimeframe === "standard"
-                  ? " You will be able to re-apply in 30 days."
+                  ? ` You will be able to re-apply in ${STANDARD_REAPPLICATION_DAYS} days.`
                   : null}
             </Text>
 

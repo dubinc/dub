@@ -1,24 +1,25 @@
-import { autoApprovePartnerJob } from "@/lib/jobs/handlers/auto-approve-partner-job";
+import { autoApproveProgramApplicationJob } from "@/lib/jobs/handlers/auto-approve-program-application-job";
 import { screenPartnerApplicationJob } from "@/lib/jobs/handlers/screen-partner-application-job";
 
-// Auto-approving groups are screened inside autoApprovePartnerJob, so the two
-// jobs never review the same enrollment concurrently.
+// Auto-approving groups are screened inside autoApproveProgramApplicationJob, so
+// the two jobs never review the same application concurrently.
 export function dispatchPartnerApplicationReview({
+  applicationId,
   programId,
   partnerId,
   autoApprovePartnersEnabledAt,
   applicationScreeningCriteria,
 }: {
+  applicationId: string;
   programId: string;
   partnerId: string;
   autoApprovePartnersEnabledAt: Date | null | undefined;
   applicationScreeningCriteria: string | null | undefined;
 }) {
   if (autoApprovePartnersEnabledAt) {
-    return autoApprovePartnerJob.dispatch(
+    return autoApproveProgramApplicationJob.dispatch(
       {
-        programId,
-        partnerId,
+        applicationId,
       },
       {
         label: partnerId,

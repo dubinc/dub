@@ -1,3 +1,4 @@
+import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { rejectProgramApplication } from "@/lib/program-applications/reject-program-application";
@@ -16,8 +17,10 @@ export const POST = withWorkspace(
       flagForFraudReason,
     } = rejectProgramApplicationSchema.parse(await parseRequestBody(req));
 
+    const programId = getDefaultProgramIdOrThrow(workspace);
+
     await rejectProgramApplication({
-      workspace,
+      programId,
       partnerId,
       rejectionReason,
       rejectionNote,

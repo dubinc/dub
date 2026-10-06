@@ -2,7 +2,7 @@ import { rejectProgramApplicationAction } from "@/lib/actions/partners/reject-pr
 import {
   getProgramApplicationRejectionReasonLabel,
   PROGRAM_APPLICATION_REJECTION_REASON_ORDER,
-} from "@/lib/partners/program-application-rejection";
+} from "@/lib/program-applications/program-application-rejection";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { PartnerProps } from "@/lib/types";
 import { MAX_FRAUD_REASON_LENGTH } from "@/lib/zod/schemas/partners";
@@ -18,7 +18,7 @@ import {
   ToggleGroup,
   useKeyboardShortcut,
 } from "@dub/ui";
-import { cn } from "@dub/utils";
+import { cn, STANDARD_REAPPLICATION_DAYS } from "@dub/utils";
 import { ProgramApplicationRejectionReason } from "@prisma/client";
 import { motion } from "motion/react";
 import { useAction } from "next-safe-action/hooks";
@@ -42,7 +42,7 @@ const REJECTION_REASON_COMBO_OPTIONS: ComboboxOption[] =
 
 const REAPPLICATION_TIMEFRAME_OPTIONS = [
   { value: "instant", label: "Immediate" },
-  { value: "standard", label: "30 days" },
+  { value: "standard", label: `${STANDARD_REAPPLICATION_DAYS} days` },
   { value: "never", label: "Never" },
 ] as const;
 
@@ -51,7 +51,7 @@ const REAPPLICATION_TIMEFRAME_DESCRIPTIONS: Record<
   string
 > = {
   instant: "The partner can reapply immediately.",
-  standard: "The partner can reapply after 30 days.",
+  standard: `The partner can reapply after ${STANDARD_REAPPLICATION_DAYS} days.`,
   never: "The partner can never reapply for the program.",
 };
 
@@ -103,13 +103,16 @@ export function RejectProgramApplicationModal({
   const { executeAsync: rejectProgramApplication, isPending } = useAction(
     rejectProgramApplicationAction,
     {
-      onSuccess: async () => {
+      onSuccess: async ({ data }) => {
         toast.success(
-          reapplicationTimeframeOutcomeRef.current === "instant"
-            ? `Application rejected — ${partner.email} can reapply immediately.`
-            : reapplicationTimeframeOutcomeRef.current === "never"
-              ? `Partner ${partner.email} has been rejected and cannot reapply.`
-              : `Partner ${partner.email} has been rejected from your program.`,
+          // Approved partners keep their enrollment when a group application is rejected
+          data?.isApplyingToAdditionalGroup
+            ? `Group application rejected. ${partner.email} stays in their current group.`
+            : reapplicationTimeframeOutcomeRef.current === "instant"
+              ? `Application rejected — ${partner.email} can reapply immediately.`
+              : reapplicationTimeframeOutcomeRef.current === "never"
+                ? `Partner ${partner.email} has been rejected and cannot reapply.`
+                : `Partner ${partner.email} has been rejected from your program.`,
         );
         setShowRejectProgramApplicationModal(false);
         await onConfirm?.();
