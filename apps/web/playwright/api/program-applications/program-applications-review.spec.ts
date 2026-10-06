@@ -275,7 +275,7 @@ test.describe("program application reviews", () => {
       apiError({
         code: "bad_request",
         message:
-          "This enrollment cannot be approved because it is already approved.",
+          "This application cannot be approved because it is already approved.",
       }),
     );
 
@@ -389,7 +389,7 @@ test.describe("program application reviews", () => {
       apiError({
         code: "bad_request",
         message:
-          "This enrollment cannot be approved because it is already approved.",
+          "This application cannot be approved because it is already approved.",
       }),
     );
 

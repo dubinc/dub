@@ -104,7 +104,7 @@ export async function approveProgramApplication({
   });
 
   if (!programApplication) {
-    // When a specific application ID is provided
+    // No application ID was provided and the partner has no pending application
     if (requirePendingApplication) {
       throw new DubApiError({
         code: "bad_request",
