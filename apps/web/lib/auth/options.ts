@@ -8,6 +8,7 @@ import { assertRateLimit } from "@/lib/upstash/assert-rate-limit";
 import { RATELIMIT_POLICIES } from "@/lib/upstash/ratelimit-policies";
 import { sendEmail } from "@dub/email";
 import LoginLink from "@dub/email/templates/login-link";
+import { APP_DOMAIN, PARTNERS_DOMAIN } from "@dub/utils";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { PrismaClient } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
@@ -18,6 +19,7 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import EmailProvider from "next-auth/providers/email";
 import GithubProvider from "next-auth/providers/github";
 import GoogleProvider from "next-auth/providers/google";
+import { headers } from "next/headers";
 import { createId } from "../api/create-id";
 import { isProduction } from "../api/environment";
 import { isSamlEnforcedForEmailDomain } from "../api/workspaces/is-saml-enforced-for-email-domain";
@@ -528,6 +530,24 @@ export const authOptions: NextAuthOptions = {
         }
       }
       return true;
+    },
+    // baseUrl is always NEXTAUTH_URL (app.dub.co), so resolve against the
+    // request's host instead to support redirects on partners.dub.co
+    redirect: async ({ url, baseUrl }) => {
+      const trustedOrigins = [baseUrl, APP_DOMAIN, PARTNERS_DOMAIN];
+      const host = (await headers()).get("host");
+      const base =
+        trustedOrigins.find((origin) => new URL(origin).host === host) ??
+        baseUrl;
+
+      let resolved: URL;
+      try {
+        resolved = new URL(url, base);
+      } catch {
+        return base;
+      }
+      const { origin, href } = resolved;
+      return trustedOrigins.includes(origin) ? href : base;
     },
     jwt: async ({
       token,
