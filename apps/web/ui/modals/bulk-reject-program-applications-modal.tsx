@@ -16,13 +16,6 @@ import {
 import { toast } from "sonner";
 import { PartnerEmailNotificationTooltipHelper } from "../shared/partner-email-notification-tooltip-helper";
 
-type BulkRejectPartner = Pick<
-  PartnerProps,
-  "id" | "name" | "email" | "image"
-> & {
-  applicationId: string;
-};
-
 function BulkRejectProgramApplicationsModal({
   showBulkRejectProgramApplicationsModal,
   setShowBulkRejectProgramApplicationsModal,
@@ -30,48 +23,38 @@ function BulkRejectProgramApplicationsModal({
 }: {
   showBulkRejectProgramApplicationsModal: boolean;
   setShowBulkRejectProgramApplicationsModal: Dispatch<SetStateAction<boolean>>;
-  partners: BulkRejectPartner[];
+  partners: Pick<PartnerProps, "id" | "name" | "email" | "image">[];
 }) {
   const { id: workspaceId } = useWorkspace();
 
   const { executeAsync, isPending } = useAction(
     bulkRejectProgramApplicationsAction,
     {
-      onSuccess: async ({ data }) => {
+      onSuccess: async () => {
         setShowBulkRejectProgramApplicationsModal(false);
         await mutatePrefix([
           "/api/partners",
           "/api/partners/count",
           "/api/program-applications",
         ]);
-        const { rejectedCount, skippedCount } = data;
-        toast.success(
-          `${rejectedCount} ${pluralize("partner", rejectedCount)} rejected.${skippedCount > 0 ? ` ${skippedCount} skipped because ${pluralize("it was", skippedCount, { plural: "they were" })} already reviewed.` : ""}`,
-        );
+        toast.success(`${pluralize("Partner", partners.length)} rejected.`);
       },
-      onError: async ({ error }) => {
-        await mutatePrefix([
-          "/api/partners",
-          "/api/partners/count",
-          "/api/program-applications",
-        ]);
+      onError({ error }) {
         toast.error(error.serverError);
       },
     },
   );
 
   const handleBulkReject = async () => {
-    if (!workspaceId || partners.length === 0) {
+    const partnerIds = partners.map((p) => p.id);
+
+    if (!workspaceId || partnerIds.length === 0) {
       return;
     }
 
-    const applicationIds = partners
-      .map(({ applicationId }) => applicationId)
-      .filter((id): id is string => Boolean(id));
-
     await executeAsync({
       workspaceId,
-      applicationIds,
+      partnerIds,
     });
   };
 
@@ -147,7 +130,7 @@ function BulkRejectProgramApplicationsModal({
 export function useBulkRejectProgramApplicationsModal({
   partners,
 }: {
-  partners: BulkRejectPartner[];
+  partners: Pick<PartnerProps, "id" | "name" | "email" | "image">[];
 }) {
   const [
     showBulkRejectProgramApplicationsModal,
