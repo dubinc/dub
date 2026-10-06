@@ -29,6 +29,13 @@ const APPROVABLE_APPLICATION_STATUSES: ProgramApplicationStatus[] = [
   ProgramApplicationStatus.rejected,
 ];
 
+// `approved` covers partners applying to join another group
+const APPROVABLE_ENROLLMENT_STATUSES: ProgramEnrollmentStatus[] = [
+  ProgramEnrollmentStatus.pending,
+  ProgramEnrollmentStatus.rejected,
+  ProgramEnrollmentStatus.approved,
+];
+
 export async function approveProgramApplication({
   programId,
   partnerId,
@@ -86,6 +93,16 @@ export async function approveProgramApplication({
     throw new DubApiError({
       code: "not_found",
       message: "No pending or rejected application found.",
+    });
+  }
+
+  if (
+    existingEnrollment &&
+    !APPROVABLE_ENROLLMENT_STATUSES.includes(existingEnrollment.status)
+  ) {
+    throw new DubApiError({
+      code: "bad_request",
+      message: `This application cannot be approved because the partner is ${existingEnrollment.status}.`,
     });
   }
 

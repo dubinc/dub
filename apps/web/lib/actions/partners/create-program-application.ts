@@ -38,6 +38,7 @@ import {
   PartnerGroup,
   PartnerPlatform,
   Program,
+  ProgramApplicationStatus,
   ProgramEnrollment,
   ProgramEnrollmentStatus,
   Project,
@@ -246,6 +247,34 @@ export const createProgramApplicationAction = actionClient
     return application;
   });
 
+function throwIfCannotApply({
+  enrollment,
+  groupId,
+}: {
+  enrollment: Pick<ProgramEnrollment, "status" | "groupId"> | null | undefined;
+  groupId: string;
+}) {
+  if (!enrollment) {
+    return;
+  }
+
+  if (enrollment.status === ProgramEnrollmentStatus.pending) {
+    throw new Error(
+      "You have an existing application for this program. Please wait for it to be reviewed.",
+    );
+  }
+
+  if (enrollment.status !== ProgramEnrollmentStatus.approved) {
+    throw new Error(
+      "You have already applied to this program. You cannot apply to this program again.",
+    );
+  }
+
+  if (enrollment.groupId === groupId) {
+    throw new Error("You're already in this group.");
+  }
+}
+
 async function createApplicationAndEnrollment({
   workspace,
   program,
@@ -264,21 +293,10 @@ async function createApplicationAndEnrollment({
   data: z.infer<typeof createProgramApplicationSchema>;
   inAppApplication?: boolean;
 }) {
-  const existingEnrollment = partner.programs.find(
-    (p) => p.programId === program.id,
-  );
-
-  if (existingEnrollment) {
-    if (existingEnrollment.status === ProgramEnrollmentStatus.pending) {
-      throw new Error(
-        "You have an existing application for this program. Please wait for it to be reviewed.",
-      );
-    }
-
-    if (existingEnrollment.groupId === group.id) {
-      throw new Error("You're already in this group.");
-    }
-  }
+  throwIfCannotApply({
+    enrollment: partner.programs.find((p) => p.programId === program.id),
+    groupId: group.id,
+  });
 
   const sanitizedData = sanitizeData(data, group);
 
@@ -300,43 +318,89 @@ async function createApplicationAndEnrollment({
   const applicationId = createId({ prefix: "pga_" });
   const enrollmentId = createId({ prefix: "pge_" });
 
-  const [programApplication, programEnrollment] = await prisma.$transaction([
-    prisma.programApplication.create({
-      data: {
-        ...sanitizeData(data, group),
-        id: applicationId,
-        programId: program.id,
-        partnerId: partner.id,
-        groupId: group.id,
-      },
-    }),
+  const { programApplication, programEnrollment } = await prisma.$transaction(
+    async (tx) => {
+      // Serializes concurrent applications from the same partner so the
+      // checks below cannot be raced (MySQL has no partial unique index so we can't restrict this on DB level).
+      await tx.$queryRaw`SELECT id FROM Partner WHERE id = ${partner.id} FOR UPDATE`;
 
-    prisma.programEnrollment.upsert({
-      where: {
-        partnerId_programId: {
+      const enrollment = await tx.programEnrollment.findUnique({
+        where: {
+          partnerId_programId: {
+            partnerId: partner.id,
+            programId: program.id,
+          },
+        },
+        select: {
+          status: true,
+          groupId: true,
+        },
+      });
+
+      throwIfCannotApply({
+        enrollment,
+        groupId: group.id,
+      });
+
+      const pendingApplication = await tx.programApplication.findFirst({
+        where: {
+          programId: program.id,
+          partnerId: partner.id,
+          status: ProgramApplicationStatus.pending,
+        },
+        select: {
+          id: true,
+        },
+      });
+
+      if (pendingApplication) {
+        throw new Error(
+          "You have an existing application for this program. Please wait for it to be reviewed.",
+        );
+      }
+
+      const programApplication = await tx.programApplication.create({
+        data: {
+          ...sanitizedData,
+          id: applicationId,
+          programId: program.id,
+          partnerId: partner.id,
+          groupId: group.id,
+        },
+      });
+
+      const programEnrollment = await tx.programEnrollment.upsert({
+        where: {
+          partnerId_programId: {
+            partnerId: partner.id,
+            programId: program.id,
+          },
+        },
+        create: {
+          id: enrollmentId,
           partnerId: partner.id,
           programId: program.id,
+          status: ProgramEnrollmentStatus.pending,
+          applicationId,
+          groupId: group.id,
+          clickRewardId: group.clickRewardId,
+          leadRewardId: group.leadRewardId,
+          saleRewardId: group.saleRewardId,
+          referralRewardId: group.referralRewardId,
+          customRewardId: group.customRewardId,
+          discountId: group.discountId,
         },
-      },
-      create: {
-        id: enrollmentId,
-        partnerId: partner.id,
-        programId: program.id,
-        status: ProgramEnrollmentStatus.pending,
-        applicationId,
-        groupId: group.id,
-        clickRewardId: group.clickRewardId,
-        leadRewardId: group.leadRewardId,
-        saleRewardId: group.saleRewardId,
-        referralRewardId: group.referralRewardId,
-        customRewardId: group.customRewardId,
-        discountId: group.discountId,
-      },
-      update: {
-        // don't update the enrollment if it already exists
-      },
-    }),
-  ]);
+        update: {
+          // don't update the enrollment if it already exists
+        },
+      });
+
+      return {
+        programApplication,
+        programEnrollment,
+      };
+    },
+  );
 
   if (result.reason === "requirementsNotMet") {
     await autoRejectProgramApplicationJob.dispatch(
