@@ -3,6 +3,7 @@ import { COUNTRIES, COUNTRY_CODES, sleep } from "@dub/utils";
 import { PartnerGroup, Program } from "@prisma/client";
 import { createId } from "../api/create-id";
 import { queuePartnerSearchSync } from "../api/partners/queue-partner-search-sync";
+import { upsertImportedProgramEnrollment } from "../api/partners/upsert-imported-program-enrollment";
 import { approveLinkedApplication } from "../program-applications/approve-linked-application";
 import { logImportError } from "../tinybird/log-import-error";
 import { redis } from "../upstash";
@@ -180,13 +181,9 @@ async function createPartner({
     },
   });
 
-  const { applicationId } = await prisma.programEnrollment.upsert({
-    where: {
-      partnerId_programId: {
-        partnerId,
-        programId: program.id,
-      },
-    },
+  const { enrollment, preservedBan } = await upsertImportedProgramEnrollment({
+    partnerId,
+    programId: program.id,
     create: {
       id: createId({ prefix: "pge_" }),
       programId: program.id,
@@ -200,17 +197,13 @@ async function createPartner({
       customRewardId: group.customRewardId,
       discountId: group.discountId,
     },
-    update: {
-      status: "approved",
-    },
-    select: {
-      applicationId: true,
-    },
   });
 
-  await approveLinkedApplication({
-    applicationId,
-  });
+  if (!preservedBan) {
+    await approveLinkedApplication({
+      applicationId: enrollment.applicationId,
+    });
+  }
 
   // PS doesn't return the partner email address in the customers response
   // so we need to keep a map of partner_key (PS) -> partner_id (Dub)
