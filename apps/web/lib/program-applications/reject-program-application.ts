@@ -125,9 +125,10 @@ export async function rejectProgramApplication({
   const isNewApplication = !existingEnrollment || !!enrollmentToReject;
 
   await prisma.$transaction(async (tx) => {
-    await tx.programApplication.update({
+    const { count } = await tx.programApplication.updateMany({
       where: {
         id: programApplication.id,
+        status: ProgramApplicationStatus.pending,
       },
       data: {
         status: ProgramApplicationStatus.rejected,
@@ -137,6 +138,14 @@ export async function rejectProgramApplication({
         userId,
       },
     });
+
+    if (count === 0) {
+      throw new DubApiError({
+        code: "conflict",
+        message:
+          "This application was already reviewed. Refresh and try again.",
+      });
+    }
 
     if (flagForFraud && flagForFraudReason) {
       await tx.fraudAlert.create({
