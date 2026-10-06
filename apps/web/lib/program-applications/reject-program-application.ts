@@ -138,6 +138,16 @@ export async function rejectProgramApplication({
       },
     });
 
+    if (flagForFraud && flagForFraudReason) {
+      await tx.fraudAlert.create({
+        data: {
+          partnerId,
+          programId,
+          reason: flagForFraudReason,
+        },
+      });
+    }
+
     if (!isNewApplication) {
       return;
     }
@@ -182,16 +192,6 @@ export async function rejectProgramApplication({
           referralRewardId: null,
           customRewardId: null,
           discountId: null,
-        },
-      });
-    }
-
-    if (flagForFraud && flagForFraudReason) {
-      await tx.fraudAlert.create({
-        data: {
-          partnerId,
-          programId,
-          reason: flagForFraudReason,
         },
       });
     }

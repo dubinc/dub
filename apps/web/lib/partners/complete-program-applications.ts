@@ -164,7 +164,7 @@ export async function completeProgramApplications(userEmail: string) {
       workspaces.map((ws) => [ws.defaultProgramId, ws]),
     );
 
-    await backfillPartnerPlatforms({
+    const { platforms: backfilledPlatforms } = await backfillPartnerPlatforms({
       partnerId: partner.id,
       platforms: partner.platforms,
       applications: filteredProgramApplications,
@@ -195,7 +195,7 @@ export async function completeProgramApplications(userEmail: string) {
         });
 
         const { platforms, socialFields } = mergeApplicationSocialPlatforms({
-          platforms: partner.platforms,
+          platforms: backfilledPlatforms,
           application,
         });
 

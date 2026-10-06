@@ -128,8 +128,24 @@ export function ApplicationsTable({
 
     if (applicationId) {
       setDetailsSheetState({ open: true, applicationId });
+      return;
     }
-  }, [searchParams]);
+
+    const partnerId = searchParams.get("partnerId");
+
+    if (!partnerId || !partners) {
+      return;
+    }
+
+    const legacyRow = partners.find(({ id }) => id === partnerId);
+
+    if (legacyRow) {
+      queryParams({
+        set: { applicationId: legacyRow.applicationId },
+        del: "partnerId",
+      });
+    }
+  }, [searchParams, partners, queryParams]);
 
   const { currentApplication, isLoading: isCurrentApplicationLoading } =
     useCurrentApplication({
