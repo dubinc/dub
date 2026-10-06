@@ -3,6 +3,7 @@ import { createId } from "@/lib/api/create-id";
 import { DubApiError } from "@/lib/api/errors";
 import { getGroupOrThrow } from "@/lib/api/groups/get-group-or-throw";
 import { movePartnersToGroup } from "@/lib/api/groups/move-partners-to-group";
+import { throwIfInvalidPartnerTagIds } from "@/lib/api/partner-tags/throw-if-invalid-partner-tag-ids";
 import { queuePartnerSearchSync } from "@/lib/api/partners/queue-partner-search-sync";
 import { trackApplicationEvents } from "@/lib/application-events/update-application-event";
 import { dispatchWorkflows } from "@/lib/jobs/publish-workflows";
@@ -41,6 +42,7 @@ export async function approveProgramApplication({
   partnerId,
   applicationId,
   groupId,
+  tagIds,
   userId,
 }: ApproveProgramApplicationInput) {
   const existingEnrollment = await prisma.programEnrollment.findUnique({
@@ -137,6 +139,13 @@ export async function approveProgramApplication({
     groupId: finalGroupId,
   });
 
+  if (tagIds?.length) {
+    await throwIfInvalidPartnerTagIds({
+      programId,
+      partnerTagIds: tagIds,
+    });
+  }
+
   const now = new Date();
   const isNewEnrollment = !isEnrollmentApproved;
 
@@ -210,6 +219,17 @@ export async function approveProgramApplication({
         code: "conflict",
         message:
           "This application was already reviewed. Refresh and try again.",
+      });
+    }
+
+    if (tagIds?.length) {
+      await tx.programPartnerTag.createMany({
+        data: tagIds.map((partnerTagId) => ({
+          programId,
+          partnerId,
+          partnerTagId,
+        })),
+        skipDuplicates: true,
       });
     }
 
