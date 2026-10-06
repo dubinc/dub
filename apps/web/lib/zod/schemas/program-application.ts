@@ -115,7 +115,7 @@ export const approveProgramApplicationSchema = z.object({
     .string()
     .optional()
     .describe(
-      "The ID of the application to approve. If not provided, the partner's most recent pending or rejected application is used.",
+      "The ID of the application to approve. If not provided, the partner's most recent pending or rejected application is used. For a partner who is already approved in the program, only a pending application is used.",
     ),
   groupId: z
     .string()

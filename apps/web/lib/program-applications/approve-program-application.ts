@@ -43,58 +43,17 @@ export async function approveProgramApplication({
   groupId,
   userId,
 }: ApproveProgramApplicationInput) {
-  const [programApplication, existingEnrollment] = await Promise.all([
-    prisma.programApplication.findFirst({
-      where: {
-        ...(applicationId && { id: applicationId }),
-        programId,
+  const existingEnrollment = await prisma.programEnrollment.findUnique({
+    where: {
+      partnerId_programId: {
         partnerId,
-        status: {
-          in: APPROVABLE_APPLICATION_STATUSES,
-        },
+        programId,
       },
-      select: {
-        id: true,
-        groupId: true,
-        status: true,
-        program: {
-          select: {
-            defaultGroupId: true,
-            workspace: {
-              select: {
-                id: true,
-                trialEndsAt: true,
-                partnersUsage: true,
-                partnersLimit: true,
-              },
-            },
-          },
-        },
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
-    }),
-
-    prisma.programEnrollment.findUnique({
-      where: {
-        partnerId_programId: {
-          partnerId,
-          programId,
-        },
-      },
-      select: {
-        status: true,
-      },
-    }),
-  ]);
-
-  if (!programApplication) {
-    throw new DubApiError({
-      code: "not_found",
-      message: "No pending or rejected application found.",
-    });
-  }
+    },
+    select: {
+      status: true,
+    },
+  });
 
   if (
     existingEnrollment &&
@@ -103,6 +62,60 @@ export async function approveProgramApplication({
     throw new DubApiError({
       code: "bad_request",
       message: `This application cannot be approved because the partner is ${existingEnrollment.status}.`,
+    });
+  }
+
+  const isEnrollmentApproved =
+    existingEnrollment?.status === ProgramEnrollmentStatus.approved;
+  const requirePendingApplication = !applicationId && isEnrollmentApproved;
+
+  const programApplication = await prisma.programApplication.findFirst({
+    where: {
+      ...(applicationId && { id: applicationId }),
+      programId,
+      partnerId,
+      status: requirePendingApplication
+        ? ProgramApplicationStatus.pending
+        : {
+            in: APPROVABLE_APPLICATION_STATUSES,
+          },
+    },
+    select: {
+      id: true,
+      groupId: true,
+      status: true,
+      program: {
+        select: {
+          defaultGroupId: true,
+          workspace: {
+            select: {
+              id: true,
+              trialEndsAt: true,
+              partnersUsage: true,
+              partnersLimit: true,
+            },
+          },
+        },
+      },
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+
+  if (!programApplication) {
+    // When a specific application ID is provided
+    if (requirePendingApplication) {
+      throw new DubApiError({
+        code: "bad_request",
+        message:
+          "This application cannot be approved because it is already approved.",
+      });
+    }
+
+    throw new DubApiError({
+      code: "not_found",
+      message: "No pending application or rejected application found.",
     });
   }
 
@@ -125,9 +138,7 @@ export async function approveProgramApplication({
   });
 
   const now = new Date();
-
-  const isNewEnrollment =
-    existingEnrollment?.status !== ProgramEnrollmentStatus.approved;
+  const isNewEnrollment = !isEnrollmentApproved;
 
   await prisma.$transaction(async (tx) => {
     if (isNewEnrollment) {

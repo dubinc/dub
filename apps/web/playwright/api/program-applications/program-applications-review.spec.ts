@@ -77,11 +77,14 @@ test.describe("program application reviews", () => {
   });
 
   let programId: string;
+  let defaultGroupId: string;
   let extraGroup: GroupProps;
   let applications: SeededApplication[] = [];
+  const extraApplicationIds: string[] = [];
 
   test.beforeAll(async ({ api, program }) => {
     programId = program.id;
+    defaultGroupId = program.defaultGroupId;
     extraGroup = await createGroup(api);
 
     const now = Date.now();
@@ -179,11 +182,14 @@ test.describe("program application reviews", () => {
       await deletePartner(application.partnerId);
     }
 
-    if (applications.length > 0) {
+    if (applications.length > 0 || extraApplicationIds.length > 0) {
       await prisma.programApplication.deleteMany({
         where: {
           id: {
-            in: applications.map((application) => application.applicationId),
+            in: [
+              ...applications.map((application) => application.applicationId),
+              ...extraApplicationIds,
+            ],
           },
         },
       });
@@ -350,6 +356,64 @@ test.describe("program application reviews", () => {
       enrollmentStatus: "approved",
       rejectionReason: null,
     });
+  });
+
+  test("POST /program-applications/approve – partnerId only does not revive a rejected group application", async ({
+    api,
+  }) => {
+    const application = applications[0]!;
+    const rejectedApplicationId = createId({ prefix: "pga_" });
+    extraApplicationIds.push(rejectedApplicationId);
+
+    await prisma.programApplication.create({
+      data: {
+        id: rejectedApplicationId,
+        programId,
+        partnerId: application.partnerId,
+        groupId: defaultGroupId,
+        name: application.name,
+        email: application.email,
+        country: application.country,
+        formData: { fields: [] },
+        status: "rejected",
+        reviewedAt: new Date(),
+        createdAt: new Date(),
+      },
+    });
+
+    const response = await api.post("/api/program-applications/approve", {
+      partnerId: application.partnerId,
+    });
+
+    expect(response).toEqual(
+      apiError({
+        code: "bad_request",
+        message:
+          "This enrollment cannot be approved because it is already approved.",
+      }),
+    );
+
+    const enrollment = await prisma.programEnrollment.findUniqueOrThrow({
+      where: {
+        partnerId_programId: {
+          partnerId: application.partnerId,
+          programId,
+        },
+      },
+    });
+
+    expect(enrollment.status).toBe("approved");
+    expect(enrollment.groupId).toBe(application.groupId);
+    expect(enrollment.applicationId).toBe(application.applicationId);
+
+    const rejectedApplication =
+      await prisma.programApplication.findUniqueOrThrow({
+        where: {
+          id: rejectedApplicationId,
+        },
+      });
+
+    expect(rejectedApplication.status).toBe("rejected");
   });
 
   test("POST /partners/applications/approve – legacy alias of POST /program-applications/approve", async ({
