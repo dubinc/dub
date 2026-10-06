@@ -44,6 +44,10 @@ export async function importLinks(payload: PartnerStackImportPayload) {
   const enrollments = await prisma.programEnrollment.findMany({
     where: {
       programId,
+      // A banned enrollment must not gain a new active link.
+      status: {
+        not: "banned",
+      },
     },
     select: {
       id: true,

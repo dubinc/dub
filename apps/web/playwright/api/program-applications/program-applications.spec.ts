@@ -160,13 +160,9 @@ test.describe("program applications", () => {
       approvedUs,
     ] = seeded;
 
-    // Application-level socials take precedence over the partner's platforms;
-    // verifiedAt is only kept when both identifiers match.
     await prisma.programApplication.update({
       where: { id: pendingUsWithPlatforms.id },
       data: {
-        website: VERIFIED_WEBSITE,
-        twitter: "application_handle",
         formData: {
           fields: [
             {
@@ -201,7 +197,7 @@ test.describe("program applications", () => {
         {
           partnerId: pendingUsWithPlatforms.partnerId!,
           type: "twitter",
-          identifier: "partner_handle",
+          identifier: "application_handle",
           verifiedAt: VERIFIED_AT,
         },
         {
@@ -290,7 +286,17 @@ test.describe("program applications", () => {
       { label: "How will you promote us?", value: "Newsletter" },
       { label: "Anything else?", value: null },
     ]);
-    expect(data[0].partner.platforms).toStrictEqual([
+    // Platforms have no defined order in the response.
+    const platforms = [...(data[0].partner.platforms ?? [])].sort((a, b) =>
+      a.type.localeCompare(b.type),
+    );
+
+    expect(platforms).toStrictEqual([
+      {
+        type: "twitter",
+        identifier: "application_handle",
+        verifiedAt: VERIFIED_AT.toISOString(),
+      },
       {
         type: "website",
         identifier: VERIFIED_WEBSITE,
@@ -299,11 +305,6 @@ test.describe("program applications", () => {
       {
         type: "youtube",
         identifier: "partner_channel",
-        verifiedAt: null,
-      },
-      {
-        type: "twitter",
-        identifier: "application_handle",
         verifiedAt: null,
       },
     ]);
