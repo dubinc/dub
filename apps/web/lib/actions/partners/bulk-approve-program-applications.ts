@@ -121,22 +121,29 @@ export const bulkApproveProgramApplicationsAction = authActionClient
       ]),
     );
 
+    const ineligibleApplications: {
+      applicationId: string;
+      enrollmentStatus: ProgramEnrollmentStatus;
+    }[] = [];
+
     // Each application either creates an enrollment
     // OR approves an existing pending/rejected enrollment
     // OR moves an approved partner to the new group
-    const reviews = programApplications.map((application) => {
+    const reviews = programApplications.flatMap((application) => {
       const partnerId = application.partnerId!;
       const enrollment = enrollmentsByPartnerId.get(partnerId);
 
       // Create a new enrollment
       if (!enrollment) {
-        return {
-          application,
-          partnerId,
-          enrollmentId: createId({ prefix: "pge_" }),
-          enrollmentApplicationId: application.id,
-          action: "create" as const,
-        };
+        return [
+          {
+            application,
+            partnerId,
+            enrollmentId: createId({ prefix: "pge_" }),
+            enrollmentApplicationId: application.id,
+            action: "create" as const,
+          },
+        ];
       }
 
       // Approve an existing pending/rejected enrollment
@@ -147,22 +154,39 @@ export const bulkApproveProgramApplicationsAction = authActionClient
       // Move an approved partner to the new group
       const isApproved = enrollment.status === ProgramEnrollmentStatus.approved;
 
-      // e.g. invited, declined, deactivated, banned, or archived partners
+      // Skip invited, declined, deactivated, banned, or archived partners so
+      // they don't block the rest of the selection
       if (!isPendingOrRejected && !isApproved) {
-        throw new DubApiError({
-          code: "bad_request",
-          message: `Application ${application.id} cannot be approved because the partner is ${enrollment.status}.`,
+        ineligibleApplications.push({
+          applicationId: application.id,
+          enrollmentStatus: enrollment.status,
         });
+
+        return [];
       }
 
-      return {
-        application,
-        partnerId,
-        enrollmentId: enrollment.id,
-        enrollmentApplicationId: enrollment.applicationId,
-        action: isApproved ? ("move" as const) : ("approve" as const),
-      };
+      return [
+        {
+          application,
+          partnerId,
+          enrollmentId: enrollment.id,
+          enrollmentApplicationId: enrollment.applicationId,
+          action: isApproved ? ("move" as const) : ("approve" as const),
+        },
+      ];
     });
+
+    if (reviews.length === 0) {
+      const [ineligibleApplication] = ineligibleApplications;
+
+      throw new DubApiError({
+        code: "bad_request",
+        message:
+          ineligibleApplications.length === 1
+            ? `Application ${ineligibleApplication.applicationId} cannot be approved because the partner is ${ineligibleApplication.enrollmentStatus}.`
+            : "None of the selected applications can be approved.",
+      });
+    }
 
     // Group reviews by action
     type Review = (typeof reviews)[number];

@@ -71,7 +71,7 @@ function BulkApproveProgramApplicationsModal({
         setShowBulkApproveProgramApplicationsModal(false);
         const { approvedCount, skippedCount } = data;
         toast.success(
-          `${approvedCount} ${pluralize("partner", approvedCount)} approved.${skippedCount > 0 ? ` ${skippedCount} skipped because ${pluralize("it was", skippedCount, { plural: "they were" })} already reviewed.` : ""}`,
+          `${approvedCount} ${pluralize("partner", approvedCount)} approved.${skippedCount > 0 ? ` ${skippedCount} skipped because ${pluralize("it was", skippedCount, { plural: "they were" })} already reviewed or the partner was removed.` : ""}`,
         );
         await onConfirm?.();
         await mutatePrefix(["/api/partners", "/api/program-applications"]);
