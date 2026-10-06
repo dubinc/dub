@@ -2,7 +2,7 @@ import { trackLead } from "@/lib/api/conversions/track-lead";
 import { stripeIntegrationSettingsSchema } from "@/lib/integrations/stripe/schema";
 import { prisma } from "@/lib/prisma";
 import { pick, STRIPE_INTEGRATION_ID } from "@dub/utils";
-import { CommissionSource, Customer } from "@prisma/client";
+import { CommissionSource } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import type Stripe from "stripe";
 import { WebhookHandlerInput, WebhookHandlerResponse } from "./types";
@@ -52,12 +52,17 @@ export async function customerSubscriptionCreated({
     };
   }
 
-  let customer: Customer | null = null;
-
   // find customer by stripeCustomerId or email
-  customer = await prisma.customer.findUnique({
+  let customer = await prisma.customer.findUnique({
     where: {
       stripeCustomerId,
+    },
+    select: {
+      id: true,
+      clickId: true,
+      externalId: true,
+      name: true,
+      email: true,
     },
   });
 
@@ -73,6 +78,13 @@ export async function customerSubscriptionCreated({
         where: {
           projectId: workspace.id,
           email: stripeCustomer.email,
+        },
+        select: {
+          id: true,
+          clickId: true,
+          externalId: true,
+          name: true,
+          email: true,
         },
       });
 
