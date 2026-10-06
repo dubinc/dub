@@ -42,9 +42,10 @@ export async function approveProgramApplication({
   partnerId,
   applicationId,
   groupId,
-  tagIds,
+  tagIds: tagIdsInput,
   userId,
 }: ApproveProgramApplicationInput) {
+  const tagIds = tagIdsInput ? [...new Set(tagIdsInput)] : undefined;
   const existingEnrollment = await prisma.programEnrollment.findUnique({
     where: {
       partnerId_programId: {

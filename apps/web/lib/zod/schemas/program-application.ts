@@ -142,9 +142,6 @@ export const approveProgramApplicationSchema = z.object({
     .array(z.string())
     .max(100)
     .optional()
-    .transform((tagIds) =>
-      tagIds === undefined ? undefined : [...new Set(tagIds)],
-    )
     .describe(
       "The IDs of the partner tags to assign as part of approval. Existing tags are kept. Unknown tag IDs, or tags from another program, are rejected.",
     ),
