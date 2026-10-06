@@ -2,6 +2,7 @@
 
 import { clientAccessCheck } from "@/lib/client-access-check";
 import useGroupsCount from "@/lib/swr/use-groups-count";
+import usePartnersCount from "@/lib/swr/use-partners-count";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { GroupExtendedProps } from "@/lib/types";
@@ -38,7 +39,7 @@ import { cn, currencyFormatter, fetcher, nFormatter } from "@dub/utils";
 import { Row } from "@tanstack/react-table";
 import { Command } from "cmdk";
 import { useParams, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import useSWR from "swr";
 
@@ -87,6 +88,36 @@ export function GroupsTable() {
     loading: groupsCountLoading,
     error: countError,
   } = useGroupsCount();
+
+  const {
+    partnersCount: partnersCountByGroup,
+    loading: partnersCountLoading,
+    error: partnersCountError,
+  } = usePartnersCount<
+    | {
+        groupId: string;
+        _count: number;
+      }[]
+    | undefined
+  >({
+    groupBy: "groupId",
+    ignoreParams: true,
+  });
+
+  const partnersCountByGroupId = useMemo(() => {
+    const map = new Map<string, number>();
+    partnersCountByGroup?.forEach(({ groupId, _count }) => {
+      if (groupId) {
+        map.set(groupId, _count);
+      }
+    });
+    return map;
+  }, [partnersCountByGroup]);
+
+  const partnersCountReady =
+    !partnersCountLoading &&
+    !partnersCountError &&
+    partnersCountByGroup != null;
 
   const isFiltered = Object.keys(searchParamsObj).some(
     (key) => !["sortBy", "sortOrder", "page"].includes(key),
@@ -164,7 +195,15 @@ export function GroupsTable() {
         enableHiding: false,
         header: () => <EditColumnsButton table={table} />,
         cell: ({ row }) => (
-          <RowMenuButton row={row} currentDefaultGroup={currentDefaultGroup} />
+          <RowMenuButton
+            row={row}
+            currentDefaultGroup={currentDefaultGroup}
+            partnersCount={
+              partnersCountReady
+                ? partnersCountByGroupId.get(row.original.id) ?? 0
+                : undefined
+            }
+          />
         ),
       },
     ],
@@ -246,28 +285,41 @@ export function GroupsTable() {
 function RowMenuButton({
   row,
   currentDefaultGroup,
+  partnersCount,
 }: {
   row: Row<GroupExtendedProps>;
   currentDefaultGroup: GroupExtendedProps | undefined;
+  partnersCount: number | undefined;
 }) {
   const router = useRouter();
   const { slug } = useParams();
   const [isOpen, setIsOpen] = useState(false);
   const { role } = useWorkspace();
 
-  const { DeleteGroupModal, setShowDeleteGroupModal } = useDeleteGroupModal(
-    row.original,
-  );
+  const { DeleteGroupModal, setShowDeleteGroupModal } = useDeleteGroupModal({
+    id: row.original.id,
+    name: row.original.name,
+    color: row.original.color,
+    partnersCount: partnersCount ?? 0,
+  });
 
   const { openConfirmSetDefaultGroupModal, ConfirmSetDefaultGroupModal } =
     useConfirmSetDefaultGroupModal();
 
-  const permissionsError = clientAccessCheck({
+  const [copiedGroupId, copyToClipboard] = useCopyToClipboard();
+
+  const { error: permissionsError } = clientAccessCheck({
     action: "groups.write",
     role,
-  }).error;
+  });
 
-  const [copiedGroupId, copyToClipboard] = useCopyToClipboard();
+  const deleteGroupDisabledReason = permissionsError
+    ? String(permissionsError)
+    : partnersCount === undefined
+      ? true
+      : partnersCount > 0
+        ? "Move all partners to another group before deleting."
+        : undefined;
 
   return (
     <>
@@ -347,7 +399,7 @@ function RowMenuButton({
                         label="Delete group"
                         variant="danger"
                         onSelect={() => setShowDeleteGroupModal(true)}
-                        disabledTooltip={permissionsError || undefined}
+                        disabledTooltip={deleteGroupDisabledReason || undefined}
                       />
                     </>
                   )}
@@ -396,21 +448,27 @@ function MenuItem({
 
   return (
     <DynamicTooltipWrapper
-      tooltipProps={disabledTooltip ? { content: disabledTooltip } : undefined}
+      tooltipProps={
+        typeof disabledTooltip === "string"
+          ? { content: disabledTooltip, side: "left" }
+          : undefined
+      }
     >
-      <Command.Item
-        className={cn(
-          "flex cursor-pointer select-none items-center gap-2 whitespace-nowrap rounded-md p-2 text-sm",
-          disabledTooltip
-            ? "cursor-not-allowed opacity-50"
-            : "data-[selected=true]:bg-neutral-100",
-          text,
-        )}
-        onSelect={disabledTooltip ? undefined : onSelect}
-      >
-        <IconComp className={cn("size-4 shrink-0", icon)} />
-        {label}
-      </Command.Item>
+      <div>
+        <Command.Item
+          className={cn(
+            "flex cursor-pointer select-none items-center gap-2 whitespace-nowrap rounded-md p-2 text-sm",
+            disabledTooltip
+              ? "cursor-not-allowed opacity-50"
+              : "data-[selected=true]:bg-neutral-100",
+            text,
+          )}
+          onSelect={disabledTooltip ? undefined : onSelect}
+        >
+          <IconComp className={cn("size-4 shrink-0", icon)} />
+          {label}
+        </Command.Item>
+      </div>
     </DynamicTooltipWrapper>
   );
 }

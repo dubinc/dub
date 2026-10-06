@@ -42,6 +42,7 @@ export * from "./stable-sort";
 export * from "./text-fetcher";
 export * from "./time-ago";
 export * from "./to-cents-number";
+export * from "./to-error-message";
 export * from "./trim";
 export * from "./truncate";
 export * from "./unique";

@@ -6,7 +6,6 @@ type EnqueueBatchJobsProps = PublishBatchRequest<unknown> & {
   queueName?:
     | "ban-partner"
     | "send-partner-summary"
-    | "create-discount-code"
     | "sync-bounty-social-metrics"
     | "process-hubspot-webhook"
     | "process-intercom-webhook"

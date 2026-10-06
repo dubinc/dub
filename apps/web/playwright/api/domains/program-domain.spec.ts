@@ -26,11 +26,21 @@ async function deleteDomain(api: ApiClient, slug: string | undefined) {
   await api.delete(`/api/domains/${slug}`);
 }
 
+const alreadyProgramDomainError = apiError({
+  code: "bad_request",
+  message: "This domain is already the program domain.",
+});
+
 async function restoreProgramDomain(api: ApiClient) {
-  const { status } = await api.post(
+  const response = await api.post(
     `/api/domains/${TEST_WORKSPACE.program.domain}/program`,
   );
-  expect(status).toEqual(200);
+
+  if (response.status === 200) {
+    return;
+  }
+
+  expect(response).toEqual(alreadyProgramDomainError);
 }
 
 test("POST /domains/{slug}/program", async ({ api, program }) => {
@@ -76,12 +86,7 @@ test("POST /domains/{slug}/program – already the program domain", async ({
 }) => {
   expect(
     await api.post(`/api/domains/${TEST_WORKSPACE.program.domain}/program`),
-  ).toEqual(
-    apiError({
-      code: "bad_request",
-      message: "This domain is already the program domain.",
-    }),
-  );
+  ).toEqual(alreadyProgramDomainError);
 });
 
 test("POST /domains/{slug}/program – archived domain", async ({ api }) => {

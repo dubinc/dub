@@ -21,6 +21,7 @@ export const WORKSPACE_LEVEL_WEBHOOK_TRIGGERS = [
 
 export const PROGRAM_LEVEL_WEBHOOK_TRIGGERS = [
   "partner.application_submitted",
+  "program_application.created",
   "partner.enrolled",
   "partner.merged",
   "commission.created",
@@ -36,6 +37,12 @@ export const WEBHOOK_TRIGGERS = [
   ...PROGRAM_LEVEL_WEBHOOK_TRIGGERS,
 ] as const;
 
+// Maps each deprecated event to the current event that replaces it (Eg: old:new)
+export const DEPRECATED_WEBHOOK_TRIGGERS = new Map<
+  WebhookTrigger,
+  WebhookTrigger
+>([["partner.application_submitted", "program_application.created"]]);
+
 export const WEBHOOK_TRIGGER_DESCRIPTIONS: Record<WebhookTrigger, string> = {
   "link.created": "Occurs whenever a link is created",
   "link.updated": "Occurs whenever a link is updated",
@@ -44,6 +51,8 @@ export const WEBHOOK_TRIGGER_DESCRIPTIONS: Record<WebhookTrigger, string> = {
   "lead.created": "Occurs whenever a lead is created",
   "sale.created": "Occurs whenever a sale is created",
   "partner.application_submitted":
+    "Occurs whenever a partner submits an application to your program",
+  "program_application.created":
     "Occurs whenever a partner submits an application to your program",
   "partner.enrolled":
     "Occurs whenever a partner is enrolled in your program (either their application was approved, they accepted your invite, or via the API)",

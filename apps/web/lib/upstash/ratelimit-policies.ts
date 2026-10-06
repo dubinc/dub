@@ -2,17 +2,17 @@ import { ratelimit } from "./ratelimit";
 
 type RatelimitWindow = Parameters<typeof ratelimit>[1] & string;
 
+export type RatelimitMessageContext = {
+  retryAfter: string;
+  attempts: number;
+  window: string;
+};
+
 export type RatelimitPolicy = {
   attempts: number;
   window: RatelimitWindow;
   keyPrefix: string;
-  message?:
-    | string
-    | ((ctx: {
-        retryAfter: string;
-        attempts: number;
-        window: string;
-      }) => string);
+  message?: string | ((ctx: RatelimitMessageContext) => string);
 };
 
 export const RATELIMIT_POLICIES = {
@@ -76,12 +76,31 @@ export const RATELIMIT_POLICIES = {
     attempts: 10,
     window: "24 h",
     keyPrefix: "rl:program:application:image:upload",
+    message:
+      "You've reached the maximum number of attempts to upload images for this application. Please try again later.",
   },
 
   messageAttachmentUpload: {
     attempts: 20,
     window: "1 h",
     keyPrefix: "rl:message:attachment:upload",
+    message: "Too many file uploads. Please try again later.",
+  },
+
+  bountySubmissionUpload: {
+    attempts: 25,
+    window: "24 h",
+    keyPrefix: "bounty:submission:file:upload",
+    message:
+      "You've reached the maximum number of attempts to upload a file for this bounty.",
+  },
+
+  // Keyed on workspace + user so one member cannot exhaust the workspace upload budget
+  workspaceFileUpload: {
+    attempts: 20,
+    window: "1 h",
+    keyPrefix: "rl:workspace:file:upload",
+    message: "Too many file uploads. Please try again later.",
   },
 
   partnerProfileInvite: {
@@ -96,6 +115,18 @@ export const RATELIMIT_POLICIES = {
     keyPrefix: "rl:ai:reward:generate",
   },
 
+  aiRewardTooltipReview: {
+    attempts: 20,
+    window: "1 m",
+    keyPrefix: "rl:ai:reward:tooltip-review",
+  },
+
+  aiRewardTooltipScreen: {
+    attempts: 60,
+    window: "1 m",
+    keyPrefix: "rl:ai:reward:tooltip-screen",
+  },
+
   // Keyed on workspace + user so one actor cannot exhaust the workspace quota
   forwardDnsInstructions: {
     attempts: 10,
@@ -108,5 +139,214 @@ export const RATELIMIT_POLICIES = {
     attempts: 10,
     window: "1 h",
     keyPrefix: "rl:domains:forward-dns-instructions:target",
+  },
+
+  // One reattribution per workspace per minute
+  reattributeCustomer: {
+    attempts: 1,
+    window: "1 m",
+    keyPrefix: "rl:customers:reattribute",
+    message: ({ retryAfter }) =>
+      `Customer reattribution is limited to once per minute because it updates analytics. Try again in ${retryAfter}.`,
+  },
+
+  oauthAppReviewSubmit: {
+    attempts: 1,
+    window: "1 m",
+    keyPrefix: "rl:oauth:app:review:submit",
+    message: "Rate limit exceeded. Please try again later or contact support.",
+  },
+
+  verifyWorkspaceSetup: {
+    attempts: 5,
+    window: "1 m",
+    keyPrefix: "rl:workspace:setup:verify",
+    message: "Too many verification attempts. Please try again in a minute.",
+  },
+
+  createProgramApplication: {
+    attempts: 3,
+    window: "1 m",
+    keyPrefix: "rl:program:application:create",
+  },
+
+  // Shared by start + verify so both count toward the same partner/platform budget
+  socialAccountVerification: {
+    attempts: 5,
+    window: "1 h",
+    keyPrefix: "rl:partner:social:verification",
+    message: "Too many verification attempts. Please try again later.",
+  },
+
+  partnerUsernameUpdate: {
+    attempts: 5,
+    window: "1 h",
+    keyPrefix: "rl:partner:profile:username-update",
+    message:
+      "You've updated your username too many times. Please try again later.",
+  },
+
+  domainTransfer: {
+    attempts: 5,
+    window: "1 h",
+    keyPrefix: "rl:domains:transfer",
+  },
+
+  analyticsExport: {
+    attempts: 1,
+    window: "30 s",
+    keyPrefix: "rl:analytics:export",
+    message:
+      "Analytics export is limited to once every 30 seconds. Please try again shortly.",
+  },
+
+  retryFailedPaypalPayout: {
+    attempts: 1,
+    window: "12 h",
+    keyPrefix: "rl:partner:paypal:retry-failed-payout",
+    message:
+      "You've reached the maximum number of retry attempts for the past 24 hours. Please wait and try again later.",
+  },
+
+  identityVerificationStart: {
+    attempts: 1,
+    window: "1 h",
+    keyPrefix: "rl:partner:identity:verification:start",
+    message: "Too many verification attempts. Please try again later.",
+  },
+
+  resumeUpload: {
+    attempts: 5,
+    window: "1 h",
+    keyPrefix: "rl:resume:upload",
+    message: "Too many resume uploads. Please try again later.",
+  },
+
+  // Keyed on partner + program so one partner cannot exhaust another's budget
+  partnerAnalyticsExport: {
+    attempts: 1,
+    window: "30 s",
+    keyPrefix: "rl:analytics:export:partner",
+    message:
+      "Analytics export is limited to once every 30 seconds. Please try again shortly.",
+  },
+
+  createToken: {
+    attempts: 1,
+    window: "5 s",
+    keyPrefix: "rl:tokens:create",
+  },
+
+  submitLead: {
+    attempts: 10,
+    window: "1 m",
+    keyPrefix: "rl:submitted-lead",
+    message: "Too many leads submitted. Please try again later.",
+  },
+
+  trackApplication: {
+    attempts: 10,
+    window: "10 s",
+    keyPrefix: "rl:track:application",
+  },
+
+  workspaceInvite: {
+    attempts: 1,
+    window: "1 s",
+    keyPrefix: "rl:workspace:invites",
+    message:
+      "You've reached the rate limit for inviting teammates. Please try again later after few seconds.",
+  },
+
+  slackSupportInviteWorkspace: {
+    attempts: 5,
+    window: "1 d",
+    keyPrefix: "rl:slack-support-invite:workspace",
+    message:
+      "This workspace has reached the daily limit for Slack invite requests. Please try again tomorrow.",
+  },
+
+  // Keyed on workspace + user so one member cannot exhaust the workspace budget
+  slackSupportInviteUser: {
+    attempts: 10,
+    window: "1 h",
+    keyPrefix: "rl:slack-support-invite",
+    message:
+      "You've requested too many Slack invites recently. Please try again later.",
+  },
+
+  sitemapImport: {
+    attempts: 5,
+    window: "1 m",
+    keyPrefix: "rl:sitemap-import",
+    message:
+      "Sitemap import was requested too recently. Please wait a minute and try again.",
+  },
+
+  tremendousSendOtp: {
+    attempts: 10,
+    window: "24 h",
+    keyPrefix: "rl:tremendous:send-otp",
+  },
+
+  tremendousVerifyOtp: {
+    attempts: 10,
+    window: "24 h",
+    keyPrefix: "rl:tremendous:verify-otp",
+  },
+
+  // Anonymous (unauthenticated) link creation by IP
+  anonymousLinkCreate: {
+    attempts: 10,
+    window: "1 d",
+    keyPrefix: "rl:links:create:anonymous",
+    message:
+      "Rate limited – you can only create up to 10 links per day without an account.",
+  },
+
+  // Shared by partner-profile + embed referrals social content stats
+  socialContentStats: {
+    attempts: 10,
+    window: "1 h",
+    keyPrefix: "rl:partner-profile:social-content-stats",
+    message: "You've been rate limited. Please try again later.",
+  },
+
+  inviteReferralEmailWorkspace: {
+    attempts: 5,
+    window: "1 m",
+    keyPrefix: "rl:invite-referral-email:workspace",
+    message: "Failed to send: rate limit exceeded",
+  },
+
+  // Keyed on the recipient so many workspaces can't spam the same address
+  inviteReferralEmailTarget: {
+    attempts: 2,
+    window: "2 h",
+    keyPrefix: "rl:invite-referral-email:target",
+    message: "Failed to send: rate limit exceeded",
+  },
+
+  // Keyed on step + user so each merge step has its own 24h budget
+  mergePartnerAccounts: {
+    attempts: 3,
+    window: "24 h",
+    keyPrefix: "rl:merge-partner-accounts",
+    message:
+      "You've reached the maximum number of attempts for the past 24 hours. Please wait and try again later.",
+  },
+
+  domainSearchAvailability: {
+    attempts: 1,
+    window: "5 s",
+    keyPrefix: "rl:domains:search-availability",
+    message: "Don't DDoS me pls 🥺",
+  },
+
+  emojiSearch: {
+    attempts: 30,
+    window: "10 s",
+    keyPrefix: "rl:ai:emoji-search",
+    message: "You've been rate limited. Please try again later.",
   },
 } as const satisfies Record<string, RatelimitPolicy>;

@@ -161,7 +161,7 @@ SQL >
             )
         {% else %} toDateTime64(toStartOfDay(timestamp, {{ String(timezone, 'UTC') }}), 3)
         {% end %} AS interval,
-        uniq(click_id) as clicks
+        count(*) as clicks
     FROM
         {% if defined(customerId) %} dub_click_events_id
         {% else %} dub_click_events_mv
@@ -319,7 +319,7 @@ SQL >
             )
         {% else %} toDateTime64(toStartOfDay(timestamp, {{ String(timezone, 'UTC') }}), 3)
         {% end %} AS interval,
-        uniq(*) as leads
+        count(*) as leads
     FROM dub_lead_events_mv
     WHERE
         true
@@ -536,7 +536,7 @@ SQL >
         {% else %}
             toDateTime64(toStartOfDay(timestamp, {{ String(timezone, 'UTC') }}), 3)
         {% end %} AS interval,
-        uniq(*) AS sales,
+        count(*) AS sales,
         sum(amount) AS amount
     FROM
     (

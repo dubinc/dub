@@ -428,13 +428,13 @@ function ImportOption({
       content={
         trialActive ? (
           <TooltipContent
-            title="Your workspace has exceeded its monthly links limit. We're still collecting data on your existing links, but you need to upgrade to create more links."
+            title="Your workspace have exceeded your monthly links limit. We're still collecting data on your existing links, but you need to upgrade to create more links."
             cta="Start paid plan"
             onClick={() => openTrialLimitModal("links")}
           />
         ) : (
           <TooltipContent
-            title="Your workspace has exceeded its monthly links limit. We're still collecting data on your existing links, but you need to upgrade to create more links."
+            title="Your workspace have exceeded your monthly links limit. We're still collecting data on your existing links, but you need to upgrade to create more links."
             cta={nextPlan ? `Upgrade to ${nextPlan.name}` : "Contact support"}
             href={`/${slug}/upgrade`}
           />

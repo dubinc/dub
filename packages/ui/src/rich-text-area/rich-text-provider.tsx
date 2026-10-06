@@ -3,9 +3,10 @@ import FileHandler from "@tiptap/extension-file-handler";
 import Image from "@tiptap/extension-image";
 import Link from "@tiptap/extension-link";
 import Mention from "@tiptap/extension-mention";
+import { TableKit } from "@tiptap/extension-table";
 import { Placeholder } from "@tiptap/extensions";
 import { Markdown } from "@tiptap/markdown";
-import { Editor, useEditor } from "@tiptap/react";
+import { Editor, useEditor, useEditorState } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import {
   PropsWithChildren,
@@ -22,6 +23,7 @@ import {
 import { configureCampaignEditorImage } from "./campaign-editor-image";
 import { RichTextLinkHoverTooltip } from "./link-hover-tooltip";
 import { RichTextLinkModal } from "./link-modal";
+import { TableHoverControls } from "./table-hover-controls";
 import { RichTextVariableInfo, suggestions } from "./variables";
 
 export const PROSE_STYLES = {
@@ -31,7 +33,7 @@ export const PROSE_STYLES = {
   relaxed: "",
 } as const;
 
-const FEATURES = [
+const CORE_FEATURES = [
   "images",
   "variables",
   "links",
@@ -41,9 +43,43 @@ const FEATURES = [
   "strike",
 ] as const;
 
-export const DEFAULT_RICH_TEXT_FEATURES = FEATURES;
+const FEATURES = [
+  ...CORE_FEATURES,
+  "lists",
+  "tables",
+  "quote",
+  "code",
+] as const;
+
+export const DEFAULT_RICH_TEXT_FEATURES = CORE_FEATURES;
 
 const OPTIONAL_FEATURES = ["imageControls"] as const;
+
+const PASTE_IMAGE_MIME_TYPES = new Set([
+  "image/png",
+  "image/jpeg",
+  "image/gif",
+  "image/webp",
+]);
+
+function clipboardImageFiles(data: DataTransfer) {
+  const files = Array.from(data.files).filter((file) =>
+    PASTE_IMAGE_MIME_TYPES.has(file.type),
+  );
+  if (files.length > 0) return files;
+
+  for (const item of Array.from(data.items)) {
+    if (item.kind !== "file" || !PASTE_IMAGE_MIME_TYPES.has(item.type)) {
+      continue;
+    }
+    const file = item.getAsFile();
+    if (file) files.push(file);
+  }
+
+  return files;
+}
+
+const pastedImageFiles = new WeakMap<ClipboardEvent, File[]>();
 
 export type RichTextFeature =
   | (typeof FEATURES)[number]
@@ -57,6 +93,7 @@ type RichTextProviderProps = PropsWithChildren<{
   style?: keyof typeof PROSE_STYLES;
   onChange?: (editor: Editor) => void;
   uploadImage?: (file: File) => Promise<string | null>;
+  imageAccept?: string;
   variables?: string[];
   variableInfo?: Record<string, RichTextVariableInfo>;
   editable?: boolean;
@@ -76,7 +113,7 @@ export type RichTextLinkModalState = {
 export const RichTextContext = createContext<
   | (Pick<
       RichTextProviderProps,
-      "features" | "markdown" | "variables" | "editable"
+      "features" | "markdown" | "variables" | "editable" | "imageAccept"
     > & {
       editor: Editor | null;
       isUploading: boolean;
@@ -101,11 +138,12 @@ export const RichTextProvider = forwardRef<
   (
     {
       children,
-      features = FEATURES as any,
+      features = DEFAULT_RICH_TEXT_FEATURES as any,
       markdown = false,
       style = "default",
       placeholder = "Start typing...",
       uploadImage,
+      imageAccept,
       editable,
       autoFocus,
       variables,
@@ -124,6 +162,10 @@ export const RichTextProvider = forwardRef<
 
     // Ref to avoid stale closures in editorProps handlers below
     const editorRef = useRef<Editor | null>(null);
+
+    // Read through a ref so the placeholder can change after the editor is created
+    const placeholderRef = useRef(placeholder);
+    placeholderRef.current = placeholder;
 
     const openLinkModal = useCallback((pos?: number) => {
       const editor = editorRef.current;
@@ -191,6 +233,19 @@ export const RichTextProvider = forwardRef<
           link: false,
         }),
 
+        ...(features.includes("tables")
+          ? [
+              TableKit.configure({
+                table: {
+                  resizable: false,
+                  HTMLAttributes: {
+                    class: "w-full border-separate border-spacing-0",
+                  },
+                },
+              }),
+            ]
+          : []),
+
         ...(features.includes("links")
           ? [
               Link.extend({
@@ -203,7 +258,7 @@ export const RichTextProvider = forwardRef<
           : []),
 
         Placeholder.configure({
-          placeholder,
+          placeholder: () => placeholderRef.current,
           emptyEditorClass:
             "before:content-[attr(data-placeholder)] before:float-left before:text-content-muted before:h-0 before:pointer-events-none",
         }),
@@ -230,25 +285,10 @@ export const RichTextProvider = forwardRef<
                     }),
                   ]),
               FileHandler.configure({
-                allowedMimeTypes: [
-                  "image/png",
-                  "image/jpeg",
-                  "image/gif",
-                  "image/webp",
-                ],
+                allowedMimeTypes: [...PASTE_IMAGE_MIME_TYPES],
                 onDrop: (currentEditor, files, pos) => {
                   files.forEach((file) =>
                     handleImageUpload(file, currentEditor, pos),
-                  );
-                },
-                onPaste: (currentEditor, files, htmlContent) => {
-                  if (htmlContent) return false;
-                  files.forEach((file) =>
-                    handleImageUpload(
-                      file,
-                      currentEditor,
-                      currentEditor.state.selection.anchor,
-                    ),
                   );
                 },
               }),
@@ -301,6 +341,7 @@ export const RichTextProvider = forwardRef<
           : []),
       ],
       editorProps: {
+        ...editorProps,
         attributes: {
           ...editorProps?.attributes,
           class: cn(
@@ -310,13 +351,71 @@ export const RichTextProvider = forwardRef<
             // "loose" list and gives paragraph spacing. Zero it so items sit 4px apart (the
             // <li> margins), and match the bullet color to the ordered list counters.
             "[&_li>p]:my-0 marker:prose-ul:text-neutral-500",
+            features.includes("tables") &&
+              "[&_table]:my-3 [&_table]:overflow-hidden [&_table]:rounded-xl [&_table]:border [&_table]:border-neutral-200 [&_th]:border-b [&_th]:border-r [&_td]:border-b [&_td]:border-r [&_th]:border-neutral-200 [&_td]:border-neutral-200 [&_th]:bg-neutral-50 [&_th]:px-4 [&_td]:px-4 [&_th]:py-3 [&_td]:py-3 [&_th]:align-top [&_td]:align-top [&_th]:text-left [&_th]:font-semibold [&_th]:text-neutral-900 [&_td]:text-neutral-600 [&_th:last-child]:border-r-0 [&_td:last-child]:border-r-0 [&_tr:last-child>*]:border-b-0 [&_th>p]:my-0 [&_td>p]:my-0",
             PROSE_STYLES[style],
             "[&_.ProseMirror-selectednode]:outline [&_.ProseMirror-selectednode]:outline-2 [&_.ProseMirror-selectednode]:outline-blue-500 [&_.ProseMirror-selectednode]:outline-offset-2",
             "[&_.ProseMirror-selectednode:has(img)]:outline-none",
             editorClassName,
           ),
         },
-        ...editorProps,
+        handleDOMEvents: {
+          ...editorProps?.handleDOMEvents,
+          paste: (view, event) => {
+            if (editorProps?.handleDOMEvents?.paste?.(view, event)) {
+              return true;
+            }
+
+            const data = event.clipboardData;
+            if (
+              !view.editable ||
+              !features.includes("images") ||
+              !handleImageUpload ||
+              !data
+            ) {
+              return false;
+            }
+
+            const files = clipboardImageFiles(data);
+            if (files.length > 0) pastedImageFiles.set(event, files);
+            return false;
+          },
+        },
+        handlePaste: (view, event, slice) => {
+          if (editorProps?.handlePaste?.(view, event, slice)) return true;
+
+          const currentEditor = editorRef.current;
+          const files = pastedImageFiles.get(event);
+          if (
+            !view.editable ||
+            !features.includes("images") ||
+            !handleImageUpload ||
+            !currentEditor ||
+            !files?.length
+          ) {
+            return false;
+          }
+
+          const html = event.clipboardData?.getData("text/html") ?? "";
+          const pastedText = (
+            html.trim()
+              ? new DOMParser().parseFromString(html, "text/html").body
+                  .textContent
+              : event.clipboardData?.getData("text/plain")
+          )
+            ?.replace(/\u00a0/g, " ")
+            .trim();
+          if (pastedText) return false;
+
+          files.forEach((file) =>
+            handleImageUpload(
+              file,
+              currentEditor,
+              currentEditor.state.selection.anchor,
+            ),
+          );
+          return true;
+        },
         handleClick: (view, pos, event) => {
           if (editorProps?.handleClick?.(view, pos, event)) return true;
 
@@ -346,6 +445,12 @@ export const RichTextProvider = forwardRef<
       editor?.setEditable(editable ?? true);
     }, [editor, editable]);
 
+    // An empty transaction redraws the placeholder decoration
+    useEffect(() => {
+      if (!editor || editor.isDestroyed) return;
+      editor.view.dispatch(editor.state.tr);
+    }, [editor, placeholder]);
+
     useImperativeHandle(ref, () => ({
       setContent: (content: any) => {
         editor?.commands.setContent(content);
@@ -359,6 +464,7 @@ export const RichTextProvider = forwardRef<
           markdown,
           editable,
           variables,
+          imageAccept,
           editor,
           isUploading,
           handleImageUpload,
@@ -375,6 +481,10 @@ export const RichTextProvider = forwardRef<
             <RichTextLinkHoverTooltip />
           </>
         )}
+
+        {features.includes("tables") && (editable ?? true) && (
+          <TableHoverControls />
+        )}
       </RichTextContext.Provider>
     );
   },
@@ -389,4 +499,16 @@ export function useRichTextContext() {
     );
 
   return context;
+}
+
+export function useRichTextLength() {
+  const { editor } = useRichTextContext();
+
+  return (
+    useEditorState({
+      editor,
+      selector: ({ editor }) =>
+        editor?.getText({ blockSeparator: "" }).length ?? 0,
+    }) ?? 0
+  );
 }

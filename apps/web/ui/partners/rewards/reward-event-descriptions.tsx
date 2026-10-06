@@ -55,6 +55,6 @@ export const REWARD_EVENT_DESCRIPTIONS: Record<
     description: "Pay a fixed amount on a regular cadence",
     bestFor: "retainers and scheduled partner payments",
     learnMoreHref:
-      "https://dub.co/help/article/partner-rewards#configuring-reward-types",
+      "https://dub.co/help/article/retainer-rewards",
   },
 };

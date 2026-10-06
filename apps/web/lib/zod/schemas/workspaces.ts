@@ -68,6 +68,10 @@ export const WorkspaceSchema = z
       .date()
       .nullable()
       .describe("The date and time when the payment failed for the workspace."),
+    disabledAt: z
+      .date()
+      .nullable()
+      .describe("The date and time when the workspace was disabled."),
     stripeConnectId: z
       .string()
       .nullable()

@@ -1,10 +1,13 @@
 import { ProgressiveBlur } from "@dub/ui";
 import { cn } from "@dub/utils";
 
-const LOGO_COUNT = 13;
+// Number of logos in the sprite sheet
+const LOGO_COUNT = 23;
+// Logos shown per row (a random subset of the sprite)
+const VISIBLE_PER_ROW = 12;
 const ROW_COUNT = 4;
 
-// Randomly shuffle the logos in each row
+// Randomly shuffle the logos and pick a subset for each row
 const ROWS = [...Array(ROW_COUNT)].map(() => {
   const cols = [...Array(LOGO_COUNT)].map((_, col) => col);
 
@@ -21,7 +24,7 @@ const ROWS = [...Array(ROW_COUNT)].map(() => {
     ];
   }
 
-  return cols;
+  return cols.slice(0, VISIBLE_PER_ROW);
 });
 
 const BLUR_STEPS = 5;
@@ -33,27 +36,6 @@ const TRANSPARENT = "rgba(0,0,0,0)";
 export function ProgramLogos() {
   return (
     <div className="relative size-full overflow-hidden">
-      {/* Gradient */}
-      {[...Array(2)].map((_, idx) => (
-        <div
-          key={idx}
-          className={cn(
-            "absolute bottom-0 left-1/2 size-[80px] -translate-x-1/2 translate-y-1/2 scale-x-[1.6]",
-            idx === 0 ? "mix-blend-overlay" : "opacity-15",
-          )}
-        >
-          {[...Array(idx === 0 ? 2 : 1)].map((_, idx) => (
-            <div
-              key={idx}
-              className={cn(
-                "absolute -inset-16 mix-blend-overlay blur-[50px] saturate-[2]",
-                "bg-[conic-gradient(from_90deg,#F00_5deg,#EAB308_63deg,#5CFF80_115deg,#1E00FF_170deg,#855AFC_220deg,#3A8BFD_286deg,#F00_360deg)]",
-              )}
-            />
-          ))}
-        </div>
-      ))}
-
       <div className="relative isolate size-full">
         <div className="relative size-full [mask-composite:intersect] [mask-image:linear-gradient(#000f_50%,#0006),linear-gradient(90deg,#000f_50%,#000a)]">
           <div className="translate-y-[30%] skew-y-[-16deg]">
@@ -77,7 +59,7 @@ export function ProgramLogos() {
                             className="size-[4.5rem] rounded-full"
                             style={{
                               backgroundImage:
-                                "url(https://assets.dub.co/misc/partner-auth-logos.png)",
+                                "url(https://assets.dub.co/cms/partner-auth-logo-grid.png)",
                               backgroundSize: `${LOGO_COUNT * 100}%`,
                               backgroundPositionX:
                                 (LOGO_COUNT - (logoIndex % LOGO_COUNT)) * 100 +

@@ -8,6 +8,7 @@ import { logger } from "@/lib/axiom/server";
 import { PRISMA_UPDATEMANY_LIMIT } from "@/lib/cron";
 import { conn } from "@/lib/planetscale";
 import { prisma } from "@/lib/prisma";
+import { approveLinkedApplication } from "@/lib/program-applications/approve-linked-application";
 import { storage } from "@/lib/storage";
 import { recordLink } from "@/lib/tinybird";
 import { redis } from "@/lib/upstash";
@@ -143,6 +144,17 @@ export const { POST } = serve<Input>(
         sourcePartnerId,
       });
       logs.push(fraudLog);
+
+      const movedApplications = await prisma.programApplication.updateMany({
+        where: {
+          partnerId: sourcePartnerId,
+        },
+        data: {
+          partnerId: targetPartnerId,
+        },
+      });
+
+      logs.push(`Moved ${movedApplications.count} program applications`);
 
       // Delete the source partner account (must be last)
       const { outputLog: partnerLog } = await deleteSourcePartner({
@@ -569,7 +581,14 @@ async function mergeSingleEnrollment({
               programId,
             },
           },
-          data: { status: "approved" },
+          data: {
+            status: "approved",
+          },
+        });
+
+        await approveLinkedApplication({
+          applicationId: targetEnrollment.applicationId,
+          tx,
         });
       }
 
@@ -582,6 +601,16 @@ async function mergeSingleEnrollment({
 
       await tx.programEnrollment.deleteMany({
         where: { id: sourceEnrollment.id, partnerId: sourcePartnerId },
+      });
+
+      await tx.programApplication.updateMany({
+        where: {
+          programId,
+          partnerId: sourcePartnerId,
+        },
+        data: {
+          partnerId: targetPartnerId,
+        },
       });
 
       const tenantIdToCopy =
@@ -627,6 +656,16 @@ async function mergeSingleEnrollment({
         outputLog: `Enrollment ${sourceEnrollment.id} no longer owned by ${sourcePartnerId}, skipping transfer`,
       });
     }
+
+    await prisma.programApplication.updateMany({
+      where: {
+        programId,
+        partnerId: sourcePartnerId,
+      },
+      data: {
+        partnerId: targetPartnerId,
+      },
+    });
 
     action = "transfer";
   }

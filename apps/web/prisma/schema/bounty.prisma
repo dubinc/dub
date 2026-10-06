@@ -13,6 +13,7 @@ enum BountySubmissionStatus {
   submitted
   approved
   rejected
+  partiallyApproved // appended last so the MySQL ENUM change is metadata only
 }
 
 enum BountySubmissionRejectionReason {
@@ -92,30 +93,31 @@ model BountyPartnerTag {
 }
 
 model BountySubmission {
-  id                        String                           @id
-  programId                 String
-  partnerId                 String
-  bountyId                  String
-  performanceCount          BigInt?
-  socialMetricCount         Int?
-  commissionId              String?                          @unique
-  userId                    String?
-  description               String?                          @db.Text
-  status                    BountySubmissionStatus           @default(draft)
-  rejectionReason           BountySubmissionRejectionReason?
-  rejectionNote             String?                          @db.Text
-  files                     Json?
-  urls                      Json?
-  periodNumber              Int                              @default(1)
-  socialMetricsLastSyncedAt DateTime?
-  completedAt               DateTime?
-  reviewedAt                DateTime?
-  createdAt                 DateTime                         @default(now())
-  updatedAt                 DateTime                         @updatedAt
+  id                            String                           @id
+  programId                     String
+  partnerId                     String
+  bountyId                      String
+  performanceCount              BigInt?
+  socialMetricCount             Int?
+  approvedSocialMetricThreshold Int? // highest social metrics milestone that has been paid out
+  commissionId                  String?                          @unique // deprecated: kept only for the Commission.bountySubmissionId backfill, drop in a follow-up
+  userId                        String?
+  description                   String?                          @db.Text
+  status                        BountySubmissionStatus           @default(draft)
+  rejectionReason               BountySubmissionRejectionReason?
+  rejectionNote                 String?                          @db.Text
+  files                         Json?
+  urls                          Json?
+  periodNumber                  Int                              @default(1)
+  socialMetricsLastSyncedAt     DateTime?
+  completedAt                   DateTime?
+  reviewedAt                    DateTime?
+  createdAt                     DateTime                         @default(now())
+  updatedAt                     DateTime                         @updatedAt
 
   bounty            Bounty             @relation(fields: [bountyId], references: [id], onDelete: Cascade)
   partner           Partner            @relation(fields: [partnerId], references: [id], onDelete: Cascade)
-  commission        Commission?        @relation(fields: [commissionId], references: [id], onDelete: Cascade)
+  commissions       Commission[]
   program           Program            @relation(fields: [programId], references: [id], onDelete: Cascade)
   user              User?              @relation(fields: [userId], references: [id])
   programEnrollment ProgramEnrollment? @relation(fields: [programId, partnerId], references: [programId, partnerId], onDelete: Cascade)

@@ -23,9 +23,11 @@ import {
 } from "./commissions";
 import { customerActivityResponseSchema } from "./customer-activity";
 import { CustomerEnrichedSchema } from "./customers";
+import { DiscountSchema } from "./discount";
 import { LinkSchema } from "./links";
 import { getPaginationQuerySchema } from "./misc";
 import { payoutsQuerySchema } from "./payouts";
+import { RewardSchema } from "./rewards";
 import { submittedLeadFormDataSchema } from "./submitted-lead-form";
 import { centsSchema } from "./utils";
 
@@ -51,6 +53,7 @@ export const PartnerEarningsSchema = CommissionSchema.omit({
 export const getPartnerEarningsQuerySchema = getCommissionsQuerySchema
   .omit({
     partnerId: true,
+    bountySubmissionId: true,
     sortBy: true,
     query: true,
   })
@@ -68,6 +71,7 @@ export const getPartnerEarningsQuerySchema = getCommissionsQuerySchema
 export const getPartnerEarningsCountQuerySchema = getCommissionsCountQuerySchema
   .omit({
     partnerId: true,
+    bountySubmissionId: true,
     query: true,
   })
   .extend({
@@ -99,6 +103,10 @@ export const PartnerProfileLinkSchema = LinkSchema.pick({
 }).extend({
   createdAt: z.string().or(z.date()),
   partnerGroupDefaultLinkId: z.string().nullish(),
+  clickReward: RewardSchema.nullable().default(null),
+  leadReward: RewardSchema.nullable().default(null),
+  saleReward: RewardSchema.nullable().default(null),
+  discount: DiscountSchema.nullable().default(null),
   discountCode: z.string().nullable().default(null),
   discountCodeDisabledAt: z.coerce.date().nullable().default(null),
 });
@@ -153,14 +161,18 @@ export const partnerNotificationTypes = z.enum([
 ]);
 
 export const partnerBountySubmissionSchema = BountySubmissionSchema.extend({
-  commission: PartnerEarningsSchema.pick({
-    id: true,
-    earnings: true,
-    status: true,
-    createdAt: true,
-  })
-    .nullable()
-    .default(null),
+  commissions: z
+    .array(
+      PartnerEarningsSchema.pick({
+        id: true,
+        earnings: true,
+        status: true,
+        createdAt: true,
+      }).extend({
+        description: z.string().nullish(),
+      }),
+    )
+    .default([]),
 });
 
 export const PartnerBountySchema = BountySchema.omit({
@@ -299,6 +311,69 @@ export const getPartnerCustomersCountQuerySchema =
     .extend({
       groupBy: z.enum(["country", "linkId"]).optional(),
     });
+
+export const PARTNER_CUSTOMER_EXPORT_COLUMNS = [
+  { id: "id", label: "ID", default: true, order: 1 },
+  { id: "email", label: "Email", default: true, order: 2 },
+  { id: "name", label: "Name", default: true, order: 3 },
+  { id: "country", label: "Country", default: true, order: 4 },
+  { id: "link", label: "Link", default: true, order: 5 },
+  { id: "createdAt", label: "Created at", default: true, order: 6 },
+  { id: "saleAmount", label: "Sale amount", default: true, order: 7 },
+  { id: "firstSaleAt", label: "First sale at", default: true, order: 8 },
+  {
+    id: "subscriptionCanceledAt",
+    label: "Subscription canceled",
+    default: true,
+    order: 9,
+  },
+] as const;
+
+export const PARTNER_CUSTOMER_EXPORT_DEFAULT_COLUMNS =
+  PARTNER_CUSTOMER_EXPORT_COLUMNS.filter((column) => column.default).map(
+    (column) => column.id,
+  );
+
+export const partnerCustomersExportQuerySchema = getPartnerCustomersQuerySchema
+  .omit({
+    page: true,
+    pageSize: true,
+  })
+  .extend({
+    columns: z
+      .string()
+      .optional()
+      .default(PARTNER_CUSTOMER_EXPORT_DEFAULT_COLUMNS.join(","))
+      .transform((v) =>
+        v
+          .split(",")
+          .map((s) => s.trim())
+          .filter(Boolean),
+      )
+      .refine(
+        (columns) => {
+          const validColumnIds = new Set<string>(
+            PARTNER_CUSTOMER_EXPORT_COLUMNS.map((col) => col.id),
+          );
+
+          return (
+            columns.length > 0 &&
+            columns.every((column) => validColumnIds.has(column))
+          );
+        },
+        {
+          message:
+            "Invalid column IDs provided. Please check the available columns.",
+        },
+      ),
+  });
+
+export const partnerCustomersExportCronInputSchema =
+  partnerCustomersExportQuerySchema.extend({
+    partnerId: z.string(),
+    programId: z.string(),
+    userId: z.string(),
+  });
 
 export const partnerProfileSubmittedLeadSchema = z.object({
   id: z.string(),

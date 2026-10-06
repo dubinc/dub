@@ -1,8 +1,8 @@
 import { getRewardAmount } from "@/lib/partners/get-reward-amount";
+import { resolveClickReward } from "@/lib/rewards/resolve-click-reward";
 import type { RewardConditionsArray } from "@/lib/types";
 import { expect } from "@playwright/test";
 import { EventType, Prisma, Reward, RewardStructure } from "@prisma/client";
-import { resolveClickReward } from "../../../app/(ee)/api/cron/aggregate-clicks/resolve-click-reward-amount";
 import { test } from "../fixtures";
 import { createReward, deleteReward, updateReward } from "./helpers";
 

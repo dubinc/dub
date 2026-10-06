@@ -66,11 +66,11 @@ export default async function SuccessPage(props: {
     !program.group.applicationFormPublishedAt
   ) {
     // for the default group:
-    // - if the program is found, redirect to the marketplace program page
+    // - if the program is featured on the marketplace (and not deactivated), redirect to the marketplace program page
     // - otherwise, throw 404
     // for other groups: redirect to the default group variant
     if (partnerGroupSlug === DEFAULT_PARTNER_GROUP.slug) {
-      if (program) {
+      if (program && program.addedToMarketplaceAt && !program.deactivatedAt) {
         redirect(`/marketplace/${programSlug}`);
       }
       notFound();
@@ -84,10 +84,14 @@ export default async function SuccessPage(props: {
         where: {
           id: applicationId,
         },
+        select: {
+          partnerId: true,
+          email: true,
+        },
       })
     : null;
 
-  const hasPartnerProfile = !!enrollmentId;
+  const hasPartnerProfile = !!enrollmentId || !!application?.partnerId;
 
   return (
     <div

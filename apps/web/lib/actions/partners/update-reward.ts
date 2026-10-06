@@ -8,6 +8,7 @@ import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-progr
 import { revalidateProgramPublicPages } from "@/lib/api/programs/revalidate-program-public-pages";
 import { queueRewardProcessing } from "@/lib/api/rewards/queue-reward-processing";
 import { validateReward } from "@/lib/api/rewards/validate-reward";
+import { getFeatureFlags } from "@/lib/edge-config";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { prisma } from "@/lib/prisma";
 import { updateRewardSchema } from "@/lib/zod/schemas/rewards";
@@ -48,11 +49,8 @@ export const updateRewardAction = authActionClient
       programId,
     });
 
-    const {
-      canUseAdvancedRewardLogic,
-      canSetRewardSpendLimit,
-      canCreateReferralReward,
-    } = getPlanCapabilities(workspace.plan);
+    const { canUseAdvancedRewardLogic, canCreateReferralReward } =
+      getPlanCapabilities(workspace.plan);
 
     if (reward.event === "referral" && !canCreateReferralReward) {
       throw new Error(
@@ -66,10 +64,14 @@ export const updateRewardAction = authActionClient
       );
     }
 
-    if ((spendLimitAmount || spendLimitInterval) && !canSetRewardSpendLimit) {
-      throw new Error(
-        "Spend limits are only available on the Enterprise plan.",
-      );
+    if (spendLimitAmount || spendLimitInterval) {
+      const flags = await getFeatureFlags({
+        workspaceId: workspace.id,
+      });
+
+      if (!flags?.rewardSpendLimit) {
+        throw new Error("Spend limits are not enabled on your workspace.");
+      }
     }
 
     validateReward({
@@ -100,49 +102,23 @@ export const updateRewardAction = authActionClient
               amountInPercentage: new Prisma.Decimal(amountInPercentage!),
             }),
       },
-      include: {
-        clickPartnerGroup: true,
-        leadPartnerGroup: true,
-        salePartnerGroup: true,
-        referralPartnerGroup: true,
-        customPartnerGroup: true,
-      },
     });
 
-    const {
-      clickPartnerGroup,
-      leadPartnerGroup,
-      salePartnerGroup,
-      referralPartnerGroup,
-      customPartnerGroup,
-      ...rewardMetadata
-    } = updatedReward;
-
-    // Determine the groupId from the partner group relation
-    const partnerGroup =
-      clickPartnerGroup ||
-      leadPartnerGroup ||
-      salePartnerGroup ||
-      referralPartnerGroup ||
-      customPartnerGroup;
-
-    if (!partnerGroup) {
-      throw new Error("Partner group not found.");
+    if (updatedReward.groupId) {
+      await queueRewardProcessing({
+        event: "reward-updated",
+        groupId: updatedReward.groupId,
+        occurredAt: new Date().toISOString(),
+        rewardSnapshot: {
+          id: reward.id,
+          event: reward.event,
+          description: formatRewardDescription(serializeReward(updatedReward), {
+            includeEarnPrefix: false,
+          }),
+          activityDescription,
+        },
+      });
     }
-
-    await queueRewardProcessing({
-      event: "reward-updated",
-      groupId: partnerGroup.id,
-      occurredAt: new Date().toISOString(),
-      rewardSnapshot: {
-        id: reward.id,
-        event: reward.event,
-        description: formatRewardDescription(serializeReward(updatedReward), {
-          includeEarnPrefix: false,
-        }),
-        activityDescription,
-      },
-    });
 
     revalidateProgramPublicPages(programId);
 
@@ -158,7 +134,7 @@ export const updateRewardAction = authActionClient
             {
               type: "reward",
               id: rewardId,
-              metadata: serializeReward(rewardMetadata),
+              metadata: serializeReward(updatedReward),
             },
           ],
         }),
@@ -167,9 +143,9 @@ export const updateRewardAction = authActionClient
           workspaceId: workspace.id,
           programId,
           userId: user.id,
-          resourceId: rewardMetadata.id,
+          resourceId: updatedReward.id,
           parentResourceType: "group",
-          parentResourceId: partnerGroup.id,
+          parentResourceId: updatedReward.groupId,
           old: reward,
           new: updatedReward,
           description: activityDescription,

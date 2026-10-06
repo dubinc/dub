@@ -155,6 +155,7 @@ export const createProgram = async ({
             rewards: {
               create: {
                 id: createId({ prefix: "rw_" }),
+                groupId: defaultGroupId,
                 type,
                 amountInCents: type === "flat" ? amountInCents : null,
                 amountInPercentage:

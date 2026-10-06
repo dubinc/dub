@@ -38,6 +38,7 @@ export const createDiscountSchema = z.object({
   groupId: z.string(),
   autoProvision: z.boolean().optional(),
   provider: z.enum(DiscountProvider),
+  isDefault: z.boolean().default(true),
 });
 
 export const updateDiscountSchema = createDiscountSchema
@@ -92,18 +93,24 @@ export const DiscountCodeSchema = z
     title: "DiscountCode",
   });
 
+export const restrictedDiscountCodeSchema = z.object({
+  code: z
+    .string()
+    .trim()
+    .regex(
+      /^[a-zA-Z0-9\-_]+$/,
+      "Code can only contain letters, numbers, dashes, and underscores.",
+    ),
+});
+
 export const createDiscountCodeSchema = z.object({
   code: z
     .string()
     .trim()
     .max(100, "Code must be 100 characters or fewer.")
-    .regex(
-      /^[a-zA-Z0-9\-_]+$/,
-      "Code can only contain letters, numbers, dashes, and underscores.",
-    )
     .optional()
     .describe(
-      "The discount code to create. If omitted, a unique code will be generated automatically from the partner's name.",
+      "The discount code to create. If omitted, a unique code will be generated automatically from the partner's name. Stripe and Shopify codes can only contain letters, numbers, dashes, and underscores. Custom provider codes can contain any characters.",
     ),
   partnerId: z
     .string()
@@ -127,6 +134,12 @@ export const getDiscountCodesQuerySchema = z
       .string()
       .optional()
       .describe("Filter discount codes by discount ID."),
+    code: z
+      .string()
+      .optional()
+      .describe(
+        "Filter discount codes by the alphanumeric code (e.g. `PARTNER10OFF`).",
+      ),
   })
   .extend(getPaginationQuerySchema({ pageSize: 100 }));
 
