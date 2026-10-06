@@ -9,6 +9,7 @@ import { getProgramPerformanceTool } from "@/lib/ai/get-program-performance";
 import { getWorkspaceDetailsTool } from "@/lib/ai/get-workspace-details";
 import { requestSupportTicketTool } from "@/lib/ai/request-support-ticket";
 import { withSession } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 import { getSlackClient } from "@/lib/slack/client";
 import { ratelimit } from "@/lib/upstash/ratelimit";
 import { anthropic } from "@ai-sdk/anthropic";
@@ -189,9 +190,30 @@ export const POST = withSession(async ({ req, session }) => {
     });
   }
 
+  let partnerCountry: string | null | undefined;
+
+  if (
+    globalContext?.accountType === "partner" &&
+    session.user.defaultPartnerId
+  ) {
+    const partner = await prisma.partner.findUnique({
+      where: {
+        id: session.user.defaultPartnerId,
+      },
+      select: {
+        country: true,
+      },
+    });
+
+    partnerCountry = partner?.country;
+  }
+
   const result = streamText({
     model: anthropic("claude-sonnet-4-6"),
-    system: buildSystemPrompt(globalContext),
+    system: buildSystemPrompt({
+      ...globalContext,
+      partnerCountry,
+    }),
     messages: await convertToModelMessages(modelMessages),
     stopWhen: stepCountIs(5),
     tools: {

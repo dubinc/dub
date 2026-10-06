@@ -5,19 +5,23 @@ import { useCallback, useRef, useState } from "react";
 
 export function useCountryChangeWarningModal() {
   const [showModalState, setShowModalState] = useState(false);
-  const [isAcknowledged, setIsAcknowledged] = useState(false);
   const onAcknowledgeRef = useRef<(() => void) | null>(null);
+  const onCancelRef = useRef<(() => void) | null>(null);
 
   const handleCancel = useCallback(() => {
+    const onCancel = onCancelRef.current;
     onAcknowledgeRef.current = null;
+    onCancelRef.current = null;
     setShowModalState(false);
+    onCancel?.();
   }, []);
 
   const handleAcknowledge = useCallback(() => {
-    setIsAcknowledged(true);
-    setShowModalState(false);
-    onAcknowledgeRef.current?.();
+    const onAcknowledge = onAcknowledgeRef.current;
     onAcknowledgeRef.current = null;
+    onCancelRef.current = null;
+    setShowModalState(false);
+    onAcknowledge?.();
   }, []);
 
   const modal = (
@@ -61,20 +65,17 @@ export function useCountryChangeWarningModal() {
     </Modal>
   );
 
-  const showModal = useCallback(() => {
-    onAcknowledgeRef.current = null;
-    setShowModalState(true);
-  }, []);
-
-  const acknowledgeAndContinue = useCallback((callback?: () => void) => {
-    onAcknowledgeRef.current = callback ?? null;
-    setShowModalState(true);
-  }, []);
+  const acknowledgeAndContinue = useCallback(
+    (callback?: () => void, onCancel?: () => void) => {
+      onAcknowledgeRef.current = callback ?? null;
+      onCancelRef.current = onCancel ?? null;
+      setShowModalState(true);
+    },
+    [],
+  );
 
   return {
     modal,
-    showModal,
-    isAcknowledged,
     acknowledgeAndContinue,
   };
 }
