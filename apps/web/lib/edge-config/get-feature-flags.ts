@@ -19,6 +19,7 @@ export const getFeatureFlags = async ({
     analyticsSettingsSiteVisitTracking: false,
     noProrationUpgrade: false,
     rewardSpendLimit: false,
+    submittedLeads: false,
   };
 
   if (!process.env.EDGE_CONFIG) {
