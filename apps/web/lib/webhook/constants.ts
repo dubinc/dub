@@ -37,25 +37,11 @@ export const WEBHOOK_TRIGGERS = [
   ...PROGRAM_LEVEL_WEBHOOK_TRIGGERS,
 ] as const;
 
-export const LEGACY_WEBHOOK_TRIGGER_REPLACEMENTS = [
-  {
-    legacy: "partner.application_submitted",
-    current: "program_application.created",
-  },
-] as const satisfies readonly {
-  legacy: WebhookTrigger;
-  current: WebhookTrigger;
-}[];
-
+// Maps each deprecated event to the current event that replaces it (Eg: old:new)
 export const DEPRECATED_WEBHOOK_TRIGGERS = new Map<
   WebhookTrigger,
   WebhookTrigger
->(
-  LEGACY_WEBHOOK_TRIGGER_REPLACEMENTS.map(({ legacy, current }) => [
-    legacy,
-    current,
-  ]),
-);
+>([["partner.application_submitted", "program_application.created"]]);
 
 export const WEBHOOK_TRIGGER_DESCRIPTIONS: Record<WebhookTrigger, string> = {
   "link.created": "Occurs whenever a link is created",

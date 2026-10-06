@@ -34,5 +34,3 @@ export function getProgramApplicationRejectionReasonLabel(
 
   return PROGRAM_APPLICATION_REJECTION_REASON_LABELS[reason] ?? null;
 }
-
-export const STANDARD_REAPPLICATION_DAYS = 30;

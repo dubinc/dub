@@ -3,8 +3,7 @@ import { queuePartnerSearchSync } from "@/lib/api/partners/queue-partner-search-
 import { PRISMA_UPDATEMANY_LIMIT } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { prisma } from "@/lib/prisma";
-import { STANDARD_REAPPLICATION_DAYS } from "@/lib/program-applications/program-application-rejection";
-import { log } from "@dub/utils";
+import { log, STANDARD_REAPPLICATION_DAYS } from "@dub/utils";
 import { subDays } from "date-fns";
 import { NextResponse } from "next/server";
 
@@ -58,7 +57,7 @@ export async function POST(req: Request) {
         });
 
       console.log(
-        `Deleted ${deletedProgramEnrollments.count} rejected programEnrollments that are older than 30 days`,
+        `Deleted ${deletedProgramEnrollments.count} rejected programEnrollments that are older than ${STANDARD_REAPPLICATION_DAYS} days`,
       );
 
       // Queue an index update because the rejected enrollments were deleted.

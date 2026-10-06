@@ -18,7 +18,7 @@ import {
   ToggleGroup,
   useKeyboardShortcut,
 } from "@dub/ui";
-import { cn } from "@dub/utils";
+import { cn, STANDARD_REAPPLICATION_DAYS } from "@dub/utils";
 import { ProgramApplicationRejectionReason } from "@prisma/client";
 import { motion } from "motion/react";
 import { useAction } from "next-safe-action/hooks";
@@ -42,7 +42,7 @@ const REJECTION_REASON_COMBO_OPTIONS: ComboboxOption[] =
 
 const REAPPLICATION_TIMEFRAME_OPTIONS = [
   { value: "instant", label: "Immediate" },
-  { value: "standard", label: "30 days" },
+  { value: "standard", label: `${STANDARD_REAPPLICATION_DAYS} days` },
   { value: "never", label: "Never" },
 ] as const;
 
@@ -51,7 +51,7 @@ const REAPPLICATION_TIMEFRAME_DESCRIPTIONS: Record<
   string
 > = {
   instant: "The partner can reapply immediately.",
-  standard: "The partner can reapply after 30 days.",
+  standard: `The partner can reapply after ${STANDARD_REAPPLICATION_DAYS} days.`,
   never: "The partner can never reapply for the program.",
 };
 

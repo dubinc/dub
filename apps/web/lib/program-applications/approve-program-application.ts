@@ -90,7 +90,7 @@ export async function approveProgramApplication({
   const { program } = programApplication;
 
   const finalGroupId =
-    groupId || programApplication?.groupId || program.defaultGroupId;
+    groupId ?? programApplication.groupId ?? program.defaultGroupId;
 
   if (!finalGroupId) {
     throw new DubApiError({
