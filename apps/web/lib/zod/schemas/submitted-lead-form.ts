@@ -90,7 +90,6 @@ export const formFieldSchema = z.discriminatedUnion("type", [
 
 export const formFieldsSchema = z
   .array(formFieldSchema)
-  .min(1)
   .superRefine((fields, ctx) => {
     const keys = new Set<string>();
     const positions = new Set<number>();
