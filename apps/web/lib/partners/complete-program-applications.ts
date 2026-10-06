@@ -13,7 +13,10 @@ import {
   partnerApplicationWebhookSchema,
   programApplicationWebhookSchema,
 } from "../zod/schemas/program-application";
-import { backfillPartnerPlatforms } from "./backfill-partner-platforms";
+import {
+  backfillPartnerPlatforms,
+  mergeApplicationSocialPlatforms,
+} from "./backfill-partner-platforms";
 import { evaluateApplicationRequirements } from "./evaluate-application-requirements";
 import {
   formatApplicationFormData,
@@ -161,7 +164,7 @@ export async function completeProgramApplications(userEmail: string) {
       workspaces.map((ws) => [ws.defaultProgramId, ws]),
     );
 
-    const { platforms, socialFields } = await backfillPartnerPlatforms({
+    await backfillPartnerPlatforms({
       partnerId: partner.id,
       platforms: partner.platforms,
       applications: filteredProgramApplications,
@@ -189,6 +192,11 @@ export async function completeProgramApplications(userEmail: string) {
             country: partner.country,
             email: partner.email,
           },
+        });
+
+        const { platforms, socialFields } = mergeApplicationSocialPlatforms({
+          platforms: partner.platforms,
+          application,
         });
 
         const webhookData = {

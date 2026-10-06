@@ -21,7 +21,7 @@ type ApplicationPlatform = Pick<
 // so webhook payloads and the platform backfill agree on what the partner has.
 // Application values only fill in platforms the partner doesn't already have (the
 // profile may be verified), and are marked unverified.
-const mergeApplicationSocialPlatforms = ({
+export const mergeApplicationSocialPlatforms = ({
   platforms,
   application,
 }: {

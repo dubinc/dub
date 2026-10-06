@@ -88,7 +88,10 @@ export function ApplicationsTable({
   const sortOrder = searchParams.get("sortOrder") === "asc" ? "asc" : "desc";
 
   const isFiltered = Object.keys(searchParamsObj).some(
-    (key) => !["sortBy", "sortOrder", "page"].includes(key),
+    (key) =>
+      !["sortBy", "sortOrder", "page", "partnerId", "applicationId"].includes(
+        key,
+      ),
   );
 
   const { applicationsCount, error: countError } =
@@ -116,19 +119,22 @@ export function ApplicationsTable({
   const { groups } = useGroups();
 
   const [detailsSheetState, setDetailsSheetState] = useState<
-    | { open: false; partnerId: string | null }
-    | { open: true; partnerId: string }
-  >({ open: false, partnerId: null });
+    | { open: false; applicationId: string | null }
+    | { open: true; applicationId: string }
+  >({ open: false, applicationId: null });
 
   useEffect(() => {
-    const partnerId = searchParams.get("partnerId");
-    if (partnerId) setDetailsSheetState({ open: true, partnerId });
+    const applicationId = searchParams.get("applicationId");
+
+    if (applicationId) {
+      setDetailsSheetState({ open: true, applicationId });
+    }
   }, [searchParams]);
 
-  const { currentPartner, isLoading: isCurrentPartnerLoading } =
-    useCurrentPartner({
+  const { currentApplication, isLoading: isCurrentApplicationLoading } =
+    useCurrentApplication({
       partners,
-      partnerId: detailsSheetState.partnerId,
+      applicationId: detailsSheetState.applicationId,
     });
 
   // State for pending bulk actions
@@ -317,8 +323,9 @@ export function ApplicationsTable({
     onRowClick: (row) => {
       queryParams({
         set: {
-          partnerId: row.original.id,
+          applicationId: row.original.applicationId,
         },
+        del: "partnerId",
       });
     },
     pagination,
@@ -338,7 +345,7 @@ export function ApplicationsTable({
       }),
 
     ...(status !== ProgramApplicationStatus.approved && {
-      getRowId: (row: ApplicationRow) => row.id,
+      getRowId: (row: ApplicationRow) => row.applicationId,
       selectionControls: (table) => (
         <>
           <Button
@@ -378,46 +385,48 @@ export function ApplicationsTable({
     tdClassName: "border-l-0",
     resourceName: (p) => `application${p ? "s" : ""}`,
     rowCount: applicationsCount || 0,
-    loading: isValidating || isCurrentPartnerLoading,
+    loading: isValidating || isCurrentApplicationLoading,
     error: error || countError ? "Failed to load applications" : undefined,
   });
 
-  const [previousPartnerId, nextPartnerId] = useMemo(() => {
-    if (!partners || !detailsSheetState.partnerId) return [null, null];
+  const [previousApplication, nextApplication] = useMemo(() => {
+    if (!partners || !detailsSheetState.applicationId) return [null, null];
 
     const currentIndex = partners.findIndex(
-      ({ id }) => id === detailsSheetState.partnerId,
+      ({ applicationId }) => applicationId === detailsSheetState.applicationId,
     );
     if (currentIndex === -1) return [null, null];
 
     return [
-      currentIndex > 0 ? partners[currentIndex - 1].id : null,
-      currentIndex < partners.length - 1 ? partners[currentIndex + 1].id : null,
+      currentIndex > 0 ? partners[currentIndex - 1] : null,
+      currentIndex < partners.length - 1 ? partners[currentIndex + 1] : null,
     ];
-  }, [partners, detailsSheetState.partnerId]);
+  }, [partners, detailsSheetState.applicationId]);
 
   return (
     <>
-      {detailsSheetState.partnerId && currentPartner && (
+      {detailsSheetState.applicationId && currentApplication && (
         <ProgramApplicationReviewSheet
           isOpen={detailsSheetState.open}
           setIsOpen={(open) =>
             setDetailsSheetState((s) => ({ ...s, open }) as any)
           }
-          partner={currentPartner}
+          partner={currentApplication}
           onPrevious={
-            previousPartnerId
+            previousApplication
               ? () =>
                   queryParams({
-                    set: { partnerId: previousPartnerId },
+                    set: { applicationId: previousApplication.applicationId },
+                    del: "partnerId",
                   })
               : undefined
           }
           onNext={
-            nextPartnerId
+            nextApplication
               ? () =>
                   queryParams({
-                    set: { partnerId: nextPartnerId },
+                    set: { applicationId: nextApplication.applicationId },
+                    del: "partnerId",
                   })
               : undefined
           }
@@ -567,36 +576,38 @@ function RejectedRowMenuButton({ row }: { row: Row<ApplicationRow> }) {
   );
 }
 
-/** Gets the current partner from the loaded partners array if available, or a separate fetch if not */
-function useCurrentPartner({
+/** Gets the application row from the loaded list, then loads that partner for fields the list does not include. */
+function useCurrentApplication({
   partners,
-  partnerId,
+  applicationId,
 }: {
   partners?: ApplicationRow[];
-  partnerId: string | null;
+  applicationId: string | null;
 }) {
-  const listedPartner = partnerId
-    ? partners?.find(({ id }) => id === partnerId) ?? null
+  const listedApplication = applicationId
+    ? partners?.find(
+        (application) => application.applicationId === applicationId,
+      ) ?? null
     : null;
 
   const { partner: fetchedPartner, loading: isLoading } = usePartner(
-    { partnerId },
+    { partnerId: listedApplication?.id ?? null },
     { keepPreviousData: true },
   );
 
   const matchingFetchedPartner =
-    fetchedPartner?.id === partnerId ? fetchedPartner : null;
+    fetchedPartner?.id === listedApplication?.id ? fetchedPartner : null;
 
-  const currentPartner = useMemo(
+  const currentApplication = useMemo(
     () =>
-      listedPartner
-        ? { ...matchingFetchedPartner, ...listedPartner }
-        : matchingFetchedPartner,
-    [listedPartner, matchingFetchedPartner],
+      listedApplication
+        ? { ...matchingFetchedPartner, ...listedApplication }
+        : null,
+    [listedApplication, matchingFetchedPartner],
   );
 
   return {
-    currentPartner,
-    isLoading: Boolean(partnerId) && !listedPartner && isLoading,
+    currentApplication,
+    isLoading: Boolean(applicationId) && !listedApplication && isLoading,
   };
 }

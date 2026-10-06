@@ -314,7 +314,7 @@ const programApplicationSubmittedTemplate = ({
   data: PartnerApplicationWebhookPayload;
 }) => {
   const { partner } = data;
-  const hrefToApplicationPage = `${APP_DOMAIN}/program/partners/applications?partnerId=${partner.id}`;
+  const hrefToApplicationPage = `${APP_DOMAIN}/program/partners/applications?applicationId=${data.id}`;
 
   return {
     blocks: [

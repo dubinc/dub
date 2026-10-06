@@ -26,7 +26,7 @@ export function useProgramApplications({
   const queryString = ignoreParams
     ? `?${new URLSearchParams(definedParams as Record<string, string>).toString()}`
     : getQueryString(definedParams, {
-        exclude: ["partnerId", "sortBy"],
+        exclude: ["partnerId", "applicationId", "sortBy"],
       });
 
   const {
