@@ -70,7 +70,9 @@ export const ProgramApplicationSchema = PartnerApplicationSchema.extend({
     }),
 });
 
+// @deprecated Use programApplicationWebhookSchema instead. Kept for backward compatibility.
 export const partnerApplicationWebhookSchema = PartnerApplicationSchema;
+export const programApplicationWebhookSchema = ProgramApplicationSchema;
 
 export const getProgramApplicationsQuerySchema = getPartnersQuerySchema
   .pick({

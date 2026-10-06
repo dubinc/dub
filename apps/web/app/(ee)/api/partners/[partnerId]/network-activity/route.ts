@@ -1,5 +1,4 @@
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
-import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import {
@@ -14,11 +13,34 @@ export const GET = withWorkspace(
     const { partnerId } = params;
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    await getProgramEnrollmentOrThrow({
-      partnerId,
-      programId,
-      include: {},
-    });
+    const [programApplication, programEnrollment] = await Promise.all([
+      prisma.programApplication.findFirst({
+        where: {
+          programId,
+          partnerId,
+        },
+        select: {
+          id: true,
+        },
+      }),
+
+      prisma.programEnrollment.findUnique({
+        where: {
+          partnerId_programId: {
+            partnerId,
+            programId,
+          },
+        },
+        select: {
+          id: true,
+        },
+      }),
+    ]);
+
+    // Prevent fetching the network activity summary if the partner has neither applied to nor enrolled in the program
+    if (!programApplication && !programEnrollment) {
+      return NextResponse.json(null);
+    }
 
     const programEnrollments = await prisma.programEnrollment.groupBy({
       by: ["status"],

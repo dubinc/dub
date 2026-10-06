@@ -13,6 +13,7 @@ import { autoApprovePartnerJob } from "@/lib/jobs/handlers/auto-approve-partner-
 import { autoRejectPartnerJob } from "@/lib/jobs/handlers/auto-reject-partner-job";
 import { programApplicationReminderJob } from "@/lib/jobs/handlers/program-application-reminder-job";
 import { getNetworkProfileChecklistProgress } from "@/lib/network/get-network-profile-checklist-progress";
+import { backfillPartnerPlatforms } from "@/lib/partners/backfill-partner-platforms";
 import { evaluateApplicationRequirements } from "@/lib/partners/evaluate-application-requirements";
 import {
   formatApplicationFormData,
@@ -26,12 +27,16 @@ import {
 import { assertRateLimit } from "@/lib/upstash/assert-rate-limit";
 import { RATELIMIT_POLICIES } from "@/lib/upstash/ratelimit-policies";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
-import { partnerApplicationWebhookSchema } from "@/lib/zod/schemas/program-application";
+import {
+  partnerApplicationWebhookSchema,
+  programApplicationWebhookSchema,
+} from "@/lib/zod/schemas/program-application";
 import { programApplicationFormWebsiteAndSocialsFieldWithValueSchema } from "@/lib/zod/schemas/program-application-form";
 import { createProgramApplicationSchema } from "@/lib/zod/schemas/programs";
 import {
   Partner,
   PartnerGroup,
+  PartnerPlatform,
   Program,
   ProgramEnrollment,
   Project,
@@ -250,7 +255,10 @@ async function createApplicationAndEnrollment({
 }: {
   workspace: Pick<Project, "id" | "webhookEnabled">;
   program: Program;
-  partner: Partner & { programs: ProgramEnrollment[] };
+  partner: Partner & {
+    programs: ProgramEnrollment[];
+    platforms: PartnerPlatform[];
+  };
   group: PartnerGroup;
   data: z.infer<typeof createProgramApplicationSchema>;
   inAppApplication?: boolean;
@@ -331,6 +339,23 @@ async function createApplicationAndEnrollment({
         }),
       );
 
+      const webhookData = {
+        id: application.id,
+        createdAt: application.createdAt,
+        applicationFormData,
+        partner: {
+          ...partner,
+          ...programEnrollment,
+          id: partner.id,
+        },
+      };
+
+      const { platforms, socialFields } = await backfillPartnerPlatforms({
+        partnerId: partner.id,
+        platforms: partner.platforms,
+        application,
+      });
+
       await Promise.allSettled([
         notifyProgramApplication({
           partner,
@@ -352,20 +377,30 @@ async function createApplicationAndEnrollment({
             )
           : Promise.resolve(null),
 
-        // Send "partner.application_submitted" webhook
+        // Send "partner.application_submitted" webhook (deprecated)
         sendWorkspaceWebhook({
           workspace,
           trigger: "partner.application_submitted",
           data: partnerApplicationWebhookSchema.parse({
-            id: application.id,
-            createdAt: application.createdAt,
+            ...webhookData,
             partner: {
-              ...partner,
-              ...programEnrollment,
-              id: partner.id,
+              ...webhookData.partner,
               ...formatWebsiteAndSocialsFields(application),
             },
-            applicationFormData,
+          }),
+        }),
+
+        // Send "program_application.created" webhook
+        sendWorkspaceWebhook({
+          workspace,
+          trigger: "program_application.created",
+          data: programApplicationWebhookSchema.parse({
+            ...webhookData,
+            partner: {
+              ...webhookData.partner,
+              platforms,
+              ...socialFields,
+            },
           }),
         }),
 
