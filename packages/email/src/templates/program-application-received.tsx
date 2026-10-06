@@ -18,6 +18,7 @@ export default function ProgramApplicationReceived({
   email = "panic@thedis.co",
   partner = {
     id: "pn_1JPBEGP7EXF76CXT1W99VERW5",
+    applicationId: "pga_1JPBEGP7EXF76CXT1W99VERW5",
     name: "John Doe",
     email: "john@example.com",
     image:
@@ -47,6 +48,7 @@ export default function ProgramApplicationReceived({
   email: string;
   partner: {
     id: string;
+    applicationId: string;
     name: string;
     email: string;
     image: string | null;
@@ -61,7 +63,7 @@ export default function ProgramApplicationReceived({
     slug: string;
   };
 }) {
-  const applicationUrl = `https://app.dub.co/${workspace.slug}/program/partners/applications?partnerId=${partner.id}`;
+  const applicationUrl = `https://app.dub.co/${workspace.slug}/program/partners/applications?applicationId=${partner.applicationId}`;
 
   return (
     <Html>

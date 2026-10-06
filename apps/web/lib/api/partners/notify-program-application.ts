@@ -58,6 +58,7 @@ export async function notifyProgramApplication({
         email: user.email!,
         partner: {
           id: partner.id,
+          applicationId: application.id,
           name: partner.name,
           email: partner.email!,
           image: partner.image,

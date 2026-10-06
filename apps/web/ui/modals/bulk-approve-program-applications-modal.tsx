@@ -19,8 +19,29 @@ import {
 } from "react";
 import { toast } from "sonner";
 
+type BulkApprovePartner = Pick<
+  PartnerProps,
+  "id" | "name" | "email" | "image"
+> & {
+  applicationId?: string | null;
+  groupId?: string | null;
+};
+
+// The group every selected application requested, or null if they differ
+function getRequestedGroupId(partners: BulkApprovePartner[]) {
+  const [first] = partners;
+
+  if (!first?.groupId) {
+    return null;
+  }
+
+  return partners.every(({ groupId }) => groupId === first.groupId)
+    ? first.groupId
+    : null;
+}
+
 type BulkApproveProgramApplicationsModalOptions = {
-  partners: Pick<PartnerProps, "id" | "name" | "email" | "image">[];
+  partners: BulkApprovePartner[];
   groupId?: string | null;
   onConfirm?: () => void | Promise<void>;
   confirmShortcutOptions?: {
@@ -46,7 +67,8 @@ function BulkApproveProgramApplicationsModal({
     useTrialLimitActivateModal();
   const trialActive = isWorkspaceBillingTrialActive(trialEndsAt);
 
-  const initialGroupId = groupId ?? program?.defaultGroupId ?? null;
+  const initialGroupId =
+    groupId ?? getRequestedGroupId(partners) ?? program?.defaultGroupId ?? null;
   const [selectedGroupId, setSelectedGroupId] = useState<string | null>(
     initialGroupId,
   );
@@ -60,13 +82,17 @@ function BulkApproveProgramApplicationsModal({
   const { executeAsync, isPending } = useAction(
     bulkApproveProgramApplicationsAction,
     {
-      onSuccess: async () => {
+      onSuccess: async ({ data }) => {
         setShowBulkApproveProgramApplicationsModal(false);
-        toast.success(`${pluralize("Partner", partners.length)} approved.`);
+        const { approvedCount, skippedCount } = data;
+        toast.success(
+          `${approvedCount} ${pluralize("partner", approvedCount)} approved.${skippedCount > 0 ? ` ${skippedCount} skipped because ${pluralize("it was", skippedCount, { plural: "they were" })} already reviewed or the partner was removed.` : ""}`,
+        );
         await onConfirm?.();
         await mutatePrefix(["/api/partners", "/api/program-applications"]);
       },
-      onError({ error }) {
+      onError: async ({ error }) => {
+        await mutatePrefix(["/api/partners", "/api/program-applications"]);
         const serverMsg = String(error.serverError ?? "").trim();
         if (
           trialActive &&
@@ -88,15 +114,17 @@ function BulkApproveProgramApplicationsModal({
   );
 
   const handleBulkApprove = useCallback(async () => {
-    const partnerIds = partners.map((p) => p.id);
-
-    if (!workspaceId || partnerIds.length === 0) {
+    if (!workspaceId || partners.length === 0) {
       return;
     }
 
+    const applicationIds = partners
+      .map(({ applicationId }) => applicationId)
+      .filter((id): id is string => Boolean(id));
+
     await executeAsync({
       workspaceId,
-      partnerIds,
+      applicationIds,
       groupId: selectedGroupId,
     });
   }, [partners, workspaceId, selectedGroupId, executeAsync]);

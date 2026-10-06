@@ -1,18 +1,16 @@
-import { getProgramApplicationRisks } from "@/lib/api/fraud/get-program-application-risks";
-import { evaluateApplicationRequirements } from "@/lib/partners/evaluate-application-requirements";
-import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { prisma } from "@/lib/prisma";
-import { approveProgramApplication } from "@/lib/program-applications/approve-program-application";
-import { ProgramEnrollmentStatus } from "@prisma/client";
 import * as z from "zod/v4";
 import { defineJob } from "../index";
+import { autoApproveProgramApplicationJob } from "./auto-approve-program-application-job";
 
 const inputSchema = z.object({
   programId: z.string(),
   partnerId: z.string(),
 });
 
-// This job is used to auto-approve a partner enrolled in a program
+// Deprecated: superseded by auto-approve-program-application-job, which is keyed by
+// application instead of enrollment. Kept only to drain in-flight QStash messages –
+// safe to delete once the queue has caught up.
 export const autoApprovePartnerJob = defineJob({
   name: "auto-approve-partner-job",
   schema: inputSchema,
@@ -26,122 +24,21 @@ export const autoApprovePartnerJob = defineJob({
           programId,
         },
       },
-      include: {
-        partnerGroup: true,
-        partner: {
-          include: {
-            platforms: true,
-          },
-        },
+      select: {
+        applicationId: true,
       },
     });
 
-    if (!programEnrollment) {
-      console.warn(`Partner ${partnerId} not found in program ${programId}.`);
-      return;
-    }
-
-    const group = programEnrollment.partnerGroup;
-
-    if (!group) {
+    if (!programEnrollment?.applicationId) {
       console.warn(
-        `Group not found for partner ${partnerId} in program ${programId}.`,
+        `No application found for partner ${partnerId} in program ${programId}.`,
       );
       return;
     }
 
-    if (!group.autoApprovePartnersEnabledAt) {
-      console.warn(`Group ${group.id} does not have auto-approval enabled.`);
-      return;
-    }
-
-    if (programEnrollment.status !== ProgramEnrollmentStatus.pending) {
-      console.warn(`${partnerId} is in ${programEnrollment.status} status.`);
-      return;
-    }
-
-    // Check if the workspace plan has fraud event management capabilities
-    // If enabled, we'll evaluate risk signals before auto-approving
-    const program = await prisma.program.findUniqueOrThrow({
-      where: {
-        id: programId,
-      },
-      select: {
-        id: true,
-        applicationRequirements: true,
-        workspace: {
-          select: {
-            plan: true,
-            users: {
-              where: {
-                role: "owner",
-              },
-              take: 1,
-              select: {
-                userId: true,
-              },
-            },
-          },
-        },
-      },
-    });
-
-    const { canManageFraudEvents } = getPlanCapabilities(
-      program.workspace.plan,
-    );
-
-    if (canManageFraudEvents) {
-      const { riskSeverity } = await getProgramApplicationRisks({
-        program,
-        partner: programEnrollment.partner,
-      });
-
-      if (riskSeverity === "high") {
-        console.warn(`Partner ${partnerId} has high risk.`);
-        return;
-      }
-    }
-
-    const result = evaluateApplicationRequirements({
-      applicationRequirements: program.applicationRequirements,
-      context: {
-        country: programEnrollment.partner.country,
-        email: programEnrollment.partner.email,
-      },
-    });
-
-    if (!result.valid) {
-      switch (result.reason) {
-        case "invalidRequirements":
-          console.warn(
-            `Invalid applicationRequirements for program ${programId}.`,
-          );
-          return;
-
-        case "requirementsNotMet":
-          console.warn(
-            `Partner ${partnerId} does not meet eligibility requirements.`,
-          );
-          return;
-      }
-    }
-
-    const owner = program.workspace.users[0];
-
-    if (!owner) {
-      console.warn(`Owner not found for program ${programId}.`);
-      return;
-    }
-
-    await approveProgramApplication({
-      programId,
-      partnerId,
-      userId: owner.userId,
-      groupId: programEnrollment.groupId,
-    });
-
-    console.info(
-      `Successfully auto-approved partner ${partnerId} in program ${programId}.`,
+    await autoApproveProgramApplicationJob.dispatch(
+      { applicationId: programEnrollment.applicationId },
+      { label: partnerId },
     );
   },
 });

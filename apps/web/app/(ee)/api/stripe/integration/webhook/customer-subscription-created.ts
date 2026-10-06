@@ -2,30 +2,56 @@ import { trackLead } from "@/lib/api/conversions/track-lead";
 import { stripeIntegrationSettingsSchema } from "@/lib/integrations/stripe/schema";
 import { prisma } from "@/lib/prisma";
 import { pick, STRIPE_INTEGRATION_ID } from "@dub/utils";
-import { CommissionSource, Customer } from "@prisma/client";
+import { CommissionSource } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import type Stripe from "stripe";
 import { WebhookHandlerInput, WebhookHandlerResponse } from "./types";
 import { getConnectedCustomer } from "./utils/get-connected-customer";
 
 // Handle event "customer.subscription.created"
-// only used for recording free trial creations
+// - non-trial: clear subscriptionCanceledAt (e.g. resubscriptions)
+// - trialing: record free trial lead (when enabled)
 export async function customerSubscriptionCreated({
   event,
   mode,
   workspace,
 }: WebhookHandlerInput<Stripe.CustomerSubscriptionCreatedEvent>): Promise<WebhookHandlerResponse> {
   const createdSubscription = event.data.object;
-
-  if (createdSubscription.status !== "trialing") {
-    return {
-      response: "Subscription is not in trialing status, skipping...",
-    };
-  }
-
   const stripeAccountId = event.account as string;
   const stripeCustomerId = createdSubscription.customer as string;
 
+  // Non-trial subscription created — clear any prior cancellation timestamp
+  if (createdSubscription.status !== "trialing") {
+    const customer = await prisma.customer.findUnique({
+      where: {
+        stripeCustomerId,
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    if (!customer) {
+      return {
+        response: `Customer with stripeCustomerId ${stripeCustomerId} not found, skipping...`,
+      };
+    }
+
+    await prisma.customer.update({
+      where: {
+        id: customer.id,
+      },
+      data: {
+        subscriptionCanceledAt: null,
+      },
+    });
+
+    return {
+      response: `Subscription created (non-trial), cleared subscriptionCanceledAt for customer ${customer.id}`,
+    };
+  }
+
+  // Free trial subscription created — record free trial lead (when enabled)
   const installedIntegration = await prisma.installedIntegration.findFirst({
     where: {
       projectId: workspace.id,
@@ -52,12 +78,17 @@ export async function customerSubscriptionCreated({
     };
   }
 
-  let customer: Customer | null = null;
-
   // find customer by stripeCustomerId or email
-  customer = await prisma.customer.findUnique({
+  let customer = await prisma.customer.findUnique({
     where: {
       stripeCustomerId,
+    },
+    select: {
+      id: true,
+      clickId: true,
+      externalId: true,
+      name: true,
+      email: true,
     },
   });
 
@@ -73,6 +104,13 @@ export async function customerSubscriptionCreated({
         where: {
           projectId: workspace.id,
           email: stripeCustomer.email,
+        },
+        select: {
+          id: true,
+          clickId: true,
+          externalId: true,
+          name: true,
+          email: true,
         },
       });
 
