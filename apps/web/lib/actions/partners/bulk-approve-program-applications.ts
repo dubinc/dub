@@ -341,11 +341,13 @@ export const bulkApproveProgramApplicationsAction = authActionClient
           })),
         ),
 
-        trackApplicationEvents({
-          event: "approved",
-          programId,
-          partnerIds,
-        }),
+        // Partners moved to another group were already approved
+        newPartners.length > 0 &&
+          trackApplicationEvents({
+            event: "approved",
+            programId,
+            partnerIds: pluck(newPartners, "partnerId"),
+          }),
 
         // Queue an index update because the enrollment statuses moved to approved
         queuePartnerSearchSync({

@@ -248,11 +248,13 @@ export async function approveProgramApplication({
         },
       }),
 
-      trackApplicationEvents({
-        event: "approved",
-        programId,
-        partnerIds: [partnerId],
-      }),
+      // Partners moved to another group were already approved
+      isNewEnrollment &&
+        trackApplicationEvents({
+          event: "approved",
+          programId,
+          partnerIds: [partnerId],
+        }),
 
       isNewEnrollment &&
         dispatchWorkflows({
