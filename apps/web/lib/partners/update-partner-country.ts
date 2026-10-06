@@ -8,9 +8,11 @@ import { waitUntil } from "@vercel/functions";
 export async function updatePartnerCountry({
   partnerId,
   country,
+  isAdmin,
 }: {
   partnerId: string;
   country: string;
+  isAdmin?: boolean;
 }) {
   const partner = await prisma.partner.findUnique({
     where: {
@@ -32,6 +34,12 @@ export async function updatePartnerCountry({
     return;
   }
 
+  if (!isAdmin && partner.country !== "US") {
+    throw new Error(
+      "Your profile country cannot be changed. Contact support to update it.",
+    );
+  }
+
   const partnerChangeHistoryLog = partner.changeHistoryLog
     ? partnerProfileChangeHistoryLogSchema.parse(partner.changeHistoryLog)
     : [];
@@ -43,9 +51,10 @@ export async function updatePartnerCountry({
     changedAt: new Date(),
   });
 
-  await prisma.partner.update({
+  const updated = await prisma.partner.updateMany({
     where: {
       id: partner.id,
+      ...(!isAdmin && { country: "US" }),
     },
     data: {
       country,
@@ -60,6 +69,14 @@ export async function updatePartnerCountry({
       cryptoWalletAddress: null,
     },
   });
+
+  if (updated.count === 0) {
+    throw new Error(
+      !isAdmin
+        ? "Your profile country cannot be changed. Contact support to update it."
+        : "Partner not found.",
+    );
+  }
 
   // Queue an index update because the partner country moved (filterable field)
   waitUntil(queuePartnerSearchSync({ partnerIds: [partner.id] }));

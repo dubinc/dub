@@ -129,6 +129,7 @@ export const PATCH = withAdmin(async ({ params, req }) => {
   await updatePartnerCountry({
     partnerId: partner.id,
     country,
+    isAdmin: true,
   });
 
   return NextResponse.json({ success: true });
