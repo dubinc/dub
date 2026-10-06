@@ -299,9 +299,8 @@ test.describe("program application reviews", () => {
 
     expect(response).toEqual(
       apiError({
-        code: "bad_request",
-        message:
-          "This enrollment cannot be rejected because it is no longer pending.",
+        code: "not_found",
+        message: "No pending application found.",
       }),
     );
 
@@ -346,9 +345,8 @@ test.describe("program application reviews", () => {
 
     expect(response).toEqual(
       apiError({
-        code: "bad_request",
-        message:
-          "This enrollment cannot be rejected because it is no longer pending.",
+        code: "not_found",
+        message: "No pending application found.",
       }),
     );
 

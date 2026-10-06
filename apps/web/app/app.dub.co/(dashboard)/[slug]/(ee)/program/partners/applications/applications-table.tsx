@@ -6,6 +6,7 @@ import { buildSocialPlatformLookup } from "@/lib/social-utils";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useGroups from "@/lib/swr/use-groups";
 import usePartner from "@/lib/swr/use-partner";
+import useWorkspace from "@/lib/swr/use-workspace";
 import { ProgramApplicationProps } from "@/lib/types";
 import { useBulkApproveProgramApplicationsModal } from "@/ui/modals/bulk-approve-program-applications-modal";
 import { useBulkRejectProgramApplicationsModal } from "@/ui/modals/bulk-reject-program-applications-modal";
@@ -28,11 +29,12 @@ import {
   useTable,
 } from "@dub/ui";
 import { Check, Dots, UserCheck, Users, UserXmark } from "@dub/ui/icons";
-import { COUNTRIES, formatDate } from "@dub/utils";
-import { ProgramApplicationStatus } from "@prisma/client";
+import { COUNTRIES, fetcher, formatDate } from "@dub/utils";
+import { ProgramApplication, ProgramApplicationStatus } from "@prisma/client";
 import { Row } from "@tanstack/react-table";
 import { Command } from "cmdk";
 import { useEffect, useMemo, useState } from "react";
+import useSWR from "swr";
 
 type ApplicationPlatform = NonNullable<
   ProgramApplicationProps["partner"]["platforms"]
@@ -118,40 +120,22 @@ export function ApplicationsTable({
 
   const { groups } = useGroups();
 
-  const [detailsSheetState, setDetailsSheetState] = useState<
-    | { open: false; applicationId: string | null }
-    | { open: true; applicationId: string }
-  >({ open: false, applicationId: null });
+  const { pagination, setPagination } = usePagination();
 
-  useEffect(() => {
-    const applicationId = searchParams.get("applicationId");
-
-    if (applicationId) {
-      setDetailsSheetState({ open: true, applicationId });
-      return;
-    }
-
-    const partnerId = searchParams.get("partnerId");
-
-    if (!partnerId || !partners) {
-      return;
-    }
-
-    const legacyRow = partners.find(({ id }) => id === partnerId);
-
-    if (legacyRow) {
-      queryParams({
-        set: { applicationId: legacyRow.applicationId },
-        del: "partnerId",
-      });
-    }
-  }, [searchParams, partners, queryParams]);
-
-  const { currentApplication, isLoading: isCurrentApplicationLoading } =
-    useCurrentApplication({
-      partners,
-      applicationId: detailsSheetState.applicationId,
-    });
+  const {
+    detailsSheetState,
+    setDetailsSheetState,
+    currentApplication,
+    isLoading: isCurrentApplicationLoading,
+    onPreviousApplication,
+    onNextApplication,
+  } = useApplicationSheet({
+    partners,
+    isValidating,
+    applicationsCount,
+    pagination,
+    setPagination,
+  });
 
   // State for pending bulk actions
   const [pendingApprovePartners, setPendingApprovePartners] = useState<
@@ -180,8 +164,6 @@ export function ApplicationsTable({
     "applications-table-columns-v2",
     applicationsColumns,
   );
-
-  const { pagination, setPagination } = usePagination();
 
   const columns = useMemo(
     () => [
@@ -405,20 +387,6 @@ export function ApplicationsTable({
     error: error || countError ? "Failed to load applications" : undefined,
   });
 
-  const [previousApplication, nextApplication] = useMemo(() => {
-    if (!partners || !detailsSheetState.applicationId) return [null, null];
-
-    const currentIndex = partners.findIndex(
-      ({ applicationId }) => applicationId === detailsSheetState.applicationId,
-    );
-    if (currentIndex === -1) return [null, null];
-
-    return [
-      currentIndex > 0 ? partners[currentIndex - 1] : null,
-      currentIndex < partners.length - 1 ? partners[currentIndex + 1] : null,
-    ];
-  }, [partners, detailsSheetState.applicationId]);
-
   return (
     <>
       {detailsSheetState.applicationId && currentApplication && (
@@ -428,24 +396,8 @@ export function ApplicationsTable({
             setDetailsSheetState((s) => ({ ...s, open }) as any)
           }
           partner={currentApplication}
-          onPrevious={
-            previousApplication
-              ? () =>
-                  queryParams({
-                    set: { applicationId: previousApplication.applicationId },
-                    del: "partnerId",
-                  })
-              : undefined
-          }
-          onNext={
-            nextApplication
-              ? () =>
-                  queryParams({
-                    set: { applicationId: nextApplication.applicationId },
-                    del: "partnerId",
-                  })
-              : undefined
-          }
+          onPrevious={onPreviousApplication}
+          onNext={onNextApplication}
         />
       )}
       {BulkApproveProgramApplicationsModal}
@@ -592,7 +544,158 @@ function RejectedRowMenuButton({ row }: { row: Row<ApplicationRow> }) {
   );
 }
 
-/** Gets the application row from the loaded list, then loads that partner for fields the list does not include. */
+type Pagination = ReturnType<typeof usePagination>;
+
+// Keeps the review sheet in sync with `?applicationId=`, resolves the open application, and builds previous/next handlers that continue onto adjacent pages.
+function useApplicationSheet({
+  partners,
+  isValidating,
+  applicationsCount,
+  pagination,
+  setPagination,
+}: {
+  partners?: ApplicationRow[];
+  isValidating: boolean;
+  applicationsCount?: number;
+  pagination: Pagination["pagination"];
+  setPagination: Pagination["setPagination"];
+}) {
+  const { queryParams, searchParams } = useRouterStuff();
+
+  const [detailsSheetState, setDetailsSheetState] = useState<
+    | { open: false; applicationId: string | null }
+    | { open: true; applicationId: string }
+  >({ open: false, applicationId: null });
+
+  useEffect(() => {
+    const applicationId = searchParams.get("applicationId");
+
+    if (applicationId) {
+      setDetailsSheetState({ open: true, applicationId });
+      return;
+    }
+
+    const partnerId = searchParams.get("partnerId");
+
+    if (!partnerId || !partners) {
+      return;
+    }
+
+    const legacyRow = partners.find(({ id }) => id === partnerId);
+
+    if (legacyRow) {
+      queryParams({
+        set: { applicationId: legacyRow.applicationId },
+        del: "partnerId",
+      });
+    }
+  }, [searchParams, partners, queryParams]);
+
+  const { currentApplication, isLoading } = useCurrentApplication({
+    partners,
+    applicationId: detailsSheetState.applicationId,
+  });
+
+  const pageCount = Math.ceil((applicationsCount || 0) / pagination.pageSize);
+
+  // Set when previous/next crosses a page boundary, so the first or last
+  // application is opened once the adjacent page has loaded
+  const [pendingPageEdge, setPendingPageEdge] = useState<
+    "first" | "last" | null
+  >(null);
+
+  const { onPreviousApplication, onNextApplication } = useMemo(() => {
+    if (!partners || !detailsSheetState.applicationId) {
+      return { onPreviousApplication: undefined, onNextApplication: undefined };
+    }
+
+    const currentIndex = partners.findIndex(
+      ({ applicationId }) => applicationId === detailsSheetState.applicationId,
+    );
+
+    if (currentIndex === -1) {
+      return { onPreviousApplication: undefined, onNextApplication: undefined };
+    }
+
+    const openApplication = (applicationId: string) =>
+      queryParams({
+        set: { applicationId },
+        del: "partnerId",
+      });
+
+    const goToPage = (pageIndex: number, edge: "first" | "last") => {
+      setPendingPageEdge(edge);
+      setPagination((p) => ({ ...p, pageIndex }));
+    };
+
+    const previousApplication =
+      currentIndex > 0 ? partners[currentIndex - 1] : null;
+    const nextApplication =
+      currentIndex < partners.length - 1 ? partners[currentIndex + 1] : null;
+
+    return {
+      onPreviousApplication: previousApplication
+        ? () => openApplication(previousApplication.applicationId)
+        : pagination.pageIndex > 1
+          ? () => goToPage(pagination.pageIndex - 1, "last")
+          : undefined,
+      onNextApplication: nextApplication
+        ? () => openApplication(nextApplication.applicationId)
+        : pagination.pageIndex < pageCount
+          ? () => goToPage(pagination.pageIndex + 1, "first")
+          : undefined,
+    };
+  }, [
+    partners,
+    detailsSheetState.applicationId,
+    pagination.pageIndex,
+    pageCount,
+    queryParams,
+    setPagination,
+  ]);
+
+  useEffect(() => {
+    if (!pendingPageEdge || isValidating || !partners?.length) {
+      return;
+    }
+
+    // Wait until the rows from the previous page have been replaced
+    if (
+      partners.some(
+        ({ applicationId }) =>
+          applicationId === detailsSheetState.applicationId,
+      )
+    ) {
+      return;
+    }
+
+    const edgeApplication =
+      pendingPageEdge === "first" ? partners[0] : partners[partners.length - 1];
+
+    setPendingPageEdge(null);
+    queryParams({
+      set: { applicationId: edgeApplication.applicationId },
+      del: "partnerId",
+    });
+  }, [
+    pendingPageEdge,
+    isValidating,
+    partners,
+    detailsSheetState.applicationId,
+    queryParams,
+  ]);
+
+  return {
+    detailsSheetState,
+    setDetailsSheetState,
+    currentApplication,
+    isLoading,
+    onPreviousApplication,
+    onNextApplication,
+  };
+}
+
+// Gets the application row from the loaded list, then loads that partner for fields the list does not include. Falls back to fetching the application by ID when it is not on the loaded page.
 function useCurrentApplication({
   partners,
   applicationId,
@@ -600,30 +703,61 @@ function useCurrentApplication({
   partners?: ApplicationRow[];
   applicationId: string | null;
 }) {
+  const { id: workspaceId } = useWorkspace();
+
   const listedApplication = applicationId
     ? partners?.find(
         (application) => application.applicationId === applicationId,
       ) ?? null
     : null;
 
-  const { partner: fetchedPartner, loading: isLoading } = usePartner(
-    { partnerId: listedApplication?.id ?? null },
+  const { data: fetchedApplication, isLoading: isApplicationLoading } =
+    useSWR<ProgramApplication>(
+      applicationId && !listedApplication && workspaceId
+        ? `/api/program-applications/${applicationId}?workspaceId=${workspaceId}`
+        : null,
+      fetcher,
+    );
+
+  const unlistedApplication =
+    !listedApplication && fetchedApplication?.id === applicationId
+      ? fetchedApplication
+      : null;
+
+  const partnerId =
+    listedApplication?.id ?? unlistedApplication?.partnerId ?? null;
+
+  const { partner: fetchedPartner, loading: isPartnerLoading } = usePartner(
+    { partnerId },
     { keepPreviousData: true },
   );
 
   const matchingFetchedPartner =
-    fetchedPartner?.id === listedApplication?.id ? fetchedPartner : null;
+    partnerId && fetchedPartner?.id === partnerId ? fetchedPartner : null;
 
-  const currentApplication = useMemo(
-    () =>
-      listedApplication
-        ? { ...matchingFetchedPartner, ...listedApplication }
-        : null,
-    [listedApplication, matchingFetchedPartner],
-  );
+  const currentApplication = useMemo(() => {
+    if (listedApplication) {
+      return { ...matchingFetchedPartner, ...listedApplication };
+    }
+
+    if (unlistedApplication && matchingFetchedPartner) {
+      return {
+        ...matchingFetchedPartner,
+        groupId: unlistedApplication.groupId,
+        status: unlistedApplication.status,
+        createdAt: unlistedApplication.createdAt,
+        applicationId: unlistedApplication.id,
+      };
+    }
+
+    return null;
+  }, [listedApplication, unlistedApplication, matchingFetchedPartner]);
 
   return {
     currentApplication,
-    isLoading: Boolean(applicationId) && !listedApplication && isLoading,
+    isLoading:
+      Boolean(applicationId) &&
+      !listedApplication &&
+      (isApplicationLoading || isPartnerLoading),
   };
 }
