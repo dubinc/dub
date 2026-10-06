@@ -5,7 +5,6 @@ import { rejectProgramApplication } from "@/lib/program-applications/reject-prog
 import {
   ProgramApplicationRejectionReason,
   ProgramApplicationStatus,
-  ProgramEnrollmentStatus,
 } from "@prisma/client";
 import * as z from "zod/v4";
 import { defineJob } from "../index";
@@ -13,11 +12,6 @@ import { defineJob } from "../index";
 const inputSchema = z.object({
   applicationId: z.string(),
 });
-
-const AUTO_REJECTABLE_ENROLLMENT_STATUSES: ProgramEnrollmentStatus[] = [
-  ProgramEnrollmentStatus.pending,
-  ProgramEnrollmentStatus.approved,
-];
 
 // This job is used to auto-reject a program application (e.g. when eligibility requirements are not met)
 export const autoRejectProgramApplicationJob = defineJob({
@@ -83,15 +77,6 @@ export const autoRejectProgramApplicationJob = defineJob({
 
     if (!programEnrollment) {
       console.warn(`Partner ${partnerId} not found in program ${programId}.`);
-      return;
-    }
-
-    if (
-      !AUTO_REJECTABLE_ENROLLMENT_STATUSES.includes(programEnrollment.status)
-    ) {
-      console.warn(
-        `Application ${applicationId} was not auto-rejected because partner ${partnerId} is in ${programEnrollment.status} status.`,
-      );
       return;
     }
 

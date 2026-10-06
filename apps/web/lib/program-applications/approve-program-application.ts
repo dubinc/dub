@@ -178,9 +178,12 @@ export async function approveProgramApplication({
       },
     });
 
-    await tx.programApplication.update({
+    const { count } = await tx.programApplication.updateMany({
       where: {
         id: programApplication.id,
+        status: {
+          in: APPROVABLE_APPLICATION_STATUSES,
+        },
       },
       data: {
         status: ProgramApplicationStatus.approved,
@@ -190,6 +193,14 @@ export async function approveProgramApplication({
         userId,
       },
     });
+
+    if (count === 0) {
+      throw new DubApiError({
+        code: "conflict",
+        message:
+          "This application was already reviewed. Refresh and try again.",
+      });
+    }
 
     if (isNewEnrollment) {
       await tx.project.update({

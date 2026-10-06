@@ -114,27 +114,15 @@ export async function rejectProgramApplication({
   const isApplyingToAdditionalGroup =
     existingEnrollment?.status === ProgramEnrollmentStatus.approved;
 
-  const enrollmentToReject = isApplyingToAdditionalGroup
-    ? null
-    : existingEnrollment;
+  // Banned, deactivated, and archived partners were already removed, so only
+  // the application is rejected and their enrollment is left untouched
+  const enrollmentToReject =
+    existingEnrollment &&
+    REJECTABLE_ENROLLMENT_STATUSES.includes(existingEnrollment.status)
+      ? existingEnrollment
+      : null;
 
-  if (
-    enrollmentToReject &&
-    !REJECTABLE_ENROLLMENT_STATUSES.includes(enrollmentToReject.status)
-  ) {
-    throw new DubApiError({
-      code: "bad_request",
-      message: `This application cannot be rejected because the partner is ${enrollmentToReject.status}.`,
-    });
-  }
-
-  if (isApplyingToAdditionalGroup && flagForFraud) {
-    throw new DubApiError({
-      code: "bad_request",
-      message:
-        "Cannot flag for fraud when rejecting an application to join another group.",
-    });
-  }
+  const isNewApplication = !existingEnrollment || !!enrollmentToReject;
 
   await prisma.$transaction(async (tx) => {
     await tx.programApplication.update({
@@ -150,7 +138,7 @@ export async function rejectProgramApplication({
       },
     });
 
-    if (isApplyingToAdditionalGroup) {
+    if (!isNewApplication) {
       return;
     }
 
@@ -233,14 +221,14 @@ export async function rejectProgramApplication({
         },
       }),
 
-      !isApplyingToAdditionalGroup &&
+      isNewApplication &&
         trackApplicationEvents({
           event: "rejected",
           programId,
           partnerIds: [partnerId],
         }),
 
-      !isApplyingToAdditionalGroup &&
+      isNewApplication &&
         resolveFraudGroups({
           where: {
             programId,
@@ -251,7 +239,12 @@ export async function rejectProgramApplication({
             "Resolved automatically because the partner application was rejected.",
         }),
 
+      // Email when there is no enrollment or it is pending/rejected (program
+      // application), or when the partner is approved and applying to another
+      // group. Banned, deactivated, archived, invited, and declined enrollments
+      // are left unchanged, so those partners are not emailed.
       partner?.email &&
+        (isNewApplication || isApplyingToAdditionalGroup) &&
         sendEmail({
           to: partner.email,
           subject: isApplyingToAdditionalGroup
