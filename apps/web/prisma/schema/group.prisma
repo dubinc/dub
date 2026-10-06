@@ -28,7 +28,9 @@ model PartnerGroup {
   brandColor                   String?
   holdingPeriodDays            Int                  @default(0) // number of days to wait before earnings are added to a payout
   autoApprovePartnersEnabledAt DateTime?
-  workflowId                   String?              @unique
+  referralFormData             Json?                @db.Json
+  submittedLeadsEnabledAt      DateTime?
+  workflowId                  String?              @unique
   utmTemplateId                String?              @unique
   createdAt                    DateTime             @default(now())
   updatedAt                    DateTime             @updatedAt
