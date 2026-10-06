@@ -13,6 +13,7 @@ enum BountySubmissionStatus {
   submitted
   approved
   rejected
+  partiallyApproved // appended last so the MySQL ENUM change is metadata only
 }
 
 enum BountySubmissionRejectionReason {
