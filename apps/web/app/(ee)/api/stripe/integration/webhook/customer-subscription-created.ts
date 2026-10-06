@@ -26,6 +26,9 @@ export async function customerSubscriptionCreated({
       where: {
         stripeCustomerId,
       },
+      select: {
+        id: true,
+      },
     });
 
     if (!customer) {
@@ -48,6 +51,7 @@ export async function customerSubscriptionCreated({
     };
   }
 
+  // Free trial subscription created — record free trial lead (when enabled)
   const installedIntegration = await prisma.installedIntegration.findFirst({
     where: {
       projectId: workspace.id,
