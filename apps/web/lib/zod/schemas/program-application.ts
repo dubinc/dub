@@ -128,7 +128,7 @@ export const approveProgramApplicationSchema = z.object({
 export const bulkApproveProgramApplicationsSchema = z.object({
   workspaceId: z.string(),
   groupId: z.string().nullish().default(null),
-  partnerIds: z
+  applicationIds: z
     .array(z.string())
     .max(100)
     .min(1)
@@ -137,7 +137,7 @@ export const bulkApproveProgramApplicationsSchema = z.object({
 
 export const bulkRejectProgramApplicationsSchema = z.object({
   workspaceId: z.string(),
-  partnerIds: z
+  applicationIds: z
     .array(z.string())
     .max(100)
     .min(1)
