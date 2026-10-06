@@ -1,7 +1,6 @@
 "use client";
 
 import { useProgramMessagesCount } from "@/lib/messages/hooks/use-program-messages-count";
-import { SUBMITTED_LEADS_ENABLED_PROGRAM_IDS } from "@/lib/submitted-leads/constants";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { usePartnerProgramBounties } from "@/lib/swr/use-partner-program-bounties";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
@@ -446,11 +445,9 @@ export function PartnersSidebarNav({
         showDetailedAnalytics,
         postbacksEnabled: partner?.featureFlags?.postbacks,
         hasReferralReward: !!programEnrollment?.referralRewardId,
-        submittedLeadsEnabled: programEnrollment?.programId
-          ? SUBMITTED_LEADS_ENABLED_PROGRAM_IDS.includes(
-              programEnrollment.programId,
-            )
-          : false,
+        submittedLeadsEnabled: Boolean(
+          programEnrollment?.group?.submittedLeadsEnabledAt,
+        ),
         newsContent,
       }}
       toolContent={composedToolContent}
