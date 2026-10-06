@@ -71,6 +71,12 @@ export const multiSelectFieldSchema = fieldCommonSchema.extend({
 // Number
 export const numberFieldSchema = fieldCommonSchema.extend({
   type: z.literal("number"),
+  constraints: z
+    .object({
+      min: z.number().optional(),
+      max: z.number().optional(),
+    })
+    .optional(),
 });
 
 // Phone Number

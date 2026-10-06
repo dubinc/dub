@@ -17,6 +17,8 @@ export function NumberField({
   const keyPath = keyPathProp || `formData.${field.key}`;
   const state = getFieldState(keyPath);
   const error = !!state.error;
+  const min = field.constraints?.min;
+  const max = field.constraints?.max;
 
   return (
     <FormControl
@@ -27,6 +29,8 @@ export function NumberField({
     >
       <input
         type="number"
+        min={min}
+        max={max}
         className={cn(
           "mt-2 block w-full rounded-md text-sm focus:outline-none",
           error
@@ -36,6 +40,12 @@ export function NumberField({
         {...register(keyPath, {
           required: field.required,
           valueAsNumber: true,
+          ...(min !== undefined && {
+            min: { value: min, message: `Must be at least ${min}` },
+          }),
+          ...(max !== undefined && {
+            max: { value: max, message: `Must be at most ${max}` },
+          }),
         })}
       />
     </FormControl>
