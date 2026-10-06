@@ -540,7 +540,13 @@ export const authOptions: NextAuthOptions = {
         trustedOrigins.find((origin) => new URL(origin).host === host) ??
         baseUrl;
 
-      const { origin, href } = new URL(url, base);
+      let resolved: URL;
+      try {
+        resolved = new URL(url, base);
+      } catch {
+        return base;
+      }
+      const { origin, href } = resolved;
       return trustedOrigins.includes(origin) ? href : base;
     },
     jwt: async ({
