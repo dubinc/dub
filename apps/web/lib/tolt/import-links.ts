@@ -51,6 +51,26 @@ export async function importLinks(payload: ToltImportPayload) {
       },
     });
 
+    const bannedPartnerIds = new Set<string>();
+    if (partners.length > 0) {
+      const bannedEnrollments = await prisma.programEnrollment.findMany({
+        where: {
+          programId,
+          partnerId: {
+            in: partners.map((partner) => partner.id),
+          },
+          status: "banned",
+        },
+        select: {
+          partnerId: true,
+        },
+      });
+
+      for (const enrollment of bannedEnrollments) {
+        bannedPartnerIds.add(enrollment.partnerId);
+      }
+    }
+
     // create a map of partner emails to partner props
     const partnerMap = new Map(
       partners.map(({ email, id, name }) => [email, { id, name, email }]),
@@ -67,6 +87,13 @@ export async function importLinks(payload: ToltImportPayload) {
 
         if (!partner) {
           console.log("Partner not found", link.partner.email);
+          continue;
+        }
+
+        if (bannedPartnerIds.has(partner.id)) {
+          console.log(
+            `Partner ${partner.email} is banned in program ${programId}, skipping link import.`,
+          );
           continue;
         }
 
