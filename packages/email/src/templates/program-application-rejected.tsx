@@ -45,7 +45,7 @@ export default function ProgramApplicationRejected({
     supportEmail?: string | null;
   };
   // An approved partner asked to join another group, so their partnership
-  // is not affected and the reapplication timeframe does not apply
+  // is not affected
   isApplyingToAdditionalGroup?: boolean;
   rejectionReason?: string | null;
   additionalNotes?: string | null;
@@ -53,6 +53,13 @@ export default function ProgramApplicationRejected({
 }) {
   const reason = rejectionReason?.trim();
   const notes = additionalNotes?.trim();
+
+  const reapplicationText =
+    reapplicationTimeframe === "instant"
+      ? " You can submit a new application whenever you're ready."
+      : reapplicationTimeframe === "standard"
+        ? ` You will be able to re-apply in ${STANDARD_REAPPLICATION_DAYS} days.`
+        : null;
 
   return (
     <Html>
@@ -87,6 +94,7 @@ export default function ProgramApplicationRejected({
                   <strong>{program.name}</strong>, we&apos;ve decided not to
                   approve it at this time. Your current partnership with{" "}
                   <strong>{program.name}</strong> is not affected.
+                  {reapplicationText}
                 </Text>
               </>
             ) : (
@@ -100,11 +108,7 @@ export default function ProgramApplicationRejected({
                 <Text className="text-sm leading-6 text-neutral-600">
                   After reviewing your application, we&apos;ve decided not to
                   approve you at this time.
-                  {reapplicationTimeframe === "instant"
-                    ? " You can submit a new application whenever you're ready."
-                    : reapplicationTimeframe === "standard"
-                      ? ` You will be able to re-apply in ${STANDARD_REAPPLICATION_DAYS} days.`
-                      : null}
+                  {reapplicationText}
                 </Text>
               </>
             )}
