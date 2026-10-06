@@ -24,7 +24,21 @@ type BulkApprovePartner = Pick<
   "id" | "name" | "email" | "image"
 > & {
   applicationId?: string | null;
+  groupId?: string | null;
 };
+
+// The group every selected application requested, or null if they differ
+function getRequestedGroupId(partners: BulkApprovePartner[]) {
+  const [first] = partners;
+
+  if (!first?.groupId) {
+    return null;
+  }
+
+  return partners.every(({ groupId }) => groupId === first.groupId)
+    ? first.groupId
+    : null;
+}
 
 type BulkApproveProgramApplicationsModalOptions = {
   partners: BulkApprovePartner[];
@@ -53,7 +67,8 @@ function BulkApproveProgramApplicationsModal({
     useTrialLimitActivateModal();
   const trialActive = isWorkspaceBillingTrialActive(trialEndsAt);
 
-  const initialGroupId = groupId ?? program?.defaultGroupId ?? null;
+  const initialGroupId =
+    groupId ?? getRequestedGroupId(partners) ?? program?.defaultGroupId ?? null;
   const [selectedGroupId, setSelectedGroupId] = useState<string | null>(
     initialGroupId,
   );
