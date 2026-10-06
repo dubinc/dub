@@ -33,6 +33,7 @@ import {
 } from "@/lib/zod/schemas/program-application";
 import { programApplicationFormWebsiteAndSocialsFieldWithValueSchema } from "@/lib/zod/schemas/program-application-form";
 import { createProgramApplicationSchema } from "@/lib/zod/schemas/programs";
+import { STANDARD_REAPPLICATION_DAYS } from "@dub/utils";
 import {
   Partner,
   PartnerGroup,
@@ -42,6 +43,7 @@ import {
   ProgramEnrollment,
   ProgramEnrollmentStatus,
   Project,
+  ReapplicationTimeframe,
 } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { addDays } from "date-fns";
@@ -275,6 +277,31 @@ function throwIfCannotApply({
   }
 }
 
+function throwIfReapplicationBlocked({
+  reapplicationTimeframe,
+  rejectedAt,
+}: {
+  reapplicationTimeframe: ReapplicationTimeframe;
+  rejectedAt: Date | null;
+}) {
+  if (
+    reapplicationTimeframe === ReapplicationTimeframe.instant ||
+    !rejectedAt
+  ) {
+    return;
+  }
+
+  if (reapplicationTimeframe === ReapplicationTimeframe.never) {
+    throw new Error("You cannot reapply to this program.");
+  }
+
+  if (addDays(rejectedAt, STANDARD_REAPPLICATION_DAYS) > new Date()) {
+    throw new Error(
+      `You can reapply to this program after ${STANDARD_REAPPLICATION_DAYS} days.`,
+    );
+  }
+}
+
 async function createApplicationAndEnrollment({
   workspace,
   program,
@@ -334,6 +361,8 @@ async function createApplicationAndEnrollment({
         select: {
           status: true,
           groupId: true,
+          createdAt: true,
+          reapplicationTimeframe: true,
         },
       });
 
@@ -341,6 +370,30 @@ async function createApplicationAndEnrollment({
         enrollment,
         groupId: group.id,
       });
+
+      if (
+        enrollment &&
+        enrollment.reapplicationTimeframe !== ReapplicationTimeframe.instant
+      ) {
+        const latestRejection = await tx.programApplication.findFirst({
+          where: {
+            programId: program.id,
+            partnerId: partner.id,
+            status: ProgramApplicationStatus.rejected,
+          },
+          orderBy: {
+            reviewedAt: "desc",
+          },
+          select: {
+            reviewedAt: true,
+          },
+        });
+
+        throwIfReapplicationBlocked({
+          reapplicationTimeframe: enrollment.reapplicationTimeframe,
+          rejectedAt: latestRejection?.reviewedAt ?? null,
+        });
+      }
 
       const pendingApplication = await tx.programApplication.findFirst({
         where: {
