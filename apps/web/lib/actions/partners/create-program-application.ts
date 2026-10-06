@@ -373,7 +373,7 @@ async function createApplicationAndEnrollment({
       const { platforms, socialFields } = await backfillPartnerPlatforms({
         partnerId: partner.id,
         platforms: partner.platforms,
-        application: programApplication,
+        applications: [programApplication],
       });
 
       await Promise.allSettled([

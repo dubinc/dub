@@ -161,119 +161,117 @@ export async function completeProgramApplications(userEmail: string) {
       workspaces.map((ws) => [ws.defaultProgramId, ws]),
     );
 
-    let savedPlatforms = partner.platforms;
+    const { platforms, socialFields } = await backfillPartnerPlatforms({
+      partnerId: partner.id,
+      platforms: partner.platforms,
+      applications: filteredProgramApplications,
+    });
 
-    for (const programApplication of filteredProgramApplications) {
-      const application = programApplication;
-      const program = programApplication.program;
-      const group = programApplication.partnerGroup;
-      const programEnrollment = enrollmentsByApplicationId.get(
-        programApplication.id,
-      );
+    await Promise.allSettled(
+      filteredProgramApplications.map(async (programApplication) => {
+        const application = programApplication;
+        const program = programApplication.program;
+        const group = programApplication.partnerGroup;
+        const programEnrollment = enrollmentsByApplicationId.get(
+          programApplication.id,
+        );
 
-      const { platforms, socialFields } = await backfillPartnerPlatforms({
-        partnerId: partner.id,
-        platforms: savedPlatforms,
-        application,
-      });
+        const applicationFormData = formatApplicationFormData(application).map(
+          ({ title, value }) => ({
+            label: title,
+            value: value !== "" ? value : null,
+          }),
+        );
 
-      savedPlatforms = platforms;
-
-      const applicationFormData = formatApplicationFormData(application).map(
-        ({ title, value }) => ({
-          label: title,
-          value: value !== "" ? value : null,
-        }),
-      );
-
-      const { valid: validApplication } = evaluateApplicationRequirements({
-        applicationRequirements: program.applicationRequirements,
-        context: {
-          country: partner.country,
-          email: partner.email,
-        },
-      });
-
-      const webhookData = {
-        id: application.id,
-        createdAt: application.createdAt,
-        applicationFormData,
-        partner: {
-          ...partner,
-          ...programEnrollment,
-          id: partner.id,
-          status: "pending",
-        },
-      };
-
-      await Promise.allSettled([
-        ...(validApplication
-          ? [
-              notifyProgramApplication({
-                partner,
-                program,
-                group,
-                application,
-              }),
-
-              // Auto-approve the partner if the group has auto-approval enabled
-              group?.autoApprovePartnersEnabledAt
-                ? autoApproveProgramApplicationJob.dispatch(
-                    { applicationId: application.id },
-                    { label: partner.id },
-                  )
-                : Promise.resolve(null),
-
-              // Send "partner.application_submitted" webhook (deprecated)
-              workspacesByProgramId.has(program.id) &&
-                sendWorkspaceWebhook({
-                  workspace: workspacesByProgramId.get(program.id)!,
-                  trigger: "partner.application_submitted",
-                  data: partnerApplicationWebhookSchema.parse({
-                    ...webhookData,
-                    partner: {
-                      ...webhookData.partner,
-                      ...formatWebsiteAndSocialsFields(application),
-                    },
-                  }),
-                }),
-
-              // Send "program_application.created" webhook
-              workspacesByProgramId.has(program.id) &&
-                sendWorkspaceWebhook({
-                  workspace: workspacesByProgramId.get(program.id)!,
-                  trigger: "program_application.created",
-                  data: programApplicationWebhookSchema.parse({
-                    ...webhookData,
-                    partner: {
-                      ...webhookData.partner,
-                      platforms,
-                      ...socialFields,
-                    },
-                  }),
-                }),
-            ]
-          : [
-              autoRejectProgramApplicationJob.dispatch(
-                {
-                  applicationId: application.id,
-                },
-                {
-                  delay: 5 * 60, // 5 minutes
-                  label: partner.id,
-                },
-              ),
-            ]),
-
-        // Detect and record fraud events for the partner when they apply to a program
-        detectAndRecordFraudApplication({
+        const { valid: validApplication } = evaluateApplicationRequirements({
+          applicationRequirements: program.applicationRequirements,
           context: {
-            program,
-            partner,
+            country: partner.country,
+            email: partner.email,
           },
-        }),
-      ]);
-    }
+        });
+
+        const webhookData = {
+          id: application.id,
+          createdAt: application.createdAt,
+          applicationFormData,
+          partner: {
+            ...partner,
+            ...programEnrollment,
+            id: partner.id,
+            status: "pending",
+          },
+        };
+
+        await Promise.allSettled([
+          ...(validApplication
+            ? [
+                notifyProgramApplication({
+                  partner,
+                  program,
+                  group,
+                  application,
+                }),
+
+                // Auto-approve the partner if the group has auto-approval enabled
+                group?.autoApprovePartnersEnabledAt
+                  ? autoApproveProgramApplicationJob.dispatch(
+                      { applicationId: application.id },
+                      { label: partner.id },
+                    )
+                  : Promise.resolve(null),
+
+                // Send "partner.application_submitted" webhook (deprecated)
+                workspacesByProgramId.has(program.id) &&
+                  sendWorkspaceWebhook({
+                    workspace: workspacesByProgramId.get(program.id)!,
+                    trigger: "partner.application_submitted",
+                    data: partnerApplicationWebhookSchema.parse({
+                      ...webhookData,
+                      partner: {
+                        ...webhookData.partner,
+                        ...formatWebsiteAndSocialsFields(application),
+                      },
+                    }),
+                  }),
+
+                // Send "program_application.created" webhook
+                workspacesByProgramId.has(program.id) &&
+                  sendWorkspaceWebhook({
+                    workspace: workspacesByProgramId.get(program.id)!,
+                    trigger: "program_application.created",
+                    data: programApplicationWebhookSchema.parse({
+                      ...webhookData,
+                      partner: {
+                        ...webhookData.partner,
+                        platforms,
+                        ...socialFields,
+                      },
+                    }),
+                  }),
+              ]
+            : [
+                autoRejectProgramApplicationJob.dispatch(
+                  {
+                    applicationId: application.id,
+                  },
+                  {
+                    delay: 5 * 60, // 5 minutes
+                    label: partner.id,
+                  },
+                ),
+              ]),
+
+          // Detect and record fraud events for the partner when they apply to a program
+          detectAndRecordFraudApplication({
+            context: {
+              program,
+              partner,
+            },
+          }),
+        ]);
+      }),
+    );
 
     await Promise.allSettled(
       programEnrollments.map((programEnrollment) =>

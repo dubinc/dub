@@ -118,7 +118,7 @@ export async function approveProgramApplication({
     }
 
     const programEnrollment: Partial<ProgramEnrollment> = {
-      ...(programApplication && { applicationId: programApplication.id }),
+      applicationId: programApplication.id,
       ...(isNewEnrollment && {
         status: ProgramEnrollmentStatus.approved,
         createdAt: now,
@@ -150,20 +150,18 @@ export async function approveProgramApplication({
       },
     });
 
-    if (programApplication) {
-      await tx.programApplication.update({
-        where: {
-          id: programApplication.id,
-        },
-        data: {
-          status: ProgramApplicationStatus.approved,
-          reviewedAt: now,
-          rejectionReason: null,
-          rejectionNote: null,
-          userId,
-        },
-      });
-    }
+    await tx.programApplication.update({
+      where: {
+        id: programApplication.id,
+      },
+      data: {
+        status: ProgramApplicationStatus.approved,
+        reviewedAt: now,
+        rejectionReason: null,
+        rejectionNote: null,
+        userId,
+      },
+    });
 
     if (isNewEnrollment) {
       await tx.project.update({
