@@ -8,6 +8,7 @@ import { PhoneField } from "./phone-field";
 import { SelectField } from "./select-field";
 import { TextField } from "./text-field";
 import { TextareaField } from "./textarea-field";
+import { UrlField } from "./url-field";
 
 const FIELD_COMPONENTS: Record<
   Exclude<z.infer<typeof formFieldSchema>["type"], "text">,
@@ -20,6 +21,7 @@ const FIELD_COMPONENTS: Record<
   multiSelect: MultiSelectField,
   number: NumberField,
   phone: PhoneField,
+  url: UrlField,
 };
 
 interface LeadFormFieldProps {

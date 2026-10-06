@@ -9,6 +9,7 @@ const fieldTypeSchema = z.enum([
   "multiSelect",
   "number",
   "phone",
+  "url",
 ]);
 
 export const fieldCommonSchema = z.object({
@@ -77,6 +78,11 @@ export const phoneFieldSchema = fieldCommonSchema.extend({
   type: z.literal("phone"),
 });
 
+// URL
+export const urlFieldSchema = fieldCommonSchema.extend({
+  type: z.literal("url"),
+});
+
 export const formFieldSchema = z.discriminatedUnion("type", [
   textFieldSchema,
   textareaFieldSchema,
@@ -86,6 +92,7 @@ export const formFieldSchema = z.discriminatedUnion("type", [
   multiSelectFieldSchema,
   numberFieldSchema,
   phoneFieldSchema,
+  urlFieldSchema,
 ]);
 
 export const formFieldsSchema = z
