@@ -222,7 +222,7 @@ export async function invoicePaid({
     linkId,
   });
 
-  const [_sale, linkUpdated, , customerUpdated] = await Promise.all([
+  const [_sale, linkUpdated] = await Promise.all([
     recordSale(saleData),
 
     // update link stats
@@ -278,7 +278,6 @@ export async function invoicePaid({
           increment: invoiceSaleAmount,
         },
         firstSaleAt: customer.firstSaleAt ? undefined : new Date(),
-        subscriptionCanceledAt: null,
       },
     }),
   ]);
@@ -395,7 +394,7 @@ export async function invoicePaid({
           ...saleData,
           clickedAt: customer.clickedAt || customer.createdAt,
           link: linkUpdated,
-          customer: customerUpdated,
+          customer,
           partner: result?.webhookPartner,
           metadata: null,
         }),
@@ -424,7 +423,7 @@ export async function invoicePaid({
                 ...saleData,
                 clickedAt: customer.clickedAt || customer.createdAt,
                 link: linkUpdated,
-                customer: customerUpdated,
+                customer,
               },
             }),
           ]
