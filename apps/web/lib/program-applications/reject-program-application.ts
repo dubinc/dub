@@ -247,9 +247,7 @@ export async function rejectProgramApplication({
         (isNewApplication || isApplyingToAdditionalGroup) &&
         sendEmail({
           to: partner.email,
-          subject: isApplyingToAdditionalGroup
-            ? `Your application to join a new group in ${program.name} was not approved`
-            : `Your application to ${program.name} was not approved`,
+          subject: `Your application to ${program.name} was not approved`,
           variant: "notifications",
           replyTo: program.supportEmail || "noreply",
           react: ProgramApplicationRejected({
@@ -262,7 +260,6 @@ export async function rejectProgramApplication({
               slug: program.slug,
               supportEmail: program.supportEmail,
             },
-            isApplyingToAdditionalGroup,
             additionalNotes: rejectionNote,
             rejectionReason:
               getProgramApplicationRejectionReasonLabel(rejectionReason),
