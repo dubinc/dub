@@ -222,66 +222,66 @@ export async function invoicePaid({
     linkId,
   });
 
-  const [_sale, linkUpdated] = await Promise.all([
-    recordSale(saleData),
+  const [_sale, linkUpdated, , customerUpdated] = await Promise.all([
+      recordSale(saleData),
 
-    // update link stats
-    prisma.link.update({
-      where: {
-        id: linkId,
-      },
-      data: {
-        ...(firstConversionFlag && {
-          conversions: {
+      // update link stats
+      prisma.link.update({
+        where: {
+          id: linkId,
+        },
+        data: {
+          ...(firstConversionFlag && {
+            conversions: {
+              increment: 1,
+            },
+            lastConversionAt: new Date(),
+          }),
+          sales: {
             increment: 1,
           },
-          lastConversionAt: new Date(),
-        }),
-        sales: {
-          increment: 1,
+          saleAmount: {
+            increment: invoiceSaleAmount,
+          },
         },
-        saleAmount: {
-          increment: invoiceSaleAmount,
-        },
-      },
-      include: includeTags,
-    }),
+        include: includeTags,
+      }),
 
-    // update workspace sales usage
-    prisma.project.update({
-      where: {
-        id: customer.projectId,
-      },
-      data: {
-        usage: {
-          increment: 1,
+      // update workspace sales usage
+      prisma.project.update({
+        where: {
+          id: customer.projectId,
         },
-      },
-    }),
+        data: {
+          usage: {
+            increment: 1,
+          },
+        },
+      }),
 
-    // update customer sales count
-    prisma.customer.update({
-      where: {
-        id: customer.id,
-      },
-      data: {
-        ...(link?.programId && {
-          programId: link.programId,
-        }),
-        ...(link?.partnerId && {
-          partnerId: link.partnerId,
-        }),
-        sales: {
-          increment: 1,
+      // update customer sales count
+      prisma.customer.update({
+        where: {
+          id: customer.id,
         },
-        saleAmount: {
-          increment: invoiceSaleAmount,
+        data: {
+          ...(link?.programId && {
+            programId: link.programId,
+          }),
+          ...(link?.partnerId && {
+            partnerId: link.partnerId,
+          }),
+          sales: {
+            increment: 1,
+          },
+          saleAmount: {
+            increment: invoiceSaleAmount,
+          },
+          firstSaleAt: customer.firstSaleAt ? undefined : new Date(),
+          subscriptionCanceledAt: null,
         },
-        firstSaleAt: customer.firstSaleAt ? undefined : new Date(),
-        subscriptionCanceledAt: null,
-      },
-    }),
-  ]);
+      }),
+    ]);
 
   // for program links
   let result:
@@ -395,7 +395,7 @@ export async function invoicePaid({
           ...saleData,
           clickedAt: customer.clickedAt || customer.createdAt,
           link: linkUpdated,
-          customer,
+          customer: customerUpdated,
           partner: result?.webhookPartner,
           metadata: null,
         }),
@@ -424,7 +424,7 @@ export async function invoicePaid({
                 ...saleData,
                 clickedAt: customer.clickedAt || customer.createdAt,
                 link: linkUpdated,
-                customer,
+                customer: customerUpdated,
               },
             }),
           ]
