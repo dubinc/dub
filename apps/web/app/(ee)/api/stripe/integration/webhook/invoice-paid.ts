@@ -223,65 +223,65 @@ export async function invoicePaid({
   });
 
   const [_sale, linkUpdated, , customerUpdated] = await Promise.all([
-      recordSale(saleData),
+    recordSale(saleData),
 
-      // update link stats
-      prisma.link.update({
-        where: {
-          id: linkId,
-        },
-        data: {
-          ...(firstConversionFlag && {
-            conversions: {
-              increment: 1,
-            },
-            lastConversionAt: new Date(),
-          }),
-          sales: {
+    // update link stats
+    prisma.link.update({
+      where: {
+        id: linkId,
+      },
+      data: {
+        ...(firstConversionFlag && {
+          conversions: {
             increment: 1,
           },
-          saleAmount: {
-            increment: invoiceSaleAmount,
-          },
+          lastConversionAt: new Date(),
+        }),
+        sales: {
+          increment: 1,
         },
-        include: includeTags,
-      }),
+        saleAmount: {
+          increment: invoiceSaleAmount,
+        },
+      },
+      include: includeTags,
+    }),
 
-      // update workspace sales usage
-      prisma.project.update({
-        where: {
-          id: customer.projectId,
+    // update workspace sales usage
+    prisma.project.update({
+      where: {
+        id: customer.projectId,
+      },
+      data: {
+        usage: {
+          increment: 1,
         },
-        data: {
-          usage: {
-            increment: 1,
-          },
-        },
-      }),
+      },
+    }),
 
-      // update customer sales count
-      prisma.customer.update({
-        where: {
-          id: customer.id,
+    // update customer sales count
+    prisma.customer.update({
+      where: {
+        id: customer.id,
+      },
+      data: {
+        ...(link?.programId && {
+          programId: link.programId,
+        }),
+        ...(link?.partnerId && {
+          partnerId: link.partnerId,
+        }),
+        sales: {
+          increment: 1,
         },
-        data: {
-          ...(link?.programId && {
-            programId: link.programId,
-          }),
-          ...(link?.partnerId && {
-            partnerId: link.partnerId,
-          }),
-          sales: {
-            increment: 1,
-          },
-          saleAmount: {
-            increment: invoiceSaleAmount,
-          },
-          firstSaleAt: customer.firstSaleAt ? undefined : new Date(),
-          subscriptionCanceledAt: null,
+        saleAmount: {
+          increment: invoiceSaleAmount,
         },
-      }),
-    ]);
+        firstSaleAt: customer.firstSaleAt ? undefined : new Date(),
+        subscriptionCanceledAt: null,
+      },
+    }),
+  ]);
 
   // for program links
   let result:
