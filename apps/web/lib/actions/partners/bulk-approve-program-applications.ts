@@ -126,10 +126,18 @@ export const bulkApproveProgramApplicationsAction = authActionClient
       enrollmentStatus: ProgramEnrollmentStatus;
     }[] = [];
 
+    type Review = {
+      application: (typeof programApplications)[number];
+      partnerId: string;
+      enrollmentId: string;
+      enrollmentApplicationId: string | null;
+      action: "create" | "approve" | "move";
+    };
+
     // Each application either creates an enrollment
     // OR approves an existing pending/rejected enrollment
     // OR moves an approved partner to the new group
-    const reviews = programApplications.flatMap((application) => {
+    const reviews = programApplications.flatMap((application): Review[] => {
       const partnerId = application.partnerId!;
       const enrollment = enrollmentsByPartnerId.get(partnerId);
 
@@ -189,8 +197,6 @@ export const bulkApproveProgramApplicationsAction = authActionClient
     }
 
     // Group reviews by action
-    type Review = (typeof reviews)[number];
-
     const enrollmentsToCreate: Review[] = [];
     const enrollmentsToApprove: Review[] = [];
     const enrollmentsToMove: Review[] = [];
