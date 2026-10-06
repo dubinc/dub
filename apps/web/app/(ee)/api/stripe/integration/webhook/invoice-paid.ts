@@ -395,7 +395,7 @@ export async function invoicePaid({
           ...saleData,
           clickedAt: customer.clickedAt || customer.createdAt,
           link: linkUpdated,
-          customer,
+          customer: { ...customer, subscriptionCanceledAt: null },
           partner: result?.webhookPartner,
           metadata: null,
         }),
@@ -424,7 +424,7 @@ export async function invoicePaid({
                 ...saleData,
                 clickedAt: customer.clickedAt || customer.createdAt,
                 link: linkUpdated,
-                customer,
+                customer: { ...customer, subscriptionCanceledAt: null },
               },
             }),
           ]
