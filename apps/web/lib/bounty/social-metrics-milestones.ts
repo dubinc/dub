@@ -108,6 +108,21 @@ export function hasReachedSocialMetricsEarningCap({
   return submission.socialMetricCount >= earningCap;
 }
 
+// Highest milestone threshold at or below the metric count, or null if no milestone is reached
+export function getHighestReachedSocialMetricsThreshold({
+  bounty,
+  socialMetricCount,
+}: {
+  bounty: BountyInfoInput | undefined | null;
+  socialMetricCount: number | null | undefined;
+}) {
+  const reached = getSocialMetricsMilestones(bounty).filter(
+    ({ threshold }) => threshold <= (socialMetricCount ?? 0),
+  );
+
+  return reached.length > 0 ? reached[reached.length - 1].threshold : null;
+}
+
 // Reached milestones above approvedSocialMetricThreshold, i.e. the ones awaiting approval and payout
 export function getPendingSocialMetricsMilestones({
   bounty,

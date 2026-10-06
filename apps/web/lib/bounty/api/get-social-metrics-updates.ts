@@ -22,12 +22,18 @@ const submissionWithUrl = (submission: { id: string; urls: unknown }) => {
   };
 };
 
+type SubmissionToSync = {
+  id: string;
+  urls: unknown;
+  socialMetricCount?: number | null;
+};
+
 export async function getSocialMetricsUpdates({
   bounty,
   submissions,
 }: {
   bounty: Pick<Bounty, "submissionRequirements">;
-  submissions: { id: string; urls: unknown } | { id: string; urls: unknown }[];
+  submissions: SubmissionToSync | SubmissionToSync[];
 }): Promise<SocialMetricsUpdate[]> {
   const bountyInfo = resolveBountyDetails(bounty);
   const socialPlatform = bountyInfo?.socialPlatform;
@@ -81,6 +87,11 @@ export async function getSocialMetricsUpdates({
       socialMetricCount === undefined ||
       !Number.isInteger(socialMetricCount)
     ) {
+      continue;
+    }
+
+    // A removed or private post returns 0, so keep the last known count
+    if (socialMetricCount === 0 && (submission.socialMetricCount ?? 0) > 0) {
       continue;
     }
 

@@ -1,9 +1,10 @@
 import { prisma } from "@/lib/prisma";
 import { PartnerGroup, Program } from "@prisma/client";
 import { createId } from "../api/create-id";
-import { queuePartnerSearchSync } from "../api/partners/queue-partner-search-sync";
 import { createLink } from "../api/links";
 import { generatePartnerLink } from "../api/partners/generate-partner-link";
+import { queuePartnerSearchSync } from "../api/partners/queue-partner-search-sync";
+import { upsertImportedProgramEnrollment } from "../api/partners/upsert-imported-program-enrollment";
 import { approveLinkedApplication } from "../program-applications/approve-linked-application";
 import { logImportError } from "../tinybird/log-import-error";
 import { WorkspaceProps } from "../types";
@@ -225,13 +226,9 @@ async function createPartnerAndLinks({
     update: {},
   });
 
-  const { links, applicationId } = await prisma.programEnrollment.upsert({
-    where: {
-      partnerId_programId: {
-        partnerId: partner.id,
-        programId: program.id,
-      },
-    },
+  const { enrollment, preservedBan } = await upsertImportedProgramEnrollment({
+    partnerId: partner.id,
+    programId: program.id,
     create: {
       id: createId({ prefix: "pge_" }),
       programId: program.id,
@@ -245,11 +242,7 @@ async function createPartnerAndLinks({
       customRewardId: group.customRewardId,
       discountId: group.discountId,
     },
-    update: {
-      status: "approved",
-    },
-    select: {
-      applicationId: true,
+    include: {
       links: {
         select: {
           key: true,
@@ -258,12 +251,16 @@ async function createPartnerAndLinks({
     },
   });
 
+  if (preservedBan) {
+    return partner.id;
+  }
+
   await approveLinkedApplication({
-    applicationId,
+    applicationId: enrollment.applicationId,
     userId,
   });
 
-  if (links.length > 0 && links.some((link) => link.key === affiliate.id)) {
+  if (enrollment.links.some((link) => link.key === affiliate.id)) {
     console.log(
       `Partner ${partner.id} already has a link with key ${affiliate.id}, skipping...`,
     );

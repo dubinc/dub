@@ -1,10 +1,10 @@
-import {
-  bountyEligibilityIncludes,
-  isPartnerEligibleForBounty,
-} from "@/lib/bounty/api/bounty-availability";
+import { getEffectiveBountyPeriod } from "@/lib/bounty/api/bounty-availability";
 import { getSocialMetricsUpdates } from "@/lib/bounty/api/get-social-metrics-updates";
 import { isBountyEnded } from "@/lib/bounty/bounty-period";
-import { hasReachedSocialMetricsEarningCap } from "@/lib/bounty/social-metrics-milestones";
+import {
+  getHighestReachedSocialMetricsThreshold,
+  hasReachedSocialMetricsEarningCap,
+} from "@/lib/bounty/social-metrics-milestones";
 import { resolveBountyDetails } from "@/lib/bounty/utils";
 import { qstash } from "@/lib/cron";
 import { withCron } from "@/lib/cron/with-cron";
@@ -37,13 +37,11 @@ export const POST = withCron(async ({ rawBody }) => {
       id: bountyId,
     },
     include: {
-      ...bountyEligibilityIncludes,
       program: {
         select: {
           name: true,
           slug: true,
           supportEmail: true,
-          defaultGroupId: true,
         },
       },
     },
@@ -51,6 +49,10 @@ export const POST = withCron(async ({ rawBody }) => {
 
   if (!bounty) {
     return logAndRespond(`Bounty ${bountyId} not found. Skipping...`);
+  }
+
+  if (bounty.archivedAt) {
+    return logAndRespond(`Bounty ${bountyId} is archived. Skipping...`);
   }
 
   if (isBountyEnded(bounty.endsAt)) {
@@ -96,14 +98,8 @@ export const POST = withCron(async ({ rawBody }) => {
       },
       programEnrollment: {
         select: {
+          partnerId: true,
           createdAt: true,
-          groupId: true,
-          status: true,
-          programPartnerTags: {
-            select: {
-              partnerTagId: true,
-            },
-          },
         },
       },
     },
@@ -130,15 +126,16 @@ export const POST = withCron(async ({ rawBody }) => {
       return false;
     }
 
-    if (hasReachedSocialMetricsEarningCap({ bounty, submission })) {
+    const { endsAt } = getEffectiveBountyPeriod({
+      programEnrollment: submission.programEnrollment,
+      bounty,
+    });
+
+    if (isBountyEnded(endsAt)) {
       return false;
     }
 
-    return isPartnerEligibleForBounty({
-      program: bounty.program,
-      bounty,
-      programEnrollment: submission.programEnrollment,
-    });
+    return !hasReachedSocialMetricsEarningCap({ bounty, submission });
   });
 
   let syncedCount = 0;
@@ -171,6 +168,11 @@ export const POST = withCron(async ({ rawBody }) => {
       const shouldTransitionToSubmitted =
         submission.status === "draft" && hasMetCriteria;
 
+      const highestReachedThreshold = getHighestReachedSocialMetricsThreshold({
+        bounty,
+        socialMetricCount,
+      });
+
       const updateData: Prisma.BountySubmissionUpdateInput = {
         socialMetricCount,
         socialMetricsLastSyncedAt,
@@ -195,10 +197,30 @@ export const POST = withCron(async ({ rawBody }) => {
           data: updateData,
         }),
       );
+
+      syncedCount++;
+
+      // A partially approved submission goes back to review when it reaches a new milestone
+      // The where clause uses the current status and threshold, not the ones we read, so a concurrent approval is taken into account
+      if (highestReachedThreshold != null) {
+        updates.push(
+          prisma.bountySubmission.updateMany({
+            where: {
+              id,
+              status: BountySubmissionStatus.partiallyApproved,
+              approvedSocialMetricThreshold: {
+                lt: highestReachedThreshold,
+              },
+            },
+            data: {
+              status: BountySubmissionStatus.submitted,
+            },
+          }),
+        );
+      }
     }
 
     await prisma.$transaction(updates);
-    syncedCount = updates.length;
 
     if (notifications.length > 0) {
       await sendBatchEmail(
