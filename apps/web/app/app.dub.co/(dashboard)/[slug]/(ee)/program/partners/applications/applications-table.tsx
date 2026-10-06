@@ -591,18 +591,37 @@ function useApplicationSheet({
     }
   }, [searchParams, partners, queryParams]);
 
-  const { currentApplication, isLoading } = useCurrentApplication({
-    partners,
-    applicationId: detailsSheetState.applicationId,
-  });
-
-  const pageCount = Math.ceil((applicationsCount || 0) / pagination.pageSize);
-
   // Set when previous/next crosses a page boundary, so the first or last
   // application is opened once the adjacent page has loaded
-  const [pendingPageEdge, setPendingPageEdge] = useState<
-    "first" | "last" | null
-  >(null);
+  const [pendingPageChange, setPendingPageChange] = useState<{
+    edge: "first" | "last";
+    pageIndex: number;
+    fromApplicationId: string;
+    opening?: boolean;
+  } | null>(null);
+
+  const { currentApplication: resolvedApplication, isLoading } =
+    useCurrentApplication({
+      partners,
+      applicationId: detailsSheetState.applicationId,
+      fetchUnlisted: detailsSheetState.open && !pendingPageChange,
+    });
+
+  // Keeps the sheet mounted while the adjacent page loads, since the open
+  // application is no longer in the rows until the next one is selected
+  const [lastApplication, setLastApplication] =
+    useState<typeof resolvedApplication>(null);
+
+  useEffect(() => {
+    if (resolvedApplication) {
+      setLastApplication(resolvedApplication);
+    }
+  }, [resolvedApplication]);
+
+  const currentApplication =
+    resolvedApplication ?? (pendingPageChange ? lastApplication : null);
+
+  const pageCount = Math.ceil((applicationsCount || 0) / pagination.pageSize);
 
   const { onPreviousApplication, onNextApplication } = useMemo(() => {
     if (!partners || !detailsSheetState.applicationId) {
@@ -624,7 +643,11 @@ function useApplicationSheet({
       });
 
     const goToPage = (pageIndex: number, edge: "first" | "last") => {
-      setPendingPageEdge(edge);
+      setPendingPageChange({
+        edge,
+        pageIndex,
+        fromApplicationId: partners[currentIndex].applicationId,
+      });
       setPagination((p) => ({ ...p, pageIndex }));
     };
 
@@ -654,35 +677,69 @@ function useApplicationSheet({
     setPagination,
   ]);
 
+  const urlPageIndex = parseInt(searchParams.get("page") || "1") || 1;
+
   useEffect(() => {
-    if (!pendingPageEdge || isValidating || !partners?.length) {
+    if (!pendingPageChange) {
       return;
     }
 
-    // Wait until the rows from the previous page have been replaced
+    // The adjacent application was opened, the user opened another one, or
+    // the sheet was closed
     if (
-      partners.some(
-        ({ applicationId }) =>
-          applicationId === detailsSheetState.applicationId,
-      )
+      detailsSheetState.applicationId !== pendingPageChange.fromApplicationId ||
+      !detailsSheetState.open
+    ) {
+      setPendingPageChange(null);
+      return;
+    }
+
+    // Wait until the rows for the target page have loaded. Refetches of the
+    // current page (e.g. after approving) must not be mistaken for it.
+    if (
+      pendingPageChange.opening ||
+      urlPageIndex !== pendingPageChange.pageIndex ||
+      isValidating ||
+      !partners
     ) {
       return;
     }
 
-    const edgeApplication =
-      pendingPageEdge === "first" ? partners[0] : partners[partners.length - 1];
+    // The page count shrank (e.g. the last application was just reviewed),
+    // so there is nothing to open on the target page
+    if (partners.length === 0) {
+      setPendingPageChange(null);
+      setDetailsSheetState({
+        open: false,
+        applicationId: detailsSheetState.applicationId,
+      });
+      queryParams({ del: ["applicationId", "partnerId"] });
+      setPagination((p) => ({
+        ...p,
+        pageIndex: Math.max(1, pendingPageChange.pageIndex - 1),
+      }));
+      return;
+    }
 
-    setPendingPageEdge(null);
+    const edgeApplication =
+      pendingPageChange.edge === "first"
+        ? partners[0]
+        : partners[partners.length - 1];
+
+    setPendingPageChange({ ...pendingPageChange, opening: true });
     queryParams({
       set: { applicationId: edgeApplication.applicationId },
       del: "partnerId",
     });
   }, [
-    pendingPageEdge,
+    pendingPageChange,
+    urlPageIndex,
     isValidating,
     partners,
     detailsSheetState.applicationId,
+    detailsSheetState.open,
     queryParams,
+    setPagination,
   ]);
 
   return {
@@ -699,9 +756,11 @@ function useApplicationSheet({
 function useCurrentApplication({
   partners,
   applicationId,
+  fetchUnlisted,
 }: {
   partners?: ApplicationRow[];
   applicationId: string | null;
+  fetchUnlisted: boolean;
 }) {
   const { id: workspaceId } = useWorkspace();
 
@@ -713,7 +772,7 @@ function useCurrentApplication({
 
   const { data: fetchedApplication, isLoading: isApplicationLoading } =
     useSWR<ProgramApplication>(
-      applicationId && !listedApplication && workspaceId
+      applicationId && !listedApplication && fetchUnlisted && workspaceId
         ? `/api/program-applications/${applicationId}?workspaceId=${workspaceId}`
         : null,
       fetcher,
