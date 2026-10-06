@@ -125,8 +125,16 @@ export default function ProgramApplicationRejected({
               </Text>
             ) : null}
 
-            {!isApplyingToAdditionalGroup &&
-            reapplicationTimeframe === "instant" ? (
+            {isApplyingToAdditionalGroup ? (
+              <Section className="my-8 mt-8">
+                <Link
+                  href={`${PARTNERS_DOMAIN}/programs/${program.slug}`}
+                  className="rounded-lg bg-black px-6 py-3 text-center text-[12px] font-semibold text-white no-underline"
+                >
+                  View dashboard
+                </Link>
+              </Section>
+            ) : reapplicationTimeframe === "instant" ? (
               <Section className="my-8 mt-8">
                 <Link
                   href={`${PARTNERS_DOMAIN}/apply/${program.slug}`}
