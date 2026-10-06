@@ -10,7 +10,10 @@ type SubmissionStatusUpdate = Pick<
   "id" | "socialMetricCount" | "approvedSocialMetricThreshold"
 > & {
   from: BountySubmissionStatus;
-  to: Extract<BountySubmissionStatus, "partiallyApproved" | "approved">;
+  to: Extract<
+    BountySubmissionStatus,
+    "submitted" | "partiallyApproved" | "approved"
+  >;
 };
 
 // Dry run by default. Pass --dry-run=false to write the changes.
@@ -18,7 +21,8 @@ const DRY_RUN = !process.argv.slice(2).includes("--dry-run=false");
 const BATCH_SIZE = 500;
 
 // Closes partially approved social metrics submissions that are stuck in the review queue
-// On ended bounties, sets approved so no more milestones are paid
+// On ended bounties, sets approved when no milestone is pending
+// Ended bounties with a reached milestone that was not paid stay in review, so the program can pay it
 // On active bounties, moves submitted to partiallyApproved when no milestone is pending
 // Safe to re-run: only submitted or partiallyApproved submissions with an approved threshold are updated
 async function main() {
@@ -93,13 +97,20 @@ async function main() {
         from: submission.status,
       };
 
-      if (isBountyEnded(endsAt)) {
-        updates.push({ ...update, to: BountySubmissionStatus.approved });
-        continue;
-      }
-
       const hasPendingMilestones =
         getPendingSocialMetricsMilestones({ bounty, submission }).length > 0;
+
+      if (isBountyEnded(endsAt)) {
+        if (!hasPendingMilestones) {
+          updates.push({ ...update, to: BountySubmissionStatus.approved });
+        } else if (
+          submission.status === BountySubmissionStatus.partiallyApproved
+        ) {
+          updates.push({ ...update, to: BountySubmissionStatus.submitted });
+        }
+
+        continue;
+      }
 
       if (
         submission.status === BountySubmissionStatus.submitted &&
