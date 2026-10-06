@@ -227,36 +227,43 @@ export function InlineBadgePopoverMenu<T extends any>({
                 disabled,
                 disabledTooltip,
               }) => (
-                <DynamicTooltipWrapper
+                <Command.Item
                   key={String(value)}
-                  tooltipProps={
-                    disabledTooltip
-                      ? {
-                          content: disabledTooltip,
-                          side: "left",
-                          delayDuration: 0,
-                        }
-                      : undefined
-                  }
+                  value={`${text} ${description ?? ""} ${value}`}
+                  disabled={disabled || !!disabledTooltip}
+                  onSelect={() => {
+                    if (disabled || !!disabledTooltip) return;
+                    itemOnSelect?.();
+                    onSelect?.(value);
+                    !isMultiSelect && !preventClose && setIsOpen(false);
+                  }}
+                  className={cn(
+                    "flex cursor-pointer justify-between rounded-md px-1.5 py-1 transition-colors duration-150 data-[selected=true]:bg-neutral-100",
+                    description ? "items-start gap-2 py-1.5" : "items-center",
+                    (disabled || !!disabledTooltip) &&
+                      "cursor-not-allowed opacity-50 data-[selected=true]:bg-transparent",
+                  )}
                 >
-                  {/* cmdk overrides onPointerMove/onClick on Command.Item, so the tooltip trigger needs its own element */}
-                  <div>
-                    <Command.Item
-                      value={`${text} ${description ?? ""} ${value}`}
-                      disabled={disabled || !!disabledTooltip}
-                      onSelect={() => {
-                        if (disabled || !!disabledTooltip) return;
-                        itemOnSelect?.();
-                        onSelect?.(value);
-                        !isMultiSelect && !preventClose && setIsOpen(false);
-                      }}
+                  {/* cmdk overrides onPointerMove/onClick on Command.Item.
+                      The tooltip trigger has to be an inner element, and the
+                      item itself must stay a direct child of the list — cmdk
+                      reorders matches with appendChild and crashes if the
+                      item is wrapped. */}
+                  <DynamicTooltipWrapper
+                    tooltipProps={
+                      disabledTooltip
+                        ? {
+                            content: disabledTooltip,
+                            side: "left",
+                            delayDuration: 0,
+                          }
+                        : undefined
+                    }
+                  >
+                    <div
                       className={cn(
-                        "flex cursor-pointer justify-between rounded-md px-1.5 py-1 transition-colors duration-150 data-[selected=true]:bg-neutral-100",
-                        description
-                          ? "items-start gap-2 py-1.5"
-                          : "items-center",
-                        (disabled || !!disabledTooltip) &&
-                          "cursor-not-allowed opacity-50 data-[selected=true]:bg-transparent",
+                        "flex min-w-0 flex-1 justify-between",
+                        description ? "items-start gap-2" : "items-center",
                       )}
                     >
                       <div
@@ -291,9 +298,9 @@ export function InlineBadgePopoverMenu<T extends any>({
                           )}
                         />
                       )}
-                    </Command.Item>
-                  </div>
-                </DynamicTooltipWrapper>
+                    </div>
+                  </DynamicTooltipWrapper>
+                </Command.Item>
               ),
             )}
           </Command.List>
