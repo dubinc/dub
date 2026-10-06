@@ -5,6 +5,7 @@ import { useApplicationSettingsModal } from "@/ui/modals/application-settings-mo
 import { useExportApplicationsModal } from "@/ui/modals/export-applications-modal";
 import { ThreeDots } from "@/ui/shared/icons";
 import { Button, Download, IconMenu, Popover, useMediaQuery } from "@dub/ui";
+import { ProgramApplicationStatus } from "@prisma/client";
 import { useState } from "react";
 
 export function ApplicationSettingsButton() {
@@ -25,12 +26,16 @@ export function ApplicationSettingsButton() {
   );
 }
 
-export function ApplicationsMenuPopover() {
+export function ApplicationsMenuPopover({
+  status,
+}: {
+  status: ProgramApplicationStatus;
+}) {
   const { program } = useProgram();
   const [openPopover, setOpenPopover] = useState(false);
 
   const { setShowExportApplicationsModal, ExportApplicationsModal } =
-    useExportApplicationsModal();
+    useExportApplicationsModal({ status });
 
   return (
     <>
