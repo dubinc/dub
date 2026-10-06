@@ -229,7 +229,7 @@ export const bulkApproveProgramApplicationsAction = authActionClient
       }
 
       if (enrollmentsToCreate.length > 0) {
-        await tx.programEnrollment.createMany({
+        const { count } = await tx.programEnrollment.createMany({
           skipDuplicates: true,
           data: enrollmentsToCreate.map(
             ({ enrollmentId, partnerId, application }) => ({
@@ -243,6 +243,14 @@ export const bulkApproveProgramApplicationsAction = authActionClient
             }),
           ),
         });
+
+        if (count !== enrollmentsToCreate.length) {
+          throw new DubApiError({
+            code: "conflict",
+            message:
+              "Some of the selected partners changed status. Refresh and try again.",
+          });
+        }
       }
 
       if (newPartners.length > 0) {
