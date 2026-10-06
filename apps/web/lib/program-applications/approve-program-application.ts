@@ -160,23 +160,34 @@ export async function approveProgramApplication({
       }),
     };
 
-    await tx.programEnrollment.upsert({
-      where: {
-        partnerId_programId: {
+    if (existingEnrollment) {
+      // Only update the enrollment if its status did not change since it was
+      // read (e.g. the partner was banned in the meantime)
+      const { count } = await tx.programEnrollment.updateMany({
+        where: {
           partnerId,
           programId,
+          status: existingEnrollment.status,
         },
-      },
-      create: {
-        id: createId({ prefix: "pge_" }),
-        partnerId,
-        programId,
-        ...programEnrollment,
-      },
-      update: {
-        ...programEnrollment,
-      },
-    });
+        data: programEnrollment,
+      });
+
+      if (count === 0) {
+        throw new DubApiError({
+          code: "conflict",
+          message: "This partner changed status. Refresh and try again.",
+        });
+      }
+    } else {
+      await tx.programEnrollment.create({
+        data: {
+          id: createId({ prefix: "pge_" }),
+          partnerId,
+          programId,
+          ...programEnrollment,
+        },
+      });
+    }
 
     const { count } = await tx.programApplication.updateMany({
       where: {
