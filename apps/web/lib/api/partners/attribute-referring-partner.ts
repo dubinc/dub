@@ -4,7 +4,9 @@ import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-progr
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { logger, toErrorFields } from "@/lib/axiom/server";
 import { qstash } from "@/lib/cron";
+import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { prisma } from "@/lib/prisma";
+import { WorkspaceProps } from "@/lib/types";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { subMinutes } from "date-fns";
 
@@ -14,11 +16,22 @@ export async function attributeReferringPartner({
   referredByPartnerId,
   createCommissionsForPastEvents,
 }: {
-  workspace: { defaultProgramId?: string | null };
+  workspace: {
+    defaultProgramId?: string | null;
+    plan: WorkspaceProps["plan"];
+  };
   partnerId: string;
   referredByPartnerId: string;
   createCommissionsForPastEvents: boolean;
 }) {
+  if (!getPlanCapabilities(workspace.plan).canCreateReferralReward) {
+    throw new DubApiError({
+      code: "forbidden",
+      message:
+        "Referral rewards are only available on the Advanced plan and above.",
+    });
+  }
+
   const programId = getDefaultProgramIdOrThrow(workspace);
 
   if (referredByPartnerId === partnerId) {
@@ -66,6 +79,14 @@ export async function attributeReferringPartner({
       },
     }),
   ]);
+
+  if (programEnrollment.status !== "approved") {
+    throw new DubApiError({
+      code: "bad_request",
+      message:
+        "This partner must be approved before a referring partner can be attributed.",
+    });
+  }
 
   if (referringProgramEnrollment.status !== "approved") {
     throw new DubApiError({

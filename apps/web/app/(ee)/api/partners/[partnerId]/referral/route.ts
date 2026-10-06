@@ -111,7 +111,7 @@ export const POST = withWorkspace(
     });
   },
   {
-    requiredPlan: ["business", "advanced", "enterprise"],
+    requiredPlan: ["advanced", "enterprise"],
     requiredRoles: ["owner", "member"],
   },
 );
