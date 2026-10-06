@@ -14,6 +14,11 @@ const inputSchema = z.object({
   applicationId: z.string(),
 });
 
+const AUTO_REJECTABLE_ENROLLMENT_STATUSES: ProgramEnrollmentStatus[] = [
+  ProgramEnrollmentStatus.pending,
+  ProgramEnrollmentStatus.approved,
+];
+
 // This job is used to auto-reject a program application (e.g. when eligibility requirements are not met)
 export const autoRejectProgramApplicationJob = defineJob({
   name: "auto-reject-program-application-job",
@@ -81,8 +86,12 @@ export const autoRejectProgramApplicationJob = defineJob({
       return;
     }
 
-    if (programEnrollment.status !== ProgramEnrollmentStatus.pending) {
-      console.warn(`${partnerId} is in ${programEnrollment.status} status.`);
+    if (
+      !AUTO_REJECTABLE_ENROLLMENT_STATUSES.includes(programEnrollment.status)
+    ) {
+      console.warn(
+        `Application ${applicationId} was not auto-rejected because partner ${partnerId} is in ${programEnrollment.status} status.`,
+      );
       return;
     }
 

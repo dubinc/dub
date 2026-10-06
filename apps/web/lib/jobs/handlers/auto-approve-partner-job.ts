@@ -37,12 +37,8 @@ export const autoApprovePartnerJob = defineJob({
     }
 
     await autoApproveProgramApplicationJob.dispatch(
-      {
-        applicationId: programEnrollment.applicationId,
-      },
-      {
-        label: partnerId,
-      },
+      { applicationId: programEnrollment.applicationId },
+      { label: partnerId },
     );
   },
 });

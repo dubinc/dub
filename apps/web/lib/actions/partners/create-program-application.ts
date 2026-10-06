@@ -365,8 +365,8 @@ async function createApplicationAndEnrollment({
         applicationFormData,
         partner: {
           ...partner,
-          ...programEnrollment,
-          id: partner.id,
+          groupId: programApplication.groupId,
+          status: programApplication.status,
         },
       };
 
@@ -387,12 +387,8 @@ async function createApplicationAndEnrollment({
         // Auto-approve the partner if the group has auto-approval enabled
         group.autoApprovePartnersEnabledAt
           ? autoApproveProgramApplicationJob.dispatch(
-              {
-                applicationId: programApplication.id,
-              },
-              {
-                label: partner.id,
-              },
+              { applicationId: programApplication.id },
+              { label: partner.id },
             )
           : Promise.resolve(null),
 
@@ -431,7 +427,11 @@ async function createApplicationAndEnrollment({
           },
         }),
 
-        markApplicationEventSubmitted(programEnrollment),
+        markApplicationEventSubmitted({
+          programId: program.id,
+          partnerId: partner.id,
+          applicationId: programApplication.id,
+        }),
 
         // Queue an index update because a new pending enrollment was created.
         queuePartnerSearchSync({ enrollmentIds: [programEnrollment.id] }),
@@ -441,7 +441,7 @@ async function createApplicationAndEnrollment({
 
   return {
     programApplicationId: applicationId,
-    programEnrollmentId: enrollmentId,
+    programEnrollmentId: programEnrollment.id,
     partnerData: {
       name: data.name,
       country: partner.country ?? data.country ?? undefined,

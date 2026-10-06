@@ -15,6 +15,11 @@ const inputSchema = z.object({
   applicationId: z.string(),
 });
 
+const AUTO_APPROVABLE_ENROLLMENT_STATUSES: ProgramEnrollmentStatus[] = [
+  ProgramEnrollmentStatus.pending,
+  ProgramEnrollmentStatus.approved,
+];
+
 // This job is used to auto-approve a program application whose group has auto-approval enabled
 export const autoApproveProgramApplicationJob = defineJob({
   name: "auto-approve-program-application-job",
@@ -118,8 +123,12 @@ export const autoApproveProgramApplicationJob = defineJob({
       return;
     }
 
-    if (programEnrollment.status !== ProgramEnrollmentStatus.pending) {
-      console.warn(`${partnerId} is in ${programEnrollment.status} status.`);
+    if (
+      !AUTO_APPROVABLE_ENROLLMENT_STATUSES.includes(programEnrollment.status)
+    ) {
+      console.warn(
+        `Application ${applicationId} was not auto-approved because partner ${partnerId} is in ${programEnrollment.status} status.`,
+      );
       return;
     }
 

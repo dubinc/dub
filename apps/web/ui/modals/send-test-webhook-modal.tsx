@@ -127,7 +127,7 @@ export function useSendTestWebhookModal({
         webhook={webhook}
       />
     );
-  }, [showSendTestWebhookModal, setShowSendTestWebhookModal]);
+  }, [showSendTestWebhookModal, setShowSendTestWebhookModal, webhook]);
 
   return useMemo(
     () => ({

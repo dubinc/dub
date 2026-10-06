@@ -219,12 +219,8 @@ export async function completeProgramApplications(userEmail: string) {
               // Auto-approve the partner if the group has auto-approval enabled
               group?.autoApprovePartnersEnabledAt
                 ? autoApproveProgramApplicationJob.dispatch(
-                    {
-                      applicationId: application.id,
-                    },
-                    {
-                      label: partner.id,
-                    },
+                    { applicationId: application.id },
+                    { label: partner.id },
                   )
                 : Promise.resolve(null),
 

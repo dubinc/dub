@@ -24,6 +24,11 @@ type ApproveProgramApplicationInput = z.infer<
   userId: string;
 };
 
+const APPROVABLE_APPLICATION_STATUSES: ProgramApplicationStatus[] = [
+  ProgramApplicationStatus.pending,
+  ProgramApplicationStatus.rejected,
+];
+
 export async function approveProgramApplication({
   programId,
   partnerId,
@@ -38,10 +43,7 @@ export async function approveProgramApplication({
         programId,
         partnerId,
         status: {
-          in: [
-            ProgramApplicationStatus.pending,
-            ProgramApplicationStatus.rejected,
-          ],
+          in: APPROVABLE_APPLICATION_STATUSES,
         },
       },
       select: {
@@ -113,11 +115,13 @@ export async function approveProgramApplication({
   await prisma.$transaction(async (tx) => {
     if (isNewEnrollment) {
       throwIfPartnersLimitExceeded(program.workspace);
+    }
 
-      const programEnrollment: Partial<ProgramEnrollment> = {
+    const programEnrollment: Partial<ProgramEnrollment> = {
+      ...(programApplication && { applicationId: programApplication.id }),
+      ...(isNewEnrollment && {
         status: ProgramEnrollmentStatus.approved,
         createdAt: now,
-        ...(programApplication && { applicationId: programApplication.id }),
         groupId: group.id,
         clickRewardId: group.clickRewardId,
         leadRewardId: group.leadRewardId,
@@ -125,26 +129,26 @@ export async function approveProgramApplication({
         referralRewardId: group.referralRewardId,
         customRewardId: group.customRewardId,
         discountId: group.discountId,
-      };
+      }),
+    };
 
-      await tx.programEnrollment.upsert({
-        where: {
-          partnerId_programId: {
-            partnerId,
-            programId,
-          },
-        },
-        create: {
-          id: createId({ prefix: "pge_" }),
+    await tx.programEnrollment.upsert({
+      where: {
+        partnerId_programId: {
           partnerId,
           programId,
-          ...programEnrollment,
         },
-        update: {
-          ...programEnrollment,
-        },
-      });
-    }
+      },
+      create: {
+        id: createId({ prefix: "pge_" }),
+        partnerId,
+        programId,
+        ...programEnrollment,
+      },
+      update: {
+        ...programEnrollment,
+      },
+    });
 
     if (programApplication) {
       await tx.programApplication.update({
