@@ -1,4 +1,4 @@
-import { getProgramApplicationRejectionReasonLabel } from "@/lib/partners/program-application-rejection";
+import { getProgramApplicationRejectionReasonLabel } from "@/lib/program-applications/program-application-rejection";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { CircleHalfDottedClock, Combobox, ComboboxOption } from "@dub/ui";

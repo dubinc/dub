@@ -34,7 +34,9 @@ type ListedApplicationPartner = ProgramApplicationProps["partner"] & {
 };
 
 type ProgramApplicationReviewSheetProps = {
-  partner: EnrolledPartnerProps | ListedApplicationPartner;
+  partner: (EnrolledPartnerProps | ListedApplicationPartner) & {
+    applicationId: string;
+  };
   onNext?: () => void;
   onPrevious?: () => void;
   setIsOpen: Dispatch<SetStateAction<boolean>>;
@@ -76,10 +78,12 @@ function ProgramApplicationReviewSheetContent({
     { sheet: true },
   );
 
-  // Reset selection when navigating between partners
+  const applicationKey = sheetPartner.applicationId;
+
+  // Reset selection when navigating between applications
   useEffect(() => {
     setSelectedGroupId(partner.groupId ?? null);
-  }, [partner.groupId]);
+  }, [applicationKey, partner.groupId]);
 
   return (
     <div className="flex size-full flex-col">
@@ -149,7 +153,12 @@ function ProgramApplicationReviewSheetContent({
             />
             <div className="border-border-subtle -mx-px -mb-px rounded-xl border bg-white p-4">
               {currentTabId === "about" && (
-                <ProgramApplicationAbout partner={partner} />
+                <ProgramApplicationAbout
+                  partner={{
+                    ...partner,
+                    applicationId: sheetPartner.applicationId,
+                  }}
+                />
               )}
               {currentTabId === "comments" && (
                 <ProgramApplicationComments partnerId={partner.id} />
@@ -162,7 +171,7 @@ function ProgramApplicationReviewSheetContent({
       {["pending", "rejected"].includes(partner.status) && (
         <div className="shrink-0 border-t border-neutral-200 p-5">
           <PartnerApproval
-            key={partner.id} // Reset when navigating between partners to avoid memoized action callback issues
+            key={applicationKey} // Reset when navigating between applications to avoid memoized action callback issues
             partner={partner}
             groupId={
               partner.status === "rejected" ? selectedGroupId : partner.groupId
@@ -179,13 +188,13 @@ function ProgramApplicationReviewSheetContent({
 function ProgramApplicationAbout({
   partner,
 }: {
-  partner: EnrolledPartnerProps;
+  partner: EnrolledPartnerProps & { applicationId: string };
 }) {
   return (
     <div className="grid grid-cols-1 gap-5 text-sm text-neutral-600">
       <ProgramApplicationDetails
         partnerId={partner.id}
-        preferredApplicationId={partner.applicationId ?? null}
+        preferredApplicationId={partner.applicationId}
       />
       <hr className="border-neutral-200" />
       <PartnerAbout partner={partner} />
@@ -215,7 +224,7 @@ export function ProgramApplicationReviewSheet({
     <Sheet
       open={isOpen}
       onOpenChange={rest.setIsOpen}
-      onClose={() => queryParams({ del: "partnerId" })}
+      onClose={() => queryParams({ del: ["applicationId", "partnerId"] })}
       nested={nested}
       contentProps={{
         // 540px - 1170px width based on viewport

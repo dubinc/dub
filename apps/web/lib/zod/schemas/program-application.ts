@@ -111,6 +111,12 @@ export const getProgramApplicationsCountQuerySchema =
 
 export const approveProgramApplicationSchema = z.object({
   partnerId: z.string().describe("The ID of the partner to approve."),
+  applicationId: z
+    .string()
+    .optional()
+    .describe(
+      "The ID of the application to approve. If not provided, the partner's most recent pending or rejected application is used. For a partner who is already approved in the program, only a pending application is used.",
+    ),
   groupId: z
     .string()
     .nullish()
@@ -122,7 +128,7 @@ export const approveProgramApplicationSchema = z.object({
 export const bulkApproveProgramApplicationsSchema = z.object({
   workspaceId: z.string(),
   groupId: z.string().nullish().default(null),
-  partnerIds: z
+  applicationIds: z
     .array(z.string())
     .max(100)
     .min(1)

@@ -21,7 +21,7 @@ type ApplicationPlatform = Pick<
 // so webhook payloads and the platform backfill agree on what the partner has.
 // Application values only fill in platforms the partner doesn't already have (the
 // profile may be verified), and are marked unverified.
-const mergeApplicationSocialPlatforms = ({
+export const mergeApplicationSocialPlatforms = ({
   platforms,
   application,
 }: {
@@ -69,11 +69,12 @@ const mergeApplicationSocialPlatforms = ({
 };
 
 /**
- * Saves the website and social profiles from a program application that the
+ * Saves the website and social profiles from program applications that the
  * partner's profile doesn't have yet (e.g. they skipped them during onboarding).
  *
  * Existing profile platforms are never overwritten, since they may be verified.
- * New ones are sanitized and saved as unverified.
+ * New ones are sanitized and saved as unverified. When several applications
+ * provide the same platform, the earliest one in `applications` wins.
  *
  * Returns the partner's platforms as they are actually stored after the backfill,
  * along with the matching flat social fields (`website`, `youtube`, etc.). Re-reading
@@ -84,16 +85,22 @@ const mergeApplicationSocialPlatforms = ({
 export async function backfillPartnerPlatforms({
   partnerId,
   platforms,
-  application,
+  applications,
 }: {
   partnerId: string;
   platforms: PartnerPlatform[];
-  application: ProgramApplication;
+  applications: ProgramApplication[];
 }) {
-  const { missingPlatforms } = mergeApplicationSocialPlatforms({
-    platforms,
-    application,
-  });
+  const missingPlatforms: ApplicationPlatform[] = [];
+
+  for (const application of applications) {
+    const merged = mergeApplicationSocialPlatforms({
+      platforms: [...platforms, ...missingPlatforms],
+      application,
+    });
+
+    missingPlatforms.push(...merged.missingPlatforms);
+  }
 
   let savedPlatforms = platforms;
 

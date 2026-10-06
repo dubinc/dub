@@ -2,7 +2,7 @@ import { EXTERNAL_PAYOUTS_PROGRAM_IDS } from "@/lib/constants/program";
 import type { WorkspaceProps } from "@/lib/types";
 import { WebhookReceiver } from "@prisma/client";
 import {
-  LEGACY_WEBHOOK_TRIGGER_REPLACEMENTS,
+  DEPRECATED_WEBHOOK_TRIGGERS,
   PROGRAM_LEVEL_WEBHOOK_TRIGGERS,
   WORKSPACE_LEVEL_WEBHOOK_TRIGGERS,
 } from "./constants";
@@ -24,14 +24,16 @@ export const identifyWebhookReceiver = (url: string): WebhookReceiver => {
 
 /**
  * Filters `triggers` so only one event from each legacy/current pair in
- * `LEGACY_WEBHOOK_TRIGGER_REPLACEMENTS` is shown in the webhook picker.
+ * `DEPRECATED_WEBHOOK_TRIGGERS` is shown in the webhook picker.
  *
  * `subscribedTriggers` is the saved webhook's events:
  * - `null` (creating a new webhook): show the current event, hide the legacy one.
  * - array (editing): show both events if the webhook is already subscribed to
  *   the legacy one (so it can migrate in a single edit), otherwise show only
  *   the current event.
- * - `undefined` (saved webhook still loading): hide both until it's known.
+ * - `undefined` (saved webhook loading or failed to load): treated like `null`,
+ *   so the current event is never hidden. The legacy event appears once the
+ *   saved webhook is known to be subscribed to it.
  *
  * Hidden events that are already subscribed stay in the webhook's saved
  * triggers; this only affects which checkboxes are rendered.
@@ -41,11 +43,7 @@ export function getVisibleWebhookTriggers(
   subscribedTriggers: readonly WebhookTrigger[] | null | undefined,
 ): WebhookTrigger[] {
   const hiddenTriggers = new Set<WebhookTrigger>(
-    LEGACY_WEBHOOK_TRIGGER_REPLACEMENTS.flatMap(({ legacy, current }) => {
-      if (subscribedTriggers === undefined) {
-        return [legacy, current];
-      }
-
+    [...DEPRECATED_WEBHOOK_TRIGGERS].flatMap(([legacy]) => {
       const showLegacy = subscribedTriggers?.includes(legacy) ?? false;
 
       return showLegacy ? [] : [legacy];
