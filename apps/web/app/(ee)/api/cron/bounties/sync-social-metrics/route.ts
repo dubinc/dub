@@ -1,7 +1,10 @@
 import { getEffectiveBountyPeriod } from "@/lib/bounty/api/bounty-availability";
 import { getSocialMetricsUpdates } from "@/lib/bounty/api/get-social-metrics-updates";
 import { isBountyEnded } from "@/lib/bounty/bounty-period";
-import { hasReachedSocialMetricsEarningCap } from "@/lib/bounty/social-metrics-milestones";
+import {
+  getHighestReachedSocialMetricsThreshold,
+  hasReachedSocialMetricsEarningCap,
+} from "@/lib/bounty/social-metrics-milestones";
 import { resolveBountyDetails } from "@/lib/bounty/utils";
 import { qstash } from "@/lib/cron";
 import { withCron } from "@/lib/cron/with-cron";
@@ -165,6 +168,11 @@ export const POST = withCron(async ({ rawBody }) => {
       const shouldTransitionToSubmitted =
         submission.status === "draft" && hasMetCriteria;
 
+      const highestReachedThreshold = getHighestReachedSocialMetricsThreshold({
+        bounty,
+        socialMetricCount,
+      });
+
       const updateData: Prisma.BountySubmissionUpdateInput = {
         socialMetricCount,
         socialMetricsLastSyncedAt,
@@ -189,10 +197,30 @@ export const POST = withCron(async ({ rawBody }) => {
           data: updateData,
         }),
       );
+
+      syncedCount++;
+
+      // A partially approved submission goes back to review when it reaches a new milestone
+      // The where clause uses the current status and threshold, not the ones we read, so a concurrent approval is taken into account
+      if (highestReachedThreshold != null) {
+        updates.push(
+          prisma.bountySubmission.updateMany({
+            where: {
+              id,
+              status: BountySubmissionStatus.partiallyApproved,
+              approvedSocialMetricThreshold: {
+                lt: highestReachedThreshold,
+              },
+            },
+            data: {
+              status: BountySubmissionStatus.submitted,
+            },
+          }),
+        );
+      }
     }
 
     await prisma.$transaction(updates);
-    syncedCount = updates.length;
 
     if (notifications.length > 0) {
       await sendBatchEmail(
