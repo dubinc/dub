@@ -24,6 +24,9 @@ export const ROUTE_PATTERNS = [
   "/track/open",
   ...PUBLISHABLE_KEY_REQUEST_PATHS,
 
+  // Programs
+  "/programs/:programId/reactivate",
+
   // Program applications
   "/program-applications/approve",
   "/program-applications/reject",
@@ -48,6 +51,7 @@ export const ROUTE_PATTERNS = [
   "/links",
 
   // Customers
+  "/customers/:id/reattribute",
   "/customers/:id",
   "/customers",
 
@@ -80,6 +84,9 @@ export const ROUTE_PATTERNS = [
   "/domains/register",
   "/domains/:domain/primary",
   "/domains/:domain/transfer",
+  "/domains/:domain/program",
+  "/domains/:domain/forward-instructions",
+  "/domains/:domain/domain-connect/apply",
   "/domains/:domain",
   "/domains",
 
@@ -117,6 +124,8 @@ export const ROUTE_PATTERNS = [
   "/discount-codes",
 
   // Email domains
+  "/email-domains/:domain/forward-instructions",
+  "/email-domains/:domain/domain-connect/apply",
   "/email-domains/:domain",
   "/email-domains",
 

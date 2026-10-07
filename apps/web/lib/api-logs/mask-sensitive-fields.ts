@@ -21,6 +21,8 @@ export const SENSITIVE_RESPONSE_FIELDS_BY_ROUTE = {
   "/workspaces/:id/billing/payment-methods": ["url"],
   "/workspaces/:id/billing/manage": ["url"],
   "/workspaces/:id": ["inviteCode"],
+  "/domains/:domain/domain-connect/apply": ["applyUrl"],
+  "/email-domains/:domain/domain-connect/apply": ["applyUrl"],
 } as const;
 
 // Map of route pattern -> request body fields that should be masked before logging.
