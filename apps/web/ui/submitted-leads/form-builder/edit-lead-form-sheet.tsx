@@ -143,7 +143,12 @@ function EditLeadFormSheetForm({
 
     await executeAsync({
       workspaceId,
-      enabledGroupIds,
+      enabledGroupIds: enabledGroupIds.filter(
+        (id) => !initialState.enabledGroupIds.includes(id),
+      ),
+      disabledGroupIds: initialState.enabledGroupIds.filter(
+        (id) => !enabledGroupIds.includes(id),
+      ),
       referralFormData: {
         fields: fields.map((field, index) =>
           fromLeadFormBuilderField(

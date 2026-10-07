@@ -12,7 +12,9 @@ import { throwIfNoPermission } from "../actions/throw-if-no-permission";
 const schema = z.object({
   workspaceId: z.string(),
   referralFormData: submittedLeadFormSchema,
+  // Only the groups whose switch changed. All other groups keep their setting.
   enabledGroupIds: z.array(z.string()),
+  disabledGroupIds: z.array(z.string()),
 });
 
 // Update the submitted lead form and the groups that can submit leads
@@ -20,7 +22,7 @@ export const updateSubmittedLeadFormAction = authActionClient
   .inputSchema(schema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace } = ctx;
-    const { referralFormData, enabledGroupIds } = parsedInput;
+    const { referralFormData, enabledGroupIds, disabledGroupIds } = parsedInput;
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
@@ -70,7 +72,7 @@ export const updateSubmittedLeadFormAction = authActionClient
         where: {
           programId,
           id: {
-            notIn: enabledGroupIds,
+            in: disabledGroupIds,
           },
         },
         data: {
