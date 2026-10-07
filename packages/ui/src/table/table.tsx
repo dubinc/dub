@@ -72,7 +72,6 @@ export function useTable<T extends any>(
     pagination,
     onPaginationChange,
     getRowId,
-    enableRowSelection,
     enableColumnResizing = false,
     columnResizeMode = "onChange",
   } = props;
@@ -156,7 +155,8 @@ export function useTable<T extends any>(
               size: SELECT_COLUMN_WIDTH,
               maxSize: SELECT_COLUMN_WIDTH,
               header: ({ table }: { table: TableType<T> }) => (
-                <div
+                <button
+                  type="button"
                   className="flex size-full items-center justify-center"
                   onClick={(e) => {
                     e.stopPropagation();
@@ -174,10 +174,10 @@ export function useTable<T extends any>(
                           : false
                     }
                   />
-                </div>
+                </button>
               ),
               cell: ({ row, table }: { row: Row<T>; table: TableType<T> }) => {
-                const onSelectRow = (e: MouseEvent<HTMLElement>) => {
+                const onSelectRow = (e: MouseEvent<HTMLButtonElement>) => {
                   e.stopPropagation();
                   const currentId = getRowId?.(row.original);
                   const rows = table.getRowModel().rows;
@@ -212,7 +212,6 @@ export function useTable<T extends any>(
                     const end = Math.max(lastSelectedIndex, currentIndex);
                     const rangeIds = rows
                       .slice(start, end + 1)
-                      .filter((row) => row.getCanSelect())
                       .map((row) => getRowId?.(row.original))
                       .filter((id): id is string => id !== undefined);
 
@@ -239,23 +238,18 @@ export function useTable<T extends any>(
                   }
                 };
 
-                const canSelect = row.getCanSelect();
-
                 return (
-                  <div
-                    className={cn(
-                      "flex size-full items-center justify-center",
-                      !canSelect && "cursor-not-allowed",
-                    )}
-                    onClick={canSelect ? onSelectRow : undefined}
+                  <button
+                    type="button"
+                    className="flex size-full items-center justify-center"
+                    onClick={onSelectRow}
                     title="Select"
                   >
                     <Checkbox
                       className="border-border-default pointer-events-none size-4 rounded data-[state=checked]:bg-black data-[state=indeterminate]:bg-black"
                       checked={row.getIsSelected()}
-                      disabled={!canSelect}
                     />
-                  </div>
+                  </button>
                 );
               },
             },
@@ -291,7 +285,6 @@ export function useTable<T extends any>(
     autoResetPageIndex: false,
     manualSorting: true,
     getRowId,
-    enableRowSelection,
     enableColumnResizing,
     columnResizeMode,
   });

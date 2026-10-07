@@ -23,14 +23,14 @@ import { MaxCharactersCounter } from "@/ui/shared/max-characters-counter";
 import {
   AnimatedSizeContainer,
   Button,
+  Check2,
   LoadingSpinner,
   Sheet,
   SmartDateTimePicker,
   Switch,
-  Table,
   ToggleGroup,
-  useTable,
 } from "@dub/ui";
+import { Minus } from "@dub/ui/icons";
 import { cn, currencyFormatter, formatDate } from "@dub/utils";
 import { CommissionType } from "@prisma/client";
 import { useParams } from "next/navigation";
@@ -88,116 +88,33 @@ async function fetcherStripeInvoices(url: string): Promise<{
   return { invoices: Array.isArray(body) ? body : [] };
 }
 
-function StripeInvoicesToImportTable({
-  invoices,
-  selectedInvoiceIds,
-  onSelectionChange,
-  slug,
-  partnerId,
-  customerId,
+function InvoiceCheckbox({
+  checked,
+  indeterminate = false,
+  disabled = false,
 }: {
-  invoices: StripeInvoiceFromApi[];
-  selectedInvoiceIds: string[];
-  onSelectionChange: (invoiceIds: string[]) => void;
-  slug?: string;
-  partnerId?: string;
-  customerId?: string | null;
+  checked: boolean;
+  indeterminate?: boolean;
+  disabled?: boolean;
 }) {
-  const selectedRows = useMemo(
-    () =>
-      Object.fromEntries(
-        selectedInvoiceIds.map((invoiceId) => [invoiceId, true]),
-      ),
-    [selectedInvoiceIds],
+  return (
+    <span
+      className={cn(
+        "flex size-4 shrink-0 items-center justify-center rounded border",
+        disabled && "opacity-50",
+        checked || indeterminate
+          ? "border-black bg-black text-white"
+          : "border-neutral-300 bg-white",
+      )}
+      aria-hidden
+    >
+      {indeterminate ? (
+        <Minus className="size-3" />
+      ) : checked ? (
+        <Check2 className="size-3" />
+      ) : null}
+    </span>
   );
-
-  const { table, ...tableProps } = useTable<StripeInvoiceFromApi>({
-    data: invoices,
-    columns: [
-      {
-        id: "invoice",
-        header: "Invoice",
-        cell: ({ row }) => (
-          <div className="min-w-0">
-            <a
-              href={`https://dashboard.stripe.com/invoices/${row.original.id}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={cn(
-                "cursor-alias font-mono text-sm font-medium decoration-dotted underline-offset-2 hover:underline",
-                row.original.dubCommissionId
-                  ? "text-neutral-500"
-                  : "text-neutral-800",
-              )}
-            >
-              {row.original.id}
-            </a>
-            {(row.original.refunded || row.original.dubCommissionId) && (
-              <p className="mt-0.5 flex flex-wrap items-center gap-1.5">
-                {row.original.refunded ? (
-                  <span className="rounded-md bg-neutral-200/80 px-1.5 py-0.5 text-xs text-neutral-500">
-                    Refunded
-                  </span>
-                ) : null}
-                {row.original.dubCommissionId ? (
-                  <a
-                    href={`/${slug}/program/commissions?partnerId=${partnerId}&customerId=${customerId}`}
-                    target="_blank"
-                    className="rounded bg-neutral-200/80 px-1.5 py-0.5 text-xs text-neutral-500 hover:bg-neutral-200 hover:text-neutral-900"
-                  >
-                    Already imported
-                  </a>
-                ) : null}
-              </p>
-            )}
-          </div>
-        ),
-      },
-      {
-        id: "date",
-        header: "Date",
-        cell: ({ row }) => formatDate(row.original.createdAt),
-      },
-      {
-        id: "amount",
-        header: "Amount",
-        cell: ({ row }) => (
-          <span
-            className={cn(
-              "font-medium",
-              row.original.dubCommissionId
-                ? "text-neutral-500"
-                : "text-neutral-700",
-            )}
-          >
-            {currencyFormatter(row.original.amount)}
-          </span>
-        ),
-      },
-    ],
-    getRowId: (invoice) => invoice.id,
-    enableRowSelection: (row) => !row.original.dubCommissionId,
-    selectedRows,
-    onRowSelectionChange: (rows) =>
-      onSelectionChange(rows.map((row) => row.original.id)),
-    onRowClick: (row) => {
-      if (row.getCanSelect()) {
-        row.toggleSelected();
-      }
-    },
-    rowProps: (row) => ({
-      className: cn(row.original.dubCommissionId && "opacity-60"),
-    }),
-    resourceName: (plural) => `invoice${plural ? "s" : ""}`,
-    thClassName: (id) =>
-      cn("border-l-0", id === "amount" && "[&>div]:justify-end"),
-    tdClassName: (id) => cn("border-l-0", id === "amount" && "text-right"),
-    className: "[&_tr:last-child>td]:border-b-transparent",
-    containerClassName: "border-border-default",
-    scrollWrapperClassName: "min-h-0 max-h-96",
-  });
-
-  return <Table {...tableProps} table={table} />;
 }
 
 function CreateCommissionSheetContent({
@@ -328,15 +245,16 @@ function CreateCommissionSheetContent({
     [unimportedStripeInvoiceIdsKey],
   );
   const [selectedStripeInvoiceIds, setSelectedStripeInvoiceIds] = useState<
-    string[]
-  >([]);
-  const [selectionInvoiceIdsKey, setSelectionInvoiceIdsKey] = useState("");
+    string[] | null
+  >(null);
   const selectedInvoiceIdsToImport =
-    selectionInvoiceIdsKey === unimportedStripeInvoiceIdsKey
-      ? selectedStripeInvoiceIds
-      : unimportedStripeInvoiceIds;
+    selectedStripeInvoiceIds ?? unimportedStripeInvoiceIds;
   const noStripeCustomerId = stripeInvoicesData?.noStripeCustomerId ?? false;
   const noStripeCustomerMessage = stripeInvoicesData?.message;
+
+  useEffect(() => {
+    setSelectedStripeInvoiceIds(null);
+  }, [customerId, importStripeInvoices, unimportedStripeInvoiceIdsKey]);
 
   useEffect(() => {
     if (commissionType === "custom") {
@@ -833,20 +751,132 @@ function CreateCommissionSheetContent({
                               </p>
                             </div>
                           ) : (
-                            <StripeInvoicesToImportTable
-                              key={`${customerId}:${unimportedStripeInvoiceIdsKey}`}
-                              invoices={stripeInvoices}
-                              selectedInvoiceIds={selectedInvoiceIdsToImport}
-                              onSelectionChange={(invoiceIds) => {
-                                setSelectionInvoiceIdsKey(
-                                  unimportedStripeInvoiceIdsKey,
-                                );
-                                setSelectedStripeInvoiceIds(invoiceIds);
-                              }}
-                              slug={slug}
-                              partnerId={partnerId}
-                              customerId={customerId}
-                            />
+                            <div className="overflow-hidden rounded-lg border border-neutral-200 bg-white shadow-sm">
+                              <div className="flex items-center gap-3 border-b border-neutral-100 bg-neutral-50/80 px-3 py-2">
+                                {unimportedStripeInvoices.length > 0 && (
+                                  <button
+                                    type="button"
+                                    className="flex items-center"
+                                    onClick={() => {
+                                      const allSelected =
+                                        selectedInvoiceIdsToImport.length ===
+                                        unimportedStripeInvoiceIds.length;
+
+                                      setSelectedStripeInvoiceIds(
+                                        allSelected
+                                          ? []
+                                          : unimportedStripeInvoiceIds,
+                                      );
+                                    }}
+                                  >
+                                    <InvoiceCheckbox
+                                      checked={
+                                        selectedInvoiceIdsToImport.length ===
+                                        unimportedStripeInvoiceIds.length
+                                      }
+                                      indeterminate={
+                                        selectedInvoiceIdsToImport.length > 0 &&
+                                        selectedInvoiceIdsToImport.length <
+                                          unimportedStripeInvoiceIds.length
+                                      }
+                                    />
+                                  </button>
+                                )}
+                                <p className="text-xs font-medium text-neutral-500">
+                                  Paid invoices ({stripeInvoices.length})
+                                </p>
+                              </div>
+                              <div className="flex max-h-96 flex-col gap-1 overflow-y-auto p-1.5">
+                                {stripeInvoices.map((inv) => {
+                                  const imported = Boolean(inv.dubCommissionId);
+                                  const selected =
+                                    !imported &&
+                                    selectedInvoiceIdsToImport.includes(inv.id);
+
+                                  return (
+                                    <div
+                                      key={inv.id}
+                                      className={cn(
+                                        "flex items-center gap-3 rounded-md px-2.5 py-1.5",
+                                        imported
+                                          ? "opacity-60"
+                                          : "cursor-pointer hover:bg-neutral-50",
+                                        selected && "bg-neutral-100",
+                                      )}
+                                      onClick={() => {
+                                        if (imported) {
+                                          return;
+                                        }
+
+                                        setSelectedStripeInvoiceIds(
+                                          (current) => {
+                                            const selectedIds =
+                                              current ??
+                                              unimportedStripeInvoiceIds;
+
+                                            return selectedIds.includes(inv.id)
+                                              ? selectedIds.filter(
+                                                  (id) => id !== inv.id,
+                                                )
+                                              : [...selectedIds, inv.id];
+                                          },
+                                        );
+                                      }}
+                                    >
+                                      <InvoiceCheckbox
+                                        checked={selected}
+                                        disabled={imported}
+                                      />
+                                      <div className="min-w-0 flex-1">
+                                        <a
+                                          href={`https://dashboard.stripe.com/invoices/${inv.id}`}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          onClick={(e) => e.stopPropagation()}
+                                          className={cn(
+                                            "cursor-alias font-mono text-sm font-medium decoration-dotted underline-offset-2 hover:underline",
+                                            imported
+                                              ? "text-neutral-500"
+                                              : "text-neutral-800",
+                                          )}
+                                        >
+                                          {inv.id}
+                                        </a>
+                                        <p className="mt-0.5 flex flex-wrap items-center gap-x-2 text-xs text-neutral-500">
+                                          Paid on {formatDate(inv.createdAt)}
+                                          {inv.refunded ? (
+                                            <span className="rounded-md bg-neutral-200/80 px-1.5 py-0.5 text-xs text-neutral-500">
+                                              Refunded
+                                            </span>
+                                          ) : imported ? (
+                                            <a
+                                              href={`/${slug}/program/commissions?partnerId=${partnerId}&customerId=${customerId}`}
+                                              target="_blank"
+                                              onClick={(e) =>
+                                                e.stopPropagation()
+                                              }
+                                              className="rounded bg-neutral-200/80 px-1.5 py-0.5 text-neutral-500 hover:bg-neutral-200 hover:text-neutral-900"
+                                            >
+                                              Already imported
+                                            </a>
+                                          ) : null}
+                                        </p>
+                                      </div>
+                                      <span
+                                        className={cn(
+                                          "shrink-0 text-sm font-medium",
+                                          imported
+                                            ? "text-neutral-500"
+                                            : "text-neutral-700",
+                                        )}
+                                      >
+                                        {currencyFormatter(inv.amount)}
+                                      </span>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </div>
                           )}
                         </div>
                       )}

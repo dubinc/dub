@@ -51,7 +51,6 @@ type BaseTableProps<T> = {
 
   // Row selection
   getRowId?: (row: T) => string;
-  enableRowSelection?: boolean | ((row: Row<T>) => boolean);
   onRowSelectionChange?: (rows: Row<T>[]) => void;
   selectedRows?: RowSelectionState;
   selectionControls?: (table: TableType<T>) => ReactNode;
