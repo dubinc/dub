@@ -5,8 +5,13 @@ import { prisma } from "@/lib/prisma";
 import { submittedLeadFormSchema } from "@/lib/zod/schemas/submitted-lead-form";
 import { Prisma } from "@prisma/client";
 
+// Dry run by default. Pass --dry-run=false to write the changes.
+const DRY_RUN = !process.argv.slice(2).includes("--dry-run=false");
+
 // Copy each program's submitted lead form to all of its groups and turn the form on for them
 async function main() {
+  console.log(`DRY_RUN=${DRY_RUN}`);
+
   const programs = await prisma.program.findMany({
     where: {
       referralFormData: {
@@ -37,17 +42,27 @@ async function main() {
       continue;
     }
 
-    const { count } = await prisma.partnerGroup.updateMany({
-      where: {
-        programId: program.id,
-      },
-      data: {
-        referralFormData: parsed.data,
-        submittedLeadsEnabledAt: new Date(),
-      },
-    });
+    const count = DRY_RUN
+      ? await prisma.partnerGroup.count({
+          where: {
+            programId: program.id,
+          },
+        })
+      : (
+          await prisma.partnerGroup.updateMany({
+            where: {
+              programId: program.id,
+            },
+            data: {
+              referralFormData: parsed.data,
+              submittedLeadsEnabledAt: new Date(),
+            },
+          })
+        ).count;
 
-    console.log(`Updated ${count} groups for ${program.name} (${program.id})`);
+    console.log(
+      `${DRY_RUN ? "Would update" : "Updated"} ${count} groups for ${program.name} (${program.id})`,
+    );
 
     workspaceIds.add(prefixWorkspaceId(program.workspaceId));
   }
