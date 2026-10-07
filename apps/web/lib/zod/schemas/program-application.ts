@@ -143,14 +143,14 @@ export const approveProgramApplicationSchema = z.object({
     .max(100)
     .optional()
     .describe(
-      "The IDs of the partner tags to assign as part of approval. Existing tags are kept. Takes priority over `tagNames`.",
+      "The IDs of the partner tags to assign as part of approval. Existing tags are kept. Takes priority over `tagNames` only when it contains at least one ID.",
     ),
   tagNames: z
     .array(z.string())
     .max(100)
     .optional()
     .describe(
-      "The names of the partner tags to assign as part of approval. Existing tags are kept. Ignored when `tagIds` is provided.",
+      "The names of the partner tags to assign as part of approval. Existing tags are kept. Ignored only when `tagIds` contains at least one ID.",
     ),
 });
 
