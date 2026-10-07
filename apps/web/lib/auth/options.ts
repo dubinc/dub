@@ -531,8 +531,8 @@ export const authOptions: NextAuthOptions = {
       }
       return true;
     },
-    // baseUrl is always NEXTAUTH_URL (app.dub.co), so resolve against the
-    // request's host instead to support redirects on partners.dub.co
+    // baseUrl is NEXTAUTH_URL when it is set (e.g. on localhost), so resolve
+    // against the request's host instead to support redirects on partners
     redirect: async ({ url, baseUrl }) => {
       const trustedOrigins = [baseUrl, APP_DOMAIN, PARTNERS_DOMAIN];
       const host = (await headers()).get("host");
