@@ -13,6 +13,7 @@ import useUser from "@/lib/swr/use-user";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { useMessagesContext } from "@/ui/messages/messages-context";
 import { MessagesPanel } from "@/ui/messages/messages-panel";
+import { appendPersistedMessage } from "@/ui/messages/optimistic-message";
 import { ToggleSidePanelButton } from "@/ui/messages/toggle-side-panel-button";
 import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import { PartnerInfoGroup } from "@/ui/partners/partner-info-group";
@@ -233,6 +234,7 @@ export function ProgramMessagesPartnerPageClient() {
             defaultValue={defaultMessage}
             onSendMessage={async (message, attachments) => {
               const createdAt = new Date();
+              const optimisticId = `tmp_${uuid()}`;
 
               try {
                 await mutatePartnerMessages(
@@ -244,15 +246,18 @@ export function ProgramMessagesPartnerPageClient() {
                       attachments,
                     });
 
-                    if (result?.data?.message) {
-                      return data
+                    const sentMessage = result?.data?.message;
+
+                    if (sentMessage) {
+                      return data?.[0]
                         ? [
                             {
                               ...data[0],
-                              messages: [
-                                ...data[0].messages,
-                                result.data.message,
-                              ],
+                              messages: appendPersistedMessage(
+                                data[0].messages,
+                                optimisticId,
+                                sentMessage,
+                              ),
                             },
                           ]
                         : [];
@@ -268,7 +273,7 @@ export function ProgramMessagesPartnerPageClient() {
                                 ...data[0].messages,
                                 {
                                   delivered: false,
-                                  id: `tmp_${uuid()}`,
+                                  id: optimisticId,
                                   programId: program!.id,
                                   partnerId: partnerId,
                                   text: message,
