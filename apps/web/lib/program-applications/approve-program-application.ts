@@ -43,9 +43,10 @@ export async function approveProgramApplication({
   applicationId,
   groupId,
   tagIds: tagIdsInput,
+  tagNames: tagNamesInput,
   userId,
 }: ApproveProgramApplicationInput) {
-  const tagIds = tagIdsInput ? [...new Set(tagIdsInput)] : undefined;
+  let tagIds = tagIdsInput ? [...new Set(tagIdsInput)] : undefined;
   const existingEnrollment = await prisma.programEnrollment.findUnique({
     where: {
       partnerId_programId: {
@@ -145,6 +146,33 @@ export async function approveProgramApplication({
       programId,
       partnerTagIds: tagIds,
     });
+  } else if (tagNamesInput?.length) {
+    const tagNames = [...new Set(tagNamesInput)];
+    const partnerTags = await prisma.partnerTag.findMany({
+      where: {
+        programId,
+        name: {
+          in: tagNames,
+        },
+      },
+      select: {
+        id: true,
+        name: true,
+      },
+    });
+
+    const invalidTagNames = tagNames.filter(
+      (tagName) => !partnerTags.some((tag) => tag.name === tagName),
+    );
+
+    if (invalidTagNames.length) {
+      throw new DubApiError({
+        code: "bad_request",
+        message: `Invalid partner tag names detected: ${invalidTagNames.join(", ")}`,
+      });
+    }
+
+    tagIds = partnerTags.map(({ id }) => id);
   }
 
   const now = new Date();

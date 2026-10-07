@@ -125,6 +125,12 @@ test.describe("program application reviews", () => {
         country: "GB",
         groupId: program.defaultGroupId,
       },
+      {
+        name: randomName("application"),
+        email: randomPartnerEmail(),
+        country: "US",
+        groupId: program.defaultGroupId,
+      },
     ];
 
     for (const [i, row] of rows.entries()) {
@@ -507,6 +513,83 @@ test.describe("program application reviews", () => {
           partnerId: application.partnerId,
           groupId: application.groupId,
           tagIds: [partnerTag.id, partnerTag.id],
+        },
+      );
+
+      expect(status).toEqual(200);
+      expect(data).toStrictEqual({ partnerId: application.partnerId });
+      await expectApplicationState(application, {
+        enrollmentStatus: "approved",
+        rejectionReason: null,
+      });
+
+      const tags = await prisma.programPartnerTag.findMany({
+        where: {
+          programId,
+          partnerId: application.partnerId,
+        },
+      });
+
+      expect(tags).toEqual([
+        expect.objectContaining({
+          partnerTagId: partnerTag.id,
+        }),
+      ]);
+    } finally {
+      await deletePartnerTag(partnerTagId);
+    }
+  });
+
+  test("POST /program-applications/approve – invalid tagNames", async ({
+    api,
+  }) => {
+    const application = applications[5]!;
+    const tagName = "missing-partner-tag";
+
+    const response = await api.post("/api/program-applications/approve", {
+      partnerId: application.partnerId,
+      groupId: application.groupId,
+      tagNames: [tagName],
+    });
+
+    expect(response).toEqual(
+      apiError({
+        code: "bad_request",
+        message: `Invalid partner tag names detected: ${tagName}`,
+      }),
+    );
+
+    const enrollment = await prisma.programEnrollment.findUniqueOrThrow({
+      where: {
+        applicationId: application.applicationId,
+      },
+      include: {
+        programPartnerTags: true,
+        application: true,
+      },
+    });
+
+    expect(enrollment.status).toBe("pending");
+    expect(enrollment.application?.status).toBe("pending");
+    expect(enrollment.programPartnerTags).toEqual([]);
+  });
+
+  test("POST /program-applications/approve – with tagNames", async ({
+    api,
+  }) => {
+    const application = applications[5]!;
+    let partnerTagId: string | undefined;
+
+    try {
+      const partnerTag = await createPartnerTag(programId);
+      partnerTagId = partnerTag.id;
+
+      const { status, data } = await api.post<{ partnerId: string }>(
+        "/api/program-applications/approve",
+        {
+          partnerId: application.partnerId,
+          groupId: application.groupId,
+          tagNames: [partnerTag.name, partnerTag.name],
         },
       );
 
