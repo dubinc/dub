@@ -1,7 +1,7 @@
 "use client";
 
 import { blockNonNumericKeys } from "@/ui/submitted-leads/form-fields/form-control";
-import { Button, Combobox, Switch } from "@dub/ui";
+import { AnimatedSizeContainer, Button, Combobox, Switch } from "@dub/ui";
 import { GripDotsVertical, Plus, Trash } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
 import {
@@ -10,7 +10,7 @@ import {
   Reorder,
   useDragControls,
 } from "motion/react";
-import { forwardRef, PointerEvent, ReactNode } from "react";
+import { PointerEvent, ReactNode } from "react";
 import {
   changeLeadFormBuilderFieldType,
   createLeadFormBuilderOption,
@@ -29,24 +29,37 @@ function startDrag(
   controls.start(e);
 }
 
+// Items keep their spacing as padding, so it collapses with them when they are
+// removed. They animate their position only when their index changes, e.g. while
+// dragging, so they move together with content that grows above them.
+const itemAnimation = {
+  layout: "position",
+  initial: { height: 0, opacity: 0 },
+  animate: { height: "auto", opacity: 1 },
+  exit: { height: 0, opacity: 0 },
+  transition: { duration: 0.15, ease: "easeOut" },
+} as const;
+
 const inputClassName =
   "block h-10 w-full rounded-lg border-neutral-200 px-3 text-sm text-neutral-800 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500";
 
-// Forwards its ref so AnimatePresence can take a removed card out of the flow
-export const LeadFormFieldCard = forwardRef<
-  HTMLLIElement,
-  {
-    field: LeadFormBuilderField;
-    expanded: boolean;
-    error?: boolean;
-    onToggle: () => void;
-    onChange: (field: LeadFormBuilderField) => void;
-    onRemove: () => void;
-  }
->(function LeadFormFieldCard(
-  { field, expanded, error, onToggle, onChange, onRemove },
-  ref,
-) {
+export function LeadFormFieldCard({
+  field,
+  expanded,
+  error,
+  index,
+  onToggle,
+  onChange,
+  onRemove,
+}: {
+  field: LeadFormBuilderField;
+  expanded: boolean;
+  error?: boolean;
+  index: number;
+  onToggle: () => void;
+  onChange: (field: LeadFormBuilderField) => void;
+  onRemove: () => void;
+}) {
   const controls = useDragControls();
   const TypeIcon = field.type
     ? LEAD_FORM_FIELD_TYPES[field.type].icon
@@ -54,69 +67,74 @@ export const LeadFormFieldCard = forwardRef<
 
   return (
     <Reorder.Item
-      ref={ref}
       value={field.key}
       dragListener={false}
       dragControls={controls}
-      // Animate only the position. A size animation scales the content.
-      layout="position"
-      className={cn(
-        "group/field overflow-hidden rounded-[10px] border border-neutral-200 bg-white",
-        error && "border-red-500",
-      )}
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      transition={{ duration: 0.15 }}
+      {...itemAnimation}
+      layoutDependency={index}
+      className="overflow-hidden pb-4"
     >
       <div
         className={cn(
-          "flex items-center justify-between gap-2 p-2",
-          expanded && "border-b border-neutral-200",
+          "group/field overflow-hidden rounded-[10px] border border-neutral-200 bg-white",
+          error && "border-red-500",
         )}
       >
-        <div className="flex min-w-0 flex-1 items-center gap-2">
-          <div
-            onPointerDown={(e) => startDrag(e, controls)}
-            className="flex size-6 shrink-0 cursor-grab touch-none items-center justify-center rounded-md text-neutral-800 hover:bg-neutral-200/50"
-            title="Drag to reorder"
-          >
-            <TypeIcon className="size-3.5 group-hover/field:hidden" />
-            <GripDotsVertical className="hidden size-3.5 group-hover/field:block" />
+        <div
+          className={cn(
+            "flex items-center justify-between gap-2 p-2",
+            expanded && "border-b border-neutral-200",
+          )}
+        >
+          <div className="flex min-w-0 flex-1 items-center gap-2">
+            <div
+              onPointerDown={(e) => startDrag(e, controls)}
+              className="flex size-6 shrink-0 cursor-grab touch-none items-center justify-center rounded-md text-neutral-800 hover:bg-neutral-200/50"
+              title="Drag to reorder"
+            >
+              <TypeIcon className="size-3.5 group-hover/field:hidden" />
+              <GripDotsVertical className="hidden size-3.5 group-hover/field:block" />
+            </div>
+            <button
+              type="button"
+              onClick={onToggle}
+              className="min-w-0 flex-1 truncate text-left text-sm font-semibold text-neutral-800"
+            >
+              {field.label.trim() || "Input"}
+            </button>
           </div>
           <button
             type="button"
-            onClick={onToggle}
-            className="min-w-0 flex-1 truncate text-left text-sm font-semibold text-neutral-800"
+            onClick={onRemove}
+            title="Remove field"
+            className={cn(
+              "flex size-6 shrink-0 items-center justify-center rounded text-neutral-500 transition-colors hover:bg-neutral-100 hover:text-neutral-800",
+              !expanded &&
+                "opacity-0 focus-visible:opacity-100 group-hover/field:opacity-100",
+            )}
           >
-            {field.label.trim() || "Input"}
+            <Trash className="size-3.5" />
           </button>
         </div>
-        <button
-          type="button"
-          onClick={onRemove}
-          title="Remove field"
-          className={cn(
-            "flex size-6 shrink-0 items-center justify-center rounded text-neutral-500 transition-colors hover:bg-neutral-100 hover:text-neutral-800",
-            !expanded &&
-              "opacity-0 focus-visible:opacity-100 group-hover/field:opacity-100",
-          )}
-        >
-          <Trash className="size-3.5" />
-        </button>
-      </div>
 
-      <motion.div
-        animate={{ height: expanded ? "auto" : 0 }}
-        transition={{ duration: 0.15 }}
-        initial={false}
-        className="overflow-hidden"
-      >
-        <LeadFormFieldSettings field={field} onChange={onChange} />
-      </motion.div>
+        <motion.div
+          animate={{ height: expanded ? "auto" : 0 }}
+          transition={{ duration: 0.15 }}
+          initial={false}
+          className="overflow-hidden"
+        >
+          {/* Animates the height when the settings change, e.g. a new type or option */}
+          <AnimatedSizeContainer
+            height
+            transition={{ duration: 0.15, ease: "easeOut" }}
+          >
+            <LeadFormFieldSettings field={field} onChange={onChange} />
+          </AnimatedSizeContainer>
+        </motion.div>
+      </div>
     </Reorder.Item>
   );
-});
+}
 
 function LeadFormFieldSettings({
   field,
@@ -254,13 +272,15 @@ function LeadFormFieldOptions({
             ),
           )
         }
-        className="flex flex-col gap-2"
+        // The items add their own bottom padding
+        className="-mb-2 flex flex-col empty:hidden"
       >
-        <AnimatePresence initial={false} mode="popLayout">
+        <AnimatePresence initial={false}>
           {options.map((option, index) => (
             <LeadFormFieldOption
               key={option.value}
               option={option}
+              index={index}
               onChange={(label) =>
                 onChange(
                   options.map((o, i) => (i === index ? { ...o, label } : o)),
@@ -283,55 +303,56 @@ function LeadFormFieldOptions({
   );
 }
 
-const LeadFormFieldOption = forwardRef<
-  HTMLLIElement,
-  {
-    option: LeadFormBuilderOption;
-    onChange: (label: string) => void;
-    onRemove: () => void;
-  }
->(function LeadFormFieldOption({ option, onChange, onRemove }, ref) {
+function LeadFormFieldOption({
+  option,
+  index,
+  onChange,
+  onRemove,
+}: {
+  option: LeadFormBuilderOption;
+  index: number;
+  onChange: (label: string) => void;
+  onRemove: () => void;
+}) {
   const controls = useDragControls();
 
   return (
     <Reorder.Item
-      ref={ref}
       value={option.value}
-      layout="position"
       dragListener={false}
       dragControls={controls}
-      className="group/option flex h-10 items-center gap-2 rounded-lg border border-neutral-200 bg-white pl-2 pr-1 focus-within:border-neutral-500"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      transition={{ duration: 0.15 }}
+      {...itemAnimation}
+      layoutDependency={index}
+      className="overflow-hidden pb-2"
     >
-      <div
-        onPointerDown={(e) => startDrag(e, controls)}
-        className="flex size-6 shrink-0 cursor-grab touch-none items-center justify-center rounded-lg text-neutral-800 hover:bg-neutral-200/50"
-        title="Drag to reorder"
-      >
-        <GripDotsVertical className="size-3.5" />
+      <div className="group/option flex h-10 items-center gap-2 rounded-lg border border-neutral-200 bg-white pl-2 pr-1 focus-within:border-neutral-500">
+        <div
+          onPointerDown={(e) => startDrag(e, controls)}
+          className="flex size-6 shrink-0 cursor-grab touch-none items-center justify-center rounded-lg text-neutral-800 hover:bg-neutral-200/50"
+          title="Drag to reorder"
+        >
+          <GripDotsVertical className="size-3.5" />
+        </div>
+        <input
+          type="text"
+          value={option.label}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder="Option"
+          maxLength={190}
+          className="min-w-0 flex-1 border-none p-0 text-sm text-neutral-800 placeholder-neutral-400 focus:outline-none focus:ring-0"
+        />
+        <button
+          type="button"
+          onClick={onRemove}
+          title="Remove option"
+          className="flex size-6 shrink-0 items-center justify-center rounded text-neutral-500 opacity-0 transition-colors hover:bg-neutral-100 hover:text-neutral-800 focus-visible:opacity-100 group-hover/option:opacity-100"
+        >
+          <Trash className="size-3.5" />
+        </button>
       </div>
-      <input
-        type="text"
-        value={option.label}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder="Option"
-        maxLength={190}
-        className="min-w-0 flex-1 border-none p-0 text-sm text-neutral-800 placeholder-neutral-400 focus:outline-none focus:ring-0"
-      />
-      <button
-        type="button"
-        onClick={onRemove}
-        title="Remove option"
-        className="flex size-6 shrink-0 items-center justify-center rounded text-neutral-500 opacity-0 transition-colors hover:bg-neutral-100 hover:text-neutral-800 focus-visible:opacity-100 group-hover/option:opacity-100"
-      >
-        <Trash className="size-3.5" />
-      </button>
     </Reorder.Item>
   );
-});
+}
 
 function SettingSwitch({
   label,

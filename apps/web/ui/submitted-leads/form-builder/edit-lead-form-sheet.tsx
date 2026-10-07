@@ -259,13 +259,15 @@ function EditLeadFormSheetForm({
                         keys.map((key) => fields.find((f) => f.key === key)!),
                       )
                     }
-                    className="flex flex-col gap-4 empty:hidden"
+                    // The cards add their own bottom padding
+                    className="-mb-4 flex flex-col empty:hidden"
                   >
-                    <AnimatePresence initial={false} mode="popLayout">
-                      {fields.map((field) => (
+                    <AnimatePresence initial={false}>
+                      {fields.map((field, index) => (
                         <LeadFormFieldCard
                           key={field.key}
                           field={field}
+                          index={index}
                           expanded={expandedKey === field.key}
                           error={errorKey === field.key}
                           onToggle={() =>
