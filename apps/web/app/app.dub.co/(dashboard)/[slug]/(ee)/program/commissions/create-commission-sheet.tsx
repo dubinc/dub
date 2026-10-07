@@ -914,7 +914,7 @@ function CreateCommissionSheetContent({
                                               !disabled && "cursor-pointer",
                                             )}
                                           >
-                                            Paid on {formatDate(inv.createdAt)}
+                                            {formatDate(inv.createdAt)}
                                           </label>
                                           {inv.refunded ? (
                                             <span className="rounded-md bg-neutral-200/80 px-1.5 py-0.5 text-xs text-neutral-500">
