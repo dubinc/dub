@@ -566,9 +566,9 @@ async function recordEvents(args: RecordEventsArgs) {
     });
 
     if (stripeInvoicesToImport === "all") {
-      // Filter out invoices that are already associated with a commission on Dub
+      // Skip invoices that already have a commission, and refunded invoices.
       stripeCustomerInvoices = stripeCustomerInvoices.filter(
-        (invoice) => !invoice.dubCommissionId,
+        (invoice) => !invoice.dubCommissionId && !invoice.refunded,
       );
     } else {
       const invoicesById = new Map(
@@ -595,6 +595,17 @@ async function recordEvents(args: RecordEventsArgs) {
         throw new DubApiError({
           code: "conflict",
           message: `There is already a commission for the invoices: ${importedInvoiceIds.join(", ")}`,
+        });
+      }
+
+      const refundedInvoiceIds = requestedInvoiceIds.filter(
+        (id) => invoicesById.get(id)!.refunded,
+      );
+
+      if (refundedInvoiceIds.length > 0) {
+        throw new DubApiError({
+          code: "bad_request",
+          message: `Refunded Stripe invoices cannot be imported: ${refundedInvoiceIds.join(", ")}`,
         });
       }
 
