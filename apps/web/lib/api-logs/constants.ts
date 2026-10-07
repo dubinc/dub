@@ -132,10 +132,21 @@ export const ROUTE_PATTERNS = [
   // OAuth
   "/oauth/apps/:appId",
   "/oauth/apps",
+  "/oauth/authorize",
 
   // Integrations
   "/integrations/uninstall",
   "/stripe/integration",
+  "/shopify/integration/callback",
+
+  // Fraud
+  "/fraud/rules",
+
+  // Audit logs
+  "/audit-logs/export",
+
+  // AI
+  "/ai/completion",
 
   // Workspaces
   "/workspaces/:id/users",
@@ -150,6 +161,13 @@ export const ROUTE_PATTERNS = [
   "/workspaces/:id/billing/payment-methods",
   "/workspaces/:id/billing/retry-payment",
   "/workspaces/:id/billing/upgrade",
+  "/workspaces/:id/import/bitly",
+  "/workspaces/:id/import/csv",
+  "/workspaces/:id/import/rebrandly",
+  "/workspaces/:id/import/short",
+  "/workspaces/:id/sitemaps/import",
+  "/workspaces/:id/support/slack-invite",
+  "/workspaces/:id/upload-url",
   "/workspaces/:id",
 ] as const;
 
