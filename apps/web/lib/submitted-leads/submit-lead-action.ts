@@ -147,6 +147,27 @@ export const submitLeadAction = authPartnerActionClient
 
       if (!fieldSchema) continue;
 
+      if (fieldSchema.type === "number") {
+        const { min, max } = fieldSchema.constraints ?? {};
+
+        if (
+          (min !== undefined && !(typeof value === "number" && value >= min)) ||
+          (max !== undefined && !(typeof value === "number" && value <= max))
+        ) {
+          const range =
+            min !== undefined && max !== undefined
+              ? `between ${min} and ${max}`
+              : min !== undefined
+                ? `at least ${min}`
+                : `at most ${max}`;
+
+          throw new DubApiError({
+            code: "bad_request",
+            message: `${fieldSchema.label} must be ${range}.`,
+          });
+        }
+      }
+
       customFormData.push({
         key,
         label: fieldSchema.label || key,
