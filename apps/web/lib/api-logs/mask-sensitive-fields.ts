@@ -20,11 +20,7 @@ export const SENSITIVE_RESPONSE_FIELDS_BY_ROUTE = {
   "/workspaces/:id/billing/upgrade": ["url", "id"],
   "/workspaces/:id/billing/payment-methods": ["url"],
   "/workspaces/:id/billing/manage": ["url"],
-  "/workspaces/:id/upload-url": ["signedUrl"],
   "/workspaces/:id": ["inviteCode"],
-  "/oauth/authorize": ["callbackUrl"],
-  "/domains/:domain/domain-connect/apply": ["applyUrl"],
-  "/email-domains/:domain/domain-connect/apply": ["applyUrl"],
 } as const;
 
 // Map of route pattern -> request body fields that should be masked before logging.
@@ -33,7 +29,6 @@ export const SENSITIVE_REQUEST_FIELDS_BY_ROUTE = {
   "/workspaces/:id/import/rebrandly": ["apiKey"],
   "/workspaces/:id/import/short": ["apiKey"],
   "/workspaces/:id": ["publishableKey"],
-  "/shopify/integration/callback": ["accessToken"],
 } as const;
 
 // Stripe-style partial mask: visible prefix through the last `_` (e.g. `sk_live_`),

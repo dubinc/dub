@@ -85,8 +85,6 @@ export const ROUTE_PATTERNS = [
   "/domains/:domain/primary",
   "/domains/:domain/transfer",
   "/domains/:domain/program",
-  "/domains/:domain/forward-instructions",
-  "/domains/:domain/domain-connect/apply",
   "/domains/:domain",
   "/domains",
 
@@ -124,29 +122,19 @@ export const ROUTE_PATTERNS = [
   "/discount-codes",
 
   // Email domains
-  "/email-domains/:domain/forward-instructions",
-  "/email-domains/:domain/domain-connect/apply",
   "/email-domains/:domain",
   "/email-domains",
 
   // OAuth
   "/oauth/apps/:appId",
   "/oauth/apps",
-  "/oauth/authorize",
 
   // Integrations
   "/integrations/uninstall",
   "/stripe/integration",
-  "/shopify/integration/callback",
 
   // Fraud
   "/fraud/rules",
-
-  // Audit logs
-  "/audit-logs/export",
-
-  // AI
-  "/ai/completion",
 
   // Workspaces
   "/workspaces/:id/users",
@@ -167,7 +155,6 @@ export const ROUTE_PATTERNS = [
   "/workspaces/:id/import/short",
   "/workspaces/:id/sitemaps/import",
   "/workspaces/:id/support/slack-invite",
-  "/workspaces/:id/upload-url",
   "/workspaces/:id",
 ] as const;
 
