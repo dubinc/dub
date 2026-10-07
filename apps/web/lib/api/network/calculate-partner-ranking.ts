@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { getNetworkPartnersQuerySchema } from "@/lib/zod/schemas/partner-network";
-import { ACME_PROGRAM_ID } from "@dub/utils";
+import { ACME_PROGRAM_ID, DEMO_PROGRAM_ID } from "@dub/utils";
 import { PlatformType, Prisma } from "@prisma/client";
 import * as z from "zod/v4";
 
@@ -160,7 +160,7 @@ export async function calculatePartnerRanking({
       FROM Partner p_filter_all
       WHERE ${buildDiscoverablePartnersFilter("p_filter_all")}
     )
-      AND pe_all.programId != ${ACME_PROGRAM_ID}
+      AND pe_all.programId NOT IN (${ACME_PROGRAM_ID}, ${DEMO_PROGRAM_ID})
       AND pe_all.totalConversions > 0
     GROUP BY pe_all.partnerId
   ) allProgramMetrics ON allProgramMetrics.partnerId = p.id`;

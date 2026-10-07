@@ -1,5 +1,9 @@
 import { DATE_RANGE_INTERVAL_PRESETS } from "@/lib/analytics/constants";
-import { CommissionStatus, CommissionType } from "@prisma/client";
+import {
+  CommissionSource,
+  CommissionStatus,
+  CommissionType,
+} from "@prisma/client";
 import * as z from "zod/v4";
 import { createCustomerBodySchema, CustomerSchema } from "./customers";
 import { trackLeadRequestSchema } from "./leads";
@@ -57,7 +61,7 @@ export const CommissionSchema = z.object({
     .record(z.string(), z.any())
     .nullable()
     .describe(
-      "User-provided metadata from the associated lead or sale event (`lead.metadata` / `sale.metadata`).",
+      "Metadata from the associated lead or sale event (`lead.metadata` / `sale.metadata`), or from Stripe webhook metadata.",
     ),
   createdAt: z
     .date()
@@ -90,6 +94,10 @@ export const CommissionEnrichedSchema = CommissionSchema.extend({
 // Schema for the commission detail page (GET /api/commissions/:commissionId)
 // TODO: Simplify this for OpenAPI and limit extra fields to in-app only – similar to getLinkInfoQuerySchemaExtended logic
 export const CommissionDetailSchema = CommissionEnrichedSchema.extend({
+  source: z
+    .enum(CommissionSource)
+    .nullable()
+    .describe("Where the commission originated."),
   user: UserSchema.nullish().describe("The user who created the commission."),
   reward: RewardSchema.pick({
     event: true,
@@ -133,9 +141,14 @@ export const getCommissionsQuerySchema = z
       .enum(CommissionType)
       .optional()
       .describe(
-        "Filter the list of commissions by type. " +
+        [
+          "Filter the list of commissions by type.",
           "Supports advanced filtering: single value, multiple values (comma-separated), or exclusion (prefix with `-`). " +
-          "Examples: `sale`, `sale,lead`, `-click`.",
+            "Examples:",
+          `- "sale"`,
+          `- "sale,lead"`,
+          `- "-click"`,
+        ].join("\n"),
       ),
     customerId: z
       .string()
@@ -145,13 +158,24 @@ export const getCommissionsQuerySchema = z
       .string()
       .optional()
       .describe("Filter the list of commissions by the associated payout."),
+    bountySubmissionId: z
+      .string()
+      .optional()
+      .describe(
+        "Filter the list of commissions by the associated bounty submission.",
+      ),
     partnerId: z
       .string()
       .optional()
       .describe(
-        "Filter the list of commissions by the associated partner. When specified, takes precedence over `tenantId`. " +
-          "Supports advanced filtering: single value, multiple values (comma-separated), or exclusion (prefix with `-`). " +
-          "Examples: `partner_abc`, `partner_abc,partner_xyz`, `-partner_abc`.",
+        [
+          "Filter the list of commissions by the associated partner. When specified, takes precedence over `tenantId`.",
+          "Supports advanced filtering: single value, multiple values (comma-separated), or exclusion (prefix with `-`).",
+          "Examples:",
+          `- "partner_abc"`,
+          `- "partner_abc,partner_xyz"`,
+          `- "-partner_abc"`,
+        ].join("\n"),
       ),
     tenantId: z
       .string()
@@ -163,17 +187,27 @@ export const getCommissionsQuerySchema = z
       .string()
       .optional()
       .describe(
-        "Filter the list of commissions by the associated partner group. " +
+        [
+          "Filter the list of commissions by the associated partner group.",
           "Supports advanced filtering: single value, multiple values (comma-separated), or exclusion (prefix with `-`). " +
-          "Examples: `group_abc`, `group_abc,group_xyz`, `-group_abc`.",
+            "Examples:",
+          `- "group_abc"`,
+          `- "group_abc,group_xyz"`,
+          `- "-group_abc"`,
+        ].join("\n"),
       ),
     partnerTagId: z
       .string()
       .optional()
       .describe(
-        "Filter the list of commissions by the associated partner tag. " +
-          "Supports advanced filtering: single value, multiple values (comma-separated), or exclusion (prefix with `-`). " +
-          "Examples: `ptag_abc`, `ptag_abc,ptag_xyz`, `-ptag_abc`.",
+        [
+          "Filter the list of commissions by the associated partner tag.",
+          "Supports advanced filtering: single value, multiple values (comma-separated), or exclusion (prefix with `-`).",
+          "Examples:",
+          `- "ptag_abc"`,
+          `- "ptag_abc,ptag_xyz"`,
+          `- "-ptag_abc"`,
+        ].join("\n"),
       ),
     invoiceId: z
       .string()
@@ -208,6 +242,18 @@ export const getCommissionsQuerySchema = z
       .optional()
       .describe("The end date of the date range to filter the commissions by."),
     timezone: z.string().optional(),
+    query: z
+      .string()
+      .max(10000)
+      .optional()
+      .meta({
+        description: [
+          "Filter by lead or sale event metadata. Top-level keys only. Compares string values only — numeric and boolean metadata values are not matched.",
+          "Examples:",
+          `- "metadata['key']='value'"`,
+          `- "metadata['key']!='value'"`,
+        ].join("\n"),
+      }),
   })
   .extend({
     ...getCursorPaginationQuerySchema({
@@ -454,6 +500,7 @@ export const createPartnerCommissionSchema = z.object({
   customerId: z.string().optional(),
   eventId: z.string().optional(),
   invoiceId: z.string().nullish(),
+  rewardId: z.string().optional(),
   amount: z.number().default(0).optional(),
   quantity: z.number().default(1),
   currency: z.string().optional(),
@@ -461,6 +508,7 @@ export const createPartnerCommissionSchema = z.object({
   createdAt: z.coerce.date().optional(),
   status: commissionPatchStatusSchema.optional(), // used for create-manual-commission (import commission as refunded)
   userId: z.string().optional(),
+  source: z.enum(CommissionSource).optional(),
   metadata: z.record(z.string(), z.any()).nullish(),
   context: rewardContextSchema.optional(),
   skipWorkflow: z.boolean().default(false).optional(),
@@ -593,19 +641,25 @@ const createSaleCommissionSchema = z
       .string()
       .nullish()
       .describe(
-        "The partner link ID to associate the commission with. If not provided, default to the link with the most revenue.",
+        "The partner link ID to associate the commission with. If neither `linkId` nor `discountCode` is provided, default to the link with the most revenue.",
       ),
-    importStripeInvoices: z
-      .boolean()
+    discountCode: z
+      .string()
+      .min(1)
       .nullish()
-      .default(false)
       .describe(
-        "When `true`, import all unimported paid Stripe invoices for the customer and create a commission for each. When `false`, create a single manual sale event using `sale.amount` (or deprecated `saleAmount`).",
+        "The partner discount code to resolve the associated link. Use this when the link ID is unknown. Cannot be provided together with `linkId`.",
+      ),
+    stripeInvoicesToImport: z
+      .union([z.literal("all"), z.array(z.string().min(1)).min(1).max(100)])
+      .nullish()
+      .describe(
+        "Import paid Stripe invoices for the customer and create a commission for each. Pass `all` to import every unimported, paid invoice, or an array of Stripe invoice IDs to import only those invoices. Refunded invoices are not imported. When not provided, create a single manual sale event using `sale.amount`",
       ),
     date: parseDateSchema
       .nullish()
       .describe(
-        "Only used when `importStripeInvoices` is `false`. The date of the manual sale event. Defaults to the current date and time if not provided.",
+        "Only used when `stripeInvoicesToImport` is not provided. The date of the manual sale event. Defaults to the current date and time if not provided.",
       ),
     sale: z
       .object({
@@ -625,6 +679,11 @@ const createSaleCommissionSchema = z
       .describe("The sale event object to associate the commission with."),
 
     // Deprecated fields
+    importStripeInvoices: z
+      .boolean()
+      .nullish()
+      .describe("Deprecated: Use `stripeInvoicesToImport: all` instead.")
+      .meta({ deprecated: true }),
     saleEventDate: parseDateSchema
       .nullish()
       .describe("Deprecated: Use `date` instead.")
@@ -646,7 +705,17 @@ const createSaleCommissionSchema = z
       .meta({ deprecated: true }),
   })
   .superRefine((data, ctx) => {
-    if (data.importStripeInvoices) {
+    if (data.stripeInvoicesToImport != null && data.importStripeInvoices) {
+      ctx.addIssue({
+        code: "custom",
+        message:
+          "`stripeInvoicesToImport` and `importStripeInvoices` cannot be provided together. Use `stripeInvoicesToImport` instead.",
+        path: ["importStripeInvoices"],
+      });
+      return;
+    }
+
+    if (data.stripeInvoicesToImport != null || data.importStripeInvoices) {
       const conflicts = [
         data.sale != null && "sale",
         data.date != null && "date",
@@ -659,8 +728,8 @@ const createSaleCommissionSchema = z
 
       if (conflicts.length > 0) {
         ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: `${conflicts.map((field) => `\`${field}\``).join(", ")} cannot be provided when \`importStripeInvoices\` is enabled.`,
+          code: "custom",
+          message: `${conflicts.map((field) => `\`${field}\``).join(", ")} cannot be provided when importing Stripe invoices.`,
           path: [conflicts[0]],
         });
       }
@@ -671,9 +740,9 @@ const createSaleCommissionSchema = z
 
     if (saleAmount == null) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: "custom",
         message:
-          "`sale.amount` or `saleAmount` is required when `importStripeInvoices` is false.",
+          "`sale.amount` or `saleAmount` is required when not importing Stripe invoices.",
         path: data.sale ? ["sale", "amount"] : ["saleAmount"],
       });
       return;
@@ -681,7 +750,7 @@ const createSaleCommissionSchema = z
 
     if (saleAmount === 0) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: "custom",
         message: "Sale amount cannot be 0.",
         path: data.sale?.amount != null ? ["sale", "amount"] : ["saleAmount"],
       });
@@ -704,6 +773,19 @@ export const createManualCommissionBodySchema = z
           path: ["description"],
         });
       }
+      return;
+    }
+
+    if (
+      data.type === "sale" &&
+      data.linkId != null &&
+      data.discountCode != null
+    ) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Either `linkId` or `discountCode` may be provided, not both.",
+        path: ["discountCode"],
+      });
     }
   });
 

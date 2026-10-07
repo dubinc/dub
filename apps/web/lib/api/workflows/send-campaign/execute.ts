@@ -4,6 +4,7 @@ import { resolveCampaignFromAddress } from "@/lib/email/parse-campaign-from-addr
 import { aggregatePartnerLinksStats } from "@/lib/partners/aggregate-partner-links-stats";
 import { prisma } from "@/lib/prisma";
 import { TiptapNode } from "@/lib/types";
+import { ACTIVE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
 import { WORKFLOW_ACTION_TYPES } from "@/lib/zod/schemas/workflows";
 import { sendBatchEmail } from "@dub/email";
 import CampaignEmail from "@dub/email/templates/campaign-email";
@@ -12,7 +13,6 @@ import {
   CommissionStatus,
   NotificationEmailType,
   Prisma,
-  ProgramEnrollmentStatus,
   Workflow,
 } from "@prisma/client";
 import { addHours, differenceInDays, subDays } from "date-fns";
@@ -326,7 +326,9 @@ function campaignAudienceWhere({
   partnerTagIds: string[];
 }) {
   return {
-    status: ProgramEnrollmentStatus.approved,
+    status: {
+      in: ACTIVE_ENROLLMENT_STATUSES,
+    },
     ...(groupIds.length > 0 && {
       groupId: {
         in: groupIds,

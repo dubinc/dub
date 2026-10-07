@@ -22,6 +22,32 @@ const schema = z.object({
   startingAfter: z.string().optional(),
 });
 
+type PendingApplicationSummaryRow = {
+  programId: string;
+  applicationId: string;
+  partnerId: string;
+  partnerName: string | null;
+  partnerEmail: string | null;
+  partnerImage: string | null;
+};
+
+type PendingApplicationSummaryPartner = {
+  id: string;
+  applicationId: string;
+  name: string | null;
+  email: string | null;
+  image: string | null;
+};
+
+type PendingApplicationSummaryRecipients = {
+  users: {
+    email: string;
+  }[];
+  workspace: {
+    slug: string;
+  };
+};
+
 // GET/POST /api/cron/pending-applications-summary
 // This route sends a daily summary of pending partner applications to program owners
 // Runs daily at 9:00 AM UTC
@@ -34,9 +60,10 @@ export const GET = withCron(async ({ rawBody }) => {
   const programs = await prisma.program.findMany({
     where: {
       deactivatedAt: null,
-      partners: {
+      applications: {
         some: {
           status: "pending",
+          partnerId: { not: null },
         },
       },
     },
@@ -68,71 +95,62 @@ export const GET = withCron(async ({ rawBody }) => {
 
   const programIds = programs.map((p) => p.id);
 
-  // Get top 3 pending enrollments per program using SQL window function
+  // Get top 3 pending applications per program using SQL window function
   // This efficiently gets only the top 3 from each program directly from the database
-  const topEnrollments = await prisma.$queryRaw<
-    Array<{
-      programId: string;
-      partnerId: string;
-      partnerName: string | null;
-      partnerEmail: string | null;
-      partnerImage: string | null;
-    }>
+  const topApplications = await prisma.$queryRaw<
+    PendingApplicationSummaryRow[]
   >(Prisma.sql`
-    SELECT 
-      pe.programId,
+    SELECT
+      pa.programId,
+      pa.id as applicationId,
       p.id as partnerId,
       p.name as partnerName,
       p.email as partnerEmail,
       p.image as partnerImage
     FROM (
-      SELECT 
+      SELECT
         id,
-        programId,
-        partnerId,
         ROW_NUMBER() OVER (PARTITION BY programId ORDER BY createdAt DESC) as rn
-      FROM ProgramEnrollment
+      FROM ProgramApplication
       WHERE programId IN (${Prisma.join(programIds)})
         AND status = 'pending'
+        AND partnerId IS NOT NULL
     ) ranked
-    INNER JOIN ProgramEnrollment pe ON pe.id = ranked.id
-    INNER JOIN Partner p ON p.id = pe.partnerId
+    INNER JOIN ProgramApplication pa ON pa.id = ranked.id
+    INNER JOIN Partner p ON p.id = pa.partnerId
     WHERE ranked.rn <= 3
-    ORDER BY pe.programId, pe.createdAt DESC
+    ORDER BY pa.programId, pa.createdAt DESC
   `);
 
-  // Group enrollments by programId
-  const enrollmentsByProgramMap = new Map<
+  // Group applications by programId
+  const applicationsByProgramMap = new Map<
     string,
-    Array<{
-      id: string;
-      name: string | null;
-      email: string | null;
-      image: string | null;
-    }>
+    PendingApplicationSummaryPartner[]
   >();
 
-  for (const enrollment of topEnrollments) {
-    const existing = enrollmentsByProgramMap.get(enrollment.programId) || [];
-    enrollmentsByProgramMap.set(enrollment.programId, [
+  for (const application of topApplications) {
+    const existing = applicationsByProgramMap.get(application.programId) || [];
+    applicationsByProgramMap.set(application.programId, [
       ...existing,
       {
-        id: enrollment.partnerId,
-        name: enrollment.partnerName,
-        email: enrollment.partnerEmail,
-        image: enrollment.partnerImage,
+        id: application.partnerId,
+        applicationId: application.applicationId,
+        name: application.partnerName,
+        email: application.partnerEmail,
+        image: application.partnerImage,
       },
     ]);
   }
 
-  // Get counts of pending enrollments per program
-  const pendingCounts = await prisma.programEnrollment.groupBy({
+  // Get counts of pending applications per program
+  const pendingCounts = await prisma.programApplication.groupBy({
     by: ["programId"],
     where: {
       programId: {
         in: programIds,
       },
       status: "pending",
+      partnerId: { not: null },
     },
     _count: true,
   });
@@ -176,14 +194,7 @@ export const GET = withCron(async ({ rawBody }) => {
   // create a map of programId -> workspace users
   const programWorkspaceUsersMap = new Map<
     string,
-    {
-      users: {
-        email: string;
-      }[];
-      workspace: {
-        slug: string;
-      };
-    }
+    PendingApplicationSummaryRecipients
   >();
 
   for (const workspaceUser of workspaceUsers) {
@@ -218,7 +229,7 @@ export const GET = withCron(async ({ rawBody }) => {
       continue;
     }
 
-    const pendingEnrollments = enrollmentsByProgramMap.get(program.id) || [];
+    const pendingApplications = applicationsByProgramMap.get(program.id) || [];
 
     const { users, workspace } = programWorkspaceUsersMap.get(program.id) || {};
 
@@ -234,7 +245,7 @@ export const GET = withCron(async ({ rawBody }) => {
         subject: `You have ${nFormatter(totalPendingApplications, { full: true })} partner ${pluralize("application", totalPendingApplications)} pending review`,
         react: PendingApplicationsSummary({
           email: user.email,
-          partners: pendingEnrollments,
+          partners: pendingApplications,
           totalCount: totalPendingApplications,
           date: new Date(),
           workspace: {

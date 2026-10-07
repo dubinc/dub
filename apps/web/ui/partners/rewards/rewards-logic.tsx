@@ -2,22 +2,24 @@
 
 import { constructRewardAmount } from "@/lib/api/sales/construct-reward-amount";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
-import { SUBMITTED_LEADS_ENABLED_PROGRAM_IDS } from "@/lib/submitted-leads/constants";
+import { getCustomerSourceAvailability } from "@/lib/rewards/get-customer-source-availability";
+import {
+  getConditionOperators,
+  isRewardConditionComplete,
+  suggestionTouchesField,
+} from "@/lib/rewards/validate-tooltip-suggestion";
+import useIntegrations from "@/lib/swr/use-integrations";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { RECURRING_MAX_DURATIONS } from "@/lib/zod/schemas/misc";
 import {
   CONDITION_OPERATOR_LABELS,
   CONDITION_OPERATORS,
-  DATE_CONDITION_OPERATORS,
-  ENUM_CONDITION_OPERATORS,
   METADATA_CONDITION_OPERATORS,
   METADATA_NUMBER_CONDITION_OPERATORS,
   METADATA_TEXT_CONDITION_OPERATORS,
-  NUMBER_CONDITION_OPERATORS,
   REWARD_CONDITIONS,
   RewardConditionEntityAttribute,
-  STRING_CONDITION_OPERATORS,
 } from "@/lib/zod/schemas/rewards";
 import { CountryFlag } from "@/ui/shared/country-flag";
 import { DurationPopoverContent } from "@/ui/shared/duration-popover-content";
@@ -31,6 +33,7 @@ import {
   InvoiceDollar,
   MoneyBills2,
   Popover,
+  TooltipContent,
   User,
   Users,
 } from "@dub/ui";
@@ -61,6 +64,12 @@ import {
 } from "../../shared/inline-badge-popover";
 import { useAddEditRewardForm } from "./add-edit-reward-sheet";
 import { RewardIconSquare } from "./reward-icon-square";
+import {
+  SuggestedFixBadge,
+  SuggestedFixNoticeBadge,
+  SuggestedFixPopoverHost,
+} from "./suggested-fix-popover";
+import { useRewardTooltipConsistencyContext } from "./use-reward-tooltip-consistency";
 
 export const REWARD_TYPES = [
   {
@@ -80,7 +89,7 @@ export function RewardsLogic({
 }) {
   const { plan } = useWorkspace();
 
-  const { control, getValues } = useAddEditRewardForm();
+  const { control, getValues, setValue } = useAddEditRewardForm();
 
   const {
     fields: modifierFields,
@@ -92,57 +101,63 @@ export function RewardsLogic({
   });
 
   return (
-    <div
-      className={cn("flex flex-col gap-2", !!modifierFields.length && "-mt-2")}
-    >
-      {modifierFields.map((field, index) => (
-        <ConditionalGroup
-          key={field.id}
-          index={index}
-          groupCount={modifierFields.length}
-          onRemove={() => removeModifier(index)}
-        />
-      ))}
-      <Button
-        className="h-8 rounded-lg"
-        icon={<ArrowTurnRight2 className="size-4" />}
-        text={
-          <div className="flex items-center gap-2">
-            <span>Add condition</span>
-            {!getPlanCapabilities(plan).canUseAdvancedRewardLogic && (
-              <div
-                className={cn(
-                  "rounded-sm px-1.5 py-1 text-[0.625rem] uppercase leading-none",
-                  isDefaultReward
-                    ? "bg-violet-500/50 text-violet-200"
-                    : "bg-violet-50 text-violet-600",
-                )}
-              >
-                Upgrade required
-              </div>
-            )}
-          </div>
-        }
-        onClick={() => {
-          const type = getValues("type");
+    <>
+      <SuggestedFixPopoverHost />
+      <div
+        className={cn(
+          "flex flex-col gap-2",
+          !!modifierFields.length && "-mt-2",
+        )}
+      >
+        {modifierFields.map((field, index) => (
+          <ConditionalGroup
+            key={field.id}
+            index={index}
+            groupCount={modifierFields.length}
+            onRemove={() => removeModifier(index)}
+          />
+        ))}
+        <Button
+          className="h-8 rounded-lg"
+          icon={<ArrowTurnRight2 className="size-4" />}
+          text={
+            <div className="flex items-center gap-2">
+              <span>Add condition</span>
+              {!getPlanCapabilities(plan).canUseAdvancedRewardLogic && (
+                <div
+                  className={cn(
+                    "rounded-sm px-1.5 py-1 text-[0.625rem] uppercase leading-none",
+                    isDefaultReward
+                      ? "bg-violet-500/50 text-violet-200"
+                      : "bg-violet-50 text-violet-600",
+                  )}
+                >
+                  Upgrade required
+                </div>
+              )}
+            </div>
+          }
+          onClick={() => {
+            const type = getValues("type");
 
-          appendModifier({
-            id: uuid(),
-            operator: "AND",
-            conditions: [{}],
-            amountInCents:
-              type === "flat" ? getValues("amountInCents") || 0 : undefined,
-            amountInPercentage:
-              type === "percentage"
-                ? getValues("amountInPercentage") || 0
-                : undefined,
-            type,
-            maxDuration: getValues("maxDuration"),
-          });
-        }}
-        variant={isDefaultReward ? "primary" : "secondary"}
-      />
-    </div>
+            appendModifier({
+              id: uuid(),
+              operator: "AND",
+              conditions: [{}],
+              amountInCents:
+                type === "flat" ? getValues("amountInCents") || 0 : undefined,
+              amountInPercentage:
+                type === "percentage"
+                  ? getValues("amountInPercentage") || 0
+                  : undefined,
+              type,
+              maxDuration: getValues("maxDuration"),
+            });
+          }}
+          variant={isDefaultReward ? "primary" : "secondary"}
+        />
+      </div>
+    </>
   );
 }
 
@@ -376,7 +391,14 @@ function ConditionLogic({
   conditionIndex: number;
   onRemove?: () => void;
 }) {
+  const { slug: workspaceSlug } = useWorkspace();
   const { program } = useProgram();
+  const { integrations } = useIntegrations({
+    swrOpts: {
+      dedupingInterval: 2000,
+      revalidateOnFocus: true,
+    },
+  });
   const modifierKey = `modifiers.${modifierIndex}` as const;
   const conditionKey = `${modifierKey}.conditions.${conditionIndex}` as const;
 
@@ -385,26 +407,48 @@ function ConditionLogic({
     control,
     name: ["event", conditionKey, `${modifierKey}.operator`],
   });
+  const suggestion = useRewardTooltipConsistencyContext()?.getSuggestion(
+    modifierIndex,
+    conditionIndex,
+  );
+  const highlightOperator = Boolean(
+    suggestion &&
+      suggestionTouchesField({
+        field: "operator",
+        current: condition ?? {},
+        suggested: suggestion.suggested,
+      }),
+  );
+  const highlightValue = Boolean(
+    suggestion &&
+      suggestionTouchesField({
+        field: "value",
+        current: condition ?? {},
+        suggested: suggestion.suggested,
+      }),
+  );
+
+  const [displayProductLabel, setDisplayProductLabel] = useState(false);
 
   const entities = REWARD_CONDITIONS[event].entities;
-  const entity = condition.entity
+  const entity = condition?.entity
     ? entities.find((e) => e.id === condition.entity)
     : undefined;
 
   const attribute =
-    entity && condition.attribute
+    entity && condition?.attribute
       ? entity.attributes.find((a) => a.id === condition.attribute)
       : undefined;
 
   const attributeType = attribute?.type ?? "string";
 
   const isMetadataCondition =
-    (condition.entity === "lead" || condition.entity === "sale") &&
-    condition.attribute === "metadata";
+    (condition?.entity === "lead" || condition?.entity === "sale") &&
+    condition?.attribute === "metadata";
 
   const isMetadataNumeric =
     isMetadataCondition &&
-    !!condition.operator &&
+    !!condition?.operator &&
     METADATA_NUMBER_CONDITION_OPERATORS.includes(condition.operator);
 
   const icon = entity
@@ -417,32 +461,23 @@ function ConditionLogic({
     : ArrowTurnRight2;
 
   const isArrayValue =
-    condition.operator === "in" || condition.operator === "not_in";
+    condition?.operator === "in" || condition?.operator === "not_in";
 
   const isContainsOperator =
-    condition.operator === "contains" || condition.operator === "not_contains";
-
-  const [displayProductLabel, setDisplayProductLabel] = useState(false);
+    condition?.operator === "contains" ||
+    condition?.operator === "not_contains";
 
   // Auto-set operator to "equals_to" for customer.source
   const isCustomerSourceCondition =
-    condition.entity === "customer" && condition.attribute === "source";
+    condition?.entity === "customer" && condition?.attribute === "source";
   const isSaleTypeCondition =
-    condition.entity === "sale" && condition.attribute === "type";
+    condition?.entity === "sale" && condition?.attribute === "type";
 
-  const availableConditionOperators: (typeof CONDITION_OPERATORS)[number][] =
-    attributeType === "metadata"
-      ? METADATA_CONDITION_OPERATORS
-      : ["number", "currency"].includes(attributeType)
-        ? NUMBER_CONDITION_OPERATORS
-        : attributeType === "enum"
-          ? ENUM_CONDITION_OPERATORS
-          : attributeType === "date"
-            ? DATE_CONDITION_OPERATORS
-            : STRING_CONDITION_OPERATORS;
+  const availableConditionOperators = getConditionOperators(attributeType);
 
   useEffect(() => {
     if (
+      condition &&
       isMetadataCondition &&
       condition.operator &&
       !METADATA_CONDITION_OPERATORS.includes(condition.operator)
@@ -461,7 +496,7 @@ function ConditionLogic({
     }
   }, [
     isMetadataCondition,
-    condition.operator,
+    condition?.operator,
     condition,
     conditionKey,
     setValue,
@@ -469,6 +504,7 @@ function ConditionLogic({
 
   useEffect(() => {
     if (
+      condition &&
       (isCustomerSourceCondition || isSaleTypeCondition) &&
       condition.operator !== "equals_to"
     ) {
@@ -486,11 +522,13 @@ function ConditionLogic({
   }, [
     isCustomerSourceCondition,
     isSaleTypeCondition,
-    condition.operator,
+    condition?.operator,
     condition,
     conditionKey,
     setValue,
   ]);
+
+  if (!condition) return null;
 
   return (
     <div className="flex w-full flex-col">
@@ -498,7 +536,7 @@ function ConditionLogic({
         <div className="flex items-center gap-1.5">
           <RewardIconSquare icon={icon} />
           <span className="text-content-emphasis font-medium leading-relaxed">
-            {conditionIndex === 0 ? "If" : capitalize(operator.toLowerCase())}{" "}
+            {conditionIndex === 0 ? "If" : capitalize(operator?.toLowerCase())}{" "}
             <InlineBadgePopover
               text={capitalize(condition.entity) || "Select item"}
               invalid={!condition.entity}
@@ -581,6 +619,13 @@ function ConditionLogic({
                 )}
                 {isCustomerSourceCondition || isSaleTypeCondition ? (
                   <span className="text-content-emphasis font-medium">is </span>
+                ) : highlightOperator && condition.operator ? (
+                  <SuggestedFixBadge
+                    text={CONDITION_OPERATOR_LABELS[condition.operator]}
+                    field="operator"
+                    modifierIndex={modifierIndex}
+                    conditionIndex={conditionIndex}
+                  />
                 ) : (
                   <InlineBadgePopover
                     text={
@@ -660,7 +705,22 @@ function ConditionLogic({
                 )}{" "}
                 {condition.operator && (
                   <>
-                    {attributeType === "date" && !isMetadataCondition ? (
+                    {highlightValue ? (
+                      <SuggestedFixBadge
+                        text={
+                          formatValue(
+                            condition.value,
+                            attribute,
+                            isMetadataCondition
+                              ? condition.operator
+                              : undefined,
+                          ) ?? "Value"
+                        }
+                        field="value"
+                        modifierIndex={modifierIndex}
+                        conditionIndex={conditionIndex}
+                      />
+                    ) : attributeType === "date" && !isMetadataCondition ? (
                       <DatePicker
                         value={
                           condition.value
@@ -709,6 +769,7 @@ function ConditionLogic({
                                     isNaN(Number(condition.value))
                                   : !condition.value
                         }
+                        align="center"
                         buttonClassName={cn(
                           condition.attribute === "productId" &&
                             "rounded-r-none",
@@ -759,29 +820,55 @@ function ConditionLogic({
                           // Select option selector
                           <InlineBadgePopoverMenu
                             search={attribute.options.length > 4}
+                            className={
+                              isCustomerSourceCondition ? "max-w-80" : undefined
+                            }
                             selectedValue={getConditionMenuSelectedValue(
                               condition.value,
                               isArrayValue,
                             )}
-                            items={attribute.options
-                              .filter(({ id }) => {
-                                if (
-                                  isCustomerSourceCondition &&
-                                  id === "submitted"
-                                ) {
-                                  return (
-                                    program &&
-                                    SUBMITTED_LEADS_ENABLED_PROGRAM_IDS.includes(
-                                      program.id,
-                                    )
-                                  );
-                                }
-                                return true;
-                              })
-                              .map(({ id, label }) => ({
-                                text: label,
-                                value: id,
-                              }))}
+                            items={attribute.options.flatMap(
+                              ({ id, label, description, icon }) => {
+                                const { hidden, missingIntegration } =
+                                  isCustomerSourceCondition
+                                    ? getCustomerSourceAvailability({
+                                        source: id,
+                                        programId: program?.id,
+                                        installedIntegrationIds:
+                                          integrations?.map(({ id }) => id),
+                                      })
+                                    : {
+                                        hidden: false,
+                                        missingIntegration: undefined,
+                                      };
+
+                                if (hidden) return [];
+
+                                return {
+                                  text: label,
+                                  value: id,
+                                  description,
+                                  disabledTooltip: missingIntegration && (
+                                    <TooltipContent
+                                      title={`This option requires the ${missingIntegration.name} integration.`}
+                                      cta={`Install ${missingIntegration.name} integration`}
+                                      href={`/${workspaceSlug}/settings/integrations/${missingIntegration.slug}`}
+                                      target="_blank"
+                                    />
+                                  ),
+                                  icon: icon ? (
+                                    <img
+                                      src={icon}
+                                      alt=""
+                                      className={cn(
+                                        "size-4 shrink-0 rounded-full",
+                                        description && "mt-0.5",
+                                      )}
+                                    />
+                                  ) : undefined,
+                                };
+                              },
+                            )}
                             onSelect={(value) => {
                               setValue(conditionKey, {
                                 ...condition,
@@ -972,6 +1059,58 @@ function OperatorDropdown({ modifierIndex }: { modifierIndex: number }) {
   );
 }
 
+function payoutMatchesBase({
+  event,
+  type,
+  amountInCents,
+  amountInPercentage,
+  maxDuration,
+  parentType,
+  parentAmountInCents,
+  parentAmountInPercentage,
+  parentMaxDuration,
+}: {
+  event?: string | null;
+  type?: string | null;
+  amountInCents?: number | null;
+  amountInPercentage?: number | null;
+  maxDuration?: number | null;
+  parentType?: string | null;
+  parentAmountInCents?: number | null;
+  parentAmountInPercentage?: number | null;
+  parentMaxDuration?: number | null;
+}) {
+  const displayType =
+    type === "flat" || type === "percentage" ? type : parentType;
+
+  if (displayType !== "flat" && displayType !== "percentage") return false;
+  if (displayType !== parentType) return false;
+
+  const amount =
+    displayType === "percentage" ? amountInPercentage : amountInCents;
+  const parentAmount =
+    parentType === "percentage"
+      ? parentAmountInPercentage
+      : parentAmountInCents;
+
+  if (typeof amount !== "number" || !Number.isFinite(amount)) return false;
+  if (typeof parentAmount !== "number" || !Number.isFinite(parentAmount)) {
+    return false;
+  }
+  if (amount !== parentAmount) return false;
+  if (event !== "sale") return true;
+
+  const duration = maxDuration !== undefined ? maxDuration : parentMaxDuration;
+  const currentDuration =
+    duration == null || !Number.isFinite(duration) ? null : duration;
+  const baseDuration =
+    parentMaxDuration == null || !Number.isFinite(parentMaxDuration)
+      ? null
+      : parentMaxDuration;
+
+  return currentDuration === baseDuration;
+}
+
 function ResultTerms({ modifierIndex }: { modifierIndex: number }) {
   const modifierKey = `modifiers.${modifierIndex}` as const;
 
@@ -983,7 +1122,10 @@ function ResultTerms({ modifierIndex }: { modifierIndex: number }) {
     maxDuration,
     event,
     parentType,
+    parentAmountInCents,
+    parentAmountInPercentage,
     parentMaxDuration,
+    conditions,
   ] = useWatch({
     control,
     name: [
@@ -993,9 +1135,15 @@ function ResultTerms({ modifierIndex }: { modifierIndex: number }) {
       `${modifierKey}.maxDuration`,
       "event",
       "type",
+      "amountInCents",
+      "amountInPercentage",
       "maxDuration",
+      `${modifierKey}.conditions`,
     ],
   });
+  const [dismissedRedundantPayout, setDismissedRedundantPayout] =
+    useState(false);
+  const [flagPayout, setFlagPayout] = useState(false);
 
   // Use parent values as fallbacks if modifier doesn't have type or maxDuration
   const displayType = type || parentType;
@@ -1003,6 +1151,66 @@ function ResultTerms({ modifierIndex }: { modifierIndex: number }) {
     maxDuration !== undefined ? maxDuration : parentMaxDuration;
 
   const amount = displayType === "flat" ? amountInCents : amountInPercentage;
+  const redundantPayout = payoutMatchesBase({
+    event,
+    type,
+    amountInCents,
+    amountInPercentage,
+    maxDuration,
+    parentType,
+    parentAmountInCents,
+    parentAmountInPercentage,
+    parentMaxDuration,
+  });
+  const conditionsComplete =
+    !!event &&
+    !!conditions?.length &&
+    conditions.every((condition) =>
+      isRewardConditionComplete({ event, condition }),
+    );
+  const flagKey =
+    redundantPayout && conditionsComplete && !dismissedRedundantPayout
+      ? JSON.stringify({
+          amountInCents,
+          amountInPercentage,
+          type,
+          maxDuration,
+          parentAmountInCents,
+          parentAmountInPercentage,
+          parentType,
+          parentMaxDuration,
+          conditions,
+        })
+      : null;
+
+  useEffect(() => {
+    if (!redundantPayout) setDismissedRedundantPayout(false);
+  }, [redundantPayout]);
+
+  useEffect(() => {
+    setFlagPayout(false);
+
+    if (!flagKey) return;
+
+    const timeout = window.setTimeout(() => setFlagPayout(true), 5000);
+
+    return () => window.clearTimeout(timeout);
+  }, [flagKey]);
+  const amountLabel =
+    amount != null && !isNaN(amount)
+      ? constructRewardAmount({
+          type: displayType,
+          amountInCents: displayType === "flat" ? amount * 100 : undefined,
+          amountInPercentage: displayType === "percentage" ? amount : undefined,
+          maxDuration: displayMaxDuration,
+        })
+      : "amount";
+  const durationLabel =
+    displayMaxDuration === 0
+      ? "one time"
+      : displayMaxDuration === Infinity
+        ? "for the customer's lifetime"
+        : `for ${displayMaxDuration} ${pluralize("month", Number(displayMaxDuration))}`;
 
   return (
     <span className="leading-relaxed">
@@ -1024,36 +1232,25 @@ function ResultTerms({ modifierIndex }: { modifierIndex: number }) {
           {displayType === "percentage" && "of "}
         </>
       )}
-      <InlineBadgePopover
-        text={
-          amount != null && !isNaN(amount)
-            ? constructRewardAmount({
-                type: displayType,
-                amountInCents:
-                  displayType === "flat" ? amount * 100 : undefined,
-                amountInPercentage:
-                  displayType === "percentage" ? amount : undefined,
-                maxDuration: displayMaxDuration,
-              })
-            : "amount"
-        }
-        invalid={amount == null || isNaN(amount)}
-      >
-        <ResultAmountInput modifierKey={modifierKey} />
-      </InlineBadgePopover>{" "}
+      {flagPayout ? (
+        <SuggestedFixNoticeBadge
+          text={amountLabel}
+          message="This pays the same as the default reward, so it doesn't change what partners earn."
+          onDiscard={() => setDismissedRedundantPayout(true)}
+        />
+      ) : (
+        <InlineBadgePopover
+          text={amountLabel}
+          invalid={amount == null || isNaN(amount)}
+        >
+          <ResultAmountInput modifierKey={modifierKey} />
+        </InlineBadgePopover>
+      )}{" "}
       per {event}
       {event === "sale" && (
         <>
           {" "}
-          <InlineBadgePopover
-            text={
-              displayMaxDuration === 0
-                ? "one time"
-                : displayMaxDuration === Infinity
-                  ? "for the customer's lifetime"
-                  : `for ${displayMaxDuration} ${pluralize("month", Number(displayMaxDuration))}`
-            }
-          >
+          <InlineBadgePopover text={durationLabel}>
             <DurationPopoverContent
               value={displayMaxDuration ?? undefined}
               onChange={(value) =>

@@ -308,13 +308,13 @@ const partnerEnrolledTemplate = ({
   };
 };
 
-const partnerApplicationSubmittedTemplate = ({
+const programApplicationSubmittedTemplate = ({
   data,
 }: {
   data: PartnerApplicationWebhookPayload;
 }) => {
   const { partner } = data;
-  const hrefToApplicationPage = `${APP_DOMAIN}/program/partners/applications?partnerId=${partner.id}`;
+  const hrefToApplicationPage = `${APP_DOMAIN}/program/partners/applications?applicationId=${data.id}`;
 
   return {
     blocks: [
@@ -708,7 +708,8 @@ const slackTemplates: Record<WebhookTrigger, any> = {
   "sale.created": saleCreatedTemplate,
   "partner.enrolled": partnerEnrolledTemplate,
   "partner.merged": partnerMergedTemplate,
-  "partner.application_submitted": partnerApplicationSubmittedTemplate,
+  "partner.application_submitted": programApplicationSubmittedTemplate,
+  "program_application.created": programApplicationSubmittedTemplate,
   "commission.created": commissionCreatedTemplate,
   "bounty.created": bountyTemplates,
   "bounty.updated": bountyTemplates,

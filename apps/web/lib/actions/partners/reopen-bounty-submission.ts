@@ -4,6 +4,7 @@ import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { prisma } from "@/lib/prisma";
 import { BountySubmissionSchema } from "@/lib/zod/schemas/bounties";
+import { BountySubmissionStatus } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
 import { authActionClient } from "../safe-action";
@@ -37,7 +38,6 @@ export const reopenBountySubmissionAction = authActionClient
           program: true,
           bounty: true,
           partner: true,
-          commission: true,
         },
       });
 
@@ -47,6 +47,12 @@ export const reopenBountySubmissionAction = authActionClient
 
     if (bountySubmission.status === "approved") {
       throw new Error("Bounty submission has already been approved.");
+    }
+
+    if (bountySubmission.status === BountySubmissionStatus.partiallyApproved) {
+      throw new Error(
+        "Bounty submission has approved milestones and cannot be reopened.",
+      );
     }
 
     await prisma.bountySubmission.update({
@@ -63,24 +69,19 @@ export const reopenBountySubmissionAction = authActionClient
     });
 
     waitUntil(
-      Promise.allSettled([
-        recordAuditLog({
-          workspaceId: workspace.id,
-          programId: program.id,
-          action: "bounty_submission.reopened",
-          description: `Bounty submission reopened for ${partner.id}`,
-          actor: user,
-          targets: [
-            {
-              type: "bounty_submission",
-              id: submissionId,
-              metadata: BountySubmissionSchema.parse(bountySubmission),
-            },
-          ],
-        }),
-
-        // Email notification can be added later if needed
-        Promise.resolve(),
-      ]),
+      recordAuditLog({
+        workspaceId: workspace.id,
+        programId: program.id,
+        action: "bounty_submission.reopened",
+        description: `Bounty submission reopened for ${partner.id}`,
+        actor: user,
+        targets: [
+          {
+            type: "bounty_submission",
+            id: submissionId,
+            metadata: BountySubmissionSchema.parse(bountySubmission),
+          },
+        ],
+      }),
     );
   });

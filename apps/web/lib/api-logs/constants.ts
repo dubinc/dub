@@ -4,6 +4,7 @@ import {
   HUBSPOT_INTEGRATION_ID,
   INTERCOM_INTEGRATION_ID,
   SHOPIFY_INTEGRATION_ID,
+  SINGULAR_INTEGRATION_ID,
   STRIPE_INTEGRATION_ID,
 } from "@dub/utils";
 
@@ -23,8 +24,13 @@ export const ROUTE_PATTERNS = [
   "/track/open",
   ...PUBLISHABLE_KEY_REQUEST_PATHS,
 
+  // Program applications
+  "/program-applications/approve",
+  "/program-applications/reject",
+
   // Partners
   "/partners/links/upsert",
+  "/partners/links/:linkId",
   "/partners/links",
   "/partners/applications/approve",
   "/partners/applications/reject",
@@ -221,7 +227,13 @@ export const WEBHOOK_REQUEST_ACTORS_BY_PATH = {
     id: INTERCOM_INTEGRATION_ID,
     name: "Intercom",
     image:
-      "https://dubassets.com/integrations/int_ffw3qgrFAahY6qs1hXaH3wHS_JPoCPOh",
+      "https://dubassets.com/integrations/int_1KV6R1E61E0044C0VFQKV2Q6K_PfbSFTk",
+  },
+  "/singular/webhook": {
+    id: SINGULAR_INTEGRATION_ID,
+    name: "Singular",
+    image:
+      "https://dubassets.com/integrations/int_1K0F60E21R1F43ZBNES3RG81P_JjFaAI8",
   },
 } as const;
 

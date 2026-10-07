@@ -157,7 +157,10 @@ import {
   payoutsCountQuerySchema,
   payoutsQuerySchema,
 } from "./zod/schemas/payouts";
-import { PartnerApplicationSchema } from "./zod/schemas/program-application";
+import {
+  PartnerApplicationSchema,
+  ProgramApplicationSchema,
+} from "./zod/schemas/program-application";
 import {
   programApplicationFormDataWithValuesSchema,
   programApplicationFormFieldWithValuesSchema,
@@ -179,6 +182,7 @@ import {
 } from "./zod/schemas/programs";
 import {
   CUSTOMER_SOURCES,
+  customRewardConfigSchema,
   rewardConditionsArraySchema,
   rewardConditionSchema,
   rewardConditionsSchema,
@@ -192,6 +196,7 @@ import {
 import { fraudEventContext } from "./zod/schemas/schemas";
 import { submittedLeadFormDataSchema } from "./zod/schemas/submitted-lead-form";
 import {
+  SubmittedLeadCommentSchema,
   submittedLeadSchema,
   updateSubmittedLeadStatusSchema,
 } from "./zod/schemas/submitted-leads";
@@ -277,7 +282,8 @@ export type PlanProps = (typeof plans)[number];
 
 export type BetaFeatures =
   | "analyticsSettingsSiteVisitTracking"
-  | "noProrationUpgrade";
+  | "noProrationUpgrade"
+  | "rewardSpendLimit";
 
 export type PartnerBetaFeatures = "postbacks";
 
@@ -515,6 +521,7 @@ export type PartnerSharedPlatformProps = z.infer<
 export type PartnerProps = z.infer<typeof PartnerSchema> & {
   role: PartnerRole;
   userId: string;
+  usersLimit: number;
   platforms: PartnerPlatformProps[];
   defaultPayoutMethod: PartnerPayoutMethod | null;
   tremendousEmail: string | null;
@@ -543,6 +550,8 @@ export type EnrolledPartnerProps = z.infer<typeof EnrolledPartnerSchema> & {
 };
 
 export type PartnerApplicationProps = z.infer<typeof PartnerApplicationSchema>;
+
+export type ProgramApplicationProps = z.infer<typeof ProgramApplicationSchema>;
 
 export type NetworkPartnerProps = z.infer<typeof NetworkPartnerSchema>;
 
@@ -649,6 +658,8 @@ export type FolderSummary = Pick<
 >;
 
 export type RewardProps = z.infer<typeof RewardSchema>;
+
+export type CustomRewardConfig = z.infer<typeof customRewardConfigSchema>;
 
 export type CreatePartnerProps = z.infer<typeof createPartnerSchema>;
 
@@ -808,6 +819,10 @@ export type CreateFraudEventInput = Pick<
   };
 
 export type SubmittedLeadProps = z.infer<typeof submittedLeadSchema>;
+
+export type SubmittedLeadCommentProps = z.infer<
+  typeof SubmittedLeadCommentSchema
+>;
 
 export type SubmittedLeadFormDataField = z.infer<
   typeof submittedLeadFormDataSchema

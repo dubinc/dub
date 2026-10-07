@@ -38,3 +38,6 @@ export const INFINITY_NUMBER = 1000000000;
 
 export const DUPLICATE_IDENTITY_DECLINE_REASON =
   "This identity has already been verified on another account.";
+
+// Days a partner must wait before re-applying after a "standard" program application rejection
+export const STANDARD_REAPPLICATION_DAYS = 30;

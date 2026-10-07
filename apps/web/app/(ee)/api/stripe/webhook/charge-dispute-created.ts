@@ -70,6 +70,15 @@ export async function chargeDisputeCreated(
     `Added legal user ${LEGAL_USER_ID} as owner to workspace ${workspace.id}`,
   );
 
+  await prisma.project.update({
+    where: {
+      id: workspace.id,
+    },
+    data: {
+      disabledAt: new Date(),
+    },
+  });
+
   await addToStripeFraudValueLists({
     customerId: customer.id,
     customerEmail: customer.email,

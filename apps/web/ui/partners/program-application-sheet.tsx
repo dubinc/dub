@@ -4,10 +4,7 @@ import { parseActionError } from "@/lib/actions/parse-action-errors";
 import { createProgramApplicationAction } from "@/lib/actions/partners/create-program-application";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { ProgramEnrollmentProps, ProgramProps } from "@/lib/types";
-import {
-  DEFAULT_PARTNER_GROUP,
-  PartnerProgramGroupSchema,
-} from "@/lib/zod/schemas/groups";
+import { PartnerProgramGroupSchema } from "@/lib/zod/schemas/groups";
 import { createProgramApplicationSchema } from "@/lib/zod/schemas/programs";
 import { X } from "@/ui/shared/icons";
 import {
@@ -55,24 +52,11 @@ function ProgramApplicationSheetContent({
   programEnrollment,
   ...rest
 }: ProgramApplicationSheetProps) {
-  const groupIdOrSlug =
-    programEnrollment?.groupId ||
-    program?.defaultGroupId ||
-    DEFAULT_PARTNER_GROUP.slug;
-
-  const {
-    data: group,
-    isLoading: isGroupLoading,
-    error: groupError,
-  } = useSWR<z.infer<typeof PartnerProgramGroupSchema>>(
-    groupIdOrSlug
-      ? `/api/partner-profile/programs/${program.id}/groups/${groupIdOrSlug}`
-      : null,
-    fetcher,
-    {
-      keepPreviousData: true,
-    },
-  );
+  const { data: group, error: groupError } = useSWR<
+    z.infer<typeof PartnerProgramGroupSchema>
+  >(`/api/partner-profile/programs/${program.id}/default-group`, fetcher, {
+    keepPreviousData: true,
+  });
 
   return group ? (
     <ProgramApplicationSheetForm

@@ -131,6 +131,17 @@ export const ProgramPartnerLinkSchema = LinkSchema.pick({
   saleAmount: true,
 });
 
+// Internal-only fields used by the Dub UI.
+// These fields are not exposed through the public API.
+export const ProgramPartnerLinkSchemaInternal = ProgramPartnerLinkSchema.extend(
+  {
+    clickReward: z.string().nullable().default(null),
+    leadReward: z.string().nullable().default(null),
+    saleReward: z.string().nullable().default(null),
+    discount: z.string().nullable().default(null),
+  },
+);
+
 export const ProgramEnrollmentApplicationSchema = z.object({
   rejectionReason: z
     .enum(ProgramApplicationRejectionReason)
@@ -171,6 +182,7 @@ export const ProgramEnrollmentSchema = z.object({
   leadRewardId: z.string().nullish(),
   saleRewardId: z.string().nullish(),
   referralRewardId: z.string().nullish(),
+  customRewardId: z.string().nullish(),
   discount: DiscountSchema.nullish(),
   discountId: z.string().nullish(),
   applicationId: z

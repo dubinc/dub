@@ -1,6 +1,8 @@
 "use server";
 
+import { queuePartnerSearchSync } from "@/lib/api/partners/queue-partner-search-sync";
 import { prisma } from "@/lib/prisma";
+import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
 import { authPartnerActionClient } from "../safe-action";
 
@@ -14,7 +16,7 @@ export const declineProgramInviteAction = authPartnerActionClient
     const { partner } = ctx;
     const { programId } = parsedInput;
 
-    await prisma.programEnrollment.update({
+    const enrollment = await prisma.programEnrollment.update({
       where: {
         partnerId_programId: {
           partnerId: partner.id,
@@ -26,4 +28,7 @@ export const declineProgramInviteAction = authPartnerActionClient
         status: "declined",
       },
     });
+
+    // Queue an index update because the enrollment status moved to declined.
+    waitUntil(queuePartnerSearchSync({ enrollmentIds: [enrollment.id] }));
   });

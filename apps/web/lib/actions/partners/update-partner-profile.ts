@@ -1,10 +1,12 @@
 "use server";
 
 import { DubApiError } from "@/lib/api/errors";
+import { queuePartnerSearchSync } from "@/lib/api/partners/queue-partner-search-sync";
 import { throwIfNoPermission } from "@/lib/auth/partner-users/throw-if-no-permission";
 import { requestEmailChange } from "@/lib/auth/request-email-change";
 import { qstash } from "@/lib/cron";
 import { isReservedUsername } from "@/lib/edge-config";
+import { dispatchGroupUtmSyncForPartner } from "@/lib/partners/dispatch-partner-utm-sync";
 import {
   assertEmailAvailableForIdentitySync,
   requestSyncedEmailChange,
@@ -12,7 +14,8 @@ import {
 } from "@/lib/partners/sync-partner-identity";
 import { prisma } from "@/lib/prisma";
 import { storage } from "@/lib/storage";
-import { ratelimit } from "@/lib/upstash";
+import { assertRateLimit } from "@/lib/upstash/assert-rate-limit";
+import { RATELIMIT_POLICIES } from "@/lib/upstash/ratelimit-policies";
 import { partnerProfileChangeHistoryLogSchema } from "@/lib/zod/schemas/partner-profile";
 import {
   MAX_PARTNER_DESCRIPTION_LENGTH,
@@ -110,17 +113,10 @@ export const updatePartnerProfileAction = authPartnerActionClient
     }
 
     if (username && username !== partner.username) {
-      const { success } = await ratelimit(5, "1 h").limit(
-        `partner-profile:username-update:${partner.id}`,
-      );
-
-      if (!success) {
-        throw new DubApiError({
-          code: "rate_limit_exceeded",
-          message:
-            "You've updated your username too many times. Please try again later.",
-        });
-      }
+      await assertRateLimit({
+        policy: RATELIMIT_POLICIES.partnerUsernameUpdate,
+        identifier: partner.id,
+      });
 
       if (!validSlugRegex.test(username) || RESERVED_SLUGS.includes(username)) {
         throw new Error("Invalid username");
@@ -185,6 +181,10 @@ export const updatePartnerProfileAction = authPartnerActionClient
           }),
         },
       });
+
+      // Queue an index update because the partner profile changed. Not scoped
+      // by program, since a profile is shared across them.
+      waitUntil(queuePartnerSearchSync({ partnerIds: [partner.id] }));
 
       // If the email is being changed, we need to verify the new email address
       if (emailChanged) {
@@ -255,6 +255,10 @@ export const updatePartnerProfileAction = authPartnerActionClient
 
       waitUntil(
         Promise.allSettled([
+          partner.name !== updatedPartner.name
+            ? dispatchGroupUtmSyncForPartner(partner.id)
+            : undefined,
+
           (async () => {
             const shouldExpireCache = !deepEqual(
               {

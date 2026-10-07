@@ -3,26 +3,50 @@ import { createLink, processLink } from "@/lib/api/links";
 import { validatePartnerLinkUrl } from "@/lib/api/links/validate-partner-link-url";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
-import { extractUtmParams } from "@/lib/api/utm/extract-utm-params";
+import { applyGroupUtmToLink } from "@/lib/api/utm/apply-group-utm-to-link";
 import { withPartnerProfile } from "@/lib/auth/partner";
 import { prisma } from "@/lib/prisma";
+import { getResolvedPartnerLinkRewards } from "@/lib/rewards/get-resolved-partner-link-rewards";
 import { PartnerProfileLinkSchema } from "@/lib/zod/schemas/partner-profile";
 import {
   createPartnerLinkSchema,
   INACTIVE_ENROLLMENT_STATUSES,
 } from "@/lib/zod/schemas/partners";
-import { getUTMParamsFromURL } from "@dub/utils";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 
 // GET /api/partner-profile/programs/[programId]/links - get a partner's links in a program
 export const GET = withPartnerProfile(async ({ partner, params }) => {
-  const { links, discountCodes } = await getProgramEnrollmentOrThrow({
+  const {
+    links,
+    discountCodes,
+    clickReward,
+    leadReward,
+    saleReward,
+    customReward,
+    discount,
+  } = await getProgramEnrollmentOrThrow({
     partnerId: partner.id,
     programId: params.programId,
     include: {
-      links: true,
       discountCodes: true,
+      clickReward: true,
+      leadReward: true,
+      saleReward: true,
+      customReward: true,
+      discount: true,
+      links: {
+        include: {
+          linkReward: {
+            include: {
+              clickReward: true,
+              leadReward: true,
+              saleReward: true,
+              discount: true,
+            },
+          },
+        },
+      },
     },
   });
 
@@ -31,11 +55,19 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
     discountCodes?.map((discountCode) => [discountCode.linkId, discountCode]),
   );
 
+  const enrollmentRewards = [clickReward, leadReward, saleReward, customReward];
+
   const result = links.map((link) => {
     const discountCode = linksByDiscountCode.get(link.id);
+    const resolvedRewards = getResolvedPartnerLinkRewards({
+      linkReward: link.linkReward,
+      enrollmentRewards,
+      enrollmentDiscount: discount,
+    });
 
     return {
       ...link,
+      ...resolvedRewards,
       discountCode: discountCode?.code,
       discountCodeDisabledAt: discountCode?.disabledAt ?? null,
     };
@@ -115,12 +147,6 @@ export const POST = withPartnerProfile(
         domain: program.domain,
         key: key || undefined,
         url: linkUrl,
-        ...(groupUtmTemplate
-          ? {
-              ...extractUtmParams(groupUtmTemplate),
-              ...getUTMParamsFromURL(linkUrl),
-            }
-          : {}),
         programId: program.id,
         tenantId,
         partnerId: partner.id,
@@ -146,7 +172,13 @@ export const POST = withPartnerProfile(
       });
     }
 
-    const partnerLink = await createLink(link);
+    const linkWithUtm = applyGroupUtmToLink({
+      link,
+      utmTemplate: groupUtmTemplate,
+      partnerName: partner.name,
+    });
+
+    const partnerLink = await createLink(linkWithUtm);
 
     return NextResponse.json(PartnerProfileLinkSchema.parse(partnerLink), {
       status: 201,

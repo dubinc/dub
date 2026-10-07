@@ -32,6 +32,9 @@ export const TEST_WORKSPACE = {
     domain: "playwright-api.dub-internal-test.com",
     url: "https://example.com",
   },
+  shopify: {
+    storeId: "playwright-api.myshopify.com",
+  },
 } as const;
 
 export const TEST_COMMISSION_REWARDS = {
@@ -134,6 +137,7 @@ export async function setupTestWorkspace() {
       aiLimit: 1000,
       partnersLimit: 1000,
       groupsLimit: 100,
+      shopifyStoreId: TEST_WORKSPACE.shopify.storeId,
     },
     create: {
       id: createId({ prefix: "ws_" }),
@@ -150,6 +154,7 @@ export async function setupTestWorkspace() {
       aiLimit: 1000,
       partnersLimit: 1000,
       groupsLimit: 100,
+      shopifyStoreId: TEST_WORKSPACE.shopify.storeId,
     },
   });
 
@@ -332,9 +337,13 @@ async function setupTestProgram({
           create: {
             id,
             programId: program.id,
+            groupId: program.defaultGroupId,
             ...data,
           },
-          update: data,
+          update: {
+            ...data,
+            groupId: program.defaultGroupId,
+          },
         });
       },
     ),

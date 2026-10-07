@@ -2,7 +2,7 @@ import { DATE_RANGE_INTERVAL_PRESETS } from "@/lib/analytics/constants";
 import * as z from "zod/v4";
 
 export const usageQuerySchema = z.object({
-  resource: z.enum(["links", "events", "revenue"]),
+  resource: z.enum(["links", "events", "payouts"]),
   folderId: z.string().optional(),
   domain: z.string().optional(),
   groupBy: z.enum(["folder_id", "domain"]).optional(),

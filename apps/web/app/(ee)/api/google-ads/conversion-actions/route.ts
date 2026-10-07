@@ -2,7 +2,7 @@ import { DubApiError } from "@/lib/api/errors";
 import { withWorkspace } from "@/lib/auth";
 import {
   GoogleAdsApi,
-  inferLoginCustomerId,
+  getLoginCustomerIdCandidates,
 } from "@/lib/integrations/google-ads/api";
 import { googleAdsOAuthProvider } from "@/lib/integrations/google-ads/oauth";
 import { googleAdsSettingsSchema } from "@/lib/integrations/google-ads/schema";
@@ -54,23 +54,48 @@ export const GET = withWorkspace(
       });
     }
 
-    const loginCustomerId = inferLoginCustomerId({
+    const candidates = getLoginCustomerIdCandidates({
       customers: currentSettings.customers,
       selectedCustomerId: customerId,
+      loginCustomerId: currentSettings.loginCustomerId,
     });
 
-    const googleAdsApi = new GoogleAdsApi({
-      accessToken: token.access_token,
-      loginCustomerId,
-      customerId,
-    });
+    let lastError: unknown;
 
-    const conversionActions =
-      await googleAdsApi.listUploadClickConversionActions(customerId);
+    for (const loginCustomerId of candidates) {
+      try {
+        const googleAdsApi = new GoogleAdsApi({
+          accessToken: token.access_token,
+          loginCustomerId,
+          customerId,
+        });
 
-    return NextResponse.json({
-      conversionActions,
-      loginCustomerId,
+        const conversionActions =
+          await googleAdsApi.listUploadClickConversionActions(customerId);
+
+        return NextResponse.json({
+          conversionActions,
+          loginCustomerId,
+        });
+      } catch (error) {
+        lastError = error;
+
+        const message = error instanceof Error ? error.message : String(error);
+
+        if (!message.includes("USER_PERMISSION_DENIED")) {
+          throw error;
+        }
+      }
+    }
+
+    if (lastError instanceof Error) {
+      throw lastError;
+    }
+
+    throw new DubApiError({
+      code: "forbidden",
+      message:
+        "The Google Ads user does not have permission to access this account.",
     });
   },
   {

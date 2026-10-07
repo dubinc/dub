@@ -43,6 +43,19 @@ function CommissionsPageClient() {
   const { queryParams, getQueryString, searchParamsObj } = useRouterStuff();
   const { interval, start, end, programId } = searchParamsObj;
 
+  const { data: { programs: allPrograms } = {} } = useSWR<AdminCommissionsData>(
+    `/api/admin/commissions${getQueryString(
+      {
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      },
+      { exclude: ["programId"] },
+    )}`,
+    fetcher,
+    {
+      keepPreviousData: true,
+    },
+  );
+
   const { data: { programs, timeseries } = {}, isLoading } =
     useSWR<AdminCommissionsData>(
       `/api/admin/commissions${getQueryString({
@@ -62,7 +75,7 @@ function CommissionsPageClient() {
         icon: GridIcon,
         label: "Program",
         options:
-          programs?.map((program) => ({
+          allPrograms?.map((program) => ({
             value: program.id,
             label: program.name,
             icon: (
@@ -72,6 +85,7 @@ function CommissionsPageClient() {
                 className="size-4 rounded-full"
               />
             ),
+            right: currencyFormatter(program.commissions),
           })) ?? null,
       },
     ],
@@ -279,8 +293,8 @@ function CommissionsPageClient() {
   });
 
   return (
-    <div className="mx-auto grid w-full max-w-screen-xl gap-5 p-3 lg:px-10">
-      <div className="flex flex-col gap-3 md:flex-row md:items-center">
+    <div className="mx-auto grid w-full min-w-0 max-w-screen-xl gap-3 overflow-x-hidden p-3 lg:px-10">
+      <div className="flex min-w-0 flex-col gap-3 md:flex-row md:items-center">
         <Filter.Select
           className="w-full md:w-fit"
           filters={filters}
@@ -294,18 +308,16 @@ function CommissionsPageClient() {
         />
       </div>
       {activeFilters.length > 0 && (
-        <div>
-          <Filter.List
-            filters={filters}
-            activeFilters={activeFilters}
-            onSelect={onSelect}
-            onRemove={onRemove}
-            onRemoveAll={onRemoveAll}
-          />
-        </div>
+        <Filter.List
+          filters={filters}
+          activeFilters={activeFilters}
+          onSelect={onSelect}
+          onRemove={onRemove}
+          onRemoveAll={onRemoveAll}
+        />
       )}
-      <div className="flex flex-col divide-y divide-neutral-200 rounded-lg border border-neutral-200 bg-white">
-        <div className="scrollbar-hide grid w-full grid-cols-2 divide-x overflow-y-hidden sm:grid-cols-3">
+      <div className="flex min-w-0 flex-col divide-y divide-neutral-200 overflow-hidden rounded-lg border border-neutral-200 bg-white">
+        <div className="scrollbar-hide grid w-full grid-cols-1 divide-y overflow-hidden sm:grid-cols-2 sm:divide-x sm:divide-y-0">
           {tabs.map(({ id, label, colorClassName, disabled }) => {
             return (
               <button
@@ -317,7 +329,7 @@ function CommissionsPageClient() {
                   });
                 }}
                 className={cn(
-                  "border-box relative block h-full w-full flex-none px-4 py-3 sm:px-8 sm:py-6",
+                  "border-box relative block h-full min-w-0 w-full flex-none overflow-hidden px-4 py-3 sm:px-8 sm:py-6",
                   "ring-inset ring-neutral-500 focus-visible:ring-1 sm:first:rounded-tl-xl",
                   disabled
                     ? "cursor-not-allowed"
@@ -334,17 +346,17 @@ function CommissionsPageClient() {
                 <div className="flex items-center gap-2.5 text-sm text-neutral-600">
                   <div
                     className={cn(
-                      "h-2 w-2 rounded-sm bg-current shadow-[inset_0_0_0_1px_#00000019]",
+                      "h-2 w-2 shrink-0 rounded-sm bg-current shadow-[inset_0_0_0_1px_#00000019]",
                       colorClassName,
                     )}
                   />
                   <span>{label}</span>
                 </div>
-                <div className="mt-1 flex h-12 items-center">
+                <div className="mt-1 flex h-12 min-w-0 items-center">
                   {(totals[id] || totals[id] === 0) && !isLoading ? (
                     <NumberFlow
                       value={(totals[id] ?? 0) / 100}
-                      className="text-xl font-medium sm:text-3xl"
+                      className="truncate text-xl font-medium sm:text-3xl"
                       format={{
                         style: "currency",
                         currency: "USD",
@@ -360,8 +372,8 @@ function CommissionsPageClient() {
             );
           })}
         </div>
-        <div className="p-5 sm:p-10">
-          <div className="flex h-96 w-full items-center justify-center">
+        <div className="min-w-0 overflow-hidden p-5 sm:p-10">
+          <div className="flex h-96 w-full min-w-0 items-center justify-center">
             {chartData ? (
               chartData.length > 0 ? (
                 <TimeSeriesChart
@@ -419,7 +431,12 @@ function CommissionsPageClient() {
                   />
                   <YAxis
                     showGridLines
-                    tickFormat={(value) => currencyFormatter(value)}
+                    tickFormat={(value) =>
+                      currencyFormatter(value, {
+                        notation: "compact",
+                        maximumFractionDigits: 1,
+                      })
+                    }
                   />
                 </TimeSeriesChart>
               ) : (
@@ -433,7 +450,7 @@ function CommissionsPageClient() {
           </div>
         </div>
       </div>
-      <div className="w-full">
+      <div className="w-full min-w-0 overflow-x-auto">
         <Table {...tableProps} table={table} />
       </div>
     </div>

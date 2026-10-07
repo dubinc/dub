@@ -1,5 +1,6 @@
 import {
   CONDITION_OPERATORS,
+  CUSTOMER_SOURCES,
   isOneOffRewardEvent,
   REWARD_CONDITIONS,
 } from "@/lib/zod/schemas/rewards";
@@ -206,12 +207,24 @@ export function getAIRewardSchema(event: AIRewardEvent) {
   });
 }
 
+export function getAICustomerSourceIds(event: AIRewardEvent) {
+  const optionIds =
+    REWARD_CONDITIONS[event].entities
+      .find(({ id }) => id === "customer")
+      ?.attributes.find(({ id }) => id === "source")
+      ?.options?.map(({ id }) => id) ?? [];
+
+  return CUSTOMER_SOURCES.filter((source) => optionIds.includes(source));
+}
+
 /**
  * Model structured-output envelope. Keep this free of app-level refinements so
  * Output.object can stream/parse JSON even when the model picks a bad attribute;
  * validate the reward with getAIRewardSchema after the stream completes.
  */
 export function getAIRewardGenerationSchema(event: AIRewardEvent) {
+  const customerSourceIds = getAICustomerSourceIds(event);
+
   return z
     .object({
       supported: z
@@ -224,6 +237,14 @@ export function getAIRewardGenerationSchema(event: AIRewardEvent) {
         .nullish()
         .describe(
           "When supported is false: brief explanation of what is not supported. When supported is true: null or omit.",
+        ),
+      unavailableSource: (customerSourceIds.length
+        ? z.enum(customerSourceIds)
+        : z.null()
+      )
+        .nullish()
+        .describe(
+          "When supported is false because the request needs a customer source listed under 'Unavailable customer sources': that option id. Otherwise null or omit.",
         ),
       reward: buildEventRewardObjectSchema(event)
         .nullish()

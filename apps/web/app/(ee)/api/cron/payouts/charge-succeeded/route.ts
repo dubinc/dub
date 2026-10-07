@@ -1,5 +1,4 @@
-import { handleAndReturnErrorResponse } from "@/lib/api/errors";
-import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
+import { withCron } from "@/lib/cron/with-cron";
 import { prisma } from "@/lib/prisma";
 import { log } from "@dub/utils";
 import { PartnerPayoutMethod } from "@prisma/client";
@@ -21,11 +20,8 @@ const payloadSchema = z.object({
 // POST /api/cron/payouts/charge-succeeded
 // This route is used to process the charge-succeeded event from Stripe.
 // We're intentionally offloading this to a cron job so we can return a 200 to Stripe immediately.
-export async function POST(req: Request) {
+export const POST = withCron(async ({ rawBody }) => {
   try {
-    const rawBody = await req.text();
-    await verifyQstashSignature({ req, rawBody });
-
     const { invoiceId } = payloadSchema.parse(JSON.parse(rawBody));
 
     const invoice = await prisma.invoice.findUnique({
@@ -131,6 +127,6 @@ export async function POST(req: Request) {
       type: "cron",
     });
 
-    return handleAndReturnErrorResponse(error);
+    throw error;
   }
-}
+});

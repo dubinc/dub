@@ -151,6 +151,7 @@ export const POST = withWorkspace(
           leadReward: true,
           saleReward: true,
           referralReward: true,
+          customReward: true,
           discount: true,
         },
       });
