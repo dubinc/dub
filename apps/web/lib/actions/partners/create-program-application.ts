@@ -252,53 +252,72 @@ export const createProgramApplicationAction = actionClient
 function throwIfCannotApply({
   enrollment,
   groupId,
+  rejectedAt,
 }: {
-  enrollment: Pick<ProgramEnrollment, "status" | "groupId"> | null | undefined;
-  groupId: string;
+  enrollment:
+    | Pick<ProgramEnrollment, "status" | "groupId" | "reapplicationTimeframe">
+    | null
+    | undefined;
+  groupId: string; // New group ID the partner is applying to
+  rejectedAt?: Date | null; // Last application rejection date
 }) {
   if (!enrollment) {
     return;
   }
 
-  if (enrollment.status === ProgramEnrollmentStatus.pending) {
-    throw new Error(
-      "You have an existing application for this program. Please wait for it to be reviewed.",
-    );
-  }
+  switch (enrollment.status) {
+    case ProgramEnrollmentStatus.pending:
+      throw new Error(
+        "You have an existing application for this program. Please wait for it to be reviewed.",
+      );
+    case ProgramEnrollmentStatus.rejected:
+      if (enrollment.reapplicationTimeframe === ReapplicationTimeframe.never) {
+        throw new Error("You cannot reapply to this program.");
+      }
 
-  if (enrollment.status !== ProgramEnrollmentStatus.approved) {
-    throw new Error(
-      "You have already applied to this program. You cannot apply to this program again.",
-    );
-  }
+      // TODO: Improve this message to use the absolute day remaining.
+      if (
+        enrollment.reapplicationTimeframe === ReapplicationTimeframe.standard
+      ) {
+        throw new Error(
+          `You can reapply to this program after ${STANDARD_REAPPLICATION_DAYS} days.`,
+        );
+      }
 
-  if (enrollment.groupId === groupId) {
-    throw new Error("You're already in this group.");
-  }
-}
+      // Instant reapplication timeframe will be reapplied immediately, so we don't need to handle it here.
+      return;
+    case ProgramEnrollmentStatus.invited:
+      throw new Error("You have a pending invitation to join this program.");
+    case ProgramEnrollmentStatus.declined:
+      throw new Error(
+        "You have declined your invitation to join this program. Please contact program owner to re-invite you.",
+      );
+    case ProgramEnrollmentStatus.approved:
+      if (enrollment.groupId === groupId) {
+        throw new Error("You're already in this group.");
+      }
 
-function throwIfReapplicationBlocked({
-  reapplicationTimeframe,
-  rejectedAt,
-}: {
-  reapplicationTimeframe: ReapplicationTimeframe;
-  rejectedAt: Date | null;
-}) {
-  if (
-    reapplicationTimeframe === ReapplicationTimeframe.instant ||
-    !rejectedAt
-  ) {
-    return;
-  }
+      if (
+        !rejectedAt ||
+        enrollment.reapplicationTimeframe === ReapplicationTimeframe.instant
+      ) {
+        return;
+      }
 
-  if (reapplicationTimeframe === ReapplicationTimeframe.never) {
-    throw new Error("You cannot reapply to this program.");
-  }
+      if (enrollment.reapplicationTimeframe === ReapplicationTimeframe.never) {
+        throw new Error("You cannot reapply to this program.");
+      }
 
-  if (addDays(rejectedAt, STANDARD_REAPPLICATION_DAYS) > new Date()) {
-    throw new Error(
-      `You can reapply to this program after ${STANDARD_REAPPLICATION_DAYS} days.`,
-    );
+      if (addDays(rejectedAt, STANDARD_REAPPLICATION_DAYS) > new Date()) {
+        throw new Error(
+          `You can reapply to this program after ${STANDARD_REAPPLICATION_DAYS} days.`,
+        );
+      }
+      return;
+    default:
+      throw new Error(
+        `You cannot apply to this program again because your enrollment is ${enrollment.status}.`,
+      );
   }
 }
 
@@ -366,34 +385,41 @@ async function createApplicationAndEnrollment({
         },
       });
 
+      // If the partner is approved for another group and is applying to a new group,
+      // we need to check if they are within the reapplication window.
+      const shouldCheckReapplicationWindow =
+        enrollment?.status === ProgramEnrollmentStatus.approved &&
+        enrollment.groupId !== group.id &&
+        enrollment.reapplicationTimeframe !== ReapplicationTimeframe.instant;
+
+      let rejectedAt: Date | null = null;
+
+      // Find the last application rejection date for the partner.
+      // This is used to check if the partner is within the reapplication window.
+      if (shouldCheckReapplicationWindow) {
+        const latestApplicationRejection =
+          await tx.programApplication.findFirst({
+            where: {
+              programId: program.id,
+              partnerId: partner.id,
+              status: ProgramApplicationStatus.rejected,
+            },
+            orderBy: {
+              reviewedAt: "desc",
+            },
+            select: {
+              reviewedAt: true,
+            },
+          });
+
+        rejectedAt = latestApplicationRejection?.reviewedAt ?? null;
+      }
+
       throwIfCannotApply({
         enrollment,
         groupId: group.id,
+        rejectedAt,
       });
-
-      if (
-        enrollment &&
-        enrollment.reapplicationTimeframe !== ReapplicationTimeframe.instant
-      ) {
-        const latestRejection = await tx.programApplication.findFirst({
-          where: {
-            programId: program.id,
-            partnerId: partner.id,
-            status: ProgramApplicationStatus.rejected,
-          },
-          orderBy: {
-            reviewedAt: "desc",
-          },
-          select: {
-            reviewedAt: true,
-          },
-        });
-
-        throwIfReapplicationBlocked({
-          reapplicationTimeframe: enrollment.reapplicationTimeframe,
-          rejectedAt: latestRejection?.reviewedAt ?? null,
-        });
-      }
 
       const pendingApplication = await tx.programApplication.findFirst({
         where: {
