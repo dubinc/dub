@@ -289,7 +289,7 @@ describe("lead form builder fields", () => {
 });
 
 describe("getGroupSubmittedLeadForm", () => {
-  const referralFormData = { fields: STORED_FIELDS };
+  const submittedLeadFormData = { fields: STORED_FIELDS };
 
   it("returns null without a group", () => {
     expect(getGroupSubmittedLeadForm(null)).toBeNull();
@@ -299,7 +299,7 @@ describe("getGroupSubmittedLeadForm", () => {
   it("returns null when the form is turned off", () => {
     expect(
       getGroupSubmittedLeadForm({
-        referralFormData,
+        submittedLeadFormData,
         submittedLeadsEnabledAt: null,
       }),
     ).toBeNull();
@@ -308,7 +308,7 @@ describe("getGroupSubmittedLeadForm", () => {
   it("returns null when the form is turned on but missing", () => {
     expect(
       getGroupSubmittedLeadForm({
-        referralFormData: null,
+        submittedLeadFormData: null,
         submittedLeadsEnabledAt: new Date(),
       }),
     ).toBeNull();
@@ -317,7 +317,7 @@ describe("getGroupSubmittedLeadForm", () => {
   it("returns null when the stored form is not valid", () => {
     expect(
       getGroupSubmittedLeadForm({
-        referralFormData: { fields: [{ key: "a" }] },
+        submittedLeadFormData: { fields: [{ key: "a" }] },
         submittedLeadsEnabledAt: new Date(),
       }),
     ).toBeNull();
@@ -326,16 +326,16 @@ describe("getGroupSubmittedLeadForm", () => {
   it("returns the form when it is turned on and valid", () => {
     expect(
       getGroupSubmittedLeadForm({
-        referralFormData,
+        submittedLeadFormData,
         submittedLeadsEnabledAt: "2026-10-07T00:00:00.000Z",
       }),
-    ).toEqual(referralFormData);
+    ).toEqual(submittedLeadFormData);
   });
 
   it("accepts a form with only the required fields", () => {
     expect(
       getGroupSubmittedLeadForm({
-        referralFormData: { fields: [] },
+        submittedLeadFormData: { fields: [] },
         submittedLeadsEnabledAt: new Date(),
       }),
     ).toEqual({ fields: [] });

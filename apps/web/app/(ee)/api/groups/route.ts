@@ -114,7 +114,7 @@ export const POST = withWorkspace(
         landerData,
         holdingPeriodDays,
         autoApprovePartnersEnabledAt,
-        referralFormData,
+        submittedLeadFormData,
         submittedLeadsEnabledAt,
       } = program.groups[0];
 
@@ -138,7 +138,7 @@ export const POST = withWorkspace(
           ...(linkStructure && { linkStructure }),
           ...(applicationFormData && { applicationFormData }),
           ...(landerData && { landerData }),
-          ...(referralFormData && { referralFormData }),
+          ...(submittedLeadFormData && { submittedLeadFormData }),
           partnerGroupDefaultLinks: {
             createMany: {
               data: partnerGroupDefaultLinks.map((link) => ({

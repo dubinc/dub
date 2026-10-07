@@ -94,7 +94,7 @@ describe.sequential("/groups/**", async () => {
       bounties,
       landerData,
       landerPublishedAt,
-      referralFormData,
+      submittedLeadFormData,
       program,
       ...fetchedGroup
     } = data;

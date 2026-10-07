@@ -60,7 +60,7 @@ export async function importCampaigns(payload: RewardfulImportPayload) {
     linkStructure,
     applicationFormData,
     landerData,
-    referralFormData,
+    submittedLeadFormData,
     submittedLeadsEnabledAt,
   } = program.groups[0] ?? {};
 
@@ -113,7 +113,7 @@ export async function importCampaigns(payload: RewardfulImportPayload) {
         ...(linkStructure && { linkStructure }),
         ...(applicationFormData && { applicationFormData }),
         ...(landerData && { landerData }),
-        ...(referralFormData && { referralFormData }),
+        ...(submittedLeadFormData && { submittedLeadFormData }),
         // Create default link for the group
         partnerGroupDefaultLinks: {
           create: {

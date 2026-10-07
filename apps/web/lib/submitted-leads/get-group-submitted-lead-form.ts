@@ -5,17 +5,17 @@ import * as z from "zod/v4";
 export function getGroupSubmittedLeadForm(
   group:
     | {
-        referralFormData?: unknown;
+        submittedLeadFormData?: unknown;
         submittedLeadsEnabledAt?: Date | string | null;
       }
     | null
     | undefined,
 ): z.infer<typeof submittedLeadFormSchema> | null {
-  if (!group?.submittedLeadsEnabledAt || !group.referralFormData) {
+  if (!group?.submittedLeadsEnabledAt || !group.submittedLeadFormData) {
     return null;
   }
 
-  const parsed = submittedLeadFormSchema.safeParse(group.referralFormData);
+  const parsed = submittedLeadFormSchema.safeParse(group.submittedLeadFormData);
 
   return parsed.success ? parsed.data : null;
 }

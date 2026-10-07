@@ -206,7 +206,7 @@ export const ProgramEnrollmentSchema = z.object({
     submittedLeadsEnabledAt: true,
   })
     .extend({
-      referralFormData: submittedLeadFormSchema.nullish(),
+      submittedLeadFormData: submittedLeadFormSchema.nullish(),
     })
     .nullish(),
   customerDataSharingEnabledAt: z.date().nullable(),

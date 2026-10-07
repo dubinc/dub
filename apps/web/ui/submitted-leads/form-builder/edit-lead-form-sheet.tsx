@@ -91,7 +91,7 @@ function EditLeadFormSheetForm({
       enabledGroupIds: groups
         .filter(({ submittedLeadsEnabledAt }) => submittedLeadsEnabledAt)
         .map(({ id }) => id),
-      fields: [...(defaultGroup.referralFormData?.fields ?? [])]
+      fields: [...(defaultGroup.submittedLeadFormData?.fields ?? [])]
         .sort((a, b) => a.position - b.position)
         .map(toLeadFormBuilderField),
     }),
@@ -149,7 +149,7 @@ function EditLeadFormSheetForm({
       disabledGroupIds: initialState.enabledGroupIds.filter(
         (id) => !enabledGroupIds.includes(id),
       ),
-      referralFormData: {
+      submittedLeadFormData: {
         fields: result.fields,
       },
     });

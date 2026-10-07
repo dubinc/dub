@@ -84,7 +84,7 @@ export const GroupWithFormDataSchema = GroupSchema.extend({
   applicationFormPublishedAt: z.date().nullable(),
   landerData: programLanderSchema.nullable(),
   landerPublishedAt: z.date().nullable(),
-  referralFormData: submittedLeadFormSchema.nullish(),
+  submittedLeadFormData: submittedLeadFormSchema.nullish(),
   bounties: z.array(GroupBountySummarySchema).optional(),
 });
 

@@ -49,7 +49,7 @@ export async function importCampaigns(payload: FirstPromoterImportPayload) {
     linkStructure,
     applicationFormData,
     landerData,
-    referralFormData,
+    submittedLeadFormData,
     submittedLeadsEnabledAt,
   } = defaultGroup ?? {};
 
@@ -101,7 +101,7 @@ export async function importCampaigns(payload: FirstPromoterImportPayload) {
           ...(linkStructure && { linkStructure }),
           ...(applicationFormData && { applicationFormData }),
           ...(landerData && { landerData }),
-          ...(referralFormData && { referralFormData }),
+          ...(submittedLeadFormData && { submittedLeadFormData }),
         })),
         skipDuplicates: true,
       });

@@ -54,7 +54,7 @@ async function main() {
               programId: program.id,
             },
             data: {
-              referralFormData: parsed.data,
+              submittedLeadFormData: parsed.data,
               submittedLeadsEnabledAt: new Date(),
             },
           })

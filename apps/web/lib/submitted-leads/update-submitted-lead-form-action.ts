@@ -14,7 +14,7 @@ import { throwIfNoPermission } from "../actions/throw-if-no-permission";
 
 const schema = z.object({
   workspaceId: z.string(),
-  referralFormData: submittedLeadFormSchema,
+  submittedLeadFormData: submittedLeadFormSchema,
   // Only the groups whose switch changed. All other groups keep their setting.
   enabledGroupIds: z.array(z.string()),
   disabledGroupIds: z.array(z.string()),
@@ -25,7 +25,7 @@ export const updateSubmittedLeadFormAction = authActionClient
   .inputSchema(schema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
-    const { referralFormData, enabledGroupIds, disabledGroupIds } = parsedInput;
+    const { submittedLeadFormData, enabledGroupIds, disabledGroupIds } = parsedInput;
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
@@ -41,7 +41,7 @@ export const updateSubmittedLeadFormAction = authActionClient
     }
 
     if (
-      referralFormData.fields.some(({ key }) =>
+      submittedLeadFormData.fields.some(({ key }) =>
         SUBMITTED_LEAD_FORM_REQUIRED_FIELD_KEYS.has(key),
       )
     ) {
@@ -72,7 +72,7 @@ export const updateSubmittedLeadFormAction = authActionClient
         leadRewardId: true,
         saleRewardId: true,
         discountId: true,
-        referralFormData: true,
+        submittedLeadFormData: true,
         submittedLeadsEnabledAt: true,
       },
     });
@@ -85,7 +85,7 @@ export const updateSubmittedLeadFormAction = authActionClient
           programId,
         },
         data: {
-          referralFormData,
+          submittedLeadFormData,
         },
       }),
       prisma.partnerGroup.updateMany({
@@ -115,7 +115,7 @@ export const updateSubmittedLeadFormAction = authActionClient
 
     const auditLogs = groups.flatMap(
       ({
-        referralFormData: oldReferralFormData,
+        submittedLeadFormData: oldSubmittedLeadFormData,
         submittedLeadsEnabledAt,
         ...group
       }) => {
@@ -138,8 +138,8 @@ export const updateSubmittedLeadFormAction = authActionClient
         if (
           group.slug === DEFAULT_PARTNER_GROUP.slug &&
           JSON.stringify(
-            submittedLeadFormSchema.safeParse(oldReferralFormData).data,
-          ) !== JSON.stringify(referralFormData)
+            submittedLeadFormSchema.safeParse(oldSubmittedLeadFormData).data,
+          ) !== JSON.stringify(submittedLeadFormData)
         ) {
           descriptions.push("Submitted lead form updated for all groups");
         }
