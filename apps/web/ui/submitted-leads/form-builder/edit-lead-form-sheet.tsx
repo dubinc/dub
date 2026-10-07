@@ -166,7 +166,10 @@ function EditLeadFormSheetForm({
               <ProgramSheetAccordionTrigger className="py-2.5">
                 Group access
               </ProgramSheetAccordionTrigger>
-              <ProgramSheetAccordionContent className="py-5">
+              <ProgramSheetAccordionContent
+                className="py-5"
+                animateHeight={false}
+              >
                 <div className="flex flex-col gap-3">
                   <div className="flex items-center gap-3">
                     <Switch
@@ -224,7 +227,10 @@ function EditLeadFormSheetForm({
               <ProgramSheetAccordionTrigger className="py-2.5">
                 Form fields
               </ProgramSheetAccordionTrigger>
-              <ProgramSheetAccordionContent className="py-5">
+              <ProgramSheetAccordionContent
+                className="py-5"
+                animateHeight={false}
+              >
                 <div className="flex flex-col gap-4">
                   {SUBMITTED_LEAD_FORM_REQUIRED_FIELDS.map((field) => (
                     <RequiredFieldRow
@@ -244,7 +250,7 @@ function EditLeadFormSheetForm({
                     }
                     className="flex flex-col gap-4 empty:hidden"
                   >
-                    <AnimatePresence initial={false}>
+                    <AnimatePresence initial={false} mode="popLayout">
                       {fields.map((field) => (
                         <LeadFormFieldCard
                           key={field.key}

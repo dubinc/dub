@@ -9,7 +9,7 @@ import {
   Reorder,
   useDragControls,
 } from "motion/react";
-import { PointerEvent, ReactNode } from "react";
+import { forwardRef, PointerEvent, ReactNode } from "react";
 import {
   changeLeadFormBuilderFieldType,
   createLeadFormBuilderOption,
@@ -31,21 +31,21 @@ function startDrag(
 const inputClassName =
   "block h-10 w-full rounded-lg border-neutral-200 px-3 text-sm text-neutral-800 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500";
 
-export function LeadFormFieldCard({
-  field,
-  expanded,
-  error,
-  onToggle,
-  onChange,
-  onRemove,
-}: {
-  field: LeadFormBuilderField;
-  expanded: boolean;
-  error?: boolean;
-  onToggle: () => void;
-  onChange: (field: LeadFormBuilderField) => void;
-  onRemove: () => void;
-}) {
+// Forwards its ref so AnimatePresence can take a removed card out of the flow
+export const LeadFormFieldCard = forwardRef<
+  HTMLLIElement,
+  {
+    field: LeadFormBuilderField;
+    expanded: boolean;
+    error?: boolean;
+    onToggle: () => void;
+    onChange: (field: LeadFormBuilderField) => void;
+    onRemove: () => void;
+  }
+>(function LeadFormFieldCard(
+  { field, expanded, error, onToggle, onChange, onRemove },
+  ref,
+) {
   const controls = useDragControls();
   const TypeIcon = field.type
     ? LEAD_FORM_FIELD_TYPES[field.type].icon
@@ -53,16 +53,19 @@ export function LeadFormFieldCard({
 
   return (
     <Reorder.Item
+      ref={ref}
       value={field.key}
       dragListener={false}
       dragControls={controls}
+      // Animate only the position. A size animation scales the content.
+      layout="position"
       className={cn(
         "group/field overflow-hidden rounded-[10px] border border-neutral-200 bg-white",
         error && "border-red-500",
       )}
-      initial={{ opacity: 0, height: 0 }}
-      animate={{ opacity: 1, height: "auto" }}
-      exit={{ opacity: 0, height: 0 }}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
       transition={{ duration: 0.15 }}
     >
       <div
@@ -112,7 +115,7 @@ export function LeadFormFieldCard({
       </motion.div>
     </Reorder.Item>
   );
-}
+});
 
 function LeadFormFieldSettings({
   field,
@@ -246,7 +249,7 @@ function LeadFormFieldOptions({
         }
         className="flex flex-col gap-2"
       >
-        <AnimatePresence initial={false}>
+        <AnimatePresence initial={false} mode="popLayout">
           {options.map((option, index) => (
             <LeadFormFieldOption
               key={option.value}
@@ -273,26 +276,27 @@ function LeadFormFieldOptions({
   );
 }
 
-function LeadFormFieldOption({
-  option,
-  onChange,
-  onRemove,
-}: {
-  option: LeadFormBuilderOption;
-  onChange: (label: string) => void;
-  onRemove: () => void;
-}) {
+const LeadFormFieldOption = forwardRef<
+  HTMLLIElement,
+  {
+    option: LeadFormBuilderOption;
+    onChange: (label: string) => void;
+    onRemove: () => void;
+  }
+>(function LeadFormFieldOption({ option, onChange, onRemove }, ref) {
   const controls = useDragControls();
 
   return (
     <Reorder.Item
+      ref={ref}
       value={option.value}
+      layout="position"
       dragListener={false}
       dragControls={controls}
       className="group/option flex h-10 items-center gap-2 rounded-lg border border-neutral-200 bg-white pl-2 pr-1 focus-within:border-neutral-500"
-      initial={{ opacity: 0, height: 0 }}
-      animate={{ opacity: 1, height: 40 }}
-      exit={{ opacity: 0, height: 0 }}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
       transition={{ duration: 0.15 }}
     >
       <div
@@ -320,7 +324,7 @@ function LeadFormFieldOption({
       </button>
     </Reorder.Item>
   );
-}
+});
 
 function SettingSwitch({
   label,
