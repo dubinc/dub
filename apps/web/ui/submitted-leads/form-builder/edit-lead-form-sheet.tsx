@@ -170,8 +170,9 @@ function EditLeadFormSheetForm({
               </ProgramSheetAccordionTrigger>
               <ProgramSheetAccordionContent className="py-5">
                 <div className="flex flex-col gap-3">
-                  <label className="flex items-center gap-3">
+                  <div className="flex items-center gap-3">
                     <Switch
+                      id="lead-form-all-groups"
                       checked={allGroupsEnabled}
                       fn={(checked: boolean) =>
                         setEnabledGroupIds(
@@ -179,10 +180,13 @@ function EditLeadFormSheetForm({
                         )
                       }
                     />
-                    <span className="text-sm font-medium text-neutral-800">
+                    <label
+                      htmlFor="lead-form-all-groups"
+                      className="cursor-pointer text-sm font-medium text-neutral-800"
+                    >
                       Enable the form for all groups
-                    </span>
-                  </label>
+                    </label>
+                  </div>
 
                   <div className="max-h-[268px] divide-y divide-neutral-200 overflow-y-auto rounded-lg border border-neutral-200 bg-white">
                     {groups.map((group) => (
