@@ -48,7 +48,7 @@ export function LeadFormFieldCard({
       dragListener={false}
       dragControls={controls}
       className={cn(
-        "group overflow-hidden rounded-[10px] border border-neutral-200 bg-white",
+        "group/field overflow-hidden rounded-[10px] border border-neutral-200 bg-white",
         error && "border-red-500",
       )}
       initial={{ opacity: 0, height: 0 }}
@@ -68,8 +68,8 @@ export function LeadFormFieldCard({
             className="flex size-6 shrink-0 cursor-grab touch-none items-center justify-center rounded-md text-neutral-800 hover:bg-neutral-200/50"
             title="Drag to reorder"
           >
-            <TypeIcon className="size-3.5 group-hover:hidden" />
-            <GripDotsVertical className="hidden size-3.5 group-hover:block" />
+            <TypeIcon className="size-3.5 group-hover/field:hidden" />
+            <GripDotsVertical className="hidden size-3.5 group-hover/field:block" />
           </div>
           <button
             type="button"
@@ -85,7 +85,7 @@ export function LeadFormFieldCard({
           title="Remove field"
           className={cn(
             "flex size-6 shrink-0 items-center justify-center rounded text-neutral-500 transition-colors hover:bg-neutral-100 hover:text-neutral-800",
-            !expanded && "opacity-0 group-hover:opacity-100",
+            !expanded && "opacity-0 group-hover/field:opacity-100",
           )}
         >
           <Trash className="size-3.5" />
