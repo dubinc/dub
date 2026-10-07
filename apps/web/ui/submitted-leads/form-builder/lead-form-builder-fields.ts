@@ -4,7 +4,8 @@ import * as z from "zod/v4";
 
 type FormField = z.infer<typeof formFieldSchema>;
 
-export type LeadFormFieldType = FormField["type"];
+// The builder offers every stored type except phone, which it opens as a text field
+export type LeadFormFieldType = Exclude<FormField["type"], "phone">;
 
 export type LeadFormBuilderOption = {
   value: string;
@@ -61,7 +62,7 @@ export function changeLeadFormBuilderFieldType(
 export function toLeadFormBuilderField(field: FormField): LeadFormBuilderField {
   return {
     key: field.key,
-    type: field.type,
+    type: field.type === "phone" ? "text" : field.type,
     label: field.label,
     required: field.required,
     options:

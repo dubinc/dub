@@ -130,9 +130,7 @@ function LeadFormFieldSettings({
       LeadFormFieldType,
       (typeof LEAD_FORM_FIELD_TYPES)[LeadFormFieldType],
     ][]
-  )
-    .filter(([type, { hidden }]) => !hidden || type === field.type)
-    .map(([type, { label, icon }]) => ({ value: type, label, icon }));
+  ).map(([type, { label, icon }]) => ({ value: type, label, icon }));
 
   return (
     <div className="flex flex-col gap-5 p-4">

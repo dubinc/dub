@@ -68,7 +68,6 @@ const STORED_FIELDS: FormField[] = [
   { ...common, key: "website", label: "Website", type: "url", position: 5 },
   { ...common, key: "start", label: "Start date", type: "date", position: 6 },
   { ...common, key: "country", label: "Country", type: "country", position: 7 },
-  { ...common, key: "phone", label: "Phone", type: "phone", position: 8 },
 ];
 
 function builderField(
@@ -89,6 +88,33 @@ describe("lead form builder fields", () => {
     );
 
     expect(result).toEqual({ success: true, fields: STORED_FIELDS });
+  });
+
+  it("opens a stored phone field as a text field", () => {
+    const result = parseLeadFormBuilderFields([
+      toLeadFormBuilderField({
+        ...common,
+        key: "phone",
+        label: "Phone",
+        type: "phone",
+        position: 0,
+        required: true,
+      }),
+    ]);
+
+    expect(result).toEqual({
+      success: true,
+      fields: [
+        {
+          ...common,
+          key: "phone",
+          label: "Phone",
+          type: "text",
+          position: 0,
+          required: true,
+        },
+      ],
+    });
   });
 
   it("sets the position from the order and unlocks custom fields", () => {

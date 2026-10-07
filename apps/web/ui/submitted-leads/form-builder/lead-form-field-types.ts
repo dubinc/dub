@@ -7,7 +7,6 @@ import {
   Icon,
   InputField,
   LinkChain,
-  MobilePhone,
   TextArea,
 } from "@dub/ui/icons";
 import { LeadFormFieldType } from "./lead-form-builder-fields";
@@ -17,8 +16,6 @@ export const LEAD_FORM_FIELD_TYPES: Record<
   {
     label: string;
     icon: Icon;
-    // Hidden types are only shown for existing fields that already use them
-    hidden?: boolean;
   }
 > = {
   text: { label: "Text field", icon: InputField },
@@ -29,5 +26,4 @@ export const LEAD_FORM_FIELD_TYPES: Record<
   country: { label: "Country", icon: Globe },
   multiSelect: { label: "Multiple choice", icon: CheckboxChecked },
   number: { label: "Number", icon: Hashtag },
-  phone: { label: "Phone number", icon: MobilePhone, hidden: true },
 };
