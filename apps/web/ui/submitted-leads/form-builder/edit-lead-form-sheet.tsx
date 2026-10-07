@@ -16,6 +16,7 @@ import {
   ProgramSheetAccordionTrigger,
 } from "@/ui/partners/program-sheet-accordion";
 import { X } from "@/ui/shared/icons";
+import { ScrollFades, useScrollFades } from "@/ui/shared/scroll-fades";
 import { Button, LoadingSpinner, Sheet, Switch, Tooltip } from "@dub/ui";
 import { Envelope, InputField, Lock, Plus } from "@dub/ui/icons";
 import { AnimatePresence, Reorder } from "motion/react";
@@ -83,6 +84,7 @@ function EditLeadFormSheetForm({
   defaultGroup: GroupWithFormDataProps;
 }) {
   const { id: workspaceId } = useWorkspace();
+  const { fades, scrollRef, onScroll } = useScrollFades();
 
   const initialState = useMemo(
     () => ({
@@ -189,35 +191,44 @@ function EditLeadFormSheetForm({
                     </label>
                   </div>
 
-                  <div className="max-h-[268px] divide-y divide-neutral-200 overflow-y-auto rounded-lg border border-neutral-200 bg-white">
-                    {groups.map((group) => (
-                      <div
-                        key={group.id}
-                        className="flex h-11 items-center justify-between gap-2 px-4"
-                      >
-                        <div className="flex min-w-0 items-center gap-2">
-                          <GroupColorCircle group={group} />
-                          <span className="truncate text-sm font-medium text-neutral-700">
-                            {group.name}
-                          </span>
-                          {group.slug === DEFAULT_PARTNER_GROUP.slug && (
-                            <span className="rounded-md bg-blue-100 px-2 py-0.5 text-xs font-semibold text-blue-600">
-                              Default
-                            </span>
-                          )}
-                        </div>
-                        <Switch
-                          checked={enabledGroupIds.includes(group.id)}
-                          fn={(checked: boolean) =>
-                            setEnabledGroupIds((ids) =>
-                              checked
-                                ? [...ids, group.id]
-                                : ids.filter((id) => id !== group.id),
-                            )
-                          }
-                        />
+                  <div className="relative overflow-hidden rounded-lg border border-neutral-200 bg-white">
+                    <div
+                      ref={scrollRef}
+                      onScroll={onScroll}
+                      className="scrollbar-hide max-h-[268px] overflow-y-auto [clip-path:inset(0)]"
+                    >
+                      <div className="divide-y divide-neutral-200">
+                        {groups.map((group) => (
+                          <div
+                            key={group.id}
+                            className="flex h-11 items-center justify-between gap-2 px-4"
+                          >
+                            <div className="flex min-w-0 items-center gap-2">
+                              <GroupColorCircle group={group} />
+                              <span className="truncate text-sm font-medium text-neutral-700">
+                                {group.name}
+                              </span>
+                              {group.slug === DEFAULT_PARTNER_GROUP.slug && (
+                                <span className="rounded-md bg-blue-100 px-2 py-0.5 text-xs font-semibold text-blue-600">
+                                  Default
+                                </span>
+                              )}
+                            </div>
+                            <Switch
+                              checked={enabledGroupIds.includes(group.id)}
+                              fn={(checked: boolean) =>
+                                setEnabledGroupIds((ids) =>
+                                  checked
+                                    ? [...ids, group.id]
+                                    : ids.filter((id) => id !== group.id),
+                                )
+                              }
+                            />
+                          </div>
+                        ))}
                       </div>
-                    ))}
+                    </div>
+                    <ScrollFades fades={fades} />
                   </div>
                 </div>
               </ProgramSheetAccordionContent>
