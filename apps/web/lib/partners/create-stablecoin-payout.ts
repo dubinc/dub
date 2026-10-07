@@ -53,18 +53,6 @@ export const createStablecoinPayout = async ({
     },
   });
 
-  if (!partner.payoutsEnabledAt) {
-    console.warn(`Partner ${partner.email} does not have payouts enabled.`);
-    return;
-  }
-
-  if (!partner.stripeRecipientId) {
-    console.warn(
-      `Partner ${partner.email} does not have a stripeRecipientId set.`,
-    );
-    return;
-  }
-
   const commonInclude: Prisma.PayoutInclude = {
     program: {
       select: {
@@ -124,6 +112,109 @@ export const createStablecoinPayout = async ({
     return;
   }
 
+  // should never happen, but just in case
+  if (!partner.payoutsEnabledAt || !partner.stripeRecipientId) {
+    await markPayoutsAsProcessed(currentInvoicePayouts);
+    console.warn(
+      `Partner ${partner.email} does not have a stripeRecipientId set.`,
+    );
+    return;
+  }
+
+  const stripeRecipientAccount = await getStripeRecipientAccount(
+    partner.stripeRecipientId,
+  );
+
+  // Stripe recipient account is closed
+  if (stripeRecipientAccount.closed) {
+    await prisma.partner.update({
+      where: {
+        id: partner.id,
+      },
+      data: {
+        stripeRecipientId: null,
+        payoutsEnabledAt: null,
+        defaultPayoutMethod: null,
+      },
+    });
+
+    await markPayoutsAsProcessed(currentInvoicePayouts);
+
+    console.warn(
+      `Stripe recipient account for partner ${partner.email} is closed.`,
+    );
+    return;
+  }
+
+  // Identity verification restricts crypto_wallets until Stripe finishes review.
+  // Keep payouts enabled and defer the transfer so it can be sent once the
+  // capability is active again.
+  if (isRecipientPendingIdVerification(stripeRecipientAccount)) {
+    await markPayoutsAsProcessed(currentInvoicePayouts);
+
+    const message = `Stripe recipient account for partner ${partner.email} is restricted while identity verification is in progress.`;
+
+    if (forceWithdrawal) {
+      throw new Error(message);
+    } else {
+      console.warn(message);
+      return;
+    }
+  }
+
+  const cryptoWalletsActive =
+    stripeRecipientAccount.configuration?.recipient?.capabilities
+      ?.crypto_wallets?.status === "active";
+
+  // Stripe recipient account does not have crypto wallet capabilities
+  if (!cryptoWalletsActive) {
+    await prisma.partner.update({
+      where: {
+        id: partner.id,
+      },
+      data: {
+        payoutsEnabledAt: null,
+      },
+    });
+
+    await markPayoutsAsProcessed(currentInvoicePayouts);
+
+    const message = `Stripe recipient account for partner ${partner.email} does not have crypto wallet capabilities.`;
+
+    if (forceWithdrawal) {
+      throw new Error(message);
+    } else {
+      console.warn(message);
+      return;
+    }
+  }
+
+  const stripePayoutMethod = await getStripeRecipientPayoutMethod(
+    partner.stripeRecipientId,
+  );
+
+  if (!stripePayoutMethod?.id) {
+    await prisma.partner.update({
+      where: {
+        id: partner.id,
+      },
+      data: {
+        payoutsEnabledAt: null,
+      },
+    });
+
+    await markPayoutsAsProcessed(currentInvoicePayouts);
+
+    const message = `Stripe recipient account for partner ${partner.email} does not have an active crypto wallet payout method.`;
+
+    if (forceWithdrawal) {
+      throw new Error(message);
+    } else {
+      console.warn(message);
+      return;
+    }
+  }
+
   const idempotencyKey = createPayoutsIdempotencyKey({
     partnerId: partner.id,
     invoiceId,
@@ -177,105 +268,6 @@ export const createStablecoinPayout = async ({
 
   // Round down to the nearest integer
   totalTransferableAmount = Math.floor(totalTransferableAmount);
-
-  const stripeRecipientAccount = await getStripeRecipientAccount(
-    partner.stripeRecipientId,
-  );
-
-  // Stripe recipient account is closed
-  if (stripeRecipientAccount.closed) {
-    await prisma.partner.update({
-      where: {
-        id: partner.id,
-      },
-      data: {
-        stripeRecipientId: null,
-        payoutsEnabledAt: null,
-        defaultPayoutMethod: null,
-      },
-    });
-
-    await markPayoutsAsProcessed(currentInvoicePayouts);
-
-    console.warn(
-      `Stripe recipient account for partner ${partner.email} is closed.`,
-    );
-    return;
-  }
-
-  const cryptoWalletsActive =
-    stripeRecipientAccount.configuration?.recipient?.capabilities
-      ?.crypto_wallets?.status === "active";
-
-  // Identity verification restricts crypto_wallets until Stripe finishes review.
-  // Keep payouts enabled and defer the transfer so it can be sent once the
-  // capability is active again.
-  if (
-    !cryptoWalletsActive &&
-    isRecipientPendingIdVerification(stripeRecipientAccount)
-  ) {
-    await markPayoutsAsProcessed(currentInvoicePayouts);
-
-    const message = `Stripe recipient account for partner ${partner.email} is restricted while identity verification is in progress. Skipping payout until verification is complete.`;
-
-    if (forceWithdrawal) {
-      throw new Error(
-        "Your payout account is temporarily restricted while Stripe verifies your identity. Please try again once verification is complete.",
-      );
-    }
-
-    console.warn(message);
-    return;
-  }
-
-  // Stripe recipient account does not have crypto wallet capabilities
-  if (!cryptoWalletsActive) {
-    await prisma.partner.update({
-      where: {
-        id: partner.id,
-      },
-      data: {
-        payoutsEnabledAt: null,
-      },
-    });
-
-    await markPayoutsAsProcessed(currentInvoicePayouts);
-
-    const message = `Stripe recipient account for partner ${partner.email} does not have crypto wallet capabilities.`;
-
-    if (forceWithdrawal) {
-      throw new Error(message);
-    } else {
-      console.warn(message);
-      return;
-    }
-  }
-
-  const stripePayoutMethod = await getStripeRecipientPayoutMethod(
-    partner.stripeRecipientId,
-  );
-
-  if (!stripePayoutMethod?.id) {
-    await prisma.partner.update({
-      where: {
-        id: partner.id,
-      },
-      data: {
-        payoutsEnabledAt: null,
-      },
-    });
-
-    await markPayoutsAsProcessed(currentInvoicePayouts);
-
-    const message = `Stripe recipient account for partner ${partner.email} does not have an active crypto wallet payout method.`;
-
-    if (forceWithdrawal) {
-      throw new Error(message);
-    } else {
-      console.warn(message);
-      return;
-    }
-  }
 
   const allPayoutsProgramNames = [
     ...new Set(allPayouts.map((p) => p.program.name)),
