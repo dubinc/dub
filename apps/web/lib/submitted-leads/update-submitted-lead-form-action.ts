@@ -133,11 +133,13 @@ export const updateSubmittedLeadFormAction = authActionClient
           );
         }
 
-        // The form is the same on every group, so log a form change only once
+        // The form is the same on every group, so log a form change only once.
+        // Parse the old form so both forms have their keys in the same order.
         if (
           group.slug === DEFAULT_PARTNER_GROUP.slug &&
-          JSON.stringify(oldReferralFormData) !==
-            JSON.stringify(referralFormData)
+          JSON.stringify(
+            submittedLeadFormSchema.safeParse(oldReferralFormData).data,
+          ) !== JSON.stringify(referralFormData)
         ) {
           descriptions.push("Submitted lead form updated for all groups");
         }
