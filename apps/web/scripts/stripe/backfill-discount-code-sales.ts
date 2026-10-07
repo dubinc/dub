@@ -378,7 +378,7 @@ async function backfillCustomer({
       type: "sale",
       partnerId: discountCode.partnerId,
       discountCode: discountCode.code,
-      importStripeInvoices: true,
+      stripeInvoicesToImport: invoicesToImport.map((invoice) => invoice.id!),
       customer: {
         externalId: dubCustomerExternalId,
         stripeCustomerId,
@@ -396,7 +396,6 @@ async function backfillCustomer({
       workspace,
       programId,
       user,
-      stripeInvoiceIds: invoicesToImport.map((invoice) => invoice.id!),
     });
 
     return { ...result, status: "imported" };

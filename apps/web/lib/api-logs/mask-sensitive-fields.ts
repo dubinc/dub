@@ -26,6 +26,8 @@ export const SENSITIVE_RESPONSE_FIELDS_BY_ROUTE = {
 // Map of route pattern -> request body fields that should be masked before logging.
 export const SENSITIVE_REQUEST_FIELDS_BY_ROUTE = {
   "/workspaces/:id/saml": ["encodedRawMetadata"],
+  "/workspaces/:id/import/rebrandly": ["apiKey"],
+  "/workspaces/:id/import/short": ["apiKey"],
   "/workspaces/:id": ["publishableKey"],
 } as const;
 

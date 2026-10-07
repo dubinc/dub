@@ -15,7 +15,7 @@ export const approveProgramApplicationAction = authActionClient
   .inputSchema(inputSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
-    const { partnerId, applicationId, groupId } = parsedInput;
+    const { partnerId, applicationId, groupId, tagIds, tagNames } = parsedInput;
 
     throwIfNoPermission({
       role: workspace.role,
@@ -30,5 +30,7 @@ export const approveProgramApplicationAction = authActionClient
       userId: user.id,
       applicationId,
       groupId,
+      tagIds,
+      tagNames,
     });
   });
