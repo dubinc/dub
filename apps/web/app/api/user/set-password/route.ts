@@ -4,6 +4,7 @@ import { PASSWORD_RESET_TOKEN_EXPIRY } from "@/lib/auth/constants";
 import { prisma } from "@/lib/prisma";
 import { sendEmail } from "@dub/email";
 import ResetPasswordLink from "@dub/email/templates/reset-password-link";
+import { APP_DOMAIN } from "@dub/utils";
 import { randomBytes } from "crypto";
 import { NextResponse } from "next/server";
 
@@ -42,14 +43,14 @@ export const POST = withSession(async ({ session }) => {
     to: session.user.email,
     react: ResetPasswordLink({
       email: session.user.email,
-      url: `${process.env.NEXTAUTH_URL}/auth/reset-password/${token}`,
+      url: `${APP_DOMAIN}/auth/reset-password/${token}`,
     }),
   });
 
   if (process.env.NODE_ENV === "development") {
     console.info(
       "Password reset URL:",
-      `${process.env.NEXTAUTH_URL}/auth/reset-password/${token}`,
+      `${APP_DOMAIN}/auth/reset-password/${token}`,
     );
   }
 
