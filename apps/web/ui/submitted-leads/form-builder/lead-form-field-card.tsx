@@ -94,7 +94,8 @@ export function LeadFormFieldCard({
           title="Remove field"
           className={cn(
             "flex size-6 shrink-0 items-center justify-center rounded text-neutral-500 transition-colors hover:bg-neutral-100 hover:text-neutral-800",
-            !expanded && "opacity-0 group-hover/field:opacity-100",
+            !expanded &&
+              "opacity-0 focus-visible:opacity-100 group-hover/field:opacity-100",
           )}
         >
           <Trash className="size-3.5" />
@@ -313,7 +314,7 @@ function LeadFormFieldOption({
         type="button"
         onClick={onRemove}
         title="Remove option"
-        className="flex size-6 shrink-0 items-center justify-center rounded text-neutral-500 opacity-0 transition-colors hover:bg-neutral-100 hover:text-neutral-800 group-hover/option:opacity-100"
+        className="flex size-6 shrink-0 items-center justify-center rounded text-neutral-500 opacity-0 transition-colors hover:bg-neutral-100 hover:text-neutral-800 focus-visible:opacity-100 group-hover/option:opacity-100"
       >
         <Trash className="size-3.5" />
       </button>
