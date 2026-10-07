@@ -9,7 +9,7 @@ import {
   Reorder,
   useDragControls,
 } from "motion/react";
-import { ReactNode } from "react";
+import { PointerEvent, ReactNode } from "react";
 import {
   changeLeadFormBuilderFieldType,
   createLeadFormBuilderOption,
@@ -18,6 +18,15 @@ import {
   LeadFormBuilderOption,
   LeadFormFieldType,
 } from "./lead-form-builder-fields";
+
+// Prevent the default action so the browser doesn't select text while dragging
+function startDrag(
+  e: PointerEvent<HTMLDivElement>,
+  controls: ReturnType<typeof useDragControls>,
+) {
+  e.preventDefault();
+  controls.start(e);
+}
 
 const inputClassName =
   "block h-10 w-full rounded-lg border-neutral-200 px-3 text-sm text-neutral-800 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500";
@@ -64,7 +73,7 @@ export function LeadFormFieldCard({
       >
         <div className="flex min-w-0 flex-1 items-center gap-2">
           <div
-            onPointerDown={(e) => controls.start(e)}
+            onPointerDown={(e) => startDrag(e, controls)}
             className="flex size-6 shrink-0 cursor-grab touch-none items-center justify-center rounded-md text-neutral-800 hover:bg-neutral-200/50"
             title="Drag to reorder"
           >
@@ -286,7 +295,7 @@ function LeadFormFieldOption({
       transition={{ duration: 0.15 }}
     >
       <div
-        onPointerDown={(e) => controls.start(e)}
+        onPointerDown={(e) => startDrag(e, controls)}
         className="flex size-6 shrink-0 cursor-grab touch-none items-center justify-center rounded-lg text-neutral-800 hover:bg-neutral-200/50"
         title="Drag to reorder"
       >
