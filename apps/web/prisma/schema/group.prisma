@@ -30,7 +30,7 @@ model PartnerGroup {
   autoApprovePartnersEnabledAt DateTime?
   referralFormData             Json?                @db.Json
   submittedLeadsEnabledAt      DateTime?
-  workflowId                  String?              @unique
+  workflowId                   String?              @unique
   utmTemplateId                String?              @unique
   createdAt                    DateTime             @default(now())
   updatedAt                    DateTime             @updatedAt
