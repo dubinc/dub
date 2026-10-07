@@ -71,6 +71,7 @@ export const applicationEventSchema = z.object({
 
 // Application analytics
 export const applicationEventAnalyticsQuerySchema = sharedFilterSchema.extend({
+  event: z.enum(APPLICATION_EVENT_STAGES).optional(),
   groupBy: z
     .enum(["count", "timeseries", "partnerId", "referralSource", "country"])
     .default("count"),
