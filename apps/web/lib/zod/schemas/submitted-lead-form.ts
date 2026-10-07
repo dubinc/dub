@@ -79,6 +79,8 @@ export const dateFieldSchema = fieldCommonSchema.extend({
 export const multiSelectFieldSchema = fieldCommonSchema.extend({
   type: z.literal("multiSelect"),
   options: selectOptionsSchema,
+  // Older fields have no value and allow multiple selections
+  multiple: z.boolean().optional(),
 });
 
 // Number
