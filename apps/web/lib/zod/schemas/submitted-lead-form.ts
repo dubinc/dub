@@ -76,6 +76,10 @@ export const numberFieldSchema = fieldCommonSchema.extend({
       min: z.number().optional(),
       max: z.number().optional(),
     })
+    .refine(
+      ({ min, max }) => min === undefined || max === undefined || min <= max,
+      { message: "The minimum can't be more than the maximum." },
+    )
     .optional(),
 });
 
