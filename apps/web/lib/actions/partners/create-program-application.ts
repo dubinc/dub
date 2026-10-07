@@ -20,6 +20,7 @@ import {
   formatWebsiteAndSocialsFields,
 } from "@/lib/partners/format-application-form-data";
 import { prisma } from "@/lib/prisma";
+import { throwIfApplicationBlocked } from "@/lib/program-applications/throw-if-application-blocked";
 import {
   ProgramApplicationFormData,
   ProgramApplicationFormDataWithValues,
@@ -33,7 +34,6 @@ import {
 } from "@/lib/zod/schemas/program-application";
 import { programApplicationFormWebsiteAndSocialsFieldWithValueSchema } from "@/lib/zod/schemas/program-application-form";
 import { createProgramApplicationSchema } from "@/lib/zod/schemas/programs";
-import { STANDARD_REAPPLICATION_DAYS } from "@dub/utils";
 import {
   Partner,
   PartnerGroup,
@@ -249,78 +249,6 @@ export const createProgramApplicationAction = actionClient
     return application;
   });
 
-function throwIfCannotApply({
-  enrollment,
-  groupId,
-  rejectedAt,
-}: {
-  enrollment:
-    | Pick<ProgramEnrollment, "status" | "groupId" | "reapplicationTimeframe">
-    | null
-    | undefined;
-  groupId: string; // New group ID the partner is applying to
-  rejectedAt?: Date | null; // Last application rejection date
-}) {
-  if (!enrollment) {
-    return;
-  }
-
-  switch (enrollment.status) {
-    case ProgramEnrollmentStatus.pending:
-      throw new Error(
-        "You have an existing application for this program. Please wait for it to be reviewed.",
-      );
-    case ProgramEnrollmentStatus.rejected:
-      if (enrollment.reapplicationTimeframe === ReapplicationTimeframe.never) {
-        throw new Error("You cannot reapply to this program.");
-      }
-
-      // TODO: Improve this message to use the absolute day remaining.
-      if (
-        enrollment.reapplicationTimeframe === ReapplicationTimeframe.standard
-      ) {
-        throw new Error(
-          `You can reapply to this program after ${STANDARD_REAPPLICATION_DAYS} days.`,
-        );
-      }
-
-      // Instant reapplication timeframe will be reapplied immediately, so we don't need to handle it here.
-      return;
-    case ProgramEnrollmentStatus.invited:
-      throw new Error("You have a pending invitation to join this program.");
-    case ProgramEnrollmentStatus.declined:
-      throw new Error(
-        "You have declined your invitation to join this program. Please contact program owner to re-invite you.",
-      );
-    case ProgramEnrollmentStatus.approved:
-      if (enrollment.groupId === groupId) {
-        throw new Error("You're already in this group.");
-      }
-
-      if (
-        !rejectedAt ||
-        enrollment.reapplicationTimeframe === ReapplicationTimeframe.instant
-      ) {
-        return;
-      }
-
-      if (enrollment.reapplicationTimeframe === ReapplicationTimeframe.never) {
-        throw new Error("You cannot reapply to this program.");
-      }
-
-      if (addDays(rejectedAt, STANDARD_REAPPLICATION_DAYS) > new Date()) {
-        throw new Error(
-          `You can reapply to this program after ${STANDARD_REAPPLICATION_DAYS} days.`,
-        );
-      }
-      return;
-    default:
-      throw new Error(
-        `You cannot apply to this program again because your enrollment is ${enrollment.status}.`,
-      );
-  }
-}
-
 async function createApplicationAndEnrollment({
   workspace,
   program,
@@ -339,7 +267,7 @@ async function createApplicationAndEnrollment({
   data: z.infer<typeof createProgramApplicationSchema>;
   inAppApplication?: boolean;
 }) {
-  throwIfCannotApply({
+  throwIfApplicationBlocked({
     enrollment: partner.programs.find((p) => p.programId === program.id),
     groupId: group.id,
   });
@@ -415,7 +343,7 @@ async function createApplicationAndEnrollment({
         rejectedAt = latestApplicationRejection?.reviewedAt ?? null;
       }
 
-      throwIfCannotApply({
+      throwIfApplicationBlocked({
         enrollment,
         groupId: group.id,
         rejectedAt,
