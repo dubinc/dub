@@ -1,6 +1,7 @@
 "use client";
 
 import { useProgramMessagesCount } from "@/lib/messages/hooks/use-program-messages-count";
+import { getGroupSubmittedLeadForm } from "@/lib/submitted-leads/get-group-submitted-lead-form";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { usePartnerProgramBounties } from "@/lib/swr/use-partner-program-bounties";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
@@ -446,7 +447,7 @@ export function PartnersSidebarNav({
         postbacksEnabled: partner?.featureFlags?.postbacks,
         hasReferralReward: !!programEnrollment?.referralRewardId,
         submittedLeadsEnabled: Boolean(
-          programEnrollment?.group?.submittedLeadsEnabledAt,
+          getGroupSubmittedLeadForm(programEnrollment?.group),
         ),
         newsContent,
       }}
