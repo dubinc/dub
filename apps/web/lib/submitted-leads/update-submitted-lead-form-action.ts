@@ -1,10 +1,13 @@
 "use server";
 
+import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getFeatureFlags } from "@/lib/edge-config";
 import { prisma } from "@/lib/prisma";
 import { SUBMITTED_LEAD_FORM_REQUIRED_FIELD_KEYS } from "@/lib/submitted-leads/constants";
+import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { submittedLeadFormSchema } from "@/lib/zod/schemas/submitted-lead-form";
+import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
 import { authActionClient } from "../actions/safe-action";
 import { throwIfNoPermission } from "../actions/throw-if-no-permission";
@@ -21,7 +24,7 @@ const schema = z.object({
 export const updateSubmittedLeadFormAction = authActionClient
   .inputSchema(schema)
   .action(async ({ parsedInput, ctx }) => {
-    const { workspace } = ctx;
+    const { workspace, user } = ctx;
     const { referralFormData, enabledGroupIds, disabledGroupIds } = parsedInput;
 
     const programId = getDefaultProgramIdOrThrow(workspace);
@@ -44,6 +47,35 @@ export const updateSubmittedLeadFormAction = authActionClient
     ) {
       throw new Error("Custom fields can't use the keys of required fields.");
     }
+
+    // The groups to record in the audit log, before the update
+    const groups = await prisma.partnerGroup.findMany({
+      where: {
+        programId,
+        OR: [
+          {
+            id: {
+              in: [...enabledGroupIds, ...disabledGroupIds],
+            },
+          },
+          {
+            slug: DEFAULT_PARTNER_GROUP.slug,
+          },
+        ],
+      },
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        color: true,
+        clickRewardId: true,
+        leadRewardId: true,
+        saleRewardId: true,
+        discountId: true,
+        referralFormData: true,
+        submittedLeadsEnabledAt: true,
+      },
+    });
 
     // There is one form for now, so every group gets the same copy. Groups
     // that are turned off keep it too, so turning them on again needs no edit.
@@ -80,4 +112,54 @@ export const updateSubmittedLeadFormAction = authActionClient
         },
       }),
     ]);
+
+    const auditLogs = groups.flatMap(
+      ({
+        referralFormData: oldReferralFormData,
+        submittedLeadsEnabledAt,
+        ...group
+      }) => {
+        const descriptions: string[] = [];
+
+        if (enabledGroupIds.includes(group.id) && !submittedLeadsEnabledAt) {
+          descriptions.push(
+            `Submitted leads turned on for group ${group.name}`,
+          );
+        }
+
+        if (disabledGroupIds.includes(group.id) && submittedLeadsEnabledAt) {
+          descriptions.push(
+            `Submitted leads turned off for group ${group.name}`,
+          );
+        }
+
+        // The form is the same on every group, so log a form change only once
+        if (
+          group.slug === DEFAULT_PARTNER_GROUP.slug &&
+          JSON.stringify(oldReferralFormData) !==
+            JSON.stringify(referralFormData)
+        ) {
+          descriptions.push("Submitted lead form updated for all groups");
+        }
+
+        return descriptions.map((description) => ({
+          workspaceId: workspace.id,
+          programId,
+          action: "group.updated" as const,
+          description,
+          actor: user,
+          targets: [
+            {
+              type: "group" as const,
+              id: group.id,
+              metadata: group,
+            },
+          ],
+        }));
+      },
+    );
+
+    if (auditLogs.length > 0) {
+      waitUntil(recordAuditLog(auditLogs));
+    }
   });
