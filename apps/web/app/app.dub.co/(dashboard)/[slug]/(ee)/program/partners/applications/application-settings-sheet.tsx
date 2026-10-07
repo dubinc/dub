@@ -18,7 +18,6 @@ import {
   Button,
   Sheet,
   Sparkle3,
-  Switch,
   ToggleGroup,
   useEnterSubmit,
 } from "@dub/ui";
@@ -44,7 +43,6 @@ type FormData = {
   categories: Category[];
   eligibilityConditions: EligibilityCondition[];
   applicationScreeningCriteria: string;
-  aiAutoApproveEnabled: boolean;
 };
 
 function ApplicationSettingsSheetContent({
@@ -54,7 +52,6 @@ function ApplicationSettingsSheetContent({
   const { program } = useProgram<
     ProgramProps & {
       applicationScreeningCriteria: string | null;
-      aiAutoApproveEnabledAt: Date | null;
     }
   >();
   const { id: workspaceId, defaultProgramId } = useWorkspace();
@@ -79,7 +76,6 @@ function ApplicationSettingsSheetContent({
       categories: [],
       eligibilityConditions: [],
       applicationScreeningCriteria: "",
-      aiAutoApproveEnabled: false,
     },
   });
 
@@ -103,7 +99,6 @@ function ApplicationSettingsSheetContent({
         .filter((c) => c.key === "country")
         .map((c) => ({ ...c, key: "country" as const, id: generateId() })),
       applicationScreeningCriteria: program.applicationScreeningCriteria ?? "",
-      aiAutoApproveEnabled: Boolean(program.aiAutoApproveEnabledAt),
     });
   }, [program?.id, reset]);
 
@@ -132,7 +127,6 @@ function ApplicationSettingsSheetContent({
           ...hiddenEligibilityConditions.current,
         ],
         applicationScreeningCriteria: data.applicationScreeningCriteria,
-        aiAutoApproveEnabled: data.aiAutoApproveEnabled,
       }).then((result) => {
         if (result?.serverError || result?.validationErrors) {
           throw new Error(
@@ -251,7 +245,7 @@ function ApplicationSettingsSheetContent({
                 {...register("applicationScreeningCriteria")}
                 maxLength={2000}
                 rows={4}
-                placeholder="Partners that offer SEO, backlinking, paid advertising, or affiliate marketing services."
+                placeholder="Block spam applications / partners that run paid ads or coupon sites"
                 onKeyDown={handleKeyDown}
                 className={cn(
                   "w-full rounded-lg border border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
@@ -266,32 +260,6 @@ function ApplicationSettingsSheetContent({
                 loading={groupsLoading}
                 autoApprove={autoApprove}
               />
-
-              <label className="flex cursor-pointer select-none items-start gap-3">
-                <Controller
-                  control={control}
-                  name="aiAutoApproveEnabled"
-                  render={({ field }) => (
-                    <span className="mt-0.5 inline-flex">
-                      <Switch
-                        checked={field.value}
-                        fn={field.onChange}
-                        disabled={groupsLoading}
-                      />
-                    </span>
-                  )}
-                />
-                <span>
-                  <span className="flex items-center gap-1 text-sm font-medium leading-5 tracking-[-0.02em] text-neutral-800">
-                    <Sparkle3 variant="fill" className="size-4 shrink-0" />
-                    Hold spam applications for review
-                  </span>
-                  <span className="mt-0.5 block text-xs font-normal leading-4 tracking-[-0.02em] text-neutral-500">
-                    When auto-approving, high-confidence spam or clearly
-                    irrelevant applications stay pending.
-                  </span>
-                </span>
-              </label>
             </div>
           </>
         )}

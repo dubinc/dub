@@ -17,7 +17,7 @@ type ApplicationEvaluationFields = Pick<
   | "tiktok"
 >;
 
-export const JEV_MATCH_THRESHOLD = 0.85;
+export const JEV_MATCH_THRESHOLD = 0.7;
 
 const MAX_TEXT_LENGTH = 500;
 const JEV_EVALUATE_TIMEOUT_MS = 2_000;
@@ -63,28 +63,6 @@ export function isConfidentMatch(probability: number | null | undefined) {
     Number.isFinite(probability) &&
     probability >= JEV_MATCH_THRESHOLD
   );
-}
-
-export async function evaluatePartnerApplication(
-  input: EvaluatePartnerApplicationInput,
-): Promise<JevEvaluation> {
-  const state = buildPartnerApplicationState(input);
-
-  if (!state) {
-    return { status: "skipped" };
-  }
-
-  return await evaluateBooleanQuestion({
-    state,
-    questionKey: "poorFit",
-    instructions:
-      "Is this application spam or clearly irrelevant to this program?",
-    criteria: {
-      true: "Spam or clearly irrelevant to the program",
-      false: "Plausible fit, or not enough signal to reject",
-    },
-    tag: "jev-partner-auto-approve",
-  });
 }
 
 export async function evaluateApplicationScreening({

@@ -14,7 +14,6 @@ const schema = z.object({
   categories: z.array(z.enum(Category)).optional(),
   eligibilityConditions: applicationRequirementsSchema.optional(),
   applicationScreeningCriteria: z.string().max(2000).optional(),
-  aiAutoApproveEnabled: z.boolean().optional(),
 });
 
 export const updateApplicationSettingsAction = authActionClient
@@ -26,7 +25,6 @@ export const updateApplicationSettingsAction = authActionClient
       categories,
       eligibilityConditions,
       applicationScreeningCriteria,
-      aiAutoApproveEnabled,
     } = parsedInput;
 
     throwIfNoPermission({
@@ -35,18 +33,6 @@ export const updateApplicationSettingsAction = authActionClient
     });
 
     const programId = getDefaultProgramIdOrThrow(workspace);
-
-    const aiAutoApproveEnabledAt =
-      aiAutoApproveEnabled === false
-        ? null
-        : aiAutoApproveEnabled === true
-          ? (
-              await prisma.program.findUnique({
-                where: { id: programId },
-                select: { aiAutoApproveEnabledAt: true },
-              })
-            )?.aiAutoApproveEnabledAt ?? new Date()
-          : undefined;
 
     const program = await prisma.program.update({
       where: {
@@ -66,9 +52,6 @@ export const updateApplicationSettingsAction = authActionClient
         ...(applicationScreeningCriteria !== undefined && {
           applicationScreeningCriteria:
             applicationScreeningCriteria.trim() || null,
-        }),
-        ...(aiAutoApproveEnabledAt !== undefined && {
-          aiAutoApproveEnabledAt,
         }),
       },
     });

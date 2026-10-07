@@ -14,12 +14,10 @@ type Result = Program & {
 export function omitInternalProgramFields<
   T extends {
     applicationScreeningCriteria?: string | null;
-    aiAutoApproveEnabledAt?: Date | null;
   },
 >(program: T) {
   const {
     applicationScreeningCriteria: _applicationScreeningCriteria,
-    aiAutoApproveEnabledAt: _aiAutoApproveEnabledAt,
     ...publicProgram
   } = program;
 

@@ -88,7 +88,6 @@ export const ProgramSchema = z.object({
 export const ProgramSchemaWithInviteEmailData = ProgramSchema.extend({
   inviteEmailData: programInviteEmailDataSchema,
   applicationScreeningCriteria: z.string().nullish(),
-  aiAutoApproveEnabledAt: z.date().nullish(),
 });
 
 export const updateProgramSchema = z.object({

@@ -22,7 +22,6 @@ const programRow = {
   defaultFolderId: "fold_1",
   defaultGroupId: "grp_1",
   applicationScreeningCriteria: "reject anyone doing SEO or backlinking",
-  aiAutoApproveEnabledAt: new Date(),
   createdAt: new Date(),
   updatedAt: new Date(),
 };
@@ -45,21 +44,18 @@ describe("program config exposure", () => {
     });
 
     expect(parsed.program).not.toHaveProperty("applicationScreeningCriteria");
-    expect(parsed.program).not.toHaveProperty("aiAutoApproveEnabledAt");
   });
 
   it("is stripped from the bare ProgramSchema", () => {
     const parsed = ProgramSchema.parse(programRow);
 
     expect(parsed).not.toHaveProperty("applicationScreeningCriteria");
-    expect(parsed).not.toHaveProperty("aiAutoApproveEnabledAt");
   });
 
   it("is stripped from the public program loader", () => {
     const publicProgram = omitInternalProgramFields(programRow);
 
     expect(publicProgram).not.toHaveProperty("applicationScreeningCriteria");
-    expect(publicProgram).not.toHaveProperty("aiAutoApproveEnabledAt");
     expect(publicProgram).toEqual({
       id: programRow.id,
       name: programRow.name,
@@ -87,6 +83,5 @@ describe("program config exposure", () => {
     expect(parsed.applicationScreeningCriteria).toBe(
       "reject anyone doing SEO or backlinking",
     );
-    expect(parsed.aiAutoApproveEnabledAt).toBeInstanceOf(Date);
   });
 });

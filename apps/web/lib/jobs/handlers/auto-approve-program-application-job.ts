@@ -1,7 +1,5 @@
-import { evaluatePartnerApplication } from "@/lib/ai/evaluate-partner-application";
 import { DubApiError } from "@/lib/api/errors";
 import { getProgramApplicationRisks } from "@/lib/api/fraud/get-program-application-risks";
-import { logger } from "@/lib/axiom/server";
 import { evaluateApplicationRequirements } from "@/lib/partners/evaluate-application-requirements";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { prisma } from "@/lib/prisma";
@@ -69,7 +67,6 @@ export const autoApproveProgramApplicationJob = defineJob({
             description: true,
             applicationRequirements: true,
             applicationScreeningCriteria: true,
-            aiAutoApproveEnabledAt: true,
             workspace: {
               select: {
                 plan: true,
@@ -216,35 +213,6 @@ export const autoApproveProgramApplicationJob = defineJob({
       });
 
       if (matchedScreeningCriteria) {
-        return;
-      }
-    }
-
-    if (program.aiAutoApproveEnabledAt) {
-      const evaluation = await evaluatePartnerApplication({
-        program: {
-          name: program.name,
-          description: program.description,
-        },
-        partner,
-        application: programApplication,
-        landerData: partnerGroup.landerData,
-      });
-
-      logger.info("jev.partner.auto-approve", {
-        programId,
-        partnerId,
-        status: evaluation.status,
-        probability: evaluation.probability,
-        error: evaluation.error,
-        usage: evaluation.usage,
-      });
-      await logger.flush();
-
-      if (evaluation.status === "matched") {
-        console.warn(
-          `Partner ${partnerId} held from auto-approve (Jev poorFit=${evaluation.probability}).`,
-        );
         return;
       }
     }
