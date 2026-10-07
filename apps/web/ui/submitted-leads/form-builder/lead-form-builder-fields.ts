@@ -1,42 +1,10 @@
 import { formFieldSchema } from "@/lib/zod/schemas/submitted-lead-form";
-import {
-  CalendarIcon,
-  CheckboxChecked,
-  DropdownSelect,
-  Globe,
-  Hashtag,
-  Icon,
-  InputField,
-  LinkChain,
-  MobilePhone,
-  TextArea,
-} from "@dub/ui/icons";
 import { nanoid } from "@dub/utils";
 import * as z from "zod/v4";
 
 type FormField = z.infer<typeof formFieldSchema>;
 
 export type LeadFormFieldType = FormField["type"];
-
-export const LEAD_FORM_FIELD_TYPES: Record<
-  LeadFormFieldType,
-  {
-    label: string;
-    icon: Icon;
-    // Hidden types are only shown for existing fields that already use them
-    hidden?: boolean;
-  }
-> = {
-  text: { label: "Text field", icon: InputField },
-  textarea: { label: "Text area", icon: TextArea },
-  date: { label: "Date selection", icon: CalendarIcon },
-  url: { label: "URL", icon: LinkChain },
-  select: { label: "Dropdown", icon: DropdownSelect },
-  country: { label: "Country", icon: Globe },
-  multiSelect: { label: "Multiple choice", icon: CheckboxChecked },
-  number: { label: "Number", icon: Hashtag },
-  phone: { label: "Phone number", icon: MobilePhone, hidden: true },
-};
 
 export type LeadFormBuilderOption = {
   value: string;

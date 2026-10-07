@@ -13,11 +13,11 @@ import { PointerEvent, ReactNode } from "react";
 import {
   changeLeadFormBuilderFieldType,
   createLeadFormBuilderOption,
-  LEAD_FORM_FIELD_TYPES,
   LeadFormBuilderField,
   LeadFormBuilderOption,
   LeadFormFieldType,
 } from "./lead-form-builder-fields";
+import { LEAD_FORM_FIELD_TYPES } from "./lead-form-field-types";
 
 // Prevent the default action so the browser doesn't select text while dragging
 function startDrag(
