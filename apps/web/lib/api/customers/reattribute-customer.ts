@@ -1091,7 +1091,7 @@ export async function createMissingPartnerCommissions({
     (e) => e.event === EventType.sale,
   ).length;
 
-  if ((plan.hasLead && newLeadCount === 0) || newSaleCount < plan.saleCount) {
+  if (newLeadCount < plan.leadCount || newSaleCount < plan.saleCount) {
     throw new ReattributeEventsNotReadyError(
       `Re-ingested events for customer ${newCustomerId} are not queryable yet.`,
     );
