@@ -16,7 +16,7 @@ import { redis } from "@/lib/upstash";
 import { leadEventSchemaTB } from "@/lib/zod/schemas/leads";
 import { saleEventSchemaTB } from "@/lib/zod/schemas/sales";
 import { nanoid } from "@dub/utils";
-import { Customer, Link } from "@prisma/client";
+import { CommissionType, Customer, EventType, Link } from "@prisma/client";
 import * as z from "zod/v4";
 
 export const CUSTOMER_REATTRIBUTION_EVENTS_LIMIT = 500;
@@ -780,6 +780,7 @@ export async function applyClawbackAndReplacementCommissions({
       },
       select: {
         type: true,
+        eventId: true,
         invoiceId: true,
       },
     }),
@@ -800,9 +801,11 @@ export async function applyClawbackAndReplacementCommissions({
       .map((commission) => commission.invoiceId)
       .filter((invoiceId): invoiceId is string => Boolean(invoiceId)),
   );
-  const existingInvoicelessCount = existingNewCommissions.filter(
-    (commission) => commission.type === "sale" && !commission.invoiceId,
-  ).length;
+  const existingEventIds = new Set(
+    existingNewCommissions
+      .map((commission) => commission.eventId)
+      .filter((eventId): eventId is string => Boolean(eventId)),
+  );
 
   const saleEvents = [
     ...newEvents.filter(
@@ -812,11 +815,12 @@ export async function applyClawbackAndReplacementCommissions({
         paidInvoiceIds.has(event.invoice_id) &&
         !existingInvoiceIds.has(event.invoice_id),
     ),
-    ...newEvents
-      .filter((event) => event.event === "sale" && !event.invoice_id)
-      .slice(
-        0,
-        Math.max(0, plan.paidInvoicelessCount - existingInvoicelessCount),
+    ...sortEventsByTimestamp(
+      newEvents.filter((event) => event.event === "sale" && !event.invoice_id),
+    )
+      .slice(0, plan.paidInvoicelessCount)
+      .filter(
+        (event) => !event.event_id || !existingEventIds.has(event.event_id),
       ),
   ];
 
@@ -876,5 +880,225 @@ export async function applyClawbackAndReplacementCommissions({
     skipped: false,
     clawback: true,
     recreated: (leadEvent ? 1 : 0) + saleEvents.length,
+  };
+}
+
+export function sortEventsByTimestamp<
+  T extends Pick<CustomerTBEvent, "timestamp">,
+>(events: T[]) {
+  return [...events].sort((a, b) => a.timestamp.localeCompare(b.timestamp));
+}
+
+// Finds lead and sale events that don't have a commission yet.
+// Existing commissions are matched by event ID, then invoice ID, then
+// (for sales without an invoice) one per sale, oldest first.
+export function selectUncommissionedEvents<
+  T extends Pick<CustomerTBEvent, "timestamp" | "event_id" | "invoice_id"> & {
+    event: string;
+  },
+>({
+  newEvents,
+  existingCommissions,
+}: {
+  newEvents: T[];
+  existingCommissions: {
+    type: CommissionType;
+    eventId: string | null;
+    invoiceId: string | null;
+  }[];
+}) {
+  const currentEventIds = new Set(newEvents.map((event) => event.event_id));
+  const commissionedEventIds = new Set<string>();
+  const priorInvoiceIds = new Set<string>();
+
+  let hasPriorLead = false;
+  // Counts the sale commissions that already exist from earlier history but have no invoice ID.
+  let priorInvoicelessCount = 0;
+
+  for (const commission of existingCommissions) {
+    if (commission.eventId) {
+      commissionedEventIds.add(commission.eventId);
+
+      if (currentEventIds.has(commission.eventId)) {
+        continue;
+      }
+    }
+
+    if (commission.type === CommissionType.lead) {
+      hasPriorLead = true;
+    } else if (commission.type === CommissionType.sale) {
+      if (commission.invoiceId) {
+        priorInvoiceIds.add(commission.invoiceId);
+      } else {
+        priorInvoicelessCount++;
+      }
+    }
+  }
+
+  let leadEvent: T | null = null;
+  const saleEvents: T[] = [];
+
+  for (const event of sortEventsByTimestamp(newEvents)) {
+    const isInvoicelessSale =
+      event.event === EventType.sale && !event.invoice_id;
+
+    // Sales without an invoice can't be matched to a commission by ID: the copied
+    // events have new event IDs and there is no invoice ID to compare. Instead,
+    // each prior invoiceless commission covers one invoiceless sale, oldest first,
+    // and only the sales left over get a new commission. Clawback recreates paid
+    // ones from the oldest sales too, so the two steps never pick the same sale.
+    if (isInvoicelessSale && priorInvoicelessCount > 0) {
+      priorInvoicelessCount--;
+      continue;
+    }
+
+    if (!event.event_id || commissionedEventIds.has(event.event_id)) {
+      continue;
+    }
+
+    if (event.event === EventType.lead) {
+      if (!hasPriorLead && !leadEvent) {
+        leadEvent = event;
+      }
+    } else if (event.event === EventType.sale) {
+      if (isInvoicelessSale || !priorInvoiceIds.has(event.invoice_id!)) {
+        saleEvents.push(event);
+      }
+    }
+  }
+
+  return {
+    leadEvent,
+    saleEvents,
+  };
+}
+
+export class ReattributeEventsNotReadyError extends Error {}
+
+// Creates commissions for lead/sale events that have none, e.g. when:
+// - the customer came from a regular short link (no partner, so no commissions)
+// - the old partner had no reward for that event, or the commission was skipped
+// - events were tracked before the old link was added to a program
+export async function createMissingPartnerCommissions({
+  oldCustomerId,
+  newCustomerId,
+  newPartnerId,
+  newLinkId,
+  programId,
+  plan,
+}: {
+  oldCustomerId: string;
+  newCustomerId: string;
+  newPartnerId: string;
+  newLinkId: string;
+  programId: string;
+  plan: ReattributeEventPlan;
+}) {
+  const [newEvents, existingCommissions, newCustomer] = await Promise.all([
+    getCustomerReattributeEvents(newCustomerId),
+
+    prisma.commission.findMany({
+      where: {
+        customerId: {
+          in: [oldCustomerId, newCustomerId],
+        },
+        type: {
+          in: [CommissionType.lead, CommissionType.sale],
+        },
+      },
+      select: {
+        type: true,
+        eventId: true,
+        invoiceId: true,
+      },
+    }),
+
+    prisma.customer.findUnique({
+      where: {
+        id: newCustomerId,
+      },
+      select: {
+        country: true,
+      },
+    }),
+  ]);
+
+  const newLeadCount = newEvents.filter(
+    (e) => e.event === EventType.lead,
+  ).length;
+
+  const newSaleCount = newEvents.filter(
+    (e) => e.event === EventType.sale,
+  ).length;
+
+  if ((plan.hasLead && newLeadCount === 0) || newSaleCount < plan.saleCount) {
+    throw new ReattributeEventsNotReadyError(
+      `Re-ingested events for customer ${newCustomerId} are not queryable yet.`,
+    );
+  }
+
+  const { leadEvent, saleEvents } = selectUncommissionedEvents({
+    newEvents,
+    existingCommissions,
+  });
+
+  if (!leadEvent && saleEvents.length === 0) {
+    return {
+      skipped: true,
+      created: 0,
+    };
+  }
+
+  let created = 0;
+
+  await runOnce({
+    key: `reattribute-customer:${oldCustomerId}:missing-commissions`,
+    fn: async () => {
+      const context = {
+        customer: {
+          country: newCustomer?.country ?? null,
+        },
+      };
+
+      if (leadEvent?.event_id) {
+        await queuePartnerCommissionCreation({
+          event: CommissionType.lead,
+          programId,
+          partnerId: newPartnerId,
+          linkId: newLinkId,
+          customerId: newCustomerId,
+          eventId: leadEvent.event_id,
+          quantity: 1,
+          createdAt: new Date(`${leadEvent.timestamp}Z`),
+          context,
+        });
+
+        created++;
+      }
+
+      for (const saleEvent of saleEvents) {
+        await queuePartnerCommissionCreation({
+          event: CommissionType.sale,
+          programId,
+          partnerId: newPartnerId,
+          linkId: newLinkId,
+          customerId: newCustomerId,
+          eventId: saleEvent.event_id,
+          quantity: 1,
+          amount: saleEvent.saleAmount,
+          currency: saleEvent.currency,
+          invoiceId: saleEvent.invoice_id,
+          createdAt: new Date(`${saleEvent.timestamp}Z`),
+          context,
+        });
+
+        created++;
+      }
+    },
+  });
+
+  return {
+    skipped: false,
+    created,
   };
 }

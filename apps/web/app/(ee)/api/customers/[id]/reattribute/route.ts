@@ -24,6 +24,7 @@ import {
 } from "@/lib/zod/schemas/customers";
 import { INACTIVE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
 import { ACME_WORKSPACE_ID, nanoid } from "@dub/utils";
+import { Prisma } from "@prisma/client";
 import { NextResponse } from "next/server";
 
 // POST /api/customers/:id/reattribute – Reattribute a customer to a different partner
@@ -41,15 +42,10 @@ export const POST = withWorkspace(
       });
     }
 
-    const customer = await getCustomerOrThrow(
-      {
-        id,
-        workspaceId: workspace.id,
-      },
-      {
-        includeExpandedFields: true,
-      },
-    );
+    const customer = await getCustomerOrThrow({
+      id,
+      workspaceId: workspace.id,
+    });
 
     if (isReattributedCustomerStub(customer)) {
       throw new DubApiError({
@@ -82,6 +78,12 @@ export const POST = withWorkspace(
       where: {
         id: linkId,
       },
+      select: {
+        id: true,
+        projectId: true,
+        programId: true,
+        partnerId: true,
+      },
     });
 
     if (
@@ -109,49 +111,68 @@ export const POST = withWorkspace(
     if (events.length >= CUSTOMER_REATTRIBUTION_EVENTS_LIMIT) {
       throw new DubApiError({
         code: "unprocessable_entity",
-        message: `This customer has too many events to reattribute (limit ${CUSTOMER_REATTRIBUTION_EVENTS_LIMIT}).`,
+        message: `This customer has at least ${CUSTOMER_REATTRIBUTION_EVENTS_LIMIT} events, so their full history cannot be moved.`,
       });
     }
 
-    if (
+    // No events, commissions, click, or sales to move, so update this customer in place.
+    const hasNoHistory =
       events.length === 0 &&
       commissionCount === 0 &&
       !customer.clickId &&
-      customer.sales === 0
-    ) {
-      const updatedCustomer = await prisma.customer.update({
-        where: {
-          id: customer.id,
-        },
-        data: {
-          partnerId: link.partnerId,
-          linkId: link.id,
-          programId: link.programId,
-        },
-        include: {
-          link: {
-            include: {
-              linkReward: {
-                select: {
-                  discount: true,
+      customer.sales === 0;
+
+    if (hasNoHistory) {
+      const updatedCustomer = await prisma.customer
+        .update({
+          where: {
+            id: customer.id,
+            partnerId: customer.partnerId,
+            linkId: customer.linkId,
+          },
+          data: {
+            partnerId: link.partnerId,
+            linkId: link.id,
+            programId: link.programId,
+          },
+          include: {
+            link: {
+              include: {
+                linkReward: {
+                  select: {
+                    discount: true,
+                  },
                 },
               },
             },
-          },
-          programEnrollment: {
-            include: {
-              partner: true,
-              discount: true,
+            programEnrollment: {
+              include: {
+                partner: true,
+                discount: true,
+              },
             },
           },
-        },
-      });
+        })
+        .catch((error) => {
+          if (
+            error instanceof Prisma.PrismaClientKnownRequestError &&
+            error.code === "P2025"
+          ) {
+            throw new DubApiError({
+              code: "conflict",
+              message: `Customer "${customer.id}" changed while being reattributed. Please try again.`,
+            });
+          }
+
+          throw error;
+        });
 
       return NextResponse.json(
         CustomerEnrichedSchema.parse(transformCustomer(updatedCustomer)),
       );
     }
 
+    // Events, commissions, a click, or sales exist, so create a new customer and move the history.
     const newCustomerId = createId({ prefix: "cus_" });
     const newClickId = nanoid(16);
     const incrementConversions =
