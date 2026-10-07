@@ -13,9 +13,9 @@ export function DateField({
   keyPath?: string;
   field: DateFieldData;
 }) {
-  const { register, getFieldState } = useFormContext<any>();
+  const { register, getFieldState, formState } = useFormContext<any>();
   const keyPath = keyPathProp || `formData.${field.key}`;
-  const state = getFieldState(keyPath);
+  const state = getFieldState(keyPath, formState);
   const error = !!state.error;
 
   return (

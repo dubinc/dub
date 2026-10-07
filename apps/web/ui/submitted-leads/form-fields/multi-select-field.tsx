@@ -13,9 +13,9 @@ export function MultiSelectField({
   keyPath?: string;
   field: MultiSelectFieldData;
 }) {
-  const { getFieldState, control } = useFormContext<any>();
+  const { getFieldState, control, formState } = useFormContext<any>();
   const keyPath = keyPathProp || `formData.${field.key}`;
-  const state = getFieldState(keyPath);
+  const state = getFieldState(keyPath, formState);
   const options = field.options;
 
   return (

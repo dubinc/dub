@@ -14,10 +14,10 @@ export function TextareaField({
   keyPath?: string;
   field: TextareaFieldData;
 }) {
-  const { register, getFieldState, watch } = useFormContext<any>();
+  const { register, getFieldState, watch, formState } = useFormContext<any>();
   const keyPath = keyPathProp || `formData.${field.key}`;
   const value = watch(keyPath);
-  const state = getFieldState(keyPath);
+  const state = getFieldState(keyPath, formState);
   const currentLength = value?.length || 0;
   const maxLength = field.constraints?.maxLength;
   const exceedsMaxLength = maxLength && currentLength > maxLength;
