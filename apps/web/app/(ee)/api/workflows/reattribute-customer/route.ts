@@ -29,7 +29,7 @@ type Input = z.infer<typeof reattributeCustomerWorkflowSchema>;
  * 2. reingest-events: copy events onto the new customer + link
  * 3. increment-new-link-stats
  * 4. transfer-unpaid-commissions
- * 5. create-missing-commissions: commission any lead/sale event with no existing commission
+ * 5. create-missing-commissions: commission lead/sale events only when neither customer has a lead or sale commission
  * 6. load-clawback-plan + optional-clawback
  * 7. delete-old-events
  * 8. decrement-old-link-stats

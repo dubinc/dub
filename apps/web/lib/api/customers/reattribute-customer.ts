@@ -975,10 +975,15 @@ export function selectUncommissionedEvents<
 
 export class ReattributeEventsNotReadyError extends Error {}
 
-// Creates commissions for lead/sale events that have none, e.g. when:
+// Creates commissions for lead/sale events that have none, when this customer
+// has never had a lead or sale commission:
 // - the customer came from a regular short link (no partner, so no commissions)
-// - the old partner had no reward for that event, or the commission was skipped
+// - the old partner never earned a lead or sale commission
 // - events were tracked before the old link was added to a program
+//
+// Any existing lead or sale commission means the reward engine already ran.
+// Paid rows stay on the old customer, so replaying later uncommissioned sales
+// would treat them as a new first sale for the new partner.
 export async function createMissingPartnerCommissions({
   oldCustomerId,
   newCustomerId,
@@ -994,6 +999,28 @@ export async function createMissingPartnerCommissions({
   programId: string;
   plan: ReattributeEventPlan;
 }) {
+  const existingCommission = await prisma.commission.findFirst({
+    where: {
+      customerId: {
+        in: [oldCustomerId, newCustomerId],
+      },
+      type: {
+        in: [CommissionType.lead, CommissionType.sale],
+      },
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  if (existingCommission) {
+    return {
+      skipped: true,
+      reason: "existing-commissions",
+      created: 0,
+    };
+  }
+
   const [newEvents, existingCommissions, newCustomer] = await Promise.all([
     getCustomerReattributeEvents(newCustomerId),
 
@@ -1071,6 +1098,7 @@ export async function createMissingPartnerCommissions({
           quantity: 1,
           createdAt: new Date(`${leadEvent.timestamp}Z`),
           context,
+          skipWorkflow: true,
         });
 
         created++;
@@ -1090,6 +1118,7 @@ export async function createMissingPartnerCommissions({
           invoiceId: saleEvent.invoice_id,
           createdAt: new Date(`${saleEvent.timestamp}Z`),
           context,
+          skipWorkflow: true,
         });
 
         created++;
