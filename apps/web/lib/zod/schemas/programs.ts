@@ -52,6 +52,12 @@ export const applicationRequirementsSchema = z
   .array(eligibilityConditionSchema)
   .max(2);
 
+export const programInvoiceSettingsSchema = z.object({
+  companyName: z.string().max(190).trim().nullish(),
+  address: z.string().max(500).trim().nullish(),
+  taxId: z.string().max(100).trim().nullish(),
+});
+
 export const ProgramSchema = z.object({
   id: z.string(),
   name: z.string(),
@@ -85,6 +91,7 @@ export const ProgramSchema = z.object({
 // TODO: move to group-level soon
 export const ProgramSchemaWithInviteEmailData = ProgramSchema.extend({
   inviteEmailData: programInviteEmailDataSchema,
+  invoiceSettings: programInvoiceSettingsSchema.nullish(),
 });
 
 export const updateProgramSchema = z.object({
@@ -108,6 +115,7 @@ export const updateProgramSchema = z.object({
     .nullish(),
   messagingEnabledAt: z.coerce.date().nullish(),
   referralFormData: submittedLeadFormSchema.nullish(),
+  invoiceSettings: programInvoiceSettingsSchema.nullish(),
 });
 
 export const ProgramPartnerLinkSchema = LinkSchema.pick({

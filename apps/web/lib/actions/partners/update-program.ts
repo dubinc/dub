@@ -10,6 +10,7 @@ import {
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { prisma } from "@/lib/prisma";
 import { submittedLeadFormSchema } from "@/lib/zod/schemas/submitted-lead-form";
+import { Prisma } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
 import { getProgramOrThrow } from "../../api/programs/get-program-or-throw";
@@ -34,6 +35,7 @@ export const updateProgramAction = authActionClient
       minPayoutAmount,
       messagingEnabledAt,
       referralFormData,
+      invoiceSettings,
     } = parsedInput;
 
     throwIfNoPermission({
@@ -57,6 +59,30 @@ export const updateProgramAction = authActionClient
       programId,
     });
 
+    const normalizedInvoiceSettings = invoiceSettings
+      ? {
+          companyName: invoiceSettings.companyName || null,
+          address: invoiceSettings.address || null,
+          taxId: invoiceSettings.taxId || null,
+        }
+      : null;
+
+    const hasInvoiceSettings = Boolean(
+      normalizedInvoiceSettings?.companyName ||
+        normalizedInvoiceSettings?.address ||
+        normalizedInvoiceSettings?.taxId,
+    );
+
+    const invoiceSettingsUpdate:
+      | Prisma.InputJsonValue
+      | typeof Prisma.DbNull
+      | undefined =
+      invoiceSettings === undefined
+        ? undefined
+        : hasInvoiceSettings && normalizedInvoiceSettings
+          ? normalizedInvoiceSettings
+          : Prisma.DbNull;
+
     const updatedProgram = await prisma.program.update({
       where: {
         id: programId,
@@ -71,6 +97,9 @@ export const updateProgramAction = authActionClient
             messagingEnabledAt === null) && { messagingEnabledAt }),
         ...(referralFormData !== undefined && {
           referralFormData: referralFormData ?? null,
+        }),
+        ...(invoiceSettingsUpdate !== undefined && {
+          invoiceSettings: invoiceSettingsUpdate,
         }),
       },
     });

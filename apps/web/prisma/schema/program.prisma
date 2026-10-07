@@ -44,6 +44,7 @@ model Program {
   resources               Json?   @db.Json
   referralFormData        Json?   @db.Json
   applicationRequirements Json?   @db.Json
+  invoiceSettings         Json?   @db.Json
   termsUrl                String? @db.Text
   helpUrl                 String? @db.Text
   supportEmail            String?

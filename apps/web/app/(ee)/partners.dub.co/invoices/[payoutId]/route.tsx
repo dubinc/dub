@@ -5,6 +5,7 @@ import {
   STABLECOIN_PAYOUT_FEE_RATE,
 } from "@/lib/constants/payouts";
 import { prisma } from "@/lib/prisma";
+import { programInvoiceSettingsSchema } from "@/lib/zod/schemas/programs";
 import {
   currencyFormatter,
   DUB_WORDMARK,
@@ -46,6 +47,7 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
           name: true,
           logo: true,
           supportEmail: true,
+          invoiceSettings: true,
         },
       },
     },
@@ -73,6 +75,13 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
     });
   }
 
+  const parsedInvoiceSettings = programInvoiceSettingsSchema.safeParse(
+    payout.program.invoiceSettings,
+  );
+  const programInvoiceSettings = parsedInvoiceSettings.success
+    ? parsedInvoiceSettings.data
+    : null;
+
   const invoiceMetadata = [
     {
       label: "Program",
@@ -88,6 +97,42 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
         </View>
       ),
     },
+    ...(programInvoiceSettings?.companyName
+      ? [
+          {
+            label: "Company name",
+            value: (
+              <Text style={tw("text-neutral-800 w-2/3")}>
+                {programInvoiceSettings.companyName}
+              </Text>
+            ),
+          },
+        ]
+      : []),
+    ...(programInvoiceSettings?.address
+      ? [
+          {
+            label: "Company address",
+            value: (
+              <Text style={tw("text-neutral-800 w-2/3")}>
+                {programInvoiceSettings.address}
+              </Text>
+            ),
+          },
+        ]
+      : []),
+    ...(programInvoiceSettings?.taxId
+      ? [
+          {
+            label: "Tax ID",
+            value: (
+              <Text style={tw("text-neutral-800 w-2/3")}>
+                {programInvoiceSettings.taxId}
+              </Text>
+            ),
+          },
+        ]
+      : []),
     ...(payout.paidAt
       ? [
           {
@@ -179,7 +224,18 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
       });
 
   const pdf = await renderToBuffer(
-    <Document>
+    <Document
+      title={`Payout invoice ${payout.id}`}
+      author="Dub Technologies INC"
+      subject="2261 Market Street STE 5906"
+      keywords={[
+        programInvoiceSettings?.companyName,
+        programInvoiceSettings?.address,
+        programInvoiceSettings?.taxId,
+      ]
+        .filter(Boolean)
+        .join(", ")}
+    >
       <Page size="A4" style={tw("p-20 bg-white flex flex-col min-h-full")}>
         {/* Header */}
         <View style={tw("flex-row justify-between items-start mb-6")}>
