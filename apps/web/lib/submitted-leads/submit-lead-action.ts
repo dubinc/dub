@@ -26,7 +26,8 @@ import { ACTIVE_ENROLLMENT_STATUSES } from "../zod/schemas/partners";
  * Converts field values based on field type:
  * - country: converts country code to country name
  * - select: converts option value to option label
- * - multiSelect: converts array of option values to array of option labels
+ * - multiSelect: converts array of option values to array of option labels,
+ *   or a single option value to its label when multiple selections are off
  */
 function convertFieldValue(
   value: unknown,
@@ -45,14 +46,12 @@ function convertFieldValue(
       return option?.label ?? value;
     }
 
-    case "multiSelect":
-      return Array.isArray(value)
-        ? value.map(
-            (val) =>
-              fieldSchema.options.find((opt) => opt.value === val)?.label ??
-              val,
-          )
-        : value;
+    case "multiSelect": {
+      const toLabel = (val: unknown) =>
+        fieldSchema.options.find((opt) => opt.value === val)?.label ?? val;
+
+      return Array.isArray(value) ? value.map(toLabel) : toLabel(value);
+    }
 
     default:
       return value;
