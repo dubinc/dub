@@ -2,6 +2,7 @@ import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { DubApiError } from "@/lib/api/errors";
 import { Session } from "@/lib/auth";
 import { REJECT_BOUNTY_SUBMISSION_REASONS } from "@/lib/bounty/constants";
+import { resolveBountyDetails } from "@/lib/bounty/utils";
 import { prisma } from "@/lib/prisma";
 import {
   BountySubmissionSchema,
@@ -39,6 +40,7 @@ export async function rejectBountySubmission({
       bounty: {
         select: {
           name: true,
+          submissionRequirements: true,
         },
       },
     },
@@ -65,7 +67,10 @@ export async function rejectBountySubmission({
     });
   }
 
-  if (submission.status === "draft") {
+  if (
+    submission.status === "draft" &&
+    !resolveBountyDetails(submission.bounty)?.hasSocialMetrics
+  ) {
     throw new DubApiError({
       code: "bad_request",
       message: "This bounty submission is in progress and cannot be rejected.",

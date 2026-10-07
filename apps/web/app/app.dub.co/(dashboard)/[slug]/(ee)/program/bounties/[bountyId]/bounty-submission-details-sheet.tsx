@@ -154,7 +154,10 @@ function BountySubmissionDetailsSheetContent({
   useKeyboardShortcut(
     "r",
     () => {
-      if (submission.status !== "draft" && submission.status !== "rejected") {
+      if (
+        submission.status !== "rejected" &&
+        (submission.status !== "draft" || isSocialMetricsBounty)
+      ) {
         setShowRejectModal(true);
       }
     },
@@ -610,13 +613,16 @@ function BountySubmissionDetailsSheetContent({
                     disabledTooltip={
                       permissionsError
                         ? permissionsError
-                        : submission.status === "draft"
+                        : submission.status === "draft" &&
+                            !isSocialMetricsBounty
                           ? "Bounty submission is in progress."
                           : submission.status === "rejected"
                             ? "Bounty submission already rejected."
                             : undefined
                     }
-                    disabled={submission.status === "draft"}
+                    disabled={
+                      submission.status === "draft" && !isSocialMetricsBounty
+                    }
                     onClick={() => setShowRejectModal(true)}
                   />
 
