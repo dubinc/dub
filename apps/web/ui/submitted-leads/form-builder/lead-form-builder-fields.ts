@@ -168,65 +168,41 @@ export function fromLeadFormBuilderField(
   }
 }
 
-// Returns the first problem with the fields, or null when they are valid
-export function validateLeadFormBuilderFields(
+// Converts the fields and checks them with the form schema. On failure, it
+// returns the first field with a problem.
+export function parseLeadFormBuilderFields(
   fields: LeadFormBuilderField[],
-): { key: string; message: string } | null {
-  for (const field of fields) {
+):
+  | { success: true; fields: FormField[] }
+  | { success: false; key: string; message: string } {
+  const parsedFields: FormField[] = [];
+
+  for (const [position, field] of fields.entries()) {
     if (!field.type) {
       return {
+        success: false,
         key: field.key,
         message: "Select an input type for each field.",
       };
     }
 
-    if (!field.label.trim()) {
-      return { key: field.key, message: "Enter a label for each field." };
-    }
+    const result = formFieldSchema.safeParse(
+      fromLeadFormBuilderField({ ...field, type: field.type }, position),
+    );
 
-    if (field.type === "select" || field.type === "multiSelect") {
-      if (field.options.length < 2) {
-        return {
-          key: field.key,
-          message: `"${field.label}" needs at least two options.`,
-        };
-      }
+    if (!result.success) {
+      const label = field.label.trim();
+      const { message } = result.error.issues[0];
 
-      if (field.options.some(({ label }) => !label.trim())) {
-        return {
-          key: field.key,
-          message: `Enter a label for each option of "${field.label}".`,
-        };
-      }
-    }
-
-    if (
-      field.maxLength !== null &&
-      (!Number.isInteger(field.maxLength) || field.maxLength < 1)
-    ) {
       return {
+        success: false,
         key: field.key,
-        message: `The max characters of "${field.label}" must be a whole number of at least 1.`,
+        message: label ? `${label}: ${message}` : message,
       };
     }
 
-    if (
-      (field.min !== null && Number.isNaN(field.min)) ||
-      (field.max !== null && Number.isNaN(field.max))
-    ) {
-      return {
-        key: field.key,
-        message: `Enter a number for the limits of "${field.label}".`,
-      };
-    }
-
-    if (field.min !== null && field.max !== null && field.min > field.max) {
-      return {
-        key: field.key,
-        message: `The minimum of "${field.label}" can't be more than its maximum.`,
-      };
-    }
+    parsedFields.push(result.data);
   }
 
-  return null;
+  return { success: true, fields: parsedFields };
 }

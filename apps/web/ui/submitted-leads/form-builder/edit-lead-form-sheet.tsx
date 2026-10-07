@@ -24,11 +24,9 @@ import { Dispatch, SetStateAction, useMemo, useState } from "react";
 import { toast } from "sonner";
 import {
   createLeadFormBuilderField,
-  fromLeadFormBuilderField,
   LeadFormBuilderField,
-  LeadFormFieldType,
+  parseLeadFormBuilderFields,
   toLeadFormBuilderField,
-  validateLeadFormBuilderFields,
 } from "./lead-form-builder-fields";
 import { LeadFormFieldCard } from "./lead-form-field-card";
 
@@ -132,12 +130,12 @@ function EditLeadFormSheetForm({
   const onSave = async () => {
     if (!workspaceId) return;
 
-    const error = validateLeadFormBuilderFields(fields);
+    const result = parseLeadFormBuilderFields(fields);
 
-    if (error) {
-      setErrorKey(error.key);
-      setExpandedKey(error.key);
-      toast.error(error.message);
+    if (!result.success) {
+      setErrorKey(result.key);
+      setExpandedKey(result.key);
+      toast.error(result.message);
       return;
     }
 
@@ -150,12 +148,7 @@ function EditLeadFormSheetForm({
         (id) => !enabledGroupIds.includes(id),
       ),
       referralFormData: {
-        fields: fields.map((field, index) =>
-          fromLeadFormBuilderField(
-            field as LeadFormBuilderField & { type: LeadFormFieldType },
-            index,
-          ),
-        ),
+        fields: result.fields,
       },
     });
   };
