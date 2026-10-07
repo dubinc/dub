@@ -205,25 +205,35 @@ function ReattributeCustomerModal({
                   </div>
 
                   {showClawback && (
-                    <label className="flex items-start gap-2.5 rounded-lg border border-neutral-200 bg-white p-4 shadow-sm">
-                      <Checkbox
-                        checked={createClawback}
-                        onCheckedChange={(checked) =>
-                          setValue("createClawback", checked === true, {
-                            shouldDirty: true,
-                          })
-                        }
-                        className="mt-0.5 data-[state=checked]:bg-black"
-                      />
-                      <span className="text-sm text-neutral-700">
-                        Create a clawback for the{" "}
-                        <span className="font-medium text-neutral-900">
-                          {currencyFormatter(paidEarnings)}
-                        </span>{" "}
-                        in commissions that were already paid to the previous
-                        partner.
-                      </span>
-                    </label>
+                    <div className="flex flex-col gap-3 rounded-lg border border-neutral-200 bg-white p-4 shadow-sm">
+                      <label className="flex items-start gap-2.5">
+                        <Checkbox
+                          checked={createClawback}
+                          onCheckedChange={(checked) =>
+                            setValue("createClawback", checked === true, {
+                              shouldDirty: true,
+                            })
+                          }
+                          className="mt-0.5 data-[state=checked]:bg-black"
+                        />
+                        <span className="text-sm text-neutral-700">
+                          Create a clawback for the{" "}
+                          <span className="font-medium text-neutral-900">
+                            {currencyFormatter(paidEarnings)}
+                          </span>{" "}
+                          in commissions that were already paid to the previous
+                          partner.
+                        </span>
+                      </label>
+                      {!createClawback && (
+                        <p className="text-xs text-neutral-500">
+                          If left unchecked, Dub will skip creating duplicate
+                          commissions for the new partner, since those
+                          commissions have already been paid to the previous
+                          partner.
+                        </p>
+                      )}
+                    </div>
                   )}
                 </>
               )}
