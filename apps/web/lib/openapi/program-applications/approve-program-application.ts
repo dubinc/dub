@@ -8,7 +8,7 @@ export const approveProgramApplication: ZodOpenApiOperationObject = {
   "x-speakeasy-name-override": "approve",
   summary: "Approve a partner application",
   description:
-    "Approve a pending partner application to your program. The partner will be enrolled in the specified group and notified of the approval. If `tagIds` or `tagNames` is provided, those tags are assigned to the partner as part of approval. `tagIds` takes priority over `tagNames`.",
+    "Approve a pending partner application to your program. The partner will be enrolled in the specified group and notified of the approval.",
   requestBody: {
     required: true,
     content: {

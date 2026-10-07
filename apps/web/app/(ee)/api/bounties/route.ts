@@ -2,7 +2,7 @@ import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { createId } from "@/lib/api/create-id";
 import { DubApiError } from "@/lib/api/errors";
 import { throwIfInvalidGroupIds } from "@/lib/api/groups/throw-if-invalid-group-ids";
-import { throwIfInvalidPartnerTagIds } from "@/lib/api/partner-tags/throw-if-invalid-partner-tag-ids";
+import { throwIfInvalidPartnerTags } from "@/lib/api/partner-tags/throw-if-invalid-partner-tags";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { revalidateProgramPublicPages } from "@/lib/api/programs/revalidate-program-public-pages";
@@ -225,7 +225,7 @@ export const POST = withWorkspace(
       groupIds,
     });
 
-    const partnerTags = await throwIfInvalidPartnerTagIds({
+    const partnerTags = await throwIfInvalidPartnerTags({
       programId,
       partnerTagIds,
     });

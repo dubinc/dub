@@ -3,7 +3,7 @@ import { createId } from "@/lib/api/create-id";
 import { DubApiError } from "@/lib/api/errors";
 import { getGroupOrThrow } from "@/lib/api/groups/get-group-or-throw";
 import { movePartnersToGroup } from "@/lib/api/groups/move-partners-to-group";
-import { throwIfInvalidPartnerTagIds } from "@/lib/api/partner-tags/throw-if-invalid-partner-tag-ids";
+import { throwIfInvalidPartnerTags } from "@/lib/api/partner-tags/throw-if-invalid-partner-tags";
 import { queuePartnerSearchSync } from "@/lib/api/partners/queue-partner-search-sync";
 import { trackApplicationEvents } from "@/lib/application-events/update-application-event";
 import { dispatchWorkflows } from "@/lib/jobs/publish-workflows";
@@ -42,11 +42,10 @@ export async function approveProgramApplication({
   partnerId,
   applicationId,
   groupId,
-  tagIds: tagIdsInput,
-  tagNames: tagNamesInput,
+  tagIds,
+  tagNames,
   userId,
 }: ApproveProgramApplicationInput) {
-  let tagIds = tagIdsInput ? [...new Set(tagIdsInput)] : undefined;
   const existingEnrollment = await prisma.programEnrollment.findUnique({
     where: {
       partnerId_programId: {
@@ -141,39 +140,11 @@ export async function approveProgramApplication({
     groupId: finalGroupId,
   });
 
-  if (tagIds?.length) {
-    await throwIfInvalidPartnerTagIds({
-      programId,
-      partnerTagIds: tagIds,
-    });
-  } else if (tagNamesInput?.length) {
-    const tagNames = [...new Set(tagNamesInput)];
-    const partnerTags = await prisma.partnerTag.findMany({
-      where: {
-        programId,
-        name: {
-          in: tagNames,
-        },
-      },
-      select: {
-        id: true,
-        name: true,
-      },
-    });
-
-    const invalidTagNames = tagNames.filter(
-      (tagName) => !partnerTags.some((tag) => tag.name === tagName),
-    );
-
-    if (invalidTagNames.length) {
-      throw new DubApiError({
-        code: "bad_request",
-        message: `Invalid partner tag names detected: ${invalidTagNames.join(", ")}`,
-      });
-    }
-
-    tagIds = partnerTags.map(({ id }) => id);
-  }
+  const partnerTags = await throwIfInvalidPartnerTags({
+    programId,
+    partnerTagIds: tagIds,
+    partnerTagNames: tagNames,
+  });
 
   const now = new Date();
   const isNewEnrollment = !isEnrollmentApproved;
@@ -251,14 +222,14 @@ export async function approveProgramApplication({
       });
     }
 
-    if (tagIds?.length) {
+    if (partnerTags.length > 0) {
       await tx.programPartnerTag.createMany({
-        data: tagIds.map((partnerTagId) => ({
+        skipDuplicates: true,
+        data: partnerTags.map(({ id: partnerTagId }) => ({
           programId,
           partnerId,
           partnerTagId,
         })),
-        skipDuplicates: true,
       });
     }
 
