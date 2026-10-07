@@ -29,9 +29,11 @@ function startDrag(
   controls.start(e);
 }
 
-// Items keep their spacing as padding, so it collapses with them when they are
-// removed. They animate their position only when their index changes, e.g. while
-// dragging, so they move together with content that grows above them.
+// Items keep their spacing as padding on an inner wrapper. With border-box
+// sizing, padding on the item itself would stay when its height reaches 0 and
+// then snap away when the item is removed. Items animate their position only
+// when their index changes, e.g. while dragging, so they move together with
+// content that grows above them.
 const itemAnimation = {
   layout: "position",
   initial: { height: 0, opacity: 0 },
@@ -72,65 +74,67 @@ export function LeadFormFieldCard({
       dragControls={controls}
       {...itemAnimation}
       layoutDependency={index}
-      className="overflow-hidden pb-4"
+      className="overflow-hidden"
     >
-      <div
-        className={cn(
-          "group/field overflow-hidden rounded-[10px] border border-neutral-200 bg-white",
-          error && "border-red-500",
-        )}
-      >
+      <div className="pb-4">
         <div
           className={cn(
-            "flex items-center justify-between gap-2 p-2",
-            expanded && "border-b border-neutral-200",
+            "group/field overflow-hidden rounded-[10px] border border-neutral-200 bg-white",
+            error && "border-red-500",
           )}
         >
-          <div className="flex min-w-0 flex-1 items-center gap-2">
-            <div
-              onPointerDown={(e) => startDrag(e, controls)}
-              className="flex size-6 shrink-0 cursor-grab touch-none items-center justify-center rounded-md text-neutral-800 hover:bg-neutral-200/50"
-              title="Drag to reorder"
-            >
-              <TypeIcon className="size-3.5 group-hover/field:hidden" />
-              <GripDotsVertical className="hidden size-3.5 group-hover/field:block" />
+          <div
+            className={cn(
+              "flex items-center justify-between gap-2 p-2",
+              expanded && "border-b border-neutral-200",
+            )}
+          >
+            <div className="flex min-w-0 flex-1 items-center gap-2">
+              <div
+                onPointerDown={(e) => startDrag(e, controls)}
+                className="flex size-6 shrink-0 cursor-grab touch-none items-center justify-center rounded-md text-neutral-800 hover:bg-neutral-200/50"
+                title="Drag to reorder"
+              >
+                <TypeIcon className="size-3.5 group-hover/field:hidden" />
+                <GripDotsVertical className="hidden size-3.5 group-hover/field:block" />
+              </div>
+              <button
+                type="button"
+                onClick={onToggle}
+                className="min-w-0 flex-1 truncate text-left text-sm font-semibold text-neutral-800"
+              >
+                {field.label.trim() || "Input"}
+              </button>
             </div>
             <button
               type="button"
-              onClick={onToggle}
-              className="min-w-0 flex-1 truncate text-left text-sm font-semibold text-neutral-800"
+              onClick={onRemove}
+              title="Remove field"
+              className={cn(
+                "flex size-6 shrink-0 items-center justify-center rounded text-neutral-500 transition-colors hover:bg-neutral-100 hover:text-neutral-800",
+                !expanded &&
+                  "opacity-0 focus-visible:opacity-100 group-hover/field:opacity-100",
+              )}
             >
-              {field.label.trim() || "Input"}
+              <Trash className="size-3.5" />
             </button>
           </div>
-          <button
-            type="button"
-            onClick={onRemove}
-            title="Remove field"
-            className={cn(
-              "flex size-6 shrink-0 items-center justify-center rounded text-neutral-500 transition-colors hover:bg-neutral-100 hover:text-neutral-800",
-              !expanded &&
-                "opacity-0 focus-visible:opacity-100 group-hover/field:opacity-100",
-            )}
-          >
-            <Trash className="size-3.5" />
-          </button>
-        </div>
 
-        <motion.div
-          animate={{ height: expanded ? "auto" : 0 }}
-          transition={{ duration: 0.15 }}
-          initial={false}
-          className="overflow-hidden"
-        >
-          {/* Animates the height when the settings change, e.g. a new type or option */}
-          <AnimatedSizeContainer
-            height
-            transition={{ duration: 0.15, ease: "easeOut" }}
+          <motion.div
+            animate={{ height: expanded ? "auto" : 0 }}
+            transition={{ duration: 0.15 }}
+            initial={false}
+            className="overflow-hidden"
           >
-            <LeadFormFieldSettings field={field} onChange={onChange} />
-          </AnimatedSizeContainer>
-        </motion.div>
+            {/* Animates the height when the settings change, e.g. a new type or option */}
+            <AnimatedSizeContainer
+              height
+              transition={{ duration: 0.15, ease: "easeOut" }}
+            >
+              <LeadFormFieldSettings field={field} onChange={onChange} />
+            </AnimatedSizeContainer>
+          </motion.div>
+        </div>
       </div>
     </Reorder.Item>
   );
@@ -323,32 +327,34 @@ function LeadFormFieldOption({
       dragControls={controls}
       {...itemAnimation}
       layoutDependency={index}
-      className="overflow-hidden pb-2"
+      className="overflow-hidden"
     >
-      <div className="group/option flex h-10 items-center gap-2 rounded-lg border border-neutral-200 bg-white pl-2 pr-1 focus-within:border-neutral-500">
-        <div
-          onPointerDown={(e) => startDrag(e, controls)}
-          className="flex size-6 shrink-0 cursor-grab touch-none items-center justify-center rounded-lg text-neutral-800 hover:bg-neutral-200/50"
-          title="Drag to reorder"
-        >
-          <GripDotsVertical className="size-3.5" />
+      <div className="pb-2">
+        <div className="group/option flex h-10 items-center gap-2 rounded-lg border border-neutral-200 bg-white pl-2 pr-1 focus-within:border-neutral-500">
+          <div
+            onPointerDown={(e) => startDrag(e, controls)}
+            className="flex size-6 shrink-0 cursor-grab touch-none items-center justify-center rounded-lg text-neutral-800 hover:bg-neutral-200/50"
+            title="Drag to reorder"
+          >
+            <GripDotsVertical className="size-3.5" />
+          </div>
+          <input
+            type="text"
+            value={option.label}
+            onChange={(e) => onChange(e.target.value)}
+            placeholder="Option"
+            maxLength={190}
+            className="min-w-0 flex-1 border-none p-0 text-sm text-neutral-800 placeholder-neutral-400 focus:outline-none focus:ring-0"
+          />
+          <button
+            type="button"
+            onClick={onRemove}
+            title="Remove option"
+            className="flex size-6 shrink-0 items-center justify-center rounded text-neutral-500 opacity-0 transition-colors hover:bg-neutral-100 hover:text-neutral-800 focus-visible:opacity-100 group-hover/option:opacity-100"
+          >
+            <Trash className="size-3.5" />
+          </button>
         </div>
-        <input
-          type="text"
-          value={option.label}
-          onChange={(e) => onChange(e.target.value)}
-          placeholder="Option"
-          maxLength={190}
-          className="min-w-0 flex-1 border-none p-0 text-sm text-neutral-800 placeholder-neutral-400 focus:outline-none focus:ring-0"
-        />
-        <button
-          type="button"
-          onClick={onRemove}
-          title="Remove option"
-          className="flex size-6 shrink-0 items-center justify-center rounded text-neutral-500 opacity-0 transition-colors hover:bg-neutral-100 hover:text-neutral-800 focus-visible:opacity-100 group-hover/option:opacity-100"
-        >
-          <Trash className="size-3.5" />
-        </button>
       </div>
     </Reorder.Item>
   );
