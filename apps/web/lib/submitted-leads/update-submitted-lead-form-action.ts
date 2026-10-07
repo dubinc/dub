@@ -26,7 +26,7 @@ export const updateSubmittedLeadFormAction = authActionClient
 
     throwIfNoPermission({
       role: workspace.role,
-      requiredRoles: ["owner", "member"],
+      requiredPermissions: ["groups.write"],
     });
 
     const flags = await getFeatureFlags({ workspaceId: workspace.id });
