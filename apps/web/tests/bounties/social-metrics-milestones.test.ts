@@ -1,5 +1,6 @@
 import {
   buildMilestonesCommissionDescription,
+  getHighestReachedSocialMetricsThreshold,
   getPendingSocialMetricsMilestones,
   getSocialMetricsEarningCap,
   getSocialMetricsMilestoneStatus,
@@ -119,6 +120,47 @@ describe("hasReachedSocialMetricsEarningCap", () => {
         submission: { socialMetricCount: 6000 },
       }),
     ).toBe(true);
+  });
+});
+
+describe("getHighestReachedSocialMetricsThreshold", () => {
+  it("returns null before the min count is reached", () => {
+    expect(
+      getHighestReachedSocialMetricsThreshold({
+        bounty: bonusBounty,
+        socialMetricCount: 999,
+      }),
+    ).toBeNull();
+    expect(
+      getHighestReachedSocialMetricsThreshold({
+        bounty: bonusBounty,
+        socialMetricCount: null,
+      }),
+    ).toBeNull();
+  });
+
+  it("returns the highest milestone at or below the count", () => {
+    expect(
+      getHighestReachedSocialMetricsThreshold({
+        bounty: bonusBounty,
+        socialMetricCount: 2500,
+      }),
+    ).toBe(2000);
+    expect(
+      getHighestReachedSocialMetricsThreshold({
+        bounty: bonusBounty,
+        socialMetricCount: 3000,
+      }),
+    ).toBe(3000);
+  });
+
+  it("stops at the earning cap", () => {
+    expect(
+      getHighestReachedSocialMetricsThreshold({
+        bounty: bonusBounty,
+        socialMetricCount: 10_000,
+      }),
+    ).toBe(6000);
   });
 });
 

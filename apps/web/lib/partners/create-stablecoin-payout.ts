@@ -28,6 +28,7 @@ import { createStripeOutboundPayment } from "../stripe/create-stripe-outbound-pa
 import { fundFinancialAccount } from "../stripe/fund-financial-account";
 import { getStripeRecipientAccount } from "../stripe/get-stripe-recipient-account";
 import { getStripeRecipientPayoutMethod } from "../stripe/get-stripe-recipient-payout-method";
+import { isRecipientPendingIdVerification } from "../stripe/is-recipient-pending-id-verification";
 
 interface CreateStablecoinPayoutParams {
   partnerId: string;
@@ -202,11 +203,33 @@ export const createStablecoinPayout = async ({
     return;
   }
 
-  // Stripe recipient account does not have crypto wallet capabilities
-  if (
+  const cryptoWalletsActive =
     stripeRecipientAccount.configuration?.recipient?.capabilities
-      ?.crypto_wallets?.status !== "active"
+      ?.crypto_wallets?.status === "active";
+
+  // Identity verification restricts crypto_wallets until Stripe finishes review.
+  // Keep payouts enabled and defer the transfer so it can be sent once the
+  // capability is active again.
+  if (
+    !cryptoWalletsActive &&
+    isRecipientPendingIdVerification(stripeRecipientAccount)
   ) {
+    await markPayoutsAsProcessed(currentInvoicePayouts);
+
+    const message = `Stripe recipient account for partner ${partner.email} is restricted while identity verification is in progress. Skipping payout until verification is complete.`;
+
+    if (forceWithdrawal) {
+      throw new Error(
+        "Your payout account is temporarily restricted while Stripe verifies your identity. Please try again once verification is complete.",
+      );
+    }
+
+    console.warn(message);
+    return;
+  }
+
+  // Stripe recipient account does not have crypto wallet capabilities
+  if (!cryptoWalletsActive) {
     await prisma.partner.update({
       where: {
         id: partner.id,

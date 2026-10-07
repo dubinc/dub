@@ -42,9 +42,6 @@ type CreateCommissionsArgs = z.infer<
   workspace: Pick<Project, "id" | "slug" | "stripeConnectId">;
   programId: string;
   user: Session["user"];
-  // Only import these Stripe invoices when `importStripeInvoices` is true.
-  // Not part of the API schema. Scripts use it to skip invoices that should not be attributed.
-  stripeInvoiceIds?: string[];
 };
 
 type ResolveLinkAndCustomerArgs = CreateCommissionsArgs & {
@@ -81,6 +78,14 @@ const saleEventSchemaTBWithTimestamp = saleEventSchemaTB.extend({
 });
 
 export async function createManualCommissions(args: CreateCommissionsArgs) {
+  if (
+    args.type === "sale" &&
+    args.importStripeInvoices &&
+    args.stripeInvoicesToImport == null
+  ) {
+    args = { ...args, stripeInvoicesToImport: "all" };
+  }
+
   const { workspace, programId, partnerId, type, user } = args;
 
   const { partner, links } = await getProgramEnrollmentOrThrow({
@@ -121,9 +126,9 @@ export async function createManualCommissions(args: CreateCommissionsArgs) {
     });
 
   if (type === "sale") {
-    const { importStripeInvoices, sale } = args;
+    const { stripeInvoicesToImport, sale } = args;
 
-    if (importStripeInvoices) {
+    if (stripeInvoicesToImport) {
       if (!workspace.stripeConnectId) {
         throw new DubApiError({
           code: "bad_request",
@@ -551,23 +556,61 @@ async function recordEvents(args: RecordEventsArgs) {
 
   if (type === "lead") {
     finalLeadEventDate = args.date ?? args.leadEventDate ?? new Date();
-  } else if (args.importStripeInvoices) {
+  } else if (args.stripeInvoicesToImport) {
+    const { stripeInvoicesToImport } = args;
+
     stripeCustomerInvoices = await getCustomerStripeInvoices({
       stripeCustomerId: targetCustomer.stripeCustomerId!,
       stripeConnectId: workspace.stripeConnectId!,
       programId,
     });
 
-    // Filter out invoices that are already associated with a commission on Dub
-    stripeCustomerInvoices = stripeCustomerInvoices.filter(
-      (invoice) => !invoice.dubCommissionId,
-    );
+    if (stripeInvoicesToImport === "all") {
+      // Skip invoices that already have a commission, and refunded invoices.
+      stripeCustomerInvoices = stripeCustomerInvoices.filter(
+        (invoice) => !invoice.dubCommissionId && !invoice.refunded,
+      );
+    } else {
+      const invoicesById = new Map(
+        stripeCustomerInvoices.map((invoice) => [invoice.id, invoice]),
+      );
+      const requestedInvoiceIds = [...new Set(stripeInvoicesToImport)];
 
-    if (args.stripeInvoiceIds) {
-      const stripeInvoiceIds = new Set(args.stripeInvoiceIds);
+      const notFoundInvoiceIds = requestedInvoiceIds.filter(
+        (id) => !invoicesById.has(id),
+      );
 
-      stripeCustomerInvoices = stripeCustomerInvoices.filter((invoice) =>
-        stripeInvoiceIds.has(invoice.id),
+      if (notFoundInvoiceIds.length > 0) {
+        throw new DubApiError({
+          code: "bad_request",
+          message: `No paid Stripe invoices found for customer with the IDs: ${notFoundInvoiceIds.join(", ")}`,
+        });
+      }
+
+      const importedInvoiceIds = requestedInvoiceIds.filter(
+        (id) => invoicesById.get(id)!.dubCommissionId,
+      );
+
+      if (importedInvoiceIds.length > 0) {
+        throw new DubApiError({
+          code: "conflict",
+          message: `There is already a commission for the invoices: ${importedInvoiceIds.join(", ")}`,
+        });
+      }
+
+      const refundedInvoiceIds = requestedInvoiceIds.filter(
+        (id) => invoicesById.get(id)!.refunded,
+      );
+
+      if (refundedInvoiceIds.length > 0) {
+        throw new DubApiError({
+          code: "bad_request",
+          message: `Refunded Stripe invoices cannot be imported: ${refundedInvoiceIds.join(", ")}`,
+        });
+      }
+
+      stripeCustomerInvoices = requestedInvoiceIds.map(
+        (id) => invoicesById.get(id)!,
       );
     }
 
@@ -633,7 +676,7 @@ async function recordEvents(args: RecordEventsArgs) {
   let commissionMetadata: Record<string, unknown> | null = null;
 
   if (type === "sale") {
-    if (args.importStripeInvoices) {
+    if (args.stripeInvoicesToImport) {
       saleEvents = stripeCustomerInvoices.map((invoice) =>
         saleEventSchemaTBWithTimestamp.parse({
           ...clickEvent,
