@@ -18,6 +18,8 @@ export type LeadFormBuilderField = {
   label: string;
   required: boolean;
   options: LeadFormBuilderOption[];
+  // Multiple choice only. New fields start with a single choice.
+  multiple: boolean;
   maxLength: number | null;
   min: number | null;
   max: number | null;
@@ -31,6 +33,7 @@ export function createLeadFormBuilderField(): LeadFormBuilderField {
     label: "",
     required: false,
     options: [],
+    multiple: false,
     maxLength: null,
     min: null,
     max: null,
@@ -69,6 +72,8 @@ export function toLeadFormBuilderField(field: FormField): LeadFormBuilderField {
       field.type === "select" || field.type === "multiSelect"
         ? field.options
         : [],
+    // Older multiple choice fields have no value and allow multiple selections
+    multiple: field.type === "multiSelect" ? field.multiple ?? true : false,
     maxLength:
       field.type === "text" || field.type === "textarea"
         ? field.constraints?.maxLength ?? null
@@ -78,6 +83,9 @@ export function toLeadFormBuilderField(field: FormField): LeadFormBuilderField {
     pattern: field.type === "text" ? field.constraints?.pattern : undefined,
   };
 }
+
+const trimOptionLabels = (options: LeadFormBuilderOption[]) =>
+  options.map(({ value, label }) => ({ value, label: label.trim() }));
 
 export function fromLeadFormBuilderField(
   field: LeadFormBuilderField & { type: LeadFormFieldType },
@@ -112,14 +120,17 @@ export function fromLeadFormBuilderField(
         }),
       };
     case "select":
+      return {
+        ...common,
+        type: "select",
+        options: trimOptionLabels(field.options),
+      };
     case "multiSelect":
       return {
         ...common,
-        type: field.type,
-        options: field.options.map(({ value, label }) => ({
-          value,
-          label: label.trim(),
-        })),
+        type: "multiSelect",
+        options: trimOptionLabels(field.options),
+        multiple: field.multiple,
       };
     case "number":
       return {

@@ -193,6 +193,14 @@ function LeadFormFieldSettings({
               onChange={(required) => onChange({ ...field, required })}
             />
 
+            {field.type === "multiSelect" && (
+              <SettingSwitch
+                label="Allow multiple selections"
+                checked={field.multiple}
+                onChange={(multiple) => onChange({ ...field, multiple })}
+              />
+            )}
+
             {(field.type === "text" || field.type === "textarea") && (
               <OptionalNumberSetting
                 label="Max characters"

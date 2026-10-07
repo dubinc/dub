@@ -56,6 +56,7 @@ const STORED_FIELDS: FormField[] = [
       { value: "links", label: "Links" },
       { value: "partners", label: "Partners" },
     ],
+    multiple: true,
   },
   {
     ...common,
@@ -115,6 +116,31 @@ describe("lead form builder fields", () => {
         },
       ],
     });
+  });
+
+  it("allows multiple selections for older multiple choice fields", () => {
+    const field = toLeadFormBuilderField({
+      ...common,
+      key: "products",
+      label: "Products",
+      type: "multiSelect",
+      position: 0,
+      options: [
+        { value: "links", label: "Links" },
+        { value: "partners", label: "Partners" },
+      ],
+    });
+
+    expect(field.multiple).toBe(true);
+  });
+
+  it("starts new multiple choice fields with a single choice", () => {
+    const changed = changeLeadFormBuilderFieldType(
+      builderField(),
+      "multiSelect",
+    );
+
+    expect(changed.multiple).toBe(false);
   });
 
   it("sets the position from the order and unlocks custom fields", () => {
