@@ -1,5 +1,6 @@
 import "dotenv-flow/config";
 
+import { prefixWorkspaceId } from "@/lib/api/workspaces/workspace-id";
 import { prisma } from "@/lib/prisma";
 import { submittedLeadFormSchema } from "@/lib/zod/schemas/submitted-lead-form";
 import { Prisma } from "@prisma/client";
@@ -15,11 +16,15 @@ async function main() {
     select: {
       id: true,
       name: true,
+      workspaceId: true,
       referralFormData: true,
     },
   });
 
   console.log(`Found ${programs.length} programs with a submitted lead form`);
+
+  // The workspaces of these programs need the submittedLeads flag in Edge Config
+  const workspaceIds = new Set<string>();
 
   for (const program of programs) {
     const parsed = submittedLeadFormSchema.safeParse(program.referralFormData);
@@ -43,7 +48,14 @@ async function main() {
     });
 
     console.log(`Updated ${count} groups for ${program.name} (${program.id})`);
+
+    workspaceIds.add(prefixWorkspaceId(program.workspaceId));
   }
+
+  console.log(
+    "Add these workspaces to betaFeatures.submittedLeads in Edge Config:",
+    JSON.stringify([...workspaceIds]),
+  );
 }
 
 main();
