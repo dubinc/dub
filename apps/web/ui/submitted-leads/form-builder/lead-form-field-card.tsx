@@ -1,5 +1,6 @@
 "use client";
 
+import { blockNonNumericKeys } from "@/ui/submitted-leads/form-fields/form-control";
 import { Button, Combobox, Switch } from "@dub/ui";
 import { GripDotsVertical, Plus, Trash } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
@@ -367,6 +368,7 @@ function OptionalNumberSetting({
       {value !== null && (
         <input
           type="number"
+          onKeyDown={blockNonNumericKeys}
           value={Number.isNaN(value) ? "" : value}
           min={min}
           onChange={(e) => onChange(e.target.valueAsNumber)}

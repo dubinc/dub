@@ -2,7 +2,11 @@ import { numberFieldSchema } from "@/lib/zod/schemas/submitted-lead-form";
 import { cn } from "@dub/utils";
 import { useFormContext } from "react-hook-form";
 import * as z from "zod/v4";
-import { FormControl, requiredFieldRule } from "./form-control";
+import {
+  blockNonNumericKeys,
+  FormControl,
+  requiredFieldRule,
+} from "./form-control";
 
 type NumberFieldData = z.infer<typeof numberFieldSchema>;
 
@@ -29,6 +33,7 @@ export function NumberField({
     >
       <input
         type="number"
+        onKeyDown={blockNonNumericKeys}
         min={min}
         max={max}
         className={cn(
