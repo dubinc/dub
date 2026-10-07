@@ -138,6 +138,20 @@ export const approveProgramApplicationSchema = z.object({
     .describe(
       "The ID of the group to assign the partner to. If not provided, the partner will be assigned to the group they applied to, or the program's default group if no application group is set.",
     ),
+  tagIds: z
+    .array(z.string())
+    .max(100)
+    .optional()
+    .describe(
+      "The IDs of the partner tags to assign as part of approval. Existing tags are kept. Takes priority over `tagNames` only when it contains at least one ID.",
+    ),
+  tagNames: z
+    .array(z.string())
+    .max(100)
+    .optional()
+    .describe(
+      "The names of the partner tags to assign as part of approval. Existing tags are kept. Ignored only when `tagIds` contains at least one ID.",
+    ),
 });
 
 export const bulkApproveProgramApplicationsSchema = z.object({
