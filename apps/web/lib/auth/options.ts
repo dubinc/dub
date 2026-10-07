@@ -38,6 +38,21 @@ import { trackDubLead } from "./track-dub-lead";
 
 const VERCEL_DEPLOYMENT = !!process.env.VERCEL_URL;
 
+// Share auth cookies across subdomains. OAuth callbacks always land on
+// NEXTAUTH_URL (app.dub.co), even when sign-in starts on partners.dub.co.
+const sharedCookie = (name: string, options?: { maxAge: number }) => ({
+  name: `${VERCEL_DEPLOYMENT ? "__Secure-" : ""}next-auth.${name}`,
+  options: {
+    httpOnly: true,
+    sameSite: "lax" as const,
+    path: "/",
+    // When working on localhost, the cookie domain must be omitted entirely (https://stackoverflow.com/a/1188145)
+    domain: VERCEL_DEPLOYMENT ? ".dub.co" : undefined,
+    secure: VERCEL_DEPLOYMENT,
+    ...options,
+  },
+});
+
 const CustomPrismaAdapter = (p: PrismaClient) => {
   return {
     ...PrismaAdapter(p),
@@ -378,17 +393,11 @@ export const authOptions: NextAuthOptions = {
   adapter: CustomPrismaAdapter(prisma),
   session: { strategy: "jwt" },
   cookies: {
-    sessionToken: {
-      name: `${VERCEL_DEPLOYMENT ? "__Secure-" : ""}next-auth.session-token`,
-      options: {
-        httpOnly: true,
-        sameSite: "lax",
-        path: "/",
-        // When working on localhost, the cookie domain must be omitted entirely (https://stackoverflow.com/a/1188145)
-        domain: VERCEL_DEPLOYMENT ? ".dub.co" : undefined,
-        secure: VERCEL_DEPLOYMENT,
-      },
-    },
+    sessionToken: sharedCookie("session-token"),
+    callbackUrl: sharedCookie("callback-url"),
+    state: sharedCookie("state", { maxAge: 60 * 15 }),
+    pkceCodeVerifier: sharedCookie("pkce.code_verifier", { maxAge: 60 * 15 }),
+    nonce: sharedCookie("nonce"),
   },
   pages: {
     signIn: "/login",
