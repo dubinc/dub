@@ -48,6 +48,13 @@ interface InvoiceData {
   total: number;
 }
 
+interface TopProgramData {
+  id: string;
+  name: string;
+  logo: string | null;
+  payouts: number;
+}
+
 const payoutTabs = [
   {
     id: "payouts",
@@ -85,9 +92,16 @@ function PayoutsPageClient() {
   const { interval, start, end, status, programId, tab } = searchParamsObj;
   const selectedTab = isPayoutTab(tab) ? tab : "payouts";
 
-  const { data: { invoices, timeseriesData } = {}, isLoading } = useSWR<{
+  const { pagination, setPagination } = usePagination();
+
+  const {
+    data: { invoices, timeseriesData, totalInvoices, programs } = {},
+    isLoading,
+  } = useSWR<{
     invoices: InvoiceData[];
     timeseriesData: TimeseriesData[];
+    totalInvoices: number;
+    programs: TopProgramData[];
   }>(`/api/admin/payouts${getQueryString()}`, fetcher, {
     keepPreviousData: true,
   });
@@ -127,27 +141,6 @@ function PayoutsPageClient() {
     },
   );
 
-  // Extract unique programs from invoices
-  const programs = useMemo(() => {
-    if (!invoices) return [];
-    const programMap = new Map<
-      string,
-      { id: string; name: string; logo: string }
-    >();
-    invoices.forEach((invoice) => {
-      if (!programMap.has(invoice.programId)) {
-        programMap.set(invoice.programId, {
-          id: invoice.programId,
-          name: invoice.programName,
-          logo: invoice.programLogo,
-        });
-      }
-    });
-    return Array.from(programMap.values()).sort((a, b) =>
-      a.name.localeCompare(b.name),
-    );
-  }, [invoices]);
-
   // Filter configuration
   const filters = useMemo(
     () => [
@@ -156,7 +149,7 @@ function PayoutsPageClient() {
         icon: GridIcon,
         label: "Program",
         options:
-          programs.map((program) => ({
+          programs?.map((program) => ({
             value: program.id,
             label: program.name,
             icon: (
@@ -166,6 +159,7 @@ function PayoutsPageClient() {
                 className="size-4 rounded-full"
               />
             ),
+            right: currencyFormatter(program.payouts),
           })) ?? null,
       },
       {
@@ -227,7 +221,7 @@ function PayoutsPageClient() {
   const onRemoveAll = useCallback(
     () =>
       queryParams({
-        del: ["status", "programId"],
+        del: ["status", "programId", "page"],
       }),
     [queryParams],
   );
@@ -296,8 +290,6 @@ function PayoutsPageClient() {
       total: getPercentChange("total"),
     };
   }, [isPreviousPeriodLoading, previousPeriodTimeseriesData, timeseriesData]);
-
-  const { pagination, setPagination } = usePagination();
 
   const { table, ...tableProps } = useTable({
     data: invoices ?? [],
@@ -376,7 +368,7 @@ function PayoutsPageClient() {
     pagination,
     onPaginationChange: setPagination,
     resourceName: (plural) => `invoice${plural ? "s" : ""}`,
-    rowCount: invoices?.length ?? 0,
+    rowCount: totalInvoices ?? 0,
     loading: isLoading,
     cellRight: (cell) => {
       const meta = cell.column.columnDef.meta as

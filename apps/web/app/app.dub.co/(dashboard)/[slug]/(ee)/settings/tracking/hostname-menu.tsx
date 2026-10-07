@@ -1,16 +1,9 @@
 import { ThreeDots } from "@/ui/shared/icons";
-import { Button, LoadingSpinner, Popover } from "@dub/ui";
+import { Button, Popover } from "@dub/ui";
 import { Delete } from "lucide-react";
 import { useState } from "react";
 
-function HostnameMenu({
-  onDelete,
-  loading,
-}: {
-  onDelete: () => void;
-  loading: boolean;
-  permissionsError?: string;
-}) {
+export function HostnameMenu({ onDelete }: { onDelete: () => void }) {
   const [openPopover, setOpenPopover] = useState(false);
 
   return (
@@ -36,16 +29,9 @@ function HostnameMenu({
       setOpenPopover={setOpenPopover}
     >
       <Button
-        variant="plain"
-        color="secondary"
-        className="h-9 border-none p-2"
-        icon={
-          loading ? (
-            <LoadingSpinner className="size-4 shrink-0" />
-          ) : (
-            <ThreeDots className="h-5 w-5 shrink-0 rotate-90" />
-          )
-        }
+        variant="outline"
+        className="size-7 shrink-0 border-transparent p-0 outline-none transition-all duration-200 data-[state=open]:border-neutral-500"
+        icon={<ThreeDots className="size-4 shrink-0 rotate-90" />}
         onClick={() => {
           setOpenPopover(!openPopover);
         }}
@@ -53,5 +39,3 @@ function HostnameMenu({
     </Popover>
   );
 }
-
-export default HostnameMenu;

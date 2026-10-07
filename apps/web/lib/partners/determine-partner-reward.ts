@@ -1,7 +1,8 @@
 import { toCentsNumber } from "@dub/utils";
 import { EventType, Link, Prisma, Reward } from "@prisma/client";
 import { serializeReward } from "../api/partners/serialize-reward";
-import { RewardContext, RewardProps } from "../types";
+import { prisma } from "../prisma";
+import { RewardConditions, RewardContext, RewardProps } from "../types";
 import {
   rewardConditionsArraySchema,
   RewardSchema,
@@ -14,7 +15,7 @@ const REWARD_EVENT_COLUMN_MAPPING = {
   [EventType.click]: "clickReward",
   [EventType.lead]: "leadReward",
   [EventType.sale]: "saleReward",
-};
+} as const;
 
 interface ProgramEnrollmentWithReward {
   partner: { country: string | null };
@@ -27,23 +28,73 @@ interface ProgramEnrollmentWithReward {
 
 interface ProductReward {
   reward: RewardProps;
+  matchedCondition: RewardConditions | null;
   sale: {
     amount: number;
     quantity: number;
   };
 }
 
-export const determinePartnerReward = ({
+interface LinkRewards {
+  clickReward?: Reward | null;
+  leadReward?: Reward | null;
+  saleReward?: Reward | null;
+}
+
+type DeterminePartnerRewardResult = {
+  reward: RewardProps;
+  matchedCondition: RewardConditions | null;
+};
+
+export const getRewardMaxDurationForContext = ({
+  reward,
+  context,
+}: {
+  reward: Pick<Reward, "maxDuration" | "modifiers">;
+  context?: RewardContext;
+}): number | null => {
+  if (!reward.modifiers || !context) {
+    return reward.maxDuration;
+  }
+
+  const modifiers = rewardConditionsArraySchema.safeParse(reward.modifiers);
+
+  if (!modifiers.success) {
+    return reward.maxDuration;
+  }
+
+  const matchedCondition = evaluateRewardConditions({
+    conditions: modifiers.data,
+    context,
+  });
+
+  if (matchedCondition && matchedCondition.maxDuration !== undefined) {
+    return matchedCondition.maxDuration;
+  }
+
+  return reward.maxDuration;
+};
+
+export const determinePartnerReward = async ({
   event,
   programEnrollment,
+  linkId,
   context,
 }: {
   event: EventType;
   programEnrollment: ProgramEnrollmentWithReward;
+  linkId: string | null; // ID of the link that triggered the event
   context?: RewardContext; // additional reward context (e.g. customer.country, sale.productId, etc.)
-}) => {
-  let partnerReward: Reward =
-    programEnrollment[REWARD_EVENT_COLUMN_MAPPING[event]];
+}): Promise<DeterminePartnerRewardResult | null> => {
+  const rewardEventColumn = REWARD_EVENT_COLUMN_MAPPING[event];
+
+  const linkRewards = await getLinkRewards({
+    event,
+    linkId,
+  });
+
+  let partnerReward =
+    linkRewards?.[rewardEventColumn] ?? programEnrollment[rewardEventColumn];
 
   if (!partnerReward) {
     return null;
@@ -62,6 +113,8 @@ export const determinePartnerReward = ({
     },
   };
 
+  let matchedCondition: RewardConditions | null = null;
+
   if (partnerReward.modifiers && context) {
     const modifiers = rewardConditionsArraySchema.safeParse(
       partnerReward.modifiers,
@@ -69,7 +122,7 @@ export const determinePartnerReward = ({
 
     // Parse the conditions before evaluating them
     if (modifiers.success) {
-      const matchedCondition = evaluateRewardConditions({
+      matchedCondition = evaluateRewardConditions({
         conditions: modifiers.data,
         context,
       });
@@ -102,43 +155,63 @@ export const determinePartnerReward = ({
     return null;
   }
 
-  return RewardSchema.parse(partnerReward);
+  return {
+    reward: RewardSchema.parse(partnerReward),
+    matchedCondition,
+  };
 };
 
-export const determinePartnerRewards = ({
+// Resolves one or more rewards for a sale: when Stripe line items have a
+// productId modifier, returns a reward per product; otherwise a single reward.
+export const determinePartnerRewards = async ({
   event,
   programEnrollment,
   context,
   amount,
   quantity,
+  linkId,
 }: {
   event: EventType;
   programEnrollment: ProgramEnrollmentWithReward;
   context?: RewardContext; // additional reward context (e.g. customer.country, sale.productId, etc.)
   amount: number;
   quantity: number;
-}): ProductReward[] => {
+  linkId: string | null;
+}): Promise<ProductReward[]> => {
   const rewards: ProductReward[] = [];
   const products = context?.sale?.products ?? [];
-  const modifiers = rewardConditionsArraySchema.safeParse(
-    programEnrollment.saleReward?.modifiers,
-  );
+  let hasProductIdModifier = false;
 
-  const hasProductIdModifier = modifiers.success
-    ? modifiers.data.some((m) =>
+  if (products.length > 0) {
+    const linkRewards = await getLinkRewards({
+      event,
+      linkId,
+    });
+
+    const partnerReward =
+      linkRewards?.saleReward ?? programEnrollment["saleReward"];
+
+    const modifiers = rewardConditionsArraySchema.safeParse(
+      partnerReward?.modifiers,
+    );
+
+    if (modifiers.success) {
+      hasProductIdModifier = modifiers.data.some((m) =>
         m.conditions.some(
           (c) => c.entity === "sale" && c.attribute === "productId",
         ),
-      )
-    : false;
+      );
+    }
+  }
 
   // If there are products and a productId modifier,
   // we need to calculate the reward for each product (for Stripe integration only)
   if (products.length > 0 && hasProductIdModifier) {
     for (const product of products) {
-      const reward = determinePartnerReward({
+      const result = await determinePartnerReward({
         event,
         programEnrollment,
+        linkId,
         context: {
           ...context,
           sale: {
@@ -149,26 +222,31 @@ export const determinePartnerRewards = ({
         },
       });
 
-      if (reward) {
+      if (result) {
+        // product.amount is the Stripe line total (unit × quantity). Flat
+        // rewards are per sale/line, so do not multiply by line.quantity.
         rewards.push({
-          reward,
+          reward: result.reward,
+          matchedCondition: result.matchedCondition,
           sale: {
             amount: product.amount,
-            quantity: product.quantity,
+            quantity: 1,
           },
         });
       }
     }
   } else {
-    const reward = determinePartnerReward({
+    const result = await determinePartnerReward({
       event,
       programEnrollment,
+      linkId,
       ...(context ? { context } : {}),
     });
 
-    if (reward) {
+    if (result) {
       rewards.push({
-        reward,
+        reward: result.reward,
+        matchedCondition: result.matchedCondition,
         sale: {
           amount,
           quantity,
@@ -177,7 +255,28 @@ export const determinePartnerRewards = ({
     }
   }
 
-  console.info("Resolved rewards", rewards);
-
   return rewards;
+};
+
+const getLinkRewards = async ({
+  event,
+  linkId,
+}: {
+  event: EventType;
+  linkId: string | null;
+}): Promise<LinkRewards | null> => {
+  if (!linkId) {
+    return null;
+  }
+
+  const rewardEventColumn = REWARD_EVENT_COLUMN_MAPPING[event];
+
+  return prisma.linkReward.findUnique({
+    where: {
+      linkId,
+    },
+    select: {
+      [rewardEventColumn]: true,
+    },
+  });
 };

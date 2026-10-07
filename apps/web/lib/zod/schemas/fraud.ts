@@ -27,6 +27,7 @@ export const fraudGroupSchema = z.object({
     email: true,
     image: true,
     status: true,
+    networkStatus: true,
   }),
   user: UserSchema.nullable(),
 });
@@ -268,7 +269,7 @@ const fraudEventCustomerSchema = z.object({
 
 export const fraudEventSchemas = {
   referralSourceBanned: baseFraudEventSchema.extend({
-    customer: fraudEventCustomerSchema,
+    customer: fraudEventCustomerSchema.nullable(),
     metadata: z
       .object({
         source: z.string(),
@@ -277,7 +278,7 @@ export const fraudEventSchemas = {
   }),
 
   paidTrafficDetected: baseFraudEventSchema.extend({
-    customer: fraudEventCustomerSchema,
+    customer: fraudEventCustomerSchema.nullable(),
     metadata: z
       .object({
         source: z.string(),
@@ -287,7 +288,7 @@ export const fraudEventSchemas = {
   }),
 
   customerEmailMatch: baseFraudEventSchema.extend({
-    customer: fraudEventCustomerSchema,
+    customer: fraudEventCustomerSchema.nullable(),
     metadata: z
       .object({
         matchType: z.enum(CustomerEmailMatchType),
@@ -297,7 +298,7 @@ export const fraudEventSchemas = {
   }),
 
   customerEmailSuspiciousDomain: baseFraudEventSchema.extend({
-    customer: fraudEventCustomerSchema,
+    customer: fraudEventCustomerSchema.nullable(),
   }),
 
   partnerCrossProgramBan: baseFraudEventSchema.extend({

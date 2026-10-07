@@ -3,6 +3,7 @@ import { isFirstConversion } from "@/lib/analytics/is-first-conversion";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { syncPartnerLinksStats } from "@/lib/api/partners/sync-partner-links-stats";
 import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
+import { queueGoogleAdsConversionUpload } from "@/lib/integrations/google-ads/upload-conversion";
 import { queuePartnerCommissionCreation } from "@/lib/partners/queue-partner-commission-creation";
 import { sendPartnerPostback } from "@/lib/postback/send-partner-postback";
 import { prisma } from "@/lib/prisma";
@@ -13,16 +14,21 @@ import { redis } from "@/lib/upstash";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { transformSaleEventData } from "@/lib/webhook/transform";
 import { nanoid } from "@dub/utils";
+import { CommissionSource, EventType } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import type Stripe from "stripe";
+import { WebhookHandlerInput, WebhookHandlerResponse } from "./types";
 import { attributeViaPromotionCodeId } from "./utils/attribute-via-promotion-code-id";
 import { getConnectedCustomer } from "./utils/get-connected-customer";
+import { getDubCustomerExternalIdFromMetadata } from "./utils/get-dub-customer-external-id-from-metadata";
+import { updateCustomerWithStripeCustomerId } from "./utils/update-customer-with-stripe-customer-id";
 
 // Handle event "invoice.paid"
-export async function invoicePaid(
-  event: Stripe.InvoicePaidEvent,
-  mode: StripeMode,
-) {
+export async function invoicePaid({
+  event,
+  mode,
+  workspace,
+}: WebhookHandlerInput<Stripe.InvoicePaidEvent>): Promise<WebhookHandlerResponse> {
   const invoice = event.data.object;
   const stripeAccountId = event.account as string;
   const stripeCustomerId = invoice.customer as string | null;
@@ -55,57 +61,24 @@ export async function invoicePaid(
       mode,
     });
 
-    const dubCustomerExternalId =
-      connectedCustomer?.metadata.dubCustomerExternalId ||
-      connectedCustomer?.metadata.dubCustomerId;
+    const dubCustomerExternalId = getDubCustomerExternalIdFromMetadata(
+      connectedCustomer?.metadata,
+    );
 
     if (dubCustomerExternalId) {
-      try {
-        // Update customer with stripeCustomerId if exists – for future events
-        customer = await prisma.customer.update({
-          where: {
-            projectConnectId_externalId: {
-              projectConnectId: stripeAccountId,
-              externalId: dubCustomerExternalId,
-            },
-          },
-          data: {
-            stripeCustomerId,
-          },
-        });
-      } catch (error) {
-        console.log(error);
-        return {
-          response: `Customer with dubCustomerExternalId ${dubCustomerExternalId} not found, skipping...`,
-        };
-      }
+      customer = await updateCustomerWithStripeCustomerId({
+        workspaceId: workspace.id,
+        dubCustomerExternalId,
+        stripeCustomerId,
+      });
     }
   }
 
   // if customer is still not found, try to attribute via partner discount on the invoice
   if (!customer) {
-    const workspace = await prisma.project.findUnique({
-      where: {
-        stripeConnectId: stripeAccountId,
-      },
-      select: {
-        id: true,
-        defaultProgramId: true,
-        stripeConnectId: true,
-        webhookEnabled: true,
-      },
-    });
-
-    if (!workspace) {
-      return {
-        response: `Workspace not found for Stripe account ${stripeAccountId}, skipping...`,
-      };
-    }
-
     if (!workspace.defaultProgramId) {
       return {
         response: `Customer with stripeCustomerId ${stripeCustomerId} not found on Dub and workspace has no default program, skipping...`,
-        workspaceId: workspace.id,
       };
     }
 
@@ -119,14 +92,13 @@ export async function invoicePaid(
     if (promotionCodeId) {
       const promoCodeResponse = await attributeViaPromotionCodeId({
         promotionCodeId,
-        stripeAccountId,
         workspace,
         mode,
-        stripeCustomerId,
         customerDetails: {
           name: invoice.customer_name,
           email: invoice.customer_email,
           address: invoice.customer_address,
+          stripeCustomerId,
         },
       });
 
@@ -142,7 +114,6 @@ export async function invoicePaid(
     if (!customer) {
       return {
         response: `Customer with stripeCustomerId ${stripeCustomerId} not found on Dub (nor does the connected customer ${stripeCustomerId} have a valid dubCustomerExternalId or partner discount code on the invoice), skipping...`,
-        workspaceId: workspace.id,
       };
     }
   }
@@ -181,7 +152,6 @@ export async function invoicePaid(
     );
     return {
       response: `Invoice with ID ${invoiceId} already processed, skipping...`,
-      workspaceId: customer.projectId,
     };
   }
 
@@ -189,7 +159,6 @@ export async function invoicePaid(
   if (invoiceSaleAmount <= 0) {
     return {
       response: `Invoice with ID ${invoiceId} has an amount of 0, skipping...`,
-      workspaceId: customer.projectId,
     };
   }
 
@@ -211,7 +180,6 @@ export async function invoicePaid(
   if (!leadEvent) {
     return {
       response: `Lead event with customer ID ${customer.id} not found, skipping...`,
-      workspaceId: customer.projectId,
     };
   }
 
@@ -246,7 +214,6 @@ export async function invoicePaid(
   if (!link) {
     return {
       response: `Link with ID ${linkId} not found, skipping...`,
-      workspaceId: customer.projectId,
     };
   }
 
@@ -255,7 +222,7 @@ export async function invoicePaid(
     linkId,
   });
 
-  const [_sale, linkUpdated, workspace] = await Promise.all([
+  const [_sale, linkUpdated] = await Promise.all([
     recordSale(saleData),
 
     // update link stats
@@ -321,15 +288,31 @@ export async function invoicePaid(
     | undefined = undefined;
 
   if (link.programId && link.partnerId) {
+    const saleMetadata = {
+      ...invoice.parent?.subscription_details?.metadata,
+      ...invoice.lines.data[0]?.metadata,
+      ...invoice.metadata,
+    };
+
     const products = invoice.lines.data
       .map((line) => {
         const productId = line.pricing?.price_details?.product;
 
         if (!productId) return null;
 
+        // Credit grants sit on the line, not in line.amount — subtract so
+        // productId rewards commission on the portion actually charged.
+        const creditGrantAmount = (line.pretax_credit_amounts ?? []).reduce(
+          (sum, credit) =>
+            credit.type === "credit_balance_transaction"
+              ? sum + credit.amount
+              : sum,
+          0,
+        );
+
         return {
           id: productId,
-          amount: line.amount,
+          amount: Math.max(line.amount - creditGrantAmount, 0),
           quantity: line.quantity ?? 0,
         };
       })
@@ -337,6 +320,11 @@ export async function invoicePaid(
         (p): p is { id: string; amount: number; quantity: number } =>
           p !== null && p.quantity !== null,
       );
+
+    const commissionMetadata = {
+      products,
+      ...saleMetadata,
+    };
 
     result = await queuePartnerCommissionCreation({
       event: "sale",
@@ -349,6 +337,8 @@ export async function invoicePaid(
       quantity: 1,
       invoiceId,
       currency: saleData.currency,
+      source: CommissionSource.stripe,
+      metadata: commissionMetadata,
       context: {
         customer: {
           country: customer.country,
@@ -357,6 +347,7 @@ export async function invoicePaid(
         sale: {
           products,
           amount: saleData.amount,
+          metadata: saleMetadata,
         },
       },
       clickEvent: {
@@ -369,8 +360,7 @@ export async function invoicePaid(
     waitUntil(
       Promise.allSettled([
         executeWorkflows({
-          trigger: "partnerMetricsUpdated",
-          reason: "sale",
+          event: "saleRecorded",
           identity: {
             workspaceId: workspace.id,
             programId: link.programId,
@@ -410,6 +400,20 @@ export async function invoicePaid(
         }),
       }),
 
+      queueGoogleAdsConversionUpload({
+        workspaceId: workspace.id,
+        eventType: EventType.sale,
+        eventName: saleData.event_name,
+        conversionDateTime: new Date().toISOString(),
+        eventId: saleData.event_id,
+        conversionValue: saleData.amount,
+        currencyCode: saleData.currency,
+        click: {
+          id: saleData.click_id,
+          url: saleData.url,
+        },
+      }),
+
       ...(link?.partnerId
         ? [
             sendPartnerPostback({
@@ -429,7 +433,6 @@ export async function invoicePaid(
 
   return {
     response: `Sale recorded for customer ID ${customer.id} and invoice ID ${invoiceId}`,
-    workspaceId: customer.projectId,
   };
 }
 
@@ -453,18 +456,30 @@ async function resolvePromotionCodeIdFromInvoice({
 > {
   const stripe = stripeAppClient({ mode });
 
+  type ExpandedDiscount = {
+    promotion_code: Stripe.PromotionCode | null;
+  };
+
   const expandedInvoice = (await stripe.invoices.retrieve(
     invoiceId,
     {
-      expand: ["discounts", "discounts.promotion_code"],
+      expand: [
+        "discounts",
+        "discounts.promotion_code",
+        "lines.data.discounts",
+        "lines.data.discounts.promotion_code",
+      ],
     },
     {
       stripeAccount: stripeAccountId,
     },
-  )) as Omit<Stripe.Invoice, "discounts"> & {
-    discounts: {
-      promotion_code: Stripe.PromotionCode | null;
-    }[];
+  )) as Omit<Stripe.Invoice, "discounts" | "lines"> & {
+    discounts: ExpandedDiscount[];
+    lines: {
+      data: {
+        discounts: (string | ExpandedDiscount)[];
+      }[];
+    };
   };
 
   if (!expandedInvoice) {
@@ -474,14 +489,24 @@ async function resolvePromotionCodeIdFromInvoice({
     };
   }
 
-  if (!expandedInvoice.discounts || expandedInvoice.discounts.length === 0) {
+  const invoiceDiscounts = expandedInvoice.discounts ?? [];
+  const lineItemDiscounts = (expandedInvoice.lines?.data ?? []).flatMap(
+    (line) =>
+      (line.discounts ?? []).filter(
+        (discount): discount is ExpandedDiscount =>
+          typeof discount === "object" && discount !== null,
+      ),
+  );
+  const discounts = [...invoiceDiscounts, ...lineItemDiscounts];
+
+  if (discounts.length === 0) {
     return {
       promotionCodeId: null,
       resolvePromotionCodeError: "No discounts found on invoice",
     };
   }
 
-  const discountWithPromotionCode = expandedInvoice.discounts.find((discount) =>
+  const discountWithPromotionCode = discounts.find((discount) =>
     Boolean(discount?.promotion_code?.id),
   );
 

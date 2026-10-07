@@ -1,6 +1,11 @@
 import { prisma } from "@/lib/prisma";
+import { sleep } from "@dub/utils";
 import { Partner, Program } from "@prisma/client";
+
 import { createId } from "../api/create-id";
+import { queuePartnerSearchSync } from "../api/partners/queue-partner-search-sync";
+import { upsertImportedProgramEnrollment } from "../api/partners/upsert-imported-program-enrollment";
+import { approveLinkedApplication } from "../program-applications/approve-linked-application";
 import { logImportError } from "../tinybird/log-import-error";
 import { DEFAULT_PARTNER_GROUP } from "../zod/schemas/groups";
 import { ToltApi } from "./api";
@@ -71,6 +76,8 @@ export async function importPartners(payload: ToltImportPayload) {
               saleRewardId: defaultGroup.saleRewardId,
               leadRewardId: defaultGroup.leadRewardId,
               clickRewardId: defaultGroup.clickRewardId,
+              customRewardId: defaultGroup.customRewardId,
+              referralRewardId: defaultGroup.referralRewardId,
               discountId: defaultGroup.discountId,
             },
           }),
@@ -84,6 +91,13 @@ export async function importPartners(payload: ToltImportPayload) {
         .map((p) => p.value);
 
       if (partners.length > 0) {
+        // Queue an index update because the imported partners were enrolled.
+        // Queued per page rather than per partner.
+        await queuePartnerSearchSync({
+          partnerIds: partners.map((p) => p.id),
+          programId,
+        });
+
         await toltImporter.addPartners({
           programId,
           partnerIds: partners.map((p) => p.id),
@@ -103,7 +117,7 @@ export async function importPartners(payload: ToltImportPayload) {
       );
     }
 
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+    await sleep(2000);
 
     processedBatches++;
     startingAfter = affiliates[affiliates.length - 1].id;
@@ -129,6 +143,8 @@ async function createPartner({
     saleRewardId: string | null;
     leadRewardId: string | null;
     clickRewardId: string | null;
+    customRewardId: string | null;
+    referralRewardId: string | null;
     discountId: string | null;
   };
 }) {
@@ -148,13 +164,9 @@ async function createPartner({
     },
   });
 
-  await prisma.programEnrollment.upsert({
-    where: {
-      partnerId_programId: {
-        partnerId: partner.id,
-        programId: program.id,
-      },
-    },
+  const { enrollment, preservedBan } = await upsertImportedProgramEnrollment({
+    partnerId: partner.id,
+    programId: program.id,
     create: {
       id: createId({ prefix: "pge_" }),
       programId: program.id,
@@ -162,10 +174,13 @@ async function createPartner({
       status: "approved",
       ...defaultGroupAttributes,
     },
-    update: {
-      status: "approved",
-    },
   });
+
+  if (!preservedBan) {
+    await approveLinkedApplication({
+      applicationId: enrollment.applicationId,
+    });
+  }
 
   return partner;
 }

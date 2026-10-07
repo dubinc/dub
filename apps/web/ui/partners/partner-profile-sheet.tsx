@@ -3,7 +3,7 @@ import { X } from "@/ui/shared/icons";
 import { Button, Sheet } from "@dub/ui";
 import { Dispatch, SetStateAction } from "react";
 import { PartnerAbout } from "./partner-about";
-import { PartnerApplicationDetails } from "./partner-application-details";
+import { ProgramApplicationDetails } from "./program-application-details";
 
 type PartnerProfileSheetProps = {
   partner: EnrolledPartnerProps;
@@ -30,11 +30,10 @@ function PartnerProfileSheetContent({ partner }: PartnerProfileSheetProps) {
 
       <div className="scrollbar-hide min-h-0 overflow-y-auto p-4 sm:p-6">
         <div className="grid grid-cols-1 gap-6 text-sm text-neutral-600">
-          <h3 className="text-content-emphasis text-lg font-semibold">About</h3>
           <PartnerAbout partner={partner} />
 
           <div className="border-border-subtle border-t pt-6">
-            <PartnerApplicationDetails
+            <ProgramApplicationDetails
               partnerId={partner.id}
               preferredApplicationId={partner.applicationId ?? null}
             />

@@ -1,79 +1,94 @@
 import { trackLead } from "@/lib/api/conversions/track-lead";
 import { stripeIntegrationSettingsSchema } from "@/lib/integrations/stripe/schema";
 import { prisma } from "@/lib/prisma";
-import { StripeMode } from "@/lib/types";
 import { pick, STRIPE_INTEGRATION_ID } from "@dub/utils";
-import { Customer } from "@prisma/client";
+import { CommissionSource } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import type Stripe from "stripe";
+import { WebhookHandlerInput, WebhookHandlerResponse } from "./types";
 import { getConnectedCustomer } from "./utils/get-connected-customer";
 
 // Handle event "customer.subscription.created"
-// only used for recording free trial creations
-export async function customerSubscriptionCreated(
-  event: Stripe.CustomerSubscriptionCreatedEvent,
-  mode: StripeMode,
-) {
+// - non-trial: clear subscriptionCanceledAt (e.g. resubscriptions)
+// - trialing: record free trial lead (when enabled)
+export async function customerSubscriptionCreated({
+  event,
+  mode,
+  workspace,
+}: WebhookHandlerInput<Stripe.CustomerSubscriptionCreatedEvent>): Promise<WebhookHandlerResponse> {
   const createdSubscription = event.data.object;
-
-  if (createdSubscription.status !== "trialing") {
-    return {
-      response: "Subscription is not in trialing status, skipping...",
-    };
-  }
-
   const stripeAccountId = event.account as string;
   const stripeCustomerId = createdSubscription.customer as string;
 
-  const workspace = await prisma.project.findUnique({
-    where: {
-      stripeConnectId: stripeAccountId,
-    },
-    select: {
-      id: true,
-      slug: true,
-      stripeConnectId: true,
-      webhookEnabled: true,
-      installedIntegrations: {
-        where: {
-          integrationId: STRIPE_INTEGRATION_ID,
-        },
+  // Non-trial subscription created — clear any prior cancellation timestamp
+  if (createdSubscription.status !== "trialing") {
+    const customer = await prisma.customer.findUnique({
+      where: {
+        stripeCustomerId,
       },
-    },
-  });
+      select: {
+        id: true,
+      },
+    });
 
-  if (!workspace) {
+    if (!customer) {
+      return {
+        response: `Customer with stripeCustomerId ${stripeCustomerId} not found, skipping...`,
+      };
+    }
+
+    await prisma.customer.update({
+      where: {
+        id: customer.id,
+      },
+      data: {
+        subscriptionCanceledAt: null,
+      },
+    });
+
     return {
-      response: `Workspace not found for Stripe account ${stripeAccountId}, skipping...`,
+      response: `Subscription created (non-trial), cleared subscriptionCanceledAt for customer ${customer.id}`,
     };
   }
 
-  const workspaceId = workspace.id;
+  // Free trial subscription created — record free trial lead (when enabled)
+  const installedIntegration = await prisma.installedIntegration.findFirst({
+    where: {
+      projectId: workspace.id,
+      integrationId: STRIPE_INTEGRATION_ID,
+    },
+    orderBy: {
+      createdAt: "asc",
+    },
+  });
 
-  if (!workspace.installedIntegrations.length) {
+  if (!installedIntegration) {
     return {
-      response: `Workspace ${workspace.slug} has no Stripe integration installed, skipping...`,
-      workspaceId,
+      response: `Workspace ${workspace.id} has no Stripe integration installed, skipping...`,
     };
   }
 
   const stripeIntegrationSettings = stripeIntegrationSettingsSchema.parse(
-    workspace.installedIntegrations[0].settings || {},
+    installedIntegration.settings || {},
   );
 
   if (!stripeIntegrationSettings?.freeTrials?.enabled) {
     return {
-      response: `Stripe free trial tracking is not enabled for workspace ${workspace.slug}, skipping...`,
-      workspaceId,
+      response: `Stripe free trial tracking is not enabled for workspace ${workspace.id}, skipping...`,
     };
   }
 
-  let customer: Customer | null = null;
-
   // find customer by stripeCustomerId or email
-  customer = await prisma.customer.findUnique({
+  let customer = await prisma.customer.findUnique({
     where: {
       stripeCustomerId,
+    },
+    select: {
+      id: true,
+      clickId: true,
+      externalId: true,
+      name: true,
+      email: true,
     },
   });
 
@@ -90,13 +105,19 @@ export async function customerSubscriptionCreated(
           projectId: workspace.id,
           email: stripeCustomer.email,
         },
+        select: {
+          id: true,
+          clickId: true,
+          externalId: true,
+          name: true,
+          email: true,
+        },
       });
 
       if (!customer) {
         // this should never happen, but just in case
         return {
           response: `Customer ${stripeCustomer.id} with email ${stripeCustomer.email} has not been tracked yet, skipping...`,
-          workspaceId,
         };
       }
       // update the customer with the Stripe customer ID (for future reference by invoice.paid)
@@ -114,7 +135,6 @@ export async function customerSubscriptionCreated(
       // this should never happen either, but just in case
       return {
         response: `Customer with stripeCustomerId ${stripeCustomerId} ${stripeCustomer ? "does not have an email on Stripe" : "does not exist"}, skipping...`,
-        workspaceId,
       };
     }
   }
@@ -122,14 +142,12 @@ export async function customerSubscriptionCreated(
   if (!customer.clickId) {
     return {
       response: `Customer ${customer.id} has no clickId, skipping...`,
-      workspaceId,
     };
   }
 
   if (!customer.externalId) {
     return {
       response: `Customer ${customer.id} has no externalId, skipping...`,
-      workspaceId,
     };
   }
 
@@ -148,10 +166,10 @@ export async function customerSubscriptionCreated(
     eventQuantity,
     workspace: pick(workspace, ["id", "stripeConnectId", "webhookEnabled"]),
     source: "trial",
+    commissionSource: CommissionSource.stripe,
   });
 
   return {
-    response: `Customer subscription created for customer ${customer.id} with stripeCustomerId ${stripeCustomerId} and workspace ${workspace.slug}`,
-    workspaceId,
+    response: `Customer subscription created for customer ${customer.id} with stripeCustomerId ${stripeCustomerId} and workspace ${workspace.id}`,
   };
 }

@@ -109,7 +109,7 @@ export default function PartnerPayoutFailed({
             <Text className="text-sm leading-6 text-neutral-600">
               Please{" "}
               <Link
-                href={`https://app.dub.co/${workspace.slug}/settings/billing`}
+                href={`https://app.dub.co/${workspace.slug}/settings/billing#payment-methods`}
                 className="font-medium text-black underline"
               >
                 update your {payoutMethod} details

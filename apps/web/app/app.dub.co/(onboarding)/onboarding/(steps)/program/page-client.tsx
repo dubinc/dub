@@ -1,5 +1,6 @@
 "use client";
 
+import { testIds } from "@/lib/e2e/test-ids";
 import { ProgramOnboardingFormWrapper } from "@/ui/partners/program-onboarding-form-wrapper";
 import { cn } from "@dub/utils/src";
 import { StepPage } from "../step-page";
@@ -11,6 +12,7 @@ export function ProgramPageClient({ domain }: { domain: string }) {
 
   return (
     <StepPage
+      headingTestId={testIds.onboarding.stepProgram}
       title="Create your partner program"
       description="Set up your program in a few steps"
     >

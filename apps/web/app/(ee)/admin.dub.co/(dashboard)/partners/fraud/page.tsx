@@ -3,6 +3,7 @@
 import { adminFraudAlertSchema } from "@/lib/zod/schemas/admin";
 import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import {
+  Button,
   Filter,
   StatusBadge,
   Table,
@@ -12,9 +13,16 @@ import {
   useTable,
 } from "@dub/ui";
 import { CircleDotted, GridIcon } from "@dub/ui/icons";
-import { fetcher, formatDate, formatDateTime, OG_AVATAR_URL } from "@dub/utils";
+import {
+  fetcher,
+  formatDate,
+  formatDateTime,
+  OG_AVATAR_URL,
+  pluralize,
+} from "@dub/utils";
 import { FraudAlertStatus } from "@prisma/client";
 import { Suspense, useCallback, useMemo, useState } from "react";
+import { toast } from "sonner";
 import useSWR from "swr";
 import * as z from "zod/v4";
 import { ReviewFraudAlertSheet } from "./review-fraud-alert-sheet";
@@ -45,6 +53,7 @@ function FraudAlertsPageClient() {
   const [selectedAlert, setSelectedAlert] = useState<AdminFraudAlert | null>(
     null,
   );
+  const [isBulkConfirming, setIsBulkConfirming] = useState(false);
 
   const {
     data: { fraudAlerts, total } = {},
@@ -56,6 +65,75 @@ function FraudAlertsPageClient() {
   }>(`/api/admin/partners/fraud${getQueryString()}`, fetcher, {
     keepPreviousData: true,
   });
+
+  const handleBulkConfirm = async (
+    alerts: AdminFraudAlert[],
+    resetSelection: () => void,
+  ) => {
+    // Confirming an alert confirms all pending alerts for that partner, so
+    // dedupe by partner before looping the existing PATCH endpoint.
+    const pendingAlerts = [
+      ...new Map(
+        alerts
+          .filter((alert) => alert.status === "pending")
+          .map((alert) => [alert.partner.id, alert]),
+      ).values(),
+    ];
+
+    if (pendingAlerts.length === 0) {
+      toast.error("No pending fraud alerts selected.");
+      return;
+    }
+
+    if (
+      !window.confirm(
+        `Are you sure you want to confirm ${pendingAlerts.length} fraud ${pluralize("alert", pendingAlerts.length)}?`,
+      )
+    ) {
+      return;
+    }
+
+    setIsBulkConfirming(true);
+
+    try {
+      let succeeded = 0;
+      let failed = 0;
+
+      for (const alert of pendingAlerts) {
+        try {
+          const response = await fetch(`/api/admin/fraud-alerts/${alert.id}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ status: "confirmed" }),
+          });
+
+          // 409 means the partner's pending alerts were already confirmed
+          if (response.ok || response.status === 409) {
+            succeeded++;
+          } else {
+            failed++;
+          }
+        } catch {
+          failed++;
+        }
+      }
+
+      if (failed > 0) {
+        toast.error(
+          `Confirmed ${succeeded} ${pluralize("alert", succeeded)}, ${failed} failed.`,
+        );
+      } else {
+        toast.success(
+          `Confirmed ${succeeded} fraud ${pluralize("alert", succeeded)}.`,
+        );
+      }
+
+      resetSelection();
+      await mutate();
+    } finally {
+      setIsBulkConfirming(false);
+    }
+  };
 
   // Extract unique programs from fraud alerts for filter options
   const programs = useMemo(() => {
@@ -241,6 +319,37 @@ function FraudAlertsPageClient() {
     resourceName: (plural) => `fraud alert${plural ? "s" : ""}`,
     rowCount: total ?? 0,
     loading: isLoading,
+    thClassName: (id) => (id === "partner" ? "pl-4" : ""),
+    tdClassName: (id) => (id === "partner" ? "pl-4" : ""),
+    getRowId: (row) => row.id,
+    selectionControls: (tableInstance) => {
+      const selectedAlerts = tableInstance
+        .getSelectedRowModel()
+        .rows.map((row) => row.original);
+      const pendingCount = selectedAlerts.filter(
+        (alert) => alert.status === "pending",
+      ).length;
+
+      return (
+        <Button
+          variant="danger"
+          text="Confirm Fraud"
+          className="h-7 w-fit rounded-lg px-2.5"
+          loading={isBulkConfirming}
+          disabled={pendingCount === 0}
+          disabledTooltip={
+            pendingCount === 0
+              ? "Only pending fraud alerts can be confirmed."
+              : undefined
+          }
+          onClick={() =>
+            handleBulkConfirm(selectedAlerts, () =>
+              tableInstance.resetRowSelection(),
+            )
+          }
+        />
+      );
+    },
   });
 
   return (

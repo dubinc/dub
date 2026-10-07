@@ -1,9 +1,9 @@
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { TokenProps, UserProps } from "@/lib/types";
+import { Callout } from "@/ui/shared/callout";
 import { UserAvatar } from "@/ui/users/user-avatar";
 import { Button, Modal, useMediaQuery } from "@dub/ui";
-import { TriangleWarning } from "@dub/ui/icons";
 import { fetcher, timeAgo } from "@dub/utils";
 import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -32,7 +32,7 @@ function RemoveWorkspaceUserModal({
   const { data: session } = useSession();
   const [removing, setRemoving] = useState(false);
   const [verification, setVerification] = useState("");
-  const { id: workspaceId, name: workspaceName } = useWorkspace();
+  const { id: workspaceId, name: workspaceName, slug } = useWorkspace();
 
   const searchParams = useSearchParams();
   const isInvite = searchParams.get("status") === "invited";
@@ -91,36 +91,34 @@ function RemoveWorkspaceUserModal({
   const content = (
     <>
       {restrictedTokens && restrictedTokens.length > 0 && (
-        <div className="space-y-3 rounded-lg border border-amber-200 bg-amber-50 p-4">
-          <div className="flex-shrink-0">
-            <TriangleWarning className="size-5 text-amber-600" />
-          </div>
+        <Callout variant="warn" size={2}>
+          <div className="space-y-3">
+            <h3 className="font-semibold">Warning: Active tokens detected</h3>
 
-          <h3 className="text-sm font-semibold leading-5 text-amber-900">
-            Warning: Active tokens detected
-          </h3>
+            <p>
+              {self ? "You have" : "This user has"} {restrictedTokens.length}{" "}
+              active tokens. {self ? "Leaving" : "Removing this user"} will
+              invalidate these tokens and may disrupt the integration.
+            </p>
 
-          <p className="text-sm font-normal text-amber-900">
-            {self ? "You have" : "This user has"} {restrictedTokens.length}{" "}
-            active tokens. {self ? "Leaving" : "Removing this user"} will
-            invalidate these tokens and may disrupt the integration.
-          </p>
-
-          <div>
-            <ul className="mt-6 space-y-2">
+            <ul className="space-y-2">
               {restrictedTokens.map((token, index) => (
                 <li key={index} className="flex items-center justify-between">
-                  <span className="text-sm font-medium leading-4 text-amber-900">
+                  <a
+                    href={`/${slug}/settings/tokens`}
+                    target="_blank"
+                    className="line-clamp-1 font-medium underline underline-offset-2 hover:text-amber-700"
+                  >
                     {token.name}
-                  </span>
-                  <span className="text-xs font-normal leading-4 text-amber-700">
+                  </a>
+                  <span className="whitespace-nowrap text-xs text-amber-700">
                     used {timeAgo(token.lastUsed, { withAgo: true })}
                   </span>
                 </li>
               ))}
             </ul>
           </div>
-        </div>
+        </Callout>
       )}
 
       <div className="relative flex items-center gap-2 space-x-3 rounded-md border border-neutral-300 bg-white px-4 py-2">
@@ -235,7 +233,7 @@ export function useRemoveWorkspaceUserModal({ user }: { user: UserProps }) {
         user={user}
       />
     );
-  }, [showRemoveWorkspaceUserModal, setShowRemoveWorkspaceUserModal, user]);
+  }, [showRemoveWorkspaceUserModal, setShowRemoveWorkspaceUserModal]);
 
   return useMemo(
     () => ({

@@ -6,7 +6,7 @@ import {
   MAX_RESOLUTION_REASON_LENGTH,
 } from "@/lib/zod/schemas/fraud";
 import { MaxCharactersCounter } from "@/ui/shared/max-characters-counter";
-import { Button, Modal } from "@dub/ui";
+import { Button, Modal, useLatestCallback } from "@dub/ui";
 import { cn, pluralize } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import {
@@ -202,20 +202,21 @@ export function useBulkResolveFraudGroupsModal({
   const [showBulkResolveFraudGroupsModal, setShowBulkResolveFraudGroupsModal] =
     useState(false);
 
+  const onConfirmCallback = useLatestCallback(onConfirm);
+
   const BulkResolveFraudGroupsModalCallback = useCallback(() => {
     return (
       <BulkResolveFraudGroupsModal
         showBulkResolveFraudGroupsModal={showBulkResolveFraudGroupsModal}
         setShowBulkResolveFraudGroupsModal={setShowBulkResolveFraudGroupsModal}
         fraudGroups={fraudGroups}
-        onConfirm={onConfirm}
+        onConfirm={onConfirmCallback}
       />
     );
   }, [
     showBulkResolveFraudGroupsModal,
     setShowBulkResolveFraudGroupsModal,
-    fraudGroups,
-    onConfirm,
+    onConfirmCallback,
   ]);
 
   return useMemo(

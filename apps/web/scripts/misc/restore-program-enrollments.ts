@@ -64,7 +64,7 @@ async function main() {
   if (commissionsToRestore.length > 0) {
     const { count: createdCommissionsCount } =
       await prisma.commission.createMany({
-        data: commissionsToRestore,
+        data: commissionsToRestore as never,
         skipDuplicates: true,
       });
     console.log(`Restored ${createdCommissionsCount} commissions`);

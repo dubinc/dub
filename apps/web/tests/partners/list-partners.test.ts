@@ -116,4 +116,18 @@ describe.sequential("GET /partners", async () => {
       expect(parsed.tenantId).toBe(E2E_PARTNER.tenantId);
     });
   });
+
+  test("filters partners by search partner ID", async () => {
+    const { data, status } = await http.get<EnrolledPartnerProps[]>({
+      path: "/partners",
+      query: {
+        search: E2E_PARTNER.id,
+      },
+    });
+
+    expect(status).toEqual(200);
+    expect(Array.isArray(data)).toBe(true);
+    expect(data.length).toBeGreaterThan(0);
+    expect(data[0].id).toBe(E2E_PARTNER.id);
+  });
 });

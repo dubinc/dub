@@ -1,0 +1,16 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "baseUrl": "..",
+    "paths": {
+      "@/pages/*": ["pages/*"],
+      "@/styles/*": ["styles/*"],
+      "@/ui/*": ["ui/*"],
+      "@/lib/*": ["lib/*"]
+    },
+    "target": "ES2022",
+    "types": ["node"]
+  },
+  "include": ["./**/*.ts"],
+  "exclude": ["node_modules"]
+}

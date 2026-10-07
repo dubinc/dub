@@ -1,5 +1,6 @@
 "use client";
 
+import { formatCommissionDescriptionTooltip } from "@/lib/commissions/format-commission-description-tooltip";
 import { INVOICE_AVAILABLE_PAYOUT_STATUSES } from "@/lib/constants/payouts";
 import usePartnerPayouts from "@/lib/swr/use-partner-payouts";
 import usePartnerPayoutsCount from "@/lib/swr/use-partner-payouts-count";
@@ -281,6 +282,21 @@ function PartnerPayoutFilters() {
 
 function AmountRowItem({ payout }: { payout: PartnerPayoutResponse }) {
   const display = currencyFormatter(payout.amount);
+
+  // for clawback payouts with description
+  if (payout.amount < 0 && payout.description) {
+    return (
+      <Tooltip
+        content={formatCommissionDescriptionTooltip(payout.description, {
+          variant: "partner",
+        })}
+      >
+        <span className="cursor-help truncate text-red-600 underline decoration-dotted underline-offset-2">
+          {display}
+        </span>
+      </Tooltip>
+    );
+  }
 
   if (
     payout.status === PayoutStatus.pending &&

@@ -1,6 +1,10 @@
 "use client";
 
-import { TREMENDOUS_MAX_PAYOUT_AMOUNT_CENTS } from "@/lib/tremendous/constants";
+import { SSO_LOGIN_PROGRAMS } from "@/lib/auth/sso-login-programs";
+import {
+  TREMENDOUS_MAX_PAYOUT_AMOUNT_CENTS,
+  TREMENDOUS_MIN_PAYOUT_AMOUNT_CENTS,
+} from "@/lib/tremendous/constants";
 import { AlertCircleFill } from "@/ui/shared/icons";
 import {
   AnimatedSizeContainer,
@@ -287,7 +291,6 @@ function PayoutMethodCard({
   label,
   icon: Icon,
   isConnected,
-  showRecommendedBadge,
   buttonText,
   disabled,
   disabledTooltip,
@@ -296,7 +299,6 @@ function PayoutMethodCard({
   label: string;
   icon: ComponentType<{ className?: string }>;
   isConnected: boolean;
-  showRecommendedBadge?: boolean;
   buttonText?: string;
   disabled?: boolean;
   disabledTooltip?: string;
@@ -314,14 +316,6 @@ function PayoutMethodCard({
           <Icon className="text-content-emphasis size-[18px]" />
         </div>
         <h2 className="text-content-emphasis text-sm font-semibold">{label}</h2>
-        {showRecommendedBadge && (
-          <Badge
-            variant="blue"
-            className="rounded-md px-1 py-0 text-xs font-semibold"
-          >
-            Recommended
-          </Badge>
-        )}
 
         {isConnected && (
           <Badge
@@ -388,7 +382,7 @@ function TremendousGiftCardOption({
               {!hasAnyConnected && (
                 <Badge
                   variant="blue"
-                  className="rounded-md px-1 py-0 text-xs font-semibold"
+                  className="rounded-md px-1 py-0 text-xs font-medium"
                 >
                   Recommended
                 </Badge>
@@ -396,16 +390,22 @@ function TremendousGiftCardOption({
               {isConnected && (
                 <Badge
                   variant="green"
-                  className="rounded-md px-1 py-0 text-xs font-semibold"
+                  className="rounded-md px-1 py-0 text-xs font-medium"
                 >
                   Connected
                 </Badge>
               )}
             </div>
             <p className="text-content-subtle mt-0.5 text-xs">
-              Gift card payouts are limited to{" "}
-              {currencyFormatter(TREMENDOUS_MAX_PAYOUT_AMOUNT_CENTS)} per
-              payout.
+              Gift card payouts have a minimum of{" "}
+              {currencyFormatter(TREMENDOUS_MIN_PAYOUT_AMOUNT_CENTS, {
+                trailingZeroDisplay: "stripIfInteger",
+              })}{" "}
+              and a maximum of{" "}
+              {currencyFormatter(TREMENDOUS_MAX_PAYOUT_AMOUNT_CENTS, {
+                trailingZeroDisplay: "stripIfInteger",
+              })}
+              .
             </p>
           </div>
         </div>
@@ -478,9 +478,11 @@ function TremendousGiftCardOption({
 function CashPayoutMethod({
   isConnected,
   hasAnyConnected,
+  programRegisterUrl,
 }: {
   isConnected: boolean;
   hasAnyConnected: boolean;
+  programRegisterUrl: string;
 }) {
   const disabled = hasAnyConnected && !isConnected;
 
@@ -496,15 +498,13 @@ function CashPayoutMethod({
           ? "This payout method is unavailable because you already have another payout method connected."
           : undefined
       }
-      onClick={() => {
-        window.open("https://partners.dub.co/payouts?settings=true", "_blank");
-      }}
+      onClick={() => window.open(programRegisterUrl, "_blank")}
     />
   );
 }
 
 export function ReferralsEmbedSettings() {
-  const { partner } = useReferralsEmbedData();
+  const { partner, program } = useReferralsEmbedData();
 
   const hasAnyConnected = Boolean(partner.defaultPayoutMethod);
   const isGiftCardConnected = partner.defaultPayoutMethod === "tremendous";
@@ -533,6 +533,13 @@ export function ReferralsEmbedSettings() {
         <CashPayoutMethod
           isConnected={isCashConnected}
           hasAnyConnected={hasAnyConnected}
+          // for custom SSO login programs, we just redirect to the login page
+          // so they can easily login with SSO instead of creating a new account
+          programRegisterUrl={`https://partners.dub.co/${program.slug}/${
+            SSO_LOGIN_PROGRAMS.some(({ slug }) => slug === program.slug)
+              ? "login"
+              : `register${partner.email ? `?email=${partner.email}` : ""}`
+          }`}
         />
       </div>
     </div>

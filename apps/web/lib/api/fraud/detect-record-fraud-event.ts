@@ -14,7 +14,7 @@ export async function detectAndRecordFraudEvent(context: FraudEventContext) {
     console.error(
       `[detectAndRecordFraudEvent] Invalid context ${result.error}`,
     );
-    return;
+    return [];
   }
 
   const validatedContext = result.data;
@@ -25,7 +25,7 @@ export async function detectAndRecordFraudEvent(context: FraudEventContext) {
     console.info(
       `[detectAndRecordFraudEvent] Program enrollment is ${programEnrollment.status}, skipping...`,
     );
-    return;
+    return [];
   }
 
   // Skip if risk monitoring is disabled
@@ -33,7 +33,7 @@ export async function detectAndRecordFraudEvent(context: FraudEventContext) {
     console.info(
       `[detectAndRecordFraudEvent] Risk monitoring is disabled for this partner, skipping...`,
     );
-    return;
+    return [];
   }
 
   // Get program-specific rule overrides
@@ -73,7 +73,7 @@ export async function detectAndRecordFraudEvent(context: FraudEventContext) {
   }
 
   if (triggeredRules.length === 0) {
-    return;
+    return [];
   }
 
   console.log(
@@ -92,4 +92,6 @@ export async function detectAndRecordFraudEvent(context: FraudEventContext) {
       metadata: rule.metadata,
     })),
   );
+
+  return triggeredRules;
 }

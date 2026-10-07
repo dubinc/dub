@@ -1,5 +1,7 @@
 TOKEN "dub_tinybird_token" APPEND
 
+DESCRIPTION >
+    DEPRECATED: We're using dub_api_logs now. This is kept for posterity
 
 SCHEMA >
     `timestamp` DateTime64(3) `json:$.timestamp` DEFAULT now(),

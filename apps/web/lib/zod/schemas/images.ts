@@ -2,24 +2,33 @@ import { GOOGLE_FAVICON_URL, R2_URL } from "@dub/utils";
 import { fileTypeFromBuffer } from "file-type";
 import * as z from "zod/v4";
 
-/** Raster data-URL prefix for link preview images (base64ImageSchema, preprocess, metatags). */
-export const linkPreviewImageBase64PrefixRegex =
-  /^data:image\/(png|jpeg|jpg|gif|webp);base64,/i;
-
 const allowedImageTypes = [
   "image/png",
   "image/jpeg",
   "image/jpg",
   "image/gif",
   "image/webp",
+  "image/avif",
 ];
+
+const allowedImageFormats = allowedImageTypes
+  .map((type) => type.replace("image/", ""))
+  .join(", ");
+
+export const invalidImageFormatMessage = `Invalid image format, supports only ${allowedImageFormats}.`;
+
+/** Raster data-URL prefix for link preview images (base64ImageSchema, preprocess, metatags). */
+export const linkPreviewImageBase64PrefixRegex = new RegExp(
+  `^data:image/(${allowedImageTypes.map((type) => type.replace("image/", "")).join("|")});base64,`,
+  "i",
+);
 
 // Base64 encoded image
 export const base64ImageSchema = z
   .string()
   .trim()
   .regex(linkPreviewImageBase64PrefixRegex, {
-    message: "Invalid image format, supports only png, jpeg, jpg, gif, webp.",
+    message: invalidImageFormatMessage,
   })
   .refine(
     async (str) => {
@@ -39,7 +48,7 @@ export const base64ImageSchema = z
       }
     },
     {
-      message: "Invalid image format, supports only png, jpeg, jpg, gif, webp.",
+      message: invalidImageFormatMessage,
     },
   )
   .transform((v) => v || null);

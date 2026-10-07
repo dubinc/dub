@@ -164,6 +164,10 @@ export function MessagesPanel({
                 const isFirstFromSender =
                   idx === 0 || !isMessageSameSender(message, messages[idx - 1]);
 
+                // Messages continuing a sender's group sit tighter together:
+                // trims the container's 8px gap down to 2px
+                const isGroupedWithPrevious = !isFirstFromSender && !isNewTime;
+
                 return (
                   <Fragment
                     key={`${new Date(message.createdAt).getTime()}-${message.senderUserId}-${message.senderPartnerId}`}
@@ -199,6 +203,7 @@ export function MessagesPanel({
                         showStatusIndicator={showStatusIndicator}
                         isNewTime={isNewTime}
                         isFirstFromSender={isFirstFromSender}
+                        isGroupedWithPrevious={isGroupedWithPrevious}
                         isNew={isNew}
                         program={program}
                       />
@@ -210,6 +215,7 @@ export function MessagesPanel({
                             ? "origin-bottom-right flex-row-reverse"
                             : "origin-bottom-left",
                           isNew && "animate-scale-in-fade",
+                          isGroupedWithPrevious && "-mt-1.5",
                         )}
                       >
                         {/* Avatar */}
@@ -244,7 +250,7 @@ export function MessagesPanel({
                           {message.text && (
                             <div
                               className={cn(
-                                "max-w-[min(100%,512px)] rounded-xl px-4 py-2.5 text-sm",
+                                "min-w-0 max-w-[min(100%,512px)] rounded-xl px-4 py-2.5 text-sm",
                                 isMySide
                                   ? "rounded-br bg-neutral-700"
                                   : "rounded-bl bg-neutral-100",
@@ -438,6 +444,7 @@ function CampaignMessage({
   showStatusIndicator,
   isNewTime,
   isFirstFromSender,
+  isGroupedWithPrevious,
   isNew,
   program,
 }: {
@@ -448,6 +455,7 @@ function CampaignMessage({
   showStatusIndicator: boolean;
   isNewTime: boolean;
   isFirstFromSender: boolean;
+  isGroupedWithPrevious: boolean;
   isNew: boolean;
   program?: Pick<ProgramProps, "logo" | "name"> | null;
 }) {
@@ -461,6 +469,7 @@ function CampaignMessage({
           ? "origin-bottom-right flex-row-reverse"
           : "origin-bottom-left",
         isNew && "animate-scale-in-fade",
+        isGroupedWithPrevious && "-mt-1.5",
       )}
     >
       <MessageAvatar sender={sender} program={program} message={message} />
@@ -484,7 +493,7 @@ function CampaignMessage({
 
         <div
           className={cn(
-            "max-w-[min(100%,512px)] rounded-xl text-sm",
+            "min-w-0 max-w-[min(100%,512px)] rounded-xl text-sm",
             isMySide
               ? "text-content-inverted rounded-br bg-neutral-700"
               : "text-content-default rounded-bl bg-neutral-100",
@@ -530,7 +539,7 @@ function CampaignMessage({
             <div
               className={cn(
                 "max-w-lg overflow-hidden",
-                isExpanded ? "px-2 py-2.5" : "max-h-0 px-2 py-0",
+                isExpanded ? "px-4 py-2.5" : "max-h-0 px-4 py-0",
               )}
             >
               <MessageMarkdown invert={isMySide}>

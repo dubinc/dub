@@ -12,7 +12,7 @@ import { cn, isLegacyBusinessPlan } from "@dub/utils";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { ReactNode } from "react";
-import { PartnersUpgradeCTA } from "./partners-upgrade-cta";
+import { ProgramEmptyState } from "./program-empty-state";
 
 export default function ProgramAuth({ children }: { children: ReactNode }) {
   const {
@@ -51,7 +51,7 @@ export default function ProgramAuth({ children }: { children: ReactNode }) {
   ) {
     return (
       <PageContent>
-        <PartnersUpgradeCTA />
+        <ProgramEmptyState />
       </PageContent>
     );
   }
@@ -64,7 +64,7 @@ function AccessDenied({ slug }: { slug: string }) {
     <PageContent>
       <SimpleEmptyState
         title="You don't have access to Dub Partners"
-        description="Your workspace admin has restricted access to Dub Partners for your account. Contact them if you believe this is a mistake."
+        description="Your workspace admin has restricted access to Dub Partners for your account. Please contact them if you believe this is a mistake."
         graphic={
           <div className="flex size-16 items-center justify-center rounded-2xl border border-neutral-200 bg-neutral-50">
             <ShieldSlash className="size-6 text-neutral-800" />

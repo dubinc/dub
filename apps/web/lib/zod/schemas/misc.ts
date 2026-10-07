@@ -16,6 +16,10 @@ export const maxDurationSchema = z.coerce
 
 export const planSchema = z.enum(plans).describe("The plan of the workspace.");
 
+export const yearMonthSchema = z
+  .string()
+  .regex(/^\d{4}-(0[1-9]|1[0-2])$/, "Expected a month in the format yyyy-MM");
+
 export const roleSchema = z
   .enum(WorkspaceRole)
   .describe("The role of the authenticated user in the workspace.");
@@ -33,18 +37,21 @@ export const booleanQuerySchema = z
 export const getPaginationQuerySchema = ({
   pageSize,
   deprecated = false,
+  maxPageSize,
 }: {
   pageSize: number;
   deprecated?: boolean;
+  maxPageSize?: number;
 }) => ({
   page: z.coerce
     .number({ error: "Page must be a number." })
+    .int({ message: "Page must be an integer." })
     .positive({ message: "Page must be greater than 0." })
     .optional()
     .describe(
       deprecated
         ? "DEPRECATED. Use `startingAfter` instead."
-        : "The page number for pagination.",
+        : "The page number for pagination. The first page is `1`.",
     )
     .meta({
       example: 1,
@@ -52,9 +59,10 @@ export const getPaginationQuerySchema = ({
     }),
   pageSize: z.coerce
     .number({ error: "Page size must be a number." })
+    .int({ message: "Page size must be an integer." })
     .positive({ message: "Page size must be greater than 0." })
-    .max(pageSize, {
-      message: `Max page size is ${pageSize}.`,
+    .max(maxPageSize ?? pageSize, {
+      message: `Max page size is ${maxPageSize ?? pageSize}.`,
     })
     .optional()
     .default(pageSize)
@@ -89,3 +97,12 @@ export const getCursorPaginationQuerySchema = ({
       example,
     }),
 });
+
+export const metadataSchema = z
+  .record(z.string(), z.any())
+  .nullish()
+  .default(null)
+  .transform((val) => (val != null && Object.keys(val).length > 0 ? val : null))
+  .refine((val) => !val || JSON.stringify(val).length <= 10000, {
+    message: "Metadata must be less than 10,000 characters when stringified",
+  });

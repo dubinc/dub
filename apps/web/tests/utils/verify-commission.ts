@@ -3,7 +3,9 @@ import {
   VITEST_TEST_TIMEOUT_MS,
 } from "@/lib/constants/misc";
 import { CommissionResponse, Customer } from "@/lib/types";
+import { sleep } from "@dub/utils";
 import { expect } from "vitest";
+
 import { HttpClient } from "./http";
 
 interface VerifyCommissionProps {
@@ -14,6 +16,7 @@ interface VerifyCommissionProps {
   expectedSaleAmount?: number;
   expectedEarnings: number;
   expectedType?: string;
+  expectedMetadata?: CommissionResponse["metadata"];
   query?: Record<string, string>; // to pass additional query params to GET /commissions
 }
 
@@ -25,6 +28,7 @@ export const verifyCommission = async ({
   expectedSaleAmount,
   expectedEarnings,
   expectedType,
+  expectedMetadata,
   query: queryOverrides,
 }: VerifyCommissionProps) => {
   let customerId: string | undefined;
@@ -95,13 +99,15 @@ export const verifyCommission = async ({
         expect(commission.type).toEqual(expectedType);
       }
 
+      if (expectedMetadata !== undefined) {
+        expect(commission.metadata).toEqual(expectedMetadata);
+      }
+
       return;
     }
 
     // Wait before next poll
-    await new Promise((resolve) =>
-      setTimeout(resolve, VITEST_POLL_INTERVAL_MS),
-    );
+    await sleep(VITEST_POLL_INTERVAL_MS);
   }
 
   // Timeout reached - fail the test

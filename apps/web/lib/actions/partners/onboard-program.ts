@@ -46,7 +46,7 @@ const saveOnboardingProgress = async ({
   workspace,
   data,
 }: {
-  workspace: Pick<Project, "id" | "store" | "slug">;
+  workspace: Pick<Project, "id" | "slug" | "defaultProduct" | "store">;
   data: z.infer<typeof onboardProgramSchema>;
 }) => {
   const store =
@@ -65,6 +65,9 @@ const saveOnboardingProgress = async ({
       id: workspace.id,
     },
     data: {
+      // set defaultProduct to "program" if it's not already set
+      defaultProduct:
+        workspace.defaultProduct !== "program" ? "program" : undefined,
       store: {
         ...store,
         programOnboarding: {

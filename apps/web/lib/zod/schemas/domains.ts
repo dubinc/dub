@@ -157,6 +157,7 @@ export const createDomainBodySchema = z.object({
 
 export const createDomainBodySchemaExtended = createDomainBodySchema.extend({
   deepviewData: z.string().nullish(),
+  isOnboardingSubdomainFlow: z.boolean().default(false),
 });
 
 export const updateDomainBodySchema = createDomainBodySchema.partial();

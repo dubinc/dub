@@ -1,0 +1,148 @@
+import type { JobDefinition } from "./index";
+
+// Add handlers/{name}-job.ts. Set defineJob({ name: "{name}-job" }).
+// Each entry uses a static import() so webpack code-splits handlers into separate chunks.
+const jobLoaders = {
+  "folder-deleted-job": () =>
+    import("./handlers/folder-deleted-job").then((m) => m.folderDeletedJob),
+
+  "partner-tag-deleted-job": () =>
+    import("./handlers/partner-tag-deleted-job").then(
+      (m) => m.partnerTagDeletedJob,
+    ),
+
+  "unban-partner-job": () =>
+    import("./handlers/unban-partner-job").then((m) => m.unbanPartnerJob),
+
+  "link-tag-deleted-job": () =>
+    import("./handlers/link-tag-deleted-job").then((m) => m.linkTagDeletedJob),
+
+  "domain-deleted-job": () =>
+    import("./handlers/domain-deleted-job").then((m) => m.domainDeletedJob),
+
+  "default-link-deleted-job": () =>
+    import("./handlers/default-link-deleted-job").then(
+      (m) => m.defaultLinkDeletedJob,
+    ),
+
+  "create-tremendous-campaign-job": () =>
+    import("./handlers/create-tremendous-campaign-job").then(
+      (m) => m.createTremendousCampaignJob,
+    ),
+
+  "sync-group-utm-job": () =>
+    import("./handlers/sync-group-utm-job").then((m) => m.syncGroupUtmJob),
+
+  "partner-search-sync-job": () =>
+    import("./handlers/partner-search-sync-job").then(
+      (m) => m.partnerSearchSyncJob,
+    ),
+
+  "process-shopify-order-job": () =>
+    import("./handlers/process-shopify-order-job").then(
+      (m) => m.processShopifyOrderJob,
+    ),
+
+  "welcome-user-job": () =>
+    import("./handlers/welcome-user-job").then((m) => m.welcomeUserJob),
+
+  // Deprecated: only kept to drain in-flight messages
+  "auto-approve-partner-job": () =>
+    import("./handlers/auto-approve-partner-job").then(
+      (m) => m.autoApprovePartnerJob,
+    ),
+
+  // Deprecated: only kept to drain in-flight messages
+  "auto-reject-partner-job": () =>
+    import("./handlers/auto-reject-partner-job").then(
+      (m) => m.autoRejectPartnerJob,
+    ),
+
+  "auto-approve-program-application-job": () =>
+    import("./handlers/auto-approve-program-application-job").then(
+      (m) => m.autoApproveProgramApplicationJob,
+    ),
+
+  "auto-reject-program-application-job": () =>
+    import("./handlers/auto-reject-program-application-job").then(
+      (m) => m.autoRejectProgramApplicationJob,
+    ),
+
+  "queue-partner-program-summary-job": () =>
+    import("./handlers/queue-partner-program-summary-job").then(
+      (m) => m.queuePartnerProgramSummaryJob,
+    ),
+
+  "send-partner-program-summary-job": () =>
+    import("./handlers/send-partner-program-summary-job").then(
+      (m) => m.sendPartnerProgramSummaryJob,
+    ),
+
+  "send-connect-payout-reminders-job": () =>
+    import("./handlers/send-connect-payout-reminders-job").then(
+      (m) => m.sendConnectPayoutRemindersJob,
+    ),
+
+  "create-custom-commission-job": () =>
+    import("./handlers/create-custom-commission-job").then(
+      (m) => m.createCustomCommissionJob,
+    ),
+
+  "invalidate-links-for-discounts-job": () =>
+    import("./handlers/invalidate-links-for-discounts-job").then(
+      (m) => m.invalidateLinksForDiscountsJob,
+    ),
+
+  "remap-discount-code-job": () =>
+    import("./handlers/remap-discount-code-job").then(
+      (m) => m.remapDiscountCodeJob,
+    ),
+
+  "attach-discount-job": () =>
+    import("./handlers/attach-discount-job").then((m) => m.attachDiscountJob),
+
+  "create-discount-code-for-link-job": () =>
+    import("./handlers/create-discount-code-for-link-job").then(
+      (m) => m.createDiscountCodeForLinkJob,
+    ),
+
+  "publish-discount-codes-creation-job": () =>
+    import("./handlers/publish-discount-codes-creation-job").then(
+      (m) => m.publishDiscountCodesCreationJob,
+    ),
+
+  "aggregate-clicks-job": () =>
+    import("./handlers/aggregate-clicks-job").then((m) => m.aggregateClicksJob),
+
+  "process-partner-group-change-job": () =>
+    import("./handlers/process-partner-group-change-job").then(
+      (m) => m.processPartnerGroupChangeJob,
+    ),
+
+  "program-application-reminder-job": () =>
+    import("./handlers/program-application-reminder-job").then(
+      (m) => m.programApplicationReminderJob,
+    ),
+} as const satisfies Record<string, () => Promise<JobDefinition>>;
+
+const jobCache = new Map<string, JobDefinition>();
+
+export async function loadJob(
+  name: string,
+): Promise<JobDefinition | undefined> {
+  const cached = jobCache.get(name);
+  if (cached) return cached;
+
+  const loader = jobLoaders[name as keyof typeof jobLoaders];
+  if (!loader) return undefined;
+
+  const job = await loader();
+  if (job.name !== name) {
+    throw new Error(`Job name mismatch: ${job.name} !== ${name}`);
+  }
+
+  jobCache.set(name, job);
+  return job;
+}
+
+export const registeredJobNames = Object.keys(jobLoaders);

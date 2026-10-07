@@ -1,7 +1,12 @@
 import { CustomerActivityResponse } from "@/lib/types";
 import { DynamicTooltipWrapper, LinkLogo, TimestampTooltip } from "@dub/ui";
 import { CursorRays, MoneyBill2, UserCheck } from "@dub/ui/icons";
-import { formatDateTimeSmart, getApexDomain, getPrettyUrl } from "@dub/utils";
+import {
+  currencyFormatter,
+  formatDateTimeSmart,
+  getApexDomain,
+  getPrettyUrl,
+} from "@dub/utils";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { MetadataViewer } from "../analytics/events/metadata-viewer";
@@ -99,7 +104,16 @@ const activityData = {
     content: (event) => {
       return (
         <div className="flex flex-col gap-1">
-          <span>{event.eventName || "New sale"}</span>
+          <span className="flex min-w-0 items-center gap-1.5">
+            <span className="truncate">{event.eventName || "New sale"}</span>
+            {event.sale?.amount != null && (
+              <span className="shrink-0 rounded-md bg-neutral-100 px-1.5 py-1 font-mono text-xs leading-none text-neutral-700">
+                {currencyFormatter(event.sale.amount, {
+                  trailingZeroDisplay: "stripIfInteger",
+                })}
+              </span>
+            )}
+          </span>
           {event.metadata && <MetadataViewer metadata={event.metadata} />}
         </div>
       );

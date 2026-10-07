@@ -1,0 +1,7 @@
+# local env files
+.env*.local
+.env
+
+# tinybird
+.venv
+.tinyb

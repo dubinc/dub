@@ -202,7 +202,8 @@ export function Form() {
                           {description}
                         </span>
                       </div>
-                      <CircleCheck variant="fill"
+                      <CircleCheck
+                        variant="fill"
                         className={cn(
                           "-mr-px -mt-px flex size-4 scale-75 items-center justify-center rounded-full opacity-0 transition-[transform,opacity] duration-150",
                           isSelected && "scale-100 opacity-100",
@@ -283,7 +284,8 @@ export function Form() {
                           {COMMISSION_STRUCTURE_DESCRIPTIONS[value]}
                         </span>
                       </div>
-                      <CircleCheck variant="fill"
+                      <CircleCheck
+                        variant="fill"
                         className={cn(
                           "-mr-px -mt-px flex size-4 scale-75 items-center justify-center rounded-full opacity-0 transition-[transform,opacity] duration-150",
                           isSelected && "scale-100 opacity-100",
@@ -381,7 +383,8 @@ export function Form() {
                           {description}
                         </span>
                       </div>
-                      <CircleCheck variant="fill"
+                      <CircleCheck
+                        variant="fill"
                         className={cn(
                           "-mr-px -mt-px flex size-4 scale-75 items-center justify-center rounded-full opacity-0 transition-[transform,opacity] duration-150",
                           isSelected && "scale-100 opacity-100",
@@ -403,7 +406,7 @@ export function Form() {
             <div className="flex items-center justify-between gap-3">
               <label className="text-sm font-medium text-neutral-800">
                 {type === "percentage" ? "Percentage" : "Amount"} per{" "}
-                {defaultRewardType}
+                {defaultRewardType} <span className="text-red-800">*</span>
               </label>
               <RewardQualityFieldIndicator
                 event={defaultRewardType as EventType}

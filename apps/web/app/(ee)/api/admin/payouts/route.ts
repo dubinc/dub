@@ -2,11 +2,13 @@ import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
 import { withAdmin } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { analyticsQuerySchema } from "@/lib/zod/schemas/analytics";
-import { ACME_PROGRAM_ID } from "@dub/utils";
-import { InvoiceStatus } from "@prisma/client";
+import { getPaginationQuerySchema } from "@/lib/zod/schemas/misc";
+import { ACME_PROGRAM_ID, DEMO_PROGRAM_ID } from "@dub/utils";
+import { InvoiceStatus, Prisma } from "@prisma/client";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 import { getPayoutsTimeseries } from "./get-payouts-timeseries";
+import { getTopProgramsByPayouts } from "./get-top-programs-by-payouts";
 
 const adminPayoutsQuerySchema = z
   .object({
@@ -15,7 +17,8 @@ const adminPayoutsQuerySchema = z
   })
   .extend(
     analyticsQuerySchema.pick({ interval: true, start: true, end: true }).shape,
-  );
+  )
+  .extend(getPaginationQuerySchema({ pageSize: 100 }));
 
 export const GET = withAdmin(async ({ searchParams }) => {
   const {
@@ -24,6 +27,8 @@ export const GET = withAdmin(async ({ searchParams }) => {
     interval = "mtd",
     start,
     end,
+    page,
+    pageSize,
   } = adminPayoutsQuerySchema.parse(searchParams);
 
   const timezone = "UTC";
@@ -32,56 +37,72 @@ export const GET = withAdmin(async ({ searchParams }) => {
     start,
     end,
     timezone,
+    dataAvailableFrom: new Date("2024-11-01"),
   });
 
-  // Fetch invoices
-  const invoices = await prisma.invoice.findMany({
-    where: {
-      ...(programId
-        ? { programId }
-        : {
-            AND: [
-              {
-                programId: {
-                  not: ACME_PROGRAM_ID,
+  const invoiceWhere: Prisma.InvoiceWhereInput = {
+    ...(programId
+      ? { programId }
+      : {
+          AND: [
+            {
+              programId: {
+                notIn: [ACME_PROGRAM_ID, DEMO_PROGRAM_ID],
+              },
+            },
+            {
+              program: {
+                is: {
+                  NOT: {
+                    slug: {
+                      endsWith: "-staging",
+                    },
+                  },
                 },
               },
-              {
-                program: {
-                  isNot: null,
-                },
-              },
-            ],
-          }),
-      status: status || {
-        not: "failed",
-      },
-      createdAt: {
-        gte: startDate,
-        lte: endDate,
-      },
+            },
+          ],
+        }),
+    status: status || {
+      not: "failed",
     },
-    include: {
-      program: {
-        select: {
-          name: true,
-          logo: true,
+    createdAt: {
+      gte: startDate,
+      lte: endDate,
+    },
+  };
+
+  const [invoices, totalInvoices, timeseriesData, programs] = await Promise.all([
+    prisma.invoice.findMany({
+      where: invoiceWhere,
+      include: {
+        program: {
+          select: {
+            name: true,
+            logo: true,
+          },
         },
       },
-    },
-    orderBy: {
-      createdAt: "desc",
-    },
-  });
-
-  const timeseriesData = await getPayoutsTimeseries({
-    programId,
-    status,
-    startDate,
-    endDate,
-    granularity,
-    timezone,
-  });
+      orderBy: {
+        createdAt: "desc",
+      },
+      skip: ((page ?? 1) - 1) * pageSize,
+      take: pageSize,
+    }),
+    prisma.invoice.count({
+      where: invoiceWhere,
+    }),
+    getPayoutsTimeseries({
+      programId,
+      status,
+      startDate,
+      endDate,
+      granularity,
+      timezone,
+    }),
+    // not scoped to programId so the program filter always lists all top programs
+    getTopProgramsByPayouts({ status, startDate, endDate }),
+  ]);
 
   const formattedInvoices = invoices.map((invoice) => ({
     date: invoice.createdAt,
@@ -98,5 +119,7 @@ export const GET = withAdmin(async ({ searchParams }) => {
   return NextResponse.json({
     invoices: formattedInvoices,
     timeseriesData,
+    totalInvoices,
+    programs,
   });
 });

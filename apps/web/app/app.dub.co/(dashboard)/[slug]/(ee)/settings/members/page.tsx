@@ -16,12 +16,15 @@ import { useInviteWorkspaceUserModal } from "@/ui/modals/invite-workspace-user-m
 import { useRemoveWorkspaceUserModal } from "@/ui/modals/remove-workspace-user-modal";
 import { useWorkspaceUserRoleModal } from "@/ui/modals/update-workspace-user-role";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
+import { SimpleEmptyState } from "@/ui/shared/simple-empty-state";
 import { UserAvatar } from "@/ui/users/user-avatar";
 import {
   Button,
+  buttonVariants,
   DynamicTooltipWrapper,
   Filter,
   Popover,
+  ShieldSlash,
   Table,
   useKeyboardShortcut,
   usePagination,
@@ -43,6 +46,7 @@ import { ColumnDef, Row } from "@tanstack/react-table";
 import { Command } from "cmdk";
 import { UserMinus } from "lucide-react";
 import { useSession } from "next-auth/react";
+import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import useSWR from "swr";
@@ -53,7 +57,7 @@ export default function WorkspaceMembersPage() {
 
   const { setShowInviteCodeModal, InviteCodeModal } = useInviteCodeModal();
 
-  const { role, plan, usersLimit } = useWorkspace();
+  const { role, plan, planPeriod, usersLimit, slug } = useWorkspace();
   const { data: session } = useSession();
   const { id: workspaceId } = useWorkspace();
   const { users: workspaceUsers } = useWorkspaceUsers();
@@ -71,6 +75,7 @@ export default function WorkspaceMembersPage() {
     isLoading: loading,
   } = useSWR<WorkspaceUserProps[]>(
     workspaceId &&
+      role !== "viewer" &&
       `/api/workspaces/${workspaceId}/${status === "invited" ? "invites" : "users"}?${new URLSearchParams(
         {
           ...(search && { search }),
@@ -84,7 +89,9 @@ export default function WorkspaceMembersPage() {
   );
 
   const { data: invitesForCount } = useSWR<WorkspaceUserProps[]>(
-    workspaceId ? `/api/workspaces/${workspaceId}/invites` : null,
+    workspaceId && role !== "viewer"
+      ? `/api/workspaces/${workspaceId}/invites`
+      : null,
     fetcher,
   );
   const inviteCount = invitesForCount?.length ?? 0;
@@ -106,7 +113,12 @@ export default function WorkspaceMembersPage() {
 
   const inviteUserLimitError =
     isAtUserLimit && plan
-      ? exceededLimitError({ plan, limit: usersLimit, type: "users" })
+      ? exceededLimitError({
+          plan,
+          planPeriod,
+          limit: usersLimit,
+          type: "users",
+        })
       : undefined;
 
   const availableRolesForPlan = useMemo(() => {
@@ -194,9 +206,23 @@ export default function WorkspaceMembersPage() {
                   )}
                 </h3>
                 <p className="text-xs text-neutral-500">
-                  {status === "invited"
-                    ? `Invited ${timeAgo(user.createdAt)}`
-                    : user.email}
+                  {status === "invited" ? (
+                    `Invited ${timeAgo(user.createdAt)}`
+                  ) : user.isMachine ? (
+                    <>
+                      Machine user for API integration.{" "}
+                      <a
+                        href="https://dub.co/docs/api-reference/authentication#machine-users"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="underline decoration-dotted underline-offset-2 transition-colors hover:text-neutral-800"
+                      >
+                        Learn more ↗
+                      </a>
+                    </>
+                  ) : (
+                    user.email
+                  )}
                 </p>
               </div>
             </div>
@@ -267,6 +293,10 @@ export default function WorkspaceMembersPage() {
     });
   };
 
+  if (role === "viewer") {
+    return <AccessDenied slug={slug} />;
+  }
+
   return (
     <>
       <InviteWorkspaceUserModal />
@@ -315,7 +345,7 @@ export default function WorkspaceMembersPage() {
               />
               {inviteCount && status !== "invited" ? (
                 <Button
-                  text="View pending invites"
+                  text="Pending invites"
                   variant="secondary"
                   className="w-fit"
                   right={
@@ -539,5 +569,34 @@ function MenuItem({
       <IconComp className="size-4 shrink-0" />
       {label}
     </Command.Item>
+  );
+}
+
+function AccessDenied({ slug }: { slug?: string }) {
+  return (
+    <PageContent title="Members">
+      <SimpleEmptyState
+        title="You don't have access to this page"
+        description="Contact your workspace admin if you have any questions."
+        graphic={
+          <div className="flex size-16 items-center justify-center rounded-2xl border border-neutral-200 bg-neutral-50">
+            <ShieldSlash className="size-6 text-neutral-800" />
+          </div>
+        }
+        addButton={
+          slug ? (
+            <Link
+              href={`/${slug}/settings`}
+              className={cn(
+                buttonVariants({ variant: "primary" }),
+                "flex h-9 items-center whitespace-nowrap rounded-lg border px-4 text-sm",
+              )}
+            >
+              Go to workspace settings
+            </Link>
+          ) : undefined
+        }
+      />
+    </PageContent>
   );
 }

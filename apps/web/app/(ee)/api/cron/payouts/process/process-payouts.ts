@@ -73,7 +73,7 @@ export async function processPayouts({
   const res = await prisma.payout.updateMany({
     where: {
       ...payoutIdSelectionWhere({ selectedPayoutIds, excludedPayoutIds }),
-      ...getPayoutEligibilityFilter({ program, workspace }),
+      ...getPayoutEligibilityFilter({ program }),
       ...(cutoffPeriodValue && {
         periodEnd: {
           lte: cutoffPeriodValue,

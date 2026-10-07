@@ -24,7 +24,7 @@ export default function ManageSubscriptionButton(props: ButtonProps) {
           method: "POST",
         }).then(async (res) => {
           if (res.ok) {
-            const url = await res.json();
+            const { url } = await res.json();
             router.push(url);
           } else {
             const { error } = await res.json();

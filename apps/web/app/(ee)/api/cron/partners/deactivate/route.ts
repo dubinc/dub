@@ -39,11 +39,7 @@ export const POST = withCron(async ({ rawBody }) => {
       links: true,
       discountCodes: {
         include: {
-          discount: {
-            select: {
-              provider: true,
-            },
-          },
+          discount: true,
         },
       },
     },

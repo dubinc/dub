@@ -1,9 +1,15 @@
 import { DubApiError } from "@/lib/api/errors";
 import { getSocialContent } from "@/lib/api/scrape-creators/get-social-content";
+import {
+  bountyEligibilityIncludes,
+  canPartnerSubmitBounty,
+} from "@/lib/bounty/api/bounty-availability";
 import { getBountyOrThrow } from "@/lib/bounty/api/get-bounty-or-throw";
 import { resolveBountyDetails } from "@/lib/bounty/utils";
 import { withReferralsEmbedToken } from "@/lib/embed/referrals/auth";
-import { ratelimit } from "@/lib/upstash";
+import { prisma } from "@/lib/prisma";
+import { assertRateLimit } from "@/lib/upstash/assert-rate-limit";
+import { RATELIMIT_POLICIES } from "@/lib/upstash/ratelimit-policies";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 
@@ -13,64 +19,22 @@ const searchParamsSchema = z.object({
 
 // GET /api/embed/referrals/bounties/[bountyId]/social-content-stats
 export const GET = withReferralsEmbedToken(
-  async ({ programEnrollment, searchParams, params }) => {
+  async ({ program, programEnrollment, searchParams, params }) => {
     const { bountyId } = params;
     const { url } = searchParamsSchema.parse(searchParams);
 
-    const { success } = await ratelimit(10, "1 h").limit(
-      `partner-profile:social-content-stats:${programEnrollment.partnerId}`,
-    );
-
-    if (!success) {
-      throw new DubApiError({
-        code: "rate_limit_exceeded",
-        message: "You've been rate limited. Please try again later.",
-      });
-    }
+    await assertRateLimit({
+      policy: RATELIMIT_POLICIES.socialContentStats,
+      identifier: programEnrollment.partnerId,
+    });
 
     const bounty = await getBountyOrThrow({
       bountyId,
       programId: programEnrollment.programId,
       include: {
-        groups: true,
+        ...bountyEligibilityIncludes,
       },
     });
-
-    if (bounty.groups.length > 0) {
-      const isInGroup = bounty.groups.some(
-        ({ groupId }) => groupId === programEnrollment.groupId,
-      );
-
-      if (!isInGroup) {
-        throw new DubApiError({
-          code: "forbidden",
-          message: "You are not allowed to access this bounty.",
-        });
-      }
-    }
-
-    const now = new Date();
-
-    if (bounty.startsAt && bounty.startsAt > now) {
-      throw new DubApiError({
-        code: "bad_request",
-        message: "This bounty is not yet available.",
-      });
-    }
-
-    if (bounty.endsAt && bounty.endsAt < now) {
-      throw new DubApiError({
-        code: "bad_request",
-        message: "This bounty is no longer available.",
-      });
-    }
-
-    if (bounty.archivedAt) {
-      throw new DubApiError({
-        code: "bad_request",
-        message: "This bounty is archived.",
-      });
-    }
 
     const bountyInfo = resolveBountyDetails(bounty);
 
@@ -78,6 +42,32 @@ export const GET = withReferralsEmbedToken(
       throw new DubApiError({
         code: "bad_request",
         message: "This bounty does not have social content requirements.",
+      });
+    }
+
+    const partnerTags = await prisma.programPartnerTag.findMany({
+      where: {
+        programId: programEnrollment.programId,
+        partnerId: programEnrollment.partnerId,
+      },
+      select: {
+        partnerTagId: true,
+      },
+    });
+
+    const canSubmitBounty = canPartnerSubmitBounty({
+      program,
+      bounty,
+      programEnrollment: {
+        ...programEnrollment,
+        programPartnerTags: partnerTags,
+      },
+    });
+
+    if (!canSubmitBounty) {
+      throw new DubApiError({
+        code: "not_found",
+        message: "Bounty not found.",
       });
     }
 

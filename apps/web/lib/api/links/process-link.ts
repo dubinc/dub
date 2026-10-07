@@ -1,4 +1,3 @@
-import { isBlacklistedDomain } from "@/lib/edge-config";
 import { verifyFolderAccess } from "@/lib/folder/permissions";
 import { checkIfUserExists, getRandomKey } from "@/lib/planetscale";
 import { prisma } from "@/lib/prisma";
@@ -18,7 +17,12 @@ import {
 } from "@dub/utils";
 import { Project, WorkspaceRole } from "@prisma/client";
 import { combineTagIds } from "../tags/combine-tag-ids";
-import { businessFeaturesCheck, proFeaturesCheck } from "./plan-features-check";
+import { maliciousLinkCheck } from "./malicious-link-check";
+import {
+  businessFeaturesCheck,
+  dubLinkSubdomainCheck,
+  proFeaturesCheck,
+} from "./plan-features-check";
 import { keyChecks, processKey } from "./utils";
 
 export async function processLink<T extends Record<string, any>>({
@@ -72,6 +76,9 @@ export async function processLink<T extends Record<string, any>>({
     programId,
     webhookIds,
     testVariants,
+    ios,
+    android,
+    geo,
   } = payload;
 
   let expiresAt: string | Date | null | undefined = payload.expiresAt;
@@ -111,6 +118,17 @@ export async function processLink<T extends Record<string, any>>({
     };
   }
 
+  const domains = workspace
+    ? await prisma.domain.findMany({
+        where: { projectId: workspace.id },
+      })
+    : [];
+
+  // if domain is not defined, set it to the workspace's primary domain
+  if (!domain) {
+    domain = domains?.find((d) => d.primary)?.slug || "dub.sh";
+  }
+
   // free plan restrictions
   if (!workspace || workspace.plan === "free") {
     if (key === "_root" && url) {
@@ -122,8 +140,9 @@ export async function processLink<T extends Record<string, any>>({
       };
     }
     try {
-      businessFeaturesCheck(payload);
+      dubLinkSubdomainCheck(domain);
       proFeaturesCheck(payload);
+      businessFeaturesCheck(payload);
     } catch (error) {
       return {
         link: payload,
@@ -133,6 +152,7 @@ export async function processLink<T extends Record<string, any>>({
     }
   } else if (workspace.plan === "pro") {
     try {
+      dubLinkSubdomainCheck(domain);
       businessFeaturesCheck(payload);
     } catch (error) {
       return {
@@ -149,17 +169,6 @@ export async function processLink<T extends Record<string, any>>({
       error: "Conversion tracking must be enabled to use A/B testing.",
       code: "unprocessable_entity",
     };
-  }
-
-  const domains = workspace
-    ? await prisma.domain.findMany({
-        where: { projectId: workspace.id },
-      })
-    : [];
-
-  // if domain is not defined, set it to the workspace's primary domain
-  if (!domain) {
-    domain = domains?.find((d) => d.primary)?.slug || "dub.sh";
   }
 
   // checks for dub.sh and dub.link links
@@ -198,6 +207,15 @@ export async function processLink<T extends Record<string, any>>({
   } else if (isDubDomain(domain)) {
     // coerce type with ! cause we already checked if it exists
     const { allowedHostnames } = DUB_DOMAINS.find((d) => d.slug === domain)!;
+
+    if (ios || android || geo || testVariants) {
+      return {
+        link: payload,
+        error: `You cannot use geo targeting, device targeting, or A/B testing on ${domain} links.`,
+        code: "unprocessable_entity",
+      };
+    }
+
     const urlDomain = getDomainWithoutWWW(url) || "";
     const apexDomain = getApexDomain(url);
     if (
@@ -418,22 +436,27 @@ export async function processLink<T extends Record<string, any>>({
       }
     }
 
-    // Program validity checks
+    // only perform program validity checks if not bulk creation (we do that check separately in the route itself)
     if (programId && !skipProgramChecks) {
+      if (!partnerId && !tenantId) {
+        return {
+          link: payload,
+          error:
+            "programId was passed but no valid partnerId or tenantId was provided.",
+          code: "unprocessable_entity",
+        };
+      }
+
       const program = await prisma.program.findUnique({
         where: { id: programId },
         select: {
           workspaceId: true,
           defaultFolderId: true,
-          ...(!partnerId && tenantId
-            ? {
-                partners: {
-                  where: {
-                    tenantId,
-                  },
-                },
-              }
-            : {}),
+          partners: {
+            where: {
+              ...(partnerId ? { partnerId } : { tenantId }),
+            },
+          },
         },
       });
 
@@ -445,11 +468,15 @@ export async function processLink<T extends Record<string, any>>({
         };
       }
 
-      if (!partnerId) {
-        partnerId =
-          program?.partners?.length > 0 ? program.partners[0].partnerId : null;
+      if (!program.partners.length) {
+        return {
+          link: payload,
+          error: "Invalid partnerId or tenantId provided.",
+          code: "not_found",
+        };
       }
 
+      partnerId = program.partners[0].partnerId;
       defaultProgramFolderId = program.defaultFolderId;
     }
 
@@ -573,19 +600,4 @@ export async function processLink<T extends Record<string, any>>({
     },
     error: null,
   };
-}
-
-async function maliciousLinkCheck(url: string) {
-  const domain = getDomainWithoutWWW(url);
-
-  if (!domain) {
-    return false;
-  }
-
-  const domainBlacklisted = await isBlacklistedDomain(domain);
-  if (domainBlacklisted === true) {
-    return true;
-  }
-
-  return false;
 }

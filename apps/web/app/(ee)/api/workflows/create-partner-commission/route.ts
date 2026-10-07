@@ -1,5 +1,7 @@
 import { triggerAggregateDueCommissionsCronJob } from "@/lib/actions/partners/trigger-aggregate-due-commissions";
+import { trackCommissionStatusUpdate } from "@/lib/api/commissions/track-commission-update-activity-log";
 import { createId } from "@/lib/api/create-id";
+import { PARTNER_LEVEL_FRAUD_RULES } from "@/lib/api/fraud/constants";
 import { detectAndRecordFraudEvent } from "@/lib/api/fraud/detect-record-fraud-event";
 import { notifyPartnerCommission } from "@/lib/api/partners/notify-partner-commission";
 import { syncTotalCommissions } from "@/lib/api/partners/sync-total-commissions";
@@ -8,13 +10,17 @@ import { getRewardSpendLimitWindow } from "@/lib/api/rewards/reward-spend-limit-
 import { calculateSaleEarnings } from "@/lib/api/sales/calculate-sale-earnings";
 import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
 import { logger } from "@/lib/axiom/server";
-import { getWorkflowConfig } from "@/lib/cron/qstash-workflow";
+import { buildCommissionDescription } from "@/lib/commissions/build-commission-description";
 import { constructWebhookPartner } from "@/lib/partners/constuct-webhook-partner";
-import { determinePartnerRewards } from "@/lib/partners/determine-partner-reward";
+import {
+  determinePartnerRewards,
+  getRewardMaxDurationForContext,
+} from "@/lib/partners/determine-partner-reward";
 import { getRewardAmount } from "@/lib/partners/get-reward-amount";
+import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { sendPartnerPostback } from "@/lib/postback/send-partner-postback";
 import { prisma } from "@/lib/prisma";
-import { RewardProps } from "@/lib/types";
+import { RewardConditions, RewardProps } from "@/lib/types";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import {
   CommissionWebhookSchema,
@@ -22,13 +28,15 @@ import {
 } from "@/lib/zod/schemas/commissions";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { COMMISSION_ELIGIBLE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
-import { buildCommissionDescription } from "@/ui/partners/program-reward-spend-limit";
 import { currencyFormatter, log, pick, toCentsNumber } from "@dub/utils";
 import {
   Commission,
+  CommissionStatus,
+  FraudEventStatus,
   Link,
   Partner,
   PartnerGroup,
+  Prisma,
   ProgramEnrollment,
   Reward,
 } from "@prisma/client";
@@ -60,11 +68,23 @@ type StepCreateCommissionOutput = {
   isFirstCommission?: boolean;
 };
 
+const commissionInclude: Prisma.CommissionInclude = {
+  customer: true,
+  link: {
+    select: {
+      id: true,
+      shortLink: true,
+      domain: true,
+      key: true,
+    },
+  },
+};
+
 // POST /api/workflows/create-partner-commission
 export const { POST } = serve<Input>(
   async (context) => {
     const input = context.requestPayload;
-    const { event, partnerId, programId, bountySubmissionId } = input;
+    const { event, partnerId, programId, linkId, bountySubmissionId } = input;
 
     const programEnrollment = await getProgramEnrollmentOrThrow({
       partnerId,
@@ -77,6 +97,15 @@ export const { POST } = serve<Input>(
         ...(event === "sale" && { saleReward: true }),
       },
     });
+
+    if (linkId) {
+      const link = programEnrollment.links.find((link) => link.id === linkId);
+      if (!link) {
+        return logAndReturn({
+          outputLog: `Link "${linkId}" does not belong to partner "${partnerId}" and program "${programId}", skipping commission creation...`,
+        });
+      }
+    }
 
     // Step 1: Create commission
     const { commission, isFirstCommission } = await context.run(
@@ -100,16 +129,16 @@ export const { POST } = serve<Input>(
     });
 
     // Step 3 (optional): Link the created commission to the bounty submission
+    // TODO: Remove once in-flight workflows from before the bountySubmissionId migration have drained (new commissions are linked in stepCreateCommission)
     if (commission && bountySubmissionId) {
       await context.run("set-bounty-commission", async () => {
-        const { count } = await prisma.bountySubmission.updateMany({
+        const { count } = await prisma.commission.updateMany({
           where: {
-            id: bountySubmissionId,
-            status: "approved",
-            commissionId: null,
+            id: commission.id,
+            bountySubmissionId: null,
           },
           data: {
-            commissionId: commission.id,
+            bountySubmissionId,
           },
         });
 
@@ -119,7 +148,7 @@ export const { POST } = serve<Input>(
           });
         } else {
           return logAndReturn({
-            outputLog: `Bounty submission ${bountySubmissionId} not found or already linked to a commission, skipping...`,
+            outputLog: `Commission ${commission.id} already linked to a bounty submission, skipping...`,
           });
         }
       });
@@ -135,11 +164,6 @@ export const { POST } = serve<Input>(
       failResponse,
       failHeaders,
     }) => {
-      const { correlation } = getWorkflowConfig({
-        workflowType: "create-partner-commission",
-        body: context.requestPayload,
-      });
-
       logger.error("workflow.failed", {
         service: "qstash",
         event: "workflow.failed",
@@ -148,7 +172,6 @@ export const { POST } = serve<Input>(
         failStatus,
         failResponse,
         failHeaders,
-        correlation,
       });
 
       await logger.flush();
@@ -167,6 +190,7 @@ async function stepCreateCommission(
     customerId,
     eventId,
     invoiceId,
+    rewardId,
     amount,
     quantity,
     currency,
@@ -174,8 +198,11 @@ async function stepCreateCommission(
     createdAt,
     status,
     userId,
+    source,
+    metadata,
     context,
     programEnrollment,
+    bountySubmissionId,
   } = input;
 
   if (typeof amount !== "number") {
@@ -203,6 +230,7 @@ async function stepCreateCommission(
 
   let earnings = 0;
   let reward: RewardProps | null = null;
+  let matchedCondition: RewardConditions | null = null;
   let firstCommission: Pick<
     Commission,
     "rewardId" | "status" | "createdAt"
@@ -255,16 +283,18 @@ async function stepCreateCommission(
       };
     }
 
-    const rewards = determinePartnerRewards({
+    const rewards = await determinePartnerRewards({
       event,
       programEnrollment,
       context,
       amount,
       quantity,
+      linkId: linkId ?? null,
     });
 
     if (rewards.length > 0) {
       reward = rewards[0].reward;
+      matchedCondition = rewards[0].matchedCondition;
     }
 
     // if there is no reward, skip commission creation
@@ -309,16 +339,24 @@ async function stepCreateCommission(
             select: {
               id: true,
               maxDuration: true,
+              modifiers: true,
             },
           });
 
+          const originalMaxDuration = originalReward
+            ? getRewardMaxDurationForContext({
+                reward: originalReward,
+                context,
+              })
+            : null;
+
           if (
-            typeof originalReward?.maxDuration === "number" &&
-            originalReward.maxDuration === 0
+            typeof originalMaxDuration === "number" &&
+            originalMaxDuration === 0
           ) {
             return logAndReturn({
               commission: null,
-              outputLog: `Partner ${partnerId} is only eligible for first-sale commissions based on the original reward ${originalReward.id}, skipping commission creation...`,
+              outputLog: `Partner ${partnerId} is only eligible for first-sale commissions based on the original reward ${originalReward?.id}, skipping commission creation...`,
             });
           }
         }
@@ -378,6 +416,8 @@ async function stepCreateCommission(
     });
   }
 
+  let cappedEarnings = earnings;
+
   if (
     customerId &&
     event !== "custom" &&
@@ -385,7 +425,7 @@ async function stepCreateCommission(
     reward.spendLimitAmount &&
     reward.spendLimitInterval
   ) {
-    const cappedEarnings = await clampEarningsToSpendLimit({
+    cappedEarnings = await clampEarningsToSpendLimit({
       reward,
       earnings,
       programId,
@@ -401,16 +441,38 @@ async function stepCreateCommission(
         outputLog: `Partner ${partnerId} has reached spend limit (${currencyFormatter(reward.spendLimitAmount)} ${reward.spendLimitInterval === "allTime" ? "" : `per ${reward.spendLimitInterval}`}) for ${event} event, skipping commission creation...`,
       });
     }
+  }
 
-    if (!description) {
-      description = buildCommissionDescription({
-        earnings,
-        cappedEarnings,
-        reward,
-      });
-    }
+  // Custom reward jobs are queued from a snapshot of eligible enrollments.
+  // Re-check at write time so we don't pay a partner who was banned, deactivated,
+  // or moved off this reward before the workflow ran.
+  // Only jobs that pass rewardId (create-custom-commission) should be gated —
+  // manual commissions and bounty payouts also use event "custom" but have no rewardId.
+  const isCustomRewardCommission = event === "custom" && Boolean(rewardId);
+  const stillOnCustomReward = programEnrollment.customRewardId === rewardId;
 
-    earnings = cappedEarnings;
+  if (
+    isCustomRewardCommission &&
+    (programEnrollment.status !== "approved" || !stillOnCustomReward)
+  ) {
+    return logAndReturn({
+      commission: null,
+      outputLog: `Partner ${partnerId} is no longer eligible for custom reward ${rewardId} (status: ${programEnrollment.status}), skipping commission creation...`,
+    });
+  }
+
+  // Snapshot the applied reward (and matched condition) so the activity log
+  // does not fall back to the live reward after later edits.
+  // Known limitation: when determinePartnerRewards splits Stripe products into
+  // multiple line rewards and we sum earnings, we only describe rewards[0]'s
+  // rate/condition — not every product line.
+  if (!description && reward && event !== "custom") {
+    description = buildCommissionDescription({
+      reward,
+      matchedCondition,
+      earnings,
+      cappedEarnings,
+    });
   }
 
   try {
@@ -419,20 +481,23 @@ async function stepCreateCommission(
         id: createId({ prefix: "cm_" }),
         programId,
         partnerId,
-        rewardId: reward?.id,
+        rewardId: reward?.id ?? rewardId,
         customerId,
         linkId,
         eventId: eventId || null, // empty string should convert to null
         invoiceId: invoiceId || null, // empty string should convert to null
         userId,
+        source,
         quantity,
         amount,
         type: event,
         currency,
-        earnings,
+        earnings: cappedEarnings,
         status,
         description,
         createdAt,
+        bountySubmissionId,
+        metadata: metadata ?? Prisma.DbNull,
       },
     });
 
@@ -482,6 +547,7 @@ async function stepRunSideEffects(
     skipWorkflow,
     clickEvent,
     isFirstConversion,
+    status,
     triggerAggregateDueCommissions,
   } = input;
 
@@ -491,21 +557,11 @@ async function stepRunSideEffects(
     });
   }
 
-  const commission = await prisma.commission.findUniqueOrThrow({
+  let commission = await prisma.commission.findUniqueOrThrow({
     where: {
       id: _commission.id,
     },
-    include: {
-      customer: true,
-      link: {
-        select: {
-          id: true,
-          shortLink: true,
-          domain: true,
-          key: true,
-        },
-      },
-    },
+    include: commissionInclude,
   });
 
   const program = await prisma.program.findUniqueOrThrow({
@@ -524,6 +580,7 @@ async function stepRunSideEffects(
           slug: true,
           name: true,
           webhookEnabled: true,
+          plan: true,
         },
       },
       // if no partner group is found, need to fetch default group to fallback to
@@ -542,7 +599,105 @@ async function stepRunSideEffects(
 
   const { workspace } = program;
   const isClawback = commission.earnings < 0;
-  const shouldTriggerWorkflow = !isClawback && !skipWorkflow;
+  const shouldRunRiskMonitoring = commission.customer && eventId && clickEvent;
+  let riskRulesTriggered = false;
+
+  if (shouldRunRiskMonitoring) {
+    const triggeredRules = await detectAndRecordFraudEvent({
+      program: { id: programId },
+      partner: pick(programEnrollment.partner, ["id", "email", "name"]),
+      programEnrollment: pick(programEnrollment, [
+        "status",
+        "riskMonitoringDisabledAt",
+      ]),
+      customer: {
+        ...pick(commission.customer!, ["id", "email", "name"]),
+        // only pass along isFirstConversion if it's a boolean
+        ...(typeof isFirstConversion === "boolean" && { isFirstConversion }),
+      },
+      link: { id: linkId },
+      click: pick(clickEvent, ["url", "referer"]),
+      event: { id: eventId },
+    });
+
+    riskRulesTriggered = triggeredRules.length > 0;
+  }
+
+  const { canManageFraudEvents } = getPlanCapabilities(program.workspace.plan);
+
+  // 1. Partner-level: any pending partner-scope fraud group -> hold (all commission types for this partner).
+  // 2. Conversion-event: run fraud detection before create; if rules trigger -> hold (customer-scoped).
+  if (canManageFraudEvents) {
+    let shouldHoldCommission = false;
+
+    if (riskRulesTriggered) {
+      shouldHoldCommission = true;
+    } else {
+      const hasPendingRiskGroups = await prisma.fraudEventGroup.findFirst({
+        where: {
+          programId,
+          partnerId,
+          status: FraudEventStatus.pending,
+          type: {
+            in: PARTNER_LEVEL_FRAUD_RULES,
+          },
+        },
+        select: {
+          id: true,
+        },
+      });
+
+      shouldHoldCommission = hasPendingRiskGroups !== null;
+    }
+
+    // An explicit `status` input (e.g. imports) wins; clawbacks (earnings <= 0) are never held.
+    if (
+      shouldHoldCommission &&
+      !status &&
+      commission.earnings > 0 &&
+      commission.status === CommissionStatus.pending
+    ) {
+      const commissionBeforeHold = pick(commission, [
+        "id",
+        "amount",
+        "earnings",
+        "status",
+      ]);
+
+      try {
+        commission = await prisma.commission.update({
+          where: {
+            id: commission.id,
+            status: CommissionStatus.pending,
+          },
+          data: {
+            status: CommissionStatus.hold,
+          },
+          include: commissionInclude,
+        });
+
+        await trackCommissionStatusUpdate({
+          workspaceId: workspace.id,
+          programId,
+          commissions: [commissionBeforeHold],
+          newStatus: CommissionStatus.hold,
+        });
+      } catch (error) {
+        // The update only matches pending commissions; if it fails (e.g. concurrent status change),
+        // re-fetch so side effects use the current status from the database.
+
+        commission = await prisma.commission.findUniqueOrThrow({
+          where: {
+            id: commission.id,
+          },
+          include: commissionInclude,
+        });
+      }
+    }
+  }
+
+  const isOnHold = commission.status === CommissionStatus.hold;
+  const shouldTriggerWorkflow = !isClawback && !skipWorkflow && !isOnHold;
 
   const webhookPartner = constructWebhookPartner(programEnrollment, {
     totalCommissions:
@@ -565,10 +720,11 @@ async function stepRunSideEffects(
       data: commission,
     }),
 
-    syncTotalCommissions({
-      partnerId,
-      programId,
-    }),
+    !isOnHold &&
+      syncTotalCommissions({
+        partnerId,
+        programId,
+      }),
 
     !isClawback &&
       notifyPartnerCommission({
@@ -583,8 +739,7 @@ async function stepRunSideEffects(
     // Execute Dub workflows
     shouldTriggerWorkflow &&
       executeWorkflows({
-        trigger: "partnerMetricsUpdated",
-        reason: "commission",
+        event: "commissionRecorded",
         identity: {
           workspaceId: workspace.id,
           programId,
@@ -595,27 +750,6 @@ async function stepRunSideEffects(
             commissions: commission.earnings,
           },
         },
-      }),
-
-    // Run risk monitoring
-    commission.customer &&
-      eventId &&
-      clickEvent &&
-      detectAndRecordFraudEvent({
-        program: { id: programId },
-        partner: pick(programEnrollment.partner, ["id", "email", "name"]),
-        programEnrollment: pick(programEnrollment, [
-          "status",
-          "riskMonitoringDisabledAt",
-        ]),
-        customer: {
-          ...pick(commission.customer, ["id", "email", "name"]),
-          // only pass along isFirstConversion if it's a boolean
-          ...(typeof isFirstConversion === "boolean" && { isFirstConversion }),
-        },
-        link: { id: linkId },
-        click: pick(clickEvent, ["url", "referer"]),
-        event: { id: eventId },
       }),
 
     // Aggregate due commissions immediately for manual commission
@@ -629,7 +763,7 @@ async function stepRunSideEffects(
     "syncTotalCommissions",
     "notifyPartnerCommission",
     "executeWorkflows",
-    "detectAndRecordFraudEvent",
+    "triggerAggregateDueCommissions",
   ].map((step, index) => ({
     step,
     result: results[index],
@@ -680,7 +814,7 @@ async function clampEarningsToSpendLimit({
       ...(reward.event === "sale" ? { customerId } : {}),
       type: reward.event,
       status: {
-        in: ["pending", "processed", "paid"],
+        in: ["pending", "processed", "paid", "hold"],
       },
       // only need to filter if not all-time spend limit (no startDate or endDate)
       ...(startDate && endDate

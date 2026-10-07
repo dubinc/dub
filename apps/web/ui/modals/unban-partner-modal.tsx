@@ -67,9 +67,7 @@ function UnbanPartnerModal({
   }, [executeAsync, partner.id, workspaceId]);
 
   const isDisabled = useMemo(() => {
-    return (
-      !workspaceId || !partner.id || confirm !== `confirm unban ${partner.name}`
-    );
+    return !workspaceId || !partner.id || confirm !== "confirm unban partner";
   }, [workspaceId, partner.id, confirm]);
 
   return (
@@ -104,8 +102,7 @@ function UnbanPartnerModal({
 
           <div>
             <label className="block text-sm font-medium text-neutral-900">
-              To verify, type <strong>confirm unban {partner.name}</strong>{" "}
-              below
+              To verify, type <strong>confirm unban partner</strong> below
             </label>
             <div className="relative mt-1.5 rounded-md shadow-sm">
               <input
@@ -113,7 +110,7 @@ function UnbanPartnerModal({
                   "block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
                   errors.confirm && "border-red-600",
                 )}
-                placeholder={`confirm unban ${partner.name}`}
+                placeholder="confirm unban partner"
                 type="text"
                 autoComplete="off"
                 {...register("confirm", {
@@ -159,7 +156,7 @@ export function useUnbanPartnerModal({
         partner={partner}
       />
     );
-  }, [showUnbanPartnerModal, setShowUnbanPartnerModal, partner]);
+  }, [showUnbanPartnerModal, setShowUnbanPartnerModal]);
 
   return useMemo(
     () => ({

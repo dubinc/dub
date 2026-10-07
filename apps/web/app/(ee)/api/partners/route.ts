@@ -9,7 +9,7 @@ import { polyfillSocialMediaFields } from "@/lib/social-utils";
 import {
   createPartnerSchema,
   EnrolledPartnerSchema,
-  getPartnersQuerySchemaExtended,
+  getPartnersRouteQuerySchema,
   partnerPlatformSchema,
 } from "@/lib/zod/schemas/partners";
 import { parseFilterValue, toCentsNumber } from "@dub/utils";
@@ -51,21 +51,7 @@ export const GET = withWorkspace(
       }),
     };
     const { sortBy: sortByWithOldFields, ...parsedParams } =
-      getPartnersQuerySchemaExtended
-        .extend({
-          // add old fields for backward compatibility
-          sortBy: getPartnersQuerySchemaExtended.shape.sortBy.or(
-            z.enum([
-              "clicks",
-              "leads",
-              "conversions",
-              "sales",
-              "saleAmount",
-              "totalSales",
-            ]),
-          ),
-        })
-        .parse(paramsToParse);
+      getPartnersRouteQuerySchema.parse(paramsToParse);
 
     // get the final sortBy field (replace old fields with new fields)
     const sortBy =
@@ -122,14 +108,7 @@ export const GET = withWorkspace(
     );
   },
   {
-    requiredPlan: [
-      "business",
-      "business extra",
-      "business max",
-      "business plus",
-      "advanced",
-      "enterprise",
-    ],
+    requiredPlan: ["business", "advanced", "enterprise"],
   },
 );
 
@@ -162,7 +141,7 @@ export const POST = withWorkspace(
     });
   },
   {
-    requiredPlan: ["advanced", "enterprise"],
+    requiredPlan: ["business", "advanced", "enterprise"],
     requiredRoles: ["owner", "member"],
   },
 );

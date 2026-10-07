@@ -27,9 +27,8 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
   });
 
   const eligiblePayouts = await getEligiblePayouts({
-    program,
-    workspace,
     ...query,
+    program,
   });
 
   return NextResponse.json(eligiblePayouts);

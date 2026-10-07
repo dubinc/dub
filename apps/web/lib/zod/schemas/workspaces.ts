@@ -1,6 +1,6 @@
 import { workspaceSiteVisitTrackingSettingsFieldSchema } from "@/lib/sitemaps/site-visit-tracking";
 import { DEFAULT_REDIRECTS, RESERVED_SLUGS, validSlugRegex } from "@dub/utils";
-import { PlanPeriod, WorkspaceRole } from "@prisma/client";
+import { DubProduct, PlanPeriod, WorkspaceRole } from "@prisma/client";
 import slugify from "@sindresorhus/slugify";
 import * as z from "zod/v4";
 import { DomainSchema } from "./domains";
@@ -11,13 +11,6 @@ export {
   siteVisitTrackingSettingsPatchSchema,
   trackedSitemapSchema,
 } from "./site-visit-tracking";
-
-export const workspaceIdSchema = z.object({
-  workspaceId: z
-    .string()
-    .min(1, "Workspace ID is required.")
-    .describe("The ID of the workspace the link belongs to."),
-});
 
 export const WorkspaceSchema = z
   .object({
@@ -33,6 +26,9 @@ export const WorkspaceSchema = z
       .string()
       .nullable()
       .describe("The invite code of the workspace."),
+    defaultProduct: z
+      .enum(DubProduct)
+      .describe("The default product for the workspace."),
     plan: planSchema,
     planTier: z
       .number()
@@ -72,6 +68,10 @@ export const WorkspaceSchema = z
       .date()
       .nullable()
       .describe("The date and time when the payment failed for the workspace."),
+    disabledAt: z
+      .date()
+      .nullable()
+      .describe("The date and time when the workspace was disabled."),
     stripeConnectId: z
       .string()
       .nullable()
@@ -247,9 +247,11 @@ export const workspaceStoreKeys = z.enum([
   "analyticsSettingsConversionTrackingEnabled", // boolean
   "analyticsSettingsSiteVisitTrackingEnabled", // boolean
   "analyticsSettingsOutboundDomainTrackingEnabled", // boolean
+  "analyticsSettingsSelectedStack", // string[]
   "analyticsSettingsConnectionSetupComplete", // boolean
   "analyticsSettingsLeadTrackingSetupComplete", // boolean
   "analyticsSettingsSaleTrackingSetupComplete", // boolean
+  "analyticsSettingsInstallationVerified", // { hostname, verifiedAt, user }
 ]);
 
 export const getWorkspaceUsersQuerySchema = z.object({

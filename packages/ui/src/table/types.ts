@@ -15,7 +15,9 @@ import {
   MouseEvent,
   PropsWithChildren,
   ReactNode,
+  Ref,
   SetStateAction,
+  UIEventHandler,
 } from "react";
 
 type BaseTableProps<T> = {
@@ -64,6 +66,8 @@ type BaseTableProps<T> = {
   className?: string;
   containerClassName?: string;
   scrollWrapperClassName?: string;
+  scrollWrapperRef?: Ref<HTMLDivElement>;
+  onScroll?: UIEventHandler<HTMLDivElement>;
   emptyWrapperClassName?: string;
   thClassName?: string | ((columnId: string) => string);
   tdClassName?: string | ((columnId: string, row: Row<T>) => string);

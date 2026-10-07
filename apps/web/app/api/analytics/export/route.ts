@@ -14,7 +14,8 @@ import { prefixWorkspaceId } from "@/lib/api/workspaces/workspace-id";
 import { withWorkspace } from "@/lib/auth";
 import { verifyFolderAccess } from "@/lib/folder/permissions";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
-import { ratelimit } from "@/lib/upstash";
+import { assertRateLimit } from "@/lib/upstash/assert-rate-limit";
+import { RATELIMIT_POLICIES } from "@/lib/upstash/ratelimit-policies";
 import { parseAnalyticsQuery } from "@/lib/zod/schemas/analytics";
 
 export const maxDuration = 300;
@@ -22,17 +23,10 @@ export const maxDuration = 300;
 // GET /api/analytics/export – get export data for analytics
 export const GET = withWorkspace(
   async ({ searchParams, workspace, session }) => {
-    const { success } = await ratelimit(1, "30 s").limit(
-      `analyticsExport:${workspace.id}`,
-    );
-
-    if (!success) {
-      throw new DubApiError({
-        code: "rate_limit_exceeded",
-        message:
-          "Analytics export is limited to once every 30 seconds. Please try again shortly.",
-      });
-    }
+    await assertRateLimit({
+      policy: RATELIMIT_POLICIES.analyticsExport,
+      identifier: workspace.id,
+    });
 
     throwIfClicksUsageExceeded(workspace);
 

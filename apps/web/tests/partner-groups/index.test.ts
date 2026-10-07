@@ -29,6 +29,7 @@ const expectedGroup: Partial<GroupProps> = {
   leadReward: null,
   saleReward: null,
   referralReward: null,
+  customReward: null,
   discount: null,
   maxPartnerLinks: DEFAULT_ADDITIONAL_PARTNER_LINKS,
   linkStructure: "short",

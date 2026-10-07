@@ -8,8 +8,23 @@ import { NextResponse } from "next/server";
 
 // GET /api/admin/partners/network
 export const GET = withAdmin(async ({ searchParams }) => {
-  const { networkStatus, country, search, sortOrder, page, pageSize } =
-    adminNetworkPartnerQuerySchema.parse(searchParams);
+  const {
+    networkStatus,
+    country,
+    search,
+    sortBy: sortByParam,
+    sortOrder,
+    page,
+    pageSize,
+  } = adminNetworkPartnerQuerySchema.parse(searchParams);
+
+  const sortBy =
+    sortByParam ??
+    (networkStatus === "submitted"
+      ? "submittedAt"
+      : networkStatus === "approved" || networkStatus === "rejected"
+        ? "reviewedAt"
+        : "createdAt");
 
   const partners = await prisma.partner.findMany({
     where: {
@@ -33,7 +48,7 @@ export const GET = withAdmin(async ({ searchParams }) => {
         },
       },
     },
-    orderBy: { createdAt: sortOrder },
+    orderBy: { [sortBy]: sortOrder },
     take: pageSize,
     skip: ((page ?? 1) - 1) * pageSize,
   });

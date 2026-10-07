@@ -19,10 +19,12 @@ import {
   calculatePayoutFeeForMethod,
   STRIPE_PAYMENT_METHODS,
 } from "@/lib/stripe/payment-methods";
+import useCommissionsCount from "@/lib/swr/use-commissions-count";
 import usePaymentMethods from "@/lib/swr/use-payment-methods";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { PayoutResponse, PlanProps } from "@/lib/types";
+import { PayoutResponse } from "@/lib/types";
+import { useTrialLimitActivateModal } from "@/ui/modals/trial-limit-activate-modal";
 import { X } from "@/ui/shared/icons";
 import {
   Button,
@@ -48,10 +50,12 @@ import {
   currencyFormatter,
   fetcher,
   formatDate,
+  isWorkspaceBillingTrialActive,
   nFormatter,
   pluralize,
   truncate,
 } from "@dub/utils";
+import { CommissionStatus } from "@prisma/client";
 import { useAction } from "next-safe-action/hooks";
 import { useRouter } from "next/navigation";
 import {
@@ -82,10 +86,12 @@ function ConfirmPayoutsSheetContent() {
     id: workspaceId,
     slug,
     plan,
+    planPeriod,
     role,
     defaultProgramId,
     payoutsUsage,
     payoutsLimit,
+    trialEndsAt,
     payoutFee,
     payoutFeeWaiverLimit,
     payoutFeeWaiverUsage,
@@ -190,38 +196,6 @@ function ConfirmPayoutsSheetContent() {
     ? eligiblePayoutsSummaryCount?.count ?? 0
     : eligiblePayoutsTableTotalCount?.count ?? 0;
 
-  const { data: payoutsCount } = useSWR<
-    {
-      status: string;
-      count: number;
-      amount: number | null;
-    }[]
-  >(
-    workspaceId
-      ? `/api/payouts/count?${new URLSearchParams({
-          workspaceId,
-          groupBy: "status",
-          status: "hold",
-        }).toString()}`
-      : null,
-    fetcher,
-  );
-
-  const { holdPayoutsCount, holdPayoutsAmount } = useMemo(() => {
-    if (!payoutsCount || payoutsCount.length === 0) {
-      return { holdPayoutsCount: 0, holdPayoutsAmount: 0 };
-    }
-
-    const pendingPayoutsCount = payoutsCount.find(
-      (p) => p.status === "pending",
-    );
-
-    return {
-      holdPayoutsCount: pendingPayoutsCount?.count ?? 0,
-      holdPayoutsAmount: pendingPayoutsCount?.amount ?? 0,
-    };
-  }, [payoutsCount]);
-
   const [page, setPage] = useState(1);
   const { pagination, setPagination } = useTablePagination({
     pageSize: ELIGIBLE_PAYOUTS_MAX_PAGE_SIZE,
@@ -271,6 +245,16 @@ function ConfirmPayoutsSheetContent() {
     () => !isExplicitSelectionMode || resolvedSelectedPayoutIds.length > 1,
     [isExplicitSelectionMode, resolvedSelectedPayoutIds.length],
   );
+
+  const { commissionsCount } = useCommissionsCount({
+    include: [],
+    status: CommissionStatus.hold,
+    // for explicitly selected payouts, filter by the payouts for those partners
+    ...(isExplicitSelectionMode &&
+      payoutsIncludedInInvoice && {
+        partnerId: payoutsIncludedInInvoice.map((p) => p.partner.id).join(","),
+      }),
+  });
 
   const { executeAsync: confirmPayouts } = useAction(confirmPayoutsAction, {
     onError: ({ error }) => {
@@ -536,7 +520,7 @@ function ConfirmPayoutsSheetContent() {
             )}
 
             <a
-              href={`/${slug}/settings/billing`}
+              href={`/${slug}/settings/billing#payment-methods`}
               className={cn(
                 buttonVariants({ variant: "secondary" }),
                 "flex items-center rounded-md border border-neutral-200 p-1.5 text-sm",
@@ -827,6 +811,9 @@ function ConfirmPayoutsSheetContent() {
     action: "payouts.write",
     customPermissionDescription: "confirm payouts",
   });
+  const { openTrialLimitModal, TrialLimitActivateModal } =
+    useTrialLimitActivateModal();
+  const trialActive = isWorkspaceBillingTrialActive(trialEndsAt);
 
   const [isTouchDevice, setIsTouchDevice] = useState(false);
 
@@ -835,154 +822,164 @@ function ConfirmPayoutsSheetContent() {
   }, []);
 
   return (
-    <div className="flex h-full flex-col">
-      <div className="flex h-16 items-center justify-between border-b border-neutral-200 px-6 py-4">
-        <Sheet.Title className="text-lg font-semibold">
-          Confirm payouts
-        </Sheet.Title>
-        <Sheet.Close asChild>
-          <Button
-            variant="outline"
-            icon={<X className="size-5" />}
-            className="h-auto w-fit p-1"
-          />
-        </Sheet.Close>
-      </div>
+    <>
+      <TrialLimitActivateModal />
+      <div className="flex h-full flex-col">
+        <div className="flex h-16 items-center justify-between border-b border-neutral-200 px-6 py-4">
+          <Sheet.Title className="text-lg font-semibold">
+            Confirm payouts
+          </Sheet.Title>
+          <Sheet.Close asChild>
+            <Button
+              variant="outline"
+              icon={<X className="size-5" />}
+              className="h-auto w-fit p-1"
+            />
+          </Sheet.Close>
+        </div>
 
-      <div className="flex-1 overflow-y-auto">
-        <div className="flex flex-col gap-4 p-6">
-          <div className="text-base font-medium text-neutral-900">
-            Invoice details
-          </div>
-          <div className="grid grid-cols-3 gap-2 text-sm">
-            {invoiceData.map(({ key, value, tooltipContent }) => (
-              <Fragment key={key}>
-                <div
-                  className={cn(
-                    "flex items-center py-0.5 font-medium text-neutral-500",
-                    tooltipContent &&
-                      "cursor-help underline decoration-dotted underline-offset-2",
-                  )}
-                >
-                  <DynamicTooltipWrapper
-                    tooltipProps={
-                      tooltipContent
-                        ? {
-                            content: tooltipContent,
-                          }
-                        : undefined
-                    }
+        <div className="flex-1 overflow-y-auto">
+          <div className="flex flex-col gap-4 p-6">
+            <div className="text-base font-medium text-neutral-900">
+              Invoice details
+            </div>
+            <div className="grid grid-cols-3 gap-2 text-sm">
+              {invoiceData.map(({ key, value, tooltipContent }) => (
+                <Fragment key={key}>
+                  <div
+                    className={cn(
+                      "flex items-center py-0.5 font-medium text-neutral-500",
+                      tooltipContent &&
+                        "cursor-help underline decoration-dotted underline-offset-2",
+                    )}
                   >
-                    {key}
-                  </DynamicTooltipWrapper>
-                </div>
-                <div className="col-span-2 flex items-center text-neutral-800">
-                  {value}
-                </div>
-              </Fragment>
-            ))}
+                    <DynamicTooltipWrapper
+                      tooltipProps={
+                        tooltipContent
+                          ? {
+                              content: tooltipContent,
+                            }
+                          : undefined
+                      }
+                    >
+                      {key}
+                    </DynamicTooltipWrapper>
+                  </div>
+                  <div className="col-span-2 flex items-center text-neutral-800">
+                    {value}
+                  </div>
+                </Fragment>
+              ))}
+            </div>
+          </div>
+
+          <div className="px-6 py-3">
+            <Table {...table} />
           </div>
         </div>
 
-        <div className="px-6 py-3">
-          <Table {...table} />
-        </div>
-      </div>
+        <div className="flex flex-col gap-3 border-t border-neutral-200 px-5 py-4">
+          <ConfirmPayoutsButton
+            onClick={async () => {
+              if (!workspaceId || !selectedPaymentMethod) {
+                return false;
+              }
 
-      <div className="flex flex-col gap-3 border-t border-neutral-200 px-5 py-4">
-        <ConfirmPayoutsButton
-          onClick={async () => {
-            if (!workspaceId || !selectedPaymentMethod) {
-              return false;
+              const result = await confirmPayouts({
+                workspaceId,
+                paymentMethodId: selectedPaymentMethod.id.replace("-fast", ""),
+                fastSettlement: selectedPaymentMethod.fastSettlement,
+                cutoffPeriod,
+                ...(isExplicitSelectionMode
+                  ? { selectedPayoutIds: resolvedSelectedPayoutIds }
+                  : excludedPayoutIds.length > 0
+                    ? { excludedPayoutIds }
+                    : {}),
+                amount: amount ?? 0,
+                fee: fee ?? 0,
+                total: total ?? 0,
+              });
+
+              if (!result?.data?.invoiceId) return false;
+
+              setTimeout(
+                () =>
+                  result?.data?.invoiceId &&
+                  router.push(
+                    `/${slug}/program/payouts/success?invoiceId=${result.data.invoiceId}`,
+                  ),
+                1000,
+              );
+
+              return true;
+            }}
+            text={
+              amount && amount > 0
+                ? `${isTouchDevice ? "Press" : "Click"} and hold to confirm ${currencyFormatter(amount)} payout`
+                : `${isTouchDevice ? "Press" : "Click"} and hold to confirm payout`
             }
-
-            const result = await confirmPayouts({
-              workspaceId,
-              paymentMethodId: selectedPaymentMethod.id.replace("-fast", ""),
-              fastSettlement: selectedPaymentMethod.fastSettlement,
-              cutoffPeriod,
-              ...(isExplicitSelectionMode
-                ? { selectedPayoutIds: resolvedSelectedPayoutIds }
-                : excludedPayoutIds.length > 0
-                  ? { excludedPayoutIds }
-                  : {}),
-              amount: amount ?? 0,
-              fee: fee ?? 0,
-              total: total ?? 0,
-            });
-
-            if (!result?.data?.invoiceId) return false;
-
-            setTimeout(
-              () =>
-                result?.data?.invoiceId &&
-                router.push(
-                  `/${slug}/program/payouts/success?invoiceId=${result.data.invoiceId}`,
-                ),
-              1000,
-            );
-
-            return true;
-          }}
-          text={
-            amount && amount > 0
-              ? `${isTouchDevice ? "Press" : "Click"} and hold to confirm ${currencyFormatter(amount)} payout`
-              : `${isTouchDevice ? "Press" : "Click"} and hold to confirm payout`
-          }
-          disabled={
-            eligiblePayoutsLoading ||
-            eligiblePayoutsSummaryLoading ||
-            !selectedPaymentMethod ||
-            amount === 0
-          }
-          disabledTooltip={
-            payoutsUsage &&
-            payoutsLimit &&
-            amount &&
-            payoutsUsage + amount > payoutsLimit ? (
-              <TooltipContent
-                title={exceededLimitError({
-                  plan: plan as PlanProps,
-                  limit: payoutsLimit,
-                  type: "payouts",
-                })}
-                cta="Upgrade"
-                href={`/${slug}/settings/billing/upgrade`}
-              />
-            ) : amount && amount < INVOICE_MIN_PAYOUT_AMOUNT_CENTS ? (
-              "Your payout total is less than the minimum invoice amount of $10."
-            ) : (
-              permissionsError || undefined
-            )
-          }
-        />
-        {!isExplicitSelectionMode && holdPayoutsCount > 0 && (
-          <div className="flex items-center justify-center gap-2 text-sm text-neutral-600">
-            <span>
-              Excluding{" "}
-              <span className="font-medium text-neutral-800">
-                {nFormatter(holdPayoutsCount, { full: true })}
+            disabled={
+              eligiblePayoutsLoading ||
+              eligiblePayoutsSummaryLoading ||
+              !selectedPaymentMethod ||
+              amount === 0
+            }
+            disabledTooltip={
+              plan &&
+              typeof payoutsUsage === "number" &&
+              typeof payoutsLimit === "number" &&
+              typeof amount === "number" &&
+              payoutsUsage + amount > payoutsLimit ? (
+                <TooltipContent
+                  title={exceededLimitError({
+                    plan,
+                    planPeriod,
+                    limit: payoutsLimit,
+                    type: "payouts",
+                  })}
+                  cta={trialActive ? "Start paid plan" : "Upgrade plan"}
+                  {...(trialActive
+                    ? { onClick: () => openTrialLimitModal("payouts") }
+                    : { href: `/${slug}/upgrade` })}
+                />
+              ) : amount && amount < INVOICE_MIN_PAYOUT_AMOUNT_CENTS ? (
+                "Your payout total is less than the minimum invoice amount of $10."
+              ) : (
+                permissionsError || undefined
+              )
+            }
+          />
+          {commissionsCount && commissionsCount.hold.count > 0 && (
+            <div className="flex items-center justify-center gap-2 text-sm text-neutral-600">
+              <span>
+                Excluding{" "}
+                <span className="font-medium text-neutral-800">
+                  {nFormatter(commissionsCount.hold.count, { full: true })}
+                </span>
+                {` on hold ${pluralize("commission", commissionsCount.hold.count)} `}
+                <span className="font-medium text-neutral-800">
+                  (
+                  {currencyFormatter(commissionsCount.hold.earnings, {
+                    trailingZeroDisplay: "stripIfInteger",
+                  })}
+                  )
+                </span>
               </span>
-              {` on hold ${pluralize("payout", holdPayoutsCount)} `}
-              <span className="font-medium text-neutral-800">
-                (
-                {currencyFormatter(holdPayoutsAmount, {
-                  trailingZeroDisplay: "stripIfInteger",
-                })}
-                )
-              </span>
-            </span>
-            <a href={`/${slug}/program/payouts?status=hold`} target="_blank">
-              <Button
-                variant="secondary"
-                text="Review"
-                className="h-7 w-fit cursor-alias rounded-md border border-neutral-200 px-2 text-sm"
-              />
-            </a>
-          </div>
-        )}
+              <a
+                href={`/${slug}/program/commissions?status=hold`}
+                target="_blank"
+              >
+                <Button
+                  variant="secondary"
+                  text="Review"
+                  className="h-7 w-fit cursor-alias rounded-md border border-neutral-200 px-2 text-sm"
+                />
+              </a>
+            </div>
+          )}
+        </div>
       </div>
-    </div>
+    </>
   );
 }
 

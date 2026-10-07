@@ -8,6 +8,7 @@ export const activityLogResourceTypeSchema = z.enum([
   "saleReward",
   "leadReward",
   "referralReward",
+  "customReward",
   "submittedLead",
 ]);
 
@@ -15,12 +16,17 @@ export const activityLogActionSchema = z.enum([
   "partner_application.approved", // TODO: change to partnerApplication.approved
   "partner_application.rejected", // TODO: change to partnerApplication.rejected
   "partner.groupChanged",
+  "partner.rewardChanged",
+  "partner.discountChanged",
   "partner.banned",
   "partner.unbanned",
   "partner.deactivated",
   "partner.reactivated",
   "partner.archived",
   "partner.unarchived",
+
+  "link.rewardChanged",
+  "link.discountChanged",
 
   "commission.updated",
 
@@ -59,7 +65,7 @@ export const activityLogSchema = z.object({
   description: z.string().nullable(),
   changeSet: z.record(z.string(), fieldDiffSchema).nullable(),
   createdAt: z.date(),
-  user: UserSchema.nullable().default(null),
+  user: UserSchema.nullable(),
 });
 
 export const REWARD_EVENT_TO_RESOURCE_TYPE = {
@@ -67,4 +73,5 @@ export const REWARD_EVENT_TO_RESOURCE_TYPE = {
   sale: "saleReward",
   lead: "leadReward",
   referral: "referralReward",
+  custom: "customReward",
 } as const;

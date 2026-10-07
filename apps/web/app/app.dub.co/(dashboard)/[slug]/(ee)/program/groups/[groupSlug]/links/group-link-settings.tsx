@@ -1,6 +1,7 @@
 "use client";
 
 import { getLinkStructureOptions } from "@/lib/partners/get-link-structure-options";
+import { PARTNER_MACROS } from "@/lib/partners/macros";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import useGroup from "@/lib/swr/use-group";
@@ -12,6 +13,8 @@ import { GroupSettingsRow } from "@/ui/partners/groups/group-settings-row";
 import { Badge, Button, UTMBuilder } from "@dub/ui";
 import { CircleCheck } from "@dub/ui/icons";
 import { cn, deepEqual } from "@dub/utils";
+import { PartnerLinkStructure } from "@prisma/client";
+import { AnimatePresence, motion } from "motion/react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -66,7 +69,7 @@ function GroupLinkSettingsForm({ group }: { group: GroupProps }) {
   const { setShowConfirmModal, confirmModal } = useConfirmModal({
     title: "Save changes",
     description:
-      "Are you sure you want to save these link settings changes? This will update all links in this group.",
+      "Are you sure you want to save these link settings? This will update all links in this group and overwrite any custom UTM parameters on partner links.",
     onConfirm: () => handleSubmit(onSubmit)(),
     confirmText: "Save changes",
   });
@@ -92,6 +95,8 @@ function GroupLinkSettingsForm({ group }: { group: GroupProps }) {
   });
 
   const currentValues = watch();
+  const showUtmSection =
+    currentValues.linkStructure !== PartnerLinkStructure.query;
 
   const onSubmit = async (data: FormData) => {
     if (!group || !workspaceId) return;
@@ -204,7 +209,7 @@ function GroupLinkSettingsForm({ group }: { group: GroupProps }) {
                   key={type.id}
                   className={cn(
                     "relative flex w-full cursor-pointer items-start gap-0.5 rounded-md border border-neutral-200 bg-white p-3 text-neutral-600",
-                    "transition-all duration-150 hover:bg-neutral-50",
+                    "transition-[border-color,background-color,color,box-shadow] duration-150 ease-out hover:bg-neutral-50",
                     isSelected &&
                       "border-black bg-neutral-50 text-neutral-900 ring-1 ring-black",
                   )}
@@ -225,7 +230,8 @@ function GroupLinkSettingsForm({ group }: { group: GroupProps }) {
                     {type.recommended && (
                       <Badge variant="blueGradient">Recommended</Badge>
                     )}
-                    <CircleCheck variant="fill"
+                    <CircleCheck
+                      variant="fill"
                       className={cn(
                         "-mr-px -mt-px flex size-4 scale-75 items-center justify-center rounded-full opacity-0 transition-[transform,opacity] duration-150",
                         isSelected && "scale-100 opacity-100",
@@ -238,24 +244,51 @@ function GroupLinkSettingsForm({ group }: { group: GroupProps }) {
         </div>
       </GroupSettingsRow>
 
-      <GroupSettingsRow
-        heading="UTM parameters"
-        description="Configure [UTM tracking parameters](https://dub.co/help/article/partner-link-settings#utm-parameters) for all links in this group"
-      >
-        <UTMBuilder
-          values={{
-            utm_source: currentValues.utm_source || "",
-            utm_medium: currentValues.utm_medium || "",
-            utm_campaign: currentValues.utm_campaign || "",
-            utm_term: currentValues.utm_term || "",
-            utm_content: currentValues.utm_content || "",
-            ref: currentValues.ref || "",
-          }}
-          onChange={(key, value) => {
-            setValue(key, value, { shouldDirty: true });
-          }}
-        />
-      </GroupSettingsRow>
+      <AnimatePresence initial={false}>
+        {showUtmSection && (
+          <motion.div
+            key="utm-parameters"
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{
+              height: { duration: 0.2, ease: [0.23, 1, 0.32, 1] },
+              opacity: { duration: 0.15, ease: [0.23, 1, 0.32, 1] },
+            }}
+            className="overflow-hidden"
+          >
+            <GroupSettingsRow
+              heading="UTM parameters"
+              description="Configure [UTM tracking parameters](https://dub.co/help/article/partner-link-settings#utm-parameters) for all links in this group"
+            >
+              <div className="flex flex-col gap-3">
+                <UTMBuilder
+                  values={{
+                    utm_source: currentValues.utm_source || "",
+                    utm_medium: currentValues.utm_medium || "",
+                    utm_campaign: currentValues.utm_campaign || "",
+                    utm_term: currentValues.utm_term || "",
+                    utm_content: currentValues.utm_content || "",
+                    ref: currentValues.ref || "",
+                  }}
+                  onChange={(key, value) => {
+                    setValue(key, value, { shouldDirty: true });
+                  }}
+                  suggestions={PARTNER_MACROS.map((m) => ({
+                    value: m.macro,
+                    description: m.description,
+                  }))}
+                />
+                <p className="text-content-muted text-xs">
+                  Dynamic values:{" "}
+                  <code className="font-mono">{"{{PARTNER_NAME}}"}</code>,{" "}
+                  <code className="font-mono">{"{{PARTNER_LINK_KEY}}"}</code>
+                </p>
+              </div>
+            </GroupSettingsRow>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <div className="flex items-center justify-end rounded-b-lg border-t border-neutral-200 bg-neutral-50 px-6 py-5">
         <Button

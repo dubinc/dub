@@ -10,6 +10,7 @@ interface BountyBadgeStateResult {
   status: "expired" | "expiring_soon" | "completed" | "new";
   endsAtFormatted: string | null;
   completedAtFormatted: string | null;
+  isPendingReview?: boolean;
 }
 
 function getBountyBadgeState(
@@ -57,6 +58,8 @@ function getBountyBadgeState(
 
   if (isCompleted) {
     const lastSubmission = bounty.submissions?.[0];
+    const isPendingReview =
+      bounty.type === "performance" && lastSubmission?.status === "submitted";
 
     return {
       status: "completed",
@@ -64,6 +67,7 @@ function getBountyBadgeState(
       completedAtFormatted: formatDate(lastSubmission?.completedAt ?? now, {
         month: "short",
       }),
+      isPendingReview,
     };
   }
 
@@ -88,7 +92,8 @@ export function BountyStatusBadge({ bounty }: { bounty: PartnerBountyProps }) {
     return null;
   }
 
-  const { status, endsAtFormatted, completedAtFormatted } = state;
+  const { status, endsAtFormatted, completedAtFormatted, isPendingReview } =
+    state;
 
   return (
     <div className="absolute left-2 top-2 z-10">
@@ -105,8 +110,9 @@ export function BountyStatusBadge({ bounty }: { bounty: PartnerBountyProps }) {
       )}
 
       {status === "completed" && completedAtFormatted && (
-        <StatusBadge variant="success" icon={null}>
+        <StatusBadge variant={isPendingReview ? "new" : "success"} icon={null}>
           Completed {completedAtFormatted}
+          {isPendingReview && " | Pending Review"}
         </StatusBadge>
       )}
 

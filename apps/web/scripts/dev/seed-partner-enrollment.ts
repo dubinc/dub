@@ -51,6 +51,24 @@ async function main() {
       userId,
       partnerId,
       role: "owner",
+      notificationPreferences: {
+        create: {},
+      },
+    },
+  });
+
+  const applicationId = createId({ prefix: "pga_" });
+
+  await prisma.programApplication.create({
+    data: {
+      id: applicationId,
+      programId,
+      partnerId,
+      groupId: program.defaultGroupId,
+      name,
+      email,
+      formData: { fields: [] },
+      status: "pending",
     },
   });
 
@@ -60,6 +78,7 @@ async function main() {
       programId,
       partnerId,
       groupId: program.defaultGroupId,
+      applicationId,
       status: "pending",
     },
   });
@@ -70,6 +89,7 @@ async function main() {
     data: {
       programId,
       partnerId,
+      programApplicationId: applicationId,
       referredByPartnerId,
       referralSource: "direct",
       visitedAt: now,

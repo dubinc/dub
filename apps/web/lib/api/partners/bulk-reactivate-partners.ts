@@ -1,3 +1,4 @@
+import { PRISMA_UPDATEMANY_LIMIT } from "@/lib/cron";
 import { prisma } from "@/lib/prisma";
 import { sendBatchEmail } from "@dub/email";
 import PartnerReactivated from "@dub/email/templates/partner-reactivated";
@@ -5,6 +6,7 @@ import { Partner, Program, ProgramEnrollment } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { trackActivityLog } from "../activity-log/track-activity-log";
 import { linkCache } from "../links/cache";
+import { queuePartnerSearchSync } from "./queue-partner-search-sync";
 
 type ProgramEnrollmentWithPartner = Pick<
   ProgramEnrollment,
@@ -49,6 +51,7 @@ export async function bulkReactivatePartners({
       leadRewardId: true,
       saleRewardId: true,
       referralRewardId: true,
+      customRewardId: true,
       discountId: true,
     },
   });
@@ -69,17 +72,25 @@ export async function bulkReactivatePartners({
   }
 
   // Un-expire all links
-  await prisma.link.updateMany({
-    where: {
-      programId: program.id,
-      partnerId: {
-        in: partnerIds,
+  while (true) {
+    const { count } = await prisma.link.updateMany({
+      where: {
+        programId: program.id,
+        partnerId: {
+          in: partnerIds,
+        },
+        expiresAt: {
+          not: null,
+        },
       },
-    },
-    data: {
-      expiresAt: null,
-    },
-  });
+      data: {
+        expiresAt: null,
+      },
+      limit: PRISMA_UPDATEMANY_LIMIT,
+    });
+    console.log(`Un-expired ${count} links`);
+    if (count < PRISMA_UPDATEMANY_LIMIT) break;
+  }
 
   // Find all links and expire cache
   const allLinks = await prisma.link.findMany({
@@ -122,27 +133,35 @@ export async function bulkReactivatePartners({
         leadRewardId: group.leadRewardId,
         saleRewardId: group.saleRewardId,
         referralRewardId: group.referralRewardId,
+        customRewardId: group.customRewardId,
         discountId: group.discountId,
       },
     });
   }
 
   waitUntil(
-    trackActivityLog(
-      programEnrollments.map(({ partnerId }) => ({
-        workspaceId: program.workspaceId,
-        programId: program.id,
-        resourceType: "partner",
-        resourceId: partnerId,
-        action: "partner.reactivated",
-        changeSet: {
-          status: {
-            old: "deactivated",
-            new: "approved",
+    Promise.allSettled([
+      trackActivityLog(
+        programEnrollments.map(({ partnerId }) => ({
+          workspaceId: program.workspaceId,
+          programId: program.id,
+          resourceType: "partner",
+          resourceId: partnerId,
+          action: "partner.reactivated",
+          changeSet: {
+            status: {
+              old: "deactivated",
+              new: "approved",
+            },
           },
-        },
-      })),
-    ),
+        })),
+      ),
+
+      // Queue an index update because the enrollment statuses moved back to approved
+      queuePartnerSearchSync({
+        enrollmentIds: programEnrollments.map(({ id }) => id),
+      }),
+    ]),
   );
 
   // Send email notifications

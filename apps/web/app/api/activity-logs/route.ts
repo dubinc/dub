@@ -65,7 +65,7 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
           group: {
             old: null,
             new: parsedActivityLogs[parsedActivityLogs.length - 1]?.changeSet
-              ?.group.old ?? {
+              ?.group?.old ?? {
               id: programEnrollment.groupId,
               name: programEnrollment.partnerGroup?.name,
             },

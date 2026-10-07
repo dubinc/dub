@@ -1,19 +1,18 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import { CustomerEnriched } from "@/lib/types";
-import { MoneyBills2, Receipt2 } from "@dub/ui";
+import { MoneyBills2, Receipt2, useCurrentProduct } from "@dub/ui";
 import { useParams } from "next/navigation";
 import { useMemo } from "react";
 import { PageNavTabs } from "../layout/page-nav-tabs";
 
 export function CustomerTabs({
   customer,
-  isProgramPage = false,
 }: {
   customer?: Pick<CustomerEnriched, "programId" | "partner">;
-  isProgramPage?: boolean;
 }) {
   const { customerId } = useParams<{ customerId: string }>();
   const { slug: workspaceSlug } = useWorkspace();
+  const { product } = useCurrentProduct();
 
   const tabs = useMemo(
     () => [
@@ -37,11 +36,7 @@ export function CustomerTabs({
 
   return (
     <PageNavTabs
-      basePath={
-        isProgramPage
-          ? `/${workspaceSlug}/program/customers/${customerId}`
-          : `/${workspaceSlug}/customers/${customerId}`
-      }
+      basePath={`/${workspaceSlug}/${product}/customers/${customerId}`}
       tabs={tabs}
     />
   );

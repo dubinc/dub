@@ -1,6 +1,9 @@
 import { SVGProps } from "react";
 
-export function Sparkle3(props: SVGProps<SVGSVGElement>) {
+export function Sparkle3({
+  variant = "outline",
+  ...props
+}: SVGProps<SVGSVGElement> & { variant?: "outline" | "fill" }) {
   return (
     <svg
       height="18"
@@ -15,14 +18,22 @@ export function Sparkle3(props: SVGProps<SVGSVGElement>) {
           fill="currentColor"
           stroke="none"
         />
-        <polygon
-          fill="none"
-          points="9.5 2.75 11.412 7.587 16.25 9.5 11.412 11.413 9.5 16.25 7.587 11.413 2.75 9.5 7.587 7.587 9.5 2.75"
-          stroke="currentColor"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth="1.5"
-        />
+        {variant === "fill" ? (
+          <polygon
+            fill="currentColor"
+            points="9.5 2.75 11.412 7.587 16.25 9.5 11.412 11.413 9.5 16.25 7.587 11.413 2.75 9.5 7.587 7.587 9.5 2.75"
+            stroke="none"
+          />
+        ) : (
+          <polygon
+            fill="none"
+            points="9.5 2.75 11.412 7.587 16.25 9.5 11.412 11.413 9.5 16.25 7.587 11.413 2.75 9.5 7.587 7.587 9.5 2.75"
+            stroke="currentColor"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="1.5"
+          />
+        )}
       </g>
     </svg>
   );

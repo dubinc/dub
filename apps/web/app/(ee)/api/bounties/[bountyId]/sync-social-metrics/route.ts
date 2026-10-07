@@ -2,15 +2,21 @@ import { DubApiError } from "@/lib/api/errors";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
+import { getEffectiveBountyPeriod } from "@/lib/bounty/api/bounty-availability";
 import { getBountyOrThrow } from "@/lib/bounty/api/get-bounty-or-throw";
 import { getSocialMetricsUpdates } from "@/lib/bounty/api/get-social-metrics-updates";
+import { isBountyEnded, isBountyStarted } from "@/lib/bounty/bounty-period";
+import {
+  getHighestReachedSocialMetricsThreshold,
+  hasReachedSocialMetricsEarningCap,
+} from "@/lib/bounty/social-metrics-milestones";
 import { resolveBountyDetails } from "@/lib/bounty/utils";
 import { qstash } from "@/lib/cron";
 import { prisma } from "@/lib/prisma";
 import { sendEmail } from "@dub/email";
 import BountyCompleted from "@dub/email/templates/bounty-completed";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
-import { Prisma } from "@prisma/client";
+import { BountySubmissionStatus, Prisma } from "@prisma/client";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 
@@ -51,12 +57,25 @@ export const POST = withWorkspace(
                 id: true,
                 urls: true,
                 status: true,
+                socialMetricCount: true,
                 partner: true,
+                programEnrollment: {
+                  select: {
+                    createdAt: true,
+                  },
+                },
               },
             },
           }
         : undefined,
     });
+
+    if (isBountyEnded(bounty.endsAt)) {
+      throw new DubApiError({
+        code: "bad_request",
+        message: "Social metrics can't be synced after the bounty ends.",
+      });
+    }
 
     const bountyInfo = resolveBountyDetails(bounty);
 
@@ -67,41 +86,7 @@ export const POST = withWorkspace(
       });
     }
 
-    const submission = submissionId ? bounty.submissions?.[0] : undefined;
-
-    if (submissionId) {
-      if (!submission) {
-        throw new DubApiError({
-          code: "not_found",
-          message: `Submission ${submissionId} not found.`,
-        });
-      }
-
-      if (submission.status === "approved") {
-        throw new DubApiError({
-          code: "bad_request",
-          message: "Social metrics can't be synced for an approved submission.",
-        });
-      }
-    }
-
-    const now = new Date();
-
-    if (bounty.startsAt && bounty.startsAt > now) {
-      throw new DubApiError({
-        code: "bad_request",
-        message: "Social metrics can only be synced after the bounty starts.",
-      });
-    }
-
-    if (bounty.endsAt && bounty.endsAt < now) {
-      throw new DubApiError({
-        code: "bad_request",
-        message: "Social metrics can't be synced after the bounty ends.",
-      });
-    }
-
-    // Do the sync in a background job if no submissionId is provided
+    // Bounty-wide sync (no submissionId): run asynchronously via a background job
     if (!submissionId) {
       const response = await qstash.publishJSON({
         url: `${APP_DOMAIN_WITH_NGROK}/api/cron/bounties/sync-social-metrics`,
@@ -119,6 +104,50 @@ export const POST = withWorkspace(
       }
 
       return NextResponse.json({});
+    }
+
+    // Single-submission sync
+    const submission = bounty.submissions?.[0];
+
+    if (!submission || !submission.programEnrollment) {
+      throw new DubApiError({
+        code: "not_found",
+        message: `Submission ${submissionId} not found.`,
+      });
+    }
+
+    if (submission.status === "approved" || submission.status === "rejected") {
+      throw new DubApiError({
+        code: "bad_request",
+        message: `Social metrics can't be synced for ${submission.status === "approved" ? "an approved" : "a rejected"} submission.`,
+      });
+    }
+
+    if (hasReachedSocialMetricsEarningCap({ bounty, submission })) {
+      throw new DubApiError({
+        code: "bad_request",
+        message:
+          "This submission has already reached the maximum reward for this bounty.",
+      });
+    }
+
+    const { startsAt, endsAt } = getEffectiveBountyPeriod({
+      programEnrollment: submission.programEnrollment,
+      bounty,
+    });
+
+    if (!isBountyStarted(startsAt)) {
+      throw new DubApiError({
+        code: "bad_request",
+        message: "Social metrics can only be synced after the bounty starts.",
+      });
+    }
+
+    if (isBountyEnded(endsAt)) {
+      throw new DubApiError({
+        code: "bad_request",
+        message: "Social metrics can't be synced after the bounty ends.",
+      });
     }
 
     // Otherwise, do the sync for the specific submission
@@ -155,14 +184,40 @@ export const POST = withWorkspace(
         updateData.completedAt = new Date();
       }
 
-      await prisma.bountySubmission.update({
-        where: {
-          id: submissionId,
-        },
-        data: {
-          ...updateData,
-        },
+      const highestReachedThreshold = getHighestReachedSocialMetricsThreshold({
+        bounty,
+        socialMetricCount,
       });
+
+      await prisma.$transaction([
+        prisma.bountySubmission.update({
+          where: {
+            id: submissionId,
+          },
+          data: {
+            ...updateData,
+          },
+        }),
+
+        // A partially approved submission goes back to review when it reaches a new milestone
+        // The where clause uses the current status and threshold, not the ones we read, so a concurrent approval is taken into account
+        ...(highestReachedThreshold != null
+          ? [
+              prisma.bountySubmission.updateMany({
+                where: {
+                  id: submissionId,
+                  status: BountySubmissionStatus.partiallyApproved,
+                  approvedSocialMetricThreshold: {
+                    lt: highestReachedThreshold,
+                  },
+                },
+                data: {
+                  status: BountySubmissionStatus.submitted,
+                },
+              }),
+            ]
+          : []),
+      ]);
 
       const { partner } = submission;
 
@@ -193,13 +248,6 @@ export const POST = withWorkspace(
     return NextResponse.json({});
   },
   {
-    requiredPlan: [
-      "business",
-      "business plus",
-      "business extra",
-      "business max",
-      "advanced",
-      "enterprise",
-    ],
+    requiredPlan: ["business", "advanced", "enterprise"],
   },
 );

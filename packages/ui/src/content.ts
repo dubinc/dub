@@ -17,6 +17,7 @@ import {
   Php,
   Python,
   Ruby,
+  Shop,
   Toggle2,
   Twitter,
   Typescript,
@@ -42,13 +43,6 @@ export type NavItemChildren = (
 
 export const FEATURES_LIST = [
   {
-    id: "links",
-    title: "Dub Links",
-    description: "Short links with superpowers",
-    icon: DubLinksIcon,
-    href: "/links",
-  },
-  {
     id: "partners",
     title: "Dub Partners",
     description: "Grow your revenue with partnerships",
@@ -61,6 +55,13 @@ export const FEATURES_LIST = [
     description: "Powerful real-time analytics",
     icon: DubAnalyticsIcon,
     href: "/analytics",
+  },
+  {
+    id: "links",
+    title: "Dub Links",
+    description: "Short links with superpowers",
+    icon: DubLinksIcon,
+    href: "/links",
   },
   {
     id: "api",
@@ -115,6 +116,12 @@ export const SDKS = [
 
 export const SOLUTIONS: NavItemChildren = [
   {
+    icon: withFillVariant(Users),
+    title: "Affiliate Management",
+    description: "Manage affiliates and automate payouts",
+    href: "/partners",
+  },
+  {
     icon: withFillVariant(DiamondTurnRight),
     title: "Marketing Attribution",
     description: "Easily track and measure marketing impact",
@@ -122,15 +129,9 @@ export const SOLUTIONS: NavItemChildren = [
   },
   {
     icon: withFillVariant(Microphone),
-    title: "Content Creators",
+    title: "For Content Creators",
     description: "Intelligent audience insights and link tracking",
     href: "/solutions/creators",
-  },
-  {
-    icon: withFillVariant(Users),
-    title: "Affiliate Management",
-    description: "Manage affiliates and automate payouts",
-    href: "/partners",
   },
   {
     label: "SDKs",
@@ -140,16 +141,16 @@ export const SOLUTIONS: NavItemChildren = [
 
 export const RESOURCES = [
   {
-    icon: LifeRing,
+    icon: withFillVariant(Book2),
+    title: "Docs",
+    description: "Developer documentation",
+    href: "/docs",
+  },
+  {
+    icon: withFillVariant(LifeRing),
     title: "Help Center",
     description: "Answers to your questions",
     href: "/help",
-  },
-  {
-    icon: Book2,
-    title: "Docs",
-    description: "Platform documentation",
-    href: "/docs",
   },
   {
     icon: withFillVariant(Users),
@@ -158,34 +159,40 @@ export const RESOURCES = [
     href: "/about",
   },
   {
-    icon: Briefcase,
+    icon: withFillVariant(Briefcase),
     title: "Careers",
     description: "Join our global, remote team",
     href: "/careers",
   },
   {
-    icon: Feather,
+    icon: withFillVariant(Feather),
     title: "Blog",
     description: "Insights and stories",
     href: "/blog",
   },
   {
-    icon: BulletList,
+    icon: withFillVariant(BulletList),
     title: "Changelog",
     description: "Releases and updates",
     href: "/changelog",
   },
   {
     icon: Logo,
-    title: "Brand Guidelines",
+    title: "Dub Brand",
     description: "Logos, wordmark, etc.",
     href: "/brand",
   },
   {
-    icon: Envelope,
+    icon: withFillVariant(Envelope),
     title: "Contact",
     description: "Reach out to support or sales",
     href: "/contact",
+  },
+  {
+    icon: withFillVariant(Shop),
+    title: "Program Marketplace",
+    description: "Browse our available partner programs",
+    href: "/marketplace",
   },
 ];
 

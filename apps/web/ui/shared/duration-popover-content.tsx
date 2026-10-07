@@ -13,6 +13,10 @@ type DurationPopoverContentProps = {
   onChange: (value: number) => void;
   presetDurations: number[];
   partnerReferralReward?: boolean;
+  presetsOnly?: boolean;
+  hideLifetime?: boolean;
+  unit?: "days" | "months";
+  minValue?: number;
 };
 
 export function DurationPopoverContent({
@@ -20,24 +24,53 @@ export function DurationPopoverContent({
   onChange,
   presetDurations,
   partnerReferralReward,
+  presetsOnly = false,
+  hideLifetime = false,
+  unit = "months",
+  minValue = 0,
 }: DurationPopoverContentProps) {
   const { isOpen, setIsOpen } = useContext(InlineBadgePopoverContext);
   const [customDurationInput, setCustomDurationInput] = useState<string>(() => {
     if (
       value !== null &&
       value !== undefined &&
+      !presetsOnly &&
       value !== Infinity &&
       value !== 0 &&
       !presetDurations.includes(Number(value))
     ) {
       return value.toString();
     }
+
+    if (
+      presetsOnly &&
+      value !== null &&
+      value !== undefined &&
+      !presetDurations.includes(Number(value))
+    ) {
+      return value.toString();
+    }
+
     return "";
   });
   const [showCustomInput, setShowCustomInput] = useState(false);
 
   useEffect(() => {
     if (showCustomInput) return;
+
+    if (presetsOnly) {
+      if (
+        value === null ||
+        value === undefined ||
+        presetDurations.includes(Number(value))
+      ) {
+        setCustomDurationInput("");
+        return;
+      }
+
+      setCustomDurationInput(value.toString());
+      return;
+    }
 
     if (
       value === null ||
@@ -51,7 +84,7 @@ export function DurationPopoverContent({
     }
 
     setCustomDurationInput(value.toString());
-  }, [value, presetDurations, showCustomInput]);
+  }, [value, presetDurations, showCustomInput, presetsOnly]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -59,10 +92,11 @@ export function DurationPopoverContent({
     setShowCustomInput(true);
   }, [isOpen, customDurationInput]);
 
-  const isPresetValue =
-    value === Infinity ||
-    value === 0 ||
-    presetDurations.includes(Number(value));
+  const isPresetValue = presetsOnly
+    ? presetDurations.includes(Number(value))
+    : value === Infinity ||
+      value === 0 ||
+      presetDurations.includes(Number(value));
 
   if (showCustomInput) {
     return (
@@ -77,20 +111,23 @@ export function DurationPopoverContent({
         <label className="flex w-full rounded-md border border-neutral-300 shadow-sm focus-within:border-neutral-500 focus-within:ring-1 focus-within:ring-neutral-500 sm:w-32">
           <input
             type="number"
-            min="0"
+            min={minValue.toString()}
             max={MAX_DURATION_LIMIT.toString()}
             step="1"
             autoFocus
-            placeholder="e.g. 24"
+            placeholder={unit === "days" ? "e.g. 21" : "e.g. 24"}
             value={customDurationInput}
             className="block min-w-0 grow rounded-md border-none py-1 pl-1.5 pr-0 text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-0 sm:text-sm"
             onChange={(e: ChangeEvent<HTMLInputElement>) => {
               const raw = e.target.value;
               const parsed = parseInt(raw, 10);
-              const clamped = Math.max(0, Math.min(parsed, MAX_DURATION_LIMIT));
+              const clamped = Math.max(
+                minValue,
+                Math.min(parsed, MAX_DURATION_LIMIT),
+              );
               const display = isNaN(parsed) ? raw : clamped.toString();
               setCustomDurationInput(display);
-              if (!isNaN(parsed) && parsed >= 0) {
+              if (!isNaN(parsed)) {
                 onChange(clamped);
               }
             }}
@@ -107,7 +144,11 @@ export function DurationPopoverContent({
               }
               if (e.key === "Enter") {
                 e.preventDefault();
-                if (customDurationInput === "0") {
+                if (
+                  !presetsOnly &&
+                  minValue === 0 &&
+                  customDurationInput === "0"
+                ) {
                   onChange(0);
                   setCustomDurationInput("");
                   setShowCustomInput(false);
@@ -118,12 +159,24 @@ export function DurationPopoverContent({
             }}
           />
           <span className="flex shrink-0 items-center pr-1.5 text-sm text-neutral-400">
-            months
+            {unit}
           </span>
         </label>
       </div>
     );
   }
+
+  const presetItems = presetsOnly
+    ? presetDurations.map((duration) => ({
+        text: duration.toString(),
+        value: duration.toString(),
+      }))
+    : presetDurations
+        .filter((duration) => duration !== 0)
+        .map((duration) => ({
+          text: `for ${duration} ${pluralize("month", Number(duration))}`,
+          value: duration.toString(),
+        }));
 
   return (
     <InlineBadgePopoverMenu
@@ -140,17 +193,20 @@ export function DurationPopoverContent({
         setCustomDurationInput("");
       }}
       items={[
-        ...(!partnerReferralReward ? [{ text: "one time", value: "0" }] : []),
-        ...presetDurations
-          .filter((duration) => duration !== 0)
-          .map((duration) => ({
-            text: `for ${duration} ${pluralize("month", Number(duration))}`,
-            value: duration.toString(),
-          })),
-        {
-          text: `for the ${partnerReferralReward ? "referred partner's" : "customer's"} lifetime`,
-          value: "Infinity",
-        },
+        ...(!presetsOnly && !partnerReferralReward && minValue === 0
+          ? [{ text: "one time", value: "0" }]
+          : []),
+        ...presetItems,
+        ...(!presetsOnly
+          ? [
+              {
+                text: hideLifetime
+                  ? "Indefinitely"
+                  : `for the ${partnerReferralReward ? "referred partner's" : "customer's"} lifetime`,
+                value: "Infinity",
+              },
+            ]
+          : []),
         { text: "custom", value: "custom", preventClose: true },
       ]}
     />

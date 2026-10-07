@@ -1,44 +1,27 @@
 import { prisma } from "@/lib/prisma";
 import type Stripe from "stripe";
+import { WebhookHandlerInput, WebhookHandlerResponse } from "./types";
 
 // Handle event "promotion_code.updated"
-export async function promotionCodeUpdated(
-  event: Stripe.PromotionCodeUpdatedEvent,
-) {
+export async function promotionCodeUpdated({
+  event,
+  workspace,
+}: Omit<
+  WebhookHandlerInput<Stripe.PromotionCodeUpdatedEvent>,
+  "mode"
+>): Promise<WebhookHandlerResponse> {
   const promotionCode = event.data.object;
   const stripeAccountId = event.account as string;
 
-  const workspace = await prisma.project.findUnique({
-    where: {
-      stripeConnectId: stripeAccountId,
-    },
-    select: {
-      id: true,
-      slug: true,
-      defaultProgramId: true,
-      stripeConnectId: true,
-    },
-  });
-
-  if (!workspace) {
-    return {
-      response: `Workspace not found for Stripe account ${stripeAccountId}, skipping...`,
-    };
-  }
-
-  const workspaceId = workspace.id;
-
   if (!workspace.defaultProgramId) {
     return {
-      response: `Workspace ${workspaceId} for stripe account ${stripeAccountId} has no programs.`,
-      workspaceId,
+      response: `Workspace ${workspace.id} for stripe account ${stripeAccountId} has no programs.`,
     };
   }
 
   if (promotionCode.active) {
     return {
       response: `Promotion code ${promotionCode.id} is active, no action needed.`,
-      workspaceId,
     };
   }
 
@@ -55,7 +38,6 @@ export async function promotionCodeUpdated(
   if (!discountCode) {
     return {
       response: `Discount code not found for Stripe promotion code ${promotionCode.id}.`,
-      workspaceId,
     };
   }
 
@@ -67,6 +49,5 @@ export async function promotionCodeUpdated(
 
   return {
     response: `Discount code ${discountCode.id} deleted from the program ${workspace.defaultProgramId}.`,
-    workspaceId,
   };
 }

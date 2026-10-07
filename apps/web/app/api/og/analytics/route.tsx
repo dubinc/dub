@@ -12,6 +12,7 @@ import { ImageResponse } from "next/og";
 import { NextRequest } from "next/server";
 import { loadGoogleFont } from "../load-google-font";
 
+// GET /api/og/analytics?linkId=link&folderId=folder
 export async function GET(req: NextRequest) {
   // Load Inter Medium font (weight 500)
   const interMedium = await loadGoogleFont("Inter:wght@500");
@@ -29,7 +30,7 @@ export async function GET(req: NextRequest) {
   let link: Pick<Link, "domain" | "key" | "url"> | null = null;
   let folder: Pick<Folder, "id" | "name"> | null = null;
   if (linkId) {
-    const data = await prismaEdge.link.findUniqueOrThrow({
+    const data = await prismaEdge.link.findUnique({
       where: {
         id: linkId,
       },
@@ -37,6 +38,13 @@ export async function GET(req: NextRequest) {
         dashboard: true,
       },
     });
+
+    if (!data) {
+      return new Response("Link not found", {
+        status: 404,
+      });
+    }
+
     if (!data.dashboard) {
       return new Response("Link does not have a public analytics dashboard", {
         status: 403,
@@ -49,7 +57,7 @@ export async function GET(req: NextRequest) {
       url: data.url,
     };
   } else if (folderId) {
-    const data = await prismaEdge.folder.findUniqueOrThrow({
+    const data = await prismaEdge.folder.findUnique({
       where: {
         id: folderId,
       },
@@ -57,6 +65,13 @@ export async function GET(req: NextRequest) {
         dashboard: true,
       },
     });
+
+    if (!data) {
+      return new Response("Folder not found", {
+        status: 404,
+      });
+    }
+
     if (!data.dashboard) {
       return new Response("Folder does not have a public analytics dashboard", {
         status: 403,

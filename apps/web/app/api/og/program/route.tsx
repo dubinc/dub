@@ -15,6 +15,7 @@ const DARK_CELLS = [
   [53, 1],
 ];
 
+// GET /api/og/program?slug=program&groupSlug=group
 export async function GET(req: NextRequest) {
   const slug = req.nextUrl.searchParams.get("slug");
   const groupSlug = req.nextUrl.searchParams.get("groupSlug");
@@ -47,12 +48,18 @@ export async function GET(req: NextRequest) {
   ]);
 
   if (!program) {
-    return new Response(`Program not found`, {
+    return new Response("Program not found", {
       status: 404,
     });
   }
 
   const group = program.groups[0];
+
+  if (!group) {
+    return new Response("Group not found", {
+      status: 404,
+    });
+  }
 
   const logo = group.wordmark || group.logo;
   const brandColor = group.brandColor || "#000000";

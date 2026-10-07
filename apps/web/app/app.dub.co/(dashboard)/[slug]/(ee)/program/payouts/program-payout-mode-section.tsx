@@ -2,7 +2,8 @@
 
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { CircleDollarOut, Webhook } from "@dub/ui";
+import { Callout } from "@/ui/shared/callout";
+import { CircleDollarOut } from "@dub/ui";
 import { ProgramPayoutMode } from "@prisma/client";
 import Link from "next/link";
 
@@ -70,22 +71,19 @@ function WebhookInfo() {
   const { slug } = useWorkspace();
 
   return (
-    <div className="flex items-start gap-2 rounded-md border border-amber-100 bg-amber-50 p-2.5">
-      <Webhook className="mt-0.5 size-3.5 shrink-0 text-amber-600" />
-      <p className="text-xs font-medium leading-4 text-amber-900">
-        Ensure webhooks are configured to listen for the{" "}
-        <code className="rounded bg-amber-200 px-1 py-0.5 font-mono text-xs text-amber-900">
-          payout.confirmed
-        </code>{" "}
-        event.{" "}
-        <Link
-          href={`/${slug}/settings/webhooks`}
-          target="_blank"
-          className="font-medium underline underline-offset-2 hover:text-amber-800"
-        >
-          Manage webhooks
-        </Link>
-      </p>
-    </div>
+    <Callout variant="warn" size={1}>
+      Ensure webhooks are configured to listen for the{" "}
+      <code className="rounded bg-amber-200 px-1 py-0.5 font-mono text-xs text-amber-900">
+        payout.confirmed
+      </code>{" "}
+      event.{" "}
+      <Link
+        href={`/${slug}/settings/webhooks`}
+        target="_blank"
+        className="font-medium underline underline-offset-2 hover:text-amber-800"
+      >
+        Manage webhooks
+      </Link>
+    </Callout>
   );
 }

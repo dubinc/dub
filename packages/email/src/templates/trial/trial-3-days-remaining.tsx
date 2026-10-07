@@ -39,7 +39,7 @@ export default function Trial3DaysRemainingEmail({
           If Dub is indeed a perfect fit (and I really hope it is!), please
           double-check your{" "}
           <Link
-            href={`${dashboardUrlPrefix}/settings/billing`}
+            href={`${dashboardUrlPrefix}/settings/billing#payment-methods`}
             style={linkStyle}
           >
             billing details

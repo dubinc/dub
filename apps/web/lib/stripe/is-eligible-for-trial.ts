@@ -1,4 +1,4 @@
-import { isGenericEmail } from "../is-generic-email";
+import { isGenericEmail } from "../email/is-generic-email";
 
 // User is only eligible for a trial if they:
 // - are on the free plan

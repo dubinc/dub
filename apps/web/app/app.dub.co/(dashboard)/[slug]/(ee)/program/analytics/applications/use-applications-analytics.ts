@@ -54,7 +54,7 @@ export function useApplicationsAnalytics<
     ApplicationAnalyticsByGroup[TGroupBy][]
   >(
     workspaceId && enabled
-      ? `/api/partners/applications/analytics${queryString}`
+      ? `/api/program-applications/analytics${queryString}`
       : null,
     fetcher,
     {
@@ -98,7 +98,7 @@ export function useApplicationsAnalyticsCount(
   const { data, error, isLoading } = useSWR<
     ApplicationAnalyticsByGroup["count"]
   >(
-    workspaceId ? `/api/partners/applications/analytics${queryString}` : null,
+    workspaceId ? `/api/program-applications/analytics${queryString}` : null,
     fetcher,
     {
       keepPreviousData: true,

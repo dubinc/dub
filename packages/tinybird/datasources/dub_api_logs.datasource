@@ -1,5 +1,6 @@
 TOKEN "dub_tinybird_token" APPEND
 
+
 SCHEMA >
     `id` String `json:$.id`,
     `timestamp` DateTime64(3) `json:$.timestamp`,
@@ -11,6 +12,7 @@ SCHEMA >
     `duration` UInt32 `json:$.duration`,
     `user_agent` String `json:$.user_agent`,
     `request_body` String `json:$.request_body`,
+    `query_params` String `json:$.query_params` DEFAULT '',
     `response_body` String `json:$.response_body`,
     `token_id` String `json:$.token_id`,
     `user_id` String `json:$.user_id`,

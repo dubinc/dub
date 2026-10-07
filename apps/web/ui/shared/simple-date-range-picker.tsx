@@ -47,7 +47,7 @@ export default function SimpleDateRangePicker({
       onChange={(range, preset) => {
         if (preset) {
           queryParams({
-            del: ["start", "end"],
+            del: ["start", "end", "exactRange"],
             set: {
               interval: preset.id,
             },
@@ -60,7 +60,7 @@ export default function SimpleDateRangePicker({
         if (!range || !range.from || !range.to) return;
 
         queryParams({
-          del: "interval",
+          del: ["interval", "exactRange"],
           set: {
             start: range.from.toISOString(),
             end: range.to.toISOString(),

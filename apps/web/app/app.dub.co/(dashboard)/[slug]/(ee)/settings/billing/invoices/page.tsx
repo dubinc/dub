@@ -1,5 +1,6 @@
 "use client";
 
+import { formatCommissionDescriptionTooltip } from "@/lib/commissions/format-commission-description-tooltip";
 import { INVOICE_PAYMENT_METHODS } from "@/lib/constants/payouts";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { InvoiceProps } from "@/lib/types";
@@ -8,6 +9,7 @@ import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import {
+  Button,
   buttonVariants,
   ChevronRight,
   Receipt2,
@@ -15,7 +17,9 @@ import {
   TabSelect,
   useRouterStuff,
 } from "@dub/ui";
-import { cn, currencyFormatter, fetcher } from "@dub/utils";
+import { ArrowTurnRight2 } from "@dub/ui/icons";
+import { cn, currencyFormatter, fetcher, formatDateTime } from "@dub/utils";
+import { StripeInvoiceStatusBadges } from "app/app.dub.co/(dashboard)/[slug]/(ee)/settings/billing/invoices/stripe-invoice-status-badges";
 import { AlertCircle } from "lucide-react";
 import Link from "next/link";
 import { useMemo } from "react";
@@ -85,6 +89,7 @@ export default function WorkspaceInvoices() {
                     key={invoice.id}
                     invoice={invoice}
                     displayPaymentMethod={displayPaymentMethod}
+                    isSubscription={selectedInvoiceType.id === "subscription"}
                   />
                 ))
               ) : (
@@ -123,12 +128,50 @@ export default function WorkspaceInvoices() {
 const InvoiceCard = ({
   invoice,
   displayPaymentMethod = false,
+  isSubscription = false,
 }: {
   invoice: InvoiceProps;
   displayPaymentMethod: boolean;
+  isSubscription?: boolean;
 }) => {
   const invoicePaymentMethod =
     INVOICE_PAYMENT_METHODS[invoice.paymentMethod ?? "ach"];
+
+  const formattedTotal = currencyFormatter(invoice.total);
+
+  const statusBadge = isSubscription
+    ? invoice.stripeStatus && (
+        <StatusBadge
+          variant={StripeInvoiceStatusBadges[invoice.stripeStatus].variant}
+          className="rounded-md py-0.5"
+        >
+          {StripeInvoiceStatusBadges[invoice.stripeStatus].label}
+        </StatusBadge>
+      )
+    : invoice.status &&
+      (() => {
+        const badge = PayoutStatusBadges[invoice.status];
+        return (
+          <StatusBadge
+            icon={invoice.status === "failed" ? AlertCircle : null}
+            variant={badge.variant}
+            className="rounded-md py-0.5"
+            {...(invoice.status === "failed" && invoice.failedReason
+              ? { tooltip: invoice.failedReason }
+              : {})}
+          >
+            {badge.label}
+          </StatusBadge>
+        );
+      })();
+
+  const pdfUrl =
+    invoice.pdfUrl &&
+    (isSubscription
+      ? invoice.stripeStatus !== "void"
+      : invoice.status !== "failed")
+      ? invoice.pdfUrl
+      : null;
 
   return (
     <div className="px-3 py-4 xl:px-12">
@@ -138,17 +181,13 @@ const InvoiceCard = ({
           <div className="text-sm">
             <div className="font-medium">{invoice.description}</div>
             <div className="text-neutral-500">
-              {new Date(invoice.createdAt).toLocaleDateString("en-US", {
-                month: "short",
-                year: "numeric",
-                day: "numeric",
-              })}
+              {formatDateTime(invoice.createdAt)}
             </div>
           </div>
           <div className="flex items-center">
-            {invoice.pdfUrl && invoice.status !== "failed" ? (
+            {pdfUrl ? (
               <a
-                href={invoice.pdfUrl}
+                href={pdfUrl}
                 target="_blank"
                 className={cn(
                   buttonVariants({ variant: "secondary" }),
@@ -164,30 +203,12 @@ const InvoiceCard = ({
         </div>
 
         <div className="space-y-4">
-          <div className="text-left text-sm">
-            <div className="font-medium">Total</div>
-            <div className="flex items-center gap-1.5 text-neutral-500">
-              <span className="text-sm font-medium">
-                {currencyFormatter(invoice.total)}
-              </span>
-              {invoice.status &&
-                (() => {
-                  const badge = PayoutStatusBadges[invoice.status];
-                  return (
-                    <StatusBadge
-                      icon={invoice.status === "failed" ? AlertCircle : null}
-                      variant={badge.variant}
-                      className="rounded-md py-0.5"
-                      {...(invoice.status === "failed" && invoice.failedReason
-                        ? { tooltip: invoice.failedReason }
-                        : {})}
-                    >
-                      {badge.label}
-                    </StatusBadge>
-                  );
-                })()}
-            </div>
-          </div>
+          <InvoiceTotal
+            formattedTotal={formattedTotal}
+            statusBadge={statusBadge}
+            refundedAmount={invoice.refundedAmount}
+            refundReason={invoice.refundReason}
+          />
 
           {displayPaymentMethod && (
             <div className="text-left text-sm">
@@ -214,42 +235,28 @@ const InvoiceCard = ({
       </div>
 
       {/* Desktop layout */}
-      <div className="hidden xl:grid xl:grid-cols-4 xl:gap-4">
+      <div
+        className={cn(
+          "hidden xl:grid xl:gap-4",
+          displayPaymentMethod
+            ? "xl:grid-cols-[minmax(0,1fr)_minmax(0,1.5fr)_minmax(0,1fr)_auto]"
+            : "xl:grid-cols-[minmax(0,1.25fr)_minmax(0,2fr)_auto]",
+        )}
+      >
         <div className="text-sm xl:col-span-1">
           <div className="font-medium">{invoice.description}</div>
           <div className="text-neutral-500">
-            {new Date(invoice.createdAt).toLocaleDateString("en-US", {
-              month: "short",
-              year: "numeric",
-              day: "numeric",
-            })}
+            {formatDateTime(invoice.createdAt)}
           </div>
         </div>
 
-        <div className="text-left text-sm sm:col-span-1">
-          <div className="font-medium">Total</div>
-          <div className="flex items-center gap-1.5 text-neutral-500">
-            <span className="text-sm font-medium">
-              {currencyFormatter(invoice.total)}
-            </span>
-            {invoice.status &&
-              (() => {
-                const badge = PayoutStatusBadges[invoice.status];
-                return (
-                  <StatusBadge
-                    icon={invoice.status === "failed" ? AlertCircle : null}
-                    variant={badge.variant}
-                    className="rounded-md py-0.5"
-                    {...(invoice.status === "failed" && invoice.failedReason
-                      ? { tooltip: invoice.failedReason }
-                      : {})}
-                  >
-                    {badge.label}
-                  </StatusBadge>
-                );
-              })()}
-          </div>
-        </div>
+        <InvoiceTotal
+          className="sm:col-span-1"
+          formattedTotal={formattedTotal}
+          statusBadge={statusBadge}
+          refundedAmount={invoice.refundedAmount}
+          refundReason={invoice.refundReason}
+        />
 
         {displayPaymentMethod && (
           <div className="text-left text-sm sm:col-span-1 lg:block">
@@ -274,21 +281,59 @@ const InvoiceCard = ({
         )}
 
         <div className="flex items-center justify-end sm:col-span-1 sm:justify-end">
-          {invoice.pdfUrl && invoice.status !== "failed" ? (
-            <a
-              href={invoice.pdfUrl}
-              target="_blank"
-              className={cn(
-                buttonVariants({ variant: "secondary" }),
-                "flex h-9 items-center justify-center rounded-md border px-3 text-sm",
-              )}
-            >
-              <span>View invoice</span>
-            </a>
-          ) : (
-            <div />
-          )}
+          <a href={pdfUrl ?? "#"} target="_blank">
+            <Button
+              variant="secondary"
+              text="View invoice"
+              disabledTooltip={!pdfUrl ? "No invoice available" : undefined}
+              className="h-9 px-3"
+            />
+          </a>
         </div>
+      </div>
+    </div>
+  );
+};
+
+const InvoiceTotal = ({
+  formattedTotal,
+  statusBadge,
+  refundedAmount = 0,
+  refundReason,
+  className,
+}: {
+  formattedTotal: string;
+  statusBadge: React.ReactNode;
+  refundedAmount?: number;
+  refundReason?: string | null;
+  className?: string;
+}) => {
+  const { slug } = useWorkspace();
+  const hasRefund = refundedAmount > 0;
+
+  return (
+    <div className={cn("text-left text-sm", className)}>
+      <div className="font-medium">Total</div>
+      <div className="flex flex-nowrap items-center gap-1.5 text-neutral-500">
+        <span className="shrink-0 text-sm font-medium">{formattedTotal}</span>
+        <span className="shrink-0">{statusBadge}</span>
+        {hasRefund && (
+          <StatusBadge
+            icon={ArrowTurnRight2}
+            variant="neutral"
+            className="shrink-0 rounded-md px-1.5 py-0 text-xs font-medium text-neutral-600"
+            {...(refundReason
+              ? {
+                  tooltip: formatCommissionDescriptionTooltip(refundReason, {
+                    variant: "program",
+                    workspaceSlug: slug!,
+                  }),
+                }
+              : {})}
+          >
+            {currencyFormatter(refundedAmount)} refunded
+          </StatusBadge>
+        )}
       </div>
     </div>
   );
@@ -327,7 +372,14 @@ const InvoiceCardSkeleton = ({
       </div>
 
       {/* Desktop skeleton */}
-      <div className="hidden sm:grid sm:grid-cols-3 sm:gap-4 lg:grid-cols-4">
+      <div
+        className={cn(
+          "hidden sm:grid sm:gap-4 xl:grid",
+          displayPaymentMethod
+            ? "sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-[minmax(0,1fr)_minmax(0,1.5fr)_minmax(0,1fr)_auto]"
+            : "sm:grid-cols-3 xl:grid-cols-[minmax(0,1.25fr)_minmax(0,2fr)_auto]",
+        )}
+      >
         <div className="flex flex-col gap-1 text-sm sm:col-span-1">
           <div className="h-4 w-32 animate-pulse rounded-md bg-neutral-200" />
           <div className="h-4 w-24 animate-pulse rounded-md bg-neutral-200" />

@@ -64,6 +64,8 @@ export const programLanderEarningsCalculatorBlockSchema =
     data: z.object({
       productPrice: z.number().describe("Average product price in cents"),
       billingPeriod: z.enum(["monthly", "yearly", "one-time"]).optional(),
+      minSales: z.number().int().min(1).optional(),
+      maxSales: z.number().int().min(1).optional(),
     }),
   });
 

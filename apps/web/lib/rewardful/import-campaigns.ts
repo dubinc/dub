@@ -12,7 +12,10 @@ import {
   stripeCouponToDubDiscount,
   validateStripeCouponForDubDiscount,
 } from "../stripe/coupon-discount-converter";
-import { DEFAULT_PARTNER_GROUP } from "../zod/schemas/groups";
+import {
+  DEFAULT_PARTNER_GROUP,
+  sanitizeAdditionalLinks,
+} from "../zod/schemas/groups";
 import { RewardfulApi } from "./api";
 import { rewardfulImporter } from "./importer";
 import { RewardfulImportPayload } from "./types";
@@ -100,7 +103,9 @@ export async function importCampaigns(payload: RewardfulImportPayload) {
         brandColor,
         holdingPeriodDays,
         autoApprovePartnersEnabledAt,
-        ...(additionalLinks && { additionalLinks }),
+        ...(additionalLinks && {
+          additionalLinks: sanitizeAdditionalLinks(additionalLinks),
+        }),
         ...(maxPartnerLinks && { maxPartnerLinks }),
         ...(linkStructure && { linkStructure }),
         ...(applicationFormData && { applicationFormData }),
@@ -136,6 +141,7 @@ export async function importCampaigns(payload: RewardfulImportPayload) {
         data: {
           id: createId({ prefix: "rw_" }),
           programId,
+          groupId: createdGroup.id,
           // connect the reward to the group
           salePartnerGroup: {
             connect: {
@@ -203,12 +209,13 @@ export async function importCampaigns(payload: RewardfulImportPayload) {
         data: {
           id: createId({ prefix: "disc_" }),
           programId,
+          groupId: createdGroup.id,
           amount: dubDiscountAttrs?.amount ?? 0,
           type: dubDiscountAttrs?.type ?? "percentage",
           maxDuration: dubDiscountAttrs?.maxDuration ?? null,
           couponId: campaign.stripe_coupon_id,
-          // connect the discount to the group
-          partnerGroup: {
+          // connect the discount as the group's default
+          defaultForPartnerGroup: {
             connect: {
               id: createdGroup.id,
             },

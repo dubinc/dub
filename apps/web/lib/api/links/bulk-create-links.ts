@@ -1,3 +1,4 @@
+import { queuePartnerSearchSyncForLinks } from "@/lib/api/partners/queue-partner-search-sync";
 import { prisma } from "@/lib/prisma";
 import { ProcessedLinkProps } from "@/lib/types";
 import { publishWorkspaceLinksUsageEvent } from "@/lib/upstash/redis-streams/workspace-links-usage";
@@ -148,9 +149,12 @@ export async function bulkCreateLinks({
 
         if (tagNames && tagNames.length > 0) {
           tagNames.filter(Boolean).forEach((tagName, tagIdx) => {
+            const resolvedTagId = tagNameToIdMap[tagName.toLowerCase()];
+            if (!resolvedTagId) return;
+
             linkTagsToCreate.push({
               linkId: link.id,
-              tagId: tagNameToIdMap[tagName.toLowerCase()],
+              tagId: resolvedTagId,
               createdAt: new Date(new Date().getTime() + tagIdx * 100),
             });
           });
@@ -232,6 +236,11 @@ export async function bulkCreateLinks({
         linksCount: links.length,
         timestamp: new Date().toISOString(),
       }),
+      // Queue an index update if any of the new links are associated with a partner
+      createdLinksData.some((link) => link.partnerId) &&
+        queuePartnerSearchSyncForLinks(
+          createdLinksData.filter((link) => link.partnerId),
+        ),
     ]),
   );
 

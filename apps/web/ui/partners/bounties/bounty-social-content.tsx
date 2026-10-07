@@ -44,7 +44,8 @@ function SocialContentRequirementChecks({
           isPostedFromYourAccount ? "text-green-600" : "text-neutral-400",
         )}
       >
-        <CircleCheck variant="fill"
+        <CircleCheck
+          variant="fill"
           className={cn(
             "size-2.5 transition-opacity",
             isPostedFromYourAccount ? "text-green-600" : "text-neutral-200",
@@ -59,7 +60,8 @@ function SocialContentRequirementChecks({
           isAfterStartDate ? "text-green-600" : "text-neutral-400",
         )}
       >
-        <CircleCheck variant="fill"
+        <CircleCheck
+          variant="fill"
           className={cn(
             "size-2.5 transition-opacity",
             isAfterStartDate ? "text-green-600" : "text-neutral-200",

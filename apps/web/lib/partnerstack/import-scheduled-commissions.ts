@@ -1,4 +1,6 @@
 import { prisma } from "@/lib/prisma";
+import { sleep } from "@dub/utils";
+
 import { getLeadEvents } from "../tinybird/get-lead-events";
 import { redis } from "../upstash";
 import { PartnerStackApi } from "./api";
@@ -101,7 +103,7 @@ export async function importScheduledCommissions(
 
   // If there are more scheduled commissions to import, sleep for 1 second and continue the loop
   if (hasMore) {
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    await sleep(1000);
   } else {
     // else, delete the credentials and exit the loop
     await partnerStackImporter.deleteCredentials(program.workspaceId);

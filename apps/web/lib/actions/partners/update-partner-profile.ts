@@ -1,13 +1,21 @@
 "use server";
 
 import { DubApiError } from "@/lib/api/errors";
-import { confirmEmailChange } from "@/lib/auth/confirm-email-change";
+import { queuePartnerSearchSync } from "@/lib/api/partners/queue-partner-search-sync";
 import { throwIfNoPermission } from "@/lib/auth/partner-users/throw-if-no-permission";
+import { requestEmailChange } from "@/lib/auth/request-email-change";
 import { qstash } from "@/lib/cron";
 import { isReservedUsername } from "@/lib/edge-config";
+import { dispatchGroupUtmSyncForPartner } from "@/lib/partners/dispatch-partner-utm-sync";
+import {
+  assertEmailAvailableForIdentitySync,
+  requestSyncedEmailChange,
+  syncNameAndImageToUser,
+} from "@/lib/partners/sync-partner-identity";
 import { prisma } from "@/lib/prisma";
 import { storage } from "@/lib/storage";
-import { ratelimit } from "@/lib/upstash";
+import { assertRateLimit } from "@/lib/upstash/assert-rate-limit";
+import { RATELIMIT_POLICIES } from "@/lib/upstash/ratelimit-policies";
 import { partnerProfileChangeHistoryLogSchema } from "@/lib/zod/schemas/partner-profile";
 import {
   MAX_PARTNER_DESCRIPTION_LENGTH,
@@ -36,6 +44,7 @@ const updatePartnerProfileSchema = z
     description: z.string().max(MAX_PARTNER_DESCRIPTION_LENGTH).nullish(),
     profileType: z.enum(PartnerProfileType).optional(),
     companyName: z.string().nullish(),
+    syncIdentity: z.boolean().optional(),
   })
   .extend(PartnerProfileDetailsSchema.partial().shape)
   .transform((data) => ({
@@ -60,7 +69,7 @@ const updatePartnerProfileSchema = z
 export const updatePartnerProfileAction = authPartnerActionClient
   .inputSchema(updatePartnerProfileSchema)
   .action(async ({ ctx, parsedInput }) => {
-    const { partner, partnerUser } = ctx;
+    const { partner, partnerUser, user } = ctx;
 
     throwIfNoPermission({
       role: partnerUser.role,
@@ -79,6 +88,7 @@ export const updatePartnerProfileAction = authPartnerActionClient
       preferredEarningStructures,
       salesChannels,
       username,
+      syncIdentity,
     } = parsedInput;
 
     await updatedComplianceFieldsChecks({
@@ -86,31 +96,27 @@ export const updatePartnerProfileAction = authPartnerActionClient
       input: parsedInput,
     });
 
-    let imageUrl: string | null = null;
+    let imageUrl: string | null | undefined = undefined;
     let needsEmailVerification = false;
     const emailChanged = newEmail !== undefined && partner.email !== newEmail;
 
-    // Upload the new image
-    if (image) {
-      const uploaded = await storage.upload({
-        key: `partners/${partner.id}/image_${nanoid(7)}`,
-        body: image,
-      });
-      imageUrl = uploaded.url;
+    if (image !== undefined) {
+      if (image) {
+        const uploaded = await storage.upload({
+          key: `partners/${partner.id}/image_${nanoid(7)}`,
+          body: image,
+        });
+        imageUrl = uploaded.url;
+      } else {
+        imageUrl = null;
+      }
     }
 
     if (username && username !== partner.username) {
-      const { success } = await ratelimit(5, "1 h").limit(
-        `partner-profile:username-update:${partner.id}`,
-      );
-
-      if (!success) {
-        throw new DubApiError({
-          code: "rate_limit_exceeded",
-          message:
-            "You've updated your username too many times. Please try again later.",
-        });
-      }
+      await assertRateLimit({
+        policy: RATELIMIT_POLICIES.partnerUsernameUpdate,
+        identifier: partner.id,
+      });
 
       if (!validSlugRegex.test(username) || RESERVED_SLUGS.includes(username)) {
         throw new Error("Invalid username");
@@ -142,7 +148,7 @@ export const updatePartnerProfileAction = authPartnerActionClient
         data: {
           name,
           description,
-          ...(imageUrl && { image: imageUrl }),
+          ...(imageUrl !== undefined && { image: imageUrl }),
           username,
           profileType,
           companyName,
@@ -176,33 +182,83 @@ export const updatePartnerProfileAction = authPartnerActionClient
         },
       });
 
+      // Queue an index update because the partner profile changed. Not scoped
+      // by program, since a profile is shared across them.
+      waitUntil(queuePartnerSearchSync({ partnerIds: [partner.id] }));
+
       // If the email is being changed, we need to verify the new email address
       if (emailChanged) {
-        const partnerWithEmail = await prisma.partner.findUnique({
-          where: {
-            email: newEmail,
-          },
-        });
+        if (syncIdentity) {
+          if (!user.email) {
+            throw new DubApiError({
+              code: "bad_request",
+              message:
+                "Your login account does not have an email address on file.",
+            });
+          }
 
-        if (partnerWithEmail) {
-          throw new Error(
-            `Email ${newEmail} is already in use. Do you want to merge your partner accounts instead? (https://d.to/merge-partners)`,
-          );
+          await assertEmailAvailableForIdentitySync({
+            newEmail,
+            userId: user.id,
+            partnerId: partner.id,
+          });
+
+          await requestSyncedEmailChange({
+            currentEmail: user.email,
+            newEmail,
+            userId: user.id,
+            partnerId: partner.id,
+            hostName: PARTNERS_DOMAIN,
+            redirectTo: "/profile",
+          });
+        } else {
+          if (!partner.email) {
+            throw new DubApiError({
+              code: "bad_request",
+              message:
+                "Your partner profile does not have an email address on file.",
+            });
+          }
+
+          const partnerWithEmail = await prisma.partner.findUnique({
+            where: {
+              email: newEmail,
+            },
+          });
+
+          if (partnerWithEmail) {
+            throw new Error(
+              `Email ${newEmail} is already in use. Do you want to merge your partner accounts instead? (https://d.to/merge-partners)`,
+            );
+          }
+
+          await requestEmailChange({
+            email: partner.email,
+            newEmail,
+            identifier: partner.id,
+            userId: user.id,
+            isPartnerProfile: true,
+            hostName: PARTNERS_DOMAIN,
+          });
         }
-
-        await confirmEmailChange({
-          email: partner.email!,
-          newEmail,
-          identifier: partner.id,
-          isPartnerProfile: true,
-          hostName: PARTNERS_DOMAIN,
-        });
 
         needsEmailVerification = true;
       }
 
+      if (syncIdentity) {
+        await syncNameAndImageToUser({
+          userId: user.id,
+          ...(name !== undefined && name && { name }),
+          ...(imageUrl !== undefined && { image: imageUrl }),
+        });
+      }
+
       waitUntil(
         Promise.allSettled([
+          partner.name !== updatedPartner.name
+            ? dispatchGroupUtmSyncForPartner(partner.id)
+            : undefined,
+
           (async () => {
             const shouldExpireCache = !deepEqual(
               {

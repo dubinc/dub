@@ -38,7 +38,7 @@ model Webhook {
 }
 
 model LinkWebhook {
-  id        String @id @default(cuid())
+  id        String   @id @default(cuid())
   linkId    String
   webhookId String
   createdAt DateTime @default(now())
@@ -51,7 +51,7 @@ model LinkWebhook {
 }
 
 model FolderWebhook {
-  id        String @id @default(cuid())
+  id        String   @id @default(cuid())
   folderId  String
   webhookId String
   createdAt DateTime @default(now())

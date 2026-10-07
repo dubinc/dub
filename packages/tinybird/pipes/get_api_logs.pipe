@@ -1,6 +1,7 @@
 NODE endpoint
 SQL >
-    %
+
+%
     SELECT
         id,
         timestamp,
@@ -11,6 +12,7 @@ SQL >
         duration,
         user_agent,
         request_body,
+        query_params,
         response_body,
         token_id,
         user_id,
@@ -31,3 +33,5 @@ SQL >
     ORDER BY timestamp DESC
     LIMIT {{ Int32(limit, 100) }}
     OFFSET {{ Int32(offset, 0) }}
+
+TYPE ENDPOINT

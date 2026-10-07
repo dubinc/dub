@@ -1,6 +1,6 @@
+import { bulkDeleteLinks } from "@/lib/api/links/bulk-delete-links";
 import { prisma } from "@/lib/prisma";
 import "dotenv-flow/config";
-import { bulkDeleteLinks } from "../../lib/api/links/bulk-delete-links";
 
 async function main() {
   const discoveredPartners = await prisma.discoveredPartner.findMany({
@@ -34,23 +34,14 @@ async function main() {
     })),
   );
 
-  const linksToDelete = discoveredPartners.flatMap(
-    ({ programEnrollment }) => programEnrollment?.links ?? [],
-  );
+  // Delete per enrollment so each bulkDeleteLinks call stays single-workspace
+  for (const { programEnrollment } of discoveredPartners) {
+    const links = programEnrollment?.links ?? [];
 
-  const res = await Promise.allSettled([
-    prisma.link.deleteMany({
-      where: {
-        id: {
-          in: linksToDelete.map((link) => link.id),
-        },
-      },
-    }),
-
-    bulkDeleteLinks(linksToDelete),
-  ]);
-
-  console.log("res", res);
+    if (links.length > 0) {
+      await bulkDeleteLinks(links);
+    }
+  }
 
   const res2 = await prisma.$transaction([
     prisma.discoveredPartner.deleteMany({

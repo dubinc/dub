@@ -20,9 +20,11 @@ const BATCH_SIZE = 6000;
 // How many webhook deliveries to enqueue to QStash in parallel
 const SEND_CONCURRENCY = 100;
 
-// Lock for the cron job
+// Lock for the cron job. TTL must be ≥ cron maxDuration (600s in vercel.json)
+// so the lock cannot expire while a run is still alive and allow a concurrent
+// minute-cron invocation
 const LOCK_KEY = "lock:send-link-clicked-webhooks";
-const LOCK_TTL_SECONDS = 120;
+const LOCK_TTL_SECONDS = 600;
 
 // Drains the workspace:click:events stream and delivers link.clicked webhooks.
 // Runs every minute (see vercel.json).

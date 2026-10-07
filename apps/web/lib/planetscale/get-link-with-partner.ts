@@ -1,4 +1,4 @@
-import { punyEncode } from "@dub/utils";
+import { punyEncode, safeDecodeURIComponent } from "@dub/utils";
 import {
   decodeKeyIfCaseSensitive,
   encodeKey,
@@ -30,7 +30,7 @@ export const getLinkWithPartner = async ({
 }): Promise<QueryResult | null> => {
   const keyToQuery = isCaseSensitiveDomain(domain)
     ? encodeKey(key)
-    : punyEncode(decodeURIComponent(key));
+    : punyEncode(safeDecodeURIComponent(key));
 
   console.time("getLinkWithPartner");
 
@@ -52,7 +52,9 @@ export const getLinkWithPartner = async ({
        FROM Link
        LEFT JOIN ProgramEnrollment ON ProgramEnrollment.programId = Link.programId AND ProgramEnrollment.partnerId = Link.partnerId
        LEFT JOIN Partner ON Partner.id = ProgramEnrollment.partnerId
-       LEFT JOIN Discount PartnerDiscount ON ProgramEnrollment.discountId = PartnerDiscount.id
+       LEFT JOIN LinkReward ON LinkReward.linkId = Link.id
+       LEFT JOIN Discount PartnerDiscount ON PartnerDiscount.id = COALESCE(LinkReward.discountId, ProgramEnrollment.discountId)
+         AND PartnerDiscount.programId IS NOT NULL
        LEFT JOIN Program ON Program.id = Link.programId
        WHERE Link.domain = ? AND Link.key = ?`,
       [domain, keyToQuery],

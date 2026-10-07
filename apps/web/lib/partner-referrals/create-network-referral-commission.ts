@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import {
   ACME_PROGRAM_ID,
   currencyFormatter,
+  DEMO_PROGRAM_ID,
   log,
   nanoid,
   NETWORK_PROGRAM_ID,
@@ -40,9 +41,13 @@ export const createNetworkReferralCommission = async ({
     return null;
   }
 
-  if ([NETWORK_PROGRAM_ID, ACME_PROGRAM_ID].includes(payout.programId)) {
+  if (
+    [NETWORK_PROGRAM_ID, ACME_PROGRAM_ID, DEMO_PROGRAM_ID].includes(
+      payout.programId,
+    )
+  ) {
     console.error(
-      `Payout ${payout.id} is from Network or Acme program, skipping...`,
+      `Payout ${payout.id} is from Network, Acme, or Demo program, skipping...`,
     );
     return null;
   }
@@ -162,10 +167,13 @@ export const createNetworkReferralCommission = async ({
     console.error(`No customer found for partner ${partner.id}.`);
   }
 
-  const reward = determinePartnerReward({
+  const partnerReward = await determinePartnerReward({
     event: "sale",
     programEnrollment,
+    linkId: null,
   });
+
+  const reward = partnerReward?.reward;
 
   if (!reward) {
     console.log(

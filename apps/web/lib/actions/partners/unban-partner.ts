@@ -1,16 +1,13 @@
 "use server";
 
 import { trackActivityLog } from "@/lib/api/activity-log/track-activity-log";
-import { trackCommissionStatusUpdate } from "@/lib/api/commissions/track-commission-update-activity-log";
 import { getGroupOrThrow } from "@/lib/api/groups/get-group-or-throw";
-import { linkCache } from "@/lib/api/links/cache";
-import { includeProgramEnrollment } from "@/lib/api/links/include-program-enrollment";
-import { includeTags } from "@/lib/api/links/include-tags";
+import { queuePartnerSearchSync } from "@/lib/api/partners/queue-partner-search-sync";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
+import { unbanPartnerJob } from "@/lib/jobs/handlers/unban-partner-job";
 import { prisma } from "@/lib/prisma";
-import { recordLink } from "@/lib/tinybird";
 import { banPartnerSchema } from "@/lib/zod/schemas/partners";
-import { FraudRuleType } from "@prisma/client";
+import { ProgramApplicationStatus } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
 import { throwIfNoPermission } from "../throw-if-no-permission";
@@ -58,20 +55,6 @@ export const unbanPartnerAction = authActionClient
         programEnrollment.groupId || programEnrollment.program.defaultGroupId,
     });
 
-    // Fetch canceled commissions before the transaction for activity logging
-    const canceledCommissions = await prisma.commission.findMany({
-      where: {
-        ...where,
-        status: "canceled",
-      },
-      select: {
-        id: true,
-        amount: true,
-        earnings: true,
-        status: true,
-      },
-    });
-
     await prisma.$transaction([
       prisma.link.updateMany({
         where,
@@ -92,118 +75,63 @@ export const unbanPartnerAction = authActionClient
           clickRewardId: partnerGroup.clickRewardId,
           leadRewardId: partnerGroup.leadRewardId,
           saleRewardId: partnerGroup.saleRewardId,
+          referralRewardId: partnerGroup.referralRewardId,
+          customRewardId: partnerGroup.customRewardId,
           discountId: partnerGroup.discountId,
         },
       }),
 
-      prisma.commission.updateMany({
-        where: {
-          ...where,
-          status: "canceled",
-        },
-        data: {
-          status: "pending",
-        },
-      }),
-
-      prisma.payout.updateMany({
-        where: {
-          ...where,
-          status: "canceled",
-        },
-        data: {
-          status: "pending",
-        },
-      }),
-
-      prisma.bountySubmission.updateMany({
-        where: {
-          ...where,
-          status: "rejected",
-        },
-        data: {
-          status: "submitted",
-        },
-      }),
+      ...(programEnrollment.applicationId
+        ? [
+            prisma.programApplication.updateMany({
+              where: {
+                id: programEnrollment.applicationId,
+                status: {
+                  not: ProgramApplicationStatus.approved,
+                },
+              },
+              data: {
+                status: ProgramApplicationStatus.approved,
+                reviewedAt: new Date(),
+                rejectionReason: null,
+                rejectionNote: null,
+                userId: user.id,
+              },
+            }),
+          ]
+        : []),
     ]);
 
+    await unbanPartnerJob.dispatch(
+      {
+        workspaceId: workspace.id,
+        programId,
+        partnerId,
+      },
+      {
+        label: partnerId,
+      },
+    );
+
     waitUntil(
-      (async () => {
-        const links = await prisma.link.findMany({
-          where,
-          include: {
-            ...includeTags,
-            ...includeProgramEnrollment,
+      Promise.allSettled([
+        trackActivityLog({
+          workspaceId: workspace.id,
+          programId,
+          resourceType: "partner",
+          resourceId: partnerId,
+          userId: user.id,
+          action: "partner.unbanned",
+          changeSet: {
+            status: {
+              old: "banned",
+              new: "approved",
+            },
           },
-        });
+        }),
 
-        await Promise.allSettled([
-          // Expire links from cache
-          linkCache.expireMany(links),
-
-          // Update Tinybird links metadata
-          recordLink(links),
-
-          // Track commission activity logs for the unban
-          trackCommissionStatusUpdate({
-            workspaceId: workspace.id,
-            programId,
-            commissions: canceledCommissions,
-            newStatus: "pending",
-          }),
-
-          trackActivityLog({
-            workspaceId: workspace.id,
-            programId,
-            resourceType: "partner",
-            resourceId: partnerId,
-            userId: user.id,
-            action: "partner.unbanned",
-            changeSet: {
-              status: {
-                old: "banned",
-                new: "approved",
-              },
-            },
-          }),
-        ]);
-
-        await prisma.$transaction([
-          // Since we're unbanning the partner, we need to
-          // clean up any pending cross-program ban alerts that originated from this program.
-          prisma.fraudEvent.deleteMany({
-            where: {
-              partnerId,
-              sourceProgramId: programId,
-              fraudEventGroup: {
-                type: FraudRuleType.partnerCrossProgramBan,
-              },
-            },
-          }),
-
-          // Delete the fraud group if it has no more fraud events
-          prisma.fraudEventGroup.deleteMany({
-            where: {
-              partnerId,
-              type: FraudRuleType.partnerCrossProgramBan,
-              fraudEvents: {
-                none: {},
-              },
-            },
-          }),
-
-          // Delete any pending fraud alerts for this partner in this program
-          prisma.fraudAlert.deleteMany({
-            where: {
-              partnerId,
-              programId,
-              status: "pending",
-            },
-          }),
-        ]);
-
-        // TODO
-        // Send email to partner about being unbanned
-      })(),
+        // Queue an index update because the enrollment status moved back to approved
+        queuePartnerSearchSync({ partnerIds: [partnerId], programId }),
+      ]),
     );
   });

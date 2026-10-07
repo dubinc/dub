@@ -1,7 +1,9 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
+import { queuePartnerSearchSync } from "@/lib/api/partners/queue-partner-search-sync";
+import { PRISMA_UPDATEMANY_LIMIT } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { prisma } from "@/lib/prisma";
-import { log } from "@dub/utils";
+import { log, STANDARD_REAPPLICATION_DAYS } from "@dub/utils";
 import { subDays } from "date-fns";
 import { NextResponse } from "next/server";
 
@@ -27,7 +29,7 @@ export async function POST(req: Request) {
           where: {
             status: "rejected",
             updatedAt: {
-              lt: subDays(new Date(), 30),
+              lt: subDays(new Date(), STANDARD_REAPPLICATION_DAYS),
             },
             reapplicationTimeframe: "standard",
             // only delete if there are no commissions
@@ -35,7 +37,7 @@ export async function POST(req: Request) {
               none: {},
             },
           },
-          take: 250,
+          take: PRISMA_UPDATEMANY_LIMIT,
         });
 
       if (rejectedProgramEnrollments.length === 0) {
@@ -55,8 +57,13 @@ export async function POST(req: Request) {
         });
 
       console.log(
-        `Deleted ${deletedProgramEnrollments.count} rejected programEnrollments that are older than 30 days`,
+        `Deleted ${deletedProgramEnrollments.count} rejected programEnrollments that are older than ${STANDARD_REAPPLICATION_DAYS} days`,
       );
+
+      // Queue an index update because the rejected enrollments were deleted.
+      await queuePartnerSearchSync({
+        enrollmentIds: rejectedProgramEnrollments.map(({ id }) => id),
+      });
 
       totalDeletedProgramEnrollments += deletedProgramEnrollments.count;
     }

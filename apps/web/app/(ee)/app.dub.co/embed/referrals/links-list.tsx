@@ -9,13 +9,7 @@ import {
   useTable,
 } from "@dub/ui";
 import { ArrowTurnRight2, Pen2, Plus2 } from "@dub/ui/icons";
-import {
-  currencyFormatter,
-  fetcher,
-  getApexDomain,
-  getPrettyUrl,
-  nFormatter,
-} from "@dub/utils";
+import { fetcher, getApexDomain, getPrettyUrl, nFormatter } from "@dub/utils";
 import { motion } from "motion/react";
 import { useEffect, useState } from "react";
 import useSWR from "swr";
@@ -119,11 +113,11 @@ export function ReferralsEmbedLinksList({ onCreateLink, onEditLink }: Props) {
         cell: ({ row }) => nFormatter(row.original.leads),
       },
       {
-        id: "sales",
-        header: "Sales",
+        id: "conversions",
+        header: "Conversions",
         minSize: 80,
         maxSize: 100,
-        cell: ({ row }) => currencyFormatter(row.original.saleAmount),
+        cell: ({ row }) => nFormatter(row.original.conversions),
       },
       {
         id: "actions",

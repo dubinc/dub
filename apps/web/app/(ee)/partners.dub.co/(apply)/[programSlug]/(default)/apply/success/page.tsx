@@ -65,8 +65,14 @@ export default async function SuccessPage(props: {
     !program.group.applicationFormData ||
     !program.group.applicationFormPublishedAt
   ) {
-    // throw 404 if it's the default group, else redirect to the default group page
+    // for the default group:
+    // - if the program is featured on the marketplace (and not deactivated), redirect to the marketplace program page
+    // - otherwise, throw 404
+    // for other groups: redirect to the default group variant
     if (partnerGroupSlug === DEFAULT_PARTNER_GROUP.slug) {
+      if (program && program.addedToMarketplaceAt && !program.deactivatedAt) {
+        redirect(`/marketplace/${programSlug}`);
+      }
       notFound();
     } else {
       redirect(`/${programSlug}/apply`);
@@ -78,10 +84,14 @@ export default async function SuccessPage(props: {
         where: {
           id: applicationId,
         },
+        select: {
+          partnerId: true,
+          email: true,
+        },
       })
     : null;
 
-  const hasPartnerProfile = !!enrollmentId;
+  const hasPartnerProfile = !!enrollmentId || !!application?.partnerId;
 
   return (
     <div
@@ -161,7 +171,10 @@ export default async function SuccessPage(props: {
                   src={program.logo || `${OG_AVATAR_URL}${program.name}`}
                   alt={`${program.name} logo`}
                 />
-                <Bolt variant="fill" className="shrink-0 text-[var(--brand)] opacity-30" />
+                <Bolt
+                  variant="fill"
+                  className="shrink-0 text-[var(--brand)] opacity-30"
+                />
                 <Logo className="size-10 shrink-0" />
               </div>
             )}

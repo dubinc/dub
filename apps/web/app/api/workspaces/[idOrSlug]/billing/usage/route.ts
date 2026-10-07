@@ -1,105 +1,43 @@
-import { formatUTCDateTimeClickhouse } from "@/lib/analytics/utils/format-utc-datetime-clickhouse";
 import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
+import { getPayoutsTimeseries } from "@/lib/api/payouts/get-payouts-timeseries";
 import { withWorkspace } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
-import { tb } from "@/lib/tinybird";
-import { usageQuerySchema, usageResponse } from "@/lib/zod/schemas/usage";
-import { subYears } from "date-fns";
+import { getWorkspaceUsage } from "@/lib/tinybird/get-workspace-usage";
+import { usageQuerySchema } from "@/lib/zod/schemas/usage";
 import { NextResponse } from "next/server";
-import * as z from "zod/v4";
 
 export const GET = withWorkspace(
   async ({ searchParams, workspace }) => {
-    const {
-      resource,
-      folderId,
-      domain,
-      groupBy,
-      interval,
-      start,
-      end,
-      timezone,
-    } = usageQuerySchema.parse(searchParams);
+    const { resource, ...params } = usageQuerySchema.parse(searchParams);
 
-    const pipe = tb.buildPipe({
-      pipe: "v3_usage",
-      // we extend this here since we don't need to include all the additional parameters
-      // in the actual request query schema
-      parameters: usageQuerySchema.extend({
-        workspaceId: z.string(),
-      }),
-      data: usageResponse,
-    });
-
-    const { startDate, endDate } = getStartEndDates({
-      interval,
-      start,
-      end,
-      dataAvailableFrom: subYears(new Date(), 1),
-      timezone,
-    });
-
-    const response = await pipe({
-      resource,
-      workspaceId: workspace.id,
-      start: formatUTCDateTimeClickhouse(startDate),
-      end: formatUTCDateTimeClickhouse(endDate),
-      timezone,
-      ...(folderId && { folderId }),
-      ...(domain && { domain }),
-      ...(groupBy && { groupBy }),
-    });
-
-    let data = response.data;
-
-    if (groupBy) {
-      const dates = [...new Set(response.data.map((d) => d.date))];
-      const groupIds = [...new Set(response.data.map((d) => d[groupBy] ?? ""))];
-
-      const where = {
-        projectId: workspace.id,
-        id: {
-          in: groupIds,
-        },
-      };
-
-      const groupMeta = await (groupBy === "folder_id"
-        ? prisma.folder.findMany({
-            select: {
-              id: true,
-              name: true,
-            },
-            where,
-          })
-        : prisma.domain.findMany({
-            select: {
-              id: true,
-              slug: true,
-            },
-            where,
-          }));
-
-      data = dates.map((date) => {
-        const groups = groupIds.map((groupId) => ({
-          id: groupId,
-          name:
-            groupMeta.find((g) => g.id === groupId)?.[
-              groupBy === "folder_id" ? "name" : "slug"
-            ] ?? groupId,
-          usage: sum(
-            response.data
-              .filter((d) => d.date === date && d[groupBy] === groupId)
-              .map((d) => d.value),
-          ),
-        }));
-
-        return {
-          date,
-          value: sum(groups.map((g) => g.usage)),
-          groups,
-        };
+    if (resource === "payouts") {
+      const { startDate, endDate } = getStartEndDates({
+        interval: params.interval,
+        start: params.start,
+        end: params.end,
+        timezone: params.timezone,
       });
+
+      const timeseries = await getPayoutsTimeseries({
+        workspaceId: workspace.id,
+        startDate,
+        endDate,
+        timezone: params.timezone,
+      });
+
+      return NextResponse.json(
+        timeseries.map(({ start, payouts }) => ({
+          date: start,
+          value: payouts,
+          groups: [],
+        })),
+      );
     }
+
+    const data = await getWorkspaceUsage({
+      workspaceId: workspace.id,
+      resource,
+      ...params,
+    });
 
     return NextResponse.json(data);
   },
@@ -107,5 +45,3 @@ export const GET = withWorkspace(
     requiredPermissions: ["workspaces.read"],
   },
 );
-
-const sum = (arr: number[]) => arr.reduce((acc, curr) => acc + curr, 0);

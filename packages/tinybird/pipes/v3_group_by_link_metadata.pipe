@@ -297,4 +297,4 @@ FROM
     {% else %} group_by_link_metadata_clicks
     {% end %}
 
-
+TYPE ENDPOINT

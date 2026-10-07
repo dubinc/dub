@@ -55,7 +55,7 @@ export function PartnerInfoGroup({
         className,
       )}
     >
-      <ChangeGroupModal />
+      {ChangeGroupModal}
       <div className="flex min-w-0 items-center gap-2">
         {group ? (
           <GroupColorCircle group={group} />

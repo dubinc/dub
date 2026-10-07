@@ -29,6 +29,7 @@ export type IntegrationGuide = {
   recommended?: boolean;
   content?: string;
   url: string;
+  stepLabel?: string;
 };
 
 export const sections: {
@@ -53,6 +54,142 @@ export const sections: {
     title: "Track sale events",
     description:
       "Finally, you can use our Stripe integration or server-side SDKs to track sale events (e.g. when a user purchases a product on your application).",
+  },
+];
+
+export type StackItem = {
+  id: string;
+  title: string;
+  icon: any;
+  iconProps?: {
+    fullSize?: boolean;
+  };
+  guideKeys: string[];
+  type: IntegrationType;
+};
+
+export const stackItems: StackItem[] = [
+  {
+    id: "react",
+    title: "React",
+    icon: React,
+    guideKeys: ["react"],
+    type: "client-sdk",
+  },
+  {
+    id: "gtm",
+    title: "Google Tag Manager",
+    icon: GoogleTagManager,
+    guideKeys: ["gtm-client-sdk", "gtm-track-lead", "gtm-track-sale"],
+    type: "client-sdk",
+  },
+  {
+    id: "framer",
+    title: "Framer",
+    icon: Framer,
+    guideKeys: ["framer"],
+    type: "client-sdk",
+  },
+  {
+    id: "wordpress",
+    title: "WordPress",
+    icon: Wordpress,
+    guideKeys: ["wordpress"],
+    type: "client-sdk",
+  },
+  {
+    id: "webflow",
+    title: "Webflow",
+    icon: Webflow,
+    guideKeys: ["webflow"],
+    type: "client-sdk",
+  },
+  {
+    id: "shopify",
+    title: "Shopify",
+    icon: Shopify,
+    guideKeys: ["shopify"],
+    type: "client-sdk",
+  },
+  {
+    id: "stripe-checkout",
+    title: "Stripe Checkout",
+    icon: StripeIcon,
+    iconProps: { fullSize: true },
+    guideKeys: ["stripe-checkout"],
+    type: "track-sale",
+  },
+  {
+    id: "stripe-payment-links",
+    title: "Stripe Payment Links",
+    icon: StripeIcon,
+    iconProps: { fullSize: true },
+    guideKeys: ["stripe-payment-links"],
+    type: "track-sale",
+  },
+  {
+    id: "stripe-customers",
+    title: "Stripe Customers",
+    icon: StripeIcon,
+    iconProps: { fullSize: true },
+    guideKeys: ["stripe-customers"],
+    type: "track-sale",
+  },
+  {
+    id: "segment",
+    title: "Segment",
+    icon: Segment,
+    guideKeys: ["segment-track-lead", "segment-track-sale"],
+    type: "track-lead",
+  },
+  {
+    id: "clerk",
+    title: "Clerk",
+    icon: Clerk,
+    guideKeys: ["clerk"],
+    type: "track-lead",
+  },
+  {
+    id: "better-auth",
+    title: "Better Auth",
+    icon: BetterAuth,
+    guideKeys: ["better-auth"],
+    type: "track-lead",
+  },
+  {
+    id: "next-auth",
+    title: "NextAuth.js",
+    icon: NextAuth,
+    guideKeys: ["next-auth"],
+    type: "track-lead",
+  },
+  {
+    id: "supabase",
+    title: "Supabase",
+    icon: Supabase,
+    guideKeys: ["supabase"],
+    type: "track-lead",
+  },
+  {
+    id: "auth0",
+    title: "Auth0",
+    icon: Auth0,
+    guideKeys: ["auth0"],
+    type: "track-lead",
+  },
+  {
+    id: "appwrite",
+    title: "Appwrite",
+    icon: Appwrite,
+    guideKeys: ["appwrite"],
+    type: "track-lead",
+  },
+  {
+    id: "custom",
+    title: "Custom integration",
+    icon: CodeEditor,
+    guideKeys: ["manual-client-sdk", "manual-track-lead"],
+    type: "client-sdk",
   },
 ];
 
@@ -116,7 +253,8 @@ export const guides: IntegrationGuide[] = [
     title: "Custom Integration",
     description: "Manual Lead Tracking",
     icon: CodeEditor,
-    url: "https://dub.co/docs/conversions/leads/introduction",
+    url: "https://dub.co/docs/quickstart/server",
+    stepLabel: "Server-side",
   },
   {
     type: "track-lead",
@@ -233,6 +371,7 @@ export const guides: IntegrationGuide[] = [
     title: "Custom Integration",
     description: "Manual Sale Tracking",
     icon: CodeEditor,
-    url: "https://dub.co/docs/conversions/sales/introduction",
+    url: "https://dub.co/docs/quickstart/server",
+    stepLabel: "Server-side",
   },
 ];

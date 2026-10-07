@@ -147,6 +147,22 @@ export const E2E_SALE_REWARD = {
       maxDuration: null,
       amountInCents: 9000,
     },
+    {
+      id: "939e0cbd-fe8d-4cee-8a71-f5b7a5737887",
+      type: "flat",
+      operator: "AND",
+      conditions: [
+        {
+          value: "THGTTG",
+          entity: "sale",
+          operator: "equals_to",
+          attribute: "metadata",
+          metadataField: "bookTitle",
+        },
+      ],
+      maxDuration: null,
+      amountInCents: 4200,
+    },
   ],
 };
 
@@ -223,7 +239,7 @@ export const E2E_PARTNER = {
 
 export const E2E_PARTNER_GROUP = {
   id: "grp_1K2E25381GVMG7HHM057TB92F",
-  url: "https://acme.dub.sh/",
+  url: "https://acme.dub.sh",
 };
 
 export const E2E_PARTNERS = [

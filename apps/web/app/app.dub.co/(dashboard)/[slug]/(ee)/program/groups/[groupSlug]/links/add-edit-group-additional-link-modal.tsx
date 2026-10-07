@@ -74,10 +74,9 @@ function formDataToPartnerLink(
         path: urlObj.pathname + urlObj.search + urlObj.hash,
       };
     } catch {
-      // Fallback if URL parsing fails
       return {
         validationMode: "exact",
-        domain: formData.url,
+        domain: "",
         path: "",
       };
     }
@@ -283,7 +282,8 @@ function AddDestinationUrlModalContent({
                         {type.recommended && (
                           <Badge variant="blueGradient">Recommended</Badge>
                         )}
-                        <CircleCheck variant="fill"
+                        <CircleCheck
+                          variant="fill"
                           className={cn(
                             "-mr-px -mt-px flex size-4 scale-75 items-center justify-center rounded-full opacity-0 transition-[transform,opacity] duration-150",
                             isSelected && "scale-100 opacity-100",

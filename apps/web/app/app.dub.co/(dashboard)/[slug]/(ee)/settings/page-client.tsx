@@ -4,6 +4,7 @@ import { clientAccessCheck } from "@/lib/client-access-check";
 import useWorkspace from "@/lib/swr/use-workspace";
 import DeleteWorkspace from "@/ui/workspaces/delete-workspace";
 import { SlackSupportSettingsCard } from "@/ui/workspaces/slack-support-settings-card";
+import UpdateDefaultProduct from "@/ui/workspaces/update-default-product";
 import UploadLogo from "@/ui/workspaces/upload-logo";
 import { Form } from "@dub/ui";
 import { useSession } from "next-auth/react";
@@ -93,6 +94,7 @@ export default function WorkspaceSettingsClient() {
         }
       />
       <UploadLogo />
+      <UpdateDefaultProduct />
       <DeleteWorkspace />
     </div>
   );
