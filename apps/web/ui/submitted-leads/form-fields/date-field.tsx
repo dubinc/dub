@@ -2,7 +2,7 @@ import { dateFieldSchema } from "@/lib/zod/schemas/submitted-lead-form";
 import { cn } from "@dub/utils";
 import { useFormContext } from "react-hook-form";
 import * as z from "zod/v4";
-import { FormControl } from "./form-control";
+import { FormControl, requiredFieldRule } from "./form-control";
 
 type DateFieldData = z.infer<typeof dateFieldSchema>;
 
@@ -34,7 +34,7 @@ export function DateField({
             : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-[var(--brand)] focus:ring-[var(--brand)]",
         )}
         {...register(keyPath, {
-          required: field.required,
+          required: requiredFieldRule(field.required),
         })}
       />
     </FormControl>

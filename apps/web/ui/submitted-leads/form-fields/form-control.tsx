@@ -1,6 +1,17 @@
 import { cn } from "@dub/utils";
 import { HTMLAttributes } from "react";
 
+export const requiredFieldRule = (required: boolean) =>
+  required ? "Please fill in this field" : false;
+
+export const maxLengthRule = (maxLength?: number) =>
+  maxLength
+    ? {
+        value: maxLength,
+        message: `Please enter at most ${maxLength} characters`,
+      }
+    : undefined;
+
 export type FormControlProps = {
   label: string;
   required?: boolean;

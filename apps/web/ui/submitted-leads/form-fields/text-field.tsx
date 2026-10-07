@@ -2,7 +2,7 @@ import { textFieldSchema } from "@/lib/zod/schemas/submitted-lead-form";
 import { cn } from "@dub/utils";
 import { useFormContext } from "react-hook-form";
 import * as z from "zod/v4";
-import { FormControl } from "./form-control";
+import { FormControl, maxLengthRule, requiredFieldRule } from "./form-control";
 import { MaxCharacterCount } from "./max-character-count";
 
 type TextFieldData = z.infer<typeof textFieldSchema>;
@@ -29,7 +29,12 @@ export function TextField({
   const inputType = inputProps?.type || "text";
 
   return (
-    <FormControl label={field.label} required={field.required} dir="auto">
+    <FormControl
+      label={field.label}
+      required={field.required}
+      error={state.error?.message}
+      dir="auto"
+    >
       <input
         type={inputType}
         className={cn(
@@ -40,10 +45,13 @@ export function TextField({
         )}
         {...inputProps}
         {...register(keyPath, {
-          required: field.required,
-          maxLength: maxLength,
+          required: requiredFieldRule(field.required),
+          maxLength: maxLengthRule(maxLength),
           pattern: field.constraints?.pattern
-            ? new RegExp(field.constraints.pattern)
+            ? {
+                value: new RegExp(field.constraints.pattern),
+                message: "Please enter a valid value",
+              }
             : undefined,
           ...(inputType === "email" && {
             validate: (value: string) => {

@@ -2,7 +2,7 @@ import { numberFieldSchema } from "@/lib/zod/schemas/submitted-lead-form";
 import { cn } from "@dub/utils";
 import { useFormContext } from "react-hook-form";
 import * as z from "zod/v4";
-import { FormControl } from "./form-control";
+import { FormControl, requiredFieldRule } from "./form-control";
 
 type NumberFieldData = z.infer<typeof numberFieldSchema>;
 
@@ -38,13 +38,19 @@ export function NumberField({
             : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-[var(--brand)] focus:ring-[var(--brand)]",
         )}
         {...register(keyPath, {
-          required: field.required,
+          required: requiredFieldRule(field.required),
           valueAsNumber: true,
           ...(min !== undefined && {
-            min: { value: min, message: `Must be at least ${min}` },
+            min: {
+              value: min,
+              message: `Please enter a number of at least ${min}`,
+            },
           }),
           ...(max !== undefined && {
-            max: { value: max, message: `Must be at most ${max}` },
+            max: {
+              value: max,
+              message: `Please enter a number of at most ${max}`,
+            },
           }),
         })}
       />
