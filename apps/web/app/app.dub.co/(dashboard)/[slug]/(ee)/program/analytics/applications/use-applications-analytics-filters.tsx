@@ -36,6 +36,7 @@ export function useApplicationAnalyticsFilters() {
 
   const { data: partners } = useApplicationsAnalytics({
     groupBy: "partnerId",
+    event: stage,
     exclude: ["partnerId"],
     enabled: tab === "applications",
   });

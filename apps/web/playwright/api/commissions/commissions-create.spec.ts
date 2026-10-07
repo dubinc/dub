@@ -975,23 +975,35 @@ test.describe("Sale commissions", () => {
     });
   });
 
-  test("imports Stripe invoices", async ({ api, program, workspace }) => {
-    await withCommissionPartner(api, program, async (partnerId) => {
-      expect(
-        await api.post("/api/commissions", {
-          type: "sale",
-          partnerId,
-          importStripeInvoices: true,
-          customer: customerBody(),
-        }),
-      ).toEqual(
-        apiError({
-          code: "bad_request",
-          message: `Your workspace isn't connected to Stripe yet. Please install the Stripe integration to continue: https://app.dub.co/${workspace.slug}/settings/integrations/stripe`,
-        }),
-      );
+  const importStripeInvoicesCases = [
+    { name: "all", body: { stripeInvoicesToImport: "all" } },
+    { name: "invoice IDs", body: { stripeInvoicesToImport: ["in_test"] } },
+    { name: "deprecated flag", body: { importStripeInvoices: true } },
+  ];
+
+  for (const { name, body } of importStripeInvoicesCases) {
+    test(`imports Stripe invoices (${name})`, async ({
+      api,
+      program,
+      workspace,
+    }) => {
+      await withCommissionPartner(api, program, async (partnerId) => {
+        expect(
+          await api.post("/api/commissions", {
+            type: "sale",
+            partnerId,
+            ...body,
+            customer: customerBody(),
+          }),
+        ).toEqual(
+          apiError({
+            code: "bad_request",
+            message: `Your workspace isn't connected to Stripe yet. Please install the Stripe integration to continue: https://app.dub.co/${workspace.slug}/settings/integrations/stripe`,
+          }),
+        );
+      });
     });
-  });
+  }
 
   test.describe("validates", () => {
     const errorCases = [
@@ -1006,7 +1018,7 @@ test.describe("Sale commissions", () => {
         expected: apiError({
           code: "unprocessable_entity",
           message:
-            "custom: saleAmount: `sale.amount` or `saleAmount` is required when `importStripeInvoices` is false.",
+            "custom: saleAmount: `sale.amount` or `saleAmount` is required when not importing Stripe invoices.",
         }),
       },
       {
@@ -1056,7 +1068,7 @@ test.describe("Sale commissions", () => {
           type: "sale",
           partnerId: "pn_test",
           customerId: "cus_test",
-          importStripeInvoices: true,
+          stripeInvoicesToImport: "all",
           date: "2024-03-01T08:30:00.000Z",
           sale: {
             amount: 5000,
@@ -1067,7 +1079,22 @@ test.describe("Sale commissions", () => {
         expected: apiError({
           code: "unprocessable_entity",
           message:
-            "custom: sale: `sale`, `date`, `invoiceId`, `productId` cannot be provided when `importStripeInvoices` is enabled.",
+            "custom: sale: `sale`, `date`, `invoiceId`, `productId` cannot be provided when importing Stripe invoices.",
+        }),
+      },
+      {
+        name: "rejects stripeInvoicesToImport with importStripeInvoices",
+        body: {
+          type: "sale",
+          partnerId: "pn_test",
+          customerId: "cus_test",
+          stripeInvoicesToImport: ["in_test"],
+          importStripeInvoices: true,
+        },
+        expected: apiError({
+          code: "unprocessable_entity",
+          message:
+            "custom: importStripeInvoices: `stripeInvoicesToImport` and `importStripeInvoices` cannot be provided together. Use `stripeInvoicesToImport` instead.",
         }),
       },
       {
@@ -1083,7 +1110,7 @@ test.describe("Sale commissions", () => {
         expected: apiError({
           code: "unprocessable_entity",
           message:
-            "custom: invoiceId: `invoiceId`, `productId` cannot be provided when `importStripeInvoices` is enabled.",
+            "custom: invoiceId: `invoiceId`, `productId` cannot be provided when importing Stripe invoices.",
         }),
       },
       {

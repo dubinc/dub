@@ -124,6 +124,7 @@ export const bulkRejectProgramApplicationsAction = authActionClient
         partnerId: application.partnerId!,
         enrollmentToReject: isNewApplication ? enrollment : undefined,
         isNewApplication,
+        isApplyingToAdditionalGroup,
         shouldEmailPartner,
       };
     });
@@ -243,12 +244,18 @@ export const bulkRejectProgramApplicationsAction = authActionClient
         ]);
 
         const emails = reviews.flatMap(
-          ({ application: { partner }, shouldEmailPartner }) =>
+          ({
+            application: { partner },
+            isApplyingToAdditionalGroup,
+            shouldEmailPartner,
+          }) =>
             partner?.email && shouldEmailPartner
               ? [
                   {
                     to: partner.email,
-                    subject: `Your application to ${program.name} was not approved`,
+                    subject: isApplyingToAdditionalGroup
+                      ? `Your request to join a new group in ${program.name} was not approved`
+                      : `Your application to ${program.name} was not approved`,
                     variant: "notifications" as const,
                     replyTo: program.supportEmail || "noreply",
                     react: ProgramApplicationRejected({
@@ -261,6 +268,7 @@ export const bulkRejectProgramApplicationsAction = authActionClient
                         slug: program.slug,
                         supportEmail: program.supportEmail ?? undefined,
                       },
+                      isApplyingToAdditionalGroup,
                       rejectionReason: undefined,
                       additionalNotes: undefined,
                       reapplicationTimeframe: "standard",
