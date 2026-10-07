@@ -55,6 +55,20 @@ type ReattributeEventPlan = {
   saleTimestamp: string | null;
 };
 
+function latestEventTimestamp(events: { timestamp: string }[]) {
+  if (events.length === 0) {
+    return null;
+  }
+
+  return events.reduce((latest, event) =>
+    event.timestamp > latest.timestamp ? event : latest,
+  ).timestamp;
+}
+
+function leadEventIdentity(event: CustomerTBEvent) {
+  return `${event.event_name ?? ""}\0${event.timestamp}`;
+}
+
 async function runOnce({ key, fn }: { key: string; fn: () => Promise<void> }) {
   const acquired = await redis.set(key, "1", {
     nx: true,
@@ -221,25 +235,20 @@ export async function loadReattributeEventPlan({
 
   const sourceEvents = oldEvents.length > 0 ? oldEvents : newEvents;
   const clickEvent = sourceEvents.find((event) => event.event === "click");
-  const leadEvent = sourceEvents.find((event) => event.event === "lead");
+  const leadEvents = sourceEvents.filter((event) => event.event === "lead");
   const saleEvents = sourceEvents.filter((event) => event.event === "sale");
 
   return {
     hasClick: Boolean(clickEvent),
-    hasLead: Boolean(leadEvent),
-    leadCount: leadEvent ? 1 : 0,
+    hasLead: leadEvents.length > 0,
+    leadCount: leadEvents.length,
     saleCount: saleEvents.length,
     saleAmount: saleEvents.reduce(
       (sum, event) => sum + (event.saleAmount ?? 0),
       0,
     ),
-    leadTimestamp: leadEvent?.timestamp ?? null,
-    saleTimestamp:
-      saleEvents.length > 0
-        ? saleEvents.reduce((latest, event) =>
-            event.timestamp > latest.timestamp ? event : latest,
-          ).timestamp
-        : null,
+    leadTimestamp: latestEventTimestamp(leadEvents),
+    saleTimestamp: latestEventTimestamp(saleEvents),
   };
 }
 
@@ -268,7 +277,17 @@ export async function reingestCustomerEvents({
   }
 
   const newHasClick = newEvents.some((event) => event.event === "click");
-  const newHasLead = newEvents.some((event) => event.event === "lead");
+  const remainingNewLeadCounts = new Map<string, number>();
+
+  for (const event of newEvents) {
+    if (event.event !== "lead") {
+      continue;
+    }
+
+    const key = leadEventIdentity(event);
+    remainingNewLeadCounts.set(key, (remainingNewLeadCounts.get(key) ?? 0) + 1);
+  }
+
   const newSaleInvoiceIds = new Set(
     newEvents
       .filter((event) => event.event === "sale" && event.invoice_id)
@@ -283,9 +302,21 @@ export async function reingestCustomerEvents({
   const clickEvent = !newHasClick
     ? oldEvents.find((event) => event.event === "click") ?? null
     : null;
-  const leadEvent = !newHasLead
-    ? oldEvents.find((event) => event.event === "lead") ?? null
-    : null;
+  const leadEvents = oldEvents.filter((event) => {
+    if (event.event !== "lead") {
+      return false;
+    }
+
+    const key = leadEventIdentity(event);
+    const remaining = remainingNewLeadCounts.get(key) ?? 0;
+
+    if (remaining > 0) {
+      remainingNewLeadCounts.set(key, remaining - 1);
+      return false;
+    }
+
+    return true;
+  });
   const saleEvents = oldEvents.filter((event) => {
     if (event.event !== "sale") {
       return false;
@@ -298,7 +329,7 @@ export async function reingestCustomerEvents({
     return !newInvoicelessSaleTimestamps.has(event.timestamp);
   });
 
-  if (!clickEvent && !leadEvent && saleEvents.length === 0) {
+  if (!clickEvent && leadEvents.length === 0 && saleEvents.length === 0) {
     return {
       skipped: true,
       reason:
@@ -332,17 +363,19 @@ export async function reingestCustomerEvents({
     eventsToRecord.push(recordClickZod(clickEventData));
   }
 
-  if (leadEvent) {
-    const leadEventData = leadEventSchemaTBWithTimestamp.parse({
-      ...clickEventData,
-      ...leadEvent,
-      ...newClickAttributes,
-      event_id: nanoid(16),
-      link_id: link.id,
-      customer_id: newCustomerId,
-    });
+  if (leadEvents.length > 0) {
+    const leadEventsData = leadEvents.map((existingLeadEvent) =>
+      leadEventSchemaTBWithTimestamp.parse({
+        ...clickEventData,
+        ...existingLeadEvent,
+        ...newClickAttributes,
+        event_id: nanoid(16),
+        link_id: link.id,
+        customer_id: newCustomerId,
+      }),
+    );
 
-    eventsToRecord.push(recordLeadWithTimestamp(leadEventData));
+    eventsToRecord.push(recordLeadWithTimestamp(leadEventsData));
   }
 
   if (saleEvents.length > 0) {
