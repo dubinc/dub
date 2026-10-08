@@ -8,6 +8,7 @@ import type {
   DirectorySyncRequest,
 } from "@boxyhq/saml-jackson";
 import { getSearchParams } from "@dub/utils";
+import { waitUntil } from "@vercel/functions";
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 
@@ -132,11 +133,13 @@ const handleEvents = async (event: DirectorySyncEvent) => {
         },
       });
 
-      await syncStagingWorkspaceJob.dispatch({
-        action: "remove-member",
-        workspaceId,
-        userId: userInWorkspace.id,
-      });
+      waitUntil(
+        syncStagingWorkspaceJob.dispatch({
+          action: "remove-member",
+          workspaceId,
+          userId: userInWorkspace.id,
+        }),
+      );
     }
     if (userInvited) {
       await prisma.projectInvite.delete({

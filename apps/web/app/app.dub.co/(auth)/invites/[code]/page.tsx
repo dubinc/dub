@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import EmptyState from "@/ui/shared/empty-state";
 import { LoadingSpinner } from "@dub/ui";
 import { LinkBroken, Users6 } from "@dub/ui/icons";
+import { waitUntil } from "@vercel/functions";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 
@@ -115,11 +116,13 @@ async function VerifyInvite({ code }: { code: string }) {
     });
   }
 
-  await syncStagingWorkspaceJob.dispatch({
-    action: "add-member",
-    workspaceId: workspace.id,
-    userId: workspaceUser.userId,
-  });
+  waitUntil(
+    syncStagingWorkspaceJob.dispatch({
+      action: "add-member",
+      workspaceId: workspace.id,
+      userId: workspaceUser.userId,
+    }),
+  );
 
   // Complete onboarding just in case
   await onboardingStepCache.set({
