@@ -22,114 +22,120 @@ export async function releaseAllHoldCommissions({
 
   let totalReleased = 0;
 
-  while (true) {
-    const commissionsToRelease = await prisma.commission.findMany({
-      where: {
-        programId,
-        status: CommissionStatus.hold,
-      },
-      select: {
-        id: true,
-        amount: true,
-        earnings: true,
-        status: true,
-        partnerId: true,
-      },
-      take: PRISMA_UPDATEMANY_LIMIT,
-    });
-
-    if (commissionsToRelease.length === 0) {
-      console.log(`No hold commissions to release for program ${programId}`);
-      break;
-    }
-
-    // Update the commissions to pending
-    const { count: updatedCount } = await prisma.commission.updateMany({
-      where: {
-        id: {
-          in: commissionsToRelease.map((c) => c.id),
-        },
-        status: CommissionStatus.hold,
-      },
-      data: {
-        status: CommissionStatus.pending,
-      },
-    });
-
-    if (updatedCount === 0) {
-      console.log(`No hold commissions to release for program ${programId}`);
-      break;
-    }
-
-    totalReleased += updatedCount;
-
-    const partnerIds = Array.from(
-      new Set(commissionsToRelease.map((c) => c.partnerId)),
-    );
-
-    // Get the released commissions
-    const releasedCommissions =
-      updatedCount < commissionsToRelease.length
-        ? await prisma.commission
-            .findMany({
-              where: {
-                id: {
-                  in: commissionsToRelease.map((c) => c.id),
-                },
-                status: CommissionStatus.pending,
-              },
-              select: {
-                id: true,
-                amount: true,
-                earnings: true,
-                status: true,
-              },
-            })
-            .then((commissions) =>
-              commissions.map((c) => ({
-                ...c,
-                // need to make sure the releasedCommissions have the old "hold" status for the status update log
-                status: CommissionStatus.hold,
-              })),
-            )
-        : commissionsToRelease;
-
-    const results = await Promise.allSettled([
-      trackCommissionStatusUpdate({
-        workspaceId: program.workspaceId,
-        programId,
-        commissions: releasedCommissions,
-        newStatus: CommissionStatus.pending,
-      }),
-      ...partnerIds.map((partnerId) =>
-        syncTotalCommissions({
-          partnerId,
+  try {
+    while (true) {
+      const commissionsToRelease = await prisma.commission.findMany({
+        where: {
           programId,
-        }),
-      ),
-    ]);
+          status: CommissionStatus.hold,
+        },
+        select: {
+          id: true,
+          amount: true,
+          earnings: true,
+          status: true,
+          partnerId: true,
+        },
+        take: PRISMA_UPDATEMANY_LIMIT,
+      });
 
-    console.log(
-      `Summary of releaseAllHoldCommissions: ${JSON.stringify(
-        [
-          "trackCommissionStatusUpdate",
-          ...partnerIds.map((partnerId) => `syncTotalCommissions:${partnerId}`),
-        ].map((step, index) => ({
-          step,
-          result: results[index],
-        })),
-      )}`,
-    );
-  }
+      if (commissionsToRelease.length === 0) {
+        console.log(`No hold commissions to release for program ${programId}`);
+        break;
+      }
 
-  if (totalReleased > 0) {
-    try {
-      await triggerAggregateDueCommissionsCronJob(programId);
-    } catch (error) {
-      console.error(
-        `Failed to trigger aggregate due commissions for program ${programId}`,
-        error,
+      // Update the commissions to pending
+      const { count: updatedCount } = await prisma.commission.updateMany({
+        where: {
+          id: {
+            in: commissionsToRelease.map((c) => c.id),
+          },
+          status: CommissionStatus.hold,
+        },
+        data: {
+          status: CommissionStatus.pending,
+        },
+      });
+
+      if (updatedCount === 0) {
+        console.log(`No hold commissions to release for program ${programId}`);
+        break;
+      }
+
+      totalReleased += updatedCount;
+
+      const partnerIds = Array.from(
+        new Set(commissionsToRelease.map((c) => c.partnerId)),
       );
+
+      // Get the released commissions
+      const releasedCommissions =
+        updatedCount < commissionsToRelease.length
+          ? await prisma.commission
+              .findMany({
+                where: {
+                  id: {
+                    in: commissionsToRelease.map((c) => c.id),
+                  },
+                  status: CommissionStatus.pending,
+                },
+                select: {
+                  id: true,
+                  amount: true,
+                  earnings: true,
+                  status: true,
+                },
+              })
+              .then((commissions) =>
+                commissions.map((c) => ({
+                  ...c,
+                  // need to make sure the releasedCommissions have the old "hold" status for the status update log
+                  status: CommissionStatus.hold,
+                })),
+              )
+          : commissionsToRelease;
+
+      const results = await Promise.allSettled([
+        trackCommissionStatusUpdate({
+          workspaceId: program.workspaceId,
+          programId,
+          commissions: releasedCommissions,
+          newStatus: CommissionStatus.pending,
+        }),
+        ...partnerIds.map((partnerId) =>
+          syncTotalCommissions({
+            partnerId,
+            programId,
+          }),
+        ),
+      ]);
+
+      console.log(
+        `Summary of releaseAllHoldCommissions: ${JSON.stringify(
+          [
+            "trackCommissionStatusUpdate",
+            ...partnerIds.map(
+              (partnerId) => `syncTotalCommissions:${partnerId}`,
+            ),
+          ].map((step, index) => ({
+            step,
+            result: results[index],
+          })),
+        )}`,
+      );
+    }
+  } finally {
+    // Runs even when a later pass throws, so the rows that earlier
+    // passes released still get aggregated
+    if (totalReleased > 0) {
+      try {
+        await triggerAggregateDueCommissionsCronJob(programId);
+      } catch (error) {
+        console.error(
+          `Failed to trigger aggregate due commissions for program ${programId}`,
+          error,
+        );
+      }
     }
   }
 
