@@ -142,8 +142,7 @@ export const POST = withCron(async ({ rawBody }) => {
           ]
         : []),
 
-      // Queue external payouts (doesn't rely on fundsAvailable)
-      queueExternalPayouts(invoice),
+      ...(isProductionWorkspace ? [queueExternalPayouts(invoice)] : []),
 
       // For non-production workspaces, mock the payout completion
       ...(!isProductionWorkspace

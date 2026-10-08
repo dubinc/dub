@@ -278,7 +278,7 @@ export async function updateWorkspacePlan({
       console.log(`Reactivated program for workspace ${workspace.id}.`);
     }
 
-    await Promise.all([
+    await Promise.allSettled([
       queueCreateStagingWorkspace(updatedWorkspace),
       syncStagingWorkspaceJob.dispatch({
         action: "sync-workspace",

@@ -5,15 +5,14 @@ import { WebhookHandlerInput, WebhookHandlerResponse } from "./types";
 
 // Handle event "account.application.deauthorized"
 export async function accountApplicationDeauthorized({
-  event,
   mode,
   workspace,
 }: WebhookHandlerInput<Stripe.AccountApplicationDeauthorizedEvent>): Promise<WebhookHandlerResponse> {
   const stripeAccountId = workspace.stripeConnectId!;
 
-  if (mode === "test") {
+  if (mode !== "live") {
     return {
-      response: `Stripe Connect account ${stripeAccountId} deauthorized in test mode. Skipping...`,
+      response: `Stripe Connect account ${stripeAccountId} deauthorized in ${mode} mode. Skipping...`,
     };
   }
 
