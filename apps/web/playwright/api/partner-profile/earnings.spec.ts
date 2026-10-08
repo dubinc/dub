@@ -112,7 +112,9 @@ test.describe("GET /partner-profile/earnings", () => {
       );
 
       expect(status).toEqual(200);
-      expect(data.map((e) => e.earnings).sort()).toEqual([1000, 2500]);
+      expect(data.map((e) => e.earnings).sort((a, b) => a - b)).toEqual([
+        1000, 2500,
+      ]);
       for (const earning of data) {
         expect(earning.program).toMatchObject({
           id: program.id,

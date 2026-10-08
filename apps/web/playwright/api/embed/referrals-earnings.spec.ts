@@ -68,9 +68,9 @@ test("GET /embed/referrals/earnings - masks the customer email until data sharin
       }>("/api/embed/referrals/earnings?withTotal=true");
       expect(masked.status).toEqual(200);
       expect(masked.data.total).toEqual(2);
-      expect(masked.data.data.map((e) => e.earnings).sort()).toEqual([
-        1000, 2500,
-      ]);
+      expect(
+        masked.data.data.map((e) => e.earnings).sort((a, b) => a - b),
+      ).toEqual([1000, 2500]);
       for (const earning of masked.data.data) {
         expect(earning.customer?.email).not.toEqual(email);
         expect(earning.customer?.email).toContain("*");
