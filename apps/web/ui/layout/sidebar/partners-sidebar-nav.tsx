@@ -73,7 +73,8 @@ const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({
     description:
       "View all your enrolled programs and review invitations to other programs.",
     icon: GridIcon,
-    href: "/overview",
+    // the middleware sends "/" to /overview or /programs, depending on the partner's programs
+    href: "/",
     active: ["/overview", "/programs", "/marketplace"].some((p) =>
       pathname.startsWith(p),
     ),

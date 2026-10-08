@@ -74,7 +74,7 @@ export function PartnerProgramDropdown() {
             <div className="p-2">
               <div className="mt-0.5 flex flex-col gap-0.5">
                 <Link
-                  href="/overview"
+                  href="/"
                   className={cn(
                     "flex items-center gap-x-2.5 rounded-md px-2.5 py-2 text-base transition-all duration-75 hover:bg-neutral-200/50 active:bg-neutral-200/80 sm:text-sm",
                     "outline-none focus-visible:ring-2 focus-visible:ring-black/50",
