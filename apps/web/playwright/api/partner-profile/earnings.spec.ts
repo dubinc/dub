@@ -27,6 +27,16 @@ test.describe("GET /partner-profile/earnings", () => {
   let programSlug: string;
   let partnerLinkIds: string[];
 
+  // a second ordinary program in its own workspace, with customer data sharing on
+  const programB = {
+    workspaceId: createId({ prefix: "ws_" }),
+    id: createId({ prefix: "prog_" }),
+    slug: `pw-earnings-${nanoid(8).toLowerCase()}`,
+    linkId: createId({ prefix: "link_" }),
+    customerId: createId({ prefix: "cus_" }),
+    customerEmail: `earnings-b-${nanoid(8).toLowerCase()}@example.com`,
+  };
+
   test.beforeAll(async ({ api, program }) => {
     const { data: partner } = await createPartner(api);
     partnerId = partner.id;
@@ -61,7 +71,7 @@ test.describe("GET /partner-profile/earnings", () => {
       select: { slug: true },
     }));
 
-    // two commissions in the test program, and one in the network program, which must be excluded
+    // two commissions in the test program (program A), and one in the network program, which must be excluded
     // (created now, because the "all" interval starts when the test program started)
     await prisma.commission.createMany({
       data: [
@@ -79,11 +89,78 @@ test.describe("GET /partner-profile/earnings", () => {
         earnings,
       })),
     });
+
+    await prisma.project.create({
+      data: {
+        id: programB.workspaceId,
+        name: "Playwright Earnings B",
+        slug: programB.slug,
+        billingCycleStart: 1,
+      },
+    });
+    await prisma.program.create({
+      data: {
+        id: programB.id,
+        workspaceId: programB.workspaceId,
+        name: "Playwright Earnings B",
+        slug: programB.slug,
+        defaultFolderId: createId({ prefix: "fold_" }),
+        defaultGroupId: createId({ prefix: "grp_" }),
+      },
+    });
+    await prisma.programEnrollment.create({
+      data: {
+        id: createId({ prefix: "pge_" }),
+        partnerId: partner.id,
+        programId: programB.id,
+        status: "approved",
+        customerDataSharingEnabledAt: new Date(),
+      },
+    });
+    const linkKey = `pw-earnings-${nanoid(8).toLowerCase()}`;
+    await prisma.link.create({
+      data: {
+        id: programB.linkId,
+        domain: TEST_WORKSPACE.program.domain,
+        key: linkKey,
+        url: TEST_WORKSPACE.program.url,
+        shortLink: `https://${TEST_WORKSPACE.program.domain}/${linkKey}`,
+        projectId: programB.workspaceId,
+        programId: programB.id,
+        partnerId: partner.id,
+      },
+    });
+    await prisma.customer.create({
+      data: {
+        id: programB.customerId,
+        name: "Earnings B Customer",
+        email: programB.customerEmail,
+        projectId: programB.workspaceId,
+      },
+    });
+    await prisma.commission.create({
+      data: {
+        id: createId({ prefix: "cm_" }),
+        programId: programB.id,
+        partnerId: partner.id,
+        linkId: programB.linkId,
+        customerId: programB.customerId,
+        type: "custom",
+        status: "pending",
+        amount: 0,
+        quantity: 1,
+        earnings: 4000,
+      },
+    });
   });
 
   test.afterAll(async () => {
     if (userId) await prisma.user.delete({ where: { id: userId } });
     await deletePartner(partnerId);
+    await prisma.customer.deleteMany({ where: { id: programB.customerId } });
+    // Prisma's emulated relations break program and project deletes, so use raw SQL like deletePartner
+    await prisma.$executeRaw`DELETE FROM Program WHERE id = ${programB.id}`;
+    await prisma.$executeRaw`DELETE FROM Project WHERE id = ${programB.workspaceId}`;
   });
 
   const withPartnerApi = async (
@@ -113,19 +190,19 @@ test.describe("GET /partner-profile/earnings", () => {
       );
 
       expect(status).toEqual(200);
-      expect(data.map((e) => e.earnings).sort((a, b) => a - b)).toEqual([
-        1000, 2500,
+      expect(
+        data
+          .map((e) => [e.earnings, e.program.id] as const)
+          .sort(([a], [b]) => a - b),
+      ).toEqual([
+        [1000, program.id],
+        [2500, program.id],
+        [4000, programB.id],
       ]);
-      for (const earning of data) {
-        expect(earning.program).toMatchObject({
-          id: program.id,
-          slug: programSlug,
-        });
-      }
 
       expect(
         await partnerApi.get("/api/partner-profile/earnings/count"),
-      ).toMatchObject({ status: 200, data: { count: 2 } });
+      ).toMatchObject({ status: 200, data: { count: 3 } });
     });
   });
 
@@ -133,7 +210,7 @@ test.describe("GET /partner-profile/earnings", () => {
     await withPartnerApi(playwright, async (partnerApi) => {
       expect(
         await partnerApi.get("/api/partner-profile/earnings/count?type=custom"),
-      ).toMatchObject({ status: 200, data: { count: 2 } });
+      ).toMatchObject({ status: 200, data: { count: 3 } });
 
       expect(
         await partnerApi.get("/api/partner-profile/earnings/count?type=sale"),
@@ -151,7 +228,7 @@ test.describe("GET /partner-profile/earnings", () => {
         >(`/api/partner-profile/earnings/count?groupBy=${groupBy}`);
 
         expect(status).toEqual(200);
-        expect(data.reduce((sum, group) => sum + group._count, 0)).toEqual(2);
+        expect(data.reduce((sum, group) => sum + group._count, 0)).toEqual(3);
       }
     });
   });
@@ -165,6 +242,12 @@ test.describe("GET /partner-profile/earnings", () => {
         expect(status).toEqual(200);
         expect(data).toHaveLength(2);
       }
+
+      const { status, data } = await partnerApi.get<PartnerProfileEarning[]>(
+        `/api/partner-profile/earnings?programIdOrSlug=${programB.slug}`,
+      );
+      expect(status).toEqual(200);
+      expect(data.map((e) => e.earnings)).toEqual([4000]);
     });
   });
 
@@ -202,6 +285,7 @@ test.describe("GET /partner-profile/earnings", () => {
 
       expect(status).toEqual(200);
       expect(data).toEqual([
+        expect.objectContaining({ id: programB.id, earnings: 4000 }),
         expect.objectContaining({ id: program.id, earnings: 3500 }),
       ]);
     });
@@ -214,10 +298,13 @@ test.describe("GET /partner-profile/earnings", () => {
       );
 
       expect(status).toEqual(200);
-      expect(data.reduce((sum, d) => sum + d.earnings, 0)).toEqual(3500);
+      expect(data.reduce((sum, d) => sum + d.earnings, 0)).toEqual(7500);
       expect(
         data.reduce((sum, d) => sum + (d.data?.[program.id] ?? 0), 0),
       ).toEqual(3500);
+      expect(
+        data.reduce((sum, d) => sum + (d.data?.[programB.id] ?? 0), 0),
+      ).toEqual(4000);
       expect(data.some((d) => d.data?.[NETWORK_PROGRAM_ID])).toBe(false);
     });
   });
@@ -232,7 +319,7 @@ test.describe("GET /partner-profile/earnings", () => {
       );
       expect(allTime.status).toEqual(200);
       expect(allTime.data.reduce((sum, d) => sum + d.earnings, 0)).toEqual(
-        3500,
+        7500,
       );
 
       const byLink = await partnerApi.get<TimeseriesPoint[]>(
@@ -242,14 +329,20 @@ test.describe("GET /partner-profile/earnings", () => {
       expect(byLink.data.reduce((sum, d) => sum + d.earnings, 0)).toEqual(3500);
       expect(Object.keys(byLink.data[0].data ?? {})).toEqual(partnerLinkIds);
 
-      // across programs, only links with earnings are included, and the test commissions have no link
+      // across programs, only links with earnings are included (program A's commissions have no link)
       const byLinkAcrossPrograms = await partnerApi.get<TimeseriesPoint[]>(
         "/api/partner-profile/earnings/timeseries?groupBy=linkId&timezone=UTC",
       );
       expect(byLinkAcrossPrograms.status).toEqual(200);
       for (const point of byLinkAcrossPrograms.data) {
-        expect(point.data).toEqual({});
+        expect(Object.keys(point.data ?? {})).toEqual([programB.linkId]);
       }
+      expect(
+        byLinkAcrossPrograms.data.reduce(
+          (sum, point) => sum + (point.data?.[programB.linkId] ?? 0),
+          0,
+        ),
+      ).toEqual(4000);
     });
   });
 
@@ -298,7 +391,9 @@ test.describe("GET /partner-profile/earnings", () => {
 
         expect(status).toEqual(200);
         for (const point of data) {
-          expect(Object.keys(point.data ?? {})).toEqual([linkId]);
+          expect(Object.keys(point.data ?? {}).sort()).toEqual(
+            [linkId, programB.linkId].sort(),
+          );
         }
         expect(
           data.reduce((sum, point) => sum + (point.data?.[linkId] ?? 0), 0),
@@ -346,17 +441,22 @@ test.describe("GET /partner-profile/earnings", () => {
       });
 
       await withPartnerApi(playwright, async (partnerApi) => {
-        const getCustomerEmail = async () => {
+        const getCustomerEmail = async (id = customerId) => {
           const { status, data } = await partnerApi.get<
             { id: string | null; email: string }[]
           >("/api/partner-profile/earnings/count?groupBy=customerId");
           expect(status).toEqual(200);
-          return data.find((group) => group.id === customerId)?.email;
+          return data.find((group) => group.id === id)?.email;
         };
 
         const masked = await getCustomerEmail();
         expect(masked).not.toEqual(email);
         expect(masked).toContain("*");
+
+        // program B shares customer data, so its customer's email is visible at the same time
+        expect(await getCustomerEmail(programB.customerId)).toEqual(
+          programB.customerEmail,
+        );
 
         await prisma.programEnrollment.update({
           where: enrollment,
