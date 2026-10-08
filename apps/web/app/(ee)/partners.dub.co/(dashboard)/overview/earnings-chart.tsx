@@ -1,6 +1,7 @@
 "use client";
 
 import { formatDateTooltip } from "@/lib/analytics/format-date-tooltip";
+import { testIds } from "@/lib/e2e/test-ids";
 import { usePartnerProfileEarningsTimeseries } from "@/lib/swr/use-partner-profile-earnings-timeseries";
 import useProgramEnrollments from "@/lib/swr/use-program-enrollments";
 import { buttonVariants } from "@dub/ui";
@@ -66,7 +67,10 @@ export function EarningsChart() {
   );
 
   return (
-    <div className="flex flex-col rounded-xl border border-neutral-200 bg-white lg:h-[460px]">
+    <div
+      data-testid={testIds.partnerOverview.earnings}
+      className="flex flex-col rounded-xl border border-neutral-200 bg-white lg:h-[460px]"
+    >
       <div className="px-5 py-4">
         <h2 className="pt-0.5 text-base font-semibold leading-6 text-neutral-800">
           Earnings

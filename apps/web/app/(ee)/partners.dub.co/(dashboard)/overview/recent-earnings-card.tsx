@@ -1,5 +1,6 @@
 "use client";
 
+import { testIds } from "@/lib/e2e/test-ids";
 import { usePartnerProfileEarnings } from "@/lib/swr/use-partner-profile-earnings";
 import { CommissionTypeIcon } from "@/ui/partners/comission-type-icon";
 import { CommissionStatusBadges } from "@/ui/partners/commission-status-badges";
@@ -25,7 +26,11 @@ export function RecentEarningsCard() {
   });
 
   return (
-    <OverviewCard title="Recent earnings" className="rounded-2xl">
+    <OverviewCard
+      title="Recent earnings"
+      className="rounded-2xl"
+      testId={testIds.partnerOverview.recentEarnings}
+    >
       <OverviewCardList
         items={earnings}
         rowCount={6}

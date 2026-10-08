@@ -1,6 +1,7 @@
 "use client";
 
 import { DUB_PARTNERS_ANALYTICS_INTERVAL } from "@/lib/analytics/constants";
+import { testIds } from "@/lib/e2e/test-ids";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
 import { PayoutsCard } from "../programs/[programSlug]/(enrolled)/payouts-card";
@@ -22,7 +23,9 @@ export function PartnerOverviewPageClient() {
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_397px]">
           <EarningsChart />
           <div className="flex flex-col gap-3">
-            <PayoutsCard />
+            <div data-testid={testIds.partnerOverview.recentPayouts}>
+              <PayoutsCard />
+            </div>
             <TasksCard />
           </div>
         </div>

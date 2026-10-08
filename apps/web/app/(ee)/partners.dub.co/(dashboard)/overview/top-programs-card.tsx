@@ -1,5 +1,6 @@
 "use client";
 
+import { testIds } from "@/lib/e2e/test-ids";
 import { GridIcon } from "@dub/ui/icons";
 import { cn, currencyFormatter } from "@dub/utils";
 import Link from "next/link";
@@ -22,6 +23,7 @@ export function TopProgramsCard() {
       title="Top programs by earnings"
       viewAllHref="/programs"
       className="rounded-2xl"
+      testId={testIds.partnerOverview.topPrograms}
     >
       <OverviewCardList
         items={programs}

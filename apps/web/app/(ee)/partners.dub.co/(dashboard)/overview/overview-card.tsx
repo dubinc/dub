@@ -7,15 +7,18 @@ export function OverviewCard({
   title,
   viewAllHref,
   className,
+  testId,
   children,
 }: {
   title: ReactNode;
   viewAllHref?: string;
   className?: string;
+  testId?: string;
   children: ReactNode;
 }) {
   return (
     <div
+      data-testid={testId}
       className={cn(
         "flex flex-col rounded-xl border border-neutral-200 bg-white",
         className,

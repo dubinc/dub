@@ -1,5 +1,6 @@
 "use client";
 
+import { testIds } from "@/lib/e2e/test-ids";
 import { useProgramMessagesCount } from "@/lib/messages/hooks/use-program-messages-count";
 import useProgramEnrollmentsCount from "@/lib/swr/use-program-enrollments-count";
 import { type Icon } from "@dub/ui";
@@ -18,7 +19,7 @@ export function TasksCard() {
   });
 
   return (
-    <OverviewCard title="Tasks">
+    <OverviewCard title="Tasks" testId={testIds.partnerOverview.tasks}>
       <div className="flex flex-col px-2 pb-2">
         <TaskRow
           icon={Msgs}

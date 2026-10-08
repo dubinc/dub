@@ -1,5 +1,6 @@
 "use client";
 
+import { testIds } from "@/lib/e2e/test-ids";
 import { usePartnerProfileTopEarnings } from "@/lib/swr/use-partner-profile-top-earnings";
 import { Hyperlink } from "@dub/ui/icons";
 import { currencyFormatter, getPrettyUrl } from "@dub/utils";
@@ -23,7 +24,11 @@ export function TopLinksCard() {
   });
 
   return (
-    <OverviewCard title="Top links by earnings" className="rounded-2xl">
+    <OverviewCard
+      title="Top links by earnings"
+      className="rounded-2xl"
+      testId={testIds.partnerOverview.topLinks}
+    >
       <OverviewCardList
         items={links}
         rowCount={6}
