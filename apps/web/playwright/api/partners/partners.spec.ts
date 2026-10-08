@@ -371,3 +371,52 @@ test("POST /partners – with tagNames", async ({ api, program }) => {
     await deletePartnerTag(partnerTagId);
   }
 });
+
+test("POST /partners – existing enrollment returns current tags", async ({
+  api,
+  program,
+}) => {
+  let partnerId: string | undefined;
+  let assignedTagId: string | undefined;
+  let otherTagId: string | undefined;
+
+  try {
+    const assignedTag = await createPartnerTag(program.id);
+    const otherTag = await createPartnerTag(program.id);
+    assignedTagId = assignedTag.id;
+    otherTagId = otherTag.id;
+    const email = randomPartnerEmail();
+
+    const { status: firstStatus, data: firstData } = await createPartner(api, {
+      email,
+      tagNames: [assignedTag.name],
+    });
+    partnerId = firstData.id;
+
+    expect(firstStatus).toEqual(201);
+
+    const { status, data } = await createPartner(api, {
+      email,
+      tagNames: [otherTag.name],
+    });
+
+    expect(status).toEqual(201);
+    const parsed = EnrolledPartnerSchema.parse(data);
+    expect(parsed.id).toEqual(partnerId);
+    expect(parsed.tags).toEqual([
+      {
+        id: assignedTag.id,
+        name: assignedTag.name,
+      },
+    ]);
+  } finally {
+    if (partnerId) {
+      await prisma.programPartnerTag.deleteMany({
+        where: { partnerId },
+      });
+    }
+    await deletePartner(partnerId);
+    await deletePartnerTag(assignedTagId);
+    await deletePartnerTag(otherTagId);
+  }
+});

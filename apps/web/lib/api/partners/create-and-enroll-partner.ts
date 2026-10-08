@@ -14,7 +14,11 @@ import { waitUntil } from "@vercel/functions";
 import { DubApiError } from "../errors";
 import { getGroupOrThrow } from "../groups/get-group-or-throw";
 import { throwIfInvalidPartnerTags } from "../partner-tags/throw-if-invalid-partner-tags";
-import { createOrGetProgramEnrollment } from "./create-or-get-program-enrollment";
+import {
+  createOrGetProgramEnrollment,
+  partnerTagsFromEnrollment,
+  programPartnerTagsInclude,
+} from "./create-or-get-program-enrollment";
 import { createPartnerDefaultLinks } from "./create-partner-default-links";
 import { getOrCreatePartner } from "./get-or-create-partner";
 import { queuePartnerSearchSync } from "./queue-partner-search-sync";
@@ -68,6 +72,7 @@ export const createAndEnrollPartner = async ({
           },
         },
         links: true,
+        programPartnerTags: programPartnerTagsInclude(program.id),
       },
     });
 
@@ -84,6 +89,7 @@ export const createAndEnrollPartner = async ({
           ...programEnrollment,
           id: programEnrollment.partner.id,
           links: programEnrollment.links,
+          tags: partnerTagsFromEnrollment(programEnrollment.programPartnerTags),
           ...polyfillSocialMediaFields(programEnrollment.partner.platforms),
         });
         // else, if the passed tenantId is different from the existing enrollment...
@@ -108,6 +114,7 @@ export const createAndEnrollPartner = async ({
               },
             },
             links: true,
+            programPartnerTags: programPartnerTagsInclude(program.id),
           },
         });
 
@@ -116,6 +123,9 @@ export const createAndEnrollPartner = async ({
           ...updatedProgramEnrollment,
           id: updatedProgramEnrollment.partner.id,
           links: updatedProgramEnrollment.links,
+          tags: partnerTagsFromEnrollment(
+            updatedProgramEnrollment.programPartnerTags,
+          ),
           ...polyfillSocialMediaFields(
             updatedProgramEnrollment.partner.platforms,
           ),
@@ -187,6 +197,7 @@ export const createAndEnrollPartner = async ({
       ...programEnrollment,
       id: programEnrollment.partner.id,
       links: programEnrollment.links,
+      tags: partnerTagsFromEnrollment(programEnrollment.programPartnerTags),
       ...polyfillSocialMediaFields(programEnrollment.partner.platforms),
     });
   }
@@ -201,6 +212,9 @@ export const createAndEnrollPartner = async ({
       })),
     });
   }
+
+  // Queue an index update because a new enrollment was created.
+  waitUntil(queuePartnerSearchSync({ enrollmentIds: [programEnrollment.id] }));
 
   // Create the partner links based on group defaults
   const links = await createPartnerDefaultLinks({
@@ -232,17 +246,12 @@ export const createAndEnrollPartner = async ({
     ...programEnrollment,
     id: programEnrollment.partner.id,
     links,
-    ...(partnerTags.length > 0 && { tags: partnerTags }),
+    tags: partnerTags,
     ...polyfillSocialMediaFields(programEnrollment.partner.platforms),
   });
 
   waitUntil(
     Promise.allSettled([
-      // Queue an index update because a new enrollment was created.
-      queuePartnerSearchSync({
-        enrollmentIds: [programEnrollment.id],
-      }),
-
       // Status is always "invited" or "approved" here — no caller passes "pending"
       prisma.project.update({
         where: {
