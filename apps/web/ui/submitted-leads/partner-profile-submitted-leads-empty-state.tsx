@@ -90,7 +90,7 @@ export function PartnerProfileSubmittedLeadsEmptyState() {
             ? "Submit leads and track their progress through the sales process."
             : "You can still earn from regular referrals using your links and codes."
         }
-        learnMoreHref="https://dub.co/help/article/submitted-referrals"
+        learnMoreHref="https://dub.co/help/article/submitted-leads"
         addButton={
           submittedLeadsEnabled ? (
             <Button
