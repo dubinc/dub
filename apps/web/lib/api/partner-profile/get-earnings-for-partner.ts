@@ -5,9 +5,9 @@ import {
   getPartnerEarningsQuerySchema,
   PartnerProfileEarningsSchema,
 } from "@/lib/zod/schemas/partner-profile";
-import { NETWORK_PROGRAM_ID } from "@dub/utils";
 import { CommissionType, Partner } from "@prisma/client";
 import * as z from "zod/v4";
+import { getEarningsProgramFilter } from "./get-earnings-program-id";
 import { obfuscateCustomerEmail } from "./obfuscate-customer-email";
 
 interface GetEarningsForPartnerParams
@@ -49,9 +49,7 @@ export async function getEarningsForPartner(
       earnings: {
         not: 0,
       },
-      programId: programId ?? {
-        not: NETWORK_PROGRAM_ID,
-      },
+      programId: getEarningsProgramFilter(programId),
       partnerId,
       status,
       type,

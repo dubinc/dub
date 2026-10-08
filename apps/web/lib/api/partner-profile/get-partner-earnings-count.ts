@@ -2,9 +2,9 @@ import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
 import { generateRandomName } from "@/lib/names";
 import { prisma } from "@/lib/prisma";
 import { getPartnerEarningsCountQuerySchema } from "@/lib/zod/schemas/partner-profile";
-import { NETWORK_PROGRAM_ID } from "@dub/utils";
 import { Prisma } from "@prisma/client";
 import * as z from "zod/v4";
+import { getEarningsProgramFilter } from "./get-earnings-program-id";
 import { obfuscateCustomerEmail } from "./obfuscate-customer-email";
 
 export async function getPartnerEarningsCount({
@@ -40,9 +40,7 @@ export async function getPartnerEarningsCount({
     earnings: {
       not: 0,
     },
-    programId: programId ?? {
-      not: NETWORK_PROGRAM_ID,
-    },
+    programId: getEarningsProgramFilter(programId),
     partnerId,
     ...(payoutId && { payoutId }),
     createdAt: {

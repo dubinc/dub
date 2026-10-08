@@ -33,3 +33,8 @@ export async function getEarningsProgramId({
 
   return programId;
 }
+
+// Commission.programId filter for one program, or for all programs except the network program
+export function getEarningsProgramFilter(programId?: string) {
+  return programId ?? { not: NETWORK_PROGRAM_ID };
+}

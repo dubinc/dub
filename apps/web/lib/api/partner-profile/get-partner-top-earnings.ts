@@ -5,9 +5,9 @@ import {
   PartnerProfileTopLinkEarningsSchema,
   PartnerProfileTopProgramEarningsSchema,
 } from "@/lib/zod/schemas/partner-profile";
-import { NETWORK_PROGRAM_ID } from "@dub/utils";
 import { Prisma } from "@prisma/client";
 import * as z from "zod/v4";
+import { getEarningsProgramFilter } from "./get-earnings-program-id";
 
 const programSelect = {
   id: true,
@@ -42,9 +42,7 @@ export async function getPartnerTopEarnings({
     earnings: {
       not: 0,
     },
-    programId: programId ?? {
-      not: NETWORK_PROGRAM_ID,
-    },
+    programId: getEarningsProgramFilter(programId),
     partnerId,
     ...(type && { type }),
     ...(status && { status }),
