@@ -27,6 +27,7 @@ import { DiscountSchema } from "./discount";
 import { LinkSchema } from "./links";
 import { getPaginationQuerySchema } from "./misc";
 import { payoutsQuerySchema } from "./payouts";
+import { ProgramSchema } from "./programs";
 import { RewardSchema } from "./rewards";
 import { submittedLeadFormDataSchema } from "./submitted-lead-form";
 import { centsSchema } from "./utils";
@@ -87,6 +88,37 @@ export const getPartnerEarningsCountQuerySchema = getCommissionsCountQuerySchema
 export const getPartnerEarningsTimeseriesSchema =
   getPartnerEarningsCountQuerySchema.extend({
     timezone: z.string().optional(),
+  });
+
+const programIdOrSlugSchema = z
+  .string()
+  .optional()
+  .describe(
+    "The ID or slug of the program to filter earnings by. If not provided, earnings across all programs are returned.",
+  );
+
+export const PartnerProfileEarningsSchema = PartnerEarningsSchema.extend({
+  program: ProgramSchema.pick({
+    id: true,
+    name: true,
+    slug: true,
+    logo: true,
+  }),
+});
+
+export const partnerProfileEarningsQuerySchema =
+  getPartnerEarningsQuerySchema.extend({
+    programIdOrSlug: programIdOrSlugSchema,
+  });
+
+export const partnerProfileEarningsCountQuerySchema =
+  getPartnerEarningsCountQuerySchema.extend({
+    programIdOrSlug: programIdOrSlugSchema,
+  });
+
+export const partnerProfileEarningsTimeseriesQuerySchema =
+  getPartnerEarningsTimeseriesSchema.extend({
+    programIdOrSlug: programIdOrSlugSchema,
   });
 
 export const PartnerProfileLinkSchema = LinkSchema.pick({

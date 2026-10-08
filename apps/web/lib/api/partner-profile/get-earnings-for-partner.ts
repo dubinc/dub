@@ -3,7 +3,7 @@ import { generateRandomName } from "@/lib/names";
 import { prisma } from "@/lib/prisma";
 import {
   getPartnerEarningsQuerySchema,
-  PartnerEarningsSchema,
+  PartnerProfileEarningsSchema,
 } from "@/lib/zod/schemas/partner-profile";
 import { NETWORK_PROGRAM_ID } from "@dub/utils";
 import { CommissionType, Partner } from "@prisma/client";
@@ -79,6 +79,14 @@ export async function getEarningsForPartner(
           url: true,
         },
       },
+      program: {
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+          logo: true,
+        },
+      },
       programEnrollment: {
         select: {
           customerDataSharingEnabledAt: true,
@@ -113,7 +121,7 @@ export async function getEarningsForPartner(
     });
   }
 
-  return z.array(PartnerEarningsSchema).parse(
+  return z.array(PartnerProfileEarningsSchema).parse(
     earnings.map(({ programEnrollment, ...e }) => {
       if (e.type === CommissionType.referral && e.sourcePartnerId) {
         const sourcePartner = sourcePartners.find(

@@ -5,6 +5,7 @@ import {
   PartnerEarningsSchema,
   partnerPayoutMethodSchema,
   PartnerProfileCustomerSchema,
+  PartnerProfileEarningsSchema,
   PartnerProfileLinkSchema,
   partnerSubmittedLeadsCountByStatusSchema,
   partnerUserSchema,
@@ -510,6 +511,10 @@ export type CommissionsCount = Record<
 export type CommissionResponse = z.infer<typeof CommissionEnrichedSchema>;
 
 export type PartnerEarningsResponse = z.infer<typeof PartnerEarningsSchema>;
+
+export type PartnerProfileEarningsResponse = z.infer<
+  typeof PartnerProfileEarningsSchema
+>;
 
 export type CustomerProps = z.infer<typeof CustomerSchema>;
 
