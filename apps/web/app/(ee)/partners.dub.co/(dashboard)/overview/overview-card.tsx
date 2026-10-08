@@ -22,7 +22,7 @@ export function OverviewCard({
       )}
     >
       <div className="flex items-start justify-between gap-2 px-5 py-4">
-        <h2 className="pt-0.5 text-base font-semibold leading-6 text-neutral-800">
+        <h2 className="min-h-7 pt-0.5 text-base font-semibold leading-6 text-neutral-800">
           {title}
         </h2>
         {viewAllHref && <ViewAllButton href={viewAllHref} />}

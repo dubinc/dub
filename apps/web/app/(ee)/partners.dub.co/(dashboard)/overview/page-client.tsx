@@ -6,6 +6,7 @@ import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
 import { PayoutsCard } from "../programs/[programSlug]/(enrolled)/payouts-card";
 import { EarningsChart } from "./earnings-chart";
 import { TasksCard } from "./tasks-card";
+import { TopLinksCard } from "./top-links-card";
 import { TopProgramsCard } from "./top-programs-card";
 
 export function PartnerOverviewPageClient() {
@@ -27,6 +28,7 @@ export function PartnerOverviewPageClient() {
       </div>
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <TopProgramsCard />
+        <TopLinksCard />
       </div>
     </PageWidthWrapper>
   );
