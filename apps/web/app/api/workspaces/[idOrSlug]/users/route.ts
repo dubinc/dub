@@ -187,7 +187,7 @@ export const DELETE = withWorkspace(
       });
     }
 
-    await Promise.allSettled([
+    await Promise.all([
       // Remove the user from the workspace
       prisma.projectUsers.delete({
         where: {
@@ -235,6 +235,8 @@ export const DELETE = withWorkspace(
       });
     }
 
-    return NextResponse.json({});
+    return NextResponse.json({
+      userId,
+    });
   },
 );

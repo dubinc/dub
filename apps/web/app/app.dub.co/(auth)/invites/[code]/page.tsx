@@ -81,11 +81,13 @@ async function VerifyInvite({ code }: { code: string }) {
 
   // check if user is already in the workspace
   if (workspace.users.length > 0) {
-    await syncStagingWorkspaceJob.dispatch({
-      action: "add-member",
-      workspaceId: workspace.id,
-      userId: session.user.id,
-    });
+    waitUntil(
+      syncStagingWorkspaceJob.dispatch({
+        action: "add-member",
+        workspaceId: workspace.id,
+        userId: session.user.id,
+      }),
+    );
 
     redirect(`/${workspace.slug}`);
   }

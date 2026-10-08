@@ -67,21 +67,9 @@ export const syncStagingWorkspaceJob = defineJob({
 
     switch (payload.action) {
       case "add-member":
-        await addMember({
-          workspace,
-          userId: payload.userId,
-        });
-        break;
-
       case "update-member-role":
-        await updateMemberRole({
-          workspace,
-          userId: payload.userId,
-        });
-        break;
-
       case "remove-member":
-        await removeMember({
+        await syncMember({
           workspace,
           userId: payload.userId,
         });
@@ -94,59 +82,7 @@ export const syncStagingWorkspaceJob = defineJob({
   },
 });
 
-// We don't sync the machine user from the production workspace to the staging workspace
-async function addMember({
-  workspace,
-  userId,
-}: {
-  workspace: ProductionWorkspace;
-  userId: string;
-}) {
-  if (!workspace.stagingWorkspaceId) {
-    return;
-  }
-
-  const member = await prisma.projectUsers.findUnique({
-    where: {
-      userId_projectId: {
-        userId,
-        projectId: workspace.id,
-      },
-    },
-    select: {
-      role: true,
-      user: {
-        select: {
-          isMachine: true,
-        },
-      },
-    },
-  });
-
-  if (!member || member.user.isMachine) {
-    return;
-  }
-
-  await prisma.projectUsers.upsert({
-    where: {
-      userId_projectId: {
-        userId,
-        projectId: workspace.stagingWorkspaceId,
-      },
-    },
-    create: {
-      projectId: workspace.stagingWorkspaceId,
-      userId,
-      role: member.role,
-      notificationPreference: {
-        create: {},
-      },
-    },
-    update: {},
-  });
-}
-
-async function updateMemberRole({
+async function syncMember({
   workspace,
   userId,
 }: {
@@ -175,39 +111,30 @@ async function updateMemberRole({
   });
 
   // We don't sync the machine user from the production workspace to the staging workspace
-  if (!member || member.user.isMachine) {
+  if (member?.user.isMachine) {
     return;
   }
 
-  await prisma.projectUsers.upsert({
-    where: {
-      userId_projectId: {
-        userId,
+  if (member) {
+    await prisma.projectUsers.upsert({
+      where: {
+        userId_projectId: {
+          userId,
+          projectId: workspace.stagingWorkspaceId,
+        },
+      },
+      create: {
         projectId: workspace.stagingWorkspaceId,
+        userId,
+        role: member.role,
+        notificationPreference: {
+          create: {},
+        },
       },
-    },
-    create: {
-      projectId: workspace.stagingWorkspaceId,
-      userId,
-      role: member.role,
-      notificationPreference: {
-        create: {},
+      update: {
+        role: member.role,
       },
-    },
-    update: {
-      role: member.role,
-    },
-  });
-}
-
-async function removeMember({
-  workspace,
-  userId,
-}: {
-  workspace: ProductionWorkspace;
-  userId: string;
-}) {
-  if (!workspace.stagingWorkspaceId) {
+    });
     return;
   }
 
