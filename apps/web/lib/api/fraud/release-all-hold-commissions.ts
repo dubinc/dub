@@ -3,6 +3,7 @@ import { trackCommissionStatusUpdate } from "@/lib/api/commissions/track-commiss
 import { syncTotalCommissions } from "@/lib/api/partners/sync-total-commissions";
 import { PRISMA_UPDATEMANY_LIMIT } from "@/lib/cron";
 import { prisma } from "@/lib/prisma";
+import { chunk } from "@dub/utils";
 import { CommissionStatus } from "@prisma/client";
 
 // release all hold commissions for a given program (downgrading from Advanced -> Business)
@@ -21,6 +22,7 @@ export async function releaseAllHoldCommissions({
   });
 
   let totalReleased = 0;
+  const partnerIdsToSync = new Set<string>();
 
   try {
     while (true) {
@@ -64,9 +66,7 @@ export async function releaseAllHoldCommissions({
 
       totalReleased += updatedCount;
 
-      const partnerIds = Array.from(
-        new Set(commissionsToRelease.map((c) => c.partnerId)),
-      );
+      commissionsToRelease.forEach((c) => partnerIdsToSync.add(c.partnerId));
 
       // Get the released commissions
       const releasedCommissions =
@@ -102,22 +102,11 @@ export async function releaseAllHoldCommissions({
           commissions: releasedCommissions,
           newStatus: CommissionStatus.pending,
         }),
-        ...partnerIds.map((partnerId) =>
-          syncTotalCommissions({
-            partnerId,
-            programId,
-          }),
-        ),
       ]);
 
       console.log(
         `Summary of releaseAllHoldCommissions: ${JSON.stringify(
-          [
-            "trackCommissionStatusUpdate",
-            ...partnerIds.map(
-              (partnerId) => `syncTotalCommissions:${partnerId}`,
-            ),
-          ].map((step, index) => ({
+          ["trackCommissionStatusUpdate"].map((step, index) => ({
             step,
             result: results[index],
           })),
@@ -126,7 +115,29 @@ export async function releaseAllHoldCommissions({
     }
   } finally {
     // Runs even when a later pass throws, so the rows that earlier
-    // passes released still get aggregated
+    // passes released still get synced and aggregated.
+    // Each partner is synced once here instead of once per pass.
+    for (const partnerIds of chunk([...partnerIdsToSync], 100)) {
+      const results = await Promise.allSettled(
+        partnerIds.map((partnerId) =>
+          syncTotalCommissions({
+            partnerId,
+            programId,
+          }),
+        ),
+      );
+
+      const failedPartnerIds = partnerIds.filter(
+        (_, index) => results[index].status === "rejected",
+      );
+
+      if (failedPartnerIds.length > 0) {
+        console.error(
+          `Failed to sync total commissions for partners ${failedPartnerIds.join(", ")} in program ${programId}`,
+        );
+      }
+    }
+
     if (totalReleased > 0) {
       try {
         await triggerAggregateDueCommissionsCronJob(programId);
