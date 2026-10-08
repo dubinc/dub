@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { getPreferredStagingSlug } from "@/lib/sandbox/staging-slug";
 import { Project } from "@prisma/client";
 import * as z from "zod/v4";
 import { defineJob } from "../index";
@@ -177,6 +178,22 @@ async function syncWorkspace({
     return;
   }
 
+  const preferredSlug = getPreferredStagingSlug(workspace.slug);
+
+  // `{slug}-staging` may belong to another workspace, in which case the staging
+  // workspace keeps its current (suffixed) slug.
+  const slugOwner = await prisma.project.findUnique({
+    where: {
+      slug: preferredSlug,
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  const canUsePreferredSlug =
+    !slugOwner || slugOwner.id === workspace.stagingWorkspaceId;
+
   await prisma.project.update({
     where: {
       id: workspace.stagingWorkspaceId,
@@ -184,7 +201,7 @@ async function syncWorkspace({
     data: {
       logo: workspace.logo,
       name: `${workspace.name} (Staging)`,
-      slug: `${workspace.slug}-staging`,
+      ...(canUsePreferredSlug && { slug: preferredSlug }),
       plan: workspace.plan,
       planTier: workspace.planTier,
       planPeriod: workspace.planPeriod,
