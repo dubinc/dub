@@ -101,7 +101,6 @@ export async function releaseAllHoldCommissions({
         commissions: releasedCommissions,
         newStatus: CommissionStatus.pending,
       }),
-      triggerAggregateDueCommissionsCronJob(programId),
       ...partnerIds.map((partnerId) =>
         syncTotalCommissions({
           partnerId,
@@ -112,14 +111,23 @@ export async function releaseAllHoldCommissions({
 
     console.log(
       `Summary of releaseAllHoldCommissions: ${JSON.stringify(
-        ["trackCommissionStatusUpdate", "triggerAggregateDueCommissions"].map(
-          (step, index) => ({
-            step,
-            result: results[index],
-          }),
-        ),
+        ["trackCommissionStatusUpdate"].map((step, index) => ({
+          step,
+          result: results[index],
+        })),
       )}`,
     );
+  }
+
+  if (totalReleased > 0) {
+    try {
+      await triggerAggregateDueCommissionsCronJob(programId);
+    } catch (error) {
+      console.error(
+        `Failed to trigger aggregate due commissions for program ${programId}`,
+        error,
+      );
+    }
   }
 
   return totalReleased;
