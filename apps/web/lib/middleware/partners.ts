@@ -10,6 +10,7 @@ import {
 } from "./utils/partners-redirect";
 
 const AUTHENTICATED_PATHS = [
+  "/overview",
   "/programs",
   "/marketplace",
   "/onboarding",
