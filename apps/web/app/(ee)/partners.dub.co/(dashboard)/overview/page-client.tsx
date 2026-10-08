@@ -5,6 +5,7 @@ import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
 import { PayoutsCard } from "../programs/[programSlug]/(enrolled)/payouts-card";
 import { EarningsChart } from "./earnings-chart";
+import { TasksCard } from "./tasks-card";
 
 export function PartnerOverviewPageClient() {
   return (
@@ -19,6 +20,7 @@ export function PartnerOverviewPageClient() {
           <EarningsChart />
           <div className="flex flex-col gap-3">
             <PayoutsCard />
+            <TasksCard />
           </div>
         </div>
       </div>
