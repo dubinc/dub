@@ -15,7 +15,14 @@ export async function getPartnerEarningsTimeseries({
 }: {
   partnerId: string;
   programId?: string; // if not provided, earnings across all programs (except the network program) are returned
-  filters: z.infer<typeof getPartnerEarningsTimeseriesSchema>;
+  filters: Omit<
+    z.infer<typeof getPartnerEarningsTimeseriesSchema>,
+    "groupBy"
+  > & {
+    groupBy?:
+      | z.infer<typeof getPartnerEarningsTimeseriesSchema>["groupBy"]
+      | "programId";
+  };
 }) {
   const {
     groupBy,
@@ -47,10 +54,18 @@ export async function getPartnerEarningsTimeseries({
   const { dateFormat, dateIncrement, startFunction, formatString } =
     sqlGranularityMap[granularity];
 
+  const groupByColumn = !groupBy
+    ? null
+    : groupBy === "type"
+      ? Prisma.sql`type`
+      : groupBy === "programId"
+        ? Prisma.sql`programId`
+        : Prisma.sql`linkId`;
+
   const query = Prisma.sql`
         SELECT 
           DATE_FORMAT(CONVERT_TZ(createdAt, "UTC", ${timezone || "UTC"}), ${dateFormat}) AS start, 
-          ${groupBy ? (groupBy === "type" ? Prisma.sql`type,` : Prisma.sql`linkId,`) : Prisma.sql``}
+          ${groupByColumn ? Prisma.sql`${groupByColumn},` : Prisma.sql``}
           SUM(earnings) AS earnings
         FROM Commission
         WHERE 
@@ -64,7 +79,7 @@ export async function getPartnerEarningsTimeseries({
           ${linkId ? Prisma.sql`AND linkId = ${linkId}` : Prisma.sql``}
           ${customerId ? Prisma.sql`AND customerId = ${customerId}` : Prisma.sql``}
           ${status ? Prisma.sql`AND status = ${status}` : Prisma.sql``}
-          GROUP BY start${groupBy ? (groupBy === "type" ? Prisma.sql`, type` : Prisma.sql`, linkId`) : Prisma.sql``}
+          GROUP BY start${groupByColumn ? Prisma.sql`, ${groupByColumn}` : Prisma.sql``}
         ORDER BY start ASC;
       `;
 
@@ -74,8 +89,25 @@ export async function getPartnerEarningsTimeseries({
       earnings: number;
       type?: string;
       linkId?: string;
+      programId?: string;
     }[]
   >(query);
+
+  const emptyGroups: Record<string, number> = !groupBy
+    ? {}
+    : Object.fromEntries(
+        (groupBy === "type"
+          ? ["sale", "lead", "click"]
+              // only show filtered type if type filter is provided
+              .filter((t) => (type ? type === t : true))
+          : groupBy === "programId"
+            ? [...new Set(earnings.map((e) => e.programId!))]
+            : scope.links
+                // only show filtered link if linkId filter is provided
+                .filter((link) => (linkId ? link.id === linkId : true))
+                .map((link) => link.id)
+        ).map((key) => [key, 0]),
+      );
 
   const timeseries: {
     start: string;
@@ -110,19 +142,7 @@ export async function getPartnerEarningsTimeseries({
       groupBy: groupBy || undefined,
       data: groupBy
         ? {
-            ...(groupBy === "type"
-              ? Object.fromEntries(
-                  ["sale", "lead", "click"]
-                    // only show filtered type if type filter is provided
-                    .filter((t) => (type ? type === t : true))
-                    .map((t) => [t, 0]),
-                )
-              : Object.fromEntries(
-                  scope.links
-                    // only show filtered link if linkId filter is provided
-                    .filter((link) => (linkId ? link.id === linkId : true))
-                    .map((link) => [link.id, 0]),
-                )),
+            ...emptyGroups,
             ...(rest as Record<string, number>),
           }
         : undefined,

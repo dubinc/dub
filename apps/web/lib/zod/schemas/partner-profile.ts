@@ -119,6 +119,12 @@ export const partnerProfileEarningsCountQuerySchema =
 export const partnerProfileEarningsTimeseriesQuerySchema =
   getPartnerEarningsTimeseriesSchema.extend({
     programIdOrSlug: programIdOrSlugSchema,
+    groupBy: z
+      .enum(["type", "linkId", "programId"])
+      .optional()
+      .describe(
+        "The field to group the earnings by. Each period then includes a `data` object with the earnings of each group.",
+      ),
   });
 
 export const PartnerProfileLinkSchema = LinkSchema.pick({
