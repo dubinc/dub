@@ -10,7 +10,7 @@ export const createPartner: ZodOpenApiOperationObject = {
   "x-speakeasy-name-override": "create",
   summary: "Create or update a partner",
   description:
-    "Creates or updates a partner record (upsert behavior). If a partner with the same email already exists, their program enrollment will be updated with the provided tenantId. If no existing partner is found, a new partner will be created using the supplied information. If `tagIds` or `tagNames` is provided, those tags are assigned when the partner is newly enrolled. `tagIds` takes priority over `tagNames` when it contains at least one ID. Existing enrollments are returned unchanged.",
+    "Creates a partner and enrolls them in the program. If that email is already enrolled, the enrollment is returned unchanged, except a different `tenantId` replaces the current one.",
   requestBody: {
     content: {
       "application/json": {
