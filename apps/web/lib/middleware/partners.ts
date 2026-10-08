@@ -29,8 +29,9 @@ export async function PartnersMiddleware(req: NextRequest) {
   const user = await getUserViaToken(req);
   const isPartnerInvite = req.nextUrl.pathname.endsWith("/invite");
 
+  // match whole path segments, so program slugs like "overviewai" stay public
   const isAuthenticatedPath = AUTHENTICATED_PATHS.some(
-    (p) => path === "/" || path.startsWith(p),
+    (p) => path === "/" || path === p || path.startsWith(`${p}/`),
   );
 
   const isLoginPath = ["/login", "/register"].some(
