@@ -73,7 +73,7 @@ const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({
     description:
       "View all your enrolled programs and review invitations to other programs.",
     icon: GridIcon,
-    href: "/programs",
+    href: "/overview",
     active: ["/overview", "/programs", "/marketplace"].some((p) =>
       pathname.startsWith(p),
     ),

@@ -103,7 +103,7 @@ export async function PartnersMiddleware(req: NextRequest) {
     }
 
     if (path === "/" || path.startsWith("/pn_")) {
-      return NextResponse.redirect(new URL("/programs", req.url));
+      return NextResponse.redirect(new URL("/overview", req.url));
     } else if (isLoginPath) {
       // if is custom program login or register path, redirect to /programs/:programSlug
       const programSlugRegex = /^\/([^\/]+)\/(login|register)$/;
