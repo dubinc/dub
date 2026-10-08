@@ -1,6 +1,7 @@
 "use server";
 
 import { createId } from "@/lib/api/create-id";
+import { triggerDraftBountySubmissionCreation } from "@/lib/bounty/api/trigger-draft-bounty-submissions";
 import { prisma } from "@/lib/prisma";
 import { polyfillSocialMediaFields } from "@/lib/social-utils";
 import { isStored, storage } from "@/lib/storage";
@@ -139,17 +140,19 @@ export const createAndEnrollPartner = async ({
     });
   }
 
-  const group = await getGroupOrThrow({
-    programId: program.id,
-    groupId: finalGroupId,
-    includeExpandedFields: true,
-  });
+  const [group, partnerTags] = await Promise.all([
+    getGroupOrThrow({
+      programId: program.id,
+      groupId: finalGroupId,
+      includeExpandedFields: true,
+    }),
 
-  const partnerTags = await throwIfInvalidPartnerTags({
-    programId: program.id,
-    partnerTagIds: partner.tagIds,
-    partnerTagNames: partner.tagNames,
-  });
+    throwIfInvalidPartnerTags({
+      programId: program.id,
+      partnerTagIds: partner.tagIds,
+      partnerTagNames: partner.tagNames,
+    }),
+  ]);
 
   const { partner: existingOrNewPartner } = await getOrCreatePartner({
     email: partner.email,
@@ -199,9 +202,6 @@ export const createAndEnrollPartner = async ({
     });
   }
 
-  // Queue an index update because a new enrollment was created.
-  waitUntil(queuePartnerSearchSync({ enrollmentIds: [programEnrollment.id] }));
-
   // Create the partner links based on group defaults
   const links = await createPartnerDefaultLinks({
     workspace: {
@@ -238,6 +238,11 @@ export const createAndEnrollPartner = async ({
 
   waitUntil(
     Promise.allSettled([
+      // Queue an index update because a new enrollment was created.
+      queuePartnerSearchSync({
+        enrollmentIds: [programEnrollment.id],
+      }),
+
       // Status is always "invited" or "approved" here — no caller passes "pending"
       prisma.project.update({
         where: {
@@ -275,6 +280,12 @@ export const createAndEnrollPartner = async ({
           workspace,
           trigger: "partner.enrolled",
           data: enrolledPartner,
+        }),
+
+      status === "approved" &&
+        triggerDraftBountySubmissionCreation({
+          programId: program.id,
+          partnerIds: [existingOrNewPartner.id],
         }),
     ]),
   );
