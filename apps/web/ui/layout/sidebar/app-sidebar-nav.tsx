@@ -4,7 +4,6 @@ import { clientAccessCheck } from "@/lib/client-access-check";
 import { usePartnerMessagesCount } from "@/lib/messages/hooks/use-partner-messages-count";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { useProgramApplicationsCount } from "@/lib/program-applications/hooks/use-program-applications-count";
-import { SUBMITTED_LEADS_ENABLED_PROGRAM_IDS } from "@/lib/submitted-leads/constants";
 import {
   SubmissionsCountByStatus,
   useBountySubmissionsCount,
@@ -524,6 +523,7 @@ export function AppSidebarNav({
     defaultProgramId,
     trialEndsAt,
     role,
+    flags,
   } = useWorkspace();
 
   const canSetDefaultProduct = !clientAccessCheck({
@@ -635,9 +635,7 @@ export function AppSidebarNav({
     query: { status: "pending" },
     ignoreParams: true,
     enabled: Boolean(
-      currentArea === "program" &&
-        defaultProgramId &&
-        SUBMITTED_LEADS_ENABLED_PROGRAM_IDS.includes(defaultProgramId),
+      currentArea === "program" && defaultProgramId && flags?.submittedLeads,
     ),
   });
 
@@ -689,8 +687,7 @@ export function AppSidebarNav({
         pendingFraudEventsCount,
         pendingLeadsCount,
         submittedLeadsEnabled: Boolean(
-          defaultProgramId &&
-            SUBMITTED_LEADS_ENABLED_PROGRAM_IDS.includes(defaultProgramId),
+          defaultProgramId && flags?.submittedLeads,
         ),
         partnerNetworkEnabled:
           program && program.partnerNetworkEnabledAt !== null,

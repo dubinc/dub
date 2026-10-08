@@ -9,19 +9,33 @@ const fieldTypeSchema = z.enum([
   "multiSelect",
   "number",
   "phone",
+  "url",
 ]);
 
 export const fieldCommonSchema = z.object({
   key: z.string().min(1),
-  label: z.string().min(1),
+  label: z.string().min(1, "Enter a label for each field."),
   required: z.boolean(),
   locked: z.boolean(),
   position: z.number().int().nonnegative(),
 });
 
 export const selectOptionSchema = z.object({
-  label: z.string().min(1),
+  label: z.string().min(1, "Enter a label for each option."),
   value: z.string().min(1),
+});
+
+const selectOptionsSchema = z
+  .array(selectOptionSchema)
+  .min(2, "Add at least two options.");
+
+const maxLengthSchema = z
+  .number({ error: "Enter a number for the max characters." })
+  .int("The max characters must be a whole number.")
+  .min(1, "The max characters must be at least 1.");
+
+const numberLimitSchema = z.number({
+  error: "Enter a number for the minimum and maximum.",
 });
 
 // Text
@@ -29,7 +43,7 @@ export const textFieldSchema = fieldCommonSchema.extend({
   type: z.literal("text"),
   constraints: z
     .object({
-      maxLength: z.number().int().min(1).optional(),
+      maxLength: maxLengthSchema.optional(),
       pattern: z.string().optional(),
     })
     .optional(),
@@ -40,7 +54,7 @@ export const textareaFieldSchema = fieldCommonSchema.extend({
   type: z.literal("textarea"),
   constraints: z
     .object({
-      maxLength: z.number().int().min(1).optional(),
+      maxLength: maxLengthSchema.optional(),
     })
     .optional(),
 });
@@ -48,7 +62,7 @@ export const textareaFieldSchema = fieldCommonSchema.extend({
 // Select
 export const selectFieldSchema = fieldCommonSchema.extend({
   type: z.literal("select"),
-  options: z.array(selectOptionSchema).min(2),
+  options: selectOptionsSchema,
 });
 
 // Country
@@ -64,17 +78,34 @@ export const dateFieldSchema = fieldCommonSchema.extend({
 // Multiple Choices (Multi-select)
 export const multiSelectFieldSchema = fieldCommonSchema.extend({
   type: z.literal("multiSelect"),
-  options: z.array(selectOptionSchema).min(2),
+  options: selectOptionsSchema,
+  // Older fields have no value and allow multiple selections
+  multiple: z.boolean().optional(),
 });
 
 // Number
 export const numberFieldSchema = fieldCommonSchema.extend({
   type: z.literal("number"),
+  constraints: z
+    .object({
+      min: numberLimitSchema.optional(),
+      max: numberLimitSchema.optional(),
+    })
+    .refine(
+      ({ min, max }) => min === undefined || max === undefined || min <= max,
+      { message: "The minimum can't be more than the maximum." },
+    )
+    .optional(),
 });
 
 // Phone Number
 export const phoneFieldSchema = fieldCommonSchema.extend({
   type: z.literal("phone"),
+});
+
+// URL
+export const urlFieldSchema = fieldCommonSchema.extend({
+  type: z.literal("url"),
 });
 
 export const formFieldSchema = z.discriminatedUnion("type", [
@@ -86,11 +117,11 @@ export const formFieldSchema = z.discriminatedUnion("type", [
   multiSelectFieldSchema,
   numberFieldSchema,
   phoneFieldSchema,
+  urlFieldSchema,
 ]);
 
 export const formFieldsSchema = z
   .array(formFieldSchema)
-  .min(1)
   .superRefine((fields, ctx) => {
     const keys = new Set<string>();
     const positions = new Set<number>();

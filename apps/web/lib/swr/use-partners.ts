@@ -7,12 +7,36 @@ import useWorkspace from "./use-workspace";
 
 const partialQuerySchema = getPartnersQuerySchemaExtended.partial();
 
+type PartnersQuery = z.infer<typeof partialQuerySchema>;
+
+// Blank search is not a query, and URLSearchParams stringifies `undefined` to
+// the literal "undefined". Relevance ordering is only valid with a real search.
+function buildPartnersQueryString(workspaceId: string, query?: PartnersQuery) {
+  const search = query?.search?.trim() || undefined;
+  const params = new URLSearchParams();
+
+  for (const [key, value] of Object.entries({
+    ...query,
+    workspaceId,
+    search,
+    sortBy:
+      query?.sortBy ??
+      (search && query?.sortOrder !== "asc" ? "relevance" : undefined),
+  })) {
+    if (value == null || value === "") continue;
+
+    params.set(key, Array.isArray(value) ? value.join(",") : String(value));
+  }
+
+  return params.toString();
+}
+
 export default function usePartners(
   {
     query,
     enabled = true,
   }: {
-    query?: z.infer<typeof partialQuerySchema>;
+    query?: PartnersQuery;
     enabled?: boolean;
   } = {},
   swrOptions: SWRConfiguration = {},
@@ -21,10 +45,7 @@ export default function usePartners(
 
   const { data, isLoading, error } = useSWR<EnrolledPartnerProps[]>(
     enabled && workspaceId
-      ? `/api/partners?${new URLSearchParams({
-          workspaceId: workspaceId,
-          ...query,
-        } as Record<string, any>).toString()}`
+      ? `/api/partners?${buildPartnersQueryString(workspaceId, query)}`
       : undefined,
     fetcher,
     {
