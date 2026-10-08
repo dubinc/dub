@@ -107,6 +107,22 @@ export const updatePartnerProfileAction = authPartnerActionClient
       if (!country || !Object.hasOwn(COUNTRIES, country)) {
         throw new Error("Select a valid country.");
       }
+
+      const processingPayout = await prisma.payout.findFirst({
+        where: {
+          partnerId: partner.id,
+          status: "processing",
+        },
+        select: {
+          id: true,
+        },
+      });
+
+      if (processingPayout) {
+        throw new Error(
+          "Your country cannot be changed while a payout is being processed.",
+        );
+      }
     }
 
     await updatedComplianceFieldsChecks({
