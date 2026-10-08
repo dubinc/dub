@@ -225,6 +225,33 @@ test.describe("GET /partner-profile/earnings", () => {
       expect(byLink.status).toEqual(200);
       expect(byLink.data.reduce((sum, d) => sum + d.earnings, 0)).toEqual(3500);
       expect(Object.keys(byLink.data[0].data ?? {})).toEqual(partnerLinkIds);
+
+      // across programs, only links with earnings are included, and the test commissions have no link
+      const byLinkAcrossPrograms = await partnerApi.get<TimeseriesPoint[]>(
+        "/api/partner-profile/earnings/timeseries?groupBy=linkId&timezone=UTC",
+      );
+      expect(byLinkAcrossPrograms.status).toEqual(200);
+      for (const point of byLinkAcrossPrograms.data) {
+        expect(point.data).toEqual({});
+      }
+    });
+  });
+
+  test("returns 404 from the per-program timeseries and the OG image for another program", async ({
+    playwright,
+  }) => {
+    await withPartnerApi(playwright, async (partnerApi) => {
+      expect(
+        await partnerApi.get(
+          "/api/partner-profile/programs/prog_doesnotexist/earnings/timeseries",
+        ),
+      ).toMatchObject({ status: 404 });
+
+      expect(
+        await partnerApi.get(
+          "/api/og/partner-earnings?programId=prog_doesnotexist",
+        ),
+      ).toMatchObject({ status: 404 });
     });
   });
 

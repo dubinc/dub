@@ -1,5 +1,4 @@
 import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
-import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { sqlGranularityMap } from "@/lib/planetscale/granularity";
 import { prisma } from "@/lib/prisma";
 import { getPartnerEarningsTimeseriesSchema } from "@/lib/zod/schemas/partner-profile";
@@ -14,7 +13,7 @@ export async function getPartnerEarningsTimeseries({
   filters,
 }: {
   partnerId: string;
-  programId?: string; // if not provided, earnings across all programs (except the network program) are returned
+  programId?: string; // must be checked against the partner's enrollments first. If not provided, earnings across all programs (except the network program) are returned
   filters: Omit<
     z.infer<typeof getPartnerEarningsTimeseriesSchema>,
     "groupBy"
@@ -72,7 +71,7 @@ export async function getPartnerEarningsTimeseries({
         FROM Commission
         WHERE 
           earnings != 0
-          ${scope.programId ? Prisma.sql`AND programId = ${scope.programId}` : Prisma.sql`AND programId != ${NETWORK_PROGRAM_ID}`}
+          ${programId ? Prisma.sql`AND programId = ${programId}` : Prisma.sql`AND programId != ${NETWORK_PROGRAM_ID}`}
           AND partnerId = ${partnerId}
           AND createdAt >= ${startDate}
           AND createdAt < ${endDate}
@@ -102,8 +101,17 @@ export async function getPartnerEarningsTimeseries({
           ? ["sale", "lead", "click"]
               // only show filtered type if type filter is provided
               .filter((t) => (type ? type === t : true))
-          : groupBy === "programId"
-            ? [...new Set(earnings.map((e) => e.programId!))]
+          : groupBy === "programId" || !programId
+            ? // across programs, only include the groups that have earnings
+              [
+                ...new Set(
+                  earnings
+                    .map((e) =>
+                      groupBy === "programId" ? e.programId : e.linkId,
+                    )
+                    .filter((key): key is string => !!key),
+                ),
+              ]
             : scope.links
                 // only show filtered link if linkId filter is provided
                 .filter((link) => (linkId ? link.id === linkId : true))
@@ -167,59 +175,39 @@ async function getEarningsScope({
   includeLinks: boolean;
   includeDataAvailableFrom: boolean;
 }): Promise<{
-  programId: string | null;
   links: { id: string }[];
   dataAvailableFrom?: Date;
 }> {
-  if (programId) {
-    const { program, links } = await getProgramEnrollmentOrThrow({
-      partnerId,
-      programId,
-      include: {
-        program: true,
-        links: includeLinks,
-      },
-    });
-
-    return {
-      programId: program.id,
-      links: links ?? [],
-      dataAvailableFrom: program.startedAt ?? program.createdAt,
-    };
-  }
-
   const [programs, links] = await Promise.all([
     includeDataAvailableFrom
       ? prisma.program.findMany({
-          where: {
-            id: {
-              not: NETWORK_PROGRAM_ID,
-            },
-            partners: {
-              some: {
-                partnerId,
+          where: programId
+            ? { id: programId }
+            : {
+                id: {
+                  not: NETWORK_PROGRAM_ID,
+                },
+                partners: {
+                  some: {
+                    partnerId,
+                  },
+                },
               },
-            },
-          },
           select: {
             startedAt: true,
             createdAt: true,
           },
         })
       : [],
-    includeLinks
+    // for one program, the chart shows every link of the program, including links without earnings
+    includeLinks && programId
       ? prisma.link.findMany({
           where: {
+            programId,
             partnerId,
-            programId: {
-              not: NETWORK_PROGRAM_ID,
-            },
           },
           select: {
             id: true,
-          },
-          orderBy: {
-            createdAt: "asc",
           },
         })
       : [],
@@ -230,7 +218,6 @@ async function getEarningsScope({
   );
 
   return {
-    programId: null,
     links,
     dataAvailableFrom:
       programStartTimes.length > 0
