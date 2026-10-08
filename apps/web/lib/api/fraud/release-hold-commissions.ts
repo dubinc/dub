@@ -232,8 +232,6 @@ export async function releaseHoldCommissions({
       }
     }
   } finally {
-    // Runs even when a later pass throws, so the rows that earlier
-    // passes released still get aggregated
     if (totalReleased > 0) {
       try {
         await triggerAggregateDueCommissionsCronJob(programId);

@@ -21,8 +21,6 @@ export async function releaseAllHoldCommissions({
     },
   });
 
-  // The program can be deleted before this cron runs.
-  // Return 0 so that QStash does not retry the job.
   if (!program) {
     console.log(
       `Program ${programId} not found, skipping hold commission release`,
@@ -123,8 +121,6 @@ export async function releaseAllHoldCommissions({
       );
     }
   } finally {
-    // Runs even when a later pass throws, so the rows that earlier
-    // passes released still get synced and aggregated.
     // Each partner is synced once here instead of once per pass.
     for (const partnerIds of chunk([...partnerIdsToSync], 100)) {
       const results = await Promise.allSettled(
