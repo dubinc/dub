@@ -95,8 +95,8 @@ const RejectBountySubmissionModal = ({
           {submission.status === "draft" && (
             <Callout variant="warn">
               This submission is still in progress. Rejecting it stops the
-              partner from completing the bounty, and they&apos;ll be notified
-              by email that they can&apos;t submit again.
+              partner from completing this submission, and they&apos;ll be
+              notified by email.
             </Callout>
           )}
 
