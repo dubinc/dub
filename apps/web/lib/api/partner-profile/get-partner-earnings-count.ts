@@ -93,6 +93,11 @@ export async function getPartnerEarningsCount({
               .filter((id): id is string => id !== null),
           },
         },
+        select: {
+          id: true,
+          email: true,
+          name: true,
+        },
       }),
       prisma.programEnrollment.findMany({
         where: {
@@ -108,11 +113,18 @@ export async function getPartnerEarningsCount({
       }),
     ]);
 
+    const customersById = new Map(customers.map((c) => [c.id, c]));
+    const dataSharingByProgramId = new Map(
+      programEnrollments.map((p) => [
+        p.programId,
+        p.customerDataSharingEnabledAt,
+      ]),
+    );
+
     return counts.map(({ customerId, programId, _count }) => {
-      const customer = customers.find((c) => c.id === customerId);
-      const customerDataSharingEnabledAt = programEnrollments.find(
-        (p) => p.programId === programId,
-      )?.customerDataSharingEnabledAt;
+      const customer = customerId ? customersById.get(customerId) : undefined;
+      const customerDataSharingEnabledAt =
+        dataSharingByProgramId.get(programId);
 
       return {
         id: customerId,
@@ -146,10 +158,18 @@ export async function getPartnerEarningsCount({
             .filter((id): id is string => id !== null),
         },
       },
+      select: {
+        id: true,
+        domain: true,
+        key: true,
+        url: true,
+      },
     });
 
+    const linksById = new Map(links.map((l) => [l.id, l]));
+
     return counts.map(({ linkId, _count }) => {
-      const link = links.find((l) => l.id === linkId);
+      const link = linkId ? linksById.get(linkId) : undefined;
       return {
         id: linkId,
         domain: link?.domain,

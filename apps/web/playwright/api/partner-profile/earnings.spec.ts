@@ -140,6 +140,21 @@ test.describe("GET /partner-profile/earnings", () => {
     });
   });
 
+  test("counts earnings grouped by link and by customer", async ({
+    playwright,
+  }) => {
+    await withPartnerApi(playwright, async (partnerApi) => {
+      for (const groupBy of ["linkId", "customerId"]) {
+        const { status, data } = await partnerApi.get<
+          { id: string | null; _count: number }[]
+        >(`/api/partner-profile/earnings/count?groupBy=${groupBy}`);
+
+        expect(status).toEqual(200);
+        expect(data.reduce((sum, group) => sum + group._count, 0)).toEqual(2);
+      }
+    });
+  });
+
   test("filters by program ID or slug", async ({ playwright, program }) => {
     await withPartnerApi(playwright, async (partnerApi) => {
       for (const programIdOrSlug of [program.id, programSlug]) {
