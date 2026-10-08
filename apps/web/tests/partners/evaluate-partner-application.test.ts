@@ -11,7 +11,7 @@ describe("isConfidentMatch", () => {
   });
 
   it("does not match below the threshold", () => {
-    expect(isConfidentMatch(0.84)).toBe(false);
+    expect(isConfidentMatch(JEV_MATCH_THRESHOLD - 0.01)).toBe(false);
     expect(isConfidentMatch(0)).toBe(false);
   });
 
