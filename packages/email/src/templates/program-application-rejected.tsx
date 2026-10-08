@@ -1,4 +1,8 @@
-import { DUB_WORDMARK, PARTNERS_DOMAIN } from "@dub/utils";
+import {
+  DUB_WORDMARK,
+  PARTNERS_DOMAIN,
+  STANDARD_REAPPLICATION_DAYS,
+} from "@dub/utils";
 import {
   Body,
   Container,
@@ -26,6 +30,7 @@ export default function ProgramApplicationRejected({
     slug: "acme",
     supportEmail: "support@acme.com",
   },
+  isApplyingToAdditionalGroup = false,
   rejectionReason,
   additionalNotes,
   reapplicationTimeframe = "standard",
@@ -39,6 +44,9 @@ export default function ProgramApplicationRejected({
     slug: string;
     supportEmail?: string | null;
   };
+  // An approved partner asked to join another group, so their partnership
+  // is not affected
+  isApplyingToAdditionalGroup?: boolean;
   rejectionReason?: string | null;
   additionalNotes?: string | null;
   reapplicationTimeframe?: ReapplicationTimeframe;
@@ -46,13 +54,22 @@ export default function ProgramApplicationRejected({
   const reason = rejectionReason?.trim();
   const notes = additionalNotes?.trim();
 
+  const reapplicationText =
+    reapplicationTimeframe === "instant"
+      ? " You can submit a new application whenever you're ready."
+      : reapplicationTimeframe === "standard"
+        ? ` You will be able to re-apply in ${STANDARD_REAPPLICATION_DAYS} days.`
+        : null;
+
   return (
     <Html>
       <Head />
       <Preview>
-        {reapplicationTimeframe === "instant"
-          ? `Program status update — you can submit a new application to ${program.name}`
-          : `Program status update — your application to join ${program.name} was not approved`}
+        {isApplyingToAdditionalGroup
+          ? `Program status update: your request to join a new group in ${program.name} was not approved`
+          : reapplicationTimeframe === "instant"
+            ? `Program status update — you can submit a new application to ${program.name}`
+            : `Program status update — your application to join ${program.name} was not approved`}
       </Preview>
       <Tailwind>
         <Body className="mx-auto my-auto bg-white font-sans">
@@ -65,21 +82,36 @@ export default function ProgramApplicationRejected({
               Program status update
             </Heading>
 
-            <Text className="mt-6 text-sm leading-6 text-neutral-600">
-              Thank you for your interest in joining the{" "}
-              <strong>{program.name}</strong> partner program. We appreciate the
-              time it took to apply.
-            </Text>
+            {isApplyingToAdditionalGroup ? (
+              <>
+                <Text className="mt-6 text-sm leading-6 text-neutral-600">
+                  Thank you for your interest in joining a new group in the{" "}
+                  <strong>{program.name}</strong> partner program.
+                </Text>
 
-            <Text className="text-sm leading-6 text-neutral-600">
-              After reviewing your application, we&apos;ve decided not to
-              approve you at this time.
-              {reapplicationTimeframe === "instant"
-                ? " You can submit a new application whenever you're ready."
-                : reapplicationTimeframe === "standard"
-                  ? " You will be able to re-apply in 30 days."
-                  : null}
-            </Text>
+                <Text className="text-sm leading-6 text-neutral-600">
+                  After reviewing your request to join a new group in{" "}
+                  <strong>{program.name}</strong>, we&apos;ve decided not to
+                  approve it at this time. Your current partnership with{" "}
+                  <strong>{program.name}</strong> is not affected.
+                  {reapplicationText}
+                </Text>
+              </>
+            ) : (
+              <>
+                <Text className="mt-6 text-sm leading-6 text-neutral-600">
+                  Thank you for your interest in joining the{" "}
+                  <strong>{program.name}</strong> partner program. We appreciate
+                  the time it took to apply.
+                </Text>
+
+                <Text className="text-sm leading-6 text-neutral-600">
+                  After reviewing your application, we&apos;ve decided not to
+                  approve you at this time.
+                  {reapplicationText}
+                </Text>
+              </>
+            )}
 
             {reason ? (
               <Text className="text-sm leading-6 text-neutral-600">
@@ -97,7 +129,16 @@ export default function ProgramApplicationRejected({
               </Text>
             ) : null}
 
-            {reapplicationTimeframe === "instant" ? (
+            {isApplyingToAdditionalGroup ? (
+              <Section className="my-8 mt-8">
+                <Link
+                  href={`${PARTNERS_DOMAIN}/programs/${program.slug}`}
+                  className="rounded-lg bg-black px-6 py-3 text-center text-[12px] font-semibold text-white no-underline"
+                >
+                  View dashboard
+                </Link>
+              </Section>
+            ) : reapplicationTimeframe === "instant" ? (
               <Section className="my-8 mt-8">
                 <Link
                   href={`${PARTNERS_DOMAIN}/apply/${program.slug}`}

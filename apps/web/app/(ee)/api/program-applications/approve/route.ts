@@ -8,16 +8,18 @@ import { NextResponse } from "next/server";
 // POST /api/program-applications/approve – Approve a pending partner
 export const POST = withWorkspace(
   async ({ workspace, req, session }) => {
-    const { partnerId, groupId } = approveProgramApplicationSchema.parse(
-      await parseRequestBody(req),
-    );
+    const { partnerId, applicationId, groupId, tagIds, tagNames } =
+      approveProgramApplicationSchema.parse(await parseRequestBody(req));
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
     await approveProgramApplication({
       programId,
       partnerId,
+      applicationId,
       groupId,
+      tagIds,
+      tagNames,
       userId: session.user.id,
     });
 

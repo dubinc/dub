@@ -12,7 +12,6 @@ import {
   Tailwind,
   Text,
 } from "@react-email/components";
-import { addBusinessDays } from "date-fns";
 import { EnvironmentBanner } from "../components/environment-banner";
 import { Footer } from "../components/footer";
 import { PartnerPayoutMethod, WorkspaceEnvironment } from "../types";
@@ -145,15 +144,10 @@ export default function PartnerPayoutConfirmed({
               (excluding weekends and public holidays).
             </Text>
 
-            {payout.initiatedAt && (
+            {payout.payoutMethod === "connect" && (
               <Text className="text-sm leading-6 text-neutral-600">
-                <span className="text-sm text-neutral-500">
-                  Estimated arrival date:{" "}
-                  <strong className="text-black">
-                    {formatDate(addBusinessDays(payout.initiatedAt, etaDays))}
-                  </strong>
-                  .
-                </span>
+                After it has been processed, it will be sent to your bank
+                account.
               </Text>
             )}
 

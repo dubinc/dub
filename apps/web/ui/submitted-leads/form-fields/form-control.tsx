@@ -1,5 +1,23 @@
 import { cn } from "@dub/utils";
-import { HTMLAttributes } from "react";
+import { HTMLAttributes, KeyboardEvent } from "react";
+
+// Number inputs accept "e" and "+" for scientific notation, which a lead form never needs
+export const blockNonNumericKeys = (e: KeyboardEvent<HTMLInputElement>) => {
+  if (["e", "E", "+"].includes(e.key)) {
+    e.preventDefault();
+  }
+};
+
+export const requiredFieldRule = (required: boolean) =>
+  required ? "Please fill in this field" : false;
+
+export const maxLengthRule = (maxLength?: number) =>
+  maxLength
+    ? {
+        value: maxLength,
+        message: `Please enter at most ${maxLength} characters`,
+      }
+    : undefined;
 
 export type FormControlProps = {
   label: string;

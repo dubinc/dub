@@ -123,6 +123,10 @@ export const exportApplicationColumns = [
   { id: "tiktok", label: "TikTok" },
 ];
 
+// Limitation: exports are capped at this many applications. The export modal warns when more match.
+// TODO: In a follow-up PR, process larger exports in the background and email the CSV (like /api/partners/export).
+export const MAX_APPLICATIONS_TO_EXPORT = 2000;
+
 export const exportApplicationsColumnsDefault = [
   "id",
   "name",

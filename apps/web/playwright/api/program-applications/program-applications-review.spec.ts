@@ -7,6 +7,7 @@ import {
   ProgramEnrollmentStatus,
 } from "@prisma/client";
 import { apiError, randomName, randomPartnerEmail } from "../../utils";
+import { createPartnerTag, deletePartnerTag } from "../campaigns/helpers";
 import { test } from "../fixtures";
 import { createGroup, deleteGroup } from "../groups/helpers";
 import { deletePartner } from "../partners/helpers";
@@ -77,11 +78,14 @@ test.describe("program application reviews", () => {
   });
 
   let programId: string;
+  let defaultGroupId: string;
   let extraGroup: GroupProps;
   let applications: SeededApplication[] = [];
+  const extraApplicationIds: string[] = [];
 
   test.beforeAll(async ({ api, program }) => {
     programId = program.id;
+    defaultGroupId = program.defaultGroupId;
     extraGroup = await createGroup(api);
 
     const now = Date.now();
@@ -108,6 +112,24 @@ test.describe("program application reviews", () => {
         email: randomPartnerEmail(),
         country: "GB",
         groupId: extraGroup.id,
+      },
+      {
+        name: randomName("application"),
+        email: randomPartnerEmail(),
+        country: "US",
+        groupId: program.defaultGroupId,
+      },
+      {
+        name: randomName("application"),
+        email: randomPartnerEmail(),
+        country: "GB",
+        groupId: program.defaultGroupId,
+      },
+      {
+        name: randomName("application"),
+        email: randomPartnerEmail(),
+        country: "US",
+        groupId: program.defaultGroupId,
       },
       {
         name: randomName("application"),
@@ -179,11 +201,14 @@ test.describe("program application reviews", () => {
       await deletePartner(application.partnerId);
     }
 
-    if (applications.length > 0) {
+    if (applications.length > 0 || extraApplicationIds.length > 0) {
       await prisma.programApplication.deleteMany({
         where: {
           id: {
-            in: applications.map((application) => application.applicationId),
+            in: [
+              ...applications.map((application) => application.applicationId),
+              ...extraApplicationIds,
+            ],
           },
         },
       });
@@ -269,7 +294,7 @@ test.describe("program application reviews", () => {
       apiError({
         code: "bad_request",
         message:
-          "This enrollment cannot be approved because it is already approved.",
+          "This application cannot be approved because it is already approved.",
       }),
     );
 
@@ -293,9 +318,8 @@ test.describe("program application reviews", () => {
 
     expect(response).toEqual(
       apiError({
-        code: "bad_request",
-        message:
-          "This enrollment cannot be rejected because it is no longer pending.",
+        code: "not_found",
+        message: "No pending application found.",
       }),
     );
 
@@ -340,9 +364,8 @@ test.describe("program application reviews", () => {
 
     expect(response).toEqual(
       apiError({
-        code: "bad_request",
-        message:
-          "This enrollment cannot be rejected because it is no longer pending.",
+        code: "not_found",
+        message: "No pending application found.",
       }),
     );
 
@@ -350,6 +373,64 @@ test.describe("program application reviews", () => {
       enrollmentStatus: "approved",
       rejectionReason: null,
     });
+  });
+
+  test("POST /program-applications/approve – partnerId only does not revive a rejected group application", async ({
+    api,
+  }) => {
+    const application = applications[0]!;
+    const rejectedApplicationId = createId({ prefix: "pga_" });
+    extraApplicationIds.push(rejectedApplicationId);
+
+    await prisma.programApplication.create({
+      data: {
+        id: rejectedApplicationId,
+        programId,
+        partnerId: application.partnerId,
+        groupId: defaultGroupId,
+        name: application.name,
+        email: application.email,
+        country: application.country,
+        formData: { fields: [] },
+        status: "rejected",
+        reviewedAt: new Date(),
+        createdAt: new Date(),
+      },
+    });
+
+    const response = await api.post("/api/program-applications/approve", {
+      partnerId: application.partnerId,
+    });
+
+    expect(response).toEqual(
+      apiError({
+        code: "bad_request",
+        message:
+          "This application cannot be approved because it is already approved.",
+      }),
+    );
+
+    const enrollment = await prisma.programEnrollment.findUniqueOrThrow({
+      where: {
+        partnerId_programId: {
+          partnerId: application.partnerId,
+          programId,
+        },
+      },
+    });
+
+    expect(enrollment.status).toBe("approved");
+    expect(enrollment.groupId).toBe(application.groupId);
+    expect(enrollment.applicationId).toBe(application.applicationId);
+
+    const rejectedApplication =
+      await prisma.programApplication.findUniqueOrThrow({
+        where: {
+          id: rejectedApplicationId,
+        },
+      });
+
+    expect(rejectedApplication.status).toBe("rejected");
   });
 
   test("POST /partners/applications/approve – legacy alias of POST /program-applications/approve", async ({
@@ -394,5 +475,295 @@ test.describe("program application reviews", () => {
       enrollmentStatus: "rejected",
       rejectionReason: "other",
     });
+  });
+
+  test("POST /program-applications/approve – invalid tagIds", async ({
+    api,
+  }) => {
+    const application = applications[4]!;
+    const tagId = "ptag_invalid";
+
+    const response = await api.post("/api/program-applications/approve", {
+      partnerId: application.partnerId,
+      groupId: application.groupId,
+      tagIds: [tagId],
+    });
+
+    expect(response).toEqual(
+      apiError({
+        code: "bad_request",
+        message: `Invalid partner tag IDs detected: ${tagId}`,
+      }),
+    );
+
+    const enrollment = await prisma.programEnrollment.findUniqueOrThrow({
+      where: {
+        applicationId: application.applicationId,
+      },
+      include: {
+        programPartnerTags: true,
+        application: true,
+      },
+    });
+
+    expect(enrollment.status).toBe("pending");
+    expect(enrollment.application?.status).toBe("pending");
+    expect(enrollment.programPartnerTags).toEqual([]);
+  });
+
+  test("POST /program-applications/approve – with tagIds", async ({ api }) => {
+    const application = applications[4]!;
+    let partnerTagId: string | undefined;
+
+    try {
+      const partnerTag = await createPartnerTag(programId);
+      partnerTagId = partnerTag.id;
+
+      const { status, data } = await api.post<{ partnerId: string }>(
+        "/api/program-applications/approve",
+        {
+          partnerId: application.partnerId,
+          groupId: application.groupId,
+          tagIds: [partnerTag.id, partnerTag.id],
+        },
+      );
+
+      expect(status).toEqual(200);
+      expect(data).toStrictEqual({ partnerId: application.partnerId });
+      await expectApplicationState(application, {
+        enrollmentStatus: "approved",
+        rejectionReason: null,
+      });
+
+      const tags = await prisma.programPartnerTag.findMany({
+        where: {
+          programId,
+          partnerId: application.partnerId,
+        },
+      });
+
+      expect(tags).toEqual([
+        expect.objectContaining({
+          partnerTagId: partnerTag.id,
+        }),
+      ]);
+    } finally {
+      await deletePartnerTag(partnerTagId);
+    }
+  });
+
+  test("POST /program-applications/approve – invalid tagNames", async ({
+    api,
+  }) => {
+    const application = applications[5]!;
+    const tagName = "missing-partner-tag";
+
+    const response = await api.post("/api/program-applications/approve", {
+      partnerId: application.partnerId,
+      groupId: application.groupId,
+      tagNames: [tagName],
+    });
+
+    expect(response).toEqual(
+      apiError({
+        code: "bad_request",
+        message: `Invalid partner tag names detected: ${tagName}`,
+      }),
+    );
+
+    const enrollment = await prisma.programEnrollment.findUniqueOrThrow({
+      where: {
+        applicationId: application.applicationId,
+      },
+      include: {
+        programPartnerTags: true,
+        application: true,
+      },
+    });
+
+    expect(enrollment.status).toBe("pending");
+    expect(enrollment.application?.status).toBe("pending");
+    expect(enrollment.programPartnerTags).toEqual([]);
+  });
+
+  test("POST /program-applications/approve – with tagNames", async ({
+    api,
+  }) => {
+    const application = applications[5]!;
+    let partnerTagId: string | undefined;
+
+    try {
+      const partnerTag = await createPartnerTag(programId);
+      partnerTagId = partnerTag.id;
+
+      const { status, data } = await api.post<{ partnerId: string }>(
+        "/api/program-applications/approve",
+        {
+          partnerId: application.partnerId,
+          groupId: application.groupId,
+          tagNames: [partnerTag.name, partnerTag.name],
+        },
+      );
+
+      expect(status).toEqual(200);
+      expect(data).toStrictEqual({ partnerId: application.partnerId });
+      await expectApplicationState(application, {
+        enrollmentStatus: "approved",
+        rejectionReason: null,
+      });
+
+      const tags = await prisma.programPartnerTag.findMany({
+        where: {
+          programId,
+          partnerId: application.partnerId,
+        },
+      });
+
+      expect(tags).toEqual([
+        expect.objectContaining({
+          partnerTagId: partnerTag.id,
+        }),
+      ]);
+    } finally {
+      await deletePartnerTag(partnerTagId);
+    }
+  });
+
+  test("POST /program-applications/approve – tagNames with a different case and a missing name", async ({
+    api,
+  }) => {
+    const application = applications[6]!;
+    let partnerTagId: string | undefined;
+    const missingTagName = "missing-partner-tag";
+
+    try {
+      const partnerTag = await createPartnerTag(
+        programId,
+        `Tag-${randomName("case")}`,
+      );
+      partnerTagId = partnerTag.id;
+
+      const response = await api.post("/api/program-applications/approve", {
+        partnerId: application.partnerId,
+        groupId: application.groupId,
+        tagNames: [partnerTag.name.toLowerCase(), missingTagName],
+      });
+
+      expect(response).toEqual(
+        apiError({
+          code: "bad_request",
+          message: `Invalid partner tag names detected: ${missingTagName}`,
+        }),
+      );
+
+      const enrollment = await prisma.programEnrollment.findUniqueOrThrow({
+        where: {
+          applicationId: application.applicationId,
+        },
+        include: {
+          programPartnerTags: true,
+          application: true,
+        },
+      });
+
+      expect(enrollment.status).toBe("pending");
+      expect(enrollment.application?.status).toBe("pending");
+      expect(enrollment.programPartnerTags).toEqual([]);
+    } finally {
+      await deletePartnerTag(partnerTagId);
+    }
+  });
+
+  test("POST /program-applications/approve – tagNames are case-insensitive", async ({
+    api,
+  }) => {
+    const application = applications[6]!;
+    let partnerTagIds: string[] = [];
+
+    try {
+      const partnerTags = await Promise.all([
+        createPartnerTag(programId, `Tag-${randomName("case")}`),
+        createPartnerTag(programId, `Tag-${randomName("case")}`),
+      ]);
+      partnerTagIds = partnerTags.map((tag) => tag.id);
+
+      const { status, data } = await api.post<{ partnerId: string }>(
+        "/api/program-applications/approve",
+        {
+          partnerId: application.partnerId,
+          groupId: application.groupId,
+          tagNames: [
+            partnerTags[0]!.name.toLowerCase(),
+            partnerTags[0]!.name.toUpperCase(),
+            partnerTags[1]!.name.toUpperCase(),
+          ],
+        },
+      );
+
+      expect(status).toEqual(200);
+      expect(data).toStrictEqual({ partnerId: application.partnerId });
+      await expectApplicationState(application, {
+        enrollmentStatus: "approved",
+        rejectionReason: null,
+      });
+
+      const tags = await prisma.programPartnerTag.findMany({
+        where: {
+          programId,
+          partnerId: application.partnerId,
+        },
+        orderBy: {
+          partnerTagId: "asc",
+        },
+      });
+
+      expect(tags.map((tag) => tag.partnerTagId).sort()).toEqual(
+        [...partnerTagIds].sort(),
+      );
+    } finally {
+      for (const partnerTagId of partnerTagIds) {
+        await deletePartnerTag(partnerTagId);
+      }
+    }
+  });
+
+  test("POST /program-applications/approve – tagIds take priority over tagNames", async ({
+    api,
+  }) => {
+    const application = applications[7]!;
+    let partnerTagId: string | undefined;
+
+    try {
+      const partnerTag = await createPartnerTag(programId);
+      partnerTagId = partnerTag.id;
+
+      const { status, data } = await api.post<{ partnerId: string }>(
+        "/api/program-applications/approve",
+        {
+          partnerId: application.partnerId,
+          groupId: application.groupId,
+          tagIds: [partnerTag.id],
+          tagNames: ["missing-partner-tag"],
+        },
+      );
+
+      expect(status).toEqual(200);
+      expect(data).toStrictEqual({ partnerId: application.partnerId });
+
+      const tags = await prisma.programPartnerTag.findMany({
+        where: {
+          programId,
+          partnerId: application.partnerId,
+        },
+      });
+
+      expect(tags).toEqual([
+        expect.objectContaining({
+          partnerTagId: partnerTag.id,
+        }),
+      ]);
+    } finally {
+      await deletePartnerTag(partnerTagId);
+    }
   });
 });

@@ -6,6 +6,7 @@ import * as z from "zod/v4";
 import { getPaginationQuerySchema } from "./misc";
 import {
   EnrolledPartnerSchema,
+  exportApplicationsColumnsDefault,
   getPartnersQuerySchema,
   MAX_FRAUD_REASON_LENGTH,
   OldPartnerPlatformsFields,
@@ -70,7 +71,9 @@ export const ProgramApplicationSchema = PartnerApplicationSchema.extend({
     }),
 });
 
+// @deprecated Use programApplicationWebhookSchema instead. Kept for backward compatibility.
 export const partnerApplicationWebhookSchema = PartnerApplicationSchema;
+export const programApplicationWebhookSchema = ProgramApplicationSchema;
 
 export const getProgramApplicationsQuerySchema = getPartnersQuerySchema
   .pick({
@@ -107,20 +110,54 @@ export const getProgramApplicationsCountQuerySchema =
       groupBy: z.enum(["country", "groupId"]).optional(),
     });
 
+export const exportApplicationsQuerySchema = getProgramApplicationsQuerySchema
+  .pick({
+    status: true,
+    groupId: true,
+    country: true,
+    sortOrder: true,
+  })
+  .extend({
+    columns: z
+      .string()
+      .default(exportApplicationsColumnsDefault.join(","))
+      .transform((v) => v?.split(",")),
+  });
+
 export const approveProgramApplicationSchema = z.object({
   partnerId: z.string().describe("The ID of the partner to approve."),
+  applicationId: z
+    .string()
+    .optional()
+    .describe(
+      "The ID of the application to approve. If not provided, the partner's most recent pending or rejected application is used. For a partner who is already approved in the program, only a pending application is used.",
+    ),
   groupId: z
     .string()
     .nullish()
     .describe(
       "The ID of the group to assign the partner to. If not provided, the partner will be assigned to the group they applied to, or the program's default group if no application group is set.",
     ),
+  tagIds: z
+    .array(z.string())
+    .max(100)
+    .optional()
+    .describe(
+      "The IDs of the partner tags to assign as part of approval. Existing tags are kept. Takes priority over `tagNames` only when it contains at least one ID.",
+    ),
+  tagNames: z
+    .array(z.string())
+    .max(100)
+    .optional()
+    .describe(
+      "The names of the partner tags to assign as part of approval. Existing tags are kept. Ignored only when `tagIds` contains at least one ID.",
+    ),
 });
 
 export const bulkApproveProgramApplicationsSchema = z.object({
   workspaceId: z.string(),
   groupId: z.string().nullish().default(null),
-  partnerIds: z
+  applicationIds: z
     .array(z.string())
     .max(100)
     .min(1)

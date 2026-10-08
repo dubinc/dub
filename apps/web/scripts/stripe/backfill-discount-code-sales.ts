@@ -1,30 +1,64 @@
-import { createManualCommissions } from "@/lib/api/commissions/create-manual-commissions";
-import { prisma } from "@/lib/prisma";
-import { stripeAppClient } from "@/lib/stripe";
-import { StripeMode } from "@/lib/types";
-import { createManualCommissionBodySchema } from "@/lib/zod/schemas/commissions";
 import { DiscountCode } from "@prisma/client";
 import "dotenv-flow/config";
+import * as fs from "fs";
+import * as Papa from "papaparse";
+import * as path from "path";
 import type Stripe from "stripe";
+import { fileURLToPath } from "url";
 import { getDubCustomerExternalIdFromMetadata } from "../../app/(ee)/api/stripe/integration/webhook/utils/get-dub-customer-external-id-from-metadata";
 import { getPromotionCode } from "../../app/(ee)/api/stripe/integration/webhook/utils/get-promotion-code";
+import { createManualCommissions } from "../../lib/api/commissions/create-manual-commissions";
+import { prisma } from "../../lib/prisma";
+import { stripeAppClient } from "../../lib/stripe";
+import { StripeMode } from "../../lib/types";
+import { createManualCommissionBodySchema } from "../../lib/zod/schemas/commissions";
 
 // Backfills partner sales that the Stripe webhooks skipped before #4609.
 // When the connected customer had a dubCustomerExternalId that matched no Dub customer,
 // the webhooks returned early and never checked the partner discount code.
 // Only subscriptions created on or after START_DATE that used a valid (not disabled) Dub discount code.
-// Run this after #4609 is deployed. Set DRY_RUN to false to create the commissions.
+// Only the Stripe customers in beehiiv_customer_ids.csv are checked.
+// Each match is appended to discount-code-sale-candidates.csv, and every checked id is appended to
+// discount-code-sale-scanned.csv. Re-running resumes from those files instead of scanning Stripe again.
+// Delete both CSVs to start over. Run this after #4609 is deployed. Set DRY_RUN to false to create the commissions.
 
 const WORKSPACE_ID = "ws_xxx";
 const USER_ID = "user_xxx"; // saved as the user who created the commissions
 const START_DATE = new Date("2026-05-01T00:00:00.000Z"); // after the workspace moved to Dub
 const STRIPE_MODE: StripeMode = "live";
-const DRY_RUN = true;
+const DRY_RUN = false;
+// First N rows of discount-code-sale-candidates.csv. Set to null to backfill every saved candidate.
+const CANDIDATE_LIMIT: number | null = null;
+
+const SCRIPT_DIR = path.dirname(fileURLToPath(import.meta.url));
+const CUSTOMER_IDS_CSV = path.join(SCRIPT_DIR, "beehiiv_customer_ids.csv");
+const CANDIDATES_CSV = path.join(
+  SCRIPT_DIR,
+  "discount-code-sale-candidates.csv",
+);
+const SCANNED_CUSTOMER_IDS_CSV = path.join(
+  SCRIPT_DIR,
+  "discount-code-sale-scanned.csv",
+);
 
 type Candidate = {
   discountCode: DiscountCode;
   subscriptionId: string;
   firstInvoiceCreated: number;
+};
+
+type CandidateRow = {
+  stripeCustomerId: string;
+  code: string;
+  partnerId: string;
+  subscriptionId: string;
+  firstInvoiceCreated: string;
+};
+
+type LookupCaches = {
+  codesByPromotionCodeId: Map<string, string | null>;
+  discountCodesByCode: Map<string, DiscountCode | null>;
+  createdBySubscriptionId: Map<string, number>;
 };
 
 type Result = {
@@ -72,19 +106,27 @@ async function main() {
 
   const stripe = stripeAppClient({ mode: STRIPE_MODE });
 
+  const customerIds = readCustomerIds();
+
   const candidates = await findCandidates({
     stripe,
     stripeConnectId,
     programId,
+    customerIds,
   });
 
+  const candidatesToBackfill =
+    CANDIDATE_LIMIT == null
+      ? [...candidates]
+      : [...candidates].slice(0, CANDIDATE_LIMIT);
+
   console.log(
-    `Found ${candidates.size} Stripe customers with a Dub discount code since ${START_DATE.toISOString()}`,
+    `Backfilling ${candidatesToBackfill.length} of ${candidates.size} Stripe customers with a Dub discount code since ${START_DATE.toISOString()}`,
   );
 
   const results: Result[] = [];
 
-  for (const [stripeCustomerId, candidate] of candidates) {
+  for (const [stripeCustomerId, candidate] of candidatesToBackfill) {
     const result = await backfillCustomer({
       stripe,
       workspace: {
@@ -110,25 +152,98 @@ async function main() {
   console.table(results);
 }
 
-// Find the first paid subscription invoice with a valid Dub discount code for each Stripe customer.
+// Find the first paid subscription invoice with a valid Dub discount code for each Beehiiv customer.
 // We check the invoices, not the subscriptions, because a repeating discount
 // (e.g. "20% off for 3 months") is removed from the subscription when it ends.
+// Matches are appended to CANDIDATES_CSV as they are found so a crash can resume from disk.
 async function findCandidates({
   stripe,
   stripeConnectId,
   programId,
+  customerIds,
 }: {
   stripe: Stripe;
   stripeConnectId: string;
   programId: string;
+  customerIds: string[];
 }) {
-  const codesByPromotionCodeId = new Map<string, string | null>();
-  const discountCodesByCode = new Map<string, DiscountCode | null>();
-  const createdBySubscriptionId = new Map<string, number>();
-  const candidates = new Map<string, Candidate>();
+  const candidates = await loadPersistedCandidates(programId);
+  const scannedIds = readScannedCustomerIds();
+  const remaining = customerIds.filter(
+    (stripeCustomerId) =>
+      !scannedIds.has(stripeCustomerId) && !candidates.has(stripeCustomerId),
+  );
+
+  console.log(
+    `Checking ${customerIds.length} Beehiiv customers (${scannedIds.size} already scanned, ${candidates.size} already saved to ${CANDIDATES_CSV})`,
+  );
+
+  const caches: LookupCaches = {
+    codesByPromotionCodeId: new Map(),
+    discountCodesByCode: new Map(),
+    createdBySubscriptionId: new Map(),
+  };
+
+  for (const [index, stripeCustomerId] of remaining.entries()) {
+    const candidate = await findCandidateForCustomer({
+      stripe,
+      stripeConnectId,
+      programId,
+      stripeCustomerId,
+      caches,
+    });
+
+    if (candidate) {
+      candidates.set(stripeCustomerId, candidate);
+      appendCsvRows(CANDIDATES_CSV, [
+        {
+          stripeCustomerId,
+          code: candidate.discountCode.code,
+          partnerId: candidate.discountCode.partnerId,
+          subscriptionId: candidate.subscriptionId,
+          firstInvoiceCreated: candidate.firstInvoiceCreated,
+        },
+      ]);
+      console.log({
+        stripeCustomerId,
+        code: candidate.discountCode.code,
+        partnerId: candidate.discountCode.partnerId,
+        subscriptionId: candidate.subscriptionId,
+        firstInvoiceCreated: candidate.firstInvoiceCreated,
+      });
+    }
+
+    appendCsvRows(SCANNED_CUSTOMER_IDS_CSV, [{ id: stripeCustomerId }]);
+    scannedIds.add(stripeCustomerId);
+
+    if ((index + 1) % 100 === 0 || index + 1 === remaining.length) {
+      console.log(
+        `Scanned ${scannedIds.size}/${customerIds.length} Beehiiv customers, ${candidates.size} relevant`,
+      );
+    }
+  }
+
+  return candidates;
+}
+
+async function findCandidateForCustomer({
+  stripe,
+  stripeConnectId,
+  programId,
+  stripeCustomerId,
+  caches,
+}: {
+  stripe: Stripe;
+  stripeConnectId: string;
+  programId: string;
+  stripeCustomerId: string;
+  caches: LookupCaches;
+}) {
+  let candidate: Candidate | null = null;
 
   for await (const invoice of stripe.invoices.list(
     {
+      customer: stripeCustomerId,
       status: "paid",
       created: {
         gte: toUnix(START_DATE),
@@ -140,38 +255,36 @@ async function findCandidates({
       stripeAccount: stripeConnectId,
     },
   )) {
-    const stripeCustomerId =
-      typeof invoice.customer === "string"
-        ? invoice.customer
-        : invoice.customer?.id;
-
     const subscription = invoice.parent?.subscription_details?.subscription;
     const subscriptionId =
       typeof subscription === "string" ? subscription : subscription?.id;
 
     const promotionCodeId = getPromotionCodeId(invoice);
 
-    if (!stripeCustomerId || !subscriptionId || !promotionCodeId) {
+    if (!subscriptionId || !promotionCodeId) {
       continue;
     }
 
-    if (!codesByPromotionCodeId.has(promotionCodeId)) {
+    if (!caches.codesByPromotionCodeId.has(promotionCodeId)) {
       const promotionCode = await getPromotionCode({
         promotionCodeId,
         stripeAccountId: stripeConnectId,
         mode: STRIPE_MODE,
       });
 
-      codesByPromotionCodeId.set(promotionCodeId, promotionCode?.code ?? null);
+      caches.codesByPromotionCodeId.set(
+        promotionCodeId,
+        promotionCode?.code ?? null,
+      );
     }
 
-    const code = codesByPromotionCodeId.get(promotionCodeId);
+    const code = caches.codesByPromotionCodeId.get(promotionCodeId);
 
     if (!code) {
       continue;
     }
 
-    if (!discountCodesByCode.has(code)) {
+    if (!caches.discountCodesByCode.has(code)) {
       const discountCode = await prisma.discountCode.findUnique({
         where: {
           programId_code: {
@@ -181,16 +294,16 @@ async function findCandidates({
         },
       });
 
-      discountCodesByCode.set(code, discountCode);
+      caches.discountCodesByCode.set(code, discountCode);
     }
 
-    const discountCode = discountCodesByCode.get(code);
+    const discountCode = caches.discountCodesByCode.get(code);
 
     if (!discountCode || discountCode.disabledAt) {
       continue;
     }
 
-    if (!createdBySubscriptionId.has(subscriptionId)) {
+    if (!caches.createdBySubscriptionId.has(subscriptionId)) {
       const { created } = await stripe.subscriptions.retrieve(
         subscriptionId,
         {},
@@ -199,25 +312,144 @@ async function findCandidates({
         },
       );
 
-      createdBySubscriptionId.set(subscriptionId, created);
+      caches.createdBySubscriptionId.set(subscriptionId, created);
     }
 
-    if (createdBySubscriptionId.get(subscriptionId)! < toUnix(START_DATE)) {
+    if (
+      caches.createdBySubscriptionId.get(subscriptionId)! < toUnix(START_DATE)
+    ) {
       continue;
     }
 
-    const candidate = candidates.get(stripeCustomerId);
-
     if (!candidate || invoice.created < candidate.firstInvoiceCreated) {
-      candidates.set(stripeCustomerId, {
+      candidate = {
         discountCode,
         subscriptionId,
         firstInvoiceCreated: invoice.created,
-      });
+      };
     }
   }
 
+  return candidate;
+}
+
+function readCustomerIds() {
+  if (!fs.existsSync(CUSTOMER_IDS_CSV)) {
+    throw new Error(`Beehiiv customer CSV not found: ${CUSTOMER_IDS_CSV}`);
+  }
+
+  const ids = [
+    ...new Set(
+      readCsv<{ id: string }>(CUSTOMER_IDS_CSV)
+        .map((row) => row.id?.trim())
+        .filter((id): id is string => Boolean(id)),
+    ),
+  ];
+
+  if (ids.length === 0) {
+    throw new Error(`No customer ids found in ${CUSTOMER_IDS_CSV}`);
+  }
+
+  return ids;
+}
+
+function readScannedCustomerIds() {
+  return new Set(
+    readCsv<{ id: string }>(SCANNED_CUSTOMER_IDS_CSV)
+      .map((row) => row.id?.trim())
+      .filter((id): id is string => Boolean(id)),
+  );
+}
+
+async function loadPersistedCandidates(programId: string) {
+  const rows = readCsv<CandidateRow>(CANDIDATES_CSV);
+  const candidates = new Map<string, Candidate>();
+
+  if (rows.length === 0) {
+    return candidates;
+  }
+
+  const discountCodes = await prisma.discountCode.findMany({
+    where: {
+      programId,
+      code: {
+        in: [...new Set(rows.map((row) => row.code))],
+      },
+    },
+  });
+  const discountCodesByCode = new Map(
+    discountCodes.map((discountCode) => [discountCode.code, discountCode]),
+  );
+
+  for (const row of rows) {
+    const discountCode = discountCodesByCode.get(row.code);
+    const firstInvoiceCreated = Number(row.firstInvoiceCreated);
+
+    if (
+      !discountCode ||
+      !row.subscriptionId ||
+      !Number.isFinite(firstInvoiceCreated)
+    ) {
+      throw new Error(
+        `Invalid candidate row for ${row.stripeCustomerId || "(missing id)"} in ${CANDIDATES_CSV}`,
+      );
+    }
+
+    candidates.set(row.stripeCustomerId, {
+      discountCode,
+      subscriptionId: row.subscriptionId,
+      firstInvoiceCreated,
+    });
+  }
+
+  console.log(
+    `Loaded ${candidates.size} relevant customers from ${CANDIDATES_CSV}`,
+  );
+
   return candidates;
+}
+
+function readCsv<T>(filePath: string): T[] {
+  if (!fs.existsSync(filePath)) {
+    return [];
+  }
+
+  const parsed = Papa.parse<T>(fs.readFileSync(filePath, "utf-8"), {
+    header: true,
+    skipEmptyLines: true,
+    transformHeader: (header: string) =>
+      header
+        .trim()
+        .replace(/^\uFEFF/, "")
+        .replace(/^["']|["']$/g, ""),
+  });
+
+  const fatalErrors = parsed.errors.filter(
+    (error) => error.code !== "UndetectableDelimiter",
+  );
+
+  if (fatalErrors.length > 0) {
+    throw new Error(
+      `Failed to parse ${filePath}: ${fatalErrors.map((error) => error.message).join(", ")}`,
+    );
+  }
+
+  return parsed.data;
+}
+
+function appendCsvRows(
+  filePath: string,
+  rows: Record<string, string | number>[],
+) {
+  const fileExists = fs.existsSync(filePath) && fs.statSync(filePath).size > 0;
+
+  fs.appendFileSync(
+    filePath,
+    Papa.unparse(rows, {
+      header: !fileExists,
+      newline: "\n",
+    }) + "\n",
+  );
 }
 
 function toUnix(date: Date) {
@@ -378,7 +610,7 @@ async function backfillCustomer({
       type: "sale",
       partnerId: discountCode.partnerId,
       discountCode: discountCode.code,
-      importStripeInvoices: true,
+      stripeInvoicesToImport: invoicesToImport.map((invoice) => invoice.id!),
       customer: {
         externalId: dubCustomerExternalId,
         stripeCustomerId,
@@ -396,7 +628,6 @@ async function backfillCustomer({
       workspace,
       programId,
       user,
-      stripeInvoiceIds: invoicesToImport.map((invoice) => invoice.id!),
     });
 
     return { ...result, status: "imported" };
