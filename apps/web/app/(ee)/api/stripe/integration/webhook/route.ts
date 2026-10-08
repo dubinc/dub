@@ -1,5 +1,6 @@
 import { captureWebhookLog } from "@/lib/api-logs/capture-webhook-log";
 import { withAxiom } from "@/lib/axiom/server";
+import { prisma } from "@/lib/prisma";
 import { isStripeRateLimitError, stripe } from "@/lib/stripe";
 import { StripeMode } from "@/lib/types";
 import { waitUntil } from "@vercel/functions";
@@ -14,7 +15,6 @@ import { customerSubscriptionDeleted } from "./customer-subscription-deleted";
 import { invoicePaid } from "./invoice-paid";
 import { promotionCodeUpdated } from "./promotion-code-updated";
 import { WebhookHandlerResponse } from "./types";
-import { resolveWebhookWorkspace } from "./utils/resolve-webhook-workspace";
 import { syncCustomer } from "./utils/sync-customer";
 
 export const dynamic = "force-dynamic";
@@ -105,15 +105,30 @@ export const POST = withAxiom(async (req: Request) => {
   }
 
   // Find the workspace
-  const workspace = await resolveWebhookWorkspace({
-    stripeAccountId: event.account,
-    mode,
+  const workspace = await prisma.project.findUnique({
+    where: {
+      stripeConnectId: event.account,
+    },
+    select: {
+      id: true,
+      stripeConnectId: true,
+      defaultProgramId: true,
+      webhookEnabled: true,
+      stagingWorkspaceId: true,
+    },
   });
 
   if (!workspace) {
     return logAndRespond({
       eventType: event.type,
       response: `Workspace not found for Stripe account ${event.account}, skipping...`,
+    });
+  }
+
+  if ((mode === "test" || mode === "sandbox") && workspace.stagingWorkspaceId) {
+    return logAndRespond({
+      eventType: event.type,
+      response: `Skipping ${mode} event for workspace ${workspace.id} because it has a staging workspace.`,
     });
   }
 
