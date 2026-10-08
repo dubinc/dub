@@ -19,6 +19,7 @@ import { useRouter } from "next/navigation";
 import { useId, useMemo } from "react";
 import { ProgramLogo } from "./overview-card";
 import { useOverviewDateRange } from "./use-overview-date-range";
+import { useTopProgramEarnings } from "./use-top-program-earnings";
 
 const MAX_TOOLTIP_PROGRAMS = 5;
 
@@ -35,13 +36,19 @@ export function EarningsChart() {
   });
 
   const { programEnrollments } = useProgramEnrollments();
+  const { data: topPrograms } = useTopProgramEarnings();
 
+  // the enrollments list skips deactivated programs, but their earnings are still in the chart
   const programs = useMemo(
     () =>
-      new Map(
-        programEnrollments?.map(({ program }) => [program.id, program]) ?? [],
-      ),
-    [programEnrollments],
+      new Map<string, { name: string; logo: string | null }>([
+        ...(programEnrollments?.map(
+          ({ program }) => [program.id, program] as const,
+        ) ?? []),
+        ...(topPrograms?.map((program) => [program.id, program] as const) ??
+          []),
+      ]),
+    [programEnrollments, topPrograms],
   );
 
   const total = useMemo(

@@ -1,6 +1,5 @@
 "use client";
 
-import { usePartnerProfileTopEarnings } from "@/lib/swr/use-partner-profile-top-earnings";
 import { GridIcon } from "@dub/ui/icons";
 import { cn, currencyFormatter } from "@dub/utils";
 import Link from "next/link";
@@ -10,18 +9,13 @@ import {
   OverviewCardList,
   ProgramLogo,
 } from "./overview-card";
-import { useOverviewDateRange } from "./use-overview-date-range";
+import { useTopProgramEarnings } from "./use-top-program-earnings";
+
+const ROW_COUNT = 6;
 
 export function TopProgramsCard() {
-  const { start, end, interval } = useOverviewDateRange();
-
-  const { data: programs, error } = usePartnerProfileTopEarnings({
-    groupBy: "programId",
-    limit: 6,
-    interval,
-    start,
-    end,
-  });
+  const { data, error } = useTopProgramEarnings();
+  const programs = data?.slice(0, ROW_COUNT);
 
   return (
     <OverviewCard
@@ -31,7 +25,7 @@ export function TopProgramsCard() {
     >
       <OverviewCardList
         items={programs}
-        rowCount={6}
+        rowCount={ROW_COUNT}
         error={error}
         getKey={(program) => program.id}
         emptyState={{
