@@ -126,11 +126,18 @@ export const PATCH = withAdmin(async ({ params, req }) => {
     return new Response("Partner is already in this country.", { status: 400 });
   }
 
-  await updatePartnerCountry({
-    partnerId: partner.id,
-    country,
-    isAdmin: true,
-  });
+  try {
+    await updatePartnerCountry({
+      partnerId: partner.id,
+      country,
+      isAdmin: true,
+    });
+  } catch (error) {
+    return new Response(
+      error instanceof Error ? error.message : "Failed to update country.",
+      { status: 400 },
+    );
+  }
 
   return NextResponse.json({ success: true });
 });
