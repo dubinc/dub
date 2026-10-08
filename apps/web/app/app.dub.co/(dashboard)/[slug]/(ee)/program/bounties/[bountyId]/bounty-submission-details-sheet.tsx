@@ -628,6 +628,7 @@ function BountySubmissionDetailsSheetContent({
                     variant="danger"
                     text={hasMultipleMilestones ? "Reject all" : "Reject"}
                     shortcut="R"
+                    disabled={!canReject}
                     disabledTooltip={rejectDisabledTooltip}
                     onClick={() => setShowRejectModal(true)}
                   />
