@@ -4,6 +4,7 @@ export * from "./find-candidates";
 export * from "./index-enrollments";
 export * from "./order-search-results";
 export * from "./provider";
+export * from "./resolve-candidate-query";
 export * from "./searchable-values";
 export * from "./serialize-document";
 export * from "./sync";

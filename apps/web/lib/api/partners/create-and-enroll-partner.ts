@@ -166,6 +166,7 @@ export const createAndEnrollPartner = async ({
     leadRewardId: group.leadRewardId,
     saleRewardId: group.saleRewardId,
     referralRewardId: group.referralRewardId,
+    customRewardId: group.customRewardId,
     discountId: group.discountId,
     enrolledAt,
   });
@@ -179,6 +180,9 @@ export const createAndEnrollPartner = async ({
       ...polyfillSocialMediaFields(programEnrollment.partner.platforms),
     });
   }
+
+  // Queue an index update because a new enrollment was created.
+  waitUntil(queuePartnerSearchSync({ enrollmentIds: [programEnrollment.id] }));
 
   // Create the partner links based on group defaults
   const links = await createPartnerDefaultLinks({
@@ -253,9 +257,6 @@ export const createAndEnrollPartner = async ({
           trigger: "partner.enrolled",
           data: enrolledPartner,
         }),
-
-      // Queue an index update because a new enrollment was created.
-      queuePartnerSearchSync({ enrollmentIds: [programEnrollment.id] }),
     ]),
   );
 

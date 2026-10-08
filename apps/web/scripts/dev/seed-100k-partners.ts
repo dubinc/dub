@@ -625,25 +625,9 @@ async function main() {
   // Tags and groups are created once per run and reused, so filters have a
   // small stable set of values to select on rather than one value per partner.
   const tagIds = TAG_NAMES.map((_, index) => createId({ prefix: "ptag_" }));
-  await prisma.partnerTag.createMany({
-    data: TAG_NAMES.map((name, index) => ({
-      id: tagIds[index],
-      programId: program.id,
-      name: `${name} ${seed}`,
-    })),
-  });
-
   const seededGroupIds = SEEDED_GROUP_NAMES.map(() =>
     createId({ prefix: "grp_" }),
   );
-  await prisma.partnerGroup.createMany({
-    data: SEEDED_GROUP_NAMES.map((name, index) => ({
-      id: seededGroupIds[index],
-      programId: program.id,
-      name: `${name} ${seed}`,
-      slug: `${name.toLowerCase()}-${seedFingerprint.slice(0, 6)}`,
-    })),
-  });
 
   // The program's own default group, the seeded ones, and null, so "no group"
   // is represented too, which is what a negated filter has to include.
@@ -652,6 +636,41 @@ async function main() {
     ...seededGroupIds,
     null,
   ];
+
+  // The duplicate-seed check runs before anything is written; running it
+  // after the tag and group writes would leave their rows behind on a rerun.
+  await assertSeedNotAlreadyApplied(
+    generatePartnerChunk({
+      start: 0,
+      end: Math.min(CHUNK_SIZE, totalCount),
+      seedFingerprint,
+      passwordHash,
+      runStartedAt,
+      programId: program.id,
+      programDomain: program.domain,
+      workspaceId: workspace.id,
+      groupIds,
+      tagIds,
+    }),
+    seed,
+  );
+
+  await prisma.partnerTag.createMany({
+    data: TAG_NAMES.map((name, index) => ({
+      id: tagIds[index],
+      programId: program.id,
+      name: `${name} ${seed}`,
+    })),
+  });
+
+  await prisma.partnerGroup.createMany({
+    data: SEEDED_GROUP_NAMES.map((name, index) => ({
+      id: seededGroupIds[index],
+      programId: program.id,
+      name: `${name} ${seed}`,
+      slug: `${name.toLowerCase()}-${seedFingerprint.slice(0, 6)}`,
+    })),
+  });
 
   console.log(
     `Created ${tagIds.length} tags and ${seededGroupIds.length} groups for filtering\n`,
@@ -676,10 +695,6 @@ async function main() {
       groupIds,
       tagIds,
     });
-
-    if (chunk === 0) {
-      await assertSeedNotAlreadyApplied(partnerChunk, seed);
-    }
 
     const insertedInChunk = await insertPartnerChunk(partnerChunk);
     insertedPartners += insertedInChunk;

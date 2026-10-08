@@ -17,16 +17,19 @@ import { leadEventSchemaTB } from "@/lib/zod/schemas/leads";
 import { saleEventSchemaTB } from "@/lib/zod/schemas/sales";
 import { COUNTRIES_TO_CONTINENTS, nanoid, R2_URL } from "@dub/utils";
 import {
+  CommissionSource,
   CommissionType,
   Customer,
   Link,
   Partner,
+  Prisma,
   Project,
 } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
 import { createId } from "../create-id";
 import { getCustomerStripeInvoices } from "../customers/get-customer-stripe-invoices";
+import { getOrCreateCustomer } from "../customers/get-or-create-customer";
 import { DubApiError } from "../errors";
 import { updateLinkStatsForImporter } from "../links/update-link-stats-for-importer";
 import { syncPartnerLinksStats } from "../partners/sync-partner-links-stats";
@@ -75,6 +78,14 @@ const saleEventSchemaTBWithTimestamp = saleEventSchemaTB.extend({
 });
 
 export async function createManualCommissions(args: CreateCommissionsArgs) {
+  if (
+    args.type === "sale" &&
+    args.importStripeInvoices &&
+    args.stripeInvoicesToImport == null
+  ) {
+    args = { ...args, stripeInvoicesToImport: "all" };
+  }
+
   const { workspace, programId, partnerId, type, user } = args;
 
   const { partner, links } = await getProgramEnrollmentOrThrow({
@@ -99,6 +110,7 @@ export async function createManualCommissions(args: CreateCommissionsArgs) {
       createdAt: date ?? new Date(),
       description,
       userId: user.id,
+      source: CommissionSource.user,
       triggerAggregateDueCommissions: true,
     });
 
@@ -114,9 +126,9 @@ export async function createManualCommissions(args: CreateCommissionsArgs) {
     });
 
   if (type === "sale") {
-    const { importStripeInvoices, sale } = args;
+    const { stripeInvoicesToImport, sale } = args;
 
-    if (importStripeInvoices) {
+    if (stripeInvoicesToImport) {
       if (!workspace.stripeConnectId) {
         throw new DubApiError({
           code: "bad_request",
@@ -180,6 +192,7 @@ export async function createManualCommissions(args: CreateCommissionsArgs) {
       // we don't add the "Z" to the timestamp because it's already in UTC
       createdAt: new Date(leadEvent.timestamp),
       userId: user.id,
+      source: CommissionSource.user,
       ...(metadata != null && { metadata }),
       context: {
         customer: {
@@ -212,6 +225,7 @@ export async function createManualCommissions(args: CreateCommissionsArgs) {
           status: "refunded" as const,
         }),
         userId: user.id,
+        source: CommissionSource.user,
         ...(saleEvent.metadata != null && { metadata: saleEvent.metadata }),
         context: {
           customer: {
@@ -259,7 +273,9 @@ async function resolveLinkAndCustomer(args: ResolveLinkAndCustomerArgs) {
 
   let targetLink: Link;
   let targetCustomer: Customer | null = null;
-  const { workspace, partner, links, linkId, customerId, customer } = args;
+  const { workspace, partner, links, programId, linkId, customerId, customer } =
+    args;
+  const discountCode = type === "sale" ? args.discountCode : undefined;
 
   if (links.length === 0) {
     throw new DubApiError({
@@ -282,13 +298,49 @@ async function resolveLinkAndCustomer(args: ResolveLinkAndCustomerArgs) {
     });
   }
 
-  if (linkId) {
-    const link = links.find((l) => l.id === linkId);
+  let resolvedLinkId = linkId ?? null;
+
+  if (discountCode) {
+    const found = await prisma.discountCode.findUnique({
+      where: {
+        programId_code: {
+          programId,
+          code: discountCode,
+        },
+      },
+    });
+
+    if (!found) {
+      throw new DubApiError({
+        code: "not_found",
+        message: `Discount code ${discountCode} not found.`,
+      });
+    }
+
+    if (found.partnerId !== partner.id) {
+      throw new DubApiError({
+        code: "not_found",
+        message: `Discount code ${discountCode} does not belong to partner ${partner.email} (${partner.id}).`,
+      });
+    }
+
+    if (found.disabledAt) {
+      throw new DubApiError({
+        code: "bad_request",
+        message: `Discount code ${discountCode} is disabled.`,
+      });
+    }
+
+    resolvedLinkId = found.linkId;
+  }
+
+  if (resolvedLinkId) {
+    const link = links.find((l) => l.id === resolvedLinkId);
 
     if (!link) {
       throw new DubApiError({
         code: "not_found",
-        message: `Link ${linkId} does not belong to partner ${partner.email} (${partner.id}).`,
+        message: `Link ${resolvedLinkId} does not belong to partner ${partner.email} (${partner.id}).`,
       });
     }
 
@@ -335,31 +387,17 @@ async function resolveLinkAndCustomer(args: ResolveLinkAndCustomerArgs) {
         ? `${R2_URL}/customers/${customerId}/avatar_${nanoid(7)}`
         : avatar;
 
-    targetCustomer = await prisma.customer.upsert({
-      where: {
-        projectId_externalId: {
-          projectId: workspace.id,
-          externalId,
-        },
-      },
-      create: {
+    targetCustomer = await createOrUpdateCustomer({
+      workspace,
+      linkId: targetLink.id,
+      customer: {
         id: customerId,
         name: finalCustomerName,
         email,
         avatar: finalCustomerAvatar,
         externalId,
         stripeCustomerId,
-        linkId: targetLink.id,
         country,
-        projectId: workspace.id,
-        projectConnectId: workspace.stripeConnectId,
-      },
-      update: {
-        name: finalCustomerName,
-        email,
-        avatar: finalCustomerAvatar,
-        country,
-        stripeCustomerId,
       },
     });
 
@@ -394,6 +432,114 @@ async function resolveLinkAndCustomer(args: ResolveLinkAndCustomerArgs) {
   };
 }
 
+/**
+ * Creates the customer by `(projectId, externalId)`, or updates it if it already exists.
+ *
+ * We avoid `prisma.customer.upsert()` here because `Customer` has two other
+ * unique keys besides `(projectId, externalId)`: `stripeCustomerId` (global) and
+ * `(projectConnectId, externalId)`. Upsert only handles conflicts on its `where`
+ * key, so a clash on either of the others throws an opaque
+ * "Unique constraint failed on the (not available)" error from MySQL.
+ *
+ * `getOrCreateCustomer` handles concurrent creates of the same customer. The
+ * remaining Prisma errors are mapped to a 409 conflict:
+ * - P2002: the update sets a `stripeCustomerId` already used by another customer.
+ * - P2025: the create hit one of the other unique keys, so the fallback lookup
+ *   by `(projectId, externalId)` found nothing.
+ *
+ * P2034 (write conflict / deadlock) is retried: MySQL can deadlock concurrent
+ * inserts that collide on the same unique index, and the retry then resolves
+ * to one of the cases above.
+ */
+async function createOrUpdateCustomer({
+  workspace,
+  linkId,
+  customer,
+}: {
+  workspace: Pick<Project, "id" | "stripeConnectId">;
+  linkId: string;
+  customer: Pick<
+    Prisma.CustomerUncheckedCreateInput,
+    "id" | "name" | "email" | "avatar" | "stripeCustomerId" | "country"
+  > & { externalId: string };
+}) {
+  const { id, name, email, avatar, externalId, stripeCustomerId, country } =
+    customer;
+
+  // Retry on MySQL deadlocks (P2034) from concurrent inserts on the same unique key
+  const maxAttempts = 3;
+
+  for (let attempt = 1; ; attempt++) {
+    try {
+      const { customer: resolvedCustomer, created } = await getOrCreateCustomer(
+        {
+          where: {
+            projectId_externalId: {
+              projectId: workspace.id,
+              externalId,
+            },
+          },
+          create: {
+            id,
+            name,
+            email,
+            avatar,
+            externalId,
+            stripeCustomerId,
+            linkId,
+            country,
+            projectId: workspace.id,
+            projectConnectId: workspace.stripeConnectId,
+          },
+        },
+      );
+
+      if (created) {
+        return resolvedCustomer;
+      }
+
+      return await prisma.customer.update({
+        where: {
+          id: resolvedCustomer.id,
+        },
+        data: {
+          name,
+          email,
+          avatar,
+          country,
+          stripeCustomerId,
+        },
+      });
+    } catch (error) {
+      if (!(error instanceof Prisma.PrismaClientKnownRequestError)) {
+        throw error;
+      }
+
+      if (error.code === "P2034" && attempt < maxAttempts) {
+        continue;
+      }
+
+      if (error.code === "P2002") {
+        throw new DubApiError({
+          code: "conflict",
+          message: `The Stripe customer ID ${stripeCustomerId} is already linked to a different customer than external ID ${externalId}.`,
+        });
+      }
+
+      if (error.code === "P2025") {
+        throw new DubApiError({
+          code: "conflict",
+          message: stripeCustomerId
+            ? `The Stripe customer ID ${stripeCustomerId} is already linked to a customer with a different external ID.`
+            : `A customer with external ID ${externalId} already exists for this Stripe account.`,
+        });
+      }
+
+      throw error;
+    }
+  }
+}
+
 async function recordEvents(args: RecordEventsArgs) {
   const { type } = args;
 
@@ -410,17 +556,63 @@ async function recordEvents(args: RecordEventsArgs) {
 
   if (type === "lead") {
     finalLeadEventDate = args.date ?? args.leadEventDate ?? new Date();
-  } else if (args.importStripeInvoices) {
+  } else if (args.stripeInvoicesToImport) {
+    const { stripeInvoicesToImport } = args;
+
     stripeCustomerInvoices = await getCustomerStripeInvoices({
       stripeCustomerId: targetCustomer.stripeCustomerId!,
       stripeConnectId: workspace.stripeConnectId!,
       programId,
     });
 
-    // Filter out invoices that are already associated with a commission on Dub
-    stripeCustomerInvoices = stripeCustomerInvoices.filter(
-      (invoice) => !invoice.dubCommissionId,
-    );
+    if (stripeInvoicesToImport === "all") {
+      // Skip invoices that already have a commission, and refunded invoices.
+      stripeCustomerInvoices = stripeCustomerInvoices.filter(
+        (invoice) => !invoice.dubCommissionId && !invoice.refunded,
+      );
+    } else {
+      const invoicesById = new Map(
+        stripeCustomerInvoices.map((invoice) => [invoice.id, invoice]),
+      );
+      const requestedInvoiceIds = [...new Set(stripeInvoicesToImport)];
+
+      const notFoundInvoiceIds = requestedInvoiceIds.filter(
+        (id) => !invoicesById.has(id),
+      );
+
+      if (notFoundInvoiceIds.length > 0) {
+        throw new DubApiError({
+          code: "bad_request",
+          message: `No paid Stripe invoices found for customer with the IDs: ${notFoundInvoiceIds.join(", ")}`,
+        });
+      }
+
+      const importedInvoiceIds = requestedInvoiceIds.filter(
+        (id) => invoicesById.get(id)!.dubCommissionId,
+      );
+
+      if (importedInvoiceIds.length > 0) {
+        throw new DubApiError({
+          code: "conflict",
+          message: `There is already a commission for the invoices: ${importedInvoiceIds.join(", ")}`,
+        });
+      }
+
+      const refundedInvoiceIds = requestedInvoiceIds.filter(
+        (id) => invoicesById.get(id)!.refunded,
+      );
+
+      if (refundedInvoiceIds.length > 0) {
+        throw new DubApiError({
+          code: "bad_request",
+          message: `Refunded Stripe invoices cannot be imported: ${refundedInvoiceIds.join(", ")}`,
+        });
+      }
+
+      stripeCustomerInvoices = requestedInvoiceIds.map(
+        (id) => invoicesById.get(id)!,
+      );
+    }
 
     if (stripeCustomerInvoices.length === 0) {
       throw new DubApiError({
@@ -442,14 +634,18 @@ async function recordEvents(args: RecordEventsArgs) {
   const clickId = nanoid(16);
   const clickedAt = new Date(finalLeadEventDate.getTime() - 5 * 60 * 1000);
 
-  // Record click event
+  // Record a dummy click event (start of the conversion funnel)
   const clickEvent = recordClickZodSchema.parse({
     timestamp: clickedAt.toISOString(),
     identity_hash: targetCustomer.externalId || targetCustomer.id,
+    workspace_id: workspace.id,
     click_id: clickId,
     link_id: targetLink.id,
+    domain: targetLink.domain,
+    key: targetLink.key,
     url: targetLink.url,
     ip: "127.0.0.1",
+    country: targetCustomer.country,
     continent: targetCustomer.country
       ? COUNTRIES_TO_CONTINENTS[targetCustomer.country.toUpperCase()] || ""
       : "",
@@ -480,7 +676,7 @@ async function recordEvents(args: RecordEventsArgs) {
   let commissionMetadata: Record<string, unknown> | null = null;
 
   if (type === "sale") {
-    if (args.importStripeInvoices) {
+    if (args.stripeInvoicesToImport) {
       saleEvents = stripeCustomerInvoices.map((invoice) =>
         saleEventSchemaTBWithTimestamp.parse({
           ...clickEvent,

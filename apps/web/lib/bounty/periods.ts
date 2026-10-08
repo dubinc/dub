@@ -6,6 +6,7 @@ export type SubmissionPeriodStatus =
   | "notOpen"
   | "draft"
   | "submitted"
+  | "partiallyApproved"
   | "approved"
   | "rejected";
 

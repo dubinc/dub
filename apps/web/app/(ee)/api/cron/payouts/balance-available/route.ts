@@ -1,7 +1,6 @@
-import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { BANK_ACCOUNT_STATUS_DESCRIPTIONS } from "@/lib/constants/payouts";
 import { qstash } from "@/lib/cron";
-import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
+import { withCron } from "@/lib/cron/with-cron";
 import { getPartnerBankAccount } from "@/lib/partners/get-partner-bank-account";
 import { prisma } from "@/lib/prisma";
 import { stripe } from "@/lib/stripe";
@@ -24,11 +23,8 @@ const payloadSchema = z.object({
 });
 
 // POST /api/cron/payouts/balance-available
-export async function POST(req: Request) {
+export const POST = withCron(async ({ rawBody }) => {
   try {
-    const rawBody = await req.text();
-    await verifyQstashSignature({ req, rawBody });
-
     const { stripeAccount } = payloadSchema.parse(JSON.parse(rawBody));
 
     const partner = await prisma.partner.findUnique({
@@ -64,8 +60,14 @@ export async function POST(req: Request) {
 
     let { amount: availableBalance, currency } = balance.available[0];
 
-    // if available balance is 0, check if there's any pending balance
-    if (availableBalance === 0) {
+    if (["huf", "twd"].includes(currency)) {
+      // Stripe requires HUF/TWD payouts to be evenly divisible by 100
+      availableBalance = Math.floor(availableBalance / 100) * 100;
+    }
+
+    // Stripe requires payout amount >= 1; skip dust (e.g. HUF/TWD rounded down)
+    // and negatives (refunds/reversals). Requeue if funds are still pending.
+    if (availableBalance < 1) {
       const pendingBalance = balance.pending?.[0]?.amount ?? 0;
 
       // if there's a pending balance, schedule another check in 1 hour
@@ -87,7 +89,7 @@ export async function POST(req: Request) {
       }
 
       return logAndRespond(
-        `Partner ${partner.email} (${stripeAccount})'s available balance is 0. Skipping...`,
+        `Partner ${partner.email} (${stripeAccount}) has no payable available balance (${currencyFormatter(availableBalance, { currency })}). Skipping...`,
       );
     }
 
@@ -127,12 +129,6 @@ export async function POST(req: Request) {
       return logAndRespond(
         `Partner ${partner.email} (${stripeAccount}) has an errored bank account. Skipping...`,
       );
-    }
-
-    if (["huf", "twd"].includes(currency)) {
-      // For HUF and TWD, Stripe requires payout amounts to be evenly divisible by 100
-      // We need to round down to the nearest 100 units
-      availableBalance = Math.floor(availableBalance / 100) * 100;
     }
 
     const stripePayout = await stripe.payouts.create(
@@ -222,6 +218,6 @@ export async function POST(req: Request) {
       type: "errors",
     });
 
-    return handleAndReturnErrorResponse(error);
+    throw error;
   }
-}
+});

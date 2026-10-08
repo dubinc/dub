@@ -1,15 +1,9 @@
 import { NetworkProgramProps } from "@/lib/types";
 import {
-  ProgramCategory,
-  programCategorySurfaceClassName,
-} from "@/ui/program-marketplace/program-category";
-import { ProgramRewardsDisplay } from "@/ui/program-marketplace/program-rewards-display";
-import {
-  getMarketplaceAllHref,
-  getMarketplaceCategoryHref,
-  getMarketplaceProgramHref,
-} from "@/ui/program-marketplace/utils/urls";
-import { Tooltip } from "@dub/ui";
+  MarketplaceRewardsLabel,
+  ProgramRewardsDisplay,
+} from "@/ui/program-marketplace/program-rewards-display";
+import { getMarketplaceAllHref } from "@/ui/program-marketplace/utils/urls";
 import { ArrowUpRight, Globe } from "@dub/ui/icons";
 import { OG_AVATAR_URL, getDomainWithoutWWW } from "@dub/utils";
 import Link from "next/link";
@@ -40,14 +34,15 @@ export function getFeaturedCardBackground(index: number) {
 
 export function FeaturedProgramCard({
   program,
-  showStatus = true,
+  externalMarketplace = false,
   colorIndex = 0,
 }: {
   program: NetworkProgramProps;
-  showStatus?: boolean;
+  externalMarketplace?: boolean;
   colorIndex?: number;
 }) {
   const router = useRouter();
+  const rewards = program.rewards;
 
   // Derive the tint from the program's image
   // Fall back to the palette if extraction is blocked
@@ -57,7 +52,7 @@ export function FeaturedProgramCard({
   const backgroundColor = accentColor ?? getFeaturedCardBackground(colorIndex);
 
   return (
-    <article className="relative flex h-full flex-col-reverse gap-4 overflow-hidden rounded-2xl p-2 sm:min-h-[340px] sm:flex-row">
+    <article className="relative flex h-full flex-col-reverse gap-4 overflow-hidden rounded-2xl border border-neutral-100 p-2 sm:min-h-[340px] sm:flex-row">
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0 z-0 transition-opacity duration-500 ease-out"
@@ -65,7 +60,7 @@ export function FeaturedProgramCard({
       />
 
       <Link
-        href={getMarketplaceProgramHref(program.slug)}
+        href={`/marketplace/${program.slug}`}
         className="absolute inset-0 z-10 rounded-2xl"
         aria-label={`View ${program.name}`}
       />
@@ -78,7 +73,9 @@ export function FeaturedProgramCard({
             className="size-12 rounded-full border-4 border-neutral-100 sm:border sm:border-black/5"
           />
 
-          {showStatus ? <ProgramStatusBadge program={program} /> : null}
+          {!externalMarketplace ? (
+            <ProgramStatusBadge program={program} />
+          ) : null}
         </div>
 
         <div className="flex flex-col pt-4 sm:mt-auto sm:pt-10">
@@ -92,69 +89,23 @@ export function FeaturedProgramCard({
           </div>
 
           <div className="pointer-events-auto relative z-30 mt-5 flex flex-wrap gap-x-8 gap-y-4">
-            {Boolean(program.rewards?.length) && (
-              <div>
-                <span className="block text-xs font-medium text-neutral-400">
-                  Rewards
-                </span>
+            {rewards?.length ? (
+              <div className="min-w-0">
+                <MarketplaceRewardsLabel
+                  count={rewards.length}
+                  className="text-xs font-medium text-neutral-400"
+                />
                 <ProgramRewardsDisplay
-                  iconsOnly
-                  rewards={program.rewards}
+                  rewards={rewards}
                   onRewardClick={(reward) =>
                     router.push(
                       getMarketplaceAllHref({ rewardType: reward.event }),
                     )
                   }
                   className="mt-2 min-h-6"
-                  iconClassName="text-neutral-900"
                 />
               </div>
-            )}
-            {Boolean(program.categories.length) && (
-              <div className="min-w-0">
-                <span className="block text-xs font-medium text-neutral-400">
-                  Category
-                </span>
-                <div className="mt-2 flex min-h-6 items-center gap-1.5">
-                  {program.categories
-                    .slice(0, 1)
-                    ?.map((category) => (
-                      <ProgramCategory
-                        key={category}
-                        category={category}
-                        variant="surface"
-                        onClick={() =>
-                          router.push(getMarketplaceCategoryHref(category))
-                        }
-                      />
-                    ))}
-                  {program.categories.length > 1 && (
-                    <Tooltip
-                      content={
-                        <div className="flex flex-col gap-1 p-1">
-                          {program.categories.slice(1).map((category) => (
-                            <ProgramCategory
-                              key={category}
-                              category={category}
-                              variant="surface"
-                              onClick={() =>
-                                router.push(
-                                  getMarketplaceCategoryHref(category),
-                                )
-                              }
-                            />
-                          ))}
-                        </div>
-                      }
-                    >
-                      <div className={programCategorySurfaceClassName}>
-                        +{program.categories.length - 1}
-                      </div>
-                    </Tooltip>
-                  )}
-                </div>
-              </div>
-            )}
+            ) : null}
             {program.url && (
               <div className="basis-full sm:basis-auto">
                 <span className="block text-xs font-medium text-neutral-400">
@@ -215,14 +166,7 @@ export function FeaturedProgramCardSkeleton() {
           <div className="mt-5 flex flex-wrap gap-x-8 gap-y-4">
             <div>
               <div className="h-4 w-12 animate-pulse rounded bg-neutral-200" />
-              <div className="mt-2 flex gap-1.5">
-                <div className="size-4 animate-pulse rounded bg-neutral-200" />
-                <div className="size-4 animate-pulse rounded bg-neutral-200" />
-              </div>
-            </div>
-            <div>
-              <div className="h-4 w-14 animate-pulse rounded bg-neutral-200" />
-              <div className="mt-2 h-5 w-24 animate-pulse rounded-full bg-neutral-200" />
+              <div className="mt-2 h-5 w-40 animate-pulse rounded bg-neutral-200" />
             </div>
             <div className="basis-full sm:basis-auto">
               <div className="h-4 w-12 animate-pulse rounded bg-neutral-200" />

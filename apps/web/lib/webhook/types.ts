@@ -1,14 +1,17 @@
 import * as z from "zod/v4";
 import { BountySchema } from "../zod/schemas/bounties";
-import { DiscountCodeWebhookSchema } from "../zod/schemas/discount";
 import { CommissionWebhookSchema } from "../zod/schemas/commissions";
+import { DiscountCodeWebhookSchema } from "../zod/schemas/discount";
 import { linkEventSchema } from "../zod/schemas/links";
 import {
   EnrolledPartnerSchema,
   partnerMergedWebhookSchema,
 } from "../zod/schemas/partners";
 import { payoutWebhookEventSchema } from "../zod/schemas/payouts";
-import { partnerApplicationWebhookSchema } from "../zod/schemas/program-application";
+import {
+  partnerApplicationWebhookSchema,
+  programApplicationWebhookSchema,
+} from "../zod/schemas/program-application";
 import { WEBHOOK_TRIGGERS } from "./constants";
 import {
   clickWebhookEventSchema,
@@ -28,6 +31,10 @@ export type PartnerEventWebhookPayload = z.infer<typeof EnrolledPartnerSchema>;
 
 export type PartnerApplicationWebhookPayload = z.infer<
   typeof partnerApplicationWebhookSchema
+>;
+
+export type ProgramApplicationWebhookPayload = z.infer<
+  typeof programApplicationWebhookSchema
 >;
 
 export type PartnerMergedWebhookPayload = z.infer<
@@ -55,6 +62,7 @@ export type WebhookEventPayload =
   | SaleEventWebhookPayload
   | PartnerEventWebhookPayload
   | PartnerApplicationWebhookPayload
+  | ProgramApplicationWebhookPayload
   | PartnerMergedWebhookPayload
   | CommissionEventWebhookPayload
   | BountyEventWebhookPayload

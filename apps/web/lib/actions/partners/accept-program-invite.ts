@@ -46,6 +46,9 @@ export const acceptProgramInviteAction = authPartnerActionClient
       },
     });
 
+    // Queue an index update because the enrollment status moved to approved.
+    waitUntil(queuePartnerSearchSync({ enrollmentIds: [enrollment.id] }));
+
     waitUntil(
       (async () => {
         const workspace = await prisma.project.findUnique({
@@ -97,10 +100,6 @@ export const acceptProgramInviteAction = authPartnerActionClient
               programId,
               partnerId: enrolledPartner.id,
             },
-          }),
-          // Queue an index update because the enrollment status moved to approved
-          queuePartnerSearchSync({
-            enrollmentIds: [enrollment.id],
           }),
         ]);
       })(),

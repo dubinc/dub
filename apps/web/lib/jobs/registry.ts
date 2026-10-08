@@ -30,9 +30,98 @@ const jobLoaders = {
       (m) => m.createTremendousCampaignJob,
     ),
 
+  "sync-group-utm-job": () =>
+    import("./handlers/sync-group-utm-job").then((m) => m.syncGroupUtmJob),
+
   "partner-search-sync-job": () =>
     import("./handlers/partner-search-sync-job").then(
       (m) => m.partnerSearchSyncJob,
+    ),
+
+  "process-shopify-order-job": () =>
+    import("./handlers/process-shopify-order-job").then(
+      (m) => m.processShopifyOrderJob,
+    ),
+
+  "welcome-user-job": () =>
+    import("./handlers/welcome-user-job").then((m) => m.welcomeUserJob),
+
+  // Deprecated: only kept to drain in-flight messages
+  "auto-approve-partner-job": () =>
+    import("./handlers/auto-approve-partner-job").then(
+      (m) => m.autoApprovePartnerJob,
+    ),
+
+  // Deprecated: only kept to drain in-flight messages
+  "auto-reject-partner-job": () =>
+    import("./handlers/auto-reject-partner-job").then(
+      (m) => m.autoRejectPartnerJob,
+    ),
+
+  "auto-approve-program-application-job": () =>
+    import("./handlers/auto-approve-program-application-job").then(
+      (m) => m.autoApproveProgramApplicationJob,
+    ),
+
+  "auto-reject-program-application-job": () =>
+    import("./handlers/auto-reject-program-application-job").then(
+      (m) => m.autoRejectProgramApplicationJob,
+    ),
+
+  "queue-partner-program-summary-job": () =>
+    import("./handlers/queue-partner-program-summary-job").then(
+      (m) => m.queuePartnerProgramSummaryJob,
+    ),
+
+  "send-partner-program-summary-job": () =>
+    import("./handlers/send-partner-program-summary-job").then(
+      (m) => m.sendPartnerProgramSummaryJob,
+    ),
+
+  "send-connect-payout-reminders-job": () =>
+    import("./handlers/send-connect-payout-reminders-job").then(
+      (m) => m.sendConnectPayoutRemindersJob,
+    ),
+
+  "create-custom-commission-job": () =>
+    import("./handlers/create-custom-commission-job").then(
+      (m) => m.createCustomCommissionJob,
+    ),
+
+  "invalidate-links-for-discounts-job": () =>
+    import("./handlers/invalidate-links-for-discounts-job").then(
+      (m) => m.invalidateLinksForDiscountsJob,
+    ),
+
+  "remap-discount-code-job": () =>
+    import("./handlers/remap-discount-code-job").then(
+      (m) => m.remapDiscountCodeJob,
+    ),
+
+  "attach-discount-job": () =>
+    import("./handlers/attach-discount-job").then((m) => m.attachDiscountJob),
+
+  "create-discount-code-for-link-job": () =>
+    import("./handlers/create-discount-code-for-link-job").then(
+      (m) => m.createDiscountCodeForLinkJob,
+    ),
+
+  "publish-discount-codes-creation-job": () =>
+    import("./handlers/publish-discount-codes-creation-job").then(
+      (m) => m.publishDiscountCodesCreationJob,
+    ),
+
+  "aggregate-clicks-job": () =>
+    import("./handlers/aggregate-clicks-job").then((m) => m.aggregateClicksJob),
+
+  "process-partner-group-change-job": () =>
+    import("./handlers/process-partner-group-change-job").then(
+      (m) => m.processPartnerGroupChangeJob,
+    ),
+
+  "program-application-reminder-job": () =>
+    import("./handlers/program-application-reminder-job").then(
+      (m) => m.programApplicationReminderJob,
     ),
 } as const satisfies Record<string, () => Promise<JobDefinition>>;
 

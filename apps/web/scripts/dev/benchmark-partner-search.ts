@@ -203,10 +203,6 @@ function longestSearchToken(value: string): string {
   return token.slice(0, 12);
 }
 
-function stripProtocol(url: string): string {
-  return url.replace(/^https?:\/\//, "");
-}
-
 function emailInfix(email: string): string {
   const domain = email.split("@")[1];
   if (!domain) {
@@ -220,10 +216,7 @@ function emailInfix(email: string): string {
 function createSearchCases(document: PartnerSearchDocument): SearchCase[] {
   const platformType = document.platformTypes[0];
   const platformIdentifier = document.platformIdentifiers[0];
-  const linkDomain = document.linkDomains[0];
   const linkKey = document.linkKeys[0];
-  const shortLink = document.shortLinks[0];
-  const destinationUrl = document.destinationUrls[0];
 
   if (
     !document.email ||
@@ -231,10 +224,7 @@ function createSearchCases(document: PartnerSearchDocument): SearchCase[] {
     !document.description ||
     !platformType ||
     !platformIdentifier ||
-    !linkDomain ||
-    !linkKey ||
-    !shortLink ||
-    !destinationUrl
+    !linkKey
   ) {
     throw new Error(
       "The benchmark sample must have an email, company, description, platform, and link.",
@@ -251,13 +241,7 @@ function createSearchCases(document: PartnerSearchDocument): SearchCase[] {
       field: "platform identifier",
       query: longestSearchToken(platformIdentifier),
     },
-    { field: "link domain", query: longestSearchToken(linkDomain) },
     { field: "link key", query: linkKey },
-    { field: "short link", query: stripProtocol(shortLink) },
-    {
-      field: "destination URL",
-      query: longestSearchToken(destinationUrl),
-    },
   ];
 }
 

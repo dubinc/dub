@@ -5,6 +5,8 @@ import { createId } from "../api/create-id";
 import { createLink } from "../api/links";
 import { generatePartnerLink } from "../api/partners/generate-partner-link";
 import { queuePartnerSearchSync } from "../api/partners/queue-partner-search-sync";
+import { upsertImportedProgramEnrollment } from "../api/partners/upsert-imported-program-enrollment";
+import { approveLinkedApplication } from "../program-applications/approve-linked-application";
 import { logImportError } from "../tinybird/log-import-error";
 import { WorkspaceProps } from "../types";
 import { DEFAULT_PARTNER_GROUP } from "../zod/schemas/groups";
@@ -27,6 +29,8 @@ export async function importPartners(payload: TapfiliateImportPayload) {
           clickRewardId: true,
           leadRewardId: true,
           saleRewardId: true,
+          referralRewardId: true,
+          customRewardId: true,
           discountId: true,
         },
       },
@@ -182,7 +186,13 @@ async function createPartnerAndLinks({
   affiliate: TapfiliatePartner;
   group: Pick<
     PartnerGroup,
-    "id" | "discountId" | "clickRewardId" | "leadRewardId" | "saleRewardId"
+    | "id"
+    | "discountId"
+    | "clickRewardId"
+    | "leadRewardId"
+    | "saleRewardId"
+    | "referralRewardId"
+    | "customRewardId"
   >;
   userId: string;
   importId: string;
@@ -218,13 +228,9 @@ async function createPartnerAndLinks({
     update: {},
   });
 
-  const { links } = await prisma.programEnrollment.upsert({
-    where: {
-      partnerId_programId: {
-        partnerId: partner.id,
-        programId: program.id,
-      },
-    },
+  const { enrollment, preservedBan } = await upsertImportedProgramEnrollment({
+    partnerId: partner.id,
+    programId: program.id,
     create: {
       id: createId({ prefix: "pge_" }),
       programId: program.id,
@@ -234,12 +240,11 @@ async function createPartnerAndLinks({
       clickRewardId: group.clickRewardId,
       leadRewardId: group.leadRewardId,
       saleRewardId: group.saleRewardId,
+      referralRewardId: group.referralRewardId,
+      customRewardId: group.customRewardId,
       discountId: group.discountId,
     },
-    update: {
-      status: "approved",
-    },
-    select: {
+    include: {
       links: {
         select: {
           key: true,
@@ -248,7 +253,16 @@ async function createPartnerAndLinks({
     },
   });
 
-  if (links.length > 0 && links.some((link) => link.key === affiliate.id)) {
+  if (preservedBan) {
+    return partner.id;
+  }
+
+  await approveLinkedApplication({
+    applicationId: enrollment.applicationId,
+    userId,
+  });
+
+  if (enrollment.links.some((link) => link.key === affiliate.id)) {
     console.log(
       `Partner ${partner.email} already has a link with key ${affiliate.id}, skipping...`,
     );

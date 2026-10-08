@@ -1,18 +1,23 @@
 import { prisma } from "@/lib/prisma";
-import { DiscountSchema } from "@/lib/zod/schemas/discount";
+import { Prisma } from "@prisma/client";
 import { DubApiError } from "../errors";
 
-export async function getDiscountOrThrow({
+export async function getDiscountOrThrow<
+  T extends Prisma.DiscountInclude = {},
+>({
   discountId,
   programId,
+  include,
 }: {
   discountId: string;
   programId: string;
-}) {
+  include?: T;
+}): Promise<Prisma.DiscountGetPayload<{ include: T }>> {
   const discount = await prisma.discount.findUnique({
     where: {
       id: discountId,
     },
+    include,
   });
 
   if (!discount) {
@@ -29,5 +34,5 @@ export async function getDiscountOrThrow({
     });
   }
 
-  return DiscountSchema.parse(discount);
+  return discount as Prisma.DiscountGetPayload<{ include: T }>;
 }

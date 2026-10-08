@@ -1,13 +1,12 @@
 import { getGroupOrThrow } from "@/lib/api/groups/get-group-or-throw";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
+import { revalidateProgramPublicPages } from "@/lib/api/programs/revalidate-program-public-pages";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { DEFAULT_PARTNER_GROUP, GroupSchema } from "@/lib/zod/schemas/groups";
 import { RESOURCE_COLORS } from "@/ui/colors";
 import { nanoid, randomValue } from "@dub/utils";
 import slugify from "@sindresorhus/slugify";
-import { waitUntil } from "@vercel/functions";
-import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
 
 // POST /api/groups/[groupIdOrSlug]/default – set a group as default
@@ -25,13 +24,6 @@ export const POST = withWorkspace(
           programId_slug: {
             programId,
             slug: DEFAULT_PARTNER_GROUP.slug,
-          },
-        },
-        include: {
-          program: {
-            select: {
-              slug: true,
-            },
           },
         },
       }),
@@ -92,16 +84,7 @@ export const POST = withWorkspace(
       });
     });
 
-    const programSlug = currentDefaultGroup.program.slug;
-
-    // need to revalidate the program's cached public pages
-    waitUntil(
-      Promise.allSettled([
-        revalidatePath(`/partners.dub.co/${programSlug}`),
-        revalidatePath(`/partners.dub.co/${programSlug}/apply`),
-        revalidatePath(`/partners.dub.co/${programSlug}/apply/success`),
-      ]),
-    );
+    revalidateProgramPublicPages(programId);
 
     return NextResponse.json(GroupSchema.parse(updatedGroup));
   },

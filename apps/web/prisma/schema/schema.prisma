@@ -53,14 +53,16 @@ model User {
   programApplications     ProgramApplication[]
   sentMessages            Message[]
   partnerComments         PartnerComment[]
+  submittedLeadComments   SubmittedLeadComment[]
   fraudEventGroups        FraudEventGroup[]
   fraudAlertsReviewed     FraudAlert[]                 @relation("FraudAlertReviewer")
   activityLogs            ActivityLog[]
   createdCommissions      Commission[]
 
-  @@index(sentMail)
-  @@index(source)
+  @@index(createdAt)
   @@index(defaultWorkspace)
+  @@index(source)
+  @@index(sentMail)
 }
 
 model Account {

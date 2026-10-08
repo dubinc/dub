@@ -1,5 +1,5 @@
 import { partnerSearchSyncJob } from "@/lib/jobs/handlers/partner-search-sync-job";
-import { chunk } from "@dub/utils";
+import { chunk, unique } from "@dub/utils";
 import {
   getPartnerSearchProvider,
   PARTNER_SEARCH_SYNC_BATCH_SIZE,
@@ -34,15 +34,12 @@ interface QueuePartnerSearchSyncInput {
   delay?: number;
 }
 
-function unique(values: string[] | undefined): string[] {
-  return Array.from(new Set((values ?? []).filter(Boolean)));
-}
-
 /**
  * Queues an index sync for whatever the caller just changed.
  *
- * Never throws, so a queue error cannot fail the source mutation. The sweep
- * repairs a missed upsert, but not a missed delete.
+ * Never throws, so a queue error cannot fail the source mutation. A failed
+ * QStash publish falls back to the jobs outbox, so this catch only fires when
+ * even that persist fails, and the sync is lost.
  */
 export async function queuePartnerSearchSync({
   enrollmentIds,
@@ -56,8 +53,8 @@ export async function queuePartnerSearchSync({
     return;
   }
 
-  const enrollments = unique(enrollmentIds);
-  const partners = unique(partnerIds);
+  const enrollments = unique(enrollmentIds?.filter(Boolean));
+  const partners = unique(partnerIds?.filter(Boolean));
 
   if (enrollments.length === 0 && partners.length === 0) {
     return;
@@ -79,7 +76,7 @@ export async function queuePartnerSearchSync({
     await partnerSearchSyncJob.dispatchBatch(payloads, () => ({ delay }));
   } catch (error) {
     console.error(
-      "[Partner Search] Failed to queue an index sync. The sweep repairs a missed upsert, but not a missed delete.",
+      "[Partner Search] Failed to queue an index sync and the outbox could not persist it. The affected documents stay stale until their next sync.",
       error,
     );
   }

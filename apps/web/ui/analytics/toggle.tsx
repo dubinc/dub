@@ -8,9 +8,9 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import {
   BlurImage,
   Button,
-  ChartLine,
   DateRangePicker,
   Filter,
+  LinesY,
   SquareLayoutGrid6,
   TooltipContent,
   useCurrentProduct,
@@ -266,7 +266,7 @@ export function AnalyticsToggle({
                             variant="secondary"
                             className="w-fit"
                             icon={
-                              <ChartLine className="h-4 w-4 text-neutral-600" />
+                              <LinesY className="h-4 w-4 text-neutral-600" />
                             }
                             text={isMobile ? undefined : "View Analytics"}
                           />

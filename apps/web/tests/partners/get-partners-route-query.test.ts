@@ -1,4 +1,7 @@
-import { getPartnersRouteQuerySchema } from "@/lib/zod/schemas/partners";
+import {
+  getPartnersRouteQuerySchema,
+  partnersExportQuerySchema,
+} from "@/lib/zod/schemas/partners";
 import { describe, expect, it } from "vitest";
 
 const accepts = (params: Record<string, unknown>) =>
@@ -62,5 +65,27 @@ describe("getPartnersRouteQuerySchema", () => {
     expect(result.error?.issues[0].message).toContain(
       "sortBy=relevance requires a non-empty search",
     );
+  });
+});
+
+describe("partnersExportQuerySchema", () => {
+  // Exports do not apply the search field: its provider results are capped at
+  // the candidate ceiling, so exporting them would silently truncate the file.
+  it("strips the search field", () => {
+    const result = partnersExportQuerySchema.safeParse({
+      sortBy: "totalSaleAmount",
+      search: "examp",
+    });
+
+    expect(result.success).toBe(true);
+    expect(result.data).not.toHaveProperty("search");
+  });
+
+  it("rejects relevance, which cannot exist without a search", () => {
+    expect(
+      partnersExportQuerySchema.safeParse({
+        sortBy: "relevance",
+      }).success,
+    ).toBe(false);
   });
 });

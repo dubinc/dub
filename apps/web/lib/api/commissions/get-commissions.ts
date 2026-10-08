@@ -41,6 +41,7 @@ export async function getCommissions(filters: CommissionsFilters) {
     type,
     customerId,
     payoutId,
+    bountySubmissionId,
     groupId,
     partnerTagId,
     fraudEventGroupId,
@@ -139,7 +140,7 @@ export async function getCommissions(filters: CommissionsFilters) {
 
   const statusFilter = status
     ? status
-    : type || customerId || payoutId || partnerId
+    : type || customerId || payoutId || bountySubmissionId || partnerId
       ? undefined
       : {
           notIn: [
@@ -185,6 +186,7 @@ export async function getCommissions(filters: CommissionsFilters) {
       }),
       customerId,
       payoutId,
+      bountySubmissionId,
       ...(eventIds && {
         eventId: {
           in: eventIds,

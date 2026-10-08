@@ -1,6 +1,5 @@
 import { ActivityLogAction } from "@/lib/types";
 import { textFieldSchema } from "@/lib/zod/schemas/submitted-lead-form";
-import { ACME_PROGRAM_ID } from "@dub/utils";
 import { SubmittedLeadStatus } from "@prisma/client";
 import * as z from "zod/v4";
 
@@ -45,14 +44,6 @@ export const SUBMITTED_LEAD_FORM_FIELD_INPUT_PROPS: Record<
   name: { autoComplete: "name" },
   company: { autoComplete: "organization" },
 };
-
-export const SUBMITTED_LEADS_ENABLED_PROGRAM_IDS = [
-  ACME_PROGRAM_ID, // Acme
-  "prog_1K7Y2RGFC4BKZQQZAZEEK9MVE", // SelectCode
-  "prog_1KFZQJZRDRV62C037FQZSY0Y8", // FFG
-  "prog_1K57RA7GVBT9V3S7HRWSV4ADA", // Truss
-  "prog_1KH1SFVYG79SV5JQJQRDJH56V", // Brightwave
-];
 
 export const SUBMITTED_LEAD_STATUS_TO_ACTIVITY_ACTION: Record<
   SubmittedLeadStatus,

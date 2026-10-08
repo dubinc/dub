@@ -3,7 +3,7 @@ import { deleteLink, processLink, updateLink } from "@/lib/api/links";
 import { validatePartnerLinkUrl } from "@/lib/api/links/validate-partner-link-url";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
-import { extractUtmParams } from "@/lib/api/utm/extract-utm-params";
+import { applyGroupUtmToLink } from "@/lib/api/utm/apply-group-utm-to-link";
 import { withPartnerProfile } from "@/lib/auth/partner";
 import { prisma } from "@/lib/prisma";
 import { NewLinkProps } from "@/lib/types";
@@ -101,7 +101,6 @@ export const PATCH = withPartnerProfile(
     } = await processLink({
       payload: {
         ...link,
-        ...(groupUtmTemplate ? extractUtmParams(groupUtmTemplate) : {}),
         // coerce types
         expiresAt:
           link.expiresAt instanceof Date
@@ -142,6 +141,12 @@ export const PATCH = withPartnerProfile(
       });
     }
 
+    const linkWithUtm = applyGroupUtmToLink({
+      link: processedLink,
+      utmTemplate: groupUtmTemplate,
+      partnerName: partner.name,
+    });
+
     const partnerLink = await updateLink({
       oldLink: {
         domain: link.domain,
@@ -150,7 +155,7 @@ export const PATCH = withPartnerProfile(
         programId: link.programId,
         partnerId: link.partnerId,
       },
-      updatedLink: processedLink,
+      updatedLink: linkWithUtm,
     });
 
     return NextResponse.json(PartnerProfileLinkSchema.parse(partnerLink));

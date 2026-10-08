@@ -36,7 +36,7 @@ export function RiskCenterMenu() {
       <Button
         onClick={() => setOpenPopover(!openPopover)}
         variant="secondary"
-        className="h-8 w-auto px-1.5 sm:h-9"
+        className="h-10 w-auto px-1.5"
         icon={<ThreeDots className="h-5 w-5 text-neutral-500" />}
       />
     </Popover>

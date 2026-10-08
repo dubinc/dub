@@ -28,6 +28,7 @@ const imageExtensionMimeTypes: Record<string, string> = {
   jpeg: "image/jpeg",
   webp: "image/webp",
   avif: "image/avif",
+  svg: "image/svg+xml",
 };
 
 const acceptFileTypes: Record<
@@ -107,7 +108,11 @@ type FileUploadReadFileProps =
 
 export type FileUploadProps = FileUploadReadFileProps & {
   id?: string;
-  accept: AcceptedFileFormats;
+  accept?: AcceptedFileFormats;
+  /**
+   * When set, overrides the MIME types from the `accept` preset.
+   */
+  acceptedFileTypes?: readonly string[];
   className?: string;
   iconClassName?: string;
   previewClassName?: string;
@@ -174,6 +179,7 @@ export function FileUpload({
   icon: Icon = CloudUpload,
   customPreview,
   accept = "any",
+  acceptedFileTypes,
   imageSrc,
   loading = false,
   clickToUpload = true,
@@ -193,6 +199,9 @@ export function FileUpload({
     setImageError(false);
   }, [imageSrc]);
 
+  const resolvedAcceptedTypes =
+    acceptedFileTypes ?? acceptFileTypes[accept].types;
+
   const onFileChange = async (
     e: React.ChangeEvent<HTMLInputElement> | DragEvent,
   ) => {
@@ -209,16 +218,18 @@ export function FileUpload({
       return;
     }
 
-    const acceptedTypes = acceptFileTypes[accept].types;
     const extension = file.name.split(".").pop()?.toLowerCase();
     const mimeType =
-      file.type ||
-      (extension ? imageExtensionMimeTypes[extension] : "") ||
-      "";
+      file.type || (extension ? imageExtensionMimeTypes[extension] : "") || "";
 
-    if (acceptedTypes.length && !acceptedTypes.includes(mimeType)) {
+    if (
+      resolvedAcceptedTypes.length &&
+      !resolvedAcceptedTypes.includes(mimeType)
+    ) {
       toast.error(
-        acceptFileTypes[accept].errorMessage ?? "File type not supported",
+        acceptedFileTypes
+          ? "File type not supported"
+          : acceptFileTypes[accept].errorMessage ?? "File type not supported",
       );
       return;
     }
@@ -356,7 +367,7 @@ export function FileUpload({
             id={id}
             key={fileName} // Gets us a fresh input every time a file is uploaded
             type="file"
-            accept={acceptFileTypes[accept].types.join(",")}
+            accept={resolvedAcceptedTypes.join(",")}
             onChange={onFileChange}
             disabled={disabled}
             data-testid={dataTestId}

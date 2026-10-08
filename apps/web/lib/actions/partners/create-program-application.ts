@@ -3,14 +3,17 @@
 import { createId } from "@/lib/api/create-id";
 import { isCI, isLocalDev } from "@/lib/api/environment";
 import { detectAndRecordFraudApplication } from "@/lib/api/fraud/detect-record-fraud-application";
-import { notifyPartnerApplication } from "@/lib/api/partners/notify-partner-application";
+import { notifyProgramApplication } from "@/lib/api/partners/notify-program-application";
 import { queuePartnerSearchSync } from "@/lib/api/partners/queue-partner-search-sync";
 import { getIP } from "@/lib/api/utils/get-ip";
 import { markApplicationEventSubmitted } from "@/lib/application-events/update-application-event";
 import { getApplicationEventCookieName } from "@/lib/application-events/utils";
 import { getSession } from "@/lib/auth";
-import { qstash } from "@/lib/cron";
+import { autoApproveProgramApplicationJob } from "@/lib/jobs/handlers/auto-approve-program-application-job";
+import { autoRejectProgramApplicationJob } from "@/lib/jobs/handlers/auto-reject-program-application-job";
+import { programApplicationReminderJob } from "@/lib/jobs/handlers/program-application-reminder-job";
 import { getNetworkProfileChecklistProgress } from "@/lib/network/get-network-profile-checklist-progress";
+import { backfillPartnerPlatforms } from "@/lib/partners/backfill-partner-platforms";
 import { evaluateApplicationRequirements } from "@/lib/partners/evaluate-application-requirements";
 import {
   formatApplicationFormData,
@@ -21,17 +24,23 @@ import {
   ProgramApplicationFormData,
   ProgramApplicationFormDataWithValues,
 } from "@/lib/types";
-import { ratelimit } from "@/lib/upstash";
+import { assertRateLimit } from "@/lib/upstash/assert-rate-limit";
+import { RATELIMIT_POLICIES } from "@/lib/upstash/ratelimit-policies";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
-import { partnerApplicationWebhookSchema } from "@/lib/zod/schemas/program-application";
+import {
+  partnerApplicationWebhookSchema,
+  programApplicationWebhookSchema,
+} from "@/lib/zod/schemas/program-application";
 import { programApplicationFormWebsiteAndSocialsFieldWithValueSchema } from "@/lib/zod/schemas/program-application-form";
 import { createProgramApplicationSchema } from "@/lib/zod/schemas/programs";
-import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import {
   Partner,
   PartnerGroup,
+  PartnerPlatform,
   Program,
+  ProgramApplicationStatus,
   ProgramEnrollment,
+  ProgramEnrollmentStatus,
   Project,
 } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
@@ -122,13 +131,10 @@ export const createProgramApplicationAction = actionClient
     const { programId, groupId, inAppApplication } = parsedInput;
 
     // Limit to 3 requests per minute per program per IP
-    const { success } = await ratelimit(3, "1 m").limit(
-      `create-program-application:${programId}:${await getIP()}`,
-    );
-
-    if (!success) {
-      throw new Error("Too many requests. Please try again later.");
-    }
+    await assertRateLimit({
+      policy: RATELIMIT_POLICIES.createProgramApplication,
+      identifier: [programId, await getIP()],
+    });
 
     const program = await prisma.program.findUniqueOrThrow({
       where: {
@@ -229,16 +235,45 @@ export const createProgramApplicationAction = actionClient
       group,
     });
 
-    await qstash.publishJSON({
-      url: `${APP_DOMAIN_WITH_NGROK}/api/cron/program-application-reminder`,
-      delay: 15 * 60, // 15 minutes
-      body: {
+    await programApplicationReminderJob.dispatch(
+      {
         applicationId: application.programApplicationId,
       },
-    });
+      {
+        delay: 15 * 60, // 15 minutes
+      },
+    );
 
     return application;
   });
+
+function throwIfCannotApply({
+  enrollment,
+  groupId,
+}: {
+  enrollment: Pick<ProgramEnrollment, "status" | "groupId"> | null | undefined;
+  groupId: string;
+}) {
+  if (!enrollment) {
+    return;
+  }
+
+  if (enrollment.status === ProgramEnrollmentStatus.pending) {
+    throw new Error(
+      "You have an existing application for this program. Please wait for it to be reviewed.",
+    );
+  }
+
+  if (enrollment.status !== ProgramEnrollmentStatus.approved) {
+    throw new Error(
+      "You have already applied to this program. You cannot apply to this program again.",
+    );
+  }
+
+  if (enrollment.groupId === groupId) {
+    throw new Error("You're already in this group.");
+  }
+}
 
 async function createApplicationAndEnrollment({
   workspace,
@@ -250,15 +285,18 @@ async function createApplicationAndEnrollment({
 }: {
   workspace: Pick<Project, "id" | "webhookEnabled">;
   program: Program;
-  partner: Partner & { programs: ProgramEnrollment[] };
+  partner: Partner & {
+    programs: ProgramEnrollment[];
+    platforms: PartnerPlatform[];
+  };
   group: PartnerGroup;
   data: z.infer<typeof createProgramApplicationSchema>;
   inAppApplication?: boolean;
 }) {
-  // Check if ProgramEnrollment already exists
-  if (partner.programs.some((p) => p.programId === program.id)) {
-    throw new Error("You have already applied to this program.");
-  }
+  throwIfCannotApply({
+    enrollment: partner.programs.find((p) => p.programId === program.id),
+    groupId: group.id,
+  });
 
   const sanitizedData = sanitizeData(data, group);
 
@@ -271,106 +309,177 @@ async function createApplicationAndEnrollment({
     },
   });
 
-  if (result.reason === "requirementsNotMet") {
-    if (inAppApplication) {
-      throw new Error(
-        "Unfortunately, you do not meet the eligibility requirements for this program.",
-      );
-    }
-
-    const qstashResponse = await qstash.publishJSON({
-      url: `${APP_DOMAIN_WITH_NGROK}/api/cron/partners/auto-reject`,
-      delay: 30 * 60, // 30 minutes
-      body: {
-        programId: program.id,
-        partnerId: partner.id,
-      },
-    });
-
-    if (qstashResponse.messageId) {
-      console.log(
-        `The partner did not meet the eligibility requirements for this program. Auto-reject job enqueued successfully.`,
-        {
-          ...qstashResponse,
-          programId: program.id,
-          partnerId: partner.id,
-        },
-      );
-    }
+  if (result.reason === "requirementsNotMet" && inAppApplication) {
+    throw new Error(
+      "Unfortunately, you do not meet the eligibility requirements for this program.",
+    );
   }
 
   const applicationId = createId({ prefix: "pga_" });
   const enrollmentId = createId({ prefix: "pge_" });
 
-  const [application, programEnrollment] = await prisma.$transaction([
-    prisma.programApplication.create({
-      data: {
-        ...sanitizeData(data, group),
-        id: applicationId,
-        programId: program.id,
-        groupId: group.id,
-      },
-    }),
+  const { programApplication, programEnrollment } = await prisma.$transaction(
+    async (tx) => {
+      // Serializes concurrent applications from the same partner so the
+      // checks below cannot be raced (MySQL has no partial unique index so we can't restrict this on DB level).
+      await tx.$queryRaw`SELECT id FROM Partner WHERE id = ${partner.id} FOR UPDATE`;
 
-    prisma.programEnrollment.create({
-      data: {
-        id: enrollmentId,
-        partnerId: partner.id,
-        programId: program.id,
-        status: "pending",
-        applicationId,
+      const enrollment = await tx.programEnrollment.findUnique({
+        where: {
+          partnerId_programId: {
+            partnerId: partner.id,
+            programId: program.id,
+          },
+        },
+        select: {
+          status: true,
+          groupId: true,
+        },
+      });
+
+      throwIfCannotApply({
+        enrollment,
         groupId: group.id,
-        clickRewardId: group.clickRewardId,
-        leadRewardId: group.leadRewardId,
-        saleRewardId: group.saleRewardId,
-        referralRewardId: group.referralRewardId,
-        discountId: group.discountId,
+      });
+
+      const pendingApplication = await tx.programApplication.findFirst({
+        where: {
+          programId: program.id,
+          partnerId: partner.id,
+          status: ProgramApplicationStatus.pending,
+        },
+        select: {
+          id: true,
+        },
+      });
+
+      if (pendingApplication) {
+        throw new Error(
+          "You have an existing application for this program. Please wait for it to be reviewed.",
+        );
+      }
+
+      const programApplication = await tx.programApplication.create({
+        data: {
+          ...sanitizedData,
+          id: applicationId,
+          programId: program.id,
+          partnerId: partner.id,
+          groupId: group.id,
+        },
+      });
+
+      const programEnrollment = await tx.programEnrollment.upsert({
+        where: {
+          partnerId_programId: {
+            partnerId: partner.id,
+            programId: program.id,
+          },
+        },
+        create: {
+          id: enrollmentId,
+          partnerId: partner.id,
+          programId: program.id,
+          status: ProgramEnrollmentStatus.pending,
+          applicationId,
+          groupId: group.id,
+          clickRewardId: group.clickRewardId,
+          leadRewardId: group.leadRewardId,
+          saleRewardId: group.saleRewardId,
+          referralRewardId: group.referralRewardId,
+          customRewardId: group.customRewardId,
+          discountId: group.discountId,
+        },
+        update: {
+          // don't update the enrollment if it already exists
+        },
+      });
+
+      return {
+        programApplication,
+        programEnrollment,
+      };
+    },
+  );
+
+  if (result.reason === "requirementsNotMet") {
+    await autoRejectProgramApplicationJob.dispatch(
+      {
+        applicationId: programApplication.id,
       },
-    }),
-  ]);
+      {
+        delay: 30 * 60, // 30 minutes
+        label: partner.id,
+      },
+    );
+  }
 
   waitUntil(
     (async () => {
-      const applicationFormData = formatApplicationFormData(application).map(
-        ({ title, value }) => ({
-          label: title,
-          value: value !== "" ? value : null,
-        }),
-      );
+      const applicationFormData = formatApplicationFormData(
+        programApplication,
+      ).map(({ title, value }) => ({
+        label: title,
+        value: value !== "" ? value : null,
+      }));
+
+      const webhookData = {
+        id: programApplication.id,
+        createdAt: programApplication.createdAt,
+        applicationFormData,
+        partner: {
+          ...partner,
+          groupId: programApplication.groupId,
+          status: programApplication.status,
+        },
+      };
+
+      const { platforms, socialFields } = await backfillPartnerPlatforms({
+        partnerId: partner.id,
+        platforms: partner.platforms,
+        applications: [programApplication],
+      });
 
       await Promise.allSettled([
-        notifyPartnerApplication({
+        notifyProgramApplication({
           partner,
           program,
           group,
-          application,
+          application: programApplication,
         }),
 
         // Auto-approve the partner if the group has auto-approval enabled
         group.autoApprovePartnersEnabledAt
-          ? qstash.publishJSON({
-              url: `${APP_DOMAIN_WITH_NGROK}/api/cron/partners/auto-approve`,
-              body: {
-                programId: program.id,
-                partnerId: partner.id,
-              },
-            })
+          ? autoApproveProgramApplicationJob.dispatch(
+              { applicationId: programApplication.id },
+              { label: partner.id },
+            )
           : Promise.resolve(null),
 
-        // Send "partner.application_submitted" webhook
+        // Send "partner.application_submitted" webhook (deprecated)
         sendWorkspaceWebhook({
           workspace,
           trigger: "partner.application_submitted",
           data: partnerApplicationWebhookSchema.parse({
-            id: application.id,
-            createdAt: application.createdAt,
+            ...webhookData,
             partner: {
-              ...partner,
-              ...programEnrollment,
-              id: partner.id,
-              ...formatWebsiteAndSocialsFields(application),
+              ...webhookData.partner,
+              ...formatWebsiteAndSocialsFields(programApplication),
             },
-            applicationFormData,
+          }),
+        }),
+
+        // Send "program_application.created" webhook
+        sendWorkspaceWebhook({
+          workspace,
+          trigger: "program_application.created",
+          data: programApplicationWebhookSchema.parse({
+            ...webhookData,
+            partner: {
+              ...webhookData.partner,
+              platforms,
+              ...socialFields,
+            },
           }),
         }),
 
@@ -382,7 +491,11 @@ async function createApplicationAndEnrollment({
           },
         }),
 
-        markApplicationEventSubmitted(programEnrollment),
+        markApplicationEventSubmitted({
+          programId: program.id,
+          partnerId: partner.id,
+          applicationId: programApplication.id,
+        }),
 
         // Queue an index update because a new pending enrollment was created.
         queuePartnerSearchSync({ enrollmentIds: [programEnrollment.id] }),
@@ -392,7 +505,7 @@ async function createApplicationAndEnrollment({
 
   return {
     programApplicationId: applicationId,
-    programEnrollmentId: enrollmentId,
+    programEnrollmentId: programEnrollment.id,
     partnerData: {
       name: data.name,
       country: partner.country ?? data.country ?? undefined,

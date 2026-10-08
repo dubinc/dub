@@ -12,7 +12,7 @@ import { prisma } from "@/lib/prisma";
 import { trackLeadRequestSchema } from "@/lib/zod/schemas/leads";
 import { trackSaleRequestSchema } from "@/lib/zod/schemas/sales";
 import { APPSFLYER_INTEGRATION_ID, getSearchParams } from "@dub/utils";
-import { Project } from "@prisma/client";
+import { CommissionSource, Project } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
 import { logAndRespond } from "../../cron/utils";
@@ -109,6 +109,7 @@ export const GET = withAxiom(async (req) => {
         mode: undefined,
         metadata: null,
         workspace,
+        commissionSource: CommissionSource.appsflyer,
       });
 
       response = JSON.stringify(leadResponse);
@@ -133,6 +134,7 @@ export const GET = withAxiom(async (req) => {
         leadEventName: undefined,
         metadata: null,
         workspace,
+        commissionSource: CommissionSource.appsflyer,
       });
 
       response = JSON.stringify(saleResponse);

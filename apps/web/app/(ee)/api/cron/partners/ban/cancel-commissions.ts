@@ -1,5 +1,6 @@
 import { trackCommissionStatusUpdate } from "@/lib/api/commissions/track-commission-update-activity-log";
 import { prisma } from "@/lib/prisma";
+import { sleep } from "@dub/utils";
 
 // Mark the commissions as canceled
 export async function cancelCommissions({
@@ -84,7 +85,7 @@ export async function cancelCommissions({
       }
 
       // Wait a bit before retrying the same batch
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      await sleep(1000);
     }
   }
 

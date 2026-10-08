@@ -17,6 +17,7 @@ import { foldersPaths } from "./folders";
 import { linksPaths } from "./links";
 import { partnersPaths } from "./partners";
 import { payoutsPaths } from "./payouts";
+import { programApplicationsPaths } from "./program-applications";
 import { qrCodePaths } from "./qr";
 import { openApiErrorResponsesComponents } from "./responses";
 import { tagsPaths } from "./tags";
@@ -55,6 +56,7 @@ export const document = createDocument({
     ...trackPaths,
     ...customersPaths,
     ...partnersPaths,
+    ...programApplicationsPaths,
     ...discountCodesPaths,
     ...commissionsPaths,
     ...payoutsPaths,

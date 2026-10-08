@@ -18,7 +18,7 @@ import {
   trackLeadResponseSchema,
 } from "@/lib/zod/schemas/leads";
 import { nanoid, R2_URL } from "@dub/utils";
-import { EventType, Link } from "@prisma/client";
+import { CommissionSource, EventType, Link } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
 import { syncPartnerLinksStats } from "../partners/sync-partner-links-stats";
@@ -27,6 +27,8 @@ import { executeWorkflows } from "../workflows/execute-workflows";
 type TrackLeadParams = z.input<typeof trackLeadRequestSchema> & {
   workspace: Pick<WorkspaceProps, "id" | "stripeConnectId" | "webhookEnabled">;
   source?: CustomerSource; // default is "tracked"
+  commissionSource?: CommissionSource; // default is api
+  userId?: string; // only passed if CommissionSource.user
 };
 
 export const trackLead = async ({
@@ -41,6 +43,8 @@ export const trackLead = async ({
   metadata,
   workspace,
   source = "tracked",
+  commissionSource = CommissionSource.api,
+  userId,
 }: TrackLeadParams) => {
   // try to find the customer to use if it exists
   let customer = await prisma.customer.findUnique({
@@ -300,6 +304,8 @@ export const trackLead = async ({
               eventId: leadEventId,
               customerId: customer.id,
               quantity: eventQuantity ?? 1,
+              source: commissionSource,
+              userId,
               ...(metadata != null && { metadata }),
               context: {
                 customer: {

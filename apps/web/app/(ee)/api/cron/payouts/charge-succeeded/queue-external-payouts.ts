@@ -14,13 +14,17 @@ export async function queueExternalPayouts(
 ) {
   // All payouts are processed internally, hence no need to queue external payouts
   if (invoice.payoutMode === "internal") {
-    console.log(`Invoice ${invoice.id} is paid internally. Skipping...`);
+    console.log(
+      `Invoice ${invoice.id} is paid internally. Skipping external payouts...`,
+    );
     return;
   }
 
   // should never happen, but just in case
   if (!invoice.programId) {
-    console.log(`Invoice ${invoice.id} has no program ID. Skipping...`);
+    console.log(
+      `Invoice ${invoice.id} has no program ID. Skipping external payouts...`,
+    );
     return;
   }
 

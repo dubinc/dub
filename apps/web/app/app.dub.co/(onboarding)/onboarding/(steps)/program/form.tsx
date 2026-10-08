@@ -2,9 +2,12 @@
 
 import { parseActionError } from "@/lib/actions/parse-action-errors";
 import { onboardProgramAction } from "@/lib/actions/partners/onboard-program";
+import { testIds } from "@/lib/e2e/test-ids";
+import { UPLOAD_POLICIES } from "@/lib/storage/upload-policies";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { ProgramData } from "@/lib/types";
 import { Button, FileUpload, Input, useMediaQuery } from "@dub/ui";
+import { toErrorMessage } from "@dub/utils";
 import { Plus } from "lucide-react";
 import { usePlausible } from "next-plausible";
 import { useAction } from "next-safe-action/hooks";
@@ -12,6 +15,9 @@ import { useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 import { toast } from "sonner";
 import { useOnboardingProgress } from "../../use-onboarding-progress";
+
+const { contentTypes, maxBytes } = UPLOAD_POLICIES.programLogos;
+const maxFileSizeMB = maxBytes / (1024 * 1024);
 
 export function Form() {
   const { isMobile } = useMediaQuery();
@@ -73,14 +79,20 @@ export function Form() {
         `/api/workspaces/${workspaceId}/upload-url`,
         {
           method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
           body: JSON.stringify({
-            folder: "program-logos",
+            folder: "programLogos",
+            contentType: file.type,
+            contentLength: file.size,
           }),
         },
       );
 
       if (!response.ok) {
-        throw new Error("Failed to get signed URL for upload.");
+        const { error } = await response.json();
+        throw new Error(toErrorMessage(error));
       }
 
       const { signedUrl, destinationUrl } = await response.json();
@@ -99,9 +111,11 @@ export function Form() {
       }
 
       setValue("logo", destinationUrl, { shouldDirty: true });
-      toast.success(`${file.name} uploaded!`);
+      toast.success(`${file.name} uploaded!`, {
+        testId: testIds.onboarding.programLogoUploaded,
+      });
     } catch (e) {
-      toast.error("Failed to upload logo");
+      toast.error(toErrorMessage(e));
     } finally {
       setIsUploading(false);
     }
@@ -132,7 +146,7 @@ export function Form() {
           autoFocus={!isMobile}
           className="max-w-full"
           error={errors.name?.message}
-          data-testid="onboarding-program-company-name"
+          data-testid={testIds.onboarding.programCompanyName}
         />
 
         <p className="text-content-subtle text-xs">
@@ -152,7 +166,7 @@ export function Form() {
             rules={{ required: true }}
             render={({ field }) => (
               <FileUpload
-                accept="images"
+                acceptedFileTypes={contentTypes}
                 className="size-14 rounded-lg"
                 iconClassName="size-4 text-neutral-800"
                 icon={Plus}
@@ -162,8 +176,8 @@ export function Form() {
                 readFile
                 onChange={({ file }) => handleUpload(file)}
                 content={null}
-                maxFileSizeMB={2}
-                data-testid="onboarding-program-logo"
+                maxFileSizeMB={maxFileSizeMB}
+                data-testid={testIds.onboarding.programLogo}
               />
             )}
           />
@@ -191,7 +205,7 @@ export function Form() {
               placeholder="https://"
               className="max-w-full"
               error={errors.url?.message}
-              data-testid="onboarding-program-destination-url"
+              data-testid={testIds.onboarding.programDestinationUrl}
             />
           )}
         />
@@ -219,7 +233,7 @@ export function Form() {
               type="email"
               className="max-w-full"
               error={errors.supportEmail?.message}
-              data-testid="onboarding-program-support-email"
+              data-testid={testIds.onboarding.programSupportEmail}
             />
           )}
         />
@@ -235,7 +249,7 @@ export function Form() {
         disabledTooltip={!isLoading ? disabledTooltip : undefined}
         text="Continue"
         className="w-full"
-        data-testid="onboarding-program-continue"
+        data-testid={testIds.onboarding.programContinue}
       />
     </form>
   );

@@ -1,13 +1,12 @@
 "use client";
 
+import { getGroupSubmittedLeadForm } from "@/lib/submitted-leads/get-group-submitted-lead-form";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
-import { submittedLeadFormSchema } from "@/lib/zod/schemas/submitted-lead-form";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { SubmitLeadSheet } from "@/ui/submitted-leads/submit-lead-sheet";
 import { Button } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { useMemo, useState } from "react";
-import * as z from "zod/v4";
 
 const EMPTY_STATE_CARDS = [
   {
@@ -72,21 +71,11 @@ export function PartnerProfileSubmittedLeadsEmptyState() {
   const { programEnrollment } = useProgramEnrollment();
   const [showLeadSheet, setShowLeadSheet] = useState(false);
 
-  const leadFormDataRaw = programEnrollment?.program?.referralFormData;
-  const submittedLeadsEnabled = leadFormDataRaw !== null;
-
-  const leadFormData = useMemo(() => {
-    if (!leadFormDataRaw) {
-      return null;
-    }
-    try {
-      return submittedLeadFormSchema.parse(leadFormDataRaw) as z.infer<
-        typeof submittedLeadFormSchema
-      >;
-    } catch {
-      return null;
-    }
-  }, [leadFormDataRaw]);
+  const leadFormData = useMemo(
+    () => getGroupSubmittedLeadForm(programEnrollment?.group),
+    [programEnrollment?.group],
+  );
+  const submittedLeadsEnabled = leadFormData !== null;
 
   return (
     <>
@@ -101,7 +90,7 @@ export function PartnerProfileSubmittedLeadsEmptyState() {
             ? "Submit leads and track their progress through the sales process."
             : "You can still earn from regular referrals using your links and codes."
         }
-        learnMoreHref="https://dub.co/help/article/submitted-referrals"
+        learnMoreHref="https://dub.co/help/article/submitted-leads"
         addButton={
           submittedLeadsEnabled ? (
             <Button

@@ -1,7 +1,9 @@
 import { EnrolledPartnerProps } from "@/lib/types";
+import { sleep } from "@dub/utils";
 import { Bounty } from "@prisma/client";
 import { E2E_PARTNER_GROUP } from "tests/utils/resource";
 import { describe, expect, onTestFinished, test } from "vitest";
+
 import { randomPartnerEmail } from "../utils/helpers";
 import { IntegrationHarness } from "../utils/integration";
 import { deleteBountyAndSubmissions } from "./utils/delete-bounty-and-submissions";
@@ -122,7 +124,7 @@ describe.sequential("Workflow - AwardBounty", async () => {
 
     await trackE2ELead(http, partnerLink);
 
-    await new Promise((resolve) => setTimeout(resolve, 10000));
+    await sleep(10000);
 
     const { data: submissions } = await http.get<any[]>({
       path: `/bounties/${bounty.id}/submissions`,
@@ -196,7 +198,7 @@ describe.sequential("Workflow - AwardBounty", async () => {
 
     await trackE2ELead(http, partnerLink);
 
-    await new Promise((resolve) => setTimeout(resolve, 10000));
+    await sleep(10000);
 
     const { data: submissions } = await http.get<any[]>({
       path: `/bounties/${bounty.id}/submissions`,

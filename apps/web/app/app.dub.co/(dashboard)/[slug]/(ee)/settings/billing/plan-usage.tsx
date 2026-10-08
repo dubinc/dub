@@ -2,9 +2,13 @@
 
 import { clientAccessCheck } from "@/lib/client-access-check";
 import { MEGA_WORKSPACE_LINKS_LIMIT } from "@/lib/constants/misc";
+import { testIds } from "@/lib/e2e/test-ids";
 import useGroupsCount from "@/lib/swr/use-groups-count";
 import { useLinkTagsCount } from "@/lib/swr/use-link-tags-count";
-import { useUsageTimeseries } from "@/lib/swr/use-usage-timeseries";
+import {
+  UsageResource,
+  useUsageTimeseries,
+} from "@/lib/swr/use-usage-timeseries";
 import useWorkspace from "@/lib/swr/use-workspace";
 import useWorkspaceUsers from "@/lib/swr/use-workspace-users";
 import { useConfirmModal } from "@/ui/modals/confirm-modal";
@@ -28,6 +32,7 @@ import {
   Folder5,
   Globe,
   Hyperlink,
+  MoneyBills2,
   Tag,
   Users,
   Users6,
@@ -40,10 +45,11 @@ import {
   isLegacyBusinessPlan,
   isWorkspaceBillingTrialActive,
   nFormatter,
+  sleep,
 } from "@dub/utils";
 import NumberFlow from "@number-flow/react";
 import Link from "next/link";
-import { CSSProperties, ReactNode, useMemo } from "react";
+import { ComponentProps, CSSProperties, ReactNode, useMemo } from "react";
 import { toast } from "sonner";
 import { UsageChart } from "./usage-chart";
 
@@ -78,6 +84,8 @@ export default function PlanUsage() {
     trialEndsAt,
     subscriptionCanceledAt,
     billingCycleEndsAt,
+    defaultProgramId,
+    loading,
     mutate,
   } = useWorkspace();
 
@@ -122,16 +130,16 @@ export default function PlanUsage() {
   }, [billingCycleStart, planPeriod, billingCycleEndsAt]);
 
   const usageTabs = useMemo(() => {
-    const tabs = [
+    const tabs: ComponentProps<typeof UsageTabCard>[] = [
       {
-        resource: "events" as const,
+        resource: "events",
         icon: CursorRays,
         title: "Events tracked",
         usage: usage,
         limit: usageLimit,
       },
       {
-        resource: "links" as const,
+        resource: "links",
         icon: Hyperlink,
         title: "Links created",
         usage: linksUsage,
@@ -146,8 +154,29 @@ export default function PlanUsage() {
         tabs.unshift(linksTab);
       }
     }
+    // Reserve the payouts slot while the workspace loads to avoid layout shift
+    if (defaultProgramId || loading) {
+      tabs.splice(1, 0, {
+        resource: "payouts",
+        icon: MoneyBills2,
+        title: "Payouts sent",
+        usage: payoutsUsage,
+        limit: payoutsLimit,
+        unit: "$",
+      });
+    }
     return tabs;
-  }, [usage, usageLimit, linksUsage, linksLimit, totalLinks]);
+  }, [
+    usage,
+    usageLimit,
+    linksUsage,
+    linksLimit,
+    totalLinks,
+    defaultProgramId,
+    loading,
+    payoutsUsage,
+    payoutsLimit,
+  ]);
 
   // Display the payout fee in a readable format
   const payoutFeeDisplay = useMemo((): ReactNode => {
@@ -191,7 +220,7 @@ export default function PlanUsage() {
 
       if (res.ok) {
         // sleep for 2 seconds to make sure Stripe webhook was received, and then mutate
-        await new Promise((resolve) => setTimeout(resolve, 2000));
+        await sleep(2000);
         await mutate();
         toast.success("Your subscription will continue as normal.");
       } else {
@@ -261,7 +290,10 @@ export default function PlanUsage() {
         ) : trialEndsAt != null &&
           isWorkspaceBillingTrialActive(trialEndsAt) ? (
           <div className="mx-1 mt-1 flex items-center justify-center rounded-lg bg-blue-50/50 px-3 py-2">
-            <p className="text-xs font-medium text-blue-600">
+            <p
+              className="text-xs font-medium text-blue-600"
+              data-testid={testIds.billing.trialBanner}
+            >
               Trial ends on{" "}
               <span className="font-semibold">
                 {new Date(trialEndsAt).toLocaleDateString("en-US", {
@@ -317,6 +349,7 @@ export default function PlanUsage() {
                     className="h-9"
                     disabled={Boolean(permissionsError)}
                     onClick={() => setShowStartPaidPlanModal(true)}
+                    data-testid={testIds.billing.startPaidPlan}
                   />
                 </DynamicTooltipWrapper>
               ) : showPendingCancellation ? (
@@ -358,6 +391,11 @@ export default function PlanUsage() {
                 }
                 variant="secondary"
                 className="h-9"
+                data-testid={
+                  isWorkspaceBillingTrialActive(trialEndsAt)
+                    ? testIds.billing.viewPlans
+                    : undefined
+                }
               />
             </Link>
 
@@ -366,7 +404,12 @@ export default function PlanUsage() {
         </div>
         <div className="grid grid-cols-[minmax(0,1fr)] divide-y divide-neutral-200 border-t border-neutral-200">
           <div>
-            <div className="grid gap-4 p-6 pb-0 sm:grid-cols-2 md:p-8 md:pb-0 lg:gap-6">
+            <div
+              className={cn(
+                "grid gap-4 p-6 pb-0 sm:grid-cols-2 md:p-8 md:pb-0 lg:gap-6",
+                usageTabs.length > 2 && "lg:grid-cols-3",
+              )}
+            >
               {usageTabs.map((tab) => (
                 <UsageTabCard key={tab.resource} {...tab} />
               ))}
@@ -455,7 +498,7 @@ function UsageTabCard({
   unit,
   requiresUpgrade,
 }: {
-  resource: "links" | "events";
+  resource: UsageResource;
   icon: Icon;
   title: string;
   usage?: number;
@@ -466,19 +509,16 @@ function UsageTabCard({
   const { queryParams, searchParamsObj } = useRouterStuff();
   const { slug, plan } = useWorkspace();
 
-  const { ManageUsageModal, setShowManageUsageModal } = useManageUsageModal({
-    type: resource,
-  });
+  const isPayouts = resource === "payouts";
 
   const hasActiveFilters = useMemo(() => {
     return !!(
-      searchParamsObj.folderId ||
-      searchParamsObj.domain ||
+      (!isPayouts && (searchParamsObj.folderId || searchParamsObj.domain)) ||
       searchParamsObj.interval ||
       searchParamsObj.start ||
       searchParamsObj.end
     );
-  }, [searchParamsObj]);
+  }, [searchParamsObj, isPayouts]);
 
   const { usage: usageTimeseries, activeResource } = useUsageTimeseries({
     resource: hasActiveFilters ? resource : undefined,
@@ -489,20 +529,11 @@ function UsageTabCard({
     return acc;
   }, 0);
 
-  const [usage, limit] =
-    unit === "$" && usageProp !== undefined && limitProp !== undefined
-      ? [
-          (hasActiveFilters && filteredUsage !== undefined
-            ? filteredUsage
-            : usageProp) / 100,
-          limitProp / 100,
-        ]
-      : [
-          hasActiveFilters && filteredUsage !== undefined
-            ? filteredUsage
-            : usageProp,
-          limitProp,
-        ];
+  const rawUsage =
+    hasActiveFilters && filteredUsage !== undefined ? filteredUsage : usageProp;
+  const divisor = unit === "$" ? 100 : 1;
+  const usage = rawUsage !== undefined ? rawUsage / divisor : undefined;
+  const limit = limitProp !== undefined ? limitProp / divisor : undefined;
 
   const loading = usage === undefined || limit === undefined;
   const unlimited = limitProp !== undefined && limitProp >= INFINITY_NUMBER;
@@ -513,7 +544,6 @@ function UsageTabCard({
 
   return (
     <div className="relative">
-      <ManageUsageModal />
       <button
         className={cn(
           "w-full rounded-lg border border-neutral-300 bg-white px-4 py-3 text-left transition-colors duration-75",
@@ -554,7 +584,7 @@ function UsageTabCard({
             </Tooltip>
           )}
         </div>
-        <div className="mt-1.5">
+        <div className="mt-1.5 flex h-6 items-center">
           {!loading ? (
             <NumberFlow
               value={usage}
@@ -574,7 +604,7 @@ function UsageTabCard({
               }
             />
           ) : (
-            <div className="h-5 w-16 animate-pulse rounded-md bg-neutral-200" />
+            <div className="h-6 w-16 animate-pulse rounded-md bg-neutral-200" />
           )}
         </div>
         <AnimatedSizeContainer height>
@@ -624,17 +654,36 @@ function UsageTabCard({
           )}
         </AnimatedSizeContainer>
       </button>
-      {["links", "events"].includes(resource) && plan !== "enterprise" && (
-        <div className="absolute right-3 top-3">
-          <Button
-            onClick={() => setShowManageUsageModal(true)}
-            text={warning ? "Upgrade" : "Manage"}
-            variant={warning ? "primary" : "secondary"}
-            className="h-6 px-1.5 text-xs"
-          />
-        </div>
+      {resource !== "payouts" && plan !== "enterprise" && (
+        <ManageUsageButton type={resource} warning={warning} />
       )}
     </div>
+  );
+}
+
+function ManageUsageButton({
+  type,
+  warning,
+}: {
+  type: "links" | "events";
+  warning: boolean;
+}) {
+  const { ManageUsageModal, setShowManageUsageModal } = useManageUsageModal({
+    type,
+  });
+
+  return (
+    <>
+      <ManageUsageModal />
+      <div className="absolute right-3 top-3">
+        <Button
+          onClick={() => setShowManageUsageModal(true)}
+          text={warning ? "Upgrade" : "Manage"}
+          variant={warning ? "primary" : "secondary"}
+          className="h-6 px-1.5 text-xs"
+        />
+      </div>
+    </>
   );
 }
 

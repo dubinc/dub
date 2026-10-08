@@ -24,6 +24,7 @@ function createSource(id: string): PartnerSearchDocumentSource {
     programId: "prog_test",
     partnerId: `pn_${id}`,
     status: "approved" as const,
+    tenantId: null,
     groupId: null,
     partner: {
       name: "Rafi Hasan",
@@ -31,10 +32,10 @@ function createSource(id: string): PartnerSearchDocumentSource {
       companyName: "Dub Partners",
       description: "Developer tools educator",
       country: null,
-      programPartnerTags: [],
       platforms: [],
     },
     links: [],
+    programPartnerTags: [],
   };
 }
 

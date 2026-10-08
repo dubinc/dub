@@ -1,4 +1,6 @@
+import { WEBHOOK_REQUEST_ACTORS_BY_PATH } from "@/lib/api-logs/constants";
 import { PARTNER_REFERRAL_TRIGGER } from "@/lib/partner-referrals/constants";
+import { DUB_LOGO_SQUARE } from "@dub/utils";
 import {
   EventType,
   RewardSpendLimitInterval,
@@ -36,6 +38,8 @@ export type RewardConditionEntityAttribute = {
   options?: {
     id: string;
     label: string;
+    description?: string;
+    icon?: string;
   }[];
 };
 
@@ -132,14 +136,32 @@ export const REWARD_CONDITIONS: Record<
               {
                 id: "tracked",
                 label: "tracked lead",
+                description:
+                  "Leads tracked via [Dub's API](https://dub.co/docs/api-reference/track/lead)",
+                icon: DUB_LOGO_SQUARE,
               },
               {
                 id: "submitted",
                 label: "submitted lead",
+                description:
+                  "Leads [submitted by partners](https://dub.co/help/article/submitted-leads)",
+                icon: DUB_LOGO_SQUARE,
               },
               {
                 id: "trial",
-                label: "free trial",
+                label: "Stripe free trial",
+                description:
+                  "Free trials recorded by the [Stripe integration](https://dub.co/docs/integrations/stripe#tracking-free-trials)",
+                icon: WEBHOOK_REQUEST_ACTORS_BY_PATH[
+                  "/stripe/integration/webhook"
+                ].image,
+              },
+              {
+                id: "hubspot",
+                label: "HubSpot lead",
+                description:
+                  "Leads recorded by the [HubSpot integration](https://dub.co/docs/integrations/hubspot)",
+                icon: WEBHOOK_REQUEST_ACTORS_BY_PATH["/hubspot/webhook"].image,
               },
             ],
           },
@@ -165,10 +187,23 @@ export const REWARD_CONDITIONS: Record<
               {
                 id: "tracked",
                 label: "tracked sale",
+                description:
+                  "Sales tracked via [Dub's API](https://dub.co/docs/api-reference/track/sale) or [Stripe integration](https://dub.co/docs/integrations/stripe)",
+                icon: DUB_LOGO_SQUARE,
               },
               {
                 id: "submitted",
                 label: "closed won deal",
+                description:
+                  "Closed won deals from [partner-submitted leads](https://dub.co/help/article/submitted-leads)",
+                icon: DUB_LOGO_SQUARE,
+              },
+              {
+                id: "hubspot",
+                label: "HubSpot closed won deal",
+                description:
+                  "Closed won deals via the [HubSpot integration](https://dub.co/docs/integrations/hubspot#when-a-deal-is-closed-sale-event)",
+                icon: WEBHOOK_REQUEST_ACTORS_BY_PATH["/hubspot/webhook"].image,
               },
             ],
           },
@@ -231,6 +266,11 @@ export const REWARD_CONDITIONS: Record<
 
   // Partner referral reward
   referral: {
+    entities: [],
+  },
+
+  // Custom cadence reward (no modifiers)
+  custom: {
     entities: [],
   },
 };
@@ -432,12 +472,13 @@ export const RewardSchema = z.object({
   maxDuration: z.number().nullish(),
   modifiers: z.any().nullish(), // TODO: Fix this
   config: z.any().nullish(),
+  partnersCount: z.number().nullish(),
   updatedAt: z.coerce.date(),
   ...rewardSpendLimitSchema.shape,
 });
 
 export const REWARD_DESCRIPTION_MAX_LENGTH = 100;
-export const REWARD_TOOLTIP_DESCRIPTION_MAX_LENGTH = 2000;
+export const REWARD_TOOLTIP_DESCRIPTION_MAX_LENGTH = 5000;
 export const REWARD_CHANGE_DESCRIPTION_MAX_LENGTH = 240;
 
 export const rewardActivityDescriptionSchema = z.object({
@@ -469,6 +510,58 @@ export const referralRewardConfigSchema = z
     }
   });
 
+export const CUSTOM_REWARD_FREQUENCIES = [
+  "day",
+  "week",
+  "month",
+  "year",
+] as const;
+
+export const customRewardConfigSchema = z.object({
+  frequency: z.enum(CUSTOM_REWARD_FREQUENCIES),
+  interval: z.number().int().positive(),
+  anchorDate: z.iso.date(),
+});
+
+export const CUSTOM_REWARD_CADENCE_PRESETS = [
+  {
+    value: "daily",
+    label: "Daily",
+    frequency: "day" as const,
+    interval: 1,
+  },
+  {
+    value: "weekly",
+    label: "Weekly",
+    frequency: "week" as const,
+    interval: 1,
+  },
+  {
+    value: "biweekly",
+    label: "Biweekly",
+    frequency: "week" as const,
+    interval: 2,
+  },
+  {
+    value: "monthly",
+    label: "Monthly",
+    frequency: "month" as const,
+    interval: 1,
+  },
+  {
+    value: "quarterly",
+    label: "Quarterly",
+    frequency: "month" as const,
+    interval: 3,
+  },
+  {
+    value: "yearly",
+    label: "Yearly",
+    frequency: "year" as const,
+    interval: 1,
+  },
+] as const;
+
 export const createOrUpdateRewardSchema = z.object({
   workspaceId: z.string(),
   event: z.enum(EventType),
@@ -477,7 +570,9 @@ export const createOrUpdateRewardSchema = z.object({
   amountInPercentage: PERCENTAGE_REWARD_AMOUNT_SCHEMA.optional(),
   maxDuration: maxDurationSchema,
   modifiers: rewardConditionsArraySchema.nullish(),
-  config: referralRewardConfigSchema.nullish(),
+  config: z
+    .union([referralRewardConfigSchema, customRewardConfigSchema])
+    .nullish(),
   description: z.string().max(REWARD_DESCRIPTION_MAX_LENGTH).nullish(),
   tooltipDescription: z
     .string()
@@ -488,14 +583,26 @@ export const createOrUpdateRewardSchema = z.object({
   ...rewardActivityDescriptionSchema.shape,
 });
 
-export const createRewardSchema = createOrUpdateRewardSchema.superRefine(
-  (data) => {
+export const createRewardSchema = createOrUpdateRewardSchema
+  .extend({
+    isDefault: z.boolean().default(true),
+  })
+  .superRefine((data) => {
     if (isOneOffRewardEvent(data.event)) {
       data.type = "flat";
       data.maxDuration = 0;
     }
-  },
-);
+  })
+  .refine(
+    (data) =>
+      data.isDefault ||
+      (["click", "lead", "sale"] as EventType[]).includes(data.event),
+    {
+      message:
+        "Non-default rewards can only be created for click, lead, and sale events.",
+      path: ["event"],
+    },
+  );
 
 export const updateRewardSchema = createOrUpdateRewardSchema
   .omit({
@@ -517,9 +624,23 @@ export const REWARD_EVENT_COLUMN_MAPPING = Object.freeze({
   lead: "leadRewardId",
   sale: "saleRewardId",
   referral: "referralRewardId",
+  custom: "customRewardId",
 });
 
-export const CUSTOMER_SOURCES = ["tracked", "submitted", "trial"] as const;
+export const REWARD_EVENT_RELATION_MAPPING = Object.freeze({
+  click: "clickReward",
+  lead: "leadReward",
+  sale: "saleReward",
+  referral: "referralReward",
+  custom: "customReward",
+});
+
+export const CUSTOMER_SOURCES = [
+  "tracked",
+  "submitted",
+  "trial",
+  "hubspot",
+] as const;
 
 export const rewardContextSchema = z.object({
   customer: z

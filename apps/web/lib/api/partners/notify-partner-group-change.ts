@@ -7,6 +7,7 @@ interface NotifyPartnerGroupChangeParams {
   programId: string;
   groupId: string;
   partnerIds: string[];
+  idempotencyKey?: string;
 }
 
 // Send email to partners when they are moved to a new group
@@ -14,6 +15,7 @@ export async function notifyPartnerGroupChange({
   programId,
   groupId,
   partnerIds,
+  idempotencyKey,
 }: NotifyPartnerGroupChangeParams) {
   if (partnerIds.length === 0) {
     return;
@@ -58,5 +60,6 @@ export async function notifyPartnerGroupChange({
         bounties,
       },
     })),
+    idempotencyKey ? { idempotencyKey } : undefined,
   );
 }

@@ -6,6 +6,7 @@ import {
   getAIRewardSchema,
 } from "@/lib/ai/ai-reward-schema";
 import { generateReward } from "@/lib/ai/generate-reward";
+import { CUSTOMER_SOURCE_REQUIRED_INTEGRATIONS } from "@/lib/rewards/get-customer-source-availability";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { REWARD_CONDITION_ATTRIBUTES } from "@/lib/zod/schemas/rewards";
 import { CustomToast } from "@/ui/shared/custom-toast";
@@ -37,14 +38,24 @@ const CHROME_ENTER_MS = 240;
 
 type BuilderPhase = "idle" | "streaming" | "review" | "error";
 
+type DraftCondition = NonNullable<
+  NonNullable<AIRewardDraft["modifiers"]>[number]["conditions"]
+>[number];
+
+type DraftModifier = NonNullable<AIRewardDraft["modifiers"]>[number] & {
+  conditions?: Array<DraftCondition | null | undefined>;
+};
+
 function buildRewardFormValuesFromDraft({
   draft,
   event,
   current,
   finalize = false,
 }: {
-  draft: AIRewardDraft | Partial<AIRewardDraft>;
-  event: Exclude<EventType, "referral">;
+  draft: Omit<Partial<AIRewardDraft>, "modifiers"> & {
+    modifiers?: Array<DraftModifier | null | undefined>;
+  };
+  event: Exclude<EventType, "referral" | "custom">;
   current: Record<string, unknown>;
   finalize?: boolean;
 }): Record<string, unknown> | null {
@@ -77,11 +88,27 @@ function buildRewardFormValuesFromDraft({
     next.maxDuration = maxDuration;
   }
 
-  const modifiers = draft.modifiers?.filter((m) => m.conditions?.length);
-  if (!modifiers?.length) {
+  const modifiers = (draft.modifiers ?? [])
+    .map((modifier) => {
+      if (!modifier) return null;
+
+      const conditions = (modifier.conditions ?? []).filter(
+        (condition): condition is DraftCondition => condition != null,
+      );
+
+      if (!conditions.length) return null;
+
+      return { ...modifier, conditions };
+    })
+    .filter((modifier): modifier is NonNullable<typeof modifier> =>
+      Boolean(modifier),
+    );
+
+  if (!modifiers.length) {
     // Only clear stale conditions on the final draft so partial streams do not wipe them.
+    // Empty array (not undefined) so react-hook-form useFieldArray syncs and unmounts rows.
     if (finalize) {
-      next.modifiers = undefined;
+      next.modifiers = [];
     }
     return next;
   }
@@ -136,7 +163,7 @@ export function useAIRewardBuilder({
   getValues,
   reset,
 }: {
-  event: Exclude<EventType, "referral">;
+  event: Exclude<EventType, "referral" | "custom">;
   getValues: () => Record<string, unknown>;
   reset: (
     values: Record<string, unknown>,
@@ -289,10 +316,16 @@ export function useAIRewardBuilder({
 
       if (lastPartial.supported === false) {
         discard({ keepPrompt: true });
+
+        const missingIntegration = lastPartial.unavailableSource
+          ? CUSTOMER_SOURCE_REQUIRED_INTEGRATIONS[lastPartial.unavailableSource]
+          : undefined;
+
         toast.custom(() => (
           <CustomToast variant="error">
-            This reward setup isn't supported yet. [Reach out to
-            support](https://dub.co/support) if you need help configuring this.
+            {missingIntegration
+              ? `This reward setup requires the ${missingIntegration.name} integration. [Install ${missingIntegration.name}](/${workspaceSlug}/settings/integrations/${missingIntegration.slug}) to use it.`
+              : "This reward setup isn't supported yet. [Reach out to support](https://dub.co/support) if you need help configuring this."}
           </CustomToast>
         ));
         void mutateWorkspace();
@@ -387,7 +420,7 @@ export function AIRewardInput({
   event,
   builder,
 }: {
-  event: Exclude<EventType, "referral">;
+  event: Exclude<EventType, "referral" | "custom">;
   builder: AIRewardBuilderState;
 }) {
   const shouldReduceMotion = useReducedMotion();
@@ -930,7 +963,11 @@ function SkeletonPill({ className }: { className?: string }) {
   );
 }
 
-function ReviewSkeletons({ event }: { event: Exclude<EventType, "referral"> }) {
+function ReviewSkeletons({
+  event,
+}: {
+  event: Exclude<EventType, "referral" | "custom">;
+}) {
   return (
     <div className="border-border-subtle rounded-xl border bg-white text-sm shadow-sm">
       <div className="flex items-start gap-2.5 p-2.5">

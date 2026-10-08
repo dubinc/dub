@@ -3,6 +3,7 @@ import { STRIPE_API_VERSION, stripeV2Fetch } from "./stripe-v2-client";
 
 export interface CreateStripeOutboundPaymentParams {
   stripeRecipientId: string;
+  payoutMethodId: string;
   amount: number;
   description: string;
   idempotencyKey: string;
@@ -10,6 +11,7 @@ export interface CreateStripeOutboundPaymentParams {
 
 export async function createStripeOutboundPayment({
   stripeRecipientId,
+  payoutMethodId,
   amount,
   description,
   idempotencyKey,
@@ -36,6 +38,7 @@ export async function createStripeOutboundPayment({
         to: {
           recipient: stripeRecipientId,
           currency: "usdc",
+          payout_method: payoutMethodId,
         },
         amount: {
           value: amount,

@@ -20,6 +20,7 @@ import {
   Key,
   PenWriting,
   Popover,
+  StatusBadge,
   Table,
   Tooltip,
   usePagination,
@@ -140,7 +141,21 @@ export default function TokensPage() {
         id: "partialKey",
         header: "Key",
         accessorKey: "partialKey",
-        cell: ({ row }) => row.original.partialKey,
+        cell: ({ row }) => {
+          const isExpired =
+            row.original.expires && new Date(row.original.expires) < new Date();
+
+          return (
+            <span className="flex items-center gap-2">
+              {row.original.partialKey}
+              {isExpired && (
+                <StatusBadge variant="warning" size="sm" icon={null}>
+                  Expired
+                </StatusBadge>
+              )}
+            </span>
+          );
+        },
       },
       {
         id: "lastUsed",
