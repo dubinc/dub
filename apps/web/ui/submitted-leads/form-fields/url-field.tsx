@@ -1,21 +1,21 @@
-import { phoneFieldSchema } from "@/lib/zod/schemas/submitted-lead-form";
-import { cn } from "@dub/utils";
+import { urlFieldSchema } from "@/lib/zod/schemas/submitted-lead-form";
+import { cn, isValidUrl } from "@dub/utils";
 import { useFormContext } from "react-hook-form";
 import * as z from "zod/v4";
-import { FormControl } from "./form-control";
+import { FormControl, requiredFieldRule } from "./form-control";
 
-type PhoneFieldData = z.infer<typeof phoneFieldSchema>;
+type UrlFieldData = z.infer<typeof urlFieldSchema>;
 
-export function PhoneField({
+export function UrlField({
   keyPath: keyPathProp,
   field,
 }: {
   keyPath?: string;
-  field: PhoneFieldData;
+  field: UrlFieldData;
 }) {
-  const { register, getFieldState } = useFormContext<any>();
+  const { register, getFieldState, formState } = useFormContext<any>();
   const keyPath = keyPathProp || `formData.${field.key}`;
-  const state = getFieldState(keyPath);
+  const state = getFieldState(keyPath, formState);
   const error = !!state.error;
 
   return (
@@ -26,7 +26,8 @@ export function PhoneField({
       labelDir="auto"
     >
       <input
-        type="tel"
+        type="url"
+        placeholder="https://"
         className={cn(
           "mt-2 block w-full rounded-md text-sm focus:outline-none",
           error
@@ -34,7 +35,11 @@ export function PhoneField({
             : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-[var(--brand)] focus:ring-[var(--brand)]",
         )}
         {...register(keyPath, {
-          required: field.required,
+          required: requiredFieldRule(field.required),
+          validate: (value: string) => {
+            if (!value) return true;
+            return isValidUrl(value) || "Please enter a valid URL";
+          },
         })}
       />
     </FormControl>
