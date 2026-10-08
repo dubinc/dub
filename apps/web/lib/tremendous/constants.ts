@@ -19,6 +19,14 @@ export const TREMENDOUS_PROHIBITED_TOP_LEVEL_DOMAINS = [
   ".ye",
 ];
 
+export const TREMENDOUS_LOGO_CONTENT_TYPES = [
+  "image/png",
+  "image/jpeg",
+  "image/jpg",
+  "image/gif",
+  "image/svg+xml",
+];
+
 export const TREMENDOUS_PRODUCT_IDS = [
   "A2J05SWPI2QG", // Virtual Visa
   "Q24BD9EZ332JT", // Physical Visa
