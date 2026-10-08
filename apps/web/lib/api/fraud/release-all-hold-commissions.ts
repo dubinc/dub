@@ -111,7 +111,10 @@ export async function releaseAllHoldCommissions({
 
     console.log(
       `Summary of releaseAllHoldCommissions: ${JSON.stringify(
-        ["trackCommissionStatusUpdate"].map((step, index) => ({
+        [
+          "trackCommissionStatusUpdate",
+          ...partnerIds.map((partnerId) => `syncTotalCommissions:${partnerId}`),
+        ].map((step, index) => ({
           step,
           result: results[index],
         })),
