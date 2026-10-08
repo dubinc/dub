@@ -23,6 +23,7 @@ import { cn, formatFileSize, nFormatter } from "@dub/utils";
 import { File, Paperclip, X } from "lucide-react";
 import {
   DragEvent,
+  ReactNode,
   useCallback,
   useEffect,
   useMemo,
@@ -53,6 +54,9 @@ export function MessageInput({
   placeholder = "Type a message...",
   sendButtonText = "Send",
   className,
+  inputClassName,
+  toolbarClassName,
+  actions,
   attachments = [],
   onAddFiles,
   onRemoveAttachment,
@@ -69,6 +73,9 @@ export function MessageInput({
   placeholder?: string;
   sendButtonText?: string;
   className?: string;
+  inputClassName?: string;
+  toolbarClassName?: string;
+  actions?: ReactNode;
   attachments?: PendingAttachment[];
   onAddFiles?: (files: File[]) => void;
   onRemoveAttachment?: (id: string) => void;
@@ -226,6 +233,16 @@ export function MessageInput({
         onChange={(editor) => setTypedMessage((editor as any).getMarkdown())}
         editorProps={{
           handleDOMEvents: {
+            paste: (_view, event) => {
+              if (!canAddFiles) return false;
+
+              const files = pastedAttachmentFiles(event.clipboardData);
+              if (files.length === 0) return false;
+
+              event.preventDefault();
+              handleFiles(files);
+              return true;
+            },
             keydown: (_view, e) => {
               if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
                 e.preventDefault();
@@ -238,7 +255,7 @@ export function MessageInput({
           },
         }}
       >
-        <div className="relative">
+        <div className={cn("relative", inputClassName)}>
           <RichTextArea />
           <MessageInputEditorOverflowFades />
           <InlineEmojiAutocomplete
@@ -260,7 +277,12 @@ export function MessageInput({
           </div>
         )}
 
-        <div className="flex items-center justify-between gap-4 p-3">
+        <div
+          className={cn(
+            "flex items-center justify-between gap-4 p-3",
+            toolbarClassName,
+          )}
+        >
           <MessageInputToolbar
             disabled={Boolean(permissionsError)}
             emojiPickerOpen={emojiPickerOpen}
@@ -270,6 +292,7 @@ export function MessageInput({
             }
           />
           <div className="flex items-center justify-between gap-2">
+            {actions}
             {onCancel && (
               <Button
                 variant="secondary"
@@ -349,6 +372,33 @@ export function MessageInput({
       )}
     </div>
   );
+}
+
+function pastedAttachmentFiles(data: DataTransfer | null) {
+  if (!data) return [];
+
+  // Read files before text. Some browsers clear the file list after getData.
+  const files = Array.from(data.files);
+  if (files.length === 0) {
+    for (const item of Array.from(data.items)) {
+      if (item.kind !== "file") continue;
+      const file = item.getAsFile();
+      if (file) files.push(file);
+    }
+  }
+  if (files.length === 0) return [];
+
+  // Screenshot HTML is an empty image wrapper. Text pastes stay text.
+  const html = data.getData("text/html");
+  const pastedText = (
+    html.trim()
+      ? new DOMParser().parseFromString(html, "text/html").body.textContent
+      : data.getData("text/plain")
+  )
+    ?.replace(/\u00a0/g, " ")
+    .trim();
+
+  return pastedText ? [] : files;
 }
 
 function getUnsupportedFileTypeMessage(allowedFileTypes: readonly string[]) {

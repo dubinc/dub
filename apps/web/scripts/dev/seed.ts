@@ -466,13 +466,35 @@ const createPartners = async (data: SeedData) => {
     `Created ${notificationPreferencesCount} partner notification preferences`,
   );
 
+  const applications = partners.map((partner) => ({
+    id: createId({ prefix: "pga_" }),
+    programId: program.id,
+    partnerId: partner.id,
+    groupId: program.defaultGroupId,
+    name: partner.name,
+    email: partner.email ?? `${partner.id}@dub-internal-test.com`,
+    country: partner.country,
+    formData: { fields: [] },
+    status: "pending" as const,
+    createdAt: new Date(partner.createdAt),
+  }));
+
+  const { count: applicationCount } =
+    await prisma.programApplication.createMany({
+      data: applications,
+    });
+
+  console.log(`Created ${applicationCount} program applications`);
+
   // Create program enrollments
   const { count: enrollmentCount } = await prisma.programEnrollment.createMany({
-    data: partners.map((partner) => ({
+    data: partners.map((partner, index) => ({
       id: createId({ prefix: "pge_" }),
       partnerId: partner.id,
       programId: program.id,
       groupId: program.defaultGroupId,
+      applicationId: applications[index].id,
+      status: "pending" as const,
     })),
   });
 
@@ -515,6 +537,12 @@ const truncate = async () => {
   });
 
   const tables = [
+    "Job",
+    "jackson_index",
+    "jackson_store",
+    "jackson_ttl",
+    "OAuthCode",
+    "OAuthApp",
     "InstalledIntegration",
     "FolderWebhook",
     "LinkWebhook",
@@ -529,7 +557,10 @@ const truncate = async () => {
     "VerificationToken",
     "EmailVerificationToken",
     "NotificationPreference",
+    "UserNotificationPreferences",
     "Integration",
+    "LinkReward",
+    "SubmittedLead",
     "Commission",
     "PartnerComment",
     "Payout",
@@ -540,32 +571,57 @@ const truncate = async () => {
     "Discount",
     "FolderAccessRequest",
     "EmailDomain",
+    "MessageAttachment",
+    "NotificationEmail",
     "Message",
     "PartnerGroupDefaultLink",
     "FolderUser",
     "Folder",
     "Link",
     "Workflow",
+    "BountyPartnerTag",
     "BountyGroup",
     "BountySubmission",
     "Bounty",
+    "CampaignPartnerTag",
     "CampaignGroup",
     "Campaign",
+    "FraudAlert",
     "FraudEvent",
     "FraudEventGroup",
     "FraudRule",
     "ActivityLog",
+    "ProgramPartnerTag",
     "ProgramApplicationEvent",
     "ProgramApplication",
     "ProgramEnrollment",
     "PartnerGroup",
+    "PartnerNotificationPreferences",
     "PartnerUser",
+    "Postback",
+    "PartnerIndustryInterest",
+    "PartnerPreferredEarningStructure",
+    "PartnerSalesChannel",
+    "PartnerPlatform",
+    "PartnerRewind",
     "Partner",
     "PartnerInvite",
     "Domain",
+    "Account",
+    "Session",
+    "Dashboard",
     "ProjectUsers",
     "User",
+    "PartnerTag",
+    "ProgramCategory",
+    "ProgramSimilarity",
+    "DiscoveredPartner",
     "Program",
+    "RegisteredDomain",
+    "DefaultDomains",
+    "ProjectInvite",
+    "SentEmail",
+    "YearInReview",
     "Project",
   ];
 

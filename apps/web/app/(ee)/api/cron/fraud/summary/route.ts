@@ -28,6 +28,11 @@ export const GET = withCron(async ({ rawBody }) => {
   const programs = await prisma.program.findMany({
     where: {
       deactivatedAt: null,
+      workspace: {
+        plan: {
+          in: ["advanced", "enterprise"],
+        },
+      },
       fraudEventGroups: {
         some: {
           status: "pending",

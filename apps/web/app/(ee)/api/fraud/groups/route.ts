@@ -39,6 +39,7 @@ export const GET = withWorkspace(
             name: true,
             email: true,
             image: true,
+            networkStatus: true,
           },
         },
         programEnrollment: {

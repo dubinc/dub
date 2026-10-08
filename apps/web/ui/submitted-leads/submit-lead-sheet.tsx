@@ -106,6 +106,8 @@ export function SubmitLeadSheet({
       <FormProvider {...form}>
         <form
           onSubmit={handleSubmit(onSubmit)}
+          // The fields have their own checks, so all errors show in the same style
+          noValidate
           className="flex h-full flex-col"
         >
           <div className="sticky top-0 z-10 border-b border-neutral-200 bg-neutral-50">

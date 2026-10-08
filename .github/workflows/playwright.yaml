@@ -40,6 +40,8 @@ jobs:
       UPSTASH_REDIS_REST_TOKEN: "e2e_srh_token"
       UPSTASH_VECTOR_REST_URL: "https://sensible-camel-xxxx.upstash.io"
       UPSTASH_VECTOR_REST_TOKEN: "xx"
+      UPSTASH_VECTOR_EMOJI_REST_URL: "https://clever-bear-xxxx.upstash.io"
+      UPSTASH_VECTOR_EMOJI_REST_TOKEN: "xx"
 
       # QStash local-dev (User 1) — must match jobs.e2e Start QStash step
       QSTASH_URL: "http://127.0.0.1:8080"
