@@ -6,6 +6,7 @@ import { mutatePrefix } from "@/lib/swr/mutate";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import { BountySubmissionProps } from "@/lib/types";
 import { rejectBountySubmissionBodySchema } from "@/lib/zod/schemas/bounties";
+import { Callout } from "@/ui/shared/callout";
 import { MaxCharactersCounter } from "@/ui/shared/max-characters-counter";
 import { Button, Modal, useKeyboardShortcut } from "@dub/ui";
 import { cn } from "@dub/utils";
@@ -91,6 +92,14 @@ const RejectBountySubmissionModal = ({
 
       <div className="bg-neutral-50">
         <div className="flex flex-col gap-6 px-4 py-6 sm:px-6">
+          {submission.status === "draft" && (
+            <Callout variant="warn">
+              This submission is still in progress. Rejecting it stops the
+              partner from completing this submission, and they&apos;ll be
+              notified by email.
+            </Callout>
+          )}
+
           <div>
             <label
               htmlFor="rejectionReason"
