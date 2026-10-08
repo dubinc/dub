@@ -5,15 +5,15 @@ import "dotenv-flow/config";
 
 const BATCH_SIZE = 10;
 
+// Queue a staging workspace for each production workspace that is eligible but
+// does not have one yet. Eligible workspaces have a default program, a plan
+// above free/pro, and a slug that does not already end in "-staging".
+// Each job creates the staging workspace and its staging program.
 async function main() {
   let totalProcessed = 0;
   let totalPublished = 0;
   let totalFailed = 0;
   let cursor: string | undefined;
-
-  // TODO:
-  // We should skip workspaces where the staging workspace was created manually.
-  // SELECT * FROM Project where plan not in ("free", "pro") and slug LIKE '%-staging';
 
   while (true) {
     const workspaces = await prisma.project.findMany({
@@ -26,6 +26,7 @@ async function main() {
         plan: {
           notIn: ["free", "pro"],
         },
+        // Skip workspaces where the staging workspace was created manually.
         slug: {
           not: {
             endsWith: "-staging",
