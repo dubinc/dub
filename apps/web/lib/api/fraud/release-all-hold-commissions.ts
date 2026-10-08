@@ -1,6 +1,7 @@
 import { triggerAggregateDueCommissionsCronJob } from "@/lib/actions/partners/trigger-aggregate-due-commissions";
 import { trackCommissionStatusUpdate } from "@/lib/api/commissions/track-commission-update-activity-log";
 import { syncTotalCommissions } from "@/lib/api/partners/sync-total-commissions";
+import { PRISMA_UPDATEMANY_LIMIT } from "@/lib/cron";
 import { prisma } from "@/lib/prisma";
 import { CommissionStatus } from "@prisma/client";
 
@@ -34,6 +35,7 @@ export async function releaseAllHoldCommissions({
         status: true,
         partnerId: true,
       },
+      take: PRISMA_UPDATEMANY_LIMIT,
     });
 
     if (commissionsToRelease.length === 0) {
