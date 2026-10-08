@@ -11,6 +11,7 @@ import { booleanQuerySchema, getPaginationQuerySchema } from "./misc";
 import { programApplicationFormSchema } from "./program-application-form";
 import { programLanderSchema } from "./program-lander";
 import { RewardSchema } from "./rewards";
+import { submittedLeadFormSchema } from "./submitted-lead-form";
 import { centsSchemaWithDefault, parseUrlSchema } from "./utils";
 import { UTMTemplateSchema } from "./utm";
 import { workflowConditionsSchema } from "./workflows";
@@ -64,6 +65,7 @@ export const GroupSchema = z.object({
   brandColor: z.string().nullable(),
   holdingPeriodDays: z.number(),
   autoApprovePartnersEnabledAt: z.coerce.date().nullish(),
+  submittedLeadsEnabledAt: z.coerce.date().nullish(),
   clickReward: RewardSchema.nullish(),
   leadReward: RewardSchema.nullish(),
   saleReward: RewardSchema.nullish(),
@@ -82,6 +84,7 @@ export const GroupWithFormDataSchema = GroupSchema.extend({
   applicationFormPublishedAt: z.date().nullable(),
   landerData: programLanderSchema.nullable(),
   landerPublishedAt: z.date().nullable(),
+  submittedLeadFormData: submittedLeadFormSchema.nullish(),
   bounties: z.array(GroupBountySummarySchema).optional(),
 });
 

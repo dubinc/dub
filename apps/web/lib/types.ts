@@ -283,7 +283,8 @@ export type PlanProps = (typeof plans)[number];
 export type BetaFeatures =
   | "analyticsSettingsSiteVisitTracking"
   | "noProrationUpgrade"
-  | "rewardSpendLimit";
+  | "rewardSpendLimit"
+  | "submittedLeads";
 
 export type PartnerBetaFeatures = "postbacks";
 
