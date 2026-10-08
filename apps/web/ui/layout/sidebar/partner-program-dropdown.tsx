@@ -82,9 +82,15 @@ export function PartnerProgramDropdown() {
                   onClick={() => setOpenPopover(false)}
                 >
                   <GridIcon className="size-5 text-neutral-500 sm:size-4" />
-                  <span className="text-content-default block truncate">
-                    Your programs
+                  <span className="text-content-default block min-w-0 grow truncate">
+                    All programs
                   </span>
+                  {!selectedProgram && (
+                    <Check2
+                      className="size-4 shrink-0 text-neutral-600"
+                      aria-hidden="true"
+                    />
+                  )}
                 </Link>
                 <Link
                   href="/marketplace"
@@ -126,7 +132,7 @@ export function PartnerProgramDropdown() {
               />
             )}
             <div className="text-content-emphasis min-w-0 truncate text-lg font-semibold leading-7">
-              {selectedProgram?.name || "Your programs"}
+              {selectedProgram?.name || "All programs"}
             </div>
           </div>
           <ChevronsUpDown
