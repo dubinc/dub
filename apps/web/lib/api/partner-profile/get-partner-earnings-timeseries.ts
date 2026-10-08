@@ -39,6 +39,7 @@ export async function getPartnerEarningsTimeseries({
   const scope = await getEarningsScope({
     partnerId,
     programId,
+    linkId,
     includeLinks: groupBy === "linkId",
     // getStartEndDates only uses dataAvailableFrom for the "all" interval
     includeDataAvailableFrom: interval === "all" && !start,
@@ -112,10 +113,7 @@ export async function getPartnerEarningsTimeseries({
                     .filter((key): key is string => !!key),
                 ),
               ]
-            : scope.links
-                // only show filtered link if linkId filter is provided
-                .filter((link) => (linkId ? link.id === linkId : true))
-                .map((link) => link.id)
+            : scope.links.map((link) => link.id)
         ).map((key) => [key, 0]),
       );
 
@@ -167,11 +165,13 @@ export async function getPartnerEarningsTimeseries({
 async function getEarningsScope({
   partnerId,
   programId,
+  linkId,
   includeLinks,
   includeDataAvailableFrom,
 }: {
   partnerId: string;
   programId?: string;
+  linkId?: string;
   includeLinks: boolean;
   includeDataAvailableFrom: boolean;
 }): Promise<{
@@ -205,6 +205,8 @@ async function getEarningsScope({
           where: {
             programId,
             partnerId,
+            // only show the filtered link if a linkId filter is provided
+            ...(linkId && { id: linkId }),
           },
           select: {
             id: true,
