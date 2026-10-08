@@ -19,17 +19,17 @@ type TimeseriesPoint = {
   data?: Record<string, number>;
 };
 
-const DAY = 24 * 60 * 60 * 1000;
-
 test.describe("GET /partner-profile/earnings", () => {
   let partnerId: string | undefined;
   let userId: string | undefined;
   let token: string;
   let programSlug: string;
+  let partnerLinkIds: string[];
 
   test.beforeAll(async ({ api, program }) => {
     const { data: partner } = await createPartner(api);
     partnerId = partner.id;
+    partnerLinkIds = (partner.links ?? []).map((link) => link.id);
 
     token = `dub_pw_${nanoid(24)}`;
     const user = await prisma.user.create({
@@ -61,12 +61,13 @@ test.describe("GET /partner-profile/earnings", () => {
     }));
 
     // two commissions in the test program, and one in the network program, which must be excluded
+    // (created now, because the "all" interval starts when the test program started)
     await prisma.commission.createMany({
       data: [
-        { programId: program.id, earnings: 1000, daysAgo: 2 },
-        { programId: program.id, earnings: 2500, daysAgo: 5 },
-        { programId: NETWORK_PROGRAM_ID, earnings: 9900, daysAgo: 3 },
-      ].map(({ programId, earnings, daysAgo }) => ({
+        { programId: program.id, earnings: 1000 },
+        { programId: program.id, earnings: 2500 },
+        { programId: NETWORK_PROGRAM_ID, earnings: 9900 },
+      ].map(({ programId, earnings }) => ({
         id: createId({ prefix: "cm_" }),
         programId,
         partnerId: partner.id,
@@ -75,7 +76,6 @@ test.describe("GET /partner-profile/earnings", () => {
         amount: 0,
         quantity: 1,
         earnings,
-        createdAt: new Date(Date.now() - daysAgo * DAY),
       })),
     });
   });
@@ -201,6 +201,28 @@ test.describe("GET /partner-profile/earnings", () => {
         data.reduce((sum, d) => sum + (d.data?.[program.id] ?? 0), 0),
       ).toEqual(3500);
       expect(data.some((d) => d.data?.[NETWORK_PROGRAM_ID])).toBe(false);
+    });
+  });
+
+  test("returns the all-time timeseries and the per-program timeseries by link", async ({
+    playwright,
+    program,
+  }) => {
+    await withPartnerApi(playwright, async (partnerApi) => {
+      const allTime = await partnerApi.get<TimeseriesPoint[]>(
+        "/api/partner-profile/earnings/timeseries?interval=all&timezone=UTC",
+      );
+      expect(allTime.status).toEqual(200);
+      expect(allTime.data.reduce((sum, d) => sum + d.earnings, 0)).toEqual(
+        3500,
+      );
+
+      const byLink = await partnerApi.get<TimeseriesPoint[]>(
+        `/api/partner-profile/programs/${program.id}/earnings/timeseries?groupBy=linkId&timezone=UTC`,
+      );
+      expect(byLink.status).toEqual(200);
+      expect(byLink.data.reduce((sum, d) => sum + d.earnings, 0)).toEqual(3500);
+      expect(Object.keys(byLink.data[0].data ?? {})).toEqual(partnerLinkIds);
     });
   });
 

@@ -41,6 +41,8 @@ export async function getPartnerEarningsTimeseries({
     partnerId,
     programId,
     includeLinks: groupBy === "linkId",
+    // getStartEndDates only uses dataAvailableFrom for the "all" interval
+    includeDataAvailableFrom: interval === "all" && !start,
   });
 
   const { startDate, endDate, granularity } = getStartEndDates({
@@ -158,10 +160,12 @@ async function getEarningsScope({
   partnerId,
   programId,
   includeLinks,
+  includeDataAvailableFrom,
 }: {
   partnerId: string;
   programId?: string;
   includeLinks: boolean;
+  includeDataAvailableFrom: boolean;
 }): Promise<{
   programId: string | null;
   links: { id: string }[];
@@ -173,34 +177,36 @@ async function getEarningsScope({
       programId,
       include: {
         program: true,
-        links: true,
+        links: includeLinks,
       },
     });
 
     return {
       programId: program.id,
-      links,
+      links: links ?? [],
       dataAvailableFrom: program.startedAt ?? program.createdAt,
     };
   }
 
   const [programs, links] = await Promise.all([
-    prisma.program.findMany({
-      where: {
-        id: {
-          not: NETWORK_PROGRAM_ID,
-        },
-        partners: {
-          some: {
-            partnerId,
+    includeDataAvailableFrom
+      ? prisma.program.findMany({
+          where: {
+            id: {
+              not: NETWORK_PROGRAM_ID,
+            },
+            partners: {
+              some: {
+                partnerId,
+              },
+            },
           },
-        },
-      },
-      select: {
-        startedAt: true,
-        createdAt: true,
-      },
-    }),
+          select: {
+            startedAt: true,
+            createdAt: true,
+          },
+        })
+      : [],
     includeLinks
       ? prisma.link.findMany({
           where: {
