@@ -40,8 +40,6 @@ export const GET = withReferralsEmbedToken(
         sortOrder: "desc",
         programId: programEnrollment.programId,
         partnerId: programEnrollment.partnerId,
-        customerDataSharingEnabledAt:
-          programEnrollment.customerDataSharingEnabledAt,
       }),
 
       withTotal

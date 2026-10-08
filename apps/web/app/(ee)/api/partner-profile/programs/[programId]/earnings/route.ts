@@ -7,12 +7,11 @@ import { NextResponse } from "next/server";
 // GET /api/partner-profile/programs/[programId]/earnings – get earnings for a partner in a program enrollment
 export const GET = withPartnerProfile(
   async ({ partner, params, searchParams }) => {
-    const { programId, partnerId, customerDataSharingEnabledAt } =
-      await getProgramEnrollmentOrThrow({
-        partnerId: partner.id,
-        programId: params.programId,
-        include: {},
-      });
+    const { programId, partnerId } = await getProgramEnrollmentOrThrow({
+      partnerId: partner.id,
+      programId: params.programId,
+      include: {},
+    });
 
     const parsedQuery = getPartnerEarningsQuerySchema.parse(searchParams);
 
@@ -20,7 +19,6 @@ export const GET = withPartnerProfile(
       ...parsedQuery,
       programId,
       partnerId,
-      customerDataSharingEnabledAt,
     });
 
     return NextResponse.json(earnings);

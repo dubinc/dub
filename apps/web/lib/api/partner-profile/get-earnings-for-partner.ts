@@ -5,15 +5,15 @@ import {
   getPartnerEarningsQuerySchema,
   PartnerEarningsSchema,
 } from "@/lib/zod/schemas/partner-profile";
+import { NETWORK_PROGRAM_ID } from "@dub/utils";
 import { CommissionType, Partner } from "@prisma/client";
 import * as z from "zod/v4";
 import { obfuscateCustomerEmail } from "./obfuscate-customer-email";
 
 interface GetEarningsForPartnerParams
   extends z.infer<typeof getPartnerEarningsQuerySchema> {
-  programId: string;
   partnerId: string;
-  customerDataSharingEnabledAt: Date | null;
+  programId?: string; // if not provided, earnings across all programs (except the network program) are returned
 }
 
 export async function getEarningsForPartner(
@@ -35,7 +35,6 @@ export async function getEarningsForPartner(
     timezone,
     programId,
     partnerId,
-    customerDataSharingEnabledAt,
   } = params;
 
   const { startDate, endDate } = getStartEndDates({
@@ -50,7 +49,9 @@ export async function getEarningsForPartner(
       earnings: {
         not: 0,
       },
-      programId,
+      programId: programId ?? {
+        not: NETWORK_PROGRAM_ID,
+      },
       partnerId,
       status,
       type,
@@ -76,6 +77,11 @@ export async function getEarningsForPartner(
           id: true,
           shortLink: true,
           url: true,
+        },
+      },
+      programEnrollment: {
+        select: {
+          customerDataSharingEnabledAt: true,
         },
       },
     },
@@ -108,7 +114,7 @@ export async function getEarningsForPartner(
   }
 
   return z.array(PartnerEarningsSchema).parse(
-    earnings.map((e) => {
+    earnings.map(({ programEnrollment, ...e }) => {
       if (e.type === CommissionType.referral && e.sourcePartnerId) {
         const sourcePartner = sourcePartners.find(
           (p) => p.id === e.sourcePartnerId,
@@ -127,7 +133,7 @@ export async function getEarningsForPartner(
         customer: e.customer
           ? {
               ...e.customer,
-              email: customerDataSharingEnabledAt
+              email: programEnrollment.customerDataSharingEnabledAt
                 ? customerEmail
                 : obfuscateCustomerEmail(customerEmail),
               country: e.customer?.country,

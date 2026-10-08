@@ -3,6 +3,7 @@ import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enro
 import { sqlGranularityMap } from "@/lib/planetscale/granularity";
 import { prisma } from "@/lib/prisma";
 import { getPartnerEarningsTimeseriesSchema } from "@/lib/zod/schemas/partner-profile";
+import { NETWORK_PROGRAM_ID } from "@dub/utils";
 import { Prisma } from "@prisma/client";
 import { format } from "date-fns";
 import * as z from "zod/v4";
@@ -13,7 +14,7 @@ export async function getPartnerEarningsTimeseries({
   filters,
 }: {
   partnerId: string;
-  programId: string;
+  programId?: string; // if not provided, earnings across all programs (except the network program) are returned
   filters: z.infer<typeof getPartnerEarningsTimeseriesSchema>;
 }) {
   const {
@@ -29,20 +30,17 @@ export async function getPartnerEarningsTimeseries({
     timezone,
   } = filters;
 
-  const { program, links } = await getProgramEnrollmentOrThrow({
-    partnerId: partnerId,
-    programId: programId,
-    include: {
-      program: true,
-      links: true,
-    },
+  const scope = await getEarningsScope({
+    partnerId,
+    programId,
+    includeLinks: groupBy === "linkId",
   });
 
   const { startDate, endDate, granularity } = getStartEndDates({
     interval,
     start,
     end,
-    dataAvailableFrom: program.startedAt ?? program.createdAt,
+    dataAvailableFrom: scope.dataAvailableFrom,
     timezone,
   });
 
@@ -57,7 +55,7 @@ export async function getPartnerEarningsTimeseries({
         FROM Commission
         WHERE 
           earnings != 0
-          AND programId = ${program.id}
+          ${scope.programId ? Prisma.sql`AND programId = ${scope.programId}` : Prisma.sql`AND programId != ${NETWORK_PROGRAM_ID}`}
           AND partnerId = ${partnerId}
           AND createdAt >= ${startDate}
           AND createdAt < ${endDate}
@@ -120,7 +118,7 @@ export async function getPartnerEarningsTimeseries({
                     .map((t) => [t, 0]),
                 )
               : Object.fromEntries(
-                  links
+                  scope.links
                     // only show filtered link if linkId filter is provided
                     .filter((link) => (linkId ? link.id === linkId : true))
                     .map((link) => [link.id, 0]),
@@ -134,4 +132,83 @@ export async function getPartnerEarningsTimeseries({
   }
 
   return timeseries;
+}
+
+async function getEarningsScope({
+  partnerId,
+  programId,
+  includeLinks,
+}: {
+  partnerId: string;
+  programId?: string;
+  includeLinks: boolean;
+}): Promise<{
+  programId: string | null;
+  links: { id: string }[];
+  dataAvailableFrom?: Date;
+}> {
+  if (programId) {
+    const { program, links } = await getProgramEnrollmentOrThrow({
+      partnerId,
+      programId,
+      include: {
+        program: true,
+        links: true,
+      },
+    });
+
+    return {
+      programId: program.id,
+      links,
+      dataAvailableFrom: program.startedAt ?? program.createdAt,
+    };
+  }
+
+  const [programs, links] = await Promise.all([
+    prisma.program.findMany({
+      where: {
+        id: {
+          not: NETWORK_PROGRAM_ID,
+        },
+        partners: {
+          some: {
+            partnerId,
+          },
+        },
+      },
+      select: {
+        startedAt: true,
+        createdAt: true,
+      },
+    }),
+    includeLinks
+      ? prisma.link.findMany({
+          where: {
+            partnerId,
+            programId: {
+              not: NETWORK_PROGRAM_ID,
+            },
+          },
+          select: {
+            id: true,
+          },
+          orderBy: {
+            createdAt: "asc",
+          },
+        })
+      : [],
+  ]);
+
+  const programStartTimes = programs.map(({ startedAt, createdAt }) =>
+    (startedAt ?? createdAt).getTime(),
+  );
+
+  return {
+    programId: null,
+    links,
+    dataAvailableFrom:
+      programStartTimes.length > 0
+        ? new Date(Math.min(...programStartTimes))
+        : undefined,
+  };
 }
