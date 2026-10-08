@@ -61,6 +61,12 @@ export async function getEarningsForPartner(
         lte: endDate,
       },
     },
+    // the response schema drops these fields, so don't load them
+    omit: {
+      metadata: true,
+      userId: true,
+      invoiceId: true,
+    },
     include: {
       customer: {
         select: {
