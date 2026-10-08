@@ -12,6 +12,7 @@ import { ProgramEnrollmentStatus } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { DubApiError } from "../errors";
 import { getGroupOrThrow } from "../groups/get-group-or-throw";
+import { throwIfInvalidPartnerTags } from "../partner-tags/throw-if-invalid-partner-tags";
 import { createOrGetProgramEnrollment } from "./create-or-get-program-enrollment";
 import { createPartnerDefaultLinks } from "./create-partner-default-links";
 import { getOrCreatePartner } from "./get-or-create-partner";
@@ -144,6 +145,12 @@ export const createAndEnrollPartner = async ({
     includeExpandedFields: true,
   });
 
+  const partnerTags = await throwIfInvalidPartnerTags({
+    programId: program.id,
+    partnerTagIds: partner.tagIds,
+    partnerTagNames: partner.tagNames,
+  });
+
   const { partner: existingOrNewPartner } = await getOrCreatePartner({
     email: partner.email,
     create: {
@@ -181,6 +188,17 @@ export const createAndEnrollPartner = async ({
     });
   }
 
+  if (partnerTags.length > 0) {
+    await prisma.programPartnerTag.createMany({
+      skipDuplicates: true,
+      data: partnerTags.map(({ id: partnerTagId }) => ({
+        programId: program.id,
+        partnerId: existingOrNewPartner.id,
+        partnerTagId,
+      })),
+    });
+  }
+
   // Queue an index update because a new enrollment was created.
   waitUntil(queuePartnerSearchSync({ enrollmentIds: [programEnrollment.id] }));
 
@@ -214,6 +232,7 @@ export const createAndEnrollPartner = async ({
     ...programEnrollment,
     id: programEnrollment.partner.id,
     links,
+    ...(partnerTags.length > 0 && { tags: partnerTags }),
     ...polyfillSocialMediaFields(programEnrollment.partner.platforms),
   });
 
