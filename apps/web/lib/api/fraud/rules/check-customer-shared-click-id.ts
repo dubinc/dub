@@ -2,8 +2,8 @@ import { prisma } from "@/lib/prisma";
 import { FraudEventContext } from "@/lib/types";
 import { defineFraudRule } from "../define-fraud-rule";
 
-// The click ID on this lead or sale commission was already attributed to a
-// different customer for the same partner.
+// Flags the customer when another customer of the same partner shares
+// this click ID, no matter which customer came first.
 export const checkCustomerSharedClickId = defineFraudRule({
   type: "customerSharedClickId",
   evaluate: async ({
