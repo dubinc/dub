@@ -126,6 +126,18 @@ test.describe("GET /partner-profile/earnings", () => {
     });
   });
 
+  test("counts only the requested commission type", async ({ playwright }) => {
+    await withPartnerApi(playwright, async (partnerApi) => {
+      expect(
+        await partnerApi.get("/api/partner-profile/earnings/count?type=custom"),
+      ).toMatchObject({ status: 200, data: { count: 2 } });
+
+      expect(
+        await partnerApi.get("/api/partner-profile/earnings/count?type=sale"),
+      ).toMatchObject({ status: 200, data: { count: 0 } });
+    });
+  });
+
   test("filters by program ID or slug", async ({ playwright, program }) => {
     await withPartnerApi(playwright, async (partnerApi) => {
       for (const programIdOrSlug of [program.id, programSlug]) {

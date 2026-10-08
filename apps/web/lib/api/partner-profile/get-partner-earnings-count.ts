@@ -18,6 +18,7 @@ export async function getPartnerEarningsCount({
 }) {
   const {
     groupBy,
+    type,
     status,
     linkId,
     customerId,
@@ -54,6 +55,7 @@ export async function getPartnerEarningsCount({
     const count = await prisma.commission.count({
       where: {
         ...where,
+        ...(type && { type }),
         ...(status && { status }),
         ...(linkId && { linkId }),
         ...(customerId && { customerId }),
@@ -65,6 +67,7 @@ export async function getPartnerEarningsCount({
 
   const groupedWhere: Prisma.CommissionWhereInput = {
     ...where,
+    ...(type && groupBy !== "type" && { type }),
     ...(status && groupBy !== "status" && { status }),
     ...(linkId && groupBy !== "linkId" && { linkId }),
     ...(customerId && groupBy !== "customerId" && { customerId }),
