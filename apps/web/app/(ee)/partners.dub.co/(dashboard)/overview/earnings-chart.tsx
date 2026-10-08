@@ -4,7 +4,6 @@ import { formatDateTooltip } from "@/lib/analytics/format-date-tooltip";
 import { testIds } from "@/lib/e2e/test-ids";
 import { usePartnerProfileEarningsTimeseries } from "@/lib/swr/use-partner-profile-earnings";
 import useProgramEnrollments from "@/lib/swr/use-program-enrollments";
-import { buttonVariants } from "@dub/ui";
 import {
   Areas,
   ChartContext,
@@ -13,7 +12,7 @@ import {
   YAxis,
 } from "@dub/ui/charts";
 import { LoadingSpinner } from "@dub/ui/icons";
-import { cn, currencyFormatter, nFormatter } from "@dub/utils";
+import { currencyFormatter, nFormatter } from "@dub/utils";
 import NumberFlow from "@number-flow/react";
 import { LinearGradient } from "@visx/gradient";
 import { useRouter } from "next/navigation";
@@ -130,49 +129,44 @@ export function EarningsChart() {
 
               return (
                 <div className="text-[11px] leading-[1.1]">
-                  <div className="border-b border-neutral-200 p-3 font-semibold text-neutral-900">
-                    {formatDateTooltip(d.date, { interval, start, end })}
+                  <div className="flex items-center justify-between gap-3 border-b border-neutral-200 p-3">
+                    <span className="font-semibold text-neutral-900">
+                      {formatDateTooltip(d.date, { interval, start, end })}
+                    </span>
+                    <span className="shrink-0 font-semibold text-neutral-900">
+                      {currencyFormatter(d.values.main)}
+                    </span>
                   </div>
-                  <div className="flex flex-col gap-3 p-3">
+                  <div className="flex flex-col gap-2 p-3">
                     {programEarnings.length > 0 ? (
-                      <div className="flex flex-col gap-2">
-                        {programEarnings.map(([programId, earnings]) => {
-                          const program = programs.get(programId);
+                      programEarnings.map(([programId, earnings]) => {
+                        const program = programs.get(programId);
 
-                          return (
-                            <div
-                              key={programId}
-                              className="flex items-center justify-between gap-2"
-                            >
-                              <div className="flex min-w-0 items-center gap-2">
-                                {program && (
-                                  <ProgramLogo
-                                    program={program}
-                                    className="size-3.5"
-                                  />
-                                )}
-                                <span className="truncate font-medium text-neutral-700">
-                                  {program?.name ?? programId}
-                                </span>
-                              </div>
-                              <span className="shrink-0 text-neutral-500">
-                                {currencyFormatter(earnings)}
+                        return (
+                          <div
+                            key={programId}
+                            className="flex items-center justify-between gap-2"
+                          >
+                            <div className="flex min-w-0 items-center gap-2">
+                              {program && (
+                                <ProgramLogo
+                                  program={program}
+                                  className="size-3.5"
+                                />
+                              )}
+                              <span className="truncate font-medium text-neutral-700">
+                                {program?.name ?? programId}
                               </span>
                             </div>
-                          );
-                        })}
-                      </div>
+                            <span className="shrink-0 text-neutral-500">
+                              {currencyFormatter(earnings)}
+                            </span>
+                          </div>
+                        );
+                      })
                     ) : (
                       <span className="text-neutral-500">No earnings</span>
                     )}
-                    <div
-                      className={cn(
-                        buttonVariants({ variant: "secondary" }),
-                        "flex h-6 items-center justify-center rounded-lg border text-sm font-medium",
-                      )}
-                    >
-                      View all programs
-                    </div>
                   </div>
                 </div>
               );

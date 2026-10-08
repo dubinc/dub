@@ -6,7 +6,8 @@ import { CommissionTypeIcon } from "@/ui/partners/comission-type-icon";
 import { CommissionStatusBadges } from "@/ui/partners/commission-status-badges";
 import { StatusBadge } from "@dub/ui";
 import { InvoiceDollar } from "@dub/ui/icons";
-import { currencyFormatter, formatDate } from "@dub/utils";
+import { cn, currencyFormatter, formatDate } from "@dub/utils";
+import Link from "next/link";
 import {
   OVERVIEW_CARD_ROW_CLASSNAME,
   OverviewCard,
@@ -44,7 +45,13 @@ export function RecentEarningsCard() {
           const badge = CommissionStatusBadges[earning.status];
 
           return (
-            <div className={OVERVIEW_CARD_ROW_CLASSNAME}>
+            <Link
+              href={`/programs/${earning.program.slug}`}
+              className={cn(
+                OVERVIEW_CARD_ROW_CLASSNAME,
+                "transition-colors duration-100 hover:bg-neutral-50 active:bg-neutral-100",
+              )}
+            >
               <ProgramLogo program={earning.program} />
               <CommissionTypeIcon type={earning.type} className="shrink-0" />
               <span className="text-content-emphasis min-w-0 grow truncate text-xs font-semibold">
@@ -58,7 +65,7 @@ export function RecentEarningsCard() {
               <span className="w-16 shrink-0 text-right text-xs font-medium text-neutral-500">
                 {currencyFormatter(earning.earnings)}
               </span>
-            </div>
+            </Link>
           );
         }}
       />

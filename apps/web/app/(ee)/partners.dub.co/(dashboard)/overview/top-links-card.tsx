@@ -3,7 +3,8 @@
 import { testIds } from "@/lib/e2e/test-ids";
 import { usePartnerProfileTopEarnings } from "@/lib/swr/use-partner-profile-earnings";
 import { Hyperlink } from "@dub/ui/icons";
-import { currencyFormatter, getPrettyUrl } from "@dub/utils";
+import { cn, currencyFormatter, getPrettyUrl } from "@dub/utils";
+import Link from "next/link";
 import {
   OVERVIEW_CARD_ROW_CLASSNAME,
   OverviewCard,
@@ -39,7 +40,13 @@ export function TopLinksCard() {
           title: "No earnings in this date range",
         }}
         renderItem={(link) => (
-          <div className={OVERVIEW_CARD_ROW_CLASSNAME}>
+          <Link
+            href={`/programs/${link.program.slug}`}
+            className={cn(
+              OVERVIEW_CARD_ROW_CLASSNAME,
+              "transition-colors duration-100 hover:bg-neutral-50 active:bg-neutral-100",
+            )}
+          >
             <ProgramLogo program={link.program} />
             <span
               className="text-content-emphasis min-w-0 grow truncate text-xs font-semibold"
@@ -50,7 +57,7 @@ export function TopLinksCard() {
             <span className="shrink-0 text-xs font-medium text-neutral-500">
               {currencyFormatter(link.earnings)}
             </span>
-          </div>
+          </Link>
         )}
       />
     </OverviewCard>
