@@ -12,7 +12,7 @@ export async function releaseAllHoldCommissions({
 }: {
   programId: string;
 }) {
-  const program = await prisma.program.findUniqueOrThrow({
+  const program = await prisma.program.findUnique({
     where: {
       id: programId,
     },
@@ -20,6 +20,15 @@ export async function releaseAllHoldCommissions({
       workspaceId: true,
     },
   });
+
+  // The program can be deleted before this cron runs.
+  // Return 0 so that QStash does not retry the job.
+  if (!program) {
+    console.log(
+      `Program ${programId} not found, skipping hold commission release`,
+    );
+    return 0;
+  }
 
   let totalReleased = 0;
   const partnerIdsToSync = new Set<string>();
