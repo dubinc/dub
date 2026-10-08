@@ -44,14 +44,7 @@ export const GET = withWorkspace(
         lastUsed: true,
         createdAt: true,
         updatedAt: true,
-        user: {
-          select: {
-            id: true,
-            name: true,
-            image: true,
-            isMachine: true,
-          },
-        },
+        user: true,
       },
       orderBy: [{ lastUsed: "desc" }, { createdAt: "desc" }],
       take: 100,
