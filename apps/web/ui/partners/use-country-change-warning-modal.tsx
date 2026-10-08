@@ -43,6 +43,11 @@ export function useCountryChangeWarningModal() {
           of payouts, and legal action.
         </p>
         <p className="mt-4">
+          You can only change your country once, and this removes your connected
+          payout method. You'll need to connect it again. To change your country
+          later, contact support.
+        </p>
+        <p className="mt-4">
           Dub is not responsible for legal or tax consequences resulting from
           misrepresentation.
         </p>
