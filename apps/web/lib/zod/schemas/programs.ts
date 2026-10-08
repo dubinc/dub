@@ -83,8 +83,11 @@ export const ProgramSchema = z.object({
 });
 
 // TODO: move to group-level soon
+// Workspace-scoped only – ProgramSchema itself is embedded in partner-facing
+// payloads (e.g. ProgramEnrollmentSchema), so program config must not live there
 export const ProgramSchemaWithInviteEmailData = ProgramSchema.extend({
   inviteEmailData: programInviteEmailDataSchema,
+  applicationScreeningCriteria: z.string().nullish(),
 });
 
 export const updateProgramSchema = z.object({

@@ -58,6 +58,11 @@ const jobLoaders = {
       (m) => m.autoRejectPartnerJob,
     ),
 
+  "screen-partner-application-job": () =>
+    import("./handlers/screen-partner-application-job").then(
+      (m) => m.screenPartnerApplicationJob,
+    ),
+
   "auto-approve-program-application-job": () =>
     import("./handlers/auto-approve-program-application-job").then(
       (m) => m.autoApproveProgramApplicationJob,

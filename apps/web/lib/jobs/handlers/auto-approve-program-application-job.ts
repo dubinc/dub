@@ -4,6 +4,7 @@ import { evaluateApplicationRequirements } from "@/lib/partners/evaluate-applica
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { prisma } from "@/lib/prisma";
 import { approveProgramApplication } from "@/lib/program-applications/approve-program-application";
+import { screenPartnerApplication } from "@/lib/program-applications/screen-partner-application";
 import {
   ProgramApplicationStatus,
   ProgramEnrollmentStatus,
@@ -35,24 +36,37 @@ export const autoApproveProgramApplicationJob = defineJob({
         programId: true,
         partnerId: true,
         status: true,
+        formData: true,
+        website: true,
+        youtube: true,
+        twitter: true,
+        linkedin: true,
+        instagram: true,
+        tiktok: true,
         partnerGroup: {
           select: {
             id: true,
             autoApprovePartnersEnabledAt: true,
+            landerData: true,
           },
         },
         partner: {
           select: {
             id: true,
+            name: true,
             email: true,
             country: true,
+            description: true,
             platforms: true,
           },
         },
         program: {
           select: {
             id: true,
+            name: true,
+            description: true,
             applicationRequirements: true,
+            applicationScreeningCriteria: true,
             workspace: {
               select: {
                 plan: true,
@@ -179,6 +193,28 @@ export const autoApproveProgramApplicationJob = defineJob({
     if (!owner) {
       console.warn(`Owner not found for program ${programId}.`);
       return;
+    }
+
+    const screeningCriteria = program.applicationScreeningCriteria?.trim();
+
+    if (screeningCriteria) {
+      const matchedScreeningCriteria = await screenPartnerApplication({
+        programId,
+        partnerId,
+        applicationId,
+        program: {
+          name: program.name,
+          description: program.description,
+        },
+        partner,
+        application: programApplication,
+        landerData: partnerGroup.landerData,
+        screeningCriteria,
+      });
+
+      if (matchedScreeningCriteria) {
+        return;
+      }
     }
 
     try {

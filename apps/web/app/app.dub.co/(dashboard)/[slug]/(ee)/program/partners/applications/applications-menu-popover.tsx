@@ -1,26 +1,27 @@
 "use client";
 
 import useProgram from "@/lib/swr/use-program";
-import { useApplicationSettingsModal } from "@/ui/modals/application-settings-modal";
 import { useExportApplicationsModal } from "@/ui/modals/export-applications-modal";
 import { ThreeDots } from "@/ui/shared/icons";
 import { Button, Download, IconMenu, Popover, useMediaQuery } from "@dub/ui";
 import { ProgramApplicationStatus } from "@prisma/client";
 import { useState } from "react";
+import { useApplicationSettingsSheet } from "./application-settings-sheet";
 
 export function ApplicationSettingsButton() {
   const { isMobile } = useMediaQuery();
 
-  const { setShowApplicationSettingsModal, ApplicationSettingsModal } =
-    useApplicationSettingsModal();
+  const { applicationSettingsSheet, setIsOpen } = useApplicationSettingsSheet();
 
   return (
     <>
-      <ApplicationSettingsModal />
+      {applicationSettingsSheet}
       <Button
+        type="button"
         text={isMobile ? "Settings" : "Application settings"}
-        onClick={() => setShowApplicationSettingsModal(true)}
+        onClick={() => setIsOpen(true)}
         variant="secondary"
+        className="h-9 px-3"
       />
     </>
   );

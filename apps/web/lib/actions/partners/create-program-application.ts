@@ -9,11 +9,11 @@ import { getIP } from "@/lib/api/utils/get-ip";
 import { markApplicationEventSubmitted } from "@/lib/application-events/update-application-event";
 import { getApplicationEventCookieName } from "@/lib/application-events/utils";
 import { getSession } from "@/lib/auth";
-import { autoApproveProgramApplicationJob } from "@/lib/jobs/handlers/auto-approve-program-application-job";
 import { autoRejectProgramApplicationJob } from "@/lib/jobs/handlers/auto-reject-program-application-job";
 import { programApplicationReminderJob } from "@/lib/jobs/handlers/program-application-reminder-job";
 import { getNetworkProfileChecklistProgress } from "@/lib/network/get-network-profile-checklist-progress";
 import { backfillPartnerPlatforms } from "@/lib/partners/backfill-partner-platforms";
+import { dispatchPartnerApplicationReview } from "@/lib/partners/dispatch-partner-application-review";
 import { evaluateApplicationRequirements } from "@/lib/partners/evaluate-application-requirements";
 import {
   formatApplicationFormData,
@@ -448,13 +448,19 @@ async function createApplicationAndEnrollment({
           application: programApplication,
         }),
 
-        // Auto-approve the partner if the group has auto-approval enabled
-        group.autoApprovePartnersEnabledAt
-          ? autoApproveProgramApplicationJob.dispatch(
-              { applicationId: programApplication.id },
-              { label: partner.id },
-            )
-          : Promise.resolve(null),
+        ...(result.reason === "requirementsNotMet"
+          ? []
+          : [
+              dispatchPartnerApplicationReview({
+                applicationId: programApplication.id,
+                programId: program.id,
+                partnerId: partner.id,
+                autoApprovePartnersEnabledAt:
+                  group.autoApprovePartnersEnabledAt,
+                applicationScreeningCriteria:
+                  program.applicationScreeningCriteria,
+              }),
+            ]),
 
         // Send "partner.application_submitted" webhook (deprecated)
         sendWorkspaceWebhook({
