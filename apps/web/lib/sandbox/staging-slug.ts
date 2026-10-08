@@ -7,7 +7,7 @@ export function getPreferredStagingSlug(slug: string) {
   return `${slug}-staging`;
 }
 
-function isSlugUniqueConstraintError(error: unknown) {
+export function isSlugUniqueConstraintError(error: unknown) {
   if (
     !(error instanceof Prisma.PrismaClientKnownRequestError) ||
     error.code !== "P2002"

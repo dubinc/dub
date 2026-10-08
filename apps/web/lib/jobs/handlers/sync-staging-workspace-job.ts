@@ -1,5 +1,8 @@
 import { prisma } from "@/lib/prisma";
-import { getPreferredStagingSlug } from "@/lib/sandbox/staging-slug";
+import {
+  getPreferredStagingSlug,
+  isSlugUniqueConstraintError,
+} from "@/lib/sandbox/staging-slug";
 import { Project } from "@prisma/client";
 import * as z from "zod/v4";
 import { defineJob } from "../index";
@@ -181,7 +184,8 @@ async function syncWorkspace({
   const preferredSlug = getPreferredStagingSlug(workspace.slug);
 
   // `{slug}-staging` may belong to another workspace, in which case the staging
-  // workspace keeps its current (suffixed) slug.
+  // workspace keeps its current (suffixed) slug. A concurrent claim between
+  // this check and the update is handled the same way.
   const slugOwner = await prisma.project.findUnique({
     where: {
       slug: preferredSlug,
@@ -194,17 +198,39 @@ async function syncWorkspace({
   const canUsePreferredSlug =
     !slugOwner || slugOwner.id === workspace.stagingWorkspaceId;
 
-  await prisma.project.update({
-    where: {
-      id: workspace.stagingWorkspaceId,
-    },
-    data: {
-      logo: workspace.logo,
-      name: `${workspace.name} (Staging)`,
-      ...(canUsePreferredSlug && { slug: preferredSlug }),
-      plan: workspace.plan,
-      planTier: workspace.planTier,
-      planPeriod: workspace.planPeriod,
-    },
-  });
+  const data: Pick<
+    Project,
+    "logo" | "name" | "plan" | "planTier" | "planPeriod"
+  > = {
+    logo: workspace.logo,
+    name: `${workspace.name} (Staging)`,
+    plan: workspace.plan,
+    planTier: workspace.planTier,
+    planPeriod: workspace.planPeriod,
+  };
+
+  try {
+    await prisma.project.update({
+      where: {
+        id: workspace.stagingWorkspaceId,
+      },
+      data: {
+        ...data,
+        ...(canUsePreferredSlug && { slug: preferredSlug }),
+      },
+    });
+  } catch (error) {
+    // Another workspace claimed `{slug}-staging` after the ownership check.
+    // Keep the current slug and still apply plan and branding.
+    if (!canUsePreferredSlug || !isSlugUniqueConstraintError(error)) {
+      throw error;
+    }
+
+    await prisma.project.update({
+      where: {
+        id: workspace.stagingWorkspaceId,
+      },
+      data,
+    });
+  }
 }
