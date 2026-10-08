@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { FraudEventContext } from "@/lib/types";
 import { defineFraudRule } from "../define-fraud-rule";
+import { createFraudEventHash } from "../utils";
 
 // Flags the customer when another customer of the same partner shares
 // this click ID, no matter which customer came first.
@@ -38,6 +39,31 @@ export const checkCustomerSharedClickId = defineFraudRule({
     });
 
     if (!matchedCustomer) {
+      return {
+        triggered: false,
+      };
+    }
+
+    // A resolved event for this customer stays closed. A pending one still
+    // holds later commissions.
+    const resolvedEvent = await prisma.fraudEvent.findFirst({
+      where: {
+        hash: createFraudEventHash({
+          type: "customerSharedClickId",
+          programId: program.id,
+          partnerId: partner.id,
+          customerId: customer.id,
+        }),
+        fraudEventGroup: {
+          status: "resolved",
+        },
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    if (resolvedEvent) {
       return {
         triggered: false,
       };
