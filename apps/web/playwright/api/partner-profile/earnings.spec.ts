@@ -6,6 +6,7 @@ import { expect } from "@playwright/test";
 import { apiError } from "../../utils";
 import { createBearerApiClient, test } from "../fixtures";
 import { createPartner, deletePartner } from "../partners/helpers";
+import { TEST_WORKSPACE } from "../setup-test-workspace";
 
 type PartnerProfileEarning = {
   id: string;
@@ -250,6 +251,128 @@ test.describe("GET /partner-profile/earnings", () => {
         expect(point.data).toEqual({});
       }
     });
+  });
+
+  test("groups the timeseries across programs by the links that have earnings", async ({
+    playwright,
+    program,
+    workspace,
+  }) => {
+    const [linkId] = partnerLinkIds;
+    const commissionId = createId({ prefix: "cm_" });
+    // a second link without earnings, which must not appear in the groups
+    const idleLinkId = createId({ prefix: "link_" });
+    const idleLinkKey = `pw-idle-${nanoid(8).toLowerCase()}`;
+
+    try {
+      await prisma.link.create({
+        data: {
+          id: idleLinkId,
+          domain: TEST_WORKSPACE.program.domain,
+          key: idleLinkKey,
+          url: TEST_WORKSPACE.program.url,
+          shortLink: `https://${TEST_WORKSPACE.program.domain}/${idleLinkKey}`,
+          projectId: workspace.id,
+          programId: program.id,
+          partnerId: partnerId!,
+        },
+      });
+      await prisma.commission.create({
+        data: {
+          id: commissionId,
+          programId: program.id,
+          partnerId: partnerId!,
+          linkId,
+          type: "custom",
+          status: "pending",
+          amount: 0,
+          quantity: 1,
+          earnings: 500,
+        },
+      });
+
+      await withPartnerApi(playwright, async (partnerApi) => {
+        const { status, data } = await partnerApi.get<TimeseriesPoint[]>(
+          "/api/partner-profile/earnings/timeseries?groupBy=linkId&timezone=UTC",
+        );
+
+        expect(status).toEqual(200);
+        for (const point of data) {
+          expect(Object.keys(point.data ?? {})).toEqual([linkId]);
+        }
+        expect(
+          data.reduce((sum, point) => sum + (point.data?.[linkId] ?? 0), 0),
+        ).toEqual(500);
+      });
+    } finally {
+      await prisma.commission.deleteMany({ where: { id: commissionId } });
+      await prisma.link.deleteMany({ where: { id: idleLinkId } });
+    }
+  });
+
+  test("masks the customer email in the grouped count until data sharing is on", async ({
+    playwright,
+    program,
+    workspace,
+  }) => {
+    const email = `earnings-count-${nanoid(8).toLowerCase()}@example.com`;
+    const customerId = createId({ prefix: "cus_" });
+    const commissionId = createId({ prefix: "cm_" });
+    const enrollment = {
+      partnerId_programId: { partnerId: partnerId!, programId: program.id },
+    };
+
+    try {
+      await prisma.customer.create({
+        data: {
+          id: customerId,
+          name: "Earnings Count Customer",
+          email,
+          projectId: workspace.id,
+        },
+      });
+      await prisma.commission.create({
+        data: {
+          id: commissionId,
+          programId: program.id,
+          partnerId: partnerId!,
+          customerId,
+          type: "custom",
+          status: "pending",
+          amount: 0,
+          quantity: 1,
+          earnings: 700,
+        },
+      });
+
+      await withPartnerApi(playwright, async (partnerApi) => {
+        const getCustomerEmail = async () => {
+          const { status, data } = await partnerApi.get<
+            { id: string | null; email: string }[]
+          >("/api/partner-profile/earnings/count?groupBy=customerId");
+          expect(status).toEqual(200);
+          return data.find((group) => group.id === customerId)?.email;
+        };
+
+        const masked = await getCustomerEmail();
+        expect(masked).not.toEqual(email);
+        expect(masked).toContain("*");
+
+        await prisma.programEnrollment.update({
+          where: enrollment,
+          data: { customerDataSharingEnabledAt: new Date() },
+        });
+
+        expect(await getCustomerEmail()).toEqual(email);
+      });
+    } finally {
+      await prisma.programEnrollment.update({
+        where: enrollment,
+        data: { customerDataSharingEnabledAt: null },
+      });
+      await prisma.commission.deleteMany({ where: { id: commissionId } });
+      await prisma.customer.deleteMany({ where: { id: customerId } });
+    }
   });
 
   test("returns 404 from the per-program timeseries and the OG image for another program", async ({
