@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getDefaultPartnerId } from "./utils/get-default-partner";
+import { getPartnerLandingPath } from "./utils/get-partner-landing-path";
 import { getUserViaToken } from "./utils/get-user-via-token";
 import { isValidInternalRedirect } from "./utils/is-valid-internal-redirect";
 import { parse } from "./utils/parse";
@@ -104,7 +105,11 @@ export async function PartnersMiddleware(req: NextRequest) {
     }
 
     if (path === "/" || path.startsWith("/pn_")) {
-      return NextResponse.redirect(new URL("/overview", req.url));
+      const landingPath = defaultPartnerId
+        ? await getPartnerLandingPath(defaultPartnerId)
+        : "/programs";
+
+      return NextResponse.redirect(new URL(landingPath, req.url));
     } else if (isLoginPath) {
       // if is custom program login or register path, redirect to /programs/:programSlug
       const programSlugRegex = /^\/([^\/]+)\/(login|register)$/;
