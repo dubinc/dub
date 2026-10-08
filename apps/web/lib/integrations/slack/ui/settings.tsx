@@ -20,6 +20,7 @@ export const SlackSettings = (props: InstalledIntegrationInfoProps) => {
             "sale.created",
             "partner.enrolled",
             "partner.merged",
+            "program_application.created",
             "commission.created",
             "bounty.created",
             "bounty.updated",

@@ -115,6 +115,18 @@ export const RATELIMIT_POLICIES = {
     keyPrefix: "rl:ai:reward:generate",
   },
 
+  aiRewardTooltipReview: {
+    attempts: 20,
+    window: "1 m",
+    keyPrefix: "rl:ai:reward:tooltip-review",
+  },
+
+  aiRewardTooltipScreen: {
+    attempts: 60,
+    window: "1 m",
+    keyPrefix: "rl:ai:reward:tooltip-screen",
+  },
+
   // Keyed on workspace + user so one actor cannot exhaust the workspace quota
   forwardDnsInstructions: {
     attempts: 10,
@@ -329,5 +341,12 @@ export const RATELIMIT_POLICIES = {
     window: "5 s",
     keyPrefix: "rl:domains:search-availability",
     message: "Don't DDoS me pls 🥺",
+  },
+
+  emojiSearch: {
+    attempts: 30,
+    window: "10 s",
+    keyPrefix: "rl:ai:emoji-search",
+    message: "You've been rate limited. Please try again later.",
   },
 } as const satisfies Record<string, RatelimitPolicy>;

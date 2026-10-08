@@ -2,7 +2,7 @@
 
 import { BountySubmissionStatusBadges } from "@/lib/bounty/bounty-submission-status-badges";
 import { REJECT_BOUNTY_SUBMISSION_REASONS } from "@/lib/bounty/constants";
-import { calculateSocialMetricsRewardAmount } from "@/lib/bounty/rewards";
+import { calculateSocialMetricsRewardAmount } from "@/lib/bounty/social-metrics-milestones";
 import { resolveBountyDetails } from "@/lib/bounty/utils";
 import { clientAccessCheck } from "@/lib/client-access-check";
 import { mutatePrefix } from "@/lib/swr/mutate";
@@ -17,6 +17,7 @@ import { getBountyRewardCriteria } from "@/ui/partners/bounties/bounty-reward-cr
 import { BountySocialContentPreview } from "@/ui/partners/bounties/bounty-social-content-preview";
 import { BountySocialMetricsRewardsTable } from "@/ui/partners/bounties/bounty-social-metrics-rewards-table";
 import { useRejectBountySubmissionModal } from "@/ui/partners/bounties/reject-bounty-submission-modal";
+import { useSocialMetricsMilestones } from "@/ui/partners/bounties/use-social-metrics-milestones";
 import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import { ButtonLink } from "@/ui/placeholders/button-link";
 import { AmountInput } from "@/ui/shared/amount-input";
@@ -39,8 +40,14 @@ import {
   formatDate,
   getPrettyUrl,
   nFormatter,
+  pluralize,
   timeAgo,
 } from "@dub/utils";
+import {
+  BountySubmissionStatus,
+  BountyType,
+  CommissionStatus,
+} from "@prisma/client";
 import Linkify from "linkify-react";
 import Link from "next/link";
 import {
@@ -51,6 +58,13 @@ import {
   useState,
 } from "react";
 import { toast } from "sonner";
+
+const PAYABLE_COMMISSION_STATUSES: CommissionStatus[] = [
+  "pending",
+  "processed",
+  "paid",
+  "hold",
+];
 
 type BountySubmissionDetailsSheetProps = {
   submission: BountySubmissionProps;
@@ -130,7 +144,7 @@ function BountySubmissionDetailsSheetContent({
   useKeyboardShortcut(
     "a",
     () => {
-      if (isValidForm && submission.status !== "draft") {
+      if (canApprove) {
         openConfirmApproveBountySubmissionModal(
           submission,
           bounty ?? null,
@@ -141,10 +155,27 @@ function BountySubmissionDetailsSheetContent({
     { sheet: true, enabled: !permissionsError },
   );
 
+  const isInProgressPerformanceSubmission =
+    submission.status === BountySubmissionStatus.draft &&
+    bounty?.type === BountyType.performance;
+
+  const canReject =
+    submission.status !== BountySubmissionStatus.rejected &&
+    submission.status !== BountySubmissionStatus.approved &&
+    !isInProgressPerformanceSubmission;
+
+  const rejectDisabledTooltip = permissionsError
+    ? permissionsError
+    : isInProgressPerformanceSubmission
+      ? "Performance bounty submissions can only be rejected after the partner completes the bounty."
+      : submission.status === BountySubmissionStatus.rejected
+        ? "Bounty submission already rejected."
+        : undefined;
+
   useKeyboardShortcut(
     "r",
     () => {
-      if (submission.status !== "draft" && submission.status !== "rejected") {
+      if (canReject) {
         setShowRejectModal(true);
       }
     },
@@ -162,6 +193,20 @@ function BountySubmissionDetailsSheetContent({
 
     return true;
   }, [bounty, rewardAmount]);
+
+  const {
+    isSocialMetricsBounty,
+    hasMultipleMilestones,
+    pendingMilestones,
+    hasReachedEarningCap,
+  } = useSocialMetricsMilestones({
+    bounty,
+    submission,
+  });
+
+  const canApprove =
+    submission?.status !== "draft" &&
+    (isSocialMetricsBounty ? pendingMilestones.length > 0 : isValidForm);
 
   if (!submission || !submission.partner || !bounty) {
     return null;
@@ -184,6 +229,17 @@ function BountySubmissionDetailsSheetContent({
       ? Math.min((socialMetricCount / socialMinCount) * 100, 100)
       : 100;
   const socialMetricComplete = socialMetricPercent >= 100;
+
+  const viewCommissionsLink =
+    submission.commissions.length > 0 ? (
+      <Link
+        href={`/${workspaceSlug}/program/commissions?bountySubmissionId=${submission.id}&interval=all`}
+        target="_blank"
+        className="w-full"
+      >
+        <Button variant="secondary" text="View commissions" />
+      </Link>
+    ) : null;
 
   return (
     <div className="flex h-full flex-col">
@@ -318,9 +374,15 @@ function BountySubmissionDetailsSheetContent({
                       {
                         label: "Reward",
                         value: (() => {
-                          if (submission.commission?.earnings != null) {
+                          if (submission.commissions.length > 0) {
                             return currencyFormatter(
-                              submission.commission.earnings,
+                              submission.commissions.reduce(
+                                (total, { earnings, status }) =>
+                                  PAYABLE_COMMISSION_STATUSES.includes(status)
+                                    ? total + earnings
+                                    : total,
+                                0,
+                              ),
                             );
                           }
                           const estimatedEarnings =
@@ -383,25 +445,27 @@ function BountySubmissionDetailsSheetContent({
                 <h2 className="text-base font-semibold text-neutral-900">
                   Submission
                 </h2>
-                {hasSocialContent && submission.status !== "approved" && (
-                  <div className="flex shrink-0 items-center gap-3">
-                    {submission.socialMetricsLastSyncedAt ? (
-                      <span className="whitespace-nowrap text-xs font-medium text-neutral-500">
-                        Last sync{" "}
-                        {timeAgo(submission.socialMetricsLastSyncedAt, {
-                          withAgo: true,
-                        })}
-                      </span>
-                    ) : null}
-                    <Button
-                      variant="secondary"
-                      text="Refresh"
-                      loading={isRefreshingSocialMetrics}
-                      onClick={refreshSubmissionSocialMetrics}
-                      className="h-8 rounded-lg px-3"
-                    />
-                  </div>
-                )}
+                {hasSocialContent &&
+                  !["approved", "rejected"].includes(submission.status) &&
+                  !hasReachedEarningCap && (
+                    <div className="flex shrink-0 items-center gap-3">
+                      {submission.socialMetricsLastSyncedAt ? (
+                        <span className="whitespace-nowrap text-xs font-medium text-neutral-500">
+                          Last sync{" "}
+                          {timeAgo(submission.socialMetricsLastSyncedAt, {
+                            withAgo: true,
+                          })}
+                        </span>
+                      ) : null}
+                      <Button
+                        variant="secondary"
+                        text="Refresh"
+                        loading={isRefreshingSocialMetrics}
+                        onClick={refreshSubmissionSocialMetrics}
+                        className="h-8 rounded-lg px-3"
+                      />
+                    </div>
+                  )}
               </div>
 
               <div className="mt-3 flex flex-col gap-6">
@@ -443,15 +507,12 @@ function BountySubmissionDetailsSheetContent({
                   </div>
                 )}
 
-                {bountyInfo?.hasSocialMetrics &&
-                  ["draft", "submitted", "approved"].includes(
-                    submission.status,
-                  ) && (
-                    <BountySocialMetricsRewardsTable
-                      bounty={bounty}
-                      submission={submission}
-                    />
-                  )}
+                {bountyInfo?.hasSocialMetrics && (
+                  <BountySocialMetricsRewardsTable
+                    bounty={bounty}
+                    submission={submission}
+                  />
+                )}
 
                 {Boolean(submission.files?.length) && (
                   <div>
@@ -536,16 +597,11 @@ function BountySubmissionDetailsSheetContent({
 
         <div className="sticky bottom-0 z-10 border-t border-neutral-200 bg-white">
           <div className="flex items-center justify-between gap-2 p-5">
-            {submission.status === "approved" && submission.commission?.id ? (
-              <Link
-                href={`/${workspaceSlug}/program/commissions/${submission.commission.id}`}
-                target="_blank"
-                className="w-full"
-              >
-                <Button variant="secondary" text="View commission" />
-              </Link>
+            {submission.status === "approved" && viewCommissionsLink ? (
+              viewCommissionsLink
             ) : (
               <div className="flex w-full flex-col gap-4">
+                {viewCommissionsLink}
                 {!bounty?.rewardAmount && (
                   <div>
                     <label className="text-sm font-medium text-neutral-800">
@@ -570,26 +626,24 @@ function BountySubmissionDetailsSheetContent({
                   <Button
                     type="button"
                     variant="danger"
-                    text="Reject"
+                    text={hasMultipleMilestones ? "Reject all" : "Reject"}
                     shortcut="R"
-                    disabledTooltip={
-                      permissionsError
-                        ? permissionsError
-                        : submission.status === "draft"
-                          ? "Bounty submission is in progress."
-                          : submission.status === "rejected"
-                            ? "Bounty submission already rejected."
-                            : undefined
-                    }
-                    disabled={submission.status === "draft"}
+                    disabled={!canReject}
+                    disabledTooltip={rejectDisabledTooltip}
                     onClick={() => setShowRejectModal(true)}
                   />
 
                   <Button
                     type="button"
                     variant="primary"
-                    text="Approve"
-                    shortcut="A"
+                    text={
+                      !hasMultipleMilestones
+                        ? "Approve"
+                        : pendingMilestones.length > 0
+                          ? `Approve ${pendingMilestones.length} ${pluralize("milestone", pendingMilestones.length)}`
+                          : "Waiting for milestone"
+                    }
+                    shortcut={canApprove ? "A" : undefined}
                     onClick={() =>
                       openConfirmApproveBountySubmissionModal(
                         submission,
@@ -600,11 +654,13 @@ function BountySubmissionDetailsSheetContent({
                     disabledTooltip={
                       permissionsError
                         ? permissionsError
-                        : submission.status === "draft"
-                          ? "Bounty submission is in progress."
-                          : undefined
+                        : isSocialMetricsBounty && !canApprove
+                          ? "The partner hasn't reached the next milestone yet."
+                          : submission.status === "draft"
+                            ? "Bounty submission is in progress."
+                            : undefined
                     }
-                    disabled={!isValidForm || submission.status === "draft"}
+                    disabled={!canApprove}
                   />
                 </div>
               </div>

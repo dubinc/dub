@@ -14,9 +14,13 @@ import {
 } from "@dub/utils";
 import { addToStripeFraudValueLists } from "app/(ee)/api/stripe/webhook/utils/add-to-stripe-fraud-value-lists";
 import Stripe from "stripe";
+import { deleteProgramAdmin } from "../programs/delete/delete-program-admin";
 
 export async function deleteWorkspaceAdmin(
-  workspace: Pick<WorkspaceProps, "id" | "slug" | "logo" | "stripeId">,
+  workspace: Pick<
+    WorkspaceProps,
+    "id" | "slug" | "logo" | "stripeId" | "defaultProgramId"
+  >,
 ) {
   while (true) {
     const defaultDomainLinks = await prisma.link.findMany({
@@ -95,16 +99,21 @@ export async function deleteWorkspaceAdmin(
         });
       }),
 
-    // Queue the workspace for deletion
-    qstash.publishJSON({
-      url: `${APP_DOMAIN_WITH_NGROK}/api/cron/workspaces/delete`,
-      body: {
-        workspaceId: workspace.id,
-      },
-    }),
+    workspace.defaultProgramId &&
+      deleteProgramAdmin(workspace.defaultProgramId),
   ]);
 
   console.log(`Deleted workspace ${workspace.slug}`, deleteWorkspaceResponse);
+
+  // Queue the workspace for deletion
+  const res = await qstash.publishJSON({
+    url: `${APP_DOMAIN_WITH_NGROK}/api/cron/workspaces/delete`,
+    body: {
+      workspaceId: workspace.id,
+    },
+  });
+
+  console.log("Queued workspace deletion", res);
 
   return {
     deleteWorkspaceResponse,

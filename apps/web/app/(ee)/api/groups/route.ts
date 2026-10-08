@@ -114,6 +114,8 @@ export const POST = withWorkspace(
         landerData,
         holdingPeriodDays,
         autoApprovePartnersEnabledAt,
+        submittedLeadFormData,
+        submittedLeadsEnabledAt,
       } = program.groups[0];
 
       return await tx.partnerGroup.create({
@@ -128,6 +130,7 @@ export const POST = withWorkspace(
           brandColor,
           holdingPeriodDays,
           autoApprovePartnersEnabledAt,
+          submittedLeadsEnabledAt,
           ...(additionalLinks && {
             additionalLinks: sanitizeAdditionalLinks(additionalLinks),
           }),
@@ -135,6 +138,7 @@ export const POST = withWorkspace(
           ...(linkStructure && { linkStructure }),
           ...(applicationFormData && { applicationFormData }),
           ...(landerData && { landerData }),
+          ...(submittedLeadFormData && { submittedLeadFormData }),
           partnerGroupDefaultLinks: {
             createMany: {
               data: partnerGroupDefaultLinks.map((link) => ({

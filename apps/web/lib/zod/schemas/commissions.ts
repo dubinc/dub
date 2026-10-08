@@ -158,6 +158,12 @@ export const getCommissionsQuerySchema = z
       .string()
       .optional()
       .describe("Filter the list of commissions by the associated payout."),
+    bountySubmissionId: z
+      .string()
+      .optional()
+      .describe(
+        "Filter the list of commissions by the associated bounty submission.",
+      ),
     partnerId: z
       .string()
       .optional()
@@ -644,17 +650,16 @@ const createSaleCommissionSchema = z
       .describe(
         "The partner discount code to resolve the associated link. Use this when the link ID is unknown. Cannot be provided together with `linkId`.",
       ),
-    importStripeInvoices: z
-      .boolean()
+    stripeInvoicesToImport: z
+      .union([z.literal("all"), z.array(z.string().min(1)).min(1).max(100)])
       .nullish()
-      .default(false)
       .describe(
-        "When `true`, import all unimported paid Stripe invoices for the customer and create a commission for each. When `false`, create a single manual sale event using `sale.amount` (or deprecated `saleAmount`).",
+        "Import paid Stripe invoices for the customer and create a commission for each. Pass `all` to import every unimported, paid invoice, or an array of Stripe invoice IDs to import only those invoices. Refunded invoices are not imported. When not provided, create a single manual sale event using `sale.amount`",
       ),
     date: parseDateSchema
       .nullish()
       .describe(
-        "Only used when `importStripeInvoices` is `false`. The date of the manual sale event. Defaults to the current date and time if not provided.",
+        "Only used when `stripeInvoicesToImport` is not provided. The date of the manual sale event. Defaults to the current date and time if not provided.",
       ),
     sale: z
       .object({
@@ -674,6 +679,11 @@ const createSaleCommissionSchema = z
       .describe("The sale event object to associate the commission with."),
 
     // Deprecated fields
+    importStripeInvoices: z
+      .boolean()
+      .nullish()
+      .describe("Deprecated: Use `stripeInvoicesToImport: all` instead.")
+      .meta({ deprecated: true }),
     saleEventDate: parseDateSchema
       .nullish()
       .describe("Deprecated: Use `date` instead.")
@@ -695,7 +705,17 @@ const createSaleCommissionSchema = z
       .meta({ deprecated: true }),
   })
   .superRefine((data, ctx) => {
-    if (data.importStripeInvoices) {
+    if (data.stripeInvoicesToImport != null && data.importStripeInvoices) {
+      ctx.addIssue({
+        code: "custom",
+        message:
+          "`stripeInvoicesToImport` and `importStripeInvoices` cannot be provided together. Use `stripeInvoicesToImport` instead.",
+        path: ["importStripeInvoices"],
+      });
+      return;
+    }
+
+    if (data.stripeInvoicesToImport != null || data.importStripeInvoices) {
       const conflicts = [
         data.sale != null && "sale",
         data.date != null && "date",
@@ -708,8 +728,8 @@ const createSaleCommissionSchema = z
 
       if (conflicts.length > 0) {
         ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: `${conflicts.map((field) => `\`${field}\``).join(", ")} cannot be provided when \`importStripeInvoices\` is enabled.`,
+          code: "custom",
+          message: `${conflicts.map((field) => `\`${field}\``).join(", ")} cannot be provided when importing Stripe invoices.`,
           path: [conflicts[0]],
         });
       }
@@ -720,9 +740,9 @@ const createSaleCommissionSchema = z
 
     if (saleAmount == null) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: "custom",
         message:
-          "`sale.amount` or `saleAmount` is required when `importStripeInvoices` is false.",
+          "`sale.amount` or `saleAmount` is required when not importing Stripe invoices.",
         path: data.sale ? ["sale", "amount"] : ["saleAmount"],
       });
       return;
@@ -730,7 +750,7 @@ const createSaleCommissionSchema = z
 
     if (saleAmount === 0) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: "custom",
         message: "Sale amount cannot be 0.",
         path: data.sale?.amount != null ? ["sale", "amount"] : ["saleAmount"],
       });

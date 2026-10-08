@@ -6,6 +6,7 @@ import {
 } from "@/lib/api/links/usage-checks";
 import { normalizeWorkspaceId } from "@/lib/api/workspaces/workspace-id";
 import { getSession } from "@/lib/auth";
+import { getFeatureFlags } from "@/lib/edge-config";
 import { prisma } from "@/lib/prisma";
 import { getCustomerSourceAvailability } from "@/lib/rewards/get-customer-source-availability";
 import { PlanProps } from "@/lib/types";
@@ -173,11 +174,13 @@ export async function generateReward(input: z.infer<typeof inputSchema>) {
     };
 
     try {
+      const flags = await getFeatureFlags({ workspaceId: workspace.id });
+
       const customerSources = getAICustomerSourceIds(event).map((id) => ({
         id,
         ...getCustomerSourceAvailability({
           source: id,
-          programId: workspace.defaultProgramId ?? undefined,
+          submittedLeadsEnabled: flags.submittedLeads,
           installedIntegrationIds: workspace.installedIntegrations.map(
             ({ integrationId }) => integrationId,
           ),
