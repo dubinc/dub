@@ -212,6 +212,14 @@ const RewardItem = ({
           )}
           onClick={(e) => {
             if (isClickOnInteractiveChild(e)) return;
+            if (
+              e.metaKey ||
+              e.ctrlKey ||
+              e.shiftKey ||
+              e.altKey ||
+              e.button !== 0
+            )
+              return;
             e.preventDefault();
             queryParams({
               set: {

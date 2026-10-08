@@ -13,7 +13,10 @@ import { trackRewardActivityLog } from "../api/activity-log/track-reward-activit
 import { createId } from "../api/create-id";
 import { getRewardOrThrow } from "../api/partners/get-reward-or-throw";
 import { getDefaultProgramIdOrThrow } from "../api/programs/get-default-program-id-or-throw";
-import { REWARD_EVENT_COLUMN_MAPPING } from "../zod/schemas/rewards";
+import {
+  REWARD_EVENT_COLUMN_MAPPING,
+  REWARD_EVENT_RELATION_MAPPING,
+} from "../zod/schemas/rewards";
 import { copyRewardToLiveSchema } from "./schemas";
 
 export const copyRewardToLiveAction = authActionClient
@@ -91,6 +94,7 @@ export const copyRewardToLiveAction = authActionClient
     });
 
     const rewardIdColumn = REWARD_EVENT_COLUMN_MAPPING[reward.event];
+    const rewardRelation = REWARD_EVENT_RELATION_MAPPING[reward.event];
 
     const newReward = await prisma.$transaction(async (tx) => {
       const newReward = await tx.reward.create({
@@ -135,6 +139,12 @@ export const copyRewardToLiveAction = authActionClient
           status: {
             notIn: INACTIVE_ENROLLMENT_STATUSES,
           },
+          // Assign only inheritors: no reward yet, or still pointing at a
+          // soft-deleted default (programId null).
+          OR: [
+            { [rewardIdColumn]: null },
+            { [rewardRelation]: { is: { programId: null } } },
+          ],
         },
         data: {
           [rewardIdColumn]: newReward.id,

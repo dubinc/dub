@@ -158,6 +158,19 @@ export const copyDiscountToLiveAction = authActionClient
         where: {
           programId: targetProgram.id,
           groupId: targetGroupId,
+          // Inheritors only: no discount yet, or still on a soft-deleted discount
+          // owned by this group. Live partner-level overrides stay put.
+          OR: [
+            { discountId: null },
+            {
+              discount: {
+                is: {
+                  programId: null,
+                  groupId: targetGroupId,
+                },
+              },
+            },
+          ],
         },
         data: {
           discountId: newDiscount.id,
