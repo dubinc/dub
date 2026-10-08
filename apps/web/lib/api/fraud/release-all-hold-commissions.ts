@@ -10,6 +10,15 @@ export async function releaseAllHoldCommissions({
 }: {
   programId: string;
 }) {
+  const program = await prisma.program.findUniqueOrThrow({
+    where: {
+      id: programId,
+    },
+    select: {
+      workspaceId: true,
+    },
+  });
+
   let totalReleased = 0;
 
   while (true) {
@@ -51,15 +60,6 @@ export async function releaseAllHoldCommissions({
     }
 
     totalReleased += updatedCount;
-
-    const program = await prisma.program.findUniqueOrThrow({
-      where: {
-        id: programId,
-      },
-      select: {
-        workspaceId: true,
-      },
-    });
 
     const partnerIds = Array.from(
       new Set(commissionsToRelease.map((c) => c.partnerId)),
