@@ -114,6 +114,7 @@ test("partner tag routes reject a token without partnerTags scopes", async ({
     },
     async (api) => {
       expect(await api.get("/api/partner-tags")).toEqual(readError);
+      expect(await api.get("/api/partner-tags/count")).toEqual(readError);
       expect(
         await api.post("/api/partner-tags", { name: randomName("ptag") }),
       ).toEqual(writeError);
@@ -240,6 +241,32 @@ test("GET /partner-tags", async ({ partnerTagsApi }) => {
       nextCursor: null,
       data: [{ id, name }],
     });
+  } finally {
+    await deletePartnerTag(partnerTagsApi, id);
+  }
+});
+
+test("GET /partner-tags/count", async ({ partnerTagsApi }) => {
+  let id: string | undefined;
+  const name = randomName("ptag");
+
+  try {
+    const { data: created } = await createPartnerTag(partnerTagsApi, name);
+    id = created.id;
+
+    expect(
+      await partnerTagsApi.get<number>(
+        `/api/partner-tags/count?${new URLSearchParams({ search: name })}`,
+      ),
+    ).toEqual({ status: 200, data: 1 });
+
+    expect(
+      await partnerTagsApi.get<number>(
+        `/api/partner-tags/count?${new URLSearchParams({
+          search: `${name}-missing`,
+        })}`,
+      ),
+    ).toEqual({ status: 200, data: 0 });
   } finally {
     await deletePartnerTag(partnerTagsApi, id);
   }
