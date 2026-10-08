@@ -97,13 +97,15 @@ const programIdOrSlugSchema = z
     "The ID or slug of the program to filter earnings by. If not provided, earnings across all programs are returned.",
   );
 
+const PartnerProfileEarningsProgramSchema = ProgramSchema.pick({
+  id: true,
+  name: true,
+  slug: true,
+  logo: true,
+});
+
 export const PartnerProfileEarningsSchema = PartnerEarningsSchema.extend({
-  program: ProgramSchema.pick({
-    id: true,
-    name: true,
-    slug: true,
-    logo: true,
-  }),
+  program: PartnerProfileEarningsProgramSchema,
 });
 
 export const partnerProfileEarningsQuerySchema =
@@ -126,6 +128,46 @@ export const partnerProfileEarningsTimeseriesQuerySchema =
         "The field to group the earnings by. Each period then includes a `data` object with the earnings of each group.",
       ),
   });
+
+export const partnerProfileTopEarningsQuerySchema =
+  partnerProfileEarningsCountQuerySchema
+    .pick({
+      programIdOrSlug: true,
+      type: true,
+      status: true,
+      interval: true,
+      start: true,
+      end: true,
+      timezone: true,
+    })
+    .extend({
+      groupBy: z
+        .enum(["programId", "linkId"])
+        .describe("The field to sum the earnings by."),
+      limit: z.coerce
+        .number()
+        .int()
+        .min(1)
+        .max(100)
+        .default(10)
+        .describe("The number of groups to return, sorted by earnings."),
+    });
+
+export const PartnerProfileTopProgramEarningsSchema =
+  PartnerProfileEarningsProgramSchema.extend({
+    earnings: z.number(),
+  });
+
+export const PartnerProfileTopLinkEarningsSchema = LinkSchema.pick({
+  id: true,
+  domain: true,
+  key: true,
+  shortLink: true,
+  url: true,
+}).extend({
+  program: PartnerProfileEarningsProgramSchema,
+  earnings: z.number(),
+});
 
 export const PartnerProfileLinkSchema = LinkSchema.pick({
   id: true,

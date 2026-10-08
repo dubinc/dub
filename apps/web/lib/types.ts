@@ -7,6 +7,8 @@ import {
   PartnerProfileCustomerSchema,
   PartnerProfileEarningsSchema,
   PartnerProfileLinkSchema,
+  PartnerProfileTopLinkEarningsSchema,
+  PartnerProfileTopProgramEarningsSchema,
   partnerSubmittedLeadsCountByStatusSchema,
   partnerUserSchema,
 } from "@/lib/zod/schemas/partner-profile";
@@ -514,6 +516,14 @@ export type PartnerEarningsResponse = z.infer<typeof PartnerEarningsSchema>;
 
 export type PartnerProfileEarningsResponse = z.infer<
   typeof PartnerProfileEarningsSchema
+>;
+
+export type PartnerProfileTopProgramEarnings = z.infer<
+  typeof PartnerProfileTopProgramEarningsSchema
+>;
+
+export type PartnerProfileTopLinkEarnings = z.infer<
+  typeof PartnerProfileTopLinkEarningsSchema
 >;
 
 export type CustomerProps = z.infer<typeof CustomerSchema>;
