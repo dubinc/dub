@@ -51,9 +51,19 @@ export function validateDubLinkSubdomain(
 
   // Staging workspaces use `{slug}.staging.dub.link` (e.g. acme.staging.dub.link)
   if (lower.endsWith(STAGING_DUB_DOMAIN_SUFFIX)) {
-    return validateDubLinkLabel(
+    const labelError = validateDubLinkLabel(
       lower.slice(0, -STAGING_DUB_DOMAIN_SUFFIX.length),
     );
+
+    if (labelError) {
+      return labelError;
+    }
+
+    // Only staging workspace provisioning may create these hosts.
+    return {
+      error: "This subdomain is reserved.",
+      code: "unprocessable_entity",
+    };
   }
 
   if (!lower.endsWith(DUB_LINK_SUFFIX)) {
