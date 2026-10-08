@@ -104,7 +104,7 @@ export const updatePartnerProfileAction = authPartnerActionClient
         );
       }
 
-      if (!country || !(country in COUNTRIES)) {
+      if (!country || !Object.hasOwn(COUNTRIES, country)) {
         throw new Error("Select a valid country.");
       }
     }
