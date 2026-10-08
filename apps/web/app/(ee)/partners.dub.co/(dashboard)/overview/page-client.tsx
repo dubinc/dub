@@ -3,6 +3,7 @@
 import { DUB_PARTNERS_ANALYTICS_INTERVAL } from "@/lib/analytics/constants";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
+import { EarningsChart } from "./earnings-chart";
 
 export function PartnerOverviewPageClient() {
   return (
@@ -14,6 +15,7 @@ export function PartnerOverviewPageClient() {
       />
       <div className="rounded-2xl bg-neutral-50 p-4">
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_397px]">
+          <EarningsChart />
           <div className="flex flex-col gap-3" />
         </div>
       </div>
