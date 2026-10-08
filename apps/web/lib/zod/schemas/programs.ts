@@ -74,7 +74,6 @@ export const ProgramSchema = z.object({
   supportEmail: z.string().nullish(),
   helpUrl: z.string().nullish(),
   termsUrl: z.string().nullish(),
-  referralFormData: z.record(z.string(), z.any()).nullish(),
   applicationRequirements: applicationRequirementsSchema.nullish(),
   createdAt: z.date(),
   updatedAt: z.date(),
@@ -211,7 +210,6 @@ export const ProgramEnrollmentSchema = z.object({
     .nullish(),
   customerDataSharingEnabledAt: z.date().nullable(),
   groupMoveDisabledAt: z.date().nullable(),
-  referralFormData: submittedLeadFormSchema.nullish(),
   application: ProgramEnrollmentApplicationSchema.nullish().describe(
     "Linked program application, including review outcome when applicable.",
   ),
