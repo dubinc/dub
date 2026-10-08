@@ -1,33 +1,41 @@
 import { fetcher } from "@dub/utils";
 import useSWR, { SWRConfiguration } from "swr";
 import * as z from "zod/v4";
-import { PartnerTagProps } from "../types";
-import { getPartnerTagsQuerySchema } from "../zod/schemas/partner-tags";
+import {
+  listPartnerTagsQuerySchema,
+  listPartnerTagsResponseSchema,
+} from "../zod/schemas/partner-tags";
 import useWorkspace from "./use-workspace";
 
-const partialQuerySchema = getPartnerTagsQuerySchema.partial();
+type UsePartnerTagsOptions = {
+  query?: z.infer<typeof listPartnerTagsQuerySchema>;
+  enabled?: boolean;
+  swrOptions?: SWRConfiguration;
+};
 
-export function usePartnerTags(
-  {
-    query,
-    enabled = true,
-  }: {
-    query?: z.infer<typeof partialQuerySchema>;
-    enabled?: boolean;
-  } = {},
-  swrOptions: SWRConfiguration = {},
-) {
+export function usePartnerTags({
+  query,
+  enabled = true,
+  swrOptions,
+}: UsePartnerTagsOptions = {}) {
   const { id: workspaceId } = useWorkspace();
 
-  const { data, isLoading, error } = useSWR<PartnerTagProps[]>(
+  const params = new URLSearchParams();
+
+  for (const [key, value] of Object.entries({
+    workspaceId,
+    sortOrder: "asc",
+    ...query,
+  })) {
+    if (value == null) continue;
+    params.set(key, Array.isArray(value) ? value.join(",") : String(value));
+  }
+
+  const { data, isLoading, error } = useSWR<
+    z.infer<typeof listPartnerTagsResponseSchema>
+  >(
     enabled && workspaceId
-      ? `/api/partners/tags?${new URLSearchParams(
-          Object.fromEntries(
-            Object.entries({ workspaceId, ...query } as Record<string, unknown>)
-              .filter(([, v]) => v != null)
-              .map(([k, v]) => [k, String(v)]),
-          ),
-        ).toString()}`
+      ? `/api/partner-tags?${params.toString()}`
       : undefined,
     fetcher,
     {
@@ -37,7 +45,7 @@ export function usePartnerTags(
   );
 
   return {
-    partnerTags: data,
+    partnerTags: data?.data,
     isLoading,
     error,
   };

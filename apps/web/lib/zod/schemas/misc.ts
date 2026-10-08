@@ -111,6 +111,7 @@ export const getCursorPaginatedResponseSchema = <T extends z.ZodType>(
   itemSchema: T,
 ) =>
   z.object({
+    data: z.array(itemSchema),
     hasMore: z.boolean().describe("Whether there are more results to fetch."),
     nextCursor: z
       .string()
@@ -118,5 +119,4 @@ export const getCursorPaginatedResponseSchema = <T extends z.ZodType>(
       .describe(
         "The cursor to fetch the next set of results, or `null` if there are no more results.",
       ),
-    data: z.array(itemSchema),
   });

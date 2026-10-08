@@ -1,6 +1,7 @@
 import { INFINITY_NUMBER } from "@dub/utils";
 import { Prisma } from "@prisma/client";
 import { createId } from "../api/create-id";
+import { DubApiError } from "../api/errors";
 import { prisma } from "../prisma";
 import { WorkspaceProps } from "../types";
 
@@ -23,11 +24,13 @@ export async function createPartnerTag({
     });
 
     if (tagsCount >= workspace.partnerTagsLimit) {
-      throw new Error(
-        workspace.partnerTagsLimit === 0
-          ? "Partner tags are not available on your plan. Upgrade to create partner tags."
-          : `You've reached the maximum of ${workspace.partnerTagsLimit} partner tags per program on your plan. Upgrade to Advanced or Enterprise for unlimited partner tags.`,
-      );
+      throw new DubApiError({
+        code: "exceeded_limit",
+        message:
+          workspace.partnerTagsLimit === 0
+            ? "Partner tags are not available on your plan."
+            : `You've reached the maximum of ${workspace.partnerTagsLimit} partner tags per program on your plan.`,
+      });
     }
   }
 
@@ -46,7 +49,10 @@ export async function createPartnerTag({
       error instanceof Prisma.PrismaClientKnownRequestError &&
       error.code === "P2002"
     ) {
-      throw new Error("A partner tag with that name already exists.");
+      throw new DubApiError({
+        code: "conflict",
+        message: "A partner tag with that name already exists.",
+      });
     }
 
     throw error;
