@@ -9,6 +9,7 @@ import { CircleWarning, MoneyBills2, TimestampTooltip } from "@dub/ui";
 import { currencyFormatter, formatDateSmart, formatPeriod } from "@dub/utils";
 import Link from "next/link";
 import { useState } from "react";
+import { ProgramLogo, ViewAllButton } from "../../../overview/overview-card";
 import { PayoutDetailsSheet } from "../../../payouts/partner-payout-details-sheet";
 
 export function PayoutsCard({ programId }: { programId?: string }) {
@@ -36,12 +37,14 @@ export function PayoutsCard({ programId }: { programId?: string }) {
           payout={detailsSheetState.payout}
         />
       )}
-      <div className="flex flex-col gap-4 rounded-xl border border-neutral-200 p-5 pb-3">
-        <div className="flex justify-between">
+      <div className="flex flex-col gap-4 rounded-xl border border-neutral-200 bg-white p-5 pb-3">
+        <div className="flex items-center justify-between">
           <span className="block text-base font-semibold leading-none text-neutral-800">
-            Payouts
+            {programId ? "Payouts" : "Recent payouts"}
           </span>
-          {payouts?.length && payoutsCount?.length ? (
+          {!programId ? (
+            <ViewAllButton href="/payouts" />
+          ) : payouts?.length && payoutsCount?.length ? (
             <Link
               href={`/payouts?programId=${programId}`}
               className="text-sm font-medium leading-none text-neutral-500 hover:text-neutral-600"
@@ -62,41 +65,44 @@ export function PayoutsCard({ programId }: { programId?: string }) {
                     onClick={() => setDetailsSheetState({ open: true, payout })}
                     className="flex items-center justify-between p-2 text-left transition-colors duration-100 hover:bg-neutral-50 active:bg-neutral-100"
                   >
-                    <div className="flex flex-col">
-                      <span className="text-xs font-medium text-neutral-800">
-                        {currencyFormatter(payout.amount)}
-                      </span>
-                      <span className="text-[0.7rem] text-neutral-500">
-                        {payout.paidAt ? (
-                          <TimestampTooltip
-                            timestamp={payout.paidAt}
-                            side="right"
-                            rows={["local", "utc"]}
-                          >
-                            <span className="hover:text-content-emphasis underline decoration-dotted underline-offset-2">
-                              Paid at{" "}
-                              {formatDateSmart(payout.paidAt, {
-                                month: "short",
-                              })}
-                            </span>
-                          </TimestampTooltip>
-                        ) : payout.initiatedAt ? (
-                          <TimestampTooltip
-                            timestamp={payout.initiatedAt}
-                            side="right"
-                            rows={["local", "utc"]}
-                          >
-                            <span className="hover:text-content-emphasis underline decoration-dotted underline-offset-2">
-                              Initiated at{" "}
-                              {formatDateSmart(payout.initiatedAt, {
-                                month: "short",
-                              })}
-                            </span>
-                          </TimestampTooltip>
-                        ) : (
-                          formatPeriod(payout)
-                        )}
-                      </span>
+                    <div className="flex items-center gap-2.5">
+                      {!programId && <ProgramLogo program={payout.program} />}
+                      <div className="flex flex-col">
+                        <span className="text-xs font-medium text-neutral-800">
+                          {currencyFormatter(payout.amount)}
+                        </span>
+                        <span className="text-[0.7rem] text-neutral-500">
+                          {payout.paidAt ? (
+                            <TimestampTooltip
+                              timestamp={payout.paidAt}
+                              side="right"
+                              rows={["local", "utc"]}
+                            >
+                              <span className="hover:text-content-emphasis underline decoration-dotted underline-offset-2">
+                                Paid at{" "}
+                                {formatDateSmart(payout.paidAt, {
+                                  month: "short",
+                                })}
+                              </span>
+                            </TimestampTooltip>
+                          ) : payout.initiatedAt ? (
+                            <TimestampTooltip
+                              timestamp={payout.initiatedAt}
+                              side="right"
+                              rows={["local", "utc"]}
+                            >
+                              <span className="hover:text-content-emphasis underline decoration-dotted underline-offset-2">
+                                Initiated at{" "}
+                                {formatDateSmart(payout.initiatedAt, {
+                                  month: "short",
+                                })}
+                              </span>
+                            </TimestampTooltip>
+                          ) : (
+                            formatPeriod(payout)
+                          )}
+                        </span>
+                      </div>
                     </div>
                     <PayoutStatusBadgePartner
                       payout={payout}
