@@ -1,6 +1,6 @@
 "use client";
 
-import { usePartnerTags } from "@/lib/swr/use-partner-tags";
+import { usePartnerTags } from "@/lib/partner-tags/hooks/use-partner-tags";
 import { PartnerTagProps } from "@/lib/types";
 import { PARTNER_TAGS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/partner-tags";
 import { AudienceLimitSelectShell } from "@/ui/partners/audience-limit-select-shell";

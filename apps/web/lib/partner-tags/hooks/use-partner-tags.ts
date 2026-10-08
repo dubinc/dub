@@ -1,14 +1,14 @@
 import { fetcher } from "@dub/utils";
 import useSWR, { SWRConfiguration } from "swr";
 import * as z from "zod/v4";
+import useWorkspace from "../../swr/use-workspace";
 import {
   listPartnerTagsQuerySchema,
   listPartnerTagsResponseSchema,
-} from "../zod/schemas/partner-tags";
-import useWorkspace from "./use-workspace";
+} from "../../zod/schemas/partner-tags";
 
 type UsePartnerTagsOptions = {
-  query?: z.infer<typeof listPartnerTagsQuerySchema>;
+  query?: z.input<typeof listPartnerTagsQuerySchema>;
   enabled?: boolean;
   swrOptions?: SWRConfiguration;
 };
