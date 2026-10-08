@@ -102,7 +102,7 @@ export function OverviewCardList<T>({
   );
 }
 
-export function OverviewCardMessage({
+function OverviewCardMessage({
   icon,
   title,
 }: {

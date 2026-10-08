@@ -1,7 +1,7 @@
 "use client";
 
 import { testIds } from "@/lib/e2e/test-ids";
-import { usePartnerProfileTopEarnings } from "@/lib/swr/use-partner-profile-top-earnings";
+import { usePartnerProfileTopEarnings } from "@/lib/swr/use-partner-profile-earnings";
 import { Hyperlink } from "@dub/ui/icons";
 import { currencyFormatter, getPrettyUrl } from "@dub/utils";
 import {

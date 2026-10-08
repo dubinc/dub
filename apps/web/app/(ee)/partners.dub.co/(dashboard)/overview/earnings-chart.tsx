@@ -2,7 +2,7 @@
 
 import { formatDateTooltip } from "@/lib/analytics/format-date-tooltip";
 import { testIds } from "@/lib/e2e/test-ids";
-import { usePartnerProfileEarningsTimeseries } from "@/lib/swr/use-partner-profile-earnings-timeseries";
+import { usePartnerProfileEarningsTimeseries } from "@/lib/swr/use-partner-profile-earnings";
 import useProgramEnrollments from "@/lib/swr/use-program-enrollments";
 import { buttonVariants } from "@dub/ui";
 import {
