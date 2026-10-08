@@ -13,6 +13,7 @@ import { prisma } from "@/lib/prisma";
 import { getSlackClient } from "@/lib/slack/client";
 import { ratelimit } from "@/lib/upstash/ratelimit";
 import { anthropic } from "@ai-sdk/anthropic";
+import { PartnerRole } from "@prisma/client";
 import {
   convertToModelMessages,
   isFileUIPart,
@@ -191,6 +192,7 @@ export const POST = withSession(async ({ req, session }) => {
   }
 
   let partnerCountry: string | null | undefined;
+  let partnerRole: PartnerRole | null | undefined;
 
   if (
     globalContext?.accountType === "partner" &&
@@ -202,10 +204,20 @@ export const POST = withSession(async ({ req, session }) => {
       },
       select: {
         country: true,
+        users: {
+          where: {
+            userId: session.user.id,
+          },
+          select: {
+            role: true,
+          },
+          take: 1,
+        },
       },
     });
 
     partnerCountry = partner?.country;
+    partnerRole = partner?.users[0]?.role;
   }
 
   const result = streamText({
@@ -213,6 +225,7 @@ export const POST = withSession(async ({ req, session }) => {
     system: buildSystemPrompt({
       ...globalContext,
       partnerCountry,
+      partnerRole,
     }),
     messages: await convertToModelMessages(modelMessages),
     stopWhen: stepCountIs(5),
