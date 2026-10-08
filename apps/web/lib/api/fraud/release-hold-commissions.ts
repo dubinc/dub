@@ -199,7 +199,6 @@ export async function releaseHoldCommissions({
           partnerId,
           programId,
         }),
-        triggerAggregateDueCommissionsCronJob(programId),
         // should always be > 0, but just in case
         releasedEarnings > 0 &&
           executeWorkflows({
@@ -222,13 +221,23 @@ export async function releaseHoldCommissions({
           [
             "trackCommissionStatusUpdate",
             "syncTotalCommissions",
-            "triggerAggregateDueCommissions",
             "executeWorkflows",
           ].map((step, index) => ({
             step,
             result: results[index],
           })),
         )}`,
+      );
+    }
+  }
+
+  if (totalReleased > 0) {
+    try {
+      await triggerAggregateDueCommissionsCronJob(programId);
+    } catch (error) {
+      console.error(
+        `Failed to trigger aggregate due commissions for program ${programId}`,
+        error,
       );
     }
   }
