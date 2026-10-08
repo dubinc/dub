@@ -43,7 +43,11 @@ import {
   pluralize,
   timeAgo,
 } from "@dub/utils";
-import { CommissionStatus } from "@prisma/client";
+import {
+  BountySubmissionStatus,
+  BountyType,
+  CommissionStatus,
+} from "@prisma/client";
 import Linkify from "linkify-react";
 import Link from "next/link";
 import {
@@ -151,13 +155,27 @@ function BountySubmissionDetailsSheetContent({
     { sheet: true, enabled: !permissionsError },
   );
 
+  const isInProgressPerformanceSubmission =
+    submission.status === BountySubmissionStatus.draft &&
+    bounty?.type === BountyType.performance;
+
+  const canReject =
+    submission.status !== BountySubmissionStatus.rejected &&
+    submission.status !== BountySubmissionStatus.approved &&
+    !isInProgressPerformanceSubmission;
+
+  const rejectDisabledTooltip = permissionsError
+    ? permissionsError
+    : isInProgressPerformanceSubmission
+      ? "Performance bounty submissions can only be rejected after the partner completes the bounty."
+      : submission.status === BountySubmissionStatus.rejected
+        ? "Bounty submission already rejected."
+        : undefined;
+
   useKeyboardShortcut(
     "r",
     () => {
-      if (
-        submission.status !== "rejected" &&
-        (submission.status !== "draft" || isSocialMetricsBounty)
-      ) {
+      if (canReject) {
         setShowRejectModal(true);
       }
     },
@@ -610,19 +628,7 @@ function BountySubmissionDetailsSheetContent({
                     variant="danger"
                     text={hasMultipleMilestones ? "Reject all" : "Reject"}
                     shortcut="R"
-                    disabledTooltip={
-                      permissionsError
-                        ? permissionsError
-                        : submission.status === "draft" &&
-                            !isSocialMetricsBounty
-                          ? "Bounty submission is in progress."
-                          : submission.status === "rejected"
-                            ? "Bounty submission already rejected."
-                            : undefined
-                    }
-                    disabled={
-                      submission.status === "draft" && !isSocialMetricsBounty
-                    }
+                    disabledTooltip={rejectDisabledTooltip}
                     onClick={() => setShowRejectModal(true)}
                   />
 
