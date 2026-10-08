@@ -1,9 +1,9 @@
 import { getDashboard } from "@/lib/fetchers/get-dashboard";
 import { PlanProps } from "@/lib/types";
 import Analytics from "@/ui/analytics";
-import { NewBackground } from "@/ui/shared/new-background";
-import { Footer, Logo, Nav, NavMobile } from "@dub/ui";
-import { APP_DOMAIN, constructMetadata } from "@dub/utils";
+import { AuroraGradient } from "@/ui/shared/aurora-gradient";
+import { Footer, Grid, Nav, NavMobile, ShieldKeyhole, Wordmark } from "@dub/ui";
+import { APP_DOMAIN, cn, constructMetadata } from "@dub/utils";
 import { Metadata } from "next";
 import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
@@ -45,18 +45,49 @@ export default async function DashboardPage(props: {
       data.password
   ) {
     return (
-      <main className="flex h-screen w-screen items-center justify-center">
-        <NewBackground />
-        <div className="z-10 w-full max-w-md overflow-hidden rounded-2xl border border-neutral-100 shadow-xl">
-          <div className="flex flex-col items-center justify-center space-y-3 border-b border-neutral-200 bg-white px-4 py-6 pt-8 text-center sm:px-16">
-            <Logo />
-            <h3 className="text-xl font-semibold">Enter Password</h3>
-            <p className="text-sm text-neutral-500">
-              This dashboard is password protected. Enter the password to view
-              the dashboard.
-            </p>
+      <main className="relative min-h-[100dvh]">
+        <div className="absolute inset-0 isolate overflow-hidden bg-neutral-50">
+          {/* Grid */}
+          <div
+            className={cn(
+              "absolute inset-y-0 left-1/2 w-[1200px] -translate-x-1/2",
+              "[mask-composite:intersect] [mask-image:linear-gradient(black,transparent_320px),linear-gradient(90deg,transparent,black_5%,black_95%,transparent)]",
+            )}
+          >
+            <Grid
+              cellSize={60}
+              patternOffset={[0.75, 0]}
+              className="text-neutral-200"
+            />
           </div>
-          <DashboardPasswordForm />
+
+          <AuroraGradient />
+        </div>
+
+        <div className="relative flex min-h-[100dvh] w-full items-center justify-center px-4 pb-12 pt-20">
+          <a
+            href="https://dub.co"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="absolute left-1/2 top-4 -translate-x-1/2"
+          >
+            <Wordmark className="h-8" />
+          </a>
+
+          <div className="animate-slide-up-fade flex w-full max-w-[320px] flex-col items-center [--offset:10px] [animation-duration:1s] [animation-fill-mode:both]">
+            <div className="flex size-8 items-center justify-center rounded-md bg-neutral-200/60">
+              <ShieldKeyhole className="size-[18px] text-neutral-800" />
+            </div>
+            <h1 className="mt-4 text-center text-xl font-semibold text-neutral-900">
+              Enter Password
+            </h1>
+            <p className="mt-1 text-center text-base font-medium text-neutral-500">
+              This dashboard is password protected.
+            </p>
+            <div className="mt-10 w-full">
+              <DashboardPasswordForm />
+            </div>
+          </div>
         </div>
       </main>
     );

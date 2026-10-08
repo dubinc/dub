@@ -83,7 +83,7 @@ export function UpgradeBanner() {
         initial={{ transform: "translateY(-100%)" }}
         animate={{ transform: "translateY(0)" }}
         className={cn(
-          "fixed left-0 right-0 top-0 z-50 flex items-center justify-center overflow-hidden px-6 py-2 text-white sm:h-12 sm:py-0",
+          "fixed left-0 right-0 top-0 z-30 flex items-center justify-center overflow-hidden px-6 py-2 text-white sm:h-12 sm:py-0",
           needsUpgrade ? "bg-amber-600" : "bg-red-600",
         )}
       >

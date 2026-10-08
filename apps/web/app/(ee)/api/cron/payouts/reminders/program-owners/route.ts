@@ -115,14 +115,14 @@ export const GET = withCron(async () => {
 
   // only send notifications for programs that:
   // - have a total payout amount greater than or equal to $10 (INVOICE_MIN_PAYOUT_AMOUNT_CENTS)
-  // - have not paid out any invoices in the last 2 weeks
+  // -  AND have not paid out any invoices in the last 2 weeks
   const payoutsToNotify = pendingPayouts.filter((p) => {
     const invoiceTotal = p._sum?.amount ?? 0;
     const recentPaidInvoicesForProgram = recentPaidInvoices.filter(
       (i) => i.programId === p.programId,
     );
     return (
-      invoiceTotal >= INVOICE_MIN_PAYOUT_AMOUNT_CENTS ||
+      invoiceTotal >= INVOICE_MIN_PAYOUT_AMOUNT_CENTS &&
       recentPaidInvoicesForProgram.length === 0
     );
   });

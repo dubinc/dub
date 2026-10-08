@@ -3,7 +3,9 @@ import {
   VITEST_TEST_TIMEOUT_MS,
 } from "@/lib/constants/misc";
 import { EnrolledPartnerProps } from "@/lib/types";
+import { sleep } from "@dub/utils";
 import { describe, expect, test } from "vitest";
+
 import { randomPartnerEmail } from "../utils/helpers";
 import { IntegrationHarness } from "../utils/integration";
 import { E2E_PARTNER_GROUP } from "../utils/resource";
@@ -101,9 +103,7 @@ describe.sequential("Workflow - MergePartnerAccounts", async () => {
           return;
         }
 
-        await new Promise((resolve) =>
-          setTimeout(resolve, VITEST_POLL_INTERVAL_MS),
-        );
+        await sleep(VITEST_POLL_INTERVAL_MS);
       }
 
       throw new Error(

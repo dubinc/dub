@@ -68,7 +68,10 @@ class LinkCache {
     ]);
   }
 
-  async get({ domain, key }: Pick<LinkProps, "domain" | "key">) {
+  async get({ domain, key }: Pick<LinkProps, "domain" | "key">): Promise<{
+    cachedLink: RedisLinkProps | null;
+    redisFailOver: boolean;
+  }> {
     // here we use linkcache:${domain}:${key} instead of this._createKey({ domain, key })
     // because the key can either be cached as case-sensitive or case-insensitive depending on the domain
     // so we should get the original key from the cache
@@ -80,7 +83,7 @@ class LinkCache {
     if (cachedLink) {
       console.log(`[LRU Cache HIT] ${cacheKey}`);
       linkLRUCache.set(cacheKey, cachedLink); // refresh the LRU cache
-      return cachedLink;
+      return { cachedLink, redisFailOver: false };
     }
 
     console.log(`[LRU Cache MISS] ${cacheKey} - Checking redisGlobal...`);
@@ -92,12 +95,12 @@ class LinkCache {
       if (cachedLink) {
         console.log(`[Redis Cache HIT] ${cacheKey} - Populating LRU Cache...`);
         linkLRUCache.set(cacheKey, cachedLink); // persist to LRU cache
-        return cachedLink;
+        return { cachedLink, redisFailOver: false };
       } else {
         console.log(
           `[Redis Cache MISS] ${cacheKey} - Not found in LRU or Redis, falling back to MySQL...`,
         );
-        return null;
+        return { cachedLink: null, redisFailOver: false };
       }
     } catch (error) {
       console.error(`[Redis Cache Error] ${cacheKey} - ${error}`);
@@ -106,7 +109,7 @@ class LinkCache {
       if (cachedLink) {
         console.log(`[Vercel Cache HIT] ${cacheKey}`);
         linkLRUCache.set(cacheKey, cachedLink);
-        return cachedLink;
+        return { cachedLink, redisFailOver: true };
       }
 
       console.log(`[Vercel Cache MISS] ${cacheKey} - Falling back to MySQL...`);
@@ -128,7 +131,7 @@ class LinkCache {
           ttl: VERCEL_CACHE_EXPIRATION,
         }),
       );
-      return cachedLink;
+      return { cachedLink, redisFailOver: true };
     }
   }
 

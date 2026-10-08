@@ -115,6 +115,7 @@ model ProgramEnrollment {
   leadRewardId     String?
   saleRewardId     String?
   referralRewardId String?
+  customRewardId   String?
   discountId       String?
   status           ProgramEnrollmentStatus @default(pending)
 
@@ -157,6 +158,7 @@ model ProgramEnrollment {
   leadReward         Reward?                  @relation("LeadRewardEnrollments", fields: [leadRewardId], references: [id])
   saleReward         Reward?                  @relation("SaleRewardEnrollments", fields: [saleRewardId], references: [id])
   referralReward     Reward?                  @relation("ReferralRewardEnrollments", fields: [referralRewardId], references: [id])
+  customReward       Reward?                  @relation("CustomRewardEnrollments", fields: [customRewardId], references: [id])
   discount           Discount?                @relation(fields: [discountId], references: [id])
   bountySubmissions  BountySubmission[]
   discountCodes      DiscountCode[]
@@ -194,5 +196,6 @@ model ProgramEnrollment {
   @@index(leadRewardId)
   @@index(saleRewardId)
   @@index(referralRewardId)
+  @@index(customRewardId)
   @@index(discountId)
 }

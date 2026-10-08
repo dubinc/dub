@@ -7,18 +7,22 @@ import {
   getAllowedMinPayoutAmounts,
 } from "@/lib/constants/payouts";
 import { mutatePrefix } from "@/lib/swr/mutate";
+import useGroups from "@/lib/swr/use-groups";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { ProgramProps } from "@/lib/types";
-import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { X } from "@/ui/shared/icons";
 import { Button, Sheet, Slider } from "@dub/ui";
 import NumberFlow from "@number-flow/react";
 import { useAction } from "next-safe-action/hooks";
-import { useParams } from "next/navigation";
-import { Dispatch, SetStateAction, useEffect, useState } from "react";
+import { Dispatch, SetStateAction, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
+import {
+  HoldingPeriodUpdate,
+  ProgramPayoutHoldingPeriods,
+  useProgramHoldingPeriods,
+} from "./program-payout-holding-periods";
 import { ProgramPayoutMethods } from "./program-payout-methods";
 import { ProgramPayoutModeSection } from "./program-payout-mode-section";
 
@@ -33,7 +37,9 @@ function ProgramPayoutSettingsSheetContent({
 }: ProgramPayoutSettingsSheetProps) {
   const { id: workspaceId, defaultProgramId } = useWorkspace();
   const { program } = useProgram();
-  const params = useParams<{ slug: string }>();
+  const { groups, loading: groupsLoading } = useGroups({
+    query: { sortBy: "createdAt", sortOrder: "asc" },
+  });
 
   const {
     register,
@@ -43,40 +49,74 @@ function ProgramPayoutSettingsSheetContent({
     formState: { isDirty, isValid, isSubmitting },
   } = useForm<FormData>({
     mode: "onBlur",
+    // Resets the form (and recomputes isDirty/isValid) once the program loads
+    values: program ? { minPayoutAmount: program.minPayoutAmount } : undefined,
   });
 
-  useEffect(() => {
-    if (program) {
-      setValue("minPayoutAmount", program.minPayoutAmount);
-    }
-  }, [program, setValue]);
+  // Holding period edits are staged until the form is saved
+  const holdingPeriods = useProgramHoldingPeriods(groups);
 
-  const { executeAsync } = useAction(updateProgramAction, {
-    onSuccess: async () => {
-      toast.success("Payout settings updated successfully.");
-      setIsOpen(false);
-      mutatePrefix([`/api/programs/${defaultProgramId}`, `/api/groups`]);
-    },
-    onError: ({ error }) => {
-      toast.error(parseActionError(error, "Failed to update payout settings."));
-    },
-  });
+  const { executeAsync } = useAction(updateProgramAction);
 
   const onSubmit = async (data: FormData) => {
-    if (!workspaceId) {
+    if (!workspaceId || !program) {
       return;
     }
 
-    await executeAsync({
-      workspaceId,
-      ...data,
-    });
+    const requests: Promise<void>[] = [];
+
+    if (data.minPayoutAmount !== program.minPayoutAmount) {
+      requests.push(
+        executeAsync({
+          workspaceId,
+          minPayoutAmount: data.minPayoutAmount,
+        }).then((result) => {
+          if (result?.serverError || result?.validationErrors) {
+            throw new Error(
+              parseActionError(
+                result,
+                "Failed to update minimum payout amount.",
+              ),
+            );
+          }
+        }),
+      );
+    }
+
+    requests.push(
+      ...holdingPeriods.pendingUpdates.map((update) =>
+        updateGroupHoldingPeriod({ workspaceId, ...update }),
+      ),
+    );
+
+    const results = await Promise.allSettled(requests);
+
+    // Refresh the program + groups even if a request failed, so the sheet reflects what was saved
+    await mutatePrefix([`/api/programs/${defaultProgramId}`, "/api/groups"]);
+
+    const failure = results.find(
+      (result): result is PromiseRejectedResult => result.status === "rejected",
+    );
+
+    if (failure) {
+      toast.error(
+        failure.reason instanceof Error
+          ? failure.reason.message
+          : "Failed to update payout settings.",
+      );
+      return;
+    }
+
+    toast.success("Payout settings updated successfully.");
+    setIsOpen(false);
   };
 
   const minPayoutAmount = watch("minPayoutAmount");
   const allowedMinPayoutAmounts = workspaceId
     ? getAllowedMinPayoutAmounts(workspaceId)
     : ALLOWED_MIN_PAYOUT_AMOUNTS;
+
+  const hasChanges = isDirty || holdingPeriods.pendingUpdates.length > 0;
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="flex h-full flex-col">
@@ -95,32 +135,9 @@ function ProgramPayoutSettingsSheetContent({
         </div>
       </div>
 
-      <div className="h-full divide-y divide-neutral-200 bg-neutral-50 p-4 sm:p-6">
-        {/* Payout holding period */}
-        <div className="grid gap-3 pb-6">
-          <div>
-            <h4 className="text-base font-semibold leading-6 text-neutral-900">
-              Payout holding period
-            </h4>
-            <p className="text-sm font-medium text-neutral-500">
-              The payout holding period is now configurable on a group level.
-            </p>
-          </div>
-          <a
-            href={`/${params.slug}/program/groups/${DEFAULT_PARTNER_GROUP.slug}/settings`}
-            target="_blank"
-          >
-            <Button
-              type="button"
-              variant="secondary"
-              text="View default group settings ↗"
-              className="h-8 w-full px-3"
-            />
-          </a>
-        </div>
-
+      <div className="flex h-full flex-col gap-8 bg-neutral-50 p-4 sm:p-6">
         {/* Minimum payout amount */}
-        <div className="space-y-6 py-6">
+        <div className="space-y-6">
           <div>
             <h4 className="text-base font-semibold leading-6 text-neutral-900">
               Minimum payout amount
@@ -170,15 +187,15 @@ function ProgramPayoutSettingsSheetContent({
         </div>
 
         {/* Payout methods */}
-        <div className="py-6">
-          <ProgramPayoutMethods />
-        </div>
+        <ProgramPayoutMethods />
 
-        {program?.payoutMode !== "internal" && (
-          <div className="py-6">
-            <ProgramPayoutModeSection />
-          </div>
-        )}
+        {program?.payoutMode !== "internal" && <ProgramPayoutModeSection />}
+
+        {/* Payout holding period */}
+        <ProgramPayoutHoldingPeriods
+          loading={groupsLoading}
+          holdingPeriods={holdingPeriods}
+        />
       </div>
 
       <div className="sticky bottom-0 z-10 border-t border-neutral-200 bg-white">
@@ -195,13 +212,39 @@ function ProgramPayoutSettingsSheetContent({
             text="Save"
             className="h-8 w-fit px-3"
             loading={isSubmitting}
-            disabled={!isDirty || !isValid}
+            disabled={!hasChanges || !isValid}
             type="submit"
           />
         </div>
       </div>
     </form>
   );
+}
+
+async function updateGroupHoldingPeriod({
+  workspaceId,
+  groupId,
+  holdingPeriodDays,
+  applyToAllGroups,
+}: HoldingPeriodUpdate & { workspaceId: string }) {
+  const response = await fetch(
+    `/api/groups/${groupId}?workspaceId=${workspaceId}`,
+    {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        holdingPeriodDays,
+        ...(applyToAllGroups && { updateHoldingPeriodDaysForAllGroups: true }),
+      }),
+    },
+  );
+
+  if (!response.ok) {
+    const { error } = await response.json();
+    throw new Error(
+      error?.message || "Failed to update payout holding period.",
+    );
+  }
 }
 
 export function ProgramPayoutSettingsSheet({

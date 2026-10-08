@@ -1,11 +1,11 @@
 import * as z from "zod/v4";
 
-export const orderSchema = z.object({
+export const shopifyOrderSchema = z.object({
   confirmation_number: z.string(),
   checkout_token: z.string(),
   customer: z
     .object({
-      id: z.number(),
+      id: z.union([z.number(), z.string()]),
       email: z.string().nullish(),
       first_name: z.string().nullish(),
       last_name: z.string().nullish(),
@@ -30,6 +30,14 @@ export const orderSchema = z.object({
       country_code: z.string().nullish(),
     })
     .nullish(),
+  note_attributes: z
+    .array(
+      z.object({
+        name: z.string(), // dubClickId
+        value: z.string().nullish(),
+      }),
+    )
+    .default([]),
 });
 
 export const integrationCredentialsSchema = z.object({
@@ -39,3 +47,5 @@ export const integrationCredentialsSchema = z.object({
     .describe("Encrypted access token for the Shopify store."),
   scope: z.string().nullish().describe("Scope of the Shopify store."),
 });
+
+export type ShopifyOrder = z.infer<typeof shopifyOrderSchema>;

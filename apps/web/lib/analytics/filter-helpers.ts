@@ -149,6 +149,7 @@ const SUPPORTED_FIELDS = [
   "refererUrl",
   "url",
   "trigger",
+  "eventName",
   "utm_source",
   "utm_medium",
   "utm_campaign",

@@ -4,11 +4,16 @@ import { ReactNode, forwardRef, useRef } from "react";
 import { toast } from "sonner";
 import {
   AtSign,
+  BulletList,
+  Code,
   Heading1,
   Heading2,
   Hyperlink,
   Icon,
   ImageIcon,
+  NumberedList,
+  Quote,
+  TableIcon,
   TextBold,
   TextItalic,
   TextStrike,
@@ -24,7 +29,7 @@ export function RichTextToolbar({
   toolsEnd?: ReactNode;
   className?: string;
 }) {
-  const { editor, features, handleImageUpload, isUploading } =
+  const { editor, features, handleImageUpload, isUploading, imageAccept } =
     useRichTextContext();
 
   const editorState = useEditorState({
@@ -35,6 +40,10 @@ export function RichTextToolbar({
       isStrike: Boolean(editor?.isActive("strike")),
       isHeading1: Boolean(editor?.isActive("heading", { level: 1 })),
       isHeading2: Boolean(editor?.isActive("heading", { level: 2 })),
+      isBulletList: Boolean(editor?.isActive("bulletList")),
+      isOrderedList: Boolean(editor?.isActive("orderedList")),
+      isBlockquote: Boolean(editor?.isActive("blockquote")),
+      isCode: Boolean(editor?.isActive("code")),
       isSelection: editor?.state.selection.from !== editor?.state.selection.to,
     }),
   });
@@ -95,6 +104,52 @@ export function RichTextToolbar({
           />
         </>
       )}
+      {features?.includes("lists") && (
+        <>
+          <RichTextToolbarButton
+            icon={BulletList}
+            label="Bullet list"
+            isActive={editorState?.isBulletList}
+            onClick={() => editor?.chain().focus().toggleBulletList().run()}
+          />
+          <RichTextToolbarButton
+            icon={NumberedList}
+            label="Numbered list"
+            isActive={editorState?.isOrderedList}
+            onClick={() => editor?.chain().focus().toggleOrderedList().run()}
+          />
+        </>
+      )}
+      {features?.includes("tables") && (
+        <RichTextToolbarButton
+          icon={TableIcon}
+          label="Table"
+          isActive={false}
+          onClick={() =>
+            editor
+              ?.chain()
+              .focus()
+              .insertTable({ rows: 3, cols: 3, withHeaderRow: true })
+              .run()
+          }
+        />
+      )}
+      {features?.includes("quote") && (
+        <RichTextToolbarButton
+          icon={Quote}
+          label="Quote"
+          isActive={editorState?.isBlockquote}
+          onClick={() => editor?.chain().focus().toggleBlockquote().run()}
+        />
+      )}
+      {features?.includes("code") && (
+        <RichTextToolbarButton
+          icon={Code}
+          label="Inline code"
+          isActive={editorState?.isCode}
+          onClick={() => editor?.chain().focus().toggleCode().run()}
+        />
+      )}
       {features?.includes("links") && <LinkButton />}
       {features?.includes("variables") && (
         <RichTextToolbarButton
@@ -116,6 +171,7 @@ export function RichTextToolbar({
           <input
             ref={inputImageRef}
             type="file"
+            accept={imageAccept}
             className="hidden"
             onChange={(e) => {
               const file = e.target.files?.[0];

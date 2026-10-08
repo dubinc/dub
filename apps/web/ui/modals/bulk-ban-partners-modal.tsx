@@ -1,5 +1,5 @@
 import { bulkBanPartnersAction } from "@/lib/actions/partners/bulk-ban-partners";
-import { bulkRejectPartnerApplicationsAction } from "@/lib/actions/partners/bulk-reject-partner-applications";
+import { bulkRejectProgramApplicationsAction } from "@/lib/actions/partners/bulk-reject-program-applications";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps } from "@/lib/types";
 import {
@@ -71,7 +71,7 @@ function BulkBanPartnersModal({
   );
 
   const { executeAsync: executeReject, isPending: isPendingReject } = useAction(
-    bulkRejectPartnerApplicationsAction,
+    bulkRejectProgramApplicationsAction,
     {
       onError({ error }) {
         toast.error(error.serverError);

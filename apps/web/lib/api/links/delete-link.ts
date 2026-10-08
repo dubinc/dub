@@ -1,3 +1,4 @@
+import { queuePartnerSearchSync } from "@/lib/api/partners/queue-partner-search-sync";
 import { deleteDiscountCodes } from "@/lib/discounts/delete-discount-code";
 import { prisma } from "@/lib/prisma";
 import { storage } from "@/lib/storage";
@@ -58,6 +59,15 @@ export async function deleteLink(linkId: string) {
               decrement: 1,
             },
           },
+        }),
+
+      // Queue an index update because the link was deleted. The enrollment
+      // outlives it, so the document is re-serialized without it.
+      link.programId &&
+        link.partnerId &&
+        queuePartnerSearchSync({
+          partnerIds: [link.partnerId],
+          programId: link.programId,
         }),
     ]),
   );

@@ -6,7 +6,11 @@ import { redis } from "@/lib/upstash";
 import { randomBadgeColor } from "@/ui/links/tag-badge";
 import { sendEmail } from "@dub/email";
 import LinksImported from "@dub/email/templates/links-imported";
-import { APP_DOMAIN_WITH_NGROK, linkConstructorSimple } from "@dub/utils";
+import {
+  APP_DOMAIN_WITH_NGROK,
+  linkConstructorSimple,
+  sleep,
+} from "@dub/utils";
 
 export const importTagsFromRebrandly = async ({
   workspaceId,
@@ -52,7 +56,7 @@ export const importTagsFromRebrandly = async ({
   });
 
   // wait 500 ms before making another request
-  await new Promise((resolve) => setTimeout(resolve, 500));
+  await sleep(500);
 
   return await importTagsFromRebrandly({
     workspaceId,
@@ -249,7 +253,7 @@ export const importLinksFromRebrandly = async ({
     });
 
     // wait 500 ms before making another request
-    await new Promise((resolve) => setTimeout(resolve, 500));
+    await sleep(500);
 
     return await qstash.publishJSON({
       url: `${APP_DOMAIN_WITH_NGROK}/api/cron/import/rebrandly`,
