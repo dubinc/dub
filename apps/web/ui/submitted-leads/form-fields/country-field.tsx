@@ -13,9 +13,9 @@ export function CountryField({
   keyPath?: string;
   field: CountryFieldData;
 }) {
-  const { getFieldState, control } = useFormContext<any>();
+  const { getFieldState, control, formState } = useFormContext<any>();
   const keyPath = keyPathProp || `formData.${field.key}`;
-  const state = getFieldState(keyPath);
+  const state = getFieldState(keyPath, formState);
   const error = !!state.error;
 
   return (

@@ -1,12 +1,11 @@
 "use client";
 
-import { SUBMITTED_LEADS_ENABLED_PROGRAM_IDS } from "@/lib/submitted-leads/constants";
+import { getGroupSubmittedLeadForm } from "@/lib/submitted-leads/get-group-submitted-lead-form";
 import { usePartnerSubmittedLeads } from "@/lib/swr/use-partner-submitted-leads";
 import { usePartnerSubmittedLeadsCount } from "@/lib/swr/use-partner-submitted-leads-count";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import { PartnerProfileSubmittedLeadsCountByStatus } from "@/lib/types";
 import { PartnerProfileSubmittedLead } from "@/lib/zod/schemas/partner-profile";
-import { submittedLeadFormSchema } from "@/lib/zod/schemas/submitted-lead-form";
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
@@ -31,10 +30,12 @@ import { CircleDotted } from "@dub/ui/icons";
 import { cn, formatDate, nFormatter, OG_AVATAR_URL } from "@dub/utils";
 import { SubmittedLeadStatus } from "@prisma/client";
 import { Row } from "@tanstack/react-table";
+import { useParams, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
-import * as z from "zod/v4";
 
 export default function PartnerProgramSubmittedLeadsPage() {
+  const router = useRouter();
+  const { programSlug } = useParams<{ programSlug: string }>();
   const { queryParams, searchParams, searchParamsObj } = useRouterStuff();
   const { pagination, setPagination } = usePagination();
   const { programEnrollment } = useProgramEnrollment();
@@ -53,25 +54,10 @@ export default function PartnerProgramSubmittedLeadsPage() {
   const status = searchParamsObj.status as SubmittedLeadStatus | undefined;
   const search = searchParamsObj.search as string | undefined;
 
-  const leadFormDataRaw = programEnrollment?.program?.referralFormData;
-  const programId = programEnrollment?.programId;
-
-  const isEnabled = programId
-    ? SUBMITTED_LEADS_ENABLED_PROGRAM_IDS.includes(programId)
-    : false;
-
-  const leadFormData = useMemo(() => {
-    if (!leadFormDataRaw) {
-      return null;
-    }
-    try {
-      return submittedLeadFormSchema.parse(leadFormDataRaw) as z.infer<
-        typeof submittedLeadFormSchema
-      >;
-    } catch {
-      return null;
-    }
-  }, [leadFormDataRaw]);
+  const leadFormData = useMemo(
+    () => getGroupSubmittedLeadForm(programEnrollment?.group),
+    [programEnrollment?.group],
+  );
 
   const { data: countByStatus } = usePartnerSubmittedLeadsCount<
     PartnerProfileSubmittedLeadsCountByStatus[] | undefined
@@ -80,6 +66,23 @@ export default function PartnerProgramSubmittedLeadsPage() {
       groupBy: "status",
     },
   });
+
+  // Partners in a group without the lead form can still view the leads they
+  // submitted before. Without any leads, there is nothing to show.
+  useEffect(() => {
+    if (!programEnrollment || leadFormData || !countByStatus) {
+      return;
+    }
+
+    const totalLeads = countByStatus.reduce(
+      (total, { _count }) => total + _count,
+      0,
+    );
+
+    if (totalLeads === 0) {
+      router.replace(`/programs/${programSlug}`);
+    }
+  }, [programEnrollment, leadFormData, countByStatus, programSlug, router]);
 
   const { data: totalCount, error: countError } =
     usePartnerSubmittedLeadsCount<number>({
@@ -309,14 +312,10 @@ export default function PartnerProgramSubmittedLeadsPage() {
     <PageContent
       title="Submitted Leads"
       controls={
-        isEnabled ? (
+        leadFormData ? (
           <Button
             text="Submit lead"
             className="h-9 w-fit rounded-lg"
-            disabled={!leadFormData}
-            disabledTooltip={
-              leadFormData ? undefined : "Submitted leads are not offered."
-            }
             onClick={() => {
               setShowLeadSheet(true);
             }}
@@ -324,7 +323,7 @@ export default function PartnerProgramSubmittedLeadsPage() {
         ) : undefined
       }
     >
-      {isEnabled && leadFormData && programEnrollment?.programId && (
+      {leadFormData && programEnrollment?.programId && (
         <SubmitLeadSheet
           isOpen={showLeadSheet}
           setIsOpen={setShowLeadSheet}
