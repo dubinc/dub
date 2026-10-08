@@ -118,7 +118,7 @@ export function EarningsChart() {
               },
             ]}
             onXValueClick={() => router.push("/programs")}
-            tooltipClassName="w-[200px] overflow-hidden p-0 shadow-md"
+            tooltipClassName="w-[240px] overflow-hidden p-0 shadow-md"
             tooltipContent={(d) => {
               const programEarnings = Object.entries(
                 d.values.programs as Record<string, number>,
@@ -130,10 +130,10 @@ export function EarningsChart() {
               return (
                 <div className="text-[11px] leading-[1.1]">
                   <div className="flex items-center justify-between gap-3 border-b border-neutral-200 p-3">
-                    <span className="font-semibold text-neutral-900">
+                    <span className="truncate font-semibold text-neutral-900">
                       {formatDateTooltip(d.date, { interval, start, end })}
                     </span>
-                    <span className="shrink-0 font-semibold text-neutral-900">
+                    <span className="shrink-0 whitespace-nowrap font-semibold text-neutral-900">
                       {currencyFormatter(d.values.main)}
                     </span>
                   </div>
