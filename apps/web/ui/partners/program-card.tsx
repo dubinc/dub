@@ -26,7 +26,7 @@ import {
 import NumberFlow from "@number-flow/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { type ReactNode } from "react";
+import { type ReactNode, type SyntheticEvent } from "react";
 
 function RejectionTooltipRow({
   icon,
@@ -244,6 +244,13 @@ function ProgramCardStatus({
     return null;
   }
 
+  // the card is a link, so stop the click from opening the program page
+  const openMessages = (e: SyntheticEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    router.push(`/messages/${program.slug}`);
+  };
+
   return (
     <p>
       {description}
@@ -252,17 +259,9 @@ function ProgramCardStatus({
       <span
         role="button"
         tabIndex={0}
-        onClick={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          router.push(`/messages/${program.slug}`);
-        }}
+        onClick={openMessages}
         onKeyDown={(e) => {
-          if (e.key === "Enter" || e.key === " ") {
-            e.preventDefault();
-            e.stopPropagation();
-            router.push(`/messages/${program.slug}`);
-          }
+          if (e.key === "Enter" || e.key === " ") openMessages(e);
         }}
         className="cursor-pointer underline decoration-dotted underline-offset-2 hover:text-neutral-700"
       >
