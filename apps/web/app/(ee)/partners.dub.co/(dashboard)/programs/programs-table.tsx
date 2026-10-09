@@ -52,7 +52,7 @@ export function ProgramsTable({
   const status = tab.statuses.join(",");
 
   const { programEnrollments, isLoading, error } = useProgramEnrollments({
-    includeRewardsDiscounts: tab.id === "invitations",
+    ...(tab.id === "invitations" && { includeRewardsDiscounts: true }),
     status,
     search,
     ...(sortBy && { sortBy }),
