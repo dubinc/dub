@@ -27,9 +27,10 @@ export function useDashboardBannerVisible() {
     isProductionEnvironment(environment) &&
     !loading;
 
-  // Visible in non-production workspaces
+  // Visible in non-production workspaces. A missing environment (account
+  // settings, or a failed workspace fetch) is not a staging/sandbox workspace.
   const isEnvironmentBannerVisible =
-    !isProductionEnvironment(environment) && !loading;
+    Boolean(environment) && !isProductionEnvironment(environment) && !loading;
 
   const hasBanner = isUpgradeBannerVisible || isEnvironmentBannerVisible;
 
