@@ -8,72 +8,18 @@ type PartnerBetaFeaturesRecord = {
   postbacks?: string[];
 };
 
-class EdgeConfigNotConfiguredError extends Error {
-  constructor() {
-    super("Postback access storage is not configured.");
-    this.name = "EdgeConfigNotConfiguredError";
-  }
-}
+const getPartnerBetaFeatures = async () => {
+  const betaFeatures = await get<PartnerBetaFeaturesRecord>(
+    "partnerBetaFeatures",
+  );
 
-class PartnerAlreadyHasAccessError extends Error {
-  constructor() {
-    super("Partner already has postback access.");
-    this.name = "PartnerAlreadyHasAccessError";
-  }
-}
-
-class PartnerDoesNotHaveAccessError extends Error {
-  constructor() {
-    super("Partner does not have postback access.");
-    this.name = "PartnerDoesNotHaveAccessError";
-  }
-}
-
-const assertEdgeConfigConfigured = () => {
-  if (!process.env.EDGE_CONFIG || !process.env.EDGE_CONFIG_ID) {
-    throw new EdgeConfigNotConfiguredError();
-  }
+  return betaFeatures ?? {};
 };
 
-const getPartnerBetaFeatures = async (): Promise<PartnerBetaFeaturesRecord> => {
-  if (!process.env.EDGE_CONFIG) {
-    throw new EdgeConfigNotConfiguredError();
-  }
-
-  try {
-    return (await get<PartnerBetaFeaturesRecord>("partnerBetaFeatures")) ?? {};
-  } catch (e) {
-    console.error(`Error getting partner beta features: ${e}`);
-    throw e;
-  }
-};
-
-const updatePostbackPartnerIds = async ({
-  add,
-  remove,
-}: {
-  add?: string;
-  remove?: string;
-}) => {
-  assertEdgeConfigConfigured();
-
-  const betaFeatures = await getPartnerBetaFeatures();
-  const partnerIds = new Set(betaFeatures.postbacks ?? []);
-
-  if (add) {
-    if (partnerIds.has(add)) {
-      throw new PartnerAlreadyHasAccessError();
-    }
-    partnerIds.add(add);
-  }
-
-  if (remove) {
-    if (!partnerIds.has(remove)) {
-      throw new PartnerDoesNotHaveAccessError();
-    }
-    partnerIds.delete(remove);
-  }
-
+const setPostbackPartnerIds = async (
+  betaFeatures: PartnerBetaFeaturesRecord,
+  partnerIds: string[],
+) => {
   const res = await fetch(
     `https://api.vercel.com/v1/edge-config/${process.env.EDGE_CONFIG_ID}/items?teamId=${process.env.TEAM_ID_VERCEL}`,
     {
@@ -89,12 +35,11 @@ const updatePostbackPartnerIds = async ({
             key: "partnerBetaFeatures",
             value: {
               ...betaFeatures,
-              postbacks: Array.from(partnerIds),
+              postbacks: partnerIds,
             },
           },
         ],
       }),
-      signal: AbortSignal.timeout(10_000),
     },
   );
 
@@ -105,34 +50,17 @@ const updatePostbackPartnerIds = async ({
   }
 };
 
-const edgeConfigErrorResponse = (error: unknown) => {
-  if (
-    error instanceof EdgeConfigNotConfiguredError ||
-    error instanceof PartnerAlreadyHasAccessError ||
-    error instanceof PartnerDoesNotHaveAccessError
-  ) {
-    return new Response(error.message, {
-      status: error instanceof EdgeConfigNotConfiguredError ? 503 : 400,
-    });
-  }
-
-  console.error(`Partner postback access Edge Config error: ${error}`);
-  return new Response("Failed to update partner postback access.", {
-    status: 503,
-  });
-};
-
 // GET /api/admin/partners/postbacks
 export const GET = withAdmin(async () => {
+  if (!process.env.EDGE_CONFIG) {
+    return NextResponse.json({ partners: [] });
+  }
+
   let partnerIds: string[];
 
   try {
-    if (!process.env.EDGE_CONFIG) {
-      partnerIds = [];
-    } else {
-      const betaFeatures = await getPartnerBetaFeatures();
-      partnerIds = betaFeatures.postbacks ?? [];
-    }
+    const betaFeatures = await getPartnerBetaFeatures();
+    partnerIds = betaFeatures.postbacks ?? [];
   } catch (error) {
     console.error(`Error listing partner postback access: ${error}`);
     return new Response("Failed to load partner postback access.", {
@@ -211,10 +139,28 @@ export const POST = withAdmin(
       return new Response("Partner not found.", { status: 404 });
     }
 
+    if (!process.env.EDGE_CONFIG || !process.env.EDGE_CONFIG_ID) {
+      return new Response("Postback access storage is not configured.", {
+        status: 503,
+      });
+    }
+
     try {
-      await updatePostbackPartnerIds({ add: partner.id });
+      const betaFeatures = await getPartnerBetaFeatures();
+      const partnerIds = betaFeatures.postbacks ?? [];
+
+      if (partnerIds.includes(partner.id)) {
+        return new Response("Partner already has postback access.", {
+          status: 400,
+        });
+      }
+
+      await setPostbackPartnerIds(betaFeatures, [...partnerIds, partner.id]);
     } catch (error) {
-      return edgeConfigErrorResponse(error);
+      console.error(`Error granting partner postback access: ${error}`);
+      return new Response("Failed to update partner postback access.", {
+        status: 503,
+      });
     }
 
     return NextResponse.json({ success: true });
@@ -239,14 +185,29 @@ export const DELETE = withAdmin(
 
     const { partnerId } = parsed.data;
 
+    if (!process.env.EDGE_CONFIG || !process.env.EDGE_CONFIG_ID) {
+      return new Response("Postback access storage is not configured.", {
+        status: 503,
+      });
+    }
+
+    let betaFeatures: PartnerBetaFeaturesRecord;
+
     try {
-      assertEdgeConfigConfigured();
-      const betaFeatures = await getPartnerBetaFeatures();
-      if (!(betaFeatures.postbacks ?? []).includes(partnerId)) {
-        throw new PartnerDoesNotHaveAccessError();
-      }
+      betaFeatures = await getPartnerBetaFeatures();
     } catch (error) {
-      return edgeConfigErrorResponse(error);
+      console.error(`Error reading partner postback access: ${error}`);
+      return new Response("Failed to update partner postback access.", {
+        status: 503,
+      });
+    }
+
+    const partnerIds = betaFeatures.postbacks ?? [];
+
+    if (!partnerIds.includes(partnerId)) {
+      return new Response("Partner does not have postback access.", {
+        status: 400,
+      });
     }
 
     const disabledAt = new Date();
@@ -262,7 +223,10 @@ export const DELETE = withAdmin(
     });
 
     try {
-      await updatePostbackPartnerIds({ remove: partnerId });
+      await setPostbackPartnerIds(
+        betaFeatures,
+        partnerIds.filter((id) => id !== partnerId),
+      );
     } catch (error) {
       await prisma.postback.updateMany({
         where: {
@@ -274,7 +238,10 @@ export const DELETE = withAdmin(
         },
       });
 
-      return edgeConfigErrorResponse(error);
+      console.error(`Error revoking partner postback access: ${error}`);
+      return new Response("Failed to update partner postback access.", {
+        status: 503,
+      });
     }
 
     return NextResponse.json({ success: true });
