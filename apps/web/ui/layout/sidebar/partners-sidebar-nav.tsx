@@ -115,7 +115,6 @@ const PROGRAMS_CONTENT = (): { items: NavItemType[] }[] => [
         name: "Programs",
         icon: GridIcon,
         href: "/programs",
-        isActive: (pathname, href) => pathname.startsWith(href),
       },
       {
         name: "Marketplace",
