@@ -1,6 +1,6 @@
 import { reportNetworkLevelBan } from "@/lib/api/fraud/report-network-level-ban";
 import { prisma } from "@/lib/prisma";
-import { FraudAlertSource, Prisma } from "@prisma/client";
+import { FraudAlertSource } from "@prisma/client";
 
 export async function confirmPartnerFraudAlerts({
   partnerId,
@@ -16,11 +16,6 @@ export async function confirmPartnerFraudAlerts({
   source?: FraudAlertSource;
 }) {
   const reviewedAt = new Date();
-  const reviewData: Prisma.FraudAlertUpdateManyArgs["data"] = {
-    reviewedAt,
-    reviewNote: reviewNote || null,
-    reviewedById,
-  };
 
   const pendingFraudAlerts = await prisma.fraudAlert.findMany({
     where: {
@@ -30,25 +25,11 @@ export async function confirmPartnerFraudAlerts({
     },
     select: {
       id: true,
-      createdAt: true,
-      programEnrollment: {
-        select: {
-          programId: true,
-          partnerId: true,
-          bannedReason: true,
-          bannedAt: true,
-          application: {
-            select: {
-              reviewedAt: true,
-            },
-          },
-        },
-      },
     },
   });
 
   if (pendingFraudAlerts.length === 0) {
-    return { confirmedCount: 0, alertedProgramsCount: 0 };
+    return { confirmedCount: 0 };
   }
 
   const { count: confirmedCount } = await prisma.fraudAlert.updateMany({
@@ -60,19 +41,14 @@ export async function confirmPartnerFraudAlerts({
     },
     data: {
       status: "confirmed",
-      ...reviewData,
+      reviewedAt,
+      reviewNote: reviewNote || null,
+      reviewedById,
     },
   });
 
-  if (confirmedCount === 0) {
-    return { confirmedCount: 0, alertedProgramsCount: 0 };
-  }
-
-  if (skipCrossProgramReporting) {
-    return {
-      confirmedCount,
-      alertedProgramsCount: 0,
-    };
+  if (confirmedCount === 0 || skipCrossProgramReporting) {
+    return { confirmedCount };
   }
 
   const confirmedFraudAlerts = await prisma.fraudAlert.findMany({
@@ -83,7 +59,6 @@ export async function confirmPartnerFraudAlerts({
       reviewedAt,
     },
     select: {
-      id: true,
       createdAt: true,
       programEnrollment: {
         select: {
@@ -125,11 +100,5 @@ export async function confirmPartnerFraudAlerts({
     );
   }
 
-  return {
-    confirmedCount,
-    alertedProgramsCount: alertResults.reduce(
-      (sum, result) => sum + (result.status === "fulfilled" ? result.value : 0),
-      0,
-    ),
-  };
+  return { confirmedCount };
 }

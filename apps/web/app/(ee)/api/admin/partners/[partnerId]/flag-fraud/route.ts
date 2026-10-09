@@ -1,5 +1,5 @@
 import { confirmPartnerFraudAlerts } from "@/lib/api/fraud/confirm-partner-fraud-alerts";
-import { reportAdminFraudToPrograms } from "@/lib/api/fraud/report-admin-fraud-to-programs";
+import { reportNetworkLevelBan } from "@/lib/api/fraud/report-network-level-ban";
 import { withAdmin } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { adminFlagFraudSchema } from "@/lib/zod/schemas/admin";
@@ -82,8 +82,11 @@ export const POST = withAdmin(
     }
 
     try {
-      const alertedProgramsCount = await reportAdminFraudToPrograms({
+      const alertedProgramsCount = await reportNetworkLevelBan({
         partnerId,
+        programId: NETWORK_PROGRAM_ID,
+        bannedReason: "fraud",
+        bannedAt: new Date(),
       });
 
       return NextResponse.json({
