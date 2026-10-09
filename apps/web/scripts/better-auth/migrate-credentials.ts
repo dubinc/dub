@@ -1,18 +1,12 @@
-import { qstash } from "@/lib/cron";
-import { withCron } from "@/lib/cron/with-cron";
-import { prisma } from "@/lib/prisma";
-import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
-import { logAndRespond } from "../../utils";
+import "dotenv-flow/config";
 
-export const dynamic = "force-dynamic";
-export const maxDuration = 300;
+import { prisma } from "@/lib/prisma";
 
 const BATCH_SIZE = 1000;
-const ITERATIONS = 10;
 
-// POST /api/cron/better-auth/migrate-credentials
-export const POST = withCron(async () => {
-  for (let i = 0; i < ITERATIONS; i++) {
+// Create a Better Auth credential account from each user's passwordHash.
+async function main() {
+  while (true) {
     const users = await prisma.user.findMany({
       where: {
         passwordHash: {
@@ -35,7 +29,8 @@ export const POST = withCron(async () => {
     });
 
     if (users.length === 0) {
-      return logAndRespond("Finished migrating credentials.");
+      console.log("Finished migrating credentials.");
+      break;
     }
 
     const { count } = await prisma.account.createMany({
@@ -52,25 +47,12 @@ export const POST = withCron(async () => {
 
     // No rows inserted while candidates remain means the batch cannot progress.
     if (count === 0) {
-      return logAndRespond(
+      console.error(
         `Stopped migrating credentials: ${users.length} users matched but no accounts were created.`,
-        { logLevel: "error" },
       );
+      process.exit(1);
     }
   }
+}
 
-  const qstashResponse = await qstash.publishJSON({
-    method: "POST",
-    url: `${APP_DOMAIN_WITH_NGROK}/api/cron/better-auth/migrate-credentials`,
-    delay: "10s",
-    retries: 0,
-    flowControl: {
-      key: "better-auth-migrate-credentials",
-      parallelism: 1,
-    },
-  });
-
-  return logAndRespond(
-    `Scheduled next batch of credentials to migrate ${qstashResponse.messageId}`,
-  );
-});
+main();

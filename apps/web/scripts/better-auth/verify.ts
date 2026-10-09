@@ -1,60 +1,9 @@
-// @ts-ignore
 import "dotenv-flow/config";
 
-import { qstash } from "@/lib/cron";
 import { prisma } from "@/lib/prisma";
-import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 
+// Check that the Better Auth backfill matches the existing NextAuth data.
 async function main() {
-  // await migrateUsers();
-  // await migrateAccounts();
-  // await migrateCredentials();
-  await verifyMigration();
-}
-
-async function migrateUsers() {
-  const qstashResponse = await qstash.publishJSON({
-    method: "POST",
-    url: `${APP_DOMAIN_WITH_NGROK}/api/cron/better-auth/migrate-users`,
-    retries: 0,
-    flowControl: {
-      key: "better-auth-migrate-users",
-      parallelism: 1,
-    },
-  });
-
-  console.log(`migrateUsers executed: ${qstashResponse.messageId}`);
-}
-
-async function migrateAccounts() {
-  const qstashResponse = await qstash.publishJSON({
-    method: "POST",
-    url: `${APP_DOMAIN_WITH_NGROK}/api/cron/better-auth/migrate-accounts`,
-    retries: 0,
-    flowControl: {
-      key: "better-auth-migrate-accounts",
-      parallelism: 1,
-    },
-  });
-
-  console.log(`migrateAccounts executed: ${qstashResponse.messageId}`);
-}
-
-async function migrateCredentials() {
-  const qstashResponse = await qstash.publishJSON({
-    method: "POST",
-    url: `${APP_DOMAIN_WITH_NGROK}/api/cron/better-auth/migrate-credentials`,
-    retries: 0,
-    flowControl: {
-      key: "better-auth-migrate-credentials",
-      parallelism: 1,
-    },
-  });
-
-  console.log(`migrateCredentials executed: ${qstashResponse.messageId}`);
-}
-
-async function verifyMigration() {
   const [
     usersPending,
     accountsPending,
