@@ -155,9 +155,8 @@ function ProgramsGridSkeleton() {
 
 function ProgramsGrid({ tab, search }: { tab: ProgramTab; search?: string }) {
   const { programEnrollments, isLoading } = useProgramEnrollments({
-    // only the invite cards show the rewards and the discount. Leave the
-    // parameter out otherwise, because the API reads "false" as true.
-    ...(tab.id === "invitations" && { includeRewardsDiscounts: true }),
+    // only the invite cards show the rewards and the discount
+    includeRewardsDiscounts: tab.id === "invitations",
     status: tab.statuses.join(","),
     search,
   });

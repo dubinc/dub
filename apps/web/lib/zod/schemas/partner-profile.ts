@@ -29,7 +29,7 @@ import { customerActivityResponseSchema } from "./customer-activity";
 import { CustomerEnrichedSchema } from "./customers";
 import { DiscountSchema } from "./discount";
 import { LinkSchema } from "./links";
-import { getPaginationQuerySchema } from "./misc";
+import { booleanQuerySchema, getPaginationQuerySchema } from "./misc";
 import { payoutsQuerySchema } from "./payouts";
 import { ProgramEnrollmentSchema, ProgramSchema } from "./programs";
 import { RewardSchema } from "./rewards";
@@ -242,7 +242,7 @@ export const PartnerProfileProgramEnrollmentSchema =
   });
 
 export const partnerProfileProgramsQuerySchema = z.object({
-  includeRewardsDiscounts: z.coerce.boolean().optional(),
+  includeRewardsDiscounts: booleanQuerySchema.optional(),
   // one status or a comma-separated list, for example "pending,rejected"
   status: z
     .string()

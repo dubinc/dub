@@ -6,7 +6,10 @@ import { PartnerProfileProgramEnrollmentProps } from "../types";
 import { partnerProfileProgramsQuerySchema } from "../zod/schemas/partner-profile";
 
 export default function useProgramEnrollments(
-  query: z.input<typeof partnerProfileProgramsQuerySchema> = {},
+  query: Omit<
+    z.input<typeof partnerProfileProgramsQuerySchema>,
+    "includeRewardsDiscounts"
+  > & { includeRewardsDiscounts?: boolean } = {},
 ) {
   const { data: session } = useSession();
   const partnerId = session?.user?.["defaultPartnerId"];
