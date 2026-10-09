@@ -1,11 +1,15 @@
+import { hasPermission } from "@/lib/auth/partner-users/partner-user-permissions";
 import { SupportChatContext } from "@/ui/support/types";
-import { Program, Project } from "@prisma/client";
+import { COUNTRIES } from "@dub/utils";
+import { PartnerRole, Program, Project } from "@prisma/client";
 
 export type GlobalChatContext = {
   chatLocation?: SupportChatContext;
   accountType?: "workspace" | "partner";
   selectedWorkspace?: Pick<Project, "id" | "name" | "slug">;
   selectedProgram?: Pick<Program, "id" | "name" | "slug">;
+  partnerCountry?: string | null;
+  partnerRole?: PartnerRole | null;
 };
 
 const CONTEXT_SYSTEM_PROMPTS: Record<SupportChatContext, string> = {
@@ -54,13 +58,39 @@ const PARTNERS_PAYOUT_PROMPT = `
   - Offer to create a Dub support ticket (call requestSupportTicket, then createSupportTicket once the user confirms) so Dub can investigate further.
   `.trim();
 
-const PARTNER_PROFILE_COUNTRY_PROMPT = `
+function buildPartnerProfileCountryPrompt({
+  partnerCountry,
+  partnerRole,
+}: Pick<GlobalChatContext, "partnerCountry" | "partnerRole">) {
+  const canUpdateCountry =
+    partnerCountry === "US" &&
+    !!partnerRole &&
+    hasPermission(partnerRole, "partner_profile.update");
+
+  let countryChangeInstruction =
+    "They cannot change it themselves. Tell them their current country and that support has to update it. In that same response, call requestSupportTicket so the upload form appears. Do not only ask whether they want a ticket. After they confirm, call createSupportTicket.";
+
+  if (canUpdateCountry) {
+    countryChangeInstruction =
+      "They can update it themselves in partner profile settings at https://partners.dub.co/profile. Tell them to change it there. Do not create a support ticket.";
+  } else if (partnerCountry === "US") {
+    countryChangeInstruction =
+      "They do not have permission to update the partner profile. An owner of this partner account can change the country in partner profile settings at https://partners.dub.co/profile. Tell them to ask an owner. Do not create a support ticket.";
+  }
+
+  return `
   Partner profile country:
-  The partner's profile country is based on their current location at signup and cannot be changed in the dashboard.
-  Never tell the partner to edit Country under partner profile or settings.
-  If they need to update their country, tell them they cannot change it themselves and must contact support. Call requestSupportTicket (then createSupportTicket after they confirm).
+  The partner's profile country is based on their current location at signup.
+  Current profile country: ${
+    partnerCountry
+      ? `${COUNTRIES[partnerCountry] ?? partnerCountry} (${partnerCountry})`
+      : "unknown"
+  }.
+  The current user's role on this partner account is ${partnerRole ?? "unknown"}.
+  ${countryChangeInstruction}
   Do not confuse this with which countries support payouts — that is a different question and can still use docs.
   `.trim();
+}
 
 const NONPROFIT_DISCOUNT_PROMPT = `
   Non-profit discounts:
@@ -108,7 +138,7 @@ export function buildSystemPrompt(globalContext?: GlobalChatContext): string {
     NONPROFIT_DISCOUNT_PROMPT,
     globalContext?.accountType === "partner" ? PARTNERS_PAYOUT_PROMPT : null,
     globalContext?.accountType === "partner"
-      ? PARTNER_PROFILE_COUNTRY_PROMPT
+      ? buildPartnerProfileCountryPrompt(globalContext)
       : null,
     ...accountSpecificPrompts,
   ].filter((section): section is string => Boolean(section));
