@@ -145,6 +145,7 @@ export function AnalyticsToggle({
         const { startDate, endDate } = getStartEndDates({
           interval: value,
           dataAvailableFrom: createdAt,
+          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
         });
 
         return {
