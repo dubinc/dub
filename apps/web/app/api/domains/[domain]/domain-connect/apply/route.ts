@@ -10,7 +10,10 @@ import {
   DEFAULT_DC_SERVICE_SUBDOMAIN,
   DOMAIN_CONNECT_KEY_HOST,
 } from "@/lib/domain-connect/constants";
-import { discoverDomainConnect } from "@/lib/domain-connect/discover";
+import {
+  discoverDomainConnect,
+  fetchDomainConnectTemplateVersion,
+} from "@/lib/domain-connect/discover";
 import { buildSignedApplyUrl } from "@/lib/domain-connect/sign-apply-url";
 import { APP_DOMAIN, getApexDomain, getSubdomain } from "@dub/utils";
 import { NextResponse } from "next/server";
@@ -97,21 +100,40 @@ export const POST = withWorkspace(
 
     const queryParams: Record<string, string> = {
       domain: apex,
-      groupId: "subdomain",
+      groupId: isApex ? "apex" : "subdomain",
       redirect_uri: redirectUri,
     };
 
-    if (isApex) {
-      queryParams.groupId = "apex";
-    } else {
-      queryParams.groupId = "subdomain";
-      queryParams.host = (subdomain ?? "www").toLowerCase();
+    // links-subdomain v1 scopes all records under `host`, so its TXT lands at
+    // `_vercel.<subdomain>`. v2 takes `cnameHost` and writes the TXT at the apex.
+    // Providers deploy template versions independently, so only sign once the
+    // provider confirms which version it serves.
+    let subdomainTemplateV2 = false;
+    if (subdomain) {
+      const version = discovery.urlAPI
+        ? await fetchDomainConnectTemplateVersion(discovery.urlAPI, serviceId)
+        : undefined;
+
+      if (!version) {
+        throw new DubApiError({
+          code: "internal_server_error",
+          message: "Couldn't reach your DNS provider. Please try again.",
+        });
+      }
+
+      subdomainTemplateV2 = version >= 2;
+      if (subdomainTemplateV2) {
+        queryParams.cnameHost = subdomain;
+      } else {
+        queryParams.host = subdomain;
+      }
     }
 
     const txtVerification = domainJson.verification?.find(
       (x: { type: string }) => x.type === "TXT",
     );
-    if (txtVerification) {
+    const txtValue = txtVerification?.value?.trim();
+    if (txtValue && isApex) {
       const txtHostFqdn: string = txtVerification.domain?.toLowerCase() ?? "";
       const apexSuffix = `.${apex}`;
       const txtHost = txtHostFqdn.endsWith(apexSuffix)
@@ -119,13 +141,19 @@ export const POST = withWorkspace(
         : txtHostFqdn === apex
           ? "@"
           : txtHostFqdn;
-      const txtValue = txtVerification.value?.trim();
-
-      if (txtHost && txtValue) {
+      if (txtHost) {
         queryParams.groupId = queryParams.groupId + ",verification";
         queryParams.txtHost = txtHost;
         queryParams.txtValue = txtValue;
       }
+    } else if (
+      txtValue &&
+      subdomainTemplateV2 &&
+      txtVerification.domain?.toLowerCase().replace(/\.$/, "") ===
+        `_vercel.${apex}`
+    ) {
+      queryParams.groupId = queryParams.groupId + ",verification";
+      queryParams.txtValue = txtValue;
     }
 
     const applyUrl = buildSignedApplyUrl({

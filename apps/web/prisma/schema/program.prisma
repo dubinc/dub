@@ -25,19 +25,20 @@ enum ProgramPayoutMode {
 }
 
 model Program {
-  id                 String            @id
+  id                 String               @id
   workspaceId        String
   defaultFolderId    String
   defaultGroupId     String
   name               String
-  slug               String            @unique
-  domain             String?           @unique
+  slug               String               @unique
+  domain             String?              @unique
   url                String?
   logo               String?
-  description        String?           @db.Text
-  primaryRewardEvent EventType         @default(sale)
-  minPayoutAmount    Int               @default(0) // Default minimum payout amount of $0
-  payoutMode         ProgramPayoutMode @default(internal)
+  description        String?              @db.Text
+  primaryRewardEvent EventType            @default(sale)
+  minPayoutAmount    Int                  @default(0) // Default minimum payout amount of $0
+  payoutMode         ProgramPayoutMode    @default(internal)
+  environment        WorkspaceEnvironment @default(production)
 
   inviteEmailData         Json?   @db.Json
   embedData               Json?   @db.Json

@@ -2,6 +2,7 @@
 
 import { formatCommissionDescriptionTooltip } from "@/lib/commissions/format-commission-description-tooltip";
 import { INVOICE_AVAILABLE_PAYOUT_STATUSES } from "@/lib/constants/payouts";
+import { TestPayoutBadge } from "@/lib/sandbox/components/test-payout-badge";
 import usePartnerPayouts from "@/lib/swr/use-partner-payouts";
 import usePartnerPayoutsCount from "@/lib/swr/use-partner-payouts-count";
 import { PartnerPayoutResponse } from "@/lib/types";
@@ -87,6 +88,7 @@ export function PayoutTable() {
               className="size-4 rounded-full"
             />
             <span>{row.original.program.name}</span>
+            <TestPayoutBadge environment={row.original.program.environment} />
           </div>
         ),
       },
