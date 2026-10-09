@@ -18,7 +18,7 @@ import {
   useRouterStuff,
   useTable,
 } from "@dub/ui";
-import { ChartLine, Check, Copy, Link4 } from "@dub/ui/icons";
+import { Check, Copy, LinesY, Link4 } from "@dub/ui/icons";
 import { cn, currencyFormatter, formatDate, getPrettyUrl } from "@dub/utils";
 import { ColumnDef } from "@tanstack/react-table";
 import Link from "next/link";
@@ -265,22 +265,28 @@ function ProgramLinkChip({
 
   return (
     <div className="group/chip flex w-fit max-w-full items-center gap-1 rounded-md px-1.5 py-0.5 transition-colors hover:bg-neutral-100">
-      <button
-        type="button"
-        className="flex min-w-0 items-center gap-1.5 text-neutral-700"
-        onClick={(e) => {
-          e.stopPropagation();
-          copyToClipboard(partnerLink);
-        }}
+      {/* not hoverable, so that the pointer can move on to the analytics icon */}
+      <Tooltip
+        content={copied ? "Copied" : "Copy link"}
+        disableHoverableContent
       >
-        <Link4 className="size-3.5 shrink-0" />
-        <span className="truncate">{getPrettyUrl(partnerLink)}</span>
-        {copied ? (
-          <Check className="size-3.5 shrink-0" />
-        ) : (
-          <Copy className="size-3.5 shrink-0 opacity-0 transition-opacity group-hover/chip:opacity-100" />
-        )}
-      </button>
+        <button
+          type="button"
+          className="flex min-w-0 items-center gap-1.5 text-neutral-700"
+          onClick={(e) => {
+            e.stopPropagation();
+            copyToClipboard(partnerLink);
+          }}
+        >
+          <Link4 className="size-3.5 shrink-0" />
+          <span className="truncate">{getPrettyUrl(partnerLink)}</span>
+          {copied ? (
+            <Check className="size-3.5 shrink-0" />
+          ) : (
+            <Copy className="size-3.5 shrink-0 opacity-0 transition-opacity group-hover/chip:opacity-100" />
+          )}
+        </button>
+      </Tooltip>
       <Tooltip content="View analytics">
         <Link
           href={`/programs/${program.slug}/analytics?linkId=${link.id}`}
@@ -289,7 +295,7 @@ function ProgramLinkChip({
             "shrink-0 rounded p-0.5 text-neutral-500 opacity-0 transition-opacity hover:text-neutral-800 group-hover/chip:opacity-100",
           )}
         >
-          <ChartLine className="size-3.5" />
+          <LinesY className="size-3.5" />
         </Link>
       </Tooltip>
     </div>
