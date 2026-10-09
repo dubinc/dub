@@ -13,7 +13,9 @@ model User {
   name            String?
   email           String?   @unique
   emailVerified   DateTime?
-  emailVerifiedBa Boolean   @default(false) // Better Auth expects a boolean emailVerified field; We can rename this after the migration
+  // Better Auth expects boolean `emailVerified`. NextAuth already owns that name as a datetime, 
+  // so the boolean lives here until the final cutover. Then rename this column to `emailVerified` and drop the datetime.
+  emailVerifiedBa Boolean   @default(false)
   image           String?
   isMachine       Boolean   @default(false)
   createdAt       DateTime  @default(now())
