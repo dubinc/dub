@@ -1,5 +1,5 @@
 import { PRISMA_UPDATEMANY_LIMIT } from "@/lib/cron";
-import { isDiscountDeleted } from "@/lib/discounts/is-discount-deleted";
+import { isDiscountDeleted } from "@/lib/discounts/discount-status";
 import { prisma } from "@/lib/prisma";
 import { pluck } from "@dub/utils";
 import { invalidateLinksForDiscountsJob } from "../jobs/handlers/invalidate-links-for-discounts-job";

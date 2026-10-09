@@ -59,6 +59,8 @@ export async function ordersPaid({
     const programDiscountCodes = await prisma.discountCode.findMany({
       where: {
         programId: workspace.defaultProgramId,
+        isDeleted: false,
+        disabledAt: null,
         code: {
           in: discountCodes.map(({ code }) => code),
         },

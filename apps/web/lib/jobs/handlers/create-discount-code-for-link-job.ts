@@ -1,7 +1,8 @@
 import { DubApiError } from "@/lib/api/errors";
 import { createDiscountCode } from "@/lib/discounts/create-discount-code";
+import { isDiscountCodeSoftDeleted } from "@/lib/discounts/discount-code-status";
 import { isNonRecoverableDiscountError } from "@/lib/discounts/discount-error";
-import { isDiscountDeleted } from "@/lib/discounts/is-discount-deleted";
+import { isDiscountDeleted } from "@/lib/discounts/discount-status";
 import { prisma } from "@/lib/prisma";
 import * as z from "zod/v4";
 import { defineJob } from "../index";
@@ -70,7 +71,7 @@ export const createDiscountCodeForLinkJob = defineJob({
       return;
     }
 
-    if (link.discountCode) {
+    if (link.discountCode && !isDiscountCodeSoftDeleted(link.discountCode)) {
       console.info(`Link ${linkId} already has a discount code. Skipping...`);
       return;
     }

@@ -1,6 +1,8 @@
 import { convertCurrency } from "@/lib/analytics/convert-currency";
 import { isFirstConversion } from "@/lib/analytics/is-first-conversion";
+import { getDiscountCode } from "@/lib/api/partners/get-discount-code";
 import { Session } from "@/lib/auth";
+import { isDiscountCodeDisabled } from "@/lib/discounts/discount-code-status";
 import { generateRandomName } from "@/lib/names";
 import { queuePartnerCommissionCreation } from "@/lib/partners/queue-partner-commission-creation";
 import { prisma } from "@/lib/prisma";
@@ -301,37 +303,42 @@ async function resolveLinkAndCustomer(args: ResolveLinkAndCustomerArgs) {
   let resolvedLinkId = linkId ?? null;
 
   if (discountCode) {
-    const found = await prisma.discountCode.findUnique({
+    const discountCodeFound = await getDiscountCode({
       where: {
-        programId_code: {
-          programId,
-          code: discountCode,
-        },
+        programId,
+        code: discountCode,
       },
     });
 
-    if (!found) {
+    if (!discountCodeFound) {
       throw new DubApiError({
         code: "not_found",
         message: `Discount code ${discountCode} not found.`,
       });
     }
 
-    if (found.partnerId !== partner.id) {
+    if (discountCodeFound.partnerId !== partner.id) {
       throw new DubApiError({
         code: "not_found",
         message: `Discount code ${discountCode} does not belong to partner ${partner.email} (${partner.id}).`,
       });
     }
 
-    if (found.disabledAt) {
+    if (isDiscountCodeDisabled(discountCodeFound)) {
       throw new DubApiError({
         code: "bad_request",
         message: `Discount code ${discountCode} is disabled.`,
       });
     }
 
-    resolvedLinkId = found.linkId;
+    if (!discountCodeFound.linkId) {
+      throw new DubApiError({
+        code: "bad_request",
+        message: `Discount code ${discountCode} has no link.`,
+      });
+    }
+
+    resolvedLinkId = discountCodeFound.linkId;
   }
 
   if (resolvedLinkId) {

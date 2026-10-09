@@ -1,5 +1,6 @@
 import { Session } from "@/lib/auth";
 import { PRISMA_UPDATEMANY_LIMIT, qstash } from "@/lib/cron";
+import { disableDiscountCodes } from "@/lib/discounts/disable-discount-codes";
 import { prisma } from "@/lib/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { Partner, ProgramEnrollmentStatus } from "@prisma/client";
@@ -81,9 +82,22 @@ export async function processPartnerDeactivation({
       },
       limit: PRISMA_UPDATEMANY_LIMIT,
     });
+
     console.log(`Expired ${count} links`);
-    if (count < PRISMA_UPDATEMANY_LIMIT) break;
+
+    if (count < PRISMA_UPDATEMANY_LIMIT) {
+      break;
+    }
   }
+
+  await disableDiscountCodes({
+    where: {
+      programId,
+      partnerId: {
+        in: partnerIds,
+      },
+    },
+  });
 
   console.log(
     `[processPartnerDeactivation] Deactivated ${deactivatedPartners} partners in program ${programId}.`,

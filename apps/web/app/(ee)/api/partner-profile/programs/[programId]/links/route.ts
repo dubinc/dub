@@ -29,7 +29,12 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
     partnerId: partner.id,
     programId: params.programId,
     include: {
-      discountCodes: true,
+      discountCodes: {
+        where: {
+          isDeleted: false,
+          disabledAt: null,
+        },
+      },
       clickReward: true,
       leadReward: true,
       saleReward: true,

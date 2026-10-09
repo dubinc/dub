@@ -1,12 +1,13 @@
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { DubApiError } from "@/lib/api/errors";
+import { getDiscountCode } from "@/lib/api/partners/get-discount-code";
 import { getDiscountOrThrow } from "@/lib/api/partners/get-discount-or-throw";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { createDiscountCode } from "@/lib/discounts/create-discount-code";
-import { isDiscountDeleted } from "@/lib/discounts/is-discount-deleted";
+import { isDiscountDeleted } from "@/lib/discounts/discount-status";
 import { prisma } from "@/lib/prisma";
 import {
   createDiscountCodeSchema,
@@ -50,6 +51,7 @@ export const GET = withWorkspace(
     const discountCodes = await prisma.discountCode.findMany({
       where: {
         programId,
+        isDeleted: false,
         ...(partnerId && { partnerId }),
         ...(discountId && { discountId }),
         ...(code && { code }),
@@ -97,6 +99,9 @@ export const POST = withWorkspace(
           },
         },
         discountCodes: {
+          where: {
+            isDeleted: false,
+          },
           select: {
             code: true,
             linkId: true,
@@ -162,15 +167,18 @@ export const POST = withWorkspace(
 
     // Check for duplicate by code
     if (code) {
-      const duplicateByCode = await prisma.discountCode.findUnique({
+      const duplicateByCode = await getDiscountCode({
         where: {
-          programId_code: {
-            programId: discount.programId!,
-            code,
-          },
+          programId,
+          code,
         },
         include: {
-          partner: true,
+          partner: {
+            select: {
+              id: true,
+              email: true,
+            },
+          },
         },
       });
 
