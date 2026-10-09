@@ -9,9 +9,11 @@ import {
   DEFAULT_DC_SERVICE_APEX,
   DEFAULT_DC_SERVICE_SUBDOMAIN,
   DOMAIN_CONNECT_KEY_HOST,
-  DOMAIN_CONNECT_PROVIDER_ID,
 } from "@/lib/domain-connect/constants";
-import { discoverDomainConnect } from "@/lib/domain-connect/discover";
+import {
+  discoverDomainConnect,
+  fetchDomainConnectTemplateVersion,
+} from "@/lib/domain-connect/discover";
 import { buildSignedApplyUrl } from "@/lib/domain-connect/sign-apply-url";
 import { APP_DOMAIN, getApexDomain, getSubdomain } from "@dub/utils";
 import { NextResponse } from "next/server";
@@ -108,23 +110,9 @@ export const POST = withWorkspace(
     // provider confirms which version it serves.
     let subdomainTemplateV2 = false;
     if (subdomain) {
-      let version: number | undefined;
-      if (discovery.urlAPI) {
-        try {
-          const res = await fetch(
-            `${discovery.urlAPI}/v2/domainTemplates/providers/${DOMAIN_CONNECT_PROVIDER_ID}/services/${serviceId}`,
-            {
-              headers: { accept: "application/json" },
-              redirect: "manual",
-              signal: AbortSignal.timeout(3000),
-            },
-          );
-          if (res.ok) {
-            const json = (await res.json()) as { version?: unknown };
-            if (typeof json.version === "number") version = json.version;
-          }
-        } catch {}
-      }
+      const version = discovery.urlAPI
+        ? await fetchDomainConnectTemplateVersion(discovery.urlAPI, serviceId)
+        : undefined;
 
       if (!version) {
         throw new DubApiError({

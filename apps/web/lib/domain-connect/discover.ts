@@ -1,5 +1,6 @@
 import dns from "node:dns/promises";
 import { isAllowedSyncUXOrigin } from "./allowed-origins";
+import { DOMAIN_CONNECT_PROVIDER_ID } from "./constants";
 import type {
   DomainConnectDiscovery,
   DomainConnectProviderKind,
@@ -141,6 +142,28 @@ export async function discoverDomainConnect(
   } catch {}
 
   return { providerKind, dnsProviderId, urlSyncUX, urlAPI };
+}
+
+/** Template version from the provider, or undefined when the lookup is inconclusive. */
+export async function fetchDomainConnectTemplateVersion(
+  urlAPI: string,
+  serviceId: string,
+): Promise<number | undefined> {
+  try {
+    const res = await fetch(
+      `${urlAPI}/v2/domainTemplates/providers/${DOMAIN_CONNECT_PROVIDER_ID}/services/${serviceId}`,
+      {
+        headers: { accept: "application/json" },
+        redirect: "manual",
+        signal: AbortSignal.timeout(3000),
+      },
+    );
+    if (!res.ok) return;
+    const { version } = (await res.json()) as { version?: unknown };
+    return typeof version === "number" ? version : undefined;
+  } catch {
+    return;
+  }
 }
 
 /**
