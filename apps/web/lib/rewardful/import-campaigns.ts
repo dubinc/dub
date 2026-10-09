@@ -60,6 +60,8 @@ export async function importCampaigns(payload: RewardfulImportPayload) {
     linkStructure,
     applicationFormData,
     landerData,
+    submittedLeadFormData,
+    submittedLeadsEnabledAt,
   } = program.groups[0] ?? {};
 
   const { token } = await rewardfulImporter.getCredentials(program.workspaceId);
@@ -103,6 +105,7 @@ export async function importCampaigns(payload: RewardfulImportPayload) {
         brandColor,
         holdingPeriodDays,
         autoApprovePartnersEnabledAt,
+        submittedLeadsEnabledAt,
         ...(additionalLinks && {
           additionalLinks: sanitizeAdditionalLinks(additionalLinks),
         }),
@@ -110,6 +113,7 @@ export async function importCampaigns(payload: RewardfulImportPayload) {
         ...(linkStructure && { linkStructure }),
         ...(applicationFormData && { applicationFormData }),
         ...(landerData && { landerData }),
+        ...(submittedLeadFormData && { submittedLeadFormData }),
         // Create default link for the group
         partnerGroupDefaultLinks: {
           create: {

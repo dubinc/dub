@@ -160,6 +160,8 @@ test.describe("program applications", () => {
       approvedUs,
     ] = seeded;
 
+    // Application-level socials are ignored; platforms come from the partner's
+    // saved platforms as-is.
     await prisma.programApplication.update({
       where: { id: pendingUsWithPlatforms.id },
       data: {
@@ -197,7 +199,7 @@ test.describe("program applications", () => {
         {
           partnerId: pendingUsWithPlatforms.partnerId!,
           type: "twitter",
-          identifier: "application_handle",
+          identifier: "partner_handle",
           verifiedAt: VERIFIED_AT,
         },
         {
@@ -294,7 +296,7 @@ test.describe("program applications", () => {
     expect(platforms).toStrictEqual([
       {
         type: "twitter",
-        identifier: "application_handle",
+        identifier: "partner_handle",
         verifiedAt: VERIFIED_AT.toISOString(),
       },
       {
@@ -311,7 +313,7 @@ test.describe("program applications", () => {
     expect(data[0].partner).toMatchObject({
       website: VERIFIED_WEBSITE,
       youtube: "partner_channel",
-      twitter: "application_handle",
+      twitter: "partner_handle",
       linkedin: null,
       instagram: null,
       tiktok: null,

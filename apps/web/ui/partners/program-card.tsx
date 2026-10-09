@@ -1,7 +1,7 @@
 "use client";
 
 import { constructPartnerLink } from "@/lib/partners/construct-partner-link";
-import { getProgramApplicationRejectionReasonLabel } from "@/lib/partners/program-application-rejection";
+import { getProgramApplicationRejectionReasonLabel } from "@/lib/program-applications/program-application-rejection";
 import { usePartnerEarningsTimeseries } from "@/lib/swr/use-partner-earnings-timeseries";
 import { ProgramEnrollmentProps } from "@/lib/types";
 import {
@@ -13,7 +13,12 @@ import {
   MiniAreaChart,
   Note,
 } from "@dub/ui";
-import { formatDate, getPrettyUrl, OG_AVATAR_URL } from "@dub/utils";
+import {
+  formatDate,
+  getPrettyUrl,
+  OG_AVATAR_URL,
+  STANDARD_REAPPLICATION_DAYS,
+} from "@dub/utils";
 import NumberFlow from "@number-flow/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -113,7 +118,12 @@ function ProgramCardNonApprovedStatus({
 
   if (status === "rejected") {
     const tipContent = rejectedApplicationTooltipContent(application);
-    const body = <>{statusDescription} You can re-apply in 30 days.</>;
+    const body = (
+      <>
+        {statusDescription} You can re-apply in {STANDARD_REAPPLICATION_DAYS}{" "}
+        days.
+      </>
+    );
 
     if (tipContent) {
       return (

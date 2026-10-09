@@ -1,7 +1,7 @@
 "use client";
 
 import { useProgramMessagesCount } from "@/lib/messages/hooks/use-program-messages-count";
-import { SUBMITTED_LEADS_ENABLED_PROGRAM_IDS } from "@/lib/submitted-leads/constants";
+import { getGroupSubmittedLeadForm } from "@/lib/submitted-leads/get-group-submitted-lead-form";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { usePartnerProgramBounties } from "@/lib/swr/use-partner-program-bounties";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
@@ -73,9 +73,11 @@ const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({
     description:
       "View all your enrolled programs and review invitations to other programs.",
     icon: GridIcon,
-    href: "/programs",
-    active:
-      pathname.startsWith("/programs") || pathname.startsWith("/marketplace"),
+    // the middleware sends "/" to /overview or /programs, depending on the partner's programs
+    href: "/",
+    active: ["/overview", "/programs", "/marketplace"].some((p) =>
+      pathname.startsWith(p),
+    ),
   },
   {
     name: "Payouts",
@@ -110,6 +112,11 @@ const PROGRAMS_CONTENT = ({
 }): { items: NavItemType[] }[] => [
   {
     items: [
+      {
+        name: "Overview",
+        icon: Gauge6,
+        href: "/overview",
+      },
       {
         name: "Programs",
         icon: GridIcon,
@@ -446,11 +453,9 @@ export function PartnersSidebarNav({
         showDetailedAnalytics,
         postbacksEnabled: partner?.featureFlags?.postbacks,
         hasReferralReward: !!programEnrollment?.referralRewardId,
-        submittedLeadsEnabled: programEnrollment?.programId
-          ? SUBMITTED_LEADS_ENABLED_PROGRAM_IDS.includes(
-              programEnrollment.programId,
-            )
-          : false,
+        submittedLeadsEnabled: Boolean(
+          getGroupSubmittedLeadForm(programEnrollment?.group),
+        ),
         newsContent,
       }}
       toolContent={composedToolContent}

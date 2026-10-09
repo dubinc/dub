@@ -166,14 +166,21 @@ function ExportLinksModal({
                         preset ? { interval: preset.id } : dateRange,
                       );
                     }}
-                    presets={INTERVAL_DISPLAYS.map(({ display, value }) => ({
-                      id: value,
-                      label: display,
-                      dateRange: {
-                        from: getIntervalData(value).startDate,
-                        to: getIntervalData(value).endDate,
-                      },
-                    }))}
+                    presets={INTERVAL_DISPLAYS.map(({ display, value }) => {
+                      const { startDate, endDate } = getIntervalData(value, {
+                        timezone:
+                          Intl.DateTimeFormat().resolvedOptions().timeZone,
+                      });
+
+                      return {
+                        id: value,
+                        label: display,
+                        dateRange: {
+                          from: startDate,
+                          to: endDate,
+                        },
+                      };
+                    })}
                   />
                 )}
               />

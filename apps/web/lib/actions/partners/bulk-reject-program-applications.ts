@@ -1,6 +1,7 @@
 "use server";
 
 import { trackActivityLog } from "@/lib/api/activity-log/track-activity-log";
+import { DubApiError } from "@/lib/api/errors";
 import { resolveFraudGroups } from "@/lib/api/fraud/resolve-fraud-groups";
 import { queuePartnerSearchSync } from "@/lib/api/partners/queue-partner-search-sync";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
@@ -17,7 +18,14 @@ import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
 import { throwIfNoPermission } from "../throw-if-no-permission";
 
-// Reject a list of pending partners
+// Only these enrollments are rejected along with the application. Any other
+// status (approved, banned, deactivated, ...) is left untouched.
+const ENROLLMENT_STATUSES_TO_REJECT: ProgramEnrollmentStatus[] = [
+  ProgramEnrollmentStatus.pending,
+  ProgramEnrollmentStatus.rejected,
+];
+
+// Reject the pending program application of each partner
 export const bulkRejectProgramApplicationsAction = authActionClient
   .inputSchema(bulkRejectProgramApplicationsSchema)
   .action(async ({ parsedInput, ctx }) => {
@@ -31,38 +39,147 @@ export const bulkRejectProgramApplicationsAction = authActionClient
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    const programEnrollments = await prisma.programEnrollment.findMany({
-      where: {
-        programId,
-        status: "pending",
-        partnerId: {
-          in: partnerIds,
-        },
-      },
-      select: {
-        id: true,
-        applicationId: true,
-        partner: true,
-      },
-    });
+    // A partner has at most one pending application per program
+    const [program, programApplications, programEnrollments] =
+      await Promise.all([
+        prisma.program.findUniqueOrThrow({
+          where: {
+            id: programId,
+          },
+          select: {
+            name: true,
+            slug: true,
+            supportEmail: true,
+          },
+        }),
 
-    if (programEnrollments.length === 0) {
-      return;
+        prisma.programApplication.findMany({
+          where: {
+            programId,
+            partnerId: {
+              in: partnerIds,
+            },
+            status: ProgramApplicationStatus.pending,
+          },
+          select: {
+            id: true,
+            partnerId: true,
+            partner: {
+              select: {
+                name: true,
+                email: true,
+              },
+            },
+          },
+        }),
+
+        prisma.programEnrollment.findMany({
+          where: {
+            programId,
+            partnerId: {
+              in: partnerIds,
+            },
+          },
+          select: {
+            id: true,
+            partnerId: true,
+            status: true,
+          },
+        }),
+      ]);
+
+    if (programApplications.length === 0) {
+      throw new DubApiError({
+        code: "bad_request",
+        message: "No pending applications found.",
+      });
     }
 
-    const reviewedAt = new Date();
+    const enrollmentsByPartnerId = new Map(
+      programEnrollments.map((enrollment) => [
+        enrollment.partnerId,
+        enrollment,
+      ]),
+    );
 
-    const rejectedEnrollmentIds = await prisma.$transaction(async (tx) => {
-      const transitionedIds = new Set<string>();
+    // Every pending application is rejected. Approved partners are applying to
+    // join another group, and banned/deactivated/archived partners were already
+    // removed, so their enrollment is left untouched
+    const reviews = programApplications.map((application) => {
+      const enrollment = enrollmentsByPartnerId.get(application.partnerId!);
 
-      for (const { id } of programEnrollments) {
-        const { count } = await tx.programEnrollment.updateMany({
+      const isNewApplication =
+        !enrollment ||
+        ENROLLMENT_STATUSES_TO_REJECT.includes(enrollment.status);
+
+      const isApplyingToAdditionalGroup =
+        enrollment?.status === ProgramEnrollmentStatus.approved;
+
+      // Partners removed from the program are not emailed
+      const shouldEmailPartner =
+        isNewApplication || isApplyingToAdditionalGroup;
+
+      return {
+        application,
+        partnerId: application.partnerId!,
+        enrollmentToReject: isNewApplication ? enrollment : undefined,
+        isNewApplication,
+        isApplyingToAdditionalGroup,
+        shouldEmailPartner,
+      };
+    });
+
+    const enrollmentIdsToReject = reviews.flatMap(({ enrollmentToReject }) =>
+      enrollmentToReject ? [enrollmentToReject.id] : [],
+    );
+
+    const newApplicationPartnerIds = reviews
+      .filter(({ isNewApplication }) => isNewApplication)
+      .map(({ partnerId }) => partnerId);
+
+    await prisma.$transaction(async (tx) => {
+      const { count: rejectedApplicationsCount } =
+        await tx.programApplication.updateMany({
           where: {
-            id,
-            status: ProgramEnrollmentStatus.pending,
+            id: {
+              in: reviews.map(({ application }) => application.id),
+            },
+            status: ProgramApplicationStatus.pending,
+          },
+          data: {
+            status: ProgramApplicationStatus.rejected,
+            reviewedAt: new Date(),
+            rejectionReason: null,
+            rejectionNote: null,
+            userId: user.id,
+          },
+        });
+
+      if (rejectedApplicationsCount !== reviews.length) {
+        throw new DubApiError({
+          code: "conflict",
+          message:
+            "Some of the selected applications were already reviewed. Refresh and try again.",
+        });
+      }
+
+      if (enrollmentIdsToReject.length === 0) {
+        return;
+      }
+
+      const { count: rejectedEnrollmentsCount } =
+        await tx.programEnrollment.updateMany({
+          where: {
+            id: {
+              in: enrollmentIdsToReject,
+            },
+            status: {
+              in: ENROLLMENT_STATUSES_TO_REJECT,
+            },
           },
           data: {
             status: ProgramEnrollmentStatus.rejected,
+            reapplicationTimeframe: "standard",
             clickRewardId: null,
             leadRewardId: null,
             saleRewardId: null,
@@ -72,129 +189,103 @@ export const bulkRejectProgramApplicationsAction = authActionClient
           },
         });
 
-        if (count > 0) {
-          transitionedIds.add(id);
-        }
-      }
-
-      const applicationIds = programEnrollments
-        .filter(({ id }) => transitionedIds.has(id))
-        .map(({ applicationId }) => applicationId)
-        .filter((id): id is string => Boolean(id));
-
-      if (applicationIds.length > 0) {
-        await tx.programApplication.updateMany({
-          where: {
-            id: {
-              in: applicationIds,
-            },
-          },
-          data: {
-            status: ProgramApplicationStatus.rejected,
-            reviewedAt,
-            rejectionReason: null,
-            rejectionNote: null,
-            userId: user.id,
-          },
+      if (rejectedEnrollmentsCount !== enrollmentIdsToReject.length) {
+        throw new DubApiError({
+          code: "conflict",
+          message:
+            "Some of the selected partners changed status. Refresh and try again.",
         });
       }
-
-      return transitionedIds;
     });
-
-    // Find the rejected enrollments
-    const rejectedEnrollments = programEnrollments.filter(({ id }) =>
-      rejectedEnrollmentIds.has(id),
-    );
-
-    if (rejectedEnrollments.length === 0) {
-      return;
-    }
 
     waitUntil(
       (async () => {
         await Promise.allSettled([
           // Queue an index update because the enrollment statuses moved to rejected
           queuePartnerSearchSync({
-            enrollmentIds: rejectedEnrollments.map(({ id }) => id),
+            enrollmentIds: enrollmentIdsToReject,
           }),
 
           trackActivityLog(
-            rejectedEnrollments.map(({ partner }) => ({
+            reviews.map(({ partnerId }) => ({
               workspaceId: workspace.id,
               programId,
               resourceType: "partner",
-              resourceId: partner.id,
+              resourceId: partnerId,
               userId: user.id,
               action: "partner_application.rejected",
               changeSet: {
                 status: {
-                  old: "pending",
-                  new: "rejected",
+                  old: ProgramApplicationStatus.pending,
+                  new: ProgramApplicationStatus.rejected,
                 },
               },
             })),
           ),
 
-          resolveFraudGroups({
-            where: {
-              programEnrollment: {
-                id: {
-                  in: rejectedEnrollments.map(({ id }) => id),
+          newApplicationPartnerIds.length > 0 &&
+            resolveFraudGroups({
+              where: {
+                programId,
+                partnerId: {
+                  in: newApplicationPartnerIds,
                 },
               },
-            },
-            userId: user.id,
-            resolutionReason:
-              "Resolved automatically because the partner application was rejected.",
-          }),
+              userId: user.id,
+              resolutionReason:
+                "Resolved automatically because the partner application was rejected.",
+            }),
 
           trackApplicationEvents({
             event: "rejected",
             programId,
-            partnerIds: rejectedEnrollments.map(({ partner }) => partner.id),
+            partnerIds: newApplicationPartnerIds,
           }),
         ]);
 
-        const program = await prisma.program.findUniqueOrThrow({
-          where: {
-            id: programId,
-          },
-          select: {
-            name: true,
-            slug: true,
-            supportEmail: true,
-          },
-        });
+        const emails = reviews.flatMap(
+          ({
+            application: { partner },
+            isApplyingToAdditionalGroup,
+            shouldEmailPartner,
+          }) =>
+            partner?.email && shouldEmailPartner
+              ? [
+                  {
+                    to: partner.email,
+                    subject: isApplyingToAdditionalGroup
+                      ? `Your request to join a new group in ${program.name} was not approved`
+                      : `Your application to ${program.name} was not approved`,
+                    variant: "notifications" as const,
+                    replyTo: program.supportEmail || "noreply",
+                    react: ProgramApplicationRejected({
+                      partner: {
+                        name: partner.name ?? "there",
+                        email: partner.email,
+                      },
+                      program: {
+                        name: program.name,
+                        slug: program.slug,
+                        supportEmail: program.supportEmail ?? undefined,
+                      },
+                      isApplyingToAdditionalGroup,
+                      rejectionReason: undefined,
+                      additionalNotes: undefined,
+                      reapplicationTimeframe: "standard",
+                    }),
+                  },
+                ]
+              : [],
+        );
 
-        const partnersWithEmail = rejectedEnrollments
-          .filter(({ partner }) => partner.email)
-          .map(({ partner }) => partner);
-
-        if (partnersWithEmail.length > 0) {
-          await sendBatchEmail(
-            partnersWithEmail.map((partner) => ({
-              to: partner.email!,
-              subject: `Your application to ${program.name} was not approved`,
-              variant: "notifications",
-              replyTo: program.supportEmail || "noreply",
-              react: ProgramApplicationRejected({
-                partner: {
-                  name: partner.name ?? "there",
-                  email: partner.email!,
-                },
-                program: {
-                  name: program.name,
-                  slug: program.slug,
-                  supportEmail: program.supportEmail ?? undefined,
-                },
-                rejectionReason: undefined,
-                additionalNotes: undefined,
-                reapplicationTimeframe: "standard",
-              }),
-            })),
-          );
+        if (emails.length > 0) {
+          await sendBatchEmail(emails);
         }
       })(),
     );
+
+    return {
+      rejectedCount: reviews.length,
+      skippedCount: partnerIds.length - reviews.length,
+    };
   });

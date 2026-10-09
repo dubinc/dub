@@ -14,6 +14,7 @@ import {
   PartnerPlatformsForm,
   usePartnerPlatformsForm,
 } from "@/ui/partners/partner-platforms-form";
+import { useCountryChangeWarningModal } from "@/ui/partners/use-country-change-warning-modal";
 import { CustomToast } from "@/ui/shared/custom-toast";
 import {
   Button,
@@ -307,6 +308,9 @@ function BasicInfoForm({
     pendingSubmitRef.current = null;
   };
 
+  const { modal: countryChangeWarningModal, acknowledgeAndContinue } =
+    useCountryChangeWarningModal();
+
   const { setShowModal: setShowConfirmModal, confirmModal } =
     useIdentitySyncConfirmModal({
       title: "Also update your user account?",
@@ -328,6 +332,7 @@ function BasicInfoForm({
 
   return (
     <>
+      {countryChangeWarningModal}
       {confirmModal}
       <form
         ref={formRef}
@@ -341,6 +346,19 @@ function BasicInfoForm({
           onSubmitAction();
         }}
         onSubmit={handleSubmit(async (data) => {
+          if (partner?.country === "US" && data.country !== partner.country) {
+            const acknowledged = await new Promise<boolean>((resolve) => {
+              acknowledgeAndContinue(
+                () => resolve(true),
+                () => resolve(false),
+              );
+            });
+
+            if (!acknowledged) {
+              return;
+            }
+          }
+
           const imageChanged = data.image !== partner?.image;
           const syncCandidates = getProfileSyncCandidates({
             data,
@@ -503,12 +521,16 @@ function BasicInfoForm({
                   value={field.value || ""}
                   onChange={field.onChange}
                   disabledTooltip={
-                    <TooltipContent
-                      title="Your profile country is based on your current location and cannot be changed. If you need to update your country, please contact support."
-                      cta="Contact support"
-                      href="https://dub.co/support"
-                      target="_blank"
-                    />
+                    partner?.country !== "US" ? (
+                      <TooltipContent
+                        title="Your profile country is based on your current location and cannot be changed. If you need to update your country, please contact support."
+                        cta="Contact support"
+                        href="https://dub.co/support"
+                        target="_blank"
+                      />
+                    ) : disabled ? (
+                      <TooltipContent title="You don't have permission to update this field" />
+                    ) : undefined
                   }
                 />
               )}

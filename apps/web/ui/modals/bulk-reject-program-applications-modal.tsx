@@ -30,14 +30,17 @@ function BulkRejectProgramApplicationsModal({
   const { executeAsync, isPending } = useAction(
     bulkRejectProgramApplicationsAction,
     {
-      onSuccess: async () => {
+      onSuccess: async ({ data }) => {
         setShowBulkRejectProgramApplicationsModal(false);
         await mutatePrefix([
           "/api/partners",
           "/api/partners/count",
           "/api/program-applications",
         ]);
-        toast.success(`${pluralize("Partner", partners.length)} rejected.`);
+        const { rejectedCount, skippedCount } = data;
+        toast.success(
+          `${rejectedCount} ${pluralize("partner", rejectedCount)} rejected.${skippedCount > 0 ? ` ${skippedCount} skipped because ${pluralize("it was", skippedCount, { plural: "they were" })} already reviewed.` : ""}`,
+        );
       },
       onError({ error }) {
         toast.error(error.serverError);

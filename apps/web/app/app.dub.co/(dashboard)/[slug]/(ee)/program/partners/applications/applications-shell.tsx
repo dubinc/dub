@@ -74,7 +74,7 @@ export function ApplicationsShell({ children }: { children: ReactNode }) {
                   text={isMobile ? undefined : "View Analytics"}
                 />
               </Link>
-              <ApplicationsMenuPopover />
+              <ApplicationsMenuPopover status={status} />
             </div>
           </div>
         </div>

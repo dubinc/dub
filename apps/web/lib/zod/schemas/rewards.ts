@@ -478,7 +478,7 @@ export const RewardSchema = z.object({
 });
 
 export const REWARD_DESCRIPTION_MAX_LENGTH = 100;
-export const REWARD_TOOLTIP_DESCRIPTION_MAX_LENGTH = 2000;
+export const REWARD_TOOLTIP_DESCRIPTION_MAX_LENGTH = 5000;
 export const REWARD_CHANGE_DESCRIPTION_MAX_LENGTH = 240;
 
 export const rewardActivityDescriptionSchema = z.object({

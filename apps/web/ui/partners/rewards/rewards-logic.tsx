@@ -9,7 +9,6 @@ import {
   suggestionTouchesField,
 } from "@/lib/rewards/validate-tooltip-suggestion";
 import useIntegrations from "@/lib/swr/use-integrations";
-import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { RECURRING_MAX_DURATIONS } from "@/lib/zod/schemas/misc";
 import {
@@ -391,8 +390,7 @@ function ConditionLogic({
   conditionIndex: number;
   onRemove?: () => void;
 }) {
-  const { slug: workspaceSlug } = useWorkspace();
-  const { program } = useProgram();
+  const { slug: workspaceSlug, flags } = useWorkspace();
   const { integrations } = useIntegrations({
     swrOpts: {
       dedupingInterval: 2000,
@@ -833,7 +831,8 @@ function ConditionLogic({
                                   isCustomerSourceCondition
                                     ? getCustomerSourceAvailability({
                                         source: id,
-                                        programId: program?.id,
+                                        submittedLeadsEnabled:
+                                          flags?.submittedLeads,
                                         installedIntegrationIds:
                                           integrations?.map(({ id }) => id),
                                       })
