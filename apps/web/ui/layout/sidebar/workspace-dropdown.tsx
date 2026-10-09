@@ -7,7 +7,13 @@ import useWorkspaces from "@/lib/swr/use-workspaces";
 import { PlanProps, WorkspaceProps } from "@/lib/types";
 import { ModalContext } from "@/ui/modals/modal-provider";
 import { getUserAvatarUrl } from "@/ui/users/user-avatar";
-import { BlurImage, Popover, ScrollContainer, StatusBadge } from "@dub/ui";
+import {
+  BlurImage,
+  Popover,
+  ScrollContainer,
+  StatusBadge,
+  Tooltip,
+} from "@dub/ui";
 import { Check2, Gear, Plus, UserPlus } from "@dub/ui/icons";
 import { cn, isLegacyBusinessPlan, pluralize } from "@dub/utils";
 import { useSession } from "next-auth/react";
@@ -156,6 +162,7 @@ function WorkspaceList({
   );
 
   const current = workspaces.find((w) => w.slug === selected.slug);
+  const inviteMembersRestricted = isStagingEnvironment(current?.environment);
   const activeSlug =
     current && isStagingEnvironment(current.environment)
       ? workspaces.find((w) => w.stagingWorkspaceId === current.id)?.slug ??
@@ -217,16 +224,27 @@ function WorkspaceList({
             <Gear className="size-4 text-neutral-800" />
             <span className="block truncate text-sm">Settings</span>
           </Link>
-          {selected.slug && !isStagingEnvironment(current?.environment) && (
-            <Link
-              href={`/${selected.slug}/settings/people`}
-              className="flex items-center justify-start gap-x-2 rounded-lg border border-neutral-200 px-2 py-1 text-neutral-700 outline-none transition-all duration-75 hover:bg-neutral-100/50 focus-visible:ring-2 focus-visible:ring-black/50 active:bg-neutral-200/80"
-              onClick={() => setOpenPopover(false)}
-            >
-              <UserPlus className="size-4 text-neutral-800" />
-              <span className="block truncate text-sm">Invite members</span>
-            </Link>
-          )}
+          {selected.slug &&
+            (inviteMembersRestricted ? (
+              <Tooltip content="Teammates can only be invited from your production workspace (members are automatically synced to staging).">
+                <div
+                  className="flex cursor-not-allowed items-center justify-start gap-x-2 rounded-lg border border-neutral-200 px-2 py-1 text-neutral-400 outline-none"
+                  aria-disabled="true"
+                >
+                  <UserPlus className="size-4" />
+                  <span className="block truncate text-sm">Invite members</span>
+                </div>
+              </Tooltip>
+            ) : (
+              <Link
+                href={`/${selected.slug}/settings/people`}
+                className="flex items-center justify-start gap-x-2 rounded-lg border border-neutral-200 px-2 py-1 text-neutral-700 outline-none transition-all duration-75 hover:bg-neutral-100/50 focus-visible:ring-2 focus-visible:ring-black/50 active:bg-neutral-200/80"
+                onClick={() => setOpenPopover(false)}
+              >
+                <UserPlus className="size-4 text-neutral-800" />
+                <span className="block truncate text-sm">Invite members</span>
+              </Link>
+            ))}
         </div>
 
         <WorkspaceEnvironmentSwitcher
