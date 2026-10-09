@@ -1,6 +1,7 @@
 import "dotenv-flow/config";
 
 import { prisma } from "@/lib/prisma";
+import { Prisma } from "@prisma/client";
 
 const BATCH_SIZE = 1000;
 
@@ -58,24 +59,51 @@ async function main() {
   // A password reset or change that commits in between updates only User, because
   // the credential account does not exist yet, so the inserted row keeps the old hash.
   // Reruns skip users that already have a credential account and cannot repair it.
-  // This statement reads passwordHash at write time and overwrites any credential
+  // Each batch update reads passwordHash at write time and overwrites any credential
   // account whose password or accountId no longer matches the user.
-  const reconciled = await prisma.$executeRaw`
-    UPDATE Account a
-    INNER JOIN User u ON u.id = a.userId
-    SET
-      a.accountId = u.id,
-      a.password = u.passwordHash
-    WHERE
-      a.providerId = 'credential'
-      AND u.passwordHash IS NOT NULL
-      AND (
-        a.accountId IS NULL
-        OR a.accountId != u.id
-        OR a.password IS NULL
-        OR a.password != u.passwordHash
-      )
-  `;
+  let cursor = "";
+  let reconciled = 0;
+
+  while (true) {
+    const accounts = await prisma.account.findMany({
+      where: {
+        providerId: "credential",
+        id: {
+          gt: cursor,
+        },
+      },
+      select: {
+        id: true,
+      },
+      orderBy: {
+        id: "asc",
+      },
+      take: BATCH_SIZE,
+    });
+
+    if (accounts.length === 0) {
+      break;
+    }
+
+    reconciled += await prisma.$executeRaw`
+      UPDATE Account a
+      INNER JOIN User u ON u.id = a.userId
+      SET
+        a.accountId = u.id,
+        a.password = u.passwordHash
+      WHERE
+        a.id IN (${Prisma.join(accounts.map(({ id }) => id))})
+        AND u.passwordHash IS NOT NULL
+        AND (
+          a.accountId IS NULL
+          OR a.accountId != u.id
+          OR a.password IS NULL
+          OR a.password != u.passwordHash
+        )
+    `;
+
+    cursor = accounts[accounts.length - 1].id;
+  }
 
   console.log(`Reconciled ${reconciled} credentials.`);
 }
