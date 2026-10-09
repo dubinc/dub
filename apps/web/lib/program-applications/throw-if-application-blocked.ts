@@ -10,8 +10,9 @@ import { addDays } from "date-fns";
  * Throws if the partner's existing enrollment prevents a new application to `groupId`.
  *
  * Approved partners applying to another group are held to the stored
- * `reapplicationTimeframe`, measured from `rejectedAt` (the latest rejected
- * application's `reviewedAt`). Omit `rejectedAt` to skip that window.
+ * `reapplicationTimeframe`, measured from `rejectedAt` (the `reviewedAt` of the
+ * latest application reviewed since enrollment, if it was rejected). Omit
+ * `rejectedAt` to skip that window.
  */
 export function throwIfApplicationBlocked({
   enrollment,
