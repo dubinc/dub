@@ -108,7 +108,13 @@ export function PartnersDashboardPageClient() {
         />
         <div className="border-border-subtle -mx-px -mb-px overflow-clip rounded-xl border bg-white">
           {tab ? (
-            <ProgramsTabContent tab={tab} search={search} view={view} />
+            <ProgramsTabContent
+              tab={tab}
+              search={search}
+              view={view}
+              tabCount={getTabCount(tab)}
+              statusCountsFailed={!!statusCountsError}
+            />
           ) : (
             <ProgramsGridSkeleton />
           )}
@@ -122,22 +128,37 @@ function ProgramsTabContent({
   tab,
   search,
   view,
+  tabCount,
+  statusCountsFailed,
 }: {
   tab: ProgramTab;
   search?: string;
   view: ProgramsView;
+  tabCount?: number;
+  statusCountsFailed: boolean;
 }) {
-  const { count } = useProgramEnrollmentsCount({
-    status: tab.statuses.join(","),
-    search,
-  });
+  // without a search, the status counts already give the count of the tab
+  const needsCountRequest = !!search || statusCountsFailed;
+
+  const { count: requestedCount, error: countError } =
+    useProgramEnrollmentsCount(
+      { status: tab.statuses.join(","), search },
+      { enabled: needsCountRequest },
+    );
+
+  const count = needsCountRequest ? requestedCount : tabCount;
 
   if (count === 0) {
     return <ProgramsEmptyState tab={tab} search={search} />;
   }
 
   return view === "table" ? (
-    <ProgramsTable tab={tab} search={search} />
+    <ProgramsTable
+      tab={tab}
+      search={search}
+      count={count}
+      countError={countError}
+    />
   ) : (
     <ProgramsGrid tab={tab} search={search} />
   );

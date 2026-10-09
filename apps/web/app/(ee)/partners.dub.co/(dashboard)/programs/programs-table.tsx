@@ -3,7 +3,6 @@
 import { constructPartnerLink } from "@/lib/partners/construct-partner-link";
 import { usePartnerProgramActivity } from "@/lib/swr/use-partner-profile-earnings";
 import useProgramEnrollments from "@/lib/swr/use-program-enrollments";
-import useProgramEnrollmentsCount from "@/lib/swr/use-program-enrollments-count";
 import { ProgramEnrollmentProps } from "@/lib/types";
 import { PartnerStatusBadges } from "@/ui/partners/partner-status-badges";
 import { ProgramInviteActions } from "@/ui/partners/program-invite-actions";
@@ -32,9 +31,14 @@ type ProgramColumn = ColumnDef<ProgramEnrollmentProps>;
 export function ProgramsTable({
   tab,
   search,
+  count,
+  countError,
 }: {
   tab: ProgramTab;
   search?: string;
+  // the page gets the count, from the status counts or a count request
+  count?: number;
+  countError?: unknown;
 }) {
   const router = useRouter();
   const { searchParams, queryParams } = useRouterStuff();
@@ -53,11 +57,6 @@ export function ProgramsTable({
     sortOrder,
     page: pagination.pageIndex,
     pageSize: pagination.pageSize,
-  });
-
-  const { count, error: countError } = useProgramEnrollmentsCount({
-    status,
-    search,
   });
 
   const columns = useMemo(() => getColumns(tab), [tab]);

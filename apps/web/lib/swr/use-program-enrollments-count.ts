@@ -9,6 +9,7 @@ export default function useProgramEnrollmentsCount(
     z.input<typeof partnerProfileProgramsCountQuerySchema>,
     "groupBy"
   > = {},
+  { enabled = true }: { enabled?: boolean } = {},
 ) {
   const { data: session } = useSession();
   const partnerId = session?.user?.["defaultPartnerId"];
@@ -18,7 +19,8 @@ export default function useProgramEnrollmentsCount(
     isLoading,
     error,
   } = useSWR<number>(
-    partnerId &&
+    enabled &&
+      partnerId &&
       `/api/partner-profile/programs/count?${new URLSearchParams(
         Object.entries(query).filter(
           (entry): entry is [string, string] => entry[1] !== undefined,
