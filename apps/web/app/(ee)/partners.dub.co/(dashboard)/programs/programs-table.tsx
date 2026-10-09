@@ -326,7 +326,9 @@ function ProgramActivity({
 
   return (
     <div className="h-6 w-36">
-      {data && <MiniAreaChart data={data} padding={{ top: 2, bottom: 2 }} />}
+      {data && (
+        <MiniAreaChart data={data} padding={{ top: 2, bottom: 2 }} fadeIn />
+      )}
     </div>
   );
 }
