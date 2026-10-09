@@ -4,7 +4,7 @@ import {
   ProgramEnrollmentStatus,
 } from "@prisma/client";
 import * as z from "zod/v4";
-import { getPaginationQuerySchema } from "./misc";
+import { getPaginationQuerySchema, planSchema } from "./misc";
 import { partnerProfileChangeHistoryLogSchema } from "./partner-profile";
 import {
   EnrolledPartnerSchemaExtended,
@@ -82,6 +82,32 @@ export const adminNetworkPartnerSchema = EnrolledPartnerSchemaExtended.pick({
       country: true,
     }),
   ),
+});
+
+export const ADMIN_RECENT_PROGRAMS_PAGE_SIZE = 100;
+
+export const adminRecentProgramsQuerySchema = z
+  .object({
+    plan: planSchema.optional(),
+  })
+  .extend(
+    getPaginationQuerySchema({ pageSize: ADMIN_RECENT_PROGRAMS_PAGE_SIZE }),
+  );
+
+export const adminRecentProgramSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  slug: z.string(),
+  logo: z.string().nullable(),
+  url: z.string().nullable(),
+  addedToMarketplaceAt: z.date().nullable(),
+  createdAt: z.date(),
+  workspace: z.object({
+    plan: z.string(),
+    stripeId: z.string(),
+  }),
+  partners: z.number(),
+  commissions: z.number(),
 });
 
 export const adminNetworkPartnerQuerySchema = z

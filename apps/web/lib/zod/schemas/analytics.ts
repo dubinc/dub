@@ -277,6 +277,15 @@ export const analyticsQuerySchema = z.object({
         "Examples: `qr`, `qr,link`, `-qr`. " +
         "If undefined, returns all trigger types.",
     ),
+  eventName: z
+    .string()
+    .optional()
+    .transform(parseFilterValue)
+    .describe(
+      "The conversion event name to retrieve analytics for. Only available for lead and sale events. " +
+        "Supports advanced filtering: single value, multiple values (comma-separated), or exclusion (prefix with `-`). " +
+        "Examples: `Sign up`, `Sign up,Purchase`, `-Sign up`.",
+    ),
   referer: z
     .string()
     .optional()

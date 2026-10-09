@@ -1,18 +1,22 @@
 import { useAttributeReferringPartnerModal } from "@/lib/partner-referrals/components/attribute-referring-partner-modal";
 import { usePartnerReferral } from "@/lib/partner-referrals/hooks/use-partner-referral";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
+import { PARTNER_LEVEL_REWARDS_PLAN_ERROR } from "@/lib/rewards/constants";
 import useGroup from "@/lib/swr/use-group";
+import { usePartnerRewards } from "@/lib/swr/use-partner-rewards";
 import useWorkspace from "@/lib/swr/use-workspace";
 import {
   AdminNetworkPartner,
   BountyListProps,
   EnrolledPartnerExtendedProps,
   NetworkPartnerProps,
-  RewardProps,
 } from "@/lib/types";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { INACTIVE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
 import { usePartnerEnrollmentHistorySheet } from "@/ui/activity-logs/partner-enrollment-history-sheet";
+import { useEditPartnerDiscountModal } from "@/ui/modals/edit-partner-discount-modal";
+import { useEditPartnerRewardModal } from "@/ui/modals/edit-partner-reward-modal";
+import { useAdvancedUpsellModal } from "@/ui/partners/advanced-upsell-modal";
 import {
   Button,
   CalendarIcon,
@@ -21,6 +25,7 @@ import {
   Heart,
   OfficeBuilding,
   TimestampTooltip,
+  TooltipContent,
   Trophy,
 } from "@dub/ui";
 import {
@@ -31,21 +36,22 @@ import {
 } from "@dub/ui/icons";
 import {
   COUNTRIES,
+  cn,
   fetcher,
   formatDate,
   formatDateTimeSmart,
 } from "@dub/utils";
 import { CircleMinus } from "lucide-react";
 import Link from "next/link";
-import { Fragment, ReactNode, createElement } from "react";
+import { Fragment, ReactNode, createElement, useState } from "react";
 import useSWR from "swr";
-import { PartnerApplicationRiskSummary } from "./fraud-risks/partner-application-risk-summary";
 import { PartnerNetworkActivitySummary } from "./fraud-risks/partner-network-activity-summary";
 import {
-  PartnerApplicationRiskBanner,
   PartnerRiskBanner,
+  ProgramApplicationRiskBanner,
 } from "./fraud-risks/partner-risk-banner";
 import { PartnerRiskIndicator } from "./fraud-risks/partner-risk-indicator";
+import { ProgramApplicationRiskSummary } from "./fraud-risks/program-application-risk-summary";
 import { PartnerAvatar } from "./partner-avatar";
 import { PartnerInfoGroup } from "./partner-info-group";
 import { PartnerNetworkStatusBadge } from "./partner-network/partner-network-status-badge";
@@ -62,7 +68,10 @@ import {
   useUpdatePartnerTagsModal,
 } from "./update-partner-tags-modal";
 
+const MAX_VISIBLE_BOUNTIES = 3;
+
 type PartnerInfoCardsProps = {
+  hideChangeGroupButton?: boolean;
   showFraudIndicator?: boolean;
   showApplicationRiskAnalysis?: boolean;
   controls?: ReactNode;
@@ -96,13 +105,20 @@ export function PartnerInfoCards({
   hideStatuses = [],
   selectedGroupId,
   setSelectedGroupId,
+  hideChangeGroupButton = false,
   showFraudIndicator = true,
   showApplicationRiskAnalysis = false,
 }: PartnerInfoCardsProps) {
   const { id: workspaceId, slug: workspaceSlug, plan } = useWorkspace();
 
-  const { canCreateReferralReward, canManageFraudEvents } =
-    getPlanCapabilities(plan);
+  const {
+    canCreateReferralReward,
+    canManageFraudEvents,
+    canUseAdvancedRewardLogic,
+  } = getPlanCapabilities(plan);
+
+  const { advancedUpsellModal, setShowAdvancedUpsellModal } =
+    useAdvancedUpsellModal();
 
   const isEnrolled = type === "enrolled" || type === undefined;
   const isNetwork = type === "network";
@@ -124,6 +140,34 @@ export function PartnerInfoCards({
     },
     { keepPreviousData: false },
   );
+
+  const enrolledPartner =
+    isEnrolled && partner ? (partner as EnrolledPartnerExtendedProps) : null;
+
+  const { rewards: displayedRewards, discount: displayedDiscount } =
+    usePartnerRewards({
+      partner: enrolledPartner,
+      group,
+    });
+
+  const [rewardEvent, setRewardEvent] = useState<"sale" | "lead" | "click">(
+    "sale",
+  );
+
+  const partnerRewardTarget = enrolledPartner
+    ? { type: "partner" as const, partner: enrolledPartner }
+    : null;
+
+  const { EditPartnerRewardModal, setShowEditPartnerRewardModal } =
+    useEditPartnerRewardModal({
+      event: rewardEvent,
+      target: partnerRewardTarget,
+    });
+
+  const { EditPartnerDiscountModal, setShowEditPartnerDiscountModal } =
+    useEditPartnerDiscountModal({
+      target: partnerRewardTarget,
+    });
 
   const { data: bounties, error: errorBounties } = useSWR<BountyListProps[]>(
     workspaceId && partner && isEnrolled
@@ -245,11 +289,14 @@ export function PartnerInfoCards({
 
   return (
     <div className="flex flex-col gap-4">
+      {advancedUpsellModal}
+      <EditPartnerRewardModal />
+      <EditPartnerDiscountModal />
       <div className="overflow-hidden rounded-xl bg-red-100">
         {partner &&
           isEnrolled &&
           (partner.status === "pending" ? (
-            <PartnerApplicationRiskBanner partner={partner} />
+            <ProgramApplicationRiskBanner partner={partner} />
           ) : (
             <PartnerRiskBanner partner={partner} />
           ))}
@@ -373,7 +420,7 @@ export function PartnerInfoCards({
           {isEnrolled && partner && <TagsList partner={partner} />}
 
           {partner && isEnrolled && showApplicationRiskAnalysis && (
-            <PartnerApplicationRiskSummary partner={partner} />
+            <ProgramApplicationRiskSummary partner={partner} />
           )}
           {partner &&
             isEnrolled &&
@@ -416,8 +463,9 @@ export function PartnerInfoCards({
                 partner={partner}
                 changeButtonText="Change"
                 hideChangeButton={
-                  "status" in partner &&
-                  INACTIVE_ENROLLMENT_STATUSES.includes(partner.status)
+                  hideChangeGroupButton ||
+                  ("status" in partner &&
+                    INACTIVE_ENROLLMENT_STATUSES.includes(partner.status))
                 }
                 className="rounded-lg bg-white shadow-sm"
                 selectedGroupId={selectedGroupId}
@@ -436,21 +484,35 @@ export function PartnerInfoCards({
                   Rewards
                 </h3>
                 {group ? (
-                  group.clickReward ||
-                  group.leadReward ||
-                  group.saleReward ||
-                  group.discount ? (
+                  displayedRewards.length > 0 || displayedDiscount ? (
                     <ProgramRewardList
-                      rewards={[
-                        group.clickReward,
-                        group.leadReward,
-                        group.saleReward,
-                        group.referralReward,
-                      ].filter((r): r is RewardProps => r !== null)}
-                      discount={group.discount}
+                      rewards={displayedRewards}
+                      discount={displayedDiscount}
                       variant="plain"
                       className="text-content-subtle gap-2 text-xs leading-4"
                       iconClassName="size-3.5"
+                      editDisabledTooltip={
+                        !canUseAdvancedRewardLogic ? (
+                          <TooltipContent
+                            title={PARTNER_LEVEL_REWARDS_PLAN_ERROR}
+                            cta="Upgrade to Advanced"
+                            onClick={() => setShowAdvancedUpsellModal(true)}
+                          />
+                        ) : undefined
+                      }
+                      onEditReward={(reward) => {
+                        if (
+                          reward.event === "sale" ||
+                          reward.event === "lead" ||
+                          reward.event === "click"
+                        ) {
+                          setRewardEvent(reward.event);
+                          setShowEditPartnerRewardModal(true);
+                        }
+                      }}
+                      onEditDiscount={() => {
+                        setShowEditPartnerDiscountModal(true);
+                      }}
                     />
                   ) : (
                     <span className="text-content-subtle text-xs">
@@ -462,47 +524,78 @@ export function PartnerInfoCards({
                 )}
               </div>
               {/* Eligible bounties */}
-              <div className="flex flex-col gap-2">
-                <h3 className="text-content-emphasis text-sm font-semibold">
-                  Eligible Bounties
-                </h3>
-                {bounties ? (
-                  bounties.length ? (
-                    <div className="flex flex-col gap-2">
-                      {bounties.map((bounty) => {
-                        const Icon =
-                          bounty.type === "performance" ? Trophy : Heart;
-                        return (
-                          <Link
-                            key={bounty.id}
-                            target="_blank"
-                            href={`/${workspaceSlug}/program/bounties/${bounty.id}`}
-                            className="text-content-subtle flex cursor-alias items-center gap-2 decoration-dotted underline-offset-2 hover:underline"
-                          >
-                            <Icon className="size-3.5 shrink-0" />
-                            <span className="text-xs font-medium">
-                              {bounty.name}
-                            </span>
-                          </Link>
-                        );
-                      })}
-                    </div>
-                  ) : (
-                    <p className="text-content-subtle text-xs">
-                      No eligible bounties
-                    </p>
-                  )
-                ) : errorBounties ? (
-                  <p className="text-content-subtle text-xs">
-                    Failed to load bounties
-                  </p>
-                ) : (
-                  <div className="h-4 w-24 animate-pulse rounded bg-neutral-200" />
-                )}
-              </div>
+              <EligibleBounties
+                bounties={bounties}
+                errorBounties={errorBounties}
+                workspaceSlug={workspaceSlug}
+              />
             </>
           )}
         </div>
+      )}
+    </div>
+  );
+}
+
+function EligibleBounties({
+  bounties,
+  errorBounties,
+  workspaceSlug,
+}: {
+  bounties: BountyListProps[] | undefined;
+  errorBounties: unknown;
+  workspaceSlug: string | undefined;
+}) {
+  const [showAllBounties, setShowAllBounties] = useState(false);
+  const shouldCollapseBounties = (bounties?.length ?? 0) > MAX_VISIBLE_BOUNTIES;
+
+  return (
+    <div className="flex flex-col gap-2">
+      <h3 className="text-content-emphasis text-sm font-semibold">
+        Eligible Bounties
+      </h3>
+      {bounties ? (
+        bounties.length ? (
+          <div>
+            <div className="flex flex-col gap-2">
+              {(shouldCollapseBounties && !showAllBounties
+                ? bounties.slice(0, MAX_VISIBLE_BOUNTIES)
+                : bounties
+              ).map((bounty) => {
+                const Icon = bounty.type === "performance" ? Trophy : Heart;
+                return (
+                  <Link
+                    key={bounty.id}
+                    target="_blank"
+                    href={`/${workspaceSlug}/program/bounties/${bounty.id}`}
+                    className="text-content-subtle flex cursor-alias items-center gap-2 decoration-dotted underline-offset-2 hover:underline"
+                  >
+                    <Icon className="size-3.5 shrink-0" />
+                    <span className="text-xs font-medium">{bounty.name}</span>
+                  </Link>
+                );
+              })}
+            </div>
+            {shouldCollapseBounties && (
+              <button
+                type="button"
+                className={cn(
+                  "mt-3 flex h-6 w-fit items-center justify-center rounded-md px-1.5 text-xs font-medium tracking-[-0.02em] text-neutral-900 transition-colors",
+                  "bg-neutral-200/50 hover:bg-neutral-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-300",
+                )}
+                onClick={() => setShowAllBounties((current) => !current)}
+              >
+                {showAllBounties ? "View less bounties" : "View all bounties"}
+              </button>
+            )}
+          </div>
+        ) : (
+          <p className="text-content-subtle text-xs">No eligible bounties</p>
+        )
+      ) : errorBounties ? (
+        <p className="text-content-subtle text-xs">Failed to load bounties</p>
+      ) : (
+        <div className="h-4 w-24 animate-pulse rounded bg-neutral-200" />
       )}
     </div>
   );

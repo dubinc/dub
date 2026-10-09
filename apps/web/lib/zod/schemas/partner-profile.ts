@@ -23,9 +23,12 @@ import {
 } from "./commissions";
 import { customerActivityResponseSchema } from "./customer-activity";
 import { CustomerEnrichedSchema } from "./customers";
+import { DiscountSchema } from "./discount";
 import { LinkSchema } from "./links";
 import { getPaginationQuerySchema } from "./misc";
 import { payoutsQuerySchema } from "./payouts";
+import { ProgramSchema } from "./programs";
+import { RewardSchema } from "./rewards";
 import { submittedLeadFormDataSchema } from "./submitted-lead-form";
 import { centsSchema, parseUrlSchema } from "./utils";
 
@@ -55,7 +58,9 @@ export const PartnerEarningsSchema = CommissionSchema.omit({
 export const getPartnerEarningsQuerySchema = getCommissionsQuerySchema
   .omit({
     partnerId: true,
+    bountySubmissionId: true,
     sortBy: true,
+    query: true,
   })
   .extend({
     interval: z
@@ -71,6 +76,8 @@ export const getPartnerEarningsQuerySchema = getCommissionsQuerySchema
 export const getPartnerEarningsCountQuerySchema = getCommissionsCountQuerySchema
   .omit({
     partnerId: true,
+    bountySubmissionId: true,
+    query: true,
   })
   .extend({
     interval: z
@@ -113,6 +120,92 @@ export const createPartnerProfileLinkSchema = z.object({
 export const updatePartnerProfileLinkSchema =
   createPartnerProfileLinkSchema.partial();
 
+const programIdOrSlugSchema = z
+  .string()
+  .optional()
+  .describe(
+    "The ID or slug of the program to filter earnings by. If not provided, earnings across all programs are returned.",
+  );
+
+const PartnerProfileEarningsProgramSchema = ProgramSchema.pick({
+  id: true,
+  name: true,
+  slug: true,
+  logo: true,
+});
+
+export const PartnerProfileEarningsSchema = PartnerEarningsSchema.extend({
+  program: PartnerProfileEarningsProgramSchema,
+});
+
+export const partnerProfileEarningsQuerySchema =
+  getPartnerEarningsQuerySchema.extend({
+    programIdOrSlug: programIdOrSlugSchema,
+  });
+
+export const partnerProfileEarningsCountQuerySchema =
+  getPartnerEarningsCountQuerySchema.extend({
+    programIdOrSlug: programIdOrSlugSchema,
+  });
+
+export const partnerProfileEarningsTimeseriesQuerySchema =
+  getPartnerEarningsTimeseriesSchema.extend({
+    programIdOrSlug: programIdOrSlugSchema,
+    groupBy: z
+      .enum(["type", "linkId", "programId"])
+      .optional()
+      .describe(
+        "The field to group the earnings by. If omitted, each period is the total earnings. Otherwise each period includes a `data` object with the earnings of each group.",
+      ),
+  });
+
+export const partnerProfileEarningsAnalyticsQuerySchema =
+  partnerProfileEarningsCountQuerySchema
+    .pick({
+      programIdOrSlug: true,
+      type: true,
+      status: true,
+      interval: true,
+      start: true,
+      end: true,
+      timezone: true,
+    })
+    .extend({
+      groupBy: z
+        .enum(["programId", "linkId", "type"])
+        .describe(
+          "The field to sum earnings by. Returns the highest-earning programs, links, or commission types.",
+        ),
+      limit: z.coerce
+        .number()
+        .int()
+        .min(1)
+        .max(100)
+        .default(10)
+        .describe("The number of groups to return, sorted by earnings."),
+    });
+
+export const PartnerProfileTopProgramEarningsSchema =
+  PartnerProfileEarningsProgramSchema.extend({
+    earnings: z.number(),
+  });
+
+export const PartnerProfileTopLinkEarningsSchema = LinkSchema.pick({
+  id: true,
+  domain: true,
+  key: true,
+  shortLink: true,
+  url: true,
+}).extend({
+  program: PartnerProfileEarningsProgramSchema,
+  earnings: z.number(),
+});
+
+export const PartnerProfileTypeEarningsSchema = z.object({
+  type: z.enum(CommissionType),
+  earnings: z.number(),
+});
+
 export const PartnerProfileLinkSchema = LinkSchema.pick({
   id: true,
   domain: true,
@@ -128,6 +221,10 @@ export const PartnerProfileLinkSchema = LinkSchema.pick({
   partnerLinkComments: z.string().nullish().default(null),
   createdAt: z.string().or(z.date()),
   partnerGroupDefaultLinkId: z.string().nullish(),
+  clickReward: RewardSchema.nullable().default(null),
+  leadReward: RewardSchema.nullable().default(null),
+  saleReward: RewardSchema.nullable().default(null),
+  discount: DiscountSchema.nullable().default(null),
   discountCode: z.string().nullable().default(null),
   discountCodeDisabledAt: z.coerce.date().nullable().default(null),
 });
@@ -193,14 +290,18 @@ export const partnerNotificationTypes = z.enum([
 ]);
 
 export const partnerBountySubmissionSchema = BountySubmissionSchema.extend({
-  commission: PartnerEarningsSchema.pick({
-    id: true,
-    earnings: true,
-    status: true,
-    createdAt: true,
-  })
-    .nullable()
-    .default(null),
+  commissions: z
+    .array(
+      PartnerEarningsSchema.pick({
+        id: true,
+        earnings: true,
+        status: true,
+        createdAt: true,
+      }).extend({
+        description: z.string().nullish(),
+      }),
+    )
+    .default([]),
 });
 
 export const PartnerBountySchema = BountySchema.omit({
@@ -339,6 +440,69 @@ export const getPartnerCustomersCountQuerySchema =
     .extend({
       groupBy: z.enum(["country", "linkId"]).optional(),
     });
+
+export const PARTNER_CUSTOMER_EXPORT_COLUMNS = [
+  { id: "id", label: "ID", default: true, order: 1 },
+  { id: "email", label: "Email", default: true, order: 2 },
+  { id: "name", label: "Name", default: true, order: 3 },
+  { id: "country", label: "Country", default: true, order: 4 },
+  { id: "link", label: "Link", default: true, order: 5 },
+  { id: "createdAt", label: "Created at", default: true, order: 6 },
+  { id: "saleAmount", label: "Sale amount", default: true, order: 7 },
+  { id: "firstSaleAt", label: "First sale at", default: true, order: 8 },
+  {
+    id: "subscriptionCanceledAt",
+    label: "Subscription canceled",
+    default: true,
+    order: 9,
+  },
+] as const;
+
+export const PARTNER_CUSTOMER_EXPORT_DEFAULT_COLUMNS =
+  PARTNER_CUSTOMER_EXPORT_COLUMNS.filter((column) => column.default).map(
+    (column) => column.id,
+  );
+
+export const partnerCustomersExportQuerySchema = getPartnerCustomersQuerySchema
+  .omit({
+    page: true,
+    pageSize: true,
+  })
+  .extend({
+    columns: z
+      .string()
+      .optional()
+      .default(PARTNER_CUSTOMER_EXPORT_DEFAULT_COLUMNS.join(","))
+      .transform((v) =>
+        v
+          .split(",")
+          .map((s) => s.trim())
+          .filter(Boolean),
+      )
+      .refine(
+        (columns) => {
+          const validColumnIds = new Set<string>(
+            PARTNER_CUSTOMER_EXPORT_COLUMNS.map((col) => col.id),
+          );
+
+          return (
+            columns.length > 0 &&
+            columns.every((column) => validColumnIds.has(column))
+          );
+        },
+        {
+          message:
+            "Invalid column IDs provided. Please check the available columns.",
+        },
+      ),
+  });
+
+export const partnerCustomersExportCronInputSchema =
+  partnerCustomersExportQuerySchema.extend({
+    partnerId: z.string(),
+    programId: z.string(),
+    userId: z.string(),
+  });
 
 export const partnerProfileSubmittedLeadSchema = z.object({
   id: z.string(),

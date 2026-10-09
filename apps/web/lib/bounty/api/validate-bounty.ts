@@ -14,6 +14,7 @@ export function validateBounty({
   rewardAmount,
   rewardDescription,
   performanceScope,
+  submissionRequirements,
 }: Partial<CreateBountyInput>) {
   startMode = startMode ?? BountyStartMode.absolute;
 
@@ -128,6 +129,17 @@ export function validateBounty({
         code: "bad_request",
         message:
           "`endsAt` or `endsAfterDays` is required when `submissionFrequency` is set.",
+      });
+    }
+
+    const bonusPerIncrement =
+      submissionRequirements?.socialMetrics?.incrementalBonus
+        ?.bonusPerIncrement;
+
+    if (bonusPerIncrement != null && bonusPerIncrement <= 0) {
+      throw new DubApiError({
+        code: "bad_request",
+        message: "`bonusPerIncrement` must be greater than 0.",
       });
     }
   }

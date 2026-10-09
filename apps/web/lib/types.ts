@@ -5,7 +5,12 @@ import {
   PartnerEarningsSchema,
   partnerPayoutMethodSchema,
   PartnerProfileCustomerSchema,
+  PartnerProfileEarningsSchema,
   PartnerProfileLinkSchema,
+  PartnerProfileTopLinkEarningsSchema,
+  PartnerProfileTopProgramEarningsSchema,
+  PartnerProfileTypeEarningsSchema,
+  partnerProfileEarningsAnalyticsQuerySchema,
   partnerSubmittedLeadsCountByStatusSchema,
   partnerUserSchema,
 } from "@/lib/zod/schemas/partner-profile";
@@ -157,7 +162,10 @@ import {
   payoutsCountQuerySchema,
   payoutsQuerySchema,
 } from "./zod/schemas/payouts";
-import { PartnerApplicationSchema } from "./zod/schemas/program-application";
+import {
+  PartnerApplicationSchema,
+  ProgramApplicationSchema,
+} from "./zod/schemas/program-application";
 import {
   programApplicationFormDataWithValuesSchema,
   programApplicationFormFieldWithValuesSchema,
@@ -179,6 +187,7 @@ import {
 } from "./zod/schemas/programs";
 import {
   CUSTOMER_SOURCES,
+  customRewardConfigSchema,
   rewardConditionsArraySchema,
   rewardConditionSchema,
   rewardConditionsSchema,
@@ -192,6 +201,7 @@ import {
 import { fraudEventContext } from "./zod/schemas/schemas";
 import { submittedLeadFormDataSchema } from "./zod/schemas/submitted-lead-form";
 import {
+  SubmittedLeadCommentSchema,
   submittedLeadSchema,
   updateSubmittedLeadStatusSchema,
 } from "./zod/schemas/submitted-leads";
@@ -277,7 +287,9 @@ export type PlanProps = (typeof plans)[number];
 
 export type BetaFeatures =
   | "analyticsSettingsSiteVisitTracking"
-  | "noProrationUpgrade";
+  | "noProrationUpgrade"
+  | "rewardSpendLimit"
+  | "submittedLeads";
 
 export type PartnerBetaFeatures = "postbacks";
 
@@ -507,6 +519,35 @@ export type CommissionResponse = z.infer<typeof CommissionEnrichedSchema>;
 
 export type PartnerEarningsResponse = z.infer<typeof PartnerEarningsSchema>;
 
+export type PartnerProfileEarningsResponse = z.infer<
+  typeof PartnerProfileEarningsSchema
+>;
+
+export type PartnerProfileTopProgramEarnings = z.infer<
+  typeof PartnerProfileTopProgramEarningsSchema
+>;
+
+export type PartnerProfileTopLinkEarnings = z.infer<
+  typeof PartnerProfileTopLinkEarningsSchema
+>;
+
+export type PartnerProfileEarningsAnalyticsQuery = z.infer<
+  typeof partnerProfileEarningsAnalyticsQuerySchema
+>;
+
+export type PartnerProfileEarningsAnalyticsGroupBy =
+  PartnerProfileEarningsAnalyticsQuery["groupBy"];
+
+export type PartnerProfileTypeEarnings = z.infer<
+  typeof PartnerProfileTypeEarningsSchema
+>;
+
+export type PartnerProfileEarningsAnalyticsByGroup = {
+  programId: PartnerProfileTopProgramEarnings[];
+  linkId: PartnerProfileTopLinkEarnings[];
+  type: PartnerProfileTypeEarnings[];
+};
+
 export type CustomerProps = z.infer<typeof CustomerSchema>;
 
 export type PartnerPlatformProps = z.infer<typeof partnerPlatformSchema>;
@@ -518,6 +559,7 @@ export type PartnerSharedPlatformProps = z.infer<
 export type PartnerProps = z.infer<typeof PartnerSchema> & {
   role: PartnerRole;
   userId: string;
+  usersLimit: number;
   platforms: PartnerPlatformProps[];
   defaultPayoutMethod: PartnerPayoutMethod | null;
   tremendousEmail: string | null;
@@ -547,6 +589,8 @@ export type EnrolledPartnerProps = z.infer<typeof EnrolledPartnerSchema> & {
 
 export type PartnerApplicationProps = z.infer<typeof PartnerApplicationSchema>;
 
+export type ProgramApplicationProps = z.infer<typeof ProgramApplicationSchema>;
+
 export type NetworkPartnerProps = z.infer<typeof NetworkPartnerSchema>;
 
 export type AdminNetworkPartner = z.infer<typeof adminNetworkPartnerSchema>;
@@ -573,9 +617,8 @@ export type DiscountCodeProps = z.infer<typeof DiscountCodeSchema>;
 
 export type ProgramProps = Omit<
   z.infer<typeof ProgramSchema>,
-  "referralFormData" | "applicationRequirements"
+  "applicationRequirements"
 > & {
-  referralFormData?: Prisma.JsonValue | null;
   applicationRequirements?: Prisma.JsonValue | null;
 };
 
@@ -651,6 +694,8 @@ export type FolderSummary = Pick<
 >;
 
 export type RewardProps = z.infer<typeof RewardSchema>;
+
+export type CustomRewardConfig = z.infer<typeof customRewardConfigSchema>;
 
 export type CreatePartnerProps = z.infer<typeof createPartnerSchema>;
 
@@ -810,6 +855,10 @@ export type CreateFraudEventInput = Pick<
   };
 
 export type SubmittedLeadProps = z.infer<typeof submittedLeadSchema>;
+
+export type SubmittedLeadCommentProps = z.infer<
+  typeof SubmittedLeadCommentSchema
+>;
 
 export type SubmittedLeadFormDataField = z.infer<
   typeof submittedLeadFormDataSchema

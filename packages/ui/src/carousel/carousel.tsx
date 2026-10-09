@@ -172,6 +172,7 @@ const Carousel = forwardRef<
           carouselRef,
           api: api,
           opts,
+          autoplay,
           orientation:
             orientation || (opts?.axis === "y" ? "vertical" : "horizontal"),
           scrollPrev,

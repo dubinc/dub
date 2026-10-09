@@ -34,7 +34,7 @@ export const formatDateTooltip = (
         hour: "numeric",
         minute: "numeric",
       });
-    else if (daysDifference > 180)
+    else if (daysDifference > 90)
       return targetDate.toLocaleDateString("en-US", {
         month: "short",
         year: "numeric",

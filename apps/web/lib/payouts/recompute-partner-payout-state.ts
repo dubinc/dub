@@ -1,5 +1,6 @@
 import { stripe } from "@/lib/stripe";
 import { getStripeRecipientAccount } from "@/lib/stripe/get-stripe-recipient-account";
+import { isRecipientPendingIdVerification } from "@/lib/stripe/is-recipient-pending-id-verification";
 import { prettyPrint } from "@dub/utils";
 import { Partner, PartnerPayoutMethod } from "@prisma/client";
 import { getStripeRecipientPayoutMethod } from "../stripe/get-stripe-recipient-payout-method";
@@ -25,7 +26,9 @@ export async function recomputePartnerPayoutState(
     | "payoutsEnabledAt"
     | "defaultPayoutMethod"
     | "tremendousEmail"
-  >,
+  > & {
+    cryptoWalletAddress?: string | null;
+  },
 ) {
   const [connectAccount, stablecoinAccount] = await Promise.all([
     partner.stripeConnectId
@@ -37,18 +40,44 @@ export async function recomputePartnerPayoutState(
       : Promise.resolve(null),
   ]);
 
-  const hasCryptoWalletCapabilities = Boolean(
-    stablecoinAccount?.configuration?.recipient?.capabilities?.crypto_wallets
-      ?.status === "active",
+  const pendingIdVerification = Boolean(
+    stablecoinAccount && isRecipientPendingIdVerification(stablecoinAccount),
   );
 
-  const stablecoinPayoutMethod =
-    partner.stripeRecipientId && hasCryptoWalletCapabilities
-      ? await getStripeRecipientPayoutMethod(partner.stripeRecipientId)
-      : null;
+  const cryptoWalletsActive =
+    stablecoinAccount?.configuration?.recipient?.capabilities?.crypto_wallets
+      ?.status === "active";
+
+  // Verification hides crypto_wallets until Stripe finishes ID review. Keep
+  // looking up the wallet so we don't clear payouts for a temporary restriction.
+  const hasCryptoWalletCapabilities =
+    cryptoWalletsActive || pendingIdVerification;
+
+  let stablecoinPayoutMethod: Awaited<
+    ReturnType<typeof getStripeRecipientPayoutMethod>
+  > | null = null;
+
+  if (partner.stripeRecipientId && hasCryptoWalletCapabilities) {
+    try {
+      stablecoinPayoutMethod = await getStripeRecipientPayoutMethod(
+        partner.stripeRecipientId,
+      );
+    } catch (error) {
+      if (!pendingIdVerification) {
+        throw error;
+      }
+
+      console.warn(
+        `Failed to load crypto wallet payout method during identity verification: ${
+          error instanceof Error ? error.message : String(error)
+        }`,
+      );
+    }
+  }
 
   const cryptoWalletAddress =
-    stablecoinPayoutMethod?.crypto_wallet?.address ?? null;
+    stablecoinPayoutMethod?.crypto_wallet?.address ??
+    (pendingIdVerification ? (partner.cryptoWalletAddress ?? null) : null);
   const cryptoWalletNetwork =
     stablecoinPayoutMethod?.crypto_wallet?.network ?? null;
 
@@ -57,9 +86,14 @@ export async function recomputePartnerPayoutState(
       connectAccount?.capabilities?.transfers === "active",
   );
 
-  const stablecoinActive = Boolean(
-    hasCryptoWalletCapabilities && cryptoWalletAddress && cryptoWalletNetwork,
-  );
+  const stablecoinActive =
+    Boolean(
+      cryptoWalletAddress &&
+        cryptoWalletNetwork &&
+        (cryptoWalletsActive || pendingIdVerification),
+    ) ||
+    (pendingIdVerification &&
+      partner.defaultPayoutMethod === PartnerPayoutMethod.stablecoin);
 
   const paypalActive = Boolean(partner.paypalEmail);
 
@@ -107,6 +141,7 @@ export async function recomputePartnerPayoutState(
     prettyPrint({
       connectActive,
       stablecoinActive,
+      pendingIdVerification,
       paypalActive,
       tremendousActive,
       payoutsEnabledAt,

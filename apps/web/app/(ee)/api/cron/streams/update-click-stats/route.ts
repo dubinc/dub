@@ -312,7 +312,7 @@ const maybeAlertOnBacklog = async (streamInfo: {
 
   await log({
     message: `Click stats stream backlog alert: length=${streamInfo.length}, oldestAgeMs=${ageMs ?? "unknown"}, firstEntryId=${streamInfo.firstEntryId ?? "none"}`,
-    type: "alerts",
+    type: "errors",
   });
 };
 

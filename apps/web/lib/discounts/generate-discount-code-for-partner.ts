@@ -24,14 +24,49 @@ export async function generateDiscountCodeForPartner({
     where: {
       id: partner.groupId,
     },
-    include: {
+    select: {
+      programId: true,
+    },
+  });
+
+  if (!group) {
+    console.log(
+      `Group ${partner.groupId} not found, skipping discount code creation...`,
+    );
+    return;
+  }
+
+  const programEnrollment = await prisma.programEnrollment.findUnique({
+    where: {
+      partnerId_programId: {
+        partnerId: partner.id,
+        programId: group.programId,
+      },
+    },
+    select: {
       discount: true,
     },
   });
 
-  if (!group?.discount?.autoProvisionEnabledAt) {
+  if (!programEnrollment) {
     console.log(
-      `Group ${partner.groupId} does not have auto provision enabled, skipping discount code creation...`,
+      `No program enrollment found for partner ${partner.id}, skipping discount code creation...`,
+    );
+    return;
+  }
+
+  const discount = programEnrollment?.discount;
+
+  if (!discount) {
+    console.log(
+      `No discount found for partner ${partner.id}, skipping discount code creation...`,
+    );
+    return;
+  }
+
+  if (!discount.autoProvisionEnabledAt) {
+    console.log(
+      `Discount ${discount.id} does not have auto provision enabled, skipping discount code creation...`,
     );
     return;
   }
@@ -64,7 +99,7 @@ export async function generateDiscountCodeForPartner({
       workspace,
       partner,
       link: partnerDefaultLink,
-      discount: group.discount,
+      discount,
     });
   } catch (error) {
     console.error(

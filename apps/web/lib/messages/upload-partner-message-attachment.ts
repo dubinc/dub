@@ -1,14 +1,12 @@
 "use server";
 
-import {
-  MAX_ATTACHMENT_NAME_LENGTH,
-  MAX_ATTACHMENT_SIZE_BYTES,
-  PARTNER_ALLOWED_ATTACHMENT_TYPES,
-} from "@/lib/messages/constants";
+import { MAX_ATTACHMENT_NAME_LENGTH } from "@/lib/messages/constants";
 import { sanitizeFileName } from "@/lib/messages/utils";
 import { prisma } from "@/lib/prisma";
-import { storage } from "@/lib/storage";
-import { ratelimit } from "@/lib/upstash";
+import { createSignedUploadUrl } from "@/lib/storage/create-signed-upload-url";
+import { signedUploadInputSchema } from "@/lib/storage/schemas";
+import { validateSignedUpload } from "@/lib/storage/validate-signed-upload";
+import { assertRateLimit } from "@/lib/upstash/assert-rate-limit";
 import { RATELIMIT_POLICIES } from "@/lib/upstash/ratelimit-policies";
 import { nanoid } from "@dub/utils";
 import * as z from "zod/v4";
@@ -18,11 +16,10 @@ import { COMMISSION_ELIGIBLE_ENROLLMENT_STATUSES } from "../zod/schemas/partners
 const schema = z.object({
   programSlug: z.string(),
   fileName: z.string().trim().min(1).max(MAX_ATTACHMENT_NAME_LENGTH),
-  contentType: z.enum(PARTNER_ALLOWED_ATTACHMENT_TYPES),
-  contentLength: z.number().int().positive().max(MAX_ATTACHMENT_SIZE_BYTES),
+  ...signedUploadInputSchema.shape,
 });
 
-const rateLimitPolicy = RATELIMIT_POLICIES.messageAttachmentUpload;
+const uploadPolicy = "partnerMessageAttachments" as const;
 
 export const uploadPartnerMessageAttachmentAction = authPartnerActionClient
   .inputSchema(schema)
@@ -30,14 +27,16 @@ export const uploadPartnerMessageAttachmentAction = authPartnerActionClient
     const { partner } = ctx;
     const { programSlug, fileName, contentType, contentLength } = parsedInput;
 
-    const { success } = await ratelimit(
-      rateLimitPolicy.attempts,
-      rateLimitPolicy.window,
-    ).limit(`${rateLimitPolicy.keyPrefix}:${partner.id}`);
+    validateSignedUpload({
+      contentLength,
+      contentType,
+      policy: uploadPolicy,
+    });
 
-    if (!success) {
-      throw new Error("Too many file uploads. Please try again later.");
-    }
+    await assertRateLimit({
+      policy: RATELIMIT_POLICIES.messageAttachmentUpload,
+      identifier: partner.id,
+    });
 
     const program = await prisma.program.findFirst({
       select: {
@@ -79,10 +78,8 @@ export const uploadPartnerMessageAttachmentAction = authPartnerActionClient
       throw new Error("You are not able to message this program.");
     }
 
-    const storageKey = `messages/${program.id}/${nanoid(10)}/${sanitizeFileName(fileName)}`;
-
-    const signedUrl = await storage.getSignedUploadUrl({
-      key: storageKey,
+    const { key, signedUrl } = await createSignedUploadUrl({
+      key: `messages/${program.id}/${nanoid(10)}/${sanitizeFileName(fileName)}`,
       bucket: "private",
       contentLength,
       contentType,
@@ -90,6 +87,6 @@ export const uploadPartnerMessageAttachmentAction = authPartnerActionClient
 
     return {
       signedUrl,
-      storageKey,
+      storageKey: key,
     };
   });

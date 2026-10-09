@@ -17,21 +17,21 @@ export default function usePartnersCount<T>({
   const { id: workspaceId, defaultProgramId } = useWorkspace();
   const { getQueryString } = useRouterStuff();
 
+  // URLSearchParams stringifies an undefined value to "undefined", which then
+  // fails the enum parsing in partnersCountQuerySchema. The filter dropdowns hit
+  // this whenever a search is active, because that is when `status` is left
+  // undefined rather than defaulting to "approved".
+  const definedParams = Object.fromEntries(
+    Object.entries({ ...params, workspaceId }).filter(
+      ([, value]) => value !== undefined && value !== null,
+    ),
+  );
+
   const queryString = ignoreParams
-    ? // @ts-ignore
-      `?${new URLSearchParams({
-        ...params,
-        workspaceId,
-      }).toString()}`
-    : getQueryString(
-        {
-          ...params,
-          workspaceId,
-        },
-        {
-          exclude: ["partnerId"],
-        },
-      );
+    ? `?${new URLSearchParams(definedParams as Record<string, string>).toString()}`
+    : getQueryString(definedParams, {
+        exclude: ["partnerId"],
+      });
 
   const {
     data: partnersCount,

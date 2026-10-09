@@ -1,7 +1,9 @@
 import { prisma } from "@/lib/prisma";
+import { sleep } from "@dub/utils";
 import { Customer, Project } from "@prisma/client";
 import Stripe from "stripe";
 import * as z from "zod/v4";
+
 import { stripeAppClient } from "../stripe";
 import { logImportError } from "../tinybird/log-import-error";
 import { TAPFILIATE_MAX_BATCHES, tapfiliateImporter } from "./importer";
@@ -86,7 +88,7 @@ export async function updateStripeCustomers(payload: TapfiliateImportPayload) {
       ),
     );
 
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+    await sleep(2000);
 
     processedBatches++;
     startingAfter = customers[customers.length - 1].id;

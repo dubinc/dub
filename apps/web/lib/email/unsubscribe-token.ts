@@ -1,4 +1,5 @@
-import { createHmac, timingSafeEqual } from "crypto";
+import { timingSafeCompare } from "@/lib/webhook/timing-safe-compare";
+import { createHmac } from "crypto";
 
 const TOKEN_SECRET =
   process.env.UNSUBSCRIBE_TOKEN_SECRET || process.env.NEXTAUTH_SECRET;
@@ -41,12 +42,7 @@ export function verifyUnsubscribeToken(token: string): string | null {
       .digest("hex")
       .slice(0, 24);
 
-    if (
-      !timingSafeEqual(
-        Uint8Array.from(Buffer.from(signature)),
-        Uint8Array.from(Buffer.from(expectedSignature)),
-      )
-    ) {
+    if (!timingSafeCompare(signature, expectedSignature)) {
       return null;
     }
 

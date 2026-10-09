@@ -19,10 +19,7 @@ export const handleDomainUpdates = async ({
   changed: boolean;
 }) => {
   if (changed) {
-    await log({
-      message: `Domain *${domain}* changed status to *${verified}*`,
-      type: "cron",
-    });
+    console.log(`Domain *${domain}* changed status to *${verified}*`);
   }
 
   if (verified) return;
@@ -184,11 +181,10 @@ const sendDomainInvalidEmail = async ({
   emails: string[];
   type: "first" | "second";
 }) => {
+  console.log(
+    `Domain *${domain}* is invalid for ${invalidDays} days, email sent.`,
+  );
   return await Promise.allSettled([
-    log({
-      message: `Domain *${domain}* is invalid for ${invalidDays} days, email sent.`,
-      type: "cron",
-    }),
     sendBatchEmail(
       emails.map((email) => ({
         subject: `Your domain ${domain} needs to be configured`,

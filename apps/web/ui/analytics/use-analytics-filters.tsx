@@ -18,6 +18,7 @@ import {
   UTM_PARAMETERS,
 } from "@dub/ui";
 import {
+  Bolt,
   Calendar6,
   Cube,
   CursorRays,
@@ -337,6 +338,11 @@ export function useAnalyticsFilters({
   });
   const { data: triggers } = useAnalyticsFilterOption("triggers", {
     disabled: !isRequested("trigger"),
+    omitGroupByFilterKey: true,
+    context,
+  });
+  const { data: eventNames } = useAnalyticsFilterOption("event_names", {
+    disabled: !isRequested("eventName") || selectedTab === "clicks",
     omitGroupByFilterKey: true,
     context,
   });
@@ -781,6 +787,18 @@ export function useAnalyticsFilters({
             },
           ]),
       {
+        key: "eventName",
+        icon: Bolt,
+        label: "Event name",
+        hideInFilterDropdown: selectedTab === "clicks",
+        options:
+          eventNames?.map(({ eventName, ...rest }) => ({
+            value: eventName,
+            label: eventName,
+            right: getFilterOptionTotal(rest),
+          })) ?? null,
+      },
+      {
         key: "referer",
         icon: ReferredVia,
         label: "Referrer",
@@ -904,6 +922,8 @@ export function useAnalyticsFilters({
       devices,
       browsers,
       os,
+      eventNames,
+      selectedTab,
       referers,
       refererUrls,
       baseUrls,

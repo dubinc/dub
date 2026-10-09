@@ -1,6 +1,7 @@
 "use server";
 
 import { createId } from "@/lib/api/create-id";
+import { triggerDraftBountySubmissionCreation } from "@/lib/bounty/api/trigger-draft-bounty-submissions";
 import { prisma } from "@/lib/prisma";
 import { polyfillSocialMediaFields } from "@/lib/social-utils";
 import { isStored, storage } from "@/lib/storage";
@@ -12,9 +13,15 @@ import { ProgramEnrollmentStatus } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { DubApiError } from "../errors";
 import { getGroupOrThrow } from "../groups/get-group-or-throw";
-import { createOrGetProgramEnrollment } from "./create-or-get-program-enrollment";
+import { throwIfInvalidPartnerTags } from "../partner-tags/throw-if-invalid-partner-tags";
+import {
+  createOrGetProgramEnrollment,
+  partnerTagsFromEnrollment,
+  programPartnerTagsInclude,
+} from "./create-or-get-program-enrollment";
 import { createPartnerDefaultLinks } from "./create-partner-default-links";
 import { getOrCreatePartner } from "./get-or-create-partner";
+import { queuePartnerSearchSync } from "./queue-partner-search-sync";
 import { throwIfExistingTenantEnrollmentExists } from "./throw-if-existing-tenant-id-exists";
 
 interface CreateAndEnrollPartnerInput {
@@ -65,6 +72,7 @@ export const createAndEnrollPartner = async ({
           },
         },
         links: true,
+        programPartnerTags: programPartnerTagsInclude(program.id),
       },
     });
 
@@ -81,6 +89,7 @@ export const createAndEnrollPartner = async ({
           ...programEnrollment,
           id: programEnrollment.partner.id,
           links: programEnrollment.links,
+          tags: partnerTagsFromEnrollment(programEnrollment.programPartnerTags),
           ...polyfillSocialMediaFields(programEnrollment.partner.platforms),
         });
         // else, if the passed tenantId is different from the existing enrollment...
@@ -105,6 +114,7 @@ export const createAndEnrollPartner = async ({
               },
             },
             links: true,
+            programPartnerTags: programPartnerTagsInclude(program.id),
           },
         });
 
@@ -113,6 +123,9 @@ export const createAndEnrollPartner = async ({
           ...updatedProgramEnrollment,
           id: updatedProgramEnrollment.partner.id,
           links: updatedProgramEnrollment.links,
+          tags: partnerTagsFromEnrollment(
+            updatedProgramEnrollment.programPartnerTags,
+          ),
           ...polyfillSocialMediaFields(
             updatedProgramEnrollment.partner.platforms,
           ),
@@ -137,11 +150,19 @@ export const createAndEnrollPartner = async ({
     });
   }
 
-  const group = await getGroupOrThrow({
-    programId: program.id,
-    groupId: finalGroupId,
-    includeExpandedFields: true,
-  });
+  const [group, partnerTags] = await Promise.all([
+    getGroupOrThrow({
+      programId: program.id,
+      groupId: finalGroupId,
+      includeExpandedFields: true,
+    }),
+
+    throwIfInvalidPartnerTags({
+      programId: program.id,
+      partnerTagIds: partner.tagIds,
+      partnerTagNames: partner.tagNames,
+    }),
+  ]);
 
   const { partner: existingOrNewPartner } = await getOrCreatePartner({
     email: partner.email,
@@ -165,6 +186,7 @@ export const createAndEnrollPartner = async ({
     leadRewardId: group.leadRewardId,
     saleRewardId: group.saleRewardId,
     referralRewardId: group.referralRewardId,
+    customRewardId: group.customRewardId,
     discountId: group.discountId,
     enrolledAt,
   });
@@ -175,9 +197,24 @@ export const createAndEnrollPartner = async ({
       ...programEnrollment,
       id: programEnrollment.partner.id,
       links: programEnrollment.links,
+      tags: partnerTagsFromEnrollment(programEnrollment.programPartnerTags),
       ...polyfillSocialMediaFields(programEnrollment.partner.platforms),
     });
   }
+
+  if (partnerTags.length > 0) {
+    await prisma.programPartnerTag.createMany({
+      skipDuplicates: true,
+      data: partnerTags.map(({ id: partnerTagId }) => ({
+        programId: program.id,
+        partnerId: existingOrNewPartner.id,
+        partnerTagId,
+      })),
+    });
+  }
+
+  // Queue an index update because a new enrollment was created.
+  waitUntil(queuePartnerSearchSync({ enrollmentIds: [programEnrollment.id] }));
 
   // Create the partner links based on group defaults
   const links = await createPartnerDefaultLinks({
@@ -209,6 +246,7 @@ export const createAndEnrollPartner = async ({
     ...programEnrollment,
     id: programEnrollment.partner.id,
     links,
+    tags: partnerTags,
     ...polyfillSocialMediaFields(programEnrollment.partner.platforms),
   });
 
@@ -251,6 +289,12 @@ export const createAndEnrollPartner = async ({
           workspace,
           trigger: "partner.enrolled",
           data: enrolledPartner,
+        }),
+
+      status === "approved" &&
+        triggerDraftBountySubmissionCreation({
+          programId: program.id,
+          partnerIds: [existingOrNewPartner.id],
         }),
     ]),
   );

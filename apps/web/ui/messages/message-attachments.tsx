@@ -1,10 +1,10 @@
 "use client";
 
 import {
-  getAttachmentTypeLabel,
   isPreviewableImageType,
   sortMessageAttachments,
 } from "@/lib/messages/utils";
+import { getMimeTypeLabel } from "@/lib/storage/upload-policies";
 import { MessageAttachment } from "@/lib/types";
 import { formatFileSize } from "@dub/utils";
 import { cn } from "@dub/utils/src";
@@ -148,7 +148,7 @@ function FileTypeBadge({ type }: { type: string }) {
       )}
     >
       <File className="size-3 shrink-0" />
-      <span>{getAttachmentTypeLabel(type)}</span>
+      <span>{getMimeTypeLabel(type)}</span>
     </div>
   );
 }

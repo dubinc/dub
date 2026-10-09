@@ -16,10 +16,16 @@ const badgeVariants = cva(
         gray: "border-neutral-200 bg-neutral-100 text-neutral-800",
         neutral: "border-neutral-400 text-neutral-500",
         amber: "border-amber-200 bg-amber-100 text-amber-800",
-        blueGradient:
-          "bg-gradient-to-r from-blue-100 via-blue-100/50 to-blue-100 border border-blue-200 text-blue-900",
         rainbow:
           "bg-gradient-to-r from-violet-600 to-pink-600 text-white border-transparent",
+        blueGradient:
+          "bg-gradient-to-r from-blue-100 via-blue-100/50 to-blue-100 border border-blue-200 text-blue-900",
+        amberGradient:
+          "bg-gradient-to-r from-amber-100 via-amber-100/50 to-amber-100 border border-amber-200 text-amber-800",
+        violetGradient:
+          "bg-gradient-to-r from-violet-100 via-violet-100/50 to-violet-100 border border-violet-200 text-violet-900",
+        neutralGradient:
+          "bg-gradient-to-r from-neutral-100 via-neutral-100/50 to-neutral-100 border border-neutral-200 text-neutral-800",
       },
     },
     defaultVariants: {

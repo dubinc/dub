@@ -1,7 +1,8 @@
 {
   "name": "@dub/embed-core",
   "description": "Vanilla JS core script that embeds Dub's dashboards.",
-  "version": "0.0.18",
+  "version": "0.0.19",
+  "license": "MIT",
   "sideEffects": false,
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",

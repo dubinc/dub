@@ -2,6 +2,7 @@
 
 import { includeProgramEnrollment } from "@/lib/api/links/include-program-enrollment";
 import { includeTags } from "@/lib/api/links/include-tags";
+import { queuePartnerSearchSync } from "@/lib/api/partners/queue-partner-search-sync";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { triggerDraftBountySubmissionCreation } from "@/lib/bounty/api/trigger-draft-bounty-submissions";
 import { prisma } from "@/lib/prisma";
@@ -94,6 +95,9 @@ export const updateProgramPartnerTagsAction = authActionClient
         }),
       ]);
     });
+
+    // Queue an index update because the partner's tags for this program changed
+    waitUntil(queuePartnerSearchSync({ partnerIds, programId }));
 
     waitUntil(
       (async () => {

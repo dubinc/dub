@@ -1,5 +1,9 @@
 "use client";
 
+import {
+  getCommissionCreatedActivity,
+  getCommissionSourceDisplay,
+} from "@/lib/commissions/display-commission-source";
 import { useActivityLogs } from "@/lib/swr/use-activity-logs";
 import {
   ActivityLog,
@@ -61,6 +65,85 @@ function parseChangeSet(log: ActivityLog) {
   };
 }
 
+function ActivityPill({
+  icon,
+  label,
+}: {
+  icon: React.ReactNode;
+  label: string;
+}) {
+  return (
+    <div className="flex h-6 items-center gap-2 rounded-lg bg-neutral-100 px-2 py-1">
+      {icon}
+      <span className="text-[13px] text-neutral-700">{label}</span>
+    </div>
+  );
+}
+
+function ActivityUserPill({
+  user,
+}: {
+  user: {
+    id?: string | null;
+    name?: string | null;
+    email?: string | null;
+    image?: string | null;
+  };
+}) {
+  return (
+    <ActivityPill
+      icon={<UserAvatar user={user} className="size-4" />}
+      label={user.name || user.email || "Deleted user"}
+    />
+  );
+}
+
+function ActivitySourcePill({
+  image,
+  label,
+}: {
+  image: string;
+  label: string;
+}) {
+  return (
+    <ActivityPill
+      icon={
+        <img
+          src={image}
+          alt=""
+          className="size-4 shrink-0 rounded-full border border-neutral-200"
+        />
+      }
+      label={label}
+    />
+  );
+}
+
+function getCommissionNote({
+  description,
+  reward,
+  createdAt,
+}: Pick<CommissionDetail, "description" | "reward" | "createdAt">) {
+  let text = description;
+
+  if (!text && reward) {
+    const amount =
+      reward.type === "percentage"
+        ? `${reward.amountInPercentage ?? 0}%`
+        : currencyFormatter(reward.amountInCents ?? 0, {
+            trailingZeroDisplay: "stripIfInteger",
+          });
+
+    text = `Earn ${amount} per ${reward.event}`;
+  }
+
+  if (!text) {
+    return undefined;
+  }
+
+  return <CommentCardDisplay timestamp={createdAt} text={text} />;
+}
+
 export function CommissionActivity({
   commission,
   slug,
@@ -97,68 +180,42 @@ export function CommissionActivity({
     );
   }
 
-  const createdEvent =
-    commission.status !== "pending" && activityLogs?.length === 0
-      ? {
-          key: "created",
-          icon: CommissionStatusBadges[commission.status].icon,
-          timestamp: commission.createdAt,
-          children: (
-            <>
-              <span className="text-sm text-neutral-700">
-                Commission imported as
-              </span>
-              <StatusBadge
-                icon={null}
-                variant={CommissionStatusBadges[commission.status].variant}
-              >
-                {CommissionStatusBadges[commission.status].label}
-              </StatusBadge>
-            </>
-          ),
-        }
-      : {
-          key: "created",
-          icon: CommissionStatusBadges["pending"].icon,
-          timestamp: commission.createdAt,
-          note: (() => {
-            const text =
-              commission.description ||
-              (commission.reward
-                ? `Earn ${
-                    commission.reward.type === "percentage"
-                      ? `${commission.reward.amountInPercentage ?? 0}%`
-                      : currencyFormatter(
-                          commission.reward.amountInCents ?? 0,
-                          {
-                            trailingZeroDisplay: "stripIfInteger",
-                          },
-                        )
-                  } per ${commission.reward.event}`
-                : null);
+  const sourceDisplay = getCommissionSourceDisplay(commission.source);
+  const created = getCommissionCreatedActivity({
+    source: commission.source,
+    status: commission.status,
+    hasActivityLogs: (activityLogs?.length ?? 0) > 0,
+    hasUser: !!commission.user,
+  });
+  const createdBadge = CommissionStatusBadges[created.status];
 
-            if (!text) return undefined;
-
-            return (
-              <CommentCardDisplay
-                timestamp={commission.createdAt}
-                text={text}
-              />
-            );
-          })(),
-
-          children: (
-            <>
-              <span className="text-sm text-neutral-700">Commission</span>
-              <StatusBadge
-                icon={null}
-                variant={CommissionStatusBadges["pending"].variant}
-              >
-                {CommissionStatusBadges["pending"].label}
-              </StatusBadge>
-            </>
-          ),
-        };
+  const createdEvent = {
+    key: "created",
+    icon: createdBadge.icon,
+    timestamp: commission.createdAt,
+    note: getCommissionNote(commission),
+    children: (
+      <>
+        <span className="text-sm text-neutral-700">{created.lead}</span>
+        {created.showUser && commission.user ? (
+          <ActivityUserPill user={commission.user} />
+        ) : sourceDisplay ? (
+          <ActivitySourcePill
+            image={
+              sourceDisplay.image ?? "https://assets.dub.co/logo-square.png"
+            }
+            label={sourceDisplay.name}
+          />
+        ) : null}
+        {created.lead === "Commission imported as" ? null : (
+          <span className="text-sm text-neutral-700">as</span>
+        )}
+        <StatusBadge icon={null} variant={createdBadge.variant}>
+          {createdBadge.label}
+        </StatusBadge>
+      </>
+    ),
+  };
 
   const fmt = (v: number) =>
     currencyFormatter(v, { trailingZeroDisplay: "stripIfInteger" });
@@ -191,10 +248,7 @@ export function CommissionActivity({
     const userByline = log.user ? (
       <>
         <span className="text-sm text-neutral-500">by</span>
-        <div className="flex h-6 items-center gap-2 rounded-lg bg-neutral-100 px-2 py-1">
-          <UserAvatar user={log.user} className="size-4" />
-          <span className="text-[13px] text-neutral-700">{log.user.name}</span>
-        </div>
+        <ActivityUserPill user={log.user} />
       </>
     ) : null;
 

@@ -268,6 +268,11 @@ export default function EventsTable({
           id: "event",
           header: "Event",
           accessorKey: "eventName",
+          meta: {
+            filterParams: ({ getValue }) => ({
+              eventName: getValue(),
+            }),
+          },
           cell: ({ getValue }) =>
             getValue() ? (
               <span className="truncate" title={getValue()}>

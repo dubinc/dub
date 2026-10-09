@@ -68,6 +68,10 @@ export const WorkspaceSchema = z
       .date()
       .nullable()
       .describe("The date and time when the payment failed for the workspace."),
+    disabledAt: z
+      .date()
+      .nullable()
+      .describe("The date and time when the workspace was disabled."),
     stripeConnectId: z
       .string()
       .nullable()
@@ -243,9 +247,11 @@ export const workspaceStoreKeys = z.enum([
   "analyticsSettingsConversionTrackingEnabled", // boolean
   "analyticsSettingsSiteVisitTrackingEnabled", // boolean
   "analyticsSettingsOutboundDomainTrackingEnabled", // boolean
+  "analyticsSettingsSelectedStack", // string[]
   "analyticsSettingsConnectionSetupComplete", // boolean
   "analyticsSettingsLeadTrackingSetupComplete", // boolean
   "analyticsSettingsSaleTrackingSetupComplete", // boolean
+  "analyticsSettingsInstallationVerified", // { hostname, verifiedAt, user }
 ]);
 
 export const getWorkspaceUsersQuerySchema = z.object({
