@@ -322,25 +322,36 @@ async function createApplicationAndEnrollment({
 
       let rejectedAt: Date | null = null;
 
-      // Find the last application rejection date for the partner.
-      // This is used to check if the partner is within the reapplication window.
+      // The stored timeframe belongs to the latest application reviewed since the
+      // enrollment was created, and only applies if that review was a rejection.
+      // Earlier rejections, or a rejection approved later, do not block.
       if (shouldCheckReapplicationWindow) {
-        const latestApplicationRejection =
-          await tx.programApplication.findFirst({
-            where: {
-              programId: program.id,
-              partnerId: partner.id,
-              status: ProgramApplicationStatus.rejected,
+        const latestReview = await tx.programApplication.findFirst({
+          where: {
+            programId: program.id,
+            partnerId: partner.id,
+            status: {
+              in: [
+                ProgramApplicationStatus.rejected,
+                ProgramApplicationStatus.approved,
+              ],
             },
-            orderBy: {
-              reviewedAt: "desc",
+            reviewedAt: {
+              gte: enrollment.createdAt,
             },
-            select: {
-              reviewedAt: true,
-            },
-          });
+          },
+          orderBy: {
+            reviewedAt: "desc",
+          },
+          select: {
+            status: true,
+            reviewedAt: true,
+          },
+        });
 
-        rejectedAt = latestApplicationRejection?.reviewedAt ?? null;
+        if (latestReview?.status === ProgramApplicationStatus.rejected) {
+          rejectedAt = latestReview.reviewedAt;
+        }
       }
 
       throwIfApplicationBlocked({
