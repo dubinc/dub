@@ -8,7 +8,6 @@ import {
   ProgramEnrollmentProps,
 } from "@/lib/types";
 import {
-  BlurImage,
   CalendarIcon,
   CircleQuestion,
   DynamicTooltipWrapper,
@@ -20,13 +19,13 @@ import {
   cn,
   formatDate,
   getPrettyUrl,
-  OG_AVATAR_URL,
   STANDARD_REAPPLICATION_DAYS,
 } from "@dub/utils";
 import NumberFlow from "@number-flow/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { type ReactNode, type SyntheticEvent } from "react";
+import { ProgramLogo } from "./program-logo";
 
 function RejectionTooltipRow({
   icon,
@@ -123,13 +122,7 @@ export function ProgramCard({
       href={`/programs/${program.slug}`}
       className="hover:drop-shadow-card-hover flex h-full flex-col overflow-hidden rounded-xl border border-neutral-200 bg-white p-5 transition-[filter]"
     >
-      <BlurImage
-        width={96}
-        height={96}
-        src={program.logo || `${OG_AVATAR_URL}${program.name}`}
-        alt={program.name}
-        className="size-8 rounded-full border border-black/10"
-      />
+      <ProgramLogo program={program} className="size-8" />
       <span className="mt-3 text-base font-semibold text-neutral-800">
         {program.name}
       </span>

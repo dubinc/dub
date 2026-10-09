@@ -1,8 +1,9 @@
 import { ProgramEnrollmentProps } from "@/lib/types";
 import { ProgramInviteActions } from "@/ui/partners/program-invite-actions";
+import { ProgramLogo } from "@/ui/partners/program-logo";
 import { ProgramRewardDescription } from "@/ui/partners/program-reward-description";
-import { BlurImage, CircleCheck, StatusBadge } from "@dub/ui";
-import { formatDateSmart, OG_AVATAR_URL } from "@dub/utils";
+import { CircleCheck, StatusBadge } from "@dub/ui";
+import { formatDateSmart } from "@dub/utils";
 
 export function ProgramInviteCard({
   programEnrollment,
@@ -17,13 +18,7 @@ export function ProgramInviteCard({
   return (
     <div className="hover:drop-shadow-card-hover relative flex flex-col rounded-xl border border-neutral-200 bg-white p-5 transition-[filter]">
       <div className="flex justify-between gap-2">
-        <BlurImage
-          width={64}
-          height={64}
-          src={program.logo || `${OG_AVATAR_URL}${program.name}`}
-          alt={program.name}
-          className="size-8 rounded-full border border-black/10"
-        />
+        <ProgramLogo program={program} className="size-8" />
         <StatusBadge variant="new" icon={CircleCheck} className="py-0.5">
           Invited{" "}
           {formatDateSmart(programEnrollment.createdAt, { month: "short" })}

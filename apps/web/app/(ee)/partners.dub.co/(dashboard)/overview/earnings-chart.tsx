@@ -4,6 +4,7 @@ import { formatDateTooltip } from "@/lib/analytics/format-date-tooltip";
 import { testIds } from "@/lib/e2e/test-ids";
 import { usePartnerProfileEarningsTimeseries } from "@/lib/swr/use-partner-profile-earnings";
 import useProgramEnrollments from "@/lib/swr/use-program-enrollments";
+import { ProgramLogo } from "@/ui/partners/program-logo";
 import { useIsTouchDevice } from "@dub/ui";
 import {
   Areas,
@@ -18,7 +19,6 @@ import NumberFlow from "@number-flow/react";
 import { LinearGradient } from "@visx/gradient";
 import { useRouter } from "next/navigation";
 import { useId, useMemo } from "react";
-import { ProgramLogo } from "./overview-card";
 import { useOverviewDateRange } from "./use-overview-date-range";
 import { useTopProgramEarnings } from "./use-top-program-earnings";
 

@@ -7,9 +7,9 @@ import useProgramEnrollmentsCount from "@/lib/swr/use-program-enrollments-count"
 import { ProgramEnrollmentProps } from "@/lib/types";
 import { PartnerStatusBadges } from "@/ui/partners/partner-status-badges";
 import { ProgramInviteActions } from "@/ui/partners/program-invite-actions";
+import { ProgramLogo } from "@/ui/partners/program-logo";
 import { ProgramRewardDescription } from "@/ui/partners/program-reward-description";
 import {
-  BlurImage,
   MiniAreaChart,
   StatusBadge,
   Table,
@@ -20,13 +20,7 @@ import {
   useTable,
 } from "@dub/ui";
 import { ChartLine, Check, Copy, Link4 } from "@dub/ui/icons";
-import {
-  cn,
-  currencyFormatter,
-  formatDate,
-  getPrettyUrl,
-  OG_AVATAR_URL,
-} from "@dub/utils";
+import { cn, currencyFormatter, formatDate, getPrettyUrl } from "@dub/utils";
 import { ColumnDef } from "@tanstack/react-table";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -232,13 +226,7 @@ function ProgramName({
 }) {
   return (
     <div className="flex min-w-0 items-center gap-2">
-      <BlurImage
-        width={40}
-        height={40}
-        src={program.logo || `${OG_AVATAR_URL}${program.name}`}
-        alt={program.name}
-        className="size-5 shrink-0 rounded-full border border-black/10"
-      />
+      <ProgramLogo program={program} />
       <span className="truncate font-medium text-neutral-800">
         {program.name}
       </span>
