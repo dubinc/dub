@@ -4,27 +4,15 @@ import useSWR from "swr";
 import { DUB_PARTNERS_ANALYTICS_INTERVAL } from "../analytics/constants";
 import { IntervalOptions } from "../analytics/types";
 import {
+  PartnerProfileEarningsAnalyticsByGroup,
+  PartnerProfileEarningsAnalyticsGroupBy,
   PartnerProfileEarningsResponse,
-  PartnerProfileTopLinkEarnings,
-  PartnerProfileTopProgramEarnings,
 } from "../types";
 
 type DateRange = {
   interval?: IntervalOptions;
   start?: Date;
   end?: Date;
-};
-
-type PartnerProfileEarningsTimeseries = {
-  start: string;
-  earnings: number;
-  groupBy?: string;
-  data?: Record<string, number>;
-}[];
-
-type TopEarningsByGroup = {
-  programId: PartnerProfileTopProgramEarnings;
-  linkId: PartnerProfileTopLinkEarnings;
 };
 
 // GET /api/partner-profile/earnings
@@ -39,6 +27,13 @@ export function usePartnerProfileEarnings({
   );
 }
 
+type PartnerProfileEarningsTimeseries = {
+  start: string;
+  earnings: number;
+  groupBy?: string;
+  data?: Record<string, number>;
+}[];
+
 // GET /api/partner-profile/earnings/timeseries
 export function usePartnerProfileEarningsTimeseries({
   groupBy,
@@ -51,13 +46,20 @@ export function usePartnerProfileEarningsTimeseries({
   );
 }
 
-// GET /api/partner-profile/earnings/top
-export function usePartnerProfileTopEarnings<
-  T extends keyof TopEarningsByGroup,
->({ groupBy, limit, ...dateRange }: DateRange & { groupBy: T; limit: number }) {
-  return usePartnerProfileEarningsSWR<TopEarningsByGroup[T][]>(
-    "/top",
-    { groupBy, limit: String(limit) },
+// GET /api/partner-profile/earnings/analytics
+export function usePartnerProfileEarningsAnalytics<
+  G extends PartnerProfileEarningsAnalyticsGroupBy,
+>({
+  groupBy,
+  limit,
+  ...dateRange
+}: DateRange & { groupBy: G; limit?: number }) {
+  return usePartnerProfileEarningsSWR<PartnerProfileEarningsAnalyticsByGroup[G]>(
+    "/analytics",
+    {
+      groupBy,
+      ...(limit !== undefined && { limit: String(limit) }),
+    },
     dateRange,
   );
 }

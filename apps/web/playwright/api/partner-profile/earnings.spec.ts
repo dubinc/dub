@@ -281,13 +281,24 @@ test.describe("GET /partner-profile/earnings", () => {
     await withPartnerApi(playwright, async (partnerApi) => {
       const { status, data } = await partnerApi.get<
         { id: string; earnings: number }[]
-      >("/api/partner-profile/earnings/top?groupBy=programId");
+      >("/api/partner-profile/earnings/analytics?groupBy=programId");
 
       expect(status).toEqual(200);
       expect(data).toEqual([
         expect.objectContaining({ id: programB.id, earnings: 4000 }),
         expect.objectContaining({ id: program.id, earnings: 3500 }),
       ]);
+    });
+  });
+
+  test("sums earnings by commission type", async ({ playwright }) => {
+    await withPartnerApi(playwright, async (partnerApi) => {
+      const { status, data } = await partnerApi.get<
+        { type: string; earnings: number }[]
+      >("/api/partner-profile/earnings/analytics?groupBy=type");
+
+      expect(status).toEqual(200);
+      expect(data).toEqual([{ type: "custom", earnings: 7500 }]);
     });
   });
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { testIds } from "@/lib/e2e/test-ids";
-import { usePartnerProfileTopEarnings } from "@/lib/swr/use-partner-profile-earnings";
+import { usePartnerProfileEarningsAnalytics } from "@/lib/swr/use-partner-profile-earnings";
 import { Hyperlink } from "@dub/ui/icons";
 import { cn, currencyFormatter, getPrettyUrl } from "@dub/utils";
 import Link from "next/link";
@@ -16,7 +16,7 @@ import { useOverviewDateRange } from "./use-overview-date-range";
 export function TopLinksCard() {
   const { start, end, interval } = useOverviewDateRange();
 
-  const { data: links, error } = usePartnerProfileTopEarnings({
+  const { data: links, error } = usePartnerProfileEarningsAnalytics({
     groupBy: "linkId",
     limit: 6,
     interval,

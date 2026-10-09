@@ -1,9 +1,10 @@
 import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
 import { prisma } from "@/lib/prisma";
 import {
-  partnerProfileTopEarningsQuerySchema,
+  partnerProfileEarningsAnalyticsQuerySchema,
   PartnerProfileTopLinkEarningsSchema,
   PartnerProfileTopProgramEarningsSchema,
+  PartnerProfileTypeEarningsSchema,
 } from "@/lib/zod/schemas/partner-profile";
 import { Prisma } from "@prisma/client";
 import * as z from "zod/v4";
@@ -16,7 +17,7 @@ const programSelect = {
   logo: true,
 } satisfies Prisma.ProgramSelect;
 
-export async function getPartnerTopEarnings({
+export async function getPartnerEarningsByGroup({
   partnerId,
   programId,
   filters,
@@ -24,9 +25,11 @@ export async function getPartnerTopEarnings({
   partnerId: string;
   programId?: string; // if not provided, earnings across all programs (except the network program) are summed
   filters: Omit<
-    z.infer<typeof partnerProfileTopEarningsQuerySchema>,
-    "programIdOrSlug"
-  >;
+    z.infer<typeof partnerProfileEarningsAnalyticsQuerySchema>,
+    "programIdOrSlug" | "groupBy"
+  > & {
+    groupBy: "programId" | "linkId" | "type";
+  };
 }) {
   const { groupBy, limit, type, status, interval, start, end, timezone } =
     filters;
@@ -81,6 +84,29 @@ export async function getPartnerTopEarnings({
         const program = programs.find((p) => p.id === programId);
         return program ? [{ ...program, earnings: _sum.earnings ?? 0 }] : [];
       }),
+    );
+  }
+
+  if (groupBy === "type") {
+    const sums = await prisma.commission.groupBy({
+      by: ["type"],
+      where,
+      _sum: {
+        earnings: true,
+      },
+      orderBy: {
+        _sum: {
+          earnings: "desc",
+        },
+      },
+      take: limit,
+    });
+
+    return z.array(PartnerProfileTypeEarningsSchema).parse(
+      sums.map(({ type, _sum }) => ({
+        type,
+        earnings: _sum.earnings ?? 0,
+      })),
     );
   }
 
