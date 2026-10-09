@@ -1,7 +1,10 @@
 import { getEarningsForPartner } from "@/lib/api/partner-profile/get-earnings-for-partner";
 import { withReferralsEmbedToken } from "@/lib/embed/referrals/auth";
 import { prisma } from "@/lib/prisma";
-import { getPartnerEarningsQuerySchema } from "@/lib/zod/schemas/partner-profile";
+import {
+  getPartnerEarningsQuerySchema,
+  PartnerEarningsSchema,
+} from "@/lib/zod/schemas/partner-profile";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 
@@ -40,9 +43,7 @@ export const GET = withReferralsEmbedToken(
         sortOrder: "desc",
         programId: programEnrollment.programId,
         partnerId: programEnrollment.partnerId,
-        customerDataSharingEnabledAt:
-          programEnrollment.customerDataSharingEnabledAt,
-      }),
+      }).then((earnings) => z.array(PartnerEarningsSchema).parse(earnings)),
 
       withTotal
         ? prisma.commission.count({

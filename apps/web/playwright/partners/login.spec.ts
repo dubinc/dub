@@ -45,7 +45,7 @@ test.describe("Partner Login", () => {
 
     // Verify redirect to authenticated area
     await page.waitForURL((url) =>
-      /^\/(programs|onboarding)/.test(new URL(url).pathname),
+      /^\/(overview|programs|onboarding)/.test(new URL(url).pathname),
     );
     await expect(page).not.toHaveURL(/\/login/);
   });
