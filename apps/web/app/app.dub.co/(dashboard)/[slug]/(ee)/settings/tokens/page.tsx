@@ -11,7 +11,7 @@ import { useDeleteTokenModal } from "@/ui/modals/delete-token-modal";
 import { useTokenCreatedModal } from "@/ui/modals/token-created-modal";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { Delete } from "@/ui/shared/icons";
-import { UserAvatar } from "@/ui/users/user-avatar";
+import { UserAvatarWithTooltip } from "@/ui/links/link-title-column";
 import {
   Button,
   buttonVariants,
@@ -22,7 +22,7 @@ import {
   Popover,
   StatusBadge,
   Table,
-  Tooltip,
+  TimestampTooltip,
   usePagination,
   useTable,
 } from "@dub/ui";
@@ -118,21 +118,23 @@ export default function TokensPage() {
         cell: ({ row }) => {
           return (
             <div className="flex items-center gap-2">
-              <Tooltip content={row.original.user.name}>
-                <div>
-                  <UserAvatar
-                    user={row.original.user}
-                    className="size-5 rounded-full"
-                  />
-                </div>
-              </Tooltip>
-              <p>
-                {new Date(row.original.createdAt).toLocaleDateString("en-us", {
-                  month: "short",
-                  day: "numeric",
-                  year: "numeric",
-                })}
-              </p>
+              <UserAvatarWithTooltip user={row.original.user} />
+              <TimestampTooltip
+                timestamp={row.original.createdAt}
+                rows={["local", "utc", "unix"]}
+                delayDuration={150}
+              >
+                <p>
+                  {new Date(row.original.createdAt).toLocaleDateString(
+                    "en-us",
+                    {
+                      month: "short",
+                      day: "numeric",
+                      year: "numeric",
+                    },
+                  )}
+                </p>
+              </TimestampTooltip>
             </div>
           );
         },
@@ -161,7 +163,15 @@ export default function TokensPage() {
         id: "lastUsed",
         header: "Last used",
         accessorKey: "lastUsed",
-        cell: ({ row }) => timeAgo(row.original.lastUsed),
+        cell: ({ row }) => (
+          <TimestampTooltip
+            timestamp={row.original.lastUsed}
+            rows={["local", "utc", "unix"]}
+            delayDuration={150}
+          >
+            <span>{timeAgo(row.original.lastUsed)}</span>
+          </TimestampTooltip>
+        ),
       },
 
       // Menu

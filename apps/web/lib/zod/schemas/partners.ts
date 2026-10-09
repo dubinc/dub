@@ -735,6 +735,20 @@ export const createPartnerSchema = z.object({
     .describe(
       "The group ID to add the partner to. If not provided, the partner will be added to the default group.",
     ),
+  tagIds: z
+    .array(z.string())
+    .max(100)
+    .optional()
+    .describe(
+      "The IDs of the partner tags to assign when creating the partner. Existing tags are kept. Takes priority over `tagNames` only when it contains at least one ID.",
+    ),
+  tagNames: z
+    .array(z.string())
+    .max(100)
+    .optional()
+    .describe(
+      "The names of the partner tags to assign when creating the partner. Existing tags are kept. Ignored only when `tagIds` contains at least one ID.",
+    ),
   country: z
     .string()
     .nullish()
@@ -805,6 +819,8 @@ export const onboardPartnerSchema = createPartnerSchema
     email: true,
     country: true,
     linkProps: true,
+    tagIds: true,
+    tagNames: true,
   })
   .extend({
     name: z.string().min(1, "Name is required"),
