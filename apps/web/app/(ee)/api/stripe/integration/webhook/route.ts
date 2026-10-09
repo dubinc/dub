@@ -114,6 +114,7 @@ export const POST = withAxiom(async (req: Request) => {
       stripeConnectId: true,
       defaultProgramId: true,
       webhookEnabled: true,
+      environment: true,
       stagingWorkspaceId: true,
     },
   });
