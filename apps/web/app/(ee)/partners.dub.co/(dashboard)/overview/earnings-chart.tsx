@@ -16,7 +16,7 @@ import { currencyFormatter, nFormatter } from "@dub/utils";
 import NumberFlow from "@number-flow/react";
 import { LinearGradient } from "@visx/gradient";
 import { useRouter } from "next/navigation";
-import { useId, useMemo } from "react";
+import { useEffect, useId, useMemo, useState } from "react";
 import { ProgramLogo } from "./overview-card";
 import { useOverviewDateRange } from "./use-overview-date-range";
 import { useTopProgramEarnings } from "./use-top-program-earnings";
@@ -27,6 +27,14 @@ export function EarningsChart() {
   const id = useId();
   const router = useRouter();
   const { start, end, interval } = useOverviewDateRange();
+
+  // on touch devices, the chart opens /programs at the end of each drag, which
+  // stops partners from reading the tooltip
+  const [isTouchDevice, setIsTouchDevice] = useState(false);
+
+  useEffect(() => {
+    setIsTouchDevice(window.matchMedia("(pointer: coarse)").matches);
+  }, []);
 
   const { data: timeseries, error } = usePartnerProfileEarningsTimeseries({
     groupBy: "programId",
@@ -117,7 +125,9 @@ export function EarningsChart() {
                 isActive: true,
               },
             ]}
-            onXValueClick={() => router.push("/programs")}
+            onXValueClick={
+              isTouchDevice ? undefined : () => router.push("/programs")
+            }
             tooltipClassName="w-[240px] overflow-hidden p-0 shadow-md"
             tooltipContent={(d) => {
               const programEarnings = Object.entries(
