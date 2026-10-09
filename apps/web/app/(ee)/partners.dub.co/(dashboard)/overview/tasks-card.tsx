@@ -5,7 +5,6 @@ import { useProgramMessagesCount } from "@/lib/messages/hooks/use-program-messag
 import useProgramEnrollmentsCount from "@/lib/swr/use-program-enrollments-count";
 import { type Icon } from "@dub/ui";
 import { Msgs, UserCheck } from "@dub/ui/icons";
-import { cn } from "@dub/utils";
 import Link from "next/link";
 import { OverviewCard } from "./overview-card";
 
@@ -18,21 +17,33 @@ export function TasksCard() {
     status: "invited",
   });
 
+  const tasks = [
+    {
+      icon: Msgs,
+      label: "Respond to programs",
+      href: "/messages",
+      count: unreadMessagesCount,
+    },
+    {
+      icon: UserCheck,
+      label: "Review new invitations",
+      href: "/programs/invitations",
+      count: invitationsCount,
+    },
+  ].filter((task): task is typeof task & { count: number } => !!task.count);
+
+  // hide the card when no action is needed (and while the counts load), so
+  // that Recent payouts fills the column
+  if (tasks.length === 0) {
+    return null;
+  }
+
   return (
     <OverviewCard title="Tasks" testId={testIds.partnerOverview.tasks}>
       <div className="flex flex-col px-2 pb-2">
-        <TaskRow
-          icon={Msgs}
-          label="Respond to programs"
-          href="/messages"
-          count={unreadMessagesCount}
-        />
-        <TaskRow
-          icon={UserCheck}
-          label="Review new invitations"
-          href="/programs/invitations"
-          count={invitationsCount}
-        />
+        {tasks.map((task) => (
+          <TaskRow key={task.href} {...task} />
+        ))}
       </div>
     </OverviewCard>
   );
@@ -47,7 +58,7 @@ function TaskRow({
   icon: Icon;
   label: string;
   href: string;
-  count?: number;
+  count: number;
 }) {
   return (
     <Link
@@ -60,20 +71,9 @@ function TaskRow({
       <span className="text-content-emphasis min-w-0 grow truncate text-sm font-semibold">
         {label}
       </span>
-      {count === undefined ? (
-        <div className="size-8 shrink-0 animate-pulse rounded-lg bg-neutral-200" />
-      ) : (
-        <div
-          className={cn(
-            "flex h-8 min-w-8 shrink-0 items-center justify-center rounded-lg px-1.5 text-sm font-semibold",
-            count > 0
-              ? "bg-blue-50 text-blue-600"
-              : "bg-neutral-100 text-neutral-400",
-          )}
-        >
-          {count}
-        </div>
-      )}
+      <div className="flex h-8 min-w-8 shrink-0 items-center justify-center rounded-lg bg-blue-50 px-1.5 text-sm font-semibold text-blue-600">
+        {count}
+      </div>
     </Link>
   );
 }
