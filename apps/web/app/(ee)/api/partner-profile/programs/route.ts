@@ -1,8 +1,10 @@
 import { getProgramEnrollmentsWhere } from "@/lib/api/partner-profile/get-program-enrollments-where";
 import { withPartnerProfile } from "@/lib/auth/partner";
 import { prisma } from "@/lib/prisma";
-import { partnerProfileProgramsQuerySchema } from "@/lib/zod/schemas/partner-profile";
-import { ProgramEnrollmentSchema } from "@/lib/zod/schemas/programs";
+import {
+  PartnerProfileProgramEnrollmentSchema,
+  partnerProfileProgramsQuerySchema,
+} from "@/lib/zod/schemas/partner-profile";
 import { Reward } from "@prisma/client";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
@@ -102,5 +104,7 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
     };
   });
 
-  return NextResponse.json(z.array(ProgramEnrollmentSchema).parse(response));
+  return NextResponse.json(
+    z.array(PartnerProfileProgramEnrollmentSchema).parse(response),
+  );
 });

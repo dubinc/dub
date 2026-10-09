@@ -14,6 +14,7 @@ import {
   PartnerProfileType,
   PartnerRole,
   ProgramEnrollmentStatus,
+  ReapplicationTimeframe,
   SubmittedLeadStatus,
 } from "@prisma/client";
 import * as z from "zod/v4";
@@ -30,7 +31,7 @@ import { DiscountSchema } from "./discount";
 import { LinkSchema } from "./links";
 import { getPaginationQuerySchema } from "./misc";
 import { payoutsQuerySchema } from "./payouts";
-import { ProgramSchema } from "./programs";
+import { ProgramEnrollmentSchema, ProgramSchema } from "./programs";
 import { RewardSchema } from "./rewards";
 import { submittedLeadFormDataSchema } from "./submitted-lead-form";
 import { centsSchema } from "./utils";
@@ -232,6 +233,13 @@ export const partnerProfileEventsQuerySchema = eventsQuerySchema.omit({
   tagIds: true,
   folderId: true,
 });
+
+// GET /api/partner-profile/programs adds the reapplication timeframe, so that
+// a rejected program can say when the partner can apply again
+export const PartnerProfileProgramEnrollmentSchema =
+  ProgramEnrollmentSchema.extend({
+    reapplicationTimeframe: z.enum(ReapplicationTimeframe).nullish(),
+  });
 
 export const partnerProfileProgramsQuerySchema = z.object({
   includeRewardsDiscounts: z.coerce.boolean().optional(),
