@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { TRIAL_LIMITS } from "@dub/utils";
 import { WorkspaceEnvironment } from "@prisma/client";
 import "dotenv-flow/config";
 
@@ -131,6 +132,18 @@ async function linkStagingWorkspace({
       },
       data: {
         environment: WorkspaceEnvironment.staging,
+        usageLimit: TRIAL_LIMITS.clicks,
+        linksLimit: TRIAL_LIMITS.links,
+        domainsLimit: TRIAL_LIMITS.domains,
+        aiLimit: TRIAL_LIMITS.ai,
+        tagsLimit: TRIAL_LIMITS.tags,
+        foldersLimit: TRIAL_LIMITS.folders,
+        usersLimit: TRIAL_LIMITS.users,
+        partnersLimit: TRIAL_LIMITS.partners,
+        payoutsLimit: TRIAL_LIMITS.payouts,
+        partnerTagsLimit: TRIAL_LIMITS.partnerTags,
+        groupsLimit: TRIAL_LIMITS.groups,
+        networkInvitesLimit: TRIAL_LIMITS.networkInvites,
       },
     });
 
