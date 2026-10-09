@@ -110,7 +110,7 @@ function OverviewCardMessage({
   title: string;
 }) {
   return (
-    <div className="flex min-h-40 grow flex-col items-center justify-center gap-2 px-4 pb-4 text-xs text-neutral-500">
+    <div className="flex min-h-60 grow flex-col items-center justify-center gap-2 px-4 pb-4 text-xs text-neutral-500">
       {icon}
       {title}
     </div>

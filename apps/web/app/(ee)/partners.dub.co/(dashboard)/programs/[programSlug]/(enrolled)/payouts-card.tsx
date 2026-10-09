@@ -6,13 +6,19 @@ import { PartnerPayoutResponse } from "@/lib/types";
 import { PayoutStatusBadgePartner } from "@/ui/partners/payout-status-badge-partner";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
 import { CircleWarning, MoneyBills2, TimestampTooltip } from "@dub/ui";
-import { currencyFormatter, formatDateSmart, formatPeriod } from "@dub/utils";
+import { cn, currencyFormatter, formatDateSmart, formatPeriod } from "@dub/utils";
 import Link from "next/link";
 import { useState } from "react";
 import { ProgramLogo, ViewAllButton } from "../../../overview/overview-card";
 import { PayoutDetailsSheet } from "../../../payouts/partner-payout-details-sheet";
 
-export function PayoutsCard({ programId }: { programId?: string }) {
+export function PayoutsCard({
+  programId,
+  className,
+}: {
+  programId?: string;
+  className?: string;
+}) {
   const { payouts, error } = usePartnerPayouts({
     ...(programId && { programId }),
     pageSize: "4",
@@ -37,7 +43,12 @@ export function PayoutsCard({ programId }: { programId?: string }) {
           payout={detailsSheetState.payout}
         />
       )}
-      <div className="flex flex-col gap-4 rounded-xl border border-neutral-200 bg-white p-5 pb-3">
+      <div
+        className={cn(
+          "flex flex-col gap-4 rounded-xl border border-neutral-200 bg-white p-5 pb-3",
+          className,
+        )}
+      >
         <div className="flex items-center justify-between">
           <span className="block text-base font-semibold leading-none text-neutral-800">
             {programId ? "Payouts" : "Recent payouts"}

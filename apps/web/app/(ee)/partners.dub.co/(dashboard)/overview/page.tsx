@@ -24,9 +24,12 @@ export default function PartnerOverviewPage() {
         <div className="rounded-2xl bg-neutral-50 p-4">
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_397px]">
             <EarningsChart />
-            <div className="flex flex-col gap-3">
-              <div data-testid={testIds.partnerOverview.recentPayouts}>
-                <PayoutsCard />
+            <div className="flex h-full flex-col gap-3">
+              <div
+                data-testid={testIds.partnerOverview.recentPayouts}
+                className="flex min-h-0 flex-1 flex-col"
+              >
+                <PayoutsCard className="h-full min-h-0 flex-1" />
               </div>
               <TasksCard />
             </div>
