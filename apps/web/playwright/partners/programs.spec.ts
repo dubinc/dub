@@ -85,4 +85,46 @@ test.describe("Partner Programs page", () => {
       await deletePartner(partnerId);
     }
   });
+
+  test("opens the first tab with programs when the URL has no tab", async ({
+    page,
+  }) => {
+    const email = `programs-landing-${nanoid(8).toLowerCase()}@dub-internal-test.com`;
+    const password = "Password123";
+    let partnerId: string | undefined;
+    let userId: string | undefined;
+
+    try {
+      const program = await prisma.program.findUniqueOrThrow({
+        where: { slug: TEST_WORKSPACE.workspace.slug },
+        select: { id: true, defaultGroupId: true },
+      });
+
+      ({ partnerId, userId } = await createPartnerUser({ email, password }));
+
+      await prisma.programEnrollment.create({
+        data: {
+          id: createId({ prefix: "pge_" }),
+          partnerId,
+          programId: program.id,
+          groupId: program.defaultGroupId,
+          status: "invited",
+        },
+      });
+
+      // a partner without an approved program lands on /programs
+      await logIn(page, email, password);
+      await expect(page).toHaveURL("/programs");
+
+      await expect(
+        page.getByRole("button", { name: "Invitations" }),
+      ).toHaveAttribute("data-selected", "true");
+      await expect(
+        page.getByRole("button", { name: "Accept invite" }),
+      ).toBeVisible();
+    } finally {
+      if (userId) await prisma.user.delete({ where: { id: userId } });
+      await deletePartner(partnerId);
+    }
+  });
 });
