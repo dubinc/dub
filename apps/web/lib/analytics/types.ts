@@ -52,6 +52,8 @@ export type AnalyticsFilters = Partial<
   // Accept plain string (from partner-profile/cron routes) or ParsedFilter (from API schema)
   partnerId?: string | ParsedFilter;
   linkId?: string | ParsedFilter;
+  // Partner-profile callers only. Not part of the public analytics query schema.
+  includePartnerLinkTitle?: boolean;
 };
 
 // Structural fields from eventsQuerySchema that should remain required

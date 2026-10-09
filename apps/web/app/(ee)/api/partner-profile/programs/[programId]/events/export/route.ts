@@ -18,7 +18,7 @@ import {
 import { qstash } from "@/lib/cron";
 import { generateRandomName } from "@/lib/names";
 import {
-  PartnerProfileLinkSchema,
+  parsePartnerProfileEventLink,
   partnerProfileEventsQuerySchema,
 } from "@/lib/zod/schemas/partner-profile";
 import {
@@ -211,7 +211,9 @@ export const GET = withPartnerProfile(
       return {
         ...eventRest,
         click: clickRest,
-        link: event?.link ? PartnerProfileLinkSchema.parse(event.link) : null,
+        link: event?.link
+          ? parsePartnerProfileEventLink(event.link, links)
+          : null,
         ...(customer && {
           customer: z
             .object({

@@ -229,6 +229,23 @@ export const PartnerProfileLinkSchema = LinkSchema.pick({
   discountCodeDisabledAt: z.coerce.date().nullable().default(null),
 });
 
+export function parsePartnerProfileEventLink<T extends { id: string }>(
+  eventLink: T,
+  links: {
+    id: string;
+    partnerLinkTitle?: string | null;
+    partnerLinkComments?: string | null;
+  }[],
+) {
+  const source = links.find((link) => link.id === eventLink.id);
+
+  return PartnerProfileLinkSchema.parse({
+    ...eventLink,
+    partnerLinkTitle: source?.partnerLinkTitle ?? null,
+    partnerLinkComments: source?.partnerLinkComments ?? null,
+  });
+}
+
 export const PartnerProfileCustomerSchema = CustomerEnrichedSchema.pick({
   id: true,
   email: true,

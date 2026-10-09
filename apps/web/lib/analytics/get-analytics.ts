@@ -41,7 +41,7 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
     isDeprecatedClicksEndpoint = false,
     dataAvailableFrom,
     query,
-    partnerId,
+    includePartnerLinkTitle = false,
   } = params;
 
   const normalizedLinkId = ensureParsedFilter(linkId);
@@ -218,7 +218,7 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
         key: true,
         url: true,
         title: true,
-        ...(partnerId ? { partnerLinkTitle: true as const } : {}),
+        ...(includePartnerLinkTitle ? { partnerLinkTitle: true as const } : {}),
         comments: true,
         folderId: true,
         partnerId: true,
@@ -250,7 +250,7 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
           ...item,
         });
 
-        if (partnerId && "partnerLinkTitle" in link) {
+        if (includePartnerLinkTitle && "partnerLinkTitle" in link) {
           return {
             ...parsed,
             partnerLinkTitle: link.partnerLinkTitle,
