@@ -2,7 +2,7 @@
 
 import { constructPartnerLink } from "@/lib/partners/construct-partner-link";
 import { getProgramApplicationRejectionReasonLabel } from "@/lib/program-applications/program-application-rejection";
-import { usePartnerProfileEarningsTimeseries } from "@/lib/swr/use-partner-profile-earnings";
+import { usePartnerProgramActivity } from "@/lib/swr/use-partner-profile-earnings";
 import {
   PartnerProfileProgramEnrollmentProps,
   ProgramEnrollmentProps,
@@ -26,7 +26,7 @@ import {
 import NumberFlow from "@number-flow/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { type ReactNode, useMemo } from "react";
+import { type ReactNode } from "react";
 
 function RejectionTooltipRow({
   icon,
@@ -273,22 +273,8 @@ function ProgramCardStatus({
   );
 }
 
-// the activity chart for one program, from the earnings of all programs in one
-// request (SWR dedupes it across the cards)
 function ProgramCardActivity({ programId }: { programId: string }) {
-  const { data: timeseries } = usePartnerProfileEarningsTimeseries({
-    groupBy: "programId",
-    interval: "1y",
-  });
-
-  const chartData = useMemo(
-    () =>
-      timeseries?.map(({ start, data }) => ({
-        date: new Date(start),
-        value: data?.[programId] ?? 0,
-      })),
-    [timeseries, programId],
-  );
+  const chartData = usePartnerProgramActivity(programId);
 
   return (
     <div className="-mx-5 h-16">

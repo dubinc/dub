@@ -1,7 +1,7 @@
 "use client";
 
 import { constructPartnerLink } from "@/lib/partners/construct-partner-link";
-import { usePartnerProfileEarningsTimeseries } from "@/lib/swr/use-partner-profile-earnings";
+import { usePartnerProgramActivity } from "@/lib/swr/use-partner-profile-earnings";
 import useProgramEnrollments from "@/lib/swr/use-program-enrollments";
 import useProgramEnrollmentsCount from "@/lib/swr/use-program-enrollments-count";
 import { ProgramEnrollmentProps } from "@/lib/types";
@@ -309,20 +309,7 @@ function ProgramActivity({
 }: {
   programEnrollment: ProgramEnrollmentProps;
 }) {
-  // one request for every program on the page (SWR dedupes it across rows)
-  const { data: timeseries } = usePartnerProfileEarningsTimeseries({
-    groupBy: "programId",
-    interval: "1y",
-  });
-
-  const data = useMemo(
-    () =>
-      timeseries?.map(({ start, data }) => ({
-        date: new Date(start),
-        value: data?.[programEnrollment.programId] ?? 0,
-      })),
-    [timeseries, programEnrollment.programId],
-  );
+  const data = usePartnerProgramActivity(programEnrollment.programId);
 
   return (
     <div className="h-6 w-36">
