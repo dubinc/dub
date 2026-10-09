@@ -15,8 +15,8 @@ export const getProgram = cache(
       where: {
         slug,
       },
-      ...(groupSlug && {
-        include: {
+      include: {
+        ...(groupSlug && {
           groups: {
             where: {
               slug: groupSlug,
@@ -29,8 +29,8 @@ export const getProgram = cache(
               discount: true,
             },
           },
-        },
-      }),
+        }),
+      },
     });
 
     if (!programData) {
