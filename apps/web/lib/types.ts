@@ -5,7 +5,12 @@ import {
   PartnerEarningsSchema,
   partnerPayoutMethodSchema,
   PartnerProfileCustomerSchema,
+  PartnerProfileEarningsSchema,
   PartnerProfileLinkSchema,
+  PartnerProfileTopLinkEarningsSchema,
+  PartnerProfileTopProgramEarningsSchema,
+  PartnerProfileTypeEarningsSchema,
+  partnerProfileEarningsAnalyticsQuerySchema,
   partnerSubmittedLeadsCountByStatusSchema,
   partnerUserSchema,
 } from "@/lib/zod/schemas/partner-profile";
@@ -510,6 +515,35 @@ export type CommissionsCount = Record<
 export type CommissionResponse = z.infer<typeof CommissionEnrichedSchema>;
 
 export type PartnerEarningsResponse = z.infer<typeof PartnerEarningsSchema>;
+
+export type PartnerProfileEarningsResponse = z.infer<
+  typeof PartnerProfileEarningsSchema
+>;
+
+export type PartnerProfileTopProgramEarnings = z.infer<
+  typeof PartnerProfileTopProgramEarningsSchema
+>;
+
+export type PartnerProfileTopLinkEarnings = z.infer<
+  typeof PartnerProfileTopLinkEarningsSchema
+>;
+
+export type PartnerProfileEarningsAnalyticsQuery = z.infer<
+  typeof partnerProfileEarningsAnalyticsQuerySchema
+>;
+
+export type PartnerProfileEarningsAnalyticsGroupBy =
+  PartnerProfileEarningsAnalyticsQuery["groupBy"];
+
+export type PartnerProfileTypeEarnings = z.infer<
+  typeof PartnerProfileTypeEarningsSchema
+>;
+
+export type PartnerProfileEarningsAnalyticsByGroup = {
+  programId: PartnerProfileTopProgramEarnings[];
+  linkId: PartnerProfileTopLinkEarnings[];
+  type: PartnerProfileTypeEarnings[];
+};
 
 export type CustomerProps = z.infer<typeof CustomerSchema>;
 

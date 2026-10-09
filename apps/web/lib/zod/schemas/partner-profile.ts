@@ -27,6 +27,7 @@ import { DiscountSchema } from "./discount";
 import { LinkSchema } from "./links";
 import { getPaginationQuerySchema } from "./misc";
 import { payoutsQuerySchema } from "./payouts";
+import { ProgramSchema } from "./programs";
 import { RewardSchema } from "./rewards";
 import { submittedLeadFormDataSchema } from "./submitted-lead-form";
 import { centsSchema } from "./utils";
@@ -88,6 +89,92 @@ export const getPartnerEarningsTimeseriesSchema =
   getPartnerEarningsCountQuerySchema.extend({
     timezone: z.string().optional(),
   });
+
+const programIdOrSlugSchema = z
+  .string()
+  .optional()
+  .describe(
+    "The ID or slug of the program to filter earnings by. If not provided, earnings across all programs are returned.",
+  );
+
+const PartnerProfileEarningsProgramSchema = ProgramSchema.pick({
+  id: true,
+  name: true,
+  slug: true,
+  logo: true,
+});
+
+export const PartnerProfileEarningsSchema = PartnerEarningsSchema.extend({
+  program: PartnerProfileEarningsProgramSchema,
+});
+
+export const partnerProfileEarningsQuerySchema =
+  getPartnerEarningsQuerySchema.extend({
+    programIdOrSlug: programIdOrSlugSchema,
+  });
+
+export const partnerProfileEarningsCountQuerySchema =
+  getPartnerEarningsCountQuerySchema.extend({
+    programIdOrSlug: programIdOrSlugSchema,
+  });
+
+export const partnerProfileEarningsTimeseriesQuerySchema =
+  getPartnerEarningsTimeseriesSchema.extend({
+    programIdOrSlug: programIdOrSlugSchema,
+    groupBy: z
+      .enum(["type", "linkId", "programId"])
+      .optional()
+      .describe(
+        "The field to group the earnings by. If omitted, each period is the total earnings. Otherwise each period includes a `data` object with the earnings of each group.",
+      ),
+  });
+
+export const partnerProfileEarningsAnalyticsQuerySchema =
+  partnerProfileEarningsCountQuerySchema
+    .pick({
+      programIdOrSlug: true,
+      type: true,
+      status: true,
+      interval: true,
+      start: true,
+      end: true,
+      timezone: true,
+    })
+    .extend({
+      groupBy: z
+        .enum(["programId", "linkId", "type"])
+        .describe(
+          "The field to sum earnings by. Returns the highest-earning programs, links, or commission types.",
+        ),
+      limit: z.coerce
+        .number()
+        .int()
+        .min(1)
+        .max(100)
+        .default(10)
+        .describe("The number of groups to return, sorted by earnings."),
+    });
+
+export const PartnerProfileTopProgramEarningsSchema =
+  PartnerProfileEarningsProgramSchema.extend({
+    earnings: z.number(),
+  });
+
+export const PartnerProfileTopLinkEarningsSchema = LinkSchema.pick({
+  id: true,
+  domain: true,
+  key: true,
+  shortLink: true,
+  url: true,
+}).extend({
+  program: PartnerProfileEarningsProgramSchema,
+  earnings: z.number(),
+});
+
+export const PartnerProfileTypeEarningsSchema = z.object({
+  type: z.enum(CommissionType),
+  earnings: z.number(),
+});
 
 export const PartnerProfileLinkSchema = LinkSchema.pick({
   id: true,
