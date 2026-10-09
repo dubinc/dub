@@ -42,7 +42,6 @@ model Program {
   inviteEmailData         Json?   @db.Json
   embedData               Json?   @db.Json
   resources               Json?   @db.Json
-  referralFormData        Json?   @db.Json
   applicationRequirements Json?   @db.Json
   termsUrl                String? @db.Text
   helpUrl                 String? @db.Text

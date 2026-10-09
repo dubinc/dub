@@ -86,6 +86,7 @@ const payoutWebhookEventSchemaExtended = payoutWebhookEventSchema.extend({
     .nullable()
     .transform((str) => (str ? new Date(str) : null)),
   createdAt: z.string().transform((str) => new Date(str)),
+  updatedAt: z.string().transform((str) => new Date(str)),
   initiatedAt: z.string().transform((str) => new Date(str)),
   paidAt: z
     .string()
