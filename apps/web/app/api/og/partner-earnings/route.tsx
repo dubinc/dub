@@ -1,4 +1,5 @@
 import { getPartnerEarningsTimeseries } from "@/lib/api/partner-profile/get-partner-earnings-timeseries";
+import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { withPartnerProfile } from "@/lib/auth/partner";
 import { getPartnerEarningsTimeseriesSchema } from "@/lib/zod/schemas/partner-profile";
 import { currencyFormatter, formatDate } from "@dub/utils";
@@ -15,13 +16,22 @@ const BACKGROUND_IMAGES = {
 };
 
 export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
-  const { programId, background, ...filters } =
-    getPartnerEarningsTimeseriesSchema
-      .extend({
-        programId: z.string(),
-        background: z.enum(["light", "dark"]).optional().default("light"),
-      })
-      .parse(searchParams);
+  const {
+    programId: programIdOrSlug,
+    background,
+    ...filters
+  } = getPartnerEarningsTimeseriesSchema
+    .extend({
+      programId: z.string(),
+      background: z.enum(["light", "dark"]).optional().default("light"),
+    })
+    .parse(searchParams);
+
+  const { programId } = await getProgramEnrollmentOrThrow({
+    partnerId: partner.id,
+    programId: programIdOrSlug,
+    include: {},
+  });
 
   const [interSemibold, timeseries] = await Promise.all([
     loadGoogleFont("Inter:wght@600"),
