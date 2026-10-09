@@ -53,6 +53,31 @@ async function main() {
       process.exit(1);
     }
   }
+
+  // The insert loop reads passwordHash before it creates the credential account.
+  // A password reset or change that commits in between updates only User, because
+  // the credential account does not exist yet, so the inserted row keeps the old hash.
+  // Reruns skip users that already have a credential account and cannot repair it.
+  // This statement reads passwordHash at write time and overwrites any credential
+  // account whose password or accountId no longer matches the user.
+  const reconciled = await prisma.$executeRaw`
+    UPDATE Account a
+    INNER JOIN User u ON u.id = a.userId
+    SET
+      a.accountId = u.id,
+      a.password = u.passwordHash
+    WHERE
+      a.providerId = 'credential'
+      AND u.passwordHash IS NOT NULL
+      AND (
+        a.accountId IS NULL
+        OR a.accountId != u.id
+        OR a.password IS NULL
+        OR a.password != u.passwordHash
+      )
+  `;
+
+  console.log(`Reconciled ${reconciled} credentials.`);
 }
 
 main();

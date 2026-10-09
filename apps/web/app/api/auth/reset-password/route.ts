@@ -99,12 +99,20 @@ export async function POST(req: NextRequest) {
       }),
 
       // Dual write: keep Better Auth credential Account.password in sync
-      prisma.account.updateMany({
+      prisma.account.upsert({
         where: {
-          userId: user.id,
-          providerId: "credential",
+          providerId_accountId: {
+            providerId: "credential",
+            accountId: user.id,
+          },
         },
-        data: {
+        create: {
+          userId: user.id,
+          accountId: user.id,
+          providerId: "credential",
+          password: newPasswordHash,
+        },
+        update: {
           password: newPasswordHash,
         },
       }),

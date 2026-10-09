@@ -90,6 +90,11 @@ const CustomPrismaAdapter = (p: PrismaClient) => {
           scope: account.scope,
           id_token: account.id_token,
           session_state: account.session_state,
+          accountId: account.providerAccountId,
+          providerId: account.provider,
+          accessToken: account.access_token,
+          refreshToken: account.refresh_token,
+          idToken: account.id_token,
         },
       }),
     // simplified version of https://github.com/nextauthjs/next-auth/blob/main/packages/adapter-prisma/src/index.ts#L80

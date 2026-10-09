@@ -62,7 +62,8 @@ async function main() {
       WHERE
         a.providerId = 'credential'
         AND (
-          a.accountId != a.userId
+          a.accountId IS NULL
+          OR a.accountId != a.userId
           OR a.password IS NULL
           OR (u.passwordHash IS NOT NULL AND a.password != u.passwordHash)
         )

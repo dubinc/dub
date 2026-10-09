@@ -56,12 +56,20 @@ export const PATCH = withSession(async ({ req, session }) => {
     }),
 
     // Dual write: keep Better Auth credential Account.password in sync
-    prisma.account.updateMany({
+    prisma.account.upsert({
       where: {
-        userId: session.user.id,
-        providerId: "credential",
+        providerId_accountId: {
+          providerId: "credential",
+          accountId: session.user.id,
+        },
       },
-      data: {
+      create: {
+        userId: session.user.id,
+        accountId: session.user.id,
+        providerId: "credential",
+        password: newPasswordHash,
+      },
+      update: {
         password: newPasswordHash,
       },
     }),
