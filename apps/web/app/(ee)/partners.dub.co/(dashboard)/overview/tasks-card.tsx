@@ -27,7 +27,7 @@ export function TasksCard() {
     {
       icon: UserCheck,
       label: "Review new invitations",
-      href: "/programs/invitations",
+      href: "/programs?tab=invitations",
       count: invitationsCount,
     },
   ].filter((task): task is typeof task & { count: number } => !!task.count);
