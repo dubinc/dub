@@ -1,5 +1,6 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { awardBountyConditionSchema } from "@/lib/api/workflows/award-bounty/schema";
+import { bountyEligibilityIncludes } from "@/lib/bounty/api/bounty-availability";
 import {
   PartnerLifetimeStats,
   planDraftBountySubmissionUpserts,
@@ -9,7 +10,7 @@ import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { aggregatePartnerLinksStats } from "@/lib/partners/aggregate-partner-links-stats";
 import { prisma } from "@/lib/prisma";
 import { COMMISSION_ELIGIBLE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
-import { APP_DOMAIN_WITH_NGROK, log, toCentsNumber } from "@dub/utils";
+import { APP_DOMAIN_WITH_NGROK, log, pluck, toCentsNumber } from "@dub/utils";
 import { differenceInMinutes } from "date-fns";
 import * as z from "zod/v4";
 import { logAndRespond } from "../../utils";
@@ -43,14 +44,10 @@ export async function POST(req: Request) {
         id: bountyId,
       },
       include: {
+        ...bountyEligibilityIncludes,
         workflow: {
           select: {
             triggerConditions: true,
-          },
-        },
-        groups: {
-          select: {
-            groupId: true,
           },
         },
         program: {
@@ -92,7 +89,8 @@ export async function POST(req: Request) {
       return logAndRespond(`Bounty ${bountyId} has no workflow.`);
     }
 
-    const bountyGroupIds = bounty.groups.map(({ groupId }) => groupId);
+    const bountyGroupIds = pluck(bounty.groups, "groupId");
+    const bountyPartnerTagIds = pluck(bounty.partnerTags, "partnerTagId");
 
     // Find program enrollments
     const programEnrollments = await prisma.programEnrollment.findMany({
@@ -101,6 +99,15 @@ export async function POST(req: Request) {
         ...(bountyGroupIds.length > 0 && {
           groupId: {
             in: bountyGroupIds,
+          },
+        }),
+        ...(bountyPartnerTagIds.length > 0 && {
+          programPartnerTags: {
+            some: {
+              partnerTagId: {
+                in: bountyPartnerTagIds,
+              },
+            },
           },
         }),
         ...(partnerIds && {

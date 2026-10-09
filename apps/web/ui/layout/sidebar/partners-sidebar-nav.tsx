@@ -1,6 +1,7 @@
 "use client";
 
 import { useProgramMessagesCount } from "@/lib/messages/hooks/use-program-messages-count";
+import { getGroupSubmittedLeadForm } from "@/lib/submitted-leads/get-group-submitted-lead-form";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { usePartnerProgramBounties } from "@/lib/swr/use-partner-program-bounties";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
@@ -15,26 +16,27 @@ import {
   ColorPalette2,
   Gauge6,
   Gear2,
-  Gift,
-  GridIcon,
-  MoneyBills2,
-  Msgs,
   Nodes4,
   ShieldCheck,
   Shop,
-  SquareUserSparkle2,
   Trophy,
   UserCheck,
+  UserPlus,
   Users2,
   Webhook,
 } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
-import { ReactNode, useMemo } from "react";
+import { ReactNode, useMemo, useState } from "react";
 import { CursorRays } from "./icons/cursor-rays";
+import { Gift } from "./icons/gift";
+import { GridIcon } from "./icons/grid";
 import { Hyperlink } from "./icons/hyperlink";
 import { LinesY } from "./icons/lines-y";
+import { MoneyBills2 } from "./icons/money-bills2";
+import { Msgs } from "./icons/msgs";
+import { SquareUserSparkle2 } from "./icons/square-user-sparkle2";
 import { User } from "./icons/user";
 import { PartnerProgramDropdown } from "./partner-program-dropdown";
 import { PayoutStats } from "./payout-stats";
@@ -58,6 +60,7 @@ type SidebarNavData = {
   showDetailedAnalytics?: boolean;
   postbacksEnabled?: boolean;
   hasReferralReward?: boolean;
+  submittedLeadsEnabled?: boolean;
   newsContent?: ReactNode;
 };
 
@@ -83,9 +86,9 @@ const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({
     active: pathname.startsWith("/payouts"),
   },
   {
-    name: "Partner profile",
+    name: "Profile settings",
     description:
-      "Build a great partner profile and get noticed in our partner network.",
+      "Customize your profile, invite your team, and manage your notifications.",
     icon: SquareUserSparkle2,
     href: "/profile",
     active: pathname.startsWith("/profile"),
@@ -137,7 +140,6 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
     title: <PartnerProgramDropdown />,
     content: PROGRAMS_CONTENT({ invitationsCount }),
     direction: "left",
-    showNews: true,
   }),
 
   marketplace: ({ isMobile, invitationsCount }) => ({
@@ -203,6 +205,7 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
     programBountiesCount,
     showDetailedAnalytics,
     hasReferralReward,
+    submittedLeadsEnabled,
   }) => ({
     title: <PartnerProgramDropdown />,
     content: [
@@ -275,6 +278,16 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
                 : programBountiesCount || undefined,
             locked: isUnapproved,
           },
+          ...(submittedLeadsEnabled
+            ? [
+                {
+                  name: "Submitted Leads",
+                  icon: UserPlus as Icon,
+                  href: `/programs/${programSlug}/leads` as `/${string}`,
+                  locked: isUnapproved,
+                },
+              ]
+            : []),
           ...(hasReferralReward
             ? [
                 {
@@ -392,17 +405,25 @@ export function PartnersSidebarNav({
 
   const referralsActive =
     pathname === "/referrals" || pathname.startsWith("/referrals/");
+  const [referralsHovered, setReferralsHovered] = useState(false);
 
   const composedToolContent = (
     <div className="flex flex-col items-center gap-3">
       <Link
         href="/referrals"
+        aria-label="Referrals"
+        onPointerEnter={() => setReferralsHovered(true)}
+        onPointerLeave={() => setReferralsHovered(false)}
+        onFocus={(e) =>
+          e.currentTarget.matches(":focus-visible") && setReferralsHovered(true)
+        }
+        onBlur={() => setReferralsHovered(false)}
         className={cn(
           "text-content-default flex size-11 shrink-0 items-center justify-center rounded-lg",
           referralsActive ? "bg-white" : "hover:bg-bg-inverted/5",
         )}
       >
-        <Gift className="size-5" />
+        <Gift className="size-5" data-hovered={referralsHovered} />
       </Link>
       {toolContent}
     </div>
@@ -425,11 +446,13 @@ export function PartnersSidebarNav({
         showDetailedAnalytics,
         postbacksEnabled: partner?.featureFlags?.postbacks,
         hasReferralReward: !!programEnrollment?.referralRewardId,
+        submittedLeadsEnabled: Boolean(
+          getGroupSubmittedLeadForm(programEnrollment?.group),
+        ),
         newsContent,
       }}
       toolContent={composedToolContent}
-      newsContent={newsContent}
-      bottom={
+      bottomContent={
         isEnrolledProgramPage ? (
           <ProgramHelpSupport />
         ) : (

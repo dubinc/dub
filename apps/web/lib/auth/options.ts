@@ -1,5 +1,6 @@
 import { isBlacklistedEmail } from "@/lib/edge-config";
 import { jackson } from "@/lib/jackson";
+import { welcomeUserJob } from "@/lib/jobs/handlers/welcome-user-job";
 import { prisma } from "@/lib/prisma";
 import { isStored, storage } from "@/lib/storage";
 import { UserProps } from "@/lib/types";
@@ -7,7 +8,7 @@ import { assertRateLimit } from "@/lib/upstash/assert-rate-limit";
 import { RATELIMIT_POLICIES } from "@/lib/upstash/ratelimit-policies";
 import { sendEmail } from "@dub/email";
 import LoginLink from "@dub/email/templates/login-link";
-import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
+import { APP_DOMAIN, PARTNERS_DOMAIN } from "@dub/utils";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { PrismaClient } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
@@ -18,10 +19,10 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import EmailProvider from "next-auth/providers/email";
 import GithubProvider from "next-auth/providers/github";
 import GoogleProvider from "next-auth/providers/google";
+import { headers } from "next/headers";
 import { createId } from "../api/create-id";
 import { isProduction } from "../api/environment";
 import { isSamlEnforcedForEmailDomain } from "../api/workspaces/is-saml-enforced-for-email-domain";
-import { qstash } from "../cron";
 import { completeProgramApplications } from "../partners/complete-program-applications";
 import {
   consumeAdminImpersonation,
@@ -66,9 +67,7 @@ const CustomPrismaAdapter = (p: PrismaClient) => {
           ...rest,
           ...(emailVerified !== undefined && {
             emailVerified,
-            ...(emailVerified
-              ? { emailVerifiedBa: Boolean(emailVerified) }
-              : {}),
+            emailVerifiedBa: Boolean(emailVerified),
           }),
         },
       });
@@ -145,6 +144,7 @@ export const authOptions: NextAuthOptions = {
     GithubProvider({
       clientId: process.env.GITHUB_CLIENT_ID as string,
       clientSecret: process.env.GITHUB_CLIENT_SECRET as string,
+      issuer: "https://github.com/login/oauth",
       allowDangerousEmailAccountLinking: true,
     }),
     {
@@ -154,7 +154,7 @@ export const authOptions: NextAuthOptions = {
       version: "2.0",
       checks: ["pkce", "state"],
       authorization: {
-        url: `${process.env.NEXTAUTH_URL}/api/auth/saml/authorize`,
+        url: `${APP_DOMAIN}/api/auth/saml/authorize`,
         params: {
           scope: "",
           response_type: "code",
@@ -162,10 +162,10 @@ export const authOptions: NextAuthOptions = {
         },
       },
       token: {
-        url: `${process.env.NEXTAUTH_URL}/api/auth/saml/token`,
+        url: `${APP_DOMAIN}/api/auth/saml/token`,
         params: { grant_type: "authorization_code" },
       },
-      userinfo: `${process.env.NEXTAUTH_URL}/api/auth/saml/userinfo`,
+      userinfo: `${APP_DOMAIN}/api/auth/saml/userinfo`,
       profile: async (profile) => {
         let existingUser = await prisma.user.findUnique({
           where: { email: profile.email },
@@ -225,7 +225,7 @@ export const authOptions: NextAuthOptions = {
         const { access_token } = await oauthController.token({
           code,
           grant_type: "authorization_code",
-          redirect_uri: process.env.NEXTAUTH_URL as string,
+          redirect_uri: APP_DOMAIN,
           client_id: "dummy",
           client_secret: process.env.NEXTAUTH_SECRET as string,
         });
@@ -552,6 +552,24 @@ export const authOptions: NextAuthOptions = {
       }
       return true;
     },
+    // baseUrl is NEXTAUTH_URL when it is set (e.g. on localhost), so resolve
+    // against the request's host instead to support redirects on partners
+    redirect: async ({ url, baseUrl }) => {
+      const trustedOrigins = [baseUrl, APP_DOMAIN, PARTNERS_DOMAIN];
+      const host = (await headers()).get("host");
+      const base =
+        trustedOrigins.find((origin) => new URL(origin).host === host) ??
+        baseUrl;
+
+      let resolved: URL;
+      try {
+        resolved = new URL(url, base);
+      } catch {
+        return base;
+      }
+      const { origin, href } = resolved;
+      return trustedOrigins.includes(origin) ? href : base;
+    },
     jwt: async ({
       token,
       user,
@@ -632,11 +650,15 @@ export const authOptions: NextAuthOptions = {
             // track lead if dub_id cookie is present
             trackDubLead(user),
             // trigger welcome workflow 45 minutes after the user signed up
-            qstash.publishJSON({
-              url: `${APP_DOMAIN_WITH_NGROK}/api/cron/welcome-user`,
-              delay: 45 * 60,
-              body: { userId: user.id },
-            }),
+            welcomeUserJob.dispatch(
+              {
+                userId: user.id,
+              },
+              {
+                delay: 45 * 60,
+                label: user.id,
+              },
+            ),
           ]),
         );
       }

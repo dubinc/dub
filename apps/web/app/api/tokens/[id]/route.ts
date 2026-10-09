@@ -21,17 +21,11 @@ export const GET = withWorkspace(
         name: true,
         partialKey: true,
         scopes: true,
+        expires: true,
         lastUsed: true,
         createdAt: true,
         updatedAt: true,
-        user: {
-          select: {
-            id: true,
-            name: true,
-            image: true,
-            isMachine: true,
-          },
-        },
+        user: true,
       },
     });
 

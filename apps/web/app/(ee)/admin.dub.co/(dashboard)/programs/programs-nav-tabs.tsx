@@ -1,7 +1,7 @@
 "use client";
 
 import { PageNavTabs } from "@/ui/layout/page-nav-tabs";
-import { CrownSmall, GridIcon } from "@dub/ui";
+import { CrownSmall, GridIcon, History } from "@dub/ui";
 import { useMemo } from "react";
 
 export function ProgramsNavTabs() {
@@ -11,6 +11,11 @@ export function ProgramsNavTabs() {
         id: "marketplace",
         label: "Marketplace",
         icon: GridIcon,
+      },
+      {
+        id: "recent",
+        label: "Recent programs",
+        icon: History,
       },
       {
         id: "sales",

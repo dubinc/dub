@@ -2,12 +2,17 @@ import * as z from "zod/v4";
 import { clickEventSchema } from "../zod/schemas/clicks";
 import { CommissionWebhookSchema } from "../zod/schemas/commissions";
 import { CustomerSchema } from "../zod/schemas/customers";
+import { DiscountCodeWebhookSchema } from "../zod/schemas/discount";
 import { linkEventSchema } from "../zod/schemas/links";
 import {
   EnrolledPartnerSchema,
+  partnerMergedWebhookSchema,
   WebhookPartnerSchema,
 } from "../zod/schemas/partners";
-import { partnerApplicationWebhookSchema } from "../zod/schemas/program-application";
+import {
+  partnerApplicationWebhookSchema,
+  programApplicationWebhookSchema,
+} from "../zod/schemas/program-application";
 import { WEBHOOK_TRIGGERS } from "./constants";
 
 const webhookSaleSchema = z.object({
@@ -151,9 +156,38 @@ export const webhookEventSchema = z
       })
       .meta({
         description:
+          "Deprecated: Use `program_application.created` instead. Triggered when a partner submits an application to join a program.",
+        deprecated: true,
+        id: "ProgramApplicationSubmittedEvent",
+        outputId: "ProgramApplicationSubmittedEvent",
+      }),
+
+    z
+      .object({
+        id: z.string(),
+        event: z.literal("program_application.created"),
+        createdAt: z.string(),
+        data: programApplicationWebhookSchema,
+      })
+      .meta({
+        description:
           "Triggered when a partner submits an application to join a program.",
-        id: "PartnerApplicationSubmittedEvent",
-        outputId: "PartnerApplicationSubmittedEvent",
+        id: "ProgramApplicationCreatedEvent",
+        outputId: "ProgramApplicationCreatedEvent",
+      }),
+
+    z
+      .object({
+        id: z.string(),
+        event: z.literal("partner.merged"),
+        createdAt: z.string(),
+        data: partnerMergedWebhookSchema,
+      })
+      .meta({
+        description:
+          "Triggered when two partner accounts are merged. Fired once per program the source partner was enrolled in.",
+        id: "PartnerMergedEvent",
+        outputId: "PartnerMergedEvent",
       }),
 
     z
@@ -167,6 +201,22 @@ export const webhookEventSchema = z
         description: "Triggered when a commission is created for a partner.",
         id: "CommissionCreatedEvent",
         outputId: "CommissionCreatedEvent",
+      }),
+
+    z
+      .object({
+        id: z.string(),
+        event: z.union([
+          z.literal("discount_code.created"),
+          z.literal("discount_code.deleted"),
+        ]),
+        createdAt: z.string(),
+        data: DiscountCodeWebhookSchema,
+      })
+      .meta({
+        description: "Triggered when a discount code is created or deleted.",
+        id: "DiscountCodeWebhookEvent",
+        outputId: "DiscountCodeWebhookEvent",
       }),
   ])
   .meta({

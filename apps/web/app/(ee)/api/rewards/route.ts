@@ -1,27 +1,21 @@
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
+import {
+  getRewardsQuerySchema,
+  listRewards,
+  listRewardsResponseSchema,
+} from "@/lib/api/rewards/list-rewards";
 import { withWorkspace } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
-import { RewardSchema } from "@/lib/zod/schemas/rewards";
 import { NextResponse } from "next/server";
-import * as z from "zod/v4";
 
 // GET /api/rewards - get all rewards for a program
-export const GET = withWorkspace(async ({ workspace }) => {
+export const GET = withWorkspace(async ({ workspace, searchParams }) => {
   const programId = getDefaultProgramIdOrThrow(workspace);
+  const { groupId } = getRewardsQuerySchema.parse(searchParams);
 
-  const rewards = await prisma.reward.findMany({
-    where: {
-      programId,
-    },
-    orderBy: [
-      {
-        event: "desc",
-      },
-      {
-        createdAt: "desc",
-      },
-    ],
+  const rewards = await listRewards({
+    programId,
+    groupId,
   });
 
-  return NextResponse.json(z.array(RewardSchema).parse(rewards));
+  return NextResponse.json(listRewardsResponseSchema.parse(rewards));
 });

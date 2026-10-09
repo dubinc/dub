@@ -20,13 +20,19 @@ export const getStartEndDates = ({
 
   let startDate: TZDate;
   let endDate: TZDate;
-  let granularity: "minute" | "hour" | "day" | "month" = "day";
+  let granularity: "hour" | "day" | "month" = "day";
 
   if (start || (interval === "all" && dataAvailableFrom)) {
-    startDate = startOfDay(
-      new TZDate(new Date(start ?? dataAvailableFrom ?? Date.now()), timezone),
-    );
-    endDate = endOfDay(new TZDate(new Date(end ?? Date.now()), timezone));
+    let rangeStart = new Date(start ?? dataAvailableFrom ?? Date.now());
+    let rangeEnd = new Date(end ?? Date.now());
+
+    // Swap start and end if start is greater than end, before the day boundaries and the granularity are set
+    if (rangeStart > rangeEnd) {
+      [rangeStart, rangeEnd] = [rangeEnd, rangeStart];
+    }
+
+    startDate = startOfDay(new TZDate(rangeStart, timezone));
+    endDate = endOfDay(new TZDate(rangeEnd, timezone));
 
     const daysDifference = differenceInDays(endDate, startDate, {
       in: tz(timezone),
@@ -34,13 +40,8 @@ export const getStartEndDates = ({
 
     if (daysDifference <= 2) {
       granularity = "hour";
-    } else if (daysDifference > 180) {
+    } else if (daysDifference > 90) {
       granularity = "month";
-    }
-
-    // Swap start and end if start is greater than end
-    if (startDate > endDate) {
-      [startDate, endDate] = [endDate, startDate];
     }
   } else {
     interval = interval ?? "30d";

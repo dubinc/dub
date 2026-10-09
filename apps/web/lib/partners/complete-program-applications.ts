@@ -1,14 +1,22 @@
 import { prisma } from "@/lib/prisma";
-import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
-import { PlatformType, Prisma } from "@prisma/client";
+import { pluck } from "@dub/utils";
+import { Prisma } from "@prisma/client";
 import { createId } from "../api/create-id";
 import { detectAndRecordFraudApplication } from "../api/fraud/detect-record-fraud-application";
-import { notifyPartnerApplication } from "../api/partners/notify-partner-application";
+import { notifyProgramApplication } from "../api/partners/notify-program-application";
+import { queuePartnerSearchSync } from "../api/partners/queue-partner-search-sync";
 import { markApplicationEventSubmitted } from "../application-events/update-application-event";
-import { qstash } from "../cron";
-import { buildSocialPlatformLookup } from "../social-utils";
+import { autoApproveProgramApplicationJob } from "../jobs/handlers/auto-approve-program-application-job";
+import { autoRejectProgramApplicationJob } from "../jobs/handlers/auto-reject-program-application-job";
 import { sendWorkspaceWebhook } from "../webhook/publish";
-import { partnerApplicationWebhookSchema } from "../zod/schemas/program-application";
+import {
+  partnerApplicationWebhookSchema,
+  programApplicationWebhookSchema,
+} from "../zod/schemas/program-application";
+import {
+  backfillPartnerPlatforms,
+  mergeApplicationSocialPlatforms,
+} from "./backfill-partner-platforms";
 import { evaluateApplicationRequirements } from "./evaluate-application-requirements";
 import {
   formatApplicationFormData,
@@ -22,7 +30,9 @@ import {
 export async function completeProgramApplications(userEmail: string) {
   try {
     const user = await prisma.user.findUniqueOrThrow({
-      where: { email: userEmail },
+      where: {
+        email: userEmail,
+      },
       select: {
         partners: {
           select: {
@@ -73,6 +83,8 @@ export async function completeProgramApplications(userEmail: string) {
       return;
     }
 
+    const partner = user.partners[0].partner;
+
     // if there are duplicate program applications
     // pick the latest one for each programId
     // note: programApplications is already sorted by createdAt desc
@@ -87,21 +99,23 @@ export async function completeProgramApplications(userEmail: string) {
       },
     );
 
-    const partner = user.partners[0].partner;
-
-    // Program enrollments to create
-    const programEnrollments: Prisma.ProgramEnrollmentCreateManyInput[] =
-      filteredProgramApplications.map((programApplication) => ({
-        id: createId({ prefix: "pge_" }),
-        programId: programApplication.programId,
-        partnerId: user.partners[0].partnerId,
-        applicationId: programApplication.id,
-        groupId: programApplication?.partnerGroup?.id,
-        clickRewardId: programApplication?.partnerGroup?.clickRewardId,
-        leadRewardId: programApplication?.partnerGroup?.leadRewardId,
-        saleRewardId: programApplication?.partnerGroup?.saleRewardId,
-        discountId: programApplication?.partnerGroup?.discountId,
-      }));
+    // Program enrollments to create. `id` is narrowed to required because the
+    // search sync below reads it back, and Prisma leaves it optional here.
+    const programEnrollments: (Prisma.ProgramEnrollmentCreateManyInput & {
+      id: string;
+    })[] = filteredProgramApplications.map((programApplication) => ({
+      id: createId({ prefix: "pge_" }),
+      programId: programApplication.programId,
+      partnerId: partner.id,
+      applicationId: programApplication.id,
+      groupId: programApplication?.partnerGroup?.id,
+      clickRewardId: programApplication?.partnerGroup?.clickRewardId,
+      leadRewardId: programApplication?.partnerGroup?.leadRewardId,
+      saleRewardId: programApplication?.partnerGroup?.saleRewardId,
+      customRewardId: programApplication?.partnerGroup?.customRewardId,
+      referralRewardId: programApplication?.partnerGroup?.referralRewardId,
+      discountId: programApplication?.partnerGroup?.discountId,
+    }));
 
     const enrollmentsByApplicationId = new Map(
       programEnrollments.map((enrollment) => [
@@ -110,10 +124,26 @@ export async function completeProgramApplications(userEmail: string) {
       ]),
     );
 
-    await prisma.programEnrollment.createMany({
-      data: programEnrollments,
-      skipDuplicates: true,
-    });
+    await prisma.$transaction([
+      prisma.programEnrollment.createMany({
+        data: programEnrollments,
+        skipDuplicates: true,
+      }),
+
+      prisma.programApplication.updateMany({
+        where: {
+          id: {
+            in: pluck(filteredProgramApplications, "id"),
+          },
+          enrollment: {
+            isNot: null,
+          },
+        },
+        data: {
+          partnerId: partner.id,
+        },
+      }),
+    ]);
 
     // Fetch the programs' workspaces
     const workspaces = await prisma.project.findMany({
@@ -134,142 +164,133 @@ export async function completeProgramApplications(userEmail: string) {
       workspaces.map((ws) => [ws.defaultProgramId, ws]),
     );
 
-    for (const programApplication of filteredProgramApplications) {
-      const application = programApplication;
-      const program = programApplication.program;
-      const group = programApplication.partnerGroup;
-      const programEnrollment = enrollmentsByApplicationId.get(
-        programApplication.id,
-      );
+    const { platforms: backfilledPlatforms } = await backfillPartnerPlatforms({
+      partnerId: partner.id,
+      platforms: partner.platforms,
+      applications: filteredProgramApplications,
+    });
 
-      const socialPlatforms = buildSocialPlatformLookup(partner.platforms);
+    await Promise.allSettled(
+      filteredProgramApplications.map(async (programApplication) => {
+        const application = programApplication;
+        const program = programApplication.program;
+        const group = programApplication.partnerGroup;
+        const programEnrollment = enrollmentsByApplicationId.get(
+          programApplication.id,
+        );
 
-      const missingSocialFields = {
-        website:
-          application.website && !socialPlatforms.website?.identifier
-            ? application.website
-            : undefined,
-        youtube:
-          application.youtube && !socialPlatforms.youtube?.identifier
-            ? application.youtube
-            : undefined,
-        twitter:
-          application.twitter && !socialPlatforms.twitter?.identifier
-            ? application.twitter
-            : undefined,
-        linkedin:
-          application.linkedin && !socialPlatforms.linkedin?.identifier
-            ? application.linkedin
-            : undefined,
-        instagram:
-          application.instagram && !socialPlatforms.instagram?.identifier
-            ? application.instagram
-            : undefined,
-        tiktok:
-          application.tiktok && !socialPlatforms.tiktok?.identifier
-            ? application.tiktok
-            : undefined,
-      };
-
-      const hasMissingSocialFields = Object.values(missingSocialFields).some(
-        (field) => field !== undefined,
-      );
-
-      const applicationFormData = formatApplicationFormData(application).map(
-        ({ title, value }) => ({
-          label: title,
-          value: value !== "" ? value : null,
-        }),
-      );
-
-      const { valid: validApplication } = evaluateApplicationRequirements({
-        applicationRequirements: program.applicationRequirements,
-        context: {
-          country: partner.country,
-          email: partner.email,
-        },
-      });
-
-      await Promise.allSettled([
-        ...(validApplication
-          ? [
-              notifyPartnerApplication({
-                partner,
-                program,
-                group,
-                application,
-              }),
-
-              // Auto-approve the partner if the group has auto-approval enabled
-              group?.autoApprovePartnersEnabledAt
-                ? qstash.publishJSON({
-                    url: `${APP_DOMAIN_WITH_NGROK}/api/cron/partners/auto-approve`,
-                    body: {
-                      programId: program.id,
-                      partnerId: partner.id,
-                    },
-                  })
-                : Promise.resolve(null),
-
-              // Send "partner.application_submitted" webhook
-              workspacesByProgramId.has(program.id) &&
-                sendWorkspaceWebhook({
-                  workspace: workspacesByProgramId.get(program.id)!,
-                  trigger: "partner.application_submitted",
-                  data: partnerApplicationWebhookSchema.parse({
-                    id: application.id,
-                    createdAt: application.createdAt,
-                    partner: {
-                      ...partner,
-                      ...programEnrollment,
-                      id: partner.id,
-                      status: "pending",
-                      ...formatWebsiteAndSocialsFields(application),
-                    },
-                    applicationFormData,
-                  }),
-                }),
-            ]
-          : [
-              qstash.publishJSON({
-                url: `${APP_DOMAIN_WITH_NGROK}/api/cron/partners/auto-reject`,
-                delay: 5 * 60, // 5 minutes
-                body: {
-                  programId: program.id,
-                  partnerId: partner.id,
-                },
-              }),
-            ]),
-
-        // if the application has any website or social fields but the partner doesn't have the corresponding one (maybe they forgot to add during onboarding)
-        // update the partner to use the website they applied with
-        hasMissingSocialFields &&
-          prisma.partnerPlatform.createMany({
-            data: Object.entries(missingSocialFields)
-              .filter(([, identifier]) => identifier !== undefined)
-              .map(([platform, identifier]) => ({
-                partnerId: partner.id,
-                type: platform as PlatformType,
-                identifier: identifier as string,
-              })),
-            skipDuplicates: true,
+        const applicationFormData = formatApplicationFormData(application).map(
+          ({ title, value }) => ({
+            label: title,
+            value: value !== "" ? value : null,
           }),
+        );
 
-        // Detect and record fraud events for the partner when they apply to a program
-        detectAndRecordFraudApplication({
+        const { valid: validApplication } = evaluateApplicationRequirements({
+          applicationRequirements: program.applicationRequirements,
           context: {
-            program,
-            partner,
+            country: partner.country,
+            email: partner.email,
           },
-        }),
-      ]);
-    }
+        });
+
+        const { platforms, socialFields } = mergeApplicationSocialPlatforms({
+          platforms: backfilledPlatforms,
+          application,
+        });
+
+        const webhookData = {
+          id: application.id,
+          createdAt: application.createdAt,
+          applicationFormData,
+          partner: {
+            ...partner,
+            ...programEnrollment,
+            id: partner.id,
+            status: "pending",
+          },
+        };
+
+        await Promise.allSettled([
+          ...(validApplication
+            ? [
+                notifyProgramApplication({
+                  partner,
+                  program,
+                  group,
+                  application,
+                }),
+
+                // Auto-approve the partner if the group has auto-approval enabled
+                group?.autoApprovePartnersEnabledAt
+                  ? autoApproveProgramApplicationJob.dispatch(
+                      { applicationId: application.id },
+                      { label: partner.id },
+                    )
+                  : Promise.resolve(null),
+
+                // Send "partner.application_submitted" webhook (deprecated)
+                workspacesByProgramId.has(program.id) &&
+                  sendWorkspaceWebhook({
+                    workspace: workspacesByProgramId.get(program.id)!,
+                    trigger: "partner.application_submitted",
+                    data: partnerApplicationWebhookSchema.parse({
+                      ...webhookData,
+                      partner: {
+                        ...webhookData.partner,
+                        ...formatWebsiteAndSocialsFields(application),
+                      },
+                    }),
+                  }),
+
+                // Send "program_application.created" webhook
+                workspacesByProgramId.has(program.id) &&
+                  sendWorkspaceWebhook({
+                    workspace: workspacesByProgramId.get(program.id)!,
+                    trigger: "program_application.created",
+                    data: programApplicationWebhookSchema.parse({
+                      ...webhookData,
+                      partner: {
+                        ...webhookData.partner,
+                        platforms,
+                        ...socialFields,
+                      },
+                    }),
+                  }),
+              ]
+            : [
+                autoRejectProgramApplicationJob.dispatch(
+                  {
+                    applicationId: application.id,
+                  },
+                  {
+                    delay: 5 * 60, // 5 minutes
+                    label: partner.id,
+                  },
+                ),
+              ]),
+
+          // Detect and record fraud events for the partner when they apply to a program
+          detectAndRecordFraudApplication({
+            context: {
+              program,
+              partner,
+            },
+          }),
+        ]);
+      }),
+    );
 
     await Promise.allSettled(
       programEnrollments.map((programEnrollment) =>
         markApplicationEventSubmitted(programEnrollment),
       ),
     );
+
+    // Queue an index update because the applications completed into enrollments.
+    await queuePartnerSearchSync({
+      enrollmentIds: programEnrollments.map(({ id }) => id),
+    });
   } catch (error) {
     console.error("Failed to complete program applications", error);
   }

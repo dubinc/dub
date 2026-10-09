@@ -2,21 +2,10 @@
 
 import { constructRewardAmount } from "@/lib/api/sales/construct-reward-amount";
 import { getRewardAmount } from "@/lib/partners/get-reward-amount";
+import { formatRewardConditionParts } from "@/lib/rewards/format-reward-condition";
 import { RewardCondition, RewardConditions, RewardProps } from "@/lib/types";
-import {
-  CONDITION_OPERATOR_LABELS,
-  REWARD_CONDITIONS,
-} from "@/lib/zod/schemas/rewards";
 import { InfoTooltip, useScrollProgress } from "@dub/ui";
-import {
-  COUNTRIES,
-  capitalize,
-  cn,
-  currencyFormatter,
-  formatDateTime,
-  pluralize,
-} from "@dub/utils";
-import { formatDuration } from "date-fns";
+import { capitalize, cn, pluralize } from "@dub/utils";
 import { useRef } from "react";
 
 interface ProgramRewardModifiersTooltipProps {
@@ -159,67 +148,20 @@ const RewardItem = ({
       {conditions && conditions.length > 0 && (
         <ul className="ml-1 text-xs font-medium text-neutral-600">
           {conditions.map((condition, idx) => {
-            const entity = REWARD_CONDITIONS[reward.event].entities.find(
-              (e) => e.id === condition.entity,
-            );
-            const attribute = entity?.attributes?.find(
-              (a) => a.id === condition.attribute,
-            );
+            const { entityLabel, attributeLabel, operatorLabel, valueLabel } =
+              formatRewardConditionParts({
+                condition,
+                event: reward.event,
+              });
 
             return (
               <li key={idx} className="flex items-start gap-1">
                 <span className="shrink-0 text-lg leading-none">&bull;</span>
                 <span className="min-w-0">
-                  {idx === 0 ? "If" : capitalize(operator)}{" "}
-                  {capitalize(condition.entity)}{" "}
-                  {(condition.entity === "lead" ||
-                    condition.entity === "sale") &&
-                  condition.attribute === "metadata" &&
-                  condition.metadataField?.trim()
-                    ? `"${condition.metadataField.trim()}"`
-                    : capitalize(attribute?.label)}{" "}
-                  {condition.label
-                    ? "is" // if custom label is set, use "is" instead of the actual operator to sound more natural
-                    : CONDITION_OPERATOR_LABELS[condition.operator]}{" "}
-                  {condition.value &&
-                    (condition.attribute === "country"
-                      ? // Country names
-                        Array.isArray(condition.value)
-                        ? (condition.value as any[])
-                            .map((v) => COUNTRIES[v?.toString()] ?? v)
-                            .join(", ")
-                        : COUNTRIES[condition.value?.toString()] ??
-                          condition.value
-                      : condition.attribute === "subscriptionDurationMonths"
-                        ? formatSubscriptionDuration(Number(condition.value))
-                        : condition.attribute === "productId" &&
-                            condition.label?.trim()
-                          ? condition.label.trim()
-                          : // Non-country value(s)
-                            Array.isArray(condition.value)
-                            ? // Basic array
-                              (attribute?.options
-                                ? (condition.value as string[] | number[]).map(
-                                    (v) =>
-                                      attribute.options?.find((o) => o.id === v)
-                                        ?.label ?? v,
-                                  )
-                                : condition.value
-                              ).join(", ")
-                            : attribute?.type === "currency"
-                              ? // Currency value
-                                currencyFormatter(Number(condition.value))
-                              : attribute?.type === "date"
-                                ? // Date+time value
-                                  formatDateTime(
-                                    new Date(Number(condition.value)),
-                                  )
-                                : // Everything else
-                                  attribute?.options
-                                  ? attribute.options.find(
-                                      (o) => o.id === condition.value,
-                                    )?.label ?? condition.value.toString()
-                                  : condition.value.toString())}
+                  {idx === 0 ? "If" : capitalize(operator)} {entityLabel}{" "}
+                  {attributeLabel} {operatorLabel}
+                  {/* Omit empty formatter output; still show valid zeros. */}
+                  {valueLabel ? ` ${valueLabel}` : null}
                 </span>
               </li>
             );
@@ -229,9 +171,3 @@ const RewardItem = ({
     </div>
   );
 };
-
-function formatSubscriptionDuration(v: number): string {
-  return formatDuration(
-    v >= 12 ? { years: Math.floor(v / 12), months: v % 12 } : { months: v },
-  );
-}

@@ -13,6 +13,10 @@ import {
   Text,
 } from "@react-email/components";
 
+// Body text color. renderCampaignEmailHTML applies it inline to list item text
+// as well, since list items are colored for their bullets/numbers.
+export const CAMPAIGN_EMAIL_TEXT_COLOR = "#000000";
+
 export default function CampaignEmail({
   program = {
     name: "Acme",
@@ -76,7 +80,11 @@ export default function CampaignEmail({
 
             <Section>
               <div
-                style={{ fontSize: "14px", lineHeight: 1.7142857 }}
+                style={{
+                  fontSize: "14px",
+                  lineHeight: 1.7142857,
+                  color: CAMPAIGN_EMAIL_TEXT_COLOR,
+                }}
                 dangerouslySetInnerHTML={{ __html: styledHtml }}
               />
             </Section>

@@ -14,7 +14,7 @@ export type MarketplaceHomeRow = {
 
 const featuredHomeRows: MarketplaceHomeRow[] = [
   {
-    key: "most-popular",
+    key: "mostPopular",
     title: "Most popular",
     viewAllHref: getMarketplaceAllHref({
       sortBy: "popularity",
@@ -23,7 +23,7 @@ const featuredHomeRows: MarketplaceHomeRow[] = [
     showViewAllCard: true,
   },
   {
-    key: "new",
+    key: "newPrograms",
     title: "New",
     viewAllHref: getMarketplaceAllHref({
       sortBy: "recency",

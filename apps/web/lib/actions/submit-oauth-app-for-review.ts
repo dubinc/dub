@@ -1,10 +1,11 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
+import { assertRateLimit } from "@/lib/upstash/assert-rate-limit";
+import { RATELIMIT_POLICIES } from "@/lib/upstash/ratelimit-policies";
 import { ComponentDividerSpacingSize } from "@team-plain/typescript-sdk";
 import * as z from "zod/v4";
 import { createPlainThread } from "../plain/create-plain-thread";
-import { ratelimit } from "../upstash";
 import { authActionClient } from "./safe-action";
 import { throwIfNoPermission } from "./throw-if-no-permission";
 
@@ -33,15 +34,10 @@ export const submitOAuthAppForReview = authActionClient
       },
     });
 
-    const { success } = await ratelimit(1, "1 m").limit(
-      `submit-oauth-app-for-review:${integrationId}`,
-    );
-
-    if (!success) {
-      throw new Error(
-        "Rate limit exceeded. Please try again later or contact support.",
-      );
-    }
+    await assertRateLimit({
+      policy: RATELIMIT_POLICIES.oauthAppReviewSubmit,
+      identifier: integrationId,
+    });
 
     await createPlainThread({
       user,

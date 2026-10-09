@@ -1,4 +1,3 @@
-import { conn } from "@/lib/planetscale";
 import { prisma } from "@/lib/prisma";
 import type { EnrolledPartnerProps } from "@/lib/types";
 import { EnrolledPartnerSchema as EnrolledPartnerSchemaDate } from "@/lib/zod/schemas/partners";
@@ -6,13 +5,11 @@ import { nanoid } from "@dub/utils";
 import { expect } from "@playwright/test";
 import slugify from "@sindresorhus/slugify";
 import * as z from "zod/v4";
-import { randomName, randomPartnerEmail } from "../../utils";
-import { test, type ApiClient } from "../fixtures";
+import { apiError, randomName, randomPartnerEmail } from "../../utils";
+import { createPartnerTag, deletePartnerTag } from "../campaigns/helpers";
+import { test } from "../fixtures";
 import { TEST_WORKSPACE } from "../setup-test-workspace";
-
-test.describe.configure({
-  mode: "parallel",
-});
+import { createPartner, deletePartner } from "./helpers";
 
 const EnrolledPartnerSchema = EnrolledPartnerSchemaDate.extend({
   createdAt: z.string(),
@@ -24,37 +21,6 @@ const EnrolledPartnerSchema = EnrolledPartnerSchemaDate.extend({
 
 function reEscape(s: string) {
   return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-}
-
-async function createPartner(
-  api: ApiClient,
-  overrides: Record<string, unknown> = {},
-) {
-  return api.post<EnrolledPartnerProps>("/api/partners", {
-    name: randomName(),
-    email: randomPartnerEmail(),
-    ...overrides,
-  });
-}
-
-async function deletePartner(partnerId: string | undefined) {
-  if (!partnerId) return;
-
-  await prisma.link.deleteMany({
-    where: {
-      partnerId,
-    },
-  });
-
-  await prisma.programEnrollment.deleteMany({
-    where: {
-      partnerId,
-    },
-  });
-
-  // Prisma partner.delete hits a PlanetScale relation quirk; raw SQL matches
-  // bulkDeletePartners cleanup used by e2e cron.
-  await conn.execute(`DELETE FROM Partner WHERE id = ?`, [partnerId]);
 }
 
 test("POST /partners", async ({ api, program }) => {
@@ -175,18 +141,13 @@ test("POST /partners – invalid username", async ({ api }) => {
       email: randomPartnerEmail(),
       username: "invalid username",
     }),
-  ).toEqual({
-    status: 422,
-    data: {
-      error: {
-        code: "unprocessable_entity",
-        message:
-          "custom: username: Invalid username. Must be a URL-friendly string.",
-        doc_url:
-          "https://dub.co/docs/api-reference/errors#unprocessable-entity",
-      },
-    },
-  });
+  ).toEqual(
+    apiError({
+      code: "unprocessable_entity",
+      message:
+        "custom: username: Invalid username. Must be a URL-friendly string.",
+    }),
+  );
 });
 
 test("POST /partners – linkProps.prefix on default link", async ({
@@ -262,5 +223,200 @@ test("POST /partners – upsert tenantId on existing partner", async ({
     });
   } finally {
     await deletePartner(partnerId);
+  }
+});
+
+test("POST /partners – invalid tagIds", async ({ api, program }) => {
+  const email = randomPartnerEmail();
+  const tagId = "ptag_invalid";
+
+  const response = await api.post("/api/partners", {
+    email,
+    tagIds: [tagId],
+  });
+
+  expect(response).toEqual(
+    apiError({
+      code: "bad_request",
+      message: `Invalid partner tag IDs detected: ${tagId}`,
+    }),
+  );
+
+  const enrollment = await prisma.programEnrollment.findFirst({
+    where: {
+      programId: program.id,
+      partner: {
+        email,
+      },
+    },
+  });
+
+  expect(enrollment).toBeNull();
+});
+
+test("POST /partners – with tagIds", async ({ api, program }) => {
+  let partnerId: string | undefined;
+  let partnerTagId: string | undefined;
+
+  try {
+    const partnerTag = await createPartnerTag(program.id);
+    partnerTagId = partnerTag.id;
+
+    const { status, data } = await createPartner(api, {
+      tagIds: [partnerTag.id, partnerTag.id],
+    });
+    partnerId = data.id;
+
+    expect(status).toEqual(201);
+    const parsed = EnrolledPartnerSchema.parse(data);
+    expect(parsed.tags).toEqual([
+      {
+        id: partnerTag.id,
+        name: partnerTag.name,
+      },
+    ]);
+
+    const tags = await prisma.programPartnerTag.findMany({
+      where: {
+        programId: program.id,
+        partnerId,
+      },
+    });
+
+    expect(tags).toEqual([
+      expect.objectContaining({
+        partnerTagId: partnerTag.id,
+      }),
+    ]);
+  } finally {
+    if (partnerId) {
+      await prisma.programPartnerTag.deleteMany({
+        where: { partnerId },
+      });
+    }
+    await deletePartner(partnerId);
+    await deletePartnerTag(partnerTagId);
+  }
+});
+
+test("POST /partners – invalid tagNames", async ({ api, program }) => {
+  const email = randomPartnerEmail();
+  const tagName = "missing-partner-tag";
+
+  const response = await api.post("/api/partners", {
+    email,
+    tagNames: [tagName],
+  });
+
+  expect(response).toEqual(
+    apiError({
+      code: "bad_request",
+      message: `Invalid partner tag names detected: ${tagName}`,
+    }),
+  );
+
+  const enrollment = await prisma.programEnrollment.findFirst({
+    where: {
+      programId: program.id,
+      partner: {
+        email,
+      },
+    },
+  });
+
+  expect(enrollment).toBeNull();
+});
+
+test("POST /partners – with tagNames", async ({ api, program }) => {
+  let partnerId: string | undefined;
+  let partnerTagId: string | undefined;
+
+  try {
+    const partnerTag = await createPartnerTag(program.id);
+    partnerTagId = partnerTag.id;
+
+    const { status, data } = await createPartner(api, {
+      tagNames: [partnerTag.name, partnerTag.name],
+    });
+    partnerId = data.id;
+
+    expect(status).toEqual(201);
+    const parsed = EnrolledPartnerSchema.parse(data);
+    expect(parsed.tags).toEqual([
+      {
+        id: partnerTag.id,
+        name: partnerTag.name,
+      },
+    ]);
+
+    const tags = await prisma.programPartnerTag.findMany({
+      where: {
+        programId: program.id,
+        partnerId,
+      },
+    });
+
+    expect(tags).toEqual([
+      expect.objectContaining({
+        partnerTagId: partnerTag.id,
+      }),
+    ]);
+  } finally {
+    if (partnerId) {
+      await prisma.programPartnerTag.deleteMany({
+        where: { partnerId },
+      });
+    }
+    await deletePartner(partnerId);
+    await deletePartnerTag(partnerTagId);
+  }
+});
+
+test("POST /partners – existing enrollment returns current tags", async ({
+  api,
+  program,
+}) => {
+  let partnerId: string | undefined;
+  let assignedTagId: string | undefined;
+  let otherTagId: string | undefined;
+
+  try {
+    const assignedTag = await createPartnerTag(program.id);
+    const otherTag = await createPartnerTag(program.id);
+    assignedTagId = assignedTag.id;
+    otherTagId = otherTag.id;
+    const email = randomPartnerEmail();
+
+    const { status: firstStatus, data: firstData } = await createPartner(api, {
+      email,
+      tagNames: [assignedTag.name],
+    });
+    partnerId = firstData.id;
+
+    expect(firstStatus).toEqual(201);
+
+    const { status, data } = await createPartner(api, {
+      email,
+      tagNames: [otherTag.name],
+    });
+
+    expect(status).toEqual(201);
+    const parsed = EnrolledPartnerSchema.parse(data);
+    expect(parsed.id).toEqual(partnerId);
+    expect(parsed.tags).toEqual([
+      {
+        id: assignedTag.id,
+        name: assignedTag.name,
+      },
+    ]);
+  } finally {
+    if (partnerId) {
+      await prisma.programPartnerTag.deleteMany({
+        where: { partnerId },
+      });
+    }
+    await deletePartner(partnerId);
+    await deletePartnerTag(assignedTagId);
+    await deletePartnerTag(otherTagId);
   }
 });

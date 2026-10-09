@@ -85,12 +85,20 @@
       "schedule": "0 2 * * *"
     },
     {
-      "path": "/api/cron/webhooks/sync-click-workspaces",
+      "path": "/api/cron/sync-redis-resources",
       "schedule": "*/5 * * * *"
     },
     {
       "path": "/api/cron/queue/retry",
       "schedule": "* * * * *"
+    },
+    {
+      "path": "/api/cron/campaigns/queue-scheduled",
+      "schedule": "* * * * *"
+    },
+    {
+      "path": "/api/cron/rewards/queue-custom-commissions",
+      "schedule": "0 0 * * *"
     }
   ],
   "functions": {

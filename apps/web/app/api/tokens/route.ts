@@ -5,7 +5,8 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { hashToken, withWorkspace } from "@/lib/auth";
 import { generateRandomName } from "@/lib/names";
 import { prisma } from "@/lib/prisma";
-import { ratelimit } from "@/lib/upstash";
+import { assertRateLimit } from "@/lib/upstash/assert-rate-limit";
+import { RATELIMIT_POLICIES } from "@/lib/upstash/ratelimit-policies";
 import { createTokenSchema, tokenSchema } from "@/lib/zod/schemas/token";
 import { sendEmail } from "@dub/email";
 import APIKeyCreated from "@dub/email/templates/api-key-created";
@@ -39,17 +40,11 @@ export const GET = withWorkspace(
         name: true,
         partialKey: true,
         scopes: true,
+        expires: true,
         lastUsed: true,
         createdAt: true,
         updatedAt: true,
-        user: {
-          select: {
-            id: true,
-            name: true,
-            image: true,
-            isMachine: true,
-          },
-        },
+        user: true,
       },
       orderBy: [{ lastUsed: "desc" }, { createdAt: "desc" }],
       take: 100,
@@ -65,16 +60,10 @@ export const GET = withWorkspace(
 // POST /api/tokens – create a new token for a workspace
 export const POST = withWorkspace(
   async ({ req, session, workspace }) => {
-    const { success } = await ratelimit(1, "5 s").limit(
-      `create-tokens:${workspace.id}`,
-    );
-
-    if (!success) {
-      throw new DubApiError({
-        code: "rate_limit_exceeded",
-        message: "Too many requests. Please try again later.",
-      });
-    }
+    await assertRateLimit({
+      policy: RATELIMIT_POLICIES.createToken,
+      identifier: workspace.id,
+    });
 
     const { name, isMachine, scopes } = createTokenSchema.parse(
       await parseRequestBody(req),
@@ -90,7 +79,7 @@ export const POST = withWorkspace(
       });
     }
 
-    if (!validateScopesForRole(scopes || [], role)) {
+    if (!validateScopesForRole(scopes, role)) {
       throw new DubApiError({
         code: "unprocessable_entity",
         message: "Some of the given scopes are not available for your role.",
@@ -150,10 +139,7 @@ export const POST = withWorkspace(
             partialKey,
             userId: isMachine ? machineUser?.id! : session.user.id,
             projectId: workspace.id,
-            scopes:
-              scopes && scopes.length > 0
-                ? [...new Set(scopes)].join(" ")
-                : null,
+            scopes: [...new Set(scopes)].join(" "),
           },
         });
       },
@@ -172,8 +158,8 @@ export const POST = withWorkspace(
           email: session.user.email,
           token: {
             name,
-            type: scopesToName(scopes || []).name,
-            permissions: scopesToName(scopes || []).description,
+            type: scopesToName(scopes).name,
+            permissions: scopesToName(scopes).description,
           },
           workspace: {
             name: workspace.name,

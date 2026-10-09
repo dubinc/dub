@@ -2,9 +2,21 @@ import { findGroupsWithMatchingRules } from "@/lib/api/groups/find-groups-with-m
 import type { GroupMoveRules } from "@/lib/api/workflows/move-group/types";
 import { describe, expect, it } from "vitest";
 
-const groupA = { id: "grp_a", name: "Group A", moveRules: [] as GroupMoveRules };
-const groupB = { id: "grp_b", name: "Group B", moveRules: [] as GroupMoveRules };
-const groupC = { id: "grp_c", name: "Group C", moveRules: [] as GroupMoveRules };
+const groupA = {
+  id: "grp_a",
+  name: "Group A",
+  moveRules: [] as GroupMoveRules,
+};
+const groupB = {
+  id: "grp_b",
+  name: "Group B",
+  moveRules: [] as GroupMoveRules,
+};
+const groupC = {
+  id: "grp_c",
+  name: "Group C",
+  moveRules: [] as GroupMoveRules,
+};
 
 describe("findGroupsWithMatchingRules", () => {
   it("returns no conflict when partnerGroup eq/in filters are disjoint", () => {

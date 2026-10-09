@@ -125,7 +125,7 @@ export function PartnerProgramDropdown() {
                 className="size-5 flex-none shrink-0 overflow-hidden rounded-full"
               />
             )}
-            <div className="text-content-emphasis min-w-0 truncate text-lg font-semibold">
+            <div className="text-content-emphasis min-w-0 truncate text-lg font-semibold leading-7">
               {selectedProgram?.name || "Your programs"}
             </div>
           </div>
@@ -141,10 +141,17 @@ export function PartnerProgramDropdown() {
 
 function PartnerDropdownPlaceholder() {
   return (
-    <div className="flex w-full animate-pulse items-center gap-x-2.5 rounded-lg px-2 py-1.5">
-      <div className="size-6 animate-pulse rounded-full bg-neutral-200" />
-      <div className="h-7 w-28 grow animate-pulse rounded-md bg-neutral-200" />
-      <ChevronsUpDown className="h-4 w-4 text-neutral-400" aria-hidden="true" />
+    <div className="mb-3">
+      <div className="flex w-full items-center justify-between rounded-lg px-2 py-1.5">
+        <div className="flex min-w-0 items-center gap-x-2.5 pr-2">
+          <div className="size-5 shrink-0 animate-pulse rounded-full bg-neutral-200" />
+          <div className="h-7 w-28 animate-pulse rounded-md bg-neutral-200" />
+        </div>
+        <ChevronsUpDown
+          className="size-4 shrink-0 text-neutral-400"
+          aria-hidden="true"
+        />
+      </div>
     </div>
   );
 }

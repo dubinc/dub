@@ -1,3 +1,4 @@
+import { withAxiom } from "@/lib/axiom/server";
 import { NextResponse } from "next/server";
 import { Webhook } from "svix";
 import { emailBounced } from "./email-bounced";
@@ -7,7 +8,7 @@ import { emailOpened } from "./email-opened";
 const webhookSecret = process.env.RESEND_WEBHOOK_SECRET!;
 
 // POST /api/resend/webhook – listen to Resend webhooks
-export const POST = async (req: Request) => {
+export const POST = withAxiom(async (req: Request) => {
   const rawBody = await req.text();
   const webhook = new Webhook(webhookSecret);
 
@@ -33,4 +34,4 @@ export const POST = async (req: Request) => {
   }
 
   return NextResponse.json({ message: "Webhook processed." });
-};
+});

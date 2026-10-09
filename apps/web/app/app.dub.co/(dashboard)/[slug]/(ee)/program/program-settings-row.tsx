@@ -1,3 +1,4 @@
+import { MarkdownDescription } from "@/ui/shared/markdown-description";
 import { PropsWithChildren } from "react";
 
 export function SettingsRow({
@@ -17,7 +18,9 @@ export function SettingsRow({
           {heading} {required && <span className="text-red-700">*</span>}
         </h3>
         {description && (
-          <p className="text-sm text-neutral-600">{description}</p>
+          <MarkdownDescription className="text-sm text-neutral-600">
+            {description}
+          </MarkdownDescription>
         )}
       </div>
       <div>{children}</div>

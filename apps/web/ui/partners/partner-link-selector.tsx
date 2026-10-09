@@ -1,5 +1,6 @@
 import useLink from "@/lib/swr/use-link";
 import useLinks from "@/lib/swr/use-links";
+import usePartner from "@/lib/swr/use-partner";
 import useProgram from "@/lib/swr/use-program";
 import { LinkProps } from "@/lib/types";
 import { Combobox, LinkLogo, Tooltip } from "@dub/ui";
@@ -8,7 +9,12 @@ import { cn, getApexDomain, linkConstructor } from "@dub/utils";
 import { ReactNode, useEffect, useMemo, useState } from "react";
 import { useDebounce } from "use-debounce";
 
-const getLinkOption = (link: LinkProps) => ({
+type PartnerLinkOption = Pick<
+  LinkProps,
+  "id" | "domain" | "key" | "url" | "saleAmount"
+>;
+
+const getLinkOption = (link: PartnerLinkOption) => ({
   value: link.id,
   label: linkConstructor({ ...link, pretty: true }),
   icon: (
@@ -44,8 +50,11 @@ export function PartnerLinkSelector({
   const [search, setSearch] = useState("");
   const [debouncedSearch] = useDebounce(search, 500);
   const { program } = useProgram();
+  const { partner, loading: partnerLoading } = usePartner({
+    partnerId: partnerId ?? null,
+  });
 
-  const { links, isValidating } = useLinks(
+  const { links: workspaceLinks, isValidating } = useLinks(
     {
       folderId: program?.defaultFolderId ?? undefined,
       domain: program?.domain ?? undefined,
@@ -60,7 +69,26 @@ export function PartnerLinkSelector({
     },
   );
 
-  const { link: selectedLink } = useLink(selectedLinkId ?? "");
+  // Partner referral links live on the enrollment. `/api/links` can return
+  // none of them when folder/domain filters from the current page don't match.
+  const links = partnerId
+    ? partner
+      ? partner.links ?? []
+      : undefined
+    : workspaceLinks;
+
+  const { link: selectedLinkFromApi } = useLink(
+    partnerId || !selectedLinkId ? "" : selectedLinkId,
+  );
+
+  const selectedLink = useMemo(() => {
+    if (!selectedLinkId) return null;
+    return (
+      links?.find((link) => link.id === selectedLinkId) ??
+      selectedLinkFromApi ??
+      null
+    );
+  }, [links, selectedLinkFromApi, selectedLinkId]);
 
   const options = useMemo(
     () => links?.map((link) => getLinkOption(link)),
@@ -85,9 +113,11 @@ export function PartnerLinkSelector({
     return getLinkOption(selectedLink);
   }, [selectedLink]);
 
+  const isLoadingLinks = partnerId ? partnerLoading : isValidating;
+
   const showLoadingPlaceholder =
     (selectedLinkId && !selectedLink) ||
-    (!selectedLinkId && isValidating && !links);
+    (!selectedLinkId && isLoadingLinks && !links);
 
   return (
     <>
@@ -122,7 +152,7 @@ export function PartnerLinkSelector({
           ),
           disabledTooltip,
         }}
-        shouldFilter={false}
+        shouldFilter={Boolean(partnerId)}
         onCreate={onCreate}
         createLabel={(search) =>
           `Create "${search.startsWith(program?.domain + "/") ? search : program?.domain + "/" + search}"`

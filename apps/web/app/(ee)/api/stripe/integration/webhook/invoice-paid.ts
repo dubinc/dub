@@ -3,6 +3,7 @@ import { isFirstConversion } from "@/lib/analytics/is-first-conversion";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { syncPartnerLinksStats } from "@/lib/api/partners/sync-partner-links-stats";
 import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
+import { queueGoogleAdsConversionUpload } from "@/lib/integrations/google-ads/upload-conversion";
 import { queuePartnerCommissionCreation } from "@/lib/partners/queue-partner-commission-creation";
 import { sendPartnerPostback } from "@/lib/postback/send-partner-postback";
 import { prisma } from "@/lib/prisma";
@@ -13,11 +14,14 @@ import { redis } from "@/lib/upstash";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { transformSaleEventData } from "@/lib/webhook/transform";
 import { nanoid } from "@dub/utils";
+import { CommissionSource, EventType } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import type Stripe from "stripe";
 import { WebhookHandlerInput, WebhookHandlerResponse } from "./types";
 import { attributeViaPromotionCodeId } from "./utils/attribute-via-promotion-code-id";
 import { getConnectedCustomer } from "./utils/get-connected-customer";
+import { getDubCustomerExternalIdFromMetadata } from "./utils/get-dub-customer-external-id-from-metadata";
+import { updateCustomerWithStripeCustomerId } from "./utils/update-customer-with-stripe-customer-id";
 
 // Handle event "invoice.paid"
 export async function invoicePaid({
@@ -57,30 +61,16 @@ export async function invoicePaid({
       mode,
     });
 
-    const dubCustomerExternalId =
-      connectedCustomer?.metadata.dubCustomerExternalId ||
-      connectedCustomer?.metadata.dubCustomerId;
+    const dubCustomerExternalId = getDubCustomerExternalIdFromMetadata(
+      connectedCustomer?.metadata,
+    );
 
     if (dubCustomerExternalId) {
-      try {
-        // Update customer with stripeCustomerId if exists – for future events
-        customer = await prisma.customer.update({
-          where: {
-            projectConnectId_externalId: {
-              projectConnectId: stripeAccountId,
-              externalId: dubCustomerExternalId,
-            },
-          },
-          data: {
-            stripeCustomerId,
-          },
-        });
-      } catch (error) {
-        console.log(error);
-        return {
-          response: `Customer with dubCustomerExternalId ${dubCustomerExternalId} not found, skipping...`,
-        };
-      }
+      customer = await updateCustomerWithStripeCustomerId({
+        workspaceId: workspace.id,
+        dubCustomerExternalId,
+        stripeCustomerId,
+      });
     }
   }
 
@@ -310,9 +300,19 @@ export async function invoicePaid({
 
         if (!productId) return null;
 
+        // Credit grants sit on the line, not in line.amount — subtract so
+        // productId rewards commission on the portion actually charged.
+        const creditGrantAmount = (line.pretax_credit_amounts ?? []).reduce(
+          (sum, credit) =>
+            credit.type === "credit_balance_transaction"
+              ? sum + credit.amount
+              : sum,
+          0,
+        );
+
         return {
           id: productId,
-          amount: line.amount,
+          amount: Math.max(line.amount - creditGrantAmount, 0),
           quantity: line.quantity ?? 0,
         };
       })
@@ -320,6 +320,11 @@ export async function invoicePaid({
         (p): p is { id: string; amount: number; quantity: number } =>
           p !== null && p.quantity !== null,
       );
+
+    const commissionMetadata = {
+      products,
+      ...saleMetadata,
+    };
 
     result = await queuePartnerCommissionCreation({
       event: "sale",
@@ -332,6 +337,8 @@ export async function invoicePaid({
       quantity: 1,
       invoiceId,
       currency: saleData.currency,
+      source: CommissionSource.stripe,
+      metadata: commissionMetadata,
       context: {
         customer: {
           country: customer.country,
@@ -340,9 +347,7 @@ export async function invoicePaid({
         sale: {
           products,
           amount: saleData.amount,
-          ...(Object.keys(saleMetadata).length > 0
-            ? { metadata: saleMetadata }
-            : {}),
+          metadata: saleMetadata,
         },
       },
       clickEvent: {
@@ -355,8 +360,7 @@ export async function invoicePaid({
     waitUntil(
       Promise.allSettled([
         executeWorkflows({
-          trigger: "partnerMetricsUpdated",
-          reason: "sale",
+          event: "saleRecorded",
           identity: {
             workspaceId: workspace.id,
             programId: link.programId,
@@ -394,6 +398,20 @@ export async function invoicePaid({
           partner: result?.webhookPartner,
           metadata: null,
         }),
+      }),
+
+      queueGoogleAdsConversionUpload({
+        workspaceId: workspace.id,
+        eventType: EventType.sale,
+        eventName: saleData.event_name,
+        conversionDateTime: new Date().toISOString(),
+        eventId: saleData.event_id,
+        conversionValue: saleData.amount,
+        currencyCode: saleData.currency,
+        click: {
+          id: saleData.click_id,
+          url: saleData.url,
+        },
       }),
 
       ...(link?.partnerId

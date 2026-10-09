@@ -1,4 +1,58 @@
-import { EmailTemplateVariables } from "@/lib/types";
+import { constructPartnerLink } from "@/lib/partners/construct-partner-link";
+import { EmailTemplateVariables, GroupProps } from "@/lib/types";
+import { formatRewardDescription } from "@/ui/partners/format-reward-description";
+import type { Reward } from "@prisma/client";
+
+export function resolveCampaignEmailVariables({
+  partner,
+  enrollment,
+}: {
+  partner: {
+    name: string | null;
+    email: string | null;
+  };
+  enrollment: {
+    partnerGroup?: Pick<GroupProps, "linkStructure"> | null;
+    links?: Array<{
+      key: string;
+      url: string;
+      shortLink: string;
+    }>;
+    clickReward?: Reward | null;
+    leadReward?: Reward | null;
+    saleReward?: Reward | null;
+    referralReward?: Reward | null;
+  };
+}): EmailTemplateVariables {
+  return {
+    PartnerName: partner.name,
+    PartnerEmail: partner.email,
+    PartnerLink:
+      constructPartnerLink({
+        group: enrollment.partnerGroup,
+        link: enrollment.links?.[0],
+      }) || null,
+    SaleReward: formatEnrollmentReward(enrollment.saleReward),
+    LeadReward: formatEnrollmentReward(enrollment.leadReward),
+    ClickReward: formatEnrollmentReward(enrollment.clickReward),
+    ReferralReward: formatEnrollmentReward(enrollment.referralReward),
+  };
+}
+
+function formatEnrollmentReward(reward: Reward | null | undefined) {
+  if (!reward) return null;
+
+  return formatRewardDescription(
+    {
+      ...reward,
+      amountInPercentage:
+        reward.amountInPercentage != null
+          ? Number(reward.amountInPercentage)
+          : null,
+    },
+    { includeEarnPrefix: false },
+  );
+}
 
 /**
  * Escapes a string for safe insertion into HTML text nodes and double-quoted attributes.

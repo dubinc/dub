@@ -21,11 +21,22 @@ const CarouselNavBarVariants = cva(
 export const CarouselNavBar = ({
   variant = "simple",
   className,
-}: VariantProps<typeof CarouselNavBarVariants> & { className?: string }) => {
-  const { scrollNext, scrollPrev, canScrollNext, canScrollPrev, api } =
-    useCarousel();
+  count,
+}: VariantProps<typeof CarouselNavBarVariants> & {
+  className?: string;
+  count?: number;
+}) => {
+  const {
+    scrollNext,
+    scrollPrev,
+    canScrollNext,
+    canScrollPrev,
+    api,
+    autoplay: autoplayConfig,
+  } = useCarousel();
 
-  const autoplay = api?.plugins()?.autoplay;
+  const autoplayPlugin = api?.plugins()?.autoplay;
+  const showAutoplayTrack = Boolean(autoplayConfig);
 
   const [selectedIndex, setSelectedIndex] = React.useState(0);
 
@@ -37,22 +48,24 @@ export const CarouselNavBar = ({
 
   const stopAutoplayAnd = React.useCallback(
     (fn: () => void) => () => {
-      if (autoplay && autoplay.isPlaying()) autoplay.stop();
+      if (autoplayPlugin && autoplayPlugin.isPlaying()) autoplayPlugin.stop();
       fn();
     },
-    [autoplay],
+    [autoplayPlugin],
   );
 
   React.useEffect(() => {
     if (!api) return;
 
     onSelect(api);
-    setIsPlaying(autoplay?.isPlaying() ?? false);
+    setIsPlaying(autoplayPlugin?.isPlaying() ?? false);
     api.on("reInit", onSelect);
     api.on("select", onSelect);
     api.on("autoplay:play", () => setIsPlaying(true));
     api.on("autoplay:stop", () => setIsPlaying(false));
-  }, [api, autoplay, onSelect]);
+  }, [api, autoplayPlugin, onSelect]);
+
+  const slideCount = count ?? api?.slideNodes().length ?? 0;
 
   return (
     <div className={cn(CarouselNavBarVariants({ variant }), className)}>
@@ -67,19 +80,23 @@ export const CarouselNavBar = ({
         </button>
       )}
 
-      {api != null && (
-        <div className="flex items-center gap-1">
-          {api.slideNodes().map((_, idx) => (
+      {slideCount > 0 && (
+        <div className="flex min-h-2.5 items-center gap-1 sm:min-h-[18px]">
+          {Array.from({ length: slideCount }).map((_, idx) => (
             <button
               key={idx}
-              onClick={stopAutoplayAnd(() => api.scrollTo(idx))}
-              className="rounded-full p-0.5 hover:bg-neutral-100 active:bg-neutral-200 sm:p-1.5"
+              onClick={
+                api ? stopAutoplayAnd(() => api.scrollTo(idx)) : undefined
+              }
+              className="flex items-center justify-center rounded-full p-0.5 leading-none hover:bg-neutral-100 active:bg-neutral-200 sm:p-1.5"
             >
               <div
                 className={cn(
-                  "relative isolate h-1.5 w-1.5 overflow-hidden rounded-full transition-all",
+                  "relative isolate h-1.5 w-1.5 overflow-hidden rounded-full",
                   idx === selectedIndex ? "bg-black" : "bg-black/20",
-                  isPlaying && idx === selectedIndex && "w-6 bg-black/20",
+                  showAutoplayTrack &&
+                    idx === selectedIndex &&
+                    "w-6 bg-black/20",
                 )}
               >
                 {isPlaying && idx === selectedIndex && (
@@ -89,7 +106,7 @@ export const CarouselNavBar = ({
                     transition={{
                       type: "tween",
                       duration:
-                        ((autoplay?.options.delay ??
+                        ((autoplayPlugin?.options.delay ??
                           AUTOPLAY_DEFAULT_DELAY) as number) / 1000,
                     }}
                     className="animate-fill-width h-full w-full rounded-full bg-black"

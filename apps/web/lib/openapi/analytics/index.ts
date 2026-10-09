@@ -69,6 +69,11 @@ const retrieveAnalytics: ZodOpenApiOperationObject = {
               }),
             ),
             z.array(
+              analyticsResponse.event_names.meta({
+                id: "AnalyticsEventNames",
+              }),
+            ),
+            z.array(
               analyticsResponse.referers.meta({
                 id: "AnalyticsReferers",
               }),

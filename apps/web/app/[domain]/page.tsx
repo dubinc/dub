@@ -57,8 +57,8 @@ export default function CustomDomainPage() {
               "animate-slide-up-fade motion-reduce:animate-fade-in [--offset:10px] [animation-delay:200ms] [animation-duration:1s] [animation-fill-mode:both]",
             )}
           >
-            This custom domain is powered by Dub &ndash; the link management
-            platform designed for modern marketing teams.
+            This custom domain is powered by Dub &ndash; the link attribution
+            platform for modern marketing teams.
           </p>
         </div>
 

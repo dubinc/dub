@@ -3,10 +3,9 @@
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { getDiscountOrThrow } from "@/lib/api/partners/get-discount-or-throw";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
-import { qstash } from "@/lib/cron";
-import { deleteDiscountCodes } from "@/lib/discounts/delete-discount-code";
+import { invalidateLinksForDiscountsJob } from "@/lib/jobs/handlers/invalidate-links-for-discounts-job";
+import { dispatchWorkflows } from "@/lib/jobs/publish-workflows";
 import { prisma } from "@/lib/prisma";
-import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
 import { authActionClient } from "../safe-action";
@@ -35,71 +34,40 @@ export const deleteDiscountAction = authActionClient
       discountId,
     });
 
-    // Cache discount codes to delete them later
-    const discountCodes = await prisma.discountCode.findMany({
-      where: {
-        discountId: discount.id,
-      },
-      select: {
-        id: true,
-        code: true,
-        programId: true,
-        discount: {
-          select: {
-            provider: true,
-          },
+    await prisma.$transaction(async (tx) => {
+      // Using updateMany otherwise this would fail if the discount is not a group-level discount
+      await tx.partnerGroup.updateMany({
+        where: {
+          discountId,
         },
-      },
+        data: {
+          discountId: null,
+        },
+      });
+
+      await tx.discount.update({
+        where: {
+          id: discountId,
+        },
+        data: {
+          programId: null,
+        },
+      });
     });
 
-    const group = await prisma.$transaction(async (tx) => {
-      const group = await tx.partnerGroup.update({
-        where: {
-          discountId: discount.id,
-        },
-        data: {
-          discountId: null,
-        },
-      });
-
-      await tx.programEnrollment.updateMany({
-        where: {
-          discountId: discount.id,
-        },
-        data: {
-          discountId: null,
-        },
-      });
-
-      await tx.discountCode.updateMany({
-        where: {
-          discountId: discount.id,
-        },
-        data: {
-          discountId: null,
-        },
-      });
-
-      await tx.discount.delete({
-        where: {
-          id: discount.id,
-        },
-      });
-
-      return group;
+    await dispatchWorkflows({
+      name: "detach-discount-workflow",
+      payload: {
+        programId,
+        discountId,
+      },
+      options: {
+        label: discountId,
+      },
     });
 
     waitUntil(
       Promise.allSettled([
-        qstash.publishJSON({
-          url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/invalidate-for-discounts`,
-          body: {
-            groupId: group.id,
-          },
-        }),
-
-        deleteDiscountCodes(discountCodes),
-
         recordAuditLog({
           workspaceId: workspace.id,
           programId,
@@ -113,6 +81,14 @@ export const deleteDiscountAction = authActionClient
               metadata: discount,
             },
           ],
+        }),
+
+        // Expire cached links immediately — edge ignores soft-deleted rows, but
+        // Redis may still serve the pre-delete discount until detach finishes.
+        invalidateLinksForDiscountsJob.dispatch({
+          by: "discount",
+          programId,
+          discountId,
         }),
       ]),
     );

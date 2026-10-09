@@ -10,10 +10,10 @@ import { CustomerSalesTable } from "@/ui/customers/customer-sales-table";
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { ProgramRewardList } from "@/ui/partners/program-reward-list";
+import { Callout } from "@/ui/shared/callout";
 import { Button, ChevronRight, MoneyBill2, Tooltip, User } from "@dub/ui";
 import { cn, fetcher, formatDate } from "@dub/utils";
 import { addMonths, isBefore } from "date-fns";
-import { AlertCircle } from "lucide-react";
 import Link from "next/link";
 import { redirect, useParams } from "next/navigation";
 import { memo, useMemo } from "react";
@@ -118,14 +118,11 @@ export function ProgramCustomerPageClient() {
                 </div>
                 {rewardPeriodEndDate &&
                   isBefore(rewardPeriodEndDate, new Date()) && (
-                    <div className="flex items-center gap-2 rounded-lg border border-amber-100 bg-amber-50 px-3 py-2">
-                      <AlertCircle className="size-4 shrink-0 text-amber-600" />
-                      <p className="text-sm text-amber-900">
-                        The earning period for this customer has ended as of{" "}
-                        {formatDate(rewardPeriodEndDate)}. No future conversions
-                        will be rewarded.
-                      </p>
-                    </div>
+                    <Callout variant="warn" size={2}>
+                      The earning period for this customer has ended as of{" "}
+                      {formatDate(rewardPeriodEndDate)}. No future conversions
+                      will be rewarded.
+                    </Callout>
                   )}
 
                 <div className="border-border-subtle overflow-hidden rounded-lg border">

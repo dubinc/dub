@@ -1,4 +1,5 @@
-import { enqueueDeleteDiscountCode } from "@/lib/discounts/delete-discount-code";
+import { queuePartnerSearchSync } from "@/lib/api/partners/queue-partner-search-sync";
+import { deleteDiscountCodes } from "@/lib/discounts/delete-discount-code";
 import { prisma } from "@/lib/prisma";
 import { storage } from "@/lib/storage";
 import { recordLink } from "@/lib/tinybird";
@@ -19,34 +20,21 @@ export async function deleteLink(linkId: string) {
       ...includeProgramEnrollment,
       discountCode: {
         include: {
-          discount: {
-            select: {
-              provider: true,
-            },
-          },
+          discount: true,
         },
       },
     },
   });
 
-  // Delete the discount code and link in a transaction
-  await prisma.$transaction([
-    ...(link.discountCode
-      ? [
-          prisma.discountCode.delete({
-            where: {
-              id: link.discountCode.id,
-            },
-          }),
-        ]
-      : []),
+  if (link.discountCode) {
+    await deleteDiscountCodes([link.discountCode]);
+  }
 
-    prisma.link.delete({
-      where: {
-        id: linkId,
-      },
-    }),
-  ]);
+  await prisma.link.delete({
+    where: {
+      id: linkId,
+    },
+  });
 
   waitUntil(
     Promise.allSettled([
@@ -73,7 +61,14 @@ export async function deleteLink(linkId: string) {
           },
         }),
 
-      link.discountCode && enqueueDeleteDiscountCode([link.discountCode]),
+      // Queue an index update because the link was deleted. The enrollment
+      // outlives it, so the document is re-serialized without it.
+      link.programId &&
+        link.partnerId &&
+        queuePartnerSearchSync({
+          partnerIds: [link.partnerId],
+          programId: link.programId,
+        }),
     ]),
   );
 

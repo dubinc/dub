@@ -21,7 +21,7 @@ export const calculateSaleEarnings = ({
   if (reward.type === "flat") {
     return sale.quantity * amount;
   } else if (reward.type === "percentage") {
-    return sale.amount * (amount / 100);
+    return Math.round((sale.amount * amount) / 100);
   }
 
   return 0;

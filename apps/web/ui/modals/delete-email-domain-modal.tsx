@@ -1,7 +1,7 @@
 import { mutatePrefix } from "@/lib/swr/mutate";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import { EmailDomainProps } from "@/lib/types";
-import { Button, Modal, useMediaQuery } from "@dub/ui";
+import { Button, Modal, useLatestCallback, useMediaQuery } from "@dub/ui";
 import { FormEvent, useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
 
@@ -125,20 +125,21 @@ export function useDeleteEmailDomainModal(
   const [showDeleteEmailDomainModal, setShowDeleteEmailDomainModal] =
     useState(false);
 
+  const onDeleteCallback = useLatestCallback(onDelete);
+
   const DeleteEmailDomainModalCallback = useCallback(() => {
     return (
       <DeleteEmailDomainModal
         showModal={showDeleteEmailDomainModal}
         setShowModal={setShowDeleteEmailDomainModal}
         emailDomain={emailDomain}
-        onDelete={onDelete}
+        onDelete={onDeleteCallback}
       />
     );
   }, [
     showDeleteEmailDomainModal,
     setShowDeleteEmailDomainModal,
-    onDelete,
-    emailDomain,
+    onDeleteCallback,
   ]);
 
   return useMemo(

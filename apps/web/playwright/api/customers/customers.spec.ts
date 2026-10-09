@@ -36,10 +36,6 @@ async function deleteCustomer(api: ApiClient, id: string | undefined) {
   await api.delete(`/api/customers/${id}`);
 }
 
-test.describe.configure({
-  mode: "parallel",
-});
-
 test("POST /customers", async ({ api }) => {
   let customerId: string | undefined;
   const body = randomCustomer();
@@ -106,6 +102,7 @@ test("PATCH /customers/{id}", async ({ api }) => {
     const toUpdate = {
       name: "Updated",
       avatar: "https://api.dub.co/og/avatar/1234567890",
+      country: "BR",
     };
 
     const { status, data } = await api.patch<Customer>(
@@ -118,6 +115,35 @@ test("PATCH /customers/{id}", async ({ api }) => {
       ...created,
       ...toUpdate,
     });
+  } finally {
+    await deleteCustomer(api, customerId);
+  }
+});
+
+test("PATCH /customers/{id} - subscriptionCanceledAt", async ({ api }) => {
+  let customerId: string | undefined;
+
+  try {
+    const { data: created } = await createCustomer(api);
+    customerId = created.id;
+
+    const canceledAt = "2026-09-08T18:00:00.000Z";
+
+    const { status, data } = await api.patch<Customer>(
+      `/api/customers/${customerId}`,
+      { subscriptionCanceledAt: canceledAt },
+    );
+
+    expect(status).toEqual(200);
+    expect(data.subscriptionCanceledAt).toEqual(canceledAt);
+
+    const { status: clearStatus, data: cleared } = await api.patch<Customer>(
+      `/api/customers/${customerId}`,
+      { subscriptionCanceledAt: null },
+    );
+
+    expect(clearStatus).toEqual(200);
+    expect(cleared.subscriptionCanceledAt).toBeNull();
   } finally {
     await deleteCustomer(api, customerId);
   }

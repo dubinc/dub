@@ -26,7 +26,6 @@ export function parseWorkflowConfig(
 
   return {
     conditions,
-    condition: conditions[0],
     action: actions[0],
   };
 }

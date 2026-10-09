@@ -1,12 +1,14 @@
 "use client";
 
 import { FRAUD_RULES_BY_TYPE } from "@/lib/api/fraud/constants";
+import { clientAccessCheck } from "@/lib/client-access-check";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { FraudGroupProps } from "@/lib/types";
 import { useBanPartnerModal } from "@/ui/modals/ban-partner-modal";
-import { useRejectPartnerApplicationModal } from "@/ui/modals/reject-partner-application-modal";
+import { useRejectProgramApplicationModal } from "@/ui/modals/reject-program-application-modal";
 import { PartnerAvatar } from "@/ui/partners/partner-avatar";
+import { TrustedPartnerBadge } from "@/ui/partners/trusted-partner-badge";
 import { X } from "@/ui/shared/icons";
 import { UserAvatar } from "@/ui/users/user-avatar";
 import {
@@ -29,7 +31,7 @@ import useSWR from "swr";
 import { AssociatedCommissionsTable } from "./associated-commissions-table";
 import { FraudEventsTableWrapper } from "./fraud-events-tables";
 import { useMarkAllAsFraudModal } from "./mark-all-as-fraud-modal";
-import { PartnerCrossProgramSummary } from "./partner-cross-program-summary";
+import { PartnerNetworkActivitySummary } from "./partner-network-activity-summary";
 import { RequestDetailsBanner } from "./request-details-banner";
 import { useResolveFraudGroupModal } from "./resolve-fraud-group-modal";
 import { ResolvedRiskEventsTable } from "./resolved-risk-events-table";
@@ -63,7 +65,19 @@ function RiskReviewSheetContent({
   onNext,
 }: RiskReviewSheetProps) {
   const { partner, user } = fraudGroup;
-  const { slug, id: workspaceId } = useWorkspace();
+  const { slug, id: workspaceId, role } = useWorkspace();
+
+  const partnersPermissionsError = clientAccessCheck({
+    action: "partners.write",
+    role,
+    customPermissionDescription: "review risk events",
+  }).error;
+
+  const messagesPermissionsError = clientAccessCheck({
+    action: "messages.write",
+    role,
+    customPermissionDescription: "message partners",
+  }).error;
 
   const showCommissionsOnHold =
     fraudGroup.status === "pending" &&
@@ -111,9 +125,9 @@ function RiskReviewSheetContent({
   });
 
   const {
-    RejectPartnerApplicationModal,
-    setShowRejectPartnerApplicationModal,
-  } = useRejectPartnerApplicationModal({
+    RejectProgramApplicationModal,
+    setShowRejectProgramApplicationModal,
+  } = useRejectProgramApplicationModal({
     partner,
     onConfirm: async () => {
       onNext?.();
@@ -128,18 +142,19 @@ function RiskReviewSheetContent({
   // Resolve/ban/reject shortcuts
   useKeyboardShortcut("r", () => setShowResolveFraudGroupModal(true), {
     sheet: true,
+    enabled: !partnersPermissionsError,
   });
 
   useKeyboardShortcut(
     "b",
     () => {
       if (partner.status === "pending") {
-        setShowRejectPartnerApplicationModal(true);
+        setShowRejectProgramApplicationModal(true);
       } else {
         setShowBanPartnerModal(true);
       }
     },
-    { sheet: true },
+    { sheet: true, enabled: !partnersPermissionsError },
   );
 
   const fraudRuleInfo = FRAUD_RULES_BY_TYPE[fraudGroup.type];
@@ -147,7 +162,7 @@ function RiskReviewSheetContent({
   return (
     <div className="relative h-full">
       {ResolveFraudGroupModal}
-      {RejectPartnerApplicationModal}
+      {RejectProgramApplicationModal}
       <BanPartnerModal />
       {MarkAllAsFraudModal}
       <div
@@ -159,17 +174,27 @@ function RiskReviewSheetContent({
           </Sheet.Title>
 
           <div className="flex items-center gap-2">
-            <Link
-              href={`/${slug}/program/messages/${partner.id}`}
-              target="_blank"
-              className={cn(
-                buttonVariants({ variant: "secondary" }),
-                "flex h-9 items-center gap-2 whitespace-nowrap rounded-lg border px-3 text-sm font-medium",
-              )}
-            >
-              <Msgs className="size-4 shrink-0" />
-              <span className="hidden sm:inline">Message</span>
-            </Link>
+            {messagesPermissionsError ? (
+              <Button
+                variant="secondary"
+                text="Message"
+                icon={<Msgs className="size-4 shrink-0" />}
+                disabledTooltip={messagesPermissionsError}
+                className="h-9 w-fit px-3"
+              />
+            ) : (
+              <Link
+                href={`/${slug}/program/messages/${partner.id}`}
+                target="_blank"
+                className={cn(
+                  buttonVariants({ variant: "secondary" }),
+                  "flex h-9 items-center gap-2 whitespace-nowrap rounded-lg border px-3 text-sm font-medium",
+                )}
+              >
+                <Msgs className="size-4 shrink-0" />
+                <span className="hidden sm:inline">Message</span>
+              </Link>
+            )}
 
             <div className="flex items-center">
               <Button
@@ -214,7 +239,12 @@ function RiskReviewSheetContent({
                   Partner details
                 </h2>
                 <div className="flex min-w-0 items-center gap-3">
-                  <PartnerAvatar partner={partner} className="size-10" />
+                  <div className="relative w-fit shrink-0">
+                    <PartnerAvatar partner={partner} className="size-10" />
+                    {partner.networkStatus === "trusted" && (
+                      <TrustedPartnerBadge size="large" />
+                    )}
+                  </div>
                   <div className="flex min-w-0 flex-col">
                     <span className="text-content-emphasis truncate text-sm font-semibold">
                       {partner.name}
@@ -226,12 +256,12 @@ function RiskReviewSheetContent({
                 </div>
               </Link>
 
-              <div className="bg-bg-muted border-border-subtle flex flex-col gap-3 rounded-xl border px-4 py-3 sm:shrink-0">
+              <div className="bg-bg-muted border-border-subtle flex flex-col gap-3 rounded-xl border px-4 py-3 sm:w-80 sm:shrink-0">
                 <h2 className="text-content-default text-sm font-semibold leading-5">
-                  Program owner activity
+                  Network activity
                 </h2>
                 <div className="flex flex-col gap-2">
-                  <PartnerCrossProgramSummary partnerId={partner.id} />
+                  <PartnerNetworkActivitySummary partnerId={partner.id} />
                 </div>
               </div>
             </div>
@@ -355,6 +385,7 @@ function RiskReviewSheetContent({
                 shortcut="R"
                 onClick={() => setShowResolveFraudGroupModal(true)}
                 className="h-8 w-fit rounded-lg"
+                disabledTooltip={partnersPermissionsError || undefined}
               />
 
               {partner.status === "pending" ? (
@@ -363,8 +394,9 @@ function RiskReviewSheetContent({
                   text="Reject application"
                   shortcut="B"
                   variant="danger"
-                  onClick={() => setShowRejectPartnerApplicationModal(true)}
+                  onClick={() => setShowRejectProgramApplicationModal(true)}
                   className="h-8 w-fit rounded-lg"
+                  disabledTooltip={partnersPermissionsError || undefined}
                 />
               ) : (
                 <Button
@@ -374,6 +406,7 @@ function RiskReviewSheetContent({
                   variant="danger"
                   onClick={() => setShowBanPartnerModal(true)}
                   className="h-8 w-fit rounded-lg"
+                  disabledTooltip={partnersPermissionsError || undefined}
                 />
               )}
             </div>
