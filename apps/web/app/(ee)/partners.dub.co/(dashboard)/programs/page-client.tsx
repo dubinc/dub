@@ -28,7 +28,8 @@ export function PartnersDashboardPageClient() {
 
   const search = searchParams.get("search") || undefined;
 
-  const { counts: statusCounts } = useProgramEnrollmentsStatusCounts();
+  const { counts: statusCounts, error: statusCountsError } =
+    useProgramEnrollmentsStatusCounts();
 
   const getTabCount = (programTab: ProgramTab) =>
     statusCounts
@@ -39,13 +40,16 @@ export function PartnersDashboardPageClient() {
       : undefined;
 
   // without a tab in the URL, open the first tab that has programs, so that
-  // partners with only applications or invitations do not see an empty tab
+  // partners with only applications or invitations do not see an empty tab.
+  // If the counts fail to load, open the Active tab.
   const tab =
     PROGRAM_TABS.find(({ id }) => id === searchParams.get("tab")) ??
     (statusCounts
       ? PROGRAM_TABS.find((programTab) => getTabCount(programTab)) ??
         PROGRAM_TABS[0]
-      : undefined);
+      : statusCountsError
+        ? PROGRAM_TABS[0]
+        : undefined);
 
   // the Inactive tab shows only when the partner has an inactive program
   const tabs = PROGRAM_TABS.filter(
