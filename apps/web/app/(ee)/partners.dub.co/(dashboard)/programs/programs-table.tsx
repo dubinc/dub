@@ -83,11 +83,16 @@ export function ProgramsTable({
     sortableColumns: ["name", "totalCommissions"],
     sortBy: sortBy ?? "totalCommissions",
     sortOrder,
-    onSortChange: ({ sortBy, sortOrder }) =>
+    onSortChange: ({ sortBy: newSortBy, sortOrder: newSortOrder }) =>
       queryParams({
         set: {
-          ...(sortBy && { sortBy }),
-          ...(sortOrder && { sortOrder }),
+          ...(newSortBy && { sortBy: newSortBy }),
+          ...(newSortOrder && {
+            // the table starts a new column at desc, but names read better
+            // A to Z on the first click
+            sortOrder:
+              newSortBy === "name" && sortBy !== "name" ? "asc" : newSortOrder,
+          }),
         },
         del: "page",
       }),
