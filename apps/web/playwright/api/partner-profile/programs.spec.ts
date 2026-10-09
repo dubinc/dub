@@ -189,6 +189,29 @@ test.describe("GET /partner-profile/programs", () => {
     });
   });
 
+  test("reads includeRewardsDiscounts=false as false", async ({
+    playwright,
+  }) => {
+    await withPartnerApi(playwright, async (partnerApi) => {
+      const path = `/api/partner-profile/programs?search=${suffix}`;
+
+      const { data: withRewards } = await partnerApi.get<
+        Record<string, unknown>[]
+      >(`${path}&includeRewardsDiscounts=true`);
+      const { data: withoutRewards } = await partnerApi.get<
+        Record<string, unknown>[]
+      >(`${path}&includeRewardsDiscounts=false`);
+      const { status } = await partnerApi.get(
+        `${path}&includeRewardsDiscounts=yes`,
+      );
+
+      // the discount is in the response only when the API includes it
+      expect(withRewards.every((e) => "discount" in e)).toBe(true);
+      expect(withoutRewards.some((e) => "discount" in e)).toBe(false);
+      expect(status).toEqual(422);
+    });
+  });
+
   test("rejects an unknown status", async ({ playwright }) => {
     await withPartnerApi(playwright, async (partnerApi) => {
       const { status } = await partnerApi.get(
