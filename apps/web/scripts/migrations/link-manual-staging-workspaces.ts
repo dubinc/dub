@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { TRIAL_LIMITS } from "@dub/utils";
-import { WorkspaceEnvironment } from "@prisma/client";
+import { Project, WorkspaceEnvironment } from "@prisma/client";
 import "dotenv-flow/config";
 
 const DRY_RUN = true;
@@ -39,7 +39,11 @@ async function main() {
     select: {
       id: true,
       slug: true,
+      name: true,
+      logo: true,
       plan: true,
+      planTier: true,
+      planPeriod: true,
       stripeId: true,
     },
   });
@@ -98,7 +102,10 @@ async function main() {
 
   for (const workspace of workspacePairs) {
     try {
-      await linkStagingWorkspace(workspace);
+      await linkStagingWorkspace({
+        ...workspace,
+        productionWorkspace: productionBySlug.get(workspace.productionSlug)!,
+      });
       console.log(
         `Linked ${workspace.productionSlug} -> ${workspace.stagingSlug}`,
       );
@@ -112,16 +119,22 @@ async function main() {
 }
 
 // Point the production workspace at the manual staging workspace and mark it (and its programs) as staging.
+// Also copy the fields the sync-workspace job keeps in sync, so staging matches production right away.
 async function linkStagingWorkspace({
   productionWorkspaceId,
   productionSlug,
   stagingWorkspaceId,
   stagingSlug,
+  productionWorkspace,
 }: {
   productionWorkspaceId: string;
   productionSlug: string;
   stagingWorkspaceId: string;
   stagingSlug: string;
+  productionWorkspace: Pick<
+    Project,
+    "name" | "logo" | "plan" | "planTier" | "planPeriod"
+  >;
 }) {
   await prisma.$transaction(async (tx) => {
     const production = await tx.project.updateMany({
@@ -151,6 +164,11 @@ async function linkStagingWorkspace({
       },
       data: {
         environment: WorkspaceEnvironment.staging,
+        name: `${productionWorkspace.name} (Staging)`,
+        logo: productionWorkspace.logo,
+        plan: productionWorkspace.plan,
+        planTier: productionWorkspace.planTier,
+        planPeriod: productionWorkspace.planPeriod,
         usageLimit: TRIAL_LIMITS.clicks,
         linksLimit: TRIAL_LIMITS.links,
         domainsLimit: TRIAL_LIMITS.domains,
