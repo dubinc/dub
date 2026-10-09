@@ -91,7 +91,7 @@ export function EarningsChart() {
             }}
           />
         ) : (
-          <div className="mt-0.5 h-7 w-24 animate-pulse rounded-md bg-neutral-200" />
+          <div className="h-7 w-24 animate-pulse rounded-md bg-neutral-200" />
         )}
       </div>
       <div className="relative h-72 w-full px-5 pb-3 lg:h-auto lg:min-h-0 lg:flex-1">
@@ -126,6 +126,7 @@ export function EarningsChart() {
               isTouchDevice ? undefined : () => router.push("/programs")
             }
             tooltipClassName="w-[240px] overflow-hidden p-0 shadow-md"
+            tooltipBounds="clamp"
             tooltipContent={(d) => {
               const programEarnings = Object.entries(
                 d.values.programs as Record<string, number>,
