@@ -4,7 +4,7 @@ import { createId } from "../api/create-id";
 import { getPlanCapabilities } from "../plan-capabilities";
 import { DEFAULT_PARTNER_GROUP } from "../zod/schemas/groups";
 import { STAGING_DUB_DOMAIN_SUFFIX } from "./constants";
-import { withStagingSlugRetry } from "./staging-slug";
+import { getPreferredStagingSlug } from "./staging-slug";
 
 export async function createStagingProgram(workspaceId: string) {
   const workspace = await prisma.project.findUnique({
@@ -130,91 +130,88 @@ export async function createStagingProgram(workspaceId: string) {
   const defaultFolderId = createId({ prefix: "fold_" });
   const defaultGroupId = createId({ prefix: "grp_" });
 
-  await withStagingSlugRetry(program.slug, (stagingSlug) =>
-    prisma.$transaction(async (tx) => {
-      await tx.folder.create({
-        data: {
-          id: defaultFolderId,
-          name: "Partner Links",
-          projectId: stagingWorkspaceId,
-          accessLevel: "write",
-          users: {
-            createMany: {
-              data: folderUsers.map((user) => ({
-                userId: user.userId,
-                role: user.role,
-              })),
-            },
+  await prisma.$transaction(async (tx) => {
+    await tx.folder.create({
+      data: {
+        id: defaultFolderId,
+        name: "Partner Links",
+        projectId: stagingWorkspaceId,
+        accessLevel: "write",
+        users: {
+          createMany: {
+            data: folderUsers.map((user) => ({
+              userId: user.userId,
+              role: user.role,
+            })),
           },
         },
-      });
+      },
+    });
 
-      await tx.partnerGroup.create({
-        data: {
-          id: defaultGroupId,
-          programId: stagingProgramId,
-          name: DEFAULT_PARTNER_GROUP.name,
-          slug: DEFAULT_PARTNER_GROUP.slug,
-          color: DEFAULT_PARTNER_GROUP.color,
-          maxPartnerLinks: defaultGroup?.maxPartnerLinks,
-          applicationFormData:
-            defaultGroup?.applicationFormData ?? Prisma.DbNull,
-          landerData: defaultGroup?.landerData ?? Prisma.DbNull,
-          logo: defaultGroup?.logo,
-          wordmark: defaultGroup?.wordmark,
-          brandColor: defaultGroup?.brandColor,
-          holdingPeriodDays: defaultGroup?.holdingPeriodDays,
-          partnerGroupDefaultLinks: {
-            create: {
-              id: createId({ prefix: "pgdl_" }),
-              programId: stagingProgramId,
-              domain,
-              url: program.url!,
-            },
+    await tx.partnerGroup.create({
+      data: {
+        id: defaultGroupId,
+        programId: stagingProgramId,
+        name: DEFAULT_PARTNER_GROUP.name,
+        slug: DEFAULT_PARTNER_GROUP.slug,
+        color: DEFAULT_PARTNER_GROUP.color,
+        maxPartnerLinks: defaultGroup?.maxPartnerLinks,
+        applicationFormData: defaultGroup?.applicationFormData ?? Prisma.DbNull,
+        landerData: defaultGroup?.landerData ?? Prisma.DbNull,
+        logo: defaultGroup?.logo,
+        wordmark: defaultGroup?.wordmark,
+        brandColor: defaultGroup?.brandColor,
+        holdingPeriodDays: defaultGroup?.holdingPeriodDays,
+        partnerGroupDefaultLinks: {
+          create: {
+            id: createId({ prefix: "pgdl_" }),
+            programId: stagingProgramId,
+            domain,
+            url: program.url!,
           },
         },
-      });
+      },
+    });
 
-      await tx.program.create({
-        data: {
-          id: stagingProgramId,
-          workspaceId: stagingWorkspaceId,
-          defaultFolderId,
-          defaultGroupId,
-          name: `${program.name} (Staging)`,
-          slug: stagingSlug,
-          domain,
-          url: program.url,
-          logo: program.logo,
-          description: program.description,
-          primaryRewardEvent: program.primaryRewardEvent,
-          minPayoutAmount: program.minPayoutAmount,
-          payoutMode: program.payoutMode,
-          applicationRequirements:
-            program.applicationRequirements ?? Prisma.DbNull,
-          termsUrl: program.termsUrl,
-          helpUrl: program.helpUrl,
-          supportEmail: program.supportEmail,
-          environment: WorkspaceEnvironment.staging,
-        },
-      });
+    await tx.program.create({
+      data: {
+        id: stagingProgramId,
+        workspaceId: stagingWorkspaceId,
+        defaultFolderId,
+        defaultGroupId,
+        name: `${program.name} (Staging)`,
+        slug: getPreferredStagingSlug(program.slug),
+        domain,
+        url: program.url,
+        logo: program.logo,
+        description: program.description,
+        primaryRewardEvent: program.primaryRewardEvent,
+        minPayoutAmount: program.minPayoutAmount,
+        payoutMode: program.payoutMode,
+        applicationRequirements:
+          program.applicationRequirements ?? Prisma.DbNull,
+        termsUrl: program.termsUrl,
+        helpUrl: program.helpUrl,
+        supportEmail: program.supportEmail,
+        environment: WorkspaceEnvironment.staging,
+      },
+    });
 
-      const { count } = await tx.project.updateMany({
-        where: {
-          id: stagingWorkspaceId,
-          defaultProgramId: null,
-        },
-        data: {
-          defaultProgramId: stagingProgramId,
-          defaultProduct: "program",
-        },
-      });
+    const { count } = await tx.project.updateMany({
+      where: {
+        id: stagingWorkspaceId,
+        defaultProgramId: null,
+      },
+      data: {
+        defaultProgramId: stagingProgramId,
+        defaultProduct: "program",
+      },
+    });
 
-      if (count === 0) {
-        throw new Error(
-          `Staging program already exists for workspace ${workspace.id}`,
-        );
-      }
-    }),
-  );
+    if (count === 0) {
+      throw new Error(
+        `Staging program already exists for workspace ${workspace.id}`,
+      );
+    }
+  });
 }
