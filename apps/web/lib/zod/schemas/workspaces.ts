@@ -1,3 +1,4 @@
+import { RESERVED_WORKSPACE_SLUG_SUFFIXES } from "@/lib/sandbox/constants";
 import { workspaceSiteVisitTrackingSettingsFieldSchema } from "@/lib/sitemaps/site-visit-tracking";
 import { DEFAULT_REDIRECTS, RESERVED_SLUGS, validSlugRegex } from "@dub/utils";
 import {
@@ -202,7 +203,14 @@ export const createWorkspaceSchema = z.object({
     .refine((v) => validSlugRegex.test(v), { message: "Invalid slug format" })
     .refine((v) => !(RESERVED_SLUGS.includes(v) || DEFAULT_REDIRECTS[v]), {
       message: "Cannot use reserved slugs",
-    }),
+    })
+    .refine(
+      (v) =>
+        !RESERVED_WORKSPACE_SLUG_SUFFIXES.some((suffix) => v.endsWith(suffix)),
+      {
+        message: "Slugs ending in -staging or -sandbox are reserved",
+      },
+    ),
   logo: z
     .union([uploadedImageSchema, googleUserContentUrlSchema])
     .transform((v) => v || null)
