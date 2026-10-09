@@ -2,6 +2,7 @@
 
 import useProgramEnrollments from "@/lib/swr/use-program-enrollments";
 import useProgramEnrollmentsCount from "@/lib/swr/use-program-enrollments-count";
+import useProgramEnrollmentsStatusCounts from "@/lib/swr/use-program-enrollments-status-counts";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { ProgramCard, ProgramCardSkeleton } from "@/ui/partners/program-card";
 import { ProgramInviteCard } from "@/ui/partners/program-invite-card";
@@ -17,8 +18,6 @@ import { ProgramsTable } from "./programs-table";
 
 type ProgramsView = "grid" | "table";
 
-const INACTIVE_TAB = PROGRAM_TABS.find(({ id }) => id === "inactive")!;
-
 export function PartnersDashboardPageClient() {
   const { searchParams, queryParams } = useRouterStuff();
 
@@ -27,27 +26,33 @@ export function PartnersDashboardPageClient() {
     "grid",
   );
 
-  const tab =
-    PROGRAM_TABS.find(({ id }) => id === searchParams.get("tab")) ??
-    PROGRAM_TABS[0];
   const search = searchParams.get("search") || undefined;
 
-  const { count } = useProgramEnrollmentsCount({
-    status: tab.statuses.join(","),
-    search,
-  });
+  const { counts: statusCounts } = useProgramEnrollmentsStatusCounts();
 
-  const { count: invitationsCount } = useProgramEnrollmentsCount({
-    status: "invited",
-  });
+  const getTabCount = (programTab: ProgramTab) =>
+    statusCounts
+      ? programTab.statuses.reduce(
+          (sum, status) => sum + (statusCounts[status] ?? 0),
+          0,
+        )
+      : undefined;
 
-  const { count: inactiveCount } = useProgramEnrollmentsCount({
-    status: INACTIVE_TAB.statuses.join(","),
-  });
+  // without a tab in the URL, open the first tab that has programs, so that
+  // partners with only applications or invitations do not see an empty tab
+  const tab =
+    PROGRAM_TABS.find(({ id }) => id === searchParams.get("tab")) ??
+    (statusCounts
+      ? PROGRAM_TABS.find((programTab) => getTabCount(programTab)) ??
+        PROGRAM_TABS[0]
+      : undefined);
 
   // the Inactive tab shows only when the partner has an inactive program
   const tabs = PROGRAM_TABS.filter(
-    ({ id }) => id !== "inactive" || inactiveCount || tab.id === "inactive",
+    (programTab) =>
+      programTab.id !== "inactive" ||
+      getTabCount(programTab) ||
+      tab?.id === "inactive",
   );
 
   return (
@@ -86,10 +91,10 @@ export function PartnersDashboardPageClient() {
             icon,
             badge:
               id === "invitations"
-                ? formatTabBadgeCount(invitationsCount)
+                ? formatTabBadgeCount(statusCounts?.invited)
                 : undefined,
           }))}
-          currentTabId={tab.id}
+          currentTabId={tab?.id ?? ""}
           setCurrentTabId={(id) =>
             queryParams({
               set: { tab: id },
@@ -98,16 +103,49 @@ export function PartnersDashboardPageClient() {
           }
         />
         <div className="border-border-subtle -mx-px -mb-px overflow-clip rounded-xl border bg-white">
-          {count === 0 ? (
-            <ProgramsEmptyState tab={tab} search={search} />
-          ) : view === "table" ? (
-            <ProgramsTable tab={tab} search={search} />
+          {tab ? (
+            <ProgramsTabContent tab={tab} search={search} view={view} />
           ) : (
-            <ProgramsGrid tab={tab} search={search} />
+            <ProgramsGridSkeleton />
           )}
         </div>
       </div>
     </PageWidthWrapper>
+  );
+}
+
+function ProgramsTabContent({
+  tab,
+  search,
+  view,
+}: {
+  tab: ProgramTab;
+  search?: string;
+  view: ProgramsView;
+}) {
+  const { count } = useProgramEnrollmentsCount({
+    status: tab.statuses.join(","),
+    search,
+  });
+
+  if (count === 0) {
+    return <ProgramsEmptyState tab={tab} search={search} />;
+  }
+
+  return view === "table" ? (
+    <ProgramsTable tab={tab} search={search} />
+  ) : (
+    <ProgramsGrid tab={tab} search={search} />
+  );
+}
+
+function ProgramsGridSkeleton() {
+  return (
+    <div className="@md/page:grid-cols-2 @3xl/page:grid-cols-3 grid gap-4 p-4">
+      {Array.from({ length: 3 }).map((_, idx) => (
+        <ProgramCardSkeleton key={idx} />
+      ))}
+    </div>
   );
 }
 
