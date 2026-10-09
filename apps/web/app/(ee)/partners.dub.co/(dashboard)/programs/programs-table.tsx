@@ -247,7 +247,8 @@ function EnrollmentStatusBadge({
   );
 }
 
-// the partner's default link: click to copy, or open its analytics
+// the partner's default link: click to copy, or open its analytics. The icons
+// show on hover, and always on touch devices, which have no hover.
 function ProgramLinkChip({
   programEnrollment,
 }: {
@@ -283,7 +284,7 @@ function ProgramLinkChip({
           {copied ? (
             <Check className="size-3.5 shrink-0" />
           ) : (
-            <Copy className="size-3.5 shrink-0 opacity-0 transition-opacity group-hover/chip:opacity-100" />
+            <Copy className="size-3.5 shrink-0 transition-opacity [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover/chip:opacity-100" />
           )}
         </button>
       </Tooltip>
@@ -292,7 +293,7 @@ function ProgramLinkChip({
           href={`/programs/${program.slug}/analytics?linkId=${link.id}`}
           onClick={(e) => e.stopPropagation()}
           className={cn(
-            "shrink-0 rounded p-0.5 text-neutral-500 opacity-0 transition-opacity hover:text-neutral-800 group-hover/chip:opacity-100",
+            "shrink-0 rounded p-0.5 text-neutral-500 transition-opacity hover:text-neutral-800 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover/chip:opacity-100",
           )}
         >
           <LinesY className="size-3.5" />
