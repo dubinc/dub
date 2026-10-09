@@ -115,7 +115,6 @@ export const POST = withAxiom(async (req: Request) => {
       defaultProgramId: true,
       webhookEnabled: true,
       environment: true,
-      stagingWorkspaceId: true,
     },
   });
 
@@ -123,13 +122,6 @@ export const POST = withAxiom(async (req: Request) => {
     return logAndRespond({
       eventType: event.type,
       response: `Workspace not found for Stripe account ${event.account}, skipping...`,
-    });
-  }
-
-  if ((mode === "test" || mode === "sandbox") && workspace.stagingWorkspaceId) {
-    return logAndRespond({
-      eventType: event.type,
-      response: `Skipping ${mode} event for workspace ${workspace.id} because it has a staging workspace.`,
     });
   }
 
