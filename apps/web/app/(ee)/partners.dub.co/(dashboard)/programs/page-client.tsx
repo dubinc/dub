@@ -175,12 +175,20 @@ function ProgramsGridSkeleton() {
 }
 
 function ProgramsGrid({ tab, search }: { tab: ProgramTab; search?: string }) {
-  const { programEnrollments, isLoading } = useProgramEnrollments({
+  const { programEnrollments, isLoading, error } = useProgramEnrollments({
     // only the invite cards show the rewards and the discount
     includeRewardsDiscounts: tab.id === "invitations",
     status: tab.statuses.join(","),
     search,
   });
+
+  if (error) {
+    return (
+      <div className="py-10 text-center text-sm text-neutral-500">
+        Failed to load programs
+      </div>
+    );
+  }
 
   return (
     <div className="@md/page:grid-cols-2 @3xl/page:grid-cols-3 grid gap-4 p-4">
