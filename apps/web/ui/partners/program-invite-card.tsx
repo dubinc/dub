@@ -1,39 +1,15 @@
-import { acceptProgramInviteAction } from "@/lib/actions/partners/accept-program-invite";
-import { mutatePrefix } from "@/lib/swr/mutate";
 import { ProgramEnrollmentProps } from "@/lib/types";
+import { ProgramInviteActions } from "@/ui/partners/program-invite-actions";
 import { ProgramRewardDescription } from "@/ui/partners/program-reward-description";
-import {
-  BlurImage,
-  Button,
-  buttonVariants,
-  Envelope,
-  StatusBadge,
-} from "@dub/ui";
+import { BlurImage, Envelope, StatusBadge } from "@dub/ui";
 import { formatDateSmart, OG_AVATAR_URL } from "@dub/utils";
-import { cn } from "@dub/utils/src";
-import { useAction } from "next-safe-action/hooks";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { toast } from "sonner";
 
 export function ProgramInviteCard({
   programEnrollment,
 }: {
   programEnrollment: ProgramEnrollmentProps;
 }) {
-  const router = useRouter();
   const { program } = programEnrollment;
-
-  const { executeAsync, isPending } = useAction(acceptProgramInviteAction, {
-    onSuccess: async () => {
-      await mutatePrefix("/api/partner-profile/programs");
-      toast.success("Program invite accepted!");
-      router.push(`/programs/${program.slug}`);
-    },
-    onError: ({ error }) => {
-      toast.error(error.serverError);
-    },
-  });
 
   const reward = programEnrollment.rewards?.[0];
   const discount = programEnrollment.discount;
@@ -74,27 +50,7 @@ export function ProgramInviteCard({
       </div>
 
       <div className="mt-2 flex grow flex-col justify-end">
-        <div className="grid grid-cols-2 gap-2">
-          <Link
-            className={cn(
-              "flex h-8 items-center justify-center whitespace-nowrap rounded-md border px-2 text-sm",
-              buttonVariants({ variant: "secondary" }),
-            )}
-            href={`/programs/${program.slug}/invite`}
-          >
-            Learn more
-          </Link>
-          <Button
-            text="Accept invite"
-            className="h-8"
-            loading={isPending}
-            onClick={async () =>
-              await executeAsync({
-                programId: programEnrollment.programId,
-              })
-            }
-          />
-        </div>
+        <ProgramInviteActions programEnrollment={programEnrollment} />
       </div>
     </div>
   );
