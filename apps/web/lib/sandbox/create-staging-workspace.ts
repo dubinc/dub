@@ -1,5 +1,4 @@
 import { createId } from "@/lib/api/create-id";
-import { addDomainToVercel } from "@/lib/api/domains/add-domain-vercel";
 import { createLink } from "@/lib/api/links";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { prisma } from "@/lib/prisma";
@@ -162,20 +161,9 @@ export async function createStagingWorkspace(workspaceId: string) {
     );
   }
 
+  // The `*.staging.dub.link` wildcard on the Vercel project serves this host,
+  // so the domain only needs a database row.
   const domain = `${workspace.slug}${STAGING_DUB_DOMAIN_SUFFIX}`;
-
-  if (process.env.VERCEL === "1") {
-    const vercelResponse = await addDomainToVercel(domain);
-
-    if (
-      vercelResponse.error &&
-      vercelResponse.error.code !== "domain_already_in_use"
-    ) {
-      throw new Error(
-        `Failed to add staging domain ${domain} to Vercel: ${JSON.stringify(vercelResponse.error)}`,
-      );
-    }
-  }
 
   const existingDomain = await prisma.domain.findUnique({
     where: {
