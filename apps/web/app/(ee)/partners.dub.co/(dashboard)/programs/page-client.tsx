@@ -1,61 +1,180 @@
 "use client";
 
 import useProgramEnrollments from "@/lib/swr/use-program-enrollments";
+import useProgramEnrollmentsCount from "@/lib/swr/use-program-enrollments-count";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { ProgramCard, ProgramCardSkeleton } from "@/ui/partners/program-card";
+import { ProgramInviteCard } from "@/ui/partners/program-invite-card";
 import { ProgramMarketplaceBanner } from "@/ui/program-marketplace/program-marketplace-banner";
+import { SearchBoxPersisted } from "@/ui/shared/search-box";
+import { formatTabBadgeCount, SheetTabs } from "@/ui/shared/sheet-tabs";
 import { SimpleEmptyState } from "@/ui/shared/simple-empty-state";
-import { HexadecagonStar } from "@dub/ui/icons";
+import { ToggleGroup, useLocalStorage, useRouterStuff } from "@dub/ui";
+import { GridIcon, HexadecagonStar, TableRows2 } from "@dub/ui/icons";
 import { useId } from "react";
+import { PROGRAM_TABS, ProgramTab } from "./program-tabs";
+import { ProgramsTable } from "./programs-table";
+
+type ProgramsView = "grid" | "table";
+
+const INACTIVE_TAB = PROGRAM_TABS.find(({ id }) => id === "inactive")!;
 
 export function PartnersDashboardPageClient() {
-  const { programEnrollments: allProgramEnrollments, isLoading } =
-    useProgramEnrollments({
-      includeRewardsDiscounts: true,
-    });
+  const { searchParams, queryParams } = useRouterStuff();
 
-  const programEnrollments = allProgramEnrollments?.filter(
-    (programEnrollment) =>
-      !["invited", "declined"].includes(programEnrollment.status),
+  const [view, setView] = useLocalStorage<ProgramsView>(
+    "partner-programs-view",
+    "grid",
+  );
+
+  const tab =
+    PROGRAM_TABS.find(({ id }) => id === searchParams.get("tab")) ??
+    PROGRAM_TABS[0];
+  const search = searchParams.get("search") || undefined;
+
+  const { count } = useProgramEnrollmentsCount({
+    status: tab.statuses.join(","),
+    search,
+  });
+
+  const { count: invitationsCount } = useProgramEnrollmentsCount({
+    status: "invited",
+  });
+
+  const { count: inactiveCount } = useProgramEnrollmentsCount({
+    status: INACTIVE_TAB.statuses.join(","),
+  });
+
+  // the Inactive tab shows only when the partner has an inactive program
+  const tabs = PROGRAM_TABS.filter(
+    ({ id }) => id !== "inactive" || inactiveCount || tab.id === "inactive",
   );
 
   return (
-    <PageWidthWrapper className="pb-10">
+    <PageWidthWrapper className="flex flex-col gap-4 pb-10">
       <ProgramMarketplaceBanner />
 
-      {programEnrollments?.length == 0 ? (
-        <SimpleEmptyState
-          title="No programs"
-          description="When you've joined or applied for a program it will appear here."
-          graphic={
-            <div className="border-border-subtle flex flex-col gap-4 rounded-xl border p-3 shadow-[0_4px_12px_#0001]">
-              <HexadecagonStar className="text-content-default size-6" />
-              <div className="flex flex-col gap-2">
-                <div className="bg-bg-emphasis h-2.5 w-8 rounded" />
-                <div className="bg-bg-emphasis h-2.5 w-16 rounded" />
-              </div>
-              <div className="bg-bg-subtle border-subtle grid w-40 max-w-full grid-cols-2 items-center gap-5 rounded-lg border p-2">
-                <div className="flex flex-col gap-2">
-                  <div className="bg-bg-emphasis h-2.5 w-9 rounded" />
-                  <div className="bg-bg-inverted h-2.5 w-12 rounded" />
-                </div>
-                <EmptyStateChart />
-              </div>
-            </div>
+      <div className="flex items-center justify-between gap-3">
+        <SearchBoxPersisted
+          placeholder="Search programs"
+          inputClassName="md:w-[16rem]"
+        />
+        <ToggleGroup
+          className="bg-bg-muted h-10 shrink-0 gap-0 rounded-lg p-0"
+          optionClassName="h-full rounded-md px-2.5 py-0"
+          indicatorClassName="bg-bg-default -left-px -top-px h-[calc(100%+2px)] w-[calc(100%+2px)]"
+          options={[
+            {
+              value: "grid",
+              label: <GridIcon className="size-4" />,
+            },
+            {
+              value: "table",
+              label: <TableRows2 className="size-4" />,
+            },
+          ]}
+          selected={view}
+          selectAction={(option) => setView(option as ProgramsView)}
+        />
+      </div>
+
+      <div className="border-border-subtle overflow-clip rounded-xl border bg-neutral-100">
+        <SheetTabs
+          tabs={tabs.map(({ id, label, icon }) => ({
+            id,
+            label,
+            icon,
+            badge:
+              id === "invitations"
+                ? formatTabBadgeCount(invitationsCount)
+                : undefined,
+          }))}
+          currentTabId={tab.id}
+          setCurrentTabId={(id) =>
+            queryParams({
+              set: { tab: id },
+              del: ["page"],
+            })
           }
         />
-      ) : (
-        <div className="@md/page:grid-cols-2 @3xl/page:grid-cols-3 grid gap-4">
-          {isLoading
-            ? Array.from({ length: 3 }).map((_, idx) => (
-                <ProgramCardSkeleton key={idx} />
-              ))
-            : programEnrollments?.map((programEnrollment, idx) => (
-                <ProgramCard key={idx} programEnrollment={programEnrollment} />
-              ))}
+        <div className="border-border-subtle -mx-px -mb-px overflow-clip rounded-xl border bg-white">
+          {count === 0 ? (
+            <ProgramsEmptyState tab={tab} search={search} />
+          ) : view === "table" ? (
+            <ProgramsTable tab={tab} search={search} />
+          ) : (
+            <ProgramsGrid tab={tab} search={search} />
+          )}
         </div>
-      )}
+      </div>
     </PageWidthWrapper>
+  );
+}
+
+function ProgramsGrid({ tab, search }: { tab: ProgramTab; search?: string }) {
+  const { programEnrollments, isLoading } = useProgramEnrollments({
+    includeRewardsDiscounts: true,
+    status: tab.statuses.join(","),
+    search,
+  });
+
+  return (
+    <div className="@md/page:grid-cols-2 @3xl/page:grid-cols-3 grid gap-4 p-4">
+      {isLoading || !programEnrollments
+        ? Array.from({ length: 3 }).map((_, idx) => (
+            <ProgramCardSkeleton key={idx} />
+          ))
+        : programEnrollments.map((programEnrollment) =>
+            tab.id === "invitations" ? (
+              <ProgramInviteCard
+                key={programEnrollment.programId}
+                programEnrollment={programEnrollment}
+              />
+            ) : (
+              <ProgramCard
+                key={programEnrollment.programId}
+                programEnrollment={programEnrollment}
+              />
+            ),
+          )}
+    </div>
+  );
+}
+
+function ProgramsEmptyState({
+  tab,
+  search,
+}: {
+  tab: ProgramTab;
+  search?: string;
+}) {
+  return (
+    <div className="py-10">
+      <SimpleEmptyState
+        title={search ? "No programs found" : tab.emptyState.title}
+        description={
+          search
+            ? `No ${tab.resourceName}s match "${search}". Try a different search.`
+            : tab.emptyState.description
+        }
+        graphic={
+          <div className="border-border-subtle flex flex-col gap-4 rounded-xl border p-3 shadow-[0_4px_12px_#0001]">
+            <HexadecagonStar className="text-content-default size-6" />
+            <div className="flex flex-col gap-2">
+              <div className="bg-bg-emphasis h-2.5 w-8 rounded" />
+              <div className="bg-bg-emphasis h-2.5 w-16 rounded" />
+            </div>
+            <div className="bg-bg-subtle border-subtle grid w-40 max-w-full grid-cols-2 items-center gap-5 rounded-lg border p-2">
+              <div className="flex flex-col gap-2">
+                <div className="bg-bg-emphasis h-2.5 w-9 rounded" />
+                <div className="bg-bg-inverted h-2.5 w-12 rounded" />
+              </div>
+              <EmptyStateChart />
+            </div>
+          </div>
+        }
+      />
+    </div>
   );
 }
 
