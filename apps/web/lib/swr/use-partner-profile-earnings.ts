@@ -73,9 +73,7 @@ export function usePartnerProfileEarningsAnalytics<
   limit,
   ...dateRange
 }: DateRange & { groupBy: G; limit?: number }) {
-  return usePartnerProfileEarningsSWR<
-    PartnerProfileEarningsAnalyticsByGroup[G]
-  >(
+  return usePartnerProfileEarningsSWR<PartnerProfileEarningsAnalyticsByGroup[G]>(
     "/analytics",
     {
       groupBy,
