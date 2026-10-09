@@ -71,15 +71,22 @@ export async function getQRAsSVG(props: QRPropsSVG): Promise<string> {
   // Drawing strategy: instead of a rect per module, we're going to create a
   // single path for the dark modules. Background is only painted when bgColor
   // is set — otherwise the SVG stays transparent.
+  const escapeSvgAttr = (value: string) =>
+    value
+      .replace(/&/g, "&amp;")
+      .replace(/"/g, "&quot;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;");
+
   const fgPath = generatePath(cells, margin);
   const bgPath = bgColor
-    ? `<path fill="${bgColor}" d="M0,0 h${numCells}v${numCells}H0z" shape-rendering="crispEdges"></path>`
+    ? `<path fill="${escapeSvgAttr(bgColor)}" d="M0,0 h${numCells}v${numCells}H0z" shape-rendering="crispEdges"></path>`
     : "";
 
   return [
     `<svg xmlns="http://www.w3.org/2000/svg" height="${size}" width="${size}" viewBox="0 0 ${numCells} ${numCells}">`,
     bgPath,
-    `<path fill="${fgColor}" d="${fgPath}" shape-rendering="crispEdges"></path>`,
+    `<path fill="${escapeSvgAttr(fgColor)}" d="${fgPath}" shape-rendering="crispEdges"></path>`,
     image,
     "</svg>",
   ].join("");
