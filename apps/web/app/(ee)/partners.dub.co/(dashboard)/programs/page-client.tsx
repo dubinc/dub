@@ -13,7 +13,11 @@ import { SimpleEmptyState } from "@/ui/shared/simple-empty-state";
 import { ToggleGroup, useLocalStorage, useRouterStuff } from "@dub/ui";
 import { GridIcon, HexadecagonStar, TableRows2 } from "@dub/ui/icons";
 import { useId } from "react";
-import { PROGRAM_TABS, ProgramTab } from "./program-tabs";
+import {
+  PROGRAM_TABS,
+  PROGRAMS_TABLE_VIEW_THRESHOLD,
+  ProgramTab,
+} from "./program-tabs";
 import { ProgramsTable } from "./programs-table";
 
 type ProgramsView = "grid" | "table";
@@ -21,9 +25,10 @@ type ProgramsView = "grid" | "table";
 export function PartnersDashboardPageClient() {
   const { searchParams, queryParams } = useRouterStuff();
 
-  const [view, setView] = useLocalStorage<ProgramsView>(
+  // null until the partner chooses a view with the toggle
+  const [savedView, setView] = useLocalStorage<ProgramsView | null>(
     "partner-programs-view",
-    "grid",
+    null,
   );
 
   const search = searchParams.get("search") || undefined;
@@ -49,6 +54,16 @@ export function PartnersDashboardPageClient() {
         PROGRAM_TABS[0]
       : statusCountsError
         ? PROGRAM_TABS[0]
+        : undefined);
+
+  const view: ProgramsView | undefined =
+    savedView ??
+    (statusCounts
+      ? statusCounts.approved > PROGRAMS_TABLE_VIEW_THRESHOLD
+        ? "table"
+        : "grid"
+      : statusCountsError
+        ? "grid"
         : undefined);
 
   // the Inactive tab shows only when the partner has an inactive program
@@ -82,7 +97,7 @@ export function PartnersDashboardPageClient() {
               label: <TableRows2 className="size-4" />,
             },
           ]}
-          selected={view}
+          selected={view ?? ""}
           selectAction={(option) => setView(option as ProgramsView)}
         />
       </div>
@@ -107,7 +122,7 @@ export function PartnersDashboardPageClient() {
           }
         />
         <div className="border-border-subtle -mx-px -mb-px overflow-clip rounded-xl border bg-white">
-          {tab ? (
+          {tab && view ? (
             <ProgramsTabContent
               tab={tab}
               search={search}

@@ -69,3 +69,7 @@ export type ProgramTab = (typeof PROGRAM_TABS)[number];
 export type ProgramTabId = ProgramTab["id"];
 
 export const PROGRAMS_TABLE_PAGE_SIZE = 10;
+
+// without a saved view, the page starts on the table for partners with more
+// active programs than this
+export const PROGRAMS_TABLE_VIEW_THRESHOLD = 6;
