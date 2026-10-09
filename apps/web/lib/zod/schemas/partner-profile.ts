@@ -3,7 +3,10 @@ import {
   DUB_PARTNERS_ANALYTICS_INTERVAL,
 } from "@/lib/analytics/constants";
 import { awardBountyConditionSchema } from "@/lib/api/workflows/award-bounty/schema";
-import { PARTNER_CUSTOMERS_MAX_PAGE_SIZE } from "@/lib/constants/partner-profile";
+import {
+  PARTNER_CUSTOMERS_MAX_PAGE_SIZE,
+  PARTNER_PROGRAMS_MAX_PAGE_SIZE,
+} from "@/lib/constants/partner-profile";
 import {
   CommissionType,
   PartnerNetworkStatus,
@@ -232,11 +235,31 @@ export const partnerProfileEventsQuerySchema = eventsQuerySchema.omit({
 
 export const partnerProfileProgramsQuerySchema = z.object({
   includeRewardsDiscounts: z.coerce.boolean().optional(),
-  status: z.enum(ProgramEnrollmentStatus).optional(),
+  // one status or a comma-separated list, for example "pending,rejected"
+  status: z
+    .string()
+    .transform((v) =>
+      v
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean),
+    )
+    .pipe(z.array(z.enum(ProgramEnrollmentStatus)).min(1))
+    .optional(),
+  search: z.string().trim().optional(),
+  sortBy: z.enum(["totalCommissions", "name"]).default("totalCommissions"),
+  sortOrder: z.enum(["asc", "desc"]).default("desc"),
+  // the list is paginated only when `page` is set, because most callers
+  // need every enrollment of the partner
+  ...getPaginationQuerySchema({ pageSize: PARTNER_PROGRAMS_MAX_PAGE_SIZE }),
 });
 
 export const partnerProfileProgramsCountQuerySchema =
-  partnerProfileProgramsQuerySchema.pick({ status: true });
+  partnerProfileProgramsQuerySchema
+    .pick({ status: true, search: true })
+    .extend({
+      groupBy: z.enum(["status"]).optional(),
+    });
 
 export const partnerNotificationTypes = z.enum([
   "commissionCreated",
