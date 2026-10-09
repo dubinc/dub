@@ -293,7 +293,12 @@ function ProgramCardActivity({ programId }: { programId: string }) {
   return (
     <div className="-mx-5 h-16">
       {chartData && (
-        <MiniAreaChart data={chartData} padding={{ top: 8, bottom: 8 }} />
+        <MiniAreaChart
+          data={chartData}
+          padding={{ top: 8, bottom: 8, right: 8 }}
+          fadeIn
+          showEndDot
+        />
       )}
     </div>
   );
