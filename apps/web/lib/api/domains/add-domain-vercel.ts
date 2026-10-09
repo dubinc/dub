@@ -1,3 +1,4 @@
+import { STAGING_DUB_DOMAIN_SUFFIX } from "@/lib/sandbox/constants";
 import { getApexDomain, getDomainWithoutWWW } from "@dub/utils";
 import { getVercelDomainResponse } from "./get-domain-response";
 import { CustomResponse } from "./utils";
@@ -12,8 +13,12 @@ export const addDomainToVercel = async (
 ): Promise<CustomResponse> => {
   domain = domain.toLowerCase();
 
+  // Nested staging hosts (e.g. acme.staging.dub.link) are not covered by
+  // `*.dub.link` — always register the exact domain for those.
+  const isStagingDubLink = domain.endsWith(STAGING_DUB_DOMAIN_SUFFIX);
+
   const apexDomain = getApexDomain(`https://${domain}`);
-  if (apexDomain !== domain) {
+  if (apexDomain !== domain && !isStagingDubLink) {
     const wildcardDomain = `*.${apexDomain}`;
     const wildcardResponse = await getVercelDomainResponse(wildcardDomain);
     if (wildcardResponse.verified) {

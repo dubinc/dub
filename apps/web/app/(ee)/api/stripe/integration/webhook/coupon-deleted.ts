@@ -20,7 +20,7 @@ export async function couponDeleted({
   "mode"
 >): Promise<WebhookHandlerResponse> {
   const coupon = event.data.object;
-  const stripeAccountId = event.account as string;
+  const stripeAccountId = workspace.stripeConnectId!;
   const programId = workspace.defaultProgramId;
 
   if (!programId) {
