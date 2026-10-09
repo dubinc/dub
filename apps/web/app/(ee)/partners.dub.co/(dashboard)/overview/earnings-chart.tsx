@@ -4,6 +4,7 @@ import { formatDateTooltip } from "@/lib/analytics/format-date-tooltip";
 import { testIds } from "@/lib/e2e/test-ids";
 import { usePartnerProfileEarningsTimeseries } from "@/lib/swr/use-partner-profile-earnings";
 import useProgramEnrollments from "@/lib/swr/use-program-enrollments";
+import { useIsTouchDevice } from "@dub/ui";
 import {
   Areas,
   ChartContext,
@@ -16,7 +17,7 @@ import { currencyFormatter, nFormatter } from "@dub/utils";
 import NumberFlow from "@number-flow/react";
 import { LinearGradient } from "@visx/gradient";
 import { useRouter } from "next/navigation";
-import { useEffect, useId, useMemo, useState } from "react";
+import { useId, useMemo } from "react";
 import { ProgramLogo } from "./overview-card";
 import { useOverviewDateRange } from "./use-overview-date-range";
 import { useTopProgramEarnings } from "./use-top-program-earnings";
@@ -30,11 +31,7 @@ export function EarningsChart() {
 
   // on touch devices, the chart opens /programs at the end of each drag, which
   // stops partners from reading the tooltip
-  const [isTouchDevice, setIsTouchDevice] = useState(false);
-
-  useEffect(() => {
-    setIsTouchDevice(window.matchMedia("(pointer: coarse)").matches);
-  }, []);
+  const isTouchDevice = useIsTouchDevice();
 
   const { data: timeseries, error } = usePartnerProfileEarningsTimeseries({
     groupBy: "programId",
