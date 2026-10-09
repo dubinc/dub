@@ -67,9 +67,7 @@ const CustomPrismaAdapter = (p: PrismaClient) => {
           ...rest,
           ...(emailVerified !== undefined && {
             emailVerified,
-            ...(emailVerified
-              ? { emailVerifiedBa: Boolean(emailVerified) }
-              : {}),
+            emailVerifiedBa: Boolean(emailVerified),
           }),
         },
       });
