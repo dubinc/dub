@@ -27,7 +27,6 @@ const PartnerLinksContext = createContext<{
   interval: (typeof DATE_RANGE_INTERVAL_PRESETS)[number];
   openMenuLinkId: string | null;
   setOpenMenuLinkId: (id: string | null) => void;
-  displayOption: "full" | "cards";
 } | null>(null);
 
 export function usePartnerLinksContext() {
@@ -151,7 +150,6 @@ function PartnerProgramLinksPageInner({
           interval,
           openMenuLinkId,
           setOpenMenuLinkId,
-          displayOption,
         }}
       >
         <ChartTooltipSync>

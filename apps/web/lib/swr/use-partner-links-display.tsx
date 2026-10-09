@@ -39,9 +39,7 @@ type PartnerLinksDisplayContextValue = {
   displayOption: PartnerLinksDisplayOption;
   setDisplayOption: Dispatch<SetStateAction<PartnerLinksDisplayOption>>;
   displayProperties: PartnerLinksDisplayProperty[];
-  setDisplayProperties: Dispatch<
-    SetStateAction<PartnerLinksDisplayProperty[]>
-  >;
+  setDisplayProperties: Dispatch<SetStateAction<PartnerLinksDisplayProperty[]>>;
   isDirty: boolean;
   persist: () => void | Promise<void>;
   reset: () => void;
@@ -106,10 +104,6 @@ export function PartnerLinksDisplayProvider({
     return false;
   }, [displayOption, displayProperties, resolvedPersisted]);
 
-  const effectiveDisplayOption = !showDetailedAnalytics
-    ? "cards"
-    : displayOption;
-
   const persist = async () => {
     if (!programEnrollment?.programId) return;
 
@@ -131,7 +125,7 @@ export function PartnerLinksDisplayProvider({
   return (
     <PartnerLinksDisplayContext.Provider
       value={{
-        displayOption: effectiveDisplayOption,
+        displayOption: !showDetailedAnalytics ? "cards" : displayOption,
         setDisplayOption,
         displayProperties,
         setDisplayProperties,

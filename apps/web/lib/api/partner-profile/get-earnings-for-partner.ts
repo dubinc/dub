@@ -81,6 +81,7 @@ export async function getEarningsForPartner(
           id: true,
           shortLink: true,
           url: true,
+          partnerLinkTitle: true,
         },
       },
       program: {

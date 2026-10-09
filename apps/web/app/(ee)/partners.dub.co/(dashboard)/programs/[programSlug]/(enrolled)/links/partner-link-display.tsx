@@ -86,10 +86,6 @@ export function PartnerLinkDisplay() {
                         ...(active ? [property.switch] : []),
                       ];
 
-                      if (!next.includes("link") && !next.includes("title")) {
-                        next = ["link"];
-                      }
-
                       setDisplayProperties(next);
                     }}
                     className={cn(

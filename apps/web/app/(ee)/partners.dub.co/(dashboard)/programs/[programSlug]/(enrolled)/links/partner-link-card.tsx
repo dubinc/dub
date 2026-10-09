@@ -76,8 +76,9 @@ const CHARTS = [
 
 export function PartnerLinkCard({ link }: { link: PartnerProfileLinkProps }) {
   const { programEnrollment } = useProgramEnrollment();
-  const { displayOption } = usePartnerLinksContext();
-  const { displayProperties } = useContext(PartnerLinksDisplayContext);
+  const { displayOption, displayProperties } = useContext(
+    PartnerLinksDisplayContext,
+  );
   const { showRewards, toggleRewards } = usePartnerLinkRewardsState();
   const {
     rewards,
