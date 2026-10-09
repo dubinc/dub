@@ -18,8 +18,28 @@ export function isSlugUniqueConstraintError(error: unknown) {
   const target = error.meta?.target;
   const fields = Array.isArray(target) ? target : [target];
 
-  return fields.some(
-    (field) => typeof field === "string" && field.includes("slug"),
+  if (
+    fields.some((field) => typeof field === "string" && field.includes("slug"))
+  ) {
+    return true;
+  }
+
+  // The PlanetScale adapter often cannot parse the key name, so Prisma reports
+  // "(not available)" and `meta.target` is empty. The raw MySQL error still
+  // names the unique index, for example `Project.Project_slug_key`.
+  const cause = (
+    error.meta?.driverAdapterError as
+      | {
+          cause?: {
+            constraint?: { index?: string };
+            originalMessage?: string;
+          };
+        }
+      | undefined
+  )?.cause;
+
+  return [cause?.constraint?.index, cause?.originalMessage].some(
+    (value) => typeof value === "string" && value.includes("_slug_key"),
   );
 }
 
