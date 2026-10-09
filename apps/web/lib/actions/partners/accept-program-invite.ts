@@ -1,5 +1,6 @@
 "use server";
 
+import { queuePartnerSearchSync } from "@/lib/api/partners/queue-partner-search-sync";
 import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
 import { triggerDraftBountySubmissionCreation } from "@/lib/bounty/api/trigger-draft-bounty-submissions";
 import { generateDiscountCodeForPartner } from "@/lib/discounts/generate-discount-code-for-partner";
@@ -45,6 +46,9 @@ export const acceptProgramInviteAction = authPartnerActionClient
       },
     });
 
+    // Queue an index update because the enrollment status moved to approved.
+    waitUntil(queuePartnerSearchSync({ enrollmentIds: [enrollment.id] }));
+
     waitUntil(
       (async () => {
         const workspace = await prisma.project.findUnique({
@@ -54,6 +58,8 @@ export const acceptProgramInviteAction = authPartnerActionClient
           select: {
             id: true,
             webhookEnabled: true,
+            stripeConnectId: true,
+            shopifyStoreId: true,
           },
         });
 
@@ -72,7 +78,7 @@ export const acceptProgramInviteAction = authPartnerActionClient
         await Promise.allSettled([
           // 1. Generate discount code for partner (if enabled)
           generateDiscountCodeForPartner({
-            workspaceId: workspace.id,
+            workspace,
             partner: enrolledPartner,
           }),
           // 2. Send "partner.enrolled" webhook to workspace
@@ -88,7 +94,7 @@ export const acceptProgramInviteAction = authPartnerActionClient
           }),
           // 4. Execute Dub workflows using the “partnerEnrolled” trigger.
           executeWorkflows({
-            trigger: "partnerEnrolled",
+            event: "partnerEnrolled",
             identity: {
               workspaceId: workspace.id,
               programId,

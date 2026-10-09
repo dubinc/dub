@@ -4,7 +4,6 @@ import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enro
 import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
 import { logger } from "@/lib/axiom/server";
 import { triggerDraftBountySubmissionCreation } from "@/lib/bounty/api/trigger-draft-bounty-submissions";
-import { getWorkflowConfig } from "@/lib/cron/qstash-workflow";
 import { generateDiscountCodeForPartner } from "@/lib/discounts/generate-discount-code-for-partner";
 import { createReferralCommission } from "@/lib/partner-referrals/create-referral-commission";
 import { prisma } from "@/lib/prisma";
@@ -14,7 +13,7 @@ import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { EnrolledPartnerSchema } from "@/lib/zod/schemas/partners";
 import { ProgramPartnerLinkSchema } from "@/lib/zod/schemas/programs";
 import { sendBatchEmail } from "@dub/email";
-import PartnerApplicationApproved from "@dub/email/templates/partner-application-approved";
+import ProgramApplicationApproved from "@dub/email/templates/program-application-approved";
 import { NETWORK_PROGRAM_ID } from "@dub/utils";
 import { serve } from "@upstash/workflow/nextjs";
 import * as z from "zod/v4";
@@ -126,6 +125,9 @@ export const { POST } = serve<Input>(
         select: {
           id: true,
           plan: true,
+          webhookEnabled: true,
+          stripeConnectId: true,
+          shopifyStoreId: true,
         },
       });
 
@@ -172,8 +174,21 @@ export const { POST } = serve<Input>(
 
     // Step 2: Auto-provision discount code if enabled
     await context.run("create-discount-codes", async () => {
+      const workspace = await prisma.project.findUniqueOrThrow({
+        where: {
+          id: program.workspaceId,
+        },
+        select: {
+          id: true,
+          plan: true,
+          webhookEnabled: true,
+          stripeConnectId: true,
+          shopifyStoreId: true,
+        },
+      });
+
       await generateDiscountCodeForPartner({
-        workspaceId: program.workspaceId,
+        workspace,
         partner: {
           id: partner.id,
           name: partner.name,
@@ -233,7 +248,7 @@ export const { POST } = serve<Input>(
           to: user.email!,
           subject: `Your application to ${program.name} has been approved!`,
           replyTo: program.supportEmail || "noreply",
-          react: PartnerApplicationApproved({
+          react: ProgramApplicationApproved({
             program: {
               name: program.name,
               logo: program.logo,
@@ -308,7 +323,7 @@ export const { POST } = serve<Input>(
     // Step 6: Execute Dub workflows using the “partnerEnrolled” trigger.
     await context.run("execute-workflows", async () => {
       await executeWorkflows({
-        trigger: "partnerEnrolled",
+        event: "partnerEnrolled",
         identity: {
           workspaceId: program.workspaceId,
           programId,
@@ -335,11 +350,6 @@ export const { POST } = serve<Input>(
       failResponse,
       failHeaders,
     }) => {
-      const { correlation } = getWorkflowConfig({
-        workflowType: "partner-approved",
-        body: context.requestPayload,
-      });
-
       logger.error("workflow.failed", {
         service: "qstash",
         event: "workflow.failed",
@@ -348,7 +358,6 @@ export const { POST } = serve<Input>(
         failStatus,
         failResponse,
         failHeaders,
-        correlation,
       });
 
       await logger.flush();

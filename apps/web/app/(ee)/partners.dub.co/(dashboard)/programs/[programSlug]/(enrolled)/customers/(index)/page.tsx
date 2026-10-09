@@ -1,10 +1,16 @@
 "use client";
 
-import { PARTNER_CUSTOMERS_MAX_PAGE_SIZE } from "@/lib/constants/partner-profile";
+import {
+  CUSTOMER_LTV_EXCLUDED_PROGRAM_IDS,
+  PARTNER_CUSTOMERS_MAX_PAGE_SIZE,
+} from "@/lib/constants/partner-profile";
 import usePartnerCustomers from "@/lib/swr/use-partner-customers";
 import usePartnerCustomersCount from "@/lib/swr/use-partner-customers-count";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import { CustomerRowItem } from "@/ui/customers/customer-row-item";
+import { PartnerCustomersMenuPopover } from "@/ui/customers/partner-customers-menu-popover";
+import { PageContent } from "@/ui/layout/page-content";
+import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { CountryFlag } from "@/ui/shared/country-flag";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
@@ -21,7 +27,13 @@ import {
   useTable,
 } from "@dub/ui";
 import { User } from "@dub/ui/icons";
-import { COUNTRIES, formatDate, getApexDomain, getPrettyUrl } from "@dub/utils";
+import {
+  COUNTRIES,
+  currencyFormatter,
+  formatDate,
+  getApexDomain,
+  getPrettyUrl,
+} from "@dub/utils";
 import { useParams, useRouter } from "next/navigation";
 import { useMemo } from "react";
 import { usePartnerCustomerFilters } from "./use-partner-customer-filters";
@@ -60,6 +72,11 @@ export default function PartnerProgramCustomersPage() {
       "country",
       "link",
       "createdAt",
+      ...(CUSTOMER_LTV_EXCLUDED_PROGRAM_IDS.includes(
+        programEnrollment?.programId ?? "",
+      )
+        ? []
+        : ["saleAmount"]),
       "firstSaleAt",
       "subscriptionCanceledAt",
     ],
@@ -68,6 +85,11 @@ export default function PartnerProgramCustomersPage() {
       "country",
       "link",
       "createdAt",
+      ...(CUSTOMER_LTV_EXCLUDED_PROGRAM_IDS.includes(
+        programEnrollment?.programId ?? "",
+      )
+        ? []
+        : ["saleAmount"]),
       "firstSaleAt",
       "subscriptionCanceledAt",
     ],
@@ -156,6 +178,24 @@ export default function PartnerProgramCustomersPage() {
             </TimestampTooltip>
           ),
         },
+        ...(CUSTOMER_LTV_EXCLUDED_PROGRAM_IDS.includes(
+          programEnrollment?.programId ?? "",
+        )
+          ? []
+          : [
+              {
+                id: "saleAmount",
+                header: "LTV",
+                meta: {
+                  headerTooltip:
+                    "The customer's lifetime value (how much revenue the customer has generated over their lifetime).",
+                },
+                accessorKey: "saleAmount",
+                cell: ({ row }) => (
+                  <span>{currencyFormatter(row.original.saleAmount)}</span>
+                ),
+              },
+            ]),
         {
           id: "firstSaleAt",
           header: "Paid",
@@ -238,7 +278,12 @@ export default function PartnerProgramCustomersPage() {
     onPaginationChange: setPagination,
     columnVisibility,
     onColumnVisibilityChange: setColumnVisibility,
-    sortableColumns: ["createdAt", "firstSaleAt", "subscriptionCanceledAt"],
+    sortableColumns: [
+      "createdAt",
+      "firstSaleAt",
+      "saleAmount",
+      "subscriptionCanceledAt",
+    ],
     sortBy,
     sortOrder,
     onSortChange: ({ sortBy, sortOrder }) =>
@@ -263,59 +308,63 @@ export default function PartnerProgramCustomersPage() {
   });
 
   return (
-    <div className="flex flex-col gap-4">
-      <div>
-        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-          <Filter.Select
-            className="w-full md:w-fit"
-            filters={filters}
-            activeFilters={activeFilters}
-            onSelect={onSelect}
-            onRemove={onRemove}
-            onSelectedFilterChange={setSelectedFilter}
-          />
-          {Boolean(programEnrollment?.customerDataSharingEnabledAt) && (
-            <SearchBoxPersisted
-              placeholder="Search by email or name"
-              inputClassName="md:w-[16rem]"
+    <PageContent title="Customers" controls={<PartnerCustomersMenuPopover />}>
+      <PageWidthWrapper className="flex flex-col gap-3 pb-10">
+        <div className="flex flex-col gap-4">
+          <div>
+            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+              <Filter.Select
+                className="w-full md:w-fit"
+                filters={filters}
+                activeFilters={activeFilters}
+                onSelect={onSelect}
+                onRemove={onRemove}
+                onSelectedFilterChange={setSelectedFilter}
+              />
+              {Boolean(programEnrollment?.customerDataSharingEnabledAt) && (
+                <SearchBoxPersisted
+                  placeholder="Search by email or name"
+                  inputClassName="md:w-[16rem]"
+                />
+              )}
+            </div>
+            <AnimatedSizeContainer height>
+              <div>
+                {activeFilters.length > 0 && (
+                  <div className="pt-3">
+                    <Filter.List
+                      filters={filters}
+                      activeFilters={activeFilters}
+                      onSelect={onSelect}
+                      onRemove={onRemove}
+                      onRemoveAll={onRemoveAll}
+                    />
+                  </div>
+                )}
+              </div>
+            </AnimatedSizeContainer>
+          </div>
+
+          {customers?.length !== 0 ? (
+            <Table {...tableProps} table={table} />
+          ) : (
+            <AnimatedEmptyState
+              title={isFiltered ? "No customers found" : "No customers yet"}
+              description={
+                isFiltered
+                  ? "No customers found for the selected filters. Adjust your filters to refine your search results."
+                  : "No customers have been recorded for this program yet. Once customers start converting through your links, they'll appear here."
+              }
+              cardContent={() => (
+                <>
+                  <User className="size-4 text-neutral-700" />
+                  <div className="h-2.5 w-24 min-w-0 rounded-sm bg-neutral-200" />
+                </>
+              )}
             />
           )}
         </div>
-        <AnimatedSizeContainer height>
-          <div>
-            {activeFilters.length > 0 && (
-              <div className="pt-3">
-                <Filter.List
-                  filters={filters}
-                  activeFilters={activeFilters}
-                  onSelect={onSelect}
-                  onRemove={onRemove}
-                  onRemoveAll={onRemoveAll}
-                />
-              </div>
-            )}
-          </div>
-        </AnimatedSizeContainer>
-      </div>
-
-      {customers?.length !== 0 ? (
-        <Table {...tableProps} table={table} />
-      ) : (
-        <AnimatedEmptyState
-          title={isFiltered ? "No customers found" : "No customers yet"}
-          description={
-            isFiltered
-              ? "No customers found for the selected filters. Adjust your filters to refine your search results."
-              : "No customers have been recorded for this program yet. Once customers start converting through your links, they'll appear here."
-          }
-          cardContent={() => (
-            <>
-              <User className="size-4 text-neutral-700" />
-              <div className="h-2.5 w-24 min-w-0 rounded-sm bg-neutral-200" />
-            </>
-          )}
-        />
-      )}
-    </div>
+      </PageWidthWrapper>
+    </PageContent>
   );
 }

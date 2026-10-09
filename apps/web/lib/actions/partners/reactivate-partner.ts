@@ -3,6 +3,7 @@
 import { trackActivityLog } from "@/lib/api/activity-log/track-activity-log";
 import { getGroupOrThrow } from "@/lib/api/groups/get-group-or-throw";
 import { linkCache } from "@/lib/api/links/cache";
+import { queuePartnerSearchSync } from "@/lib/api/partners/queue-partner-search-sync";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { prisma } from "@/lib/prisma";
 import { deactivatePartnerSchema } from "@/lib/zod/schemas/partners";
@@ -67,6 +68,8 @@ export const reactivatePartnerAction = authActionClient
           clickRewardId: partnerGroup.clickRewardId,
           leadRewardId: partnerGroup.leadRewardId,
           saleRewardId: partnerGroup.saleRewardId,
+          referralRewardId: partnerGroup.referralRewardId,
+          customRewardId: partnerGroup.customRewardId,
           discountId: partnerGroup.discountId,
         },
       }),
@@ -85,6 +88,9 @@ export const reactivatePartnerAction = authActionClient
         await Promise.allSettled([
           // TODO send email to partner
           linkCache.expireMany(links),
+
+          // Queue an index update because the enrollment status moved back to approved
+          queuePartnerSearchSync({ partnerIds: [partnerId], programId }),
 
           trackActivityLog({
             workspaceId: workspace.id,

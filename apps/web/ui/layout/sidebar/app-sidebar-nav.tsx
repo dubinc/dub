@@ -3,7 +3,7 @@
 import { clientAccessCheck } from "@/lib/client-access-check";
 import { usePartnerMessagesCount } from "@/lib/messages/hooks/use-partner-messages-count";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
-import { SUBMITTED_LEADS_ENABLED_PROGRAM_IDS } from "@/lib/submitted-leads/constants";
+import { useProgramApplicationsCount } from "@/lib/program-applications/hooks/use-program-applications-count";
 import {
   SubmissionsCountByStatus,
   useBountySubmissionsCount,
@@ -66,7 +66,7 @@ import { LinesY } from "./icons/lines-y";
 import { User } from "./icons/user";
 import { SidebarNav, SidebarNavAreas, SidebarNavGroups } from "./sidebar-nav";
 import { SidebarUsage } from "./sidebar-usage";
-import { useProgramApplicationsCount } from "./use-program-applications-count";
+import { SpecialNewsContent } from "./special-news-content";
 import { WorkspaceDropdown } from "./workspace-dropdown";
 
 type SidebarNavData = {
@@ -74,6 +74,7 @@ type SidebarNavData = {
   pathname: string;
   queryString: string;
   defaultProduct?: "program" | "links";
+  hasProgram?: boolean;
   session?: Session | null;
   pendingPayoutsCount?: number;
   applicationsCount?: number;
@@ -81,6 +82,7 @@ type SidebarNavData = {
   unreadMessagesCount?: number;
   pendingFraudEventsCount?: number;
   pendingLeadsCount?: number;
+  submittedLeadsEnabled?: boolean;
   partnerNetworkEnabled?: boolean;
 };
 
@@ -88,11 +90,13 @@ const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({
   slug,
   pathname,
   defaultProduct,
+  hasProgram,
 }) => {
   const programGroup = {
     name: "Partner Program",
-    description:
-      "Kickstart viral product-led growth with powerful, branded referral and affiliate programs.",
+    description: hasProgram
+      ? "Manage, grow, and measure the performance of your partner program."
+      : "Kickstart viral product-led growth with powerful, branded referral and affiliate programs.",
     learnMoreHref: "https://dub.co/partners",
     icon: ConnectedDots4,
     href: slug ? `/${slug}/program` : "/program",
@@ -113,7 +117,7 @@ const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({
     active: pathname.startsWith(`/${slug}/links`),
   };
 
-  return (defaultProduct ?? "links") === "links"
+  return defaultProduct === "links"
     ? [linksGroup, programGroup]
     : [programGroup, linksGroup];
 };
@@ -128,6 +132,7 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
     unreadMessagesCount,
     pendingFraudEventsCount,
     pendingLeadsCount,
+    submittedLeadsEnabled,
     partnerNetworkEnabled,
   }) => ({
     title: "Partner Program",
@@ -216,11 +221,6 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             name: "Customers",
             icon: User,
             href: `/${slug}/program/customers`,
-            badge: pendingLeadsCount
-              ? pendingLeadsCount > 99
-                ? "99+"
-                : pendingLeadsCount
-              : undefined,
           },
           {
             name: "Commissions",
@@ -257,6 +257,20 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             icon: PaperPlane,
             href: `/${slug}/program/campaigns` as `/${string}`,
           },
+          ...(submittedLeadsEnabled
+            ? [
+                {
+                  name: "Submitted Leads",
+                  icon: UserPlus,
+                  href: `/${slug}/program/leads` as `/${string}`,
+                  badge: pendingLeadsCount
+                    ? pendingLeadsCount > 99
+                      ? "99+"
+                      : pendingLeadsCount
+                    : undefined,
+                },
+              ]
+            : []),
           {
             name: "Resources",
             icon: LifeRing,
@@ -295,7 +309,6 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
   // short links
   links: ({ slug, pathname, queryString }) => ({
     title: "Short Links",
-    showNews: true,
     direction: "left",
     content: [
       {
@@ -510,6 +523,7 @@ export function AppSidebarNav({
     defaultProgramId,
     trialEndsAt,
     role,
+    flags,
   } = useWorkspace();
 
   const canSetDefaultProduct = !clientAccessCheck({
@@ -570,9 +584,6 @@ export function AppSidebarNav({
     () => router.push(`/${slug}/${defaultProduct}`),
     {
       enabled: currentArea === "workspaceSettings",
-      priority: 2,
-      modal: false,
-      sheet: false,
     },
   );
 
@@ -587,9 +598,13 @@ export function AppSidebarNav({
     enabled: Boolean(currentArea === "program" && defaultProgramId),
   });
 
-  const applicationsCount = useProgramApplicationsCount({
-    enabled: Boolean(currentArea === "program" && defaultProgramId),
-  });
+  const { applicationsCount } = useProgramApplicationsCount<number | undefined>(
+    {
+      status: "pending",
+      ignoreParams: true,
+      enabled: Boolean(currentArea === "program" && defaultProgramId),
+    },
+  );
 
   const { submissionsCount } = useBountySubmissionsCount<
     SubmissionsCountByStatus[]
@@ -620,9 +635,7 @@ export function AppSidebarNav({
     query: { status: "pending" },
     ignoreParams: true,
     enabled: Boolean(
-      currentArea === "program" &&
-        defaultProgramId &&
-        SUBMITTED_LEADS_ENABLED_PROGRAM_IDS.includes(defaultProgramId),
+      currentArea === "program" && defaultProgramId && flags?.submittedLeads,
     ),
   });
 
@@ -650,6 +663,9 @@ export function AppSidebarNav({
       </Link>
     ) : null;
 
+  const freePlanOrTrial =
+    plan && (plan === "free" || isWorkspaceBillingTrialActive(trialEndsAt));
+
   return (
     <SidebarNav
       groups={NAV_GROUPS}
@@ -663,26 +679,38 @@ export function AppSidebarNav({
         }),
         session: session || undefined,
         defaultProduct,
+        hasProgram: Boolean(defaultProgramId),
         pendingPayoutsCount: pendingPayoutsCount?.[0]?.count ?? 0,
         applicationsCount,
         submittedBountiesCount,
         unreadMessagesCount,
         pendingFraudEventsCount,
         pendingLeadsCount,
+        submittedLeadsEnabled: Boolean(
+          defaultProgramId && flags?.submittedLeads,
+        ),
         partnerNetworkEnabled:
           program && program.partnerNetworkEnabledAt !== null,
       }}
-      toolContent={toolContent}
-      newsContent={
-        plan &&
-        (plan === "free" || isWorkspaceBillingTrialActive(trialEndsAt) ? (
-          <SidebarUsage />
-        ) : (
-          newsContent
-        ))
-      }
       switcher={<WorkspaceDropdown />}
-      bottom={<div className="px-3 pb-2">{AppBottomContent}</div>}
+      toolContent={toolContent}
+      bottomContent={
+        AppBottomContent || freePlanOrTrial ? (
+          <>
+            <div className="px-3 pb-2">{AppBottomContent}</div>
+            {freePlanOrTrial && <SidebarUsage />}
+          </>
+        ) : undefined
+      }
+      newsContent={
+        currentArea === "program" &&
+        defaultProgramId &&
+        !["enterprise", "advanced"].includes(plan ?? "") ? (
+          <SpecialNewsContent />
+        ) : !freePlanOrTrial && currentArea === "links" ? (
+          newsContent
+        ) : undefined
+      }
     />
   );
 }

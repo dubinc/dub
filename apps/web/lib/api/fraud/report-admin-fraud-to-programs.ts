@@ -4,6 +4,8 @@ import { prisma } from "@/lib/prisma";
 import { INACTIVE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
 import { NETWORK_PROGRAM_ID } from "@dub/utils";
 import { FraudRuleType } from "@prisma/client";
+import { holdPendingCommissions } from "./hold-pending-commissions";
+import { holdProcessedCommissions } from "./hold-processed-commissions";
 
 export async function reportAdminFraudToPrograms({
   partnerId,
@@ -49,7 +51,7 @@ export async function reportAdminFraudToPrograms({
     return 0;
   }
 
-  await createFraudEvents(
+  const { affectedGroups } = await createFraudEvents(
     affectedProgramEnrollments.map((enrollment) => ({
       programId: enrollment.programId,
       partnerId: enrollment.partnerId,
@@ -61,6 +63,18 @@ export async function reportAdminFraudToPrograms({
       },
     })),
   );
+
+  console.log(
+    `Reporting admin fraud for partner ${partnerId} to ${affectedGroups.length} programs...`,
+  );
+
+  const results = await Promise.allSettled([
+    holdPendingCommissions(affectedGroups),
+    holdProcessedCommissions(affectedGroups),
+  ]);
+  results
+    .filter((r): r is PromiseRejectedResult => r.status === "rejected")
+    .forEach((r) => console.error("Failed to hold commissions:", r.reason));
 
   return affectedProgramEnrollments.length;
 }

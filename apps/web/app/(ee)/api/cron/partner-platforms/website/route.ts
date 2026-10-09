@@ -22,6 +22,10 @@ export const GET = withCron(async () => {
       verifiedAt: {
         not: null,
       },
+      // only check websites that haven't been checked in the last 24 hours
+      lastCheckedAt: {
+        lt: new Date(Date.now() - 1000 * 60 * 60 * 24),
+      },
     },
     take: BATCH_SIZE,
     orderBy: {

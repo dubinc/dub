@@ -2,10 +2,14 @@ import { DubApiError } from "@/lib/api/errors";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { getSocialContent } from "@/lib/api/scrape-creators/get-social-content";
 import { withPartnerProfile } from "@/lib/auth/partner";
-import { canPartnerSubmitBounty } from "@/lib/bounty/api/bounty-availability";
+import {
+  bountyEligibilityIncludes,
+  canPartnerSubmitBounty,
+} from "@/lib/bounty/api/bounty-availability";
 import { getBountyOrThrow } from "@/lib/bounty/api/get-bounty-or-throw";
 import { resolveBountyDetails } from "@/lib/bounty/utils";
-import { ratelimit } from "@/lib/upstash";
+import { assertRateLimit } from "@/lib/upstash/assert-rate-limit";
+import { RATELIMIT_POLICIES } from "@/lib/upstash/ratelimit-policies";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 
@@ -20,16 +24,10 @@ export const GET = withPartnerProfile(
 
     const { url } = searchParamsSchema.parse(searchParams);
 
-    const { success } = await ratelimit(10, "1 h").limit(
-      `partner-profile:social-content-stats:${partner.id}`,
-    );
-
-    if (!success) {
-      throw new DubApiError({
-        code: "rate_limit_exceeded",
-        message: "You've been rate limited. Please try again later.",
-      });
-    }
+    await assertRateLimit({
+      policy: RATELIMIT_POLICIES.socialContentStats,
+      identifier: partner.id,
+    });
 
     const programEnrollment = await getProgramEnrollmentOrThrow({
       partnerId: partner.id,
@@ -41,6 +39,11 @@ export const GET = withPartnerProfile(
             defaultGroupId: true,
           },
         },
+        programPartnerTags: {
+          select: {
+            partnerTagId: true,
+          },
+        },
       },
     });
 
@@ -48,11 +51,7 @@ export const GET = withPartnerProfile(
       bountyId,
       programId: programEnrollment.programId,
       include: {
-        groups: {
-          select: {
-            groupId: true,
-          },
-        },
+        ...bountyEligibilityIncludes,
         submissions: {
           where: {
             partnerId: partner.id,

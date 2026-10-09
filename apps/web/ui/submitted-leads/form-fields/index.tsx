@@ -4,13 +4,13 @@ import { CountryField } from "./country-field";
 import { DateField } from "./date-field";
 import { MultiSelectField } from "./multi-select-field";
 import { NumberField } from "./number-field";
-import { PhoneField } from "./phone-field";
 import { SelectField } from "./select-field";
 import { TextField } from "./text-field";
 import { TextareaField } from "./textarea-field";
+import { UrlField } from "./url-field";
 
 const FIELD_COMPONENTS: Record<
-  Exclude<z.infer<typeof formFieldSchema>["type"], "text">,
+  Exclude<z.infer<typeof formFieldSchema>["type"], "text" | "phone">,
   React.ComponentType<any>
 > = {
   textarea: TextareaField,
@@ -19,7 +19,7 @@ const FIELD_COMPONENTS: Record<
   date: DateField,
   multiSelect: MultiSelectField,
   number: NumberField,
-  phone: PhoneField,
+  url: UrlField,
 };
 
 interface LeadFormFieldProps {
@@ -33,11 +33,12 @@ export const LeadFormField = ({
   keyPath,
   inputProps,
 }: LeadFormFieldProps) => {
-  // Handle text fields specially to pass inputProps
-  if (field.type === "text") {
+  // Handle text fields specially to pass inputProps. Phone fields from older
+  // forms show as text fields, because the builder no longer offers them.
+  if (field.type === "text" || field.type === "phone") {
     return (
       <TextField
-        field={field}
+        field={{ ...field, type: "text" }}
         keyPath={keyPath}
         {...(inputProps && { inputProps })}
       />

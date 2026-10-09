@@ -1,13 +1,21 @@
 import { prisma } from "@/lib/prisma";
+import { DiscountCodeWebhookSchema } from "@/lib/zod/schemas/discount";
 import { APP_DOMAIN_WITH_NGROK, chunk } from "@dub/utils";
-import { Discount, DiscountCode } from "@prisma/client";
+import { Discount, DiscountCode, DiscountProvider } from "@prisma/client";
+import { waitUntil } from "@vercel/functions";
+import * as z from "zod/v4";
 import { enqueueBatchJobs } from "../cron/enqueue-batch-jobs";
+import { sendWorkspaceWebhook } from "../webhook/publish";
+
+type DiscountCodeWebhookDiscount = z.infer<
+  typeof DiscountCodeWebhookSchema
+>["discount"];
 
 type DeleteDiscountCodesParams = Pick<
   DiscountCode,
-  "id" | "code" | "programId"
+  "id" | "code" | "programId" | "partnerId" | "linkId" | "disabledAt"
 > & {
-  discount: Pick<Discount, "provider"> | null;
+  discount: DiscountCodeWebhookDiscount;
 };
 
 type EnqueueDeleteDiscountCodeParams = Pick<
@@ -38,6 +46,8 @@ export async function deleteDiscountCodes(
   }
 
   if (isSoftDelete) {
+    const disabledAt = new Date();
+
     // Soft delete the discount codes from the database (mark them as disabled)
     const disabledDiscountCodes = await prisma.discountCode.updateMany({
       where: {
@@ -46,12 +56,21 @@ export async function deleteDiscountCodes(
         },
       },
       data: {
-        disabledAt: new Date(),
+        disabledAt,
       },
     });
 
     console.log(
       `[deleteDiscountCodes] Disabled ${disabledDiscountCodes.count} discount codes.`,
+    );
+
+    waitUntil(
+      sendDiscountCodeDeletedWebhooks(
+        discountCodes.map((discountCode) => ({
+          ...discountCode,
+          disabledAt,
+        })),
+      ),
     );
   } else {
     // Delete the discount codes from the database
@@ -66,6 +85,8 @@ export async function deleteDiscountCodes(
     console.log(
       `[deleteDiscountCodes] Deleted ${deletedDiscountCodes.count} discount codes.`,
     );
+
+    waitUntil(sendDiscountCodeDeletedWebhooks(discountCodes));
   }
 
   await enqueueDeleteDiscountCode(discountCodes);
@@ -74,12 +95,13 @@ export async function deleteDiscountCodes(
 // Only enqueue external-provider cleanup for codes whose provider is known.
 // Orphaned codes (discount relation is null) still get deleted locally above
 // but we can't tell which external provider to clean up, so we skip them.
+// Custom providers disable via webhook, so they are not queued.
 export async function enqueueDeleteDiscountCode(
   discountCodes: EnqueueDeleteDiscountCodeParams[],
 ) {
   const codesWithProvider = discountCodes.filter(
     (dc): dc is typeof dc & { discount: Pick<Discount, "provider"> } =>
-      dc.discount != null,
+      dc.discount != null && dc.discount.provider !== DiscountProvider.custom,
   );
 
   if (codesWithProvider.length === 0) {
@@ -103,4 +125,43 @@ export async function enqueueDeleteDiscountCode(
       })),
     );
   }
+}
+
+async function sendDiscountCodeDeletedWebhooks(
+  discountCodes: DeleteDiscountCodesParams[],
+) {
+  const programIds = [...new Set(discountCodes.map((dc) => dc.programId))];
+
+  const workspaces = await prisma.project.findMany({
+    where: {
+      defaultProgramId: {
+        in: programIds,
+      },
+    },
+    select: {
+      id: true,
+      webhookEnabled: true,
+      defaultProgramId: true,
+    },
+  });
+
+  const workspaceByProgramId = new Map(
+    workspaces.map((workspace) => [workspace.defaultProgramId, workspace]),
+  );
+
+  await Promise.all(
+    discountCodes.map((discountCode) => {
+      const workspace = workspaceByProgramId.get(discountCode.programId);
+
+      if (!workspace) {
+        return;
+      }
+
+      return sendWorkspaceWebhook({
+        workspace,
+        trigger: "discount_code.deleted",
+        data: DiscountCodeWebhookSchema.parse(discountCode),
+      });
+    }),
+  );
 }

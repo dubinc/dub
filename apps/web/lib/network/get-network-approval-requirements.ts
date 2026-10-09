@@ -1,6 +1,6 @@
 import { toCentsNumber } from "@dub/utils";
 import {
-  EXCLUDED_PROGRAM_IDS,
+  PARTNER_NETWORK_EXCLUDED_PROGRAM_IDS,
   PARTNER_NETWORK_MIN_COMMISSIONS_CENTS,
 } from "../constants/partner-profile";
 import { PARTNER_PLATFORM_FIELDS } from "../partners/partner-platforms";
@@ -18,7 +18,7 @@ export const partnerHasEarnedCommissions = (
   return (
     programEnrollments.filter(
       (pe) =>
-        !EXCLUDED_PROGRAM_IDS.includes(pe.programId) &&
+        !PARTNER_NETWORK_EXCLUDED_PROGRAM_IDS.includes(pe.programId) &&
         pe.status === "approved" &&
         toCentsNumber(pe.totalCommissions) >=
           PARTNER_NETWORK_MIN_COMMISSIONS_CENTS,

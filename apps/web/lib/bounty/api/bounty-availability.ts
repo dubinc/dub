@@ -1,12 +1,15 @@
 import { ACTIVE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
+import { pluck } from "@dub/utils";
 import {
   Bounty,
   BountyGroup,
+  BountyPartnerTag,
   BountyStartMode,
   BountySubmission,
   Prisma,
   Program,
   ProgramEnrollment,
+  ProgramPartnerTag,
 } from "@prisma/client";
 import { addDays } from "date-fns";
 import { isBountyEnded, isBountyStarted } from "../bounty-period";
@@ -24,34 +27,75 @@ type PartnerBountyEligibilityInput = {
     | "createdAt"
   > & {
     groups: Pick<BountyGroup, "groupId">[];
+    partnerTags: Pick<BountyPartnerTag, "partnerTagId">[];
   };
   programEnrollment: Pick<
     ProgramEnrollment,
     "createdAt" | "groupId" | "status"
-  >;
+  > & {
+    programPartnerTags: Pick<ProgramPartnerTag, "partnerTagId">[];
+  };
 };
 
-export function buildBountyEligibilityWhere(
-  groupId: string | undefined,
-): Prisma.BountyWhereInput {
+// Audience filter only (groups + tags). A bounty with no groups/tags is open to all;
+// otherwise the partner must match an assigned group AND at least one assigned tag.
+export function buildBountyEligibilityWhere({
+  groupId,
+  partnerTagIds,
+}: {
+  groupId: string | undefined | string[];
+  partnerTagIds?: string[];
+}): Prisma.BountyWhereInput {
+  const groupIds = (Array.isArray(groupId) ? groupId : [groupId]).filter(
+    (id): id is string => Boolean(id),
+  );
+
   return {
-    OR: [
+    AND: [
       {
-        groups: {
-          none: {},
-        },
-      },
-      ...(groupId
-        ? [
-            {
-              groups: {
-                some: {
-                  groupId,
-                },
-              },
+        OR: [
+          {
+            groups: {
+              none: {},
             },
-          ]
-        : []),
+          },
+          ...(groupIds && groupIds.length > 0
+            ? [
+                {
+                  groups: {
+                    some: {
+                      groupId: {
+                        in: groupIds,
+                      },
+                    },
+                  },
+                },
+              ]
+            : []),
+        ],
+      },
+      {
+        OR: [
+          {
+            partnerTags: {
+              none: {},
+            },
+          },
+          ...(partnerTagIds && partnerTagIds.length > 0
+            ? [
+                {
+                  partnerTags: {
+                    some: {
+                      partnerTagId: {
+                        in: partnerTagIds,
+                      },
+                    },
+                  },
+                },
+              ]
+            : []),
+        ],
+      },
     ],
   };
 }
@@ -90,6 +134,11 @@ export const bountyEligibilityIncludes = {
       groupId: true,
     },
   },
+  partnerTags: {
+    select: {
+      partnerTagId: true,
+    },
+  },
 } satisfies Prisma.BountyInclude;
 
 export function getEffectiveBountyPeriod({
@@ -125,7 +174,7 @@ export function isPartnerEligibleForBounty({
   }
 
   // If the bounty has groups, check if the partner is in one of them
-  const bountyGroupIds = bounty.groups.map((g) => g.groupId);
+  const bountyGroupIds = pluck(bounty.groups, "groupId");
   const partnerGroupId = programEnrollment.groupId || program.defaultGroupId;
 
   if (bountyGroupIds.length > 0 && !bountyGroupIds.includes(partnerGroupId)) {
@@ -133,6 +182,26 @@ export function isPartnerEligibleForBounty({
       `Partner is not eligible for bounty ${bounty.id} because they are not in any of the assigned groups. Partner's groupId: ${partnerGroupId}. Assigned groupIds: ${bountyGroupIds.join(", ")}.`,
     );
     return false;
+  }
+
+  // If the bounty has partner tags, the partner must have at least one matching tag
+  const bountyPartnerTagIds = pluck(bounty.partnerTags, "partnerTagId");
+  const partnerTagIds = pluck(
+    programEnrollment.programPartnerTags,
+    "partnerTagId",
+  );
+
+  if (bountyPartnerTagIds.length > 0) {
+    const hasMatchingTag = partnerTagIds.some((tagId) =>
+      bountyPartnerTagIds.includes(tagId),
+    );
+
+    if (!hasMatchingTag) {
+      console.log(
+        `Partner is not eligible for bounty ${bounty.id} because they do not have any of the assigned partner tags. Partner's partnerTagIds: ${partnerTagIds.join(", ")}. Assigned partnerTagIds: ${bountyPartnerTagIds.join(", ")}.`,
+      );
+      return false;
+    }
   }
 
   // Relative bounties are for new partners only (enrolled on/after bounty creation)

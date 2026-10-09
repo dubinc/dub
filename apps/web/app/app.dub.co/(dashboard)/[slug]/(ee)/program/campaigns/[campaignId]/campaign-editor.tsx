@@ -1,15 +1,21 @@
+import { parseActionError } from "@/lib/actions/parse-action-errors";
 import { uploadCampaignImageAction } from "@/lib/actions/partners/upload-campaign-image";
 import { CAMPAIGN_READONLY_STATUSES } from "@/lib/api/campaigns/constants";
+import { checkWorkflowConditions } from "@/lib/api/workflows/check-workflow-conditions";
 import {
   formatCampaignFromAddress,
   parseCampaignFromAddress,
 } from "@/lib/email/parse-campaign-from-address";
+import { UPLOAD_POLICIES } from "@/lib/storage/upload-policies";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import { useEmailDomains } from "@/lib/swr/use-email-domains";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { Campaign, UpdateCampaignFormData } from "@/lib/types";
-import { EMAIL_TEMPLATE_VARIABLES } from "@/lib/zod/schemas/campaigns";
+import {
+  EMAIL_TEMPLATE_VARIABLE_INFO,
+  EMAIL_TEMPLATE_VARIABLES,
+} from "@/lib/zod/schemas/campaigns";
 import { PageContentWithSidePanel } from "@/ui/layout/page-content/page-content-with-side-panel";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import {
@@ -26,7 +32,7 @@ import {
   TooltipContent,
   useKeyboardShortcut,
 } from "@dub/ui";
-import { capitalize, cn } from "@dub/utils";
+import { capitalize, cn, pluck, toErrorMessage } from "@dub/utils";
 import { CampaignStatus } from "@prisma/client";
 import slugify from "@sindresorhus/slugify";
 import { motion } from "motion/react";
@@ -46,11 +52,13 @@ import { CAMPAIGN_STATUS_BADGES } from "../campaign-status-badges";
 import { CampaignActionBar } from "./campaign-action-bar";
 import { CampaignControls } from "./campaign-controls";
 import { CampaignEvents } from "./campaign-events";
-import { CampaignGroupsSelector } from "./campaign-groups-selector";
 import { CampaignMetrics } from "./campaign-metrics";
+import {
+  CampaignGroupsSelector,
+  CampaignTagsSelector,
+} from "./campaign-recipients-selector";
 import { DuplicateLogicWarning } from "./duplicate-logic-warning";
 import { TransactionalCampaignLogic } from "./transactional-campaign-logic";
-import { isValidTriggerCondition } from "./utils";
 
 const inputClassName =
   "hover:border-border-subtle h-8 w-full rounded-md transition-colors duration-150 focus:border-black/75 border focus:ring-black/75 border-transparent px-1.5 py-0 sm:text-sm text-content-default placeholder:text-content-muted hover:bg-neutral-100 hover:cursor-pointer";
@@ -64,7 +72,7 @@ const DisabledInputWrapper = ({
   hideIcon = false,
 }: {
   children: React.ReactNode;
-  tooltip: string;
+  tooltip: React.ReactNode;
   disabled?: boolean;
   hideIcon?: boolean;
 }) => {
@@ -74,22 +82,29 @@ const DisabledInputWrapper = ({
 
   return (
     <Tooltip content={tooltip}>
-      <div className="relative">
+      <div className="group/locked relative cursor-not-allowed rounded-md transition-colors duration-150 hover:bg-neutral-100">
         <div className="pointer-events-none select-none opacity-80">
           {children}
         </div>
-        {!hideIcon && (
-          <Lock className="absolute right-2 top-1/2 size-3 -translate-y-1/2 text-neutral-400" />
-        )}
+        <Lock
+          className={cn(
+            "pointer-events-none absolute right-2 top-4 size-3 -translate-y-1/2 text-neutral-400 transition-opacity duration-150",
+            hideIcon
+              ? "opacity-0 group-hover/locked:opacity-100"
+              : "opacity-100",
+          )}
+        />
       </div>
     </Tooltip>
   );
 };
 
-const statusMessages = {
+const statusMessages: Partial<Record<CampaignStatus, string>> = {
   sending: "Edits aren't allowed while sending.",
   sent: "Edits aren't allowed after sending.",
   canceled: "Edits aren't allowed after cancellation.",
+  active:
+    "Edits aren't allowed while the campaign is active. Pause the campaign to make changes.",
 };
 
 function CampaignFromField({
@@ -168,7 +183,7 @@ function CampaignFromField({
       <input
         type="text"
         placeholder={displayNamePlaceholder}
-        className="text-content-default placeholder:text-content-muted min-w-0 flex-1 border-0 bg-transparent p-0 focus:outline-none focus:ring-0 sm:text-sm"
+        className="text-content-default placeholder:text-content-muted min-w-0 flex-1 cursor-pointer border-0 bg-transparent p-0 focus:outline-none focus:ring-0 disabled:cursor-not-allowed sm:text-sm"
         disabled={disabled}
         value={displayName}
         onChange={(e) => {
@@ -203,7 +218,7 @@ function CampaignFromField({
           type="text"
           placeholder="address"
           style={{ width: Math.max(localPartWidth, 1) }}
-          className="text-content-default placeholder:text-content-muted m-0 max-w-[12rem] border-0 bg-transparent p-0 text-sm leading-none focus:outline-none focus:ring-0"
+          className="text-content-default placeholder:text-content-muted m-0 max-w-[12rem] cursor-pointer border-0 bg-transparent p-0 text-sm leading-none focus:outline-none focus:ring-0 disabled:cursor-not-allowed"
           disabled={disabled}
           value={localPart}
           onChange={(e) => {
@@ -233,6 +248,8 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
 
   const isActive = campaign.status === CampaignStatus.active;
   const isReadOnly = CAMPAIGN_READONLY_STATUSES.includes(campaign.status);
+  const isLocked = isActive || isReadOnly;
+  const lockTooltip = isLocked ? statusMessages[campaign.status] : undefined;
 
   const { makeRequest, isSubmitting: isSavingCampaign } =
     useApiMutation<Campaign>();
@@ -244,8 +261,11 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
       preview: campaign.preview,
       from: campaign.from ?? undefined,
       bodyJson: campaign.bodyJson,
-      groupIds: campaign.groups.map(({ id }) => id),
-      triggerCondition: campaign.triggerCondition,
+      groupIds: campaign.groups.length ? pluck(campaign.groups, "id") : null,
+      partnerTagIds: campaign.partnerTags.length
+        ? pluck(campaign.partnerTags, "id")
+        : null,
+      triggerConditions: campaign.triggerConditions ?? [],
       scheduledAt: campaign.scheduledAt,
     },
   });
@@ -302,10 +322,27 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
             : null;
         }
 
-        // Remove invalid triggerCondition when saving a draft to prevent API validation errors
-        if (isDraft && "triggerCondition" in changedFields) {
-          if (!isValidTriggerCondition(changedFields.triggerCondition)) {
-            delete changedFields.triggerCondition;
+        if ("partnerTagIds" in changedFields) {
+          changedFields.partnerTagIds = Array.isArray(
+            changedFields.partnerTagIds,
+          )
+            ? changedFields.partnerTagIds
+            : null;
+        }
+
+        if ("triggerConditions" in changedFields) {
+          const { valid, errors } = checkWorkflowConditions({
+            conditions: changedFields.triggerConditions,
+            workflowType: "sendCampaign",
+          });
+
+          if (!valid) {
+            if (isDraft) {
+              delete changedFields.triggerConditions;
+            } else {
+              toast.error(errors[0]);
+              return;
+            }
           }
         }
 
@@ -372,7 +409,7 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
         saveCampaign({ isDraft: false });
       }
     },
-    { enabled: true },
+    { enabled: !isLocked },
   );
 
   const { executeAsync: executeImageUpload } = useAction(
@@ -382,6 +419,14 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
   const statusBadge = CAMPAIGN_STATUS_BADGES[campaign.status];
 
   const editorRef = useRef<{ setContent: (content: any) => void }>(null);
+  const subjectInputProps = register("subject");
+
+  // Whether the subject text is clipped by the input's edge (shows a fade when it is)
+  const [subjectOverflows, setSubjectOverflows] = useState(false);
+  const subjectResizeObserverRef = useRef<ResizeObserver | null>(null);
+  const measureSubjectOverflow = (input: HTMLInputElement) =>
+    setSubjectOverflows(input.scrollWidth > input.clientWidth);
+
   const previewInputProps = register("preview", {
     onBlur: (e) => {
       if (!e.target.value) setShowPreviewText(false);
@@ -446,19 +491,19 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
         individualScrolling
         contentWrapperClassName="flex flex-col"
       >
-        <PageWidthWrapper className="mb-8 max-w-[600px]">
+        <PageWidthWrapper className="mb-8 max-w-[720px]">
           <div className="grid grid-cols-[max-content_minmax(0,1fr)] items-center gap-x-6 [&>*:nth-child(n+3)]:mt-2">
             <span className={labelClassName}>Name</span>
             <DisabledInputWrapper
-              tooltip={isReadOnly ? statusMessages[campaign.status] : ""}
-              disabled={isReadOnly}
-              hideIcon={true}
+              tooltip={lockTooltip}
+              disabled={isLocked}
+              hideIcon
             >
               <input
                 type="text"
                 placeholder="Enter a name..."
                 className={inputClassName}
-                disabled={isReadOnly}
+                disabled={isLocked}
                 {...register("name")}
               />
             </DisabledInputWrapper>
@@ -469,13 +514,13 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
                 control={control}
                 name="from"
                 render={({ field }) => {
-                  const isDisabled = isReadOnly || !verifiedEmailDomain;
+                  const isDisabled = isLocked || !verifiedEmailDomain;
 
                   return (
                     <DisabledInputWrapper
                       tooltip={
-                        isReadOnly ? (
-                          statusMessages[campaign.status]
+                        isLocked ? (
+                          lockTooltip
                         ) : !verifiedEmailDomain ? (
                           <TooltipContent
                             title="You haven't configured an email domain yet. Please configure an email domain to enable campaign sending."
@@ -486,7 +531,7 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
                         ) : undefined
                       }
                       disabled={isDisabled}
-                      hideIcon={true}
+                      hideIcon
                     >
                       <CampaignFromField
                         value={field.value}
@@ -501,23 +546,37 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
               />
             </label>
 
-            <span className={labelClassName}>To</span>
+            <span className={labelClassName}>Groups</span>
             <Controller
               control={control}
               name="groupIds"
               render={({ field }) => (
                 <DisabledInputWrapper
-                  tooltip={
-                    isReadOnly
-                      ? statusMessages[campaign.status]
-                      : "Cannot change recipients while campaign is active. Pause the campaign to make changes."
-                  }
-                  disabled={isActive || isReadOnly}
-                  hideIcon={isReadOnly}
+                  tooltip={lockTooltip}
+                  disabled={isLocked}
+                  hideIcon
                 >
                   <CampaignGroupsSelector
                     selectedGroupIds={field.value ?? null}
                     setSelectedGroupIds={field.onChange}
+                  />
+                </DisabledInputWrapper>
+              )}
+            />
+
+            <span className={labelClassName}>Tags</span>
+            <Controller
+              control={control}
+              name="partnerTagIds"
+              render={({ field }) => (
+                <DisabledInputWrapper
+                  tooltip={lockTooltip}
+                  disabled={isLocked}
+                  hideIcon
+                >
+                  <CampaignTagsSelector
+                    selectedPartnerTagIds={field.value ?? null}
+                    setSelectedPartnerTagIds={field.onChange}
                   />
                 </DisabledInputWrapper>
               )}
@@ -531,17 +590,24 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
                   name="scheduledAt"
                   render={({ field }) => (
                     <DisabledInputWrapper
-                      tooltip={
-                        isReadOnly ? statusMessages[campaign.status] : undefined
-                      }
-                      disabled={isReadOnly}
-                      hideIcon={true}
+                      tooltip={lockTooltip}
+                      disabled={isLocked}
+                      hideIcon
                     >
                       <SmartDateTimePicker
                         value={field.value}
                         onChange={field.onChange}
                         placeholder='E.g. "tomorrow at 5pm" or "in 2 hours"'
-                        className="hover:border-border-subtle mt-0 h-8 min-h-8 border-transparent shadow-none focus-within:border-black/75 focus-within:ring-black/75 hover:cursor-pointer hover:bg-neutral-100"
+                        className={cn(
+                          "hover:border-border-subtle mt-0 h-8 min-h-8 border-transparent shadow-none focus-within:border-black/75 focus-within:ring-black/75 hover:cursor-pointer hover:bg-neutral-100",
+                          // Like the text inputs: only colors animate, so the focus ring appears at once
+                          "transition-colors",
+                          // Keep the focused look (like the text inputs) even while hovered: the hover state
+                          // sticks while the native picker is open, since the page stops getting mouse events
+                          "hover:focus-within:border-black/75 hover:focus-within:bg-white",
+                          // Match the padding and cursor of the other inputs (the forms plugin gives inputs px-3 by default)
+                          "[&_button]:px-1.5 [&_input]:cursor-pointer [&_input]:px-1.5 [&_input]:py-0",
+                        )}
                       />
                     </DisabledInputWrapper>
                   )}
@@ -551,9 +617,9 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
 
             <span className={labelClassName}>Subject</span>
             <DisabledInputWrapper
-              tooltip={isReadOnly ? statusMessages[campaign.status] : ""}
-              disabled={isReadOnly}
-              hideIcon={true}
+              tooltip={lockTooltip}
+              disabled={isLocked}
+              hideIcon
             >
               <div className="relative">
                 <input
@@ -561,12 +627,41 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
                   placeholder="Enter a subject..."
                   className={cn(
                     inputClassName,
-                    !isReadOnly && !showPreviewText && "pr-24",
+                    "peer",
+                    !isLocked && !showPreviewText && "pr-24",
                   )}
-                  disabled={isReadOnly}
-                  {...register("subject")}
+                  disabled={isLocked}
+                  {...subjectInputProps}
+                  ref={(input) => {
+                    subjectInputProps.ref(input);
+
+                    // Re-measure the overflow whenever the input is resized
+                    subjectResizeObserverRef.current?.disconnect();
+                    if (!input) return;
+                    subjectResizeObserverRef.current = new ResizeObserver(() =>
+                      measureSubjectOverflow(input),
+                    );
+                    subjectResizeObserverRef.current.observe(input);
+                  }}
+                  onChange={(e) => {
+                    subjectInputProps.onChange(e);
+                    measureSubjectOverflow(e.currentTarget);
+                  }}
                 />
-                {!isReadOnly && (
+                {/* Fades out subject text that is clipped by the input's edge (hidden while editing).
+                    The gradient ends in currentColor so it can transition along with the input's hover background. */}
+                {subjectOverflows && (
+                  <div
+                    aria-hidden
+                    className={cn(
+                      "pointer-events-none absolute inset-y-0 w-12 bg-gradient-to-r from-transparent to-current text-white transition-[color,opacity] duration-150",
+                      "peer-hover:text-neutral-100 peer-focus:opacity-0",
+                      "group-hover/locked:text-neutral-100",
+                      !isLocked && !showPreviewText ? "right-24" : "right-1.5",
+                    )}
+                  />
+                )}
+                {!isLocked && (
                   <div className="absolute right-0 top-1/2 -translate-y-1/2">
                     <button
                       type="button"
@@ -591,98 +686,128 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
               </span>
             </ConditionalColumn>
             <ConditionalColumn show={showPreviewText}>
-              <input
-                type="text"
-                placeholder="Enter preview text..."
-                className={inputClassName}
-                disabled={isReadOnly}
-                {...previewInputProps}
-                ref={(e) => {
-                  previewInputProps.ref(e);
-                  previewInputRef.current = e;
-                }}
-              />
+              <DisabledInputWrapper
+                tooltip={lockTooltip}
+                disabled={isLocked}
+                hideIcon
+              >
+                <input
+                  type="text"
+                  placeholder="Enter preview text..."
+                  className={inputClassName}
+                  disabled={isLocked}
+                  {...previewInputProps}
+                  ref={(e) => {
+                    previewInputProps.ref(e);
+                    previewInputRef.current = e;
+                  }}
+                />
+              </DisabledInputWrapper>
             </ConditionalColumn>
 
             {campaign.type === "transactional" && (
               <>
-                <span className={labelClassName}>Logic</span>
+                <span className={cn(labelClassName, "self-start pt-1")}>
+                  Logic
+                </span>
                 <DisabledInputWrapper
-                  tooltip={
-                    isReadOnly
-                      ? statusMessages[campaign.status]
-                      : "Cannot change trigger logic while campaign is active. Pause the campaign to make changes."
-                  }
-                  disabled={isActive || isReadOnly}
+                  tooltip={lockTooltip}
+                  disabled={isLocked}
+                  hideIcon
                 >
-                  <TransactionalCampaignLogic />
+                  <TransactionalCampaignLogic locked={isLocked} />
                 </DisabledInputWrapper>
               </>
             )}
           </div>
 
-          {!isReadOnly && <DuplicateLogicWarning />}
+          {!isLocked && <DuplicateLogicWarning />}
 
           <div className="mt-4">
             <Controller
               control={control}
               name="bodyJson"
               render={({ field }) => (
-                <RichTextProvider
-                  ref={editorRef}
-                  editorClassName="-m-2 min-h-[200px] p-2"
-                  style="relaxed"
-                  features={[...DEFAULT_RICH_TEXT_FEATURES, "imageControls"]}
-                  initialValue={field.value}
-                  onChange={(editor) => field.onChange(editor.getJSON())}
-                  variables={[...EMAIL_TEMPLATE_VARIABLES]}
-                  editable={
-                    campaign.type === "marketing" ? !isReadOnly : !isActive
-                  }
-                  uploadImage={async (file) => {
-                    try {
-                      const result = await executeImageUpload({
-                        workspaceId: workspaceId!,
-                      });
-
-                      if (!result?.data) {
-                        throw new Error("Failed to get signed upload URL");
-                      }
-
-                      const { signedUrl, destinationUrl } = result.data;
-
-                      const uploadResponse = await fetch(signedUrl, {
-                        method: "PUT",
-                        body: file,
-                        headers: {
-                          "Content-Type": file.type,
-                          "Content-Length": file.size.toString(),
-                        },
-                      });
-
-                      if (!uploadResponse.ok) {
-                        throw new Error("Failed to upload to signed URL");
-                      }
-
-                      return destinationUrl;
-                    } catch (e) {
-                      console.error("Failed to upload image", e);
-                      toast.error("Failed to upload image");
-                    }
-
-                    return null;
-                  }}
+                <DisabledInputWrapper
+                  tooltip={lockTooltip}
+                  disabled={isLocked}
+                  hideIcon
                 >
-                  <div className="relative z-0 flex flex-col gap-1">
-                    <div className="sticky -top-4 z-10 sm:-top-6">
-                      <div className="bg-white pb-1 pt-2">
-                        <RichTextToolbar />
+                  <RichTextProvider
+                    ref={editorRef}
+                    editorClassName="-m-2 min-h-[200px] p-2"
+                    style="relaxed"
+                    features={[...DEFAULT_RICH_TEXT_FEATURES, "imageControls"]}
+                    initialValue={field.value}
+                    onChange={(editor) => field.onChange(editor.getJSON())}
+                    variables={[...EMAIL_TEMPLATE_VARIABLES]}
+                    variableInfo={EMAIL_TEMPLATE_VARIABLE_INFO}
+                    editable={!isLocked}
+                    imageAccept={UPLOAD_POLICIES.programCampaignImages.contentTypes.join(
+                      ",",
+                    )}
+                    uploadImage={async (file) => {
+                      try {
+                        const { maxBytes } =
+                          UPLOAD_POLICIES.programCampaignImages;
+                        const maxFileSizeMB = maxBytes / (1024 * 1024);
+
+                        if (file.size > maxBytes) {
+                          throw new Error(
+                            `File size too big (max ${maxFileSizeMB} MB)`,
+                          );
+                        }
+
+                        const result = await executeImageUpload({
+                          workspaceId: workspaceId!,
+                          contentType: file.type,
+                          contentLength: file.size,
+                        });
+
+                        if (!result?.data) {
+                          throw new Error(
+                            parseActionError(
+                              result ?? {},
+                              "Failed to get signed upload URL",
+                            ),
+                          );
+                        }
+
+                        const { signedUrl, destinationUrl } = result.data;
+
+                        const uploadResponse = await fetch(signedUrl, {
+                          method: "PUT",
+                          body: file,
+                          headers: {
+                            "Content-Type": file.type,
+                            "Content-Length": file.size.toString(),
+                          },
+                        });
+
+                        if (!uploadResponse.ok) {
+                          throw new Error("Failed to upload to signed URL");
+                        }
+
+                        return destinationUrl;
+                      } catch (e) {
+                        console.error("Failed to upload image", e);
+                        toast.error(toErrorMessage(e));
+                      }
+
+                      return null;
+                    }}
+                  >
+                    <div className="relative z-0 flex flex-col gap-1">
+                      <div className="sticky -top-4 z-10 sm:-top-6">
+                        <div className="bg-white pb-1 pt-2">
+                          <RichTextToolbar />
+                        </div>
+                        <div className="h-2 bg-gradient-to-b from-white" />
                       </div>
-                      <div className="h-2 bg-gradient-to-b from-white" />
+                      <RichTextArea />
                     </div>
-                    <RichTextArea />
-                  </div>
-                </RichTextProvider>
+                  </RichTextProvider>
+                </DisabledInputWrapper>
               )}
             />
           </div>

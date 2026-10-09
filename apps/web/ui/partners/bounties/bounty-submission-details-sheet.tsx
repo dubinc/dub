@@ -4,6 +4,7 @@ import { BountySubmissionStatusBadges } from "@/lib/bounty/bounty-submission-sta
 import { REJECT_BOUNTY_SUBMISSION_REASONS } from "@/lib/bounty/constants";
 import { getPeriodLabel } from "@/lib/bounty/periods";
 import { resolveBountyDetails } from "@/lib/bounty/utils";
+import { formatCommissionDescriptionTooltip } from "@/lib/commissions/format-commission-description-tooltip";
 import { PartnerBountyProps, PartnerBountySubmission } from "@/lib/types";
 import { CommissionStatusBadges } from "@/ui/partners/commission-status-badges";
 import { X } from "@/ui/shared/icons";
@@ -14,6 +15,7 @@ import {
   StatusBadge,
   Table,
   TimestampTooltip,
+  Tooltip,
   useKeyboardShortcut,
   useTable,
 } from "@dub/ui";
@@ -212,13 +214,13 @@ function SubmissionDetailsView({
 
         <SubmissionRewardTable submission={submission} />
 
-        {bountyInfo?.hasSocialMetrics &&
-          ["draft", "submitted"].includes(submission.status) && (
-            <BountySocialMetricsRewardsTable
-              bounty={bounty}
-              submission={submission}
-            />
-          )}
+        {bountyInfo?.hasSocialMetrics && (
+          <BountySocialMetricsRewardsTable
+            bounty={bounty}
+            submission={submission}
+            titleText="Milestones"
+          />
+        )}
 
         <SocialContentPreview bounty={bounty} submission={submission} />
 
@@ -308,15 +310,31 @@ export function SubmissionRewardTable({
 }: {
   submission: PartnerBountySubmission;
 }) {
-  const rewards = submission.commission ? [submission.commission] : [];
-
   const { table, ...tableProps } = useTable({
-    data: rewards,
+    data: submission.commissions,
     columns: [
       {
         id: "amount",
         header: "Amount",
-        cell: ({ row }) => currencyFormatter(row.original.earnings),
+        cell: ({ row }) => {
+          const { earnings, description } = row.original;
+
+          if (!description) {
+            return currencyFormatter(earnings);
+          }
+
+          return (
+            <Tooltip
+              content={formatCommissionDescriptionTooltip(description, {
+                variant: "partner",
+              })}
+            >
+              <span className="cursor-help truncate underline decoration-dotted underline-offset-2">
+                {currencyFormatter(earnings)}
+              </span>
+            </Tooltip>
+          );
+        },
       },
       {
         id: "status",
@@ -356,7 +374,7 @@ export function SubmissionRewardTable({
     tdClassName: "border-l-transparent",
   });
 
-  if (rewards.length === 0) {
+  if (submission.commissions.length === 0) {
     return null;
   }
 

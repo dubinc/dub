@@ -88,7 +88,10 @@ export default defineConfig({
         port: 8888,
         reuseExistingServer: true,
         timeout: 120_000,
+        // Zod 422s (and other expected API errors) log to stderr via
+        // handleApiError; ignore both streams so GH Actions logs stay readable.
         stdout: "ignore",
+        stderr: "ignore",
       }
     : undefined,
 });

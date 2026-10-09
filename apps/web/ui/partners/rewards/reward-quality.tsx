@@ -38,6 +38,32 @@ export const getRewardQuality = ({
     return "strong";
   }
 
+  if (event === "referral") {
+    if (type === "flat") {
+      if (amountInCents == null || Number.isNaN(amountInCents)) {
+        return null;
+      }
+
+      return "limited";
+    }
+
+    if (type !== "percentage") {
+      return null;
+    }
+
+    if (amountInPercentage == null || Number.isNaN(amountInPercentage)) {
+      return null;
+    }
+
+    if (maxDuration === 1) {
+      return "limited";
+    }
+
+    if (amountInPercentage < 3) return "low";
+    if (amountInPercentage <= 5) return "good";
+    return "strong";
+  }
+
   if (event !== "sale" || !type) {
     return null;
   }
@@ -234,7 +260,7 @@ function getRewardQualityTooltipCopy({
     return {
       title: "Reward quality",
       description:
-        event === "click" || event === "lead"
+        event === "click" || event === "lead" || event === "referral"
           ? "Set amount to evaluate this reward"
           : "Set amount and duration to evaluate this reward",
     };

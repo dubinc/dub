@@ -63,7 +63,7 @@ export const executeMoveGroupWorkflow = async ({
     return;
   }
 
-  const attributes: Partial<
+  const workflowContext: Partial<
     Record<WorkflowAttributeKey, number | string | null>
   > = {
     totalLeads: metrics?.aggregated?.leads ?? 0,
@@ -75,7 +75,7 @@ export const executeMoveGroupWorkflow = async ({
 
   const shouldExecute = evaluateWorkflowConditions({
     conditions,
-    attributes,
+    context: workflowContext,
   });
 
   if (!shouldExecute) {
@@ -100,6 +100,7 @@ export const executeMoveGroupWorkflow = async ({
       leadRewardId: true,
       saleRewardId: true,
       referralRewardId: true,
+      customRewardId: true,
       discountId: true,
     },
   });
@@ -110,7 +111,7 @@ export const executeMoveGroupWorkflow = async ({
   }
 
   // Prevents duplicate moves when a workflow with matching conditions
-  // are triggered by the same partnerMetricsUpdated event.
+  // are triggered by the same event.
   const lockKey = `workflow:moveGroup:${programId}:${newGroupId}:${partnerId}`;
   const acquired = await redis.set(lockKey, "1", { nx: true, ex: 10 });
 
@@ -126,6 +127,7 @@ export const executeMoveGroupWorkflow = async ({
       partnerIds: [partnerId],
       userId: null,
       group: newGroup,
+      clearLinkRewardsSync: false,
     });
   } finally {
     await redis.del(lockKey);

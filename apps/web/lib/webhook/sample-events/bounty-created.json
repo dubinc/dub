@@ -17,10 +17,12 @@
     "url": {}
   },
   "performanceCondition": null,
+  "socialMetricsLastSyncedAt": null,
   "performanceScope": null,
   "groups": [
     {
       "id": "grp_1K2E25381GVMG7HHM057TB92F"
     }
-  ]
+  ],
+  "partnerTags": []
 }

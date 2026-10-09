@@ -329,13 +329,13 @@ async function aggregateDueCommissionsForPartner({
 
   if (updatedPayout === 0) {
     console.warn(
-      `Payout ${payoutToUse.id} is no longer mutable after claim for partner ${partnerId}. Skipping...`,
+      `Payout ${payoutToUse.id} is no longer mutable after claim for partner ${partnerId}. Skipping payout amount update...`,
     );
-    return false;
   }
 
   // Only activity-log commissions we actually claimed (handles partial races).
-  const claimedCommissions = await prisma.commission.findMany({
+  // Pass the pre-update rows so the status diff is pending → processed.
+  const claimedCommissionIds = await prisma.commission.findMany({
     where: {
       id: {
         in: commissionIds,
@@ -345,11 +345,13 @@ async function aggregateDueCommissionsForPartner({
     },
     select: {
       id: true,
-      amount: true,
-      earnings: true,
-      status: true,
     },
   });
+
+  const claimedIds = new Set(claimedCommissionIds.map(({ id }) => id));
+  const claimedCommissions = sortedCommissions.filter((commission) =>
+    claimedIds.has(commission.id),
+  );
 
   await trackCommissionStatusUpdate({
     workspaceId: program.workspaceId,
@@ -358,5 +360,5 @@ async function aggregateDueCommissionsForPartner({
     newStatus: CommissionStatus.processed,
   });
 
-  return true;
+  return updatedPayout !== 0;
 }

@@ -152,7 +152,6 @@ export function useDomainAutoRenewalModal({ domain }: { domain: DomainProps }) {
   }, [
     showDomainAutoRenewalModal,
     setShowDomainAutoRenewalModal,
-    domain,
     enableAutoRenewal,
   ]);
 

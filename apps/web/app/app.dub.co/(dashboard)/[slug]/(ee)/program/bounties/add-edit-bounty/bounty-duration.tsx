@@ -23,6 +23,7 @@ import {
 import { cn, formatDate } from "@dub/utils";
 import { BountyStartMode } from "@prisma/client";
 import { addDays, addMonths, addWeeks } from "date-fns";
+import { useParams } from "next/navigation";
 import { ReactNode, useContext, useEffect, useState } from "react";
 
 type PresetOption<T extends string> = { value: T; label: string };
@@ -388,14 +389,11 @@ function BountyDatePicker<T extends string>({
 interface BountyDurationProps {
   value: BountyTimingInput;
   onChange: (value: BountyTimingInput) => void;
-  isEditing?: boolean;
 }
 
-export function BountyDuration({
-  value,
-  onChange,
-  isEditing = false,
-}: BountyDurationProps) {
+export function BountyDuration({ value, onChange }: BountyDurationProps) {
+  const { bountyId } = useParams();
+  const isEditing = !!bountyId;
   const initialPresets = parsePresetsFromValue(value, isEditing);
 
   const [startPreset, setStartPreset] = useState<StartPreset>(
@@ -417,14 +415,6 @@ export function BountyDuration({
   const [customEndsAfterDays, setCustomEndsAfterDays] = useState<number | null>(
     initialPresets.customEndsAfterDays,
   );
-
-  const [endDateLocked] = useState(
-    () => isEditing && (value.endsAt != null || value.endsAfterDays != null),
-  );
-
-  const endOptions = endDateLocked
-    ? END_OPTIONS.filter((option) => option.value !== "never")
-    : END_OPTIONS;
 
   useEffect(() => {
     const presets = parsePresetsFromValue(value, isEditing);
@@ -526,16 +516,12 @@ export function BountyDuration({
           and ends{" "}
           <BountyDatePicker
             label={endLabel ?? "never"}
-            options={endOptions}
+            options={END_OPTIONS}
             selectedPreset={customEndsAfterDays != null ? undefined : endPreset}
             customDate={
               customEndsAt ?? value.endsAt ?? addWeeks(value.startsAt, 2)
             }
             onSelectPreset={(preset) => {
-              if (endDateLocked && preset === "never") {
-                return;
-              }
-
               setEndPreset(preset);
               setCustomEndsAfterDays(null);
 

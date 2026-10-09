@@ -1,4 +1,4 @@
-import { reportCrossProgramBanToNetwork } from "@/lib/api/fraud/report-cross-program-ban-to-network";
+import { reportNetworkLevelBan } from "@/lib/api/fraud/report-network-level-ban";
 import { prisma } from "@/lib/prisma";
 import { FraudAlertSource, Prisma } from "@prisma/client";
 
@@ -103,7 +103,7 @@ export async function confirmPartnerFraudAlerts({
 
   const alertResults = await Promise.allSettled(
     confirmedFraudAlerts.map(({ programEnrollment, createdAt }) =>
-      reportCrossProgramBanToNetwork({
+      reportNetworkLevelBan({
         partnerId: programEnrollment.partnerId,
         programId: programEnrollment.programId,
         bannedReason: programEnrollment.bannedReason ?? "fraud",
@@ -120,7 +120,7 @@ export async function confirmPartnerFraudAlerts({
   );
   if (failedReports.length > 0) {
     console.error(
-      "[confirmPartnerFraudAlerts] Failed to report cross-program bans",
+      "[confirmPartnerFraudAlerts] Failed to report network-level bans",
       failedReports,
     );
   }

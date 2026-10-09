@@ -1,11 +1,15 @@
+import { hasPermission } from "@/lib/auth/partner-users/partner-user-permissions";
 import { SupportChatContext } from "@/ui/support/types";
-import { Program, Project } from "@prisma/client";
+import { COUNTRIES } from "@dub/utils";
+import { PartnerRole, Program, Project } from "@prisma/client";
 
 export type GlobalChatContext = {
   chatLocation?: SupportChatContext;
   accountType?: "workspace" | "partner";
   selectedWorkspace?: Pick<Project, "id" | "name" | "slug">;
   selectedProgram?: Pick<Program, "id" | "name" | "slug">;
+  partnerCountry?: string | null;
+  partnerRole?: PartnerRole | null;
 };
 
 const CONTEXT_SYSTEM_PROMPTS: Record<SupportChatContext, string> = {
@@ -18,6 +22,7 @@ const CONTEXT_SYSTEM_PROMPTS: Record<SupportChatContext, string> = {
   partners: `You are a helpful Dub Partners support assistant helping affiliate partners with their programs.
   Focus on: payouts, referral tracking, commission structure, partner links, bank account setup, payout countries, program enrollment, and affiliate performance.
   When the user asks about their specific program data — such as earnings, commissions, payouts, minimum payout amount, holding period, or payout history — call getProgramPerformance with the program's ID before answering. Use this real data in your response instead of guessing or citing generic documentation.
+  Money amounts from getProgramPerformance are already formatted USD strings (e.g. $10). Never treat them as cents or multiply/divide.
   When a user has a payout dispute, tax compliance issue, or a problem that can't be resolved through documentation, first call requestSupportTicket (to show them an upload form), then after the user confirms, call createSupportTicket.
   Always try to provide the program's support email for program-specific issues.`,
 };
@@ -25,6 +30,7 @@ const CONTEXT_SYSTEM_PROMPTS: Record<SupportChatContext, string> = {
 const BASE_SYSTEM_PROMPT = `
   You are powered by Dub's documentation and help articles.
   ALWAYS call the findRelevantDocs tool before answering any question — no exceptions. Do not answer from memory.
+  If the user attached images, inspect them first. You may skip findRelevantDocs only when the question is purely about what is shown in the screenshot (error UI, unexpected screen). Still call findRelevantDocs for how-to or product questions.
   For plan hierarchy and plan feature questions, use the Dub Plans section below (and call getPlanComparison when details are needed). Do not infer plan order from plan names.
   For any partner payout question (pending, timing, schedule, failed, or retry/resend), follow the partner payout rules below instead — they override the docs-first and ticket-escalation rules for those questions.
   For partner profile country change requests, follow the partner profile country rules below instead — they override the docs-first rules for those questions.
@@ -38,7 +44,7 @@ const BASE_SYSTEM_PROMPT = `
   `.trim();
 
 const PARTNERS_PAYOUT_PROMPT = `
-  For any partner payout question — pending, timing, schedule, or a failed/retry/resend request — always call getProgramPerformance first to get real data (payout status, holding period, minimum payout threshold). Then branch by status:
+  For any partner payout question — pending, timing, schedule, or a failed/retry/resend request — always call getProgramPerformance first to get real data (payout status, holding period, minimum payout threshold). Money amounts from getProgramPerformance are already formatted USD (e.g. $10) — never treat them as cents or multiply/divide. Then branch by status:
 
   Status is pending, processing, processed, sent, or completed (i.e. NOT failed):
   - Explain using the real data from getProgramPerformance. Call findRelevantDocs too if helpful for general context.
@@ -52,13 +58,39 @@ const PARTNERS_PAYOUT_PROMPT = `
   - Offer to create a Dub support ticket (call requestSupportTicket, then createSupportTicket once the user confirms) so Dub can investigate further.
   `.trim();
 
-const PARTNER_PROFILE_COUNTRY_PROMPT = `
+function buildPartnerProfileCountryPrompt({
+  partnerCountry,
+  partnerRole,
+}: Pick<GlobalChatContext, "partnerCountry" | "partnerRole">) {
+  const canUpdateCountry =
+    partnerCountry === "US" &&
+    !!partnerRole &&
+    hasPermission(partnerRole, "partner_profile.update");
+
+  let countryChangeInstruction =
+    "They cannot change it themselves. Tell them their current country and that support has to update it. In that same response, call requestSupportTicket so the upload form appears. Do not only ask whether they want a ticket. After they confirm, call createSupportTicket.";
+
+  if (canUpdateCountry) {
+    countryChangeInstruction =
+      "They can update it themselves in partner profile settings at https://partners.dub.co/profile. Tell them to change it there. Do not create a support ticket.";
+  } else if (partnerCountry === "US") {
+    countryChangeInstruction =
+      "They do not have permission to update the partner profile. An owner of this partner account can change the country in partner profile settings at https://partners.dub.co/profile. Tell them to ask an owner. Do not create a support ticket.";
+  }
+
+  return `
   Partner profile country:
-  The partner's profile country is based on their current location at signup and cannot be changed in the dashboard.
-  Never tell the partner to edit Country under partner profile or settings.
-  If they need to update their country, tell them they cannot change it themselves and must contact support. Call requestSupportTicket (then createSupportTicket after they confirm).
+  The partner's profile country is based on their current location at signup.
+  Current profile country: ${
+    partnerCountry
+      ? `${COUNTRIES[partnerCountry] ?? partnerCountry} (${partnerCountry})`
+      : "unknown"
+  }.
+  The current user's role on this partner account is ${partnerRole ?? "unknown"}.
+  ${countryChangeInstruction}
   Do not confuse this with which countries support payouts — that is a different question and can still use docs.
   `.trim();
+}
 
 const NONPROFIT_DISCOUNT_PROMPT = `
   Non-profit discounts:
@@ -106,7 +138,7 @@ export function buildSystemPrompt(globalContext?: GlobalChatContext): string {
     NONPROFIT_DISCOUNT_PROMPT,
     globalContext?.accountType === "partner" ? PARTNERS_PAYOUT_PROMPT : null,
     globalContext?.accountType === "partner"
-      ? PARTNER_PROFILE_COUNTRY_PROMPT
+      ? buildPartnerProfileCountryPrompt(globalContext)
       : null,
     ...accountSpecificPrompts,
   ].filter((section): section is string => Boolean(section));

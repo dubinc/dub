@@ -39,6 +39,7 @@ import {
   nFormatter,
   timeAgo,
 } from "@dub/utils";
+import { BountySubmissionStatus } from "@prisma/client";
 import { Row } from "@tanstack/react-table";
 import Link from "next/link";
 import { useParams } from "next/navigation";
@@ -356,9 +357,9 @@ export function BountySubmissionsTable() {
                     user={row.original.user!}
                     date={row.original.reviewedAt}
                     label={
-                      row.original.status === "approved"
-                        ? "Approved at"
-                        : "Rejected at"
+                      row.original.status === BountySubmissionStatus.rejected
+                        ? "Rejected at"
+                        : "Approved at"
                     }
                   />
                 ) : (
@@ -423,13 +424,22 @@ export function BountySubmissionsTable() {
     thClassName: "border-l-0",
     tdClassName: "border-l-0",
     resourceName: (p) => `submission${p ? "s" : ""}`,
-    // if status is not set, we count draft, submitted and approved submissions
+    // if status is not set, we count draft, submitted, partially approved and approved submissions
     // else, we count the submissions for the status
     rowCount: searchParams.get("status")
       ? submissionsCount?.find((s) => s.status === searchParams.get("status"))
           ?.count || 0
       : submissionsCount
-          ?.filter((s) => ["draft", "submitted", "approved"].includes(s.status))
+          ?.filter((s) =>
+            (
+              [
+                BountySubmissionStatus.draft,
+                BountySubmissionStatus.submitted,
+                BountySubmissionStatus.partiallyApproved,
+                BountySubmissionStatus.approved,
+              ] as BountySubmissionStatus[]
+            ).includes(s.status),
+          )
           .reduce((acc, curr) => acc + curr.count, 0) || 0,
     loading: isLoading || isBountyLoading,
     error: error ? "Failed to load bounty submissions" : undefined,
@@ -454,6 +464,7 @@ export function BountySubmissionsTable() {
           <BountySubmissionFilters
             bounty={bounty}
             bountyInfo={bountyInfo}
+            submissionsCount={submissionsCount}
             submissionsLength={submissions?.length ?? 0}
             isRefreshingStats={isRefreshingStats}
             refreshStats={refreshStats}
@@ -481,16 +492,19 @@ export function BountySubmissionsTable() {
 function BountySubmissionFilters({
   bounty,
   bountyInfo,
+  submissionsCount,
   submissionsLength,
   isRefreshingStats,
   refreshStats,
 }: {
   bounty: ReturnType<typeof useBounty>["bounty"];
   bountyInfo: ReturnType<typeof resolveBountyDetails>;
+  submissionsCount?: SubmissionsCountByStatus[];
   submissionsLength: number;
   isRefreshingStats: boolean;
   refreshStats: () => void;
 }) {
+  const { queryParams, searchParams } = useRouterStuff();
   const {
     filters,
     activeFilters,
@@ -501,18 +515,44 @@ function BountySubmissionFilters({
     setSelectedFilter,
   } = useBountySubmissionFilters({ bounty: bounty ?? undefined });
 
+  const submittedCount =
+    submissionsCount?.find((s) => s.status === "submitted")?.count ?? 0;
+
+  const showAwaitingReviewButton =
+    submittedCount > 0 && searchParams.get("status") !== "submitted";
+
   return (
     <>
       <div className="flex w-full items-center justify-between gap-4">
-        <Filter.Select
-          className="w-full md:w-fit"
-          filters={filters}
-          activeFilters={activeFilters}
-          onSelect={onSelect}
-          onRemove={onRemove}
-          onSearchChange={setSearch}
-          onSelectedFilterChange={setSelectedFilter}
-        />
+        <div className="flex items-center gap-2">
+          <Filter.Select
+            className="w-full md:w-fit"
+            filters={filters}
+            activeFilters={activeFilters}
+            onSelect={onSelect}
+            onRemove={onRemove}
+            onSearchChange={setSearch}
+            onSelectedFilterChange={setSelectedFilter}
+          />
+          {showAwaitingReviewButton ? (
+            <Button
+              text="Awaiting review"
+              variant="secondary"
+              className="w-fit"
+              right={
+                <span className="rounded-full bg-neutral-200 px-1.5 py-0.5 text-xs font-medium text-neutral-700">
+                  {submittedCount}
+                </span>
+              }
+              onClick={() =>
+                queryParams({
+                  set: { status: "submitted" },
+                  del: "page",
+                })
+              }
+            />
+          ) : null}
+        </div>
         {bountyInfo?.hasSocialMetrics && submissionsLength > 0 && (
           <div className="flex shrink-0 items-center gap-3">
             {bounty?.socialMetricsLastSyncedAt ? (

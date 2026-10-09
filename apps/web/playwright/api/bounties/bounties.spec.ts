@@ -1,13 +1,11 @@
+import { createId } from "@/lib/api/create-id";
+import { prisma } from "@/lib/prisma";
 import type { BountyProps } from "@/lib/types";
 import { expect } from "@playwright/test";
 import { BountyStartMode, type Program } from "@prisma/client";
 import { addDays, addMonths, subDays } from "date-fns";
-import { randomName } from "../../utils";
+import { apiError, randomName } from "../../utils";
 import { test, type ApiClient } from "../fixtures";
-
-test.describe.configure({
-  mode: "parallel",
-});
 
 type BountyJson = Omit<
   BountyProps,
@@ -17,6 +15,7 @@ type BountyJson = Omit<
   endsAt: string | null;
   submissionsOpenAt: string | null;
   socialMetricsLastSyncedAt?: string | null;
+  partnerTags: { id: string }[];
 };
 
 type ProgramFixture = Pick<Program, "id" | "defaultGroupId">;
@@ -60,6 +59,21 @@ async function deleteBounty(api: ApiClient, id: string | undefined) {
   await api.delete(`/api/bounties/${id}`);
 }
 
+async function createPartnerTag(programId: string) {
+  return prisma.partnerTag.create({
+    data: {
+      id: createId({ prefix: "ptag_" }),
+      programId,
+      name: randomName("tag"),
+    },
+  });
+}
+
+async function deletePartnerTag(id: string | undefined) {
+  if (!id) return;
+  await prisma.partnerTag.delete({ where: { id } });
+}
+
 const expectedBountyDefaults = {
   id: expect.any(String),
   endsAt: null,
@@ -72,40 +86,8 @@ const expectedBountyDefaults = {
   performanceCondition: null,
   performanceScope: null,
   socialMetricsLastSyncedAt: null,
+  partnerTags: [],
 };
-
-const unprocessable = (message: string) => ({
-  status: 422,
-  data: {
-    error: {
-      code: "unprocessable_entity",
-      message,
-      doc_url: "https://dub.co/docs/api-reference/errors#unprocessable-entity",
-    },
-  },
-});
-
-const badRequest = (message: string) => ({
-  status: 400,
-  data: {
-    error: {
-      code: "bad_request",
-      message,
-      doc_url: "https://dub.co/docs/api-reference/errors#bad-request",
-    },
-  },
-});
-
-const notFound = (bountyId: string) => ({
-  status: 404,
-  data: {
-    error: {
-      code: "not_found",
-      message: `Bounty ${bountyId} not found.`,
-      doc_url: "https://dub.co/docs/api-reference/errors#not-found",
-    },
-  },
-});
 
 test("POST /bounties", async ({ api, program }) => {
   let id: string | undefined;
@@ -339,7 +321,10 @@ test("DELETE /bounties/{bountyId}", async ({ api, program }) => {
   expect(status).toEqual(200);
   expect(data).toStrictEqual({ id: created.id });
   expect(await api.get(`/api/bounties/${created.id}`)).toEqual(
-    notFound(created.id),
+    apiError({
+      code: "not_found",
+      message: `Bounty ${created.id} not found.`,
+    }),
   );
 });
 
@@ -651,6 +636,19 @@ test("POST /bounties – relative with endsAfterDays", async ({
       startsAt: null,
       endsAfterDays: 180,
     });
+
+    const { status: descriptionPatchStatus, data: descriptionUpdated } =
+      await api.patch<BountyJson>(`/api/bounties/${id}`, {
+        description: "updated description only",
+      });
+
+    expect(descriptionPatchStatus).toEqual(200);
+    expect(descriptionUpdated).toMatchObject({
+      startMode: BountyStartMode.relative,
+      startsAt: null,
+      endsAfterDays: 180,
+      description: "updated description only",
+    });
   } finally {
     await deleteBounty(api, id);
   }
@@ -682,9 +680,11 @@ test("PATCH /bounties/{bountyId} – submissionFrequency requires endsAt on the 
         maxSubmissions: 4,
       }),
     ).toEqual(
-      badRequest(
-        "`endsAt` or `endsAfterDays` is required when `submissionFrequency` is set.",
-      ),
+      apiError({
+        code: "bad_request",
+        message:
+          "`endsAt` or `endsAfterDays` is required when `submissionFrequency` is set.",
+      }),
     );
   } finally {
     await deleteBounty(api, id);
@@ -706,7 +706,10 @@ test("PATCH /bounties/{bountyId} – submissionsOpenAt without endsAt is rejecte
         submissionsOpenAt: addDays(new Date(), 5).toISOString(),
       }),
     ).toEqual(
-      badRequest("`endsAt` is required when `submissionsOpenAt` is set."),
+      apiError({
+        code: "bad_request",
+        message: "`endsAt` is required when `submissionsOpenAt` is set.",
+      }),
     );
   } finally {
     await deleteBounty(api, id);
@@ -726,9 +729,11 @@ test("PATCH /bounties/{bountyId} – maxSubmissions below minimum is rejected", 
     expect(
       await api.patch(`/api/bounties/${id}`, { maxSubmissions: 1 }),
     ).toEqual(
-      unprocessable(
-        "too_small: maxSubmissions: If `maxSubmissions` is set, it must be at least 2",
-      ),
+      apiError({
+        code: "unprocessable_entity",
+        message:
+          "too_small: maxSubmissions: If `maxSubmissions` is set, it must be at least 2",
+      }),
     );
   } finally {
     await deleteBounty(api, id);
@@ -748,9 +753,10 @@ test("PATCH /bounties/{bountyId} – maxSubmissions above maximum is rejected", 
     expect(
       await api.patch(`/api/bounties/${id}`, { maxSubmissions: 51 }),
     ).toEqual(
-      unprocessable(
-        "too_big: maxSubmissions: Too big: expected number to be <=50",
-      ),
+      apiError({
+        code: "unprocessable_entity",
+        message: "too_big: maxSubmissions: Too big: expected number to be <=50",
+      }),
     );
   } finally {
     await deleteBounty(api, id);
@@ -762,7 +768,123 @@ test("POST /bounties – invalid group IDs", async ({ api, program }) => {
     await api.post("/api/bounties", {
       ...bountyPayload(program, { groupIds: ["invalid-group-id"] }),
     }),
-  ).toEqual(badRequest("Invalid group IDs detected: invalid-group-id"));
+  ).toEqual(
+    apiError({
+      code: "bad_request",
+      message: "Invalid group IDs detected: invalid-group-id",
+    }),
+  );
+});
+
+test("POST /bounties – invalid partner tag IDs", async ({ api, program }) => {
+  expect(
+    await api.post("/api/bounties", {
+      ...bountyPayload(program, {
+        partnerTagIds: ["invalid-partner-tag-id"],
+      }),
+    }),
+  ).toEqual(
+    apiError({
+      code: "bad_request",
+      message: "Invalid partner tag IDs detected: invalid-partner-tag-id",
+    }),
+  );
+});
+
+test("POST /bounties – with partnerTagIds null returns empty partnerTags", async ({
+  api,
+  program,
+}) => {
+  let id: string | undefined;
+
+  try {
+    const { status, data } = await createBounty(api, program, {
+      partnerTagIds: null,
+    });
+    id = data.id;
+
+    expect(status).toEqual(200);
+    expect(data.partnerTags).toEqual([]);
+  } finally {
+    await deleteBounty(api, id);
+  }
+});
+
+test("POST /bounties – with valid partnerTagIds", async ({ api, program }) => {
+  let id: string | undefined;
+  let partnerTagId: string | undefined;
+
+  try {
+    const partnerTag = await createPartnerTag(program.id);
+    partnerTagId = partnerTag.id;
+
+    const { status, data } = await createBounty(api, program, {
+      partnerTagIds: [partnerTag.id],
+    });
+    id = data.id;
+
+    expect(status).toEqual(200);
+    expect(data.partnerTags).toEqual([{ id: partnerTag.id }]);
+  } finally {
+    await deleteBounty(api, id);
+    await deletePartnerTag(partnerTagId);
+  }
+});
+
+test("PATCH /bounties/{bountyId} – clear partner tags", async ({
+  api,
+  program,
+}) => {
+  let id: string | undefined;
+  let partnerTagId: string | undefined;
+
+  try {
+    const partnerTag = await createPartnerTag(program.id);
+    partnerTagId = partnerTag.id;
+
+    const { data: created } = await createBounty(api, program, {
+      partnerTagIds: [partnerTag.id],
+    });
+    id = created.id;
+
+    expect(created.partnerTags).toEqual([{ id: partnerTag.id }]);
+
+    const { status, data } = await api.patch<BountyJson>(
+      `/api/bounties/${id}`,
+      { partnerTagIds: null },
+    );
+
+    expect(status).toEqual(200);
+    expect(data.partnerTags).toEqual([]);
+  } finally {
+    await deleteBounty(api, id);
+    await deletePartnerTag(partnerTagId);
+  }
+});
+
+test("PATCH /bounties/{bountyId} – invalid partner tag IDs", async ({
+  api,
+  program,
+}) => {
+  let id: string | undefined;
+
+  try {
+    const { data: created } = await createBounty(api, program);
+    id = created.id;
+
+    expect(
+      await api.patch(`/api/bounties/${id}`, {
+        partnerTagIds: ["invalid-partner-tag-id"],
+      }),
+    ).toEqual(
+      apiError({
+        code: "bad_request",
+        message: "Invalid partner tag IDs detected: invalid-partner-tag-id",
+      }),
+    );
+  } finally {
+    await deleteBounty(api, id);
+  }
 });
 
 test("POST /bounties – maxSubmissions below minimum is rejected", async ({
@@ -774,9 +896,11 @@ test("POST /bounties – maxSubmissions below minimum is rejected", async ({
       ...bountyPayload(program, { maxSubmissions: 1 }),
     }),
   ).toEqual(
-    unprocessable(
-      "too_small: maxSubmissions: If `maxSubmissions` is set, it must be at least 2",
-    ),
+    apiError({
+      code: "unprocessable_entity",
+      message:
+        "too_small: maxSubmissions: If `maxSubmissions` is set, it must be at least 2",
+    }),
   );
 });
 
@@ -789,9 +913,10 @@ test("POST /bounties – maxSubmissions above maximum is rejected", async ({
       ...bountyPayload(program, { maxSubmissions: 51 }),
     }),
   ).toEqual(
-    unprocessable(
-      "too_big: maxSubmissions: Too big: expected number to be <=50",
-    ),
+    apiError({
+      code: "unprocessable_entity",
+      message: "too_big: maxSubmissions: Too big: expected number to be <=50",
+    }),
   );
 });
 
@@ -811,9 +936,10 @@ test("POST /bounties – submissionFrequency without maxSubmissions is rejected"
       }),
     }),
   ).toEqual(
-    badRequest(
-      "`maxSubmissions` is required when `submissionFrequency` is set.",
-    ),
+    apiError({
+      code: "bad_request",
+      message: "`maxSubmissions` is required when `submissionFrequency` is set.",
+    }),
   );
 });
 
@@ -830,9 +956,11 @@ test("POST /bounties – submissionFrequency without endsAt is rejected", async 
       }),
     }),
   ).toEqual(
-    badRequest(
-      "`endsAt` or `endsAfterDays` is required when `submissionFrequency` is set.",
-    ),
+    apiError({
+      code: "bad_request",
+      message:
+        "`endsAt` or `endsAfterDays` is required when `submissionFrequency` is set.",
+    }),
   );
 });
 
@@ -851,7 +979,10 @@ test("POST /bounties – submissionsOpenAt without endsAt is rejected", async ({
       }),
     }),
   ).toEqual(
-    badRequest("`endsAt` is required when `submissionsOpenAt` is set."),
+    apiError({
+      code: "bad_request",
+      message: "`endsAt` is required when `submissionsOpenAt` is set.",
+    }),
   );
 });
 
@@ -870,7 +1001,12 @@ test("POST /bounties – submissionsOpenAt before startsAt is rejected", async (
         submissionsOpenAt: subDays(new Date(startsAt), 1).toISOString(),
       }),
     }),
-  ).toEqual(badRequest("`submissionsOpenAt` must be on or after `startsAt`."));
+  ).toEqual(
+    apiError({
+      code: "bad_request",
+      message: "`submissionsOpenAt` must be on or after `startsAt`.",
+    }),
+  );
 });
 
 test("POST /bounties – submissionsOpenAt after endsAt is rejected", async ({
@@ -888,7 +1024,12 @@ test("POST /bounties – submissionsOpenAt after endsAt is rejected", async ({
         submissionsOpenAt: addDays(new Date(endsAt), 1).toISOString(),
       }),
     }),
-  ).toEqual(badRequest("`submissionsOpenAt` must be on or before `endsAt`."));
+  ).toEqual(
+    apiError({
+      code: "bad_request",
+      message: "`submissionsOpenAt` must be on or before `endsAt`.",
+    }),
+  );
 });
 
 test("POST /bounties – relative with startsAt is rejected", async ({
@@ -904,9 +1045,10 @@ test("POST /bounties – relative with startsAt is rejected", async ({
       }),
     }),
   ).toEqual(
-    badRequest(
-      "`startsAt` is not supported when the `startMode` is `relative`.",
-    ),
+    apiError({
+      code: "bad_request",
+      message: "`startsAt` is not supported when the `startMode` is `relative`.",
+    }),
   );
 });
 
@@ -924,7 +1066,10 @@ test("POST /bounties – both endsAt and endsAfterDays is rejected", async ({
       }),
     }),
   ).toEqual(
-    badRequest("Bounties cannot have both `endsAt` and `endsAfterDays`."),
+    apiError({
+      code: "bad_request",
+      message: "Bounties cannot have both `endsAt` and `endsAfterDays`.",
+    }),
   );
 });
 
@@ -932,18 +1077,29 @@ const unknownBountyId = "bnty_does_not_exist";
 
 test("GET /bounties/{bountyId} – not found", async ({ api }) => {
   expect(await api.get(`/api/bounties/${unknownBountyId}`)).toEqual(
-    notFound(unknownBountyId),
+    apiError({
+      code: "not_found",
+      message: `Bounty ${unknownBountyId} not found.`,
+    }),
   );
 });
 
 test("PATCH /bounties/{bountyId} – not found", async ({ api }) => {
   expect(
     await api.patch(`/api/bounties/${unknownBountyId}`, { name: "x" }),
-  ).toEqual(notFound(unknownBountyId));
+  ).toEqual(
+    apiError({
+      code: "not_found",
+      message: `Bounty ${unknownBountyId} not found.`,
+    }),
+  );
 });
 
 test("DELETE /bounties/{bountyId} – not found", async ({ api }) => {
   expect(await api.delete(`/api/bounties/${unknownBountyId}`)).toEqual(
-    notFound(unknownBountyId),
+    apiError({
+      code: "not_found",
+      message: `Bounty ${unknownBountyId} not found.`,
+    }),
   );
 });

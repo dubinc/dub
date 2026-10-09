@@ -21,11 +21,15 @@ export const WORKSPACE_LEVEL_WEBHOOK_TRIGGERS = [
 
 export const PROGRAM_LEVEL_WEBHOOK_TRIGGERS = [
   "partner.application_submitted",
+  "program_application.created",
   "partner.enrolled",
+  "partner.merged",
   "commission.created",
   "bounty.created",
   "bounty.updated",
   "payout.confirmed",
+  "discount_code.created",
+  "discount_code.deleted",
 ] as const;
 
 export const WEBHOOK_TRIGGERS = [
@@ -33,19 +37,35 @@ export const WEBHOOK_TRIGGERS = [
   ...PROGRAM_LEVEL_WEBHOOK_TRIGGERS,
 ] as const;
 
+// Maps each deprecated event to the current event that replaces it (Eg: old:new)
+export const DEPRECATED_WEBHOOK_TRIGGERS = new Map<
+  WebhookTrigger,
+  WebhookTrigger
+>([["partner.application_submitted", "program_application.created"]]);
+
 export const WEBHOOK_TRIGGER_DESCRIPTIONS: Record<WebhookTrigger, string> = {
-  "link.created": "Link created",
-  "link.updated": "Link updated",
-  "link.deleted": "Link deleted",
-  "link.clicked": "Link clicked",
-  "lead.created": "Lead created",
-  "sale.created": "Sale created",
-  "partner.application_submitted": "Partner application submitted",
-  "partner.enrolled": "Partner enrolled",
-  "commission.created": "Commission created",
-  "bounty.created": "Bounty created",
-  "bounty.updated": "Bounty updated",
-  "payout.confirmed": "Payout confirmed",
+  "link.created": "Occurs whenever a link is created",
+  "link.updated": "Occurs whenever a link is updated",
+  "link.deleted": "Occurs whenever a link is deleted",
+  "link.clicked": "Occurs whenever a link is clicked",
+  "lead.created": "Occurs whenever a lead is created",
+  "sale.created": "Occurs whenever a sale is created",
+  "partner.application_submitted":
+    "Occurs whenever a partner submits an application to your program",
+  "program_application.created":
+    "Occurs whenever a partner submits an application to your program",
+  "partner.enrolled":
+    "Occurs whenever a partner is enrolled in your program (either their application was approved, they accepted your invite, or via the API)",
+  "partner.merged": "Occurs when two partner accounts are merged",
+  "commission.created":
+    "Occurs whenever a commission is created for a partner (clawbacks will also trigger this event with a negative amount)",
+  "bounty.created": "Occurs whenever a bounty is created in your program",
+  "bounty.updated": "Occurs whenever a bounty in your program is updated",
+  "payout.confirmed": "Occurs whenever a payout in your program is confirmed",
+  "discount_code.created":
+    "Occurs whenever a discount code is created for a partner",
+  "discount_code.deleted":
+    "Occurs whenever a discount code for a partner is deleted",
 } as const;
 
 export const WEBHOOK_FAILURE_NOTIFY_THRESHOLDS = [5, 10, 15] as const;

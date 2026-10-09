@@ -14,6 +14,7 @@ import {
   AnimatedSizeContainer,
   Button,
   Checkbox,
+  Copy,
   LoadingSpinner,
   MenuItem,
   Modal,
@@ -21,7 +22,9 @@ import {
   Plus2,
   Popover,
   Tag,
+  Tick,
   Trash,
+  useCopyToClipboard,
   useMediaQuery,
   Users,
   useScrollProgress,
@@ -460,6 +463,7 @@ function TagOption({
   const checkboxRef = useRef<HTMLButtonElement>(null);
 
   const [openPopover, setOpenPopover] = useState(false);
+  const [copiedTagId, copyToClipboard] = useCopyToClipboard();
 
   const [editedTagName, setEditedTagName] = useState(tag.name);
   const [isEditing, setIsEditing] = useState(false);
@@ -563,6 +567,23 @@ function TagOption({
                 icon={<PenWriting className="size-4" />}
               >
                 Edit
+              </MenuItem>
+              <MenuItem
+                onClick={(e) => {
+                  e.stopPropagation();
+                  toast.promise(copyToClipboard(tag.id), {
+                    success: "Tag ID copied!",
+                  });
+                }}
+                icon={
+                  copiedTagId ? (
+                    <Tick className="size-4" />
+                  ) : (
+                    <Copy className="size-4" />
+                  )
+                }
+              >
+                Copy tag ID
               </MenuItem>
               <MenuItem
                 variant="danger"

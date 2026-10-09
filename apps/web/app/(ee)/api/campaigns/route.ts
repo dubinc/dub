@@ -1,4 +1,8 @@
 import { DEFAULT_CAMPAIGN_BODY } from "@/lib/api/campaigns/constants";
+import {
+  campaignEligibilityIncludes,
+  transformCampaign,
+} from "@/lib/api/campaigns/transform-campaign";
 import { createId } from "@/lib/api/create-id";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
@@ -10,12 +14,10 @@ import {
   createCampaignSchema,
   getCampaignsQuerySchema,
 } from "@/lib/zod/schemas/campaigns";
-import {
-  WORKFLOW_ACTION_TYPES,
-  WORKFLOW_ATTRIBUTE_TRIGGER,
-} from "@/lib/zod/schemas/workflows";
+import { WORKFLOW_ACTION_TYPES } from "@/lib/zod/schemas/workflows";
 import { CampaignStatus } from "@prisma/client";
 import { NextResponse } from "next/server";
+import * as z from "zod/v4";
 
 // GET /api/campaigns - get all email campaigns for a program
 export const GET = withWorkspace(
@@ -26,7 +28,7 @@ export const GET = withWorkspace(
       type,
       status,
       search,
-      triggerCondition,
+      triggerConditions,
       page = 1,
       pageSize,
     } = getCampaignsQuerySchema.parse(searchParams);
@@ -42,17 +44,21 @@ export const GET = withWorkspace(
             { subject: { contains: search } },
           ],
         }),
-        ...(triggerCondition && {
+        ...(triggerConditions && {
           workflow: {
             triggerConditions: {
-              equals: [triggerCondition],
+              equals: triggerConditions,
             },
           },
         }),
       },
       include: {
-        groups: true,
-        workflow: true,
+        ...campaignEligibilityIncludes,
+        workflow: {
+          select: {
+            triggerConditions: true,
+          },
+        },
       },
       orderBy: {
         createdAt: "desc",
@@ -62,13 +68,7 @@ export const GET = withWorkspace(
     });
 
     return NextResponse.json(
-      campaigns.map((campaign) =>
-        CampaignSchema.parse({
-          ...campaign,
-          groups: campaign.groups.map(({ groupId }) => ({ id: groupId })),
-          triggerCondition: campaign.workflow?.triggerConditions?.[0],
-        }),
-      ),
+      z.array(CampaignSchema).parse(campaigns.map(transformCampaign)),
     );
   },
   {
@@ -102,13 +102,13 @@ export const POST = withWorkspace(
       });
 
       if (type === "transactional") {
-        const trigger = WORKFLOW_ATTRIBUTE_TRIGGER["partnerJoined"];
-
-        const triggerCondition: WorkflowCondition = {
-          attribute: "partnerJoined",
-          operator: "gte",
-          value: 0,
-        };
+        const triggerConditions: WorkflowCondition[] = [
+          {
+            attribute: "partnerJoined",
+            operator: "gte",
+            value: 0,
+          },
+        ];
 
         const action: WorkflowAction = {
           type: WORKFLOW_ACTION_TYPES.SendCampaign,
@@ -121,8 +121,7 @@ export const POST = withWorkspace(
           data: {
             id: workflowId,
             programId,
-            trigger,
-            triggerConditions: [triggerCondition],
+            triggerConditions,
             actions: [action],
             disabledAt: new Date(), // TODO: Replace this with publishedAt
           },

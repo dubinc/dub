@@ -1,7 +1,7 @@
 "use server";
 
 import { getIP } from "@/lib/api/utils/get-ip";
-import { isEmailDomainBlocked } from "@/lib/email/is-email-domain-blocked";
+import { getEmailDomainBlockFlags } from "@/lib/email/get-email-domain-block-flags";
 import { prisma } from "@/lib/prisma";
 import { assertRateLimit } from "@/lib/upstash/assert-rate-limit";
 import { RATELIMIT_POLICIES } from "@/lib/upstash/ratelimit-policies";
@@ -36,7 +36,10 @@ export const sendOtpAction = actionClient
       identifier: [email, await getIP()],
     });
 
-    const emailDomainBlocked = await isEmailDomainBlocked(email);
+    const { isDisposable, matchesBlockedTerms } =
+      await getEmailDomainBlockFlags(email);
+
+    const emailDomainBlocked = isDisposable || matchesBlockedTerms;
 
     // if any of the flags match, run one final edge case check, before throwing an error
     if (isGenericEmail(email) || emailDomainBlocked) {

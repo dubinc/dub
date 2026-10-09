@@ -9,12 +9,42 @@ import { getProgramPerformanceTool } from "@/lib/ai/get-program-performance";
 import { getWorkspaceDetailsTool } from "@/lib/ai/get-workspace-details";
 import { requestSupportTicketTool } from "@/lib/ai/request-support-ticket";
 import { withSession } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 import { getSlackClient } from "@/lib/slack/client";
 import { ratelimit } from "@/lib/upstash/ratelimit";
 import { anthropic } from "@ai-sdk/anthropic";
-import { convertToModelMessages, stepCountIs, streamText, UIMessage } from "ai";
+import { PartnerRole } from "@prisma/client";
+import {
+  convertToModelMessages,
+  isFileUIPart,
+  stepCountIs,
+  streamText,
+  UIMessage,
+} from "ai";
+
+const ALLOWED_CHAT_IMAGE_TYPES = new Set([
+  "image/png",
+  "image/jpeg",
+  "image/webp",
+]);
+const MAX_CHAT_IMAGES = 3;
+const MAX_DATA_URL_LENGTH = 1_400_000;
+const MAX_BODY_BYTES = MAX_CHAT_IMAGES * MAX_DATA_URL_LENGTH + 512 * 1024;
+
+function isAllowedChatImage(part: { mediaType: string; url: string }) {
+  const urlMediaType = /^data:([^;,]+)[;,]/.exec(part.url)?.[1];
+  return (
+    urlMediaType === part.mediaType &&
+    ALLOWED_CHAT_IMAGE_TYPES.has(part.mediaType)
+  );
+}
 
 export const POST = withSession(async ({ req, session }) => {
+  const contentLength = Number(req.headers.get("content-length"));
+  if (Number.isFinite(contentLength) && contentLength > MAX_BODY_BYTES) {
+    return new Response("Request too large", { status: 413 });
+  }
+
   const body = await req.json();
   const { messages, globalContext } = body as {
     messages: UIMessage[];
@@ -24,6 +54,56 @@ export const POST = withSession(async ({ req, session }) => {
   if (!Array.isArray(messages) || messages.length === 0) {
     return new Response("Invalid messages", { status: 400 });
   }
+
+  const lastUserIndex = messages.findLastIndex((msg) => msg.role === "user");
+  if (lastUserIndex === -1 || lastUserIndex !== messages.length - 1) {
+    return new Response("Invalid messages", { status: 400 });
+  }
+
+  const latestParts = Array.isArray(messages[lastUserIndex].parts)
+    ? messages[lastUserIndex].parts
+    : [];
+  const latestImages = latestParts
+    .filter(isFileUIPart)
+    .filter((part) => part.url?.startsWith("data:"));
+
+  if (latestImages.length > MAX_CHAT_IMAGES) {
+    return new Response("Too many images", { status: 400 });
+  }
+  for (const part of latestImages) {
+    if (!isAllowedChatImage(part)) {
+      return new Response("Invalid image type", { status: 400 });
+    }
+    if (part.url.length > MAX_DATA_URL_LENGTH) {
+      return new Response("Image too large", { status: 400 });
+    }
+  }
+
+  const modelMessages = messages.map((msg, index) => {
+    const parts = Array.isArray(msg.parts) ? msg.parts : [];
+    const nextParts: UIMessage["parts"] = [];
+
+    for (const part of parts) {
+      if (!isFileUIPart(part)) {
+        nextParts.push(part);
+        continue;
+      }
+
+      if (index === lastUserIndex) {
+        if (isAllowedChatImage(part)) {
+          nextParts.push(part);
+        }
+        continue;
+      }
+
+      nextParts.push({
+        type: "text",
+        text: `Attached image: ${part.filename || "image"}`,
+      });
+    }
+
+    return { ...msg, parts: nextParts };
+  });
 
   const MAX_ATTACHMENTS = 5;
   const MAX_ATTACHMENT_ID_LENGTH = 128;
@@ -68,9 +148,6 @@ export const POST = withSession(async ({ req, session }) => {
   let slackThreadTs = incomingSlackThreadTs;
   let slackUserPostPromise: Promise<string | undefined> | undefined;
 
-  const latestParts = Array.isArray(messages[messages.length - 1].parts)
-    ? messages[messages.length - 1].parts
-    : [];
   const latestUserText = latestParts
     .filter(
       (p): p is { type: "text"; text: string } =>
@@ -80,9 +157,15 @@ export const POST = withSession(async ({ req, session }) => {
         typeof p.text === "string",
     )
     .map((p) => p.text)
-    .join("\n\n");
+    .join("\n\n")
+    .trim();
+  const imageNote =
+    latestImages.length > 0
+      ? `(${latestImages.length} image${latestImages.length === 1 ? "" : "s"} attached)`
+      : "";
   const userLabel = session.user.name || session.user.email || "Unknown user";
-  const safeUserText = escapeSlackMrkdwn(latestUserText);
+  const slackUserBody = [latestUserText, imageNote].filter(Boolean).join(" ");
+  const safeUserText = escapeSlackMrkdwn(slackUserBody);
   const safeUserLabel = escapeSlackMrkdwn(userLabel);
   const safeUserEmail = escapeSlackMrkdwn(session.user.email);
 
@@ -108,10 +191,43 @@ export const POST = withSession(async ({ req, session }) => {
     });
   }
 
+  let partnerCountry: string | null | undefined;
+  let partnerRole: PartnerRole | null | undefined;
+
+  if (
+    globalContext?.accountType === "partner" &&
+    session.user.defaultPartnerId
+  ) {
+    const partner = await prisma.partner.findUnique({
+      where: {
+        id: session.user.defaultPartnerId,
+      },
+      select: {
+        country: true,
+        users: {
+          where: {
+            userId: session.user.id,
+          },
+          select: {
+            role: true,
+          },
+          take: 1,
+        },
+      },
+    });
+
+    partnerCountry = partner?.country;
+    partnerRole = partner?.users[0]?.role;
+  }
+
   const result = streamText({
     model: anthropic("claude-sonnet-4-6"),
-    system: buildSystemPrompt(globalContext),
-    messages: await convertToModelMessages(messages),
+    system: buildSystemPrompt({
+      ...globalContext,
+      partnerCountry,
+      partnerRole,
+    }),
+    messages: await convertToModelMessages(modelMessages),
     stopWhen: stepCountIs(5),
     tools: {
       findRelevantDocs: findRelevantDocsTool,

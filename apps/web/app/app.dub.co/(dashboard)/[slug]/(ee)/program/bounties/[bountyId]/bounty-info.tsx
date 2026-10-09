@@ -2,30 +2,16 @@
 
 import { getProgramBountyMeta } from "@/lib/bounty/bounty-period";
 import useBounty from "@/lib/swr/use-bounty";
-import useGroups from "@/lib/swr/use-groups";
 import useWorkspace from "@/lib/swr/use-workspace";
+import { BountyEligibilitySummary } from "@/ui/partners/bounties/bounty-eligibility-summary";
 import { BountyRewardDescription } from "@/ui/partners/bounties/bounty-reward-description";
 import { BountyThumbnailImage } from "@/ui/partners/bounties/bounty-thumbnail-image";
-import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
-import { ScrollableTooltipContent, Tooltip } from "@dub/ui";
-import { Calendar6, Users6 } from "@dub/ui/icons";
-import { useMemo } from "react";
+import { Calendar6 } from "@dub/ui/icons";
 import { BountyActionButton } from "../bounty-action-button";
 
 export function BountyInfo() {
   const { bounty, loading } = useBounty();
   const { isOwner } = useWorkspace();
-
-  const { groups } = useGroups();
-
-  const eligibleGroups = useMemo(() => {
-    if (!groups || !bounty || bounty.groups.length === 0) {
-      return [];
-    }
-    return bounty.groups
-      .map((bountyGroup) => groups.find((g) => g.id === bountyGroup.id))
-      .filter((g): g is NonNullable<typeof g> => g !== undefined);
-  }, [groups, bounty]);
 
   if (loading) {
     return <BountyInfoSkeleton />;
@@ -53,47 +39,20 @@ export function BountyInfo() {
           </div>
         </div>
 
-        <div className="text-content-subtle font-regular flex items-center gap-2 text-sm">
+        <div className="text-content-subtle flex items-center gap-2 text-sm font-normal">
           <Calendar6 className="size-4 shrink-0" />
           <span>{dateRangeLabel}</span>
         </div>
 
-        <BountyRewardDescription bounty={bounty} className="font-regular" />
+        <BountyRewardDescription bounty={bounty} className="font-normal" />
 
         {isOwner && (
-          <div className="text-content-subtle font-regular flex items-center gap-2 text-sm">
-            <Users6 className="size-4 shrink-0" />
-            {bounty.groups.length === 0 ? (
-              <span>All groups</span>
-            ) : eligibleGroups.length === 1 ? (
-              <div className="flex items-center gap-1.5">
-                <GroupColorCircle group={eligibleGroups[0]} />
-                <span className="truncate">{eligibleGroups[0].name}</span>
-              </div>
-            ) : eligibleGroups.length > 1 ? (
-              <Tooltip
-                content={
-                  <ScrollableTooltipContent>
-                    {eligibleGroups.map((group) => (
-                      <div key={group.id} className="flex items-center gap-2">
-                        <GroupColorCircle group={group} />
-                        <span className="font-regular text-sm text-neutral-700">
-                          {group.name}
-                        </span>
-                      </div>
-                    ))}
-                  </ScrollableTooltipContent>
-                }
-              >
-                <div className="flex items-center gap-1.5">
-                  <GroupColorCircle group={eligibleGroups[0]} />
-                  <span className="truncate">
-                    {eligibleGroups[0].name} +{eligibleGroups.length - 1}
-                  </span>
-                </div>
-              </Tooltip>
-            ) : null}
-          </div>
+          <BountyEligibilitySummary
+            groups={bounty.groups}
+            partnerTags={bounty.partnerTags}
+            iconClassName="size-4"
+            className="font-normal"
+          />
         )}
       </div>
 

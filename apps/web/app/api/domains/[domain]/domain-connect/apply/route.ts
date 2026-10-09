@@ -1,0 +1,172 @@
+import { getConfigResponse } from "@/lib/api/domains/get-config-response";
+import { getDomainOrThrow } from "@/lib/api/domains/get-domain-or-throw";
+import { getDomainResponse } from "@/lib/api/domains/get-domain-response";
+import { DubApiError } from "@/lib/api/errors";
+import { assertEnv } from "@/lib/assert-env";
+import { withWorkspace } from "@/lib/auth";
+import { isAllowedSyncUXOrigin } from "@/lib/domain-connect/allowed-origins";
+import {
+  DEFAULT_DC_SERVICE_APEX,
+  DEFAULT_DC_SERVICE_SUBDOMAIN,
+  DOMAIN_CONNECT_KEY_HOST,
+} from "@/lib/domain-connect/constants";
+import {
+  discoverDomainConnect,
+  fetchDomainConnectTemplateVersion,
+} from "@/lib/domain-connect/discover";
+import { buildSignedApplyUrl } from "@/lib/domain-connect/sign-apply-url";
+import { APP_DOMAIN, getApexDomain, getSubdomain } from "@dub/utils";
+import { NextResponse } from "next/server";
+import * as z from "zod/v4";
+
+const bodySchema = z.object({
+  returnTo: z.string().max(512).optional(),
+});
+
+// POST /api/domains/[domain]/domain-connect/apply
+export const POST = withWorkspace(
+  async ({ req, workspace, params }) => {
+    const privateKeyPem = assertEnv("DOMAIN_CONNECT_PRIVATE_KEY")
+      .trim()
+      .replace(/\\n/g, "\n");
+
+    const { slug: domain } = await getDomainOrThrow({
+      workspace,
+      domain: params.domain,
+      dubDomainChecks: true,
+    });
+
+    const body = bodySchema.parse(await req.json().catch(() => ({})));
+
+    const [domainJson, configJson] = await Promise.all([
+      getDomainResponse(domain),
+      getConfigResponse(domain),
+    ]);
+
+    if (domainJson?.error?.code === "not_found" || domainJson?.error) {
+      throw new DubApiError({
+        code: "bad_request",
+        message: "Domain is not available for configuration.",
+      });
+    }
+
+    if (configJson?.conflicts?.length) {
+      throw new DubApiError({
+        code: "bad_request",
+        message: "Remove conflicting DNS records first, then retry.",
+      });
+    }
+
+    if (domainJson.verified && !configJson.misconfigured) {
+      throw new DubApiError({
+        code: "bad_request",
+        message: "This domain is already configured correctly.",
+      });
+    }
+
+    const apex = getApexDomain(`https://${domain}`);
+    const discovery = await discoverDomainConnect(apex);
+    if (!discovery) {
+      throw new DubApiError({
+        code: "bad_request",
+        message:
+          "Auto configure is only available for Vercel or Cloudflare DNS zones.",
+      });
+    }
+
+    if (!isAllowedSyncUXOrigin(discovery.urlSyncUX)) {
+      throw new DubApiError({
+        code: "bad_request",
+        message: "Invalid Domain Connect provider URL.",
+      });
+    }
+
+    const subdomain = getSubdomain(domain.toLowerCase(), apex);
+    const isApex = !subdomain;
+    const serviceId = isApex
+      ? DEFAULT_DC_SERVICE_APEX
+      : DEFAULT_DC_SERVICE_SUBDOMAIN;
+
+    const returnPath =
+      body.returnTo &&
+      body.returnTo.startsWith(`/${workspace.slug}/`) &&
+      !body.returnTo.includes("://")
+        ? body.returnTo
+        : `/${workspace.slug}/settings/domains`;
+
+    const redirectUrl = new URL(returnPath, APP_DOMAIN);
+    redirectUrl.searchParams.set("domain_connect", "callback");
+    const redirectUri = redirectUrl.toString();
+
+    const queryParams: Record<string, string> = {
+      domain: apex,
+      groupId: isApex ? "apex" : "subdomain",
+      redirect_uri: redirectUri,
+    };
+
+    // links-subdomain v1 scopes all records under `host`, so its TXT lands at
+    // `_vercel.<subdomain>`. v2 takes `cnameHost` and writes the TXT at the apex.
+    // Providers deploy template versions independently, so only sign once the
+    // provider confirms which version it serves.
+    let subdomainTemplateV2 = false;
+    if (subdomain) {
+      const version = discovery.urlAPI
+        ? await fetchDomainConnectTemplateVersion(discovery.urlAPI, serviceId)
+        : undefined;
+
+      if (!version) {
+        throw new DubApiError({
+          code: "internal_server_error",
+          message: "Couldn't reach your DNS provider. Please try again.",
+        });
+      }
+
+      subdomainTemplateV2 = version >= 2;
+      if (subdomainTemplateV2) {
+        queryParams.cnameHost = subdomain;
+      } else {
+        queryParams.host = subdomain;
+      }
+    }
+
+    const txtVerification = domainJson.verification?.find(
+      (x: { type: string }) => x.type === "TXT",
+    );
+    const txtValue = txtVerification?.value?.trim();
+    if (txtValue && isApex) {
+      const txtHostFqdn: string = txtVerification.domain?.toLowerCase() ?? "";
+      const apexSuffix = `.${apex}`;
+      const txtHost = txtHostFqdn.endsWith(apexSuffix)
+        ? txtHostFqdn.slice(0, -apexSuffix.length)
+        : txtHostFqdn === apex
+          ? "@"
+          : txtHostFqdn;
+      if (txtHost) {
+        queryParams.groupId = queryParams.groupId + ",verification";
+        queryParams.txtHost = txtHost;
+        queryParams.txtValue = txtValue;
+      }
+    } else if (
+      txtValue &&
+      subdomainTemplateV2 &&
+      txtVerification.domain?.toLowerCase().replace(/\.$/, "") ===
+        `_vercel.${apex}`
+    ) {
+      queryParams.groupId = queryParams.groupId + ",verification";
+      queryParams.txtValue = txtValue;
+    }
+
+    const applyUrl = buildSignedApplyUrl({
+      urlSyncUX: discovery.urlSyncUX,
+      serviceId,
+      privateKeyPem,
+      keyHost: DOMAIN_CONNECT_KEY_HOST,
+      queryParams,
+    });
+
+    return NextResponse.json({ applyUrl });
+  },
+  {
+    requiredPermissions: ["domains.write"],
+  },
+);

@@ -3,7 +3,7 @@
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import useUser from "@/lib/swr/use-user";
 import { Button, Modal, useEnterSubmit, useMediaQuery } from "@dub/ui";
-import { Dispatch, SetStateAction, useState } from "react";
+import { Dispatch, SetStateAction, useCallback, useState } from "react";
 import { useWatch } from "react-hook-form";
 import { toast } from "sonner";
 import { useCampaignFormContext } from "./campaign-form-context";
@@ -135,15 +135,20 @@ export function useSendEmailPreviewModal({
   const [showSendEmailPreviewModal, setShowSendEmailPreviewModal] =
     useState(false);
 
-  return {
-    showSendEmailPreviewModal,
-    setShowSendEmailPreviewModal,
-    SendEmailPreviewModal: () => (
+  const SendEmailPreviewModalCallback = useCallback(
+    () => (
       <SendEmailPreviewModal
         showModal={showSendEmailPreviewModal}
         setShowModal={setShowSendEmailPreviewModal}
         campaignId={campaignId}
       />
     ),
+    [showSendEmailPreviewModal, campaignId],
+  );
+
+  return {
+    showSendEmailPreviewModal,
+    setShowSendEmailPreviewModal,
+    SendEmailPreviewModal: SendEmailPreviewModalCallback,
   };
 }

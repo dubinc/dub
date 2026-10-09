@@ -313,3 +313,70 @@ export const consolidateScopes = (scopes: string[]) => {
 
   return Array.from(consolidated) as string[];
 };
+
+const isScopeGrantedForRole = ({
+  scope,
+  role,
+}: {
+  scope: string;
+  role: WorkspaceRole;
+}) => {
+  const scopesForRole: string[] = getScopesForRole(role) ?? [];
+
+  return scope === "user.read" || scopesForRole.includes(scope);
+};
+
+// Scopes that can be granted for the given role (intersection with requested)
+export const getGrantedScopesForRole = ({
+  scopes,
+  role,
+}: {
+  scopes: string[];
+  role: WorkspaceRole;
+}) => {
+  return scopes.filter((scope) =>
+    isScopeGrantedForRole({
+      scope,
+      role,
+    }),
+  );
+};
+
+// Requested scopes the role cannot grant (raw intersection, same basis as grant)
+export const getMissingScopesForRole = ({
+  scopes,
+  role,
+}: {
+  scopes: string[];
+  role: WorkspaceRole;
+}) => {
+  return scopes.filter((scope) => !isScopeGrantedForRole({ scope, role }));
+};
+
+// Consent rows: consolidate granted and missing separately so a granted
+// `{resource}.read` is still shown when `{resource}.write` is denied.
+export const getDisplayedScopesForRole = ({
+  scopes,
+  role,
+}: {
+  scopes: string[];
+  role: WorkspaceRole;
+}) => {
+  const grantedScopes = consolidateScopes(
+    getGrantedScopesForRole({ scopes, role }),
+  );
+
+  const missingScopes = consolidateScopes(
+    getMissingScopesForRole({ scopes, role }),
+  );
+
+  const order = new Map(scopes.map((scope, index) => [scope, index]));
+
+  return [
+    ...grantedScopes.map((scope) => ({ scope, missing: false })),
+    ...missingScopes.map((scope) => ({ scope, missing: true })),
+  ].sort(
+    (a, b) =>
+      (order.get(a.scope) ?? Infinity) - (order.get(b.scope) ?? Infinity),
+  );
+};

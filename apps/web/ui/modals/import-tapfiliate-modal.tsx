@@ -16,7 +16,7 @@ import { cn } from "@dub/utils";
 import { ArrowRight } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useAction } from "next-safe-action/hooks";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import {
   Dispatch,
   SetStateAction,
@@ -27,6 +27,7 @@ import {
 } from "react";
 import { toast } from "sonner";
 import { MarkdownDescription } from "../shared/markdown-description";
+import { useImportModalParam } from "./use-import-modal-param";
 
 type Step = "set-token" | "select-program";
 
@@ -305,15 +306,7 @@ function SelectProgram({
 
 export function useImportTapfiliateModal() {
   const [showImportTapfiliateModal, setShowImportTapfiliateModal] =
-    useState(false);
-  const searchParams = useSearchParams();
-
-  // Sync the modal state with the `?import=` query param here in the hook
-  // rather than in the modal itself, which remounts on every open/close
-  // and would re-open from a stale param mid-navigation
-  useEffect(() => {
-    setShowImportTapfiliateModal(searchParams?.get("import") === "tapfiliate");
-  }, [searchParams]);
+    useImportModalParam("tapfiliate");
 
   const ImportTapfiliateModalCallback = useCallback(() => {
     return (
