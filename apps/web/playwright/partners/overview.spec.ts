@@ -2,11 +2,11 @@ import { createId } from "@/lib/api/create-id";
 import { testIds } from "@/lib/e2e/test-ids";
 import { prisma } from "@/lib/prisma";
 import { nanoid } from "@dub/utils";
-import { expect, Page, test } from "@playwright/test";
-import { hashSync } from "bcryptjs";
+import { expect, test } from "@playwright/test";
 import { deletePartner } from "../api/partners/helpers";
 import { TEST_WORKSPACE } from "../api/setup-test-workspace";
 import { env } from "../env";
+import { createPartnerUser, logIn } from "./helpers";
 
 // The shared partner storage state is a new signup that has not finished
 // onboarding, so these tests log in with a password instead
@@ -16,50 +16,6 @@ test.use({
     origins: [],
   },
 });
-
-async function logIn(page: Page, email: string, password: string) {
-  await page.goto("/login");
-  await page.locator('input[name="email"]').fill(email);
-  await page.getByTestId(testIds.auth.loginSubmit).click();
-  await page.locator('input[type="password"]').fill(password);
-  await page.getByTestId(testIds.auth.loginSubmit).click();
-  await page.waitForURL((url) => !url.pathname.startsWith("/login"));
-}
-
-async function createPartnerUser({
-  email,
-  password,
-}: {
-  email: string;
-  password: string;
-}) {
-  const partner = await prisma.partner.create({
-    data: {
-      id: createId({ prefix: "pn_" }),
-      name: "Overview Test Partner",
-      email,
-      country: "US",
-    },
-  });
-
-  const user = await prisma.user.create({
-    data: {
-      id: createId({ prefix: "user_" }),
-      email,
-      emailVerified: new Date(),
-      passwordHash: hashSync(password, 10),
-      defaultPartnerId: partner.id,
-      partners: {
-        create: {
-          partnerId: partner.id,
-          role: "owner",
-        },
-      },
-    },
-  });
-
-  return { partnerId: partner.id, userId: user.id };
-}
 
 test.describe("Partner All programs Overview", () => {
   test("renders every Overview card", async ({ page }) => {
