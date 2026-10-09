@@ -12,6 +12,7 @@ import {
   Watch,
   Window,
 } from "@dub/ui/icons";
+import { cn } from "@dub/utils";
 import { TRIGGER_DISPLAY } from "./trigger-display";
 
 export function DeviceIcon({
@@ -56,7 +57,8 @@ export function DeviceIcon({
             alt={display}
             width={20}
             height={20}
-            className={className}
+            // Non-square sources (e.g. Facebook/Instagram at 3:2) squash without this
+            className={cn(className, "object-cover")}
           />
         );
     }

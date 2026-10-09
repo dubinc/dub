@@ -3,6 +3,9 @@ import { PartnerGroup, Program } from "@prisma/client";
 import { createId } from "../api/create-id";
 import { createLink } from "../api/links";
 import { generatePartnerLink } from "../api/partners/generate-partner-link";
+import { queuePartnerSearchSync } from "../api/partners/queue-partner-search-sync";
+import { upsertImportedProgramEnrollment } from "../api/partners/upsert-imported-program-enrollment";
+import { approveLinkedApplication } from "../program-applications/approve-linked-application";
 import { logImportError } from "../tinybird/log-import-error";
 import { WorkspaceProps } from "../types";
 import { DEFAULT_PARTNER_GROUP } from "../zod/schemas/groups";
@@ -32,6 +35,7 @@ export async function importPartners(payload: LemonSqueezyImportPayload) {
           leadRewardId: true,
           saleRewardId: true,
           referralRewardId: true,
+          customRewardId: true,
           discountId: true,
         },
       },
@@ -136,6 +140,15 @@ export async function importPartners(payload: LemonSqueezyImportPayload) {
           })),
         );
       }
+
+      // Queue an index update because the imported partners were enrolled.
+      // Queued per page rather than per partner.
+      await queuePartnerSearchSync({
+        partnerIds: results.flatMap((result) =>
+          result.status === "fulfilled" && result.value ? [result.value] : [],
+        ),
+        programId: program.id,
+      });
     }
 
     if (notImportedAffiliates.length > 0) {
@@ -182,6 +195,7 @@ async function createPartnerAndLinks({
     | "leadRewardId"
     | "saleRewardId"
     | "referralRewardId"
+    | "customRewardId"
   >;
   userId: string;
   importId: string;
@@ -212,13 +226,9 @@ async function createPartnerAndLinks({
     update: {},
   });
 
-  const { links } = await prisma.programEnrollment.upsert({
-    where: {
-      partnerId_programId: {
-        partnerId: partner.id,
-        programId: program.id,
-      },
-    },
+  const { enrollment, preservedBan } = await upsertImportedProgramEnrollment({
+    partnerId: partner.id,
+    programId: program.id,
     create: {
       id: createId({ prefix: "pge_" }),
       programId: program.id,
@@ -229,12 +239,10 @@ async function createPartnerAndLinks({
       leadRewardId: group.leadRewardId,
       saleRewardId: group.saleRewardId,
       referralRewardId: group.referralRewardId,
+      customRewardId: group.customRewardId,
       discountId: group.discountId,
     },
-    update: {
-      status: "approved",
-    },
-    select: {
+    include: {
       links: {
         select: {
           key: true,
@@ -243,11 +251,20 @@ async function createPartnerAndLinks({
     },
   });
 
-  if (links.length > 0 && links.some((link) => link.key === affiliate.id)) {
+  if (preservedBan) {
+    return partner.id;
+  }
+
+  await approveLinkedApplication({
+    applicationId: enrollment.applicationId,
+    userId,
+  });
+
+  if (enrollment.links.some((link) => link.key === affiliate.id)) {
     console.log(
       `Partner ${partner.id} already has a link with key ${affiliate.id}, skipping...`,
     );
-    return;
+    return partner.id;
   }
 
   try {
@@ -279,7 +296,7 @@ async function createPartnerAndLinks({
         code: "LINK_NOT_FOUND",
         message: `Partner link key conflict for affiliate ${affiliate.id}: generated key "${partnerLink.key}" instead of "${affiliate.id}".`,
       });
-      return;
+      return partner.id;
     }
 
     await createLink(partnerLink);
@@ -297,4 +314,6 @@ async function createPartnerAndLinks({
       }`,
     });
   }
+
+  return partner.id;
 }

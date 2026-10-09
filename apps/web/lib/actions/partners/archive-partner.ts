@@ -1,10 +1,14 @@
 "use server";
 
 import { trackActivityLog } from "@/lib/api/activity-log/track-activity-log";
+import { queuePartnerSearchSync } from "@/lib/api/partners/queue-partner-search-sync";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { prisma } from "@/lib/prisma";
-import { archivePartnerSchema } from "@/lib/zod/schemas/partners";
+import {
+  ACTIVE_ENROLLMENT_STATUSES,
+  archivePartnerSchema,
+} from "@/lib/zod/schemas/partners";
 import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
 import { throwIfNoPermission } from "../throw-if-no-permission";
@@ -29,6 +33,12 @@ export const archivePartnerAction = authActionClient
       include: {},
     });
 
+    if (!ACTIVE_ENROLLMENT_STATUSES.includes(programEnrollment.status)) {
+      throw new Error(
+        `You can only archive or unarchive partners in ${ACTIVE_ENROLLMENT_STATUSES.join(", ")} statuses.`,
+      );
+    }
+
     const { status } = await prisma.programEnrollment.update({
       where: {
         partnerId_programId: {
@@ -46,20 +56,25 @@ export const archivePartnerAction = authActionClient
     });
 
     waitUntil(
-      trackActivityLog({
-        workspaceId: workspace.id,
-        programId,
-        resourceType: "partner",
-        resourceId: partnerId,
-        userId: user.id,
-        action:
-          status === "archived" ? "partner.archived" : "partner.unarchived",
-        changeSet: {
-          status: {
-            old: programEnrollment.status,
-            new: status,
+      Promise.allSettled([
+        trackActivityLog({
+          workspaceId: workspace.id,
+          programId,
+          resourceType: "partner",
+          resourceId: partnerId,
+          userId: user.id,
+          action:
+            status === "archived" ? "partner.archived" : "partner.unarchived",
+          changeSet: {
+            status: {
+              old: programEnrollment.status,
+              new: status,
+            },
           },
-        },
-      }),
+        }),
+
+        // Queue an index update because the enrollment status moved to archived
+        queuePartnerSearchSync({ partnerIds: [partnerId], programId }),
+      ]),
     );
   });

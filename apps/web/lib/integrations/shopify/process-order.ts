@@ -1,232 +1,141 @@
-import { createId } from "@/lib/api/create-id";
-import { handleAndReturnErrorResponse } from "@/lib/api/errors";
-import { includeTags } from "@/lib/api/links/include-tags";
-import { syncPartnerLinksStats } from "@/lib/api/partners/sync-partner-links-stats";
-import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
-import { generateRandomName } from "@/lib/names";
-import { queuePartnerCommissionCreation } from "@/lib/partners/queue-partner-commission-creation";
-import { sendPartnerPostback } from "@/lib/postback/send-partner-postback";
 import { prisma } from "@/lib/prisma";
-import { getLeadEvent, recordLead } from "@/lib/tinybird";
-import { recordFakeClick } from "@/lib/tinybird/record-fake-click";
+import { getLeadEvent } from "@/lib/tinybird";
 import { WorkspaceProps } from "@/lib/types";
-import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
-import { transformLeadEventData } from "@/lib/webhook/transform";
-import { COUNTRIES_TO_CONTINENTS, nanoid } from "@dub/utils";
-import { Link } from "@prisma/client";
-import { waitUntil } from "@vercel/functions";
+import { attributeViaDiscountCode } from "./attribute-via-discount-code";
 import { createShopifyLead } from "./create-lead";
 import { createShopifySale } from "./create-sale";
-import { orderSchema } from "./schema";
+import { ShopifyOrder } from "./schema";
 
 // Process the order from Shopify webhook
-export async function processOrder({
-  event,
-  workspaceId,
-  customerId,
+export async function processShopifyOrder({
+  order,
+  workspace,
   clickId,
 }: {
-  event: unknown;
-  workspaceId: string;
-  customerId?: string; // ID of the customer in Dub
-  clickId?: string; // ID of the click event from Shopify pixel
+  order: ShopifyOrder;
+  workspace: Pick<WorkspaceProps, "id" | "defaultProgramId" | "webhookEnabled">;
+  clickId: string | null; // ID of the click event from Shopify pixel
 }) {
-  try {
-    // for existing customer
-    if (customerId) {
-      const leadEvent = await getLeadEvent({ customerId });
+  const { customer: orderCustomer, discount_codes: discountCodes } = order;
 
-      if (!leadEvent) {
-        return new Response(
-          `[Shopify] Lead event with customer ID ${customerId} not found, skipping...`,
+  const sharedData = {
+    checkoutToken: order.checkout_token,
+    shopifyCustomerId: orderCustomer?.id,
+  };
+
+  // Check customer exists in the workspace
+  if (orderCustomer) {
+    const externalId = orderCustomer.id?.toString();
+
+    const customer = await prisma.customer.findUnique({
+      where: {
+        projectId_externalId: {
+          projectId: workspace.id,
+          externalId,
+        },
+      },
+    });
+
+    // Existing customer found
+    if (customer) {
+      const leadData = await getLeadEvent({
+        customerId: customer.id,
+      });
+
+      if (!leadData) {
+        // Not a skip — we cannot tell "no lead" from "Tinybird unavailable".
+        // Throw so the job retries rather than creating a duplicate customer.
+        throw new Error(
+          `Lead event not found for customer ${customer.id}; refusing to re-attribute.`,
         );
       }
 
-      await createShopifySale({
-        leadData: leadEvent,
-        event,
-        workspaceId,
-        customerId,
-      });
-
-      return;
-    }
-
-    // for new customer
-    if (clickId) {
-      const leadData = await createShopifyLead({
-        clickId,
-        workspaceId,
-        event,
-      });
-
-      const { customer_id: customerId } = leadData;
-
-      await createShopifySale({
+      const { saleData } = await createShopifySale({
         leadData,
-        event,
-        workspaceId,
-        customerId,
+        order,
+        workspaceId: workspace.id,
+        customerId: customer.id,
       });
 
-      return;
-    }
-  } catch (error) {
-    return handleAndReturnErrorResponse(error);
-  }
-}
-
-export async function attributeViaDiscountCode({
-  event,
-  workspace,
-  link,
-}: {
-  event: unknown;
-  workspace: Pick<WorkspaceProps, "id" | "defaultProgramId" | "webhookEnabled">;
-  link: Link;
-}) {
-  const { customer: orderCustomer, billing_address: billingAddress } =
-    orderSchema.parse(event);
-
-  const billingAddressCountry = billingAddress?.country_code?.toUpperCase();
-  // Record a fake click for this event
-  const clickEvent = await recordFakeClick({
-    link,
-    customer: {
-      continent: billingAddressCountry
-        ? COUNTRIES_TO_CONTINENTS[billingAddressCountry] ?? "Unknown"
-        : "Unknown",
-      country: billingAddressCountry ?? "Unknown",
-      region: billingAddress?.province ?? "Unknown",
-    },
-  });
-
-  const customerId = createId({ prefix: "cus_" });
-
-  const customer = await prisma.customer.create({
-    data: {
-      id: customerId,
-      name: orderCustomer
-        ? `${orderCustomer.first_name} ${orderCustomer.last_name}`.trim()
-        : generateRandomName(),
-      email: orderCustomer?.email,
-      externalId: orderCustomer?.id?.toString() || customerId,
-      linkId: clickEvent.link_id,
-      clickId: clickEvent.click_id,
-      clickedAt: new Date(clickEvent.timestamp + "Z"),
-      country: billingAddress?.country_code,
-      projectId: workspace.id,
-      programId: link.programId,
-      partnerId: link.partnerId,
-    },
-  });
-
-  // Prepare the payload for the lead event
-  const { timestamp, ...rest } = clickEvent;
-
-  const leadEvent = {
-    ...rest,
-    workspace_id: clickEvent.workspace_id || customer.projectId, // in case for some reason the click event doesn't have workspace_id
-    event_id: nanoid(16),
-    event_name: "Checkout with discount code",
-    customer_id: customer.id,
-    metadata: "",
-  };
-
-  await recordLead(leadEvent);
-
-  waitUntil(
-    (async () => {
-      const linkUpdated = await prisma.link.update({
-        where: {
-          id: link.id,
-        },
+      return {
+        message: "Sale has been tracked for this order.",
         data: {
-          leads: {
-            increment: 1,
-          },
-          lastLeadAt: new Date(),
+          ...sharedData,
+          eventId: saleData.event_id,
+          customerId: customer.id,
+          attribution: "existing_lead",
         },
-        include: includeTags,
+      };
+    }
+  }
+
+  // Check if the order has created using a program discount code
+  if (discountCodes && discountCodes.length > 0 && workspace.defaultProgramId) {
+    const programDiscountCodes = await prisma.discountCode.findMany({
+      where: {
+        programId: workspace.defaultProgramId,
+        code: {
+          in: discountCodes.map(({ code }) => code),
+        },
+      },
+      include: {
+        link: true,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+
+    if (programDiscountCodes.length > 0) {
+      const { leadEvent: leadData } = await attributeViaDiscountCode({
+        order,
+        workspace,
+        link: programDiscountCodes[0].link,
       });
 
-      let result:
-        | Awaited<ReturnType<typeof queuePartnerCommissionCreation>>
-        | undefined = undefined;
+      const { saleData } = await createShopifySale({
+        leadData,
+        order,
+        workspaceId: workspace.id,
+        customerId: leadData.customer_id,
+      });
 
-      if (link.programId && link.partnerId) {
-        result = await queuePartnerCommissionCreation({
-          event: "lead",
-          programId: link.programId,
-          partnerId: link.partnerId,
-          linkId: link.id,
-          eventId: leadEvent.event_id,
-          customerId: customer.id,
-          quantity: 1,
-          context: {
-            customer: {
-              country: customer.country,
-            },
-          },
-        });
+      return {
+        message: "Sale has been tracked for this order.",
+        data: {
+          ...sharedData,
+          eventId: saleData.event_id,
+          customerId: leadData.customer_id,
+          discountCode: programDiscountCodes[0].code,
+          attribution: "discount_code",
+        },
+      };
+    }
+  }
 
-        await Promise.allSettled([
-          executeWorkflows({
-            event: "leadRecorded",
-            identity: {
-              workspaceId: workspace.id,
-              programId: link.programId,
-              partnerId: link.partnerId,
-            },
-            metrics: {
-              current: {
-                leads: 1,
-              },
-            },
-          }),
+  // New customer
+  if (clickId) {
+    const { leadData } = await createShopifyLead({
+      order,
+      clickId,
+      workspaceId: workspace.id,
+    });
 
-          syncPartnerLinksStats({
-            partnerId: link.partnerId,
-            programId: link.programId,
-            eventType: "lead",
-          }),
-        ]);
-      }
+    const { saleData } = await createShopifySale({
+      leadData,
+      order,
+      workspaceId: workspace.id,
+      customerId: leadData.customer_id,
+    });
 
-      await Promise.allSettled([
-        sendWorkspaceWebhook({
-          trigger: "lead.created",
-          workspace,
-          data: transformLeadEventData({
-            ...clickEvent,
-            eventName: "Checkout with discount code",
-            link: linkUpdated,
-            customer,
-            partner: result?.webhookPartner,
-            metadata: null,
-          }),
-        }),
-
-        ...(link.partnerId
-          ? [
-              sendPartnerPostback({
-                partnerId: link.partnerId,
-                event: "lead.created",
-                data: {
-                  ...leadEvent,
-                  eventName: "Checkout with discount code",
-                  link: linkUpdated,
-                  customer,
-                },
-              }),
-            ]
-          : []),
-      ]);
-    })(),
-  );
-
-  return {
-    customer,
-    leadEvent,
-  };
+    return {
+      message: "Sale has been tracked for this order.",
+      data: {
+        ...sharedData,
+        eventId: saleData.event_id,
+        customerId: leadData.customer_id,
+        attribution: "click",
+      },
+    };
+  }
 }

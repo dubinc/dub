@@ -1,3 +1,4 @@
+import { sleep } from "./sleep";
 export async function fetchWithRetry(
   input: RequestInfo | URL,
   init?: RequestInit | undefined,
@@ -32,7 +33,7 @@ export async function fetchWithRetry(
       // Handle rate limiting and server errors
       if (response.status === 429 || response.status >= 500) {
         const delay = retryDelay + Math.pow(i, 2) * 50;
-        await new Promise((resolve) => setTimeout(resolve, delay));
+        await sleep(delay);
         continue;
       }
 
@@ -66,7 +67,7 @@ export async function fetchWithRetry(
 
       // For network errors or timeouts, wait and retry
       const delay = retryDelay + Math.pow(i, 2) * 50;
-      await new Promise((resolve) => setTimeout(resolve, delay));
+      await sleep(delay);
     }
   }
 

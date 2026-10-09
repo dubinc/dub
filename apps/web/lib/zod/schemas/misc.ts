@@ -16,6 +16,10 @@ export const maxDurationSchema = z.coerce
 
 export const planSchema = z.enum(plans).describe("The plan of the workspace.");
 
+export const yearMonthSchema = z
+  .string()
+  .regex(/^\d{4}-(0[1-9]|1[0-2])$/, "Expected a month in the format yyyy-MM");
+
 export const roleSchema = z
   .enum(WorkspaceRole)
   .describe("The role of the authenticated user in the workspace.");

@@ -1,7 +1,9 @@
+import { DubApiError } from "../api/errors";
 import { STRIPE_API_VERSION, stripeV2Fetch } from "./stripe-v2-client";
 
 export interface CreateStripeOutboundPaymentParams {
   stripeRecipientId: string;
+  payoutMethodId: string;
   amount: number;
   description: string;
   idempotencyKey: string;
@@ -9,6 +11,7 @@ export interface CreateStripeOutboundPaymentParams {
 
 export async function createStripeOutboundPayment({
   stripeRecipientId,
+  payoutMethodId,
   amount,
   description,
   idempotencyKey,
@@ -35,6 +38,7 @@ export async function createStripeOutboundPayment({
         to: {
           recipient: stripeRecipientId,
           currency: "usdc",
+          payout_method: payoutMethodId,
         },
         amount: {
           value: amount,
@@ -46,7 +50,12 @@ export async function createStripeOutboundPayment({
   );
 
   if (error) {
-    throw new Error(error.message);
+    throw new DubApiError({
+      code: "bad_request",
+      message:
+        error.message ??
+        `Failed to create Stripe outbound payment for recipient ${stripeRecipientId} and amount ${amount} (cents)`,
+    });
   }
 
   return data;

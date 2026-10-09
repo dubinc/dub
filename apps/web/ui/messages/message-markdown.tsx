@@ -17,7 +17,7 @@ export function MessageMarkdown({
   return (
     <ReactMarkdown
       className={cn(
-        "prose prose-sm prose-neutral max-w-none transition-all",
+        "prose prose-sm prose-neutral max-w-none break-words transition-all [overflow-wrap:anywhere]",
         "prose-headings:font-semibold prose-headings:border-b prose-headings:pb-2",
         "prose-h1:text-2xl prose-h1:font-bold prose-h1:mt-8 prose-h1:mb-4",
         "prose-h2:text-xl prose-h2:font-semibold prose-h2:mt-6 prose-h2:mb-3",

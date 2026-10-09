@@ -46,14 +46,6 @@ export const createStripeTransfer = async ({
     },
   });
 
-  // should never happen, but just in case
-  if (!partner.stripeConnectId || !partner.payoutsEnabledAt) {
-    console.warn(
-      `Partner ${partner.email} does not have an active payout account.`,
-    );
-    return;
-  }
-
   const commonInclude: Prisma.PayoutInclude = {
     program: {
       select: {
@@ -107,6 +99,48 @@ export const createStripeTransfer = async ({
     return;
   }
 
+  // should never happen, but just in case
+  if (!partner.stripeConnectId || !partner.payoutsEnabledAt) {
+    await markPayoutsAsProcessed(currentInvoicePayouts);
+    console.warn(
+      `Partner ${partner.email} does not have an active payout account.`,
+    );
+    return;
+  }
+
+  const stripeConnectAccount = await stripe.accounts.retrieve(
+    partner.stripeConnectId,
+  );
+
+  if (
+    !stripeConnectAccount.payouts_enabled ||
+    !stripeConnectAccount.capabilities?.transfers ||
+    stripeConnectAccount.capabilities.transfers === "inactive"
+  ) {
+    await prisma.partner.update({
+      where: {
+        id: partner.id,
+      },
+      data: {
+        payoutsEnabledAt: null,
+        defaultPayoutMethod: null,
+      },
+    });
+
+    console.log(`Updated partner ${partner.email} with payoutsEnabledAt null`);
+
+    await markPayoutsAsProcessed(currentInvoicePayouts);
+
+    const message = `Partner's Stripe Express account (${partner.stripeConnectId}) is not configured to receive transfers`;
+
+    if (forceWithdrawal) {
+      throw new Error(message);
+    } else {
+      console.warn(message);
+      return;
+    }
+  }
+
   // total transferable amount is the sum of all previously processed payouts (but not sent yet) and the current invoice payouts
   const totalTransferableAmount = allPayouts.reduce(
     (acc, payout) => acc + payout.amount,
@@ -156,39 +190,6 @@ export const createStripeTransfer = async ({
   const allPayoutsProgramNames = [
     ...new Set(allPayouts.map((p) => p.program.name)), // deduplicate program names
   ];
-
-  const stripeConnectAccount = await stripe.accounts.retrieve(
-    partner.stripeConnectId,
-  );
-
-  if (
-    !stripeConnectAccount.payouts_enabled ||
-    !stripeConnectAccount.capabilities?.transfers ||
-    stripeConnectAccount.capabilities.transfers === "inactive"
-  ) {
-    await prisma.partner.update({
-      where: {
-        id: partner.id,
-      },
-      data: {
-        payoutsEnabledAt: null,
-        defaultPayoutMethod: null,
-      },
-    });
-
-    console.log(`Updated partner ${partner.email} with payoutsEnabledAt null`);
-
-    await markPayoutsAsProcessed(currentInvoicePayouts);
-
-    const message = `Partner's Stripe Express account (${partner.stripeConnectId}) is not configured to receive transfers`;
-
-    if (forceWithdrawal) {
-      throw new Error(message);
-    } else {
-      console.warn(message);
-      return;
-    }
-  }
 
   // will be used for transfer_group
   const finalPayoutInvoiceId = allPayouts[allPayouts.length - 1].invoiceId;

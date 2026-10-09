@@ -7,6 +7,7 @@ export async function getStripeRecipientAccount(stripeRecipientId: string) {
     },
     query: {
       "include[0]": "configuration.recipient",
+      "include[1]": "requirements",
     },
   });
 

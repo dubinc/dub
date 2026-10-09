@@ -57,17 +57,12 @@ ProgramSheetAccordionTrigger.displayName = "ProgramSheetAccordionTrigger";
 
 const ProgramSheetAccordionContent = React.forwardRef<
   React.ElementRef<typeof AccordionContent>,
-  React.ComponentPropsWithoutRef<typeof AccordionContent>
->(({ className, children, ...props }, ref) => (
-  <AnimatedSizeContainer
-    height
-    transition={{
-      type: "spring",
-      stiffness: 300,
-      damping: 30,
-      mass: 0.8,
-    }}
-  >
+  React.ComponentPropsWithoutRef<typeof AccordionContent> & {
+    // Turn off for content that animates its own height, so the two animations don't fight
+    animateHeight?: boolean;
+  }
+>(({ className, children, animateHeight = true, ...props }, ref) => {
+  const content = (
     <AccordionContent
       ref={ref}
       className={cn(
@@ -79,8 +74,26 @@ const ProgramSheetAccordionContent = React.forwardRef<
     >
       {children}
     </AccordionContent>
-  </AnimatedSizeContainer>
-));
+  );
+
+  if (!animateHeight) {
+    return content;
+  }
+
+  return (
+    <AnimatedSizeContainer
+      height
+      transition={{
+        type: "spring",
+        stiffness: 300,
+        damping: 30,
+        mass: 0.8,
+      }}
+    >
+      {content}
+    </AnimatedSizeContainer>
+  );
+});
 ProgramSheetAccordionContent.displayName = "ProgramSheetAccordionContent";
 
 export {

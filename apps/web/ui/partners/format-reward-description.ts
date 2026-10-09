@@ -4,14 +4,26 @@ import {
   PARTNER_REFERRAL_PERCENTAGE_TRIGGERS,
   PartnerReferralPercentageTrigger,
 } from "@/lib/partner-referrals/constants";
+import { getSpendLimitDescriptionParts } from "@/lib/rewards/reward-spend-limit";
 import { RewardProps } from "@/lib/types";
 import { referralRewardConfigSchema } from "@/lib/zod/schemas/rewards";
 import { currencyFormatter } from "@dub/utils";
 import { RewardSpendLimitInterval } from "@prisma/client";
-import { getSpendLimitDescriptionParts } from "./program-reward-spend-limit";
+import { formatCustomRewardDescription } from "./custom-reward-description";
 
 export function formatRewardDescription(
-  reward: RewardProps,
+  reward: Pick<
+    RewardProps,
+    | "description"
+    | "event"
+    | "type"
+    | "amountInCents"
+    | "amountInPercentage"
+    | "maxDuration"
+    | "config"
+    | "spendLimitAmount"
+    | "spendLimitInterval"
+  >,
   { includeEarnPrefix = true }: { includeEarnPrefix?: boolean } = {},
 ) {
   if (reward.description) {
@@ -20,6 +32,10 @@ export function formatRewardDescription(
 
   if (reward.event === "referral") {
     return formatReferralRewardDescription(reward, { includeEarnPrefix });
+  }
+
+  if (reward.event === "custom") {
+    return formatCustomRewardDescription(reward, { includeEarnPrefix });
   }
 
   const rewardAmount = constructRewardAmount(reward);
@@ -62,7 +78,10 @@ export function formatRewardDescription(
 }
 
 function formatReferralRewardDescription(
-  reward: RewardProps,
+  reward: Pick<
+    RewardProps,
+    "type" | "amountInCents" | "amountInPercentage" | "maxDuration" | "config"
+  >,
   { includeEarnPrefix }: { includeEarnPrefix: boolean },
 ) {
   const rewardAmount = constructRewardAmount(reward);

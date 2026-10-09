@@ -21,14 +21,14 @@ export const QueryLinkStructureHelpText = ({
         href={link.url}
         target="_blank"
         rel="noopener noreferrer"
-        className="cursor-alias text-neutral-700 decoration-dotted underline-offset-2 hover:underline"
+        className="cursor-alias font-medium text-neutral-700 decoration-dotted underline-offset-2 hover:underline"
       >
         {getDomainWithoutWWW(link.url)}
       </a>{" "}
       by adding{" "}
       <CopyText
         value={appendValue}
-        className="font-mono text-xs text-neutral-700"
+        className="font-mono text-xs font-medium text-neutral-700"
       >
         {appendValue}
       </CopyText>{" "}

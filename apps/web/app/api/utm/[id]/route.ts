@@ -1,14 +1,10 @@
 import { DubApiError } from "@/lib/api/errors";
 import { extractUtmParams } from "@/lib/api/utm/extract-utm-params";
 import { withWorkspace } from "@/lib/auth";
-import { qstash } from "@/lib/cron";
+import { syncGroupUtmJob } from "@/lib/jobs/handlers/sync-group-utm-job";
 import { prisma } from "@/lib/prisma";
 import { updateUTMTemplateBodySchema } from "@/lib/zod/schemas/utm";
-import {
-  APP_DOMAIN_WITH_NGROK,
-  constructURLFromUTMParams,
-  deepEqual,
-} from "@dub/utils";
+import { constructURLFromUTMParams, deepEqual } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
@@ -96,15 +92,9 @@ export const PATCH = withWorkspace(
               }
             }
 
-            const res = await qstash.publishJSON({
-              url: `${APP_DOMAIN_WITH_NGROK}/api/cron/groups/sync-utm`,
-              body: {
-                groupId: partnerGroup.id,
-              },
+            await syncGroupUtmJob.dispatch({
+              groupId: partnerGroup.id,
             });
-            console.log(
-              `Scheduled sync-utm job for template ${template.id}: ${JSON.stringify(res, null, 2)}`,
-            );
           })(),
         );
       }

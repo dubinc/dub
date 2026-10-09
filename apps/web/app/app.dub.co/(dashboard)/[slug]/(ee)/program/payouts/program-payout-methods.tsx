@@ -140,7 +140,7 @@ export function ProgramPayoutMethods() {
         {program?.payoutMode !== "internal" && <ExternalPayoutMethods />}
 
         {!paymentMethodsLoading && displayPaymentMethods.length === 0 && (
-          <div className="flex flex-col items-center justify-center rounded-lg bg-neutral-50 py-6">
+          <div className="flex flex-col items-center justify-center rounded-xl bg-neutral-100 py-6">
             <MoneyBill className="mb-2 size-6 text-neutral-900" />
             <h3 className="text-content-emphasis text-xs font-semibold leading-4">
               No payout methods

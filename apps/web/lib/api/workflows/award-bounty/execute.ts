@@ -25,6 +25,7 @@ const terminalStatusReason: Record<
   string
 > = {
   submitted: "finished",
+  partiallyApproved: "been partially awarded",
   approved: "been awarded",
   rejected: "been rejected",
 };
