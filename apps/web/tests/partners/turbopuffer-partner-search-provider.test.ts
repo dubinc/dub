@@ -25,6 +25,7 @@ const document: PartnerSearchDocument = {
   groupId: "grp_test",
   country: "US",
   partnerTagIds: ["ptag_a", "ptag_b"],
+  tenantId: null,
 };
 
 const mocks = vi.hoisted(() => ({

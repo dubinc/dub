@@ -38,6 +38,7 @@ export async function queueExternalPayouts(
       slug: true,
       logo: true,
       supportEmail: true,
+      environment: true,
     },
   });
 
@@ -136,6 +137,7 @@ export async function queueExternalPayouts(
           id: program.id,
           name: program.name,
           logo: program.logo,
+          environment: program.environment,
         },
         payout: {
           id: payout.id,

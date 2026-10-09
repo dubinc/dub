@@ -1,0 +1,236 @@
+import { prisma } from "@/lib/prisma";
+import {
+  getPreferredStagingSlug,
+  isSlugUniqueConstraintError,
+} from "@/lib/sandbox/staging-slug";
+import { Project } from "@prisma/client";
+import * as z from "zod/v4";
+import { defineJob } from "../index";
+
+const syncStagingWorkspaceJobSchema = z.discriminatedUnion("action", [
+  z.object({
+    action: z.literal("add-member"),
+    workspaceId: z.string(),
+    userId: z.string(),
+  }),
+  z.object({
+    action: z.literal("update-member-role"),
+    workspaceId: z.string(),
+    userId: z.string(),
+  }),
+  z.object({
+    action: z.literal("remove-member"),
+    workspaceId: z.string(),
+    userId: z.string(),
+  }),
+  z.object({
+    action: z.literal("sync-workspace"),
+    workspaceId: z.string(),
+  }),
+]);
+
+type ProductionWorkspace = Pick<
+  Project,
+  | "id"
+  | "stagingWorkspaceId"
+  | "name"
+  | "slug"
+  | "logo"
+  | "plan"
+  | "planTier"
+  | "planPeriod"
+  | "stagingWorkspaceId"
+>;
+
+export const syncStagingWorkspaceJob = defineJob({
+  name: "sync-staging-workspace-job",
+  schema: syncStagingWorkspaceJobSchema,
+  defaults: {
+    retries: 3,
+  },
+  async handle(payload) {
+    const workspace = await prisma.project.findUnique({
+      where: {
+        id: payload.workspaceId,
+      },
+      select: {
+        id: true,
+        stagingWorkspaceId: true,
+        name: true,
+        slug: true,
+        logo: true,
+        plan: true,
+        planTier: true,
+        planPeriod: true,
+      },
+    });
+
+    if (!workspace?.stagingWorkspaceId) {
+      return;
+    }
+
+    switch (payload.action) {
+      case "add-member":
+      case "update-member-role":
+      case "remove-member":
+        await syncMember({
+          workspace,
+          userId: payload.userId,
+        });
+        break;
+
+      case "sync-workspace":
+        await syncWorkspace({ workspace });
+        break;
+    }
+  },
+});
+
+async function syncMember({
+  workspace,
+  userId,
+}: {
+  workspace: ProductionWorkspace;
+  userId: string;
+}) {
+  if (!workspace.stagingWorkspaceId) {
+    return;
+  }
+
+  const member = await prisma.projectUsers.findUnique({
+    where: {
+      userId_projectId: {
+        userId,
+        projectId: workspace.id,
+      },
+    },
+    select: {
+      role: true,
+      user: {
+        select: {
+          isMachine: true,
+        },
+      },
+    },
+  });
+
+  // We don't sync the machine user from the production workspace to the staging workspace
+  if (member?.user.isMachine) {
+    return;
+  }
+
+  if (member) {
+    await prisma.projectUsers.upsert({
+      where: {
+        userId_projectId: {
+          userId,
+          projectId: workspace.stagingWorkspaceId,
+        },
+      },
+      create: {
+        projectId: workspace.stagingWorkspaceId,
+        userId,
+        role: member.role,
+        notificationPreference: {
+          create: {},
+        },
+      },
+      update: {
+        role: member.role,
+      },
+    });
+    return;
+  }
+
+  const user = await prisma.user.findUnique({
+    where: {
+      id: userId,
+    },
+    select: {
+      isMachine: true,
+    },
+  });
+
+  if (!user || user.isMachine) {
+    return;
+  }
+
+  await Promise.all([
+    prisma.projectUsers.deleteMany({
+      where: {
+        userId,
+        projectId: workspace.stagingWorkspaceId,
+      },
+    }),
+
+    prisma.restrictedToken.deleteMany({
+      where: {
+        projectId: workspace.stagingWorkspaceId,
+        userId,
+      },
+    }),
+  ]);
+}
+
+async function syncWorkspace({
+  workspace,
+}: {
+  workspace: ProductionWorkspace;
+}) {
+  if (!workspace.stagingWorkspaceId) {
+    return;
+  }
+
+  const preferredSlug = getPreferredStagingSlug(workspace.slug);
+
+  // `{slug}-staging` may belong to another workspace, in which case the staging
+  // workspace keeps its current (suffixed) slug. A concurrent claim between
+  // this check and the update is handled the same way.
+  const slugOwner = await prisma.project.findUnique({
+    where: {
+      slug: preferredSlug,
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  const canUsePreferredSlug =
+    !slugOwner || slugOwner.id === workspace.stagingWorkspaceId;
+
+  const data: Pick<
+    Project,
+    "logo" | "name" | "plan" | "planTier" | "planPeriod"
+  > = {
+    logo: workspace.logo,
+    name: `${workspace.name} (Staging)`,
+    plan: workspace.plan,
+    planTier: workspace.planTier,
+    planPeriod: workspace.planPeriod,
+  };
+
+  try {
+    await prisma.project.update({
+      where: {
+        id: workspace.stagingWorkspaceId,
+      },
+      data: {
+        ...data,
+        ...(canUsePreferredSlug && { slug: preferredSlug }),
+      },
+    });
+  } catch (error) {
+    // Another workspace claimed `{slug}-staging` after the ownership check.
+    // Keep the current slug and still apply plan and branding.
+    if (!canUsePreferredSlug || !isSlugUniqueConstraintError(error)) {
+      throw error;
+    }
+
+    await prisma.project.update({
+      where: {
+        id: workspace.stagingWorkspaceId,
+      },
+      data,
+    });
+  }
+}

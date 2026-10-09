@@ -1,5 +1,7 @@
 "use client";
 
+import { WorkspaceEnvironmentSwitcher } from "@/lib/sandbox/components/workspace-environment";
+import { isStagingEnvironment } from "@/lib/sandbox/environment";
 import useWorkspaceUsers from "@/lib/swr/use-workspace-users";
 import useWorkspaces from "@/lib/swr/use-workspaces";
 import { PlanProps, WorkspaceProps } from "@/lib/types";
@@ -16,7 +18,7 @@ import { useCallback, useContext, useEffect, useMemo, useState } from "react";
 export function WorkspaceDropdown() {
   const { workspaces } = useWorkspaces();
   const { data: session, status } = useSession();
-  const { slug: currentSlug, key } = useParams() as {
+  const { slug: currentSlug } = useParams() as {
     slug?: string;
     key?: string;
   };
@@ -153,6 +155,13 @@ function WorkspaceList({
     [link, programId, pathname, selected.slug],
   );
 
+  const current = workspaces.find((w) => w.slug === selected.slug);
+  const activeSlug =
+    current && isStagingEnvironment(current.environment)
+      ? workspaces.find((w) => w.stagingWorkspaceId === current.id)?.slug ??
+        selected.slug
+      : selected.slug;
+
   return (
     <div className="w-xs relative w-full rounded-xl bg-white text-base sm:w-72 sm:text-sm">
       {/* Current workspace section */}
@@ -208,7 +217,7 @@ function WorkspaceList({
             <Gear className="size-4 text-neutral-800" />
             <span className="block truncate text-sm">Settings</span>
           </Link>
-          {selected.slug && (
+          {selected.slug && !isStagingEnvironment(current?.environment) && (
             <Link
               href={`/${selected.slug}/settings/people`}
               className="flex items-center justify-start gap-x-2 rounded-lg border border-neutral-200 px-2 py-1 text-neutral-700 outline-none transition-all duration-75 hover:bg-neutral-100/50 focus-visible:ring-2 focus-visible:ring-black/50 active:bg-neutral-200/80"
@@ -219,6 +228,13 @@ function WorkspaceList({
             </Link>
           )}
         </div>
+
+        <WorkspaceEnvironmentSwitcher
+          href={href}
+          onNavigate={() => setOpenPopover(false)}
+          workspaces={workspaces}
+          selectedWorkspace={selected}
+        />
       </div>
 
       {/* Workspaces section */}
@@ -228,51 +244,55 @@ function WorkspaceList({
             Workspaces
           </p>
           <div className="flex flex-col gap-0.5">
-            {workspaces.map(({ id, name, slug, logo, disabledAt }) => {
-              const isActive = selected.slug === slug;
-              return (
-                <Link
-                  key={slug}
-                  className={cn(
-                    "flex w-full items-center gap-x-2 rounded-md px-2 py-2 transition-all duration-75",
-                    "hover:bg-neutral-200/50 active:bg-neutral-200/80",
-                    "outline-none focus-visible:ring-2 focus-visible:ring-black/50",
-                    isActive && "bg-neutral-200/50",
-                  )}
-                  href={href(slug)}
-                  shallow={false}
-                  onClick={() => setOpenPopover(false)}
-                >
-                  <BlurImage
-                    src={logo || `https://avatar.vercel.sh/${id}`}
-                    width={28}
-                    height={28}
-                    alt={id}
-                    className="size-5 shrink-0 overflow-hidden rounded-full"
-                    draggable={false}
-                  />
-                  <span className="min-w-0 flex-1 truncate text-base leading-5 text-neutral-900 sm:text-sm">
-                    {name}
-                  </span>
-                  {disabledAt && (
-                    <StatusBadge
-                      variant="neutral"
-                      size="sm"
-                      icon={null}
-                      className="shrink-0"
-                    >
-                      Disabled
-                    </StatusBadge>
-                  )}
-                  {isActive ? (
-                    <Check2
-                      className="size-4 shrink-0 text-black"
-                      aria-hidden="true"
+            {workspaces
+              .filter(
+                (workspace) => !isStagingEnvironment(workspace.environment),
+              )
+              .map(({ id, name, slug, logo, disabledAt }) => {
+                const isActive = activeSlug === slug;
+                return (
+                  <Link
+                    key={slug}
+                    className={cn(
+                      "flex w-full items-center gap-x-2 rounded-md px-2 py-2 transition-all duration-75",
+                      "hover:bg-neutral-200/50 active:bg-neutral-200/80",
+                      "outline-none focus-visible:ring-2 focus-visible:ring-black/50",
+                      isActive && "bg-neutral-200/50",
+                    )}
+                    href={href(slug)}
+                    shallow={false}
+                    onClick={() => setOpenPopover(false)}
+                  >
+                    <BlurImage
+                      src={logo || `https://avatar.vercel.sh/${id}`}
+                      width={28}
+                      height={28}
+                      alt={id}
+                      className="size-5 shrink-0 overflow-hidden rounded-full"
+                      draggable={false}
                     />
-                  ) : null}
-                </Link>
-              );
-            })}
+                    <span className="min-w-0 flex-1 truncate text-base leading-5 text-neutral-900 sm:text-sm">
+                      {name}
+                    </span>
+                    {disabledAt && (
+                      <StatusBadge
+                        variant="neutral"
+                        size="sm"
+                        icon={null}
+                        className="shrink-0"
+                      >
+                        Disabled
+                      </StatusBadge>
+                    )}
+                    {isActive ? (
+                      <Check2
+                        className="size-4 shrink-0 text-black"
+                        aria-hidden="true"
+                      />
+                    ) : null}
+                  </Link>
+                );
+              })}
             <button
               key="add"
               onClick={() => {
