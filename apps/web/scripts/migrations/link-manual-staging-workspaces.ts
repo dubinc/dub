@@ -1,3 +1,4 @@
+import { planHasPartnerAccess } from "@/lib/plans/has-partner-access";
 import { prisma } from "@/lib/prisma";
 import { TRIAL_LIMITS } from "@dub/utils";
 import { Project, WorkspaceEnvironment } from "@prisma/client";
@@ -95,6 +96,20 @@ async function main() {
   });
 
   console.table(programsToSync);
+
+  // Staging programs whose production plan has no partner access get deactivated
+  const programsToDeactivate = programsToSync.filter(({ workspaceId }) => {
+    const pair = workspacePairs.find(
+      ({ stagingWorkspaceId }) => stagingWorkspaceId === workspaceId,
+    );
+
+    return pair && !planHasPartnerAccess(pair.productionPlan);
+  });
+
+  console.log(
+    "Staging programs to deactivate:",
+    programsToDeactivate.map(({ slug }) => slug),
+  );
 
   if (DRY_RUN) {
     return;
@@ -201,6 +216,36 @@ async function linkStagingWorkspace({
         environment: WorkspaceEnvironment.staging,
       },
     });
+
+    // Match deactivateProgram's database changes when production has no partner access.
+    // Partner enrollments are left as they are, because that part runs in a cron job.
+    if (!planHasPartnerAccess(productionWorkspace.plan)) {
+      await tx.program.updateMany({
+        where: {
+          workspaceId: stagingWorkspaceId,
+          deactivatedAt: null,
+        },
+        data: {
+          deactivatedAt: new Date(),
+          messagingEnabledAt: null,
+          addedToMarketplaceAt: null,
+          featuredOnMarketplaceAt: null,
+        },
+      });
+
+      await tx.partnerGroup.updateMany({
+        where: {
+          program: {
+            workspaceId: stagingWorkspaceId,
+          },
+        },
+        data: {
+          applicationFormPublishedAt: null,
+          landerPublishedAt: null,
+          autoApprovePartnersEnabledAt: null,
+        },
+      });
+    }
   });
 }
 
