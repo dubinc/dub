@@ -30,6 +30,12 @@ export const OAUTH_SCOPES = [
   "webhooks.write",
   "folders.read",
   "folders.write",
+  "groups.read",
+  "groups.write",
+  "partners.read",
+  "partners.write",
+  "program_applications.read",
+  "program_applications.write",
   "user.read", // default scope, no need to request it
 ];
 
@@ -47,4 +53,10 @@ export const OAUTH_SCOPE_DESCRIPTIONS = {
   "webhooks.write": "Read and Write access to webhooks",
   "folders.read": "Read access to folders",
   "folders.write": "Read and Write access to folders",
+  "groups.read": "Read access to groups",
+  "groups.write": "Read and Write access to groups",
+  "partners.read": "Read access to partners",
+  "partners.write": "Read and Write access to partners",
+  "program_applications.read": "Read access to program applications",
+  "program_applications.write": "Read and Write access to program applications",
 };

@@ -2,6 +2,25 @@ import { WorkspaceRole } from "@prisma/client";
 import { PermissionAction } from "../rbac/permissions";
 import { ResourceKey } from "../rbac/resources";
 
+// Scopes introduced after API keys already existed. A key or OAuth installation
+// created before `enforcedAt` keeps these permissions without selecting the scope.
+// Keep permissions that share a cutoff in one entry. Add a new entry when a
+// scope needs a different cutoff.
+export const LEGACY_SCOPE_GRANTS: {
+  enforcedAt: Date;
+  permissions: readonly PermissionAction[];
+}[] = [
+  {
+    enforcedAt: new Date("2026-10-09T00:00:00.000Z"),
+    permissions: [
+      "partners.read",
+      "partners.write",
+      "program_applications.read",
+      "program_applications.write",
+    ],
+  },
+];
+
 export const SCOPES = [
   "links.read",
   "links.write",
@@ -18,6 +37,10 @@ export const SCOPES = [
   "webhooks.write",
   "groups.read",
   "groups.write",
+  "partners.read",
+  "partners.write",
+  "program_applications.read",
+  "program_applications.write",
   "apis.all", // All API scopes
   "apis.read", // All read scopes
 ] as const;
@@ -25,7 +48,7 @@ export const SCOPES = [
 export type Scope = (typeof SCOPES)[number];
 
 // Scopes available for Workspace API keys
-export const RESOURCE_SCOPES: {
+const RESOURCE_SCOPES: {
   scope: Scope;
   roles: WorkspaceRole[];
   permissions: PermissionAction[];
@@ -103,6 +126,34 @@ export const RESOURCE_SCOPES: {
     resource: "groups",
   },
   {
+    scope: "partners.read",
+    roles: ["owner", "member", "viewer", "billing"],
+    permissions: ["partners.read"],
+    type: "read",
+    resource: "partners",
+  },
+  {
+    scope: "partners.write",
+    roles: ["owner", "member"],
+    permissions: ["partners.write", "partners.read"],
+    type: "write",
+    resource: "partners",
+  },
+  {
+    scope: "program_applications.read",
+    roles: ["owner", "member", "viewer", "billing"],
+    permissions: ["program_applications.read"],
+    type: "read",
+    resource: "program_applications",
+  },
+  {
+    scope: "program_applications.write",
+    roles: ["owner", "member"],
+    permissions: ["program_applications.write", "program_applications.read"],
+    type: "write",
+    resource: "program_applications",
+  },
+  {
     scope: "workspaces.read",
     roles: ["owner", "member", "viewer", "billing"],
     permissions: ["workspaces.read"],
@@ -148,6 +199,8 @@ export const RESOURCE_SCOPES: {
       "workspaces.read",
       "analytics.read",
       "groups.read",
+      "partners.read",
+      "program_applications.read",
     ],
   },
   {
@@ -167,36 +220,22 @@ export const RESOURCE_SCOPES: {
       "analytics.read",
       "groups.read",
       "groups.write",
+      "partners.read",
+      "partners.write",
+      "program_applications.read",
+      "program_applications.write",
     ],
   },
 ];
 
-export const SCOPES_BY_RESOURCE = RESOURCE_SCOPES.reduce((acc, scope) => {
-  if (!scope.resource || !scope.type) {
-    return acc;
-  }
-
-  if (!acc[scope.resource]) {
-    acc[scope.resource] = [];
-  }
-
-  acc[scope.resource].push({
-    scope: scope.scope,
-    type: scope.type,
-    roles: scope.roles,
-  });
-
-  return acc;
-}, {});
-
 // Scope to permissions mapping
-export const SCOPE_PERMISSIONS_MAP = RESOURCE_SCOPES.reduce((acc, scope) => {
+const SCOPE_PERMISSIONS_MAP = RESOURCE_SCOPES.reduce((acc, scope) => {
   acc[scope.scope] = scope.permissions;
   return acc;
 }, {});
 
 // WorkspaceRole to scopes mapping
-export const ROLE_SCOPES_MAP = RESOURCE_SCOPES.reduce((acc, scope) => {
+const ROLE_SCOPES_MAP = RESOURCE_SCOPES.reduce((acc, scope) => {
   scope.roles.forEach((role) => {
     if (!acc[role]) {
       acc[role] = [];
@@ -219,6 +258,31 @@ export const mapScopesToPermissions = (scopes: Scope[]) => {
   });
 
   return permissions;
+};
+
+// Grants scopes from LEGACY_SCOPE_GRANTS when the key or installation predates
+// that scope. A missing date is treated as legacy so cached tokens from before
+// this field existed keep working.
+export const grantLegacyScopePermissions = ({
+  permissions,
+  createdAt,
+}: {
+  permissions: PermissionAction[];
+  createdAt?: Date | string | null;
+}): PermissionAction[] => {
+  const createdAtMs = createdAt == null ? null : new Date(createdAt).getTime();
+
+  const legacyPermissions = LEGACY_SCOPE_GRANTS.flatMap((grant) =>
+    createdAtMs != null && createdAtMs >= grant.enforcedAt.getTime()
+      ? []
+      : grant.permissions,
+  );
+
+  if (legacyPermissions.length === 0) {
+    return permissions;
+  }
+
+  return [...new Set<PermissionAction>([...permissions, ...legacyPermissions])];
 };
 
 // Get SCOPES_BY_RESOURCE based on user role in a workspace
@@ -293,12 +357,12 @@ export const validateScopesForRole = (scopes: Scope[], role: WorkspaceRole) => {
 };
 
 // Get the scopes for a role
-export const getScopesForRole = (role: WorkspaceRole) => {
+const getScopesForRole = (role: WorkspaceRole) => {
   return ROLE_SCOPES_MAP[role];
 };
 
 // Consolidate scopes to avoid duplication and show only the most permissive scope
-export const consolidateScopes = (scopes: string[]) => {
+const consolidateScopes = (scopes: string[]) => {
   const consolidated = new Set();
 
   scopes.forEach((scope) => {

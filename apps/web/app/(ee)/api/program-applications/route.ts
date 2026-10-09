@@ -32,6 +32,7 @@ export const GET = withWorkspace(
     return NextResponse.json(response);
   },
   {
+    requiredPermissions: ["program_applications.read"],
     requiredPlan: ["business", "advanced", "enterprise"],
   },
 );

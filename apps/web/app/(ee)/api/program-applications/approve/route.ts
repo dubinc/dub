@@ -28,7 +28,7 @@ export const POST = withWorkspace(
     });
   },
   {
+    requiredPermissions: ["program_applications.write"],
     requiredPlan: ["business", "advanced", "enterprise"],
-    requiredRoles: ["owner", "member"],
   },
 );
