@@ -206,6 +206,8 @@ test.describe("GET /partner-profile/programs", () => {
       );
 
       // the discount is in the response only when the API includes it
+      expect(withRewards.length).toBeGreaterThan(0);
+      expect(withoutRewards.length).toBeGreaterThan(0);
       expect(withRewards.every((e) => "discount" in e)).toBe(true);
       expect(withoutRewards.some((e) => "discount" in e)).toBe(false);
       expect(status).toEqual(422);
