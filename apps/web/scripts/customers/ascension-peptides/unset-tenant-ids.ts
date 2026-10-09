@@ -1,4 +1,7 @@
+import { includeProgramEnrollment } from "@/lib/api/links/include-program-enrollment";
+import { includeTags } from "@/lib/api/links/include-tags";
 import { prisma } from "@/lib/prisma";
+import { recordLink } from "@/lib/tinybird/record-link";
 import "dotenv-flow/config";
 
 const DRY_RUN = true;
@@ -44,13 +47,31 @@ async function main() {
         data: { tenantId: null },
       }),
       prisma.link.updateMany({
-        where: { programId, partnerId: { in: batch } },
+        where: { programId, partnerId: { in: batch }, tenantId: { not: null } },
         data: { tenantId: null },
       }),
     ]);
 
     enrollmentsUpdated += enrollments.count;
     linksUpdated += links.count;
+
+    // tags and programEnrollment are required, otherwise recordLink overwrites
+    // tag_ids, partner_group_id and partner_tag_ids in Tinybird with empty values
+    const updatedLinks = await prisma.link.findMany({
+      where: { programId, partnerId: { in: batch } },
+      include: { ...includeTags, ...includeProgramEnrollment },
+    });
+
+    if (updatedLinks.length > 0) {
+      try {
+        await recordLink(updatedLinks);
+      } catch (error) {
+        console.error(
+          `Failed to record ${updatedLinks.length} links in Tinybird for partners: ${batch.join(", ")}`,
+          error,
+        );
+      }
+    }
 
     console.log(
       `Cleared tenantId on ${enrollmentsUpdated} partners and ${linksUpdated} links so far.`,
