@@ -26,13 +26,11 @@ const PAYOUT_METHOD_LABELS: Record<PartnerPayoutMethod, string> = {
 // Send this email when the payout is confirmed when payment is send using ACH
 export default function PartnerPayoutConfirmed({
   email = "panic@thedis.co",
-  workspace = {
-    environment: "production",
-  },
   program = {
     id: "prog_CYCu7IMAapjkRpTnr8F1azjN",
     name: "Acme",
     logo: DUB_WORDMARK,
+    environment: "production",
   },
   payout = {
     id: "po_8VuCr2i7WnG65d4TNgZO19fT",
@@ -46,13 +44,11 @@ export default function PartnerPayoutConfirmed({
   },
 }: {
   email: string;
-  workspace?: {
-    environment: WorkspaceEnvironment;
-  };
   program: {
     id: string;
     name: string;
     logo: string | null;
+    environment?: WorkspaceEnvironment;
   };
   payout: {
     id: string;
@@ -105,7 +101,7 @@ export default function PartnerPayoutConfirmed({
       <Tailwind>
         <Body className="mx-auto my-auto bg-white font-sans">
           <Container className="mx-auto my-10 max-w-[600px] rounded border border-solid border-neutral-200 px-10 py-5">
-            <EnvironmentBanner environment={workspace.environment} />
+            <EnvironmentBanner environment={program.environment} />
             <Section className="mt-8">
               <Img
                 src={program.logo || "https://assets.dub.co/wordmark.png"}

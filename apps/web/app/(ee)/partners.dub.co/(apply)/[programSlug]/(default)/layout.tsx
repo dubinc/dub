@@ -35,7 +35,7 @@ export async function generateMetadata(props: {
     } by referring ${program.name} to your friends and followers.`,
     image: `${APP_DOMAIN}/api/og/program?slug=${program.slug}${groupSlug ? `&groupSlug=${groupSlug}` : ""}`,
     canonicalUrl: `${PARTNERS_DOMAIN}/${program.slug}`,
-    noIndex: !isProductionEnvironment(program.workspace.environment),
+    noIndex: !isProductionEnvironment(program.environment),
   });
 }
 

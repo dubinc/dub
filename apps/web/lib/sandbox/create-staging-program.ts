@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { Prisma } from "@prisma/client";
+import { Prisma, WorkspaceEnvironment } from "@prisma/client";
 import { createId } from "../api/create-id";
 import { getPlanCapabilities } from "../plan-capabilities";
 import { DEFAULT_PARTNER_GROUP } from "../zod/schemas/groups";
@@ -195,6 +195,7 @@ export async function createStagingProgram(workspaceId: string) {
           termsUrl: program.termsUrl,
           helpUrl: program.helpUrl,
           supportEmail: program.supportEmail,
+          environment: WorkspaceEnvironment.staging,
         },
       });
 

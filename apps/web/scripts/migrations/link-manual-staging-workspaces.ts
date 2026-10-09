@@ -73,6 +73,25 @@ async function main() {
 
   console.table(workspacePairs);
 
+  const programsToSync = await prisma.program.findMany({
+    where: {
+      workspaceId: {
+        in: workspacePairs.map(({ stagingWorkspaceId }) => stagingWorkspaceId),
+      },
+      environment: {
+        not: WorkspaceEnvironment.staging,
+      },
+    },
+    select: {
+      id: true,
+      slug: true,
+      workspaceId: true,
+      environment: true,
+    },
+  });
+
+  console.table(programsToSync);
+
   if (DRY_RUN) {
     return;
   }
@@ -92,7 +111,7 @@ async function main() {
   }
 }
 
-// Point the production workspace at the manual staging workspace and mark it as staging.
+// Point the production workspace at the manual staging workspace and mark it (and its programs) as staging.
 async function linkStagingWorkspace({
   productionWorkspaceId,
   productionSlug,
@@ -152,6 +171,18 @@ async function linkStagingWorkspace({
         `${stagingSlug} is a sandbox workspace or has its own staging workspace.`,
       );
     }
+
+    await tx.program.updateMany({
+      where: {
+        workspaceId: stagingWorkspaceId,
+        environment: {
+          not: WorkspaceEnvironment.staging,
+        },
+      },
+      data: {
+        environment: WorkspaceEnvironment.staging,
+      },
+    });
   });
 }
 

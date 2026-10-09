@@ -20,9 +20,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   if (PARTNERS_HOSTNAMES.has(domain)) {
     const programs = await prisma.program.findMany({
       where: {
-        workspace: {
-          environment: WorkspaceEnvironment.production,
-        },
+        environment: WorkspaceEnvironment.production,
         groups: {
           some: {
             slug: "default",

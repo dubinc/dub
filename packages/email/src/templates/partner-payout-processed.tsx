@@ -24,12 +24,10 @@ import {
 
 export default function PartnerPayoutProcessed({
   email = "panic@thedis.co",
-  workspace = {
-    environment: "production",
-  },
   program = {
     name: "Acme",
     logo: DUB_WORDMARK,
+    environment: "production",
   },
   payout = {
     id: "po_8VuCr2i7WnG65d4TNgZO19fT",
@@ -40,12 +38,10 @@ export default function PartnerPayoutProcessed({
   },
 }: {
   email: string;
-  workspace?: {
-    environment: WorkspaceEnvironment;
-  };
   program: {
     name: string;
     logo: string | null;
+    environment?: WorkspaceEnvironment;
   };
   payout: {
     id: string;
@@ -164,7 +160,7 @@ export default function PartnerPayoutProcessed({
       <Tailwind>
         <Body className="mx-auto my-auto bg-white font-sans">
           <Container className="mx-auto my-10 max-w-[600px] rounded border border-solid border-neutral-200 px-10 py-5">
-            <EnvironmentBanner environment={workspace.environment} />
+            <EnvironmentBanner environment={program.environment} />
             <Section className="mt-8">
               <Img
                 src={program.logo || "https://assets.dub.co/wordmark.png"}

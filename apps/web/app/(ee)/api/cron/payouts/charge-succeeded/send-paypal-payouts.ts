@@ -40,9 +40,7 @@ export async function sendPaypalPayouts({
         },
       },
       program: {
-        workspace: {
-          environment: WorkspaceEnvironment.production,
-        },
+        environment: WorkspaceEnvironment.production,
       },
     },
     include: {

@@ -50,6 +50,7 @@ export const createProgram = async ({
     | "webhookEnabled"
     | "invoicePrefix"
     | "stagingWorkspaceId"
+    | "environment"
   >;
   user: Pick<User, "id" | "email">;
   isProgramOnboarding?: boolean;
@@ -152,6 +153,7 @@ export const createProgram = async ({
           supportEmail,
           helpUrl,
           termsUrl,
+          environment: workspace.environment,
           messagingEnabledAt: canMessagePartners ? new Date() : null,
           ...(type &&
             (amountInCents != null || amountInPercentage != null) && {

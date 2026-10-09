@@ -5,9 +5,7 @@ import { cache } from "react";
 export const getProgramSlugs = cache(async () =>
   prisma.program.findMany({
     where: {
-      workspace: {
-        environment: WorkspaceEnvironment.production,
-      },
+      environment: WorkspaceEnvironment.production,
     },
     select: {
       slug: true,

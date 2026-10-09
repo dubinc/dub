@@ -30,15 +30,7 @@ export const POST = withCron(async ({ rawBody }) => {
         invoiceId,
       },
       include: {
-        program: {
-          include: {
-            workspace: {
-              select: {
-                environment: true,
-              },
-            },
-          },
-        },
+        program: true,
         partner: true,
         invoice: true,
       },
@@ -99,11 +91,11 @@ export const POST = withCron(async ({ rawBody }) => {
           replyTo: payout.program.supportEmail || "noreply",
           react: PartnerPayoutConfirmed({
             email: payout.partner.email!,
-            workspace: payout.program.workspace,
             program: {
               id: payout.program.id,
               name: payout.program.name,
               logo: payout.program.logo,
+              environment: payout.program.environment,
             },
             payout: {
               id: payout.id,

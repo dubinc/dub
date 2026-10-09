@@ -92,9 +92,7 @@ export default async function SuccessPage(props: {
     : null;
 
   const hasPartnerProfile = !!enrollmentId || !!application?.partnerId;
-  const isNonProduction = !isProductionEnvironment(
-    program.workspace.environment,
-  );
+  const isNonProduction = !isProductionEnvironment(program.environment);
 
   return (
     <div
@@ -106,7 +104,7 @@ export default async function SuccessPage(props: {
         } as CSSProperties
       }
     >
-      <ProgramEnvironmentBanner environment={program.workspace.environment} />
+      <ProgramEnvironmentBanner environment={program.environment} />
       <ApplyHeader
         group={program.group}
         showLogin={false}
