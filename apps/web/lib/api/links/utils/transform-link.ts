@@ -52,6 +52,9 @@ export const transformLink = (
     lastLeadAt,
     lastConversionAt,
     programEnrollment,
+    // partner-private; returned only by partner-profile link schemas
+    partnerLinkTitle,
+    partnerLinkComments,
     ...rest
   } = link;
 
