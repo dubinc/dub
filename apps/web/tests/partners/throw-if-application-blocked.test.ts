@@ -87,7 +87,7 @@ describe("throwIfApplicationBlocked", () => {
       }
     });
 
-    it("allows with instant timeframe", () => {
+    it("blocks with instant timeframe", () => {
       expect(() =>
         throwIfApplicationBlocked({
           enrollment: enrollment(
@@ -97,7 +97,9 @@ describe("throwIfApplicationBlocked", () => {
           groupId: TARGET_GROUP_ID,
           rejectedAt: subDays(NOW, 1),
         }),
-      ).not.toThrow();
+      ).toThrow(
+        "You have already applied to this program. You cannot apply to this program again.",
+      );
     });
   });
 

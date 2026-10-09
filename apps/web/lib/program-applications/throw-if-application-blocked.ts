@@ -49,8 +49,11 @@ export function throwIfApplicationBlocked({
         );
       }
 
-      // Instant reapplication timeframe will be reapplied immediately, so we don't need to handle it here.
-      return;
+      // An instant rejection deletes the enrollment, so a rejected one should not
+      // exist here. Block it, because the upsert would leave it rejected.
+      throw new Error(
+        "You have already applied to this program. You cannot apply to this program again.",
+      );
     case ProgramEnrollmentStatus.invited:
       throw new Error("You have a pending invitation to join this program.");
     case ProgramEnrollmentStatus.declined:
