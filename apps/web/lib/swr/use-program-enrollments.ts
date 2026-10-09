@@ -11,9 +11,11 @@ export default function useProgramEnrollments(
   const { data: session } = useSession();
   const partnerId = session?.user?.["defaultPartnerId"];
 
-  const { data: programEnrollments, isLoading } = useSWR<
-    ProgramEnrollmentProps[]
-  >(
+  const {
+    data: programEnrollments,
+    isLoading,
+    error,
+  } = useSWR<ProgramEnrollmentProps[]>(
     partnerId &&
       `/api/partner-profile/programs?${new URLSearchParams(
         Object.fromEntries(
@@ -31,5 +33,6 @@ export default function useProgramEnrollments(
   return {
     programEnrollments,
     isLoading,
+    error,
   };
 }

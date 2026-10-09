@@ -13,7 +13,11 @@ export default function useProgramEnrollmentsCount(
   const { data: session } = useSession();
   const partnerId = session?.user?.["defaultPartnerId"];
 
-  const { data: count, isLoading } = useSWR<number>(
+  const {
+    data: count,
+    isLoading,
+    error,
+  } = useSWR<number>(
     partnerId &&
       `/api/partner-profile/programs/count?${new URLSearchParams(
         Object.entries(query).filter(
@@ -29,5 +33,6 @@ export default function useProgramEnrollmentsCount(
   return {
     count,
     isLoading,
+    error,
   };
 }
