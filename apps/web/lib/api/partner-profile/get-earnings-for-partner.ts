@@ -3,17 +3,17 @@ import { generateRandomName } from "@/lib/names";
 import { prisma } from "@/lib/prisma";
 import {
   getPartnerEarningsQuerySchema,
-  PartnerEarningsSchema,
+  PartnerProfileEarningsSchema,
 } from "@/lib/zod/schemas/partner-profile";
 import { CommissionType, Partner } from "@prisma/client";
 import * as z from "zod/v4";
+import { getEarningsProgramFilter } from "./get-earnings-program-id";
 import { obfuscateCustomerEmail } from "./obfuscate-customer-email";
 
 interface GetEarningsForPartnerParams
   extends z.infer<typeof getPartnerEarningsQuerySchema> {
-  programId: string;
   partnerId: string;
-  customerDataSharingEnabledAt: Date | null;
+  programId?: string; // if not provided, earnings across all programs (except the network program) are returned
 }
 
 export async function getEarningsForPartner(
@@ -35,7 +35,6 @@ export async function getEarningsForPartner(
     timezone,
     programId,
     partnerId,
-    customerDataSharingEnabledAt,
   } = params;
 
   const { startDate, endDate } = getStartEndDates({
@@ -50,7 +49,7 @@ export async function getEarningsForPartner(
       earnings: {
         not: 0,
       },
-      programId,
+      programId: getEarningsProgramFilter(programId),
       partnerId,
       status,
       type,
@@ -61,6 +60,12 @@ export async function getEarningsForPartner(
         gte: startDate,
         lte: endDate,
       },
+    },
+    // the response schema drops these fields, so don't load them
+    omit: {
+      metadata: true,
+      userId: true,
+      invoiceId: true,
     },
     include: {
       customer: {
@@ -76,6 +81,19 @@ export async function getEarningsForPartner(
           id: true,
           shortLink: true,
           url: true,
+        },
+      },
+      program: {
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+          logo: true,
+        },
+      },
+      programEnrollment: {
+        select: {
+          customerDataSharingEnabledAt: true,
         },
       },
     },
@@ -107,8 +125,8 @@ export async function getEarningsForPartner(
     });
   }
 
-  return z.array(PartnerEarningsSchema).parse(
-    earnings.map((e) => {
+  return z.array(PartnerProfileEarningsSchema).parse(
+    earnings.map(({ programEnrollment, ...e }) => {
       if (e.type === CommissionType.referral && e.sourcePartnerId) {
         const sourcePartner = sourcePartners.find(
           (p) => p.id === e.sourcePartnerId,
@@ -127,7 +145,7 @@ export async function getEarningsForPartner(
         customer: e.customer
           ? {
               ...e.customer,
-              email: customerDataSharingEnabledAt
+              email: programEnrollment.customerDataSharingEnabledAt
                 ? customerEmail
                 : obfuscateCustomerEmail(customerEmail),
               country: e.customer?.country,

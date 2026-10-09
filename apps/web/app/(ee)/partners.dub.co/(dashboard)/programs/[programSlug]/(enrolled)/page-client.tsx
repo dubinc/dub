@@ -922,7 +922,7 @@ function RewardListItem({
       }}
       aria-label={copied ? "Copied" : "Copy link"}
       className={cn(
-        "-my-0.5 size-9 shrink-0 p-0",
+        "-my-0.5 size-7 shrink-0 p-0",
         copyDisabled
           ? "border-transparent bg-transparent"
           : "hover:bg-neutral-200/60",
@@ -974,7 +974,7 @@ function RewardListItem({
                       "flex items-center",
                     )}
                   >
-                    <LoadingSpinner className="size-4" />
+                    <div className="h-4 w-32 animate-pulse rounded-md bg-neutral-200" />
                   </div>
                 ) : (
                   <Combobox
