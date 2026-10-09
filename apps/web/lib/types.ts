@@ -283,7 +283,8 @@ export type PlanProps = (typeof plans)[number];
 export type BetaFeatures =
   | "analyticsSettingsSiteVisitTracking"
   | "noProrationUpgrade"
-  | "rewardSpendLimit";
+  | "rewardSpendLimit"
+  | "submittedLeads";
 
 export type PartnerBetaFeatures = "postbacks";
 
@@ -579,9 +580,8 @@ export type DiscountCodeProps = z.infer<typeof DiscountCodeSchema>;
 
 export type ProgramProps = Omit<
   z.infer<typeof ProgramSchema>,
-  "referralFormData" | "applicationRequirements"
+  "applicationRequirements"
 > & {
-  referralFormData?: Prisma.JsonValue | null;
   applicationRequirements?: Prisma.JsonValue | null;
 };
 

@@ -1,9 +1,11 @@
 import {
   applyClawbackAndReplacementCommissions,
+  createMissingPartnerCommissions,
   decrementOldLinkStats,
   incrementNewLinkStats,
   loadClawbackPlan,
   loadReattributeEventPlan,
+  ReattributeEventsNotReadyError,
   reingestCustomerEvents,
   transferUnpaidCommissions,
 } from "@/lib/api/customers/reattribute-customer";
@@ -27,9 +29,10 @@ type Input = z.infer<typeof reattributeCustomerWorkflowSchema>;
  * 2. reingest-events: copy events onto the new customer + link
  * 3. increment-new-link-stats
  * 4. transfer-unpaid-commissions
- * 5. load-clawback-plan + optional-clawback
- * 6. delete-old-events
- * 7. decrement-old-link-stats
+ * 5. create-missing-commissions: commission lead/sale events only when neither customer has a lead or sale commission
+ * 6. load-clawback-plan + optional-clawback
+ * 7. delete-old-events
+ * 8. decrement-old-link-stats
  */
 
 // POST /api/workflows/reattribute-customer
@@ -105,6 +108,27 @@ export const { POST } = serve<Input>(
           oldPartnerId: input.oldPartnerId,
         }),
       );
+    });
+
+    await context.run("create-missing-commissions", async () => {
+      try {
+        const commissions = await createMissingPartnerCommissions({
+          oldCustomerId: input.oldCustomerId,
+          newCustomerId: input.newCustomerId,
+          newPartnerId: input.newPartnerId,
+          newLinkId: input.newLinkId,
+          programId: input.programId,
+          plan,
+        });
+
+        return logAndReturn(commissions);
+      } catch (error) {
+        if (error instanceof ReattributeEventsNotReadyError) {
+          throw new WorkflowRetryAfterError(error.message, "10s");
+        }
+
+        throw error;
+      }
     });
 
     if (input.createClawback) {

@@ -1,4 +1,3 @@
-import { SUBMITTED_LEADS_ENABLED_PROGRAM_IDS } from "@/lib/submitted-leads/constants";
 import { CustomerSource } from "@/lib/types";
 import { HUBSPOT_INTEGRATION_ID, STRIPE_INTEGRATION_ID } from "@dub/utils";
 
@@ -13,18 +12,15 @@ export const CUSTOMER_SOURCE_REQUIRED_INTEGRATIONS: Partial<
 
 export function getCustomerSourceAvailability({
   source,
-  programId,
+  submittedLeadsEnabled,
   installedIntegrationIds,
 }: {
   source: string;
-  programId?: string;
+  submittedLeadsEnabled?: boolean;
   installedIntegrationIds?: string[];
 }): { hidden: boolean; missingIntegration?: RequiredIntegration } {
   if (source === "submitted") {
-    return {
-      hidden:
-        !programId || !SUBMITTED_LEADS_ENABLED_PROGRAM_IDS.includes(programId),
-    };
+    return { hidden: !submittedLeadsEnabled };
   }
 
   const requiredIntegration =

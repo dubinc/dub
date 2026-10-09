@@ -6,7 +6,13 @@
     "name": "Tiny Beige Badger",
     "email": "tiny.beige.badger@example.com",
     "avatar": "https://api.dub.co/og/avatar/cus_BH6tDUWc9n0Y2pf55tVbk1hc",
-    "createdAt": "2025-01-14T04:49:23.385Z"
+    "stripeCustomerId": null,
+    "country": null,
+    "sales": null,
+    "saleAmount": null,
+    "createdAt": "2025-01-14T04:49:23.385Z",
+    "firstSaleAt": null,
+    "subscriptionCanceledAt": null
   },
   "click": {
     "id": "GWGrkftJdYlZD2mq",
@@ -20,6 +26,7 @@
     "browser": "Chrome",
     "os": "Mac OS",
     "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36",
+    "trigger": null,
     "referer": "(direct)",
     "refererUrl": "(direct)",
     "qr": false,
@@ -68,6 +75,7 @@
     "clicks": 882,
     "lastClicked": "2025-01-14T04:49:10.000Z",
     "leads": 3632,
+    "conversions": 0,
     "sales": 2811,
     "saleAmount": 290300,
     "createdAt": "2024-09-02T18:49:56.136Z",
@@ -77,5 +85,6 @@
     "testCompletedAt": null,
     "testStartedAt": null
   },
+  "partner": null,
   "metadata": null
 }
