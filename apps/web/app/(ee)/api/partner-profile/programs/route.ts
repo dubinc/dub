@@ -5,9 +5,37 @@ import {
   PartnerProfileProgramEnrollmentSchema,
   partnerProfileProgramsQuerySchema,
 } from "@/lib/zod/schemas/partner-profile";
-import { Reward } from "@prisma/client";
+import { Prisma, Reward } from "@prisma/client";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
+
+// the program columns that ProgramSchema returns. The program also has large
+// JSON columns (inviteEmailData, embedData, resources) that the response drops.
+const PROGRAM_SELECT = {
+  id: true,
+  name: true,
+  slug: true,
+  logo: true,
+  domain: true,
+  url: true,
+  description: true,
+  primaryRewardEvent: true,
+  minPayoutAmount: true,
+  addedToMarketplaceAt: true,
+  messagingEnabledAt: true,
+  partnerNetworkEnabledAt: true,
+  payoutMode: true,
+  defaultFolderId: true,
+  defaultGroupId: true,
+  supportEmail: true,
+  helpUrl: true,
+  termsUrl: true,
+  applicationRequirements: true,
+  createdAt: true,
+  updatedAt: true,
+  startedAt: true,
+  deactivatedAt: true,
+} satisfies Prisma.ProgramSelect;
 
 // GET /api/partner-profile/programs - get all program enrollments for a given partnerId
 export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
@@ -35,13 +63,7 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
         },
       },
       program: {
-        include: {
-          workspace: {
-            select: {
-              plan: true,
-            },
-          },
-        },
+        select: PROGRAM_SELECT,
       },
       application: {
         select: {
