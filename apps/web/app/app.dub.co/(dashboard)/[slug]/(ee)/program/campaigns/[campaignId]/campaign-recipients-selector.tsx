@@ -1,7 +1,7 @@
 "use client";
 
+import { usePartnerTags } from "@/lib/partner-tags/hooks/use-partner-tags";
 import useGroups from "@/lib/swr/use-groups";
-import { usePartnerTags } from "@/lib/swr/use-partner-tags";
 import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
 import { GroupsMultiSelect } from "@/ui/partners/groups/groups-multi-select";
 import { TagsMultiSelect } from "@/ui/partners/tags-multi-select";

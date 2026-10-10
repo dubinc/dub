@@ -1,11 +1,9 @@
 import { parseActionError } from "@/lib/actions/parse-action-errors";
-import { createPartnerTagAction } from "@/lib/actions/partners/tags/create-partner-tag";
-import { deletePartnerTagAction } from "@/lib/actions/partners/tags/delete-partner-tag";
-import { updatePartnerTagAction } from "@/lib/actions/partners/tags/update-partner-tag";
 import { updateProgramPartnerTagsAction } from "@/lib/actions/partners/tags/update-program-partner-tags";
+import { useMutatePartnerTag } from "@/lib/partner-tags/hooks/use-mutate-partner-tag";
+import { usePartnerTags } from "@/lib/partner-tags/hooks/use-partner-tags";
+import { usePartnerTagsCount } from "@/lib/partner-tags/hooks/use-partner-tags-count";
 import { mutatePrefix } from "@/lib/swr/mutate";
-import { usePartnerTags } from "@/lib/swr/use-partner-tags";
-import { usePartnerTagsCount } from "@/lib/swr/use-partner-tags-count";
 import usePartnersCount from "@/lib/swr/use-partners-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps, PartnerTagProps } from "@/lib/types";
@@ -29,7 +27,7 @@ import {
   Users,
   useScrollProgress,
 } from "@dub/ui";
-import { cn, OG_AVATAR_URL } from "@dub/utils";
+import { cn, OG_AVATAR_URL, toErrorMessage } from "@dub/utils";
 import { Command } from "cmdk";
 import { useAction } from "next-safe-action/hooks";
 import {
@@ -182,7 +180,7 @@ function UpdatePartnerTagsModalContent({
         toast.success("Partner tags updated successfully!");
         setShowUpdatePartnerTagsModal(false);
         mutatePrefix("/api/partners");
-        mutatePrefix("/api/partners/tags");
+        mutatePrefix("/api/partner-tags");
       },
       onError: ({ error }) => {
         toast.error(parseActionError(error, "Failed to update partner tags"));
@@ -203,6 +201,7 @@ function UpdatePartnerTagsModalContent({
         addTagIds,
         removeTagIds,
       });
+
       return;
     }
 
@@ -210,7 +209,7 @@ function UpdatePartnerTagsModalContent({
       setShowUpdatePartnerTagsModal(false);
       setHasDeletedPartnerTagThisSession(false);
       await mutatePrefix("/api/partners");
-      await mutatePrefix("/api/partners/tags");
+      await mutatePrefix("/api/partner-tags");
       await mutatePrefix("/api/partners/count");
     }
   }, [
@@ -222,22 +221,23 @@ function UpdatePartnerTagsModalContent({
     setShowUpdatePartnerTagsModal,
   ]);
 
-  const { executeAsync: createPartnerTag, isPending: isCreatingPartnerTag } =
-    useAction(createPartnerTagAction, {
-      onSuccess: ({ data }) => {
-        toast.success("Partner tag created successfully!");
-        mutatePrefix("/api/partners/tags");
+  const {
+    create: { mutate: createPartnerTag, isPending: isCreatingPartnerTag },
+  } = useMutatePartnerTag();
 
-        if (data?.partnerTag)
-          setSelectionState((state) => ({
-            ...state,
-            added: [...state.added, data.partnerTag],
-          }));
-      },
-      onError: ({ error }) => {
-        toast.error(parseActionError(error, "Failed to create partner tag"));
-      },
-    });
+  const handleCreatePartnerTag = async (name: string) => {
+    try {
+      const partnerTag = await createPartnerTag({ name });
+      if (!partnerTag) return;
+      toast.success("Partner tag created successfully!");
+      setSelectionState((state) => ({
+        ...state,
+        added: [...state.added, partnerTag],
+      }));
+    } catch (error) {
+      toast.error(toErrorMessage(error, "Failed to create partner tag"));
+    }
+  };
 
   const { isMobile } = useMediaQuery();
   const inputRef = useRef<HTMLInputElement>(null);
@@ -314,12 +314,7 @@ function UpdatePartnerTagsModalContent({
                           "justify-start",
                           isCreatingPartnerTag && "bg-black/[0.03]",
                         )}
-                        onSelect={() =>
-                          createPartnerTag({
-                            workspaceId: workspaceId!,
-                            name: search,
-                          })
-                        }
+                        onSelect={() => handleCreatePartnerTag(search)}
                         value={`create::${search}`}
                         disabled={isCreatingPartnerTag}
                         forceMount
@@ -444,21 +439,10 @@ function TagOption({
   onCheckedChange: (checked: boolean | "indeterminate") => void;
   onTagDeleted?: (tagId: string) => void;
 }) {
-  const { id: workspaceId } = useWorkspace();
-
-  const { executeAsync: deletePartnerTag, isPending: isDeletingPartnerTag } =
-    useAction(deletePartnerTagAction, {
-      onSuccess: async () => {
-        toast.success("Partner tag deleted successfully!");
-        onTagDeleted?.(tag.id);
-        await mutatePrefix("/api/partners");
-        await mutatePrefix("/api/partners/tags");
-        await mutatePrefix("/api/partners/count");
-      },
-      onError: ({ error }) => {
-        toast.error(parseActionError(error, "Failed to delete partner tag"));
-      },
-    });
+  const {
+    update: { mutate: updatePartnerTag, isPending: isUpdatingPartnerTag },
+    delete: { mutate: deletePartnerTag, isPending: isDeletingPartnerTag },
+  } = useMutatePartnerTag();
 
   const checkboxRef = useRef<HTMLButtonElement>(null);
 
@@ -468,29 +452,36 @@ function TagOption({
   const [editedTagName, setEditedTagName] = useState(tag.name);
   const [isEditing, setIsEditing] = useState(false);
 
-  const { executeAsync: updatePartnerTag, isPending: isUpdatingPartnerTag } =
-    useAction(updatePartnerTagAction, {
-      onSuccess: () => {
-        toast.success("Partner tag updated successfully!");
-        mutatePrefix("/api/partners");
-        mutatePrefix("/api/partners/tags");
-        mutatePrefix("/api/partners/count");
-      },
-      onError: ({ error }) => {
-        toast.error(parseActionError(error, "Failed to update partner tag"));
-      },
-    });
-
-  const handleSave = () => {
+  const handleSave = async () => {
     setIsEditing(false);
 
-    if (!workspaceId || editedTagName === tag.name) return;
+    if (editedTagName === tag.name) return;
 
-    updatePartnerTag({
-      workspaceId,
-      partnerTagId: tag.id,
-      name: editedTagName,
-    });
+    try {
+      const partnerTag = await updatePartnerTag({
+        partnerTagId: tag.id,
+        name: editedTagName,
+      });
+
+      if (!partnerTag) return;
+
+      toast.success("Partner tag updated successfully!");
+    } catch (error) {
+      toast.error(toErrorMessage(error, "Failed to update partner tag"));
+    }
+  };
+
+  const handleDeletePartnerTag = async () => {
+    try {
+      const deleted = await deletePartnerTag({ partnerTagId: tag.id });
+
+      if (!deleted) return;
+
+      toast.success("Partner tag deleted successfully!");
+      onTagDeleted?.(tag.id);
+    } catch (error) {
+      toast.error(toErrorMessage(error, "Failed to delete partner tag"));
+    }
   };
 
   return (
@@ -597,10 +588,7 @@ function TagOption({
                   )
                     return;
 
-                  deletePartnerTag({
-                    workspaceId: workspaceId!,
-                    partnerTagId: tag.id,
-                  });
+                  handleDeletePartnerTag();
 
                   setOpenPopover(false);
                 }}

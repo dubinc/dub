@@ -6,12 +6,12 @@ import {
 } from "@/lib/api/campaigns/transform-campaign";
 import { validateCampaign } from "@/lib/api/campaigns/validate-campaign";
 import { throwIfInvalidGroupIds } from "@/lib/api/groups/throw-if-invalid-group-ids";
-import { throwIfInvalidPartnerTags } from "@/lib/api/partner-tags/throw-if-invalid-partner-tags";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { validateWorkflowConditions } from "@/lib/api/workflows/validate-workflow-conditions";
 import { withWorkspace } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
+import { throwIfInvalidPartnerTags } from "@/lib/partner-tags/throw-if-invalid-partner-tags";
 import { prisma } from "@/lib/prisma";
 import {
   CampaignSchema,

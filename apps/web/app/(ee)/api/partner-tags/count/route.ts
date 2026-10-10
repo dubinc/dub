@@ -1,30 +1,25 @@
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { withWorkspace } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
+import { countPartnerTags } from "@/lib/partner-tags/count-partner-tags";
 import { getPartnerTagsCountQuerySchema } from "@/lib/zod/schemas/partner-tags";
 import { NextResponse } from "next/server";
 
-// GET /api/partners/tags/count - get count of partner tags
+// GET /api/partner-tags/count - get count of partner tags
 export const GET = withWorkspace(
-  async ({ workspace, headers, searchParams }) => {
+  async ({ workspace, searchParams }) => {
     const programId = getDefaultProgramIdOrThrow(workspace);
 
     const { search } = getPartnerTagsCountQuerySchema.parse(searchParams);
 
-    const count = await prisma.partnerTag.count({
-      where: {
-        programId,
-        ...(search && {
-          name: {
-            contains: search,
-          },
-        }),
-      },
+    const count = await countPartnerTags({
+      search,
+      programId,
     });
 
-    return NextResponse.json(count, { headers });
+    return NextResponse.json(count);
   },
   {
+    requiredPermissions: ["partnerTags.read"],
     requiredPlan: ["business", "advanced", "enterprise"],
   },
 );

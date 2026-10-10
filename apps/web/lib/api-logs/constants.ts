@@ -42,6 +42,10 @@ export const ROUTE_PATTERNS = [
   "/partners/:partnerId",
   "/partners",
 
+  // Partner tags
+  "/partner-tags/:partnerTagId",
+  "/partner-tags",
+
   // Links
   "/links/bulk",
   "/links/upsert",

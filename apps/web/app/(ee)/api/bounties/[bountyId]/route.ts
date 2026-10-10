@@ -1,7 +1,6 @@
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { DubApiError } from "@/lib/api/errors";
 import { throwIfInvalidGroupIds } from "@/lib/api/groups/throw-if-invalid-group-ids";
-import { throwIfInvalidPartnerTags } from "@/lib/api/partner-tags/throw-if-invalid-partner-tags";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { revalidateProgramPublicPages } from "@/lib/api/programs/revalidate-program-public-pages";
 import { parseRequestBody } from "@/lib/api/utils";
@@ -17,6 +16,7 @@ import { transformBounty } from "@/lib/bounty/api/transform-bounty";
 import { shouldUpsertDraftSubmissionsOnReopen } from "@/lib/bounty/api/upsert-draft-bounty-submissions";
 import { validateBounty } from "@/lib/bounty/api/validate-bounty";
 import { qstash } from "@/lib/cron";
+import { throwIfInvalidPartnerTags } from "@/lib/partner-tags/throw-if-invalid-partner-tags";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { prisma } from "@/lib/prisma";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";

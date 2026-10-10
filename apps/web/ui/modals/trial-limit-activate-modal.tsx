@@ -18,7 +18,7 @@ import { toast } from "sonner";
  * - payouts → upgrade banner when payouts over limit
  * - users → `invite-teammates-form` (API `exceeded_limit` on invites)
  * - partnerEnrollments → partner approve / bulk approve (trial enrollment cap)
- * - partnerTags → partner tag creation (`createPartnerTagAction` limit)
+ * - partnerTags → partner tag creation (`POST /api/partner-tags` limit)
  * - networkInvites → partner network invite sheet (weekly invite limit)
  * - freeDotLinkDomain → use where domain actions are trial-gated (add at call site)
  */

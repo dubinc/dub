@@ -106,3 +106,17 @@ export const metadataSchema = z
   .refine((val) => !val || JSON.stringify(val).length <= 10000, {
     message: "Metadata must be less than 10,000 characters when stringified",
   });
+
+export const getCursorPaginatedResponseSchema = <T extends z.ZodType>(
+  itemSchema: T,
+) =>
+  z.object({
+    data: z.array(itemSchema),
+    hasMore: z.boolean().describe("Whether there are more results to fetch."),
+    nextCursor: z
+      .string()
+      .nullable()
+      .describe(
+        "The cursor to fetch the next set of results, or `null` if there are no more results.",
+      ),
+  });
