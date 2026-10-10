@@ -5,6 +5,13 @@ export const scrapedCountSchema = z
   .nullish()
   .transform((val) => Math.round(val ?? 0));
 
+export const linkedInProfileSchema = z.object({
+  success: z.boolean().optional(),
+  name: z.string().nullish(),
+  image: z.string().nullish(),
+  followers: scrapedCountSchema,
+});
+
 export const socialProfileSchema = z.preprocess(
   (data: any) => {
     if (typeof data === "object" && data !== null) {
