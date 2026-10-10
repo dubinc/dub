@@ -44,14 +44,3 @@ export class PostbackSlackAdapter extends PostbackAdapter {
     });
   }
 }
-
-function escapeSlackText(value: string | null | undefined) {
-  if (value == null) {
-    return "";
-  }
-
-  return value
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;");
-}

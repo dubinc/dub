@@ -35,11 +35,6 @@ import { CreateCampaignButton } from "./create-campaign-button";
 import { useDeleteCampaignModal } from "./delete-campaign-modal";
 import { useCampaignsFilters } from "./use-campaigns-filters";
 
-interface PartnersCountByGroup {
-  groupId: string;
-  _count: number;
-}
-
 export function CampaignsTable() {
   const router = useRouter();
   const { id: workspaceId, slug } = useWorkspace();
@@ -317,11 +312,3 @@ function RowMenuButton({
     </>
   );
 }
-
-const calculatePercentage = (value: number, total: number) => {
-  if (total === 0) {
-    return 0;
-  }
-
-  return Number(((value / total) * 100).toFixed(2));
-};

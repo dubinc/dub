@@ -1,13 +1,10 @@
 import useGroups from "@/lib/swr/use-groups";
-import { GroupProps } from "@/lib/types";
 import { GROUPS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/groups";
 import { Combobox, ComboboxProps } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { useEffect, useMemo, useState } from "react";
 import { useDebounce } from "use-debounce";
 import { GroupColorCircle } from "./group-color-circle";
-
-export type Group = Pick<GroupProps, "id" | "name" | "color">;
 
 type GroupSelectorProps = {
   selectedGroupId: string | null;

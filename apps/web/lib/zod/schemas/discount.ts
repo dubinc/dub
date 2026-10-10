@@ -51,12 +51,6 @@ export const updateDiscountSchema = createDiscountSchema
     discountId: z.string(),
   });
 
-export const discountPartnersQuerySchema = z
-  .object({
-    discountId: z.string(),
-  })
-  .extend(getPaginationQuerySchema({ pageSize: 25 }));
-
 export const DiscountCodeSchema = z
   .object({
     id: z.string().describe("The unique ID of the discount code.").meta({

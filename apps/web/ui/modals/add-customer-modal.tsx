@@ -16,7 +16,7 @@ import {
 } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { useParams } from "next/navigation";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { mutate } from "swr";
@@ -511,46 +511,3 @@ export const AddCustomerModal = ({
     </Modal>
   );
 };
-
-export function useAddCustomerModal({
-  onSuccess,
-}: {
-  onSuccess?: (customer: CustomerProps) => void;
-} = {}) {
-  const [showAddCustomerModal, setShowAddCustomerModal] = useState(false);
-  const [initialData, setInitialData] = useState<
-    AddCustomerInitialData | undefined
-  >();
-
-  const AddCustomerModalCallback = useCallback(() => {
-    return (
-      <AddCustomerModal
-        showModal={showAddCustomerModal}
-        setShowModal={(show) => {
-          setShowAddCustomerModal(show);
-          if (!show) {
-            setInitialData(undefined);
-          }
-        }}
-        onSuccess={onSuccess}
-        initialData={initialData}
-      />
-    );
-  }, [showAddCustomerModal, initialData, onSuccess]);
-
-  const setShowAddCustomerModalWithData = useCallback(
-    (show: boolean, data?: AddCustomerInitialData) => {
-      setShowAddCustomerModal(show);
-      setInitialData(data);
-    },
-    [],
-  );
-
-  return useMemo(
-    () => ({
-      setShowAddCustomerModal: setShowAddCustomerModalWithData,
-      AddCustomerModal: AddCustomerModalCallback,
-    }),
-    [setShowAddCustomerModalWithData, AddCustomerModalCallback],
-  );
-}

@@ -256,8 +256,6 @@ export const exportLinksColumns = [
   },
 ] as const;
 
-export type ExportLinksColumn = (typeof exportLinksColumns)[number];
-
 export const exportLinksColumnsDefault = exportLinksColumns
   .filter((column) => column.default)
   .map((column) => column.id);

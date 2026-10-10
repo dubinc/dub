@@ -34,7 +34,6 @@ import {
   SubmittedLead,
   User,
   UtmTemplate,
-  Webhook,
   WorkspaceRole,
 } from "@prisma/client";
 import * as z from "zod/v4";
@@ -53,10 +52,7 @@ import {
   APPLICATION_EVENT_STAGES,
   applicationEventAnalyticsQuerySchema,
   applicationEventAnalyticsSchema,
-  applicationEventSchema,
-  applicationEventsQuerySchema,
 } from "./application-events/schema";
-import { BOUNTY_SUBMISSION_REQUIREMENTS } from "./bounty/constants";
 import { BOUNTY_SOCIAL_PLATFORMS } from "./bounty/social-content";
 import {
   commissionAnalyticsQuerySchema,
@@ -83,9 +79,7 @@ import {
   bountySocialContentIncrementalBonusSchema,
   BountySubmissionExtendedSchema,
   createBountySchema,
-  getBountySubmissionsQuerySchema,
   socialContentOutputSchema,
-  submissionRequirementsSchema,
 } from "./zod/schemas/bounties";
 import {
   CampaignListSchema,
@@ -142,10 +136,7 @@ import {
   createLinkBodySchema,
 } from "./zod/schemas/links";
 import { createOAuthAppSchema, oAuthAppSchema } from "./zod/schemas/oauth";
-import {
-  NetworkPartnerSchema,
-  PartnerConversionScoreSchema,
-} from "./zod/schemas/partner-network";
+import { NetworkPartnerSchema } from "./zod/schemas/partner-network";
 import { PartnerTagSchema } from "./zod/schemas/partner-tags";
 import {
   createPartnerSchema,
@@ -155,7 +146,6 @@ import {
   PartnerRewindSchema,
   PartnerSchema,
   partnerSharedPlatformSchema,
-  WebhookPartnerSchema,
 } from "./zod/schemas/partners";
 import {
   PartnerPayoutResponseSchema,
@@ -169,7 +159,6 @@ import {
 } from "./zod/schemas/program-application";
 import {
   programApplicationFormDataWithValuesSchema,
-  programApplicationFormFieldWithValuesSchema,
   programApplicationFormSchema,
 } from "./zod/schemas/program-application-form";
 import { programInviteEmailDataSchema } from "./zod/schemas/program-invite-email";
@@ -207,13 +196,11 @@ import {
   updateSubmittedLeadStatusSchema,
 } from "./zod/schemas/submitted-leads";
 import { tokenSchema } from "./zod/schemas/token";
-import { usageResponse } from "./zod/schemas/usage";
 import {
   createWebhookSchema,
   webhookEventSchemaTB,
   WebhookSchema,
 } from "./zod/schemas/webhooks";
-import { workspacePreferencesSchema } from "./zod/schemas/workspace-preferences";
 import { workspaceUserSchema } from "./zod/schemas/workspaces";
 
 export type LinkProps = Omit<Link, "saleAmount"> & {
@@ -312,18 +299,6 @@ export interface WorkspaceProps
     [key in BetaFeatures]: boolean;
   };
   store: Record<string, any> | null;
-}
-
-export interface ExtendedWorkspaceProps extends WorkspaceProps {
-  domains: (WorkspaceProps["domains"][number] & {
-    linkRetentionDays: number | null;
-  })[];
-  defaultProgramId: string | null;
-  allowedHostnames: string[];
-  users: (WorkspaceProps["users"][number] & {
-    workspacePreferences?: z.infer<typeof workspacePreferencesSchema>;
-  })[];
-  publishableKey: string | null;
 }
 
 export type WorkspaceWithUsers = Omit<WorkspaceProps, "domains">;
@@ -485,13 +460,6 @@ export type NewWebhook = z.infer<typeof createWebhookSchema>;
 
 export type WebhookEventProps = z.infer<typeof webhookEventSchemaTB>;
 
-export type WebhookCacheProps = Pick<
-  Webhook,
-  "id" | "url" | "secret" | "triggers" | "disabledAt"
->;
-
-export type WebhookPartner = z.infer<typeof WebhookPartnerSchema>;
-
 export type TrackLeadResponse = z.infer<typeof trackLeadResponseSchema>;
 
 export type TrackSaleResponse = z.infer<typeof trackSaleResponseSchema>;
@@ -499,8 +467,6 @@ export type TrackSaleResponse = z.infer<typeof trackSaleResponseSchema>;
 export type Customer = z.infer<typeof CustomerSchema>;
 
 export type CustomerEnriched = z.infer<typeof CustomerEnrichedSchema>;
-
-export type UsageResponse = z.infer<typeof usageResponse>;
 
 export type PartnersCount = Record<ProgramEnrollmentStatus | "all", number>;
 
@@ -593,10 +559,6 @@ export type NetworkPartnerProps = z.infer<typeof NetworkPartnerSchema>;
 
 export type AdminNetworkPartner = z.infer<typeof adminNetworkPartnerSchema>;
 
-export type PartnerConversionScore = z.infer<
-  typeof PartnerConversionScoreSchema
->;
-
 export type NetworkProgramProps = z.infer<typeof NetworkProgramSchema>;
 
 export type NetworkProgramExtendedProps = z.infer<
@@ -634,9 +596,6 @@ export type ProgramApplicationFormDataWithValues = z.infer<
   typeof programApplicationFormDataWithValuesSchema
 >;
 
-export type ProgramApplicationFormFieldWithValues = z.infer<
-  typeof programApplicationFormFieldWithValuesSchema
->;
 export type ProgramEnrollmentProps = z.infer<typeof ProgramEnrollmentSchema>;
 
 export type PartnerProfileProgramEnrollmentProps = z.infer<
@@ -758,18 +717,8 @@ export type BountySubmissionProps = z.infer<
   typeof BountySubmissionExtendedSchema
 >;
 
-export type BountySubmissionRequirement =
-  (typeof BOUNTY_SUBMISSION_REQUIREMENTS)[number];
-
-export type SocialMetricsChannel =
-  (typeof BOUNTY_SOCIAL_PLATFORMS)[number]["value"];
-
 export type BountySocialMetricsIncrementalBonus = z.infer<
   typeof bountySocialContentIncrementalBonusSchema
->;
-
-export type BountySubmissionsQueryFilters = z.infer<
-  typeof getBountySubmissionsQuerySchema
 >;
 
 export type Message = z.infer<typeof MessageSchema>;
@@ -894,15 +843,9 @@ export type CreateBountyInput = z.infer<typeof createBountySchema>;
 
 export type SocialContent = z.infer<typeof socialContentOutputSchema>;
 
-export type SubmissionRequirements = z.infer<
-  typeof submissionRequirementsSchema
->;
-
 export type BountySocialPlatform =
   (typeof BOUNTY_SOCIAL_PLATFORMS)[number]["value"];
 
-export type BountySocialPlatformMetric =
-  (typeof BOUNTY_SOCIAL_PLATFORMS)[number]["metrics"][number];
 export type PostbackProps = z.infer<typeof postbackSchema>;
 
 export type PostbackEventProps = z.infer<typeof postbackEventInputSchemaTB>;
@@ -929,14 +872,6 @@ export type EnrichedApiLog = z.infer<typeof apiLogEnrichedSchema>;
 export type ApiLogsCountRow = z.infer<
   typeof apiLogCountRowSchemas.routePattern
 >;
-
-export type ApiLogsCountByRoutePattern = ApiLogsCountRow;
-
-export type ApiLogsCountByStatusCode = z.infer<
-  typeof apiLogCountRowSchemas.statusCode
->;
-
-export type ApiLogsCountByMethod = z.infer<typeof apiLogCountRowSchemas.method>;
 
 export type ApiLogsCountGroupBy = z.infer<typeof apiLogCountGroupBySchema>;
 
@@ -969,12 +904,6 @@ export type CommissionAnalyticsPartnerRow =
   CommissionAnalyticsByGroup["partnerId"][number];
 
 // Application events
-export type ApplicationEvent = z.infer<typeof applicationEventSchema>;
-
-export type ApplicationEventsQuery = z.infer<
-  typeof applicationEventsQuerySchema
->;
-
 export type ApplicationEventAnalyticsQuery = z.infer<
   typeof applicationEventAnalyticsQuerySchema
 >;

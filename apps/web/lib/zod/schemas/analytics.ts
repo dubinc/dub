@@ -412,15 +412,6 @@ export function parseAnalyticsQuery(searchParams: Record<string, string>) {
 
   return data;
 }
-export function parseEventsQuery(searchParams: Record<string, string>) {
-  const data = eventsQuerySchema.parse(searchParams);
-
-  if (data.tagIds && !data.tagId) {
-    data.tagId = data.tagIds;
-  }
-
-  return data;
-}
 
 // Analytics filter params for Tinybird endpoints
 export const analyticsFilterTB = z.object({

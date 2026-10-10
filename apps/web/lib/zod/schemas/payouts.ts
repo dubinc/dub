@@ -12,21 +12,6 @@ import { EnrolledPartnerSchema } from "./partners";
 import { ProgramSchema } from "./programs";
 import { UserSchema } from "./users";
 
-export const createManualPayoutSchema = z.object({
-  workspaceId: z.string(),
-  partnerId: z.string({ error: "Please select a partner" }),
-  amount: z
-    .preprocess((val) => {
-      const parsed = parseFloat(val as string);
-      return isNaN(parsed) ? 0 : parsed;
-    }, z.number())
-    .optional(),
-  description: z
-    .string()
-    .max(190, "Description must be less than 190 characters")
-    .nullable(),
-});
-
 export const PAYOUTS_MAX_PAGE_SIZE = 100;
 
 export const payoutsQuerySchema = z

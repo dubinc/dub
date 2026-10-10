@@ -27,12 +27,6 @@ const ROWS = [...Array(ROW_COUNT)].map(() => {
   return cols.slice(0, VISIBLE_PER_ROW);
 });
 
-const BLUR_STEPS = 5;
-const BLUR_STEP_SIZE = 5;
-
-const BLACK = "rgba(0,0,0,1)";
-const TRANSPARENT = "rgba(0,0,0,0)";
-
 export function ProgramLogos() {
   return (
     <div className="relative size-full overflow-hidden">

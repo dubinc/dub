@@ -79,11 +79,6 @@ export const veriffDecisionEventSchema = z.object({
 
 export type VeriffDecisionEvent = z.infer<typeof veriffDecisionEventSchema>;
 
-export const veriffEventSchema = z.union([
-  veriffSessionEventSchema,
-  veriffDecisionEventSchema,
-]);
-
 // https://help.veriff.com/en/articles/3410712-risk-insights-and-crosslinks
 // This schema only includes the categories we care about; others may exist but are ignored.
 export const veriffRiskLabels = [

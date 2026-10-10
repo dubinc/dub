@@ -12,10 +12,6 @@ import {
 } from "../zod/schemas/workspace-preferences";
 import useWorkspace from "./use-workspace";
 
-export const WORKSPACE_PREFERENCES_KEYS = {
-  linksDisplay: "linksDisplay",
-};
-
 export function useWorkspacePreferences<
   K extends WorkspacePreferencesKey,
   D extends WorkspacePreferencesValue<K> | undefined,

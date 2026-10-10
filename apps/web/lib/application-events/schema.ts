@@ -1,4 +1,3 @@
-import { GroupSchema } from "@/lib/zod/schemas/groups";
 import { PartnerSchema } from "@/lib/zod/schemas/partners";
 import * as z from "zod/v4";
 import { analyticsQuerySchema } from "../zod/schemas/analytics";
@@ -32,42 +31,6 @@ const sharedFilterSchema = analyticsQuerySchema
     referralSource: z.string().optional(),
     country: z.string().optional(),
   });
-
-// Application events
-export const applicationEventsQuerySchema = sharedFilterSchema.extend({
-  event: z
-    .enum(["visited", "started", "submitted", "approved", "rejected"])
-    .optional(),
-  page: z.coerce.number().default(1),
-  pageSize: z.coerce.number().max(100).default(50),
-  sortOrder: z.enum(["asc", "desc"]).default("desc"),
-  sortBy: z
-    .enum(["visitedAt", "startedAt", "submittedAt", "approvedAt", "rejectedAt"])
-    .default("visitedAt"),
-});
-
-export const applicationEventSchema = z.object({
-  id: z.string(),
-  country: z.string().nullable(),
-  referralSource: z.string(),
-  referredByPartnerId: z.string().nullable(),
-  visitedAt: z.date().nullable(),
-  startedAt: z.date().nullable(),
-  submittedAt: z.date().nullable(),
-  approvedAt: z.date().nullable(),
-  rejectedAt: z.date().nullable(),
-  partner: PartnerSchema.pick({
-    id: true,
-    name: true,
-    image: true,
-  }).nullable(),
-  group: GroupSchema.pick({
-    id: true,
-    name: true,
-    slug: true,
-    color: true,
-  }).nullable(),
-});
 
 // Application analytics
 export const applicationEventAnalyticsQuerySchema = sharedFilterSchema.extend({
