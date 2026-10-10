@@ -17,6 +17,9 @@ test.use({
   },
 });
 
+const DESKTOP_VIEWPORT = { width: 1280, height: 720 };
+const MOBILE_VIEWPORT = { width: 390, height: 844 };
+
 test.describe("Partner All programs Overview", () => {
   test("renders every Overview card", async ({ page }) => {
     await logIn(page, env.E2E_PARTNER_EMAIL, env.E2E_PARTNER_PASSWORD);
@@ -30,7 +33,9 @@ test.describe("Partner All programs Overview", () => {
     }
   });
 
-  test("shows Tasks only when an action is needed", async ({ page }) => {
+  test("always shows Tasks on desktop, and on mobile only when an action is needed", async ({
+    page,
+  }) => {
     const email = `overview-tasks-${nanoid(8).toLowerCase()}@dub-internal-test.com`;
     const password = "Password123";
     let partnerId: string | undefined;
@@ -58,9 +63,19 @@ test.describe("Partner All programs Overview", () => {
       await page.goto("/overview");
 
       const tasks = page.getByTestId(testIds.partnerOverview.tasks);
+      const invitationsTask = tasks.getByRole("link", {
+        name: /Review new invitations/,
+      });
+      const messagesTask = tasks.getByRole("link", {
+        name: /Respond to programs/,
+      });
+
       await expect(tasks).toBeVisible();
-      await expect(tasks.getByText("Review new invitations")).toBeVisible();
-      await expect(tasks.getByText("Respond to programs")).toHaveCount(0);
+      await expect(invitationsTask).toHaveText(/^Review new invitations\s*1$/);
+      await expect(messagesTask).toHaveText(/^Respond to programs\s*0$/);
+
+      await page.setViewportSize(MOBILE_VIEWPORT);
+      await expect(tasks).toBeVisible();
 
       await prisma.programEnrollment.update({
         where: { id: enrollment.id },
@@ -85,6 +100,11 @@ test.describe("Partner All programs Overview", () => {
         page.getByTestId(testIds.partnerOverview.recentPayouts),
       ).toBeVisible();
       await expect(tasks).toHaveCount(0);
+
+      await page.setViewportSize(DESKTOP_VIEWPORT);
+      await expect(tasks).toBeVisible();
+      await expect(invitationsTask).toHaveText(/^Review new invitations\s*0$/);
+      await expect(messagesTask).toHaveText(/^Respond to programs\s*0$/);
     } finally {
       if (userId) await prisma.user.delete({ where: { id: userId } });
       await deletePartner(partnerId);
