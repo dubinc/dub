@@ -40,6 +40,7 @@ import {
   ShimmerDots,
   Table,
   TooltipContent,
+  useIsTouchDevice,
   useRouterStuff,
   useTable,
   useTablePagination,
@@ -815,11 +816,7 @@ function ConfirmPayoutsSheetContent() {
     useTrialLimitActivateModal();
   const trialActive = isWorkspaceBillingTrialActive(trialEndsAt);
 
-  const [isTouchDevice, setIsTouchDevice] = useState(false);
-
-  useEffect(() => {
-    setIsTouchDevice(window.matchMedia("(pointer: coarse)").matches);
-  }, []);
+  const isTouchDevice = useIsTouchDevice();
 
   return (
     <>

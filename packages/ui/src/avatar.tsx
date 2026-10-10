@@ -49,14 +49,14 @@ export function Avatar({
         <div
           className="absolute left-[30%] top-[22%] aspect-square w-[40%] rounded-full"
           style={{
-            background: theme.fg,
+            backgroundColor: theme.fg,
             ...headStyle,
           }}
         />
         <div
           className="absolute left-[10%] top-[70%] h-[40%] w-[80%] rounded-t-full"
           style={{
-            background: theme.fg,
+            backgroundColor: theme.fg,
             ...shouldersStyle,
           }}
         />

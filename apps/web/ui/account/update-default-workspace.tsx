@@ -2,6 +2,7 @@
 
 import { WorkspaceSelector } from "@/ui/workspaces/workspace-selector";
 import { Button } from "@dub/ui";
+import { WorkspaceEnvironment } from "@prisma/client";
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -63,6 +64,8 @@ export default function UpdateDefaultWorkspace() {
           <WorkspaceSelector
             selectedWorkspace={selectedWorkspace || ""}
             setSelectedWorkspace={setSelectedWorkspace}
+            environments={[WorkspaceEnvironment.production]}
+            showAddWorkspaceButton={false}
           />
         </div>
       </div>

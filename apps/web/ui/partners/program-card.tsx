@@ -2,10 +2,12 @@
 
 import { constructPartnerLink } from "@/lib/partners/construct-partner-link";
 import { getProgramApplicationRejectionReasonLabel } from "@/lib/program-applications/program-application-rejection";
-import { usePartnerEarningsTimeseries } from "@/lib/swr/use-partner-earnings-timeseries";
-import { ProgramEnrollmentProps } from "@/lib/types";
+import { usePartnerProgramActivity } from "@/lib/swr/use-partner-profile-earnings";
 import {
-  BlurImage,
+  PartnerProfileProgramEnrollmentProps,
+  ProgramEnrollmentProps,
+} from "@/lib/types";
+import {
   CalendarIcon,
   CircleQuestion,
   DynamicTooltipWrapper,
@@ -14,15 +16,16 @@ import {
   Note,
 } from "@dub/ui";
 import {
+  cn,
   formatDate,
   getPrettyUrl,
-  OG_AVATAR_URL,
   STANDARD_REAPPLICATION_DAYS,
 } from "@dub/utils";
 import NumberFlow from "@number-flow/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { type ReactNode, useMemo } from "react";
+import { type ReactNode, type SyntheticEvent } from "react";
+import { ProgramLogo } from "./program-logo";
 
 function RejectionTooltipRow({
   icon,
@@ -102,26 +105,89 @@ function rejectedApplicationTooltipContent(
   );
 }
 
-function ProgramCardNonApprovedStatus({
+// statuses that keep the earnings on the card
+const EARNINGS_STATUSES = ["approved", "banned", "deactivated", "archived"];
+
+export function ProgramCard({
   programEnrollment,
-  statusDescription,
 }: {
-  programEnrollment: ProgramEnrollmentProps;
-  statusDescription: string | undefined;
+  programEnrollment: PartnerProfileProgramEnrollmentProps;
+}) {
+  const { program, status, group, totalCommissions } = programEnrollment;
+
+  const defaultLink = programEnrollment.links?.[0];
+
+  return (
+    <Link
+      href={`/programs/${program.slug}`}
+      className="hover:drop-shadow-card-hover flex h-full flex-col overflow-hidden rounded-xl border border-neutral-200 bg-white p-5 transition-[filter]"
+    >
+      <ProgramLogo program={program} className="size-8" />
+      <span className="mt-3 text-base font-semibold text-neutral-800">
+        {program.name}
+      </span>
+      {EARNINGS_STATUSES.includes(status) && (
+        <NumberFlow
+          className={cn(
+            "text-base font-medium",
+            totalCommissions > 0 ? "text-neutral-800" : "text-neutral-500",
+          )}
+          value={totalCommissions / 100}
+          format={{
+            notation: totalCommissions > 100000 ? "compact" : "standard",
+            style: "currency",
+            currency: "USD",
+            // @ts-ignore - trailingZeroDisplay is a valid option but TS is outdated
+            trailingZeroDisplay: "stripIfInteger",
+          }}
+        />
+      )}
+      {status === "approved" ? (
+        <div className="mt-auto flex flex-col gap-4 pt-4">
+          <ProgramCardActivity programId={programEnrollment.programId} />
+          {defaultLink && (
+            <div className="flex items-center gap-1.5 text-neutral-700">
+              <Link4 className="size-3 shrink-0" />
+              <span className="min-w-0 truncate text-sm font-medium">
+                {getPrettyUrl(
+                  constructPartnerLink({ group, link: defaultLink }),
+                )}
+              </span>
+            </div>
+          )}
+        </div>
+      ) : (
+        <div className="mt-4 flex grow items-center justify-center rounded-lg bg-neutral-50 p-5 text-center text-sm text-neutral-500">
+          <ProgramCardStatus programEnrollment={programEnrollment} />
+        </div>
+      )}
+    </Link>
+  );
+}
+
+function ProgramCardStatus({
+  programEnrollment,
+}: {
+  programEnrollment: PartnerProfileProgramEnrollmentProps;
 }) {
   const router = useRouter();
-  const { status, createdAt, program, application } = programEnrollment;
+  const { status, createdAt, program, application, reapplicationTimeframe } =
+    programEnrollment;
 
   if (status === "pending") {
-    return `Applied ${formatDate(createdAt)}`;
+    return `Applied ${formatDate(createdAt, { month: "short" })}`;
   }
 
   if (status === "rejected") {
     const tipContent = rejectedApplicationTooltipContent(application);
     const body = (
       <>
-        {statusDescription} You can re-apply in {STANDARD_REAPPLICATION_DAYS}{" "}
-        days.
+        Your application has been{" "}
+        <span className="font-semibold text-neutral-700">rejected</span>.
+        <br />
+        {reapplicationTimeframe === "never"
+          ? "You cannot re-apply to this program."
+          : `You can re-apply in ${STANDARD_REAPPLICATION_DAYS} days.`}
       </>
     );
 
@@ -140,154 +206,77 @@ function ProgramCardNonApprovedStatus({
       );
     }
 
-    return body;
+    return <div>{body}</div>;
   }
 
-  if (statusDescription) {
-    return (
-      <p>
-        {statusDescription}{" "}
-        <button
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            router.push(`/messages/${program.slug}`);
-          }}
-          className="text-neutral-400 underline decoration-dotted underline-offset-2 hover:text-neutral-700"
-        >
-          Reach out to the {program.name} team
-        </button>{" "}
-        if you have any questions.
-      </p>
-    );
-  }
-
-  return null;
-}
-
-export function ProgramCard({
-  programEnrollment,
-}: {
-  programEnrollment: ProgramEnrollmentProps;
-}) {
-  const { program, status, createdAt, group } = programEnrollment;
-
-  const defaultLink = programEnrollment.links?.[0];
-
-  const statusDescriptions = {
-    banned: "You're banned from this program.",
-    rejected: "Your application has been rejected.",
-    deactivated: "Your partnership has been deactivated.",
+  const inactiveDescriptions: Partial<Record<typeof status, ReactNode>> = {
+    banned: (
+      <>
+        You&apos;ve been{" "}
+        <span className="font-semibold text-neutral-700">banned</span> from this
+        program.
+      </>
+    ),
+    deactivated: (
+      <>
+        Your partnership has been{" "}
+        <span className="font-semibold text-neutral-700">deactivated</span>.
+      </>
+    ),
+    archived: (
+      <>
+        Your partnership has been{" "}
+        <span className="font-semibold text-neutral-700">archived</span>.
+      </>
+    ),
   };
-  const statusDescription = statusDescriptions[status];
+
+  const description = inactiveDescriptions[status];
+
+  if (!description) {
+    return null;
+  }
+
+  // the card is a link, so stop the click from opening the program page
+  const openMessages = (e: SyntheticEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    router.push(`/messages/${program.slug}`);
+  };
 
   return (
-    <Link
-      href={`/programs/${program.slug}`}
-      className="hover:drop-shadow-card-hover flex h-full flex-col justify-between rounded-xl border border-neutral-200 bg-white p-5 transition-[filter]"
-    >
-      <div>
-        <BlurImage
-          width={96}
-          height={96}
-          src={program.logo || `${OG_AVATAR_URL}${program.name}`}
-          alt={program.name}
-          className="size-8 rounded-full border border-black/10"
-        />
-        <div className="mt-3 flex flex-col">
-          <span className="text-base font-semibold text-neutral-800">
-            {program.name}
-          </span>
-          <div className="flex items-center gap-1 text-neutral-500">
-            <Link4 className="size-3 shrink-0" />
-            <span className="min-w-0 truncate text-sm font-medium">
-              {getPrettyUrl(
-                constructPartnerLink({
-                  group,
-                  link: defaultLink,
-                }),
-              ) || program.domain}
-            </span>
-          </div>
-        </div>
-      </div>
-      {status === "approved" ? (
-        <ProgramCardEarnings programEnrollment={programEnrollment} />
-      ) : (
-        <div className="mt-4 flex h-20 items-center justify-center text-balance rounded-md border border-neutral-200 bg-neutral-50 p-5 text-center text-sm text-neutral-500">
-          <ProgramCardNonApprovedStatus
-            programEnrollment={programEnrollment}
-            statusDescription={statusDescription}
-          />
-        </div>
-      )}
-    </Link>
+    <p>
+      {description}
+      <br />
+      {/* a span, because a button cannot wrap inline with the text around it */}
+      <span
+        role="button"
+        tabIndex={0}
+        onClick={openMessages}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") openMessages(e);
+        }}
+        className="cursor-pointer underline decoration-dotted underline-offset-2 hover:text-neutral-700"
+      >
+        Reach out to the {program.name} team
+      </span>{" "}
+      if you have any questions.
+    </p>
   );
 }
 
-function ProgramCardEarnings({
-  programEnrollment,
-}: {
-  programEnrollment: ProgramEnrollmentProps;
-}) {
-  const { program, totalCommissions } = programEnrollment;
-
-  const { data: timeseries } = usePartnerEarningsTimeseries({
-    programId: program.id,
-    interval: "1y",
-    enabled: totalCommissions > 0,
-  } as Parameters<typeof usePartnerEarningsTimeseries>[0]);
-
-  const chartData = useMemo(() => {
-    if (totalCommissions === 0) {
-      // Generate dummy data (straight line at 0) for the past year
-      const now = new Date();
-      const oneYearAgo = new Date(now);
-      oneYearAgo.setFullYear(now.getFullYear() - 1);
-
-      // Generate 12 data points (monthly)
-      const dummyData: { date: Date; value: number }[] = [];
-      for (let i = 0; i < 12; i++) {
-        const date = new Date(oneYearAgo);
-        date.setMonth(oneYearAgo.getMonth() + i);
-        dummyData.push({
-          date,
-          value: 0,
-        });
-      }
-      return dummyData;
-    }
-
-    return (
-      timeseries?.map((d) => ({
-        date: new Date(d.start),
-        value: d.earnings,
-      })) ?? []
-    );
-  }, [timeseries, totalCommissions]);
+function ProgramCardActivity({ programId }: { programId: string }) {
+  const chartData = usePartnerProgramActivity(programId);
 
   return (
-    <div className="mt-4 grid grid-cols-[min-content,minmax(0,1fr)] gap-4 rounded-md border border-neutral-200 bg-neutral-50">
-      <div className="py-3 pl-4">
-        <div className="whitespace-nowrap text-sm text-neutral-500">
-          Earnings
-        </div>
-        <NumberFlow
-          className="text-xl font-medium text-neutral-800"
-          value={totalCommissions / 100}
-          format={{
-            notation: totalCommissions > 100000 ? "compact" : "standard",
-            style: "currency",
-            currency: "USD",
-            // @ts-ignore – trailingZeroDisplay is a valid option but TS is outdated
-            trailingZeroDisplay: "stripIfInteger",
-          }}
-        />
-      </div>
+    <div className="-mx-5 h-16">
       {chartData && (
-        <div className="relative h-full px-3">
-          <MiniAreaChart data={chartData} padding={{ top: 16, bottom: 16 }} />
-        </div>
+        <MiniAreaChart
+          data={chartData}
+          padding={{ top: 8, bottom: 8, right: 8 }}
+          fadeIn
+          showEndDot
+        />
       )}
     </div>
   );
@@ -295,13 +284,12 @@ function ProgramCardEarnings({
 
 export function ProgramCardSkeleton() {
   return (
-    <div className="rounded-xl border border-neutral-200 p-5">
+    <div className="flex flex-col rounded-xl border border-neutral-200 bg-white p-5">
       <div className="size-8 rounded-full bg-neutral-200" />
-      <div className="mt-3 flex flex-col">
-        <div className="my-0.5 h-5 w-24 min-w-0 rounded-md bg-neutral-200" />
-        <div className="my-0.5 h-4 w-20 animate-pulse rounded-md bg-neutral-200" />
-      </div>
-      <div className="mt-4 h-[72px] animate-pulse rounded-md bg-neutral-100" />
+      <div className="mt-3 h-5 w-24 rounded-md bg-neutral-200" />
+      <div className="mt-1 h-5 w-16 animate-pulse rounded-md bg-neutral-200" />
+      <div className="mt-4 h-16 animate-pulse rounded-md bg-neutral-100" />
+      <div className="mt-4 h-4 w-32 animate-pulse rounded-md bg-neutral-100" />
     </div>
   );
 }

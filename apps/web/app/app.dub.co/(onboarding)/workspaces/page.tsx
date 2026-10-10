@@ -1,5 +1,6 @@
 "use client";
 
+import { isStagingEnvironment } from "@/lib/sandbox/environment";
 import useWorkspaces from "@/lib/swr/use-workspaces";
 import { WorkspaceProps } from "@/lib/types";
 import { useAddWorkspaceModal } from "@/ui/modals/add-workspace-modal";
@@ -16,6 +17,9 @@ import { ComponentType, SVGProps, useState } from "react";
 
 export default function WorkspacesPage() {
   const { workspaces, error } = useWorkspaces();
+  const visibleWorkspaces = workspaces?.filter(
+    (workspace) => !isStagingEnvironment(workspace.environment),
+  );
 
   return (
     <div className="flex min-h-[100dvh] w-full flex-col">
@@ -26,10 +30,10 @@ export default function WorkspacesPage() {
             title="Unable to load workspaces"
             description="Something went wrong while fetching your workspaces. Please refresh the page to try again."
           />
-        ) : !workspaces ? (
+        ) : !visibleWorkspaces ? (
           <WorkspaceListSkeleton />
-        ) : workspaces.length > 0 ? (
-          <WorkspaceList workspaces={workspaces} />
+        ) : visibleWorkspaces.length > 0 ? (
+          <WorkspaceList workspaces={visibleWorkspaces} />
         ) : (
           <NoWorkspaces />
         )}
