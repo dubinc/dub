@@ -1,7 +1,7 @@
 import { DubApiError } from "../api/errors";
 import { STRIPE_API_VERSION, stripeV2Fetch } from "./stripe-v2-client";
 
-export interface CreateStripeOutboundPaymentParams {
+interface CreateStripeOutboundPaymentParams {
   stripeRecipientId: string;
   payoutMethodId: string;
   amount: number;

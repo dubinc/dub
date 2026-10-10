@@ -394,7 +394,7 @@ export function SubmissionRewardTable({
   );
 }
 
-export function BountySubmissionDetailsSheet({
+function BountySubmissionDetailsSheet({
   bounty,
   submission,
   isOpen,

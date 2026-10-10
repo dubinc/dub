@@ -21,7 +21,6 @@ import {
   PropsWithChildren,
   SetStateAction,
   useId,
-  useMemo,
   useRef,
   useState,
 } from "react";
@@ -31,7 +30,7 @@ import { useDebouncedCallback } from "use-debounce";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-export const DEFAULT_COLORS = [
+const DEFAULT_COLORS = [
   "#000000",
   "#C73E33",
   "#DF6547",
@@ -402,7 +401,7 @@ export function SegmentTab({
 
 // ─── Color section ────────────────────────────────────────────────────────────
 
-export function ColorSection({
+function ColorSection({
   id,
   label,
   tooltip,
@@ -483,7 +482,7 @@ export function ColorSection({
 
 // ─── Style icons ──────────────────────────────────────────────────────────────
 
-export function SquareDotIcon() {
+function SquareDotIcon() {
   return (
     <svg
       width="20"
@@ -506,7 +505,7 @@ export function SquareDotIcon() {
   );
 }
 
-export function RoundedDotIcon() {
+function RoundedDotIcon() {
   return (
     <svg
       width="20"
@@ -529,7 +528,7 @@ export function RoundedDotIcon() {
   );
 }
 
-export function ExtraRoundedDotIcon() {
+function ExtraRoundedDotIcon() {
   return (
     <svg
       width="20"
@@ -547,7 +546,7 @@ export function ExtraRoundedDotIcon() {
   );
 }
 
-export function MarkerCenterSquareIcon() {
+function MarkerCenterSquareIcon() {
   return (
     <svg
       width="20"
@@ -570,7 +569,7 @@ export function MarkerCenterSquareIcon() {
   );
 }
 
-export function MarkerCenterCircleIcon() {
+function MarkerCenterCircleIcon() {
   return (
     <svg
       width="20"
@@ -596,7 +595,7 @@ export function MarkerCenterCircleIcon() {
   );
 }
 
-export function MarkerBorderSquareIcon() {
+function MarkerBorderSquareIcon() {
   return (
     <svg
       width="20"
@@ -617,7 +616,7 @@ export function MarkerBorderSquareIcon() {
   );
 }
 
-export function MarkerBorderRoundedIcon() {
+function MarkerBorderRoundedIcon() {
   return (
     <svg
       width="20"
@@ -635,7 +634,7 @@ export function MarkerBorderRoundedIcon() {
   );
 }
 
-export function MarkerBorderCircleIcon() {
+function MarkerBorderCircleIcon() {
   return (
     <svg
       width="20"
@@ -655,7 +654,7 @@ export function MarkerBorderCircleIcon() {
 
 // ─── Download / Copy popovers ─────────────────────────────────────────────────
 
-export function DownloadPopover({
+function DownloadPopover({
   qrData,
   linkProps,
   children,
@@ -737,7 +736,7 @@ export function DownloadPopover({
   );
 }
 
-export function CopyPopover({
+function CopyPopover({
   qrData,
   linkProps,
   children,
@@ -822,7 +821,3 @@ export function CopyPopover({
     </Popover>
   );
 }
-
-// Re-export for convenience
-export { useMemo };
-export type { QRCodeDesign };

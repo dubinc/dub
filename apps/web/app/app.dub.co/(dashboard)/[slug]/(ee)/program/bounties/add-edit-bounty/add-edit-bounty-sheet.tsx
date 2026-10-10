@@ -488,7 +488,7 @@ function SubmissionWindowBadge({
   );
 }
 
-export function BountySheet({
+function BountySheet({
   isOpen,
   nested,
   ...rest

@@ -1,6 +1,6 @@
 import * as z from "zod/v4";
 
-export const partnerStackImportSteps = z.enum([
+const partnerStackImportSteps = z.enum([
   "import-groups",
   "import-partners",
   "import-links",

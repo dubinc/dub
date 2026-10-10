@@ -3,7 +3,7 @@ import { ExpandedLink } from "../api/links";
 import { decodeKeyIfCaseSensitive } from "../api/links/case-sensitivity";
 import { tb } from "./client";
 
-export const dubLinksMetadataSchema = z.object({
+const dubLinksMetadataSchema = z.object({
   link_id: z.string(),
   domain: z.string(),
   key: z.string(),

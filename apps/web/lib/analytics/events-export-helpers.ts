@@ -2,7 +2,7 @@ import { formatMoneyCentsForExport } from "@/lib/api/utils/format-money-cents-fo
 import { ClickEvent, LeadEvent, SaleEvent } from "@/lib/types";
 import { COUNTRIES } from "@dub/utils";
 
-export type Row = ClickEvent | LeadEvent | SaleEvent;
+type Row = ClickEvent | LeadEvent | SaleEvent;
 
 export const eventsExportColumnNames: Record<string, string> = {
   trigger: "Event",

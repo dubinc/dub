@@ -66,7 +66,7 @@ interface RejectProgramApplicationModalProps {
   };
 }
 
-export function RejectProgramApplicationModal({
+function RejectProgramApplicationModal({
   showRejectProgramApplicationModal,
   setShowRejectProgramApplicationModal,
   partner,

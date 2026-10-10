@@ -66,7 +66,7 @@ const validateWebhook = (
   }
 };
 
-export const createWebhookSchemaBase = z.object({
+const createWebhookSchemaBase = z.object({
   name: z.string().min(1).max(40),
   url: parseUrlSchema,
   triggers: z.array(z.enum(WEBHOOK_TRIGGERS)),

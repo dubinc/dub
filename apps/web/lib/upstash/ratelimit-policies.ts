@@ -2,7 +2,7 @@ import { ratelimit } from "./ratelimit";
 
 type RatelimitWindow = Parameters<typeof ratelimit>[1] & string;
 
-export type RatelimitMessageContext = {
+type RatelimitMessageContext = {
   retryAfter: string;
   attempts: number;
   window: string;

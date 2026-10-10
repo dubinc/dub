@@ -31,7 +31,7 @@ type PartnerDiscountOverridePartner = Pick<
   "id" | "name" | "email" | "image" | "groupId" | "discountId"
 >;
 
-export type PartnerDiscountOverrideTarget =
+type PartnerDiscountOverrideTarget =
   | {
       type: "partner";
       partner: PartnerDiscountOverridePartner;

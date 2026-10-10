@@ -1,7 +1,7 @@
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { PLANS } from "@dub/utils";
 
-export type PlanSummary = {
+type PlanSummary = {
   name: string;
   order: number;
   featureTitle?: string;

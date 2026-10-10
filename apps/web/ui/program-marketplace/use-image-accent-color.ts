@@ -73,7 +73,7 @@ function extractTint(img: HTMLImageElement): string | null {
 // `null` means "extracted but no usable color"; `undefined` means "not computed".
 const cache = new Map<string, string | null>();
 
-export type ImageAccentColor = {
+type ImageAccentColor = {
   color: string | null;
   ready: boolean;
 };

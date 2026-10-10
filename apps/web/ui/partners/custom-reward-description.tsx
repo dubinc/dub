@@ -9,9 +9,7 @@ type CustomRewardDescriptionInput = Pick<
   "type" | "amountInCents" | "amountInPercentage" | "maxDuration" | "config"
 >;
 
-export function getCustomRewardDescriptionParts(
-  reward: CustomRewardDescriptionInput,
-) {
+function getCustomRewardDescriptionParts(reward: CustomRewardDescriptionInput) {
   const amount = constructRewardAmount(reward);
   const parsed = customRewardConfigSchema.safeParse(reward.config);
   const config = parsed.success ? parsed.data : undefined;

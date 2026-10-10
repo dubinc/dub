@@ -2,7 +2,7 @@ import { cn } from "@dub/utils";
 import { LayoutGroup, motion } from "motion/react";
 import { ComponentType, SVGProps, useId } from "react";
 
-export type SheetTab = {
+type SheetTab = {
   id: string;
   label: string;
   icon: ComponentType<SVGProps<SVGSVGElement>>;

@@ -335,7 +335,7 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
   );
 }
 
-export function InvitePartnerSheet({
+function InvitePartnerSheet({
   isOpen,
   ...rest
 }: InvitePartnerSheetProps & {

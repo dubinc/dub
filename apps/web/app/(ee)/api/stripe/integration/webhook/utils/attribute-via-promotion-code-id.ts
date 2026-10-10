@@ -20,7 +20,7 @@ import type Stripe from "stripe";
 import { getPromotionCode } from "./get-promotion-code";
 import { incrementLinkLeads } from "./increment-link-leads";
 
-export type PromoCodeCustomerDetails = {
+type PromoCodeCustomerDetails = {
   name?: string | null;
   email?: string | null;
   address?: Pick<Stripe.Address, "country" | "state"> | null;

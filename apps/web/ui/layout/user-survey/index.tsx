@@ -64,7 +64,7 @@ export default function UserSurveyButton() {
   );
 }
 
-export function UserSurveyPopupInner({ hide }: { hide: () => void }) {
+function UserSurveyPopupInner({ hide }: { hide: () => void }) {
   const { update } = useSession();
 
   const [status, setStatus] = useState<UserSurveyStatus>("idle");

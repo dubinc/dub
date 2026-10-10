@@ -1,6 +1,6 @@
 import { getDaysDifference } from "@dub/utils";
 
-export type DateRangeValidationResult =
+type DateRangeValidationResult =
   | { valid: true }
   | {
       valid: false;

@@ -162,7 +162,7 @@ export async function claimDotLinkDomain({
   return response;
 }
 
-export const sendDomainClaimedEmails = async ({
+const sendDomainClaimedEmails = async ({
   workspace,
   domain,
 }: {

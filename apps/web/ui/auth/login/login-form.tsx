@@ -18,15 +18,9 @@ import { GitHubButton } from "./github-button";
 import { GoogleButton } from "./google-button";
 import { SSOSignIn } from "./sso-sign-in";
 
-export const authMethods = [
-  "google",
-  "github",
-  "email",
-  "saml",
-  "password",
-] as const;
+const authMethods = ["google", "github", "email", "saml", "password"] as const;
 
-export type AuthMethod = (typeof authMethods)[number];
+type AuthMethod = (typeof authMethods)[number];
 
 export const errorCodes = {
   "no-credentials": "Please provide an email and password.",

@@ -4,7 +4,7 @@ import { VerificationToken } from "@prisma/client";
 import { hashToken } from "./hash-token";
 import { hasPermission } from "./partner-users/partner-user-permissions";
 
-export type EmailChangeAuthErrorReason = "invalid_token" | "unauthorized";
+type EmailChangeAuthErrorReason = "invalid_token" | "unauthorized";
 
 const EMAIL_CHANGE_AUTH_ERROR_MESSAGES: Record<
   EmailChangeAuthErrorReason,

@@ -234,7 +234,7 @@ function AddEditEmailDomainModalContent({
   );
 }
 
-export function AddEditEmailDomainModal({
+function AddEditEmailDomainModal({
   isOpen,
   setIsOpen,
   emailDomain,

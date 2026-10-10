@@ -8,7 +8,7 @@ import { PartnerStatusBadges } from "@/ui/partners/partner-status-badges";
 import { StatusBadge } from "@dub/ui";
 import { Lock } from "@dub/ui/icons";
 
-export const ProgramNetworkStatusBadges = {
+const ProgramNetworkStatusBadges = {
   ...PartnerStatusBadges,
   approved: {
     ...PartnerStatusBadges.approved,

@@ -8,7 +8,7 @@ import { waitUntil } from "@vercel/functions";
 import he from "he";
 import { parse } from "node-html-parser";
 
-export const getHtml = async (url: string) => {
+const getHtml = async (url: string) => {
   try {
     const response = await fetchWithTimeout(url);
 
@@ -41,7 +41,7 @@ export const getHtml = async (url: string) => {
   }
 };
 
-export const getHeadChildNodes = (html) => {
+const getHeadChildNodes = (html) => {
   const ast = parse(html); // parse the html into AST format with node-html-parser
   const metaTags = ast.querySelectorAll("meta").map(({ attributes }) => {
     const property = attributes.property || attributes.name || attributes.href;

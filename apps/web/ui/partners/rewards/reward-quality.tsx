@@ -5,7 +5,7 @@ import { cn } from "@dub/utils";
 import type { EventType, RewardStructure } from "@prisma/client";
 import { AnimatePresence, motion } from "motion/react";
 
-export type RewardQuality = "low" | "good" | "strong" | "limited";
+type RewardQuality = "low" | "good" | "strong" | "limited";
 
 export const getRewardQuality = ({
   event,

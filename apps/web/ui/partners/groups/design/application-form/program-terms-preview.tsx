@@ -96,5 +96,3 @@ export default function ProgramTermsPreview() {
     </div>
   );
 }
-
-export { PROGRAM_TERMS_CHANNEL };

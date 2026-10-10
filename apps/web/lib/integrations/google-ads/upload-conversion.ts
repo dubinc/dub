@@ -97,7 +97,7 @@ export const queueGoogleAdsConversionUpload = async (
   }
 };
 
-export type GoogleAdsConversionUploadResult = {
+type GoogleAdsConversionUploadResult = {
   message: string;
   status: "failed" | "skipped" | "uploaded";
 };

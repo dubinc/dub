@@ -16,7 +16,7 @@ import { cn } from "@dub/utils";
 import { Drawer } from "vaul";
 import { MARKETPLACE_SORT_OPTIONS } from "./utils/constants";
 
-export type MarketplaceFilterSortSheetProps = {
+type MarketplaceFilterSortSheetProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   filters: FilterConfig[];

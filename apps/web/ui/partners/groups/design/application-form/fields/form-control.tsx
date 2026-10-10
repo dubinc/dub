@@ -1,7 +1,7 @@
 import { cn } from "@dub/utils";
 import { HTMLAttributes } from "react";
 
-export type FormControlProps = {
+type FormControlProps = {
   label: string;
   required?: boolean;
   helperText?: string;

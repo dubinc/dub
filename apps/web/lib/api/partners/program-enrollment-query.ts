@@ -57,7 +57,7 @@ export function buildPartnerEmailSearchWhere({
   return {};
 }
 
-export type PartnerEnrollmentQueryFilters = Omit<
+type PartnerEnrollmentQueryFilters = Omit<
   z.infer<typeof getPartnersQuerySchemaExtended>,
   "sortBy" | "sortOrder" | "page" | "pageSize" | "includePartnerPlatforms"
 > & {

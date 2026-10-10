@@ -15,7 +15,7 @@ export const STAGE_VALUE_KEY: Record<
   approved: "approvals",
 };
 
-export const MARKETPLACE_REFERRAL_SOURCE = "marketplace";
+const MARKETPLACE_REFERRAL_SOURCE = "marketplace";
 
 export const getReferralSourceDisplayValue = (referralSource: string) => {
   if (referralSource === MARKETPLACE_REFERRAL_SOURCE)

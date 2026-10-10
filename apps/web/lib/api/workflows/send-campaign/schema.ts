@@ -57,7 +57,7 @@ export const SEND_CAMPAIGN_OPERATOR_KEYS = Object.keys(
   SEND_CAMPAIGN_OPERATORS,
 ) as readonly (keyof typeof SEND_CAMPAIGN_OPERATORS)[];
 
-export const sendCampaignConditionSchema = z.object({
+const sendCampaignConditionSchema = z.object({
   attribute: z.enum(SEND_CAMPAIGN_ATTRIBUTE_KEYS),
   operator: z.enum(SEND_CAMPAIGN_OPERATOR_KEYS).default("gte"),
   value: z.number(),

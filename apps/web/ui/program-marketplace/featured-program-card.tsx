@@ -24,7 +24,7 @@ const FEATURED_CARD_BACKGROUNDS = [
   "#F7FEE7", // lime-50
 ];
 
-export function getFeaturedCardBackground(index: number) {
+function getFeaturedCardBackground(index: number) {
   return FEATURED_CARD_BACKGROUNDS[
     ((index % FEATURED_CARD_BACKGROUNDS.length) +
       FEATURED_CARD_BACKGROUNDS.length) %

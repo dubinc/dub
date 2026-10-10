@@ -42,7 +42,7 @@ type PartnerRewardOverridePartner = Pick<
   | "saleRewardId"
 >;
 
-export type PartnerRewardOverrideTarget =
+type PartnerRewardOverrideTarget =
   | {
       type: "partner";
       partner: PartnerRewardOverridePartner;

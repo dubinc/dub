@@ -93,7 +93,7 @@ const actionSchema = z.enum([
   "bounty_submission.reopened",
 ]);
 
-export const auditLogTarget = z.union([
+const auditLogTarget = z.union([
   z.object({
     type: z.literal("program"),
     id: z.string(),

@@ -16,7 +16,7 @@ import {
 } from "./page-content-header";
 import { ToggleSidePanelButton } from "./toggle-side-panel-button";
 
-export const PageContentWithSidePanelContext = createContext<{
+const PageContentWithSidePanelContext = createContext<{
   isSidePanelOpen: boolean;
   setIsSidePanelOpen: Dispatch<SetStateAction<boolean>>;
 }>({

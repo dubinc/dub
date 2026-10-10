@@ -1,7 +1,7 @@
 import slugify from "@sindresorhus/slugify";
 import * as z from "zod/v4";
 
-export const toltImportSteps = z.enum([
+const toltImportSteps = z.enum([
   "import-partners",
   "import-links",
   "import-customers",

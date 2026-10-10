@@ -4,7 +4,7 @@ import { cn } from "@dub/utils";
 import { Category } from "@prisma/client";
 import Link from "next/link";
 
-export const programCategorySurfaceClassName =
+const programCategorySurfaceClassName =
   "inline-flex h-5 max-h-5 min-w-0 items-center gap-1 rounded-full bg-neutral-900/[0.06] px-2 text-xs font-medium text-neutral-900 shadow-[0_0.5px_1px_0_rgba(0,0,0,0.03)] ring-1 ring-inset ring-neutral-900/[0.05] backdrop-blur-[3px] backdrop-saturate-150 transition-[background-color,transform] duration-150 ease-out [@media(hover:hover)]:hover:bg-neutral-900/[0.09] active:scale-[0.97] motion-reduce:transition-none motion-reduce:active:scale-100 [@media(hover:none)]:hover:bg-neutral-900/[0.06]";
 
 export const ProgramCategory = ({

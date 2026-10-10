@@ -5,7 +5,7 @@ import * as z from "zod/v4";
 import { DiscountProps } from "../types";
 import useWorkspace from "./use-workspace";
 
-export type DiscountListItem = DiscountProps & {
+type DiscountListItem = DiscountProps & {
   groupId?: string | null;
   partnersCount?: number;
 };

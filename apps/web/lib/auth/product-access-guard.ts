@@ -3,7 +3,7 @@ import { normalizeWorkspaceId } from "../api/workspaces/workspace-id";
 
 // Hardcoded restriction of program access per workspace user.
 // Maps workspace ID -> user IDs that should NOT have access to the program.
-export const PROGRAM_ACCESS_BLOCKLIST: Record<string, string[]> = {
+const PROGRAM_ACCESS_BLOCKLIST: Record<string, string[]> = {
   [ACME_WORKSPACE_ID]: [
     "user_1KEZYSWJN73HPY852GHAEADK8", // steven+test+viewer@dub.co
   ],
@@ -30,7 +30,7 @@ export const canAccessProgram = ({
 // /api/analytics and /api/customers are intentionally omitted — both products
 // use them (e.g. link analytics vs. program analytics), so blocking at the path
 // level would break Dub Links for restricted users.
-export const PROGRAM_API_PATHS = [
+const PROGRAM_API_PATHS = [
   "/api/programs",
   "/api/partners",
   "/api/commissions",

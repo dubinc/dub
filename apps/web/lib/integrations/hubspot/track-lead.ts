@@ -248,7 +248,7 @@ const trackFinalLead = async ({
 };
 
 // Update the HubSpot contact with `dub_link` and `dub_partner_email`
-export const updateHubSpotContact = async ({
+const updateHubSpotContact = async ({
   hubSpotApi,
   contact,
   trackLeadResult,

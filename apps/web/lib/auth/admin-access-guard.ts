@@ -1,10 +1,8 @@
 // Hardcoded restriction of admin dashboard tabs per Dub admin user.
 // User IDs listed here will NOT have access to ADMIN_RESTRICTED_PATHS.
-export const ADMIN_ACCESS_BLOCKLIST: string[] = [
-  "user_1M3YFDDQ97AGTKWQ9NCSRQTYB",
-];
+const ADMIN_ACCESS_BLOCKLIST: string[] = ["user_1M3YFDDQ97AGTKWQ9NCSRQTYB"];
 
-export const ADMIN_RESTRICTED_PATHS = ["/links", "/revenue", "/domains"];
+const ADMIN_RESTRICTED_PATHS = ["/links", "/revenue", "/domains"];
 
 const ADMIN_RESTRICTED_API_PATHS = [
   "/api/admin/links",
@@ -16,7 +14,7 @@ const ADMIN_RESTRICTED_API_PATHS = [
 const matchesPath = (pathname: string, paths: string[]) =>
   paths.some((p) => pathname === p || pathname.startsWith(`${p}/`));
 
-export const isAdminAccessRestricted = (userId?: string | null): boolean =>
+const isAdminAccessRestricted = (userId?: string | null): boolean =>
   !!userId && ADMIN_ACCESS_BLOCKLIST.includes(userId);
 
 export const canAccessAdminPath = ({

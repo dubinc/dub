@@ -316,7 +316,7 @@ export function getImageSettings(
   return { x, y, h, w, excavation };
 }
 
-export function convertImageSettingsToPixels(
+function convertImageSettingsToPixels(
   calculatedImageSettings: {
     x: number;
     y: number;

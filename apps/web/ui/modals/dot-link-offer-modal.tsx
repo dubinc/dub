@@ -136,7 +136,7 @@ export function useDotLinkOfferModal() {
   );
 }
 
-export function Hero() {
+function Hero() {
   const { slug } = useWorkspace();
 
   return (

@@ -108,7 +108,7 @@ export async function finalizePremiumDomainRegistration({
   return `Premium domain ${domain} registered successfully.`;
 }
 
-export const sendDomainRegisteredEmails = async ({
+const sendDomainRegisteredEmails = async ({
   workspace,
   domain,
 }: {

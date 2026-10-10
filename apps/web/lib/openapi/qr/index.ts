@@ -4,7 +4,7 @@ import { getQRCodeQuerySchema } from "@/lib/zod/schemas/qr";
 import * as z from "zod/v4";
 import { openApiErrorResponses } from "../responses";
 
-export const getQRCode: ZodOpenApiOperationObject = {
+const getQRCode: ZodOpenApiOperationObject = {
   operationId: "getQRCode",
   "x-speakeasy-name-override": "get",
   summary: "Retrieve a QR code",

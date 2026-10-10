@@ -14,7 +14,7 @@ import {
   PartnerStackPartner,
 } from "./types";
 
-export const PARTNERSTACK_PAGE_LIMIT = 100;
+const PARTNERSTACK_PAGE_LIMIT = 100;
 
 export class PartnerStackApi {
   private readonly baseUrl = "https://api.partnerstack.com/api/v2";
