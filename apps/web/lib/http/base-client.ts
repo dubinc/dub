@@ -1,4 +1,5 @@
 import { logger } from "@/lib/axiom/server";
+import { sleep } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
 
@@ -6,6 +7,20 @@ const DEFAULT_TIMEOUT_MS = 30_000;
 const MAX_LOGGED_BODY_LENGTH = 2_000;
 
 type QueryValue = string | number | boolean | null | undefined;
+
+export interface HttpRetryOptions {
+  attempts: number;
+  delay: number;
+  maxDelay?: number;
+}
+
+const DEFAULT_MAX_RETRY_DELAY_MS = 30_000;
+
+const RETRYABLE_STATUS_CODES = new Set([408, 429]);
+
+function isRetryableStatus(status: number) {
+  return RETRYABLE_STATUS_CODES.has(status) || status >= 500;
+}
 
 export interface HttpRequestOptions<
   TInput extends z.ZodType = z.ZodType,
@@ -105,16 +120,20 @@ export abstract class HttpBaseClient {
 
   private readonly debug: boolean;
   private readonly timeout: number;
+  private readonly retry: HttpRetryOptions | undefined;
 
   constructor({
     debug,
     timeout,
+    retry,
   }: {
     debug?: boolean;
     timeout?: number;
+    retry?: HttpRetryOptions;
   } = {}) {
     this.debug = debug ?? process.env.NODE_ENV === "development";
     this.timeout = timeout ?? DEFAULT_TIMEOUT_MS;
+    this.retry = retry;
   }
 
   async get<TInput extends z.ZodType, TOutput extends z.ZodType>(
@@ -217,39 +236,63 @@ export abstract class HttpBaseClient {
 
     Object.assign(headers, await this.buildAuthHeaders(), options.headers);
 
-    const signal =
-      options.signal ?? AbortSignal.timeout(options.timeout ?? this.timeout);
+    const maxRetries = this.retry?.attempts ?? 0;
 
     let response: Response;
 
-    try {
-      response = await fetch(url, {
-        method,
-        headers,
-        body,
-        signal,
-      });
-    } catch (error) {
-      const reason = error instanceof Error ? error.message : String(error);
-      const message = `[${this.vendor}] ${method} ${safeUrl} network error: ${reason}`;
+    for (let attempt = 0; ; attempt++) {
+      const canRetry = attempt < maxRetries && !options.signal?.aborted;
 
-      waitUntil(
-        this.logError(message, {
+      try {
+        response = await fetch(url, {
+          method,
+          headers,
+          body,
+          signal:
+            options.signal ??
+            AbortSignal.timeout(options.timeout ?? this.timeout),
+        });
+      } catch (error) {
+        const reason = error instanceof Error ? error.message : String(error);
+
+        if (canRetry) {
+          await this.waitBeforeRetry({ method, url: safeUrl, attempt, reason });
+          continue;
+        }
+
+        const message = `[${this.vendor}] ${method} ${safeUrl} network error: ${reason}`;
+
+        waitUntil(
+          this.logError(message, {
+            method,
+            url: safeUrl,
+            status: null,
+            error: reason,
+          }),
+        );
+
+        throw new HttpClientError({
+          vendor: this.vendor,
           method,
           url: safeUrl,
           status: null,
-          error: reason,
-        }),
-      );
+          responseBody: null,
+          message,
+        });
+      }
 
-      throw new HttpClientError({
-        vendor: this.vendor,
-        method,
-        url: safeUrl,
-        status: null,
-        responseBody: null,
-        message,
-      });
+      if (!response.ok && canRetry && isRetryableStatus(response.status)) {
+        await response.body?.cancel();
+        await this.waitBeforeRetry({
+          method,
+          url: safeUrl,
+          attempt,
+          reason: `status ${response.status}`,
+        });
+        continue;
+      }
+
+      break;
     }
 
     const text = await response.text();
@@ -321,6 +364,32 @@ export abstract class HttpBaseClient {
     }
 
     return parsed.data as z.output<TOutput>;
+  }
+
+  private async waitBeforeRetry({
+    method,
+    url,
+    attempt,
+    reason,
+  }: {
+    method: string;
+    url: string;
+    attempt: number;
+    reason: string;
+  }) {
+    const backoff = Math.min(
+      this.retry?.maxDelay ?? DEFAULT_MAX_RETRY_DELAY_MS,
+      (this.retry?.delay ?? 0) * 2 ** attempt,
+    );
+    const delay = Math.round(Math.random() * backoff);
+
+    if (this.debug) {
+      console.log(
+        `[${this.vendor}] ${method} ${url} failed (${reason}), retrying in ${delay}ms (retry ${attempt + 1}/${this.retry?.attempts})`,
+      );
+    }
+
+    await sleep(delay);
   }
 
   private buildQueryParams(

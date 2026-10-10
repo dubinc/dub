@@ -1,7 +1,7 @@
 import { PARTNER_PLATFORMS_PROVIDERS } from "@/lib/api/partner-profile/partner-platforms-providers";
-import { getSocialProfile } from "@/lib/api/scrape-creators/get-social-profile";
 import { getSession } from "@/lib/auth/utils";
 import { prisma } from "@/lib/prisma";
+import { getSocialProfile } from "@/lib/scrape-creators/get-social-profile";
 import { redis } from "@/lib/upstash/redis";
 import {
   getSearchParams,
