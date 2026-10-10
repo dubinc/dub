@@ -30,6 +30,7 @@ export default function useProgramEnrollments(
     fetcher,
     {
       dedupingInterval: 60000,
+      keepPreviousData: true,
     },
   );
 

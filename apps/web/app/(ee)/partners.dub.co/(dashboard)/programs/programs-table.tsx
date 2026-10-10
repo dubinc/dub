@@ -18,8 +18,8 @@ import {
   useRouterStuff,
   useTable,
 } from "@dub/ui";
-import { Check, Copy, LinesY, Link4 } from "@dub/ui/icons";
-import { cn, currencyFormatter, formatDate, getPrettyUrl } from "@dub/utils";
+import { Check, Copy } from "@dub/ui/icons";
+import { currencyFormatter, formatDate, getPrettyUrl } from "@dub/utils";
 import { ColumnDef } from "@tanstack/react-table";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -137,7 +137,7 @@ function getColumns(tab: ProgramTab): ProgramColumn[] {
         },
         {
           id: "activity",
-          header: "Activity",
+          header: "Activity (last 12 months)",
           size: 180,
           cell: ({ row }) => (
             <ProgramActivity programEnrollment={row.original} />
@@ -247,14 +247,12 @@ function EnrollmentStatusBadge({
   );
 }
 
-// the partner's default link: click to copy, or open its analytics. The icons
-// show on hover, and always on touch devices, which have no hover.
 function ProgramLinkChip({
   programEnrollment,
 }: {
   programEnrollment: ProgramEnrollmentProps;
 }) {
-  const { program, group } = programEnrollment;
+  const { group } = programEnrollment;
   const link = programEnrollment.links?.[0];
   const [copied, copyToClipboard] = useCopyToClipboard();
 
@@ -265,8 +263,7 @@ function ProgramLinkChip({
   const partnerLink = constructPartnerLink({ group, link });
 
   return (
-    <div className="group/chip flex w-fit max-w-full items-center gap-1 rounded-md px-1.5 py-0.5 transition-colors hover:bg-neutral-100">
-      {/* not hoverable, so that the pointer can move on to the analytics icon */}
+    <div className="-ml-1.5 flex w-fit max-w-full items-center gap-1 rounded-md px-1.5 py-0.5 transition-colors hover:bg-neutral-100">
       <Tooltip
         content={copied ? "Copied" : "Copy link"}
         disableHoverableContent
@@ -279,25 +276,13 @@ function ProgramLinkChip({
             copyToClipboard(partnerLink);
           }}
         >
-          <Link4 className="size-3.5 shrink-0" />
           <span className="truncate">{getPrettyUrl(partnerLink)}</span>
           {copied ? (
             <Check className="size-3.5 shrink-0" />
           ) : (
-            <Copy className="size-3.5 shrink-0 transition-opacity [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover/chip:opacity-100" />
+            <Copy className="size-3.5 shrink-0" />
           )}
         </button>
-      </Tooltip>
-      <Tooltip content="View analytics">
-        <Link
-          href={`/programs/${program.slug}/analytics?linkId=${link.id}`}
-          onClick={(e) => e.stopPropagation()}
-          className={cn(
-            "shrink-0 rounded p-0.5 text-neutral-500 transition-opacity hover:text-neutral-800 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover/chip:opacity-100",
-          )}
-        >
-          <LinesY className="size-3.5" />
-        </Link>
       </Tooltip>
     </div>
   );
@@ -311,10 +296,18 @@ function ProgramActivity({
   const data = usePartnerProgramActivity(programEnrollment.programId);
 
   return (
-    <div className="h-6 w-36">
-      {data && (
-        <MiniAreaChart data={data} padding={{ top: 2, bottom: 2 }} fadeIn />
-      )}
-    </div>
+    <Tooltip content="View analytics">
+      <Link
+        href={`/programs/${programEnrollment.program.slug}/analytics`}
+        onClick={(e) => e.stopPropagation()}
+        className="-ml-1.5 block w-fit rounded-md px-1.5 py-0.5 transition-colors hover:bg-neutral-100"
+      >
+        <div className="h-6 w-36">
+          {data && (
+            <MiniAreaChart data={data} padding={{ top: 2, bottom: 2 }} fadeIn />
+          )}
+        </div>
+      </Link>
+    </Tooltip>
   );
 }
