@@ -1,4 +1,5 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
+import { safeFetch } from "@/lib/api/safe-fetch";
 import { ratelimitOrThrow } from "@/lib/api/utils";
 import { getUrlQuerySchema } from "@/lib/zod/schemas/links";
 import { fetchWithTimeout } from "@dub/utils";
@@ -41,12 +42,11 @@ export async function GET(req: NextRequest) {
 
     urlObject.pathname = "/xyz";
 
-    const headers = await fetchWithTimeout(urlObject.toString(), {
-      headers: {
-        method: "HEAD",
-      },
-      redirect: "manual",
-    })
+    const headers = await safeFetch(
+      urlObject.toString(),
+      { method: "HEAD" },
+      { maxRedirects: 0 },
+    )
       .then((r) => ({
         engine: r.headers.get("engine"),
         poweredBy: r.headers.get("x-powered-by"),
