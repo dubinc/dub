@@ -386,9 +386,9 @@ export async function getQRAsSVGDataUri(props: QRProps) {
     )
     .join("");
 
+  // Omit the background fill so downloaded SVGs have a transparent background.
   const svgData = [
     `<svg xmlns="http://www.w3.org/2000/svg" height="${size}" width="${size}" viewBox="0 0 ${numCells} ${numCells}">`,
-    `<path fill="${bgColor}" d="M0,0 h${numCells}v${numCells}H0z" shape-rendering="crispEdges"></path>`,
     `<path fill="${fgColor}" d="${fgPath}" shape-rendering="crispEdges"></path>`,
     finderSVG,
     image,
