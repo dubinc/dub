@@ -71,8 +71,8 @@ test.describe("Partner All programs Overview", () => {
       });
 
       await expect(tasks).toBeVisible();
-      await expect(invitationsTask).toContainText("1");
-      await expect(messagesTask).toContainText("0");
+      await expect(invitationsTask).toHaveText(/^Review new invitations\s*1$/);
+      await expect(messagesTask).toHaveText(/^Respond to programs\s*0$/);
 
       await page.setViewportSize(MOBILE_VIEWPORT);
       await expect(tasks).toBeVisible();
@@ -103,8 +103,8 @@ test.describe("Partner All programs Overview", () => {
 
       await page.setViewportSize(DESKTOP_VIEWPORT);
       await expect(tasks).toBeVisible();
-      await expect(invitationsTask).toContainText("0");
-      await expect(messagesTask).toContainText("0");
+      await expect(invitationsTask).toHaveText(/^Review new invitations\s*0$/);
+      await expect(messagesTask).toHaveText(/^Respond to programs\s*0$/);
     } finally {
       if (userId) await prisma.user.delete({ where: { id: userId } });
       await deletePartner(partnerId);
