@@ -85,8 +85,8 @@ export const GET = withWorkspace(
     return NextResponse.json(z.array(responseSchema).parse(links));
   },
   {
+    requiredPermissions: ["links.read"],
     requiredPlan: ["business", "advanced", "enterprise"],
-    requiredRoles: ["owner", "member"],
   },
 );
 
@@ -263,7 +263,7 @@ export const POST = withWorkspace(
     });
   },
   {
+    requiredPermissions: ["links.write"],
     requiredPlan: ["business", "advanced", "enterprise"],
-    requiredRoles: ["owner", "member"],
   },
 );

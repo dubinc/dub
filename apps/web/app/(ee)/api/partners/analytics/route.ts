@@ -207,6 +207,7 @@ export const GET = withWorkspace(
     return NextResponse.json(topLinksWithEarnings);
   },
   {
+    requiredPermissions: ["partners.read"],
     requiredPlan: ["business", "advanced", "enterprise"],
   },
 );

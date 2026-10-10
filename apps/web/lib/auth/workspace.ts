@@ -13,7 +13,11 @@ import {
   PermissionAction,
   getPermissionsByRole,
 } from "../api/rbac/permissions";
-import { Scope, mapScopesToPermissions } from "../api/tokens/scopes";
+import {
+  Scope,
+  grantLegacyScopePermissions,
+  mapScopesToPermissions,
+} from "../api/tokens/scopes";
 import { throwIfNoAccess } from "../api/tokens/throw-if-no-access";
 import { normalizeWorkspaceId } from "../api/workspaces/workspace-id";
 import { withAxiomBodyLog } from "../axiom/server";
@@ -182,8 +186,14 @@ export const withWorkspace = (
                 expires: true,
                 ...(isRestrictedToken && {
                   scopes: true,
+                  createdAt: true,
                   projectId: true,
                   installationId: true,
+                  installedIntegration: {
+                    select: {
+                      createdAt: true,
+                    },
+                  },
                   project: {
                     select: {
                       plan: true,
@@ -404,7 +414,8 @@ export const withWorkspace = (
           workspace.users[0].role = "owner";
         }
 
-        permissions = getPermissionsByRole(workspace.users[0].role);
+        const rolePermissions = getPermissionsByRole(workspace.users[0].role);
+        permissions = rolePermissions;
 
         // Find the subset of permissions that the user has access to based on the token scopes
         // Empty/null scopes must fail closed (no permissions) — never inherit full role perms
@@ -413,8 +424,19 @@ export const withWorkspace = (
             []) as Scope[];
 
           permissions = mapScopesToPermissions(tokenScopes).filter((p) =>
-            permissions.includes(p),
+            rolePermissions.includes(p),
           );
+
+          // OAuth access tokens are reissued on refresh, so grandfather the
+          // installation date. Workspace API keys use their own createdAt.
+          const scopeEffectiveSince = token?.installationId
+            ? token.installedIntegration?.createdAt
+            : token?.createdAt;
+
+          permissions = grantLegacyScopePermissions({
+            permissions,
+            createdAt: scopeEffectiveSince,
+          }).filter((p) => rolePermissions.includes(p));
         }
 
         // Check user has permission to make the action

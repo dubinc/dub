@@ -1,4 +1,4 @@
-export const RESOURCE_KEYS = [
+const RESOURCE_KEYS = [
   "links",
   "workspaces",
   "analytics",
@@ -8,6 +8,8 @@ export const RESOURCE_KEYS = [
   "tokens",
   "webhooks",
   "groups",
+  "partners",
+  "program_applications",
 ] as const;
 
 export type ResourceKey = (typeof RESOURCE_KEYS)[number];
@@ -41,5 +43,20 @@ export const RESOURCES: {
     name: "Folders",
     key: "folders",
     description: "Create, read, update, and delete folders",
+  },
+  {
+    name: "Partner groups",
+    key: "groups",
+    description: "Create, read, update, and delete partner groups",
+  },
+  {
+    name: "Partners",
+    key: "partners",
+    description: "Create, read, update, and delete partners",
+  },
+  {
+    name: "Program applications",
+    key: "program_applications",
+    description: "List, approve, and reject program applications",
   },
 ];
